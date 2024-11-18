@@ -1,0 +1,98 @@
+# Include your project-specific ignores in this file
+# Read about how to use .gitignore: https://help.github.com/articles/ignoring-files
+# Useful .gitignore templates: https://github.com/github/gitignore
+
+# Node
+node_modules
+npm-debug.log
+
+# package-lock.json files that do not belong to the root
+package-lock.json
+!./package-lock.json
+
+# Build, cache
+dist
+build-tmp
+.cache
+.esm-cache
+.sass-cache
+.tmp
+.webpack-monitor
+size-plugin.json
+temp
+.turbo
+.build
+
+# Code coverage
+coverage
+.nyc_output
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Editors
+.idea
+**/*.swp
+
+# Env settings / local env files
+.env
+.env.local
+.env.*.local
+
+# Certificates
+*.pem
+
+# Other, system file
+.DS_Store
+
+# Local redis dump
+dump.rdb
+
+# Dummy data
+dummy_user_data.json
+
+# Local .terraform directories
+**/.terraform/*
+**/.terraform
+**/.terragrunt-cache
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc
+
+# Ignore override files as they are usually used to override resources locally and so
+# are not checked in
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform lock files in modules
+.terraform.lock.hcl
+
+# Pre-commit hooks
+providers-tmp.tf
+
+# Structurizr
+workspace.json
+.structurizr/*
