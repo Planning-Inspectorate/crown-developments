@@ -1,0 +1,31 @@
+trigger: 
+  branches:
+    include:
+      - main
+      # trigger for merge queue branches
+      - gh-readonly-queue/*
+  paths:
+    include:
+    - infrastructure
+
+pr:
+  branches:
+    include:
+      - '*'
+  paths:
+    include:
+    - infrastructure
+
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      endpoint: Planning-Inspectorate
+      name: Planning-Inspectorate/common-pipeline-templates
+      ref: refs/tags/release/3.17.0
+
+extends:
+  template: pipelines/terraform_checks.yml@templates
+  parameters:
+    workingDirectory: $(Build.Repository.LocalPath)/infrastructure
+    tflintConfigPath: $(Build.Repository.LocalPath)/infrastructure/.tflint.hcl
