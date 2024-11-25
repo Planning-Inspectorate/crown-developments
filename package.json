@@ -11,7 +11,8 @@
   ],
   "scripts": {
     "lint": "npx eslint .",
-    "test": "node --test"
+    "test": "node --test",
+    "test-coverage": "node --test --experimental-test-coverage"
   },
   "dependencies": {
     "body-parser": "^1.20.3",
