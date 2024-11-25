@@ -1,7 +1,6 @@
 import bodyParser from 'body-parser';
 import crypto from 'node:crypto';
 import express from 'express';
-import session from 'express-session';
 import helmet from 'helmet';
 import {buildRouter} from './router.js';
 import {configureNunjucks} from './nunjucks.js';
