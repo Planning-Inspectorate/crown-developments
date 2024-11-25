@@ -1,0 +1,19 @@
+{
+  "name": "@pins/crowndev-lib",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "connect-redis": "^7.1.1",
+    "express-session": "^1.18.1",
+    "redis": "^4.7.0"
+  },
+  "devDependencies": {
+    "sass": "*"
+  }
+}
