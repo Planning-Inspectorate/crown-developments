@@ -1,0 +1,14 @@
+{
+	"extends": "../../jsconfig.json",
+	"include": [
+		"**/*.js"
+	],
+	"exclude": ["src/server/static", "scripts", "coverage"],
+	"files": [],
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"#util/*": ["./src/utl/*"]
+		}
+	}
+}
