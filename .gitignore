@@ -6,10 +6,6 @@
 node_modules
 npm-debug.log
 
-# package-lock.json files that do not belong to the root
-package-lock.json
-!./package-lock.json
-
 # Build, cache
 dist
 build-tmp
@@ -96,3 +92,5 @@ providers-tmp.tf
 # Structurizr
 workspace.json
 .structurizr/*
+
+.static
