@@ -44,7 +44,9 @@ export class RedisClient {
 		this.get = this.client.get;
 		this.set = this.client.set;
 
-		this.clientWrapper = new MSALCacheClient(this.client);
+		// if this is needed, need to copy MSAL cache client over from appeals
+		// https://github.com/Planning-Inspectorate/appeals-back-office/blob/main/packages/redis/src/msal-cache-client.js
+		// this.clientWrapper = new MSALCacheClient(this.client);
 	}
 }
 

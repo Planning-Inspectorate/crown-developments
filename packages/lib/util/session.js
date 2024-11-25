@@ -1,10 +1,9 @@
 import session from 'express-session';
-import { RedisClient } from './redis';
 
 /**
  * 
  * @param {object} options
- * @param {RedisClient|null} options.redis
+ * @param {import('./redis').RedisClient|null} options.redis
  * @param {string} options.secret
  * @param {boolean} options.secure
  * @returns 
