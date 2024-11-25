@@ -1,0 +1,37 @@
+{
+  "name": "crowndev-portal",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "node src/util/build.js",
+    "start": "npm run build && node src/server.js",
+    "dev": "nodemon --watch src --ext js,scss,html,njk --exec \"npm run start\"",
+    "test": "node --test"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@pins/crowndev-lib": "^0.0.0",
+    "body-parser": "*",
+    "connect-redis": "*",
+    "dotenv": "*",
+    "express": "*",
+    "express-session": "*",
+    "express-validator": "*",
+    "govuk-frontend": "*",
+    "helmet": "*",
+    "nunjucks": "*",
+    "pino": "*",
+    "pino-pretty": "*",
+    "redis": "*"
+  },
+  "devDependencies": {
+    "nodemon": "*",
+    "sass": "*"
+  },
+  "imports": {
+    "#util/*": "./src/util/*"
+  }
+}

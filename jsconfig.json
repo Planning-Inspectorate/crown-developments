@@ -1,0 +1,12 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"allowSyntheticDefaultImports": true,
+		"checkJs": true,
+		"esModuleInterop": true,
+		"moduleResolution": "node",
+		"target": "esnext",
+		"module": "es2022",
+		"strict": true
+	}
+}
