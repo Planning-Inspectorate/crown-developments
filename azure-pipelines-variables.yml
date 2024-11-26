@@ -1,0 +1,4 @@
+variables:
+  azurecrName: pinscrsharedtoolinguks
+  resourceGroup: pins-rg-crown-$(ENVIRONMENT)
+  tagPrefix: crown

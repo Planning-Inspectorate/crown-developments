@@ -4,7 +4,6 @@ trigger:
       # trigger for merge queue branches
       - gh-readonly-queue/*
 
-
 pr:
   branches:
     include:
