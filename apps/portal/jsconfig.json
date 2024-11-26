@@ -1,8 +1,6 @@
 {
 	"extends": "../../jsconfig.json",
-	"include": [
-		"**/*.js"
-	],
+	"include": ["**/*.js"],
 	"exclude": ["src/server/static", "scripts", "coverage"],
 	"files": [],
 	"compilerOptions": {
