@@ -1,15 +1,15 @@
 # variables should be sorted A-Z
 
-variable "crown_infra_config" {
-  description = "Config for the front office infra"
-  type = object({
-    deploy_connections = bool
-    network = object({
-      name = string
-      rg   = string
-    })
-  })
-}
+# variable "crown_infra_config" {
+#   description = "Config for the front office infra"
+#   type = object({
+#     deploy_connections = bool
+#     network = object({
+#       name = string
+#       rg   = string
+#     })
+#   })
+# }
 
 variable "environment" {
   description = "The name of the environment in which resources will be deployed"

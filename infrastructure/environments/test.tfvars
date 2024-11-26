@@ -1,10 +1,10 @@
-crown_infra_config = {
-  deploy_connections = true
-  network = {
-    name = "pins-vnet-common-test-ukw-001"
-    rg   = "pins-rg-common-test-ukw-001"
-  }
-}
+# crown_infra_config = {
+#   deploy_connections = true
+#   network = {
+#     name = "pins-vnet-common-test-uks-001"
+#     rg   = "pins-rg-common-test-uks-001"
+#   }
+# }
 
 environment = "test"
 
