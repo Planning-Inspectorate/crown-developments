@@ -36,4 +36,4 @@ extends:
           - template: ../steps/node_script.yml
             parameters:
               nodeVersion: 20
-              # script: npm run commitlint
+              script: npm run commitlint
