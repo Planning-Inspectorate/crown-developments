@@ -4,7 +4,6 @@ trigger:
       # trigger for merge queue branches
       - gh-readonly-queue/*
 
-
 pr:
   branches:
     include:
@@ -32,9 +31,9 @@ extends:
         steps:
           - template: ../steps/node_script.yml
             parameters:
-              nodeVersion: 20
+              nodeVersion: 22
               script: npm ci
           - template: ../steps/node_script.yml
             parameters:
-              nodeVersion: 20
+              nodeVersion: 22
               script: npm run commitlint

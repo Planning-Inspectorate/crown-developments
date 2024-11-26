@@ -1,5 +1,5 @@
-import {test, describe} from 'node:test';
-import {strict as assert} from 'node:assert';
+import { test, describe } from 'node:test';
+import { strict as assert } from 'node:assert';
 import { parseRedisConnectionString } from './redis.js';
 
 describe('redis', () => {
@@ -64,15 +64,15 @@ describe('redis', () => {
 				}
 			}
 		];
-        for (const t of tests) {
-            test(t.name, () => {
-                if (t.error) {
-                    assert.throws(() => parseRedisConnectionString(t.str));
-                } else {
-                    const got = parseRedisConnectionString(t.str);
-                    assert.deepStrictEqual(got, t.want);
-                }
-            });
-        }
+		for (const t of tests) {
+			test(t.name, () => {
+				if (t.error) {
+					assert.throws(() => parseRedisConnectionString(t.str));
+				} else {
+					const got = parseRedisConnectionString(t.str);
+					assert.deepStrictEqual(got, t.want);
+				}
+			});
+		}
 	});
 });

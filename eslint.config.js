@@ -1,21 +1,16 @@
-import js from "@eslint/js";
-import globals from "globals";
+import js from '@eslint/js';
+import globals from 'globals';
 
 export default [
-    js.configs.recommended,
+	js.configs.recommended,
 	{
-        ignores: [
-            'dist/**',
-            'node_modules/**',
-            '**/*.min*.js',
-            '**/static/scripts/app.js'
-        ],
-        languageOptions: {
-            ecmaVersion: 2022,
-            sourceType: 'module',
-            globals: {
-                ...globals.node
-            }
-        }
-    }
+		ignores: ['dist/**', 'node_modules/**', '**/*.min*.js', '**/static/scripts/app.js'],
+		languageOptions: {
+			ecmaVersion: 2022,
+			sourceType: 'module',
+			globals: {
+				...globals.node
+			}
+		}
+	}
 ];
