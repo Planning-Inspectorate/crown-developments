@@ -1,4 +1,4 @@
-trigger: 
+trigger:
   branches:
     include:
       - main
@@ -6,7 +6,7 @@ trigger:
       - gh-readonly-queue/*
   paths:
     include:
-    - infrastructure
+      - infrastructure
 
 pr:
   branches:
@@ -14,7 +14,7 @@ pr:
       - '*'
   paths:
     include:
-    - infrastructure
+      - infrastructure
 
 resources:
   repositories:

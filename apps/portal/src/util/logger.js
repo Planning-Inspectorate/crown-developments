@@ -1,5 +1,5 @@
 import pino from 'pino';
-import {loadConfig} from '../app/config.js';
+import { loadConfig } from '../app/config.js';
 
 /**
  * Cache the logger instance
@@ -11,32 +11,32 @@ let logger;
  * @returns {import('pino').Logger}
  */
 export function getLogger() {
-    if (logger) {
-        return logger;
-    }
-    const config = loadConfig();
+	if (logger) {
+		return logger;
+	}
+	const config = loadConfig();
 
-    // pino-pretty options: https://github.com/pinojs/pino-pretty?tab=readme-ov-file#options
-    const transport = {
-        targets: [
-            {
-                target: 'pino-pretty',
-                level: config.logLevel,
-                options: {
-                    ignore: 'pid,hostname',
-                    colorize: true,
-                    translateTime: 'HH:MM:ss.l'
-                }
-            }
-        ]
-    };
+	// pino-pretty options: https://github.com/pinojs/pino-pretty?tab=readme-ov-file#options
+	const transport = {
+		targets: [
+			{
+				target: 'pino-pretty',
+				level: config.logLevel,
+				options: {
+					ignore: 'pid,hostname',
+					colorize: true,
+					translateTime: 'HH:MM:ss.l'
+				}
+			}
+		]
+	};
 
-    // configure the pino logger for use within the app
-    logger = pino({
-        timestamp: pino.stdTimeFunctions.isoTime,
-	    level: config.logLevel,
-        // only pretty print in dev
-	    transport: config.NODE_ENV === 'production' ? undefined : transport
-    });
-    return logger;
+	// configure the pino logger for use within the app
+	logger = pino({
+		timestamp: pino.stdTimeFunctions.isoTime,
+		level: config.logLevel,
+		// only pretty print in dev
+		transport: config.NODE_ENV === 'production' ? undefined : transport
+	});
+	return logger;
 }

@@ -22,12 +22,11 @@ export class RedisClient {
 			password: redisParams.password,
 			// send a ping every 5 minutes to prevent idle timeout (10mins in Azure)
 			// https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-best-practices-connection#idle-timeout
-			pingInterval: FIVE_MINUTES_MS 
+			pingInterval: FIVE_MINUTES_MS
 		});
 
 		/** @param {Error} err */
-		const onError = (err) =>
-			logger.error(`Could not establish a connection with redis server: ${err}`);
+		const onError = (err) => logger.error(`Could not establish a connection with redis server: ${err}`);
 
 		this.client.on('connect', () => logger.info('Initiating connection to redis server...'));
 		this.client.on('ready', () => logger.info('Connected to redis server successfully...'));
