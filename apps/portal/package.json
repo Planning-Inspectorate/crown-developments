@@ -5,9 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "dev": "npm run build && nodemon --watch src --ext js,scss,html,njk --exec \"npm run start\"",
     "build": "node src/util/build.js",
-    "start": "npm run build && node src/server.js",
-    "dev": "nodemon --watch src --ext js,scss,html,njk --exec \"npm run start\"",
+    "start": "node src/server.js",
     "test": "node --test"
   },
   "author": "",
