@@ -1,8 +1,8 @@
 # crown_infra_config = {
 #   deploy_connections = true
 #   network = {
-#     name = "pins-vnet-common-dev-uks-001"
-#     rg   = "pins-rg-common-dev-uks-001"
+#     name = "pins-vnet-common-dev-ukw-001"
+#     rg   = "pins-rg-common-dev-ukw-001"
 #   }
 # }
 
