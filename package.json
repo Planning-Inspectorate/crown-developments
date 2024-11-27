@@ -13,7 +13,7 @@
     "format": "prettier --write .",
     "format-check": "prettier --check .",
     "lint": "npx eslint .",
-    "prepare": "husky",
+    "prepare": "node .husky/install.mjs",
     "test": "node --test",
     "test-coverage": "node --test --experimental-test-coverage"
   },
