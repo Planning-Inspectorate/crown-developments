@@ -24,8 +24,6 @@ extends:
   template: stages/wrapper_ci.yml@templates
   parameters:
     gitFetchDepth: 0
-    globalVariables:
-      - template: azure-pipelines-variables.yml@self
     validationJobs:
       - name: Check Commits
         steps:
