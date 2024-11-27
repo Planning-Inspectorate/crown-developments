@@ -19,12 +19,7 @@ export function loadConfig() {
 	// get values from the environment
 	const { LOG_LEVEL, HTTP_PORT, NODE_ENV, SESSION_SECRET } = process.env;
 
-	// get the file path for the directory this file is in
-	const dirname = path.dirname(fileURLToPath(import.meta.url));
-	// get the file path for the src directory
-	const srcDir = path.join(dirname, '..');
-	// get the file path for the .static directory
-	const staticDir = path.join(srcDir, '.static');
+	const buildConfig = loadBuildConfig();
 
 	if (!SESSION_SECRET) {
 		throw new Error('SESSION_SECRET is required');
@@ -46,13 +41,31 @@ export function loadConfig() {
 		// the HTTP port to listen on
 		httpPort: httpPort,
 		// the src directory
-		srcDir,
+		srcDir: buildConfig.srcDir,
 		session: {
 			secret: SESSION_SECRET
 		},
 		// the static directory to serve assets from (images, css, etc..)
-		staticDir
+		staticDir: buildConfig.staticDir
 	};
 
 	return config;
+}
+
+/**
+ * Config required for the build script
+ * @returns {{srcDir: string, staticDir: string}}
+ */
+export function loadBuildConfig() {
+	// get the file path for the directory this file is in
+	const dirname = path.dirname(fileURLToPath(import.meta.url));
+	// get the file path for the src directory
+	const srcDir = path.join(dirname, '..');
+	// get the file path for the .static directory
+	const staticDir = path.join(srcDir, '.static');
+
+	return {
+		srcDir,
+		staticDir
+	};
 }
