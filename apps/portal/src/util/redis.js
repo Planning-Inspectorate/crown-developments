@@ -1,6 +1,6 @@
-import { RedisClient } from '@pins/crowndev-lib/util/redis';
-import { loadConfig } from '../app/config';
-import { getLogger } from './logger';
+import { RedisClient } from '@pins/crowndev-lib/util/redis.js';
+import { loadConfig } from '../app/config.js';
+import { getLogger } from './logger.js';
 
 /**
  * Cache the redis instance
