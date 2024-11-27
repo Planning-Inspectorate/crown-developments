@@ -23,13 +23,9 @@ RUN npm run build --workspace=crowndev-manage
 # --------------------------------
 
 # Stage 2/2 - App run
-FROM node:22-alpine
+FROM base
 
 ARG GIT_SHA
-
-WORKDIR /usr/src/app
-
-COPY --from=base /usr/src/app ./
 
 WORKDIR /usr/src/app/apps/manage
 
