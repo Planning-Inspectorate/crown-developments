@@ -13,7 +13,7 @@ COPY package-lock.json .
 COPY packages ./packages
 COPY apps/portal ./apps/portal
 
-RUN npm ci --loglevel notice --workspace=crowndev-portal
+RUN npm ci --loglevel notice --workspace=crowndev-portal --ignore-scripts
 
 ENV NODE_ENV=production
 ENV GIT_SHA=$GIT_SHA
