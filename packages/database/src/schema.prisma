@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("SQL_CONNECTION_STRING_ADMIN")
+}
+
+// NOTES
+//
+// use '//' comments for notes relevant to the schema
+// use '///' comments for notes that should be included in the types definition
+// see https://www.prisma.io/docs/concepts/components/prisma-schema#comments
+//
+// we use GUIDs for IDs (see https://learn.microsoft.com/en-us/sql/t-sql/data-types/uniqueidentifier-transact-sql?view=sql-server-ver16)
+// this is because these IDs may be used in URLs and it makes them harder to guess
+// while we don't rely on that for security, it adds an extra layer
+// not everything needs this, but easier to make them all consistent and the increase in size (vs int) is negligible
+
+/// CrownDevelopment represents a case in the system
+model CrownDevelopment {
+  // internal identifier
+  id        String @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  // external identifier, shown to users as a unique reference
+  reference String @unique
+}

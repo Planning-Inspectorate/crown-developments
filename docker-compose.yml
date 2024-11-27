@@ -1,0 +1,17 @@
+version: '3.7'
+services:
+  mssql:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    container_name: crowndev-mssql
+    cap_add: ['SYS_PTRACE']
+    user: root
+    init: true
+    environment:
+      - 'ACCEPT_EULA=1'
+      - 'MSSQL_SA_PASSWORD=DockerDatabaseP@22word!'
+    ports:
+      - 1433:1433
+    hostname: mssql
+    volumes:
+      - ./packages/database/src/configuration/mssql.conf:/var/opt/mssql/mssql.conf
+      - ./tmp/mssql-data:/var/opt/mssql/data

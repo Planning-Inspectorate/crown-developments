@@ -13,6 +13,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@pins/crowndev-database": "^0.0.0",
     "@pins/crowndev-lib": "^0.0.0",
     "body-parser": "*",
     "connect-redis": "*",

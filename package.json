@@ -11,6 +11,11 @@
   ],
   "scripts": {
     "commitlint": "commitlint --from=$(git cherry origin/main | head -n 1 | cut -c 3-)",
+    "db-migrate-dev": "npm run migrate-dev --workspace @pins/crowndev-database",
+    "db-migrate-prod": "npm run migrate-prod --workspace @pins/crowndev-database",
+    "db-generate": "npm run generate --workspace @pins/crowndev-database",
+    "db-seed": "npm run seed --workspace @pins/crowndev-database",
+    "db-seed-prod": "npm run seed:prod --workspace @pins/crowndev-database",
     "format": "prettier --write .",
     "format-check": "prettier --check .",
     "lint": "npx eslint .",
@@ -19,6 +24,7 @@
     "test-coverage": "node --test --experimental-test-coverage"
   },
   "dependencies": {
+    "@prisma/client": "^5.22.0",
     "body-parser": "^1.20.3",
     "connect-redis": "^7.1.1",
     "dotenv": "^16.3.1",
@@ -41,14 +47,16 @@
     "lint-staged": "^15.2.10",
     "nodemon": "^3.0.1",
     "prettier": "^3.4.0",
+    "prettier-plugin-prisma": "^5.0.0",
+    "prisma": "^5.22.0",
     "sass": "^1.64.1"
   },
   "lint-staged": {
-		"*.js": [
-			"eslint --fix"
-		],
-		"*.{js,ts,json,md,prisma,yml,yaml}*": [
-			"prettier --write"
-		]
-	}
+    "*.js": [
+      "eslint --fix"
+    ],
+    "*.{js,ts,json,md,prisma,yml,yaml}*": [
+      "prettier --write"
+    ]
+  }
 }

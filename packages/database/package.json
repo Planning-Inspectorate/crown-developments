@@ -1,0 +1,26 @@
+{
+  "name": "@pins/crowndev-database",
+  "version": "0.0.0",
+  "description": "Common sql database access",
+  "private": true,
+  "main": "./src/index.js",
+  "type": "module",
+  "prisma": {
+    "schema": "src/schema.prisma",
+    "seed": "node src/seed/seed-dev.js"
+  },
+  "scripts": {
+    "migrate-dev": "npx prisma migrate dev",
+    "migrate-prod": "npx prisma migrate deploy",
+    "generate": "npx prisma generate",
+    "seed": "npx prisma db seed",
+    "seed-prod": "npm run generate && node src/seed/seed-prod.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "*"
+  },
+  "devDependencies": {
+    "prisma": "*"
+  }
+}
