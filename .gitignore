@@ -2,6 +2,9 @@
 # Read about how to use .gitignore: https://help.github.com/articles/ignoring-files
 # Useful .gitignore templates: https://github.com/github/gitignore
 
+# local mssql
+tmp
+
 # Node
 node_modules
 npm-debug.log

@@ -6,5 +6,6 @@
 	"semi": true,
 	"trailingComma": "none",
 	"bracketSpacing": true,
-	"arrowParens": "always"
+	"arrowParens": "always",
+	"plugins": ["prettier-plugin-prisma"]
 }

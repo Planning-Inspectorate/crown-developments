@@ -17,7 +17,7 @@ export function loadConfig() {
 	dotenv.config();
 
 	// get values from the environment
-	const { LOG_LEVEL, HTTP_PORT, NODE_ENV, SESSION_SECRET } = process.env;
+	const { GIT_SHA, LOG_LEVEL, HTTP_PORT, NODE_ENV, SESSION_SECRET, SQL_CONNECTION_STRING } = process.env;
 
 	const buildConfig = loadBuildConfig();
 
@@ -35,6 +35,10 @@ export function loadConfig() {
 	}
 
 	config = {
+		database: {
+			datasourceUrl: SQL_CONNECTION_STRING
+		},
+		gitSha: GIT_SHA,
 		// the log level to use
 		logLevel: LOG_LEVEL || 'info',
 		NODE_ENV: NODE_ENV || 'development',
