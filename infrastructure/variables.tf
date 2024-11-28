@@ -1,19 +1,83 @@
 # variables should be sorted A-Z
 
-# variable "crown_infra_config" {
-#   description = "Config for the front office infra"
-#   type = object({
-#     deploy_connections = bool
-#     network = object({
-#       name = string
-#       rg   = string
-#     })
-#   })
-# }
+variable "alerts_enabled" {
+  description = "Whether to enable Azure Monitor alerts"
+  type        = string
+  default     = true
+}
+
+variable "apps_config" {
+  description = "Config for the apps"
+  type = object({
+    app_service_plan_sku     = string
+    node_environment         = string
+    private_endpoint_enabled = bool
+
+    logging = object({
+      level_file   = string
+      level_stdout = string
+    })
+
+    redis = object({
+      capacity = number
+      family   = string
+      sku_name = string
+    })
+  })
+}
+
+variable "common_config" {
+  description = "Config for the common resources, such as action groups"
+  type = object({
+    resource_group_name = string
+    action_group_names = object({
+      iap      = string
+      its      = string
+      info_sec = string
+    })
+  })
+}
 
 variable "environment" {
   description = "The name of the environment in which resources will be deployed"
   type        = string
+}
+
+variable "front_door_config" {
+  description = "Config for the frontdoor in tooling subscription"
+  type = object({
+    name        = string
+    rg          = string
+    ep_name     = string
+    use_tooling = bool
+  })
+}
+
+variable "health_check_eviction_time_in_min" {
+  description = "The eviction time in minutes for the health check"
+  type        = number
+  default     = 10
+}
+
+variable "sql_config" {
+  description = "Config for SQL Server and DB"
+  type = object({
+    admin = object({
+      login_username = string
+      object_id      = string
+    })
+    sku_name    = string
+    max_size_gb = number
+    retention = object({
+      audit_days             = number
+      short_term_days        = number
+      long_term_weekly       = string
+      long_term_monthly      = string
+      long_term_yearly       = string
+      long_term_week_of_year = number
+    })
+    public_network_access_enabled = bool
+  })
 }
 
 variable "tags" {
@@ -42,5 +106,22 @@ variable "vnet_config" {
     secondary_address_space             = string
     secondary_apps_subnet_address_space = string
     secondary_subnet_address_space      = string
+  })
+}
+
+variable "waf_rate_limits" {
+  description = "Config for Service Bus"
+  type = object({
+    enabled             = bool
+    duration_in_minutes = number
+    threshold           = number
+  })
+}
+
+variable "web_domains" {
+  description = "Settings for the web app"
+  type = object({
+    manage = string,
+    portal = string
   })
 }
