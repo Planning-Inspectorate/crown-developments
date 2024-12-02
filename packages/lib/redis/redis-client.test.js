@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import { strict as assert } from 'node:assert';
-import { parseRedisConnectionString } from './redis.js';
+import { parseRedisConnectionString } from './redis-client.js';
 
 describe('redis', () => {
 	describe('parseRedisConnectionString', () => {

@@ -9,6 +9,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@azure/msal-node": "*",
     "connect-redis": "*",
     "express-session": "*",
     "redis": "*"

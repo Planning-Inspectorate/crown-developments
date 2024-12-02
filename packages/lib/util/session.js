@@ -3,7 +3,7 @@ import session from 'express-session';
 /**
  *
  * @param {object} options
- * @param {import('./redis').RedisClient|null} options.redis
+ * @param {import('../redis/redis-client').RedisClient|null} options.redis
  * @param {string} options.secret
  * @param {boolean} options.secure
  * @returns
