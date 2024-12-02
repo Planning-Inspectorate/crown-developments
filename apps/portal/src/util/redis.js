@@ -1,15 +1,15 @@
-import { RedisClient } from '@pins/crowndev-lib/util/redis.js';
+import { RedisClient } from '@pins/crowndev-lib/redis/redis-client.js';
 import { loadConfig } from '../app/config.js';
 import { getLogger } from './logger.js';
 
 /**
  * Cache the redis instance
- * @type {import('@pins/crowndev-lib/util/redis').RedisClient}
+ * @type {import('@pins/crowndev-lib/redis/redis-client').RedisClient}
  */
 let redis;
 
 /**
- * @returns {import('@pins/crowndev-lib/util/redis').RedisClient|null}
+ * @returns {import('@pins/crowndev-lib/redis/redis-client').RedisClient|null}
  */
 export function getRedis() {
 	if (redis) {

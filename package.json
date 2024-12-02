@@ -24,6 +24,7 @@
     "test-coverage": "node --test --experimental-test-coverage"
   },
   "dependencies": {
+    "@azure/msal-node": "^2.16.2",
     "@prisma/client": "^5.22.0",
     "body-parser": "^1.20.3",
     "connect-redis": "^7.1.1",

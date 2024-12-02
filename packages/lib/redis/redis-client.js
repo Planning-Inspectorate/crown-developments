@@ -1,5 +1,8 @@
 import { createClient } from 'redis';
 import RedisStore from 'connect-redis';
+import { MSALCacheClient } from './msal-cache-client.js';
+import { PartitionManager } from './partition-manager.js';
+import { DistributedCachePlugin } from '@azure/msal-node';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
@@ -10,6 +13,7 @@ export class RedisClient {
      @param {string} [prefix] - prefix to use for shared instances
    **/
 	constructor(connString, logger, prefix) {
+		this.prefix = prefix + 'sess:';
 		this.logger = logger;
 
 		const redisParams = parseRedisConnectionString(connString);
@@ -41,15 +45,25 @@ export class RedisClient {
 		// dev note: this may 'error' in vscode, but tscheck is all OK
 		this.store = new RedisStore({
 			client: this.client,
-			prefix: prefix + 'sess:'
+			prefix: this.prefix
 		});
 
 		this.get = this.client.get;
 		this.set = this.client.set;
 
-		// if this is needed, need to copy MSAL cache client over from appeals
-		// https://github.com/Planning-Inspectorate/appeals-back-office/blob/main/packages/redis/src/msal-cache-client.js
-		// this.clientWrapper = new MSALCacheClient(this.client);
+		this.clientWrapper = new MSALCacheClient(this.client);
+	}
+
+	/**
+	 * @param {string} sessionId
+	 * @returns {import('@azure/msal-node').DistributedCachePlugin}
+	 * */
+	makeCachePlugin(sessionId) {
+		const partitionManager = new PartitionManager(this.clientWrapper, sessionId, this.logger, this.prefix);
+		return new DistributedCachePlugin(
+			this.clientWrapper,
+			/** @type {import('@azure/msal-node').IPartitionManager} */ (partitionManager)
+		);
 	}
 }
 
