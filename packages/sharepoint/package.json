@@ -1,0 +1,15 @@
+{
+  "name": "@pins/crowndev-sharepoint",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Various tools for integrating sharepoint into our codebases",
+  "main": ".src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@microsoft/microsoft-graph-client": "^3.0.7"
+  }
+}

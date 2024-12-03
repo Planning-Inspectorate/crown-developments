@@ -1,0 +1,37 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/table/macro.njk" import govukTable %}
+
+{% macro makeHtml(text, url) %}
+  <a href="{{ url }}">{{ text }}</a>
+{% endmacro %}
+
+{% set rows = [] %}
+{% for item in data %}
+  {% set row = [
+    { html: makeHtml(item.name, item['@microsoft.graph.downloadUrl'])},
+    { text: item.createdBy.user.displayName },
+    { text: item.createdDateTime }
+  ] %}
+  {% set rows = rows.concat([row]) %}
+{% endfor %}
+
+{% block pageContent %}
+{{ govukTable({
+  caption: "Documents",
+  captionClasses: "govuk-table__caption--m",
+  firstCellIsHeader: true,
+  head: [
+    {
+      text: "Name"
+    },
+    {
+      text: "Created by"
+    },
+    {
+      text: "Created date"
+    }
+  ],
+  rows: rows
+}) }}
+{% endblock %}
