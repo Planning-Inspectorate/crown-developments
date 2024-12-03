@@ -117,7 +117,7 @@ resource "azurerm_monitor_metric_alert" "sql_db_cpu_alert" {
   }
 
   action {
-    action_group_id = data.azurerm_monitor_action_group.common["tech"].id
+    action_group_id = azurerm_monitor_action_group.crown_tech.id
   }
 
   tags = local.tags
@@ -142,7 +142,7 @@ resource "azurerm_monitor_metric_alert" "sql_db_dtu_alert" {
   }
 
   action {
-    action_group_id = data.azurerm_monitor_action_group.common["tech"].id
+    action_group_id = azurerm_monitor_action_group.crown_tech.id
   }
 
   tags = local.tags
@@ -167,7 +167,7 @@ resource "azurerm_monitor_metric_alert" "sql_db_log_io_alert" {
   }
 
   action {
-    action_group_id = data.azurerm_monitor_action_group.common["tech"].id
+    action_group_id = azurerm_monitor_action_group.crown_tech.id
   }
 
   tags = local.tags
@@ -192,7 +192,7 @@ resource "azurerm_monitor_metric_alert" "sql_db_deadlock_alert" {
   }
 
   action {
-    action_group_id = data.azurerm_monitor_action_group.common["tech"].id
+    action_group_id = azurerm_monitor_action_group.crown_tech.id
   }
 
   tags = local.tags

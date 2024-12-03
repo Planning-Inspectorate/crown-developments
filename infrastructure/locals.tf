@@ -8,8 +8,8 @@ locals {
   secondary_resource_suffix = "${local.service_name}-secondary-${var.environment}"
 
   secrets = [
-    "crown-client-secret",
-    "crown-gov-notify-api-key"
+    "crown-gov-notify-api-key",
+    "crown-test-mailbox"
   ]
 
   key_vault_refs = merge(

@@ -44,8 +44,8 @@ module "app_manage" {
     DATABASE_URL  = local.key_vault_refs["sql-app-connection-string"]
 
     # integrations
-    GOV_NOTIFY_API_KEY = local.key_vault_refs["crown-bo-gov-notify-api-key"]
-    TEST_MAILBOX       = local.key_vault_refs["crown-bo-test-mailbox"]
+    GOV_NOTIFY_API_KEY = local.key_vault_refs["crown-gov-notify-api-key"]
+    TEST_MAILBOX       = local.key_vault_refs["crown-test-mailbox"]
   }
 
   providers = {

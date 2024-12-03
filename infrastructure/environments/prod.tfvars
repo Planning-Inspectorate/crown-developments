@@ -30,8 +30,26 @@ environment = "prod"
 front_door_config = {
   name        = "pins-fd-common-prod"
   rg          = "pins-rg-common-prod"
-  ep_name     = "pins-fde-crown"
+  ep_name     = "pins-fde-crowndev"
   use_tooling = true
+}
+
+sql_config = {
+  admin = {
+    login_username = "pins-crown-sql-prod"
+    object_id      = "00d052c3-0a51-4f7d-93fc-7c366877aed6"
+  }
+  sku_name    = "Basic"
+  max_size_gb = 2
+  retention = {
+    audit_days             = 7
+    short_term_days        = 7
+    long_term_weekly       = "P1W"
+    long_term_monthly      = "P1M"
+    long_term_yearly       = "P1Y"
+    long_term_week_of_year = 1
+  }
+  public_network_access_enabled = true
 }
 
 # web_domains = "crown-training.planninginspectorate.gov.uk"
@@ -43,4 +61,10 @@ vnet_config = {
   secondary_address_space             = "10.20.28.0/22"
   secondary_apps_subnet_address_space = "10.20.28.0/24"
   secondary_subnet_address_space      = "10.20.29.0/24"
+}
+
+waf_rate_limits = {
+  enabled             = true
+  duration_in_minutes = 5
+  threshold           = 1500
 }
