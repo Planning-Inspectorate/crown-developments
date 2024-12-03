@@ -163,26 +163,3 @@ resource "azurerm_cdn_frontdoor_security_policy" "manage" {
     }
   }
 }
-
-# moinitoring
-resource "azurerm_monitor_diagnostic_setting" "manage" {
-  name                       = "${local.org}-fd-mds-${local.service_name}-manage-${var.environment}"
-  target_resource_id         = data.azurerm_cdn_frontdoor_profile.shared.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
-  provider                   = azurerm.front_door
-
-  enabled_log {
-    category = "FrontdoorWebApplicationFirewallLog"
-  }
-
-  metric {
-    category = "AllMetrics"
-  }
-
-  lifecycle {
-    ignore_changes = [
-      enabled_log,
-      metric
-    ]
-  }
-}

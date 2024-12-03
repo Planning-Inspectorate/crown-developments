@@ -30,9 +30,28 @@ environment = "training"
 front_door_config = {
   name        = "pins-fd-common-tooling"
   rg          = "pins-rg-common-tooling"
-  ep_name     = "pins-fde-crown"
+  ep_name     = "pins-fde-crowndev"
   use_tooling = true
 }
+
+sql_config = {
+  admin = {
+    login_username = "pins-crown-sql-training"
+    object_id      = "7c8f7774-4863-4d99-a2e6-4230abce623c"
+  }
+  sku_name    = "Basic"
+  max_size_gb = 2
+  retention = {
+    audit_days             = 7
+    short_term_days        = 7
+    long_term_weekly       = "P1W"
+    long_term_monthly      = "P1M"
+    long_term_yearly       = "P1Y"
+    long_term_week_of_year = 1
+  }
+  public_network_access_enabled = true
+}
+
 
 vnet_config = {
   address_space                       = "10.20.8.0/22"

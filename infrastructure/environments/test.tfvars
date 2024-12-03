@@ -30,9 +30,28 @@ environment = "test"
 front_door_config = {
   name        = "pins-fd-common-tooling"
   rg          = "pins-rg-common-tooling"
-  ep_name     = "pins-fde-crown"
+  ep_name     = "pins-fde-crowndev"
   use_tooling = true
 }
+
+sql_config = {
+  admin = {
+    login_username = "pins-crown-sql-test"
+    object_id      = "00efde19-3c23-4850-b56d-8de1cd10d200"
+  }
+  sku_name    = "Basic"
+  max_size_gb = 2
+  retention = {
+    audit_days             = 7
+    short_term_days        = 7
+    long_term_weekly       = "P1W"
+    long_term_monthly      = "P1M"
+    long_term_yearly       = "P1Y"
+    long_term_week_of_year = 1
+  }
+  public_network_access_enabled = true
+}
+
 
 vnet_config = {
   address_space                       = "10.20.4.0/22"
