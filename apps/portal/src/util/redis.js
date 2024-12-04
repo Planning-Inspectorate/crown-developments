@@ -22,7 +22,7 @@ export function getRedis() {
 		return null;
 	}
 
-	redis = new RedisClient(config.session.redis, getLogger());
+	redis = new RedisClient(config.session.redis, getLogger(), config.session.redisPrefix);
 
 	return redis;
 }

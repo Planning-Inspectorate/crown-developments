@@ -17,7 +17,8 @@ export function loadConfig() {
 	dotenv.config();
 
 	// get values from the environment
-	const { GIT_SHA, LOG_LEVEL, HTTP_PORT, NODE_ENV, SESSION_SECRET, SQL_CONNECTION_STRING } = process.env;
+	const { GIT_SHA, LOG_LEVEL, HTTP_PORT, NODE_ENV, REDIS_CONNECTION_STRING, SESSION_SECRET, SQL_CONNECTION_STRING } =
+		process.env;
 
 	const buildConfig = loadBuildConfig();
 
@@ -47,6 +48,8 @@ export function loadConfig() {
 		// the src directory
 		srcDir: buildConfig.srcDir,
 		session: {
+			redisPrefix: 'portal:',
+			redis: REDIS_CONNECTION_STRING,
 			secret: SESSION_SECRET
 		},
 		// the static directory to serve assets from (images, css, etc..)
