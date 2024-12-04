@@ -52,7 +52,7 @@ sql_config = {
   public_network_access_enabled = true
 }
 
-# web_domains = "crown-training.planninginspectorate.gov.uk"
+web_domains = { portal = "crown-developments.planninginspectorate.gov.uk", manage = "crown-developments-manage.planninginspectorate.gov.uk" }
 
 vnet_config = {
   address_space                       = "10.20.12.0/22"
