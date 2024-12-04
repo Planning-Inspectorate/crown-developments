@@ -45,7 +45,7 @@ module "app_portal" {
 
     # sessions
     REDIS_CONNECTION_STRING = local.key_vault_refs["redis-connection-string"]
-    SESSION_SECRET          = local.key_vault_refs["session-secret"]
+    SESSION_SECRET          = local.key_vault_refs["session-secret-portal"]
 
     # retries
     RETRY_MAX_ATTEMPTS = "3"

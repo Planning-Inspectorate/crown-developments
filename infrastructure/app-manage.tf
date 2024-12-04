@@ -46,6 +46,10 @@ module "app_manage" {
     # integrations
     GOV_NOTIFY_API_KEY = local.key_vault_refs["crown-gov-notify-api-key"]
     TEST_MAILBOX       = local.key_vault_refs["crown-test-mailbox"]
+
+    # sessions
+    REDIS_CONNECTION_STRING = local.key_vault_refs["redis-connection-string"]
+    SESSION_SECRET          = local.key_vault_refs["session-secret-manage"]
   }
 
   providers = {
@@ -66,4 +70,20 @@ resource "azurerm_role_assignment" "app_manage_staging_secrets_user" {
   scope                = azurerm_key_vault.main.id
   role_definition_name = "Key Vault Secrets User"
   principal_id         = module.app_manage.staging_principal_id
+}
+
+## sessions
+resource "random_password" "manage_session_secret" {
+  length  = 32
+  special = true
+}
+
+resource "azurerm_key_vault_secret" "manage_session_secret" {
+  #checkov:skip=CKV_AZURE_41: TODO: Secret rotation
+  key_vault_id = azurerm_key_vault.main.id
+  name         = "${local.service_name}-manage-session-secret"
+  value        = random_password.manage_session_secret.result
+  content_type = "session-secret"
+
+  tags = local.tags
 }
