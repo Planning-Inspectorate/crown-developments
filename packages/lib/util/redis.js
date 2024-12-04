@@ -7,8 +7,9 @@ export class RedisClient {
 	/**
      @param {string} connString - Redis connection string
      @param {import('pino').Logger} logger
+     @param {string} [prefix] - prefix to use for shared instances
    **/
-	constructor(connString, logger) {
+	constructor(connString, logger, prefix) {
 		this.logger = logger;
 
 		const redisParams = parseRedisConnectionString(connString);
@@ -38,7 +39,10 @@ export class RedisClient {
 		this.client.connect().catch(onError);
 
 		// dev note: this may 'error' in vscode, but tscheck is all OK
-		this.store = new RedisStore({ client: this.client });
+		this.store = new RedisStore({
+			client: this.client,
+			prefix: prefix + 'sess:'
+		});
 
 		this.get = this.client.get;
 		this.set = this.client.set;

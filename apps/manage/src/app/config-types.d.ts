@@ -8,7 +8,8 @@ interface Config {
 	httpPort: number;
 	srcDir: string;
 	session: {
-		redis: string;
+		redisPrefix: string;
+		redis?: string;
 		secret: string;
 	};
 	staticDir: string;
