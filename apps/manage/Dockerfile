@@ -19,6 +19,7 @@ ENV NODE_ENV=production
 ENV GIT_SHA=$GIT_SHA
 
 RUN npm run build --workspace=crowndev-manage
+RUN npm run db-generate
 
 # --------------------------------
 
@@ -36,4 +37,4 @@ ENV GIT_SHA=$GIT_SHA
 
 EXPOSE 8080
 
-ENTRYPOINT npm run start --workspace=crowndev-manage
+ENTRYPOINT npm run start
