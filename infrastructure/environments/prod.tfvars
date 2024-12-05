@@ -4,6 +4,11 @@ apps_config = {
   node_environment         = "development"
   private_endpoint_enabled = false
 
+  auth = {
+    client_id                = "30a34d1a-473e-4a7f-ad6d-fa574c52a509"
+    group_application_access = "1abf7720-2ea6-479e-822d-218917d3d0ee"
+  }
+
   logging = {
     level_file   = "silent"
     level_stdout = "info"

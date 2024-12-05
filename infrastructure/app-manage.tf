@@ -39,6 +39,12 @@ module "app_manage" {
     ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
     NODE_ENV                                   = var.apps_config.node_environment
 
+    APP_HOSTNAME                  = var.web_domains.manage
+    AUTH_CLIENT_ID                = var.apps_config.auth.client_id
+    AUTH_CLIENT_SECRET            = local.key_vault_refs["crown-client-secret"]
+    AUTH_GROUP_APPLICATION_ACCESS = var.apps_config.auth.group_application_access
+    AUTH_TENANT_ID                = data.azurerm_client_config.current.tenant_id
+
     # database connection
     DATABASE_NAME = azurerm_mssql_database.primary.name
     DATABASE_URL  = local.key_vault_refs["sql-app-connection-string"]
