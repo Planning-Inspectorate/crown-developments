@@ -17,8 +17,21 @@ export function loadConfig() {
 	dotenv.config();
 
 	// get values from the environment
-	const { GIT_SHA, LOG_LEVEL, PORT, NODE_ENV, REDIS_CONNECTION_STRING, SESSION_SECRET, SQL_CONNECTION_STRING } =
-		process.env;
+	const {
+		APP_HOSTNAME,
+		AUTH_CLIENT_ID,
+		AUTH_CLIENT_SECRET,
+		AUTH_DISABLED,
+		AUTH_GROUP_APPLICATION_ACCESS,
+		AUTH_TENANT_ID,
+		GIT_SHA,
+		LOG_LEVEL,
+		PORT,
+		NODE_ENV,
+		REDIS_CONNECTION_STRING,
+		SESSION_SECRET,
+		SQL_CONNECTION_STRING
+	} = process.env;
 
 	const buildConfig = loadBuildConfig();
 
@@ -36,7 +49,33 @@ export function loadConfig() {
 		httpPort = port;
 	}
 
+	const isProduction = NODE_ENV === 'production';
+
+	const authDisabled = AUTH_DISABLED === 'true' && !isProduction;
+	if (!authDisabled) {
+		const props = { AUTH_CLIENT_ID, AUTH_CLIENT_SECRET, AUTH_GROUP_APPLICATION_ACCESS, AUTH_TENANT_ID };
+		for (const [k, v] of Object.entries(props)) {
+			if (v === undefined || v === '') {
+				throw new Error(k + ' must be a non-empty string');
+			}
+		}
+	}
+
+	const protocol = isProduction ? 'https://' : 'http://';
+
 	config = {
+		appHostname: APP_HOSTNAME,
+		auth: {
+			authority: `https://login.microsoftonline.com/${AUTH_TENANT_ID}`,
+			clientId: AUTH_CLIENT_ID,
+			clientSecret: AUTH_CLIENT_SECRET,
+			disabled: AUTH_DISABLED === 'true' && NODE_ENV !== 'production',
+			groups: {
+				applicationAccess: AUTH_GROUP_APPLICATION_ACCESS
+			},
+			redirectUri: `${protocol}${APP_HOSTNAME}/auth/redirect`,
+			signoutUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/logout'
+		},
 		database: {
 			datasourceUrl: SQL_CONNECTION_STRING
 		},
