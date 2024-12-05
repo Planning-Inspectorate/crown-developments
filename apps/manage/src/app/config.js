@@ -17,7 +17,7 @@ export function loadConfig() {
 	dotenv.config();
 
 	// get values from the environment
-	const { GIT_SHA, LOG_LEVEL, HTTP_PORT, NODE_ENV, REDIS_CONNECTION_STRING, SESSION_SECRET, SQL_CONNECTION_STRING } =
+	const { GIT_SHA, LOG_LEVEL, PORT, NODE_ENV, REDIS_CONNECTION_STRING, SESSION_SECRET, SQL_CONNECTION_STRING } =
 		process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -27,10 +27,11 @@ export function loadConfig() {
 	}
 
 	let httpPort = 8090;
-	if (HTTP_PORT) {
-		const port = parseInt(HTTP_PORT);
+	if (PORT) {
+		// PORT is set by App Service
+		const port = parseInt(PORT);
 		if (isNaN(port)) {
-			throw new Error('HTTP_PORT must be an integer');
+			throw new Error('PORT must be an integer');
 		}
 		httpPort = port;
 	}
