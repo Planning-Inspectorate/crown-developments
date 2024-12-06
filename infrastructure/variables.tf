@@ -16,14 +16,6 @@ variable "apps_config" {
     auth = object({
       client_id                = string
       group_application_access = string
-      group_ids = object({
-        case_officer = string
-        cs_team      = string
-        inspector    = string
-        legal        = string
-        pads         = string
-        read_only    = string
-      })
     })
 
     logging = object({
