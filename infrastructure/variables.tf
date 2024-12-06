@@ -19,8 +19,7 @@ variable "apps_config" {
     })
 
     logging = object({
-      level_file   = string
-      level_stdout = string
+      level = string
     })
 
     redis = object({

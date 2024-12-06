@@ -10,8 +10,7 @@ apps_config = {
   }
 
   logging = {
-    level_file   = "silent"
-    level_stdout = "info"
+    level = "warn"
   }
 
   redis = {
