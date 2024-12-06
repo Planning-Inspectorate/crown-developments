@@ -4,7 +4,7 @@ import { createRoutesAndGuards as createAuthRoutesAndGuards } from './auth/route
 import { createRoutes as createMonitoringRoutes } from './monitoring.js';
 import { loadConfig } from './config.js';
 import { getLogger } from '#util/logger.js';
-import { getRedis } from 'src/util/redis.js';
+import { getRedis } from '#util/redis.js';
 
 /**
  * @returns {import('express').Router}
