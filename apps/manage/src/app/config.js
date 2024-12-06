@@ -61,7 +61,7 @@ export function loadConfig() {
 		}
 	}
 
-	const protocol = isProduction ? 'https://' : 'http://';
+	const protocol = APP_HOSTNAME?.startsWith('localhost') ? 'http://' : 'https://';
 
 	config = {
 		appHostname: APP_HOSTNAME,
