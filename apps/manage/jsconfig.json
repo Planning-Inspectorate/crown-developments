@@ -6,7 +6,7 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
-			"#util/*": ["./src/utl/*"]
+			"#util/*": ["./src/util/*"]
 		}
 	}
 }
