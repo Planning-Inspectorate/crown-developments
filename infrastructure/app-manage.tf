@@ -45,9 +45,11 @@ module "app_manage" {
     AUTH_GROUP_APPLICATION_ACCESS = var.apps_config.auth.group_application_access
     AUTH_TENANT_ID                = data.azurerm_client_config.current.tenant_id
 
+    # logging
+    LOG_LEVEL = var.apps_config.logging.level
+
     # database connection
-    DATABASE_NAME = azurerm_mssql_database.primary.name
-    DATABASE_URL  = local.key_vault_refs["sql-app-connection-string"]
+    SQL_CONNECTION_STRING = local.key_vault_refs["sql-app-connection-string"]
 
     # integrations
     GOV_NOTIFY_API_KEY = local.key_vault_refs["crown-gov-notify-api-key"]

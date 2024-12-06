@@ -40,8 +40,10 @@ module "app_portal" {
     NODE_ENV                                   = var.apps_config.node_environment
 
     # logging
-    LOG_LEVEL_FILE   = var.apps_config.logging.level_file
-    LOG_LEVEL_STDOUT = var.apps_config.logging.level_stdout
+    LOG_LEVEL = var.apps_config.logging.level
+
+    # database connection
+    SQL_CONNECTION_STRING = local.key_vault_refs["sql-app-connection-string"]
 
     # sessions
     REDIS_CONNECTION_STRING = local.key_vault_refs["redis-connection-string"]
