@@ -10,15 +10,11 @@
 {% endblock %}
 
 {% block pageTitle %}
-	{{ pageTitle | default('GOV.UK') }} – {{ serviceName | default('Example To Do App') }}
+	{{ pageTitle | default('GOV.UK') }} – {{ serviceName | default('Crown Developments') }}
 {% endblock %}
 
 {% block header %}
-	{{ govukHeader({
-		homepageUrl: "/",
-		serviceName: 'Example To Do App',
-		classes: 'pins-modded-header'
-	}) }}
+	{% include "views/layouts/components/core/header.njk" %}
 {% endblock %}
 
 {% block beforeContent %}
@@ -66,3 +62,7 @@
 
 		{% block after_content %}{% endblock %}
 	{% endblock %}
+
+{% block footer %}
+	{% include "views/layouts/components/core/footer.njk" %}
+{% endblock %}

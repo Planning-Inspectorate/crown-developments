@@ -1,0 +1,37 @@
+@use 'node_modules/govuk-frontend/dist/govuk/all' as govuk;
+
+.pins-header {
+	padding-top: 20px;
+	padding-bottom: 20px;
+	color: govuk.govuk-colour('white');
+	background-color: #074745;
+	border-bottom: 10px solid #13a19b;
+	font-family: govuk.$govuk-font-family;
+
+	&__container {
+		display: flex;
+		flex-wrap: wrap;
+		border-bottom: 0;
+		padding: 0;
+		margin-bottom: 0;
+	}
+
+	.govuk-header__logo {
+		margin-top: 5px;
+		margin-bottom: 0;
+	}
+
+	&__logo {
+		display: block;
+		width: auto;
+		height: 30px;
+	}
+
+	.govuk-header__content {
+		align-self: center;
+	}
+
+	.govuk-header__service-name {
+		margin-bottom: 0;
+	}
+}

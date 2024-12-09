@@ -1,0 +1,43 @@
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/skip-link/macro.njk" import govukSkipLink %}
+{% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
+
+<header role="banner">
+	{{ govukSkipLink({
+		href: '#main-content',
+		text: 'Skip to main content'
+	}) }}
+
+	<div class="pins-header">
+		<div class="govuk-header__container pins-header__container govuk-width-container">
+			<div class="govuk-header__logo">
+				<span class="govuk-header__logotype">
+					{% include "views/layouts/components/core/pins-dual-logo.njk" %}
+				</span>
+			</div>
+			<div class="govuk-header__content">
+				<span class="govuk-header__service-name">{{ config.headerTitle }}</span>
+			</div>
+		</div>
+	</div>
+
+	<div class="govuk-width-container">
+		{% include "views/layouts/components/core/banner.njk" %}
+
+		{{ govukServiceNavigation({
+			classes: 'pins-navigation',
+			navigation: config.primaryNavigationLinks
+		}) }}
+
+		{% if backLinkUrl %}
+			{{ govukBackLink({
+				attributes: {
+					'data-cy': 'back',
+					'id': 'back-link'
+				},
+				href: backLinkUrl,
+				text: config.backLinkText
+			}) }}
+		{% endif %}
+	</div>
+</header>
