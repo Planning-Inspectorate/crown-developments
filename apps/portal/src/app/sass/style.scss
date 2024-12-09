@@ -1,2 +1,9 @@
-//Main gov styles
-@use 'node_modules/govuk-frontend/dist/govuk/all';
+@use 'node_modules/govuk-frontend/dist/govuk/all' as govuk with (
+	$govuk-font-family: (
+		Arial,
+		Helvetica,
+		sans-serif
+	)
+);
+@use './components/pins-header.scss';
+@use './components/pins-navigation.scss';

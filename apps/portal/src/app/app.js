@@ -10,6 +10,7 @@ import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-re
 import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { getSessionMiddleware } from '@pins/crowndev-lib/util/session.js';
 import { getRedis } from '../util/redis.js';
+import { addLocalsConfiguration } from '#util/config-middleware.js';
 
 export function getApp() {
 	const config = loadConfig();
@@ -38,6 +39,8 @@ export function getApp() {
 		res.locals.cspNonce = crypto.randomBytes(32).toString('hex');
 		next();
 	});
+
+	app.use(addLocalsConfiguration);
 
 	// Secure apps by setting various HTTP headers
 	app.use(helmet());
