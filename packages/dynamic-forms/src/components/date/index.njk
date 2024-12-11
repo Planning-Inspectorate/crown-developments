@@ -1,0 +1,89 @@
+{% extends layoutTemplate %}
+
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/date-input/macro.njk" import govukDateInput %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% set title = question.pageTitle + " - " + journeyTitle + " - GOV.UK" %}
+{% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
+
+{% set day= question.fieldName + "_day" %}
+{% set month= question.fieldName + "_month" %}
+{% set year= question.fieldName + "_year" %}
+
+{% if question.html %}
+    {% set htmlHint %}
+        {% include question.html ignore missing %}
+    {% endset %}
+{% endif %}
+
+{% block before_content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            {% if errorSummary %}
+                {{ govukErrorSummary({
+                    titleText: "There is a problem",
+                    errorList: errorSummary,
+                    attributes: {"data-cy": "error-wrapper"}
+                }) }}
+            {% endif %}
+        </div>
+    </div>
+
+    {{ super() }}
+{% endblock before_content %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <form action="" method="post" novalidate>
+                <input type="hidden" name="_csrf" value="{{ _csrf }}">
+                {{ govukDateInput({
+                    id: question.fieldName,
+                    fieldset: {
+                        legend: {
+                            text: question.question,
+                            isPageHeading: true,
+                            classes: "govuk-fieldset__legend--l"
+                        }
+                    },
+                    hint: {
+                        text: question.hint
+                    },
+                    errorMessage: errorSummary and {
+                        text: errors[question.fieldName].msg or errors[day].msg or errors[month].msg or errors[year].msg
+                    },
+                    items: [
+                        {
+                            classes: "govuk-input--width-2 govuk-input--error" if errors[question.fieldName] or errors[day] else "govuk-input--width-2",
+                            name: day,
+                            label: "Day",
+                            id: day,
+                            value: question.value[day]
+                        },
+                        {
+                            classes: "govuk-input--width-2 govuk-input--error" if errors[question.fieldName] or errors[month] else "govuk-input--width-2",
+                            name: month,
+                            label: "Month",
+                            id: month,
+                            value: question.value[month]
+                        },
+                        {
+                            classes: "govuk-input--width-4 govuk-input--error" if errors[question.fieldName] or errors[year] else "govuk-input--width-4",
+                            name: year,
+                            label: "Year",
+                            id: year,
+                            value: question.value[year]
+                        }
+                    ]
+                }) }}
+
+                {{ govukButton({
+                    text: "Continue",
+                    type: "submit",
+                    attributes: { "data-cy":"button-save-and-continue"}
+                }) }}
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends layoutTemplate %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block pageTitle %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+
+    {% block beforeTaskList %}
+    {% endblock %}
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            <ol class="app-task-list">
+                {% for section in summaryListData.sections %}
+                    <li class="govuk-!-margin-bottom-9">
+                        <div class="app-task-list__section">
+                            <h2 class="govuk-heading-m">
+                                {{ section.heading }}
+                                {%- if section.status %}
+                                    {%- if section.status == 'Completed' %}
+                                        {{ govukTag({
+                                            text: section.status,
+                                            classes: 'moj-task-list__task-completed'
+                                        }) }}
+                                        {%- elif section.status == 'In progress' %}
+                                        {{ govukTag({
+                                            text: section.status,
+                                            classes: 'govuk-tag--blue moj-task-list__task-completed'
+                                        }) }}
+                                    {% else %}
+                                        {{ govukTag({
+                                            text: section.status,
+                                            classes: 'govuk-tag--grey moj-task-list__task-completed'
+                                        }) }}
+                                    {% endif -%}
+                                {% endif -%}
+                            </h2>
+                        </div>
+
+                        {% if section.list.rows.length %}
+                            {{ govukSummaryList(section.list) }}
+                        {% endif %}
+
+                    </li>
+                {% endfor %}
+                <li>
+                    <div class="app-task-list__section">
+                        <h2 class='govuk-heading-m'>
+                            <span class="app-task-list__section-number">{{ summaryListData.sections.length + 1 }}. </span>
+                            Submit
+
+                            {% block submitBlock %}
+                            {% endblock %}
+
+                    </div>
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    {% block afterTaskList %}
+    {% endblock %}
+
+{% endblock %}

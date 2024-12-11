@@ -1,0 +1,42 @@
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% macro appealSubmitBlock(isComplete, declarationUrl) %}
+
+    {% if isComplete %}
+        {{ govukSummaryList({
+            rows:[
+                {
+                    key: {
+                    text: "Accept declaration and submit"
+                },
+                    value: {
+                    text: ""
+                },
+                    actions: {
+                    items: [
+                        {
+                            href: declarationUrl,
+                            text: "Continue"
+                        }
+                    ]
+                }
+                }
+            ]
+        }) }}
+
+    {% else %}
+        {{ govukSummaryList({
+            rows:[
+                {
+                    key: {
+                    text: "Accept declaration and submit"
+                },
+                    value: {
+                    text: ""
+                }
+                }
+            ]
+        }) }}
+    {% endif %}
+
+{% endmacro %}

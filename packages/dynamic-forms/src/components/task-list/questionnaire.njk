@@ -1,0 +1,63 @@
+{% extends "./index.njk" %}
+{% from "../../../views/macros/appeal-details.njk" import appealDetails %}
+
+{% set title = "Appeal questionnaire - " + journeyTitle + " - GOV.UK" %}
+
+{% block beforeTaskList %}
+    <style {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
+        .appeal-details .govuk-summary-list__key,
+        .appeal-details .govuk-summary-list__value,
+        .appeal-details .govuk-summary-list__actions {
+            padding-top: 0.2rem;
+            padding-bottom: 0;
+        }
+    </style>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
+            <h1 class="govuk-heading-l">
+                Appeal questionnaire
+            </h1>
+        </div>
+
+        <div class="govuk-grid-column-full">
+            {{ appealDetails(appeal) }}
+        </div>
+
+    </div>
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-three-quarters-from-desktop">
+            <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--l">
+            <h2 class="govuk-heading-s">Complete the questionnaire</h2>
+            <p class="govuk-!-margin-bottom-7">You have completed {{ summaryListData.completedSectionCount }}
+                of {{ summaryListData.sections.length }} sections.</p>
+        </div>
+    </div>
+{% endblock %}
+
+{% block submitBlock %}
+    {% if journeyComplete %}
+        <strong class="govuk-tag govuk-tag--blue">
+            Ready to submit
+        </strong>
+        </h2>
+        <p>By submitting this questionnaire you are confirming that, to the best of your knowledge, the details you are
+            providing are correct.</p>
+        <form action method="post">
+            <input type="hidden" name="_csrf" value="{{ _csrf }}">
+            {{ govukButton({
+                text: "Submit questionnaire",
+                type: "submit",
+                attributes: { "data-cy":"submit-questionnaire"}
+            }) }}
+        </form>
+
+    {% else %}
+        <strong class="govuk-tag govuk-tag--grey">
+            Cannot start yet
+        </strong>
+        </h2>
+        <p>You cannot submit the questionnaire until all of the other sections are complete.</p>
+    {% endif %}
+{% endblock %}
+
