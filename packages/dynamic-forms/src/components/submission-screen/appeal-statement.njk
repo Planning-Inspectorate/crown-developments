@@ -1,0 +1,31 @@
+{% extends "layouts/lpa-dashboard/main-no-back-link.njk" %}
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+
+{% block pageTitle %}
+    Appeal statement Submitted - Manage your appeals - GOV.UK
+{% endblock %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            {{ govukPanel({
+                titleText: "Appeal statement submitted"
+            }) }}
+
+            <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+
+            <p class="govuk-body">We've sent you a confirmation email. </p>
+
+            <h2 class="govuk-heading-m">What happens next</h2>
+
+            <p class="govuk-body">
+                We’ll check and review your appeal statement and will contact you once we’ve done this.
+            </p>
+
+            <p class="govuk-body">
+                <a data-cy="Feedback-Page-Body" href="/manage-appeals/your-appeals" class="govuk-link">Back to
+                    appeals</a>
+            </p>
+        </div>
+    </div>
+{% endblock %}

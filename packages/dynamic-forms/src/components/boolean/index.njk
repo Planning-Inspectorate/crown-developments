@@ -1,0 +1,87 @@
+{% extends layoutTemplate %}
+
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% set title = question.pageTitle + " - " + journeyTitle + " - GOV.UK" %}
+
+{% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
+
+{% if question.html %}
+    {% set htmlHint %}
+        {% include question.html ignore missing %}
+    {% endset %}
+{% endif %}
+
+{% block before_content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            {% if errorSummary %}
+                {{ govukErrorSummary({
+                    titleText: "There is a problem",
+                    errorList: errorSummary,
+                    attributes: {"data-cy": "error-wrapper"}
+                }) }}
+            {% endif %}
+        </div>
+    </div>
+
+    {{ super() }}
+{% endblock before_content %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <form action="" method="post" novalidate>
+                <input type="hidden" name="_csrf" value="{{ _csrf }}">
+                {% if question.interfaceType === 'radio' %}
+                    {{ govukRadios({
+                        classes: "govuk-radios",
+                        idPrefix: question.fieldName,
+                        name: question.fieldName,
+                        errorMessage: errors[question.fieldName] and {
+                            text: errors[question.fieldName].msg
+                        },
+                        fieldset: {
+                            legend: {
+                                text: question.question,
+                                isPageHeading: true,
+                                classes: "govuk-fieldset__legend--l"
+                            }
+                        },
+                        hint: { html: htmlHint },
+                        items: question.options
+                    }) }}
+
+                    {% elif question.interfaceType === 'checkbox' %}
+                    {{ govukCheckboxes({
+                        classes: "govuk-checkboxes",
+                        idPrefix: question.fieldName,
+                        name: question.fieldName,
+                        errorMessage: errors[question.fieldName] and {
+                            text: errors[question.fieldName].msg
+                        },
+                        hint: {
+                            html: htmlHint
+                        },
+                        fieldset: {
+                            legend: {
+                                text: question.question,
+                                isPageHeading: true,
+                                classes: "govuk-fieldset__legend--l"
+                            }
+                        },
+                        items: question.options
+                    }) }}
+                {% endif %}
+                {{ govukButton({
+                    text: "Continue",
+                    type: "submit",
+                    attributes: { "data-cy":"button-save-and-continue"}
+                }) }}
+            </form>
+        </div>
+    </div>
+{% endblock %}
