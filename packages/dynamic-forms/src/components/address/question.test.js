@@ -72,18 +72,6 @@ describe('AddressQuestion', () => {
 		});
 	});
 
-	describe('saveAction', () => {
-		it('should successfully save the address and call the next question', async () => {
-			const { question, req, journeyResponse } = setup();
-			question.checkForValidationErrors = mock.fn(() => null);
-			question.handleNextQuestion = mock.fn();
-
-			await question.saveAction(req, {}, {}, {}, journeyResponse);
-
-			assert.strictEqual(question.handleNextQuestion.mock.callCount(), 1);
-		});
-	});
-
 	describe('format', () => {
 		it('should return formatted address from answer', () => {
 			const { question } = setup();

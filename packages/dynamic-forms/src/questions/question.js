@@ -188,43 +188,6 @@ export class Question {
 	}
 
 	/**
-	 * Save the answer to the question
-	 * @param {import('express').Request} req
-	 * @param {import('express').Response} res
-	 * @param {Journey} journey
-	 * @param {Section} section
-	 * @param {JourneyResponse} journeyResponse
-	 * @returns {Promise<void>}
-	 */
-	async saveAction(req, res, journey, section, journeyResponse) {
-		// check for validation errors
-		const errorViewModel = this.checkForValidationErrors(req, section, journey);
-		if (errorViewModel) {
-			return this.renderAction(res, errorViewModel);
-		}
-
-		// save
-		const responseToSave = await this.getDataToSave(req, journeyResponse);
-		if (req.session) {
-			req.session.forms = {
-				'form-1': {
-					...responseToSave?.answers
-				}
-			};
-		}
-		// await this.saveResponseToDB(req.appealsApiClient, journey.response, responseToSave);
-
-		// check for saving errors
-		const saveViewModel = this.checkForSavingErrors(req, section, journey);
-		if (saveViewModel) {
-			return this.renderAction(res, saveViewModel);
-		}
-
-		// move to the next question
-		return this.handleNextQuestion(res, journey, section.segment, this.fieldName);
-	}
-
-	/**
 	 * check for validation errors
 	 * @param {import('express').Request} req
 	 * @param {Journey} journey

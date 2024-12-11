@@ -104,60 +104,7 @@ export default class AddressQuestion extends Question {
 	}
 
 	/**
-	 * Save the answer to the question
-	 * @param {import('express').Request} req
-	 * @param {import('express').Response} res
-	 * @param {Journey} journey
-	 * @param {Section} section
-	 * @param {JourneyResponse} journeyResponse
-	 * @returns {Promise<void>}
-	 */
-	async saveAction(req, res, journey, section, journeyResponse) {
-		// check for validation errors
-		const errorViewModel = this.checkForValidationErrors(req, section, journey);
-		if (errorViewModel) {
-			errorViewModel.question = {
-				...errorViewModel.question,
-				value: {
-					addressLine1: req.body[this.fieldName + '_addressLine1'],
-					addressLine2: req.body[this.fieldName + '_addressLine2'],
-					townCity: req.body[this.fieldName + '_townCity'],
-					county: req.body[this.fieldName + '_county'],
-					postcode: req.body[this.fieldName + '_postcode']
-				}
-			};
-
-			return this.renderAction(res, errorViewModel);
-		}
-
-		// save
-		const { siteAddressSet } = await this.getDataToSave(req, journeyResponse);
-
-		// await req.appealsApiClient.postSubmissionAddress(journeyResponse.journeyId, journeyResponse.referenceId, {
-		// 	...address,
-		// 	fieldName,
-		// 	id: addressId
-		// });
-
-		if (siteAddressSet) {
-			// await req.appealsApiClient.updateAppellantSubmission(journeyResponse.referenceId, {
-			// 	siteAddress: siteAddressSet
-			// });
-			journeyResponse.answers.siteAddress = siteAddressSet;
-		}
-
-		// check for saving errors
-		const saveViewModel = this.checkForSavingErrors(req, section, journey);
-		if (saveViewModel) {
-			return this.renderAction(res, saveViewModel);
-		}
-
-		// move to the next question
-		return this.handleNextQuestion(res, journey, section.segment, this.fieldName);
-	}
-
-	/**
-	 * @param {Object.<Any>} answer
+	 * @param {Object<string, any>} answer
 	 * @returns The formatted address to be presented in the UI
 	 */
 	format(answer) {
