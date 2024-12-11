@@ -1,0 +1,29 @@
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% macro answerList(answers) %}
+    {% set summaryRows = [] %}
+
+    {% for item in answers %}
+        {% set summaryRows = (summaryRows.push({
+            key: {
+                text: item.label
+            },
+            value: {
+                html: item.answer | escape | nl2br | safe
+            },
+            actions: {
+                items: [
+                    {
+                        href: item.removeLink,
+                        text: "Remove",
+                        visuallyHiddenText: item.label + ", " + item.answer
+                    }
+                ]
+            }
+        }), summaryRows) %}
+    {% endfor %}
+
+    {{ govukSummaryList({
+        rows: summaryRows
+    }) }}
+{% endmacro %}

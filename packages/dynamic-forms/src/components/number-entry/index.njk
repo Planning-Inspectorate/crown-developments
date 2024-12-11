@@ -1,0 +1,61 @@
+{% extends layoutTemplate %}
+
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% set title = question.pageTitle + " - " + journeyTitle + " - GOV.UK" %}
+{% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
+
+{% block before_content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            {% if errorSummary %}
+                {{ govukErrorSummary({
+                    titleText: "There is a problem",
+                    errorList: errorSummary,
+                    attributes: {"data-cy": "error-wrapper"}
+                }) }}
+            {% endif %}
+        </div>
+    </div>
+
+    {{ super() }}
+{% endblock before_content %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <h1 class="govuk-heading-l">{{ question.question }}</h1>
+            <p class="govuk-body">{{ question.description }}</p>
+            <form action="" method="post" novalidate>
+                <input type="hidden" name="_csrf" value="{{ _csrf }}">
+                {{ govukInput({
+                    hint: {
+                        text: question.hint
+                    },
+                    label: {
+                        text: question.label
+                    },
+                    classes: "govuk-input--width-5",
+                    id: question.fieldName,
+                    name: question.fieldName,
+                    value: question.value,
+                    suffix: {
+                        text: question.suffix
+                    },
+                    errorMessage: errors[question.fieldName] and {
+                        text: errors[question.fieldName].msg
+                    },
+                    inputmode: 'numeric',
+                    spellcheck: false
+                }) }}
+                {{ govukButton({
+                    text: "Continue",
+                    type: "submit",
+                    attributes: { "data-cy":"button-save-and-continue"}
+                }) }}
+            </form>
+        </div>
+    </div>
+{% endblock %}
