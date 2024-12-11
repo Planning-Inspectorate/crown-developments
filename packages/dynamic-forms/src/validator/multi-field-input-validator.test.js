@@ -1,4 +1,4 @@
-import { describe, it} from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { validationResult } from 'express-validator';
 
@@ -36,7 +36,6 @@ const multipleRequiredFields = {
 
 describe('src/dynamic-forms/validator/multi-field-input-validator.js', () => {
 	it('should throw if no required fields passed to constructor', () => {
-		 
 		assert.throws(() => {
 			new MultiFieldInputValidator();
 		}, new Error('MultiFieldInput validator is invoked without any required fields'));
