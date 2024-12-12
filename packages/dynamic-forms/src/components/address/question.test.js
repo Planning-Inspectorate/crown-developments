@@ -61,13 +61,10 @@ describe('AddressQuestion', () => {
 				answers: {}
 			};
 
-			const dataToSave = await question.getDataToSave(req, journeyResponse);
-
-			assert.strictEqual(dataToSave.fieldName, FIELDNAME);
-			assert.strictEqual(dataToSave.siteAddressSet, true);
+			const { answers } = await question.getDataToSave(req, journeyResponse);
 
 			for (const [k] of Object.entries(testAddress)) {
-				assert.strictEqual(dataToSave.address[k], expectedAddress[k]);
+				assert.strictEqual(answers[FIELDNAME][k], expectedAddress[k]);
 			}
 		});
 	});
