@@ -58,7 +58,7 @@
                         errorMessage: errors[question.fieldName] and {
                             text: errors[question.fieldName].msg
                         },
-                        classes: "govuk-input--width-10",
+                        classes: question.classes,
                         attributes: question.attributes,
                         type: question.attributes.type
 
@@ -82,7 +82,7 @@
                         errorMessage: errors[question.fieldName] and {
                             text: errors[question.fieldName].msg
                         },
-                        classes: "govuk-input--width-10",
+                        classes: question.classes,
                         attributes: question.attributes,
                         type: question.attributes.type
                     }) }}

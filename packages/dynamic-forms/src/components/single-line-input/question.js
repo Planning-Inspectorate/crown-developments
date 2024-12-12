@@ -27,6 +27,7 @@ export default class SingleLineInputQuestion extends Question {
 	 * @param {string|undefined} [params.label] if defined this show as a label for the input and the question will just be a standard h1
 	 * @param {Array.<BaseValidator>} [params.validators]
 	 * @param {Record<string, string>} [params.inputAttributes] html attributes to add to the input
+	 * @param {string} [params.classes] html classes to add to the input
 	 */
 	constructor(params) {
 		super({
@@ -36,6 +37,7 @@ export default class SingleLineInputQuestion extends Question {
 
 		this.label = params.label;
 		this.inputAttributes = params.inputAttributes || {};
+		this.classes = params.classes || '';
 	}
 
 	prepQuestionForRendering(section, journey, customViewData, payload) {
@@ -43,6 +45,7 @@ export default class SingleLineInputQuestion extends Question {
 		viewModel.question.label = this.label;
 		viewModel.question.value = payload ? payload[viewModel.question.fieldName] : viewModel.question.value;
 		viewModel.question.attributes = this.inputAttributes;
+		viewModel.question.classes = this.classes;
 		return viewModel;
 	}
 }
