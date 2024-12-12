@@ -1,6 +1,6 @@
 import { describe, it, mock, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import redirectToUnansweredQuestion from './redirect-to-unanswered-question.js';
+import { redirectToUnansweredQuestion } from './redirect-to-unanswered-question.js';
 
 import { JourneyResponse } from '../journey/journey-response.js';
 import { Journey } from '../journey/journey.js';
@@ -70,15 +70,7 @@ describe('redirectToUnansweredQuestion Middleware', () => {
 		next = mock.fn();
 	});
 	it('should redirect to the first unanswered question', () => {
-		const journeyResponse = new JourneyResponse(
-			'id-1',
-			'0000003',
-			{
-				questionOne: null,
-				questionTwo: null
-			},
-			'Q9999'
-		);
+		const journeyResponse = new JourneyResponse('id-1', '0000003', {}, 'Q9999');
 		res.locals.journeyResponse = journeyResponse;
 		const journey = new Journey({ response: journeyResponse, ...params });
 		res.locals.journey = journey;
@@ -95,8 +87,7 @@ describe('redirectToUnansweredQuestion Middleware', () => {
 			'id-1',
 			'0000003',
 			{
-				questionOne: true,
-				questionTwo: null
+				questionOne: true
 			},
 			'Q9999'
 		);
