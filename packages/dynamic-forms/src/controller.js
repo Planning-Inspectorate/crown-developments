@@ -163,7 +163,11 @@ export async function question(req, res) {
  */
 
 /**
- * @param {(params: SaveParams) => Promise<void>} saveData
+ * @typedef {(params: SaveParams) => Promise<void>} SaveDataFn
+ */
+
+/**
+ * @param {SaveDataFn} saveData
  * @returns {import('express').Handler}
  */
 export function buildSave(saveData) {
