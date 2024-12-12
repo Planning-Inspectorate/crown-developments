@@ -79,27 +79,32 @@ export default class AddressQuestion extends Question {
 	}
 
 	/**
-	 * adds a uuid and an address object for save data using req body fields
+	 * returns the data to send to the DB
+	 * side effect: modifies journeyResponse with the new answers
 	 * @param {import('express').Request} req
 	 * @param {JourneyResponse} journeyResponse
-	 * @returns {Promise<{address:Address, siteAddressSet: boolean, fieldName: string, addressId: string|undefined }>}
+	 * @returns {Promise<{answers: Record<string, unknown>}>}
 	 */
 	async getDataToSave(req, journeyResponse) {
-		const existingAddressId = this.#getExistingAddress(journeyResponse)?.id;
-
-		const address = new Address({
+		const data = {
 			addressLine1: req.body[this.fieldName + '_addressLine1'],
 			addressLine2: req.body[this.fieldName + '_addressLine2'],
 			townCity: req.body[this.fieldName + '_townCity'],
 			county: req.body[this.fieldName + '_county'],
 			postcode: req.body[this.fieldName + '_postcode']
-		});
+		};
+		const allEmpty = Object.values(data).every((v) => !v);
+		let address = null;
+		if (!allEmpty) {
+			address = new Address(data);
+		}
+		const answers = {
+			[this.fieldName]: address
+		};
+		journeyResponse.answers[this.fieldName] = address;
 
 		return {
-			address: address,
-			siteAddressSet: true,
-			fieldName: this.fieldName,
-			addressId: existingAddressId
+			answers
 		};
 	}
 
@@ -121,19 +126,21 @@ export default class AddressQuestion extends Question {
 
 	/**
 	 * returns the formatted answers values to be used to build task list elements
-	 * @param {Journey} journey
-	 * @param {String} sectionSegment
-	 * @returns {Array.<Object>}
+	 * @type {Question['formatAnswerForSummary']}
 	 */
-	formatAnswerForSummary(sectionSegment, journey) {
-		const address = this.#getExistingAddress(journey.response);
+	formatAnswerForSummary(sectionSegment, journey, answer) {
+		let formattedAnswer = this.NOT_STARTED;
 
-		const answer = address ? this.format(address) : '';
+		if (answer) {
+			formattedAnswer = nl2br(escape(this.format(answer)));
+		} else if (answer === null) {
+			formattedAnswer = '';
+		}
 
 		return [
 			{
 				key: `${this.title}`,
-				value: nl2br(escape(answer)) || this.NOT_STARTED,
+				value: formattedAnswer,
 				action: this.getAction(sectionSegment, journey, answer)
 			}
 		];

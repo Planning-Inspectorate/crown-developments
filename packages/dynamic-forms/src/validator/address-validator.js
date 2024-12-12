@@ -58,6 +58,7 @@ export default class AddressValidator extends BaseValidator {
 	 */
 	#addressLine1Rule(fieldName) {
 		return body(fieldName + '_addressLine1')
+			.if((_, { req }) => this.#anyFilled(fieldName, req))
 			.notEmpty()
 			.bail()
 			.withMessage('Enter address line 1')
@@ -72,6 +73,7 @@ export default class AddressValidator extends BaseValidator {
 	 */
 	#addressLine2Rule(fieldName) {
 		return body(fieldName + '_addressLine2')
+			.if((_, { req }) => this.#anyFilled(fieldName, req))
 			.optional()
 			.isLength({ min: addressLine2MinLength, max: addressLine2MaxLength })
 			.bail()
@@ -84,6 +86,7 @@ export default class AddressValidator extends BaseValidator {
 	 */
 	#townCityRule(fieldName) {
 		return body(fieldName + '_townCity')
+			.if((_, { req }) => this.#anyFilled(fieldName, req))
 			.notEmpty()
 			.bail()
 			.withMessage('Enter town or city')
@@ -98,6 +101,7 @@ export default class AddressValidator extends BaseValidator {
 	 */
 	#countyRule(fieldName) {
 		return body(fieldName + '_county')
+			.if((_, { req }) => this.#anyFilled(fieldName, req))
 			.optional()
 			.isLength({ min: countyMinLength, max: countyMaxLength })
 			.bail()
@@ -110,6 +114,7 @@ export default class AddressValidator extends BaseValidator {
 	 */
 	#postCodeRule(fieldName) {
 		return body(fieldName + '_postcode')
+			.if((_, { req }) => this.#anyFilled(fieldName, req))
 			.notEmpty()
 			.bail()
 			.withMessage('Enter postcode')
@@ -118,5 +123,28 @@ export default class AddressValidator extends BaseValidator {
 			.withMessage('Enter a full UK postcode')
 			.if(body(fieldName + '_postcode').notEmpty())
 			.custom((postcode) => validatePostcode(postcode));
+	}
+
+	/**
+	 * @param {string} fieldName
+	 * @param {import('express').Request} req
+	 * @returns {boolean}
+	 */
+	#anyFilled(fieldName, req) {
+		return !this.#fieldNames(fieldName).every((field) => !req.body || req.body[field] === '');
+	}
+
+	/**
+	 * @param {string} fieldName
+	 * @returns {string[]}
+	 */
+	#fieldNames(fieldName) {
+		return [
+			fieldName + '_addressLine1',
+			fieldName + '_addressLine2',
+			fieldName + '_townCity',
+			fieldName + '_county',
+			fieldName + '_postcode'
+		];
 	}
 }
