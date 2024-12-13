@@ -16,6 +16,8 @@
     "@azure/msal-node": "*",
     "@pins/crowndev-database": "^0.0.0",
     "@pins/crowndev-lib": "^0.0.0",
+    "@pins/crowndev-sharepoint": "^0.0.0",
+    "@microsoft/microsoft-graph-client": "*",
     "body-parser": "*",
     "connect-redis": "*",
     "dotenv": "*",

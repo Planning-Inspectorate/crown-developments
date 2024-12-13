@@ -3,7 +3,7 @@ import { LogLevel, ConfidentialClientApplication } from '@azure/msal-node';
 
 /** @typedef {import('@azure/msal-node').AccountInfo} AccountInfo */
 
-const scopes = ['user.read'];
+const scopes = ['user.read', 'files.read.all'];
 
 export class AuthService {
 	#config;
