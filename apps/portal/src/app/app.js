@@ -14,6 +14,7 @@ import { addLocalsConfiguration } from '#util/config-middleware.js';
 
 export function getApp() {
 	const config = loadConfig();
+	const logger = getLogger();
 
 	// create an express app, and configure it for our usage
 	const app = express();
@@ -66,7 +67,7 @@ export function getApp() {
 	// static files
 	app.use(express.static(config.staticDir));
 
-	const router = buildRouter();
+	const router = buildRouter({ config, logger });
 	// register the router, which will define any subpaths
 	// any paths not defined will return 404 by default
 	app.use('/', router);
