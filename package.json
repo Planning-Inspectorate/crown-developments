@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@azure/msal-node": "^2.16.2",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
     "@prisma/client": "^5.22.0",
     "body-parser": "^1.20.3",
     "connect-redis": "^7.1.1",

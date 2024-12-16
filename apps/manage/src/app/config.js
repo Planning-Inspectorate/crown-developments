@@ -30,7 +30,9 @@ export function loadConfig() {
 		NODE_ENV,
 		REDIS_CONNECTION_STRING,
 		SESSION_SECRET,
-		SQL_CONNECTION_STRING
+		SQL_CONNECTION_STRING,
+		SHAREPOINT_DISABLED,
+		SHAREPOINT_DRIVE_ID
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -54,6 +56,16 @@ export function loadConfig() {
 	const authDisabled = AUTH_DISABLED === 'true' && !isProduction;
 	if (!authDisabled) {
 		const props = { AUTH_CLIENT_ID, AUTH_CLIENT_SECRET, AUTH_GROUP_APPLICATION_ACCESS, AUTH_TENANT_ID };
+		for (const [k, v] of Object.entries(props)) {
+			if (v === undefined || v === '') {
+				throw new Error(k + ' must be a non-empty string');
+			}
+		}
+	}
+
+	const sharePointDisabled = SHAREPOINT_DISABLED === 'true' && !isProduction;
+	if (!sharePointDisabled) {
+		const props = { SHAREPOINT_DRIVE_ID };
 		for (const [k, v] of Object.entries(props)) {
 			if (v === undefined || v === '') {
 				throw new Error(k + ' must be a non-empty string');
@@ -93,7 +105,10 @@ export function loadConfig() {
 			secret: SESSION_SECRET
 		},
 		// the static directory to serve assets from (images, css, etc..)
-		staticDir: buildConfig.staticDir
+		staticDir: buildConfig.staticDir,
+		sharePoint: {
+			driveId: SHAREPOINT_DRIVE_ID
+		}
 	};
 
 	return config;
