@@ -1,0 +1,61 @@
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% macro multiTaskList(sections, journeyComplete) %}
+    <ol class="app-task-list">
+        {% for section in sections %}
+            <li class="govuk-!-margin-bottom-9">
+                <div class="app-task-list__section">
+                    <h2 class="govuk-heading-m">
+                        {{ section.heading }}
+                        {%- if section.status %}
+                            {%- if section.status == 'Completed' %}
+                                {{ govukTag({
+                                    text: section.status,
+                                    classes: 'moj-task-list__task-completed'
+                                }) }}
+                                {%- elif section.status == 'In progress' %}
+                                {{ govukTag({
+                                    text: section.status,
+                                    classes: 'govuk-tag--blue moj-task-list__task-completed'
+                                }) }}
+                            {% else %}
+                                {{ govukTag({
+                                    text: section.status,
+                                    classes: 'govuk-tag--grey moj-task-list__task-completed'
+                                }) }}
+                            {% endif -%}
+                        {% endif -%}
+                    </h2>
+                </div>
+
+                {% if section.list.rows.length %}
+                    {{ govukSummaryList(section.list) }}
+                {% endif %}
+            </li>
+        {% endfor %}
+        <li>
+            <div class="app-task-list__section">
+                <h2 class='govuk-heading-m'>
+                    <span class="app-task-list__section-number">{{ summaryListData.sections.length + 1 }}. </span>
+                    Submit
+                </h2>
+
+                {% if journeyComplete %}
+                    <form action method="post">
+                        <input type="hidden" name="_csrf" value="{{_csrf}}">
+                        {{ govukButton({
+                            text: "Accept & Submit",
+                            type: "submit"
+                        }) }}
+                    </form>
+                {% else %}
+                    <strong class="govuk-tag govuk-tag--grey">
+                    Cannot start yet
+                    </strong>
+                {% endif %}
+            </div>
+        </li>
+    </ol>
+{% endmacro %}
