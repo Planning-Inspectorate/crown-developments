@@ -1,5 +1,4 @@
 import { Question } from '../../questions/question.js';
-import { getAddressesForQuestion } from '../utils/question-utils.js';
 
 import escape from 'escape-html';
 import { Address } from '../../lib/address.js';
@@ -40,20 +39,6 @@ export default class AddressQuestion extends Question {
 	}
 
 	/**
-	 * @param {JourneyResponse} journeyResponse
-	 * @returns {SubmissionAddress|null}
-	 */
-	#getExistingAddress(journeyResponse) {
-		const addresses = getAddressesForQuestion(journeyResponse, this.fieldName);
-		// will only ever have 1
-		if (addresses.length) {
-			return addresses[0];
-		}
-
-		return null;
-	}
-
-	/**
 	 * @param {Section} section
 	 * @param {Journey} journey
 	 * @param {Record<string, unknown>} customViewData
@@ -61,8 +46,7 @@ export default class AddressQuestion extends Question {
 	 */
 	prepQuestionForRendering(section, journey, customViewData) {
 		const viewModel = super.prepQuestionForRendering(section, journey, customViewData);
-
-		const address = this.#getExistingAddress(journey.response);
+		const address = journey.response.answers[this.fieldName] || {};
 
 		// will only ever have 1
 		if (address) {

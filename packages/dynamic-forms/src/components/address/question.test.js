@@ -76,4 +76,27 @@ describe('AddressQuestion', () => {
 			assert.strictEqual(formattedAddress, '123 Main St\nFloor 2\nTestville\nTestshire\nTE1 2ST');
 		});
 	});
+
+	describe('prepQuestionForRendering', () => {
+		it('should format data for the view model', async () => {
+			const { question } = setup();
+
+			const journeyResponse = {
+				answers: {
+					[FIELDNAME]: testAddress
+				}
+			};
+
+			const model = await question.prepQuestionForRendering(
+				{},
+				{
+					getNextQuestionUrl: mock.fn(),
+					response: journeyResponse
+				}
+			);
+			for (const k of Object.keys(testAddress)) {
+				assert.strictEqual(model.question.value[k], testAddress[k]);
+			}
+		});
+	});
 });
