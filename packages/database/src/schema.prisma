@@ -20,8 +20,219 @@ datasource db {
 
 /// CrownDevelopment represents a case in the system
 model CrownDevelopment {
-  // internal identifier
-  id        String @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
-  // external identifier, shown to users as a unique reference
-  reference String @unique
+  /// internal identifier
+  id                                  String                @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  /// external identifier, shown to users as a unique reference
+  reference                           String                @unique
+  /// type of application, such as outline, extension
+  typeId                              String
+  Type                                ApplicationType       @relation(fields: [typeId], references: [id])
+  /// project name
+  name                                String?
+  // project description
+  description                         String?
+  /// LPA associated with this application
+  lpaId                               String?               @db.UniqueIdentifier
+  Lpa                                 Lpa?                  @relation(fields: [lpaId], references: [id])
+  /// Contact at the LPA associated with this application
+  lpaContactId                        String?               @db.UniqueIdentifier
+  LpaContact                          Contact?              @relation("LpaContact", fields: [lpaContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  applicantContactId                  String?               @db.UniqueIdentifier
+  ApplicantContact                    Contact?              @relation("ApplicantContact", fields: [applicantContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  agentContactId                      String?               @db.UniqueIdentifier
+  AgentContact                        Contact?              @relation("AgentContact", fields: [agentContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  /// Post of the site, if known
+  sitePostcode                        String?
+  /// Easting of the site, if known
+  siteEasting                         Int?
+  /// Northing of the site, if known
+  siteNorthing                        Int?
+  /// Site area in hectares
+  siteArea                            Decimal?
+  /// Likely date of submission
+  expectedDateOfSubmission            DateTime?
+  /// internal (PINS) status for the application
+  statusId                            String?
+  Status                              ApplicationStatus?    @relation(fields: [statusId], references: [id])
+  /// external (public) stage for the application
+  stageId                             String?
+  Stage                               ApplicationStage?     @relation(fields: [stageId], references: [id])
+  nationallyImportant                 Boolean?
+  nationallyImportantConfirmationDate DateTime?
+  /// LPA cross reference
+  lpaReference                        String?
+  /// case category
+  categoryId                          String?
+  Category                            Category?             @relation(fields: [categoryId], references: [id])
+  isGreenBelt                         Boolean?
+  healthAndSafetyIssue                String?
+  applicationReceivedDate             DateTime?
+  applicationAcceptedDate             DateTime?
+  lpaQuestionnaireSentDate            DateTime?
+  lpaQuestionnaireReceivedDate        DateTime?
+  /// the date the project is visible to the public
+  publishDate                         DateTime?
+  pressNoticeDate                     DateTime?
+  neighboursNotifiedByLpaDate         DateTime?
+  siteNoticeByLpaDate                 DateTime?
+  targetDecisionDate                  DateTime?
+  extendedTargetDecisionDate          DateTime?
+  recoveredDate                       DateTime?
+  recoveredReportSentDate             DateTime?
+  withdrawnDate                       DateTime?
+  decisionDate                        DateTime?
+  /// if challenged, this field records the date of original decision
+  originalDecisionDate                DateTime?
+  decisionOutcome                     String?
+  turnedAwayDate                      DateTime?
+  /// determines when representations are published to the public
+  representationsPublishDate          DateTime?
+  /// determines the start date for accepting representations
+  representationsPeriodStartDate      DateTime?
+  /// determines the end date for accepting representations - up to midnight
+  representationsPeriodEndDate        DateTime?
+  projectEmail                        String?
+  /// Entra ID
+  inspectorId                         String?
+  /// Entra ID
+  assessorInspectorId                 String?
+  /// Entra ID
+  caseOfficerId                       String?
+  /// Entra ID
+  planningOfficerId                   String?
+  eiaScreening                        Boolean?
+  eiaScreeningOutcome                 Boolean?
+  environmentalStatement              Boolean?
+  siteIsVisibleFromPublicLand         Boolean?
+  procedureId                         String?
+  Procedure                           ApplicationProcedure? @relation(fields: [procedureId], references: [id])
+  eventId                             String
+  Representation                      Representation[]
+}
+
+/// Address represents an address of a property or place
+model Address {
+  /// internal identifier
+  id       String    @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  line1    String?
+  line2    String?
+  townCity String?
+  county   String?
+  postcode String?
+  Contact  Contact[]
+}
+
+/// Contact represents the details of a person or organisation
+model Contact {
+  /// internal identifier
+  id              String   @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  fullName        String
+  telephoneNumber String
+  email           String
+  addressId       String?  @db.UniqueIdentifier
+  Address         Address? @relation(fields: [addressId], references: [id])
+
+  CrownDevelopmentLpa       CrownDevelopment[] @relation("LpaContact")
+  CrownDevelopmentApplicant CrownDevelopment[] @relation("ApplicantContact")
+  CrownDevelopmentAgent     CrownDevelopment[] @relation("AgentContact")
+  Representation            Representation[]   @relation("RepresentationContact")
+}
+
+/// Lpa represents a Local Planning Authority
+model Lpa {
+  /// internal identifier
+  id               String             @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  name             String
+  /// Horizon LPA identifier
+  pinsCode         String
+  /// ONS LPA identifier
+  onsCode          String
+  CrownDevelopment CrownDevelopment[]
+}
+
+/// Event represents an event in relation to an application, such as a hearing or an inquiry
+model Event {
+  /// internal identifier
+  id                           String    @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  date                         DateTime?
+  duration                     String?
+  venue                        String?
+  notificationDate             DateTime?
+  issuesReportPublishedDate    DateTime?
+  procedureNotificationDate    DateTime?
+  statementsDate               DateTime?
+  caseManagementConferenceDate DateTime?
+}
+
+/// Representation represents a comment made by an external party on an application
+model Representation {
+  /// internal identifier
+  id                String             @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  reference         String             @unique
+  /// the project this presentation relates to
+  projectId         String             @db.UniqueIdentifier
+  Project           CrownDevelopment   @relation(fields: [projectId], references: [id])
+  status            String
+  originalComment   String             @db.NVarChar(MAX)
+  redactedComment   String?            @db.NVarChar(MAX)
+  isRedacted        Boolean            @default(false)
+  contactId         String?            @db.UniqueIdentifier
+  Contact           Contact?           @relation("RepresentationContact", fields: [contactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  receivedDate      DateTime
+  type              String?
+  representedTypeId String
+  RepresentedType   RepresentationType @relation(fields: [representedTypeId], references: [id])
+}
+
+// reference data
+
+/// ApplicationType represents types of applications we recieve
+model ApplicationType {
+  /// unique machine-readable name, not generated, e.g. "change-of-use"
+  id               String             @id
+  displayName      String?
+  CrownDevelopment CrownDevelopment[]
+}
+
+/// ApplicationStatus represents the status an application can be in
+model ApplicationStatus {
+  /// unique machine-readable name, not generated, e.g. "new"
+  id               String             @id
+  displayName      String?
+  CrownDevelopment CrownDevelopment[]
+}
+
+/// ApplicationStage represents the stages an application can be in
+model ApplicationStage {
+  /// unique machine-readable name, not generated, e.g. "acceptance"
+  id               String             @id
+  displayName      String?
+  CrownDevelopment CrownDevelopment[]
+}
+
+/// ApplicationProcedure represents the procedure type an application will follow
+model ApplicationProcedure {
+  /// unique machine-readable name, not generated, e.g. "inquiry"
+  id               String             @id
+  displayName      String?
+  CrownDevelopment CrownDevelopment[]
+}
+
+/// Category represents a hierarchy of categories that may apply to an application
+model Category {
+  /// unique machine-readable name, not generated, e.g. "change-of-use"
+  id               String             @id
+  displayName      String?
+  parentCategoryId String?
+  ParentCategory   Category?          @relation("Parent", fields: [parentCategoryId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  Category         Category[]         @relation("Parent")
+  CrownDevelopment CrownDevelopment[]
+}
+
+/// RepresentationType represents the type of representation i.e. whether person/org/group
+model RepresentationType {
+  /// unique machine-readable name, not generated, e.g. "person"
+  id             String           @id
+  displayName    String?
+  Representation Representation[]
 }
