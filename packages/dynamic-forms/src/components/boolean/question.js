@@ -1,5 +1,10 @@
 import RadioQuestion from '../radio/question.js';
 
+export const BOOLEAN_OPTIONS = Object.freeze({
+	YES: 'yes',
+	NO: 'no'
+});
+
 export default class BooleanQuestion extends RadioQuestion {
 	/**
 	 * @param {Object} params
@@ -31,18 +36,18 @@ export default class BooleanQuestion extends RadioQuestion {
 		let defaultOptions = options || [
 			{
 				text: 'Yes',
-				value: 'yes',
+				value: BOOLEAN_OPTIONS.YES,
 				attributes: { 'data-cy': 'answer-yes' }
 			},
 			{
 				text: 'No',
-				value: 'no',
+				value: BOOLEAN_OPTIONS.NO,
 				attributes: { 'data-cy': 'answer-no' }
 			}
 		];
 
 		if (interfaceType === 'checkbox') {
-			defaultOptions = options || [{ text: 'Confirm', value: 'yes' }];
+			defaultOptions = options || [{ text: 'Confirm', value: BOOLEAN_OPTIONS.YES }];
 		}
 
 		super({
@@ -74,13 +79,7 @@ export default class BooleanQuestion extends RadioQuestion {
 		let responseToSave = { answers: {} };
 		const fieldValue = req.body[this.fieldName]?.trim();
 
-		responseToSave.answers[this.fieldName] = fieldValue;
-
-		// if (fieldValue === 'yes') {
-		// 	responseToSave.answers[this.fieldName] = true;
-		// } else {
-		// 	responseToSave.answers[this.fieldName] = false;
-		// }
+		responseToSave.answers[this.fieldName] = fieldValue === BOOLEAN_OPTIONS.YES;
 
 		for (const propName in req.body) {
 			if (propName.startsWith(this.fieldName + '_')) {
