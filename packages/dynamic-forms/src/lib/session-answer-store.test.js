@@ -2,6 +2,7 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildGetJourneyResponseFromSession, saveDataToSession } from './session-answer-store.js';
 import { mockReq, mockRes } from './test-utils.js';
+import { BOOLEAN_OPTIONS } from '../components/boolean/question.js';
 
 describe('session-answer-store', () => {
 	describe('saveDataToSession', () => {
@@ -105,6 +106,25 @@ describe('session-answer-store', () => {
 			assert.ok(res.locals.journeyResponse);
 			assert.deepStrictEqual(res.locals.journeyResponse.answers, answers);
 			assert.notDeepStrictEqual(res.locals.journeyResponse.answers, otherAnswers);
+		});
+		it('should change boolean answers to yes/no', async () => {
+			const answers = { q1: true, q2: 'a2', q3: false };
+			const req = mockReq();
+			req.session = {
+				forms: {
+					[journeyId]: answers
+				}
+			};
+			const res = mockRes();
+			const next = mock.fn();
+			const handler = buildGetJourneyResponseFromSession(journeyId);
+			handler(req, res, next);
+			assert.ok(res.locals.journeyResponse);
+			assert.deepStrictEqual(res.locals.journeyResponse.answers, {
+				q1: BOOLEAN_OPTIONS.YES,
+				q2: 'a2',
+				q3: BOOLEAN_OPTIONS.NO
+			});
 		});
 	});
 });
