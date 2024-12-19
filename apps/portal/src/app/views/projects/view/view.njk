@@ -1,0 +1,23 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block pageContent %}
+	<div class="govuk-grid-row">
+        <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
+            <h1 class="govuk-heading-l">
+                Project Details Placeholder Page
+            </h1>
+        </div>
+    </div>
+
+	<p class="govuk-body">
+		Some details about the project
+	</p>
+
+	{{ govukButton({
+		text: "Have Your Say",
+		type: "submit",
+		href: "./have-your-say"
+	}) }}
+{% endblock %}

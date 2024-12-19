@@ -1,37 +1,24 @@
 {% extends "components/task-list/index.njk" %}
 
-{% set title = "Your appeal - " + journeyTitle + " - GOV.UK" %}
+{% set title = "Check your Answers - " + journeyTitle + " - GOV.UK" %}
 
 {% block beforeTaskList %}
-    <style {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-        .appeal-details .govuk-summary-list__key,
-        .appeal-details .govuk-summary-list__value,
-        .appeal-details .govuk-summary-list__actions {
-            padding-top: 0.2rem;
-            padding-bottom: 0;
-        }
-    </style>
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
             <h1 class="govuk-heading-l">
-                Your appeal
+                Check your answers
             </h1>
         </div>
-
-        <div class="govuk-grid-column-full">
-            <p class="govuk-body">Your deadline to submit this appeal is {{ formattedDeadline }}.</p>
-            <p class="govuk-body"><a href="/appeals/your-appeals" class="govuk-link--no-visited-state">Save and come
-                    back later</a>.</p>
-            <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--l">
-        </div>
     </div>
 
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-three-quarters-from-desktop">
-            <p class="govuk-body govuk-!-font-weight-bold">Appeal incomplete</p>
-            <p class="govuk-!-margin-bottom-7">You have completed {{ summaryListData.completedSectionCount }}
-                of {{ summaryListData.sections.length + 1 }} sections.</p>
+    {% if summaryListData.sections.length > 1%}
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-three-quarters-from-desktop">
+                <p class="govuk-body govuk-!-font-weight-bold">Submissions incomplete</p>
+                <p class="govuk-!-margin-bottom-7">You have completed {{ summaryListData.completedSectionCount }}
+                    of {{ summaryListData.sections.length + 1 }} sections.</p>
+            </div>
         </div>
-    </div>
+    {% endif %}
 {% endblock %}
 
