@@ -40,8 +40,24 @@ describe('url-builder', () => {
 	test('should be able to build with only query parameters', () => {
 		urlBuilder.addQueryParam('key1', 'value1').addQueryParam('key2', 'value2');
 		const url = urlBuilder.toString();
-		console.log(url);
 		assert.deepEqual(url, 'http://example.com/?key1=value1&key2=value2');
+	});
+
+	test('should add multiple queries using add query params', () => {
+		const queries = [
+			['key1', 'value1'],
+			['key2', 'value2']
+		];
+		urlBuilder.addQueryParams(queries);
+		const url = urlBuilder.toString();
+		assert.deepEqual(url, 'http://example.com/?key1=value1&key2=value2');
+	});
+
+	test('should no multiple using add query params with an undefined value', () => {
+		const queries = undefined;
+		urlBuilder.addQueryParams(queries);
+		const url = urlBuilder.toString();
+		assert.deepEqual(url, 'http://example.com/');
 	});
 
 	test('should be able to build with no path segments or query parameters', () => {

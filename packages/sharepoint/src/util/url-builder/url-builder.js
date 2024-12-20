@@ -13,6 +13,7 @@ export class UrlBuilder {
 
 	/**
 	 * @param {string} segment
+	 * @returns {UrlBuilder}
 	 */
 	addPathSegment(segment) {
 		this.pathSegments.push(segment);
@@ -22,9 +23,22 @@ export class UrlBuilder {
 	/**
 	 * @param {string} key
 	 * @param {string} value
+	 * @returns {UrlBuilder}
 	 */
 	addQueryParam(key, value) {
 		this.queryParams.append(key, value);
+		return this;
+	}
+
+	/**
+	 *
+	 * @param {string[][] | undefined} queries Array of key value pairs (e.g. [[key, value], [key2, value2]])
+	 * @returns {UrlBuilder}
+	 */
+	addQueryParams(queries = []) {
+		for (const query of queries) {
+			this.queryParams.append(query[0], query[1]);
+		}
 		return this;
 	}
 	/**
