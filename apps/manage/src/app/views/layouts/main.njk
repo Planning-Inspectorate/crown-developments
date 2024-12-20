@@ -3,6 +3,7 @@
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/header/macro.njk" import govukHeader %}
+{% from "views/layouts/components/header.njk" import header %}
 
 {% block head %}
 	{# setup the header tags, to link to the styles #}
@@ -10,15 +11,11 @@
 {% endblock %}
 
 {% block pageTitle %}
-	{{ pageTitle | default('GOV.UK') }} – {{ serviceName | default('Example To Do App') }}
+	{{ pageTitle | default('GOV.UK') }} – {{ serviceName | default('Manage Crown Developments') }}
 {% endblock %}
 
 {% block header %}
-	{{ govukHeader({
-		homepageUrl: "/",
-		serviceName: 'Example To Do App',
-		classes: 'pins-modded-header'
-	}) }}
+	{{ header('Manage Crown Developments') }}
 {% endblock %}
 
 {% block beforeContent %}
@@ -66,3 +63,15 @@
 
 		{% block after_content %}{% endblock %}
 	{% endblock %}
+
+{% block footer %}
+	<footer class="govuk-footer" role="contentinfo">
+		<div class="govuk-width-container ">
+			<div class="govuk-footer__meta">
+				<div class="govuk-footer__meta-item govuk-footer__meta-item">
+					<!-- footer container -->
+				</div>
+			</div>
+		</div>
+	</footer>
+{% endblock %}

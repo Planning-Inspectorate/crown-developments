@@ -1,2 +1,7 @@
 //Main gov styles
 @use 'node_modules/govuk-frontend/dist/govuk/all';
+@use './header';
+
+* {
+	font-family: arial, helvetica, sans-serif !important;
+}

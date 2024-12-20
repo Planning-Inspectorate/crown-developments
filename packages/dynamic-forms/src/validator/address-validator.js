@@ -29,11 +29,15 @@ export const postcodeMinLength = 2;
  * @class
  */
 export default class AddressValidator extends BaseValidator {
+	#required;
 	/**
 	 * creates an instance of an AddressValidator
+	 * @param {Object} opts
+	 * @param {boolean} [opts.required]
 	 */
-	constructor() {
+	constructor({ required = false } = {}) {
 		super();
+		this.#required = required;
 	}
 
 	/**
@@ -131,6 +135,9 @@ export default class AddressValidator extends BaseValidator {
 	 * @returns {boolean}
 	 */
 	#anyFilled(fieldName, req) {
+		if (this.#required) {
+			return true;
+		}
 		return !this.#fieldNames(fieldName).every((field) => !req.body || req.body[field] === '');
 	}
 
