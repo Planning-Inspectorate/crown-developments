@@ -1,0 +1,29 @@
+{% macro header(serviceName) %}
+    <header class="govuk-header" id="pins-header" role="banner" data-module="govuk-header">
+        <div class="pins-width-container">
+            <div class="pins-row">
+                <div class="pins-column--left">
+                    <div class="pins-header__logo">
+                        <i class="pins-header__logo-crown"> </i>
+                    </div>
+                    <span>Planning Inspectorate</span>
+                </div>
+                <div class="pins-column--central">
+                    <p class="pins-header-service-name govuk-!-margin-top-1">
+                        {{ serviceName }}
+                    </p>
+                    <nav class="govuk-header__navigation pins-header-navigation" aria-label="Menu">
+                        <ul class="govuk-header__navigation-list">
+                            <li class="govuk-header__navigation-item">
+                                <a class="govuk-header__link" href="/cases">All cases</a>
+                            </li>
+                            <li class="govuk-header__navigation-item">
+                                <a class="govuk-header__link" href="/auth/signout">Sign out</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </header>
+{% endmacro %}

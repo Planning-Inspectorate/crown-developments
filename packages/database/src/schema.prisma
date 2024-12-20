@@ -106,7 +106,7 @@ model CrownDevelopment {
   siteIsVisibleFromPublicLand         Boolean?
   procedureId                         String?
   Procedure                           ApplicationProcedure? @relation(fields: [procedureId], references: [id])
-  eventId                             String
+  eventId                             String?
   Representation                      Representation[]
 }
 
@@ -126,9 +126,9 @@ model Address {
 model Contact {
   /// internal identifier
   id              String   @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
-  fullName        String
-  telephoneNumber String
-  email           String
+  fullName        String?
+  telephoneNumber String?
+  email           String?
   addressId       String?  @db.UniqueIdentifier
   Address         Address? @relation(fields: [addressId], references: [id])
 
@@ -144,9 +144,9 @@ model Lpa {
   id               String             @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
   name             String
   /// Horizon LPA identifier
-  pinsCode         String
+  pinsCode         String?
   /// ONS LPA identifier
-  onsCode          String
+  onsCode          String?
   CrownDevelopment CrownDevelopment[]
 }
 
