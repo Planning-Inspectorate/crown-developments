@@ -10,7 +10,8 @@ locals {
   secrets = [
     "crown-client-secret",
     "crown-gov-notify-api-key",
-    "crown-test-mailbox"
+    "crown-test-mailbox",
+    "microsoft-provider-authentication-secret"
   ]
 
   key_vault_refs = merge(

@@ -1,6 +1,6 @@
 module "app_manage" {
   #checkov:skip=CKV_TF_1: Use of commit hash are not required for our Terraform modules
-  source = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/node-app-service?ref=1.31"
+  source = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/node-app-service?ref=1.32"
 
   resource_group_name = azurerm_resource_group.primary.name
   location            = module.primary_region.location
@@ -34,6 +34,17 @@ module "app_manage" {
   health_check_path                 = "/health"
   health_check_eviction_time_in_min = var.health_check_eviction_time_in_min
 
+  #Easy Auth setting
+  auth_config = {
+    auth_enabled           = var.auth_config_manage.auth_enabled
+    require_authentication = var.auth_config_manage.auth_enabled
+    auth_client_id         = var.auth_config_manage.auth_client_id
+    auth_provider_secret   = "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
+    auth_tenant_endpoint   = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0"
+    allowed_applications   = var.auth_config_manage.auth_client_id
+    allowed_audiences      = "https://${var.web_domains.manage}/.auth/login/aad/callback"
+  }
+
   app_settings = {
     APPLICATIONINSIGHTS_CONNECTION_STRING      = local.key_vault_refs["app-insights-connection-string"]
     ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
@@ -58,6 +69,10 @@ module "app_manage" {
     # sessions
     REDIS_CONNECTION_STRING = local.key_vault_refs["redis-connection-string"]
     SESSION_SECRET          = local.key_vault_refs["session-secret-manage"]
+
+    #Auth
+    MICROSOFT_PROVIDER_AUTHENTICATION_SECRET = local.key_vault_refs["microsoft-provider-authentication-secret"]
+    WEBSITE_AUTH_AAD_ALLOWED_TENANTS         = data.azurerm_client_config.current.tenant_id
   }
 
   providers = {
