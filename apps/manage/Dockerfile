@@ -1,5 +1,5 @@
 # Stage 1/2 - Builder
-FROM node:22-alpine3.20 AS base
+FROM node:22-alpine AS base
 
 #RUN apk update
 
