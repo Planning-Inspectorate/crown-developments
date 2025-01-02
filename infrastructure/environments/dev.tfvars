@@ -20,6 +20,16 @@ apps_config = {
   }
 }
 
+auth_config_manage = {
+  auth_enabled   = false
+  auth_client_id = "8e64dbf3-99f8-4b31-94ee-b621ad68c56f"
+}
+
+auth_config_portal = {
+  auth_enabled   = true
+  auth_client_id = "8e64dbf3-99f8-4b31-94ee-b621ad68c56f"
+}
+
 common_config = {
   resource_group_name = "pins-rg-common-dev-ukw-001"
   action_group_names = {

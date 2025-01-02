@@ -1,6 +1,6 @@
 module "app_portal" {
   #checkov:skip=CKV_TF_1: Use of commit hash are not required for our Terraform modules
-  source = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/node-app-service?ref=1.31"
+  source = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/node-app-service?ref=1.32"
 
   resource_group_name = azurerm_resource_group.primary.name
   location            = module.primary_region.location
@@ -34,6 +34,17 @@ module "app_portal" {
   health_check_path                 = "/health"
   health_check_eviction_time_in_min = var.health_check_eviction_time_in_min
 
+  #Easy Auth setting
+  auth_config = {
+    auth_enabled           = var.auth_config_portal.auth_enabled
+    require_authentication = var.auth_config_portal.auth_enabled
+    auth_client_id         = var.auth_config_portal.auth_client_id
+    auth_provider_secret   = "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
+    auth_tenant_endpoint   = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0"
+    allowed_applications   = var.auth_config_portal.auth_client_id
+    allowed_audiences      = "https://${var.web_domains.portal}/.auth/login/aad/callback"
+  }
+
   app_settings = {
     APPLICATIONINSIGHTS_CONNECTION_STRING      = local.key_vault_refs["app-insights-connection-string"]
     ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
@@ -54,6 +65,10 @@ module "app_portal" {
     # got default retry codes
     # https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md
     RETRY_STATUS_CODES = "408,413,429,500,502,503,504,521,522,524"
+
+    #Auth
+    MICROSOFT_PROVIDER_AUTHENTICATION_SECRET = local.key_vault_refs["microsoft-provider-authentication-secret"]
+    WEBSITE_AUTH_AAD_ALLOWED_TENANTS         = data.azurerm_client_config.current.tenant_id
   }
 
   providers = {
