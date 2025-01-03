@@ -2,9 +2,11 @@ import { Router as createRouter } from 'express';
 import { viewHomepage } from './views/home/controller.js';
 import { createRoutesAndGuards as createAuthRoutesAndGuards } from './auth/router.js';
 import { createRoutes as createMonitoringRoutes } from './monitoring.js';
+import { createRoutes as createCreateCaseRoutes } from './views/create-a-case/index.js';
 import { loadConfig } from './config.js';
 import { getLogger } from '#util/logger.js';
 import { getRedis } from '#util/redis.js';
+import { getDatabaseClient } from '#util/database.js';
 
 /**
  * @returns {import('express').Router}
@@ -13,6 +15,7 @@ export function buildRouter() {
 	const logger = getLogger();
 	const config = loadConfig();
 	const redis = getRedis();
+	const db = getDatabaseClient();
 
 	const router = createRouter();
 	const monitoringRoutes = createMonitoringRoutes();
@@ -21,6 +24,7 @@ export function buildRouter() {
 		config,
 		redisClient: redis
 	});
+	const createCaseRoutes = createCreateCaseRoutes({ logger, db });
 
 	router.use('/', monitoringRoutes);
 	router.get('/unauthenticated', (req, res) => res.status(401).render('views/errors/401.njk'));
@@ -40,6 +44,7 @@ export function buildRouter() {
 	}
 
 	router.route('/').get(viewHomepage);
+	router.use('/create-a-case', createCaseRoutes);
 
 	return router;
 }
