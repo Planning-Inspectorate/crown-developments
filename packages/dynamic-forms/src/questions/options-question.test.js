@@ -85,6 +85,9 @@ describe('./src/dynamic-forms/question.js', () => {
 			expectedData.options[0].checked = true;
 			expectedData.options[1].checked = true;
 			expectedData.options[2].checked = false;
+			expectedData.options[0].selected = true;
+			expectedData.options[1].selected = true;
+			expectedData.options[2].selected = false;
 			expectedData.options[0].attributes = { 'data-cy': 'answer-' + expectedData.options[0].value };
 			expectedData.options[1].attributes = { 'data-cy': 'answer-' + expectedData.options[1].value };
 			expectedData.options[2].attributes = { 'data-cy': 'answer-' + expectedData.options[2].value };
@@ -117,8 +120,10 @@ describe('./src/dynamic-forms/question.js', () => {
 			// use deep copy of options
 			const expectedData = JSON.parse(JSON.stringify({ options: options }));
 			expectedData.options[0].checked = false;
+			expectedData.options[0].selected = false;
 			expectedData.options[0].conditional = { html: '</p>test html</p>' };
 			expectedData.options[1].checked = false;
+			expectedData.options[1].selected = false;
 			expectedData.options[0].attributes = { 'data-cy': 'answer-' + options[0].value };
 			expectedData.options[1].attributes = { 'data-cy': 'answer-' + options[1].value };
 
@@ -176,8 +181,10 @@ describe('./src/dynamic-forms/question.js', () => {
 			// use deep copy of options
 			const expectedData = JSON.parse(JSON.stringify({ options: options }));
 			expectedData.options[0].checked = true;
+			expectedData.options[0].selected = true;
 			expectedData.options[0].conditional = { html: '</p>test html</p>' };
 			expectedData.options[1].checked = false;
+			expectedData.options[1].selected = false;
 			expectedData.options[0].attributes = { 'data-cy': 'answer-' + options[0].value };
 			expectedData.options[1].attributes = { 'data-cy': 'answer-' + options[1].value };
 
