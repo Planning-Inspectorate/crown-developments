@@ -98,7 +98,11 @@ export default class OptionsQuestion extends Question {
 		for (const option of this.options) {
 			let optionData = { ...option };
 			if (optionData.value !== undefined) {
-				optionData.checked = (',' + answer + ',').includes(',' + optionData.value + ',');
+				const selected = (',' + answer + ',').includes(',' + optionData.value + ',');
+				// support checkboxes/radios
+				optionData.checked = selected;
+				// support selects
+				optionData.selected = selected;
 				if (!optionData.attributes) {
 					optionData.attributes = { 'data-cy': 'answer-' + optionData.value };
 				}
