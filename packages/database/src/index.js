@@ -3,6 +3,32 @@ import { PrismaClient } from '@prisma/client';
 /** @typedef {import('@prisma/client').Prisma.PrismaClientOptions} prismaConfig */
 
 /**
+ * singleton database instance
+ * @type {import('@prisma/client').PrismaClient}
+ */
+let dbClient;
+
+/**
+ * @param {{database: prismaConfig, NODE_ENV: string}} config
+ * @param {import('pino').Logger} logger
+ * @returns {import('@prisma/client').PrismaClient}
+ */
+export function getDatabaseClient(config, logger) {
+	if (dbClient) {
+		return dbClient;
+	}
+	let prismaLogger;
+
+	if (config.NODE_ENV !== 'production') {
+		prismaLogger = logger;
+	}
+
+	dbClient = newDatabaseClient(config.database, prismaLogger);
+
+	return dbClient;
+}
+
+/**
  * @param {prismaConfig} prismaConfig
  * @param {import('pino').Logger} [logger]
  * @returns {import('@prisma/client').PrismaClient}
