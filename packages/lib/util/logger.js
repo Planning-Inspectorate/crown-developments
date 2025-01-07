@@ -1,5 +1,4 @@
 import pino from 'pino';
-import { loadConfig } from '../app/config.js';
 
 /**
  * Cache the logger instance
@@ -8,13 +7,13 @@ import { loadConfig } from '../app/config.js';
 let logger;
 
 /**
+ * @param {{logLevel: string, NODE_ENV: string}} config
  * @returns {import('pino').Logger}
  */
-export function getLogger() {
+export function getLogger(config) {
 	if (logger) {
 		return logger;
 	}
-	const config = loadConfig();
 
 	// pino-pretty options: https://github.com/pinojs/pino-pretty?tab=readme-ov-file#options
 	const transport = {

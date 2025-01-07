@@ -1,9 +1,9 @@
 import { getApp } from './app/app.js';
 import { loadConfig } from './app/config.js';
-import { getLogger } from '#util/logger.js';
+import { getLogger } from '@pins/crowndev-lib/util/logger.js';
 
 const config = loadConfig();
-const logger = getLogger();
+const logger = getLogger(config);
 
 const app = getApp(config, logger);
 // set the HTTP port to use from loaded config

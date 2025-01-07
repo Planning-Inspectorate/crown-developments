@@ -12,6 +12,8 @@
     "@azure/msal-node": "*",
     "connect-redis": "*",
     "express-session": "*",
+    "pino": "*",
+    "pino-pretty": "*",
     "redis": "*"
   },
   "devDependencies": {
