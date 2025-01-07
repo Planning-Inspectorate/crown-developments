@@ -1,10 +1,11 @@
 import { Router as createRouter } from 'express';
 import { viewHomepage } from './views/home/controller.js';
 import { createRoutesAndGuards as createAuthRoutesAndGuards } from './auth/router.js';
-import { createRoutes as createMonitoringRoutes } from './monitoring.js';
+import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.js';
 import { loadConfig } from './config.js';
 import { getLogger } from '#util/logger.js';
 import { getRedis } from '#util/redis.js';
+import { getDatabaseClient } from '#util/database.js';
 
 /**
  * @returns {import('express').Router}
@@ -13,9 +14,14 @@ export function buildRouter() {
 	const logger = getLogger();
 	const config = loadConfig();
 	const redis = getRedis();
+	const dbClient = getDatabaseClient();
 
 	const router = createRouter();
-	const monitoringRoutes = createMonitoringRoutes();
+	const monitoringRoutes = createMonitoringRoutes({
+		config,
+		dbClient,
+		logger
+	});
 	const { router: authRoutes, guards: authGuards } = createAuthRoutesAndGuards({
 		logger,
 		config,

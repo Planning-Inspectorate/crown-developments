@@ -1,3 +1,22 @@
+import { Router as createRouter } from 'express';
+import { asyncHandler } from '../util/async-handler.js';
+/**
+ * @param {Object} params
+ * @param {import('pino').BaseLogger} params.logger
+ * @param {{gitSha?: string}} params.config
+ * @param {import('@prisma/client').PrismaClient} params.dbClient
+ * @returns {import('express').Router}
+ */
+export function createMonitoringRoutes({ config, dbClient, logger }) {
+	const router = createRouter();
+	const handleHealthCheck = buildHandleHeathCheck(logger, config, dbClient);
+
+	router.head('/', asyncHandler(handleHeadHealthCheck));
+	router.get('/health', asyncHandler(handleHealthCheck));
+
+	return router;
+}
+
 /** @type {import('express').RequestHandler} */
 export function handleHeadHealthCheck(_, response) {
 	// no-op - HEAD mustn't return a body
@@ -5,7 +24,7 @@ export function handleHeadHealthCheck(_, response) {
 }
 
 /**
- * @param {import('pino').Logger} logger
+ * @param {import('pino').BaseLogger} logger
  * @param {{gitSha?: string}} config
  * @param {import('@prisma/client').PrismaClient} dbClient
  * @returns {import('express').RequestHandler}
