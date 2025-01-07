@@ -7,7 +7,7 @@ import { LogLevel, ConfidentialClientApplication } from '@azure/msal-node';
  * @param {import('pino').Logger} opts.logger
  * @returns {import('@azure/msal-node').Configuration}
  */
-function buildMsalConfig({ config, logger }) {
+export function buildMsalConfig({ config, logger }) {
 	return {
 		auth: {
 			authority: config.auth.authority,
