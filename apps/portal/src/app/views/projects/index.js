@@ -1,5 +1,6 @@
 import { Router as createRouter } from 'express';
 import { buildListProjects } from './list/index.js';
+import { createRoutes as createViewRoutes } from './view/index.js';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 
 /**
@@ -13,6 +14,7 @@ export function createRoutes(opts) {
 	const listCases = buildListProjects(opts);
 
 	router.get('/projects', asyncHandler(listCases));
+	router.use('/projects', createViewRoutes(opts));
 
 	return router;
 }
