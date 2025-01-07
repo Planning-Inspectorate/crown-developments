@@ -1,5 +1,6 @@
 import * as authSession from './session.service.js';
-import { LogLevel, ConfidentialClientApplication } from '@azure/msal-node';
+import { ConfidentialClientApplication } from '@azure/msal-node';
+import { buildMsalConfig } from '#util/auth.js';
 
 /** @typedef {import('@azure/msal-node').AccountInfo} AccountInfo */
 
@@ -131,45 +132,7 @@ export class AuthService {
 	#buildMsalConfig() {
 		const config = this.#config;
 		const logger = this.#logger;
-		return {
-			auth: {
-				authority: config.auth.authority,
-				clientId: config.auth.clientId,
-				clientSecret: config.auth.clientSecret
-			},
-			system: {
-				loggerOptions: {
-					/**
-					 * @param {LogLevel} logLevel
-					 * @param {string} message
-					 * */
-					loggerCallback(logLevel, message) {
-						switch (logLevel) {
-							case LogLevel.Error:
-								logger.error(message);
-								break;
-
-							case LogLevel.Warning:
-								logger.warn(message);
-								break;
-
-							case LogLevel.Info:
-								logger.info(message);
-								break;
-
-							case LogLevel.Verbose:
-								logger.debug(message);
-								break;
-
-							default:
-								logger.trace(message);
-						}
-					},
-					piiLoggingEnabled: false,
-					logLevel: LogLevel.Warning
-				}
-			}
-		};
+		return buildMsalConfig({ config, logger });
 	}
 }
 
