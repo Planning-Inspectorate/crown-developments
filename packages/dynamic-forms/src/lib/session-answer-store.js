@@ -34,6 +34,40 @@ export async function saveDataToSession({ req, journeyId, data }) {
 }
 
 /**
+ * A function to clear journey answers from the session
+ *
+ * @example
+ * req: {
+ * 	session: {
+ * 		forms: {
+ * 			'journey-id-1': {
+ * 				questionOne: 'my answer'
+ * 				// ...
+ * 			}
+ * 		}
+ * 	}
+ * }
+ *
+ * @param {Object} params
+ * @param {import('express').Request} params.req
+ * @param {string} params.journeyId
+ * @param {Object<string, any>} [params.replaceWith] - optional data to replace the form answers with
+ * @returns {void}
+ */
+export function clearDataFromSession({ req, journeyId, replaceWith }) {
+	if (!req.session) {
+		return; // no need to error, no action
+	}
+	/** @type {Object<string, any>} */
+	const forms = req.session.forms || (req.session.forms = {});
+	if (replaceWith) {
+		forms[journeyId] = replaceWith;
+	} else {
+		delete forms[journeyId];
+	}
+}
+
+/**
  * Fetch session answers from the session
  *
  * @param {string} journeyId
