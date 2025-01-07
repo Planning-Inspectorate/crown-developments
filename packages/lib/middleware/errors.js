@@ -1,11 +1,10 @@
 /**
  * A catch-all error handler to use as express middleware
  *
- * @param {() => import('pino').Logger} getLogger
+ * @param {import('pino').Logger} logger
  * @returns {import('express').ErrorRequestHandler}
  */
-export function buildDefaultErrorHandlerMiddleware(getLogger) {
-	const logger = getLogger();
+export function buildDefaultErrorHandlerMiddleware(logger) {
 	return (error, req, res, next) => {
 		const message = error.message || 'unknown error';
 		logger.error(error, message);

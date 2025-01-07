@@ -2,20 +2,16 @@ import { Router as createRouter } from 'express';
 import { viewHomepage } from './views/home/controller.js';
 import { createRoutesAndGuards as createAuthRoutesAndGuards } from './auth/router.js';
 import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.js';
-import { loadConfig } from './config.js';
-import { getLogger } from '#util/logger.js';
-import { getDatabaseClient } from '@pins/crowndev-database';
-import { getRedis } from '@pins/crowndev-lib/redis/index.js';
 
 /**
+ * @param {Object} params
+ * @param {import('pino').BaseLogger} params.logger
+ * @param {import('./config-types.js').Config} params.config
+ * @param {import('@pins/crowndev-lib/redis/redis-client').RedisClient|null} params.redis
+ * @param {import('@prisma/client').PrismaClient} params.dbClient
  * @returns {import('express').Router}
  */
-export function buildRouter() {
-	const logger = getLogger();
-	const config = loadConfig();
-	const redis = getRedis(config.session, logger);
-	const dbClient = getDatabaseClient(config, logger);
-
+export function buildRouter({ logger, config, redis, dbClient }) {
 	const router = createRouter();
 	const monitoringRoutes = createMonitoringRoutes({
 		config,

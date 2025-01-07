@@ -1,18 +1,16 @@
 import { Router as createRouter } from 'express';
 import { viewHomepage } from './views/home/controller.js';
 import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.js';
-import { loadConfig } from './config.js';
-import { getLogger } from '#util/logger.js';
-import { getDatabaseClient } from '@pins/crowndev-database';
 
 /**
+ * @param {Object} params
+ * @param {import('pino').BaseLogger} params.logger
+ * @param {import('./config-types.js').Config} params.config
+ * @param {import('@prisma/client').PrismaClient} params.dbClient
  * @returns {import('express').Router}
  */
-export function buildRouter() {
+export function buildRouter({ logger, config, dbClient }) {
 	const router = createRouter();
-	const logger = getLogger();
-	const config = loadConfig();
-	const dbClient = getDatabaseClient(config, logger);
 
 	const monitoringRoutes = createMonitoringRoutes({
 		config,
