@@ -9,7 +9,7 @@ describe('log-requests', () => {
 				debug() {}
 			};
 			t.mock.method(logger, 'debug');
-			const handler = buildLogRequestsMiddleware(() => logger);
+			const handler = buildLogRequestsMiddleware(logger);
 			const res = {
 				statusCode: 200,
 				req: { method: 'GET', originalUrl: 'example.app' }

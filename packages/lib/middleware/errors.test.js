@@ -9,7 +9,7 @@ describe('errors', () => {
 				error() {}
 			};
 			t.mock.method(logger, 'error');
-			const handler = buildDefaultErrorHandlerMiddleware(() => logger);
+			const handler = buildDefaultErrorHandlerMiddleware(logger);
 			const err = {
 				statusCode: 502
 			};

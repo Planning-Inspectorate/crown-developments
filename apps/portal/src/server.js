@@ -5,7 +5,7 @@ import { getLogger } from '#util/logger.js';
 const config = loadConfig();
 const logger = getLogger();
 
-const app = getApp();
+const app = getApp(config, logger);
 // set the HTTP port to use from loaded config
 app.set('http-port', config.httpPort);
 

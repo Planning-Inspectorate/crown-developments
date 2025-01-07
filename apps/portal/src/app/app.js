@@ -4,22 +4,26 @@ import express from 'express';
 import helmet from 'helmet';
 import { buildRouter } from './router.js';
 import { configureNunjucks } from './nunjucks.js';
-import { getLogger } from '../util/logger.js';
-import { loadConfig } from './config.js';
 import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.js';
 import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { getSessionMiddleware } from '@pins/crowndev-lib/util/session.js';
 import { addLocalsConfiguration } from '#util/config-middleware.js';
 import { getRedis } from '@pins/crowndev-lib/redis/index.js';
+import { getDatabaseClient } from '@pins/crowndev-database';
 
-export function getApp() {
-	const config = loadConfig();
-	const logger = getLogger();
+/**
+ * @param {import('./config-types.js').Config} config
+ * @param {import('pino').Logger} logger
+ * @returns {Express}
+ */
+export function getApp(config, logger) {
+	const dbClient = getDatabaseClient(config, logger);
+	const redis = getRedis(config.session, logger);
 
 	// create an express app, and configure it for our usage
 	const app = express();
 
-	const logRequests = buildLogRequestsMiddleware(getLogger);
+	const logRequests = buildLogRequestsMiddleware(logger);
 	app.use(logRequests);
 
 	// configure body-parser, to populate req.body
@@ -27,7 +31,6 @@ export function getApp() {
 	app.use(bodyParser.urlencoded({ extended: true }));
 	app.use(bodyParser.json());
 
-	const redis = getRedis(config.session, logger);
 	const sessionMiddleware = getSessionMiddleware({
 		redis,
 		secure: config.NODE_ENV === 'production',
@@ -67,14 +70,18 @@ export function getApp() {
 	// static files
 	app.use(express.static(config.staticDir));
 
-	const router = buildRouter();
+	const router = buildRouter({
+		config,
+		logger,
+		dbClient
+	});
 	// register the router, which will define any subpaths
 	// any paths not defined will return 404 by default
 	app.use('/', router);
 
 	app.use(notFoundHandler);
 
-	const defaultErrorHandler = buildDefaultErrorHandlerMiddleware(getLogger);
+	const defaultErrorHandler = buildDefaultErrorHandlerMiddleware(logger);
 	// catch/handle errors last
 	app.use(defaultErrorHandler);
 
