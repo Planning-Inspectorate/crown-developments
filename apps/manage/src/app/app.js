@@ -9,10 +9,11 @@ import { loadConfig } from './config.js';
 import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.js';
 import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { getSessionMiddleware } from '@pins/crowndev-lib/util/session.js';
-import { getRedis } from '../util/redis.js';
+import { getRedis } from '@pins/crowndev-lib/redis/index.js';
 
 export function getApp() {
 	const config = loadConfig();
+	const logger = getLogger();
 
 	// create an express app, and configure it for our usage
 	const app = express();
@@ -25,7 +26,7 @@ export function getApp() {
 	app.use(bodyParser.urlencoded({ extended: true }));
 	app.use(bodyParser.json());
 
-	const redis = getRedis();
+	const redis = getRedis(config.session, logger);
 	const sessionMiddleware = getSessionMiddleware({
 		redis,
 		secure: config.NODE_ENV === 'production',
