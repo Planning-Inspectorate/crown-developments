@@ -5,7 +5,7 @@ import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitorin
 import { loadConfig } from './config.js';
 import { getLogger } from '#util/logger.js';
 import { getRedis } from '#util/redis.js';
-import { getDatabaseClient } from '#util/database.js';
+import { getDatabaseClient } from '@pins/crowndev-database';
 
 /**
  * @returns {import('express').Router}
@@ -14,7 +14,7 @@ export function buildRouter() {
 	const logger = getLogger();
 	const config = loadConfig();
 	const redis = getRedis();
-	const dbClient = getDatabaseClient();
+	const dbClient = getDatabaseClient(config, logger);
 
 	const router = createRouter();
 	const monitoringRoutes = createMonitoringRoutes({
