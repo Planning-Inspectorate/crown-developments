@@ -113,7 +113,7 @@ export default class AddressQuestion extends Question {
 	 * @type {Question['formatAnswerForSummary']}
 	 */
 	formatAnswerForSummary(sectionSegment, journey, answer) {
-		let formattedAnswer = this.NOT_STARTED;
+		let formattedAnswer = this.notStartedText;
 
 		if (answer) {
 			formattedAnswer = nl2br(escape(this.format(answer)));
