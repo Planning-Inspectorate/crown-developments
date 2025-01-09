@@ -112,6 +112,25 @@ describe('./src/dynamic-forms/components/radio/question.js', () => {
 		assert.strictEqual(rowParams[0].value, 'Yes<br>test');
 	});
 
+	it('should use option text (not value) for display', () => {
+		const radioQuestion = new RadioQuestion({
+			title: TITLE,
+			question: QUESTION,
+			description: DESCRIPTION,
+			fieldName: FIELDNAME,
+			viewFolder: VIEWFOLDER,
+			html: HTML,
+			label: LABEL,
+			options: [
+				{ text: 'Option 1', value: 'op-1' },
+				{ text: 'Option 2', value: 'op-2' }
+			]
+		});
+
+		const rowParams = radioQuestion.formatAnswerForSummary(SECTION, JOURNEY, 'op-1');
+		assert.strictEqual(rowParams[0].value, 'Option 1');
+	});
+
 	it('should customise answer for summary and add label when question has a conditional field filled in and conditional field has a label', () => {
 		const optionsWithLabel = [...OPTIONS];
 		optionsWithLabel[0].conditional.label = 'label:';

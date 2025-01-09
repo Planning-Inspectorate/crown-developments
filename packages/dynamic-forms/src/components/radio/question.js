@@ -78,6 +78,10 @@ export default class RadioQuestion extends OptionsQuestion {
 				: answer.conditional;
 			const formattedAnswer = [selectedOption.text, conditionalAnswerText].join('\n');
 			return super.formatAnswerForSummary(sectionSegment, journey, formattedAnswer, false);
+		} else if (answer) {
+			const selectedOption = this.options.find((option) => option.value === answer);
+			const selectedText = selectedOption?.text || '';
+			return super.formatAnswerForSummary(sectionSegment, journey, selectedText, false);
 		}
 		return super.formatAnswerForSummary(sectionSegment, journey, answer);
 	}
