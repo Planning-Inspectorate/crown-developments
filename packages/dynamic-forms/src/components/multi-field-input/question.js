@@ -117,7 +117,7 @@ export default class MultiFieldInputQuestion extends Question {
 			return answer ? acc + answer + (field.formatJoinString || '\n') : acc;
 		}, '');
 
-		const formattedAnswer = summaryDetails || this.NOT_STARTED;
+		const formattedAnswer = summaryDetails || this.notStartedText;
 
 		return [
 			{

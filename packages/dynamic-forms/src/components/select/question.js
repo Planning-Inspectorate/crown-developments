@@ -62,6 +62,8 @@ export default class SelectQuestion extends OptionsQuestion {
 
 	/**
 	 * returns the formatted answers values to be used to build task list elements
+	 * note: only supports a single answer
+	 *
 	 * @param {Object} answer
 	 * @param {Journey} journey
 	 * @param {String} sectionSegment

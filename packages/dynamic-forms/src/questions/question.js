@@ -25,6 +25,7 @@ import { capitalize, nl2br } from '../lib/utils.js';
  * @property {PreppedQuestion} question
  * @property {string} layoutTemplate
  * @property {string} pageCaption
+ * @property {string} [continueButtonText]
  * @property {Array.<string>} navigation
  * @property {string} backLink
  * @property {boolean} showBackToListLink
@@ -62,6 +63,16 @@ export class Question {
 	html;
 	/** @type {string|undefined} optional question type */
 	interfaceType;
+
+	/** @type {string} 'not started' text to display (if a question has no answer) */
+	notStartedText = 'Not started';
+	/** @type {string} button text to display */
+	continueButtonText = 'Continue';
+	/** @type {string} text to display for 'change' link */
+	changeActionText = 'Change';
+	/** @type {string} text to display for 'answer' link */
+	answerActionText = 'Answer';
+
 	/**
 	 * @param {JourneyResponse} [response]
 	 * @returns {boolean}
@@ -170,6 +181,8 @@ export class Question {
 			listLink: journey.taskListUrl,
 			journeyTitle: journey.journeyTitle,
 			payload,
+
+			continueButtonText: this.continueButtonText,
 
 			...customViewData
 		};
@@ -289,7 +302,7 @@ export class Question {
 	 * }>}
 	 */
 	formatAnswerForSummary(sectionSegment, journey, answer, capitals = true) {
-		const formattedAnswer = capitals ? capitalize(answer ?? this.NOT_STARTED) : (answer ?? this.NOT_STARTED);
+		const formattedAnswer = capitals ? capitalize(answer ?? this.notStartedText) : (answer ?? this.notStartedText);
 		const action = this.getAction(sectionSegment, journey, answer);
 		const key = this.title ?? this.question;
 		let rowParams = [];
@@ -311,12 +324,11 @@ export class Question {
 	getAction(sectionSegment, journey, answer) {
 		const isAnswerProvided = answer !== null && answer !== undefined && answer !== '';
 
-		const action = {
+		return {
 			href: journey.getCurrentQuestionUrl(sectionSegment, this.fieldName),
-			text: isAnswerProvided ? 'Change' : 'Answer',
+			text: isAnswerProvided ? this.changeActionText : this.answerActionText,
 			visuallyHiddenText: this.question
 		};
-		return action;
 	}
 
 	/**
@@ -326,8 +338,6 @@ export class Question {
 	format(answer) {
 		return answer;
 	}
-
-	NOT_STARTED = 'Not started';
 
 	/**
 	 * @returns {boolean}

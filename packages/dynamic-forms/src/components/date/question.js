@@ -107,7 +107,7 @@ export default class DateQuestion extends Question {
 		if (answer) {
 			formattedAnswer = formatDateForDisplay(answer, { format: 'd MMMM yyyy' });
 		} else {
-			formattedAnswer = this.NOT_STARTED;
+			formattedAnswer = this.notStartedText;
 		}
 
 		const action = this.getAction(sectionSegment, journey, answer);

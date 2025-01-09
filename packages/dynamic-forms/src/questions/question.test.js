@@ -282,7 +282,7 @@ describe('./src/dynamic-forms/question.js', () => {
 			};
 			const question = getTestQuestion();
 			const result = question.formatAnswerForSummary('segment', journey, null);
-			assert.strictEqual(result[0].value, question.NOT_STARTED);
+			assert.strictEqual(result[0].value, question.notStartedText);
 		});
 	});
 });
