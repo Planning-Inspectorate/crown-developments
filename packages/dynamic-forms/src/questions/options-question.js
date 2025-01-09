@@ -56,8 +56,21 @@ export default class OptionsQuestion extends Question {
 	 * @param {string} [params.description]
 	 * @param {Array<Option>} params.options
 	 * @param {Array<import('./question').BaseValidator>} [params.validators]
+	 * @param {boolean} [params.editable]
 	 */
-	constructor({ title, question, viewFolder, fieldName, url, hint, pageTitle, description, options, validators }) {
+	constructor({
+		title,
+		question,
+		viewFolder,
+		fieldName,
+		url,
+		hint,
+		pageTitle,
+		description,
+		options,
+		validators,
+		editable
+	}) {
 		// add default valid options validator to all options questions
 		let optionsValidators = [new ValidOptionValidator()];
 		if (validators && Array.isArray(validators)) {
@@ -73,7 +86,8 @@ export default class OptionsQuestion extends Question {
 			hint,
 			pageTitle,
 			description,
-			validators: optionsValidators
+			validators: optionsValidators,
+			editable
 		});
 		this.hint = hint;
 		this.options = options;

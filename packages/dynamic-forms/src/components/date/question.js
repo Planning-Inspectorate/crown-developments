@@ -20,8 +20,9 @@ export default class DateQuestion extends Question {
 	 * @param {string} params.hint
 	 * @param {string} [params.url]
 	 * @param {Array.<import('../../validator/base-validator')>} [params.validators]
+	 * @param {boolean} [params.editable]
 	 */
-	constructor({ title, question, fieldName, validators, hint, url }) {
+	constructor({ title, question, fieldName, validators, hint, url, editable }) {
 		super({
 			title,
 			viewFolder: 'date',
@@ -29,7 +30,8 @@ export default class DateQuestion extends Question {
 			question,
 			validators,
 			hint,
-			url
+			url,
+			editable
 		});
 	}
 

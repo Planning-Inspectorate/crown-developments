@@ -16,6 +16,7 @@ export default class RadioQuestion extends OptionsQuestion {
 	 * @param {string} [params.legend] - optional legend, used instead of h1
 	 * @param {Array.<import('../../questions/options-question.js').Option>} params.options
 	 * @param {Array.<import('../../questions/question.js').BaseValidator>} [params.validators]
+	 * @param {boolean} [params.editable]
 	 */
 	constructor({
 		title,
@@ -30,7 +31,8 @@ export default class RadioQuestion extends OptionsQuestion {
 		html,
 		legend,
 		options,
-		validators
+		validators,
+		editable
 	}) {
 		super({
 			title,
@@ -42,7 +44,8 @@ export default class RadioQuestion extends OptionsQuestion {
 			pageTitle,
 			description,
 			options,
-			validators
+			validators,
+			editable
 		});
 
 		this.html = html;
