@@ -23,8 +23,9 @@ export default class AddressQuestion extends Question {
 	 * @param {string} [params.hint]
 	 * @param {string} [params.html]
 	 * @param {Array.<import('../../validator/base-validator.js')>} [params.validators]
+	 * @param {boolean} [params.editable]
 	 */
-	constructor({ title, question, fieldName, validators, url, hint, html }) {
+	constructor({ title, question, fieldName, validators, url, hint, html, editable }) {
 		super({
 			title: title,
 			viewFolder: 'address',
@@ -32,7 +33,8 @@ export default class AddressQuestion extends Question {
 			question: question,
 			validators: validators,
 			hint: hint,
-			html: html
+			html: html,
+			editable
 		});
 
 		this.url = url;

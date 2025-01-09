@@ -98,6 +98,7 @@ export class Question {
 	 * @param {string} [params.hint]
 	 * @param {string} [params.interfaceType]
 	 * @param {(response: JourneyResponse) => boolean} [params.shouldDisplay]
+	 * @param {boolean} [params.editable] - defaults to true
 	 *
 	 * @param {Record<string, Function>} [methodOverrides]
 	 */
@@ -114,7 +115,8 @@ export class Question {
 			html,
 			hint,
 			interfaceType,
-			shouldDisplay
+			shouldDisplay,
+			editable = true
 		},
 		methodOverrides
 	) {
@@ -132,6 +134,7 @@ export class Question {
 		this.description = description;
 		this.hint = hint;
 		this.interfaceType = interfaceType;
+		this.editable = editable;
 
 		if (shouldDisplay) {
 			this.shouldDisplay = shouldDisplay;
@@ -319,9 +322,12 @@ export class Question {
 	 * @param {Object} answer
 	 * @param {Journey} journey
 	 * @param {String} sectionSegment
-	 * @returns {{ href: string; text: string; visuallyHiddenText: string; }}
+	 * @returns {{ href: string; text: string; visuallyHiddenText: string; }|undefined}
 	 */
 	getAction(sectionSegment, journey, answer) {
+		if (!this.editable) {
+			return;
+		}
 		const isAnswerProvided = answer !== null && answer !== undefined && answer !== '';
 
 		return {

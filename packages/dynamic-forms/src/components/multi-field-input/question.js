@@ -39,8 +39,21 @@ export default class MultiFieldInputQuestion extends Question {
 	 * @param {Record<string, string>} [params.inputAttributes] html attributes to add to the input
 	 * @param {InputField[]} params.inputFields input fields
 	 * @param {'contactDetails' | 'standard' | null} [params.formatType] optional type field used for formatting for task list
+	 * @param {boolean} [params.editable]
 	 */
-	constructor({ title, question, fieldName, url, hint, validators, html, label, inputAttributes = {}, inputFields }) {
+	constructor({
+		title,
+		question,
+		fieldName,
+		url,
+		hint,
+		validators,
+		html,
+		label,
+		inputAttributes = {},
+		inputFields,
+		editable
+	}) {
 		super({
 			title,
 			viewFolder: 'multi-field-input',
@@ -49,7 +62,8 @@ export default class MultiFieldInputQuestion extends Question {
 			question,
 			validators,
 			hint,
-			html
+			html,
+			editable
 		});
 		this.label = label;
 		this.inputAttributes = inputAttributes;
