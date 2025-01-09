@@ -15,6 +15,7 @@ import { nl2br } from '../../lib/utils.js';
  * @property {string} fieldName
  * @property {string} label
  * @property {string} [formatJoinString] optional property, used by formatAnswerForSummary (eg task list display), effective default to line break
+ * @property {string} [formatPrefix] optional property, used by formatAnswerForSummary (eg task list display), to prefix answer
  * @property {Record<string, string>} [attributes] optional property, used to add html attributes to the field
  */
 
@@ -128,7 +129,7 @@ export default class MultiFieldInputQuestion extends Question {
 	formatAnswerForSummary(sectionSegment, journey) {
 		const summaryDetails = this.inputFields.reduce((acc, field) => {
 			const answer = journey.response.answers[field.fieldName];
-			return answer ? acc + answer + (field.formatJoinString || '\n') : acc;
+			return answer ? acc + (field.formatPrefix || '') + answer + (field.formatJoinString || '\n') : acc;
 		}, '');
 
 		const formattedAnswer = summaryDetails || this.notStartedText;
