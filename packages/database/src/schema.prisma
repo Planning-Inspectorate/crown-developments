@@ -21,26 +21,26 @@ datasource db {
 /// CrownDevelopment represents a case in the system
 model CrownDevelopment {
   /// internal identifier
-  id                                  String                @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  id                                  String                      @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
   /// external identifier, shown to users as a unique reference
-  reference                           String                @unique
-  createdDate                         DateTime              @default(now())
+  reference                           String                      @unique
+  createdDate                         DateTime                    @default(now())
   updatedDate                         DateTime?
   /// type of application, such as outline, extension
   typeId                              String
-  Type                                ApplicationType       @relation(fields: [typeId], references: [id])
+  Type                                ApplicationType             @relation(fields: [typeId], references: [id])
   // project description
-  description                         String?
+  description                         String?                     @db.NVarChar(2000)
   /// LPA associated with this application
-  lpaId                               String?               @db.UniqueIdentifier
-  Lpa                                 Lpa?                  @relation(fields: [lpaId], references: [id])
-  applicantContactId                  String?               @db.UniqueIdentifier
-  ApplicantContact                    Contact?              @relation("ApplicantContact", fields: [applicantContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-  agentContactId                      String?               @db.UniqueIdentifier
-  AgentContact                        Contact?              @relation("AgentContact", fields: [agentContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  lpaId                               String?                     @db.UniqueIdentifier
+  Lpa                                 Lpa?                        @relation(fields: [lpaId], references: [id])
+  applicantContactId                  String?                     @db.UniqueIdentifier
+  ApplicantContact                    Contact?                    @relation("ApplicantContact", fields: [applicantContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  agentContactId                      String?                     @db.UniqueIdentifier
+  AgentContact                        Contact?                    @relation("AgentContact", fields: [agentContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   /// Address of the site, if known
-  siteAddressId                       String?               @db.UniqueIdentifier
-  SiteAddress                         Address?              @relation(fields: [siteAddressId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  siteAddressId                       String?                     @db.UniqueIdentifier
+  SiteAddress                         Address?                    @relation(fields: [siteAddressId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   /// Easting of the site, if known
   siteEasting                         Int?
   /// Northing of the site, if known
@@ -51,19 +51,19 @@ model CrownDevelopment {
   expectedDateOfSubmission            DateTime?
   /// internal (PINS) status for the application
   statusId                            String?
-  Status                              ApplicationStatus?    @relation(fields: [statusId], references: [id])
+  Status                              ApplicationStatus?          @relation(fields: [statusId], references: [id])
   /// external (public) stage for the application
   stageId                             String?
-  Stage                               ApplicationStage?     @relation(fields: [stageId], references: [id])
+  Stage                               ApplicationStage?           @relation(fields: [stageId], references: [id])
   nationallyImportant                 Boolean?
   nationallyImportantConfirmationDate DateTime?
   /// LPA cross reference
   lpaReference                        String?
   /// case category
   categoryId                          String?
-  Category                            Category?             @relation(fields: [categoryId], references: [id])
+  Category                            Category?                   @relation(fields: [categoryId], references: [id])
   isGreenBelt                         Boolean?
-  healthAndSafetyIssue                String?
+  healthAndSafetyIssue                String?                     @db.NVarChar(2000)
   applicationReceivedDate             DateTime?
   applicationAcceptedDate             DateTime?
   lpaQuestionnaireSentDate            DateTime?
@@ -81,7 +81,8 @@ model CrownDevelopment {
   decisionDate                        DateTime?
   /// if challenged, this field records the date of original decision
   originalDecisionDate                DateTime?
-  decisionOutcome                     String?
+  decisionOutcomeId                   String?
+  DecisionOutcome                     ApplicationDecisionOutcome? @relation(fields: [decisionOutcomeId], references: [id])
   turnedAwayDate                      DateTime?
   /// determines when representations are published to the public
   representationsPublishDate          DateTime?
@@ -102,9 +103,10 @@ model CrownDevelopment {
   environmentalStatementReceivedDate  DateTime?
   siteIsVisibleFromPublicLand         Boolean?
   procedureId                         String?
-  Procedure                           ApplicationProcedure? @relation(fields: [procedureId], references: [id])
+  Procedure                           ApplicationProcedure?       @relation(fields: [procedureId], references: [id])
   procedureNotificationDate           DateTime?
-  eventId                             String?
+  eventId                             String?                     @db.UniqueIdentifier
+  Event                               Event?                      @relation(fields: [eventId], references: [id])
   Representation                      Representation[]
 }
 
@@ -159,7 +161,7 @@ model Lpa {
 /// Event represents an event in relation to an application, such as a hearing or an inquiry
 model Event {
   /// internal identifier
-  id                           String    @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  id                           String             @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
   date                         DateTime?
   duration                     String?
   venue                        String?
@@ -167,7 +169,8 @@ model Event {
   issuesReportPublishedDate    DateTime?
   statementsDate               DateTime?
   caseManagementConferenceDate DateTime?
-  proofsOfEvidence             DateTime?
+  proofsOfEvidenceDate         DateTime?
+  CrownDevelopment             CrownDevelopment[]
 }
 
 /// Representation represents a comment made by an external party on an application
@@ -191,6 +194,14 @@ model Representation {
 }
 
 // reference data
+
+/// ApplicationDecisionOutcome represents the possible outcomes of an application
+model ApplicationDecisionOutcome {
+  /// unique machine-readable name, not generated, e.g. "approved"
+  id               String             @id
+  displayName      String?
+  CrownDevelopment CrownDevelopment[]
+}
 
 /// ApplicationType represents types of applications we recieve
 model ApplicationType {

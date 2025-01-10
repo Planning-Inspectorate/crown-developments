@@ -1,4 +1,26 @@
 /**
+ * @type {import('@prisma/client').Prisma.ApplicationDecisionOutcomeCreateInput[]}
+ */
+export const APPLICATION_DECISION_OUTCOME = [
+	{
+		id: 'approved',
+		displayName: 'Approved'
+	},
+	{
+		id: 'approved-with-conditions',
+		displayName: 'Approved with conditions'
+	},
+	{
+		id: 'refused',
+		displayName: 'Refused'
+	},
+	{
+		id: 'withdrawn',
+		displayName: 'Withdrawn'
+	}
+];
+
+/**
  * @type {import('@prisma/client').Prisma.ApplicationTypeCreateInput[]}
  */
 export const APPLICATION_TYPES = [
@@ -114,19 +136,28 @@ export const APPLICATION_STAGE = [
 ];
 
 /**
+ * @type {Readonly<{WRITTEN_REPS: string, HEARING: string, INQUIRY: string}>}
+ */
+export const APPLICATION_PROCEDURE_ID = Object.freeze({
+	WRITTEN_REPS: 'written-reps',
+	HEARING: 'hearing',
+	INQUIRY: 'inquiry'
+});
+
+/**
  * @type {import('@prisma/client').Prisma.ApplicationProcedureCreateInput[]}
  */
 export const APPLICATION_PROCEDURE = [
 	{
-		id: 'written-reps',
+		id: APPLICATION_PROCEDURE_ID.WRITTEN_REPS,
 		displayName: 'Written Representations'
 	},
 	{
-		id: 'hearing',
+		id: APPLICATION_PROCEDURE_ID.HEARING,
 		displayName: 'Hearing'
 	},
 	{
-		id: 'inquiry',
+		id: APPLICATION_PROCEDURE_ID.INQUIRY,
 		displayName: 'Inquiry'
 	}
 ];
@@ -250,6 +281,7 @@ export const CATEGORIES = [
 ];
 
 /**
+ * @typedef {import('@prisma/client').Prisma.ApplicationDecisionOutcomeDelegate} ApplicationDecisionOutcomeDelegate
  * @typedef {import('@prisma/client').Prisma.ApplicationTypeDelegate} ApplicationTypeDelegate
  * @typedef {import('@prisma/client').Prisma.ApplicationStageDelegate} ApplicationStageDelegate
  * @typedef {import('@prisma/client').Prisma.ApplicationStatusDelegate} ApplicationStatusDelegate
@@ -259,6 +291,7 @@ export const CATEGORIES = [
  */
 
 /**
+ * @typedef {import('@prisma/client').Prisma.ApplicationDecisionOutcomeCreateInput} ApplicationDecisionOutcomeCreateInput
  * @typedef {import('@prisma/client').Prisma.ApplicationTypeCreateInput} ApplicationTypeCreateInput
  * @typedef {import('@prisma/client').Prisma.ApplicationStageCreateInput} ApplicationStageCreateInput
  * @typedef {import('@prisma/client').Prisma.ApplicationStatusCreateInput} ApplicationStatusCreateInput
@@ -268,6 +301,7 @@ export const CATEGORIES = [
  */
 
 /**
+ * @typedef {{delegate: ApplicationDecisionOutcomeDelegate, input: ApplicationDecisionOutcomeCreateInput}} ApplicationDecisionOutcomeArgs
  * @typedef {{delegate: ApplicationTypeDelegate, input: ApplicationTypeCreateInput}} ApplicationTypeArgs
  * @typedef {{delegate: ApplicationStageDelegate, input: ApplicationStageCreateInput}} ApplicationStageArgs
  * @typedef {{delegate: ApplicationStatusDelegate, input: ApplicationStatusCreateInput}} ApplicationStatusArgs
@@ -279,7 +313,7 @@ export const CATEGORIES = [
 /**
  * Upsert reference data with any of the given types
  *
- * @param {ApplicationTypeArgs|ApplicationStageArgs|ApplicationStatusArgs|ApplicationProcedureArgs|RepresentationTypeArgs|CategoryArgs} args
+ * @param {ApplicationDecisionOutcomeArgs|ApplicationTypeArgs|ApplicationStageArgs|ApplicationStatusArgs|ApplicationProcedureArgs|RepresentationTypeArgs|CategoryArgs} args
  * @returns {Promise<any>}
  */
 async function upsertReferenceData({ delegate, input }) {
@@ -294,6 +328,12 @@ async function upsertReferenceData({ delegate, input }) {
  * @param {import('@prisma/client').PrismaClient} dbClient
  */
 export async function seedStaticData(dbClient) {
+	await Promise.all(
+		APPLICATION_DECISION_OUTCOME.map((input) =>
+			upsertReferenceData({ delegate: dbClient.applicationDecisionOutcome, input })
+		)
+	);
+
 	await Promise.all(
 		APPLICATION_TYPES.map((input) => upsertReferenceData({ delegate: dbClient.applicationType, input }))
 	);
