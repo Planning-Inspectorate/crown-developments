@@ -1,0 +1,20 @@
+BEGIN TRY
+
+BEGIN TRAN;
+
+-- AlterTable
+ALTER TABLE [dbo].[CrownDevelopment] ALTER COLUMN [description] NVARCHAR(2000) NULL;
+ALTER TABLE [dbo].[CrownDevelopment] ALTER COLUMN [healthAndSafetyIssue] NVARCHAR(2000) NULL;
+
+COMMIT TRAN;
+
+END TRY
+BEGIN CATCH
+
+IF @@TRANCOUNT > 0
+BEGIN
+    ROLLBACK TRAN;
+END;
+THROW
+
+END CATCH
