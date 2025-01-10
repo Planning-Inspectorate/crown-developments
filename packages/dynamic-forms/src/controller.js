@@ -168,9 +168,10 @@ export async function question(req, res) {
 
 /**
  * @param {SaveDataFn} saveData
+ * @param {boolean} [redirectToTaskListOnSuccess] - optionally redirect to the task list after save instead of next question
  * @returns {import('express').Handler}
  */
-export function buildSave(saveData) {
+export function buildSave(saveData, redirectToTaskListOnSuccess) {
 	return async (req, res) => {
 		const { section, question } = req.params;
 		/** @type {import('./journey/journey.js').Journey} */
@@ -208,7 +209,9 @@ export function buildSave(saveData) {
 			if (saveViewModel) {
 				return questionObj.renderAction(res, saveViewModel);
 			}
-
+			if (redirectToTaskListOnSuccess) {
+				return res.redirect(journey.taskListUrl);
+			}
 			// move to the next question
 			return questionObj.handleNextQuestion(res, journey, sectionObj.segment, questionObj.fieldName);
 		} catch (err) {

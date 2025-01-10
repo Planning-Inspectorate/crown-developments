@@ -152,6 +152,7 @@ const journeyParams = {
 	sections,
 	journeyId: 'TEST',
 	referenceId: 'REF',
+	taskListUrl: 'task-list',
 	makeBaseUrl: () => `${mockBaseUrl}/${mockRef}`,
 	journeyTemplate: mockTemplateUrl,
 	listingPageViewPath: mockListingPath,
@@ -459,6 +460,42 @@ describe('dynamic-form/controller', () => {
 			assert.strictEqual(saveData.mock.callCount(), 1);
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
 			assert.strictEqual(res.redirect.mock.calls[0].arguments[0], expectedUrl);
+		});
+
+		it('should redirect to task list if configured', async () => {
+			res.redirect.mock.resetCalls();
+			const journeyId = 'has-questionnaire';
+			const expectedUrl = 'redirect-url';
+			const sampleQuestionObjWithActions = {
+				...sampleQuestionObj,
+				handleNextQuestion: mock.fn((res, journey) => {
+					res.redirect(journey.getNextQuestionUrl());
+				})
+			};
+
+			req.params = {
+				referenceId: mockRef,
+				section: mockJourney.sections[0].segment,
+				question: mockJourney.sections[0].questions[0].fieldName
+			};
+
+			res.locals.journeyResponse = {
+				...journeyParams,
+				answers: {}
+			};
+
+			mockJourney.getSection = mock.fn(() => ({}));
+			mockJourney.getQuestionBySectionAndName = mock.fn();
+			mockJourney.getQuestionBySectionAndName.mock.mockImplementationOnce(() => sampleQuestionObjWithActions);
+			mockJourney.getNextQuestionUrl = mock.fn(() => expectedUrl);
+
+			const saveData = mock.fn();
+			await buildSave(saveData, true)(req, res, journeyId);
+
+			assert.strictEqual(saveData.mock.callCount(), 1);
+			assert.strictEqual(res.redirect.mock.callCount(), 1);
+			assert.match(res.redirect.mock.calls[0].arguments[0], /\/task-list$/);
+			assert.strictEqual(mockJourney.getNextQuestionUrl.mock.callCount(), 0);
 		});
 	});
 });
