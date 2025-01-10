@@ -149,9 +149,9 @@ export const REPRESENTATION_TYPE = [
 	}
 ];
 
-// use connectOrCreate so that sub categories can be created in any order (e.g. before the parent)
-const majorParentConnection = { connectOrCreate: { create: { id: 'major' }, where: { id: 'major' } } };
-const nonMajorParentConnection = { connectOrCreate: { create: { id: 'non-major' }, where: { id: 'non-major' } } };
+// this only works if the main categories are created first
+const majorParentConnection = { connect: { id: 'major' } };
+const nonMajorParentConnection = { connect: { id: 'non-major' } };
 
 /**
  * @type {import('@prisma/client').Prisma.CategoryCreateInput[]}
@@ -314,7 +314,11 @@ export async function seedStaticData(dbClient) {
 		REPRESENTATION_TYPE.map((input) => upsertReferenceData({ delegate: dbClient.representationType, input }))
 	);
 
-	await Promise.all(CATEGORIES.map((input) => upsertReferenceData({ delegate: dbClient.category, input })));
+	const categories = CATEGORIES.filter((c) => !c.ParentCategory);
+	const subCategories = CATEGORIES.filter((c) => c.ParentCategory);
+	// order is important here - parent categories first
+	await Promise.all(categories.map((input) => upsertReferenceData({ delegate: dbClient.category, input })));
+	await Promise.all(subCategories.map((input) => upsertReferenceData({ delegate: dbClient.category, input })));
 
 	console.log('static data seed complete');
 }
