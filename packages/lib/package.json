@@ -10,6 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "@azure/msal-node": "*",
+    "@prisma/client": "*",
     "connect-redis": "*",
     "express-session": "*",
     "pino": "*",
