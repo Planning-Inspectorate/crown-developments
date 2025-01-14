@@ -8,6 +8,8 @@ import { Question } from '../../questions/question.js';
  * @typedef {import('../../section').Section} Section
  */
 
+const DEFAULT_DATE_FORMAT = 'd MMMM yyyy';
+
 /**
  * @class
  */
@@ -21,8 +23,9 @@ export default class DateQuestion extends Question {
 	 * @param {string} [params.url]
 	 * @param {Array.<import('../../validator/base-validator')>} [params.validators]
 	 * @param {boolean} [params.editable]
+	 * @param {string} [params.dateFormat]
 	 */
-	constructor({ title, question, fieldName, validators, hint, url, editable }) {
+	constructor({ title, question, fieldName, validators, hint, url, editable, dateFormat = DEFAULT_DATE_FORMAT }) {
 		super({
 			title,
 			viewFolder: 'date',
@@ -33,6 +36,7 @@ export default class DateQuestion extends Question {
 			url,
 			editable
 		});
+		this.dateFormat = dateFormat;
 	}
 
 	/**
@@ -107,7 +111,7 @@ export default class DateQuestion extends Question {
 		let formattedAnswer;
 
 		if (answer) {
-			formattedAnswer = formatDateForDisplay(answer, { format: 'd MMMM yyyy' });
+			formattedAnswer = formatDateForDisplay(answer, { format: this.dateFormat });
 		} else {
 			formattedAnswer = this.notStartedText;
 		}
