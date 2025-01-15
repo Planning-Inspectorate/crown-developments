@@ -266,7 +266,11 @@ export class Question {
 	 * @returns {void}
 	 */
 	handleNextQuestion(res, journey, sectionSegment, questionSegment) {
-		return res.redirect(journey.getNextQuestionUrl(sectionSegment, questionSegment, false));
+		let next = journey.getNextQuestionUrl(sectionSegment, questionSegment);
+		if (next === null) {
+			next = journey.taskListUrl;
+		}
+		return res.redirect(next);
 	}
 
 	/**
