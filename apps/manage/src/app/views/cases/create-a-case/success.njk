@@ -1,0 +1,18 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+
+{% block pageContent %}
+	{{ govukPanel({
+		titleText: "Case created",
+		html: "Case reference <br><strong>" + reference + "</strong>"
+	}) }}
+
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			<p class="govuk-body">
+				<a href="/cases/{{ id }}" class="govuk-link">View case details for {{ reference }}</a>
+			</p>
+		</div>
+	</div>
+{% endblock %}

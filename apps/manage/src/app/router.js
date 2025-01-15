@@ -2,6 +2,7 @@ import { Router as createRouter } from 'express';
 import { viewHomepage } from './views/home/controller.js';
 import { createRoutesAndGuards as createAuthRoutesAndGuards } from './auth/router.js';
 import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.js';
+import { createRoutes as createCasesRoutes } from './views/cases/index.js';
 
 /**
  * @param {Object} params
@@ -23,6 +24,7 @@ export function buildRouter({ logger, config, redis, dbClient }) {
 		config,
 		redisClient: redis
 	});
+	const casesRoutes = createCasesRoutes({ db: dbClient, logger });
 
 	router.use('/', monitoringRoutes);
 	router.get('/unauthenticated', (req, res) => res.status(401).render('views/errors/401.njk'));
@@ -42,6 +44,7 @@ export function buildRouter({ logger, config, redis, dbClient }) {
 	}
 
 	router.route('/').get(viewHomepage);
+	router.use('/cases', casesRoutes);
 
 	return router;
 }
