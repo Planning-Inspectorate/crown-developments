@@ -49,6 +49,7 @@ module "app_portal" {
     APPLICATIONINSIGHTS_CONNECTION_STRING      = local.key_vault_refs["app-insights-connection-string"]
     ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
     NODE_ENV                                   = var.apps_config.node_environment
+    ENVIRONMENT                                = var.environment
 
     # logging
     LOG_LEVEL = var.apps_config.logging.level
