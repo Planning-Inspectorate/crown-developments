@@ -12,8 +12,8 @@ import { endOfDay, parseDateInput, startOfDay } from '../lib/date-utils.js';
 
 /**
  * @typedef {Object} DateValidationSettings
- * @param {Boolean} ensureFuture
- * @param {Boolean} ensurePast
+ * @property {Boolean} ensureFuture
+ * @property {Boolean} ensurePast
  */
 
 /**
