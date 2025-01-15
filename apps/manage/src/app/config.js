@@ -2,6 +2,18 @@ import dotenv from 'dotenv';
 import path from 'node:path';
 import { fileURLToPath } from 'url';
 
+/**
+ * The environment names
+ *
+ * @type {Readonly<{PROD: string, DEV: string, TEST: string, TRAINING: string}>}
+ */
+export const ENVIRONMENT_NAME = Object.freeze({
+	DEV: 'dev',
+	TEST: 'test',
+	TRAINING: 'training',
+	PROD: 'prod'
+});
+
 // cache the config
 /** @type {undefined|Config} */
 let config;
@@ -115,4 +127,29 @@ export function loadBuildConfig() {
 		srcDir,
 		staticDir
 	};
+}
+
+/**
+ * Load the environment the application is running in. The value should be
+ * one of the ENVIRONMENT_NAME values defined at the top of the file, and matches
+ * the environment variable in the infrastructure code.
+ *
+ * @returns {string}
+ */
+export function loadEnvironmentConfig() {
+	// load configuration from .env file into process.env
+	dotenv.config();
+
+	// get values from the environment
+	const { ENVIRONMENT } = process.env;
+
+	if (!ENVIRONMENT) {
+		throw new Error('ENVIRONMENT is required');
+	}
+
+	if (!Object.values(ENVIRONMENT_NAME).includes(ENVIRONMENT)) {
+		throw new Error(`ENVIRONMENT must be one of: ${Object.values(ENVIRONMENT_NAME)}`);
+	}
+
+	return ENVIRONMENT;
 }

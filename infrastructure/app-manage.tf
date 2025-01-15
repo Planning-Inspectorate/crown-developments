@@ -49,6 +49,7 @@ module "app_manage" {
     APPLICATIONINSIGHTS_CONNECTION_STRING      = local.key_vault_refs["app-insights-connection-string"]
     ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
     NODE_ENV                                   = var.apps_config.node_environment
+    ENVIRONMENT                                = var.environment
 
     APP_HOSTNAME                  = var.web_domains.manage
     AUTH_CLIENT_ID                = var.apps_config.auth.client_id
