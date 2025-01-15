@@ -277,7 +277,7 @@ export const CATEGORIES = [
  */
 
 /**
- * Upsert reference data of any of the given types
+ * Upsert reference data with any of the given types
  *
  * @param {ApplicationTypeArgs|ApplicationStageArgs|ApplicationStatusArgs|ApplicationProcedureArgs|RepresentationTypeArgs|CategoryArgs} args
  * @returns {Promise<any>}
