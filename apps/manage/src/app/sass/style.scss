@@ -7,3 +7,8 @@ $font-family: arial, helvetica, sans-serif;
 	$govuk-font-family: $font-family
 );
 @use './header';
+
+// set font-family for any autocomplete menu items
+.autocomplete__menu {
+	font-family: $font-family;
+}
