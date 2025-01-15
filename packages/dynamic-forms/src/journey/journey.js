@@ -183,11 +183,10 @@ export class Journey {
 	 * Get url for the next question in this section
 	 * @param {string} sectionSegment - section segment
 	 * @param {string} questionSegment - question segment
-	 * @param {boolean} reverse - if passed in this will get the previous question
-	 * @returns {string} url for the next question
+	 * @param {boolean} [reverse] - if passed in this will get the previous question
+	 * @returns {string|null} url for the next question, or null if unmatched
 	 */
-	getNextQuestionUrl(sectionSegment, questionSegment, reverse) {
-		const unmatchedUrl = this.taskListUrl;
+	getNextQuestionUrl(sectionSegment, questionSegment, reverse = false) {
 		const numberOfSections = this.sections.length;
 		const sectionsStart = reverse ? numberOfSections - 1 : 0;
 
@@ -206,7 +205,7 @@ export class Journey {
 
 			if (foundSection) {
 				if (this.returnToListing && i !== currentSectionIndex) {
-					return unmatchedUrl;
+					return null;
 				}
 
 				const questionsStart = reverse ? numberOfQuestions - 1 : 0;
@@ -223,7 +222,7 @@ export class Journey {
 			}
 		}
 
-		return unmatchedUrl;
+		return null;
 	}
 
 	/**

@@ -227,7 +227,7 @@ describe('Journey class', () => {
 
 	describe('getNextQuestionUrl', () => {
 		for (const returnToListing of [true, false]) {
-			it(`should return the baseUrl if section is not found [${returnToListing}]`, () => {
+			it(`should return null if section is not found [${returnToListing}]`, () => {
 				const section = 'section3'; // Non-existent section
 				const name = mockSections[0].questions[0].fieldName;
 
@@ -237,7 +237,7 @@ describe('Journey class', () => {
 
 				const nextQuestionUrl = journey.getNextQuestionUrl(section, name, false);
 
-				assert.strictEqual(nextQuestionUrl, journey.taskListUrl);
+				assert.strictEqual(nextQuestionUrl, null);
 			});
 		}
 
@@ -252,7 +252,7 @@ describe('Journey class', () => {
 
 				const nextQuestionUrl = journey.getNextQuestionUrl(section, name, false);
 
-				assert.strictEqual(nextQuestionUrl, journey.taskListUrl);
+				assert.strictEqual(nextQuestionUrl, null);
 			});
 		}
 
@@ -314,7 +314,7 @@ describe('Journey class', () => {
 		}
 
 		for (const returnToListing of [true, false]) {
-			it(`should return the baseUrl if there is no next section ${returnToListing}`, () => {
+			it(`should return null if there is no next section ${returnToListing}`, () => {
 				const section = mockSections[mockSections.length - 1];
 				const name = section.questions[section.questions.length - 1].fieldName;
 
@@ -324,7 +324,7 @@ describe('Journey class', () => {
 
 				const nextQuestionUrl = journey.getNextQuestionUrl(section.segment, name, false);
 
-				assert.strictEqual(nextQuestionUrl, journey.taskListUrl);
+				assert.strictEqual(nextQuestionUrl, null);
 			});
 		}
 
@@ -349,7 +349,7 @@ describe('Journey class', () => {
 		}
 
 		for (const returnToListing of [true, false]) {
-			it(`should return the baseUrl if there is no previous section ${returnToListing}`, () => {
+			it(`should return null if there is no previous section ${returnToListing}`, () => {
 				const section = mockSections[0];
 				const name = section.questions[0].fieldName;
 
@@ -359,12 +359,12 @@ describe('Journey class', () => {
 
 				const nextQuestionUrl = journey.getNextQuestionUrl(section.segment, name, true);
 
-				assert.strictEqual(nextQuestionUrl, journey.taskListUrl);
+				assert.strictEqual(nextQuestionUrl, null);
 			});
 		}
 
 		for (const currentSectionIndex of [0, 1, 2]) {
-			it(`should return the baseUrl if at end of section ${currentSectionIndex} and returnToListing is true`, () => {
+			it(`should return null if at end of section ${currentSectionIndex} and returnToListing is true`, () => {
 				const section = mockSections[currentSectionIndex];
 				const name = section.questions[section.questions.length - 1].fieldName;
 
@@ -373,12 +373,12 @@ describe('Journey class', () => {
 				journey.returnToListing = true;
 
 				const nextQuestionUrl = journey.getNextQuestionUrl(section.segment, name, false);
-				assert.strictEqual(nextQuestionUrl, journey.taskListUrl);
+				assert.strictEqual(nextQuestionUrl, null);
 			});
 		}
 
 		for (const currentSectionIndex of [0, 1, 2]) {
-			it(`should return the baseUrl if at start of section ${currentSectionIndex} and returnToListing is true`, () => {
+			it(`should return null if at start of section ${currentSectionIndex} and returnToListing is true`, () => {
 				const section = mockSections[currentSectionIndex];
 				const name = section.questions[0].fieldName;
 
@@ -388,7 +388,7 @@ describe('Journey class', () => {
 
 				const nextQuestionUrl = journey.getNextQuestionUrl(section.segment, name, true);
 
-				assert.strictEqual(nextQuestionUrl, journey.taskListUrl);
+				assert.strictEqual(nextQuestionUrl, null);
 			});
 		}
 
