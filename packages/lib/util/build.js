@@ -1,7 +1,7 @@
 import * as sass from 'sass';
 import path from 'node:path';
 import fs from 'node:fs/promises';
-import { copyFolder } from './copy.js';
+import { copyFile, copyFolder } from './copy.js';
 
 /**
  * Compile sass into a css file in the .static folder
@@ -42,13 +42,35 @@ async function compileSass({ staticDir, srcDir, govUkRoot }) {
 async function copyAssets({ staticDir, govUkRoot }) {
 	const images = path.join(govUkRoot, 'node_modules/govuk-frontend/dist/govuk/assets/images');
 	const fonts = path.join(govUkRoot, 'node_modules/govuk-frontend/dist/govuk/assets/fonts');
+	const manifest = path.join(govUkRoot, 'node_modules/govuk-frontend/dist/govuk/assets/manifest.json');
 
 	const staticImages = path.join(staticDir, 'assets', 'images');
 	const staticFonts = path.join(staticDir, 'assets', 'fonts');
+	const staticManifest = path.join(staticDir, 'assets', 'manifest.json');
 
 	// copy all images and fonts for govuk-frontend
 	await copyFolder(images, staticImages);
 	await copyFolder(fonts, staticFonts);
+	await copyFile(manifest, staticManifest);
+}
+
+/**
+ * Copy accessible-autocomplete assets into the .static folder
+ *
+ * @param {Object} options
+ * @param {string} options.staticDir
+ * @param {string} options.root
+ * @returns {Promise<void>}
+ */
+async function copyAutocompleteAssets({ staticDir, root }) {
+	const js = path.join(root, 'accessible-autocomplete.min.js');
+	const css = path.join(root, 'accessible-autocomplete.min.css');
+
+	const staticJs = path.join(staticDir, 'assets', 'js', 'accessible-autocomplete.min.js');
+	const staticCss = path.join(staticDir, 'assets', 'css', 'accessible-autocomplete.min.css');
+
+	await copyFile(js, staticJs);
+	await copyFile(css, staticCss);
 }
 
 /**
@@ -58,8 +80,13 @@ async function copyAssets({ staticDir, govUkRoot }) {
  * @param {string} options.staticDir
  * @param {string} options.srcDir
  * @param {string} options.govUkRoot
+ * @param {string} [options.accessibleAutocompleteRoot]
  * @returns {Promise<void[]>}
  */
-export function runBuild({ staticDir, srcDir, govUkRoot }) {
-	return Promise.all([compileSass({ staticDir, srcDir, govUkRoot }), copyAssets({ staticDir, govUkRoot })]);
+export function runBuild({ staticDir, srcDir, govUkRoot, accessibleAutocompleteRoot }) {
+	const tasks = [compileSass({ staticDir, srcDir, govUkRoot }), copyAssets({ staticDir, govUkRoot })];
+	if (accessibleAutocompleteRoot) {
+		tasks.push(copyAutocompleteAssets({ staticDir, root: accessibleAutocompleteRoot }));
+	}
+	return Promise.all(tasks);
 }

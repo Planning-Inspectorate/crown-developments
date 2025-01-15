@@ -40,3 +40,17 @@ async function copyFileOrFolder(from, to) {
 		await copyFolder(from, to);
 	}
 }
+
+/**
+ * Copy a file, ensuring the destination exists
+ *
+ * @param {string} from
+ * @param {string} to
+ * @returns {Promise<void>}
+ */
+export async function copyFile(from, to) {
+	const destDir = path.dirname(to);
+	// make the destination directory, and any parent directories
+	await fs.mkdir(destDir, { recursive: true });
+	await fs.copyFile(from, to);
+}
