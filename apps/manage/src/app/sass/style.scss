@@ -1,2 +1,9 @@
+$font-family: arial, helvetica, sans-serif;
+
 //Main gov styles
-@use 'node_modules/govuk-frontend/dist/govuk/all';
+@use 'node_modules/govuk-frontend/dist/govuk/all' with (
+	// don't use the GDS Transport font, this service is not on GOV.UK
+	// https://www.gov.uk/service-manual/design/making-your-service-look-like-govuk#if-your-service-isnt-on-govuk
+	$govuk-font-family: $font-family
+);
+@use './header';
