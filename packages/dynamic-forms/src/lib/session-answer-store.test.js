@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { buildGetJourneyResponseFromSession, saveDataToSession } from './session-answer-store.js';
+import { buildGetJourneyResponseFromSession, clearDataFromSession, saveDataToSession } from './session-answer-store.js';
 import { mockReq, mockRes } from './test-utils.js';
 import { BOOLEAN_OPTIONS } from '../components/boolean/question.js';
 
@@ -53,6 +53,39 @@ describe('session-answer-store', () => {
 					}
 				}
 			});
+		});
+	});
+
+	describe('clearDataFromSession', () => {
+		it('should no-op if no session', () => {
+			const req = mockReq();
+			const journeyId = 'j-1';
+			assert.doesNotThrow(() => clearDataFromSession({ req, journeyId }));
+		});
+		it('should no-op if empty session', async () => {
+			const req = mockReq();
+			req.session = {};
+			const journeyId = 'j-1';
+			assert.doesNotThrow(() => clearDataFromSession({ req, journeyId }));
+		});
+		it('should clear session data for journey', async () => {
+			const journeyId = 'j-1';
+			const req = mockReq();
+			req.session = {
+				forms: { [journeyId]: { q1: 'a1', q2: false } }
+			};
+			clearDataFromSession({ req, journeyId });
+			assert.strictEqual(journeyId in req.session.forms, false);
+		});
+		it('should replace session data for journey', async () => {
+			const journeyId = 'j-1';
+			const req = mockReq();
+			req.session = {
+				forms: { [journeyId]: { q1: 'a1', q2: false } }
+			};
+			const newData = { myField: 'value1' };
+			clearDataFromSession({ req, journeyId, replaceWith: newData });
+			assert.strictEqual(req.session.forms[journeyId], newData);
 		});
 	});
 
