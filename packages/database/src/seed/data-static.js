@@ -56,8 +56,8 @@ export const APPLICATION_STATUS = [
 		displayName: 'New'
 	},
 	{
-		id: 'validation',
-		displayName: 'Validation'
+		id: 'acceptance',
+		displayName: 'Acceptance'
 	},
 	{
 		id: 'invalid',
@@ -68,16 +68,24 @@ export const APPLICATION_STATUS = [
 		displayName: 'Consultation period open'
 	},
 	{
-		id: 'event-date-set-decision-awaited',
-		displayName: 'Hearing/Inquiry date set: Decision awaited'
+		id: 'event-date-set',
+		displayName: 'Hearing/Inquiry date set'
 	},
 	{
 		id: 'on-hold',
 		displayName: 'Application on hold awaiting further information'
 	},
 	{
+		id: 'report-awaited',
+		displayName: 'Report awaited'
+	},
+	{
 		id: 'report-sent',
 		displayName: 'Report sent to Decision Branch'
+	},
+	{
+		id: 'decision-awaited',
+		displayName: 'Decision awaited'
 	},
 	{
 		id: 'decided',
