@@ -1,0 +1,68 @@
+{% extends layoutTemplate %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
+{% set title = reference + " - " + journeyTitle + " - GOV.UK" %}
+
+{% block pageTitle %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
+            <h1 class="govuk-heading-l">
+                {{ reference }}
+            </h1>
+        </div>
+    </div>
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <ul class="govuk-list">
+                {% for section in summaryListData.sections %}
+                    {% if section.list.rows.length %}
+                        <li>
+                            <a href="#{{ section.heading | lower }}" class="govuk-link">{{ section.heading }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="govuk-grid-column-one-third">
+            {{ govukButton({
+                text: "Open SharePoint Folder",
+                href: "",
+                classes: "govuk-button--secondary"
+            }) }}
+            {{ govukButton({
+                text: "Manage representations",
+                href: "",
+                classes: "govuk-button--secondary"
+            }) }}
+        </div>
+        <div class="govuk-grid-column-full">
+            {% for section in summaryListData.sections %}
+                {% if section.list.rows.length %}
+                    {{ govukSummaryList({
+                        card: {
+                            title: {
+                                text: section.heading
+                            },
+                            attributes: {id: section.heading | lower}
+                        },
+                        rows: section.list.rows
+                    }) }}
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    {% block afterTaskList %}
+    {% endblock %}
+
+{% endblock %}
