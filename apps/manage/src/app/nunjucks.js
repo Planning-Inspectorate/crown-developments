@@ -1,10 +1,10 @@
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import nunjucks from 'nunjucks';
-import { loadConfig } from './config.js';
+import { loadBuildConfig } from './config.js';
 
 export function configureNunjucks() {
-	const config = loadConfig();
+	const config = loadBuildConfig();
 
 	// get the require function, see https://nodejs.org/api/module.html#modulecreaterequirefilename
 	const require = createRequire(import.meta.url);
