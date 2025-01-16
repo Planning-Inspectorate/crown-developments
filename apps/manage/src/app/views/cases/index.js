@@ -1,7 +1,8 @@
 import { Router as createRouter } from 'express';
-import { createRoutes as createCreateCaseRoutes } from './create-a-case/index.js';
+import { createRoutes as createCreateACaseRoutes } from './create-a-case/index.js';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 import { buildListCases } from './list/controller.js';
+import { createRoutes as createCaseRoutes } from './view/index.js';
 
 /**
  * @param {Object} opts
@@ -11,11 +12,14 @@ import { buildListCases } from './list/controller.js';
  */
 export function createRoutes({ db, logger }) {
 	const router = createRouter({ mergeParams: true });
-	const createCaseRoutes = createCreateCaseRoutes({ db, logger });
+	const createACaseRoutes = createCreateACaseRoutes({ db, logger });
 	const listCases = buildListCases({ db, logger });
+	const caseRoutes = createCaseRoutes({ db, logger });
 
 	router.get('/', asyncHandler(listCases));
-	router.use('/create-a-case', createCaseRoutes);
+	// must be before the case routes because the URLs overlap
+	router.use('/create-a-case', createACaseRoutes);
+	router.use('/:id', caseRoutes);
 
 	return router;
 }
