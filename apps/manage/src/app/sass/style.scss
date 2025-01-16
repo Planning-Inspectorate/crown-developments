@@ -12,3 +12,13 @@ $font-family: arial, helvetica, sans-serif;
 .autocomplete__menu {
 	font-family: $font-family;
 }
+
+@media (min-width: 1440px) {
+	.pins-container-wide {
+		max-width: 1280px;
+	}
+}
+
+.pins-white-space-pre-wrap {
+	white-space: pre-wrap;
+}

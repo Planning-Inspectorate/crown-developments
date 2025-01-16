@@ -1,5 +1,4 @@
 import { Router as createRouter } from 'express';
-import { viewHomepage } from './views/home/controller.js';
 import { createRoutesAndGuards as createAuthRoutesAndGuards } from './auth/router.js';
 import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.js';
 import { createRoutes as createCasesRoutes } from './views/cases/index.js';
@@ -43,7 +42,7 @@ export function buildRouter({ logger, config, redis, dbClient }) {
 		logger.warn('auth disabled; auth routes and guards skipped');
 	}
 
-	router.route('/').get(viewHomepage);
+	router.get('/', (req, res) => res.redirect('/cases'));
 	router.use('/cases', casesRoutes);
 
 	return router;
