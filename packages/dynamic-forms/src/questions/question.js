@@ -160,7 +160,7 @@ export class Question {
 	 */
 	prepQuestionForRendering(section, journey, customViewData, payload) {
 		const answer = journey.response.answers[this.fieldName] || '';
-		const backLink = journey.getNextQuestionUrl(section.segment, this.fieldName, true);
+		const backLink = journey.getBackLink(section.segment, this.fieldName);
 
 		const viewModel = {
 			question: {

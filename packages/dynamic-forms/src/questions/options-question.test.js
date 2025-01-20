@@ -56,7 +56,7 @@ describe('./src/dynamic-forms/question.js', () => {
 				response: {
 					answers: {}
 				},
-				getNextQuestionUrl: mock.fn()
+				getBackLink: mock.fn()
 			};
 
 			const customViewData = { hello: 'hi' };
@@ -77,7 +77,7 @@ describe('./src/dynamic-forms/question.js', () => {
 						[question.fieldName]: ['yes', 'maybe']
 					}
 				},
-				getNextQuestionUrl: mock.fn()
+				getBackLink: mock.fn()
 			};
 
 			const result = question.prepQuestionForRendering({}, journey, {});
@@ -131,7 +131,7 @@ describe('./src/dynamic-forms/question.js', () => {
 				response: {
 					answers: {}
 				},
-				getNextQuestionUrl: mock.fn()
+				getBackLink: mock.fn()
 			};
 
 			const customViewData = { hello: 'hi' };
@@ -195,7 +195,7 @@ describe('./src/dynamic-forms/question.js', () => {
 						[`${question.fieldName}_${options[0].conditional.fieldName}`]: value
 					}
 				},
-				getNextQuestionUrl: mock.fn()
+				getBackLink: mock.fn()
 			};
 
 			const customViewData = { hello: 'hi' };

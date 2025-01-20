@@ -90,7 +90,7 @@ describe('AddressQuestion', () => {
 			const model = await question.prepQuestionForRendering(
 				{},
 				{
-					getNextQuestionUrl: mock.fn(),
+					getBackLink: mock.fn(),
 					response: journeyResponse
 				}
 			);

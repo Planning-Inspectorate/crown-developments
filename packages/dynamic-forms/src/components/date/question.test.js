@@ -87,7 +87,7 @@ describe('DataQuestion', () => {
 						[FIELDNAME]: date
 					}
 				},
-				getNextQuestionUrl: () => {
+				getBackLink: () => {
 					return 'back';
 				}
 			};
@@ -127,7 +127,7 @@ describe('DataQuestion', () => {
 						[`${[FIELDNAME]}_year`]: '2022'
 					}
 				},
-				getNextQuestionUrl: () => {
+				getBackLink: () => {
 					return 'back';
 				}
 			};
@@ -158,7 +158,7 @@ describe('DataQuestion', () => {
 				response: {
 					answers: {}
 				},
-				getNextQuestionUrl: () => {
+				getBackLink: () => {
 					return 'back';
 				}
 			};

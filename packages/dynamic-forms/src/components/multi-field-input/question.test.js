@@ -62,7 +62,7 @@ describe('./src/dynamic-forms/components/single-line-input/question.js', () => {
 				response: {
 					answers: {}
 				},
-				getNextQuestionUrl: () => {
+				getBackLink: () => {
 					return 'back';
 				}
 			};

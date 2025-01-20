@@ -51,6 +51,7 @@ export class Journey {
 	 * @param {string} options.journeyTitle - part of the title in the njk view
 	 * @param {boolean} [options.returnToListing] - defines how the next/previous question handles end of sections
 	 * @param {Section[]} options.sections
+	 * @param {string} [options.initialBackLink] - back link when on the first question
 	 */
 	constructor({
 		journeyId,
@@ -62,7 +63,8 @@ export class Journey {
 		informationPageViewPath,
 		journeyTitle,
 		returnToListing,
-		sections
+		sections,
+		initialBackLink
 	}) {
 		if (!journeyId || typeof journeyId !== 'string') {
 			throw new Error('journeyId should be a string.');
@@ -101,6 +103,7 @@ export class Journey {
 		this.response = response;
 
 		this.sections = sections;
+		this.initialBackLink = initialBackLink || null;
 	}
 
 	/**
@@ -177,6 +180,21 @@ export class Journey {
 		}
 
 		return this.#getQuestion(section, questionSegment);
+	}
+
+	/**
+	 * Get the back link for the journey - e.g. the previous question
+	 *
+	 * @param {string} sectionSegment - section segment
+	 * @param {string} questionSegment - question segment
+	 * @returns {string|null} url for the next question, or null if unmatched
+	 */
+	getBackLink(sectionSegment, questionSegment) {
+		const previousQuestion = this.getNextQuestionUrl(sectionSegment, questionSegment, true);
+		if (!previousQuestion) {
+			return this.initialBackLink;
+		}
+		return previousQuestion;
 	}
 
 	/**
