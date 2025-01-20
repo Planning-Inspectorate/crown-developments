@@ -17,7 +17,7 @@ export const questionHasAnswer = (response, question, expectedValue) => {
 
 	if (Array.isArray(answerField)) {
 		return answerField.includes(expectedValue);
-	} else if (question.optionJoinString) {
+	} else if (question.optionJoinString && typeof answerField === 'string') {
 		// todo: answers from options questions sometimes are array sometimes string, why?
 		if (!answerField) return false;
 		const answers = answerField.split(question.optionJoinString);

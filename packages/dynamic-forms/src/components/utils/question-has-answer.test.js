@@ -9,12 +9,14 @@ const anotherTestQuestionUnexpectedResult = '1';
 const testResponse = {
 	answers: {
 		aTestQuestion: aTestQuestionExpectedResult,
-		anotherTestQuestion: anotherTestQuestionExpectedResult
+		anotherTestQuestion: anotherTestQuestionExpectedResult,
+		aThirdTestQuestion: true
 	}
 };
 const testQuestions = {
 	aTestQuestion: { fieldName: 'aTestQuestion' },
 	anotherTestQuestion: { fieldName: 'anotherTestQuestion' },
+	aThirdTestQuestion: { fieldName: 'aThirdTestQuestion', optionJoinString: ',' },
 	optionQuestion: { fieldName: 'optionQuestion', optionJoinString: ',' }
 };
 
@@ -113,6 +115,11 @@ describe('question-has-answer', () => {
 				'option-c'
 			);
 			assert.strictEqual(result, false);
+		});
+
+		it('should only split string answers', () => {
+			const result = questionHasAnswer(testResponse, testQuestions.aThirdTestQuestion, true);
+			assert.strictEqual(result, true);
 		});
 	});
 
