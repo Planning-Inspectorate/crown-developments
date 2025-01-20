@@ -7,7 +7,7 @@ import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-
 const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'reference',
 	'description',
-	'typeOfApplication',
+	'typeId',
 	'lpaId',
 	'siteNorthing',
 	'siteEasting',
