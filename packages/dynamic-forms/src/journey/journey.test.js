@@ -225,6 +225,65 @@ describe('Journey class', () => {
 		});
 	});
 
+	describe('getBackLink', () => {
+		it(`should return the previous question url in current section 1`, () => {
+			const section = mockSections[1];
+			const name = section.questions[1].fieldName;
+			const prevQuestionName = section.questions[0].fieldName;
+
+			const journey = new Journey(constructorArgs);
+			journey.sections = mockSections;
+			journey.returnToListing = false;
+
+			const backLinks = journey.getBackLink(section.segment, name);
+
+			assert.strictEqual(backLinks, `${constructorArgs.makeBaseUrl()}/${section.segment}/${prevQuestionName}`);
+		});
+
+		for (const currentSectionIndex of [1, 2]) {
+			it(`should return the previous question if there is one in the previous section ${currentSectionIndex} - 1`, () => {
+				const section = mockSections[currentSectionIndex];
+				const name = section.questions[0].fieldName;
+				const prevSection = mockSections[currentSectionIndex - 1];
+				const prevQuestionName = prevSection.questions[prevSection.questions.length - 1].fieldName;
+
+				const journey = new Journey(constructorArgs);
+				journey.sections = mockSections;
+				journey.returnToListing = false;
+
+				const backLink = journey.getBackLink(section.segment, name, true);
+
+				assert.strictEqual(backLink, `${constructorArgs.makeBaseUrl()}/${prevSection.segment}/${prevQuestionName}`);
+			});
+		}
+
+		it(`should return null if there is no previous section`, () => {
+			const section = mockSections[0];
+			const name = section.questions[0].fieldName;
+
+			const journey = new Journey(constructorArgs);
+			journey.sections = mockSections;
+			journey.returnToListing = false;
+
+			const backLink = journey.getBackLink(section.segment, name, true);
+
+			assert.strictEqual(backLink, null);
+		});
+		it(`should return configured value if there is no previous section`, () => {
+			const section = mockSections[0];
+			const name = section.questions[0].fieldName;
+
+			const args = { ...constructorArgs, initialBackLink: '/some/back/link' };
+			const journey = new Journey(args);
+			journey.sections = mockSections;
+			journey.returnToListing = false;
+
+			const backLink = journey.getBackLink(section.segment, name, true);
+
+			assert.strictEqual(backLink, '/some/back/link');
+		});
+	});
+
 	describe('getNextQuestionUrl', () => {
 		for (const returnToListing of [true, false]) {
 			it(`should return null if section is not found [${returnToListing}]`, () => {

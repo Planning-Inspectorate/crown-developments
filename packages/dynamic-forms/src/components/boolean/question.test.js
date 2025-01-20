@@ -65,7 +65,7 @@ describe('./src/dynamic-forms/components/boolean/question.js', () => {
 			const viewModel = booleanQuestion.prepQuestionForRendering(
 				{},
 				{
-					getNextQuestionUrl: mock.fn(),
+					getBackLink: mock.fn(),
 					response: { answers: t.answers }
 				}
 			);

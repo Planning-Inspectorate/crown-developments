@@ -45,6 +45,9 @@ const JOURNEY = {
 	},
 	getNextQuestionUrl: () => {
 		return 'back';
+	},
+	getBackLink: () => {
+		return 'back';
 	}
 };
 

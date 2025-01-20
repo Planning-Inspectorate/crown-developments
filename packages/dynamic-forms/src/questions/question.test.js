@@ -120,7 +120,7 @@ describe('./src/dynamic-forms/question.js', () => {
 						[question.fieldName]: { a: 1 }
 					}
 				},
-				getNextQuestionUrl: () => {
+				getBackLink: () => {
 					return 'back';
 				}
 			};
