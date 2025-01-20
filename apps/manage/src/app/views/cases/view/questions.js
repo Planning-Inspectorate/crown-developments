@@ -63,7 +63,7 @@ export function getQuestions() {
 			type: COMPONENT_TYPES.RADIO,
 			title: 'Application type',
 			question: 'What type of application is it?',
-			fieldName: 'typeOfApplication',
+			fieldName: 'typeId',
 			url: 'type-of-application',
 			validators: [new RequiredValidator()],
 			options: referenceDataToRadioOptions(APPLICATION_TYPES)
