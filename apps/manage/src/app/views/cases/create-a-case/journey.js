@@ -48,6 +48,7 @@ export function createJourney(questions, response, req) {
 		journeyTitle: 'Create a case',
 		returnToListing: false,
 		makeBaseUrl: () => req.baseUrl,
+		initialBackLink: '/cases',
 		response
 	});
 }
