@@ -6,6 +6,7 @@ export interface CrownDevelopmentViewModel {
 	description?: string;
 	typeOfApplication?: string;
 	lpaId?: string;
+	siteAddressId?: string;
 	siteAddress?: Address;
 	siteNorthing?: number;
 	siteEasting?: number;
@@ -29,12 +30,16 @@ export interface CrownDevelopmentViewModel {
 	lpaTelephoneNumber?: string;
 	lpaAddress?: Address;
 
+	applicantContactId?: string;
 	applicantContactName?: string;
 	applicantContactAddress?: Address;
+	applicantContactAddressId?: Address;
 	applicantContactEmail?: string;
 	applicantContactTelephoneNumber?: string;
+	agentContactId?: string;
 	agentContactName?: string;
 	agentContactAddress?: Address;
+	agentContactAddressId?: Address;
 	agentContactEmail?: string;
 	agentContactTelephoneNumber?: string;
 
@@ -68,6 +73,7 @@ export interface CrownDevelopmentViewModel {
 	environmentalStatementReceivedDate?: Date | string;
 
 	procedureId?: string;
+	eventId?: string;
 
 	writtenRepsProcedureNotificationDate?: Date | string;
 
@@ -106,3 +112,12 @@ const viewArgs = Prisma.validator<Prisma.CrownDevelopmentDefaultArgs>()({
 // todo: this doesn't seem to work in WebStorm, but is fine in vscode
 // see https://www.prisma.io/docs/orm/prisma-client/type-safety/operating-against-partial-structures-of-model-types#solution
 export type CrownDevelopmentPayload = Prisma.CrownDevelopmentGetPayload<typeof viewArgs>;
+
+// duplicated in JS for use in code
+export const CONTACT_PREFIXES = {
+	APPLICANT: 'applicant',
+	AGENT: 'agent'
+} as const;
+
+type ContactTypeKeys = keyof typeof CONTACT_PREFIXES;
+type ContactTypeValues = (typeof CONTACT_PREFIXES)[ContactTypeKeys];

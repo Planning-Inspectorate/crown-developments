@@ -1,9 +1,10 @@
 import { list } from '@pins/dynamic-forms/src/controller.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { crownDevelopmentToViewModel } from './view-model.js';
+import { crownDevelopmentToViewModel, editsToDatabaseUpdates } from './view-model.js';
 import { getQuestions } from './questions.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
+import { Prisma } from '@prisma/client';
 
 /**
  * @type {import('express').Handler}
@@ -15,7 +16,107 @@ export async function viewCaseDetails(req, res) {
 		throw new Error('id param required');
 	}
 
-	await list(req, res, '', { reference, hideButton: true, hideStatus: true });
+	// immediately clear this so the banner only shows once
+	const caseUpdated = readCaseUpdatedSession(req, id);
+	clearCaseUpdatedSession(req, id);
+
+	await list(req, res, '', { reference, caseUpdated, hideButton: true, hideStatus: true });
+}
+
+/**
+ * @param {Object} opts
+ * @param {import('@prisma/client').PrismaClient} db
+ * @param {import('pino').BaseLogger} logger
+ * @returns {import('@pins/dynamic-forms/src/controller.js').SaveDataFn}
+ */
+export function buildUpdateCase({ db, logger }) {
+	return async ({ req, res, data }) => {
+		const { id } = req.params;
+		if (!id) {
+			throw new Error(`invalid update case request, id param required (id:${id})`);
+		}
+		logger.info({ id }, 'case update');
+		/** @type {import('./types.js').CrownDevelopmentViewModel} */
+		const toSave = data?.answers || {};
+		if (Object.keys(toSave).length === 0) {
+			logger.info({ id }, 'no case updates to apply');
+			return;
+		}
+		/** @type {import('./types.js').CrownDevelopmentViewModel} */
+		const fullViewModel = res.locals?.journeyResponse?.answers || {};
+
+		const updateInput = editsToDatabaseUpdates(toSave, fullViewModel);
+		updateInput.updatedDate = new Date();
+
+		logger.info({ fields: Object.keys(toSave) }, 'update case input');
+
+		try {
+			await db.crownDevelopment.update({
+				where: { id },
+				data: updateInput
+			});
+		} catch (e) {
+			// don't show Prisma errors to the user
+			if (e instanceof Prisma.PrismaClientKnownRequestError) {
+				logger.error({ id, error: e }, 'error updating case');
+				throw new Error(`Error updating case (${e.code})`);
+			}
+			if (e instanceof Prisma.PrismaClientValidationError) {
+				logger.error({ id, error: e }, 'error updating case');
+				throw new Error(`Error updating case (${e.name})`);
+			}
+			throw e;
+		}
+
+		// show a banner to the user on success
+		addCaseUpdatedSession(req, id);
+
+		logger.info({ id }, 'case updated');
+	};
+}
+
+/**
+ * Add a case updated flag to the session
+ *
+ * @param {{session?: Object<string, any>}} req
+ * @param {string} id
+ */
+function addCaseUpdatedSession(req, id) {
+	if (!req.session) {
+		throw new Error('request session required');
+	}
+	const cases = req.session.cases || (req.session.cases = {});
+	const caseProps = cases[id] || (cases[id] = {});
+	caseProps.updated = true;
+}
+
+/**
+ * Read a case updated flag from the session
+ *
+ * @param {{session?: Object<string, any>}} req
+ * @param {string} id
+ * @returns {boolean}
+ */
+function readCaseUpdatedSession(req, id) {
+	if (!req.session) {
+		return false;
+	}
+	const caseProps = (req.session?.cases && req.session.cases[id]) || {};
+	return Boolean(caseProps.updated);
+}
+
+/**
+ * Clear a case updated flag from the session
+ *
+ * @param {{session?: Object<string, any>}} req
+ * @param {string} id
+ */
+function clearCaseUpdatedSession(req, id) {
+	if (!req.session) {
+		return; // no need to error here
+	}
+	const caseProps = (req.session?.cases && req.session.cases[id]) || {};
+	delete caseProps.updated;
 }
 
 /**
