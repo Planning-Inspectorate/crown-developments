@@ -2,6 +2,14 @@ import { UrlBuilder } from '../../util/url-builder/url-builder.js';
 
 /** @typedef {import('../../fixtures/sharepoint.js').getDriveItemsByPathData} DriveItemByPathResponse */
 /** @typedef {import('../../fixtures/sharepoint.js').getDriveItems} DriveItems */
+
+/** @typedef {Object} CopyDriveInstructions
+ * @property {string} copyItemId ItemId of item to be copied
+ * @property {string} newItemName Name of the new item
+ * @property {string} [newParentDriveId] driveId of new parent drive (optional - defaults to current drive)
+ * @property {string} [newParentId] id of new parent (optional - defaults to current folder)
+ */
+
 export class SharePointDrive {
 	/**
 	 * @param {import('@microsoft/microsoft-graph-client').Client} client
@@ -49,13 +57,15 @@ export class SharePointDrive {
 
 	/**
 	 * Copies a sharepoint item to a location with a new name
-	 * @param {string} copyItemId itemId of item to copy
-	 * @param {string} newItemName name of the new item
-	 * @param {string} [newParentDriveId] driveId of new parent drive (defaults to current drive)
-	 * @param {string} [newParentId] id of new parent (defaults to current folder)
-	 * @returns {void}
+	 *
+	 *  @param {Object} params
+	 *  @param {string} params.copyItemId ItemId of item to be copied
+	 *  @param {string} params.newItemName Name of the new item
+	 *  @param {string} params.[newParentDriveId] driveId of new parent drive (optional - defaults to current drive)
+	 *  @param {string} params.[newParentId] id of new parent (optional - defaults to current folder)
+	 * @returns {void | string}
 	 */
-	async copyDriveItem(copyItemId, newItemName, newParentDriveId, newParentId) {
+	async copyDriveItem({ copyItemId, newItemName, newParentDriveId, newParentId }) {
 		const urlBuilder = new UrlBuilder('')
 			.addPathSegment('drives')
 			.addPathSegment(this.driveId)
@@ -63,7 +73,7 @@ export class SharePointDrive {
 			.addPathSegment(copyItemId)
 			.addPathSegment('copy');
 
-		let newDriveItem = {
+		const newDriveItem = {
 			name: newItemName
 		};
 

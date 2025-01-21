@@ -41,14 +41,15 @@ export function buildSaveController({ db, logger, config, getSharePointDrive }) 
 
 		const sharePointDrive = getSharePointDrive(req.session);
 
-		// todo: create SharePoint folder structure
-		// add tests
 		if (sharePointDrive === null) {
 			logger.warn(
 				'SharePoint not enabled, to use SharePoint functionality setup SharePoint environment variables. See README'
 			);
 		} else {
-			await sharePointDrive.copyDriveItem(config.sharePoint.caseTemplateId, caseReferenceToFolderName(reference));
+			await sharePointDrive.copyDriveItem({
+				copyItemId: config.sharePoint.caseTemplateId,
+				newItemName: caseReferenceToFolderName(reference)
+			});
 		}
 		// todo: redirect to check-your-answers on failure?
 

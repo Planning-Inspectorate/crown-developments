@@ -9,7 +9,7 @@ import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crown
 import { getSessionMiddleware } from '@pins/crowndev-lib/util/session.js';
 import { getDatabaseClient } from '@pins/crowndev-database';
 import { getRedis } from '@pins/crowndev-lib/redis/index.js';
-import { initSharePointDrive } from '#util/sharepoint.js';
+import { buildInitSharePointDrive } from '#util/sharepoint.js';
 
 /**
  * @param {import('./config-types.js').Config} config
@@ -19,7 +19,7 @@ import { initSharePointDrive } from '#util/sharepoint.js';
 export function getApp(config, logger) {
 	const dbClient = getDatabaseClient(config, logger);
 	const redis = getRedis(config.session, logger);
-	const getSharePointDrive = initSharePointDrive(config);
+	const getSharePointDrive = buildInitSharePointDrive(config);
 
 	// create an express app, and configure it for our usage
 	const app = express();

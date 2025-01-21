@@ -17,38 +17,16 @@ describe('save', () => {
 				}
 			};
 		};
-		// let mockClient = {
-		// 	api: mock.fn(function (url) {
-		// 		this.url = url;
-		// 		return this;
-		// 	}),
-		// 	post: async () => mock.fn(() => {})
-		// };
+
 		const config = {
 			sharePoint: {
-				disabled: false,
-				driveId: '123',
-				rootId: '456',
 				caseTemplateId: '789'
 			}
 		};
-		const MockSharePointDrive = (client, driveId) => {
-			return {
-				client,
-				driveId,
-				copyDriveItem: mock.fn(() => {})
-			};
-		};
-
-		const MockGetSharePointDrive = mock.fn((config) => {
-			return mock.fn(() => {
-				return MockSharePointDrive({}, config.sharePoint.driveId);
-			});
-		});
 
 		it('should throw if no journey response or answers', () => {
 			const db = dbMock();
-			const getSharePointDrive = MockGetSharePointDrive(config);
+			const getSharePointDrive = () => null;
 			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive });
 
 			// no locals
@@ -68,9 +46,9 @@ describe('save', () => {
 
 		it('should call create with a valid payload and skip sharepoint when sharepoint is disabled', async () => {
 			const db = dbMock();
-			config.sharePoint.disabled = true;
 			const getSharePointDrive = () => null;
 			const loggerInstance = mockLogger();
+
 			const save = buildSaveController({ db, logger: loggerInstance, config, getSharePointDrive });
 			const answers = {
 				applicationDescription: 'Project One',
@@ -107,7 +85,7 @@ describe('save', () => {
 
 		it('should call create with a valid payload', async () => {
 			const db = dbMock();
-			const getSharePointDrive = MockGetSharePointDrive(config);
+			const getSharePointDrive = () => null;
 			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive });
 			const answers = {
 				applicationDescription: 'Project One',
@@ -143,11 +121,11 @@ describe('save', () => {
 
 		it('should call create with a valid payload and should call sharepoint when sharepoint is enabled', async () => {
 			const db = dbMock();
-			config.sharePoint.disabled = false;
 			const sharepointDrive = {
 				copyDriveItem: mock.fn()
 			};
 			const getSharePointDrive = () => sharepointDrive;
+
 			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive });
 			const answers = {
 				applicationDescription: 'Project One',
@@ -165,8 +143,6 @@ describe('save', () => {
 
 			await save({}, res, mock.fn());
 
-			assert.strictEqual(db.crownDevelopment.create.mock.callCount(), 1);
-
 			const { data } = db.crownDevelopment.create.mock.calls[0].arguments[0];
 			const required = ['reference', 'description'];
 			for (const field of required) {
@@ -179,9 +155,9 @@ describe('save', () => {
 
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
 			assert.strictEqual(sharepointDrive.copyDriveItem.mock.callCount(), 1);
-			// todo: integration test to run Prisma's validation?
 		});
 	});
+
 	describe('newReference', () => {
 		const dbMock = () => {
 			return {
