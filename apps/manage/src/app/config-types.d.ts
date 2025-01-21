@@ -24,5 +24,11 @@ interface Config {
 		redis?: string;
 		secret: string;
 	};
+	sharePoint: {
+		disabled: boolean; // Enable/disable sharepoint connection
+		driveId?: string; // DriveId of Crown Dev Site
+		rootId?: string; // Id Root folder of Crown Dev
+		caseTemplateId?: string; // Id for template folder (new case template folder structure)
+	};
 	staticDir: string;
 }

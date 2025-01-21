@@ -4,7 +4,7 @@ import { buildMsalConfig } from '#util/auth.js';
 
 /** @typedef {import('@azure/msal-node').AccountInfo} AccountInfo */
 
-const scopes = ['user.read'];
+const scopes = ['user.read', 'Sites.ReadWrite.All'];
 
 export class AuthService {
 	#config;

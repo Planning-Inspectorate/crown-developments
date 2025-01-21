@@ -1,14 +1,17 @@
 import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js';
 import { clearDataFromSession } from '@pins/dynamic-forms/src/lib/session-answer-store.js';
 import { JOURNEY_ID } from './journey.js';
+import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/name.js';
 
 /**
  * @param {Object} opts
  * @param {import('@prisma/client').PrismaClient} db
  * @param {import('pino').BaseLogger} logger
+ * @param {import('../../../config-types.js').Config} config
+ * @param {function(session): SharePointDrive} getSharePointDrive
  * @returns {import('express').Handler}
  */
-export function buildSaveController({ db, logger }) {
+export function buildSaveController({ db, logger, config, getSharePointDrive }) {
 	return async (req, res) => {
 		if (!res.locals || !res.locals.journeyResponse) {
 			throw new Error('journey response required');
@@ -35,7 +38,18 @@ export function buildSaveController({ db, logger }) {
 			id = created.id;
 			logger.info({ reference }, 'created a new case');
 		});
+
+		const sharePointDrive = getSharePointDrive(req.session);
+
 		// todo: create SharePoint folder structure
+		// add tests
+		if (sharePointDrive === null) {
+			logger.warn(
+				'SharePoint not enabled, to use SharePoint functionality setup SharePoint environment variables. See README'
+			);
+		} else {
+			await sharePointDrive.copyDriveItem(config.sharePoint.caseTemplateId, caseReferenceToFolderName(reference));
+		}
 		// todo: redirect to check-your-answers on failure?
 
 		clearDataFromSession({

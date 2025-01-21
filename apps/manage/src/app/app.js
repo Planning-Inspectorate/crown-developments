@@ -9,6 +9,7 @@ import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crown
 import { getSessionMiddleware } from '@pins/crowndev-lib/util/session.js';
 import { getDatabaseClient } from '@pins/crowndev-database';
 import { getRedis } from '@pins/crowndev-lib/redis/index.js';
+import { initSharePointDrive } from '#util/sharepoint.js';
 
 /**
  * @param {import('./config-types.js').Config} config
@@ -18,6 +19,7 @@ import { getRedis } from '@pins/crowndev-lib/redis/index.js';
 export function getApp(config, logger) {
 	const dbClient = getDatabaseClient(config, logger);
 	const redis = getRedis(config.session, logger);
+	const getSharePointDrive = initSharePointDrive(config);
 
 	// create an express app, and configure it for our usage
 	const app = express();
@@ -71,7 +73,8 @@ export function getApp(config, logger) {
 		config,
 		logger,
 		redis,
-		dbClient
+		dbClient,
+		getSharePointDrive
 	});
 	// register the router, which will define any subpaths
 	// any paths not defined will return 404 by default

@@ -11,7 +11,8 @@ describe('drives', () => {
 			this.url = url;
 			return this;
 		}),
-		get: async () => {}
+		get: async () => {},
+		post: mock.fn()
 	};
 
 	/** @type {SharePointDrive} */
@@ -23,6 +24,7 @@ describe('drives', () => {
 
 	afterEach(() => {
 		mockClient.api.mock.resetCalls();
+		mockClient.post.mock.resetCalls();
 	});
 
 	describe('getDriveItems', () => {
@@ -35,7 +37,7 @@ describe('drives', () => {
 			sharePointDrive.client.get = async () => mockResponse;
 
 			const result = await sharePointDrive.getDriveItems();
-			assert.equal(mockClient.api.mock.callCount(), 1);
+			assert.strictEqual(client.api.mock.callCount(), 1);
 			assert.equal(
 				client.api.mock.calls[0].arguments[0],
 				new UrlBuilder('').addPathSegment('drives').addPathSegment(driveId).addPathSegment('root/children').toString()
@@ -43,7 +45,55 @@ describe('drives', () => {
 			assert.deepEqual(result, mockResponse);
 		});
 	});
+	describe('copyDriveItem', () => {
+		test('should copy drive item with only required params', async () => {
+			const client = mockClient;
+			driveId = 'testDriveId';
+			const itemId = 'testItem';
+			sharePointDrive = new SharePointDrive(client, driveId);
 
+			await sharePointDrive.copyDriveItem(itemId, 'newFile');
+			assert.strictEqual(client.api.mock.callCount(), 1);
+
+			assert.deepStrictEqual(client.post.mock.calls[0].arguments[0], { name: 'newFile' });
+			assert.equal(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.addPathSegment('copy')
+					.toString()
+			);
+		});
+		test('should copy drive item with all params', async () => {
+			const client = mockClient;
+			driveId = 'testDriveId';
+			const itemId = 'testItem';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			await sharePointDrive.copyDriveItem(itemId, 'newFile', 'newDriveId', 'newItemId');
+			assert.strictEqual(client.api.mock.callCount(), 1);
+			assert.deepStrictEqual(client.post.mock.calls[0].arguments[0], {
+				parentReference: {
+					driveId: 'newDriveId',
+					id: 'newItemId'
+				},
+				name: 'newFile'
+			});
+			assert.equal(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.addPathSegment('copy')
+					.toString()
+			);
+		});
+	});
 	describe('getItemsByPath', () => {
 		test('should fetch items by path', async () => {
 			const path = 'testPath';

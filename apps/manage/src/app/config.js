@@ -42,7 +42,11 @@ export function loadConfig() {
 		NODE_ENV,
 		REDIS_CONNECTION_STRING,
 		SESSION_SECRET,
-		SQL_CONNECTION_STRING
+		SQL_CONNECTION_STRING,
+		SHAREPOINT_DISABLED,
+		SHAREPOINT_DRIVE_ID,
+		SHAREPOINT_ROOT_ID,
+		SHAREPOINT_CASE_TEMPLATE_ID
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -73,6 +77,16 @@ export function loadConfig() {
 		}
 	}
 
+	const sharePointDisabled = authDisabled || (SHAREPOINT_DISABLED === 'true' && !isProduction);
+	if (!sharePointDisabled) {
+		const props = { SHAREPOINT_DRIVE_ID, SHAREPOINT_ROOT_ID, SHAREPOINT_CASE_TEMPLATE_ID };
+		for (const [k, v] of Object.entries(props)) {
+			if (v === undefined || v === '') {
+				throw new Error(k + ' must be a non-empty string');
+			}
+		}
+	}
+
 	const protocol = APP_HOSTNAME?.startsWith('localhost') ? 'http://' : 'https://';
 
 	config = {
@@ -81,7 +95,7 @@ export function loadConfig() {
 			authority: `https://login.microsoftonline.com/${AUTH_TENANT_ID}`,
 			clientId: AUTH_CLIENT_ID,
 			clientSecret: AUTH_CLIENT_SECRET,
-			disabled: AUTH_DISABLED === 'true' && NODE_ENV !== 'production',
+			disabled: authDisabled,
 			groups: {
 				applicationAccess: AUTH_GROUP_APPLICATION_ACCESS
 			},
@@ -103,6 +117,12 @@ export function loadConfig() {
 			redisPrefix: 'manage:',
 			redis: REDIS_CONNECTION_STRING,
 			secret: SESSION_SECRET
+		},
+		sharePoint: {
+			disabled: sharePointDisabled,
+			driveId: SHAREPOINT_DRIVE_ID,
+			rootId: SHAREPOINT_ROOT_ID,
+			caseTemplateId: SHAREPOINT_CASE_TEMPLATE_ID
 		},
 		// the static directory to serve assets from (images, css, etc..)
 		staticDir: buildConfig.staticDir

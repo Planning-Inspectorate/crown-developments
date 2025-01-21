@@ -46,4 +46,45 @@ export class SharePointDrive {
 
 		return response.value;
 	}
+
+	/**
+	 * Copies a sharepoint item to a location with a new name
+	 * @param {string} copyItemId itemId of item to copy
+	 * @param {string} newItemName name of the new item
+	 * @param {string} [newParentDriveId] driveId of new parent drive (defaults to current drive)
+	 * @param {string} [newParentId] id of new parent (defaults to current folder)
+	 * @returns {void}
+	 */
+	async copyDriveItem(copyItemId, newItemName, newParentDriveId, newParentId) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('items')
+			.addPathSegment(copyItemId)
+			.addPathSegment('copy');
+
+		let newDriveItem = {
+			name: newItemName
+		};
+
+		if (newParentDriveId && newParentId) {
+			Object.assign(newDriveItem, {
+				parentReference: {
+					driveId: newParentDriveId,
+					id: newParentId
+				}
+			});
+		} else if (newParentId) {
+			Object.assign(newDriveItem, {
+				parentReference: {
+					id: newParentId
+				}
+			});
+		}
+		try {
+			await this.client.api(urlBuilder.toString()).post(newDriveItem);
+		} catch (e) {
+			throw e.statusCode ?? e;
+		}
+	}
 }
