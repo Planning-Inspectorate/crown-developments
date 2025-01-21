@@ -1,8 +1,8 @@
 import { Router as createRouter } from 'express';
 import { viewHomepage } from './views/home/controller.js';
 import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.js';
-import { createRoutes as applicationRoutes } from './views/applications/index.js';
-import { createInfoRoutes } from './views/application-info/index.js';
+import { createRoutes as applicationRoutes } from './views/projects/index.js';
+import { createApplicationInfoRoutes } from './views/application-info/index.js';
 
 /**
  * @param {Object} params
@@ -24,7 +24,7 @@ export function buildRouter({ logger, config, dbClient }) {
 
 	router.route('/').get(viewHomepage);
 	router.use('/', applicationRoutes({ db: dbClient, logger }));
-	router.use('/', createInfoRoutes({ db: dbClient, logger }));
+	router.use('/', createApplicationInfoRoutes({ db: dbClient, logger }));
 
 	return router;
 }
