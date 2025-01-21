@@ -52,7 +52,7 @@ describe('drives', () => {
 			const itemId = 'testItem';
 			sharePointDrive = new SharePointDrive(client, driveId);
 
-			await sharePointDrive.copyDriveItem(itemId, 'newFile');
+			await sharePointDrive.copyDriveItem({ copyItemId: itemId, newItemName: 'newFile' });
 			assert.strictEqual(client.api.mock.callCount(), 1);
 
 			assert.deepStrictEqual(client.post.mock.calls[0].arguments[0], { name: 'newFile' });
@@ -73,7 +73,12 @@ describe('drives', () => {
 			const itemId = 'testItem';
 			sharePointDrive = new SharePointDrive(client, driveId);
 
-			await sharePointDrive.copyDriveItem(itemId, 'newFile', 'newDriveId', 'newItemId');
+			await sharePointDrive.copyDriveItem({
+				copyItemId: itemId,
+				newItemName: 'newFile',
+				newParentDriveId: 'newDriveId',
+				newParentId: 'newItemId'
+			});
 			assert.strictEqual(client.api.mock.callCount(), 1);
 			assert.deepStrictEqual(client.post.mock.calls[0].arguments[0], {
 				parentReference: {
