@@ -49,8 +49,22 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'planningOfficerId',
 	'eiaScreening',
 	'eiaScreeningOutcome',
-	'environmentalStatementReceivedDate'
+	'environmentalStatementReceivedDate',
+	// map relation ids for updates
+	'siteAddressId',
+	'applicantContactId',
+	'agentContactId',
+	'eventId'
 ]);
+
+/**
+ * Field prefixes used for the contact fields in the view model
+ * @type {typeof import('./types.js').CONTACT_PREFIXES}
+ */
+const CONTACT_PREFIXES = Object.freeze({
+	APPLICANT: 'applicant',
+	AGENT: 'agent'
+});
 
 /**
  *
@@ -80,8 +94,8 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 	addContactToViewModel(viewModel, crownDevelopment.ApplicantContact, 'applicant');
 	addContactToViewModel(viewModel, crownDevelopment.AgentContact, 'agent');
 
-	if (crownDevelopment.Event && isInquiryOrHearing(crownDevelopment.procedureId)) {
-		const event = crownDevelopment.Event;
+	if (hasProcedure(crownDevelopment.procedureId)) {
+		const event = crownDevelopment.Event || {};
 		addEventToViewModel(viewModel, event, crownDevelopment.procedureId, crownDevelopment.procedureNotificationDate);
 	}
 
@@ -89,9 +103,81 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 }
 
 /**
+ * Answers/edits are received in 'view-model' form, and are mapped here to the appropriate database input.
+ *
+ * @param {import('./types.js').CrownDevelopmentViewModel} edits - edited fields only
+ * @param {import('./types.js').CrownDevelopmentViewModel} viewModel - full view model with all case details
+ * @returns {import('@prisma/client').Prisma.CrownDevelopmentUpdateInput}
+ */
+export function editsToDatabaseUpdates(edits, viewModel) {
+	/** @type {import('@prisma/client').Prisma.CrownDevelopmentUpdateInput} */
+	const crownDevelopmentUpdateInput = {};
+	// map all the regular fields to the update input
+	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
+		if (Object.hasOwn(edits, field)) {
+			crownDevelopmentUpdateInput[field] = edits[field];
+		}
+	}
+	// don't support updating these fields
+	delete crownDevelopmentUpdateInput.reference;
+	delete crownDevelopmentUpdateInput.updatedDate;
+
+	// update relations
+
+	if (edits.subCategoryId) {
+		crownDevelopmentUpdateInput.Category = {
+			connect: { id: edits.subCategoryId }
+		};
+	}
+
+	if (edits.siteAddress) {
+		const siteAddress = viewModelToAddressUpdateInput(edits.siteAddress);
+		if (siteAddress) {
+			crownDevelopmentUpdateInput.SiteAddress = {
+				upsert: {
+					where: { id: viewModel.siteAddressId },
+					create: siteAddress,
+					update: siteAddress
+				}
+			};
+		}
+	}
+
+	const applicantContactUpdates = viewModelToNestedContactUpdate(edits, CONTACT_PREFIXES.APPLICANT, viewModel);
+	if (applicantContactUpdates) {
+		crownDevelopmentUpdateInput.ApplicantContact = applicantContactUpdates;
+	}
+
+	const agentContactUpdates = viewModelToNestedContactUpdate(edits, CONTACT_PREFIXES.AGENT, viewModel);
+	if (agentContactUpdates) {
+		crownDevelopmentUpdateInput.AgentContact = agentContactUpdates;
+	}
+
+	if (hasProcedure(viewModel.procedureId)) {
+		const eventUpdates = viewModelToEventUpdateInput(edits, viewModel.procedureId);
+		if (eventUpdates.eventUpdateInput) {
+			const eventId = viewModel.eventId;
+			const eventWhere = eventId ? { id: eventId } : undefined;
+			crownDevelopmentUpdateInput.Event = {
+				upsert: {
+					where: eventWhere,
+					create: eventUpdates.eventUpdateInput,
+					update: eventUpdates.eventUpdateInput
+				}
+			};
+		}
+		if (eventUpdates.procedureNotificationDate) {
+			crownDevelopmentUpdateInput.procedureNotificationDate = eventUpdates.procedureNotificationDate;
+		}
+	}
+
+	return crownDevelopmentUpdateInput;
+}
+
+/**
  * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
  * @param {import('@prisma/client').Prisma.ContactGetPayload<{include: {Address: true}}>|null} contact
- * @param {string} prefix
+ * @param {import('./types.js').ContactTypeValues} prefix
  */
 function addContactToViewModel(viewModel, contact, prefix) {
 	if (contact) {
@@ -100,8 +186,64 @@ function addContactToViewModel(viewModel, contact, prefix) {
 		viewModel[`${prefix}ContactEmail`] = contact.email;
 		if (contact.Address) {
 			viewModel[`${prefix}ContactAddress`] = addressToViewModel(contact.Address);
+			viewModel[`${prefix}ContactAddressId`] = contact.addressId;
 		}
 	}
+}
+
+/**
+ * @param {import('./types.js').CrownDevelopmentViewModel} edits
+ * @param {import('./types.js').ContactTypeValues} prefix
+ * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
+ * @returns {import('@prisma/client').Prisma.ContactUpdateOneWithoutCrownDevelopmentApplicantNestedInput|null}
+ */
+function viewModelToNestedContactUpdate(edits, prefix, viewModel) {
+	/** @type {import('@prisma/client').Prisma.ContactCreateInput} */
+	const createInput = {};
+
+	if (edits[`${prefix}ContactName`]) {
+		createInput.fullName = edits[`${prefix}ContactName`];
+	}
+	if (edits[`${prefix}ContactTelephoneNumber`]) {
+		createInput.telephoneNumber = edits[`${prefix}ContactTelephoneNumber`];
+	}
+	if (edits[`${prefix}ContactEmail`]) {
+		createInput.email = edits[`${prefix}ContactEmail`];
+	}
+	if (edits[`${prefix}ContactAddress`]) {
+		const addressUpdateInput = viewModelToAddressUpdateInput(edits[`${prefix}ContactAddress`]);
+		createInput.Address = {
+			create: addressUpdateInput
+		};
+	}
+	if (Object.keys(createInput).length === 0) {
+		return null;
+	}
+	const contactExists = Boolean(viewModel[`${prefix}ContactId`]);
+
+	if (!contactExists) {
+		return {
+			create: createInput
+		};
+	}
+	/** @type {import('@prisma/client').Prisma.ContactUpdateInput} */
+	const updateInput = {
+		...createInput
+	};
+	if (updateInput.Address) {
+		const addressId = viewModel[`${prefix}ContactAddressId`];
+		const addressWhere = addressId && { id: addressId };
+		updateInput.Address = {
+			upsert: {
+				where: addressWhere,
+				create: updateInput.Address.create,
+				update: updateInput.Address.create
+			}
+		};
+	}
+	return {
+		update: updateInput
+	};
 }
 
 /**
@@ -148,6 +290,7 @@ function addEventToViewModel(viewModel, event, procedureId, procedureNotificatio
  */
 function addressToViewModel(address) {
 	return {
+		id: address.id,
 		addressLine1: address.line1,
 		addressLine2: address.line2,
 		townCity: address.townCity,
@@ -157,11 +300,37 @@ function addressToViewModel(address) {
 }
 
 /**
+ * @param {import('@pins/dynamic-forms/src/lib/address.js').Address} edits
+ * @returns {import('@prisma/client').Prisma.AddressCreateInput|null}
+ */
+function viewModelToAddressUpdateInput(edits) {
+	const updates = {
+		line1: edits.addressLine1,
+		line2: edits.addressLine2,
+		townCity: edits.townCity,
+		county: edits.county,
+		postcode: edits.postcode
+	};
+	if (Object.values(updates).some((v) => Boolean(v))) {
+		return updates;
+	}
+	return null;
+}
+
+/**
  * @param {string|null} procedureId
  * @returns {boolean}
  */
-function isInquiryOrHearing(procedureId) {
-	return isInquiry(procedureId) || isHearing(procedureId);
+function hasProcedure(procedureId) {
+	return isInquiry(procedureId) || isHearing(procedureId) || isWrittenReps(procedureId);
+}
+
+/**
+ * @param {string|null} procedureId
+ * @returns {boolean}
+ */
+function isWrittenReps(procedureId) {
+	return procedureId === APPLICATION_PROCEDURE_ID.WRITTEN_REPS;
 }
 
 /**
@@ -190,8 +359,59 @@ function eventPrefix(procedureId) {
 			return 'inquiry';
 		case APPLICATION_PROCEDURE_ID.HEARING:
 			return 'hearing';
+		case APPLICATION_PROCEDURE_ID.WRITTEN_REPS:
+			return 'writtenReps';
 	}
 	throw new Error(
 		`invalid procedureId, expected ${APPLICATION_PROCEDURE_ID.HEARING} or ${APPLICATION_PROCEDURE_ID.INQUIRY}, got ${procedureId}`
 	);
+}
+
+/**
+ * @param {import('./types.js').CrownDevelopmentViewModel} edits
+ * @param {string} procedureId
+ * @returns {{eventUpdateInput: import('@prisma/client').Prisma.EventUpdateInput|null, procedureNotificationDate: Date|string|null}}
+ */
+function viewModelToEventUpdateInput(edits, procedureId) {
+	/** @type {import('@prisma/client').Prisma.EventUpdateInput} */
+	const eventUpdateInput = {};
+	const updates = {
+		eventUpdateInput: null,
+		procedureNotificationDate: null
+	};
+
+	const prefix = eventPrefix(procedureId);
+
+	if (edits[`${prefix}Date`]) {
+		eventUpdateInput.date = edits[`${prefix}Date`];
+	}
+	if (edits[`${prefix}Duration`]) {
+		eventUpdateInput.duration = edits[`${prefix}Duration`];
+	}
+	if (edits[`${prefix}Venue`]) {
+		eventUpdateInput.venue = edits[`${prefix}Venue`];
+	}
+	if (edits[`${prefix}IssuesReportPublishedDate`]) {
+		eventUpdateInput.issuesReportPublishedDate = edits[`${prefix}IssuesReportPublishedDate`];
+	}
+	if (edits[`${prefix}ProcedureNotificationDate`]) {
+		updates.procedureNotificationDate = edits[`${prefix}ProcedureNotificationDate`];
+	}
+	if (edits[`${prefix}NotificationDate`]) {
+		eventUpdateInput.notificationDate = edits[`${prefix}NotificationDate`];
+	}
+	if (edits[`${prefix}StatementsDate`]) {
+		eventUpdateInput.statementsDate = edits[`${prefix}StatementsDate`];
+	}
+	if (edits[`${prefix}CaseManagementConferenceDate`]) {
+		eventUpdateInput.caseManagementConferenceDate = edits[`${prefix}CaseManagementConferenceDate`];
+	}
+	if (edits[`${prefix}ProofsOfEvidenceDate`]) {
+		eventUpdateInput.proofsOfEvidenceDate = edits[`${prefix}ProofsOfEvidenceDate`];
+	}
+
+	if (Object.keys(eventUpdateInput).length > 0) {
+		updates.eventUpdateInput = eventUpdateInput;
+	}
+	return updates;
 }

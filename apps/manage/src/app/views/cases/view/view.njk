@@ -13,6 +13,14 @@
 {% endblock %}
 
 {% block content %}
+
+    {% if caseUpdated %}
+        {{ govukNotificationBanner({
+            text: "Application has been updated",
+            type: "success"
+        }) }}
+    {% endif %}
+
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
             <h1 class="govuk-heading-l">

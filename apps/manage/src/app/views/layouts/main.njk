@@ -28,25 +28,25 @@
 			{{ govukBackLink({ href: backLink }) }}
 		{% endif %}
 	{% endblock %}
+	{% block error_summary %}
+		{% if errorSummary %}
+			<div class="govuk-grid-row">
+				<div class="govuk-grid-column-two-thirds">
+					{{
+					govukErrorSummary({
+						titleText: "There is a problem",
+						errorList: errorSummary
+					})
+					}}
+				</div>
+			</div>
+		{% endif %}
+	{% endblock %}
 {% endblock %}
 
 	{% block before_content %}{% endblock %}
 
 	{% block content %}
-		{% block errorSummary %}
-			{% if errors %}
-				<div class="govuk-grid-row">
-					<div class="govuk-grid-column-two-thirds">
-						{{
-						govukErrorSummary({
-							titleText: "There is a problem",
-							errorList: errorSummary
-						})
-					}}
-					</div>
-				</div>
-			{% endif %}
-		{% endblock %}
 		{% block pageHeading %}
 			<div class="govuk-grid-row">
 				<div class="govuk-grid-column-full">
