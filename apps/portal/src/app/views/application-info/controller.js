@@ -27,7 +27,6 @@ export function buildApplicationInformationPage({ db, logger }) {
 				displayName: true
 			}
 		});
-		logger.info(`Application type fetched: ${applicationType.displayName}`);
 
 		const lpa = await db.lpa.findUnique({
 			where: { id: crownDevelopment.lpaId },
@@ -35,29 +34,26 @@ export function buildApplicationInformationPage({ db, logger }) {
 				name: true
 			}
 		});
-		logger.info(`Local planning authority fetched: ${lpa.name}`);
 
 		const answers = crownDevelopmentToViewModel(crownDevelopment);
-
-		//{{ field.labelSize if field.labelSize else "To be determined" }}
 
 		return res.render('views/application-info/view.njk', {
 			pageCaption: answers.reference,
 			pageTitle: 'Application Information',
 			answers,
 			applicationType,
-			lpaName: lpa.name,
-			formattedAddress: formatAddress(answers.siteAddress),
-			applicationAcceptedDate: formatDate(answers.applicationAcceptedDate),
-			representationsPeriodEndDate: formatDate(answers.representationsPeriodEndDate),
-			decisionDate: formatDate(answers.decisionDate)
+			lpa,
+			formatDateFunction: formatDate,
+			formatAddressFunction: formatAddress
 		});
 	};
 }
 
 function formatAddress(address) {
-	return Object.values(address)
-		.filter((key) => key !== null)
+	return Object.entries(address)
+		.filter(([key]) => key !== 'id')
+		.filter(([, value]) => value !== null)
+		.map(([, value]) => value)
 		.join(', ');
 }
 

@@ -39,11 +39,11 @@
                         <h2 class="govuk-heading-m">About the application</h2>
                         <p class="govuk-body">Type of application: {{ applicationType.displayName }}</p>
                         <p class="govuk-body">Applicant name: {{ answers.applicantContactName }}</p>
-                        <p class="govuk-body">Local Planning Authority: {{ lpaName }}</p>
-                        <p class="govuk-body">Date application accepted: {{ applicationAcceptedDate }}</p>
-                        <p class="govuk-body">Date by which representations must be made: {{ representationsPeriodEndDate }}</p>
-                        <p class="govuk-body">Application decision date: {{ decisionDate }}</p>
-                        <p class="govuk-body">The address for receipt of representations about the application: To be determined</p>
+                        <p class="govuk-body">Local Planning Authority: {{ lpa.name }}</p>
+                        <p class="govuk-body">Date application accepted: {{ formatDateFunction(answers.applicationAcceptedDate) }}</p>
+                        <p class="govuk-body">Date by which representations must be made: {{ formatDateFunction(answers.representationsPeriodEndDate) }}</p>
+                        <p class="govuk-body">Application decision date: {{ formatDateFunction(answers.decisionDate) }}</p>
+                        <p class="govuk-body">The address for receipt of representations about the application: Planning Inspectorate Address TBC</p>
                         <p class="govuk-body">{{ answers.description }}</p>
                     </div>
 
@@ -54,7 +54,7 @@
 
                         <p class="govuk-body">
                             {% if answers.stageId %}
-                                This application is at {{ stageId }} stage
+                                This application is at <strong>{{ answers.stageId }}</strong> stage
                             {% else %}
                                 This application has not yet been moved into a valid project stage
                             {% endif %}
@@ -62,15 +62,15 @@
 
                         <p class="govuk-body">
                             {% if answers.applicationAcceptedDate %}
-                                This application was accepted on <strong>{{ applicationAcceptedDate }}</strong>
+                                This application was accepted on <strong>{{ formatDateFunction(answers.applicationAcceptedDate) }}</strong>
                             {% else %}
                                 This application has not yet been accepted
                             {% endif %}
                         </p>
 
                         {{ govukDetails({
-                          summaryText: "Acceptance",
-                          text: "Text about acceptance project stage"
+                          summaryText: "Complete",
+                          text: "Text about complete project stage"
                         }) }}
                         {{ govukDetails({
                           summaryText: "Consultation",
@@ -102,7 +102,7 @@
 
                     <div>
                         <h2 id="site-address" class="govuk-heading-m">Project location</h2>
-                        <p class="govuk-body">{{ formattedAddress }}</p>
+                        <p class="govuk-body">{{ formatAddressFunction(answers.siteAddress) }}</p>
                         <p class="govuk-body">Site Northing: {{ answers.siteNorthing }}</p>
                         <p class="govuk-body">Site Easting: {{ answers.siteEasting }}</p>
                     </div>
@@ -111,15 +111,18 @@
 
                     <div>
                         <h2 id="procedure" class="govuk-heading-m">Procedure</h2>
-                        <p class="govuk-body">{% if answers.procedureId %}{{ procedureId }}{% else %}Procedure has yet to be determined{% endif %}</p>
                         {% if answers.procedureId === 'inquiry' %}
-                          <p class="govuk-body">Inquiry statements date</p>
-                          <p class="govuk-body">Inquiry date</p>
-                          <p class="govuk-body">Inquiry venue</p>
-                          <p class="govuk-body">Proofs of evidence</p>
+                          <p class="govuk-body">Inquiry</p>
+                          <p class="govuk-body">Inquiry statements date: {{ formatDateFunction(answers.inquiryStatementsDate) }}</p>
+                          <p class="govuk-body">Inquiry date: {{ formatDateFunction(answers.inquiryDate) }}</p>
+                          <p class="govuk-body">Inquiry venue: {{ answers.inquiryVenue }}</p>
+                          <p class="govuk-body">Proofs of evidence: {{ formatDateFunction(answers.inquiryProofsOfEvidenceDate) }}</p>
                         {% elif answers.procedureId === 'hearing' %}
-                          <p class="govuk-body">Hearing Date: </p>
-                          <p class="govuk-body">Hearing venue: </p>
+                          <p class="govuk-body">Hearing</p>
+                          <p class="govuk-body">Hearing Date: {{ formatDateFunction(answers.hearingDate) }}</p>
+                          <p class="govuk-body">Hearing venue: {{ answers.hearingVenue }}</p>
+                        {% else %}
+                          <p class="govuk-body">Procedure has yet to be determined</p>
                         {% endif %}
 
                         <p class="govuk-body">Inspector: {{ answers.inspectorId if answers.inspectorId else "To be determined" }}</p>
