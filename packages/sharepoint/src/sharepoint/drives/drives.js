@@ -58,11 +58,7 @@ export class SharePointDrive {
 	/**
 	 * Copies a sharepoint item to a location with a new name
 	 *
-	 *  @param {Object} params
-	 *  @param {string} params.copyItemId ItemId of item to be copied
-	 *  @param {string} params.newItemName Name of the new item
-	 *  @param {string} params.[newParentDriveId] driveId of new parent drive (optional - defaults to current drive)
-	 *  @param {string} params.[newParentId] id of new parent (optional - defaults to current folder)
+	 *  @param {CopyDriveInstructions} params
 	 * @returns {void | string}
 	 */
 	async copyDriveItem({ copyItemId, newItemName, newParentDriveId, newParentId }) {
