@@ -53,10 +53,13 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 
 /**
  * @param {string} fieldName
+ * @param {string} [title]
  * @returns {import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps}
  */
-export function dateQuestion(fieldName) {
-	const title = camelCaseToTitleCase(fieldName);
+export function dateQuestion(fieldName, title) {
+	if (!title) {
+		title = camelCaseToTitleCase(fieldName);
+	}
 	return {
 		type: COMPONENT_TYPES.DATE,
 		title: title,
