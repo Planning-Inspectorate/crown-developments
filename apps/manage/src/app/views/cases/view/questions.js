@@ -272,7 +272,7 @@ export function getQuestions() {
 		}),
 
 		applicationReceivedDate: dateQuestion('applicationReceivedDate'),
-		applicationAcceptedDate: dateQuestion('applicationAcceptedDate'),
+		applicationAcceptedDate: dateQuestion('applicationAcceptedDate', 'Application Complete Date'),
 		lpaQuestionnaireSentDate: dateQuestion('lpaQuestionnaireSentDate'),
 		lpaQuestionnaireReceivedDate: dateQuestion('lpaQuestionnaireReceivedDate'),
 		publishDate: dateQuestion('publishDate'),
