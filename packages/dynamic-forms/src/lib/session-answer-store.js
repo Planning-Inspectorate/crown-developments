@@ -84,7 +84,7 @@ export function buildGetJourneyResponseFromSession(journeyId) {
 		/** @type {Object<string, Record<string, unknown>>|undefined} */
 		const forms = req.session?.forms;
 		if (forms && journeyId in forms) {
-			answers = forms[journeyId];
+			answers = { ...forms[journeyId] }; // work with a copy, we don't want to edit session values
 		}
 		for (const [k, v] of Object.entries(answers)) {
 			if (typeof v === 'boolean') {

@@ -159,5 +159,21 @@ describe('session-answer-store', () => {
 				q3: BOOLEAN_OPTIONS.NO
 			});
 		});
+		it('should not edit the session answers when changing boolean answers', async () => {
+			const answers = { q1: true, q2: 'a2', q3: false };
+			const req = mockReq();
+			req.session = {
+				forms: {
+					[journeyId]: answers
+				}
+			};
+			const res = mockRes();
+			const next = mock.fn();
+			const handler = buildGetJourneyResponseFromSession(journeyId);
+			handler(req, res, next);
+			assert.ok(res.locals.journeyResponse);
+			assert.notStrictEqual(res.locals.journeyResponse.answers, answers);
+			assert.strictEqual(answers.q1, true);
+		});
 	});
 });
