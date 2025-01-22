@@ -11,6 +11,9 @@ locals {
     "crown-client-secret",
     "crown-gov-notify-api-key",
     "crown-test-mailbox",
+    "crown-sharepoint-drive-id",
+    "crown-sharepoint-root-id",
+    "crown-sharepoint-template-folder-id",
     "microsoft-provider-authentication-secret"
   ]
 
