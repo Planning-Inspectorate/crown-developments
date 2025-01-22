@@ -24,7 +24,7 @@ export function buildRouter({ logger, config, redis, dbClient, getSharePointDriv
 		config,
 		redisClient: redis
 	});
-	const casesRoutes = createCasesRoutes({ db: dbClient, logger, getSharePointDrive });
+	const casesRoutes = createCasesRoutes({ db: dbClient, logger, config, getSharePointDrive });
 
 	router.use('/', monitoringRoutes);
 	router.get('/unauthenticated', (req, res) => res.status(401).render('views/errors/401.njk'));
