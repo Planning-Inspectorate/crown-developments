@@ -58,9 +58,9 @@ module "app_manage" {
     AUTH_TENANT_ID                = data.azurerm_client_config.current.tenant_id
 
     #Sharepoint
-    SHAREPOINT_DRIVE_ID           = local.key_vault_refs["crown-sharepoint-drive-id"]
-    SHAREPOINT_ROOT_ID            = local.key_vault_refs["crown-sharepoint-root-id"]
-    SHAREPOINT_CASE_TEMPLATE_ID   = local.key_vault_refs["crown-sharepoint-template-folder-id"]
+    SHAREPOINT_DRIVE_ID         = local.key_vault_refs["crown-sharepoint-drive-id"]
+    SHAREPOINT_ROOT_ID          = local.key_vault_refs["crown-sharepoint-root-id"]
+    SHAREPOINT_CASE_TEMPLATE_ID = local.key_vault_refs["crown-sharepoint-template-folder-id"]
 
     # logging
     LOG_LEVEL = var.apps_config.logging.level
