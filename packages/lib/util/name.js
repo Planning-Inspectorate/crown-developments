@@ -5,5 +5,5 @@
  * @returns {string}
  */
 export function caseReferenceToFolderName(name) {
-	return name.replace('/', '-');
+	return name.replaceAll('/', '-');
 }
