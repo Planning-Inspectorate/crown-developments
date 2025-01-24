@@ -20,7 +20,7 @@ export class GovNotifyClient {
 			this.logger.info(`dispatching email template: ${templateId}`);
 			await this.notifyClient.sendEmail(templateId, emailAddress, options);
 		} catch (e) {
-			this.logger.error(e.message);
+			throw new Error(`email failed to dispatch: ${e.message}`);
 		}
 	}
 }
