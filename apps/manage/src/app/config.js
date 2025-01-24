@@ -46,7 +46,8 @@ export function loadConfig() {
 		SHAREPOINT_DISABLED,
 		SHAREPOINT_DRIVE_ID,
 		SHAREPOINT_ROOT_ID,
-		SHAREPOINT_CASE_TEMPLATE_ID
+		SHAREPOINT_CASE_TEMPLATE_ID,
+		GOV_NOTIFY_API_KEY
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -125,7 +126,8 @@ export function loadConfig() {
 			caseTemplateId: SHAREPOINT_CASE_TEMPLATE_ID
 		},
 		// the static directory to serve assets from (images, css, etc..)
-		staticDir: buildConfig.staticDir
+		staticDir: buildConfig.staticDir,
+		govNotifyApiKey: GOV_NOTIFY_API_KEY
 	};
 
 	return config;
