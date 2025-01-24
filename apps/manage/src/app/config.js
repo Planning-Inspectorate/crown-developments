@@ -47,7 +47,8 @@ export function loadConfig() {
 		SHAREPOINT_DRIVE_ID,
 		SHAREPOINT_ROOT_ID,
 		SHAREPOINT_CASE_TEMPLATE_ID,
-		GOV_NOTIFY_API_KEY
+		GOV_NOTIFY_API_KEY,
+		GOV_NOTIFY_TEST_TEMPLATE_ID
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -127,7 +128,10 @@ export function loadConfig() {
 		},
 		// the static directory to serve assets from (images, css, etc..)
 		staticDir: buildConfig.staticDir,
-		govNotifyApiKey: GOV_NOTIFY_API_KEY
+		govNotify: {
+			apiKey: GOV_NOTIFY_API_KEY,
+			testTemplate: GOV_NOTIFY_TEST_TEMPLATE_ID
+		}
 	};
 
 	return config;
