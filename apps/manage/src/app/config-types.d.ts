@@ -31,4 +31,5 @@ interface Config {
 		caseTemplateId?: string; // Id for template folder (new case template folder structure)
 	};
 	staticDir: string;
+	govNotifyApiKey: string;
 }
