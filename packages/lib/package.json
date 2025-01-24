@@ -13,6 +13,7 @@
     "@prisma/client": "*",
     "connect-redis": "*",
     "express-session": "*",
+    "notifications-node-client": "*",
     "pino": "*",
     "pino-pretty": "*",
     "redis": "*"
