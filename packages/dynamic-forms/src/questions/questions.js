@@ -3,6 +3,7 @@ import CheckboxQuestion from '../components/checkbox/question.js';
 import BooleanQuestion from '../components/boolean/question.js';
 import RadioQuestion from '../components/radio/question.js';
 import DateQuestion from '../components/date/question.js';
+import DatePeriodQuestion from '../components/date-period/question.js';
 import TextEntryQuestion from '../components/text-entry/question.js';
 import SelectQuestion from '../components/select/question.js';
 import SingleLineInputQuestion from '../components/single-line-input/question.js';
@@ -22,6 +23,7 @@ export const questionClasses = Object.freeze({
 	[COMPONENT_TYPES.BOOLEAN]: BooleanQuestion,
 	[COMPONENT_TYPES.RADIO]: RadioQuestion,
 	[COMPONENT_TYPES.DATE]: DateQuestion,
+	[COMPONENT_TYPES.DATE_PERIOD]: DatePeriodQuestion,
 	[COMPONENT_TYPES.TEXT_ENTRY]: TextEntryQuestion,
 	[COMPONENT_TYPES.SELECT]: SelectQuestion,
 	[COMPONENT_TYPES.SINGLE_LINE_INPUT]: SingleLineInputQuestion,
