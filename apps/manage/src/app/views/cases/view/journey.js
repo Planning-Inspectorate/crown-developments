@@ -75,8 +75,7 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.originalDecisionDate)
 				.addQuestion(questions.turnedAwayDate),
 			new Section('Representations Period', 'representations')
-				.addQuestion(questions.representationsPeriodStartDate)
-				.addQuestion(questions.representationsPeriodEndDate)
+				.addQuestion(questions.representationsPeriod)
 				.addQuestion(questions.representationsPublishDate),
 			new Section('Case Involvement', 'case-involvement')
 				.addQuestion(questions.inspector)

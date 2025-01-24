@@ -20,6 +20,21 @@ describe('view-model', () => {
 			const result = crownDevelopmentToViewModel(input);
 			assert.strictEqual(result.updatedDate, input.createdDate);
 		});
+		it(`should map reps period`, () => {
+			/** @type {CrownDevelopment} */
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				createdDate: new Date(),
+				representationsPeriodStartDate: 'date-1',
+				representationsPeriodEndDate: 'date-2'
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.deepStrictEqual(result.representationsPeriod, {
+				start: 'date-1',
+				end: 'date-2'
+			});
+		});
 		it(`should map site address if present`, () => {
 			/** @type {CrownDevelopment} */
 			const input = {
@@ -257,6 +272,19 @@ describe('view-model', () => {
 			assert.ok(updates);
 			assert.strictEqual(updates.reference, undefined);
 			assert.strictEqual(updates.updatedDate, undefined);
+		});
+
+		it(`should map reps period`, () => {
+			/** @type {CrownDevelopmentViewModel} */
+			const toSave = {
+				representationsPeriod: {
+					start: 'date-1',
+					end: 'date-2'
+				}
+			};
+			const result = editsToDatabaseUpdates(toSave, {});
+			assert.deepStrictEqual(result.representationsPeriodStartDate, 'date-1');
+			assert.deepStrictEqual(result.representationsPeriodEndDate, 'date-2');
 		});
 		it('should map category relation', () => {
 			/** @type {CrownDevelopmentViewModel} */

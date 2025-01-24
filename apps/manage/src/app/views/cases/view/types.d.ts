@@ -59,8 +59,10 @@ export interface CrownDevelopmentViewModel {
 	originalDecisionDate?: Date | string;
 	turnedAwayDate?: Date | string;
 
-	representationsPeriodStartDate?: Date | string;
-	representationsPeriodEndDate?: Date | string;
+	representationsPeriod?: {
+		start?: Date | string;
+		end?: Date | string;
+	};
 	representationsPublishDate?: Date | string;
 
 	inspectorId?: string;
