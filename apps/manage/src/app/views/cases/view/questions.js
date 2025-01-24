@@ -24,6 +24,7 @@ import {
 } from './question-utils.js';
 import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
 import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
+import DatePeriodValidator from '@pins/dynamic-forms/src/validator/date-period-validator.js';
 
 export function getQuestions() {
 	const env = loadEnvironmentConfig();
@@ -287,8 +288,16 @@ export function getQuestions() {
 		originalDecisionDate: dateQuestion('originalDecisionDate'),
 		turnedAwayDate: dateQuestion('turnedAwayDate'),
 
-		representationsPeriodStartDate: dateQuestion('representationsPeriodStartDate'),
-		representationsPeriodEndDate: dateQuestion('representationsPeriodEndDate'),
+		representationsPeriod: {
+			type: COMPONENT_TYPES.DATE_PERIOD,
+			title: 'Representations Period',
+			question: `What is the Representations Period?`,
+			fieldName: 'representationsPeriod',
+			url: 'representations-period',
+			validators: [new DatePeriodValidator('Representations period')],
+			labels: { start: 'Open', end: 'Close' },
+			endTime: { hour: 23, minute: 59 }
+		},
 		representationsPublishDate: dateQuestion('representationsPublishDate'),
 
 		// todo: needs to be autocomplete with options loaded from Entra

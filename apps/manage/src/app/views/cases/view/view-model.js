@@ -41,8 +41,6 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'originalDecisionDate',
 	'turnedAwayDate',
 	'representationsPublishDate',
-	'representationsPeriodStartDate',
-	'representationsPeriodEndDate',
 	'inspectorId',
 	'assessorInspectorId',
 	'caseOfficerId',
@@ -76,6 +74,12 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 	const viewModel = {};
 	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
 		viewModel[field] = crownDevelopment[field];
+	}
+	if (crownDevelopment.representationsPeriodStartDate || crownDevelopment.representationsPeriodEndDate) {
+		viewModel.representationsPeriod = {
+			start: crownDevelopment.representationsPeriodStartDate,
+			end: crownDevelopment.representationsPeriodEndDate
+		};
 	}
 	viewModel.siteArea = crownDevelopment.siteArea?.toNumber();
 	if (!viewModel.updatedDate) {
@@ -121,6 +125,11 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	// don't support updating these fields
 	delete crownDevelopmentUpdateInput.reference;
 	delete crownDevelopmentUpdateInput.updatedDate;
+
+	if (edits.representationsPeriod) {
+		crownDevelopmentUpdateInput.representationsPeriodStartDate = edits.representationsPeriod.start;
+		crownDevelopmentUpdateInput.representationsPeriodEndDate = edits.representationsPeriod.end;
+	}
 
 	// update relations
 
