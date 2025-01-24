@@ -14,7 +14,6 @@ locals {
     "crown-sharepoint-drive-id",
     "crown-sharepoint-root-id",
     "crown-sharepoint-template-folder-id",
-    "gov-notify-api-key",
     "microsoft-provider-authentication-secret"
   ]
 
