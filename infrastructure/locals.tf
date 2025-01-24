@@ -10,6 +10,7 @@ locals {
   secrets = [
     "crown-client-secret",
     "crown-gov-notify-api-key",
+    "crown-gov-notify-test-template",
     "crown-test-mailbox",
     "crown-sharepoint-drive-id",
     "crown-sharepoint-root-id",

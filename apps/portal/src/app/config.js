@@ -25,7 +25,8 @@ export function loadConfig() {
 		REDIS_CONNECTION_STRING,
 		SESSION_SECRET,
 		SQL_CONNECTION_STRING,
-		GOV_NOTIFY_API_KEY
+		GOV_NOTIFY_API_KEY,
+		GOV_NOTIFY_TEST_TEMPLATE_ID
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -62,7 +63,10 @@ export function loadConfig() {
 		},
 		// the static directory to serve assets from (images, css, etc..)
 		staticDir: buildConfig.staticDir,
-		govNotifyApiKey: GOV_NOTIFY_API_KEY
+		govNotify: {
+			apiKey: GOV_NOTIFY_API_KEY,
+			testTemplate: GOV_NOTIFY_TEST_TEMPLATE_ID
+		}
 	};
 
 	return config;

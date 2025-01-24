@@ -79,6 +79,9 @@ module "app_manage" {
     #Auth
     MICROSOFT_PROVIDER_AUTHENTICATION_SECRET = local.key_vault_refs["microsoft-provider-authentication-secret"]
     WEBSITE_AUTH_AAD_ALLOWED_TENANTS         = data.azurerm_client_config.current.tenant_id
+
+    # gov notify templates
+    GOV_NOTIFY_TEST_TEMPLATE_ID = local.key_vault_refs["crown-gov-notify-test-template"]
   }
 
   providers = {
