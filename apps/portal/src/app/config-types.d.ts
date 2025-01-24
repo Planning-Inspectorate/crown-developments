@@ -13,4 +13,5 @@ interface Config {
 		secret: string;
 	};
 	staticDir: string;
+	govNotifyApiKey: string;
 }
