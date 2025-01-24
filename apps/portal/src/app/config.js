@@ -17,8 +17,16 @@ export function loadConfig() {
 	dotenv.config();
 
 	// get values from the environment
-	const { GIT_SHA, LOG_LEVEL, PORT, NODE_ENV, REDIS_CONNECTION_STRING, SESSION_SECRET, SQL_CONNECTION_STRING } =
-		process.env;
+	const {
+		GIT_SHA,
+		LOG_LEVEL,
+		PORT,
+		NODE_ENV,
+		REDIS_CONNECTION_STRING,
+		SESSION_SECRET,
+		SQL_CONNECTION_STRING,
+		GOV_NOTIFY_API_KEY
+	} = process.env;
 
 	const buildConfig = loadBuildConfig();
 
@@ -53,7 +61,8 @@ export function loadConfig() {
 			secret: SESSION_SECRET
 		},
 		// the static directory to serve assets from (images, css, etc..)
-		staticDir: buildConfig.staticDir
+		staticDir: buildConfig.staticDir,
+		govNotifyApiKey: GOV_NOTIFY_API_KEY
 	};
 
 	return config;
