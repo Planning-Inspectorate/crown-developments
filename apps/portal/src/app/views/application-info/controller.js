@@ -1,4 +1,4 @@
-import { crownDevelopmentToViewModel } from 'crowndev-manage/src/app/views/cases/view/view-model.js';
+import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js';
 
 /**
  * @param {Object} opts
@@ -14,36 +14,19 @@ export function buildApplicationInformationPage({ db, logger }) {
 				AgentContact: { include: { Address: true } },
 				Category: { include: { ParentCategory: true } },
 				Event: true,
-				Lpa: { include: { Address: true } },
+				Lpa: true,
+				Type: true,
 				SiteAddress: true,
 				Stage: true
 			}
 		});
 		logger.info(`Crown development case fetched: ${crownDevelopment.reference}`);
 
-		const applicationType = await db.applicationType.findUnique({
-			where: { id: crownDevelopment.typeId },
-			select: {
-				displayName: true
-			}
-		});
-
-		const lpa = await db.lpa.findUnique({
-			where: { id: crownDevelopment.lpaId },
-			select: {
-				name: true
-			}
-		});
-
-		const answers = crownDevelopmentToViewModel(crownDevelopment);
-
 		return res.render('views/application-info/view.njk', {
-			pageCaption: answers.reference,
+			pageCaption: crownDevelopment.reference,
 			pageTitle: 'Application Information',
-			answers,
-			applicationType,
-			lpa,
-			formatDateFunction: formatDate,
+			crownDevelopment,
+			formatDateFunction: formatDateForDisplay,
 			formatAddressFunction: formatAddress
 		});
 	};
@@ -55,11 +38,4 @@ function formatAddress(address) {
 		.filter(([, value]) => value !== null)
 		.map(([, value]) => value)
 		.join(', ');
-}
-
-function formatDate(dateToFormat) {
-	if (!dateToFormat) {
-		return 'To be determined';
-	}
-	return new Date(dateToFormat).toDateString();
 }
