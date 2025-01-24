@@ -4,7 +4,7 @@ import assert from 'node:assert';
 import { Question } from '../../questions/question.js';
 import DateQuestion from './question.js';
 
-describe('DataQuestion', () => {
+describe('DateQuestion', () => {
 	const TITLE = 'title';
 	const QUESTION = 'question';
 	const FIELDNAME = 'fieldName';

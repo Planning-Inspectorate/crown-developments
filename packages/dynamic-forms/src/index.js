@@ -3,6 +3,7 @@ export const COMPONENT_TYPES = Object.freeze({
 	BOOLEAN: 'boolean',
 	RADIO: 'radio',
 	DATE: 'date',
+	DATE_PERIOD: 'date-period',
 	TEXT_ENTRY: 'text-entry',
 	SELECT: 'select',
 	SINGLE_LINE_INPUT: 'single-line-input',
