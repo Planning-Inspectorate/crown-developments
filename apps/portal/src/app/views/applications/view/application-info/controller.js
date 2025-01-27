@@ -1,4 +1,5 @@
 import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 
 /**
  * @param {Object} opts
@@ -9,6 +10,10 @@ import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js'
 export function buildApplicationInformationPage({ db, logger }) {
 	return async (req, res) => {
 		const id = req.params.applicationId;
+		if (!id) {
+			throw new Error('Crown Development application id param required');
+		}
+
 		const crownDevelopment = await db.crownDevelopment.findUnique({
 			where: { id },
 			include: {
@@ -22,6 +27,11 @@ export function buildApplicationInformationPage({ db, logger }) {
 				Stage: true
 			}
 		});
+
+		if (crownDevelopment === null) {
+			return notFoundHandler(req, res);
+		}
+
 		logger.info(`Crown development case fetched: ${id}`);
 
 		return res.render('views/applications/view/application-info/view.njk', {
