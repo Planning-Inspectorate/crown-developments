@@ -173,19 +173,28 @@ export const APPLICATION_PROCEDURE = [
 ];
 
 /**
+ * @type {Readonly<{PERSON: string, ORGANISATION: string, FAMILY_GROUP: string}>}
+ */
+export const REPRESENTATION_TYPE_ID = Object.freeze({
+	PERSON: 'person',
+	ORGANISATION: 'organisation',
+	FAMILY_GROUP: 'family-group'
+});
+
+/**
  * @type {import('@prisma/client').Prisma.RepresentationTypeCreateInput[]}
  */
 export const REPRESENTATION_TYPE = [
 	{
-		id: 'person',
+		id: REPRESENTATION_TYPE_ID.PERSON,
 		displayName: 'Person'
 	},
 	{
-		id: 'organisation',
+		id: REPRESENTATION_TYPE_ID.ORGANISATION,
 		displayName: 'Organisation'
 	},
 	{
-		id: 'family-group',
+		id: REPRESENTATION_TYPE_ID.FAMILY_GROUP,
 		displayName: 'Family Group'
 	}
 ];
