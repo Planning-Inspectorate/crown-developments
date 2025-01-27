@@ -11,8 +11,8 @@ export function addLocalsConfiguration(req, res, next) {
 			href: '/'
 		},
 		{
-			text: 'All Projects',
-			href: '/projects'
+			text: 'All Applications',
+			href: '/applications'
 		},
 		{
 			text: 'More Information',
