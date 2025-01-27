@@ -6,7 +6,7 @@ import { configureNunjucks } from '../../../../nunjucks.js';
 
 describe('application info controller', () => {
 	describe('happy path', () => {
-		it('should render without error, with case reference if valid case id', async () => {
+		it('should render without error if valid case id', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const nunjucks = configureNunjucks();
 			const mockReq = { params: { applicationId: '1' } };
@@ -48,8 +48,8 @@ describe('application info controller', () => {
 		});
 	});
 
-	describe('errors', () => {
-		it('should throw if no id', async () => {
+	describe('error scenarios', () => {
+		it('should throw error if no id', async () => {
 			const mockReq = { params: {} };
 			const mockRes = { locals: {} };
 			const applicationInfoPage = buildApplicationInformationPage({ mock, logger: mockLogger() });
@@ -57,7 +57,7 @@ describe('application info controller', () => {
 			await assert.rejects(() => applicationInfoPage(mockReq, mockRes));
 		});
 
-		it('should render 404 if not found', async () => {
+		it('should render 404 if case not found with provided id', async () => {
 			process.env.ENVIRONMENT = 'dev';
 			const mockReq = { params: { applicationId: '2' } };
 			const mockRes = {
