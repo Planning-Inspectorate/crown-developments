@@ -8,7 +8,9 @@ import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js'
  */
 export function buildApplicationInformationPage({ db, logger }) {
 	return async (req, res) => {
-		const crownDevelopment = await db.crownDevelopment.findFirst({
+		const id = req.params.applicationId;
+		const crownDevelopment = await db.crownDevelopment.findUnique({
+			where: { id },
 			include: {
 				ApplicantContact: { include: { Address: true } },
 				AgentContact: { include: { Address: true } },
@@ -20,7 +22,7 @@ export function buildApplicationInformationPage({ db, logger }) {
 				Stage: true
 			}
 		});
-		logger.info(`Crown development case fetched: ${crownDevelopment.reference}`);
+		logger.info(`Crown development case fetched: ${id}`);
 
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopment.reference,
