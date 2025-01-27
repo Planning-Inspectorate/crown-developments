@@ -16,7 +16,7 @@ export function addLocalsConfiguration(req, res, next) {
 		},
 		{
 			text: 'More Information',
-			href: '/more-infromation'
+			href: '/more-information'
 		}
 	];
 

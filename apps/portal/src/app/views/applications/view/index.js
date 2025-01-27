@@ -1,5 +1,6 @@
 import { Router as createRouter } from 'express';
 import { createRoutes as haveYourSayRoutes } from './have-your-say/index.js';
+import { createApplicationInfoRoutes } from './application-info/index.js';
 
 /**
  * @param {Object} opts
@@ -12,6 +13,7 @@ export function createRoutes(opts) {
 
 	// placeholder
 	router.get('/:applicationId/', (req, res) => res.render('views/applications/view/view.njk'));
+	router.use('/:applicationId/application-information', createApplicationInfoRoutes(opts));
 	router.use('/:applicationId/have-your-say', haveYourSayRoutes(opts));
 
 	return router;
