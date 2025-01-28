@@ -25,6 +25,7 @@ export function loadConfig() {
 		REDIS_CONNECTION_STRING,
 		SESSION_SECRET,
 		SQL_CONNECTION_STRING,
+		GOV_NOTIFY_DISABLED,
 		GOV_NOTIFY_API_KEY,
 		GOV_NOTIFY_TEST_TEMPLATE_ID
 	} = process.env;
@@ -42,6 +43,16 @@ export function loadConfig() {
 			throw new Error('PORT must be an integer');
 		}
 		httpPort = port;
+	}
+
+	const govNotifyDisabled = GOV_NOTIFY_DISABLED === 'true';
+	if (!govNotifyDisabled) {
+		const props = { GOV_NOTIFY_API_KEY, GOV_NOTIFY_TEST_TEMPLATE_ID };
+		for (const [k, v] of Object.entries(props)) {
+			if (v === undefined || v === '') {
+				throw new Error(k + ' must be a non-empty string');
+			}
+		}
 	}
 
 	config = {
@@ -64,6 +75,7 @@ export function loadConfig() {
 		// the static directory to serve assets from (images, css, etc..)
 		staticDir: buildConfig.staticDir,
 		govNotify: {
+			disabled: GOV_NOTIFY_DISABLED,
 			apiKey: GOV_NOTIFY_API_KEY,
 			testTemplate: GOV_NOTIFY_TEST_TEMPLATE_ID
 		}

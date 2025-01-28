@@ -14,6 +14,7 @@ interface Config {
 	};
 	staticDir: string;
 	govNotify: {
+		disabled: boolean;
 		apiKey: string;
 		testTemplate: string;
 	};
