@@ -27,6 +27,12 @@ variable "apps_config" {
       family   = string
       sku_name = string
     })
+
+    gov_notify = object({
+      templates = object({
+        test_template_id = string
+      })
+    })
   })
 }
 

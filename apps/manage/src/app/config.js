@@ -47,6 +47,7 @@ export function loadConfig() {
 		SHAREPOINT_DRIVE_ID,
 		SHAREPOINT_ROOT_ID,
 		SHAREPOINT_CASE_TEMPLATE_ID,
+		GOV_NOTIFY_DISABLED,
 		GOV_NOTIFY_API_KEY,
 		GOV_NOTIFY_TEST_TEMPLATE_ID
 	} = process.env;
@@ -82,6 +83,16 @@ export function loadConfig() {
 	const sharePointDisabled = authDisabled || (SHAREPOINT_DISABLED === 'true' && !isProduction);
 	if (!sharePointDisabled) {
 		const props = { SHAREPOINT_DRIVE_ID, SHAREPOINT_ROOT_ID, SHAREPOINT_CASE_TEMPLATE_ID };
+		for (const [k, v] of Object.entries(props)) {
+			if (v === undefined || v === '') {
+				throw new Error(k + ' must be a non-empty string');
+			}
+		}
+	}
+
+	const govNotifyDisabled = GOV_NOTIFY_DISABLED === 'true';
+	if (!govNotifyDisabled) {
+		const props = { GOV_NOTIFY_API_KEY, GOV_NOTIFY_TEST_TEMPLATE_ID };
 		for (const [k, v] of Object.entries(props)) {
 			if (v === undefined || v === '') {
 				throw new Error(k + ' must be a non-empty string');
@@ -129,6 +140,7 @@ export function loadConfig() {
 		// the static directory to serve assets from (images, css, etc..)
 		staticDir: buildConfig.staticDir,
 		govNotify: {
+			disabled: GOV_NOTIFY_DISABLED,
 			apiKey: GOV_NOTIFY_API_KEY,
 			testTemplate: GOV_NOTIFY_TEST_TEMPLATE_ID
 		}

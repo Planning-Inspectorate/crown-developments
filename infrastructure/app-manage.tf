@@ -81,7 +81,7 @@ module "app_manage" {
     WEBSITE_AUTH_AAD_ALLOWED_TENANTS         = data.azurerm_client_config.current.tenant_id
 
     # gov notify templates
-    GOV_NOTIFY_TEST_TEMPLATE_ID = local.key_vault_refs["crown-gov-notify-test-template"]
+    GOV_NOTIFY_TEST_TEMPLATE_ID = var.apps_config.gov_notify.templates.test_template_id
   }
 
   providers = {
