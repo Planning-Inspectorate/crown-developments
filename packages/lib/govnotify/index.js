@@ -11,16 +11,20 @@ let govNotify;
  * @param {import('pino').Logger} logger
  * @returns {import('@pins/crowndev-lib/govnotify/gov-notify-client').GovNotifyClient|null}
  */
-export function getGovNotify(govNotifyApiKey, logger) {
+export function getGovNotify(config, logger) {
+	if (config.govNotify.disabled) {
+		return null;
+	}
+
 	if (govNotify) {
 		return govNotify;
 	}
 
-	if (!govNotifyApiKey) {
+	if (!config.govNotify.apiKey) {
 		return null;
 	}
 
-	govNotify = new GovNotifyClient(logger, govNotifyApiKey);
+	govNotify = new GovNotifyClient(logger, config.govNotify.apiKey);
 
 	return govNotify;
 }
