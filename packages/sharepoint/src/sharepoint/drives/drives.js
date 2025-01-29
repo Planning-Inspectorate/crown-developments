@@ -1,6 +1,8 @@
 import { UrlBuilder } from '../../util/url-builder/url-builder.js';
 
 /** @typedef {import('../../fixtures/sharepoint.js').getDriveItemsByPathData} DriveItemByPathResponse */
+/** @typedef {import('../../fixtures/sharepoint.js').listItemPermissions} ListItemPermissionsResponse */
+
 /** @typedef {import('../../fixtures/sharepoint.js').getDriveItems} DriveItems */
 
 /** @typedef {Object} CopyDriveInstructions
@@ -23,7 +25,7 @@ export class SharePointDrive {
 	/**
 	 *
 	 * @param {[key: string, value: string][]} queries
-	 * @returns {DriveItems} All the contents of a drive
+	 * @returns {Promise<DriveItems>} All the contents of a drive
 	 */
 	async getDriveItems(queries) {
 		const urlBuilder = new UrlBuilder('')
@@ -38,7 +40,7 @@ export class SharePointDrive {
 	/**
 	 * @param {string} path
 	 * @param {[key: string, value: string][]} queries
-	 * @returns {DriveItemByPathResponse}
+	 * @returns {Promise<DriveItemByPathResponse>}
 	 */
 	async getItemsByPath(path, queries) {
 		// queries => [['key', 'value']]
@@ -58,8 +60,8 @@ export class SharePointDrive {
 	/**
 	 * Copies a sharepoint item to a location with a new name
 	 *
-	 *  @param {CopyDriveInstructions} params
-	 * @returns {void | string}
+	 * @param {CopyDriveInstructions} params
+	 * @returns {Promise<void>}
 	 */
 	async copyDriveItem({ copyItemId, newItemName, newParentDriveId, newParentId }) {
 		const urlBuilder = new UrlBuilder('')
@@ -92,5 +94,135 @@ export class SharePointDrive {
 		} catch (e) {
 			throw e.statusCode ?? e;
 		}
+	}
+
+	/**
+	 *
+	 * @param itemId
+	 * @returns {Promise<ListItemPermissionsResponse>}
+	 */
+	async getItemPermissions(itemId) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('items')
+			.addPathSegment(itemId)
+			.addPathSegment('permissions');
+
+		const response = await this.client.api(urlBuilder.toString()).get();
+
+		return response.value;
+	}
+
+	/**
+	 *
+	 * @param {string} itemId Id of the folder to share
+	 * @param {boolean} [requireSignIn] Specifies whether the recipient of the invitation is required to sign in to view the shared item. Defaults to true
+	 * @param {boolean} [sendInvitation] 	If true, a sharing link is sent to the recipient. Otherwise, a permission is granted directly without sending a notification. Defaults to false
+	 * @param { 'write' | 'read' } role
+	 * @param { Array<{ id: string, email: string }>} users
+	 * @param {string} [message] Message that accompanies the Invitation if sent (defaults to '')
+	 * @returns {Promise<void>}
+	 */
+	async addItemPermissions(itemId, { requireSignIn = true, sendInvitation = false, role, users, message = '' }) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('items')
+			.addPathSegment(itemId)
+			.addPathSegment('invite');
+
+		if (users.length < 1) {
+			throw new Error('No users provided');
+		}
+
+		if (!role || (role !== 'write' && role !== 'read' && role !== 'owner')) {
+			throw new Error('No permission provided or permission provided is invalid');
+		}
+
+		const recipients = users.map((user) => {
+			return {
+				email: user.email
+			};
+		});
+
+		const permission = {
+			recipients,
+			message,
+			requireSignIn,
+			sendInvitation,
+			roles: [role]
+		};
+
+		await this.client.api(urlBuilder.toString()).post(permission);
+	}
+
+	/**
+	 *
+	 * @param {string} itemId
+	 * @param {string} permissionIdToUpdate
+	 * @param { 'write' | 'read' } role
+	 * @returns {Promise<void>}
+	 */
+	async updateItemPermission(itemId, permissionIdToUpdate, role) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('items')
+			.addPathSegment(itemId)
+			.addPathSegment('permissions')
+			.addPathSegment(permissionIdToUpdate);
+
+		if (!role || (role !== 'write' && role !== 'read' && role !== 'owner')) {
+			throw new Error('No permission provided or permission provided is invalid');
+		}
+
+		const permission = {
+			roles: [role]
+		};
+
+		await this.client.api(urlBuilder.toString()).post(permission);
+	}
+
+	/**
+	 *
+	 * @param { string } itemId
+	 * @param { { id: string, email: string } } user
+	 * @param { 'write' | 'read' } permission
+	 * @returns { Promise<void> }
+	 */
+	async upsertItemUsersPermission(itemId, user, permission) {
+		const itemsPermissions = await this.getItemPermissions(itemId);
+		if (itemsPermissions.length > 0) {
+			const findId = (id) =>
+				itemsPermissions.findIndex((permission) => permission.grantedToV2?.user.id.toString() === id);
+
+			const idIndex = findId(user.id);
+			if (idIndex >= 0) {
+				if (itemsPermissions[idIndex].roles[0] !== permission) {
+					await this.updateItemPermission(itemId, itemsPermissions[idIndex].id.toString(), permission);
+				}
+			} else {
+				await this.addItemPermissions(itemId, { users: [user], role: permission });
+			}
+		}
+	}
+
+	/**
+	 *
+	 * @param { string } itemId
+	 * @param { string } permissionId
+	 * @returns {Promise<void>}
+	 */
+	async deleteItemUserPermission(itemId, permissionId) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('items')
+			.addPathSegment(itemId)
+			.addPathSegment('permissions')
+			.addPathSegment(permissionId);
+
+		await this.client.api(urlBuilder.toString()).delete();
 	}
 }

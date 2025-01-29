@@ -1,18 +1,21 @@
 //@ts-nocheck
-import { test, describe, mock, afterEach } from 'node:test';
+import { test, describe, mock } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { SharePointDrive } from './drives.js';
 import { UrlBuilder } from '../../util/url-builder/url-builder.js';
-import { getDriveItemsByPathData } from '../../fixtures/sharepoint.js';
+import { getDriveItemsByPathData, listItemPermissions } from '../../fixtures/sharepoint.js';
 
 describe('drives', () => {
-	const mockClient = {
-		api: mock.fn(function (url) {
-			this.url = url;
-			return this;
-		}),
-		get: async () => {},
-		post: mock.fn()
+	const mockClient = () => {
+		return {
+			api: mock.fn(function (url) {
+				this.url = url;
+				return this;
+			}),
+			get: async () => {},
+			post: mock.fn(),
+			delete: mock.fn()
+		};
 	};
 
 	/** @type {SharePointDrive} */
@@ -22,14 +25,9 @@ describe('drives', () => {
 	 */
 	let driveId;
 
-	afterEach(() => {
-		mockClient.api.mock.resetCalls();
-		mockClient.post.mock.resetCalls();
-	});
-
 	describe('getDriveItems', () => {
 		test('should fetch drive items', async () => {
-			const client = mockClient;
+			const client = mockClient();
 			driveId = 'testDriveId';
 			sharePointDrive = new SharePointDrive(client, driveId);
 
@@ -47,7 +45,7 @@ describe('drives', () => {
 	});
 	describe('copyDriveItem', () => {
 		test('should copy drive item with only required params', async () => {
-			const client = mockClient;
+			const client = mockClient();
 			driveId = 'testDriveId';
 			const itemId = 'testItem';
 			sharePointDrive = new SharePointDrive(client, driveId);
@@ -68,7 +66,7 @@ describe('drives', () => {
 			);
 		});
 		test('should copy drive item with all params', async () => {
-			const client = mockClient;
+			const client = mockClient();
 			driveId = 'testDriveId';
 			const itemId = 'testItem';
 			sharePointDrive = new SharePointDrive(client, driveId);
@@ -104,7 +102,7 @@ describe('drives', () => {
 			const path = 'testPath';
 			driveId = 'testDriveId';
 
-			const client = mockClient;
+			const client = mockClient();
 			sharePointDrive = new SharePointDrive(client, driveId);
 
 			const mockResponse = getDriveItemsByPathData;
@@ -112,7 +110,7 @@ describe('drives', () => {
 
 			const result = await sharePointDrive.getItemsByPath(path);
 
-			assert.equal(mockClient.api.mock.callCount(), 1);
+			assert.equal(client.api.mock.callCount(), 1);
 			assert.equal(
 				client.api.mock.calls[0].arguments[0],
 				new UrlBuilder('')
@@ -125,6 +123,396 @@ describe('drives', () => {
 			);
 
 			assert.deepEqual(result, mockResponse.value);
+		});
+	});
+	describe('getItemPermissions', () => {
+		test('should fetch an item permission', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+			const mockResponse = listItemPermissions;
+			sharePointDrive.client.get = async () => mockResponse;
+
+			const result = await sharePointDrive.getItemPermissions(itemId);
+
+			assert.equal(client.api.mock.callCount(), 1);
+			assert.equal(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.addPathSegment('permissions')
+					.toString()
+			);
+			assert.deepEqual(result, mockResponse.value);
+		});
+
+		test('should throw a 404 error if the item is not found', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			sharePointDrive.client.get = async () => {
+				const error = new Error('The resource could not be found.');
+				error.statusCode = 404;
+				throw error;
+			};
+			try {
+				await sharePointDrive.getItemPermissions(itemId);
+				assert.fail('Expected error was not thrown');
+			} catch (e) {
+				assert.equal(e.statusCode, 404);
+				assert.equal(e.message, 'The resource could not be found.');
+			}
+		});
+	});
+	describe('addItemPermissions', () => {
+		test('should add an item permission when you provide one user', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+			const user = [
+				{
+					email: 'testUser@gmail.com',
+					id: '1'
+				}
+			];
+			const expectedPostArgument = {
+				recipients: [{ email: user[0].email }],
+				message: '',
+				requireSignIn: true,
+				sendInvitation: false,
+				roles: ['write']
+			};
+
+			await sharePointDrive.addItemPermissions(itemId, { role: 'write', users: user });
+			assert.strictEqual(client.api.mock.callCount(), 1);
+			assert.strictEqual(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.addPathSegment('invite')
+					.toString()
+			);
+			assert.deepStrictEqual(client.post.mock.calls[0].arguments[0], expectedPostArgument);
+		});
+		test('should add an item permission when you provide multiple users', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+			const user = [
+				{
+					email: 'testUser1@gmail.com',
+					id: '1'
+				},
+				{
+					email: 'testUser2@gmail.com',
+					id: '2'
+				}
+			];
+			const expectedPostArgument = {
+				recipients: [{ email: user[0].email }, { email: user[1].email }],
+				message: '',
+				requireSignIn: true,
+				sendInvitation: false,
+				roles: ['write']
+			};
+
+			await sharePointDrive.addItemPermissions(itemId, { role: 'write', users: user });
+			assert.strictEqual(client.api.mock.callCount(), 1);
+			assert.strictEqual(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.addPathSegment('invite')
+					.toString()
+			);
+			assert.deepStrictEqual(client.post.mock.calls[0].arguments[0], expectedPostArgument);
+		});
+		test('should throw if no users provided', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+			const user = [];
+			try {
+				await sharePointDrive.addItemPermissions(itemId, { role: 'write', users: user });
+				assert.fail('Expected error was not thrown');
+			} catch (e) {
+				assert.equal(e.message, 'No users provided');
+				assert.strictEqual(client.api.mock.callCount(), 0);
+			}
+		});
+		test('should throw if no permission provided', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+			const user = [
+				{
+					email: 'testUser@gmail.com',
+					id: '1'
+				}
+			];
+			try {
+				await sharePointDrive.addItemPermissions(itemId, { role: undefined, users: user });
+				assert.fail('Expected error was not thrown');
+			} catch (e) {
+				assert.equal(e.message, 'No permission provided or permission provided is invalid');
+				assert.strictEqual(client.api.mock.callCount(), 0);
+			}
+		});
+		test('should throw if permission provided is invalid', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+			const user = [
+				{
+					email: 'testUser@gmail.com',
+					id: '1'
+				}
+			];
+			try {
+				await sharePointDrive.addItemPermissions(itemId, { role: 'admin', users: user });
+				assert.fail('Expected error was not thrown');
+			} catch (e) {
+				assert.equal(e.message, 'No permission provided or permission provided is invalid');
+				assert.strictEqual(client.api.mock.callCount(), 0);
+			}
+		});
+	});
+	describe('updateItemPermission', () => {
+		test('should update an item permission', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+			await sharePointDrive.updateItemPermission(itemId, '1', 'write');
+			const expectedPostArgument = {
+				roles: ['write']
+			};
+
+			assert.strictEqual(client.api.mock.callCount(), 1);
+			assert.strictEqual(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.addPathSegment('permissions')
+					.addPathSegment('1')
+					.toString()
+			);
+			assert.deepStrictEqual(client.post.mock.calls[0].arguments[0], expectedPostArgument);
+		});
+		test('should throw if no permission provided', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+			const invalidRole = undefined;
+			try {
+				await sharePointDrive.updateItemPermission(itemId, '1', invalidRole);
+				assert.fail('Expected error was not thrown');
+			} catch (e) {
+				assert.equal(e.message, 'No permission provided or permission provided is invalid');
+				assert.strictEqual(client.api.mock.callCount(), 0);
+			}
+		});
+		test('should throw if permission provided is invalid', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+			const invalidRole = 'invalidRole';
+			try {
+				await sharePointDrive.updateItemPermission(itemId, '1', invalidRole);
+				assert.fail('Expected error was not thrown');
+			} catch (e) {
+				assert.equal(e.message, 'No permission provided or permission provided is invalid');
+				assert.strictEqual(client.api.mock.callCount(), 0);
+			}
+		});
+		test('should throw if permission is not found', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			sharePointDrive.client.post = async () => {
+				const error = new Error('The resource could not be found.');
+				error.statusCode = 404;
+				throw error;
+			};
+			try {
+				await sharePointDrive.updateItemPermission(itemId, '1', 'write');
+				assert.fail('Expected error was not thrown');
+			} catch (e) {
+				assert.equal(e.statusCode, 404);
+				assert.equal(e.message, 'The resource could not be found.');
+			}
+		});
+	});
+	describe('deleteItemUserPermission', () => {
+		test('should delete an item permission', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			await sharePointDrive.deleteItemUserPermission(itemId, '1');
+			assert.strictEqual(client.api.mock.callCount(), 1);
+			assert.strictEqual(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.addPathSegment('permissions')
+					.addPathSegment('1')
+					.toString()
+			);
+		});
+		test('should throw if permission is not found', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			sharePointDrive.client.delete = async () => {
+				const error = new Error('The resource could not be found.');
+				error.statusCode = 404;
+				throw error;
+			};
+			try {
+				await sharePointDrive.deleteItemUserPermission(itemId, '1');
+			} catch (e) {
+				assert.equal(e.statusCode, 404);
+				assert.equal(e.message, 'The resource could not be found.');
+			}
+		});
+	});
+	describe('upsertItemUsersPermission', () => {
+		test('should add the user permission if no permission is found', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			const sharePointDrive = new SharePointDrive(client, driveId);
+			const user = {
+				email: 'testUser@gmail.com',
+				id: '1'
+			};
+			sharePointDrive.client.get = async () => {
+				return {
+					...listItemPermissions
+				};
+			};
+			//sharePointDrive.client.post
+			await sharePointDrive.upsertItemUsersPermission(itemId, user, 'write');
+			assert.equal(client.api.mock.callCount(), 2);
+			assert.equal(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.addPathSegment('permissions')
+					.toString()
+			);
+			assert.equal(
+				client.api.mock.calls[1].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.addPathSegment('invite')
+					.toString()
+			);
+		});
+		test('should update the user permission if a permission is found and permission is different', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			const sharePointDrive = new SharePointDrive(client, driveId);
+			const user = {
+				email: 'testUser@gmail.com',
+				id: listItemPermissions.value[1].grantedToV2.user.id
+			};
+			sharePointDrive.client.get = async () => {
+				return {
+					...listItemPermissions
+				};
+			};
+			await sharePointDrive.upsertItemUsersPermission(itemId, user, 'read');
+			assert.equal(client.api.mock.callCount(), 2);
+			assert.equal(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.addPathSegment('permissions')
+					.toString()
+			);
+			assert.equal(
+				client.api.mock.calls[1].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.addPathSegment('permissions')
+					.addPathSegment(listItemPermissions.value[1].id)
+					.toString()
+			);
+			assert.deepStrictEqual(client.post.mock.calls[0].arguments[0], {
+				roles: ['read']
+			});
+		});
+		test('should do nothing if a permission is found and permission is the same', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			const sharePointDrive = new SharePointDrive(client, driveId);
+			const user = {
+				email: 'testUser@gmail.com',
+				id: listItemPermissions.value[1].grantedToV2.user.id
+			};
+			sharePointDrive.client.get = async () => {
+				return {
+					...listItemPermissions
+				};
+			};
+			await sharePointDrive.upsertItemUsersPermission(itemId, user, 'write');
+			assert.equal(client.api.mock.callCount(), 1);
+			assert.equal(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.addPathSegment('permissions')
+					.toString()
+			);
 		});
 	});
 });
