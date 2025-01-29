@@ -261,3 +261,57 @@ export const getDriveItems = {
 		}
 	]
 };
+
+export const listItemPermissions = {
+	value: [
+		{
+			id: '1',
+			roles: ['write'],
+			link: {
+				webUrl:
+					'https://onedrive.live.com/redir?resid=5D33DD65C6932946!70859&authkey=!AL7N1QAfSWcjNU8&ithint=folder%2cgif',
+				type: 'edit'
+			}
+		},
+		{
+			id: '2',
+			'@deprecated.GrantedTo': 'GrantedTo has been deprecated. Refer to GrantedToV2',
+			roles: ['write'],
+			grantedTo: {
+				user: {
+					id: '5D33DD65C6932946',
+					displayName: 'Robin Danielsen'
+				}
+			},
+			grantedToV2: {
+				user: {
+					id: '5D33DD65C6932946',
+					displayName: 'Robin Danielsen'
+				},
+				siteUser: {
+					id: '1',
+					displayName: 'Robin Danielsen',
+					loginName: 'Robin Danielsen'
+				}
+			},
+			inheritedFrom: {
+				driveId: '1234567890ABD',
+				id: '1234567890ABC!123',
+				path: '/drive/root:/Documents'
+			}
+		},
+		{
+			id: '3',
+			roles: ['write'],
+			link: {
+				webUrl:
+					'https://onedrive.live.com/redir?resid=5D33DD65C6932946!70859&authkey=!AL7N1QAfSWcjNU8&ithint=folder%2cgif',
+				type: 'edit',
+				application: {
+					id: '12345',
+					displayName: 'Contoso Time Manager'
+				}
+			}
+		}
+	]
+};
