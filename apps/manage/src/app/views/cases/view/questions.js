@@ -75,7 +75,7 @@ export function getQuestions() {
 			question: 'Select the Local Planning Authority for this application',
 			fieldName: 'lpaId',
 			url: 'local-planning-authority',
-			validators: [new RequiredValidator()],
+			validators: [new RequiredValidator('Select Local Planning Authority')],
 			options: lpaListToRadioOptions(LPAs)
 		},
 		siteAddress: {

@@ -27,11 +27,15 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 		fieldName: `${prefix}Name`,
 		url: `${prefixUrl}-name`,
 		validators: [
-			new RequiredValidator('Enter the name'),
+			new RequiredValidator(`Enter ${title} name`),
 			new StringValidator({
 				maxLength: {
 					maxLength: 250,
-					maxLengthMessage: `The name must be 250 characters or less`
+					maxLengthMessage: `${title} name must be less than 250 characters`
+				},
+				regex: {
+					regex: "^[A-Za-z '-]+$",
+					regexMessage: 'Full name must only include letters, spaces, hyphens, or apostrophes'
 				}
 			})
 		]
