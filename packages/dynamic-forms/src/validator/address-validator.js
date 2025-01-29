@@ -2,7 +2,7 @@ import { body } from 'express-validator';
 
 import BaseValidator from './base-validator.js';
 
-const validatePostcode = (postcode, errorMessage = 'Enter a full UK postcode') => {
+const validatePostcode = (postcode, errorMessage = 'Enter a valid postcode') => {
 	const pattern =
 		/([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\s?[0-9][A-Za-z]{2})/;
 	const result = pattern.exec(postcode);
@@ -13,16 +13,16 @@ const validatePostcode = (postcode, errorMessage = 'Enter a full UK postcode') =
 };
 
 // todo: sort out config
-export const addressLine1MaxLength = 100;
-export const addressLine1MinLength = 2;
-export const addressLine2MaxLength = 100;
+export const addressLine1MaxLength = 250;
+export const addressLine1MinLength = 1;
+export const addressLine2MaxLength = 250;
 export const addressLine2MinLength = 0;
-export const townCityMaxLength = 100;
-export const townCityMinLength = 2;
-export const countyMaxLength = 100;
+export const townCityMaxLength = 250;
+export const townCityMinLength = 1;
+export const countyMaxLength = 250;
 export const countyMinLength = 0;
-export const postcodeMaxLength = 100;
-export const postcodeMinLength = 2;
+export const postcodeMaxLength = 10;
+export const postcodeMinLength = 1;
 
 /**
  * enforces address fields are within allowed parameters
@@ -68,7 +68,7 @@ export default class AddressValidator extends BaseValidator {
 			.withMessage('Enter address line 1')
 			.isLength({ min: addressLine1MinLength, max: addressLine1MaxLength })
 			.bail()
-			.withMessage(`The address line must be ${addressLine1MaxLength} characters or fewer`);
+			.withMessage(`Address line 1 must be ${addressLine1MaxLength} characters or less`);
 	}
 
 	/**
@@ -81,7 +81,7 @@ export default class AddressValidator extends BaseValidator {
 			.optional()
 			.isLength({ min: addressLine2MinLength, max: addressLine2MaxLength })
 			.bail()
-			.withMessage(`The address line must be ${addressLine2MaxLength} characters or fewer`);
+			.withMessage(`Address line 2 must be ${addressLine2MaxLength} characters or less`);
 	}
 
 	/**
@@ -96,7 +96,7 @@ export default class AddressValidator extends BaseValidator {
 			.withMessage('Enter town or city')
 			.isLength({ min: townCityMinLength, max: townCityMaxLength })
 			.bail()
-			.withMessage(`Town or city must be ${townCityMaxLength} characters or fewer`);
+			.withMessage(`Town or city must be ${townCityMaxLength} characters or less`);
 	}
 
 	/**
@@ -109,7 +109,7 @@ export default class AddressValidator extends BaseValidator {
 			.optional()
 			.isLength({ min: countyMinLength, max: countyMaxLength })
 			.bail()
-			.withMessage(`The county must be ${countyMaxLength} characters or fewer`);
+			.withMessage(`County must be ${countyMaxLength} characters or less`);
 	}
 
 	/**
@@ -124,7 +124,7 @@ export default class AddressValidator extends BaseValidator {
 			.withMessage('Enter postcode')
 			.isLength({ min: postcodeMinLength, max: postcodeMaxLength })
 			.bail()
-			.withMessage('Enter a full UK postcode')
+			.withMessage(`Postcode must be between ${postcodeMinLength} and ${postcodeMaxLength} characters`)
 			.if(body(fieldName + '_postcode').notEmpty())
 			.custom((postcode) => validatePostcode(postcode));
 	}
