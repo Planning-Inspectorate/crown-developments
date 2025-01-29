@@ -1,7 +1,7 @@
 # A-Z
 apps_config = {
   app_service_plan_sku     = "P0v3"
-  node_environment         = "development"
+  node_environment         = "production"
   private_endpoint_enabled = false
 
   auth = {
