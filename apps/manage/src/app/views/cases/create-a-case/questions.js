@@ -32,7 +32,7 @@ export function getQuestions() {
 			question: 'What type of application is it?',
 			fieldName: 'typeOfApplication',
 			url: 'type-of-application',
-			validators: [new RequiredValidator()],
+			validators: [new RequiredValidator('Select the type of application')],
 			options: APPLICATION_TYPES.map((t) => ({ text: t.displayName, value: t.id }))
 		},
 		localPlanningAuthority: {
