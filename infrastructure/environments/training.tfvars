@@ -18,6 +18,12 @@ apps_config = {
     family   = "C"
     sku_name = "Basic"
   }
+
+  gov_notify = {
+    templates = {
+      test_template_id = "4b8adfb1-1b7c-4333-b512-761eeedfdca2"
+    }
+  }
 }
 
 auth_config_manage = {
