@@ -68,10 +68,6 @@ module "app_manage" {
     # database connection
     SQL_CONNECTION_STRING = local.key_vault_refs["sql-app-connection-string"]
 
-    # integrations
-    GOV_NOTIFY_API_KEY = local.key_vault_refs["crown-gov-notify-api-key"]
-    TEST_MAILBOX       = local.key_vault_refs["crown-test-mailbox"]
-
     # sessions
     REDIS_CONNECTION_STRING = local.key_vault_refs["redis-connection-string"]
     SESSION_SECRET          = local.key_vault_refs["session-secret-manage"]
@@ -80,7 +76,8 @@ module "app_manage" {
     MICROSOFT_PROVIDER_AUTHENTICATION_SECRET = local.key_vault_refs["microsoft-provider-authentication-secret"]
     WEBSITE_AUTH_AAD_ALLOWED_TENANTS         = data.azurerm_client_config.current.tenant_id
 
-    # gov notify templates
+    # gov notify
+    GOV_NOTIFY_API_KEY = local.key_vault_refs["crown-gov-notify-api-key"]
     GOV_NOTIFY_TEST_TEMPLATE_ID = var.apps_config.gov_notify.templates.test_template_id
   }
 
