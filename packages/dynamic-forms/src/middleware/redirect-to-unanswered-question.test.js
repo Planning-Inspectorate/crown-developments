@@ -56,6 +56,7 @@ describe('redirectToUnansweredQuestion Middleware', () => {
 				.withCondition((response) => questionHasAnswer(response, questions.q2, true))
 				.addQuestion(questions.q4)
 		],
+		taskListUrl: 'task-list/page',
 		makeBaseUrl: () => 'base/url'
 	};
 	let req, res, next;
@@ -123,7 +124,7 @@ describe('redirectToUnansweredQuestion Middleware', () => {
 		assert.strictEqual(next.mock.callCount(), 0);
 	});
 
-	it('should call next if all questions are answered and criteria met', () => {
+	it('should redirect to task list if all questions are answered', () => {
 		const journeyResponse = new JourneyResponse(
 			'id-1',
 			'0000003',
@@ -140,7 +141,8 @@ describe('redirectToUnansweredQuestion Middleware', () => {
 
 		redirectToUnansweredQuestion([])(req, res, next);
 
-		assert.strictEqual(next.mock.callCount(), 1);
-		assert.strictEqual(res.redirect.mock.callCount(), 0);
+		assert.strictEqual(res.redirect.mock.callCount(), 1);
+		assert.deepStrictEqual(res.redirect.mock.calls[0].arguments, ['base/url/task-list/page']);
+		assert.strictEqual(next.mock.callCount(), 0);
 	});
 });
