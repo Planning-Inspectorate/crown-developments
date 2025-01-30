@@ -3,6 +3,8 @@
  */
 
 /**
+ * Redirects to the first unanswered question in a journey, or to the task list if complete
+ *
  * @param {ShouldDisplayCondition[]} [conditions]
  * @returns {import('express').Handler}
  */
@@ -32,6 +34,6 @@ export function redirectToUnansweredQuestion(conditions = []) {
 				}
 			}
 		}
-		next();
+		return res.redirect(journey.taskListUrl);
 	};
 }
