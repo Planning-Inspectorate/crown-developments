@@ -1,6 +1,6 @@
 module "app_manage" {
   #checkov:skip=CKV_TF_1: Use of commit hash are not required for our Terraform modules
-  source = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/node-app-service?ref=1.32"
+  source = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/node-app-service?ref=1.37"
 
   resource_group_name = azurerm_resource_group.primary.name
   location            = module.primary_region.location
@@ -22,10 +22,13 @@ module "app_manage" {
 
   # networking
   app_service_private_dns_zone_id = data.azurerm_private_dns_zone.app_service.id
-  endpoint_subnet_id              = azurerm_subnet.main.id
   inbound_vnet_connectivity       = var.apps_config.private_endpoint_enabled
   integration_subnet_id           = azurerm_subnet.apps.id
+  endpoint_subnet_id              = azurerm_subnet.main.id
   outbound_vnet_connectivity      = true
+  # public access via Front Door
+  front_door_restriction = true
+  public_network_access  = true
 
   # monitoring
   action_group_ids                  = local.action_group_ids
@@ -77,7 +80,7 @@ module "app_manage" {
     WEBSITE_AUTH_AAD_ALLOWED_TENANTS         = data.azurerm_client_config.current.tenant_id
 
     # gov notify
-    GOV_NOTIFY_API_KEY = local.key_vault_refs["crown-gov-notify-api-key"]
+    GOV_NOTIFY_API_KEY          = local.key_vault_refs["crown-gov-notify-api-key"]
     GOV_NOTIFY_TEST_TEMPLATE_ID = var.apps_config.gov_notify.templates.test_template_id
   }
 
