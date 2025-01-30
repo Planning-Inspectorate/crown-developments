@@ -55,7 +55,7 @@ export function getQuestions() {
 			question: 'Is the applicant using an agent?',
 			fieldName: 'hasAgent',
 			url: 'has-agent',
-			validators: [new RequiredValidator()]
+			validators: [new RequiredValidator('Select if the applicant is using an agent')]
 		},
 		...contactQuestions({
 			prefix: 'agent',
@@ -69,7 +69,7 @@ export function getQuestions() {
 			hint: 'Optional',
 			fieldName: `siteAddress`,
 			url: `site-address`,
-			validators: [new AddressValidator({ required: false })]
+			validators: [new AddressValidator({ required: true })]
 		},
 		siteNorthing: {
 			type: COMPONENT_TYPES.NUMBER,
