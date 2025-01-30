@@ -1,4 +1,5 @@
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { toFloat, toInt } from '@pins/crowndev-lib/util/numbers.js';
 
 /**
  * CrownDevelopment fields that do not need mapping to a (or from) the view model
@@ -125,6 +126,15 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	// don't support updating these fields
 	delete crownDevelopmentUpdateInput.reference;
 	delete crownDevelopmentUpdateInput.updatedDate;
+
+	// set number fields
+	if (edits.siteNorthing || edits.siteEasting) {
+		crownDevelopmentUpdateInput.siteNorthing = toInt(edits.siteNorthing);
+		crownDevelopmentUpdateInput.siteEasting = toInt(edits.siteEasting);
+	}
+	if (edits.siteArea) {
+		crownDevelopmentUpdateInput.siteArea = toFloat(edits.siteArea);
+	}
 
 	if (edits.representationsPeriod) {
 		crownDevelopmentUpdateInput.representationsPeriodStartDate = edits.representationsPeriod.start;

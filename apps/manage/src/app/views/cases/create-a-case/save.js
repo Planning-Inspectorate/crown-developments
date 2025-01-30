@@ -2,6 +2,7 @@ import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js'
 import { clearDataFromSession } from '@pins/dynamic-forms/src/lib/session-answer-store.js';
 import { JOURNEY_ID } from './journey.js';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/name.js';
+import { toFloat } from '@pins/crowndev-lib/util/numbers.js';
 
 /**
  * @param {Object} opts
@@ -93,9 +94,9 @@ function toCreateInput(answers, reference) {
 		Lpa: { connect: { id: answers.lpaId } },
 		Type: { connect: { id: answers.typeOfApplication } },
 		Status: { connect: { id: 'new' } },
-		siteArea: toNumber(answers.siteArea),
-		siteEasting: toNumber(answers.siteEasting),
-		siteNorthing: toNumber(answers.siteNorthing),
+		siteArea: toFloat(answers.siteArea),
+		siteEasting: toFloat(answers.siteEasting),
+		siteNorthing: toFloat(answers.siteNorthing),
 		expectedDateOfSubmission: answers.expectedDateOfSubmission
 	};
 
@@ -136,18 +137,6 @@ function toCreateInput(answers, reference) {
 	}
 
 	return input;
-}
-
-/**
- *
- * @param {string} [answer]
- * @returns {number|null}
- */
-function toNumber(answer) {
-	if (answer) {
-		return parseFloat(answer);
-	}
-	return null;
 }
 
 /**
