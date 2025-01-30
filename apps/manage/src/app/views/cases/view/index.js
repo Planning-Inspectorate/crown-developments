@@ -3,7 +3,7 @@ import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 import { buildSave, question } from '@pins/dynamic-forms/src/controller.js';
 import validate from '@pins/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
-import { buildGetJourneyMiddleware, buildUpdateCase, viewCaseDetails } from './controller.js';
+import { buildGetJourneyMiddleware, buildUpdateCase, validateIdFormat, viewCaseDetails } from './controller.js';
 
 /**
  * @param {Object} opts
@@ -18,13 +18,20 @@ export function createRoutes({ db, logger }) {
 	const updateCase = buildSave(updateCaseFn, true);
 
 	// view case details
-	router.get('/', getJourney, asyncHandler(viewCaseDetails));
+	router.get('/', validateIdFormat, getJourney, asyncHandler(viewCaseDetails));
 
 	// view question page
-	router.get('/:section/:question', getJourney, asyncHandler(question));
+	router.get('/:section/:question', validateIdFormat, getJourney, asyncHandler(question));
 
 	// submit edit
-	router.post('/:section/:question', getJourney, validate, validationErrorHandler, asyncHandler(updateCase));
+	router.post(
+		'/:section/:question',
+		validateIdFormat,
+		getJourney,
+		validate,
+		validationErrorHandler,
+		asyncHandler(updateCase)
+	);
 
 	return router;
 }

@@ -5,6 +5,7 @@ import { getQuestions } from './questions.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
 import { Prisma } from '@prisma/client';
+import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 
 /**
  * @type {import('express').Handler}
@@ -21,6 +22,20 @@ export async function viewCaseDetails(req, res) {
 	clearCaseUpdatedSession(req, id);
 
 	await list(req, res, '', { reference, caseUpdated, hideButton: true, hideStatus: true });
+}
+
+/**
+ * @type {import('express').Handler}
+ */
+export function validateIdFormat(req, res, next) {
+	const id = req.params.id;
+	if (!id) {
+		throw new Error('id param required');
+	}
+	if (!isValidUuidFormat(id)) {
+		return notFoundHandler(req, res);
+	}
+	next();
 }
 
 /**
