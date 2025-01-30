@@ -274,6 +274,24 @@ describe('view-model', () => {
 			assert.strictEqual(updates.updatedDate, undefined);
 		});
 
+		it(`should map siteArea to a number`, () => {
+			/** @type {CrownDevelopmentViewModel} */
+			const toSave = {
+				siteArea: '0.125'
+			};
+			const result = editsToDatabaseUpdates(toSave, {});
+			assert.strictEqual(result.siteArea, 0.125);
+		});
+		it(`should map siteNorthing and siteEasting to an int`, () => {
+			/** @type {CrownDevelopmentViewModel} */
+			const toSave = {
+				siteNorthing: '123',
+				siteEasting: '456'
+			};
+			const result = editsToDatabaseUpdates(toSave, {});
+			assert.strictEqual(result.siteNorthing, 123);
+			assert.strictEqual(result.siteEasting, 456);
+		});
 		it(`should map reps period`, () => {
 			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {

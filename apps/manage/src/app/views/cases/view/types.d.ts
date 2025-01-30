@@ -8,9 +8,9 @@ export interface CrownDevelopmentViewModel {
 	lpaId?: string;
 	siteAddressId?: string;
 	siteAddress?: Address;
-	siteNorthing?: number;
-	siteEasting?: number;
-	siteArea?: number;
+	siteNorthing?: number | string;
+	siteEasting?: number | string;
+	siteArea?: number | string;
 	expectedDateOfSubmission?: Date | string;
 	decisionOutcomeId?: string;
 	decisionDate?: Date | string;
