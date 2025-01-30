@@ -190,17 +190,14 @@ export class SharePointDrive {
 	 */
 	async upsertItemUsersPermission(itemId, user, permission) {
 		const itemsPermissions = await this.getItemPermissions(itemId);
-		if (itemsPermissions.length > 0) {
-			const itemPermission = itemsPermissions.find(
-				(permission) => permission.grantedToV2?.user.id.toString() === user.id.toString()
-			);
 
-			if (itemPermission) {
-				if (itemPermission.roles[0] !== permission) {
-					await this.updateItemPermission(itemId, itemPermission.id.toString(), permission);
-				}
-			} else {
-				await this.addItemPermissions(itemId, { users: [user], role: permission });
+		const itemPermission = itemsPermissions.find(
+			(permission) => permission.grantedToV2?.user.id.toString() === user.id.toString()
+		);
+
+		if (itemPermission) {
+			if (itemPermission.roles[0] !== permission) {
+				await this.updateItemPermission(itemId, itemPermission.id.toString(), permission);
 			}
 		} else {
 			await this.addItemPermissions(itemId, { users: [user], role: permission });
