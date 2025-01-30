@@ -89,11 +89,7 @@ export class SharePointDrive {
 				}
 			});
 		}
-		try {
-			await this.client.api(urlBuilder.toString()).post(newDriveItem);
-		} catch (e) {
-			throw e.statusCode ?? e;
-		}
+		await this.client.api(urlBuilder.toString()).post(newDriveItem);
 	}
 
 	/**
