@@ -33,6 +33,10 @@ variable "apps_config" {
         test_template_id = string
       })
     })
+
+    sharepoint = object({
+      disabled = bool
+    })
   })
 }
 

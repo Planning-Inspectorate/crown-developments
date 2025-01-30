@@ -24,6 +24,10 @@ apps_config = {
       test_template_id = ""
     }
   }
+
+  sharepoint = {
+    disabled = false
+  }
 }
 
 auth_config_portal = {

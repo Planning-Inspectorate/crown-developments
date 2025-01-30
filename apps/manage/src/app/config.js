@@ -80,7 +80,7 @@ export function loadConfig() {
 		}
 	}
 
-	const sharePointDisabled = authDisabled || (SHAREPOINT_DISABLED === 'true' && !isProduction);
+	const sharePointDisabled = authDisabled || SHAREPOINT_DISABLED === 'true';
 	if (!sharePointDisabled) {
 		const props = { SHAREPOINT_DRIVE_ID, SHAREPOINT_ROOT_ID, SHAREPOINT_CASE_TEMPLATE_ID };
 		for (const [k, v] of Object.entries(props)) {
