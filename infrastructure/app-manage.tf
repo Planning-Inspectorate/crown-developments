@@ -50,6 +50,7 @@ module "app_manage" {
     AUTH_TENANT_ID                = data.azurerm_client_config.current.tenant_id
 
     #Sharepoint
+    SHAREPOINT_DISABLED         = var.apps_config.sharepoint.disabled
     SHAREPOINT_DRIVE_ID         = local.key_vault_refs["crown-sharepoint-drive-id"]
     SHAREPOINT_ROOT_ID          = local.key_vault_refs["crown-sharepoint-root-id"]
     SHAREPOINT_CASE_TEMPLATE_ID = local.key_vault_refs["crown-sharepoint-template-folder-id"]
