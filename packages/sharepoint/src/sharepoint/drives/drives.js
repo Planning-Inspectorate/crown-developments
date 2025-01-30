@@ -1,8 +1,8 @@
 import { UrlBuilder } from '../../util/url-builder/url-builder.js';
 
 /** @typedef {import('../../fixtures/sharepoint.js').getDriveItemsByPathData} DriveItemByPathResponse */
-/** @typedef {import('../../fixtures/sharepoint.js').listItemPermissions} ListItemPermissionsResponse */
-
+/** @typedef {Array<import('../../fixtures/sharepoint.js').ListItemPermission>} ListItemPermissionsResponse */
+/** @typedef { 'write' | 'read' | 'owner' } Role */
 /** @typedef {import('../../fixtures/sharepoint.js').getDriveItems} DriveItems */
 
 /** @typedef {Object} CopyDriveInstructions
@@ -113,11 +113,12 @@ export class SharePointDrive {
 	/**
 	 *
 	 * @param {string} itemId Id of the folder to share
-	 * @param {boolean} [requireSignIn] Specifies whether the recipient of the invitation is required to sign in to view the shared item. Defaults to true
-	 * @param {boolean} [sendInvitation] 	If true, a sharing link is sent to the recipient. Otherwise, a permission is granted directly without sending a notification. Defaults to false
-	 * @param { 'write' | 'read' } role
-	 * @param { Array<{ id: string, email: string }>} users
-	 * @param {string} [message] Message that accompanies the Invitation if sent (defaults to '')
+	 * @param {Object} options
+	 * @param {boolean} [options.requireSignIn] Specifies whether the recipient of the invitation is required to sign in to view the shared item. Defaults to true
+	 * @param {boolean} [options.sendInvitation] 	If true, a sharing link is sent to the recipient. Otherwise, a permission is granted directly without sending a notification. Defaults to false
+	 * @param { Role } options.role
+	 * @param { Array<{ id: string, email: string }>} options.users
+	 * @param {string} [options.message] Message that accompanies the Invitation if sent (defaults to '')
 	 * @returns {Promise<void>}
 	 */
 	async addItemPermissions(itemId, { requireSignIn = true, sendInvitation = false, role, users, message = '' }) {
@@ -157,7 +158,7 @@ export class SharePointDrive {
 	 *
 	 * @param {string} itemId
 	 * @param {string} permissionIdToUpdate
-	 * @param { 'write' | 'read' } role
+	 * @param { Role } role
 	 * @returns {Promise<void>}
 	 */
 	async updateItemPermission(itemId, permissionIdToUpdate, role) {
@@ -184,23 +185,25 @@ export class SharePointDrive {
 	 *
 	 * @param { string } itemId
 	 * @param { { id: string, email: string } } user
-	 * @param { 'write' | 'read' } permission
+	 * @param { Role } permission
 	 * @returns { Promise<void> }
 	 */
 	async upsertItemUsersPermission(itemId, user, permission) {
 		const itemsPermissions = await this.getItemPermissions(itemId);
 		if (itemsPermissions.length > 0) {
-			const findId = (id) =>
-				itemsPermissions.findIndex((permission) => permission.grantedToV2?.user.id.toString() === id);
+			const itemPermission = itemsPermissions.find(
+				(permission) => permission.grantedToV2?.user.id.toString() === user.id.toString()
+			);
 
-			const idIndex = findId(user.id);
-			if (idIndex >= 0) {
-				if (itemsPermissions[idIndex].roles[0] !== permission) {
-					await this.updateItemPermission(itemId, itemsPermissions[idIndex].id.toString(), permission);
+			if (itemPermission) {
+				if (itemPermission.roles[0] !== permission) {
+					await this.updateItemPermission(itemId, itemPermission.id.toString(), permission);
 				}
 			} else {
 				await this.addItemPermissions(itemId, { users: [user], role: permission });
 			}
+		} else {
+			await this.addItemPermissions(itemId, { users: [user], role: permission });
 		}
 	}
 
