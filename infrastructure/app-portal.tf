@@ -70,6 +70,10 @@ module "app_portal" {
     #Auth
     MICROSOFT_PROVIDER_AUTHENTICATION_SECRET = local.key_vault_refs["microsoft-provider-authentication-secret"]
     WEBSITE_AUTH_AAD_ALLOWED_TENANTS         = data.azurerm_client_config.current.tenant_id
+
+    # gov notify
+    GOV_NOTIFY_API_KEY = local.key_vault_refs["crown-gov-notify-api-key"]
+    GOV_NOTIFY_TEST_TEMPLATE_ID = var.apps_config.gov_notify.templates.test_template_id
   }
 
   providers = {
