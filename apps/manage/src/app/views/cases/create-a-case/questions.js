@@ -69,7 +69,7 @@ export function getQuestions() {
 			hint: 'Optional',
 			fieldName: `siteAddress`,
 			url: `site-address`,
-			validators: [new AddressValidator({ required: true })]
+			validators: [new AddressValidator({ required: false })]
 		},
 		siteNorthing: {
 			type: COMPONENT_TYPES.NUMBER,
