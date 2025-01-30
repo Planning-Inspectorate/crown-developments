@@ -58,11 +58,11 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 		fieldName: `${prefix}Email`,
 		url: `${prefixUrl}-email`,
 		validators: [
-			new RequiredValidator(),
+			new RequiredValidator(`Enter ${title} email`),
 			new StringValidator({
 				maxLength: {
 					maxLength: 250,
-					maxLengthMessage: `Email must be 250 characters or less`
+					maxLengthMessage: `${title} email must be less than 250 characters`
 				}
 			})
 		]
@@ -75,11 +75,11 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 		fieldName: `${prefix}TelephoneNumber`,
 		url: `${prefixUrl}-telephone-number`,
 		validators: [
-			new RequiredValidator(),
+			new RequiredValidator(`Enter ${title} telephone number`),
 			new StringValidator({
 				maxLength: {
 					maxLength: 15,
-					maxLengthMessage: `Telephone number must be 15 characters or less`
+					maxLengthMessage: `${title} telephone number must be less than 15 characters`
 				}
 			})
 		]
