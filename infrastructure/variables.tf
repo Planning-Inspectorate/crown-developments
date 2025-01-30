@@ -44,14 +44,6 @@ variable "auth_config_portal" {
   })
 }
 
-variable "auth_config_manage" {
-  description = "Config for the azure authentication crown manage"
-  type = object({
-    auth_enabled   = bool
-    auth_client_id = string
-  })
-}
-
 variable "common_config" {
   description = "Config for the common resources, such as action groups"
   type = object({
