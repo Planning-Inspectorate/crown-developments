@@ -1,3 +1,57 @@
+/**
+ * @typedef {Object} Link
+ * @property {string} webUrl - The URL of the link.
+ * @property {string} type - The type of the link.
+ * @property {Application} [application] - The application associated with the link.
+ */
+
+/**
+ * @typedef {Object} Application
+ * @property {string} id - The ID of the application.
+ * @property {string} displayName - The display name of the application.
+ */
+
+/**
+ * @typedef {Object} User
+ * @property {string} id - The ID of the user.
+ * @property {string} displayName - The display name of the user.
+ */
+
+/**
+ * @typedef {Object} SiteUser
+ * @property {string} id - The ID of the site user.
+ * @property {string} displayName - The display name of the site user.
+ * @property {string} loginName - The login name of the site user.
+ */
+
+/**
+ * @typedef {Object} GrantedToV2
+ * @property {User} user - The user information.
+ * @property {SiteUser} siteUser - The site user information.
+ */
+
+/**
+ * @typedef {Object} InheritedFrom
+ * @property {string} driveId - The drive ID.
+ * @property {string} id - The ID.
+ * @property {string} path - The path.
+ */
+
+/**
+ * @typedef {Object} ListItemPermission
+ * @property {string} id - The ID of the permission.
+ * @property {string[]} roles - The roles associated with the permission.
+ * @property {Link} [link] - The link information.
+ * @property {User} [grantedTo] - The user to whom the permission is granted.
+ * @property {GrantedToV2} [grantedToV2] - The updated user information.
+ * @property {InheritedFrom} [inheritedFrom] - The inherited information.
+ */
+
+/**
+ * @typedef {Object} ListItemPermissions
+ * @property {ListItemPermission[]} value - The array of permissions.
+ */
+
 export const getDriveItemsByPathData = {
 	'@odata.context': 'https://graph.microsoft.com/v1.0/$metadata#Collection(driveItem)',
 	value: [
@@ -261,7 +315,9 @@ export const getDriveItems = {
 		}
 	]
 };
-
+/**
+ * @type {ListItemPermissions}
+ */
 export const listItemPermissions = {
 	value: [
 		{

@@ -422,7 +422,44 @@ describe('drives', () => {
 					...listItemPermissions
 				};
 			};
-			//sharePointDrive.client.post
+
+			await sharePointDrive.upsertItemUsersPermission(itemId, user, 'write');
+
+			assert.equal(client.api.mock.callCount(), 2);
+			assert.equal(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.addPathSegment('permissions')
+					.toString()
+			);
+			assert.equal(
+				client.api.mock.calls[1].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.addPathSegment('invite')
+					.toString()
+			);
+		});
+		test('should add the user permission if item has no permission', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			const sharePointDrive = new SharePointDrive(client, driveId);
+			const user = {
+				email: 'testUser@gmail.com',
+				id: '1'
+			};
+			sharePointDrive.client.get = async () => {
+				return { value: [] };
+			};
+
 			await sharePointDrive.upsertItemUsersPermission(itemId, user, 'write');
 			assert.equal(client.api.mock.callCount(), 2);
 			assert.equal(
