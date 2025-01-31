@@ -18,6 +18,13 @@ variable "apps_config" {
       group_application_access = string
     })
 
+    entra = object({
+      group_ids = object({
+        case_officers = string
+        inspectors    = string
+      })
+    })
+
     logging = object({
       level = string
     })

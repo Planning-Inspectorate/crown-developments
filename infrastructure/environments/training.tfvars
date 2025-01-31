@@ -9,6 +9,14 @@ apps_config = {
     group_application_access = "409896aa-b295-4992-9ead-c580b64d7a6c"
   }
 
+  entra = {
+    group_ids = {
+      # use app access group for now
+      case_officers = "409896aa-b295-4992-9ead-c580b64d7a6c"
+      inspectors    = "409896aa-b295-4992-9ead-c580b64d7a6c"
+    }
+  }
+
   logging = {
     level = "warn"
   }

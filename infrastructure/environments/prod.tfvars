@@ -9,6 +9,13 @@ apps_config = {
     group_application_access = "1abf7720-2ea6-479e-822d-218917d3d0ee"
   }
 
+  entra = {
+    group_ids = {
+      case_officers = "" # TODO
+      inspectors    = "" # TODO
+    }
+  }
+
   logging = {
     level = "warn"
   }
@@ -21,7 +28,7 @@ apps_config = {
 
   gov_notify = {
     templates = {
-      test_template_id = ""
+      test_template_id = "" # TODO
     }
   }
 
