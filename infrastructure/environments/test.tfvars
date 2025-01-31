@@ -9,6 +9,14 @@ apps_config = {
     group_application_access = "6094f824-8941-4536-aa7f-6d5cc60d0bbe"
   }
 
+  entra = {
+    group_ids = {
+      # use app access group for now
+      case_officers = "6094f824-8941-4536-aa7f-6d5cc60d0bbe"
+      inspectors    = "6094f824-8941-4536-aa7f-6d5cc60d0bbe"
+    }
+  }
+
   logging = {
     level = "info"
   }
