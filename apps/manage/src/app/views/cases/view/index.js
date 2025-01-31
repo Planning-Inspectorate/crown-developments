@@ -9,11 +9,15 @@ import { buildGetJourneyMiddleware, buildUpdateCase, validateIdFormat, viewCaseD
  * @param {Object} opts
  * @param {import('pino').Logger} opts.logger
  * @param {import('@prisma/client').PrismaClient} opts.db
+ * @param {import('../../../config-types.js').Config} config
+ * @param {import('@pins/crowndev-lib/graph/types.js').InitEntraClient} opts.getEntraClient
  * @returns {import('express').Router}
  */
-export function createRoutes({ db, logger }) {
+export function createRoutes({ db, logger, config, getEntraClient }) {
 	const router = createRouter({ mergeParams: true });
-	const getJourney = asyncHandler(buildGetJourneyMiddleware({ db, logger }));
+	const getJourney = asyncHandler(
+		buildGetJourneyMiddleware({ db, logger, groupIds: config.entra.groupIds, getEntraClient })
+	);
 	const updateCaseFn = buildUpdateCase({ db, logger });
 	const updateCase = buildSave(updateCaseFn, true);
 

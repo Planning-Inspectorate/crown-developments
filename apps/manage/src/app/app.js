@@ -10,6 +10,8 @@ import { getSessionMiddleware } from '@pins/crowndev-lib/util/session.js';
 import { getDatabaseClient } from '@pins/crowndev-database';
 import { getRedis } from '@pins/crowndev-lib/redis/index.js';
 import { buildInitSharePointDrive } from '#util/sharepoint.js';
+import { MapCache } from '@pins/crowndev-lib/util/map-cache.js';
+import { buildInitEntraClient } from '@pins/crowndev-lib/graph/cached-entra-client.js';
 
 /**
  * @param {import('./config-types.js').Config} config
@@ -20,6 +22,9 @@ export function getApp(config, logger) {
 	const dbClient = getDatabaseClient(config, logger);
 	const redis = getRedis(config.session, logger);
 	const getSharePointDrive = buildInitSharePointDrive(config);
+	// share this cache between each instance of the EntraClient
+	const entraGroupCache = new MapCache(config.entra.cacheTtl);
+	const getEntraClient = buildInitEntraClient(!config.auth.disabled, entraGroupCache);
 
 	// create an express app, and configure it for our usage
 	const app = express();
@@ -74,7 +79,8 @@ export function getApp(config, logger) {
 		logger,
 		redis,
 		dbClient,
-		getSharePointDrive
+		getSharePointDrive,
+		getEntraClient
 	});
 	// register the router, which will define any subpaths
 	// any paths not defined will return 404 by default

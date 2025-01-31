@@ -14,6 +14,14 @@ interface Config {
 		signoutUrl: string;
 	};
 	database: Prisma.PrismaClientOptions;
+	entra: {
+		// group cache ttl in minutes
+		cacheTtl: number;
+		groupIds: {
+			caseOfficers: string;
+			inspectors: string;
+		};
+	};
 	gitSha?: string;
 	logLevel: string;
 	NODE_ENV: string;

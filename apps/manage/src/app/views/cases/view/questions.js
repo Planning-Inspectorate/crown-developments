@@ -26,7 +26,11 @@ import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
 import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
 import DatePeriodValidator from '@pins/dynamic-forms/src/validator/date-period-validator.js';
 
-export function getQuestions() {
+/**
+ * @param {import('../../../../util/entra-groups-types.js').EntraGroupMembers} [groupMembers]
+ * @returns {{[p: string]: *}}
+ */
+export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }) {
 	const env = loadEnvironmentConfig();
 
 	// this is to avoid a database read when the data is static - but it does vary by environment
@@ -302,36 +306,40 @@ export function getQuestions() {
 
 		// todo: needs to be autocomplete with options loaded from Entra
 		inspector: {
-			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			type: COMPONENT_TYPES.SELECT,
 			title: 'Inspector',
 			question: 'Which inspector is assigned to this case?',
 			fieldName: 'inspectorId',
 			url: 'inspector',
-			validators: []
+			validators: [new RequiredValidator('Select an inspector')],
+			options: referenceDataToRadioOptions(groupMembers.inspectors, true)
 		},
 		assessorInspector: {
-			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			type: COMPONENT_TYPES.SELECT,
 			title: 'Assessor Inspector',
 			question: 'Which assessor inspector is assigned to this case?',
 			fieldName: 'assessorInspectorId',
 			url: 'assessor-inspector',
-			validators: []
+			validators: [new RequiredValidator('Select an assessor inspector')],
+			options: referenceDataToRadioOptions(groupMembers.inspectors, true)
 		},
 		caseOfficer: {
-			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			type: COMPONENT_TYPES.SELECT,
 			title: 'Case Officer',
 			question: 'Which case officer is assigned to this case?',
 			fieldName: 'caseOfficerId',
 			url: 'case-officer',
-			validators: []
+			validators: [new RequiredValidator('Select a case officer')],
+			options: referenceDataToRadioOptions(groupMembers.caseOfficers, true)
 		},
 		planningOfficer: {
-			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			type: COMPONENT_TYPES.SELECT,
 			title: 'Planning Officer',
 			question: 'Which planning officer is assigned to this case?',
 			fieldName: 'planningOfficerId',
 			url: 'planning-officer',
-			validators: []
+			validators: [new RequiredValidator('Select a planning officer')],
+			options: referenceDataToRadioOptions(groupMembers.inspectors, true)
 		},
 
 		eiaScreening: {

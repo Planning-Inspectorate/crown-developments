@@ -36,6 +36,9 @@ export function loadConfig() {
 		AUTH_DISABLED,
 		AUTH_GROUP_APPLICATION_ACCESS,
 		AUTH_TENANT_ID,
+		ENTRA_GROUP_CACHE_TTL,
+		ENTRA_GROUP_ID_CASE_OFFICERS,
+		ENTRA_GROUP_ID_INSPECTORS,
 		GIT_SHA,
 		LOG_LEVEL,
 		PORT,
@@ -72,7 +75,14 @@ export function loadConfig() {
 
 	const authDisabled = AUTH_DISABLED === 'true' && !isProduction;
 	if (!authDisabled) {
-		const props = { AUTH_CLIENT_ID, AUTH_CLIENT_SECRET, AUTH_GROUP_APPLICATION_ACCESS, AUTH_TENANT_ID };
+		const props = {
+			AUTH_CLIENT_ID,
+			AUTH_CLIENT_SECRET,
+			AUTH_GROUP_APPLICATION_ACCESS,
+			AUTH_TENANT_ID,
+			ENTRA_GROUP_ID_CASE_OFFICERS,
+			ENTRA_GROUP_ID_INSPECTORS
+		};
 		for (const [k, v] of Object.entries(props)) {
 			if (v === undefined || v === '') {
 				throw new Error(k + ' must be a non-empty string');
@@ -117,6 +127,14 @@ export function loadConfig() {
 		},
 		database: {
 			datasourceUrl: SQL_CONNECTION_STRING
+		},
+		entra: {
+			// in minutes
+			cacheTtl: parseInt(ENTRA_GROUP_CACHE_TTL || 15),
+			groupIds: {
+				caseOfficers: ENTRA_GROUP_ID_CASE_OFFICERS,
+				inspectors: ENTRA_GROUP_ID_INSPECTORS
+			}
 		},
 		gitSha: GIT_SHA,
 		// the log level to use

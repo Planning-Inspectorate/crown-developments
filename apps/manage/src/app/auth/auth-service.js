@@ -4,7 +4,12 @@ import { buildMsalConfig } from '#util/auth.js';
 
 /** @typedef {import('@azure/msal-node').AccountInfo} AccountInfo */
 
-const scopes = ['user.read', 'Sites.ReadWrite.All'];
+const scopes = [
+	'user.read',
+	'User.ReadBasic.All', // for group membership displayName
+	'GroupMember.Read.All', // for group memberships
+	'Sites.ReadWrite.All' // for sharepoint sites
+];
 
 export class AuthService {
 	#config;
