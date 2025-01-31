@@ -11,6 +11,7 @@ import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@
 import { contactQuestions } from './question-utils.js';
 import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
 import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
+import CoordinatesValidator from '@pins/dynamic-forms/src/validator/coordinates-validator.js';
 
 export function getQuestions() {
 	const env = loadEnvironmentConfig();
@@ -71,23 +72,32 @@ export function getQuestions() {
 			url: `site-address`,
 			validators: [new AddressValidator({ required: false })]
 		},
-		siteNorthing: {
-			type: COMPONENT_TYPES.NUMBER,
-			title: 'Site Northing',
-			question: 'What is the northing coordinate of the site?',
-			hint: 'Optional',
-			fieldName: 'siteNorthing',
-			url: 'site-northing',
-			validators: []
-		},
-		siteEasting: {
-			type: COMPONENT_TYPES.NUMBER,
-			title: 'Site Easting',
-			question: 'What is the easting coordinate of the site?',
-			hint: 'Optional',
-			fieldName: 'siteEasting',
-			url: 'site-easting',
-			validators: []
+		siteCoordinates: {
+			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
+			title: 'Site Coordinates',
+			question: 'What are the coordinates of the site?',
+			fieldName: 'siteCoordinates',
+			url: 'site-coordinates',
+			inputFields: [
+				{
+					fieldName: 'siteNorthing',
+					label: 'Northing',
+					formatPrefix: 'Northing: ',
+					hint: 'Optional'
+				},
+				{
+					fieldName: 'siteEasting',
+					label: 'Easting',
+					formatPrefix: 'Easting: ',
+					hint: 'Optional'
+				}
+			],
+			validators: [
+				new CoordinatesValidator(
+					{ title: 'Northing', fieldName: 'siteNorthing' },
+					{ title: 'Easting', fieldName: 'siteEasting' }
+				)
+			]
 		},
 		siteArea: {
 			type: COMPONENT_TYPES.NUMBER,

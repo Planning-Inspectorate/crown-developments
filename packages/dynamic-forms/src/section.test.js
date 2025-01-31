@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { Section, SECTION_STATUS } from './section.js';
+import RequiredValidator from './validator/required-validator.js';
 
 const mockQuestion = {
 	fieldName: 'visitFrequently',
@@ -259,6 +260,57 @@ describe('./src/dynamic-forms/section.js', () => {
 			assert.strictEqual(section.questions[3].shouldDisplay(), true);
 			assert.strictEqual(section.questions[4].shouldDisplay(), true);
 			assert.strictEqual(section.questions[5].shouldDisplay(), false);
+		});
+	});
+
+	describe('isFieldMandatory', () => {
+		it('should add a RequiredValidator when isQuestionMandatory is true', () => {
+			const section = new Section('s1', 'S');
+			section.questions.push({ validators: [] });
+
+			section.isFieldMandatory(true, 'Field is required');
+
+			assert.strictEqual(section.questions[0].validators.length, 1);
+			assert(section.questions[0].validators[0] instanceof RequiredValidator);
+			assert.strictEqual(section.questions[0].validators[0].errorMessage, 'Field is required');
+		});
+
+		it('should not add a duplicate RequiredValidator if one already exists', () => {
+			const section = new Section('s1', 'S');
+			section.questions.push({ validators: [new RequiredValidator('Field is required')] });
+
+			section.isFieldMandatory(true, 'Field is required');
+
+			assert.strictEqual(section.questions[0].validators.length, 1);
+		});
+
+		it('should remove RequiredValidator when isQuestionMandatory is false', () => {
+			const section = new Section('s1', 'S');
+			section.questions.push({ validators: [new RequiredValidator('Field is required')] });
+
+			section.isFieldMandatory(false);
+
+			assert.strictEqual(section.questions[0].validators.length, 0);
+		});
+
+		it('should do nothing if there are no RequiredValidator instances and isQuestionMandatory is false', () => {
+			const section = new Section('s1', 'S');
+			section.questions.push({ validators: [] });
+
+			section.isFieldMandatory(false);
+
+			assert.strictEqual(section.questions[0].validators.length, 0);
+		});
+
+		it('should not modify existing non-RequiredValidator validators', () => {
+			const section = new Section('s1', 'S');
+			const customValidator = { validate: () => true };
+			section.questions.push({ validators: [customValidator] });
+
+			section.isFieldMandatory(false);
+
+			assert.strictEqual(section.questions[0].validators.length, 1);
+			assert.strictEqual(section.questions[0].validators[0], customValidator);
 		});
 	});
 });
