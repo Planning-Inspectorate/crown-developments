@@ -10,9 +10,10 @@ import { createRoutes as createCasesRoutes } from './views/cases/index.js';
  * @param {import('@pins/crowndev-lib/redis/redis-client').RedisClient|null} params.redis
  * @param {import('@prisma/client').PrismaClient} params.dbClient
  * @param {function(session): SharePointDrive} getSharePointDrive
+ * @param {import('@pins/crowndev-lib/graph/types.js').InitEntraClient} getEntraClient
  * @returns {import('express').Router}
  */
-export function buildRouter({ logger, config, redis, dbClient, getSharePointDrive }) {
+export function buildRouter({ logger, config, redis, dbClient, getSharePointDrive, getEntraClient }) {
 	const router = createRouter();
 	const monitoringRoutes = createMonitoringRoutes({
 		config,
@@ -24,7 +25,7 @@ export function buildRouter({ logger, config, redis, dbClient, getSharePointDriv
 		config,
 		redisClient: redis
 	});
-	const casesRoutes = createCasesRoutes({ db: dbClient, logger, config, getSharePointDrive });
+	const casesRoutes = createCasesRoutes({ db: dbClient, logger, config, getSharePointDrive, getEntraClient });
 
 	router.use('/', monitoringRoutes);
 	router.get('/unauthenticated', (req, res) => res.status(401).render('views/errors/401.njk'));

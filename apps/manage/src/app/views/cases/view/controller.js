@@ -6,6 +6,7 @@ import { createJourney, JOURNEY_ID } from './journey.js';
 import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
 import { Prisma } from '@prisma/client';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
+import { getEntraGroupMembers } from '#util/entra-groups.js';
 
 /**
  * @type {import('express').Handler}
@@ -138,11 +139,13 @@ function clearCaseUpdatedSession(req, id) {
  * Fetch the case details from the database to create the journey
  *
  * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} db
- * @param {import('pino').BaseLogger} logger
+ * @param {import('@prisma/client').PrismaClient} opts.db
+ * @param {import('pino').BaseLogger} opts.logger
+ * @param {typeof import('../../../config-types.js').Config.entra.groupIds} opts.groupIds
+ * @param {import('@pins/crowndev-lib/graph/types.js').InitEntraClient} opts.getEntraClient
  * @returns {import('express').Handler}
  */
-export function buildGetJourneyMiddleware({ db, logger }) {
+export function buildGetJourneyMiddleware({ db, logger, groupIds, getEntraClient }) {
 	return async (req, res, next) => {
 		const id = req.params.id;
 		if (!id) {
@@ -165,7 +168,13 @@ export function buildGetJourneyMiddleware({ db, logger }) {
 			return notFoundHandler(req, res);
 		}
 		const answers = crownDevelopmentToViewModel(crownDevelopment);
-		const questions = getQuestions();
+		const groupMembers = await getEntraGroupMembers({
+			logger,
+			initClient: getEntraClient,
+			session: req.session,
+			groupIds
+		});
+		const questions = getQuestions(groupMembers);
 		// put these on locals for the list controller
 		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', answers);
 		res.locals.journey = createJourney(questions, res.locals.journeyResponse, req);

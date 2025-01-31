@@ -10,13 +10,14 @@ import { createRoutes as createCaseRoutes } from './view/index.js';
  * @param {import('@prisma/client').PrismaClient} opts.db
  * @param {import('../../config-types.js').Config} config
  * @param {function(session): SharePointDrive} opts.getSharePointDrive
+ * @param {import('@pins/crowndev-lib/graph/types.js').InitEntraClient} opts.getEntraClient
  * @returns {import('express').Router}
  */
-export function createRoutes({ db, logger, config, getSharePointDrive }) {
+export function createRoutes({ db, logger, config, getSharePointDrive, getEntraClient }) {
 	const router = createRouter({ mergeParams: true });
 	const createACaseRoutes = createCreateACaseRoutes({ db, logger, config, getSharePointDrive });
 	const listCases = buildListCases({ db, logger });
-	const caseRoutes = createCaseRoutes({ db, logger });
+	const caseRoutes = createCaseRoutes({ db, logger, config, getEntraClient });
 
 	router.get('/', asyncHandler(listCases));
 	// must be before the case routes because the URLs overlap

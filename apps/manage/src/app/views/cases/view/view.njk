@@ -35,7 +35,7 @@
                 {% for section in summaryListData.sections %}
                     {% if section.list.rows.length %}
                         <li>
-                            <a href="#{{ section.heading | lower }}" class="govuk-link">{{ section.heading }}</a>
+                            <a href="#{{ section.heading | lower }}" class="govuk-link govuk-link--no-visited-state">{{ section.heading }}</a>
                         </li>
                     {% endif %}
                 {% endfor %}

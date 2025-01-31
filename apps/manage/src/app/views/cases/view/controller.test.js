@@ -7,6 +7,9 @@ import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-
 import { Prisma } from '@prisma/client';
 
 describe('case details', () => {
+	const mockGetEntraClient = mock.fn(() => null);
+	const groupIds = { caseOfficer: 'id-1', inspector: 'id-2' };
+
 	describe('buildGetJourneyMiddleware', () => {
 		it('should throw if no id', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
@@ -18,7 +21,12 @@ describe('case details', () => {
 				}
 			};
 			const next = mock.fn();
-			const middleware = buildGetJourneyMiddleware({ db: mockDb, logger: mockLogger() });
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds
+			});
 			await assert.rejects(() => middleware(mockReq, mockRes, next));
 			assert.strictEqual(next.mock.callCount(), 0);
 		});
@@ -32,7 +40,12 @@ describe('case details', () => {
 				}
 			};
 			const next = mock.fn();
-			const middleware = buildGetJourneyMiddleware({ db: mockDb, logger: mockLogger() });
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds
+			});
 			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.ok(mockRes.locals.journey);
@@ -52,7 +65,12 @@ describe('case details', () => {
 				}
 			};
 			const next = mock.fn();
-			const middleware = buildGetJourneyMiddleware({ db: mockDb, logger: mockLogger() });
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds
+			});
 			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
 			assert.strictEqual(next.mock.callCount(), 0);
 			assert.strictEqual(mockRes.status.mock.callCount(), 1);
@@ -69,7 +87,12 @@ describe('case details', () => {
 				}
 			};
 			const next = mock.fn();
-			const middleware = buildGetJourneyMiddleware({ db: mockDb, logger: mockLogger() });
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds
+			});
 			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.ok(mockRes.locals.journey);
@@ -97,7 +120,12 @@ describe('case details', () => {
 				}
 			};
 			const next = mock.fn();
-			const middleware = buildGetJourneyMiddleware({ db: mockDb, logger: mockLogger() });
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds
+			});
 			await middleware(mockReq, mockRes, next);
 			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
 			assert.strictEqual(next.mock.callCount(), 1);
@@ -125,7 +153,12 @@ describe('case details', () => {
 				}
 			};
 			const next = mock.fn();
-			const middleware = buildGetJourneyMiddleware({ db: mockDb, logger: mockLogger() });
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds
+			});
 			await middleware(mockReq, mockRes, next);
 			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
 			assert.strictEqual(next.mock.callCount(), 1);
