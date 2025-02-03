@@ -48,7 +48,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 		hint: addressRequired ? '' : 'Optional',
 		fieldName: `${prefix}Address`,
 		url: `${prefixUrl}-address`,
-		validators: [new AddressValidator({ required: addressRequired })]
+		validators: [new AddressValidator()]
 	};
 
 	questions[`${prefix}Email`] = {

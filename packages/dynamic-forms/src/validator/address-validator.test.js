@@ -50,27 +50,6 @@ describe('AddressValidator', () => {
 		assert.deepStrictEqual(errors, {});
 	});
 
-	it('should reject invalid address (no addressLine1 or townCity) with errors', async () => {
-		const question = {
-			fieldName: 'testField'
-		};
-
-		const req = {
-			body: {
-				testField_addressLine1: '',
-				testField_addressLine2: 'A Street',
-				testField_townCity: '',
-				testField_postcode: 'L2 3BX'
-			}
-		};
-
-		const errors = await _validationMappedErrors(req, question);
-
-		assert.strictEqual(Object.keys(errors).length, 2);
-		assert.strictEqual(errors.testField_addressLine1.msg, 'Enter address line 1');
-		assert.strictEqual(errors.testField_townCity.msg, 'Enter town or city');
-	});
-
 	it('should reject invalid address with too long fields with errors', async () => {
 		const question = {
 			fieldName: 'testField'

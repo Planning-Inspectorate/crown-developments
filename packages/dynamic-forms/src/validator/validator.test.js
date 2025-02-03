@@ -208,10 +208,10 @@ describe('./src/dynamic-forms/validator/validator.js', () => {
 		const townCity = getContext('field1_townCity');
 		const postcode = getContext('field1_postcode');
 
-		assert.strictEqual(addressLine1._errors.length, 1);
+		assert.strictEqual(addressLine1._errors.length, 0);
 		assert.strictEqual(addressLine2._errors.length, 0);
-		assert.strictEqual(townCity._errors.length, 1);
-		assert.strictEqual(postcode._errors.length, 1);
+		assert.strictEqual(townCity._errors.length, 0);
+		assert.strictEqual(postcode._errors.length, 0);
 		assert.strictEqual(next.mock.callCount(), 1);
 	});
 });

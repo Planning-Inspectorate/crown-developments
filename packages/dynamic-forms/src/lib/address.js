@@ -38,19 +38,9 @@ export class Address {
 	 * @param {string} params.postcode
 	 */
 	constructor({ addressLine1, addressLine2, townCity, county, postcode }) {
-		if (addressLine1) {
-			this.addressLine1 = addressLine1.trim();
-		} else {
-			throw new Error('Address requires addressLine1');
-		}
-
-		if (townCity) {
-			this.townCity = townCity.trim();
-		} else {
-			throw new Error('Address requires townCity');
-		}
-
+		this.addressLine1 = addressLine1?.trim();
 		this.addressLine2 = addressLine2?.trim();
+		this.townCity = townCity?.trim();
 		this.county = county?.trim();
 		this.postcode = postcode?.trim();
 	}

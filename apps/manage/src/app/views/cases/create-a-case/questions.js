@@ -48,7 +48,7 @@ export function getQuestions() {
 		...contactQuestions({
 			prefix: 'applicant',
 			title: 'Applicant',
-			addressRequired: true
+			addressRequired: false
 		}),
 		hasAgent: {
 			type: COMPONENT_TYPES.BOOLEAN,
@@ -61,7 +61,7 @@ export function getQuestions() {
 		...contactQuestions({
 			prefix: 'agent',
 			title: 'Agent',
-			addressRequired: true
+			addressRequired: false
 		}),
 		siteAddress: {
 			type: COMPONENT_TYPES.ADDRESS,
@@ -70,7 +70,7 @@ export function getQuestions() {
 			hint: 'Optional',
 			fieldName: `siteAddress`,
 			url: `site-address`,
-			validators: [new AddressValidator({ required: false })]
+			validators: [new AddressValidator()]
 		},
 		siteCoordinates: {
 			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
@@ -106,7 +106,7 @@ export function getQuestions() {
 			suffix: 'ha',
 			fieldName: 'siteArea',
 			url: 'site-area',
-			validators: [new RequiredValidator(), new NumericValidator({ min: 0 })]
+			validators: [new RequiredValidator('Enter the site area'), new NumericValidator({ min: 0 })]
 		},
 		applicationDescription: {
 			type: COMPONENT_TYPES.TEXT_ENTRY,
