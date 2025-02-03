@@ -119,10 +119,14 @@ describe('save', () => {
 			// todo: integration test to run Prisma's validation?
 		});
 
-		it('should call create with a valid payload and should call sharepoint when sharepoint is enabled', async () => {
+		it('should call copyDriveItem and grant write access to the applicant when sharepoint is enabled and no agent email is provided', async () => {
 			const db = dbMock();
 			const sharepointDrive = {
-				copyDriveItem: mock.fn()
+				copyDriveItem: mock.fn(),
+				getItemsByPath: mock.fn(() => {
+					return { id: 'id1' };
+				}),
+				addItemPermissions: mock.fn()
 			};
 			const getSharePointDrive = () => sharepointDrive;
 
@@ -130,7 +134,8 @@ describe('save', () => {
 			const answers = {
 				applicationDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
-				lpaId: 'lpa-1'
+				lpaId: 'lpa-1',
+				applicantEmail: 'applicantEmail'
 			};
 			const res = {
 				redirect: mock.fn(),
@@ -143,18 +148,56 @@ describe('save', () => {
 
 			await save({}, res, mock.fn());
 
-			const { data } = db.crownDevelopment.create.mock.calls[0].arguments[0];
-			const required = ['reference', 'description'];
-			for (const field of required) {
-				assert.ok(data[field], `${field} is required`);
-			}
-			const connects = ['Type', 'Lpa'];
-			for (const connect of connects) {
-				assert.ok(data[connect]?.connect?.id, `${connect} is required`);
-			}
+			assert.strictEqual(res.redirect.mock.callCount(), 1);
+			assert.strictEqual(sharepointDrive.copyDriveItem.mock.callCount(), 1);
+			assert.strictEqual(sharepointDrive.getItemsByPath.mock.callCount(), 1);
+			assert.strictEqual(sharepointDrive.addItemPermissions.mock.callCount(), 1);
+			assert.deepStrictEqual(sharepointDrive.addItemPermissions.mock.calls[0].arguments[1], {
+				role: 'write',
+				users: [{ email: answers.applicantEmail, id: '' }]
+			});
+		});
+		it('should call copyDriveItem and grant write access to the applicant and agent when sharepoint is enabled and an agentEmail was provided', async () => {
+			const db = dbMock();
+			const sharepointDrive = {
+				copyDriveItem: mock.fn(),
+				getItemsByPath: mock.fn(() => {
+					return { id: 'id1' };
+				}),
+				addItemPermissions: mock.fn()
+			};
+			const getSharePointDrive = () => sharepointDrive;
+
+			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive });
+			const answers = {
+				applicationDescription: 'Project One',
+				typeOfApplication: 'application-type-1',
+				lpaId: 'lpa-1',
+				applicantEmail: 'applicantEmail',
+				agentEmail: 'agentEmail'
+			};
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers
+					}
+				}
+			};
+
+			await save({}, res, mock.fn());
 
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
 			assert.strictEqual(sharepointDrive.copyDriveItem.mock.callCount(), 1);
+			assert.strictEqual(sharepointDrive.getItemsByPath.mock.callCount(), 1);
+			assert.strictEqual(sharepointDrive.addItemPermissions.mock.callCount(), 1);
+			assert.deepStrictEqual(sharepointDrive.addItemPermissions.mock.calls[0].arguments[1], {
+				role: 'write',
+				users: [
+					{ email: answers.applicantEmail, id: '' },
+					{ email: answers.agentEmail, id: '' }
+				]
+			});
 		});
 	});
 

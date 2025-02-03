@@ -3,6 +3,7 @@ import { clearDataFromSession } from '@pins/dynamic-forms/src/lib/session-answer
 import { JOURNEY_ID } from './journey.js';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/name.js';
 import { toFloat } from '@pins/crowndev-lib/util/numbers.js';
+import { getSharePointReceivedPathForCase } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
 /**
  * @param {Object} opts
@@ -47,10 +48,7 @@ export function buildSaveController({ db, logger, config, getSharePointDrive }) 
 				'SharePoint not enabled, to use SharePoint functionality setup SharePoint environment variables. See README'
 			);
 		} else {
-			await sharePointDrive.copyDriveItem({
-				copyItemId: config.sharePoint.caseTemplateId,
-				newItemName: caseReferenceToFolderName(reference)
-			});
+			await createCaseSharePointActions(sharePointDrive, config, caseReferenceToFolderName(reference), answers);
 		}
 		// todo: redirect to check-your-answers on failure?
 
@@ -215,4 +213,60 @@ function idFromReference(reference = '') {
 		}
 	}
 	return null;
+}
+
+/**
+ *
+ * @param {SharePointDrive} sharePointDrive
+ * @param {import('./types.d.ts').CreateCaseAnswers} answers
+ * @param {string} caseReference
+ * @returns {Promise<void>}
+ */
+async function grantUsersAccess(sharePointDrive, answers, caseReference) {
+	const applicantReceivedPath = getSharePointReceivedPathForCase({
+		caseReference: caseReference,
+		user: 'Applicant'
+	});
+	// const lpaReceivedPath = getSharePointReceivedPathForCase(
+	// 	{
+	// 		caseReference: caseReference,
+	// 		user: 'LPA'
+	// 	});
+	const [
+		applicantReceivedFolder
+		//lpaReceivedFolder
+	] = await Promise.all([
+		sharePointDrive.getItemsByPath(applicantReceivedPath, [])
+		//sharePointDrive.getItemsByPath(lpaReceivedPath, [])
+	]);
+
+	const users = [];
+	if (hasAnswers(answers, 'applicant') && answers.applicantEmail) {
+		users.push({ email: answers.applicantEmail, id: '' });
+	}
+
+	if (hasAnswers(answers, 'agent') && answers.agentEmail) {
+		users.push({ email: answers.agentEmail, id: '' });
+	}
+
+	await sharePointDrive.addItemPermissions(applicantReceivedFolder.id, { role: 'write', users: users });
+	// todo: Add LPA permissions too.
+}
+
+/**
+ *
+ * @param {SharePointDrive} sharePointDrive
+ * @param {import('../../../config-types.js').Config} config
+ * @param {string} folderName
+ * @param {import('./types.d.ts').CreateCaseAnswers} answers
+ * @returns {Promise<void>}
+ */
+async function createCaseSharePointActions(sharePointDrive, config, folderName, answers) {
+	// Copy template folder structure and rename to %folderName%
+	await sharePointDrive.copyDriveItem({
+		copyItemId: config.sharePoint.caseTemplateId,
+		newItemName: folderName
+	});
+	// Grant write access to applicant and agent as required
+	await grantUsersAccess(sharePointDrive, answers, folderName);
 }
