@@ -105,11 +105,11 @@ export function getQuestions() {
 			fieldName: 'applicationDescription',
 			url: 'application-description',
 			validators: [
-				new RequiredValidator(),
+				new RequiredValidator('Enter application description'),
 				new StringValidator({
 					maxLength: {
 						maxLength: 1000,
-						maxLengthMessage: `Application Description must be 1000 characters or less`
+						maxLengthMessage: 'Applicant description must be less than 1000 characters'
 					}
 				})
 			]
