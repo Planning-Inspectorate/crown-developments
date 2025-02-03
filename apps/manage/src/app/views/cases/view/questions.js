@@ -89,7 +89,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			hint: 'Optional',
 			fieldName: `siteAddress`,
 			url: `site-address`,
-			validators: [new AddressValidator({ required: false })]
+			validators: [new AddressValidator()]
 		},
 		siteLocation: {
 			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
@@ -261,7 +261,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			hint: 'Optional',
 			fieldName: `lpaAddress`,
 			url: `lpa-address`,
-			validators: [new AddressValidator({ required: false })],
+			validators: [new AddressValidator()],
 			editable: false
 		},
 

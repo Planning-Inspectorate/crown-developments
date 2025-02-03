@@ -14,30 +14,28 @@ const validatePostcode = (postcode, errorMessage = 'Enter a valid postcode') => 
 
 // todo: sort out config
 export const addressLine1MaxLength = 250;
-export const addressLine1MinLength = 1;
+export const addressLine1MinLength = 0;
 export const addressLine2MaxLength = 250;
 export const addressLine2MinLength = 0;
 export const townCityMaxLength = 250;
-export const townCityMinLength = 1;
+export const townCityMinLength = 0;
 export const countyMaxLength = 250;
 export const countyMinLength = 0;
 export const postcodeMaxLength = 10;
-export const postcodeMinLength = 1;
+export const postcodeMinLength = 0;
 
 /**
  * enforces address fields are within allowed parameters
  * @class
  */
 export default class AddressValidator extends BaseValidator {
-	#required;
 	/**
 	 * creates an instance of an AddressValidator
 	 * @param {Object} opts
 	 * @param {boolean} [opts.required]
 	 */
-	constructor({ required = false } = {}) {
+	constructor() {
 		super();
-		this.#required = required;
 	}
 
 	/**
@@ -62,10 +60,7 @@ export default class AddressValidator extends BaseValidator {
 	 */
 	#addressLine1Rule(fieldName) {
 		return body(fieldName + '_addressLine1')
-			.if((_, { req }) => this.#anyFilled(fieldName, req))
-			.notEmpty()
-			.bail()
-			.withMessage('Enter address line 1')
+			.optional({ checkFalsy: true })
 			.isLength({ min: addressLine1MinLength, max: addressLine1MaxLength })
 			.bail()
 			.withMessage(`Address line 1 must be ${addressLine1MaxLength} characters or less`);
@@ -77,8 +72,7 @@ export default class AddressValidator extends BaseValidator {
 	 */
 	#addressLine2Rule(fieldName) {
 		return body(fieldName + '_addressLine2')
-			.if((_, { req }) => this.#anyFilled(fieldName, req))
-			.optional()
+			.optional({ checkFalsy: true })
 			.isLength({ min: addressLine2MinLength, max: addressLine2MaxLength })
 			.bail()
 			.withMessage(`Address line 2 must be ${addressLine2MaxLength} characters or less`);
@@ -90,10 +84,7 @@ export default class AddressValidator extends BaseValidator {
 	 */
 	#townCityRule(fieldName) {
 		return body(fieldName + '_townCity')
-			.if((_, { req }) => this.#anyFilled(fieldName, req))
-			.notEmpty()
-			.bail()
-			.withMessage('Enter town or city')
+			.optional({ checkFalsy: true })
 			.isLength({ min: townCityMinLength, max: townCityMaxLength })
 			.bail()
 			.withMessage(`Town or city must be ${townCityMaxLength} characters or less`);
@@ -105,8 +96,7 @@ export default class AddressValidator extends BaseValidator {
 	 */
 	#countyRule(fieldName) {
 		return body(fieldName + '_county')
-			.if((_, { req }) => this.#anyFilled(fieldName, req))
-			.optional()
+			.optional({ checkFalsy: true })
 			.isLength({ min: countyMinLength, max: countyMaxLength })
 			.bail()
 			.withMessage(`County must be ${countyMaxLength} characters or less`);
@@ -118,40 +108,12 @@ export default class AddressValidator extends BaseValidator {
 	 */
 	#postCodeRule(fieldName) {
 		return body(fieldName + '_postcode')
-			.if((_, { req }) => this.#anyFilled(fieldName, req))
-			.notEmpty()
-			.bail()
-			.withMessage('Enter postcode')
+			.optional({ checkFalsy: true })
 			.isLength({ min: postcodeMinLength, max: postcodeMaxLength })
 			.bail()
 			.withMessage(`Postcode must be between ${postcodeMinLength} and ${postcodeMaxLength} characters`)
-			.if(body(fieldName + '_postcode').notEmpty())
-			.custom((postcode) => validatePostcode(postcode));
-	}
-
-	/**
-	 * @param {string} fieldName
-	 * @param {import('express').Request} req
-	 * @returns {boolean}
-	 */
-	#anyFilled(fieldName, req) {
-		if (this.#required) {
-			return true;
-		}
-		return !this.#fieldNames(fieldName).every((field) => !req.body || req.body[field] === '');
-	}
-
-	/**
-	 * @param {string} fieldName
-	 * @returns {string[]}
-	 */
-	#fieldNames(fieldName) {
-		return [
-			fieldName + '_addressLine1',
-			fieldName + '_addressLine2',
-			fieldName + '_townCity',
-			fieldName + '_county',
-			fieldName + '_postcode'
-		];
+			.custom((postcode) => {
+				return validatePostcode(postcode);
+			});
 	}
 }

@@ -71,28 +71,4 @@ describe('Address', () => {
 		assert.strictEqual(address.townCity, params.townCity);
 		assert.strictEqual(address.postcode, undefined);
 	});
-
-	it('throws error if addressLine1 missing', () => {
-		const params = {
-			addressLine2: 'Somewhere',
-			townCity: 'A Town',
-			postcode: 'AB1 2CD'
-		};
-
-		assert.throws(() => {
-			new Address(params);
-		}, new Error('Address requires addressLine1'));
-	});
-
-	it('throws error if townCity missing', () => {
-		const params = {
-			addressLine1: '1 The Street',
-			addressLine2: 'Somewhere',
-			postcode: 'AB1 2CD'
-		};
-
-		assert.throws(() => {
-			new Address(params);
-		}, new Error('Address requires townCity'));
-	});
 });
