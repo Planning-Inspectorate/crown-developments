@@ -34,7 +34,10 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.agentTelephoneNumber)
 				.withCondition((response) => questionHasAnswer(response, questions.hasAgent, BOOLEAN_OPTIONS.YES))
 				.addQuestion(questions.applicantEmail)
-				.isFieldMandatory(questionHasAnswer(response, questions.hasAgent, BOOLEAN_OPTIONS.NO), 'Enter Applicant email')
+				.withRequiredCondition(
+					questionHasAnswer(response, questions.hasAgent, BOOLEAN_OPTIONS.NO),
+					'Enter Applicant email'
+				)
 				.addQuestion(questions.applicantTelephoneNumber)
 				.addQuestion(questions.siteAddress)
 				.addQuestion(questions.siteCoordinates)

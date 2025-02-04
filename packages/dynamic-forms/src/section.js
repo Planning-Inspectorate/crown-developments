@@ -67,7 +67,11 @@ export class Section {
 		return this;
 	}
 
-	isFieldMandatory(isQuestionMandatory, requiredFieldErrorMsg) {
+	withRequiredCondition(isQuestionMandatory, requiredFieldErrorMsg) {
+		if (this.#conditionAdded) {
+			// don't allow two conditions in a row
+			throw new Error('conditions must follow a question');
+		}
 		this.#conditionAdded = true;
 		const lastQuestionAdded = this.questions.length - 1;
 		const validators = this.questions[lastQuestionAdded].validators;
