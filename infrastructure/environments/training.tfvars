@@ -34,7 +34,7 @@ apps_config = {
   }
 
   sharepoint = {
-    disabled = true # not yet set up
+    disabled = false
   }
 }
 
