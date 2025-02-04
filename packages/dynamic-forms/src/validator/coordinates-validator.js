@@ -10,8 +10,8 @@ export const requiredCoordinateLength = 6;
  */
 export default class CoordinatesValidator extends BaseValidator {
 	/**
-	 * @param {CoordinateField} [params.coordinateFields]
-	 * @param {CoordinateField} [params.coordinateFields]
+	 * @param {CoordinateField} northing
+	 * @param {CoordinateField} easting
 	 */
 	constructor(northing, easting) {
 		super();

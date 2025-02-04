@@ -268,7 +268,7 @@ describe('./src/dynamic-forms/section.js', () => {
 			const section = new Section('s1', 'S');
 			section.questions.push({ validators: [] });
 
-			section.isFieldMandatory(true, 'Field is required');
+			section.withRequiredCondition(true, 'Field is required');
 
 			assert.strictEqual(section.questions[0].validators.length, 1);
 			assert(section.questions[0].validators[0] instanceof RequiredValidator);
@@ -279,7 +279,7 @@ describe('./src/dynamic-forms/section.js', () => {
 			const section = new Section('s1', 'S');
 			section.questions.push({ validators: [new RequiredValidator('Field is required')] });
 
-			section.isFieldMandatory(true, 'Field is required');
+			section.withRequiredCondition(true, 'Field is required');
 
 			assert.strictEqual(section.questions[0].validators.length, 1);
 		});
@@ -288,7 +288,7 @@ describe('./src/dynamic-forms/section.js', () => {
 			const section = new Section('s1', 'S');
 			section.questions.push({ validators: [new RequiredValidator('Field is required')] });
 
-			section.isFieldMandatory(false);
+			section.withRequiredCondition(false);
 
 			assert.strictEqual(section.questions[0].validators.length, 0);
 		});
@@ -297,7 +297,7 @@ describe('./src/dynamic-forms/section.js', () => {
 			const section = new Section('s1', 'S');
 			section.questions.push({ validators: [] });
 
-			section.isFieldMandatory(false);
+			section.withRequiredCondition(false);
 
 			assert.strictEqual(section.questions[0].validators.length, 0);
 		});
@@ -307,10 +307,18 @@ describe('./src/dynamic-forms/section.js', () => {
 			const customValidator = { validate: () => true };
 			section.questions.push({ validators: [customValidator] });
 
-			section.isFieldMandatory(false);
+			section.withRequiredCondition(false);
 
 			assert.strictEqual(section.questions[0].validators.length, 1);
 			assert.strictEqual(section.questions[0].validators[0], customValidator);
+		});
+
+		it('should not allow two required conditions in a row', () => {
+			const section = new Section('s1', 'S');
+			const customValidator = { validate: () => true };
+			section.questions.push({ validators: [customValidator] });
+			section.withRequiredCondition(false);
+			assert.throws(() => section.withRequiredCondition(false));
 		});
 	});
 });
