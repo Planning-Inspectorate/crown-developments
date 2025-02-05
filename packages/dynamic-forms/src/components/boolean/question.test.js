@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import BooleanQuestion, { BOOLEAN_OPTIONS } from './question.js';
+import BooleanQuestion, { BOOLEAN_OPTIONS, getYesNoValue } from './question.js';
 
 describe('./src/dynamic-forms/components/boolean/question.js', () => {
 	const TITLE = 'A boolean question';
@@ -78,6 +78,16 @@ describe('./src/dynamic-forms/components/boolean/question.js', () => {
 			assert.deepStrictEqual(args[1].question.options[0].checked, t.yesChecked);
 			assert.deepStrictEqual(args[1].question.options[1].value, BOOLEAN_OPTIONS.NO);
 			assert.deepStrictEqual(args[1].question.options[1].checked, t.noChecked);
+		});
+	}
+
+	const getYesNoValueTestCases = [
+		{ req: true, expect: BOOLEAN_OPTIONS.YES },
+		{ req: false, expect: BOOLEAN_OPTIONS.NO }
+	];
+	for (const t of getYesNoValueTestCases) {
+		it(`converts '${t.req}' to Yes/No`, () => {
+			assert.strictEqual(getYesNoValue(t.req), t.expect);
 		});
 	}
 });
