@@ -5,7 +5,7 @@ export const BOOLEAN_OPTIONS = Object.freeze({
 	NO: 'no'
 });
 
-export const getYesNoValue = (value) => {
+export const booleanToYesNoValue = (value) => {
 	return value ? BOOLEAN_OPTIONS.YES : BOOLEAN_OPTIONS.NO;
 };
 

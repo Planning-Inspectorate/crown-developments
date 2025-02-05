@@ -1,6 +1,6 @@
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { toFloat, toInt } from '@pins/crowndev-lib/util/numbers.js';
-import { getYesNoValue } from '@pins/dynamic-forms/src/components/boolean/question.js';
+import { booleanToYesNoValue } from '@pins/dynamic-forms/src/components/boolean/question.js';
 
 /**
  * CrownDevelopment fields that do not need mapping to a (or from) the view model
@@ -76,7 +76,9 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 	const viewModel = {};
 	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
 		viewModel[field] =
-			typeof crownDevelopment[field] === 'boolean' ? getYesNoValue(crownDevelopment[field]) : crownDevelopment[field];
+			typeof crownDevelopment[field] === 'boolean'
+				? booleanToYesNoValue(crownDevelopment[field])
+				: crownDevelopment[field];
 	}
 	if (crownDevelopment.representationsPeriodStartDate || crownDevelopment.representationsPeriodEndDate) {
 		viewModel.representationsPeriod = {
