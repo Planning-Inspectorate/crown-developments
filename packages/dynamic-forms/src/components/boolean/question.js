@@ -5,6 +5,10 @@ export const BOOLEAN_OPTIONS = Object.freeze({
 	NO: 'no'
 });
 
+export const getYesNoValue = (value) => {
+	return value ? BOOLEAN_OPTIONS.YES : BOOLEAN_OPTIONS.NO;
+};
+
 export default class BooleanQuestion extends RadioQuestion {
 	/**
 	 * @param {Object} params
