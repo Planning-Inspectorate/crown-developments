@@ -2,7 +2,7 @@
 apps_config = {
   app_service_plan_sku     = "P0v3"
   node_environment         = "production"
-  private_endpoint_enabled = false
+  private_endpoint_enabled = true
 
   auth = {
     client_id                = "ce13607b-4065-4f3f-92a8-aac2b13edd81"
