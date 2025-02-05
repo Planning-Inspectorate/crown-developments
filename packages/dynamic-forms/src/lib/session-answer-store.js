@@ -1,5 +1,5 @@
 import { JourneyResponse } from '../journey/journey-response.js';
-import { getYesNoValue } from '../components/boolean/question.js';
+import { booleanToYesNoValue } from '../components/boolean/question.js';
 
 // functions for saving answers to the session
 
@@ -88,7 +88,7 @@ export function buildGetJourneyResponseFromSession(journeyId) {
 		}
 		for (const [k, v] of Object.entries(answers)) {
 			if (typeof v === 'boolean') {
-				answers[k] = getYesNoValue(v);
+				answers[k] = booleanToYesNoValue(v);
 			}
 		}
 		res.locals.journeyResponse = new JourneyResponse(journeyId, req.sessionID, answers);

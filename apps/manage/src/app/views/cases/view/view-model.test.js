@@ -243,6 +243,19 @@ describe('view-model', () => {
 			assert.strictEqual(result.inquiryDate, 'd-1');
 			assert.strictEqual(result.inquiryVenue, 'Some Place');
 		});
+		it(`should map boolean values to yes/no`, () => {
+			/** @type {CrownDevelopment} */
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				createdDate: new Date(),
+				isGreenBelt: true,
+				siteIsVisibleFromPublicLand: false
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.equal(result.isGreenBelt, 'yes');
+			assert.equal(result.siteIsVisibleFromPublicLand, 'no');
+		});
 	});
 
 	describe('editsToDatabaseUpdates', () => {

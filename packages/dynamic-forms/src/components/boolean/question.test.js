@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import BooleanQuestion, { BOOLEAN_OPTIONS, getYesNoValue } from './question.js';
+import BooleanQuestion, { BOOLEAN_OPTIONS, booleanToYesNoValue } from './question.js';
 
 describe('./src/dynamic-forms/components/boolean/question.js', () => {
 	const TITLE = 'A boolean question';
@@ -87,7 +87,7 @@ describe('./src/dynamic-forms/components/boolean/question.js', () => {
 	];
 	for (const t of getYesNoValueTestCases) {
 		it(`converts '${t.req}' to Yes/No`, () => {
-			assert.strictEqual(getYesNoValue(t.req), t.expect);
+			assert.strictEqual(booleanToYesNoValue(t.req), t.expect);
 		});
 	}
 });
