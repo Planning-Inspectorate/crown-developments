@@ -40,6 +40,7 @@ apps_config = {
 auth_config_portal = {
   auth_enabled   = false
   auth_client_id = "8e64dbf3-99f8-4b31-94ee-b621ad68c56f"
+  application_id = "9efb011c-9c7d-450d-938d-5c8ebab05d30"
 }
 
 common_config = {

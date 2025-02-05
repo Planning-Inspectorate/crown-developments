@@ -44,7 +44,7 @@ module "app_portal" {
     auth_client_id         = var.auth_config_portal.auth_client_id
     auth_provider_secret   = "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
     auth_tenant_endpoint   = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0"
-    allowed_applications   = var.auth_config_portal.auth_client_id
+    allowed_applications   = var.auth_config_portal.application_id
     allowed_audiences      = "https://${var.web_domains.portal}/.auth/login/aad/callback"
   }
 

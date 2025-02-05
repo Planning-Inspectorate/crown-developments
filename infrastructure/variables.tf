@@ -52,6 +52,7 @@ variable "auth_config_portal" {
   type = object({
     auth_enabled   = bool
     auth_client_id = string
+    application_id = string
   })
 }
 
