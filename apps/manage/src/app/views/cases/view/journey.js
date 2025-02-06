@@ -78,7 +78,9 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.representationsPeriod)
 				.addQuestion(questions.representationsPublishDate),
 			new Section('Case Involvement', 'case-involvement')
-				.addQuestion(questions.inspector)
+				.addQuestion(questions.inspector1)
+				.addQuestion(questions.inspector2)
+				.addQuestion(questions.inspector3)
 				.addQuestion(questions.assessorInspector)
 				.addQuestion(questions.caseOfficer)
 				.addQuestion(questions.planningOfficer),
