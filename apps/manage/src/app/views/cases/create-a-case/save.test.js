@@ -124,7 +124,10 @@ describe('save', () => {
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
 				getItemsByPath: mock.fn(() => {
-					return { id: 'id1' };
+					return [
+						{ id: 'id1', name: 'Applicant' },
+						{ id: 'id2', name: 'LPA' }
+					];
 				}),
 				addItemPermissions: mock.fn()
 			};
@@ -162,7 +165,10 @@ describe('save', () => {
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
 				getItemsByPath: mock.fn(() => {
-					return { id: 'id1' };
+					return [
+						{ id: 'id1', name: 'Applicant' },
+						{ id: 'id2', name: 'LPA' }
+					];
 				}),
 				addItemPermissions: mock.fn()
 			};

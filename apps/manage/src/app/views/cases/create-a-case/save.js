@@ -3,7 +3,7 @@ import { clearDataFromSession } from '@pins/dynamic-forms/src/lib/session-answer
 import { JOURNEY_ID } from './journey.js';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/name.js';
 import { toFloat } from '@pins/crowndev-lib/util/numbers.js';
-import { getSharePointReceivedPathForCase } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { getSharePointReceivedPathId } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
 /**
  * @param {Object} opts
@@ -219,26 +219,14 @@ function idFromReference(reference = '') {
  *
  * @param {SharePointDrive} sharePointDrive
  * @param {import('./types.d.ts').CreateCaseAnswers} answers
- * @param {string} caseReference
+ * @param {string} folderName
  * @returns {Promise<void>}
  */
-async function grantUsersAccess(sharePointDrive, answers, caseReference) {
-	const applicantReceivedPath = getSharePointReceivedPathForCase({
-		caseReference: caseReference,
+async function grantUsersAccess(sharePointDrive, answers, folderName) {
+	const applicantReceivedFolderId = await getSharePointReceivedPathId(sharePointDrive, {
+		caseRootName: folderName,
 		user: 'Applicant'
 	});
-	// const lpaReceivedPath = getSharePointReceivedPathForCase(
-	// 	{
-	// 		caseReference: caseReference,
-	// 		user: 'LPA'
-	// 	});
-	const [
-		applicantReceivedFolder
-		//lpaReceivedFolder
-	] = await Promise.all([
-		sharePointDrive.getItemsByPath(applicantReceivedPath, [])
-		//sharePointDrive.getItemsByPath(lpaReceivedPath, [])
-	]);
 
 	const users = [];
 	if (hasAnswers(answers, 'applicant') && answers.applicantEmail) {
@@ -249,7 +237,7 @@ async function grantUsersAccess(sharePointDrive, answers, caseReference) {
 		users.push({ email: answers.agentEmail, id: '' });
 	}
 
-	await sharePointDrive.addItemPermissions(applicantReceivedFolder.id, { role: 'write', users: users });
+	await sharePointDrive.addItemPermissions(applicantReceivedFolderId, { role: 'write', users: users });
 	// todo: Add LPA permissions too.
 }
 
