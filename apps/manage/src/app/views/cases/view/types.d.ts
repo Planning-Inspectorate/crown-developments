@@ -65,7 +65,9 @@ export interface CrownDevelopmentViewModel {
 	};
 	representationsPublishDate?: Date | string;
 
-	inspectorId?: string;
+	inspector1Id?: string;
+	inspector2Id?: string;
+	inspector3Id?: string;
 	assessorInspectorId?: string;
 	caseOfficerId?: string;
 	planningOfficerId?: string;

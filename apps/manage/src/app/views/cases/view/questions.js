@@ -305,12 +305,30 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		representationsPublishDate: dateQuestion('representationsPublishDate'),
 
 		// todo: needs to be autocomplete with options loaded from Entra
-		inspector: {
+		inspector1: {
 			type: COMPONENT_TYPES.SELECT,
-			title: 'Inspector',
+			title: 'Inspector 1',
 			question: 'Which inspector is assigned to this case?',
-			fieldName: 'inspectorId',
-			url: 'inspector',
+			fieldName: 'inspector1Id',
+			url: 'inspector-1',
+			validators: [new RequiredValidator('Select an inspector')],
+			options: referenceDataToRadioOptions(groupMembers.inspectors, true)
+		},
+		inspector2: {
+			type: COMPONENT_TYPES.SELECT,
+			title: 'Inspector 2',
+			question: 'Which inspector is assigned to this case?',
+			fieldName: 'inspector2Id',
+			url: 'inspector-2',
+			validators: [new RequiredValidator('Select an inspector')],
+			options: referenceDataToRadioOptions(groupMembers.inspectors, true)
+		},
+		inspector3: {
+			type: COMPONENT_TYPES.SELECT,
+			title: 'Inspector 3',
+			question: 'Which inspector is assigned to this case?',
+			fieldName: 'inspector3Id',
+			url: 'inspector-3',
 			validators: [new RequiredValidator('Select an inspector')],
 			options: referenceDataToRadioOptions(groupMembers.inspectors, true)
 		},

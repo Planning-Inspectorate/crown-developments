@@ -91,7 +91,11 @@ model CrownDevelopment {
   /// determines the end date for accepting representations - up to midnight
   representationsPeriodEndDate        DateTime?
   /// Entra ID
-  inspectorId                         String?
+  inspector1Id                        String?
+  /// Entra ID
+  inspector2Id                        String?
+  /// Entra ID
+  inspector3Id                        String?
   /// Entra ID
   assessorInspectorId                 String?
   /// Entra ID
