@@ -1,12 +1,22 @@
 /**
  *
+ * @param {SharePointDrive} sharePointDrive
  * @param {string} caseRootName
  * @param {'Applicant' | 'LPA' } [user] Requires type = Received
- * @returns {string}
+ * @returns {Promise<string>}
  */
-export function getSharePointReceivedPathForCase({ caseRootName, user }) {
+export async function getSharePointReceivedPathId(sharePointDrive, { caseRootName, user }) {
 	if (!user) {
-		throw Error('Invalid path');
+		throw new Error('Invalid path');
 	}
-	return `${caseRootName}'/Received/'${user}`;
+
+	const receivedFolders = await sharePointDrive.getItemsByPath(`${caseRootName}/Received`, []);
+
+	const userFolder = receivedFolders.find((folder) => folder.name === user);
+
+	if (!userFolder || !userFolder.id) {
+		throw new Error(`Folder not found in this path: ${caseRootName}/Received`);
+	}
+
+	return userFolder.id;
 }
