@@ -155,7 +155,7 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		};
 	}
 
-	if (edits.siteAddress) {
+	if ('siteAddress' in edits) {
 		const siteAddress = viewModelToAddressUpdateInput(edits.siteAddress);
 		if (siteAddress) {
 			crownDevelopmentUpdateInput.SiteAddress = {
@@ -329,17 +329,13 @@ function addressToViewModel(address) {
  * @returns {import('@prisma/client').Prisma.AddressCreateInput|null}
  */
 function viewModelToAddressUpdateInput(edits) {
-	const updates = {
-		line1: edits.addressLine1,
-		line2: edits.addressLine2,
-		townCity: edits.townCity,
-		county: edits.county,
-		postcode: edits.postcode
+	return {
+		line1: edits?.addressLine1 ?? null,
+		line2: edits?.addressLine2 ?? null,
+		townCity: edits?.townCity ?? null,
+		county: edits?.county ?? null,
+		postcode: edits?.postcode ?? null
 	};
-	if (Object.values(updates).some((v) => Boolean(v))) {
-		return updates;
-	}
-	return null;
 }
 
 /**

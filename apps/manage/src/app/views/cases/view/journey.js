@@ -34,7 +34,7 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.typeOfApplication)
 				.addQuestion(questions.localPlanningAuthority)
 				.addQuestion(questions.siteAddress)
-				.addQuestion(questions.siteLocation)
+				.addQuestion(questions.siteCoordinates)
 				.addQuestion(questions.siteArea)
 				.addQuestion(questions.expectedDateOfSubmission)
 				.addQuestion(questions.decisionOutcome)
