@@ -58,7 +58,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 		fieldName: `${prefix}Email`,
 		url: `${prefixUrl}-email`,
 		validators: [
-			new RequiredValidator(`Enter ${title} email`),
+			new RequiredValidator(`Enter ${title} email address`),
 			new StringValidator({
 				maxLength: {
 					maxLength: 250,
