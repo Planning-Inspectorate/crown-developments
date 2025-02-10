@@ -71,7 +71,7 @@ export function endOfDay() {
  * Pad a number with leading zeros
  *
  * @param {number} num
- * @params {number} [length]
+ * @param {number} [length]
  * @returns {string}
  */
 function pad(num, length = 2) {
