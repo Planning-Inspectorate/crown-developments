@@ -49,7 +49,7 @@ describe('./src/dynamic-forms/validator/coordinates-validator.js', () => {
 		const errors = await _validationMappedErrors(req, coordinatesValidator);
 
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors[easting.fieldName].msg, `${easting.title} value required to form coordinates`);
+		assert.strictEqual(errors[easting.fieldName].msg, `Enter 6 digits for the Grid reference ${easting.title}`);
 	});
 
 	it('should return an error message if easting is populated but northing is not', async () => {
@@ -64,7 +64,7 @@ describe('./src/dynamic-forms/validator/coordinates-validator.js', () => {
 		const errors = await _validationMappedErrors(req, coordinatesValidator);
 
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors[northing.fieldName].msg, `${northing.title} value required to form coordinates`);
+		assert.strictEqual(errors[northing.fieldName].msg, `Enter 6 digits for the Grid reference ${northing.title}`);
 	});
 
 	it('should return an error message if northing is populated but not required length and easting is not populated', async () => {
@@ -80,7 +80,7 @@ describe('./src/dynamic-forms/validator/coordinates-validator.js', () => {
 
 		assert.strictEqual(Object.keys(errors).length, 2);
 		assert.strictEqual(errors[northing.fieldName].msg, `Enter 6 digits for the Grid reference ${northing.title}`);
-		assert.strictEqual(errors[easting.fieldName].msg, `${easting.title} value required to form coordinates`);
+		assert.strictEqual(errors[easting.fieldName].msg, `Enter 6 digits for the Grid reference ${easting.title}`);
 	});
 
 	it('should return an error message if easting is populated but not required length and northing is not populated', async () => {
@@ -95,7 +95,7 @@ describe('./src/dynamic-forms/validator/coordinates-validator.js', () => {
 		const errors = await _validationMappedErrors(req, coordinatesValidator);
 
 		assert.strictEqual(Object.keys(errors).length, 2);
-		assert.strictEqual(errors[northing.fieldName].msg, `${northing.title} value required to form coordinates`);
+		assert.strictEqual(errors[northing.fieldName].msg, `Enter 6 digits for the Grid reference ${northing.title}`);
 		assert.strictEqual(errors[easting.fieldName].msg, `Enter 6 digits for the Grid reference ${easting.title}`);
 	});
 });
