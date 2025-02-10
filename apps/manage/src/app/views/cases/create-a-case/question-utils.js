@@ -75,7 +75,6 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 		fieldName: `${prefix}TelephoneNumber`,
 		url: `${prefixUrl}-telephone-number`,
 		validators: [
-			new RequiredValidator(`Enter ${title} telephone number`),
 			new StringValidator({
 				maxLength: {
 					maxLength: 15,
