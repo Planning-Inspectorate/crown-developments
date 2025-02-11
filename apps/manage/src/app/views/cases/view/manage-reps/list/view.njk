@@ -1,0 +1,110 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "govuk/components/tabs/macro.njk" import govukTabs %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% block pageContent %}
+    {% if repUpdated %}
+        {{ govukNotificationBanner({
+            text: "Representation has been " + repUpdated,
+            type: "success"
+        }) }}
+    {% endif %}
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <p class="govuk-body">
+                <a href="{{ baseUrl }}/add" class="govuk-link govuk-link--no-visited-state">Add a representation</a>
+            </p>
+        </div>
+    </div>
+
+    {% set awaitingReviewTable %}
+        {{ repsTable(reps.awaitingReview, true) }}
+    {% endset -%}
+
+    {% set acceptedTable %}
+        {{ repsTable(reps.accepted, false) }}
+    {% endset -%}
+
+    {% set rejectedTable %}
+        {{ repsTable(reps.rejected, false) }}
+    {% endset -%}
+
+    {{ govukTabs({
+        items: [
+            {
+                label: "Awaiting Review",
+                id: "awaiting-review",
+                panel: {
+                html: awaitingReviewTable
+            }
+            },
+            {
+                label: "Accepted",
+                id: "accepted",
+                panel: {
+                html: acceptedTable
+            }
+            },
+            {
+                label: "Rejected",
+                id: "rejected",
+                panel: {
+                html: rejectedTable
+            }
+            }
+        ]
+    }) }}
+
+{% endblock %}
+
+{% macro repsTable(representations, review) %}
+    {% set repsRows = [] %}
+    {% for rep in representations %}
+        {% set actionText = 'View' %}
+        {% set actionLink = 'view' %}
+        {% if review %}
+            {% set actionText = 'Review' %}
+            {% set actionLink = 'review' %}
+        {% endif  %}
+        {% set row = [
+            {
+                text: rep.reference
+            },
+            {
+                text: rep.submittedByFullName
+            },
+            {
+                text: rep.submittedDate
+            },
+            {
+                html: '<a href="'+ baseUrl + '/' + rep.reference + '/' + actionLink + '" class="govuk-link">' + actionText + '</a>'
+            }
+        ] %}
+        {% set repsRows = (repsRows.push(row), repsRows) %}
+    {% endfor %}
+
+    {% set headers = [
+        {
+            text: "Reference"
+        },
+        {
+            text: "Interested party"
+        },
+        {
+            text: "Submitted Date"
+        },
+        {
+            text: "Action"
+        }
+    ] %}
+
+    {{ govukTable({
+        head: headers,
+        rows: repsRows
+    }) }}
+{% endmacro %}
