@@ -1,6 +1,8 @@
 import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
 import DateValidator from '@pins/dynamic-forms/src/validator/date-validator.js';
 import { COMPONENT_TYPES } from '@pins/dynamic-forms';
+import RequiredValidator from '@pins/dynamic-forms/src/validator/required-validator.js';
+import StringValidator from '@pins/dynamic-forms/src/validator/string-validator.js';
 
 /**
  *
@@ -84,7 +86,7 @@ export function eventQuestions(prefix) {
 			question: `What is the ${prefix} duration?`,
 			fieldName: `${prefix}Duration`,
 			url: `${prefix}-duration`,
-			validators: [],
+			validators: [new RequiredValidator()],
 			options: [
 				{ text: 'Prep', value: 'Prep' },
 				{ text: 'Sitting', value: 'Sitting' },
@@ -100,7 +102,15 @@ export function eventQuestions(prefix) {
 			question: `What is the venue of the ${prefix}?`,
 			fieldName: `${prefix}Venue`,
 			url: `${prefix}-venue`,
-			validators: []
+			validators: [
+				new RequiredValidator(),
+				new StringValidator({
+					maxLength: {
+						maxLength: 250,
+						maxLengthMessage: 'Hearing Venue must be less than 250 characters'
+					}
+				})
+			]
 		},
 		[`${prefix}NotificationDate`]: dateQuestion(`${prefix}NotificationDate`),
 		[`${prefix}IssuesReportPublishedDate`]: dateQuestion(`${prefix}IssuesReportPublishedDate`),
