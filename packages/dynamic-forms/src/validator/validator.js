@@ -10,6 +10,13 @@ const validate = async (req, res, next) => {
 	if (!questionObj) {
 		throw new Error('unknown question type');
 	}
+	if (req.body && typeof req.body === 'object' && req.body.constructor === Object) {
+		for (const key of Object.keys(req.body)) {
+			req.body[key] = req.body[key].trim();
+		}
+	} else {
+		throw new Error(`req.body is not an object: ${req.body} :: ${typeof req.body}`);
+	}
 
 	for (const validation of questionObj.validators) {
 		const validationRules = validation.validate(questionObj, journeyResponse);
