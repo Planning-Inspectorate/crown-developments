@@ -107,7 +107,7 @@ export function eventQuestions(prefix) {
 				new StringValidator({
 					maxLength: {
 						maxLength: 250,
-						maxLengthMessage: 'Hearing Venue must be less than 250 characters'
+						maxLengthMessage: `${title} Venue must be less than 250 characters`
 					}
 				})
 			]
