@@ -60,7 +60,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 				new StringValidator({
 					maxLength: {
 						maxLength: 1000,
-						maxLengthMessage: `Application Description must be 1000 characters or less`
+						maxLengthMessage: 'Description must be less than 1000 characters'
 					}
 				})
 			]

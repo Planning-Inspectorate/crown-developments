@@ -226,13 +226,13 @@ function viewModelToNestedContactUpdate(edits, prefix, viewModel) {
 	/** @type {import('@prisma/client').Prisma.ContactCreateInput} */
 	const createInput = {};
 
-	if (edits[`${prefix}ContactName`]) {
+	if (`${prefix}ContactName` in edits) {
 		createInput.fullName = edits[`${prefix}ContactName`];
 	}
-	if (edits[`${prefix}ContactTelephoneNumber`]) {
+	if (`${prefix}ContactTelephoneNumber` in edits) {
 		createInput.telephoneNumber = edits[`${prefix}ContactTelephoneNumber`];
 	}
-	if (edits[`${prefix}ContactEmail`]) {
+	if (`${prefix}ContactEmail` in edits) {
 		createInput.email = edits[`${prefix}ContactEmail`];
 	}
 	if (edits[`${prefix}ContactAddress`]) {
