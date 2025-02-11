@@ -1,9 +1,9 @@
 import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
 import DateValidator from '@pins/dynamic-forms/src/validator/date-validator.js';
 import { COMPONENT_TYPES } from '@pins/dynamic-forms';
+import MultiFieldInputValidator from '@pins/dynamic-forms/src/validator/multi-field-input-validator.js';
 import RequiredValidator from '@pins/dynamic-forms/src/validator/required-validator.js';
 import StringValidator from '@pins/dynamic-forms/src/validator/string-validator.js';
-import MultiFieldInputValidator from '@pins/dynamic-forms/src/validator/multi-field-input-validator.js';
 
 /**
  *
