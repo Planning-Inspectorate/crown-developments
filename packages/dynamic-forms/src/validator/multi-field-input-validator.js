@@ -20,8 +20,9 @@ import BaseValidator from './base-validator.js';
  */
 
 /**
- * @typedef {Object} RequiredField
+ * @typedef {Object} Field
  * @property {string} fieldName
+ * @property {boolean} required
  * @property {string} errorMessage
  * @property {MinLength} [minLength]
  * @property {MaxLength} [maxLength]
@@ -31,14 +32,14 @@ import BaseValidator from './base-validator.js';
 export default class MultiFieldInputValidator extends BaseValidator {
 	/**
 	 * @param {Object} params
-	 * @param {RequiredField[]} [params.requiredFields]
+	 * @param {Field[]} [params.fields]
 	 * @param {string} [params.noInputsMessage]
 	 */
-	constructor({ requiredFields, noInputsMessage } = {}) {
+	constructor({ fields, noInputsMessage } = {}) {
 		super();
 
-		if (!requiredFields) throw new Error('MultiFieldInput validator is invoked without any required fields');
-		this.requiredFields = requiredFields;
+		if (!fields) throw new Error('MultiFieldInput validator is invoked without any fields');
+		this.fields = fields;
 		this.noInputsMessage = noInputsMessage || 'Please complete the question';
 	}
 
@@ -53,12 +54,14 @@ export default class MultiFieldInputValidator extends BaseValidator {
 
 		// results.push(body(requiredFieldNames).notEmpty().withMessage(this.noInputsMessage));
 
-		for (const requiredField of this.requiredFields) {
-			const { minLength, maxLength, regex, fieldName, errorMessage } = requiredField;
+		for (const field of this.fields) {
+			const { minLength, maxLength, regex, fieldName, required, errorMessage } = field;
 
 			const fieldBody = body(fieldName);
 
-			rules.push(fieldBody.notEmpty().withMessage(errorMessage));
+			if (required) {
+				rules.push(fieldBody.notEmpty().withMessage(errorMessage));
+			}
 
 			if (minLength) {
 				rules.push(fieldBody.isLength({ min: minLength.minLength }).withMessage(minLength.minLengthMessage));

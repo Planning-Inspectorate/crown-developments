@@ -6,6 +6,7 @@ import MultiFieldInputValidator from './multi-field-input-validator.js';
 
 const testRequiredField1 = {
 	fieldName: 'testField1',
+	required: true,
 	errorMessage: 'test message 1',
 	minLength: {
 		minLength: 3,
@@ -23,22 +24,33 @@ const testRequiredField1 = {
 
 const testRequiredField2 = {
 	fieldName: 'testField2',
+	required: true,
 	errorMessage: 'test message 2'
 };
 
+const testOptionalField1 = {
+	fieldName: 'testOptionalField1',
+	required: false,
+	errorMessage: 'test message 1'
+};
+
 const singleRequiredField = {
-	requiredFields: [testRequiredField1]
+	fields: [testRequiredField1]
+};
+
+const singleOptionalField = {
+	fields: [testOptionalField1]
 };
 
 const multipleRequiredFields = {
-	requiredFields: [testRequiredField1, testRequiredField2]
+	fields: [testRequiredField1, testRequiredField2]
 };
 
 describe('src/dynamic-forms/validator/multi-field-input-validator.js', () => {
 	it('should throw if no required fields passed to constructor', () => {
 		assert.throws(() => {
 			new MultiFieldInputValidator();
-		}, new Error('MultiFieldInput validator is invoked without any required fields'));
+		}, new Error('MultiFieldInput validator is invoked without any fields'));
 	});
 	it('should validate a request that has required fields in the right format', async () => {
 		const req = {
@@ -113,6 +125,18 @@ describe('src/dynamic-forms/validator/multi-field-input-validator.js', () => {
 
 		assert.strictEqual(Object.keys(errors).length, 1);
 		assert.strictEqual(errors[testRequiredField1.fieldName].msg, testRequiredField1.regex.regexMessage);
+	});
+
+	it('should not return any errors for optional field', async () => {
+		const req = {
+			body: {
+				testOptionalField1: 'FIVE'
+			}
+		};
+
+		const errors = await _validationMappedErrors(req, singleOptionalField);
+
+		assert.strictEqual(Object.keys(errors).length, 0);
 	});
 });
 

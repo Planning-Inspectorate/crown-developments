@@ -328,12 +328,30 @@ describe('view-model', () => {
 		});
 		it('should not map site address if no edits', () => {
 			/** @type {CrownDevelopmentViewModel} */
-			const toSave = {
-				siteAddress: {}
-			};
-			const updates = editsToDatabaseUpdates(toSave, {});
+			// const toSave = {
+			// 	siteAddress: {}
+			// };
+			const updates = editsToDatabaseUpdates({}, {});
 			assert.ok(updates);
 			assert.strictEqual(updates.SiteAddress, undefined);
+		});
+		it('should set site address fields to empty if data removed', () => {
+			/** @type {CrownDevelopmentViewModel} */
+			const toSave = {
+				siteAddress: {
+					postcode: ''
+				}
+			};
+			const viewModel = {
+				siteAddressId: 'address-1'
+			};
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.ok(updates);
+			assert.ok(updates.SiteAddress?.upsert);
+			const upsert = updates.SiteAddress.upsert;
+			assert.strictEqual(upsert.where?.id, 'address-1');
+			assert.strictEqual(upsert.create?.postcode, '');
+			assert.strictEqual(upsert.update?.postcode, '');
 		});
 		it('should map site address upsert', () => {
 			/** @type {CrownDevelopmentViewModel} */
