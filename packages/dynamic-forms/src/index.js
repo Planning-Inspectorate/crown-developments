@@ -5,6 +5,7 @@ export const COMPONENT_TYPES = Object.freeze({
 	DATE: 'date',
 	DATE_PERIOD: 'date-period',
 	TEXT_ENTRY: 'text-entry',
+	TEXT_ENTRY_REDACT: 'text-entry-redact',
 	SELECT: 'select',
 	SINGLE_LINE_INPUT: 'single-line-input',
 	MULTI_FIELD_INPUT: 'multi-field-input',
