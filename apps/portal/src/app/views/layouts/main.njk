@@ -23,11 +23,11 @@
 			{{ govukBackLink({ text: backLinkText, href: backLinkUrl }) }}
 		{% elseif backLinkUrl %}
 			{{ govukBackLink({ href: backLinkUrl }) }}
-		{% elseif backURL %}
-			{{ govukBackLink({ href: backURL }) }}
-			{% endif %}
-		{% endblock %}
+		{% elseif backLink %} {# used by the dynamic forms #}
+			{{ govukBackLink({ href: backLink }) }}
+		{% endif %}
 	{% endblock %}
+{% endblock %}
 
 	{% block before_content %}{% endblock %}
 
