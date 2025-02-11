@@ -1,0 +1,166 @@
+{% extends layoutTemplate %}
+
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "govuk/components/label/macro.njk" import govukLabel %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+
+{% set title = question.pageTitle + " - " + journeyTitle + " - GOV.UK" %}
+{% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
+
+{% block before_content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            {% if errorSummary %}
+                {{ govukErrorSummary({
+                    titleText: "There is a problem",
+                    errorList: errorSummary,
+                    attributes: {"data-cy": "error-wrapper"}
+                }) }}
+            {% endif %}
+        </div>
+    </div>
+
+    {{ super() }}
+{% endblock before_content %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <form action="" method="post" novalidate>
+                <input type="hidden" name="_csrf" value="{{ _csrf }}">
+
+                {% if question.label %}
+                    {{ govukLabel({
+                        text: question.question,
+                        isPageHeading: true,
+                        classes: 'govuk-label--l',
+                        for: question.fieldName
+                    }) }}
+                {% else %}
+                    <h1 class="govuk-heading-l">
+                        {{ question.question }}
+                    </h1>
+                {% endif %}
+
+                {% if question.html %}
+                    {% include question.html ignore missing %}
+                {% endif %}
+
+                {{ govukInsetText({
+                    text: question.value,
+                    id: question.fieldName + "-unredacted"
+                }) }}
+
+                {{ govukTextarea({
+                    label: {
+                        text: question.label
+                    },
+                    id: question.fieldName,
+                    name: question.fieldName,
+                    value: question.valueRedacted,
+                    hint: { text: question.hint },
+                    errorMessage: errors[question.fieldName] and {
+                        text: errors[question.fieldName].msg
+                    },
+                    classes: question.inputClasses
+                }) }}
+
+                <div class="govuk-button-group">
+                    {{ govukButton({
+                        text: "Redact selected text",
+                        classes: "govuk-button--secondary",
+                        id: "redact-selected-text",
+                        type: "button"
+                    }) }}
+
+                    {{ govukButton({
+                        text: "Undo",
+                        classes: "govuk-button--secondary",
+                        id: "redact-undo",
+                        type: "button"
+                    }) }}
+
+                    {{ govukButton({
+                        text: "Undo all changes",
+                        classes: "govuk-button--secondary",
+                        id: "redact-undo-all",
+                        type: "button"
+                    }) }}
+                </div>
+
+                {{ govukButton({
+                    text: continueButtonText,
+                    type: "submit",
+                    attributes: { "data-cy":"button-save-and-continue" }
+                }) }}
+            </form>
+        </div>
+
+        <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
+            /**
+             * @param {HTMLTextAreaElement} textArea
+             * @param {HTMLButtonElement} redactSelectedText
+             * @param {HTMLButtonElement} redactUndo
+             * @param {HTMLButtonElement} redactUndoAll
+             * @param {HTMLDivElement} unredactedText
+             */
+            function registerEventListeners({textArea, redactSelectedText, redactUndo, redactUndoAll, unredactedText}) {
+                const history = [];
+                redactSelectedText.addEventListener('click', () => {
+                    const { selectionStart, selectionEnd } = textArea;
+                    // replace the text with the 'full block' █ character
+                    const selectedText = textArea.value.substring(selectionStart, selectionEnd);
+                    const redactedText = '█'.repeat(selectionEnd - selectionStart);
+                    textArea.value = textArea.value.substring(0, selectionStart) + redactedText + textArea.value.substring(selectionEnd);
+                    // add to history for undo functionality
+                    history.push({
+                      selectionStart,
+                      selectionEnd,
+                      selectedText
+                    });
+                });
+                redactUndo.addEventListener('click', () => {
+                    const { selectionStart, selectionEnd, selectedText } = history.pop() || {};
+                    if (selectionStart !== undefined && selectionEnd !== undefined && selectedText) {
+                        textArea.value = textArea.value.substring(0, selectionStart) + selectedText + textArea.value.substring(selectionEnd);
+                    }
+                });
+                redactUndoAll.addEventListener('click', () => {
+                    textArea.value = unredactedText.textContent?.trim() || '';
+                    history.length = 0;
+                });
+            }
+
+            function initRedact() {
+                const textArea = document.querySelector('#{{ question.fieldName }}');
+                const redactSelectedText = document.querySelector('#redact-selected-text');
+                const redactUndo = document.querySelector('#redact-undo');
+                const redactUndoAll = document.querySelector('#redact-undo-all');
+                const unredactedText = document.querySelector('#{{ question.fieldName }}-unredacted');
+
+                if (!textArea || !(textArea instanceof HTMLTextAreaElement)) {
+                    return;
+                }
+                if (!redactSelectedText || !(redactSelectedText instanceof HTMLButtonElement)) {
+                    return;
+                }
+                if (!redactUndo || !(redactUndo instanceof HTMLButtonElement)) {
+                    return;
+                }
+                if (!redactUndoAll || !(redactUndoAll instanceof HTMLButtonElement)) {
+                    return;
+                }
+                if (!unredactedText || !(unredactedText instanceof HTMLDivElement)) {
+                    return;
+                }
+
+                registerEventListeners({textArea, redactSelectedText, redactUndo, redactUndoAll, unredactedText});
+            }
+
+            initRedact();
+        </script>
+    </div>
+{% endblock %}
