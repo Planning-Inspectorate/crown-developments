@@ -84,10 +84,7 @@ export default class DatePeriodValidator extends BaseValidator {
 			...this.rulesForNotEmptyInput({ dayInput: endDayInput, monthInput: endMonthInput, yearInput: endYearInput }),
 			...this.rulesForValidInput({ dayInput: startDayInput, monthInput: startMonthInput, yearInput: startYearInput }),
 			...this.rulesForValidInput({ dayInput: endDayInput, monthInput: endMonthInput, yearInput: endYearInput }),
-			...this.rulesForDateIsInFuture(
-				{ dayInput: endDayInput, monthInput: endMonthInput, yearInput: endYearInput },
-				'The Close Date must be today or a future date'
-			)
+			...this.rulesForDateIsInFuture({ dayInput: endDayInput, monthInput: endMonthInput, yearInput: endYearInput })
 		];
 	}
 
@@ -158,7 +155,7 @@ export default class DatePeriodValidator extends BaseValidator {
 		];
 	}
 
-	rulesForDateIsInFuture({ dayInput, monthInput, yearInput }, errorMessage) {
+	rulesForDateIsInFuture({ dayInput, monthInput, yearInput }) {
 		if (!this.dateValidationSettings.ensureFuture) {
 			return [];
 		}
@@ -175,7 +172,7 @@ export default class DatePeriodValidator extends BaseValidator {
 				const today = startOfDay();
 
 				if (isBefore(inputDate, today)) {
-					throw new Error(errorMessage);
+					throw new Error('The Close Date must be today or a future date');
 				}
 
 				return true;
