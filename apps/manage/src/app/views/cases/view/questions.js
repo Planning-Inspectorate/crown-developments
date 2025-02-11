@@ -184,7 +184,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			fieldName: 'lpaReference',
 			url: 'lpa-reference',
 			validators: [
-				new RequiredValidator(),
+				new RequiredValidator('Enter the LPA reference'),
 				new StringValidator({
 					maxLength: {
 						maxLength: 250,
@@ -225,7 +225,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			fieldName: 'healthAndSafetyIssue',
 			url: 'health-and-safety-issue',
 			validators: [
-				new RequiredValidator(),
+				new RequiredValidator('Enter the health and safety issues'),
 				new StringValidator({
 					maxLength: {
 						maxLength: 2000,
