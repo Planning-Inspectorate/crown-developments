@@ -336,11 +336,32 @@ describe('./src/dynamic-forms/validator/date-period-validator.js', () => {
 			);
 			assert.strictEqual(errors[`${question.fieldName}_end_month`].msg, 'The required date month must be a real month');
 		});
+		it('throws errors if close date is not in future', async () => {
+			const req = {
+				body: {
+					['date-question_start_day']: '29',
+					['date-question_start_month']: '2',
+					['date-question_start_year']: '2020',
+					['date-question_end_day']: '5',
+					['date-question_end_month']: '3',
+					['date-question_end_year']: '2020'
+				}
+			};
+
+			const question = {
+				fieldName: 'date-question'
+			};
+
+			const errors = await _validationMappedErrors(req, question, 'the required date', true);
+
+			assert.strictEqual(Object.keys(errors).length, 1);
+			assert.strictEqual(errors[`${question.fieldName}_end_day`].msg, 'The Close Date must be today or a future date');
+		});
 	});
 });
 
-const _validationMappedErrors = async (req, question, inputLabel) => {
-	const dateValidator = new DatePeriodValidator(inputLabel);
+const _validationMappedErrors = async (req, question, inputLabel, ensureFuture = false) => {
+	const dateValidator = new DatePeriodValidator(inputLabel, { ensureFuture: ensureFuture, ensurePast: false });
 
 	const validationRules = dateValidator.validate(question);
 

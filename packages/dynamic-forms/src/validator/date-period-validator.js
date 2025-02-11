@@ -1,9 +1,10 @@
 import { body } from 'express-validator';
 
-import { isValid, parse } from 'date-fns';
+import { isBefore, isValid, parse } from 'date-fns';
 import { enGB } from 'date-fns/locale';
 
 import BaseValidator from './base-validator.js';
+import { parseDateInput, startOfDay } from '../lib/date-utils.js';
 
 /**
  * @typedef {import('../components/date/question.js')} DateQuestion
@@ -32,7 +33,7 @@ export default class DatePeriodValidator extends BaseValidator {
 	constructor(
 		inputLabel,
 		dateValidationSettings = {
-			ensureFuture: false,
+			ensureFuture: true,
 			ensurePast: false
 		},
 		errorMessages
@@ -82,7 +83,8 @@ export default class DatePeriodValidator extends BaseValidator {
 			}),
 			...this.rulesForNotEmptyInput({ dayInput: endDayInput, monthInput: endMonthInput, yearInput: endYearInput }),
 			...this.rulesForValidInput({ dayInput: startDayInput, monthInput: startMonthInput, yearInput: startYearInput }),
-			...this.rulesForValidInput({ dayInput: endDayInput, monthInput: endMonthInput, yearInput: endYearInput })
+			...this.rulesForValidInput({ dayInput: endDayInput, monthInput: endMonthInput, yearInput: endYearInput }),
+			...this.rulesForDateIsInFuture({ dayInput: endDayInput, monthInput: endMonthInput, yearInput: endYearInput })
 		];
 	}
 
@@ -150,6 +152,31 @@ export default class DatePeriodValidator extends BaseValidator {
 				}),
 			body(monthInput).isInt({ min: 1, max: 12 }).withMessage(this.invalidMonthErrorMessage),
 			body(yearInput).isInt({ min: 1000, max: 9999 }).withMessage(this.invalidYearErrorMessage)
+		];
+	}
+
+	rulesForDateIsInFuture({ dayInput, monthInput, yearInput }) {
+		if (!this.dateValidationSettings.ensureFuture) {
+			return [];
+		}
+
+		return [
+			body(dayInput).custom((_, { req }) => {
+				const { [dayInput]: day, [monthInput]: month, [yearInput]: year } = req.body;
+
+				if (![day, month, year].every(Boolean)) {
+					return true;
+				}
+
+				const inputDate = parseDateInput({ day, month, year });
+				const today = startOfDay();
+
+				if (isBefore(inputDate, today)) {
+					throw new Error('The Close Date must be today or a future date');
+				}
+
+				return true;
+			})
 		];
 	}
 

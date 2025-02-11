@@ -36,7 +36,7 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.applicantEmail)
 				.withRequiredCondition(
 					questionHasAnswer(response, questions.hasAgent, BOOLEAN_OPTIONS.NO),
-					'Enter Applicant email'
+					'Enter Applicant email address'
 				)
 				.addQuestion(questions.applicantTelephoneNumber)
 				.addQuestion(questions.siteAddress)

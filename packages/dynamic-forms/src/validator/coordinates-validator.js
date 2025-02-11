@@ -35,7 +35,7 @@ export default class CoordinatesValidator extends BaseValidator {
 			body(this.northing.fieldName).custom((_, { req }) => {
 				const { siteNorthing, siteEasting } = req.body;
 				if (!siteNorthing && siteEasting) {
-					throw new Error(`${this.northing.title} value required to form coordinates`);
+					throw new Error(`Enter 6 digits for the Grid reference ${this.northing.title}`);
 				}
 				return true;
 			}),
@@ -44,7 +44,7 @@ export default class CoordinatesValidator extends BaseValidator {
 			body(this.easting.fieldName).custom((_, { req }) => {
 				const { siteNorthing, siteEasting } = req.body;
 				if (siteNorthing && !siteEasting) {
-					throw new Error(`${this.easting.title} value required to form coordinates`);
+					throw new Error(`Enter 6 digits for the Grid reference ${this.easting.title}`);
 				}
 				return true;
 			})
