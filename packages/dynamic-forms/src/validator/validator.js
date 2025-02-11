@@ -11,6 +11,23 @@ const validate = async (req, res, next) => {
 		throw new Error('unknown question type');
 	}
 
+	await validateQuestion(questionObj, req, journeyResponse);
+
+	return next();
+};
+
+export default validate;
+
+export function buildValidateBody(questions) {
+	return async (req, res, next) => {
+		for (const questionObj of questions) {
+			await validateQuestion(questionObj, req);
+		}
+		return next();
+	};
+}
+
+async function validateQuestion(questionObj, req, journeyResponse = {}) {
 	for (const validation of questionObj.validators) {
 		const validationRules = validation.validate(questionObj, journeyResponse);
 
@@ -31,7 +48,4 @@ const validate = async (req, res, next) => {
 			}
 		}
 	}
-
-	return next();
-};
-export default validate;
+}
