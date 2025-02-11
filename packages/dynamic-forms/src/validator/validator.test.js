@@ -65,6 +65,34 @@ describe('./src/dynamic-forms/validator/validator.js', () => {
 		assert.strictEqual(next.mock.callCount(), 1);
 	});
 
+	it('should trim leading and trailing whitespaces', async () => {
+		const req = {
+			params: {
+				section: 1,
+				question: 1,
+				referenceId: 'abc'
+			},
+			body: {
+				field1: ' bananas '
+			}
+		};
+
+		mockRes.locals.journey = {
+			getQuestionBySectionAndName: function () {
+				return {
+					validators: [new RequiredValidator()],
+					fieldName: 'field1'
+				};
+			}
+		};
+
+		const next = mock.fn();
+		await validate(req, mockRes, next);
+
+		assert.strictEqual(req.body.field1, 'bananas');
+		assert.strictEqual(next.mock.callCount(), 1);
+	});
+
 	it('should invalidate a single validator', async () => {
 		const req = {
 			params: {
