@@ -1,6 +1,7 @@
 import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
 import DateValidator from '@pins/dynamic-forms/src/validator/date-validator.js';
 import { COMPONENT_TYPES } from '@pins/dynamic-forms';
+import MultiFieldInputValidator from '@pins/dynamic-forms/src/validator/multi-field-input-validator.js';
 import RequiredValidator from '@pins/dynamic-forms/src/validator/required-validator.js';
 import StringValidator from '@pins/dynamic-forms/src/validator/string-validator.js';
 
@@ -37,7 +38,36 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 				label: 'Telephone Number'
 			}
 		],
-		validators: []
+		validators: [
+			new MultiFieldInputValidator({
+				fields: [
+					{
+						fieldName: `${prefix}ContactName`,
+						required: false,
+						maxLength: {
+							maxLength: 250,
+							maxLengthMessage: `${title} name must be less than 250 characters`
+						}
+					},
+					{
+						fieldName: `${prefix}ContactEmail`,
+						required: false,
+						maxLength: {
+							maxLength: 250,
+							maxLengthMessage: `${title} email must be less than 250 characters`
+						}
+					},
+					{
+						fieldName: `${prefix}ContactTelephoneNumber`,
+						required: false,
+						maxLength: {
+							maxLength: 15,
+							maxLengthMessage: `${title} telephone number must be less than 15 characters`
+						}
+					}
+				]
+			})
+		]
 	};
 
 	questions[`${prefix}ContactAddress`] = {
