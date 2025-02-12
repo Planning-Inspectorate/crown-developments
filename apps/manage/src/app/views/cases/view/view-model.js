@@ -235,7 +235,7 @@ function viewModelToNestedContactUpdate(edits, prefix, viewModel) {
 	if (`${prefix}ContactEmail` in edits) {
 		createInput.email = edits[`${prefix}ContactEmail`];
 	}
-	if (edits[`${prefix}ContactAddress`]) {
+	if (`${prefix}ContactAddress` in edits) {
 		const addressUpdateInput = viewModelToAddressUpdateInput(edits[`${prefix}ContactAddress`]);
 		createInput.Address = {
 			create: addressUpdateInput
