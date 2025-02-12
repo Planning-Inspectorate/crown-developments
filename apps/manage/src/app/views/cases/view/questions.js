@@ -24,6 +24,7 @@ import {
 } from './question-utils.js';
 import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
 import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
+import CoordinatesValidator from '@pins/dynamic-forms/src/validator/coordinates-validator.js';
 import DatePeriodValidator from '@pins/dynamic-forms/src/validator/date-period-validator.js';
 
 /**
@@ -59,7 +60,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 				new StringValidator({
 					maxLength: {
 						maxLength: 1000,
-						maxLengthMessage: `Application Description must be 1000 characters or less`
+						maxLengthMessage: 'Description must be less than 1000 characters'
 					}
 				})
 			]
@@ -91,25 +92,32 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			url: `site-address`,
 			validators: [new AddressValidator()]
 		},
-		siteLocation: {
+		siteCoordinates: {
 			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
-			title: 'Site Northing/Easting',
-			question: 'What is the location of the site?',
-			fieldName: 'siteLocation',
-			url: 'site-location',
+			title: 'Site Coordinates',
+			question: 'What are the coordinates of the site?',
+			fieldName: 'siteCoordinates',
+			url: 'site-coordinates',
 			inputFields: [
 				{
 					fieldName: 'siteNorthing',
-					label: 'Site Northing',
-					formatPrefix: 'Northing: '
+					label: 'Northing',
+					formatPrefix: 'Northing: ',
+					hint: 'Optional'
 				},
 				{
 					fieldName: 'siteEasting',
-					label: 'Site Easting',
-					formatPrefix: 'Easting: '
+					label: 'Easting',
+					formatPrefix: 'Easting: ',
+					hint: 'Optional'
 				}
 			],
-			validators: []
+			validators: [
+				new CoordinatesValidator(
+					{ title: 'Northing', fieldName: 'siteNorthing' },
+					{ title: 'Easting', fieldName: 'siteEasting' }
+				)
+			]
 		},
 		siteArea: {
 			type: COMPONENT_TYPES.NUMBER,
