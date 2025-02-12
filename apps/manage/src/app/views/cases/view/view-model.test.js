@@ -327,10 +327,6 @@ describe('view-model', () => {
 			assert.strictEqual(updates.Category?.connect?.id, 'cat-1');
 		});
 		it('should not map site address if no edits', () => {
-			/** @type {CrownDevelopmentViewModel} */
-			// const toSave = {
-			// 	siteAddress: {}
-			// };
 			const updates = editsToDatabaseUpdates({}, {});
 			assert.ok(updates);
 			assert.strictEqual(updates.SiteAddress, undefined);
