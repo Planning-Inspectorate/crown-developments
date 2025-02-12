@@ -11,6 +11,7 @@
   "dependencies": {
     "@azure/msal-node": "*",
     "@microsoft/microsoft-graph-client": "*",
+    "@pins/dynamic-forms": "^0.0.0",
     "@prisma/client": "*",
     "connect-redis": "*",
     "express-session": "*",

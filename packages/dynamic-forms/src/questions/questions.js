@@ -12,6 +12,7 @@ import NumberEntryQuestion from '../components/number-entry/question.js';
 import UnitOptionEntryQuestion from '../components/unit-option-entry/question.js';
 
 import { COMPONENT_TYPES } from '../index.js';
+import TextEntryRedactQuestion from '../components/text-entry-redact/question.js';
 
 // This looks a bit grim because so few of our
 // Questions overlap with Question correctly.
@@ -25,6 +26,7 @@ export const questionClasses = Object.freeze({
 	[COMPONENT_TYPES.DATE]: DateQuestion,
 	[COMPONENT_TYPES.DATE_PERIOD]: DatePeriodQuestion,
 	[COMPONENT_TYPES.TEXT_ENTRY]: TextEntryQuestion,
+	[COMPONENT_TYPES.TEXT_ENTRY_REDACT]: TextEntryRedactQuestion,
 	[COMPONENT_TYPES.SELECT]: SelectQuestion,
 	[COMPONENT_TYPES.SINGLE_LINE_INPUT]: SingleLineInputQuestion,
 	[COMPONENT_TYPES.MULTI_FIELD_INPUT]: MultiFieldInputQuestion,
