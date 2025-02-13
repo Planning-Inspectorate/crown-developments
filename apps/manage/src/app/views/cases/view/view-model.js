@@ -138,7 +138,7 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		crownDevelopmentUpdateInput.siteNorthing = toInt(edits.siteNorthing);
 		crownDevelopmentUpdateInput.siteEasting = toInt(edits.siteEasting);
 	}
-	if (edits.siteArea) {
+	if ('siteArea' in edits) {
 		crownDevelopmentUpdateInput.siteArea = toFloat(edits.siteArea);
 	}
 
