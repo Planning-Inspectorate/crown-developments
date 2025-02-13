@@ -106,7 +106,7 @@ export function getQuestions() {
 			suffix: 'ha',
 			fieldName: 'siteArea',
 			url: 'site-area',
-			validators: [new NumericValidator({ regex: /^(\d+)?$/, regexMessage: 'The value must be at least 0' })]
+			validators: [new NumericValidator({ regex: /^$|^\d+(\.\d+)?$/, regexMessage: 'The value must be at least 0' })]
 		},
 		applicationDescription: {
 			type: COMPONENT_TYPES.TEXT_ENTRY,
