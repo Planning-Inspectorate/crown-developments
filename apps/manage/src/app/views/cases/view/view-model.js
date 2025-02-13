@@ -27,7 +27,7 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'siteIsVisibleFromPublicLand',
 	'healthAndSafetyIssue',
 	'applicationReceivedDate',
-	'applicationAcceptedDate',
+	'applicationCompleteDate',
 	'lpaQuestionnaireSentDate',
 	'lpaQuestionnaireReceivedDate',
 	'publishDate',
