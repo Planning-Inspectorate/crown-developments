@@ -65,7 +65,7 @@ model CrownDevelopment {
   isGreenBelt                         Boolean?
   healthAndSafetyIssue                String?                     @db.NVarChar(2000)
   applicationReceivedDate             DateTime?
-  applicationAcceptedDate             DateTime?
+  applicationCompleteDate             DateTime?
   lpaQuestionnaireSentDate            DateTime?
   lpaQuestionnaireReceivedDate        DateTime?
   /// the date the project is visible to the public
