@@ -33,6 +33,10 @@ apps_config = {
     }
   }
 
+  crown_dev_contact_info = {
+    email = "crown.dev@planninginspectorate.gov.uk"
+  }
+
   sharepoint = {
     disabled = false
   }

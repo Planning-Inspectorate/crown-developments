@@ -27,7 +27,8 @@ export function loadConfig() {
 		SQL_CONNECTION_STRING,
 		GOV_NOTIFY_DISABLED,
 		GOV_NOTIFY_API_KEY,
-		GOV_NOTIFY_TEST_TEMPLATE_ID
+		GOV_NOTIFY_TEST_TEMPLATE_ID,
+		CROWN_DEV_CONTACT_EMAIL
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -78,6 +79,9 @@ export function loadConfig() {
 			disabled: GOV_NOTIFY_DISABLED,
 			apiKey: GOV_NOTIFY_API_KEY,
 			testTemplate: GOV_NOTIFY_TEST_TEMPLATE_ID
+		},
+		crownDevContactInfo: {
+			email: CROWN_DEV_CONTACT_EMAIL
 		}
 	};
 
