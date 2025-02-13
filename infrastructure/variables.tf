@@ -41,6 +41,10 @@ variable "apps_config" {
       })
     })
 
+    crown_dev_contact_info = object({
+        email = string
+    })
+
     sharepoint = object({
       disabled = bool
     })

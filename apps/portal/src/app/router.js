@@ -22,7 +22,7 @@ export function buildRouter({ logger, config, dbClient }) {
 	router.use('/', monitoringRoutes);
 
 	router.route('/').get(viewHomepage);
-	router.use('/', applicationRoutes({ db: dbClient, logger }));
+	router.use('/', applicationRoutes({ db: dbClient, logger, config }));
 
 	return router;
 }
