@@ -1,0 +1,28 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/table/macro.njk" import govukTable %}
+
+{% block pageContent %}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			{% set documentRows = [] %}
+			{% for document in documents %}
+				{% set documentRows = (documentRows.push([
+					{html: "<a class='govuk-link' href='/documents/" +  document.id +"' target='_blank'>" + document.name + "</a>"},
+					{text: document.type},
+					{text: document.lastModified},
+					{text: document.size}
+				]), documentRows) %}
+			{% endfor %}
+			{{ govukTable({
+				head: [
+					{text: 'File'},
+					{text: 'Type'},
+					{text: 'Modified'},
+					{text: 'Size'}
+				],
+				rows: documentRows
+			}) }}
+		</div>
+	</div>
+{% endblock %}
