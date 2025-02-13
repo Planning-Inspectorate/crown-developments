@@ -1,0 +1,87 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+
+{% block pageHeading %}{% endblock %}
+
+{% block pageContent %}
+    <div class="govuk-width-container">
+        <main class="govuk-main-wrapper" id="main-content">
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-one-third">
+                    <ul class="govuk-list">
+                      <li>
+                        <strong>Application Information</strong>
+                      </li>
+                      <br>
+                      <li>
+                        <a class="govuk-link" href="/applications/application-information/{{ id }}/documents">Documents</a>
+                      </li>
+                      <br>
+                      <li>
+                        <a class="govuk-link" href="/applications/application-information/{{ id }}/have-your-say">Have your say</a>
+                      </li>
+                    </ul>
+                </div>
+
+                <div class="govuk-grid-column-two-thirds">
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-full">
+                            <h1 class="govuk-heading-xl">
+                                {% if pageCaption %}
+                                    <span class="govuk-caption-xl">{{ pageCaption }}</span>
+                                {% endif %}
+                                {{ pageHeading or pageTitle }}
+                            </h1>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h2 class="govuk-heading-m">About the application</h2>
+
+                        <h3 class="govuk-heading-s">Type of application</h3>
+                        <p class="govuk-body">{{ crownDevelopment.Type.displayName }}</p>
+
+                        <h3 class="govuk-heading-s">Local Planning Authority</h3>
+                        <p class="govuk-body">{{ crownDevelopment.Lpa.name }}</p>
+
+                        <h3 class="govuk-heading-s">Applicant name</h3>
+                        <p class="govuk-body">{{ crownDevelopment.ApplicantContact.fullName }}</p>
+
+                        <h3 class="govuk-heading-s">Site Address</h3>
+                        <p class="govuk-body">{{ formatAddressFunction(crownDevelopment.SiteAddress) }}</p>
+
+                        <h3 class="govuk-heading-s">Description of the proposed development</h3>
+                        <p class="govuk-body">{{ crownDevelopment.description }}</p>
+                    </div>
+
+                    <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+
+                    <div>
+                        <h2 id="procedure" class="govuk-heading-m">Contact Us</h2>
+
+                        <h3 class="govuk-heading-s">Telephone</h3>
+                        <p class="govuk-body">If you have an interested party number, have it with you when you call.</p>
+                        <p class="govuk-body">Telephone: 0303 444 5000</p>
+                        <p class="govuk-body">
+                          Open Monday to Friday: 9am to 4pm.
+                          <br>
+                          Closed on weekends and bank holidays.
+                        </p>
+
+                        <h3 class="govuk-heading-s">Email</h3>
+                        <p class="govuk-body">
+                          <a class="govuk-link" href="mailto:crown.dev@planninginspectorate.gov.uk">crown.dev@planninginspectorate.gov.uk</a>
+                        </p>
+                        <p class="govuk-body">When writing an email, quote the name of the project in the subject line.</p>
+                        <p class="govuk-body">We aim to respond within 10 working days.</p>
+
+                        <h3 class="govuk-heading-s">Alternative formats</h3>
+                        <p class="govuk-body">Call or email to ask for project documents in alternative formats such as PDF, large print, easy read, audio recording or braille.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+{% endblock %}

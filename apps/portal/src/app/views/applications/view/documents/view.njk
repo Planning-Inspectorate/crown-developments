@@ -1,0 +1,37 @@
+{% extends "views/layouts/main.njk" %}
+
+{% block pageHeading %}{% endblock %}
+
+{% block pageContent %}
+    <div class="govuk-width-container">
+        <main class="govuk-main-wrapper" id="main-content">
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-one-third">
+                    <ul class="govuk-list">
+                      <li>
+                        <a class="govuk-link" href="/applications/application-information/{{ id }}">Application Information</a>
+                      </li>
+                      <br>
+                      <li>
+                        <strong>Documents</strong>
+                      </li>
+                      <br>
+                      <li>
+                        <a class="govuk-link" href="/applications/application-information/{{ id }}/have-your-say">Have your say</a>
+                      </li>
+                    </ul>
+                </div>
+
+                <div class="govuk-grid-column-two-thirds">
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-full">
+                            <h2 class="govuk-heading-l">
+                                {{ pageTitle }}
+                            </h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+{% endblock %}
