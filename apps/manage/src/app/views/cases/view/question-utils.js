@@ -47,6 +47,10 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 						maxLength: {
 							maxLength: 250,
 							maxLengthMessage: `${title} name must be less than 250 characters`
+						},
+						regex: {
+							regex: "^[A-Za-z0-9 '’-]+$",
+							regexMessage: 'Full name must only include letters, spaces, hyphens, apostrophes or numbers'
 						}
 					},
 					{
