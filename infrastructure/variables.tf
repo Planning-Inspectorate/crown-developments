@@ -42,7 +42,7 @@ variable "apps_config" {
     })
 
     crown_dev_contact_info = object({
-        email = string
+      email = string
     })
 
     sharepoint = object({
