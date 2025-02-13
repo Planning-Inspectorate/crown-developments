@@ -1,0 +1,135 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+
+{% block pageHeading %}{% endblock %}
+
+{% block pageContent %}
+    <div class="govuk-width-container">
+        <main class="govuk-main-wrapper" id="main-content">
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-one-third">
+                    <ul class="govuk-list">
+                      <li>
+                        <strong>Application Information</strong>
+                      </li>
+                      <li>
+                        <a class="govuk-link" href="#">Documents</a>
+                      </li>
+                      <li>
+                        <a class="govuk-link" href="#">Have your say</a>
+                      </li>
+                    </ul>
+                </div>
+
+                <div class="govuk-grid-column-two-thirds">
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-full">
+                            <h1 class="govuk-heading-xl">
+                                {% if pageCaption %}
+                                    <span class="govuk-caption-xl">{{ pageCaption }}</span>
+                                {% endif %}
+                                {{ pageHeading or pageTitle }}
+                            </h1>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h2 class="govuk-heading-m">About the application</h2>
+                        <p class="govuk-body">Type of application: {{ crownDevelopment.Type.displayName }}</p>
+                        <p class="govuk-body">Applicant name: {{ crownDevelopment.ApplicantContact.fullName }}</p>
+                        <p class="govuk-body">Local Planning Authority: {{ crownDevelopment.Lpa.name }}</p>
+                        <p class="govuk-body">Date application accepted: {{ formatDateFunction(crownDevelopment.applicationAcceptedDate) }}</p>
+                        <p class="govuk-body">Date by which representations must be made: {{ formatDateFunction(crownDevelopment.representationsPeriodEndDate) }}</p>
+                        <p class="govuk-body">Application decision date: {{ formatDateFunction(crownDevelopment.decisionDate) }}</p>
+                        <p class="govuk-body">The address for receipt of representations about the application: Planning Inspectorate Address TBC</p>
+                        <p class="govuk-body">{{ crownDevelopment.description }}</p>
+                    </div>
+
+                    <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+
+                    <div>
+                        <h2 class="govuk-heading-m">Project stage</h2>
+
+                        <p class="govuk-body">
+                            {% if crownDevelopment.stageId %}
+                                This application is at <strong>{{ crownDevelopment.stageId }}</strong> stage
+                            {% else %}
+                                This application has not yet been moved into a valid project stage
+                            {% endif %}
+                        </p>
+
+                        <p class="govuk-body">
+                            {% if crownDevelopment.applicationAcceptedDate %}
+                                This application was accepted on <strong>{{ formatDateFunction(crownDevelopment.applicationAcceptedDate) }}</strong>
+                            {% else %}
+                                This application has not yet been accepted
+                            {% endif %}
+                        </p>
+
+                        {{ govukDetails({
+                          summaryText: "Complete",
+                          text: "Text about complete project stage"
+                        }) }}
+                        {{ govukDetails({
+                          summaryText: "Consultation",
+                          text: "Text about consultation project stage"
+                        }) }}
+                        {{ govukDetails({
+                          summaryText: "Procedure decision",
+                          text: "Text about procedure decision project stage"
+                        }) }}
+                        {{ govukDetails({
+                          summaryText: "Written Representations",
+                          text: "Text about written representations project stage"
+                        }) }}
+                        {{ govukDetails({
+                          summaryText: "Inquiry",
+                          text: "Text about inquiry project stage"
+                        }) }}
+                        {{ govukDetails({
+                          summaryText: "Hearing",
+                          text: "Text about hearing (dependant upon the outcome of the decision) project stage"
+                        }) }}
+                        {{ govukDetails({
+                          summaryText: "Decision",
+                          text: "Text about decision project stage"
+                        }) }}
+                    </div>
+
+                    <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+
+                    <div>
+                        <h2 id="site-address" class="govuk-heading-m">Project location</h2>
+                        <p class="govuk-body">{{ formatAddressFunction(crownDevelopment.SiteAddress) }}</p>
+                        <p class="govuk-body">Site Northing: {{ crownDevelopment.siteNorthing }}</p>
+                        <p class="govuk-body">Site Easting: {{ crownDevelopment.siteEasting }}</p>
+                    </div>
+
+                    <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+
+                    <div>
+                        <h2 id="procedure" class="govuk-heading-m">Procedure</h2>
+                        {% if crownDevelopment.procedureId === 'inquiry' %}
+                          <p class="govuk-body">Inquiry</p>
+                          <p class="govuk-body">Inquiry statements date: {{ formatDateFunction(crownDevelopment.Event.statementsDate) }}</p>
+                          <p class="govuk-body">Inquiry date: {{ formatDateFunction(crownDevelopment.Event.date) }}</p>
+                          <p class="govuk-body">Inquiry venue: {{ crownDevelopment.Event.venue }}</p>
+                          <p class="govuk-body">Proofs of evidence: {{ formatDateFunction(crownDevelopment.Event.proofsOfEvidenceDate) }}</p>
+                        {% elif crownDevelopment.procedureId === 'hearing' %}
+                          <p class="govuk-body">Hearing</p>
+                          <p class="govuk-body">Hearing Date: {{ formatDateFunction(crownDevelopment.Event.date) }}</p>
+                          <p class="govuk-body">Hearing venue: {{ crownDevelopment.Event.venue }}</p>
+                        {% else %}
+                          <p class="govuk-body">Procedure has yet to be determined</p>
+                        {% endif %}
+
+                        <p class="govuk-body">Inspector: {{ crownDevelopment.inspectorId if crownDevelopment.inspectorId else "To be determined" }}</p>
+                        <p class="govuk-body">Case Officer: {{ crownDevelopment.caseOfficerId if crownDevelopment.caseOfficerId else "To be determined" }}</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+{% endblock %}

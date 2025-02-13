@@ -1,0 +1,10 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+
+{% block pageContent %}
+    {{ govukPanel({
+        titleText: "Submission Complete",
+        html: "Your submission reference is <br><strong>" + reference + "</strong>"
+    }) }}
+{% endblock %}
