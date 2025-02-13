@@ -122,11 +122,11 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		siteArea: {
 			type: COMPONENT_TYPES.NUMBER,
 			title: 'Site Area (ha)',
-			question: 'What is area of the site in hectares?',
+			question: 'What is the area of the site in hectares?',
 			suffix: 'ha',
 			fieldName: 'siteArea',
 			url: 'site-area',
-			validators: [new RequiredValidator(), new NumericValidator({ min: 0 })]
+			validators: [new NumericValidator({ regex: /^(\d+)?$/, regexMessage: 'The value must be at least 0' })]
 		},
 		expectedDateOfSubmission: dateQuestion('expectedDateOfSubmission'),
 		decisionOutcome: {
