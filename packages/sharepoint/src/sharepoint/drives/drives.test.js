@@ -43,6 +43,21 @@ describe('drives', () => {
 			assert.deepEqual(result, mockResponse);
 		});
 	});
+	describe('getDriveItem', () => {
+		test('should fetch drive item', async () => {
+			const client = mockClient();
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			const mockResponse = { name: 'test1' };
+			client.get = async () => mockResponse;
+
+			const result = await sharePointDrive.getDriveItem('item-1');
+			assert.strictEqual(client.api.mock.callCount(), 1);
+			assert.equal(client.api.mock.calls[0].arguments[0], '/drives/testDriveId/items/item-1');
+			assert.deepEqual(result, mockResponse);
+		});
+	});
 	describe('copyDriveItem', () => {
 		test('should copy drive item with only required params', async () => {
 			const client = mockClient();
