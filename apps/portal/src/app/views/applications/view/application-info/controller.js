@@ -27,8 +27,6 @@ export function buildApplicationInformationPage({ db, logger, config, getNow = g
 			where: { id, publishDate: { lte: now } },
 			include: {
 				ApplicantContact: { include: { Address: true } },
-				AgentContact: { include: { Address: true } },
-				Category: { include: { ParentCategory: true } },
 				Lpa: true,
 				Type: true,
 				SiteAddress: true
@@ -36,7 +34,7 @@ export function buildApplicationInformationPage({ db, logger, config, getNow = g
 		});
 
 		if (!crownDevelopment) {
-			throw new Error('Crown development case not published. Please try again later');
+			return notFoundHandler(req, res);
 		}
 
 		logger.info(`Crown development case fetched: ${id}`);
