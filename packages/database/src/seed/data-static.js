@@ -21,27 +21,38 @@ export const APPLICATION_DECISION_OUTCOME = [
 ];
 
 /**
+ * @type {Readonly<{PLANNING_PERMISSION: string, OUTLINE_PLANNING_SOME_RESERVED: string, OUTLINE_PLANNING_ALL_RESERVED: string, APPROVAL_OF_RESERVED_MATTERS: string, PLANNING_AND_LISTED_BUILDING_CONSENT: string}>}
+ */
+export const APPLICATION_TYPE_ID = Object.freeze({
+	PLANNING_PERMISSION: 'planning-permission',
+	OUTLINE_PLANNING_SOME_RESERVED: 'outline-planning-permission-some-reserved',
+	OUTLINE_PLANNING_ALL_RESERVED: 'outline-planning-permission-all-reserved',
+	APPROVAL_OF_RESERVED_MATTERS: 'approval-of-reserved-matters',
+	PLANNING_AND_LISTED_BUILDING_CONSENT: 'planning-permission-and-listed-building-consent'
+});
+
+/**
  * @type {import('@prisma/client').Prisma.ApplicationTypeCreateInput[]}
  */
 export const APPLICATION_TYPES = [
 	{
-		id: 'planning-permission',
+		id: APPLICATION_TYPE_ID.PLANNING_PERMISSION,
 		displayName: 'Planning permission'
 	},
 	{
-		id: 'outline-planning-permission-some-reserved',
+		id: APPLICATION_TYPE_ID.OUTLINE_PLANNING_SOME_RESERVED,
 		displayName: 'Outline planning permission with some matters reserved'
 	},
 	{
-		id: 'outline-planning-permission-all-reserved',
+		id: APPLICATION_TYPE_ID.OUTLINE_PLANNING_ALL_RESERVED,
 		displayName: 'Outline planning permission with all matters reserved'
 	},
 	{
-		id: 'approval-of-reserved-matters',
+		id: APPLICATION_TYPE_ID.APPROVAL_OF_RESERVED_MATTERS,
 		displayName: 'Approval of reserved matters following outline approval'
 	},
 	{
-		id: 'planning-permission-and-listed-building-consent',
+		id: APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT,
 		displayName:
 			'Planning permission and listed building consent for alterations, extension or demolition of a listed building'
 	}
@@ -195,19 +206,28 @@ export const REPRESENTATION_CATEGORY = [
 ];
 
 /**
+ * @type {Readonly<{MYSELF: string, ORGANISATION: string, ON_BEHALF_OF: string}>}
+ */
+export const REPRESENTATION_SUBMITTED_FOR_ID = Object.freeze({
+	MYSELF: 'myself',
+	ORGANISATION: 'organisation',
+	ON_BEHALF_OF: 'on-behalf-of'
+});
+
+/**
  * @type {import('@prisma/client').Prisma.RepresentationSubmittedForCreateInput[]}
  */
 export const REPRESENTATION_SUBMITTED_FOR = [
 	{
-		id: 'myself',
+		id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
 		displayName: 'Myself'
 	},
 	{
-		id: 'organisation',
+		id: REPRESENTATION_SUBMITTED_FOR_ID.ORGANISATION,
 		displayName: 'An organisation I work or volunteer for'
 	},
 	{
-		id: 'on-behalf-of',
+		id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 		displayName: 'On behalf of another person, a household, or an organisation I do not work for'
 	}
 ];
