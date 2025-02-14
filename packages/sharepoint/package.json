@@ -8,5 +8,8 @@
   },
   "author": "",
   "license": "MIT",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "@microsoft/microsoft-graph-types": "*"
+  }
 }
