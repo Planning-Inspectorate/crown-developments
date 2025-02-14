@@ -19,3 +19,21 @@ export function toInt(str) {
 	}
 	return null;
 }
+
+const K_UNIT = 1024;
+const SIZES = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
+
+/**
+ * Convert a number of bytes to a human-readable unit
+ *
+ * @param {number} bytes
+ * @param {number} [decimalPoints]
+ * @returns {string}
+ */
+export function bytesToUnit(bytes, decimalPoints = 1) {
+	if (bytes === 0) return '0 Byte';
+
+	const i = Math.floor(Math.log(bytes) / Math.log(K_UNIT));
+
+	return parseFloat((bytes / Math.pow(K_UNIT, i)).toFixed(decimalPoints)) + ' ' + SIZES[i];
+}
