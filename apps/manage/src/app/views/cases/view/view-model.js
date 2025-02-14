@@ -134,7 +134,7 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	delete crownDevelopmentUpdateInput.updatedDate;
 
 	// set number fields
-	if (edits.siteNorthing || edits.siteEasting) {
+	if ('siteNorthing' in edits || 'siteEasting' in edits) {
 		crownDevelopmentUpdateInput.siteNorthing = toInt(edits.siteNorthing);
 		crownDevelopmentUpdateInput.siteEasting = toInt(edits.siteEasting);
 	}
