@@ -43,6 +43,43 @@ describe('drives', () => {
 			assert.deepEqual(result, mockResponse);
 		});
 	});
+	describe('getDriveItem', () => {
+		test('should fetch drive item', async () => {
+			const client = mockClient();
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			const mockResponse = { name: 'test1' };
+			client.get = async () => mockResponse;
+
+			const result = await sharePointDrive.getDriveItem('item-1');
+			assert.strictEqual(client.api.mock.callCount(), 1);
+			assert.equal(client.api.mock.calls[0].arguments[0], '/drives/testDriveId/items/item-1');
+			assert.deepEqual(result, mockResponse);
+		});
+	});
+	describe('getDriveItemDownloadUrl', () => {
+		test('should error if no download URL', async () => {
+			const client = mockClient();
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			const mockResponse = { name: 'test1' };
+			client.get = async () => mockResponse;
+
+			await assert.rejects(() => sharePointDrive.getDriveItemDownloadUrl('item-1'));
+		});
+		test('should return download URL', async () => {
+			const client = mockClient();
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			const mockResponse = { '@microsoft.graph.downloadUrl': 'download/url/here' };
+			client.get = async () => mockResponse;
+			const downloadUrl = await sharePointDrive.getDriveItemDownloadUrl('item-1');
+			assert.strictEqual(downloadUrl, 'download/url/here');
+		});
+	});
 	describe('copyDriveItem', () => {
 		test('should copy drive item with only required params', async () => {
 			const client = mockClient();
