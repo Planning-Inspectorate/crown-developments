@@ -15,8 +15,6 @@ const listArgs = Prisma.validator<Prisma.CrownDevelopmentDefaultArgs>()({
 		id: true,
 		reference: true,
 		ApplicantContact: { include: { Address: true } },
-		AgentContact: { include: { Address: true } },
-		Category: { include: { ParentCategory: true } },
 		Lpa: true,
 		Type: true,
 		SiteAddress: true
