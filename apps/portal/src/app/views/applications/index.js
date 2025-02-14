@@ -6,6 +6,7 @@ import { createRoutes as createViewRoutes } from './view/index.js';
  * @param {import('pino').Logger} opts.logger
  * @param {import('@prisma/client').PrismaClient} opts.db
  * @param {import('../../config-types.js').Config} opts.config
+ * @param {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} opts.sharePointDrive
  * @returns {import('express').Router}
  */
 export function createRoutes(opts) {
