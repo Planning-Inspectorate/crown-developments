@@ -1,4 +1,6 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
+import { crownDevelopmentToViewModel } from '../view-model.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 
 const getCurrentDate = () => new Date();
 
@@ -6,6 +8,8 @@ const getCurrentDate = () => new Date();
  * @param {Object} opts
  * @param {import('@prisma/client').PrismaClient} opts.db
  * @param {import('pino').BaseLogger} opts.logger
+ * @param {import('../../../../config-types.js').Config} opts.config
+ * @param {function(): Date} [opts.getNow]
  * @returns {import('express').Handler}
  */
 export function buildApplicationInformationPage({ db, logger, config, getNow = getCurrentDate }) {
@@ -15,7 +19,7 @@ export function buildApplicationInformationPage({ db, logger, config, getNow = g
 			throw new Error('id param required');
 		}
 		if (!isValidUuidFormat(id)) {
-			throw new Error('id format is invalid');
+			return notFoundHandler(req, res);
 		}
 		const now = getNow();
 
@@ -37,23 +41,12 @@ export function buildApplicationInformationPage({ db, logger, config, getNow = g
 
 		logger.info(`Crown development case fetched: ${id}`);
 
-		const crownDevContactEmail = config.crownDevContactInfo.email;
+		const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment, config);
 
 		return res.render('views/applications/view/application-info/view.njk', {
-			pageCaption: crownDevelopment.reference,
+			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Application Information',
-			id,
-			crownDevelopment,
-			crownDevContactEmail,
-			formatAddressFunction: formatAddress
+			crownDevelopmentFields
 		});
 	};
-}
-
-function formatAddress(address) {
-	return Object.entries(address)
-		.filter(([key]) => key !== 'id')
-		.filter(([, value]) => value !== null)
-		.map(([, value]) => value)
-		.join(', ');
 }

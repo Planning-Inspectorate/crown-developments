@@ -7,6 +7,7 @@ import { viewHaveYourSayPage } from './have-your-say/controller.js';
  * @param {Object} opts
  * @param {import('pino').Logger} opts.logger
  * @param {import('@prisma/client').PrismaClient} opts.db
+ * @param {import('../../../config-types.js').Config} opts.config
  * @returns {import('express').Router}
  */
 export function createRoutes(opts) {
