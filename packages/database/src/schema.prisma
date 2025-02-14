@@ -138,9 +138,11 @@ model Contact {
   addressId       String?  @db.UniqueIdentifier
   Address         Address? @relation(fields: [addressId], references: [id])
 
-  CrownDevelopmentApplicant CrownDevelopment[] @relation("ApplicantContact")
-  CrownDevelopmentAgent     CrownDevelopment[] @relation("AgentContact")
-  Representation            Representation[]   @relation("RepresentationContact")
+  CrownDevelopmentApplicant         CrownDevelopment[] @relation("ApplicantContact")
+  CrownDevelopmentAgent             CrownDevelopment[] @relation("AgentContact")
+  RepresentationSubmittedByContact  Representation[]   @relation("RepresentationSubmittedByContact")
+  RepresentationOrganisationContact Representation[]   @relation("RepresentationOrganisationContact")
+  Representation                    Representation[]   @relation("RepresentedContact")
 }
 
 /// Lpa represents a Local Planning Authority
@@ -180,21 +182,42 @@ model Event {
 /// Representation represents a comment made by an external party on an application
 model Representation {
   /// internal identifier
-  id                String             @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
-  reference         String             @unique
-  /// the project this presentation relates to
-  projectId         String             @db.UniqueIdentifier
-  Project           CrownDevelopment   @relation(fields: [projectId], references: [id])
-  status            String
-  originalComment   String             @db.NVarChar(MAX)
-  redactedComment   String?            @db.NVarChar(MAX)
-  isRedacted        Boolean            @default(false)
-  contactId         String?            @db.UniqueIdentifier
-  Contact           Contact?           @relation("RepresentationContact", fields: [contactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-  receivedDate      DateTime
-  type              String?
-  representedTypeId String
-  RepresentedType   RepresentationType @relation(fields: [representedTypeId], references: [id])
+  id            String                @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  reference     String                @unique
+  /// the application this representation relates to
+  applicationId String                @db.UniqueIdentifier
+  Application   CrownDevelopment      @relation(fields: [applicationId], references: [id])
+  statusId      String
+  Status        RepresentationStatus? @relation(fields: [statusId], references: [id])
+
+  // common fields
+  submittedForId       String
+  SubmittedFor         RepresentationSubmittedFor? @relation(fields: [submittedForId], references: [id])
+  submittedByContactId String?                     @db.UniqueIdentifier
+  SubmittedByContact   Contact?                    @relation("RepresentationSubmittedByContact", fields: [submittedByContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  submittedDate        DateTime
+
+  // common fields
+  isAdult         Boolean @default(true)
+  comment         String  @db.NVarChar(MAX)
+  commentRedacted String? @db.NVarChar(MAX)
+
+  // submitting for organisation fields
+  organisationContactId String?  @db.UniqueIdentifier
+  OrganisationContact   Contact? @relation("RepresentationOrganisationContact", fields: [organisationContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  organisationRole      String?
+
+  // submitting as agent/on behalf of fields
+  // can be an org/household/person
+  representedTypeId    String?
+  RepresentedType      RepresentedType? @relation(fields: [representedTypeId], references: [id])
+  representedContactId String?          @db.UniqueIdentifier
+  RepresentedContact   Contact?         @relation("RepresentedContact", fields: [representedContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  // internal fields
+  categoryId     String?
+  Category       RepresentationCategory? @relation(fields: [categoryId], references: [id])
+  wantsToBeHeard Boolean?
 }
 
 // reference data
@@ -250,8 +273,32 @@ model Category {
   CrownDevelopment CrownDevelopment[]
 }
 
-/// RepresentationType represents the type of representation i.e. whether person/org/group
-model RepresentationType {
+/// RepresentationCategory represents the options for categories such as 'stat con','member of the public', etc..
+model RepresentationCategory {
+  /// unique machine-readable name, not generated, e.g. "public"
+  id             String           @id
+  displayName    String?
+  Representation Representation[]
+}
+
+/// RepresentationSubmittedFor represents the options for who a representation has been made for
+model RepresentationSubmittedFor {
+  /// unique machine-readable name, not generated, e.g. "myself"
+  id             String           @id
+  displayName    String?
+  Representation Representation[]
+}
+
+/// RepresentationStatus represents the status of representation e.g. accepted/rejected
+model RepresentationStatus {
+  /// unique machine-readable name, not generated, e.g. "accepted"
+  id             String           @id
+  displayName    String?
+  Representation Representation[]
+}
+
+/// RepresentedType represents the type of representation when acting as an agent i.e. whether person/org/group
+model RepresentedType {
   /// unique machine-readable name, not generated, e.g. "person"
   id             String           @id
   displayName    String?

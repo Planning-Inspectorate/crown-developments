@@ -173,20 +173,96 @@ export const APPLICATION_PROCEDURE = [
 ];
 
 /**
- * @type {import('@prisma/client').Prisma.RepresentationTypeCreateInput[]}
+ * @type {import('@prisma/client').Prisma.RepresentationCategoryCreateInput[]}
  */
-export const REPRESENTATION_TYPE = [
+export const REPRESENTATION_CATEGORY = [
 	{
-		id: 'person',
-		displayName: 'Person'
+		id: 'public',
+		displayName: 'Member of the public'
+	},
+	{
+		id: 'non-stat-organisation',
+		displayName: 'Non-statutory organisations'
+	},
+	{
+		id: 'other-stat-con',
+		displayName: 'Other statutory consultee'
+	},
+	{
+		id: 'parish-council',
+		displayName: 'Parish Council'
+	}
+];
+
+/**
+ * @type {import('@prisma/client').Prisma.RepresentationSubmittedForCreateInput[]}
+ */
+export const REPRESENTATION_SUBMITTED_FOR = [
+	{
+		id: 'myself',
+		displayName: 'Myself'
 	},
 	{
 		id: 'organisation',
-		displayName: 'Organisation'
+		displayName: 'An organisation I work or volunteer for'
 	},
 	{
-		id: 'family-group',
-		displayName: 'Family Group'
+		id: 'on-behalf-of',
+		displayName: 'On behalf of another person, a household, or an organisation I do not work for'
+	}
+];
+
+/**
+ * @type {Readonly<{AWAITING_REVIEW: string, ACCEPTED: string, REJECTED: string}>}
+ */
+export const REPRESENTATION_STATUS_ID = Object.freeze({
+	AWAITING_REVIEW: 'awaiting-review',
+	ACCEPTED: 'accepted',
+	REJECTED: 'rejected'
+});
+
+/**
+ * @type {import('@prisma/client').Prisma.RepresentationStatusCreateInput[]}
+ */
+export const REPRESENTATION_STATUS = [
+	{
+		id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW,
+		displayName: 'Awaiting Review'
+	},
+	{
+		id: REPRESENTATION_STATUS_ID.ACCEPTED,
+		displayName: 'Accepted'
+	},
+	{
+		id: REPRESENTATION_STATUS_ID.REJECTED,
+		displayName: 'Rejected'
+	}
+];
+
+/**
+ * @type {Readonly<{PERSON: string, ORGANISATION: string, HOUSEHOLD: string}>}
+ */
+export const REPRESENTED_TYPE_ID = Object.freeze({
+	PERSON: 'person',
+	ORGANISATION: 'organisation',
+	HOUSEHOLD: 'household'
+});
+
+/**
+ * @type {import('@prisma/client').Prisma.RepresentedTypeCreateInput[]}
+ */
+export const REPRESENTED_TYPE = [
+	{
+		id: REPRESENTED_TYPE_ID.PERSON,
+		displayName: 'Another individual'
+	},
+	{
+		id: REPRESENTED_TYPE_ID.ORGANISATION,
+		displayName: 'An organisation or charity I do not work for'
+	},
+	{
+		id: REPRESENTED_TYPE_ID.HOUSEHOLD,
+		displayName: 'Another household'
 	}
 ];
 
@@ -296,7 +372,10 @@ export const CATEGORIES = [
  * @typedef {import('@prisma/client').Prisma.ApplicationStageDelegate} ApplicationStageDelegate
  * @typedef {import('@prisma/client').Prisma.ApplicationStatusDelegate} ApplicationStatusDelegate
  * @typedef {import('@prisma/client').Prisma.ApplicationProcedureDelegate} ApplicationProcedureDelegate
- * @typedef {import('@prisma/client').Prisma.RepresentationTypeDelegate} RepresentationTypeDelegate
+ * @typedef {import('@prisma/client').Prisma.RepresentationCategoryDelegate} RepresentationCategoryDelegate
+ * @typedef {import('@prisma/client').Prisma.RepresentationSubmittedForDelegate} RepresentationSubmittedForDelegate
+ * @typedef {import('@prisma/client').Prisma.RepresentationStatusDelegate} RepresentationStatusDelegate
+ * @typedef {import('@prisma/client').Prisma.RepresentedTypeDelegate} RepresentedTypeDelegate
  * @typedef {import('@prisma/client').Prisma.CategoryDelegate} CategoryDelegate
  */
 
@@ -306,7 +385,10 @@ export const CATEGORIES = [
  * @typedef {import('@prisma/client').Prisma.ApplicationStageCreateInput} ApplicationStageCreateInput
  * @typedef {import('@prisma/client').Prisma.ApplicationStatusCreateInput} ApplicationStatusCreateInput
  * @typedef {import('@prisma/client').Prisma.ApplicationProcedureCreateInput} ApplicationProcedureCreateInput
- * @typedef {import('@prisma/client').Prisma.RepresentationTypeCreateInput} RepresentationTypeCreateInput
+ * @typedef {import('@prisma/client').Prisma.RepresentationCategoryCreateInput} RepresentationCategoryCreateInput
+ * @typedef {import('@prisma/client').Prisma.RepresentationSubmittedForCreateInput} RepresentationSubmittedForCreateInput
+ * @typedef {import('@prisma/client').Prisma.RepresentationStatusCreateInput} RepresentationStatusCreateInput
+ * @typedef {import('@prisma/client').Prisma.RepresentedTypeCreateInput} RepresentedTypeCreateInput
  * @typedef {import('@prisma/client').Prisma.CategoryCreateInput} CategoryCreateInput
  */
 
@@ -316,14 +398,17 @@ export const CATEGORIES = [
  * @typedef {{delegate: ApplicationStageDelegate, input: ApplicationStageCreateInput}} ApplicationStageArgs
  * @typedef {{delegate: ApplicationStatusDelegate, input: ApplicationStatusCreateInput}} ApplicationStatusArgs
  * @typedef {{delegate: ApplicationProcedureDelegate, input: ApplicationProcedureCreateInput}} ApplicationProcedureArgs
- * @typedef {{delegate: RepresentationTypeDelegate, input: RepresentationTypeCreateInput}} RepresentationTypeArgs
+ * @typedef {{delegate: RepresentationCategoryDelegate, input: RepresentationCategoryCreateInput}} RepresentationCategoryArgs
+ * @typedef {{delegate: RepresentationSubmittedForDelegate, input: RepresentationSubmittedForCreateInput}} RepresentationSubmittedForArgs
+ * @typedef {{delegate: RepresentationStatusDelegate, input: RepresentationStatusCreateInput}} RepresentationStatusArgs
+ * @typedef {{delegate: RepresentedTypeDelegate, input: RepresentedTypeCreateInput}} RepresentedTypeArgs
  * @typedef {{delegate: CategoryDelegate, input: CategoryCreateInput}} CategoryArgs
  */
 
 /**
  * Upsert reference data with any of the given types
  *
- * @param {ApplicationDecisionOutcomeArgs|ApplicationTypeArgs|ApplicationStageArgs|ApplicationStatusArgs|ApplicationProcedureArgs|RepresentationTypeArgs|CategoryArgs} args
+ * @param {ApplicationDecisionOutcomeArgs|ApplicationTypeArgs|ApplicationStageArgs|ApplicationStatusArgs|ApplicationProcedureArgs|RepresentationCategoryArgs|RepresentationSubmittedForArgs|RepresentationStatusArgs|RepresentedTypeArgs|CategoryArgs} args
  * @returns {Promise<any>}
  */
 async function upsertReferenceData({ delegate, input }) {
@@ -361,7 +446,21 @@ export async function seedStaticData(dbClient) {
 	);
 
 	await Promise.all(
-		REPRESENTATION_TYPE.map((input) => upsertReferenceData({ delegate: dbClient.representationType, input }))
+		REPRESENTATION_CATEGORY.map((input) => upsertReferenceData({ delegate: dbClient.representationCategory, input }))
+	);
+
+	await Promise.all(
+		REPRESENTATION_STATUS.map((input) => upsertReferenceData({ delegate: dbClient.representationStatus, input }))
+	);
+
+	await Promise.all(
+		REPRESENTATION_SUBMITTED_FOR.map((input) =>
+			upsertReferenceData({ delegate: dbClient.representationSubmittedFor, input })
+		)
+	);
+
+	await Promise.all(
+		REPRESENTED_TYPE.map((input) => upsertReferenceData({ delegate: dbClient.representedType, input }))
 	);
 
 	const categories = CATEGORIES.filter((c) => !c.ParentCategory);
