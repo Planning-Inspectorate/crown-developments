@@ -16,11 +16,11 @@
                       </li>
                       <br>
                       <li>
-                        <a class="govuk-link" href="/applications/application-information/{{ id }}/documents">Documents</a>
+                        <a class="govuk-link" href="/applications/application-information/{{ crownDevelopmentFields.id }}/documents">Documents</a>
                       </li>
                       <br>
                       <li>
-                        <a class="govuk-link" href="/applications/application-information/{{ id }}/have-your-say">Have your say</a>
+                        <a class="govuk-link" href="/applications/application-information/{{ crownDevelopmentFields.id }}/have-your-say">Have your say</a>
                       </li>
                     </ul>
                 </div>
@@ -41,19 +41,19 @@
                         <h2 class="govuk-heading-m">About the application</h2>
 
                         <h3 class="govuk-heading-s">Type of application</h3>
-                        <p class="govuk-body">{{ crownDevelopment.Type.displayName }}</p>
+                        <p class="govuk-body">{{ crownDevelopmentFields.applicationType }}</p>
 
                         <h3 class="govuk-heading-s">Local Planning Authority</h3>
-                        <p class="govuk-body">{{ crownDevelopment.Lpa.name }}</p>
+                        <p class="govuk-body">{{ crownDevelopmentFields.lpaName }}</p>
 
                         <h3 class="govuk-heading-s">Applicant name</h3>
-                        <p class="govuk-body">{{ crownDevelopment.ApplicantContact.fullName }}</p>
+                        <p class="govuk-body">{{ crownDevelopmentFields.applicantName }}</p>
 
                         <h3 class="govuk-heading-s">Site Address</h3>
-                        <p class="govuk-body">{{ formatAddressFunction(crownDevelopment.SiteAddress) }}</p>
+                        <p class="govuk-body">{{ crownDevelopmentFields.siteAddress }}</p>
 
                         <h3 class="govuk-heading-s">Description of the proposed development</h3>
-                        <p class="govuk-body">{{ crownDevelopment.description }}</p>
+                        <p class="govuk-body">{{ crownDevelopmentFields.description }}</p>
                     </div>
 
                     <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
@@ -72,7 +72,7 @@
 
                         <h3 class="govuk-heading-s">Email</h3>
                         <p class="govuk-body">
-                          <a class="govuk-link" href="mailto:{{ crownDevContactEmail }}">{{ crownDevContactEmail }}</a>
+                          <a class="govuk-link" href="mailto:{{ crownDevelopmentFields.crownDevelopmentContactEmail }}">{{ crownDevelopmentFields.crownDevelopmentContactEmail }}</a>
                         </p>
                         <p class="govuk-body">When writing an email, quote the name of the project in the subject line.</p>
                         <p class="govuk-body">We aim to respond within 10 working days.</p>

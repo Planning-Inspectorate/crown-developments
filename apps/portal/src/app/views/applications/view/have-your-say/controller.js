@@ -1,4 +1,5 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 
 /**
  * Render the have-your-say placeholder page
@@ -11,7 +12,7 @@ export function viewHaveYourSayPage(req, res) {
 		throw new Error('id param required');
 	}
 	if (!isValidUuidFormat(id)) {
-		throw new Error('id format is invalid');
+		return notFoundHandler(req, res);
 	}
 
 	res.render('views/applications/view/have-your-say/view.njk', {
