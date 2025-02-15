@@ -193,6 +193,10 @@ model Representation {
   Contact           Contact?           @relation("RepresentationContact", fields: [contactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   receivedDate      DateTime
   type              String?
+  /// is the person making the representation an adult/over 18
+  isAdult           Boolean            @default(true)
+  /// would like to be heard, if there is a hearing
+  wantsToBeHeard    Boolean?
   representedTypeId String
   RepresentedType   RepresentationType @relation(fields: [representedTypeId], references: [id])
 }

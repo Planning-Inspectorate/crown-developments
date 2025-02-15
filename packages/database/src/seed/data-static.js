@@ -173,6 +173,42 @@ export const APPLICATION_PROCEDURE = [
 ];
 
 /**
+ * @type {Readonly<{AWAITING_REVIEW: string, ACCEPTED: string, REJECTED: string}>}
+ */
+export const REPRESENTATION_STATUS_ID = Object.freeze({
+	AWAITING_REVIEW: 'awaiting-review',
+	ACCEPTED: 'accepted',
+	REJECTED: 'rejected'
+});
+
+/**
+ * @type {import('@prisma/client').Prisma.RepresentationTypeCreateInput[]}
+ */
+export const REPRESENTATION_STATUS = [
+	{
+		id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW,
+		displayName: 'Awaiting Review'
+	},
+	{
+		id: REPRESENTATION_STATUS_ID.ACCEPTED,
+		displayName: 'Accepted'
+	},
+	{
+		id: REPRESENTATION_STATUS_ID.REJECTED,
+		displayName: 'Rejected'
+	}
+];
+
+/**
+ * @type {Readonly<{PERSON: string, ORGANISATION: string, FAMILY_GROUP: string}>}
+ */
+export const REPRESENTATION_TYPE_ID = Object.freeze({
+	PERSON: 'person',
+	ORGANISATION: 'organisation',
+	FAMILY_GROUP: 'family-group'
+});
+
+/**
  * @type {import('@prisma/client').Prisma.RepresentationTypeCreateInput[]}
  */
 export const REPRESENTATION_TYPE = [
@@ -185,7 +221,7 @@ export const REPRESENTATION_TYPE = [
 		displayName: 'Organisation'
 	},
 	{
-		id: 'family-group',
+		id: REPRESENTATION_TYPE_ID.FAMILY_GROUP,
 		displayName: 'Family Group'
 	}
 ];

@@ -42,15 +42,18 @@ async function compileSass({ staticDir, srcDir, govUkRoot }) {
 async function copyAssets({ staticDir, govUkRoot }) {
 	const images = path.join(govUkRoot, 'node_modules/govuk-frontend/dist/govuk/assets/images');
 	const fonts = path.join(govUkRoot, 'node_modules/govuk-frontend/dist/govuk/assets/fonts');
+	const js = path.join(govUkRoot, 'node_modules/govuk-frontend/dist/govuk/govuk-frontend.min.js');
 	const manifest = path.join(govUkRoot, 'node_modules/govuk-frontend/dist/govuk/assets/manifest.json');
 
 	const staticImages = path.join(staticDir, 'assets', 'images');
 	const staticFonts = path.join(staticDir, 'assets', 'fonts');
+	const staticJs = path.join(staticDir, 'assets', 'js', 'govuk-frontend.min.js');
 	const staticManifest = path.join(staticDir, 'assets', 'manifest.json');
 
 	// copy all images and fonts for govuk-frontend
 	await copyFolder(images, staticImages);
 	await copyFolder(fonts, staticFonts);
+	await copyFile(js, staticJs);
 	await copyFile(manifest, staticManifest);
 }
 
