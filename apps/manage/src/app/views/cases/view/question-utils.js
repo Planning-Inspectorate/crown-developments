@@ -151,7 +151,10 @@ export function eventQuestions(prefix) {
 		[`${prefix}ProcedureNotificationDate`]: dateQuestion(`${prefix}ProcedureNotificationDate`),
 		[`${prefix}StatementsDate`]: dateQuestion(`${prefix}StatementsDate`),
 		[`${prefix}CaseManagementConferenceDate`]: dateQuestion(`${prefix}CaseManagementConferenceDate`),
-		[`${prefix}ProofsOfEvidenceDate`]: dateQuestion(`${prefix}ProofsOfEvidenceDate`)
+		[`${prefix}ProofsOfEvidenceDate`]: dateQuestion(
+			`${prefix}ProofsOfEvidenceDate`,
+			`${titleCase(prefix)} Proofs of Evidence Date`
+		)
 	};
 }
 
