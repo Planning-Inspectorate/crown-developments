@@ -41,7 +41,7 @@ export function buildApplicationDocumentsPage({ db, logger, sharePointDrive }) {
 			return notFoundHandler(req, res);
 		}
 		const folderPath = caseReferenceToFolderName(crownDevelopment.reference) + '/' + PUBLISHED_FOLDER;
-		logger.info('view documents');
+		logger.info({ folderPath }, 'view documents');
 		let documents = [];
 		try {
 			const items = await sharePointDrive.getItemsByPath(folderPath, [['$select', FILE_PROPERTIES.join(',')]]);

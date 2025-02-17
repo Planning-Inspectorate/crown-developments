@@ -25,9 +25,14 @@ export function getApp(config, logger) {
 	const redis = getRedis(config.session, logger);
 
 	const graphClient = Client.initWithMiddleware({
-		authProvider: new TokenCredentialAuthenticationProvider(new DefaultAzureCredential(), {
-			scopes: ['Sites.Selected']
-		})
+		authProvider: new TokenCredentialAuthenticationProvider(
+			new DefaultAzureCredential({
+				managedIdentityClientId: 'c3d796c2-5314-4a1b-a582-057f513d5b8b'
+			}),
+			{
+				scopes: ['https://graph.microsoft.com/.default']
+			}
+		)
 	});
 	const sharePointDrive = new SharePointDrive(graphClient, config.sharePoint.driveId);
 
