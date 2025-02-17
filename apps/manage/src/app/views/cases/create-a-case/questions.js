@@ -134,8 +134,5 @@ export function getQuestions() {
 		}
 	};
 
-	const textOverrides = {
-		emptyAnswerText: ''
-	};
-	return createQuestions(questions, questionClasses, {}, textOverrides);
+	return createQuestions(questions, questionClasses, {});
 }

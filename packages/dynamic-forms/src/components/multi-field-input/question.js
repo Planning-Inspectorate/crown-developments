@@ -132,7 +132,7 @@ export default class MultiFieldInputQuestion extends Question {
 			return answer ? acc + (field.formatPrefix || '') + answer + (field.formatJoinString || '\n') : acc;
 		}, '');
 
-		const formattedAnswer = summaryDetails || this.emptyAnswerText;
+		const formattedAnswer = this.#allQuestionsUnanswered(journey) ? this.notStartedText : summaryDetails || '';
 
 		return [
 			{
@@ -141,5 +141,14 @@ export default class MultiFieldInputQuestion extends Question {
 				action: this.getAction(sectionSegment, journey, summaryDetails)
 			}
 		];
+	}
+
+	/**
+	 * checks whether any answers have been provided for input field questions
+	 * @param {Journey} journey
+	 * @returns {boolean}
+	 */
+	#allQuestionsUnanswered(journey) {
+		return this.inputFields.every((field) => journey.response.answers[field.fieldName] === undefined);
 	}
 }
