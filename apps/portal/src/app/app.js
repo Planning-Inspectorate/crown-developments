@@ -26,7 +26,7 @@ export function getApp(config, logger) {
 
 	const graphClient = Client.initWithMiddleware({
 		authProvider: new TokenCredentialAuthenticationProvider(new DefaultAzureCredential(), {
-			scopes: ['https://graph.microsoft.com/Sites.Read.All']
+			scopes: ['Sites.Selected']
 		})
 	});
 	const sharePointDrive = new SharePointDrive(graphClient, config.sharePoint.driveId);
