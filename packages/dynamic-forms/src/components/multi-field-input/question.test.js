@@ -145,9 +145,6 @@ describe('./src/dynamic-forms/components/single-line-input/question.js', () => {
 		});
 		it('should return an empty string as answer text for unanswered multi field question', async () => {
 			const question = createMultiFieldInputQuestion();
-			// textOverride
-			question.emptyAnswerText = '';
-
 			const journey = new Journey({
 				journeyId: 'TEST',
 				makeBaseUrl: () => 'base',
@@ -173,6 +170,40 @@ describe('./src/dynamic-forms/components/single-line-input/question.js', () => {
 					},
 					key: 'title',
 					value: ''
+				}
+			];
+
+			const result = question.formatAnswerForSummary('questions', journey);
+
+			assert.deepStrictEqual(result, expectedResult);
+		});
+		it('should return not started text for undefined multi field question', async () => {
+			const question = createMultiFieldInputQuestion();
+			const journey = new Journey({
+				journeyId: 'TEST',
+				makeBaseUrl: () => 'base',
+				taskListUrl: 'cases/create-a-case/check-your-answers',
+				response: {
+					answers: {
+						testField1: undefined,
+						testField2: undefined
+					}
+				},
+				journeyTemplate: 'mock template',
+				listingPageViewPath: 'mock path',
+				journeyTitle: 'mock title',
+				sections: []
+			});
+
+			const expectedResult = [
+				{
+					action: {
+						href: 'base/cases/create-a-case/check-your-answers',
+						text: 'Answer',
+						visuallyHiddenText: 'Question?'
+					},
+					key: 'title',
+					value: 'Not started'
 				}
 			];
 
