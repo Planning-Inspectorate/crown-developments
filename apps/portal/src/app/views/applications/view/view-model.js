@@ -30,3 +30,25 @@ function addressToViewModel(address) {
 	const fields = [address.line1, address.line2, address.townCity, address.county, address.postcode];
 	return fields.filter(Boolean).join(', ');
 }
+
+/**
+ * @param {string} id
+ * @returns {import('./types.js').ApplicationLink[]}
+ */
+export function applicationLinks(id) {
+	return [
+		{
+			href: `/applications/application-information/${id}`,
+			text: 'Application Information'
+		},
+		{
+			href: `/applications/application-information/${id}/documents`,
+			text: 'Documents'
+		},
+		{
+			// TODO: add logic to hide this when reps period is closed
+			href: `/applications/application-information/${id}/have-your-say`,
+			text: 'Have Your Say'
+		}
+	];
+}

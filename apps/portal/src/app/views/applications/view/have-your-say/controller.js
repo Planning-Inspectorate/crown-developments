@@ -1,5 +1,6 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { applicationLinks } from '../view-model.js';
 
 /**
  * Render the have-your-say placeholder page
@@ -17,6 +18,9 @@ export function viewHaveYourSayPage(req, res) {
 
 	res.render('views/applications/view/have-your-say/view.njk', {
 		id,
-		pageTitle: 'Placeholder for Have Your Say page'
+		pageTitle: 'Placeholder for Have Your Say page',
+		pageCaption: 'Case ref here',
+		links: applicationLinks(id),
+		currentUrl: req.originalUrl
 	});
 }

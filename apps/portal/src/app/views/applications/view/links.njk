@@ -1,0 +1,18 @@
+{% macro applicationLinks(links, currentUrl) %}
+    <ul class="govuk-list">
+        {% for link in links %}
+            {% if link.href == currentUrl %}
+                <li>
+                    <strong>{{ link.text }}</strong>
+                </li>
+            {% else %}
+                <li>
+                    <a class="govuk-link" href="{{ link.href }}">{{ link.text }}</a>
+                </li>
+            {% endif %}
+            {%- if not loop.last -%}
+            <br>
+            {%- endif -%}
+        {% endfor %}
+    </ul>
+{% endmacro %}

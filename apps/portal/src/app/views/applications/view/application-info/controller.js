@@ -1,5 +1,5 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
-import { crownDevelopmentToViewModel } from '../view-model.js';
+import { applicationLinks, crownDevelopmentToViewModel } from '../view-model.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 
 const getCurrentDate = () => new Date();
@@ -44,6 +44,8 @@ export function buildApplicationInformationPage({ db, logger, config, getNow = g
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Application Information',
+			links: applicationLinks(id),
+			currentUrl: req.baseUrl,
 			crownDevelopmentFields
 		});
 	};
