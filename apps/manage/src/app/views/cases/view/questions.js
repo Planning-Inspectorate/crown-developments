@@ -67,7 +67,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		typeOfApplication: {
 			type: COMPONENT_TYPES.RADIO,
-			title: 'Application type',
+			title: 'Application Type',
 			question: 'What type of application is it?',
 			fieldName: 'typeId',
 			url: 'type-of-application',
@@ -128,7 +128,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			url: 'site-area',
 			validators: [new NumericValidator({ regex: /^$|^\d+(\.\d+)?$/, regexMessage: 'The value must be at least 0' })]
 		},
-		expectedDateOfSubmission: dateQuestion('expectedDateOfSubmission'),
+		expectedDateOfSubmission: dateQuestion('expectedDateOfSubmission', 'Expected Date of Submission'),
 		decisionOutcome: {
 			type: COMPONENT_TYPES.RADIO,
 			title: 'Decision Outcome',
@@ -220,7 +220,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		siteIsVisibleFromPublicLand: {
 			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'Site Is Visible From Public Land',
+			title: 'Site is Visible From Public Land',
 			question: 'Is the site visible from public land?',
 			fieldName: 'siteIsVisibleFromPublicLand',
 			url: 'site-is-visible-from-public-land',
@@ -286,12 +286,12 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 
 		applicationReceivedDate: dateQuestion('applicationReceivedDate'),
 		applicationCompleteDate: dateQuestion('applicationCompleteDate'),
-		lpaQuestionnaireSentDate: dateQuestion('lpaQuestionnaireSentDate'),
-		lpaQuestionnaireReceivedDate: dateQuestion('lpaQuestionnaireReceivedDate'),
+		lpaQuestionnaireSentDate: dateQuestion('lpaQuestionnaireSentDate', 'LPA Questionnaire Sent Date'),
+		lpaQuestionnaireReceivedDate: dateQuestion('lpaQuestionnaireReceivedDate', 'LPA Questionnaire Received Date'),
 		publishDate: dateQuestion('publishDate'),
 		pressNoticeDate: dateQuestion('pressNoticeDate'),
-		neighboursNotifiedByLpaDate: dateQuestion('neighboursNotifiedByLpaDate'),
-		siteNoticeByLpaDate: dateQuestion('siteNoticeByLpaDate'),
+		neighboursNotifiedByLpaDate: dateQuestion('neighboursNotifiedByLpaDate', 'Neighbours Notified By LPA Date'),
+		siteNoticeByLpaDate: dateQuestion('siteNoticeByLpaDate', 'Site Notice by LPA Date'),
 		targetDecisionDate: dateQuestion('targetDecisionDate'),
 		extendedTargetDecisionDate: dateQuestion('extendedTargetDecisionDate'),
 		recoveredDate: dateQuestion('recoveredDate'),
