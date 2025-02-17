@@ -72,6 +72,8 @@ export class Question {
 	changeActionText = 'Change';
 	/** @type {string} text to display for 'answer' link */
 	answerActionText = 'Answer';
+	/** @type {string} '-' text to display (if a question has no answer) */
+	emptyAnswerText = '-';
 
 	/**
 	 * @param {JourneyResponse} [response]
