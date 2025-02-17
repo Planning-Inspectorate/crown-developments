@@ -132,7 +132,14 @@ export default class MultiFieldInputQuestion extends Question {
 			return answer ? acc + (field.formatPrefix || '') + answer + (field.formatJoinString || '\n') : acc;
 		}, '');
 
-		const formattedAnswer = summaryDetails || this.notStartedText;
+		let formattedAnswer;
+		if (summaryDetails) {
+			formattedAnswer = summaryDetails;
+		} else if (!summaryDetails && this.#isInputFieldNorthingEasting()) {
+			formattedAnswer = '';
+		} else {
+			formattedAnswer = this.notStartedText;
+		}
 
 		return [
 			{
@@ -141,5 +148,9 @@ export default class MultiFieldInputQuestion extends Question {
 				action: this.getAction(sectionSegment, journey, summaryDetails)
 			}
 		];
+	}
+
+	#isInputFieldNorthingEasting() {
+		return this.inputFields.some((field) => field.fieldName === 'siteNorthing' || field.fieldName === 'siteEasting');
 	}
 }
