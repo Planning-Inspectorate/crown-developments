@@ -4,7 +4,7 @@
  * @param {{[questionName: string]: QuestionProps}} questionPropsRecord
  * @param {Record<string, typeof import('./question').Question>} questionClasses
  * @param {{[questionType: string]: Record<string, Function>}} questionMethodOverrides
- * @param {{notStartedText?: string, continueButtonText?: string, changeActionText?: string, answerActionText?: string}} [textOverrides] - customise question text
+ * @param {{notStartedText?: string, continueButtonText?: string, changeActionText?: string, answerActionText?: string, emptyAnswerText?: string}} [textOverrides] - customise question text
  */
 export function createQuestions(questionPropsRecord, questionClasses, questionMethodOverrides, textOverrides) {
 	return Object.fromEntries(
@@ -18,7 +18,13 @@ export function createQuestions(questionPropsRecord, questionClasses, questionMe
 			const question = new questionClasses[props.type](props, questionMethodOverrides[props.type]);
 			if (textOverrides) {
 				// todo: is there a better way? this is used to customise e.g. the notStartedText text
-				const options = ['notStartedText', 'continueButtonText', 'changeActionText', 'answerActionText'];
+				const options = [
+					'notStartedText',
+					'emptyAnswerText',
+					'continueButtonText',
+					'changeActionText',
+					'answerActionText'
+				];
 				for (const option of options) {
 					if (option in textOverrides) {
 						question[option] = textOverrides[option];

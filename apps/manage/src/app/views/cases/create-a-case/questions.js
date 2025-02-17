@@ -78,6 +78,7 @@ export function getQuestions() {
 			question: 'What are the coordinates of the site?',
 			fieldName: 'siteCoordinates',
 			url: 'site-coordinates',
+			notStartedTest: '-',
 			inputFields: [
 				{
 					fieldName: 'siteNorthing',
@@ -134,5 +135,8 @@ export function getQuestions() {
 		}
 	};
 
-	return createQuestions(questions, questionClasses, {});
+	const textOverrides = {
+		emptyAnswerText: ''
+	};
+	return createQuestions(questions, questionClasses, {}, textOverrides);
 }

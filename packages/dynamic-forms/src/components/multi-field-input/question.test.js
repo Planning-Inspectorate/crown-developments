@@ -143,8 +143,11 @@ describe('./src/dynamic-forms/components/single-line-input/question.js', () => {
 
 			assert.deepStrictEqual(result, expectedResult);
 		});
-		it('should return not started text for non coordinates question not answered', async () => {
+		it('should return an empty string as answer text for unanswered multi field question', async () => {
 			const question = createMultiFieldInputQuestion();
+			// textOverride
+			question.emptyAnswerText = '';
+
 			const journey = new Journey({
 				journeyId: 'TEST',
 				makeBaseUrl: () => 'base',
@@ -153,48 +156,6 @@ describe('./src/dynamic-forms/components/single-line-input/question.js', () => {
 					answers: {
 						testField1: null,
 						testField2: null
-					}
-				},
-				journeyTemplate: 'mock template',
-				listingPageViewPath: 'mock path',
-				journeyTitle: 'mock title',
-				sections: []
-			});
-
-			const expectedResult = [
-				{
-					action: {
-						href: 'base/cases/create-a-case/check-your-answers',
-						text: 'Answer',
-						visuallyHiddenText: 'Question?'
-					},
-					key: 'title',
-					value: 'Not started'
-				}
-			];
-
-			const result = question.formatAnswerForSummary('questions', journey);
-
-			assert.deepStrictEqual(result, expectedResult);
-		});
-		it('should return empty string as formatted answer if empty coordinates provided', async () => {
-			const question = createMultiFieldInputQuestion();
-			question.inputFields = [
-				{ fieldName: 'siteNorthing', label: 'Northing', formatPrefix: 'Northing: ', hint: 'Optional' },
-				{ fieldName: 'siteEasting', label: 'Easting', formatPrefix: 'Easting: ', hint: 'Optional' }
-			];
-
-			const journey = new Journey({
-				journeyId: 'TEST',
-				makeBaseUrl: () => 'base',
-				taskListUrl: 'cases/create-a-case/check-your-answers',
-				response: {
-					answers: {
-						typeOfApplication: 'planning-permission',
-						applicantName: "Test O'Neill",
-						siteAddress: null,
-						siteNorthing: '',
-						siteEasting: ''
 					}
 				},
 				journeyTemplate: 'mock template',
