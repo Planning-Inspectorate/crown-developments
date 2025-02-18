@@ -10,6 +10,10 @@ import { getSessionMiddleware } from '@pins/crowndev-lib/util/session.js';
 import { addLocalsConfiguration } from '#util/config-middleware.js';
 import { getRedis } from '@pins/crowndev-lib/redis/index.js';
 import { getDatabaseClient } from '@pins/crowndev-database';
+import { Client } from '@microsoft/microsoft-graph-client';
+import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js';
+import { DefaultAzureCredential } from '@azure/identity';
+import { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
 
 /**
  * @param {import('./config-types.js').Config} config
@@ -19,6 +23,13 @@ import { getDatabaseClient } from '@pins/crowndev-database';
 export function getApp(config, logger) {
 	const dbClient = getDatabaseClient(config, logger);
 	const redis = getRedis(config.session, logger);
+
+	const graphClient = Client.initWithMiddleware({
+		authProvider: new TokenCredentialAuthenticationProvider(new DefaultAzureCredential(), {
+			scopes: ['https://graph.microsoft.com/.default']
+		})
+	});
+	const sharePointDrive = new SharePointDrive(graphClient, config.sharePoint.driveId);
 
 	// create an express app, and configure it for our usage
 	const app = express();
@@ -73,7 +84,8 @@ export function getApp(config, logger) {
 	const router = buildRouter({
 		config,
 		logger,
-		dbClient
+		dbClient,
+		sharePointDrive
 	});
 	// register the router, which will define any subpaths
 	// any paths not defined will return 404 by default

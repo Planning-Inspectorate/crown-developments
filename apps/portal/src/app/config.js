@@ -18,12 +18,17 @@ export function loadConfig() {
 
 	// get values from the environment
 	const {
+		AZURE_CLIENT_ID, // required for SharePoint
+		AZURE_CLIENT_SECRET, // required for SharePoint
+		AZURE_TENANT_ID, // required for SharePoint
 		GIT_SHA,
 		LOG_LEVEL,
 		PORT,
 		NODE_ENV,
 		REDIS_CONNECTION_STRING,
 		SESSION_SECRET,
+		SHAREPOINT_DISABLED,
+		SHAREPOINT_DRIVE_ID,
 		SQL_CONNECTION_STRING,
 		GOV_NOTIFY_DISABLED,
 		GOV_NOTIFY_API_KEY,
@@ -49,6 +54,16 @@ export function loadConfig() {
 	const govNotifyDisabled = GOV_NOTIFY_DISABLED === 'true';
 	if (!govNotifyDisabled) {
 		const props = { GOV_NOTIFY_API_KEY, GOV_NOTIFY_TEST_TEMPLATE_ID };
+		for (const [k, v] of Object.entries(props)) {
+			if (v === undefined || v === '') {
+				throw new Error(k + ' must be a non-empty string');
+			}
+		}
+	}
+
+	const sharePointDisabled = SHAREPOINT_DISABLED === 'true';
+	if (!sharePointDisabled) {
+		const props = { SHAREPOINT_DRIVE_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_TENANT_ID };
 		for (const [k, v] of Object.entries(props)) {
 			if (v === undefined || v === '') {
 				throw new Error(k + ' must be a non-empty string');
@@ -82,6 +97,10 @@ export function loadConfig() {
 		},
 		crownDevContactInfo: {
 			email: CROWN_DEV_CONTACT_EMAIL
+		},
+		sharePoint: {
+			disabled: sharePointDisabled,
+			driveId: SHAREPOINT_DRIVE_ID
 		}
 	};
 
