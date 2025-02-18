@@ -1,0 +1,15 @@
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
+
+.application-links {
+  li {
+    margin-bottom: 12px;
+    display: block;
+    padding: 0.7em;
+    margin-left: calc(-0.7em);
+  }
+  li.application-links__active {
+    background-color: govuk.govuk-colour("light-grey");
+    margin-left: calc(-0.7em - 6px);
+    border-left: 6px solid govuk.govuk-colour("turquoise");
+  }
+}
