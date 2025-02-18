@@ -17,7 +17,8 @@ export function buildDefaultErrorHandlerMiddleware(logger) {
 			return;
 		}
 
-		const code = error.statusCode || 500;
+		// make sure we don't use an invalid code
+		const code = error.statusCode && error.statusCode > 399 ? error.statusCode : 500;
 		res.status(code);
 		res.render(`views/layouts/error`, {
 			pageTitle: 'Sorry, there was an error',
