@@ -1,0 +1,18 @@
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
+
+.document-list {
+	@extend .govuk-list, .govuk-\!-margin-0;
+
+	li {
+		@extend .govuk-\!-margin-0, .govuk-\!-padding-top-2, .govuk-\!-padding-bottom-5;
+
+		border-top: 1px solid govuk.$govuk-border-colour;
+	}
+
+	&__meta-data {
+		@extend .govuk-\!-margin-top-1;
+		color: govuk.$govuk-secondary-text-colour;
+		display: grid;
+		grid-template-columns: 1fr 1fr 1fr;
+	}
+}
