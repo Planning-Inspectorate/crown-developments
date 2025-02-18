@@ -17,6 +17,9 @@ describe('view-model', () => {
 				Lpa: {
 					name: 'Test LPA'
 				},
+				Stage: {
+					displayName: 'Inquiry'
+				},
 				description: 'A significant project',
 				SiteAddress: {
 					line1: 'Site Street',
@@ -37,6 +40,7 @@ describe('view-model', () => {
 				applicationType: 'Planning permission',
 				crownDevelopmentContactEmail: 'crown.dev@planninginspectorate.gov.uk',
 				description: 'A significant project',
+				stage: 'Inquiry',
 				lpaName: 'Test LPA',
 				siteAddress: 'Site Street, Site Town, Site ONE'
 			});
