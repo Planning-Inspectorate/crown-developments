@@ -12,6 +12,7 @@ export function crownDevelopmentToViewModel(crownDevelopment, config) {
 		applicantName: crownDevelopment.ApplicantContact?.fullName,
 		lpaName: crownDevelopment.Lpa?.name,
 		description: crownDevelopment.description,
+		stage: crownDevelopment.Stage?.displayName,
 		crownDevelopmentContactEmail: config.crownDevContactInfo?.email
 	};
 

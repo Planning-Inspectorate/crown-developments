@@ -2,6 +2,7 @@ import { Router as createRouter } from 'express';
 import { applicationInfoRoutes } from './application-info/index.js';
 import { viewDocumentsPage } from './documents/controller.js';
 import { viewHaveYourSayPage } from './have-your-say/controller.js';
+import { applicationListRoutes } from './list/index.js';
 
 /**
  * @param {Object} opts
@@ -13,6 +14,7 @@ import { viewHaveYourSayPage } from './have-your-say/controller.js';
 export function createRoutes(opts) {
 	const router = createRouter({ mergeParams: true });
 
+	router.use('/', applicationListRoutes(opts));
 	router.use('/application-information/:applicationId', applicationInfoRoutes(opts));
 
 	// placeholders for documents and have-your-say routes

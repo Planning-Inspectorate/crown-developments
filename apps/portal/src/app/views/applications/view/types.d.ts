@@ -7,6 +7,7 @@ export interface CrownDevelopmentListViewModel {
 	applicantName?: string;
 	lpaName?: string;
 	description?: string;
+	stage?: string;
 	crownDevelopmentContactEmail?: string;
 	siteAddress?: string;
 }

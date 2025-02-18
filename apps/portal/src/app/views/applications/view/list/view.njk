@@ -1,0 +1,64 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/table/macro.njk" import govukTable %}
+
+{% block pageHeading %}{% endblock %}
+
+{% block pageContent %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-full">
+                    <h1 class="govuk-heading-xl">
+                        {{ pageTitle }}
+                    </h1>
+                </div>
+                <div class="govuk-grid-column-full">
+                    {% set crownDevelopments = [] %}
+                    {% for crownDevelopment in crownDevelopmentsViewModels %}
+                        {% set crownDevelopments = (crownDevelopments.push([
+                            {
+                                html: "<a class='govuk-link' href='/applications/application-information/" +  crownDevelopment.id +"'>" + crownDevelopment.reference + "</a>"
+                            },
+                            {
+                                text: crownDevelopment.applicationType
+                            },
+                            {
+                                text: crownDevelopment.applicantName
+                            },
+                            {
+                                text: crownDevelopment.lpaName
+                            },
+                            {
+                                text: crownDevelopment.stage
+                            }
+                        ]), crownDevelopments) %}
+                    {% endfor %}
+                    {{ govukTable({
+                      caption: "This is a list of all applications",
+                      captionClasses: "govuk-table__caption--m",
+                      firstCellIsHeader: true,
+                      head: [
+                        {
+                          text: "Application Reference"
+                        },
+                        {
+                          text: "Type of Application"
+                        },
+                        {
+                          text: "Applicant Name"
+                        },
+                        {
+                          text: "LPA Name"
+                        },
+                        {
+                          text: "Stage"
+                        }
+                      ],
+                      rows: crownDevelopments
+                    }) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
