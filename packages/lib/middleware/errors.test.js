@@ -22,6 +22,23 @@ describe('errors', () => {
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.deepStrictEqual(res.status.mock.calls[0].arguments, [err.statusCode]);
 		});
+		test('ignores invalid status codes', () => {
+			const logger = {
+				error: mock.fn()
+			};
+			const handler = buildDefaultErrorHandlerMiddleware(logger);
+			const err = {
+				statusCode: -1
+			};
+			const res = {
+				status: mock.fn(),
+				render: mock.fn()
+			};
+
+			handler(err, {}, res, () => {});
+			assert.strictEqual(res.status.mock.callCount(), 1);
+			assert.deepStrictEqual(res.status.mock.calls[0].arguments, [500]);
+		});
 	});
 	describe('wrapPrismaErrors', () => {
 		test('ignores non-prisma errors', () => {
