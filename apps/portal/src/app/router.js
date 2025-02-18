@@ -8,9 +8,10 @@ import { createRoutes as applicationRoutes } from './views/applications/index.js
  * @param {import('pino').BaseLogger} params.logger
  * @param {import('./config-types.js').Config} params.config
  * @param {import('@prisma/client').PrismaClient} params.dbClient
+ * @param {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} params.sharePointDrive
  * @returns {import('express').Router}
  */
-export function buildRouter({ logger, config, dbClient }) {
+export function buildRouter({ logger, config, dbClient, sharePointDrive }) {
 	const router = createRouter();
 
 	const monitoringRoutes = createMonitoringRoutes({
@@ -22,7 +23,7 @@ export function buildRouter({ logger, config, dbClient }) {
 	router.use('/', monitoringRoutes);
 
 	router.route('/').get(viewHomepage);
-	router.use('/', applicationRoutes({ db: dbClient, logger, config }));
+	router.use('/', applicationRoutes({ db: dbClient, logger, config, sharePointDrive }));
 
 	return router;
 }

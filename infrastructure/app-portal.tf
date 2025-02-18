@@ -79,6 +79,13 @@ module "app_portal" {
     GOV_NOTIFY_TEST_TEMPLATE_ID = var.apps_config.gov_notify.templates.test_template_id
 
     CROWN_DEV_CONTACT_EMAIL = var.apps_config.crown_dev_contact_info.email
+
+    # sharepoint
+    AZURE_CLIENT_ID     = var.apps_config.auth.client_id
+    AZURE_CLIENT_SECRET = local.key_vault_refs["crown-client-secret"]
+    AZURE_TENANT_ID     = data.azurerm_client_config.current.tenant_id
+    SHAREPOINT_DISABLED = var.apps_config.sharepoint.disabled
+    SHAREPOINT_DRIVE_ID = local.key_vault_refs["crown-sharepoint-drive-id"]
   }
 
   providers = {
