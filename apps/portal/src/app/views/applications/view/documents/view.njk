@@ -20,22 +20,26 @@
                         {{ pageTitle }}
                     </h2>
 
-                    <p class="govuk-body">Showing <strong>{{ documents | length }}</strong> of <strong>{{ documents | length }}</strong> documents, newest first.</p>
+                    {% if documents | length > 0 %}
+                        <p class="govuk-body">Showing <strong>{{ documents | length }}</strong> of <strong>{{ documents | length }}</strong> documents, newest first.</p>
 
-                    <ul class="govuk-list document-list">
-                        {% for document in documents %}
-                            <li>
-                                <a class="govuk-link" href="{{ currentUrl }}/{{ document.id }}" target="_blank" rel="noreferrer">
-                                    {{ document.name }}
-                                </a>
-                                <div class="document-list__meta-data">
-                                    <div>{{ document.lastModified }}</div>
-                                    <div>{{ document.type }}</div>
-                                    <div>{{ document.size }}</div>
-                                </div>
-                            </li>
-                        {% endfor %}
-                    </ul>
+                        <ul class="govuk-list document-list">
+                            {% for document in documents %}
+                                <li>
+                                    <a class="govuk-link" href="{{ currentUrl }}/{{ document.id }}" target="_blank" rel="noreferrer">
+                                        {{ document.name }}
+                                    </a>
+                                    <div class="document-list__meta-data">
+                                        <div>{{ document.lastModified }}</div>
+                                        <div>{{ document.type }}</div>
+                                        <div>{{ document.size }}</div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="govuk-body">No documents are available for this application.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
