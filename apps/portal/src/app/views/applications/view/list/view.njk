@@ -34,8 +34,10 @@
                             }
                         ]), crownDevelopments) %}
                     {% endfor %}
+
+                    <p class="govuk-body">This is a list of all applications</p>
+
                     {{ govukTable({
-                      caption: "This is a list of all applications",
                       captionClasses: "govuk-table__caption--m",
                       firstCellIsHeader: true,
                       head: [
@@ -49,7 +51,7 @@
                           text: "Applicant Name"
                         },
                         {
-                          text: "LPA Name"
+                          text: "Local Planning Authority"
                         },
                         {
                           text: "Stage"
