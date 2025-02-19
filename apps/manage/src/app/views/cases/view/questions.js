@@ -220,7 +220,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		siteIsVisibleFromPublicLand: {
 			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'Site is Visible From Public Land',
+			title: 'Site is Visible from Public Land',
 			question: 'Is the site visible from public land?',
 			fieldName: 'siteIsVisibleFromPublicLand',
 			url: 'site-is-visible-from-public-land',
