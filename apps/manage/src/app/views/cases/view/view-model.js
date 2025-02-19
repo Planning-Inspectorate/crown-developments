@@ -158,9 +158,11 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	if ('siteAddress' in edits) {
 		const siteAddress = viewModelToAddressUpdateInput(edits.siteAddress);
 		if (siteAddress) {
+			const siteAddressId = viewModel.siteAddressId;
+			const siteAddressWhere = siteAddressId ? { id: siteAddressId } : undefined;
 			crownDevelopmentUpdateInput.SiteAddress = {
 				upsert: {
-					where: { id: viewModel.siteAddressId },
+					where: siteAddressWhere,
 					create: siteAddress,
 					update: siteAddress
 				}
