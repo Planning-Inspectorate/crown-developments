@@ -4,7 +4,7 @@ import { crownDevelopmentToViewModel } from './view-model.js';
 
 describe('view-model', () => {
 	describe('crownDevelopmentToViewModel', () => {
-		it(`should map site address if present`, () => {
+		it(`should map crown development view model`, () => {
 			const input = {
 				id: 'id-1',
 				reference: 'reference-id-1',
@@ -20,6 +20,19 @@ describe('view-model', () => {
 				Stage: {
 					displayName: 'Inquiry'
 				},
+				Procedure: {
+					displayName: 'Inquiry'
+				},
+				Event: {
+					date: '2025-04-01T23:00:00.000Z',
+					venue: 'City hall',
+					statementsDate: '2025-04-30T23:00:00.000Z',
+					proofsOfEvidenceDate: '2025-10-09T23:00:00.000Z'
+				},
+				applicationCompleteDate: '2025-10-09T23:00:00.000Z',
+				representationsPeriodStartDate: '2025-10-09T23:00:00.000Z',
+				representationsPeriodEndDate: '2025-10-09T23:00:00.000Z',
+				decisionDate: '2025-10-09T23:00:00.000Z',
 				description: 'A significant project',
 				SiteAddress: {
 					line1: 'Site Street',
@@ -42,7 +55,16 @@ describe('view-model', () => {
 				description: 'A significant project',
 				stage: 'Inquiry',
 				lpaName: 'Test LPA',
-				siteAddress: 'Site Street, Site Town, Site ONE'
+				siteAddress: 'Site Street, Site Town, Site ONE',
+				applicationCompleteDate: '10 Oct 2025',
+				decisionDate: '10 Oct 2025',
+				eventDate: '2 Apr 2025',
+				eventVenue: 'City hall',
+				eventProofsOfEvidenceDate: '10 Oct 2025',
+				eventStatementsDate: '1 May 2025',
+				procedure: 'Inquiry',
+				representationsPeriodEndDate: '10 Oct 2025',
+				representationsPeriodStartDate: '10 Oct 2025'
 			});
 		});
 		it(`should map site address if present`, () => {
@@ -78,7 +100,7 @@ describe('view-model', () => {
 			const result = crownDevelopmentToViewModel(input, config);
 			assert.strictEqual(result.siteAddress, undefined);
 		});
-		it(`should not map nest fields if not present`, () => {
+		it(`should not map nested fields if not present`, () => {
 			const input = {
 				id: 'id-1',
 				reference: 'reference-id-1',

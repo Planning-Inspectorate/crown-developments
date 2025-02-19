@@ -26,10 +26,13 @@ export function buildApplicationInformationPage({ db, logger, config, getNow = g
 		const crownDevelopment = await db.crownDevelopment.findUnique({
 			where: { id, publishDate: { lte: now } },
 			include: {
-				ApplicantContact: { include: { Address: true } },
-				Lpa: true,
-				Type: true,
-				SiteAddress: true
+				ApplicantContact: { select: { fullName: true } },
+				Lpa: { select: { name: true } },
+				Type: { select: { displayName: true } },
+				SiteAddress: true,
+				Event: true,
+				Stage: { select: { displayName: true } },
+				Procedure: { select: { displayName: true } }
 			}
 		});
 

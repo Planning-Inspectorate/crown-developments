@@ -1,3 +1,5 @@
+import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js';
+
 /**
  *
  * @param {import('./types.js').CrownDevelopmentListFields} crownDevelopment
@@ -13,6 +15,15 @@ export function crownDevelopmentToViewModel(crownDevelopment, config) {
 		lpaName: crownDevelopment.Lpa?.name,
 		description: crownDevelopment.description,
 		stage: crownDevelopment.Stage?.displayName,
+		procedure: crownDevelopment.Procedure?.displayName,
+		eventDate: formatDateForDisplay(crownDevelopment.Event?.date),
+		eventVenue: crownDevelopment.Event?.venue,
+		eventStatementsDate: formatDateForDisplay(crownDevelopment.Event?.statementsDate),
+		eventProofsOfEvidenceDate: formatDateForDisplay(crownDevelopment.Event?.proofsOfEvidenceDate),
+		applicationCompleteDate: formatDateForDisplay(crownDevelopment.applicationCompleteDate),
+		representationsPeriodStartDate: formatDateForDisplay(crownDevelopment.representationsPeriodStartDate),
+		representationsPeriodEndDate: formatDateForDisplay(crownDevelopment.representationsPeriodEndDate),
+		decisionDate: formatDateForDisplay(crownDevelopment.decisionDate),
 		crownDevelopmentContactEmail: config.crownDevContactInfo?.email
 	};
 

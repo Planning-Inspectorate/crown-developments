@@ -41,6 +41,28 @@
 
                 <h3 class="govuk-heading-s">Description of the proposed development</h3>
                 <p class="govuk-body">{{ crownDevelopmentFields.description }}</p>
+
+                <h3 class="govuk-heading-s">Important Dates</h3>
+                {% if crownDevelopmentFields.applicationCompleteDate %}<p class="govuk-body">Application Complete Date: {{ crownDevelopmentFields.applicationCompleteDate }}</p>{% endif %}
+                {% if crownDevelopmentFields.representationsPeriodStartDate and crownDevelopmentFields.representationsPeriodEndDate %}
+                    <p class="govuk-body">Representation Period: {{ crownDevelopmentFields.representationsPeriodStartDate }} - {{ crownDevelopmentFields.representationsPeriodEndDate }}</p>
+                {% endif %}
+                {% if crownDevelopmentFields.decisionDate %}<p class="govuk-body">Application Decision Date: {{ crownDevelopmentFields.decisionDate }}</p>{% endif %}
+
+                {% if crownDevelopmentFields.stage %}
+                    <h3 class="govuk-heading-s">Procedure Details</h3>
+                    <p class="govuk-body">Application Stage: {{ crownDevelopmentFields.stage }}</p>
+                    {% if crownDevelopmentFields.procedure %}<p class="govuk-body">Procedure Type: {{ crownDevelopmentFields.procedure }}</p>{% endif %}
+                    {% if crownDevelopmentFields.procedure === 'Inquiry' %}
+                        {% if crownDevelopmentFields.eventDate %}<p class="govuk-body">Inquiry Date: {{ crownDevelopmentFields.eventDate }}</p>{% endif %}
+                        {% if crownDevelopmentFields.eventVenue %}<p class="govuk-body">Inquiry Venue: {{ crownDevelopmentFields.eventVenue }}</p>{% endif %}
+                        {% if crownDevelopmentFields.eventStatementsDate %}<p class="govuk-body">Inquiry Statements Date: {{ crownDevelopmentFields.eventStatementsDate }}</p>{% endif %}
+                        {% if crownDevelopmentFields.eventProofsOfEvidenceDate %}<p class="govuk-body">Inquiry Proofs of Evidence Date: {{ crownDevelopmentFields.eventProofsOfEvidenceDate }}</p>{% endif %}
+                    {% elif crownDevelopmentFields.procedure === 'Hearing' %}
+                        {% if crownDevelopmentFields.eventDate %}<p class="govuk-body">Hearing Date: {{ crownDevelopmentFields.eventDate }}</p>{% endif %}
+                        {% if crownDevelopmentFields.eventVenue %}<p class="govuk-body">Hearing Venue: {{ crownDevelopmentFields.eventVenue }}</p>{% endif %}
+                    {% endif %}
+                {% endif %}
             </div>
 
             <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
