@@ -11,22 +11,22 @@ import {
  * @type {import('@prisma/client').Prisma.ContactCreateInput[]}
  */
 const repsContacts = [
-	{ id: '05fa5f0f-342d-466d-8d61-e837586d6a3d', fullName: 'Person One' },
+	{ id: '05fa5f0f-342d-466d-8d61-e837586d6a3d', fullName: 'Person One', email: 'person-one@example.com' },
 	{ id: 'b4654a6b-7ab1-4391-8e81-839809b0dfb0', fullName: 'Person Two' },
-	{ id: 'afb9d282-0db0-4fbd-a9f9-90c13f1e3cd0', fullName: 'Person Three' },
+	{ id: 'afb9d282-0db0-4fbd-a9f9-90c13f1e3cd0', fullName: 'Person Three', email: 'person-three@example.com' },
 	{ id: '1bb4a1c8-d068-4d75-bcaa-9dc0e33ac1ee', fullName: 'Person Four' },
-	{ id: 'c98304bd-5607-4819-9bd2-9af51d9b419f', fullName: 'Person Five' },
+	{ id: 'c98304bd-5607-4819-9bd2-9af51d9b419f', fullName: 'Person Five', email: 'person-five@example.com' },
 	{ id: '14c92bd0-8457-480d-8b10-a3fb6c0fd372', fullName: 'Person Six' },
 	{ id: '5636f842-3263-4a27-9b83-86229ae1dd67', fullName: 'Person Seven' },
-	{ id: 'c3b722e6-afba-4a9f-87f1-96db55e145c1', fullName: 'Person Eight' },
+	{ id: 'c3b722e6-afba-4a9f-87f1-96db55e145c1', fullName: 'Person Eight', email: 'person-eight@example.com' },
 	{ id: '30925c6a-d50d-40a9-93e3-b6b7a3ff2fbb', fullName: 'Person Nine' },
 	{ id: 'f589adb8-73e2-4562-86ce-bd81fc33d2af', fullName: 'Person Ten' },
-	{ id: '0af835c0-8ed1-46a1-b43f-665fc062b1ed', fullName: 'Person Eleven' },
+	{ id: '0af835c0-8ed1-46a1-b43f-665fc062b1ed', fullName: 'Person Eleven', email: 'person-eleven@example.com' },
 	{ id: 'd75f3116-945e-44a4-bffd-4cd36d1cc968', fullName: 'Person Twelve' },
-	{ id: '61700b0a-2251-4779-ba3d-6b0cb9d034a9', fullName: 'Person Thirteen' },
+	{ id: '61700b0a-2251-4779-ba3d-6b0cb9d034a9', fullName: 'Person Thirteen', email: 'person-thirteen@example.com' },
 	{ id: 'e1f12f5b-4107-456d-8ab1-ca7b4b8e114a', fullName: 'Person Fourteen' },
 	{ id: 'cda925f4-2393-454c-8381-f07b2332547b', fullName: 'Person Fifteen' },
-	{ id: 'b084ed4d-d835-4b49-9a4f-cb25bb36a445', fullName: 'Person Sixteen' },
+	{ id: 'b084ed4d-d835-4b49-9a4f-cb25bb36a445', fullName: 'Person Sixteen', email: 'person-sixteen@example.com' },
 	{ id: '98b8b7c1-598d-4fd7-b5f1-f160528cb3b5', fullName: 'Person Seventeen' },
 	{ id: '9cbc1386-e4bb-4dbe-a6d2-c6f2189449c3', fullName: 'Person Eighteen' },
 	{ id: '35f252df-48f6-416a-97c3-b4cf2985c459', fullName: 'Person Nineteen' },
@@ -302,7 +302,7 @@ export async function seedDev(dbClient) {
 	for (const representation of representations) {
 		representation.Application = { connect: { id: crownDev.id } };
 		await dbClient.representation.upsert({
-			where: { applicationId: crownDev.id, reference: representation.reference },
+			where: { reference: representation.reference },
 			create: representation,
 			update: representation
 		});
