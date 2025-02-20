@@ -58,10 +58,6 @@ describe('view-model', () => {
 				siteAddress: 'Site Street, Site Town, Site ONE',
 				applicationCompleteDate: '10 Oct 2025',
 				decisionDate: '10 Oct 2025',
-				eventDate: '2 Apr 2025',
-				eventVenue: 'City hall',
-				eventProofsOfEvidenceDate: '10 Oct 2025',
-				eventStatementsDate: '1 May 2025',
 				procedure: 'Inquiry',
 				representationsPeriodEndDate: '10 Oct 2025',
 				representationsPeriodStartDate: '10 Oct 2025'
@@ -125,6 +121,38 @@ describe('view-model', () => {
 			const config = {};
 			const result = crownDevelopmentToViewModel(input, config);
 			assert.strictEqual(result.crownDevelopmentContactEmail, undefined);
+		});
+		it(`should map inquiry fields if procedure id is inquiry`, () => {
+			const input = {
+				procedureId: 'inquiry',
+				Event: {
+					date: '2025-04-01T23:00:00.000Z',
+					venue: 'City hall',
+					statementsDate: '2025-04-30T23:00:00.000Z',
+					proofsOfEvidenceDate: '2025-10-09T23:00:00.000Z'
+				}
+			};
+			const config = {};
+			const result = crownDevelopmentToViewModel(input, config);
+			assert.strictEqual(result.isInquiry, true);
+			assert.strictEqual(result.inquiryDate, '2 Apr 2025');
+			assert.strictEqual(result.inquiryVenue, 'City hall');
+			assert.strictEqual(result.inquiryStatementsDate, '1 May 2025');
+			assert.strictEqual(result.inquiryProofsOfEvidenceDate, '10 Oct 2025');
+		});
+		it(`should map hearing fields if procedure id is hearing`, () => {
+			const input = {
+				procedureId: 'hearing',
+				Event: {
+					date: '2025-04-01T23:00:00.000Z',
+					venue: 'City hall'
+				}
+			};
+			const config = {};
+			const result = crownDevelopmentToViewModel(input, config);
+			assert.strictEqual(result.isHearing, true);
+			assert.strictEqual(result.hearingDate, '2 Apr 2025');
+			assert.strictEqual(result.hearingVenue, 'City hall');
 		});
 	});
 });

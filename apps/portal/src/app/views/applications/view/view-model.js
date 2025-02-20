@@ -1,4 +1,5 @@
 import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js';
+import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
  *
@@ -16,16 +17,24 @@ export function crownDevelopmentToViewModel(crownDevelopment, config) {
 		description: crownDevelopment.description,
 		stage: crownDevelopment.Stage?.displayName,
 		procedure: crownDevelopment.Procedure?.displayName,
-		eventDate: formatDateForDisplay(crownDevelopment.Event?.date),
-		eventVenue: crownDevelopment.Event?.venue,
-		eventStatementsDate: formatDateForDisplay(crownDevelopment.Event?.statementsDate),
-		eventProofsOfEvidenceDate: formatDateForDisplay(crownDevelopment.Event?.proofsOfEvidenceDate),
 		applicationCompleteDate: formatDateForDisplay(crownDevelopment.applicationCompleteDate),
 		representationsPeriodStartDate: formatDateForDisplay(crownDevelopment.representationsPeriodStartDate),
 		representationsPeriodEndDate: formatDateForDisplay(crownDevelopment.representationsPeriodEndDate),
 		decisionDate: formatDateForDisplay(crownDevelopment.decisionDate),
 		crownDevelopmentContactEmail: config.crownDevContactInfo?.email
 	};
+
+	if (isInquiry(crownDevelopment.procedureId)) {
+		fields.isInquiry = true;
+		fields.inquiryDate = formatDateForDisplay(crownDevelopment.Event?.date);
+		fields.inquiryVenue = crownDevelopment.Event?.venue;
+		fields.inquiryStatementsDate = formatDateForDisplay(crownDevelopment.Event?.statementsDate);
+		fields.inquiryProofsOfEvidenceDate = formatDateForDisplay(crownDevelopment.Event?.proofsOfEvidenceDate);
+	} else if (isHearing(crownDevelopment.procedureId)) {
+		fields.isHearing = true;
+		fields.hearingDate = formatDateForDisplay(crownDevelopment.Event?.date);
+		fields.hearingVenue = crownDevelopment.Event?.venue;
+	}
 
 	if (crownDevelopment.SiteAddress) {
 		fields.siteAddress = addressToViewModel(crownDevelopment.SiteAddress);
@@ -41,6 +50,22 @@ export function crownDevelopmentToViewModel(crownDevelopment, config) {
 function addressToViewModel(address) {
 	const fields = [address.line1, address.line2, address.townCity, address.county, address.postcode];
 	return fields.filter(Boolean).join(', ');
+}
+
+/**
+ * @param {string|null} procedureId
+ * @returns {boolean}
+ */
+function isInquiry(procedureId) {
+	return procedureId === APPLICATION_PROCEDURE_ID.INQUIRY;
+}
+
+/**
+ * @param {string|null} procedureId
+ * @returns {boolean}
+ */
+function isHearing(procedureId) {
+	return procedureId === APPLICATION_PROCEDURE_ID.HEARING;
 }
 
 /**

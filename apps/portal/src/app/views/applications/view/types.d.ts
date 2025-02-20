@@ -8,15 +8,19 @@ export interface CrownDevelopmentListViewModel {
 	lpaName?: string;
 	description?: string;
 	stage?: string;
-	procedure: string;
-	eventDate: string;
-	eventVenue: string;
-	eventStatementsDate: string;
-	eventProofsOfEvidenceDate: string;
-	applicationCompleteDate: string;
-	representationsPeriodStartDate: string;
-	representationsPeriodEndDate: string;
-	decisionDate: string;
+	procedure?: string;
+	isInquiry?: boolean;
+	inquiryDate?: string;
+	inquiryVenue?: string;
+	inquiryStatementsDate?: string;
+	inquiryProofsOfEvidenceDate?: string;
+	isHearing?: boolean;
+	hearingDate?: string;
+	hearingVenue?: string;
+	applicationCompleteDate?: string;
+	representationsPeriodStartDate?: string;
+	representationsPeriodEndDate?: string;
+	decisionDate?: string;
 	crownDevelopmentContactEmail?: string;
 	siteAddress?: string;
 }
