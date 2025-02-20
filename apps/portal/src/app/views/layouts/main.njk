@@ -18,6 +18,9 @@
 {% endblock %}
 
 {% block beforeContent %}
+	<script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
+		document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');
+	</script>
 	{% block backLink %}
 		{% if backLinkUrl and backLinkText %}
 			{{ govukBackLink({ text: backLinkText, href: backLinkUrl }) }}
@@ -65,4 +68,10 @@
 
 {% block footer %}
 	{% include "views/layouts/components/core/footer.njk" %}
+
+	<script type="module" {% if cspNonce %}nonce={{ cspNonce }}{% endif %} src="/assets/js/govuk-frontend.min.js"></script>
+	<script type="module" {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
+		import { initAll } from '/assets/js/govuk-frontend.min.js'
+		initAll()
+	</script>
 {% endblock %}
