@@ -1,4 +1,4 @@
-import { crownDevelopmentToViewModel } from '../view-model.js';
+import { crownDevelopmentToViewModel } from '../view/view-model.js';
 
 const getCurrentDate = () => new Date();
 
@@ -36,7 +36,7 @@ export function buildApplicationListPage({ db, logger, config, getNow = getCurre
 			crownDevelopmentToViewModel(crownDevelopment, config)
 		);
 
-		return res.render('views/applications/view/list/view.njk', {
+		return res.render('views/applications/list/view.njk', {
 			pageTitle: 'Applications',
 			crownDevelopmentsViewModels
 		});
