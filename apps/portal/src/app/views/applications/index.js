@@ -1,5 +1,7 @@
 import { Router as createRouter } from 'express';
 import { createRoutes as createViewRoutes } from './view/index.js';
+import { buildApplicationListPage } from './list/controller.js';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 
 /**
  * @param {Object} opts
@@ -12,6 +14,9 @@ import { createRoutes as createViewRoutes } from './view/index.js';
 export function createRoutes(opts) {
 	const router = createRouter({ mergeParams: true });
 
+	const applicationListController = buildApplicationListPage(opts);
+
+	router.get('/applications', asyncHandler(applicationListController));
 	router.use('/applications', createViewRoutes(opts));
 
 	return router;
