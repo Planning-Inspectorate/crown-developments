@@ -25,10 +25,13 @@ export function buildApplicationInformationPage({ db, logger, config }) {
 			db,
 			args: {
 				include: {
-					ApplicantContact: { include: { Address: true } },
+					ApplicantContact: { select: { fullName: true } },
 					Lpa: true,
 					Type: true,
-					SiteAddress: true
+					SiteAddress: true,
+					Event: true,
+					Stage: { select: { displayName: true } },
+					Procedure: { select: { displayName: true } }
 				}
 			}
 		});
