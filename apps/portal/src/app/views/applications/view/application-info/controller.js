@@ -1,18 +1,16 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { applicationLinks, crownDevelopmentToViewModel } from '../view-model.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-
-const getCurrentDate = () => new Date();
+import { fetchPublishedApplication } from '#util/applications.js';
 
 /**
  * @param {Object} opts
  * @param {import('@prisma/client').PrismaClient} opts.db
  * @param {import('pino').BaseLogger} opts.logger
  * @param {import('../../../../config-types.js').Config} opts.config
- * @param {function(): Date} [opts.getNow]
  * @returns {import('express').Handler}
  */
-export function buildApplicationInformationPage({ db, logger, config, getNow = getCurrentDate }) {
+export function buildApplicationInformationPage({ db, logger, config }) {
 	return async (req, res) => {
 		const id = req.params.applicationId;
 		if (!id) {
@@ -21,15 +19,17 @@ export function buildApplicationInformationPage({ db, logger, config, getNow = g
 		if (!isValidUuidFormat(id)) {
 			return notFoundHandler(req, res);
 		}
-		const now = getNow();
 
-		const crownDevelopment = await db.crownDevelopment.findUnique({
-			where: { id, publishDate: { lte: now } },
-			include: {
-				ApplicantContact: { include: { Address: true } },
-				Lpa: true,
-				Type: true,
-				SiteAddress: true
+		const crownDevelopment = await fetchPublishedApplication({
+			id,
+			db,
+			args: {
+				include: {
+					ApplicantContact: { include: { Address: true } },
+					Lpa: true,
+					Type: true,
+					SiteAddress: true
+				}
 			}
 		});
 
