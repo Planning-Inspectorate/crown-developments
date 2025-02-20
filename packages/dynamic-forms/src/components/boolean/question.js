@@ -9,6 +9,17 @@ export const booleanToYesNoValue = (value) => {
 	return value ? BOOLEAN_OPTIONS.YES : BOOLEAN_OPTIONS.NO;
 };
 
+/**
+ * @param {boolean|null} value
+ * @returns {string|null}
+ */
+export const booleanToYesNoOrNull = (value) => {
+	if (typeof value === 'boolean') {
+		return booleanToYesNoValue(value);
+	}
+	return null;
+};
+
 export default class BooleanQuestion extends RadioQuestion {
 	/**
 	 * @param {Object} params
