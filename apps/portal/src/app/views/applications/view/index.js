@@ -18,10 +18,10 @@ export function createRoutes(opts) {
 	const applicationDocumentsPage = buildApplicationDocumentsPage(opts);
 	const viewDocumentPage = buildDocumentView(opts);
 
-	router.get('/application-information/:applicationId', asyncHandler(applicationInfoController));
-	router.get('/application-information/:applicationId/documents', asyncHandler(applicationDocumentsPage));
-	router.get('/application-information/:applicationId/documents/:documentId', asyncHandler(viewDocumentPage));
-	router.get('/application-information/:applicationId/have-your-say', viewHaveYourSayPage);
+	router.get('/', asyncHandler(applicationInfoController));
+	router.get('/documents', asyncHandler(applicationDocumentsPage));
+	router.get('/documents/:documentId', asyncHandler(viewDocumentPage));
+	router.get('/have-your-say', viewHaveYourSayPage);
 
 	return router;
 }
