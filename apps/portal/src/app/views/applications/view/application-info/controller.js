@@ -45,7 +45,7 @@ export function buildApplicationInformationPage({ db, logger, config }) {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Application Information',
 			links: applicationLinks(id),
-			currentUrl: req.baseUrl,
+			currentUrl: req.originalUrl,
 			crownDevelopmentFields
 		});
 	};
