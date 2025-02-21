@@ -22,63 +22,61 @@
                     </h2>
                 </div>
             </div>
-            <div class="govuk-grid-row">
-                <p class="govuk-body">Use this service to have your say about a Crown Development Application. We need your personal details and your comments about {{ crownDevelopmentFields.reference }}.</p>
-                <p class="govuk-body">The application can be inspected under the <a class="govuk-link" href="{{ documentsLink.href }}">{{ documentsLink.text }}</a> heading.</p>
-                <p class="govuk-body">You will be able to comment on this application until {{ crownDevelopmentFields.representationsPeriodEndDate }}.</p>
+            <p class="govuk-body">Use this service to have your say about a Crown Development Application. We need your personal details and your comments about {{ crownDevelopmentFields.reference }}.</p>
+            <p class="govuk-body">The application can be inspected under the <a class="govuk-link" href="{{ documentsLink.href }}">{{ documentsLink.text }}</a> heading.</p>
+            <p class="govuk-body">You will be able to comment on this application until {{ crownDevelopmentFields.representationsPeriodEndDate }}.</p>
 
-                <h2 class="govuk-heading-m">Writing your comments</h2>
+            <h2 class="govuk-heading-m">Writing your comments</h2>
 
-                <p class="govuk-body">Your comments must be about what you consider to be the main issues and impacts. You should include as much detail as possible and cover anything that may affect your day-to-day life.</p>
-                <p class="govuk-body">This information will be:</p>
+            <p class="govuk-body">Your comments must be about what you consider to be the main issues and impacts. You should include as much detail as possible and cover anything that may affect your day-to-day life.</p>
+            <p class="govuk-body">This information will be:</p>
 
-                <ul class="govuk-list govuk-list--bullet">
-                  <li>seen by the examining authority</li>
-                  <li>published on our website</li>
-                </ul>
+            <ul class="govuk-list govuk-list--bullet">
+              <li>seen by the examining authority</li>
+              <li>published on our website</li>
+            </ul>
 
-                <p class="govuk-body">You must submit your registration before 23:59 on {{ crownDevelopmentFields.representationsPeriodEndDate }}.</p>
+            <p class="govuk-body">You must submit your registration before 23:59 on {{ crownDevelopmentFields.representationsPeriodEndDate }}.</p>
 
-                {{ govukButton({
-                    text: "Start now",
-                    type: "button",
-                    href: "have-your-say/who-submitting-for",
-                    isStartButton: true
-                }) }}
+            {{ govukButton({
+                text: "Start now",
+                type: "button",
+                href: "have-your-say/who-submitting-for",
+                isStartButton: true
+            }) }}
 
-                <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+            <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
 
-                <h2 class="govuk-heading-m">Before you start</h2>
+            <h2 class="govuk-heading-m">Before you start</h2>
 
-                <h3 class="govuk-heading-s">If you are commenting for yourself as an individual</h3>
-                <p class="govuk-body">You will need your:</p>
+            <h3 class="govuk-heading-s">If you are commenting for yourself as an individual</h3>
+            <p class="govuk-body">You will need your:</p>
 
-                <ul class="govuk-list govuk-list--bullet">
-                  <li>full name</li>
-                  <li>email address</li>
-                  <li>comments about the application</li>
-                </ul>
+            <ul class="govuk-list govuk-list--bullet">
+              <li>full name</li>
+              <li>email address</li>
+              <li>comments about the application</li>
+            </ul>
 
-                <h3 class="govuk-heading-s">If you are commenting for an organisation you work or volunteer for</h3>
-                <p class="govuk-body">You will need:</p>
+            <h3 class="govuk-heading-s">If you are commenting for an organisation you work or volunteer for</h3>
+            <p class="govuk-body">You will need:</p>
 
-                <ul class="govuk-list govuk-list--bullet">
-                  <li>your full name</li>
-                  <li>the name of the charity or organisation you work for</li>
-                  <li>email address</li>
-                  <li>comments about the application</li>
+            <ul class="govuk-list govuk-list--bullet">
+              <li>your full name</li>
+              <li>the name of the charity or organisation you work for</li>
+              <li>email address</li>
+              <li>comments about the application</li>
 
-                </ul>
-                <h3 class="govuk-heading-s">If you are commenting on behalf of another person or organisation</h3>
-                <p class="govuk-body">You will need:</p>
+            </ul>
+            <h3 class="govuk-heading-s">If you are commenting on behalf of another person or organisation</h3>
+            <p class="govuk-body">You will need:</p>
 
-                <ul class="govuk-list govuk-list--bullet">
-                  <li>your full name</li>
-                  <li>your email address</li>
-                  <li>the details of the person or organisation you are representing</li>
-                  <li>comments about the application</li>
-                </ul>
-            </div>
+            <ul class="govuk-list govuk-list--bullet">
+              <li>your full name</li>
+              <li>your email address</li>
+              <li>the details of the person or organisation you are representing</li>
+              <li>comments about the application</li>
+            </ul>
         </div>
     </div>
 {% endblock %}

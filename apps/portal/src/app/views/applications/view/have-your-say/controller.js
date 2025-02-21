@@ -6,11 +6,10 @@ import { fetchPublishedApplication } from '#util/applications.js';
 /**
  * @param {Object} opts
  * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('pino').BaseLogger} opts.logger
  * @param {import('../../../../config-types.js').Config} opts.config
  * @returns {import('express').Handler}
  */
-export function buildHaveYourSayPage({ db, logger, config }) {
+export function buildHaveYourSayPage({ db, config }) {
 	return async (req, res) => {
 		const id = req.params.applicationId;
 		if (!id) {
@@ -29,8 +28,6 @@ export function buildHaveYourSayPage({ db, logger, config }) {
 		if (!crownDevelopment) {
 			return notFoundHandler(req, res);
 		}
-
-		logger.info(`Crown development case fetched: ${id}`);
 
 		const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment, config);
 
