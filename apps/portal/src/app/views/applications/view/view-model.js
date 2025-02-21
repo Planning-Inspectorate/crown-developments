@@ -89,3 +89,14 @@ export function applicationLinks(id) {
 		}
 	];
 }
+
+/**
+ * @param {string} id
+ * @returns {import('./types.js').ApplicationLink}
+ */
+export function documentsLink(id) {
+	return {
+		href: `/applications/application-information/${id}/documents`,
+		text: 'Documents'
+	};
+}
