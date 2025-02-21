@@ -4,6 +4,7 @@ import { buildSave, question } from '@pins/dynamic-forms/src/controller.js';
 import validate from '@pins/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
 import { buildGetJourneyMiddleware, buildUpdateCase, validateIdFormat, viewCaseDetails } from './controller.js';
+import { createRoutes as createCasePublishRoutes } from './publish/index.js';
 
 /**
  * @param {Object} opts
@@ -20,10 +21,11 @@ export function createRoutes({ db, logger, config, getEntraClient }) {
 	);
 	const updateCaseFn = buildUpdateCase({ db, logger });
 	const updateCase = buildSave(updateCaseFn, true);
+	const publishCase = createCasePublishRoutes({ db, logger, config, getEntraClient });
 
 	// view case details
 	router.get('/', validateIdFormat, getJourney, asyncHandler(viewCaseDetails));
-
+	router.use('/publish', publishCase);
 	// view question page
 	router.get('/:section/:question', validateIdFormat, getJourney, asyncHandler(question));
 

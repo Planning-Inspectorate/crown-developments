@@ -288,7 +288,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		applicationCompleteDate: dateQuestion('applicationCompleteDate'),
 		lpaQuestionnaireSentDate: dateQuestion('lpaQuestionnaireSentDate', 'LPA Questionnaire Sent Date'),
 		lpaQuestionnaireReceivedDate: dateQuestion('lpaQuestionnaireReceivedDate', 'LPA Questionnaire Received Date'),
-		publishDate: dateQuestion('publishDate'),
+		publishDate: dateQuestion('publishDate', 'Publish Date', false),
 		pressNoticeDate: dateQuestion('pressNoticeDate'),
 		neighboursNotifiedByLpaDate: dateQuestion('neighboursNotifiedByLpaDate', 'Neighbours Notified By LPA Date'),
 		siteNoticeByLpaDate: dateQuestion('siteNoticeByLpaDate', 'Site Notice by LPA Date'),
