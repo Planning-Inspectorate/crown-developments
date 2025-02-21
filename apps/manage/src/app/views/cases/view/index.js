@@ -4,6 +4,7 @@ import { buildSave, question } from '@pins/dynamic-forms/src/controller.js';
 import validate from '@pins/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
 import { buildGetJourneyMiddleware, buildUpdateCase, validateIdFormat, viewCaseDetails } from './controller.js';
+import { createRoutes as createRepsRoutes } from './manage-reps/index.js';
 
 /**
  * @param {Object} opts
@@ -15,6 +16,7 @@ import { buildGetJourneyMiddleware, buildUpdateCase, validateIdFormat, viewCaseD
  */
 export function createRoutes({ db, logger, config, getEntraClient }) {
 	const router = createRouter({ mergeParams: true });
+	const repsRoutes = createRepsRoutes({ db, logger });
 	const getJourney = asyncHandler(
 		buildGetJourneyMiddleware({ db, logger, groupIds: config.entra.groupIds, getEntraClient })
 	);
@@ -23,6 +25,8 @@ export function createRoutes({ db, logger, config, getEntraClient }) {
 
 	// view case details
 	router.get('/', validateIdFormat, getJourney, asyncHandler(viewCaseDetails));
+
+	router.use('/manage-representations', repsRoutes);
 
 	// view question page
 	router.get('/:section/:question', validateIdFormat, getJourney, asyncHandler(question));

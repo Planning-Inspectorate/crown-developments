@@ -22,7 +22,13 @@ export async function viewCaseDetails(req, res) {
 	const caseUpdated = readCaseUpdatedSession(req, id);
 	clearCaseUpdatedSession(req, id);
 
-	await list(req, res, '', { reference, caseUpdated, hideButton: true, hideStatus: true });
+	await list(req, res, '', {
+		reference,
+		repsLink: req.baseUrl + '/manage-representations',
+		caseUpdated,
+		hideButton: true,
+		hideStatus: true
+	});
 }
 
 /**
