@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { formatDateForDisplay, parseDateInput } from './date-utils.js';
+import { dateIsInTheFuture, dateIsInThePast, dateIsToday, formatDateForDisplay, parseDateInput } from './date-utils.js';
 
 describe('format-date', () => {
 	describe('formatUTCDateToUK', () => {
@@ -50,6 +50,64 @@ describe('format-date', () => {
 		for (const { input, expected } of tests) {
 			it(`parses date ${JSON.stringify(input)} in Europe/London`, () => {
 				const got = parseDateInput(input);
+				assert.deepStrictEqual(got, expected);
+			});
+		}
+	});
+	describe('dateIsInTheFuture', () => {
+		const tests = [
+			{
+				input: new Date('2090-02-20T15:00Z'),
+				expected: true
+			},
+			{
+				input: new Date('2020-02-20T15:00Z'),
+				expected: false
+			}
+		];
+		for (const { input, expected } of tests) {
+			it(`${JSON.stringify(input)} ${expected ? 'is' : "isn't"} in the future`, () => {
+				const got = dateIsInTheFuture(input);
+				assert.deepStrictEqual(got, expected);
+			});
+		}
+	});
+	describe('dateIsInThePast', () => {
+		const tests = [
+			{
+				input: new Date('2090-02-20T15:00Z'),
+				expected: false
+			},
+			{
+				input: new Date('2020-02-20T15:00Z'),
+				expected: true
+			}
+		];
+		for (const { input, expected } of tests) {
+			it(`${JSON.stringify(input)} ${expected ? 'is' : "isn't"} in the past`, () => {
+				const got = dateIsInThePast(input);
+				assert.deepStrictEqual(got, expected);
+			});
+		}
+	});
+	describe('dateIsToday', () => {
+		const tests = [
+			{
+				input: new Date('2090-02-20T15:00Z'),
+				expected: false
+			},
+			{
+				input: new Date('2020-02-20T15:00Z'),
+				expected: false
+			},
+			{
+				input: new Date(),
+				expected: true
+			}
+		];
+		for (const { input, expected } of tests) {
+			it(`${JSON.stringify(input)} ${expected ? 'is' : "isn't"} today`, () => {
+				const got = dateIsToday(input);
 				assert.deepStrictEqual(got, expected);
 			});
 		}

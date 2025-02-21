@@ -15,7 +15,7 @@ export function createJourney(questions, response, req) {
 	if (!req.params.id) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey (no id param)`);
 	}
-	if (!req.baseUrl?.endsWith(req.params.id)) {
+	if (!req.baseUrl?.includes(req.params.id)) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey (invalid baseUrl)`);
 	}
 
