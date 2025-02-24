@@ -1,12 +1,12 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { applicationLinks, crownDevelopmentToViewModel, documentsLink } from '../view-model.js';
+import { applicationLinks, crownDevelopmentToViewModel, documentsLink } from '../../view-model.js';
 import { fetchPublishedApplication } from '#util/applications.js';
 
 /**
  * @param {Object} opts
  * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('../../../../config-types.js').Config} opts.config
+ * @param {import('../../../../../config-types.d.ts').Config} opts.config
  * @returns {import('express').Handler}
  */
 export function buildHaveYourSayPage({ db, config }) {
@@ -31,7 +31,7 @@ export function buildHaveYourSayPage({ db, config }) {
 
 		const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment, config);
 
-		res.render('views/applications/view/have-your-say/view.njk', {
+		res.render('views/applications/view/have-your-say/view/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Have your say on a Crown Development Application',
 			links: applicationLinks(id),

@@ -1,8 +1,8 @@
 import { Router as createRouter } from 'express';
 import { buildApplicationDocumentsPage, buildDocumentView } from './documents/controller.js';
-import { buildHaveYourSayPage } from './have-your-say/controller.js';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 import { buildApplicationInformationPage } from './application-info/controller.js';
+import { createHaveYourSayRoutes } from './have-your-say/view/index.js';
 
 /**
  * @param {Object} opts
@@ -17,12 +17,12 @@ export function createRoutes(opts) {
 	const applicationInfoController = buildApplicationInformationPage(opts);
 	const applicationDocumentsPage = buildApplicationDocumentsPage(opts);
 	const viewDocumentPage = buildDocumentView(opts);
-	const viewHaveYourSayPage = buildHaveYourSayPage(opts);
+	const haveYourSayPageRoutes = createHaveYourSayRoutes(opts);
 
 	router.get('/', asyncHandler(applicationInfoController));
 	router.get('/documents', asyncHandler(applicationDocumentsPage));
 	router.get('/documents/:documentId', asyncHandler(viewDocumentPage));
-	router.get('/have-your-say', asyncHandler(viewHaveYourSayPage));
+	router.use('/have-your-say', haveYourSayPageRoutes);
 
 	return router;
 }
