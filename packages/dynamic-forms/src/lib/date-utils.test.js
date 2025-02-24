@@ -1,8 +1,15 @@
-import { describe, it } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { formatDateForDisplay, parseDateInput } from './date-utils.js';
+import {
+	dateIsAfterToday,
+	dateIsBeforeToday,
+	dateIsToday,
+	formatDateForDisplay,
+	parseDateInput
+} from './date-utils.js';
 
 describe('format-date', () => {
+	mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T12:00:00') });
 	describe('formatUTCDateToUK', () => {
 		const tests = [
 			{ date: new Date('2024-02-20T15:00Z'), expected: '20 Feb 2024 - 15 00' },
@@ -50,6 +57,72 @@ describe('format-date', () => {
 		for (const { input, expected } of tests) {
 			it(`parses date ${JSON.stringify(input)} in Europe/London`, () => {
 				const got = parseDateInput(input);
+				assert.deepStrictEqual(got, expected);
+			});
+		}
+	});
+	describe('dateIsAfterToday', () => {
+		const tests = [
+			{
+				input: new Date('2025-01-02T15:00Z'),
+				expected: true
+			},
+			{
+				input: new Date('2020-02-20T15:00Z'),
+				expected: false
+			}
+		];
+		for (const { input, expected } of tests) {
+			it(`${JSON.stringify(input)} ${expected ? 'is' : "isn't"} in the future`, () => {
+				const got = dateIsAfterToday(input);
+				assert.deepStrictEqual(got, expected);
+			});
+		}
+	});
+	describe('dateIsBeforeToday', () => {
+		const tests = [
+			{
+				input: new Date('2090-02-20T15:00Z'),
+				expected: false
+			},
+			{
+				input: new Date('2020-02-20T15:00Z'),
+				expected: true
+			}
+		];
+		for (const { input, expected } of tests) {
+			it(`${JSON.stringify(input)} ${expected ? 'is' : "isn't"} in the past`, () => {
+				const got = dateIsBeforeToday(input);
+				assert.deepStrictEqual(got, expected);
+			});
+		}
+	});
+	describe('dateIsToday', () => {
+		const tests = [
+			{
+				input: new Date('2025-01-02T15:00Z'),
+				expected: false
+			},
+			{
+				input: new Date('2020-02-20T15:00Z'),
+				expected: false
+			},
+			{
+				input: new Date('2025-01-01T15:00:00'),
+				expected: true
+			},
+			{
+				input: new Date('2025-01-01T00:00:00'),
+				expected: true
+			},
+			{
+				input: new Date('2025-01-01T23:59:00'),
+				expected: true
+			}
+		];
+		for (const { input, expected } of tests) {
+			it(`${JSON.stringify(input)} ${expected ? 'is' : "isn't"} today`, () => {
+				const got = dateIsToday(input);
 				assert.deepStrictEqual(got, expected);
 			});
 		}

@@ -7,13 +7,19 @@
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 
 {% set title = reference + " - " + journeyTitle + " - GOV.UK" %}
+{% set publishUrl = baseUrl + "/publish" %}
 
 {% block pageTitle %}
     {{ title }}
 {% endblock %}
 
 {% block content %}
-
+    {% if caseUpdated and casePublished %}
+        {{ govukNotificationBanner({
+            text: "Any updates made to this case will be automatically published.",
+            type: "success"
+        }) }}
+    {% endif %}
     {% if caseUpdated %}
         {{ govukNotificationBanner({
             text: "Application has been updated",
@@ -35,13 +41,16 @@
                 {% for section in summaryListData.sections %}
                     {% if section.list.rows.length %}
                         <li>
-                            <a href="#{{ section.heading | lower }}" class="govuk-link govuk-link--no-visited-state">{{ section.heading }}</a>
+                            <a href="#{{ section.heading | lower }}"
+                               class="govuk-link govuk-link--no-visited-state">{{ section.heading }}</a>
                         </li>
                     {% endif %}
                 {% endfor %}
             </ul>
         </div>
-        <div class="govuk-grid-column-one-third">
+
+        <div class="govuk-grid-column-one-third govuk-!-text-align-right">
+
             {{ govukButton({
                 text: "Open SharePoint Folder",
                 href: "",
@@ -52,6 +61,21 @@
                 href: "",
                 classes: "govuk-button--secondary"
             }) }}
+            {% if casePublished %}
+
+                {{ govukButton({
+                    text: "Unpublish Application",
+                    href: "#",
+                    classes: "govuk-button--warning"
+                }) }}
+
+            {% else %}
+                {{ govukButton({
+                    text: "Publish Application",
+                    href: publishUrl,
+                    classes: "govuk-button--primary"
+                }) }}
+            {% endif %}
         </div>
         <div class="govuk-grid-column-full">
             {% for section in summaryListData.sections %}
