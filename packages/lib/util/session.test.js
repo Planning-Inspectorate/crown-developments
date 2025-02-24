@@ -55,5 +55,16 @@ describe('session', () => {
 				}
 			});
 		});
+		it('should delete session data for all fieldOrFields specified in an array', () => {
+			const req = { session: { cases: { id: { data: '1', moreData: '3', d: 2 } } } };
+			clearSessionData(req, 'id', ['data', 'moreData']);
+			assert.deepStrictEqual(req.session, {
+				cases: {
+					id: {
+						d: 2
+					}
+				}
+			});
+		});
 	});
 });

@@ -1,5 +1,5 @@
 import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
-import { isValid } from 'date-fns';
+import { isAfter, isBefore, isValid } from 'date-fns';
 
 const ukTimeZone = 'Europe/London';
 
@@ -77,3 +77,27 @@ export function endOfDay() {
 function pad(num, length = 2) {
 	return num.toString().padStart(length, '0');
 }
+
+/**
+ * @param {Date} date
+ * @returns {boolean}
+ */
+export const dateIsAfterToday = (date) => {
+	return isAfter(date, endOfDay());
+};
+
+/**
+ * @param {Date} date
+ * @returns {boolean}
+ */
+export const dateIsBeforeToday = (date) => {
+	return isBefore(date, startOfDay());
+};
+
+/**
+ * @param {Date} date
+ * @returns {boolean}
+ */
+export const dateIsToday = (date) => {
+	return !isBefore(date, startOfDay()) && !isAfter(date, endOfDay()) && isValid(date);
+};

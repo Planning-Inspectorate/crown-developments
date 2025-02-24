@@ -7,6 +7,8 @@ import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-respons
 import { Prisma } from '@prisma/client';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { getEntraGroupMembers } from '#util/entra-groups.js';
+import { dateIsBeforeToday, dateIsToday } from '@pins/dynamic-forms/src/lib/date-utils.js';
+import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 
 /**
  * @type {import('express').Handler}
@@ -17,12 +19,22 @@ export async function viewCaseDetails(req, res) {
 	if (!id) {
 		throw new Error('id param required');
 	}
+	// Show publish case validation errors
+	const errors = readSessionData(req, id, 'publishedErrors', [], 'cases');
+	if (errors.length > 0) {
+		res.locals.errorSummary = errors;
+	}
+	clearSessionData(req, id, 'publishedErrors', 'cases');
 
 	// immediately clear this so the banner only shows once
 	const caseUpdated = readCaseUpdatedSession(req, id);
 	clearCaseUpdatedSession(req, id);
 
-	await list(req, res, '', { reference, caseUpdated, hideButton: true, hideStatus: true });
+	const publishDate = res.locals?.journeyResponse?.answers?.publishDate;
+	const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
+	const baseUrl = req.baseUrl;
+
+	await list(req, res, '', { reference, caseUpdated, casePublished, baseUrl, hideButton: true, hideStatus: true });
 }
 
 /**

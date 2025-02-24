@@ -9,6 +9,7 @@ import { Prisma } from '@prisma/client';
 describe('case details', () => {
 	const mockGetEntraClient = mock.fn(() => null);
 	const groupIds = { caseOfficer: 'id-1', inspector: 'id-2' };
+	mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
 
 	describe('buildGetJourneyMiddleware', () => {
 		it('should throw if no id', async () => {
@@ -169,6 +170,143 @@ describe('case details', () => {
 
 			// should also clear the session
 			assert.strictEqual(mockReq.session.cases['case-1'].updated, undefined);
+		});
+		it('should display a publish button if publishDate is defined and not in the future', async () => {
+			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
+			const nunjucks = configureNunjucks();
+			// mock response that calls nunjucks to render a result
+			const mockRes = {
+				locals: {},
+				render: mock.fn((view, data) => nunjucks.render(view, data))
+			};
+			const mockReq = {
+				params: { id: 'case-1' },
+				baseUrl: 'case-1',
+				session: {}
+			};
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: 'case-1', name: 'Case 1', publishDate: new Date('2020-12-17T03:24:00') }))
+				}
+			};
+			const next = mock.fn();
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds
+			});
+			await middleware(mockReq, mockRes, next);
+			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
+			assert.strictEqual(next.mock.callCount(), 1);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.ok(viewData);
+			assert.strictEqual(viewData.casePublished, true);
+		});
+		it('should display an unpublish button if publishDate is not defined', async () => {
+			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
+			const nunjucks = configureNunjucks();
+			// mock response that calls nunjucks to render a result
+			const mockRes = {
+				locals: {},
+				render: mock.fn((view, data) => nunjucks.render(view, data))
+			};
+			const mockReq = {
+				params: { id: 'case-1' },
+				baseUrl: 'case-1',
+				session: {}
+			};
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: 'case-1', name: 'Case 1' }))
+				}
+			};
+			const next = mock.fn();
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds
+			});
+			await middleware(mockReq, mockRes, next);
+			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
+			assert.strictEqual(next.mock.callCount(), 1);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.ok(viewData);
+			assert.strictEqual(viewData.casePublished, undefined);
+		});
+		it('should display an unpublish button if publishDate is in the future', async () => {
+			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
+			const nunjucks = configureNunjucks();
+			// mock response that calls nunjucks to render a result
+			const mockRes = {
+				locals: {},
+				render: mock.fn((view, data) => nunjucks.render(view, data))
+			};
+			const mockReq = {
+				params: { id: 'case-1' },
+				baseUrl: 'case-1',
+				session: {}
+			};
+
+			const tomorrow = new Date('2025-01-02T03:24:00');
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: 'case-1', name: 'Case 1', publishDate: tomorrow }))
+				}
+			};
+			const next = mock.fn();
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds
+			});
+			await middleware(mockReq, mockRes, next);
+			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
+			assert.strictEqual(next.mock.callCount(), 1);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.ok(viewData);
+			assert.strictEqual(viewData.casePublished, false);
+		});
+		it('should display error messages in errorSummary', async () => {
+			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
+			const nunjucks = configureNunjucks();
+			const mockReq = {
+				params: { id: 'case-1' },
+				baseUrl: 'case-1',
+				session: { cases: { 'case-1': { publishedErrors: [{ text: 'Error message', href: '#' }] } } }
+			};
+			const mockRes = {
+				locals: {},
+				render: mock.fn((view, data) => nunjucks.render(view, data))
+			};
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: 'case-1', reference: 'C/A/1' }))
+				}
+			};
+			const next = mock.fn();
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds
+			});
+			await middleware(mockReq, mockRes, next);
+			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
+			assert.strictEqual(next.mock.callCount(), 1);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.ok(mockRes.locals.errorSummary);
+			assert.strictEqual(mockRes.locals.errorSummary.length, 1);
+			assert.strictEqual(mockRes.locals.errorSummary[0].text, 'Error message');
+
+			// should also clear the session
+			assert.strictEqual(mockReq.session.cases['case-1'].errors, undefined);
 		});
 	});
 	describe('buildUpdateCase', () => {

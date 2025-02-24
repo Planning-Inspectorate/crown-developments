@@ -69,13 +69,21 @@ export function readSessionData(req, id, field, defaultValue, sessionField = 'ca
  *
  * @param {{session?: Object<string, any>}} req
  * @param {string} id
- * @param {string} field
+ * @param {string | string[]} fieldOrFields
  * @param {string} [sessionField]
  */
-export function clearSessionData(req, id, field, sessionField = 'cases') {
+export function clearSessionData(req, id, fieldOrFields, sessionField = 'cases') {
 	if (!req.session) {
 		return; // no need to error here
 	}
+	if (fieldOrFields instanceof Array) {
+		fieldOrFields.forEach((field) => {
+			const fieldProps = (req.session[sessionField] && req.session[sessionField][id]) || {};
+			delete fieldProps[field];
+		});
+		return;
+	}
+
 	const fieldProps = (req.session[sessionField] && req.session[sessionField][id]) || {};
-	delete fieldProps[field];
+	delete fieldProps[fieldOrFields];
 }

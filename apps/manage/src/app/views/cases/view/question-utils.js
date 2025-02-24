@@ -90,9 +90,10 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 /**
  * @param {string} fieldName
  * @param {string} [title]
+ * @param {boolean} [editable]
  * @returns {import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps}
  */
-export function dateQuestion(fieldName, title) {
+export function dateQuestion(fieldName, title, editable = true) {
 	if (!title) {
 		title = camelCaseToTitleCase(fieldName);
 	}
@@ -102,7 +103,8 @@ export function dateQuestion(fieldName, title) {
 		question: `What is the ${title}?`,
 		fieldName: fieldName,
 		url: camelCaseToUrlCase(fieldName),
-		validators: [new DateValidator(title)]
+		validators: [new DateValidator(title)],
+		editable: editable
 	};
 }
 
