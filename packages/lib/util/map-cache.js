@@ -4,23 +4,17 @@
  * @property {*} value
  */
 
-const newDate = () => new Date();
-
 export class MapCache {
 	/** @type {Map<string, CacheEntry>} */
 	cache = new Map();
 	/** @type {number} */
 	#ttl;
-	/** @type {() => Date} */
-	#getNow;
 
 	/**
 	 * @param {number} ttlMinutes
-	 * @param {() => Date} [getNow]
 	 */
-	constructor(ttlMinutes, getNow = newDate) {
+	constructor(ttlMinutes) {
 		this.#ttl = ttlMinutes * 60 * 1000; // to ms
-		this.#getNow = getNow;
 	}
 
 	/**
@@ -32,7 +26,7 @@ export class MapCache {
 		if (!entry) {
 			return undefined;
 		}
-		if (this.#getNow() - entry.updated > this.#ttl) {
+		if (new Date() - entry.updated > this.#ttl) {
 			this.cache.delete(id);
 			return undefined;
 		}
@@ -44,6 +38,6 @@ export class MapCache {
 	 * @param {*} value
 	 */
 	set(id, value) {
-		this.cache.set(id, { updated: this.#getNow(), value });
+		this.cache.set(id, { updated: new Date(), value });
 	}
 }
