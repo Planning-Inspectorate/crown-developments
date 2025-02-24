@@ -210,7 +210,6 @@ export const REPRESENTATION_CATEGORY = [
  */
 export const REPRESENTATION_SUBMITTED_FOR_ID = Object.freeze({
 	MYSELF: 'myself',
-	ORGANISATION: 'organisation',
 	ON_BEHALF_OF: 'on-behalf-of'
 });
 
@@ -223,12 +222,8 @@ export const REPRESENTATION_SUBMITTED_FOR = [
 		displayName: 'Myself'
 	},
 	{
-		id: REPRESENTATION_SUBMITTED_FOR_ID.ORGANISATION,
-		displayName: 'An organisation I work or volunteer for'
-	},
-	{
 		id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
-		displayName: 'On behalf of another person, a household, or an organisation I do not work for'
+		displayName: 'On behalf of another person or an organisation'
 	}
 ];
 
@@ -274,15 +269,15 @@ export const REPRESENTED_TYPE_ID = Object.freeze({
 export const REPRESENTED_TYPE = [
 	{
 		id: REPRESENTED_TYPE_ID.PERSON,
-		displayName: 'Another individual'
+		displayName: 'A person'
 	},
 	{
 		id: REPRESENTED_TYPE_ID.ORGANISATION,
-		displayName: 'An organisation or charity I do not work for'
+		displayName: 'An organisation or charity I work or volunteer for'
 	},
 	{
 		id: REPRESENTED_TYPE_ID.HOUSEHOLD,
-		displayName: 'Another household'
+		displayName: 'An organisation or charity I do not work or volunteer for'
 	}
 ];
 

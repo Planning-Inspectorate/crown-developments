@@ -1,0 +1,24 @@
+{% extends "components/task-list/index.njk" %}
+
+{% set title = "Check your Answers - " + journeyTitle + " - GOV.UK" %}
+
+{% block beforeTaskList %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
+            <h1 class="govuk-heading-l">
+                Check your answers
+            </h1>
+        </div>
+    </div>
+
+    {% if summaryListData.sections.length > 1 %}
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-three-quarters-from-desktop">
+                <p class="govuk-body govuk-!-font-weight-bold">Submissions incomplete</p>
+                <p class="govuk-body govuk-!-margin-bottom-7">You have completed {{ summaryListData.completedSectionCount }}
+                    of {{ summaryListData.sections.length + 1 }} sections.</p>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+

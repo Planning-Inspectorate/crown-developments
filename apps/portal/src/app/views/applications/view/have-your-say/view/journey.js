@@ -1,0 +1,37 @@
+import { Journey } from '@pins/dynamic-forms/src/journey/journey.js';
+import { Section } from '@pins/dynamic-forms/src/section.js';
+import { questionHasAnswer } from '@pins/dynamic-forms/src/components/utils/question-has-answer.js';
+import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+
+export const JOURNEY_ID = 'have-your-say';
+
+export function createJourney(questions, response, req) {
+	if (!req.baseUrl.endsWith('/' + JOURNEY_ID)) {
+		throw new Error(`not a valid request for the ${JOURNEY_ID} journey`);
+	}
+
+	return new Journey({
+		journeyId: JOURNEY_ID,
+		sections: [
+			new Section('Representation', 'representation').addQuestion(questions.submittedFor),
+			new Section('Myself', 'myself')
+				.addQuestion(questions.isAdult)
+				.withCondition((response) =>
+					questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
+				),
+			new Section('Agent', 'agent')
+				.addQuestion(questions.whoRepresenting)
+				.withCondition((response) =>
+					questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF)
+				)
+		],
+		taskListUrl: 'check-your-answers',
+		journeyTemplate: 'views/layouts/forms-question.njk',
+		listingPageViewPath: 'views/layouts/forms-check-your-answers.njk',
+		journeyTitle: 'Have Your Say',
+		returnToListing: false,
+		makeBaseUrl: () => req.baseUrl,
+		initialBackLink: `/applications/application-information/${req.params?.applicationId}/have-your-say`,
+		response
+	});
+}

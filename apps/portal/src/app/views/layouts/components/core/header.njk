@@ -28,16 +28,5 @@
 			classes: 'pins-navigation',
 			navigation: config.primaryNavigationLinks
 		}) }}
-
-		{% if backLinkUrl %}
-			{{ govukBackLink({
-				attributes: {
-					'data-cy': 'back',
-					'id': 'back-link'
-				},
-				href: backLinkUrl,
-				text: config.backLinkText
-			}) }}
-		{% endif %}
 	</div>
 </header>
