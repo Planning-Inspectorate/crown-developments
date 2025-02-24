@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@azure/identity": "^4.6.0",
-    "@azure/msal-node": "^3.2.2",
+    "@azure/msal-node": "^3.2.3",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@prisma/client": "^6.3.1",
     "accessible-autocomplete": "^3.0.1",
