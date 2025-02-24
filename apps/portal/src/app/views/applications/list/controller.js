@@ -1,18 +1,15 @@
 import { crownDevelopmentToViewModel } from '../view/view-model.js';
 
-const getCurrentDate = () => new Date();
-
 /**
  * @param {Object} opts
  * @param {import('@prisma/client').PrismaClient} opts.db
  * @param {import('pino').BaseLogger} opts.logger
  * @param {import('../../../../config-types.js').Config} opts.config
- * @param {function(): Date} [opts.getNow]
  * @returns {import('express').Handler}
  */
-export function buildApplicationListPage({ db, logger, config, getNow = getCurrentDate }) {
+export function buildApplicationListPage({ db, logger, config }) {
 	return async (req, res) => {
-		const now = getNow();
+		const now = new Date();
 
 		const crownDevelopments = await db.crownDevelopment.findMany({
 			where: { publishDate: { lte: now } },
