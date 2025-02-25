@@ -2,6 +2,7 @@ import { Journey } from '@pins/dynamic-forms/src/journey/journey.js';
 import { Section } from '@pins/dynamic-forms/src/section.js';
 import { questionHasAnswer } from '@pins/dynamic-forms/src/components/utils/question-has-answer.js';
 import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
 
 export const JOURNEY_ID = 'have-your-say';
 
@@ -16,6 +17,20 @@ export function createJourney(questions, response, req) {
 			new Section('Representation', 'start').addQuestion(questions.submittedFor),
 			new Section('Myself', 'myself')
 				.addQuestion(questions.isAdult)
+				.withCondition((response) =>
+					questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
+				)
+				.addQuestion(questions.fullName)
+				.withCondition(
+					(response) =>
+						questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF) &&
+						questionHasAnswer(response, questions.isAdult, BOOLEAN_OPTIONS.YES)
+				)
+				.addQuestion(questions.email)
+				.withCondition((response) =>
+					questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
+				)
+				.addQuestion(questions.tellUsAboutApplication)
 				.withCondition((response) =>
 					questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
 				),
