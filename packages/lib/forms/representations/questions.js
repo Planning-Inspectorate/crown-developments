@@ -78,15 +78,19 @@ export const questionProps = {
 	fullName: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Your full name',
-		question: 'What is your full name?',
+		question: 'What is your name?',
 		fieldName: 'fullName',
 		url: 'full-name',
 		validators: [
-			new RequiredValidator('Enter your name'),
+			new RequiredValidator('Enter Full name'),
 			new StringValidator({
+				minLength: {
+					minLength: 3,
+					minLengthMessage: 'Full name must be between 3 and 250 characters'
+				},
 				maxLength: {
 					maxLength: 250,
-					maxLengthMessage: `The name must be 250 characters or less`
+					maxLengthMessage: `Full name must be between 3 and 250 characters`
 				}
 			})
 		]
@@ -162,7 +166,7 @@ export const questionProps = {
 		hint: 'You can still have your say if you are under 18, but we will process your personal details in a different way.',
 		fieldName: 'isAdult',
 		url: 'over-18',
-		validators: [new RequiredValidator()]
+		validators: [new RequiredValidator('Select yes if you are 18 or over')]
 	},
 	email: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
@@ -170,12 +174,21 @@ export const questionProps = {
 		question: 'What is your email address? (optional)',
 		hint: 'We will not publish your email address',
 		fieldName: 'email',
-		url: 'email',
+		url: 'email-address',
 		validators: [
+			new RequiredValidator('Enter your email address'),
 			new StringValidator({
+				minLength: {
+					minLength: 3,
+					minLengthMessage: 'Email address must be between 3 and 250 characters'
+				},
 				maxLength: {
 					maxLength: 250,
-					maxLengthMessage: `Email must be 250 characters or less`
+					maxLengthMessage: `Email address must be between 3 and 250 characters`
+				},
+				regex: {
+					regex: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$',
+					regexMessage: 'Enter an email address in the correct format, like name@example.com'
 				}
 			})
 		]
@@ -219,6 +232,22 @@ export const questionProps = {
 				maxLength: {
 					maxLength: 32500,
 					maxLengthMessage: `Comment must be 32,500 characters or less`
+				}
+			})
+		]
+	},
+	tellUsAboutApplication: {
+		type: COMPONENT_TYPES.TEXT_ENTRY,
+		title: 'Tell us about Application',
+		question: 'What do you want to tell us about the proposed application?',
+		fieldName: 'aboutApplication',
+		url: 'tell-us-about-application',
+		validators: [
+			new RequiredValidator('Enter what you want to tell us about this proposed application'),
+			new StringValidator({
+				maxLength: {
+					maxLength: 65234,
+					maxLengthMessage: 'What you want to tell us must be 65234 characters or less'
 				}
 			})
 		]
