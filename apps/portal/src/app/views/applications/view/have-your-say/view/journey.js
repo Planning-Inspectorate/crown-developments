@@ -13,7 +13,7 @@ export function createJourney(questions, response, req) {
 	return new Journey({
 		journeyId: JOURNEY_ID,
 		sections: [
-			new Section('Before you Start', 'before-you-start').addQuestion(questions.submittedFor),
+			new Section('Representation', 'start').addQuestion(questions.submittedFor),
 			new Section('Myself', 'myself')
 				.addQuestion(questions.isAdult)
 				.withCondition((response) =>
