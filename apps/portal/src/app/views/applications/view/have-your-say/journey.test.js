@@ -21,8 +21,6 @@ describe('have-your-say journey', () => {
 		const sections = journey.sections;
 
 		assert.strictEqual(sections.length, 3);
-		const section = sections[0];
-		const questionsDefined = section.questions.every((q) => q !== undefined);
-		assert.strictEqual(questionsDefined, true);
+		sections.forEach((section) => section.questions.forEach((q) => assert.ok(q !== undefined)));
 	});
 });
