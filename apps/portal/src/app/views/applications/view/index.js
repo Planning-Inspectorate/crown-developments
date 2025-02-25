@@ -2,7 +2,7 @@ import { Router as createRouter } from 'express';
 import { buildApplicationDocumentsPage, buildDocumentView } from './documents/controller.js';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 import { buildApplicationInformationPage } from './application-info/controller.js';
-import { createHaveYourSayRoutes } from './have-your-say/view/index.js';
+import { createHaveYourSayRoutes } from './have-your-say/index.js';
 
 /**
  * @param {Object} opts
