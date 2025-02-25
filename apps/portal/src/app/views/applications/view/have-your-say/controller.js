@@ -6,7 +6,7 @@ import { fetchPublishedApplication } from '#util/applications.js';
 /**
  * @param {Object} opts
  * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('../../../../config-types.d.ts').Config} opts.config
+ * @param {import('../../../../config-types.js').Config} opts.config
  * @returns {import('express').Handler}
  */
 export function buildHaveYourSayPage({ db, config }) {
