@@ -56,6 +56,24 @@ export class SharePointDrive {
 	}
 
 	/**
+	 * Get a single drive item by path
+	 *
+	 * @param {string} path
+	 * @param {[key: string, value: string][]} params
+	 * @returns {Promise<import('@microsoft/microsoft-graph-types').DriveItem>}
+	 */
+	async getDriveItemByPath(path, params = []) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('root:')
+			.addPathSegment(path + ':')
+			.addQueryParams(params);
+
+		return await this.client.api(urlBuilder.toString()).get();
+	}
+
+	/**
 	 * Get a drive item download URL for fetching the content
 	 *
 	 * @param {string} itemId
