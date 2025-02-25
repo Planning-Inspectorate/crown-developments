@@ -9,32 +9,67 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { getEntraGroupMembers } from '#util/entra-groups.js';
 import { dateIsBeforeToday, dateIsToday } from '@pins/dynamic-forms/src/lib/date-utils.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
+import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/name.js';
 
 /**
- * @type {import('express').Handler}
+ *
+ * @param {Object} opts
+ * @param {function(session): SharePointDrive} opts.getSharePointDrive
  */
-export async function viewCaseDetails(req, res) {
-	const reference = res.locals?.journeyResponse?.answers?.reference;
-	const id = req.params.id;
-	if (!id) {
-		throw new Error('id param required');
+export function buildViewCaseDetails({ getSharePointDrive }) {
+	return async (req, res) => {
+		const reference = res.locals?.journeyResponse?.answers?.reference;
+		const id = req.params.id;
+		if (!id) {
+			throw new Error('id param required');
+		}
+		// Show publish case validation errors
+		const errors = readSessionData(req, id, 'publishedErrors', [], 'cases');
+		if (errors.length > 0) {
+			res.locals.errorSummary = errors;
+		}
+		clearSessionData(req, id, 'publishedErrors', 'cases');
+
+		// immediately clear this so the banner only shows once
+		const caseUpdated = readCaseUpdatedSession(req, id);
+		clearCaseUpdatedSession(req, id);
+
+		const publishDate = res.locals?.journeyResponse?.answers?.publishDate;
+		const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
+		const baseUrl = req.baseUrl;
+
+		const sharePointDrive = getSharePointDrive(req.session);
+		let sharePointLink = '';
+		if (sharePointDrive) {
+			sharePointLink = await getSharePointFolderLink(sharePointDrive, caseReferenceToFolderName(reference));
+		}
+
+		await list(req, res, '', {
+			reference,
+			caseUpdated,
+			casePublished,
+			baseUrl,
+			sharePointLink,
+			hideButton: true,
+			hideStatus: true
+		});
+	};
+}
+
+/**
+ * Wrap the sharepoint call to catch SharePoint errors
+ *
+ * @param {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} sharePointDrive
+ * @param {string} path
+ * @returns {Promise<DriveItemByPathResponse>}
+ */
+async function getSharePointFolderLink(sharePointDrive, path) {
+	try {
+		const item = await sharePointDrive.getDriveItemByPath(path, [['$select', 'webUrl']]);
+		return item.webUrl;
+	} catch {
+		// just don't show the button, don't throw an error
 	}
-	// Show publish case validation errors
-	const errors = readSessionData(req, id, 'publishedErrors', [], 'cases');
-	if (errors.length > 0) {
-		res.locals.errorSummary = errors;
-	}
-	clearSessionData(req, id, 'publishedErrors', 'cases');
-
-	// immediately clear this so the banner only shows once
-	const caseUpdated = readCaseUpdatedSession(req, id);
-	clearCaseUpdatedSession(req, id);
-
-	const publishDate = res.locals?.journeyResponse?.answers?.publishDate;
-	const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
-	const baseUrl = req.baseUrl;
-
-	await list(req, res, '', { reference, caseUpdated, casePublished, baseUrl, hideButton: true, hideStatus: true });
 }
 
 /**
