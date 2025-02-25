@@ -17,7 +17,7 @@ export function createRoutes({ db, logger, config, getSharePointDrive, getEntraC
 	const router = createRouter({ mergeParams: true });
 	const createACaseRoutes = createCreateACaseRoutes({ db, logger, config, getSharePointDrive });
 	const listCases = buildListCases({ db, logger });
-	const caseRoutes = createCaseRoutes({ db, logger, config, getEntraClient });
+	const caseRoutes = createCaseRoutes({ db, logger, config, getEntraClient, getSharePointDrive });
 
 	router.get('/', asyncHandler(listCases));
 	// must be before the case routes because the URLs overlap

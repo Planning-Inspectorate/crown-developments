@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { buildGetJourneyMiddleware, buildUpdateCase, viewCaseDetails } from './controller.js';
+import { buildGetJourneyMiddleware, buildUpdateCase, buildViewCaseDetails } from './controller.js';
 import { configureNunjucks } from '../../../nunjucks.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
@@ -104,6 +104,7 @@ describe('case details', () => {
 		it('should throw if no id', async () => {
 			const mockReq = { params: {} };
 			const mockRes = { locals: {} };
+			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => null });
 			await assert.rejects(() => viewCaseDetails(mockReq, mockRes));
 		});
 		it('should render without error, with case reference', async () => {
@@ -128,6 +129,7 @@ describe('case details', () => {
 				groupIds
 			});
 			await middleware(mockReq, mockRes, next);
+			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => null });
 			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
@@ -161,6 +163,7 @@ describe('case details', () => {
 				groupIds
 			});
 			await middleware(mockReq, mockRes, next);
+			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => null });
 			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
@@ -197,6 +200,7 @@ describe('case details', () => {
 				groupIds
 			});
 			await middleware(mockReq, mockRes, next);
+			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => null });
 			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
@@ -230,6 +234,7 @@ describe('case details', () => {
 				groupIds
 			});
 			await middleware(mockReq, mockRes, next);
+			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => null });
 			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
@@ -266,6 +271,7 @@ describe('case details', () => {
 				groupIds
 			});
 			await middleware(mockReq, mockRes, next);
+			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => null });
 			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
@@ -298,6 +304,7 @@ describe('case details', () => {
 				groupIds
 			});
 			await middleware(mockReq, mockRes, next);
+			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => null });
 			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
@@ -307,6 +314,44 @@ describe('case details', () => {
 
 			// should also clear the session
 			assert.strictEqual(mockReq.session.cases['case-1'].errors, undefined);
+		});
+		it('should show a sharepoint link if available', async () => {
+			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
+			const nunjucks = configureNunjucks();
+			// mock response that calls nunjucks to render a result
+			const mockRes = {
+				locals: {},
+				render: mock.fn((view, data) => nunjucks.render(view, data))
+			};
+			const mockReq = {
+				params: { id: 'case-1' },
+				baseUrl: 'case-1',
+				session: {}
+			};
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: 'case-1', reference: 'CROWN/2025/0000001', name: 'Case 1' }))
+				}
+			};
+			const next = mock.fn();
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds
+			});
+			await middleware(mockReq, mockRes, next);
+			const mockSharePoint = {
+				getDriveItemByPath: mock.fn(() => ({ webUrl: 'https://example.com' }))
+			};
+			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => mockSharePoint });
+			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
+			assert.strictEqual(next.mock.callCount(), 1);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.ok(viewData);
+			assert.strictEqual(viewData.sharePointLink, 'https://example.com');
 		});
 	});
 	describe('buildUpdateCase', () => {

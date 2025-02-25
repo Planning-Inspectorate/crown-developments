@@ -50,12 +50,14 @@
         </div>
 
         <div class="govuk-grid-column-one-third govuk-!-text-align-right">
-
-            {{ govukButton({
-                text: "Open SharePoint Folder",
-                href: "",
-                classes: "govuk-button--secondary"
-            }) }}
+            {% if sharePointLink %}
+                {{ govukButton({
+                    text: "Open SharePoint Folder",
+                    href: sharePointLink,
+                    classes: "govuk-button--secondary",
+                    attributes: {target: "_blank"}
+                }) }}
+            {% endif %}
             {{ govukButton({
                 text: "Manage representations",
                 href: "",
