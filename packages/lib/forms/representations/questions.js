@@ -79,6 +79,7 @@ export const questionProps = {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Your full name',
 		question: 'What is your name?',
+		hint: 'We will publish this on the website along with your comments about the project.',
 		fieldName: 'fullName',
 		url: 'full-name',
 		validators: [
@@ -165,14 +166,14 @@ export const questionProps = {
 		question: 'Are you 18 or over?',
 		hint: 'You can still have your say if you are under 18, but we will process your personal details in a different way.',
 		fieldName: 'isAdult',
-		url: 'over-18',
+		url: 'are-you-18-over',
 		validators: [new RequiredValidator('Select yes if you are 18 or over')]
 	},
 	email: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Email Address',
-		question: 'What is your email address? (optional)',
-		hint: 'We will not publish your email address',
+		question: 'What is your email address?',
+		hint: 'We will use your email address to send you information about this application. We will not publish your email address.',
 		fieldName: 'email',
 		url: 'email-address',
 		validators: [
@@ -239,7 +240,7 @@ export const questionProps = {
 	tellUsAboutApplication: {
 		type: COMPONENT_TYPES.TEXT_ENTRY,
 		title: 'Tell us about Application',
-		question: 'What do you want to tell us about the proposed application?',
+		question: 'What do you want to say about this application?',
 		fieldName: 'aboutApplication',
 		url: 'tell-us-about-application',
 		validators: [
