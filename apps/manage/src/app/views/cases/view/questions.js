@@ -19,13 +19,13 @@ import {
 	dateQuestion,
 	eventQuestions,
 	lpaListToRadioOptions,
-	referenceDataToRadioOptions,
 	subCategoriesToRadioOptions
 } from './question-utils.js';
 import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
 import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
 import CoordinatesValidator from '@pins/dynamic-forms/src/validator/coordinates-validator.js';
 import DatePeriodValidator from '@pins/dynamic-forms/src/validator/date-period-validator.js';
+import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
 
 /**
  * @param {import('../../../../util/entra-groups-types.js').EntraGroupMembers} [groupMembers]

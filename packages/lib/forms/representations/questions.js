@@ -4,12 +4,12 @@ import StringValidator from '@pins/dynamic-forms/src/validator/string-validator.
 import { createQuestions } from '@pins/dynamic-forms/src/questions/create-questions.js';
 import { questionClasses } from '@pins/dynamic-forms/src/questions/questions.js';
 import { COMPONENT_TYPES } from '@pins/dynamic-forms';
-import { referenceDataToRadioOptions } from 'crowndev-manage/src/app/views/cases/view/question-utils.js';
 import {
 	REPRESENTATION_STATUS,
 	REPRESENTATION_SUBMITTED_FOR,
 	REPRESENTED_TYPE
 } from '@pins/crowndev-database/src/seed/data-static.js';
+import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
 
 export const ACCEPT_AND_REDACT = 'accept-and-redact';
 
