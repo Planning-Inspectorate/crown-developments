@@ -11,9 +11,10 @@ module "app_portal" {
   service_name    = local.service_name
   tags            = local.tags
 
-  # service plan
+  # service plan & scaling
   app_service_plan_id                  = azurerm_service_plan.apps.id
   app_service_plan_resource_group_name = azurerm_resource_group.primary.name
+  worker_count                         = var.apps_config.app_service_plan.worker_count # match the app service plan
 
   # container
   container_registry_name = var.tooling_config.container_registry_name
