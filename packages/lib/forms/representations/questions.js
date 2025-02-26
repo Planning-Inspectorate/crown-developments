@@ -174,6 +174,15 @@ export const questionProps = {
 		url: 'are-you-18-over',
 		validators: [new RequiredValidator('Select yes if you are 18 or over')]
 	},
+	isAgentAdult: {
+		type: COMPONENT_TYPES.BOOLEAN,
+		title: 'Over 18',
+		question: 'Are you 18 or over?',
+		hint: 'If you are under 18 we will process your personal details in a different way.',
+		fieldName: 'isAdult',
+		url: 'agent-18-over',
+		validators: [new RequiredValidator('Select yes if you are 18 or over')]
+	},
 	email: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Email Address',
