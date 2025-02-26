@@ -3,6 +3,7 @@ import assert from 'node:assert';
 import { buildGetValidatedCaseMiddleware, buildPublishCase, publishSuccessfulController } from './controller.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { Prisma } from '@prisma/client';
+import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
 
 describe('publish case', () => {
 	mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
@@ -51,25 +52,14 @@ describe('publish case', () => {
 			});
 		});
 		it('should redirect to 404 if the case is not found', async () => {
-			const mockReq = { params: { id: 'case-1' }, session: {} };
-			const mockRes = {
-				locals: {},
-				status: mock.fn(),
-				render: mock.fn()
-			};
-			const next = mock.fn();
+			const mockReq = { params: { id: 'case-1' }, baseUrl: 'case-1', session: {} };
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => Promise.resolve(null))
 				}
 			};
 			const middleware = buildGetValidatedCaseMiddleware({ db: mockDb, logger: mockLogger() });
-			// todo: would be worth breaking this out as a custom assert as every 404 test will likely use it
-			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
-			assert.strictEqual(next.mock.callCount(), 0);
-			assert.strictEqual(mockRes.status.mock.callCount(), 1);
-			assert.strictEqual(mockRes.status.mock.calls[0].arguments[0], 404);
-			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			await assertRenders404Page(middleware, mockReq, true);
 		});
 		it('should call add an error to session for each required field missing and redirect to case page', async () => {
 			const db = {
@@ -186,6 +176,54 @@ describe('publish case', () => {
 				(err) => {
 					assert.strictEqual(err.name, 'Error');
 					assert.strictEqual(err.message, 'Error publishing case (E1)');
+					return true;
+				}
+			);
+		});
+		it('should not throw Prisma validation errors', async () => {
+			const mockReq = { params: { id: 'case-1' }, session: {} };
+			const mockRes = {
+				locals: {},
+				redirect: mock.fn()
+			};
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: 'case-1', reference: 'case-1-ref' })),
+					update: mock.fn(() => {
+						throw new Prisma.PrismaClientValidationError('Error', { code: 'E1' });
+					})
+				}
+			};
+			const publishCaseFn = buildPublishCase({ db: mockDb, logger: mockLogger() });
+			await assert.rejects(
+				() => publishCaseFn(mockReq, mockRes),
+				(err) => {
+					assert.strictEqual(err.name, 'Error');
+					assert.strictEqual(err.message, 'Error publishing case (PrismaClientValidationError)');
+					return true;
+				}
+			);
+		});
+		it('should throw non-Prisma errors', async () => {
+			const mockReq = { params: { id: 'case-1' }, session: {} };
+			const mockRes = {
+				locals: {},
+				redirect: mock.fn()
+			};
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: 'case-1', reference: 'case-1-ref' })),
+					update: mock.fn(() => {
+						throw new Error('Error');
+					})
+				}
+			};
+			const publishCaseFn = buildPublishCase({ db: mockDb, logger: mockLogger() });
+			await assert.rejects(
+				() => publishCaseFn(mockReq, mockRes),
+				(err) => {
+					assert.strictEqual(err.name, 'Error');
+					assert.strictEqual(err.message, 'Error');
 					return true;
 				}
 			);

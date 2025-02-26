@@ -5,6 +5,7 @@ import { configureNunjucks } from '../../../nunjucks.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { Prisma } from '@prisma/client';
+import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
 
 describe('case details', () => {
 	const mockGetEntraClient = mock.fn(() => null);
@@ -54,29 +55,19 @@ describe('case details', () => {
 		});
 		it('should render 404 if not found', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
-			const mockReq = { params: { id: 'case-1' }, baseUrl: 'case-1' };
-			const mockRes = {
-				locals: {},
-				status: mock.fn(),
-				render: mock.fn()
-			};
+			const mockReq = { params: { id: 'case-1' }, baseUrl: 'case-1', session: {} };
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => null)
 				}
 			};
-			const next = mock.fn();
 			const middleware = buildGetJourneyMiddleware({
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
 				groupIds
 			});
-			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
-			assert.strictEqual(next.mock.callCount(), 0);
-			assert.strictEqual(mockRes.status.mock.callCount(), 1);
-			assert.strictEqual(mockRes.status.mock.calls[0].arguments[0], 404);
-			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			await assertRenders404Page(middleware, mockReq, true);
 		});
 		it('should add a back link if on an edit page', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs

@@ -8,6 +8,7 @@
 
 {% set title = reference + " - " + journeyTitle + " - GOV.UK" %}
 {% set publishUrl = baseUrl + "/publish" %}
+{% set unpublishUrl = baseUrl + "/unpublish/confirm" %}
 
 {% block pageTitle %}
     {{ title }}
@@ -65,7 +66,7 @@
 
                 {{ govukButton({
                     text: "Unpublish Application",
-                    href: "#",
+                    href: unpublishUrl,
                     classes: "govuk-button--warning"
                 }) }}
 
