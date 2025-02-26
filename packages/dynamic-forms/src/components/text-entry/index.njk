@@ -5,6 +5,7 @@
 {% from "govuk/components/label/macro.njk" import govukLabel %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
 
 {% set title = question.pageTitle + " - " + journeyTitle + " - GOV.UK" %}
 {% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
@@ -34,6 +35,10 @@
                     <h1 class="govuk-heading-l">
                         {{ question.question }}
                     </h1>
+
+                    {% if question.summary %}
+                        {{ question.summary | safe }}
+                    {% endif %}
 
                     {% if question.html %}
                         {% include question.html ignore missing %}
@@ -75,6 +80,13 @@
                         classes: question.inputClasses
                     }) }}
 
+                {% endif %}
+
+                {% if question.detailsEnabled %}
+                    {{ govukDetails({
+                        summaryText: question.detailsSummary,
+                        html: question.detailsBody
+                    }) }}
                 {% endif %}
 
                 {% if question.textEntryCheckbox %}

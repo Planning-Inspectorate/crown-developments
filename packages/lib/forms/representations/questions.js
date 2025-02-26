@@ -10,6 +10,11 @@ import {
 	REPRESENTED_TYPE
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
+import {
+	aboutApplicationDetailsBodyHtmlString,
+	aboutApplicationDetailsSummaryHtmlString,
+	aboutApplicationSummaryHtmlString
+} from './template-literals.js';
 
 export const ACCEPT_AND_REDACT = 'accept-and-redact';
 
@@ -242,6 +247,11 @@ export const questionProps = {
 		title: 'Tell us about Application',
 		question: 'What do you want to say about this application?',
 		fieldName: 'aboutApplication',
+		label: 'Application comments',
+		summary: aboutApplicationSummaryHtmlString,
+		detailsEnabled: true,
+		detailsSummary: aboutApplicationDetailsSummaryHtmlString,
+		detailsBody: aboutApplicationDetailsBodyHtmlString,
 		url: 'tell-us-about-application',
 		validators: [
 			new RequiredValidator('Enter what you want to tell us about this proposed application'),

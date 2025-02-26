@@ -1,4 +1,4 @@
-export const htmlString = `
+export const aboutApplicationSummaryHtmlString = `
   <p class="govuk-body">Your comments must be about what you consider to be the main issues and impacts relating to planning matters.</p>
   <p class="govuk-body">All representations made in connection with the proposed development will be made publicly available on the website.</p>
   <p class="govuk-body">The name of the individual author or organisation will be published however addresses, signatures and contact details will not be published.</p>
@@ -7,18 +7,19 @@ export const htmlString = `
   <p class="govuk-body">Your application reference number will be provided upon submitting this form.</p>
 `;
 
-export const detailsHtmlString = `
-	<h1 class="govuk-heading-l">
+export const aboutApplicationDetailsSummaryHtmlString = 'Do not include these details';
+export const aboutApplicationDetailsBodyHtmlString = `
+	<h2 class="govuk-heading-m">
 		Use of language, hyperlinks and sensitive information
-	</h1>
+	</h2>
 	<p class="govuk-body">
 		You should not use racist, inflammatory or abusive language, or include sensitive information (also called special category information) about yourself or others in your comments.
 		<br>
 		Do not include links to third party websites. You can include links to either GOV.UK or websites for chartered professional institutes like IEMA.
 	</p>
-	<h1 class="govuk-heading-l">
+	<h2 class="govuk-heading-m">
 		Examples of sensitive information
-	</h1>
+	</h2>
 	<p class="govuk-body">Sensitive information refers to:</p>
 	<ul class="govuk-list govuk-list--bullet">
 		<li>comments from children</li>
