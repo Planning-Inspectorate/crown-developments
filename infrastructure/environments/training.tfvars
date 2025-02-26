@@ -1,6 +1,11 @@
 # A-Z
 apps_config = {
-  app_service_plan_sku     = "P0v3"
+  app_service_plan = {
+    sku                      = "P0v3"
+    per_site_scaling_enabled = false
+    worker_count             = 1
+    zone_balancing_enabled   = false
+  }
   node_environment         = "production"
   private_endpoint_enabled = true
 
