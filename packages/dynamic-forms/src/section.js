@@ -31,6 +31,12 @@ export class Section {
 	#conditionAdded = false;
 
 	/**
+	 * A condition to apply to every question in this section
+	 * @type {((response: JourneyResponse) => boolean)|null}
+	 */
+	#sectionCondition = null;
+
+	/**
 	 * creates an instance of a section
 	 * @param {string} name
 	 * @param {string} segment
@@ -41,6 +47,26 @@ export class Section {
 	}
 
 	/**
+	 * Add a condition to all questions in this section
+	 *
+	 * @param {((response: JourneyResponse) => boolean)} shouldIncludeSection
+	 * @returns {Section}
+	 */
+	withSectionCondition(shouldIncludeSection) {
+		if (this.questions.length > 0) {
+			throw new Error('section conditions must be added before any questions');
+		}
+		if (typeof shouldIncludeSection !== 'function') {
+			throw new Error('section condition must be a function');
+		}
+		if (this.#sectionCondition) {
+			throw new Error('section condition already set');
+		}
+		this.#sectionCondition = shouldIncludeSection;
+		return this;
+	}
+
+	/**
 	 * Fluent API method for adding questions
 	 * @param {any} question
 	 * @returns {Section}
@@ -48,6 +74,9 @@ export class Section {
 	addQuestion(question) {
 		this.questions.push(question);
 		this.#conditionAdded = false; // reset condition flag
+		if (this.#sectionCondition) {
+			question.shouldDisplay = this.#sectionCondition;
+		}
 		return this;
 	}
 
@@ -63,7 +92,12 @@ export class Section {
 		}
 		this.#conditionAdded = true; // set condition flag
 		const lastQuestionAdded = this.questions.length - 1;
-		this.questions[lastQuestionAdded].shouldDisplay = shouldIncludeQuestion;
+		const question = this.questions[lastQuestionAdded];
+		let shouldDisplay = shouldIncludeQuestion;
+		if (this.#sectionCondition) {
+			shouldDisplay = (response) => this.#sectionCondition(response) && shouldIncludeQuestion(response);
+		}
+		question.shouldDisplay = shouldDisplay;
 		return this;
 	}
 
