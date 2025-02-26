@@ -1,0 +1,48 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% set title = reference + " - Unpublish Application - GOV.UK" %}
+
+{% set warningText %}
+    {{ "Unpublishing will remove the application page and any associated content from the Crown Development Application Website." }}
+    <br><br>
+    {{ "You will be able to republish the application and content again." }}
+{% endset %}
+
+{% block pageTitle %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+
+    {% block pageContent %}
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
+                <h1 class="govuk-heading-l">
+                    Unpublish the application
+                </h1>
+            </div>
+        </div>
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full">
+                <p class="govuk-body">Case Reference: {{ reference }}</p>
+            </div>
+            <div class="govuk-grid-column-three-quarters">
+                {{ govukWarningText({
+                    html: warningText,
+                    iconFallbackText: "Warning"
+                }) }}
+            </div>
+            <div class="govuk-grid-column-three-quarters">
+                <form method="post" novalidate="novalidate">
+                    {{ govukButton({
+                        text: "Unpublish Application",
+                        classes: "govuk-button--warning"}) }}
+                </form>
+            </div>
+        </div>
+
+    {% endblock %}
+{% endblock %}

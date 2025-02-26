@@ -5,6 +5,7 @@ import validate from '@pins/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
 import { buildGetJourneyMiddleware, buildUpdateCase, buildViewCaseDetails, validateIdFormat } from './controller.js';
 import { createRoutes as createCasePublishRoutes } from './publish/index.js';
+import { createRoutes as createCaseUnpublishRoutes } from './unpublish/index.js';
 
 /**
  * @param {Object} opts
@@ -24,10 +25,13 @@ export function createRoutes({ db, logger, config, getEntraClient, getSharePoint
 	const updateCaseFn = buildUpdateCase({ db, logger });
 	const updateCase = buildSave(updateCaseFn, true);
 	const publishCase = createCasePublishRoutes({ db, logger, config, getEntraClient });
+	const unpublishCase = createCaseUnpublishRoutes({ db, logger });
 
 	// view case details
 	router.get('/', validateIdFormat, getJourney, asyncHandler(viewCaseDetails));
 	router.use('/publish', publishCase);
+	router.use('/unpublish', unpublishCase);
+
 	// view question page
 	router.get('/:section/:question', validateIdFormat, getJourney, asyncHandler(question));
 
