@@ -4,6 +4,7 @@ import { COMPONENT_TYPES } from '@pins/dynamic-forms';
 import MultiFieldInputValidator from '@pins/dynamic-forms/src/validator/multi-field-input-validator.js';
 import RequiredValidator from '@pins/dynamic-forms/src/validator/required-validator.js';
 import StringValidator from '@pins/dynamic-forms/src/validator/string-validator.js';
+import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
 
 /**
  *
@@ -158,19 +159,6 @@ export function eventQuestions(prefix) {
 			`${titleCase(prefix)} Proofs of Evidence Date`
 		)
 	};
-}
-
-/**
- * @param {{displayName?: string, id: string}[]} reference
- * @param {boolean} [addNullOption]
- * @returns {import('@pins/dynamic-forms/src/questions/question-props.js').Option[]}
- */
-export function referenceDataToRadioOptions(reference, addNullOption = false) {
-	const options = reference.map((t) => ({ text: t.displayName, value: t.id }));
-	if (addNullOption) {
-		options.unshift({ text: '', value: '' });
-	}
-	return options;
 }
 
 /**
