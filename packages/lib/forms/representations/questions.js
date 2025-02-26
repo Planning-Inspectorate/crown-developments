@@ -10,11 +10,6 @@ import {
 	REPRESENTED_TYPE
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
-import {
-	aboutApplicationDetailsBodyHtmlString,
-	aboutApplicationDetailsSummaryHtmlString,
-	aboutApplicationSummaryHtmlString
-} from './template-literals.js';
 
 export const ACCEPT_AND_REDACT = 'accept-and-redact';
 
@@ -202,7 +197,7 @@ export const questionProps = {
 					maxLengthMessage: `Email address must be between 3 and 250 characters`
 				},
 				regex: {
-					regex: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$',
+					regex: '^.+@.+\\..{2,}$',
 					regexMessage: 'Enter an email address in the correct format, like name@example.com'
 				}
 			})
@@ -252,23 +247,18 @@ export const questionProps = {
 		]
 	},
 	tellUsAboutApplication: {
-		type: COMPONENT_TYPES.TEXT_ENTRY,
+		type: COMPONENT_TYPES.TEXT_ENTRY_DETAILS,
 		title: 'Tell us about Application',
 		question: 'What do you want to say about this application?',
-		fieldName: 'aboutApplication',
+		fieldName: 'comment',
 		label: 'Application comments',
-		labelStyle: 'govuk-!-font-weight-bold',
-		summary: aboutApplicationSummaryHtmlString,
-		detailsEnabled: true,
-		detailsSummary: aboutApplicationDetailsSummaryHtmlString,
-		detailsBody: aboutApplicationDetailsBodyHtmlString,
 		url: 'tell-us-about-application',
 		validators: [
 			new RequiredValidator('Enter what you want to tell us about this proposed application'),
 			new StringValidator({
 				maxLength: {
-					maxLength: 65234,
-					maxLengthMessage: 'What you want to tell us must be 65234 characters or less'
+					maxLength: 65000,
+					maxLengthMessage: 'What you want to tell us must be 65,000 characters or less'
 				}
 			})
 		]
