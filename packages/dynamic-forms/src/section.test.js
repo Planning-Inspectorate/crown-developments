@@ -1,10 +1,17 @@
-import { describe, it } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { Section, SECTION_STATUS } from './section.js';
 import RequiredValidator from './validator/required-validator.js';
 
 const mockQuestion = {
 	fieldName: 'visitFrequently',
+	isRequired: () => true,
+	shouldDisplay: () => true,
+	isAnswered: () => false
+};
+
+const mockQuestion2 = {
+	fieldName: 'visitRarely',
 	isRequired: () => true,
 	shouldDisplay: () => true,
 	isAnswered: () => false
@@ -24,16 +31,16 @@ describe('./src/dynamic-forms/section.js', () => {
 	describe('addQuestion', () => {
 		it('should return self from addQuestion method as a fluent api', () => {
 			const section = new Section('s1', 'S');
-			const result = section.addQuestion(mockQuestion);
+			const result = section.addQuestion({ ...mockQuestion });
 			assert.strictEqual(result instanceof Section, true);
 			assert.strictEqual(result, section);
 		});
 
 		it('should add a question', () => {
 			const section = new Section('s1', 'S');
-			section.addQuestion(mockQuestion);
+			section.addQuestion({ ...mockQuestion });
 			assert.strictEqual(section.questions.length, 1);
-			assert.strictEqual(section.questions[0], mockQuestion);
+			assert.deepStrictEqual(section.questions[0], mockQuestion);
 		});
 	});
 
@@ -43,7 +50,7 @@ describe('./src/dynamic-forms/section.js', () => {
 				answers: {}
 			};
 			const section = new Section('s1', 'S');
-			section.addQuestion(mockQuestion);
+			section.addQuestion({ ...mockQuestion });
 			const result = section.getStatus(mockJourneyResponse);
 			assert.strictEqual(result, SECTION_STATUS.NOT_STARTED);
 			const isComplete = section.isComplete(mockJourneyResponse);
@@ -219,7 +226,7 @@ describe('./src/dynamic-forms/section.js', () => {
 	describe('withCondition', () => {
 		it('should return self from withCondition method as a fluent api', () => {
 			const section = new Section('s1', 'S');
-			section.addQuestion(mockQuestion);
+			section.addQuestion({ ...mockQuestion });
 			const result = section.withCondition(() => false);
 			assert.strictEqual(result instanceof Section, true);
 			assert.strictEqual(result, section);
@@ -227,14 +234,14 @@ describe('./src/dynamic-forms/section.js', () => {
 
 		it('should remove a question', () => {
 			const section = new Section('s1', 'S');
-			section.addQuestion(mockQuestion);
+			section.addQuestion({ ...mockQuestion });
 			section.withCondition(() => false);
 			assert.strictEqual(section.questions[0].shouldDisplay(), false);
 		});
 
 		it('should not allow two conditions in a row', () => {
 			const section = new Section('s1', 'S');
-			section.addQuestion(mockQuestion);
+			section.addQuestion({ ...mockQuestion });
 			section.withCondition(() => false);
 			assert.throws(() => section.withCondition(() => false));
 		});
@@ -260,6 +267,89 @@ describe('./src/dynamic-forms/section.js', () => {
 			assert.strictEqual(section.questions[3].shouldDisplay(), true);
 			assert.strictEqual(section.questions[4].shouldDisplay(), true);
 			assert.strictEqual(section.questions[5].shouldDisplay(), false);
+		});
+	});
+	describe('withSectionCondition', () => {
+		it('should return self as a fluent api', () => {
+			const section = new Section('s1', 'S');
+			const result = section.withSectionCondition(() => false);
+			assert.strictEqual(result instanceof Section, true);
+			assert.strictEqual(result, section);
+		});
+
+		it('should check withSectionCondition is called first', () => {
+			const section = new Section('s1', 'S');
+			section.addQuestion({ ...mockQuestion });
+			assert.throws(() => section.withSectionCondition(() => false), {
+				message: 'section conditions must be added before any questions'
+			});
+		});
+
+		it('should check withSectionCondition is called with a function', () => {
+			const section = new Section('s1', 'S');
+			assert.throws(() => section.withSectionCondition(false), {
+				message: 'section condition must be a function'
+			});
+		});
+
+		it('should check withSectionCondition is called only once', () => {
+			const section = new Section('s1', 'S');
+			section.withSectionCondition(() => true);
+			assert.throws(() => section.withSectionCondition(() => false), {
+				message: 'section condition already set'
+			});
+		});
+
+		it('should add condition to all questions', () => {
+			// without condition to check first
+			let section = new Section('s1', 'S');
+			section.addQuestion({ ...mockQuestion });
+			section.addQuestion({ ...mockQuestion2 });
+			for (const q of section.questions) {
+				assert.strictEqual(q.shouldDisplay(), true);
+			}
+
+			section = new Section('s1', 'S');
+			section.withSectionCondition(() => false);
+			section.addQuestion({ ...mockQuestion });
+			section.addQuestion({ ...mockQuestion2 });
+			for (const q of section.questions) {
+				assert.strictEqual(q.shouldDisplay(), false);
+			}
+		});
+
+		it('should combine section condition with question condition', () => {
+			const section = new Section('s1', 'S');
+			const mockSectionCondition = mock.fn(() => true);
+			const mockQuestionCondition = mock.fn(() => true);
+			const mockQuestion2Condition = mock.fn(() => false);
+
+			section
+				.withSectionCondition(mockSectionCondition)
+				.addQuestion({ ...mockQuestion })
+				.withCondition(mockQuestionCondition)
+				.addQuestion({ ...mockQuestion })
+				.addQuestion({ ...mockQuestion })
+				.withCondition(mockQuestion2Condition)
+				.addQuestion({ ...mockQuestion });
+			assert.strictEqual(section.questions.length, 4);
+
+			assert.strictEqual(section.questions[0].shouldDisplay(), true);
+			assert.strictEqual(section.questions[1].shouldDisplay(), true);
+			assert.strictEqual(section.questions[2].shouldDisplay(), false);
+			assert.strictEqual(section.questions[3].shouldDisplay(), true);
+			assert.strictEqual(mockSectionCondition.mock.callCount(), 4);
+			assert.strictEqual(mockQuestionCondition.mock.callCount(), 1);
+			assert.strictEqual(mockQuestionCondition.mock.callCount(), 1);
+
+			mockSectionCondition.mock.mockImplementation(() => false);
+			assert.strictEqual(section.questions[0].shouldDisplay(), false);
+			assert.strictEqual(section.questions[1].shouldDisplay(), false);
+			assert.strictEqual(section.questions[2].shouldDisplay(), false);
+			assert.strictEqual(section.questions[3].shouldDisplay(), false);
+			assert.strictEqual(mockSectionCondition.mock.callCount(), 8);
+			assert.strictEqual(mockQuestionCondition.mock.callCount(), 1);
+			assert.strictEqual(mockQuestionCondition.mock.callCount(), 1);
 		});
 	});
 
