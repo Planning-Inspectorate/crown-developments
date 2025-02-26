@@ -29,6 +29,7 @@ export function createJourney(questions, response, req) {
 					questionHasAnswer(res, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF)
 				)
 				.addQuestion(questions.whoRepresenting)
+				.addQuestion(questions.isAgentAdult)
 		],
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',
