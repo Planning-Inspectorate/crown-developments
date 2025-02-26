@@ -121,6 +121,7 @@ type DateQuestionProps = CommonQuestionProps & {
 type TextEntryQuestionProps = CommonQuestionProps & {
 	type: 'text-entry';
 	label?: string;
+	labelStyle?: string;
 	summary?: string;
 	detailsEnabled?: boolean;
 	detailsSummary?: string;

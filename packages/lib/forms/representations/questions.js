@@ -65,7 +65,7 @@ export const questionProps = {
 	submittedFor: {
 		type: COMPONENT_TYPES.RADIO,
 		title: 'Who you are submitting for',
-		question: 'Who are you making the submission for?',
+		question: 'Who are you submitting a representation for?',
 		fieldName: 'submittedForId',
 		url: 'who-submitting-for',
 		validators: [new RequiredValidator('Select who you are submitting for')],
@@ -248,6 +248,7 @@ export const questionProps = {
 		question: 'What do you want to say about this application?',
 		fieldName: 'aboutApplication',
 		label: 'Application comments',
+		labelStyle: 'govuk-!-font-weight-bold',
 		summary: aboutApplicationSummaryHtmlString,
 		detailsEnabled: true,
 		detailsSummary: aboutApplicationDetailsSummaryHtmlString,

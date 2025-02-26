@@ -46,7 +46,8 @@
 
                     {{ govukTextarea({
                         label: {
-                            text: question.label
+                            text: question.label,
+                            classes: question.labelStyle
                         },
                         id: question.fieldName,
                         name: question.fieldName,

@@ -16,29 +16,19 @@ export function createJourney(questions, response, req) {
 		sections: [
 			new Section('Representation', 'start').addQuestion(questions.submittedFor),
 			new Section('Myself', 'myself')
+				.withSectionCondition((res) =>
+					questionHasAnswer(res, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
+				)
 				.addQuestion(questions.isAdult)
-				.withCondition((response) =>
-					questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
-				)
 				.addQuestion(questions.fullName)
-				.withCondition(
-					(response) =>
-						questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF) &&
-						questionHasAnswer(response, questions.isAdult, BOOLEAN_OPTIONS.YES)
-				)
+				.withCondition((response) => questionHasAnswer(response, questions.isAdult, BOOLEAN_OPTIONS.YES))
 				.addQuestion(questions.email)
-				.withCondition((response) =>
-					questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
-				)
-				.addQuestion(questions.tellUsAboutApplication)
-				.withCondition((response) =>
-					questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
-				),
+				.addQuestion(questions.tellUsAboutApplication),
 			new Section('Agent', 'agent')
-				.addQuestion(questions.whoRepresenting)
-				.withCondition((response) =>
-					questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF)
+				.withSectionCondition((res) =>
+					questionHasAnswer(res, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF)
 				)
+				.addQuestion(questions.whoRepresenting)
 		],
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',

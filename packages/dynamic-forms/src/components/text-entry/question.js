@@ -44,6 +44,7 @@ export default class TextEntryQuestion extends Question {
 		html,
 		textEntryCheckbox,
 		label,
+		labelStyle,
 		summary,
 		detailsEnabled,
 		detailsSummary,
@@ -62,6 +63,7 @@ export default class TextEntryQuestion extends Question {
 
 		this.textEntryCheckbox = textEntryCheckbox;
 		this.label = label;
+		this.labelStyle = labelStyle;
 		this.summary = summary;
 		this.detailsEnabled = detailsEnabled;
 		this.detailsSummary = detailsSummary;
@@ -71,6 +73,7 @@ export default class TextEntryQuestion extends Question {
 	prepQuestionForRendering(section, journey, customViewData, payload) {
 		let viewModel = super.prepQuestionForRendering(section, journey, customViewData);
 		viewModel.question.label = this.label;
+		viewModel.question.labelStyle = this.labelStyle;
 		viewModel.question.textEntryCheckbox = this.textEntryCheckbox;
 		viewModel.question.value = payload ? payload[viewModel.question.fieldName] : viewModel.question.value;
 		viewModel.question.summary = this.summary;
