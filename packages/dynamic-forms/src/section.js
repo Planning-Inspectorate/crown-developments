@@ -1,6 +1,7 @@
 /**
  * @typedef {import('./questions/question').Question} Question
  * @typedef {import('./journey/journey-response').JourneyResponse} JourneyResponse
+ * @typedef {((response: JourneyResponse) => boolean)} QuestionCondition
  */
 
 import RequiredValidator from './validator/required-validator.js';
@@ -32,9 +33,15 @@ export class Section {
 
 	/**
 	 * A condition to apply to every question in this section
-	 * @type {((response: JourneyResponse) => boolean)|null}
+	 * @type {QuestionCondition|null}
 	 */
 	#sectionCondition = null;
+
+	/**
+	 * conditions to apply to a set of questions, until ended is true
+	 * @type {Object<string, {ended: boolean, condition: QuestionCondition}>}
+	 */
+	#multiQuestionConditions = {};
 
 	/**
 	 * creates an instance of a section
@@ -49,7 +56,7 @@ export class Section {
 	/**
 	 * Add a condition to all questions in this section
 	 *
-	 * @param {((response: JourneyResponse) => boolean)} shouldIncludeSection
+	 * @param {QuestionCondition} shouldIncludeSection
 	 * @returns {Section}
 	 */
 	withSectionCondition(shouldIncludeSection) {
@@ -74,15 +81,41 @@ export class Section {
 	addQuestion(question) {
 		this.questions.push(question);
 		this.#conditionAdded = false; // reset condition flag
-		if (this.#sectionCondition) {
-			question.shouldDisplay = this.#sectionCondition;
-		}
+		this.#applyConditions(question);
 		return this;
 	}
 
 	/**
+	 * Apply conditions to the given question
+	 * @param {any} question
+	 * @param [condition] - specific condition for this question
+	 */
+	#applyConditions(question, condition) {
+		const conditions = [];
+
+		// any section based conditions first
+		if (this.#sectionCondition) {
+			conditions.push(this.#sectionCondition);
+		}
+		// any group conditions that are active
+		// Q: does the order here matter?
+		const groupConditions = Object.values(this.#multiQuestionConditions)
+			.filter((group) => !group.ended)
+			.map((group) => group.condition);
+		conditions.push(...groupConditions);
+
+		// add the specific condition for this question
+		if (condition) {
+			conditions.push(condition);
+		}
+
+		// combine all conditions into a single function
+		question.shouldDisplay = (response) => conditions.every((condition) => condition(response));
+	}
+
+	/**
 	 * Fluent API method for attaching conditions to the previously added question
-	 * @param {((response: JourneyResponse) => boolean)} shouldIncludeQuestion
+	 * @param {QuestionCondition} shouldIncludeQuestion
 	 * @returns {Section}
 	 */
 	withCondition(shouldIncludeQuestion) {
@@ -93,11 +126,8 @@ export class Section {
 		this.#conditionAdded = true; // set condition flag
 		const lastQuestionAdded = this.questions.length - 1;
 		const question = this.questions[lastQuestionAdded];
-		let shouldDisplay = shouldIncludeQuestion;
-		if (this.#sectionCondition) {
-			shouldDisplay = (response) => this.#sectionCondition(response) && shouldIncludeQuestion(response);
-		}
-		question.shouldDisplay = shouldDisplay;
+
+		this.#applyConditions(question, shouldIncludeQuestion);
 		return this;
 	}
 
@@ -120,6 +150,33 @@ export class Section {
 			);
 		}
 
+		return this;
+	}
+
+	/**
+	 * Fluent API method for starting a multi question condition
+	 * @param {string} conditionName
+	 * @param {QuestionCondition} shouldIncludeQuestion
+	 * @returns {Section}
+	 */
+	startMultiQuestionCondition(conditionName, shouldIncludeQuestion) {
+		if (this.#multiQuestionConditions[conditionName]) {
+			throw new Error('group condition already started');
+		}
+		this.#multiQuestionConditions[conditionName] = { ended: false, condition: shouldIncludeQuestion };
+		return this;
+	}
+
+	/**
+	 * Fluent API method for ending a multi question condition
+	 * @param {string} conditionName
+	 * @returns {Section}
+	 */
+	endMultiQuestionCondition(conditionName) {
+		if (!this.#multiQuestionConditions[conditionName]) {
+			throw new Error('group condition not started');
+		}
+		this.#multiQuestionConditions[conditionName].ended = true;
 		return this;
 	}
 
