@@ -10,6 +10,7 @@ import {
 	REPRESENTED_TYPE
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
+import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '../custom-components/index.js';
 
 export const ACCEPT_AND_REDACT = 'accept-and-redact';
 
@@ -60,7 +61,7 @@ export const questionProps = {
 	submittedFor: {
 		type: COMPONENT_TYPES.RADIO,
 		title: 'Who you are submitting for',
-		question: 'Who are you making the submission for?',
+		question: 'Who are you submitting a representation for?',
 		fieldName: 'submittedForId',
 		url: 'who-submitting-for',
 		validators: [new RequiredValidator('Select who you are submitting for')],
@@ -79,6 +80,7 @@ export const questionProps = {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Your full name',
 		question: 'What is your name?',
+		hint: 'We will publish this on the website along with your comments about the project.',
 		fieldName: 'fullName',
 		url: 'full-name',
 		validators: [
@@ -165,14 +167,23 @@ export const questionProps = {
 		question: 'Are you 18 or over?',
 		hint: 'You can still have your say if you are under 18, but we will process your personal details in a different way.',
 		fieldName: 'isAdult',
-		url: 'over-18',
+		url: 'are-you-18-over',
+		validators: [new RequiredValidator('Select yes if you are 18 or over')]
+	},
+	isAgentAdult: {
+		type: COMPONENT_TYPES.BOOLEAN,
+		title: 'Over 18',
+		question: 'Are you 18 or over?',
+		hint: 'If you are under 18 we will process your personal details in a different way.',
+		fieldName: 'isAdult',
+		url: 'agent-18-over',
 		validators: [new RequiredValidator('Select yes if you are 18 or over')]
 	},
 	email: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Email Address',
-		question: 'What is your email address? (optional)',
-		hint: 'We will not publish your email address',
+		question: 'What is your email address?',
+		hint: 'We will use your email address to send you information about this application. We will not publish your email address.',
 		fieldName: 'email',
 		url: 'email-address',
 		validators: [
@@ -187,7 +198,7 @@ export const questionProps = {
 					maxLengthMessage: `Email address must be between 3 and 250 characters`
 				},
 				regex: {
-					regex: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$',
+					regex: '^.+@.+\\..{2,}$',
 					regexMessage: 'Enter an email address in the correct format, like name@example.com'
 				}
 			})
@@ -237,22 +248,28 @@ export const questionProps = {
 		]
 	},
 	tellUsAboutApplication: {
-		type: COMPONENT_TYPES.TEXT_ENTRY,
+		type: CUSTOM_COMPONENTS.REPRESENTATION_COMMENT,
 		title: 'Tell us about Application',
-		question: 'What do you want to tell us about the proposed application?',
-		fieldName: 'aboutApplication',
+		question: 'What do you want to say about this application?',
+		fieldName: 'comment',
+		label: 'Application comments',
 		url: 'tell-us-about-application',
 		validators: [
 			new RequiredValidator('Enter what you want to tell us about this proposed application'),
 			new StringValidator({
 				maxLength: {
-					maxLength: 65234,
-					maxLengthMessage: 'What you want to tell us must be 65234 characters or less'
+					maxLength: 65000,
+					maxLengthMessage: 'What you want to tell us must be 65,000 characters or less'
 				}
 			})
 		]
 	}
 };
 
-export const getQuestions = ({ methodOverrides = {}, textOverrides = {} } = {}) =>
-	createQuestions(questionProps, questionClasses, methodOverrides, textOverrides);
+export const getQuestions = ({ methodOverrides = {}, textOverrides = {} } = {}) => {
+	const classes = {
+		...questionClasses,
+		...CUSTOM_COMPONENT_CLASSES
+	};
+	return createQuestions(questionProps, classes, methodOverrides, textOverrides);
+};

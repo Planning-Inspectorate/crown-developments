@@ -200,7 +200,12 @@ export class Question {
 	 * @returns {void}
 	 */
 	renderAction(res, viewModel) {
-		res.render(`components/${this.viewFolder}/index`, viewModel);
+		let view = `components/${this.viewFolder}/index`;
+		if (this.viewFolder.includes('/')) {
+			// custom view folder
+			view = `${this.viewFolder}/index`;
+		}
+		res.render(view, viewModel);
 	}
 
 	/**
