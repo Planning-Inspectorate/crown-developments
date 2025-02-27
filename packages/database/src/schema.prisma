@@ -196,7 +196,6 @@ model Representation {
   submittedByContactId String?                     @db.UniqueIdentifier
   SubmittedByContact   Contact?                    @relation("RepresentationSubmittedByContact", fields: [submittedByContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   submittedDate        DateTime
-  aboutApplication     String?                     @db.NVarChar(MAX)
 
   // common fields
   isAdult         Boolean @default(true)
