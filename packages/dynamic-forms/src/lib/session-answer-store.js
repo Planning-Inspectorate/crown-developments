@@ -5,7 +5,7 @@ import { booleanToYesNoValue } from '../components/boolean/question.js';
 
 /**
  * A `SaveDataFn` implementation that saves answers to the session.
- * Answers are saved into a forms object, keyed by the journeyId.
+ * Answers are saved into a forms object, keyed by the journeyId, and optionally by a request parameter
  * @example
  * req: {
  * 	session: {
@@ -18,20 +18,52 @@ import { booleanToYesNoValue } from '../components/boolean/question.js';
  * 	}
  * }
  *
+ * or when keyed by a req parameter:
+ * @example
+ * req: {
+ * 	session: {
+ * 		forms: {
+ * 			'some-req-param': {
+ * 			   'journey-id-1': {
+ * 				   questionOne: 'my answer'
+ * 				   // ...
+ * 			   }
+ * 			}
+ * 		}
+ * 	}
+ * }
+ *
+ *
+ * @param {Object} opts
+ * @param {string} [opts.reqParam] - optional request parameter to use as a key
+ * @returns {import('../controller').SaveDataFn}
+ */
+export function buildSaveDataToSession({ reqParam } = {}) {
+	return async ({ req, journeyId, data }) => {
+		if (!req.session) {
+			throw new Error('request session required');
+		}
+		/** @type {Object<string, any>} */
+		let forms = req.session.forms || (req.session.forms = {});
+		if (reqParam) {
+			const reqParamValue = req.params[reqParam];
+			// key by a further param
+			forms = forms[reqParamValue] || (forms[reqParamValue] = {});
+		}
+		const answers = forms[journeyId] || (forms[journeyId] = {});
+
+		for (const [k, v] of Object.entries(data?.answers || {})) {
+			answers[k] = v;
+		}
+	};
+}
+
+/**
+ * Default save-to-session function with no request parameter
+ *
  * @type {import('../controller').SaveDataFn}
  */
-export async function saveDataToSession({ req, journeyId, data }) {
-	if (!req.session) {
-		throw new Error('request session required');
-	}
-	/** @type {Object<string, any>} */
-	const forms = req.session.forms || (req.session.forms = {});
-	const answers = forms[journeyId] || (forms[journeyId] = {});
-
-	for (const [k, v] of Object.entries(data?.answers || {})) {
-		answers[k] = v;
-	}
-}
+export const saveDataToSession = buildSaveDataToSession();
 
 /**
  * A function to clear journey answers from the session
@@ -52,14 +84,20 @@ export async function saveDataToSession({ req, journeyId, data }) {
  * @param {import('express').Request} params.req
  * @param {string} params.journeyId
  * @param {Object<string, any>} [params.replaceWith] - optional data to replace the form answers with
+ * @param {string} [params.reqParam] - optional request parameter used as a key
  * @returns {void}
  */
-export function clearDataFromSession({ req, journeyId, replaceWith }) {
+export function clearDataFromSession({ req, journeyId, replaceWith, reqParam }) {
 	if (!req.session) {
 		return; // no need to error, no action
 	}
 	/** @type {Object<string, any>} */
-	const forms = req.session.forms || (req.session.forms = {});
+	let forms = req.session.forms || (req.session.forms = {});
+	if (reqParam) {
+		const reqParamValue = req.params[reqParam];
+		// key by a further param
+		forms = forms[reqParamValue] || (forms[reqParamValue] = {});
+	}
 	if (replaceWith) {
 		forms[journeyId] = replaceWith;
 	} else {
@@ -71,9 +109,10 @@ export function clearDataFromSession({ req, journeyId, replaceWith }) {
  * Fetch session answers from the session
  *
  * @param {string} journeyId
+ * @param {string} [reqParam] - optional request parameter used as a key
  * @returns {import('express').Handler}
  */
-export function buildGetJourneyResponseFromSession(journeyId) {
+export function buildGetJourneyResponseFromSession(journeyId, reqParam) {
 	return (req, res, next) => {
 		if (!req.session) {
 			throw new Error('request session required');
@@ -82,7 +121,11 @@ export function buildGetJourneyResponseFromSession(journeyId) {
 		let answers = {};
 
 		/** @type {Object<string, Record<string, unknown>>|undefined} */
-		const forms = req.session?.forms;
+		let forms = req.session?.forms;
+		if (reqParam) {
+			const reqParamValue = req.params[reqParam];
+			forms = forms && forms[reqParamValue];
+		}
 		if (forms && journeyId in forms) {
 			answers = { ...forms[journeyId] }; // work with a copy, we don't want to edit session values
 		}
