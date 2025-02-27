@@ -40,7 +40,11 @@ describe('./src/dynamic-forms/section.js', () => {
 			const section = new Section('s1', 'S');
 			section.addQuestion({ ...mockQuestion });
 			assert.strictEqual(section.questions.length, 1);
-			assert.deepStrictEqual(section.questions[0], mockQuestion);
+			const question = section.questions[0];
+			assert.strictEqual(question.fieldName, mockQuestion.fieldName);
+			assert.strictEqual(question.isAnswered, mockQuestion.isAnswered);
+			assert.strictEqual(question.isRequired, mockQuestion.isRequired);
+			assert.strictEqual(question.shouldDisplay(), mockQuestion.shouldDisplay());
 		});
 	});
 
@@ -317,7 +321,98 @@ describe('./src/dynamic-forms/section.js', () => {
 				assert.strictEqual(q.shouldDisplay(), false);
 			}
 		});
+	});
+	describe('withMultiQuestionCondition', () => {
+		it('should return self as a fluent api', () => {
+			const section = new Section('s1', 'S');
+			let result = section.startMultiQuestionCondition('group-1', () => false);
+			assert.strictEqual(result instanceof Section, true);
+			assert.strictEqual(result, section);
+			result = section.endMultiQuestionCondition('group-1');
+			assert.strictEqual(result instanceof Section, true);
+			assert.strictEqual(result, section);
+		});
 
+		it('should check conditionName is not repeated', () => {
+			const section = new Section('s1', 'S');
+			section.startMultiQuestionCondition('group-1', () => false).addQuestion({ ...mockQuestion });
+			assert.throws(() => section.startMultiQuestionCondition('group-1', () => false), {
+				message: 'group condition already started'
+			});
+		});
+
+		it('should check conditionName has been started', () => {
+			const section = new Section('s1', 'S');
+			section.addQuestion({ ...mockQuestion });
+			assert.throws(() => section.endMultiQuestionCondition('group-1'), {
+				message: 'group condition not started'
+			});
+		});
+
+		it('should add condition to all questions until end', () => {
+			const section = new Section('s1', 'S');
+			const mockCondition = mock.fn(() => true);
+			section
+				.startMultiQuestionCondition('group-1', mockCondition)
+				.addQuestion({ ...mockQuestion })
+				.addQuestion({ ...mockQuestion })
+				.addQuestion({ ...mockQuestion })
+				.endMultiQuestionCondition('group-1')
+				.addQuestion({ ...mockQuestion })
+				.addQuestion({ ...mockQuestion });
+
+			assert.strictEqual(section.questions.length, 5);
+			assert.strictEqual(mockCondition.mock.callCount(), 0);
+			for (const q of section.questions) {
+				q.shouldDisplay();
+			}
+			assert.strictEqual(mockCondition.mock.callCount(), 3);
+		});
+
+		it('should add conditions for multiple groups', () => {
+			const section = new Section('s1', 'S');
+			const mockCondition1 = mock.fn(() => true);
+			const mockCondition2 = mock.fn(() => true);
+			const mockCondition3 = mock.fn(() => true);
+			section
+				.startMultiQuestionCondition('group-1', mockCondition1)
+				.addQuestion({ ...mockQuestion })
+				.startMultiQuestionCondition('group-2', mockCondition2)
+				.addQuestion({ ...mockQuestion })
+				.endMultiQuestionCondition('group-2')
+				.startMultiQuestionCondition('group-3', mockCondition3)
+				.addQuestion({ ...mockQuestion })
+				.endMultiQuestionCondition('group-1')
+				.addQuestion({ ...mockQuestion })
+				.endMultiQuestionCondition('group-3')
+				.addQuestion({ ...mockQuestion });
+
+			assert.strictEqual(section.questions.length, 5);
+			assert.strictEqual(mockCondition1.mock.callCount(), 0);
+			assert.strictEqual(mockCondition2.mock.callCount(), 0);
+			assert.strictEqual(mockCondition3.mock.callCount(), 0);
+
+			const conditionsCounts = [
+				[1, 0, 0], // first q - just group-1
+				[1, 1, 0], // second q - group-1 and group-2
+				[1, 0, 1], // third q - group-1 and group-3
+				[0, 0, 1], // fourth q - just group-3
+				[0, 0, 0] // fifth q - no groups
+			];
+
+			for (let i = 0; i < 5; i++) {
+				const [group1, group2, group3] = conditionsCounts[i];
+				mockCondition1.mock.resetCalls();
+				mockCondition2.mock.resetCalls();
+				mockCondition3.mock.resetCalls();
+				section.questions[i].shouldDisplay();
+				assert.strictEqual(mockCondition1.mock.callCount(), group1);
+				assert.strictEqual(mockCondition2.mock.callCount(), group2);
+				assert.strictEqual(mockCondition3.mock.callCount(), group3);
+			}
+		});
+	});
+	describe('conditions', () => {
 		it('should combine section condition with question condition', () => {
 			const section = new Section('s1', 'S');
 			const mockSectionCondition = mock.fn(() => true);
@@ -350,6 +445,75 @@ describe('./src/dynamic-forms/section.js', () => {
 			assert.strictEqual(mockSectionCondition.mock.callCount(), 8);
 			assert.strictEqual(mockQuestionCondition.mock.callCount(), 1);
 			assert.strictEqual(mockQuestionCondition.mock.callCount(), 1);
+		});
+
+		it('should combine section, multi, and question conditions', () => {
+			const conditions = {
+				section: mock.fn(() => true),
+				group1: mock.fn(() => true),
+				group2: mock.fn(() => true),
+				group3: mock.fn(() => true),
+				question1: mock.fn(() => true),
+				question2: mock.fn(() => true)
+			};
+
+			const section = new Section('s1', 'S');
+			section
+				.withSectionCondition(conditions.section)
+				.startMultiQuestionCondition('group-1', conditions.group1)
+				.addQuestion({ ...mockQuestion })
+				.withCondition(conditions.question1)
+				.startMultiQuestionCondition('group-2', conditions.group2)
+				.addQuestion({ ...mockQuestion })
+				.withCondition(conditions.question2)
+				.endMultiQuestionCondition('group-2')
+				.startMultiQuestionCondition('group-3', conditions.group3)
+				.addQuestion({ ...mockQuestion })
+				.endMultiQuestionCondition('group-1')
+				.addQuestion({ ...mockQuestion })
+				.endMultiQuestionCondition('group-3')
+				.addQuestion({ ...mockQuestion });
+
+			assert.strictEqual(section.questions.length, 5);
+			for (const condition of Object.values(conditions)) {
+				assert.strictEqual(condition.mock.callCount(), 0);
+			}
+
+			const conditionCounts = [
+				{ group1: 1, question1: 1 },
+				{ group1: 1, group2: 1, question2: 1 },
+				{ group1: 1, group3: 1 },
+				{ group3: 1 },
+				{}
+			];
+
+			for (let i = 0; i < 5; i++) {
+				const { group1 = 0, group2 = 0, group3 = 0, question1 = 0, question2 = 0 } = conditionCounts[i];
+
+				for (const condition of Object.values(conditions)) {
+					condition.mock.resetCalls();
+				}
+
+				section.questions[i].shouldDisplay();
+
+				assert.strictEqual(conditions.section.mock.callCount(), 1);
+				assert.strictEqual(conditions.group1.mock.callCount(), group1);
+				assert.strictEqual(conditions.group2.mock.callCount(), group2);
+				assert.strictEqual(conditions.group3.mock.callCount(), group3);
+				assert.strictEqual(conditions.question1.mock.callCount(), question1);
+				assert.strictEqual(conditions.question2.mock.callCount(), question2);
+			}
+
+			// q 1 should not show if section, group1, or question1 condition is false
+			const q1 = section.questions[0];
+			conditions.section.mock.mockImplementationOnce(() => false);
+			assert.strictEqual(q1.shouldDisplay(), false);
+			conditions.group1.mock.mockImplementationOnce(() => false);
+			assert.strictEqual(q1.shouldDisplay(), false);
+			conditions.question1.mock.mockImplementationOnce(() => false);
+			assert.strictEqual(q1.shouldDisplay(), false);
+			// otherwise it should show
+			assert.strictEqual(q1.shouldDisplay(), true);
 		});
 	});
 
