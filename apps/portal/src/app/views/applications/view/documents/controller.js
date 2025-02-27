@@ -26,11 +26,11 @@ export function buildApplicationDocumentsPage({ db, logger, sharePointDrive }) {
 		if (!crownDevelopment) {
 			return; // handled by checkApplicationPublished
 		}
-		const { id, reference } = crownDevelopment;
+		const { id, reference, haveYourSayStartAndEndDates } = crownDevelopment;
 		const folderPath = caseReferenceToFolderName(reference) + '/' + PUBLISHED_FOLDER;
 		logger.info({ folderPath }, 'view documents');
 		const items = await getDocuments(sharePointDrive, folderPath, logger, id);
-		// sort into newest first
+		// sort by newest first
 		items.sort(sortByField('lastModifiedDateTime', true));
 		const documents = items.map(mapDriveItemToViewModel);
 
@@ -39,7 +39,7 @@ export function buildApplicationDocumentsPage({ db, logger, sharePointDrive }) {
 			baseUrl: req.baseUrl,
 			pageTitle: 'Documents',
 			pageCaption: reference,
-			links: applicationLinks(id),
+			links: applicationLinks(id, haveYourSayStartAndEndDates),
 			currentUrl: req.originalUrl,
 			documents
 		});
@@ -106,7 +106,11 @@ async function checkApplicationPublished(req, res, db) {
 	}
 	return {
 		id,
-		reference: crownDevelopment.reference
+		reference: crownDevelopment.reference,
+		haveYourSayStartAndEndDates: {
+			start: crownDevelopment.publishDate,
+			end: crownDevelopment.representationsPeriodEndDate
+		}
 	};
 }
 

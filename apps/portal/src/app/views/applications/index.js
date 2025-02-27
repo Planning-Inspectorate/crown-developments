@@ -17,7 +17,7 @@ export function createRoutes(opts) {
 	const applicationListController = buildApplicationListPage(opts);
 
 	router.get('/applications', asyncHandler(applicationListController));
-	router.use('/applications/application-information/:applicationId', createViewRoutes(opts));
+	router.use('/applications/:applicationId', createViewRoutes(opts));
 
 	return router;
 }

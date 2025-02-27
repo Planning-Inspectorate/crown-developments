@@ -101,3 +101,15 @@ export const dateIsBeforeToday = (date) => {
 export const dateIsToday = (date) => {
 	return !isBefore(date, startOfDay()) && !isAfter(date, endOfDay()) && isValid(date);
 };
+
+/**
+ *
+ * @param {Date} startDate
+ * @param {Date} endDate
+ * @returns {boolean}
+ */
+export function todayIsWithinRange(startDate, endDate) {
+	return (
+		(dateIsBeforeToday(startDate) || dateIsToday(startDate)) && (dateIsAfterToday(endDate) || dateIsToday(endDate))
+	);
+}

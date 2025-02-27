@@ -18,7 +18,7 @@
                     {% for crownDevelopment in crownDevelopmentsViewModels %}
                         {% set crownDevelopments = (crownDevelopments.push([
                             {
-                                html: "<a class='govuk-link' href='/applications/application-information/" +  crownDevelopment.id +"'>" + crownDevelopment.reference + "</a>"
+                                html: "<a class='govuk-link' href='/applications/" +  crownDevelopment.id + "/application-information'>" + crownDevelopment.reference + "</a>"
                             },
                             {
                                 text: crownDevelopment.applicationType
