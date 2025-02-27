@@ -41,10 +41,15 @@ export function buildApplicationInformationPage({ db, config }) {
 
 		const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment, config);
 
+		const haveYourSayStartAndEndDates = {
+			start: crownDevelopment.representationsPeriodStartDate,
+			end: crownDevelopment.representationsPeriodEndDate
+		};
+
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Application Information',
-			links: applicationLinks(id),
+			links: applicationLinks(id, haveYourSayStartAndEndDates),
 			currentUrl: req.originalUrl,
 			crownDevelopmentFields
 		});

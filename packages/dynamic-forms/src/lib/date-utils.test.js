@@ -5,7 +5,8 @@ import {
 	dateIsBeforeToday,
 	dateIsToday,
 	formatDateForDisplay,
-	parseDateInput
+	parseDateInput,
+	todayIsWithinRange
 } from './date-utils.js';
 
 describe('format-date', () => {
@@ -123,6 +124,51 @@ describe('format-date', () => {
 		for (const { input, expected } of tests) {
 			it(`${JSON.stringify(input)} ${expected ? 'is' : "isn't"} today`, () => {
 				const got = dateIsToday(input);
+				assert.deepStrictEqual(got, expected);
+			});
+		}
+	});
+	describe('todayIsWithinRange', () => {
+		const tests = [
+			{
+				inputs: {
+					start: new Date('2025-01-01T00:00:00Z'),
+					end: new Date('2025-01-01T23:59:59Z')
+				},
+				expected: true
+			},
+			{
+				inputs: {
+					start: new Date('2025-01-01T00:00:00Z'),
+					end: new Date('2025-01-02T23:59:59Z')
+				},
+				expected: true
+			},
+			{
+				inputs: {
+					start: new Date('2024-12-31T00:00:00Z'),
+					end: new Date('2025-01-01T23:59:59Z')
+				},
+				expected: true
+			},
+			{
+				inputs: {
+					start: new Date('2025-01-02T00:00:00Z'),
+					end: new Date('2025-01-03T23:59:59Z')
+				},
+				expected: false
+			},
+			{
+				inputs: {
+					start: new Date('2024-12-30T00:00:00Z'),
+					end: new Date('2024-12-31T23:59:59Z')
+				},
+				expected: false
+			}
+		];
+		for (const { inputs, expected } of tests) {
+			it(`${JSON.stringify(new Date())} ${expected ? 'is' : "isn't"} in on or between ${JSON.stringify(inputs.start)} and ${JSON.stringify(inputs.end)}`, () => {
+				const got = todayIsWithinRange(inputs.start, inputs.end);
 				assert.deepStrictEqual(got, expected);
 			});
 		}

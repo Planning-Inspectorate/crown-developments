@@ -2,6 +2,7 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { applicationLinks, crownDevelopmentToViewModel, documentsLink } from '../view-model.js';
 import { fetchPublishedApplication } from '#util/applications.js';
+import { todayIsWithinRange } from '@pins/dynamic-forms/src/lib/date-utils.js';
 
 /**
  * @param {Object} opts
@@ -39,5 +40,37 @@ export function buildHaveYourSayPage({ db, config }) {
 			currentUrl: req.originalUrl,
 			crownDevelopmentFields
 		});
+	};
+}
+
+/**
+ *
+ * @param { import('@prisma/client').PrismaClient } db
+ * @returns {import('express').Handler}
+ */
+export function getIsRepresentationWindowOpen(db) {
+	return async function (req, res, next) {
+		const id = req.params.applicationId;
+		if (!id) {
+			throw new Error('id param required');
+		}
+
+		const crownDevelopment = await fetchPublishedApplication({
+			id,
+			db,
+			args: {}
+		});
+
+		if (!crownDevelopment) {
+			return notFoundHandler(req, res);
+		}
+
+		const representationsPeriodStartDate = new Date(crownDevelopment.representationsPeriodStartDate);
+		const representationsPeriodEndDate = new Date(crownDevelopment.representationsPeriodEndDate);
+
+		if (!todayIsWithinRange(representationsPeriodStartDate, representationsPeriodEndDate)) {
+			return notFoundHandler(req, res);
+		}
+		next();
 	};
 }
