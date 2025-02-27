@@ -97,6 +97,27 @@ export const questionProps = {
 			})
 		]
 	},
+	representedPersonFullName: {
+		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+		title: 'Your full name',
+		question: 'What is the full name of the person you are representing?',
+		hint: 'We will publish this on the website along with your comments about the project.',
+		fieldName: 'fullName',
+		url: 'name-person-representing',
+		validators: [
+			new RequiredValidator('Enter the full name of the person you are representing'),
+			new StringValidator({
+				minLength: {
+					minLength: 3,
+					minLengthMessage: 'The full name must be between 3 and 64 characters'
+				},
+				maxLength: {
+					maxLength: 64,
+					maxLengthMessage: `The full name must be between 3 and 64 characters`
+				}
+			})
+		]
+	},
 	orgName: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Name of the organisation or charity',
@@ -132,15 +153,20 @@ export const questionProps = {
 	fullNameAgent: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'The name of the person, household, or organisation',
-		question: `What's the full name of the person, household or organisation?`,
+		question: 'What is your full name?',
+		hint: 'We will publish this on the website along with your comments about the project.',
 		fieldName: 'fullNameAgent',
 		url: 'agent-full-name',
 		validators: [
 			new RequiredValidator('Enter the name of the person, household, or organisation'),
 			new StringValidator({
+				minLength: {
+					minLength: 3,
+					minLengthMessage: 'Your full name must be between 3 and 64 characters'
+				},
 				maxLength: {
-					maxLength: 250,
-					maxLengthMessage: `The name of the person, household, or organisation must be 250 characters or less`
+					maxLength: 64,
+					maxLengthMessage: `Your full name must be between 3 and 64 characters`
 				}
 			})
 		]
@@ -148,15 +174,16 @@ export const questionProps = {
 	fullNameOrg: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: `Your organisation's name`,
-		question: `What's your organisation's name?`,
+		question: `What is the name of the organisation you work for?`,
+		hint: "We will publish your organisation name, your client's name and their representation on the website.",
 		fieldName: 'fullNameOrg',
-		url: 'organisation-full-name',
+		url: 'agent-organisation-name',
 		validators: [
-			new RequiredValidator(`Enter the organisation's name`),
+			new RequiredValidator('Enter your organisation name'),
 			new StringValidator({
 				maxLength: {
 					maxLength: 250,
-					maxLengthMessage: `The organisation's name must be 250 characters or less`
+					maxLengthMessage: 'Name of your organisation must be 250 characters or less'
 				}
 			})
 		]
@@ -175,9 +202,18 @@ export const questionProps = {
 		title: 'Over 18',
 		question: 'Are you 18 or over?',
 		hint: 'If you are under 18 we will process your personal details in a different way.',
-		fieldName: 'isAdult',
+		fieldName: 'isAgentAdult',
 		url: 'agent-18-over',
 		validators: [new RequiredValidator('Select yes if you are 18 or over')]
+	},
+	isRepresentedPersonAdult: {
+		type: COMPONENT_TYPES.BOOLEAN,
+		title: 'Person representing over 18',
+		question: 'Is the person you are representing 18 or over?',
+		hint: 'You can still submit a representation for them if they are under 18, but we will process their personal details in a different way.',
+		fieldName: 'isAdult',
+		url: 'are-they-18-over',
+		validators: [new RequiredValidator('Select yes if the person you are representing is are 18 or over')]
 	},
 	email: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
@@ -186,6 +222,40 @@ export const questionProps = {
 		hint: 'We will use your email address to send you information about this application. We will not publish your email address.',
 		fieldName: 'email',
 		url: 'email-address',
+		validators: [
+			new RequiredValidator('Enter your email address'),
+			new StringValidator({
+				minLength: {
+					minLength: 3,
+					minLengthMessage: 'Email address must be between 3 and 250 characters'
+				},
+				maxLength: {
+					maxLength: 250,
+					maxLengthMessage: `Email address must be between 3 and 250 characters`
+				},
+				regex: {
+					regex: '^.+@.+\\..{2,}$',
+					regexMessage: 'Enter an email address in the correct format, like name@example.com'
+				}
+			})
+		]
+	},
+	areYouAgent: {
+		type: COMPONENT_TYPES.BOOLEAN,
+		title: 'Are you an agent on behalf of a client?',
+		question: 'Are you acting as an agent on behalf of a client?',
+		hint: 'For example, your organisation has been hired to represent a client on planning matters.',
+		fieldName: 'isAgent',
+		url: 'are-you-agent',
+		validators: [new RequiredValidator('Select yes if you are acting as an agent on behalf of a client')]
+	},
+	emailAgent: {
+		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+		title: 'Email Address',
+		question: 'What is your email address?',
+		hint: 'We will use your email address to send you information about this project. We will not publish your email address.',
+		fieldName: 'emailAgent',
+		url: 'agent-email-address',
 		validators: [
 			new RequiredValidator('Enter your email address'),
 			new StringValidator({
@@ -252,6 +322,23 @@ export const questionProps = {
 		title: 'Tell us about Application',
 		question: 'What do you want to say about this application?',
 		fieldName: 'comment',
+		label: 'Application comments',
+		url: 'tell-us-about-application',
+		validators: [
+			new RequiredValidator('Enter what you want to tell us about this proposed application'),
+			new StringValidator({
+				maxLength: {
+					maxLength: 65000,
+					maxLengthMessage: 'What you want to tell us must be 65,000 characters or less'
+				}
+			})
+		]
+	},
+	tellUsAboutApplicationOnBehalfOf: {
+		type: CUSTOM_COMPONENTS.REPRESENTATION_COMMENT,
+		title: 'Tell us about Application',
+		question: 'What do you want to say about this application?',
+		fieldName: 'commentOnBehalfOf',
 		label: 'Application comments',
 		url: 'tell-us-about-application',
 		validators: [
