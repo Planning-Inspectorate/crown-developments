@@ -1,6 +1,6 @@
 module "app_manage" {
   #checkov:skip=CKV_TF_1: Use of commit hash are not required for our Terraform modules
-  source = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/node-app-service?ref=1.38"
+  source = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/node-app-service?ref=1.39"
 
   resource_group_name = azurerm_resource_group.primary.name
   location            = module.primary_region.location
@@ -11,9 +11,10 @@ module "app_manage" {
   service_name    = local.service_name
   tags            = local.tags
 
-  # service plan
+  # service plan & scaling
   app_service_plan_id                  = azurerm_service_plan.apps.id
   app_service_plan_resource_group_name = azurerm_resource_group.primary.name
+  worker_count                         = 1 # don't need to scale this app
 
   # container
   container_registry_name = var.tooling_config.container_registry_name
