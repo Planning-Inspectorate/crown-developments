@@ -16,8 +16,8 @@ export function createJourney(questions, response, req) {
 		sections: [
 			new Section('Representation', 'start').addQuestion(questions.submittedFor),
 			new Section('Myself', 'myself')
-				.withSectionCondition((res) =>
-					questionHasAnswer(res, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
+				.withSectionCondition((response) =>
+					questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
 				)
 				.addQuestion(questions.isAdult)
 				.addQuestion(questions.fullName)
@@ -25,11 +25,23 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.email)
 				.addQuestion(questions.tellUsAboutApplication),
 			new Section('Agent', 'agent')
-				.withSectionCondition((res) =>
-					questionHasAnswer(res, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF)
+				.withSectionCondition((response) =>
+					questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF)
 				)
 				.addQuestion(questions.whoRepresenting)
 				.addQuestion(questions.isAgentAdult)
+				.addQuestion(questions.fullNameAgent)
+				.withCondition((response) => questionHasAnswer(response, questions.isAgentAdult, BOOLEAN_OPTIONS.YES))
+				.addQuestion(questions.areYouAgent)
+				.addQuestion(questions.fullNameOrg)
+				.withCondition((response) => questionHasAnswer(response, questions.areYouAgent, BOOLEAN_OPTIONS.YES))
+				.addQuestion(questions.emailAgent)
+				.addQuestion(questions.isRepresentedPersonAdult)
+				.addQuestion(questions.representedPersonFullName)
+				.withCondition((response) =>
+					questionHasAnswer(response, questions.isRepresentedPersonAdult, BOOLEAN_OPTIONS.YES)
+				)
+				.addQuestion(questions.tellUsAboutApplicationOnBehalfOf)
 		],
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',

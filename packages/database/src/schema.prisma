@@ -199,6 +199,8 @@ model Representation {
 
   // common fields
   isAdult         Boolean @default(true)
+  isAgentAdult    Boolean @default(true)
+  isAgent         Boolean @default(true)
   comment         String  @db.NVarChar(MAX)
   commentRedacted String? @db.NVarChar(MAX)
 
