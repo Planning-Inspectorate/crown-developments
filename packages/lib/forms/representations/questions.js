@@ -10,7 +10,8 @@ import {
 	REPRESENTED_TYPE
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
-import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '../custom-components/index.js';
+import { CUSTOM_COMPONENT_CLASSES } from '../custom-components/index.js';
+import { representationsContactQuestions } from './question-utils.js';
 
 export const ACCEPT_AND_REDACT = 'accept-and-redact';
 
@@ -25,6 +26,12 @@ export const questionProps = {
 		validators: [],
 		editable: false
 	},
+	...representationsContactQuestions({
+		prefix: 'applicant'
+	}),
+	...representationsContactQuestions({
+		prefix: 'agent'
+	}),
 	status: {
 		type: COMPONENT_TYPES.RADIO,
 		title: 'Status',
@@ -76,33 +83,12 @@ export const questionProps = {
 		validators: [new RequiredValidator('Select who you are representing')],
 		options: referenceDataToRadioOptions(REPRESENTED_TYPE)
 	},
-	fullName: {
-		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-		title: 'Your full name',
-		question: 'What is your name?',
-		hint: 'We will publish this on the website along with your comments about the project.',
-		fieldName: 'fullName',
-		url: 'full-name',
-		validators: [
-			new RequiredValidator('Enter Full name'),
-			new StringValidator({
-				minLength: {
-					minLength: 3,
-					minLengthMessage: 'Full name must be between 3 and 250 characters'
-				},
-				maxLength: {
-					maxLength: 250,
-					maxLengthMessage: `Full name must be between 3 and 250 characters`
-				}
-			})
-		]
-	},
 	representedPersonFullName: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Your full name',
 		question: 'What is the full name of the person you are representing?',
 		hint: 'We will publish this on the website along with your comments about the project.',
-		fieldName: 'fullName',
+		fieldName: 'representedPersonFullName',
 		url: 'name-person-representing',
 		validators: [
 			new RequiredValidator('Enter the full name of the person you are representing'),
@@ -150,27 +136,6 @@ export const questionProps = {
 			})
 		]
 	},
-	fullNameAgent: {
-		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-		title: 'The name of the person, household, or organisation',
-		question: 'What is your full name?',
-		hint: 'We will publish this on the website along with your comments about the project.',
-		fieldName: 'fullNameAgent',
-		url: 'agent-full-name',
-		validators: [
-			new RequiredValidator('Enter the name of the person, household, or organisation'),
-			new StringValidator({
-				minLength: {
-					minLength: 3,
-					minLengthMessage: 'Your full name must be between 3 and 64 characters'
-				},
-				maxLength: {
-					maxLength: 64,
-					maxLengthMessage: `Your full name must be between 3 and 64 characters`
-				}
-			})
-		]
-	},
 	fullNameOrg: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: `Your organisation's name`,
@@ -211,34 +176,9 @@ export const questionProps = {
 		title: 'Person representing over 18',
 		question: 'Is the person you are representing 18 or over?',
 		hint: 'You can still submit a representation for them if they are under 18, but we will process their personal details in a different way.',
-		fieldName: 'isAdult',
+		fieldName: 'isRepresentedPersonAdult',
 		url: 'are-they-18-over',
 		validators: [new RequiredValidator('Select yes if the person you are representing is are 18 or over')]
-	},
-	email: {
-		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-		title: 'Email Address',
-		question: 'What is your email address?',
-		hint: 'We will use your email address to send you information about this application. We will not publish your email address.',
-		fieldName: 'email',
-		url: 'email-address',
-		validators: [
-			new RequiredValidator('Enter your email address'),
-			new StringValidator({
-				minLength: {
-					minLength: 3,
-					minLengthMessage: 'Email address must be between 3 and 250 characters'
-				},
-				maxLength: {
-					maxLength: 250,
-					maxLengthMessage: `Email address must be between 3 and 250 characters`
-				},
-				regex: {
-					regex: '^.+@.+\\..{2,}$',
-					regexMessage: 'Enter an email address in the correct format, like name@example.com'
-				}
-			})
-		]
 	},
 	areYouAgent: {
 		type: COMPONENT_TYPES.BOOLEAN,
@@ -248,31 +188,6 @@ export const questionProps = {
 		fieldName: 'isAgent',
 		url: 'are-you-agent',
 		validators: [new RequiredValidator('Select yes if you are acting as an agent on behalf of a client')]
-	},
-	emailAgent: {
-		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-		title: 'Email Address',
-		question: 'What is your email address?',
-		hint: 'We will use your email address to send you information about this project. We will not publish your email address.',
-		fieldName: 'emailAgent',
-		url: 'agent-email-address',
-		validators: [
-			new RequiredValidator('Enter your email address'),
-			new StringValidator({
-				minLength: {
-					minLength: 3,
-					minLengthMessage: 'Email address must be between 3 and 250 characters'
-				},
-				maxLength: {
-					maxLength: 250,
-					maxLengthMessage: `Email address must be between 3 and 250 characters`
-				},
-				regex: {
-					regex: '^.+@.+\\..{2,}$',
-					regexMessage: 'Enter an email address in the correct format, like name@example.com'
-				}
-			})
-		]
 	},
 	address: {
 		type: COMPONENT_TYPES.ADDRESS,
@@ -313,40 +228,6 @@ export const questionProps = {
 				maxLength: {
 					maxLength: 32500,
 					maxLengthMessage: `Comment must be 32,500 characters or less`
-				}
-			})
-		]
-	},
-	tellUsAboutApplication: {
-		type: CUSTOM_COMPONENTS.REPRESENTATION_COMMENT,
-		title: 'Tell us about Application',
-		question: 'What do you want to say about this application?',
-		fieldName: 'comment',
-		label: 'Application comments',
-		url: 'tell-us-about-application',
-		validators: [
-			new RequiredValidator('Enter what you want to tell us about this proposed application'),
-			new StringValidator({
-				maxLength: {
-					maxLength: 65000,
-					maxLengthMessage: 'What you want to tell us must be 65,000 characters or less'
-				}
-			})
-		]
-	},
-	tellUsAboutApplicationOnBehalfOf: {
-		type: CUSTOM_COMPONENTS.REPRESENTATION_COMMENT,
-		title: 'Tell us about Application',
-		question: 'What do you want to say about this application?',
-		fieldName: 'commentOnBehalfOf',
-		label: 'Application comments',
-		url: 'tell-us-about-application',
-		validators: [
-			new RequiredValidator('Enter what you want to tell us about this proposed application'),
-			new StringValidator({
-				maxLength: {
-					maxLength: 65000,
-					maxLengthMessage: 'What you want to tell us must be 65,000 characters or less'
 				}
 			})
 		]
