@@ -206,7 +206,7 @@ export const REPRESENTATION_CATEGORY = [
 ];
 
 /**
- * @type {Readonly<{MYSELF: string, ORGANISATION: string, ON_BEHALF_OF: string}>}
+ * @type {Readonly<{MYSELF: string, ON_BEHALF_OF: string}>}
  */
 export const REPRESENTATION_SUBMITTED_FOR_ID = Object.freeze({
 	MYSELF: 'myself',

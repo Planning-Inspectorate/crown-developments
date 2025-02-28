@@ -137,12 +137,13 @@ model Contact {
   email           String?
   addressId       String?  @db.UniqueIdentifier
   Address         Address? @relation(fields: [addressId], references: [id])
+  isAdult         Boolean  @default(true)
+  jobTitleOrRole  String?
 
-  CrownDevelopmentApplicant         CrownDevelopment[] @relation("ApplicantContact")
-  CrownDevelopmentAgent             CrownDevelopment[] @relation("AgentContact")
-  RepresentationSubmittedByContact  Representation[]   @relation("RepresentationSubmittedByContact")
-  RepresentationOrganisationContact Representation[]   @relation("RepresentationOrganisationContact")
-  Representation                    Representation[]   @relation("RepresentedContact")
+  CrownDevelopmentApplicant        CrownDevelopment[] @relation("ApplicantContact")
+  CrownDevelopmentAgent            CrownDevelopment[] @relation("AgentContact")
+  RepresentationSubmittedByContact Representation[]   @relation("RepresentationSubmittedByContact")
+  Representation                   Representation[]   @relation("RepresentedContact")
 }
 
 /// Lpa represents a Local Planning Authority
@@ -191,24 +192,19 @@ model Representation {
   Status        RepresentationStatus? @relation(fields: [statusId], references: [id])
 
   // common fields
-  submittedForId       String
-  SubmittedFor         RepresentationSubmittedFor? @relation(fields: [submittedForId], references: [id])
-  submittedByContactId String?                     @db.UniqueIdentifier
-  SubmittedByContact   Contact?                    @relation("RepresentationSubmittedByContact", fields: [submittedByContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-  submittedDate        DateTime
+  submittedForId          String
+  SubmittedFor            RepresentationSubmittedFor? @relation(fields: [submittedForId], references: [id])
+  submittedByContactId    String?                     @db.UniqueIdentifier
+  SubmittedByContact      Contact?                    @relation("RepresentationSubmittedByContact", fields: [submittedByContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  submittedByAgent        Boolean?
+  submittedByAgentOrgName String?
+  submittedDate           DateTime
 
-  // common fields
-  isAdult         Boolean @default(true)
   comment         String  @db.NVarChar(MAX)
   commentRedacted String? @db.NVarChar(MAX)
 
-  // submitting for organisation fields
-  organisationContactId String?  @db.UniqueIdentifier
-  OrganisationContact   Contact? @relation("RepresentationOrganisationContact", fields: [organisationContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-  organisationRole      String?
-
   // submitting as agent/on behalf of fields
-  // can be an org/household/person
+  // can be a person/org/group
   representedTypeId    String?
   RepresentedType      RepresentedType? @relation(fields: [representedTypeId], references: [id])
   representedContactId String?          @db.UniqueIdentifier
