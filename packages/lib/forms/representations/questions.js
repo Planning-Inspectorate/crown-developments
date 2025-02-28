@@ -87,7 +87,7 @@ export const questionProps = {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Your full name',
 		question: 'What is the full name of the person you are representing?',
-		hint: 'We will publish this on the website along with your comments about the project.',
+		hint: 'We will publish this on the website along with your comments about the application.',
 		fieldName: 'representedPersonFullName',
 		url: 'name-person-representing',
 		validators: [
@@ -107,15 +107,16 @@ export const questionProps = {
 	orgName: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Name of the organisation or charity',
-		question: 'What is the name of the organisation or charity?',
+		question: 'What is the name of your organisation or charity?',
+		hint: 'We will publish your organisation name on the website along with your representation.',
 		fieldName: 'orgName',
-		url: 'org-name',
+		url: 'name-organisation',
 		validators: [
-			new RequiredValidator('Enter the organisation or charity name'),
+			new RequiredValidator('Enter your organisation or charity name'),
 			new StringValidator({
 				maxLength: {
 					maxLength: 250,
-					maxLengthMessage: `Organisation or charity name must be 250 characters or less`
+					maxLengthMessage: 'Name of your organisation or charity  must be 250 characters or less'
 				}
 			})
 		]
@@ -125,13 +126,13 @@ export const questionProps = {
 		title: 'Your job title or volunteer role',
 		question: 'What is your job title or volunteer role?',
 		fieldName: 'orgRoleName',
-		url: 'org-role-name',
+		url: 'what-job-title-or-role',
 		validators: [
 			new RequiredValidator('Enter your job title or volunteer role'),
 			new StringValidator({
 				maxLength: {
 					maxLength: 250,
-					maxLengthMessage: `Job title or volunteer role must be 250 characters or less`
+					maxLengthMessage: 'Your job title or volunteer role must be 250 characters or less'
 				}
 			})
 		]
@@ -139,7 +140,7 @@ export const questionProps = {
 	fullNameOrg: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: `Your organisation's name`,
-		question: `What is the name of the organisation you work for?`,
+		question: 'What is the name of the organisation you work for?',
 		hint: "We will publish your organisation name, your client's name and their representation on the website.",
 		fieldName: 'fullNameOrg',
 		url: 'agent-organisation-name',

@@ -17,7 +17,7 @@ export function representationsContactQuestions({ prefix }) {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Your full name',
 		question: 'What is your full name?',
-		hint: 'We will publish this on the website along with your comments about the project.',
+		hint: 'We will publish this on the website along with your comments about the application.',
 		fieldName: `${prefix}FullName`,
 		url: isAgent(prefix) ? `${prefix}-full-name` : `full-name`,
 		validators: [
@@ -39,7 +39,7 @@ export function representationsContactQuestions({ prefix }) {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Email Address',
 		question: 'What is your email address?',
-		hint: 'We will use your email address to send you information about this project. We will not publish your email address.',
+		hint: 'We will use your email address to send you information about this application. We will not publish your email address.',
 		fieldName: `${prefix}Email`,
 		url: isAgent(prefix) ? `${prefix}-email-address` : `email-address`,
 		validators: [
