@@ -75,7 +75,7 @@ const repsBehalfOfContacts = [
  */
 const representations = [
 	{
-		reference: '5031-5316-3D51-66E3',
+		reference: '50315-3163D',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
@@ -83,7 +83,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
 	},
 	{
-		reference: '4705-B405-AD6A-069E',
+		reference: '4705B-405AD',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
@@ -91,7 +91,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.REJECTED } }
 	},
 	{
-		reference: 'A9BC-3915-FDF0-6878',
+		reference: 'A9BC3-915FD',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
@@ -99,7 +99,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
 	},
 	{
-		reference: '1295-C726-E8AB-36F4',
+		reference: '1295C-726E8',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
@@ -107,7 +107,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } }
 	},
 	{
-		reference: 'ADE3-E60E-0C99-E01B',
+		reference: 'ADE3E-60E0C',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
@@ -115,7 +115,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } }
 	},
 	{
-		reference: '7806-3E19-BBBC-CEEF',
+		reference: '78063-E19BB',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
@@ -125,7 +125,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } }
 	},
 	{
-		reference: '6EFB-4E9C-8B6B-040F',
+		reference: '6EFB4-E9C8B',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
@@ -135,7 +135,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
 	},
 	{
-		reference: 'FA0F-1C40-19CB-E6C1',
+		reference: 'FA0F1-C4019',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
@@ -145,7 +145,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
 	},
 	{
-		reference: '3368-30DE-BE9A-126E',
+		reference: '33683-0DEBE',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
@@ -155,7 +155,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.REJECTED } }
 	},
 	{
-		reference: '1E11-CC92-E6D8-FF71',
+		reference: '1E11C-C92E6',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
@@ -165,7 +165,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
 	},
 	{
-		reference: '9D82-748F-3788-5B87',
+		reference: '9D827-48F37',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
@@ -175,7 +175,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } }
 	},
 	{
-		reference: 'F095-62CF-1FB7-645D',
+		reference: 'F0956-2CF1F',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-01-27T16:46:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
@@ -185,7 +185,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.REJECTED } }
 	},
 	{
-		reference: 'C96A-4ECE-B9B4-F52C',
+		reference: 'C96A4-ECEB9',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-02-02T09:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
@@ -195,7 +195,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
 	},
 	{
-		reference: 'AD88-8F0C-2986-DBB0',
+		reference: 'AD888-F0C29',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-02-01T18:19:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
@@ -205,7 +205,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
 	},
 	{
-		reference: '554C-0F04-1A2F-155E',
+		reference: '554C0-F041A',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-02-01T14:31:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
@@ -215,7 +215,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
 	},
 	{
-		reference: '8479-A8FA-798A-B0A2',
+		reference: '8479A-8FA79',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-02-03T07:50:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
@@ -225,7 +225,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
 	},
 	{
-		reference: '7128-26A4-74A2-8029',
+		reference: '71282-6A474',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-02-03T08:14:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
@@ -237,7 +237,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } }
 	},
 	{
-		reference: '1D5A-ACF9-D357-0A7C',
+		reference: '1D5AA-CF9D3',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-01-26T22:03:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
@@ -249,7 +249,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
 	},
 	{
-		reference: 'E7A9-3F3D-48D7-1EB5',
+		reference: 'E7A93-F3D48',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-01-30T18:16:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
@@ -259,7 +259,7 @@ const representations = [
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
 	},
 	{
-		reference: '8083-1C32-ACB0-BFFB',
+		reference: '80831-C32AC',
 		comment: 'Some comment about this application',
 		submittedDate: new Date('2025-02-02T15:56:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
@@ -268,6 +268,30 @@ const representations = [
 		RepresentedContact: { connect: { id: repsBehalfOfContacts[9].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } }
 	}
+];
+
+// all the old rep references, to be mapped to the new format XXXXX-YYYYY
+const oldRepReferences = [
+	'5031-5316-3D51-66E3',
+	'4705-B405-AD6A-069E',
+	'A9BC-3915-FDF0-6878',
+	'1295-C726-E8AB-36F4',
+	'ADE3-E60E-0C99-E01B',
+	'7806-3E19-BBBC-CEEF',
+	'6EFB-4E9C-8B6B-040F',
+	'FA0F-1C40-19CB-E6C1',
+	'3368-30DE-BE9A-126E',
+	'1E11-CC92-E6D8-FF71',
+	'9D82-748F-3788-5B87',
+	'F095-62CF-1FB7-645D',
+	'C96A-4ECE-B9B4-F52C',
+	'AD88-8F0C-2986-DBB0',
+	'554C-0F04-1A2F-155E',
+	'8479-A8FA-798A-B0A2',
+	'7128-26A4-74A2-8029',
+	'1D5A-ACF9-D357-0A7C',
+	'E7A9-3F3D-48D7-1EB5',
+	'8083-1C32-ACB0-BFFB'
 ];
 
 /**
@@ -306,6 +330,24 @@ export async function seedDev(dbClient) {
 			throw new Error(`Duplicate representation reference: ${representation.reference}`);
 		}
 		repRefs.set(representation.reference, true);
+	}
+
+	// map older references to newer ones - can be removed once run
+	for (const oldRepReference of oldRepReferences) {
+		// XXXX-YYYY-ZZZZ-AAAA -> XXXXY-YYYZZ
+		const parts = oldRepReference.split('-');
+		const part1 = parts[0] + parts[1].substring(0, 1);
+		const part2 = parts[1].substring(1, 4) + parts[2].substring(0, 2);
+		const newRepReference = `${part1}-${part2}`;
+		await dbClient.$transaction(async ($tx) => {
+			const rep = await $tx.representation.findUnique({ where: { reference: oldRepReference } });
+			if (rep) {
+				await $tx.representation.update({
+					where: { reference: oldRepReference },
+					data: { reference: newRepReference }
+				});
+			}
+		});
 	}
 
 	for (const representation of representations) {
