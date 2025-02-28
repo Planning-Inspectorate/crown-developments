@@ -54,7 +54,7 @@ describe('DatePeriodQuestion', () => {
 			const result = await dateQuestion.getDataToSave(req, journeyResponse);
 			assert.deepStrictEqual(result.answers[FIELDNAME], {
 				start: new Date('2023-02-01T00:00:00.000Z'),
-				end: new Date('2024-02-01T00:00:00.000Z')
+				end: new Date('2024-02-01T00:00:59.000Z')
 			});
 		});
 		it('should use start and end time parameters', async () => {
@@ -86,7 +86,7 @@ describe('DatePeriodQuestion', () => {
 			const result = await dateQuestion.getDataToSave(req, journeyResponse);
 			assert.deepStrictEqual(result.answers[FIELDNAME], {
 				start: new Date('2023-02-01T03:24:00.000Z'),
-				end: new Date('2024-02-01T23:59:00.000Z')
+				end: new Date('2024-02-01T23:59:59.000Z')
 			});
 		});
 	});

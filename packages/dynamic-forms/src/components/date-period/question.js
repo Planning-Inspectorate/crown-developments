@@ -79,6 +79,7 @@ export default class DatePeriodQuestion extends Question {
 		const endYearInput = req.body[`${this.fieldName}_end_year`];
 
 		const startDate = parseDateInput({
+			seconds: 0,
 			minute: this.startTime.minute,
 			hour: this.startTime.hour,
 			day: startDayInput,
@@ -86,6 +87,7 @@ export default class DatePeriodQuestion extends Question {
 			year: startYearInput
 		});
 		const endDate = parseDateInput({
+			seconds: 59,
 			minute: this.endTime.minute,
 			hour: this.endTime.hour,
 			day: endDayInput,
