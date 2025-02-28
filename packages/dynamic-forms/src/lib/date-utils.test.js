@@ -5,11 +5,12 @@ import {
 	dateIsBeforeToday,
 	dateIsToday,
 	formatDateForDisplay,
+	nowIsWithinRange,
 	parseDateInput
 } from './date-utils.js';
 
 describe('format-date', () => {
-	mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T12:00:00') });
+	mock.timers.enable({ apis: ['Date'] });
 	describe('formatUTCDateToUK', () => {
 		const tests = [
 			{ date: new Date('2024-02-20T15:00Z'), expected: '20 Feb 2024 - 15 00' },
@@ -49,8 +50,8 @@ describe('format-date', () => {
 				expected: new Date('2024-09-30T20:00:00.000Z')
 			},
 			{
-				input: { year: 2024, month: 10, day: 1, hour: 0, minute: 59 },
-				expected: new Date('2024-09-30T23:59:00.000Z')
+				input: { year: 2024, month: 10, day: 1, hour: 0, minute: 59, seconds: 59 },
+				expected: new Date('2024-09-30T23:59:59.000Z')
 			}
 		];
 
@@ -70,10 +71,15 @@ describe('format-date', () => {
 			{
 				input: new Date('2020-02-20T15:00Z'),
 				expected: false
+			},
+			{
+				input: new Date('2025-01-01T12:00:00'),
+				expected: false
 			}
 		];
 		for (const { input, expected } of tests) {
 			it(`${JSON.stringify(input)} ${expected ? 'is' : "isn't"} in the future`, () => {
+				mock.timers.setTime(Date.parse('2025-01-01T12:00:00'));
 				const got = dateIsAfterToday(input);
 				assert.deepStrictEqual(got, expected);
 			});
@@ -100,11 +106,11 @@ describe('format-date', () => {
 	describe('dateIsToday', () => {
 		const tests = [
 			{
-				input: new Date('2025-01-02T15:00Z'),
+				input: new Date('2025-01-02T15:00:00'),
 				expected: false
 			},
 			{
-				input: new Date('2020-02-20T15:00Z'),
+				input: new Date('2020-02-20T15:00:00'),
 				expected: false
 			},
 			{
@@ -116,13 +122,146 @@ describe('format-date', () => {
 				expected: true
 			},
 			{
-				input: new Date('2025-01-01T23:59:00'),
+				input: new Date('2025-01-01T23:59:59'),
 				expected: true
 			}
 		];
 		for (const { input, expected } of tests) {
 			it(`${JSON.stringify(input)} ${expected ? 'is' : "isn't"} today`, () => {
+				mock.timers.setTime(Date.parse('2025-01-01T12:00:00'));
 				const got = dateIsToday(input);
+				assert.deepStrictEqual(got, expected);
+			});
+		}
+	});
+	describe('nowIsWithinRange', () => {
+		const tests = [
+			// One or both representation dates are undefined
+			{
+				testName: 'start is undefined, end is a future date',
+				inputs: {
+					now: '2025-01-01T12:00:00Z',
+					start: undefined,
+					end: new Date('2025-01-31T23:59:59Z')
+				},
+				expected: false
+			},
+			{
+				testName: 'start is a past date, end is undefined',
+				inputs: {
+					now: '2025-01-01T12:00:00Z',
+					start: new Date('2025-01-01T00:00:00Z'),
+					end: undefined
+				},
+				expected: false
+			},
+			{
+				testName: 'start is undefined, end is undefined',
+				inputs: {
+					now: '2025-01-01T12:00:00Z',
+					start: undefined,
+					end: undefined
+				},
+				expected: false
+			},
+			// One or both dates are null
+			{
+				testName: 'start is null, end is a future date',
+				inputs: {
+					now: '2025-01-01T12:00:00Z',
+					start: null,
+					end: new Date('2025-01-31T23:59:59Z')
+				},
+				expected: false
+			},
+			{
+				testName: 'start is a past date, end is null',
+				inputs: {
+					now: '2025-01-01T12:00:00Z',
+					start: new Date('2025-01-01T00:00:00Z'),
+					end: null
+				},
+				expected: false
+			},
+			{
+				testName: 'start is null, end is null',
+				inputs: {
+					now: '2025-01-01T12:00:00Z',
+					start: null,
+					end: null
+				},
+				expected: false
+			},
+			// Start is after end
+			{
+				testName: 'start is after end',
+				inputs: {
+					now: '2025-01-01T12:00:00Z',
+					start: new Date('2025-02-01T00:00:00Z'),
+					end: new Date('2025-01-31T23:59:59Z')
+				},
+				expected: false
+			},
+			// start date is before end date
+			{
+				testName: 'start is before end and now is before window',
+				inputs: {
+					now: '2025-01-01T12:00:00Z',
+					start: new Date('2025-02-01T00:00:00Z'),
+					end: new Date('2025-02-28T23:59:59Z')
+				},
+				expected: false
+			},
+			{
+				testName: 'start is before end and now is after window',
+				inputs: {
+					now: '2025-02-01T12:00:00Z',
+					start: new Date('2025-01-01T00:00:00Z'),
+					end: new Date('2025-01-31T23:59:59Z')
+				},
+				expected: false
+			},
+			{
+				testName: 'start is before end and now is within window',
+				inputs: {
+					now: '2025-01-01T12:00:00Z',
+					start: new Date('2025-01-01T00:00:00Z'),
+					end: new Date('2025-01-31T23:59:59Z')
+				},
+				expected: true
+			},
+			{
+				testName: 'start is before end and now is the same as window start',
+				inputs: {
+					now: '2025-01-01T00:00:00Z',
+					start: new Date('2025-01-01T00:00:00Z'),
+					end: new Date('2025-01-31T23:59:59Z')
+				},
+				expected: true
+			},
+			{
+				testName: 'start is before end and now is the same as window end',
+				inputs: {
+					now: '2025-01-31T23:59:59Z',
+					start: new Date('2025-01-01T00:00:00Z'),
+					end: new Date('2025-01-31T23:59:59Z')
+				},
+				expected: true
+			},
+			{
+				testName: 'start is before end and now is the same as window start and end',
+				inputs: {
+					now: '2025-01-31T23:59:59Z',
+					start: new Date('2025-01-01T00:00:00Z'),
+					end: new Date('2025-01-31T23:59:59Z')
+				},
+				expected: true
+			}
+		];
+		for (const { testName, inputs, expected } of tests) {
+			it(`Should be ${expected} when ${testName}`, () => {
+				mock.timers.setTime(Date.parse(inputs.now));
+				const got = nowIsWithinRange(inputs.start, inputs.end);
 				assert.deepStrictEqual(got, expected);
 			});
 		}
