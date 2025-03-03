@@ -255,12 +255,12 @@ export const REPRESENTATION_STATUS = [
 ];
 
 /**
- * @type {Readonly<{PERSON: string, ORGANISATION: string, HOUSEHOLD: string}>}
+ * @type {Readonly<{PERSON: string, ORGANISATION: string, ORG_NOT_WORK_FOR: string}>}
  */
 export const REPRESENTED_TYPE_ID = Object.freeze({
 	PERSON: 'person',
 	ORGANISATION: 'organisation',
-	HOUSEHOLD: 'household'
+	ORG_NOT_WORK_FOR: 'household'
 });
 
 /**
@@ -276,7 +276,7 @@ export const REPRESENTED_TYPE = [
 		displayName: 'An organisation or charity I work or volunteer for'
 	},
 	{
-		id: REPRESENTED_TYPE_ID.HOUSEHOLD,
+		id: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
 		displayName: 'An organisation or charity I do not work or volunteer for'
 	}
 ];
