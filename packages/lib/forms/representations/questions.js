@@ -27,7 +27,7 @@ export const questionProps = {
 		editable: false
 	},
 	...representationsContactQuestions({
-		prefix: 'applicant'
+		prefix: 'submitter'
 	}),
 	...representationsContactQuestions({
 		prefix: 'agent'
@@ -157,12 +157,12 @@ export const questionProps = {
 			})
 		]
 	},
-	fullNameOrg: {
+	agentOrgName: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: `Your organisation's name`,
 		question: 'What is the name of the organisation you work for?',
 		hint: "We will publish your organisation name, your client's name and their representation on the website.",
-		fieldName: 'fullNameOrg',
+		fieldName: 'agentOrgName',
 		url: 'agent-organisation-name',
 		validators: [
 			new RequiredValidator('Enter your organisation name'),
