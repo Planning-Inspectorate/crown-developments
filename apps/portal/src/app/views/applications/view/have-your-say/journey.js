@@ -32,14 +32,21 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.isAgentAdult)
 				.addQuestion(questions.agentFullName)
 				.withCondition((response) => questionHasAnswer(response, questions.isAgentAdult, BOOLEAN_OPTIONS.YES))
-				.startMultiQuestionCondition('group-1', (response) =>
-					questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON)
+				.startMultiQuestionCondition(
+					'group-1',
+					(response) =>
+						questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON) ||
+						questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR)
 				)
 				.addQuestion(questions.areYouAgent)
 				.addQuestion(questions.fullNameOrg)
 				.withCondition((response) => questionHasAnswer(response, questions.areYouAgent, BOOLEAN_OPTIONS.YES))
 				.endMultiQuestionCondition('group-1')
 				.addQuestion(questions.agentEmail)
+				.addQuestion(questions.orgNameRepresenting)
+				.withCondition((response) =>
+					questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR)
+				)
 				.startMultiQuestionCondition('group-2', (response) =>
 					questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORGANISATION)
 				)
