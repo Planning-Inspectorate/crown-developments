@@ -11,6 +11,16 @@ export function createJourney(questions, response, req) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey`);
 	}
 
+	const isRepresentationPerson = (response) =>
+		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON);
+	const isOrgWorkFor = (response) =>
+		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORGANISATION);
+	const isOrgNotWorkFor = (response) =>
+		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR);
+	const isRepresentationPersonOrOrgNotWorkFor = (response) =>
+		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON) ||
+		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR);
+
 	return new Journey({
 		journeyId: JOURNEY_ID,
 		sections: [
@@ -20,10 +30,10 @@ export function createJourney(questions, response, req) {
 					questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
 				)
 				.addQuestion(questions.isAdult)
-				.addQuestion(questions.applicantFullName)
+				.addQuestion(questions.submitterFullName)
 				.withCondition((response) => questionHasAnswer(response, questions.isAdult, BOOLEAN_OPTIONS.YES))
-				.addQuestion(questions.applicantEmail)
-				.addQuestion(questions.applicantTellUsAboutApplication),
+				.addQuestion(questions.submitterEmail)
+				.addQuestion(questions.submitterTellUsAboutApplication),
 			new Section('Agent', 'agent')
 				.withSectionCondition((response) =>
 					questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF)
@@ -32,36 +42,25 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.isAgentAdult)
 				.addQuestion(questions.agentFullName)
 				.withCondition((response) => questionHasAnswer(response, questions.isAgentAdult, BOOLEAN_OPTIONS.YES))
-				.startMultiQuestionCondition(
-					'group-1',
-					(response) =>
-						questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON) ||
-						questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR)
-				)
+				.startMultiQuestionCondition('representation-person-or-org-not-work-for', isRepresentationPersonOrOrgNotWorkFor)
 				.addQuestion(questions.areYouAgent)
-				.addQuestion(questions.fullNameOrg)
+				.addQuestion(questions.agentOrgName)
 				.withCondition((response) => questionHasAnswer(response, questions.areYouAgent, BOOLEAN_OPTIONS.YES))
-				.endMultiQuestionCondition('group-1')
+				.endMultiQuestionCondition('representation-person-or-org-not-work-for')
 				.addQuestion(questions.agentEmail)
 				.addQuestion(questions.orgNameRepresenting)
-				.withCondition((response) =>
-					questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR)
-				)
-				.startMultiQuestionCondition('group-2', (response) =>
-					questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORGANISATION)
-				)
+				.withCondition(isOrgNotWorkFor)
+				.startMultiQuestionCondition('org-work-for', isOrgWorkFor)
 				.addQuestion(questions.orgName)
 				.addQuestion(questions.orgRoleName)
-				.endMultiQuestionCondition('group-2')
-				.startMultiQuestionCondition('group-3', (response) =>
-					questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON)
-				)
+				.endMultiQuestionCondition('org-work-for')
+				.startMultiQuestionCondition('representation-person', isRepresentationPerson)
 				.addQuestion(questions.isRepresentedPersonAdult)
 				.addQuestion(questions.representedPersonFullName)
 				.withCondition((response) =>
 					questionHasAnswer(response, questions.isRepresentedPersonAdult, BOOLEAN_OPTIONS.YES)
 				)
-				.endMultiQuestionCondition('group-3')
+				.endMultiQuestionCondition('representation-person')
 				.addQuestion(questions.agentTellUsAboutApplication)
 		],
 		taskListUrl: 'check-your-answers',
