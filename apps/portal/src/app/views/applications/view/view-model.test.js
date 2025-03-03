@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { crownDevelopmentToViewModel } from './view-model.js';
+import { applicationLinks, crownDevelopmentToViewModel } from './view-model.js';
 
 describe('view-model', () => {
 	describe('crownDevelopmentToViewModel', () => {
@@ -153,6 +153,52 @@ describe('view-model', () => {
 			assert.strictEqual(result.isHearing, true);
 			assert.strictEqual(result.hearingDate, '2 Apr 2025');
 			assert.strictEqual(result.hearingVenue, 'City hall');
+		});
+	});
+	describe('applicationLinks', () => {
+		it('should include Have your say when within the representation submission period', (context) => {
+			const id = 'id-1';
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
+
+			/** @type {{start: Date, end: Date}} */
+			const haveYourSayPeriod = {
+				start: new Date('2025-01-01T00:00:00.000Z'),
+				end: new Date('2025-01-30T23:59:59.000Z')
+			};
+			const result = applicationLinks(id, haveYourSayPeriod);
+			assert.deepStrictEqual(result, [
+				{
+					href: `/applications/${id}/application-information`,
+					text: 'Application Information'
+				},
+				{
+					href: `/applications/${id}/documents`,
+					text: 'Documents'
+				},
+				{
+					href: `/applications/${id}/have-your-say`,
+					text: 'Have your say'
+				}
+			]);
+		});
+		it('should not include Have your say when outside the representation submission period', (context) => {
+			const id = 'id-1';
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-31T00:00:00.000Z') });
+			const haveYourSayPeriod = {
+				start: new Date('2025-01-01T00:00:00.000Z'),
+				end: new Date('2025-01-30T23:59:59.000Z')
+			};
+			const result = applicationLinks(id, haveYourSayPeriod);
+			assert.deepStrictEqual(result, [
+				{
+					href: `/applications/${id}/application-information`,
+					text: 'Application Information'
+				},
+				{
+					href: `/applications/${id}/documents`,
+					text: 'Documents'
+				}
+			]);
 		});
 	});
 });

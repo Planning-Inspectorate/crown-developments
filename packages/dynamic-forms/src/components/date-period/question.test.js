@@ -64,8 +64,8 @@ describe('DatePeriodQuestion', () => {
 				fieldName: FIELDNAME,
 				hint: HINT,
 				validators: VALIDATORS,
-				startTime: { hour: 3, minute: 24 },
-				endTime: { hour: 23, minute: 59 }
+				startTime: { hour: 3, minute: 24, second: 0 },
+				endTime: { hour: 23, minute: 59, second: 0 }
 			});
 
 			const req = {

@@ -6,8 +6,6 @@ import { Prisma } from '@prisma/client';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
 
 describe('publish case', () => {
-	mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
-
 	describe('buildGetValidatedCaseMiddleware', () => {
 		it('should return a middleware function', () => {
 			const middleware = buildGetValidatedCaseMiddleware({ db: {}, logger: mockLogger() });
@@ -134,7 +132,8 @@ describe('publish case', () => {
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 0);
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 0);
 		});
-		it('should call db.crownDevelopment.update with the correct id and redirect', async () => {
+		it('should call db.crownDevelopment.update with the correct id and redirect', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
 			const mockReq = { params: { id: 'case-1' } };
 			const mockRes = {
 				locals: {},
