@@ -254,7 +254,7 @@ const representations = [
 		submittedDate: new Date('2025-01-30T18:16:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[18].id } },
-		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.HOUSEHOLD } },
+		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR } },
 		RepresentedContact: { connect: { id: repsBehalfOfContacts[8].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
 	},
@@ -264,7 +264,7 @@ const representations = [
 		submittedDate: new Date('2025-02-02T15:56:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[19].id } },
-		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.HOUSEHOLD } },
+		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR } },
 		RepresentedContact: { connect: { id: repsBehalfOfContacts[9].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } }
 	}
