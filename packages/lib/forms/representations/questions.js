@@ -137,6 +137,26 @@ export const questionProps = {
 			})
 		]
 	},
+	orgNameRepresenting: {
+		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+		title: 'Name of the organisation or charity representing',
+		question: 'What is the full name of the organisation or charity that you are representing?',
+		fieldName: 'orgNameRepresenting',
+		url: 'name-organisation-representing',
+		validators: [
+			new RequiredValidator('Enter the  full name of the organisation you are representing'),
+			new StringValidator({
+				minLength: {
+					minLength: 3,
+					minLengthMessage: 'Full name of the organisation you are representing must be between 3 and 250 characters'
+				},
+				maxLength: {
+					maxLength: 250,
+					maxLengthMessage: 'Full name of the organisation you are representing must be between 3 and 250 characters'
+				}
+			})
+		]
+	},
 	fullNameOrg: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: `Your organisation's name`,
