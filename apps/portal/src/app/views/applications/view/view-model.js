@@ -1,4 +1,4 @@
-import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js';
+import { formatDateForDisplay, nowIsWithinRange } from '@pins/dynamic-forms/src/lib/date-utils.js';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
@@ -69,25 +69,33 @@ function isHearing(procedureId) {
 }
 
 /**
+ * @typedef {{start: Date, end: Date}} HaveYourSayPeriod
+ */
+
+/**
  * @param {string} id
+ * @param { HaveYourSayPeriod } haveYourSayPeriod
  * @returns {import('./types.js').ApplicationLink[]}
  */
-export function applicationLinks(id) {
-	return [
+export function applicationLinks(id, haveYourSayPeriod) {
+	const links = [
 		{
-			href: `/applications/application-information/${id}`,
+			href: `/applications/${id}/application-information`,
 			text: 'Application Information'
 		},
 		{
-			href: `/applications/application-information/${id}/documents`,
+			href: `/applications/${id}/documents`,
 			text: 'Documents'
-		},
-		{
-			// TODO: add logic to hide this when reps period is closed
-			href: `/applications/application-information/${id}/have-your-say`,
-			text: 'Have Your Say'
 		}
 	];
+
+	if (nowIsWithinRange(haveYourSayPeriod?.start, haveYourSayPeriod?.end)) {
+		links.push({
+			href: `/applications/${id}/have-your-say`,
+			text: 'Have your say'
+		});
+	}
+	return links;
 }
 
 /**

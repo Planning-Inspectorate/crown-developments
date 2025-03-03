@@ -26,11 +26,11 @@ export function buildApplicationDocumentsPage({ db, logger, sharePointDrive }) {
 		if (!crownDevelopment) {
 			return; // handled by checkApplicationPublished
 		}
-		const { id, reference } = crownDevelopment;
+		const { id, reference, haveYourSayPeriod } = crownDevelopment;
 		const folderPath = caseReferenceToFolderName(reference) + '/' + PUBLISHED_FOLDER;
 		logger.info({ folderPath }, 'view documents');
 		const items = await getDocuments(sharePointDrive, folderPath, logger, id);
-		// sort into newest first
+		// sort by newest first
 		items.sort(sortByField('lastModifiedDateTime', true));
 		const documents = items.map(mapDriveItemToViewModel);
 
@@ -39,7 +39,7 @@ export function buildApplicationDocumentsPage({ db, logger, sharePointDrive }) {
 			baseUrl: req.baseUrl,
 			pageTitle: 'Documents',
 			pageCaption: reference,
-			links: applicationLinks(id),
+			links: applicationLinks(id, haveYourSayPeriod),
 			currentUrl: req.originalUrl,
 			documents
 		});
@@ -76,10 +76,14 @@ export function buildDocumentView({ db, logger, sharePointDrive, fetchImpl }) {
 }
 
 /**
+ * @typedef {{start: Date, end: Date}} HaveYourSayPeriod
+ */
+
+/**
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  * @param {import('@prisma/client').PrismaClient} db
- * @returns {Promise<undefined|{id: string, reference: string}>}
+ * @returns {Promise<undefined|{id: string, reference: string, haveYourSayPeriod: HaveYourSayPeriod}>}
  */
 async function checkApplicationPublished(req, res, db) {
 	const id = req.params?.applicationId;
@@ -96,7 +100,11 @@ async function checkApplicationPublished(req, res, db) {
 		db,
 		id,
 		args: {
-			select: { reference: true }
+			select: {
+				reference: true,
+				representationsPeriodStartDate: true,
+				representationsPeriodEndDate: true
+			}
 		}
 	});
 
@@ -106,7 +114,11 @@ async function checkApplicationPublished(req, res, db) {
 	}
 	return {
 		id,
-		reference: crownDevelopment.reference
+		reference: crownDevelopment.reference,
+		haveYourSayPeriod: {
+			start: crownDevelopment.representationsPeriodStartDate,
+			end: crownDevelopment.representationsPeriodEndDate
+		}
 	};
 }
 

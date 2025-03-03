@@ -10,7 +10,6 @@ import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.
 describe('case details', () => {
 	const mockGetEntraClient = mock.fn(() => null);
 	const groupIds = { caseOfficer: 'id-1', inspector: 'id-2' };
-	mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
 
 	describe('buildGetJourneyMiddleware', () => {
 		it('should throw if no id', async () => {
@@ -165,7 +164,8 @@ describe('case details', () => {
 			// should also clear the session
 			assert.strictEqual(mockReq.session.cases['case-1'].updated, undefined);
 		});
-		it('should display a publish button if publishDate is defined and not in the future', async () => {
+		it('should display a publish button if publishDate is defined and not in the future', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const nunjucks = configureNunjucks();
 			// mock response that calls nunjucks to render a result
@@ -180,7 +180,11 @@ describe('case details', () => {
 			};
 			const mockDb = {
 				crownDevelopment: {
-					findUnique: mock.fn(() => ({ id: 'case-1', name: 'Case 1', publishDate: new Date('2020-12-17T03:24:00') }))
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						name: 'Case 1',
+						publishDate: new Date('2020-12-17T03:24:00.000Z')
+					}))
 				}
 			};
 			const next = mock.fn();
@@ -233,7 +237,8 @@ describe('case details', () => {
 			assert.ok(viewData);
 			assert.strictEqual(viewData.casePublished, undefined);
 		});
-		it('should display an unpublish button if publishDate is in the future', async () => {
+		it('should display an unpublish button if publishDate is in the future', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const nunjucks = configureNunjucks();
 			// mock response that calls nunjucks to render a result
@@ -247,7 +252,7 @@ describe('case details', () => {
 				session: {}
 			};
 
-			const tomorrow = new Date('2025-01-02T03:24:00');
+			const tomorrow = new Date('2025-01-02T03:24:00.000Z');
 
 			const mockDb = {
 				crownDevelopment: {

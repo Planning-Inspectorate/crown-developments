@@ -41,10 +41,16 @@ export function buildApplicationInformationPage({ db, config }) {
 
 		const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment, config);
 
+		/** @type {HaveYourSayPeriod} */
+		const haveYourSayPeriod = {
+			start: crownDevelopment.representationsPeriodStartDate,
+			end: crownDevelopment.representationsPeriodEndDate
+		};
+
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Application Information',
-			links: applicationLinks(id),
+			links: applicationLinks(id, haveYourSayPeriod),
 			currentUrl: req.originalUrl,
 			crownDevelopmentFields
 		});

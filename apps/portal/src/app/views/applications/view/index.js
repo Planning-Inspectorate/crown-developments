@@ -19,7 +19,7 @@ export function createRoutes(opts) {
 	const viewDocumentPage = buildDocumentView(opts);
 	const haveYourSayPageRoutes = createHaveYourSayRoutes(opts);
 
-	router.get('/', asyncHandler(applicationInfoController));
+	router.get('/application-information', asyncHandler(applicationInfoController));
 	router.get('/documents', asyncHandler(applicationDocumentsPage));
 	router.get('/documents/:documentId', asyncHandler(viewDocumentPage));
 	router.use('/have-your-say', haveYourSayPageRoutes);

@@ -28,8 +28,8 @@ export default class DatePeriodQuestion extends Question {
 	 * @param {boolean} [params.editable]
 	 * @param {string} [params.dateFormat]
 	 * @param {{start: string, end: string}} [params.labels]
-	 * @param {{hour: number, minute: number}} [params.startTime]
-	 * @param {{hour: number, minute: number}} [params.endTime]
+	 * @param {{hour: number, minute: number, second: number}} [params.startTime]
+	 * @param {{hour: number, minute: number, second: number}} [params.endTime]
 	 */
 	constructor({
 		title,
@@ -56,8 +56,8 @@ export default class DatePeriodQuestion extends Question {
 		});
 		this.dateFormat = dateFormat;
 		this.labels = labels || { start: 'Start', end: 'End' };
-		this.startTime = startTime || { hour: 0, minute: 0 };
-		this.endTime = endTime || { hour: 0, minute: 0 };
+		this.startTime = startTime || { hour: 0, minute: 0, second: 0 };
+		this.endTime = endTime || { hour: 0, minute: 0, second: 0 };
 	}
 
 	/**
@@ -79,6 +79,7 @@ export default class DatePeriodQuestion extends Question {
 		const endYearInput = req.body[`${this.fieldName}_end_year`];
 
 		const startDate = parseDateInput({
+			second: this.startTime.second,
 			minute: this.startTime.minute,
 			hour: this.startTime.hour,
 			day: startDayInput,
@@ -86,6 +87,7 @@ export default class DatePeriodQuestion extends Question {
 			year: startYearInput
 		});
 		const endDate = parseDateInput({
+			second: this.endTime.second,
 			minute: this.endTime.minute,
 			hour: this.endTime.hour,
 			day: endDayInput,
@@ -105,6 +107,7 @@ export default class DatePeriodQuestion extends Question {
 	 * @param {Section} section - the current section
 	 * @param {Journey} journey - the journey we are in
 	 * @param {Object|undefined} [customViewData] additional data to send to view
+	 * @param {Object|undefined} [payload] the current payload
 	 * @returns {QuestionViewModel & { answer: Record<string, unknown> }}
 	 */
 	prepQuestionForRendering(section, journey, customViewData, payload) {
@@ -112,7 +115,7 @@ export default class DatePeriodQuestion extends Question {
 		viewModel.labels = this.labels;
 
 		/** @type {Record<string, unknown>} */
-		let answer = {};
+		let answer;
 		let startDay;
 		let startMonth;
 		let startYear;

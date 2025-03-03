@@ -23,6 +23,7 @@ export function formatDateForDisplay(date, { format = 'd MMM yyyy' } = { format:
  * @property {number} day
  * @property {number} [hour]
  * @property {number} [minute]
+ * @property {number} [second]
  * @property {boolean} [convertToUTC]
  */
 
@@ -31,9 +32,9 @@ export function formatDateForDisplay(date, { format = 'd MMM yyyy' } = { format:
  * @param {DateTimeParams} params
  * @returns {Date}
  */
-export function parseDateInput({ year, month, day, hour = 0, minute = 0 }) {
+export function parseDateInput({ year, month, day, hour = 0, minute = 0, second = 0 }) {
 	const dateStr = `${year}-${pad(month)}-${pad(day)}`;
-	const timeStr = `${pad(hour)}:${pad(minute)}`;
+	const timeStr = `${pad(hour)}:${pad(minute)}:${pad(second)}`;
 	return fromZonedTime(`${dateStr} ${timeStr}`, ukTimeZone);
 }
 
@@ -48,7 +49,8 @@ export function startOfDay() {
 		month: parseInt(month),
 		day: parseInt(day),
 		hour: 0,
-		minute: 0
+		minute: 0,
+		second: 0
 	});
 }
 
@@ -63,7 +65,8 @@ export function endOfDay() {
 		month: parseInt(month),
 		day: parseInt(day),
 		hour: 23,
-		minute: 59
+		minute: 59,
+		second: 59
 	});
 }
 
@@ -101,3 +104,18 @@ export const dateIsBeforeToday = (date) => {
 export const dateIsToday = (date) => {
 	return !isBefore(date, startOfDay()) && !isAfter(date, endOfDay()) && isValid(date);
 };
+
+/**
+ * Check if today is within the date range inclusive (start <= now <= end)
+ * @param {Date} startDate
+ * @param {Date} endDate
+ * @returns {boolean}
+ */
+export function nowIsWithinRange(startDate, endDate) {
+	const now = new Date();
+
+	if (!isValid(startDate) || !isValid(endDate) || isAfter(startDate, endDate)) {
+		return false;
+	}
+	return !isBefore(now, startDate) && !isAfter(now, endDate);
+}
