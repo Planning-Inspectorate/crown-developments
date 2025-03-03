@@ -9,6 +9,7 @@
 {% set title = reference + " - " + journeyTitle + " - GOV.UK" %}
 {% set publishUrl = baseUrl + "/publish" %}
 {% set unpublishUrl = baseUrl + "/unpublish/confirm" %}
+{% set manageRepsUrl = baseUrl + "/manage-representations" %}
 
 {% block pageTitle %}
     {{ title }}
@@ -61,7 +62,7 @@
             {% endif %}
             {{ govukButton({
                 text: "Manage representations",
-                href: "",
+                href: manageRepsUrl,
                 classes: "govuk-button--secondary"
             }) }}
             {% if casePublished %}

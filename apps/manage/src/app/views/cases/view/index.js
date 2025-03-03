@@ -6,6 +6,7 @@ import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/valida
 import { buildGetJourneyMiddleware, buildUpdateCase, buildViewCaseDetails, validateIdFormat } from './controller.js';
 import { createRoutes as createCasePublishRoutes } from './publish/index.js';
 import { createRoutes as createCaseUnpublishRoutes } from './unpublish/index.js';
+import { createRoutes as createRepsRoutes } from './manage-reps/index.js';
 
 /**
  * @param {Object} opts
@@ -18,6 +19,7 @@ import { createRoutes as createCaseUnpublishRoutes } from './unpublish/index.js'
  */
 export function createRoutes({ db, logger, config, getEntraClient, getSharePointDrive }) {
 	const router = createRouter({ mergeParams: true });
+	const repsRoutes = createRepsRoutes({ db, logger });
 	const getJourney = asyncHandler(
 		buildGetJourneyMiddleware({ db, logger, groupIds: config.entra.groupIds, getEntraClient })
 	);
@@ -31,6 +33,8 @@ export function createRoutes({ db, logger, config, getEntraClient, getSharePoint
 	router.get('/', validateIdFormat, getJourney, asyncHandler(viewCaseDetails));
 	router.use('/publish', publishCase);
 	router.use('/unpublish', unpublishCase);
+
+	router.use('/manage-representations', repsRoutes);
 
 	// view question page
 	router.get('/:section/:question', validateIdFormat, getJourney, asyncHandler(question));
