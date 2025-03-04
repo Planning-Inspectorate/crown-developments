@@ -21,7 +21,7 @@ export function createJourney(questions, response, req) {
 		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON) ||
 		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR);
 
-	return new Journey({
+	const journey = new Journey({
 		journeyId: JOURNEY_ID,
 		sections: [
 			new Section('Representation', 'start').addQuestion(questions.submittedFor),
@@ -65,11 +65,23 @@ export function createJourney(questions, response, req) {
 		],
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',
-		listingPageViewPath: 'views/layouts/forms-check-your-answers.njk',
+		listingPageViewPath: 'views/layouts/forms-have-your-say-check-your-answers.njk',
 		journeyTitle: 'Have Your Say',
 		returnToListing: false,
 		makeBaseUrl: () => req.baseUrl,
 		initialBackLink: `/applications/${req.params?.applicationId}/have-your-say`,
 		response
 	});
+
+	journey.isComplete = () => {
+		const getSectionStatus = (name) =>
+			journey.sections.find((section) => section.name === name)?.isComplete(journey.response);
+
+		const representation = getSectionStatus('Representation');
+		const myselfOrAgent = getSectionStatus('Myself') || getSectionStatus('Agent');
+
+		return representation && myselfOrAgent;
+	};
+
+	return journey;
 }
