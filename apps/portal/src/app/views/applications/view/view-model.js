@@ -104,7 +104,7 @@ export function applicationLinks(id, haveYourSayPeriod) {
  */
 export function documentsLink(id) {
 	return {
-		href: `/applications/application-information/${id}/documents`,
+		href: `/applications/${id}/documents`,
 		text: 'Documents'
 	};
 }
