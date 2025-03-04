@@ -69,7 +69,7 @@ export function createJourney(questions, response, req) {
 		journeyTitle: 'Have Your Say',
 		returnToListing: false,
 		makeBaseUrl: () => req.baseUrl,
-		initialBackLink: `/applications/application-information/${req.params?.applicationId}/have-your-say`,
+		initialBackLink: `/applications/${req.params?.applicationId}/have-your-say`,
 		response
 	});
 }
