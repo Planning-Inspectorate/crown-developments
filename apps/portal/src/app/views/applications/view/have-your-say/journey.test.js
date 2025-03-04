@@ -3,6 +3,8 @@ import assert from 'node:assert';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
 import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
+import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
 
 describe('have-your-say journey', () => {
 	it('should error if used with the wrong router structure', () => {
@@ -26,8 +28,8 @@ describe('have-your-say journey', () => {
 
 	it('should include all questions for have your say myself journey', () => {
 		const answers = {
-			submittedForId: 'myself',
-			isAdult: 'yes'
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+			isAdult: BOOLEAN_OPTIONS.YES
 		};
 
 		testHaveYourSayQuestionsDisplay(answers, [], true);
@@ -36,8 +38,8 @@ describe('have-your-say journey', () => {
 	it('should not full name question for myself have your say myself journey if under 18', () => {
 		const questions = getQuestions();
 		const answers = {
-			submittedForId: 'myself',
-			isAdult: 'no'
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+			isAdult: BOOLEAN_OPTIONS.NO
 		};
 
 		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
@@ -55,11 +57,11 @@ describe('have-your-say journey', () => {
 
 	it('should include all questions for have your say on behalf of person journey', () => {
 		const answers = {
-			submittedForId: 'on-behalf-of',
-			representedTypeId: 'person',
-			isAgentAdult: 'yes',
-			isAgent: 'yes',
-			isRepresentedPersonAdult: 'yes'
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+			representedTypeId: REPRESENTED_TYPE_ID.PERSON,
+			isAgentAdult: BOOLEAN_OPTIONS.YES,
+			isAgent: BOOLEAN_OPTIONS.YES,
+			isRepresentedPersonAdult: BOOLEAN_OPTIONS.YES
 		};
 		const expectedQuestions = [
 			'representedTypeId',
@@ -78,9 +80,9 @@ describe('have-your-say journey', () => {
 
 	it('should include all questions for have your say on behalf of org/charity journey', () => {
 		const answers = {
-			submittedForId: 'on-behalf-of',
-			representedTypeId: 'organisation',
-			isAgentAdult: 'yes'
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+			representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
+			isAgentAdult: BOOLEAN_OPTIONS.YES
 		};
 		const expectedQuestions = [
 			'representedTypeId',
@@ -97,10 +99,10 @@ describe('have-your-say journey', () => {
 
 	it('should include all questions for have your say on behalf of org/charity not work for journey', () => {
 		const answers = {
-			submittedForId: 'on-behalf-of',
-			representedTypeId: 'household',
-			isAgentAdult: 'yes',
-			isAgent: 'yes'
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+			representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
+			isAgentAdult: BOOLEAN_OPTIONS.YES,
+			isAgent: BOOLEAN_OPTIONS.YES
 		};
 		const expectedQuestions = [
 			'representedTypeId',
