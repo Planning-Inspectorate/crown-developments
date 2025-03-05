@@ -214,9 +214,9 @@ export class Section {
 			result = SECTION_STATUS.IN_PROGRESS;
 		}
 
-		// all required questions complete
-		// if no required sections this will never be hit
-		if (requiredQuestionCount !== 0 && requiredAnswerCount >= requiredQuestionCount) {
+		// section is conditional, so no required questions
+		// or all required questions complete
+		if (requiredQuestionCount === 0 || requiredAnswerCount >= requiredQuestionCount) {
 			result = SECTION_STATUS.COMPLETE;
 		}
 

@@ -118,6 +118,154 @@ describe('have-your-say journey', () => {
 		testHaveYourSayQuestionsDisplay(answers, expectedQuestions, false);
 	});
 
+	it('isComplete should return true if Representation and Myself sections completed', () => {
+		const questions = getQuestions();
+		const answers = {
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+			myselfIsAdult: BOOLEAN_OPTIONS.YES,
+			myselfFullName: 'Test Name',
+			myselfEmail: 'test@email.com',
+			myselfComment: 'some comments'
+		};
+
+		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+		const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+
+		assert.strictEqual(journey.isComplete(), true);
+	});
+
+	it('isComplete should return false if Myself section incomplete', () => {
+		const questions = getQuestions();
+		const answers = {
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+			myselfIsAdult: BOOLEAN_OPTIONS.YES,
+			myselfFullName: 'Test Name',
+			myselfComment: 'test@email.com'
+		};
+
+		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+		const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+
+		assert.strictEqual(journey.isComplete(), false);
+	});
+
+	it('isComplete should return true if on behalf of person journey completed', () => {
+		const questions = getQuestions();
+		const answers = {
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+			representedTypeId: REPRESENTED_TYPE_ID.PERSON,
+			submitterIsAdult: BOOLEAN_OPTIONS.YES,
+			submitterFullName: 'Agent Name',
+			isAgent: BOOLEAN_OPTIONS.YES,
+			agentOrgName: 'Org Name',
+			submitterEmail: 'test@email.com',
+			isRepresentedPersonAdult: BOOLEAN_OPTIONS.YES,
+			representedPersonFullName: 'Represented Person',
+			submitterComment: 'some comments'
+		};
+
+		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+		const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+
+		assert.strictEqual(journey.isComplete(), true);
+	});
+
+	it('isComplete should return false if on behalf of person journey incomplete', () => {
+		const questions = getQuestions();
+		const answers = {
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+			representedTypeId: REPRESENTED_TYPE_ID.PERSON,
+			submitterIsAdult: BOOLEAN_OPTIONS.YES,
+			submitterFullName: 'Agent Name',
+			isAgent: BOOLEAN_OPTIONS.YES,
+			agentOrgName: 'Org Name',
+			submitterEmail: 'test@email.com',
+			isRepresentedPersonAdult: BOOLEAN_OPTIONS.YES,
+			submitterComment: 'some comments'
+		};
+
+		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+		const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+
+		assert.strictEqual(journey.isComplete(), false);
+	});
+
+	it('isComplete should return true if on behalf of org work for journey completed', () => {
+		const questions = getQuestions();
+		const answers = {
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+			representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
+			submitterIsAdult: BOOLEAN_OPTIONS.YES,
+			submitterFullName: 'Agent Name',
+			submitterEmail: 'test@email.com',
+			orgName: 'Org Name',
+			orgRoleName: 'Boss',
+			submitterComment: 'some comments'
+		};
+
+		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+		const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+
+		assert.strictEqual(journey.isComplete(), true);
+	});
+
+	it('isComplete should false true if on behalf of org work for journey incomplete', () => {
+		const questions = getQuestions();
+		const answers = {
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+			representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
+			submitterIsAdult: BOOLEAN_OPTIONS.YES,
+			submitterFullName: 'Agent Name',
+			submitterEmail: 'test@email.com',
+			orgName: 'Org Name',
+			submitterComment: 'some comments'
+		};
+
+		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+		const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+
+		assert.strictEqual(journey.isComplete(), false);
+	});
+
+	it('isComplete should return true if on behalf of org not work for journey completed', () => {
+		const questions = getQuestions();
+		const answers = {
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+			representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
+			submitterIsAdult: BOOLEAN_OPTIONS.YES,
+			submitterFullName: 'Agent Name',
+			isAgent: BOOLEAN_OPTIONS.YES,
+			agentOrgName: 'Test Org',
+			submitterEmail: 'test@email.com',
+			orgNameRepresenting: 'Test Org Representing',
+			submitterComment: 'some comments'
+		};
+
+		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+		const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+
+		assert.strictEqual(journey.isComplete(), true);
+	});
+
+	it('isComplete should return false if on behalf of org not work for journey incomplete', () => {
+		const questions = getQuestions();
+		const answers = {
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+			representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
+			submitterIsAdult: BOOLEAN_OPTIONS.YES,
+			submitterFullName: 'Agent Name',
+			isAgent: BOOLEAN_OPTIONS.YES,
+			agentOrgName: 'Test Org',
+			submitterEmail: 'test@email.com',
+			submitterComment: 'some comments'
+		};
+
+		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+		const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+
+		assert.strictEqual(journey.isComplete(), false);
+	});
+
 	const testHaveYourSayQuestionsDisplay = (answers, expectedOnBehalfOfQuestions, shouldMyselfDisplay) => {
 		const questions = getQuestions();
 
