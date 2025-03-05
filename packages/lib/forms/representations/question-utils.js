@@ -19,7 +19,7 @@ export function representationsContactQuestions({ prefix }) {
 		question: 'What is your full name?',
 		hint: 'We will publish this on the website along with your comments about the application.',
 		fieldName: `${prefix}FullName`,
-		url: isAgent(prefix) ? `${prefix}-full-name` : `full-name`,
+		url: isSubmitter(prefix) ? `${prefix}-full-name` : `full-name`,
 		validators: [
 			new RequiredValidator('Enter Full name'),
 			new StringValidator({
@@ -41,7 +41,7 @@ export function representationsContactQuestions({ prefix }) {
 		question: 'What is your email address?',
 		hint: 'We will use your email address to send you information about this application. We will not publish your email address.',
 		fieldName: `${prefix}Email`,
-		url: isAgent(prefix) ? `${prefix}-email-address` : `email-address`,
+		url: isSubmitter(prefix) ? `${prefix}-email-address` : `email-address`,
 		validators: [
 			new RequiredValidator('Enter your email address'),
 			new StringValidator({
@@ -82,6 +82,6 @@ export function representationsContactQuestions({ prefix }) {
 	return questions;
 }
 
-function isAgent(prefix) {
-	return prefix === 'agent';
+function isSubmitter(prefix) {
+	return prefix === 'submitter';
 }
