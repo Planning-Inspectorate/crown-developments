@@ -73,15 +73,5 @@ export function createJourney(questions, response, req) {
 		response
 	});
 
-	journey.isComplete = () => {
-		const getSectionStatus = (name) =>
-			journey.sections.find((section) => section.name === name)?.isComplete(journey.response);
-
-		const representation = getSectionStatus('Representation');
-		const myselfOrAgent = getSectionStatus('Myself') || getSectionStatus('Agent');
-
-		return representation && myselfOrAgent;
-	};
-
 	return journey;
 }
