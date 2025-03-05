@@ -77,6 +77,7 @@ describe('application info controller', () => {
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
 				pageCaption: 'CROWN/2025/0000001',
 				pageTitle: 'Application Information',
+				shouldShowImportantDatesSection: true,
 				links: [
 					{
 						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-information',
