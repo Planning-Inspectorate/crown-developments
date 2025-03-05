@@ -41,8 +41,8 @@ export namespace HaveYourSay {
 	 * On behalf of a person have-your-say fields
 	 */
 	export type OnBehalfOfPerson = IsAgent & {
-		isRepresentedPersonAdult: boolean;
-		representedPersonFullName?: string;
+		representedIsAdult: boolean;
+		representedFullName?: string;
 	};
 
 	/**
@@ -57,7 +57,7 @@ export namespace HaveYourSay {
 	 * On behalf of an org I don't work have-your-say fields
 	 */
 	export type OnBehalfOfOrgNotWorkFor = IsAgent & {
-		orgNameRepresenting: string;
+		representedOrgName: string;
 	};
 
 	export interface IsAgent {
