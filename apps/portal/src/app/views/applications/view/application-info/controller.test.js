@@ -111,4 +111,30 @@ describe('application info controller', () => {
 			});
 		});
 	});
+
+	it('shouldShowImportantDatesSection is false when required dates not present', async (context) => {
+		context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
+		const mockDb = {
+			crownDevelopment: {
+				findUnique: mock.fn(() => ({
+					id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
+					reference: 'CROWN/2025/0000001',
+					representationsPeriodEndDate: new Date('2025-01-31')
+				}))
+			}
+		};
+		const handler = buildApplicationInformationPage({
+			db: mockDb,
+			config: {}
+		});
+		const mockReq = {
+			params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' }
+		};
+		const mockRes = {
+			status: mock.fn(),
+			render: mock.fn()
+		};
+		await handler(mockReq, mockRes);
+		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].shouldShowImportantDatesSection, false);
+	});
 });
