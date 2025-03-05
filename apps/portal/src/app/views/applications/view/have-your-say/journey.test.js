@@ -29,17 +29,17 @@ describe('have-your-say journey', () => {
 	it('should include all questions for have your say myself journey', () => {
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-			isAdult: BOOLEAN_OPTIONS.YES
+			myselfIsAdult: BOOLEAN_OPTIONS.YES
 		};
 
 		testHaveYourSayQuestionsDisplay(answers, [], true);
 	});
 
-	it('should not full name question for myself have your say myself journey if under 18', () => {
+	it('should not include full name question for myself have your say myself journey if under 18', () => {
 		const questions = getQuestions();
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-			isAdult: BOOLEAN_OPTIONS.NO
+			myselfIsAdult: BOOLEAN_OPTIONS.NO
 		};
 
 		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
@@ -49,30 +49,30 @@ describe('have-your-say journey', () => {
 		const myselfSection = sections[1];
 		assert.strictEqual(myselfSection.questions.length, 4);
 
-		const submitterFullNameQuestion = myselfSection.questions.find(
-			(question) => question.fieldName === 'submitterFullName'
+		const myselfFullNameQuestion = myselfSection.questions.find(
+			(question) => question.fieldName === questions.myselfFullName.fieldName
 		);
-		assert.strictEqual(submitterFullNameQuestion.shouldDisplay(response), false);
+		assert.strictEqual(myselfFullNameQuestion.shouldDisplay(response), false);
 	});
 
 	it('should include all questions for have your say on behalf of person journey', () => {
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.PERSON,
-			isAgentAdult: BOOLEAN_OPTIONS.YES,
+			submitterIsAdult: BOOLEAN_OPTIONS.YES,
 			isAgent: BOOLEAN_OPTIONS.YES,
 			isRepresentedPersonAdult: BOOLEAN_OPTIONS.YES
 		};
 		const expectedQuestions = [
 			'representedTypeId',
-			'isAgentAdult',
-			'agentFullName',
+			'submitterIsAdult',
+			'submitterFullName',
 			'isAgent',
 			'agentOrgName',
-			'agentEmail',
+			'submitterEmail',
 			'isRepresentedPersonAdult',
 			'representedPersonFullName',
-			'agentComment'
+			'submitterComment'
 		];
 
 		testHaveYourSayQuestionsDisplay(answers, expectedQuestions, false);
@@ -82,16 +82,16 @@ describe('have-your-say journey', () => {
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
-			isAgentAdult: BOOLEAN_OPTIONS.YES
+			submitterIsAdult: BOOLEAN_OPTIONS.YES
 		};
 		const expectedQuestions = [
 			'representedTypeId',
-			'isAgentAdult',
-			'agentFullName',
-			'agentEmail',
+			'submitterIsAdult',
+			'submitterFullName',
+			'submitterEmail',
 			'orgName',
 			'orgRoleName',
-			'agentComment'
+			'submitterComment'
 		];
 
 		testHaveYourSayQuestionsDisplay(answers, expectedQuestions, false);
@@ -101,18 +101,18 @@ describe('have-your-say journey', () => {
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
-			isAgentAdult: BOOLEAN_OPTIONS.YES,
+			submitterIsAdult: BOOLEAN_OPTIONS.YES,
 			isAgent: BOOLEAN_OPTIONS.YES
 		};
 		const expectedQuestions = [
 			'representedTypeId',
-			'isAgentAdult',
-			'agentFullName',
+			'submitterIsAdult',
+			'submitterFullName',
 			'isAgent',
 			'agentOrgName',
-			'agentEmail',
+			'submitterEmail',
 			'orgNameRepresenting',
-			'agentComment'
+			'submitterComment'
 		];
 
 		testHaveYourSayQuestionsDisplay(answers, expectedQuestions, false);
@@ -132,8 +132,12 @@ describe('have-your-say journey', () => {
 
 		const myselfSection = sections[1];
 		assert.strictEqual(myselfSection.questions.length, 4);
-		for (const myselfQuestions of myselfSection.questions) {
-			assert.strictEqual(myselfQuestions.shouldDisplay(response), shouldMyselfDisplay);
+		for (const myselfQuestion of myselfSection.questions) {
+			assert.strictEqual(
+				myselfQuestion.shouldDisplay(response),
+				shouldMyselfDisplay,
+				`Expected ${myselfQuestion.fieldName} to be ${shouldMyselfDisplay}`
+			);
 		}
 
 		const onBehalfOfSection = sections[2];
@@ -141,7 +145,11 @@ describe('have-your-say journey', () => {
 
 		for (const onBehalfOfQuestion of onBehalfOfSection.questions) {
 			const expected = expectedOnBehalfOfQuestions.includes(onBehalfOfQuestion.fieldName);
-			assert.strictEqual(onBehalfOfQuestion.shouldDisplay(response), expected);
+			assert.strictEqual(
+				onBehalfOfQuestion.shouldDisplay(response),
+				expected,
+				`Expected ${onBehalfOfQuestion.fieldName} to be ${expected}`
+			);
 		}
 	};
 });

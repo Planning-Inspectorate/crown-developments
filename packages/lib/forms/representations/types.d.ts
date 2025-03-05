@@ -15,10 +15,10 @@ export namespace HaveYourSay {
 	 * Myself have-your-say fields
 	 */
 	export interface Myself {
-		isAdult: boolean;
-		submitterFullName?: string;
-		submitterEmail: string;
-		submitterComment: string;
+		myselfIsAdult: boolean;
+		myselfFullName?: string;
+		myselfEmail: string;
+		myselfComment: string;
 	}
 
 	/**
@@ -26,10 +26,10 @@ export namespace HaveYourSay {
 	 */
 	export type OnBehalfOf = OnBehalfOfOptions & {
 		representedTypeId: string;
-		isAgentAdult: boolean;
-		agentFullName?: string;
-		agentEmail: string;
-		agentComment: string;
+		submitterIsAdult: boolean;
+		submitterFullName?: string;
+		submitterEmail: string;
+		submitterComment: string;
 	};
 
 	/**

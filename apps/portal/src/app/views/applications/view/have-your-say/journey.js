@@ -29,25 +29,25 @@ export function createJourney(questions, response, req) {
 				.withSectionCondition((response) =>
 					questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
 				)
-				.addQuestion(questions.isAdult)
-				.addQuestion(questions.submitterFullName)
-				.withCondition((response) => questionHasAnswer(response, questions.isAdult, BOOLEAN_OPTIONS.YES))
-				.addQuestion(questions.submitterEmail)
-				.addQuestion(questions.submitterTellUsAboutApplication),
+				.addQuestion(questions.myselfIsAdult)
+				.addQuestion(questions.myselfFullName)
+				.withCondition((response) => questionHasAnswer(response, questions.myselfIsAdult, BOOLEAN_OPTIONS.YES))
+				.addQuestion(questions.myselfEmail)
+				.addQuestion(questions.myselfTellUsAboutApplication),
 			new Section('Agent', 'agent')
 				.withSectionCondition((response) =>
 					questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF)
 				)
 				.addQuestion(questions.whoRepresenting)
-				.addQuestion(questions.isAgentAdult)
-				.addQuestion(questions.agentFullName)
-				.withCondition((response) => questionHasAnswer(response, questions.isAgentAdult, BOOLEAN_OPTIONS.YES))
+				.addQuestion(questions.submitterIsAdult)
+				.addQuestion(questions.submitterFullName)
+				.withCondition((response) => questionHasAnswer(response, questions.submitterIsAdult, BOOLEAN_OPTIONS.YES))
 				.startMultiQuestionCondition('representation-person-or-org-not-work-for', isRepresentationPersonOrOrgNotWorkFor)
 				.addQuestion(questions.areYouAgent)
 				.addQuestion(questions.agentOrgName)
 				.withCondition((response) => questionHasAnswer(response, questions.areYouAgent, BOOLEAN_OPTIONS.YES))
 				.endMultiQuestionCondition('representation-person-or-org-not-work-for')
-				.addQuestion(questions.agentEmail)
+				.addQuestion(questions.submitterEmail)
 				.addQuestion(questions.orgNameRepresenting)
 				.withCondition(isOrgNotWorkFor)
 				.startMultiQuestionCondition('org-work-for', isOrgWorkFor)
@@ -61,7 +61,7 @@ export function createJourney(questions, response, req) {
 					questionHasAnswer(response, questions.isRepresentedPersonAdult, BOOLEAN_OPTIONS.YES)
 				)
 				.endMultiQuestionCondition('representation-person')
-				.addQuestion(questions.agentTellUsAboutApplication)
+				.addQuestion(questions.submitterTellUsAboutApplication)
 		],
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',
