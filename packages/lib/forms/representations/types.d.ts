@@ -1,7 +1,16 @@
+import { CrownDevelopmentViewModel } from 'crowndev-manage/src/app/views/cases/view/types';
+
 /**
  * The view model used for have-your-say answers
  */
 export type HaveYourSayViewModel = HaveYourSay.Common & (HaveYourSay.Myself | HaveYourSay.OnBehalfOf);
+
+/**
+ * The view model used for have-your-say review & view in the manage app
+ */
+export type HaveYourSayManageModel = HaveYourSayViewModel & InternalFields;
+
+export type HaveYourSayManageModelFields = keyof HaveYourSayManageModel;
 
 export namespace HaveYourSay {
 	/**
@@ -9,6 +18,14 @@ export namespace HaveYourSay {
 	 */
 	export interface Common {
 		submittedForId: string;
+	}
+
+	export interface InternalFields {
+		reference: string;
+		statusId: string;
+		submittedDate: string | Date;
+		categoryId?: string;
+		wantsToBeHeard?: boolean;
 	}
 
 	/**
