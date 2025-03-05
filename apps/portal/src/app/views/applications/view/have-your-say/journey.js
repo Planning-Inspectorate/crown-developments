@@ -21,7 +21,7 @@ export function createJourney(questions, response, req) {
 		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON) ||
 		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR);
 
-	const journey = new Journey({
+	return new Journey({
 		journeyId: JOURNEY_ID,
 		sections: [
 			new Section('Representation', 'start').addQuestion(questions.submittedFor),
@@ -72,6 +72,4 @@ export function createJourney(questions, response, req) {
 		initialBackLink: `/applications/${req.params?.applicationId}/have-your-say`,
 		response
 	});
-
-	return journey;
 }
