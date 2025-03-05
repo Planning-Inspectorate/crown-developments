@@ -47,11 +47,20 @@ export function buildApplicationInformationPage({ db, config }) {
 			end: crownDevelopment.representationsPeriodEndDate
 		};
 
+		const { applicationCompleteDate, decisionDate, representationsPeriodStartDate, representationsPeriodEndDate } =
+			crownDevelopmentFields;
+		const shouldShowImportantDatesSection = [
+			applicationCompleteDate,
+			decisionDate,
+			representationsPeriodStartDate && representationsPeriodEndDate
+		].some(Boolean);
+
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Application Information',
 			links: applicationLinks(id, haveYourSayPeriod),
 			currentUrl: req.originalUrl,
+			shouldShowImportantDatesSection,
 			crownDevelopmentFields
 		});
 	};
