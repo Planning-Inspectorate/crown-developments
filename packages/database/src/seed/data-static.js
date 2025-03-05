@@ -188,20 +188,12 @@ export const APPLICATION_PROCEDURE = [
  */
 export const REPRESENTATION_CATEGORY = [
 	{
-		id: 'public',
-		displayName: 'Member of the public'
+		id: 'consultees',
+		displayName: 'Consultees'
 	},
 	{
-		id: 'non-stat-organisation',
-		displayName: 'Non-statutory organisations'
-	},
-	{
-		id: 'other-stat-con',
-		displayName: 'Other statutory consultee'
-	},
-	{
-		id: 'parish-council',
-		displayName: 'Parish Council'
+		id: 'interested-parties',
+		displayName: 'Interested Parties'
 	}
 ];
 
