@@ -83,12 +83,12 @@ export const questionProps = {
 		validators: [new RequiredValidator('Select who you are representing')],
 		options: referenceDataToRadioOptions(REPRESENTED_TYPE)
 	},
-	representedPersonFullName: {
+	representedFullName: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Your full name',
 		question: 'What is the full name of the person you are representing?',
 		hint: 'We will publish this on the website along with your comments about the application.',
-		fieldName: 'representedPersonFullName',
+		fieldName: 'representedFullName',
 		url: 'name-person-representing',
 		validators: [
 			new RequiredValidator('Enter the full name of the person you are representing'),
@@ -137,11 +137,11 @@ export const questionProps = {
 			})
 		]
 	},
-	orgNameRepresenting: {
+	representedOrgName: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Name of the organisation or charity representing',
 		question: 'What is the full name of the organisation or charity that you are representing?',
-		fieldName: 'orgNameRepresenting',
+		fieldName: 'representedOrgName',
 		url: 'name-organisation-representing',
 		validators: [
 			new RequiredValidator('Enter the  full name of the organisation you are representing'),
@@ -201,12 +201,12 @@ export const questionProps = {
 		url: 'agent-18-over',
 		validators: [new RequiredValidator('Select yes if you are 18 or over')]
 	},
-	isRepresentedPersonAdult: {
+	representedIsAdult: {
 		type: COMPONENT_TYPES.BOOLEAN,
 		title: 'Person representing over 18',
 		question: 'Is the person you are representing 18 or over?',
 		hint: 'You can still submit a representation for them if they are under 18, but we will process their personal details in a different way.',
-		fieldName: 'isRepresentedPersonAdult',
+		fieldName: 'representedIsAdult',
 		url: 'are-they-18-over',
 		validators: [new RequiredValidator('Select yes if the person you are representing is are 18 or over')]
 	},
