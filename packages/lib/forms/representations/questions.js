@@ -27,10 +27,10 @@ export const questionProps = {
 		editable: false
 	},
 	...representationsContactQuestions({
-		prefix: 'submitter'
+		prefix: 'myself'
 	}),
 	...representationsContactQuestions({
-		prefix: 'agent'
+		prefix: 'submitter'
 	}),
 	status: {
 		type: COMPONENT_TYPES.RADIO,
@@ -157,6 +157,15 @@ export const questionProps = {
 			})
 		]
 	},
+	areYouAgent: {
+		type: COMPONENT_TYPES.BOOLEAN,
+		title: 'Are you an agent on behalf of a client?',
+		question: 'Are you acting as an agent on behalf of a client?',
+		hint: 'For example, your organisation has been hired to represent a client on planning matters.',
+		fieldName: 'isAgent',
+		url: 'are-you-agent',
+		validators: [new RequiredValidator('Select yes if you are acting as an agent on behalf of a client')]
+	},
 	agentOrgName: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: `Your organisation's name`,
@@ -174,21 +183,21 @@ export const questionProps = {
 			})
 		]
 	},
-	isAdult: {
+	myselfIsAdult: {
 		type: COMPONENT_TYPES.BOOLEAN,
 		title: 'Over 18',
 		question: 'Are you 18 or over?',
 		hint: 'You can still have your say if you are under 18, but we will process your personal details in a different way.',
-		fieldName: 'isAdult',
+		fieldName: 'myselfIsAdult',
 		url: 'are-you-18-over',
 		validators: [new RequiredValidator('Select yes if you are 18 or over')]
 	},
-	isAgentAdult: {
+	submitterIsAdult: {
 		type: COMPONENT_TYPES.BOOLEAN,
 		title: 'Over 18',
 		question: 'Are you 18 or over?',
 		hint: 'If you are under 18 we will process your personal details in a different way.',
-		fieldName: 'isAgentAdult',
+		fieldName: 'submitterIsAdult',
 		url: 'agent-18-over',
 		validators: [new RequiredValidator('Select yes if you are 18 or over')]
 	},
@@ -200,15 +209,6 @@ export const questionProps = {
 		fieldName: 'isRepresentedPersonAdult',
 		url: 'are-they-18-over',
 		validators: [new RequiredValidator('Select yes if the person you are representing is are 18 or over')]
-	},
-	areYouAgent: {
-		type: COMPONENT_TYPES.BOOLEAN,
-		title: 'Are you an agent on behalf of a client?',
-		question: 'Are you acting as an agent on behalf of a client?',
-		hint: 'For example, your organisation has been hired to represent a client on planning matters.',
-		fieldName: 'isAgent',
-		url: 'are-you-agent',
-		validators: [new RequiredValidator('Select yes if you are acting as an agent on behalf of a client')]
 	},
 	address: {
 		type: COMPONENT_TYPES.ADDRESS,
