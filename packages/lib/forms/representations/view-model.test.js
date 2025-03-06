@@ -1,10 +1,15 @@
 import { describe, it } from 'node:test';
 import { representationToManageViewModel } from './view-model.js';
 import assert from 'node:assert';
-import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import {
+	REPRESENTATION_STATUS_ID,
+	REPRESENTATION_SUBMITTED_FOR_ID,
+	REPRESENTED_TYPE_ID
+} from '@pins/crowndev-database/src/seed/data-static.js';
 
 describe('view-model', () => {
 	describe('representationToManageViewModel', () => {
+		const applicationReference = 'app/ref';
 		it('should map the common fields', () => {
 			const representation = {
 				reference: 'ref',
@@ -14,10 +19,29 @@ describe('view-model', () => {
 				wantsToBeHeard: true,
 				submittedForId: 'id-1'
 			};
-			const viewModel = representationToManageViewModel(representation);
+			const viewModel = representationToManageViewModel(representation, applicationReference);
 			assert.deepStrictEqual(viewModel, {
 				...representation,
-				wantsToBeHeard: 'yes'
+				applicationReference,
+				wantsToBeHeard: 'yes',
+				requiresReview: false
+			});
+		});
+		it('should map requires review', () => {
+			const representation = {
+				reference: 'ref',
+				statusId: REPRESENTATION_STATUS_ID.AWAITING_REVIEW,
+				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				categoryId: 'c-id-1',
+				wantsToBeHeard: true,
+				submittedForId: 'id-1'
+			};
+			const viewModel = representationToManageViewModel(representation, applicationReference);
+			assert.deepStrictEqual(viewModel, {
+				...representation,
+				applicationReference,
+				wantsToBeHeard: 'yes',
+				requiresReview: true
 			});
 		});
 		it('should map the myself fields', () => {
@@ -35,8 +59,9 @@ describe('view-model', () => {
 					email: 'email@example.com'
 				}
 			};
-			const viewModel = representationToManageViewModel(representation);
+			const viewModel = representationToManageViewModel(representation, applicationReference);
 			assert.deepStrictEqual(viewModel, {
+				applicationReference,
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
@@ -46,7 +71,8 @@ describe('view-model', () => {
 				myselfIsAdult: 'yes',
 				myselfFullName: 'my name',
 				myselfEmail: 'email@example.com',
-				myselfComment: 'my comments'
+				myselfComment: 'my comments',
+				requiresReview: false
 			});
 		});
 		it('should map the on behalf of common fields', () => {
@@ -65,8 +91,9 @@ describe('view-model', () => {
 				},
 				representedTypeId: 'r-id-1'
 			};
-			const viewModel = representationToManageViewModel(representation);
+			const viewModel = representationToManageViewModel(representation, applicationReference);
 			assert.deepStrictEqual(viewModel, {
+				applicationReference,
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
@@ -77,7 +104,8 @@ describe('view-model', () => {
 				submitterIsAdult: 'yes',
 				submitterFullName: 'my name',
 				submitterEmail: 'email@example.com',
-				submitterComment: 'my comments'
+				submitterComment: 'my comments',
+				requiresReview: false
 			});
 		});
 		it('should map the on behalf of person fields', () => {
@@ -102,8 +130,9 @@ describe('view-model', () => {
 				submittedByAgent: true,
 				submittedByAgentOrgName: 'agent org'
 			};
-			const viewModel = representationToManageViewModel(representation);
+			const viewModel = representationToManageViewModel(representation, applicationReference);
 			assert.deepStrictEqual(viewModel, {
+				applicationReference,
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
@@ -118,7 +147,8 @@ describe('view-model', () => {
 				representedIsAdult: 'yes',
 				representedFullName: 'the persons name',
 				isAgent: 'yes',
-				agentOrgName: 'agent org'
+				agentOrgName: 'agent org',
+				requiresReview: false
 			});
 		});
 		it('should map the on behalf of org fields', () => {
@@ -141,8 +171,9 @@ describe('view-model', () => {
 					jobTitleOrRole: 'my role'
 				}
 			};
-			const viewModel = representationToManageViewModel(representation);
+			const viewModel = representationToManageViewModel(representation, applicationReference);
 			assert.deepStrictEqual(viewModel, {
+				applicationReference,
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
@@ -155,7 +186,8 @@ describe('view-model', () => {
 				submitterEmail: 'email@example.com',
 				submitterComment: 'my comments',
 				orgName: 'the orgs name',
-				orgRoleName: 'my role'
+				orgRoleName: 'my role',
+				requiresReview: false
 			});
 		});
 		it(`should map the on behalf of org don't work for fields`, () => {
@@ -179,8 +211,9 @@ describe('view-model', () => {
 				submittedByAgent: true,
 				submittedByAgentOrgName: 'agent org'
 			};
-			const viewModel = representationToManageViewModel(representation);
+			const viewModel = representationToManageViewModel(representation, applicationReference);
 			assert.deepStrictEqual(viewModel, {
+				applicationReference,
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
@@ -194,7 +227,8 @@ describe('view-model', () => {
 				submitterComment: 'my comments',
 				isAgent: 'yes',
 				agentOrgName: 'agent org',
-				representedOrgName: 'the households name'
+				representedOrgName: 'the households name',
+				requiresReview: false
 			});
 		});
 	});

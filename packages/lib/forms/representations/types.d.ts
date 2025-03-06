@@ -1,5 +1,3 @@
-import { CrownDevelopmentViewModel } from 'crowndev-manage/src/app/views/cases/view/types';
-
 /**
  * The view model used for have-your-say answers
  */
@@ -26,6 +24,9 @@ export namespace HaveYourSay {
 		submittedDate: string | Date;
 		categoryId?: string;
 		wantsToBeHeard?: boolean;
+
+		readonly applicationReference?: string;
+		readonly requiresReview?: boolean;
 	}
 
 	/**

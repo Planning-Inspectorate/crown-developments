@@ -21,7 +21,7 @@ export const questionProps = {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Reference',
 		question: '?',
-		fieldName: 'repReference',
+		fieldName: 'reference',
 		url: 'rep-reference',
 		validators: [],
 		editable: false
@@ -39,8 +39,7 @@ export const questionProps = {
 		fieldName: 'statusId',
 		url: 'status',
 		validators: [new RequiredValidator()],
-		options: referenceDataToRadioOptions(REPRESENTATION_STATUS),
-		editable: false
+		options: referenceDataToRadioOptions(REPRESENTATION_STATUS)
 	},
 	reviewDecision: {
 		type: COMPONENT_TYPES.RADIO,

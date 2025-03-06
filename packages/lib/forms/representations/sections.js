@@ -11,6 +11,21 @@ import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/ques
  * @param {Questions} questions
  * @returns {Section[]}
  */
+export function haveYourSayManageSections(questions) {
+	// section names aren't used
+	return [
+		new Section('Details', 'details').addQuestion(questions.reference).addQuestion(questions.status),
+		new Section('Representation', 'start').addQuestion(questions.submittedFor),
+		myselfSection(questions),
+		agentSection(questions),
+		new Section('heard', 'heard').addQuestion(questions.wantsToBeHeard)
+	];
+}
+
+/**
+ * @param {Questions} questions
+ * @returns {Section[]}
+ */
 export function haveYourSaySections(questions) {
 	return [
 		new Section('Representation', 'start').addQuestion(questions.submittedFor),
