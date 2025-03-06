@@ -1,14 +1,104 @@
-{% extends "views/layouts/main.njk" %}
+{% extends layoutTemplate %}
 
-{% block pageContent %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+
+{% set titlePrefix = "View" %}
+{% if requiresReview %}
+    {% set titlePrefix = "Review" %}
+{% endif %}
+{% set title = titlePrefix + " representation - " + journeyTitle + " - GOV.UK" %}
+
+{% block pageTitle %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
 
     <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            <p class="govuk-body">
-                Placeholder for viewing a representation
-            </p>
+        <div class="govuk-grid-column-full">
+            <h1 class="govuk-heading-l">
+                <span class="govuk-caption-xl">{{ applicationReference }}</span>
+                {% if requiresReview %}
+                    Review representation
+                {% else %}
+                    View representation
+                {% endif %}
+            </h1>
         </div>
     </div>
 
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            {# combine all section rows into one list #}
+            {% set rows = [] %}
+            {% for section in summaryListData.sections %}
+                {% if section.list.rows.length %}
+                    {% set rows = rows.concat(section.list.rows) %}
+                {% endif %}
+            {% endfor %}
+            {{ govukSummaryList({
+                rows: rows
+            }) }}
+        </div>
+    </div>
+
+    {% if requiresReview %}
+        <form method="POST">
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-full">
+                    {{ govukCheckboxes({
+                        name: 'wantsToBeHeard',
+                        items: [
+                            {
+                                value: 'yes',
+                                text: 'Would like to be heard if there is a hearing?'
+                            }
+                        ]
+                    }) }}
+                </div>
+            </div>
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-full">
+                    {{  govukRadios({
+                        name: 'reviewDecision',
+                        fieldset: {
+                            legend: {
+                                text: 'Review decision',
+                                isPageHeading: false,
+                                classes: 'govuk-fieldset__legend--m'
+                            }
+                        },
+                        items: [
+                            {
+                                value: accept,
+                                text: "Accept"
+                            },
+                            {
+                                value: acceptAndRedact,
+                                text: "Accept & Redact"
+                            },
+                            {
+                                value: reject,
+                                text: "Reject"
+                            }
+                        ],
+                        errorMessage: errors.reviewDecision and {
+                            text: errors.reviewDecision.msg
+                        }
+                    }) }}
+                </div>
+            </div>
+
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-full">
+                    {{  govukButton({ text: 'Submit' }) }}
+                </div>
+            </div>
+        </form>
+    {% endif %}
 
 {% endblock %}
