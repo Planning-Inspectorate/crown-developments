@@ -2,8 +2,11 @@ import { Router as createRouter } from 'express';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 import { buildListReps } from './list/controller.js';
 import { addRep } from './add/controller.js';
-import { buildGetJourneyMiddleware, viewRepresentation } from './view/controller.js';
+import { buildGetJourneyMiddleware, buildUpdateRepresentation, viewRepresentation } from './view/controller.js';
 import { reviewRep } from './review/controller.js';
+import validate from '@pins/dynamic-forms/src/validator/validator.js';
+import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
+import { buildSave, question } from '@pins/dynamic-forms/src/controller.js';
 
 /**
  * @param {Object} opts
@@ -16,11 +19,23 @@ export function createRoutes({ db, logger }) {
 	const list = buildListReps({ db });
 
 	const getJourney = asyncHandler(buildGetJourneyMiddleware({ db, logger }));
+	const updateRepFn = buildUpdateRepresentation({ db, logger });
+	const saveAnswer = buildSave(updateRepFn, true);
 
 	router.get('/', asyncHandler(list));
 	router.get('/add', addRep);
-	router.get('/:representationRef/view', getJourney, asyncHandler(viewRepresentation));
-	router.get('/:representationRef/review', reviewRep);
+
+	const repsRouter = createRouter({ mergeParams: true });
+	repsRouter.get('/view', getJourney, asyncHandler(viewRepresentation));
+	repsRouter.get('/review', reviewRep);
+
+	// edits
+	repsRouter
+		.route('/view/:section/:question')
+		.get(getJourney, asyncHandler(question))
+		.post(getJourney, validate, validationErrorHandler, asyncHandler(saveAnswer));
+
+	router.use('/:representationRef', repsRouter);
 
 	return router;
 }

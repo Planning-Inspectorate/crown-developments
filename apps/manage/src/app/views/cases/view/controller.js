@@ -4,12 +4,12 @@ import { crownDevelopmentToViewModel, editsToDatabaseUpdates } from './view-mode
 import { getQuestions } from './questions.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
-import { Prisma } from '@prisma/client';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { getEntraGroupMembers } from '#util/entra-groups.js';
 import { dateIsBeforeToday, dateIsToday } from '@pins/dynamic-forms/src/lib/date-utils.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/name.js';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 
 /**
  *
@@ -118,17 +118,13 @@ export function buildUpdateCase({ db, logger }) {
 				where: { id },
 				data: updateInput
 			});
-		} catch (e) {
-			// don't show Prisma errors to the user
-			if (e instanceof Prisma.PrismaClientKnownRequestError) {
-				logger.error({ id, error: e }, 'error updating case');
-				throw new Error(`Error updating case (${e.code})`);
-			}
-			if (e instanceof Prisma.PrismaClientValidationError) {
-				logger.error({ id, error: e }, 'error updating case');
-				throw new Error(`Error updating case (${e.name})`);
-			}
-			throw e;
+		} catch (error) {
+			wrapPrismaError({
+				error,
+				logger,
+				message: 'updating case',
+				logParams: { id }
+			});
 		}
 
 		// show a banner to the user on success

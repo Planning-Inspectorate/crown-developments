@@ -27,6 +27,8 @@ export namespace HaveYourSay {
 
 		readonly applicationReference?: string;
 		readonly requiresReview?: boolean;
+		readonly submittedByContactId?: string;
+		readonly representedContactId?: string;
 	}
 
 	/**

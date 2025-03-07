@@ -4,7 +4,11 @@ import { ACCEPT_AND_REDACT, getQuestions } from '@pins/crowndev-lib/forms/repres
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
-import { representationToManageViewModel } from '@pins/crowndev-lib/forms/representations/view-model.js';
+import {
+	editsToDatabaseUpdates,
+	representationToManageViewModel
+} from '@pins/crowndev-lib/forms/representations/view-model.js';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 
 /**
  * @typedef {import('express').Handler} Handler
@@ -21,6 +25,42 @@ export async function viewRepresentation(req, res) {
 		acceptAndRedact: ACCEPT_AND_REDACT,
 		reject: REPRESENTATION_STATUS_ID.REJECTED
 	});
+}
+
+/**
+ * @param {Object} opts
+ * @param {import('@prisma/client').PrismaClient} opts.db
+ * @param {import('pino').BaseLogger} opts.logger
+ * @returns {import('@pins/dynamic-forms/src/controller.js').SaveDataFn}
+ */
+export function buildUpdateRepresentation({ db, logger }) {
+	return async ({ res, req, data }) => {
+		const { id, representationRef } = validateParams(req.params);
+		const toSave = data?.answers || {};
+		if (Object.keys(toSave).length === 0) {
+			logger.info({ id, representationRef }, 'no representation updates to apply');
+			return;
+		}
+		/** @type {import('@pins/crowndev-lib/forms/representations/types.js').HaveYourSayManageModel} */
+		const fullViewModel = res.locals?.journeyResponse?.answers || {};
+		/** @type {import('@prisma/client').Prisma.RepresentationUpdateInput} */
+		const updateInput = editsToDatabaseUpdates(toSave, fullViewModel);
+		logger.info({ id, representationRef, fields: Object.keys(toSave) }, 'update representation input');
+
+		try {
+			await db.representation.update({
+				where: { reference: representationRef },
+				data: updateInput
+			});
+		} catch (error) {
+			wrapPrismaError({
+				error,
+				logger,
+				message: 'updating representation',
+				logParams: { id, representationRef }
+			});
+		}
+	};
 }
 
 /**
@@ -52,7 +92,7 @@ export async function renderRepresentation(req, res, viewData = {}) {
 	await list(req, res, '', {
 		applicationReference,
 		requiresReview: res.locals?.journeyResponse?.answers?.requiresReview,
-		backLink: '.',
+		backLinkUrl: `/cases/${req.params.id}/manage-representations`,
 		...viewData
 	});
 }
