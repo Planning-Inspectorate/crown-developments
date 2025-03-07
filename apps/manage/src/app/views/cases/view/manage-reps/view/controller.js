@@ -27,7 +27,7 @@ export async function viewRepresentation(req, res) {
  * @param {Object<string, string>} params
  * @returns {{id: string, representationRef: string}}
  */
-function validateParams(params) {
+export function validateParams(params) {
 	const id = params.id;
 	if (!id) {
 		throw new Error('id param required');
@@ -74,7 +74,8 @@ export function buildGetJourneyMiddleware({ db, logger }) {
 			where: { id },
 			select: { reference: true }
 		});
-		if (crownDevelopment === null) {
+		// Prisma will return null if not found
+		if (!crownDevelopment) {
 			return notFoundHandler(req, res);
 		}
 
@@ -86,7 +87,8 @@ export function buildGetJourneyMiddleware({ db, logger }) {
 				RepresentedContact: true
 			}
 		});
-		if (representation === null) {
+		// Prisma will return null if not found
+		if (!representation) {
 			return notFoundHandler(req, res);
 		}
 		const answers = representationToManageViewModel(representation, crownDevelopment.reference);
