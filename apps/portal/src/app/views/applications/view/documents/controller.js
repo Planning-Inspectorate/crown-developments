@@ -119,7 +119,8 @@ async function checkApplicationPublished(req, res, db) {
 		haveYourSayPeriod: {
 			start: crownDevelopment.representationsPeriodStartDate,
 			end: crownDevelopment.representationsPeriodEndDate
-		}
+		},
+		representationsPublishDate: crownDevelopment.representationsPublishDate
 	};
 }
 
