@@ -1,11 +1,16 @@
 import { describe, it } from 'node:test';
-import { representationToManageViewModel } from './view-model.js';
+import { editsToDatabaseUpdates, representationToManageViewModel } from './view-model.js';
 import assert from 'node:assert';
 import {
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
+import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
+
+/**
+ * @typedef {import('./types.js').HaveYourSayManageModel} HaveYourSayManageModel
+ */
 
 describe('view-model', () => {
 	describe('representationToManageViewModel', () => {
@@ -251,6 +256,160 @@ describe('view-model', () => {
 				requiresReview: false,
 				submittedByContactId: 'sub-id-1',
 				representedContactId: 'rep-id-1'
+			});
+		});
+	});
+	describe('editsToDatabaseUpdates', () => {
+		it('should map representation fields', () => {
+			/** @type {HaveYourSayManageModel} */
+			const edits = {
+				statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+				wantsToBeHeard: BOOLEAN_OPTIONS.NO,
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+				categoryId: 'c-id-1'
+			};
+			const updates = editsToDatabaseUpdates(edits, {});
+			assert.ok(updates);
+			assert.deepStrictEqual(updates, {
+				statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+				wantsToBeHeard: false,
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+				categoryId: 'c-id-1'
+			});
+		});
+		it('should not allow reference changes', () => {
+			/** @type {HaveYourSayManageModel} */
+			const edits = {
+				statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+				wantsToBeHeard: BOOLEAN_OPTIONS.NO,
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+				reference: 'abc-123'
+			};
+			const updates = editsToDatabaseUpdates(edits, {});
+			assert.ok(updates);
+			assert.strictEqual(updates.reference, undefined);
+		});
+		it('should map myself field edits', () => {
+			/** @type {HaveYourSayManageModel} */
+			const edits = {
+				myselfIsAdult: BOOLEAN_OPTIONS.YES,
+				myselfFullName: 'Person A',
+				myselfEmail: 'some@example.email',
+				myselfComment: 'my comment'
+			};
+			const updates = editsToDatabaseUpdates(edits, {});
+			assert.ok(updates);
+			assert.strictEqual(updates.comment, 'my comment');
+			assert.ok(updates.SubmittedByContact);
+			assert.strictEqual(updates.SubmittedByContact.upsert?.where, undefined);
+			assert.deepStrictEqual(updates.SubmittedByContact.upsert?.create, {
+				isAdult: true,
+				fullName: 'Person A',
+				email: 'some@example.email'
+			});
+		});
+		it('should map submitter field edits', () => {
+			/** @type {HaveYourSayManageModel} */
+			const edits = {
+				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
+				submitterIsAdult: BOOLEAN_OPTIONS.YES,
+				submitterFullName: 'Person A',
+				submitterEmail: 'some@example.email',
+				submitterComment: 'my comment'
+			};
+			const updates = editsToDatabaseUpdates(edits, {});
+			assert.ok(updates);
+			assert.strictEqual(updates.comment, 'my comment');
+			assert.strictEqual(updates.representedTypeId, REPRESENTED_TYPE_ID.PERSON);
+			assert.ok(updates.SubmittedByContact);
+			assert.strictEqual(updates.SubmittedByContact.upsert?.where, undefined);
+			assert.deepStrictEqual(updates.SubmittedByContact.upsert?.create, {
+				isAdult: true,
+				fullName: 'Person A',
+				email: 'some@example.email'
+			});
+		});
+		it('should map org field edits', () => {
+			/** @type {HaveYourSayManageModel} */
+			const edits = {
+				orgName: 'Org One',
+				orgRoleName: 'Important role here'
+			};
+			const updates = editsToDatabaseUpdates(edits, {});
+			assert.ok(updates);
+			assert.ok(updates.RepresentedContact);
+			assert.strictEqual(updates.RepresentedContact.upsert?.where, undefined);
+			assert.deepStrictEqual(updates.RepresentedContact.upsert?.create, {
+				fullName: 'Org One',
+				jobTitleOrRole: 'Important role here'
+			});
+		});
+		it('should map behalf of person edits', () => {
+			/** @type {HaveYourSayManageModel} */
+			const edits = {
+				representedIsAdult: BOOLEAN_OPTIONS.YES,
+				representedFullName: 'Person B',
+				isAgent: BOOLEAN_OPTIONS.YES,
+				agentOrgName: 'Consultancy One'
+			};
+			const updates = editsToDatabaseUpdates(edits, {});
+			assert.ok(updates);
+			assert.strictEqual(updates.submittedByAgent, true);
+			assert.strictEqual(updates.submittedByAgentOrgName, 'Consultancy One');
+			assert.ok(updates.RepresentedContact);
+			assert.strictEqual(updates.RepresentedContact.upsert?.where, undefined);
+			assert.deepStrictEqual(updates.RepresentedContact.upsert?.create, {
+				fullName: 'Person B',
+				isAdult: true
+			});
+		});
+		it('should map behalf of org not work for edits', () => {
+			/** @type {HaveYourSayManageModel} */
+			const edits = {
+				representedOrgName: 'Household A',
+				isAgent: BOOLEAN_OPTIONS.YES,
+				agentOrgName: 'Consultancy One'
+			};
+			const updates = editsToDatabaseUpdates(edits, {});
+			assert.ok(updates);
+			assert.strictEqual(updates.submittedByAgent, true);
+			assert.strictEqual(updates.submittedByAgentOrgName, 'Consultancy One');
+			assert.ok(updates.RepresentedContact);
+			assert.strictEqual(updates.RepresentedContact.upsert?.where, undefined);
+			assert.deepStrictEqual(updates.RepresentedContact.upsert?.create, {
+				fullName: 'Household A'
+			});
+		});
+		it('should include submitter contact id', () => {
+			/** @type {HaveYourSayManageModel} */
+			const edits = {
+				representedOrgName: 'Household A'
+			};
+			const viewModel = {
+				representedContactId: 'rep-id-1'
+			};
+			const updates = editsToDatabaseUpdates(edits, viewModel);
+			assert.ok(updates);
+			assert.ok(updates.RepresentedContact);
+			assert.deepStrictEqual(updates.RepresentedContact.upsert?.where, {
+				id: 'rep-id-1'
+			});
+		});
+		it('should include represented contact id', () => {
+			/** @type {HaveYourSayManageModel} */
+			const edits = {
+				myselfIsAdult: BOOLEAN_OPTIONS.YES,
+				myselfFullName: 'Person A',
+				myselfEmail: 'some@example.email'
+			};
+			const viewModel = {
+				submittedByContactId: 'sub-id-1'
+			};
+			const updates = editsToDatabaseUpdates(edits, viewModel);
+			assert.ok(updates);
+			assert.ok(updates.SubmittedByContact);
+			assert.deepStrictEqual(updates.SubmittedByContact.upsert?.where, {
+				id: 'sub-id-1'
 			});
 		});
 	});

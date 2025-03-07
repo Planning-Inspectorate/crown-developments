@@ -1,9 +1,10 @@
-import { booleanToYesNoValue } from '@pins/dynamic-forms/src/components/boolean/question.js';
+import { booleanToYesNoValue, yesNoToBoolean } from '@pins/dynamic-forms/src/components/boolean/question.js';
 import {
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
+import { optionalWhere } from '../../util/database.js';
 
 /**
  * Representation fields that do not need mapping to a (or from) the view model
@@ -62,6 +63,113 @@ export function representationToManageViewModel(representation, applicationRefer
 		}
 	}
 	return model;
+}
+
+/**
+ * Answers/edits are received in 'view-model' form, and are mapped here to the appropriate database input.
+ *
+ * @param {import('./types.js').HaveYourSayManageModel} edits - edited fields only
+ * @param {import('./types.js').HaveYourSayManageModel} viewModel - full view model with all case details
+ * @returns {import('@prisma/client').Prisma.RepresentationUpdateInput}
+ */
+export function editsToDatabaseUpdates(edits, viewModel) {
+	/** @type {import('@prisma/client').Prisma.RepresentationUpdateInput} */
+	const representationUpdateInput = {};
+	// map all the regular fields to the update input
+	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
+		if (Object.hasOwn(edits, field)) {
+			representationUpdateInput[field] = edits[field];
+		}
+	}
+	// don't support updating these fields
+	delete representationUpdateInput.reference;
+
+	/** @type {import('@prisma/client').Prisma.ContactUpdateInput} */
+	const submittedByContactUpdate = {};
+	/** @type {import('@prisma/client').Prisma.ContactUpdateInput} */
+	const representedContactUpdate = {};
+
+	if ('wantsToBeHeard' in edits) {
+		representationUpdateInput.wantsToBeHeard = yesNoToBoolean(edits.wantsToBeHeard);
+	}
+
+	// myself fields
+	if ('myselfIsAdult' in edits) {
+		submittedByContactUpdate.isAdult = yesNoToBoolean(edits.myselfIsAdult);
+	}
+	if ('myselfFullName' in edits) {
+		submittedByContactUpdate.fullName = edits.myselfFullName;
+	}
+	if ('myselfEmail' in edits) {
+		submittedByContactUpdate.email = edits.myselfEmail;
+	}
+	if ('myselfComment' in edits) {
+		representationUpdateInput.comment = edits.myselfComment;
+	}
+
+	// common on behalf of fields
+	if ('representedTypeId' in edits) {
+		representationUpdateInput.representedTypeId = edits.representedTypeId;
+	}
+	if ('submitterIsAdult' in edits) {
+		submittedByContactUpdate.isAdult = yesNoToBoolean(edits.submitterIsAdult);
+	}
+	if ('submitterFullName' in edits) {
+		submittedByContactUpdate.fullName = edits.submitterFullName;
+	}
+	if ('submitterEmail' in edits) {
+		submittedByContactUpdate.email = edits.submitterEmail;
+	}
+	if ('submitterComment' in edits) {
+		representationUpdateInput.comment = edits.submitterComment;
+	}
+
+	// on behalf of org fields
+	if ('orgName' in edits) {
+		representedContactUpdate.fullName = edits.orgName;
+	}
+	if ('orgRoleName' in edits) {
+		representedContactUpdate.jobTitleOrRole = edits.orgRoleName;
+	}
+
+	// on behalf of person for fields
+	if ('representedIsAdult' in edits) {
+		representedContactUpdate.isAdult = yesNoToBoolean(edits.representedIsAdult);
+	}
+	if ('representedFullName' in edits) {
+		representedContactUpdate.fullName = edits.representedFullName;
+	}
+	if ('isAgent' in edits) {
+		representationUpdateInput.submittedByAgent = yesNoToBoolean(edits.isAgent);
+	}
+	if ('agentOrgName' in edits) {
+		representationUpdateInput.submittedByAgentOrgName = edits.agentOrgName;
+	}
+	// on behalf of org not work for fields
+	if ('representedOrgName' in edits) {
+		representedContactUpdate.fullName = edits.representedOrgName;
+	}
+
+	if (Object.keys(submittedByContactUpdate).length > 0) {
+		representationUpdateInput.SubmittedByContact = {
+			upsert: {
+				where: optionalWhere(viewModel.submittedByContactId),
+				create: submittedByContactUpdate,
+				update: submittedByContactUpdate
+			}
+		};
+	}
+	if (Object.keys(representedContactUpdate).length > 0) {
+		representationUpdateInput.RepresentedContact = {
+			upsert: {
+				where: optionalWhere(viewModel.representedContactId),
+				create: representedContactUpdate,
+				update: representedContactUpdate
+			}
+		};
+	}
+
+	return representationUpdateInput;
 }
 
 /**

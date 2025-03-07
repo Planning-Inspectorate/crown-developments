@@ -5,6 +5,17 @@ export const BOOLEAN_OPTIONS = Object.freeze({
 	NO: 'no'
 });
 
+/**
+ * @param {string|*} value
+ * @returns {boolean}
+ */
+export const yesNoToBoolean = (value) => {
+	if (typeof value === 'boolean') {
+		return value;
+	}
+	return value === BOOLEAN_OPTIONS.YES;
+};
+
 export const booleanToYesNoValue = (value) => {
 	return value ? BOOLEAN_OPTIONS.YES : BOOLEAN_OPTIONS.NO;
 };
