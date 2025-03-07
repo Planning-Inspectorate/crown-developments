@@ -1,6 +1,6 @@
-import { Prisma } from '@prisma/client';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 
 /**
  *
@@ -22,17 +22,13 @@ export function buildPublishCase({ db, logger }) {
 					publishDate: new Date()
 				}
 			});
-		} catch (e) {
-			// don't show Prisma errors to the user
-			if (e instanceof Prisma.PrismaClientKnownRequestError) {
-				logger.error({ id, error: e }, 'error publishing case');
-				throw new Error(`Error publishing case (${e.code})`);
-			}
-			if (e instanceof Prisma.PrismaClientValidationError) {
-				logger.error({ id, error: e }, 'error publishing case');
-				throw new Error(`Error publishing case (${e.name})`);
-			}
-			throw e;
+		} catch (error) {
+			wrapPrismaError({
+				error,
+				logger,
+				message: 'publishing case',
+				logParams: { id }
+			});
 		}
 		return res.redirect(`/cases/${id}/publish/success`);
 	};
