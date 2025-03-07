@@ -3,7 +3,7 @@ import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 import { buildListReps } from './list/controller.js';
 import { addRep } from './add/controller.js';
 import { buildGetJourneyMiddleware, buildUpdateRepresentation, viewRepresentation } from './view/controller.js';
-import { reviewRep } from './review/controller.js';
+import { viewRepresentationAwaitingReview, viewReviewRedirect } from './review/controller.js';
 import validate from '@pins/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
 import { buildSave, question } from '@pins/dynamic-forms/src/controller.js';
@@ -26,8 +26,8 @@ export function createRoutes({ db, logger }) {
 	router.get('/add', addRep);
 
 	const repsRouter = createRouter({ mergeParams: true });
-	repsRouter.get('/view', getJourney, asyncHandler(viewRepresentation));
-	repsRouter.get('/review', reviewRep);
+	repsRouter.get('/view', getJourney, viewReviewRedirect, asyncHandler(viewRepresentation));
+	repsRouter.get('/review', getJourney, viewReviewRedirect, asyncHandler(viewRepresentationAwaitingReview));
 
 	// edits
 	repsRouter
