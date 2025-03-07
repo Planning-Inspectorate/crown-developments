@@ -14,6 +14,8 @@ import { Question } from '../../questions/question.js';
  * @property {string} [errorMessage]
  */
 
+export const REDACT_CHARACTER = '█';
+
 /**
  * @class
  */
