@@ -1,6 +1,6 @@
 import { list } from '@pins/dynamic-forms/src/controller.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
+import { ACCEPT_AND_REDACT, getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
 import {
@@ -8,6 +8,7 @@ import {
 	representationToManageViewModel
 } from '@pins/crowndev-lib/forms/representations/view-model.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
  * @typedef {import('express').Handler} Handler
@@ -19,7 +20,7 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 export async function viewRepresentation(req, res) {
 	validateParams(req.params);
 
-	await renderRepresentation(req, res, {});
+	await renderRepresentation(req, res);
 }
 
 /**
@@ -88,6 +89,10 @@ export async function renderRepresentation(req, res, viewData = {}) {
 		applicationReference,
 		requiresReview: res.locals?.journeyResponse?.answers?.requiresReview,
 		backLinkUrl: `/cases/${req.params.id}/manage-representations`,
+		// review decision status values
+		accept: REPRESENTATION_STATUS_ID.ACCEPTED,
+		acceptAndRedact: ACCEPT_AND_REDACT,
+		reject: REPRESENTATION_STATUS_ID.REJECTED,
 		...viewData
 	});
 }

@@ -7,9 +7,9 @@
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 
 {% block pageContent %}
-    {% if repUpdated %}
+    {% if repReviewed %}
         {{ govukNotificationBanner({
-            text: "Representation has been " + repUpdated,
+            text: "Representation has been " + repReviewed,
             type: "success"
         }) }}
     {% endif %}

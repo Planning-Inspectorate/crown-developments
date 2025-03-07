@@ -1,4 +1,5 @@
 import { representationsToViewModel } from './view-model.js';
+import { clearRepReviewedSession, readRepReviewedSession } from '../review/controller.js';
 
 /**
  * Return a handler to show the list of representations
@@ -22,12 +23,16 @@ export function buildListReps({ db }) {
 			}
 		});
 
+		const repReviewed = readRepReviewedSession(req, id);
+		clearRepReviewedSession(req, id);
+
 		res.render('views/cases/view/manage-reps/list/view.njk', {
 			backLink: `/cases/${req.params.id}`,
 			pageCaption: cd.reference,
 			pageTitle: 'Manage representations',
 			baseUrl: req.baseUrl,
-			...representationsToViewModel(cd.Representation)
+			...representationsToViewModel(cd.Representation),
+			repReviewed
 		});
 	};
 }
