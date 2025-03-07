@@ -3,10 +3,11 @@ import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 import { buildListReps } from './list/controller.js';
 import { addRep } from './add/controller.js';
 import { buildGetJourneyMiddleware, buildUpdateRepresentation, viewRepresentation } from './view/controller.js';
-import { viewRepresentationAwaitingReview, viewReviewRedirect } from './review/controller.js';
+import { viewReviewRedirect } from './review/controller.js';
 import validate from '@pins/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
 import { buildSave, question } from '@pins/dynamic-forms/src/controller.js';
+import { createRoutes as createReviewRoutes } from './review/index.js';
 
 /**
  * @param {Object} opts
@@ -17,6 +18,7 @@ import { buildSave, question } from '@pins/dynamic-forms/src/controller.js';
 export function createRoutes({ db, logger }) {
 	const router = createRouter({ mergeParams: true });
 	const list = buildListReps({ db });
+	const reviewRoutes = createReviewRoutes({ db, logger });
 
 	const getJourney = asyncHandler(buildGetJourneyMiddleware({ db, logger }));
 	const updateRepFn = buildUpdateRepresentation({ db, logger });
@@ -27,7 +29,7 @@ export function createRoutes({ db, logger }) {
 
 	const repsRouter = createRouter({ mergeParams: true });
 	repsRouter.get('/view', getJourney, viewReviewRedirect, asyncHandler(viewRepresentation));
-	repsRouter.get('/review', getJourney, viewReviewRedirect, asyncHandler(viewRepresentationAwaitingReview));
+	repsRouter.use('/review', reviewRoutes);
 
 	// edits
 	repsRouter
