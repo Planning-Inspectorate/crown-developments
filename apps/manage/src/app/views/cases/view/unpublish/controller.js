@@ -1,6 +1,6 @@
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
-import { Prisma } from '@prisma/client';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 
 export function buildConfirmUnpublishCase({ db, logger }) {
 	return async (req, res) => {
@@ -51,17 +51,13 @@ export function buildSubmitUnpublishCase({ db, logger }) {
 					publishDate: null
 				}
 			});
-		} catch (e) {
-			// don't show Prisma errors to the user
-			if (e instanceof Prisma.PrismaClientKnownRequestError) {
-				logger.error({ id, error: e }, 'error unpublishing case');
-				throw new Error(`Error unpublishing case (${e.code})`);
-			}
-			if (e instanceof Prisma.PrismaClientValidationError) {
-				logger.error({ id, error: e }, 'error unpublishing case');
-				throw new Error(`Error unpublishing case (${e.name})`);
-			}
-			throw e;
+		} catch (error) {
+			wrapPrismaError({
+				error,
+				logger,
+				message: 'unpublishing case',
+				logParams: { id }
+			});
 		}
 		addSessionData(req, id, { reference: crownDevelopment.reference, caseUnpublished: true });
 		res.redirect(`/cases/${id}/unpublish/success`);
