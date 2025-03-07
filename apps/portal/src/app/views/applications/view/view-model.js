@@ -1,4 +1,4 @@
-import { formatDateForDisplay, nowIsWithinRange } from '@pins/dynamic-forms/src/lib/date-utils.js';
+import { formatDateForDisplay, isNowAfterStartDate, nowIsWithinRange } from '@pins/dynamic-forms/src/lib/date-utils.js';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
@@ -75,9 +75,10 @@ function isHearing(procedureId) {
 /**
  * @param {string} id
  * @param { HaveYourSayPeriod } haveYourSayPeriod
+ * @param { Date } representationsPublishDate
  * @returns {import('./types.js').ApplicationLink[]}
  */
-export function applicationLinks(id, haveYourSayPeriod) {
+export function applicationLinks(id, haveYourSayPeriod, representationsPublishDate) {
 	const links = [
 		{
 			href: `/applications/${id}/application-information`,
@@ -93,6 +94,13 @@ export function applicationLinks(id, haveYourSayPeriod) {
 		links.push({
 			href: `/applications/${id}/have-your-say`,
 			text: 'Have your say'
+		});
+	}
+
+	if (isNowAfterStartDate(representationsPublishDate)) {
+		links.push({
+			href: `/applications/${id}/written-representations`,
+			text: 'Written representations'
 		});
 	}
 	return links;

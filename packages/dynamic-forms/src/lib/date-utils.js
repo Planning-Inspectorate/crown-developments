@@ -119,3 +119,17 @@ export function nowIsWithinRange(startDate, endDate) {
 	}
 	return !isBefore(now, startDate) && !isAfter(now, endDate);
 }
+
+/**
+ * Check if today is on or after the start date
+ * @param {Date} startDate
+ * @returns {boolean}
+ */
+export function isNowAfterStartDate(startDate) {
+	const now = new Date();
+
+	if (!isValid(startDate)) {
+		return false;
+	}
+	return !isBefore(now, startDate);
+}
