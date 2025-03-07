@@ -1,6 +1,7 @@
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { toFloat, toInt } from '@pins/crowndev-lib/util/numbers.js';
 import { booleanToYesNoValue } from '@pins/dynamic-forms/src/components/boolean/question.js';
+import { optionalWhere } from '@pins/crowndev-lib/util/database.js';
 
 /**
  * CrownDevelopment fields that do not need mapping to a (or from) the view model
@@ -158,11 +159,9 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	if ('siteAddress' in edits) {
 		const siteAddress = viewModelToAddressUpdateInput(edits.siteAddress);
 		if (siteAddress) {
-			const siteAddressId = viewModel.siteAddressId;
-			const siteAddressWhere = siteAddressId ? { id: siteAddressId } : undefined;
 			crownDevelopmentUpdateInput.SiteAddress = {
 				upsert: {
-					where: siteAddressWhere,
+					where: optionalWhere(viewModel.siteAddressId),
 					create: siteAddress,
 					update: siteAddress
 				}
@@ -183,11 +182,9 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	if (hasProcedure(viewModel.procedureId)) {
 		const eventUpdates = viewModelToEventUpdateInput(edits, viewModel.procedureId);
 		if (eventUpdates.eventUpdateInput) {
-			const eventId = viewModel.eventId;
-			const eventWhere = eventId ? { id: eventId } : undefined;
 			crownDevelopmentUpdateInput.Event = {
 				upsert: {
-					where: eventWhere,
+					where: optionalWhere(viewModel.eventId),
 					create: eventUpdates.eventUpdateInput,
 					update: eventUpdates.eventUpdateInput
 				}
@@ -259,10 +256,9 @@ function viewModelToNestedContactUpdate(edits, prefix, viewModel) {
 	};
 	if (updateInput.Address) {
 		const addressId = viewModel[`${prefix}ContactAddressId`];
-		const addressWhere = addressId && { id: addressId };
 		updateInput.Address = {
 			upsert: {
-				where: addressWhere,
+				where: optionalWhere(addressId),
 				create: updateInput.Address.create,
 				update: updateInput.Address.create
 			}
