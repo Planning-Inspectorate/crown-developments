@@ -2,13 +2,23 @@ import { describe, it, mock } from 'node:test';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import assert from 'node:assert';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
-import { buildGetJourneyMiddleware, viewRepresentation } from './controller.js';
+import { buildGetJourneyMiddleware, validateParams, viewRepresentation } from './controller.js';
 import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
 import { createJourney } from './journey.js';
 import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 
 describe('controller', () => {
 	describe('viewRepresentation', () => {
+		it('should throw if no id', async () => {
+			const mockReq = { params: {} };
+			const mockRes = { locals: {} };
+			await assert.rejects(() => viewRepresentation(mockReq, mockRes), { message: 'id param required' });
+		});
+		it('should throw if no rep ref', async () => {
+			const mockReq = { params: { id: 'case-1' } };
+			const mockRes = { locals: {} };
+			await assert.rejects(() => viewRepresentation(mockReq, mockRes), { message: 'representationRef param required' });
+		});
 		it('should render the representation', async () => {
 			const journeyResponse = new JourneyResponse('id-1', 'id-2', {
 				applicationReference: 'app-ref',
@@ -152,6 +162,23 @@ describe('controller', () => {
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.ok(mockRes.locals.journey);
 			assert.strictEqual(mockRes.locals.backLinkUrl, 'case-1/manage-representations');
+		});
+	});
+	describe('validateParams', () => {
+		it('should throw if no id', () => {
+			const params = {};
+			assert.throws(() => validateParams(params), { message: 'id param required' });
+		});
+		it('should throw if no rep ref', () => {
+			const params = { id: 'case-1' };
+			assert.throws(() => validateParams(params), { message: 'representationRef param required' });
+		});
+		it('should return id and repRef', () => {
+			const params = { id: 'case-1', representationRef: 'ref-1' };
+			const got = validateParams(params);
+			assert.ok(got);
+			assert.strictEqual(got.id, 'case-1');
+			assert.strictEqual(got.representationRef, 'ref-1');
 		});
 	});
 });
