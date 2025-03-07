@@ -1,9 +1,8 @@
 import { list } from '@pins/dynamic-forms/src/controller.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { ACCEPT_AND_REDACT, getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
+import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
-import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import {
 	editsToDatabaseUpdates,
 	representationToManageViewModel
@@ -20,11 +19,7 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 export async function viewRepresentation(req, res) {
 	validateParams(req.params);
 
-	await renderRepresentation(req, res, {
-		accept: REPRESENTATION_STATUS_ID.ACCEPTED,
-		acceptAndRedact: ACCEPT_AND_REDACT,
-		reject: REPRESENTATION_STATUS_ID.REJECTED
-	});
+	await renderRepresentation(req, res, {});
 }
 
 /**
