@@ -17,12 +17,13 @@ export function createJourney(questions, response, req) {
 	return new Journey({
 		journeyId: JOURNEY_ID,
 		sections: haveYourSayManageSections(questions),
-		taskListUrl: 'check-your-answers',
+		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',
 		listingPageViewPath: 'views/cases/view/manage-reps/view/view.njk',
 		journeyTitle: 'Manage Representations',
-		returnToListing: false,
-		makeBaseUrl: () => req.baseUrl,
+		returnToListing: true,
+		makeBaseUrl: () => req.baseUrl + '/view',
+		initialBackLink: req.baseUrl + '/view',
 		response
 	});
 }
