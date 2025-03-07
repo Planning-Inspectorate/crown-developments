@@ -192,13 +192,13 @@ model Representation {
   Status        RepresentationStatus? @relation(fields: [statusId], references: [id])
 
   // common fields
-  submittedForId       String
-  SubmittedFor         RepresentationSubmittedFor? @relation(fields: [submittedForId], references: [id])
-  submittedByContactId String?                     @db.UniqueIdentifier
-  SubmittedByContact   Contact?                    @relation("RepresentationSubmittedByContact", fields: [submittedByContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-  submittedByAgent     Boolean?
-  submittedByOrgName   String?
-  submittedDate        DateTime
+  submittedForId          String
+  SubmittedFor            RepresentationSubmittedFor? @relation(fields: [submittedForId], references: [id])
+  submittedByContactId    String?                     @db.UniqueIdentifier
+  SubmittedByContact      Contact?                    @relation("RepresentationSubmittedByContact", fields: [submittedByContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  submittedByAgent        Boolean?
+  submittedByAgentOrgName String?
+  submittedDate           DateTime
 
   comment         String  @db.NVarChar(MAX)
   commentRedacted String? @db.NVarChar(MAX)
