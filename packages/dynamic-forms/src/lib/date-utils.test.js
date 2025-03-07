@@ -5,6 +5,7 @@ import {
 	dateIsBeforeToday,
 	dateIsToday,
 	formatDateForDisplay,
+	isNowAfterStartDate,
 	nowIsWithinRange,
 	parseDateInput
 } from './date-utils.js';
@@ -261,6 +262,50 @@ describe('format-date', () => {
 			it(`Should be ${expected} when ${testName}`, (context) => {
 				context.mock.timers.enable({ apis: ['Date'], now: new Date(inputs.now) });
 				const got = nowIsWithinRange(inputs.start, inputs.end);
+				assert.deepStrictEqual(got, expected);
+			});
+		}
+	});
+	describe('isNowAfterStartDate', () => {
+		const tests = [
+			// One or both representation dates are undefined
+			{
+				testName: 'start date is undefined',
+				inputs: {
+					now: '2025-01-01T12:00:00.000Z',
+					start: undefined
+				},
+				expected: false
+			},
+			{
+				testName: 'start date is null',
+				inputs: {
+					now: '2025-01-01T12:00:00.000Z',
+					start: null
+				},
+				expected: false
+			},
+			{
+				testName: 'now is before start date',
+				inputs: {
+					now: '2025-01-01T12:00:00Z',
+					start: new Date('2025-02-01T00:00:00Z')
+				},
+				expected: false
+			},
+			{
+				testName: 'now is after start date',
+				inputs: {
+					now: '2025-01-01T12:00:00Z',
+					start: new Date('2025-01-01T00:00:00Z')
+				},
+				expected: true
+			}
+		];
+		for (const { testName, inputs, expected } of tests) {
+			it(`Should be ${expected} when ${testName}`, (context) => {
+				context.mock.timers.enable({ apis: ['Date'], now: new Date(inputs.now) });
+				const got = isNowAfterStartDate(inputs.start);
 				assert.deepStrictEqual(got, expected);
 			});
 		}
