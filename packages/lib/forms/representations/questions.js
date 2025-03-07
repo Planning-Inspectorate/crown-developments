@@ -12,6 +12,7 @@ import {
 import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
 import { CUSTOM_COMPONENT_CLASSES } from '../custom-components/index.js';
 import { representationsContactQuestions } from './question-utils.js';
+import DateValidator from '@pins/dynamic-forms/src/validator/date-validator.js';
 
 export const ACCEPT_AND_REDACT = 'accept-and-redact';
 
@@ -251,6 +252,14 @@ export const questionProps = {
 				}
 			})
 		]
+	},
+	submittedDate: {
+		type: COMPONENT_TYPES.DATE,
+		title: 'What date was the representation received?',
+		question: 'What date was the representation received?',
+		fieldName: 'submittedDate',
+		url: 'representation-date',
+		validators: [new DateValidator('Representation received date')]
 	}
 };
 
