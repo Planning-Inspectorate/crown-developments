@@ -70,7 +70,7 @@ const repsBehalfOfContacts = [
 ];
 
 /**
- * References here are generated with newReference function in have-your-say
+ * References here are generated with generateNewReference function in have-your-say
  * @type {import('@prisma/client').Prisma.RepresentationCreateInput[]}
  */
 const representations = [
