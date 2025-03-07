@@ -26,7 +26,7 @@ export function buildApplicationDocumentsPage({ db, logger, sharePointDrive }) {
 		if (!crownDevelopment) {
 			return; // handled by checkApplicationPublished
 		}
-		const { id, reference, haveYourSayPeriod } = crownDevelopment;
+		const { id, reference, haveYourSayPeriod, representationsPublishDate } = crownDevelopment;
 		const folderPath = caseReferenceToFolderName(reference) + '/' + PUBLISHED_FOLDER;
 		logger.info({ folderPath }, 'view documents');
 		const items = await getDocuments(sharePointDrive, folderPath, logger, id);
@@ -39,7 +39,7 @@ export function buildApplicationDocumentsPage({ db, logger, sharePointDrive }) {
 			baseUrl: req.baseUrl,
 			pageTitle: 'Documents',
 			pageCaption: reference,
-			links: applicationLinks(id, haveYourSayPeriod),
+			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
 			currentUrl: req.originalUrl,
 			documents
 		});
@@ -103,7 +103,8 @@ async function checkApplicationPublished(req, res, db) {
 			select: {
 				reference: true,
 				representationsPeriodStartDate: true,
-				representationsPeriodEndDate: true
+				representationsPeriodEndDate: true,
+				representationsPublishDate: true
 			}
 		}
 	});

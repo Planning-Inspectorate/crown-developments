@@ -165,7 +165,8 @@ describe('view-model', () => {
 				start: new Date('2025-01-01T00:00:00.000Z'),
 				end: new Date('2025-01-30T23:59:59.000Z')
 			};
-			const result = applicationLinks(id, haveYourSayPeriod);
+			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
+			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate);
 			assert.deepStrictEqual(result, [
 				{
 					href: `/applications/${id}/application-information`,
@@ -178,17 +179,22 @@ describe('view-model', () => {
 				{
 					href: `/applications/${id}/have-your-say`,
 					text: 'Have your say'
+				},
+				{
+					href: `/applications/${id}/written-representations`,
+					text: 'Written representations'
 				}
 			]);
 		});
-		it('should not include Have your say when outside the representation submission period', (context) => {
+		it('should not include Have your say when outside the representation submission period or Written Representations when now before representations publish date', (context) => {
 			const id = 'id-1';
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-31T00:00:00.000Z') });
 			const haveYourSayPeriod = {
 				start: new Date('2025-01-01T00:00:00.000Z'),
 				end: new Date('2025-01-30T23:59:59.000Z')
 			};
-			const result = applicationLinks(id, haveYourSayPeriod);
+			const representationsPublishDate = new Date('2025-02-01T00:00:00.000Z');
+			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate);
 			assert.deepStrictEqual(result, [
 				{
 					href: `/applications/${id}/application-information`,

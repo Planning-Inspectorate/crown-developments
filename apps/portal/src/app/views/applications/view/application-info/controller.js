@@ -46,6 +46,7 @@ export function buildApplicationInformationPage({ db, config }) {
 			start: crownDevelopment.representationsPeriodStartDate,
 			end: crownDevelopment.representationsPeriodEndDate
 		};
+		const representationsPublishDate = crownDevelopment.representationsPublishDate;
 
 		const { applicationCompleteDate, decisionDate, representationsPeriodStartDate, representationsPeriodEndDate } =
 			crownDevelopmentFields;
@@ -58,7 +59,7 @@ export function buildApplicationInformationPage({ db, config }) {
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Application Information',
-			links: applicationLinks(id, haveYourSayPeriod),
+			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
 			currentUrl: req.originalUrl,
 			shouldShowImportantDatesSection,
 			crownDevelopmentFields

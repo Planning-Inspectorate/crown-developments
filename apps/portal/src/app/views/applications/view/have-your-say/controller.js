@@ -35,10 +35,12 @@ export function buildHaveYourSayPage({ db, config }) {
 			start: new Date(crownDevelopment.representationsPeriodStartDate),
 			end: new Date(crownDevelopment.representationsPeriodEndDate)
 		};
+		const representationsPublishDate = crownDevelopment.representationsPublishDate;
+
 		res.render('views/applications/view/have-your-say/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Have your say on a Crown Development Application',
-			links: applicationLinks(id, haveYourSayPeriod),
+			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
 			documentsLink: documentsLink(id),
 			currentUrl: req.originalUrl,
 			crownDevelopmentFields
