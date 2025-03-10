@@ -5,6 +5,7 @@ import { createQuestions } from '@pins/dynamic-forms/src/questions/create-questi
 import { questionClasses } from '@pins/dynamic-forms/src/questions/questions.js';
 import { COMPONENT_TYPES } from '@pins/dynamic-forms';
 import {
+	REPRESENTATION_CATEGORY,
 	REPRESENTATION_STATUS,
 	REPRESENTATION_SUBMITTED_FOR,
 	REPRESENTED_TYPE
@@ -260,6 +261,15 @@ export const questionProps = {
 		fieldName: 'submittedDate',
 		url: 'representation-date',
 		validators: [new DateValidator('Representation received date')]
+	},
+	category: {
+		type: COMPONENT_TYPES.RADIO,
+		title: 'Representation Type',
+		question: 'What type of representation is it?',
+		fieldName: 'category',
+		url: 'representation-type',
+		validators: [new RequiredValidator('Select a representation type')],
+		options: referenceDataToRadioOptions(REPRESENTATION_CATEGORY)
 	}
 };
 
