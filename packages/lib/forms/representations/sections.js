@@ -16,8 +16,9 @@ export function haveYourSayManageSections(questions) {
 	return [
 		new Section('Details', 'details')
 			.addQuestion(questions.reference)
-			.addQuestion(questions.status)
-			.addQuestion(questions.submittedDate),
+			.addQuestion(questions.submittedDate)
+			.addQuestion(questions.category)
+			.addQuestion(questions.status),
 		new Section('Representation', 'start').addQuestion(questions.submittedFor),
 		myselfSection(questions),
 		agentSection(questions),
