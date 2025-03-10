@@ -18,7 +18,9 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'wantsToBeHeard',
 	'submittedForId',
 	'submittedByContactId',
-	'representedContactId'
+	'representedContactId',
+	'comment',
+	'commentRedacted'
 ]);
 
 /**
