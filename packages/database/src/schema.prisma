@@ -214,6 +214,8 @@ model Representation {
   categoryId     String?
   Category       RepresentationCategory? @relation(fields: [categoryId], references: [id])
   wantsToBeHeard Boolean?
+
+  containsAttachments Boolean? @default(false)
 }
 
 // reference data

@@ -1,6 +1,7 @@
 {% extends "views/layouts/main.njk" %}
 
 {% from  "views/applications/view/links.njk" import applicationLinks %}
+{% from "govuk/components/pagination/macro.njk" import govukPagination %}
 
 {% block pageHeading %}{% endblock %}
 
@@ -21,7 +22,71 @@
 					</h2>
 				</div>
 			</div>
+
+
+			{#	TODO: update {{ numberOfRepresentations if numberOfRepresentations < 25 else 25}} to use pagination number value #}
+			<p class="govuk-body">Showing <strong>1</strong> to <strong>{{ numberOfRepresentations if numberOfRepresentations < 25 else 25}}</strong> of <strong>{{ numberOfRepresentations }}</strong> representations, newest first.</p>
+{#			{% if numberOfRepresentations > 25 %}#}
+				<div class="govuk-body">
+				{% if selectedResultsToShow == 25 %}
+					<span><strong>Results per page</strong></span>&nbsp;&nbsp;&nbsp;&nbsp;25&nbsp;&nbsp;|&nbsp;&nbsp;<a href="?resultsToShow=50">50</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="?resultsToShow=100">100</a>
+				{% endif %}
+				{% if selectedResultsToShow == 50 %}
+					<span><strong>Results per page</strong></span>&nbsp;&nbsp;&nbsp;&nbsp;<a href="?resultsToShow=25">25</a>&nbsp;&nbsp;|&nbsp;&nbsp;50&nbsp;&nbsp;|&nbsp;&nbsp;<a href="?resultsToShow=100">100</a>
+				{% endif %}
+				{% if selectedResultsToShow == 100 %}
+					<span><strong>Results per page</strong></span>&nbsp;&nbsp;&nbsp;&nbsp;<a href="?resultsToShow=25">25</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="?resultsToShow=50">50</a>&nbsp;&nbsp;|&nbsp;&nbsp;100
+				{% endif %}
+				</div>
+{#			{% endif %}#}
+
+			<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+			{% for representation in representations %}
+				<p class="govuk-body govuk-!-font-weight-bold"><a href="written-representations/{{ representation.representationReference }}" class="govuk-link">{{ representation.representationTitle }}</a></p>
+				<p class="govuk-body">{{ representation.representationComment }}</p>
+				<div class="govuk-grid-row">
+					<div class="govuk-grid-column-one-half">
+						<p class="govuk-body"><strong>Submitted by:</strong> {{ representation.representationSubmittedFor }}</p>
+					</div>
+					<div class="govuk-grid-column-one-half">
+						<p class="govuk-body"><strong>Date submitted:</strong> {{ representation.dateRepresentationSubmitted }}</p>
+					</div>
+				</div>
+
+				{% if representation.representationContainsAttachments %}
+					<p class="govuk-body">Contains attachment(s)</p>
+				{% endif %}
+
+				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+			{% endfor %}
+
+			{% if numberOfRepresentations > 25 %}
+				{{ govukPagination({
+					previous: {
+						href: "#"
+					},
+					next: {
+						href: "#"
+					},
+					items: [
+						{
+							number: 1,
+							current: true,
+							href: "#"
+						},
+						{
+							number: 2,
+							href: "#"
+						},
+						{
+							number: 3,
+							href: "#"
+						}
+					]
+				}) }}
+			{% endif %}
 		</div>
 	</div>
-
 {% endblock %}

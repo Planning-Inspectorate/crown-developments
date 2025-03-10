@@ -1,5 +1,9 @@
 import { formatDateForDisplay, isNowAfterStartDate, nowIsWithinRange } from '@pins/dynamic-forms/src/lib/date-utils.js';
-import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import {
+	APPLICATION_PROCEDURE_ID,
+	REPRESENTATION_SUBMITTED_FOR_ID,
+	REPRESENTED_TYPE_ID
+} from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
  *
@@ -115,4 +119,47 @@ export function documentsLink(id) {
 		href: `/applications/${id}/documents`,
 		text: 'Documents'
 	};
+}
+
+/**
+ * @param {import('./types.js').RepresentationsListFields} representation
+ * @return {import('./types.js').RepresentationViewModel}
+ */
+export function representationToViewModel(representation) {
+	return {
+		representationTitle: representationTitle(representation),
+		representationComment: representation.commentRedacted || representation.comment,
+		representationReference: representation.reference,
+		representationSubmittedFor: representation.SubmittedFor?.displayName,
+		dateRepresentationSubmitted: formatDateForDisplay(representation.submittedDate),
+		representationContainsAttachments: representation.containsAttachments,
+		representationCategory: representation.Category?.displayName
+	};
+}
+
+/**
+ * @param {import('./types.js').RepresentationsListFields} representation
+ * @return {string | undefined}
+ */
+export function representationTitle(representation) {
+	const getDisplayName = (contact, placeholder) => (contact?.isAdult ? contact.fullName : placeholder);
+
+	const getOnBehalfTitle = (agent, organisation, represented) =>
+		organisation ? `${agent} (${organisation}) on behalf of ${represented}` : `${agent} on behalf of ${represented}`;
+
+	const { submittedForId, representedTypeId, submittedByAgentOrgName, SubmittedByContact, RepresentedContact } =
+		representation;
+
+	if (submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF) {
+		return getDisplayName(SubmittedByContact, 'A member of the public');
+	}
+
+	if (submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF) {
+		const agentName = getDisplayName(SubmittedByContact, 'A representative');
+		const representedName = getDisplayName(RepresentedContact, 'A member of the public');
+
+		return representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION
+			? `${agentName} on behalf of ${representedName}`
+			: getOnBehalfTitle(agentName, submittedByAgentOrgName, representedName);
+	}
 }
