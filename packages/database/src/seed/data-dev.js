@@ -81,7 +81,8 @@ const representations = [
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
 		SubmittedByContact: { connect: { id: repsContacts[0].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+		containsAttachments: false
 	},
 	{
 		reference: '4705B-405AD',
@@ -90,7 +91,8 @@ const representations = [
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
 		SubmittedByContact: { connect: { id: repsContacts[1].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.REJECTED } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.REJECTED } },
+		containsAttachments: false
 	},
 	{
 		reference: 'A9BC3-915FD',
@@ -99,7 +101,8 @@ const representations = [
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
 		SubmittedByContact: { connect: { id: repsContacts[2].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+		containsAttachments: false
 	},
 	{
 		reference: '1295C-726E8',
@@ -108,7 +111,8 @@ const representations = [
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
 		SubmittedByContact: { connect: { id: repsContacts[3].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } },
+		containsAttachments: true
 	},
 	{
 		reference: 'ADE3E-60E0C',
@@ -117,7 +121,8 @@ const representations = [
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
 		SubmittedByContact: { connect: { id: repsContacts[4].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } },
+		containsAttachments: true
 	},
 	{
 		reference: '78063-E19BB',
@@ -128,7 +133,8 @@ const representations = [
 		SubmittedByContact: { connect: { id: repsContacts[5].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORGANISATION } },
 		RepresentedContact: { connect: { id: repsOrgContacts[0].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } },
+		containsAttachments: false
 	},
 	{
 		reference: '6EFB4-E9C8B',
@@ -139,7 +145,8 @@ const representations = [
 		SubmittedByContact: { connect: { id: repsContacts[6].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORGANISATION } },
 		RepresentedContact: { connect: { id: repsOrgContacts[1].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+		containsAttachments: false
 	},
 	{
 		reference: 'FA0F1-C4019',
@@ -150,7 +157,8 @@ const representations = [
 		SubmittedByContact: { connect: { id: repsContacts[7].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORGANISATION } },
 		RepresentedContact: { connect: { id: repsOrgContacts[2].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+		containsAttachments: false
 	},
 	{
 		reference: '33683-0DEBE',
@@ -161,7 +169,8 @@ const representations = [
 		SubmittedByContact: { connect: { id: repsContacts[8].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORGANISATION } },
 		RepresentedContact: { connect: { id: repsOrgContacts[3].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.REJECTED } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.REJECTED } },
+		containsAttachments: false
 	},
 	{
 		reference: '1E11C-C92E6',
@@ -172,7 +181,8 @@ const representations = [
 		SubmittedByContact: { connect: { id: repsContacts[9].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORGANISATION } },
 		RepresentedContact: { connect: { id: repsOrgContacts[4].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+		containsAttachments: false
 	},
 	{
 		reference: '9D827-48F37',
@@ -183,7 +193,8 @@ const representations = [
 		SubmittedByContact: { connect: { id: repsContacts[10].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.PERSON } },
 		RepresentedContact: { connect: { id: repsBehalfOfContacts[0].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } },
+		containsAttachments: false
 	},
 	{
 		reference: 'F0956-2CF1F',
@@ -194,7 +205,8 @@ const representations = [
 		SubmittedByContact: { connect: { id: repsContacts[11].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.PERSON } },
 		RepresentedContact: { connect: { id: repsBehalfOfContacts[1].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.REJECTED } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.REJECTED } },
+		containsAttachments: false
 	},
 	{
 		reference: 'C96A4-ECEB9',
@@ -205,7 +217,8 @@ const representations = [
 		SubmittedByContact: { connect: { id: repsContacts[12].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.PERSON } },
 		RepresentedContact: { connect: { id: repsBehalfOfContacts[2].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+		containsAttachments: false
 	},
 	{
 		reference: 'AD888-F0C29',
@@ -216,7 +229,8 @@ const representations = [
 		SubmittedByContact: { connect: { id: repsContacts[13].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.PERSON } },
 		RepresentedContact: { connect: { id: repsBehalfOfContacts[3].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+		containsAttachments: false
 	},
 	{
 		reference: '554C0-F041A',
@@ -227,7 +241,8 @@ const representations = [
 		SubmittedByContact: { connect: { id: repsContacts[14].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.PERSON } },
 		RepresentedContact: { connect: { id: repsBehalfOfContacts[4].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+		containsAttachments: false
 	},
 	{
 		reference: '8479A-8FA79',
@@ -238,7 +253,8 @@ const representations = [
 		SubmittedByContact: { connect: { id: repsContacts[15].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORGANISATION } },
 		RepresentedContact: { connect: { id: repsBehalfOfContacts[5].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+		containsAttachments: false
 	},
 	{
 		reference: '71282-6A474',
@@ -251,7 +267,8 @@ const representations = [
 		submittedByAgent: true,
 		submittedByAgentOrgName: 'Consultancy One Ltd.',
 		RepresentedContact: { connect: { id: repsBehalfOfContacts[6].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } },
+		containsAttachments: false
 	},
 	{
 		reference: '1D5AA-CF9D3',
@@ -264,7 +281,8 @@ const representations = [
 		submittedByAgent: true,
 		submittedByAgentOrgName: 'Consultancy Seven Ltd.',
 		RepresentedContact: { connect: { id: repsBehalfOfContacts[7].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+		containsAttachments: false
 	},
 	{
 		reference: 'E7A93-F3D48',
@@ -275,7 +293,8 @@ const representations = [
 		SubmittedByContact: { connect: { id: repsContacts[18].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR } },
 		RepresentedContact: { connect: { id: repsBehalfOfContacts[8].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+		containsAttachments: false
 	},
 	{
 		reference: '80831-C32AC',
@@ -286,7 +305,8 @@ const representations = [
 		SubmittedByContact: { connect: { id: repsContacts[19].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR } },
 		RepresentedContact: { connect: { id: repsBehalfOfContacts[9].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } }
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } },
+		containsAttachments: false
 	}
 ];
 

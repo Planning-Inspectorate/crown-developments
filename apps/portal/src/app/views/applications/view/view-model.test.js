@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { applicationLinks, crownDevelopmentToViewModel } from './view-model.js';
+import { applicationLinks, crownDevelopmentToViewModel, representationTitle } from './view-model.js';
+import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 describe('view-model', () => {
 	describe('crownDevelopmentToViewModel', () => {
@@ -205,6 +206,114 @@ describe('view-model', () => {
 					text: 'Documents'
 				}
 			]);
+		});
+	});
+	describe('representationTitle', () => {
+		it('should return the full name when submitted for MYSELF and user is an adult', () => {
+			const representation = {
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+				SubmittedByContact: { isAdult: true, fullName: 'John Doe' }
+			};
+
+			assert.strictEqual(representationTitle(representation), 'John Doe');
+		});
+
+		it('should return "A member of the public" when submitted for MYSELF and user is not an adult', () => {
+			const representation = {
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+				SubmittedByContact: { isAdult: false, fullName: 'John Doe' }
+			};
+
+			assert.strictEqual(representationTitle(representation), 'A member of the public');
+		});
+
+		it('should return agent name when ON_BEHALF_OF and agent is an adult', () => {
+			const representation = {
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+				SubmittedByContact: { isAdult: true, fullName: 'Agent Smith' },
+				RepresentedContact: { isAdult: true, fullName: 'John Doe' },
+				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
+				submittedByAgentOrgName: 'Agency Inc.'
+			};
+
+			assert.strictEqual(representationTitle(representation), 'Agent Smith (Agency Inc.) on behalf of John Doe');
+		});
+
+		it('should return "A representative" when ON_BEHALF_OF and agent is not an adult', () => {
+			const representation = {
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+				SubmittedByContact: { isAdult: false, fullName: 'Agent Smith' },
+				RepresentedContact: { isAdult: true, fullName: 'John Doe' },
+				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
+				submittedByAgentOrgName: 'Agency Inc.'
+			};
+
+			assert.strictEqual(representationTitle(representation), 'A representative (Agency Inc.) on behalf of John Doe');
+		});
+
+		it('should return "A member of the public" for represented person if they are not an adult', () => {
+			const representation = {
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+				SubmittedByContact: { isAdult: true, fullName: 'Agent Smith' },
+				RepresentedContact: { isAdult: false, fullName: 'John Doe' },
+				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
+				submittedByAgentOrgName: 'Agency Inc.'
+			};
+
+			assert.strictEqual(
+				representationTitle(representation),
+				'Agent Smith (Agency Inc.) on behalf of A member of the public'
+			);
+		});
+
+		it('should return "Agent Name on behalf of Represented Name" for ORGANISATION case', () => {
+			const representation = {
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+				SubmittedByContact: { isAdult: true, fullName: 'Agent Smith' },
+				RepresentedContact: { isAdult: true, fullName: 'John Doe' },
+				representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION
+			};
+
+			assert.strictEqual(representationTitle(representation), 'Agent Smith on behalf of John Doe');
+		});
+
+		it('should return "Agent Name (Org Name) on behalf of Represented Name" for ORG_NOT_WORK_FOR case', () => {
+			const representation = {
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+				SubmittedByContact: { isAdult: true, fullName: 'Agent Smith' },
+				RepresentedContact: { isAdult: true, fullName: 'John Doe' },
+				representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
+				submittedByAgentOrgName: 'Agency Inc.'
+			};
+
+			assert.strictEqual(representationTitle(representation), 'Agent Smith (Agency Inc.) on behalf of John Doe');
+		});
+		it('should return undefined for invalid submittedForId', () => {
+			const representation = {
+				submittedForId: 'INVALID_ID'
+			};
+
+			assert.strictEqual(representationTitle(representation), undefined);
+		});
+		it('should handle missing SubmittedByContact gracefully', () => {
+			const representation = {
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
+			};
+
+			assert.strictEqual(representationTitle(representation), 'A member of the public');
+		});
+		it('should handle missing RepresentedContact gracefully', () => {
+			const representation = {
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+				SubmittedByContact: { isAdult: true, fullName: 'Agent Smith' },
+				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
+				submittedByAgentOrgName: 'Agency Inc.'
+			};
+
+			assert.strictEqual(
+				representationTitle(representation),
+				'Agent Smith (Agency Inc.) on behalf of A member of the public'
+			);
 		});
 	});
 });
