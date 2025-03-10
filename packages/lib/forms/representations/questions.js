@@ -220,39 +220,15 @@ export const questionProps = {
 		url: 'address',
 		validators: [new AddressValidator()]
 	},
-	comment: {
-		type: COMPONENT_TYPES.TEXT_ENTRY,
-		title: 'Comment',
-		question: 'Make a comment',
-		hint: 'You should not use racist, inflammatory or abusive language, or include personal information (also called special category information) about yourself or others in your comments.',
-		fieldName: 'comment',
-		url: 'comment',
-		validators: [
-			new RequiredValidator('Enter a comment'),
-			new StringValidator({
-				maxLength: {
-					maxLength: 32500,
-					maxLengthMessage: `Comment must be 32,500 characters or less`
-				}
-			})
-		]
-	},
 	commentRedacted: {
 		type: COMPONENT_TYPES.TEXT_ENTRY_REDACT,
 		title: 'Redacted Comment',
-		question: 'Make a comment',
-		hint: 'You should not use racist, inflammatory or abusive language, or include personal information (also called special category information) about yourself or others in your comments.',
-		fieldName: 'commentRedacted',
+		question: 'Representation Comment',
+		fieldName: 'comment',
 		url: 'redacted-comment',
-		validators: [
-			new RequiredValidator('Enter a comment'),
-			new StringValidator({
-				maxLength: {
-					maxLength: 32500,
-					maxLengthMessage: `Comment must be 32,500 characters or less`
-				}
-			})
-		]
+		validators: [],
+		editable: false,
+		onlyShowRedactedValueForSummary: true
 	},
 	submittedDate: {
 		type: COMPONENT_TYPES.DATE,

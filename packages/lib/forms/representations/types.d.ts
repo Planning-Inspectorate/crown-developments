@@ -24,6 +24,7 @@ export namespace HaveYourSay {
 		submittedDate: string | Date;
 		categoryId?: string;
 		wantsToBeHeard?: boolean;
+		commentRedacted?: string;
 
 		readonly applicationReference?: string;
 		readonly requiresReview?: boolean;

@@ -26,7 +26,9 @@ describe('view-model', () => {
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
 				categoryId: 'c-id-1',
 				wantsToBeHeard: true,
-				submittedForId: 'id-1'
+				submittedForId: 'id-1',
+				comment: 'comment one',
+				commentRedacted: '███████ one'
 			};
 			const viewModel = representationToManageViewModel(representation, applicationReference);
 			assert.deepStrictEqual(viewModel, {
@@ -35,7 +37,9 @@ describe('view-model', () => {
 				wantsToBeHeard: 'yes',
 				requiresReview: false,
 				submittedByContactId: undefined,
-				representedContactId: undefined
+				representedContactId: undefined,
+				comment: 'comment one',
+				commentRedacted: '███████ one'
 			});
 		});
 		it('should map requires review', () => {
@@ -54,7 +58,9 @@ describe('view-model', () => {
 				wantsToBeHeard: 'yes',
 				requiresReview: true,
 				submittedByContactId: undefined,
-				representedContactId: undefined
+				representedContactId: undefined,
+				comment: undefined,
+				commentRedacted: undefined
 			});
 		});
 		it('should map the myself fields', () => {
@@ -88,7 +94,9 @@ describe('view-model', () => {
 				myselfComment: 'my comments',
 				requiresReview: false,
 				submittedByContactId: 'sub-id-1',
-				representedContactId: undefined
+				representedContactId: undefined,
+				comment: 'my comments',
+				commentRedacted: undefined
 			});
 		});
 		it('should map the on behalf of common fields', () => {
@@ -124,7 +132,9 @@ describe('view-model', () => {
 				submitterComment: 'my comments',
 				requiresReview: false,
 				submittedByContactId: 'sub-id-1',
-				representedContactId: undefined
+				representedContactId: undefined,
+				comment: 'my comments',
+				commentRedacted: undefined
 			});
 		});
 		it('should map the on behalf of person fields', () => {
@@ -171,7 +181,9 @@ describe('view-model', () => {
 				agentOrgName: 'agent org',
 				requiresReview: false,
 				submittedByContactId: 'sub-id-1',
-				representedContactId: 'rep-id-1'
+				representedContactId: 'rep-id-1',
+				comment: 'my comments',
+				commentRedacted: undefined
 			});
 		});
 		it('should map the on behalf of org fields', () => {
@@ -214,7 +226,9 @@ describe('view-model', () => {
 				orgRoleName: 'my role',
 				requiresReview: false,
 				submittedByContactId: 'sub-id-1',
-				representedContactId: 'rep-id-1'
+				representedContactId: 'rep-id-1',
+				comment: 'my comments',
+				commentRedacted: undefined
 			});
 		});
 		it(`should map the on behalf of org don't work for fields`, () => {
@@ -259,7 +273,9 @@ describe('view-model', () => {
 				representedOrgName: 'the households name',
 				requiresReview: false,
 				submittedByContactId: 'sub-id-1',
-				representedContactId: 'rep-id-1'
+				representedContactId: 'rep-id-1',
+				comment: 'my comments',
+				commentRedacted: undefined
 			});
 		});
 	});

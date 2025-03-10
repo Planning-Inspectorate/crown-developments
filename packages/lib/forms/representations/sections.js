@@ -22,7 +22,9 @@ export function haveYourSayManageSections(questions) {
 		new Section('Representation', 'start').addQuestion(questions.submittedFor),
 		myselfSection(questions),
 		agentSection(questions),
-		new Section('heard', 'heard').addQuestion(questions.wantsToBeHeard)
+		new Section('More Details', 'more-details')
+			.addQuestion(questions.commentRedacted)
+			.addQuestion(questions.wantsToBeHeard)
 	];
 }
 
