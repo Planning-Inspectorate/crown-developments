@@ -47,7 +47,7 @@
     "redis": "^4.7.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.7.1",
+    "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
     "@microsoft/microsoft-graph-types": "^2.40.0",
     "eslint": "^9.22.0",
