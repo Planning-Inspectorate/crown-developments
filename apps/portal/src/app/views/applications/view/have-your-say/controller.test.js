@@ -1,7 +1,14 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { buildHaveYourSayPage, getIsRepresentationWindowOpen } from './controller.js';
+import {
+	buildHaveYourSayPage,
+	buildSaveHaveYourSayController,
+	getIsRepresentationWindowOpen,
+	viewHaveYourSayDeclarationPage,
+	viewHaveYourSaySuccessPage
+} from './controller.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 
 describe('have your say', () => {
 	describe('buildHaveYourSayPage', () => {
@@ -300,6 +307,260 @@ describe('have your say', () => {
 			};
 			const isRepresentationWindowOpen = getIsRepresentationWindowOpen(mockDb);
 			await assertRenders404Page(isRepresentationWindowOpen, mockReq, true);
+		});
+	});
+	describe('viewHaveYourSayDeclarationPage', () => {
+		it('should throw error if id is missing', async () => {
+			const mockReq = { params: {} };
+			await assert.rejects(() => viewHaveYourSayDeclarationPage(mockReq, {}), { message: 'id param required' });
+		});
+		it('should return not found for invalid id', async () => {
+			const mockReq = { params: { applicationId: 'abc-123' } };
+			await assertRenders404Page(viewHaveYourSayDeclarationPage, mockReq, false);
+		});
+		it('should render the view', async () => {
+			const mockReq = { params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' } };
+			const mockRes = {
+				render: mock.fn()
+			};
+			await viewHaveYourSayDeclarationPage(mockReq, mockRes);
+			assert.deepStrictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/applications/view/have-your-say/declaration.njk'
+			);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				pageTitle: 'Declaration',
+				id: mockReq.params.applicationId,
+				backLinkUrl: 'check-your-answers'
+			});
+		});
+	});
+	describe('buildSaveHaveYourSayController', () => {
+		it('should throw error if id is missing', () => {
+			const mockReq = { params: {} };
+			const mockDb = {
+				$transaction: mock.fn(),
+				representation: {
+					create: mock.fn(),
+					count: mock.fn()
+				}
+			};
+			const saveHaveYourSayController = buildSaveHaveYourSayController({ db: mockDb, logger: {} });
+			assert.rejects(() => saveHaveYourSayController(mockReq, {}), { message: 'id param required' });
+		});
+		it('should return not found for invalid id', async () => {
+			const mockReq = { params: { applicationId: 'abc-123' } };
+			const mockDb = {
+				$transaction: mock.fn(),
+				representation: {
+					create: mock.fn(),
+					count: mock.fn()
+				}
+			};
+			const saveHaveYourSayController = buildSaveHaveYourSayController({ db: mockDb, logger: {} });
+			await assertRenders404Page(saveHaveYourSayController, mockReq, false);
+		});
+		it('should throw if journey response is missing', async () => {
+			const mockReq = { params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' } };
+			const mockRes = {};
+			const mockDb = {
+				$transaction: mock.fn(),
+				representation: {
+					create: mock.fn(),
+					count: mock.fn()
+				}
+			};
+			const saveHaveYourSayController = buildSaveHaveYourSayController({ db: mockDb, logger: {} });
+			await assert.rejects(() => saveHaveYourSayController(mockReq, mockRes), { message: 'journey response required' });
+		});
+		it('should throw if journeyResponse answers are not an object', async () => {
+			const mockReq = { params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' } };
+			const mockRes = { locals: { journeyResponse: { answers: 'not an object' } } };
+			const mockDb = {
+				$transaction: mock.fn(),
+				representation: {
+					create: mock.fn(),
+					count: mock.fn()
+				}
+			};
+			const saveHaveYourSayController = buildSaveHaveYourSayController({ db: mockDb, logger: {} });
+			await assert.rejects(() => saveHaveYourSayController(mockReq, mockRes), {
+				message: 'answers should be an object'
+			});
+		});
+		it('should redirect to check-your-answers if journey is not complete', async () => {
+			const mockReq = {
+				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: { answers: {} },
+					journey: {
+						isComplete: mock.fn(() => false)
+					}
+				},
+				redirect: mock.fn()
+			};
+			const mockDb = {
+				$transaction: mock.fn(),
+				representation: {
+					create: mock.fn(),
+					count: mock.fn()
+				}
+			};
+
+			const saveHaveYourSayController = buildSaveHaveYourSayController({ db: mockDb, logger: {} });
+			await saveHaveYourSayController(mockReq, mockRes);
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			assert.strictEqual(
+				mockRes.redirect.mock.calls[0].arguments[0],
+				`/applications/${mockReq.params.applicationId}/have-your-say/check-your-answers`
+			);
+		});
+		it('should save the representation', async () => {
+			const mockReq = {
+				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: { answers: {} },
+					journey: {
+						isComplete: mock.fn(() => true)
+					}
+				},
+				redirect: mock.fn()
+			};
+			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
+				representation: {
+					create: mock.fn(),
+					count: mock.fn()
+				}
+			};
+			const mockUniqueReferenceFn = mock.fn(() => 'AAAAA-BBBBB');
+
+			const saveHaveYourSayController = buildSaveHaveYourSayController({
+				db: mockDb,
+				logger: mockLogger(),
+				uniqueReferenceFn: mockUniqueReferenceFn
+			});
+			await saveHaveYourSayController(mockReq, mockRes);
+			assert.strictEqual(mockDb.representation.create.mock.callCount(), 1);
+		});
+		it('should redirect to the success page', async () => {
+			const mockReq = {
+				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: { answers: {} },
+					journey: {
+						isComplete: mock.fn(() => true)
+					}
+				},
+				redirect: mock.fn()
+			};
+			const mockDb = {
+				$transaction: mock.fn(),
+				representation: {
+					create: mock.fn(),
+					count: mock.fn()
+				}
+			};
+
+			const saveHaveYourSayController = buildSaveHaveYourSayController({ db: mockDb, logger: {} });
+			await saveHaveYourSayController(mockReq, mockRes);
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			assert.strictEqual(
+				mockRes.redirect.mock.calls[0].arguments[0],
+				`/applications/${mockReq.params.applicationId}/have-your-say/success`
+			);
+		});
+		it('update the session', async () => {
+			const mockReq = {
+				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: { answers: {} },
+					journey: {
+						isComplete: mock.fn(() => true)
+					}
+				},
+				redirect: mock.fn()
+			};
+			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
+				representation: {
+					create: mock.fn(),
+					count: mock.fn()
+				}
+			};
+
+			const saveHaveYourSayController = buildSaveHaveYourSayController({
+				db: mockDb,
+				logger: mockLogger(),
+				uniqueReferenceFn: () => 'AAAAA-BBBBB'
+			});
+			await saveHaveYourSayController(mockReq, mockRes);
+			assert.deepStrictEqual(mockReq.session, {
+				representations: {
+					'cfe3dc29-1f63-45e6-81dd-da8183842bf8': {
+						representationReference: 'AAAAA-BBBBB',
+						representationSubmitted: true
+					}
+				},
+				forms: {
+					'cfe3dc29-1f63-45e6-81dd-da8183842bf8': {}
+				}
+			});
+		});
+	});
+	describe('viewHaveYourSaySuccessPage', () => {
+		it('should throw error if id is missing', async () => {
+			const mockReq = { params: {} };
+			await assert.rejects(() => viewHaveYourSaySuccessPage(mockReq, {}), { message: 'id param required' });
+		});
+		it('should return not found for invalid id', async () => {
+			const mockReq = { params: { applicationId: 'abc-123' } };
+			await assertRenders404Page(viewHaveYourSaySuccessPage, mockReq, false);
+		});
+		it('should render the view', async () => {
+			const mockReq = {
+				params: {
+					applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8'
+				},
+				session: {
+					representations: {
+						'cfe3dc29-1f63-45e6-81dd-da8183842bf8': {
+							representationReference: 'AAAAA-BBBBB',
+							representationSubmitted: true
+						}
+					}
+				}
+			};
+			const mockRes = {
+				render: mock.fn()
+			};
+			await viewHaveYourSaySuccessPage(mockReq, mockRes);
+			assert.deepStrictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/applications/view/have-your-say/success.njk'
+			);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				representationReference: 'AAAAA-BBBBB',
+				id: mockReq.params.applicationId
+			});
+			// Check that the session data has been cleared
+			assert.deepStrictEqual(mockReq.session, {
+				representations: {
+					'cfe3dc29-1f63-45e6-81dd-da8183842bf8': {}
+				}
+			});
 		});
 	});
 });
