@@ -61,7 +61,7 @@
                     id: question.fieldName,
                     name: question.fieldName,
                     value: question.valueRedacted,
-                    hint: { text: question.hint },
+                    hint: question.hint and { text: question.hint },
                     errorMessage: errors[question.fieldName] and {
                         text: errors[question.fieldName].msg
                     },
@@ -108,9 +108,29 @@
              * @param {HTMLDivElement} unredactedText
              */
             function registerEventListeners({textArea, redactSelectedText, redactUndo, redactUndoAll, unredactedText}) {
+				const formGroup = textArea.parentElement;
+                const errorMessage = document.createElement('p');
+                errorMessage.id = '{{ question.fieldName }}-error';
+				errorMessage.classList.add('govuk-error-message');
+
                 const history = [];
+				function showError(message) {
+					formGroup.classList.add('govuk-form-group--error');
+					errorMessage.textContent = message;
+					formGroup.prepend(errorMessage);
+                }
+                function hideError() {
+					textArea.parentElement.classList.remove('govuk-form-group--error');
+					errorMessage.remove();
+                }
                 redactSelectedText.addEventListener('click', () => {
                     const { selectionStart, selectionEnd } = textArea;
+					if (selectionStart === selectionEnd) {
+						// no selected text
+                        showError('Select text to redact');
+                        return;
+                    }
+					hideError();
                     // replace the text with the 'full block' █ character
                     const selectedText = textArea.value.substring(selectionStart, selectionEnd);
                     const redactedText = '█'.repeat(selectionEnd - selectionStart);
@@ -125,10 +145,18 @@
                 redactUndo.addEventListener('click', () => {
                     const { selectionStart, selectionEnd, selectedText } = history.pop() || {};
                     if (selectionStart !== undefined && selectionEnd !== undefined && selectedText) {
+                        hideError();
                         textArea.value = textArea.value.substring(0, selectionStart) + selectedText + textArea.value.substring(selectionEnd);
+                    } else {
+                        showError('No changes to undo');
                     }
                 });
                 redactUndoAll.addEventListener('click', () => {
+                    if (history.length === 0) {
+                        showError('No changes to undo');
+                        return;
+                    }
+					hideError();
                     textArea.value = unredactedText.textContent?.trim() || '';
                     history.length = 0;
                 });
