@@ -22,7 +22,7 @@ export function createJourney(questions, response, req) {
 		listingPageViewPath: 'views/cases/view/manage-reps/view/view.njk',
 		journeyTitle: 'Manage Representations',
 		returnToListing: true,
-		makeBaseUrl: () => req.baseUrl + '/view',
+		makeBaseUrl: () => req.baseUrl.replace('/review', '') + '/edit',
 		initialBackLink: req.baseUrl + '/view',
 		response
 	});

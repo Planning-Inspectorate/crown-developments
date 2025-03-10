@@ -2,12 +2,13 @@ import { Router as createRouter } from 'express';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 import { buildListReps } from './list/controller.js';
 import { addRep } from './add/controller.js';
-import { buildGetJourneyMiddleware, buildUpdateRepresentation, viewRepresentation } from './view/controller.js';
+import { buildGetJourneyMiddleware, viewRepresentation } from './view/controller.js';
 import { viewReviewRedirect } from './review/controller.js';
 import validate from '@pins/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
 import { buildSave, question } from '@pins/dynamic-forms/src/controller.js';
 import { createRoutes as createReviewRoutes } from './review/index.js';
+import { buildUpdateRepresentation } from './edit/controller.js';
 
 /**
  * @param {Object} opts
@@ -32,8 +33,9 @@ export function createRoutes({ db, logger }) {
 	repsRouter.use('/review', reviewRoutes);
 
 	// edits
+	repsRouter.get('/edit', viewReviewRedirect);
 	repsRouter
-		.route('/view/:section/:question')
+		.route('/edit/:section/:question')
 		.get(getJourney, asyncHandler(question))
 		.post(getJourney, validate, validationErrorHandler, asyncHandler(saveAnswer));
 

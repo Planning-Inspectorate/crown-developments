@@ -375,7 +375,16 @@ describe('controller', () => {
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], '/case-1/manage-representations/view');
 		});
-		it('should call next if not view or review', () => {
+		it('should redirect to view page from edit', () => {
+			const mockReq = { originalUrl: '/case-1/manage-representations/edit' };
+			const mockRes = {
+				redirect: mock.fn()
+			};
+			viewReviewRedirect(mockReq, mockRes, () => {});
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], '/case-1/manage-representations/view');
+		});
+		it('should call next if not view||review||edit', () => {
 			const mockReq = { originalUrl: '/case-1/manage-representations/other' };
 			const mockRes = {
 				redirect: mock.fn()

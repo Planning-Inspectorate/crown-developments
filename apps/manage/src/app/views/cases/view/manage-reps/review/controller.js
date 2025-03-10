@@ -188,6 +188,9 @@ export function viewReviewRedirect(req, res, next) {
 			res.redirect(originalUrl.replace('/review', '/view'));
 			return undefined;
 		}
+	} else if (originalUrl.endsWith('/edit')) {
+		res.redirect(originalUrl.replace('/edit', '/view'));
+		return undefined;
 	}
 	next();
 }
