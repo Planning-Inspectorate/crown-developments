@@ -10,7 +10,14 @@ import {
 } from '@pins/dynamic-forms/src/lib/session-answer-store.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
-import { buildHaveYourSayPage, getIsRepresentationWindowOpen } from './controller.js';
+import {
+	addRepresentationErrors,
+	buildHaveYourSayPage,
+	buildSaveHaveYourSayController,
+	getIsRepresentationWindowOpen,
+	viewHaveYourSayDeclarationPage,
+	viewHaveYourSaySuccessPage
+} from './controller.js';
 
 const applicationIdParam = 'applicationId';
 
@@ -29,11 +36,11 @@ export function createHaveYourSayRoutes({ db, logger, config }) {
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID, applicationIdParam);
 	const viewHaveYourSayPage = buildHaveYourSayPage({ db, logger, config });
 	const saveDataToSession = buildSaveDataToSession({ reqParam: applicationIdParam });
+	const saveRepresentation = asyncHandler(buildSaveHaveYourSayController({ db, logger }));
 	router.use(isRepresentationWindowOpen);
+
 	router.get('/', asyncHandler(viewHaveYourSayPage));
-
 	router.get('/:section/:question', getJourneyResponse, getJourney, question);
-
 	router.post(
 		'/:section/:question',
 		getJourneyResponse,
@@ -43,7 +50,14 @@ export function createHaveYourSayRoutes({ db, logger, config }) {
 		buildSave(saveDataToSession)
 	);
 
-	router.get('/check-your-answers', getJourneyResponse, getJourney, (req, res) => list(req, res, '', {}));
+	router.get('/check-your-answers', addRepresentationErrors, getJourneyResponse, getJourney, (req, res) =>
+		list(req, res, '', {})
+	);
+
+	router.get('/declaration', getJourneyResponse, getJourney, asyncHandler(viewHaveYourSayDeclarationPage));
+	router.post('/declaration', getJourneyResponse, getJourney, saveRepresentation);
+
+	router.get('/success', viewHaveYourSaySuccessPage);
 
 	return router;
 }

@@ -182,3 +182,63 @@ function mapFieldValue(fieldValue) {
 	}
 	return fieldValue;
 }
+
+/**
+ *
+ * @param {RepresentationCreateAnswers} answers
+ * @param {string} reference
+ * @param {string} applicationId
+ * @returns {import('@prisma/client').Prisma.RepresentationCreateInput}
+ */
+export function viewModelToRepresentationCreateInput(answers, reference, applicationId) {
+	const isRepresentation =
+		answers.representedTypeId === REPRESENTED_TYPE_ID.PERSON ||
+		answers.representedTypeId === REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR ||
+		answers.representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION;
+	const representedIsAnOrganisation =
+		answers.representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION ||
+		answers.representedTypeId === REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR;
+	const prefix = answers.submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF ? 'myself' : 'submitter';
+	const submitterIsAdult = yesNoToBoolean(answers[`${prefix}IsAdult`]);
+	const representedIsAdult = yesNoToBoolean(answers.representedIsAdult);
+
+	const createInput = {
+		reference,
+		Application: { connect: { id: applicationId } },
+		submittedDate: answers.submittedDate ?? new Date(),
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+		SubmittedFor: { connect: { id: answers.submittedForId } },
+		submittedByAgent: yesNoToBoolean(answers.areYouAgent) || false,
+		comment: answers[`${prefix}Comment`],
+		SubmittedByContact: {
+			create: {
+				isAdult: submitterIsAdult
+			}
+		}
+	};
+
+	if (submitterIsAdult) {
+		createInput.SubmittedByContact.create.fullName = answers[`${prefix}FullName`];
+		createInput.SubmittedByContact.create.email = answers[`${prefix}Email`];
+	}
+	if (yesNoToBoolean(answers.areYouAgent)) {
+		createInput.submittedByAgentOrgName = answers.agentOrgName;
+	}
+	if (answers.representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION) {
+		createInput.SubmittedByContact.create.jobTitleOrRole = answers.orgRoleName;
+	}
+	if (isRepresentation) {
+		createInput.RepresentedType = { connect: { id: answers.representedTypeId } };
+		createInput.RepresentedContact = { create: {} };
+		if (representedIsAnOrganisation) {
+			createInput.RepresentedContact.create.fullName = answers.representedOrgName ?? answers.orgName;
+		} else {
+			createInput.RepresentedContact.create.isAdult = representedIsAdult;
+			if (representedIsAdult) {
+				createInput.RepresentedContact.create.fullName = answers.representedFullName;
+			}
+		}
+	}
+
+	return createInput;
+}
