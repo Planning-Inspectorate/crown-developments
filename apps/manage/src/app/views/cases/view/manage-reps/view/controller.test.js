@@ -2,20 +2,10 @@ import { describe, it, mock } from 'node:test';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import assert from 'node:assert';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
-import {
-	buildGetJourneyMiddleware,
-	buildUpdateRepresentation,
-	validateParams,
-	viewRepresentation
-} from './controller.js';
+import { buildGetJourneyMiddleware, validateParams, viewRepresentation } from './controller.js';
 import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
 import { createJourney } from './journey.js';
 import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
-import {
-	REPRESENTATION_STATUS_ID,
-	REPRESENTATION_SUBMITTED_FOR_ID
-} from '@pins/crowndev-database/src/seed/data-static.js';
-import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
 
 describe('controller', () => {
 	describe('viewRepresentation', () => {
@@ -51,57 +41,33 @@ describe('controller', () => {
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.strictEqual(viewData.requiresReview, true);
 			assert.strictEqual(viewData.applicationReference, 'app-ref');
+			assert.strictEqual(viewData.representationUpdated, false);
 		});
-	});
-	describe('buildUpdateRepresentation', () => {
-		it('should throw if no params', async () => {
-			const mockDb = {
-				representation: { update: mock.fn() }
-			};
-			const logger = mockLogger();
-			const updateRep = buildUpdateRepresentation({ db: mockDb, logger });
-			const mockReq = { params: { id: 'case-1' } };
-			const mockRes = { locals: {} };
-			await assert.rejects(() => updateRep({ req: mockReq, res: mockRes, data: {} }), {
-				message: 'representationRef param required'
+		it('should read & clear rep updated session data', async () => {
+			const journeyResponse = new JourneyResponse('id-1', 'id-2', {
+				applicationReference: 'app-ref',
+				requiresReview: true
 			});
-		});
-		it('should do nothing if no edits', async () => {
-			const mockDb = {
-				representation: { update: mock.fn() }
+			const questions = getQuestions();
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				baseUrl: 'case-1/manage-representations',
+				session: { representations: { 'ref-1': { representationUpdated: true } } }
 			};
-			const logger = mockLogger();
-			const updateRep = buildUpdateRepresentation({ db: mockDb, logger });
-			const mockReq = { params: { id: 'case-1', representationRef: 'ref-1' } };
-			const mockRes = { locals: {} };
-			await assert.doesNotReject(() => updateRep({ req: mockReq, res: mockRes, data: {} }));
-			assert.strictEqual(mockDb.representation.update.mock.callCount(), 0);
-			assert.strictEqual(logger.info.mock.callCount(), 1);
-			assert.strictEqual(logger.info.mock.calls[0].arguments[1], 'no representation updates to apply');
-		});
-		it('should call update with edits', async () => {
-			const mockDb = {
-				representation: { update: mock.fn() }
-			};
-			const logger = mockLogger();
-			const updateRep = buildUpdateRepresentation({ db: mockDb, logger });
-			const mockReq = { params: { id: 'case-1', representationRef: 'ref-1' } };
-			const edits = {
-				answers: {
-					statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
-					wantsToBeHeard: BOOLEAN_OPTIONS.NO,
-					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-					categoryId: 'c-id-1'
+			const mockRes = {
+				render: mock.fn(),
+				locals: {
+					journeyResponse: journeyResponse,
+					journey: createJourney(questions, journeyResponse, mockReq)
 				}
 			};
-			const mockRes = { locals: {} };
-			await assert.doesNotReject(() => updateRep({ req: mockReq, res: mockRes, data: edits }));
-			assert.strictEqual(mockDb.representation.update.mock.callCount(), 1);
-			const updateArgs = mockDb.representation.update.mock.calls[0].arguments[0];
-			assert.strictEqual(updateArgs?.where?.reference, 'ref-1');
-			assert.strictEqual(updateArgs?.data?.statusId, REPRESENTATION_STATUS_ID.ACCEPTED);
-			assert.strictEqual(logger.info.mock.callCount(), 1);
-			assert.strictEqual(logger.info.mock.calls[0].arguments[1], 'update representation input');
+			await assert.doesNotReject(() => viewRepresentation(mockReq, mockRes));
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.requiresReview, true);
+			assert.strictEqual(viewData.applicationReference, 'app-ref');
+			assert.strictEqual(viewData.representationUpdated, true);
+			assert.strictEqual(mockReq.session.representations['ref-1'].representationUpdated, undefined);
 		});
 	});
 	describe('buildGetJourneyMiddleware', () => {
