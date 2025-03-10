@@ -281,7 +281,7 @@ describe('case details', () => {
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
-				session: { cases: { 'case-1': { publishedErrors: [{ text: 'Error message', href: '#' }] } } }
+				session: { cases: { 'case-1': { publishErrors: [{ text: 'Error message', href: '#' }] } } }
 			};
 			const mockRes = {
 				locals: {},

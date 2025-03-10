@@ -24,11 +24,11 @@ export function buildViewCaseDetails({ getSharePointDrive }) {
 			throw new Error('id param required');
 		}
 		// Show publish case validation errors
-		const errors = readSessionData(req, id, 'publishedErrors', [], 'cases');
+		const errors = readSessionData(req, id, 'publishErrors', [], 'cases');
 		if (errors.length > 0) {
 			res.locals.errorSummary = errors;
 		}
-		clearSessionData(req, id, 'publishedErrors', 'cases');
+		clearSessionData(req, id, 'publishErrors', 'cases');
 
 		// immediately clear this so the banner only shows once
 		const caseUpdated = readCaseUpdatedSession(req, id);
