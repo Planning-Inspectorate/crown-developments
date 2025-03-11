@@ -19,7 +19,7 @@ import { createRoutes as createRepsRoutes } from './manage-reps/index.js';
  */
 export function createRoutes({ db, logger, config, getEntraClient, getSharePointDrive }) {
 	const router = createRouter({ mergeParams: true });
-	const repsRoutes = createRepsRoutes({ db, logger });
+	const repsRoutes = createRepsRoutes({ db, logger, getSharePointDrive });
 	const getJourney = asyncHandler(
 		buildGetJourneyMiddleware({ db, logger, groupIds: config.entra.groupIds, getEntraClient })
 	);

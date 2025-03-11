@@ -147,6 +147,57 @@ export class SharePointDrive {
 	}
 
 	/**
+	 * @param {string} parentId
+	 * @param {string} folderName
+	 * @returns {Promise<import('@microsoft/microsoft-graph-types').DriveItem>}
+	 */
+	async newFolder(parentId, folderName) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('items')
+			.addPathSegment(parentId)
+			.addPathSegment('children');
+
+		const newFolder = {
+			name: folderName,
+			folder: {}
+		};
+
+		return await this.client.api(urlBuilder.toString()).post(newFolder);
+	}
+
+	/**
+	 * @param {string} parentId
+	 * @param {string} fileName
+	 * @returns {Promise<import('@microsoft/microsoft-graph-types').UploadSession>}
+	 */
+	async createUploadSession(parentId, fileName) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('items')
+			.addPathSegment(parentId + ':')
+			.addPathSegment(`${fileName}:`)
+			.addPathSegment('createUploadSession');
+
+		const newUploadSession = {
+			item: {
+				name: fileName
+			}
+		};
+
+		return this.client.api(urlBuilder.toString()).post(newUploadSession);
+	}
+
+	async putFileToUploadSession(uploadUrl, file) {
+		await this.client
+			.api(uploadUrl)
+			.header('Content-Range', 'bytes 0-' + (file.length - 1) + '/' + file.length)
+			.put(file);
+	}
+
+	/**
 	 *
 	 * @param itemId
 	 * @returns {Promise<ListItemPermissionsResponse>}

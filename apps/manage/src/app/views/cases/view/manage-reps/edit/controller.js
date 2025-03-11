@@ -2,6 +2,9 @@ import { editsToDatabaseUpdates } from '@pins/crowndev-lib/forms/representations
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { validateParams } from '../view/controller.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
+import formidable from 'formidable';
+import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/name.js';
+import { readFile } from 'node:fs/promises';
 
 /**
  * @param {Object} opts
@@ -38,6 +41,49 @@ export function buildUpdateRepresentation({ db, logger }) {
 		}
 
 		addRepUpdatedSession(req, representationRef);
+	};
+}
+
+/**
+ * @param {Object} opts
+ * @param {import('pino').Logger} opts.logger
+ * @param {import('@prisma/client').PrismaClient} opts.db
+ * @param {function(session): SharePointDrive} opts.getSharePointDrive
+ * @returns {import('express').Handler}
+ */
+export function buildAddRepresentationAttachments({ logger, db, getSharePointDrive }) {
+	return async (req, res) => {
+		const form = formidable({});
+		const [, files] = await form.parse(req);
+		const sharePointDrive = getSharePointDrive(req.session);
+		if (!sharePointDrive) {
+			throw new Error('SharePoint not configured');
+		}
+		const { id, representationRef } = validateParams(req.params);
+		const { reference } = await db.crownDevelopment.findUnique({ where: { id }, select: { reference: true } });
+		const repsRoot = caseReferenceToFolderName(reference) + `/Published/RepresentationAttachments`;
+		logger.info({ repsRoot }, 'get reps folder');
+		const repsRootDriveItem = await sharePointDrive.getDriveItemByPath(repsRoot, [['$select', 'id']]);
+		let repsDriveItem;
+		try {
+			repsDriveItem = await sharePointDrive.newFolder(repsRootDriveItem.id, representationRef);
+		} catch (e) {
+			if (e?.statusCode === 409 || e?.code === 'nameAlreadyExists') {
+				// ignore - folder already exists - but we need the id
+				repsDriveItem = await sharePointDrive.getDriveItemByPath(repsRoot + '/' + representationRef);
+			} else {
+				throw e;
+			}
+		}
+		logger.info({ files }, 'files to upload');
+		for (const file of files.attachments) {
+			const uploadSession = await sharePointDrive.createUploadSession(repsDriveItem.id, file.originalFilename);
+			const contents = await readFile(file.filepath);
+			logger.info({ size: contents.length, name: file.originalFilename }, 'writing file to sharepoint');
+			await sharePointDrive.putFileToUploadSession(uploadSession.uploadUrl, contents);
+		}
+
+		res.redirect(res.locals.journey.taskListUrl);
 	};
 }
 

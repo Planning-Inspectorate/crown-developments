@@ -8,15 +8,16 @@ import validate from '@pins/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
 import { buildSave, question } from '@pins/dynamic-forms/src/controller.js';
 import { createRoutes as createReviewRoutes } from './review/index.js';
-import { buildUpdateRepresentation } from './edit/controller.js';
+import { buildAddRepresentationAttachments, buildUpdateRepresentation } from './edit/controller.js';
 
 /**
  * @param {Object} opts
  * @param {import('@prisma/client').PrismaClient} opts.db
  * @param {import('pino').BaseLogger} opts.logger
+ * @param {function(session): SharePointDrive} opts.getSharePointDrive
  * @returns {import('express').Router}
  */
-export function createRoutes({ db, logger }) {
+export function createRoutes({ db, logger, getSharePointDrive }) {
 	const router = createRouter({ mergeParams: true });
 	const list = buildListReps({ db });
 	const reviewRoutes = createReviewRoutes({ db, logger });
@@ -24,6 +25,7 @@ export function createRoutes({ db, logger }) {
 	const getJourney = asyncHandler(buildGetJourneyMiddleware({ db, logger }));
 	const updateRepFn = buildUpdateRepresentation({ db, logger });
 	const saveAnswer = buildSave(updateRepFn, true);
+	const addRepresentationAttachments = buildAddRepresentationAttachments({ db, logger, getSharePointDrive });
 
 	router.get('/', asyncHandler(list));
 	router.get('/add', addRep);
@@ -34,6 +36,7 @@ export function createRoutes({ db, logger }) {
 
 	// edits
 	repsRouter.get('/edit', viewReviewRedirect);
+	repsRouter.post('/edit/more-details/representation-attachments', getJourney, addRepresentationAttachments);
 	repsRouter
 		.route('/edit/:section/:question')
 		.get(getJourney, asyncHandler(question))
