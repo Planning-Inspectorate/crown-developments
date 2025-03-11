@@ -111,7 +111,7 @@ export function buildGetJourneyMiddleware({ db, logger }) {
 		if (req.originalUrl !== req.baseUrl) {
 			// back link goes to details page
 			// only if not on the details page
-			res.locals.backLinkUrl = req.baseUrl;
+			res.locals.backLinkUrl = req.baseUrl + '/view';
 		}
 
 		next();
