@@ -11,7 +11,7 @@ import {
 	REPRESENTED_TYPE
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
-import { CUSTOM_COMPONENT_CLASSES } from '../custom-components/index.js';
+import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '../custom-components/index.js';
 import { representationsContactQuestions } from './question-utils.js';
 import DateValidator from '@pins/dynamic-forms/src/validator/date-validator.js';
 
@@ -229,6 +229,14 @@ export const questionProps = {
 		url: 'representation-type',
 		validators: [new RequiredValidator('Select a representation type')],
 		options: referenceDataToRadioOptions(REPRESENTATION_CATEGORY)
+	},
+	attachments: {
+		type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENT,
+		title: 'Representation Attachments',
+		question: 'Representation Attachments',
+		fieldName: 'attachments',
+		url: 'representation-attachments',
+		validators: []
 	}
 };
 

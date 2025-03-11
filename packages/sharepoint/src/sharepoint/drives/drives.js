@@ -147,6 +147,70 @@ export class SharePointDrive {
 	}
 
 	/**
+	 * @param {string} parentId
+	 * @param {string} folderName
+	 * @param {boolean} [failIfExists]
+	 * @returns {Promise<import('@microsoft/microsoft-graph-types').DriveItem>}
+	 */
+	async newFolder(parentId, folderName, failIfExists) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('items')
+			.addPathSegment(parentId)
+			.addPathSegment('children');
+
+		const newFolder = {
+			name: folderName,
+			folder: {}
+		};
+		try {
+			return await this.client.api(urlBuilder.toString()).post(newFolder);
+		} catch (e) {
+			if (failIfExists) {
+				throw e;
+			}
+			if (e?.statusCode === 409 || e?.code === 'nameAlreadyExists') {
+				// folder already exists - fetch it by path
+				const parent = await this.getDriveItem(parentId);
+				return await this.getDriveItemByPath(pathFromItem(parent) + '/' + folderName);
+			} else {
+				throw e;
+			}
+		}
+	}
+
+	/**
+	 * @param {string} parentId
+	 * @param {string} fileName
+	 * @returns {Promise<import('@microsoft/microsoft-graph-types').UploadSession>}
+	 */
+	async createUploadSession(parentId, fileName) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('items')
+			.addPathSegment(parentId + ':')
+			.addPathSegment(`${fileName}:`)
+			.addPathSegment('createUploadSession');
+
+		const newUploadSession = {
+			item: {
+				name: fileName
+			}
+		};
+
+		return this.client.api(urlBuilder.toString()).post(newUploadSession);
+	}
+
+	async putFileToUploadSession(uploadUrl, file) {
+		await this.client
+			.api(uploadUrl)
+			.header('Content-Range', 'bytes 0-' + (file.length - 1) + '/' + file.length)
+			.put(file);
+	}
+
+	/**
 	 *
 	 * @param itemId
 	 * @returns {Promise<ListItemPermissionsResponse>}
@@ -275,4 +339,20 @@ export class SharePointDrive {
 
 		await this.client.api(urlBuilder.toString()).delete();
 	}
+}
+
+/**
+ * @param {import('@microsoft/microsoft-graph-types').DriveItem} driveItem
+ */
+function pathFromItem(driveItem) {
+	const { name, parentReference } = driveItem;
+	if (!parentReference) {
+		return name;
+	}
+	// drive/id/root:/path/of/parent -> path/of/parent
+	const pathParts = parentReference.path.split(':/');
+	if (pathParts.length < 2) {
+		throw new Error('Invalid parent reference path');
+	}
+	return pathParts[1] + '/' + name;
 }

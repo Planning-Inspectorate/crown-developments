@@ -1,0 +1,56 @@
+{% extends layoutTemplate %}
+
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/file-upload/macro.njk" import govukFileUpload  %}
+{% from "govuk/components/fieldset/macro.njk" import govukFieldset %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% set title = question.pageTitle + " - " + journeyTitle + " - GOV.UK" %}
+{% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
+
+{% block before_content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            {% if errorSummary %}
+                {{ govukErrorSummary({
+                    titleText: "There is a problem",
+                    errorList: errorSummary,
+                    attributes: {"data-cy": "error-wrapper"}
+                }) }}
+            {% endif %}
+        </div>
+    </div>
+
+    {{ super() }}
+{% endblock before_content %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <form action="" method="post" novalidate enctype="multipart/form-data">
+                <input type="hidden" name="_csrf" value="{{ _csrf }}">
+                {{ govukFileUpload({
+                    name: question.fieldName,
+                    errorMessage: errors[question.fieldName] and {
+                        text: errors[question.fieldName].msg
+                    },
+                    label: {
+                        text: "Representation attachements",
+                        isPageHeading: true,
+                        classes: "govuk-fieldset__legend--l"
+                    },
+                    hint: {
+                        text: question.description
+                    },
+                    multiple: question.multiple,
+                    javascript: true
+                }) }}
+                {{ govukButton({
+                    text: continueButtonText,
+                    type: "submit",
+                    attributes: { "data-cy":"button-save-and-continue"}
+                }) }}
+            </form>
+        </div>
+    </div>
+{% endblock %}

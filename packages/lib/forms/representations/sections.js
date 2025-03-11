@@ -25,6 +25,7 @@ export function haveYourSayManageSections(questions) {
 		new Section('More Details', 'more-details')
 			.addQuestion(questions.commentRedacted)
 			.addQuestion(questions.wantsToBeHeard)
+			.addQuestion(questions.attachments)
 	];
 }
 

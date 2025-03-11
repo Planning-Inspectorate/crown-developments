@@ -18,11 +18,14 @@ export function publishedFolderPath(caseReference) {
  * Returns the published reps attachments folder path for the given case reference and representation reference
  *
  * @param {string} caseReference
- * @param {string} repReference
+ * @param {string} [repReference]
  * @returns {string}
  */
 export function publishedRepresentationsAttachmentsFolderPath(caseReference, repReference) {
-	return buildPath(publishedFolderPath(caseReference), APPLICATION_FOLDERS.REPRESENTATION_ATTACHMENTS, repReference);
+	if (repReference) {
+		return buildPath(publishedFolderPath(caseReference), APPLICATION_FOLDERS.REPRESENTATION_ATTACHMENTS, repReference);
+	}
+	return buildPath(publishedFolderPath(caseReference), APPLICATION_FOLDERS.REPRESENTATION_ATTACHMENTS);
 }
 
 /**
