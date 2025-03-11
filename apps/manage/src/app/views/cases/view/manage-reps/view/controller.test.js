@@ -188,7 +188,7 @@ describe('controller', () => {
 			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.ok(mockRes.locals.journey);
-			assert.strictEqual(mockRes.locals.backLinkUrl, 'case-1/manage-representations');
+			assert.strictEqual(mockRes.locals.backLinkUrl, 'case-1/manage-representations/view');
 		});
 	});
 	describe('validateParams', () => {
