@@ -152,12 +152,13 @@
                     }
                 });
                 redactUndoAll.addEventListener('click', () => {
-                    if (history.length === 0) {
+                    const unredated = unredactedText.textContent?.trim();
+                    if (history.length === 0 && textArea.value === unredated) {
                         showError('No changes to undo');
                         return;
                     }
 					hideError();
-                    textArea.value = unredactedText.textContent?.trim() || '';
+                    textArea.value = unredated || '';
                     history.length = 0;
                 });
             }
