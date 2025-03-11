@@ -1,10 +1,10 @@
 {% extends "views/layouts/main.njk" %}
 
 {% import "views/applications/view/written-representations/representation.njk" as representation %}
-{% import "views/applications/view/written-representations/pagination-options.njk" as pagination %}
+{% import "views/applications/view/written-representations/pagination.njk" as pagination %}
+{% import "views/applications/view/written-representations/pagination-options.njk" as paginationOptions %}
 
 {% from "views/applications/view/links.njk" import applicationLinks %}
-{% from "govuk/components/pagination/macro.njk" import govukPagination %}
 
 {% block pageHeading %}{% endblock %}
 
@@ -26,94 +26,18 @@
 				</div>
 			</div>
 
-			<script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-				function renderWithPaginationOptions(paginationValue) {
-					const templateId = `pagination-${paginationValue}`;
-					const template = document.getElementById(templateId).innerHTML;
-
-					document.getElementById("pagination").innerHTML = template;
-
-					attachPaginationEvents();
-				}
-
-				function attachPaginationEvents() {
-					document.querySelectorAll("#pagination a[data-pagination]").forEach(link => {
-						link.addEventListener("click", function(event) {
-							event.preventDefault(); // Prevents page reload
-							const value = this.getAttribute("data-pagination");
-							renderWithPaginationOptions(value);
-						});
-					});
-				}
-
-				document.addEventListener("DOMContentLoaded", attachPaginationEvents);
-			</script>
-
-			<script id="pagination-25" type="text/template" {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-				{{ pagination.renderPagination(25, numberOfRepresentations) }}
-
-				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
-
-				{% for i in range(representations.length if representations.length < 25 else 25) %}
-					{{ representation.renderRepresentation(representations[i]) }}
-				{% endfor %}
-			</script>
-
-			<script id="pagination-50" type="text/template" {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-				{{ pagination.renderPagination(50, numberOfRepresentations) }}
-
-				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
-
-				{% for i in range(representations.length if representations.length < 50 else 50) %}
-					{{ representation.renderRepresentation(representations[i]) }}
-				{% endfor %}
-			</script>
-
-			<script id="pagination-100" type="text/template" {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-				{{ pagination.renderPagination(100, numberOfRepresentations) }}
-
-				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
-
-				{% for i in range(representations.length if representations.length < 100 else 100) %}
-					{{ representation.renderRepresentation(representations[i]) }}
-				{% endfor %}
-			</script>
-
 			<div id="pagination" class="govuk-body">
-				{{ pagination.renderPagination(25, numberOfRepresentations) }}
+				{{ paginationOptions.renderPagination(selectedItemsPerPage, totalRepresentations, resultsStartNumber, resultsEndNumber) }}
 
 				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
-				{% for i in range(representations.length if representations.length < 25 else 25) %}
+				{% for i in range(representations.length if representations.length < selectedItemsPerPage else selectedItemsPerPage) %}
 					{{ representation.renderRepresentation(representations[i]) }}
 				{% endfor %}
 			</div>
 
-			{% if numberOfRepresentations > 25 %}
-				{{ govukPagination({
-					previous: {
-						href: "#"
-					},
-					next: {
-						href: "#"
-					},
-					items: [
-						{
-							number: 1,
-							current: true,
-							href: "#"
-						},
-						{
-							number: 2,
-							href: "#"
-						},
-						{
-							number: 3,
-							href: "#"
-						}
-					]
-				}) }}
-			{% endif %}
+			{# if pageNumber and totalPages values are both 1 then pagination options not shown #}
+			{{ pagination.renderPagination(pageNumber, totalPages, currentUrl) }}
 		</div>
 	</div>
 {% endblock %}

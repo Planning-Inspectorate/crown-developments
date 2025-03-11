@@ -1,25 +1,22 @@
-{% macro renderPagination(currentPageSize, numberOfRepresentations) %}
+{% macro renderPagination(selectedItemsPerPage, totalRepresentations, resultsStartNumber, resultsEndNumber) %}
     <p class="govuk-body">
-        Showing <strong>1</strong> to <strong>{{ currentPageSize if numberOfRepresentations > currentPageSize else numberOfRepresentations }}</strong>
-        of <strong>{{ numberOfRepresentations }}</strong> representations, newest first.
+        Showing <strong>{{ resultsStartNumber }}</strong> to <strong>{{ resultsEndNumber if totalRepresentations > resultsEndNumber else totalRepresentations }}</strong>
+        of <strong>{{ totalRepresentations }}</strong> representations, newest first.
     </p>
 
-{#    {% if numberOfRepresentations > 25 %}#}
-
-        {#	TODO: update {{ numberOfRepresentations if numberOfRepresentations < 25 else 25}} to use pagination number value #}
-
+    {% if totalRepresentations > 25 %}
         <span><strong>Results per page</strong></span>&nbsp;&nbsp;&nbsp;&nbsp;
 
         {% set pageSizes = [25, 50, 100] %}
 
         {% for size in pageSizes %}
-            {% if size == currentPageSize %}
+            {% if size == selectedItemsPerPage %}
                 <span class="govuk-body">{{ size }}</span>
             {% else %}
-                <a class="govuk-link--no-visited-state" href="#" data-pagination="{{ size }}">{{ size }}</a>
+                <a class="govuk-link--no-visited-state" href="{{ currentUrl }}?itemsPerPage={{ size }}" data-pagination="{{ size }}">{{ size }}</a>
             {% endif %}
 
             {% if not loop.last %}&nbsp;&nbsp;|&nbsp;&nbsp;{% endif %}
         {% endfor %}
-{#    {% endif %}#}
+    {% endif %}
 {% endmacro %}

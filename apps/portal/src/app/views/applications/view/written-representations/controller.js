@@ -29,30 +29,46 @@ export function buildWrittenRepresentationsPage({ db }) {
 			return notFoundHandler(req, res);
 		}
 
-		const representations = await db.representation.findMany({
-			where: {
-				// applicationId: id,
-				statusId: REPRESENTATION_STATUS_ID.ACCEPTED
-			},
-			select: {
-				reference: true,
-				submittedDate: true,
-				comment: true,
-				commentRedacted: true,
-				submittedByAgentOrgName: true,
-				submittedForId: true,
-				representedTypeId: true,
-				containsAttachments: true,
-				SubmittedFor: { select: { displayName: true } },
-				SubmittedByContact: { select: { fullName: true, isAdult: true } },
-				RepresentedContact: { select: { fullName: true, isAdult: true } },
-				Category: { select: { displayName: true } }
-			},
-			orderBy: {
-				submittedDate: 'desc'
-			},
-			take: 100 //TODO: use skip when using pagination if result set larger than 100
-		});
+		const selectedItemsPerPage = Number(req.query?.itemsPerPage) || 25;
+		const pageNumber = Math.max(1, Number(req.query?.page) || 1);
+		const pageSize = [25, 50, 100].includes(selectedItemsPerPage) ? selectedItemsPerPage : 100;
+		const skipSize = (pageNumber - 1) * pageSize;
+
+		const [representations, totalRepresentations] = await Promise.all([
+			db.representation.findMany({
+				where: {
+					id,
+					statusId: REPRESENTATION_STATUS_ID.ACCEPTED
+				},
+				select: {
+					reference: true,
+					submittedDate: true,
+					comment: true,
+					commentRedacted: true,
+					submittedByAgentOrgName: true,
+					submittedForId: true,
+					representedTypeId: true,
+					containsAttachments: true,
+					SubmittedFor: { select: { displayName: true } },
+					SubmittedByContact: { select: { fullName: true, isAdult: true } },
+					RepresentedContact: { select: { fullName: true, isAdult: true } },
+					Category: { select: { displayName: true } }
+				},
+				orderBy: { submittedDate: 'desc' },
+				skip: skipSize,
+				take: pageSize
+			}),
+			db.representation.count({
+				where: {
+					id,
+					statusId: REPRESENTATION_STATUS_ID.ACCEPTED
+				}
+			})
+		]);
+
+		const totalPages = Math.ceil(totalRepresentations / pageSize);
+		const resultsStartNumber = Math.min((pageNumber - 1) * selectedItemsPerPage + 1, totalRepresentations);
+		const resultsEndNumber = Math.min(pageNumber * selectedItemsPerPage, totalRepresentations);
 
 		const haveYourSayPeriod = {
 			start: new Date(crownDevelopment.representationsPeriodStartDate),
@@ -64,9 +80,14 @@ export function buildWrittenRepresentationsPage({ db }) {
 			pageCaption: crownDevelopment.reference,
 			pageTitle: 'Written representations',
 			representations: representations.map(representationToViewModel),
-			numberOfRepresentations: representations.length,
 			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
-			currentUrl: req.originalUrl
+			currentUrl: req.originalUrl,
+			selectedItemsPerPage,
+			totalRepresentations,
+			pageNumber,
+			totalPages,
+			resultsStartNumber,
+			resultsEndNumber
 		});
 	};
 }
