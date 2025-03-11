@@ -1,6 +1,9 @@
 {% extends "views/layouts/main.njk" %}
 
-{% from  "views/applications/view/links.njk" import applicationLinks %}
+{% import "views/applications/view/written-representations/representation.njk" as representation %}
+{% import "views/applications/view/written-representations/pagination-options.njk" as pagination %}
+
+{% from "views/applications/view/links.njk" import applicationLinks %}
 {% from "govuk/components/pagination/macro.njk" import govukPagination %}
 
 {% block pageHeading %}{% endblock %}
@@ -23,44 +26,68 @@
 				</div>
 			</div>
 
+			<script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
+				function renderWithPaginationOptions(paginationValue) {
+					const templateId = `pagination-${paginationValue}`;
+					const template = document.getElementById(templateId).innerHTML;
 
-			{#	TODO: update {{ numberOfRepresentations if numberOfRepresentations < 25 else 25}} to use pagination number value #}
-			<p class="govuk-body">Showing <strong>1</strong> to <strong>{{ numberOfRepresentations if numberOfRepresentations < 25 else 25}}</strong> of <strong>{{ numberOfRepresentations }}</strong> representations, newest first.</p>
-{#			{% if numberOfRepresentations > 25 %}#}
-				<div class="govuk-body">
-				{% if selectedResultsToShow == 25 %}
-					<span><strong>Results per page</strong></span>&nbsp;&nbsp;&nbsp;&nbsp;25&nbsp;&nbsp;|&nbsp;&nbsp;<a href="?resultsToShow=50">50</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="?resultsToShow=100">100</a>
-				{% endif %}
-				{% if selectedResultsToShow == 50 %}
-					<span><strong>Results per page</strong></span>&nbsp;&nbsp;&nbsp;&nbsp;<a href="?resultsToShow=25">25</a>&nbsp;&nbsp;|&nbsp;&nbsp;50&nbsp;&nbsp;|&nbsp;&nbsp;<a href="?resultsToShow=100">100</a>
-				{% endif %}
-				{% if selectedResultsToShow == 100 %}
-					<span><strong>Results per page</strong></span>&nbsp;&nbsp;&nbsp;&nbsp;<a href="?resultsToShow=25">25</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="?resultsToShow=50">50</a>&nbsp;&nbsp;|&nbsp;&nbsp;100
-				{% endif %}
-				</div>
-{#			{% endif %}#}
+					document.getElementById("pagination").innerHTML = template;
 
-			<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+					attachPaginationEvents();
+				}
 
-			{% for representation in representations %}
-				<p class="govuk-body govuk-!-font-weight-bold"><a href="written-representations/{{ representation.representationReference }}" class="govuk-link">{{ representation.representationTitle }}</a></p>
-				<p class="govuk-body">{{ representation.representationComment }}</p>
-				<div class="govuk-grid-row">
-					<div class="govuk-grid-column-one-half">
-						<p class="govuk-body"><strong>Submitted by:</strong> {{ representation.representationSubmittedFor }}</p>
-					</div>
-					<div class="govuk-grid-column-one-half">
-						<p class="govuk-body"><strong>Date submitted:</strong> {{ representation.dateRepresentationSubmitted }}</p>
-					</div>
-				</div>
+				function attachPaginationEvents() {
+					document.querySelectorAll("#pagination a[data-pagination]").forEach(link => {
+						link.addEventListener("click", function(event) {
+							event.preventDefault(); // Prevents page reload
+							const value = this.getAttribute("data-pagination");
+							renderWithPaginationOptions(value);
+						});
+					});
+				}
 
-				{% if representation.representationContainsAttachments %}
-					<p class="govuk-body">Contains attachment(s)</p>
-				{% endif %}
+				document.addEventListener("DOMContentLoaded", attachPaginationEvents);
+			</script>
+
+			<script id="pagination-25" type="text/template" {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
+				{{ pagination.renderPagination(25, numberOfRepresentations) }}
 
 				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
-			{% endfor %}
+				{% for i in range(representations.length if representations.length < 25 else 25) %}
+					{{ representation.renderRepresentation(representations[i]) }}
+				{% endfor %}
+			</script>
+
+			<script id="pagination-50" type="text/template" {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
+				{{ pagination.renderPagination(50, numberOfRepresentations) }}
+
+				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+				{% for i in range(representations.length if representations.length < 50 else 50) %}
+					{{ representation.renderRepresentation(representations[i]) }}
+				{% endfor %}
+			</script>
+
+			<script id="pagination-100" type="text/template" {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
+				{{ pagination.renderPagination(100, numberOfRepresentations) }}
+
+				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+				{% for i in range(representations.length if representations.length < 100 else 100) %}
+					{{ representation.renderRepresentation(representations[i]) }}
+				{% endfor %}
+			</script>
+
+			<div id="pagination" class="govuk-body">
+				{{ pagination.renderPagination(25, numberOfRepresentations) }}
+
+				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+				{% for i in range(representations.length if representations.length < 25 else 25) %}
+					{{ representation.renderRepresentation(representations[i]) }}
+				{% endfor %}
+			</div>
 
 			{% if numberOfRepresentations > 25 %}
 				{{ govukPagination({
