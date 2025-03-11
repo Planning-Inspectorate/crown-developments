@@ -66,8 +66,7 @@ export function buildWrittenRepresentationsPage({ db }) {
 			representations: representations.map(representationToViewModel),
 			numberOfRepresentations: representations.length,
 			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
-			currentUrl: req.originalUrl,
-			selectedResultsToShow: req.query.resultsToShow || 25
+			currentUrl: req.originalUrl
 		});
 	};
 }

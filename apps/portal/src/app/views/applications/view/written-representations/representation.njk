@@ -1,0 +1,20 @@
+{% macro renderRepresentation(representation) %}
+    <p class="govuk-body govuk-!-font-weight-bold">
+        <a href="written-representations/{{ representation.representationReference }}" class="govuk-link">
+            {{ representation.representationTitle }}
+        </a>
+    </p>
+    <p class="govuk-body">{{ representation.representationComment }}</p>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-one-half">
+            <p class="govuk-body"><strong>Submitted by:</strong> {{ representation.representationSubmittedFor }}</p>
+        </div>
+        <div class="govuk-grid-column-one-half">
+            <p class="govuk-body"><strong>Date submitted:</strong> {{ representation.dateRepresentationSubmitted }}</p>
+        </div>
+    </div>
+    {% if representation.representationContainsAttachments %}
+        <p class="govuk-body">Contains attachment(s)</p>
+    {% endif %}
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+{% endmacro %}
