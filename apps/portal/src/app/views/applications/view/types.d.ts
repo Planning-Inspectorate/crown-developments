@@ -63,7 +63,15 @@ export type CrownDevelopmentListFields = Prisma.CrownDevelopmentGetPayload<typeo
 
 export type RepresentationsListFields = Prisma.RepresentationGetPayload<typeof listArgs>;
 
-//TODO: set up  RepresentationViewModel
+export type RepresentationViewModel = {
+	representationReference: string;
+	representationTitle: string;
+	representationComment: string;
+	representationCategory: string;
+	dateRepresentationSubmitted: string;
+	representationContainsAttachments: string;
+};
+
 export interface ApplicationLink {
 	href: string;
 	text: string;

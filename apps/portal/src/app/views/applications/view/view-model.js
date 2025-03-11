@@ -127,13 +127,12 @@ export function documentsLink(id) {
  */
 export function representationToViewModel(representation) {
 	return {
+		representationReference: representation.reference,
 		representationTitle: representationTitle(representation),
 		representationComment: representation.commentRedacted || representation.comment,
-		representationReference: representation.reference,
-		representationSubmittedFor: representation.SubmittedFor?.displayName,
+		representationCategory: representation.Category?.displayName,
 		dateRepresentationSubmitted: formatDateForDisplay(representation.submittedDate),
-		representationContainsAttachments: representation.containsAttachments,
-		representationCategory: representation.Category?.displayName
+		representationContainsAttachments: representation.containsAttachments
 	};
 }
 
