@@ -31,8 +31,8 @@
 
 				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
-				{% for i in range(representations.length if representations.length < selectedItemsPerPage else selectedItemsPerPage) %}
-					{{ representation.renderRepresentation(representations[i]) }}
+				{% for rep in representations %}
+					{{ representation.renderRepresentation(rep) }}
 				{% endfor %}
 			</div>
 
