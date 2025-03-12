@@ -685,11 +685,12 @@ describe('view-model', () => {
 					inputs: {
 						myselfIsAdult: 'no',
 						myselfFullName: 'do not save',
-						myselfEmail: 'do not save email',
+						myselfEmail: 'save email',
 						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
 					},
 					expected: {
-						isAdult: false
+						isAdult: false,
+						email: 'save email'
 					}
 				},
 				{
@@ -711,11 +712,12 @@ describe('view-model', () => {
 					inputs: {
 						submitterIsAdult: 'no',
 						submitterFullName: 'do not save',
-						submitterEmail: 'do not save email',
+						submitterEmail: 'save email',
 						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF
 					},
 					expected: {
-						isAdult: false
+						isAdult: false,
+						email: 'save email'
 					}
 				},
 				{
