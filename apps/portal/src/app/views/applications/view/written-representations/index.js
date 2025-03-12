@@ -7,12 +7,17 @@ import { buildWrittenRepresentationsReadMorePage } from './read-more/controller.
  * @param {Object} opts
  * @param {import('@prisma/client').PrismaClient} opts.db
  * @param {import('pino').Logger} opts.logger
+ * @param {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} opts.sharePointDrive
  * @returns {import('express').Router}
  */
-export function createWrittenRepresentationsRoutes({ db, logger }) {
+export function createWrittenRepresentationsRoutes({ db, logger, sharePointDrive }) {
 	const router = createRouter({ mergeParams: true });
 	const viewWrittenRepresentationsListPage = buildWrittenRepresentationsListPage({ db, logger });
-	const viewWrittenRepresentationsReadMorePage = buildWrittenRepresentationsReadMorePage({ db, logger });
+	const viewWrittenRepresentationsReadMorePage = buildWrittenRepresentationsReadMorePage({
+		db,
+		logger,
+		sharePointDrive
+	});
 
 	router.get('/', asyncHandler(viewWrittenRepresentationsListPage));
 	router.get('/:representationReference', asyncHandler(viewWrittenRepresentationsReadMorePage));
