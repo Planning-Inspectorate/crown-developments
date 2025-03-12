@@ -228,7 +228,8 @@ export const questionProps = {
 		url: 'redacted-comment',
 		validators: [],
 		editable: false,
-		onlyShowRedactedValueForSummary: true
+		onlyShowRedactedValueForSummary: true,
+		useRedactedFieldNameForSave: true
 	},
 	submittedDate: {
 		type: COMPONENT_TYPES.DATE,
