@@ -214,14 +214,14 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 		comment: answers[`${prefix}Comment`],
 		SubmittedByContact: {
 			create: {
-				isAdult: submitterIsAdult
+				isAdult: submitterIsAdult,
+				email: answers[`${prefix}Email`]
 			}
 		}
 	};
 
 	if (submitterIsAdult) {
 		createInput.SubmittedByContact.create.fullName = answers[`${prefix}FullName`];
-		createInput.SubmittedByContact.create.email = answers[`${prefix}Email`];
 	}
 	if (yesNoToBoolean(answers.areYouAgent)) {
 		createInput.submittedByAgentOrgName = answers.agentOrgName;
