@@ -6,11 +6,9 @@ import { mapDriveItemToViewModel } from './view-model.js';
 import { applicationLinks } from '../view-model.js';
 import { sortByField } from '@pins/crowndev-lib/util/array.js';
 import { Readable } from 'stream';
+import { getDocuments } from '../../../util/documents-util.js';
 
 const PUBLISHED_FOLDER = 'Published';
-
-// file properties to fetch for display
-const FILE_PROPERTIES = Object.freeze(['file', 'id', 'lastModifiedDateTime', 'name', 'size']);
 
 /**
  * Render the list of documents page
@@ -122,25 +120,6 @@ async function checkApplicationPublished(req, res, db) {
 		},
 		representationsPublishDate: crownDevelopment.representationsPublishDate
 	};
-}
-
-/**
- * Wrap the sharepoint call to catch SharePoint errors and throw a user-friendly error
- *
- * @param {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} sharePointDrive
- * @param {string} path
- * @param {import('pino').BaseLogger} logger
- * @param {string} id
- * @returns {Promise<DriveItemByPathResponse>}
- */
-async function getDocuments(sharePointDrive, path, logger, id) {
-	try {
-		return await sharePointDrive.getItemsByPath(path, [['$select', FILE_PROPERTIES.join(',')]]);
-	} catch (err) {
-		// don't show SharePoint errors to the user
-		logger.error({ err, id }, 'error fetching documents from sharepoint');
-		throw new Error('There is a problem fetching documents');
-	}
 }
 
 /**
