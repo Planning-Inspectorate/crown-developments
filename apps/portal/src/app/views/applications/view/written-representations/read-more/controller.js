@@ -65,8 +65,6 @@ export function buildWrittenRepresentationsReadMorePage({ db }) {
 		};
 		const representationsPublishDate = crownDevelopment.representationsPublishDate;
 
-		console.log(req.originalUrl);
-
 		res.render('views/applications/view/written-representations/read-more/view.njk', {
 			pageCaption: crownDevelopment.reference,
 			pageTitle: 'Written representations - read more',

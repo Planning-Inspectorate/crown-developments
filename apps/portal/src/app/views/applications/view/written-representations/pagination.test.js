@@ -166,8 +166,6 @@ describe('pagination macro', () => {
 			currentUrl
 		});
 
-		console.log(rendered);
-
 		assert.ok(
 			rendered.includes(
 				'<a class="govuk-link govuk-pagination__link" href="/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/written-representations?itemsPerPage=25&amp;page=1" aria-label="Page 1">'
