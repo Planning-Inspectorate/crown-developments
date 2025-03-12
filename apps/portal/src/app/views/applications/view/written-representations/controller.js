@@ -37,7 +37,7 @@ export function buildWrittenRepresentationsPage({ db }) {
 		const [representations, totalRepresentations] = await Promise.all([
 			db.representation.findMany({
 				where: {
-					id,
+					applicationId: id,
 					statusId: REPRESENTATION_STATUS_ID.ACCEPTED
 				},
 				select: {
@@ -60,7 +60,7 @@ export function buildWrittenRepresentationsPage({ db }) {
 			}),
 			db.representation.count({
 				where: {
-					id,
+					applicationId: id,
 					statusId: REPRESENTATION_STATUS_ID.ACCEPTED
 				}
 			})
