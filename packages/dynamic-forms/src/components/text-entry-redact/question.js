@@ -32,6 +32,7 @@ export default class TextEntryRedactQuestion extends Question {
 	 * @param {TextEntryCheckbox} [params.textEntryCheckbox]
 	 * @param {string|undefined} [params.label] if defined this show as a label for the input and the question will just be a standard h1
 	 * @param {boolean} [params.onlyShowRedactedValueForSummary] whether to only show redacted value for summary
+	 * @param {boolean} [params.useRedactedFieldNameForSave] whether to use the redacted field name when saving answers
 	 * @param {Array.<import('../../validator/base-validator')>} [params.validators]
 	 */
 	constructor({
@@ -44,7 +45,8 @@ export default class TextEntryRedactQuestion extends Question {
 		html,
 		textEntryCheckbox,
 		label,
-		onlyShowRedactedValueForSummary
+		onlyShowRedactedValueForSummary,
+		useRedactedFieldNameForSave
 	}) {
 		super({
 			title,
@@ -60,6 +62,18 @@ export default class TextEntryRedactQuestion extends Question {
 		this.textEntryCheckbox = textEntryCheckbox;
 		this.label = label;
 		this.onlyShowRedactedValueForSummary = onlyShowRedactedValueForSummary;
+		this.useRedactedFieldNameForSave = useRedactedFieldNameForSave;
+	}
+
+	async getDataToSave(req, journeyResponse) {
+		if (this.useRedactedFieldNameForSave) {
+			const fieldName = this.fieldName + 'Redacted';
+			const responseToSave = { answers: {} };
+			responseToSave.answers[fieldName] = req.body[this.fieldName];
+			journeyResponse.answers[fieldName] = responseToSave.answers[fieldName];
+			return responseToSave;
+		}
+		return super.getDataToSave(req, journeyResponse);
 	}
 
 	prepQuestionForRendering(section, journey, customViewData, payload) {
