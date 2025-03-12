@@ -77,6 +77,7 @@ const representations = [
 	{
 		reference: '50315-3163D',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
 		SubmittedByContact: { connect: { id: repsContacts[0].id } },
@@ -85,6 +86,7 @@ const representations = [
 	{
 		reference: '4705B-405AD',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
 		SubmittedByContact: { connect: { id: repsContacts[1].id } },
@@ -93,6 +95,7 @@ const representations = [
 	{
 		reference: 'A9BC3-915FD',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
 		SubmittedByContact: { connect: { id: repsContacts[2].id } },
@@ -101,6 +104,7 @@ const representations = [
 	{
 		reference: '1295C-726E8',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
 		SubmittedByContact: { connect: { id: repsContacts[3].id } },
@@ -109,6 +113,7 @@ const representations = [
 	{
 		reference: 'ADE3E-60E0C',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
 		SubmittedByContact: { connect: { id: repsContacts[4].id } },
@@ -117,6 +122,7 @@ const representations = [
 	{
 		reference: '78063-E19BB',
 		comment: 'Some comment about this application',
+		commentRedacted: 'Some ███████ about this application',
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[5].id } },
@@ -127,6 +133,7 @@ const representations = [
 	{
 		reference: '6EFB4-E9C8B',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[6].id } },
@@ -137,6 +144,7 @@ const representations = [
 	{
 		reference: 'FA0F1-C4019',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[7].id } },
@@ -147,6 +155,7 @@ const representations = [
 	{
 		reference: '33683-0DEBE',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[8].id } },
@@ -157,6 +166,7 @@ const representations = [
 	{
 		reference: '1E11C-C92E6',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[9].id } },
@@ -167,6 +177,7 @@ const representations = [
 	{
 		reference: '9D827-48F37',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[10].id } },
@@ -177,6 +188,7 @@ const representations = [
 	{
 		reference: 'F0956-2CF1F',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-01-27T16:46:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[11].id } },
@@ -187,6 +199,7 @@ const representations = [
 	{
 		reference: 'C96A4-ECEB9',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-02-02T09:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[12].id } },
@@ -197,6 +210,7 @@ const representations = [
 	{
 		reference: 'AD888-F0C29',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-02-01T18:19:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[13].id } },
@@ -207,6 +221,7 @@ const representations = [
 	{
 		reference: '554C0-F041A',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-02-01T14:31:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[14].id } },
@@ -217,6 +232,7 @@ const representations = [
 	{
 		reference: '8479A-8FA79',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-02-03T07:50:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[15].id } },
@@ -227,6 +243,7 @@ const representations = [
 	{
 		reference: '71282-6A474',
 		comment: 'Some comment about this application',
+		commentRedacted: 'Some ███████ about this application',
 		submittedDate: new Date('2025-02-03T08:14:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[16].id } },
@@ -239,6 +256,7 @@ const representations = [
 	{
 		reference: '1D5AA-CF9D3',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-01-26T22:03:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[17].id } },
@@ -251,6 +269,7 @@ const representations = [
 	{
 		reference: 'E7A93-F3D48',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-01-30T18:16:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[18].id } },
@@ -261,6 +280,7 @@ const representations = [
 	{
 		reference: '80831-C32AC',
 		comment: 'Some comment about this application',
+		commentRedacted: null,
 		submittedDate: new Date('2025-02-02T15:56:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[19].id } },
