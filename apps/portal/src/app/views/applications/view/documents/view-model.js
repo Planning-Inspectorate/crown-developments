@@ -3,9 +3,12 @@ import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js'
 
 /**
  * @param {import('@microsoft/microsoft-graph-types').DriveItem} driveItem
- * @returns {import('./types.js').DocumentViewModel}
+ * @returns {import('./types.js').DocumentViewModel|undefined}
  */
 export function mapDriveItemToViewModel(driveItem) {
+	if (!driveItem.file) {
+		return undefined; // not a file, a folder
+	}
 	return {
 		id: driveItem.id,
 		name: driveItem.name,

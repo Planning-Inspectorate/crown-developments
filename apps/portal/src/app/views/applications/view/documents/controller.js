@@ -32,7 +32,7 @@ export function buildApplicationDocumentsPage({ db, logger, sharePointDrive }) {
 		const items = await getDocuments(sharePointDrive, folderPath, logger, id);
 		// sort by newest first
 		items.sort(sortByField('lastModifiedDateTime', true));
-		const documents = items.map(mapDriveItemToViewModel);
+		const documents = items.map(mapDriveItemToViewModel).filter(Boolean);
 
 		res.render('views/applications/view/documents/view.njk', {
 			id,

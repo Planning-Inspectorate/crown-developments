@@ -78,6 +78,43 @@ describe('controller', () => {
 			assert.match(mockSharePoint.getItemsByPath.mock.calls[0].arguments[0], /^CROWN-2025-0000001\/Published$/);
 			assert.strictEqual(res.render.mock.callCount(), 1);
 		});
+
+		it('should not render folders', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+				}
+			};
+			const mockSharePoint = {
+				getItemsByPath: mock.fn(() => [
+					{ id: 1, name: 'File 1', file: { mimeType: 'image/png' } },
+					{ id: 2, name: 'File 2', file: { mimeType: 'application/pdf' } },
+					{ id: 3, name: 'Folder A' }
+				])
+			};
+			const handler = buildApplicationDocumentsPage({
+				db: mockDb,
+				logger: mockLogger(),
+				sharePointDrive: mockSharePoint
+			});
+			const req = {
+				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' }
+			};
+			const res = {
+				status: mock.fn(),
+				render: mock.fn()
+			};
+			await handler(req, res);
+			assert.strictEqual(mockSharePoint.getItemsByPath.mock.callCount(), 1);
+			assert.match(mockSharePoint.getItemsByPath.mock.calls[0].arguments[0], /^CROWN-2025-0000001\/Published$/);
+			assert.strictEqual(res.render.mock.callCount(), 1);
+			const viewData = res.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.documents.length, 2);
+			assert.strictEqual(
+				viewData.documents.find((d) => d.name === 'Folder A'),
+				undefined
+			);
+		});
 	});
 
 	describe('buildDocumentView', () => {
