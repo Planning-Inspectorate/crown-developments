@@ -1,7 +1,10 @@
 import { Router as createRouter } from 'express';
 import { buildWrittenRepresentationsListPage } from './controller.js';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
-import { buildWrittenRepresentationsReadMorePage } from './read-more/controller.js';
+import {
+	buildWrittenRepresentationsDocumentView,
+	buildWrittenRepresentationsReadMorePage
+} from './read-more/controller.js';
 
 /**
  * @param {Object} opts
@@ -18,9 +21,15 @@ export function createWrittenRepresentationsRoutes({ db, logger, sharePointDrive
 		logger,
 		sharePointDrive
 	});
+	const viewWrittenRepresentationsDocumentPage = buildWrittenRepresentationsDocumentView({
+		db,
+		logger,
+		sharePointDrive
+	});
 
 	router.get('/', asyncHandler(viewWrittenRepresentationsListPage));
 	router.get('/:representationReference', asyncHandler(viewWrittenRepresentationsReadMorePage));
+	router.get('/:representationReference/:documentId', asyncHandler(viewWrittenRepresentationsDocumentPage));
 
 	return router;
 }

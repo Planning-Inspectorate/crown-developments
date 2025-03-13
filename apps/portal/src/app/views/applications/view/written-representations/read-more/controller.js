@@ -4,7 +4,7 @@ import { fetchPublishedApplication } from '#util/applications.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { applicationLinks, representationToViewModel } from '../../view-model.js';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/name.js';
-import { getDocuments } from '../../../../util/documents-util.js';
+import { forwardStreamContents, getDocuments } from '../../../../util/documents-util.js';
 import { mapDriveItemToViewModel } from '../../documents/view-model.js';
 
 const PUBLISHED_FOLDER = 'Published';
@@ -28,12 +28,20 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 		const crownDevelopment = await fetchPublishedApplication({
 			id,
 			db,
-			args: {}
+			args: {
+				select: {
+					reference: true,
+					representationsPeriodStartDate: true,
+					representationsPeriodEndDate: true,
+					representationsPublishDate: true
+				}
+			}
 		});
 
 		if (!crownDevelopment) {
 			return notFoundHandler(req, res);
 		}
+		const { reference } = crownDevelopment;
 
 		const representationReference = req.params.representationReference;
 		if (!representationReference) {
@@ -68,7 +76,7 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 		let documents;
 		if (representation.containsAttachments === true) {
 			const folderPath =
-				caseReferenceToFolderName(id) +
+				caseReferenceToFolderName(reference) +
 				'/' +
 				PUBLISHED_FOLDER +
 				'/' +
@@ -97,5 +105,52 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 			representationViewModel: representationToViewModel(representation),
 			documents
 		});
+	};
+}
+
+/**
+ * Render a written representations document
+ * @param {Object} opts
+ * @param {import('@prisma/client').PrismaClient} opts.db
+ * @param {import('pino').BaseLogger} opts.logger
+ * @param {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} opts.sharePointDrive
+ * @param {global.fetch} [opts.fetchImpl] - for testing
+ * @returns {import('express').Handler}
+ */
+export function buildWrittenRepresentationsDocumentView({ db, logger, sharePointDrive, fetchImpl }) {
+	return async (req, res) => {
+		const documentId = req.params?.documentId;
+		if (!documentId) {
+			throw new Error('documentId param is required');
+		}
+
+		const id = req.params?.applicationId;
+		if (!id) {
+			throw new Error('id param required');
+		}
+		if (!isValidUuidFormat(id)) {
+			return notFoundHandler(req, res);
+		}
+
+		const crownDevelopment = await fetchPublishedApplication({
+			id,
+			db,
+			args: {
+				select: {
+					reference: true
+				}
+			}
+		});
+
+		if (!crownDevelopment) {
+			return notFoundHandler(req, res);
+		}
+
+		const { reference } = crownDevelopment;
+
+		logger.debug({ reference, documentId }, 'download file');
+
+		const downloadUrl = await sharePointDrive.getDriveItemDownloadUrl(documentId);
+		await forwardStreamContents(downloadUrl, req, res, logger, documentId, fetchImpl);
 	};
 }

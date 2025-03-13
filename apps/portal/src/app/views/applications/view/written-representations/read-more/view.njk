@@ -52,7 +52,15 @@
 
         {% if representationViewModel.representationContainsAttachments %}
             <h2 class="govuk-heading-m">Attachment(s)</h2>
-            {{ documents }}
+            <ul class="govuk-list document-list">
+                {% for document in documents %}
+                    <li>
+                        <a class="govuk-link" href="{{ currentUrl }}/{{ representationViewModel.representationReference }}/{{ document.id }}" target="_blank" rel="noreferrer">
+                            ({{ document.type }}, {{ document.size }}) (opens in new window)
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
         {% endif %}
     </div>
 </div>
