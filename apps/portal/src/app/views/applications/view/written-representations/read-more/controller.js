@@ -67,7 +67,6 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 
 		let documents;
 		if (representation.containsAttachments === true) {
-			//Assume documents are in the folder <case-ref>/Published/RepresentationAttachments/<rep-ref>
 			const folderPath =
 				caseReferenceToFolderName(id) +
 				'/' +
