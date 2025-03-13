@@ -12,7 +12,6 @@ import { ACCEPT_AND_REDACT, getQuestions } from '@pins/crowndev-lib/forms/repres
 import { createJourney } from '../view/journey.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
-import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
 import { Prisma } from '@prisma/client';
 
 describe('controller', () => {
@@ -94,7 +93,7 @@ describe('controller', () => {
 			const mockReq = {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1' },
-				body: { wantsToBeHeard: BOOLEAN_OPTIONS.YES, reviewDecision: REPRESENTATION_STATUS_ID.ACCEPTED },
+				body: { reviewDecision: REPRESENTATION_STATUS_ID.ACCEPTED },
 				session: {}
 			};
 			const mockRes = {
@@ -107,7 +106,6 @@ describe('controller', () => {
 			const updateCall = mockDb.representation.update.mock.calls[0].arguments[0];
 			assert.strictEqual(updateCall.where.reference, 'ref-1');
 			const updateData = updateCall.data;
-			assert.strictEqual(updateData.wantsToBeHeard, true);
 			assert.strictEqual(updateData.statusId, REPRESENTATION_STATUS_ID.ACCEPTED);
 			assert.strictEqual(mockReq.session?.cases['case-1'].representationReviewed, 'accepted');
 			assert.strictEqual(mockRes.render.mock.callCount(), 0);
@@ -126,7 +124,7 @@ describe('controller', () => {
 			const mockReq = {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1' },
-				body: { wantsToBeHeard: BOOLEAN_OPTIONS.YES, reviewDecision: ACCEPT_AND_REDACT },
+				body: { reviewDecision: ACCEPT_AND_REDACT },
 				session: {}
 			};
 			const mockRes = {
@@ -135,12 +133,7 @@ describe('controller', () => {
 				redirect: mock.fn()
 			};
 			await reviewRepresentation(mockReq, mockRes);
-			assert.strictEqual(mockDb.representation.update.mock.callCount(), 1);
-			const updateCall = mockDb.representation.update.mock.calls[0].arguments[0];
-			assert.strictEqual(updateCall.where.reference, 'ref-1');
-			const updateData = updateCall.data;
-			assert.strictEqual(updateData.wantsToBeHeard, true);
-			assert.strictEqual(updateData.statusId, undefined);
+			assert.strictEqual(mockDb.representation.update.mock.callCount(), 0);
 			assert.strictEqual(mockReq.session?.cases, undefined);
 			assert.strictEqual(mockRes.render.mock.callCount(), 0);
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
@@ -163,7 +156,7 @@ describe('controller', () => {
 			const mockReq = {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1' },
-				body: { wantsToBeHeard: BOOLEAN_OPTIONS.YES, reviewDecision: ACCEPT_AND_REDACT },
+				body: { reviewDecision: REPRESENTATION_STATUS_ID.ACCEPTED },
 				session: {}
 			};
 			const mockRes = {
@@ -334,7 +327,7 @@ describe('controller', () => {
 			const mockReq = {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1' },
-				body: { wantsToBeHeard: BOOLEAN_OPTIONS.YES, reviewDecision: ACCEPT_AND_REDACT },
+				body: { reviewDecision: ACCEPT_AND_REDACT },
 				session: {
 					representations: {
 						['ref-1']: {
