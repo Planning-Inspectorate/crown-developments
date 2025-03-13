@@ -2,7 +2,6 @@ import { REPRESENTATION_STATUS, REPRESENTATION_STATUS_ID } from '@pins/crowndev-
 import { ACCEPT_AND_REDACT } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { renderRepresentation, validateParams } from '../view/controller.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
-import { yesNoToBoolean } from '@pins/dynamic-forms/src/components/boolean/question.js';
 import { createRedactJourney } from './journey.js';
 import { JOURNEY_ID } from '../view/journey.js';
 import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
@@ -43,7 +42,7 @@ export function buildReviewControllers({ db, logger }) {
 	const controllers = {
 		async reviewRepresentation(req, res) {
 			const { id, representationRef } = validateParams(req.params);
-			const { errors = {}, errorSummary = [], wantsToBeHeard, reviewDecision } = req.body;
+			const { errors = {}, errorSummary = [], reviewDecision } = req.body;
 
 			if (Object.keys(errors).length > 0) {
 				await renderRepresentation(req, res, { errors, errorSummary });
@@ -52,9 +51,6 @@ export function buildReviewControllers({ db, logger }) {
 
 			/** @type {import('@prisma/client').Prisma.RepresentationUpdateInput} */
 			const repUpdate = {};
-			if (wantsToBeHeard) {
-				repUpdate.wantsToBeHeard = yesNoToBoolean(wantsToBeHeard);
-			}
 			if (reviewDecision !== ACCEPT_AND_REDACT) {
 				repUpdate.statusId = reviewDecision;
 			}
