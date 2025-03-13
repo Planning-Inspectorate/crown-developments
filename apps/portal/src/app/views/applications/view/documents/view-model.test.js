@@ -20,19 +20,28 @@ describe('view-model', () => {
 				type: 'PDF'
 			});
 		});
-		it('should ignore mimeType or size if not present', () => {
+		it('should ignore size if not present', () => {
 			const driveItem = {
 				id: 'abc-123',
 				name: 'Document 1',
-				lastModifiedDateTime: '2025-02-13T16:56:00Z'
+				lastModifiedDateTime: '2025-02-13T16:56:00Z',
+				file: { mimeType: 'application/pdf' }
 			};
 			assert.deepStrictEqual(mapDriveItemToViewModel(driveItem), {
 				id: 'abc-123',
 				name: 'Document 1',
 				size: undefined,
 				lastModified: '13 Feb 2025',
-				type: undefined
+				type: 'PDF'
 			});
+		});
+		it('should return undefined for folders', () => {
+			const driveItem = {
+				id: 'abc-123',
+				name: 'Document 1',
+				lastModifiedDateTime: '2025-02-13T16:56:00Z'
+			};
+			assert.strictEqual(mapDriveItemToViewModel(driveItem), undefined);
 		});
 	});
 });
