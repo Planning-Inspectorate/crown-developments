@@ -57,19 +57,6 @@
         <form method="POST">
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-full">
-                    {{ govukCheckboxes({
-                        name: 'wantsToBeHeard',
-                        items: [
-                            {
-                                value: 'yes',
-                                text: 'Would like to be heard if there is a hearing?'
-                            }
-                        ]
-                    }) }}
-                </div>
-            </div>
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-full">
                     {{  govukRadios({
                         name: 'reviewDecision',
                         fieldset: {
