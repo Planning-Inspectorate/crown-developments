@@ -13,6 +13,16 @@ export function representationsContactQuestions({ prefix }) {
 	/** @type {Record<string, import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {};
 
+	questions[`${prefix}IsAdult`] = {
+		type: COMPONENT_TYPES.BOOLEAN,
+		title: 'Over 18',
+		question: 'Are you 18 or over?',
+		hint: 'You can still have your say if you are under 18, but we will process your personal details in a different way.',
+		fieldName: isSubmitter(prefix) ? `submitterIsAdult` : `myselfIsAdult`,
+		url: isSubmitter(prefix) ? `agent-18-over` : `are-you-18-over`,
+		validators: [new RequiredValidator('Select yes if you are 18 or over')]
+	};
+
 	questions[`${prefix}FullName`] = {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Your full name',

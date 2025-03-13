@@ -184,24 +184,6 @@ export const questionProps = {
 			})
 		]
 	},
-	myselfIsAdult: {
-		type: COMPONENT_TYPES.BOOLEAN,
-		title: 'Over 18',
-		question: 'Are you 18 or over?',
-		hint: 'You can still have your say if you are under 18, but we will process your personal details in a different way.',
-		fieldName: 'myselfIsAdult',
-		url: 'are-you-18-over',
-		validators: [new RequiredValidator('Select yes if you are 18 or over')]
-	},
-	submitterIsAdult: {
-		type: COMPONENT_TYPES.BOOLEAN,
-		title: 'Over 18',
-		question: 'Are you 18 or over?',
-		hint: 'If you are under 18 we will process your personal details in a different way.',
-		fieldName: 'submitterIsAdult',
-		url: 'agent-18-over',
-		validators: [new RequiredValidator('Select yes if you are 18 or over')]
-	},
 	representedIsAdult: {
 		type: COMPONENT_TYPES.BOOLEAN,
 		title: 'Person representing over 18',
