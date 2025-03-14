@@ -1,9 +1,9 @@
-import { mapDriveItemToViewModel } from './view-model.js';
 import { applicationLinks } from '../view-model.js';
 import { sortByField } from '@pins/crowndev-lib/util/array.js';
 import { getDocuments } from '../../../util/documents-util.js';
 import { checkApplicationPublished } from '../../../util/application-util.js';
 import { publishedFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { mapDriveItemToViewModel } from '@pins/crowndev-lib/documents/view-model.js';
 
 /**
  * Render the list of documents page
