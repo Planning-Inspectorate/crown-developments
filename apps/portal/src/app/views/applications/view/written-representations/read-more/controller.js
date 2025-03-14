@@ -4,8 +4,8 @@ import { fetchPublishedApplication } from '#util/applications.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { applicationLinks, representationToViewModel } from '../../view-model.js';
 import { getDocuments } from '../../../../util/documents-util.js';
-import { mapDriveItemToViewModel } from '../../documents/view-model.js';
 import { publishedRepresentationsAttachmentsFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { mapDriveItemToViewModel } from '@pins/crowndev-lib/documents/view-model.js';
 
 /**
  * Render written representation read more page

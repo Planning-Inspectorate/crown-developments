@@ -1,5 +1,5 @@
-import { bytesToUnit } from '@pins/crowndev-lib/util/numbers.js';
 import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js';
+import { bytesToUnit } from '../util/numbers.js';
 
 /**
  * @param {import('@microsoft/microsoft-graph-types').DriveItem} driveItem
@@ -14,7 +14,6 @@ export function mapDriveItemToViewModel(driveItem) {
 		name: driveItem.name,
 		size: driveItem.size && bytesToUnit(driveItem.size, 0),
 		lastModified: formatDateForDisplay(driveItem.lastModifiedDateTime),
-		// TODO: map this to user-friendly name
 		type: mapMimeTypeToDisplayName(driveItem.file?.mimeType)
 	};
 }
@@ -23,7 +22,7 @@ export function mapDriveItemToViewModel(driveItem) {
  * @param {string} mimeType
  * @returns {string}
  */
-export function mapMimeTypeToDisplayName(mimeType) {
+function mapMimeTypeToDisplayName(mimeType) {
 	return mimeTypeMappings[mimeType] || mimeType;
 }
 
