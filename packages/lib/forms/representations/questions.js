@@ -225,7 +225,7 @@ export const questionProps = {
 		type: COMPONENT_TYPES.RADIO,
 		title: 'Representation Type',
 		question: 'What type of representation is it?',
-		fieldName: 'category',
+		fieldName: 'categoryId',
 		url: 'representation-type',
 		validators: [new RequiredValidator('Select a representation type')],
 		options: referenceDataToRadioOptions(REPRESENTATION_CATEGORY)
