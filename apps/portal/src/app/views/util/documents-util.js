@@ -28,9 +28,27 @@ export function buildDocumentView({ db, logger, sharePointDrive, fetchImpl }) {
 
 		logger.debug({ reference, documentId }, 'download file');
 
-		const downloadUrl = await sharePointDrive.getDriveItemDownloadUrl(documentId);
+		const downloadUrl = await getDriveItemDownloadUrl(sharePointDrive, documentId, logger);
 		await forwardStreamContents(downloadUrl, req, res, logger, documentId, fetchImpl);
 	};
+}
+
+/**
+ * Wrap the sharepoint call to catch SharePoint errors and throw a user-friendly error
+ *
+ * @param {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} sharePointDrive
+ * @param {string} documentId
+ * @param {import('pino').BaseLogger} logger
+ * @returns {Promise<DriveItemByPathResponse>}
+ */
+async function getDriveItemDownloadUrl(sharePointDrive, documentId, logger) {
+	try {
+		return await sharePointDrive.getDriveItemDownloadUrl(documentId);
+	} catch (err) {
+		// don't show SharePoint errors to the user
+		logger.error({ err, documentId }, 'error fetching document URL from sharepoint');
+		throw new Error('There is a problem fetching this document');
+	}
 }
 
 /**
