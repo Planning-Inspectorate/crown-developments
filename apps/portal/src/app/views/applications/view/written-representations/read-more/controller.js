@@ -3,9 +3,8 @@ import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { fetchPublishedApplication } from '#util/applications.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { applicationLinks, representationToViewModel } from '../../view-model.js';
-import { getDocuments } from '../../../../util/documents-util.js';
 import { publishedRepresentationsAttachmentsFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
-import { mapDriveItemToViewModel } from '@pins/crowndev-lib/documents/view-model.js';
+import { getDocuments } from '@pins/crowndev-lib/documents/get.js';
 
 /**
  * Render written representation read more page
@@ -74,8 +73,7 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 		if (representation.containsAttachments === true) {
 			const folderPath = publishedRepresentationsAttachmentsFolderPath(reference, representationReference);
 			logger.info({ folderPath }, 'view documents');
-			const items = await getDocuments(sharePointDrive, folderPath, logger, id);
-			documents = items.map(mapDriveItemToViewModel);
+			documents = await getDocuments({ sharePointDrive, folderPath, logger, id });
 		}
 
 		const haveYourSayPeriod = {
