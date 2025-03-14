@@ -38,7 +38,6 @@
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "express-validator": "^7.2.1",
-    "@faker-js/faker": "^9.6.0",
     "govuk-frontend": "^5.9.0",
     "helmet": "^8.0.0",
     "notifications-node-client": "^8.2.1",
@@ -50,6 +49,7 @@
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
+    "@faker-js/faker": "^9.6.0",
     "@microsoft/microsoft-graph-types": "^2.40.0",
     "eslint": "^9.22.0",
     "eslint-config-prettier": "^10.1.1",
