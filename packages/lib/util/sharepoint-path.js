@@ -1,7 +1,29 @@
 export const APPLICATION_FOLDERS = Object.freeze({
 	PUBLISHED: 'Published',
-	RECEIVED: 'Received'
+	RECEIVED: 'Received',
+	REPRESENTATION_ATTACHMENTS: 'RepresentationAttachments'
 });
+
+/**
+ * Returns the published folder path for the given case reference
+ *
+ * @param {string} caseReference
+ * @returns {string}
+ */
+export function publishedFolderPath(caseReference) {
+	return buildPath(caseReferenceToFolderName(caseReference), APPLICATION_FOLDERS.PUBLISHED);
+}
+
+/**
+ * Returns the published reps attachments folder path for the given case reference and representation reference
+ *
+ * @param {string} caseReference
+ * @param {string} repReference
+ * @returns {string}
+ */
+export function publishedRepresentationsAttachmentsFolderPath(caseReference, repReference) {
+	return buildPath(publishedFolderPath(caseReference), APPLICATION_FOLDERS.REPRESENTATION_ATTACHMENTS, repReference);
+}
 
 /**
  * Converts caseReference (which uses slashes) into folder name (which uses dashes)

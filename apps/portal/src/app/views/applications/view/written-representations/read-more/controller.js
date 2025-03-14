@@ -5,10 +5,7 @@ import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-
 import { applicationLinks, representationToViewModel } from '../../view-model.js';
 import { getDocuments } from '../../../../util/documents-util.js';
 import { mapDriveItemToViewModel } from '../../documents/view-model.js';
-import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
-
-const PUBLISHED_FOLDER = 'Published';
-const REPRESENTATION_ATTACHMENTS = 'RepresentationAttachments';
+import { publishedRepresentationsAttachmentsFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
 /**
  * Render written representation read more page
@@ -75,15 +72,7 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 
 		let documents;
 		if (representation.containsAttachments === true) {
-			const folderPath =
-				caseReferenceToFolderName(reference) +
-				'/' +
-				PUBLISHED_FOLDER +
-				'/' +
-				REPRESENTATION_ATTACHMENTS +
-				'/' +
-				representationReference;
-
+			const folderPath = publishedRepresentationsAttachmentsFolderPath(reference, representationReference);
 			logger.info({ folderPath }, 'view documents');
 			const items = await getDocuments(sharePointDrive, folderPath, logger, id);
 			documents = items.map(mapDriveItemToViewModel);
