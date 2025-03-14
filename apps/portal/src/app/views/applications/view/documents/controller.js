@@ -1,9 +1,8 @@
 import { applicationLinks } from '../view-model.js';
 import { sortByField } from '@pins/crowndev-lib/util/array.js';
-import { getDocuments } from '../../../util/documents-util.js';
 import { checkApplicationPublished } from '../../../util/application-util.js';
 import { publishedFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
-import { mapDriveItemToViewModel } from '@pins/crowndev-lib/documents/view-model.js';
+import { getDocuments } from '@pins/crowndev-lib/documents/get.js';
 
 /**
  * Render the list of documents page
@@ -22,10 +21,13 @@ export function buildApplicationDocumentsPage({ db, logger, sharePointDrive }) {
 		const { id, reference, haveYourSayPeriod, representationsPublishDate } = crownDevelopment;
 		const folderPath = publishedFolderPath(reference);
 		logger.info({ folderPath }, 'view documents');
-		const items = await getDocuments(sharePointDrive, folderPath, logger, id);
-		// sort by newest first
-		items.sort(sortByField('lastModifiedDateTime', true));
-		const documents = items.map(mapDriveItemToViewModel).filter(Boolean);
+		const documents = await getDocuments({
+			sharePointDrive,
+			folderPath,
+			logger,
+			id,
+			sortFn: sortByField('lastModifiedDateTime', true)
+		});
 
 		res.render('views/applications/view/documents/view.njk', {
 			id,

@@ -1,6 +1,9 @@
 import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js';
 import { bytesToUnit } from '../util/numbers.js';
 
+// file properties to fetch for display
+export const FILE_PROPERTIES = Object.freeze(['file', 'id', 'lastModifiedDateTime', 'name', 'size']);
+
 /**
  * @param {import('@microsoft/microsoft-graph-types').DriveItem} driveItem
  * @returns {import('./types.js').DocumentViewModel|undefined}
