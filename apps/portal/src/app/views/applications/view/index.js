@@ -1,9 +1,10 @@
 import { Router as createRouter } from 'express';
-import { buildApplicationDocumentsPage, buildDocumentView } from './documents/controller.js';
+import { buildApplicationDocumentsPage } from './documents/controller.js';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 import { buildApplicationInformationPage } from './application-info/controller.js';
 import { createHaveYourSayRoutes } from './have-your-say/index.js';
 import { createWrittenRepresentationsRoutes } from './written-representations/index.js';
+import { buildDocumentView } from '../../util/documents-util.js';
 
 /**
  * @param {Object} opts
