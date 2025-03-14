@@ -1,10 +1,8 @@
 import { Router as createRouter } from 'express';
 import { buildWrittenRepresentationsListPage } from './controller.js';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
-import {
-	buildWrittenRepresentationsDocumentView,
-	buildWrittenRepresentationsReadMorePage
-} from './read-more/controller.js';
+import { buildWrittenRepresentationsReadMorePage } from './read-more/controller.js';
+import { buildDocumentView } from '../../../util/documents-util.js';
 
 /**
  * @param {Object} opts
@@ -21,7 +19,7 @@ export function createWrittenRepresentationsRoutes({ db, logger, sharePointDrive
 		logger,
 		sharePointDrive
 	});
-	const viewWrittenRepresentationsDocumentPage = buildWrittenRepresentationsDocumentView({
+	const viewWrittenRepresentationsDocumentPage = buildDocumentView({
 		db,
 		logger,
 		sharePointDrive

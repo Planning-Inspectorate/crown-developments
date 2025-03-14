@@ -1,7 +1,37 @@
 import { Readable } from 'stream';
+import { checkApplicationPublished } from './application-util.js';
 
 // file properties to fetch for display
 const FILE_PROPERTIES = Object.freeze(['file', 'id', 'lastModifiedDateTime', 'name', 'size']);
+
+/**
+ * Render a document
+ * @param {Object} opts
+ * @param {import('@prisma/client').PrismaClient} opts.db
+ * @param {import('pino').BaseLogger} opts.logger
+ * @param {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} opts.sharePointDrive
+ * @param {global.fetch} [opts.fetchImpl] - for testing
+ * @returns {import('express').Handler}
+ */
+export function buildDocumentView({ db, logger, sharePointDrive, fetchImpl }) {
+	return async (req, res) => {
+		const documentId = req.params?.documentId;
+		if (!documentId) {
+			throw new Error('documentId param is required');
+		}
+
+		const crownDevelopment = await checkApplicationPublished(req, res, db);
+		if (!crownDevelopment) {
+			return; // handled by checkApplicationPublished
+		}
+		const { reference } = crownDevelopment;
+
+		logger.debug({ reference, documentId }, 'download file');
+
+		const downloadUrl = await sharePointDrive.getDriveItemDownloadUrl(documentId);
+		await forwardStreamContents(downloadUrl, req, res, logger, documentId, fetchImpl);
+	};
+}
 
 /**
  * Wrap the sharepoint call to catch SharePoint errors and throw a user-friendly error
