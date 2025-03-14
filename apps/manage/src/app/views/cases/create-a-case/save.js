@@ -1,9 +1,8 @@
 import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js';
 import { clearDataFromSession } from '@pins/dynamic-forms/src/lib/session-answer-store.js';
 import { JOURNEY_ID } from './journey.js';
-import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/name.js';
 import { toFloat } from '@pins/crowndev-lib/util/numbers.js';
-import { getSharePointReceivedPathId } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { caseReferenceToFolderName, getSharePointReceivedPathId } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
 /**
  * @param {Object} opts

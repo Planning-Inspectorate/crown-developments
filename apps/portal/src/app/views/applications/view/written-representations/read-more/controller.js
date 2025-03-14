@@ -3,9 +3,9 @@ import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { fetchPublishedApplication } from '#util/applications.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { applicationLinks, representationToViewModel } from '../../view-model.js';
-import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/name.js';
 import { getDocuments } from '../../../../util/documents-util.js';
 import { mapDriveItemToViewModel } from '../../documents/view-model.js';
+import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
 const PUBLISHED_FOLDER = 'Published';
 const REPRESENTATION_ATTACHMENTS = 'RepresentationAttachments';
