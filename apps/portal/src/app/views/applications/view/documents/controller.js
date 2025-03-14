@@ -3,9 +3,7 @@ import { applicationLinks } from '../view-model.js';
 import { sortByField } from '@pins/crowndev-lib/util/array.js';
 import { getDocuments } from '../../../util/documents-util.js';
 import { checkApplicationPublished } from '../../../util/application-util.js';
-import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
-
-const PUBLISHED_FOLDER = 'Published';
+import { publishedFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
 /**
  * Render the list of documents page
@@ -22,7 +20,7 @@ export function buildApplicationDocumentsPage({ db, logger, sharePointDrive }) {
 			return; // handled by checkApplicationPublished
 		}
 		const { id, reference, haveYourSayPeriod, representationsPublishDate } = crownDevelopment;
-		const folderPath = caseReferenceToFolderName(reference) + '/' + PUBLISHED_FOLDER;
+		const folderPath = publishedFolderPath(reference);
 		logger.info({ folderPath }, 'view documents');
 		const items = await getDocuments(sharePointDrive, folderPath, logger, id);
 		// sort by newest first
