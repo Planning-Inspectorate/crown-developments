@@ -1,9 +1,9 @@
-import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/name.js';
 import { mapDriveItemToViewModel } from './view-model.js';
 import { applicationLinks } from '../view-model.js';
 import { sortByField } from '@pins/crowndev-lib/util/array.js';
 import { getDocuments } from '../../../util/documents-util.js';
 import { checkApplicationPublished } from '../../../util/application-util.js';
+import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
 const PUBLISHED_FOLDER = 'Published';
 

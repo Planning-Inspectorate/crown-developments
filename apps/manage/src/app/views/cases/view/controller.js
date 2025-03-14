@@ -8,8 +8,8 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { getEntraGroupMembers } from '#util/entra-groups.js';
 import { dateIsBeforeToday, dateIsToday } from '@pins/dynamic-forms/src/lib/date-utils.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
-import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/name.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
+import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
 /**
  *
