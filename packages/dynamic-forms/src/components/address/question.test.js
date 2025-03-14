@@ -2,6 +2,7 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import AddressQuestion from './question.js';
 import { Address } from '../../lib/address.js';
+import AddressValidator from '../../validator/address-validator.js';
 
 describe('AddressQuestion', () => {
 	const TITLE = 'What is the site address?';
@@ -9,6 +10,7 @@ describe('AddressQuestion', () => {
 	const FIELDNAME = 'siteAddress';
 	const VIEWFOLDER = 'address-entry';
 	const VALIDATORS = [];
+	const REQUIREDFIELDS = {};
 
 	const testAddress = {
 		addressLine1: '123 Main St',
@@ -24,7 +26,8 @@ describe('AddressQuestion', () => {
 			question: QUESTION,
 			fieldName: FIELDNAME,
 			viewFolder: VIEWFOLDER,
-			validators: VALIDATORS
+			validators: VALIDATORS,
+			requiredFields: REQUIREDFIELDS
 		});
 
 		const mockApi = {
@@ -97,6 +100,57 @@ describe('AddressQuestion', () => {
 			for (const k of Object.keys(testAddress)) {
 				assert.strictEqual(model.question.value[k], testAddress[k]);
 			}
+		});
+		it('should set optional labels when not required', async () => {
+			const { question } = setup();
+			const journeyResponse = {
+				answers: {}
+			};
+
+			const model = await question.prepQuestionForRendering(
+				{},
+				{
+					getBackLink: mock.fn(),
+					response: journeyResponse
+				}
+			);
+
+			assert.strictEqual(model.question.labels.addressLine1, 'Address line 1 (optional)');
+			assert.strictEqual(model.question.labels.addressLine2, 'Address line 2 (optional)');
+			assert.strictEqual(model.question.labels.townCity, 'Town or city (optional)');
+			assert.strictEqual(model.question.labels.county, 'County (optional)');
+			assert.strictEqual(model.question.labels.postcode, 'Postcode (optional)');
+		});
+		it('should set required labels when required', async () => {
+			VALIDATORS.push(
+				new AddressValidator({
+					requiredFields: {
+						addressLine1: true,
+						addressLine2: true,
+						townCity: true,
+						county: true,
+						postcode: true
+					}
+				})
+			);
+			const { question } = setup();
+			const journeyResponse = {
+				answers: {}
+			};
+
+			const model = await question.prepQuestionForRendering(
+				{},
+				{
+					getBackLink: mock.fn(),
+					response: journeyResponse
+				}
+			);
+
+			assert.strictEqual(model.question.labels.addressLine1, 'Address line 1');
+			assert.strictEqual(model.question.labels.addressLine2, 'Address line 2');
+			assert.strictEqual(model.question.labels.townCity, 'Town or city');
+			assert.strictEqual(model.question.labels.county, 'County');
+			assert.strictEqual(model.question.labels.postcode, 'Postcode');
 		});
 	});
 });

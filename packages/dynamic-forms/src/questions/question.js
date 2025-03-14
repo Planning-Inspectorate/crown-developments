@@ -116,7 +116,8 @@ export class Question {
 			hint,
 			interfaceType,
 			shouldDisplay,
-			editable = true
+			editable = true,
+			requiredFields
 		},
 		methodOverrides
 	) {
@@ -135,6 +136,7 @@ export class Question {
 		this.hint = hint;
 		this.interfaceType = interfaceType;
 		this.editable = editable;
+		this.requiredFields = requiredFields;
 
 		if (shouldDisplay) {
 			this.shouldDisplay = shouldDisplay;
@@ -171,7 +173,8 @@ export class Question {
 				description: this.description,
 				html: this.html,
 				hint: this.hint,
-				interfaceType: this.interfaceType
+				interfaceType: this.interfaceType,
+				requiredFields: this.requiredFields
 			},
 			answer,
 

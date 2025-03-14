@@ -39,6 +39,13 @@ export function haveYourSaySections(questions) {
 		agentSection(questions)
 	];
 }
+/**
+ * @param {Questions} questions
+ * @returns {Section[]}
+ */
+export function addRepresentationSection(questions) {
+	return [new Section('Representation', 'start').addQuestion(questions.submittedFor), addRepMyselfSection(questions)];
+}
 
 /**
  * @param {Questions} questions
@@ -54,6 +61,29 @@ function myselfSection(questions) {
 		.withCondition((response) => questionHasAnswer(response, questions.myselfIsAdult, BOOLEAN_OPTIONS.YES))
 		.addQuestion(questions.myselfEmail)
 		.addQuestion(questions.myselfTellUsAboutApplication);
+}
+
+/**
+ * Myself section for the add representation journey (contains more questions that the default section)
+ *
+ * @param {Questions} questions
+ * @returns {Section}
+ */
+function addRepMyselfSection(questions) {
+	return new Section('Myself', 'myself')
+		.withSectionCondition((response) =>
+			questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
+		)
+		.addQuestion(questions.myselfIsAdult)
+		.addQuestion(questions.myselfFullName)
+		.withCondition((response) => questionHasAnswer(response, questions.myselfIsAdult, BOOLEAN_OPTIONS.YES))
+		.addQuestion(questions.myselfContactPreference)
+		.addQuestion(questions.myselfEmail)
+		.withCondition((response) => questionHasAnswer(response, questions.myselfContactPreference, 'email'))
+		.addQuestion(questions.myselfAddress)
+		.withCondition((response) => questionHasAnswer(response, questions.myselfContactPreference, 'post'))
+		.addQuestion(questions.myselfTellUsAboutApplication)
+		.addQuestion(questions.myselfHearingPreference);
 }
 
 /**
