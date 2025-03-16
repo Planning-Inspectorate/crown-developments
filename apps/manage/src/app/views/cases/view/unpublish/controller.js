@@ -77,5 +77,10 @@ export async function unpublishSuccessfulController(req, res) {
 	}
 
 	clearSessionData(req, id, ['reference', 'caseUnpublished']);
-	res.render('views/cases/view/unpublish/success.njk', { id, reference });
+	res.render('views/cases/view/unpublish/success.njk', {
+		title: 'Case Successfully Unpublished',
+		bodyText: `Case reference <br><strong>${reference}</strong>`,
+		backLinkUrl: `/cases/${id}`,
+		backLinkText: 'Back to overview'
+	});
 }

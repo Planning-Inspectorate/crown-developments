@@ -1,18 +1,6 @@
 {% extends "views/layouts/main.njk" %}
-
-{% from "govuk/components/panel/macro.njk" import govukPanel %}
+{% from "success/success.njk" import success %}
 
 {% block pageContent %}
-    {{ govukPanel({
-        titleText: "Case Successfully Unpublished",
-        html: "Case reference <br><strong>" + reference + "</strong>"
-    }) }}
-
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            <p class="govuk-body">
-                <a href="/cases/{{ id }}" class="govuk-link">Back to overview</a>
-            </p>
-        </div>
-    </div>
+    {{ success(title, bodyText, backLinkUrl, backLinkText) }}
 {% endblock %}

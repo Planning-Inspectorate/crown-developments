@@ -74,7 +74,10 @@ export function successController(req, res) {
 	}
 	clearDataFromSession({ req, journeyId: JOURNEY_ID });
 	res.render('views/cases/create-a-case/success.njk', {
-		...data
+		title: 'Case created',
+		bodyText: `Case reference <br><strong>${data.reference}</strong>`,
+		backLinkUrl: `/cases/${data.id}`,
+		backLinkText: `View case details for ${data.reference}`
 	});
 }
 

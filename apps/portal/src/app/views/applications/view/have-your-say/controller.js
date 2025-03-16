@@ -213,8 +213,10 @@ export async function viewHaveYourSaySuccessPage(req, res) {
 	clearSessionData(req, id, ['representationReference', 'representationSubmitted'], 'representations');
 
 	res.render('views/applications/view/have-your-say/success.njk', {
-		representationReference: representationReference,
-		id
+		title: 'Representation Submitted',
+		bodyText: `Your reference number <br><strong>${representationReference}</strong>`,
+		backLinkUrl: `/applications/${id}/application-information`,
+		backLinkText: 'Back to the application information page'
 	});
 }
 

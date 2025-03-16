@@ -1,19 +1,6 @@
 {% extends "views/layouts/main.njk" %}
-
-{% from "govuk/components/panel/macro.njk" import govukPanel %}
+{% from "success/success.njk" import success %}
 
 {% block pageContent %}
-    {{ govukPanel({
-        titleText: "Representation Submitted",
-        html: "Your reference number <br><strong>" + representationReference + "</strong>"
-    }) }}
-
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            <p class="govuk-body">
-                <a href="/applications/{{ id }}/application-information" class="govuk-link">Back to the application
-                    information page</a>
-            </p>
-        </div>
-    </div>
+    {{ success(title, bodyText, backLinkUrl, backLinkText) }}
 {% endblock %}

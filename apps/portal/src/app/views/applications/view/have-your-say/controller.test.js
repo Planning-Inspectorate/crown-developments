@@ -552,8 +552,10 @@ describe('have your say', () => {
 				'views/applications/view/have-your-say/success.njk'
 			);
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
-				representationReference: 'AAAAA-BBBBB',
-				id: mockReq.params.applicationId
+				title: 'Representation Submitted',
+				bodyText: 'Your reference number <br><strong>AAAAA-BBBBB</strong>',
+				backLinkUrl: `/applications/${mockReq.params.applicationId}/application-information`,
+				backLinkText: 'Back to the application information page'
 			});
 			// Check that the session data has been cleared
 			assert.deepStrictEqual(mockReq.session, {
