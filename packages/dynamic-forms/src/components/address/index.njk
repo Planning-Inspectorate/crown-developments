@@ -49,7 +49,7 @@
 
                     {{ govukInput({
                         label: {
-                            text: "Address line 1 (optional)"
+                            text: question.labels.addressLine1
                         },
                         id: "address-line-1",
                         name: addressLine1,
@@ -62,7 +62,7 @@
 
                     {{ govukInput({
                         label: {
-                            text: "Address line 2 (optional)"
+                            text: question.labels.addressLine2
                         },
                         id: "address-line-2",
                         name: addressLine2,
@@ -75,7 +75,7 @@
 
                     {{ govukInput({
                         label: {
-                            text: "Town or city (optional)"
+                            text: question.labels.townCity
                         },
                         classes: "govuk-!-width-two-thirds",
                         id: "address-town",
@@ -89,7 +89,7 @@
 
                     {{ govukInput({
                         label: {
-                            text: "County (optional)"
+                            text: question.labels.county
                         },
                         classes: "govuk-!-width-two-thirds",
                         id: "address-county",
@@ -103,7 +103,7 @@
 
                     {{ govukInput({
                         label: {
-                            text: "Postcode (optional)"
+                            text: question.labels.postcode
                         },
                         classes: "govuk-input--width-10",
                         id: "address-postcode",

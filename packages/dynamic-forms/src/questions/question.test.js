@@ -136,7 +136,8 @@ describe('./src/dynamic-forms/question.js', () => {
 				description: question.description,
 				html: question.html,
 				hint: undefined,
-				interfaceType: undefined
+				interfaceType: undefined,
+				requiredFields: undefined
 			});
 			assert.deepStrictEqual(result.answer, journey.response.answers[question.fieldName]);
 			assert.deepStrictEqual(result.layoutTemplate, journey.journeyTemplate);

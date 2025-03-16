@@ -198,6 +198,20 @@ export const REPRESENTATION_CATEGORY = [
 ];
 
 /**
+ * @type {import('@prisma/client').Prisma.RepresentationCategoryCreateInput[]}
+ */
+export const REPRESENTATION_CONTACT_PREFERENCE = [
+	{
+		id: 'email',
+		displayName: 'Email'
+	},
+	{
+		id: 'post',
+		displayName: 'Post'
+	}
+];
+
+/**
  * @type {Readonly<{MYSELF: string, ON_BEHALF_OF: string}>}
  */
 export const REPRESENTATION_SUBMITTED_FOR_ID = Object.freeze({

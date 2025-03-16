@@ -25,7 +25,7 @@ export default class AddressQuestion extends Question {
 	 * @param {Array.<import('../../validator/base-validator.js')>} [params.validators]
 	 * @param {boolean} [params.editable]
 	 */
-	constructor({ title, question, fieldName, validators, url, hint, html, editable }) {
+	constructor({ title, question, fieldName, validators, url, hint, html, editable, requiredFields }) {
 		super({
 			title: title,
 			viewFolder: 'address',
@@ -34,10 +34,15 @@ export default class AddressQuestion extends Question {
 			validators: validators,
 			hint: hint,
 			html: html,
-			editable
+			editable,
+			requiredFields: requiredFields
 		});
-
 		this.url = url;
+		for (const validator of validators) {
+			if (validator.constructor.name === 'AddressValidator') {
+				this.requiredFields = validator.requiredFields;
+			}
+		}
 	}
 
 	/**
@@ -60,6 +65,13 @@ export default class AddressQuestion extends Question {
 				postcode: address.postcode || ''
 			};
 		}
+		viewModel.question.labels = {
+			addressLine1: `Address line 1${this.formatLabelFromRequiredFields('addressLine1')}`,
+			addressLine2: `Address line 2${this.formatLabelFromRequiredFields('addressLine2')}`,
+			townCity: `Town or city${this.formatLabelFromRequiredFields('townCity')}`,
+			county: `County${this.formatLabelFromRequiredFields('county')}`,
+			postcode: `Postcode${this.formatLabelFromRequiredFields('postcode')}`
+		};
 
 		return viewModel;
 	}
@@ -130,5 +142,12 @@ export default class AddressQuestion extends Question {
 				action: this.getAction(sectionSegment, journey, answer)
 			}
 		];
+	}
+	formatLabelFromRequiredFields(fieldName) {
+		if (this.requiredFields[fieldName]) {
+			return '';
+		} else {
+			return ' (optional)';
+		}
 	}
 }

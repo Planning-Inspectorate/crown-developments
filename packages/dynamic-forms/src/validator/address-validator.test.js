@@ -50,6 +50,8 @@ describe('AddressValidator', () => {
 		assert.deepStrictEqual(errors, {});
 	});
 
+	it('should validate address with errors when required fields are missing', async () => {});
+
 	it('should reject invalid address with too long fields with errors', async () => {
 		const question = {
 			fieldName: 'testField'
