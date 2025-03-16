@@ -233,8 +233,12 @@ describe('unpublish case', () => {
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/cases/view/unpublish/success.njk');
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.ok(viewData);
-			assert.strictEqual(viewData.reference, 'ref-1');
-			assert.deepStrictEqual(mockReq.session.cases['case-1'], {});
+			assert.deepStrictEqual(viewData, {
+				title: 'Case Successfully Unpublished',
+				bodyText: 'Case reference <br><strong>ref-1</strong>',
+				backLinkText: 'Back to overview',
+				backLinkUrl: `/cases/${mockReq.params.id}`
+			});
 		});
 		it('should error if id is not provided', async () => {
 			const mockReq = {

@@ -117,12 +117,11 @@ export async function publishSuccessfulController(req, res) {
 		throw new Error('invalid publish case session');
 	}
 
-	const data = {
-		id,
-		reference
-	};
 	clearSessionData(req, id, ['reference', 'casePublished']);
 	res.render('views/cases/view/publish/success.njk', {
-		...data
+		title: 'Case Successfully Published',
+		bodyText: `Case reference <br><strong>${reference}</strong>`,
+		backLinkUrl: `/cases/${id}`,
+		backLinkText: 'Back to overview'
 	});
 }
