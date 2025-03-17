@@ -10,7 +10,6 @@
 {% endblock %}
 
 {% block content %}
-
     {% block beforeTaskList %}
     {% endblock %}
 
@@ -36,9 +35,9 @@
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-full">
             {% if summaryListData.sections | length > 1 %}
-                {{ multiTaskList(summaryListData.sections, journeyComplete) }}
+                {{ multiTaskList(summaryListData.sections, journeyComplete, beforeSubmitButton) }}
             {% elif summaryListData.sections | length == 1 %}
-                {{ singleTaskList(summaryListData.sections | first, journeyComplete) }}
+                {{ singleTaskList(summaryListData.sections | first, journeyComplete, beforeSubmitButton) }}
             {% endif %}
         </div>
     </div>

@@ -91,9 +91,11 @@ export function loadConfig() {
 		// the static directory to serve assets from (images, css, etc..)
 		staticDir: buildConfig.staticDir,
 		govNotify: {
-			disabled: GOV_NOTIFY_DISABLED,
+			disabled: govNotifyDisabled,
 			apiKey: GOV_NOTIFY_API_KEY,
-			testTemplate: GOV_NOTIFY_TEST_TEMPLATE_ID
+			templates: {
+				test: GOV_NOTIFY_TEST_TEMPLATE_ID
+			}
 		},
 		crownDevContactInfo: {
 			email: CROWN_DEV_CONTACT_EMAIL

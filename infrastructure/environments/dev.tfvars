@@ -28,8 +28,10 @@ apps_config = {
   }
 
   gov_notify = {
+    disabled = false
     templates = {
-      test_template_id = "4b8adfb1-1b7c-4333-b512-761eeedfdca2"
+      test_template_id    = "4b8adfb1-1b7c-4333-b512-761eeedfdca2"
+      pre_ack_template_id = "298a986d-c142-46f5-804a-9cb853ba8b3d"
     }
   }
 

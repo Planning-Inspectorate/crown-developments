@@ -12,6 +12,7 @@ import { getRedis } from '@pins/crowndev-lib/redis/index.js';
 import { buildInitSharePointDrive } from '#util/sharepoint.js';
 import { MapCache } from '@pins/crowndev-lib/util/map-cache.js';
 import { buildInitEntraClient } from '@pins/crowndev-lib/graph/cached-entra-client.js';
+import { getGovNotify } from '@pins/crowndev-lib/govnotify/index.js';
 
 /**
  * @param {import('./config-types.js').Config} config
@@ -22,6 +23,7 @@ export function getApp(config, logger) {
 	const dbClient = getDatabaseClient(config, logger);
 	const redis = getRedis(config.session, logger);
 	const getSharePointDrive = buildInitSharePointDrive(config);
+	const govNotifyClient = getGovNotify(config.govNotify, logger);
 	// share this cache between each instance of the EntraClient
 	const entraGroupCache = new MapCache(config.entra.cacheTtl);
 	const getEntraClient = buildInitEntraClient(!config.auth.disabled, entraGroupCache);
@@ -80,7 +82,8 @@ export function getApp(config, logger) {
 		redis,
 		dbClient,
 		getSharePointDrive,
-		getEntraClient
+		getEntraClient,
+		govNotifyClient
 	});
 	// register the router, which will define any subpaths
 	// any paths not defined will return 404 by default

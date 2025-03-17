@@ -11,11 +11,12 @@ import { createRoutes as createCaseRoutes } from './view/index.js';
  * @param {import('../../config-types.js').Config} config
  * @param {function(session): SharePointDrive} opts.getSharePointDrive
  * @param {import('@pins/crowndev-lib/graph/types.js').InitEntraClient} opts.getEntraClient
+ * @param {import('@pins/crowndev-lib/govnotify/gov-notify-client').GovNotifyClient|null} getGovNotify
  * @returns {import('express').Router}
  */
-export function createRoutes({ db, logger, config, getSharePointDrive, getEntraClient }) {
+export function createRoutes({ db, logger, config, getSharePointDrive, getEntraClient, govNotifyClient }) {
 	const router = createRouter({ mergeParams: true });
-	const createACaseRoutes = createCreateACaseRoutes({ db, logger, config, getSharePointDrive });
+	const createACaseRoutes = createCreateACaseRoutes({ db, logger, config, getSharePointDrive, govNotifyClient });
 	const listCases = buildListCases({ db, logger });
 	const caseRoutes = createCaseRoutes({ db, logger, config, getEntraClient, getSharePointDrive });
 

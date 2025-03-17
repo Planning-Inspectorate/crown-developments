@@ -27,8 +27,10 @@ apps_config = {
   }
 
   gov_notify = {
+    disabled = true
     templates = {
-      test_template_id = "" # TODO
+      test_template_id    = "" # TODO
+      pre_ack_template_id = "" #TODO
     }
   }
 

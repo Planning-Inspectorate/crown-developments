@@ -2,7 +2,7 @@
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
-{% macro multiTaskList(sections, journeyComplete) %}
+{% macro multiTaskList(sections, journeyComplete, beforeSubmitButton) %}
     <ol class="app-task-list">
         {% for section in sections %}
             <li class="govuk-body govuk-!-margin-bottom-9">
@@ -40,6 +40,9 @@
                 <h2 class='govuk-heading-m'>
                     Submit
                     {% if journeyComplete %}
+                        {% if beforeSubmitButton %}
+                            {{ beforeSubmitButton }}
+                        {% endif %}
                         <form action method="post">
                             <input type="hidden" name="_csrf" value="{{_csrf}}">
                             {{ govukButton({
