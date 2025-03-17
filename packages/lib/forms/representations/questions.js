@@ -86,7 +86,7 @@ export const questionProps = {
 	},
 	representedFullName: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-		title: 'Your full name',
+		title: 'Full name of the person you are representing',
 		question: 'What is the full name of the person you are representing?',
 		hint: 'We will publish this on the website along with your comments about the application.',
 		fieldName: 'representedFullName',
