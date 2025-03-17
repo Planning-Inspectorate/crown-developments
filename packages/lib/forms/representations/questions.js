@@ -64,7 +64,7 @@ export const questionProps = {
 		question: 'Would the person like to be heard if there is a hearing?',
 		fieldName: 'wantsToBeHeard',
 		url: 'wants-to-be-heard',
-		validators: []
+		validators: [new RequiredValidator('Select if the person would like to be heard at a hearing')]
 	},
 	submittedFor: {
 		type: COMPONENT_TYPES.RADIO,
