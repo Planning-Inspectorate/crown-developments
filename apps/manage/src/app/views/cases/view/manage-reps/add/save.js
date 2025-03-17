@@ -22,7 +22,7 @@ export async function viewAddRepresentationSuccessPage(req, res) {
 	res.render('views/cases/view/manage-reps/add/success.njk', {
 		title: 'Representation added',
 		bodyText: `Representation reference <br><strong>${representationReference}</strong>`,
-		backLinkUrl: `/cases/${id}/manage-representations`,
-		backLinkText: 'Go back to overview'
+		successBackLinkUrl: `/cases/${id}/manage-representations`,
+		successBackLinkText: 'Go back to overview'
 	});
 }

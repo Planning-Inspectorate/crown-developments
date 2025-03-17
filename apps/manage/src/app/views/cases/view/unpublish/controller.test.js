@@ -236,8 +236,8 @@ describe('unpublish case', () => {
 			assert.deepStrictEqual(viewData, {
 				title: 'Case Successfully Unpublished',
 				bodyText: 'Case reference <br><strong>ref-1</strong>',
-				backLinkText: 'Back to overview',
-				backLinkUrl: `/cases/${mockReq.params.id}`
+				successBackLinkText: 'Back to overview',
+				successBackLinkUrl: `/cases/${mockReq.params.id}`
 			});
 		});
 		it('should error if id is not provided', async () => {

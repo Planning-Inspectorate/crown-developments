@@ -30,7 +30,7 @@ describe('written representations', () => {
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/cases/view/manage-reps/add/success.njk');
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1].title, 'Representation added');
 			assert.deepStrictEqual(
-				mockRes.render.mock.calls[0].arguments[1].backLinkUrl,
+				mockRes.render.mock.calls[0].arguments[1].successBackLinkUrl,
 				`/cases/${mockReq.params.id}/manage-representations`
 			);
 		});
