@@ -50,6 +50,38 @@ describe('AddressValidator', () => {
 		assert.deepStrictEqual(errors, {});
 	});
 
+	it('should validate address with errors when required fields are missing', async () => {
+		const question = {
+			fieldName: 'testField',
+			requiredFields: {
+				addressLine1: true,
+				addressLine2: true,
+				townCity: true,
+				county: true,
+				postcode: true
+			}
+		};
+
+		const req = {
+			body: {
+				testField_addressLine1: '',
+				testField_addressLine2: '',
+				testField_townCity: '',
+				testField_county: '',
+				testField_postcode: ''
+			}
+		};
+
+		const errors = await _validationMappedErrors(req, question);
+
+		assert.strictEqual(Object.keys(errors).length, 5);
+		assert.strictEqual(errors.testField_addressLine1.msg, 'Enter an address line 1');
+		assert.strictEqual(errors.testField_addressLine2.msg, 'Enter an address line 2');
+		assert.strictEqual(errors.testField_townCity.msg, 'Enter a town or city');
+		assert.strictEqual(errors.testField_county.msg, 'Enter a county');
+		assert.strictEqual(errors.testField_postcode.msg, 'Enter a postcode');
+	});
+
 	it('should reject invalid address with too long fields with errors', async () => {
 		const question = {
 			fieldName: 'testField'
@@ -84,7 +116,7 @@ describe('AddressValidator', () => {
 });
 
 const _validationMappedErrors = async (req, question) => {
-	const addressValidator = new AddressValidator();
+	const addressValidator = new AddressValidator({ requiredFields: question.requiredFields });
 
 	const validationRules = addressValidator.validate(question);
 

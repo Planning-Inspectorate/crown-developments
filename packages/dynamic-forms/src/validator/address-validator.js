@@ -33,9 +33,12 @@ export default class AddressValidator extends BaseValidator {
 	 * creates an instance of an AddressValidator
 	 * @param {Object} opts
 	 * @param {boolean} [opts.required]
+	 * @param {{[key: string]: boolean}} [opts.requiredFields]
 	 */
-	constructor() {
+	constructor(opts) {
 		super();
+
+		this.requiredFields = opts?.requiredFields;
 	}
 
 	/**
@@ -59,8 +62,15 @@ export default class AddressValidator extends BaseValidator {
 	 * @param {string} fieldName
 	 */
 	#addressLine1Rule(fieldName) {
-		return body(fieldName + '_addressLine1')
-			.optional({ checkFalsy: true })
+		const validator = body(fieldName + '_addressLine1');
+
+		if (!this.requiredFields?.addressLine1) {
+			validator.optional({ checkFalsy: true });
+		} else {
+			validator.notEmpty().withMessage(`Enter an address line 1`);
+		}
+
+		return validator
 			.isLength({ min: addressLine1MinLength, max: addressLine1MaxLength })
 			.bail()
 			.withMessage(`Address line 1 must be ${addressLine1MaxLength} characters or less`);
@@ -71,8 +81,14 @@ export default class AddressValidator extends BaseValidator {
 	 * @param {string} fieldName
 	 */
 	#addressLine2Rule(fieldName) {
-		return body(fieldName + '_addressLine2')
-			.optional({ checkFalsy: true })
+		const validator = body(fieldName + '_addressLine2');
+		if (!this.requiredFields?.addressLine2) {
+			validator.optional({ checkFalsy: true });
+		} else {
+			validator.notEmpty().withMessage(`Enter an address line 2`);
+		}
+
+		return validator
 			.isLength({ min: addressLine2MinLength, max: addressLine2MaxLength })
 			.bail()
 			.withMessage(`Address line 2 must be ${addressLine2MaxLength} characters or less`);
@@ -83,8 +99,13 @@ export default class AddressValidator extends BaseValidator {
 	 * @param {string} fieldName
 	 */
 	#townCityRule(fieldName) {
-		return body(fieldName + '_townCity')
-			.optional({ checkFalsy: true })
+		const validator = body(fieldName + '_townCity');
+		if (!this.requiredFields?.townCity) {
+			validator.optional({ checkFalsy: true });
+		} else {
+			validator.notEmpty().withMessage(`Enter a town or city`);
+		}
+		return validator
 			.isLength({ min: townCityMinLength, max: townCityMaxLength })
 			.bail()
 			.withMessage(`Town or city must be ${townCityMaxLength} characters or less`);
@@ -95,8 +116,14 @@ export default class AddressValidator extends BaseValidator {
 	 * @param {string} fieldName
 	 */
 	#countyRule(fieldName) {
-		return body(fieldName + '_county')
-			.optional({ checkFalsy: true })
+		const validator = body(fieldName + '_county');
+		if (!this.requiredFields?.county) {
+			validator.optional({ checkFalsy: true });
+		} else {
+			validator.notEmpty().withMessage(`Enter a county`);
+		}
+
+		return validator
 			.isLength({ min: countyMinLength, max: countyMaxLength })
 			.bail()
 			.withMessage(`County must be ${countyMaxLength} characters or less`);
@@ -107,8 +134,14 @@ export default class AddressValidator extends BaseValidator {
 	 * @param {string} fieldName
 	 */
 	#postCodeRule(fieldName) {
-		return body(fieldName + '_postcode')
-			.optional({ checkFalsy: true })
+		const validator = body(fieldName + '_postcode');
+		if (!this.requiredFields?.postcode) {
+			validator.optional({ checkFalsy: true });
+		} else {
+			validator.notEmpty().withMessage(`Enter a postcode`);
+		}
+
+		return validator
 			.isLength({ min: postcodeMinLength, max: postcodeMaxLength })
 			.bail()
 			.withMessage(`Postcode must be between ${postcodeMinLength} and ${postcodeMaxLength} characters`)

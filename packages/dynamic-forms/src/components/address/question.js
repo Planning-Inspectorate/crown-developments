@@ -3,6 +3,7 @@ import { Question } from '../../questions/question.js';
 import escape from 'escape-html';
 import { Address } from '../../lib/address.js';
 import { nl2br } from '../../lib/utils.js';
+import AddressValidator from '../../validator/address-validator.js';
 
 /**
  * @typedef {import('../../journey/journey-response.js').JourneyResponse} JourneyResponse
@@ -36,8 +37,21 @@ export default class AddressQuestion extends Question {
 			html: html,
 			editable
 		});
-
 		this.url = url;
+
+		for (const validator of validators) {
+			if (validator instanceof AddressValidator) {
+				this.requiredFields = validator.requiredFields;
+			}
+		}
+
+		this.addressLabels = {
+			addressLine1: `Address line 1${this.formatLabelFromRequiredFields('addressLine1')}`,
+			addressLine2: `Address line 2${this.formatLabelFromRequiredFields('addressLine2')}`,
+			townCity: `Town or city${this.formatLabelFromRequiredFields('townCity')}`,
+			county: `County${this.formatLabelFromRequiredFields('county')}`,
+			postcode: `Postcode${this.formatLabelFromRequiredFields('postcode')}`
+		};
 	}
 
 	/**
@@ -60,6 +74,8 @@ export default class AddressQuestion extends Question {
 				postcode: address.postcode || ''
 			};
 		}
+
+		viewModel.question.labels = this.addressLabels;
 
 		return viewModel;
 	}
@@ -130,5 +146,12 @@ export default class AddressQuestion extends Question {
 				action: this.getAction(sectionSegment, journey, answer)
 			}
 		];
+	}
+	formatLabelFromRequiredFields(fieldName) {
+		if (this.requiredFields && this.requiredFields[fieldName]) {
+			return '';
+		} else {
+			return ' (optional)';
+		}
 	}
 }

@@ -198,6 +198,20 @@ export const REPRESENTATION_CATEGORY = [
 ];
 
 /**
+ * @type {import('@prisma/client').Prisma.ContactPreferenceCreateInput[]}
+ */
+export const CONTACT_PREFERENCE = [
+	{
+		id: 'email',
+		displayName: 'Email'
+	},
+	{
+		id: 'post',
+		displayName: 'Post'
+	}
+];
+
+/**
  * @type {Readonly<{MYSELF: string, ON_BEHALF_OF: string}>}
  */
 export const REPRESENTATION_SUBMITTED_FOR_ID = Object.freeze({
@@ -468,6 +482,10 @@ export async function seedStaticData(dbClient) {
 
 	await Promise.all(
 		REPRESENTED_TYPE.map((input) => upsertReferenceData({ delegate: dbClient.representedType, input }))
+	);
+
+	await Promise.all(
+		CONTACT_PREFERENCE.map((input) => upsertReferenceData({ delegate: dbClient.contactPreference, input }))
 	);
 
 	const categories = CATEGORIES.filter((c) => !c.ParentCategory);
