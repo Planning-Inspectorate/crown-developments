@@ -1,3 +1,4 @@
+import { Address } from '@pins/dynamic-forms/src/lib/address.js';
 /**
  * The view model used for have-your-say answers
  */
@@ -6,7 +7,7 @@ export type HaveYourSayViewModel = HaveYourSay.Common & (HaveYourSay.Myself | Ha
 /**
  * The view model used for have-your-say review & view in the manage app
  */
-export type HaveYourSayManageModel = HaveYourSayViewModel & InternalFields;
+export type HaveYourSayManageModel = HaveYourSayViewModel & HaveYourSay.InternalFields;
 
 export type HaveYourSayManageModelFields = keyof HaveYourSayManageModel;
 
@@ -18,6 +19,9 @@ export namespace HaveYourSay {
 		submittedForId: string;
 	}
 
+	/**
+	 * Fields that are used in the internal representation of have-your-say
+	 */
 	export interface InternalFields {
 		reference: string;
 		statusId: string;
@@ -39,6 +43,8 @@ export namespace HaveYourSay {
 	export interface Myself {
 		myselfIsAdult: boolean;
 		myselfFullName?: string;
+		myselfAddress?: Address;
+		myselfContactPreference?: string;
 		myselfEmail: string;
 		myselfComment: string;
 	}

@@ -131,14 +131,16 @@ model Address {
 /// Contact represents the details of a person or organisation
 model Contact {
   /// internal identifier
-  id              String   @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
-  fullName        String?
-  telephoneNumber String?
-  email           String?
-  addressId       String?  @db.UniqueIdentifier
-  Address         Address? @relation(fields: [addressId], references: [id])
-  isAdult         Boolean  @default(true)
-  jobTitleOrRole  String?
+  id                  String             @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  fullName            String?
+  telephoneNumber     String?
+  email               String?
+  addressId           String?            @db.UniqueIdentifier
+  Address             Address?           @relation(fields: [addressId], references: [id])
+  isAdult             Boolean            @default(true)
+  jobTitleOrRole      String?
+  contactPreferenceId String?
+  ContactPreference   ContactPreference? @relation(fields: [contactPreferenceId], references: [id])
 
   CrownDevelopmentApplicant        CrownDevelopment[] @relation("ApplicantContact")
   CrownDevelopmentAgent            CrownDevelopment[] @relation("AgentContact")
@@ -269,6 +271,14 @@ model Category {
   ParentCategory   Category?          @relation("Parent", fields: [parentCategoryId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   Category         Category[]         @relation("Parent")
   CrownDevelopment CrownDevelopment[]
+}
+
+/// ContactPreference represents the preferred method of contact for a contact
+model ContactPreference {
+  /// unique machine-readable name, not generated, e.g. "email"
+  id          String    @id
+  displayName String?
+  Contact     Contact[]
 }
 
 /// RepresentationCategory represents the options for categories such as 'stat con','member of the public', etc..

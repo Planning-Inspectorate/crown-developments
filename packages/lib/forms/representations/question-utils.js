@@ -2,6 +2,9 @@ import { CUSTOM_COMPONENTS } from '../custom-components/index.js';
 import RequiredValidator from '@pins/dynamic-forms/src/validator/required-validator.js';
 import StringValidator from '@pins/dynamic-forms/src/validator/string-validator.js';
 import { COMPONENT_TYPES } from '@pins/dynamic-forms';
+import { referenceDataToRadioOptions } from '../../util/questions.js';
+import { CONTACT_PREFERENCE } from '@pins/crowndev-database/src/seed/data-static.js';
+import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
 
 /**
  *
@@ -77,6 +80,42 @@ export function representationsContactQuestions({ prefix }) {
 				}
 			})
 		]
+	};
+
+	questions[`${prefix}ContactPreference`] = {
+		type: COMPONENT_TYPES.RADIO,
+		title: 'What is your contact preference',
+		question: 'What is your preferred contact method?',
+		fieldName: 'contactPreference',
+		url: 'contact-preference',
+		validators: [new RequiredValidator('Select the contact preference')],
+		options: referenceDataToRadioOptions(CONTACT_PREFERENCE)
+	};
+
+	questions[`${prefix}Address`] = {
+		type: COMPONENT_TYPES.ADDRESS,
+		title: 'What is your address',
+		question: 'What is your address?',
+		fieldName: `${prefix}Address`,
+		url: 'address',
+		validators: [
+			new AddressValidator({
+				requiredFields: {
+					addressLine1: true,
+					townCity: true,
+					postcode: true
+				}
+			})
+		]
+	};
+
+	questions[`${prefix}HearingPreference`] = {
+		type: COMPONENT_TYPES.BOOLEAN,
+		title: 'Would you like to be heard at a hearing',
+		question: 'Would you like to be heard at a hearing?',
+		fieldName: 'hearingPreference',
+		url: 'hearing-preference',
+		validator: [new RequiredValidator('Select the hearing preference')]
 	};
 
 	return questions;
