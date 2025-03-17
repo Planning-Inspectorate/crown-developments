@@ -3,7 +3,7 @@ import RequiredValidator from '@pins/dynamic-forms/src/validator/required-valida
 import StringValidator from '@pins/dynamic-forms/src/validator/string-validator.js';
 import { COMPONENT_TYPES } from '@pins/dynamic-forms';
 import { referenceDataToRadioOptions } from '../../util/questions.js';
-import { REPRESENTATION_CONTACT_PREFERENCE } from '@pins/crowndev-database/src/seed/data-static.js';
+import { CONTACT_PREFERENCE } from '@pins/crowndev-database/src/seed/data-static.js';
 import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
 
 /**
@@ -89,7 +89,7 @@ export function representationsContactQuestions({ prefix }) {
 		fieldName: 'contactPreference',
 		url: 'contact-preference',
 		validators: [new RequiredValidator('Select the contact preference')],
-		options: referenceDataToRadioOptions(REPRESENTATION_CONTACT_PREFERENCE)
+		options: referenceDataToRadioOptions(CONTACT_PREFERENCE)
 	};
 
 	questions[`${prefix}Address`] = {

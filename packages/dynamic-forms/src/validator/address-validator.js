@@ -66,6 +66,8 @@ export default class AddressValidator extends BaseValidator {
 
 		if (!this.requiredFields?.addressLine1) {
 			validator.optional({ checkFalsy: true });
+		} else {
+			validator.notEmpty().withMessage(`Address line 1 must be between 1 and ${addressLine1MaxLength} characters`);
 		}
 
 		return validator
@@ -82,6 +84,8 @@ export default class AddressValidator extends BaseValidator {
 		const validator = body(fieldName + '_addressLine2');
 		if (!this.requiredFields?.addressLine2) {
 			validator.optional({ checkFalsy: true });
+		} else {
+			validator.notEmpty().withMessage(`Address line 1 must be between 1 and ${addressLine2MaxLength} characters`);
 		}
 
 		return validator
@@ -98,6 +102,8 @@ export default class AddressValidator extends BaseValidator {
 		const validator = body(fieldName + '_townCity');
 		if (!this.requiredFields?.townCity) {
 			validator.optional({ checkFalsy: true });
+		} else {
+			validator.notEmpty().withMessage(`Town or city must be between 1 and ${townCityMaxLength} characters`);
 		}
 		return validator
 			.isLength({ min: townCityMinLength, max: townCityMaxLength })
@@ -113,6 +119,8 @@ export default class AddressValidator extends BaseValidator {
 		const validator = body(fieldName + '_county');
 		if (!this.requiredFields?.county) {
 			validator.optional({ checkFalsy: true });
+		} else {
+			validator.notEmpty().withMessage(`County must be between 1 and ${countyMaxLength} characters`);
 		}
 
 		return validator
@@ -129,6 +137,8 @@ export default class AddressValidator extends BaseValidator {
 		const validator = body(fieldName + '_postcode');
 		if (!this.requiredFields?.postcode) {
 			validator.optional({ checkFalsy: true });
+		} else {
+			validator.notEmpty().withMessage(`Postcode must be between 1 and ${postcodeMaxLength} characters`);
 		}
 
 		return validator

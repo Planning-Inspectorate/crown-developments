@@ -131,19 +131,29 @@ model Address {
 /// Contact represents the details of a person or organisation
 model Contact {
   /// internal identifier
-  id              String   @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
-  fullName        String?
-  telephoneNumber String?
-  email           String?
-  addressId       String?  @db.UniqueIdentifier
-  Address         Address? @relation(fields: [addressId], references: [id])
-  isAdult         Boolean  @default(true)
-  jobTitleOrRole  String?
+  id                  String             @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  fullName            String?
+  telephoneNumber     String?
+  email               String?
+  addressId           String?            @db.UniqueIdentifier
+  Address             Address?           @relation(fields: [addressId], references: [id])
+  isAdult             Boolean            @default(true)
+  jobTitleOrRole      String?
+  contactPreferenceId String?
+  ContactPreference   ContactPreference? @relation(fields: [contactPreferenceId], references: [id])
 
   CrownDevelopmentApplicant        CrownDevelopment[] @relation("ApplicantContact")
   CrownDevelopmentAgent            CrownDevelopment[] @relation("AgentContact")
   RepresentationSubmittedByContact Representation[]   @relation("RepresentationSubmittedByContact")
   Representation                   Representation[]   @relation("RepresentedContact")
+}
+
+/// ContactPreference represents the preferred method of contact for a contact
+model ContactPreference {
+  /// unique machine-readable name, not generated, e.g. "email"
+  id          String    @id
+  displayName String?
+  Contact     Contact[]
 }
 
 /// Lpa represents a Local Planning Authority
