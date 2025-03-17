@@ -1,6 +1,6 @@
 {% from "govuk/components/panel/macro.njk" import govukPanel %}
 
-{% macro success(title, bodyText, backLinkUrl, backLinkText) %}
+{% macro success(title, bodyText, successBackLinkUrl, successBackLinkText) %}
     {{ govukPanel({
         titleText: title,
         html: bodyText
@@ -9,7 +9,7 @@
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
             <p class="govuk-body">
-                <a href="{{ backLinkUrl }}" class="govuk-link">{{ backLinkText }}</a>
+                <a href="{{ successBackLinkUrl }}" class="govuk-link">{{ successBackLinkText }}</a>
             </p>
         </div>
     </div>

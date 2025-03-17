@@ -76,8 +76,8 @@ export function successController(req, res) {
 	res.render('views/cases/create-a-case/success.njk', {
 		title: 'Case created',
 		bodyText: `Case reference <br><strong>${data.reference}</strong>`,
-		backLinkUrl: `/cases/${data.id}`,
-		backLinkText: `View case details for ${data.reference}`
+		successBackLinkUrl: `/cases/${data.id}`,
+		successBackLinkText: `View case details for ${data.reference}`
 	});
 }
 

@@ -80,7 +80,7 @@ export async function unpublishSuccessfulController(req, res) {
 	res.render('views/cases/view/unpublish/success.njk', {
 		title: 'Case Successfully Unpublished',
 		bodyText: `Case reference <br><strong>${reference}</strong>`,
-		backLinkUrl: `/cases/${id}`,
-		backLinkText: 'Back to overview'
+		successBackLinkUrl: `/cases/${id}`,
+		successBackLinkText: 'Back to overview'
 	});
 }

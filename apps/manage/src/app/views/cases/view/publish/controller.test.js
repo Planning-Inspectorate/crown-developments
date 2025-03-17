@@ -245,8 +245,8 @@ describe('publish case', () => {
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
 				title: 'Case Successfully Published',
 				bodyText: 'Case reference <br><strong>ref-1</strong>',
-				backLinkText: 'Back to overview',
-				backLinkUrl: `/cases/${mockReq.params.id}`
+				successBackLinkText: 'Back to overview',
+				successBackLinkUrl: `/cases/${mockReq.params.id}`
 			});
 			// And clear the session
 			assert.strictEqual(mockReq.session.cases['case-1'].reference, undefined);

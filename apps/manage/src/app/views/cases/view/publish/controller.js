@@ -121,7 +121,7 @@ export async function publishSuccessfulController(req, res) {
 	res.render('views/cases/view/publish/success.njk', {
 		title: 'Case Successfully Published',
 		bodyText: `Case reference <br><strong>${reference}</strong>`,
-		backLinkUrl: `/cases/${id}`,
-		backLinkText: 'Back to overview'
+		successBackLinkUrl: `/cases/${id}`,
+		successBackLinkText: 'Back to overview'
 	});
 }

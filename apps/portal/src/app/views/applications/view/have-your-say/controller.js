@@ -215,8 +215,8 @@ export async function viewHaveYourSaySuccessPage(req, res) {
 	res.render('views/applications/view/have-your-say/success.njk', {
 		title: 'Representation Submitted',
 		bodyText: `Your reference number <br><strong>${representationReference}</strong>`,
-		backLinkUrl: `/applications/${id}/application-information`,
-		backLinkText: 'Back to the application information page'
+		successBackLinkUrl: `/applications/${id}/application-information`,
+		successBackLinkText: 'Back to the application information page'
 	});
 }
 
