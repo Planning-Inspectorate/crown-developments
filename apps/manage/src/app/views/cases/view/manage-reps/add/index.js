@@ -9,6 +9,7 @@ import validate from '@pins/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
 import { buildSave, question } from '@pins/dynamic-forms/src/controller.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
+import { viewAddRepresentationSuccessPage } from './save.js';
 
 export function createRoutes() {
 	const router = createRouter({ mergeParams: true });
@@ -26,6 +27,8 @@ export function createRoutes() {
 		validationErrorHandler,
 		buildSave(saveDataToSession)
 	);
+
+	router.get('/success', viewAddRepresentationSuccessPage);
 
 	return router;
 }

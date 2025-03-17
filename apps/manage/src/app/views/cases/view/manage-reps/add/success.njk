@@ -1,0 +1,18 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+
+{% block pageContent %}
+    {{ govukPanel({
+        titleText: "Representation added",
+        html: "Representation reference <br><strong>" + representationReference + "</strong>"
+    }) }}
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <p class="govuk-body">
+                <a href="/cases/{{ id }}/manage-representations" class="govuk-link">Go back to overview</a>
+            </p>
+        </div>
+    </div>
+{% endblock %}
