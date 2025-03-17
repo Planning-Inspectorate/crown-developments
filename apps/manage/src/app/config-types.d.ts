@@ -43,5 +43,10 @@ interface Config {
 		disabled: boolean;
 		apiKey: string;
 		testTemplate: string;
+		preAckTemplate: string;
+		templates: {
+			test: string;
+			acknowledgePreNotification: string;
+		};
 	};
 }

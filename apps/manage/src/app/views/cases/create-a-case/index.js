@@ -19,14 +19,15 @@ import { buildSaveController, successController } from './save.js';
  * @param {import('@prisma/client').PrismaClient} opts.db
  * @param {import('../../../config-types.js').Config} config
  * @param {function(session): SharePointDrive} opts.getSharePointDrive
+ * @param {import('@pins/crowndev-lib/govnotify/gov-notify-client').GovNotifyClient|null} getGovNotify
  * @returns {import('express').Router}
  */
-export function createRoutes({ db, logger, config, getSharePointDrive }) {
+export function createRoutes({ db, logger, config, getSharePointDrive, govNotifyClient }) {
 	const router = createRouter({ mergeParams: true });
 	const questions = getQuestions();
 	const getJourney = buildGetJourney((req, journeyResponse) => createJourney(questions, journeyResponse, req));
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
-	const saveController = buildSaveController({ db, logger, config, getSharePointDrive });
+	const saveController = buildSaveController({ db, logger, config, getSharePointDrive, govNotifyClient });
 
 	router.get('/', getJourneyResponse, getJourney, redirectToUnansweredQuestion());
 
@@ -41,7 +42,11 @@ export function createRoutes({ db, logger, config, getSharePointDrive }) {
 		buildSave(saveDataToSession)
 	);
 
-	router.get('/check-your-answers', getJourneyResponse, getJourney, (req, res) => list(req, res, '', {}));
+	router.get('/check-your-answers', getJourneyResponse, getJourney, (req, res) =>
+		list(req, res, '', {
+			notifyWarningMessage: 'Clicking Accept & Submit will send a notification to the applicant / agent'
+		})
+	);
 	router.post('/check-your-answers', getJourneyResponse, getJourney, asyncHandler(saveController));
 	router.get('/success', successController);
 

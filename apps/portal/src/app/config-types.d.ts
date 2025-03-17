@@ -16,7 +16,9 @@ interface Config {
 	govNotify: {
 		disabled: boolean;
 		apiKey: string;
-		testTemplate: string;
+		templates: {
+			test: string;
+		};
 	};
 	sharePoint: {
 		disabled: boolean; // Enable/disable sharepoint connection

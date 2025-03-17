@@ -210,6 +210,27 @@ export class SharePointDrive {
 
 	/**
 	 *
+	 * @param {string} itemId Id of the folder to share
+	 * @returns {Promise<void>}
+	 */
+	async fetchUserInviteLink(itemId) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('items')
+			.addPathSegment(itemId)
+			.addPathSegment('createLink');
+
+		const request = {
+			type: 'edit',
+			scope: 'users'
+		};
+
+		return await this.client.api(urlBuilder.toString()).post(request);
+	}
+
+	/**
+	 *
 	 * @param {string} itemId
 	 * @param {string} permissionIdToUpdate
 	 * @param { Role } role

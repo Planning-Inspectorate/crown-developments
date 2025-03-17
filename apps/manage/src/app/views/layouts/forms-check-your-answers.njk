@@ -1,4 +1,5 @@
 {% extends "components/task-list/index.njk" %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
 
 {% set title = "Check your Answers - " + journeyTitle + " - GOV.UK" %}
 
@@ -22,3 +23,8 @@
     {% endif %}
 {% endblock %}
 
+{% if notifyWarningMessage %}
+    {% set beforeSubmitButton = govukWarningText({
+        text: notifyWarningMessage
+    }) %}
+{% endif %}

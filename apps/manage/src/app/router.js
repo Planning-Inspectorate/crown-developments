@@ -11,9 +11,10 @@ import { createRoutes as createCasesRoutes } from './views/cases/index.js';
  * @param {import('@prisma/client').PrismaClient} params.dbClient
  * @param {function(session): SharePointDrive} getSharePointDrive
  * @param {import('@pins/crowndev-lib/graph/types.js').InitEntraClient} getEntraClient
+ * @param {import('@pins/crowndev-lib/govnotify/gov-notify-client').GovNotifyClient|null} getGovNotify
  * @returns {import('express').Router}
  */
-export function buildRouter({ logger, config, redis, dbClient, getSharePointDrive, getEntraClient }) {
+export function buildRouter({ logger, config, redis, dbClient, getSharePointDrive, getEntraClient, govNotifyClient }) {
 	const router = createRouter();
 	const monitoringRoutes = createMonitoringRoutes({
 		config,
@@ -25,7 +26,14 @@ export function buildRouter({ logger, config, redis, dbClient, getSharePointDriv
 		config,
 		redisClient: redis
 	});
-	const casesRoutes = createCasesRoutes({ db: dbClient, logger, config, getSharePointDrive, getEntraClient });
+	const casesRoutes = createCasesRoutes({
+		db: dbClient,
+		logger,
+		config,
+		getSharePointDrive,
+		getEntraClient,
+		govNotifyClient
+	});
 
 	router.use('/', monitoringRoutes);
 	router.get('/unauthenticated', (req, res) => res.status(401).render('views/errors/401.njk'));

@@ -21,6 +21,11 @@ describe('save', () => {
 		const config = {
 			sharePoint: {
 				caseTemplateId: '789'
+			},
+			govNotify: {
+				templates: {
+					acknowledgePreNotification: 'template_id'
+				}
 			}
 		};
 
@@ -44,12 +49,13 @@ describe('save', () => {
 			);
 		});
 
-		it('should call create with a valid payload and skip sharepoint when sharepoint is disabled', async () => {
+		it('should call create with a valid payload and skip sharepoint and gov notify when both are disabled', async () => {
 			const db = dbMock();
 			const getSharePointDrive = () => null;
+			const govNotifyClient = null;
 			const loggerInstance = mockLogger();
 
-			const save = buildSaveController({ db, logger: loggerInstance, config, getSharePointDrive });
+			const save = buildSaveController({ db, logger: loggerInstance, config, getSharePointDrive, govNotifyClient });
 			const answers = {
 				applicationDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
@@ -79,14 +85,15 @@ describe('save', () => {
 			}
 
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
-			assert.strictEqual(loggerInstance.warn.mock.callCount(), 1);
+			assert.strictEqual(loggerInstance.warn.mock.callCount(), 2);
 			// todo: integration test to run Prisma's validation?
 		});
 
 		it('should call create with a valid payload', async () => {
 			const db = dbMock();
 			const getSharePointDrive = () => null;
-			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive });
+			const govNotifyClient = null;
+			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive, govNotifyClient });
 			const answers = {
 				applicationDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
@@ -121,6 +128,7 @@ describe('save', () => {
 
 		it('should call copyDriveItem and grant write access to the applicant when sharepoint is enabled and no agent email is provided', async () => {
 			const db = dbMock();
+			const govNotifyClient = null;
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
 				getItemsByPath: mock.fn(() => {
@@ -129,11 +137,25 @@ describe('save', () => {
 						{ id: 'id2', name: 'LPA' }
 					];
 				}),
-				addItemPermissions: mock.fn()
+				getDriveItemByPath: mock.fn(() => {
+					return {
+						item: {
+							webUrl: 'www.test-sharepoint.com/folder'
+						}
+					};
+				}),
+				addItemPermissions: mock.fn(),
+				fetchUserInviteLink: mock.fn(() => {
+					return {
+						link: {
+							webUrl: 'https://sharepoint.com/:f:/s/site/random_id'
+						}
+					};
+				})
 			};
 			const getSharePointDrive = () => sharepointDrive;
 
-			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive });
+			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive, govNotifyClient });
 			const answers = {
 				applicationDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
@@ -162,6 +184,7 @@ describe('save', () => {
 		});
 		it('should call copyDriveItem and grant write access to the applicant and agent when sharepoint is enabled and an agentEmail was provided', async () => {
 			const db = dbMock();
+			const govNotifyClient = null;
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
 				getItemsByPath: mock.fn(() => {
@@ -170,11 +193,25 @@ describe('save', () => {
 						{ id: 'id2', name: 'LPA' }
 					];
 				}),
-				addItemPermissions: mock.fn()
+				getDriveItemByPath: mock.fn(() => {
+					return {
+						item: {
+							webUrl: 'www.test-sharepoint.com/folder'
+						}
+					};
+				}),
+				addItemPermissions: mock.fn(),
+				fetchUserInviteLink: mock.fn(() => {
+					return {
+						link: {
+							webUrl: 'https://sharepoint.com/:f:/s/site/random_id'
+						}
+					};
+				})
 			};
 			const getSharePointDrive = () => sharepointDrive;
 
-			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive });
+			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive, govNotifyClient });
 			const answers = {
 				applicationDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
@@ -204,6 +241,154 @@ describe('save', () => {
 					{ email: answers.agentEmail, id: '' }
 				]
 			});
+		});
+		it('should send email to the applicant when there is no agent on the case', async () => {
+			const db = dbMock();
+			const sharepointDrive = {
+				copyDriveItem: mock.fn(),
+				getItemsByPath: mock.fn(() => {
+					return [
+						{ id: 'id1', name: 'Applicant' },
+						{ id: 'id2', name: 'LPA' }
+					];
+				}),
+				getDriveItemByPath: mock.fn(() => {
+					return {
+						webUrl: 'www.test-sharepoint.com/folder'
+					};
+				}),
+				addItemPermissions: mock.fn(),
+				fetchUserInviteLink: mock.fn(() => {
+					return {
+						link: {
+							webUrl: 'https://sharepoint.com/:f:/s/site/random_id'
+						}
+					};
+				})
+			};
+			const getSharePointDrive = () => sharepointDrive;
+
+			const govNotifyClient = {
+				sendEmail: mock.fn()
+			};
+
+			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive, govNotifyClient });
+			const req = {
+				session: {
+					forms: {
+						'create-a-case': {
+							hasAgent: false,
+							applicantEmail: 'applicantEmail@mail.com',
+							agentEmail: 'agentEmail@mail.com'
+						}
+					}
+				}
+			};
+			const answers = {
+				applicationDescription: 'Project One',
+				typeOfApplication: 'application-type-1',
+				lpaId: 'lpa-1',
+				hasAgent: false,
+				applicantEmail: 'applicantEmail@mail.com',
+				agentEmail: 'agentEmail@mail.com'
+			};
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers
+					}
+				}
+			};
+
+			await save(req, res, mock.fn());
+
+			assert.strictEqual(res.redirect.mock.callCount(), 1);
+			assert.strictEqual(govNotifyClient.sendEmail.mock.callCount(), 1);
+			assert.deepStrictEqual(govNotifyClient.sendEmail.mock.calls[0].arguments, [
+				'template_id',
+				'applicantEmail@mail.com',
+				{
+					personalisation: {
+						reference: 'CROWN/2025/0000001',
+						sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id'
+					}
+				}
+			]);
+		});
+		it('should send email to the agent when there is an agent on the case', async () => {
+			const db = dbMock();
+			const sharepointDrive = {
+				copyDriveItem: mock.fn(),
+				getItemsByPath: mock.fn(() => {
+					return [
+						{ id: 'id1', name: 'Applicant' },
+						{ id: 'id2', name: 'LPA' }
+					];
+				}),
+				getDriveItemByPath: mock.fn(() => {
+					return {
+						webUrl: 'www.test-sharepoint.com/folder'
+					};
+				}),
+				addItemPermissions: mock.fn(),
+				fetchUserInviteLink: mock.fn(() => {
+					return {
+						link: {
+							webUrl: 'https://sharepoint.com/:f:/s/site/random_id'
+						}
+					};
+				})
+			};
+			const getSharePointDrive = () => sharepointDrive;
+
+			const govNotifyClient = {
+				sendEmail: mock.fn()
+			};
+
+			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive, govNotifyClient });
+			const req = {
+				session: {
+					forms: {
+						'create-a-case': {
+							hasAgent: true,
+							applicantEmail: 'applicantEmail@mail.com',
+							agentEmail: 'agentEmail@mail.com'
+						}
+					}
+				}
+			};
+			const answers = {
+				applicationDescription: 'Project One',
+				typeOfApplication: 'application-type-1',
+				lpaId: 'lpa-1',
+				hasAgent: true,
+				applicantEmail: 'applicantEmail@mail.com',
+				agentEmail: 'agentEmail@mail.com'
+			};
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers
+					}
+				}
+			};
+
+			await save(req, res, mock.fn());
+
+			assert.strictEqual(res.redirect.mock.callCount(), 1);
+			assert.strictEqual(govNotifyClient.sendEmail.mock.callCount(), 1);
+			assert.deepStrictEqual(govNotifyClient.sendEmail.mock.calls[0].arguments, [
+				'template_id',
+				'agentEmail@mail.com',
+				{
+					personalisation: {
+						reference: 'CROWN/2025/0000001',
+						sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id'
+					}
+				}
+			]);
 		});
 	});
 

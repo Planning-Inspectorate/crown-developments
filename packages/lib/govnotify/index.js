@@ -7,12 +7,12 @@ import { GovNotifyClient } from './gov-notify-client.js';
 let govNotify;
 
 /**
- * @param {string} [govNotifyApiKey] - Gov Notify API key
+ * @param {Object} config
  * @param {import('pino').Logger} logger
  * @returns {import('@pins/crowndev-lib/govnotify/gov-notify-client').GovNotifyClient|null}
  */
 export function getGovNotify(config, logger) {
-	if (config.govNotify.disabled) {
+	if (config.disabled) {
 		return null;
 	}
 
@@ -20,11 +20,11 @@ export function getGovNotify(config, logger) {
 		return govNotify;
 	}
 
-	if (!config.govNotify.apiKey) {
+	if (!config.apiKey) {
 		return null;
 	}
 
-	govNotify = new GovNotifyClient(logger, config.govNotify.apiKey);
+	govNotify = new GovNotifyClient(logger, config.apiKey);
 
 	return govNotify;
 }

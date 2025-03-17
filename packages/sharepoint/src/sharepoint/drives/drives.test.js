@@ -529,4 +529,32 @@ describe('drives', () => {
 			assert.equal(sharePointDrive.updateItemPermission.mock.callCount(), 0);
 		});
 	});
+	describe('fetchUserInviteLink', () => {
+		test('should return a link to allow the user to access sharepoint', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			const expectedPostArgument = {
+				type: 'edit',
+				scope: 'users'
+			};
+
+			await sharePointDrive.fetchUserInviteLink(itemId);
+
+			assert.strictEqual(client.api.mock.callCount(), 1);
+			assert.strictEqual(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.addPathSegment('createLink')
+					.toString()
+			);
+			assert.deepStrictEqual(client.post.mock.calls[0].arguments[0], expectedPostArgument);
+		});
+	});
 });

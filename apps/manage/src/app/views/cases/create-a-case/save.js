@@ -3,6 +3,7 @@ import { clearDataFromSession } from '@pins/dynamic-forms/src/lib/session-answer
 import { JOURNEY_ID } from './journey.js';
 import { toFloat } from '@pins/crowndev-lib/util/numbers.js';
 import { caseReferenceToFolderName, getSharePointReceivedPathId } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { yesNoToBoolean } from '@pins/dynamic-forms/src/components/boolean/question.js';
 
 /**
  * @param {Object} opts
@@ -10,9 +11,10 @@ import { caseReferenceToFolderName, getSharePointReceivedPathId } from '@pins/cr
  * @param {import('pino').BaseLogger} logger
  * @param {import('../../../config-types.js').Config} config
  * @param {function(session): SharePointDrive} getSharePointDrive
+ * @param {import('@pins/crowndev-lib/govnotify/gov-notify-client').GovNotifyClient|null} govNotifyClient
  * @returns {import('express').Handler}
  */
-export function buildSaveController({ db, logger, config, getSharePointDrive }) {
+export function buildSaveController({ db, logger, config, getSharePointDrive, govNotifyClient }) {
 	return async (req, res) => {
 		if (!res.locals || !res.locals.journeyResponse) {
 			throw new Error('journey response required');
@@ -41,15 +43,39 @@ export function buildSaveController({ db, logger, config, getSharePointDrive }) 
 		});
 
 		const sharePointDrive = getSharePointDrive(req.session);
+		let notificationData = {};
 
 		if (sharePointDrive === null) {
 			logger.warn(
 				'SharePoint not enabled, to use SharePoint functionality setup SharePoint environment variables. See README'
 			);
 		} else {
-			await createCaseSharePointActions(sharePointDrive, config, caseReferenceToFolderName(reference), answers);
+			notificationData = await createCaseSharePointActions(
+				sharePointDrive,
+				config,
+				caseReferenceToFolderName(reference),
+				answers
+			);
 		}
 		// todo: redirect to check-your-answers on failure?
+
+		if (govNotifyClient === null) {
+			logger.warn(
+				'Gov Notify is not enabled, to use Gov Notify functionality setup Gov Notify environment variables. See README'
+			);
+		} else {
+			try {
+				const params = { reference, sharePointLink: notificationData.sharePointLink };
+				await govNotifyClient.sendEmail(
+					config.govNotify.templates.acknowledgePreNotification,
+					notificationData.recipientEmail,
+					{ personalisation: params }
+				);
+			} catch (error) {
+				logger.error({ error, reference }, `error dispatching Acknowledgement of pre-notification email notification`);
+				throw new Error('Error encountered during email notification dispatch');
+			}
+		}
 
 		clearDataFromSession({
 			req,
@@ -241,6 +267,8 @@ async function grantUsersAccess(sharePointDrive, answers, folderName) {
 
 	await sharePointDrive.addItemPermissions(applicantReceivedFolderId, { role: 'write', users: users });
 	// todo: Add LPA permissions too.
+
+	return await sharePointDrive.fetchUserInviteLink(applicantReceivedFolderId);
 }
 
 /**
@@ -249,7 +277,7 @@ async function grantUsersAccess(sharePointDrive, answers, folderName) {
  * @param {import('../../../config-types.js').Config} config
  * @param {string} folderName
  * @param {import('./types.d.ts').CreateCaseAnswers} answers
- * @returns {Promise<void>}
+ * @returns {{recipientEmail: string, sharePointLink: string}}
  */
 async function createCaseSharePointActions(sharePointDrive, config, folderName, answers) {
 	// Copy template folder structure and rename to %folderName%
@@ -258,5 +286,10 @@ async function createCaseSharePointActions(sharePointDrive, config, folderName, 
 		newItemName: folderName
 	});
 	// Grant write access to applicant and agent as required
-	await grantUsersAccess(sharePointDrive, answers, folderName);
+	const inviteLink = await grantUsersAccess(sharePointDrive, answers, folderName);
+
+	return {
+		recipientEmail: yesNoToBoolean(answers.hasAgent) ? answers.agentEmail : answers.applicantEmail,
+		sharePointLink: inviteLink.link.webUrl
+	};
 }
