@@ -23,7 +23,7 @@ export function createRoutes({ db, logger }) {
 		acceptRedactedComment
 	} = buildReviewControllers({ db, logger });
 	const questions = getQuestions();
-	const validateReview = buildValidateBody([questions.reviewDecision, questions.wantsToBeHeard]);
+	const validateReview = buildValidateBody([questions.reviewDecision]);
 
 	router.get('/', getJourney, viewReviewRedirect, asyncHandler(viewRepresentationAwaitingReview));
 	router.post('/', getJourney, validateReview, validationErrorHandler, asyncHandler(reviewRepresentation));
