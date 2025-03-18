@@ -411,6 +411,8 @@ describe('have-your-say', () => {
 			it('isComplete should return true if Representation and Myself sections are completed', () => {
 				const questions = getQuestions();
 				const answers = {
+					submittedDate: new Date(),
+					categoryId: 'consultees',
 					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
 					myselfIsAdult: BOOLEAN_OPTIONS.YES,
 					myselfFullName: 'Test Name',
@@ -514,6 +516,8 @@ describe('have-your-say', () => {
 				it('isComplete should return true if Representation and On Behalf Of Person sections are completed', () => {
 					const questions = getQuestions();
 					const answers = {
+						submittedDate: new Date(),
+						categoryId: 'consultees',
 						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 						representedTypeId: REPRESENTED_TYPE_ID.PERSON,
 						submitterIsAdult: BOOLEAN_OPTIONS.YES,
@@ -619,6 +623,8 @@ describe('have-your-say', () => {
 				it('isComplete should return true if Representation and On Behalf Of Org-not-work-for sections are completed', () => {
 					const questions = getQuestions();
 					const answers = {
+						submittedDate: new Date(),
+						categoryId: 'consultees',
 						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 						representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
 						submitterIsAdult: BOOLEAN_OPTIONS.YES,
@@ -713,6 +719,8 @@ describe('have-your-say', () => {
 				it('isComplete should return true if Representation and On Behalf Of Person sections are completed', () => {
 					const questions = getQuestions();
 					const answers = {
+						submittedDate: new Date(),
+						categoryId: 'consultees',
 						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 						representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
 						submitterIsAdult: BOOLEAN_OPTIONS.YES,
@@ -760,7 +768,7 @@ describe('have-your-say', () => {
 			assert.strictEqual(sections.length, 3);
 
 			const mainSection = sections[0];
-			assert.strictEqual(mainSection.questions.length, 1);
+			assert.strictEqual(mainSection.questions.length, 3);
 
 			const myselfSection = sections[1];
 			assert.strictEqual(myselfSection.questions.length, 7);
