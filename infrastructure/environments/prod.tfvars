@@ -73,8 +73,8 @@ sql_config = {
     login_username = "pins-crown-sql-prod"
     object_id      = "00d052c3-0a51-4f7d-93fc-7c366877aed6"
   }
-  sku_name    = "Basic"
-  max_size_gb = 2
+  sku_name    = "S3"
+  max_size_gb = 100
   retention = {
     audit_days             = 7
     short_term_days        = 7
