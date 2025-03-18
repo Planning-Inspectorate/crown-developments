@@ -80,7 +80,7 @@ module "app_portal" {
     GOV_NOTIFY_API_KEY          = local.key_vault_refs["crown-gov-notify-api-key"]
     GOV_NOTIFY_TEST_TEMPLATE_ID = var.apps_config.gov_notify.templates.test_template_id
 
-    CROWN_DEV_CONTACT_EMAIL = var.apps_config.crown_dev_contact_info.email
+    CROWN_DEV_CONTACT_EMAIL = var.apps_config.contact_email
 
     # sharepoint
     AZURE_CLIENT_ID     = var.apps_config.auth.client_id

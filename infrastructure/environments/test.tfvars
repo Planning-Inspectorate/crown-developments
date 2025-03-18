@@ -14,6 +14,8 @@ apps_config = {
     group_application_access = "6094f824-8941-4536-aa7f-6d5cc60d0bbe"
   }
 
+  contact_email = "not.real@fake.example.com"
+
   entra = {
     group_ids = {
       # use app access group for now
@@ -38,10 +40,6 @@ apps_config = {
       test_template_id    = "4b8adfb1-1b7c-4333-b512-761eeedfdca2"
       pre_ack_template_id = "298a986d-c142-46f5-804a-9cb853ba8b3d"
     }
-  }
-
-  crown_dev_contact_info = {
-    email = "crown.dev@planninginspectorate.gov.uk"
   }
 
   sharepoint = {

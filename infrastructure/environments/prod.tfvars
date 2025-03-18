@@ -14,6 +14,8 @@ apps_config = {
     group_application_access = "1abf7720-2ea6-479e-822d-218917d3d0ee"
   }
 
+  contact_email = "not.real@fake.example.com"
+
   entra = {
     group_ids = {
       case_officers = "" # TODO
