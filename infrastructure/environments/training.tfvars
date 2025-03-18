@@ -14,6 +14,8 @@ apps_config = {
     group_application_access = "409896aa-b295-4992-9ead-c580b64d7a6c"
   }
 
+  contact_email = "not.real@fake.example.com"
+
   entra = {
     group_ids = {
       # use app access group for now

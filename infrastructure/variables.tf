@@ -23,6 +23,8 @@ variable "apps_config" {
       group_application_access = string
     })
 
+    contact_email = string
+
     entra = object({
       group_ids = object({
         case_officers = string
@@ -46,10 +48,6 @@ variable "apps_config" {
         test_template_id    = string
         pre_ack_template_id = string
       })
-    })
-
-    crown_dev_contact_info = object({
-      email = string
     })
 
     sharepoint = object({
