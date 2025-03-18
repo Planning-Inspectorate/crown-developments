@@ -5,14 +5,11 @@ import { toFloat } from '@pins/crowndev-lib/util/numbers.js';
 import { caseReferenceToFolderName, getSharePointReceivedPathId } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
 /**
- * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} db
- * @param {import('pino').BaseLogger} logger
- * @param {import('../../../config-types.js').Config} config
- * @param {function(session): SharePointDrive} getSharePointDrive
+ * @param {import('#service').ManageService} service
  * @returns {import('express').Handler}
  */
-export function buildSaveController({ db, logger, config, getSharePointDrive }) {
+export function buildSaveController(service) {
+	const { dbClient: db, getSharePointDrive, logger } = service;
 	return async (req, res) => {
 		if (!res.locals || !res.locals.journeyResponse) {
 			throw new Error('journey response required');
@@ -47,7 +44,12 @@ export function buildSaveController({ db, logger, config, getSharePointDrive }) 
 				'SharePoint not enabled, to use SharePoint functionality setup SharePoint environment variables. See README'
 			);
 		} else {
-			await createCaseSharePointActions(sharePointDrive, config, caseReferenceToFolderName(reference), answers);
+			await createCaseSharePointActions(
+				sharePointDrive,
+				service.sharePointCaseTemplateId,
+				caseReferenceToFolderName(reference),
+				answers
+			);
 		}
 		// todo: redirect to check-your-answers on failure?
 
@@ -246,15 +248,15 @@ async function grantUsersAccess(sharePointDrive, answers, folderName) {
 /**
  *
  * @param {SharePointDrive} sharePointDrive
- * @param {import('../../../config-types.js').Config} config
+ * @param {string} caseTemplateId
  * @param {string} folderName
  * @param {import('./types.d.ts').CreateCaseAnswers} answers
  * @returns {Promise<void>}
  */
-async function createCaseSharePointActions(sharePointDrive, config, folderName, answers) {
+async function createCaseSharePointActions(sharePointDrive, caseTemplateId, folderName, answers) {
 	// Copy template folder structure and rename to %folderName%
 	await sharePointDrive.copyDriveItem({
-		copyItemId: config.sharePoint.caseTemplateId,
+		copyItemId: caseTemplateId,
 		newItemName: folderName
 	});
 	// Grant write access to applicant and agent as required

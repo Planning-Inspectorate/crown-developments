@@ -64,7 +64,7 @@ describe('controller', () => {
 				}
 			};
 			const logger = mockLogger();
-			const { reviewRepresentation } = buildReviewControllers({ db: mockDb, logger });
+			const { reviewRepresentation } = buildReviewControllers({ dbClient: mockDb, logger });
 
 			const mockReq = {
 				params: { id: 'case-1', representationRef: 'ref-1' },
@@ -88,7 +88,7 @@ describe('controller', () => {
 				}
 			};
 			const logger = mockLogger();
-			const { reviewRepresentation } = buildReviewControllers({ db: mockDb, logger });
+			const { reviewRepresentation } = buildReviewControllers({ dbClient: mockDb, logger });
 
 			const mockReq = {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
@@ -119,7 +119,7 @@ describe('controller', () => {
 				}
 			};
 			const logger = mockLogger();
-			const { reviewRepresentation } = buildReviewControllers({ db: mockDb, logger });
+			const { reviewRepresentation } = buildReviewControllers({ dbClient: mockDb, logger });
 
 			const mockReq = {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
@@ -151,7 +151,7 @@ describe('controller', () => {
 				}
 			};
 			const logger = mockLogger();
-			const { reviewRepresentation } = buildReviewControllers({ db: mockDb, logger });
+			const { reviewRepresentation } = buildReviewControllers({ dbClient: mockDb, logger });
 
 			const mockReq = {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
@@ -179,7 +179,7 @@ describe('controller', () => {
 				}
 			};
 			const logger = mockLogger();
-			const { redactRepresentation } = buildReviewControllers({ db: mockDb, logger });
+			const { redactRepresentation } = buildReviewControllers({ dbClient: mockDb, logger });
 
 			const mockReq = {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/redact',
@@ -202,7 +202,7 @@ describe('controller', () => {
 				}
 			};
 			const logger = mockLogger();
-			const { redactRepresentation } = buildReviewControllers({ db: mockDb, logger });
+			const { redactRepresentation } = buildReviewControllers({ dbClient: mockDb, logger });
 
 			const mockReq = {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/redact',
@@ -230,7 +230,7 @@ describe('controller', () => {
 		it('should save to session and redirect', async () => {
 			const mockDb = {};
 			const logger = mockLogger();
-			const { redactRepresentationPost } = buildReviewControllers({ db: mockDb, logger });
+			const { redactRepresentationPost } = buildReviewControllers({ dbClient: mockDb, logger });
 
 			const mockReq = {
 				baseUrl: 'some/url',
@@ -251,7 +251,7 @@ describe('controller', () => {
 		it('should render check-your-answers page with redacted comment from session', async () => {
 			const mockDb = {};
 			const logger = mockLogger();
-			const { redactConfirmation } = buildReviewControllers({ db: mockDb, logger });
+			const { redactConfirmation } = buildReviewControllers({ dbClient: mockDb, logger });
 
 			const mockReq = {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
@@ -286,7 +286,7 @@ describe('controller', () => {
 				}
 			};
 			const logger = mockLogger();
-			const { acceptRedactedComment } = buildReviewControllers({ db: mockDb, logger });
+			const { acceptRedactedComment } = buildReviewControllers({ dbClient: mockDb, logger });
 
 			const mockReq = {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
@@ -322,7 +322,7 @@ describe('controller', () => {
 				}
 			};
 			const logger = mockLogger();
-			const { acceptRedactedComment } = buildReviewControllers({ db: mockDb, logger });
+			const { acceptRedactedComment } = buildReviewControllers({ dbClient: mockDb, logger });
 
 			const mockReq = {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',

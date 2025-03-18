@@ -25,9 +25,9 @@ describe('save', () => {
 		};
 
 		it('should throw if no journey response or answers', () => {
-			const db = dbMock();
+			const dbClient = dbMock();
 			const getSharePointDrive = () => null;
-			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive });
+			const save = buildSaveController({ dbClient, logger: mockLogger(), config, getSharePointDrive });
 
 			// no locals
 			assert.rejects(() => save({}, {}));
@@ -45,11 +45,11 @@ describe('save', () => {
 		});
 
 		it('should call create with a valid payload and skip sharepoint when sharepoint is disabled', async () => {
-			const db = dbMock();
+			const dbClient = dbMock();
 			const getSharePointDrive = () => null;
 			const loggerInstance = mockLogger();
 
-			const save = buildSaveController({ db, logger: loggerInstance, config, getSharePointDrive });
+			const save = buildSaveController({ dbClient, logger: loggerInstance, config, getSharePointDrive });
 			const answers = {
 				applicationDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
@@ -66,9 +66,9 @@ describe('save', () => {
 
 			await save({}, res, mock.fn());
 
-			assert.strictEqual(db.crownDevelopment.create.mock.callCount(), 1);
+			assert.strictEqual(dbClient.crownDevelopment.create.mock.callCount(), 1);
 
-			const { data } = db.crownDevelopment.create.mock.calls[0].arguments[0];
+			const { data } = dbClient.crownDevelopment.create.mock.calls[0].arguments[0];
 			const required = ['reference', 'description'];
 			for (const field of required) {
 				assert.ok(data[field], `${field} is required`);
@@ -84,9 +84,9 @@ describe('save', () => {
 		});
 
 		it('should call create with a valid payload', async () => {
-			const db = dbMock();
+			const dbClient = dbMock();
 			const getSharePointDrive = () => null;
-			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive });
+			const save = buildSaveController({ dbClient, logger: mockLogger(), config, getSharePointDrive });
 			const answers = {
 				applicationDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
@@ -103,9 +103,9 @@ describe('save', () => {
 
 			await save({}, res, mock.fn());
 
-			assert.strictEqual(db.crownDevelopment.create.mock.callCount(), 1);
+			assert.strictEqual(dbClient.crownDevelopment.create.mock.callCount(), 1);
 
-			const { data } = db.crownDevelopment.create.mock.calls[0].arguments[0];
+			const { data } = dbClient.crownDevelopment.create.mock.calls[0].arguments[0];
 			const required = ['reference', 'description'];
 			for (const field of required) {
 				assert.ok(data[field], `${field} is required`);
@@ -120,7 +120,7 @@ describe('save', () => {
 		});
 
 		it('should call copyDriveItem and grant write access to the applicant when sharepoint is enabled and no agent email is provided', async () => {
-			const db = dbMock();
+			const dbClient = dbMock();
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
 				getItemsByPath: mock.fn(() => {
@@ -133,7 +133,7 @@ describe('save', () => {
 			};
 			const getSharePointDrive = () => sharepointDrive;
 
-			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive });
+			const save = buildSaveController({ dbClient, logger: mockLogger(), config, getSharePointDrive });
 			const answers = {
 				applicationDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
@@ -161,7 +161,7 @@ describe('save', () => {
 			});
 		});
 		it('should call copyDriveItem and grant write access to the applicant and agent when sharepoint is enabled and an agentEmail was provided', async () => {
-			const db = dbMock();
+			const dbClient = dbMock();
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
 				getItemsByPath: mock.fn(() => {
@@ -174,7 +174,7 @@ describe('save', () => {
 			};
 			const getSharePointDrive = () => sharepointDrive;
 
-			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive });
+			const save = buildSaveController({ dbClient, logger: mockLogger(), config, getSharePointDrive });
 			const answers = {
 				applicationDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
@@ -216,35 +216,35 @@ describe('save', () => {
 			};
 		};
 		it('should start from 1 if no cases', async () => {
-			const db = dbMock();
-			const ref = await newReference(db, new Date('2024-06-01T00:00:00.000Z'));
+			const dbClient = dbMock();
+			const ref = await newReference(dbClient, new Date('2024-06-01T00:00:00.000Z'));
 			assert.strictEqual(ref, 'CROWN/2024/0000001');
 		});
 		it('should ignore bad references', async () => {
-			const db = dbMock();
-			db.crownDevelopment.findMany.mock.mockImplementationOnce(() => [{ reference: 'bad-ref/here' }]);
-			const ref = await newReference(db, new Date('2024-06-01T00:00:00.000Z'));
+			const dbClient = dbMock();
+			dbClient.crownDevelopment.findMany.mock.mockImplementationOnce(() => [{ reference: 'bad-ref/here' }]);
+			const ref = await newReference(dbClient, new Date('2024-06-01T00:00:00.000Z'));
 			assert.strictEqual(ref, 'CROWN/2024/0000001');
 		});
 		it('should increment final part of reference', async () => {
-			const db = dbMock();
-			db.crownDevelopment.findMany.mock.mockImplementationOnce(() => [{ reference: 'CROWN/2024/0123456' }]);
-			const ref = await newReference(db, new Date('2024-06-01T00:00:00.000Z'));
+			const dbClient = dbMock();
+			dbClient.crownDevelopment.findMany.mock.mockImplementationOnce(() => [{ reference: 'CROWN/2024/0123456' }]);
+			const ref = await newReference(dbClient, new Date('2024-06-01T00:00:00.000Z'));
 			assert.strictEqual(ref, 'CROWN/2024/0123457');
 		});
 		it('should ignore date from latest case', async () => {
-			const db = dbMock();
-			db.crownDevelopment.findMany.mock.mockImplementationOnce(() => [{ reference: 'CROWN/2022/0123456' }]);
-			const ref = await newReference(db, new Date('2026-06-01T00:00:00.000Z'));
+			const dbClient = dbMock();
+			dbClient.crownDevelopment.findMany.mock.mockImplementationOnce(() => [{ reference: 'CROWN/2022/0123456' }]);
+			const ref = await newReference(dbClient, new Date('2026-06-01T00:00:00.000Z'));
 			assert.strictEqual(ref, 'CROWN/2026/0123457');
 		});
 		it('should ignore bad references and check second in list', async () => {
-			const db = dbMock();
-			db.crownDevelopment.findMany.mock.mockImplementationOnce(() => [
+			const dbClient = dbMock();
+			dbClient.crownDevelopment.findMany.mock.mockImplementationOnce(() => [
 				{ reference: 'bad-ref/here' },
 				{ reference: 'CROWN/2022/0123456' }
 			]);
-			const ref = await newReference(db, new Date('2024-06-01T00:00:00.000Z'));
+			const ref = await newReference(dbClient, new Date('2024-06-01T00:00:00.000Z'));
 			assert.strictEqual(ref, 'CROWN/2024/0123457');
 		});
 	});

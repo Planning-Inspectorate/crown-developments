@@ -3,13 +3,13 @@ import { asyncHandler } from '../util/async-handler.js';
 /**
  * @param {Object} params
  * @param {import('pino').BaseLogger} params.logger
- * @param {{gitSha?: string}} params.config
+ * @param {string} [params.gitSha]
  * @param {import('@prisma/client').PrismaClient} params.dbClient
  * @returns {import('express').Router}
  */
-export function createMonitoringRoutes({ config, dbClient, logger }) {
+export function createMonitoringRoutes({ gitSha, dbClient, logger }) {
 	const router = createRouter();
-	const handleHealthCheck = buildHandleHeathCheck(logger, config, dbClient);
+	const handleHealthCheck = buildHandleHeathCheck(logger, gitSha, dbClient);
 
 	router.head('/', asyncHandler(handleHeadHealthCheck));
 	router.get('/health', asyncHandler(handleHealthCheck));
@@ -25,11 +25,11 @@ export function handleHeadHealthCheck(_, response) {
 
 /**
  * @param {import('pino').BaseLogger} logger
- * @param {{gitSha?: string}} config
+ * @param {string} [gitSha]
  * @param {import('@prisma/client').PrismaClient} dbClient
  * @returns {import('express').RequestHandler}
  */
-export function buildHandleHeathCheck(logger, config, dbClient) {
+export function buildHandleHeathCheck(logger, gitSha, dbClient) {
 	return async (_, response) => {
 		let database = false;
 		try {
@@ -42,7 +42,7 @@ export function buildHandleHeathCheck(logger, config, dbClient) {
 		response.status(200).send({
 			status: 'OK',
 			uptime: process.uptime(),
-			commit: config.gitSha,
+			commit: gitSha,
 			database: database ? 'OK' : 'ERROR' // should this be a different response code?
 		});
 	};

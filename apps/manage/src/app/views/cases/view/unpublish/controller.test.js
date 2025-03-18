@@ -24,7 +24,7 @@ describe('unpublish case', () => {
 					findUnique: mock.fn(() => ({ id: 'case-1', reference: 'case-1-ref' }))
 				}
 			};
-			const confirmUnpublishCase = buildConfirmUnpublishCase({ db: mockDb, logger: mockLogger() });
+			const confirmUnpublishCase = buildConfirmUnpublishCase({ dbClient: mockDb, logger: mockLogger() });
 			await assert.doesNotReject(() => confirmUnpublishCase(mockReq, mockRes));
 			assert.strictEqual(mockDb.crownDevelopment.findUnique.mock.callCount(), 1);
 			assert.deepStrictEqual(mockDb.crownDevelopment.findUnique.mock.calls[0].arguments[0], {
@@ -49,7 +49,7 @@ describe('unpublish case', () => {
 					findUnique: mock.fn(() => ({ id: 'case-1', reference: 'case-1-ref' }))
 				}
 			};
-			const confirmUnpublishCase = buildConfirmUnpublishCase({ db: mockDb, logger: mockLogger() });
+			const confirmUnpublishCase = buildConfirmUnpublishCase({ dbClient: mockDb, logger: mockLogger() });
 			await assert.rejects(() => confirmUnpublishCase(mockReq, mockRes));
 		});
 		it('should render the not found page when case is not found', async () => {
@@ -59,7 +59,7 @@ describe('unpublish case', () => {
 					findUnique: mock.fn(() => null)
 				}
 			};
-			const confirmUnpublishCase = buildConfirmUnpublishCase({ db: mockDb, logger: mockLogger() });
+			const confirmUnpublishCase = buildConfirmUnpublishCase({ dbClient: mockDb, logger: mockLogger() });
 			await assertRenders404Page(confirmUnpublishCase, mockReq, false);
 		});
 	});
@@ -80,7 +80,7 @@ describe('unpublish case', () => {
 					update: mock.fn()
 				}
 			};
-			const unpublishCase = buildSubmitUnpublishCase({ db: mockDb, logger: mockLogger() });
+			const unpublishCase = buildSubmitUnpublishCase({ dbClient: mockDb, logger: mockLogger() });
 			await assert.doesNotReject(() => unpublishCase(mockReq, mockRes));
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
 			assert.deepStrictEqual(mockDb.crownDevelopment.update.mock.calls[0].arguments[0], {
@@ -103,7 +103,7 @@ describe('unpublish case', () => {
 					findUnique: mock.fn(() => ({ id: 'case-1', reference: 'case-1-ref' }))
 				}
 			};
-			const submitUnpublishCase = buildSubmitUnpublishCase({ db: mockDb, logger: mockLogger() });
+			const submitUnpublishCase = buildSubmitUnpublishCase({ dbClient: mockDb, logger: mockLogger() });
 			await assert.rejects(() => submitUnpublishCase(mockReq, mockRes));
 		});
 		it('should render the not found page when case is not found', async () => {
@@ -113,7 +113,7 @@ describe('unpublish case', () => {
 					findUnique: mock.fn(() => null)
 				}
 			};
-			const submitUnpublishCase = buildSubmitUnpublishCase({ db: mockDb, logger: mockLogger() });
+			const submitUnpublishCase = buildSubmitUnpublishCase({ dbClient: mockDb, logger: mockLogger() });
 			await assertRenders404Page(submitUnpublishCase, mockReq, false);
 		});
 		it('should not throw Prisma errors', async () => {
@@ -130,7 +130,7 @@ describe('unpublish case', () => {
 					})
 				}
 			};
-			const submitUnpublishCaseFn = buildSubmitUnpublishCase({ db: mockDb, logger: mockLogger() });
+			const submitUnpublishCaseFn = buildSubmitUnpublishCase({ dbClient: mockDb, logger: mockLogger() });
 			await assert.rejects(
 				() => submitUnpublishCaseFn(mockReq, mockRes),
 				(err) => {
@@ -154,7 +154,7 @@ describe('unpublish case', () => {
 					})
 				}
 			};
-			const submitUnpublishCaseFn = buildSubmitUnpublishCase({ db: mockDb, logger: mockLogger() });
+			const submitUnpublishCaseFn = buildSubmitUnpublishCase({ dbClient: mockDb, logger: mockLogger() });
 			await assert.rejects(
 				() => submitUnpublishCaseFn(mockReq, mockRes),
 				(err) => {
@@ -178,7 +178,7 @@ describe('unpublish case', () => {
 					})
 				}
 			};
-			const submitUnpublishCaseFn = buildSubmitUnpublishCase({ db: mockDb, logger: mockLogger() });
+			const submitUnpublishCaseFn = buildSubmitUnpublishCase({ dbClient: mockDb, logger: mockLogger() });
 			await assert.rejects(
 				() => submitUnpublishCaseFn(mockReq, mockRes),
 				(err) => {
@@ -204,7 +204,7 @@ describe('unpublish case', () => {
 					update: mock.fn()
 				}
 			};
-			const unpublishCase = buildSubmitUnpublishCase({ db: mockDb, logger: mockLogger() });
+			const unpublishCase = buildSubmitUnpublishCase({ dbClient: mockDb, logger: mockLogger() });
 			await assert.doesNotReject(() => unpublishCase(mockReq, mockRes));
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
 			assert.deepStrictEqual(mockDb.crownDevelopment.update.mock.calls[0].arguments[0], {

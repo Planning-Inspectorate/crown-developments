@@ -104,7 +104,7 @@ describe('case list', () => {
 					findMany: mock.fn(() => [{ id: 'id-1' }, { id: 'id-2' }])
 				}
 			};
-			const listCases = buildListCases({ db: mockDb, logger: mockLogger() });
+			const listCases = buildListCases({ dbClient: mockDb, logger: mockLogger() });
 			await assert.doesNotReject(() => listCases({}, mockRes));
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments.length, 2);

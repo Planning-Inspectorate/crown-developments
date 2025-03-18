@@ -4,11 +4,10 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 
 /**
  *
- * @param {import('@prisma/client').PrismaClient} db
- * @param {import('pino').BaseLogger} logger
+ * @param {import('#service').ManageService} service
  * @returns {import('express').Handler}
  */
-export function buildPublishCase({ db, logger }) {
+export function buildPublishCase({ dbClient: db, logger }) {
 	return async (req, res) => {
 		const id = req.params.id;
 
@@ -36,11 +35,10 @@ export function buildPublishCase({ db, logger }) {
 
 /**
  *
- * @param {import('@prisma/client').PrismaClient} db
- * @param {import('pino').BaseLogger} logger
+ * @param {import('#service').ManageService} service
  * @returns {import('express').Handler}
  */
-export function buildGetValidatedCaseMiddleware({ db, logger }) {
+export function buildGetValidatedCaseMiddleware({ dbClient: db, logger }) {
 	return async (req, res, next) => {
 		const id = req.params.id;
 		if (!id) {

@@ -81,7 +81,7 @@ describe('controller', () => {
 			};
 			const next = mock.fn();
 			const middleware = buildGetJourneyMiddleware({
-				db: mockDb,
+				dbClient: mockDb,
 				logger: mockLogger()
 			});
 			await assert.rejects(() => middleware(mockReq, mockRes, next), { message: 'id param required' });
@@ -97,7 +97,7 @@ describe('controller', () => {
 			};
 			const next = mock.fn();
 			const middleware = buildGetJourneyMiddleware({
-				db: mockDb,
+				dbClient: mockDb,
 				logger: mockLogger()
 			});
 			await assert.rejects(() => middleware(mockReq, mockRes, next), { message: 'representationRef param required' });
@@ -119,7 +119,7 @@ describe('controller', () => {
 			};
 			const next = mock.fn();
 			const middleware = buildGetJourneyMiddleware({
-				db: mockDb,
+				dbClient: mockDb,
 				logger: mockLogger()
 			});
 			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
@@ -141,7 +141,7 @@ describe('controller', () => {
 				}
 			};
 			const middleware = buildGetJourneyMiddleware({
-				db: mockDb,
+				dbClient: mockDb,
 				logger: mockLogger()
 			});
 			await assertRenders404Page(middleware, mockReq, true);
@@ -160,7 +160,7 @@ describe('controller', () => {
 				}
 			};
 			const middleware = buildGetJourneyMiddleware({
-				db: mockDb,
+				dbClient: mockDb,
 				logger: mockLogger()
 			});
 			await assertRenders404Page(middleware, mockReq, true);
@@ -182,7 +182,7 @@ describe('controller', () => {
 			};
 			const next = mock.fn();
 			const middleware = buildGetJourneyMiddleware({
-				db: mockDb,
+				dbClient: mockDb,
 				logger: mockLogger()
 			});
 			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));

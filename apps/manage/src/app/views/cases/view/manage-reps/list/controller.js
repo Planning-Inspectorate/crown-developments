@@ -4,11 +4,10 @@ import { clearRepReviewedSession, readRepReviewedSession } from '../review/contr
 /**
  * Return a handler to show the list of representations
  *
- * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} opts.db
+ * @param {import('#service').ManageService} service
  * @returns {import('express').Handler}
  */
-export function buildListReps({ db }) {
+export function buildListReps({ dbClient: db }) {
 	return async (req, res) => {
 		const id = req.params.id;
 		if (!id) {

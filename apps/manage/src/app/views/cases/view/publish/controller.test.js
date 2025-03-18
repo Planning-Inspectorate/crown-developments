@@ -20,7 +20,7 @@ describe('publish case', () => {
 				}
 			};
 			const next = mock.fn();
-			const middleware = buildGetValidatedCaseMiddleware({ db: mockDb, logger: mockLogger() });
+			const middleware = buildGetValidatedCaseMiddleware({ dbClient: mockDb, logger: mockLogger() });
 			await assert.rejects(() => middleware(mockReq, mockRes, next), { message: 'id param required' });
 			assert.strictEqual(next.mock.callCount(), 0);
 		});
@@ -36,7 +36,7 @@ describe('publish case', () => {
 					findUnique: mock.fn(() => ({ id: 'case-1' }))
 				}
 			};
-			const middleware = buildGetValidatedCaseMiddleware({ db: mockDb, logger: mockLogger() });
+			const middleware = buildGetValidatedCaseMiddleware({ dbClient: mockDb, logger: mockLogger() });
 
 			await middleware(mockReq, mockRes, next);
 			assert.strictEqual(mockDb.crownDevelopment.findUnique.mock.callCount(), 1);
@@ -56,7 +56,7 @@ describe('publish case', () => {
 					findUnique: mock.fn(() => Promise.resolve(null))
 				}
 			};
-			const middleware = buildGetValidatedCaseMiddleware({ db: mockDb, logger: mockLogger() });
+			const middleware = buildGetValidatedCaseMiddleware({ dbClient: mockDb, logger: mockLogger() });
 			await assertRenders404Page(middleware, mockReq, true);
 		});
 		it('should call add an error to session for each required field missing and redirect to case page', async () => {
@@ -72,7 +72,7 @@ describe('publish case', () => {
 					)
 				}
 			};
-			const middleware = buildGetValidatedCaseMiddleware({ db, logger: mockLogger() });
+			const middleware = buildGetValidatedCaseMiddleware({ dbClient: db, logger: mockLogger() });
 			const req = { params: { id: 'id-1' }, session: {} };
 			const res = {
 				locals: {},
@@ -101,7 +101,7 @@ describe('publish case', () => {
 					}))
 				}
 			};
-			const middleware = buildGetValidatedCaseMiddleware({ db, logger: mockLogger() });
+			const middleware = buildGetValidatedCaseMiddleware({ dbClient: db, logger: mockLogger() });
 			const req = { params: { id: 'id-1' }, session: {} };
 			const res = {
 				locals: {},
@@ -126,7 +126,7 @@ describe('publish case', () => {
 					update: mock.fn()
 				}
 			};
-			const publishCaseFn = buildPublishCase({ db: mockDb, logger: mockLogger() });
+			const publishCaseFn = buildPublishCase({ dbClient: mockDb, logger: mockLogger() });
 
 			await assert.rejects(() => publishCaseFn(mockReq, mockRes), { message: 'id param required' });
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 0);
@@ -144,7 +144,7 @@ describe('publish case', () => {
 					update: mock.fn(() => Promise.resolve())
 				}
 			};
-			const publishCaseFn = buildPublishCase({ db: mockDb, logger: mockLogger() });
+			const publishCaseFn = buildPublishCase({ dbClient: mockDb, logger: mockLogger() });
 			await publishCaseFn(mockReq, mockRes);
 
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
@@ -169,7 +169,7 @@ describe('publish case', () => {
 					})
 				}
 			};
-			const publishCaseFn = buildPublishCase({ db: mockDb, logger: mockLogger() });
+			const publishCaseFn = buildPublishCase({ dbClient: mockDb, logger: mockLogger() });
 			await assert.rejects(
 				() => publishCaseFn(mockReq, mockRes),
 				(err) => {
@@ -193,7 +193,7 @@ describe('publish case', () => {
 					})
 				}
 			};
-			const publishCaseFn = buildPublishCase({ db: mockDb, logger: mockLogger() });
+			const publishCaseFn = buildPublishCase({ dbClient: mockDb, logger: mockLogger() });
 			await assert.rejects(
 				() => publishCaseFn(mockReq, mockRes),
 				(err) => {
@@ -217,7 +217,7 @@ describe('publish case', () => {
 					})
 				}
 			};
-			const publishCaseFn = buildPublishCase({ db: mockDb, logger: mockLogger() });
+			const publishCaseFn = buildPublishCase({ dbClient: mockDb, logger: mockLogger() });
 			await assert.rejects(
 				() => publishCaseFn(mockReq, mockRes),
 				(err) => {

@@ -32,12 +32,10 @@ export async function viewRepresentationAwaitingReview(req, res) {
 }
 
 /**
- * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('pino').BaseLogger} opts.logger
+ * @param {import('#service').ManageService} service
  * @returns {ReviewControllers}
  */
-export function buildReviewControllers({ db, logger }) {
+export function buildReviewControllers({ dbClient: db, logger }) {
 	/** @type {ReviewControllers} */
 	const controllers = {
 		async reviewRepresentation(req, res) {

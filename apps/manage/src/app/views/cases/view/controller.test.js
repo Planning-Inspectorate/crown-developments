@@ -23,7 +23,7 @@ describe('case details', () => {
 			};
 			const next = mock.fn();
 			const middleware = buildGetJourneyMiddleware({
-				db: mockDb,
+				dbClient: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
 				groupIds
@@ -42,7 +42,7 @@ describe('case details', () => {
 			};
 			const next = mock.fn();
 			const middleware = buildGetJourneyMiddleware({
-				db: mockDb,
+				dbClient: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
 				groupIds
@@ -61,7 +61,7 @@ describe('case details', () => {
 				}
 			};
 			const middleware = buildGetJourneyMiddleware({
-				db: mockDb,
+				dbClient: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
 				groupIds
@@ -79,7 +79,7 @@ describe('case details', () => {
 			};
 			const next = mock.fn();
 			const middleware = buildGetJourneyMiddleware({
-				db: mockDb,
+				dbClient: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
 				groupIds
@@ -113,7 +113,7 @@ describe('case details', () => {
 			};
 			const next = mock.fn();
 			const middleware = buildGetJourneyMiddleware({
-				db: mockDb,
+				dbClient: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
 				groupIds
@@ -147,7 +147,7 @@ describe('case details', () => {
 			};
 			const next = mock.fn();
 			const middleware = buildGetJourneyMiddleware({
-				db: mockDb,
+				dbClient: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
 				groupIds
@@ -189,7 +189,7 @@ describe('case details', () => {
 			};
 			const next = mock.fn();
 			const middleware = buildGetJourneyMiddleware({
-				db: mockDb,
+				dbClient: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
 				groupIds
@@ -223,7 +223,7 @@ describe('case details', () => {
 			};
 			const next = mock.fn();
 			const middleware = buildGetJourneyMiddleware({
-				db: mockDb,
+				dbClient: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
 				groupIds
@@ -261,7 +261,7 @@ describe('case details', () => {
 			};
 			const next = mock.fn();
 			const middleware = buildGetJourneyMiddleware({
-				db: mockDb,
+				dbClient: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
 				groupIds
@@ -294,7 +294,7 @@ describe('case details', () => {
 			};
 			const next = mock.fn();
 			const middleware = buildGetJourneyMiddleware({
-				db: mockDb,
+				dbClient: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
 				groupIds
@@ -332,7 +332,7 @@ describe('case details', () => {
 			};
 			const next = mock.fn();
 			const middleware = buildGetJourneyMiddleware({
-				db: mockDb,
+				dbClient: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
 				groupIds
@@ -365,7 +365,7 @@ describe('case details', () => {
 					update: mock.fn()
 				}
 			};
-			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const updateCase = buildUpdateCase({ dbClient: mockDb, logger });
 			const mockReq = { params: { id: 'case-1' } };
 			const mockRes = { locals: {} };
 			const data = {};
@@ -382,7 +382,7 @@ describe('case details', () => {
 					update: mock.fn()
 				}
 			};
-			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const updateCase = buildUpdateCase({ dbClient: mockDb, logger });
 			const mockReq = {
 				params: { id: 'case1' },
 				session: {}
@@ -407,7 +407,7 @@ describe('case details', () => {
 					update: mock.fn()
 				}
 			};
-			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const updateCase = buildUpdateCase({ dbClient: mockDb, logger });
 			const mockReq = {
 				params: { id: 'case1' },
 				session: {}
@@ -445,7 +445,7 @@ describe('case details', () => {
 					})
 				}
 			};
-			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const updateCase = buildUpdateCase({ dbClient: mockDb, logger });
 			const mockReq = {
 				params: { id: 'case1' },
 				session: {}
