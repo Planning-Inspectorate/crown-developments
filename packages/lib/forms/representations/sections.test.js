@@ -5,7 +5,7 @@ import { getQuestions } from './questions.js';
 import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
 import { Journey } from '@pins/dynamic-forms/src/journey/journey.js';
-import { haveYourSayManageSections, haveYourSaySections } from './sections.js';
+import { addRepresentationSection, haveYourSayManageSections, haveYourSaySections } from './sections.js';
 
 describe('have-your-say', () => {
 	describe('have-your-say manage sections', () => {
@@ -328,6 +328,453 @@ describe('have-your-say', () => {
 
 			const onBehalfOfSection = sections[2];
 			assert.strictEqual(onBehalfOfSection.questions.length, 12);
+
+			for (const onBehalfOfQuestion of onBehalfOfSection.questions) {
+				const expected = expectedOnBehalfOfQuestions.includes(onBehalfOfQuestion.fieldName);
+				assert.strictEqual(
+					onBehalfOfQuestion.shouldDisplay(response),
+					expected,
+					`Expected ${onBehalfOfQuestion.fieldName} to be ${expected}`
+				);
+			}
+		};
+	});
+	describe('add-representation sections', () => {
+		const JOURNEY_ID = 'add-representation';
+		const createJourney = (questions, response, req) => {
+			return new Journey({
+				journeyId: JOURNEY_ID,
+				sections: addRepresentationSection(questions),
+				makeBaseUrl: () => req.baseUrl,
+				journeyTemplate: 'template.njk',
+				listingPageViewPath: 'template-2.njk',
+				journeyTitle: 'Add a representation',
+				response
+			});
+		};
+		it('all questions should be defined', () => {
+			const questions = getQuestions();
+			const answers = {};
+			const response = new JourneyResponse(JOURNEY_ID, 'session-id', answers);
+			const journey = createJourney(questions, response, {
+				baseUrl: `/some/path/${JOURNEY_ID}`,
+				params: { applicationId: 'CROWN123' }
+			});
+			const sections = journey.sections;
+
+			assert.strictEqual(sections.length, 3);
+			sections.forEach((section) => section.questions.forEach((q) => assert.ok(q !== undefined)));
+		});
+		describe('myself journey', () => {
+			const defaultAnswers = () => {
+				return {
+					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
+				};
+			};
+			const defaultQuestions = () => [
+				'myselfIsAdult',
+				'myselfContactPreference',
+				'myselfComment',
+				'myselfHearingPreference'
+			];
+			it('should include all default questions', () => {
+				const answers = defaultAnswers();
+
+				const questions = defaultQuestions();
+
+				testAddRepresentationQuestionsDisplay(answers, questions, []);
+			});
+			it('should handle contact preferences correctly', () => {
+				const answers = defaultAnswers();
+				const byPostQuestions = defaultQuestions().concat('myselfAddress');
+				const byEmailQuestions = defaultQuestions().concat('myselfEmail');
+
+				answers.myselfContactPreference = 'post';
+				testAddRepresentationQuestionsDisplay(answers, byPostQuestions, []);
+
+				answers.myselfContactPreference = 'email';
+				testAddRepresentationQuestionsDisplay(answers, byEmailQuestions, []);
+			});
+			it('should handle myselfIsAdult dependant questions correctly', () => {
+				const answers = defaultAnswers();
+
+				const isAdultQuestions = defaultQuestions().concat('myselfFullName');
+
+				const isNotAdultQuestions = defaultQuestions();
+
+				answers.myselfIsAdult = BOOLEAN_OPTIONS.YES;
+				testAddRepresentationQuestionsDisplay(answers, isAdultQuestions, []);
+
+				answers.myselfIsAdult = BOOLEAN_OPTIONS.NO;
+				testAddRepresentationQuestionsDisplay(answers, isNotAdultQuestions, []);
+			});
+			it('isComplete should return true if Representation and Myself sections are completed', () => {
+				const questions = getQuestions();
+				const answers = {
+					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+					myselfIsAdult: BOOLEAN_OPTIONS.YES,
+					myselfFullName: 'Test Name',
+					myselfContactPreference: 'email',
+					myselfEmail: 'test@test.com',
+					myselfComment: 'some comments',
+					myselfHearingPreference: BOOLEAN_OPTIONS.YES
+				};
+
+				const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+				const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+
+				assert.strictEqual(journey.isComplete(), true);
+			});
+			it('isComplete should return false if Representation and Myself sections are not completed', () => {
+				const questions = getQuestions();
+				const answers = {
+					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+					myselfIsAdult: BOOLEAN_OPTIONS.YES,
+					myselfFullName: 'Test Name',
+					myselfContactPreference: 'email',
+					myselfEmail: 'test@test.com',
+					myselfHearingPreference: BOOLEAN_OPTIONS.YES
+				};
+
+				const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+				const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+
+				assert.strictEqual(journey.isComplete(), false);
+			});
+		});
+		describe('on-behalf-of journey', () => {
+			describe('person', () => {
+				const defaultAnswers = () => {
+					return {
+						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+						representedTypeId: REPRESENTED_TYPE_ID.PERSON
+					};
+				};
+				const defaultQuestions = () => [
+					'representedTypeId',
+					'submitterIsAdult',
+					'isAgent',
+					'representedIsAdult',
+					'submitterComment',
+					'submitterContactPreference',
+					'submitterHearingPreference'
+				];
+				it('should include all default questions', () => {
+					const answers = defaultAnswers();
+					const questions = defaultQuestions();
+					testAddRepresentationQuestionsDisplay(answers, [], questions);
+				});
+				it('should handle submitterIsAdult dependant questions correctly', () => {
+					const answers = defaultAnswers();
+					const submitterIsAdultQuestions = defaultQuestions().concat('submitterFullName');
+					const submitterIsNotAdultQuestions = defaultQuestions();
+
+					answers.submitterIsAdult = BOOLEAN_OPTIONS.YES;
+					testAddRepresentationQuestionsDisplay(answers, [], submitterIsAdultQuestions);
+
+					answers.submitterIsAdult = BOOLEAN_OPTIONS.NO;
+					testAddRepresentationQuestionsDisplay(answers, [], submitterIsNotAdultQuestions);
+				});
+				it('should handle representedIsAdult dependant questions correctly', () => {
+					const answers = defaultAnswers();
+
+					const representedIsAdultQuestions = defaultQuestions().concat('representedFullName');
+					const representedIsNotAdultQuestions = defaultQuestions();
+
+					answers.representedIsAdult = BOOLEAN_OPTIONS.YES;
+					testAddRepresentationQuestionsDisplay(answers, [], representedIsAdultQuestions);
+
+					answers.representedIsAdult = BOOLEAN_OPTIONS.NO;
+					testAddRepresentationQuestionsDisplay(answers, [], representedIsNotAdultQuestions);
+				});
+				it('should handle contactPreference correctly', () => {
+					const answers = defaultAnswers();
+
+					const byPostQuestions = defaultQuestions().concat('submitterAddress');
+					const byEmailQuestions = defaultQuestions().concat('submitterEmail');
+
+					answers.submitterContactPreference = 'post';
+					testAddRepresentationQuestionsDisplay(answers, [], byPostQuestions);
+
+					answers.submitterContactPreference = 'email';
+					testAddRepresentationQuestionsDisplay(answers, [], byEmailQuestions);
+				});
+				it('should handle isAgent correctly', () => {
+					const answers = defaultAnswers();
+
+					const isAgentQuestions = defaultQuestions().concat('agentOrgName');
+					const isNotAgentQuestions = defaultQuestions();
+
+					answers.isAgent = BOOLEAN_OPTIONS.YES;
+					testAddRepresentationQuestionsDisplay(answers, [], isAgentQuestions);
+
+					answers.isAgent = BOOLEAN_OPTIONS.NO;
+					testAddRepresentationQuestionsDisplay(answers, [], isNotAgentQuestions);
+				});
+				it('isComplete should return true if Representation and On Behalf Of Person sections are completed', () => {
+					const questions = getQuestions();
+					const answers = {
+						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+						representedTypeId: REPRESENTED_TYPE_ID.PERSON,
+						submitterIsAdult: BOOLEAN_OPTIONS.YES,
+						submitterFullName: 'Agent Name',
+						isAgent: BOOLEAN_OPTIONS.YES,
+						agentOrgName: 'Org Name',
+						submitterContactPreference: 'post',
+						submitterAddress: {
+							addressLine1: '1 Test Street',
+							town: 'Test Town',
+							postcode: 'TE1 1ST'
+						},
+						representedIsAdult: BOOLEAN_OPTIONS.YES,
+						representedFullName: 'Represented Person',
+						submitterComment: 'some comments',
+						submitterHearingPreference: BOOLEAN_OPTIONS.YES
+					};
+
+					const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+					const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+
+					assert.strictEqual(journey.isComplete(), true);
+				});
+				it('isComplete should return false if Representation and On Behalf Of Person sections are not completed', () => {
+					const questions = getQuestions();
+					const answers = {
+						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+						representedTypeId: REPRESENTED_TYPE_ID.PERSON,
+						submitterIsAdult: BOOLEAN_OPTIONS.YES,
+						submitterFullName: 'Agent Name',
+						isAgent: BOOLEAN_OPTIONS.YES,
+						agentOrgName: 'Org Name',
+						submitterContactPreference: 'post',
+						representedIsAdult: BOOLEAN_OPTIONS.YES,
+						representedFullName: 'Represented Person',
+						submitterComment: 'some comments',
+						submitterHearingPreference: BOOLEAN_OPTIONS.YES
+					};
+
+					const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+					const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+					assert.strictEqual(journey.isComplete(), false);
+				});
+			});
+			describe('org-not-work-for', () => {
+				const defaultAnswers = () => {
+					return {
+						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+						representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR
+					};
+				};
+				const defaultQuestions = () => [
+					'representedTypeId',
+					'submitterIsAdult',
+					'isAgent',
+					'submitterComment',
+					'submitterContactPreference',
+					'submitterHearingPreference',
+					'representedOrgName'
+				];
+				it('should include all default questions', () => {
+					const answers = defaultAnswers();
+					const questions = defaultQuestions();
+
+					testAddRepresentationQuestionsDisplay(answers, [], questions);
+				});
+				it('should handle submitterIsAdult dependant questions correctly', () => {
+					const answers = defaultAnswers();
+
+					const submitterIsAdultQuestions = defaultQuestions().concat('submitterFullName');
+					const submitterIsNotAdultQuestions = defaultQuestions();
+
+					answers.submitterIsAdult = BOOLEAN_OPTIONS.YES;
+					testAddRepresentationQuestionsDisplay(answers, [], submitterIsAdultQuestions);
+
+					answers.submitterIsAdult = BOOLEAN_OPTIONS.NO;
+					testAddRepresentationQuestionsDisplay(answers, [], submitterIsNotAdultQuestions);
+				});
+				it('should handle contactPreference correctly', () => {
+					const answers = defaultAnswers();
+
+					const byPostQuestions = defaultQuestions().concat('submitterAddress');
+					const byEmailQuestions = defaultQuestions().concat('submitterEmail');
+
+					answers.submitterContactPreference = 'post';
+					testAddRepresentationQuestionsDisplay(answers, [], byPostQuestions);
+
+					answers.submitterContactPreference = 'email';
+					testAddRepresentationQuestionsDisplay(answers, [], byEmailQuestions);
+				});
+				it('should handle isAgent correctly', () => {
+					const answers = defaultAnswers();
+
+					const isAgentQuestions = defaultQuestions().concat('agentOrgName');
+					const isNotAgentQuestions = defaultQuestions();
+
+					answers.isAgent = BOOLEAN_OPTIONS.YES;
+					testAddRepresentationQuestionsDisplay(answers, [], isAgentQuestions);
+
+					answers.isAgent = BOOLEAN_OPTIONS.NO;
+					testAddRepresentationQuestionsDisplay(answers, [], isNotAgentQuestions);
+				});
+				it('isComplete should return true if Representation and On Behalf Of Org-not-work-for sections are completed', () => {
+					const questions = getQuestions();
+					const answers = {
+						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+						representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
+						submitterIsAdult: BOOLEAN_OPTIONS.YES,
+						submitterFullName: 'Agent Name',
+						isAgent: BOOLEAN_OPTIONS.YES,
+						agentOrgName: 'Org Name',
+						submitterContactPreference: 'post',
+						submitterAddress: {
+							addressLine1: '1 Test Street',
+							town: 'Test Town',
+							postcode: 'TE1 1ST'
+						},
+						representedOrgName: 'Org Name Representing',
+						submitterComment: 'some comments',
+						submitterHearingPreference: BOOLEAN_OPTIONS.YES
+					};
+
+					const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+					const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+
+					assert.strictEqual(journey.isComplete(), true);
+				});
+				it('isComplete should return false if Representation and On Behalf Of Org-not-work-for sections are not completed', () => {
+					const questions = getQuestions();
+					const answers = {
+						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+						representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
+						submitterIsAdult: BOOLEAN_OPTIONS.YES,
+						submitterFullName: 'Agent Name',
+						isAgent: BOOLEAN_OPTIONS.YES,
+						agentOrgName: 'Org Name',
+						submitterContactPreference: 'post',
+						submitterAddress: {
+							addressLine1: '1 Test Street',
+							town: 'Test Town',
+							postcode: 'TE1 1ST'
+						},
+						submitterComment: 'some comments',
+						submitterHearingPreference: BOOLEAN_OPTIONS.YES
+					};
+
+					const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+					const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+					assert.strictEqual(journey.isComplete(), false);
+				});
+			});
+			describe('org-work-for', () => {
+				const defaultAnswers = () => {
+					return {
+						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+						representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION
+					};
+				};
+				const defaultQuestions = () => [
+					'representedTypeId',
+					'submitterIsAdult',
+					'submitterComment',
+					'submitterContactPreference',
+					'submitterHearingPreference',
+					'orgName',
+					'orgRoleName'
+				];
+				it('should include all default questions', () => {
+					const answers = defaultAnswers();
+					const questions = defaultQuestions();
+					testAddRepresentationQuestionsDisplay(answers, [], questions);
+				});
+				it('should handle submitterIsAdult dependant questions correctly', () => {
+					const answers = defaultAnswers();
+
+					const submitterIsAdultQuestions = defaultQuestions().concat('submitterFullName');
+					const submitterIsNotAdultQuestions = defaultQuestions();
+
+					answers.submitterIsAdult = BOOLEAN_OPTIONS.YES;
+					testAddRepresentationQuestionsDisplay(answers, [], submitterIsAdultQuestions);
+
+					answers.submitterIsAdult = BOOLEAN_OPTIONS.NO;
+					testAddRepresentationQuestionsDisplay(answers, [], submitterIsNotAdultQuestions);
+				});
+				it('should handle contactPreference correctly', () => {
+					const answers = defaultAnswers();
+
+					const byPostQuestions = defaultQuestions().concat('submitterAddress');
+					const byEmailQuestions = defaultQuestions().concat('submitterEmail');
+
+					answers.submitterContactPreference = 'post';
+					testAddRepresentationQuestionsDisplay(answers, [], byPostQuestions);
+
+					answers.submitterContactPreference = 'email';
+					testAddRepresentationQuestionsDisplay(answers, [], byEmailQuestions);
+				});
+				it('isComplete should return true if Representation and On Behalf Of Person sections are completed', () => {
+					const questions = getQuestions();
+					const answers = {
+						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+						representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
+						submitterIsAdult: BOOLEAN_OPTIONS.YES,
+						submitterFullName: 'Agent Name',
+						submitterContactPreference: 'email',
+						submitterEmail: 'someEmail@email.com',
+						orgName: 'some org',
+						orgRoleName: 'some job',
+						submitterComment: 'some comments',
+						submitterHearingPreference: BOOLEAN_OPTIONS.YES
+					};
+
+					const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+					const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+
+					assert.strictEqual(journey.isComplete(), true);
+				});
+				it('isComplete should return false if Representation and On Behalf Of Person sections are not completed', () => {
+					const questions = getQuestions();
+					const answers = {
+						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+						representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
+						submitterIsAdult: BOOLEAN_OPTIONS.YES,
+						submitterFullName: 'Agent Name',
+						submitterContactPreference: 'email',
+						submitterEmail: 'someEmail@email.com',
+						orgName: 'some org',
+						submitterComment: 'some comments',
+						submitterHearingPreference: BOOLEAN_OPTIONS.YES
+					};
+
+					const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+					const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+					assert.strictEqual(journey.isComplete(), false);
+				});
+			});
+		});
+
+		const testAddRepresentationQuestionsDisplay = (answers, expectedMyselfQuestions, expectedOnBehalfOfQuestions) => {
+			const questions = getQuestions();
+			const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+			const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+			const sections = journey.sections;
+
+			assert.strictEqual(sections.length, 3);
+
+			const mainSection = sections[0];
+			assert.strictEqual(mainSection.questions.length, 1);
+
+			const myselfSection = sections[1];
+			assert.strictEqual(myselfSection.questions.length, 7);
+
+			for (const myselfQuestion of myselfSection.questions) {
+				const expected = expectedMyselfQuestions.includes(myselfQuestion.fieldName);
+				assert.strictEqual(
+					myselfQuestion.shouldDisplay(response),
+					expected,
+					`Expected ${myselfQuestion.fieldName} to be ${expected}`
+				);
+			}
+			const onBehalfOfSection = sections[2];
+			assert.strictEqual(onBehalfOfSection.questions.length, 15);
 
 			for (const onBehalfOfQuestion of onBehalfOfSection.questions) {
 				const expected = expectedOnBehalfOfQuestions.includes(onBehalfOfQuestion.fieldName);

@@ -44,7 +44,11 @@ export function haveYourSaySections(questions) {
  * @returns {Section[]}
  */
 export function addRepresentationSection(questions) {
-	return [new Section('Representation', 'start').addQuestion(questions.submittedFor), addRepMyselfSection(questions)];
+	return [
+		new Section('Representation', 'start').addQuestion(questions.submittedFor),
+		addRepMyselfSection(questions),
+		addRepAgentSection(questions)
+	];
 }
 
 /**
@@ -127,4 +131,52 @@ function agentSection(questions) {
 		.withCondition((response) => questionHasAnswer(response, questions.representedIsAdult, BOOLEAN_OPTIONS.YES))
 		.endMultiQuestionCondition('representation-person')
 		.addQuestion(questions.submitterTellUsAboutApplication);
+}
+
+/**
+ * @param {Questions} questions
+ * @returns {Section}
+ */
+function addRepAgentSection(questions) {
+	const isRepresentationPerson = (response) =>
+		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON);
+	const isOrgWorkFor = (response) =>
+		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORGANISATION);
+	const isOrgNotWorkFor = (response) =>
+		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR);
+	const isRepresentationPersonOrOrgNotWorkFor = (response) =>
+		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON) ||
+		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR);
+
+	return new Section('Agent', 'agent')
+		.withSectionCondition((response) =>
+			questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF)
+		)
+		.addQuestion(questions.whoRepresenting)
+		.addQuestion(questions.submitterIsAdult)
+		.addQuestion(questions.submitterFullName)
+		.withCondition((response) => questionHasAnswer(response, questions.submitterIsAdult, BOOLEAN_OPTIONS.YES))
+		.startMultiQuestionCondition('representation-person-or-org-not-work-for', isRepresentationPersonOrOrgNotWorkFor)
+		.addQuestion(questions.areYouAgent)
+		.addQuestion(questions.agentOrgName)
+		.withCondition((response) => questionHasAnswer(response, questions.areYouAgent, BOOLEAN_OPTIONS.YES))
+		.endMultiQuestionCondition('representation-person-or-org-not-work-for')
+		.addQuestion(questions.submitterContactPreference)
+		.addQuestion(questions.submitterEmail)
+		.withCondition((response) => questionHasAnswer(response, questions.submitterContactPreference, 'email'))
+		.addQuestion(questions.submitterAddress)
+		.withCondition((response) => questionHasAnswer(response, questions.submitterContactPreference, 'post'))
+		.startMultiQuestionCondition('representation-person', isRepresentationPerson)
+		.addQuestion(questions.representedIsAdult)
+		.addQuestion(questions.representedFullName)
+		.withCondition((response) => questionHasAnswer(response, questions.representedIsAdult, BOOLEAN_OPTIONS.YES))
+		.endMultiQuestionCondition('representation-person')
+		.startMultiQuestionCondition('org-work-for', isOrgWorkFor)
+		.addQuestion(questions.orgName)
+		.addQuestion(questions.orgRoleName)
+		.endMultiQuestionCondition('org-work-for')
+		.addQuestion(questions.representedOrgName)
+		.withCondition(isOrgNotWorkFor)
+		.addQuestion(questions.submitterTellUsAboutApplication)
+		.addQuestion(questions.submitterHearingPreference);
 }
