@@ -88,7 +88,7 @@ sql_config = {
     long_term_yearly       = "P1Y"
     long_term_week_of_year = 1
   }
-  public_network_access_enabled = true
+  public_network_access_enabled = false
 }
 
 
