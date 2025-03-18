@@ -100,6 +100,13 @@ variable "health_check_eviction_time_in_min" {
   default     = 10
 }
 
+variable "monitoring_config" {
+  description = "Config for monitoring"
+  type = object({
+    app_insights_web_test_enabled = bool
+  })
+}
+
 variable "sql_config" {
   description = "Config for SQL Server and DB"
   type = object({
@@ -123,8 +130,8 @@ variable "sql_config" {
 
 variable "tags" {
   description = "A collection of tags to assign to taggable resources"
-  type        = map(string)
-  default     = {}
+  type = map(string)
+  default = {}
 }
 
 variable "tooling_config" {

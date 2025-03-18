@@ -73,6 +73,10 @@ front_door_config = {
   use_tooling = true
 }
 
+monitoring_config = {
+  app_insights_web_test_enabled = false
+}
+
 sql_config = {
   admin = {
     login_username = "pins-crown-sql-test"
