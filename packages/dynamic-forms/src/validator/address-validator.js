@@ -37,7 +37,6 @@ export default class AddressValidator extends BaseValidator {
 	 */
 	constructor(opts) {
 		super();
-
 		this.requiredFields = opts?.requiredFields;
 	}
 
@@ -148,5 +147,12 @@ export default class AddressValidator extends BaseValidator {
 			.custom((postcode) => {
 				return validatePostcode(postcode);
 			});
+	}
+
+	isRequired() {
+		if (this.requiredFields) {
+			return Object.values(this.requiredFields).some((field) => Boolean(field));
+		}
+		return false;
 	}
 }
