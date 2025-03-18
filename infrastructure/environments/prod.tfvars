@@ -65,7 +65,7 @@ front_door_config = {
   name        = "pins-fd-common-prod"
   rg          = "pins-rg-common-prod"
   ep_name     = "pins-fde-crowndev"
-  use_tooling = true
+  use_tooling = false
 }
 
 sql_config = {
@@ -86,7 +86,7 @@ sql_config = {
   public_network_access_enabled = false
 }
 
-web_domains = { portal = "crown-developments.planninginspectorate.gov.uk", manage = "crown-developments-manage.planninginspectorate.gov.uk" }
+web_domains = { portal = "find-crown-development.planninginspectorate.gov.uk", manage = "crown-developments-manage.planninginspectorate.gov.uk" }
 
 vnet_config = {
   address_space                       = "10.20.12.0/22"
