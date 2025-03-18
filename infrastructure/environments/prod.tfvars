@@ -14,7 +14,7 @@ apps_config = {
     group_application_access = "1abf7720-2ea6-479e-822d-218917d3d0ee"
   }
 
-  contact_email = "not.real@fake.example.com"
+  contact_email = "crownapplications@planninginspectorate.gov.uk"
 
   entra = {
     group_ids = {
