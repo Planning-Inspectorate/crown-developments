@@ -36,6 +36,8 @@ export function loadConfig() {
 		AUTH_DISABLED,
 		AUTH_GROUP_APPLICATION_ACCESS,
 		AUTH_TENANT_ID,
+		AZURE_AI_LANGUAGE_ENDPOINT,
+		AZURE_AI_LANGUAGE_KEY,
 		ENTRA_GROUP_CACHE_TTL,
 		ENTRA_GROUP_ID_CASE_OFFICERS,
 		ENTRA_GROUP_ID_INSPECTORS,
@@ -137,6 +139,10 @@ export function loadConfig() {
 			}
 		},
 		gitSha: GIT_SHA,
+		language: {
+			endpoint: AZURE_AI_LANGUAGE_ENDPOINT,
+			key: AZURE_AI_LANGUAGE_KEY
+		},
 		// the log level to use
 		logLevel: LOG_LEVEL || 'info',
 		NODE_ENV: NODE_ENV || 'development',

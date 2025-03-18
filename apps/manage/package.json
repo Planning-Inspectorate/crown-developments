@@ -13,6 +13,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@azure/ai-text-analytics": "*",
     "@azure/msal-node": "*",
     "@microsoft/microsoft-graph-client": "*",
     "@pins/crowndev-database": "^0.0.0",

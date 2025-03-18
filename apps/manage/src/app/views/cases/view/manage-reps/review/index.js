@@ -10,9 +10,10 @@ import { buildGetJourneyMiddleware } from '../view/controller.js';
  * @param {Object} opts
  * @param {import('pino').Logger} opts.logger
  * @param {import('@prisma/client').PrismaClient} opts.db
+ * @param {import('@azure/ai-text-analytics').TextAnalyticsClient} textAnalyticsClient
  * @returns {import('express').Router}
  */
-export function createRoutes({ db, logger }) {
+export function createRoutes({ db, logger, textAnalyticsClient }) {
 	const router = createRouter({ mergeParams: true });
 	const getJourney = asyncHandler(buildGetJourneyMiddleware({ db, logger }));
 	const {
@@ -21,9 +22,9 @@ export function createRoutes({ db, logger }) {
 		redactRepresentationPost,
 		redactConfirmation,
 		acceptRedactedComment
-	} = buildReviewControllers({ db, logger });
+	} = buildReviewControllers({ db, logger, textAnalyticsClient });
 	const questions = getQuestions();
-	const validateReview = buildValidateBody([questions.reviewDecision, questions.wantsToBeHeard]);
+	const validateReview = buildValidateBody([questions.reviewDecision]);
 
 	router.get('/', getJourney, viewReviewRedirect, asyncHandler(viewRepresentationAwaitingReview));
 	router.post('/', getJourney, validateReview, validationErrorHandler, asyncHandler(reviewRepresentation));

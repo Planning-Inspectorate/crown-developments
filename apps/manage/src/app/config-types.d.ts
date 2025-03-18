@@ -23,6 +23,10 @@ interface Config {
 		};
 	};
 	gitSha?: string;
+	language: {
+		endpoint: string;
+		key: string;
+	};
 	logLevel: string;
 	NODE_ENV: string;
 	httpPort: number;

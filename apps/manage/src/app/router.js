@@ -11,9 +11,18 @@ import { createRoutes as createCasesRoutes } from './views/cases/index.js';
  * @param {import('@prisma/client').PrismaClient} params.dbClient
  * @param {function(session): SharePointDrive} getSharePointDrive
  * @param {import('@pins/crowndev-lib/graph/types.js').InitEntraClient} getEntraClient
+ * @param {import('@azure/ai-text-analytics').TextAnalyticsClient} textAnalyticsClient
  * @returns {import('express').Router}
  */
-export function buildRouter({ logger, config, redis, dbClient, getSharePointDrive, getEntraClient }) {
+export function buildRouter({
+	logger,
+	config,
+	redis,
+	dbClient,
+	getSharePointDrive,
+	getEntraClient,
+	textAnalyticsClient
+}) {
 	const router = createRouter();
 	const monitoringRoutes = createMonitoringRoutes({
 		config,
@@ -25,7 +34,14 @@ export function buildRouter({ logger, config, redis, dbClient, getSharePointDriv
 		config,
 		redisClient: redis
 	});
-	const casesRoutes = createCasesRoutes({ db: dbClient, logger, config, getSharePointDrive, getEntraClient });
+	const casesRoutes = createCasesRoutes({
+		db: dbClient,
+		logger,
+		config,
+		getSharePointDrive,
+		getEntraClient,
+		textAnalyticsClient
+	});
 
 	router.use('/', monitoringRoutes);
 	router.get('/unauthenticated', (req, res) => res.status(401).render('views/errors/401.njk'));

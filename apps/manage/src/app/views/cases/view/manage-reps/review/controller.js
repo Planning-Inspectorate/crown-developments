@@ -8,6 +8,7 @@ import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-respons
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { REDACT_CHARACTER } from '@pins/dynamic-forms/src/components/text-entry-redact/question.js';
 import { expressValidationErrorsToGovUkErrorList } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
+import { highlightRedactionSuggestions } from './redaction.js';
 
 /**
  * @typedef {import('express').Handler} Handler
@@ -35,9 +36,10 @@ export async function viewRepresentationAwaitingReview(req, res) {
  * @param {Object} opts
  * @param {import('@prisma/client').PrismaClient} opts.db
  * @param {import('pino').BaseLogger} opts.logger
+ * @param {import('@azure/ai-text-analytics').TextAnalyticsClient} textAnalyticsClient
  * @returns {ReviewControllers}
  */
-export function buildReviewControllers({ db, logger }) {
+export function buildReviewControllers({ db, logger, textAnalyticsClient }) {
 	/** @type {ReviewControllers} */
 	const controllers = {
 		async reviewRepresentation(req, res) {
@@ -87,9 +89,21 @@ export function buildReviewControllers({ db, logger }) {
 				select: { comment: true }
 			});
 
+			const comment = representation.comment;
+
+			const [result] = await textAnalyticsClient.recognizePiiEntities([comment], 'en', {
+				categoriesFilter: ['Address', 'Organization', 'Person', 'PhoneNumber', 'Email', 'URL']
+			});
+
+			// use the redaction suggestions from the API if the user has not made any changes
+			let commentRedacted = readSessionData(req, representationRef, 'commentRedacted', '', 'representations');
+			if (!commentRedacted) {
+				commentRedacted = result?.redactedText.replaceAll('*', REDACT_CHARACTER);
+			}
+
 			const response = new JourneyResponse(JOURNEY_ID, 'ref-1', {
-				comment: representation.comment,
-				commentRedacted: readSessionData(req, representationRef, 'commentRedacted', '', 'representations')
+				comment: highlightRedactionSuggestions(comment, result?.entities || []),
+				commentRedacted
 			});
 			const journey = new createRedactJourney(response, req);
 			const section = journey.sections[0];
@@ -99,7 +113,11 @@ export function buildReviewControllers({ db, logger }) {
 				question.renderAction(res, validationErrors);
 				return;
 			}
-			const viewModel = question.prepQuestionForRendering(section, journey);
+
+			const viewModel = question.prepQuestionForRendering(section, journey, {
+				suggestions: result?.entities || [],
+				containerClasses: 'pins-container-wide'
+			});
 			question.renderAction(res, viewModel);
 		},
 		async redactRepresentationPost(req, res) {

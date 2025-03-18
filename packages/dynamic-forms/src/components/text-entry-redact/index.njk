@@ -6,6 +6,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
 {% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 
 {% set title = question.pageTitle + " - " + journeyTitle + " - GOV.UK" %}
 {% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
@@ -28,7 +29,7 @@
 
 {% block content %}
     <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
+        <div class="govuk-grid-column-one-half">
             <form action="" method="post" novalidate>
                 <input type="hidden" name="_csrf" value="{{ _csrf }}">
 
@@ -50,7 +51,7 @@
                 {% endif %}
 
                 {{ govukInsetText({
-                    text: question.value,
+                    html: question.value,
                     id: question.fieldName + "-unredacted"
                 }) }}
 
@@ -98,6 +99,30 @@
                 }) }}
             </form>
         </div>
+        <div class="govuk-grid-column-one-half">
+            <h2 class="govuk-heading-m">Suggestions</h2>
+            {% set suggestionRows = [] %}
+            {% for s in suggestions  %}
+                {% set suggestionRows = (suggestionRows.push({
+                    key: {text: s.category },
+                    value: {text: s.text},
+                    actions: {
+                        items: [
+                            {
+                                href: "#",
+                                text: "Reject",
+                                attributes: {
+                                    "data-redact": "suggestion-reject-" + loop.index0
+                                }
+                            }
+                        ]
+                    }
+                }), suggestionRows) %}
+            {% endfor %}
+            {{  govukSummaryList({
+                rows: suggestionRows
+            }) }}
+        </div>
 
         <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
             /**
@@ -107,7 +132,7 @@
              * @param {HTMLButtonElement} redactUndoAll
              * @param {HTMLDivElement} unredactedText
              */
-            function registerEventListeners({textArea, redactSelectedText, redactUndo, redactUndoAll, unredactedText}) {
+            function registerEventListeners({textArea, redactSelectedText, redactUndo, redactUndoAll, unredactedText, rejectLinks, suggestions}) {
 				const formGroup = textArea.parentElement;
                 const errorMessage = document.createElement('p');
                 errorMessage.id = '{{ question.fieldName }}-error';
@@ -161,6 +186,20 @@
                     textArea.value = unredated || '';
                     history.length = 0;
                 });
+                for (const rejectLink of rejectLinks) {
+                  rejectLink.addEventListener('click', () => {
+                    const index = parseInt(rejectLink.getAttribute('data-redact').replace('suggestion-reject-', ''));
+					const suggestion = suggestions[index];
+					if (rejectLink.text === 'Reject') {
+						textArea.value = textArea.value.substring(0, suggestion.offset) + suggestion.text + textArea.value.substring(suggestion.offset + suggestion.length);
+						rejectLink.text = 'Accept';
+                    } else {
+						const redactedText = '█'.repeat(suggestion.length);
+						textArea.value = textArea.value.substring(0, suggestion.offset) + redactedText+ textArea.value.substring(suggestion.offset + suggestion.length);
+						rejectLink.text = 'Reject';
+                    }
+                  });
+                }
             }
 
             function initRedact() {
@@ -169,6 +208,8 @@
                 const redactUndo = document.querySelector('#redact-undo');
                 const redactUndoAll = document.querySelector('#redact-undo-all');
                 const unredactedText = document.querySelector('#{{ question.fieldName }}-unredacted');
+                const rejectLinks = document.querySelectorAll('[data-redact]');
+                const suggestions = {{ suggestions | dump | safe }}
 
                 if (!textArea || !(textArea instanceof HTMLTextAreaElement)) {
                     return;
@@ -186,7 +227,15 @@
                     return;
                 }
 
-                registerEventListeners({textArea, redactSelectedText, redactUndo, redactUndoAll, unredactedText});
+                registerEventListeners({
+                  textArea,
+                  redactSelectedText,
+                  redactUndo,
+                  redactUndoAll,
+                  unredactedText,
+                  rejectLinks,
+                  suggestions
+                });
             }
 
             initRedact();

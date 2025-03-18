@@ -12,6 +12,7 @@ import { getRedis } from '@pins/crowndev-lib/redis/index.js';
 import { buildInitSharePointDrive } from '#util/sharepoint.js';
 import { MapCache } from '@pins/crowndev-lib/util/map-cache.js';
 import { buildInitEntraClient } from '@pins/crowndev-lib/graph/cached-entra-client.js';
+import { AzureKeyCredential, TextAnalyticsClient } from '@azure/ai-text-analytics';
 
 /**
  * @param {import('./config-types.js').Config} config
@@ -25,6 +26,10 @@ export function getApp(config, logger) {
 	// share this cache between each instance of the EntraClient
 	const entraGroupCache = new MapCache(config.entra.cacheTtl);
 	const getEntraClient = buildInitEntraClient(!config.auth.disabled, entraGroupCache);
+	const textAnalyticsClient = new TextAnalyticsClient(
+		config.language.endpoint,
+		new AzureKeyCredential(config.language.key)
+	);
 
 	// create an express app, and configure it for our usage
 	const app = express();
@@ -80,7 +85,8 @@ export function getApp(config, logger) {
 		redis,
 		dbClient,
 		getSharePointDrive,
-		getEntraClient
+		getEntraClient,
+		textAnalyticsClient
 	});
 	// register the router, which will define any subpaths
 	// any paths not defined will return 404 by default

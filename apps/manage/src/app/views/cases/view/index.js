@@ -15,11 +15,12 @@ import { createRoutes as createRepsRoutes } from './manage-reps/index.js';
  * @param {import('../../../config-types.js').Config} config
  * @param {import('@pins/crowndev-lib/graph/types.js').InitEntraClient} opts.getEntraClient
  * @param {function(session): SharePointDrive} opts.getSharePointDrive
+ * @param {import('@azure/ai-text-analytics').TextAnalyticsClient} textAnalyticsClient
  * @returns {import('express').Router}
  */
-export function createRoutes({ db, logger, config, getEntraClient, getSharePointDrive }) {
+export function createRoutes({ db, logger, config, getEntraClient, getSharePointDrive, textAnalyticsClient }) {
 	const router = createRouter({ mergeParams: true });
-	const repsRoutes = createRepsRoutes({ db, logger });
+	const repsRoutes = createRepsRoutes({ db, logger, textAnalyticsClient });
 	const getJourney = asyncHandler(
 		buildGetJourneyMiddleware({ db, logger, groupIds: config.entra.groupIds, getEntraClient })
 	);

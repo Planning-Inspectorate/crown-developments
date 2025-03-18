@@ -14,13 +14,14 @@ import { createRoutes as createAddRoutes } from './add/index.js';
  * @param {Object} opts
  * @param {import('@prisma/client').PrismaClient} opts.db
  * @param {import('pino').BaseLogger} opts.logger
+ * @param {import('@azure/ai-text-analytics').TextAnalyticsClient} textAnalyticsClient
  * @returns {import('express').Router}
  */
-export function createRoutes({ db, config, logger }) {
+export function createRoutes({ db, config, logger, textAnalyticsClient }) {
 	const router = createRouter({ mergeParams: true });
 	const repsRouter = createRouter({ mergeParams: true });
 	const list = buildListReps({ db });
-	const reviewRoutes = createReviewRoutes({ db, config, logger });
+	const reviewRoutes = createReviewRoutes({ db, logger, textAnalyticsClient });
 	const addRepRoutes = createAddRoutes({ db, config, logger });
 	const getJourney = asyncHandler(buildGetJourneyMiddleware({ db, logger }));
 	const updateRepFn = buildUpdateRepresentation({ db, logger });
