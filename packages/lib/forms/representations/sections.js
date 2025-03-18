@@ -45,7 +45,10 @@ export function haveYourSaySections(questions) {
  */
 export function addRepresentationSection(questions) {
 	return [
-		new Section('Representation', 'start').addQuestion(questions.submittedFor),
+		new Section('Representation', 'start')
+			.addQuestion(questions.submittedDate)
+			.addQuestion(questions.category)
+			.addQuestion(questions.submittedFor),
 		addRepMyselfSection(questions),
 		addRepAgentSection(questions)
 	];
