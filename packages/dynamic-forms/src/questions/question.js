@@ -2,6 +2,7 @@ import escape from 'escape-html';
 import RequiredValidator from '../validator/required-validator.js';
 import RequiredFileUploadValidator from '../validator/required-file-upload-validator.js';
 import { capitalize, nl2br } from '../lib/utils.js';
+import AddressValidator from '../validator/address-validator.js';
 
 /**
  * @typedef {import('../validator/base-validator.js')} BaseValidator
@@ -355,7 +356,10 @@ export class Question {
 	 */
 	isRequired() {
 		return this.validators?.some(
-			(item) => item instanceof RequiredValidator || item instanceof RequiredFileUploadValidator
+			(item) =>
+				item instanceof RequiredValidator ||
+				item instanceof RequiredFileUploadValidator ||
+				(item instanceof AddressValidator && item.isRequired())
 		);
 	}
 
