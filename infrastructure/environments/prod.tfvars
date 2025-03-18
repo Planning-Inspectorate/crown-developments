@@ -26,9 +26,9 @@ apps_config = {
   }
 
   redis = {
-    capacity = 0
+    capacity = 1
     family   = "C"
-    sku_name = "Basic"
+    sku_name = "Standard"
   }
 
   gov_notify = {
