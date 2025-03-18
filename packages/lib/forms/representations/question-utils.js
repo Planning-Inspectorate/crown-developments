@@ -96,7 +96,7 @@ export function representationsContactQuestions({ prefix }) {
 		type: COMPONENT_TYPES.RADIO,
 		title: 'What is your contact preference',
 		question: 'What is your preferred contact method?',
-		fieldName: 'contactPreference',
+		fieldName: `${prefix}ContactPreference`,
 		url: 'contact-preference',
 		validators: [new RequiredValidator('Select the contact preference')],
 		options: referenceDataToRadioOptions(CONTACT_PREFERENCE)
@@ -123,9 +123,9 @@ export function representationsContactQuestions({ prefix }) {
 		type: COMPONENT_TYPES.BOOLEAN,
 		title: 'Would you like to be heard at a hearing',
 		question: 'Would you like to be heard at a hearing?',
-		fieldName: 'hearingPreference',
+		fieldName: `${prefix}HearingPreference`,
 		url: 'hearing-preference',
-		validator: [new RequiredValidator('Select the hearing preference')]
+		validators: [new RequiredValidator('Select the hearing preference')]
 	};
 
 	return questions;

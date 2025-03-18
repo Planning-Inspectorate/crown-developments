@@ -16,7 +16,7 @@ describe('add-representation journey', () => {
 		const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
 		const sections = journey.sections;
 
-		assert.strictEqual(sections.length, 2);
+		assert.strictEqual(sections.length, 3);
 		const section = sections[0];
 		const questionsDefined = section.questions.every((question) => question !== undefined);
 		assert.strictEqual(questionsDefined, true);
