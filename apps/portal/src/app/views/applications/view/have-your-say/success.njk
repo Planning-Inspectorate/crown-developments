@@ -1,6 +1,30 @@
 {% extends "views/layouts/main.njk" %}
-{% from "success/success.njk" import success %}
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
 
 {% block pageContent %}
-    {{ success(title, bodyText, successBackLinkUrl, successBackLinkText) }}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            {{ govukPanel({
+                titleText: title,
+                html: bodyText
+            }) }}
+
+            <p class="govuk-body">We have received your comments. Make a note of your representation reference number.</p>
+            <p class="govuk-body">We will contact you if we need more information about the comments you have provided.</p>
+
+            <h2 class="govuk-heading-m">What happens next</h2>
+            <p class="govuk-body">Following the end of the representation period we will notify you of the procedure that the application will follow. Where a hearing of local inquiry is to be held, you will be able to request in writing to participate in the hearing or inquiry.</p>
+
+            <h2 class="govuk-heading-m">Providing more information</h2>
+            <p class="govuk-body">If you wish to include documents or photographs as part of your comments, you must send them to <a href="mailto:crownapplications@planninginspectorate.gov.uk" class="govuk-link">crownapplications@planninginspectorate.gov.uk</a> and include your name, representation reference number and application reference number in the subject line.</p>
+
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-two-thirds">
+                    <p class="govuk-body">
+                        <a href="{{ successBackLinkUrl }}" class="govuk-link">{{ successBackLinkText }}</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
