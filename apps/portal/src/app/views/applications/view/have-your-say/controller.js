@@ -1,6 +1,6 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { applicationLinks, crownDevelopmentToViewModel, documentsLink } from '../view-model.js';
+import { applicationLinks, crownDevelopmentToViewModel } from '../view-model.js';
 import { fetchPublishedApplication } from '#util/applications.js';
 import { nowIsWithinRange } from '@pins/dynamic-forms/src/lib/date-utils.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
@@ -46,7 +46,6 @@ export function buildHaveYourSayPage({ db, config }) {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Have your say on a Crown Development Application',
 			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
-			documentsLink: documentsLink(id),
 			currentUrl: req.originalUrl,
 			crownDevelopmentFields
 		});
