@@ -1,13 +1,7 @@
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
-{% from "govuk/components/skip-link/macro.njk" import govukSkipLink %}
 {% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
 
 <header role="banner">
-	{{ govukSkipLink({
-		href: '#main-content',
-		text: 'Skip to main content'
-	}) }}
-
 	<div class="pins-header">
 		<div class="govuk-header__container pins-header__container govuk-width-container">
 			<div class="govuk-header__logo">
