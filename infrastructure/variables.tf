@@ -128,8 +128,8 @@ variable "sql_config" {
 
 variable "tags" {
   description = "A collection of tags to assign to taggable resources"
-  type = map(string)
-  default = {}
+  type        = map(string)
+  default     = {}
 }
 
 variable "tooling_config" {
