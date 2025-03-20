@@ -66,7 +66,7 @@ environment = "prod"
 front_door_config = {
   name        = "pins-fd-common-prod"
   rg          = "pins-rg-common-prod"
-  ep_name     = "pins-fde-crowndev"
+  ep_name     = "pins-fde-crowndev-prod"
   use_tooling = false
 }
 
