@@ -23,15 +23,15 @@ resource "azurerm_application_insights" "main" {
 resource "azurerm_application_insights_standard_web_test" "portal" {
   count = var.monitoring_config.app_insights_web_test_enabled ? 1 : 0
 
-  name                = "${local.org}-ai-swt-${local.resource_suffix}"
-  resource_group_name = azurerm_resource_group.primary.name
-  location            = module.primary_region.location
+  name                    = "${local.org}-ai-swt-${local.resource_suffix}"
+  resource_group_name     = azurerm_resource_group.primary.name
+  location                = module.primary_region.location
   application_insights_id = azurerm_application_insights.main.id
   geo_locations = [
     "emea-se-sto-edge", # UK West
     "emea-ru-msa-edge", # UK South
-    "emea-gb-db3-azr", # North Europe
-    "emea-nl-ams-azr" # West Europe
+    "emea-gb-db3-azr",  # North Europe
+    "emea-nl-ams-azr"   # West Europe
   ]
 
   request {
@@ -39,7 +39,7 @@ resource "azurerm_application_insights_standard_web_test" "portal" {
     url = "https://${var.web_domains.portal}/applications"
   }
   validation_rules {
-    ssl_check_enabled = true
+    ssl_check_enabled           = true
     ssl_cert_remaining_lifetime = 7
   }
 
