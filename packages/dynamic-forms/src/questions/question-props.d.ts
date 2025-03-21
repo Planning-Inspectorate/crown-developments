@@ -35,6 +35,7 @@ interface CommonQuestionProps {
 	html?: string;
 	hint?: string;
 	shouldDisplay?: (response: JourneyResponse) => boolean;
+	autocomplete?: string;
 }
 
 type Option =
