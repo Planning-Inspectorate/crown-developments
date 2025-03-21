@@ -187,7 +187,7 @@ function mapFieldValue(fieldValue) {
 
 /**
  *
- * @param {RepresentationCreateAnswers} answers
+ * @param {HaveYourSayManageModelFields} answers
  * @param {string} reference
  * @param {string} applicationId
  * @returns {import('@prisma/client').Prisma.RepresentationCreateInput}
@@ -219,6 +219,39 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 			}
 		}
 	};
+
+	if (answers[`${prefix}ContactPreference`]) {
+		createInput.SubmittedByContact.create.ContactPreference = {
+			connect: { id: answers[`${prefix}ContactPreference`] }
+		};
+	}
+
+	if (answers[`${prefix}HearingPreference`]) {
+		createInput.wantsToBeHeard = yesNoToBoolean(answers[`${prefix}HearingPreference`]);
+	}
+
+	// Checking that at least one of the address fields is not empty so that we don't create an empty address
+	if (answers[`${prefix}Address`] && Object.values(answers[`${prefix}Address`]).some((value) => Boolean(value))) {
+		const { addressLine1, addressLine2, townCity, county, postcode } = answers[`${prefix}Address`];
+		// Using || to filter out empty strings
+		createInput.SubmittedByContact.create.Address = {
+			create: {
+				line1: addressLine1 || null,
+				line2: addressLine2 || null,
+				townCity: townCity || null,
+				county: county || null,
+				postcode: postcode || null
+			}
+		};
+	}
+
+	if (answers.submittedDate) {
+		createInput.submittedDate = answers.submittedDate;
+	}
+
+	if (answers.categoryId) {
+		createInput.Category = { connect: { id: answers.categoryId } };
+	}
 
 	if (submitterIsAdult) {
 		createInput.SubmittedByContact.create.fullName = answers[`${prefix}FullName`];
