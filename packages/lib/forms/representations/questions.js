@@ -10,7 +10,7 @@ import {
 	REPRESENTATION_SUBMITTED_FOR,
 	REPRESENTED_TYPE
 } from '@pins/crowndev-database/src/seed/data-static.js';
-import { referenceDataToRadioOptions, toKebabCase } from '@pins/crowndev-lib/util/questions.js';
+import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
 import { CUSTOM_COMPONENT_CLASSES } from '../custom-components/index.js';
 import { representationsContactQuestions } from './question-utils.js';
 import DateValidator from '@pins/dynamic-forms/src/validator/date-validator.js';
@@ -91,7 +91,7 @@ export const questionProps = {
 		hint: 'We will publish this on the website along with your comments about the application.',
 		fieldName: 'representedFullName',
 		url: 'name-person-representing',
-		autocomplete: toKebabCase('representedFullName'),
+		autocomplete: 'name',
 		validators: [
 			new RequiredValidator('Enter the full name of the person you are representing'),
 			new StringValidator({
@@ -113,7 +113,6 @@ export const questionProps = {
 		hint: 'We will publish your organisation name on the website along with your representation.',
 		fieldName: 'orgName',
 		url: 'name-organisation',
-		autocomplete: toKebabCase('orgName'),
 		validators: [
 			new RequiredValidator('Enter your organisation or charity name'),
 			new StringValidator({
@@ -130,7 +129,6 @@ export const questionProps = {
 		question: 'What is your job title or volunteer role?',
 		fieldName: 'orgRoleName',
 		url: 'what-job-title-or-role',
-		autocomplete: toKebabCase('orgRoleName'),
 		validators: [
 			new RequiredValidator('Enter your job title or volunteer role'),
 			new StringValidator({
@@ -147,7 +145,6 @@ export const questionProps = {
 		question: 'What is the full name of the organisation or charity that you are representing?',
 		fieldName: 'representedOrgName',
 		url: 'name-organisation-representing',
-		autocomplete: toKebabCase('representedOrgName'),
 		validators: [
 			new RequiredValidator('Enter the  full name of the organisation you are representing'),
 			new StringValidator({
@@ -178,7 +175,6 @@ export const questionProps = {
 		hint: "We will publish your organisation name, your client's name and their representation on the website.",
 		fieldName: 'agentOrgName',
 		url: 'agent-organisation-name',
-		autocomplete: toKebabCase('agentOrgName'),
 		validators: [
 			new RequiredValidator('Enter your organisation name'),
 			new StringValidator({
