@@ -16,12 +16,12 @@ import { createRoutes as createAddRoutes } from './add/index.js';
  * @param {import('pino').BaseLogger} opts.logger
  * @returns {import('express').Router}
  */
-export function createRoutes({ db, config, logger }) {
+export function createRoutes({ db, logger }) {
 	const router = createRouter({ mergeParams: true });
 	const repsRouter = createRouter({ mergeParams: true });
 	const list = buildListReps({ db });
-	const reviewRoutes = createReviewRoutes({ db, config, logger });
-	const addRepRoutes = createAddRoutes({ db, config, logger });
+	const reviewRoutes = createReviewRoutes({ db, logger });
+	const addRepRoutes = createAddRoutes({ db, logger });
 	const getJourney = asyncHandler(buildGetJourneyMiddleware({ db, logger }));
 	const updateRepFn = buildUpdateRepresentation({ db, logger });
 	const saveAnswer = buildSave(updateRepFn, true);
