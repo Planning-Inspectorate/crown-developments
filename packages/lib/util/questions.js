@@ -10,14 +10,3 @@ export function referenceDataToRadioOptions(reference, addNullOption = false) {
 	}
 	return options;
 }
-
-/**
- * @param {string} inputString
- * @returns {string} inputString converted to kebab-case (e.g. input-string)
- */
-export function toKebabCase(inputString) {
-	return inputString
-		.replace(/\s+/g, '-')
-		.replace(/([a-z])([A-Z])/g, '$1-$2')
-		.toLowerCase();
-}
