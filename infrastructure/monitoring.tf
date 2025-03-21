@@ -33,6 +33,8 @@ resource "azurerm_application_insights_standard_web_test" "portal" {
     "emea-gb-db3-azr",  # North Europe
     "emea-nl-ams-azr"   # West Europe
   ]
+  retry_enabled = true
+  enabled       = true
 
   request {
     # applications list page
