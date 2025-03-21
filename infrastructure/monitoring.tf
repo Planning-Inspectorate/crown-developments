@@ -48,6 +48,36 @@ resource "azurerm_application_insights_standard_web_test" "portal" {
   tags = local.tags
 }
 
+resource "azurerm_monitor_metric_alert" "portal_availability" {
+  count = var.monitoring_config.app_insights_web_test_enabled ? 1 : 0
+
+  name                = "Portal Availablity - ${local.resource_suffix}"
+  resource_group_name = azurerm_resource_group.primary.name
+  scopes = [
+    azurerm_application_insights_standard_web_test.portal[0].id,
+    azurerm_application_insights.main.id
+  ]
+  description = "Metric alert for standard web test (availability) for the portal app - which also checks the certificate"
+
+  application_insights_web_test_location_availability_criteria {
+    web_test_id           = azurerm_application_insights_standard_web_test.portal[0].id
+    component_id          = azurerm_application_insights.main.id
+    failed_location_count = 1
+  }
+
+  action {
+    action_group_id = local.action_group_ids.tech
+  }
+
+  action {
+    action_group_id = local.action_group_ids.service_manager
+  }
+
+  action {
+    action_group_id = local.action_group_ids.its
+  }
+}
+
 resource "azurerm_key_vault_secret" "app_insights_connection_string" {
   #checkov:skip=CKV_AZURE_41: expiration not valid
   key_vault_id = azurerm_key_vault.main.id
