@@ -26,7 +26,8 @@ describe('./src/dynamic-forms/question.js', () => {
 		validators = VALIDATORS,
 		pageTitle = undefined,
 		html = undefined,
-		hint = undefined
+		hint = undefined,
+		autocomplete = FIELDNAME
 	} = {}) => {
 		return new Question({
 			title,
@@ -39,6 +40,7 @@ describe('./src/dynamic-forms/question.js', () => {
 			validators,
 			html,
 			hint,
+			autocomplete,
 			getAction: () => {
 				return 'http://example.com/action';
 			}
@@ -136,7 +138,8 @@ describe('./src/dynamic-forms/question.js', () => {
 				description: question.description,
 				html: question.html,
 				hint: undefined,
-				interfaceType: undefined
+				interfaceType: undefined,
+				autocomplete: question.autocomplete
 			});
 			assert.deepStrictEqual(result.answer, journey.response.answers[question.fieldName]);
 			assert.deepStrictEqual(result.layoutTemplate, journey.journeyTemplate);

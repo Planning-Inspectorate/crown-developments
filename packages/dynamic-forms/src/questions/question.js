@@ -99,6 +99,7 @@ export class Question {
 	 * @param {string} [params.hint]
 	 * @param {string} [params.interfaceType]
 	 * @param {(response: JourneyResponse) => boolean} [params.shouldDisplay]
+	 * @param {string} [params.autocomplete]
 	 * @param {boolean} [params.editable] - defaults to true
 	 *
 	 * @param {Record<string, Function>} [methodOverrides]
@@ -117,6 +118,7 @@ export class Question {
 			hint,
 			interfaceType,
 			shouldDisplay,
+			autocomplete,
 			editable = true
 		},
 		methodOverrides
@@ -135,6 +137,7 @@ export class Question {
 		this.description = description;
 		this.hint = hint;
 		this.interfaceType = interfaceType;
+		this.autocomplete = autocomplete;
 		this.editable = editable;
 
 		if (shouldDisplay) {
@@ -172,7 +175,8 @@ export class Question {
 				description: this.description,
 				html: this.html,
 				hint: this.hint,
-				interfaceType: this.interfaceType
+				interfaceType: this.interfaceType,
+				autocomplete: this.autocomplete
 			},
 			answer,
 

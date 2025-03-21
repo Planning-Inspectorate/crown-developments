@@ -19,7 +19,8 @@ describe('./src/dynamic-forms/components/single-line-input/question.js', () => {
 			validators: VALIDATORS,
 			html: HTML,
 			hint: HINT,
-			label: LABEL
+			label: LABEL,
+			autocomplete: FIELDNAME
 		});
 
 		assert.strictEqual(question.title, TITLE);
@@ -30,5 +31,6 @@ describe('./src/dynamic-forms/components/single-line-input/question.js', () => {
 		assert.strictEqual(question.html, HTML);
 		assert.strictEqual(question.hint, HINT);
 		assert.strictEqual(question.label, LABEL);
+		assert.strictEqual(question.autocomplete, FIELDNAME);
 	});
 });
