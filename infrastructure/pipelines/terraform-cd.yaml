@@ -30,7 +30,7 @@ extends:
           - Test
       - name: Prod
         dependsOn:
-          - Test
+          - Training
     serviceConnectionPrefix: Azure DevOps Pipelines - Crown Development - Infrastructure
     storageAccountName: pinssttfstateukscrowndev
     resourceGroupName: pins-rg-shared-terraform-uks
