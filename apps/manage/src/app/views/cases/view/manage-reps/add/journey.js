@@ -17,7 +17,7 @@ export function createJourney(questions, response, req) {
 		journeyTitle: 'Add a representation',
 		returnToListing: false,
 		makeBaseUrl: () => req.baseUrl,
-		initialBackLink: req.baseUrl,
+		initialBackLink: `/cases/${req.params?.id}/manage-representations`,
 		response
 	});
 }
