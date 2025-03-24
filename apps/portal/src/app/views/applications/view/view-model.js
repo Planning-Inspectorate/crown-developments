@@ -130,6 +130,7 @@ export function representationToViewModel(representation) {
 		representationReference: representation.reference,
 		representationTitle: representationTitle(representation),
 		representationComment: representation.commentRedacted || representation.comment,
+		representationCommentIsRedacted: Boolean(representation.commentRedacted),
 		representationCategory: representation.Category?.displayName,
 		dateRepresentationSubmitted: formatDateForDisplay(representation.submittedDate),
 		representationContainsAttachments: representation.containsAttachments

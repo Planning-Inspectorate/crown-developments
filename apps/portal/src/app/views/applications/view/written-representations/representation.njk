@@ -4,7 +4,14 @@
             {{ representation.representationTitle }}
         </a>
     </p>
-    <p class="govuk-body">{{ representation.representationComment }}</p>
+    <p class="govuk-body">
+        {% if representation.representationCommentIsRedacted %}
+            <span class="redacted" aria-hidden="true">{{ representation.representationComment }}</span>
+            <span class="govuk-visually-hidden">Redacted representation comment</span>
+        {% else %}
+            {{ representation.representationComment }}
+        {% endif %}
+    </p>
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-one-half">
             <p class="govuk-body"><strong>Submitted by:</strong> {{ representation.representationCategory }}</p>
