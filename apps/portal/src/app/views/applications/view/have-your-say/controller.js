@@ -5,9 +5,8 @@ import { fetchPublishedApplication } from '#util/applications.js';
 import { nowIsWithinRange } from '@pins/dynamic-forms/src/lib/date-utils.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { uniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
-import { viewModelToRepresentationCreateInput } from '@pins/crowndev-lib/forms/representations/view-model.js';
-import { clearDataFromSession } from '@pins/dynamic-forms/src/lib/session-answer-store.js';
 import { JOURNEY_ID } from './journey.js';
+import { saveRepresentation } from '@pins/crowndev-lib/forms/representations/save.js';
 
 /**
  * @param {Object} opts
@@ -125,52 +124,18 @@ export async function viewHaveYourSayDeclarationPage(req, res) {
  */
 export function buildSaveHaveYourSayController({ db, logger, uniqueReferenceFn = uniqueReference }) {
 	return async (req, res) => {
-		const id = req.params.applicationId;
-
-		if (!id) {
-			throw new Error('id param required');
-		}
-		if (!isValidUuidFormat(id)) {
-			return notFoundHandler(req, res);
-		}
-		if (!res.locals || !res.locals.journeyResponse) {
-			throw new Error('journey response required');
-		}
-		/** @type {import('@pins/dynamic-forms/src/journey/journey-response.js').JourneyResponse} */
-		const journeyResponse = res.locals.journeyResponse;
-		const journey = res.locals.journey;
-		/** @type {import('../types.d.ts').RepresentationCreateAnswers} */
-		const answers = journeyResponse.answers;
-		if (typeof answers !== 'object') {
-			throw new Error('answers should be an object');
-		}
-
-		if (!journey.isComplete()) {
-			const error = [
-				{
-					text: 'Please complete all sections before submitting',
-					url: '#'
-				}
-			];
-			addSessionData(req, id, { representationError: { text: error } });
-			res.redirect(`/applications/${id}/have-your-say/check-your-answers`);
-			return;
-		}
-
-		let reference;
-		await db.$transaction(async ($tx) => {
-			reference = await uniqueReferenceFn($tx);
-			logger.info({ reference }, 'adding a new representation');
-			await $tx.representation.create({
-				data: viewModelToRepresentationCreateInput(answers, reference, id)
-			});
-			logger.info({ reference }, 'added a new representation');
-		});
-
-		clearDataFromSession({ req, journeyId: JOURNEY_ID, reqParam: 'applicationId' });
-		addSessionData(req, id, { representationReference: reference, representationSubmitted: true }, 'representations');
-
-		res.redirect(`/applications/${id}/have-your-say/success`);
+		await saveRepresentation(
+			{
+				db,
+				logger,
+				journeyId: JOURNEY_ID,
+				checkYourAnswersUrl: `/applications/${req.params.applicationId}/have-your-say/check-your-answers`,
+				successUrl: `/applications/${req.params.applicationId}/have-your-say/success`,
+				uniqueReferenceFn
+			},
+			req,
+			res
+		);
 	};
 }
 
