@@ -60,8 +60,8 @@
                         },
                         classes: question.classes,
                         attributes: question.attributes,
-                        type: question.attributes.type
-
+                        type: question.attributes.type,
+                        autocomplete: question.autocomplete
                     }) }}
                 {% else %}
                     {% if question.html %}
@@ -84,7 +84,8 @@
                         },
                         classes: question.classes,
                         attributes: question.attributes,
-                        type: question.attributes.type
+                        type: question.attributes.type,
+                        autocomplete: question.autocomplete
                     }) }}
 
                 {% endif %}

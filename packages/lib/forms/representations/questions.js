@@ -91,6 +91,7 @@ export const questionProps = {
 		hint: 'We will publish this on the website along with your comments about the application.',
 		fieldName: 'representedFullName',
 		url: 'name-person-representing',
+		autocomplete: 'name',
 		validators: [
 			new RequiredValidator('Enter the full name of the person you are representing'),
 			new StringValidator({

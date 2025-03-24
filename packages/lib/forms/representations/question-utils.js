@@ -33,6 +33,7 @@ export function representationsContactQuestions({ prefix }) {
 		hint: 'We will publish this on the website along with your comments about the application.',
 		fieldName: `${prefix}FullName`,
 		url: isSubmitter(prefix) ? `agent-full-name` : `full-name`,
+		autocomplete: 'name',
 		validators: [
 			new RequiredValidator('Enter Full name'),
 			new StringValidator({
@@ -55,6 +56,7 @@ export function representationsContactQuestions({ prefix }) {
 		hint: 'We will use your email address to send you information about this application. We will not publish your email address.',
 		fieldName: `${prefix}Email`,
 		url: isSubmitter(prefix) ? `agent-email-address` : `email-address`,
+		autocomplete: 'email',
 		validators: [
 			new RequiredValidator('Enter your email address'),
 			new StringValidator({
