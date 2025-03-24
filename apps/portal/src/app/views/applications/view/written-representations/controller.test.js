@@ -67,6 +67,7 @@ describe('written representations', () => {
 				dateRepresentationSubmitted: '15 Jan 2025',
 				representationCategory: 'General Representation',
 				representationComment: 'This is a test representation.',
+				representationCommentIsRedacted: true,
 				representationContainsAttachments: true,
 				representationReference: '4SNR8-ZS27T',
 				representationTitle: 'Jane Smith on behalf of A member of the public'

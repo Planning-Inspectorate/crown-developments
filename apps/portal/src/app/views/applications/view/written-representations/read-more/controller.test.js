@@ -68,6 +68,7 @@ describe('written representations read more', () => {
 				dateRepresentationSubmitted: '15 Jan 2025',
 				representationCategory: 'General Representation',
 				representationComment: 'This is a test representation.',
+				representationCommentIsRedacted: true,
 				representationContainsAttachments: true,
 				representationReference: 'U5DAP-1MV6V',
 				representationTitle: 'Jane Smith on behalf of A member of the public'
@@ -136,6 +137,7 @@ describe('written representations read more', () => {
 				dateRepresentationSubmitted: '15 Jan 2025',
 				representationCategory: 'General Representation',
 				representationComment: 'This is a test representation.',
+				representationCommentIsRedacted: true,
 				representationContainsAttachments: false,
 				representationReference: 'U5DAP-1MV6V',
 				representationTitle: 'Jane Smith on behalf of A member of the public'
