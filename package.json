@@ -39,7 +39,7 @@
     "express-session": "^1.18.1",
     "express-validator": "^7.2.1",
     "govuk-frontend": "^5.9.0",
-    "helmet": "^8.0.0",
+    "helmet": "^8.1.0",
     "notifications-node-client": "^8.2.1",
     "nunjucks": "^3.2.4",
     "pino": "^9.6.0",
