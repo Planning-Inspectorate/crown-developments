@@ -40,7 +40,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			[representations, totalRepresentations] = await Promise.all([
 				db.representation.findMany({
 					where: {
-						// applicationId: id,
+						applicationId: id,
 						statusId: REPRESENTATION_STATUS_ID.ACCEPTED
 					},
 					select: {
@@ -63,7 +63,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 				}),
 				db.representation.count({
 					where: {
-						// applicationId: id,
+						applicationId: id,
 						statusId: REPRESENTATION_STATUS_ID.ACCEPTED
 					}
 				})
