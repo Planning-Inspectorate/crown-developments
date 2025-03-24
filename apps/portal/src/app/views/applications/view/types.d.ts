@@ -67,6 +67,7 @@ export type RepresentationViewModel = {
 	representationReference: string;
 	representationTitle: string;
 	representationComment: string;
+	representationCommentIsRedacted: boolean;
 	representationCategory: string;
 	dateRepresentationSubmitted: string;
 	representationContainsAttachments: string;
