@@ -7,9 +7,6 @@
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
 {% from "govuk/components/details/macro.njk" import govukDetails %}
 
-{% set title = question.pageTitle + " - " + journeyTitle + " - GOV.UK" %}
-{% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
-
 {% block before_content %}
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
