@@ -17,6 +17,24 @@ export function addLocalsConfiguration({ config }) {
 
 		res.locals.config = {
 			headerTitle: 'Find a Crown Development Application',
+			footerLinks: [
+				{
+					text: 'Terms and conditions',
+					href: '/terms-and-conditions'
+				},
+				{
+					text: 'Accessibility statement',
+					href: '/accessibility-statement'
+				},
+				{
+					text: 'Privacy',
+					href: 'https://www.gov.uk/government/publications/planning-inspectorate-privacy-notices/customer-privacy-notice'
+				},
+				{
+					text: 'Contact',
+					href: '/contact'
+				}
+			],
 			primaryNavigationLinks: links.map((l) => {
 				const link = { current: false, ...l };
 				link.current = link.href === path;
