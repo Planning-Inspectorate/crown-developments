@@ -107,7 +107,9 @@ describe('application info controller', () => {
 					procedure: undefined,
 					reference: 'CROWN/2025/0000001',
 					representationsPeriodEndDate: '31 Jan 2025',
+					representationsPeriodEndDateTime: '31 Jan 2025 00:00',
 					representationsPeriodStartDate: '1 Jan 2025',
+					representationsPeriodStartDateTime: '1 Jan 2025 00:00',
 					stage: undefined
 				}
 			});

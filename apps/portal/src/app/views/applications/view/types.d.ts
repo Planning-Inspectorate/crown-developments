@@ -20,6 +20,8 @@ export interface CrownDevelopmentListViewModel {
 	applicationCompleteDate?: string;
 	representationsPeriodStartDate?: string;
 	representationsPeriodEndDate?: string;
+	representationsPeriodStartDateTime?: string;
+	representationsPeriodEndDateTime?: string;
 	decisionDate?: string;
 	crownDevelopmentContactEmail?: string;
 	siteAddress?: string;
