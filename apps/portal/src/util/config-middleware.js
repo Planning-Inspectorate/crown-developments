@@ -22,7 +22,8 @@ export function addLocalsConfiguration(req, res, next) {
 			const link = { current: false, ...l };
 			link.current = link.href === path;
 			return link;
-		})
+		}),
+		haveYourSayServiceName: 'Have your say on a Crown Development Application'
 	};
 	next();
 }
