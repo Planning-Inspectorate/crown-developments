@@ -4,9 +4,6 @@
 {% from "govuk/components/date-input/macro.njk" import govukDateInput %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
-{% set title = question.pageTitle + " - " + journeyTitle + " - GOV.UK" %}
-{% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
-
 {% set day= question.fieldName + "_day" %}
 {% set month= question.fieldName + "_month" %}
 {% set year= question.fieldName + "_year" %}

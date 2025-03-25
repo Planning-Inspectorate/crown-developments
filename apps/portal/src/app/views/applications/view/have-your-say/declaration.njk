@@ -2,6 +2,9 @@
 
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
+{% set title = "Declaration – Have your say on a Crown Development Application" %}
+{% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
+
 {% block pageContent %}
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
