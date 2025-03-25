@@ -34,6 +34,9 @@ describe('view-model', () => {
 				representationsPeriodStartDate: '2025-10-09T23:00:00.000Z',
 				representationsPeriodEndDate: '2025-10-09T23:00:00.000Z',
 				decisionDate: '2025-10-09T23:00:00.000Z',
+				DecisionOutcome: {
+					displayName: 'Approved'
+				},
 				description: 'A significant project',
 				SiteAddress: {
 					line1: 'Site Street',
@@ -59,6 +62,7 @@ describe('view-model', () => {
 				siteAddress: 'Site Street, Site Town, Site ONE',
 				applicationCompleteDate: '10 Oct 2025',
 				decisionDate: '10 Oct 2025',
+				decisionOutcome: 'Approved',
 				procedure: 'Inquiry',
 				representationsPeriodEndDate: '10 Oct 2025',
 				representationsPeriodEndDateTime: '10 Oct 2025 00:00',

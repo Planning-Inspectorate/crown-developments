@@ -84,6 +84,7 @@ describe('have your say', () => {
 				representationsPeriodStartDate: '',
 				representationsPeriodStartDateTime: '',
 				decisionDate: '',
+				decisionOutcome: undefined,
 				crownDevelopmentContactEmail: undefined
 			});
 		});

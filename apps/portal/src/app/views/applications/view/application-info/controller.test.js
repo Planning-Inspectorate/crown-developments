@@ -80,6 +80,7 @@ describe('application info controller', () => {
 				pageTitle: 'Application Information',
 				shouldShowImportantDatesSection: true,
 				showHaveYourSayInfo: true,
+				shouldShowProcedureDecisionSection: false,
 				links: [
 					{
 						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-information',
@@ -101,6 +102,7 @@ describe('application info controller', () => {
 					applicationType: undefined,
 					crownDevelopmentContactEmail: undefined,
 					decisionDate: '',
+					decisionOutcome: undefined,
 					description: undefined,
 					id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
 					lpaName: undefined,
@@ -140,5 +142,57 @@ describe('application info controller', () => {
 		};
 		await handler(mockReq, mockRes);
 		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].shouldShowImportantDatesSection, false);
+	});
+	it('shouldShowProcedureDecisionSection is true when required date and outcome present', async (context) => {
+		context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
+		const mockDb = {
+			crownDevelopment: {
+				findUnique: mock.fn(() => ({
+					id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
+					reference: 'CROWN/2025/0000001',
+					decisionDate: new Date('2025-01-31'),
+					DecisionOutcome: {
+						displayName: 'Approved'
+					}
+				}))
+			}
+		};
+		const handler = buildApplicationInformationPage({
+			db: mockDb,
+			config: {}
+		});
+		const mockReq = {
+			params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' }
+		};
+		const mockRes = {
+			status: mock.fn(),
+			render: mock.fn()
+		};
+		await handler(mockReq, mockRes);
+		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].shouldShowProcedureDecisionSection, true);
+	});
+	it('shouldShowProcedureDecisionSection is false when required date and outcome not present', async (context) => {
+		context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
+		const mockDb = {
+			crownDevelopment: {
+				findUnique: mock.fn(() => ({
+					id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
+					reference: 'CROWN/2025/0000001'
+				}))
+			}
+		};
+		const handler = buildApplicationInformationPage({
+			db: mockDb,
+			config: {}
+		});
+		const mockReq = {
+			params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' }
+		};
+		const mockRes = {
+			status: mock.fn(),
+			render: mock.fn()
+		};
+		await handler(mockReq, mockRes);
+		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].shouldShowProcedureDecisionSection, false);
 	});
 });
