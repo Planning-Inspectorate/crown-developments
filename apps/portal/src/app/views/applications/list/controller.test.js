@@ -86,8 +86,7 @@ describe('case list', () => {
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/applications/list/view.njk');
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
 				pageTitle: 'All Crown Development Applications',
-				crownDevelopmentsViewModels: [],
-				showInfoPanel: true
+				crownDevelopmentsViewModels: []
 			});
 		});
 	});
