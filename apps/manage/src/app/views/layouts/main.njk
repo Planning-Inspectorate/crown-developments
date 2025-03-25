@@ -11,7 +11,11 @@
 {% endblock %}
 
 {% block pageTitle %}
-	{{ pageTitle | default('GOV.UK') }} – {{ serviceName | default('Manage Crown Developments') }}
+	{% if pageTitle %}
+		{{ pageTitle }} – {{ serviceName | default('Manage Crown Developments') }}
+	{% else %}
+		{{ serviceName | default('Manage Crown Developments') }}
+	{% endif %}
 {% endblock %}
 
 {% block header %}
