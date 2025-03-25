@@ -18,7 +18,7 @@ apps_config = {
 
   entra = {
     group_ids = {
-      case_officers = "" # TODO
+      case_officers = "1abf7720-2ea6-479e-822d-218917d3d0ee"
       inspectors    = "dfcab300-f268-4eb3-820e-1758fa69c150"
     }
   }
