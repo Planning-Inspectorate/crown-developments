@@ -15,12 +15,14 @@
 		</div>
 	</div>
 
-	<div class="govuk-width-container">
-		{% include "views/layouts/components/core/banner.njk" %}
+	{% if config.isLive %}
+		<div class="govuk-width-container">
+			{% include "views/layouts/components/core/banner.njk" %}
 
-		{{ govukServiceNavigation({
-			classes: 'pins-navigation',
-			navigation: config.primaryNavigationLinks
-		}) }}
-	</div>
+			{{ govukServiceNavigation({
+				classes: 'pins-navigation',
+				navigation: config.primaryNavigationLinks
+			}) }}
+		</div>
+	{% endif %}
 </header>

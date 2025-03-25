@@ -3,11 +3,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'url';
 
 // cache the config
-/** @type {undefined|Config} */
+/** @type {undefined|import('./config-types.js').Config} */
 let config;
 
 /**
- * @returns {Config}
+ * @returns {import('./config-types.js').Config}
  */
 export function loadConfig() {
 	if (config) {
@@ -21,6 +21,7 @@ export function loadConfig() {
 		AZURE_CLIENT_ID, // required for SharePoint
 		AZURE_CLIENT_SECRET, // required for SharePoint
 		AZURE_TENANT_ID, // required for SharePoint
+		FEATURE_FLAG_PORTAL_NOT_LIVE,
 		GIT_SHA,
 		LOG_LEVEL,
 		PORT,
@@ -74,6 +75,10 @@ export function loadConfig() {
 	config = {
 		database: {
 			datasourceUrl: SQL_CONNECTION_STRING
+		},
+		featureFlags: {
+			// by default with no feature flag set, the portal is live
+			isLive: FEATURE_FLAG_PORTAL_NOT_LIVE !== 'true'
 		},
 		gitSha: GIT_SHA,
 		// the log level to use

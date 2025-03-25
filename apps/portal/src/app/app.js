@@ -55,7 +55,7 @@ export function getApp(config, logger) {
 		next();
 	});
 
-	app.use(addLocalsConfiguration);
+	app.use(addLocalsConfiguration({ config }));
 
 	// Secure apps by setting various HTTP headers
 	app.use(helmet());

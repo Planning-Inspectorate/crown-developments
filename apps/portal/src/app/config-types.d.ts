@@ -2,6 +2,9 @@ import { Prisma } from '@prisma/client';
 
 interface Config {
 	database: Prisma.PrismaClientOptions;
+	featureFlags: {
+		isLive: boolean;
+	};
 	gitSha?: string;
 	logLevel: string;
 	NODE_ENV: string;

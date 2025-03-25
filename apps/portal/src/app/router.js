@@ -22,8 +22,12 @@ export function buildRouter({ logger, config, dbClient, sharePointDrive }) {
 
 	router.use('/', monitoringRoutes);
 
-	router.route('/').get(viewHomepage);
-	router.use('/', applicationRoutes({ db: dbClient, logger, config, sharePointDrive }));
+	if (config.featureFlags?.isLive) {
+		router.route('/').get(viewHomepage);
+		router.use('/', applicationRoutes({ db: dbClient, logger, config, sharePointDrive }));
+	} else {
+		logger.info("Not registering application routes, feature flag 'FEATURE_FLAG_PORTAL_NOT_LIVE' is enabled");
+	}
 
 	return router;
 }
