@@ -61,7 +61,9 @@ describe('view-model', () => {
 				decisionDate: '10 Oct 2025',
 				procedure: 'Inquiry',
 				representationsPeriodEndDate: '10 Oct 2025',
-				representationsPeriodStartDate: '10 Oct 2025'
+				representationsPeriodEndDateTime: '10 Oct 2025 00:00',
+				representationsPeriodStartDate: '10 Oct 2025',
+				representationsPeriodStartDateTime: '10 Oct 2025 00:00'
 			});
 		});
 		it(`should map site address if present`, () => {

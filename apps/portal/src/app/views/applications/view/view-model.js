@@ -24,6 +24,12 @@ export function crownDevelopmentToViewModel(crownDevelopment, config) {
 		applicationCompleteDate: formatDateForDisplay(crownDevelopment.applicationCompleteDate),
 		representationsPeriodStartDate: formatDateForDisplay(crownDevelopment.representationsPeriodStartDate),
 		representationsPeriodEndDate: formatDateForDisplay(crownDevelopment.representationsPeriodEndDate),
+		representationsPeriodStartDateTime: formatDateForDisplay(crownDevelopment.representationsPeriodStartDate, {
+			format: 'd MMM yyyy HH:mm'
+		}),
+		representationsPeriodEndDateTime: formatDateForDisplay(crownDevelopment.representationsPeriodEndDate, {
+			format: 'd MMM yyyy HH:mm'
+		}),
 		decisionDate: formatDateForDisplay(crownDevelopment.decisionDate),
 		crownDevelopmentContactEmail: config.crownDevContactInfo?.email
 	};
