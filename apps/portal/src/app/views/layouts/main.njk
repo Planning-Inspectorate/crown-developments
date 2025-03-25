@@ -11,10 +11,13 @@
 {% endblock %}
 
 {% block pageTitle %}
-	{% if applicationReference %}
-		{{ applicationReference }} - {{ pageTitle | default('GOV.UK') }} – {{ serviceName | default('Crown Developments') }}
+	{% set suffix = serviceName | default(config.headerTitle) %}
+	{% if applicationReference and pageTitle %}
+		{{ applicationReference }} - {{ pageTitle }} – {{ suffix }}
+	{% elseif pageTitle %}
+		{{ pageTitle }} – {{ suffix }}
 	{% else %}
-		{{ pageTitle | default('GOV.UK') }} – {{ serviceName | default('Crown Developments') }}
+		{{ suffix }}
 	{% endif %}
 {% endblock %}
 
