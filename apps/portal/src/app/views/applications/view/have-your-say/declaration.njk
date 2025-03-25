@@ -2,7 +2,7 @@
 
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
-{% set title = "Declaration – Have your say on a Crown Development Application" %}
+{% set title = "Declaration – " + config.haveYourSayServiceName %}
 {% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
 
 {% block pageContent %}
