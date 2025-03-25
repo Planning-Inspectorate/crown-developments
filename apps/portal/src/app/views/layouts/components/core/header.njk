@@ -25,4 +25,7 @@
 			}) }}
 		</div>
 	{% endif %}
+    {% if showInfoPanel %}
+        {% include "views/layouts/components/core/intro-to-service.njk" %}
+    {% endif %}
 </header>
