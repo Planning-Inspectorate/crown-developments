@@ -26,6 +26,7 @@ export function buildApplicationInformationPage({ db, config }) {
 			args: {
 				include: {
 					ApplicantContact: { select: { fullName: true } },
+					DecisionOutcome: { select: { displayName: true } },
 					Lpa: true,
 					Type: true,
 					SiteAddress: true,
@@ -49,13 +50,18 @@ export function buildApplicationInformationPage({ db, config }) {
 		};
 		const representationsPublishDate = crownDevelopment.representationsPublishDate;
 
-		const { applicationCompleteDate, decisionDate, representationsPeriodStartDate, representationsPeriodEndDate } =
-			crownDevelopmentFields;
-		const shouldShowImportantDatesSection = [
+		const {
 			applicationCompleteDate,
 			decisionDate,
+			decisionOutcome,
+			representationsPeriodStartDate,
+			representationsPeriodEndDate
+		} = crownDevelopmentFields;
+		const shouldShowImportantDatesSection = [
+			applicationCompleteDate,
 			representationsPeriodStartDate && representationsPeriodEndDate
 		].some(Boolean);
+		const shouldShowProcedureDecisionSection = [decisionDate, decisionOutcome].some(Boolean);
 
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
@@ -65,6 +71,7 @@ export function buildApplicationInformationPage({ db, config }) {
 			currentUrl: req.originalUrl,
 			shouldShowImportantDatesSection,
 			crownDevelopmentFields,
+			shouldShowProcedureDecisionSection,
 			showHaveYourSayInfo: nowIsWithinRange(haveYourSayPeriod?.start, haveYourSayPeriod?.end)
 		});
 	};

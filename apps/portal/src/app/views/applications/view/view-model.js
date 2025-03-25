@@ -31,6 +31,7 @@ export function crownDevelopmentToViewModel(crownDevelopment, config) {
 			format: 'd MMM yyyy HH:mm'
 		}),
 		decisionDate: formatDateForDisplay(crownDevelopment.decisionDate),
+		decisionOutcome: crownDevelopment.DecisionOutcome?.displayName,
 		crownDevelopmentContactEmail: config.crownDevContactInfo?.email
 	};
 
