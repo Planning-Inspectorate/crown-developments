@@ -24,6 +24,10 @@ apps_config = {
     }
   }
 
+  feature_flags = {
+    portal_not_live = false
+  }
+
   logging = {
     level = "info"
   }

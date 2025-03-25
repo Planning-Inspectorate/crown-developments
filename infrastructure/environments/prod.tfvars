@@ -23,6 +23,10 @@ apps_config = {
     }
   }
 
+  feature_flags = {
+    portal_not_live = true
+  }
+
   logging = {
     level = "warn"
   }
