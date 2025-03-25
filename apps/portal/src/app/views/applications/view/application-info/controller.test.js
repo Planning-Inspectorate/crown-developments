@@ -79,6 +79,7 @@ describe('application info controller', () => {
 				applicationReference: 'CROWN/2025/0000001',
 				pageTitle: 'Application Information',
 				shouldShowImportantDatesSection: true,
+				showHaveYourSayInfo: true,
 				links: [
 					{
 						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-information',

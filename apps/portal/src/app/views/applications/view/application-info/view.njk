@@ -3,6 +3,7 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/details/macro.njk" import govukDetails %}
 {% from  "views/applications/view/links.njk" import applicationLinks %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
 
 {% block pageHeading %}{% endblock %}
 
@@ -67,29 +68,44 @@
                 {% endif %}
             </div>
 
+            {% if showHaveYourSayInfo %}
+                <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+
+                <h2 id="procedure" class="govuk-heading-m">Have your say</h2>
+
+                <p class="govuk-body">Use this service to have your say about the application.</p>
+                <p class="govuk-body">We'll ask for your personal details and your comments about this application.</p>
+                <p class="govuk-body">The representation period is open from: {{ crownDevelopmentFields.representationsPeriodStartDate }} 00:00 - {{ crownDevelopmentFields.representationsPeriodEndDate }} 23:59</p>
+                <br>
+                {{ govukButton({
+                    text: "Have your say",
+                    type: "button",
+                    href: "have-your-say"
+                }) }}
+            {% endif %}
+
             <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
 
             <div>
                 <h2 id="procedure" class="govuk-heading-m">Contact Us</h2>
-
                 <h3 class="govuk-heading-s">Telephone</h3>
-                <p class="govuk-body">If you have an interested party number, have it with you when you call.</p>
+                <p class="govuk-body">If you have a representation reference number, have it with you when you call.</p>
                 <p class="govuk-body">Telephone: 0303 444 5000</p>
                 <p class="govuk-body">
-                  Open Monday to Friday: 9am to 4pm.
-                  <br>
-                  Closed on weekends and bank holidays.
+                    Open Monday to Friday: 9am to 4pm.
+                    <br>
+                    Closed on weekends and bank holidays.
                 </p>
 
                 <h3 class="govuk-heading-s">Email</h3>
                 <p class="govuk-body">
-                  <a class="govuk-link" href="mailto:{{ crownDevelopmentFields.crownDevelopmentContactEmail }}">{{ crownDevelopmentFields.crownDevelopmentContactEmail }}</a>
+                    <a class="govuk-link" href="mailto:{{ crownDevelopmentFields.crownDevelopmentContactEmail }}">{{ crownDevelopmentFields.crownDevelopmentContactEmail }}</a>
                 </p>
-                <p class="govuk-body">When writing an email, quote the name of the project in the subject line.</p>
+                <p class="govuk-body">When writing an email, quote the application reference in the subject line.</p>
                 <p class="govuk-body">We aim to respond within 10 working days.</p>
 
                 <h3 class="govuk-heading-s">Alternative formats</h3>
-                <p class="govuk-body">Call or email to ask for project documents in alternative formats such as PDF, large print, easy read, audio recording or braille.</p>
+                <p class="govuk-body">Call or email to ask for project documents in alternative formats such as PDF, large print, easy read, audio recording or braille.{% endif %}</p>
             </div>
         </div>
     </div>

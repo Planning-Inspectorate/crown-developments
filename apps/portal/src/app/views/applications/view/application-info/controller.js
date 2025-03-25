@@ -2,6 +2,7 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { applicationLinks, crownDevelopmentToViewModel } from '../view-model.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { fetchPublishedApplication } from '#util/applications.js';
+import { nowIsWithinRange } from '@pins/dynamic-forms/src/lib/date-utils.js';
 
 /**
  * @param {Object} opts
@@ -63,7 +64,8 @@ export function buildApplicationInformationPage({ db, config }) {
 			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
 			currentUrl: req.originalUrl,
 			shouldShowImportantDatesSection,
-			crownDevelopmentFields
+			crownDevelopmentFields,
+			showHaveYourSayInfo: nowIsWithinRange(haveYourSayPeriod?.start, haveYourSayPeriod?.end)
 		});
 	};
 }
