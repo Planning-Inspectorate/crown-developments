@@ -88,6 +88,9 @@ module "app_portal" {
     AZURE_TENANT_ID     = data.azurerm_client_config.current.tenant_id
     SHAREPOINT_DISABLED = var.apps_config.sharepoint.disabled
     SHAREPOINT_DRIVE_ID = local.key_vault_refs["crown-sharepoint-drive-id"]
+
+    #feature flags
+    FEATURE_FLAG_PORTAL_NOT_LIVE = var.apps_config.feature_flags.portal_not_live
   }
 
   providers = {

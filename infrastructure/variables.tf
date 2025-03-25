@@ -32,6 +32,10 @@ variable "apps_config" {
       })
     })
 
+    feature_flags = object({
+      portal_not_live = bool
+    })
+
     logging = object({
       level = string
     })
