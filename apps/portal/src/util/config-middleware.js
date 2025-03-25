@@ -17,7 +17,7 @@ export function addLocalsConfiguration(req, res, next) {
 	];
 
 	res.locals.config = {
-		headerTitle: 'Crown Developments',
+		headerTitle: 'Find a Crown Development Application',
 		primaryNavigationLinks: links.map((l) => {
 			const link = { current: false, ...l };
 			link.current = link.href === path;
