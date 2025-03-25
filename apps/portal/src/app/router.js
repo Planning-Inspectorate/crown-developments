@@ -1,6 +1,7 @@
 import { Router as createRouter } from 'express';
 import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.js';
 import { createRoutes as applicationRoutes } from './views/applications/index.js';
+import { createRoutes as contactRoutes } from './views/contact/index.js';
 
 /**
  * @param {Object} params
@@ -26,6 +27,7 @@ export function buildRouter({ logger, config, dbClient, sharePointDrive }) {
 			res.redirect('/applications');
 		});
 		router.use('/', applicationRoutes({ db: dbClient, logger, config, sharePointDrive }));
+		router.use('/contact', contactRoutes());
 	} else {
 		logger.info("Not registering application routes, feature flag 'FEATURE_FLAG_PORTAL_NOT_LIVE' is enabled");
 	}

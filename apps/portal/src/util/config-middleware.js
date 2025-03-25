@@ -23,7 +23,8 @@ export function addLocalsConfiguration({ config }) {
 				return link;
 			}),
 			haveYourSayServiceName: 'Have your say on a Crown Development Application',
-			isLive: config.featureFlags?.isLive
+			isLive: config.featureFlags?.isLive,
+			contactEmail: config.crownDevContactInfo?.email
 		};
 		next();
 	};

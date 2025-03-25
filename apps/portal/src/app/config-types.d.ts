@@ -23,6 +23,9 @@ interface Config {
 			test: string;
 		};
 	};
+	crownDevContactInfo: {
+		email: string;
+	};
 	sharePoint: {
 		disabled: boolean; // Enable/disable sharepoint connection
 		driveId?: string; // DriveId of Crown Dev Site
