@@ -35,6 +35,7 @@ export function buildApplicationListPage({ db, logger, config }) {
 
 		return res.render('views/applications/list/view.njk', {
 			pageTitle: 'Applications',
+			serviceName: 'Find a Crown Development Application',
 			crownDevelopmentsViewModels
 		});
 	};

@@ -2,7 +2,8 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
-{% set title = "Check your Answers - " + journeyTitle + " - GOV.UK" %}
+{% set title = "Check your Answers – Have your say on a Crown Development Application" %}
+{% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
 
 {% block content %}
 

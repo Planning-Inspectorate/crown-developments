@@ -33,6 +33,7 @@ export function buildApplicationDocumentsPage({ db, logger, sharePointDrive }) {
 			id,
 			baseUrl: req.baseUrl,
 			pageTitle: 'Documents',
+			applicationReference: crownDevelopment.reference,
 			pageCaption: reference,
 			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
 			currentUrl: req.originalUrl,

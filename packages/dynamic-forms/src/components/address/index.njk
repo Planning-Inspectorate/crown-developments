@@ -5,9 +5,6 @@
 {% from "govuk/components/fieldset/macro.njk" import govukFieldset %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
-{% set title= question.pageTitle + " - " + serviceName %}
-{% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
-
 {% set addressLine1= question.fieldName + "_addressLine1" %}
 {% set addressLine2= question.fieldName + "_addressLine2" %}
 {% set townCity= question.fieldName + "_townCity" %}

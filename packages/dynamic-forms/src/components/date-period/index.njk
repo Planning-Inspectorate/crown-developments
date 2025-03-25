@@ -5,9 +5,6 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/fieldset/macro.njk" import govukFieldset %}
 
-{% set title = question.pageTitle + " - " + journeyTitle + " - GOV.UK" %}
-{% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
-
 {% set startFieldName = question.fieldName + "_start" %}
 {% set startDayFieldName = question.fieldName + "_start_day" %}
 {% set startMonthFieldName = question.fieldName + "_start_month" %}

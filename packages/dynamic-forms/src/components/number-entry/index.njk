@@ -4,9 +4,6 @@
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
-{% set title = question.pageTitle + " - " + journeyTitle + " - GOV.UK" %}
-{% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
-
 {% block before_content %}
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">

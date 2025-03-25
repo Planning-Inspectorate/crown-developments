@@ -5,10 +5,6 @@
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
-{% set title = question.pageTitle + " - " + journeyTitle + " - GOV.UK" %}
-
-{% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
-
 {% if question.html %}
     {% set htmlHint %}
         {% include question.html ignore missing %}

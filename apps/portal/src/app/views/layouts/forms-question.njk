@@ -1,5 +1,13 @@
 {% extends "views/layouts/main.njk" %}
 
+{% if not title %}
+  {% set title %}
+    {{ question.pageTitle | default('GOV.UK') }} – Have your say on a Crown Development Application
+  {% endset %}
+{% endif %}
+
+{% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
+
 {% block before_content %}
   {% if pageCaption %}
     <div class="govuk-grid-row">
