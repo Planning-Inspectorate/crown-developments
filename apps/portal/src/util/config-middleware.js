@@ -10,10 +10,6 @@ export function addLocalsConfiguration({ config }) {
 
 		const links = [
 			{
-				text: 'Home',
-				href: '/'
-			},
-			{
 				text: 'All Applications',
 				href: '/applications'
 			}
