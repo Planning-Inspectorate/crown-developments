@@ -1,0 +1,19 @@
+.pins-info-container {
+	width: 100%;
+	background-color: #00847f;
+	color: white;
+	box-sizing: border-box;
+	box-shadow: 0 0 0 100vmax #00847f;
+	clip-path: inset(0 -100vmax);
+	border-bottom: none;
+}
+
+.pins-info-heading {
+	color: white !important;
+	margin: 0;
+}
+
+.pins-info-body {
+	color: white !important;
+	margin-top: 20px;
+}
