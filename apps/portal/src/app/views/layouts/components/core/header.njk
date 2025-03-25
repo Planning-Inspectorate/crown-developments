@@ -15,17 +15,13 @@
 		</div>
 	</div>
 
-	<div class="govuk-width-container">
 		{% if config.isLive %}
-			{% include "views/layouts/components/core/banner.njk" %}
-
-			{{ govukServiceNavigation({
-				classes: 'pins-navigation',
-				navigation: config.primaryNavigationLinks
-			}) }}
+			<div class="govuk-width-container">
+				{% include "views/layouts/components/core/banner.njk" %}
+				{{ govukServiceNavigation({
+					classes: 'pins-navigation',
+					navigation: config.primaryNavigationLinks
+				}) }}
+			</div>
 		{% endif %}
-		{% if showInfoPanel %}
-			{% include "views/layouts/components/core/intro-to-service.njk" %}
-		{% endif %}
-	</div>
 </header>

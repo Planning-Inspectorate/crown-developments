@@ -35,8 +35,7 @@ export function buildApplicationListPage({ db, logger, config }) {
 
 		return res.render('views/applications/list/view.njk', {
 			pageTitle: 'All Crown Development Applications',
-			crownDevelopmentsViewModels,
-			showInfoPanel: true
+			crownDevelopmentsViewModels
 		});
 	};
 }
