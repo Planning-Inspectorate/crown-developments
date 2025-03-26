@@ -61,7 +61,7 @@ export function buildApplicationInformationPage({ db, config }) {
 			applicationAcceptedDate,
 			representationsPeriodStartDate && representationsPeriodEndDate
 		].some(Boolean);
-		const shouldShowProcedureDecisionSection = [decisionDate, decisionOutcome].some(Boolean);
+		const shouldShowApplicationDecisionSection = [decisionDate, decisionOutcome].some(Boolean);
 
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
@@ -71,7 +71,7 @@ export function buildApplicationInformationPage({ db, config }) {
 			currentUrl: req.originalUrl,
 			shouldShowImportantDatesSection,
 			crownDevelopmentFields,
-			shouldShowProcedureDecisionSection,
+			shouldShowApplicationDecisionSection,
 			showHaveYourSayInfo: nowIsWithinRange(haveYourSayPeriod?.start, haveYourSayPeriod?.end)
 		});
 	};

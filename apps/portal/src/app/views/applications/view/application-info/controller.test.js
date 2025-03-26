@@ -80,7 +80,7 @@ describe('application info controller', () => {
 				pageTitle: 'Application Information',
 				shouldShowImportantDatesSection: true,
 				showHaveYourSayInfo: true,
-				shouldShowProcedureDecisionSection: false,
+				shouldShowApplicationDecisionSection: false,
 				links: [
 					{
 						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-information',
@@ -143,7 +143,7 @@ describe('application info controller', () => {
 		await handler(mockReq, mockRes);
 		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].shouldShowImportantDatesSection, false);
 	});
-	it('shouldShowProcedureDecisionSection is true when required date and outcome present', async (context) => {
+	it('shouldShowApplicationDecisionSection is true when required date and outcome present', async (context) => {
 		context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
 		const mockDb = {
 			crownDevelopment: {
@@ -169,9 +169,9 @@ describe('application info controller', () => {
 			render: mock.fn()
 		};
 		await handler(mockReq, mockRes);
-		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].shouldShowProcedureDecisionSection, true);
+		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].shouldShowApplicationDecisionSection, true);
 	});
-	it('shouldShowProcedureDecisionSection is false when required date and outcome not present', async (context) => {
+	it('shouldShowApplicationDecisionSection is false when required date and outcome not present', async (context) => {
 		context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
 		const mockDb = {
 			crownDevelopment: {
@@ -193,6 +193,6 @@ describe('application info controller', () => {
 			render: mock.fn()
 		};
 		await handler(mockReq, mockRes);
-		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].shouldShowProcedureDecisionSection, false);
+		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].shouldShowApplicationDecisionSection, false);
 	});
 });
