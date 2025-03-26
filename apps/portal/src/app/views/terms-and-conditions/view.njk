@@ -1,0 +1,132 @@
+{% extends "views/layouts/main.njk" %}
+
+{% block pageTitle %}
+    {% set suffix = serviceName | default(config.headerTitle) %}
+    {{ pageTitle | default('Terms and Conditions') }} - {{ suffix }}
+{% endblock %}
+
+{% block pageContent %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <p class="govuk-body">This page and any pages it links to explains the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service terms of use. You must agree to these to use the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service. </p>
+
+            <h2 class="govuk-heading-m">Who we are</h2>
+            <p class="govuk-body">Non-urgent Crown Development Application casework is operated by the Planning Inspectorate. The Planning Inspectorate is a government agency. If you have questions about our service please <a href="/contact" class="govuk-link">contact us</a>.</p>
+
+            <h2 class="govuk-heading-m">Using the Find a Crown Development Application service</h2>
+            <p class="govuk-body">You agree to use the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service only for lawful purposes. You must also use it in a way that does not infringe the rights of, or restrict or inhibit the use and enjoyment of, this site by anyone else.</p>
+            <p class="govuk-body">We update the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service all the time. We can change or remove content at any time without notice.</p>
+
+            <h2 class="govuk-heading-m">Services and transactions</h2>
+            <p class="govuk-body">You can use the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service to access online government services and transactions, for example 'Have your say'.</p>
+
+            <h2 class="govuk-heading-m">Linking to the Find a Crown Development Application service</h2>
+            <p class="govuk-body">We welcome and encourage other websites to link to the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service.</p>
+            <p class="govuk-body">However we will not give permission to:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>charge your website's users to click on a link to any page on the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service</li>
+                <li>say your website is associated with or endorsed by the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service or another government department or agency</li>
+            </ul>
+
+            <h2 class="govuk-heading-m">Linking from the Find a Crown Development Application service</h2>
+            <p class="govuk-body">The <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service links to websites that are managed by other government departments and agencies, service providers or other organisations. We do not have any control over the content on these websites.</p>
+            <p class="govuk-body">We're not responsible for:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>the protection of any information you give to these websites</li>
+                <li>any loss or damage that may come from your use of these websites, or any other websites they link to</li>
+            </ul>
+            <p class="govuk-body">You agree to release us from any claims or disputes that may come from using these websites.</p>
+            <p class="govuk-body">You should read all terms and conditions, privacy policies and end user licences that relate to these websites before you use them.</p>
+
+            <h2 class="govuk-heading-m">Using the Find a Crown Development Application service content</h2>
+            <p class="govuk-body">Most content on the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service is subject to <a href="https://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/" class="govuk-link" target="_blank" rel="noreferrer">Crown copyright protection</a> and is published under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/1/open-government-licence.htm" class="govuk-link" target="_blank" rel="noreferrer">Open Government License</a> (OGL).</p>
+            <p class="govuk-body">Some content is exempt from the OGL - check the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/1/open-government-licence.htm" class="govuk-link" target="_blank" rel="noreferrer">list of exemptions</a>.</p>
+            <p class="govuk-body">Departmental logos and crests are also exempt from the OGL, except when they form an integral part of a document or dataset.</p>
+            <p class="govuk-body">If any content is not subject to Crown copyright protection or published under the OGL, we'll usually credit the author or copyright holder.</p>
+            <p class="govuk-body">We do not authorise the use or republishing of third party documents without the permission of the original intellectual property holder. This covers all material not owned by the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service including those created by applicants, interested parties or interested groups. If you have questions about republishing any content on our service please <a href="/contact" class="govuk-link">contact us</a>.</p>
+            <p class="govuk-body"><a href="/contact" class="govuk-link">Contact us</a> if you want to reproduce a piece of content but are not sure if it's covered by Crown copyright or the OGL.</p>
+            <p class="govuk-body">We make most of the content on the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service available through feeds for other websites and applications to use. The websites and applications that use our feeds are not our products, and they might use versions of our content that have been edited and stored for later use ('cached').</p>
+            <p class="govuk-body">We do not give any guarantees, conditions or warranties about the accuracy or completeness of any content used by these products. We're not liable for any loss or damage that may come from your use of these products.</p>
+            <p class="govuk-body">The most up to date version of our content will always be on the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service.</p>
+
+            <h2 class="govuk-heading-m">Disclaimer</h2>
+            <p class="govuk-body">This section does not reduce or remove our responsibilities or people's rights concerning data protection in any manner.</p>
+            <p class="govuk-body">While we make every effort to keep the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service up to date, we do not provide any guarantees, conditions or warranties that the information will be:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>current</li>
+                <li>secure</li>
+                <li>accurate</li>
+                <li>complete</li>
+                <li>free from bugs or viruses</li>
+            </ul>
+            <p class="govuk-body">We do not publish advice on the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service. You should get professional or specialist advice before doing anything on the basis of the content.</p>
+            <p class="govuk-body">We're not liable for any loss or damage that may come from using the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service. This includes:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>any direct, indirect or consequential losses</li>
+                <li>any loss or damage caused by civil wrongs ('tort', including negligence), breach of contract or otherwise</li>
+                <li>the use of the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service and any websites that are linked to or from it</li>
+                <li>the inability to use the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service and any websites that are linked to or from it</li>
+            </ul>
+            <p class="govuk-body">This applies if the loss or damage was foreseeable, arose in the normal course of things or you advised us that it might happen.</p>
+            <p class="govuk-body">This includes (but is not limited to) the loss of your:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>income or revenue</li>
+                <li>salary, benefits or other payments</li>
+                <li>business</li>
+                <li>profits or contracts</li>
+                <li>opportunity</li>
+                <li>anticipated savings</li>
+                <li>data</li>
+                <li>goodwill or reputation</li>
+                <li>tangible property</li>
+                <li>intangible property, including loss, corruption or damage to data or any computer system</li>
+                <li>wasted management or office time</li>
+            </ul>
+            <p class="govuk-body">We may still be liable for:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>death or personal injury arising from our negligence</li>
+                <li>fraudulent misrepresentation</li>
+                <li>any other liability which cannot be excluded or limited under applicable law</li>
+            </ul>
+
+            <h2 class="govuk-heading-m">Requests to remove content</h2>
+            <p class="govuk-body">You can ask for content to be removed from the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service. Please note the non-urgent Crown Development casework process is governed by the principle of openness. If you request for content to be removed, in the interest of fairness, it will usually not be taken into consideration before a decision is made on an application.</p>
+            <p class="govuk-body">We'll remove content:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>in order to comply with data protection legislation covering the rights and freedoms of individuals</li>
+                <li>if it breaches copyright laws, contains sensitive personal data or material that may be considered obscene or defamatory</li>
+            </ul>
+            <p class="govuk-body"><a href="/contact" class="govuk-link">Contact us</a> to ask for content to be removed. You'll need to send us the web address (URL) of the content and explain why you think it should be removed. We'll reply to let you know whether we'll remove it.</p>
+            <p class="govuk-body">We remove content at our discretion in discussion with the department or agency responsible for it. You can still request information under the <a href="https://www.gov.uk/make-a-freedom-of-information-request" class="govuk-link" target="_blank" rel="noreferrer">Freedom of Information Act</a> and the <a href="https://www.gov.uk/data-protection" class="govuk-link" target="_blank" rel="noreferrer">Data Protection Act</a>.</p>
+
+            <h2 class="govuk-heading-m">Information about you and your visits to the Find a Crown Development Application service</h2>
+            <p class="govuk-body">We collect information about you in accordance with our <a href="https://www.gov.uk/government/publications/planning-inspectorate-privacy-notices/customer-privacy-notice" class="govuk-link" target="_blank" rel="noreferrer">privacy policy</a> and our <a href="/cookies" class="govuk-link">cookie policy</a>. By using National Infrastructure Projects, you agree to us collecting this information and confirm that any data you provide is accurate.</p>
+
+            <h2 class="govuk-heading-m">Virus protection</h2>
+            <p class="govuk-body">We make every effort to check and test the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service for viruses at every stage of production. You must make sure that the way you use the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service does not expose you to the risk of viruses, malicious computer code or other forms of interference which can damage your computer system.</p>
+            <p class="govuk-body">We're not responsible for any loss, disruption or damage to your data or computer system that might happen when you use the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service.</p>
+
+            <h2 class="govuk-heading-m">Viruses, hacking and other offences</h2>
+            <p class="govuk-body">When using the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service, you must not introduce viruses, trojans, worms, logic bombs or any other material that's malicious or technologically harmful.</p>
+            <p class="govuk-body">You must not try to gain unauthorised access to the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service the server on which it's stored or any server, computer or database connected to it.</p>
+            <p class="govuk-body">You must not attack the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service in any way. This includes denial-of-service attacks.</p>
+            <p class="govuk-body">We'll report any attacks or attempts to gain unauthorised access to the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service to the relevant law enforcement authorities and share information about you with them.</p>
+
+            <h2 class="govuk-heading-m">Governing law</h2>
+            <p class="govuk-body">These terms and conditions are governed by and construed in accordance with the laws of England and Wales.</p>
+            <p class="govuk-body">Any dispute you have which relates to these terms and conditions, or your use of the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service (whether it be contractual or non-contractual), will be subject to the exclusive jurisdiction of the courts of England and Wales.</p>
+
+            <h2 class="govuk-heading-m">General</h2>
+            <p class="govuk-body">There may be legal notices elsewhere on the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service that relate to how you use the site.</p>
+            <p class="govuk-body">We're not liable if we fail to comply with these terms and conditions because of circumstances beyond our reasonable control.</p>
+            <p class="govuk-body">We might decide not to exercise or enforce any right available to us under these terms and conditions. We can always decide to exercise or enforce that right at a later date.</p>
+            <p class="govuk-body">Doing this once will not mean we automatically waive the right on any other occasion.</p>
+            <p class="govuk-body">If any of these terms and conditions are held to be invalid, unenforceable or illegal for any reason, the remaining terms and conditions will still apply.</p>
+
+            <h2 class="govuk-heading-m">Changes to these terms and conditions</h2>
+            <p class="govuk-body">Please check these terms and conditions regularly. We can update them at any time without notice.</p>
+            <p class="govuk-body">You'll agree to any changes if you continue to use the <a href="/applications" class="govuk-link">Find a Crown Development Application</a> service after the terms and conditions have been updated.</p>
+            <p class="govuk-body">Last updated {{ lastUpdatedDate }}</p>
+        </div>
+    </div>
+{% endblock %}
