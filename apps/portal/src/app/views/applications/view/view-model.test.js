@@ -30,7 +30,7 @@ describe('view-model', () => {
 					statementsDate: '2025-04-30T23:00:00.000Z',
 					proofsOfEvidenceDate: '2025-10-09T23:00:00.000Z'
 				},
-				applicationCompleteDate: '2025-10-09T23:00:00.000Z',
+				applicationAcceptedDate: '2025-10-09T23:00:00.000Z',
 				representationsPeriodStartDate: '2025-10-09T23:00:00.000Z',
 				representationsPeriodEndDate: '2025-10-09T23:00:00.000Z',
 				decisionDate: '2025-10-09T23:00:00.000Z',
@@ -60,7 +60,7 @@ describe('view-model', () => {
 				stage: 'Inquiry',
 				lpaName: 'Test LPA',
 				siteAddress: 'Site Street, Site Town, Site ONE',
-				applicationCompleteDate: '10 Oct 2025',
+				applicationAcceptedDate: '10 Oct 2025',
 				decisionDate: '10 Oct 2025',
 				decisionOutcome: 'Approved',
 				procedure: 'Inquiry',

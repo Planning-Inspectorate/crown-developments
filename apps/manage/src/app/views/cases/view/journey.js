@@ -60,7 +60,7 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.agentContactAddress),
 			new Section('Dates', 'dates')
 				.addQuestion(questions.applicationReceivedDate)
-				.addQuestion(questions.applicationCompleteDate)
+				.addQuestion(questions.applicationAcceptedDate)
 				.addQuestion(questions.lpaQuestionnaireSentDate)
 				.addQuestion(questions.lpaQuestionnaireReceivedDate)
 				.addQuestion(questions.publishDate)

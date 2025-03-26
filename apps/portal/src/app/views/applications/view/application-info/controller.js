@@ -51,14 +51,14 @@ export function buildApplicationInformationPage({ db, config }) {
 		const representationsPublishDate = crownDevelopment.representationsPublishDate;
 
 		const {
-			applicationCompleteDate,
+			applicationAcceptedDate,
 			decisionDate,
 			decisionOutcome,
 			representationsPeriodStartDate,
 			representationsPeriodEndDate
 		} = crownDevelopmentFields;
 		const shouldShowImportantDatesSection = [
-			applicationCompleteDate,
+			applicationAcceptedDate,
 			representationsPeriodStartDate && representationsPeriodEndDate
 		].some(Boolean);
 		const shouldShowProcedureDecisionSection = [decisionDate, decisionOutcome].some(Boolean);

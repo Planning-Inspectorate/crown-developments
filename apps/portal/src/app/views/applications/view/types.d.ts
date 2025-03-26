@@ -17,7 +17,7 @@ export interface CrownDevelopmentListViewModel {
 	isHearing?: boolean;
 	hearingDate?: string;
 	hearingVenue?: string;
-	applicationCompleteDate?: string;
+	applicationAcceptedDate?: string;
 	representationsPeriodStartDate?: string;
 	representationsPeriodEndDate?: string;
 	representationsPeriodStartDateTime?: string;
