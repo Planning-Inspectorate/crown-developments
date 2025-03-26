@@ -11,6 +11,11 @@
     {{ super() }}
 {% endblock %}
 
+{% macro insertWbr(inputString) %}
+    {{ inputString | replace("/", "/<wbr>") | safe }}
+{% endmacro %}
+
+
 {% block pageContent %}
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-full">
@@ -21,49 +26,51 @@
                     </h2>
                 </div>
                 <div class="govuk-grid-column-full">
-                    {% set crownDevelopments = [] %}
-                    {% for crownDevelopment in crownDevelopmentsViewModels %}
-                        {% set crownDevelopments = (crownDevelopments.push([
-                            {
-                                html: "<a class='govuk-link' href='/applications/" +  crownDevelopment.id + "/application-information'>" + crownDevelopment.reference + "</a>"
-                            },
-                            {
-                                text: crownDevelopment.applicationType
-                            },
-                            {
-                                text: crownDevelopment.applicantName
-                            },
-                            {
-                                text: crownDevelopment.lpaName
-                            },
-                            {
-                                text: crownDevelopment.stage
-                            }
-                        ]), crownDevelopments) %}
-                    {% endfor %}
+                    <div class="pins-table__container" role="region" aria-label="Scrollable content. Use the arrow keys to navigate.">
+                        {% set crownDevelopments = [] %}
+                        {% for crownDevelopment in crownDevelopmentsViewModels %}
+                            {% set crownDevelopments = (crownDevelopments.push([
+                                {
+                                    html: "<a class='govuk-link' href='/applications/" +  crownDevelopment.id + "/application-information'>" + insertWbr(crownDevelopment.reference) + "</a>"
+                                },
+                                {
+                                    text: crownDevelopment.applicationType
+                                },
+                                {
+                                    text: crownDevelopment.applicantName
+                                },
+                                {
+                                    text: crownDevelopment.lpaName
+                                },
+                                {
+                                    text: crownDevelopment.stage
+                                }
+                            ]), crownDevelopments) %}
+                        {% endfor %}
 
-                    {{ govukTable({
-                      captionClasses: "govuk-table__caption--m",
-                      firstCellIsHeader: true,
-                      head: [
-                        {
-                          text: "Application Reference"
-                        },
-                        {
-                          text: "Type of Application"
-                        },
-                        {
-                          text: "Applicant Name"
-                        },
-                        {
-                          text: "Local Planning Authority"
-                        },
-                        {
-                          text: "Stage"
-                        }
-                      ],
-                      rows: crownDevelopments
-                    }) }}
+                        {{ govukTable({
+                            captionClasses: "govuk-table__caption--m",
+                            firstCellIsHeader: true,
+                            head: [
+                                {
+                                    text: "Application Reference"
+                                },
+                                {
+                                    text: "Type of Application"
+                                },
+                                {
+                                    text: "Applicant Name"
+                                },
+                                {
+                                    text: "Local Planning Authority"
+                                },
+                                {
+                                    text: "Stage"
+                                }
+                            ],
+                            rows: crownDevelopments
+                        }) }}
+                    </div>
                 </div>
             </div>
         </div>
