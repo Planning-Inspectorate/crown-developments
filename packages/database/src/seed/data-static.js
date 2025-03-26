@@ -69,7 +69,7 @@ export const APPLICATION_STATUS = [
 	{
 		id: 'acceptance',
 		// called complete to match the terminology in the draft order
-		displayName: 'Complete'
+		displayName: 'Accepted'
 	},
 	{
 		id: 'invalid',
@@ -128,7 +128,7 @@ export const APPLICATION_STAGE = [
 	{
 		id: 'acceptance',
 		// called complete to match the terminology in the draft order
-		displayName: 'Complete'
+		displayName: 'Accepted'
 	},
 	{
 		id: 'consultation',

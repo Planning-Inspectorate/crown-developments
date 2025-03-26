@@ -21,7 +21,7 @@ export function crownDevelopmentToViewModel(crownDevelopment, config) {
 		description: crownDevelopment.description,
 		stage: crownDevelopment.Stage?.displayName,
 		procedure: crownDevelopment.Procedure?.displayName,
-		applicationCompleteDate: formatDateForDisplay(crownDevelopment.applicationCompleteDate),
+		applicationAcceptedDate: formatDateForDisplay(crownDevelopment.applicationAcceptedDate),
 		representationsPeriodStartDate: formatDateForDisplay(crownDevelopment.representationsPeriodStartDate),
 		representationsPeriodEndDate: formatDateForDisplay(crownDevelopment.representationsPeriodEndDate),
 		representationsPeriodStartDateTime: formatDateForDisplay(crownDevelopment.representationsPeriodStartDate, {

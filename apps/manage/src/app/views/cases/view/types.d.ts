@@ -44,7 +44,7 @@ export interface CrownDevelopmentViewModel {
 	agentContactTelephoneNumber?: string;
 
 	applicationReceivedDate?: Date | string;
-	applicationCompleteDate?: Date | string;
+	applicationAcceptedDate?: Date | string;
 	lpaQuestionnaireSentDate?: Date | string;
 	lpaQuestionnaireReceivedDate?: Date | string;
 	publishDate?: Date | string;

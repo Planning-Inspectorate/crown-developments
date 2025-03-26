@@ -78,7 +78,7 @@ describe('have your say', () => {
 				description: undefined,
 				stage: undefined,
 				procedure: undefined,
-				applicationCompleteDate: '',
+				applicationAcceptedDate: '',
 				representationsPeriodEndDate: '',
 				representationsPeriodEndDateTime: '',
 				representationsPeriodStartDate: '',

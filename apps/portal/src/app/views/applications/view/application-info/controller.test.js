@@ -98,7 +98,7 @@ describe('application info controller', () => {
 				currentUrl: undefined,
 				crownDevelopmentFields: {
 					applicantName: undefined,
-					applicationCompleteDate: '',
+					applicationAcceptedDate: '',
 					applicationType: undefined,
 					crownDevelopmentContactEmail: undefined,
 					decisionDate: '',
