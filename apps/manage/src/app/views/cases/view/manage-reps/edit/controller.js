@@ -3,6 +3,7 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { validateParams } from '../view/controller.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { publishedRepresentationsAttachmentsRootFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
 
 /**
  * @param {Object} opts
@@ -22,7 +23,7 @@ export function buildUpdateRepresentation({ db, logger, getSharePointDrive }) {
 		/** @type {import('@pins/crowndev-lib/forms/representations/types.js').HaveYourSayManageModel} */
 		const fullViewModel = res.locals?.journeyResponse?.answers || {};
 
-		if (toSave.containsAttachments && fullViewModel.sharePointFolderCreated !== 'yes') {
+		if (toSave.containsAttachments && fullViewModel.sharePointFolderCreated !== BOOLEAN_OPTIONS.YES) {
 			const sharePointDrive = getSharePointDrive(req.session);
 			await addRepresentationFolderToSharepoint(
 				sharePointDrive,

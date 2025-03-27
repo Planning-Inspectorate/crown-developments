@@ -1,4 +1,8 @@
-import { booleanToYesNoValue, yesNoToBoolean } from '@pins/dynamic-forms/src/components/boolean/question.js';
+import {
+	BOOLEAN_OPTIONS,
+	booleanToYesNoValue,
+	yesNoToBoolean
+} from '@pins/dynamic-forms/src/components/boolean/question.js';
 import {
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
@@ -82,7 +86,7 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	// map all the regular fields to the update input
 	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
 		if (Object.hasOwn(edits, field)) {
-			representationUpdateInput[field] = edits[field];
+			representationUpdateInput[field] = mapFieldValue(edits[field]);
 		}
 	}
 	// don't support updating these fields
@@ -92,16 +96,6 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	const submittedByContactUpdate = {};
 	/** @type {import('@prisma/client').Prisma.ContactUpdateInput} */
 	const representedContactUpdate = {};
-
-	if ('wantsToBeHeard' in edits) {
-		representationUpdateInput.wantsToBeHeard = yesNoToBoolean(edits.wantsToBeHeard);
-	}
-	if ('containsAttachments' in edits) {
-		representationUpdateInput.wantsToBeHeard = yesNoToBoolean(edits.containsAttachments);
-	}
-	if ('sharePointFolderCreated' in edits) {
-		representationUpdateInput.sharePointFolderCreated = yesNoToBoolean(edits.sharePointFolderCreated);
-	}
 
 	// myself fields
 	if ('myselfIsAdult' in edits) {
@@ -189,6 +183,9 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 function mapFieldValue(fieldValue) {
 	if (typeof fieldValue === 'boolean') {
 		return booleanToYesNoValue(fieldValue);
+	}
+	if (fieldValue === BOOLEAN_OPTIONS.YES || fieldValue === BOOLEAN_OPTIONS.NO) {
+		return yesNoToBoolean(fieldValue);
 	}
 	return fieldValue;
 }

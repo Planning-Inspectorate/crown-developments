@@ -233,7 +233,7 @@ export const questionProps = {
 	},
 	representationAttachments: {
 		type: COMPONENT_TYPES.BOOLEAN,
-		title: 'Representation Attachments',
+		title: 'Representation has Attachments',
 		question: 'Does the representation have attachments?',
 		fieldName: 'containsAttachments',
 		url: 'representation-attachments',
