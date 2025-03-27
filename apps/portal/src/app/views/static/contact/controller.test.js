@@ -11,7 +11,7 @@ describe('Contact Us page controller', () => {
 		const contactUsPage = buildContactUsPage();
 		contactUsPage(mockReq, mockRes);
 		assert.strictEqual(mockRes.render.mock.callCount(), 1);
-		assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/contact/view.njk');
+		assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/static/contact/view.njk');
 		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].pageTitle, 'Contact us');
 	});
 
