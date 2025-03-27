@@ -2,6 +2,7 @@ import { Router as createRouter } from 'express';
 import { createRoutesAndGuards as createAuthRoutesAndGuards } from './auth/router.js';
 import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.js';
 import { createRoutes as createCasesRoutes } from './views/cases/index.js';
+import { createErrorRoutes } from './views/static/error/index.js';
 
 /**
  * @param {Object} params
@@ -54,6 +55,7 @@ export function buildRouter({ logger, config, redis, dbClient, getSharePointDriv
 
 	router.get('/', (req, res) => res.redirect('/cases'));
 	router.use('/cases', casesRoutes);
+	router.use('/error', createErrorRoutes({ logger }));
 
 	return router;
 }
