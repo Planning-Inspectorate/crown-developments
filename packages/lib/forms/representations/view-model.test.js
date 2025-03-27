@@ -199,13 +199,13 @@ describe('view-model', () => {
 				SubmittedByContact: {
 					isAdult: true,
 					fullName: 'my name',
-					email: 'email@example.com'
+					email: 'email@example.com',
+					jobTitleOrRole: 'my role'
 				},
 				representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
 				representedContactId: 'rep-id-1',
 				RepresentedContact: {
-					fullName: 'the orgs name',
-					jobTitleOrRole: 'my role'
+					fullName: 'the orgs name'
 				}
 			};
 			const viewModel = representationToManageViewModel(representation, applicationReference);
