@@ -3,6 +3,7 @@ import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitorin
 import { createRoutes as applicationRoutes } from './views/applications/index.js';
 import { buildTermsAndConditionsPage } from './views/static/terms-and-conditions/controller.js';
 import { buildContactUsPage } from './views/static/contact/controller.js';
+import { createErrorRoutes } from './views/static/error/index.js';
 
 /**
  * @param {Object} params
@@ -30,6 +31,7 @@ export function buildRouter({ logger, config, dbClient, sharePointDrive }) {
 		router.use('/', applicationRoutes({ db: dbClient, logger, config, sharePointDrive }));
 		router.use('/contact', buildContactUsPage());
 		router.use('/terms-and-conditions', buildTermsAndConditionsPage());
+		router.use('/error', createErrorRoutes({ logger }));
 	} else {
 		logger.info("Not registering application routes, feature flag 'FEATURE_FLAG_PORTAL_NOT_LIVE' is enabled");
 	}

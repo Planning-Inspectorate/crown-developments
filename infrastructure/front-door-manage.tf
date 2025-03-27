@@ -76,6 +76,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
   sku_name                          = "Premium_AzureFrontDoor"
   enabled                           = true
   mode                              = "Prevention"
+  redirect_url                      = "https://${var.web_domains.manage}/error/firewall-error"
   custom_block_response_status_code = 403
   provider                          = azurerm.front_door
 
@@ -127,7 +128,366 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
   managed_rule {
     type    = "Microsoft_DefaultRuleSet"
     version = "2.1"
-    action  = "Log"
+    action  = "Block"
+
+
+    override {
+      rule_group_name = "LFI"
+
+      rule {
+        # Path Traversal Attack (/../)
+        action  = "Log"
+        enabled = true
+        rule_id = "930100"
+
+        exclusion {
+          # Exclusion to allow acceptance of cookies
+          match_variable = "RequestCookieNames" # "CookieValue:cookie_policy"
+          operator       = "Equals"
+          selector       = "cookie_policy"
+        }
+      }
+
+      rule {
+        # Path Traversal Attack (/../)
+        action  = "Log"
+        enabled = true
+        rule_id = "930110"
+
+        exclusion {
+          # Exclusion to allow acceptance of cookies
+          match_variable = "RequestCookieNames" # "CookieValue:cookie_policy"
+          operator       = "Equals"
+          selector       = "cookie_policy"
+        }
+      }
+    }
+
+    override {
+      rule_group_name = "SQLI"
+
+      rule {
+        # Common SQL injection testing
+        action  = "Log"
+        enabled = true
+        rule_id = "942110"
+      }
+
+      rule {
+        # Detects MySQL comment-/space-obfuscated injections and backtick termination
+        action  = "Log"
+        enabled = true
+        rule_id = "942200"
+
+        exclusion {
+          # Exclusion to allow acceptance of cookies
+          match_variable = "RequestCookieNames" # "CookieValue:cookie_policy"
+          operator       = "Equals"
+          selector       = "cookie_policy"
+        }
+      }
+
+      rule {
+        # Detects basic SQL authentication bypass attempts 2/3
+        action  = "Log"
+        enabled = true
+        rule_id = "942260"
+
+        exclusion {
+          # Exclusion to allow acceptance of cookies
+          match_variable = "RequestCookieNames" # "CookieValue:cookie_policy"
+          operator       = "Equals"
+          selector       = "cookie_policy"
+        }
+      }
+
+      rule {
+        # Suspicious use of SQL keywords
+        action  = "Log"
+        enabled = true
+        rule_id = "942400"
+      }
+
+      rule {
+        # SQL Comment Sequence Detected
+        action  = "Log"
+        enabled = true
+        rule_id = "942440"
+      }
+
+      rule {
+        # Restricted SQL Character Anomaly Detection (args): # of special characters exceeded (12)
+        action  = "Log"
+        enabled = true
+        rule_id = "942430"
+      }
+
+      rule {
+        # SQL Injection Attack
+        action  = "Log"
+        enabled = true
+        rule_id = "942150"
+      }
+
+      rule {
+        # SQL Injection Attack
+        action  = "Log"
+        enabled = true
+        rule_id = "942410"
+      }
+
+      rule {
+        # SQL Injection Attack Detected via libinjection
+        action  = "Log"
+        enabled = true
+        rule_id = "942100"
+      }
+
+      rule {
+        # SQL Hex Encoding Identified
+        action  = "Log"
+        enabled = true
+        rule_id = "942450"
+
+        exclusion {
+          # Exclusion to allow cookie connect.sid
+          match_variable = "RequestCookieNames" # "CookieValue:connect.sid"
+          operator       = "Equals"
+          selector       = "connect.sid"
+        }
+      }
+
+      rule {
+        # SQL Injection Attack: SQL Operator Detected
+        action  = "Log"
+        enabled = true
+        rule_id = "942120"
+      }
+
+      rule {
+        # SQL Injection Attack: Common DB Names Detected
+        action  = "Log"
+        enabled = true
+        rule_id = "942140"
+      }
+
+      rule {
+        # Detects blind sqli tests using sleep() or benchmark()
+        action  = "Log"
+        enabled = true
+        rule_id = "942160"
+      }
+
+      rule {
+        # Detects SQL benchmark and sleep injection attempts including conditional queries
+        action  = "Log"
+        enabled = true
+        rule_id = "942170"
+      }
+
+      rule {
+        # Detects basic SQL authentication bypass attempts 1/3
+        action  = "Log"
+        enabled = true
+        rule_id = "942180"
+      }
+
+      rule {
+        # Detects MSSQL code execution and information gathering attempts
+        action  = "Log"
+        enabled = true
+        rule_id = "942190"
+      }
+
+      rule {
+        # Detects chained SQL injection attempts 1/2
+        action  = "Log"
+        enabled = true
+        rule_id = "942210"
+      }
+
+      rule {
+        # Looking for integer overflow attacks, these are taken from skipfish, except 3.0.00738585072007e-308 is the "magic number" crash
+        action  = "Log"
+        enabled = true
+        rule_id = "942220"
+      }
+
+      rule {
+        # Detects conditional SQL injection attempts
+        action  = "Log"
+        enabled = true
+        rule_id = "942230"
+      }
+
+      rule {
+        # Detects MySQL charset switch and MSSQL DoS attempts
+        action  = "Log"
+        enabled = true
+        rule_id = "942240"
+      }
+
+      rule {
+        # Detects MATCH AGAINST, MERGE and EXECUTE IMMEDIATE injections
+        action  = "Log"
+        enabled = true
+        rule_id = "942250"
+      }
+
+      rule {
+        # Looking for basic sql injection. Common attack string for mysql, oracle, and others.
+        action  = "Log"
+        enabled = true
+        rule_id = "942270"
+      }
+
+      rule {
+        # Detects Postgres pg_sleep injection, waitfor delay attacks and database shutdown attempts
+        action  = "Log"
+        enabled = true
+        rule_id = "942280"
+      }
+
+      rule {
+        # Finds basic MongoDB SQL injection attempts
+        action  = "Log"
+        enabled = true
+        rule_id = "942290"
+      }
+
+      rule {
+        # Detects MySQL comments, conditions, and ch(a)r injections
+        action  = "Log"
+        enabled = true
+        rule_id = "942300"
+      }
+
+      rule {
+        # Detects chained SQL injection attempts 2/2
+        action  = "Log"
+        enabled = true
+        rule_id = "942310"
+      }
+
+      rule {
+        # Detects MySQL and PostgreSQL stored procedure/function injections
+        action  = "Log"
+        enabled = true
+        rule_id = "942320"
+      }
+
+      rule {
+        # Detects classic SQL injection probings 1/2
+        action  = "Log"
+        enabled = true
+        rule_id = "942330"
+      }
+
+      rule {
+        # Detects basic SQL authentication bypass attempts 3/3
+        action  = "Log"
+        enabled = true
+        rule_id = "942340"
+      }
+
+      rule {
+        # Detects MySQL UDF injection and other data/structure manipulation attempts
+        action  = "Log"
+        enabled = true
+        rule_id = "942350"
+      }
+
+      rule {
+        # Detects concatenated basic SQL injection and SQLLFI attempts
+        action  = "Log"
+        enabled = true
+        rule_id = "942360"
+      }
+
+      rule {
+        # Detects basic SQL injection based on keyword alter or union
+        action  = "Log"
+        enabled = true
+        rule_id = "942361"
+      }
+
+      rule {
+        # Detects classic SQL injection probings 2/3
+        action  = "Log"
+        enabled = true
+        rule_id = "942370"
+      }
+
+      rule {
+        # SQL Injection Attack
+        action  = "Log"
+        enabled = true
+        rule_id = "942380"
+      }
+
+      rule {
+        # SQL Injection Attack
+        action  = "Log"
+        enabled = true
+        rule_id = "942390"
+      }
+
+      rule {
+        # SQL Injection Attack
+        action  = "Log"
+        enabled = true
+        rule_id = "942470"
+      }
+
+      rule {
+        # SQL Injection Attack
+        action  = "Log"
+        enabled = true
+        rule_id = "942480"
+      }
+    }
+    override {
+      rule_group_name = "RCE"
+
+      rule {
+        # Remote Command Execution: Direct Unix Command Execution
+        action  = "Log"
+        enabled = true
+        rule_id = "932150"
+      }
+    }
+
+    override {
+      rule_group_name = "XSS"
+
+      rule {
+        # XSS Filter - Category 2: Event Handler Vector	Log
+        action  = "Log"
+        enabled = true
+        rule_id = "941120"
+      }
+    }
+
+    # Exception for ASB-2059 - Exclude all rules for this selector.
+    exclusion {
+      match_variable = "RequestBodyPostArgNames"
+      operator       = "Equals"
+      selector       = "comment"
+    }
+
+    # cross site request forgery token
+    exclusion {
+      match_variable = "RequestBodyPostArgNames"
+      operator       = "Equals"
+      selector       = "_csrf"
+    }
+
+    # session cookie
+    exclusion {
+      match_variable = "RequestCookieNames"
+      operator       = "Equals"
+      selector       = "connect.sid"
+    }
   }
 
   managed_rule {
