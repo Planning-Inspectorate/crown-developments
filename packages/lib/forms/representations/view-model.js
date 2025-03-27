@@ -57,7 +57,7 @@ export function representationToManageViewModel(representation, applicationRefer
 			model.agentOrgName = representation.submittedByAgentOrgName;
 		} else if (representation.representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION) {
 			model.orgName = representation.RepresentedContact?.fullName;
-			model.orgRoleName = representation.RepresentedContact?.jobTitleOrRole;
+			model.orgRoleName = representation.SubmittedByContact?.jobTitleOrRole;
 		} else if (representation.representedTypeId === REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR) {
 			model.isAgent = mapFieldValue(representation.submittedByAgent);
 			model.agentOrgName = representation.submittedByAgentOrgName;
