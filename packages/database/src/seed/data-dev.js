@@ -9,6 +9,7 @@ import {
 	repsContacts,
 	repsOrgContacts
 } from './representations-data-dev.js';
+import { seedUatCases } from './data-reps-uat-dev.js';
 
 /**
  * @param {import('@prisma/client').PrismaClient} dbClient
@@ -83,6 +84,8 @@ export async function seedDev(dbClient) {
 		representation.Application = { connect: { id: crownDev.id } };
 		await persistWrittenRepresentation(dbClient, representation);
 	}
+
+	await seedUatCases(dbClient);
 
 	console.log('dev seed complete');
 }
