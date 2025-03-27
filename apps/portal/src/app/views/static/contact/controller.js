@@ -5,7 +5,7 @@
  */
 export function buildContactUsPage() {
 	return (req, res) => {
-		res.render('views/contact/view.njk', {
+		res.render('views/static/contact/view.njk', {
 			pageTitle: 'Contact us'
 		});
 	};

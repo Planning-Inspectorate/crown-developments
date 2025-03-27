@@ -7,7 +7,7 @@ import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js'
  */
 export function buildTermsAndConditionsPage() {
 	return (req, res) => {
-		res.render('views/terms-and-conditions/view.njk', {
+		res.render('views/static/terms-and-conditions/view.njk', {
 			pageTitle: 'Terms and Conditions',
 			lastUpdatedDate: formatDateForDisplay(new Date('2025-03-26T00:00:00Z'))
 		});
