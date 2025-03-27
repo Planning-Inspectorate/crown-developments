@@ -28,7 +28,9 @@ describe('view-model', () => {
 				wantsToBeHeard: true,
 				submittedForId: 'id-1',
 				comment: 'comment one',
-				commentRedacted: '███████ one'
+				commentRedacted: '███████ one',
+				containsAttachments: false,
+				sharePointFolderCreated: false
 			};
 			const viewModel = representationToManageViewModel(representation, applicationReference);
 			assert.deepStrictEqual(viewModel, {
@@ -39,7 +41,9 @@ describe('view-model', () => {
 				submittedByContactId: undefined,
 				representedContactId: undefined,
 				comment: 'comment one',
-				commentRedacted: '███████ one'
+				commentRedacted: '███████ one',
+				containsAttachments: 'no',
+				sharePointFolderCreated: 'no'
 			});
 		});
 		it('should map requires review', () => {
@@ -49,7 +53,9 @@ describe('view-model', () => {
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
 				categoryId: 'c-id-1',
 				wantsToBeHeard: true,
-				submittedForId: 'id-1'
+				submittedForId: 'id-1',
+				containsAttachments: false,
+				sharePointFolderCreated: false
 			};
 			const viewModel = representationToManageViewModel(representation, applicationReference);
 			assert.deepStrictEqual(viewModel, {
@@ -60,7 +66,9 @@ describe('view-model', () => {
 				submittedByContactId: undefined,
 				representedContactId: undefined,
 				comment: undefined,
-				commentRedacted: undefined
+				commentRedacted: undefined,
+				containsAttachments: 'no',
+				sharePointFolderCreated: 'no'
 			});
 		});
 		it('should map the myself fields', () => {
@@ -72,6 +80,8 @@ describe('view-model', () => {
 				wantsToBeHeard: true,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
 				comment: 'my comments',
+				containsAttachments: true,
+				sharePointFolderCreated: true,
 				submittedByContactId: 'sub-id-1',
 				SubmittedByContact: {
 					isAdult: true,
@@ -96,7 +106,9 @@ describe('view-model', () => {
 				submittedByContactId: 'sub-id-1',
 				representedContactId: undefined,
 				comment: 'my comments',
-				commentRedacted: undefined
+				commentRedacted: undefined,
+				containsAttachments: 'yes',
+				sharePointFolderCreated: 'yes'
 			});
 		});
 		it('should map the on behalf of common fields', () => {
@@ -108,6 +120,8 @@ describe('view-model', () => {
 				wantsToBeHeard: true,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				comment: 'my comments',
+				containsAttachments: true,
+				sharePointFolderCreated: false,
 				submittedByContactId: 'sub-id-1',
 				SubmittedByContact: {
 					isAdult: true,
@@ -134,7 +148,9 @@ describe('view-model', () => {
 				submittedByContactId: 'sub-id-1',
 				representedContactId: undefined,
 				comment: 'my comments',
-				commentRedacted: undefined
+				commentRedacted: undefined,
+				containsAttachments: 'yes',
+				sharePointFolderCreated: 'no'
 			});
 		});
 		it('should map the on behalf of person fields', () => {
@@ -146,6 +162,8 @@ describe('view-model', () => {
 				wantsToBeHeard: true,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				comment: 'my comments',
+				containsAttachments: false,
+				sharePointFolderCreated: false,
 				submittedByContactId: 'sub-id-1',
 				SubmittedByContact: {
 					isAdult: true,
@@ -183,7 +201,9 @@ describe('view-model', () => {
 				submittedByContactId: 'sub-id-1',
 				representedContactId: 'rep-id-1',
 				comment: 'my comments',
-				commentRedacted: undefined
+				commentRedacted: undefined,
+				containsAttachments: 'no',
+				sharePointFolderCreated: 'no'
 			});
 		});
 		it('should map the on behalf of org fields', () => {
@@ -195,6 +215,8 @@ describe('view-model', () => {
 				wantsToBeHeard: true,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				comment: 'my comments',
+				containsAttachments: false,
+				sharePointFolderCreated: false,
 				submittedByContactId: 'sub-id-1',
 				SubmittedByContact: {
 					isAdult: true,
@@ -228,7 +250,9 @@ describe('view-model', () => {
 				submittedByContactId: 'sub-id-1',
 				representedContactId: 'rep-id-1',
 				comment: 'my comments',
-				commentRedacted: undefined
+				commentRedacted: undefined,
+				containsAttachments: 'no',
+				sharePointFolderCreated: 'no'
 			});
 		});
 		it(`should map the on behalf of org don't work for fields`, () => {
@@ -240,6 +264,8 @@ describe('view-model', () => {
 				wantsToBeHeard: true,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				comment: 'my comments',
+				containsAttachments: false,
+				sharePointFolderCreated: false,
 				submittedByContactId: 'sub-id-1',
 				SubmittedByContact: {
 					isAdult: true,
@@ -275,7 +301,9 @@ describe('view-model', () => {
 				submittedByContactId: 'sub-id-1',
 				representedContactId: 'rep-id-1',
 				comment: 'my comments',
-				commentRedacted: undefined
+				commentRedacted: undefined,
+				containsAttachments: 'no',
+				sharePointFolderCreated: 'no'
 			});
 		});
 	});

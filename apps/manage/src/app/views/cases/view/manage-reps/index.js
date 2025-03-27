@@ -14,16 +14,17 @@ import { createRoutes as createAddRoutes } from './add/index.js';
  * @param {Object} opts
  * @param {import('@prisma/client').PrismaClient} opts.db
  * @param {import('pino').BaseLogger} opts.logger
+ * @param {function(session): SharePointDrive} opts.getSharePointDrive
  * @returns {import('express').Router}
  */
-export function createRoutes({ db, logger }) {
+export function createRoutes({ db, logger, getSharePointDrive }) {
 	const router = createRouter({ mergeParams: true });
 	const repsRouter = createRouter({ mergeParams: true });
 	const list = buildListReps({ db });
 	const reviewRoutes = createReviewRoutes({ db, logger });
 	const addRepRoutes = createAddRoutes({ db, logger });
 	const getJourney = asyncHandler(buildGetJourneyMiddleware({ db, logger }));
-	const updateRepFn = buildUpdateRepresentation({ db, logger });
+	const updateRepFn = buildUpdateRepresentation({ db, logger, getSharePointDrive });
 	const saveAnswer = buildSave(updateRepFn, true);
 
 	router.get('/', asyncHandler(list));

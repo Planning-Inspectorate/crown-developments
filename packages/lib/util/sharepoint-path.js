@@ -15,6 +15,16 @@ export function publishedFolderPath(caseReference) {
 }
 
 /**
+ * Returns the published reps attachments folder root path for the given case reference
+ *
+ * @param {string} caseReference
+ * @returns {string}
+ */
+export function publishedRepresentationsAttachmentsRootFolderPath(caseReference) {
+	return buildPath(publishedFolderPath(caseReference), APPLICATION_FOLDERS.REPRESENTATION_ATTACHMENTS);
+}
+
+/**
  * Returns the published reps attachments folder path for the given case reference and representation reference
  *
  * @param {string} caseReference
