@@ -235,7 +235,6 @@ export const questionProps = {
 		type: COMPONENT_TYPES.BOOLEAN,
 		title: 'Representation Attachments',
 		question: 'Does the representation have attachments?',
-		hint: 'You can still submit a representation for them if they are under 18, but we will process their personal details in a different way.',
 		fieldName: 'containsAttachments',
 		url: 'representation-attachments',
 		validators: [new RequiredValidator('Select whether the representation has attachments')]
