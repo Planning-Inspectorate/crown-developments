@@ -29,6 +29,7 @@ export namespace HaveYourSay {
 		categoryId?: string;
 		wantsToBeHeard?: boolean;
 		containsAttachments: boolean;
+		sharePointFolderCreated?: string;
 		commentRedacted?: string;
 
 		readonly applicationReference?: string;

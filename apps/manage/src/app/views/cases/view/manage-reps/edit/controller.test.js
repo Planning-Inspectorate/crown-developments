@@ -63,5 +63,205 @@ describe('controller', () => {
 			assert.strictEqual(logger.info.mock.calls[0].arguments[1], 'update representation input');
 			assert.strictEqual(mockReq.session.representations['ref-1'].representationUpdated, true);
 		});
+		it('should create folder if contains attachments and share point folder not yet created', async () => {
+			const mockDb = {
+				representation: { update: mock.fn() }
+			};
+			const logger = mockLogger();
+			const mockSharePoint = {
+				addNewFolder: mock.fn()
+			};
+
+			const updateRep = buildUpdateRepresentation({ db: mockDb, logger, getSharePointDrive: () => mockSharePoint });
+
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				session: {}
+			};
+			const edits = {
+				answers: {
+					statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+					wantsToBeHeard: BOOLEAN_OPTIONS.NO,
+					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+					categoryId: 'c-id-1',
+					containsAttachments: true
+				}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							applicationReference: 'CROWN-2025-0000001',
+							sharePointFolderCreated: 'no'
+						}
+					}
+				}
+			};
+			await assert.doesNotReject(() => updateRep({ req: mockReq, res: mockRes, data: edits }));
+			assert.strictEqual(mockDb.representation.update.mock.callCount(), 1);
+			assert.strictEqual(mockSharePoint.addNewFolder.mock.callCount(), 1);
+			assert.strictEqual(
+				mockSharePoint.addNewFolder.mock.calls[0].arguments[0],
+				'CROWN-2025-0000001/Published/RepresentationAttachments'
+			);
+			assert.strictEqual(mockSharePoint.addNewFolder.mock.calls[0].arguments[1], 'ref-1');
+		});
+		it('should create folder if contains attachments and sharePointFolderCreated is undefined', async () => {
+			const mockDb = {
+				representation: { update: mock.fn() }
+			};
+			const logger = mockLogger();
+			const mockSharePoint = {
+				addNewFolder: mock.fn()
+			};
+
+			const updateRep = buildUpdateRepresentation({ db: mockDb, logger, getSharePointDrive: () => mockSharePoint });
+
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				session: {}
+			};
+			const edits = {
+				answers: {
+					statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+					wantsToBeHeard: BOOLEAN_OPTIONS.NO,
+					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+					categoryId: 'c-id-1',
+					containsAttachments: true
+				}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							applicationReference: 'CROWN-2025-0000001'
+						}
+					}
+				}
+			};
+			await assert.doesNotReject(() => updateRep({ req: mockReq, res: mockRes, data: edits }));
+			assert.strictEqual(mockDb.representation.update.mock.callCount(), 1);
+			assert.strictEqual(mockSharePoint.addNewFolder.mock.callCount(), 1);
+			assert.strictEqual(
+				mockSharePoint.addNewFolder.mock.calls[0].arguments[0],
+				'CROWN-2025-0000001/Published/RepresentationAttachments'
+			);
+			assert.strictEqual(mockSharePoint.addNewFolder.mock.calls[0].arguments[1], 'ref-1');
+		});
+		it('should not create folder if contains attachments not in data to be saved', async () => {
+			const mockDb = {
+				representation: { update: mock.fn() }
+			};
+			const logger = mockLogger();
+			const mockSharePoint = {
+				addNewFolder: mock.fn()
+			};
+
+			const updateRep = buildUpdateRepresentation({ db: mockDb, logger, getSharePointDrive: () => mockSharePoint });
+
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				session: {}
+			};
+			const edits = {
+				answers: {
+					statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+					wantsToBeHeard: BOOLEAN_OPTIONS.NO,
+					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+					categoryId: 'c-id-1'
+				}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							applicationReference: 'CROWN-2025-0000001',
+							sharePointFolderCreated: 'no'
+						}
+					}
+				}
+			};
+			await assert.doesNotReject(() => updateRep({ req: mockReq, res: mockRes, data: edits }));
+			assert.strictEqual(mockDb.representation.update.mock.callCount(), 1);
+			assert.strictEqual(mockSharePoint.addNewFolder.mock.callCount(), 0);
+		});
+		it('should not create folder if contains attachments is true but folder already created', async () => {
+			const mockDb = {
+				representation: { update: mock.fn() }
+			};
+			const logger = mockLogger();
+			const mockSharePoint = {
+				addNewFolder: mock.fn()
+			};
+
+			const updateRep = buildUpdateRepresentation({ db: mockDb, logger, getSharePointDrive: () => mockSharePoint });
+
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				session: {}
+			};
+			const edits = {
+				answers: {
+					statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+					wantsToBeHeard: BOOLEAN_OPTIONS.NO,
+					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+					categoryId: 'c-id-1',
+					containsAttachments: true
+				}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							applicationReference: 'CROWN-2025-0000001',
+							sharePointFolderCreated: 'yes'
+						}
+					}
+				}
+			};
+			await assert.doesNotReject(() => updateRep({ req: mockReq, res: mockRes, data: edits }));
+			assert.strictEqual(mockDb.representation.update.mock.callCount(), 1);
+			assert.strictEqual(mockSharePoint.addNewFolder.mock.callCount(), 0);
+		});
+		it('should throw if error creating folder', async () => {
+			const mockDb = {
+				representation: { update: mock.fn() }
+			};
+			const logger = mockLogger();
+			const mockSharePoint = {
+				addNewFolder: mock.fn(() => {
+					throw new Error('Error creating folder');
+				})
+			};
+
+			const updateRep = buildUpdateRepresentation({ db: mockDb, logger, getSharePointDrive: () => mockSharePoint });
+
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				session: {}
+			};
+			const edits = {
+				answers: {
+					statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+					wantsToBeHeard: BOOLEAN_OPTIONS.NO,
+					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+					categoryId: 'c-id-1',
+					containsAttachments: true
+				}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							applicationReference: 'CROWN-2025-0000001',
+							sharePointFolderCreated: 'no'
+						}
+					}
+				}
+			};
+			await assert.rejects(() => updateRep({ req: mockReq, res: mockRes, data: edits }), {
+				message: 'Error encountered during sharepoint folder creation'
+			});
+		});
 	});
 });

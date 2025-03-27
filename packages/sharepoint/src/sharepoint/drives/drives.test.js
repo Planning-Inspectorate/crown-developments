@@ -162,6 +162,36 @@ describe('drives', () => {
 			assert.deepEqual(result, mockResponse.value);
 		});
 	});
+	describe('addNewFolder', () => {
+		test('should add new folder', async () => {
+			const path = 'testPath';
+			const folderName = 'folderName';
+			driveId = 'testDriveId';
+
+			const client = mockClient();
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			await sharePointDrive.addNewFolder(path, folderName);
+
+			console.log(client.api.mock.calls[0]);
+			assert.equal(client.api.mock.callCount(), 1);
+			assert.deepStrictEqual(client.post.mock.calls[0].arguments[0], {
+				name: folderName,
+				folder: {},
+				'@microsoft.graph.conflictBehavior': 'fail'
+			});
+			assert.equal(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('root:')
+					.addPathSegment(path + ':')
+					.addPathSegment('children')
+					.toString()
+			);
+		});
+	});
 	describe('getItemPermissions', () => {
 		test('should fetch an item permission', async () => {
 			const client = mockClient();

@@ -20,7 +20,9 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'submittedByContactId',
 	'representedContactId',
 	'comment',
-	'commentRedacted'
+	'commentRedacted',
+	'containsAttachments',
+	'sharePointFolderCreated'
 ]);
 
 /**
@@ -93,6 +95,12 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 
 	if ('wantsToBeHeard' in edits) {
 		representationUpdateInput.wantsToBeHeard = yesNoToBoolean(edits.wantsToBeHeard);
+	}
+	if ('containsAttachments' in edits) {
+		representationUpdateInput.wantsToBeHeard = yesNoToBoolean(edits.containsAttachments);
+	}
+	if ('sharePointFolderCreated' in edits) {
+		representationUpdateInput.sharePointFolderCreated = yesNoToBoolean(edits.sharePointFolderCreated);
 	}
 
 	// myself fields

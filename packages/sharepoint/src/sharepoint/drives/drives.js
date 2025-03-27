@@ -112,6 +112,29 @@ export class SharePointDrive {
 	}
 
 	/**
+	 * Create a new folder in SharePoint drive at path
+	 * @param {string} path - the relative path where the folder should be created
+	 * @param {string} folderName - the name of the folder to create
+	 * @returns {Promise<Object>} - response containing folder details
+	 */
+	async addNewFolder(path, folderName) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('root:')
+			.addPathSegment(path + ':')
+			.addPathSegment('children');
+
+		const folderRequest = {
+			name: folderName,
+			folder: {},
+			'@microsoft.graph.conflictBehavior': 'fail'
+		};
+
+		return await this.client.api(urlBuilder.toString()).post(folderRequest);
+	}
+
+	/**
 	 * Copies a sharepoint item to a location with a new name
 	 *
 	 * @param {CopyDriveInstructions} params

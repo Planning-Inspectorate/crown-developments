@@ -217,7 +217,8 @@ model Representation {
   Category       RepresentationCategory? @relation(fields: [categoryId], references: [id])
   wantsToBeHeard Boolean?
 
-  containsAttachments Boolean? @default(false)
+  containsAttachments     Boolean? @default(false)
+  sharePointFolderCreated Boolean? @default(false)
 }
 
 // reference data
