@@ -1,8 +1,8 @@
 import { Router as createRouter } from 'express';
 import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.js';
 import { createRoutes as applicationRoutes } from './views/applications/index.js';
-import { buildTermsAndConditionsPage } from './views/terms-and-conditions/controller.js';
-import { buildContactUsPage } from './views/contact/controller.js';
+import { buildTermsAndConditionsPage } from './views/static/terms-and-conditions/controller.js';
+import { buildContactUsPage } from './views/static/contact/controller.js';
 
 /**
  * @param {Object} params
