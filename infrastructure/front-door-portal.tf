@@ -127,7 +127,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "portal" {
   managed_rule {
     type    = "Microsoft_DefaultRuleSet"
     version = "2.1"
-    action  = "Log"
+    action  = "Block"
   }
 
   managed_rule {
