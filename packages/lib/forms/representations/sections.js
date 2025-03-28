@@ -13,19 +13,28 @@ import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/ques
  */
 export function haveYourSayManageSections(questions) {
 	// section names aren't used
-	return [
+	const haveYourSaySection = [myselfSection(questions), agentSection(questions)];
+	const addRepresentationSection = [addRepMyselfSection(questions), addRepAgentSection(questions)];
+
+	const sections = [
 		new Section('Details', 'details')
 			.addQuestion(questions.reference)
 			.addQuestion(questions.submittedDate)
 			.addQuestion(questions.category)
 			.addQuestion(questions.status),
-		new Section('Representation', 'start').addQuestion(questions.submittedFor),
-		myselfSection(questions),
-		agentSection(questions),
+		new Section('Representation', 'start').addQuestion(questions.submittedFor)
+	];
+	if (questions.myselfContactPreference || questions.submitterContactPreference) {
+		sections.push(...addRepresentationSection);
+	} else {
+		sections.push(...haveYourSaySection);
+	}
+	sections.push(
 		new Section('More Details', 'more-details')
 			.addQuestion(questions.commentRedacted)
 			.addQuestion(questions.wantsToBeHeard)
-	];
+	);
+	return sections;
 }
 
 /**

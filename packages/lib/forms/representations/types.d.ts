@@ -35,6 +35,7 @@ export namespace HaveYourSay {
 		readonly requiresReview?: boolean;
 		readonly submittedByContactId?: string;
 		readonly representedContactId?: string;
+		readonly submittedByAddressId?: string;
 	}
 
 	/**
@@ -43,8 +44,8 @@ export namespace HaveYourSay {
 	export interface Myself {
 		myselfIsAdult: boolean;
 		myselfFullName?: string;
-		myselfAddress?: Address;
 		myselfContactPreference?: string;
+		myselfAddress?: Address;
 		myselfEmail: string;
 		myselfComment: string;
 	}
@@ -56,6 +57,8 @@ export namespace HaveYourSay {
 		representedTypeId: string;
 		submitterIsAdult: boolean;
 		submitterFullName?: string;
+		submitterContactPreference?: string;
+		submitterAddress?: Address;
 		submitterEmail: string;
 		submitterComment: string;
 	};
