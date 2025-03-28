@@ -22,7 +22,7 @@ export const townCityMinLength = 0;
 export const countyMaxLength = 250;
 export const countyMinLength = 0;
 export const postcodeMaxLength = 10;
-export const postcodeMinLength = 0;
+export const postcodeMinLength = 1;
 
 /**
  * enforces address fields are within allowed parameters
