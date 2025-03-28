@@ -312,7 +312,7 @@ describe('view-model', () => {
 			/** @type {HaveYourSayManageModel} */
 			const edits = {
 				statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
-				wantsToBeHeard: BOOLEAN_OPTIONS.NO,
+				wantsToBeHeard: false,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
 				categoryId: 'c-id-1'
 			};

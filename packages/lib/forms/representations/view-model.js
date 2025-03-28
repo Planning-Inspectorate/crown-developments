@@ -1,8 +1,4 @@
-import {
-	BOOLEAN_OPTIONS,
-	booleanToYesNoValue,
-	yesNoToBoolean
-} from '@pins/dynamic-forms/src/components/boolean/question.js';
+import { booleanToYesNoValue, yesNoToBoolean } from '@pins/dynamic-forms/src/components/boolean/question.js';
 import {
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
@@ -86,7 +82,7 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	// map all the regular fields to the update input
 	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
 		if (Object.hasOwn(edits, field)) {
-			representationUpdateInput[field] = mapFieldValue(edits[field]);
+			representationUpdateInput[field] = edits[field];
 		}
 	}
 	// don't support updating these fields
@@ -183,9 +179,6 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 function mapFieldValue(fieldValue) {
 	if (typeof fieldValue === 'boolean') {
 		return booleanToYesNoValue(fieldValue);
-	}
-	if (fieldValue === BOOLEAN_OPTIONS.YES || fieldValue === BOOLEAN_OPTIONS.NO) {
-		return yesNoToBoolean(fieldValue);
 	}
 	return fieldValue;
 }
