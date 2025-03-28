@@ -9,7 +9,8 @@ import { getDocuments } from '@pins/crowndev-lib/documents/get.js';
 /**
  * Render written representation read more page
  *
- * @type {import('express').RequestHandler}
+ * @param {import('#service').PortalService} service
+ * @returns {import('express').RequestHandler}
  */
 export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePointDrive }) {
 	return async (req, res) => {
