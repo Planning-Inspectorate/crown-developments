@@ -8,7 +8,7 @@ import session from 'express-session';
  * @param {boolean} options.secure
  * @returns
  */
-export function getSessionMiddleware({ redis, secure, secret }) {
+export function initSessionMiddleware({ redis, secure, secret }) {
 	let store;
 	if (redis) {
 		store = redis.store;
