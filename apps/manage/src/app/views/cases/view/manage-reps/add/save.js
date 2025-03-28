@@ -44,13 +44,11 @@ export async function viewAddRepresentationSuccessPage(req, res) {
 }
 
 /**
- * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('pino').Logger} opts.logger
- * @param {function} [opts.uniqueReferenceFn] - optional function used for testing
+ * @param {import('#service').ManageService} service
+ * @param {function} [uniqueReferenceFn] - optional function used for testing
  * @returns {import('express').Handler}
  */
-export function buildSaveRepresentationController({ db, logger, uniqueReferenceFn = uniqueReference }) {
+export function buildSaveRepresentationController({ db, logger }, uniqueReferenceFn = uniqueReference) {
 	return async (req, res) => {
 		await saveRepresentation(
 			{

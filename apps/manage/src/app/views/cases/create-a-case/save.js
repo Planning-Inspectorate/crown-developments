@@ -6,15 +6,11 @@ import { caseReferenceToFolderName, getSharePointReceivedPathId } from '@pins/cr
 import { yesNoToBoolean } from '@pins/dynamic-forms/src/components/boolean/question.js';
 
 /**
- * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} db
- * @param {import('pino').BaseLogger} logger
- * @param {import('../../../config-types.js').Config} config
- * @param {function(session): SharePointDrive} getSharePointDrive
- * @param {import('@pins/crowndev-lib/govnotify/gov-notify-client').GovNotifyClient|null} govNotifyClient
+ * @param {import('#service').ManageService} service
  * @returns {import('express').Handler}
  */
-export function buildSaveController({ db, logger, config, getSharePointDrive, govNotifyClient }) {
+export function buildSaveController(service) {
+	const { db, getSharePointDrive, logger, notifyClient } = service;
 	return async (req, res) => {
 		if (!res.locals || !res.locals.journeyResponse) {
 			throw new Error('journey response required');
@@ -52,22 +48,22 @@ export function buildSaveController({ db, logger, config, getSharePointDrive, go
 		} else {
 			notificationData = await createCaseSharePointActions(
 				sharePointDrive,
-				config,
+				service.sharePointCaseTemplateId,
 				caseReferenceToFolderName(reference),
 				answers
 			);
 		}
 		// todo: redirect to check-your-answers on failure?
 
-		if (govNotifyClient === null) {
+		if (notifyClient === null) {
 			logger.warn(
 				'Gov Notify is not enabled, to use Gov Notify functionality setup Gov Notify environment variables. See README'
 			);
 		} else {
 			try {
 				const params = { reference, sharePointLink: notificationData.sharePointLink };
-				await govNotifyClient.sendEmail(
-					config.govNotify.templates.acknowledgePreNotification,
+				await notifyClient.sendEmail(
+					service.notifyTemplates.acknowledgePreNotification,
 					notificationData.recipientEmail,
 					{ personalisation: params }
 				);
@@ -274,15 +270,15 @@ async function grantUsersAccess(sharePointDrive, answers, folderName) {
 /**
  *
  * @param {SharePointDrive} sharePointDrive
- * @param {import('../../../config-types.js').Config} config
+ * @param {string} caseTemplateId
  * @param {string} folderName
  * @param {import('./types.d.ts').CreateCaseAnswers} answers
  * @returns {{recipientEmail: string, sharePointLink: string}}
  */
-async function createCaseSharePointActions(sharePointDrive, config, folderName, answers) {
+async function createCaseSharePointActions(sharePointDrive, caseTemplateId, folderName, answers) {
 	// Copy template folder structure and rename to %folderName%
 	await sharePointDrive.copyDriveItem({
-		copyItemId: config.sharePoint.caseTemplateId,
+		copyItemId: caseTemplateId,
 		newItemName: folderName
 	});
 	// Grant write access to applicant and agent as required

@@ -64,9 +64,7 @@ export async function renderRepresentation(req, res, viewData = {}) {
 /**
  * Fetch the representation from the database to create the journey
  *
- * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('pino').BaseLogger} opts.logger
+ * @param {import('#service').ManageService} service
  * @returns {import('express').Handler}
  */
 export function buildGetJourneyMiddleware({ db, logger }) {

@@ -6,10 +6,7 @@ import { publishedRepresentationsAttachmentsRootFolderPath } from '@pins/crownde
 import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
 
 /**
- * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('pino').BaseLogger} opts.logger
- * @param {function(session): SharePointDrive} opts.getSharePointDrive
+ * @param {import('#service').ManageService} service
  * @returns {import('@pins/dynamic-forms/src/controller.js').SaveDataFn}
  */
 export function buildUpdateRepresentation({ db, logger, getSharePointDrive }) {

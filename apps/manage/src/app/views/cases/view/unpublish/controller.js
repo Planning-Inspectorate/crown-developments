@@ -2,6 +2,10 @@ import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 
+/**
+ * @param {import('#service').ManageService} service
+ * @returns {import('express').Handler}
+ */
 export function buildConfirmUnpublishCase({ db, logger }) {
 	return async (req, res) => {
 		const id = req.params.id;
@@ -28,6 +32,10 @@ export function buildConfirmUnpublishCase({ db, logger }) {
 	};
 }
 
+/**
+ * @param {import('#service').ManageService} service
+ * @returns {import('express').Handler}
+ */
 export function buildSubmitUnpublishCase({ db, logger }) {
 	return async (req, res) => {
 		/** @type {string} */

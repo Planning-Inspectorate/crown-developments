@@ -7,21 +7,19 @@ import { buildReviewControllers, viewRepresentationAwaitingReview, viewReviewRed
 import { buildGetJourneyMiddleware } from '../view/controller.js';
 
 /**
- * @param {Object} opts
- * @param {import('pino').Logger} opts.logger
- * @param {import('@prisma/client').PrismaClient} opts.db
+ * @param {import('#service').ManageService} service
  * @returns {import('express').Router}
  */
-export function createRoutes({ db, logger }) {
+export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
-	const getJourney = asyncHandler(buildGetJourneyMiddleware({ db, logger }));
+	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
 	const {
 		reviewRepresentation,
 		redactRepresentation,
 		redactRepresentationPost,
 		redactConfirmation,
 		acceptRedactedComment
-	} = buildReviewControllers({ db, logger });
+	} = buildReviewControllers(service);
 	const questions = getQuestions();
 	const validateReview = buildValidateBody([questions.reviewDecision]);
 
