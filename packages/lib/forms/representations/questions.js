@@ -97,11 +97,11 @@ export const questionProps = {
 			new StringValidator({
 				minLength: {
 					minLength: 3,
-					minLengthMessage: 'The full name must be between 3 and 64 characters'
+					minLengthMessage: 'The full name must be between 3 and 250 characters'
 				},
 				maxLength: {
-					maxLength: 64,
-					maxLengthMessage: `The full name must be between 3 and 64 characters`
+					maxLength: 250,
+					maxLengthMessage: `The full name must be between 3 and 250 characters`
 				}
 			})
 		]
