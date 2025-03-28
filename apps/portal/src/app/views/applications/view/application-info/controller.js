@@ -5,12 +5,11 @@ import { fetchPublishedApplication } from '#util/applications.js';
 import { nowIsWithinRange } from '@pins/dynamic-forms/src/lib/date-utils.js';
 
 /**
- * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('../../../../config-types.js').Config} opts.config
+ * @param {import('#service').PortalService} service
  * @returns {import('express').Handler}
  */
-export function buildApplicationInformationPage({ db, config }) {
+export function buildApplicationInformationPage(service) {
+	const { db } = service;
 	return async (req, res) => {
 		const id = req.params.applicationId;
 		if (!id) {
@@ -41,7 +40,7 @@ export function buildApplicationInformationPage({ db, config }) {
 			return notFoundHandler(req, res);
 		}
 
-		const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment, config);
+		const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment, service.contactEmail);
 
 		/** @type {HaveYourSayPeriod} */
 		const haveYourSayPeriod = {

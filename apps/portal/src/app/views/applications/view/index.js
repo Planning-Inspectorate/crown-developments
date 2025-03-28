@@ -7,20 +7,16 @@ import { createWrittenRepresentationsRoutes } from './written-representations/in
 import { buildDocumentView } from '../../util/documents-util.js';
 
 /**
- * @param {Object} opts
- * @param {import('pino').Logger} opts.logger
- * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('../../../config-types.js').Config} opts.config
- * @param {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} opts.sharePointDrive
+ * @param {import('#service').PortalService} service
  * @returns {import('express').Router}
  */
-export function createRoutes(opts) {
+export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
-	const applicationInfoController = buildApplicationInformationPage(opts);
-	const applicationDocumentsPage = buildApplicationDocumentsPage(opts);
-	const viewDocumentPage = buildDocumentView(opts);
-	const haveYourSayPageRoutes = createHaveYourSayRoutes(opts);
-	const writtenRepresentationsRoutes = createWrittenRepresentationsRoutes(opts);
+	const applicationInfoController = buildApplicationInformationPage(service);
+	const applicationDocumentsPage = buildApplicationDocumentsPage(service);
+	const viewDocumentPage = buildDocumentView(service);
+	const haveYourSayPageRoutes = createHaveYourSayRoutes(service);
+	const writtenRepresentationsRoutes = createWrittenRepresentationsRoutes(service);
 
 	router.get('/application-information', asyncHandler(applicationInfoController));
 	router.get('/documents', asyncHandler(applicationDocumentsPage));

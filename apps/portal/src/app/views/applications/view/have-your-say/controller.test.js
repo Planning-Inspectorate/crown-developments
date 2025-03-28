@@ -444,11 +444,13 @@ describe('have your say', () => {
 			};
 			const mockUniqueReferenceFn = mock.fn(() => 'AAAAA-BBBBB');
 
-			const saveHaveYourSayController = buildSaveHaveYourSayController({
-				db: mockDb,
-				logger: mockLogger(),
-				uniqueReferenceFn: mockUniqueReferenceFn
-			});
+			const saveHaveYourSayController = buildSaveHaveYourSayController(
+				{
+					db: mockDb,
+					logger: mockLogger()
+				},
+				mockUniqueReferenceFn
+			);
 			await saveHaveYourSayController(mockReq, mockRes);
 			assert.strictEqual(mockDb.representation.create.mock.callCount(), 1);
 		});
@@ -504,11 +506,13 @@ describe('have your say', () => {
 				}
 			};
 
-			const saveHaveYourSayController = buildSaveHaveYourSayController({
-				db: mockDb,
-				logger: mockLogger(),
-				uniqueReferenceFn: () => 'AAAAA-BBBBB'
-			});
+			const saveHaveYourSayController = buildSaveHaveYourSayController(
+				{
+					db: mockDb,
+					logger: mockLogger()
+				},
+				() => 'AAAAA-BBBBB'
+			);
 			await saveHaveYourSayController(mockReq, mockRes);
 			assert.deepStrictEqual(mockReq.session, {
 				representations: {

@@ -8,33 +8,16 @@ import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-re
 import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { getSessionMiddleware } from '@pins/crowndev-lib/util/session.js';
 import { addLocalsConfiguration } from '#util/config-middleware.js';
-import { getRedis } from '@pins/crowndev-lib/redis/index.js';
-import { getDatabaseClient } from '@pins/crowndev-database';
-import { Client } from '@microsoft/microsoft-graph-client';
-import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js';
-import { DefaultAzureCredential } from '@azure/identity';
-import { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
 
 /**
- * @param {import('./config-types.js').Config} config
- * @param {import('pino').Logger} logger
+ * @param {import('#service').PortalService} service
  * @returns {Express}
  */
-export function getApp(config, logger) {
-	const dbClient = getDatabaseClient(config, logger);
-	const redis = getRedis(config.session, logger);
-
-	const graphClient = Client.initWithMiddleware({
-		authProvider: new TokenCredentialAuthenticationProvider(new DefaultAzureCredential(), {
-			scopes: ['https://graph.microsoft.com/.default']
-		})
-	});
-	const sharePointDrive = new SharePointDrive(graphClient, config.sharePoint.driveId);
-
+export function getApp(service) {
 	// create an express app, and configure it for our usage
 	const app = express();
 
-	const logRequests = buildLogRequestsMiddleware(logger);
+	const logRequests = buildLogRequestsMiddleware(service.logger);
 	app.use(logRequests);
 
 	// configure body-parser, to populate req.body
@@ -43,9 +26,9 @@ export function getApp(config, logger) {
 	app.use(bodyParser.json());
 
 	const sessionMiddleware = getSessionMiddleware({
-		redis,
-		secure: config.NODE_ENV === 'production',
-		secret: config.session.secret
+		redis: service.redisClient,
+		secure: service.secureSession,
+		secret: service.sessionSecret
 	});
 	app.use(sessionMiddleware);
 
@@ -55,7 +38,7 @@ export function getApp(config, logger) {
 		next();
 	});
 
-	app.use(addLocalsConfiguration({ config }));
+	app.use(addLocalsConfiguration(service));
 
 	// Secure apps by setting various HTTP headers
 	app.use(helmet());
@@ -79,21 +62,16 @@ export function getApp(config, logger) {
 	app.set('view engine', 'njk');
 
 	// static files
-	app.use(express.static(config.staticDir));
+	app.use(express.static(service.staticDir));
 
-	const router = buildRouter({
-		config,
-		logger,
-		dbClient,
-		sharePointDrive
-	});
+	const router = buildRouter(service);
 	// register the router, which will define any subpaths
 	// any paths not defined will return 404 by default
 	app.use('/', router);
 
 	app.use(notFoundHandler);
 
-	const defaultErrorHandler = buildDefaultErrorHandlerMiddleware(logger);
+	const defaultErrorHandler = buildDefaultErrorHandlerMiddleware(service.logger);
 	// catch/handle errors last
 	app.use(defaultErrorHandler);
 

@@ -1,10 +1,9 @@
 /**
  * Add configuration values to locals.
- * @param {Object} params
- * @param {import('../app/config-types.js').Config} params.config
+ * @param {{isLive: boolean, contactEmail: string}} params
  * @returns {import('express').Handler}
  */
-export function addLocalsConfiguration({ config }) {
+export function addLocalsConfiguration({ isLive, contactEmail }) {
 	return (req, res, next) => {
 		const path = req.path;
 
@@ -41,8 +40,8 @@ export function addLocalsConfiguration({ config }) {
 				return link;
 			}),
 			haveYourSayServiceName: 'Have your say on a Crown Development Application',
-			isLive: config.featureFlags?.isLive,
-			contactEmail: config.crownDevContactInfo?.email
+			isLive,
+			contactEmail
 		};
 		next();
 	};

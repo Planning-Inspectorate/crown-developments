@@ -88,12 +88,14 @@ describe('documents-util', () => {
 				body: ReadableStream.from([1, 2, 3])
 			};
 			const mockFetch = mock.fn(() => mockFetchRes);
-			const handler = buildDocumentView({
-				db: mockDb,
-				logger: mockLogger(),
-				sharePointDrive: mockSharePoint,
-				fetchImpl: mockFetch
-			});
+			const handler = buildDocumentView(
+				{
+					db: mockDb,
+					logger: mockLogger(),
+					sharePointDrive: mockSharePoint
+				},
+				mockFetch
+			);
 			const req = new EventEmitter();
 			req.params = { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8', documentId: 'doc-123' };
 			const res = new EventEmitter();
