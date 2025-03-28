@@ -84,10 +84,6 @@ export class ManageService {
 		return this.#config.gitSha;
 	}
 
-	get notifyTemplates() {
-		return this.#config.govNotify.templates;
-	}
-
 	get secureSession() {
 		return this.#config.NODE_ENV === 'production';
 	}

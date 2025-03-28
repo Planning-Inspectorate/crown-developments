@@ -61,12 +61,10 @@ export function buildSaveController(service) {
 			);
 		} else {
 			try {
-				const params = { reference, sharePointLink: notificationData.sharePointLink };
-				await notifyClient.sendEmail(
-					service.notifyTemplates.acknowledgePreNotification,
-					notificationData.recipientEmail,
-					{ personalisation: params }
-				);
+				await notifyClient.sendAcknowledgePreNotification(notificationData.recipientEmail, {
+					reference,
+					sharePointLink: notificationData.sharePointLink
+				});
 			} catch (error) {
 				logger.error({ error, reference }, `error dispatching Acknowledgement of pre-notification email notification`);
 				throw new Error('Error encountered during email notification dispatch');
