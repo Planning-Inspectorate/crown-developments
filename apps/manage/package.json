@@ -39,6 +39,7 @@
     "supertest": "*"
   },
   "imports": {
+    "#service": "./src/app/service.js",
     "#util/*": "./src/util/*"
   }
 }

@@ -150,11 +150,13 @@ describe('written representations', () => {
 
 			const mockUniqueReferenceFn = mock.fn(() => 'AAAAA-BBBBB');
 
-			const saveRepresentationController = buildSaveRepresentationController({
-				db: mockDb,
-				logger: mockLogger(),
-				uniqueReferenceFn: mockUniqueReferenceFn
-			});
+			const saveRepresentationController = buildSaveRepresentationController(
+				{
+					db: mockDb,
+					logger: mockLogger()
+				},
+				mockUniqueReferenceFn
+			);
 			await saveRepresentationController(mockReq, mockRes);
 			assert.deepStrictEqual(mockDb.representation.create.mock.calls[0].arguments[0].data.reference, 'AAAAA-BBBBB');
 			assert.strictEqual(mockDb.representation.create.mock.callCount(), 1);
@@ -191,11 +193,13 @@ describe('written representations', () => {
 
 			const mockUniqueReferenceFn = mock.fn(() => 'AAAAA-BBBBB');
 
-			const saveRepresentationController = buildSaveRepresentationController({
-				db: mockDb,
-				logger: mockLogger(),
-				uniqueReferenceFn: mockUniqueReferenceFn
-			});
+			const saveRepresentationController = buildSaveRepresentationController(
+				{
+					db: mockDb,
+					logger: mockLogger()
+				},
+				mockUniqueReferenceFn
+			);
 			await assert.rejects(
 				() => saveRepresentationController(mockReq, mockRes),
 				(err) => {

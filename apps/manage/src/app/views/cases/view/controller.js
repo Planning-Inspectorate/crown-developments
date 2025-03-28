@@ -12,9 +12,7 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
 /**
- *
- * @param {Object} opts
- * @param {function(session): SharePointDrive} opts.getSharePointDrive
+ * @param {import('#service').ManageService} service
  */
 export function buildViewCaseDetails({ getSharePointDrive }) {
 	return async (req, res) => {
@@ -87,9 +85,7 @@ export function validateIdFormat(req, res, next) {
 }
 
 /**
- * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} db
- * @param {import('pino').BaseLogger} logger
+ * @param {import('#service').ManageService} service
  * @returns {import('@pins/dynamic-forms/src/controller.js').SaveDataFn}
  */
 export function buildUpdateCase({ db, logger }) {
@@ -181,14 +177,12 @@ function clearCaseUpdatedSession(req, id) {
 /**
  * Fetch the case details from the database to create the journey
  *
- * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('pino').BaseLogger} opts.logger
- * @param {typeof import('../../../config-types.js').Config.entra.groupIds} opts.groupIds
- * @param {import('@pins/crowndev-lib/graph/types.js').InitEntraClient} opts.getEntraClient
+ * @param {import('#service').ManageService} service
  * @returns {import('express').Handler}
  */
-export function buildGetJourneyMiddleware({ db, logger, groupIds, getEntraClient }) {
+export function buildGetJourneyMiddleware(service) {
+	const { db, logger, getEntraClient } = service;
+	const groupIds = service.entraGroupIds;
 	return async (req, res, next) => {
 		const id = req.params.id;
 		if (!id) {

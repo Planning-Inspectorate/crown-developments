@@ -7,31 +7,16 @@ import { configureNunjucks } from './nunjucks.js';
 import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.js';
 import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { getSessionMiddleware } from '@pins/crowndev-lib/util/session.js';
-import { getDatabaseClient } from '@pins/crowndev-database';
-import { getRedis } from '@pins/crowndev-lib/redis/index.js';
-import { buildInitSharePointDrive } from '#util/sharepoint.js';
-import { MapCache } from '@pins/crowndev-lib/util/map-cache.js';
-import { buildInitEntraClient } from '@pins/crowndev-lib/graph/cached-entra-client.js';
-import { getGovNotify } from '@pins/crowndev-lib/govnotify/index.js';
 
 /**
- * @param {import('./config-types.js').Config} config
- * @param {import('pino').Logger} logger
+ * @param {import('#service').ManageService} service
  * @returns {Express}
  */
-export function getApp(config, logger) {
-	const dbClient = getDatabaseClient(config, logger);
-	const redis = getRedis(config.session, logger);
-	const getSharePointDrive = buildInitSharePointDrive(config);
-	const govNotifyClient = getGovNotify(config.govNotify, logger);
-	// share this cache between each instance of the EntraClient
-	const entraGroupCache = new MapCache(config.entra.cacheTtl);
-	const getEntraClient = buildInitEntraClient(!config.auth.disabled, entraGroupCache);
-
+export function getApp(service) {
 	// create an express app, and configure it for our usage
 	const app = express();
 
-	const logRequests = buildLogRequestsMiddleware(logger);
+	const logRequests = buildLogRequestsMiddleware(service.logger);
 	app.use(logRequests);
 
 	// configure body-parser, to populate req.body
@@ -40,9 +25,9 @@ export function getApp(config, logger) {
 	app.use(bodyParser.json());
 
 	const sessionMiddleware = getSessionMiddleware({
-		redis,
-		secure: config.NODE_ENV === 'production',
-		secret: config.session.secret
+		redis: service.redisClient,
+		secure: service.secureSession,
+		secret: service.sessionSecret
 	});
 	app.use(sessionMiddleware);
 
@@ -74,24 +59,16 @@ export function getApp(config, logger) {
 	app.set('view engine', 'njk');
 
 	// static files
-	app.use(express.static(config.staticDir));
+	app.use(express.static(service.staticDir));
 
-	const router = buildRouter({
-		config,
-		logger,
-		redis,
-		dbClient,
-		getSharePointDrive,
-		getEntraClient,
-		govNotifyClient
-	});
+	const router = buildRouter(service);
 	// register the router, which will define any subpaths
 	// any paths not defined will return 404 by default
 	app.use('/', router);
 
 	app.use(notFoundHandler);
 
-	const defaultErrorHandler = buildDefaultErrorHandlerMiddleware(logger);
+	const defaultErrorHandler = buildDefaultErrorHandlerMiddleware(service.logger);
 	// catch/handle errors last
 	app.use(defaultErrorHandler);
 

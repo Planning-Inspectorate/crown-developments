@@ -5,22 +5,23 @@ import { assertIsUnauthenticated, buildAssertGroupAccess, buildAssertIsAuthentic
 import { AuthService, clearAuthenticationData, registerAuthLocals } from './auth-service.js';
 
 /**
- * @param {Object} opts
- * @param {import('../config-types.js').Config} opts.config
- * @param {import('pino').Logger} opts.logger
- * @param {import('@pins/crowndev-lib/redis/redis-client.js').RedisClient|null} [opts.redisClient]
- * @param {import('./auth-service.js').AuthService} [opts.authService]
+ * @param {import('#service').ManageService} service
+ * @param {import('./auth-service.js').AuthService} [authService] - for testing
  * @returns {{router: import('express').Router, guards: {assertIsAuthenticated: import('express').Handler, assertGroupAccess: import('express').Handler}}}
  */
-export function createRoutesAndGuards({ config, logger, redisClient, authService }) {
+export function createRoutesAndGuards(service, authService) {
 	const router = createRouter();
 	if (!authService) {
-		authService = new AuthService({ config, logger, redisClient });
+		authService = new AuthService({
+			config: service.authConfig,
+			logger: service.logger,
+			redisClient: service.redisClient
+		});
 	}
 
 	// setup controllers with auth service instance
-	const completeMsalAuthentication = buildCompleteMsalAuthentication(logger, authService);
-	const handleSignout = buildHandleSignout(logger, config.auth.signoutUrl, authService);
+	const completeMsalAuthentication = buildCompleteMsalAuthentication(service.logger, authService);
+	const handleSignout = buildHandleSignout(service.logger, service.authConfig.signoutUrl, authService);
 	const startMsalAuthentication = buildStartMsalAuthentication(authService);
 
 	router.get('/redirect', assertIsUnauthenticated, asyncHandler(completeMsalAuthentication));
@@ -35,9 +36,9 @@ export function createRoutesAndGuards({ config, logger, redisClient, authService
 
 	// create auth guards - to register after the auth routes with the parent router
 	// check logged in
-	const assertIsAuthenticated = buildAssertIsAuthenticated(logger, authService);
+	const assertIsAuthenticated = buildAssertIsAuthenticated(service.logger, authService);
 	// check group membership
-	const assertGroupAccess = buildAssertGroupAccess(logger, config.auth.groups.applicationAccess);
+	const assertGroupAccess = buildAssertGroupAccess(service.logger, service.authConfig.groups.applicationAccess);
 
 	return {
 		router,

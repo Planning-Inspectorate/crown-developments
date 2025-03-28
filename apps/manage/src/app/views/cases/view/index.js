@@ -9,25 +9,18 @@ import { createRoutes as createCaseUnpublishRoutes } from './unpublish/index.js'
 import { createRoutes as createRepsRoutes } from './manage-reps/index.js';
 
 /**
- * @param {Object} opts
- * @param {import('pino').Logger} opts.logger
- * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('../../../config-types.js').Config} config
- * @param {import('@pins/crowndev-lib/graph/types.js').InitEntraClient} opts.getEntraClient
- * @param {function(session): SharePointDrive} opts.getSharePointDrive
+ * @param {import('#service').ManageService} service
  * @returns {import('express').Router}
  */
-export function createRoutes({ db, logger, config, getEntraClient, getSharePointDrive }) {
+export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
-	const repsRoutes = createRepsRoutes({ db, logger, config, getSharePointDrive });
-	const getJourney = asyncHandler(
-		buildGetJourneyMiddleware({ db, logger, groupIds: config.entra.groupIds, getEntraClient })
-	);
-	const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive });
-	const updateCaseFn = buildUpdateCase({ db, logger });
+	const repsRoutes = createRepsRoutes(service);
+	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
+	const viewCaseDetails = buildViewCaseDetails(service);
+	const updateCaseFn = buildUpdateCase(service);
 	const updateCase = buildSave(updateCaseFn, true);
-	const publishCase = createCasePublishRoutes({ db, logger, config, getEntraClient });
-	const unpublishCase = createCaseUnpublishRoutes({ db, logger });
+	const publishCase = createCasePublishRoutes(service);
+	const unpublishCase = createCaseUnpublishRoutes(service);
 
 	// view case details
 	router.get('/', validateIdFormat, getJourney, asyncHandler(viewCaseDetails));

@@ -14,20 +14,15 @@ import { getQuestions } from './questions.js';
 import { buildSaveController, successController } from './save.js';
 
 /**
- * @param {Object} opts
- * @param {import('pino').Logger} opts.logger
- * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('../../../config-types.js').Config} config
- * @param {function(session): SharePointDrive} opts.getSharePointDrive
- * @param {import('@pins/crowndev-lib/govnotify/gov-notify-client').GovNotifyClient|null} getGovNotify
+ * @param {import('#service').ManageService} service
  * @returns {import('express').Router}
  */
-export function createRoutes({ db, logger, config, getSharePointDrive, govNotifyClient }) {
+export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
 	const questions = getQuestions();
 	const getJourney = buildGetJourney((req, journeyResponse) => createJourney(questions, journeyResponse, req));
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
-	const saveController = buildSaveController({ db, logger, config, getSharePointDrive, govNotifyClient });
+	const saveController = buildSaveController(service);
 
 	router.get('/', getJourneyResponse, getJourney, redirectToUnansweredQuestion());
 

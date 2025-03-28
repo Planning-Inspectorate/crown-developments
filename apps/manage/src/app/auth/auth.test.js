@@ -33,9 +33,9 @@ describe('auth', () => {
 		const setupApp = (sessionData = mockSession()) => {
 			// basic app to test auth
 			const app = express();
-			const { router: authRoutes, guards: authGuards } = createRoutesAndGuards({
-				config: {
-					auth: {
+			const { router: authRoutes, guards: authGuards } = createRoutesAndGuards(
+				{
+					authConfig: {
 						authority: 'https://example.com/authority',
 						clientId: 'client-id',
 						clientSecret: 'client-secret',
@@ -43,12 +43,12 @@ describe('auth', () => {
 						groups: { applicationAccess: 'group-1' },
 						redirectUri: '/redirect',
 						signoutUrl: '/signout'
-					}
+					},
+					logger: mockLogger(),
+					redisClient: null
 				},
-				logger: mockLogger(),
-				redisClient: null,
 				authService
-			});
+			);
 			app.use((req, res, next) => {
 				req.session = sessionData;
 				next();

@@ -1,11 +1,11 @@
 import { getApp } from './app/app.js';
 import { loadConfig } from './app/config.js';
-import { getLogger } from '@pins/crowndev-lib/util/logger.js';
+import { ManageService } from '#service';
 
 const config = loadConfig();
-const logger = getLogger(config);
+const service = new ManageService(config);
 
-const app = getApp(config, logger);
+const app = getApp(service);
 
 // Trust proxy, because our application is behind Front Door
 // required for secure session cookies
@@ -17,5 +17,5 @@ app.set('http-port', config.httpPort);
 
 // start the app, listening for incoming requests on the given port
 app.listen(app.get('http-port'), () => {
-	logger.info(`Server is running at http://localhost:${app.get('http-port')} in ${app.get('env')} mode`);
+	service.logger.info(`Server is running at http://localhost:${app.get('http-port')} in ${app.get('env')} mode`);
 });
