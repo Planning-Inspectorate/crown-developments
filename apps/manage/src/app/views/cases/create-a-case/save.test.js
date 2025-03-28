@@ -21,9 +21,6 @@ describe('save', () => {
 		const mockService = () => {
 			return {
 				sharePointCaseTemplateId: '789',
-				notifyTemplates: {
-					acknowledgePreNotification: 'template_id'
-				},
 				db: dbMock(),
 				logger: mockLogger(),
 				getSharePointDrive: () => null,
@@ -261,7 +258,7 @@ describe('save', () => {
 				})
 			};
 			const notifyClient = {
-				sendEmail: mock.fn()
+				sendAcknowledgePreNotification: mock.fn()
 			};
 			const service = mockService();
 			service.getSharePointDrive = () => sharepointDrive;
@@ -299,15 +296,12 @@ describe('save', () => {
 			await save(req, res, mock.fn());
 
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
-			assert.strictEqual(notifyClient.sendEmail.mock.callCount(), 1);
-			assert.deepStrictEqual(notifyClient.sendEmail.mock.calls[0].arguments, [
-				'template_id',
+			assert.strictEqual(notifyClient.sendAcknowledgePreNotification.mock.callCount(), 1);
+			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotification.mock.calls[0].arguments, [
 				'applicantEmail@mail.com',
 				{
-					personalisation: {
-						reference: 'CROWN/2025/0000001',
-						sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id'
-					}
+					reference: 'CROWN/2025/0000001',
+					sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id'
 				}
 			]);
 		});
@@ -335,7 +329,7 @@ describe('save', () => {
 				})
 			};
 			const notifyClient = {
-				sendEmail: mock.fn()
+				sendAcknowledgePreNotification: mock.fn()
 			};
 			const service = mockService();
 			service.getSharePointDrive = () => sharepointDrive;
@@ -373,15 +367,12 @@ describe('save', () => {
 			await save(req, res, mock.fn());
 
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
-			assert.strictEqual(notifyClient.sendEmail.mock.callCount(), 1);
-			assert.deepStrictEqual(notifyClient.sendEmail.mock.calls[0].arguments, [
-				'template_id',
+			assert.strictEqual(notifyClient.sendAcknowledgePreNotification.mock.callCount(), 1);
+			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotification.mock.calls[0].arguments, [
 				'agentEmail@mail.com',
 				{
-					personalisation: {
-						reference: 'CROWN/2025/0000001',
-						sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id'
-					}
+					reference: 'CROWN/2025/0000001',
+					sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id'
 				}
 			]);
 		});
