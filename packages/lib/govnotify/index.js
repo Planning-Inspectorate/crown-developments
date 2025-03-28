@@ -7,7 +7,7 @@ import { GovNotifyClient } from './gov-notify-client.js';
 let govNotify;
 
 /**
- * @param {Object} config
+ * @param {{disabled: boolean, apiKey: string}} config
  * @param {import('pino').Logger} logger
  * @returns {import('@pins/crowndev-lib/govnotify/gov-notify-client').GovNotifyClient|null}
  */

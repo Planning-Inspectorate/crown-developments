@@ -244,7 +244,7 @@ function idFromReference(reference = '') {
  * @param {SharePointDrive} sharePointDrive
  * @param {import('./types.d.ts').CreateCaseAnswers} answers
  * @param {string} folderName
- * @returns {Promise<void>}
+ * @returns {Promise<import('@microsoft/microsoft-graph-types').Permission>}
  */
 async function grantUsersAccess(sharePointDrive, answers, folderName) {
 	const applicantReceivedFolderId = await getSharePointReceivedPathId(sharePointDrive, {
@@ -273,7 +273,7 @@ async function grantUsersAccess(sharePointDrive, answers, folderName) {
  * @param {string} caseTemplateId
  * @param {string} folderName
  * @param {import('./types.d.ts').CreateCaseAnswers} answers
- * @returns {{recipientEmail: string, sharePointLink: string}}
+ * @returns {Promise<{recipientEmail: string, sharePointLink: string}>}
  */
 async function createCaseSharePointActions(sharePointDrive, caseTemplateId, folderName, answers) {
 	// Copy template folder structure and rename to %folderName%
