@@ -1,6 +1,6 @@
-import { getDatabaseClient } from '@pins/crowndev-database';
-import { getRedis } from '@pins/crowndev-lib/redis/index.js';
-import { getLogger } from '@pins/crowndev-lib/util/logger.js';
+import { initDatabaseClient } from '@pins/crowndev-database';
+import { initRedis } from '@pins/crowndev-lib/redis/index.js';
+import { initLogger } from '@pins/crowndev-lib/util/logger.js';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { DefaultAzureCredential } from '@azure/identity';
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/src/authentication/azureTokenCredentials/index.js';
@@ -37,10 +37,10 @@ export class PortalService {
 	 */
 	constructor(config) {
 		this.#config = config;
-		const logger = getLogger(config);
+		const logger = initLogger(config);
 		this.logger = logger;
-		this.dbClient = getDatabaseClient(config, logger);
-		this.redisClient = getRedis(config.session, logger);
+		this.dbClient = initDatabaseClient(config, logger);
+		this.redisClient = initRedis(config.session, logger);
 
 		const graphClient = Client.initWithMiddleware({
 			authProvider: new TokenCredentialAuthenticationProvider(new DefaultAzureCredential(), {
