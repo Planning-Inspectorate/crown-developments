@@ -18,21 +18,21 @@ describe('save', () => {
 			};
 		};
 
-		const config = {
-			sharePoint: {
-				caseTemplateId: '789'
-			},
-			govNotify: {
-				templates: {
+		const mockService = () => {
+			return {
+				sharePointCaseTemplateId: '789',
+				notifyTemplates: {
 					acknowledgePreNotification: 'template_id'
-				}
-			}
+				},
+				db: dbMock(),
+				logger: mockLogger(),
+				getSharePointDrive: () => null,
+				notifyClient: null
+			};
 		};
 
 		it('should throw if no journey response or answers', () => {
-			const db = dbMock();
-			const getSharePointDrive = () => null;
-			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive });
+			const save = buildSaveController(mockService());
 
 			// no locals
 			assert.rejects(() => save({}, {}));
@@ -49,13 +49,11 @@ describe('save', () => {
 			);
 		});
 
-		it('should call create with a valid payload and skip sharepoint and gov notify when both are disabled', async () => {
-			const db = dbMock();
-			const getSharePointDrive = () => null;
-			const govNotifyClient = null;
-			const loggerInstance = mockLogger();
+		it('should call create with a valid payload and skip sharepoint when sharepoint is disabled', async () => {
+			const service = mockService();
+			const db = service.db;
 
-			const save = buildSaveController({ db, logger: loggerInstance, config, getSharePointDrive, govNotifyClient });
+			const save = buildSaveController(service);
 			const answers = {
 				applicationDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
@@ -85,15 +83,14 @@ describe('save', () => {
 			}
 
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
-			assert.strictEqual(loggerInstance.warn.mock.callCount(), 2);
+			assert.strictEqual(service.logger.warn.mock.callCount(), 2);
 			// todo: integration test to run Prisma's validation?
 		});
 
 		it('should call create with a valid payload', async () => {
-			const db = dbMock();
-			const getSharePointDrive = () => null;
-			const govNotifyClient = null;
-			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive, govNotifyClient });
+			const service = mockService();
+			const { db } = service;
+			const save = buildSaveController(service);
 			const answers = {
 				applicationDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
@@ -110,7 +107,7 @@ describe('save', () => {
 
 			await save({}, res, mock.fn());
 
-			assert.strictEqual(db.crownDevelopment.create.mock.callCount(), 1);
+			assert.strictEqual(service.db.crownDevelopment.create.mock.callCount(), 1);
 
 			const { data } = db.crownDevelopment.create.mock.calls[0].arguments[0];
 			const required = ['reference', 'description'];
@@ -127,8 +124,6 @@ describe('save', () => {
 		});
 
 		it('should call copyDriveItem and grant write access to the applicant when sharepoint is enabled and no agent email is provided', async () => {
-			const db = dbMock();
-			const govNotifyClient = null;
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
 				getItemsByPath: mock.fn(() => {
@@ -153,9 +148,10 @@ describe('save', () => {
 					};
 				})
 			};
-			const getSharePointDrive = () => sharepointDrive;
+			const service = mockService();
+			service.getSharePointDrive = () => sharepointDrive;
+			const save = buildSaveController(service);
 
-			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive, govNotifyClient });
 			const answers = {
 				applicationDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
@@ -183,8 +179,6 @@ describe('save', () => {
 			});
 		});
 		it('should call copyDriveItem and grant write access to the applicant and agent when sharepoint is enabled and an agentEmail was provided', async () => {
-			const db = dbMock();
-			const govNotifyClient = null;
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
 				getItemsByPath: mock.fn(() => {
@@ -209,9 +203,10 @@ describe('save', () => {
 					};
 				})
 			};
-			const getSharePointDrive = () => sharepointDrive;
+			const service = mockService();
+			service.getSharePointDrive = () => sharepointDrive;
+			const save = buildSaveController(service);
 
-			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive, govNotifyClient });
 			const answers = {
 				applicationDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
@@ -243,7 +238,6 @@ describe('save', () => {
 			});
 		});
 		it('should send email to the applicant when there is no agent on the case', async () => {
-			const db = dbMock();
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
 				getItemsByPath: mock.fn(() => {
@@ -266,13 +260,14 @@ describe('save', () => {
 					};
 				})
 			};
-			const getSharePointDrive = () => sharepointDrive;
-
-			const govNotifyClient = {
+			const notifyClient = {
 				sendEmail: mock.fn()
 			};
+			const service = mockService();
+			service.getSharePointDrive = () => sharepointDrive;
+			service.notifyClient = notifyClient;
+			const save = buildSaveController(service);
 
-			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive, govNotifyClient });
 			const req = {
 				session: {
 					forms: {
@@ -304,8 +299,8 @@ describe('save', () => {
 			await save(req, res, mock.fn());
 
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
-			assert.strictEqual(govNotifyClient.sendEmail.mock.callCount(), 1);
-			assert.deepStrictEqual(govNotifyClient.sendEmail.mock.calls[0].arguments, [
+			assert.strictEqual(notifyClient.sendEmail.mock.callCount(), 1);
+			assert.deepStrictEqual(notifyClient.sendEmail.mock.calls[0].arguments, [
 				'template_id',
 				'applicantEmail@mail.com',
 				{
@@ -317,7 +312,6 @@ describe('save', () => {
 			]);
 		});
 		it('should send email to the agent when there is an agent on the case', async () => {
-			const db = dbMock();
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
 				getItemsByPath: mock.fn(() => {
@@ -340,13 +334,14 @@ describe('save', () => {
 					};
 				})
 			};
-			const getSharePointDrive = () => sharepointDrive;
-
-			const govNotifyClient = {
+			const notifyClient = {
 				sendEmail: mock.fn()
 			};
+			const service = mockService();
+			service.getSharePointDrive = () => sharepointDrive;
+			service.notifyClient = notifyClient;
+			const save = buildSaveController(service);
 
-			const save = buildSaveController({ db, logger: mockLogger(), config, getSharePointDrive, govNotifyClient });
 			const req = {
 				session: {
 					forms: {
@@ -378,8 +373,8 @@ describe('save', () => {
 			await save(req, res, mock.fn());
 
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
-			assert.strictEqual(govNotifyClient.sendEmail.mock.callCount(), 1);
-			assert.deepStrictEqual(govNotifyClient.sendEmail.mock.calls[0].arguments, [
+			assert.strictEqual(notifyClient.sendEmail.mock.callCount(), 1);
+			assert.deepStrictEqual(notifyClient.sendEmail.mock.calls[0].arguments, [
 				'template_id',
 				'agentEmail@mail.com',
 				{

@@ -13,18 +13,16 @@ import { viewAddRepresentationSuccessPage, buildSaveRepresentationController } f
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 
 /**
- * @param {Object} opts
- * @param {import('pino').Logger} opts.logger
- * @param {import('@prisma/client').PrismaClient} opts.db
+ * @param {import('#service').ManageService} service
  * @returns {import('express').Router}
  */
-export function createRoutes({ db, logger }) {
+export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
 	const questions = getQuestions();
 	const getJourney = buildGetJourney((req, journeyResponse) => createJourney(questions, journeyResponse, req));
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID, 'id');
 	const saveDataToSession = buildSaveDataToSession({ reqParam: 'id' });
-	const saveController = buildSaveRepresentationController({ db, logger });
+	const saveController = buildSaveRepresentationController(service);
 	router.get('/:section/:question', getJourneyResponse, getJourney, question);
 	router.post(
 		'/:section/:question',

@@ -234,7 +234,7 @@ export class SharePointDrive {
 	/**
 	 *
 	 * @param {string} itemId Id of the folder to share
-	 * @returns {Promise<void>}
+	 * @returns {Promise<import('@microsoft/microsoft-graph-types').Permission>}
 	 */
 	async fetchUserInviteLink(itemId) {
 		const urlBuilder = new UrlBuilder('')

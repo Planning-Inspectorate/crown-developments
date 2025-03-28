@@ -22,21 +22,18 @@ import {
 const applicationIdParam = 'applicationId';
 
 /**
- * @param {Object} opts
- * @param {import('pino').Logger} opts.logger
- * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('../../../config-types.js').Config} config
+ * @param {import('#service').PortalService} service
  * @returns {import('express').Router}
  */
-export function createHaveYourSayRoutes({ db, logger, config }) {
+export function createHaveYourSayRoutes(service) {
 	const router = createRouter({ mergeParams: true });
-	const isRepresentationWindowOpen = getIsRepresentationWindowOpen(db);
+	const isRepresentationWindowOpen = getIsRepresentationWindowOpen(service.db);
 	const questions = getQuestions();
 	const getJourney = buildGetJourney((req, journeyResponse) => createJourney(questions, journeyResponse, req));
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID, applicationIdParam);
-	const viewHaveYourSayPage = buildHaveYourSayPage({ db, logger, config });
+	const viewHaveYourSayPage = buildHaveYourSayPage(service);
 	const saveDataToSession = buildSaveDataToSession({ reqParam: applicationIdParam });
-	const saveRepresentation = asyncHandler(buildSaveHaveYourSayController({ db, logger }));
+	const saveRepresentation = asyncHandler(buildSaveHaveYourSayController(service));
 	router.use(isRepresentationWindowOpen);
 
 	router.get('/', asyncHandler(viewHaveYourSayPage));

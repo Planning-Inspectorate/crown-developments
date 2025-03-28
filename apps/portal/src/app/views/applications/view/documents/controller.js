@@ -6,13 +6,12 @@ import { getDocuments } from '@pins/crowndev-lib/documents/get.js';
 
 /**
  * Render the list of documents page
- * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('pino').BaseLogger} opts.logger
- * @param {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} opts.sharePointDrive
+ *
+ * @param {import('#service').PortalService} service
  * @returns {import('express').Handler}
  */
-export function buildApplicationDocumentsPage({ db, logger, sharePointDrive }) {
+export function buildApplicationDocumentsPage(service) {
+	const { db, logger, sharePointDrive } = service;
 	return async (req, res) => {
 		const crownDevelopment = await checkApplicationPublished(req, res, db);
 		if (!crownDevelopment) {

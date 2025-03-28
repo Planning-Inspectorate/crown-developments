@@ -1,10 +1,9 @@
 /**
- * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('pino').BaseLogger} opts.logger
+ * @param {import('#service').ManageService} service
  * @returns {import('express').Handler}
  */
-export function buildListCases({ db, logger }) {
+export function buildListCases(service) {
+	const { db, logger } = service;
 	return async (req, res) => {
 		logger.info('list cases');
 

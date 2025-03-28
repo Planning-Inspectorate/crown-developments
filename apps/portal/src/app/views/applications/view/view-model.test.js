@@ -44,12 +44,7 @@ describe('view-model', () => {
 					postcode: 'Site ONE'
 				}
 			};
-			const config = {
-				crownDevContactInfo: {
-					email: 'crown.dev@planninginspectorate.gov.uk'
-				}
-			};
-			const result = crownDevelopmentToViewModel(input, config);
+			const result = crownDevelopmentToViewModel(input, 'crown.dev@planninginspectorate.gov.uk');
 			assert.deepStrictEqual(result, {
 				id: 'id-1',
 				reference: 'reference-id-1',
@@ -81,12 +76,7 @@ describe('view-model', () => {
 					postcode: 'Site ONE'
 				}
 			};
-			const config = {
-				crownDevContactInfo: {
-					email: 'crown.dev@planninginspectorate.gov.uk'
-				}
-			};
-			const result = crownDevelopmentToViewModel(input, config);
+			const result = crownDevelopmentToViewModel(input, 'crown.dev@planninginspectorate.gov.uk');
 			assert.equal(result.siteAddress, 'Site Street, Site Town, Site ONE');
 		});
 		it(`should not map site address if not present`, () => {
@@ -95,12 +85,7 @@ describe('view-model', () => {
 				reference: 'reference-id-1',
 				description: 'A significant project'
 			};
-			const config = {
-				crownDevContactInfo: {
-					email: 'crown.dev@planninginspectorate.gov.uk'
-				}
-			};
-			const result = crownDevelopmentToViewModel(input, config);
+			const result = crownDevelopmentToViewModel(input, 'crown.dev@planninginspectorate.gov.uk');
 			assert.strictEqual(result.siteAddress, undefined);
 		});
 		it(`should not map nested fields if not present`, () => {
@@ -109,12 +94,7 @@ describe('view-model', () => {
 				reference: 'reference-id-1',
 				description: 'A significant project'
 			};
-			const config = {
-				crownDevContactInfo: {
-					email: 'crown.dev@planninginspectorate.gov.uk'
-				}
-			};
-			const result = crownDevelopmentToViewModel(input, config);
+			const result = crownDevelopmentToViewModel(input, 'crown.dev@planninginspectorate.gov.uk');
 			assert.strictEqual(result.applicationType, undefined);
 			assert.strictEqual(result.lpaName, undefined);
 			assert.strictEqual(result.applicantName, undefined);
@@ -125,8 +105,7 @@ describe('view-model', () => {
 				reference: 'reference-id-1',
 				description: 'A significant project'
 			};
-			const config = {};
-			const result = crownDevelopmentToViewModel(input, config);
+			const result = crownDevelopmentToViewModel(input, undefined);
 			assert.strictEqual(result.crownDevelopmentContactEmail, undefined);
 		});
 		it(`should map inquiry fields if procedure id is inquiry`, () => {

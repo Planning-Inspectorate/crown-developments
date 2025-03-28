@@ -3,14 +3,12 @@ import { checkApplicationPublished } from './application-util.js';
 
 /**
  * Render a document
- * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('pino').BaseLogger} opts.logger
- * @param {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} opts.sharePointDrive
- * @param {global.fetch} [opts.fetchImpl] - for testing
+ * @param {import('#service').PortalService} service
+ * @param {global.fetch} [fetchImpl] - for testing
  * @returns {import('express').Handler}
  */
-export function buildDocumentView({ db, logger, sharePointDrive, fetchImpl }) {
+export function buildDocumentView(service, fetchImpl) {
+	const { db, logger, sharePointDrive } = service;
 	return async (req, res) => {
 		const documentId = req.params?.documentId;
 		if (!documentId) {

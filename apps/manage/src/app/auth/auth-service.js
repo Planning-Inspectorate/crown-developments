@@ -12,6 +12,7 @@ const scopes = [
 ];
 
 export class AuthService {
+	/** @type {import('../config-types.js').Config['auth']} */
 	#config;
 	#logger;
 	#redisClient;
@@ -21,7 +22,7 @@ export class AuthService {
 	/**
 	 *
 	 * @param {Object} opts
-	 * @param {import('../config-types.js').Config} opts.config
+	 * @param {import('../config-types.js').Config['auth']} opts.config
 	 * @param {import('pino').Logger} opts.logger
 	 * @param {import('@pins/crowndev-lib/redis/redis-client').RedisClient|null} [opts.redisClient]
 	 */
@@ -47,9 +48,9 @@ export class AuthService {
 		await msalClient.getTokenCache().getAllAccounts(); // required to trigger beforeCacheAccess
 
 		return await msalClient.acquireTokenByCode({
-			authority: this.#config.auth.authority,
+			authority: this.#config.authority,
 			code,
-			redirectUri: this.#config.auth.redirectUri,
+			redirectUri: this.#config.redirectUri,
 			scopes
 		});
 	}
@@ -100,8 +101,8 @@ export class AuthService {
 		const msalClient = this.#getMsalClient(sessionId);
 		return msalClient.getAuthCodeUrl({
 			...options,
-			authority: this.#config.auth.authority,
-			redirectUri: this.#config.auth.redirectUri,
+			authority: this.#config.authority,
+			redirectUri: this.#config.redirectUri,
 			scopes
 		});
 	}

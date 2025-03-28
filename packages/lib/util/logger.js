@@ -1,20 +1,10 @@
 import pino from 'pino';
 
 /**
- * Cache the logger instance
- * @type {import('pino').Logger|undefined}
- */
-let logger;
-
-/**
  * @param {{logLevel: string, NODE_ENV: string}} config
  * @returns {import('pino').Logger}
  */
-export function getLogger(config) {
-	if (logger) {
-		return logger;
-	}
-
+export function initLogger(config) {
 	// pino-pretty options: https://github.com/pinojs/pino-pretty?tab=readme-ov-file#options
 	const transport = {
 		targets: [
@@ -31,11 +21,10 @@ export function getLogger(config) {
 	};
 
 	// configure the pino logger for use within the app
-	logger = pino({
+	return pino({
 		timestamp: pino.stdTimeFunctions.isoTime,
 		level: config.logLevel,
 		// only pretty print in dev
 		transport: config.NODE_ENV === 'production' ? undefined : transport
 	});
-	return logger;
 }

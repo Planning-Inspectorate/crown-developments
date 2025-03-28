@@ -15,11 +15,11 @@ export const ENVIRONMENT_NAME = Object.freeze({
 });
 
 // cache the config
-/** @type {undefined|Config} */
+/** @type {undefined|import('./config-types.js').Config} */
 let config;
 
 /**
- * @returns {Config}
+ * @returns {import('./config-types.js').Config}
  */
 export function loadConfig() {
 	if (config) {

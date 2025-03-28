@@ -5,33 +5,25 @@ import { buildTermsAndConditionsPage } from './views/static/terms-and-conditions
 import { buildContactUsPage } from './views/static/contact/controller.js';
 
 /**
- * @param {Object} params
- * @param {import('pino').BaseLogger} params.logger
- * @param {import('./config-types.js').Config} params.config
- * @param {import('@prisma/client').PrismaClient} params.dbClient
- * @param {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} params.sharePointDrive
+ * @param {import('#service').PortalService} service
  * @returns {import('express').Router}
  */
-export function buildRouter({ logger, config, dbClient, sharePointDrive }) {
+export function buildRouter(service) {
 	const router = createRouter();
 
-	const monitoringRoutes = createMonitoringRoutes({
-		config,
-		dbClient,
-		logger
-	});
+	const monitoringRoutes = createMonitoringRoutes(service);
 
 	router.use('/', monitoringRoutes);
 
-	if (config.featureFlags?.isLive) {
+	if (service.isLive) {
 		router.route('/').get((req, res) => {
 			res.redirect('/applications');
 		});
-		router.use('/', applicationRoutes({ db: dbClient, logger, config, sharePointDrive }));
+		router.use('/', applicationRoutes(service));
 		router.use('/contact', buildContactUsPage());
 		router.use('/terms-and-conditions', buildTermsAndConditionsPage());
 	} else {
-		logger.info("Not registering application routes, feature flag 'FEATURE_FLAG_PORTAL_NOT_LIVE' is enabled");
+		service.logger.info("Not registering application routes, feature flag 'FEATURE_FLAG_PORTAL_NOT_LIVE' is enabled");
 	}
 
 	return router;

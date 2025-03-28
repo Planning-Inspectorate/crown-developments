@@ -8,10 +8,10 @@ import {
 /**
  *
  * @param {import('./types.js').CrownDevelopmentListFields} crownDevelopment
- * @param {import('../../../config-types.js').Config} config
+ * @param {string} contactEmail
  * @return {import('./types.js').CrownDevelopmentListViewModel}
  */
-export function crownDevelopmentToViewModel(crownDevelopment, config) {
+export function crownDevelopmentToViewModel(crownDevelopment, contactEmail) {
 	const fields = {
 		id: crownDevelopment.id,
 		reference: crownDevelopment.reference,
@@ -32,7 +32,7 @@ export function crownDevelopmentToViewModel(crownDevelopment, config) {
 		}),
 		decisionDate: formatDateForDisplay(crownDevelopment.decisionDate),
 		decisionOutcome: crownDevelopment.DecisionOutcome?.displayName,
-		crownDevelopmentContactEmail: config.crownDevContactInfo?.email
+		crownDevelopmentContactEmail: contactEmail
 	};
 
 	if (isInquiry(crownDevelopment.procedureId)) {

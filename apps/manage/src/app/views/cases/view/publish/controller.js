@@ -4,8 +4,7 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 
 /**
  *
- * @param {import('@prisma/client').PrismaClient} db
- * @param {import('pino').BaseLogger} logger
+ * @param {import('#service').ManageService} service
  * @returns {import('express').Handler}
  */
 export function buildPublishCase({ db, logger }) {
@@ -36,8 +35,7 @@ export function buildPublishCase({ db, logger }) {
 
 /**
  *
- * @param {import('@prisma/client').PrismaClient} db
- * @param {import('pino').BaseLogger} logger
+ * @param {import('#service').ManageService} service
  * @returns {import('express').Handler}
  */
 export function buildGetValidatedCaseMiddleware({ db, logger }) {

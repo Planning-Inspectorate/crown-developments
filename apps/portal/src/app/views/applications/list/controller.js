@@ -1,13 +1,11 @@
 import { crownDevelopmentToViewModel } from '../view/view-model.js';
 
 /**
- * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('pino').BaseLogger} opts.logger
- * @param {import('../../../../config-types.js').Config} opts.config
+ * @param {import('#service').PortalService} service
  * @returns {import('express').Handler}
  */
-export function buildApplicationListPage({ db, logger, config }) {
+export function buildApplicationListPage(service) {
+	const { db, logger } = service;
 	return async (req, res) => {
 		const now = new Date();
 
@@ -30,7 +28,7 @@ export function buildApplicationListPage({ db, logger, config }) {
 		logger.info(`Crown development list page: ${crownDevelopments.length} case(s) fetched`);
 
 		const crownDevelopmentsViewModels = crownDevelopments.map((crownDevelopment) =>
-			crownDevelopmentToViewModel(crownDevelopment, config)
+			crownDevelopmentToViewModel(crownDevelopment, service.contactEmail)
 		);
 
 		return res.render('views/applications/list/view.njk', {

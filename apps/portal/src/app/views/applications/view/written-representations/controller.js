@@ -8,7 +8,8 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 /**
  * Render written representations page
  *
- * @type {import('express').RequestHandler}
+ * @param {import('#service').PortalService} service
+ * @returns {import('express').RequestHandler}
  */
 export function buildWrittenRepresentationsListPage({ db, logger }) {
 	return async (req, res) => {

@@ -9,12 +9,11 @@ import { JOURNEY_ID } from './journey.js';
 import { saveRepresentation } from '@pins/crowndev-lib/forms/representations/save.js';
 
 /**
- * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('../../../../config-types.js').Config} opts.config
+ * @param {import('#service').PortalService} service
  * @returns {import('express').Handler}
  */
-export function buildHaveYourSayPage({ db, config }) {
+export function buildHaveYourSayPage(service) {
+	const { db } = service;
 	return async (req, res) => {
 		const id = req.params.applicationId;
 		if (!id) {
@@ -34,7 +33,7 @@ export function buildHaveYourSayPage({ db, config }) {
 			return notFoundHandler(req, res);
 		}
 
-		const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment, config);
+		const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment, service.contactEmail);
 		const haveYourSayPeriod = {
 			start: new Date(crownDevelopment.representationsPeriodStartDate),
 			end: new Date(crownDevelopment.representationsPeriodEndDate)
@@ -115,13 +114,11 @@ export async function viewHaveYourSayDeclarationPage(req, res) {
 }
 
 /**
- * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} opts.db
- * @param {import('pino').Logger} logger
+ * @param {import('#service').PortalService} service
  * @param {function} [uniqueReferenceFn] - optional function used for testing
  * @returns {import('express').Handler}
  */
-export function buildSaveHaveYourSayController({ db, logger, uniqueReferenceFn = uniqueReference }) {
+export function buildSaveHaveYourSayController({ db, logger }, uniqueReferenceFn = uniqueReference) {
 	return async (req, res) => {
 		await saveRepresentation(
 			{
