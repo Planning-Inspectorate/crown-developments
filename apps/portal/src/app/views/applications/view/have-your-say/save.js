@@ -107,7 +107,7 @@ async function populateNotificationData(req, service, answers, reference) {
 		db,
 		args: {
 			where: { id },
-			select: { reference: true, SiteAddress: true }
+			select: { reference: true, description: true, SiteAddress: true }
 		}
 	});
 
@@ -125,7 +125,7 @@ async function populateNotificationData(req, service, answers, reference) {
 	const personalisation = {
 		reference: crownDevelopment.reference,
 		addressee,
-		applicationDescription: getField(answers.myselfComment, answers.submitterComment),
+		applicationDescription: crownDevelopmentFields.description,
 		siteAddress: crownDevelopmentFields.siteAddress,
 		submittedDate: formatDateForDisplay(new Date()),
 		representationReferenceNo: reference

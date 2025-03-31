@@ -255,6 +255,7 @@ describe('have your say', () => {
 					findUnique: mock.fn(() => ({
 						id: 'case-1',
 						reference: 'CROWN/2025/0000001',
+						description: 'a big project',
 						SiteAddress: { line1: '4 the street', line2: 'town', postcode: 'wc1w 1bw' }
 					}))
 				},
@@ -281,7 +282,7 @@ describe('have your say', () => {
 				'test@email.com',
 				{
 					addressee: 'Test Name',
-					applicationDescription: 'some comments',
+					applicationDescription: 'a big project',
 					reference: 'CROWN/2025/0000001',
 					representationReferenceNo: 'AAAAA-BBBBB',
 					siteAddress: '4 the street, town, wc1w 1bw',
@@ -317,6 +318,7 @@ describe('have your say', () => {
 					findUnique: mock.fn(() => ({
 						id: 'case-1',
 						reference: 'CROWN/2025/0000001',
+						description: 'a big project',
 						SiteAddress: { line1: '4 the street', line2: 'town', postcode: 'wc1w 1bw' }
 					}))
 				},
@@ -343,7 +345,7 @@ describe('have your say', () => {
 				'test@email.com',
 				{
 					addressee: 'Sir/Madam',
-					applicationDescription: 'some comments',
+					applicationDescription: 'a big project',
 					reference: 'CROWN/2025/0000001',
 					representationReferenceNo: 'AAAAA-BBBBB',
 					siteAddress: '4 the street, town, wc1w 1bw',
