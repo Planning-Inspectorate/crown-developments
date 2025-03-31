@@ -10,6 +10,7 @@ import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/see
 import { viewModelToRepresentationCreateInput } from '@pins/crowndev-lib/forms/representations/view-model.js';
 import { clearDataFromSession } from '@pins/dynamic-forms/src/lib/session-answer-store.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
+import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -117,8 +118,8 @@ async function populateNotificationData(req, service, answers, reference) {
 
 	const email = getField(answers.myselfEmail, answers.submitterEmail);
 	const addressee = getField(
-		answers.myselfIsAdult === 'yes' ? answers.myselfFullName : 'Sir/Madam',
-		answers.submitterIsAdult === 'yes' ? answers.submitterFullName : 'Sir/Madam'
+		answers.myselfIsAdult !== BOOLEAN_OPTIONS.YES ? 'Sir/Madam' : answers.myselfFullName,
+		answers.submitterIsAdult !== BOOLEAN_OPTIONS.YES ? 'Sir/Madam' : answers.submitterFullName
 	);
 
 	const personalisation = {
