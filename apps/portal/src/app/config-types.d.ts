@@ -22,8 +22,9 @@ interface Config {
 	govNotify: {
 		disabled: boolean;
 		apiKey: string;
-		templates: {
+		templateIds: {
 			test: string;
+			acknowledgementOfRepresentation: string;
 		};
 	};
 	crownDevContactInfo: {

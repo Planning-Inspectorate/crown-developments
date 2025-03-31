@@ -169,7 +169,7 @@ export function loadConfig() {
 		govNotify: {
 			disabled: govNotifyDisabled,
 			apiKey: GOV_NOTIFY_API_KEY,
-			templates: {
+			templateIds: {
 				test: GOV_NOTIFY_TEST_TEMPLATE_ID,
 				acknowledgePreNotification: GOV_NOTIFY_PRE_ACK_TEMPLATE_ID
 			}

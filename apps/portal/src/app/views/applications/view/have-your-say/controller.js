@@ -3,10 +3,7 @@ import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { applicationLinks, crownDevelopmentToViewModel } from '../view-model.js';
 import { fetchPublishedApplication } from '#util/applications.js';
 import { nowIsWithinRange } from '@pins/dynamic-forms/src/lib/date-utils.js';
-import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
-import { uniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
-import { JOURNEY_ID } from './journey.js';
-import { saveRepresentation } from '@pins/crowndev-lib/forms/representations/save.js';
+import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -110,74 +107,6 @@ export async function viewHaveYourSayDeclarationPage(req, res) {
 		pageTitle: 'Declaration',
 		id: id,
 		backLinkUrl: `check-your-answers`
-	});
-}
-
-/**
- * @param {import('#service').PortalService} service
- * @param {function} [uniqueReferenceFn] - optional function used for testing
- * @returns {import('express').Handler}
- */
-export function buildSaveHaveYourSayController({ db, logger }, uniqueReferenceFn = uniqueReference) {
-	return async (req, res) => {
-		await saveRepresentation(
-			{
-				db,
-				logger,
-				journeyId: JOURNEY_ID,
-				checkYourAnswersUrl: `/applications/${req.params.applicationId}/have-your-say/check-your-answers`,
-				successUrl: `/applications/${req.params.applicationId}/have-your-say/success`,
-				uniqueReferenceFn
-			},
-			req,
-			res
-		);
-	};
-}
-
-/**
- *
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @returns {import('express').Handler}
- */
-export async function viewHaveYourSaySuccessPage(req, res) {
-	const id = req.params.applicationId;
-	if (!id) {
-		throw new Error('id param required');
-	}
-	if (!isValidUuidFormat(id)) {
-		return notFoundHandler(req, res);
-	}
-
-	const representationReference = readSessionData(
-		req,
-		id,
-		'representationReference',
-		'reference not found',
-		'representations'
-	);
-	const representationSubmitted = readSessionData(req, id, 'representationSubmitted', false, 'representations');
-
-	if (!representationSubmitted && !representationReference) {
-		const error = [
-			{
-				text: 'Something went wrong, please try submitting again',
-				url: '#'
-			}
-		];
-		addSessionData(req, id, { representationError: { text: error } });
-		res.redirect(`/applications/${id}/have-your-say/check-your-answers`);
-		return;
-	}
-
-	clearSessionData(req, id, ['representationReference', 'representationSubmitted'], 'representations');
-
-	res.render('views/applications/view/have-your-say/success.njk', {
-		title: 'Representation Submitted',
-		bodyText: `Your reference number <br><strong>${representationReference}</strong>`,
-		successBackLinkUrl: `/applications/${id}/application-information`,
-		successBackLinkText: 'Back to the application information page'
 	});
 }
 

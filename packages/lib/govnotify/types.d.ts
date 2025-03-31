@@ -9,10 +9,20 @@ export interface GovNotifyOptions {
 
 export interface TemplateIds {
 	acknowledgePreNotification: string;
+	acknowledgementOfRepresentation: string;
 }
 
 export interface NotifyConfig {
 	disabled: boolean;
 	apiKey: string;
 	templateIds: TemplateIds;
+}
+
+export interface SendAcknowledgementOfRepresentationPersonalisation {
+	reference: string;
+	addressee: string;
+	applicationDescription: string;
+	siteAddress: string;
+	submittedDate: string;
+	representationReferenceNo: string;
 }
