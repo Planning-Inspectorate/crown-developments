@@ -68,6 +68,7 @@ model CrownDevelopment {
   applicationAcceptedDate             DateTime?
   lpaQuestionnaireSentDate            DateTime?
   lpaQuestionnaireReceivedDate        DateTime?
+  lpaQuestionnaireReceivedEmailSent   Boolean?                    @default(false)
   /// the date the project is visible to the public
   publishDate                         DateTime?
   pressNoticeDate                     DateTime?

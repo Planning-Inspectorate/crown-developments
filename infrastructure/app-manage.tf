@@ -45,6 +45,7 @@ module "app_manage" {
     ENVIRONMENT                                = var.environment
 
     APP_HOSTNAME                  = var.web_domains.manage
+    PORTAL_HOSTNAME               = var.web_domains.portal
     AUTH_CLIENT_ID                = var.apps_config.auth.client_id
     AUTH_CLIENT_SECRET            = local.key_vault_refs["crown-client-secret"]
     AUTH_GROUP_APPLICATION_ACCESS = var.apps_config.auth.group_application_access
@@ -78,6 +79,7 @@ module "app_manage" {
     GOV_NOTIFY_TEST_TEMPLATE_ID    = var.apps_config.gov_notify.templates.test_template_id
     GOV_NOTIFY_PRE_ACK_TEMPLATE_ID = var.apps_config.gov_notify.templates.pre_ack_template_id
     GOV_NOTIFY_ACK_REP_TEMPLATE_ID = var.apps_config.gov_notify.templates.ack_rep_template_id
+    GOV_NOTIFY_LPA_QNR_TEMPLATE_ID = var.apps_config.gov_notify.templates.lpa_qnr_template_id
   }
 
   providers = {
