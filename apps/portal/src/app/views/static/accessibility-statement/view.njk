@@ -1,0 +1,81 @@
+{% extends "views/layouts/main.njk" %}
+
+{% block pageTitle %}
+    {% set suffix = serviceName | default(config.headerTitle) %}
+    {{ pageTitle | default('Accessibility Statement') }} - {{ suffix }}
+{% endblock %}
+
+{% block pageContent %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <p class="govuk-body">This accessibility statement applies to
+                <a class="govuk-link" href="https://find-crown-development.planninginspectorate.gov.uk">
+                    https://find-crown-development.planninginspectorate.gov.uk
+                </a>
+            </p>
+            <h2 class="govuk-heading-m">Using this service</h2>
+            <p class="govuk-body"> This website is run by The Planning Inspectorate.
+                We want as many people as possible to be able to use this website. For example, that means you should be able to: </p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>Change colours, contrast levels and fonts</li>
+                <li>Zoom in up to 300% without the text spilling off the screen</li>
+                <li>Navigate most of the website using speech recognition software</li>
+                <li>Listen to most of the website using a screen reader (including the most recent versions of JAWS, NVDA and VoiceOver)</li>
+            </ul>
+            <p class="govuk-body">We’ve also made the website text as simple as possible to understand.</p>
+            <p class="govuk-body">
+                <a class="govuk-link" href="https://mcmw.abilitynet.org.uk/">AbilityNet</a> has advice on making your device easier to use if you have a disability.</p>
+            <h2 class="govuk-heading-m">How accessible this service is</h2>
+            <p class="govuk-body">We know some parts of this website are not fully accessible:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>Multiple pages have two-dimensional scrolling present</li>
+                <li>The tabbing order of the website may not always be logical</li>
+                <li>Page titles aren’t always descriptive</li>
+            </ul>
+            <h2 class="govuk-heading-m">Feedback and contact information</h2>
+            <p class="govuk-body">If you need information on this website in a different format like accessible PDF, large print, easy read, audio recording or braille:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>Call <a class="govuk-link" href="tel:03034445000">0303 444 5000</a> </li>
+                <li>Submit requests via our <a class="govuk-link" href="https://contact-us.planninginspectorate.gov.uk/hc/en-gb/requests/new">customer contact form</a></li>
+            </ul>
+            <p class="govuk-body">We’ll consider your request and get back to you in 10 working days.</p>
+            <h2 class="govuk-heading-m">Reporting accessibility problems with this website</h2>
+            <p class="govuk-body">We’re always looking to improve the accessibility of this website.
+                If you find any problems not listed on this page or think we’re not meeting accessibility requirements, contact us via
+                <a class="govuk-link" href="https://contact-us.planninginspectorate.gov.uk/hc/en-gb/requests/new">our customer contact form</a>.
+            </p>
+            <h2 class="govuk-heading-m">Enforcement procedure</h2>
+            <p class="govuk-body">
+                The Equality and Human Rights Commission (EHRC) is responsible for enforcing the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018 (the ‘accessibility regulations’).
+                 If you’re not happy with how we respond to your complaint,
+                <a class="govuk-link" href="https://www.equalityadvisoryservice.com/">contact the Equality Advisory and Support Service (EASS)</a>.
+            </p>
+            <h2 class="govuk-heading-m">Technical information about this website’s accessibility</h2>
+            <p class="govuk-body">The Planning Inspectorate is committed to making its website accessible,
+                in accordance with the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018.</p>
+            <h3 class="govuk-heading-s">Compliance status</h3>
+            <p class="govuk-body">This website is partially compliant with the Web Content Accessibility Guidelines version 2.2 AA standard, due to the non-compliances listed below.</p>
+            <h2 class="govuk-heading-m">Non-accessible content</h2>
+            <p class="govuk-body">The content listed below is non-accessible for the following reasons.</p>
+            <h3 class="govuk-heading-s">Non-compliance with the accessibility regulations</h3>
+            <p class="govuk-body">Whilst viewing the site at 1280px width and 400% zoom, two-dimensional scrolling is required to view content.
+                Which may cause users who require bigger text to find it difficult if they must scroll to read long lines.
+                This fails WCAG 2.2 success criterion 1.4.10 (Reflow).
+            </p>
+            <p class="govuk-body">We plan to resolve this by: 30th May 2025</p>
+            <p class="govuk-body">The page titling is not descriptive and informative, this can result in navigation issues between browser tabs.
+                This fails WCAG 2.2 success criterion 2.4.2 (Page Titled).
+            </p>
+            <p class="govuk-body">We plan to resolve this by: 30th May 2025</p>
+            <p class="govuk-body">The focus order of the page is not always logical after selecting ‘continue’ on the form pages.
+                This can cause confusion for users who require assistive technology to discern where they are on the page.
+                This fails WCAG 2.2 success criterion 2.4.3 (Focus Order).
+            </p>
+            <p class="govuk-body">We plan to resolve this by: 30th May 2025</p>
+            <h3 class="govuk-heading-s">Preparation of this accessibility statement</h3>
+            <p class="govuk-body">This statement was prepared on 26/03/2025. It was last reviewed on 26/03/2025.</p>
+            <p class="govuk-body">This website was last tested on 25/03/2025. The test was carried out by Zoonou.</p>
+            <p class="govuk-body">Zoonou used <a class="govuk-link" href="https://www.w3.org/TR/WCAG-EM">WCAG-EM</a> to define a representative selection of pages and test approach.</p>
+        </div>
+    </div>
+{% endblock %}
