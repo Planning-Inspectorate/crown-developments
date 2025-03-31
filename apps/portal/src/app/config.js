@@ -21,6 +21,7 @@ export function loadConfig() {
 		AZURE_CLIENT_ID, // required for SharePoint
 		AZURE_CLIENT_SECRET, // required for SharePoint
 		AZURE_TENANT_ID, // required for SharePoint
+		CACHE_CONTROL_MAX_AGE,
 		FEATURE_FLAG_PORTAL_NOT_LIVE,
 		GIT_SHA,
 		LOG_LEVEL,
@@ -73,6 +74,9 @@ export function loadConfig() {
 	}
 
 	config = {
+		cacheControl: {
+			maxAge: CACHE_CONTROL_MAX_AGE || '1d'
+		},
 		database: {
 			datasourceUrl: SQL_CONNECTION_STRING
 		},

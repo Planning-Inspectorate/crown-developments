@@ -13,6 +13,9 @@ interface Config {
 		redirectUri: string;
 		signoutUrl: string;
 	};
+	cacheControl: {
+		maxAge: string;
+	};
 	database: Prisma.PrismaClientOptions;
 	entra: {
 		// group cache ttl in minutes
