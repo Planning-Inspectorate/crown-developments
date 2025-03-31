@@ -42,6 +42,17 @@ export class GovNotifyClient {
 	}
 
 	/**
+	 * @param {string} email - Recipients email address
+	 * @param {import('./types.js').LpaAcknowledgeReceiptOfQuestionnairePersonalisation} personalisation
+	 * @returns {Promise<void>}
+	 */
+	async sendLpaAcknowledgeReceiptOfQuestionnaire(email, personalisation) {
+		await this.sendEmail(this.#templateIds.lpaAcknowledgeReceiptOfQuestionnaire, email, {
+			personalisation: personalisation
+		});
+	}
+
+	/**
 	 * @param {string} templateId - Gov Notify email template id
 	 * @param {string} emailAddress - Recipients email address
 	 * @param {GovNotifyOptions} options - Options to pass to Gov Notify

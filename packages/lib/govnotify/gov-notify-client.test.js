@@ -52,7 +52,7 @@ describe(`gov-notify-client`, () => {
 			ctx.mock.method(client, 'sendEmail', () => {});
 			await client.sendAcknowledgementOfRepresentation('test@email.com', {
 				addressee: 'Test Name',
-				applicationDescription: 'some comments',
+				applicationDescription: 'some detail',
 				reference: 'CROWN/2025/0000001',
 				representationReferenceNo: 'AAAAA-BBBBB',
 				siteAddress: '4 the street, town, wc1w 1bw',
@@ -66,11 +66,42 @@ describe(`gov-notify-client`, () => {
 				{
 					personalisation: {
 						addressee: 'Test Name',
-						applicationDescription: 'some comments',
+						applicationDescription: 'some detail',
 						reference: 'CROWN/2025/0000001',
 						representationReferenceNo: 'AAAAA-BBBBB',
 						siteAddress: '4 the street, town, wc1w 1bw',
 						submittedDate: '31 Mar 2025'
+					}
+				}
+			]);
+		});
+	});
+	describe('sendLpaAcknowledgeReceiptOfQuestionnaire', () => {
+		it('should call sendEmail with personalisation', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {
+				lpaAcknowledgeReceiptOfQuestionnaire: 'template-id-1'
+			});
+			ctx.mock.method(client, 'sendEmail', () => {});
+			await client.sendLpaAcknowledgeReceiptOfQuestionnaire('test@email.com', {
+				reference: 'CROWN/2025/0000001',
+				applicationDescription: 'some detail',
+				siteAddress: '4 the street, town, wc1w 1bw',
+				lpaQuestionnaireReceivedDate: '31 Mar 2025',
+				frontOfficeLink: 'http://test.com/applications'
+			});
+			assert.strictEqual(client.sendEmail.mock.callCount(), 1);
+			const args = client.sendEmail.mock.calls[0].arguments;
+			assert.deepStrictEqual(args, [
+				'template-id-1',
+				'test@email.com',
+				{
+					personalisation: {
+						applicationDescription: 'some detail',
+						frontOfficeLink: 'http://test.com/applications',
+						lpaQuestionnaireReceivedDate: '31 Mar 2025',
+						reference: 'CROWN/2025/0000001',
+						siteAddress: '4 the street, town, wc1w 1bw'
 					}
 				}
 			]);

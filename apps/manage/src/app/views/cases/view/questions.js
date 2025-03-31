@@ -264,8 +264,8 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		lpaAddress: {
 			type: COMPONENT_TYPES.ADDRESS,
-			title: `LPA Address`,
-			question: `What is the address of the LPA?`,
+			title: 'LPA Address',
+			question: 'What is the address of the LPA?',
 			hint: 'Optional',
 			fieldName: `lpaAddress`,
 			url: `lpa-address`,
@@ -287,7 +287,12 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		applicationReceivedDate: dateQuestion('applicationReceivedDate'),
 		applicationAcceptedDate: dateQuestion('applicationAcceptedDate'),
 		lpaQuestionnaireSentDate: dateQuestion('lpaQuestionnaireSentDate', 'LPA Questionnaire Sent Date'),
-		lpaQuestionnaireReceivedDate: dateQuestion('lpaQuestionnaireReceivedDate', 'LPA Questionnaire Received Date'),
+		lpaQuestionnaireReceivedDate: dateQuestion(
+			'lpaQuestionnaireReceivedDate',
+			'LPA Questionnaire Received Date',
+			true,
+			'Adding a date will send an acknowledgement notification to the LPA'
+		),
 		publishDate: dateQuestion('publishDate', 'Publish Date', false),
 		pressNoticeDate: dateQuestion('pressNoticeDate'),
 		neighboursNotifiedByLpaDate: dateQuestion('neighboursNotifiedByLpaDate', 'Neighbours Notified By LPA Date'),

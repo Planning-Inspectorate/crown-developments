@@ -166,7 +166,7 @@ export class Question {
 		const answer = journey.response.answers[this.fieldName] || '';
 		const backLink = journey.getBackLink(section.segment, this.fieldName);
 
-		const viewModel = {
+		return {
 			question: {
 				value: answer,
 				question: this.question,
@@ -194,8 +194,6 @@ export class Question {
 
 			...customViewData
 		};
-
-		return viewModel;
 	}
 
 	/**

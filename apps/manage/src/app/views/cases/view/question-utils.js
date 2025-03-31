@@ -92,9 +92,10 @@ export function contactQuestions({ prefix, title, addressRequired }) {
  * @param {string} fieldName
  * @param {string} [title]
  * @param {boolean} [editable]
+ * @param {string} [notifyWarningMessage]
  * @returns {import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps}
  */
-export function dateQuestion(fieldName, title, editable = true) {
+export function dateQuestion(fieldName, title, editable = true, notifyWarningMessage = '') {
 	if (!title) {
 		title = camelCaseToTitleCase(fieldName);
 	}
@@ -105,7 +106,8 @@ export function dateQuestion(fieldName, title, editable = true) {
 		fieldName: fieldName,
 		url: camelCaseToUrlCase(fieldName),
 		validators: [new DateValidator(title)],
-		editable: editable
+		editable: editable,
+		notifyWarningMessage: notifyWarningMessage
 	};
 }
 

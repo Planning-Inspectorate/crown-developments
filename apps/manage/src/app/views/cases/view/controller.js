@@ -10,6 +10,8 @@ import { dateIsBeforeToday, dateIsToday } from '@pins/dynamic-forms/src/lib/date
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
+import { fetchPublishedApplication } from 'crowndev-portal/src/util/applications.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -88,8 +90,10 @@ export function validateIdFormat(req, res, next) {
  * @param {import('#service').ManageService} service
  * @returns {import('@pins/dynamic-forms/src/controller.js').SaveDataFn}
  */
-export function buildUpdateCase({ db, logger }) {
+export function buildUpdateCase(service) {
 	return async ({ req, res, data }) => {
+		const { db, logger } = service;
+
 		const { id } = req.params;
 		if (!id) {
 			throw new Error(`invalid update case request, id param required (id:${id})`);
@@ -103,6 +107,14 @@ export function buildUpdateCase({ db, logger }) {
 		}
 		/** @type {import('./types.js').CrownDevelopmentViewModel} */
 		const fullViewModel = res.locals?.journeyResponse?.answers || {};
+
+		if (
+			toSave.lpaQuestionnaireReceivedDate &&
+			fullViewModel.lpaQuestionnaireReceivedEmailSent !== BOOLEAN_OPTIONS.YES
+		) {
+			await dispatchEmail(service, id, toSave.lpaQuestionnaireReceivedDate);
+			toSave['lpaQuestionnaireReceivedEmailSent'] = true;
+		}
 
 		const updateInput = editsToDatabaseUpdates(toSave, fullViewModel);
 		updateInput.updatedDate = new Date();
@@ -128,6 +140,42 @@ export function buildUpdateCase({ db, logger }) {
 
 		logger.info({ id }, 'case updated');
 	};
+}
+
+async function dispatchEmail(service, id, lpaQuestionnaireReceivedDate) {
+	const { db, logger, config, notifyClient } = service;
+	const crownDevelopment = await fetchPublishedApplication({
+		id,
+		db,
+		args: {
+			where: { id },
+			select: { reference: true, SiteAddress: true, Lpa: true }
+		}
+	});
+
+	const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment, service.contactEmail);
+
+	if (notifyClient === null) {
+		logger.warn(
+			'Gov Notify is not enabled, to use Gov Notify functionality setup Gov Notify environment variables. See README'
+		);
+	} else {
+		try {
+			await notifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire(crownDevelopmentFields.lpaEmail, {
+				reference: crownDevelopmentFields.reference,
+				applicationDescription: crownDevelopmentFields.description,
+				siteAddress: crownDevelopmentFields.siteAddress,
+				lpaQuestionnaireReceivedDate: lpaQuestionnaireReceivedDate,
+				frontOfficeLink: config.frontOfficeLink
+			});
+		} catch (error) {
+			logger.error(
+				{ error, reference: crownDevelopmentFields.reference },
+				`error dispatching LPA - Acknowledge Receipt of Questionnaire email notification`
+			);
+			throw new Error('Error encountered during email notification dispatch');
+		}
+	}
 }
 
 /**
