@@ -36,7 +36,6 @@ export class GovNotifyClient {
 	 * @returns {Promise<void>}
 	 */
 	async sendAcknowledgementOfRepresentation(email, personalisation) {
-		console.log(this.#templateIds);
 		await this.sendEmail(this.#templateIds.acknowledgementOfRepresentation, email, {
 			personalisation: personalisation
 		});
