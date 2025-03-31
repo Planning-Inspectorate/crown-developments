@@ -31,6 +31,7 @@ export function loadConfig() {
 	// get values from the environment
 	const {
 		APP_HOSTNAME,
+		PORTAL_HOSTNAME,
 		AUTH_CLIENT_ID,
 		AUTH_CLIENT_SECRET,
 		AUTH_DISABLED,
@@ -55,7 +56,8 @@ export function loadConfig() {
 		GOV_NOTIFY_API_KEY,
 		GOV_NOTIFY_TEST_TEMPLATE_ID,
 		GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
-		GOV_NOTIFY_ACK_REP_TEMPLATE_ID
+		GOV_NOTIFY_ACK_REP_TEMPLATE_ID,
+		GOV_NOTIFY_LPA_QNR_TEMPLATE_ID
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -109,7 +111,8 @@ export function loadConfig() {
 			GOV_NOTIFY_API_KEY,
 			GOV_NOTIFY_TEST_TEMPLATE_ID,
 			GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
-			GOV_NOTIFY_ACK_REP_TEMPLATE_ID
+			GOV_NOTIFY_ACK_REP_TEMPLATE_ID,
+			GOV_NOTIFY_LPA_QNR_TEMPLATE_ID
 		};
 		for (const [k, v] of Object.entries(props)) {
 			if (v === undefined || v === '') {
@@ -119,9 +122,11 @@ export function loadConfig() {
 	}
 
 	const protocol = APP_HOSTNAME?.startsWith('localhost') ? 'http://' : 'https://';
+	const frontOfficeProtocol = PORTAL_HOSTNAME?.startsWith('localhost') ? 'http://' : 'https://';
 
 	config = {
 		appHostname: APP_HOSTNAME,
+		frontOfficeLink: `${frontOfficeProtocol}${PORTAL_HOSTNAME}/applications`,
 		auth: {
 			authority: `https://login.microsoftonline.com/${AUTH_TENANT_ID}`,
 			clientId: AUTH_CLIENT_ID,
@@ -174,7 +179,8 @@ export function loadConfig() {
 			templateIds: {
 				test: GOV_NOTIFY_TEST_TEMPLATE_ID,
 				acknowledgePreNotification: GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
-				acknowledgementOfRepresentation: GOV_NOTIFY_ACK_REP_TEMPLATE_ID
+				acknowledgementOfRepresentation: GOV_NOTIFY_ACK_REP_TEMPLATE_ID,
+				lpaAcknowledgeReceiptOfQuestionnaire: GOV_NOTIFY_LPA_QNR_TEMPLATE_ID
 			}
 		}
 	};

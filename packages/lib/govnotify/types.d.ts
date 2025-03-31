@@ -10,6 +10,7 @@ export interface GovNotifyOptions {
 export interface TemplateIds {
 	acknowledgePreNotification: string;
 	acknowledgementOfRepresentation: string;
+	lpaAcknowledgeReceiptOfQuestionnaire: string;
 }
 
 export interface NotifyConfig {
@@ -18,11 +19,19 @@ export interface NotifyConfig {
 	templateIds: TemplateIds;
 }
 
-export interface SendAcknowledgementOfRepresentationPersonalisation {
+export interface CommonNotificationPersonalisation {
 	reference: string;
-	addressee: string;
 	applicationDescription: string;
 	siteAddress: string;
+}
+
+export interface SendAcknowledgementOfRepresentationPersonalisation extends CommonNotificationPersonalisation {
+	addressee: string;
 	submittedDate: string;
 	representationReferenceNo: string;
+}
+
+export interface LpaAcknowledgeReceiptOfQuestionnairePersonalisation extends CommonNotificationPersonalisation {
+	lpaQuestionnaireReceivedDate: string;
+	frontOfficeLink: string;
 }
