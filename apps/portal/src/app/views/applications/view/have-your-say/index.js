@@ -13,11 +13,10 @@ import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions
 import {
 	addRepresentationErrors,
 	buildHaveYourSayPage,
-	buildSaveHaveYourSayController,
 	getIsRepresentationWindowOpen,
-	viewHaveYourSayDeclarationPage,
-	viewHaveYourSaySuccessPage
+	viewHaveYourSayDeclarationPage
 } from './controller.js';
+import { buildSaveHaveYourSayController, viewHaveYourSaySuccessPage } from './save.js';
 
 const applicationIdParam = 'applicationId';
 

@@ -43,4 +43,37 @@ describe(`gov-notify-client`, () => {
 			]);
 		});
 	});
+	describe('sendAcknowledgementOfRepresentation', () => {
+		it('should call sendEmail with personalisation', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {
+				acknowledgementOfRepresentation: 'template-id-1'
+			});
+			ctx.mock.method(client, 'sendEmail', () => {});
+			await client.sendAcknowledgementOfRepresentation('test@email.com', {
+				addressee: 'Test Name',
+				applicationDescription: 'some comments',
+				reference: 'CROWN/2025/0000001',
+				representationReferenceNo: 'AAAAA-BBBBB',
+				siteAddress: '4 the street, town, wc1w 1bw',
+				submittedDate: '31 Mar 2025'
+			});
+			assert.strictEqual(client.sendEmail.mock.callCount(), 1);
+			const args = client.sendEmail.mock.calls[0].arguments;
+			assert.deepStrictEqual(args, [
+				'template-id-1',
+				'test@email.com',
+				{
+					personalisation: {
+						addressee: 'Test Name',
+						applicationDescription: 'some comments',
+						reference: 'CROWN/2025/0000001',
+						representationReferenceNo: 'AAAAA-BBBBB',
+						siteAddress: '4 the street, town, wc1w 1bw',
+						submittedDate: '31 Mar 2025'
+					}
+				}
+			]);
+		});
+	});
 });

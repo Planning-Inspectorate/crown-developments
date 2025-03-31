@@ -5,6 +5,7 @@ import { Client } from '@microsoft/microsoft-graph-client';
 import { DefaultAzureCredential } from '@azure/identity';
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js';
 import { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
+import { initGovNotify } from '@pins/crowndev-lib/govnotify/index.js';
 
 /**
  * This class encapsulates all the services and clients for the application
@@ -31,6 +32,10 @@ export class PortalService {
 	 * @type {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive}
 	 */
 	sharePointDrive;
+	/**
+	 * @type {import('@pins/crowndev-lib/govnotify/gov-notify-client.js').GovNotifyClient|null}
+	 */
+	notifyClient;
 
 	/**
 	 * @param {import('./config-types.js').Config} config
@@ -49,6 +54,7 @@ export class PortalService {
 		});
 
 		this.sharePointDrive = new SharePointDrive(graphClient, config.sharePoint.driveId);
+		this.notifyClient = initGovNotify(config.govNotify, logger);
 	}
 
 	get cacheControl() {
