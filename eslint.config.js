@@ -7,7 +7,7 @@ export default [
 	{
 		ignores: ['dist/**', 'node_modules/**', '**/*.min*.js', '**/static/scripts/app.js'],
 		languageOptions: {
-			ecmaVersion: 2022,
+			ecmaVersion: 2025,
 			sourceType: 'module',
 			globals: {
 				...globals.node

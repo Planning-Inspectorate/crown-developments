@@ -14,7 +14,8 @@
     "migrate-prod": "npx prisma migrate deploy",
     "generate": "npx prisma generate",
     "seed": "npx prisma db seed",
-    "seed-prod": "npm run generate && node src/seed/seed-prod.js"
+    "seed-prod": "npm run generate && node src/seed/seed-prod.js",
+    "read-lpa-data": "node src/seed/data-lpa-prod-read.js"
   },
   "license": "MIT",
   "dependencies": {
