@@ -45,7 +45,6 @@ apps_config = {
       pre_ack_template_id = "298a986d-c142-46f5-804a-9cb853ba8b3d"
       ack_rep_template_id = "52312d8e-2af8-4212-a280-bfc6106cc56d"
       lpa_qnr_template_id = "fff17679-d63d-49e4-baaa-ccbf0bdfbf98"
-
     }
   }
 
