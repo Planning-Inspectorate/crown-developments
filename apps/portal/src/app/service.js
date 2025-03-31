@@ -3,7 +3,7 @@ import { initRedis } from '@pins/crowndev-lib/redis/index.js';
 import { initLogger } from '@pins/crowndev-lib/util/logger.js';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { DefaultAzureCredential } from '@azure/identity';
-import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/src/authentication/azureTokenCredentials/index.js';
+import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js';
 import { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
 
 /**
