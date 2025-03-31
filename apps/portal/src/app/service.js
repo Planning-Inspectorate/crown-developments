@@ -51,6 +51,10 @@ export class PortalService {
 		this.sharePointDrive = new SharePointDrive(graphClient, config.sharePoint.driveId);
 	}
 
+	get cacheControl() {
+		return this.#config.cacheControl;
+	}
+
 	/**
 	 * Alias of dbClient
 	 *

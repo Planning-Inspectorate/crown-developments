@@ -62,7 +62,7 @@ export function getApp(service) {
 	app.set('view engine', 'njk');
 
 	// static files
-	app.use(express.static(service.staticDir));
+	app.use(express.static(service.staticDir, service.cacheControl));
 
 	const router = buildRouter(service);
 	// register the router, which will define any subpaths

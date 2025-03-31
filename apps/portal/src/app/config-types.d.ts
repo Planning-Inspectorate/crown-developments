@@ -1,6 +1,9 @@
 import { Prisma } from '@prisma/client';
 
 interface Config {
+	cacheControl: {
+		maxAge: string;
+	};
 	database: Prisma.PrismaClientOptions;
 	featureFlags: {
 		isLive: boolean;

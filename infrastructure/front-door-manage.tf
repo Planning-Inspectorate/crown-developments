@@ -58,6 +58,11 @@ resource "azurerm_cdn_frontdoor_route" "manage" {
   patterns_to_match      = ["/*"]
   supported_protocols    = ["Http", "Https"]
 
+  cache {
+    compression_enabled           = true
+    content_types_to_compress     = local.content_types_to_compress
+    query_string_caching_behavior = "UseQueryString"
+  }
 
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.manage.id]
   link_to_default_domain          = false

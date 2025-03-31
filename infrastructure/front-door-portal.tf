@@ -53,11 +53,16 @@ resource "azurerm_cdn_frontdoor_route" "portal" {
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.portal.id]
   provider                      = azurerm.front_door
 
+  cache {
+    compression_enabled           = true
+    content_types_to_compress     = local.content_types_to_compress
+    query_string_caching_behavior = "UseQueryString"
+  }
+
   forwarding_protocol    = "MatchRequest"
   https_redirect_enabled = true
   patterns_to_match      = ["/*"]
   supported_protocols    = ["Http", "Https"]
-
 
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.portal.id]
   link_to_default_domain          = false

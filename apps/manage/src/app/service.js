@@ -67,6 +67,10 @@ export class ManageService {
 		return this.#config.auth.disabled;
 	}
 
+	get cacheControl() {
+		return this.#config.cacheControl;
+	}
+
 	/**
 	 * Alias of dbClient
 	 *
