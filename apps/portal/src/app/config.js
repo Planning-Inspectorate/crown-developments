@@ -35,6 +35,7 @@ export function loadConfig() {
 		GOV_NOTIFY_DISABLED,
 		GOV_NOTIFY_API_KEY,
 		GOV_NOTIFY_TEST_TEMPLATE_ID,
+		GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
 		GOV_NOTIFY_ACK_REP_TEMPLATE_ID,
 		CROWN_DEV_CONTACT_EMAIL
 	} = process.env;
@@ -59,6 +60,7 @@ export function loadConfig() {
 		const props = {
 			GOV_NOTIFY_API_KEY,
 			GOV_NOTIFY_TEST_TEMPLATE_ID,
+			GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
 			GOV_NOTIFY_ACK_REP_TEMPLATE_ID
 		};
 		for (const [k, v] of Object.entries(props)) {
@@ -109,6 +111,7 @@ export function loadConfig() {
 			apiKey: GOV_NOTIFY_API_KEY,
 			templateIds: {
 				test: GOV_NOTIFY_TEST_TEMPLATE_ID,
+				acknowledgePreNotification: GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
 				acknowledgementOfRepresentation: GOV_NOTIFY_ACK_REP_TEMPLATE_ID
 			}
 		},
