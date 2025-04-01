@@ -1,5 +1,6 @@
 import { booleanToYesNoValue, yesNoToBoolean } from '@pins/dynamic-forms/src/components/boolean/question.js';
 import {
+	CONTACT_PREFERENCE_ID,
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
@@ -32,25 +33,31 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
  */
 export function representationToManageViewModel(representation, applicationReference) {
 	/** @type {import('./types.js').HaveYourSayManageModel} */
-	const model = {};
+	const model = {
+		applicationReference: applicationReference,
+		requiresReview: representation.statusId === REPRESENTATION_STATUS_ID.AWAITING_REVIEW,
+		submittedByAddressId: representation.SubmittedByContact?.addressId
+	};
 
 	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
 		model[field] = mapFieldValue(representation[field]);
 	}
-	model.applicationReference = applicationReference;
-	model.requiresReview = representation.statusId === REPRESENTATION_STATUS_ID.AWAITING_REVIEW;
 
 	if (representation.submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF) {
 		model.myselfIsAdult = mapFieldValue(representation.SubmittedByContact?.isAdult);
 		model.myselfFullName = representation.SubmittedByContact?.fullName;
 		model.myselfEmail = representation.SubmittedByContact?.email;
 		model.myselfComment = representation.comment;
+		model.myselfContactPreference = representation.SubmittedByContact?.contactPreferenceId;
+		model.myselfAddress = addressToViewModel(representation.SubmittedByContact?.Address);
 	} else if (representation.submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF) {
 		model.representedTypeId = representation.representedTypeId;
 		model.submitterIsAdult = mapFieldValue(representation.SubmittedByContact?.isAdult);
 		model.submitterFullName = representation.SubmittedByContact?.fullName;
 		model.submitterEmail = representation.SubmittedByContact?.email;
 		model.submitterComment = representation.comment;
+		model.submitterContactPreference = representation.SubmittedByContact?.contactPreferenceId;
+		model.submitterAddress = addressToViewModel(representation.SubmittedByContact?.Address);
 
 		if (representation.representedTypeId === REPRESENTED_TYPE_ID.PERSON) {
 			model.representedIsAdult = mapFieldValue(representation.RepresentedContact?.isAdult);
@@ -87,11 +94,12 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	}
 	// don't support updating these fields
 	delete representationUpdateInput.reference;
-
-	/** @type {import('@prisma/client').Prisma.ContactUpdateInput} */
+	/** @type {import('@prisma/client').Prisma.ContactCreateWithoutRepresentationSubmittedByContactInput} */
 	const submittedByContactUpdate = {};
-	/** @type {import('@prisma/client').Prisma.ContactUpdateInput} */
+	/** @type {import('@prisma/client').Prisma.ContactCreateWithoutRepresentationSubmittedByContactInput} */
 	const representedContactUpdate = {};
+	/** @type {import('@prisma/client').Prisma.AddressCreateWithoutContactInput} */
+	let addressUpdate = {};
 
 	// myself fields
 	if ('myselfIsAdult' in edits) {
@@ -99,6 +107,12 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	}
 	if ('myselfFullName' in edits) {
 		submittedByContactUpdate.fullName = edits.myselfFullName;
+	}
+	if ('myselfContactPreference' in edits) {
+		submittedByContactUpdate.contactPreferenceId = edits.myselfContactPreference;
+	}
+	if ('myselfAddress' in edits) {
+		addressUpdate = viewModelToAddressUpdateInput(edits.myselfAddress);
 	}
 	if ('myselfEmail' in edits) {
 		submittedByContactUpdate.email = edits.myselfEmail;
@@ -116,6 +130,12 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	}
 	if ('submitterFullName' in edits) {
 		submittedByContactUpdate.fullName = edits.submitterFullName;
+	}
+	if ('submitterContactPreference' in edits) {
+		submittedByContactUpdate.contactPreferenceId = edits.submitterContactPreference;
+	}
+	if ('submitterAddress' in edits) {
+		addressUpdate = viewModelToAddressUpdateInput(edits.submitterAddress);
 	}
 	if ('submitterEmail' in edits) {
 		submittedByContactUpdate.email = edits.submitterEmail;
@@ -150,14 +170,31 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		representedContactUpdate.fullName = edits.representedOrgName;
 	}
 
-	if (Object.keys(submittedByContactUpdate).length > 0) {
-		representationUpdateInput.SubmittedByContact = {
-			upsert: {
-				where: optionalWhere(viewModel.submittedByContactId),
-				create: submittedByContactUpdate,
-				update: submittedByContactUpdate
-			}
+	if (Object.keys(addressUpdate).length > 0) {
+		submittedByContactUpdate.Address = {
+			create: addressUpdate
 		};
+	}
+	if (Object.keys(submittedByContactUpdate).length > 0) {
+		if (!viewModel.submittedByContactId) {
+			representationUpdateInput.SubmittedByContact = {
+				create: submittedByContactUpdate
+			};
+		} else {
+			if (submittedByContactUpdate.Address) {
+				const addressId = viewModel.submittedByAddressId;
+				submittedByContactUpdate.Address = {
+					upsert: {
+						where: optionalWhere(addressId),
+						create: addressUpdate,
+						update: addressUpdate
+					}
+				};
+			}
+			representationUpdateInput.SubmittedByContact = {
+				update: submittedByContactUpdate
+			};
+		}
 	}
 	if (Object.keys(representedContactUpdate).length > 0) {
 		representationUpdateInput.RepresentedContact = {
@@ -168,7 +205,6 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 			}
 		};
 	}
-
 	return representationUpdateInput;
 }
 
@@ -222,6 +258,10 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 		createInput.SubmittedByContact.create.ContactPreference = {
 			connect: { id: answers[`${prefix}ContactPreference`] }
 		};
+	} else {
+		createInput.SubmittedByContact.create.ContactPreference = {
+			connect: { id: CONTACT_PREFERENCE_ID.EMAIL }
+		};
 	}
 
 	if (answers[`${prefix}HearingPreference`]) {
@@ -274,4 +314,36 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 	}
 
 	return createInput;
+}
+
+/**
+ * @param {import('@prisma/client').Prisma.AddressGetPayload<{}>} address
+ * @returns {import('@pins/dynamic-forms/src/lib/address.js').Address}
+ */
+function addressToViewModel(address) {
+	if (address) {
+		return {
+			id: address.id,
+			addressLine1: address.line1,
+			addressLine2: address.line2,
+			townCity: address.townCity,
+			county: address.county,
+			postcode: address.postcode
+		};
+	}
+	return {};
+}
+
+/**
+ * @param {import('@pins/dynamic-forms/src/lib/address.js').Address} edits
+ * @returns {import('@prisma/client').Prisma.AddressCreateInput|null}
+ */
+function viewModelToAddressUpdateInput(edits) {
+	return {
+		line1: edits?.addressLine1 ?? null,
+		line2: edits?.addressLine2 ?? null,
+		townCity: edits?.townCity ?? null,
+		county: edits?.county ?? null,
+		postcode: edits?.postcode ?? null
+	};
 }

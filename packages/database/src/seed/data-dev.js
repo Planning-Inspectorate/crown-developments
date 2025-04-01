@@ -1,9 +1,9 @@
 import { APPLICATION_TYPE_ID } from './data-static.js';
 import {
 	generateWrittenRepresentation,
-	oldRepReferences,
 	persistWrittenRepresentation,
 	repReferences,
+	representationContactAddresses,
 	representations,
 	repsBehalfOfContacts,
 	repsContacts,
@@ -20,6 +20,24 @@ export async function seedDev(dbClient) {
 		create: { reference: 'CROWN/2025/0000001', Type: { connect: { id: APPLICATION_TYPE_ID.PLANNING_PERMISSION } } },
 		update: { reference: 'CROWN/2025/0000001', Type: { connect: { id: APPLICATION_TYPE_ID.PLANNING_PERMISSION } } }
 	});
+
+	const allAddresses = representationContactAddresses;
+	const addressIds = new Map();
+	// check IDs are unique
+	for (const address of allAddresses) {
+		if (addressIds.has(address.id)) {
+			throw new Error(`Duplicate address ID: ${address.id}`);
+		}
+		addressIds.set(address.id, true);
+	}
+
+	for (const address of allAddresses) {
+		await dbClient.address.upsert({
+			where: { id: address.id },
+			create: address,
+			update: address
+		});
+	}
 
 	const allContacts = [...repsContacts, ...repsOrgContacts, ...repsBehalfOfContacts];
 	const contactIds = new Map();
@@ -53,24 +71,6 @@ export async function seedDev(dbClient) {
 			throw new Error(`Duplicate representation reference: ${representationReference}`);
 		}
 		repRefs.set(representationReference, true);
-	}
-
-	// map older references to newer ones - can be removed once run
-	for (const oldRepReference of oldRepReferences) {
-		// XXXX-YYYY-ZZZZ-AAAA -> XXXXY-YYYZZ
-		const parts = oldRepReference.split('-');
-		const part1 = parts[0] + parts[1].substring(0, 1);
-		const part2 = parts[1].substring(1, 4) + parts[2].substring(0, 2);
-		const newRepReference = `${part1}-${part2}`;
-		await dbClient.$transaction(async ($tx) => {
-			const rep = await $tx.representation.findUnique({ where: { reference: oldRepReference } });
-			if (rep) {
-				await $tx.representation.update({
-					where: { reference: oldRepReference },
-					data: { reference: newRepReference }
-				});
-			}
-		});
 	}
 
 	for (const representation of representations) {
