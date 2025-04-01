@@ -103,4 +103,8 @@ export class ManageService {
 	get staticDir() {
 		return this.#config.staticDir;
 	}
+
+	get frontOfficeLink() {
+		return this.#config.frontOfficeLink;
+	}
 }
