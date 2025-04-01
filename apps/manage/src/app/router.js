@@ -2,6 +2,7 @@ import { Router as createRouter } from 'express';
 import { createRoutesAndGuards as createAuthRoutesAndGuards } from './auth/router.js';
 import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.js';
 import { createRoutes as createCasesRoutes } from './views/cases/index.js';
+import { createErrorRoutes } from './views/static/error/index.js';
 import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.js';
 
 /**
@@ -38,6 +39,7 @@ export function buildRouter(service) {
 
 	router.get('/', (req, res) => res.redirect('/cases'));
 	router.use('/cases', casesRoutes);
+	router.use('/error', createErrorRoutes(service));
 
 	return router;
 }
