@@ -81,6 +81,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
   sku_name                          = "Premium_AzureFrontDoor"
   enabled                           = true
   mode                              = "Prevention"
+  redirect_url                      = "https://${var.web_domains.manage}/error/firewall-error"
   custom_block_response_status_code = 403
   provider                          = azurerm.front_door
 
@@ -132,7 +133,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
   managed_rule {
     type    = "Microsoft_DefaultRuleSet"
     version = "2.1"
-    action  = "Log"
+    action  = "Block"
   }
 
   managed_rule {
