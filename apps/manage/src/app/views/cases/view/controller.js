@@ -6,12 +6,13 @@ import { createJourney, JOURNEY_ID } from './journey.js';
 import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { getEntraGroupMembers } from '#util/entra-groups.js';
-import { dateIsBeforeToday, dateIsToday } from '@pins/dynamic-forms/src/lib/date-utils.js';
+import { dateIsBeforeToday, dateIsToday, formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
 import { fetchPublishedApplication } from 'crowndev-portal/src/util/applications.js';
+import { addressToViewModel } from '@pins/dynamic-forms/src/lib/address-utils.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -143,17 +144,24 @@ export function buildUpdateCase(service) {
 }
 
 async function dispatchEmail(service, id, lpaQuestionnaireReceivedDate) {
-	const { db, logger, config, notifyClient } = service;
+	const { db, logger, notifyClient } = service;
 	const crownDevelopment = await fetchPublishedApplication({
 		id,
 		db,
 		args: {
 			where: { id },
-			select: { reference: true, SiteAddress: true, Lpa: true }
+			select: { reference: true, description: true, SiteAddress: true, Lpa: true }
 		}
 	});
 
 	const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment, service.contactEmail);
+
+	//site address
+	// Display as:
+	// If siteAddressId added = siteAddressId
+	// Format: standard address format
+	// If siteAddressId not added = site Easting&site Northing
+	// Format: Easting: *SiteEasting* , Northing: *SiteNorthing*
 
 	if (notifyClient === null) {
 		logger.warn(
@@ -164,9 +172,9 @@ async function dispatchEmail(service, id, lpaQuestionnaireReceivedDate) {
 			await notifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire(crownDevelopmentFields.lpaEmail, {
 				reference: crownDevelopmentFields.reference,
 				applicationDescription: crownDevelopmentFields.description,
-				siteAddress: crownDevelopmentFields.siteAddress,
-				lpaQuestionnaireReceivedDate: lpaQuestionnaireReceivedDate,
-				frontOfficeLink: config.frontOfficeLink
+				siteAddress: addressToViewModel(crownDevelopment.SiteAddress),
+				lpaQuestionnaireReceivedDate: formatDateForDisplay(lpaQuestionnaireReceivedDate),
+				frontOfficeLink: service.frontOfficeLink
 			});
 		} catch (error) {
 			logger.error(

@@ -44,4 +44,5 @@ interface Config {
 	};
 	staticDir: string;
 	govNotify: NotifyConfig;
+	frontOfficeLink: string;
 }

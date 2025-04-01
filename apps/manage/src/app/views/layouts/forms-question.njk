@@ -22,9 +22,9 @@
   {% endif %}
 {% endblock before_content %}
 
-{% if question.warningMessage %}
+{% if warningMessage %}
   {% set beforeSubmitButton = govukWarningText({
-    text: question.warningMessage
+    text: warningMessage
   }) %}
 {% endif %}
 
