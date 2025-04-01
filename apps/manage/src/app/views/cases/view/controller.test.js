@@ -436,6 +436,187 @@ describe('case details', () => {
 			assert.strictEqual(updateArg.data?.Event?.upsert?.where?.id, 'event-1');
 			assert.strictEqual(updateArg.data?.Event?.upsert?.create.venue, 'some place');
 		});
+		it('should dispatch Lpa Acknowledge Receipt Of Questionnaire Notification with site address', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						reference: 'CROWN/2025/0000001',
+						description: 'a big project',
+						siteAddressId: 'address-1',
+						SiteAddress: { line1: '4 the street', line2: 'town', postcode: 'wc1w 1bw' },
+						Lpa: { email: 'test@email.com' }
+					})),
+					update: mock.fn()
+				}
+			};
+			const mockNotifyClient = {
+				sendLpaAcknowledgeReceiptOfQuestionnaire: mock.fn()
+			};
+			const updateCase = buildUpdateCase({
+				db: mockDb,
+				logger,
+				notifyClient: mockNotifyClient,
+				frontOfficeLink: 'https://test.com/applications'
+			});
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							lpaQuestionnaireReceivedEmailSent: false
+						}
+					}
+				}
+			};
+			const date = new Date('2025-01-02');
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					lpaQuestionnaireReceivedDate: date
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+			assert.strictEqual(mockReq.session?.cases?.case1.updated, true);
+
+			const updateArg = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
+			assert.strictEqual(updateArg.where?.id, 'case1');
+			assert.strictEqual(updateArg.data?.lpaQuestionnaireReceivedDate, date);
+			assert.strictEqual(updateArg.data?.lpaQuestionnaireReceivedEmailSent, true);
+
+			assert.strictEqual(mockNotifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire.mock.callCount(), 1);
+			assert.deepStrictEqual(mockNotifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire.mock.calls[0].arguments, [
+				'test@email.com',
+				{
+					reference: 'CROWN/2025/0000001',
+					applicationDescription: 'a big project',
+					siteAddress: '4 the street, town, wc1w 1bw',
+					lpaQuestionnaireReceivedDate: '2 Jan 2025',
+					frontOfficeLink: 'https://test.com/applications'
+				}
+			]);
+		});
+		it('should dispatch Lpa Acknowledge Receipt Of Questionnaire Notification with northing/easting', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						reference: 'CROWN/2025/0000001',
+						description: 'a big project',
+						siteNorthing: '123456',
+						siteEasting: '654321',
+						Lpa: { email: 'test@email.com' }
+					})),
+					update: mock.fn()
+				}
+			};
+			const mockNotifyClient = {
+				sendLpaAcknowledgeReceiptOfQuestionnaire: mock.fn()
+			};
+			const updateCase = buildUpdateCase({
+				db: mockDb,
+				logger,
+				notifyClient: mockNotifyClient,
+				frontOfficeLink: 'https://test.com/applications'
+			});
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							lpaQuestionnaireReceivedEmailSent: false
+						}
+					}
+				}
+			};
+			const date = new Date('2025-01-02');
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					lpaQuestionnaireReceivedDate: date
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+			assert.strictEqual(mockReq.session?.cases?.case1.updated, true);
+
+			const updateArg = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
+			assert.strictEqual(updateArg.where?.id, 'case1');
+			assert.strictEqual(updateArg.data?.lpaQuestionnaireReceivedDate, date);
+			assert.strictEqual(updateArg.data?.lpaQuestionnaireReceivedEmailSent, true);
+
+			assert.strictEqual(mockNotifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire.mock.callCount(), 1);
+			assert.deepStrictEqual(mockNotifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire.mock.calls[0].arguments, [
+				'test@email.com',
+				{
+					reference: 'CROWN/2025/0000001',
+					applicationDescription: 'a big project',
+					siteAddress: 'Northing: 123456 , Easting: 654321',
+					lpaQuestionnaireReceivedDate: '2 Jan 2025',
+					frontOfficeLink: 'https://test.com/applications'
+				}
+			]);
+		});
+		it('should throw error if notification dispatch fails', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						reference: 'CROWN/2025/0000001',
+						description: 'a big project',
+						siteNorthing: '123456',
+						siteEasting: '654321',
+						Lpa: { email: 'test@email.com' }
+					})),
+					update: mock.fn()
+				}
+			};
+			const mockNotifyClient = {
+				sendLpaAcknowledgeReceiptOfQuestionnaire: mock.fn(() => {
+					throw new Error('Exception error');
+				})
+			};
+			const updateCase = buildUpdateCase({
+				db: mockDb,
+				logger,
+				notifyClient: mockNotifyClient,
+				frontOfficeLink: 'https://test.com/applications'
+			});
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							lpaQuestionnaireReceivedEmailSent: false
+						}
+					}
+				}
+			};
+			const date = new Date('2025-01-02');
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					lpaQuestionnaireReceivedDate: date
+				}
+			};
+
+			await assert.rejects(() => updateCase({ req: mockReq, res: mockRes, data }));
+		});
 		it('should not throw Prisma errors', async () => {
 			const logger = mockLogger();
 			const mockDb = {

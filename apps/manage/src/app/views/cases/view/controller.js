@@ -11,7 +11,6 @@ import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/sessi
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
-import { fetchPublishedApplication } from 'crowndev-portal/src/util/applications.js';
 import { addressToViewModel } from '@pins/dynamic-forms/src/lib/address-utils.js';
 
 /**
@@ -94,7 +93,6 @@ export function validateIdFormat(req, res, next) {
 export function buildUpdateCase(service) {
 	return async ({ req, res, data }) => {
 		const { db, logger } = service;
-
 		const { id } = req.params;
 		if (!id) {
 			throw new Error(`invalid update case request, id param required (id:${id})`);
@@ -113,7 +111,7 @@ export function buildUpdateCase(service) {
 			toSave.lpaQuestionnaireReceivedDate &&
 			fullViewModel.lpaQuestionnaireReceivedEmailSent !== BOOLEAN_OPTIONS.YES
 		) {
-			await dispatchEmail(service, id, toSave.lpaQuestionnaireReceivedDate);
+			await sendLpaAcknowledgeReceiptOfQuestionnaireNotification(service, id, toSave.lpaQuestionnaireReceivedDate);
 			toSave['lpaQuestionnaireReceivedEmailSent'] = true;
 		}
 
@@ -143,36 +141,31 @@ export function buildUpdateCase(service) {
 	};
 }
 
-async function dispatchEmail(service, id, lpaQuestionnaireReceivedDate) {
+/**
+ * @param {import('#service').ManageService} service
+ * @param {string} id
+ * @param {Date | string} lpaQuestionnaireReceivedDate
+ */
+async function sendLpaAcknowledgeReceiptOfQuestionnaireNotification(service, id, lpaQuestionnaireReceivedDate) {
 	const { db, logger, notifyClient } = service;
-	const crownDevelopment = await fetchPublishedApplication({
-		id,
-		db,
-		args: {
-			where: { id },
-			select: { reference: true, description: true, SiteAddress: true, Lpa: true }
-		}
-	});
-
-	const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment, service.contactEmail);
-
-	//site address
-	// Display as:
-	// If siteAddressId added = siteAddressId
-	// Format: standard address format
-	// If siteAddressId not added = site Easting&site Northing
-	// Format: Easting: *SiteEasting* , Northing: *SiteNorthing*
 
 	if (notifyClient === null) {
 		logger.warn(
 			'Gov Notify is not enabled, to use Gov Notify functionality setup Gov Notify environment variables. See README'
 		);
 	} else {
+		const crownDevelopment = await db.crownDevelopment.findUnique({
+			where: { id },
+			include: { SiteAddress: true, Lpa: true }
+		});
+
+		const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment, service.contactEmail);
+
 		try {
 			await notifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire(crownDevelopmentFields.lpaEmail, {
 				reference: crownDevelopmentFields.reference,
 				applicationDescription: crownDevelopmentFields.description,
-				siteAddress: addressToViewModel(crownDevelopment.SiteAddress),
+				siteAddress: formatSiteLocation(crownDevelopment),
 				lpaQuestionnaireReceivedDate: formatDateForDisplay(lpaQuestionnaireReceivedDate),
 				frontOfficeLink: service.frontOfficeLink
 			});
@@ -183,6 +176,21 @@ async function dispatchEmail(service, id, lpaQuestionnaireReceivedDate) {
 			);
 			throw new Error('Error encountered during email notification dispatch');
 		}
+	}
+}
+
+/**
+ * Format site address depending on what is set on the case
+ * @param {import('@priam/client').CrownDevelopment} crownDevelopment
+ */
+function formatSiteLocation(crownDevelopment) {
+	if (crownDevelopment.siteAddressId) {
+		return addressToViewModel(crownDevelopment.SiteAddress);
+	} else if (crownDevelopment.siteNorthing || crownDevelopment.siteEasting) {
+		return [
+			`Northing: ${crownDevelopment.siteNorthing || '-'}`,
+			`Easting: ${crownDevelopment.siteEasting || '-'}`
+		].join(' , ');
 	}
 }
 
