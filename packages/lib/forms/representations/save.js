@@ -17,7 +17,6 @@ import { uniqueReference } from '../../util/random-reference.js';
  * @param {string} opts.checkYourAnswersUrl
  * @param {string} opts.successUrl
  * @param {function} [opts.uniqueReferenceFn] - optional function used for testing
- * @returns {Promise<string>} representation reference
  */
 export async function saveRepresentation(
 	{ service, journeyId, checkYourAnswersUrl, successUrl, uniqueReferenceFn = uniqueReference, notificationFn = null },
