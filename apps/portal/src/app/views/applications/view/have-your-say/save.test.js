@@ -227,7 +227,8 @@ describe('have your say', () => {
 				}
 			});
 		});
-		it('send notifications to correct recipient', async () => {
+		it('send notifications to correct recipient', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-31T03:24:00') });
 			const mockReq = {
 				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
 				session: {}
@@ -290,7 +291,8 @@ describe('have your say', () => {
 				}
 			]);
 		});
-		it('send notifications to correct recipient addressed to Sir/Madam if under 18', async () => {
+		it('send notifications to correct recipient addressed to Sir/Madam if under 18', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-31T03:24:00') });
 			const mockReq = {
 				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
 				session: {}
