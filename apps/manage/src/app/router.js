@@ -2,6 +2,7 @@ import { Router as createRouter } from 'express';
 import { createRoutesAndGuards as createAuthRoutesAndGuards } from './auth/router.js';
 import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.js';
 import { createRoutes as createCasesRoutes } from './views/cases/index.js';
+import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -14,6 +15,11 @@ export function buildRouter(service) {
 	const casesRoutes = createCasesRoutes(service);
 
 	router.use('/', monitoringRoutes);
+
+	// don't cache responses, note no-cache allows some caching, but with revalidation
+	// see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#no-cache
+	router.use(cacheNoCacheMiddleware);
+
 	router.get('/unauthenticated', (req, res) => res.status(401).render('views/errors/401.njk'));
 
 	if (!service.authDisabled) {

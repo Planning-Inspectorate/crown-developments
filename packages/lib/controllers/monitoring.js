@@ -1,5 +1,6 @@
 import { Router as createRouter } from 'express';
 import { asyncHandler } from '../util/async-handler.js';
+import { cacheNoStoreMiddleware } from '../middleware/cache.js';
 /**
  * @param {Object} params
  * @param {import('pino').BaseLogger} params.logger
@@ -11,11 +12,7 @@ export function createMonitoringRoutes({ gitSha, dbClient, logger }) {
 	const router = createRouter();
 	const handleHealthCheck = buildHandleHeathCheck(logger, gitSha, dbClient);
 
-	router.use((req, res, next) => {
-		// don't cache monitoring responses
-		res.set('Cache-Control', 'no-store');
-		next();
-	});
+	router.use(cacheNoStoreMiddleware); // don't store monitoring responses, always get fresh data
 
 	router.head('/', asyncHandler(handleHeadHealthCheck));
 	router.get('/health', asyncHandler(handleHealthCheck));
