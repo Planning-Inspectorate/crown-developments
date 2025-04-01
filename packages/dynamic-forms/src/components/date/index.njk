@@ -3,7 +3,6 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/date-input/macro.njk" import govukDateInput %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
-{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
 
 {% set day= question.fieldName + "_day" %}
 {% set month= question.fieldName + "_month" %}
@@ -76,11 +75,7 @@
                     ]
                 }) }}
 
-                {% if question.notifyWarningMessage %}
-                    {{ govukWarningText({
-                        text: question.notifyWarningMessage
-                    }) }}
-                {% endif %}
+                {{ beforeSubmitButton }}
 
                 {{ govukButton({
                     text: continueButtonText,

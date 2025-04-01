@@ -1,5 +1,7 @@
 {% extends "views/layouts/main.njk" %}
 
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+
 {% if not title %}
   {% set title %}
     {{ question.pageTitle | default('GOV.UK') }} – Manage Crown Developments
@@ -19,6 +21,12 @@
     </div>
   {% endif %}
 {% endblock before_content %}
+
+{% if question.warningMessage %}
+  {% set beforeSubmitButton = govukWarningText({
+    text: question.warningMessage
+  }) %}
+{% endif %}
 
 {% block after_content %}
   {% if showBackToListLink %}
