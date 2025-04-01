@@ -77,7 +77,9 @@ describe('written representations', () => {
 		it('should throw error if id is missing', async () => {
 			const mockReq = { params: {} };
 			const saveRepresentationController = buildSaveRepresentationController({});
-			await assert.rejects(() => saveRepresentationController(mockReq, {}), { message: 'id param required' });
+			await assert.rejects(() => saveRepresentationController(mockReq, { locals: { journeyResponse: {} } }), {
+				message: 'id param required'
+			});
 		});
 		it('should should 404 for invalid id', async () => {
 			const mockReq = { params: { id: 'abc-123' } };

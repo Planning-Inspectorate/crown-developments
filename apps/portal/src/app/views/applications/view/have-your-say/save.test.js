@@ -383,6 +383,7 @@ describe('have your say', () => {
 					findUnique: mock.fn(() => ({
 						id: 'case-1',
 						reference: 'CROWN/2025/0000001',
+						description: 'a big project',
 						SiteAddress: { line1: '4 the street', line2: 'town', postcode: 'wc1w 1bw' }
 					}))
 				},

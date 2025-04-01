@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { NotifyConfig } from '@pins/crowndev-lib/govnotify/types';
 
 interface Config {
 	auth: {
@@ -42,14 +43,5 @@ interface Config {
 		caseTemplateId?: string; // Id for template folder (new case template folder structure)
 	};
 	staticDir: string;
-	govNotify: {
-		disabled: boolean;
-		apiKey: string;
-		testTemplate: string;
-		preAckTemplate: string;
-		templates: {
-			test: string;
-			acknowledgePreNotification: string;
-		};
-	};
+	govNotify: NotifyConfig;
 }

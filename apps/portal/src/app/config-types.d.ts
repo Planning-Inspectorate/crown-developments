@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { NotifyConfig } from '@pins/crowndev-lib/govnotify/types';
 
 interface Config {
 	cacheControl: {
@@ -19,14 +20,7 @@ interface Config {
 		secret: string;
 	};
 	staticDir: string;
-	govNotify: {
-		disabled: boolean;
-		apiKey: string;
-		templateIds: {
-			test: string;
-			acknowledgementOfRepresentation: string;
-		};
-	};
+	govNotify: NotifyConfig;
 	crownDevContactInfo: {
 		email: string;
 	};
