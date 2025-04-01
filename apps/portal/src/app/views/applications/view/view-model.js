@@ -4,6 +4,7 @@ import {
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
+import { addressToViewModel } from '@pins/dynamic-forms/src/lib/address-utils.js';
 
 /**
  *
@@ -52,15 +53,6 @@ export function crownDevelopmentToViewModel(crownDevelopment, contactEmail) {
 	}
 
 	return fields;
-}
-
-/**
- * @param {import('@prisma/client').Prisma.AddressGetPayload<{}>} address
- * @returns {string}
- */
-function addressToViewModel(address) {
-	const fields = [address.line1, address.line2, address.townCity, address.county, address.postcode];
-	return fields.filter(Boolean).join(', ');
 }
 
 /**
