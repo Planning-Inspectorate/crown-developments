@@ -3,6 +3,7 @@ import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitorin
 import { createRoutes as applicationRoutes } from './views/applications/index.js';
 import { buildTermsAndConditionsPage } from './views/static/terms-and-conditions/controller.js';
 import { buildContactUsPage } from './views/static/contact/controller.js';
+import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -14,6 +15,10 @@ export function buildRouter(service) {
 	const monitoringRoutes = createMonitoringRoutes(service);
 
 	router.use('/', monitoringRoutes);
+
+	// don't cache responses, note no-cache allows some caching, but with revalidation
+	// see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#no-cache
+	router.use(cacheNoCacheMiddleware);
 
 	if (service.isLive) {
 		router.route('/').get((req, res) => {
