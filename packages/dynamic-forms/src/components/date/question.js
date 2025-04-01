@@ -24,6 +24,7 @@ export default class DateQuestion extends Question {
 	 * @param {Array.<import('../../validator/base-validator')>} [params.validators]
 	 * @param {boolean} [params.editable]
 	 * @param {string} [params.dateFormat]
+	 * @param {string} [params.warningMessage]
 	 */
 	constructor({
 		title,
@@ -34,7 +35,7 @@ export default class DateQuestion extends Question {
 		url,
 		editable,
 		dateFormat = DEFAULT_DATE_FORMAT,
-		notifyWarningMessage
+		warningMessage
 	}) {
 		super({
 			title,
@@ -44,10 +45,10 @@ export default class DateQuestion extends Question {
 			validators,
 			hint,
 			url,
-			editable
+			editable,
+			warningMessage
 		});
 		this.dateFormat = dateFormat;
-		this.notifyWarningMessage = notifyWarningMessage;
 	}
 
 	/**
@@ -110,8 +111,6 @@ export default class DateQuestion extends Question {
 			[`${this.fieldName}_month`]: month,
 			[`${this.fieldName}_year`]: year
 		};
-
-		viewModel.question.notifyWarningMessage = this.notifyWarningMessage;
 
 		return { ...viewModel, answer, question: { ...viewModel.question, value: answer } };
 	}

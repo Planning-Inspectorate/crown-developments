@@ -101,6 +101,7 @@ export class Question {
 	 * @param {(response: JourneyResponse) => boolean} [params.shouldDisplay]
 	 * @param {string} [params.autocomplete]
 	 * @param {boolean} [params.editable] - defaults to true
+	 * @param {string} [params.warningMessage]
 	 *
 	 * @param {Record<string, Function>} [methodOverrides]
 	 */
@@ -119,7 +120,8 @@ export class Question {
 			interfaceType,
 			shouldDisplay,
 			autocomplete,
-			editable = true
+			editable = true,
+			warningMessage
 		},
 		methodOverrides
 	) {
@@ -139,6 +141,7 @@ export class Question {
 		this.interfaceType = interfaceType;
 		this.autocomplete = autocomplete;
 		this.editable = editable;
+		this.warningMessage = warningMessage;
 
 		if (shouldDisplay) {
 			this.shouldDisplay = shouldDisplay;
@@ -190,6 +193,7 @@ export class Question {
 			journeyTitle: journey.journeyTitle,
 			payload,
 
+			warningMessage: this.warningMessage,
 			continueButtonText: this.continueButtonText,
 
 			...customViewData
