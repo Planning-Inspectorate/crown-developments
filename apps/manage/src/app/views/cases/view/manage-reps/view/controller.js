@@ -87,7 +87,11 @@ export function buildGetJourneyMiddleware({ db, logger }) {
 			where: { reference: representationRef },
 			include: {
 				SubmittedFor: true,
-				SubmittedByContact: true,
+				SubmittedByContact: {
+					include: {
+						Address: true
+					}
+				},
 				RepresentedContact: true
 			}
 		});

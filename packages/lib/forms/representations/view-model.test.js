@@ -38,6 +38,7 @@ describe('view-model', () => {
 				requiresReview: false,
 				submittedByContactId: undefined,
 				representedContactId: undefined,
+				submittedByAddressId: undefined,
 				comment: 'comment one',
 				commentRedacted: '███████ one'
 			});
@@ -59,6 +60,7 @@ describe('view-model', () => {
 				requiresReview: true,
 				submittedByContactId: undefined,
 				representedContactId: undefined,
+				submittedByAddressId: undefined,
 				comment: undefined,
 				commentRedacted: undefined
 			});
@@ -76,7 +78,17 @@ describe('view-model', () => {
 				SubmittedByContact: {
 					isAdult: true,
 					fullName: 'my name',
-					email: 'email@example.com'
+					email: 'email@example.com',
+					contactPreferenceId: 'post',
+					addressId: 'abc-123',
+					Address: {
+						id: 'abc-123',
+						line1: '221b Baker Street',
+						line2: 'apartment 2',
+						townCity: 'London',
+						county: 'Greater London',
+						postcode: 'NW1 6XE'
+					}
 				}
 			};
 			const viewModel = representationToManageViewModel(representation, applicationReference);
@@ -92,9 +104,20 @@ describe('view-model', () => {
 				myselfFullName: 'my name',
 				myselfEmail: 'email@example.com',
 				myselfComment: 'my comments',
+
+				myselfAddress: {
+					id: 'abc-123',
+					addressLine1: '221b Baker Street',
+					addressLine2: 'apartment 2',
+					townCity: 'London',
+					county: 'Greater London',
+					postcode: 'NW1 6XE'
+				},
+				myselfContactPreference: 'post',
 				requiresReview: false,
 				submittedByContactId: 'sub-id-1',
 				representedContactId: undefined,
+				submittedByAddressId: 'abc-123',
 				comment: 'my comments',
 				commentRedacted: undefined
 			});
@@ -112,7 +135,8 @@ describe('view-model', () => {
 				SubmittedByContact: {
 					isAdult: true,
 					fullName: 'my name',
-					email: 'email@example.com'
+					email: 'email@example.com',
+					contactPreferenceId: 'email'
 				},
 				representedTypeId: 'r-id-1'
 			};
@@ -128,11 +152,14 @@ describe('view-model', () => {
 				representedTypeId: 'r-id-1',
 				submitterIsAdult: 'yes',
 				submitterFullName: 'my name',
+				submitterContactPreference: 'email',
+				submitterAddress: {},
 				submitterEmail: 'email@example.com',
 				submitterComment: 'my comments',
 				requiresReview: false,
 				submittedByContactId: 'sub-id-1',
 				representedContactId: undefined,
+				submittedByAddressId: undefined,
 				comment: 'my comments',
 				commentRedacted: undefined
 			});
@@ -173,7 +200,9 @@ describe('view-model', () => {
 				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
 				submitterIsAdult: 'yes',
 				submitterFullName: 'my name',
+				submitterContactPreference: undefined,
 				submitterEmail: 'email@example.com',
+				submitterAddress: {},
 				submitterComment: 'my comments',
 				representedIsAdult: 'yes',
 				representedFullName: 'the persons name',
@@ -182,6 +211,7 @@ describe('view-model', () => {
 				requiresReview: false,
 				submittedByContactId: 'sub-id-1',
 				representedContactId: 'rep-id-1',
+				submittedByAddressId: undefined,
 				comment: 'my comments',
 				commentRedacted: undefined
 			});
@@ -218,13 +248,16 @@ describe('view-model', () => {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				wantsToBeHeard: 'yes',
 				representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
+				submittedByAddressId: undefined,
 				submitterIsAdult: 'yes',
 				submitterFullName: 'my name',
+				submitterContactPreference: undefined,
 				submitterEmail: 'email@example.com',
 				submitterComment: 'my comments',
 				orgName: 'the orgs name',
 				orgRoleName: 'my role',
 				requiresReview: false,
+				submitterAddress: {},
 				submittedByContactId: 'sub-id-1',
 				representedContactId: 'rep-id-1',
 				comment: 'my comments',
@@ -264,8 +297,11 @@ describe('view-model', () => {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				wantsToBeHeard: 'yes',
 				representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
+				submittedByAddressId: undefined,
+				submitterAddress: {},
 				submitterIsAdult: 'yes',
 				submitterFullName: 'my name',
+				submitterContactPreference: undefined,
 				submitterEmail: 'email@example.com',
 				submitterComment: 'my comments',
 				isAgent: 'yes',
@@ -322,7 +358,7 @@ describe('view-model', () => {
 			assert.strictEqual(updates.comment, 'my comment');
 			assert.ok(updates.SubmittedByContact);
 			assert.strictEqual(updates.SubmittedByContact.upsert?.where, undefined);
-			assert.deepStrictEqual(updates.SubmittedByContact.upsert?.create, {
+			assert.deepStrictEqual(updates.SubmittedByContact?.create, {
 				isAdult: true,
 				fullName: 'Person A',
 				email: 'some@example.email'
@@ -343,7 +379,7 @@ describe('view-model', () => {
 			assert.strictEqual(updates.representedTypeId, REPRESENTED_TYPE_ID.PERSON);
 			assert.ok(updates.SubmittedByContact);
 			assert.strictEqual(updates.SubmittedByContact.upsert?.where, undefined);
-			assert.deepStrictEqual(updates.SubmittedByContact.upsert?.create, {
+			assert.deepStrictEqual(updates.SubmittedByContact?.create, {
 				isAdult: true,
 				fullName: 'Person A',
 				email: 'some@example.email'
@@ -400,7 +436,7 @@ describe('view-model', () => {
 				fullName: 'Household A'
 			});
 		});
-		it('should include submitter contact id', () => {
+		it('should include represented contact id', () => {
 			/** @type {HaveYourSayManageModel} */
 			const edits = {
 				representedOrgName: 'Household A'
@@ -413,23 +449,6 @@ describe('view-model', () => {
 			assert.ok(updates.RepresentedContact);
 			assert.deepStrictEqual(updates.RepresentedContact.upsert?.where, {
 				id: 'rep-id-1'
-			});
-		});
-		it('should include represented contact id', () => {
-			/** @type {HaveYourSayManageModel} */
-			const edits = {
-				myselfIsAdult: BOOLEAN_OPTIONS.YES,
-				myselfFullName: 'Person A',
-				myselfEmail: 'some@example.email'
-			};
-			const viewModel = {
-				submittedByContactId: 'sub-id-1'
-			};
-			const updates = editsToDatabaseUpdates(edits, viewModel);
-			assert.ok(updates);
-			assert.ok(updates.SubmittedByContact);
-			assert.deepStrictEqual(updates.SubmittedByContact.upsert?.where, {
-				id: 'sub-id-1'
 			});
 		});
 	});
@@ -467,7 +486,12 @@ describe('view-model', () => {
 						create: {
 							isAdult: true,
 							fullName: 'my name',
-							email: 'myemail@email.com'
+							email: 'myemail@email.com',
+							ContactPreference: {
+								connect: {
+									id: 'email'
+								}
+							}
 						}
 					},
 					SubmittedFor: {
@@ -516,7 +540,12 @@ describe('view-model', () => {
 						create: {
 							isAdult: true,
 							fullName: 'my name',
-							email: 'myemail@email.com'
+							email: 'myemail@email.com',
+							ContactPreference: {
+								connect: {
+									id: 'email'
+								}
+							}
 						}
 					},
 					SubmittedFor: {
@@ -574,7 +603,12 @@ describe('view-model', () => {
 						create: {
 							isAdult: true,
 							fullName: 'my name',
-							email: 'myemail@email.com'
+							email: 'myemail@email.com',
+							ContactPreference: {
+								connect: {
+									id: 'email'
+								}
+							}
 						}
 					},
 					SubmittedFor: {
@@ -631,7 +665,12 @@ describe('view-model', () => {
 							isAdult: true,
 							fullName: 'my name',
 							email: 'myemail@email.com',
-							jobTitleOrRole: 'my role at org'
+							jobTitleOrRole: 'my role at org',
+							ContactPreference: {
+								connect: {
+									id: 'email'
+								}
+							}
 						}
 					},
 					SubmittedFor: {
@@ -691,7 +730,12 @@ describe('view-model', () => {
 						},
 						expected: {
 							isAdult: false,
-							email: 'save email'
+							email: 'save email',
+							ContactPreference: {
+								connect: {
+									id: 'email'
+								}
+							}
 						}
 					},
 					{
@@ -705,7 +749,12 @@ describe('view-model', () => {
 						expected: {
 							isAdult: true,
 							fullName: 'save',
-							email: 'save email'
+							email: 'save email',
+							ContactPreference: {
+								connect: {
+									id: 'email'
+								}
+							}
 						}
 					},
 					{
@@ -718,7 +767,12 @@ describe('view-model', () => {
 						},
 						expected: {
 							isAdult: false,
-							email: 'save email'
+							email: 'save email',
+							ContactPreference: {
+								connect: {
+									id: 'email'
+								}
+							}
 						}
 					},
 					{
@@ -732,7 +786,12 @@ describe('view-model', () => {
 						expected: {
 							isAdult: true,
 							fullName: 'save',
-							email: 'save email'
+							email: 'save email',
+							ContactPreference: {
+								connect: {
+									id: 'email'
+								}
+							}
 						}
 					}
 				];
@@ -1052,7 +1111,12 @@ describe('view-model', () => {
 						},
 						expected: {
 							isAdult: false,
-							email: 'save email'
+							email: 'save email',
+							ContactPreference: {
+								connect: {
+									id: 'email'
+								}
+							}
 						}
 					},
 					{
@@ -1066,7 +1130,12 @@ describe('view-model', () => {
 						expected: {
 							isAdult: true,
 							fullName: 'save',
-							email: 'save email'
+							email: 'save email',
+							ContactPreference: {
+								connect: {
+									id: 'email'
+								}
+							}
 						}
 					},
 					{
@@ -1079,7 +1148,12 @@ describe('view-model', () => {
 						},
 						expected: {
 							isAdult: false,
-							email: 'save email'
+							email: 'save email',
+							ContactPreference: {
+								connect: {
+									id: 'email'
+								}
+							}
 						}
 					},
 					{
@@ -1093,7 +1167,12 @@ describe('view-model', () => {
 						expected: {
 							isAdult: true,
 							fullName: 'save',
-							email: 'save email'
+							email: 'save email',
+							ContactPreference: {
+								connect: {
+									id: 'email'
+								}
+							}
 						}
 					}
 				];

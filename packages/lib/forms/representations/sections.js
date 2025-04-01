@@ -20,8 +20,8 @@ export function haveYourSayManageSections(questions) {
 			.addQuestion(questions.category)
 			.addQuestion(questions.status),
 		new Section('Representation', 'start').addQuestion(questions.submittedFor),
-		myselfSection(questions),
-		agentSection(questions),
+		addRepMyselfSection(questions),
+		addRepAgentSection(questions),
 		new Section('More Details', 'more-details')
 			.addQuestion(questions.commentRedacted)
 			.addQuestion(questions.wantsToBeHeard)

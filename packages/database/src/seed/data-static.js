@@ -196,17 +196,23 @@ export const REPRESENTATION_CATEGORY = [
 		displayName: 'Interested Parties'
 	}
 ];
-
+/**
+ * @type {Readonly<{EMAIL: string, POST: string}>}
+ */
+export const CONTACT_PREFERENCE_ID = Object.freeze({
+	EMAIL: 'email',
+	POST: 'post'
+});
 /**
  * @type {import('@prisma/client').Prisma.ContactPreferenceCreateInput[]}
  */
 export const CONTACT_PREFERENCE = [
 	{
-		id: 'email',
+		id: CONTACT_PREFERENCE_ID.EMAIL,
 		displayName: 'Email'
 	},
 	{
-		id: 'post',
+		id: CONTACT_PREFERENCE_ID.POST,
 		displayName: 'Post'
 	}
 ];

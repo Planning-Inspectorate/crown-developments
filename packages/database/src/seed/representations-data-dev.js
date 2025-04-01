@@ -1,6 +1,112 @@
 import { faker } from '@faker-js/faker';
 import { REPRESENTATION_STATUS_ID, REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from './data-static.js';
 
+export const representationContactAddresses = [
+	{
+		id: '7e238942-71b5-42b3-92c3-5be987cd1b2f',
+		line1: '10 Elm Street',
+		line2: null,
+		townCity: 'Manchester',
+		county: null,
+		postcode: 'M1 1AB'
+	},
+	{
+		id: 'b6b56a2c-314a-458e-bf1b-9a3f834c0673',
+		line1: '45 Oak Lane',
+		line2: 'Flat 2',
+		townCity: 'Birmingham',
+		county: null,
+		postcode: 'B1 2CD'
+	},
+	{
+		id: 'fc397169-0bc3-4d57-8c3c-63e5288e1de4',
+		line1: '78 Maple Avenue',
+		line2: null,
+		townCity: 'Leeds',
+		county: 'West Yorkshire',
+		postcode: 'LS1 4EF'
+	},
+	{
+		id: '5d97e8ca-8ef1-4a3b-b329-a84f27ec7adb',
+		line1: '22 Pine Crescent',
+		line2: 'Suite 4',
+		townCity: 'Liverpool',
+		county: null,
+		postcode: 'L1 6GH'
+	},
+	{
+		id: 'c58a3840-8b5b-4f22-8872-d768b034cd7a',
+		line1: '9 Willow Way',
+		line2: null,
+		townCity: 'London',
+		county: null,
+		postcode: 'E1 2IJ'
+	},
+	{
+		id: '9ea5b2a9-36ab-4ac8-8cb0-728b6d94f675',
+		line1: '30 Ash Court',
+		line2: 'Building A',
+		townCity: 'Sheffield',
+		county: 'South Yorkshire',
+		postcode: 'S1 3KL'
+	},
+	{
+		id: '418a8c9c-1cb9-418b-a7ef-f244c573ca2b',
+		line1: '16 Cedar Close',
+		line2: null,
+		townCity: 'Newcastle',
+		county: null,
+		postcode: 'NE1 5MN'
+	},
+	{
+		id: 'c8f4d38f-9c09-4f12-8692-3dcf8cbb7e2d',
+		line1: '55 Birch Terrace',
+		line2: 'Apartment 5B',
+		townCity: 'Brighton',
+		county: null,
+		postcode: 'BN1 1OP'
+	},
+	{
+		id: 'e24d2bae-8dbc-48a4-b197-977eeb4e813d',
+		line1: '34 Fir View',
+		line2: null,
+		townCity: 'Bristol',
+		county: null,
+		postcode: 'BS1 2QR'
+	},
+	{
+		id: 'f9726c49-a1f5-41f9-9525-3eaf8e8099d0',
+		line1: '12 Holly Gardens',
+		line2: 'Ground Floor',
+		townCity: 'Cardiff',
+		county: null,
+		postcode: 'CF1 4ST'
+	},
+	{
+		id: '87d95c5b-a2d7-4f2b-a81c-6a5e079c612b',
+		line1: '67 Ivy Walk',
+		line2: null,
+		townCity: 'Edinburgh',
+		county: 'Midlothian',
+		postcode: 'EH1 2UV'
+	},
+	{
+		id: 'edaef953-7388-4602-a14a-3a9d9d2be1bf',
+		line1: '89 Laurel Park',
+		line2: 'Flat 10',
+		townCity: 'Glasgow',
+		county: null,
+		postcode: 'G1 3WX'
+	},
+	{
+		id: 'db47e9cf-b8a9-4fa8-8dcd-48ca96a9be96',
+		line1: '33 Chestnut Hill',
+		line2: null,
+		townCity: 'Oxford',
+		county: null,
+		postcode: 'OX1 4YZ'
+	}
+];
 /**
  * @param {import('@prisma/client').PrismaClient} dbClient
  * @param {import('@prisma/client').Prisma.RepresentationCreateInput} representation
@@ -45,31 +151,131 @@ export function generateRandomRepresentationReference() {
  * @type {import('@prisma/client').Prisma.ContactCreateInput[]}
  */
 export const repsContacts = [
-	{ id: '05fa5f0f-342d-466d-8d61-e837586d6a3d', fullName: 'Person One', email: 'person-one@example.com' },
-	{ id: 'b4654a6b-7ab1-4391-8e81-839809b0dfb0', fullName: 'Person Two' },
-	{ id: 'afb9d282-0db0-4fbd-a9f9-90c13f1e3cd0', fullName: 'Person Three', email: 'person-three@example.com' },
-	{ id: '1bb4a1c8-d068-4d75-bcaa-9dc0e33ac1ee', fullName: 'Person Four' },
-	{ id: 'c98304bd-5607-4819-9bd2-9af51d9b419f', fullName: 'Person Five', email: 'person-five@example.com' },
-	{ id: '14c92bd0-8457-480d-8b10-a3fb6c0fd372', fullName: 'Person Six', jobTitleOrRole: 'Chief Commenter' },
-	{ id: '5636f842-3263-4a27-9b83-86229ae1dd67', fullName: 'Person Seven', jobTitleOrRole: 'Manager' },
+	{
+		id: '05fa5f0f-342d-466d-8d61-e837586d6a3d',
+		fullName: 'Person One',
+		email: 'person-one@example.com',
+		contactPreferenceId: 'email'
+	},
+	{
+		id: 'b4654a6b-7ab1-4391-8e81-839809b0dfb0',
+		fullName: 'Person Two',
+		addressId: '7e238942-71b5-42b3-92c3-5be987cd1b2f',
+		contactPreferenceId: 'post'
+	},
+	{
+		id: 'afb9d282-0db0-4fbd-a9f9-90c13f1e3cd0',
+		fullName: 'Person Three',
+		email: 'person-three@example.com',
+		contactPreferenceId: 'email'
+	},
+	{
+		id: '1bb4a1c8-d068-4d75-bcaa-9dc0e33ac1ee',
+		fullName: 'Person Four',
+		addressId: 'b6b56a2c-314a-458e-bf1b-9a3f834c0673',
+		contactPreferenceId: 'post'
+	},
+	{
+		id: 'c98304bd-5607-4819-9bd2-9af51d9b419f',
+		fullName: 'Person Five',
+		email: 'person-five@example.com',
+		contactPreferenceId: 'email'
+	},
+	{
+		id: '14c92bd0-8457-480d-8b10-a3fb6c0fd372',
+		fullName: 'Person Six',
+		jobTitleOrRole: 'Chief Commenter',
+		addressId: 'fc397169-0bc3-4d57-8c3c-63e5288e1de4',
+		contactPreferenceId: 'post'
+	},
+	{
+		id: '5636f842-3263-4a27-9b83-86229ae1dd67',
+		fullName: 'Person Seven',
+		jobTitleOrRole: 'Manager',
+		addressId: '5d97e8ca-8ef1-4a3b-b329-a84f27ec7adb',
+		contactPreferenceId: 'post'
+	},
 	{
 		id: 'c3b722e6-afba-4a9f-87f1-96db55e145c1',
 		fullName: 'Person Eight',
 		email: 'person-eight@example.com',
-		jobTitleOrRole: 'Planning Person'
+		jobTitleOrRole: 'Planning Person',
+		contactPreferenceId: 'email'
 	},
-	{ id: '30925c6a-d50d-40a9-93e3-b6b7a3ff2fbb', fullName: 'Person Nine', jobTitleOrRole: 'Representative' },
-	{ id: 'f589adb8-73e2-4562-86ce-bd81fc33d2af', fullName: 'Person Ten', jobTitleOrRole: 'Community Spokesperson' },
-	{ id: '0af835c0-8ed1-46a1-b43f-665fc062b1ed', fullName: 'Person Eleven', email: 'person-eleven@example.com' },
-	{ id: 'd75f3116-945e-44a4-bffd-4cd36d1cc968', fullName: 'Person Twelve' },
-	{ id: '61700b0a-2251-4779-ba3d-6b0cb9d034a9', fullName: 'Person Thirteen', email: 'person-thirteen@example.com' },
-	{ id: 'e1f12f5b-4107-456d-8ab1-ca7b4b8e114a', fullName: 'Person Fourteen' },
-	{ id: 'cda925f4-2393-454c-8381-f07b2332547b', fullName: 'Person Fifteen' },
-	{ id: 'b084ed4d-d835-4b49-9a4f-cb25bb36a445', fullName: 'Person Sixteen', email: 'person-sixteen@example.com' },
-	{ id: '98b8b7c1-598d-4fd7-b5f1-f160528cb3b5', fullName: 'Person Seventeen' },
-	{ id: '9cbc1386-e4bb-4dbe-a6d2-c6f2189449c3', fullName: 'Person Eighteen' },
-	{ id: '35f252df-48f6-416a-97c3-b4cf2985c459', fullName: 'Person Nineteen' },
-	{ id: '85bf0b28-66e3-4e4a-bcd4-f69a00befb84', fullName: 'Person Twenty' }
+	{
+		id: '30925c6a-d50d-40a9-93e3-b6b7a3ff2fbb',
+		fullName: 'Person Nine',
+		jobTitleOrRole: 'Representative',
+		addressId: 'c58a3840-8b5b-4f22-8872-d768b034cd7a',
+		contactPreferenceId: 'post'
+	},
+	{
+		id: 'f589adb8-73e2-4562-86ce-bd81fc33d2af',
+		fullName: 'Person Ten',
+		jobTitleOrRole: 'Community Spokesperson',
+		addressId: '9ea5b2a9-36ab-4ac8-8cb0-728b6d94f675',
+		contactPreferenceId: 'post'
+	},
+	{
+		id: '0af835c0-8ed1-46a1-b43f-665fc062b1ed',
+		fullName: 'Person Eleven',
+		email: 'person-eleven@example.com',
+		contactPreferenceId: 'email'
+	},
+	{
+		id: 'd75f3116-945e-44a4-bffd-4cd36d1cc968',
+		fullName: 'Person Twelve',
+		addressId: '418a8c9c-1cb9-418b-a7ef-f244c573ca2b',
+		contactPreferenceId: 'post'
+	},
+	{
+		id: '61700b0a-2251-4779-ba3d-6b0cb9d034a9',
+		fullName: 'Person Thirteen',
+		email: 'person-thirteen@example.com',
+		contactPreferenceId: 'email'
+	},
+	{
+		id: 'e1f12f5b-4107-456d-8ab1-ca7b4b8e114a',
+		fullName: 'Person Fourteen',
+		addressId: 'c8f4d38f-9c09-4f12-8692-3dcf8cbb7e2d',
+		contactPreferenceId: 'post'
+	},
+	{
+		id: 'cda925f4-2393-454c-8381-f07b2332547b',
+		fullName: 'Person Fifteen',
+		addressId: 'e24d2bae-8dbc-48a4-b197-977eeb4e813d',
+		contactPreferenceId: 'post'
+	},
+	{
+		id: 'b084ed4d-d835-4b49-9a4f-cb25bb36a445',
+		fullName: 'Person Sixteen',
+		email: 'person-sixteen@example.com',
+		contactPreferenceId: 'email'
+	},
+	{
+		id: '98b8b7c1-598d-4fd7-b5f1-f160528cb3b5',
+		fullName: 'Person Seventeen',
+		addressId: 'f9726c49-a1f5-41f9-9525-3eaf8e8099d0',
+		contactPreferenceId: 'post'
+	},
+	{
+		id: '9cbc1386-e4bb-4dbe-a6d2-c6f2189449c3',
+		fullName: 'Person Eighteen',
+		addressId: '87d95c5b-a2d7-4f2b-a81c-6a5e079c612b',
+		contactPreferenceId: 'post'
+	},
+	{
+		id: '35f252df-48f6-416a-97c3-b4cf2985c459',
+		fullName: 'Person Nineteen',
+		addressId: 'edaef953-7388-4602-a14a-3a9d9d2be1bf',
+		contactPreferenceId: 'post'
+	},
+	{
+		id: '85bf0b28-66e3-4e4a-bcd4-f69a00befb84',
+		fullName: 'Person Twenty',
+		addressId: 'db47e9cf-b8a9-4fa8-8dcd-48ca96a9be96',
+		contactPreferenceId: 'post'
+	}
 ];
 
 /**
@@ -101,30 +307,6 @@ export const repsBehalfOfContacts = [
 	{ id: 'a7bd8186-6913-49f3-862e-18c38e615f2e', fullName: 'Community Org 3' },
 	{ id: '9a9b7479-6fde-49ae-9c9f-e1b553bea904', fullName: 'Household 1' },
 	{ id: '8aa7a2ad-ff79-4355-a436-46e557971bb9', fullName: 'Household 2' }
-];
-
-// all the old rep references, to be mapped to the new format XXXXX-YYYYY
-export const oldRepReferences = [
-	'5031-5316-3D51-66E3',
-	'4705-B405-AD6A-069E',
-	'A9BC-3915-FDF0-6878',
-	'1295-C726-E8AB-36F4',
-	'ADE3-E60E-0C99-E01B',
-	'7806-3E19-BBBC-CEEF',
-	'6EFB-4E9C-8B6B-040F',
-	'FA0F-1C40-19CB-E6C1',
-	'3368-30DE-BE9A-126E',
-	'1E11-CC92-E6D8-FF71',
-	'9D82-748F-3788-5B87',
-	'F095-62CF-1FB7-645D',
-	'C96A-4ECE-B9B4-F52C',
-	'AD88-8F0C-2986-DBB0',
-	'554C-0F04-1A2F-155E',
-	'8479-A8FA-798A-B0A2',
-	'7128-26A4-74A2-8029',
-	'1D5A-ACF9-D357-0A7C',
-	'E7A9-3F3D-48D7-1EB5',
-	'8083-1C32-ACB0-BFFB'
 ];
 
 export const repReferences = [
