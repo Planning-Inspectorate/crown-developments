@@ -11,6 +11,12 @@ export function createMonitoringRoutes({ gitSha, dbClient, logger }) {
 	const router = createRouter();
 	const handleHealthCheck = buildHandleHeathCheck(logger, gitSha, dbClient);
 
+	router.use((req, res, next) => {
+		// don't cache monitoring responses
+		res.set('Cache-Control', 'no-store');
+		next();
+	});
+
 	router.head('/', asyncHandler(handleHeadHealthCheck));
 	router.get('/health', asyncHandler(handleHealthCheck));
 
