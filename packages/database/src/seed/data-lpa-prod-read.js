@@ -143,6 +143,7 @@ run().catch(console.error);
 
 // static mapping to ID - required for the question-generation to function which links by ID
 const ONS_CODE_TO_ID = Object.freeze({
+	ZZZZZZZZZ: '3e2dac35-d7fe-418d-b4b4-56f11fac108e', // test LPA
 	E60000001: 'e4a24f35-5edf-4f04-bf18-ab0dfeb54d64',
 	E60000002: '15598949-fb23-47ed-a81d-816df5ca96b5',
 	E60000003: '93c94cc4-440e-4d3e-96a9-aee67a3d6e0d',
