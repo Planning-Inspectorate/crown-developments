@@ -26,6 +26,8 @@ import AddressValidator from '@pins/dynamic-forms/src/validator/address-validato
 import CoordinatesValidator from '@pins/dynamic-forms/src/validator/coordinates-validator.js';
 import DatePeriodValidator from '@pins/dynamic-forms/src/validator/date-period-validator.js';
 import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
+import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.js';
+import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
 
 /**
  * @param {import('../../../../util/entra-groups-types.js').EntraGroupMembers} [groupMembers]
@@ -393,7 +395,17 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 
 		writtenRepsProcedureNotificationDate: dateQuestion('writtenRepsProcedureNotificationDate'),
 		...eventQuestions('hearing'),
-		...eventQuestions('inquiry')
+		...eventQuestions('inquiry'),
+
+		applicationFee: {
+			type: CUSTOM_COMPONENTS.FEE_AMOUNT,
+			title: 'Fee Amount',
+			question: 'What is the application fee?',
+			fieldName: 'applicationFee',
+			url: 'fee-amount',
+			feeAmountQuestion: 'For example, £1000.00',
+			validators: [new FeeAmountValidator()]
+		}
 	};
 
 	const textOverrides = {
@@ -402,5 +414,9 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		changeActionText: 'Edit',
 		answerActionText: 'Edit'
 	};
-	return createQuestions(questions, questionClasses, {}, textOverrides);
+	const classes = {
+		...questionClasses,
+		...CUSTOM_COMPONENT_CLASSES
+	};
+	return createQuestions(questions, classes, {}, textOverrides);
 }
