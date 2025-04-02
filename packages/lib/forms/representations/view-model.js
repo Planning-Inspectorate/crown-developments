@@ -6,6 +6,7 @@ import {
 	REPRESENTED_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { optionalWhere } from '../../util/database.js';
+import { addressToViewModel, viewModelToAddressUpdateInput } from '../../util/address.js';
 
 /**
  * Representation fields that do not need mapping to a (or from) the view model
@@ -314,36 +315,4 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 	}
 
 	return createInput;
-}
-
-/**
- * @param {import('@prisma/client').Prisma.AddressGetPayload<{}>} address
- * @returns {import('@pins/dynamic-forms/src/lib/address.js').Address}
- */
-function addressToViewModel(address) {
-	if (address) {
-		return {
-			id: address.id,
-			addressLine1: address.line1,
-			addressLine2: address.line2,
-			townCity: address.townCity,
-			county: address.county,
-			postcode: address.postcode
-		};
-	}
-	return {};
-}
-
-/**
- * @param {import('@pins/dynamic-forms/src/lib/address.js').Address} edits
- * @returns {import('@prisma/client').Prisma.AddressCreateInput|null}
- */
-function viewModelToAddressUpdateInput(edits) {
-	return {
-		line1: edits?.addressLine1 ?? null,
-		line2: edits?.addressLine2 ?? null,
-		townCity: edits?.townCity ?? null,
-		county: edits?.county ?? null,
-		postcode: edits?.postcode ?? null
-	};
 }
