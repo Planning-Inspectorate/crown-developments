@@ -9,10 +9,10 @@ export default class FeeAmount extends OptionsQuestion {
 				value: BOOLEAN_OPTIONS.YES,
 				attributes: { 'data-cy': 'answer-yes' },
 				conditional: {
-					type: 'fee-amount',
+					type: 'text',
 					fieldName: 'amount',
 					question: feeAmountQuestion,
-					prefixText: '£',
+					prefix: { text: '£' },
 					inputClasses: 'govuk-!-width-one-half'
 				}
 			},
