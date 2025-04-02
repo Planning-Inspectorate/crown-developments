@@ -188,6 +188,13 @@ describe('./src/dynamic-forms/question.js', () => {
 
 			assert.strictEqual(result, undefined);
 		});
+
+		it('should handle undefined body', () => {
+			const req = { body: undefined };
+			const question = getTestQuestion();
+
+			assert.doesNotThrow(() => question.checkForValidationErrors(req));
+		});
 	});
 
 	describe('getDataToSave', () => {
