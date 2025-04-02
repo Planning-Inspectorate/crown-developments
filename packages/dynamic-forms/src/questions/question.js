@@ -221,7 +221,7 @@ export class Question {
 	 * @returns {QuestionViewModel|undefined} returns the view model for displaying the error or undefined if there are no errors
 	 */
 	checkForValidationErrors(req, sectionObj, journey) {
-		const { body } = req;
+		const { body = {} } = req;
 		const { errors = {}, errorSummary = [] } = body;
 
 		if (Object.keys(errors).length > 0) {
