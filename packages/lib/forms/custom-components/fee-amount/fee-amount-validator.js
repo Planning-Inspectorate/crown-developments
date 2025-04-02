@@ -1,5 +1,6 @@
 import BaseValidator from '@pins/dynamic-forms/src/validator/base-validator.js';
 import { body } from 'express-validator';
+import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
 
 export default class FeeAmountValidator extends BaseValidator {
 	constructor() {
@@ -11,7 +12,7 @@ export default class FeeAmountValidator extends BaseValidator {
 		return [
 			body(fieldName).notEmpty().withMessage('Select Yes if there is an application fee'),
 			body(`${fieldName}_amount`)
-				.if(body(fieldName).equals('yes'))
+				.if(body(fieldName).equals(BOOLEAN_OPTIONS.YES))
 				.notEmpty()
 				.withMessage('Application fee is required')
 				.bail()
