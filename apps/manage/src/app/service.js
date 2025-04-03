@@ -104,7 +104,7 @@ export class ManageService {
 		return this.#config.staticDir;
 	}
 
-	get frontOfficeLink() {
-		return this.#config.frontOfficeLink;
+	get portalBaseUrl() {
+		return this.#config.portalBaseUrl;
 	}
 }

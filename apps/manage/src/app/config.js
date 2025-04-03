@@ -122,11 +122,10 @@ export function loadConfig() {
 	}
 
 	const protocol = APP_HOSTNAME?.startsWith('localhost') ? 'http://' : 'https://';
-	const frontOfficeProtocol = PORTAL_HOSTNAME?.startsWith('localhost') ? 'http://' : 'https://';
 
 	config = {
 		appHostname: APP_HOSTNAME,
-		frontOfficeLink: `${frontOfficeProtocol}${PORTAL_HOSTNAME}/applications`,
+		portalBaseUrl: PORTAL_HOSTNAME,
 		auth: {
 			authority: `https://login.microsoftonline.com/${AUTH_TENANT_ID}`,
 			clientId: AUTH_CLIENT_ID,

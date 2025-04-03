@@ -45,7 +45,7 @@ module "app_manage" {
     ENVIRONMENT                                = var.environment
 
     APP_HOSTNAME                  = var.web_domains.manage
-    PORTAL_HOSTNAME               = var.web_domains.portal
+    PORTAL_HOSTNAME               = "https://${var.web_domains.portal}"
     AUTH_CLIENT_ID                = var.apps_config.auth.client_id
     AUTH_CLIENT_SECRET            = local.key_vault_refs["crown-client-secret"]
     AUTH_GROUP_APPLICATION_ACCESS = var.apps_config.auth.group_application_access

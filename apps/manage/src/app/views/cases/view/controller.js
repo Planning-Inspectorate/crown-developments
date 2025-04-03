@@ -167,7 +167,7 @@ async function sendLpaAcknowledgeReceiptOfQuestionnaireNotification(service, id,
 				applicationDescription: crownDevelopmentFields.description,
 				siteAddress: formatSiteLocation(crownDevelopment),
 				lpaQuestionnaireReceivedDate: formatDateForDisplay(lpaQuestionnaireReceivedDate),
-				frontOfficeLink: service.frontOfficeLink
+				frontOfficeLink: `${service.portalBaseUrl}/applications`
 			});
 		} catch (error) {
 			logger.error(
@@ -191,6 +191,8 @@ function formatSiteLocation(crownDevelopment) {
 			`Northing: ${crownDevelopment.siteNorthing || '-'}`,
 			`Easting: ${crownDevelopment.siteEasting || '-'}`
 		].join(' , ');
+	} else {
+		return 'Site location not provided';
 	}
 }
 

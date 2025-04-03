@@ -88,7 +88,7 @@ describe(`gov-notify-client`, () => {
 				applicationDescription: 'some detail',
 				siteAddress: '4 the street, town, wc1w 1bw',
 				lpaQuestionnaireReceivedDate: '31 Mar 2025',
-				frontOfficeLink: 'http://test.com/applications'
+				portalBaseUrl: 'http://test.com/applications'
 			});
 			assert.strictEqual(client.sendEmail.mock.callCount(), 1);
 			const args = client.sendEmail.mock.calls[0].arguments;
@@ -98,7 +98,7 @@ describe(`gov-notify-client`, () => {
 				{
 					personalisation: {
 						applicationDescription: 'some detail',
-						frontOfficeLink: 'http://test.com/applications',
+						portalBaseUrl: 'http://test.com/applications',
 						lpaQuestionnaireReceivedDate: '31 Mar 2025',
 						reference: 'CROWN/2025/0000001',
 						siteAddress: '4 the street, town, wc1w 1bw'
