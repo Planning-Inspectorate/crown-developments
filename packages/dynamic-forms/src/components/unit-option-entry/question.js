@@ -41,54 +41,17 @@ export default class UnitOptionEntryQuestion extends Question {
 	options;
 
 	/**
-	 * @param {Object} params
-	 * @param {string} params.title
-	 * @param {string} params.question
-	 * @param {string} params.fieldName // will be the unit type eg square metres, hectares
+	 * @param {import('#question-types').QuestionParameters} params
 	 * @param {string} [params.conditionalFieldName] // will be the quantity and is captured by the conditional in the options
-	 * @param {string} [params.viewFolder]
-	 * @param {string} [params.url]
-	 * @param {string} [params.hint]
-	 * @param {string} [params.pageTitle]
-	 * @param {string} [params.description]
 	 * @param {string} [params.label]
-	 * @param {string} [params.html]
 	 * @param {Array.<UnitOption>} [params.options]
-	 * @param {Array.<import('../../questions/question.js').BaseValidator>} [params.validators]
-	 * @param {Object<string, any>} [params.viewData]
-	 *
 	 * @param {Record<string, Function>} [methodOverrides]
-	 */ constructor(
-		{
-			title,
-			question,
-			fieldName,
-			conditionalFieldName,
-			viewFolder,
-			url,
-			hint,
-			pageTitle,
-			description,
-			label,
-			html,
-			options,
-			validators,
-			viewData
-		},
-		methodOverrides
-	) {
+	 */
+	constructor({ conditionalFieldName, options, label, ...params }, methodOverrides) {
 		super(
 			{
-				title,
-				question,
-				viewFolder: !viewFolder ? 'unit-option-entry' : viewFolder,
-				fieldName,
-				url,
-				hint,
-				pageTitle,
-				description,
-				validators,
-				viewData
+				...params,
+				viewFolder: 'unit-option-entry'
 			},
 			methodOverrides
 		);
@@ -98,7 +61,6 @@ export default class UnitOptionEntryQuestion extends Question {
 
 		this.conditionalFieldName = conditionalFieldName;
 		this.options = options;
-		this.html = html;
 		this.label = label;
 		this.optionJoinString = defaultOptionJoinString;
 	}

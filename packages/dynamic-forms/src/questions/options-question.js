@@ -45,55 +45,21 @@ export default class OptionsQuestion extends Question {
 	options;
 
 	/**
-	 * @param {Object} params
-	 * @param {string} params.title
-	 * @param {string} params.question
-	 * @param {string} params.viewFolder
-	 * @param {string} params.fieldName
-	 * @param {string} [params.url]
-	 * @param {string} [params.hint]
-	 * @param {string} [params.pageTitle]
-	 * @param {string} [params.description]
+	 * @param {import('#question-types').QuestionParameters} params
 	 * @param {Array<Option>} params.options
-	 * @param {Array<import('./question').BaseValidator>} [params.validators]
-	 * @param {boolean} [params.editable]
-	 * @param {Object<string, any>} [params.viewData]
 	 */
-	constructor({
-		title,
-		question,
-		viewFolder,
-		fieldName,
-		url,
-		hint,
-		pageTitle,
-		description,
-		options,
-		validators,
-		editable,
-		viewData
-	}) {
+	constructor(params) {
 		// add default valid options validator to all options questions
 		let optionsValidators = [new ValidOptionValidator()];
-		if (validators && Array.isArray(validators)) {
-			optionsValidators = validators.concat(optionsValidators);
+		if (params.validators && Array.isArray(params.validators)) {
+			optionsValidators = params.validators.concat(optionsValidators);
 		}
 
 		super({
-			title,
-			question,
-			viewFolder,
-			fieldName,
-			url,
-			hint,
-			pageTitle,
-			description,
-			validators: optionsValidators,
-			editable,
-			viewData
+			...params,
+			validators: optionsValidators
 		});
-		this.hint = hint;
-		this.options = options;
+		this.options = params.options;
 		this.optionJoinString = defaultOptionJoinString;
 	}
 

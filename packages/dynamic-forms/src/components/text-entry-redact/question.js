@@ -22,44 +22,16 @@ export const REDACT_CHARACTER = '█';
  */
 export default class TextEntryRedactQuestion extends Question {
 	/**
-	 * @param {Object} params
-	 * @param {string} params.title
-	 * @param {string} params.question
-	 * @param {string} params.fieldName
-	 * @param {string} [params.url]
-	 * @param {string} [params.html]
-	 * @param {string} [params.hint]
+	 * @param {import('#question-types').QuestionParameters} params
 	 * @param {TextEntryCheckbox} [params.textEntryCheckbox]
 	 * @param {string|undefined} [params.label] if defined this show as a label for the input and the question will just be a standard h1
 	 * @param {boolean} [params.onlyShowRedactedValueForSummary] whether to only show redacted value for summary
 	 * @param {boolean} [params.useRedactedFieldNameForSave] whether to use the redacted field name when saving answers
-	 * @param {Array.<import('../../validator/base-validator')>} [params.validators]
-	 * @param {Object<string, any>} [params.viewData]
 	 */
-	constructor({
-		title,
-		question,
-		fieldName,
-		url,
-		hint,
-		validators,
-		html,
-		textEntryCheckbox,
-		label,
-		onlyShowRedactedValueForSummary,
-		useRedactedFieldNameForSave,
-		viewData
-	}) {
+	constructor({ textEntryCheckbox, label, onlyShowRedactedValueForSummary, useRedactedFieldNameForSave, ...params }) {
 		super({
-			title,
-			viewFolder: 'text-entry-redact',
-			fieldName,
-			url,
-			question,
-			validators,
-			hint,
-			html,
-			viewData
+			...params,
+			viewFolder: 'text-entry-redact'
 		});
 
 		this.textEntryCheckbox = textEntryCheckbox;

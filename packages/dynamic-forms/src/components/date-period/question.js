@@ -18,44 +18,16 @@ const DEFAULT_DATE_FORMAT = 'HH:mm d MMMM yyyy';
  */
 export default class DatePeriodQuestion extends Question {
 	/**
-	 * @param {Object} params
-	 * @param {string} params.title
-	 * @param {string} params.question
-	 * @param {string} params.fieldName
-	 * @param {string} params.hint
-	 * @param {string} [params.url]
-	 * @param {Array.<import('../../validator/base-validator')>} [params.validators]
-	 * @param {boolean} [params.editable]
+	 * @param {import('#question-types').QuestionParameters} params
 	 * @param {string} [params.dateFormat]
 	 * @param {{start: string, end: string}} [params.labels]
 	 * @param {{hour: number, minute: number, second: number}} [params.startTime]
 	 * @param {{hour: number, minute: number, second: number}} [params.endTime]
-	 * @param {Object<string, any>} [params.viewData]
 	 */
-	constructor({
-		title,
-		question,
-		fieldName,
-		validators,
-		hint,
-		url,
-		editable,
-		dateFormat = DEFAULT_DATE_FORMAT,
-		labels,
-		startTime,
-		endTime,
-		viewData
-	}) {
+	constructor({ dateFormat = DEFAULT_DATE_FORMAT, labels, startTime, endTime, ...params }) {
 		super({
-			title,
-			viewFolder: 'date-period',
-			fieldName,
-			question,
-			validators,
-			hint,
-			url,
-			editable,
-			viewData
+			...params,
+			viewFolder: 'date-period'
 		});
 		this.dateFormat = dateFormat;
 		this.labels = labels || { start: 'Start', end: 'End' };

@@ -27,47 +27,15 @@ export default class MultiFieldInputQuestion extends Question {
 	inputAttributes;
 
 	/**
-	 * @param {Object} params
-	 * @param {string} params.title
-	 * @param {string} params.question
-	 * @param {string} params.fieldName
-	 * @param {string} [params.description]
-	 * @param {string} [params.url]
-	 * @param {string} [params.html]
-	 * @param {string} [params.hint]
+	 * @param {import('#question-types').QuestionParameters} params
 	 * @param {string|undefined} [params.label] if defined this show as a label for the input and the question will just be a standard h1
-	 * @param {Array.<BaseValidator>} [params.validators]
 	 * @param {Record<string, string>} [params.inputAttributes] html attributes to add to the input
 	 * @param {InputField[]} params.inputFields input fields
-	 * @param {'contactDetails' | 'standard' | null} [params.formatType] optional type field used for formatting for task list
-	 * @param {boolean} [params.editable]
-	 * @param {Object<string, any>} [params.viewData]
 	 */
-	constructor({
-		title,
-		question,
-		fieldName,
-		url,
-		hint,
-		validators,
-		html,
-		label,
-		inputAttributes = {},
-		inputFields,
-		editable,
-		viewData
-	}) {
+	constructor({ label, inputAttributes = {}, inputFields, ...params }) {
 		super({
-			title,
-			viewFolder: 'multi-field-input',
-			fieldName,
-			url,
-			question,
-			validators,
-			hint,
-			html,
-			editable,
-			viewData
+			...params,
+			viewFolder: 'multi-field-input'
 		});
 		this.label = label;
 		this.inputAttributes = inputAttributes;
