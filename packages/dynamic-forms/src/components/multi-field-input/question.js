@@ -41,6 +41,7 @@ export default class MultiFieldInputQuestion extends Question {
 	 * @param {InputField[]} params.inputFields input fields
 	 * @param {'contactDetails' | 'standard' | null} [params.formatType] optional type field used for formatting for task list
 	 * @param {boolean} [params.editable]
+	 * @param {Object<string, any>} [params.viewData]
 	 */
 	constructor({
 		title,
@@ -53,7 +54,8 @@ export default class MultiFieldInputQuestion extends Question {
 		label,
 		inputAttributes = {},
 		inputFields,
-		editable
+		editable,
+		viewData
 	}) {
 		super({
 			title,
@@ -64,7 +66,8 @@ export default class MultiFieldInputQuestion extends Question {
 			validators,
 			hint,
 			html,
-			editable
+			editable,
+			viewData
 		});
 		this.label = label;
 		this.inputAttributes = inputAttributes;

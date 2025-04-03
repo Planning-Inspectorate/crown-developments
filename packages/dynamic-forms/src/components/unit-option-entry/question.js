@@ -55,6 +55,7 @@ export default class UnitOptionEntryQuestion extends Question {
 	 * @param {string} [params.html]
 	 * @param {Array.<UnitOption>} [params.options]
 	 * @param {Array.<import('../../questions/question.js').BaseValidator>} [params.validators]
+	 * @param {Object<string, any>} [params.viewData]
 	 *
 	 * @param {Record<string, Function>} [methodOverrides]
 	 */ constructor(
@@ -71,7 +72,8 @@ export default class UnitOptionEntryQuestion extends Question {
 			label,
 			html,
 			options,
-			validators
+			validators,
+			viewData
 		},
 		methodOverrides
 	) {
@@ -85,7 +87,8 @@ export default class UnitOptionEntryQuestion extends Question {
 				hint,
 				pageTitle,
 				description,
-				validators
+				validators,
+				viewData
 			},
 			methodOverrides
 		);

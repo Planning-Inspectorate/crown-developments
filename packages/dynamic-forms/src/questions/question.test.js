@@ -27,7 +27,8 @@ describe('./src/dynamic-forms/question.js', () => {
 		pageTitle = undefined,
 		html = undefined,
 		hint = undefined,
-		autocomplete = FIELDNAME
+		autocomplete = FIELDNAME,
+		viewData
 	} = {}) => {
 		return new Question({
 			title,
@@ -41,6 +42,7 @@ describe('./src/dynamic-forms/question.js', () => {
 			html,
 			hint,
 			autocomplete,
+			viewData,
 			getAction: () => {
 				return 'http://example.com/action';
 			}
@@ -62,6 +64,11 @@ describe('./src/dynamic-forms/question.js', () => {
 			assert.strictEqual(question.validators, VALIDATORS);
 			assert.strictEqual(question.html, HTML);
 			assert.strictEqual(question.hint, HINT);
+		});
+		it('should support viewData field', () => {
+			const question = getTestQuestion({ viewData: { test: 'test' } });
+
+			assert.strictEqual(question.viewData.test, 'test');
 		});
 
 		it('should use pageTitle if set', () => {
@@ -150,6 +157,32 @@ describe('./src/dynamic-forms/question.js', () => {
 			assert.deepStrictEqual(result.listLink, journey.taskListUrl);
 			assert.deepStrictEqual(result.journeyTitle, journey.journeyTitle);
 			assert.deepStrictEqual(result.hello, 'hi');
+		});
+		it('should include viewData in viewModel', () => {
+			const question = getTestQuestion({ viewData: { test: 'data' } });
+
+			const section = {
+				name: 'section-name'
+			};
+
+			const journey = {
+				baseUrl: '',
+				taskListUrl: 'task',
+				journeyTemplate: 'template',
+				journeyTitle: 'title',
+				response: {
+					answers: {
+						[question.fieldName]: { a: 1 }
+					}
+				},
+				getBackLink: () => {
+					return 'back';
+				}
+			};
+
+			const result = question.prepQuestionForRendering(section, journey);
+
+			assert.deepStrictEqual(result.test, 'data');
 		});
 	});
 
