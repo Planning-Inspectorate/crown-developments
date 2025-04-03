@@ -46,8 +46,8 @@
                 {% if shouldShowImportantDatesSection %}
                     <h3 class="govuk-heading-s">Important Dates</h3>
                     {% if crownDevelopmentFields.applicationAcceptedDate %}<p class="govuk-body">Application Accepted Date: {{ crownDevelopmentFields.applicationAcceptedDate }}</p>{% endif %}
-                    {% if crownDevelopmentFields.representationsPeriodStartDate and crownDevelopmentFields.representationsPeriodEndDate %}
-                        <p class="govuk-body">Representation Period: {{ crownDevelopmentFields.representationsPeriodStartDate }} - {{ crownDevelopmentFields.representationsPeriodEndDate }}</p>
+                    {% if crownDevelopmentFields.representationsPeriodStartDateTime and crownDevelopmentFields.representationsPeriodEndDateTime %}
+                        <p class="govuk-body">Representation Period: {{ crownDevelopmentFields.representationsPeriodStartDateTime }} - {{ crownDevelopmentFields.representationsPeriodEndDateTime }}</p>
                     {% endif %}
                 {% endif %}
 

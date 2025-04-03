@@ -53,12 +53,12 @@ export function buildApplicationInformationPage(service) {
 			applicationAcceptedDate,
 			decisionDate,
 			decisionOutcome,
-			representationsPeriodStartDate,
-			representationsPeriodEndDate
+			representationsPeriodStartDateTime,
+			representationsPeriodEndDateTime
 		} = crownDevelopmentFields;
 		const shouldShowImportantDatesSection = [
 			applicationAcceptedDate,
-			representationsPeriodStartDate && representationsPeriodEndDate
+			representationsPeriodStartDateTime && representationsPeriodEndDateTime
 		].some(Boolean);
 		const shouldShowApplicationDecisionSection = [decisionDate, decisionOutcome].some(Boolean);
 
