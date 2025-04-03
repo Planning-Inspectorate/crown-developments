@@ -13,29 +13,14 @@ import { Question } from '@pins/dynamic-forms/src/questions/question.js';
  */
 export default class RepresentationComment extends Question {
 	/**
-	 * @param {Object} params
-	 * @param {string} params.title
-	 * @param {string} params.question
-	 * @param {string} params.fieldName
-	 * @param {string} [params.url]
-	 * @param {string} [params.html]
-	 * @param {string} [params.hint]
+	 * @param {import('@pins/dynamic-forms/src/questions/question-types.js').QuestionParameters} params
 	 * @param {TextEntryCheckbox} [params.textEntryCheckbox]
 	 * @param {string|undefined} [params.label] if defined this show as a label for the input and the question will just be a standard h1
-	 * @param {Array.<import('../../validator/base-validator')>} [params.validators]
-	 * @param {Object<string, any>} [params.viewData]
 	 */
-	constructor({ title, question, fieldName, url, hint, validators, html, textEntryCheckbox, label, viewData }) {
+	constructor({ textEntryCheckbox, label, ...params }) {
 		super({
-			title,
-			viewFolder: 'custom-components/representation-comment',
-			fieldName,
-			url,
-			question,
-			validators,
-			hint,
-			html,
-			viewData
+			...params,
+			viewFolder: 'custom-components/representation-comment'
 		});
 
 		this.textEntryCheckbox = textEntryCheckbox;
