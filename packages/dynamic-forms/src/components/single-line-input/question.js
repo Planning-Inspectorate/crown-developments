@@ -28,6 +28,7 @@ export default class SingleLineInputQuestion extends Question {
 	 * @param {Array.<BaseValidator>} [params.validators]
 	 * @param {Record<string, string>} [params.inputAttributes] html attributes to add to the input
 	 * @param {string} [params.classes] html classes to add to the input
+	 * @param {Object<string, any>} [params.viewData]
 	 */
 	constructor(params) {
 		super({

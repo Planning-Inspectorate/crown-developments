@@ -34,6 +34,7 @@ export default class TextEntryRedactQuestion extends Question {
 	 * @param {boolean} [params.onlyShowRedactedValueForSummary] whether to only show redacted value for summary
 	 * @param {boolean} [params.useRedactedFieldNameForSave] whether to use the redacted field name when saving answers
 	 * @param {Array.<import('../../validator/base-validator')>} [params.validators]
+	 * @param {Object<string, any>} [params.viewData]
 	 */
 	constructor({
 		title,
@@ -46,7 +47,8 @@ export default class TextEntryRedactQuestion extends Question {
 		textEntryCheckbox,
 		label,
 		onlyShowRedactedValueForSummary,
-		useRedactedFieldNameForSave
+		useRedactedFieldNameForSave,
+		viewData
 	}) {
 		super({
 			title,
@@ -56,7 +58,8 @@ export default class TextEntryRedactQuestion extends Question {
 			question,
 			validators,
 			hint,
-			html
+			html,
+			viewData
 		});
 
 		this.textEntryCheckbox = textEntryCheckbox;

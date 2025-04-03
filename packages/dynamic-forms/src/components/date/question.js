@@ -24,8 +24,19 @@ export default class DateQuestion extends Question {
 	 * @param {Array.<import('../../validator/base-validator')>} [params.validators]
 	 * @param {boolean} [params.editable]
 	 * @param {string} [params.dateFormat]
+	 * @param {Object<string, any>} [params.viewData]
 	 */
-	constructor({ title, question, fieldName, validators, hint, url, editable, dateFormat = DEFAULT_DATE_FORMAT }) {
+	constructor({
+		title,
+		question,
+		fieldName,
+		validators,
+		hint,
+		url,
+		editable,
+		dateFormat = DEFAULT_DATE_FORMAT,
+		viewData
+	}) {
 		super({
 			title,
 			viewFolder: 'date',
@@ -34,7 +45,8 @@ export default class DateQuestion extends Question {
 			validators,
 			hint,
 			url,
-			editable
+			editable,
+			viewData
 		});
 		this.dateFormat = dateFormat;
 	}

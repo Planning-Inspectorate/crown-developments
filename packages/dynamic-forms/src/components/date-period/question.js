@@ -30,6 +30,7 @@ export default class DatePeriodQuestion extends Question {
 	 * @param {{start: string, end: string}} [params.labels]
 	 * @param {{hour: number, minute: number, second: number}} [params.startTime]
 	 * @param {{hour: number, minute: number, second: number}} [params.endTime]
+	 * @param {Object<string, any>} [params.viewData]
 	 */
 	constructor({
 		title,
@@ -42,7 +43,8 @@ export default class DatePeriodQuestion extends Question {
 		dateFormat = DEFAULT_DATE_FORMAT,
 		labels,
 		startTime,
-		endTime
+		endTime,
+		viewData
 	}) {
 		super({
 			title,
@@ -52,7 +54,8 @@ export default class DatePeriodQuestion extends Question {
 			validators,
 			hint,
 			url,
-			editable
+			editable,
+			viewData
 		});
 		this.dateFormat = dateFormat;
 		this.labels = labels || { start: 'Start', end: 'End' };
