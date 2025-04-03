@@ -291,7 +291,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			'lpaQuestionnaireReceivedDate',
 			'LPA Questionnaire Received Date',
 			true,
-			'Adding a date will send an acknowledgement notification to the LPA'
+			{ warningMessage: 'Adding a date will send an acknowledgement notification to the LPA' }
 		),
 		publishDate: dateQuestion('publishDate', 'Publish Date', false),
 		pressNoticeDate: dateQuestion('pressNoticeDate'),
