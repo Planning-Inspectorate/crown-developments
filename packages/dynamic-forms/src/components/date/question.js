@@ -24,7 +24,7 @@ export default class DateQuestion extends Question {
 	 * @param {Array.<import('../../validator/base-validator')>} [params.validators]
 	 * @param {boolean} [params.editable]
 	 * @param {string} [params.dateFormat]
-	 * @param {string} [params.warningMessage]
+	 * @param {Object<string, any>} [params.viewData]
 	 */
 	constructor({
 		title,
@@ -35,7 +35,7 @@ export default class DateQuestion extends Question {
 		url,
 		editable,
 		dateFormat = DEFAULT_DATE_FORMAT,
-		warningMessage
+		viewData
 	}) {
 		super({
 			title,
@@ -46,7 +46,7 @@ export default class DateQuestion extends Question {
 			hint,
 			url,
 			editable,
-			warningMessage
+			viewData
 		});
 		this.dateFormat = dateFormat;
 	}

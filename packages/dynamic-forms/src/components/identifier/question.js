@@ -19,6 +19,7 @@ export default class IdentifierQuestion extends Question {
 	 * @param {string} [params.inputClasses] css class string to be added to the input
 	 * @param {string|undefined} [params.label] if defined this show as a label for the input and the question will just be a standard h1
 	 * @param {Array.<import('../../questions/question.js').BaseValidator>} [params.validators]
+	 * @param {Object<string, any>} [params.viewData]
 	 */
 	constructor({
 		title,
@@ -31,7 +32,8 @@ export default class IdentifierQuestion extends Question {
 		html,
 		hint,
 		inputClasses = 'govuk-input--width-10',
-		label
+		label,
+		viewData
 	}) {
 		super({
 			title,
@@ -43,7 +45,8 @@ export default class IdentifierQuestion extends Question {
 			description,
 			validators,
 			html,
-			hint
+			hint,
+			viewData
 		});
 
 		this.inputClasses = inputClasses;

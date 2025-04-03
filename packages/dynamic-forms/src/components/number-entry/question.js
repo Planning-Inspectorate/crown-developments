@@ -17,8 +17,9 @@ export default class NumberEntryQuestion extends Question {
 	 * @param {string} [params.suffix]
 	 * @param {string|undefined} [params.label] if defined this show as a label for the input and the question will just be a standard h1
 	 * @param {Array.<import('../../questions/question.js').BaseValidator>} [params.validators]
+	 * @param {Object<string, any>} [params.viewData]
 	 */
-	constructor({ title, question, fieldName, url, hint, label, html, validators, suffix }) {
+	constructor({ title, question, fieldName, url, hint, label, html, validators, suffix, viewData }) {
 		super({
 			title,
 			question,
@@ -27,7 +28,8 @@ export default class NumberEntryQuestion extends Question {
 			url,
 			hint,
 			validators,
-			html
+			html,
+			viewData
 		});
 
 		this.suffix = suffix;
