@@ -23,8 +23,9 @@ export default class RepresentationComment extends Question {
 	 * @param {TextEntryCheckbox} [params.textEntryCheckbox]
 	 * @param {string|undefined} [params.label] if defined this show as a label for the input and the question will just be a standard h1
 	 * @param {Array.<import('../../validator/base-validator')>} [params.validators]
+	 * @param {Object<string, any>} [params.viewData]
 	 */
-	constructor({ title, question, fieldName, url, hint, validators, html, textEntryCheckbox, label }) {
+	constructor({ title, question, fieldName, url, hint, validators, html, textEntryCheckbox, label, viewData }) {
 		super({
 			title,
 			viewFolder: 'custom-components/representation-comment',
@@ -33,7 +34,8 @@ export default class RepresentationComment extends Question {
 			question,
 			validators,
 			hint,
-			html
+			html,
+			viewData
 		});
 
 		this.textEntryCheckbox = textEntryCheckbox;
