@@ -10,9 +10,9 @@ interface Config {
 		isLive: boolean;
 	};
 	gitSha?: string;
+	httpPort: number;
 	logLevel: string;
 	NODE_ENV: string;
-	httpPort: number;
 	srcDir: string;
 	session: {
 		redisPrefix: string;

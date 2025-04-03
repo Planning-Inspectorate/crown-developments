@@ -27,9 +27,11 @@ interface Config {
 		};
 	};
 	gitSha?: string;
+	govNotify: NotifyConfig;
+	httpPort: number;
 	logLevel: string;
 	NODE_ENV: string;
-	httpPort: number;
+	portalBaseUrl: string;
 	srcDir: string;
 	session: {
 		redisPrefix: string;
@@ -43,6 +45,4 @@ interface Config {
 		caseTemplateId?: string; // Id for template folder (new case template folder structure)
 	};
 	staticDir: string;
-	govNotify: NotifyConfig;
-	frontOfficeLink: string;
 }

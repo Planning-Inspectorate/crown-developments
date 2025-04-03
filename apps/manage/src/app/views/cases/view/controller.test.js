@@ -458,7 +458,7 @@ describe('case details', () => {
 				db: mockDb,
 				logger,
 				notifyClient: mockNotifyClient,
-				frontOfficeLink: 'https://test.com/applications'
+				portalBaseUrl: 'https://test.com'
 			});
 			const mockReq = {
 				params: { id: 'case1' },
@@ -524,7 +524,7 @@ describe('case details', () => {
 				db: mockDb,
 				logger,
 				notifyClient: mockNotifyClient,
-				frontOfficeLink: 'https://test.com/applications'
+				portalBaseUrl: 'https://test.com'
 			});
 			const mockReq = {
 				params: { id: 'case1' },
@@ -592,7 +592,7 @@ describe('case details', () => {
 				db: mockDb,
 				logger,
 				notifyClient: mockNotifyClient,
-				frontOfficeLink: 'https://test.com/applications'
+				portalBaseUrl: 'https://test.com'
 			});
 			const mockReq = {
 				params: { id: 'case1' },

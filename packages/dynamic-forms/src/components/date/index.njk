@@ -75,7 +75,9 @@
                     ]
                 }) }}
 
-                {{ beforeSubmitButton }}
+                {% if beforeSubmitButton %}
+                    {{ beforeSubmitButton }}
+                {% endif %}
 
                 {{ govukButton({
                     text: continueButtonText,
