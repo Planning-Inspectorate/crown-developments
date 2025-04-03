@@ -16,32 +16,15 @@ import AddressValidator from '../../validator/address-validator.js';
 
 export default class AddressQuestion extends Question {
 	/**
-	 * @param {Object} params
-	 * @param {string} params.title
-	 * @param {string} params.question
-	 * @param {string} params.fieldName
-	 * @param {string} [params.url]
-	 * @param {string} [params.hint]
-	 * @param {string} [params.html]
-	 * @param {Array.<import('../../validator/base-validator.js')>} [params.validators]
-	 * @param {boolean} [params.editable]
-	 * @param {Object<string, any>} [params.viewData]
+	 * @param {import('#question-types').QuestionParameters} params
 	 */
-	constructor({ title, question, fieldName, validators, url, hint, html, editable, viewData }) {
+	constructor(params) {
 		super({
-			title: title,
-			viewFolder: 'address',
-			fieldName: fieldName,
-			question: question,
-			validators: validators,
-			hint: hint,
-			html: html,
-			editable,
-			viewData
+			...params,
+			viewFolder: 'address'
 		});
-		this.url = url;
 
-		for (const validator of validators) {
+		for (const validator of params.validators) {
 			if (validator instanceof AddressValidator) {
 				this.requiredFields = validator.requiredFields;
 			}

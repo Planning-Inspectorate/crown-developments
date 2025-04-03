@@ -11,5 +11,8 @@
     "escape-html": "*",
     "express-validator": "*",
     "nunjucks": "*"
+  },
+  "imports": {
+    "#question-types": "./src/questions/question-types.d.ts"
   }
 }

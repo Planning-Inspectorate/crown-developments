@@ -7,29 +7,14 @@ import { getPersistedNumberAnswer } from '../utils/persisted-number-answer.js';
 
 export default class NumberEntryQuestion extends Question {
 	/**
-	 * @param {Object} params
-	 * @param {string} params.title
-	 * @param {string} params.question
-	 * @param {string} params.fieldName
-	 * @param {string} [params.url]
-	 * @param {string} [params.html]
-	 * @param {string} [params.hint]
+	 * @param {import('#question-types').QuestionParameters} params
 	 * @param {string} [params.suffix]
 	 * @param {string|undefined} [params.label] if defined this show as a label for the input and the question will just be a standard h1
-	 * @param {Array.<import('../../questions/question.js').BaseValidator>} [params.validators]
-	 * @param {Object<string, any>} [params.viewData]
 	 */
-	constructor({ title, question, fieldName, url, hint, label, html, validators, suffix, viewData }) {
+	constructor({ label, suffix, ...params }) {
 		super({
-			title,
-			question,
-			viewFolder: 'number-entry',
-			fieldName,
-			url,
-			hint,
-			validators,
-			html,
-			viewData
+			...params,
+			viewFolder: 'number-entry'
 		});
 
 		this.suffix = suffix;

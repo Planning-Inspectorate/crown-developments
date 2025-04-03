@@ -86,23 +86,7 @@ export class Question {
 	};
 
 	/**
-	 * @param {Object} params
-	 * @param {string} params.title
-	 * @param {string} params.question
-	 * @param {string} params.viewFolder
-	 * @param {string} params.fieldName
-	 * @param {string} [params.url]
-	 * @param {string} [params.pageTitle]
-	 * @param {string} [params.description]
-	 * @param {Array.<BaseValidator>} [params.validators]
-	 * @param {string} [params.html]
-	 * @param {string} [params.hint]
-	 * @param {string} [params.interfaceType]
-	 * @param {(response: JourneyResponse) => boolean} [params.shouldDisplay]
-	 * @param {string} [params.autocomplete]
-	 * @param {boolean} [params.editable] - defaults to true
-	 * @param {Object<string, any>} [params.viewData]
-	 *
+	 * @param {import('#question-types').QuestionParameters} params
 	 * @param {Record<string, Function>} [methodOverrides]
 	 */
 	constructor(
