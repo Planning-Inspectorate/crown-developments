@@ -20,6 +20,9 @@ export default class FeeAmountValidator extends BaseValidator {
 					if (!/^\d+(\.\d+)?$/.test(value)) {
 						throw new Error('Input must be numbers');
 					}
+					if (!/^\d+(\.\d{1,2})?$/.test(value)) {
+						throw new Error('Input must be a valid monetary value');
+					}
 					return true;
 				})
 				.bail()
