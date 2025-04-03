@@ -1,7 +1,7 @@
 import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
 import OptionsQuestion from '@pins/dynamic-forms/src/questions/options-question.js';
 
-export default class FeeAmount extends OptionsQuestion {
+export default class FeeAmountQuestion extends OptionsQuestion {
 	constructor({ title, question, fieldName, url, hint, validators, html, feeAmountQuestion }) {
 		const options = [
 			{
@@ -36,48 +36,62 @@ export default class FeeAmount extends OptionsQuestion {
 		});
 	}
 
-	prepQuestionForRendering(section, journey, customViewData) {
+	/**
+	 * @param {Section} section
+	 * @param {Journey} journey
+	 * @param {Record<string, unknown>} customViewData
+	 * @param {Record<string, unknown>} [payload]
+	 * @returns {QuestionViewModel}
+	 */
+	prepQuestionForRendering(section, journey, customViewData, payload) {
 		journey.response.answers[`${this.fieldName}_amount`] =
 			journey.response.answers[`${this.fieldName}Amount`]?.toFixed(2) || '';
-		return super.prepQuestionForRendering(section, journey, customViewData);
+		return super.prepQuestionForRendering(section, journey, customViewData, payload);
 	}
 
+	/**
+	 * @param {import('express').Request} req
+	 * @param {JourneyResponse} journeyResponse - current journey response, modified with the new answers
+	 * @returns {Promise<{ answers: Record<string, unknown> }>}
+	 */
 	async getDataToSave(req, journeyResponse) {
 		let responseToSave = { answers: {} };
+		const { body } = req;
 
-		const fieldValue = req.body[this.fieldName]?.trim();
-		responseToSave.answers[this.fieldName] = fieldValue === BOOLEAN_OPTIONS.YES;
+		const fieldValue = body[this.fieldName]?.trim();
+		const isYes = fieldValue === BOOLEAN_OPTIONS.YES;
+
+		responseToSave.answers[this.fieldName] = isYes;
 		journeyResponse.answers[this.fieldName] = fieldValue;
 
 		const amountFieldName = `${this.fieldName}_amount`;
 		const amountDbFieldName = `${this.fieldName}Amount`;
 
-		if (fieldValue === BOOLEAN_OPTIONS.YES) {
-			const amountValue = req.body[amountFieldName]?.trim();
-			responseToSave.answers[amountDbFieldName] = parseFloat(amountValue);
-			journeyResponse.answers[amountFieldName] = amountValue;
-		} else {
-			responseToSave.answers[amountDbFieldName] = null;
-			journeyResponse.answers[amountFieldName] = null;
-		}
+		const amountValue = body[amountFieldName]?.trim();
+		responseToSave.answers[amountDbFieldName] = isYes ? Number(amountValue) || null : null;
+		journeyResponse.answers[amountFieldName] = isYes ? amountValue : null;
 
 		return responseToSave;
 	}
 
+	/**
+	 * returns the formatted answers values to be used to build task list elements
+	 * @type {Question['formatAnswerForSummary']}
+	 */
 	formatAnswerForSummary(sectionSegment, journey, answer) {
 		return [
 			{
 				key: `${this.title}`,
-				value: this.formatFeeAmountValue(answer, journey.response.answers[`${this.fieldName}Amount`]),
+				value: this.#formatFeeAmountValue(answer, journey.response.answers[`${this.fieldName}Amount`]),
 				action: this.getAction(sectionSegment, journey, answer)
 			}
 		];
 	}
 
-	formatFeeAmountValue(answer, feeAmountValue) {
+	#formatFeeAmountValue(answer, feeAmountValue) {
 		if (!answer) {
 			return '-';
-		} else if (answer === 'yes' && !isNaN(feeAmountValue)) {
+		} else if (answer === BOOLEAN_OPTIONS.YES && !isNaN(feeAmountValue)) {
 			return `£${feeAmountValue.toFixed(2)}`;
 		} else {
 			return 'N/A';
