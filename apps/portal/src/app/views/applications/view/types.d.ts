@@ -32,7 +32,7 @@ export interface RepresentationCreateAnswers {
 	submittedForId: string;
 	representedTypeId?: string;
 	agentOrgName?: string;
-	areYouAgent?: string;
+	isAgent?: string;
 	myselfComment?: string;
 	myselfFullName?: string;
 	myselfEmail?: string;
