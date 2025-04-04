@@ -159,7 +159,7 @@ export const questionProps = {
 			})
 		]
 	},
-	areYouAgent: {
+	isAgent: {
 		type: COMPONENT_TYPES.BOOLEAN,
 		title: 'Are you an agent on behalf of a client?',
 		question: 'Are you acting as an agent on behalf of a client?',
