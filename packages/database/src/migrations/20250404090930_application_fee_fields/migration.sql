@@ -3,8 +3,8 @@ BEGIN TRY
 BEGIN TRAN;
 
 -- AlterTable
-ALTER TABLE [dbo].[CrownDevelopment] ADD [applicationFee] BIT,
-[applicationFeeAmount] DECIMAL(32,16);
+ALTER TABLE [dbo].[CrownDevelopment] ADD [applicationFee] DECIMAL(32,16),
+[hasApplicationFee] BIT;
 
 COMMIT TRAN;
 

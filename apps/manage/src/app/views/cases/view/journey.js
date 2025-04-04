@@ -125,7 +125,7 @@ export function createJourney(questions, response, req) {
 				.withCondition(isInquiry)
 				.addQuestion(questions.inquiryProofsOfEvidenceDate)
 				.withCondition(isInquiry),
-			new Section('Fee', 'fee').addQuestion(questions.applicationFee)
+			new Section('Fee', 'fee').addQuestion(questions.hasApplicationFee)
 		],
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',

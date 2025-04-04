@@ -8,11 +8,23 @@ describe('./lib/forms/custom-components/fee-amount/fee-amount-validator.js', () 
 		fieldName: 'applicationFee'
 	};
 
-	it('should not return an error message if both values are valid', async () => {
+	it('should not return an error message if both values are valid (value contains decimal)', async () => {
 		const req = {
 			body: {
 				applicationFee: 'yes',
 				applicationFee_amount: '1000.00'
+			}
+		};
+
+		const errors = await _validationMappedErrors(req, question);
+
+		assert.strictEqual(Object.keys(errors).length, 0);
+	});
+	it('should not return an error message if both values are valid (value does not contain decimal)', async () => {
+		const req = {
+			body: {
+				applicationFee: 'yes',
+				applicationFee_amount: '1000'
 			}
 		};
 

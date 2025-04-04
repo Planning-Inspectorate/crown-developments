@@ -60,8 +60,8 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'agentContactId',
 	'eventId',
 	'lpaQuestionnaireReceivedEmailSent',
-	'applicationFee',
-	'applicationFeeAmount'
+	'hasApplicationFee',
+	'applicationFee'
 ]);
 
 /**

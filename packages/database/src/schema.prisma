@@ -113,8 +113,8 @@ model CrownDevelopment {
   eventId                             String?                     @db.UniqueIdentifier
   Event                               Event?                      @relation(fields: [eventId], references: [id])
   Representation                      Representation[]
-  applicationFee                      Boolean?
-  applicationFeeAmount                Decimal?
+  hasApplicationFee                   Boolean?
+  applicationFee                      Decimal?
 }
 
 /// Address represents an address of a property or place

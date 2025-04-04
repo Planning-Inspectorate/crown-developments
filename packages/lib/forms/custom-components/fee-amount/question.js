@@ -2,7 +2,7 @@ import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/ques
 import OptionsQuestion from '@pins/dynamic-forms/src/questions/options-question.js';
 
 export default class FeeAmountQuestion extends OptionsQuestion {
-	constructor({ title, question, fieldName, url, hint, validators, html, feeAmountQuestion }) {
+	constructor({ title, question, fieldName, url, hint, validators, html, feeAmountInputFieldName, feeAmountQuestion }) {
 		const options = [
 			{
 				text: 'Yes',
@@ -34,6 +34,8 @@ export default class FeeAmountQuestion extends OptionsQuestion {
 			hint,
 			html
 		});
+
+		this.feeAmountInputFieldName = feeAmountInputFieldName;
 	}
 
 	/**
@@ -45,7 +47,7 @@ export default class FeeAmountQuestion extends OptionsQuestion {
 	 */
 	prepQuestionForRendering(section, journey, customViewData, payload) {
 		journey.response.answers[`${this.fieldName}_amount`] =
-			journey.response.answers[`${this.fieldName}Amount`]?.toFixed(2) || '';
+			journey.response.answers[this.feeAmountInputFieldName]?.toFixed(2) || '';
 		return super.prepQuestionForRendering(section, journey, customViewData, payload);
 	}
 
@@ -60,15 +62,12 @@ export default class FeeAmountQuestion extends OptionsQuestion {
 
 		const fieldValue = body[this.fieldName]?.trim();
 		const isYes = fieldValue === BOOLEAN_OPTIONS.YES;
-
 		responseToSave.answers[this.fieldName] = isYes;
 		journeyResponse.answers[this.fieldName] = fieldValue;
 
 		const amountFieldName = `${this.fieldName}_amount`;
-		const amountDbFieldName = `${this.fieldName}Amount`;
-
 		const amountValue = body[amountFieldName]?.trim();
-		responseToSave.answers[amountDbFieldName] = isYes ? Number(amountValue) || null : null;
+		responseToSave.answers[this.feeAmountInputFieldName] = isYes ? Number(amountValue) || null : null;
 		journeyResponse.answers[amountFieldName] = isYes ? amountValue : null;
 
 		return responseToSave;
@@ -82,7 +81,7 @@ export default class FeeAmountQuestion extends OptionsQuestion {
 		return [
 			{
 				key: `${this.title}`,
-				value: this.#formatFeeAmountValue(answer, journey.response.answers[`${this.fieldName}Amount`]),
+				value: this.#formatFeeAmountValue(answer, journey.response.answers[this.feeAmountInputFieldName]),
 				action: this.getAction(sectionSegment, journey, answer)
 			}
 		];
