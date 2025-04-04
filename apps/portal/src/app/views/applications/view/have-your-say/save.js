@@ -49,7 +49,6 @@ export async function sendAcknowledgementOfRepresentationNotification(service, a
 			const notificationData = await populateNotificationData(id, service, answers, representationReference);
 			await notifyClient.sendAcknowledgementOfRepresentation(notificationData.email, notificationData.personalisation);
 		} catch (error) {
-			console.log(error);
 			logger.error(
 				{ error, representationReference },
 				`error dispatching Acknowledgement of representation email notification`
