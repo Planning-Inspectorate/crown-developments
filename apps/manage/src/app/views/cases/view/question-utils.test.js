@@ -31,7 +31,7 @@ describe('question-utils', () => {
 	});
 	describe('dateQuestion', () => {
 		it('should create a date question based on a field name only', () => {
-			const q = dateQuestion('myDateField');
+			const q = dateQuestion({ fieldName: 'myDateField' });
 
 			assert.ok(q);
 			assert.strictEqual(q.title, 'My Date Field');

@@ -107,13 +107,7 @@ export function buildUpdateCase(service) {
 		/** @type {import('./types.js').CrownDevelopmentViewModel} */
 		const fullViewModel = res.locals?.journeyResponse?.answers || {};
 
-		if (
-			toSave.lpaQuestionnaireReceivedDate &&
-			fullViewModel.lpaQuestionnaireReceivedEmailSent !== BOOLEAN_OPTIONS.YES
-		) {
-			await sendLpaAcknowledgeReceiptOfQuestionnaireNotification(service, id, toSave.lpaQuestionnaireReceivedDate);
-			toSave['lpaQuestionnaireReceivedEmailSent'] = true;
-		}
+		await updateCaseActions(req, res, service, id, toSave, fullViewModel);
 
 		const updateInput = editsToDatabaseUpdates(toSave, fullViewModel);
 		updateInput.updatedDate = new Date();
@@ -139,6 +133,35 @@ export function buildUpdateCase(service) {
 
 		logger.info({ id }, 'case updated');
 	};
+}
+
+async function updateCaseActions(req, res, service, id, toSave, fullViewModel) {
+	if (toSave.lpaQuestionnaireReceivedDate && fullViewModel.lpaQuestionnaireReceivedEmailSent !== BOOLEAN_OPTIONS.YES) {
+		await sendLpaAcknowledgeReceiptOfQuestionnaireNotification(service, id, toSave.lpaQuestionnaireReceivedDate);
+		toSave['lpaQuestionnaireReceivedEmailSent'] = true;
+	}
+
+	if (toSave.applicationReceivedDate) {
+		const requiredFields = [
+			{ value: fullViewModel.siteAddressId, message: 'Enter the site address' },
+			{ value: fullViewModel.siteNorthing && fullViewModel.siteEasting, message: 'Enter the site coordinates' },
+			{ value: fullViewModel.hasApplicationFee, message: 'Enter the fee amount' }
+		];
+
+		const errors = requiredFields
+			.filter(({ value }) => !value)
+			.map(({ message }) => ({
+				text: message,
+				href: '#'
+			}));
+
+		if (errors.length > 0) {
+			const error = new Error('Data required to set Application received date is missing');
+			error.errorSummary = errors;
+			throw error;
+		}
+		//TODO: if no errors, then dispatch notification
+	}
 }
 
 /**

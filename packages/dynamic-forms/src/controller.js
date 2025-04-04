@@ -216,7 +216,7 @@ export function buildSave(saveData, redirectToTaskListOnSuccess) {
 			return questionObj.handleNextQuestion(res, journey, sectionObj.segment, questionObj.fieldName);
 		} catch (err) {
 			const viewModel = questionObj.prepQuestionForRendering(sectionObj, journey, {
-				errorSummary: [{ text: err.toString(), href: '#' }]
+				errorSummary: err.errorSummary ?? [{ text: err.toString(), href: '#' }]
 			});
 			return questionObj.renderAction(res, viewModel);
 		}

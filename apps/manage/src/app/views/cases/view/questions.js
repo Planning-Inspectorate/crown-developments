@@ -130,7 +130,10 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			url: 'site-area',
 			validators: [new NumericValidator({ regex: /^$|^\d+(\.\d+)?$/, regexMessage: 'The value must be at least 0' })]
 		},
-		expectedDateOfSubmission: dateQuestion('expectedDateOfSubmission', 'Expected Date of Submission'),
+		expectedDateOfSubmission: dateQuestion({
+			fieldName: 'expectedDateOfSubmission',
+			title: 'Expected Date of Submission'
+		}),
 		decisionOutcome: {
 			type: COMPONENT_TYPES.RADIO,
 			title: 'Decision Outcome',
@@ -140,7 +143,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			validators: [new RequiredValidator()],
 			options: referenceDataToRadioOptions(APPLICATION_DECISION_OUTCOME)
 		},
-		decisionDate: dateQuestion('decisionDate'),
+		decisionDate: dateQuestion({ fieldName: 'decisionDate' }),
 		updatedDate: {
 			type: COMPONENT_TYPES.DATE,
 			title: 'Last Updated',
@@ -211,7 +214,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			url: 'nationally-important',
 			validators: [new RequiredValidator()]
 		},
-		nationallyImportantConfirmationDate: dateQuestion('nationallyImportantConfirmationDate'),
+		nationallyImportantConfirmationDate: dateQuestion({ fieldName: 'nationallyImportantConfirmationDate' }),
 		isGreenBelt: {
 			type: COMPONENT_TYPES.BOOLEAN,
 			title: 'Green Belt',
@@ -286,26 +289,35 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			addressRequired: true
 		}),
 
-		applicationReceivedDate: dateQuestion('applicationReceivedDate'),
-		applicationAcceptedDate: dateQuestion('applicationAcceptedDate'),
-		lpaQuestionnaireSentDate: dateQuestion('lpaQuestionnaireSentDate', 'LPA Questionnaire Sent Date'),
-		lpaQuestionnaireReceivedDate: dateQuestion(
-			'lpaQuestionnaireReceivedDate',
-			'LPA Questionnaire Received Date',
-			true,
-			{ warningMessage: 'Adding a date will send an acknowledgement notification to the LPA' }
-		),
-		publishDate: dateQuestion('publishDate', 'Publish Date', false),
-		pressNoticeDate: dateQuestion('pressNoticeDate'),
-		neighboursNotifiedByLpaDate: dateQuestion('neighboursNotifiedByLpaDate', 'Neighbours Notified By LPA Date'),
-		siteNoticeByLpaDate: dateQuestion('siteNoticeByLpaDate', 'Site Notice by LPA Date'),
-		targetDecisionDate: dateQuestion('targetDecisionDate'),
-		extendedTargetDecisionDate: dateQuestion('extendedTargetDecisionDate'),
-		recoveredDate: dateQuestion('recoveredDate'),
-		recoveredReportSentDate: dateQuestion('recoveredReportSentDate'),
-		withdrawnDate: dateQuestion('withdrawnDate'),
-		originalDecisionDate: dateQuestion('originalDecisionDate'),
-		turnedAwayDate: dateQuestion('turnedAwayDate'),
+		applicationReceivedDate: dateQuestion({
+			fieldName: 'applicationReceivedDate',
+			hint: 'You must first add the application fee and the site address or site coordinates.',
+			viewData: { warningMessage: 'Adding a date will send a notification to the applicant / agent' }
+		}),
+		applicationAcceptedDate: dateQuestion({ fieldName: 'applicationAcceptedDate' }),
+		lpaQuestionnaireSentDate: dateQuestion({
+			fieldName: 'lpaQuestionnaireSentDate',
+			title: 'LPA Questionnaire Sent Date'
+		}),
+		lpaQuestionnaireReceivedDate: dateQuestion({
+			fieldName: 'lpaQuestionnaireReceivedDate',
+			title: 'LPA Questionnaire Received Date',
+			viewData: { warningMessage: 'Adding a date will send an acknowledgement notification to the LPA' }
+		}),
+		publishDate: dateQuestion({ fieldName: 'publishDate', title: 'Publish Date', editable: false }),
+		pressNoticeDate: dateQuestion({ fieldName: 'pressNoticeDate' }),
+		neighboursNotifiedByLpaDate: dateQuestion({
+			fieldName: 'neighboursNotifiedByLpaDate',
+			title: 'Neighbours Notified By LPA Date'
+		}),
+		siteNoticeByLpaDate: dateQuestion({ fieldName: 'siteNoticeByLpaDate', title: 'Site Notice by LPA Date' }),
+		targetDecisionDate: dateQuestion({ fieldName: 'targetDecisionDate' }),
+		extendedTargetDecisionDate: dateQuestion({ fieldName: 'extendedTargetDecisionDate' }),
+		recoveredDate: dateQuestion({ fieldName: 'recoveredDate' }),
+		recoveredReportSentDate: dateQuestion({ fieldName: 'recoveredReportSentDate' }),
+		withdrawnDate: dateQuestion({ fieldName: 'withdrawnDate' }),
+		originalDecisionDate: dateQuestion({ fieldName: 'originalDecisionDate' }),
+		turnedAwayDate: dateQuestion({ fieldName: 'turnedAwayDate' }),
 
 		representationsPeriod: {
 			type: COMPONENT_TYPES.DATE_PERIOD,
@@ -317,7 +329,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			labels: { start: 'Open', end: 'Close' },
 			endTime: { hour: 23, minute: 59 }
 		},
-		representationsPublishDate: dateQuestion('representationsPublishDate'),
+		representationsPublishDate: dateQuestion({ fieldName: 'representationsPublishDate' }),
 
 		// todo: needs to be autocomplete with options loaded from Entra
 		inspector1: {
@@ -391,9 +403,9 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			url: 'eia-screening-outcome',
 			validators: [new RequiredValidator()]
 		},
-		environmentalStatementReceivedDate: dateQuestion('environmentalStatementReceivedDate'),
+		environmentalStatementReceivedDate: dateQuestion({ fieldName: 'environmentalStatementReceivedDate' }),
 
-		writtenRepsProcedureNotificationDate: dateQuestion('writtenRepsProcedureNotificationDate'),
+		writtenRepsProcedureNotificationDate: dateQuestion({ fieldName: 'writtenRepsProcedureNotificationDate' }),
 		...eventQuestions('hearing'),
 		...eventQuestions('inquiry'),
 

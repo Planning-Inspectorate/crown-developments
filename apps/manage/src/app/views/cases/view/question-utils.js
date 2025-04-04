@@ -89,13 +89,15 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 }
 
 /**
- * @param {string} fieldName
- * @param {string} [title]
- * @param {boolean} [editable]
- * @param {Object<string, any>} [viewData]
+ * @param {Object} opts
+ * @param {string} opts.fieldName
+ * @param {string} [opts.title]
+ * @param {string} [opts.hint]
+ * @param {boolean} [opts.editable]
+ * @param {Object<string, any>} [opts.viewData]
  * @returns {import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps}
  */
-export function dateQuestion(fieldName, title, editable = true, viewData = {}) {
+export function dateQuestion({ fieldName, title, hint, editable = true, viewData = {} }) {
 	if (!title) {
 		title = camelCaseToTitleCase(fieldName);
 	}
@@ -103,6 +105,7 @@ export function dateQuestion(fieldName, title, editable = true, viewData = {}) {
 		type: COMPONENT_TYPES.DATE,
 		title: title,
 		question: `What is the ${title}?`,
+		hint: hint,
 		fieldName: fieldName,
 		url: camelCaseToUrlCase(fieldName),
 		validators: [new DateValidator(title)],
@@ -118,7 +121,7 @@ export function dateQuestion(fieldName, title, editable = true, viewData = {}) {
 export function eventQuestions(prefix) {
 	const title = titleCase(prefix);
 	return {
-		[`${prefix}Date`]: dateQuestion(`${prefix}Date`),
+		[`${prefix}Date`]: dateQuestion({ fieldName: `${prefix}Date` }),
 		[`${prefix}Duration`]: {
 			type: COMPONENT_TYPES.RADIO,
 			title: `${title} Duration`,
@@ -151,15 +154,15 @@ export function eventQuestions(prefix) {
 				})
 			]
 		},
-		[`${prefix}NotificationDate`]: dateQuestion(`${prefix}NotificationDate`),
-		[`${prefix}IssuesReportPublishedDate`]: dateQuestion(`${prefix}IssuesReportPublishedDate`),
-		[`${prefix}ProcedureNotificationDate`]: dateQuestion(`${prefix}ProcedureNotificationDate`),
-		[`${prefix}StatementsDate`]: dateQuestion(`${prefix}StatementsDate`),
-		[`${prefix}CaseManagementConferenceDate`]: dateQuestion(`${prefix}CaseManagementConferenceDate`),
-		[`${prefix}ProofsOfEvidenceDate`]: dateQuestion(
-			`${prefix}ProofsOfEvidenceDate`,
-			`${titleCase(prefix)} Proofs of Evidence Date`
-		)
+		[`${prefix}NotificationDate`]: dateQuestion({ fieldName: `${prefix}NotificationDate` }),
+		[`${prefix}IssuesReportPublishedDate`]: dateQuestion({ fieldName: `${prefix}IssuesReportPublishedDate` }),
+		[`${prefix}ProcedureNotificationDate`]: dateQuestion({ fieldName: `${prefix}ProcedureNotificationDate` }),
+		[`${prefix}StatementsDate`]: dateQuestion({ fieldName: `${prefix}StatementsDate` }),
+		[`${prefix}CaseManagementConferenceDate`]: dateQuestion({ fieldName: `${prefix}CaseManagementConferenceDate` }),
+		[`${prefix}ProofsOfEvidenceDate`]: dateQuestion({
+			fieldName: `${prefix}ProofsOfEvidenceDate`,
+			title: `${titleCase(prefix)} Proofs of Evidence Date`
+		})
 	};
 }
 
