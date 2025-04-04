@@ -245,7 +245,7 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 		submittedDate: answers.submittedDate ?? new Date(),
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
 		SubmittedFor: { connect: { id: answers.submittedForId } },
-		submittedByAgent: yesNoToBoolean(answers.areYouAgent) || false,
+		submittedByAgent: yesNoToBoolean(answers.isAgent) || false,
 		comment: answers[`${prefix}Comment`],
 		SubmittedByContact: {
 			create: {
@@ -295,7 +295,7 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 	if (submitterIsAdult) {
 		createInput.SubmittedByContact.create.fullName = answers[`${prefix}FullName`];
 	}
-	if (yesNoToBoolean(answers.areYouAgent)) {
+	if (yesNoToBoolean(answers.isAgent)) {
 		createInput.submittedByAgentOrgName = answers.agentOrgName;
 	}
 	if (answers.representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION) {
