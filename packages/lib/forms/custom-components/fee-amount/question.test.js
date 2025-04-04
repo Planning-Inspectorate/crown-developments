@@ -9,8 +9,9 @@ describe('./lib/forms/custom-components/fee-amount/question.js', () => {
 	const question = new FeeAmountQuestion({
 		title: 'Fee Amount',
 		question: 'What is the application fee?',
-		fieldName: 'applicationFee',
+		fieldName: 'hasApplicationFee',
 		url: 'fee-amount',
+		feeAmountInputFieldName: 'applicationFee',
 		feeAmountQuestion: 'For example, £1000.00',
 		validators: [new FeeAmountValidator()]
 	});
@@ -44,7 +45,7 @@ describe('./lib/forms/custom-components/fee-amount/question.js', () => {
 			const journey = {
 				response: {
 					answers: {
-						applicationFeeAmount: 100.1
+						applicationFee: 100.1
 					}
 				},
 				getBackLink: mock.fn()
@@ -59,7 +60,7 @@ describe('./lib/forms/custom-components/fee-amount/question.js', () => {
 				{
 					payload: undefined,
 					type: 'text',
-					fieldName: 'applicationFee_amount',
+					fieldName: 'hasApplicationFee_amount',
 					question: 'For example, £1000.00',
 					prefix: { text: '£' },
 					inputClasses: 'govuk-!-width-one-half',
@@ -70,37 +71,37 @@ describe('./lib/forms/custom-components/fee-amount/question.js', () => {
 	});
 	describe('getDataToSave', () => {
 		it('should save boolean true and amount when user selects YES with a valid amount', async () => {
-			const req = { body: { applicationFee: 'yes', applicationFee_amount: '100.50' } };
+			const req = { body: { hasApplicationFee: 'yes', hasApplicationFee_amount: '100.50' } };
 			const journeyResponse = { answers: {} };
 
 			const result = await question.getDataToSave(req, journeyResponse);
 
-			assert.strictEqual(result.answers.applicationFee, true);
-			assert.strictEqual(result.answers.applicationFeeAmount, 100.5);
-			assert.strictEqual(journeyResponse.answers.applicationFee, 'yes');
-			assert.strictEqual(journeyResponse.answers.applicationFee_amount, '100.50');
+			assert.strictEqual(result.answers.hasApplicationFee, true);
+			assert.strictEqual(result.answers.applicationFee, 100.5);
+			assert.strictEqual(journeyResponse.answers.hasApplicationFee, 'yes');
+			assert.strictEqual(journeyResponse.answers.hasApplicationFee_amount, '100.50');
 		});
 		it('should save boolean false and null amount when user selects NO', async () => {
-			const req = { body: { applicationFee: 'no' } };
+			const req = { body: { hasApplicationFee: 'no' } };
 			const journeyResponse = { answers: {} };
 
 			const result = await question.getDataToSave(req, journeyResponse);
 
-			assert.strictEqual(result.answers.applicationFee, false);
-			assert.strictEqual(result.answers.applicationFeeAmount, null);
-			assert.strictEqual(journeyResponse.answers.applicationFee, 'no');
-			assert.strictEqual(journeyResponse.answers.applicationFee_amount, null);
+			assert.strictEqual(result.answers.hasApplicationFee, false);
+			assert.strictEqual(result.answers.applicationFee, null);
+			assert.strictEqual(journeyResponse.answers.hasApplicationFee, 'no');
+			assert.strictEqual(journeyResponse.answers.hasApplicationFee_amount, null);
 		});
 		it('should handle input with extra spaces and trim them correctly', async () => {
-			const req = { body: { applicationFee: ' yes  ', applicationFee_amount: '  200.00 ' } };
+			const req = { body: { hasApplicationFee: ' yes  ', hasApplicationFee_amount: '  200.00 ' } };
 			const journeyResponse = { answers: {} };
 
 			const result = await question.getDataToSave(req, journeyResponse);
 
-			assert.strictEqual(result.answers.applicationFee, true);
-			assert.strictEqual(result.answers.applicationFeeAmount, 200.0);
-			assert.strictEqual(journeyResponse.answers.applicationFee, 'yes');
-			assert.strictEqual(journeyResponse.answers.applicationFee_amount, '200.00');
+			assert.strictEqual(result.answers.hasApplicationFee, true);
+			assert.strictEqual(result.answers.applicationFee, 200.0);
+			assert.strictEqual(journeyResponse.answers.hasApplicationFee, 'yes');
+			assert.strictEqual(journeyResponse.answers.hasApplicationFee_amount, '200.00');
 		});
 		it('should handle empty request body gracefully', async () => {
 			const req = { body: {} };
@@ -108,21 +109,21 @@ describe('./lib/forms/custom-components/fee-amount/question.js', () => {
 
 			const result = await question.getDataToSave(req, journeyResponse);
 
-			assert.strictEqual(result.answers.applicationFee, false);
-			assert.strictEqual(result.answers.applicationFeeAmount, null);
-			assert.strictEqual(journeyResponse.answers.applicationFee, undefined);
-			assert.strictEqual(journeyResponse.answers.applicationFee_amount, null);
+			assert.strictEqual(result.answers.hasApplicationFee, false);
+			assert.strictEqual(result.answers.applicationFee, null);
+			assert.strictEqual(journeyResponse.answers.hasApplicationFee, undefined);
+			assert.strictEqual(journeyResponse.answers.hasApplicationFee_amount, null);
 		});
 		it('should return null amount when NO is selected and amount is provided', async () => {
-			const req = { body: { applicationFee: 'no', applicationFee_amount: '50.00' } };
+			const req = { body: { hasApplicationFee: 'no', hasApplicationFee_amount: '50.00' } };
 			const journeyResponse = { answers: {} };
 
 			const result = await question.getDataToSave(req, journeyResponse);
 
-			assert.strictEqual(result.answers.applicationFee, false);
-			assert.strictEqual(result.answers.applicationFeeAmount, null);
-			assert.strictEqual(journeyResponse.answers.applicationFee, 'no');
-			assert.strictEqual(journeyResponse.answers.applicationFee_amount, null);
+			assert.strictEqual(result.answers.hasApplicationFee, false);
+			assert.strictEqual(result.answers.applicationFee, null);
+			assert.strictEqual(journeyResponse.answers.hasApplicationFee, 'no');
+			assert.strictEqual(journeyResponse.answers.hasApplicationFee_amount, null);
 		});
 	});
 	describe('formatAnswerForSummary', () => {
@@ -130,7 +131,7 @@ describe('./lib/forms/custom-components/fee-amount/question.js', () => {
 			const journey = {
 				response: {
 					answers: {
-						applicationFeeAmount: 100.1
+						applicationFee: 100.1
 					}
 				}
 			};

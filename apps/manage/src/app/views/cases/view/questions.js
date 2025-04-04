@@ -397,12 +397,13 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		...eventQuestions('hearing'),
 		...eventQuestions('inquiry'),
 
-		applicationFee: {
+		hasApplicationFee: {
 			type: CUSTOM_COMPONENTS.FEE_AMOUNT,
 			title: 'Fee Amount',
-			question: 'What is the application fee?',
-			fieldName: 'applicationFee',
+			question: 'Does the application have a fee?',
+			fieldName: 'hasApplicationFee',
 			url: 'fee-amount',
+			feeAmountInputFieldName: 'applicationFee',
 			feeAmountQuestion: 'For example, £1000.00',
 			validators: [new FeeAmountValidator()]
 		}
