@@ -74,14 +74,14 @@ module "app_manage" {
     WEBSITE_AUTH_AAD_ALLOWED_TENANTS         = data.azurerm_client_config.current.tenant_id
 
     # gov notify
-    GOV_NOTIFY_DISABLED                         = var.apps_config.gov_notify.disabled
-    GOV_NOTIFY_API_KEY                          = local.key_vault_refs["crown-gov-notify-api-key"]
-    GOV_NOTIFY_TEST_TEMPLATE_ID                 = var.apps_config.gov_notify.templates.test_template_id
-    GOV_NOTIFY_PRE_ACK_TEMPLATE_ID              = var.apps_config.gov_notify.templates.pre_ack_template_id
-    GOV_NOTIFY_ACK_REP_TEMPLATE_ID              = var.apps_config.gov_notify.templates.ack_rep_template_id
-    GOV_NOTIFY_LPA_QNR_TEMPLATE_ID              = var.apps_config.gov_notify.templates.lpa_qnr_template_id
-    GOV_NOTIFY_APP_REC_WITH_FEE_TEMPLATE_ID     = var.apps_config.gov_notify.templates.app_rec_with_fee_template_id
-    GOV_NOTIFY_APP_REC_WITHOUT_FEE_TEMPLATE_ID  = var.apps_config.gov_notify.templates.app_rec_without_fee_template_id
+    GOV_NOTIFY_DISABLED                        = var.apps_config.gov_notify.disabled
+    GOV_NOTIFY_API_KEY                         = local.key_vault_refs["crown-gov-notify-api-key"]
+    GOV_NOTIFY_TEST_TEMPLATE_ID                = var.apps_config.gov_notify.templates.test_template_id
+    GOV_NOTIFY_PRE_ACK_TEMPLATE_ID             = var.apps_config.gov_notify.templates.pre_ack_template_id
+    GOV_NOTIFY_ACK_REP_TEMPLATE_ID             = var.apps_config.gov_notify.templates.ack_rep_template_id
+    GOV_NOTIFY_LPA_QNR_TEMPLATE_ID             = var.apps_config.gov_notify.templates.lpa_qnr_template_id
+    GOV_NOTIFY_APP_REC_WITH_FEE_TEMPLATE_ID    = var.apps_config.gov_notify.templates.app_rec_with_fee_template_id
+    GOV_NOTIFY_APP_REC_WITHOUT_FEE_TEMPLATE_ID = var.apps_config.gov_notify.templates.app_rec_without_fee_template_id
   }
 
   providers = {
