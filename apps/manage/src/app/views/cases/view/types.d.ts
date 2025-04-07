@@ -44,9 +44,11 @@ export interface CrownDevelopmentViewModel {
 	agentContactTelephoneNumber?: string;
 
 	applicationReceivedDate?: Date | string;
+	applicationReceivedDateEmailSent?: Boolean | string;
 	applicationAcceptedDate?: Date | string;
 	lpaQuestionnaireSentDate?: Date | string;
 	lpaQuestionnaireReceivedDate?: Date | string;
+	lpaQuestionnaireReceivedEmailSent?: Boolean | string;
 	publishDate?: Date | string;
 	pressNoticeDate?: Date | string;
 	neighboursNotifiedByLpaDate?: Date | string;
@@ -98,6 +100,9 @@ export interface CrownDevelopmentViewModel {
 	inquiryNotificationDate?: Date | string;
 	inquiryCaseManagementConferenceDate?: Date | string;
 	inquiryProofsOfEvidenceDate?: Date | string;
+
+	hasApplicationFee: string;
+	applicationFee: string;
 }
 
 export type CrownDevelopmentViewModelFields = keyof CrownDevelopmentViewModel;

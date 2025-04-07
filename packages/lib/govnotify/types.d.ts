@@ -11,6 +11,8 @@ export interface TemplateIds {
 	acknowledgePreNotification: string;
 	acknowledgementOfRepresentation: string;
 	lpaAcknowledgeReceiptOfQuestionnaire: string;
+	applicationReceivedDateWithFee: string;
+	applicationReceivedDateWithoutFee: string;
 }
 
 export interface NotifyConfig {
@@ -34,4 +36,9 @@ export interface SendAcknowledgementOfRepresentationPersonalisation extends Comm
 export interface LpaAcknowledgeReceiptOfQuestionnairePersonalisation extends CommonNotificationPersonalisation {
 	lpaQuestionnaireReceivedDate: string;
 	frontOfficeLink: string;
+}
+
+export interface ApplicationReceivedDatePersonalisation extends CommonNotificationPersonalisation {
+	applicationReceivedDate: string;
+	fee: string;
 }

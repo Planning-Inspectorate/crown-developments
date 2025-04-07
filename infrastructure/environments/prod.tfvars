@@ -40,10 +40,13 @@ apps_config = {
   gov_notify = {
     disabled = true
     templates = {
-      test_template_id    = "" # TODO
-      pre_ack_template_id = "c61134de-6fb5-4fd5-8f4a-d3707a9c15df"
-      ack_rep_template_id = "" #TODO
-      lpa_qnr_template_id = "" #TODO
+      test_template_id                = "" # TODO
+      pre_ack_template_id             = "c61134de-6fb5-4fd5-8f4a-d3707a9c15df"
+      ack_rep_template_id             = "" #TODO
+      lpa_qnr_template_id             = "" #TODO
+      app_rec_with_fee_template_id    = "" # TODO
+      app_rec_without_fee_template_id = "" # TODO
+
     }
   }
 

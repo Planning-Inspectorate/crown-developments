@@ -41,10 +41,12 @@ apps_config = {
   gov_notify = {
     disabled = false
     templates = {
-      test_template_id    = "4b8adfb1-1b7c-4333-b512-761eeedfdca2"
-      pre_ack_template_id = "298a986d-c142-46f5-804a-9cb853ba8b3d"
-      ack_rep_template_id = "52312d8e-2af8-4212-a280-bfc6106cc56d"
-      lpa_qnr_template_id = "fff17679-d63d-49e4-baaa-ccbf0bdfbf98"
+      test_template_id                = "4b8adfb1-1b7c-4333-b512-761eeedfdca2"
+      pre_ack_template_id             = "298a986d-c142-46f5-804a-9cb853ba8b3d"
+      ack_rep_template_id             = "52312d8e-2af8-4212-a280-bfc6106cc56d"
+      lpa_qnr_template_id             = "fff17679-d63d-49e4-baaa-ccbf0bdfbf98"
+      app_rec_with_fee_template_id    = "68ad45c9-3ea7-4670-a058-61383ee0bcfc"
+      app_rec_without_fee_template_id = "ca391a7c-1f16-4d43-8cc9-f9a4007fa23f"
     }
   }
 

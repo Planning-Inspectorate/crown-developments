@@ -107,4 +107,76 @@ describe(`gov-notify-client`, () => {
 			]);
 		});
 	});
+	describe('sendApplicationReceivedNotification', () => {
+		it('should call sendEmail with personalisation and with fee template', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {
+				applicationReceivedDateWithFee: 'template-id-1'
+			});
+			ctx.mock.method(client, 'sendEmail', () => {});
+			await client.sendApplicationReceivedNotification(
+				'test@email.com',
+				{
+					reference: 'CROWN/2025/0000001',
+					addressee: 'Sir/Madam',
+					applicationDescription: 'some detail',
+					siteAddress: '4 the street, town, wc1w 1bw',
+					applicationReceivedDate: '31 Mar 2025',
+					fee: '£1000.00'
+				},
+				true
+			);
+			assert.strictEqual(client.sendEmail.mock.callCount(), 1);
+			const args = client.sendEmail.mock.calls[0].arguments;
+			assert.deepStrictEqual(args, [
+				'template-id-1',
+				'test@email.com',
+				{
+					personalisation: {
+						applicationDescription: 'some detail',
+						reference: 'CROWN/2025/0000001',
+						siteAddress: '4 the street, town, wc1w 1bw',
+						addressee: 'Sir/Madam',
+						applicationReceivedDate: '31 Mar 2025',
+						fee: '£1000.00'
+					}
+				}
+			]);
+		});
+		it('should call sendEmail with personalisation and without fee template', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {
+				applicationReceivedDateWithoutFee: 'template-id-1'
+			});
+			ctx.mock.method(client, 'sendEmail', () => {});
+			await client.sendApplicationReceivedNotification(
+				'test@email.com',
+				{
+					reference: 'CROWN/2025/0000001',
+					addressee: 'Sir/Madam',
+					applicationDescription: 'some detail',
+					siteAddress: '4 the street, town, wc1w 1bw',
+					applicationReceivedDate: '31 Mar 2025',
+					fee: ''
+				},
+				false
+			);
+			assert.strictEqual(client.sendEmail.mock.callCount(), 1);
+			const args = client.sendEmail.mock.calls[0].arguments;
+			assert.deepStrictEqual(args, [
+				'template-id-1',
+				'test@email.com',
+				{
+					personalisation: {
+						applicationDescription: 'some detail',
+						reference: 'CROWN/2025/0000001',
+						siteAddress: '4 the street, town, wc1w 1bw',
+						addressee: 'Sir/Madam',
+						applicationReceivedDate: '31 Mar 2025',
+						fee: ''
+					}
+				}
+			]);
+		});
+	});
 });

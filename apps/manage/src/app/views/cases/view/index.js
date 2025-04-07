@@ -3,10 +3,11 @@ import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 import { buildSave, question } from '@pins/dynamic-forms/src/controller.js';
 import validate from '@pins/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
-import { buildGetJourneyMiddleware, buildUpdateCase, buildViewCaseDetails, validateIdFormat } from './controller.js';
+import { buildGetJourneyMiddleware, buildViewCaseDetails, validateIdFormat } from './controller.js';
 import { createRoutes as createCasePublishRoutes } from './publish/index.js';
 import { createRoutes as createCaseUnpublishRoutes } from './unpublish/index.js';
 import { createRoutes as createRepsRoutes } from './manage-reps/index.js';
+import { buildUpdateCase } from './update-case.js';
 
 /**
  * @param {import('#service').ManageService} service
