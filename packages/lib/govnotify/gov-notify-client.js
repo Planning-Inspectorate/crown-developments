@@ -53,6 +53,19 @@ export class GovNotifyClient {
 	}
 
 	/**
+	 * @param {string} email - Recipients email address
+	 * @param {import('./types.js').ApplicationReceivedDatePersonalisation} personalisation
+	 * @param {boolean} hasFee
+	 * @returns {Promise<void>}
+	 */
+	async sendApplicationReceivedNotification(email, personalisation, hasFee) {
+		const templateId = hasFee
+			? this.#templateIds.applicationReceivedDateWithFee
+			: this.#templateIds.applicationReceivedDateWithoutFee;
+		await this.sendEmail(templateId, email, { personalisation: personalisation });
+	}
+
+	/**
 	 * @param {string} templateId - Gov Notify email template id
 	 * @param {string} emailAddress - Recipients email address
 	 * @param {GovNotifyOptions} options - Options to pass to Gov Notify

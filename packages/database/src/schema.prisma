@@ -65,6 +65,7 @@ model CrownDevelopment {
   isGreenBelt                         Boolean?
   healthAndSafetyIssue                String?                     @db.NVarChar(2000)
   applicationReceivedDate             DateTime?
+  applicationReceivedDateEmailSent    Boolean?                    @default(false)
   applicationAcceptedDate             DateTime?
   lpaQuestionnaireSentDate            DateTime?
   lpaQuestionnaireReceivedDate        DateTime?

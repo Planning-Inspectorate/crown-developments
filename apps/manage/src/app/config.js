@@ -57,7 +57,9 @@ export function loadConfig() {
 		GOV_NOTIFY_TEST_TEMPLATE_ID,
 		GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
 		GOV_NOTIFY_ACK_REP_TEMPLATE_ID,
-		GOV_NOTIFY_LPA_QNR_TEMPLATE_ID
+		GOV_NOTIFY_LPA_QNR_TEMPLATE_ID,
+		GOV_NOTIFY_APP_REC_WITH_FEE_TEMPLATE_ID,
+		GOV_NOTIFY_APP_REC_WITHOUT_FEE_TEMPLATE_ID
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -112,7 +114,9 @@ export function loadConfig() {
 			GOV_NOTIFY_TEST_TEMPLATE_ID,
 			GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
 			GOV_NOTIFY_ACK_REP_TEMPLATE_ID,
-			GOV_NOTIFY_LPA_QNR_TEMPLATE_ID
+			GOV_NOTIFY_LPA_QNR_TEMPLATE_ID,
+			GOV_NOTIFY_APP_REC_WITH_FEE_TEMPLATE_ID,
+			GOV_NOTIFY_APP_REC_WITHOUT_FEE_TEMPLATE_ID
 		};
 		for (const [k, v] of Object.entries(props)) {
 			if (v === undefined || v === '') {
@@ -179,7 +183,9 @@ export function loadConfig() {
 				test: GOV_NOTIFY_TEST_TEMPLATE_ID,
 				acknowledgePreNotification: GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
 				acknowledgementOfRepresentation: GOV_NOTIFY_ACK_REP_TEMPLATE_ID,
-				lpaAcknowledgeReceiptOfQuestionnaire: GOV_NOTIFY_LPA_QNR_TEMPLATE_ID
+				lpaAcknowledgeReceiptOfQuestionnaire: GOV_NOTIFY_LPA_QNR_TEMPLATE_ID,
+				applicationReceivedDateWithFee: GOV_NOTIFY_APP_REC_WITH_FEE_TEMPLATE_ID,
+				applicationReceivedDateWithoutFee: GOV_NOTIFY_APP_REC_WITHOUT_FEE_TEMPLATE_ID
 			}
 		}
 	};

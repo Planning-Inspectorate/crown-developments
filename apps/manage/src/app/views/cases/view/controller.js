@@ -1,17 +1,14 @@
 import { list } from '@pins/dynamic-forms/src/controller.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { crownDevelopmentToViewModel, editsToDatabaseUpdates } from './view-model.js';
+import { crownDevelopmentToViewModel } from './view-model.js';
 import { getQuestions } from './questions.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { getEntraGroupMembers } from '#util/entra-groups.js';
-import { dateIsBeforeToday, dateIsToday, formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js';
+import { dateIsBeforeToday, dateIsToday } from '@pins/dynamic-forms/src/lib/date-utils.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
-import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
-import { addressToViewModel } from '@pins/dynamic-forms/src/lib/address-utils.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -84,154 +81,6 @@ export function validateIdFormat(req, res, next) {
 		return notFoundHandler(req, res);
 	}
 	next();
-}
-
-/**
- * @param {import('#service').ManageService} service
- * @returns {import('@pins/dynamic-forms/src/controller.js').SaveDataFn}
- */
-export function buildUpdateCase(service) {
-	return async ({ req, res, data }) => {
-		const { db, logger } = service;
-		const { id } = req.params;
-		if (!id) {
-			throw new Error(`invalid update case request, id param required (id:${id})`);
-		}
-		logger.info({ id }, 'case update');
-		/** @type {import('./types.js').CrownDevelopmentViewModel} */
-		const toSave = data?.answers || {};
-		if (Object.keys(toSave).length === 0) {
-			logger.info({ id }, 'no case updates to apply');
-			return;
-		}
-		/** @type {import('./types.js').CrownDevelopmentViewModel} */
-		const fullViewModel = res.locals?.journeyResponse?.answers || {};
-
-		await updateCaseActions(req, res, service, id, toSave, fullViewModel);
-
-		const updateInput = editsToDatabaseUpdates(toSave, fullViewModel);
-		updateInput.updatedDate = new Date();
-
-		logger.info({ fields: Object.keys(toSave) }, 'update case input');
-
-		try {
-			await db.crownDevelopment.update({
-				where: { id },
-				data: updateInput
-			});
-		} catch (error) {
-			wrapPrismaError({
-				error,
-				logger,
-				message: 'updating case',
-				logParams: { id }
-			});
-		}
-
-		// show a banner to the user on success
-		addCaseUpdatedSession(req, id);
-
-		logger.info({ id }, 'case updated');
-	};
-}
-
-async function updateCaseActions(req, res, service, id, toSave, fullViewModel) {
-	if (toSave.lpaQuestionnaireReceivedDate && fullViewModel.lpaQuestionnaireReceivedEmailSent !== BOOLEAN_OPTIONS.YES) {
-		await sendLpaAcknowledgeReceiptOfQuestionnaireNotification(service, id, toSave.lpaQuestionnaireReceivedDate);
-		toSave['lpaQuestionnaireReceivedEmailSent'] = true;
-	}
-
-	if (toSave.applicationReceivedDate) {
-		const requiredFields = [
-			{ value: fullViewModel.siteAddressId, message: 'Enter the site address' },
-			{ value: fullViewModel.siteNorthing && fullViewModel.siteEasting, message: 'Enter the site coordinates' },
-			{ value: fullViewModel.hasApplicationFee, message: 'Enter the fee amount' }
-		];
-
-		const errors = requiredFields
-			.filter(({ value }) => !value)
-			.map(({ message }) => ({
-				text: message,
-				href: '#'
-			}));
-
-		if (errors.length > 0) {
-			const error = new Error('Data required to set Application received date is missing');
-			error.errorSummary = errors;
-			throw error;
-		}
-		//TODO: if no errors, then dispatch notification
-	}
-}
-
-/**
- * @param {import('#service').ManageService} service
- * @param {string} id
- * @param {Date | string} lpaQuestionnaireReceivedDate
- */
-async function sendLpaAcknowledgeReceiptOfQuestionnaireNotification(service, id, lpaQuestionnaireReceivedDate) {
-	const { db, logger, notifyClient } = service;
-
-	if (notifyClient === null) {
-		logger.warn(
-			'Gov Notify is not enabled, to use Gov Notify functionality setup Gov Notify environment variables. See README'
-		);
-	} else {
-		const crownDevelopment = await db.crownDevelopment.findUnique({
-			where: { id },
-			include: { SiteAddress: true, Lpa: true }
-		});
-
-		const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment, service.contactEmail);
-
-		try {
-			await notifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire(crownDevelopmentFields.lpaEmail, {
-				reference: crownDevelopmentFields.reference,
-				applicationDescription: crownDevelopmentFields.description,
-				siteAddress: formatSiteLocation(crownDevelopment),
-				lpaQuestionnaireReceivedDate: formatDateForDisplay(lpaQuestionnaireReceivedDate),
-				frontOfficeLink: `${service.portalBaseUrl}/applications`
-			});
-		} catch (error) {
-			logger.error(
-				{ error, reference: crownDevelopmentFields.reference },
-				`error dispatching LPA - Acknowledge Receipt of Questionnaire email notification`
-			);
-			throw new Error('Error encountered during email notification dispatch');
-		}
-	}
-}
-
-/**
- * Format site address depending on what is set on the case
- * @param {import('@priam/client').CrownDevelopment} crownDevelopment
- */
-function formatSiteLocation(crownDevelopment) {
-	if (crownDevelopment.siteAddressId) {
-		return addressToViewModel(crownDevelopment.SiteAddress);
-	} else if (crownDevelopment.siteNorthing || crownDevelopment.siteEasting) {
-		return [
-			`Northing: ${crownDevelopment.siteNorthing || '-'}`,
-			`Easting: ${crownDevelopment.siteEasting || '-'}`
-		].join(' , ');
-	} else {
-		return 'Site location not provided';
-	}
-}
-
-/**
- * Add a case updated flag to the session
- *
- * @param {{session?: Object<string, any>}} req
- * @param {string} id
- */
-function addCaseUpdatedSession(req, id) {
-	if (!req.session) {
-		throw new Error('request session required');
-	}
-	const cases = req.session.cases || (req.session.cases = {});
-	const caseProps = cases[id] || (cases[id] = {});
-	caseProps.updated = true;
 }
 
 /**
