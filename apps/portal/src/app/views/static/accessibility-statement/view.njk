@@ -2,14 +2,14 @@
 
 {% block pageTitle %}
     {% set suffix = serviceName | default(config.headerTitle) %}
-    {{ pageTitle | default('Accessibility statement for the Find a Crown Development service') }} - {{ suffix }}
+    {{ pageTitle | default('Accessibility Statement') }} - {{ suffix }}
 {% endblock %}
 
 {% block pageHeading %}
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
             <h1 class="govuk-heading-xl">
-                {{ pageTitle }}
+                {{ pageHeading }}
             </h1>
         </div>
     </div>
