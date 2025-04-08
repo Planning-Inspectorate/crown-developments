@@ -87,8 +87,8 @@ export async function customUpdateCaseActions(service, id, toSave, fullViewModel
 		await handleApplicationReceivedDateUpdate(service, id, toSave, fullViewModel);
 	}
 
-	if (toSave.turnedAwayDate) {
-		await handleTurnedAwayDateUpdate();
+	if (toSave.turnedAwayDate && fullViewModel.notNationallyImportantEmailSent !== BOOLEAN_OPTIONS.YES) {
+		await handleTurnedAwayDateUpdate(service, id, toSave);
 	}
 }
 
@@ -141,7 +141,12 @@ async function handleApplicationReceivedDateUpdate(service, id, toSave, fullView
 	}
 }
 
+/**
+ * @param {import('#service').ManageService} service
+ * @param {string} id
+ * @param {import('./types.js').CrownDevelopmentViewModel} toSave
+ */
 async function handleTurnedAwayDateUpdate(service, id, toSave) {
 	await sendApplicationNotOfNationalImportanceNotification(service, id);
-	toSave['applicationNotOfNationalImportanceEmailSent'] = true;
+	toSave['notNationallyImportantEmailSent'] = true;
 }

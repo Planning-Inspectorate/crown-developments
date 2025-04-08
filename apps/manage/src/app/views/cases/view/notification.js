@@ -9,29 +9,25 @@ import { addressToViewModel } from '@pins/dynamic-forms/src/lib/address-utils.js
  * @param {Date | string} lpaQuestionnaireReceivedDate
  */
 export async function sendLpaAcknowledgeReceiptOfQuestionnaireNotification(service, id, lpaQuestionnaireReceivedDate) {
-	const { db, logger, notifyClient } = service;
+	const notificationContext = await prepareNotificationContext(service, id);
+	if (!notificationContext) return;
 
-	if (notifyClient === null) {
-		logger.warn(
-			'Gov Notify is not enabled, to use Gov Notify functionality setup Gov Notify environment variables. See README'
+	const { notifyClient, logger, crownDevelopment, crownDevelopmentFields } = notificationContext;
+
+	try {
+		await notifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire(crownDevelopmentFields.lpaEmail, {
+			reference: crownDevelopmentFields.reference,
+			applicationDescription: crownDevelopmentFields.description,
+			siteAddress: formatSiteLocation(crownDevelopment),
+			lpaQuestionnaireReceivedDate: formatDateForDisplay(lpaQuestionnaireReceivedDate),
+			frontOfficeLink: `${service.portalBaseUrl}/applications`
+		});
+	} catch (error) {
+		logger.error(
+			{ error, reference: crownDevelopmentFields.reference },
+			`error dispatching LPA - Acknowledge Receipt of Questionnaire email notification`
 		);
-	} else {
-		const { crownDevelopment, crownDevelopmentFields } = await getCrownDevelopmentData(db, id);
-		try {
-			await notifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire(crownDevelopmentFields.lpaEmail, {
-				reference: crownDevelopmentFields.reference,
-				applicationDescription: crownDevelopmentFields.description,
-				siteAddress: formatSiteLocation(crownDevelopment),
-				lpaQuestionnaireReceivedDate: formatDateForDisplay(lpaQuestionnaireReceivedDate),
-				frontOfficeLink: `${service.portalBaseUrl}/applications`
-			});
-		} catch (error) {
-			logger.error(
-				{ error, reference: crownDevelopmentFields.reference },
-				`error dispatching LPA - Acknowledge Receipt of Questionnaire email notification`
-			);
-			throw new Error('Error encountered during email notification dispatch');
-		}
+		throw new Error('Error encountered during email notification dispatch');
 	}
 }
 
@@ -41,64 +37,73 @@ export async function sendLpaAcknowledgeReceiptOfQuestionnaireNotification(servi
  * @param {Date | string} applicationReceivedDate
  */
 export async function sendApplicationReceivedNotification(service, id, applicationReceivedDate) {
-	const { db, logger, notifyClient } = service;
-	if (notifyClient === null) {
-		logger.warn(
-			'Gov Notify is not enabled, to use Gov Notify functionality setup Gov Notify environment variables. See README'
+	const notificationContext = await prepareNotificationContext(service, id);
+	if (!notificationContext) return;
+
+	const { notifyClient, logger, crownDevelopment, crownDevelopmentFields } = notificationContext;
+
+	try {
+		await notifyClient.sendApplicationReceivedNotification(
+			getRecipientEmail(crownDevelopmentFields),
+			{
+				reference: crownDevelopmentFields.reference,
+				applicationDescription: crownDevelopmentFields.description,
+				siteAddress: formatSiteLocation(crownDevelopment),
+				applicationReceivedDate: formatDateForDisplay(applicationReceivedDate),
+				fee: crownDevelopmentFields.applicationFee?.toFixed(2) || ''
+			},
+			crownDevelopmentFields.hasApplicationFee === BOOLEAN_OPTIONS.YES
 		);
-	} else {
-		const { crownDevelopment, crownDevelopmentFields } = await getCrownDevelopmentData(db, id);
-		try {
-			await notifyClient.sendApplicationReceivedNotification(
-				crownDevelopmentFields.agentContactId
-					? crownDevelopmentFields.agentContactEmail
-					: crownDevelopmentFields.applicantContactEmail,
-				{
-					reference: crownDevelopmentFields.reference,
-					applicationDescription: crownDevelopmentFields.description,
-					siteAddress: formatSiteLocation(crownDevelopment),
-					applicationReceivedDate: formatDateForDisplay(applicationReceivedDate),
-					fee: crownDevelopmentFields.applicationFee?.toFixed(2) || ''
-				},
-				crownDevelopmentFields.hasApplicationFee === BOOLEAN_OPTIONS.YES
-			);
-		} catch (error) {
-			logger.error(
-				{ error, reference: crownDevelopmentFields.reference },
-				`error dispatching Application Received email notification`
-			);
-			throw new Error('Error encountered during email notification dispatch');
-		}
+	} catch (error) {
+		logger.error(
+			{ error, reference: crownDevelopmentFields.reference },
+			`error dispatching Application Received email notification`
+		);
+		throw new Error('Error encountered during email notification dispatch');
 	}
 }
 
+/**
+ * @param {import('#service').ManageService} service
+ * @param {string} id
+ */
 export async function sendApplicationNotOfNationalImportanceNotification(service, id) {
+	const notificationContext = await prepareNotificationContext(service, id);
+	if (!notificationContext) return;
+
+	const { notifyClient, logger, crownDevelopment, crownDevelopmentFields } = notificationContext;
+
+	try {
+		await notifyClient.sendApplicationNotOfNationalImportanceNotification(getRecipientEmail(crownDevelopmentFields), {
+			reference: crownDevelopmentFields.reference,
+			applicationDescription: crownDevelopmentFields.description,
+			siteAddress: formatSiteLocation(crownDevelopment)
+		});
+	} catch (error) {
+		logger.error(
+			{ error, reference: crownDevelopmentFields.reference },
+			`error dispatching Application not of national importance email notification`
+		);
+		throw new Error('Error encountered during email notification dispatch');
+	}
+}
+
+/**
+ * @param {import('#service').ManageService} service
+ * @param {string} id
+ */
+async function prepareNotificationContext(service, id) {
 	const { db, logger, notifyClient } = service;
-	if (notifyClient === null) {
+
+	if (!notifyClient) {
 		logger.warn(
 			'Gov Notify is not enabled, to use Gov Notify functionality setup Gov Notify environment variables. See README'
 		);
-	} else {
-		const { crownDevelopment, crownDevelopmentFields } = await getCrownDevelopmentData(db, id);
-		try {
-			await notifyClient.sendApplicationNotOfNationalImportanceNotification(
-				crownDevelopmentFields.agentContactId
-					? crownDevelopmentFields.agentContactEmail
-					: crownDevelopmentFields.applicantContactEmail,
-				{
-					reference: crownDevelopmentFields.reference,
-					applicationDescription: crownDevelopmentFields.description,
-					siteAddress: formatSiteLocation(crownDevelopment)
-				}
-			);
-		} catch (error) {
-			logger.error(
-				{ error, reference: crownDevelopmentFields.reference },
-				`error dispatching Application not of national importance email notification`
-			);
-			throw new Error('Error encountered during email notification dispatch');
-		}
+		return null;
 	}
+
+	const { crownDevelopment, crownDevelopmentFields } = await getCrownDevelopmentData(db, id);
+	return { notifyClient, logger, crownDevelopment, crownDevelopmentFields };
 }
 
 /**
@@ -115,6 +120,16 @@ async function getCrownDevelopmentData(db, id) {
 	const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment);
 
 	return { crownDevelopment, crownDevelopmentFields };
+}
+
+/**
+ * @param {import('./types.js').CrownDevelopmentViewModel} crownDevelopmentFields
+ * @returns {string} recipient email address
+ */
+function getRecipientEmail(crownDevelopmentFields) {
+	return crownDevelopmentFields.agentContactId
+		? crownDevelopmentFields.agentContactEmail
+		: crownDevelopmentFields.applicantContactEmail;
 }
 
 /**

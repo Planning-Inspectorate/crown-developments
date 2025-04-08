@@ -60,6 +60,7 @@ export interface CrownDevelopmentViewModel {
 	withdrawnDate?: Date | string;
 	originalDecisionDate?: Date | string;
 	turnedAwayDate?: Date | string;
+	notNationallyImportantEmailSent?: Boolean | string;
 
 	representationsPeriod?: {
 		start?: Date | string;

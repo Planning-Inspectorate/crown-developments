@@ -82,6 +82,7 @@ module "app_manage" {
     GOV_NOTIFY_LPA_QNR_TEMPLATE_ID             = var.apps_config.gov_notify.templates.lpa_qnr_template_id
     GOV_NOTIFY_APP_REC_WITH_FEE_TEMPLATE_ID    = var.apps_config.gov_notify.templates.app_rec_with_fee_template_id
     GOV_NOTIFY_APP_REC_WITHOUT_FEE_TEMPLATE_ID = var.apps_config.gov_notify.templates.app_rec_without_fee_template_id
+    GOV_NOTIFY_APP_NOT_NAT_IMP_TEMPLATE_ID     = var.apps_config.gov_notify.templates.app_not_nat_imp_template_id
   }
 
   providers = {
