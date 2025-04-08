@@ -609,6 +609,122 @@ describe('case details', () => {
 
 			await assert.rejects(() => updateCase({ req: mockReq, res: mockRes, data }));
 		});
+		it('should dispatch Application not of national importance Notification', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						reference: 'CROWN/2025/0000001',
+						description: 'a big project',
+						siteNorthing: '123456',
+						siteEasting: '654321',
+						ApplicantContact: { email: 'test@email.com' },
+						agentContactId: 'agent-id',
+						AgentContact: { email: 'agent@email.com' }
+					})),
+					update: mock.fn()
+				}
+			};
+			const mockNotifyClient = {
+				sendApplicationNotOfNationalImportanceNotification: mock.fn()
+			};
+			const updateCase = buildUpdateCase({
+				db: mockDb,
+				logger,
+				notifyClient: mockNotifyClient
+			});
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							notNationallyImportantEmailSent: false
+						}
+					}
+				}
+			};
+			const date = new Date('2025-01-02');
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					turnedAwayDate: date
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+			assert.strictEqual(mockReq.session?.cases?.case1.updated, true);
+
+			const updateArg = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
+			assert.strictEqual(updateArg.where?.id, 'case1');
+			assert.strictEqual(updateArg.data?.turnedAwayDate, date);
+			assert.strictEqual(updateArg.data?.notNationallyImportantEmailSent, true);
+
+			assert.strictEqual(mockNotifyClient.sendApplicationNotOfNationalImportanceNotification.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockNotifyClient.sendApplicationNotOfNationalImportanceNotification.mock.calls[0].arguments,
+				[
+					'agent@email.com',
+					{
+						reference: 'CROWN/2025/0000001',
+						applicationDescription: 'a big project',
+						siteAddress: 'Northing: 123456 , Easting: 654321'
+					}
+				]
+			);
+		});
+		it('should throw error if Application not of national importance Notification fails', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						reference: 'CROWN/2025/0000001',
+						description: 'a big project',
+						siteNorthing: '123456',
+						siteEasting: '654321',
+						ApplicantContact: { email: 'test@email.com' }
+					})),
+					update: mock.fn()
+				}
+			};
+			const mockNotifyClient = {
+				sendApplicationNotOfNationalImportanceNotification: mock.fn(() => {
+					throw new Error('Exception error');
+				})
+			};
+			const updateCase = buildUpdateCase({
+				db: mockDb,
+				logger,
+				notifyClient: mockNotifyClient
+			});
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							notNationallyImportantEmailSent: false
+						}
+					}
+				}
+			};
+			const date = new Date('2025-01-02');
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					turnedAwayDate: date
+				}
+			};
+
+			await assert.rejects(() => updateCase({ req: mockReq, res: mockRes, data }));
+		});
 		it('should not throw Prisma errors', async () => {
 			const logger = mockLogger();
 			const mockDb = {
