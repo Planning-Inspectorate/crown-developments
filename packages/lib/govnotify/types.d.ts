@@ -13,6 +13,7 @@ export interface TemplateIds {
 	lpaAcknowledgeReceiptOfQuestionnaire: string;
 	applicationReceivedDateWithFee: string;
 	applicationReceivedDateWithoutFee: string;
+	applicationNotOfNationalImportance: string;
 }
 
 export interface NotifyConfig {
