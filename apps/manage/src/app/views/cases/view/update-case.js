@@ -111,7 +111,7 @@ async function handleApplicationReceivedDateUpdate(service, id, toSave, fullView
 		},
 		{
 			condition: !fullViewModel.hasApplicationFee,
-			messages: ['Enter the fee amount']
+			messages: ['Confirm whether there is an application fee, and enter the amount if applicable']
 		}
 	];
 

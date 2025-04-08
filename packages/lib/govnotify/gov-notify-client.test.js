@@ -111,7 +111,8 @@ describe(`gov-notify-client`, () => {
 		it('should call sendEmail with personalisation and with fee template', async (ctx) => {
 			const logger = mockLogger();
 			const client = new GovNotifyClient(logger, 'key', {
-				applicationReceivedDateWithFee: 'template-id-1'
+				applicationReceivedDateWithFee: 'template-id-1',
+				applicationReceivedDateWithoutFee: 'template-id-2'
 			});
 			ctx.mock.method(client, 'sendEmail', () => {});
 			await client.sendApplicationReceivedNotification(
@@ -146,7 +147,8 @@ describe(`gov-notify-client`, () => {
 		it('should call sendEmail with personalisation and without fee template', async (ctx) => {
 			const logger = mockLogger();
 			const client = new GovNotifyClient(logger, 'key', {
-				applicationReceivedDateWithoutFee: 'template-id-1'
+				applicationReceivedDateWithFee: 'template-id-1',
+				applicationReceivedDateWithoutFee: 'template-id-2'
 			});
 			ctx.mock.method(client, 'sendEmail', () => {});
 			await client.sendApplicationReceivedNotification(
@@ -164,7 +166,7 @@ describe(`gov-notify-client`, () => {
 			assert.strictEqual(client.sendEmail.mock.callCount(), 1);
 			const args = client.sendEmail.mock.calls[0].arguments;
 			assert.deepStrictEqual(args, [
-				'template-id-1',
+				'template-id-2',
 				'test@email.com',
 				{
 					personalisation: {
