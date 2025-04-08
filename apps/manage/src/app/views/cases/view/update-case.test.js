@@ -4,6 +4,7 @@ import assert from 'node:assert';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { Prisma } from '@prisma/client';
+import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
 
 describe('case details', () => {
 	describe('buildUpdateCase', () => {
@@ -309,7 +310,7 @@ describe('case details', () => {
 						answers: {
 							applicationReceivedDateEmailSent: false,
 							siteAddressId: 'address-1',
-							hasApplicationFee: true
+							hasApplicationFee: BOOLEAN_OPTIONS.YES
 						}
 					}
 				}
@@ -382,7 +383,7 @@ describe('case details', () => {
 							applicationReceivedDateEmailSent: false,
 							siteNorthing: '123456',
 							siteEasting: '654321',
-							hasApplicationFee: true
+							hasApplicationFee: BOOLEAN_OPTIONS.YES
 						}
 					}
 				}
@@ -416,6 +417,144 @@ describe('case details', () => {
 				},
 				false
 			]);
+		});
+		it('should throw error if site address, coordinates and fee are not set on the case', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(),
+					update: mock.fn()
+				}
+			};
+			const updateCase = buildUpdateCase({
+				db: mockDb,
+				logger
+			});
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {}
+					}
+				}
+			};
+			const date = new Date('2025-01-02');
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					applicationReceivedDate: date
+				}
+			};
+
+			await assert.rejects(
+				() => updateCase({ req: mockReq, res: mockRes, data }),
+				(err) => {
+					assert.strictEqual(err.name, 'Error');
+					assert.strictEqual(err.errorSummary.length, 3);
+					assert.strictEqual(err.errorSummary[0].text, 'Enter the site address');
+					assert.strictEqual(err.errorSummary[1].text, 'Enter the site coordinates');
+					assert.strictEqual(
+						err.errorSummary[2].text,
+						'Confirm whether there is an application fee, and enter the amount if applicable'
+					);
+					return true;
+				}
+			);
+		});
+		it('should throw error if site address and coordinates are not set on the case', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(),
+					update: mock.fn()
+				}
+			};
+			const updateCase = buildUpdateCase({
+				db: mockDb,
+				logger
+			});
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							applicationReceivedDateEmailSent: false,
+							hasApplicationFee: BOOLEAN_OPTIONS.NO
+						}
+					}
+				}
+			};
+			const date = new Date('2025-01-02');
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					applicationReceivedDate: date
+				}
+			};
+
+			await assert.rejects(
+				() => updateCase({ req: mockReq, res: mockRes, data }),
+				(err) => {
+					assert.strictEqual(err.name, 'Error');
+					assert.strictEqual(err.errorSummary.length, 2);
+					assert.strictEqual(err.errorSummary[0].text, 'Enter the site address');
+					assert.strictEqual(err.errorSummary[1].text, 'Enter the site coordinates');
+					return true;
+				}
+			);
+		});
+		it('should throw error if site address and coordinates are not set on the case', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(),
+					update: mock.fn()
+				}
+			};
+			const updateCase = buildUpdateCase({
+				db: mockDb,
+				logger
+			});
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							applicationReceivedDateEmailSent: false,
+							siteAddressId: 'address-id-1'
+						}
+					}
+				}
+			};
+			const date = new Date('2025-01-02');
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					applicationReceivedDate: date
+				}
+			};
+
+			await assert.rejects(
+				() => updateCase({ req: mockReq, res: mockRes, data }),
+				(err) => {
+					assert.strictEqual(err.name, 'Error');
+					assert.strictEqual(err.errorSummary.length, 1);
+					assert.strictEqual(
+						err.errorSummary[0].text,
+						'Confirm whether there is an application fee, and enter the amount if applicable'
+					);
+					return true;
+				}
+			);
 		});
 		it('should throw error if Application Received Date Notification fails', async () => {
 			const logger = mockLogger();
@@ -455,7 +594,7 @@ describe('case details', () => {
 							applicationReceivedDateEmailSent: false,
 							siteNorthing: '123456',
 							siteEasting: '654321',
-							hasApplicationFee: true
+							hasApplicationFee: BOOLEAN_OPTIONS.YES
 						}
 					}
 				}
