@@ -62,7 +62,8 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'lpaQuestionnaireReceivedEmailSent',
 	'hasApplicationFee',
 	'applicationFee',
-	'applicationReceivedDateEmailSent'
+	'applicationReceivedDateEmailSent',
+	'notNationallyImportantEmailSent'
 ]);
 
 /**

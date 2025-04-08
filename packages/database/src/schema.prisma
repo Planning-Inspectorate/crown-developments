@@ -57,6 +57,7 @@ model CrownDevelopment {
   Stage                               ApplicationStage?           @relation(fields: [stageId], references: [id])
   nationallyImportant                 Boolean?
   nationallyImportantConfirmationDate DateTime?
+  notNationallyImportantEmailSent     Boolean?                    @default(false)
   /// LPA cross reference
   lpaReference                        String?
   /// case category

@@ -55,6 +55,7 @@ variable "apps_config" {
         lpa_qnr_template_id             = string
         app_rec_with_fee_template_id    = string
         app_rec_without_fee_template_id = string
+        app_not_nat_imp_template_id     = string
       })
     })
 

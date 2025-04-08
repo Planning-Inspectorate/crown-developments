@@ -47,6 +47,7 @@ apps_config = {
       lpa_qnr_template_id             = "fff17679-d63d-49e4-baaa-ccbf0bdfbf98"
       app_rec_with_fee_template_id    = "68ad45c9-3ea7-4670-a058-61383ee0bcfc"
       app_rec_without_fee_template_id = "ca391a7c-1f16-4d43-8cc9-f9a4007fa23f"
+      app_not_nat_imp_template_id     = "b821dda1-839f-4093-b3d1-273f49a3b7eb"
     }
   }
 
