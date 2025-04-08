@@ -199,7 +199,7 @@ describe('notification', () => {
 				}
 			};
 			const mockNotifyClient = {
-				sendLpaAcknowledgeReceiptOfQuestionnaire: mock.fn(() => {
+				sendApplicationReceivedNotification: mock.fn(() => {
 					throw new Error('Exception error');
 				})
 			};
