@@ -12,8 +12,9 @@ describe('Accessibility page controller', () => {
 		contactUsPage(mockReq, mockRes);
 		assert.strictEqual(mockRes.render.mock.callCount(), 1);
 		assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/static/accessibility-statement/view.njk');
+		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].pageTitle, 'Accessibility Statement');
 		assert.strictEqual(
-			mockRes.render.mock.calls[0].arguments[1].pageTitle,
+			mockRes.render.mock.calls[0].arguments[1].pageHeading,
 			'Accessibility statement for the Find a Crown Development service'
 		);
 	});
