@@ -181,4 +181,31 @@ describe(`gov-notify-client`, () => {
 			]);
 		});
 	});
+	describe('sendApplicationNotOfNationalImportanceNotification', () => {
+		it('should call sendEmail with personalisation', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {
+				applicationNotOfNationalImportance: 'template-id-1'
+			});
+			ctx.mock.method(client, 'sendEmail', () => {});
+			await client.sendApplicationNotOfNationalImportanceNotification('test@email.com', {
+				reference: 'CROWN/2025/0000001',
+				applicationDescription: 'some detail',
+				siteAddress: '4 the street, town, wc1w 1bw'
+			});
+			assert.strictEqual(client.sendEmail.mock.callCount(), 1);
+			const args = client.sendEmail.mock.calls[0].arguments;
+			assert.deepStrictEqual(args, [
+				'template-id-1',
+				'test@email.com',
+				{
+					personalisation: {
+						applicationDescription: 'some detail',
+						reference: 'CROWN/2025/0000001',
+						siteAddress: '4 the street, town, wc1w 1bw'
+					}
+				}
+			]);
+		});
+	});
 });
