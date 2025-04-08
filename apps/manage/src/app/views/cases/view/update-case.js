@@ -1,5 +1,6 @@
 import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
 import {
+	sendApplicationNotOfNationalImportanceNotification,
 	sendApplicationReceivedNotification,
 	sendLpaAcknowledgeReceiptOfQuestionnaireNotification
 } from './notification.js';
@@ -85,6 +86,10 @@ export async function customUpdateCaseActions(service, id, toSave, fullViewModel
 	if (toSave.applicationReceivedDate) {
 		await handleApplicationReceivedDateUpdate(service, id, toSave, fullViewModel);
 	}
+
+	if (toSave.turnedAwayDate) {
+		await handleTurnedAwayDateUpdate();
+	}
 }
 
 /**
@@ -134,4 +139,9 @@ async function handleApplicationReceivedDateUpdate(service, id, toSave, fullView
 		await sendApplicationReceivedNotification(service, id, toSave.applicationReceivedDate);
 		toSave['applicationReceivedDateEmailSent'] = true;
 	}
+}
+
+async function handleTurnedAwayDateUpdate(service, id, toSave) {
+	await sendApplicationNotOfNationalImportanceNotification(service, id);
+	toSave['applicationNotOfNationalImportanceEmailSent'] = true;
 }

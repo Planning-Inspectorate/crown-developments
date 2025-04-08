@@ -317,7 +317,12 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		recoveredReportSentDate: dateQuestion({ fieldName: 'recoveredReportSentDate' }),
 		withdrawnDate: dateQuestion({ fieldName: 'withdrawnDate' }),
 		originalDecisionDate: dateQuestion({ fieldName: 'originalDecisionDate' }),
-		turnedAwayDate: dateQuestion({ fieldName: 'turnedAwayDate' }),
+		turnedAwayDate: dateQuestion({
+			fieldName: 'turnedAwayDate',
+			viewData: {
+				warningMessage: 'Adding a date will notify the applicant that the application is not of national importance.'
+			}
+		}),
 
 		representationsPeriod: {
 			type: COMPONENT_TYPES.DATE_PERIOD,

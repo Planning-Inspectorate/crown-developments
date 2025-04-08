@@ -72,6 +72,35 @@ export async function sendApplicationReceivedNotification(service, id, applicati
 	}
 }
 
+export async function sendApplicationNotOfNationalImportanceNotification(service, id) {
+	const { db, logger, notifyClient } = service;
+	if (notifyClient === null) {
+		logger.warn(
+			'Gov Notify is not enabled, to use Gov Notify functionality setup Gov Notify environment variables. See README'
+		);
+	} else {
+		const { crownDevelopment, crownDevelopmentFields } = await getCrownDevelopmentData(db, id);
+		try {
+			await notifyClient.sendApplicationNotOfNationalImportanceNotification(
+				crownDevelopmentFields.agentContactId
+					? crownDevelopmentFields.agentContactEmail
+					: crownDevelopmentFields.applicantContactEmail,
+				{
+					reference: crownDevelopmentFields.reference,
+					applicationDescription: crownDevelopmentFields.description,
+					siteAddress: formatSiteLocation(crownDevelopment)
+				}
+			);
+		} catch (error) {
+			logger.error(
+				{ error, reference: crownDevelopmentFields.reference },
+				`error dispatching Application not of national importance email notification`
+			);
+			throw new Error('Error encountered during email notification dispatch');
+		}
+	}
+}
+
 /**
  * Fetch crown development data
  * @param {import('@prisma/client').PrismaClient} db
