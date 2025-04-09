@@ -112,27 +112,25 @@ async function handleApplicationReceivedDateUpdate(service, id, toSave, fullView
 	const validations = [
 		{
 			condition: !fullViewModel.siteAddressId && !fullViewModel.siteNorthing && !fullViewModel.siteEasting,
-			messages: ['Enter the site address'],
+			message: 'Enter the site address',
 			href: `/cases/${id}/overview/site-address`
 		},
 		{
 			condition: !fullViewModel.siteAddressId && !fullViewModel.siteNorthing && !fullViewModel.siteEasting,
-			messages: ['Enter the site coordinates'],
+			message: 'Enter the site coordinates',
 			href: `/cases/${id}/overview/site-coordinates`
 		},
 		{
 			condition: !fullViewModel.hasApplicationFee,
-			messages: ['Confirm whether there is an application fee, and enter the amount if applicable'],
+			message: 'Confirm whether there is an application fee, and enter the amount if applicable',
 			href: `/cases/${id}/fee/fee-amount`
 		}
 	];
 
 	const errors = [];
-	validations.forEach(({ condition, messages, href }) => {
+	validations.forEach(({ condition, message, href }) => {
 		if (condition) {
-			messages.forEach((text) => {
-				errors.push({ text, href });
-			});
+			errors.push({ text: message, href });
 		}
 	});
 
