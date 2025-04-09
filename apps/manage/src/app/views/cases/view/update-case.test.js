@@ -455,11 +455,14 @@ describe('case details', () => {
 					assert.strictEqual(err.name, 'Error');
 					assert.strictEqual(err.errorSummary.length, 3);
 					assert.strictEqual(err.errorSummary[0].text, 'Enter the site address');
+					assert.strictEqual(err.errorSummary[0].href, '/cases/case1/overview/site-address');
 					assert.strictEqual(err.errorSummary[1].text, 'Enter the site coordinates');
+					assert.strictEqual(err.errorSummary[1].href, '/cases/case1/overview/site-coordinates');
 					assert.strictEqual(
 						err.errorSummary[2].text,
 						'Confirm whether there is an application fee, and enter the amount if applicable'
 					);
+					assert.strictEqual(err.errorSummary[2].href, '/cases/case1/fee/fee-amount');
 					return true;
 				}
 			);
