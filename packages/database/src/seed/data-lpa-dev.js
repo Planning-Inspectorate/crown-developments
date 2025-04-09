@@ -28,13 +28,15 @@ export const LOCAL_PLANNING_AUTHORITIES = [
 		name: 'System Test Borough Council',
 		pinsCode: 'Q9999',
 		email: 'system-test-council@example.com',
-		Address: address1
+		Address: address1,
+		telephoneNumber: '1234567890'
 	},
 	{
 		id: '1a76f67e-5828-4532-bd6f-aa7ef40a13ca',
 		name: 'Another System Test Borough Council',
 		email: 'another-system-test-council@example.com',
-		Address: address2
+		Address: address2,
+		telephoneNumber: '0987654321'
 	}
 ];
 
