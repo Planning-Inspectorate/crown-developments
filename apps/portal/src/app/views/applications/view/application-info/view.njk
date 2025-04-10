@@ -5,6 +5,14 @@
 {% from  "views/applications/view/links.njk" import applicationLinks %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
+{% set siteAddress %}
+    {% if crownDevelopmentFields.siteAddress %}
+    {{ crownDevelopmentFields.siteAddress }}
+    {% else %}
+    Easting: {{ crownDevelopmentFields.siteCoordinates.easting }}, Northing: {{ crownDevelopmentFields.siteCoordinates.northing }}
+    {% endif %}
+{% endset %}
+
 {% block pageHeading %}{% endblock %}
 
 {% block pageContent %}
@@ -38,7 +46,7 @@
                 <p class="govuk-body">{{ crownDevelopmentFields.applicantName }}</p>
 
                 <h3 class="govuk-heading-s">Site Address</h3>
-                <p class="govuk-body">{{ crownDevelopmentFields.siteAddress }}</p>
+                <p class="govuk-body">{{ siteAddress }}</p>
 
                 <h3 class="govuk-heading-s">Description of the proposed development</h3>
                 <p class="govuk-body">{{ crownDevelopmentFields.description }}</p>
