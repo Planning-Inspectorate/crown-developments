@@ -51,6 +51,12 @@ export function crownDevelopmentToViewModel(crownDevelopment, contactEmail) {
 	if (crownDevelopment.SiteAddress) {
 		fields.siteAddress = addressToViewModel(crownDevelopment.SiteAddress);
 	}
+	if (crownDevelopment.siteNorthing && crownDevelopment.siteEasting) {
+		fields.siteCoordinates = {
+			northing: crownDevelopment.siteNorthing.toString().padStart(6, '0'),
+			easting: crownDevelopment.siteEasting.toString().padStart(6, '0')
+		};
+	}
 
 	return fields;
 }
