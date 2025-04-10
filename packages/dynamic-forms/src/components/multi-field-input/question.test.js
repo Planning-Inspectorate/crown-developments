@@ -77,6 +77,68 @@ describe('./src/dynamic-forms/components/single-line-input/question.js', () => {
 			assert.strictEqual(result.question?.inputFields[1].fieldName, INPUTFIELDS[1].fieldName);
 			assert.strictEqual(result.hello, 'hi');
 		});
+		it('should set inputFields with values from payload if provided', () => {
+			const question = createMultiFieldInputQuestion();
+			const journey = {
+				response: {
+					answers: {}
+				},
+				getBackLink: () => {
+					return 'back';
+				}
+			};
+			const payload = {
+				testField1: 'payloadValue1',
+				testField2: 'payloadValue2'
+			};
+
+			const result = question.prepQuestionForRendering({}, journey, {}, payload);
+
+			assert.strictEqual(result.question?.inputFields[0].value, 'payloadValue1');
+			assert.strictEqual(result.question?.inputFields[1].value, 'payloadValue2');
+		});
+		it('should set inputFields with values from journey response if payload is not provided', () => {
+			const question = createMultiFieldInputQuestion();
+			const journey = {
+				response: {
+					answers: {
+						testField1: 'responseValue1',
+						testField2: 'responseValue2'
+					}
+				},
+				getBackLink: () => {
+					return 'back';
+				}
+			};
+
+			const result = question.prepQuestionForRendering({}, journey, {});
+
+			assert.strictEqual(result.question?.inputFields[0].value, 'responseValue1');
+			assert.strictEqual(result.question?.inputFields[1].value, 'responseValue2');
+		});
+		it('should set inputFields with formatted values from journey response if formatTextFunction is provided', () => {
+			const formatTextFunction = (value) => `Formatted: ${value}`;
+			const question = createMultiFieldInputQuestion(TITLE, QUESTION, FIELDNAME, VALIDATORS, HTML, HINT, LABEL, [
+				{ fieldName: 'testField1', formatTextFunction },
+				{ fieldName: 'testField2', formatTextFunction }
+			]);
+			const journey = {
+				response: {
+					answers: {
+						testField1: 'responseValue1',
+						testField2: 'responseValue2'
+					}
+				},
+				getBackLink: () => {
+					return 'back';
+				}
+			};
+
+			const result = question.prepQuestionForRendering({}, journey, {});
+
+			assert.strictEqual(result.question?.inputFields[0].value, 'Formatted: responseValue1');
+			assert.strictEqual(result.question?.inputFields[1].value, 'Formatted: responseValue2');
+		});
 	});
 
 	describe('getDataToSave', () => {
@@ -99,6 +161,53 @@ describe('./src/dynamic-forms/components/single-line-input/question.js', () => {
 				answers: {
 					testField1: 'testInput',
 					testField2: 'more test input'
+				}
+			};
+
+			const result = await question.getDataToSave(testRequest, journeyResponse);
+
+			assert.deepStrictEqual(result, expectedResponseToSave);
+		});
+		it('should trim whitespace from input values before saving', async () => {
+			const question = createMultiFieldInputQuestion();
+
+			const testRequest = {
+				body: {
+					testField1: '  testInput  ',
+					testField2: '  more test input  '
+				}
+			};
+
+			const journeyResponse = {
+				answers: {}
+			};
+
+			const expectedResponseToSave = {
+				answers: {
+					testField1: 'testInput',
+					testField2: 'more test input'
+				}
+			};
+
+			const result = await question.getDataToSave(testRequest, journeyResponse);
+
+			assert.deepStrictEqual(result, expectedResponseToSave);
+		});
+		it('should handle missing fields in the request body gracefully', async () => {
+			const question = createMultiFieldInputQuestion();
+
+			const testRequest = {
+				body: {}
+			};
+
+			const journeyResponse = {
+				answers: {}
+			};
+
+			const expectedResponseToSave = {
+				answers: {
+					testField1: undefined,
+					testField2: undefined
 				}
 			};
 

@@ -105,13 +105,15 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 					fieldName: 'siteNorthing',
 					label: 'Northing',
 					formatPrefix: 'Northing: ',
-					hint: 'Optional'
+					hint: 'Optional',
+					formatTextFunction: (string) => string.toString().padStart(6, '0')
 				},
 				{
 					fieldName: 'siteEasting',
 					label: 'Easting',
 					formatPrefix: 'Easting: ',
-					hint: 'Optional'
+					hint: 'Optional',
+					formatTextFunction: (string) => string.toString().padStart(6, '0')
 				}
 			],
 			validators: [
