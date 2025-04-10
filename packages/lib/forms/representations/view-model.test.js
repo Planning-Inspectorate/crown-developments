@@ -25,7 +25,6 @@ describe('view-model', () => {
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
 				categoryId: 'c-id-1',
-				wantsToBeHeard: true,
 				submittedForId: 'id-1',
 				comment: 'comment one',
 				commentRedacted: '███████ one',
@@ -36,7 +35,6 @@ describe('view-model', () => {
 			assert.deepStrictEqual(viewModel, {
 				...representation,
 				applicationReference,
-				wantsToBeHeard: 'yes',
 				requiresReview: false,
 				submittedByContactId: undefined,
 				representedContactId: undefined,
@@ -53,7 +51,6 @@ describe('view-model', () => {
 				statusId: REPRESENTATION_STATUS_ID.AWAITING_REVIEW,
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
 				categoryId: 'c-id-1',
-				wantsToBeHeard: true,
 				submittedForId: 'id-1',
 				containsAttachments: false,
 				sharePointFolderCreated: false
@@ -62,7 +59,6 @@ describe('view-model', () => {
 			assert.deepStrictEqual(viewModel, {
 				...representation,
 				applicationReference,
-				wantsToBeHeard: 'yes',
 				requiresReview: true,
 				submittedByContactId: undefined,
 				representedContactId: undefined,
@@ -109,7 +105,7 @@ describe('view-model', () => {
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
 				categoryId: 'c-id-1',
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-				wantsToBeHeard: 'yes',
+				myselfHearingPreference: 'yes',
 				myselfIsAdult: 'yes',
 				myselfFullName: 'my name',
 				myselfEmail: 'email@example.com',
@@ -162,8 +158,8 @@ describe('view-model', () => {
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
 				categoryId: 'c-id-1',
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
-				wantsToBeHeard: 'yes',
 				representedTypeId: 'r-id-1',
+				submitterHearingPreference: 'yes',
 				submitterIsAdult: 'yes',
 				submitterFullName: 'my name',
 				submitterContactPreference: 'email',
@@ -214,8 +210,8 @@ describe('view-model', () => {
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
 				categoryId: 'c-id-1',
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
-				wantsToBeHeard: 'yes',
 				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
+				submitterHearingPreference: 'yes',
 				submitterIsAdult: 'yes',
 				submitterFullName: 'my name',
 				submitterContactPreference: undefined,
@@ -268,8 +264,8 @@ describe('view-model', () => {
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
 				categoryId: 'c-id-1',
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
-				wantsToBeHeard: 'yes',
 				representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
+				submitterHearingPreference: 'yes',
 				submittedByAddressId: undefined,
 				submitterIsAdult: 'yes',
 				submitterFullName: 'my name',
@@ -321,10 +317,10 @@ describe('view-model', () => {
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
 				categoryId: 'c-id-1',
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
-				wantsToBeHeard: 'yes',
 				representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
 				submittedByAddressId: undefined,
 				submitterAddress: {},
+				submitterHearingPreference: 'yes',
 				submitterIsAdult: 'yes',
 				submitterFullName: 'my name',
 				submitterContactPreference: undefined,
@@ -348,7 +344,6 @@ describe('view-model', () => {
 			/** @type {HaveYourSayManageModel} */
 			const edits = {
 				statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
-				wantsToBeHeard: false,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
 				categoryId: 'c-id-1'
 			};
@@ -356,7 +351,6 @@ describe('view-model', () => {
 			assert.ok(updates);
 			assert.deepStrictEqual(updates, {
 				statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
-				wantsToBeHeard: false,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
 				categoryId: 'c-id-1'
 			});
@@ -379,11 +373,13 @@ describe('view-model', () => {
 				myselfIsAdult: BOOLEAN_OPTIONS.YES,
 				myselfFullName: 'Person A',
 				myselfEmail: 'some@example.email',
-				myselfComment: 'my comment'
+				myselfComment: 'my comment',
+				myselfHearingPreference: 'yes'
 			};
 			const updates = editsToDatabaseUpdates(edits, {});
 			assert.ok(updates);
 			assert.strictEqual(updates.comment, 'my comment');
+			assert.strictEqual(updates.wantsToBeHeard, true);
 			assert.ok(updates.SubmittedByContact);
 			assert.strictEqual(updates.SubmittedByContact.upsert?.where, undefined);
 			assert.deepStrictEqual(updates.SubmittedByContact?.create, {
@@ -399,11 +395,13 @@ describe('view-model', () => {
 				submitterIsAdult: BOOLEAN_OPTIONS.YES,
 				submitterFullName: 'Person A',
 				submitterEmail: 'some@example.email',
-				submitterComment: 'my comment'
+				submitterComment: 'my comment',
+				submitterHearingPreference: 'no'
 			};
 			const updates = editsToDatabaseUpdates(edits, {});
 			assert.ok(updates);
 			assert.strictEqual(updates.comment, 'my comment');
+			assert.strictEqual(updates.wantsToBeHeard, false);
 			assert.strictEqual(updates.representedTypeId, REPRESENTED_TYPE_ID.PERSON);
 			assert.ok(updates.SubmittedByContact);
 			assert.strictEqual(updates.SubmittedByContact.upsert?.where, undefined);

@@ -17,7 +17,6 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'statusId',
 	'submittedDate',
 	'categoryId',
-	'wantsToBeHeard',
 	'submittedForId',
 	'submittedByContactId',
 	'representedContactId',
@@ -51,6 +50,7 @@ export function representationToManageViewModel(representation, applicationRefer
 		model.myselfComment = representation.comment;
 		model.myselfContactPreference = representation.SubmittedByContact?.contactPreferenceId;
 		model.myselfAddress = addressToViewModel(representation.SubmittedByContact?.Address);
+		model.myselfHearingPreference = mapFieldValue(representation.wantsToBeHeard);
 	} else if (representation.submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF) {
 		model.representedTypeId = representation.representedTypeId;
 		model.submitterIsAdult = mapFieldValue(representation.SubmittedByContact?.isAdult);
@@ -59,6 +59,7 @@ export function representationToManageViewModel(representation, applicationRefer
 		model.submitterComment = representation.comment;
 		model.submitterContactPreference = representation.SubmittedByContact?.contactPreferenceId;
 		model.submitterAddress = addressToViewModel(representation.SubmittedByContact?.Address);
+		model.submitterHearingPreference = mapFieldValue(representation.wantsToBeHeard);
 
 		if (representation.representedTypeId === REPRESENTED_TYPE_ID.PERSON) {
 			model.representedIsAdult = mapFieldValue(representation.RepresentedContact?.isAdult);
@@ -121,6 +122,9 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	if ('myselfComment' in edits) {
 		representationUpdateInput.comment = edits.myselfComment;
 	}
+	if ('myselfHearingPreference' in edits) {
+		representationUpdateInput.wantsToBeHeard = yesNoToBoolean(edits.myselfHearingPreference);
+	}
 
 	// common on behalf of fields
 	if ('representedTypeId' in edits) {
@@ -143,6 +147,9 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	}
 	if ('submitterComment' in edits) {
 		representationUpdateInput.comment = edits.submitterComment;
+	}
+	if ('submitterHearingPreference' in edits) {
+		representationUpdateInput.wantsToBeHeard = yesNoToBoolean(edits.submitterHearingPreference);
 	}
 
 	// on behalf of org fields

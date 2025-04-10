@@ -24,7 +24,6 @@ export function haveYourSayManageSections(questions) {
 		addRepAgentSection(questions),
 		new Section('More Details', 'more-details')
 			.addQuestion(questions.commentRedacted)
-			.addQuestion(questions.wantsToBeHeard)
 			.addQuestion(questions.representationAttachments)
 	];
 }
