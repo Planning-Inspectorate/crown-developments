@@ -16,6 +16,7 @@ import { nl2br } from '../../lib/utils.js';
  * @property {string} label
  * @property {string} [formatJoinString] optional property, used by formatAnswerForSummary (eg task list display), effective default to line break
  * @property {string} [formatPrefix] optional property, used by formatAnswerForSummary (eg task list display), to prefix answer
+ * @property {function} [formatTextFunction] optional property, used to format the answer for display and value in question
  * @property {Record<string, string>} [attributes] optional property, used to add html attributes to the field
  */
 
@@ -52,8 +53,11 @@ export default class MultiFieldInputQuestion extends Question {
 
 		const inputFields = this.inputFields.map((inputField) => {
 			return payload
-				? { ...inputField, value: payload[inputField.fieldName] }
-				: { ...inputField, value: journey.response.answers[inputField.fieldName] };
+				? { ...inputField, value: this.#formatValue(payload[inputField.fieldName], inputField.formatTextFunction) }
+				: {
+						...inputField,
+						value: this.#formatValue(journey.response.answers[inputField.fieldName], inputField.formatTextFunction)
+					};
 		});
 
 		viewModel.question.inputFields = inputFields;
@@ -99,7 +103,7 @@ export default class MultiFieldInputQuestion extends Question {
 	 */
 	formatAnswerForSummary(sectionSegment, journey) {
 		const summaryDetails = this.inputFields.reduce((acc, field) => {
-			const answer = journey.response.answers[field.fieldName];
+			const answer = this.#formatValue(journey.response.answers[field.fieldName], field.formatTextFunction);
 			return answer ? acc + (field.formatPrefix || '') + answer + (field.formatJoinString || '\n') : acc;
 		}, '');
 
@@ -121,5 +125,20 @@ export default class MultiFieldInputQuestion extends Question {
 	 */
 	#allQuestionsUnanswered(journey) {
 		return this.inputFields.every((field) => journey.response.answers[field.fieldName] === undefined);
+	}
+
+	/**
+	 * returns formated value/answer if formatting is provided (defaults to value provided)
+	 * @param {string} valueToFormat
+	 * @param {function} [formatTextFunction]
+	 * @returns {string}
+	 *
+	 */
+	#formatValue(valueToFormat, formatTextFunction) {
+		if (typeof formatTextFunction === 'function' && valueToFormat) {
+			return formatTextFunction(valueToFormat);
+		}
+
+		return valueToFormat;
 	}
 }

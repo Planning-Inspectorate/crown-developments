@@ -69,26 +69,38 @@ describe('case list', () => {
 			const input = {
 				id: 'id-1',
 				reference: 'case/ref',
-				siteNorthing: 12435,
-				siteEasting: 54321
+				siteNorthing: 124356,
+				siteEasting: 654321
 			};
 			const result = crownDevelopmentToViewModel(input);
 			assert.strictEqual(result.location.includes(`Northing`), true);
 			assert.strictEqual(result.location.includes(`Easting`), true);
-			assert.strictEqual(result.location.includes('12435'), true);
-			assert.strictEqual(result.location.includes('54321'), true);
+			assert.strictEqual(result.location.includes('124356'), true);
+			assert.strictEqual(result.location.includes('654321'), true);
 		});
 		it(`should use - as placeholder for easting/northing if not provided`, () => {
 			/** @type {import('./types.js').CrownDevelopmentListFields} */
 			const input = {
 				id: 'id-1',
 				reference: 'case/ref',
-				siteEasting: 54321
+				siteEasting: 654321
 			};
 			const result = crownDevelopmentToViewModel(input);
 			assert.strictEqual(result.location.includes(`Northing: -`), true);
 			assert.strictEqual(result.location.includes(`Easting`), true);
-			assert.strictEqual(result.location.includes('54321'), true);
+			assert.strictEqual(result.location.includes('654321'), true);
+		});
+		it('should format northing/easting to 6 digits by padding zeros to the start', () => {
+			/** @type {import('./types.js').CrownDevelopmentListFields} */
+			const input = {
+				id: 'id-1',
+				reference: 'case/ref',
+				siteNorthing: 123,
+				siteEasting: 123
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.strictEqual(result.location.includes(`Northing: 000123`), true);
+			assert.strictEqual(result.location.includes(`Easting: 000123`), true);
 		});
 	});
 
