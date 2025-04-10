@@ -20,6 +20,22 @@ describe('./src/dynamic-forms/validator/coordinates-validator.js', () => {
 
 		assert.strictEqual(Object.keys(errors).length, 0);
 	});
+	it('should return an error if coordinates are not a number', async () => {
+		const req = {
+			body: {
+				siteNorthing: 'abcdef',
+				siteEasting: 'abcdef'
+			}
+		};
+		const coordinatesValidator = new CoordinatesValidator(northing, easting);
+		const errors = await _validationMappedErrors(req, coordinatesValidator);
+		assert.strictEqual(Object.keys(errors).length, 2);
+		assert.strictEqual(
+			errors[northing.fieldName].msg,
+			`Please a numeric value for the Grid reference ${northing.title}`
+		);
+		assert.strictEqual(errors[easting.fieldName].msg, `Please a numeric value for the Grid reference ${easting.title}`);
+	});
 
 	it('should return an error message if coordinates are not the required length', async () => {
 		const req = {

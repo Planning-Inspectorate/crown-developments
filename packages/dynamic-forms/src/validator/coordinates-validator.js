@@ -23,11 +23,15 @@ export default class CoordinatesValidator extends BaseValidator {
 		return [
 			body(this.northing.fieldName)
 				.optional({ checkFalsy: true })
+				.isNumeric()
+				.withMessage(`Please a numeric value for the Grid reference ${this.northing.title}`)
 				.isLength({ min: requiredCoordinateLength, max: requiredCoordinateLength })
 				.withMessage(`Enter ${requiredCoordinateLength} digits for the Grid reference ${this.northing.title}`),
 
 			body(this.easting.fieldName)
 				.optional({ checkFalsy: true })
+				.isNumeric()
+				.withMessage(`Please a numeric value for the Grid reference ${this.easting.title}`)
 				.isLength({ min: requiredCoordinateLength, max: requiredCoordinateLength })
 				.withMessage(`Enter ${requiredCoordinateLength} digits for the Grid reference ${this.easting.title}`),
 
