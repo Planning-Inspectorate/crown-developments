@@ -173,7 +173,6 @@ describe('drives', () => {
 
 			await sharePointDrive.addNewFolder(path, folderName);
 
-			console.log(client.api.mock.calls[0]);
 			assert.equal(client.api.mock.callCount(), 1);
 			assert.deepStrictEqual(client.post.mock.calls[0].arguments[0], {
 				name: folderName,

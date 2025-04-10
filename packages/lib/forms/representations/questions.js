@@ -58,14 +58,6 @@ export const questionProps = {
 			}
 		]
 	},
-	wantsToBeHeard: {
-		type: COMPONENT_TYPES.BOOLEAN,
-		title: 'Would like to be heard at a hearing',
-		question: 'Would the person like to be heard if there is a hearing?',
-		fieldName: 'wantsToBeHeard',
-		url: 'wants-to-be-heard',
-		validators: [new RequiredValidator('Select if the person would like to be heard at a hearing')]
-	},
 	submittedFor: {
 		type: COMPONENT_TYPES.RADIO,
 		title: 'Who you are submitting for',
