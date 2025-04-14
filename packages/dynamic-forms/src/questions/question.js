@@ -3,6 +3,7 @@ import RequiredValidator from '../validator/required-validator.js';
 import RequiredFileUploadValidator from '../validator/required-file-upload-validator.js';
 import { capitalize, nl2br } from '../lib/utils.js';
 import AddressValidator from '../validator/address-validator.js';
+import MultiFieldInputValidator from '../validator/multi-field-input-validator.js';
 
 /**
  * @typedef {import('../validator/base-validator.js')} BaseValidator
@@ -349,15 +350,26 @@ export class Question {
 			(item) =>
 				item instanceof RequiredValidator ||
 				item instanceof RequiredFileUploadValidator ||
-				(item instanceof AddressValidator && item.isRequired())
+				(item instanceof AddressValidator && item.isRequired()) ||
+				(item instanceof MultiFieldInputValidator && item.isRequired())
+		);
+	}
+	/**
+	 * @param {string} inputField
+	 * @returns {boolean}
+	 */
+	fieldIsRequired(inputField) {
+		return this.validators?.some(
+			(item) => item instanceof MultiFieldInputValidator && item.inputFieldIsRequired(inputField)
 		);
 	}
 
 	/**
 	 * @param {JourneyResponse} journeyResponse
+	 * @param {string} [fieldName] optional fieldname for multi field input questions
 	 * @returns {boolean}
 	 */
-	isAnswered(journeyResponse) {
-		return !!journeyResponse.answers[this.fieldName];
+	isAnswered(journeyResponse, fieldName = this.fieldName) {
+		return !!journeyResponse.answers[fieldName];
 	}
 }
