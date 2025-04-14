@@ -78,4 +78,20 @@ export default class MultiFieldInputValidator extends BaseValidator {
 
 		return rules;
 	}
+
+	isRequired() {
+		return Object.values(this.fields).some((field) => Boolean(field.required));
+	}
+	/**
+	 * checks if a field is required
+	 * @param {string} fieldName
+	 * @returns {boolean}
+	 */
+	inputFieldIsRequired(fieldName) {
+		const field = this.fields.find((field) => field.fieldName === fieldName);
+		if (!field) {
+			throw new Error(`Field ${fieldName} not found`);
+		}
+		return field.required;
+	}
 }
