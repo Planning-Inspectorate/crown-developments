@@ -88,13 +88,14 @@ describe('view-model', () => {
 					reference: 'abc-123-all-fields',
 					submittedDate: new Date('2025-02-27T12:15:59Z'),
 					SubmittedByContact: {
-						fullName: 'Mandalorian'
+						firstName: 'Mandalorian',
+						lastName: 'Skywalker'
 					}
 				},
 				viewModel: {
 					reference: 'abc-123-all-fields',
 					submittedDate: '27 Feb 2025',
-					submittedByFullName: 'Mandalorian'
+					submittedByFullName: 'Mandalorian Skywalker'
 				}
 			}
 		];

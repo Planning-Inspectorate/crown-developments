@@ -211,7 +211,7 @@ export function editsToDatabaseUpdates(edits, viewModel) {
  */
 function addContactToViewModel(viewModel, contact, prefix) {
 	if (contact) {
-		viewModel[`${prefix}ContactName`] = contact.fullName;
+		viewModel[`${prefix}ContactName`] = contact.orgName;
 		viewModel[`${prefix}ContactTelephoneNumber`] = contact.telephoneNumber;
 		viewModel[`${prefix}ContactEmail`] = contact.email;
 		if (contact.Address) {
@@ -232,7 +232,7 @@ function viewModelToNestedContactUpdate(edits, prefix, viewModel) {
 	const createInput = {};
 
 	if (`${prefix}ContactName` in edits) {
-		createInput.fullName = edits[`${prefix}ContactName`];
+		createInput.orgName = edits[`${prefix}ContactName`];
 	}
 	if (`${prefix}ContactTelephoneNumber` in edits) {
 		createInput.telephoneNumber = edits[`${prefix}ContactTelephoneNumber`];

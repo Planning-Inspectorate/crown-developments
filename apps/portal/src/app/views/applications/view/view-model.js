@@ -5,6 +5,7 @@ import {
 	REPRESENTED_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { addressToViewModel } from '@pins/dynamic-forms/src/lib/address-utils.js';
+import { nameToViewModel } from '@pins/crowndev-lib/util/name.js';
 
 /**
  *
@@ -17,7 +18,9 @@ export function crownDevelopmentToViewModel(crownDevelopment, contactEmail) {
 		id: crownDevelopment.id,
 		reference: crownDevelopment.reference,
 		applicationType: crownDevelopment.Type?.displayName,
-		applicantName: crownDevelopment.ApplicantContact?.fullName,
+		applicantName:
+			crownDevelopment.ApplicantContact?.orgName ||
+			nameToViewModel(crownDevelopment.ApplicantContact?.firstName, crownDevelopment.ApplicantContact?.lastName),
 		lpaName: crownDevelopment.Lpa?.name,
 		description: crownDevelopment.description,
 		stage: crownDevelopment.Stage?.displayName,

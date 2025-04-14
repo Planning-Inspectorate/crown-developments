@@ -133,7 +133,7 @@ describe('view-model', () => {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
 				applicantContactId: 'c-1',
-				ApplicantContact: { id: 'c-1', fullName: 'contact', email: 'contact@example.com' }
+				ApplicantContact: { id: 'c-1', orgName: 'contact', email: 'contact@example.com' }
 			};
 			const result = crownDevelopmentToViewModel(input);
 			assert.strictEqual(result.applicantContactId, 'c-1');
@@ -147,9 +147,9 @@ describe('view-model', () => {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
 				applicantContactId: 'c-1',
-				ApplicantContact: { id: 'c-1', fullName: 'contact', email: 'contact@example.com' },
+				ApplicantContact: { id: 'c-1', orgName: 'contact', email: 'contact@example.com' },
 				agentContactId: 'c-3',
-				AgentContact: { id: 'c-3', fullName: 'Agent', email: 'agent@example.com' }
+				AgentContact: { id: 'c-3', orgName: 'Agent', email: 'agent@example.com' }
 			};
 			const result = crownDevelopmentToViewModel(input);
 			assert.strictEqual(result.applicantContactId, 'c-1');
@@ -167,7 +167,7 @@ describe('view-model', () => {
 				applicantContactId: 'c-1',
 				ApplicantContact: {
 					id: 'c-1',
-					fullName: 'contact',
+					orgName: 'contact',
 					email: 'contact@example.com',
 					addressId: 'address-id-1',
 					Address: {
@@ -379,9 +379,9 @@ describe('view-model', () => {
 			};
 			const updates = editsToDatabaseUpdates(toSave, {});
 			assert.ok(updates);
-			assert.strictEqual(updates.ApplicantContact?.create?.fullName, 'Applicant One');
+			assert.strictEqual(updates.ApplicantContact?.create?.orgName, 'Applicant One');
 			assert.strictEqual(updates.ApplicantContact?.create?.email, 'applicant@example.com');
-			assert.strictEqual(updates.AgentContact?.create?.fullName, 'Agent One');
+			assert.strictEqual(updates.AgentContact?.create?.orgName, 'Agent One');
 			assert.strictEqual(updates.AgentContact?.create?.email, 'agent@example.com');
 			assert.strictEqual(updates.AgentContact?.create?.telephoneNumber, '0123456789');
 		});
@@ -397,7 +397,7 @@ describe('view-model', () => {
 			};
 			const updates = editsToDatabaseUpdates(toSave, viewModel);
 			assert.ok(updates);
-			assert.strictEqual(updates.ApplicantContact?.update?.fullName, 'Applicant One');
+			assert.strictEqual(updates.ApplicantContact?.update?.orgName, 'Applicant One');
 			assert.strictEqual(updates.ApplicantContact?.update?.email, 'applicant@example.com');
 		});
 		it('should map contact relation update with address upsert', () => {
@@ -418,7 +418,7 @@ describe('view-model', () => {
 			};
 			const updates = editsToDatabaseUpdates(toSave, viewModel);
 			assert.ok(updates);
-			assert.strictEqual(updates.ApplicantContact?.update?.fullName, 'Applicant One');
+			assert.strictEqual(updates.ApplicantContact?.update?.orgName, 'Applicant One');
 			assert.strictEqual(updates.ApplicantContact?.update?.email, 'applicant@example.com');
 			assert.strictEqual(updates.ApplicantContact?.update?.Address?.upsert?.where?.id, 'address-id-1');
 			assert.strictEqual(updates.ApplicantContact?.update?.Address?.upsert?.create?.line1, 'Street');

@@ -7,6 +7,7 @@ import {
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { optionalWhere } from '../../util/database.js';
 import { addressToViewModel, viewModelToAddressUpdateInput } from '../../util/address.js';
+import { nameToViewModel } from '../../util/name.js';
 
 /**
  * Representation fields that do not need mapping to a (or from) the view model
@@ -45,7 +46,10 @@ export function representationToManageViewModel(representation, applicationRefer
 
 	if (representation.submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF) {
 		model.myselfIsAdult = mapFieldValue(representation.SubmittedByContact?.isAdult);
-		model.myselfFullName = representation.SubmittedByContact?.fullName;
+		model.myselfFullName = nameToViewModel(
+			representation.SubmittedByContact?.firstName,
+			representation.SubmittedByContact?.lastName
+		);
 		model.myselfEmail = representation.SubmittedByContact?.email;
 		model.myselfComment = representation.comment;
 		model.myselfContactPreference = representation.SubmittedByContact?.contactPreferenceId;
@@ -54,7 +58,7 @@ export function representationToManageViewModel(representation, applicationRefer
 	} else if (representation.submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF) {
 		model.representedTypeId = representation.representedTypeId;
 		model.submitterIsAdult = mapFieldValue(representation.SubmittedByContact?.isAdult);
-		model.submitterFullName = representation.SubmittedByContact?.fullName;
+		model.submitterFullName = `${representation.SubmittedByContact?.firstName} ${representation.SubmittedByContact?.lastName}`;
 		model.submitterEmail = representation.SubmittedByContact?.email;
 		model.submitterComment = representation.comment;
 		model.submitterContactPreference = representation.SubmittedByContact?.contactPreferenceId;
@@ -63,16 +67,16 @@ export function representationToManageViewModel(representation, applicationRefer
 
 		if (representation.representedTypeId === REPRESENTED_TYPE_ID.PERSON) {
 			model.representedIsAdult = mapFieldValue(representation.RepresentedContact?.isAdult);
-			model.representedFullName = representation.RepresentedContact?.fullName;
+			model.representedFullName = `${representation.RepresentedContact?.firstName} ${representation.RepresentedContact?.lastName}`;
 			model.isAgent = mapFieldValue(representation.submittedByAgent);
 			model.agentOrgName = representation.submittedByAgentOrgName;
 		} else if (representation.representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION) {
-			model.orgName = representation.RepresentedContact?.fullName;
+			model.orgName = representation.RepresentedContact?.orgName;
 			model.orgRoleName = representation.SubmittedByContact?.jobTitleOrRole;
 		} else if (representation.representedTypeId === REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR) {
 			model.isAgent = mapFieldValue(representation.submittedByAgent);
 			model.agentOrgName = representation.submittedByAgentOrgName;
-			model.representedOrgName = representation.RepresentedContact?.fullName;
+			model.representedOrgName = representation.RepresentedContact?.orgName;
 		}
 	}
 	return model;
@@ -107,8 +111,11 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	if ('myselfIsAdult' in edits) {
 		submittedByContactUpdate.isAdult = yesNoToBoolean(edits.myselfIsAdult);
 	}
-	if ('myselfFullName' in edits) {
-		submittedByContactUpdate.fullName = edits.myselfFullName;
+	if ('myselfFirstName' in edits) {
+		submittedByContactUpdate.firstName = edits.myselfFirstName;
+	}
+	if ('myselfLastName' in edits) {
+		submittedByContactUpdate.lastName = edits.myselfLastName;
 	}
 	if ('myselfContactPreference' in edits) {
 		submittedByContactUpdate.contactPreferenceId = edits.myselfContactPreference;
@@ -133,8 +140,11 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	if ('submitterIsAdult' in edits) {
 		submittedByContactUpdate.isAdult = yesNoToBoolean(edits.submitterIsAdult);
 	}
-	if ('submitterFullName' in edits) {
-		submittedByContactUpdate.fullName = edits.submitterFullName;
+	if ('submitterFirstName' in edits) {
+		submittedByContactUpdate.firstName = edits.submitterFirstName;
+	}
+	if ('submitterLastName' in edits) {
+		submittedByContactUpdate.lastName = edits.submitterLastName;
 	}
 	if ('submitterContactPreference' in edits) {
 		submittedByContactUpdate.contactPreferenceId = edits.submitterContactPreference;
@@ -154,7 +164,7 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 
 	// on behalf of org fields
 	if ('orgName' in edits) {
-		representedContactUpdate.fullName = edits.orgName;
+		representedContactUpdate.orgName = edits.orgName;
 	}
 	if ('orgRoleName' in edits) {
 		representedContactUpdate.jobTitleOrRole = edits.orgRoleName;
@@ -164,8 +174,11 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	if ('representedIsAdult' in edits) {
 		representedContactUpdate.isAdult = yesNoToBoolean(edits.representedIsAdult);
 	}
-	if ('representedFullName' in edits) {
-		representedContactUpdate.fullName = edits.representedFullName;
+	if ('representedFirstName' in edits) {
+		representedContactUpdate.firstName = edits.representedFirstName;
+	}
+	if ('representedLastName' in edits) {
+		representedContactUpdate.lastName = edits.representedLastName;
 	}
 	if ('isAgent' in edits) {
 		representationUpdateInput.submittedByAgent = yesNoToBoolean(edits.isAgent);
@@ -175,7 +188,7 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	}
 	// on behalf of org not work for fields
 	if ('representedOrgName' in edits) {
-		representedContactUpdate.fullName = edits.representedOrgName;
+		representedContactUpdate.orgName = edits.representedOrgName;
 	}
 
 	if (Object.keys(addressUpdate).length > 0) {
@@ -300,7 +313,8 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 	}
 
 	if (submitterIsAdult) {
-		createInput.SubmittedByContact.create.fullName = answers[`${prefix}FullName`];
+		createInput.SubmittedByContact.create.firstName = answers[`${prefix}FirstName`];
+		createInput.SubmittedByContact.create.lastName = answers[`${prefix}LastName`];
 	}
 	if (yesNoToBoolean(answers.isAgent)) {
 		createInput.submittedByAgentOrgName = answers.agentOrgName;
@@ -312,11 +326,12 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 		createInput.RepresentedType = { connect: { id: answers.representedTypeId } };
 		createInput.RepresentedContact = { create: {} };
 		if (representedIsAnOrganisation) {
-			createInput.RepresentedContact.create.fullName = answers.representedOrgName ?? answers.orgName;
+			createInput.RepresentedContact.create.orgName = answers.representedOrgName ?? answers.orgName;
 		} else {
 			createInput.RepresentedContact.create.isAdult = representedIsAdult;
 			if (representedIsAdult) {
-				createInput.RepresentedContact.create.fullName = answers.representedFullName;
+				createInput.RepresentedContact.create.firstName = answers.representedFirstName;
+				createInput.RepresentedContact.create.lastName = answers.representedLastName;
 			}
 		}
 	}

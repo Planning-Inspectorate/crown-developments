@@ -13,7 +13,7 @@ describe('view-model', () => {
 					displayName: 'Planning permission'
 				},
 				ApplicantContact: {
-					fullName: 'Applicant Name'
+					orgName: 'Applicant Name'
 				},
 				Lpa: {
 					name: 'Test LPA'

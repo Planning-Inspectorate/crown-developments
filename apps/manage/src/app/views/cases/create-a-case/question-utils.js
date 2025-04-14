@@ -23,19 +23,19 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 	questions[`${prefix}Name`] = {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: `${title} Name`,
-		question: `What is the name of the ${title}?`,
+		question: `What is the name of the ${title} organisation?`,
 		fieldName: `${prefix}Name`,
 		url: `${prefixUrl}-name`,
 		validators: [
-			new RequiredValidator(`Enter ${title} name`),
+			new RequiredValidator(`Enter ${title} organisation name`),
 			new StringValidator({
 				maxLength: {
 					maxLength: 250,
-					maxLengthMessage: `${title} name must be less than 250 characters`
+					maxLengthMessage: `${title} organisation name must be less than 250 characters`
 				},
 				regex: {
 					regex: "^[A-Za-z0-9 '’-]+$",
-					regexMessage: 'Full name must only include letters, spaces, hyphens, apostrophes or numbers'
+					regexMessage: `${title} organisation must only include letters, spaces, hyphens, apostrophes or numbers`
 				}
 			})
 		]
