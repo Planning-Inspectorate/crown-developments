@@ -132,7 +132,7 @@ export function generateWrittenRepresentation(reference) {
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[19].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR } },
-		RepresentedContact: { connect: { id: repsBehalfOfContacts[9].id } },
+		RepresentedContact: { connect: { id: repsBehalfOfPersonContacts[9].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } },
 		containsAttachments: false
 	};
@@ -153,126 +153,146 @@ export function generateRandomRepresentationReference() {
 export const repsContacts = [
 	{
 		id: '05fa5f0f-342d-466d-8d61-e837586d6a3d',
-		fullName: 'Person One',
+		firstName: 'Person',
+		lastName: 'One',
 		email: 'person-one@example.com',
 		contactPreferenceId: 'email'
 	},
 	{
 		id: 'b4654a6b-7ab1-4391-8e81-839809b0dfb0',
-		fullName: 'Person Two',
+		firstName: 'Person',
+		lastName: 'Two',
 		addressId: '7e238942-71b5-42b3-92c3-5be987cd1b2f',
 		contactPreferenceId: 'post'
 	},
 	{
 		id: 'afb9d282-0db0-4fbd-a9f9-90c13f1e3cd0',
-		fullName: 'Person Three',
+		firstName: 'Person',
+		lastName: 'Three',
 		email: 'person-three@example.com',
 		contactPreferenceId: 'email'
 	},
 	{
 		id: '1bb4a1c8-d068-4d75-bcaa-9dc0e33ac1ee',
-		fullName: 'Person Four',
+		firstName: 'Person',
+		lastName: 'Four',
 		addressId: 'b6b56a2c-314a-458e-bf1b-9a3f834c0673',
 		contactPreferenceId: 'post'
 	},
 	{
 		id: 'c98304bd-5607-4819-9bd2-9af51d9b419f',
-		fullName: 'Person Five',
+		firstName: 'Person',
+		lastName: 'Five',
 		email: 'person-five@example.com',
 		contactPreferenceId: 'email'
 	},
 	{
 		id: '14c92bd0-8457-480d-8b10-a3fb6c0fd372',
-		fullName: 'Person Six',
+		firstName: 'Person',
+		lastName: 'Six',
 		jobTitleOrRole: 'Chief Commenter',
 		addressId: 'fc397169-0bc3-4d57-8c3c-63e5288e1de4',
 		contactPreferenceId: 'post'
 	},
 	{
 		id: '5636f842-3263-4a27-9b83-86229ae1dd67',
-		fullName: 'Person Seven',
+		firstName: 'Person',
+		lastName: 'Seven',
 		jobTitleOrRole: 'Manager',
 		addressId: '5d97e8ca-8ef1-4a3b-b329-a84f27ec7adb',
 		contactPreferenceId: 'post'
 	},
 	{
 		id: 'c3b722e6-afba-4a9f-87f1-96db55e145c1',
-		fullName: 'Person Eight',
+		firstName: 'Person',
+		lastName: 'Eight',
 		email: 'person-eight@example.com',
 		jobTitleOrRole: 'Planning Person',
 		contactPreferenceId: 'email'
 	},
 	{
 		id: '30925c6a-d50d-40a9-93e3-b6b7a3ff2fbb',
-		fullName: 'Person Nine',
+		firstName: 'Person',
+		lastName: 'Nine',
 		jobTitleOrRole: 'Representative',
 		addressId: 'c58a3840-8b5b-4f22-8872-d768b034cd7a',
 		contactPreferenceId: 'post'
 	},
 	{
 		id: 'f589adb8-73e2-4562-86ce-bd81fc33d2af',
-		fullName: 'Person Ten',
+		firstName: 'Person',
+		lastName: 'Ten',
 		jobTitleOrRole: 'Community Spokesperson',
 		addressId: '9ea5b2a9-36ab-4ac8-8cb0-728b6d94f675',
 		contactPreferenceId: 'post'
 	},
 	{
 		id: '0af835c0-8ed1-46a1-b43f-665fc062b1ed',
-		fullName: 'Person Eleven',
+		firstName: 'Person',
+		lastName: 'Eleven',
 		email: 'person-eleven@example.com',
 		contactPreferenceId: 'email'
 	},
 	{
 		id: 'd75f3116-945e-44a4-bffd-4cd36d1cc968',
-		fullName: 'Person Twelve',
+		firstName: 'Person',
+		lastName: 'Twelve',
 		addressId: '418a8c9c-1cb9-418b-a7ef-f244c573ca2b',
 		contactPreferenceId: 'post'
 	},
 	{
 		id: '61700b0a-2251-4779-ba3d-6b0cb9d034a9',
-		fullName: 'Person Thirteen',
+		firstName: 'Person',
+		lastName: 'Thirteen',
 		email: 'person-thirteen@example.com',
 		contactPreferenceId: 'email'
 	},
 	{
 		id: 'e1f12f5b-4107-456d-8ab1-ca7b4b8e114a',
-		fullName: 'Person Fourteen',
+		firstName: 'Person',
+		lastName: 'Fourteen',
 		addressId: 'c8f4d38f-9c09-4f12-8692-3dcf8cbb7e2d',
 		contactPreferenceId: 'post'
 	},
 	{
 		id: 'cda925f4-2393-454c-8381-f07b2332547b',
-		fullName: 'Person Fifteen',
+		firstName: 'Person',
+		lastName: 'Fifteen',
 		addressId: 'e24d2bae-8dbc-48a4-b197-977eeb4e813d',
 		contactPreferenceId: 'post'
 	},
 	{
 		id: 'b084ed4d-d835-4b49-9a4f-cb25bb36a445',
-		fullName: 'Person Sixteen',
+		firstName: 'Person',
+		lastName: 'Sixteen',
 		email: 'person-sixteen@example.com',
 		contactPreferenceId: 'email'
 	},
 	{
 		id: '98b8b7c1-598d-4fd7-b5f1-f160528cb3b5',
-		fullName: 'Person Seventeen',
+		firstName: 'Person',
+		lastName: 'Seventeen',
 		addressId: 'f9726c49-a1f5-41f9-9525-3eaf8e8099d0',
 		contactPreferenceId: 'post'
 	},
 	{
 		id: '9cbc1386-e4bb-4dbe-a6d2-c6f2189449c3',
-		fullName: 'Person Eighteen',
+		firstName: 'Person',
+		lastName: 'Eighteen',
 		addressId: '87d95c5b-a2d7-4f2b-a81c-6a5e079c612b',
 		contactPreferenceId: 'post'
 	},
 	{
 		id: '35f252df-48f6-416a-97c3-b4cf2985c459',
-		fullName: 'Person Nineteen',
+		firstName: 'Person',
+		lastName: 'Nineteen',
 		addressId: 'edaef953-7388-4602-a14a-3a9d9d2be1bf',
 		contactPreferenceId: 'post'
 	},
 	{
 		id: '85bf0b28-66e3-4e4a-bcd4-f69a00befb84',
-		fullName: 'Person Twenty',
+		firstName: 'Person',
+		lastName: 'Twenty',
 		addressId: 'db47e9cf-b8a9-4fa8-8dcd-48ca96a9be96',
 		contactPreferenceId: 'post'
 	}
@@ -283,12 +303,12 @@ export const repsContacts = [
  * (e.g. run `node -e "console.log(require('crypto').randomUUID())"'`)
  * @type {import('@prisma/client').Prisma.ContactCreateInput[]}
  */
-export const repsOrgContacts = [
-	{ id: 'c561a9bb-a1c4-4836-9f6f-0ea904c79475', fullName: 'Org One' },
-	{ id: '1d421817-caa1-40e7-9f6c-e915309707c1', fullName: 'Org Two' },
-	{ id: 'f4a79154-a216-4263-81b1-2a8660e63376', fullName: 'Org Three' },
-	{ id: '595a08cf-ee0e-4118-b75d-e5b4ea1ab812', fullName: 'Charity One' },
-	{ id: 'f9c46547-c6b9-4be3-9140-3f6ff308a5ed', fullName: 'Charity Two' }
+export const repsOnBehalfOfOrgContacts = [
+	{ id: 'c561a9bb-a1c4-4836-9f6f-0ea904c79475', orgName: 'Org One' },
+	{ id: '1d421817-caa1-40e7-9f6c-e915309707c1', orgName: 'Org Two' },
+	{ id: 'f4a79154-a216-4263-81b1-2a8660e63376', orgName: 'Org Three' },
+	{ id: '595a08cf-ee0e-4118-b75d-e5b4ea1ab812', orgName: 'Charity One' },
+	{ id: 'f9c46547-c6b9-4be3-9140-3f6ff308a5ed', orgName: 'Charity Two' }
 ];
 
 /**
@@ -296,17 +316,17 @@ export const repsOrgContacts = [
  * (e.g. run `node -e "console.log(require('crypto').randomUUID())"'`)
  * @type {import('@prisma/client').Prisma.ContactCreateInput[]}
  */
-export const repsBehalfOfContacts = [
-	{ id: '7c3619fb-81ff-4164-8edb-8baae3dfc087', fullName: 'Person A' },
-	{ id: 'f48bc3e9-87b2-4d9e-ad49-2fc48a48472f', fullName: 'Person B' },
-	{ id: '562997bd-b50a-4902-8601-d0b347c839c3', fullName: 'Person C' },
-	{ id: 'df65db2c-e644-4065-88a5-81e673ebd714', fullName: 'Person D' },
-	{ id: '94a2a7ce-2c97-460e-adc3-0b019c1ef470', fullName: 'Person E' },
-	{ id: 'b874a850-0264-4ac4-a52d-fddfa05b4a1f', fullName: 'Community Org 1' },
-	{ id: 'd5a3a6a5-4809-41fc-8367-672ed57f6076', fullName: 'Community Org 2' },
-	{ id: 'a7bd8186-6913-49f3-862e-18c38e615f2e', fullName: 'Community Org 3' },
-	{ id: '9a9b7479-6fde-49ae-9c9f-e1b553bea904', fullName: 'Household 1' },
-	{ id: '8aa7a2ad-ff79-4355-a436-46e557971bb9', fullName: 'Household 2' }
+export const repsBehalfOfPersonContacts = [
+	{ id: '7c3619fb-81ff-4164-8edb-8baae3dfc087', firstName: 'Person', lastName: 'Alpha' },
+	{ id: 'f48bc3e9-87b2-4d9e-ad49-2fc48a48472f', firstName: 'Person', lastName: 'Beta' },
+	{ id: '562997bd-b50a-4902-8601-d0b347c839c3', firstName: 'Person', lastName: 'Gamma' },
+	{ id: 'df65db2c-e644-4065-88a5-81e673ebd714', firstName: 'Person', lastName: 'Delta' },
+	{ id: '94a2a7ce-2c97-460e-adc3-0b019c1ef470', firstName: 'Person', lastName: 'Epsilon' },
+	{ id: 'b874a850-0264-4ac4-a52d-fddfa05b4a1f', firstName: 'Person', lastName: 'Zeta' },
+	{ id: 'd5a3a6a5-4809-41fc-8367-672ed57f6076', firstName: 'Person', lastName: 'Eta' },
+	{ id: 'a7bd8186-6913-49f3-862e-18c38e615f2e', firstName: 'Person', lastName: 'Theta' },
+	{ id: '9a9b7479-6fde-49ae-9c9f-e1b553bea904', firstName: 'Person', lastName: 'Iota' },
+	{ id: '8aa7a2ad-ff79-4355-a436-46e557971bb9', firstName: 'Person', lastName: 'Kappa' }
 ];
 
 export const repReferences = [
@@ -420,7 +440,7 @@ export const representations = [
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[5].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORGANISATION } },
-		RepresentedContact: { connect: { id: repsOrgContacts[0].id } },
+		RepresentedContact: { connect: { id: repsOnBehalfOfOrgContacts[0].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } },
 		containsAttachments: false
 	},
@@ -432,7 +452,7 @@ export const representations = [
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[6].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORGANISATION } },
-		RepresentedContact: { connect: { id: repsOrgContacts[1].id } },
+		RepresentedContact: { connect: { id: repsOnBehalfOfOrgContacts[1].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
 		containsAttachments: false
 	},
@@ -444,7 +464,7 @@ export const representations = [
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[7].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORGANISATION } },
-		RepresentedContact: { connect: { id: repsOrgContacts[2].id } },
+		RepresentedContact: { connect: { id: repsOnBehalfOfOrgContacts[2].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
 		containsAttachments: false
 	},
@@ -456,7 +476,7 @@ export const representations = [
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[8].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORGANISATION } },
-		RepresentedContact: { connect: { id: repsOrgContacts[3].id } },
+		RepresentedContact: { connect: { id: repsOnBehalfOfOrgContacts[3].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.REJECTED } },
 		containsAttachments: false
 	},
@@ -468,7 +488,7 @@ export const representations = [
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[9].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORGANISATION } },
-		RepresentedContact: { connect: { id: repsOrgContacts[4].id } },
+		RepresentedContact: { connect: { id: repsOnBehalfOfOrgContacts[4].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
 		containsAttachments: false
 	},
@@ -480,7 +500,7 @@ export const representations = [
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[10].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.PERSON } },
-		RepresentedContact: { connect: { id: repsBehalfOfContacts[0].id } },
+		RepresentedContact: { connect: { id: repsBehalfOfPersonContacts[0].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } },
 		containsAttachments: false
 	},
@@ -492,7 +512,7 @@ export const representations = [
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[11].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.PERSON } },
-		RepresentedContact: { connect: { id: repsBehalfOfContacts[1].id } },
+		RepresentedContact: { connect: { id: repsBehalfOfPersonContacts[1].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.REJECTED } },
 		containsAttachments: false
 	},
@@ -504,7 +524,7 @@ export const representations = [
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[12].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.PERSON } },
-		RepresentedContact: { connect: { id: repsBehalfOfContacts[2].id } },
+		RepresentedContact: { connect: { id: repsBehalfOfPersonContacts[2].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
 		containsAttachments: false
 	},
@@ -516,7 +536,7 @@ export const representations = [
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[13].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.PERSON } },
-		RepresentedContact: { connect: { id: repsBehalfOfContacts[3].id } },
+		RepresentedContact: { connect: { id: repsBehalfOfPersonContacts[3].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
 		containsAttachments: false
 	},
@@ -528,7 +548,7 @@ export const representations = [
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[14].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.PERSON } },
-		RepresentedContact: { connect: { id: repsBehalfOfContacts[4].id } },
+		RepresentedContact: { connect: { id: repsBehalfOfPersonContacts[4].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
 		containsAttachments: false
 	},
@@ -540,7 +560,7 @@ export const representations = [
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[15].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORGANISATION } },
-		RepresentedContact: { connect: { id: repsBehalfOfContacts[5].id } },
+		RepresentedContact: { connect: { id: repsBehalfOfPersonContacts[5].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
 		containsAttachments: false
 	},
@@ -554,7 +574,7 @@ export const representations = [
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORGANISATION } },
 		submittedByAgent: true,
 		submittedByAgentOrgName: 'Consultancy One Ltd.',
-		RepresentedContact: { connect: { id: repsBehalfOfContacts[6].id } },
+		RepresentedContact: { connect: { id: repsBehalfOfPersonContacts[6].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } },
 		containsAttachments: false
 	},
@@ -568,7 +588,7 @@ export const representations = [
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORGANISATION } },
 		submittedByAgent: true,
 		submittedByAgentOrgName: 'Consultancy Seven Ltd.',
-		RepresentedContact: { connect: { id: repsBehalfOfContacts[7].id } },
+		RepresentedContact: { connect: { id: repsBehalfOfPersonContacts[7].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
 		containsAttachments: false
 	},
@@ -580,7 +600,7 @@ export const representations = [
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[18].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR } },
-		RepresentedContact: { connect: { id: repsBehalfOfContacts[8].id } },
+		RepresentedContact: { connect: { id: repsBehalfOfPersonContacts[8].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
 		containsAttachments: false
 	},
@@ -592,7 +612,7 @@ export const representations = [
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
 		SubmittedByContact: { connect: { id: repsContacts[19].id } },
 		RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR } },
-		RepresentedContact: { connect: { id: repsBehalfOfContacts[9].id } },
+		RepresentedContact: { connect: { id: repsBehalfOfPersonContacts[9].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } },
 		containsAttachments: false
 	}

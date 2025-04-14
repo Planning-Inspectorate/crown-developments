@@ -5,9 +5,9 @@ import {
 	repReferences,
 	representationContactAddresses,
 	representations,
-	repsBehalfOfContacts,
+	repsBehalfOfPersonContacts,
 	repsContacts,
-	repsOrgContacts
+	repsOnBehalfOfOrgContacts
 } from './representations-data-dev.js';
 
 /**
@@ -39,7 +39,7 @@ export async function seedDev(dbClient) {
 		});
 	}
 
-	const allContacts = [...repsContacts, ...repsOrgContacts, ...repsBehalfOfContacts];
+	const allContacts = [...repsContacts, ...repsOnBehalfOfOrgContacts, ...repsBehalfOfPersonContacts];
 	const contactIds = new Map();
 	// check IDs are unique
 	for (const contact of allContacts) {
@@ -49,7 +49,7 @@ export async function seedDev(dbClient) {
 		contactIds.set(contact.id, true);
 	}
 
-	for (const contact of [...repsContacts, ...repsOrgContacts, ...repsBehalfOfContacts]) {
+	for (const contact of [...repsContacts, ...repsOnBehalfOfOrgContacts, ...repsBehalfOfPersonContacts]) {
 		await dbClient.contact.upsert({
 			where: { id: contact.id },
 			create: contact,

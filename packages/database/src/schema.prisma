@@ -137,7 +137,9 @@ model Address {
 model Contact {
   /// internal identifier
   id                  String             @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
-  fullName            String?
+  orgName             String?
+  firstName           String?
+  lastName            String?
   telephoneNumber     String?
   email               String?
   addressId           String?            @db.UniqueIdentifier
