@@ -5,6 +5,7 @@ import { COMPONENT_TYPES } from '@pins/dynamic-forms';
 import { referenceDataToRadioOptions } from '../../util/questions.js';
 import { CONTACT_PREFERENCE } from '@pins/crowndev-database/src/seed/data-static.js';
 import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
+import MultiFieldInputValidator from '@pins/dynamic-forms/src/validator/multi-field-input-validator.js';
 
 /**
  *
@@ -27,24 +28,63 @@ export function representationsContactQuestions({ prefix }) {
 	};
 
 	questions[`${prefix}FullName`] = {
-		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+		type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
 		title: 'Your full name',
 		question: 'What is your full name?',
 		hint: 'We will publish this on the website along with your comments about the application.',
 		fieldName: `${prefix}FullName`,
 		url: isSubmitter(prefix) ? `agent-full-name` : `full-name`,
-		autocomplete: 'name',
+		inputFields: [
+			{
+				fieldName: `${prefix}FirstName`,
+				label: 'First Name',
+				autocomplete: 'given-name',
+				formatJoinString: ' '
+			},
+			{
+				fieldName: `${prefix}LastName`,
+				label: 'Last Name',
+				autocomplete: 'family-name'
+			}
+		],
 		validators: [
-			new RequiredValidator('Enter Full name'),
-			new StringValidator({
-				minLength: {
-					minLength: 3,
-					minLengthMessage: 'Full name must be between 3 and 250 characters'
-				},
-				maxLength: {
-					maxLength: 250,
-					maxLengthMessage: `Full name must be between 3 and 250 characters`
-				}
+			new MultiFieldInputValidator({
+				fields: [
+					{
+						fieldName: `${prefix}FirstName`,
+						required: true,
+						errorMessage: 'First name must be between 1 and 250 characters',
+						minLength: {
+							minLength: 1,
+							minLengthMessage: 'First name must be between 1 and 250 characters'
+						},
+						maxLength: {
+							maxLength: 250,
+							maxLengthMessage: `First name must be between 1 and 250 characters`
+						},
+						regex: {
+							regex: "^[A-Za-z0-9 '’-]*$",
+							regexMessage: 'First name must only include letters, spaces, hyphens, apostrophes or numbers'
+						}
+					},
+					{
+						fieldName: `${prefix}LastName`,
+						required: true,
+						errorMessage: 'Last name must be between 1 and 250 characters',
+						minLength: {
+							minLength: 1,
+							minLengthMessage: 'Last name must be between 1 and 250 characters'
+						},
+						maxLength: {
+							maxLength: 250,
+							maxLengthMessage: `Last name must be between 1 and 250 characters`
+						},
+						regex: {
+							regex: "^[A-Za-z0-9 '’-]*$",
+							regexMessage: 'Last name must only include letters, spaces, hyphens, apostrophes or numbers'
+						}
+					}
+				]
 			})
 		]
 	};

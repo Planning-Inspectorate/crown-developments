@@ -28,7 +28,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 		inputFields: [
 			{
 				fieldName: `${prefix}ContactName`,
-				label: 'Name'
+				label: 'Organisation Name'
 			},
 			{
 				fieldName: `${prefix}ContactEmail`,

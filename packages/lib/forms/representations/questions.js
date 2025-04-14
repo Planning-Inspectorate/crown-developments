@@ -14,6 +14,7 @@ import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.j
 import { CUSTOM_COMPONENT_CLASSES } from '../custom-components/index.js';
 import { representationsContactQuestions } from './question-utils.js';
 import DateValidator from '@pins/dynamic-forms/src/validator/date-validator.js';
+import MultiFieldInputValidator from '@pins/dynamic-forms/src/validator/multi-field-input-validator.js';
 
 export const ACCEPT_AND_REDACT = 'accept-and-redact';
 
@@ -77,24 +78,63 @@ export const questionProps = {
 		options: referenceDataToRadioOptions(REPRESENTED_TYPE)
 	},
 	representedFullName: {
-		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+		type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
 		title: 'Full name of the person you are representing',
 		question: 'What is the full name of the person you are representing?',
 		hint: 'We will publish this on the website along with your comments about the application.',
 		fieldName: 'representedFullName',
 		url: 'name-person-representing',
-		autocomplete: 'name',
+		inputFields: [
+			{
+				fieldName: 'representedFirstName',
+				label: 'First Name',
+				autocomplete: 'given-name',
+				formatJoinString: ' '
+			},
+			{
+				fieldName: 'representedLastName',
+				label: 'Last Name',
+				autocomplete: 'family-name'
+			}
+		],
 		validators: [
-			new RequiredValidator('Enter the full name of the person you are representing'),
-			new StringValidator({
-				minLength: {
-					minLength: 3,
-					minLengthMessage: 'The full name must be between 3 and 250 characters'
-				},
-				maxLength: {
-					maxLength: 250,
-					maxLengthMessage: `The full name must be between 3 and 250 characters`
-				}
+			new MultiFieldInputValidator({
+				fields: [
+					{
+						fieldName: 'representedFirstName',
+						required: true,
+						errorMessage: 'First name must be between 1 and 250 characters',
+						minLength: {
+							minLength: 1,
+							minLengthMessage: 'First name must be between 1 and 250 characters'
+						},
+						maxLength: {
+							maxLength: 250,
+							maxLengthMessage: `First name must be between 1 and 250 characters`
+						},
+						regex: {
+							regex: "^[A-Za-z0-9 '’-]*$",
+							regexMessage: 'First name must only include letters, spaces, hyphens, apostrophes or numbers'
+						}
+					},
+					{
+						fieldName: 'representedLastName',
+						required: true,
+						errorMessage: 'Last name must be between 1 and 250 characters',
+						minLength: {
+							minLength: 1,
+							minLengthMessage: 'Last name must be between 1 and 250 characters'
+						},
+						maxLength: {
+							maxLength: 250,
+							maxLengthMessage: `Last name must be between 1 and 250 characters`
+						},
+						regex: {
+							regex: "^[A-Za-z0-9 '’-]*$",
+							regexMessage: 'Last name must only include letters, spaces, hyphens, apostrophes or numbers'
+						}
+					}
+				]
 			})
 		]
 	},

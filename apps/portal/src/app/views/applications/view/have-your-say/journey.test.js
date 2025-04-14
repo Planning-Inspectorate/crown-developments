@@ -123,7 +123,8 @@ describe('have-your-say journey', () => {
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
 			myselfIsAdult: BOOLEAN_OPTIONS.YES,
-			myselfFullName: 'Test Name',
+			myselfFirstName: 'Test Name',
+			myselfLastName: 'Surname',
 			myselfEmail: 'test@email.com',
 			myselfComment: 'some comments'
 		};
@@ -139,7 +140,8 @@ describe('have-your-say journey', () => {
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
 			myselfIsAdult: BOOLEAN_OPTIONS.YES,
-			myselfFullName: 'Test Name',
+			myselfFirstName: 'Test Name',
+			myselfLastName: 'Surname',
 			myselfComment: 'test@email.com'
 		};
 
@@ -155,12 +157,14 @@ describe('have-your-say journey', () => {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.PERSON,
 			submitterIsAdult: BOOLEAN_OPTIONS.YES,
-			submitterFullName: 'Agent Name',
+			submitterFirstName: 'Agent Name',
+			submitterLastName: 'Surname',
 			isAgent: BOOLEAN_OPTIONS.YES,
 			agentOrgName: 'Org Name',
 			submitterEmail: 'test@email.com',
 			representedIsAdult: BOOLEAN_OPTIONS.YES,
-			representedFullName: 'Represented Person',
+			representedFirstName: 'Represented Person',
+			representedLastName: 'Rep surname',
 			submitterComment: 'some comments'
 		};
 
@@ -176,7 +180,8 @@ describe('have-your-say journey', () => {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.PERSON,
 			submitterIsAdult: BOOLEAN_OPTIONS.YES,
-			submitterFullName: 'Agent Name',
+			submitterFirstName: 'Agent Name',
+			submitterLastName: 'Surname',
 			isAgent: BOOLEAN_OPTIONS.YES,
 			agentOrgName: 'Org Name',
 			submitterEmail: 'test@email.com',
@@ -196,7 +201,8 @@ describe('have-your-say journey', () => {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
 			submitterIsAdult: BOOLEAN_OPTIONS.YES,
-			submitterFullName: 'Agent Name',
+			submitterFirstName: 'Agent Name',
+			submitterLastName: 'Surname',
 			submitterEmail: 'test@email.com',
 			orgName: 'Org Name',
 			orgRoleName: 'Boss',
@@ -215,7 +221,8 @@ describe('have-your-say journey', () => {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
 			submitterIsAdult: BOOLEAN_OPTIONS.YES,
-			submitterFullName: 'Agent Name',
+			submitterFirstName: 'Agent Name',
+			submitterLastName: 'Surname',
 			submitterEmail: 'test@email.com',
 			orgName: 'Org Name',
 			submitterComment: 'some comments'
@@ -233,7 +240,8 @@ describe('have-your-say journey', () => {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
 			submitterIsAdult: BOOLEAN_OPTIONS.YES,
-			submitterFullName: 'Agent Name',
+			submitterFirstName: 'Agent Name',
+			submitterLastName: 'Surname',
 			isAgent: BOOLEAN_OPTIONS.YES,
 			agentOrgName: 'Test Org',
 			submitterEmail: 'test@email.com',
@@ -253,7 +261,8 @@ describe('have-your-say journey', () => {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
 			submitterIsAdult: BOOLEAN_OPTIONS.YES,
-			submitterFullName: 'Agent Name',
+			submitterFirstName: 'Agent Name',
+			submitterLastName: 'Surname',
 			isAgent: BOOLEAN_OPTIONS.YES,
 			agentOrgName: 'Test Org',
 			submitterEmail: 'test@email.com',

@@ -129,7 +129,7 @@ function toCreateInput(answers, reference) {
 	if (hasAnswers(answers, 'applicant')) {
 		input.ApplicantContact = {
 			create: {
-				fullName: answers.applicantName,
+				orgName: answers.applicantName,
 				email: answers.applicantEmail,
 				telephoneNumber: answers.applicantTelephoneNumber
 			}
@@ -144,7 +144,7 @@ function toCreateInput(answers, reference) {
 	if (hasAnswers(answers, 'agent')) {
 		input.AgentContact = {
 			create: {
-				fullName: answers.agentName,
+				orgName: answers.agentName,
 				email: answers.agentEmail,
 				telephoneNumber: answers.agentTelephoneNumber
 			}

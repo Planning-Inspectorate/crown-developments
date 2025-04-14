@@ -14,7 +14,7 @@ export function buildApplicationListPage(service) {
 			select: {
 				id: true,
 				reference: true,
-				ApplicantContact: { select: { fullName: true } },
+				ApplicantContact: { select: { orgName: true, firstName: true, lastName: true } },
 				Lpa: { select: { name: true } },
 				Stage: { select: { displayName: true } },
 				Type: { select: { displayName: true } }
