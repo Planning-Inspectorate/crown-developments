@@ -197,7 +197,7 @@ describe('view-model', () => {
 		it('should return the full name when submitted for MYSELF and user is an adult', () => {
 			const representation = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-				SubmittedByContact: { isAdult: true, fullName: 'John Doe' }
+				SubmittedByContact: { isAdult: true, firstName: 'John', lastName: 'Doe' }
 			};
 
 			assert.strictEqual(representationTitle(representation), 'John Doe');
@@ -206,7 +206,7 @@ describe('view-model', () => {
 		it('should return "A member of the public" when submitted for MYSELF and user is not an adult', () => {
 			const representation = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-				SubmittedByContact: { isAdult: false, fullName: 'John Doe' }
+				SubmittedByContact: { isAdult: false, firstName: 'John', lastName: 'Doe' }
 			};
 
 			assert.strictEqual(representationTitle(representation), 'A member of the public');
@@ -215,8 +215,8 @@ describe('view-model', () => {
 		it('should return agent name when ON_BEHALF_OF and agent is an adult', () => {
 			const representation = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
-				SubmittedByContact: { isAdult: true, fullName: 'Agent Smith' },
-				RepresentedContact: { isAdult: true, fullName: 'John Doe' },
+				SubmittedByContact: { isAdult: true, firstName: 'Agent', lastName: 'Smith' },
+				RepresentedContact: { isAdult: true, firstName: 'John', lastName: 'Doe' },
 				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
 				submittedByAgentOrgName: 'Agency Inc.'
 			};
@@ -227,8 +227,8 @@ describe('view-model', () => {
 		it('should return "A representative" when ON_BEHALF_OF and agent is not an adult', () => {
 			const representation = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
-				SubmittedByContact: { isAdult: false, fullName: 'Agent Smith' },
-				RepresentedContact: { isAdult: true, fullName: 'John Doe' },
+				SubmittedByContact: { isAdult: false, firstName: 'Agent', lastName: 'Smith' },
+				RepresentedContact: { isAdult: true, firstName: 'John', lastName: 'Doe' },
 				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
 				submittedByAgentOrgName: 'Agency Inc.'
 			};
@@ -239,8 +239,8 @@ describe('view-model', () => {
 		it('should return "A member of the public" for represented person if they are not an adult', () => {
 			const representation = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
-				SubmittedByContact: { isAdult: true, fullName: 'Agent Smith' },
-				RepresentedContact: { isAdult: false, fullName: 'John Doe' },
+				SubmittedByContact: { isAdult: true, firstName: 'Agent', lastName: 'Smith' },
+				RepresentedContact: { isAdult: false, firstName: 'John', lastName: 'Doe' },
 				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
 				submittedByAgentOrgName: 'Agency Inc.'
 			};
@@ -254,8 +254,8 @@ describe('view-model', () => {
 		it('should return "Agent Name on behalf of Represented Name" for ORGANISATION case', () => {
 			const representation = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
-				SubmittedByContact: { isAdult: true, fullName: 'Agent Smith' },
-				RepresentedContact: { isAdult: true, fullName: 'John Doe' },
+				SubmittedByContact: { isAdult: true, firstName: 'Agent', lastName: 'Smith' },
+				RepresentedContact: { isAdult: true, firstName: 'John', lastName: 'Doe' },
 				representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION
 			};
 
@@ -265,8 +265,8 @@ describe('view-model', () => {
 		it('should return "Agent Name (Org Name) on behalf of Represented Name" for ORG_NOT_WORK_FOR case', () => {
 			const representation = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
-				SubmittedByContact: { isAdult: true, fullName: 'Agent Smith' },
-				RepresentedContact: { isAdult: true, fullName: 'John Doe' },
+				SubmittedByContact: { isAdult: true, firstName: 'Agent', lastName: 'Smith' },
+				RepresentedContact: { isAdult: true, firstName: 'John', lastName: 'Doe' },
 				representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
 				submittedByAgentOrgName: 'Agency Inc.'
 			};
@@ -290,7 +290,7 @@ describe('view-model', () => {
 		it('should handle missing RepresentedContact gracefully', () => {
 			const representation = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
-				SubmittedByContact: { isAdult: true, fullName: 'Agent Smith' },
+				SubmittedByContact: { isAdult: true, firstName: 'Agent', lastName: 'Smith' },
 				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
 				submittedByAgentOrgName: 'Agency Inc.'
 			};

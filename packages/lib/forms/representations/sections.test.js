@@ -566,7 +566,8 @@ describe('have-your-say', () => {
 						agentOrgName: 'Org Name',
 						submitterContactPreference: 'post',
 						representedIsAdult: BOOLEAN_OPTIONS.YES,
-						representedFullName: 'Represented Person',
+						representedFirstName: 'Represented Person',
+						representedLastName: 'Represented Surname',
 						submitterComment: 'some comments',
 						submitterHearingPreference: BOOLEAN_OPTIONS.YES
 					};

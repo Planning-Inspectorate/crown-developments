@@ -39,8 +39,8 @@ describe('written representations read more', () => {
 						representedTypeId: 'organisation',
 						containsAttachments: true,
 						SubmittedFor: { displayName: 'John Doe' },
-						SubmittedByContact: { fullName: 'Jane Smith', isAdult: true },
-						RepresentedContact: { fullName: 'Alice Brown', isAdult: false },
+						SubmittedByContact: { firstName: 'Jane', lastName: 'Smith', isAdult: true },
+						RepresentedContact: { firstName: 'Alice', lastName: ' Brown', isAdult: false },
 						Category: { displayName: 'General Representation' }
 					}))
 				}
@@ -115,8 +115,8 @@ describe('written representations read more', () => {
 						representedTypeId: 'organisation',
 						containsAttachments: false,
 						SubmittedFor: { displayName: 'John Doe' },
-						SubmittedByContact: { fullName: 'Jane Smith', isAdult: true },
-						RepresentedContact: { fullName: 'Alice Brown', isAdult: false },
+						SubmittedByContact: { firstName: 'Jane', lastName: ' Smith', isAdult: true },
+						RepresentedContact: { firstName: 'Alice', lastName: ' Brown', isAdult: false },
 						Category: { displayName: 'General Representation' }
 					}))
 				}

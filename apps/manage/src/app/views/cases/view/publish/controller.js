@@ -62,19 +62,23 @@ export function buildGetValidatedCaseMiddleware({ db, logger }) {
 		const answers = [
 			{
 				value: crownDevelopment.description,
-				errorMessage: 'Enter Application Description'
+				errorMessage: 'Enter Application Description',
+				pageLink: 'application-description'
 			},
 			{
 				value: crownDevelopment.typeId,
-				errorMessage: 'Enter Application Type'
+				errorMessage: 'Enter Application Type',
+				pageLink: 'type-of-application'
 			},
 			{
-				value: crownDevelopment.ApplicantContact?.fullName,
-				errorMessage: 'Enter Applicant Contact Name'
+				value: crownDevelopment.ApplicantContact?.orgName,
+				errorMessage: 'Enter Applicant Organisation Contact Name',
+				pageLink: 'applicant-contact'
 			},
 			{
 				value: crownDevelopment.Lpa?.id,
-				errorMessage: 'Enter Local Planning Authority'
+				errorMessage: 'Enter Local Planning Authority',
+				pageLink: 'local-planning-authority'
 			}
 		];
 
@@ -83,7 +87,7 @@ export function buildGetValidatedCaseMiddleware({ db, logger }) {
 			if (!answer.value) {
 				errors.push({
 					text: answer.errorMessage,
-					href: `#`
+					href: `/cases/${id}/overview/${answer.pageLink}`
 				});
 			}
 		}

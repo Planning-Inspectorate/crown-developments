@@ -27,27 +27,6 @@ export interface CrownDevelopmentListViewModel {
 	siteAddress?: string;
 }
 
-export interface RepresentationCreateAnswers {
-	submittedDate?: string;
-	submittedForId: string;
-	representedTypeId?: string;
-	agentOrgName?: string;
-	isAgent?: string;
-	myselfComment?: string;
-	myselfFullName?: string;
-	myselfEmail?: string;
-	myselfIsAdult?: string;
-	submitterComment?: string;
-	submitterFullName?: string;
-	submitterEmail?: string;
-	submitterIsAdult?: string;
-	orgRoleName?: string;
-	representedFullName?: string;
-	representedIsAdult?: string;
-	representedOrgName?: string;
-	orgName?: string;
-}
-
 const listArgs = Prisma.validator<Prisma.CrownDevelopmentDefaultArgs>()({
 	select: {
 		id: true,

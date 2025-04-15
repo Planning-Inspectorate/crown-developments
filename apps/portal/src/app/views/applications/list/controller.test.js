@@ -25,7 +25,7 @@ describe('case list', () => {
 							id: 'id-1',
 							reference: 'CROWN/1',
 							ApplicantContact: {
-								fullName: 'John Smith'
+								orgName: 'John Smith'
 							},
 							Lpa: {
 								name: 'System Test Borough Council'
@@ -41,7 +41,7 @@ describe('case list', () => {
 							id: 'id-2',
 							reference: 'CROWN/2',
 							ApplicantContact: {
-								fullName: 'Dave James'
+								orgName: 'Dave James'
 							},
 							Lpa: {
 								name: 'System Test Borough Council'
