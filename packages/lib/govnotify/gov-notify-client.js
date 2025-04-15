@@ -88,6 +88,7 @@ export class GovNotifyClient {
 		} catch (e) {
 			// log the original error
 			this.logger.error({ error: e, templateId }, 'failed to dispatch email');
+			this.logger.error({ message: e.response.data.errors }, 'received from Notify API');
 			throw new Error(`email failed to dispatch: ${e.message}`);
 		}
 	}
