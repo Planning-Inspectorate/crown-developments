@@ -7,7 +7,6 @@ import {
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { optionalWhere } from '../../util/database.js';
 import { addressToViewModel, viewModelToAddressUpdateInput } from '../../util/address.js';
-import { nameToViewModel } from '../../util/name.js';
 
 /**
  * Representation fields that do not need mapping to a (or from) the view model
@@ -46,10 +45,8 @@ export function representationToManageViewModel(representation, applicationRefer
 
 	if (representation.submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF) {
 		model.myselfIsAdult = mapFieldValue(representation.SubmittedByContact?.isAdult);
-		model.myselfFullName = nameToViewModel(
-			representation.SubmittedByContact?.firstName,
-			representation.SubmittedByContact?.lastName
-		);
+		model.myselfFirstName = representation.SubmittedByContact?.firstName;
+		model.myselfLastName = representation.SubmittedByContact?.lastName;
 		model.myselfEmail = representation.SubmittedByContact?.email;
 		model.myselfComment = representation.comment;
 		model.myselfContactPreference = representation.SubmittedByContact?.contactPreferenceId;
@@ -58,7 +55,8 @@ export function representationToManageViewModel(representation, applicationRefer
 	} else if (representation.submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF) {
 		model.representedTypeId = representation.representedTypeId;
 		model.submitterIsAdult = mapFieldValue(representation.SubmittedByContact?.isAdult);
-		model.submitterFullName = `${representation.SubmittedByContact?.firstName} ${representation.SubmittedByContact?.lastName}`;
+		model.submitterFirstName = representation.SubmittedByContact?.firstName;
+		model.submitterLastName = representation.SubmittedByContact?.lastName;
 		model.submitterEmail = representation.SubmittedByContact?.email;
 		model.submitterComment = representation.comment;
 		model.submitterContactPreference = representation.SubmittedByContact?.contactPreferenceId;
@@ -67,7 +65,8 @@ export function representationToManageViewModel(representation, applicationRefer
 
 		if (representation.representedTypeId === REPRESENTED_TYPE_ID.PERSON) {
 			model.representedIsAdult = mapFieldValue(representation.RepresentedContact?.isAdult);
-			model.representedFullName = `${representation.RepresentedContact?.firstName} ${representation.RepresentedContact?.lastName}`;
+			model.representedFirstName = representation.RepresentedContact?.firstName;
+			model.representedLastName = representation.RepresentedContact?.lastName;
 			model.isAgent = mapFieldValue(representation.submittedByAgent);
 			model.agentOrgName = representation.submittedByAgentOrgName;
 		} else if (representation.representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION) {

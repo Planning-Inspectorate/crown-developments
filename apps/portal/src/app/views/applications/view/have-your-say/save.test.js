@@ -236,7 +236,8 @@ describe('have your say', () => {
 			const answers = {
 				submittedForId: 'myself',
 				myselfIsAdult: 'yes',
-				myselfFullName: 'Test Name',
+				myselfFirstName: 'Test',
+				myselfLastName: 'Name',
 				myselfEmail: 'test@email.com',
 				myselfComment: 'some comments'
 			};
@@ -300,7 +301,8 @@ describe('have your say', () => {
 			const answers = {
 				submittedForId: 'myself',
 				myselfIsAdult: 'no',
-				myselfFullName: 'Test Name',
+				myselfFirstName: 'Test',
+				myselfLastName: 'Name',
 				myselfEmail: 'test@email.com',
 				myselfComment: 'some comments'
 			};
@@ -363,7 +365,8 @@ describe('have your say', () => {
 			const answers = {
 				submittedForId: 'myself',
 				myselfIsAdult: 'yes',
-				myselfFullName: 'Test Name',
+				myselfFirstName: 'Test',
+				lastName: 'Name',
 				myselfEmail: 'test@email.com',
 				myselfComment: 'some comments'
 			};

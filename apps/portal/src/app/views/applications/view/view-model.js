@@ -18,9 +18,7 @@ export function crownDevelopmentToViewModel(crownDevelopment, contactEmail) {
 		id: crownDevelopment.id,
 		reference: crownDevelopment.reference,
 		applicationType: crownDevelopment.Type?.displayName,
-		applicantName:
-			crownDevelopment.ApplicantContact?.orgName ||
-			nameToViewModel(crownDevelopment.ApplicantContact?.firstName, crownDevelopment.ApplicantContact?.lastName),
+		applicantName: crownDevelopment.ApplicantContact?.orgName,
 		lpaName: crownDevelopment.Lpa?.name,
 		description: crownDevelopment.description,
 		stage: crownDevelopment.Stage?.displayName,
@@ -150,7 +148,8 @@ export function representationToViewModel(representation) {
  * @return {string | undefined}
  */
 export function representationTitle(representation) {
-	const getDisplayName = (contact, placeholder) => (contact?.isAdult ? contact.fullName : placeholder);
+	const getDisplayName = (contact, placeholder) =>
+		contact?.isAdult ? (contact.orgName ?? nameToViewModel(contact.firstName, contact.lastName)) : placeholder;
 
 	const getOnBehalfTitle = (agent, organisation, represented) =>
 		organisation ? `${agent} (${organisation}) on behalf of ${represented}` : `${agent} on behalf of ${represented}`;

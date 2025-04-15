@@ -9,6 +9,7 @@ import { JOURNEY_ID } from './journey.js';
 import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
 import { saveRepresentation } from '@pins/crowndev-lib/forms/representations/save.js';
+import { nameToViewModel } from '@pins/crowndev-lib/util/name.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -84,8 +85,12 @@ async function populateNotificationData(id, service, answers, reference) {
 
 	const email = getField(answers.myselfEmail, answers.submitterEmail);
 	const addressee = getField(
-		answers.myselfIsAdult !== BOOLEAN_OPTIONS.YES ? 'Sir/Madam' : answers.myselfFullName,
-		answers.submitterIsAdult !== BOOLEAN_OPTIONS.YES ? 'Sir/Madam' : answers.submitterFullName
+		answers.myselfIsAdult !== BOOLEAN_OPTIONS.YES
+			? 'Sir/Madam'
+			: nameToViewModel(answers.myselfFirstName, answers.myselfLastName),
+		answers.submitterIsAdult !== BOOLEAN_OPTIONS.YES
+			? 'Sir/Madam'
+			: nameToViewModel(answers.submitterFirstName, answers.submitterLastName)
 	);
 
 	const personalisation = {

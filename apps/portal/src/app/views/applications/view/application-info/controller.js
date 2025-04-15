@@ -24,7 +24,7 @@ export function buildApplicationInformationPage(service) {
 			db,
 			args: {
 				include: {
-					ApplicantContact: { select: { fullName: true } },
+					ApplicantContact: { select: { orgName: true } },
 					DecisionOutcome: { select: { displayName: true } },
 					Lpa: true,
 					Type: true,

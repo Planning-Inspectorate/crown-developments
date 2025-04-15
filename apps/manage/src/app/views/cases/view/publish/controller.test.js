@@ -90,7 +90,7 @@ describe('publish case', () => {
 					findUnique: mock.fn(() => ({
 						id: 'id-1',
 						ApplicantContact: {
-							fullName: 'applicant-1'
+							orgName: 'applicant-1'
 						},
 						description: 'description-1',
 						typeId: 'type-1',
