@@ -217,15 +217,6 @@ export const questionProps = {
 			})
 		]
 	},
-	representedIsAdult: {
-		type: COMPONENT_TYPES.BOOLEAN,
-		title: 'Person representing over 18',
-		question: 'Is the person you are representing 18 or over?',
-		hint: 'You can still submit a representation for them if they are under 18, but we will process their personal details in a different way.',
-		fieldName: 'representedIsAdult',
-		url: 'are-they-18-over',
-		validators: [new RequiredValidator('Select yes if the person you are representing is are 18 or over')]
-	},
 	address: {
 		type: COMPONENT_TYPES.ADDRESS,
 		title: 'Address',

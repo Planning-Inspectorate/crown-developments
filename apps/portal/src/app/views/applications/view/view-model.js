@@ -148,8 +148,7 @@ export function representationToViewModel(representation) {
  * @return {string | undefined}
  */
 export function representationTitle(representation) {
-	const getDisplayName = (contact, placeholder) =>
-		contact?.isAdult ? (contact.orgName ?? nameToViewModel(contact.firstName, contact.lastName)) : placeholder;
+	const getDisplayName = (contact) => contact.orgName ?? nameToViewModel(contact.firstName, contact.lastName);
 
 	const getOnBehalfTitle = (agent, organisation, represented) =>
 		organisation ? `${agent} (${organisation}) on behalf of ${represented}` : `${agent} on behalf of ${represented}`;
@@ -158,12 +157,12 @@ export function representationTitle(representation) {
 		representation;
 
 	if (submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF) {
-		return getDisplayName(SubmittedByContact, 'A member of the public');
+		return getDisplayName(SubmittedByContact);
 	}
 
 	if (submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF) {
-		const agentName = getDisplayName(SubmittedByContact, 'A representative');
-		const representedName = getDisplayName(RepresentedContact, 'A member of the public');
+		const agentName = getDisplayName(SubmittedByContact);
+		const representedName = getDisplayName(RepresentedContact);
 
 		return representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION
 			? `${agentName} on behalf of ${representedName}`

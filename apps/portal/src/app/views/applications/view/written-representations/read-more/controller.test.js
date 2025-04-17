@@ -39,8 +39,8 @@ describe('written representations read more', () => {
 						representedTypeId: 'organisation',
 						containsAttachments: true,
 						SubmittedFor: { displayName: 'John Doe' },
-						SubmittedByContact: { firstName: 'Jane', lastName: 'Smith', isAdult: true },
-						RepresentedContact: { firstName: 'Alice', lastName: ' Brown', isAdult: false },
+						SubmittedByContact: { firstName: 'Jane', lastName: 'Smith' },
+						RepresentedContact: { firstName: 'Alice', lastName: ' Brown' },
 						Category: { displayName: 'General Representation' }
 					}))
 				}
@@ -71,7 +71,7 @@ describe('written representations read more', () => {
 				representationCommentIsRedacted: true,
 				representationContainsAttachments: true,
 				representationReference: 'U5DAP-1MV6V',
-				representationTitle: 'Jane Smith on behalf of A member of the public'
+				representationTitle: 'Jane Smith on behalf of Alice Brown'
 			});
 			assert.deepStrictEqual(viewData.documents, []);
 
@@ -115,8 +115,8 @@ describe('written representations read more', () => {
 						representedTypeId: 'organisation',
 						containsAttachments: false,
 						SubmittedFor: { displayName: 'John Doe' },
-						SubmittedByContact: { firstName: 'Jane', lastName: ' Smith', isAdult: true },
-						RepresentedContact: { firstName: 'Alice', lastName: ' Brown', isAdult: false },
+						SubmittedByContact: { firstName: 'Jane', lastName: ' Smith' },
+						RepresentedContact: { firstName: 'Alice', lastName: ' Brown' },
 						Category: { displayName: 'General Representation' }
 					}))
 				}
@@ -140,7 +140,7 @@ describe('written representations read more', () => {
 				representationCommentIsRedacted: true,
 				representationContainsAttachments: false,
 				representationReference: 'U5DAP-1MV6V',
-				representationTitle: 'Jane Smith on behalf of A member of the public'
+				representationTitle: 'Jane Smith on behalf of Alice Brown'
 			});
 		});
 

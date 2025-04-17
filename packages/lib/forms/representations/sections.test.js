@@ -66,49 +66,24 @@ describe('have-your-say', () => {
 
 		it('should include all questions for have your say myself journey', () => {
 			const answers = {
-				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-				myselfIsAdult: BOOLEAN_OPTIONS.YES
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
 			};
 
 			testHaveYourSayQuestionsDisplay(answers, [], true);
-		});
-
-		it('should not include full name question for myself have your say myself journey if under 18', () => {
-			const questions = getQuestions();
-			const answers = {
-				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-				myselfIsAdult: BOOLEAN_OPTIONS.NO
-			};
-
-			const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
-			const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
-			const sections = journey.sections;
-
-			const myselfSection = sections[1];
-			assert.strictEqual(myselfSection.questions.length, 4);
-
-			const myselfFullNameQuestion = myselfSection.questions.find(
-				(question) => question.fieldName === questions.myselfFullName.fieldName
-			);
-			assert.strictEqual(myselfFullNameQuestion.shouldDisplay(response), false);
 		});
 
 		it('should include all questions for have your say on behalf of person journey', () => {
 			const answers = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
-				submitterIsAdult: BOOLEAN_OPTIONS.YES,
-				isAgent: BOOLEAN_OPTIONS.YES,
-				representedIsAdult: BOOLEAN_OPTIONS.YES
+				isAgent: BOOLEAN_OPTIONS.YES
 			};
 			const expectedQuestions = [
 				'representedTypeId',
-				'submitterIsAdult',
 				'submitterFullName',
 				'isAgent',
 				'agentOrgName',
 				'submitterEmail',
-				'representedIsAdult',
 				'representedFullName',
 				'submitterComment'
 			];
@@ -119,12 +94,10 @@ describe('have-your-say', () => {
 		it('should include all questions for have your say on behalf of org/charity journey', () => {
 			const answers = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
-				representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
-				submitterIsAdult: BOOLEAN_OPTIONS.YES
+				representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION
 			};
 			const expectedQuestions = [
 				'representedTypeId',
-				'submitterIsAdult',
 				'submitterFullName',
 				'submitterEmail',
 				'orgName',
@@ -139,12 +112,10 @@ describe('have-your-say', () => {
 			const answers = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
-				submitterIsAdult: BOOLEAN_OPTIONS.YES,
 				isAgent: BOOLEAN_OPTIONS.YES
 			};
 			const expectedQuestions = [
 				'representedTypeId',
-				'submitterIsAdult',
 				'submitterFullName',
 				'isAgent',
 				'agentOrgName',
@@ -160,7 +131,6 @@ describe('have-your-say', () => {
 			const questions = getQuestions();
 			const answers = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-				myselfIsAdult: BOOLEAN_OPTIONS.YES,
 				myselfFirstName: 'Test Name',
 				myselfLastName: 'Test Last',
 				myselfEmail: 'test@email.com',
@@ -177,7 +147,6 @@ describe('have-your-say', () => {
 			const questions = getQuestions();
 			const answers = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-				myselfIsAdult: BOOLEAN_OPTIONS.YES,
 				myselfFirstName: 'FirstName',
 				myselfLastName: 'LastName',
 				myselfComment: 'test@email.com'
@@ -194,13 +163,11 @@ describe('have-your-say', () => {
 			const answers = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
-				submitterIsAdult: BOOLEAN_OPTIONS.YES,
 				submitterFirstName: 'Agent Name',
 				submitterLastName: 'Test Last',
 				isAgent: BOOLEAN_OPTIONS.YES,
 				agentOrgName: 'Org Name',
 				submitterEmail: 'test@email.com',
-				representedIsAdult: BOOLEAN_OPTIONS.YES,
 				representedFirstName: 'Represented Person',
 				representedLastName: 'Represented Surname',
 				submitterComment: 'some comments'
@@ -217,13 +184,11 @@ describe('have-your-say', () => {
 			const answers = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
-				submitterIsAdult: BOOLEAN_OPTIONS.YES,
 				submitterFirstName: 'Agent',
 				submitterLastName: 'Name',
 				isAgent: BOOLEAN_OPTIONS.YES,
 				agentOrgName: 'Org Name',
 				submitterEmail: 'test@email.com',
-				representedIsAdult: BOOLEAN_OPTIONS.YES,
 				submitterComment: 'some comments'
 			};
 
@@ -238,7 +203,6 @@ describe('have-your-say', () => {
 			const answers = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
-				submitterIsAdult: BOOLEAN_OPTIONS.YES,
 				submitterFirstName: 'Agent Name',
 				submitterLastName: 'Test Last',
 				submitterEmail: 'test@email.com',
@@ -258,7 +222,6 @@ describe('have-your-say', () => {
 			const answers = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
-				submitterIsAdult: BOOLEAN_OPTIONS.YES,
 				submitterFirstName: 'Agent Name',
 				submitterLastName: 'Test Last',
 				submitterEmail: 'test@email.com',
@@ -277,7 +240,6 @@ describe('have-your-say', () => {
 			const answers = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
-				submitterIsAdult: BOOLEAN_OPTIONS.YES,
 				submitterFirstName: 'Agent Name',
 				submitterLastName: 'Test Last',
 				isAgent: BOOLEAN_OPTIONS.YES,
@@ -298,7 +260,6 @@ describe('have-your-say', () => {
 			const answers = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
-				submitterIsAdult: BOOLEAN_OPTIONS.YES,
 				submitterFirstName: 'Agent Name',
 				submitterLastName: 'Test Last',
 				isAgent: BOOLEAN_OPTIONS.YES,
@@ -326,7 +287,7 @@ describe('have-your-say', () => {
 			assert.strictEqual(representationSection.questions.length, 1);
 
 			const myselfSection = sections[1];
-			assert.strictEqual(myselfSection.questions.length, 4);
+			assert.strictEqual(myselfSection.questions.length, 3);
 			for (const myselfQuestion of myselfSection.questions) {
 				assert.strictEqual(
 					myselfQuestion.shouldDisplay(response),
@@ -336,7 +297,7 @@ describe('have-your-say', () => {
 			}
 
 			const onBehalfOfSection = sections[2];
-			assert.strictEqual(onBehalfOfSection.questions.length, 12);
+			assert.strictEqual(onBehalfOfSection.questions.length, 10);
 
 			for (const onBehalfOfQuestion of onBehalfOfSection.questions) {
 				const expected = expectedOnBehalfOfQuestions.includes(onBehalfOfQuestion.fieldName);
@@ -381,8 +342,8 @@ describe('have-your-say', () => {
 				};
 			};
 			const defaultQuestions = () => [
-				'myselfIsAdult',
 				'myselfContactPreference',
+				'myselfFullName',
 				'myselfComment',
 				'myselfHearingPreference'
 			];
@@ -404,26 +365,13 @@ describe('have-your-say', () => {
 				answers.myselfContactPreference = 'email';
 				testAddRepresentationQuestionsDisplay(answers, byEmailQuestions, []);
 			});
-			it('should handle myselfIsAdult dependant questions correctly', () => {
-				const answers = defaultAnswers();
 
-				const isAdultQuestions = defaultQuestions().concat('myselfFullName');
-
-				const isNotAdultQuestions = defaultQuestions();
-
-				answers.myselfIsAdult = BOOLEAN_OPTIONS.YES;
-				testAddRepresentationQuestionsDisplay(answers, isAdultQuestions, []);
-
-				answers.myselfIsAdult = BOOLEAN_OPTIONS.NO;
-				testAddRepresentationQuestionsDisplay(answers, isNotAdultQuestions, []);
-			});
 			it('isComplete should return true if Representation and Myself sections are completed', () => {
 				const questions = getQuestions();
 				const answers = {
 					submittedDate: new Date(),
 					categoryId: 'consultees',
 					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-					myselfIsAdult: BOOLEAN_OPTIONS.YES,
 					myselfFirstName: 'FirstName',
 					myselfLastName: 'LastName',
 					myselfContactPreference: 'email',
@@ -441,7 +389,6 @@ describe('have-your-say', () => {
 				const questions = getQuestions();
 				const answers = {
 					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-					myselfIsAdult: BOOLEAN_OPTIONS.YES,
 					myselfFirstName: 'FirstName',
 					myselfLastName: 'LastName',
 					myselfContactPreference: 'email',
@@ -465,9 +412,9 @@ describe('have-your-say', () => {
 				};
 				const defaultQuestions = () => [
 					'representedTypeId',
-					'submitterIsAdult',
 					'isAgent',
-					'representedIsAdult',
+					'submitterFullName',
+					'representedFullName',
 					'submitterComment',
 					'submitterContactPreference',
 					'submitterHearingPreference'
@@ -477,29 +424,7 @@ describe('have-your-say', () => {
 					const questions = defaultQuestions();
 					testAddRepresentationQuestionsDisplay(answers, [], questions);
 				});
-				it('should handle submitterIsAdult dependant questions correctly', () => {
-					const answers = defaultAnswers();
-					const submitterIsAdultQuestions = defaultQuestions().concat('submitterFullName');
-					const submitterIsNotAdultQuestions = defaultQuestions();
 
-					answers.submitterIsAdult = BOOLEAN_OPTIONS.YES;
-					testAddRepresentationQuestionsDisplay(answers, [], submitterIsAdultQuestions);
-
-					answers.submitterIsAdult = BOOLEAN_OPTIONS.NO;
-					testAddRepresentationQuestionsDisplay(answers, [], submitterIsNotAdultQuestions);
-				});
-				it('should handle representedIsAdult dependant questions correctly', () => {
-					const answers = defaultAnswers();
-
-					const representedIsAdultQuestions = defaultQuestions().concat('representedFullName');
-					const representedIsNotAdultQuestions = defaultQuestions();
-
-					answers.representedIsAdult = BOOLEAN_OPTIONS.YES;
-					testAddRepresentationQuestionsDisplay(answers, [], representedIsAdultQuestions);
-
-					answers.representedIsAdult = BOOLEAN_OPTIONS.NO;
-					testAddRepresentationQuestionsDisplay(answers, [], representedIsNotAdultQuestions);
-				});
 				it('should handle contactPreference correctly', () => {
 					const answers = defaultAnswers();
 
@@ -531,7 +456,6 @@ describe('have-your-say', () => {
 						categoryId: 'consultees',
 						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 						representedTypeId: REPRESENTED_TYPE_ID.PERSON,
-						submitterIsAdult: BOOLEAN_OPTIONS.YES,
 						submitterFirstName: 'Agent Name',
 						submitterLastName: 'Test Last',
 						isAgent: BOOLEAN_OPTIONS.YES,
@@ -542,7 +466,6 @@ describe('have-your-say', () => {
 							town: 'Test Town',
 							postcode: 'TE1 1ST'
 						},
-						representedIsAdult: BOOLEAN_OPTIONS.YES,
 						representedFirstName: 'Represented Person',
 						representedLastName: 'Represented Surname',
 						submitterComment: 'some comments',
@@ -559,13 +482,11 @@ describe('have-your-say', () => {
 					const answers = {
 						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 						representedTypeId: REPRESENTED_TYPE_ID.PERSON,
-						submitterIsAdult: BOOLEAN_OPTIONS.YES,
 						submitterFirstName: 'Agent Name',
 						submitterLastName: 'Test Last',
 						isAgent: BOOLEAN_OPTIONS.YES,
 						agentOrgName: 'Org Name',
 						submitterContactPreference: 'post',
-						representedIsAdult: BOOLEAN_OPTIONS.YES,
 						representedFirstName: 'Represented Person',
 						representedLastName: 'Represented Surname',
 						submitterComment: 'some comments',
@@ -586,7 +507,7 @@ describe('have-your-say', () => {
 				};
 				const defaultQuestions = () => [
 					'representedTypeId',
-					'submitterIsAdult',
+					'submitterFullName',
 					'isAgent',
 					'submitterComment',
 					'submitterContactPreference',
@@ -598,18 +519,6 @@ describe('have-your-say', () => {
 					const questions = defaultQuestions();
 
 					testAddRepresentationQuestionsDisplay(answers, [], questions);
-				});
-				it('should handle submitterIsAdult dependant questions correctly', () => {
-					const answers = defaultAnswers();
-
-					const submitterIsAdultQuestions = defaultQuestions().concat('submitterFullName');
-					const submitterIsNotAdultQuestions = defaultQuestions();
-
-					answers.submitterIsAdult = BOOLEAN_OPTIONS.YES;
-					testAddRepresentationQuestionsDisplay(answers, [], submitterIsAdultQuestions);
-
-					answers.submitterIsAdult = BOOLEAN_OPTIONS.NO;
-					testAddRepresentationQuestionsDisplay(answers, [], submitterIsNotAdultQuestions);
 				});
 				it('should handle contactPreference correctly', () => {
 					const answers = defaultAnswers();
@@ -642,7 +551,6 @@ describe('have-your-say', () => {
 						categoryId: 'consultees',
 						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 						representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
-						submitterIsAdult: BOOLEAN_OPTIONS.YES,
 						submitterFirstName: 'Agent Name',
 						submitterLastName: 'Test Last',
 						isAgent: BOOLEAN_OPTIONS.YES,
@@ -668,7 +576,6 @@ describe('have-your-say', () => {
 					const answers = {
 						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 						representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
-						submitterIsAdult: BOOLEAN_OPTIONS.YES,
 						submitterFirstName: 'Agent Name',
 						submitterLastName: 'Test Last',
 						isAgent: BOOLEAN_OPTIONS.YES,
@@ -697,7 +604,7 @@ describe('have-your-say', () => {
 				};
 				const defaultQuestions = () => [
 					'representedTypeId',
-					'submitterIsAdult',
+					'submitterFullName',
 					'submitterComment',
 					'submitterContactPreference',
 					'submitterHearingPreference',
@@ -708,18 +615,6 @@ describe('have-your-say', () => {
 					const answers = defaultAnswers();
 					const questions = defaultQuestions();
 					testAddRepresentationQuestionsDisplay(answers, [], questions);
-				});
-				it('should handle submitterIsAdult dependant questions correctly', () => {
-					const answers = defaultAnswers();
-
-					const submitterIsAdultQuestions = defaultQuestions().concat('submitterFullName');
-					const submitterIsNotAdultQuestions = defaultQuestions();
-
-					answers.submitterIsAdult = BOOLEAN_OPTIONS.YES;
-					testAddRepresentationQuestionsDisplay(answers, [], submitterIsAdultQuestions);
-
-					answers.submitterIsAdult = BOOLEAN_OPTIONS.NO;
-					testAddRepresentationQuestionsDisplay(answers, [], submitterIsNotAdultQuestions);
 				});
 				it('should handle contactPreference correctly', () => {
 					const answers = defaultAnswers();
@@ -740,7 +635,6 @@ describe('have-your-say', () => {
 						categoryId: 'consultees',
 						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 						representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
-						submitterIsAdult: BOOLEAN_OPTIONS.YES,
 						submitterFirstName: 'Agent Name',
 						submitterLastName: 'Surname',
 						submitterContactPreference: 'email',
@@ -761,7 +655,6 @@ describe('have-your-say', () => {
 					const answers = {
 						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 						representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
-						submitterIsAdult: BOOLEAN_OPTIONS.YES,
 						submitterFirstName: 'Agent Name',
 						submitterLastName: 'Test Last',
 						submitterContactPreference: 'email',
@@ -790,7 +683,7 @@ describe('have-your-say', () => {
 			assert.strictEqual(mainSection.questions.length, 3);
 
 			const myselfSection = sections[1];
-			assert.strictEqual(myselfSection.questions.length, 7);
+			assert.strictEqual(myselfSection.questions.length, 6);
 
 			for (const myselfQuestion of myselfSection.questions) {
 				const expected = expectedMyselfQuestions.includes(myselfQuestion.fieldName);
@@ -801,7 +694,7 @@ describe('have-your-say', () => {
 				);
 			}
 			const onBehalfOfSection = sections[2];
-			assert.strictEqual(onBehalfOfSection.questions.length, 15);
+			assert.strictEqual(onBehalfOfSection.questions.length, 13);
 
 			for (const onBehalfOfQuestion of onBehalfOfSection.questions) {
 				const expected = expectedOnBehalfOfQuestions.includes(onBehalfOfQuestion.fieldName);

@@ -43,7 +43,6 @@ export namespace HaveYourSay {
 	 * Myself have-your-say fields
 	 */
 	export interface Myself {
-		myselfIsAdult: boolean;
 		myselfFirstName?: string;
 		myselfLastName?: string;
 		myselfContactPreference?: string;
@@ -57,7 +56,6 @@ export namespace HaveYourSay {
 	 */
 	export type OnBehalfOf = OnBehalfOfOptions & {
 		representedTypeId: string;
-		submitterIsAdult: boolean;
 		submitterFirstName?: string;
 		submitterLastName?: string;
 		submitterContactPreference?: string;
@@ -75,7 +73,6 @@ export namespace HaveYourSay {
 	 * On behalf of a person have-your-say fields
 	 */
 	export type OnBehalfOfPerson = IsAgent & {
-		representedIsAdult: boolean;
 		representedFirstName?: string;
 		representedLastName?: string;
 	};

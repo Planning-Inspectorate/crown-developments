@@ -41,8 +41,8 @@ describe('written representations', () => {
 							representedTypeId: 'organisation',
 							containsAttachments: true,
 							SubmittedFor: { displayName: 'John Doe' },
-							SubmittedByContact: { firstName: 'Jane', lastName: 'Smith', isAdult: true },
-							RepresentedContact: { firstName: 'Alice', lastName: 'Brown', isAdult: false },
+							SubmittedByContact: { firstName: 'Jane', lastName: 'Smith' },
+							RepresentedContact: { firstName: 'Alice', lastName: 'Brown' },
 							Category: { displayName: 'General Representation' }
 						}
 					]),
@@ -70,7 +70,7 @@ describe('written representations', () => {
 				representationCommentIsRedacted: true,
 				representationContainsAttachments: true,
 				representationReference: '4SNR8-ZS27T',
-				representationTitle: 'Jane Smith on behalf of A member of the public'
+				representationTitle: 'Jane Smith on behalf of Alice Brown'
 			});
 			assert.strictEqual(viewData.selectedItemsPerPage, 25);
 			assert.strictEqual(viewData.totalRepresentations, 1);
