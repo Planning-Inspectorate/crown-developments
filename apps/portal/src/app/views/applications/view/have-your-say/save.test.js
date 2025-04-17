@@ -1,5 +1,5 @@
 import { describe, it, mock } from 'node:test';
-import { buildSaveHaveYourSayController, viewHaveYourSaySuccessPage } from './save.js';
+import { buildSaveHaveYourSayController, viewHaveYourSaySuccessPage, populateNotificationData } from './save.js';
 import assert from 'node:assert';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
@@ -454,6 +454,79 @@ describe('have your say', () => {
 				representations: {
 					'cfe3dc29-1f63-45e6-81dd-da8183842bf8': {}
 				}
+			});
+		});
+	});
+	describe('populateNotificationData', () => {
+		describe('should generate the correct personalisation object', () => {
+			it('should use address if site address is provided', async (context) => {
+				context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
+				const mockDb = {
+					crownDevelopment: {
+						findUnique: mock.fn(() => ({
+							id: 'case-1',
+							reference: 'CROWN/2025/0000001',
+							description: 'a big project',
+							SiteAddress: { line1: '4 the street', line2: 'town', postcode: 'wc1w 1bw' }
+						}))
+					}
+				};
+				const mockReference = 'AAAAA-BBBBB';
+				const answers = {
+					submittedForId: 'myself',
+					myselfIsAdult: 'yes',
+					myselfFirstName: 'Test',
+					myselfLastName: 'Name',
+					myselfEmail: 'test@email.com',
+					myselfComment: 'some comments'
+				};
+				const notificationData = await populateNotificationData('case-1', { db: mockDb }, answers, mockReference);
+				assert.deepStrictEqual(notificationData, {
+					email: 'test@email.com',
+					personalisation: {
+						reference: 'CROWN/2025/0000001',
+						addressee: 'Test Name',
+						applicationDescription: 'a big project',
+						siteAddress: '4 the street, town, wc1w 1bw',
+						submittedDate: '1 Jan 2025',
+						representationReferenceNo: mockReference
+					}
+				});
+			});
+			it('should use coordinates if site address is not provided', async (context) => {
+				context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
+				const mockDb = {
+					crownDevelopment: {
+						findUnique: mock.fn(() => ({
+							id: 'case-1',
+							reference: 'CROWN/2025/0000001',
+							description: 'a big project',
+							siteNorthing: '123456',
+							siteEasting: '654321'
+						}))
+					}
+				};
+				const mockReference = 'AAAAA-BBBBB';
+				const answers = {
+					submittedForId: 'myself',
+					myselfIsAdult: 'yes',
+					myselfFirstName: 'Test',
+					myselfLastName: 'Name',
+					myselfEmail: 'test@email.com',
+					myselfComment: 'some comments'
+				};
+				const notificationData = await populateNotificationData('case-1', { db: mockDb }, answers, mockReference);
+				assert.deepStrictEqual(notificationData, {
+					email: 'test@email.com',
+					personalisation: {
+						reference: 'CROWN/2025/0000001',
+						addressee: 'Test Name',
+						applicationDescription: 'a big project',
+						siteAddress: 'Easting: 654321, Northing: 123456',
+						submittedDate: '1 Jan 2025',
+						representationReferenceNo: mockReference
+					}
+				});
 			});
 		});
 	});

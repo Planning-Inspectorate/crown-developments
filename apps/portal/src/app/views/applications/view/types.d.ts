@@ -25,6 +25,7 @@ export interface CrownDevelopmentListViewModel {
 	decisionDate?: string;
 	crownDevelopmentContactEmail?: string;
 	siteAddress?: string;
+	siteCoordinates?: { easting: string; northing: string };
 }
 
 const listArgs = Prisma.validator<Prisma.CrownDevelopmentDefaultArgs>()({
