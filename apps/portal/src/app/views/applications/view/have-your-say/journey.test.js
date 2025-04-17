@@ -28,49 +28,24 @@ describe('have-your-say journey', () => {
 
 	it('should include all questions for have your say myself journey', () => {
 		const answers = {
-			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-			myselfIsAdult: BOOLEAN_OPTIONS.YES
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
 		};
 
 		testHaveYourSayQuestionsDisplay(answers, [], true);
-	});
-
-	it('should not include full name question for myself have your say myself journey if under 18', () => {
-		const questions = getQuestions();
-		const answers = {
-			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-			myselfIsAdult: BOOLEAN_OPTIONS.NO
-		};
-
-		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
-		const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
-		const sections = journey.sections;
-
-		const myselfSection = sections[1];
-		assert.strictEqual(myselfSection.questions.length, 4);
-
-		const myselfFullNameQuestion = myselfSection.questions.find(
-			(question) => question.fieldName === questions.myselfFullName.fieldName
-		);
-		assert.strictEqual(myselfFullNameQuestion.shouldDisplay(response), false);
 	});
 
 	it('should include all questions for have your say on behalf of person journey', () => {
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.PERSON,
-			submitterIsAdult: BOOLEAN_OPTIONS.YES,
-			isAgent: BOOLEAN_OPTIONS.YES,
-			representedIsAdult: BOOLEAN_OPTIONS.YES
+			isAgent: BOOLEAN_OPTIONS.YES
 		};
 		const expectedQuestions = [
 			'representedTypeId',
-			'submitterIsAdult',
 			'submitterFullName',
 			'isAgent',
 			'agentOrgName',
 			'submitterEmail',
-			'representedIsAdult',
 			'representedFullName',
 			'submitterComment'
 		];
@@ -81,12 +56,10 @@ describe('have-your-say journey', () => {
 	it('should include all questions for have your say on behalf of org/charity journey', () => {
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
-			representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
-			submitterIsAdult: BOOLEAN_OPTIONS.YES
+			representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION
 		};
 		const expectedQuestions = [
 			'representedTypeId',
-			'submitterIsAdult',
 			'submitterFullName',
 			'submitterEmail',
 			'orgName',
@@ -101,12 +74,10 @@ describe('have-your-say journey', () => {
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
-			submitterIsAdult: BOOLEAN_OPTIONS.YES,
 			isAgent: BOOLEAN_OPTIONS.YES
 		};
 		const expectedQuestions = [
 			'representedTypeId',
-			'submitterIsAdult',
 			'submitterFullName',
 			'isAgent',
 			'agentOrgName',
@@ -122,7 +93,6 @@ describe('have-your-say journey', () => {
 		const questions = getQuestions();
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-			myselfIsAdult: BOOLEAN_OPTIONS.YES,
 			myselfFirstName: 'Test Name',
 			myselfLastName: 'Surname',
 			myselfEmail: 'test@email.com',
@@ -139,7 +109,6 @@ describe('have-your-say journey', () => {
 		const questions = getQuestions();
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-			myselfIsAdult: BOOLEAN_OPTIONS.YES,
 			myselfFirstName: 'Test Name',
 			myselfLastName: 'Surname',
 			myselfComment: 'test@email.com'
@@ -156,13 +125,11 @@ describe('have-your-say journey', () => {
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.PERSON,
-			submitterIsAdult: BOOLEAN_OPTIONS.YES,
 			submitterFirstName: 'Agent Name',
 			submitterLastName: 'Surname',
 			isAgent: BOOLEAN_OPTIONS.YES,
 			agentOrgName: 'Org Name',
 			submitterEmail: 'test@email.com',
-			representedIsAdult: BOOLEAN_OPTIONS.YES,
 			representedFirstName: 'Represented Person',
 			representedLastName: 'Rep surname',
 			submitterComment: 'some comments'
@@ -179,13 +146,11 @@ describe('have-your-say journey', () => {
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.PERSON,
-			submitterIsAdult: BOOLEAN_OPTIONS.YES,
 			submitterFirstName: 'Agent Name',
 			submitterLastName: 'Surname',
 			isAgent: BOOLEAN_OPTIONS.YES,
 			agentOrgName: 'Org Name',
 			submitterEmail: 'test@email.com',
-			representedIsAdult: BOOLEAN_OPTIONS.YES,
 			submitterComment: 'some comments'
 		};
 
@@ -200,7 +165,6 @@ describe('have-your-say journey', () => {
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
-			submitterIsAdult: BOOLEAN_OPTIONS.YES,
 			submitterFirstName: 'Agent Name',
 			submitterLastName: 'Surname',
 			submitterEmail: 'test@email.com',
@@ -220,7 +184,6 @@ describe('have-your-say journey', () => {
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
-			submitterIsAdult: BOOLEAN_OPTIONS.YES,
 			submitterFirstName: 'Agent Name',
 			submitterLastName: 'Surname',
 			submitterEmail: 'test@email.com',
@@ -239,7 +202,6 @@ describe('have-your-say journey', () => {
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
-			submitterIsAdult: BOOLEAN_OPTIONS.YES,
 			submitterFirstName: 'Agent Name',
 			submitterLastName: 'Surname',
 			isAgent: BOOLEAN_OPTIONS.YES,
@@ -260,7 +222,6 @@ describe('have-your-say journey', () => {
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
-			submitterIsAdult: BOOLEAN_OPTIONS.YES,
 			submitterFirstName: 'Agent Name',
 			submitterLastName: 'Surname',
 			isAgent: BOOLEAN_OPTIONS.YES,
@@ -288,7 +249,7 @@ describe('have-your-say journey', () => {
 		assert.strictEqual(representationSection.questions.length, 1);
 
 		const myselfSection = sections[1];
-		assert.strictEqual(myselfSection.questions.length, 4);
+		assert.strictEqual(myselfSection.questions.length, 3);
 		for (const myselfQuestion of myselfSection.questions) {
 			assert.strictEqual(
 				myselfQuestion.shouldDisplay(response),
@@ -298,7 +259,7 @@ describe('have-your-say journey', () => {
 		}
 
 		const onBehalfOfSection = sections[2];
-		assert.strictEqual(onBehalfOfSection.questions.length, 12);
+		assert.strictEqual(onBehalfOfSection.questions.length, 10);
 
 		for (const onBehalfOfQuestion of onBehalfOfSection.questions) {
 			const expected = expectedOnBehalfOfQuestions.includes(onBehalfOfQuestion.fieldName);

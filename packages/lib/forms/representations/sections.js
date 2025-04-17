@@ -63,9 +63,7 @@ function myselfSection(questions) {
 		.withSectionCondition((response) =>
 			questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
 		)
-		.addQuestion(questions.myselfIsAdult)
 		.addQuestion(questions.myselfFullName)
-		.withCondition((response) => questionHasAnswer(response, questions.myselfIsAdult, BOOLEAN_OPTIONS.YES))
 		.addQuestion(questions.myselfEmail)
 		.addQuestion(questions.myselfTellUsAboutApplication);
 }
@@ -81,9 +79,7 @@ function addRepMyselfSection(questions) {
 		.withSectionCondition((response) =>
 			questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
 		)
-		.addQuestion(questions.myselfIsAdult)
 		.addQuestion(questions.myselfFullName)
-		.withCondition((response) => questionHasAnswer(response, questions.myselfIsAdult, BOOLEAN_OPTIONS.YES))
 		.addQuestion(questions.myselfContactPreference)
 		.addQuestion(questions.myselfEmail)
 		.withCondition((response) => questionHasAnswer(response, questions.myselfContactPreference, 'email'))
@@ -113,9 +109,7 @@ function agentSection(questions) {
 			questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF)
 		)
 		.addQuestion(questions.whoRepresenting)
-		.addQuestion(questions.submitterIsAdult)
 		.addQuestion(questions.submitterFullName)
-		.withCondition((response) => questionHasAnswer(response, questions.submitterIsAdult, BOOLEAN_OPTIONS.YES))
 		.startMultiQuestionCondition('representation-person-or-org-not-work-for', isRepresentationPersonOrOrgNotWorkFor)
 		.addQuestion(questions.isAgent)
 		.addQuestion(questions.agentOrgName)
@@ -129,9 +123,7 @@ function agentSection(questions) {
 		.addQuestion(questions.orgRoleName)
 		.endMultiQuestionCondition('org-work-for')
 		.startMultiQuestionCondition('representation-person', isRepresentationPerson)
-		.addQuestion(questions.representedIsAdult)
 		.addQuestion(questions.representedFullName)
-		.withCondition((response) => questionHasAnswer(response, questions.representedIsAdult, BOOLEAN_OPTIONS.YES))
 		.endMultiQuestionCondition('representation-person')
 		.addQuestion(questions.submitterTellUsAboutApplication);
 }
@@ -156,9 +148,7 @@ function addRepAgentSection(questions) {
 			questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF)
 		)
 		.addQuestion(questions.whoRepresenting)
-		.addQuestion(questions.submitterIsAdult)
 		.addQuestion(questions.submitterFullName)
-		.withCondition((response) => questionHasAnswer(response, questions.submitterIsAdult, BOOLEAN_OPTIONS.YES))
 		.startMultiQuestionCondition('representation-person-or-org-not-work-for', isRepresentationPersonOrOrgNotWorkFor)
 		.addQuestion(questions.isAgent)
 		.addQuestion(questions.agentOrgName)
@@ -170,9 +160,7 @@ function addRepAgentSection(questions) {
 		.addQuestion(questions.submitterAddress)
 		.withCondition((response) => questionHasAnswer(response, questions.submitterContactPreference, 'post'))
 		.startMultiQuestionCondition('representation-person', isRepresentationPerson)
-		.addQuestion(questions.representedIsAdult)
 		.addQuestion(questions.representedFullName)
-		.withCondition((response) => questionHasAnswer(response, questions.representedIsAdult, BOOLEAN_OPTIONS.YES))
 		.endMultiQuestionCondition('representation-person')
 		.startMultiQuestionCondition('org-work-for', isOrgWorkFor)
 		.addQuestion(questions.orgName)

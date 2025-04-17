@@ -235,7 +235,6 @@ describe('have your say', () => {
 			};
 			const answers = {
 				submittedForId: 'myself',
-				myselfIsAdult: 'yes',
 				myselfFirstName: 'Test',
 				myselfLastName: 'Name',
 				myselfEmail: 'test@email.com',
@@ -292,71 +291,6 @@ describe('have your say', () => {
 				}
 			]);
 		});
-		it('send notifications to correct recipient addressed to Sir/Madam if under 18', async (context) => {
-			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-31T03:24:00') });
-			const mockReq = {
-				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
-				session: {}
-			};
-			const answers = {
-				submittedForId: 'myself',
-				myselfIsAdult: 'no',
-				myselfFirstName: 'Test',
-				myselfLastName: 'Name',
-				myselfEmail: 'test@email.com',
-				myselfComment: 'some comments'
-			};
-
-			const mockRes = {
-				locals: {
-					journeyResponse: { answers },
-					journey: {
-						isComplete: mock.fn(() => true)
-					}
-				},
-				redirect: mock.fn()
-			};
-			const mockDb = {
-				$transaction: mock.fn((fn) => fn(mockDb)),
-				crownDevelopment: {
-					findUnique: mock.fn(() => ({
-						id: 'case-1',
-						reference: 'CROWN/2025/0000001',
-						description: 'a big project',
-						SiteAddress: { line1: '4 the street', line2: 'town', postcode: 'wc1w 1bw' }
-					}))
-				},
-				representation: {
-					create: mock.fn(),
-					count: mock.fn(() => 0)
-				}
-			};
-			const mockNotifyClient = {
-				sendAcknowledgementOfRepresentation: mock.fn()
-			};
-
-			const saveHaveYourSayController = buildSaveHaveYourSayController(
-				{
-					db: mockDb,
-					logger: mockLogger(),
-					notifyClient: mockNotifyClient
-				},
-				() => 'AAAAA-BBBBB'
-			);
-			await saveHaveYourSayController(mockReq, mockRes);
-			assert.strictEqual(mockNotifyClient.sendAcknowledgementOfRepresentation.mock.callCount(), 1);
-			assert.deepStrictEqual(mockNotifyClient.sendAcknowledgementOfRepresentation.mock.calls[0].arguments, [
-				'test@email.com',
-				{
-					addressee: 'Sir/Madam',
-					applicationDescription: 'a big project',
-					reference: 'CROWN/2025/0000001',
-					representationReferenceNo: 'AAAAA-BBBBB',
-					siteAddress: '4 the street, town, wc1w 1bw',
-					submittedDate: '31 Mar 2025'
-				}
-			]);
-		});
 		it('should throw error if notification dispatch fails', async () => {
 			const mockReq = {
 				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
@@ -364,7 +298,6 @@ describe('have your say', () => {
 			};
 			const answers = {
 				submittedForId: 'myself',
-				myselfIsAdult: 'yes',
 				myselfFirstName: 'Test',
 				lastName: 'Name',
 				myselfEmail: 'test@email.com',

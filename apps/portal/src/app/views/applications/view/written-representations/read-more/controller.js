@@ -60,8 +60,8 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 				representedTypeId: true,
 				containsAttachments: true,
 				SubmittedFor: { select: { displayName: true } },
-				SubmittedByContact: { select: { firstName: true, lastName: true, isAdult: true } },
-				RepresentedContact: { select: { orgName: true, firstName: true, lastName: true, isAdult: true } },
+				SubmittedByContact: { select: { firstName: true, lastName: true } },
+				RepresentedContact: { select: { orgName: true, firstName: true, lastName: true } },
 				Category: { select: { displayName: true } }
 			}
 		});

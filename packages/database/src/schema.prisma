@@ -144,7 +144,6 @@ model Contact {
   email               String?
   addressId           String?            @db.UniqueIdentifier
   Address             Address?           @relation(fields: [addressId], references: [id])
-  isAdult             Boolean            @default(true)
   jobTitleOrRole      String?
   contactPreferenceId String?
   ContactPreference   ContactPreference? @relation(fields: [contactPreferenceId], references: [id])

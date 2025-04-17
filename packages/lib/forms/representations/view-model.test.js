@@ -82,7 +82,6 @@ describe('view-model', () => {
 				sharePointFolderCreated: true,
 				submittedByContactId: 'sub-id-1',
 				SubmittedByContact: {
-					isAdult: true,
 					firstName: 'firstName',
 					lastName: 'lastName',
 					email: 'email@example.com',
@@ -107,7 +106,6 @@ describe('view-model', () => {
 				categoryId: 'c-id-1',
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
 				myselfHearingPreference: 'yes',
-				myselfIsAdult: 'yes',
 				myselfFirstName: 'firstName',
 				myselfLastName: 'lastName',
 				myselfEmail: 'email@example.com',
@@ -144,7 +142,6 @@ describe('view-model', () => {
 				sharePointFolderCreated: false,
 				submittedByContactId: 'sub-id-1',
 				SubmittedByContact: {
-					isAdult: true,
 					firstName: 'firstName',
 					lastName: 'lastName',
 					email: 'email@example.com',
@@ -162,7 +159,6 @@ describe('view-model', () => {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				representedTypeId: 'r-id-1',
 				submitterHearingPreference: 'yes',
-				submitterIsAdult: 'yes',
 				submitterFirstName: 'firstName',
 				submitterLastName: 'lastName',
 				submitterContactPreference: 'email',
@@ -192,7 +188,6 @@ describe('view-model', () => {
 				sharePointFolderCreated: false,
 				submittedByContactId: 'sub-id-1',
 				SubmittedByContact: {
-					isAdult: true,
 					firstName: 'firstName',
 					lastName: 'lastName',
 					email: 'email@example.com'
@@ -200,7 +195,6 @@ describe('view-model', () => {
 				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
 				representedContactId: 'rep-id-1',
 				RepresentedContact: {
-					isAdult: true,
 					firstName: 'represented firstName',
 					lastName: 'represented lastName'
 				},
@@ -217,14 +211,12 @@ describe('view-model', () => {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
 				submitterHearingPreference: 'yes',
-				submitterIsAdult: 'yes',
 				submitterFirstName: 'firstName',
 				submitterLastName: 'lastName',
 				submitterContactPreference: undefined,
 				submitterEmail: 'email@example.com',
 				submitterAddress: {},
 				submitterComment: 'my comments',
-				representedIsAdult: 'yes',
 				representedFirstName: 'represented firstName',
 				representedLastName: 'represented lastName',
 				isAgent: 'yes',
@@ -252,7 +244,6 @@ describe('view-model', () => {
 				sharePointFolderCreated: false,
 				submittedByContactId: 'sub-id-1',
 				SubmittedByContact: {
-					isAdult: true,
 					firstName: 'firstName',
 					lastName: 'lastName',
 					email: 'email@example.com',
@@ -275,7 +266,6 @@ describe('view-model', () => {
 				representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
 				submitterHearingPreference: 'yes',
 				submittedByAddressId: undefined,
-				submitterIsAdult: 'yes',
 				submitterFirstName: 'firstName',
 				submitterLastName: 'lastName',
 				submitterContactPreference: undefined,
@@ -306,7 +296,6 @@ describe('view-model', () => {
 				sharePointFolderCreated: false,
 				submittedByContactId: 'sub-id-1',
 				SubmittedByContact: {
-					isAdult: true,
 					firstName: 'firstName',
 					lastName: 'lastName',
 					email: 'email@example.com'
@@ -331,7 +320,6 @@ describe('view-model', () => {
 				submittedByAddressId: undefined,
 				submitterAddress: {},
 				submitterHearingPreference: 'yes',
-				submitterIsAdult: 'yes',
 				submitterFirstName: 'firstName',
 				submitterLastName: 'lastName',
 				submitterContactPreference: undefined,
@@ -381,7 +369,6 @@ describe('view-model', () => {
 		it('should map myself field edits', () => {
 			/** @type {HaveYourSayManageModel} */
 			const edits = {
-				myselfIsAdult: BOOLEAN_OPTIONS.YES,
 				myselfFirstName: 'firstName',
 				myselfLastName: 'lastName',
 				myselfEmail: 'some@example.email',
@@ -395,7 +382,6 @@ describe('view-model', () => {
 			assert.ok(updates.SubmittedByContact);
 			assert.strictEqual(updates.SubmittedByContact.upsert?.where, undefined);
 			assert.deepStrictEqual(updates.SubmittedByContact?.create, {
-				isAdult: true,
 				firstName: 'firstName',
 				lastName: 'lastName',
 				email: 'some@example.email'
@@ -405,7 +391,6 @@ describe('view-model', () => {
 			/** @type {HaveYourSayManageModel} */
 			const edits = {
 				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
-				submitterIsAdult: BOOLEAN_OPTIONS.YES,
 				submitterFirstName: 'firstName',
 				submitterLastName: 'lastName',
 				submitterEmail: 'some@example.email',
@@ -420,7 +405,6 @@ describe('view-model', () => {
 			assert.ok(updates.SubmittedByContact);
 			assert.strictEqual(updates.SubmittedByContact.upsert?.where, undefined);
 			assert.deepStrictEqual(updates.SubmittedByContact?.create, {
-				isAdult: true,
 				firstName: 'firstName',
 				lastName: 'lastName',
 				email: 'some@example.email'
@@ -444,7 +428,6 @@ describe('view-model', () => {
 		it('should map behalf of person edits', () => {
 			/** @type {HaveYourSayManageModel} */
 			const edits = {
-				representedIsAdult: BOOLEAN_OPTIONS.YES,
 				representedFirstName: 'firstName',
 				representedLastName: 'lastName',
 				isAgent: BOOLEAN_OPTIONS.YES,
@@ -458,8 +441,7 @@ describe('view-model', () => {
 			assert.strictEqual(updates.RepresentedContact.upsert?.where, undefined);
 			assert.deepStrictEqual(updates.RepresentedContact.upsert?.create, {
 				firstName: 'firstName',
-				lastName: 'lastName',
-				isAdult: true
+				lastName: 'lastName'
 			});
 		});
 		it('should map behalf of org not work for edits', () => {
@@ -504,7 +486,6 @@ describe('view-model', () => {
 				const now = new Date();
 				const mockAnswers = {
 					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-					myselfIsAdult: 'yes',
 					myselfFirstName: 'firstName',
 					myselfLastName: 'lastName',
 					myselfEmail: 'myemail@email.com',
@@ -528,7 +509,6 @@ describe('view-model', () => {
 					submittedByAgent: false,
 					SubmittedByContact: {
 						create: {
-							isAdult: true,
 							firstName: 'firstName',
 							lastName: 'lastName',
 							email: 'myemail@email.com',
@@ -555,14 +535,12 @@ describe('view-model', () => {
 				const mockAnswers = {
 					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 					representedTypeId: REPRESENTED_TYPE_ID.PERSON,
-					submitterIsAdult: 'yes',
 					submitterFirstName: 'firstName',
 					submitterLastName: 'lastName',
 					submitterEmail: 'myemail@email.com',
 					isAgent: true,
 					agentOrgName: 'agent org',
 					submitterComment: 'my comments',
-					representedIsAdult: 'yes',
 					representedFirstName: 'firstName',
 					representedLastName: 'lastName'
 				};
@@ -585,7 +563,6 @@ describe('view-model', () => {
 					submittedByAgentOrgName: 'agent org',
 					SubmittedByContact: {
 						create: {
-							isAdult: true,
 							firstName: 'firstName',
 							lastName: 'lastName',
 							email: 'myemail@email.com',
@@ -609,7 +586,6 @@ describe('view-model', () => {
 					},
 					RepresentedContact: {
 						create: {
-							isAdult: true,
 							firstName: 'firstName',
 							lastName: 'lastName'
 						}
@@ -624,7 +600,6 @@ describe('view-model', () => {
 				const mockAnswers = {
 					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 					representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
-					submitterIsAdult: 'yes',
 					isAgent: 'yes',
 					submitterFirstName: 'firstName',
 					submitterLastName: 'lastName',
@@ -651,7 +626,6 @@ describe('view-model', () => {
 					submittedByAgentOrgName: 'my role',
 					SubmittedByContact: {
 						create: {
-							isAdult: true,
 							firstName: 'firstName',
 							lastName: 'lastName',
 							email: 'myemail@email.com',
@@ -688,7 +662,6 @@ describe('view-model', () => {
 				const mockAnswers = {
 					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 					representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
-					submitterIsAdult: 'yes',
 					isAgent: 'no',
 					submitterFirstName: 'firstName',
 					submitterLastName: 'lastName',
@@ -714,7 +687,6 @@ describe('view-model', () => {
 					submittedByAgent: false,
 					SubmittedByContact: {
 						create: {
-							isAdult: true,
 							firstName: 'firstName',
 							lastName: 'lastName',
 							email: 'myemail@email.com',
@@ -744,139 +716,6 @@ describe('view-model', () => {
 					}
 				});
 			});
-			describe('should not save personal information if not over 18', () => {
-				const mockAnswers = {
-					representedTypeId: REPRESENTED_TYPE_ID.PERSON
-				};
-				const tests = [
-					{
-						prefix: 'represented',
-						inputs: {
-							representedIsAdult: 'no',
-							representedFirstName: 'firstName',
-							representedLastName: 'lastName',
-							submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF
-						},
-
-						expected: {
-							isAdult: false
-						}
-					},
-					{
-						prefix: 'represented',
-						inputs: {
-							representedIsAdult: 'yes',
-							representedFirstName: 'firstName',
-							representedLastName: 'lastName',
-							submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF
-						},
-						expected: {
-							isAdult: true,
-							firstName: 'firstName',
-							lastName: 'lastName'
-						}
-					},
-					{
-						prefix: 'myself',
-						inputs: {
-							myselfIsAdult: 'no',
-							myselfFirstName: 'firstName',
-							myselfLastName: 'lastName',
-							myselfEmail: 'save email',
-							submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
-						},
-						expected: {
-							isAdult: false,
-							email: 'save email',
-							ContactPreference: {
-								connect: {
-									id: 'email'
-								}
-							}
-						}
-					},
-					{
-						prefix: 'myself',
-						inputs: {
-							myselfIsAdult: 'yes',
-							myselfFirstName: 'firstName',
-							myselfLastName: 'lastName',
-							myselfEmail: 'save email',
-							submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
-						},
-						expected: {
-							isAdult: true,
-							firstName: 'firstName',
-							lastName: 'lastName',
-							email: 'save email',
-							ContactPreference: {
-								connect: {
-									id: 'email'
-								}
-							}
-						}
-					},
-					{
-						prefix: 'submitter',
-						inputs: {
-							submitterIsAdult: 'no',
-							submitterFirstName: 'firstName',
-							submitterLastName: 'lastName',
-							submitterEmail: 'save email',
-							submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF
-						},
-						expected: {
-							isAdult: false,
-							email: 'save email',
-							ContactPreference: {
-								connect: {
-									id: 'email'
-								}
-							}
-						}
-					},
-					{
-						prefix: 'submitter',
-						inputs: {
-							submitterIsAdult: 'yes',
-							submitterFirstName: 'firstName',
-							submitterLastName: 'lastName',
-							submitterEmail: 'save email',
-							submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF
-						},
-						expected: {
-							isAdult: true,
-							firstName: 'firstName',
-							lastName: 'lastName',
-							email: 'save email',
-							ContactPreference: {
-								connect: {
-									id: 'email'
-								}
-							}
-						}
-					}
-				];
-				tests.forEach(({ prefix, inputs, expected }) => {
-					it(`when ${prefix + 'IsAdult'} is ${inputs[prefix + 'IsAdult']} it should${expected.isAdult ? '' : "n't"} save the name`, () => {
-						const id = 'id-1';
-						const reference = 'ref';
-						const representationCreateInput = viewModelToRepresentationCreateInput(
-							{
-								...mockAnswers,
-								...inputs
-							},
-							reference,
-							id
-						);
-						const contactToTest =
-							prefix === 'submitter' || prefix === 'myself' ? 'SubmittedByContact' : 'RepresentedContact';
-						assert.deepStrictEqual(representationCreateInput[contactToTest].create, {
-							...expected
-						});
-					});
-				});
-			});
 		});
 		describe('add-representation journey answers', () => {
 			it('should map myself journey answers to Prisma Input', (context) => {
@@ -886,7 +725,6 @@ describe('view-model', () => {
 				const now = new Date();
 				const mockAnswers = {
 					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-					myselfIsAdult: 'yes',
 					myselfFirstName: 'firstName',
 					myselfLastName: 'lastName',
 					myselfContactPreference: 'email',
@@ -912,7 +750,6 @@ describe('view-model', () => {
 					submittedByAgent: false,
 					SubmittedByContact: {
 						create: {
-							isAdult: true,
 							firstName: 'firstName',
 							lastName: 'lastName',
 							email: 'myemail@email.com',
@@ -940,7 +777,6 @@ describe('view-model', () => {
 				const mockAnswers = {
 					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 					representedTypeId: REPRESENTED_TYPE_ID.PERSON,
-					submitterIsAdult: 'yes',
 					submitterFirstName: 'firstName',
 					submitterLastName: 'lastName',
 					submitterContactPreference: 'post',
@@ -954,7 +790,6 @@ describe('view-model', () => {
 					isAgent: true,
 					agentOrgName: 'agent org',
 					submitterComment: 'my comments',
-					representedIsAdult: 'yes',
 					representedFirstName: 'represented firstName',
 					representedLastName: 'represented lastName',
 					submitterHearingPreference: 'no'
@@ -978,7 +813,6 @@ describe('view-model', () => {
 					submittedByAgentOrgName: 'agent org',
 					SubmittedByContact: {
 						create: {
-							isAdult: true,
 							firstName: 'firstName',
 							lastName: 'lastName',
 							email: undefined,
@@ -1009,7 +843,6 @@ describe('view-model', () => {
 					},
 					RepresentedContact: {
 						create: {
-							isAdult: true,
 							firstName: 'represented firstName',
 							lastName: 'represented lastName'
 						}
@@ -1025,7 +858,6 @@ describe('view-model', () => {
 				const mockAnswers = {
 					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 					representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
-					submitterIsAdult: 'yes',
 					isAgent: 'yes',
 					submitterFirstName: 'firstName',
 					submitterLastName: 'lastName',
@@ -1054,7 +886,6 @@ describe('view-model', () => {
 					submittedByAgentOrgName: 'my role',
 					SubmittedByContact: {
 						create: {
-							isAdult: true,
 							firstName: 'firstName',
 							lastName: 'lastName',
 							email: 'myemail@email.com',
@@ -1088,7 +919,6 @@ describe('view-model', () => {
 				const mockAnswers = {
 					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 					representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
-					submitterIsAdult: 'yes',
 					isAgent: 'no',
 					submitterFirstName: 'firstName',
 					submitterLastName: 'lastName',
@@ -1117,7 +947,6 @@ describe('view-model', () => {
 					submittedByAgent: false,
 					SubmittedByContact: {
 						create: {
-							isAdult: true,
 							firstName: 'firstName',
 							lastName: 'lastName',
 							email: 'myemail@email.com',
@@ -1142,139 +971,6 @@ describe('view-model', () => {
 						}
 					},
 					wantsToBeHeard: false
-				});
-			});
-			describe('should not save personal information if not over 18', () => {
-				const mockAnswers = {
-					representedTypeId: REPRESENTED_TYPE_ID.PERSON
-				};
-				const tests = [
-					{
-						prefix: 'represented',
-						inputs: {
-							representedIsAdult: 'no',
-							representedFirstName: 'do not save',
-							representedLastName: 'do not save either',
-							submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF
-						},
-
-						expected: {
-							isAdult: false
-						}
-					},
-					{
-						prefix: 'represented',
-						inputs: {
-							representedIsAdult: 'yes',
-							representedFirstName: 'firstName',
-							representedLastName: 'lastName',
-							submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF
-						},
-						expected: {
-							isAdult: true,
-							firstName: 'firstName',
-							lastName: 'lastName'
-						}
-					},
-					{
-						prefix: 'myself',
-						inputs: {
-							myselfIsAdult: 'no',
-							myselfFirstName: 'firstName',
-							myselfLastName: 'lastName',
-							myselfEmail: 'save email',
-							submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
-						},
-						expected: {
-							isAdult: false,
-							email: 'save email',
-							ContactPreference: {
-								connect: {
-									id: 'email'
-								}
-							}
-						}
-					},
-					{
-						prefix: 'myself',
-						inputs: {
-							myselfIsAdult: 'yes',
-							myselfFirstName: 'firstName',
-							myselfLastName: 'lastName',
-							myselfEmail: 'save email',
-							submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
-						},
-						expected: {
-							isAdult: true,
-							firstName: 'firstName',
-							lastName: 'lastName',
-							email: 'save email',
-							ContactPreference: {
-								connect: {
-									id: 'email'
-								}
-							}
-						}
-					},
-					{
-						prefix: 'submitter',
-						inputs: {
-							submitterIsAdult: 'no',
-							submitterFirstName: 'firstName',
-							submitterLastName: 'lastName',
-							submitterEmail: 'save email',
-							submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF
-						},
-						expected: {
-							isAdult: false,
-							email: 'save email',
-							ContactPreference: {
-								connect: {
-									id: 'email'
-								}
-							}
-						}
-					},
-					{
-						prefix: 'submitter',
-						inputs: {
-							submitterIsAdult: 'yes',
-							submitterFirstName: 'firstName',
-							submitterLastName: 'lastName',
-							submitterEmail: 'save email',
-							submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF
-						},
-						expected: {
-							isAdult: true,
-							firstName: 'firstName',
-							lastName: 'lastName',
-							email: 'save email',
-							ContactPreference: {
-								connect: {
-									id: 'email'
-								}
-							}
-						}
-					}
-				];
-				tests.forEach(({ prefix, inputs, expected }) => {
-					it(`when ${prefix + 'IsAdult'} is ${inputs[prefix + 'IsAdult']} it should${expected.isAdult ? '' : "n't"} save the name`, () => {
-						const id = 'id-1';
-						const reference = 'ref';
-						const representationCreateInput = viewModelToRepresentationCreateInput(
-							{
-								...mockAnswers,
-								...inputs
-							},
-							reference,
-							id
-						);
-						const contactToTest =
-							prefix === 'submitter' || prefix === 'myself' ? 'SubmittedByContact' : 'RepresentedContact';
-						assert.deepStrictEqual(representationCreateInput[contactToTest].create, {
-							...expected
-						});
-					});
 				});
 			});
 		});
