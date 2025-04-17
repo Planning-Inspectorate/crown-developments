@@ -66,9 +66,8 @@ export async function sendAcknowledgementOfRepresentationNotification(service, a
  * @param {string} reference - representation reference
  * @returns {{email: string, personalisation: SendAcknowledgementOfRepresentationPersonalisation}} notificationData
  */
-async function populateNotificationData(id, service, answers, reference) {
+export async function populateNotificationData(id, service, answers, reference) {
 	const { db } = service;
-
 	const crownDevelopment = await fetchPublishedApplication({
 		id,
 		db,
@@ -93,11 +92,18 @@ async function populateNotificationData(id, service, answers, reference) {
 			: nameToViewModel(answers.submitterFirstName, answers.submitterLastName)
 	);
 
+	const siteAddress =
+		crownDevelopmentFields.siteAddress ??
+		'Easting: ' +
+			crownDevelopmentFields.siteCoordinates?.easting +
+			', Northing: ' +
+			crownDevelopmentFields.siteCoordinates?.northing;
+
 	const personalisation = {
 		reference: crownDevelopment.reference,
 		addressee,
 		applicationDescription: crownDevelopmentFields.description,
-		siteAddress: crownDevelopmentFields.siteAddress,
+		siteAddress: siteAddress,
 		submittedDate: formatDateForDisplay(new Date()),
 		representationReferenceNo: reference
 	};
