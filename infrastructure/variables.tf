@@ -36,6 +36,8 @@ variable "apps_config" {
       portal_not_live = bool
     })
 
+    google_analytics_id = string
+
     logging = object({
       level = string
     })

@@ -28,6 +28,8 @@ apps_config = {
     portal_not_live = false
   }
 
+  google_analytics_id = "G-PLMHFK18S7"
+
   logging = {
     level = "info"
   }

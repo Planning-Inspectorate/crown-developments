@@ -96,6 +96,8 @@ module "app_portal" {
 
     #feature flags
     FEATURE_FLAG_PORTAL_NOT_LIVE = var.apps_config.feature_flags.portal_not_live
+
+    GOOGLE_ANALYTICS_ID = var.apps_config.google_analytics_id
   }
 
   providers = {
