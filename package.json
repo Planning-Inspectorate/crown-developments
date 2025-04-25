@@ -31,6 +31,7 @@
     "accessible-autocomplete": "^3.0.1",
     "body-parser": "^2.2.0",
     "connect-redis": "^8.0.2",
+    "cookie": "^1.0.2",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "dotenv": "^16.5.0",

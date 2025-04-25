@@ -1,0 +1,84 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+
+{% block pageTitle %}
+    {% set suffix = serviceName | default(config.headerTitle) %}
+    {{ pageTitle }} - {{ suffix }}
+{% endblock %}
+
+{% block pageContent %}
+    {% if cookiePreferenceSet %}
+        {% set bannerContent %}
+            <h3 class="govuk-notification-banner__heading">Your cookie settings were saved</h3>
+            <p class="govuk-body">Government services may set additional cookies and, if so, will have their own cookie policy and banner.</p>
+        {% endset %}
+        {{ govukNotificationBanner({
+            html: bannerContent,
+            type: "success"
+        }) }}
+    {% endif %}
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <p class="govuk-body">
+                Cookies are files saved on your phone, tablet or computer when you visit a website.
+                We use cookies to store information about how you use the Find a Crown Development Application service, such as the pages you visit.
+            </p>
+            <h2 class="govuk-heading-m">Cookie settings</h2>
+            <p class="govuk-body">We use different types of cookies.</p>
+            <p class="govuk-body">You can choose which cookies you"re happy for us to use and how the data is shared.</p>
+            <h2 class="govuk-heading-m">Strictly necessary cookies</h2>
+            <p class="govuk-body">
+                We use strictly necessary cookies, also known as essential cookies, to help you use the Find a Crown Development Application service.
+                Strictly necessary cookies do not collect any form of personally identifiable data or track your browsing habits.
+            </p>
+            <p class="govuk-body">
+                Strictly necessary cookies do things such as:
+            </p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>remember your progress through the service</li>
+                <li>remember you have seen the cookies message</li>
+            </ul>
+            <h2 class="govuk-heading-m">Cookies used to improve the Find a Crown Development Application service</h2>
+            <h3 class="govuk-heading-s">Analytics</h3>
+            <p class="govuk-body">
+                We use Google Analytics to measure how you use the Find a Crown Development Application service so we can improve it based on user needs.
+                These cookies provide information such as the pages you visit, how many people use our website, and what country you access our website from.
+                We do not allow Google to use or share the data about how you use this site.
+                View our <a href="https://www.gov.uk/government/publications/planning-inspectorate-privacy-notices/customer-privacy-notice" class="govuk-link" target="_blank" rel="noreferrer">Customer Privacy Notice</a> for more information.
+            </p>
+            <form action="" method="post">
+                {{  govukRadios({
+                    name: "acceptCookies",
+                    fieldset: {
+                        legend: {
+                            text: "Do you want to accept analytics cookies? By selecting ‘yes’, you agree to the Planning Inspectorate using your data to help improve the Find a Crown Development Application service.",
+                            isPageHeading: false,
+                            classes: "govuk-fieldset__legend--s"
+                        }
+                    },
+                    items: [
+                        {
+                            value: "yes",
+                            text: "Yes",
+                            checked: analyticsCookiesEnabled == true
+                        },
+                        {
+                            value: "no",
+                            text: "No",
+                            checked: analyticsCookiesEnabled == false
+                        }
+                    ]
+                }) }}
+
+                {{ govukButton({
+                    text: "Save changes",
+                    type: "submit"
+                }) }}
+            </form>
+        </div>
+    </div>
+{% endblock %}
