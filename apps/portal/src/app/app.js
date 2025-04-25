@@ -1,13 +1,12 @@
 import bodyParser from 'body-parser';
-import crypto from 'node:crypto';
 import express from 'express';
-import helmet from 'helmet';
 import { buildRouter } from './router.js';
 import { configureNunjucks } from './nunjucks.js';
 import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.js';
 import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.js';
 import { addLocalsConfiguration } from '#util/config-middleware.js';
+import { initContentSecurityPolicyMiddlewares } from '#util/csp-middleware.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -32,28 +31,10 @@ export function getApp(service) {
 	});
 	app.use(sessionMiddleware);
 
-	// Generate the nonce for each request
-	app.use((req, res, next) => {
-		res.locals.cspNonce = crypto.randomBytes(32).toString('hex');
-		next();
-	});
-
 	app.use(addLocalsConfiguration(service));
 
-	// Secure apps by setting various HTTP headers
-	app.use(helmet());
-	app.use(
-		helmet.contentSecurityPolicy({
-			directives: {
-				// @ts-ignore
-				scriptSrc: ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`],
-				defaultSrc: ["'self'"],
-				'font-src': ["'self'"],
-				'img-src': ["'self'"],
-				'style-src': ["'self'"]
-			}
-		})
-	);
+	// content security policy middleware including nonce generation
+	app.use(...initContentSecurityPolicyMiddlewares());
 
 	const nunjucksEnvironment = configureNunjucks();
 	// Set the express view engine to nunjucks

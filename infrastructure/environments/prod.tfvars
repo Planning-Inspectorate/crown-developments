@@ -27,6 +27,8 @@ apps_config = {
     portal_not_live = true
   }
 
+  google_analytics_id = "G-HP9Q7SY3N8"
+
   logging = {
     level = "warn"
   }

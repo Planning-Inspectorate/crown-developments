@@ -10,6 +10,7 @@ interface Config {
 		isLive: boolean;
 	};
 	gitSha?: string;
+	googleAnalyticsId?: string;
 	httpPort: number;
 	logLevel: string;
 	NODE_ENV: string;

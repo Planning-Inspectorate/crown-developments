@@ -82,6 +82,10 @@ export class PortalService {
 		return this.#config.gitSha;
 	}
 
+	get googleAnalyticsId() {
+		return this.#config.googleAnalyticsId;
+	}
+
 	get secureSession() {
 		return this.#config.NODE_ENV === 'production';
 	}

@@ -1,9 +1,9 @@
 /**
  * Add configuration values to locals.
- * @param {{isLive: boolean, contactEmail: string}} params
+ * @param {{isLive: boolean, contactEmail: string, googleAnalyticsId?: string}} params
  * @returns {import('express').Handler}
  */
-export function addLocalsConfiguration({ isLive, contactEmail }) {
+export function addLocalsConfiguration({ isLive, contactEmail, googleAnalyticsId }) {
 	return (req, res, next) => {
 		const path = req.path;
 
@@ -15,6 +15,7 @@ export function addLocalsConfiguration({ isLive, contactEmail }) {
 		];
 
 		res.locals.config = {
+			cspNonce: res.locals.cspNonce,
 			headerTitle: 'Find a Crown Development Application',
 			footerLinks: [
 				{
@@ -41,7 +42,8 @@ export function addLocalsConfiguration({ isLive, contactEmail }) {
 			}),
 			haveYourSayServiceName: 'Have your say on a Crown Development Application',
 			isLive,
-			contactEmail
+			contactEmail,
+			googleAnalyticsId
 		};
 		next();
 	};

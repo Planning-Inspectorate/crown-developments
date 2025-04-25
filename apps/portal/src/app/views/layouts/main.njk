@@ -8,6 +8,18 @@
 	{# setup the header tags, to link to the styles #}
 	<link rel="stylesheet" href="/style.css"/>
 	<meta name="referrer" content="origin">
+
+	{% if config.googleAnalyticsId %}
+		<!-- Google tag (gtag.js) -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id={{ config.googleAnalyticsId }}"></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+
+			gtag('config', '{{ config.googleAnalyticsId }}');
+		</script>
+	{% endif %}
 {% endblock %}
 
 {% block pageTitle %}
