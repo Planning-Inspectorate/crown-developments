@@ -20,6 +20,7 @@
     "@pins/crowndev-sharepoint": "^0.0.0",
     "@pins/dynamic-forms": "^0.0.0",
     "body-parser": "*",
+    "cookie": "*",
     "connect-redis": "*",
     "dotenv": "*",
     "express": "*",

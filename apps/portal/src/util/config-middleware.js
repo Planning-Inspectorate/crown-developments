@@ -31,6 +31,10 @@ export function addLocalsConfiguration({ isLive, contactEmail, googleAnalyticsId
 					href: 'https://www.gov.uk/government/publications/planning-inspectorate-privacy-notices/customer-privacy-notice'
 				},
 				{
+					text: 'Cookies',
+					href: '/cookies'
+				},
+				{
 					text: 'Contact',
 					href: '/contact'
 				}

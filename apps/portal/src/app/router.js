@@ -6,6 +6,7 @@ import { buildTermsAndConditionsPage } from './views/static/terms-and-conditions
 import { buildContactUsPage } from './views/static/contact/controller.js';
 import { createErrorRoutes } from './views/static/error/index.js';
 import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.js';
+import { createRoutes as createCookieRoutes } from './views/static/cookies/index.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -27,10 +28,11 @@ export function buildRouter(service) {
 			res.redirect('/applications');
 		});
 		router.use('/', applicationRoutes(service));
-		router.use('/contact', buildContactUsPage());
-		router.use('/terms-and-conditions', buildTermsAndConditionsPage());
-		router.use('/error', createErrorRoutes(service));
 		router.use('/accessibility-statement', buildAccessibilityStatementPage());
+		router.use('/contact', buildContactUsPage());
+		router.use('/cookies', createCookieRoutes(service));
+		router.use('/error', createErrorRoutes(service));
+		router.use('/terms-and-conditions', buildTermsAndConditionsPage());
 	} else {
 		service.logger.info("Not registering application routes, feature flag 'FEATURE_FLAG_PORTAL_NOT_LIVE' is enabled");
 	}
