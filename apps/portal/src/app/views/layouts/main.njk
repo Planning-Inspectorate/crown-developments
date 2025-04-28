@@ -85,6 +85,10 @@
     {% endblock %}
 {% endblock %}
 
+{% block bodyStart %}
+	{% include "views/layouts/components/core/cookie-banner.njk" %}
+{% endblock %}
+
 {% block before_content %}{% endblock %}
 
 {% block content %}

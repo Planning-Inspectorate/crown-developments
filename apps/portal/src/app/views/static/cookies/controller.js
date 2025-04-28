@@ -1,7 +1,9 @@
-import { COOKIE_NAME_ANALYTICS_ENABLED, parseCookies } from '#util/cookies.js';
-import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
-
-const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000; // one year in ms
+import {
+	clearCookieSettingSession,
+	readCookieSettingSession,
+	setAnalyticsCookiesPreference,
+	setCookieSettingSession
+} from '#util/cookies.js';
 
 /**
  * Builds the Cookie page controller.
@@ -10,8 +12,8 @@ const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000; // one year in ms
  */
 export function buildCookiesPage() {
 	return (req, res) => {
-		const cookiePreferenceSet = readSessionData(req, 'settings', 'preferenceSet', false, 'cookies');
-		clearSessionData(req, 'settings', 'preferenceSet', 'cookies');
+		const cookiePreferenceSet = readCookieSettingSession(req, 'preferenceSet');
+		clearCookieSettingSession(req, 'preferenceSet');
 		res.render('views/static/cookies/view.njk', {
 			pageTitle: 'Cookies',
 			pageHeading: 'Cookies on the Find a Crown Development Application service',
@@ -33,24 +35,10 @@ export function buildCookiesSaveController({ secureSession }) {
 			return;
 		}
 
-		const enableAnalyticsCookies = req.body.acceptCookies === 'yes';
-
 		// set the cookie based on the radio value
-		res.cookie(COOKIE_NAME_ANALYTICS_ENABLED, enableAnalyticsCookies ? 'true' : 'false', {
-			encode: String,
-			maxAge: ONE_YEAR_MS,
-			secure: secureSession
-		});
-
-		if (!enableAnalyticsCookies) {
-			// remove GA4 analytics cookies
-			const cookies = parseCookies(req);
-			const gaCookieNames = Object.keys(cookies).filter((cookieName) => cookieName.startsWith('_ga'));
-			for (const cookieName of gaCookieNames) {
-				res.clearCookie(cookieName);
-			}
-		}
-		addSessionData(req, 'settings', { preferenceSet: true }, 'cookies');
+		const enableAnalyticsCookies = req.body.acceptCookies === 'yes';
+		setAnalyticsCookiesPreference(req, res, enableAnalyticsCookies, secureSession);
+		setCookieSettingSession(req, { preferenceSet: true });
 
 		res.redirect('/cookies');
 	};
