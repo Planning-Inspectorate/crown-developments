@@ -7,7 +7,7 @@ import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crown
 import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.js';
 import { addLocalsConfiguration } from '#util/config-middleware.js';
 import { initContentSecurityPolicyMiddlewares } from '#util/csp-middleware.js';
-import { buildAnalyticsCookiesEnabledMiddleware } from '#util/cookies.js';
+import { buildAnalyticsCookiesMiddleware } from '#util/cookies.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -33,7 +33,7 @@ export function getApp(service) {
 	app.use(sessionMiddleware);
 
 	app.use(addLocalsConfiguration(service));
-	app.use(buildAnalyticsCookiesEnabledMiddleware());
+	app.use(buildAnalyticsCookiesMiddleware());
 
 	// content security policy middleware including nonce generation
 	app.use(...initContentSecurityPolicyMiddlewares());
