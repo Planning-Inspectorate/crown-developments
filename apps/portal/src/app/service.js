@@ -57,6 +57,10 @@ export class PortalService {
 		this.notifyClient = initGovNotify(config.govNotify, logger);
 	}
 
+	get appHostname() {
+		return this.#config.appHostname;
+	}
+
 	get cacheControl() {
 		return this.#config.cacheControl;
 	}

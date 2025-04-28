@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import { NotifyConfig } from '@pins/crowndev-lib/govnotify/types';
 
 interface Config {
+	appHostname: string;
 	cacheControl: {
 		maxAge: string;
 	};

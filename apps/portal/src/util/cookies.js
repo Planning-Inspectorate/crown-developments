@@ -5,14 +5,15 @@ export const COOKIE_NAME_ANALYTICS_ENABLED = 'CrownDevAnalyticsEnabled';
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
 /**
+ * @param {import('#service').PortalService} service
  * @returns {import('express').Handler}
  */
-export function buildAnalyticsCookiesMiddleware() {
+export function buildAnalyticsCookiesMiddleware({ appHostname }) {
 	return (req, res, next) => {
 		// handle POST from any page, via the cookie banner
 		if (req.method === 'POST' && req.body?.cookiePreference) {
 			const enableAnalyticsCookies = req.body.cookiePreference === 'accept';
-			setAnalyticsCookiesPreference(req, res, enableAnalyticsCookies, req.secure);
+			setAnalyticsCookiesPreference(req, res, enableAnalyticsCookies, req.secure, appHostname);
 			setCookieSettingSession(req, { preferenceSetViaBanner: true });
 			res.redirect(req.url);
 			return;
@@ -33,8 +34,9 @@ export function buildAnalyticsCookiesMiddleware() {
  * @param {import('express').Response} res
  * @param {boolean} enabled
  * @param {boolean} secureSession
+ * @param {string} domain
  */
-export function setAnalyticsCookiesPreference(req, res, enabled, secureSession) {
+export function setAnalyticsCookiesPreference(req, res, enabled, secureSession, domain) {
 	res.cookie(COOKIE_NAME_ANALYTICS_ENABLED, enabled ? 'true' : 'false', {
 		encode: String,
 		maxAge: ONE_YEAR_MS,
@@ -42,7 +44,7 @@ export function setAnalyticsCookiesPreference(req, res, enabled, secureSession) 
 	});
 
 	if (!enabled) {
-		removeAnalyticsCookies(req, res);
+		removeAnalyticsCookies(req, res, domain);
 	}
 }
 
@@ -50,12 +52,16 @@ export function setAnalyticsCookiesPreference(req, res, enabled, secureSession) 
  * Clears all analytics cookies on the response.
  * @param {import('express').Request} req
  * @param {import('express').Response} res
+ * @param {string} domain
  */
-export function removeAnalyticsCookies(req, res) {
+export function removeAnalyticsCookies(req, res, domain) {
 	const cookies = parseCookies(req);
 	const gaCookieNames = Object.keys(cookies).filter((cookieName) => cookieName.startsWith('_ga'));
 	for (const cookieName of gaCookieNames) {
 		res.clearCookie(cookieName);
+		// GA cookies are set on ".domain"
+		res.clearCookie(cookieName, { domain: '.' + domain, secure: false });
+		res.clearCookie(cookieName, { domain: '.' + domain, secure: true });
 	}
 }
 

@@ -35,7 +35,9 @@
 
 			gtag('js', new Date());
 
-			gtag('config', '{{ config.googleAnalyticsId }}');
+			gtag('config', '{{ config.googleAnalyticsId }}', {
+				'cookie_domain': '{{ config.googleAnalyticsCookieDomain }}'
+			});
 		</script>
 	{% endif %}
 {% endblock %}

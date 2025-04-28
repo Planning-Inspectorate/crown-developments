@@ -33,7 +33,7 @@ export function getApp(service) {
 	app.use(sessionMiddleware);
 
 	app.use(addLocalsConfiguration(service));
-	app.use(buildAnalyticsCookiesMiddleware());
+	app.use(buildAnalyticsCookiesMiddleware(service));
 
 	// content security policy middleware including nonce generation
 	app.use(...initContentSecurityPolicyMiddlewares());

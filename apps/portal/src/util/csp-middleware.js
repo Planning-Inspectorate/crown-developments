@@ -21,12 +21,15 @@ export function initContentSecurityPolicyMiddlewares() {
 			'https://*.googletagmanager.com',
 			'https://*.google-analytics.com',
 			// inline script for adding tags in header - different hashes for different environments & opt-in combinations
-			"'sha256-kZUlxRXsB78xDlmmssxsRw/goI0mNHMGA+JOb4Vc7Bk='",
-			"'sha256-ux3yqI3XSSYVCZXNYcqf2e1dcxniq3WkJOZdByR8v6s='",
-			"'sha256-zwh8braEOTwthSm3OnEjuXrEZ7S6RqO5WQu3D6W6Lrk='",
-			"'sha256-4KgD/fE0rwa4dah1wc8H2Z+Uo4Isys5HlbM9Bicra5M='",
-			"'sha256-pgyjUIdr5IgKjsC0E6pRu9pvdb0OnIUmSqUqJvBdkwY='",
-			"'sha256-0mrys5pngls7UfE301YCWw/uCHWWFxprkVdAeBnSuIg='"
+			// dev
+			"'sha256-rt766Z9cVh/56VSo8pMCGzT/jZ3Tp4KWasOOuwTShU8='",
+			"'sha256-kJ4ZfcxmT0ryTMbhntpK/CO7VVKshOEurw8Mdnrw9xk='",
+			// test
+			"'sha256-HEzZLueZPyuXv0C9CeZKCmNP761M5qyHkFzsWEozrGg='",
+			"'sha256-Gq1KwVrPk2K3+tV+kJuags6K5c0vMG+eSmZZLD5DlAA='",
+			// prod
+			"'sha256-7zbeFC0WLiMB91PUOjhl4gr+nVFhMvuL8499Uj28yhk='",
+			"'sha256-UN0YC/M1Zsw697Rinjvc9+EQSGi5Rp94tCe93kO195E='"
 		],
 		connectSrc: ['https://*.google-analytics.com', 'https://*.analytics.google.com', 'https://*.googletagmanager.com']
 	};

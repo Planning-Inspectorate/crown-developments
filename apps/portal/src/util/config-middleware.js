@@ -3,7 +3,7 @@
  * @param {{isLive: boolean, contactEmail: string, googleAnalyticsId?: string}} params
  * @returns {import('express').Handler}
  */
-export function addLocalsConfiguration({ isLive, contactEmail, googleAnalyticsId }) {
+export function addLocalsConfiguration({ isLive, contactEmail, googleAnalyticsId, appHostname }) {
 	return (req, res, next) => {
 		const path = req.path;
 
@@ -47,7 +47,8 @@ export function addLocalsConfiguration({ isLive, contactEmail, googleAnalyticsId
 			haveYourSayServiceName: 'Have your say on a Crown Development Application',
 			isLive,
 			contactEmail,
-			googleAnalyticsId
+			googleAnalyticsId,
+			googleAnalyticsCookieDomain: appHostname
 		};
 		next();
 	};
