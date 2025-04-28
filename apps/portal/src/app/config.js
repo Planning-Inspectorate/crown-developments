@@ -18,6 +18,7 @@ export function loadConfig() {
 
 	// get values from the environment
 	const {
+		APP_HOSTNAME,
 		AZURE_CLIENT_ID, // required for SharePoint
 		AZURE_CLIENT_SECRET, // required for SharePoint
 		AZURE_TENANT_ID, // required for SharePoint
@@ -82,6 +83,7 @@ export function loadConfig() {
 	}
 
 	config = {
+		appHostname: APP_HOSTNAME,
 		cacheControl: {
 			maxAge: CACHE_CONTROL_MAX_AGE || '1d'
 		},

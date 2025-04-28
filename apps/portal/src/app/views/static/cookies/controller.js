@@ -25,10 +25,10 @@ export function buildCookiesPage() {
 /**
  * Builds the Cookie page controller.
  *
- * @param {boolean} secureSession
+ * @param {import('#service').PortalService} service
  * @returns {import('express').Handler}
  */
-export function buildCookiesSaveController({ secureSession }) {
+export function buildCookiesSaveController({ secureSession, appHostname }) {
 	return (req, res) => {
 		if (typeof req.body.acceptCookies !== 'string') {
 			res.redirect('/cookies');
@@ -37,7 +37,7 @@ export function buildCookiesSaveController({ secureSession }) {
 
 		// set the cookie based on the radio value
 		const enableAnalyticsCookies = req.body.acceptCookies === 'yes';
-		setAnalyticsCookiesPreference(req, res, enableAnalyticsCookies, secureSession);
+		setAnalyticsCookiesPreference(req, res, enableAnalyticsCookies, secureSession, appHostname);
 		setCookieSettingSession(req, { preferenceSet: true });
 
 		res.redirect('/cookies');

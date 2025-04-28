@@ -27,7 +27,7 @@ describe('cookies', () => {
 		it('should set res.locals.analyticsCookiesEnabled to true if the cookie is present and true', () => {
 			const req = { headers: { cookie: 'CrownDevAnalyticsEnabled=true' } };
 			const res = { locals: {} };
-			const middleware = buildAnalyticsCookiesMiddleware();
+			const middleware = buildAnalyticsCookiesMiddleware({});
 			middleware(req, res, mock.fn());
 			assert.strictEqual(res.locals.analyticsCookiesEnabled, true);
 			assert.strictEqual(res.locals.analyticsCookiesPreferenceSet, true);
@@ -35,7 +35,7 @@ describe('cookies', () => {
 		it('should set res.locals.analyticsCookiesEnabled to false if the cookie is present and false', () => {
 			const req = { headers: { cookie: 'CrownDevAnalyticsEnabled=false' } };
 			const res = { locals: {} };
-			const middleware = buildAnalyticsCookiesMiddleware();
+			const middleware = buildAnalyticsCookiesMiddleware({});
 			middleware(req, res, mock.fn());
 			assert.strictEqual(res.locals.analyticsCookiesEnabled, false);
 			assert.strictEqual(res.locals.analyticsCookiesPreferenceSet, true);
@@ -43,7 +43,7 @@ describe('cookies', () => {
 		it('should set res.locals.analyticsCookiesEnabled to false if the cookie is not present', () => {
 			const req = { headers: {} };
 			const res = { locals: {} };
-			const middleware = buildAnalyticsCookiesMiddleware();
+			const middleware = buildAnalyticsCookiesMiddleware({});
 			middleware(req, res, mock.fn());
 			assert.strictEqual(res.locals.analyticsCookiesEnabled, false);
 			assert.strictEqual(res.locals.analyticsCookiesPreferenceSet, false);
@@ -51,7 +51,7 @@ describe('cookies', () => {
 		it('should set analyticsCookiesPreferenceSetViaBanner to true if the cookie is set via the banner', () => {
 			const req = { headers: {}, session: { cookies: { settings: { preferenceSetViaBanner: true } } } };
 			const res = { locals: {} };
-			const middleware = buildAnalyticsCookiesMiddleware();
+			const middleware = buildAnalyticsCookiesMiddleware({});
 			middleware(req, res, mock.fn());
 			assert.strictEqual(res.locals.analyticsCookiesPreferenceSetViaBanner, true);
 			assert.strictEqual(req.session.cookies.settings.preferenceSetViaBanner, undefined);
@@ -60,7 +60,7 @@ describe('cookies', () => {
 			const req = { headers: {} };
 			const res = { locals: {} };
 			const next = mock.fn();
-			const middleware = buildAnalyticsCookiesMiddleware();
+			const middleware = buildAnalyticsCookiesMiddleware({});
 			middleware(req, res, next);
 			assert.strictEqual(next.mock.callCount(), 1);
 		});
@@ -77,7 +77,7 @@ describe('cookies', () => {
 					redirect: mock.fn()
 				};
 				const next = mock.fn();
-				const middleware = buildAnalyticsCookiesMiddleware();
+				const middleware = buildAnalyticsCookiesMiddleware({});
 				middleware(req, res, next);
 				assert.strictEqual(res.redirect.mock.callCount(), 1);
 				assert.strictEqual(res.redirect.mock.calls[0].arguments[0], '/test');
@@ -99,7 +99,7 @@ describe('cookies', () => {
 					redirect: mock.fn()
 				};
 				const next = mock.fn();
-				const middleware = buildAnalyticsCookiesMiddleware();
+				const middleware = buildAnalyticsCookiesMiddleware({});
 				middleware(req, res, next);
 				assert.strictEqual(res.redirect.mock.callCount(), 1);
 				assert.strictEqual(res.redirect.mock.calls[0].arguments[0], '/test');
@@ -116,7 +116,7 @@ describe('cookies', () => {
 		it('should set the analytics cookies preference in the response', () => {
 			const req = { headers: {} };
 			const res = { cookie: mock.fn() };
-			setAnalyticsCookiesPreference(req, res, true, false);
+			setAnalyticsCookiesPreference(req, res, true, false, 'example.com');
 			assert.strictEqual(res.cookie.mock.callCount(), 1);
 			assert.strictEqual(res.cookie.mock.calls[0].arguments[0], COOKIE_NAME_ANALYTICS_ENABLED);
 			assert.strictEqual(res.cookie.mock.calls[0].arguments[1], 'true');
@@ -124,7 +124,7 @@ describe('cookies', () => {
 		it('should set the analytics cookies preference in the response', () => {
 			const req = { headers: {} };
 			const res = { cookie: mock.fn() };
-			setAnalyticsCookiesPreference(req, res, false, false);
+			setAnalyticsCookiesPreference(req, res, false, false, 'example.com');
 			assert.strictEqual(res.cookie.mock.callCount(), 1);
 			assert.strictEqual(res.cookie.mock.calls[0].arguments[0], COOKIE_NAME_ANALYTICS_ENABLED);
 			assert.strictEqual(res.cookie.mock.calls[0].arguments[1], 'false');
@@ -132,8 +132,8 @@ describe('cookies', () => {
 		it('should clear analytics cookies if the user opts out', () => {
 			const req = { headers: { cookie: '_ga=GA1.2.1234567890.1234567890' } };
 			const res = { cookie: mock.fn(), clearCookie: mock.fn() };
-			setAnalyticsCookiesPreference(req, res, false, false);
-			assert.strictEqual(res.clearCookie.mock.callCount(), 1);
+			setAnalyticsCookiesPreference(req, res, false, false, 'example.com');
+			assert.strictEqual(res.clearCookie.mock.callCount(), 3);
 		});
 	});
 
@@ -141,13 +141,19 @@ describe('cookies', () => {
 		it('should clear the analytics cookies from the response', () => {
 			const req = { headers: { cookie: '_ga=GA1.2.1234567890.1234567890' } };
 			const res = { clearCookie: mock.fn() };
-			removeAnalyticsCookies(req, res);
-			assert.strictEqual(res.clearCookie.mock.callCount(), 1);
+			removeAnalyticsCookies(req, res, 'example.com');
+			assert.strictEqual(res.clearCookie.mock.callCount(), 3);
+			assert.strictEqual(res.clearCookie.mock.calls[0].arguments[0], '_ga');
+			assert.strictEqual(res.clearCookie.mock.calls[1].arguments[0], '_ga');
+			assert.strictEqual(res.clearCookie.mock.calls[1].arguments[1].domain, '.example.com');
+			assert.strictEqual(res.clearCookie.mock.calls[1].arguments[1].secure, false);
+			assert.strictEqual(res.clearCookie.mock.calls[2].arguments[1].domain, '.example.com');
+			assert.strictEqual(res.clearCookie.mock.calls[2].arguments[1].secure, true);
 		});
 		it('should not clear any other cookies', () => {
 			const req = { headers: { cookie: 'name=value; name2=value2' } };
 			const res = { clearCookie: mock.fn() };
-			removeAnalyticsCookies(req, res);
+			removeAnalyticsCookies(req, res, 'example.com');
 			assert.strictEqual(res.clearCookie.mock.callCount(), 0);
 		});
 	});

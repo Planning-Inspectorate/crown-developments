@@ -80,11 +80,11 @@ describe('cookies', () => {
 				clearCookie: mock.fn(),
 				redirect: mock.fn()
 			};
-			const cookiesSaveController = buildCookiesSaveController({ secureSession: false });
+			const cookiesSaveController = buildCookiesSaveController({ secureSession: false, appHostname: 'example.com' });
 			cookiesSaveController(mockReq, mockRes);
-			assert.strictEqual(mockRes.clearCookie.mock.callCount(), 2);
+			assert.strictEqual(mockRes.clearCookie.mock.callCount(), 6);
 			assert.strictEqual(mockRes.clearCookie.mock.calls[0].arguments[0], '_ga');
-			assert.strictEqual(mockRes.clearCookie.mock.calls[1].arguments[0], '_ga_other');
+			assert.strictEqual(mockRes.clearCookie.mock.calls[3].arguments[0], '_ga_other');
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], '/cookies');
 		});
