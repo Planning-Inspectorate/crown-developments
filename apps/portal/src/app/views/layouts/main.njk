@@ -10,8 +10,9 @@
 	<meta name="referrer" content="origin">
 
 	{% if config.googleAnalyticsId %}
-		<!-- Google tag (gtag.js) -->
-		<script async src="https://www.googletagmanager.com/gtag/js?id={{ config.googleAnalyticsId }}"></script>
+		{% if analyticsCookiesEnabled %}
+			<script async src="https://www.googletagmanager.com/gtag/js?id={{ config.googleAnalyticsId }}"></script>
+		{% endif %}
 		<script>
 			window.dataLayer = window.dataLayer || [];
 			function gtag(){dataLayer.push(arguments);}
