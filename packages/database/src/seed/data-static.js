@@ -193,7 +193,7 @@ export const REPRESENTATION_CATEGORY = [
 	},
 	{
 		id: 'interested-parties',
-		displayName: 'Interested Parties'
+		displayName: 'Interested Party'
 	}
 ];
 /**

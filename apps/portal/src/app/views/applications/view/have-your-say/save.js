@@ -17,6 +17,11 @@ import { nameToViewModel } from '@pins/crowndev-lib/util/name.js';
  */
 export function buildSaveHaveYourSayController(service, uniqueReferenceFn = uniqueReference) {
 	return async (req, res) => {
+		const journeyResponse = res.locals?.journeyResponse;
+		if (journeyResponse?.answers && typeof journeyResponse?.answers === 'object') {
+			journeyResponse.answers.categoryId = 'interested-parties';
+		}
+
 		await saveRepresentation(
 			{
 				service,
