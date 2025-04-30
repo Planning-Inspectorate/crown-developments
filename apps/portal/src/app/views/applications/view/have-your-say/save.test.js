@@ -128,8 +128,11 @@ describe('have your say', () => {
 				},
 				mockUniqueReferenceFn
 			);
+
 			await saveHaveYourSayController(mockReq, mockRes);
+
 			assert.strictEqual(mockDb.representation.create.mock.callCount(), 1);
+			assert.strictEqual(mockRes.locals.journeyResponse.answers.categoryId, 'interested-parties');
 		});
 		it('should redirect to the success page', async () => {
 			const mockReq = {
