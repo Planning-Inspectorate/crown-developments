@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, it } from 'node:test';
-import { configureNunjucks } from '../../../../nunjucks.js';
+import { configureNunjucks } from 'crowndev-portal/src/app/nunjucks.js';
 import assert from 'node:assert';
 
 describe('pagination macro', () => {
