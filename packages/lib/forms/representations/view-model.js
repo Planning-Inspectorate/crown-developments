@@ -248,7 +248,6 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 		reference,
 		Application: { connect: { id: applicationId } },
 		submittedDate: answers.submittedDate ?? new Date(),
-		categoryId: answers.categoryId ?? 'interested-parties',
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
 		SubmittedFor: { connect: { id: answers.submittedForId } },
 		submittedByAgent: yesNoToBoolean(answers.isAgent) || false,

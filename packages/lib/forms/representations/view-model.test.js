@@ -529,8 +529,7 @@ describe('view-model', () => {
 							id: 'myself'
 						}
 					},
-					comment: 'my comments',
-					categoryId: 'interested-parties'
+					comment: 'my comments'
 				});
 			});
 			it('should map on agent on behalf of a person journey answers to Prisma Input', (context) => {
@@ -600,8 +599,7 @@ describe('view-model', () => {
 							firstName: 'firstName',
 							lastName: 'lastName'
 						}
-					},
-					categoryId: 'interested-parties'
+					}
 				});
 			});
 			it('should map on on behalf of an organisation they do not work for journey answers to Prisma Input', (context) => {
@@ -669,8 +667,7 @@ describe('view-model', () => {
 						create: {
 							orgName: 'rep org'
 						}
-					},
-					categoryId: 'consultees'
+					}
 				});
 			});
 			it('should map on on behalf of an organisation they work for journey answers to Prisma Input', (context) => {
@@ -737,8 +734,7 @@ describe('view-model', () => {
 						create: {
 							orgName: 'rep org'
 						}
-					},
-					categoryId: 'interested-parties'
+					}
 				});
 			});
 		});
@@ -796,8 +792,7 @@ describe('view-model', () => {
 						}
 					},
 					comment: 'my comments',
-					wantsToBeHeard: true,
-					categoryId: 'interested-parties'
+					wantsToBeHeard: true
 				});
 			});
 			it('should map on agent on behalf of a person journey answers to Prisma Input', (context) => {
@@ -883,8 +878,7 @@ describe('view-model', () => {
 							lastName: 'represented lastName'
 						}
 					},
-					wantsToBeHeard: false,
-					categoryId: 'interested-parties'
+					wantsToBeHeard: false
 				});
 			});
 			it('should map on on behalf of an organisation they do not work for journey answers to Prisma Input', (context) => {
@@ -950,8 +944,7 @@ describe('view-model', () => {
 							orgName: 'rep org'
 						}
 					},
-					wantsToBeHeard: false,
-					categoryId: 'interested-parties'
+					wantsToBeHeard: false
 				});
 			});
 			it('should map on on behalf of an organisation they work for journey answers to Prisma Input', (context) => {
@@ -1018,8 +1011,7 @@ describe('view-model', () => {
 							orgName: 'rep org'
 						}
 					},
-					wantsToBeHeard: false,
-					categoryId: 'interested-parties'
+					wantsToBeHeard: false
 				});
 			});
 		});
