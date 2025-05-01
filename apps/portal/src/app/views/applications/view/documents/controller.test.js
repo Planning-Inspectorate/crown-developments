@@ -65,7 +65,9 @@ describe('controller', () => {
 				sharePointDrive: mockSharePoint
 			});
 			const req = {
-				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' }
+				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
+				baseUrl: 'test-baseUrl',
+				originalUrl: '/documents'
 			};
 			const res = {
 				status: mock.fn(),
@@ -75,6 +77,31 @@ describe('controller', () => {
 			assert.strictEqual(mockSharePoint.getItemsByPath.mock.callCount(), 1);
 			assert.match(mockSharePoint.getItemsByPath.mock.calls[0].arguments[0], /^CROWN-2025-0000001\/Published$/);
 			assert.strictEqual(res.render.mock.callCount(), 1);
+			assert.deepStrictEqual(res.render.mock.calls[0].arguments[1], {
+				id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
+				baseUrl: 'test-baseUrl',
+				pageTitle: 'Documents',
+				applicationReference: 'CROWN/2025/0000001',
+				pageCaption: 'CROWN/2025/0000001',
+				links: [
+					{
+						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-information',
+						text: 'Application Information'
+					},
+					{
+						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/documents',
+						text: 'Documents'
+					}
+				],
+				currentUrl: '/documents',
+				documents: [],
+				selectedItemsPerPage: 25,
+				totalDocuments: 0,
+				pageNumber: 1,
+				totalPages: 0,
+				resultsStartNumber: 0,
+				resultsEndNumber: 0
+			});
 		});
 
 		it('should not render folders', async () => {
