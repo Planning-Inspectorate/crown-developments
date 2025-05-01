@@ -48,7 +48,8 @@ export function addLocalsConfiguration({ isLive, contactEmail, googleAnalyticsId
 			isLive,
 			contactEmail,
 			googleAnalyticsId,
-			googleAnalyticsCookieDomain: appHostname
+			googleAnalyticsCookieDomain: appHostname,
+			serviceFeedbackUrl: 'https://forms.office.com/e/qea9t1nt8M'
 		};
 		next();
 	};
