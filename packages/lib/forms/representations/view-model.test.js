@@ -505,6 +505,11 @@ describe('view-model', () => {
 							id: 'id-1'
 						}
 					},
+					Category: {
+						connect: {
+							id: 'interested-parties'
+						}
+					},
 					submittedDate: now,
 					submittedByAgent: false,
 					SubmittedByContact: {
@@ -524,7 +529,8 @@ describe('view-model', () => {
 							id: 'myself'
 						}
 					},
-					comment: 'my comments'
+					comment: 'my comments',
+					categoryId: 'interested-parties'
 				});
 			});
 			it('should map on agent on behalf of a person journey answers to Prisma Input', (context) => {
@@ -558,6 +564,11 @@ describe('view-model', () => {
 							id: 'id-1'
 						}
 					},
+					Category: {
+						connect: {
+							id: 'interested-parties'
+						}
+					},
 					submittedDate: now,
 					submittedByAgent: true,
 					submittedByAgentOrgName: 'agent org',
@@ -589,7 +600,8 @@ describe('view-model', () => {
 							firstName: 'firstName',
 							lastName: 'lastName'
 						}
-					}
+					},
+					categoryId: 'interested-parties'
 				});
 			});
 			it('should map on on behalf of an organisation they do not work for journey answers to Prisma Input', (context) => {
@@ -606,7 +618,8 @@ describe('view-model', () => {
 					submitterEmail: 'myemail@email.com',
 					submitterComment: 'my comments',
 					representedOrgName: 'rep org',
-					agentOrgName: 'my role'
+					agentOrgName: 'my role',
+					categoryId: 'consultees'
 				};
 				const representationCreateInput = viewModelToRepresentationCreateInput(mockAnswers, reference, id);
 				assert.deepStrictEqual(representationCreateInput, {
@@ -619,6 +632,11 @@ describe('view-model', () => {
 					Application: {
 						connect: {
 							id: 'id-1'
+						}
+					},
+					Category: {
+						connect: {
+							id: 'consultees'
 						}
 					},
 					submittedDate: now,
@@ -651,7 +669,8 @@ describe('view-model', () => {
 						create: {
 							orgName: 'rep org'
 						}
-					}
+					},
+					categoryId: 'consultees'
 				});
 			});
 			it('should map on on behalf of an organisation they work for journey answers to Prisma Input', (context) => {
@@ -681,6 +700,11 @@ describe('view-model', () => {
 					Application: {
 						connect: {
 							id: 'id-1'
+						}
+					},
+					Category: {
+						connect: {
+							id: 'interested-parties'
 						}
 					},
 					submittedDate: now,
@@ -713,7 +737,8 @@ describe('view-model', () => {
 						create: {
 							orgName: 'rep org'
 						}
-					}
+					},
+					categoryId: 'interested-parties'
 				});
 			});
 		});
@@ -746,6 +771,11 @@ describe('view-model', () => {
 							id: 'id-1'
 						}
 					},
+					Category: {
+						connect: {
+							id: 'interested-parties'
+						}
+					},
 					submittedDate: now,
 					submittedByAgent: false,
 					SubmittedByContact: {
@@ -766,7 +796,8 @@ describe('view-model', () => {
 						}
 					},
 					comment: 'my comments',
-					wantsToBeHeard: true
+					wantsToBeHeard: true,
+					categoryId: 'interested-parties'
 				});
 			});
 			it('should map on agent on behalf of a person journey answers to Prisma Input', (context) => {
@@ -808,6 +839,11 @@ describe('view-model', () => {
 							id: 'id-1'
 						}
 					},
+					Category: {
+						connect: {
+							id: 'interested-parties'
+						}
+					},
 					submittedDate: now,
 					submittedByAgent: true,
 					submittedByAgentOrgName: 'agent org',
@@ -847,7 +883,8 @@ describe('view-model', () => {
 							lastName: 'represented lastName'
 						}
 					},
-					wantsToBeHeard: false
+					wantsToBeHeard: false,
+					categoryId: 'interested-parties'
 				});
 			});
 			it('should map on on behalf of an organisation they do not work for journey answers to Prisma Input', (context) => {
@@ -881,6 +918,11 @@ describe('view-model', () => {
 							id: 'id-1'
 						}
 					},
+					Category: {
+						connect: {
+							id: 'interested-parties'
+						}
+					},
 					submittedDate: now,
 					submittedByAgent: true,
 					submittedByAgentOrgName: 'my role',
@@ -908,7 +950,8 @@ describe('view-model', () => {
 							orgName: 'rep org'
 						}
 					},
-					wantsToBeHeard: false
+					wantsToBeHeard: false,
+					categoryId: 'interested-parties'
 				});
 			});
 			it('should map on on behalf of an organisation they work for journey answers to Prisma Input', (context) => {
@@ -943,6 +986,11 @@ describe('view-model', () => {
 							id: 'id-1'
 						}
 					},
+					Category: {
+						connect: {
+							id: 'interested-parties'
+						}
+					},
 					submittedDate: now,
 					submittedByAgent: false,
 					SubmittedByContact: {
@@ -970,7 +1018,8 @@ describe('view-model', () => {
 							orgName: 'rep org'
 						}
 					},
-					wantsToBeHeard: false
+					wantsToBeHeard: false,
+					categoryId: 'interested-parties'
 				});
 			});
 		});
