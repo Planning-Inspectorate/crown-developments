@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, it } from 'node:test';
-import { configureNunjucks } from '../../../nunjucks.js';
+import { configureNunjucks } from '../../../../nunjucks.js';
 import assert from 'node:assert';
 
 describe('pagination macro', () => {
 	const wrapperTemplate = `
-      {% import 'views/applications/view/pagination.njk' as pagination %}
+      {% import 'views/layouts/components/pagination/pagination.njk' as pagination %}
       {{ pagination.renderPagination(currentPage, totalPages, currentUrl) }}
     `;
 	const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
