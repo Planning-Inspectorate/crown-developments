@@ -1,8 +1,8 @@
 {% extends "views/layouts/main.njk" %}
 
 {% import "views/applications/view/written-representations/representation.njk" as representation %}
-{% import "views/applications/view/written-representations/pagination.njk" as pagination %}
-{% import "views/applications/view/written-representations/pagination-options.njk" as paginationOptions %}
+{% import "pagination/pagination.njk" as pagination %}
+{% import "pagination/pagination-options.njk" as paginationOptions %}
 
 {% from "views/applications/view/links.njk" import applicationLinks %}
 
@@ -27,7 +27,12 @@
 			</div>
 
 			<div id="pagination" class="govuk-body">
-				{{ paginationOptions.renderPagination(selectedItemsPerPage, totalRepresentations, resultsStartNumber, resultsEndNumber) }}
+				<p class="govuk-body">
+					Showing <strong>{{ resultsStartNumber }}</strong> to <strong>{{ resultsEndNumber if totalRepresentations > resultsEndNumber else totalRepresentations }}</strong>
+					of <strong>{{ totalRepresentations }}</strong> representations, newest first.
+				</p>
+
+				{{ paginationOptions.renderPagination(selectedItemsPerPage, totalRepresentations) }}
 
 				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 

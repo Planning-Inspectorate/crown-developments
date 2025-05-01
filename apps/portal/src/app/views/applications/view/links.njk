@@ -1,7 +1,7 @@
 {% macro applicationLinks(links, currentUrl) %}
     <ul class="govuk-list application-links">
         {% for link in links %}
-            {% if link.href == currentUrl %}
+            {% if link.href == currentUrl or link.href in currentUrl %}
                 <li class="application-links__active">
                     <strong>{{ link.text }}</strong>
                 </li>

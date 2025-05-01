@@ -1,9 +1,4 @@
-{% macro renderPagination(selectedItemsPerPage, totalRepresentations, resultsStartNumber, resultsEndNumber) %}
-    <p class="govuk-body">
-        Showing <strong>{{ resultsStartNumber }}</strong> to <strong>{{ resultsEndNumber if totalRepresentations > resultsEndNumber else totalRepresentations }}</strong>
-        of <strong>{{ totalRepresentations }}</strong> representations, newest first.
-    </p>
-
+{% macro renderPagination(selectedItemsPerPage, totalRepresentations) %}
     {% if totalRepresentations > 25 %}
         <span><strong>Results per page</strong></span>&nbsp;&nbsp;&nbsp;&nbsp;
 

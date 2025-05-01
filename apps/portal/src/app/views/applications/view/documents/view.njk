@@ -1,6 +1,8 @@
 {% extends "views/layouts/main.njk" %}
 
 {% from "views/applications/view/links.njk" import applicationLinks %}
+{% import "pagination/pagination.njk" as pagination %}
+{% import "pagination/pagination-options.njk" as paginationOptions %}
 
 {% block pageHeading %}{% endblock %}
 
@@ -21,22 +23,27 @@
                     </h1>
 
                     {% if documents | length > 0 %}
-                        <p class="govuk-body">Showing <strong>{{ documents | length }}</strong> of <strong>{{ documents | length }}</strong> documents, newest first.</p>
+                        <div id="pagination" class="govuk-body">
+                            <p class="govuk-body">Showing <strong>{{ documents | length }}</strong> of <strong>{{ documents | length }}</strong> documents, newest first.</p>
+                            <p class="govuk-body">{{ paginationOptions.renderPagination(selectedItemsPerPage, totalDocuments) }}</p>
+                            <ul class="govuk-list document-list">
+                                {% for document in documents %}
+                                    <li>
+                                        <a class="govuk-link" href="{{ currentUrl }}/{{ document.id }}" target="_blank" rel="noreferrer">
+                                            {{ document.name }}
+                                        </a>
+                                        <div class="document-list__meta-data">
+                                            <div>{{ document.lastModified }}</div>
+                                            <div>{{ document.type }}</div>
+                                            <div>{{ document.size }}</div>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
 
-                        <ul class="govuk-list document-list">
-                            {% for document in documents %}
-                                <li>
-                                    <a class="govuk-link" href="{{ currentUrl }}/{{ document.id }}" target="_blank" rel="noreferrer">
-                                        {{ document.name }}
-                                    </a>
-                                    <div class="document-list__meta-data">
-                                        <div>{{ document.lastModified }}</div>
-                                        <div>{{ document.type }}</div>
-                                        <div>{{ document.size }}</div>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                        </ul>
+                        {# if pageNumber and totalPages values are both 1 then pagination options not shown #}
+                        {{ pagination.renderPagination(pageNumber, totalPages, currentUrl) }}
                     {% else %}
                         <p class="govuk-body">No documents are available for this application.</p>
                     {% endif %}
