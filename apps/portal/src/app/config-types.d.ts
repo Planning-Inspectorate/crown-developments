@@ -9,6 +9,7 @@ interface Config {
 	database: Prisma.PrismaClientOptions;
 	featureFlags: {
 		isLive: boolean;
+		isRepsUploadDocsLive: boolean;
 	};
 	gitSha?: string;
 	googleAnalyticsId?: string;

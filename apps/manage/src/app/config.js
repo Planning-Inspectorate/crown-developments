@@ -60,7 +60,8 @@ export function loadConfig() {
 		GOV_NOTIFY_LPA_QNR_TEMPLATE_ID,
 		GOV_NOTIFY_APP_REC_WITH_FEE_TEMPLATE_ID,
 		GOV_NOTIFY_APP_REC_WITHOUT_FEE_TEMPLATE_ID,
-		GOV_NOTIFY_APP_NOT_NAT_IMP_TEMPLATE_ID
+		GOV_NOTIFY_APP_NOT_NAT_IMP_TEMPLATE_ID,
+		FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -156,6 +157,10 @@ export function loadConfig() {
 				caseOfficers: ENTRA_GROUP_ID_CASE_OFFICERS,
 				inspectors: ENTRA_GROUP_ID_INSPECTORS
 			}
+		},
+		featureFlags: {
+			// by default with no feature flag set, reps upload docs is live
+			isRepsUploadDocsLive: FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE !== 'true'
 		},
 		gitSha: GIT_SHA,
 		// the log level to use

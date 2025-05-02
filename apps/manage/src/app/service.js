@@ -88,6 +88,10 @@ export class ManageService {
 		return this.#config.gitSha;
 	}
 
+	get isRepsUploadDocsLive() {
+		return this.#config.featureFlags?.isRepsUploadDocsLive;
+	}
+
 	get secureSession() {
 		return this.#config.NODE_ENV === 'production';
 	}
