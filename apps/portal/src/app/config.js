@@ -24,6 +24,7 @@ export function loadConfig() {
 		AZURE_TENANT_ID, // required for SharePoint
 		CACHE_CONTROL_MAX_AGE,
 		FEATURE_FLAG_PORTAL_NOT_LIVE,
+		FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE,
 		GIT_SHA,
 		GOOGLE_ANALYTICS_ID,
 		LOG_LEVEL,
@@ -92,7 +93,9 @@ export function loadConfig() {
 		},
 		featureFlags: {
 			// by default with no feature flag set, the portal is live
-			isLive: FEATURE_FLAG_PORTAL_NOT_LIVE !== 'true'
+			isLive: FEATURE_FLAG_PORTAL_NOT_LIVE !== 'true',
+			// by default with no feature flag set, reps upload docs is live
+			isRepsUploadDocsLive: FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE !== 'true'
 		},
 		gitSha: GIT_SHA,
 		googleAnalyticsId: GOOGLE_ANALYTICS_ID,

@@ -26,6 +26,9 @@ interface Config {
 			inspectors: string;
 		};
 	};
+	featureFlags: {
+		isRepsUploadDocsLive: boolean;
+	};
 	gitSha?: string;
 	govNotify: NotifyConfig;
 	httpPort: number;

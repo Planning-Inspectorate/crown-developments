@@ -7,6 +7,7 @@ import { configureNunjucks } from './nunjucks.js';
 import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.js';
 import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.js';
+import { addLocalsConfiguration } from '#util/config-middleware.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -30,6 +31,7 @@ export function getApp(service) {
 		secret: service.sessionSecret
 	});
 	app.use(sessionMiddleware);
+	app.use(addLocalsConfiguration(service));
 
 	// Generate the nonce for each request
 	app.use((req, res, next) => {

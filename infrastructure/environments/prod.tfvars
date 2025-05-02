@@ -24,7 +24,8 @@ apps_config = {
   }
 
   feature_flags = {
-    portal_not_live = true
+    portal_not_live      = true
+    upload_docs_not_live = true
   }
 
   google_analytics_id = "G-HP9Q7SY3N8"
