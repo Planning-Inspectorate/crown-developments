@@ -2,6 +2,8 @@ import { Prisma } from '@prisma/client';
 import { NotifyConfig } from '@pins/crowndev-lib/govnotify/types';
 
 interface Config {
+	appName: string;
+	appHostname: string;
 	auth: {
 		authority: string;
 		clientId: string;

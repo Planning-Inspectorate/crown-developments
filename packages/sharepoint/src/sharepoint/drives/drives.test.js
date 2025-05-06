@@ -14,7 +14,11 @@ describe('drives', () => {
 			}),
 			get: async () => {},
 			post: mock.fn(),
-			delete: mock.fn()
+			put: mock.fn(),
+			delete: mock.fn(),
+			header: mock.fn(function () {
+				return this;
+			})
 		};
 	};
 
@@ -473,6 +477,64 @@ describe('drives', () => {
 			}
 		});
 	});
+	describe('uploadDocumentToFolder', () => {
+		test('should upload a document to sharepoint', async () => {
+			const client = mockClient();
+			const path = 'CROWN-2025-0000002/System/Sessions/Portal/sessionId/applicationId/have-your-say/myself';
+			const file = {
+				originalname: 'test-pdf.pdf',
+				mimetype: 'application/pdf',
+				buffer: {
+					type: 'Buffer',
+					data: Buffer.from([])
+				},
+				size: 227787
+			};
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			await sharePointDrive.uploadDocumentToFolder(path, file);
+			assert.strictEqual(client.api.mock.callCount(), 1);
+			assert.strictEqual(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('root:')
+					.addPathSegment(path)
+					.addPathSegment(`test-pdf.pdf:`)
+					.addPathSegment('content')
+					.toString()
+			);
+		});
+		test('should throw an error if path is not found', async () => {
+			const client = mockClient();
+			const path = 'CROWN-2025-0000002/System/Sessions/Portal/sessionId/applicationId/have-your-say/myself';
+			const file = {
+				originalname: 'test-pdf.pdf',
+				mimetype: 'application/pdf',
+				buffer: {
+					type: 'Buffer',
+					data: Buffer.from([])
+				},
+				size: 227787
+			};
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			sharePointDrive.client.put = async () => {
+				const error = new Error('The path could not be found.');
+				error.statusCode = 404;
+				throw error;
+			};
+			try {
+				await sharePointDrive.uploadDocumentToFolder(path, file);
+			} catch (e) {
+				assert.equal(e.statusCode, 404);
+				assert.equal(e.message, 'The path could not be found.');
+			}
+		});
+	});
 	describe('upsertItemUsersPermission', () => {
 		test('should add the user permission if no permission is found', async () => {
 			const client = mockClient();
@@ -584,6 +646,65 @@ describe('drives', () => {
 					.toString()
 			);
 			assert.deepStrictEqual(client.post.mock.calls[0].arguments[0], expectedPostArgument);
+		});
+	});
+	describe('createLargeDocumentUploadSession', () => {
+		test('should create a document upload session within sharepoint', async () => {
+			const client = mockClient();
+			driveId = 'testDriveId';
+			const path = 'CROWN-2025-0000002/System/Sessions/Portal/sessionId/applicationId/have-your-say/myself';
+			const file = {
+				originalname: 'test-pdf.pdf',
+				mimetype: 'application/pdf',
+				buffer: {
+					type: 'Buffer',
+					data: Buffer.from([])
+				},
+				size: 227787
+			};
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			await sharePointDrive.createLargeDocumentUploadSession(path, file);
+
+			assert.strictEqual(client.api.mock.callCount(), 1);
+			assert.strictEqual(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('root:')
+					.addPathSegment(path)
+					.addPathSegment('test-pdf.pdf:')
+					.addPathSegment('createUploadSession')
+					.toString()
+			);
+			assert.deepStrictEqual(client.post.mock.calls[0].arguments[0], {
+				item: {
+					'@microsoft.graph.conflictBehavior': 'rename',
+					name: 'test-pdf.pdf'
+				}
+			});
+		});
+	});
+	describe('deleteDocumentById', () => {
+		test('should delete a document with the corresponding itemId from sharepoint', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			await sharePointDrive.deleteDocumentById(itemId);
+
+			assert.strictEqual(client.api.mock.callCount(), 1);
+			assert.strictEqual(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.toString()
+			);
 		});
 	});
 });
