@@ -28,7 +28,9 @@ export function createHaveYourSayRoutes(service) {
 	const router = createRouter({ mergeParams: true });
 	const isRepresentationWindowOpen = getIsRepresentationWindowOpen(service.db);
 	const questions = getQuestions();
-	const getJourney = buildGetJourney((req, journeyResponse) => createJourney(questions, journeyResponse, req));
+	const getJourney = buildGetJourney((req, journeyResponse) =>
+		createJourney(questions, journeyResponse, req, service.isRepsUploadDocsLive)
+	);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID, applicationIdParam);
 	const viewHaveYourSayPage = buildHaveYourSayPage(service);
 	const saveDataToSession = buildSaveDataToSession({ reqParam: applicationIdParam });

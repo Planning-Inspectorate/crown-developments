@@ -38,10 +38,10 @@ describe('have-your-say', () => {
 	});
 	describe('have-your-say section', () => {
 		const JOURNEY_ID = 'have-your-say-1';
-		const createJourney = (questions, response, req) => {
+		const createJourney = (questions, response, req, isRepsUploadDocsLive = true) => {
 			return new Journey({
 				journeyId: JOURNEY_ID,
-				sections: haveYourSaySections(questions),
+				sections: haveYourSaySections(questions, isRepsUploadDocsLive),
 				makeBaseUrl: () => req.baseUrl,
 				journeyTemplate: 'template.njk',
 				listingPageViewPath: 'template-2.njk',
@@ -66,7 +66,8 @@ describe('have-your-say', () => {
 
 		it('should include all questions for have your say myself journey', () => {
 			const answers = {
-				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+				myselfContainsAttachments: BOOLEAN_OPTIONS.YES
 			};
 
 			testHaveYourSayQuestionsDisplay(answers, [], true);
@@ -76,7 +77,8 @@ describe('have-your-say', () => {
 			const answers = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
-				isAgent: BOOLEAN_OPTIONS.YES
+				isAgent: BOOLEAN_OPTIONS.YES,
+				submitterContainsAttachments: BOOLEAN_OPTIONS.YES
 			};
 			const expectedQuestions = [
 				'representedTypeId',
@@ -85,7 +87,9 @@ describe('have-your-say', () => {
 				'agentOrgName',
 				'submitterEmail',
 				'representedFullName',
-				'submitterComment'
+				'submitterComment',
+				'submitterContainsAttachments',
+				'submitterAttachments'
 			];
 
 			testHaveYourSayQuestionsDisplay(answers, expectedQuestions, false);
@@ -94,7 +98,8 @@ describe('have-your-say', () => {
 		it('should include all questions for have your say on behalf of org/charity journey', () => {
 			const answers = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
-				representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION
+				representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
+				submitterContainsAttachments: BOOLEAN_OPTIONS.YES
 			};
 			const expectedQuestions = [
 				'representedTypeId',
@@ -102,7 +107,9 @@ describe('have-your-say', () => {
 				'submitterEmail',
 				'orgName',
 				'orgRoleName',
-				'submitterComment'
+				'submitterComment',
+				'submitterContainsAttachments',
+				'submitterAttachments'
 			];
 
 			testHaveYourSayQuestionsDisplay(answers, expectedQuestions, false);
@@ -112,7 +119,8 @@ describe('have-your-say', () => {
 			const answers = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
-				isAgent: BOOLEAN_OPTIONS.YES
+				isAgent: BOOLEAN_OPTIONS.YES,
+				submitterContainsAttachments: BOOLEAN_OPTIONS.YES
 			};
 			const expectedQuestions = [
 				'representedTypeId',
@@ -121,7 +129,9 @@ describe('have-your-say', () => {
 				'agentOrgName',
 				'submitterEmail',
 				'representedOrgName',
-				'submitterComment'
+				'submitterComment',
+				'submitterContainsAttachments',
+				'submitterAttachments'
 			];
 
 			testHaveYourSayQuestionsDisplay(answers, expectedQuestions, false);
@@ -134,7 +144,8 @@ describe('have-your-say', () => {
 				myselfFirstName: 'Test Name',
 				myselfLastName: 'Test Last',
 				myselfEmail: 'test@email.com',
-				myselfComment: 'some comments'
+				myselfComment: 'some comments',
+				myselfContainsAttachments: BOOLEAN_OPTIONS.NO
 			};
 
 			const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
@@ -170,7 +181,8 @@ describe('have-your-say', () => {
 				submitterEmail: 'test@email.com',
 				representedFirstName: 'Represented Person',
 				representedLastName: 'Represented Surname',
-				submitterComment: 'some comments'
+				submitterComment: 'some comments',
+				submitterContainsAttachments: BOOLEAN_OPTIONS.NO
 			};
 
 			const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
@@ -208,7 +220,8 @@ describe('have-your-say', () => {
 				submitterEmail: 'test@email.com',
 				orgName: 'Org Name',
 				orgRoleName: 'Boss',
-				submitterComment: 'some comments'
+				submitterComment: 'some comments',
+				submitterContainsAttachments: BOOLEAN_OPTIONS.NO
 			};
 
 			const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
@@ -246,7 +259,8 @@ describe('have-your-say', () => {
 				agentOrgName: 'Test Org',
 				submitterEmail: 'test@email.com',
 				representedOrgName: 'Test Org Representing',
-				submitterComment: 'some comments'
+				submitterComment: 'some comments',
+				submitterContainsAttachments: BOOLEAN_OPTIONS.NO
 			};
 
 			const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
@@ -287,7 +301,7 @@ describe('have-your-say', () => {
 			assert.strictEqual(representationSection.questions.length, 1);
 
 			const myselfSection = sections[1];
-			assert.strictEqual(myselfSection.questions.length, 3);
+			assert.strictEqual(myselfSection.questions.length, 5);
 			for (const myselfQuestion of myselfSection.questions) {
 				assert.strictEqual(
 					myselfQuestion.shouldDisplay(response),
@@ -297,7 +311,7 @@ describe('have-your-say', () => {
 			}
 
 			const onBehalfOfSection = sections[2];
-			assert.strictEqual(onBehalfOfSection.questions.length, 10);
+			assert.strictEqual(onBehalfOfSection.questions.length, 12);
 
 			for (const onBehalfOfQuestion of onBehalfOfSection.questions) {
 				const expected = expectedOnBehalfOfQuestions.includes(onBehalfOfQuestion.fieldName);

@@ -160,6 +160,25 @@ export function representationsContactQuestions({ prefix }) {
 		validators: [new RequiredValidator('Select the hearing preference')]
 	};
 
+	questions[`${prefix}HasAttachments`] = {
+		type: COMPONENT_TYPES.BOOLEAN,
+		title: 'Do you want to include attachments with your comment?',
+		question: 'Do you want to include attachments with your comment?',
+		fieldName: `${prefix}ContainsAttachments`,
+		url: 'do-you-want-attachment',
+		validators: [new RequiredValidator('Select yes if you want to include attachments')]
+	};
+
+	// TODO: replace placeholder field as part of CROWN-649
+	questions[`${prefix}SelectAttachments`] = {
+		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+		title: 'Select Attachments',
+		question: 'Select Attachments',
+		fieldName: `${prefix}Attachments`,
+		url: 'select-attachments',
+		validators: []
+	};
+
 	return questions;
 }
 
