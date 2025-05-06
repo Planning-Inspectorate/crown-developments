@@ -1,0 +1,29 @@
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+
+{% macro renderRepresentationInformation(summaryText) %}
+    {% set detailsContent %}
+        <p class="govuk-body">Sensitive information refers to:</p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li>comments from children</li>
+            <li>information relating to children</li>
+            <li>information relating to health</li>
+            <li>information relating to crime</li>
+        </ul>
+        <p class="govuk-body">It also means any information relating to an individual's:</p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li>race</li>
+            <li>ethnic origin</li>
+            <li>politics</li>
+            <li>religion</li>
+            <li>trade union membership</li>
+            <li>genetics</li>
+            <li>physical characteristics</li>
+            <li>sex life</li>
+            <li>sexual orientation</li>
+        </ul>
+    {% endset %}
+    {{ govukDetails({
+        summaryText: summaryText,
+        html: detailsContent | safe
+    }) }}
+{% endmacro %}

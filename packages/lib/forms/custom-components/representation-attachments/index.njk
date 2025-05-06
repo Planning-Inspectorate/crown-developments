@@ -1,0 +1,54 @@
+{% extends layoutTemplate %}
+
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% import "custom-components/representation-information/index.njk" as representationInformation %}
+
+{% block before_content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            {% if errorSummary %}
+                {{ govukErrorSummary({
+                    titleText: "There is a problem",
+                    errorList: errorSummary,
+                    attributes: {"data-cy": "error-wrapper"}
+                }) }}
+            {% endif %}
+        </div>
+    </div>
+
+    {{ super() }}
+{% endblock before_content %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <form action="" method="post" novalidate>
+                <input type="hidden" name="_csrf" value="{{ _csrf }}">
+                <h1 class="govuk-heading-l">
+                    {{ question.question }}
+                </h1>
+                <p class="govuk-body">You should not use racist, inflammatory or abusive language, or include personal information (also called special category information) about yourself or others in your comments. Any attachments will be reviewed and redacted if necessary.</p>
+                <p class="govuk-body">
+                    You can upload the following file types:
+                    <br>
+                    PDF, PNG, JPG, JPEG, TIF, TIFF, DOC, DOCX, XLS, XLSX
+                </p>
+                <ul class="govuk-list govuk-list--bullet">
+                    <li>Files must not be compressed (e.g. no ZIP files)</li>
+                    <li>Each file must be under 20MB</li>
+                    <li>Total upload size must be under 1GB</li>
+                </ul>
+
+                {{ representationInformation.renderRepresentationInformation("Examples of personal information") }}
+
+                {{ govukButton({
+                    text: continueButtonText,
+                    type: "submit",
+                    attributes: { "data-cy":"button-save-and-continue"}
+                }) }}
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -171,7 +171,7 @@ export function representationsContactQuestions({ prefix }) {
 
 	// TODO: replace placeholder field as part of CROWN-649
 	questions[`${prefix}SelectAttachments`] = {
-		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+		type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS,
 		title: 'Select Attachments',
 		question: 'Select Attachments',
 		fieldName: `${prefix}Attachments`,
