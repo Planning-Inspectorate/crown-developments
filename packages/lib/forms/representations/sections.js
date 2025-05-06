@@ -30,13 +30,14 @@ export function haveYourSayManageSections(questions) {
 
 /**
  * @param {Questions} questions
+ * @param {boolean} isRepsUploadDocsLive
  * @returns {Section[]}
  */
-export function haveYourSaySections(questions) {
+export function haveYourSaySections(questions, isRepsUploadDocsLive) {
 	return [
 		new Section('Representation', 'start').addQuestion(questions.submittedFor),
-		myselfSection(questions),
-		agentSection(questions)
+		myselfSection(questions, isRepsUploadDocsLive),
+		agentSection(questions, isRepsUploadDocsLive)
 	];
 }
 /**
@@ -56,16 +57,21 @@ export function addRepresentationSection(questions) {
 
 /**
  * @param {Questions} questions
+ * @param {boolean} isRepsUploadDocsLive
  * @returns {Section}
  */
-function myselfSection(questions) {
+function myselfSection(questions, isRepsUploadDocsLive) {
 	return new Section('Myself', 'myself')
 		.withSectionCondition((response) =>
 			questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
 		)
 		.addQuestion(questions.myselfFullName)
 		.addQuestion(questions.myselfEmail)
-		.addQuestion(questions.myselfTellUsAboutApplication);
+		.addQuestion(questions.myselfTellUsAboutApplication)
+		.addQuestion(questions.myselfHasAttachments)
+		.withCondition(() => isRepsUploadDocsLive === true)
+		.addQuestion(questions.myselfSelectAttachments)
+		.withCondition((response) => questionHasAnswer(response, questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES));
 }
 
 /**
@@ -91,9 +97,10 @@ function addRepMyselfSection(questions) {
 
 /**
  * @param {Questions} questions
+ * @param {boolean} isRepsUploadDocsLive
  * @returns {Section}
  */
-function agentSection(questions) {
+function agentSection(questions, isRepsUploadDocsLive) {
 	const isRepresentationPerson = (response) =>
 		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON);
 	const isOrgWorkFor = (response) =>
@@ -125,7 +132,11 @@ function agentSection(questions) {
 		.startMultiQuestionCondition('representation-person', isRepresentationPerson)
 		.addQuestion(questions.representedFullName)
 		.endMultiQuestionCondition('representation-person')
-		.addQuestion(questions.submitterTellUsAboutApplication);
+		.addQuestion(questions.submitterTellUsAboutApplication)
+		.addQuestion(questions.submitterHasAttachments)
+		.withCondition(() => isRepsUploadDocsLive === true)
+		.addQuestion(questions.submitterSelectAttachments)
+		.withCondition((response) => questionHasAnswer(response, questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES));
 }
 
 /**
