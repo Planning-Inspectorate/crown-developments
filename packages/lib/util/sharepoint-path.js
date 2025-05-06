@@ -1,7 +1,11 @@
 export const APPLICATION_FOLDERS = Object.freeze({
+	MANAGE: 'Manage',
+	PORTAL: 'Portal',
 	PUBLISHED: 'Published',
 	RECEIVED: 'Received',
-	REPRESENTATION_ATTACHMENTS: 'RepresentationAttachments'
+	REPRESENTATION_ATTACHMENTS: 'RepresentationAttachments',
+	SESSIONS: 'Sessions',
+	SYSTEM: 'System'
 });
 
 /**
@@ -72,6 +76,6 @@ export async function getSharePointReceivedPathId(sharePointDrive, { caseRootNam
  * @param {string} parts
  * @returns {string}
  */
-function buildPath(...parts) {
+export function buildPath(...parts) {
 	return parts.join('/');
 }
