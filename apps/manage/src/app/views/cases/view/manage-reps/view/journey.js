@@ -1,5 +1,6 @@
 import { Journey } from '@pins/dynamic-forms/src/journey/journey.js';
 import { haveYourSayManageSections } from '@pins/crowndev-lib/forms/representations/sections.js';
+import { generateJourneyTitle } from '../manage-reps-utils.js';
 
 export const JOURNEY_ID = 'manage-representations';
 
@@ -20,7 +21,7 @@ export function createJourney(questions, response, req) {
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',
 		listingPageViewPath: 'views/cases/view/manage-reps/view/view.njk',
-		journeyTitle: 'Manage Representations',
+		journeyTitle: generateJourneyTitle(response.answers?.statusId),
 		returnToListing: true,
 		makeBaseUrl: () => req.baseUrl.replace('/review', '') + '/edit',
 		initialBackLink: req.baseUrl + '/view',

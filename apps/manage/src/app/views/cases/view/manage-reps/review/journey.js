@@ -2,6 +2,7 @@ import { JOURNEY_ID } from '../view/journey.js';
 import TextEntryRedactQuestion from '@pins/dynamic-forms/src/components/text-entry-redact/question.js';
 import { Journey } from '@pins/dynamic-forms/src/journey/journey.js';
 import { Section } from '@pins/dynamic-forms/src/section.js';
+import { generateJourneyTitle } from '../manage-reps-utils.js';
 
 /**
  * @param {import('@pins/dynamic-forms/src/journey/journey-response.js').JourneyResponse} response
@@ -28,7 +29,7 @@ export function createRedactJourney(response, req) {
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',
 		listingPageViewPath: 'views/cases/view/manage-reps/view/view.njk',
-		journeyTitle: 'Manage Representations',
+		journeyTitle: generateJourneyTitle(response.answers?.statusId),
 		initialBackLink: req.baseUrl,
 		returnToListing: false,
 		makeBaseUrl: () => req.baseUrl,
