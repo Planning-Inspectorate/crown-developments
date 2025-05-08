@@ -14,7 +14,7 @@ export function createJourney(questions, response, req) {
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',
 		listingPageViewPath: 'views/layouts/forms-representation-check-your-answers.njk',
-		journeyTitle: 'Add a representation',
+		journeyTitle: 'Add representation',
 		returnToListing: false,
 		makeBaseUrl: () => req.baseUrl,
 		initialBackLink: `/cases/${req.params?.id}/manage-representations`,

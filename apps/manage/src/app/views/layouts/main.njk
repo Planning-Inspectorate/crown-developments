@@ -12,14 +12,14 @@
 
 {% block pageTitle %}
 	{% if pageTitle %}
-		{{ pageTitle }} – {{ serviceName | default('Manage Crown Developments') }}
+		{{ pageTitle }} - {{ serviceName | default('Manage a Crown Development Application') }}
 	{% else %}
-		{{ serviceName | default('Manage Crown Developments') }}
+		{{ serviceName | default('Manage a Crown Development Application') }}
 	{% endif %}
 {% endblock %}
 
 {% block header %}
-	{{ header('Manage Crown Developments') }}
+	{{ header('Manage a Crown Development Application') }}
 {% endblock %}
 
 {% block beforeContent %}
