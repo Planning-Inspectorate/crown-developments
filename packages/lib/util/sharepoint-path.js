@@ -1,7 +1,9 @@
 export const APPLICATION_FOLDERS = Object.freeze({
 	PUBLISHED: 'Published',
 	RECEIVED: 'Received',
-	REPRESENTATION_ATTACHMENTS: 'RepresentationAttachments'
+	REPRESENTATION_ATTACHMENTS: 'RepresentationAttachments',
+	SESSIONS: 'Sessions',
+	SYSTEM: 'System'
 });
 
 /**
@@ -12,6 +14,16 @@ export const APPLICATION_FOLDERS = Object.freeze({
  */
 export function publishedFolderPath(caseReference) {
 	return buildPath(caseReferenceToFolderName(caseReference), APPLICATION_FOLDERS.PUBLISHED);
+}
+
+/**
+ * Returns the system folder path for the given case reference
+ *
+ * @param {string} caseReference
+ * @returns {string}
+ */
+export function systemFolderPath(caseReference) {
+	return buildPath(caseReferenceToFolderName(caseReference), APPLICATION_FOLDERS.SYSTEM);
 }
 
 /**
@@ -33,6 +45,16 @@ export function publishedRepresentationsAttachmentsRootFolderPath(caseReference)
  */
 export function publishedRepresentationsAttachmentsFolderPath(caseReference, repReference) {
 	return buildPath(publishedFolderPath(caseReference), APPLICATION_FOLDERS.REPRESENTATION_ATTACHMENTS, repReference);
+}
+
+/**
+ * Returns the reps session folder path for the given case reference and session id
+ *
+ * @param {string} caseReference
+ * @returns {string}
+ */
+export function representationSessionFolderPath(caseReference) {
+	return buildPath(systemFolderPath(caseReference), APPLICATION_FOLDERS.SESSIONS);
 }
 
 /**

@@ -64,10 +64,10 @@
 
             {{ makeBaseUrl }}
 
-            <form id="upload-form" method="post" enctype="multipart/form-data" action="{{ baseUrl }}/upload-documents">
+            <form id="upload-form" method="post" enctype="multipart/form-data" action="{{ currentUrl }}/upload-documents">
                 {{ govukFileUpload({
                     id: question.fieldName,
-                    name: question.fieldName,
+                    name: "files[]",
                     label: {
                         text: "Upload attachments",
                         classes: "govuk-visually-hidden"
