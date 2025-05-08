@@ -319,4 +319,15 @@ export class SharePointDrive {
 
 		await this.client.api(urlBuilder.toString()).delete();
 	}
+
+	async uploadDocumentToSession(path, file) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('root:')
+			.addPathSegment(path + ':')
+			.addPathSegment('content');
+
+		await this.client.api(urlBuilder.toString()).header('Content-Type', file.mimetype).put(file.buffer);
+	}
 }
