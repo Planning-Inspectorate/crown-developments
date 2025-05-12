@@ -20,6 +20,7 @@
     "@pins/crowndev-sharepoint": "^0.0.0",
     "@pins/dynamic-forms": "^0.0.0",
     "body-parser": "*",
+    "cfb": "*",
     "cookie": "*",
     "connect-redis": "*",
     "dotenv": "*",
@@ -29,8 +30,10 @@
     "file-type": "*",
     "govuk-frontend": "*",
     "helmet": "*",
+    "jszip": "*",
     "multer": "*",
     "nunjucks": "*",
+    "pdf-lib": "*",
     "pino": "*",
     "pino-pretty": "*",
     "redis": "*"

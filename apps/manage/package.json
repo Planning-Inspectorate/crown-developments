@@ -21,6 +21,7 @@
     "@pins/dynamic-forms": "^0.0.0",
     "accessible-autocomplete": "*",
     "body-parser": "*",
+    "cfb": "*",
     "connect-redis": "*",
     "dotenv": "*",
     "express": "*",
@@ -29,8 +30,10 @@
     "file-type": "*",
     "govuk-frontend": "*",
     "helmet": "*",
+    "jszip": "*",
     "multer": "*",
     "nunjucks": "*",
+    "pdf-lib": "*",
     "pino": "*",
     "pino-pretty": "*",
     "redis": "*"

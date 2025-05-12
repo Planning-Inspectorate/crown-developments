@@ -320,13 +320,22 @@ export class SharePointDrive {
 		await this.client.api(urlBuilder.toString()).delete();
 	}
 
+	/**
+	 *
+	 * @param {string} path - the relative path where the folder should be created
+	 * @param {object} file - the file to be uploaded
+	 * @returns {Promise<Object>}
+	 */
 	async uploadDocumentToSession(path, file) {
 		const urlBuilder = new UrlBuilder('')
 			.addPathSegment('drives')
 			.addPathSegment(this.driveId)
 			.addPathSegment('root:')
-			.addPathSegment(path + ':')
+			.addPathSegment(path)
+			.addPathSegment(`${file.originalname}:`)
 			.addPathSegment('content');
+
+		//TODO: sanitise file.originalname
 
 		await this.client.api(urlBuilder.toString()).header('Content-Type', file.mimetype).put(file.buffer);
 	}

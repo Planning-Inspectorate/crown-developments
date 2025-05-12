@@ -53,7 +53,13 @@ export function createHaveYourSayRoutes(service) {
 		buildSave(saveDataToSession)
 	);
 
-	router.post('/:section/:question/upload-documents', handleUploads.array('files[]', 3), uploadDocuments);
+	router.post(
+		'/:section/:question/upload-documents',
+		getJourneyResponse,
+		getJourney,
+		handleUploads.array('files[]', 3),
+		uploadDocuments
+	);
 
 	router.get('/check-your-answers', addRepresentationErrors, getJourneyResponse, getJourney, (req, res) =>
 		list(req, res, '', {})
