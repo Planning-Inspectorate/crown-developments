@@ -335,8 +335,9 @@ export class SharePointDrive {
 			.addPathSegment(`${file.originalname}:`)
 			.addPathSegment('content');
 
+		//TODO: for files over 5MB we need to upload in chunks so will need to create method for chunk uploads
 		//TODO: sanitise file.originalname
 
-		await this.client.api(urlBuilder.toString()).header('Content-Type', file.mimetype).put(file.buffer);
+		return await this.client.api(urlBuilder.toString()).header('Content-Type', file.mimetype).put(file.buffer);
 	}
 }

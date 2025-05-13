@@ -5,7 +5,6 @@
 {% from "govuk/components/file-upload/macro.njk" import govukFileUpload %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 
-
 {% import "custom-components/representation-information/index.njk" as representationInformation %}
 
 {% block before_content %}
@@ -47,12 +46,12 @@
 
             <p class="govuk-body govuk-!-font-weight-bold">Upload attachments</p>
 
-            {% if there_are_uploaded_docs %}{# update this variable to use correct value #}
+            {% if uploadedFiles and uploadedFiles | length > 0 %}{# update this variable to use correct value #}
                 <dl class="govuk-summary-list">
-                    {% for doc in documents %}
+                    {% for file in uploadedFiles %}
                         <div class="govuk-summary-list__row">
                             <dt class="govuk-summary-list__value">
-                                {{ doc.fileName }}
+                                {{ file.name }}
                             </dt>
                             <dd class="govuk-summary-list__actions">
                                 <a class="govuk-link" href="#">Remove</a>
@@ -61,8 +60,6 @@
                     {% endfor %}
                 </dl>
             {% endif %}
-
-            {{ makeBaseUrl }}
 
             <form id="upload-form" method="post" enctype="multipart/form-data" action="{{ currentUrl }}/upload-documents">
                 {{ govukFileUpload({
@@ -109,31 +106,31 @@
 
                     if (fileInput && form) {
                         fileInput.addEventListener('change', function () {
-                            clearError();
-
-                            const files = fileInput.files;
-                            if (files.length === 0) return;
-
-                            if (files.length > maxFiles) {
-                                showError(`You can only upload up to ${maxFiles} files.`);
-                                fileInput.value = '';
-                                return;
-                            }
-
-                            for (const file of files) {
-                                if (!allowedTypes.includes(file.type)) {
-                                    showError(`The attachment must be PDF, PNG, DOC, DOCX, JPG, JPEG, TIF, TIFF, XLS or XSLX`);
-                                    fileInput.value = '';
-                                    return;
-                                }
-
-                                const sizeMB = file.size / (1024 * 1024);
-                                if (sizeMB > maxFileSizeMB) {
-                                    showError(`Each file must be smaller than ${maxFileSizeMB}MB.`);
-                                    fileInput.value = '';
-                                    return;
-                                }
-                            }
+                            // clearError();
+                            //
+                            // const files = fileInput.files;
+                            // if (files.length === 0) return;
+                            //
+                            // if (files.length > maxFiles) {
+                            //     showError(`You can only upload up to ${maxFiles} files.`);
+                            //     fileInput.value = '';
+                            //     return;
+                            // }
+                            //
+                            // for (const file of files) {
+                            //     if (!allowedTypes.includes(file.type)) {
+                            //         showError(`The attachment must be PDF, PNG, DOC, DOCX, JPG, JPEG, TIF, TIFF, XLS or XSLX`);
+                            //         fileInput.value = '';
+                            //         return;
+                            //     }
+                            //
+                            //     const sizeMB = file.size / (1024 * 1024);
+                            //     if (sizeMB > maxFileSizeMB) {
+                            //         showError(`Each file must be smaller than ${maxFileSizeMB}MB.`);
+                            //         fileInput.value = '';
+                            //         return;
+                            //     }
+                            // }
                             form.submit();
                         });
                     }

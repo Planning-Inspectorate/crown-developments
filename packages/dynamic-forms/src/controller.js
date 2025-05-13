@@ -149,7 +149,11 @@ export async function question(req, res) {
 		return res.redirect(journey.taskListUrl);
 	}
 
-	const viewModel = questionObj.prepQuestionForRendering(sectionObj, journey, { currentUrl: req.originalUrl });
+	const viewModel = questionObj.prepQuestionForRendering(sectionObj, journey, {
+		id: req.params.id || req.params.applicationId,
+		currentUrl: req.originalUrl,
+		files: req.session?.files
+	});
 	return questionObj.renderAction(res, viewModel);
 }
 

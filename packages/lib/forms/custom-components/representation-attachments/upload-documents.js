@@ -2,10 +2,21 @@ import { APPLICATION_FOLDERS, buildPath, caseReferenceToFolderName } from '../..
 import { fetchPublishedApplication } from 'crowndev-portal/src/util/applications.js';
 import { validateUploadedFile } from './document-validation-util.js';
 import { FILE_PROPERTIES } from '../../../documents/view-model.js';
+import { isValidUuidFormat } from '../../../util/uuid.js';
+import { notFoundHandler } from '../../../middleware/errors.js';
+import { addSessionData } from '../../../util/session.js';
+import { sortByField } from '../../../util/array.js';
 
 export function uploadDocumentsController({ db, logger, sharePointDrive, appName }) {
 	return async (req, res) => {
-		const applicationId = req.params.applicationId;
+		const applicationId = req.params.id || req.params.applicationId;
+		if (!applicationId) {
+			throw new Error('id param required');
+		}
+		if (!isValidUuidFormat(applicationId)) {
+			return notFoundHandler(req, res);
+		}
+
 		const crownDevelopment = await fetchPublishedApplication({
 			id: applicationId,
 			db,
@@ -15,7 +26,6 @@ export function uploadDocumentsController({ db, logger, sharePointDrive, appName
 		const caseReference = crownDevelopment.reference;
 		const sessionId = req.sessionID;
 		const journeyId = res.locals?.journeyResponse?.journeyId;
-
 		const folderPath = await createSessionSharepointFolders(
 			sharePointDrive,
 			logger,
@@ -25,34 +35,51 @@ export function uploadDocumentsController({ db, logger, sharePointDrive, appName
 			applicationId,
 			journeyId
 		);
-		const documents = await sharePointDrive.getItemsByPath(folderPath, [['$select', FILE_PROPERTIES.join(',')]]);
+		const documents = await fetchDocumentsInFolderPath(sharePointDrive, folderPath);
 		const totalSize = documents.reduce((sum, item) => sum + (item.size || 0), 0);
+		const fileErrors = (await Promise.all(req.files.map((file) => validateUploadedFile(file, logger))))
+			.flat()
+			.filter(Boolean);
 
 		if (totalSize > 1073741824) {
-			throw new Error(); //TODO: update error message here
+			fileErrors.push({
+				text: 'Total file size of all attachments must be smaller than 1GB',
+				href: `#upload-form`
+			});
 		}
-
-		const fileErrors = (await Promise.all(req.files.map((file) => validateUploadedFile(file)))).flat().filter(Boolean);
 
 		if (fileErrors.length > 0) {
-			throw new Error(); //TODO: update error message here
-		}
-
-		req.files.forEach((file) => {
-			try {
-				sharePointDrive.uploadDocumentToSession(folderPath, file);
-			} catch (error) {
-				const filename = file.originalname;
-				logger.error(
-					{ error, caseReference, sessionId },
-					`Error uploading file: ${filename} to Sharepoint folder: ${folderPath}`
-				);
-				throw new Error(`Failed to upload file: ${filename} to Sharepoint folder: ${folderPath}`);
+			req.session.errorSummary = req.session.errorSummary || [];
+			req.session.errorSummary = fileErrors;
+		} else {
+			for (const file of req.files) {
+				try {
+					await sharePointDrive.uploadDocumentToSession(folderPath, file);
+				} catch (error) {
+					const filename = file.originalname;
+					logger.error(
+						{ error, caseReference, sessionId },
+						`Error uploading file: ${filename} to Sharepoint folder: ${folderPath}`
+					);
+					throw new Error(`Failed to upload file: ${filename}`);
+				}
 			}
-		});
 
-		// add docs to the journey so they can be accessed in the doc list and CYA page
-		// once documents upload - redirect back to the upload docs page
+			const documentsUpdated = await fetchDocumentsInFolderPath(sharePointDrive, folderPath);
+			const uploadedFiles = [];
+			documentsUpdated.forEach((document) => {
+				uploadedFiles.push({
+					id: document.id,
+					name: document.name,
+					mimeType: document.file.mimeType,
+					size: document.size
+				});
+			});
+
+			//TODO assign the uploaded files to the correct part of session; either myself or submitter
+			// const prefix = res.locals?.journeyResponse?.answers['submittedForId'] === 'myself' ? 'myself' : 'submitter';
+			addSessionData(req, applicationId, { uploadedFiles }, 'files');
+		}
 
 		const originalUrl = req.originalUrl;
 		const redirectUrl = originalUrl.substring(0, originalUrl.lastIndexOf('/upload-documents'));
@@ -60,8 +87,10 @@ export function uploadDocumentsController({ db, logger, sharePointDrive, appName
 	};
 }
 
-//TODO: create a delete handler in the event that the user clicks remove after the file has been uploaded
-// folder path: System/Sessions/Portal/session-id/application-id/journey-id
+// export async function deleteDocumentsController({ db, logger, sharePointDrive, appName }) {
+// 	//TODO: create a delete handler in the event that the user clicks remove after the file has been uploaded
+// 	// folder path: System/Sessions/Portal/session-id/application-id/journey-id
+// }
 
 async function createSessionSharepointFolders(
 	sharePointDrive,
@@ -115,4 +144,10 @@ async function createFolder({ sharePointDrive, logger, caseReference, sessionId,
 			throw new Error(`Failed to create SharePoint folder: ${description}`);
 		}
 	}
+}
+
+async function fetchDocumentsInFolderPath(sharePointDrive, folderPath) {
+	const documents = await sharePointDrive.getItemsByPath(folderPath, [['$select', FILE_PROPERTIES.join(',')]]);
+	documents.sort(sortByField('lastModifiedDateTime', true));
+	return documents;
 }
