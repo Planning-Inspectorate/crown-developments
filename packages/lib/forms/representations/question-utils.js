@@ -6,6 +6,7 @@ import { referenceDataToRadioOptions } from '../../util/questions.js';
 import { CONTACT_PREFERENCE } from '@pins/crowndev-database/src/seed/data-static.js';
 import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
 import MultiFieldInputValidator from '@pins/dynamic-forms/src/validator/multi-field-input-validator.js';
+import DocumentUploadValidator from '@pins/dynamic-forms/src/validator/document-upload-validator.js';
 
 /**
  *
@@ -169,14 +170,13 @@ export function representationsContactQuestions({ prefix }) {
 		validators: [new RequiredValidator('Select yes if you want to include attachments')]
 	};
 
-	// TODO: replace placeholder field as part of CROWN-649
 	questions[`${prefix}SelectAttachments`] = {
 		type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS,
 		title: 'Select Attachments',
 		question: 'Select Attachments',
 		fieldName: `${prefix}Attachments`,
 		url: 'select-attachments',
-		validators: []
+		validators: [new DocumentUploadValidator(`${prefix}Attachments`)]
 	};
 
 	return questions;

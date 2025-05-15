@@ -17,7 +17,10 @@ import {
 	viewHaveYourSayDeclarationPage
 } from './controller.js';
 import { buildSaveHaveYourSayController, viewHaveYourSaySuccessPage } from './save.js';
-import { uploadDocumentsController } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-documents.js';
+import {
+	deleteDocumentsController,
+	uploadDocumentsController
+} from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-documents.js';
 import multer from 'multer';
 
 const applicationIdParam = 'applicationId';
@@ -39,6 +42,7 @@ export function createHaveYourSayRoutes(service) {
 	const saveRepresentation = asyncHandler(buildSaveHaveYourSayController(service));
 	const handleUploads = multer();
 	const uploadDocuments = asyncHandler(uploadDocumentsController(service));
+	const deleteDocuments = asyncHandler(deleteDocumentsController(service));
 
 	router.use(isRepresentationWindowOpen);
 
@@ -60,6 +64,8 @@ export function createHaveYourSayRoutes(service) {
 		handleUploads.array('files[]', 3),
 		uploadDocuments
 	);
+
+	router.post('/:section/:question/delete-document/:documentId', getJourneyResponse, getJourney, deleteDocuments);
 
 	router.get('/check-your-answers', addRepresentationErrors, getJourneyResponse, getJourney, (req, res) =>
 		list(req, res, '', {})

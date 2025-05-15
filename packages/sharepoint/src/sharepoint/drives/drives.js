@@ -340,4 +340,19 @@ export class SharePointDrive {
 
 		return await this.client.api(urlBuilder.toString()).header('Content-Type', file.mimetype).put(file.buffer);
 	}
+
+	/**
+	 *
+	 * @param {string} itemId - the item to delete from sharepoint drive
+	 * @returns {Promise<Object>}
+	 */
+	async deleteDocumentById(itemId) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('items')
+			.addPathSegment(itemId);
+
+		return await this.client.api(urlBuilder.toString()).delete();
+	}
 }

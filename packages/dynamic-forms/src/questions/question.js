@@ -212,16 +212,20 @@ export class Question {
 		const { errors = {}, errorSummary = [] } = body;
 
 		if (Object.keys(errors).length > 0) {
-			return this.prepQuestionForRendering(
-				sectionObj,
-				journey,
-				{
-					errors,
-					errorSummary
-				},
-				body
-			);
+			const context = this.buildRenderingContext(req, errors, errorSummary);
+			return this.prepQuestionForRendering(sectionObj, journey, context, body);
 		}
+	}
+
+	/**
+	 * provide context to be rendered if validation errors are present
+	 * @param {import('express').Request} req
+	 * @param {object} errors
+	 * @param {object} errorSummary
+	 * @returns {object} returns the errors and errorSummary to be rendered
+	 */
+	buildRenderingContext(req, errors, errorSummary) {
+		return { errors, errorSummary };
 	}
 
 	/**

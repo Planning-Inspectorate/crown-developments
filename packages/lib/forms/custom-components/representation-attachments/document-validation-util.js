@@ -124,3 +124,8 @@ function isDocOrXlsEncrypted(buffer) {
 
 	return summary || isEncryptedStream;
 }
+
+export function fileAlreadyExistsInFolder(documents, files) {
+	const sharepointFolderFileNames = documents.map((document) => document.name);
+	return files.map((file) => file.name).some((fileName) => sharepointFolderFileNames.includes(fileName));
+}

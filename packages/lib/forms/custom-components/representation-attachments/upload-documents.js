@@ -1,6 +1,6 @@
 import { APPLICATION_FOLDERS, buildPath, caseReferenceToFolderName } from '../../../util/sharepoint-path.js';
 import { fetchPublishedApplication } from 'crowndev-portal/src/util/applications.js';
-import { validateUploadedFile } from './document-validation-util.js';
+import { fileAlreadyExistsInFolder, validateUploadedFile } from './document-validation-util.js';
 import { FILE_PROPERTIES } from '../../../documents/view-model.js';
 import { isValidUuidFormat } from '../../../util/uuid.js';
 import { notFoundHandler } from '../../../middleware/errors.js';
@@ -41,10 +41,17 @@ export function uploadDocumentsController({ db, logger, sharePointDrive, appName
 			.flat()
 			.filter(Boolean);
 
+		if (fileAlreadyExistsInFolder(documents, req.files)) {
+			fileErrors.push({
+				text: 'Attachment with this name has already been uploaded',
+				href: '#upload-form'
+			});
+		}
+
 		if (totalSize > 1073741824) {
 			fileErrors.push({
 				text: 'Total file size of all attachments must be smaller than 1GB',
-				href: `#upload-form`
+				href: '#upload-form'
 			});
 		}
 
@@ -87,10 +94,28 @@ export function uploadDocumentsController({ db, logger, sharePointDrive, appName
 	};
 }
 
-// export async function deleteDocumentsController({ db, logger, sharePointDrive, appName }) {
-// 	//TODO: create a delete handler in the event that the user clicks remove after the file has been uploaded
-// 	// folder path: System/Sessions/Portal/session-id/application-id/journey-id
-// }
+export function deleteDocumentsController({ logger, sharePointDrive }) {
+	return async (req, res) => {
+		const applicationId = req.params.id || req.params.applicationId;
+		const itemId = req.params.documentId;
+
+		try {
+			await sharePointDrive.deleteDocumentById(itemId);
+		} catch (error) {
+			logger.error({ error, applicationId, itemId }, `Error deleting file: ${itemId} from Sharepoint folder`);
+			throw new Error('Failed to delete file');
+		}
+
+		let uploadedFiles = req.session?.files?.[applicationId]?.uploadedFiles || [];
+		uploadedFiles = uploadedFiles.filter((file) => file.id !== itemId);
+
+		addSessionData(req, applicationId, { uploadedFiles }, 'files');
+
+		const originalUrl = req.originalUrl;
+		const redirectUrl = originalUrl.substring(0, originalUrl.lastIndexOf('/delete-document'));
+		res.redirect(redirectUrl);
+	};
+}
 
 async function createSessionSharepointFolders(
 	sharePointDrive,

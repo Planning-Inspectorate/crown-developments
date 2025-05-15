@@ -29,11 +29,23 @@ export default class RepresentationAttachments extends Question {
 	prepQuestionForRendering(section, journey, customViewData, payload) {
 		let viewModel = super.prepQuestionForRendering(section, journey, customViewData);
 		viewModel.question.value = payload ? payload[viewModel.question.fieldName] : viewModel.question.value;
-		viewModel.uploadedFiles =
+		const uploadedFiles =
 			customViewData.files && customViewData.id in customViewData.files
 				? customViewData.files[customViewData.id].uploadedFiles
 				: [];
+		viewModel.uploadedFiles = uploadedFiles;
+		viewModel.uploadedFilesJson = JSON.stringify(uploadedFiles);
 		return viewModel;
+	}
+
+	buildRenderingContext(req, errors, errorSummary) {
+		return {
+			id: req.params.id || req.params.applicationId,
+			currentUrl: req.originalUrl,
+			files: req.session?.files,
+			errors,
+			errorSummary
+		};
 	}
 
 	formatAnswerForSummary(sectionSegment, journey, answer) {
