@@ -29,12 +29,16 @@ export default class RepresentationAttachments extends Question {
 	prepQuestionForRendering(section, journey, customViewData, payload) {
 		let viewModel = super.prepQuestionForRendering(section, journey, customViewData);
 		viewModel.question.value = payload ? payload[viewModel.question.fieldName] : viewModel.question.value;
-		const uploadedFiles =
-			customViewData.files && customViewData.id in customViewData.files
-				? customViewData.files[customViewData.id].uploadedFiles
-				: [];
+
+		const submittedForId = journey.response?.answers?.submittedForId;
+		const fileGroup = customViewData?.files?.[customViewData.id];
+		const uploadedFiles = fileGroup?.[submittedForId]?.uploadedFiles ?? [];
+
 		viewModel.uploadedFiles = uploadedFiles;
 		viewModel.uploadedFilesJson = JSON.stringify(uploadedFiles);
+
+		//TODO: add errors and errorSummary
+
 		return viewModel;
 	}
 
@@ -62,8 +66,9 @@ export default class RepresentationAttachments extends Question {
 	async getDataToSave(req, journeyResponse) {
 		let responseToSave = { answers: {} };
 		const applicationId = req.params.id || req.params.applicationId;
+		const submittedForId = journeyResponse.answers?.submittedForId;
 
-		responseToSave.answers[this.fieldName] = req.session.files?.[applicationId]?.uploadedFiles;
+		responseToSave.answers[this.fieldName] = req.session.files?.[applicationId]?.[submittedForId]?.uploadedFiles;
 		journeyResponse.answers[this.fieldName] = responseToSave.answers[this.fieldName];
 
 		return responseToSave;

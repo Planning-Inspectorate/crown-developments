@@ -82,7 +82,7 @@ export function representationsContactQuestions({ prefix }) {
 
 	questions[`${prefix}Email`] = {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-		title: 'Email Address',
+		title: 'Email address',
 		question: 'What is your email address?',
 		hint: 'We will use your email address to send you information about this application. We will not publish your email address.',
 		fieldName: `${prefix}Email`,
@@ -109,7 +109,7 @@ export function representationsContactQuestions({ prefix }) {
 
 	questions[`${prefix}TellUsAboutApplication`] = {
 		type: CUSTOM_COMPONENTS.REPRESENTATION_COMMENT,
-		title: 'Tell us about Application',
+		title: 'Tell us about application',
 		question: 'What do you want to say about this application?',
 		fieldName: `${prefix}Comment`,
 		label: 'Application comments',
@@ -163,7 +163,7 @@ export function representationsContactQuestions({ prefix }) {
 
 	questions[`${prefix}HasAttachments`] = {
 		type: COMPONENT_TYPES.BOOLEAN,
-		title: 'Do you want to include attachments with your comment?',
+		title: 'Attachments uploaded?',
 		question: 'Do you want to include attachments with your comment?',
 		fieldName: `${prefix}ContainsAttachments`,
 		url: 'do-you-want-attachment',
@@ -172,7 +172,7 @@ export function representationsContactQuestions({ prefix }) {
 
 	questions[`${prefix}SelectAttachments`] = {
 		type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS,
-		title: 'Select Attachments',
+		title: 'Attachments',
 		question: 'Select Attachments',
 		fieldName: `${prefix}Attachments`,
 		url: 'select-attachments',
