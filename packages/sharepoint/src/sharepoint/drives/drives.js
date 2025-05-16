@@ -319,4 +319,79 @@ export class SharePointDrive {
 
 		await this.client.api(urlBuilder.toString()).delete();
 	}
+
+	/**
+	 *
+	 * @param {string} path - the relative path where the folder should be created
+	 * @param {object} file - the file to be uploaded
+	 * @returns {Promise<import('@microsoft/microsoft-graph-types').DriveItem>}
+	 */
+	async uploadDocumentToFolder(path, file) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('root:')
+			.addPathSegment(path)
+			.addPathSegment(`${this.sanitiseFileName(file.originalname)}:`)
+			.addPathSegment('content');
+
+		//TODO: sanitise file.originalname
+
+		return await this.client.api(urlBuilder.toString()).header('Content-Type', file.mimetype).put(file.buffer);
+	}
+
+	/**
+	 *
+	 * @param {string} path - the relative path where the folder should be created
+	 * @param {object} file - the file to be uploaded
+	 * @returns {Promise<import('@microsoft/microsoft-graph-types').UploadSession>}
+	 */
+	async createLargeDocumentUploadSession(path, file) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('root:')
+			.addPathSegment(path)
+			.addPathSegment(`${this.sanitiseFileName(file.originalname)}:`)
+			.addPathSegment('createUploadSession');
+
+		const uploadSessionRequest = {
+			item: {
+				'@microsoft.graph.conflictBehavior': 'rename',
+				name: file.originalname
+			}
+		};
+
+		return await this.client.api(urlBuilder.toString()).post(uploadSessionRequest);
+	}
+
+	/**
+	 *
+	 * @param {string} itemId - the item to delete from sharepoint drive
+	 * @returns {Promise<void>}
+	 */
+	async deleteDocumentById(itemId) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('items')
+			.addPathSegment(itemId);
+
+		return await this.client.api(urlBuilder.toString()).delete();
+	}
+
+	/**
+	 *
+	 * @param {string} fileName - the fileName to be sanitised
+	 * @returns {string} sanitised fileName
+	 */
+	sanitiseFileName(fileName) {
+		const cleaned = fileName.replace(/["*:<>?/\\|#]/g, '_');
+		const trimmed = cleaned.replace(/[.\s]+$/, '');
+		if (trimmed.startsWith('~$')) {
+			return trimmed.replace(/^~\$/, '');
+		}
+
+		return trimmed;
+	}
 }
