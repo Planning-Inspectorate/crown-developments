@@ -9,3 +9,8 @@ updates:
     directory: '/' # Location of package manifests
     schedule:
       interval: 'weekly'
+  - package-ecosystem: 'terraform'
+    directory: '/infrastructure' # Location of package manifests
+    schedule:
+      interval: 'weekly'
+      day: 'tuesday' # day after npm updates
