@@ -44,11 +44,11 @@ module "app_portal" {
     require_authentication = var.auth_config_portal.auth_enabled
     auth_client_id         = var.auth_config_portal.auth_client_id
     #checkov:skip=CKV_SECRET_6: "Secret is securely stored in Key Vault"
-    auth_provider_secret   = "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
-    auth_tenant_endpoint   = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0"
-    allowed_applications   = var.auth_config_portal.application_id
-    allowed_audiences      = "https://${var.web_domains.portal}/.auth/login/aad/callback"
-    excluded_paths         = []
+    auth_provider_secret = "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
+    auth_tenant_endpoint = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0"
+    allowed_applications = var.auth_config_portal.application_id
+    allowed_audiences    = "https://${var.web_domains.portal}/.auth/login/aad/callback"
+    excluded_paths       = []
   }
 
   app_settings = {
