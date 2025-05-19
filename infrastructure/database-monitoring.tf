@@ -8,6 +8,10 @@ resource "azurerm_storage_account" "sql_server" {
   #TODO: Access restrictions
   #checkov:skip=CKV_AZURE_35: Network access restrictions
   #checkov:skip=CKV_AZURE_59: TODO: Ensure that Storage accounts disallow public access
+  #checkov:skip=CKV2_AZURE_33: "Ensure storage account is configured with private endpoint"
+  #checkov:skip=CKV2_AZURE_38: "Ensure soft-delete is enabled on Azure storage account"
+  #checkov:skip=CKV2_AZURE_40: "Ensure storage account is not configured with Shared Key authorization"
+  #checkov:skip=CKV2_AZURE_41: "Ensure storage account is configured with SAS expiration policy"
 
   name                             = "pinsstsqlcrown${var.environment}"
   resource_group_name              = azurerm_resource_group.primary.name

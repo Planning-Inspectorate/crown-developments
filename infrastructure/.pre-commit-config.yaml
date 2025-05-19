@@ -31,7 +31,7 @@ repos:
           - --args=--config=__GIT_WORKING_DIR__./infrastructure/.tflint.hcl
   # - id: terraform_trivy
   #   stages: [pre-commit]
-  # - id: terraform_checkov
+  - id: terraform_checkov
 
   # - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
   #   rev: v9.18.0
