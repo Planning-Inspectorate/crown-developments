@@ -107,10 +107,17 @@ function addFilesToSession(req, id, data, sessionField, submittedForId) {
 	if (!req.session) {
 		throw new Error('request session required');
 	}
-	const filesField = req.session[sessionField] || (req.session[sessionField] = {});
-	const fieldProps = filesField[id] || (filesField[id] = {});
-	const submittedForIdField = fieldProps[submittedForId] || (fieldProps[submittedForId] = {});
-	Object.assign(submittedForIdField, data);
+
+	const filesField = (req.session[sessionField] ||= {});
+	const fieldProps = (filesField[id] ||= {});
+	const submittedForIdField = (fieldProps[submittedForId] ||= {});
+
+	const isSafeKey = (key) => !['__proto__', 'constructor', 'prototype'].includes(key);
+	for (const key of Object.keys(data)) {
+		if (isSafeKey(key)) {
+			submittedForIdField[key] = data[key];
+		}
+	}
 }
 
 export function deleteDocumentsController({ logger, sharePointDrive }) {
