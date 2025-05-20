@@ -60,7 +60,7 @@ export function uploadDocumentsController({ db, logger, sharePointDrive, appName
 		}
 
 		if (fileErrors.length > 0) {
-			req.body.errors = {
+			req.session.errors = {
 				'upload-form': { msg: 'Errors encountered during file upload.' }
 			};
 			req.session.errorSummary = fileErrors;
