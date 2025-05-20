@@ -1,7 +1,6 @@
 import fileType from 'file-type';
 
 import * as CFB from 'cfb';
-import JSZip from 'jszip';
 import { PDFDocument } from 'pdf-lib';
 
 const ALLOWED_MIME_TYPES = new Set([
@@ -37,6 +36,7 @@ export async function validateUploadedFile(file, logger) {
 			text: `${originalname}: Could not determine file type from signature`,
 			href: '#upload-form'
 		});
+		return validationErrors;
 	}
 
 	const { mime, ext } = fileTypeResult;
@@ -50,34 +50,14 @@ export async function validateUploadedFile(file, logger) {
 
 	if ((ext === 'pdf' || mime === 'application/pdf') && (await isPdfPasswordProtected(buffer, logger))) {
 		validationErrors.push({
-			text: `${originalname}: file must not be password protected`,
-			href: '#upload-form'
-		});
-	}
-
-	if (
-		(ext === 'docx' || mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') &&
-		(await isOfficeFileEncrypted(buffer))
-	) {
-		validationErrors.push({
-			text: `${originalname}: file must not be password protected`,
-			href: '#upload-form'
-		});
-	}
-
-	if (
-		(ext === 'xlsx' || mime === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') &&
-		(await isOfficeFileEncrypted(buffer))
-	) {
-		validationErrors.push({
-			text: `${originalname}: file must not be password protected`,
+			text: `${originalname}: File must not be password protected`,
 			href: '#upload-form'
 		});
 	}
 
 	if ((ext === 'cfb' || mime === 'application/x-cfb') && (await isDocOrXlsEncrypted(buffer))) {
 		validationErrors.push({
-			text: `${originalname}: file must not be password protected`,
+			text: `${originalname}: File must not be password protected`,
 			href: '#upload-form'
 		});
 	}
@@ -99,7 +79,7 @@ export async function validateUploadedFile(file, logger) {
 	return validationErrors;
 }
 
-export async function isPdfPasswordProtected(buffer, logger) {
+async function isPdfPasswordProtected(buffer, logger) {
 	try {
 		await PDFDocument.load(buffer);
 		return false;
@@ -109,20 +89,17 @@ export async function isPdfPasswordProtected(buffer, logger) {
 	}
 }
 
-async function isOfficeFileEncrypted(buffer) {
-	const zip = await JSZip.loadAsync(buffer);
-	return zip.file('EncryptedPackage') !== null;
-}
-
 function isDocOrXlsEncrypted(buffer) {
 	const container = CFB.parse(buffer, { type: 'buffer' });
-
-	const summary = container.FullPaths.includes('EncryptedPackage');
+	const hasEncryptedStream = container.FullPaths.some(
+		(fullPath) => fullPath.includes('EncryptedPackage') || fullPath.includes('EncryptedStream')
+	);
 	const isEncryptedStream = container.FileIndex.some(
-		(entry) => entry.name === 'WordDocument' && entry.content && entry.content[0] === 0x13
+		(entry) =>
+			(entry.name === 'WordDocument' || entry.name === 'Workbook') && entry.content && entry.content[0] === 0x13
 	);
 
-	return summary || isEncryptedStream;
+	return hasEncryptedStream || isEncryptedStream;
 }
 
 export function fileAlreadyExistsInFolder(documents, files) {
