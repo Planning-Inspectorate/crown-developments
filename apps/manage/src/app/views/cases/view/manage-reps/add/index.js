@@ -19,7 +19,9 @@ import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
 	const questions = getQuestions();
-	const getJourney = buildGetJourney((req, journeyResponse) => createJourney(questions, journeyResponse, req));
+	const getJourney = buildGetJourney((req, journeyResponse) =>
+		createJourney(questions, journeyResponse, req, service.isRepsUploadDocsLive)
+	);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID, 'id');
 	const saveDataToSession = buildSaveDataToSession({ reqParam: 'id' });
 	const saveController = buildSaveRepresentationController(service);

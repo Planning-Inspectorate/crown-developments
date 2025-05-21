@@ -697,7 +697,7 @@ describe('have-your-say', () => {
 			assert.strictEqual(mainSection.questions.length, 3);
 
 			const myselfSection = sections[1];
-			assert.strictEqual(myselfSection.questions.length, 6);
+			assert.strictEqual(myselfSection.questions.length, 8);
 
 			for (const myselfQuestion of myselfSection.questions) {
 				const expected = expectedMyselfQuestions.includes(myselfQuestion.fieldName);
@@ -708,7 +708,7 @@ describe('have-your-say', () => {
 				);
 			}
 			const onBehalfOfSection = sections[2];
-			assert.strictEqual(onBehalfOfSection.questions.length, 13);
+			assert.strictEqual(onBehalfOfSection.questions.length, 15);
 
 			for (const onBehalfOfQuestion of onBehalfOfSection.questions) {
 				const expected = expectedOnBehalfOfQuestions.includes(onBehalfOfQuestion.fieldName);

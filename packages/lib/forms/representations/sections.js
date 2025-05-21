@@ -42,16 +42,17 @@ export function haveYourSaySections(questions, isRepsUploadDocsLive) {
 }
 /**
  * @param {Questions} questions
+ * @param {boolean} isRepsUploadDocsLive
  * @returns {Section[]}
  */
-export function addRepresentationSection(questions) {
+export function addRepresentationSection(questions, isRepsUploadDocsLive) {
 	return [
 		new Section('Representation', 'start')
 			.addQuestion(questions.submittedDate)
 			.addQuestion(questions.category)
 			.addQuestion(questions.submittedFor),
-		addRepMyselfSection(questions),
-		addRepAgentSection(questions)
+		addRepMyselfSection(questions, isRepsUploadDocsLive),
+		addRepAgentSection(questions, isRepsUploadDocsLive)
 	];
 }
 
@@ -78,9 +79,10 @@ function myselfSection(questions, isRepsUploadDocsLive) {
  * Myself section for the add representation journey (contains more questions that the default section)
  *
  * @param {Questions} questions
+ * @param {boolean} isRepsUploadDocsLive
  * @returns {Section}
  */
-function addRepMyselfSection(questions) {
+function addRepMyselfSection(questions, isRepsUploadDocsLive) {
 	return new Section('Myself', 'myself')
 		.withSectionCondition((response) =>
 			questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
@@ -92,6 +94,10 @@ function addRepMyselfSection(questions) {
 		.addQuestion(questions.myselfAddress)
 		.withCondition((response) => questionHasAnswer(response, questions.myselfContactPreference, 'post'))
 		.addQuestion(questions.myselfTellUsAboutApplication)
+		.addQuestion(questions.myselfHasAttachments)
+		.withCondition(() => isRepsUploadDocsLive === true)
+		.addQuestion(questions.myselfSelectAttachments)
+		.withCondition((response) => questionHasAnswer(response, questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES))
 		.addQuestion(questions.myselfHearingPreference);
 }
 
@@ -141,9 +147,10 @@ function agentSection(questions, isRepsUploadDocsLive) {
 
 /**
  * @param {Questions} questions
+ * @param {boolean} isRepsUploadDocsLive
  * @returns {Section}
  */
-function addRepAgentSection(questions) {
+function addRepAgentSection(questions, isRepsUploadDocsLive) {
 	const isRepresentationPerson = (response) =>
 		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON);
 	const isOrgWorkFor = (response) =>
@@ -180,5 +187,9 @@ function addRepAgentSection(questions) {
 		.addQuestion(questions.representedOrgName)
 		.withCondition(isOrgNotWorkFor)
 		.addQuestion(questions.submitterTellUsAboutApplication)
+		.addQuestion(questions.submitterHasAttachments)
+		.withCondition(() => isRepsUploadDocsLive === true)
+		.addQuestion(questions.submitterSelectAttachments)
+		.withCondition((response) => questionHasAnswer(response, questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES))
 		.addQuestion(questions.submitterHearingPreference);
 }
