@@ -1,8 +1,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { fileAlreadyExistsInFolder, sanitiseFileName, validateUploadedFile } from './document-validation-util.js';
+import { fileAlreadyExistsInFolder, validateUploadedFile } from './document-validation-util.js';
 import { mockLogger } from '../../../testing/mock-logger.js';
 import * as CFB from 'cfb';
+import { ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '../../representations/question-utils.js';
 
 describe('./lib/forms/custom-components/representation-attachments/document-validation-util.js', () => {
 	describe('validateUploadedFile', () => {
@@ -16,7 +17,10 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 			};
 			const logger = mockLogger();
 
-			assert.deepStrictEqual(await validateUploadedFile(file, logger), []);
+			assert.deepStrictEqual(
+				await validateUploadedFile(file, logger, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE),
+				[]
+			);
 		});
 		it('should return file size validation error when file is over 20MB', async () => {
 			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
@@ -28,12 +32,15 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 			};
 			const logger = mockLogger();
 
-			assert.deepStrictEqual(await validateUploadedFile(file, logger), [
-				{
-					href: '#upload-form',
-					text: 'test4.pdf: The attachment must be smaller than 20MB'
-				}
-			]);
+			assert.deepStrictEqual(
+				await validateUploadedFile(file, logger, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE),
+				[
+					{
+						href: '#upload-form',
+						text: 'test4.pdf: The attachment must be smaller than 20MB'
+					}
+				]
+			);
 		});
 		it('should return mime type validation error when file with invalid mime type passed', async () => {
 			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
@@ -45,12 +52,15 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 			};
 			const logger = mockLogger();
 
-			assert.deepStrictEqual(await validateUploadedFile(file, logger), [
-				{
-					href: '#upload-form',
-					text: 'test4.pdf: The attachment must be PDF, PNG, DOC, DOCX, JPG, JPEG, TIF, TIFF, XLS or XLSX'
-				}
-			]);
+			assert.deepStrictEqual(
+				await validateUploadedFile(file, logger, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE),
+				[
+					{
+						href: '#upload-form',
+						text: 'test4.pdf: The attachment must be PDF, PNG, DOC, DOCX, JPG, JPEG, TIF, TIFF, XLS or XLSX'
+					}
+				]
+			);
 		});
 		it('should return validation error when zip file passed', async () => {
 			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
@@ -62,12 +72,15 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 			};
 			const logger = mockLogger();
 
-			assert.deepStrictEqual(await validateUploadedFile(file, logger), [
-				{
-					href: '#upload-form',
-					text: 'test4.zip: The attachment must be PDF, PNG, DOC, DOCX, JPG, JPEG, TIF, TIFF, XLS or XLSX'
-				}
-			]);
+			assert.deepStrictEqual(
+				await validateUploadedFile(file, logger, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE),
+				[
+					{
+						href: '#upload-form',
+						text: 'test4.zip: The attachment must be PDF, PNG, DOC, DOCX, JPG, JPEG, TIF, TIFF, XLS or XLSX'
+					}
+				]
+			);
 		});
 		it('should return validation errors when file type cannot be determined from signature', async () => {
 			const fakePdfContent = 'not a real file';
@@ -79,12 +92,15 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 			};
 			const logger = mockLogger();
 
-			assert.deepStrictEqual(await validateUploadedFile(file, logger), [
-				{
-					href: '#upload-form',
-					text: 'test4.pdf: Could not determine file type from signature'
-				}
-			]);
+			assert.deepStrictEqual(
+				await validateUploadedFile(file, logger, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE),
+				[
+					{
+						href: '#upload-form',
+						text: 'test4.pdf: Could not determine file type from signature'
+					}
+				]
+			);
 		});
 		it('should return a validation error when there is a file signature mismatch', async () => {
 			const fakeMp3Content = 'ID3\x03\x00\x00\x00\x00\x00\x21';
@@ -96,12 +112,15 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 			};
 			const logger = mockLogger();
 
-			assert.deepStrictEqual(await validateUploadedFile(file, logger), [
-				{
-					href: '#upload-form',
-					text: 'test4.pdf: File signature mismatch: got audio/mpeg (mp3)'
-				}
-			]);
+			assert.deepStrictEqual(
+				await validateUploadedFile(file, logger, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE),
+				[
+					{
+						href: '#upload-form',
+						text: 'test4.pdf: File signature mismatch: declared as .application/pdf but detected as .mp3 (audio/mpeg)'
+					}
+				]
+			);
 		});
 		it('should return a validation error when pdf file is password protected', async () => {
 			const fakeEncryptedPdf = `%PDF-1.4
@@ -128,12 +147,15 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 			};
 			const logger = mockLogger();
 
-			assert.deepStrictEqual(await validateUploadedFile(file, logger), [
-				{
-					href: '#upload-form',
-					text: 'test4.pdf: File must not be password protected'
-				}
-			]);
+			assert.deepStrictEqual(
+				await validateUploadedFile(file, logger, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE),
+				[
+					{
+						href: '#upload-form',
+						text: 'test4.pdf: File must not be password protected'
+					}
+				]
+			);
 		});
 		it('should return a validation error when doc/xls file is password protected', async () => {
 			const cfbContainer = CFB.utils.cfb_new();
@@ -148,12 +170,15 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 			};
 			const logger = mockLogger();
 
-			assert.deepStrictEqual(await validateUploadedFile(file, logger), [
-				{
-					href: '#upload-form',
-					text: 'test4.pdf: File must not be password protected'
-				}
-			]);
+			assert.deepStrictEqual(
+				await validateUploadedFile(file, logger, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE),
+				[
+					{
+						href: '#upload-form',
+						text: 'test4.pdf: File must not be password protected'
+					}
+				]
+			);
 		});
 	});
 	describe('fileAlreadyExistsInFolder', () => {
@@ -177,14 +202,6 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 		});
 		it('should return false if both lists passed are empty', () => {
 			assert.strictEqual(fileAlreadyExistsInFolder([], []), false);
-		});
-	});
-	describe('sanitiseFileName', () => {
-		it('should sanitise file that contains invalid characters in its name', () => {
-			assert.strictEqual(sanitiseFileName('~$test*:<>#.pdf.'), 'test_____.pdf');
-		});
-		it('should not sanitise valid file name', () => {
-			assert.strictEqual(sanitiseFileName('test.pdf'), 'test.pdf');
 		});
 	});
 });

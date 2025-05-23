@@ -15,12 +15,21 @@ import { nl2br } from '@pins/dynamic-forms/src/lib/utils.js';
 export default class RepresentationAttachments extends Question {
 	/**
 	 * @param {import('@pins/dynamic-forms/src/questions/question-types.js').QuestionParameters} params
+	 * @param {Array<string>} allowedFileExtensions
+	 * @param {Array<string>} allowedMimeTypes
+	 * @param {number} maxFileSizeValue
+	 * @param {number} maxFileSizeString
 	 */
-	constructor({ ...params }) {
+	constructor({ allowedFileExtensions, allowedMimeTypes, maxFileSizeValue, maxFileSizeString, ...params }) {
 		super({
 			...params,
 			viewFolder: 'custom-components/representation-attachments'
 		});
+
+		this.allowedFileExtensions = allowedFileExtensions;
+		this.allowedMimeTypes = allowedMimeTypes;
+		this.maxFileSizeValue = maxFileSizeValue;
+		this.maxFileSizeString = maxFileSizeString;
 	}
 
 	prepQuestionForRendering(section, journey, customViewData, payload) {
@@ -33,6 +42,11 @@ export default class RepresentationAttachments extends Question {
 
 		viewModel.uploadedFiles = uploadedFiles;
 		viewModel.uploadedFilesJson = JSON.stringify(uploadedFiles);
+
+		viewModel.question.allowedFileExtensions = this.allowedFileExtensions;
+		viewModel.question.allowedMimeTypes = this.allowedMimeTypes;
+		viewModel.question.maxFileSizeValue = this.maxFileSizeValue;
+		viewModel.question.maxFileSizeString = this.maxFileSizeString;
 
 		return viewModel;
 	}

@@ -32,11 +32,15 @@
             <p class="govuk-body">
                 You can upload the following file types:
                 <br>
-                PDF, PNG, JPG, JPEG, TIF, TIFF, DOC, DOCX, XLS, XLSX
+                {% set upperExtensions = [] %}
+                {% for ext in question.allowedFileExtensions %}
+                    {% set _ = upperExtensions.push(ext | upper) %}
+                {% endfor %}
+                {{ upperExtensions | join(", ") }}
             </p>
             <ul class="govuk-list govuk-list--bullet">
                 <li>Files must not be compressed (e.g. no ZIP files)</li>
-                <li>Each file must be under 20MB</li>
+                <li>Each file must be under {{ question.maxFileSizeString }}</li>
                 <li>Total upload size must be under 1GB</li>
             </ul>
 
@@ -44,7 +48,7 @@
 
             <p class="govuk-body govuk-!-font-weight-bold">Upload attachments</p>
 
-            {% if uploadedFiles and uploadedFiles | length > 0 %}{# update this variable to use correct value #}
+            {% if uploadedFiles and uploadedFiles | length > 0 %}
                 <dl class="govuk-summary-list">
                     {% for file in uploadedFiles %}
                         <div class="govuk-summary-list__row">
@@ -76,7 +80,7 @@
                     dropInstructionText: "or drag and drop attachments here",
                     attributes: {
                         multiple: true,
-                        accept: "application/pdf,image/png,image/jpeg,image/tiff,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        accept: question.allowedMimeTypes | join(", ")
                     }
                 }) }}
             </form>
@@ -90,6 +94,17 @@
                     attributes: { "data-cy":"button-save-and-continue"}
                 }) }}
             </form>
+
+            {% set formattedTypes = "" %}
+            {% for ext in upperExtensions %}
+                {% if loop.last and not loop.first %}
+                    {% set formattedTypes = formattedTypes + " or " + ext %}
+                {% elseif loop.first %}
+                    {% set formattedTypes = formattedTypes + ext %}
+                {% else %}
+                    {% set formattedTypes = formattedTypes + ", " + ext %}
+                {% endif %}
+            {% endfor %}
 
             <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
                 document.addEventListener('DOMContentLoaded', function () {
@@ -107,8 +122,8 @@
                     const fileInput = document.querySelector('#{{ question.fieldName }}-input');
                     const form = document.querySelector('#upload-form');
 
-                    const allowedTypes = ['application/pdf','image/png','image/jpeg','image/tiff','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
-                    const maxFileSizeMB = 20;
+                    const allowedTypes = {{ question.allowedMimeTypes | dump | safe }};
+                    const maxFileSize = {{ question.maxFileSizeValue }};
                     const maxFiles = 3;
 
                     function showError(message) {
@@ -142,14 +157,14 @@
 
                             for (const file of files) {
                                 if (!allowedTypes.includes(file.type)) {
-                                    showError(`The attachment must be PDF, PNG, DOC, DOCX, JPG, JPEG, TIF, TIFF, XLS or XSLX`);
+                                    const formattedTypes = "{{ formattedTypes | escape | safe }}";
+                                    showError(`The attachment must be ${formattedTypes}`);
                                     fileInput.value = '';
                                     return;
                                 }
 
-                                const sizeMB = file.size / (1024 * 1024);
-                                if (sizeMB > maxFileSizeMB) {
-                                    showError(`Each file must be smaller than ${maxFileSizeMB}MB.`);
+                                if (file.size > maxFileSize) {
+                                    showError(`Each file must be smaller than {{ question.maxFileSizeString }}.`);
                                     fileInput.value = '';
                                     return;
                                 }
