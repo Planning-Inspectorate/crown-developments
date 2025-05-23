@@ -5,6 +5,7 @@ import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { buildReviewControllers, viewRepresentationAwaitingReview, viewReviewRedirect } from './controller.js';
 import { buildGetJourneyMiddleware } from '../view/controller.js';
+import { buildValidateRepresentationMiddleware } from '../validation-middleware.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -22,9 +23,17 @@ export function createRoutes(service) {
 	} = buildReviewControllers(service);
 	const questions = getQuestions();
 	const validateReview = buildValidateBody([questions.reviewDecision]);
+	const validatePostRepresentation = buildValidateRepresentationMiddleware(service);
 
 	router.get('/', getJourney, viewReviewRedirect, asyncHandler(viewRepresentationAwaitingReview));
-	router.post('/', getJourney, validateReview, validationErrorHandler, asyncHandler(reviewRepresentation));
+	router.post(
+		'/',
+		getJourney,
+		validatePostRepresentation,
+		validateReview,
+		validationErrorHandler,
+		asyncHandler(reviewRepresentation)
+	);
 
 	router.get('/redact', asyncHandler(redactRepresentation));
 	router.post('/redact', asyncHandler(redactRepresentationPost));

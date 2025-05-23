@@ -6,6 +6,7 @@ import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-respons
 import { representationToManageViewModel } from '@pins/crowndev-lib/forms/representations/view-model.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { clearRepUpdatedSession, readRepUpdatedSession } from '../edit/controller.js';
+import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 
 /**
  * @typedef {import('express').Handler} Handler
@@ -43,6 +44,13 @@ export function validateParams(params) {
  */
 export async function renderRepresentation(req, res, viewData = {}) {
 	const { representationRef } = validateParams(req.params);
+
+	// Show publish case validation errors
+	const errors = readSessionData(req, representationRef, 'errors', [], 'representations');
+	if (errors.length > 0) {
+		res.locals.errorSummary = errors;
+	}
+	clearSessionData(req, representationRef, 'errors', 'representations');
 
 	const applicationReference = res.locals?.journeyResponse?.answers?.applicationReference;
 	const representationUpdated = readRepUpdatedSession(req, representationRef);

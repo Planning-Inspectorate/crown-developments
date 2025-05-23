@@ -178,7 +178,7 @@ export const questionProps = {
 		fieldName: 'representedOrgName',
 		url: 'name-organisation-representing',
 		validators: [
-			new RequiredValidator('Enter the  full name of the organisation you are representing'),
+			new RequiredValidator('Enter the full name of the organisation you are representing'),
 			new StringValidator({
 				minLength: {
 					minLength: 3,

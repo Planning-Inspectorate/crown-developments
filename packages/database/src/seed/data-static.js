@@ -182,7 +182,14 @@ export const APPLICATION_PROCEDURE = [
 		displayName: 'Inquiry'
 	}
 ];
-
+/**
+ *
+ * @type {Readonly<{CONSULTEES: string, INTERESTED_PARTIES: string}>}
+ */
+export const REPRESENTATION_CATEGORY_ID = Object.freeze({
+	CONSULTEES: 'consultees',
+	INTERESTED_PARTIES: 'interested-parties'
+});
 /**
  * @type {import('@prisma/client').Prisma.RepresentationCategoryCreateInput[]}
  */
