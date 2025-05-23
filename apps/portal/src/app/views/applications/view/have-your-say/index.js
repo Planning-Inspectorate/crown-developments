@@ -22,6 +22,11 @@ import {
 	uploadDocumentsController
 } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-documents.js';
 import multer from 'multer';
+import {
+	ALLOWED_EXTENSIONS,
+	ALLOWED_MIME_TYPES,
+	MAX_FILE_SIZE
+} from '@pins/crowndev-lib/forms/representations/question-utils.js';
 
 const applicationIdParam = 'applicationId';
 
@@ -41,7 +46,9 @@ export function createHaveYourSayRoutes(service) {
 	const saveDataToSession = buildSaveDataToSession({ reqParam: applicationIdParam });
 	const saveRepresentation = asyncHandler(buildSaveHaveYourSayController(service));
 	const handleUploads = multer();
-	const uploadDocuments = asyncHandler(uploadDocumentsController(service));
+	const uploadDocuments = asyncHandler(
+		uploadDocumentsController(service, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE)
+	);
 	const deleteDocuments = asyncHandler(deleteDocumentsController(service));
 
 	router.use(isRepresentationWindowOpen);

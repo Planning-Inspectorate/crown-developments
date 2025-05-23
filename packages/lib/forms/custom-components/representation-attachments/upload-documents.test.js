@@ -2,6 +2,7 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { deleteDocumentsController, uploadDocumentsController } from './upload-documents.js';
 import { getDriveItemsByPathData } from '@pins/crowndev-sharepoint/src/fixtures/sharepoint.js';
+import { ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '../../representations/question-utils.js';
 
 describe('upload-documents.js', () => {
 	describe('uploadDocumentsController', () => {
@@ -49,12 +50,17 @@ describe('upload-documents.js', () => {
 				error: mock.fn()
 			};
 
-			const controller = uploadDocumentsController({
-				db: mockDb,
-				logger: mockLogger,
-				sharePointDrive,
-				appName: 'portal'
-			});
+			const controller = uploadDocumentsController(
+				{
+					db: mockDb,
+					logger: mockLogger,
+					sharePointDrive,
+					appName: 'portal'
+				},
+				ALLOWED_EXTENSIONS,
+				ALLOWED_MIME_TYPES,
+				MAX_FILE_SIZE
+			);
 
 			await controller(req, res);
 
@@ -110,12 +116,17 @@ describe('upload-documents.js', () => {
 				error: mock.fn()
 			};
 
-			const controller = uploadDocumentsController({
-				db: mockDb,
-				logger: mockLogger,
-				sharePointDrive,
-				appName: 'portal'
-			});
+			const controller = uploadDocumentsController(
+				{
+					db: mockDb,
+					logger: mockLogger,
+					sharePointDrive,
+					appName: 'portal'
+				},
+				ALLOWED_EXTENSIONS,
+				ALLOWED_MIME_TYPES,
+				MAX_FILE_SIZE
+			);
 
 			await controller(req, res);
 
@@ -183,12 +194,17 @@ describe('upload-documents.js', () => {
 				addNewFolder: async () => mock.fn()
 			};
 
-			const controller = uploadDocumentsController({
-				db: mockDb,
-				logger: mockLogger,
-				sharePointDrive,
-				appName: 'portal'
-			});
+			const controller = uploadDocumentsController(
+				{
+					db: mockDb,
+					logger: mockLogger,
+					sharePointDrive,
+					appName: 'portal'
+				},
+				ALLOWED_EXTENSIONS,
+				ALLOWED_MIME_TYPES,
+				MAX_FILE_SIZE
+			);
 
 			try {
 				await controller(req, res);
@@ -205,12 +221,17 @@ describe('upload-documents.js', () => {
 				body: {}
 			};
 
-			const controller = uploadDocumentsController({
-				db: {},
-				logger: {},
-				sharePointDrive: {},
-				appName: 'portal'
-			});
+			const controller = uploadDocumentsController(
+				{
+					db: {},
+					logger: {},
+					sharePointDrive: {},
+					appName: 'portal'
+				},
+				ALLOWED_EXTENSIONS,
+				ALLOWED_MIME_TYPES,
+				MAX_FILE_SIZE
+			);
 
 			try {
 				await controller(req, {});
@@ -232,12 +253,17 @@ describe('upload-documents.js', () => {
 				render: mock.fn()
 			};
 
-			const controller = uploadDocumentsController({
-				db: {},
-				logger: {},
-				sharePointDrive: {},
-				appName: 'portal'
-			});
+			const controller = uploadDocumentsController(
+				{
+					db: {},
+					logger: {},
+					sharePointDrive: {},
+					appName: 'portal'
+				},
+				ALLOWED_EXTENSIONS,
+				ALLOWED_MIME_TYPES,
+				MAX_FILE_SIZE
+			);
 
 			await controller(req, res);
 

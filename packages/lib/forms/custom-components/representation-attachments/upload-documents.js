@@ -6,8 +6,16 @@ import { isValidUuidFormat } from '../../../util/uuid.js';
 import { notFoundHandler } from '../../../middleware/errors.js';
 import { sortByField } from '../../../util/array.js';
 import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { addSessionData } from '../../../util/session.js';
 
-export function uploadDocumentsController({ db, logger, sharePointDrive, appName }) {
+const CONTENT_UPLOAD_FILE_LIMIT = 4 * 1024 * 1024; // 4MB
+
+export function uploadDocumentsController(
+	{ db, logger, sharePointDrive, appName },
+	allowedFileExtensions,
+	allowedMimeTypes,
+	maxFileSize
+) {
 	return async (req, res) => {
 		const applicationId = req.params.id || req.params.applicationId;
 		if (!applicationId) {
@@ -41,7 +49,13 @@ export function uploadDocumentsController({ db, logger, sharePointDrive, appName
 		);
 		const documents = await fetchDocumentsInFolderPath(sharePointDrive, folderPath);
 		const totalSize = documents.reduce((sum, item) => sum + (item.size || 0), 0);
-		const fileErrors = (await Promise.all(req.files.map((file) => validateUploadedFile(file, logger))))
+		const fileErrors = (
+			await Promise.all(
+				req.files.map((file) =>
+					validateUploadedFile(file, logger, allowedFileExtensions, allowedMimeTypes, maxFileSize)
+				)
+			)
+		)
 			.flat()
 			.filter(Boolean);
 
@@ -67,7 +81,7 @@ export function uploadDocumentsController({ db, logger, sharePointDrive, appName
 		} else {
 			for (const file of req.files) {
 				try {
-					if (file.size >= 4 * 1024 * 1024) {
+					if (file.size > CONTENT_UPLOAD_FILE_LIMIT) {
 						const uploadSession = await sharePointDrive.createLargeDocumentUploadSession(folderPath, file);
 						const uploadUrl = uploadSession.uploadUrl;
 						await processChunkDocumentUpload(file, uploadUrl, logger);
@@ -95,29 +109,12 @@ export function uploadDocumentsController({ db, logger, sharePointDrive, appName
 				});
 			});
 
-			addFilesToSession(req, applicationId, { uploadedFiles }, 'files', submittedForId);
+			addSessionData(req, applicationId, { [submittedForId]: { uploadedFiles } }, 'files');
 		}
 
 		const redirectUrl = getRedirectUrl(applicationId, journeyId, submittedForId);
 		res.redirect(redirectUrl);
 	};
-}
-
-function addFilesToSession(req, id, data, sessionField, submittedForId) {
-	if (!req.session) {
-		throw new Error('request session required');
-	}
-
-	const filesField = (req.session[sessionField] ||= {});
-	const fieldProps = (filesField[id] ||= {});
-	const submittedForIdField = (fieldProps[submittedForId] ||= {});
-
-	const isSafeKey = (key) => !['__proto__', 'constructor', 'prototype'].includes(key);
-	for (const key of Object.keys(data)) {
-		if (isSafeKey(key)) {
-			submittedForIdField[key] = data[key];
-		}
-	}
 }
 
 export function deleteDocumentsController({ logger, sharePointDrive }) {
@@ -138,7 +135,7 @@ export function deleteDocumentsController({ logger, sharePointDrive }) {
 		let uploadedFiles = req.session?.files?.[applicationId]?.[submittedForId]?.uploadedFiles || [];
 		uploadedFiles = uploadedFiles.filter((file) => file.id !== itemId);
 
-		addFilesToSession(req, applicationId, { uploadedFiles }, 'files', submittedForId);
+		addSessionData(req, applicationId, { [submittedForId]: { uploadedFiles } }, 'files');
 
 		const redirectUrl = getRedirectUrl(applicationId, journeyId, submittedForId);
 		res.redirect(redirectUrl);

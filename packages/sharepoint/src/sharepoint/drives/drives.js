@@ -1,5 +1,5 @@
 import { UrlBuilder } from '../../util/url-builder/url-builder.js';
-import { sanitiseFileName } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/document-validation-util.js';
+import { sanitiseFileName } from '../../util/file-utils/file-utils.js';
 
 /** @typedef {import('../../fixtures/sharepoint.js').getDriveItemsByPathData} DriveItemByPathResponse */
 /** @typedef {Array<import('../../fixtures/sharepoint.js').ListItemPermission>} ListItemPermissionsResponse */
