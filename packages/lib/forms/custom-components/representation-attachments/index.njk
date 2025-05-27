@@ -58,8 +58,14 @@
                             <dd class="govuk-summary-list__actions">
                                 <form id="deleteForm{{ loop.index }}" action="{{ currentUrl }}/delete-document/{{ file.id }}" method="POST">
                                     <input type="hidden" name="_csrf" value="{{ _csrf }}">
+                                    <noscript>
+                                        {{ govukButton({
+                                            text: "Remove",
+                                            classes: "govuk-button--warning"
+                                        }) }}
+                                    </noscript>
                                 </form>
-                                <a href="#" role="button" class="js-remove-link govuk-link" data-form-id="deleteForm{{ loop.index }}">Remove</a>
+                                <a href="#" role="button" class="js-remove-link govuk-link js-enabled-link" data-form-id="deleteForm{{ loop.index }}">Remove</a>
                             </dd>
                         </div>
                     {% endfor %}
@@ -83,6 +89,11 @@
                         accept: question.allowedMimeTypes | join(", ")
                     }
                 }) }}
+                <noscript>
+                    {{ govukButton({
+                        text: "Upload"
+                    }) }}
+                </noscript>
             </form>
 
             <form action="" method="post" novalidate>
@@ -172,6 +183,13 @@
                             form.submit();
                         });
                     }
+                });
+
+                window.addEventListener("DOMContentLoaded", () => {
+                    const links = document.querySelectorAll(".js-enabled-link");
+                    links.forEach(link => {
+                        link.style.display = "inline";
+                    });
                 });
             </script>
         </div>
