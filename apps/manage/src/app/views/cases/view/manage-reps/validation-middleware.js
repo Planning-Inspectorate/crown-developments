@@ -23,8 +23,8 @@ export function buildValidateRepresentationMiddleware(services) {
 		const representation = await db.representation.findUnique({
 			where: { reference: representationRef },
 			include: {
-				SubmittedByContact: { include: { jobTitleOrRole: true, orgName: true } },
-				RepresentedContact: { include: { firstName: true, lastName: true } }
+				SubmittedByContact: true,
+				RepresentedContact: true
 			}
 		});
 

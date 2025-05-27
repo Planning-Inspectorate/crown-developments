@@ -157,7 +157,7 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		representedContactUpdate.orgName = edits.orgName;
 	}
 	if ('orgRoleName' in edits) {
-		representedContactUpdate.jobTitleOrRole = edits.orgRoleName;
+		submittedByContactUpdate.jobTitleOrRole = edits.orgRoleName;
 	}
 
 	// on behalf of person for fields

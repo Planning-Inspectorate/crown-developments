@@ -421,7 +421,9 @@ describe('view-model', () => {
 			assert.ok(updates.RepresentedContact);
 			assert.strictEqual(updates.RepresentedContact.upsert?.where, undefined);
 			assert.deepStrictEqual(updates.RepresentedContact.upsert?.create, {
-				orgName: 'Org One',
+				orgName: 'Org One'
+			});
+			assert.deepStrictEqual(updates.SubmittedByContact?.create, {
 				jobTitleOrRole: 'Important role here'
 			});
 		});
