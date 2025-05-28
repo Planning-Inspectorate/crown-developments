@@ -210,15 +210,7 @@ async function processChunkDocumentUpload(file, uploadUrl, logger) {
 	const totalSize = buffer.length;
 	let start = 0;
 
-	const MAX_CHUNKS = Math.ceil(totalSize / CHUNK_SIZE) + 5;
-	let loopCount = 0;
-
 	while (start < totalSize) {
-		if (loopCount++ > MAX_CHUNKS) {
-			logger.error({ fileName: file.originalname }, 'Exceeded max loop iterations during upload.');
-			throw new Error(`${file.originalname}: Chunk upload failed - exceeded max loop iterations during upload`);
-		}
-
 		const end = Math.min(start + CHUNK_SIZE, totalSize);
 		const chunk = buffer.slice(start, end);
 

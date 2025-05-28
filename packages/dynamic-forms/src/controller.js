@@ -149,7 +149,21 @@ export async function question(req, res) {
 		return res.redirect(journey.taskListUrl);
 	}
 
-	const viewModel = questionObj.prepQuestionForRendering(sectionObj, journey);
+	const hasSessionErrors = req.session?.errorSummary?.length > 0 || Object.keys(req.session?.errors || {}).length > 0;
+
+	const viewModel = hasSessionErrors
+		? questionObj.checkForValidationErrors(req, sectionObj, journey)
+		: questionObj.prepQuestionForRendering(sectionObj, journey, {
+				id: req.params.id || req.params.applicationId,
+				currentUrl: req.originalUrl,
+				files: req.session?.files
+			});
+
+	if (req.session) {
+		delete req.session.errors;
+		delete req.session.errorSummary;
+	}
+
 	return questionObj.renderAction(res, viewModel);
 }
 

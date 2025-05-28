@@ -27,7 +27,6 @@ import {
 	ALLOWED_MIME_TYPES,
 	MAX_FILE_SIZE
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
-import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
 
 const applicationIdParam = 'applicationId';
 
@@ -55,7 +54,7 @@ export function createHaveYourSayRoutes(service) {
 	router.use(isRepresentationWindowOpen);
 
 	router.get('/', asyncHandler(viewHaveYourSayPage));
-	router.get('/:section/:question', getJourneyResponse, getJourney, uploadDocumentQuestion, question);
+	router.get('/:section/:question', getJourneyResponse, getJourney, question);
 	router.post(
 		'/:section/:question',
 		getJourneyResponse,
