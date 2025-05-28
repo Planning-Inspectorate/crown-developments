@@ -173,7 +173,7 @@ export function representationsContactQuestions({ prefix }) {
 	questions[`${prefix}SelectAttachments`] = {
 		type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS,
 		title: 'Attachments',
-		question: 'Select attachments',
+		question: 'Select Attachments',
 		fieldName: `${prefix}Attachments`,
 		url: 'select-attachments',
 		validators: [new DocumentUploadValidator(`${prefix}Attachments`)]
