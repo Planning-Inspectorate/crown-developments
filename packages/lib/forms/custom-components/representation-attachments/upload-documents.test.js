@@ -6,7 +6,7 @@ import { ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '../../rep
 
 describe('upload-documents.js', () => {
 	describe('uploadDocumentsController', () => {
-		it('should successfully upload document from portal app', async () => {
+		it('should successfully upload document', async () => {
 			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
 			const file = {
 				originalname: 'test4.pdf',
@@ -67,69 +67,6 @@ describe('upload-documents.js', () => {
 			assert.strictEqual(
 				redirectCalledWith,
 				'/applications/166c1754-f7dd-440a-b6f1-0f535ea008d5/have-your-say/myself/select-attachments'
-			);
-		});
-		it('should successfully upload document from manage app', async () => {
-			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
-			const file = {
-				originalname: 'test4.pdf',
-				mimetype: 'application/pdf',
-				buffer: Buffer.from(fakePdfContent, 'utf-8'),
-				size: 227787
-			};
-			let redirectCalledWith;
-			const req = {
-				params: { id: '166c1754-f7dd-440a-b6f1-0f535ea008d5' },
-				sessionID: 'session123',
-				files: [file],
-				session: {},
-				body: {}
-			};
-			const res = {
-				locals: {
-					journeyResponse: {
-						journeyId: 'add-representation',
-						answers: { submittedForId: 'myself' }
-					}
-				},
-				redirect: (url) => (redirectCalledWith = url)
-			};
-
-			const mockDb = {
-				crownDevelopment: {
-					findUnique: mock.fn(() => ({ id: '166c1754-f7dd-440a-b6f1-0f535ea008d5', reference: 'CROWN/2025/00001' }))
-				}
-			};
-
-			const sharePointDrive = {
-				getItemsByPath: () => getDriveItemsByPathData.value,
-				addNewFolder: async () => mock.fn(),
-				uploadDocumentToFolder: async () => mock.fn(),
-				createLargeDocumentUploadSession: async () => ({ uploadUrl: 'http://upload' })
-			};
-
-			const mockLogger = {
-				info: mock.fn(),
-				error: mock.fn()
-			};
-
-			const controller = uploadDocumentsController(
-				{
-					db: mockDb,
-					logger: mockLogger,
-					getSharePointDrive: () => sharePointDrive,
-					appName: 'manage'
-				},
-				ALLOWED_EXTENSIONS,
-				ALLOWED_MIME_TYPES,
-				MAX_FILE_SIZE
-			);
-
-			await controller(req, res);
-
-			assert.strictEqual(
-				redirectCalledWith,
-				'/cases/166c1754-f7dd-440a-b6f1-0f535ea008d5/manage-representations/add-representation/myself/select-attachments'
 			);
 		});
 		it('should return error messages when total size of files in folder exceeds 1GB and file already exists in folder', async () => {
@@ -342,7 +279,7 @@ describe('upload-documents.js', () => {
 		});
 	});
 	describe('deleteDocumentsController', () => {
-		it('should successfully delete document from portal app', async () => {
+		it('should successfully delete document', async () => {
 			const mockLogger = {
 				error: mock.fn()
 			};
@@ -388,76 +325,12 @@ describe('upload-documents.js', () => {
 
 			const controller = deleteDocumentsController({
 				logger: mockLogger,
-				appName: 'portal',
 				sharePointDrive: mockSharePointDrive
 			});
 
 			await controller(req, res);
 
 			assert.strictEqual(redirectCalledWith, '/applications/app456/have-your-say/myself/select-attachments');
-			assert.deepStrictEqual(req.session.files.app456.myself.uploadedFiles, [
-				{
-					id: 'doc999',
-					name: 'keep.pdf'
-				}
-			]);
-		});
-		it('should successfully delete document from manage app', async () => {
-			const mockLogger = {
-				error: mock.fn()
-			};
-
-			const mockSharePointDrive = {
-				deleteDocumentById: () => mock.fn()
-			};
-
-			const req = {
-				params: {
-					id: 'app456',
-					documentId: 'doc123'
-				},
-				session: {
-					files: {
-						app456: {
-							myself: {
-								uploadedFiles: [
-									{ id: 'doc123', name: 'to-delete.pdf' },
-									{ id: 'doc999', name: 'keep.pdf' }
-								]
-							}
-						}
-					}
-				}
-			};
-
-			const res = {
-				locals: {
-					journeyResponse: {
-						journeyId: 'add-representation',
-						answers: {
-							submittedForId: 'myself'
-						}
-					}
-				},
-				redirect: (url) => {
-					redirectCalledWith = url;
-				}
-			};
-
-			let redirectCalledWith;
-
-			const controller = deleteDocumentsController({
-				logger: mockLogger,
-				appName: 'manage',
-				sharePointDrive: mockSharePointDrive
-			});
-
-			await controller(req, res);
-
-			assert.strictEqual(
-				redirectCalledWith,
-				'/cases/app456/manage-representations/add-representation/myself/select-attachments'
-			);
 			assert.deepStrictEqual(req.session.files.app456.myself.uploadedFiles, [
 				{
 					id: 'doc999',
