@@ -5,8 +5,7 @@
 {% from "govuk/components/label/macro.njk" import govukLabel %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
-
-{% import "custom-components/representation-information/index.njk" as representationInformation %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
 
 {% block before_content %}
     <div class="govuk-grid-row">
@@ -54,7 +53,43 @@
                     classes: question.inputClasses
                 }) }}
 
-                {{ representationInformation.renderRepresentationInformation("Do not include these details") }}
+                {% set detailsContent %}
+                    <h2 class="govuk-heading-m">
+                        Use of language, hyperlinks and sensitive information
+                    </h2>
+                    <p class="govuk-body">
+                        You should not use racist, inflammatory or abusive language, or include sensitive information (also called special category information) about yourself or others in your comments.
+                        <br>
+                        Do not include links to third party websites. You can include links to either GOV.UK or websites for chartered professional institutes like IEMA.
+                    </p>
+                    <h2 class="govuk-heading-m">
+                        Examples of sensitive information
+                    </h2>
+                    <p class="govuk-body">Sensitive information refers to:</p>
+                    <ul class="govuk-list govuk-list--bullet">
+                        <li>comments from children</li>
+                        <li>information relating to children</li>
+                        <li>information relating to health</li>
+                        <li>information relating to crime</li>
+                    </ul>
+                    <p class="govuk-body">It also means any information relating to an individual's:</p>
+                    <ul class="govuk-list govuk-list--bullet">
+                        <li>race</li>
+                        <li>ethnic origin</li>
+                        <li>politics</li>
+                        <li>religion</li>
+                        <li>trade union membership</li>
+                        <li>genetics</li>
+                        <li>physical characteristics</li>
+                        <li>sex life</li>
+                        <li>sexual orientation</li>
+                    </ul>
+                {% endset %}
+
+                {{ govukDetails({
+                    summaryText: "Do not include these details",
+                    html: detailsContent | safe
+                }) }}
 
                 {{ govukButton({
                     text: continueButtonText,
