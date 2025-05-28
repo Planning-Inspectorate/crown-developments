@@ -6,7 +6,6 @@ import { referenceDataToRadioOptions } from '../../util/questions.js';
 import { CONTACT_PREFERENCE } from '@pins/crowndev-database/src/seed/data-static.js';
 import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
 import MultiFieldInputValidator from '@pins/dynamic-forms/src/validator/multi-field-input-validator.js';
-import DocumentUploadValidator from '@pins/dynamic-forms/src/validator/document-upload-validator.js';
 
 /**
  *
@@ -82,7 +81,7 @@ export function representationsContactQuestions({ prefix }) {
 
 	questions[`${prefix}Email`] = {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-		title: 'Email address',
+		title: 'Email Address',
 		question: 'What is your email address?',
 		hint: 'We will use your email address to send you information about this application. We will not publish your email address.',
 		fieldName: `${prefix}Email`,
@@ -109,7 +108,7 @@ export function representationsContactQuestions({ prefix }) {
 
 	questions[`${prefix}TellUsAboutApplication`] = {
 		type: CUSTOM_COMPONENTS.REPRESENTATION_COMMENT,
-		title: 'Tell us about application',
+		title: 'Tell us about Application',
 		question: 'What do you want to say about this application?',
 		fieldName: `${prefix}Comment`,
 		label: 'Application comments',
@@ -163,20 +162,21 @@ export function representationsContactQuestions({ prefix }) {
 
 	questions[`${prefix}HasAttachments`] = {
 		type: COMPONENT_TYPES.BOOLEAN,
-		title: 'Attachments uploaded?',
+		title: 'Do you want to include attachments with your comment?',
 		question: 'Do you want to include attachments with your comment?',
 		fieldName: `${prefix}ContainsAttachments`,
 		url: 'do-you-want-attachment',
 		validators: [new RequiredValidator('Select yes if you want to include attachments')]
 	};
 
+	// TODO: replace placeholder field as part of CROWN-649
 	questions[`${prefix}SelectAttachments`] = {
-		type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS,
-		title: 'Attachments',
+		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+		title: 'Select Attachments',
 		question: 'Select Attachments',
 		fieldName: `${prefix}Attachments`,
 		url: 'select-attachments',
-		validators: [new DocumentUploadValidator(`${prefix}Attachments`)]
+		validators: []
 	};
 
 	return questions;

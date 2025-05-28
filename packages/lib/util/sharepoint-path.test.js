@@ -1,10 +1,5 @@
 import { describe, it } from 'node:test';
-import {
-	APPLICATION_FOLDERS,
-	buildPath,
-	caseReferenceToFolderName,
-	getSharePointReceivedPathId
-} from './sharepoint-path.js';
+import { caseReferenceToFolderName, getSharePointReceivedPathId } from './sharepoint-path.js';
 import assert from 'node:assert';
 
 describe('sharepoint-path', () => {
@@ -62,13 +57,6 @@ describe('sharepoint-path', () => {
 				getSharePointReceivedPathId(mockSharePointDrive, { caseRootName: 'caseRoot', user: 'Applicant' }),
 				new Error('Folder not found in this path: caseRoot/Received')
 			);
-		});
-	});
-	describe('buildPath', () => {
-		it('should build path with provided parameters', () => {
-			const caseReferenceFolderName = 'CROWN-2025-0100001';
-			const actual = buildPath(caseReferenceFolderName, APPLICATION_FOLDERS.SYSTEM, APPLICATION_FOLDERS.SESSIONS);
-			assert.strictEqual(actual, 'CROWN-2025-0100001/System/Sessions');
 		});
 	});
 });
