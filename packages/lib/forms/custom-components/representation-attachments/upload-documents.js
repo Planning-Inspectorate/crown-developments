@@ -11,7 +11,7 @@ import { addSessionData } from '../../../util/session.js';
 const CONTENT_UPLOAD_FILE_LIMIT = 4 * 1024 * 1024; // 4MB
 
 export function uploadDocumentsController(
-	{ db, logger, sharePointDrive, appName },
+	{ db, logger, appName, sharePointDrive, getSharePointDrive },
 	allowedFileExtensions,
 	allowedMimeTypes,
 	maxFileSize
@@ -24,6 +24,8 @@ export function uploadDocumentsController(
 		if (!isValidUuidFormat(applicationId)) {
 			return notFoundHandler(req, res);
 		}
+
+		const drive = sharePointDrive ? sharePointDrive : getSharePointDrive(req.session);
 
 		const crownDevelopment = await fetchPublishedApplication({
 			id: applicationId,
@@ -38,7 +40,7 @@ export function uploadDocumentsController(
 		const submittedForId = getSubmittedForId(journeyResponse?.answers);
 
 		const folderPath = await createSessionSharepointFolders(
-			sharePointDrive,
+			drive,
 			logger,
 			caseReference,
 			appName,
@@ -47,7 +49,7 @@ export function uploadDocumentsController(
 			journeyId,
 			submittedForId
 		);
-		const documents = await fetchDocumentsInFolderPath(sharePointDrive, folderPath);
+		const documents = await fetchDocumentsInFolderPath(drive, folderPath);
 		const totalSize = documents.reduce((sum, item) => sum + (item.size || 0), 0);
 		const fileErrors = (
 			await Promise.all(
@@ -82,11 +84,11 @@ export function uploadDocumentsController(
 			for (const file of req.files) {
 				try {
 					if (file.size > CONTENT_UPLOAD_FILE_LIMIT) {
-						const uploadSession = await sharePointDrive.createLargeDocumentUploadSession(folderPath, file);
+						const uploadSession = await drive.createLargeDocumentUploadSession(folderPath, file);
 						const uploadUrl = uploadSession.uploadUrl;
 						await processChunkDocumentUpload(file, uploadUrl, logger);
 					} else {
-						await sharePointDrive.uploadDocumentToFolder(folderPath, file);
+						await drive.uploadDocumentToFolder(folderPath, file);
 					}
 				} catch (error) {
 					const filename = file.originalname;
@@ -98,7 +100,7 @@ export function uploadDocumentsController(
 				}
 			}
 
-			const documentsUpdated = await fetchDocumentsInFolderPath(sharePointDrive, folderPath);
+			const documentsUpdated = await fetchDocumentsInFolderPath(drive, folderPath);
 			const uploadedFiles = [];
 			documentsUpdated.forEach((document) => {
 				uploadedFiles.push({
@@ -112,13 +114,15 @@ export function uploadDocumentsController(
 			addSessionData(req, applicationId, { [submittedForId]: { uploadedFiles } }, 'files');
 		}
 
-		const redirectUrl = getRedirectUrl(applicationId, journeyId, submittedForId);
+		const redirectUrl = getRedirectUrl(appName, applicationId, journeyId, submittedForId);
 		res.redirect(redirectUrl);
 	};
 }
 
-export function deleteDocumentsController({ logger, sharePointDrive }) {
+export function deleteDocumentsController({ logger, appName, sharePointDrive, getSharePointDrive }) {
 	return async (req, res) => {
+		const drive = sharePointDrive ? sharePointDrive : getSharePointDrive(req.session);
+
 		const applicationId = req.params.id || req.params.applicationId;
 		const itemId = req.params.documentId;
 		const journeyResponse = res.locals?.journeyResponse;
@@ -126,7 +130,7 @@ export function deleteDocumentsController({ logger, sharePointDrive }) {
 		const submittedForId = getSubmittedForId(journeyResponse?.answers);
 
 		try {
-			await sharePointDrive.deleteDocumentById(itemId);
+			await drive.deleteDocumentById(itemId);
 		} catch (error) {
 			logger.error({ error, applicationId, itemId }, `Error deleting file: ${itemId} from Sharepoint folder`);
 			throw new Error('Failed to delete file');
@@ -137,7 +141,7 @@ export function deleteDocumentsController({ logger, sharePointDrive }) {
 
 		addSessionData(req, applicationId, { [submittedForId]: { uploadedFiles } }, 'files');
 
-		const redirectUrl = getRedirectUrl(applicationId, journeyId, submittedForId);
+		const redirectUrl = getRedirectUrl(appName, applicationId, journeyId, submittedForId);
 		res.redirect(redirectUrl);
 	};
 }
@@ -244,13 +248,18 @@ async function processChunkDocumentUpload(file, uploadUrl, logger) {
 	logger.info({ fileName: file.originalname }, 'large file successfully uploaded');
 }
 
-function getRedirectUrl(applicationId, journeyId, submittedForId) {
+function getRedirectUrl(appName, applicationId, journeyId, submittedForId) {
 	const journeyMap = {
 		myself: 'myself',
 		'on-behalf-of': 'agent'
 	};
 
-	return `/applications/${applicationId}/${journeyId}/${journeyMap[submittedForId]}/select-attachments`;
+	const redirectUrlMap = {
+		'have-your-say': `/applications/${applicationId}/${journeyId}/${journeyMap[submittedForId]}/select-attachments`,
+		'add-representation': `/cases/${applicationId}/manage-representations/${journeyId}/${journeyMap[submittedForId]}/select-attachments`
+	};
+
+	return redirectUrlMap[journeyId];
 }
 
 function getSubmittedForId(answers) {
