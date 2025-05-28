@@ -35,7 +35,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 				},
 				regex: {
 					regex: "^[A-Za-z0-9 ',’-]+$",
-					regexMessage: `${title} organisation must only include letters, spaces, hyphens, apostrophes or numbers`
+					regexMessage: `${title} organisation must only include letters, spaces, hyphens, apostrophes, commas or numbers`
 				}
 			})
 		]
