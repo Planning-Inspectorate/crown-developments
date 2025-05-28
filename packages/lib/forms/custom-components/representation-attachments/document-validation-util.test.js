@@ -159,16 +159,16 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 	describe('fileAlreadyExistsInFolder', () => {
 		it('should return true if file already exists in documents list', () => {
 			const documents = [{ name: 'test1.pdf' }, { name: 'test2.pdf' }, { name: 'test3.pdf' }];
-			const files = [{ originalname: 'test4.pdf' }, { originalname: 'test5.pdf' }, { originalname: 'test3.pdf' }];
+			const files = [{ name: 'test4.pdf' }, { name: 'test5.pdf' }, { name: 'test3.pdf' }];
 			assert.strictEqual(fileAlreadyExistsInFolder(documents, files), true);
 		});
 		it('should return false if file does not exists in documents list', () => {
 			const documents = [{ name: 'test1.pdf' }, { name: 'test2.pdf' }, { name: 'test3.pdf' }];
-			const files = [{ originalname: 'test4.pdf' }, { originalname: 'test5.pdf' }, { originalname: 'test6.pdf' }];
+			const files = [{ name: 'test4.pdf' }, { name: 'test5.pdf' }, { name: 'test6.pdf' }];
 			assert.strictEqual(fileAlreadyExistsInFolder(documents, files), false);
 		});
 		it('should return false if documents list is empty', () => {
-			const files = [{ originalname: 'test4.pdf' }, { originalname: 'test5.pdf' }, { originalname: 'test3.pdf' }];
+			const files = [{ name: 'test4.pdf' }, { name: 'test5.pdf' }, { name: 'test3.pdf' }];
 			assert.strictEqual(fileAlreadyExistsInFolder([], files), false);
 		});
 		it('should return false if files list is empty', () => {
