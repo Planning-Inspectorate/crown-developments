@@ -30,6 +30,7 @@
     "file-type": "*",
     "govuk-frontend": "*",
     "helmet": "*",
+    "jszip": "*",
     "multer": "*",
     "nunjucks": "*",
     "pdf-lib": "*",
