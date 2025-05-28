@@ -3,7 +3,6 @@ import assert from 'node:assert';
 import { CUSTOM_COMPONENTS } from '../index.js';
 import DocumentUploadValidator from '@pins/dynamic-forms/src/validator/document-upload-validator.js';
 import RepresentationAttachments from './question.js';
-import { ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '../../representations/question-utils.js';
 
 describe('./lib/forms/custom-components/representation-attachments/question.js', () => {
 	const question = new RepresentationAttachments({
@@ -12,10 +11,6 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 		question: 'Select Attachments',
 		fieldName: 'myselfAttachments',
 		url: 'select-attachments',
-		allowedFileExtensions: ALLOWED_EXTENSIONS,
-		allowedMimeTypes: ALLOWED_MIME_TYPES,
-		maxFileSizeValue: MAX_FILE_SIZE,
-		maxFileSizeString: '20MB',
 		validators: [new DocumentUploadValidator('myselfAttachments')]
 	});
 	describe('RepresentationAttachmentsQuestion', () => {
@@ -135,20 +130,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 					html: undefined,
 					hint: undefined,
 					interfaceType: undefined,
-					autocomplete: undefined,
-					allowedFileExtensions: ['pdf', 'png', 'jpg', 'jpeg', 'tif', 'tiff', 'doc', 'docx', 'xls', 'xlsx'],
-					allowedMimeTypes: [
-						'application/pdf',
-						'image/png',
-						'image/jpeg',
-						'image/tiff',
-						'application/msword',
-						'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-						'application/vnd.ms-excel',
-						'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-					],
-					maxFileSizeValue: 20971520,
-					maxFileSizeString: '20MB'
+					autocomplete: undefined
 				},
 				answer: { a: 1 },
 				layoutTemplate: 'template',
@@ -192,20 +174,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 					html: undefined,
 					hint: undefined,
 					interfaceType: undefined,
-					autocomplete: undefined,
-					allowedFileExtensions: ['pdf', 'png', 'jpg', 'jpeg', 'tif', 'tiff', 'doc', 'docx', 'xls', 'xlsx'],
-					allowedMimeTypes: [
-						'application/pdf',
-						'image/png',
-						'image/jpeg',
-						'image/tiff',
-						'application/msword',
-						'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-						'application/vnd.ms-excel',
-						'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-					],
-					maxFileSizeValue: 20971520,
-					maxFileSizeString: '20MB'
+					autocomplete: undefined
 				},
 				answer: { a: 1 },
 				layoutTemplate: 'template',
