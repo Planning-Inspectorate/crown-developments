@@ -3,11 +3,27 @@ import fileType from 'file-type';
 import * as CFB from 'cfb';
 import { PDFDocument } from 'pdf-lib';
 
-export async function validateUploadedFile(file, logger, allowedFileExtensions, allowedMimeTypes, maxFileSize) {
+const ALLOWED_MIME_TYPES = new Set([
+	'application/pdf',
+	'image/png',
+	'image/jpeg',
+	'image/tiff',
+	'application/msword',
+	'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+	'application/vnd.ms-excel',
+	'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+	'application/x-cfb'
+]);
+
+const ALLOWED_EXTENSIONS = new Set(['pdf', 'png', 'jpg', 'jpeg', 'tif', 'tiff', 'doc', 'docx', 'xls', 'xlsx', 'cfb']);
+
+const MAX_FILE_SIZE = 20 * 1024 * 1024;
+
+export async function validateUploadedFile(file, logger) {
 	const validationErrors = [];
 	const { originalname, mimetype, buffer, size } = file;
 
-	if (!allowedMimeTypes.includes(mimetype)) {
+	if (!ALLOWED_MIME_TYPES.has(mimetype)) {
 		validationErrors.push({
 			text: `${originalname}: The attachment must be PDF, PNG, DOC, DOCX, JPG, JPEG, TIF, TIFF, XLS or XLSX`,
 			href: '#upload-form'
@@ -39,8 +55,6 @@ export async function validateUploadedFile(file, logger, allowedFileExtensions, 
 		});
 	}
 
-	// Compound File Binary (.cfb) is a Microsoft file container format that acts like a mini filesystem inside a file
-	// common users include older Microsoft Office files such as .doc and .xls
 	if ((ext === 'cfb' || mime === 'application/x-cfb') && (await isDocOrXlsEncrypted(buffer))) {
 		validationErrors.push({
 			text: `${originalname}: File must not be password protected`,
@@ -48,18 +62,14 @@ export async function validateUploadedFile(file, logger, allowedFileExtensions, 
 		});
 	}
 
-	// this check is to prevent file spoofing and checks the parsed result returned from file-type library
-	if (
-		!new Set([...allowedMimeTypes, 'application/x-cfb']).has(mime) ||
-		!new Set([...allowedFileExtensions, 'cfb']).has(ext)
-	) {
+	if (!ALLOWED_MIME_TYPES.has(mime) || !ALLOWED_EXTENSIONS.has(ext)) {
 		validationErrors.push({
-			text: `${originalname}: File signature mismatch: declared as .${mimetype} but detected as .${ext} (${mime})`,
+			text: `${originalname}: File signature mismatch: got ${mime} (${ext})`,
 			href: '#upload-form'
 		});
 	}
 
-	if (size > maxFileSize) {
+	if (size > MAX_FILE_SIZE) {
 		validationErrors.push({
 			text: `${originalname}: The attachment must be smaller than 20MB`,
 			href: '#upload-form'
@@ -95,4 +105,14 @@ function isDocOrXlsEncrypted(buffer) {
 export function fileAlreadyExistsInFolder(documents, files) {
 	const sharepointFolderFileNames = documents.map((document) => document.name);
 	return files.map((file) => file.originalname).some((fileName) => sharepointFolderFileNames.includes(fileName));
+}
+
+export function sanitiseFileName(fileName) {
+	const cleaned = fileName.replace(/["*:<>?/\\|#]/g, '_');
+	const trimmed = cleaned.replace(/[.\s]+$/, '');
+	if (trimmed.startsWith('~$')) {
+		return trimmed.replace(/^~\$/, '');
+	}
+
+	return trimmed;
 }

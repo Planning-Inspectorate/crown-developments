@@ -8,19 +8,6 @@ import AddressValidator from '@pins/dynamic-forms/src/validator/address-validato
 import MultiFieldInputValidator from '@pins/dynamic-forms/src/validator/multi-field-input-validator.js';
 import DocumentUploadValidator from '@pins/dynamic-forms/src/validator/document-upload-validator.js';
 
-export const ALLOWED_EXTENSIONS = ['pdf', 'png', 'jpg', 'jpeg', 'tif', 'tiff', 'doc', 'docx', 'xls', 'xlsx'];
-export const ALLOWED_MIME_TYPES = [
-	'application/pdf',
-	'image/png',
-	'image/jpeg',
-	'image/tiff',
-	'application/msword',
-	'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-	'application/vnd.ms-excel',
-	'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-];
-export const MAX_FILE_SIZE = 20 * 1024 * 1024;
-
 /**
  *
  * @param {Object} opts
@@ -189,10 +176,6 @@ export function representationsContactQuestions({ prefix }) {
 		question: 'Select attachments',
 		fieldName: `${prefix}Attachments`,
 		url: 'select-attachments',
-		allowedFileExtensions: ALLOWED_EXTENSIONS,
-		allowedMimeTypes: ALLOWED_MIME_TYPES,
-		maxFileSizeValue: MAX_FILE_SIZE,
-		maxFileSizeString: '20MB',
 		validators: [new DocumentUploadValidator(`${prefix}Attachments`)]
 	};
 
