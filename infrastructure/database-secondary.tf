@@ -3,6 +3,7 @@ resource "azurerm_mssql_server" "secondary" {
   #checkov:skip=CKV_AZURE_113: Public access enabled for testing
   #checkov:skip=CKV_AZURE_23: Auditing to be added later
   #checkov:skip=CKV_AZURE_24: Auditing to be added later
+  #checkov:skip=CKV2_AZURE_2: "Ensure that Vulnerability Assessment (VA) is enabled on a SQL server by setting a Storage Account" - not required for secondary
   name                          = "${local.org}-sql-${local.secondary_resource_suffix}"
   resource_group_name           = azurerm_resource_group.secondary.name
   location                      = module.secondary_region.location
