@@ -17,6 +17,17 @@ import {
 	viewHaveYourSayDeclarationPage
 } from './controller.js';
 import { buildSaveHaveYourSayController, viewHaveYourSaySuccessPage } from './save.js';
+import {
+	deleteDocumentsController,
+	uploadDocumentsController
+} from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-documents.js';
+import multer from 'multer';
+import {
+	ALLOWED_EXTENSIONS,
+	ALLOWED_MIME_TYPES,
+	MAX_FILE_SIZE
+} from '@pins/crowndev-lib/forms/representations/question-utils.js';
+import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
 
 const applicationIdParam = 'applicationId';
 
@@ -35,10 +46,16 @@ export function createHaveYourSayRoutes(service) {
 	const viewHaveYourSayPage = buildHaveYourSayPage(service);
 	const saveDataToSession = buildSaveDataToSession({ reqParam: applicationIdParam });
 	const saveRepresentation = asyncHandler(buildSaveHaveYourSayController(service));
+	const handleUploads = multer();
+	const uploadDocuments = asyncHandler(
+		uploadDocumentsController(service, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE)
+	);
+	const deleteDocuments = asyncHandler(deleteDocumentsController(service));
+
 	router.use(isRepresentationWindowOpen);
 
 	router.get('/', asyncHandler(viewHaveYourSayPage));
-	router.get('/:section/:question', getJourneyResponse, getJourney, question);
+	router.get('/:section/:question', getJourneyResponse, getJourney, uploadDocumentQuestion, question);
 	router.post(
 		'/:section/:question',
 		getJourneyResponse,
@@ -47,6 +64,16 @@ export function createHaveYourSayRoutes(service) {
 		validationErrorHandler,
 		buildSave(saveDataToSession)
 	);
+
+	router.post(
+		'/:section/:question/upload-documents',
+		getJourneyResponse,
+		getJourney,
+		handleUploads.array('files[]', 3),
+		uploadDocuments
+	);
+
+	router.post('/:section/:question/delete-document/:documentId', getJourneyResponse, getJourney, deleteDocuments);
 
 	router.get('/check-your-answers', addRepresentationErrors, getJourneyResponse, getJourney, (req, res) =>
 		list(req, res, '', {})

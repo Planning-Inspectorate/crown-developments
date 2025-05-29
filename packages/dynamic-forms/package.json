@@ -10,6 +10,7 @@
     "date-fns-tz": "*",
     "escape-html": "*",
     "express-validator": "*",
+    "multer": "*",
     "nunjucks": "*"
   },
   "imports": {

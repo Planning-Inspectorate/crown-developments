@@ -84,6 +84,7 @@ export function loadConfig() {
 	}
 
 	config = {
+		appName: 'portal',
 		appHostname: APP_HOSTNAME,
 		cacheControl: {
 			maxAge: CACHE_CONTROL_MAX_AGE || '1d'
