@@ -113,7 +113,6 @@ export function loadConfig() {
 	if (!govNotifyDisabled) {
 		const props = {
 			GOV_NOTIFY_API_KEY,
-			GOV_NOTIFY_TEST_TEMPLATE_ID,
 			GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
 			GOV_NOTIFY_ACK_REP_TEMPLATE_ID,
 			GOV_NOTIFY_LPA_QNR_TEMPLATE_ID,
