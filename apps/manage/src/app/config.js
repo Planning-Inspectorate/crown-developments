@@ -130,6 +130,7 @@ export function loadConfig() {
 	const protocol = APP_HOSTNAME?.startsWith('localhost') ? 'http://' : 'https://';
 
 	config = {
+		appName: 'manage',
 		appHostname: APP_HOSTNAME,
 		portalBaseUrl: PORTAL_HOSTNAME,
 		auth: {
