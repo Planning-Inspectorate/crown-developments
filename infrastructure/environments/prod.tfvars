@@ -24,7 +24,7 @@ apps_config = {
   }
 
   feature_flags = {
-    portal_not_live      = true
+    portal_not_live      = false
     upload_docs_not_live = true
   }
 
@@ -41,15 +41,15 @@ apps_config = {
   }
 
   gov_notify = {
-    disabled = true
+    disabled = false
     templates = {
-      test_template_id                = "" # TODO
+      test_template_id                = "" #TODO
       pre_ack_template_id             = "c61134de-6fb5-4fd5-8f4a-d3707a9c15df"
-      ack_rep_template_id             = "" # TODO
-      lpa_qnr_template_id             = "" # TODO
-      app_rec_with_fee_template_id    = "" # TODO
-      app_rec_without_fee_template_id = "" # TODO
-      app_not_nat_imp_template_id     = "" # TODO
+      ack_rep_template_id             = "90c0595a-31f6-41b0-ab32-c046a23570c3"
+      lpa_qnr_template_id             = "5bf5ac71-2498-4144-80e9-12b9d7cbd3de"
+      app_rec_with_fee_template_id    = "6b7e7f49-e0da-4dc7-82dd-2faf033921d3"
+      app_rec_without_fee_template_id = "c544f588-fdb2-449f-82ad-cf3f96c8aa43"
+      app_not_nat_imp_template_id     = "8c8c5976-ddad-4837-8af5-b7a9ba0db4a4"
     }
   }
 
