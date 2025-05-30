@@ -33,6 +33,7 @@ describe('view-model', () => {
 				applicationAcceptedDate: '2025-10-09T23:00:00.000Z',
 				representationsPeriodStartDate: '2025-10-09T23:00:00.000Z',
 				representationsPeriodEndDate: '2025-10-09T23:00:00.000Z',
+				representationsPublishDate: '2025-10-09T09:00:00.000Z',
 				decisionDate: '2025-10-09T23:00:00.000Z',
 				DecisionOutcome: {
 					displayName: 'Approved'
@@ -62,7 +63,8 @@ describe('view-model', () => {
 				representationsPeriodEndDate: '10 Oct 2025',
 				representationsPeriodEndDateTime: '10 Oct 2025 00:00',
 				representationsPeriodStartDate: '10 Oct 2025',
-				representationsPeriodStartDateTime: '10 Oct 2025 00:00'
+				representationsPeriodStartDateTime: '10 Oct 2025 00:00',
+				representationsPublishDateTime: '9 Oct 2025 10:00'
 			});
 		});
 		it(`should map site address if present`, () => {
