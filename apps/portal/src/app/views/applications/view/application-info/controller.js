@@ -2,7 +2,12 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { applicationLinks, crownDevelopmentToViewModel } from '../view-model.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { fetchPublishedApplication } from '#util/applications.js';
-import { nowIsWithinRange } from '@pins/dynamic-forms/src/lib/date-utils.js';
+import {
+	dateIsAfterToday,
+	dateIsToday,
+	isNowAfterStartDate,
+	nowIsWithinRange
+} from '@pins/dynamic-forms/src/lib/date-utils.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -71,7 +76,39 @@ export function buildApplicationInformationPage(service) {
 			shouldShowImportantDatesSection,
 			crownDevelopmentFields,
 			shouldShowApplicationDecisionSection,
-			showHaveYourSayInfo: nowIsWithinRange(haveYourSayPeriod?.start, haveYourSayPeriod?.end)
+			haveYourSayStatus: getHaveYourSayStatus(crownDevelopmentFields, haveYourSayPeriod, representationsPublishDate)
 		});
 	};
+}
+
+function getHaveYourSayStatus(crownDevelopmentFields, haveYourSayPeriod, representationsPublishDate) {
+	const start = haveYourSayPeriod?.start;
+	const end = haveYourSayPeriod?.end;
+
+	if (nowIsWithinRange(start, end)) {
+		return 'open';
+	}
+
+	if (dateIsAfterToday(start)) {
+		return 'notOpenDatesSet';
+	}
+
+	if (!start && !end) {
+		return 'notOpenDatesNotSet';
+	}
+
+	const isAfterRepresentationsPeriodEndDate = isNowAfterStartDate(end);
+	const repsDateIsTodayOrPast =
+		dateIsToday(representationsPublishDate) || isNowAfterStartDate(representationsPublishDate);
+	const repsDateIsFuture = dateIsAfterToday(representationsPublishDate);
+
+	if (isAfterRepresentationsPeriodEndDate && repsDateIsTodayOrPast) {
+		return 'closedRepsPublished';
+	}
+
+	if (isAfterRepresentationsPeriodEndDate && repsDateIsFuture) {
+		return 'closedPublishedDateInFuture';
+	}
+
+	return 'closedRepsPublishedDateNotSet';
 }

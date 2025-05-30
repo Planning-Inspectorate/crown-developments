@@ -1,0 +1,34 @@
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% macro renderHaveYourSayInformation(haveYourSayStatus, crownDevelopmentFields) %}
+    <h2 id="procedure" class="govuk-heading-m">Have your say</h2>
+
+    {% if haveYourSayStatus === 'open' %}
+        <p class="govuk-body">Use this service to have your say about the application.</p>
+        <p class="govuk-body">We'll ask for your personal details and your comments about this application.</p>
+        <p class="govuk-body">The representation period is open from: {{ crownDevelopmentFields.representationsPeriodStartDateTime }} - {{ crownDevelopmentFields.representationsPeriodEndDateTime }}</p>
+        <br>
+        {{ govukButton({
+            text: "Have your say",
+            type: "button",
+            classes: "govuk-button--start",
+            href: "have-your-say"
+        }) }}
+    {% elif haveYourSayStatus === 'notOpenDatesSet' %}
+        <p class="govuk-body">You can use this service to have your say on this application when the representation period opens from: {{ crownDevelopmentFields.representationsPeriodStartDateTime }} - {{ crownDevelopmentFields.representationsPeriodEndDateTime }}.</p>
+        <p class="govuk-body">We'll ask for your personal details and your comments about this application.</p>
+    {% elif haveYourSayStatus === 'notOpenDatesNotSet' %}
+        <p class="govuk-body">You can use this service to have your say on this application when the representation period opens.</p>
+        <p class="govuk-body">We'll ask for your personal details and your comments about this application.</p>
+        <p class="govuk-body">Check back later to see when the representation period will be held.</p>
+    {% elif haveYourSayStatus === 'closedRepsPublished' %}
+        <p class="govuk-body">The representation period for this application has closed. </p>
+        <p class="govuk-body">You can view the published representations <a class="govuk-link" href="/applications/{{ crownDevelopmentFields.id }}/written-representations">here</a>.</p>
+    {% elif haveYourSayStatus === 'closedPublishedDateInFuture' %}{# Scenario 5 #}
+        <p class="govuk-body">The representation period for this application has closed.</p>
+        <p class="govuk-body">You can view the published representations from: {{ crownDevelopmentFields.representationsPublishDateTime }}</p>
+    {% elif haveYourSayStatus === 'closedRepsPublishedDateNotSet' %}
+        <p class="govuk-body">The representation period for this application has closed.</p>
+        <p class="govuk-body">Check back later to see the published representations.</p>
+    {% endif %}
+{% endmacro %}
