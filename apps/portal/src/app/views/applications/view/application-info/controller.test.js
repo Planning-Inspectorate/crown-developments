@@ -119,7 +119,6 @@ describe('application info controller', () => {
 			});
 		});
 	});
-
 	it('shouldShowImportantDatesSection is false when required dates not present', async (context) => {
 		context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
 		const mockDb = {
