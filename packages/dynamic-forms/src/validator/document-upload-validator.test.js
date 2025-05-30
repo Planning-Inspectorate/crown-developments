@@ -10,7 +10,7 @@ describe('./src/dynamic-forms/validator/document-upload-validator.js', () => {
 		const req = {
 			body: {
 				myselfAttachments:
-					'[{"id":"id-1","name":"test-pdf copy 2.pdf","mimeType":"application/pdf","size":227787},{"id":"id-2","name":"test-pdf copy 3.pdf","mimeType":"application/pdf","size":227787}]'
+					'W3siaWQiOiJpZC0xIiwibmFtZSI6InRlc3QtcGRmIGNvcHkgMi5wZGYiLCJtaW1lVHlwZSI6ImFwcGxpY2F0aW9uL3BkZiIsInNpemUiOjIyNzc4N30seyJpZCI6ImlkLTIiLCJuYW1lIjoidGVzdC1wZGYgY29weSAzLnBkZiIsIm1pbWVUeXBlIjoiYXBwbGljYXRpb24vcGRmIiwic2l6ZSI6MjI3Nzg3fV0='
 			}
 		};
 		const documentUploadValidator = new DocumentUploadValidator(FIELD_NAME);
@@ -23,7 +23,7 @@ describe('./src/dynamic-forms/validator/document-upload-validator.js', () => {
 	it('should return an error message if documents have not been uploaded', async () => {
 		const req = {
 			body: {
-				myselfAttachments: '[]'
+				myselfAttachments: 'W10='
 			}
 		};
 		const documentUploadValidator = new DocumentUploadValidator(FIELD_NAME);
