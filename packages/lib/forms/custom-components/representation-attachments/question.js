@@ -41,7 +41,7 @@ export default class RepresentationAttachments extends Question {
 		const uploadedFiles = fileGroup?.[submittedForId]?.uploadedFiles ?? [];
 
 		viewModel.uploadedFiles = uploadedFiles;
-		viewModel.uploadedFilesJson = JSON.stringify(uploadedFiles);
+		viewModel.uploadedFilesEncoded = Buffer.from(JSON.stringify(uploadedFiles), 'utf-8').toString('base64');
 
 		viewModel.question.allowedFileExtensions = this.allowedFileExtensions;
 		viewModel.question.allowedMimeTypes = this.allowedMimeTypes;

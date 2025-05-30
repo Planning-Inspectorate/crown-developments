@@ -98,7 +98,7 @@
 
             <form action="" method="post" novalidate>
                 <input type="hidden" name="_csrf" value="{{ _csrf }}">
-                <input type="hidden" name="{{ question.fieldName }}" value='{{ uploadedFilesJson | safe }}'>
+                <input type="hidden" name="{{ question.fieldName }}" value='{{ uploadedFilesEncoded | safe }}'>
                 {{ govukButton({
                     text: continueButtonText,
                     type: "submit",

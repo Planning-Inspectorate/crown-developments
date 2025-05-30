@@ -13,7 +13,9 @@ export default class DocumentUploadValidator extends BaseValidator {
 	validate() {
 		return [
 			body(this.fieldName).custom((_, { req }) => {
-				const parsed = JSON.parse(req.body?.[this.fieldName]);
+				const decodedJson = Buffer.from(req.body?.[this.fieldName], 'base64').toString('utf-8');
+				const parsed = JSON.parse(decodedJson);
+
 				if (parsed.length === 0) {
 					throw new Error('Upload an attachment');
 				}

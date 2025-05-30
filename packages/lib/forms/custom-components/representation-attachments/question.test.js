@@ -77,7 +77,10 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				}
 			]);
 			assert.deepStrictEqual(result.uploadedFiles, uploadedFiles);
-			assert.strictEqual(result.uploadedFilesJson, JSON.stringify(uploadedFiles));
+			assert.strictEqual(
+				result.uploadedFilesEncoded,
+				Buffer.from(JSON.stringify(uploadedFiles), 'utf-8').toString('base64')
+			);
 		});
 	});
 	describe('checkForValidationErrors', () => {
@@ -166,7 +169,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				errors: { field1: 'Invalid' },
 				errorSummary: [{ text: 'Invalid input', href: '#field1' }],
 				uploadedFiles: [],
-				uploadedFilesJson: '[]'
+				uploadedFilesEncoded: 'W10='
 			});
 		});
 		it('should return validation errors when req.session has errors', () => {
@@ -223,7 +226,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				errors: { field2: 'Required' },
 				errorSummary: [{ text: 'Field is required', href: '#field2' }],
 				uploadedFiles: [],
-				uploadedFilesJson: '[]'
+				uploadedFilesEncoded: 'W10='
 			});
 		});
 	});
