@@ -1,9 +1,9 @@
 {% extends "views/layouts/main.njk" %}
 
-{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/details/macro.njk" import govukDetails %}
-{% from  "views/applications/view/links.njk" import applicationLinks %}
-{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "views/applications/view/links.njk" import applicationLinks %}
+
+{% import "views/applications/view/application-info/have-your-say-information.njk" as haveYourSayInfo %}
 
 {% set siteAddress %}
     {% if crownDevelopmentFields.siteAddress %}
@@ -80,22 +80,9 @@
                 {% endif %}
             </div>
 
-            {% if showHaveYourSayInfo %}
-                <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+            <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
 
-                <h2 id="procedure" class="govuk-heading-m">Have your say</h2>
-
-                <p class="govuk-body">Use this service to have your say about the application.</p>
-                <p class="govuk-body">We'll ask for your personal details and your comments about this application.</p>
-                <p class="govuk-body">The representation period is open from: {{ crownDevelopmentFields.representationsPeriodStartDateTime }} - {{ crownDevelopmentFields.representationsPeriodEndDateTime }}</p>
-                <br>
-                {{ govukButton({
-                    text: "Have your say",
-                    type: "button",
-                    classes: "govuk-button--start",
-                    href: "have-your-say"
-                }) }}
-            {% endif %}
+            {{ haveYourSayInfo.renderHaveYourSayInformation(haveYourSayStatus, crownDevelopmentFields) }}
 
             <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
 

@@ -86,7 +86,7 @@ function pad(num, length = 2) {
  * @returns {boolean}
  */
 export const dateIsAfterToday = (date) => {
-	return isAfter(date, endOfDay());
+	return isValid(date) && isAfter(date, endOfDay());
 };
 
 /**
@@ -94,7 +94,7 @@ export const dateIsAfterToday = (date) => {
  * @returns {boolean}
  */
 export const dateIsBeforeToday = (date) => {
-	return isBefore(date, startOfDay());
+	return isValid(date) && isBefore(date, startOfDay());
 };
 
 /**
@@ -102,7 +102,7 @@ export const dateIsBeforeToday = (date) => {
  * @returns {boolean}
  */
 export const dateIsToday = (date) => {
-	return !isBefore(date, startOfDay()) && !isAfter(date, endOfDay()) && isValid(date);
+	return isValid(date) && !isBefore(date, startOfDay()) && !isAfter(date, endOfDay()) && isValid(date);
 };
 
 /**

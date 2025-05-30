@@ -2,7 +2,7 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { applicationLinks, crownDevelopmentToViewModel } from '../view-model.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { fetchPublishedApplication } from '#util/applications.js';
-import { nowIsWithinRange } from '@pins/dynamic-forms/src/lib/date-utils.js';
+import { getHaveYourSayStatus } from '../have-your-say/util.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -71,7 +71,7 @@ export function buildApplicationInformationPage(service) {
 			shouldShowImportantDatesSection,
 			crownDevelopmentFields,
 			shouldShowApplicationDecisionSection,
-			showHaveYourSayInfo: nowIsWithinRange(haveYourSayPeriod?.start, haveYourSayPeriod?.end)
+			haveYourSayStatus: getHaveYourSayStatus(haveYourSayPeriod, representationsPublishDate)
 		});
 	};
 }

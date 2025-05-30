@@ -53,7 +53,8 @@ describe('application info controller', () => {
 						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: new Date('2025-01-01'),
-						representationsPeriodEndDate: new Date('2025-01-31')
+						representationsPeriodEndDate: new Date('2025-01-31'),
+						representationsPublishDate: '2025-10-09T09:00:00.000Z'
 					}))
 				}
 			};
@@ -79,7 +80,6 @@ describe('application info controller', () => {
 				applicationReference: 'CROWN/2025/0000001',
 				pageTitle: 'Application Information',
 				shouldShowImportantDatesSection: true,
-				showHaveYourSayInfo: true,
 				shouldShowApplicationDecisionSection: false,
 				links: [
 					{
@@ -112,12 +112,13 @@ describe('application info controller', () => {
 					representationsPeriodEndDateTime: '31 Jan 2025 00:00',
 					representationsPeriodStartDate: '1 Jan 2025',
 					representationsPeriodStartDateTime: '1 Jan 2025 00:00',
+					representationsPublishDateTime: '9 Oct 2025 10:00',
 					stage: undefined
-				}
+				},
+				haveYourSayStatus: 'open'
 			});
 		});
 	});
-
 	it('shouldShowImportantDatesSection is false when required dates not present', async (context) => {
 		context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
 		const mockDb = {
