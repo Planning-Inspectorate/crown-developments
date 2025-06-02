@@ -112,7 +112,7 @@ describe('application info controller', () => {
 					representationsPeriodEndDateTime: '31 Jan 2025 00:00',
 					representationsPeriodStartDate: '1 Jan 2025',
 					representationsPeriodStartDateTime: '1 Jan 2025 00:00',
-					representationsPublishDateTime: '9 Oct 2025 10:00',
+					representationsPublishDate: '9 Oct 2025',
 					stage: undefined
 				},
 				haveYourSayStatus: 'open'

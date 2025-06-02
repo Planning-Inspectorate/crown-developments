@@ -26,7 +26,7 @@
         <p class="govuk-body">You can view the published representations <a class="govuk-link" href="/applications/{{ crownDevelopmentFields.id }}/written-representations">here</a>.</p>
     {% elif haveYourSayStatus === 'closedPublishedDateInFuture' %}{# Scenario 5 #}
         <p class="govuk-body">The representation period for this application has closed.</p>
-        <p class="govuk-body">You can view the published representations from: {{ crownDevelopmentFields.representationsPublishDateTime }}</p>
+        <p class="govuk-body">You can view the published representations from: {{ crownDevelopmentFields.representationsPublishDate }}</p>
     {% elif haveYourSayStatus === 'closedRepsPublishedDateNotSet' %}
         <p class="govuk-body">The representation period for this application has closed.</p>
         <p class="govuk-body">Check back later to see the published representations.</p>

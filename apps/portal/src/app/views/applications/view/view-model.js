@@ -32,9 +32,7 @@ export function crownDevelopmentToViewModel(crownDevelopment, contactEmail) {
 		representationsPeriodEndDateTime: formatDateForDisplay(crownDevelopment.representationsPeriodEndDate, {
 			format: 'd MMM yyyy HH:mm'
 		}),
-		representationsPublishDateTime: formatDateForDisplay(crownDevelopment.representationsPublishDate, {
-			format: 'd MMM yyyy HH:mm'
-		}),
+		representationsPublishDate: formatDateForDisplay(crownDevelopment.representationsPublishDate),
 		decisionDate: formatDateForDisplay(crownDevelopment.decisionDate),
 		decisionOutcome: crownDevelopment.DecisionOutcome?.displayName,
 		crownDevelopmentContactEmail: contactEmail
