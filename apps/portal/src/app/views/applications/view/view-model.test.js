@@ -64,7 +64,7 @@ describe('view-model', () => {
 				representationsPeriodEndDateTime: '10 Oct 2025 00:00',
 				representationsPeriodStartDate: '10 Oct 2025',
 				representationsPeriodStartDateTime: '10 Oct 2025 00:00',
-				representationsPublishDateTime: '9 Oct 2025 10:00'
+				representationsPublishDate: '9 Oct 2025'
 			});
 		});
 		it(`should map site address if present`, () => {

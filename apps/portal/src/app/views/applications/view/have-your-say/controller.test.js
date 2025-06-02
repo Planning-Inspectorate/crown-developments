@@ -76,7 +76,7 @@ describe('have your say', () => {
 				representationsPeriodEndDateTime: '',
 				representationsPeriodStartDate: '',
 				representationsPeriodStartDateTime: '',
-				representationsPublishDateTime: '',
+				representationsPublishDate: '',
 				decisionDate: '',
 				decisionOutcome: undefined,
 				crownDevelopmentContactEmail: undefined
