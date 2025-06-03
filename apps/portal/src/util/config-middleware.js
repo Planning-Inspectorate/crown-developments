@@ -1,9 +1,16 @@
 /**
  * Add configuration values to locals.
- * @param {{isLive: boolean, isRepsUploadDocsLive: boolean, contactEmail: string, googleAnalyticsId?: string}} params
+ * @param {{isLive: boolean, isRepsUploadDocsLive: boolean, contactEmail: string, googleAnalyticsId?: string, appName: string}} params
  * @returns {import('express').Handler}
  */
-export function addLocalsConfiguration({ isLive, isRepsUploadDocsLive, contactEmail, googleAnalyticsId, appHostname }) {
+export function addLocalsConfiguration({
+	isLive,
+	isRepsUploadDocsLive,
+	contactEmail,
+	googleAnalyticsId,
+	appHostname,
+	appName
+}) {
 	return (req, res, next) => {
 		const path = req.path;
 
@@ -15,6 +22,7 @@ export function addLocalsConfiguration({ isLive, isRepsUploadDocsLive, contactEm
 		];
 
 		res.locals.config = {
+			appName,
 			cspNonce: res.locals.cspNonce,
 			headerTitle: 'Find a Crown Development Application',
 			footerLinks: [
