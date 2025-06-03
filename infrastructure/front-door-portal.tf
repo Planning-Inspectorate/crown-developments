@@ -133,7 +133,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "portal" {
   managed_rule {
     type    = "Microsoft_DefaultRuleSet"
     version = "2.1"
-    action  = "Block"
+    action  = "AnomalyScoring"
 
     override {
       rule_group_name = "PROTOCOL-ATTACK"
