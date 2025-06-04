@@ -77,7 +77,7 @@ export function uploadDocumentsController(
 
 		if (fileErrors.length > 0) {
 			req.session.errors = {
-				'upload-form': { msg: 'Errors encountered during file upload.' }
+				'upload-form': { msg: 'Errors encountered during file upload' }
 			};
 			req.session.errorSummary = fileErrors;
 		} else {
