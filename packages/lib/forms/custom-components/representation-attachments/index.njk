@@ -72,7 +72,9 @@
                 </dl>
             {% endif %}
 
-            <form id="upload-form" method="post" enctype="multipart/form-data" action="{{ currentUrl }}/upload-documents">
+            {% set uploadForm = "upload-form" %}
+
+            <form id={{ uploadForm }} method="post" enctype="multipart/form-data" action="{{ currentUrl }}/upload-documents">
                 <input type="hidden" name="_csrf" value="{{ _csrf }}">
                 {{ govukFileUpload({
                     id: question.fieldName,
@@ -87,6 +89,9 @@
                     attributes: {
                         multiple: true,
                         accept: question.allowedMimeTypes | join(", ")
+                    },
+                    errorMessage: errors[uploadForm] and {
+                        text: errors[uploadForm].msg
                     }
                 }) }}
                 <noscript>

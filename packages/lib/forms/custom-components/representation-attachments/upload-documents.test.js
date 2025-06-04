@@ -197,7 +197,7 @@ describe('upload-documents.js', () => {
 				redirectCalledWith,
 				'/applications/166c1754-f7dd-440a-b6f1-0f535ea008d5/have-your-say/myself/select-attachments'
 			);
-			assert.deepStrictEqual(req.session.errors, { 'upload-form': { msg: 'Errors encountered during file upload.' } });
+			assert.deepStrictEqual(req.session.errors, { 'upload-form': { msg: 'Errors encountered during file upload' } });
 			assert.deepStrictEqual(req.session.errorSummary, [
 				{
 					text: 'Attachment with this name has already been uploaded',
