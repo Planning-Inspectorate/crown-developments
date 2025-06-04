@@ -69,7 +69,7 @@ export function createHaveYourSayRoutes(service) {
 		'/:section/:question/upload-documents',
 		getJourneyResponse,
 		getJourney,
-		handleUploads.array('files[]', 3),
+		handleUploads.array('files[]'),
 		uploadDocuments
 	);
 

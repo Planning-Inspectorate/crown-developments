@@ -209,6 +209,76 @@ describe('upload-documents.js', () => {
 				}
 			]);
 		});
+		it('should return error messages when more than 3 files are in req.files', async () => {
+			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
+			const file = {
+				originalname: 'test4.pdf',
+				mimetype: 'application/pdf',
+				buffer: Buffer.from(fakePdfContent, 'utf-8'),
+				size: 227787
+			};
+			let redirectCalledWith;
+			const req = {
+				params: { id: '166c1754-f7dd-440a-b6f1-0f535ea008d5' },
+				sessionID: 'session123',
+				files: [file, file, file, file],
+				session: {},
+				body: {}
+			};
+			const res = {
+				locals: {
+					journeyResponse: {
+						journeyId: 'have-your-say',
+						answers: { submittedForId: 'on-behalf-of' }
+					}
+				},
+				redirect: (url) => (redirectCalledWith = url)
+			};
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: '166c1754-f7dd-440a-b6f1-0f535ea008d5', reference: 'CROWN/2025/00001' }))
+				}
+			};
+
+			const sharePointDrive = {
+				getItemsByPath: () => [{ name: 'test5.pdf', size: 123456 }],
+				addNewFolder: async () => mock.fn(),
+				uploadDocumentToFolder: async () => mock.fn(),
+				createLargeDocumentUploadSession: async () => ({ uploadUrl: 'http://upload' })
+			};
+
+			const mockLogger = {
+				info: mock.fn(),
+				error: mock.fn()
+			};
+
+			const controller = uploadDocumentsController(
+				{
+					db: mockDb,
+					logger: mockLogger,
+					sharePointDrive,
+					appName: 'portal'
+				},
+				ALLOWED_EXTENSIONS,
+				ALLOWED_MIME_TYPES,
+				MAX_FILE_SIZE
+			);
+
+			await controller(req, res);
+
+			assert.strictEqual(
+				redirectCalledWith,
+				'/applications/166c1754-f7dd-440a-b6f1-0f535ea008d5/have-your-say/agent/select-attachments'
+			);
+			assert.deepStrictEqual(req.session.errors, { 'upload-form': { msg: 'Errors encountered during file upload' } });
+			assert.deepStrictEqual(req.session.errorSummary, [
+				{
+					text: 'You can only upload up to 3 files',
+					href: '#upload-form'
+				}
+			]);
+		});
 		it('should throw error if error thrown on large upload session', async () => {
 			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
 			const file = {

@@ -51,7 +51,16 @@ export function uploadDocumentsController(
 		);
 		const documents = await fetchDocumentsInFolderPath(drive, folderPath);
 		const totalSize = documents.reduce((sum, item) => sum + (item.size || 0), 0);
-		const fileErrors = (
+		const fileErrors = [];
+
+		if (req.files.length > 3) {
+			fileErrors.push({
+				text: 'You can only upload up to 3 files',
+				href: '#upload-form'
+			});
+		}
+
+		const fileValidationErrors = (
 			await Promise.all(
 				req.files.map((file) =>
 					validateUploadedFile(file, logger, allowedFileExtensions, allowedMimeTypes, maxFileSize)
@@ -60,6 +69,8 @@ export function uploadDocumentsController(
 		)
 			.flat()
 			.filter(Boolean);
+
+		fileErrors.push(...fileValidationErrors);
 
 		if (fileAlreadyExistsInFolder(documents, req.files)) {
 			fileErrors.push({
