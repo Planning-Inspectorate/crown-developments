@@ -53,7 +53,7 @@ export function uploadDocumentsController(
 		const totalSize = documents.reduce((sum, item) => sum + (item.size || 0), 0);
 		const fileErrors = [];
 
-		if (req.files.length > 3) {
+		if (Array.isArray(req.files) && req.files.length > 3) {
 			fileErrors.push({
 				text: 'You can only upload up to 3 files',
 				href: '#upload-form'
