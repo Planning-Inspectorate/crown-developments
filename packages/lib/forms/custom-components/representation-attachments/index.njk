@@ -123,79 +123,37 @@
             {% endfor %}
 
             <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-							document.addEventListener('DOMContentLoaded', function () {
-								document.querySelectorAll('.js-remove-link').forEach(function (link) {
-									link.addEventListener('click', function (event) {
-										event.preventDefault();
-										const formId = link.getAttribute('data-form-id');
-										const form = document.getElementById(formId);
-										if (form) form.submit();
-									});
-								});
-							});
+                document.addEventListener('DOMContentLoaded', function () {
+                    document.querySelectorAll('.js-remove-link').forEach(function (link) {
+                        link.addEventListener('click', function (event) {
+                            event.preventDefault();
+                            const formId = link.getAttribute('data-form-id');
+                            const form = document.getElementById(formId);
+                            if (form) form.submit();
+                        });
+                    });
+                });
 
-							document.addEventListener('DOMContentLoaded', function () {
-								const fileInput = document.querySelector('#{{ question.fieldName }}-input');
-								const form = document.querySelector('#upload-form');
+                document.addEventListener('DOMContentLoaded', function () {
+                    const fileInput = document.querySelector('#{{ question.fieldName }}-input');
+                    const form = document.querySelector('#upload-form');
 
-								const allowedTypes = {{ question.allowedMimeTypes | dump | safe }};
-								const maxFileSize = {{ question.maxFileSizeValue }};
-								const maxFiles = 3;
+                    if (fileInput && form) {
+                        fileInput.addEventListener('change', function () {
+                            const files = fileInput.files;
+                            if (files.length === 0) return;
 
-								function showError(message) {
-									let errorDiv = document.querySelector('#file-upload-error');
-									if (!errorDiv) {
-										errorDiv = document.createElement('div');
-										errorDiv.id = 'file-upload-error';
-										errorDiv.className = 'govuk-error-message';
-										fileInput.closest('.govuk-form-group').appendChild(errorDiv);
-									}
-									errorDiv.textContent = message;
-								}
+                            form.submit();
+                        });
+                    }
+                });
 
-								function clearError() {
-									const errorDiv = document.querySelector('#file-upload-error');
-									if (errorDiv) errorDiv.remove();
-								}
-
-								if (fileInput && form) {
-									fileInput.addEventListener('change', function () {
-										clearError();
-
-										const files = fileInput.files;
-										if (files.length === 0) return;
-
-										if (files.length > maxFiles) {
-											showError(`You can only upload up to ${maxFiles} files.`);
-											fileInput.value = '';
-											return;
-										}
-
-										for (const file of files) {
-											if (!allowedTypes.includes(file.type)) {
-												const formattedTypes = "{{ formattedTypes | escape | safe }}";
-												showError(`The attachment must be ${formattedTypes}`);
-												fileInput.value = '';
-												return;
-											}
-
-											if (file.size > maxFileSize) {
-												showError(`Each file must be smaller than {{ question.maxFileSizeString }}.`);
-												fileInput.value = '';
-												return;
-											}
-										}
-										form.submit();
-									});
-								}
-							});
-
-							window.addEventListener("DOMContentLoaded", () => {
-								const links = document.querySelectorAll(".js-enabled-link");
-								links.forEach(link => {
-									link.style.display = "inline";
-								});
-							});
+                window.addEventListener("DOMContentLoaded", () => {
+                    const links = document.querySelectorAll(".js-enabled-link");
+                    links.forEach(link => {
+                        link.style.display = "inline";
+                    });
+                });
             </script>
         </div>
     </div>
