@@ -164,7 +164,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "portal" {
         rule_id = "200003"
       }
     }
-
   }
 
   managed_rule {

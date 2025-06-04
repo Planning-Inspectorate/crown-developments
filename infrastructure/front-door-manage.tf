@@ -134,6 +134,36 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
     type    = "Microsoft_DefaultRuleSet"
     version = "2.1"
     action  = "Block"
+
+    override {
+      rule_group_name = "PROTOCOL-ATTACK"
+      rule {
+        action  = "AnomalyScoring"
+        rule_id = "921110"
+      }
+      exclusion {
+        match_variable = "RequestBodyPostArgNames"
+        operator       = "Equals"
+        selector       = "files"
+      }
+      exclusion {
+        match_variable = "RequestBodyPostArgNames"
+        operator       = "Equals"
+        selector       = "_csrf"
+      }
+    }
+
+    override {
+      rule_group_name = "General"
+      rule {
+        action  = "Log"
+        rule_id = "200002"
+      }
+      rule {
+        action  = "Log"
+        rule_id = "200003"
+      }
+    }
   }
 
   managed_rule {
