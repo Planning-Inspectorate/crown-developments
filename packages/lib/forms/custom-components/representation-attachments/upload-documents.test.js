@@ -274,7 +274,7 @@ describe('upload-documents.js', () => {
 			assert.deepStrictEqual(req.session.errors, { 'upload-form': { msg: 'Errors encountered during file upload' } });
 			assert.deepStrictEqual(req.session.errorSummary, [
 				{
-					text: 'You can only upload up to 3 files',
+					text: 'You can only upload up to 3 files at a time',
 					href: '#upload-form'
 				}
 			]);
