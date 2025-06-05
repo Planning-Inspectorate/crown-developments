@@ -4,6 +4,7 @@ import {
 	persistWrittenRepresentation,
 	repReferences,
 	representationContactAddresses,
+	representationDocuments,
 	representations,
 	repsBehalfOfPersonContacts,
 	repsContacts,
@@ -82,6 +83,24 @@ export async function seedDev(dbClient) {
 		const representation = generateWrittenRepresentation(representationReference);
 		representation.Application = { connect: { id: crownDev.id } };
 		await persistWrittenRepresentation(dbClient, representation);
+	}
+
+	const allRepresentationDocuments = representationDocuments;
+	const documentIds = new Map();
+	// check IDs are unique
+	for (const representationDocument of allRepresentationDocuments) {
+		if (documentIds.has(representationDocument.id)) {
+			throw new Error(`Duplicate document ID: ${representationDocument.id}`);
+		}
+		documentIds.set(representationDocument.id, true);
+	}
+	//Create or update representation documents and update the representation to contain attachments
+	for (const representationDocument of allRepresentationDocuments) {
+		await dbClient.representationDocument.upsert({
+			where: { id: representationDocument.id },
+			create: representationDocument,
+			update: representationDocument
+		});
 	}
 
 	console.log('dev seed complete');

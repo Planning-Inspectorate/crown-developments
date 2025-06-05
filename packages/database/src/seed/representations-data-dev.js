@@ -420,7 +420,8 @@ export const representations = [
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
 		SubmittedByContact: { connect: { id: repsContacts[3].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } },
-		containsAttachments: true
+		containsAttachments: false,
+		sharePointFolderCreated: true
 	},
 	{
 		reference: 'ADE3E-60E0C',
@@ -430,7 +431,8 @@ export const representations = [
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
 		SubmittedByContact: { connect: { id: repsContacts[4].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } },
-		containsAttachments: true
+		containsAttachments: false,
+		sharePointFolderCreated: true
 	},
 	{
 		reference: '78063-E19BB',
@@ -615,5 +617,32 @@ export const representations = [
 		RepresentedContact: { connect: { id: repsBehalfOfPersonContacts[9].id } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } },
 		containsAttachments: false
+	}
+];
+
+export const representationDocuments = [
+	{
+		id: 'c1b2d3e4-f5a6-7b8c-9d0e-f1a2b3c4d5e6',
+		Representation: { connect: { reference: representations[3].reference } },
+		itemId: '012D6AZFCTLSY4ZGSEIRBLARPIZRLDVHZA',
+		redactedItemId: null,
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+		fileName: 'representation-document-1.pdf'
+	},
+	{
+		id: 'f7a8b9c0-d1e2-f3a4-b5c6-d7e8f9a0b1c2',
+		Representation: { connect: { reference: representations[3].reference } },
+		itemId: '012D6AZFDZZ52YWWBQK5HZDN3WLMN3CN2I',
+		redactedItemId: null,
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+		fileName: 'representation-document-2.pdf'
+	},
+	{
+		id: 'a3b4c5d6-e7f8-9a0b-c1d2-e3f4a5b6c7d8',
+		Representation: { connect: { reference: representations[4].reference } },
+		itemId: '012D6AZFGUHSIXAK7X75E3JDTSQE32IXII',
+		redactedItemId: null,
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+		fileName: 'representation-document-3.pdf'
 	}
 ];

@@ -223,8 +223,26 @@ model Representation {
   Category       RepresentationCategory? @relation(fields: [categoryId], references: [id])
   wantsToBeHeard Boolean?
 
-  containsAttachments     Boolean? @default(false)
-  sharePointFolderCreated Boolean? @default(false)
+  containsAttachments     Boolean?                 @default(false)
+  Attachments             RepresentationDocument[]
+  sharePointFolderCreated Boolean?                 @default(false)
+}
+
+// Document attached to a representation, such as evidence or a letter
+model RepresentationDocument {
+  // internal identifier
+  id               String         @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  // the representation this document relates to
+  representationId String         @db.UniqueIdentifier
+  Representation   Representation @relation(fields: [representationId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  // the document details
+  itemId           String
+  fileName         String?
+  redactedItemId   String?
+  redactedFileName String?
+  statusId         String
+  Status           RepresentationStatus @relation(fields: [statusId], references: [id])
 }
 
 // reference data
@@ -307,9 +325,10 @@ model RepresentationSubmittedFor {
 /// RepresentationStatus represents the status of representation e.g. accepted/rejected
 model RepresentationStatus {
   /// unique machine-readable name, not generated, e.g. "accepted"
-  id             String           @id
-  displayName    String?
-  Representation Representation[]
+  id                     String                   @id
+  displayName            String?
+  Representation         Representation[]
+  RepresentationDocument RepresentationDocument[]
 }
 
 /// RepresentedType represents the type of representation when acting as an agent i.e. whether person/org/group
