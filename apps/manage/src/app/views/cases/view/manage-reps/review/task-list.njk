@@ -1,0 +1,72 @@
+{% extends layoutTemplate %}
+
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "govuk/components/task-list/macro.njk" import govukTaskList %}
+
+
+{% set title = "Review representation - " + journeyTitle + " - GOV.UK" %}
+{% block pageTitle %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            <h1 class="govuk-heading-l">
+                <span class="govuk-caption-xl">{{ reference }}</span>
+                Review representation
+            </h1>
+        </div>
+    </div>
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            <h2 class="govuk-heading-m">Review comment</h2>
+            {{ govukTaskList({
+                items: [
+                    {
+                        title: {
+                            text: "Comment"
+                        },
+                        href: "task-list/comment",
+                        status: {
+                            tag: {
+                                text: "Incomplete",
+                                classes: "govuk-tag--blue"
+                            }
+                        }
+                    }
+                ]
+            }) }}
+        </div>
+    </div>
+
+    {% if documents and documents.length > 0 %}
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full">
+                <h2 class="govuk-heading-m">Review attachments</h2>
+                {{ govukTaskList({
+                    items: documents
+                }) }}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if allcomplete? %}
+        <form method="POST">
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-full">
+                    {{  govukButton({ text: 'Submit' }) }}
+                </div>
+            </div>
+        </form>
+    {% else %}
+        {{ govukTag({
+            text: "Review incomplete",
+            classes: 'govuk-tag govuk-tag--grey'
+        }) }}
+    {% endif %}
+
+
+{% endblock %}

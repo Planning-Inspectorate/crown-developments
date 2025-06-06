@@ -70,7 +70,7 @@ export const questionProps = {
 	},
 	whoRepresenting: {
 		type: COMPONENT_TYPES.RADIO,
-		title: 'Who are you representing',
+		title: 'Who are you representing?',
 		question: 'Who are you representing?',
 		fieldName: 'representedTypeId',
 		url: 'who-representing',
@@ -247,7 +247,7 @@ export const questionProps = {
 	},
 	category: {
 		type: COMPONENT_TYPES.RADIO,
-		title: 'Representation Type',
+		title: 'Representation type',
 		question: 'What type of representation is it?',
 		fieldName: 'categoryId',
 		url: 'representation-type',
