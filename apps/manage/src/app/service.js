@@ -56,10 +56,6 @@ export class ManageService {
 		this.notifyClient = initGovNotify(config.govNotify, logger);
 	}
 
-	get appName() {
-		return this.#config.appName;
-	}
-
 	/**
 	 * @type {import('./config-types.js').Config['auth']}
 	 */

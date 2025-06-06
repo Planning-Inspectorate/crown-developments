@@ -28,7 +28,6 @@
     "express-validator": "*",
     "govuk-frontend": "*",
     "helmet": "*",
-    "multer": "*",
     "nunjucks": "*",
     "pino": "*",
     "pino-pretty": "*",
