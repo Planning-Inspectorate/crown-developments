@@ -38,7 +38,8 @@ export default class RepresentationAttachments extends Question {
 
 		const submittedForId = journey.response?.answers?.submittedForId;
 		const fileGroup = customViewData?.files?.[customViewData.id];
-		const uploadedFiles = fileGroup?.[submittedForId]?.uploadedFiles ?? [];
+		const fileGroupUploadedFiles = fileGroup?.[submittedForId]?.uploadedFiles ?? [];
+		const uploadedFiles = fileGroupUploadedFiles.length > 0 ? fileGroupUploadedFiles : viewModel.question.value;
 
 		viewModel.uploadedFiles = uploadedFiles;
 		viewModel.uploadedFilesEncoded = Buffer.from(JSON.stringify(uploadedFiles), 'utf-8').toString('base64');
@@ -79,6 +80,18 @@ export default class RepresentationAttachments extends Question {
 				action: this.getAction(sectionSegment, journey, answer)
 			}
 		];
+	}
+
+	getAction(sectionSegment, journey, answer) {
+		if (journey.journeyId === 'manage-representations') {
+			return {
+				href: journey.getCurrentQuestionUrl(sectionSegment, this.fieldName),
+				text: this.addActionText,
+				visuallyHiddenText: this.question
+			};
+		} else {
+			return super.getAction(sectionSegment, journey, answer);
+		}
 	}
 
 	async getDataToSave(req, journeyResponse) {

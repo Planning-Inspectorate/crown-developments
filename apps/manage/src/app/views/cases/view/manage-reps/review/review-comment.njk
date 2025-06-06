@@ -1,0 +1,82 @@
+{% extends layoutTemplate %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+
+{% set title = "Review representation - " + journeyTitle + " - GOV.UK" %}
+{% block pageTitle %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            <h1 class="govuk-heading-l">
+                <span class="govuk-caption-xl">{{ reference }}</span>
+                Review comment
+            </h1>
+        </div>
+    </div>
+
+    <form method="POST">
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full">
+                {{ govukSummaryList({
+                    rows: [
+                        {
+                            key: {
+                            text: "Reference"
+                        },
+                            value: {
+                            text: reference
+                        }
+                        },
+                        {
+                            key: {
+                            text: "Tell us about application"
+                        },
+                            value: {
+                            text: comment
+                        }
+                        }
+                    ]
+                }) }}
+
+                {{  govukRadios({
+                    name: 'reviewDecision',
+                    fieldset: {
+                        legend: {
+                            text: 'Review decision',
+                            isPageHeading: false,
+                            classes: 'govuk-fieldset__legend--m'
+                        }
+                    },
+                    items: [
+                        {
+                            value: accept,
+                            text: "Accept"
+                        },
+                        {
+                            value: acceptAndRedact,
+                            text: "Accept & Redact"
+                        },
+                        {
+                            value: reject,
+                            text: "Reject"
+                        }
+                    ],
+                    errorMessage: errors.reviewDecision and {
+                        text: errors.reviewDecision.msg
+                    }
+                }) }}
+            </div>
+        </div>
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full">
+                {{  govukButton({ text: 'Continue' }) }}
+            </div>
+        </div>
+    </form>
+{% endblock %}
