@@ -54,10 +54,10 @@
                     {% for file in uploadedFiles %}
                         <div class="govuk-summary-list__row">
                             <dt class="govuk-summary-list__value">
-                                {{ file.name }}
+                                {{ file.fileName }}
                             </dt>
                             <dd class="govuk-summary-list__actions">
-                                <form id="deleteForm{{ loop.index }}" action="{{ currentUrl }}/delete-document/{{ file.id }}" method="POST">
+                                <form id="deleteForm{{ loop.index }}" action="{{ currentUrl }}/delete-document/{{ file.itemId }}" method="POST">
                                     <input type="hidden" name="_csrf" value="{{ _csrf }}">
                                     <noscript>
                                         {{ govukButton({

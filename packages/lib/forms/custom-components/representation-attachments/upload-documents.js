@@ -115,8 +115,8 @@ export function uploadDocumentsController(
 			const uploadedFiles = [];
 			documentsUpdated.forEach((document) => {
 				uploadedFiles.push({
-					id: document.id,
-					name: document.name,
+					itemId: document.id,
+					fileName: document.name,
 					mimeType: document.file.mimeType,
 					size: document.size
 				});

@@ -30,7 +30,7 @@ export function createRedactJourney(response, req) {
 		journeyTemplate: 'views/layouts/forms-question.njk',
 		listingPageViewPath: 'views/cases/view/manage-reps/view/view.njk',
 		journeyTitle: generateJourneyTitle(response.answers?.statusId),
-		initialBackLink: req.baseUrl,
+		initialBackLink: req.originalUrl?.replace('/redact', ''),
 		returnToListing: false,
 		makeBaseUrl: () => req.baseUrl,
 		response

@@ -51,6 +51,8 @@ export function representationToManageViewModel(representation, applicationRefer
 		model.myselfContactPreference = representation.SubmittedByContact?.contactPreferenceId;
 		model.myselfAddress = addressToViewModel(representation.SubmittedByContact?.Address);
 		model.myselfHearingPreference = mapFieldValue(representation.wantsToBeHeard);
+		model.myselfContainsAttachments = mapFieldValue(representation.containsAttachments);
+		model.myselfAttachments = representation.Attachments;
 	} else if (representation.submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF) {
 		model.representedTypeId = representation.representedTypeId;
 		model.submitterFirstName = representation.SubmittedByContact?.firstName;
@@ -60,6 +62,8 @@ export function representationToManageViewModel(representation, applicationRefer
 		model.submitterContactPreference = representation.SubmittedByContact?.contactPreferenceId;
 		model.submitterAddress = addressToViewModel(representation.SubmittedByContact?.Address);
 		model.submitterHearingPreference = mapFieldValue(representation.wantsToBeHeard);
+		model.submitterContainsAttachments = mapFieldValue(representation.containsAttachments);
+		model.submitterAttachments = representation.Attachments;
 
 		if (representation.representedTypeId === REPRESENTED_TYPE_ID.PERSON) {
 			model.representedFirstName = representation.RepresentedContact?.firstName;

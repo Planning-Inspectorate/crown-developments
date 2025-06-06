@@ -74,6 +74,8 @@ export class Question {
 	changeActionText = 'Change';
 	/** @type {string} text to display for 'answer' link */
 	answerActionText = 'Answer';
+	/** @type {string} text to display for 'add' link */
+	addActionText = 'Add';
 
 	/**
 	 * @param {JourneyResponse} [response]
