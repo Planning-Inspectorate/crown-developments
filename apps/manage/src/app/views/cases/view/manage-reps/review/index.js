@@ -1,8 +1,8 @@
 import { Router as createRouter } from 'express';
-import { buildValidateBody } from '@pins/dynamic-forms/src/validator/validator.js';
+// import { buildValidateBody } from '@pins/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
-import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
+// import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { buildReviewControllers, viewRepresentationAwaitingReview, viewReviewRedirect } from './controller.js';
 import { buildGetJourneyMiddleware } from '../view/controller.js';
 import { buildValidateRepresentationMiddleware } from '../validation-middleware.js';
@@ -16,13 +16,16 @@ export function createRoutes(service) {
 	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
 	const {
 		reviewRepresentation,
+		representationTaskList,
+		reviewRepresentationComment,
+		reviewRepresentationCommentDecision,
 		redactRepresentation,
 		redactRepresentationPost,
 		redactConfirmation,
 		acceptRedactedComment
 	} = buildReviewControllers(service);
-	const questions = getQuestions();
-	const validateReview = buildValidateBody([questions.reviewDecision]);
+	// const questions = getQuestions();
+	// const validateReview = buildValidateBody([questions.reviewDecision]);
 	const validatePostRepresentation = buildValidateRepresentationMiddleware(service);
 
 	router.get('/', getJourney, viewReviewRedirect, asyncHandler(viewRepresentationAwaitingReview));
@@ -30,15 +33,21 @@ export function createRoutes(service) {
 		'/',
 		getJourney,
 		validatePostRepresentation,
-		validateReview,
+		// validateReview,
 		validationErrorHandler,
 		asyncHandler(reviewRepresentation)
 	);
 
-	router.get('/redact', asyncHandler(redactRepresentation));
-	router.post('/redact', asyncHandler(redactRepresentationPost));
-	router.get('/redact/confirmation', getJourney, asyncHandler(redactConfirmation));
-	router.post('/redact/confirmation', getJourney, asyncHandler(acceptRedactedComment));
+	router.get('/task-list', asyncHandler(representationTaskList));
+	router.get('/task-list/comment', asyncHandler(reviewRepresentationComment));
+	router.post('/task-list/comment', asyncHandler(reviewRepresentationCommentDecision));
+
+	router.get('/task-list/comment/redact', asyncHandler(redactRepresentation));
+	router.post('/task-list/comment/redact', asyncHandler(redactRepresentationPost));
+	router.get('/task-list/comment/redact/confirmation', getJourney, asyncHandler(redactConfirmation));
+	router.post('/task-list/comment/redact/confirmation', getJourney, asyncHandler(acceptRedactedComment));
+
+	router.get('/task-list/:itemId', asyncHandler(reviewRepresentationComment));
 
 	return router;
 }
