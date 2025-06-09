@@ -1,0 +1,40 @@
+.pins-chevron-card {
+	&__wrapper {
+		border-top: 1px solid #bfc1c3 !important;
+		position: relative;
+		padding: 15px 0 0 0;
+		margin-bottom: 20px;
+	}
+
+	&__heading {
+		margin-bottom: 10px;
+	}
+
+	&__link {
+		display: inline-block;
+		max-width: 90%;
+	}
+
+	&__link::after {
+		content: '';
+		position: absolute;
+		display: block;
+		border-style: solid;
+		border-width: 0.2rem 0.2rem 0 0;
+		height: 0.45rem;
+		width: 0.45rem;
+		top: 1.4rem;
+		right: 0;
+		transform: rotate(45deg);
+		color: #1d70b8;
+	}
+
+	&__link::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+	}
+}

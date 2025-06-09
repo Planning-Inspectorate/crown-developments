@@ -7,6 +7,7 @@ import { buildContactUsPage } from './views/static/contact/controller.js';
 import { createErrorRoutes } from './views/static/error/index.js';
 import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.js';
 import { createRoutes as createCookieRoutes } from './views/static/cookies/index.js';
+import { buildDetailedInformationPage } from './views/static/detailed-information/controller.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -33,6 +34,7 @@ export function buildRouter(service) {
 		router.use('/cookies', createCookieRoutes(service));
 		router.use('/error', createErrorRoutes(service));
 		router.use('/terms-and-conditions', buildTermsAndConditionsPage());
+		router.use('/detailed-information', buildDetailedInformationPage(service));
 	} else {
 		service.logger.info("Not registering application routes, feature flag 'FEATURE_FLAG_PORTAL_NOT_LIVE' is enabled");
 	}
