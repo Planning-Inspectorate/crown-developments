@@ -5,6 +5,7 @@ import { buildApplicationInformationPage } from './application-info/controller.j
 import { createHaveYourSayRoutes } from './have-your-say/index.js';
 import { createWrittenRepresentationsRoutes } from './written-representations/index.js';
 import { buildDocumentView } from '../../util/documents-util.js';
+import { buildDetailedInformationPage } from './detailed-information/controller.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -21,6 +22,7 @@ export function createRoutes(service) {
 	router.get('/application-information', asyncHandler(applicationInfoController));
 	router.get('/documents', asyncHandler(applicationDocumentsPage));
 	router.get('/documents/:documentId', asyncHandler(viewDocumentPage));
+	router.get('/detailed-information', asyncHandler(buildDetailedInformationPage(service)));
 	router.use('/have-your-say', haveYourSayPageRoutes);
 	router.use('/written-representations', writtenRepresentationsRoutes);
 
