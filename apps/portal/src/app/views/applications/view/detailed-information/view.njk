@@ -1,0 +1,35 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "chevron-card/chevron-card.njk" import chevronCard %}
+
+{% block beforeContent %}
+    <div class="govuk-width-container">
+<div class="govuk-grid-row pins-info-container">
+  <div class="govuk-grid-column-two-thirds">
+    <br><br>
+    <h1 class="govuk-heading-xl pins-info-heading">
+      {{ pageTitle }}
+    </h1>
+    <p class="govuk-body pins-info-body"> {{ introDescription }} </p>
+
+    <br><br>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block content %}
+ <div class="full-width-line full-width-line--bg-blue"></div>
+  <section class="page-section full-width-section full-width-section--bg-lightgrey govuk-!-margin-bottom-6 govuk-!-padding-top-6">
+    <div class="page-section__content">
+      <div class="govuk-grid-row">
+        {% for item in chevrons %}
+          <div class="govuk-grid-column-one-third">
+            {{ chevronCard(item.title, item.href, item.description) }}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+    </div>
+{% endblock %}
