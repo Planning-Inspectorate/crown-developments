@@ -18,6 +18,10 @@ export function addLocalsConfiguration({
 			{
 				text: 'All Applications',
 				href: '/applications'
+			},
+			{
+				text: 'Detailed information',
+				href: '/detailed-information'
 			}
 		];
 

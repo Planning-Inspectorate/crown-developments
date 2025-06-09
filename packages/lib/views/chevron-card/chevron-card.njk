@@ -1,0 +1,10 @@
+{% macro chevronCard(title, href, description) %}
+    <div class="pins-chevron-card">
+        <div class="pins-chevron-card__wrapper">
+            <h3 class="pins-chevron-card__heading govuk-heading-s">
+                <a class="govuk-link pins-chevron-card__link"  href="{{ href }}">{{ title }}</a>
+            </h3>
+            <p class="govuk-body pins-chevron-card__description">{{ description }}</p>
+        </div>
+    </div>
+{% endmacro %}
