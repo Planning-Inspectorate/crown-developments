@@ -45,7 +45,7 @@
                 }) }}
 
                 {{  govukRadios({
-                    name: 'reviewDecision',
+                    name: 'reviewCommentDecision',
                     value: commentStatus,
                     fieldset: {
                         legend: {
@@ -68,8 +68,8 @@
                             text: "Reject"
                         }
                     ],
-                    errorMessage: errors.reviewDecision and {
-                        text: errors.reviewDecision.msg
+                    errorMessage: errors.reviewCommentDecision and {
+                        text: errors.reviewCommentDecision.msg
                     }
                 }) }}
             </div>

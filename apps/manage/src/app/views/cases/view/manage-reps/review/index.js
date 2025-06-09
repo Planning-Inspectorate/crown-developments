@@ -21,7 +21,8 @@ export function createRoutes(service) {
 		redactRepresentation,
 		redactRepresentationPost,
 		redactConfirmation,
-		acceptRedactedComment
+		acceptRedactedComment,
+		reviewRepresentationDocument
 	} = buildReviewControllers(service);
 	const validatePostRepresentation = buildValidateRepresentationMiddleware(service);
 
@@ -38,7 +39,7 @@ export function createRoutes(service) {
 	router.get('/task-list/comment/redact/confirmation', getJourney, asyncHandler(redactConfirmation));
 	router.post('/task-list/comment/redact/confirmation', getJourney, asyncHandler(acceptRedactedComment));
 
-	router.get('/task-list/:itemId', asyncHandler(reviewRepresentationComment));
+	router.get('/task-list/:itemId', asyncHandler(reviewRepresentationDocument));
 
 	return router;
 }
