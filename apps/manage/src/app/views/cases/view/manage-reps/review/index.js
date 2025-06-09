@@ -1,8 +1,6 @@
 import { Router as createRouter } from 'express';
-// import { buildValidateBody } from '@pins/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
-// import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { buildReviewControllers, viewRepresentationAwaitingReview, viewReviewRedirect } from './controller.js';
 import { buildGetJourneyMiddleware } from '../view/controller.js';
 import { buildValidateRepresentationMiddleware } from '../validation-middleware.js';
@@ -15,6 +13,7 @@ export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
 	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
 	const {
+		reviewRepresentationSubmission,
 		reviewRepresentation,
 		representationTaskList,
 		reviewRepresentationComment,
@@ -24,21 +23,13 @@ export function createRoutes(service) {
 		redactConfirmation,
 		acceptRedactedComment
 	} = buildReviewControllers(service);
-	// const questions = getQuestions();
-	// const validateReview = buildValidateBody([questions.reviewDecision]);
 	const validatePostRepresentation = buildValidateRepresentationMiddleware(service);
 
 	router.get('/', getJourney, viewReviewRedirect, asyncHandler(viewRepresentationAwaitingReview));
-	router.post(
-		'/',
-		getJourney,
-		validatePostRepresentation,
-		// validateReview,
-		validationErrorHandler,
-		asyncHandler(reviewRepresentation)
-	);
+	router.post('/', getJourney, validatePostRepresentation, validationErrorHandler, asyncHandler(reviewRepresentation));
 
 	router.get('/task-list', asyncHandler(representationTaskList));
+	router.post('/task-list', asyncHandler(reviewRepresentationSubmission));
 	router.get('/task-list/comment', asyncHandler(reviewRepresentationComment));
 	router.post('/task-list/comment', asyncHandler(reviewRepresentationCommentDecision));
 

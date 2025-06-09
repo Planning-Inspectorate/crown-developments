@@ -54,7 +54,7 @@ export const questionProps = {
 		options: [
 			...referenceDataToRadioOptions(REPRESENTATION_STATUS),
 			{
-				text: 'Accept & Redact',
+				text: 'Accept and redact',
 				value: ACCEPT_AND_REDACT
 			}
 		]

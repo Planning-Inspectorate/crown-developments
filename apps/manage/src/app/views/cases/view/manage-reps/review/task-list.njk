@@ -2,7 +2,7 @@
 
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "govuk/components/task-list/macro.njk" import govukTaskList %}
-
+{% from "govuk/components/button/macro.njk" import govukButton %}
 
 {% set title = "Review representation - " + journeyTitle + " - GOV.UK" %}
 {% block pageTitle %}
@@ -31,10 +31,7 @@
                         },
                         href: "task-list/comment",
                         status: {
-                            tag: {
-                                text: "Incomplete",
-                                classes: "govuk-tag--blue"
-                            }
+                            tag: commentStatusTag
                         }
                     }
                 ]
@@ -53,7 +50,7 @@
         </div>
     {% endif %}
 
-    {% if allcomplete? %}
+    {% if reviewComplete %}
         <form method="POST">
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-full">

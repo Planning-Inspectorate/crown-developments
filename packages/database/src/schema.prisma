@@ -210,6 +210,7 @@ model Representation {
 
   comment         String  @db.NVarChar(MAX)
   commentRedacted String? @db.NVarChar(MAX)
+  commentStatus   String?
 
   // submitting as agent/on behalf of fields
   // can be a person/org/group
