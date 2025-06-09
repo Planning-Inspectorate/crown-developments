@@ -31,6 +31,7 @@ export namespace HaveYourSay {
 		containsAttachments: boolean;
 		sharePointFolderCreated?: string;
 		commentRedacted?: string;
+		commentStatus?: string;
 
 		readonly applicationReference?: string;
 		readonly requiresReview?: boolean;

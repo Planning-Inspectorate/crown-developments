@@ -46,6 +46,7 @@
 
                 {{  govukRadios({
                     name: 'reviewDecision',
+                    value: commentStatus,
                     fieldset: {
                         legend: {
                             text: 'Review decision',
@@ -60,7 +61,7 @@
                         },
                         {
                             value: acceptAndRedact,
-                            text: "Accept & Redact"
+                            text: "Accept and redact"
                         },
                         {
                             value: reject,

@@ -93,11 +93,11 @@ function addRepMyselfSection(questions, isRepsUploadDocsLive) {
 		.addQuestion(questions.myselfAddress)
 		.withCondition((response) => questionHasAnswer(response, questions.myselfContactPreference, 'post'))
 		.addQuestion(questions.myselfTellUsAboutApplication)
+		.addQuestion(questions.myselfHearingPreference)
 		.addQuestion(questions.myselfHasAttachments)
 		.withCondition(() => isRepsUploadDocsLive === true)
 		.addQuestion(questions.myselfSelectAttachments)
-		.withCondition((response) => questionHasAnswer(response, questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES))
-		.addQuestion(questions.myselfHearingPreference);
+		.withCondition((response) => questionHasAnswer(response, questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES));
 }
 
 /**
@@ -186,9 +186,9 @@ function addRepAgentSection(questions, isRepsUploadDocsLive) {
 		.addQuestion(questions.representedOrgName)
 		.withCondition(isOrgNotWorkFor)
 		.addQuestion(questions.submitterTellUsAboutApplication)
+		.addQuestion(questions.submitterHearingPreference)
 		.addQuestion(questions.submitterHasAttachments)
 		.withCondition(() => isRepsUploadDocsLive === true)
 		.addQuestion(questions.submitterSelectAttachments)
-		.withCondition((response) => questionHasAnswer(response, questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES))
-		.addQuestion(questions.submitterHearingPreference);
+		.withCondition((response) => questionHasAnswer(response, questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES));
 }

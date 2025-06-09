@@ -46,43 +46,34 @@ export function buildReviewControllers({ db, logger }) {
 		// or all completed and reject
 		async reviewRepresentationSubmission(req, res) {
 			const { id, representationRef } = validateParams(req.params);
-			const { errors = {}, errorSummary = [], reviewDecision } = req.body;
+			const { reviewDecision } = req.body;
 
-			if (Object.keys(errors).length > 0) {
-				await renderRepresentation(req, res, { errors, errorSummary });
-				return;
-			}
+			//TODO: how to get review decision?
 
 			/** @type {import('@prisma/client').Prisma.RepresentationUpdateInput} */
 			const repUpdate = {};
-			if (reviewDecision !== ACCEPT_AND_REDACT) {
-				repUpdate.statusId = reviewDecision;
+			repUpdate.statusId = reviewDecision; //TODO: get this from ???
+			logger.info({ representationRef, repUpdate }, 'submit representation review');
+			try {
+				await db.representation.update({
+					where: { reference: representationRef },
+					data: repUpdate
+				});
+			} catch (error) {
+				wrapPrismaError({
+					error,
+					logger,
+					message: 'submitted representation review',
+					logParams: { id, representationRef }
+				});
 			}
-			if (Object.keys(repUpdate).length !== 0) {
-				logger.info({ representationRef, repUpdate }, 'update representation');
-				try {
-					await db.representation.update({
-						where: { reference: representationRef },
-						data: repUpdate
-					});
-				} catch (error) {
-					wrapPrismaError({
-						error,
-						logger,
-						message: 'updating representation',
-						logParams: { id, representationRef }
-					});
-				}
-			}
-			if (reviewDecision === ACCEPT_AND_REDACT) {
-				res.redirect(req.baseUrl + '/redact');
-			} else {
-				// show 'updated' banner with new status
-				const status = REPRESENTATION_STATUS.find((s) => s.id === reviewDecision);
-				const statusName = status?.displayName.toLowerCase() || 'reviewed';
-				addRepReviewedSession(req, id, statusName);
-				res.redirect(req.baseUrl.replace(representationRef + '/review', ''));
-			}
+
+			//TODO: get this from - where getting status from?
+			// show 'updated' banner with new status
+			const status = REPRESENTATION_STATUS.find((s) => s.id === reviewDecision);
+			const statusName = status?.displayName.toLowerCase() || 'reviewed';
+			addRepReviewedSession(req, id, statusName);
+			res.redirect(req.originalUrl?.replace(`/${representationRef}/review/task-list`, ''));
 		},
 		async reviewRepresentation(req, res) {
 			const { errors = {}, errorSummary = [] } = req.body;
@@ -100,21 +91,34 @@ export function buildReviewControllers({ db, logger }) {
 				where: { reference: representationRef },
 				include: { Attachments: true }
 			});
-			const documents = representation?.Attachments?.map((attachment) => {
+
+			const commentStatusTag = getReviewTaskStatus(representation?.commentStatus, false);
+			const representationAttachments = representation?.Attachments || [];
+			const documents = representationAttachments.map((attachment) => {
 				return {
 					title: {
 						text: attachment.fileName
 					},
-					href: `${req.originalUrl}/${attachment.itemId}`,
+					href:
+						representation?.commentStatus !== REPRESENTATION_STATUS_ID.REJECTED
+							? `${req.originalUrl}/${attachment.itemId}`
+							: '',
 					status: {
 						tag: getReviewTaskStatus(attachment.statusId, attachment.redactedItemId && attachment.redactedFileName)
 					}
 				};
 			});
 
+			const taskStatusList = [
+				representation?.commentStatus,
+				...representationAttachments.map((attachment) => attachment.statusId)
+			];
+
 			return res.render('views/cases/view/manage-reps/review/task-list.njk', {
 				reference: representationRef,
+				commentStatusTag,
 				documents: representation.containsAttachments === true ? documents : [],
+				reviewComplete: isReviewComplete(taskStatusList),
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
 				backLinkUrl: req.originalUrl?.replace('/task-list', '')
@@ -124,11 +128,14 @@ export function buildReviewControllers({ db, logger }) {
 			const { representationRef } = validateParams(req.params);
 			const representation = await db.representation.findUnique({
 				where: { reference: representationRef },
-				select: { comment: true }
+				select: { comment: true, commentStatus: true }
 			});
 			return res.render('views/cases/view/manage-reps/review/review-comment.njk', {
 				reference: representationRef,
 				comment: representation.comment,
+				commentStatus:
+					readSessionData(req, representationRef, 'commentStatus', '', 'representations') ||
+					representation.commentStatus,
 				accept: REPRESENTATION_STATUS_ID.ACCEPTED,
 				acceptAndRedact: ACCEPT_AND_REDACT,
 				reject: REPRESENTATION_STATUS_ID.REJECTED,
@@ -158,15 +165,16 @@ export function buildReviewControllers({ db, logger }) {
 			/** @type {import('@prisma/client').Prisma.RepresentationUpdateInput} */
 			const repUpdate = {};
 			if (reviewDecision !== ACCEPT_AND_REDACT) {
-				repUpdate.statusId = reviewDecision; //TODO: updated this as it should be the comment status id
+				repUpdate.commentStatus = reviewDecision;
+			} else {
+				addSessionData(req, representationRef, { commentStatus: reviewDecision }, 'representations');
 			}
-			//TODO: do we need a new field in the DB for representation entity -> comment status??
 			if (Object.keys(repUpdate).length !== 0) {
 				logger.info({ representationRef, repUpdate }, 'update representation');
 				try {
 					await db.representation.update({
 						where: { reference: representationRef },
-						data: repUpdate //TODO: updated this as it should be the comment status id
+						data: repUpdate
 					});
 				} catch (error) {
 					wrapPrismaError({
@@ -176,15 +184,31 @@ export function buildReviewControllers({ db, logger }) {
 						logParams: { id, representationRef }
 					});
 				}
+
+				if (reviewDecision === REPRESENTATION_STATUS_ID.REJECTED) {
+					try {
+						const representation = await db.representation.findUnique({
+							where: { reference: representationRef },
+							select: { id: true }
+						});
+						await db.representationDocument.updateMany({
+							where: { representationId: representation.id },
+							data: { statusId: REPRESENTATION_STATUS_ID.REJECTED }
+						});
+					} catch (error) {
+						wrapPrismaError({
+							error,
+							logger,
+							message: 'updating representation documents',
+							logParams: { id, representationRef }
+						});
+					}
+				}
 			}
 
 			if (reviewDecision === ACCEPT_AND_REDACT) {
 				res.redirect(req.originalUrl + '/redact');
 			} else {
-				// show 'updated' banner with new status
-				const status = REPRESENTATION_STATUS.find((s) => s.id === reviewDecision);
-				const statusName = status?.displayName.toLowerCase() || 'reviewed';
-				addRepReviewedSession(req, id, statusName);
 				res.redirect(req.originalUrl?.replace('/comment', ''));
 			}
 		},
@@ -248,7 +272,7 @@ export function buildReviewControllers({ db, logger }) {
 					where: { reference: representationRef },
 					data: {
 						commentRedacted,
-						statusId: REPRESENTATION_STATUS_ID.ACCEPTED //TODO: updated this as it should be the comment status id
+						commentStatus: ACCEPT_AND_REDACT
 					}
 				});
 			} catch (error) {
@@ -260,9 +284,7 @@ export function buildReviewControllers({ db, logger }) {
 				});
 			}
 			clearSessionData(req, representationRef, 'commentRedacted', 'representations');
-			const status = REPRESENTATION_STATUS.find((s) => s.id === REPRESENTATION_STATUS_ID.ACCEPTED);
-			const statusName = status?.displayName.toLowerCase() || 'reviewed';
-			addRepReviewedSession(req, id, statusName);
+			clearSessionData(req, representationRef, 'commentStatus', 'representations');
 			res.redirect(req.originalUrl?.replace('/comment/redact/confirmation', ''));
 		}
 	};
@@ -345,6 +367,11 @@ function getReviewTaskStatus(status, isRedacted) {
 				text: isRedacted ? 'Accepted and redacted' : 'Accepted',
 				classes: 'govuk-tag--green'
 			};
+		case ACCEPT_AND_REDACT:
+			return {
+				text: 'Accepted and redacted',
+				classes: 'govuk-tag--green'
+			};
 		case REPRESENTATION_STATUS_ID.REJECTED:
 			return {
 				text: 'Rejected',
@@ -356,4 +383,14 @@ function getReviewTaskStatus(status, isRedacted) {
 				classes: 'govuk-tag--blue'
 			};
 	}
+}
+
+function isReviewComplete(taskStatusList) {
+	const allAcceptedOrRedacted = taskStatusList.every(
+		(status) => status === REPRESENTATION_STATUS_ID.ACCEPTED || status === ACCEPT_AND_REDACT
+	);
+
+	const allRejected = taskStatusList.every((status) => status === REPRESENTATION_STATUS_ID.REJECTED);
+
+	return allAcceptedOrRedacted || allRejected;
 }
