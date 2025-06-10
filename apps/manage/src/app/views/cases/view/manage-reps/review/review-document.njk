@@ -15,7 +15,7 @@
         <div class="govuk-grid-column-full">
             <h1 class="govuk-heading-l">
                 <span class="govuk-caption-xl">{{ reference }}</span>
-                Review comment
+                Review attachment
             </h1>
         </div>
     </div>
@@ -38,7 +38,7 @@
                             text: "Original attachment"
                         },
                         value: {
-                            text: fileName
+                            html: '<a href="#" class="govuk-link govuk-link--no-visited-state">' + fileName + '</a>'
                         }
                     }
                 ]

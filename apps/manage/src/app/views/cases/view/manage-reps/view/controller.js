@@ -1,10 +1,9 @@
 import { list } from '@pins/dynamic-forms/src/controller.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { ACCEPT_AND_REDACT, getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
+import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
 import { representationToManageViewModel } from '@pins/crowndev-lib/forms/representations/view-model.js';
-import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { clearRepUpdatedSession, readRepUpdatedSession } from '../edit/controller.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 
@@ -52,18 +51,13 @@ export async function renderRepresentation(req, res, viewData = {}) {
 	}
 	clearSessionData(req, representationRef, 'errors', 'representations');
 
-	const applicationReference = res.locals?.journeyResponse?.answers?.applicationReference;
 	const representationUpdated = readRepUpdatedSession(req, representationRef);
 	clearRepUpdatedSession(req, representationRef);
 
 	await list(req, res, '', {
-		applicationReference,
+		representationRef,
 		requiresReview: res.locals?.journeyResponse?.answers?.requiresReview,
 		backLinkUrl: `/cases/${req.params.id}/manage-representations`,
-		// review decision status values
-		accept: REPRESENTATION_STATUS_ID.ACCEPTED,
-		acceptAndRedact: ACCEPT_AND_REDACT,
-		reject: REPRESENTATION_STATUS_ID.REJECTED,
 		representationUpdated,
 		...viewData
 	});
@@ -73,9 +67,10 @@ export async function renderRepresentation(req, res, viewData = {}) {
  * Fetch the representation from the database to create the journey
  *
  * @param {import('#service').ManageService} service
+ * @param {boolean} isViewJourney
  * @returns {import('express').Handler}
  */
-export function buildGetJourneyMiddleware({ db, logger, isRepsUploadDocsLive }) {
+export function buildGetJourneyMiddleware({ db, logger, isRepsUploadDocsLive }, isViewJourney) {
 	return async (req, res, next) => {
 		const { id, representationRef } = validateParams(req.params);
 		logger.info({ id, representationRef }, 'fetching representation');
@@ -117,7 +112,7 @@ export function buildGetJourneyMiddleware({ db, logger, isRepsUploadDocsLive }) 
 		});
 		// put these on locals for the list controller
 		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', answers);
-		res.locals.journey = createJourney(questions, res.locals.journeyResponse, req, isRepsUploadDocsLive);
+		res.locals.journey = createJourney(questions, res.locals.journeyResponse, req, isRepsUploadDocsLive, isViewJourney);
 
 		if (req.originalUrl !== req.baseUrl) {
 			// back link goes to details page

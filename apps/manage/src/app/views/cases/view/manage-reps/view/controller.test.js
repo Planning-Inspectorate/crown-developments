@@ -40,7 +40,7 @@ describe('controller', () => {
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.strictEqual(viewData.requiresReview, true);
-			assert.strictEqual(viewData.applicationReference, 'app-ref');
+			assert.strictEqual(viewData.representationRef, 'ref-1');
 			assert.strictEqual(viewData.representationUpdated, false);
 		});
 		it('should read & clear rep updated session data', async () => {
@@ -65,7 +65,7 @@ describe('controller', () => {
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.strictEqual(viewData.requiresReview, true);
-			assert.strictEqual(viewData.applicationReference, 'app-ref');
+			assert.strictEqual(viewData.representationRef, 'ref-1');
 			assert.strictEqual(viewData.representationUpdated, true);
 			assert.strictEqual(mockReq.session.representations['ref-1'].representationUpdated, undefined);
 		});

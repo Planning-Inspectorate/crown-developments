@@ -28,11 +28,11 @@
             {{ govukSummaryList({
                 rows: [
                     {
-                        key: {text: 'Original Representation'},
+                        key: {text: 'Original representation'},
                         value: {text: originalComment}
                     },
                     {
-                        key: {text: 'Redacted Representation'},
+                        key: {text: 'Redacted representation'},
                         value: {text: commentRedacted},
                         actions: {
                         items: [
@@ -52,7 +52,7 @@
     <form method="POST">
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-full">
-                {{  govukButton({ text: 'Accept redacted representation' }) }}
+                {{  govukButton({ text: 'Accept and continue' }) }}
             </div>
         </div>
     </form>

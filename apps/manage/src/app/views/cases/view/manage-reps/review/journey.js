@@ -21,8 +21,8 @@ export function createRedactJourney(response, req) {
 				new TextEntryRedactQuestion({
 					fieldName: 'comment',
 					url: 'redact',
-					question: 'Redact Representation',
-					title: 'Redact Representation'
+					question: 'Redact representation',
+					title: 'Redact representation'
 				})
 			)
 		],

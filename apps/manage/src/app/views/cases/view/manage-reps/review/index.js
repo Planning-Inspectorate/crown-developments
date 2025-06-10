@@ -11,7 +11,7 @@ import { buildValidateRepresentationMiddleware } from '../validation-middleware.
  */
 export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
-	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
+	const getJourney = asyncHandler(buildGetJourneyMiddleware(service, false));
 	const {
 		reviewRepresentationSubmission,
 		reviewRepresentation,
