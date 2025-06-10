@@ -10,21 +10,21 @@ import { addRepresentationSection, haveYourSayManageSections, haveYourSaySection
 describe('have-your-say', () => {
 	describe('have-your-say manage sections', () => {
 		const JOURNEY_ID = 'have-your-say-1';
-		const createJourney = (questions, response, req) => {
-			return new Journey({
-				journeyId: JOURNEY_ID,
-				sections: haveYourSayManageSections(questions),
-				makeBaseUrl: () => req.baseUrl,
-				journeyTemplate: 'template.njk',
-				listingPageViewPath: 'template-2.njk',
-				journeyTitle: 'Have your say',
-				response
-			});
-		};
 
-		it('all questions should be defined', () => {
+		it('all questions should be defined for view journey', () => {
 			const questions = getQuestions();
 			const answers = {};
+			const createJourney = (questions, response, req) => {
+				return new Journey({
+					journeyId: JOURNEY_ID,
+					sections: haveYourSayManageSections(questions, true, true),
+					makeBaseUrl: () => req.baseUrl,
+					journeyTemplate: 'template.njk',
+					listingPageViewPath: 'template-2.njk',
+					journeyTitle: 'Have your say',
+					response
+				});
+			};
 			const response = new JourneyResponse(JOURNEY_ID, 'session-id', answers);
 			const journey = createJourney(questions, response, {
 				baseUrl: `/some/path/${JOURNEY_ID}`,
@@ -33,6 +33,31 @@ describe('have-your-say', () => {
 			const sections = journey.sections;
 
 			assert.strictEqual(sections.length, 5);
+			sections.forEach((section) => section.questions.forEach((q) => assert.ok(q !== undefined)));
+		});
+
+		it('all questions should be defined for review journey', () => {
+			const questions = getQuestions();
+			const answers = {};
+			const createJourney = (questions, response, req) => {
+				return new Journey({
+					journeyId: JOURNEY_ID,
+					sections: haveYourSayManageSections(questions, true, false),
+					makeBaseUrl: () => req.baseUrl,
+					journeyTemplate: 'template.njk',
+					listingPageViewPath: 'template-2.njk',
+					journeyTitle: 'Have your say',
+					response
+				});
+			};
+			const response = new JourneyResponse(JOURNEY_ID, 'session-id', answers);
+			const journey = createJourney(questions, response, {
+				baseUrl: `/some/path/${JOURNEY_ID}`,
+				params: { applicationId: 'CROWN123' }
+			});
+			const sections = journey.sections;
+
+			assert.strictEqual(sections.length, 4);
 			sections.forEach((section) => section.questions.forEach((q) => assert.ok(q !== undefined)));
 		});
 	});

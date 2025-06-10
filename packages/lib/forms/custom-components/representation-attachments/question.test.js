@@ -91,7 +91,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 			journeyTitle: 'title',
 			response: {
 				answers: {
-					[question.fieldName]: { a: 1 }
+					[question.fieldName]: [{ a: 1 }]
 				}
 			},
 			getCurrentQuestionUrl: () => {
@@ -130,7 +130,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 			const result = question.checkForValidationErrors(req, section, journey);
 			assert.deepStrictEqual(result, {
 				question: {
-					value: { a: 1 },
+					value: [{ a: 1 }],
 					question: 'Select Attachments',
 					fieldName: 'myselfAttachments',
 					pageTitle: 'Select Attachments',
@@ -153,7 +153,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 					maxFileSizeValue: 20971520,
 					maxFileSizeString: '20MB'
 				},
-				answer: { a: 1 },
+				answer: [{ a: 1 }],
 				layoutTemplate: 'template',
 				pageCaption: 'section-name',
 				navigation: ['', 'back'],
@@ -168,8 +168,8 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				files: undefined,
 				errors: { field1: 'Invalid' },
 				errorSummary: [{ text: 'Invalid input', href: '#field1' }],
-				uploadedFiles: [],
-				uploadedFilesEncoded: 'W10='
+				uploadedFiles: [{ a: 1 }],
+				uploadedFilesEncoded: 'W3siYSI6MX1d'
 			});
 		});
 		it('should return validation errors when req.session has errors', () => {
@@ -187,7 +187,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 			const result = question.checkForValidationErrors(req, section, journey);
 			assert.deepStrictEqual(result, {
 				question: {
-					value: { a: 1 },
+					value: [{ a: 1 }],
 					question: 'Select Attachments',
 					fieldName: 'myselfAttachments',
 					pageTitle: 'Select Attachments',
@@ -210,7 +210,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 					maxFileSizeValue: 20971520,
 					maxFileSizeString: '20MB'
 				},
-				answer: { a: 1 },
+				answer: [{ a: 1 }],
 				layoutTemplate: 'template',
 				pageCaption: 'section-name',
 				navigation: ['', 'back'],
@@ -225,8 +225,8 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				files: ['doc.pdf'],
 				errors: { field2: 'Required' },
 				errorSummary: [{ text: 'Field is required', href: '#field2' }],
-				uploadedFiles: [],
-				uploadedFilesEncoded: 'W10='
+				uploadedFiles: [{ a: 1 }],
+				uploadedFilesEncoded: 'W3siYSI6MX1d'
 			});
 		});
 	});

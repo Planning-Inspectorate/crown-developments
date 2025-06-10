@@ -10,12 +10,11 @@ import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/ques
 /**
  * @param {Questions} questions
  * @param {boolean} isRepsUploadDocsLive
+ * @param {boolean} isViewJourney
  * @returns {Section[]}
  */
-export function haveYourSayManageSections(questions, isRepsUploadDocsLive) {
+export function haveYourSayManageSections(questions, isRepsUploadDocsLive, isViewJourney) {
 	// section names aren't used
-	//TODO: update the sentence casing
-	//TODO: remove the fields no longer wanted/needed
 	return [
 		new Section('Details', 'details')
 			.addQuestion(questions.reference)
@@ -23,7 +22,8 @@ export function haveYourSayManageSections(questions, isRepsUploadDocsLive) {
 			.addQuestion(questions.category),
 		new Section('Representation', 'start').addQuestion(questions.submittedFor),
 		addRepMyselfSection(questions, isRepsUploadDocsLive),
-		addRepAgentSection(questions, isRepsUploadDocsLive)
+		addRepAgentSection(questions, isRepsUploadDocsLive),
+		...(isViewJourney ? [new Section('More Details', 'more-details').addQuestion(questions.commentRedacted)] : [])
 	];
 }
 

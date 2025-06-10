@@ -43,6 +43,7 @@
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-full">
                 <h2 class="govuk-heading-m">Review attachments</h2>
+                {% if isCommentRejected %}<p class="govuk-hint">All attachments are rejected when the comment is rejected. To accept please review the comment.</p>{% endif %}
                 {{ govukTaskList({
                     items: documents
                 }) }}

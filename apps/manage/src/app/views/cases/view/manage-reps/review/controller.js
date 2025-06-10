@@ -119,6 +119,7 @@ export function buildReviewControllers({ db, logger }) {
 			return res.render('views/cases/view/manage-reps/review/task-list.njk', {
 				reference: representationRef,
 				commentStatusTag,
+				isCommentRejected: representation?.commentStatus === REPRESENTATION_STATUS_ID.REJECTED,
 				documents: representation.containsAttachments === true ? documents : [],
 				reviewComplete: isReviewComplete(taskStatusList),
 				journeyTitle: 'Manage Reps',
@@ -223,10 +224,12 @@ export function buildReviewControllers({ db, logger }) {
 			const question = section.questions[0];
 			const validationErrors = question.checkForValidationErrors(req, res, journey);
 			if (validationErrors) {
+				validationErrors.reference = representationRef;
 				question.renderAction(res, validationErrors);
 				return;
 			}
 			const viewModel = question.prepQuestionForRendering(section, journey);
+			viewModel.reference = representationRef;
 			question.renderAction(res, viewModel);
 		},
 		async redactRepresentationPost(req, res) {
