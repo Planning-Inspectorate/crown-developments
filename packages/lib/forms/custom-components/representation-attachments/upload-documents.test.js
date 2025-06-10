@@ -431,8 +431,8 @@ describe('upload-documents.js', () => {
 						app456: {
 							myself: {
 								uploadedFiles: [
-									{ id: 'doc123', name: 'to-delete.pdf' },
-									{ id: 'doc999', name: 'keep.pdf' }
+									{ itemId: 'doc123', fileName: 'to-delete.pdf' },
+									{ itemId: 'doc999', fileName: 'keep.pdf' }
 								]
 							}
 						}
@@ -467,8 +467,8 @@ describe('upload-documents.js', () => {
 			assert.strictEqual(redirectCalledWith, '/applications/app456/have-your-say/myself/select-attachments');
 			assert.deepStrictEqual(req.session.files.app456.myself.uploadedFiles, [
 				{
-					id: 'doc999',
-					name: 'keep.pdf'
+					itemId: 'doc999',
+					fileName: 'keep.pdf'
 				}
 			]);
 		});
@@ -491,8 +491,8 @@ describe('upload-documents.js', () => {
 						app456: {
 							myself: {
 								uploadedFiles: [
-									{ id: 'doc123', name: 'to-delete.pdf' },
-									{ id: 'doc999', name: 'keep.pdf' }
+									{ itemId: 'doc123', fileName: 'to-delete.pdf' },
+									{ itemId: 'doc999', fileName: 'keep.pdf' }
 								]
 							}
 						}
@@ -530,8 +530,8 @@ describe('upload-documents.js', () => {
 			);
 			assert.deepStrictEqual(req.session.files.app456.myself.uploadedFiles, [
 				{
-					id: 'doc999',
-					name: 'keep.pdf'
+					itemId: 'doc999',
+					fileName: 'keep.pdf'
 				}
 			]);
 		});
