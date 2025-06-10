@@ -1,5 +1,4 @@
 import { APPLICATION_FOLDERS, buildPath, caseReferenceToFolderName } from '../../../util/sharepoint-path.js';
-import { fetchPublishedApplication } from 'crowndev-portal/src/util/applications.js';
 import { fileAlreadyExistsInFolder, validateUploadedFile } from './document-validation-util.js';
 import { FILE_PROPERTIES } from '../../../documents/view-model.js';
 import { isValidUuidFormat } from '../../../util/uuid.js';
@@ -27,10 +26,8 @@ export function uploadDocumentsController(
 
 		const drive = sharePointDrive ? sharePointDrive : getSharePointDrive(req.session);
 
-		const crownDevelopment = await fetchPublishedApplication({
-			id: applicationId,
-			db,
-			args: {}
+		const crownDevelopment = await db.crownDevelopment.findUnique({
+			where: { id: applicationId }
 		});
 
 		const caseReference = crownDevelopment.reference;
