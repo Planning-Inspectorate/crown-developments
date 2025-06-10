@@ -71,7 +71,7 @@ export default class RepresentationAttachments extends Question {
 	}
 
 	formatAnswerForSummary(sectionSegment, journey, answer) {
-		const formattedAnswer = nl2br(answer.map((file) => file.name).join('\n'));
+		const formattedAnswer = nl2br(answer.map((file) => file.fileName).join('\n'));
 		return [
 			{
 				key: `${this.title}`,

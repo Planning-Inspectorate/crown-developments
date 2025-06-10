@@ -252,7 +252,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 			const section = {
 				name: 'section-name'
 			};
-			const answer = [{ name: 'test.pdf' }, { name: 'test1.pdf' }];
+			const answer = [{ fileName: 'test.pdf' }, { fileName: 'test1.pdf' }];
 
 			const formattedAnswer = question.formatAnswerForSummary(section, journey, answer);
 
