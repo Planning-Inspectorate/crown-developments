@@ -115,8 +115,8 @@ export function uploadDocumentsController(
 			const uploadedFiles = [];
 			documentsUpdated.forEach((document) => {
 				uploadedFiles.push({
-					id: document.id,
-					name: document.name,
+					itemId: document.id,
+					fileName: document.name,
 					mimeType: document.file.mimeType,
 					size: document.size
 				});
@@ -148,7 +148,7 @@ export function deleteDocumentsController({ logger, appName, sharePointDrive, ge
 		}
 
 		let uploadedFiles = req.session?.files?.[applicationId]?.[submittedForId]?.uploadedFiles || [];
-		uploadedFiles = uploadedFiles.filter((file) => file.id !== itemId);
+		uploadedFiles = uploadedFiles.filter((file) => file.itemId !== itemId);
 
 		addSessionData(req, applicationId, { [submittedForId]: { uploadedFiles } }, 'files');
 
