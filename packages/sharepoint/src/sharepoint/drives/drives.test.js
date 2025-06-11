@@ -15,6 +15,7 @@ describe('drives', () => {
 			get: async () => {},
 			post: mock.fn(),
 			put: mock.fn(),
+			patch: mock.fn(),
 			delete: mock.fn(),
 			header: mock.fn(function () {
 				return this;
@@ -59,6 +60,29 @@ describe('drives', () => {
 			const result = await sharePointDrive.getDriveItem('item-1');
 			assert.strictEqual(client.api.mock.callCount(), 1);
 			assert.equal(client.api.mock.calls[0].arguments[0], '/drives/testDriveId/items/item-1');
+			assert.deepEqual(result, mockResponse);
+		});
+	});
+	describe('getDriveItemByPath', () => {
+		test('should fetch drive item by path', async () => {
+			const client = mockClient();
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			const mockResponse = { name: 'test1' };
+			client.get = async () => mockResponse;
+
+			const result = await sharePointDrive.getDriveItemByPath('path/to/item');
+			assert.strictEqual(client.api.mock.callCount(), 1);
+			assert.equal(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('root:')
+					.addPathSegment('path/to/item:')
+					.toString()
+			);
 			assert.deepEqual(result, mockResponse);
 		});
 	});
@@ -122,6 +146,35 @@ describe('drives', () => {
 			assert.deepStrictEqual(client.post.mock.calls[0].arguments[0], {
 				parentReference: {
 					driveId: 'newDriveId',
+					id: 'newItemId'
+				},
+				name: 'newFile'
+			});
+			assert.equal(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.addPathSegment('copy')
+					.toString()
+			);
+		});
+		test('should copy drive item to current drive when newParentDriveId is not provided', async () => {
+			const client = mockClient();
+			driveId = 'testDriveId';
+			const itemId = 'testItem';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			await sharePointDrive.copyDriveItem({
+				copyItemId: itemId,
+				newItemName: 'newFile',
+				newParentId: 'newItemId'
+			});
+			assert.strictEqual(client.api.mock.callCount(), 1);
+			assert.deepStrictEqual(client.post.mock.calls[0].arguments[0], {
+				parentReference: {
 					id: 'newItemId'
 				},
 				name: 'newFile'
@@ -704,6 +757,158 @@ describe('drives', () => {
 					.addPathSegment('items')
 					.addPathSegment(itemId)
 					.toString()
+			);
+		});
+	});
+	describe('moveItemToFolder', () => {
+		test('should move item to a folder', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			const folderId = 'folderId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			await sharePointDrive.moveItemToFolder(itemId, folderId);
+
+			assert.strictEqual(client.api.mock.callCount(), 1);
+			assert.strictEqual(client.patch.mock.callCount(), 1);
+			assert.strictEqual(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.toString()
+			);
+			assert.deepStrictEqual(client.patch.mock.calls[0].arguments[0], {
+				parentReference: {
+					id: folderId
+				}
+			});
+		});
+	});
+	describe('moveItemsToFolder', () => {
+		test('should move items to a folder', async () => {
+			const client = mockClient();
+			const itemIds = ['item1', 'item2'];
+			driveId = 'testDriveId';
+			const folderId = 'folderId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			await sharePointDrive.moveItemsToFolder(itemIds, folderId);
+
+			assert.strictEqual(client.api.mock.callCount(), 2, `API call count should be ${itemIds.length}`);
+			assert.strictEqual(client.patch.mock.callCount(), 2, `PATCH call count should be ${itemIds.length}`);
+			assert.strictEqual(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemIds[0])
+					.toString(),
+				'URL should match the expected format'
+			);
+			assert.deepStrictEqual(
+				client.patch.mock.calls[0].arguments[0],
+				{
+					parentReference: {
+						id: folderId
+					}
+				},
+				'PATCH request body should match the expected format'
+			);
+			assert.strictEqual(
+				client.api.mock.calls[1].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemIds[1])
+					.toString(),
+				'URL should match the expected format'
+			);
+			assert.deepStrictEqual(
+				client.patch.mock.calls[1].arguments[0],
+				{
+					parentReference: {
+						id: folderId
+					}
+				},
+				'PATCH request body should match the expected format'
+			);
+		});
+		test('should throw an error if itemIds is an empty array', async () => {
+			const client = mockClient();
+			driveId = 'testDriveId';
+			const folderId = 'folderId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			try {
+				await sharePointDrive.moveItemsToFolder([], folderId);
+				assert.fail('Expected error was not thrown');
+			} catch (e) {
+				assert.equal(e.message, 'No itemId provided');
+				assert.strictEqual(client.api.mock.callCount(), 0);
+			}
+		});
+		test('should throw an error if itemIds is undefined', async () => {
+			const client = mockClient();
+			driveId = 'testDriveId';
+			const folderId = 'folderId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			try {
+				await sharePointDrive.moveItemsToFolder(undefined, folderId);
+				assert.fail('Expected error was not thrown');
+			} catch (e) {
+				assert.equal(e.message, 'No itemId provided');
+				assert.strictEqual(client.api.mock.callCount(), 0);
+			}
+		});
+		test('should throw an error if itemIds is not an array', async () => {
+			const client = mockClient();
+			driveId = 'testDriveId';
+			const folderId = 'folderId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			try {
+				await sharePointDrive.moveItemsToFolder('1234', folderId);
+				assert.fail('Expected error was not thrown');
+			} catch (e) {
+				assert.equal(e.message, 'No itemId provided');
+				assert.strictEqual(client.api.mock.callCount(), 0);
+			}
+		});
+		test('should throw an error if no folderId is provided', async () => {
+			const client = mockClient();
+			const itemIds = ['item1', 'item2'];
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			try {
+				await sharePointDrive.moveItemsToFolder(itemIds, undefined);
+				assert.fail('Expected error was not thrown');
+			} catch (e) {
+				assert.equal(e.message, 'No newFolderId provided');
+				assert.strictEqual(client.api.mock.callCount(), 0);
+			}
+		});
+		test('should throw error if promises reject', async () => {
+			const client = mockClient();
+			const itemIds = ['item1', 'item2'];
+			driveId = 'testDriveId';
+			const folderId = 'folderId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			client.patch = mock.fn(() => Promise.reject(new Error('Item 123 failed to move')));
+
+			await assert.rejects(
+				async () => {
+					await sharePointDrive.moveItemsToFolder(itemIds, folderId);
+				},
+				(e) => e.message === 'Failed to move items to folder: Item 123 failed to move'
 			);
 		});
 	});

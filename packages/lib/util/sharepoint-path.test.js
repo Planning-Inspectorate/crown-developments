@@ -3,7 +3,8 @@ import {
 	APPLICATION_FOLDERS,
 	buildPath,
 	caseReferenceToFolderName,
-	getSharePointReceivedPathId
+	getSharePointReceivedPathId,
+	representationAttachmentsFolderPath
 } from './sharepoint-path.js';
 import assert from 'node:assert';
 
@@ -69,6 +70,13 @@ describe('sharepoint-path', () => {
 			const caseReferenceFolderName = 'CROWN-2025-0100001';
 			const actual = buildPath(caseReferenceFolderName, APPLICATION_FOLDERS.SYSTEM, APPLICATION_FOLDERS.SESSIONS);
 			assert.strictEqual(actual, 'CROWN-2025-0100001/System/Sessions');
+		});
+	});
+	describe('representationAttachmentsFolderPath', () => {
+		it('should return the representation attachments folder path for a given case reference', () => {
+			const caseReference = 'CROWN-2025-0100001';
+			const actual = representationAttachmentsFolderPath(caseReference);
+			assert.strictEqual(actual, 'CROWN-2025-0100001/System/Representations');
 		});
 	});
 });

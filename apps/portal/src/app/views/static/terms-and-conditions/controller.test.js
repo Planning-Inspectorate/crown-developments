@@ -20,7 +20,7 @@ describe('Terms and Conditions page controller', () => {
 		const mockReq = {};
 		const mockRes = {};
 		const termsAndConditionsPage = buildTermsAndConditionsPage();
-		assert.throws(() => termsAndConditionsPage(mockReq, mockRes), /render is not a function/);
+		assert.throws(() => termsAndConditionsPage(mockReq, mockRes), 'render is not a function');
 	});
 
 	it('should handle missing res object', () => {

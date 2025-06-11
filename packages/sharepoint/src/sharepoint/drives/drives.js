@@ -378,4 +378,56 @@ export class SharePointDrive {
 
 		return await this.client.api(urlBuilder.toString()).delete();
 	}
+
+	/**
+	 *
+	 * @param {string} itemId
+	 * @param {string} newFolderId
+	 * @returns {Promise<void>}
+	 */
+	async moveItemToFolder(itemId, newFolderId) {
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('items')
+			.addPathSegment(itemId);
+
+		const moveItemRequest = {
+			parentReference: {
+				id: newFolderId
+			}
+		};
+
+		return await this.client.api(urlBuilder.toString()).patch(moveItemRequest);
+	}
+
+	/**
+	 * Moves multiple items to a folder in SharePoint drive
+	 * @param {string[]} itemIds
+	 * @param {string} newFolderId
+	 * @returns {Promise<*>}
+	 */
+	async moveItemsToFolder(itemIds, newFolderId) {
+		if (!Array.isArray(itemIds) || itemIds.length === 0) {
+			throw new Error('No itemId provided');
+		}
+		if (!newFolderId) {
+			throw new Error('No newFolderId provided');
+		}
+		const urlBuilder = new UrlBuilder('').addPathSegment('drives').addPathSegment(this.driveId).addPathSegment('items');
+
+		const moveItemRequest = {
+			parentReference: {
+				id: newFolderId
+			}
+		};
+
+		const promises = itemIds.map((itemId) => {
+			return this.client.api(`${urlBuilder.toString()}/${itemId}`).patch(moveItemRequest);
+		});
+
+		return await Promise.all(promises).catch((err) => {
+			throw new Error(`Failed to move items to folder: ${err.message}`);
+		});
+	}
 }
