@@ -1,3 +1,5 @@
+import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+
 /**
  * @param {{displayName?: string, id: string}[]} reference
  * @param {boolean} [addNullOption]
@@ -9,4 +11,10 @@ export function referenceDataToRadioOptions(reference, addNullOption = false) {
 		options.unshift({ text: '', value: '' });
 	}
 	return options;
+}
+
+export function getSubmittedForId(answers) {
+	return answers['submittedForId'] === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
+		? REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
+		: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF;
 }

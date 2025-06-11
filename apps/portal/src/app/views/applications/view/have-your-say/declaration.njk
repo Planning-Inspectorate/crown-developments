@@ -12,14 +12,19 @@
             <p class="govuk-body">Your comments will be taken into account before the application is determined.</p>
             <p class="govuk-body">You are agreeing that we will use your details to contact you about the
                 application.</p>
+            {% if not config.isRepsUploadDocsLive %}
             <p class="govuk-body">You are also agreeing that all comments you submit, along with your name, and any
                 represented party’s names will be published on this website. No contact details will be made public.</p>
+            {% else %}
+            <p class="govuk-body">You are also agreeing that all comments and attachments you submit, along with your name,
+                and any represented party’s names will be published on this website. No contact details will be made public.</p>
+            {% endif %}
             <br>
         </div>
         <div class="govuk-grid-column-two-thirds">
             <form method="post" novalidate="novalidate">
                 {{ govukButton({
-                    text: "Submit",
+                    text: "Accept and submit",
                     classes: "govuk-button--start",
                     preventDoubleClick: true
                 }) }}

@@ -4,6 +4,7 @@ export const APPLICATION_FOLDERS = Object.freeze({
 	PUBLISHED: 'Published',
 	RECEIVED: 'Received',
 	REPRESENTATION_ATTACHMENTS: 'RepresentationAttachments',
+	REPRESENTATIONS: 'Representations',
 	SESSIONS: 'Sessions',
 	SYSTEM: 'System'
 });
@@ -37,6 +38,19 @@ export function publishedRepresentationsAttachmentsRootFolderPath(caseReference)
  */
 export function publishedRepresentationsAttachmentsFolderPath(caseReference, repReference) {
 	return buildPath(publishedFolderPath(caseReference), APPLICATION_FOLDERS.REPRESENTATION_ATTACHMENTS, repReference);
+}
+
+/**
+ * Returns the representation attachments folder path for the given case reference and representation reference
+ * @param { string } caseReference
+ * @returns { string }
+ */
+export function representationAttachmentsFolderPath(caseReference) {
+	return buildPath(
+		caseReferenceToFolderName(caseReference),
+		APPLICATION_FOLDERS.SYSTEM,
+		APPLICATION_FOLDERS.REPRESENTATIONS
+	);
 }
 
 /**

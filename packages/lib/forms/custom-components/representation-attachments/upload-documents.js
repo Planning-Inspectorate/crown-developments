@@ -4,8 +4,8 @@ import { FILE_PROPERTIES } from '../../../documents/view-model.js';
 import { isValidUuidFormat } from '../../../util/uuid.js';
 import { notFoundHandler } from '../../../middleware/errors.js';
 import { sortByField } from '../../../util/array.js';
-import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { addSessionData } from '../../../util/session.js';
+import { getSubmittedForId } from '../../../util/questions.js';
 
 const CONTENT_UPLOAD_FILE_LIMIT = 4 * 1024 * 1024; // 4MB
 
@@ -268,10 +268,4 @@ function getRedirectUrl(appName, applicationId, journeyId, submittedForId) {
 	};
 
 	return redirectUrlMap[journeyId];
-}
-
-function getSubmittedForId(answers) {
-	return answers['submittedForId'] === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
-		? REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
-		: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF;
 }

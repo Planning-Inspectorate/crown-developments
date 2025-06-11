@@ -9,14 +9,27 @@ import { JOURNEY_ID } from './journey.js';
 import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { saveRepresentation } from '@pins/crowndev-lib/forms/representations/save.js';
 import { nameToViewModel } from '@pins/crowndev-lib/util/name.js';
+import { moveAttachmentsToCaseFolder } from '@pins/crowndev-lib/util/handle-attachments.js';
+import { checkApplicationPublished } from '../../../util/application-util.js';
 
 /**
  * @param {import('#service').PortalService} service
  * @param {function} [uniqueReferenceFn] - optional function used for testing
+ * @param {function} [moveAttachmentsFn] - optional function used for testing
  * @returns {import('express').Handler}
  */
-export function buildSaveHaveYourSayController(service, uniqueReferenceFn = uniqueReference) {
+export function buildSaveHaveYourSayController(
+	service,
+	uniqueReferenceFn = uniqueReference,
+	moveAttachmentsFn = moveAttachmentsToCaseFolder
+) {
 	return async (req, res) => {
+		const crownDevelopment = await checkApplicationPublished(req, res, service.db);
+
+		if (!crownDevelopment) {
+			return; // notFoundHandler will have been called in checkApplicationPublished
+		}
+
 		await saveRepresentation(
 			{
 				service,
@@ -24,7 +37,9 @@ export function buildSaveHaveYourSayController(service, uniqueReferenceFn = uniq
 				checkYourAnswersUrl: `/applications/${req.params.applicationId}/have-your-say/check-your-answers`,
 				successUrl: `/applications/${req.params.applicationId}/have-your-say/success`,
 				uniqueReferenceFn,
-				notificationFn: sendAcknowledgementOfRepresentationNotification
+				notificationFn: sendAcknowledgementOfRepresentationNotification,
+				moveAttachmentsFn,
+				applicationReference: crownDevelopment.reference
 			},
 			req,
 			res
