@@ -5,7 +5,7 @@ import { buildApplicationInformationPage } from './application-info/controller.j
 import { createHaveYourSayRoutes } from './have-your-say/index.js';
 import { createWrittenRepresentationsRoutes } from './written-representations/index.js';
 import { buildDocumentView } from '../../util/documents-util.js';
-import { buildDetailedInformationPage } from './detailed-information/controller.js';
+import { buildDetailedInformationPage } from '../../static/detailed-information/controller.js';
 
 /**
  * @param {import('#service').PortalService} service
