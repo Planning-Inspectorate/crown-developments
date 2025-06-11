@@ -79,7 +79,7 @@ export const questionProps = {
 	},
 	representedFullName: {
 		type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
-		title: 'Full name of the person you are representing',
+		title: 'Represented person name',
 		question: 'What is the full name of the person you are representing?',
 		hint: 'We will publish this on the website along with your comments about the application.',
 		fieldName: 'representedFullName',
@@ -140,7 +140,7 @@ export const questionProps = {
 	},
 	orgName: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-		title: 'Name of the organisation or charity',
+		title: 'Your organisation or charity name',
 		question: 'What is the name of your organisation or charity?',
 		hint: 'We will publish your organisation name on the website along with your representation.',
 		fieldName: 'orgName',
@@ -157,7 +157,7 @@ export const questionProps = {
 	},
 	orgRoleName: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-		title: 'Your job title or volunteer role',
+		title: 'Your job title or volunteer role?',
 		question: 'What is your job title or volunteer role?',
 		fieldName: 'orgRoleName',
 		url: 'what-job-title-or-role',
@@ -193,7 +193,7 @@ export const questionProps = {
 	},
 	isAgent: {
 		type: COMPONENT_TYPES.BOOLEAN,
-		title: 'Are you an agent on behalf of a client?',
+		title: 'Are you acting as an agent on behalf of a client?',
 		question: 'Are you acting as an agent on behalf of a client?',
 		hint: 'For example, your organisation has been hired to represent a client on planning matters.',
 		fieldName: 'isAgent',
@@ -202,7 +202,7 @@ export const questionProps = {
 	},
 	agentOrgName: {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-		title: `Your organisation's name`,
+		title: 'Agent Organisation Name',
 		question: 'What is the name of the organisation you work for?',
 		hint: "We will publish your organisation name, your client's name and their representation on the website.",
 		fieldName: 'agentOrgName',

@@ -167,7 +167,7 @@ export function representationsContactQuestions({ prefix }) {
 
 	questions[`${prefix}HearingPreference`] = {
 		type: COMPONENT_TYPES.BOOLEAN,
-		title: 'Would you like to be heard at a hearing',
+		title: 'Would you like to be heard at a hearing?',
 		question: 'Would you like to be heard at a hearing?',
 		fieldName: `${prefix}HearingPreference`,
 		url: 'hearing-preference',

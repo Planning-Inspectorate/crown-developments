@@ -68,14 +68,14 @@ export function buildReviewControllers({ db, logger }) {
 				wrapPrismaError({
 					error,
 					logger,
-					message: 'submitted representation review',
+					message: 'submitting representation review',
 					logParams: { id, representationRef }
 				});
 			}
 
 			const statusName = getStatusDisplayName(reviewDecision);
 			addRepReviewedSession(req, id, statusName);
-			res.redirect(req.originalUrl?.replace(`/${representationRef}/review/task-list`, ''));
+			res.redirect(req.baseUrl.replace(`/${representationRef}/review`, ''));
 		},
 		async reviewRepresentation(req, res) {
 			const { errors = {}, errorSummary = [] } = req.body;
@@ -124,7 +124,7 @@ export function buildReviewControllers({ db, logger }) {
 				reviewComplete: isReviewComplete(taskStatusList),
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: req.originalUrl?.replace('/task-list', '')
+				backLinkUrl: req.baseUrl
 			});
 		},
 		async reviewRepresentationComment(req, res, viewData = {}) {
@@ -144,7 +144,7 @@ export function buildReviewControllers({ db, logger }) {
 				reject: REPRESENTATION_STATUS_ID.REJECTED,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: req.originalUrl?.replace('/comment', ''),
+				backLinkUrl: req.baseUrl + '/task-list',
 				...viewData
 			});
 		},
@@ -203,9 +203,9 @@ export function buildReviewControllers({ db, logger }) {
 			}
 
 			if (reviewCommentDecision === ACCEPT_AND_REDACT) {
-				res.redirect(req.originalUrl + '/redact');
+				res.redirect(req.baseUrl + '/task-list/comment/redact');
 			} else {
-				res.redirect(req.originalUrl?.replace('/comment', ''));
+				res.redirect(req.baseUrl + '/task-list');
 			}
 		},
 		async redactRepresentation(req, res) {
@@ -246,20 +246,21 @@ export function buildReviewControllers({ db, logger }) {
 				return controllers.redactRepresentation(req, res);
 			}
 			logger.info('saving redacted comment to session');
-			res.redirect(req.originalUrl + '/confirmation');
+			res.redirect(req.baseUrl + '/task-list/comment/redact/confirmation');
 		},
 		async redactConfirmation(req, res) {
 			const { representationRef } = validateParams(req.params);
 			const commentRedacted = readSessionData(req, representationRef, 'commentRedacted', '', 'representations');
 			const answers = res.locals.journeyResponse.answers;
 			const originalComment = answers.myselfComment || answers.submitterComment;
+
 			return res.render('views/cases/view/manage-reps/review/redact-confirmation.njk', {
 				originalComment,
 				commentRedacted,
 				reference: representationRef,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: req.originalUrl?.replace('/confirmation', '')
+				backLinkUrl: req.baseUrl + '/task-list/comment/redact'
 			});
 		},
 		async acceptRedactedComment(req, res) {
@@ -294,7 +295,7 @@ export function buildReviewControllers({ db, logger }) {
 
 			clearSessionData(req, representationRef, 'commentRedacted', 'representations');
 			clearSessionData(req, representationRef, 'commentStatus', 'representations');
-			res.redirect(req.originalUrl?.replace('/comment/redact/confirmation', ''));
+			res.redirect(req.baseUrl + '/task-list');
 		},
 		async reviewRepresentationDocument(req, res, viewData = {}) {
 			const { representationRef } = validateParams(req.params);
@@ -319,7 +320,7 @@ export function buildReviewControllers({ db, logger }) {
 				reject: REPRESENTATION_STATUS_ID.REJECTED,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: req.originalUrl?.replace(`/${itemId}`, ''),
+				backLinkUrl: req.baseUrl + '/task-list',
 				...viewData
 			});
 		}
@@ -401,12 +402,12 @@ function getReviewTaskStatus(status, isRedacted) {
 		case REPRESENTATION_STATUS_ID.ACCEPTED:
 			return {
 				text: isRedacted ? 'Accepted and redacted' : 'Accepted',
-				classes: 'govuk-tag--green'
+				classes: 'govuk-tag--green status-tag-width'
 			};
 		case ACCEPT_AND_REDACT:
 			return {
 				text: 'Accepted and redacted',
-				classes: 'govuk-tag--green'
+				classes: 'govuk-tag--green status-tag-width'
 			};
 		case REPRESENTATION_STATUS_ID.REJECTED:
 			return {
