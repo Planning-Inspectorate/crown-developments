@@ -39,8 +39,8 @@ describe('case list', () => {
 				id: 'id-1',
 				reference: 'case/ref',
 				SiteAddress: { id: 'address-id-1', postcode: 'B11 ABC' },
-				siteNorthing: 12435,
-				siteEasting: 12435
+				siteEasting: 12435,
+				siteNorthing: 12435
 			};
 			const result = crownDevelopmentToViewModel(input);
 			assert.strictEqual(result.location, 'B11 ABC');
@@ -58,39 +58,39 @@ describe('case list', () => {
 					county: 'County',
 					postcode: 'B11 ABC'
 				},
-				siteNorthing: 12435,
-				siteEasting: 12435
+				siteEasting: 12435,
+				siteNorthing: 12435
 			};
 			const result = crownDevelopmentToViewModel(input);
 			assert.strictEqual(result.location, 'House, Street, Town, County, B11 ABC');
 		});
-		it(`should use northing/easting as location if no address`, () => {
+		it(`should use easting/northing as location if no address`, () => {
 			/** @type {import('./types.js').CrownDevelopmentListFields} */
 			const input = {
 				id: 'id-1',
 				reference: 'case/ref',
-				siteNorthing: 124356,
-				siteEasting: 654321
+				siteEasting: 654321,
+				siteNorthing: 123456
 			};
 			const result = crownDevelopmentToViewModel(input);
+			assert.strictEqual(result.location.includes(`Easting`), true);
 			assert.strictEqual(result.location.includes(`Northing`), true);
-			assert.strictEqual(result.location.includes(`Easting`), true);
-			assert.strictEqual(result.location.includes('124356'), true);
+			assert.strictEqual(result.location.includes('123456'), true);
 			assert.strictEqual(result.location.includes('654321'), true);
 		});
-		it(`should use - as placeholder for easting/northing if not provided`, () => {
+		it(`should use - as placeholder for northing/easting if not provided`, () => {
 			/** @type {import('./types.js').CrownDevelopmentListFields} */
 			const input = {
 				id: 'id-1',
 				reference: 'case/ref',
-				siteEasting: 654321
+				siteNorthing: 123456
 			};
 			const result = crownDevelopmentToViewModel(input);
-			assert.strictEqual(result.location.includes(`Northing: -`), true);
-			assert.strictEqual(result.location.includes(`Easting`), true);
-			assert.strictEqual(result.location.includes('654321'), true);
+			assert.strictEqual(result.location.includes(`Easting: -`), true);
+			assert.strictEqual(result.location.includes(`Northing`), true);
+			assert.strictEqual(result.location.includes('123456'), true);
 		});
-		it('should format northing/easting to 6 digits by padding zeros to the start', () => {
+		it('should format easting/northing to 6 digits by padding zeros to the start', () => {
 			/** @type {import('./types.js').CrownDevelopmentListFields} */
 			const input = {
 				id: 'id-1',

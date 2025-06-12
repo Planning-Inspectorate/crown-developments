@@ -102,24 +102,24 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			url: 'site-coordinates',
 			inputFields: [
 				{
-					fieldName: 'siteNorthing',
-					label: 'Northing',
-					formatPrefix: 'Northing: ',
+					fieldName: 'siteEasting',
+					label: 'Easting',
+					formatPrefix: 'Easting: ',
 					hint: 'Optional',
 					formatTextFunction: (string) => string.toString().padStart(6, '0')
 				},
 				{
-					fieldName: 'siteEasting',
-					label: 'Easting',
-					formatPrefix: 'Easting: ',
+					fieldName: 'siteNorthing',
+					label: 'Northing',
+					formatPrefix: 'Northing: ',
 					hint: 'Optional',
 					formatTextFunction: (string) => string.toString().padStart(6, '0')
 				}
 			],
 			validators: [
 				new CoordinatesValidator(
-					{ title: 'Northing', fieldName: 'siteNorthing' },
-					{ title: 'Easting', fieldName: 'siteEasting' }
+					{ title: 'Easting', fieldName: 'siteEasting' },
+					{ title: 'Northing', fieldName: 'siteNorthing' }
 				)
 			]
 		},

@@ -48,9 +48,9 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 	};
 	if (crownDevelopment.SiteAddress) {
 		fields.location = addressToViewModel(crownDevelopment.SiteAddress);
-	} else if (crownDevelopment.siteNorthing || crownDevelopment.siteEasting) {
-		fields.location = `Northing: ${crownDevelopment.siteNorthing?.toString().padStart(6, '0') || '-'}\n`;
-		fields.location += `Easting: ${crownDevelopment.siteEasting?.toString().padStart(6, '0') || '-'}`;
+	} else if (crownDevelopment.siteEasting || crownDevelopment.siteNorthing) {
+		fields.location = `Easting: ${crownDevelopment.siteEasting?.toString().padStart(6, '0') || '-'}\n`;
+		fields.location += `Northing: ${crownDevelopment.siteNorthing?.toString().padStart(6, '0') || '-'}`;
 	}
 
 	return fields;
