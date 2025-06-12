@@ -31,7 +31,7 @@ export function createRoutes(service) {
 	const list = buildListReps(service);
 	const reviewRoutes = createReviewRoutes(service);
 	const addRepRoutes = createAddRoutes(service);
-	const getJourney = asyncHandler(buildGetJourneyMiddleware(service, true));
+	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
 	const updateRepFn = buildUpdateRepresentation(service);
 	const saveAnswer = buildSave(updateRepFn, true);
 
