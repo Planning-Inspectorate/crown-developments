@@ -80,22 +80,22 @@ export function getQuestions() {
 			url: 'site-coordinates',
 			inputFields: [
 				{
-					fieldName: 'siteNorthing',
-					label: 'Northing',
-					formatPrefix: 'Northing: ',
-					hint: 'Optional'
-				},
-				{
 					fieldName: 'siteEasting',
 					label: 'Easting',
 					formatPrefix: 'Easting: ',
+					hint: 'Optional'
+				},
+				{
+					fieldName: 'siteNorthing',
+					label: 'Northing',
+					formatPrefix: 'Northing: ',
 					hint: 'Optional'
 				}
 			],
 			validators: [
 				new CoordinatesValidator(
-					{ title: 'Northing', fieldName: 'siteNorthing' },
-					{ title: 'Easting', fieldName: 'siteEasting' }
+					{ title: 'Easting', fieldName: 'siteEasting' },
+					{ title: 'Northing', fieldName: 'siteNorthing' }
 				)
 			]
 		},
