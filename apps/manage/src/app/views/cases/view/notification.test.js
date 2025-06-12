@@ -50,7 +50,7 @@ describe('notification', () => {
 				{
 					reference: 'CROWN/2025/0000001',
 					applicationDescription: 'a big project',
-					siteAddress: 'Northing: 123456 , Easting: 654321',
+					siteAddress: 'Easting: 654321 , Northing: 123456',
 					lpaQuestionnaireReceivedDate: '2 Jan 2025',
 					frontOfficeLink: 'https://test.com/applications'
 				}
@@ -263,7 +263,7 @@ describe('notification', () => {
 					{
 						reference: 'CROWN/2025/0000001',
 						applicationDescription: 'a big project',
-						siteAddress: 'Northing: 123456 , Easting: 654321'
+						siteAddress: 'Easting: 654321 , Northing: 123456'
 					}
 				]
 			);

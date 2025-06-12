@@ -139,10 +139,10 @@ function getRecipientEmail(crownDevelopmentFields) {
 function formatSiteLocation(crownDevelopment) {
 	if (crownDevelopment.siteAddressId) {
 		return addressToViewModel(crownDevelopment.SiteAddress);
-	} else if (crownDevelopment.siteNorthing || crownDevelopment.siteEasting) {
+	} else if (crownDevelopment.siteEasting || crownDevelopment.siteNorthing) {
 		return [
-			`Northing: ${crownDevelopment.siteNorthing || '-'}`,
-			`Easting: ${crownDevelopment.siteEasting || '-'}`
+			`Easting: ${crownDevelopment.siteEasting || '-'}`,
+			`Northing: ${crownDevelopment.siteNorthing || '-'}`
 		].join(' , ');
 	} else {
 		return 'Site location not provided';

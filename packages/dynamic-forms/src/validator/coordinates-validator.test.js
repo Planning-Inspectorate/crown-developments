@@ -53,26 +53,11 @@ describe('./src/dynamic-forms/validator/coordinates-validator.js', () => {
 		assert.strictEqual(errors[easting.fieldName].msg, `Enter 6 digits for the Grid reference ${easting.title}`);
 	});
 
-	it('should return an error message if northing is populated but easting is not', async () => {
-		const req = {
-			body: {
-				siteNorthing: '123456',
-				siteEasting: ''
-			}
-		};
-		const coordinatesValidator = new CoordinatesValidator(northing, easting);
-
-		const errors = await _validationMappedErrors(req, coordinatesValidator);
-
-		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors[easting.fieldName].msg, `Enter 6 digits for the Grid reference ${easting.title}`);
-	});
-
 	it('should return an error message if easting is populated but northing is not', async () => {
 		const req = {
 			body: {
-				siteNorthing: '',
-				siteEasting: '123456'
+				siteEasting: '123456',
+				siteNorthing: ''
 			}
 		};
 		const coordinatesValidator = new CoordinatesValidator(northing, easting);
@@ -83,10 +68,25 @@ describe('./src/dynamic-forms/validator/coordinates-validator.js', () => {
 		assert.strictEqual(errors[northing.fieldName].msg, `Enter 6 digits for the Grid reference ${northing.title}`);
 	});
 
+	it('should return an error message if northing is populated but easting is not', async () => {
+		const req = {
+			body: {
+				siteEasting: '',
+				siteNorthing: '123456'
+			}
+		};
+		const coordinatesValidator = new CoordinatesValidator(northing, easting);
+
+		const errors = await _validationMappedErrors(req, coordinatesValidator);
+
+		assert.strictEqual(Object.keys(errors).length, 1);
+		assert.strictEqual(errors[easting.fieldName].msg, `Enter 6 digits for the Grid reference ${easting.title}`);
+	});
+
 	it('should return an error message if northing is populated but not required length and easting is not populated', async () => {
 		const req = {
 			body: {
-				siteNorthing: '1234',
+				siteNorthing: '12',
 				siteEasting: ''
 			}
 		};
