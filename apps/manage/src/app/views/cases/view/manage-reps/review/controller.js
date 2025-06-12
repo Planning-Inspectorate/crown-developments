@@ -15,17 +15,17 @@ import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
  */
 
 /**
- * @typedef {Object} ReviewControllers
- * @property {Handler} reviewRepresentationSubmission
- * @property {Handler} reviewRepresentation
- * @property {Handler} representationTaskList
- * @property {Handler} reviewRepresentationComment
- * @property {Handler} reviewRepresentationCommentDecision
- * @property {Handler} redactRepresentation
- * @property {Handler} redactRepresentationPost
- * @property {Handler} redactConfirmation
- * @property {Handler} acceptRedactedComment
- * @property {Handler} reviewRepresentationDocument
+ * @typedef {Object} ReviewControllers - controllers for review representation
+ * @property {Handler} reviewRepresentationSubmission - handles POST for /review/task-list
+ * @property {Handler} reviewRepresentation - handles POST for /review page and redirects users to /review/task-list page if there are no errors
+ * @property {Handler} representationTaskList - handles GET for /review/task-list/comment
+ * @property {Handler} reviewRepresentationComment - handles GET for /review/task-list/comment
+ * @property {Handler} reviewRepresentationCommentDecision - handles POST for /review/task-list/comment
+ * @property {Handler} redactRepresentation - handles GET for /review/task-list/comment/redact
+ * @property {Handler} redactRepresentationPost - handles POST for /review/task-list/comment/redact
+ * @property {Handler} redactConfirmation - handles GET for /review/task-list/comment/redact/confirmation
+ * @property {Handler} acceptRedactedComment - handles POST for /review/task-list/comment/redact/confirmation
+ * @property {Handler} reviewRepresentationDocument - handles GET for /review/task-list/:itemId
  */
 
 /**
@@ -50,6 +50,11 @@ export function buildReviewControllers({ db, logger }) {
 				where: { reference: representationRef },
 				select: { commentStatus: true }
 			});
+
+			if (representation === null) {
+				return notFoundHandler(req, res);
+			}
+
 			const reviewDecision =
 				representation.commentStatus === ACCEPT_AND_REDACT
 					? REPRESENTATION_STATUS_ID.ACCEPTED
@@ -120,7 +125,7 @@ export function buildReviewControllers({ db, logger }) {
 				reference: representationRef,
 				commentStatusTag,
 				isCommentRejected: representation?.commentStatus === REPRESENTATION_STATUS_ID.REJECTED,
-				documents: representation.containsAttachments === true ? documents : [],
+				documents: representation?.containsAttachments === true ? documents : [],
 				reviewComplete: isReviewComplete(taskStatusList),
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
@@ -133,6 +138,11 @@ export function buildReviewControllers({ db, logger }) {
 				where: { reference: representationRef },
 				select: { comment: true, commentStatus: true }
 			});
+
+			if (representation === null) {
+				return notFoundHandler(req, res);
+			}
+
 			return res.render('views/cases/view/manage-reps/review/review-comment.njk', {
 				reference: representationRef,
 				comment: representation.comment,
@@ -177,6 +187,11 @@ export function buildReviewControllers({ db, logger }) {
 					where: { reference: representationRef },
 					select: { id: true, commentStatus: true }
 				});
+
+				if (representation === null) {
+					return notFoundHandler(req, res);
+				}
+
 				const commentStatusBeforeUpdate = representation?.commentStatus;
 
 				logger.info({ representationRef, repUpdate }, 'update representation');
@@ -198,7 +213,7 @@ export function buildReviewControllers({ db, logger }) {
 				const wasRejected = commentStatusBeforeUpdate === REPRESENTATION_STATUS_ID.REJECTED;
 
 				if (isRejected || (wasRejected && !isRejected)) {
-					await updateDocumentStatus(db, logger, id, representationRef, representation, isRejected);
+					await updateDocumentStatus(db, logger, id, representationRef, representation.id, isRejected);
 				}
 			}
 
@@ -290,7 +305,7 @@ export function buildReviewControllers({ db, logger }) {
 			}
 
 			if (commentStatusBeforeUpdate === REPRESENTATION_STATUS_ID.REJECTED) {
-				await updateDocumentStatus(db, logger, id, representationRef, representation, false);
+				await updateDocumentStatus(db, logger, id, representationRef, representation.id, false);
 			}
 
 			clearSessionData(req, representationRef, 'commentRedacted', 'representations');
@@ -422,10 +437,10 @@ function getReviewTaskStatus(status, isRedacted) {
 	}
 }
 
-async function updateDocumentStatus(db, logger, id, representationRef, representation, isRejected) {
+async function updateDocumentStatus(db, logger, id, representationRef, representationId, isRejected) {
 	try {
 		await db.representationDocument.updateMany({
-			where: { representationId: representation.id },
+			where: { representationId },
 			data: {
 				statusId: isRejected ? REPRESENTATION_STATUS_ID.REJECTED : REPRESENTATION_STATUS_ID.AWAITING_REVIEW
 			}
