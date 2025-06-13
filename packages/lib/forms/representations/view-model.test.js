@@ -395,11 +395,13 @@ describe('view-model', () => {
 				myselfLastName: 'lastName',
 				myselfEmail: 'some@example.email',
 				myselfComment: 'my comment',
+				myselfContainsAttachments: 'no',
 				myselfHearingPreference: 'yes'
 			};
 			const updates = editsToDatabaseUpdates(edits, {});
 			assert.ok(updates);
 			assert.strictEqual(updates.comment, 'my comment');
+			assert.strictEqual(updates.containsAttachments, false);
 			assert.strictEqual(updates.wantsToBeHeard, true);
 			assert.ok(updates.SubmittedByContact);
 			assert.strictEqual(updates.SubmittedByContact.upsert?.where, undefined);
@@ -417,11 +419,13 @@ describe('view-model', () => {
 				submitterLastName: 'lastName',
 				submitterEmail: 'some@example.email',
 				submitterComment: 'my comment',
+				submitterContainsAttachments: 'yes',
 				submitterHearingPreference: 'no'
 			};
 			const updates = editsToDatabaseUpdates(edits, {});
 			assert.ok(updates);
 			assert.strictEqual(updates.comment, 'my comment');
+			assert.strictEqual(updates.containsAttachments, true);
 			assert.strictEqual(updates.wantsToBeHeard, false);
 			assert.strictEqual(updates.representedTypeId, REPRESENTED_TYPE_ID.PERSON);
 			assert.ok(updates.SubmittedByContact);

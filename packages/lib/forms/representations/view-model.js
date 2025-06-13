@@ -127,6 +127,9 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	if ('myselfComment' in edits) {
 		representationUpdateInput.comment = edits.myselfComment;
 	}
+	if ('myselfContainsAttachments' in edits) {
+		representationUpdateInput.containsAttachments = yesNoToBoolean(edits.myselfContainsAttachments);
+	}
 	if ('myselfHearingPreference' in edits) {
 		representationUpdateInput.wantsToBeHeard = yesNoToBoolean(edits.myselfHearingPreference);
 	}
@@ -152,6 +155,9 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	}
 	if ('submitterComment' in edits) {
 		representationUpdateInput.comment = edits.submitterComment;
+	}
+	if ('submitterContainsAttachments' in edits) {
+		representationUpdateInput.containsAttachments = yesNoToBoolean(edits.submitterContainsAttachments);
 	}
 	if ('submitterHearingPreference' in edits) {
 		representationUpdateInput.wantsToBeHeard = yesNoToBoolean(edits.submitterHearingPreference);
