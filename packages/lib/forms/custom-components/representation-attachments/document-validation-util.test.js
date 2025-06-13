@@ -162,8 +162,50 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 			CFB.utils.cfb_add(cfbContainer, 'EncryptedStream', Buffer.from('fake encrypted data'));
 			const buffer = CFB.write(cfbContainer, { type: 'buffer' });
 
+			await assertFileIsRejectedAsEncrypted(buffer);
+		});
+		it('should detect encrypted Word document via fEncrypted flag', async () => {
+			const cfbContainer = CFB.utils.cfb_new();
+			const content = Buffer.alloc(0x0c, 0); // Create a buffer with 12 bytes
+			content[0x0b] = 0x01;
+			CFB.utils.cfb_add(cfbContainer, 'WordDocument', content);
+			const buffer = CFB.write(cfbContainer, { type: 'buffer' });
+
+			await assertFileIsRejectedAsEncrypted(buffer);
+		});
+
+		it('should detect encrypted Excel file via FILEPASS record', async () => {
+			const cfbContainer = CFB.utils.cfb_new();
+			const content = Buffer.alloc(8);
+			content.writeUInt16LE(0x002f, 0);
+			content.writeUInt16LE(0x0000, 2);
+			CFB.utils.cfb_add(cfbContainer, 'Workbook', content);
+			const buffer = CFB.write(cfbContainer, { type: 'buffer' });
+
+			await assertFileIsRejectedAsEncrypted(buffer);
+		});
+
+		it('should detect encrypted file via presence of encrypted streams', async () => {
+			const cfbContainer = CFB.utils.cfb_new();
+			CFB.utils.cfb_add(cfbContainer, 'EncryptedStream', Buffer.from('fake data'));
+			const buffer = CFB.write(cfbContainer, { type: 'buffer' });
+
+			await assertFileIsRejectedAsEncrypted(buffer);
+		});
+
+		it('should not return any errors for valid office document', async () => {
+			const cfbContainer = CFB.utils.cfb_new();
+			const wordContent = Buffer.alloc(0x0c, 0);
+			wordContent[0x0b] = 0x00;
+			CFB.utils.cfb_add(cfbContainer, 'WordDocument', wordContent);
+			const workbookContent = Buffer.alloc(8);
+			workbookContent.writeUInt16LE(0x0010, 0);
+			workbookContent.writeUInt16LE(0x0000, 2);
+			CFB.utils.cfb_add(cfbContainer, 'Workbook', workbookContent);
+			const buffer = CFB.write(cfbContainer, { type: 'buffer' });
+
 			const file = {
-				originalname: 'test4.pdf',
+				originalname: 'test4.doc',
 				mimetype: 'application/pdf',
 				buffer: buffer,
 				size: 227787
@@ -172,12 +214,7 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 
 			assert.deepStrictEqual(
 				await validateUploadedFile(file, logger, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE),
-				[
-					{
-						href: '#upload-form',
-						text: 'test4.pdf: File must not be password protected'
-					}
-				]
+				[]
 			);
 		});
 	});
@@ -205,3 +242,23 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 		});
 	});
 });
+
+async function assertFileIsRejectedAsEncrypted(buffer) {
+	const file = {
+		originalname: 'test4.doc',
+		mimetype: 'application/pdf',
+		buffer: buffer,
+		size: 227787
+	};
+	const logger = mockLogger();
+
+	assert.deepStrictEqual(
+		await validateUploadedFile(file, logger, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE),
+		[
+			{
+				href: '#upload-form',
+				text: 'test4.doc: File must not be password protected'
+			}
+		]
+	);
+}
