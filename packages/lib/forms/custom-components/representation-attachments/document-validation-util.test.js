@@ -246,7 +246,7 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 async function assertFileIsRejectedAsEncrypted(buffer) {
 	const file = {
 		originalname: 'test4.doc',
-		mimetype: 'application/pdf',
+		mimetype: 'application/msword',
 		buffer: buffer,
 		size: 227787
 	};
