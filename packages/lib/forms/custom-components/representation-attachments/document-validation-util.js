@@ -41,7 +41,7 @@ export async function validateUploadedFile(file, logger, allowedFileExtensions, 
 
 	// Compound File Binary (.cfb) is a Microsoft file container format that acts like a mini filesystem inside a file
 	// common users include older Microsoft Office files such as .doc and .xls
-	if ((ext === 'cfb' || mime === 'application/x-cfb') && (await isDocOrXlsEncrypted(buffer))) {
+	if ((ext === 'cfb' || mime === 'application/x-cfb') && (await isDocOrXlsEncrypted(buffer, logger))) {
 		validationErrors.push({
 			text: `${originalname}: File must not be password protected`,
 			href: '#upload-form'
@@ -79,17 +79,52 @@ async function isPdfPasswordProtected(buffer, logger) {
 	}
 }
 
-function isDocOrXlsEncrypted(buffer) {
-	const container = CFB.parse(buffer, { type: 'buffer' });
-	const hasEncryptedStream = container.FullPaths.some(
-		(fullPath) => fullPath.includes('EncryptedPackage') || fullPath.includes('EncryptedStream')
-	);
-	const isEncryptedStream = container.FileIndex.some(
-		(entry) =>
-			(entry.name === 'WordDocument' || entry.name === 'Workbook') && entry.content && entry.content[0] === 0x13
-	);
+function isDocOrXlsEncrypted(buffer, logger) {
+	try {
+		const container = CFB.parse(buffer, { type: 'buffer' });
 
-	return hasEncryptedStream || isEncryptedStream;
+		// Word: Check fEncrypted flag in WordDocument stream at offset 0x0B
+		const wordEntry = container.FileIndex.find((entry) => entry.name === 'WordDocument');
+		if (wordEntry && wordEntry.content && wordEntry.content.length > 0x0b) {
+			const fEncrypted = (wordEntry.content[0x0b] & 0x01) === 0x01;
+			if (fEncrypted) return true;
+		}
+
+		// Excel: Look for "FILEPASS" record (0x002F) at the beginning of Workbook stream
+		const workbookEntry = container.FileIndex.find((entry) => entry.name === 'Workbook');
+		if (workbookEntry && workbookEntry.content) {
+			if (hasFilePassRecord(workbookEntry.content)) {
+				return true;
+			}
+		}
+
+		// Also check for encrypted streams
+		const hasEncryptedStream = container.FileIndex.some((entry) =>
+			['encryptedstream', 'encryptedpackage', 'encryptioninfo'].includes(entry.name?.toLowerCase())
+		);
+
+		return hasEncryptedStream;
+	} catch (err) {
+		logger.error({ err }, `doc/xls file is password protected`);
+		// If parsing fails, we assume file might be encrypted or corrupt
+		return true;
+	}
+}
+
+function hasFilePassRecord(buffer) {
+	let offset = 0;
+	while (offset + 4 < buffer.length) {
+		const recordType = buffer.readUInt16LE(offset);
+		const recordLength = buffer.readUInt16LE(offset + 2);
+
+		if (recordType === 0x002f) {
+			// FILEPASS found - file is password protected
+			return true;
+		}
+
+		offset += 4 + recordLength;
+	}
+	return false;
 }
 
 export function fileAlreadyExistsInFolder(documents, files) {
