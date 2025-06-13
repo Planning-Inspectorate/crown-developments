@@ -50,16 +50,46 @@ export async function viewAddRepresentationSuccessPage(req, res) {
  */
 export function buildSaveRepresentationController(service, uniqueReferenceFn = uniqueReference) {
 	return async (req, res) => {
+		const applicationReference = await getApplicationReference(service.db, req, res);
+		if (!applicationReference) {
+			return; // notFoundHandler will have been called in getApplicationReference
+		}
+		const { db, logger, notifyClient, getSharePointDrive } = service;
+		const sharePointDrive = getSharePointDrive(req.session);
 		await saveRepresentation(
 			{
-				service,
+				service: { db, logger, sharePointDrive, notifyClient },
 				journeyId: JOURNEY_ID,
 				checkYourAnswersUrl: `/cases/${req.params.id}/manage-representations/add-representation/check-your-answers`,
 				successUrl: `/cases/${req.params.id}/manage-representations/add-representation/success`,
+				applicationReference,
 				uniqueReferenceFn
 			},
 			req,
 			res
 		);
 	};
+}
+
+export async function getApplicationReference(db, req, res) {
+	const id = req.params.id || req.params.applicationId;
+	if (!id) {
+		throw new Error('id param required');
+	}
+	if (!isValidUuidFormat(id)) {
+		return notFoundHandler(req, res);
+	}
+	const crownDevelopment = await db.crownDevelopment.findUnique({
+		where: {
+			id: req.params.id
+		},
+		select: {
+			reference: true
+		}
+	});
+	if (!crownDevelopment) {
+		return notFoundHandler(req, res);
+	}
+
+	return crownDevelopment.reference;
 }

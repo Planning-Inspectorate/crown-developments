@@ -491,7 +491,8 @@ describe('view-model', () => {
 					myselfFirstName: 'firstName',
 					myselfLastName: 'lastName',
 					myselfEmail: 'myemail@email.com',
-					myselfComment: 'my comments'
+					myselfComment: 'my comments',
+					myselfContainsAttachments: 'no'
 				};
 				const representationCreateInput = viewModelToRepresentationCreateInput(mockAnswers, reference, id);
 
@@ -531,7 +532,8 @@ describe('view-model', () => {
 							id: 'myself'
 						}
 					},
-					comment: 'my comments'
+					comment: 'my comments',
+					containsAttachments: false
 				});
 			});
 			it('should map on agent on behalf of a person journey answers to Prisma Input', (context) => {
@@ -549,7 +551,8 @@ describe('view-model', () => {
 					agentOrgName: 'agent org',
 					submitterComment: 'my comments',
 					representedFirstName: 'firstName',
-					representedLastName: 'lastName'
+					representedLastName: 'lastName',
+					submitterContainsAttachments: 'no'
 				};
 
 				const representationCreateInput = viewModelToRepresentationCreateInput(mockAnswers, reference, id);
@@ -591,6 +594,7 @@ describe('view-model', () => {
 						}
 					},
 					comment: 'my comments',
+					containsAttachments: false,
 					RepresentedType: {
 						connect: {
 							id: REPRESENTED_TYPE_ID.PERSON
@@ -619,7 +623,8 @@ describe('view-model', () => {
 					submitterComment: 'my comments',
 					representedOrgName: 'rep org',
 					agentOrgName: 'my role',
-					categoryId: 'consultees'
+					categoryId: 'consultees',
+					submitterContainsAttachments: 'no'
 				};
 				const representationCreateInput = viewModelToRepresentationCreateInput(mockAnswers, reference, id);
 				assert.deepStrictEqual(representationCreateInput, {
@@ -660,6 +665,7 @@ describe('view-model', () => {
 						}
 					},
 					comment: 'my comments',
+					containsAttachments: false,
 					RepresentedType: {
 						connect: {
 							id: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR
@@ -686,7 +692,8 @@ describe('view-model', () => {
 					submitterEmail: 'myemail@email.com',
 					submitterComment: 'my comments',
 					representedOrgName: 'rep org',
-					orgRoleName: 'my role at org'
+					orgRoleName: 'my role at org',
+					submitterContainsAttachments: 'no'
 				};
 				const representationCreateInput = viewModelToRepresentationCreateInput(mockAnswers, reference, id);
 				assert.deepStrictEqual(representationCreateInput, {
@@ -727,6 +734,7 @@ describe('view-model', () => {
 						}
 					},
 					comment: 'my comments',
+					containsAttachments: false,
 					RepresentedType: {
 						connect: {
 							id: REPRESENTED_TYPE_ID.ORGANISATION
@@ -753,7 +761,8 @@ describe('view-model', () => {
 					myselfContactPreference: 'email',
 					myselfEmail: 'myemail@email.com',
 					myselfComment: 'my comments',
-					myselfHearingPreference: 'yes'
+					myselfHearingPreference: 'yes',
+					myselfContainsAttachments: 'no'
 				};
 				const representationCreateInput = viewModelToRepresentationCreateInput(mockAnswers, reference, id);
 
@@ -794,6 +803,7 @@ describe('view-model', () => {
 						}
 					},
 					comment: 'my comments',
+					containsAttachments: false,
 					wantsToBeHeard: true
 				});
 			});
@@ -820,7 +830,8 @@ describe('view-model', () => {
 					submitterComment: 'my comments',
 					representedFirstName: 'represented firstName',
 					representedLastName: 'represented lastName',
-					submitterHearingPreference: 'no'
+					submitterHearingPreference: 'no',
+					submitterContainsAttachments: 'no'
 				};
 
 				const representationCreateInput = viewModelToRepresentationCreateInput(mockAnswers, reference, id);
@@ -869,6 +880,7 @@ describe('view-model', () => {
 						}
 					},
 					comment: 'my comments',
+					containsAttachments: false,
 					RepresentedType: {
 						connect: {
 							id: REPRESENTED_TYPE_ID.PERSON
@@ -936,6 +948,7 @@ describe('view-model', () => {
 						}
 					},
 					comment: 'my comments',
+					containsAttachments: false,
 					RepresentedType: {
 						connect: {
 							id: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR
@@ -966,7 +979,8 @@ describe('view-model', () => {
 					representedOrgName: 'rep org',
 					orgRoleName: 'my role at org',
 					submitterHearingPreference: 'no',
-					wantsToBeHeard: false
+					wantsToBeHeard: false,
+					submitterContainsAttachments: 'no'
 				};
 				const representationCreateInput = viewModelToRepresentationCreateInput(mockAnswers, reference, id);
 				assert.deepStrictEqual(representationCreateInput, {
@@ -1003,6 +1017,7 @@ describe('view-model', () => {
 						}
 					},
 					comment: 'my comments',
+					containsAttachments: false,
 					RepresentedType: {
 						connect: {
 							id: REPRESENTED_TYPE_ID.ORGANISATION
