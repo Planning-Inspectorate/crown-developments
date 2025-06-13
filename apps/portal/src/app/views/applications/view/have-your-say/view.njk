@@ -53,7 +53,7 @@
             }) }}
 
 
-            {% set DataPrivacyText %}
+            {% set dataPrivacyText %}
                 <p>At the Planning Inspectorate, we value your privacy. This statement outlines how we process your personal data.</p>
                 <p>When you submit a comment on a non-urgent Crown development application, we’ll ask  for your name and email address.</p>
                 <p>Your name and comment will be published on the <a class="govuk-link govuk-link--no-visited-state" href="/applications">Find a Crown development application service</a>. We will only use your email address to communicate with you about your submission and will not use your data for any other, unrelated purpose.</p>
@@ -65,7 +65,7 @@
 
             {{ govukDetails({
                 summaryText: "How we process your data ",
-                text: DataPrivacyText | safe
+                text: dataPrivacyText | safe
             }) }}
 
             <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
