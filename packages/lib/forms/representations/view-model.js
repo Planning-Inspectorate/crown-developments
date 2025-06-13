@@ -258,7 +258,8 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 				firstName: answers[`${prefix}FirstName`],
 				lastName: answers[`${prefix}LastName`]
 			}
-		}
+		},
+		containsAttachments: yesNoToBoolean(answers[`${prefix}ContainsAttachments`]) || false
 	};
 
 	if (answers[`${prefix}ContactPreference`]) {

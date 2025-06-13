@@ -1,9 +1,7 @@
-import { isValidUuidFormat } from '../../util/uuid.js';
 import { addSessionData, clearSessionData } from '../../util/session.js';
 import { viewModelToRepresentationCreateInput } from './view-model.js';
 import { clearDataFromSession } from '@pins/dynamic-forms/src/lib/session-answer-store.js';
 import { wrapPrismaError } from '../../util/database.js';
-import { notFoundHandler } from '../../middleware/errors.js';
 import { uniqueReference } from '../../util/random-reference.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { moveAttachmentsToCaseFolder } from '../../util/handle-attachments.js';
@@ -41,12 +39,6 @@ export async function saveRepresentation(
 
 	const id = req.params.id || req.params.applicationId;
 	const sessionReqParam = req.params.applicationId ? 'applicationId' : 'id';
-	if (!id) {
-		throw new Error('id param required');
-	}
-	if (!isValidUuidFormat(id)) {
-		return notFoundHandler(req, res);
-	}
 	if (!res.locals || !res.locals.journeyResponse) {
 		throw new Error('journey response required');
 	}

@@ -1,6 +1,10 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { buildSaveRepresentationController, viewAddRepresentationSuccessPage } from './save.js';
+import {
+	buildSaveRepresentationController,
+	getApplicationReference,
+	viewAddRepresentationSuccessPage
+} from './save.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { Prisma } from '@prisma/client';
@@ -88,7 +92,13 @@ describe('written representations', () => {
 		});
 		it('should error if locals or journeyResponse is missing', async () => {
 			const mockReq = { params: { id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' } };
-			const saveRepresentationController = buildSaveRepresentationController({});
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ reference: 'ref-1' }))
+				}
+			};
+			const getSharePointDrive = mock.fn(() => () => null);
+			const saveRepresentationController = buildSaveRepresentationController({ db: mockDb, getSharePointDrive });
 			assert.rejects(() => saveRepresentationController(mockReq, {}), { message: 'journey response required' });
 		});
 		it('should error if answers is not an object', async () => {
@@ -98,7 +108,13 @@ describe('written representations', () => {
 			const mockRes = {
 				locals: { journeyResponse: { answers: 'not an object' } }
 			};
-			const saveRepresentationController = buildSaveRepresentationController({});
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ reference: 'ref-1' }))
+				}
+			};
+			const getSharePointDrive = mock.fn(() => () => null);
+			const saveRepresentationController = buildSaveRepresentationController({ db: mockDb, getSharePointDrive });
 			await assert.rejects(() => saveRepresentationController(mockReq, mockRes), {
 				message: 'answers should be an object'
 			});
@@ -117,7 +133,13 @@ describe('written representations', () => {
 					}
 				}
 			};
-			const saveRepresentationController = buildSaveRepresentationController({});
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ reference: 'ref-1' }))
+				}
+			};
+			const getSharePointDrive = mock.fn(() => () => null);
+			const saveRepresentationController = buildSaveRepresentationController({ db: mockDb, getSharePointDrive });
 			await saveRepresentationController(mockReq, mockRes);
 			assert.deepStrictEqual(
 				mockReq.session.cases[mockReq.params.id].representationError.text[0].text,
@@ -147,15 +169,20 @@ describe('written representations', () => {
 				representation: {
 					create: mock.fn(),
 					count: mock.fn()
+				},
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ reference: 'ref-1' }))
 				}
 			};
+			const getSharePointDrive = mock.fn(() => () => null);
 
 			const mockUniqueReferenceFn = mock.fn(() => 'AAAAA-BBBBB');
 
 			const saveRepresentationController = buildSaveRepresentationController(
 				{
 					db: mockDb,
-					logger: mockLogger()
+					logger: mockLogger(),
+					getSharePointDrive
 				},
 				mockUniqueReferenceFn
 			);
@@ -190,15 +217,20 @@ describe('written representations', () => {
 				representation: {
 					create: mock.fn(),
 					count: mock.fn()
+				},
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ reference: 'ref-1' }))
 				}
 			};
+			const getSharePointDrive = mock.fn(() => () => null);
 
 			const mockUniqueReferenceFn = mock.fn(() => 'AAAAA-BBBBB');
 
 			const saveRepresentationController = buildSaveRepresentationController(
 				{
 					db: mockDb,
-					logger: mockLogger()
+					logger: mockLogger(),
+					getSharePointDrive
 				},
 				mockUniqueReferenceFn
 			);
@@ -212,6 +244,52 @@ describe('written representations', () => {
 			);
 			assert.strictEqual(mockDb.representation.create.mock.callCount(), 0);
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 0);
+		});
+	});
+	describe('getApplicationReference', () => {
+		it('should throw error if id is missing', async () => {
+			const mockReq = { params: {} };
+			const mockRes = {};
+			await assert.rejects(() => getApplicationReference({ id: null, db: {} }, mockReq, mockRes), {
+				message: 'id param required'
+			});
+		});
+		it('should return not found for invalid id', async () => {
+			const mockReq = { params: { id: 'abc-123' } };
+			const mockRes = {
+				status: mock.fn(),
+				render: mock.fn()
+			};
+			const mockDb = {};
+			getApplicationReference(mockDb, mockReq, mockRes);
+			assert.strictEqual(mockRes.status.mock.callCount(), 1);
+			assert.strictEqual(mockRes.status.mock.calls[0].arguments[0], 404);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+		});
+		it('should return reference for valid id', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ reference: 'ref-1' }))
+				}
+			};
+			const mockReq = { params: { id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' } };
+			const reference = await getApplicationReference(mockDb, mockReq, false);
+			assert.strictEqual(reference, 'ref-1');
+		});
+		it('should return not found if no reference found for valid id', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => null)
+				}
+			};
+			const mockReq = { params: { id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' } };
+			const mockRes = {
+				status: mock.fn(),
+				render: mock.fn()
+			};
+			await getApplicationReference(mockDb, mockReq, mockRes);
+			assert.strictEqual(mockRes.status.mock.calls[0].arguments[0], 404);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 		});
 	});
 });
