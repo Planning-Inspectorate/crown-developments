@@ -105,7 +105,7 @@ function isDocOrXlsEncrypted(buffer, logger) {
 
 		return hasEncryptedStream;
 	} catch (err) {
-		logger.error({ err }, `doc/xls file is password protected`);
+		logger.error({ err }, `error parsing .doc or .xls file`);
 		// If parsing fails, we assume file might be encrypted or corrupt
 		return true;
 	}
