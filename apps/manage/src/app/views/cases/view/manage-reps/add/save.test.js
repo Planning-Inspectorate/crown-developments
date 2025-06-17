@@ -245,6 +245,136 @@ describe('written representations', () => {
 			assert.strictEqual(mockDb.representation.create.mock.callCount(), 0);
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 0);
 		});
+		it('should save representation attachments metadata and move files when the representation has attachments when submittedFor is myself', async () => {
+			const mockReq = {
+				params: { id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
+				session: {}
+			};
+			const answers = {
+				submittedForId: 'myself',
+				myselfFirstName: 'Test',
+				myselfLastName: 'Name',
+				myselfEmail: 'test@email.com',
+				myselfComment: 'some comments',
+				myselfContainsAttachments: 'yes',
+				myselfAttachments: [
+					{ itemId: 'file-1', fileName: 'file1.pdf', size: 12345 },
+					{ itemId: 'file-2', fileName: 'file2.pdf', size: 67890 }
+				]
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: { answers },
+					journey: {
+						isComplete: mock.fn(() => true)
+					}
+				},
+				status: mock.fn(),
+				render: mock.fn(),
+				redirect: mock.fn()
+			};
+			const moveAttachmentsFn = mock.fn();
+			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						reference: 'CROWN/2025/0000001',
+						description: 'a big project',
+						SiteAddress: { line1: '4 the street', line2: 'town', postcode: 'wc1w 1bw' }
+					}))
+				},
+				representation: {
+					create: mock.fn(() => ({
+						id: 'representation-1'
+					})),
+					count: mock.fn(() => 0)
+				},
+				representationDocument: {
+					createMany: mock.fn()
+				}
+			};
+			const uniqueReferenceFn = mock.fn(() => 'AAAAA-BBBBB');
+			const logger = mockLogger();
+			const mockNotifyClient = {
+				sendAcknowledgementOfRepresentation: mock.fn()
+			};
+			const getSharePointDrive = mock.fn(() => () => null);
+			const service = { db: mockDb, logger, notifyClient: mockNotifyClient, getSharePointDrive };
+			const saveRepresentationController = buildSaveRepresentationController(
+				service,
+				uniqueReferenceFn,
+				moveAttachmentsFn
+			);
+
+			await saveRepresentationController(mockReq, mockRes);
+			assert.strictEqual(mockDb.representationDocument.createMany.mock.callCount(), 1);
+		});
+		it('should save representation attachments metadata and move files when the representation has attachments when submittedFor is on-behalf-of', async () => {
+			const mockReq = {
+				params: { id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
+				session: {}
+			};
+			const answers = {
+				submittedForId: 'on-behalf-of',
+				submitterFirstName: 'Test',
+				submitterLastName: 'Name',
+				submitterEmail: 'test@email.com',
+				submitterComment: 'some comments',
+				submitterContainsAttachments: 'yes',
+				submitterAttachments: [
+					{ itemId: 'file-1', fileName: 'file1.pdf', size: 12345 },
+					{ itemId: 'file-2', fileName: 'file2.pdf', size: 67890 }
+				]
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: { answers },
+					journey: {
+						isComplete: mock.fn(() => true)
+					}
+				},
+				status: mock.fn(),
+				render: mock.fn(),
+				redirect: mock.fn()
+			};
+			const moveAttachmentsFn = mock.fn();
+			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						reference: 'CROWN/2025/0000001',
+						description: 'a big project',
+						SiteAddress: { line1: '4 the street', line2: 'town', postcode: 'wc1w 1bw' }
+					}))
+				},
+				representation: {
+					create: mock.fn(() => ({
+						id: 'representation-1'
+					})),
+					count: mock.fn(() => 0)
+				},
+				representationDocument: {
+					createMany: mock.fn()
+				}
+			};
+			const uniqueReferenceFn = mock.fn(() => 'AAAAA-BBBBB');
+			const logger = mockLogger();
+			const mockNotifyClient = {
+				sendAcknowledgementOfRepresentation: mock.fn()
+			};
+			const getSharePointDrive = mock.fn(() => () => null);
+			const service = { db: mockDb, logger, notifyClient: mockNotifyClient, getSharePointDrive };
+			const saveRepresentationController = buildSaveRepresentationController(
+				service,
+				uniqueReferenceFn,
+				moveAttachmentsFn
+			);
+
+			await saveRepresentationController(mockReq, mockRes);
+			assert.strictEqual(mockDb.representationDocument.createMany.mock.callCount(), 1);
+		});
 	});
 	describe('getApplicationReference', () => {
 		it('should throw error if id is missing', async () => {
