@@ -4,6 +4,8 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { JOURNEY_ID } from './journey.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { saveRepresentation } from '@pins/crowndev-lib/forms/representations/save.js';
+import { moveAttachmentsToCaseFolder } from '@pins/crowndev-lib/util/handle-attachments.js';
+
 /**
  * Render add representation success page
  *
@@ -46,9 +48,15 @@ export async function viewAddRepresentationSuccessPage(req, res) {
 /**
  * @param {import('#service').ManageService} service
  * @param {function} [uniqueReferenceFn] - optional function used for testing
+ * @param {function} [moveAttachmentsFn] - optional function to move attachments to case folder for testing
+ * @param getSharePointDrive
  * @returns {import('express').Handler}
  */
-export function buildSaveRepresentationController(service, uniqueReferenceFn = uniqueReference) {
+export function buildSaveRepresentationController(
+	service,
+	uniqueReferenceFn = uniqueReference,
+	moveAttachmentsFn = moveAttachmentsToCaseFolder
+) {
 	return async (req, res) => {
 		const applicationReference = await getApplicationReference(service.db, req, res);
 		if (!applicationReference) {
@@ -63,7 +71,8 @@ export function buildSaveRepresentationController(service, uniqueReferenceFn = u
 				checkYourAnswersUrl: `/cases/${req.params.id}/manage-representations/add-representation/check-your-answers`,
 				successUrl: `/cases/${req.params.id}/manage-representations/add-representation/success`,
 				applicationReference,
-				uniqueReferenceFn
+				uniqueReferenceFn,
+				moveAttachmentsFn
 			},
 			req,
 			res

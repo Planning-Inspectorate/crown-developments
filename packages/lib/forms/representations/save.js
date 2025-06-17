@@ -3,7 +3,10 @@ import { viewModelToRepresentationCreateInput } from './view-model.js';
 import { clearDataFromSession } from '@pins/dynamic-forms/src/lib/session-answer-store.js';
 import { wrapPrismaError } from '../../util/database.js';
 import { uniqueReference } from '../../util/random-reference.js';
-import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import {
+	REPRESENTATION_STATUS_ID,
+	REPRESENTATION_SUBMITTED_FOR_ID
+} from '@pins/crowndev-database/src/seed/data-static.js';
 import { moveAttachmentsToCaseFolder } from '../../util/handle-attachments.js';
 import { getSubmittedForId } from '../../util/questions.js';
 /**
@@ -62,8 +65,9 @@ export async function saveRepresentation(
 
 	let representationReference = '';
 	const submittedForId = getSubmittedForId(answers);
-	const representationAttachments = answers[`${submittedForId}Attachments`];
-	const hasAttachments = answers[`${submittedForId}ContainsAttachments`] === 'yes';
+	const prefix = submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF ? 'myself' : 'submitter';
+	const representationAttachments = answers[`${prefix}Attachments`];
+	const hasAttachments = answers[`${prefix}ContainsAttachments`] === 'yes';
 
 	if (hasAttachments && (!representationAttachments || representationAttachments.length === 0)) {
 		throw new Error('No representation attachments found in answers');
