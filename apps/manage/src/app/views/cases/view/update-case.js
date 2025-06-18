@@ -9,9 +9,10 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 
 /**
  * @param {import('#service').ManageService} service
+ * @param {boolean} [clearAnswer=false] - whether to clear the answer before saving
  * @returns {import('@pins/dynamic-forms/src/controller.js').SaveDataFn}
  */
-export function buildUpdateCase(service) {
+export function buildUpdateCase(service, clearAnswer = false) {
 	return async ({ req, res, data }) => {
 		const { db, logger } = service;
 		const { id } = req.params;
@@ -21,6 +22,12 @@ export function buildUpdateCase(service) {
 		logger.info({ id }, 'case update');
 		/** @type {import('./types.js').CrownDevelopmentViewModel} */
 		const toSave = data?.answers || {};
+		if (clearAnswer) {
+			// clear the answer if requested
+			Object.keys(toSave).forEach((key) => {
+				toSave[key] = null;
+			});
+		}
 		if (Object.keys(toSave).length === 0) {
 			logger.info({ id }, 'no case updates to apply');
 			return;

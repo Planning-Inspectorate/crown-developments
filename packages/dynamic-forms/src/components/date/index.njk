@@ -84,6 +84,21 @@
                     type: "submit",
                     attributes: { "data-cy":"button-save-and-continue"}
                 }) }}
+                {% if extraActionButtons|length %}
+                    {% for extraActionButton in extraActionButtons %}
+                        {{ govukButton({
+                            text: extraActionButton.text,
+                            type: extraActionButton.type,
+                            href: extraActionButton.href,
+                            attributes: {
+                                "formaction": extraActionButton.formaction or "",
+                                "data-cy": "button-" + extraActionButton.text|lower|replace(" ", "-"),
+                                "name": extraActionButton.text|lower|replace(" ", "-")
+                            },
+                            classes: extraActionButton.classes or "govuk-button--secondary"
+                        }) }}
+                    {% endfor %}
+                {% endif %}
             </form>
         </div>
     </div>
