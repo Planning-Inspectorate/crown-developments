@@ -19,6 +19,8 @@ export function createRoutes(service) {
 	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
 	const viewCaseDetails = buildViewCaseDetails(service);
 	const updateCaseFn = buildUpdateCase(service);
+	const clearAndUpdateCaseFn = buildUpdateCase(service, true);
+	const clearAndUpdateCase = buildSave(clearAndUpdateCaseFn, true);
 	const updateCase = buildSave(updateCaseFn, true);
 	const publishCase = createCasePublishRoutes(service);
 	const unpublishCase = createCaseUnpublishRoutes(service);
@@ -42,6 +44,8 @@ export function createRoutes(service) {
 		validationErrorHandler,
 		asyncHandler(updateCase)
 	);
+
+	router.post('/:section/:question/remove', validateIdFormat, getJourney, asyncHandler(clearAndUpdateCase));
 
 	return router;
 }

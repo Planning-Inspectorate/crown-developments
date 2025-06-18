@@ -758,5 +758,31 @@ describe('case details', () => {
 				}
 			);
 		});
+		it('should clear answer if clearAnswer is true', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
+			const logger = mockLogger();
+			const mockDb = {
+				crownDevelopment: {
+					update: mock.fn()
+				}
+			};
+			const updateCase = buildUpdateCase({ db: mockDb, logger }, true);
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = { locals: {} };
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					description: 'My new application description'
+				}
+			};
+			await updateCase({ req: mockReq, res: mockRes, data });
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+			const updateArg = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
+			assert.strictEqual(updateArg.where?.id, 'case1');
+			assert.strictEqual(updateArg.data.description, null);
+		});
 	});
 });

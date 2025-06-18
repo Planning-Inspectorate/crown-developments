@@ -121,7 +121,19 @@ export function dateQuestion({ fieldName, title, hint, editable = true, viewData
 export function eventQuestions(prefix) {
 	const title = titleCase(prefix);
 	return {
-		[`${prefix}Date`]: dateQuestion({ fieldName: `${prefix}Date` }),
+		[`${prefix}Date`]: dateQuestion({
+			fieldName: `${prefix}Date`,
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: `${camelCaseToUrlCase(prefix)}-date/remove`,
+						classes: 'govuk-button--warning'
+					}
+				]
+			}
+		}),
 		[`${prefix}Duration`]: {
 			type: COMPONENT_TYPES.RADIO,
 			title: `${title} Duration`,

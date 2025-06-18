@@ -378,7 +378,7 @@ function viewModelToEventUpdateInput(edits, procedureId) {
 
 	const prefix = eventPrefix(procedureId);
 
-	if (edits[`${prefix}Date`]) {
+	if (`${prefix}Date` in edits) {
 		eventUpdateInput.date = edits[`${prefix}Date`];
 	}
 	if (edits[`${prefix}Duration`]) {
