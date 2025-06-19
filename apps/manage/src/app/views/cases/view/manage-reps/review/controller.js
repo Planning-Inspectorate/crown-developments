@@ -9,6 +9,8 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { REDACT_CHARACTER } from '@pins/dynamic-forms/src/components/text-entry-redact/question.js';
 import { expressValidationErrorsToGovUkErrorList } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { forwardStreamContents, getDriveItemDownloadUrl } from '@pins/crowndev-lib/documents/utils.js';
+import { ALLOWED_MIME_TYPES } from '@pins/crowndev-lib/forms/representations/question-utils.js';
 
 /**
  * @typedef {import('express').Handler} Handler
@@ -26,6 +28,10 @@ import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
  * @property {Handler} redactConfirmation - handles GET for /review/task-list/comment/redact/confirmation
  * @property {Handler} acceptRedactedComment - handles POST for /review/task-list/comment/redact/confirmation
  * @property {Handler} reviewRepresentationDocument - handles GET for /review/task-list/:itemId
+ * @proterty {Handler} viewDocument - handles GET and document download for /review/task-list/:itemId/view
+ * @property {Handler} reviewDocumentDecision - handles POST for /review/task-list/:itemId
+ * @property {Handler} redactRepresentationDocument - handles GET for /task-list/:itemId/redact
+ * @property {Handler} redactRepresentationDocumentPost - handles POST for /task-list/:itemId/redact
  */
 
 /**
@@ -41,7 +47,7 @@ export async function viewRepresentationAwaitingReview(req, res) {
  * @param {import('#service').ManageService} service
  * @returns {ReviewControllers}
  */
-export function buildReviewControllers({ db, logger }) {
+export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 	/** @type {ReviewControllers} */
 	const controllers = {
 		async reviewRepresentationSubmission(req, res) {
@@ -78,6 +84,8 @@ export function buildReviewControllers({ db, logger }) {
 				});
 			}
 
+			//TODO: clear comment and document status' from session after saving to db
+
 			const statusName = getStatusDisplayName(reviewDecision);
 			addRepReviewedSession(req, id, statusName);
 			res.redirect(req.baseUrl.replace(`/${representationRef}/review`, ''));
@@ -93,13 +101,15 @@ export function buildReviewControllers({ db, logger }) {
 			res.redirect(req.baseUrl + '/task-list');
 		},
 		async representationTaskList(req, res) {
-			const { representationRef } = validateParams(req.params);
+			const { id, representationRef } = validateParams(req.params);
 			const representation = await db.representation.findUnique({
 				where: { reference: representationRef },
 				include: { Attachments: true }
 			});
 
-			const commentStatusTag = getReviewTaskStatus(representation?.commentStatus, false);
+			const repItemsReviewStatus = readRepReviewStatusSession(req, id, representationRef);
+
+			const commentStatusTag = getReviewTaskStatus(repItemsReviewStatus?.comment?.reviewDecision);
 			const representationAttachments = representation?.Attachments || [];
 			const documents = representationAttachments.map((attachment) => {
 				return {
@@ -107,18 +117,18 @@ export function buildReviewControllers({ db, logger }) {
 						text: attachment.fileName
 					},
 					href:
-						representation?.commentStatus !== REPRESENTATION_STATUS_ID.REJECTED
+						repItemsReviewStatus?.comment?.reviewDecision !== REPRESENTATION_STATUS_ID.REJECTED
 							? `${req.originalUrl}/${attachment.itemId}`
 							: '',
 					status: {
-						tag: getReviewTaskStatus(attachment.statusId, attachment.redactedItemId && attachment.redactedFileName)
+						tag: getReviewTaskStatus(repItemsReviewStatus?.[attachment.itemId]?.reviewDecision)
 					}
 				};
 			});
 
 			const taskStatusList = [
-				representation?.commentStatus,
-				...representationAttachments.map((attachment) => attachment.statusId)
+				repItemsReviewStatus?.comment?.reviewDecision,
+				...representationAttachments.map((attachment) => repItemsReviewStatus?.[attachment.itemId]?.reviewDecision)
 			];
 
 			return res.render('views/cases/view/manage-reps/review/task-list.njk', {
@@ -133,7 +143,7 @@ export function buildReviewControllers({ db, logger }) {
 			});
 		},
 		async reviewRepresentationComment(req, res, viewData = {}) {
-			const { representationRef } = validateParams(req.params);
+			const { id, representationRef } = validateParams(req.params);
 			const representation = await db.representation.findUnique({
 				where: { reference: representationRef },
 				select: { comment: true, commentStatus: true }
@@ -146,9 +156,7 @@ export function buildReviewControllers({ db, logger }) {
 			return res.render('views/cases/view/manage-reps/review/review-comment.njk', {
 				reference: representationRef,
 				comment: representation.comment,
-				commentStatus:
-					readSessionData(req, representationRef, 'commentStatus', '', 'representations') ||
-					representation.commentStatus,
+				commentStatus: readRepCommentReviewStatusSession(req, id, representationRef),
 				accept: REPRESENTATION_STATUS_ID.ACCEPTED,
 				acceptAndRedact: ACCEPT_AND_REDACT,
 				reject: REPRESENTATION_STATUS_ID.REJECTED,
@@ -175,47 +183,18 @@ export function buildReviewControllers({ db, logger }) {
 				return;
 			}
 
-			/** @type {import('@prisma/client').Prisma.RepresentationUpdateInput} */
-			const repUpdate = {};
 			if (reviewCommentDecision !== ACCEPT_AND_REDACT) {
-				repUpdate.commentStatus = reviewCommentDecision;
-			} else {
-				addSessionData(req, representationRef, { commentStatus: reviewCommentDecision }, 'representations');
-			}
-			if (Object.keys(repUpdate).length !== 0) {
-				const representation = await db.representation.findUnique({
-					where: { reference: representationRef },
-					select: { id: true, commentStatus: true }
-				});
-
-				if (representation === null) {
-					return notFoundHandler(req, res);
-				}
-
-				const commentStatusBeforeUpdate = representation?.commentStatus;
-
-				logger.info({ representationRef, repUpdate }, 'update representation');
-				try {
-					await db.representation.update({
-						where: { reference: representationRef },
-						data: repUpdate
-					});
-				} catch (error) {
-					wrapPrismaError({
-						error,
-						logger,
-						message: 'updating representation',
-						logParams: { id, representationRef }
-					});
-				}
-
 				const isRejected = reviewCommentDecision === REPRESENTATION_STATUS_ID.REJECTED;
+				const commentStatusBeforeUpdate = readRepCommentReviewStatusSession(req, id, representationRef);
 				const wasRejected = commentStatusBeforeUpdate === REPRESENTATION_STATUS_ID.REJECTED;
 
 				if (isRejected || (wasRejected && !isRejected)) {
-					await updateDocumentStatus(db, logger, id, representationRef, representation.id, isRejected);
+					//TODO: update the updateDocumentStatus function to update session not DB
+					// await updateDocumentStatus(db, logger, id, representationRef, representation.id, isRejected);
 				}
 			}
+
+			addRepReviewStatusSession(req, id, representationRef, 'comment', reviewCommentDecision);
 
 			if (reviewCommentDecision === ACCEPT_AND_REDACT) {
 				res.redirect(req.baseUrl + '/task-list/comment/redact');
@@ -281,33 +260,19 @@ export function buildReviewControllers({ db, logger }) {
 		async acceptRedactedComment(req, res) {
 			const { id, representationRef } = validateParams(req.params);
 			const commentRedacted = readSessionData(req, representationRef, 'commentRedacted', '', 'representations');
+			console.log(commentRedacted);
 			const representation = await db.representation.findUnique({
 				where: { reference: representationRef },
 				select: { id: true, commentStatus: true }
 			});
+			//TODO: read this from the session before we update it with new value
 			const commentStatusBeforeUpdate = representation?.commentStatus;
-
-			try {
-				await db.representation.update({
-					where: { reference: representationRef },
-					data: {
-						commentRedacted,
-						commentStatus: ACCEPT_AND_REDACT
-					}
-				});
-			} catch (error) {
-				wrapPrismaError({
-					error,
-					logger,
-					message: 'accepting representation',
-					logParams: { id, representationRef }
-				});
-			}
 
 			if (commentStatusBeforeUpdate === REPRESENTATION_STATUS_ID.REJECTED) {
 				await updateDocumentStatus(db, logger, id, representationRef, representation.id, false);
 			}
 
+			//TODO: these should move to the submission of the review
 			clearSessionData(req, representationRef, 'commentRedacted', 'representations');
 			clearSessionData(req, representationRef, 'commentStatus', 'representations');
 			res.redirect(req.baseUrl + '/task-list');
@@ -336,8 +301,121 @@ export function buildReviewControllers({ db, logger }) {
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
 				backLinkUrl: req.baseUrl + '/task-list',
+				currentUrl: req.baseUrl + '/task-list/' + itemId,
 				...viewData
 			});
+		},
+		async viewDocument(req, res, fetchImpl) {
+			const sharePointDrive = getSharePointDrive(req.session);
+			const itemId = req.params.itemId;
+			if (!itemId) {
+				throw new Error('itemId param required');
+			}
+
+			// to facilitate download of redacted file
+			const documentId = req.params.documentId;
+			const itemToDownloadId = documentId || itemId;
+
+			const downloadUrl = await getDriveItemDownloadUrl(sharePointDrive, itemToDownloadId, logger);
+			await forwardStreamContents(downloadUrl, req, res, logger, itemToDownloadId, fetchImpl);
+		},
+		async reviewDocumentDecision(req, res) {
+			const { id, representationRef } = validateParams(req.params);
+			const itemId = req.params.itemId;
+			if (!itemId) {
+				throw new Error('itemId param required');
+			}
+
+			const { reviewDocumentDecision } = req.body;
+			if (!reviewDocumentDecision) {
+				req.body.errors = {
+					reviewDocumentDecision: {
+						msg: 'Select the review decision'
+					}
+				};
+				req.body.errorSummary = expressValidationErrorsToGovUkErrorList(req.body.errors);
+				await controllers.reviewRepresentationDocument(req, res, {
+					errors: req.body.errors,
+					errorSummary: req.body.errorSummary
+				});
+				return;
+			}
+
+			addRepReviewStatusSession(req, id, representationRef, itemId, reviewDocumentDecision);
+
+			if (reviewDocumentDecision === ACCEPT_AND_REDACT) {
+				res.redirect(req.baseUrl + '/task-list/' + itemId + '/redact');
+			} else {
+				res.redirect(req.baseUrl + '/task-list');
+			}
+		},
+		async redactRepresentationDocument(req, res, viewData = {}) {
+			const { id, representationRef } = validateParams(req.params);
+			const itemId = req.params.itemId;
+			if (!itemId) {
+				throw new Error('itemId param required');
+			}
+
+			let { errors, errorSummary } = req.session || {};
+			if (errors || errorSummary) {
+				delete req.session.errors;
+				delete req.session.errorSummary;
+			}
+
+			const document = await db.representationDocument.findFirst({
+				where: { itemId: itemId },
+				select: { fileName: true, redactedItemId: true, redactedFileName: true }
+			});
+			if (document === null) {
+				return notFoundHandler(req, res);
+			}
+
+			const sessionKey = `${representationRef}_${itemId}`;
+			const [redactedFile] = req.session?.files?.[id]?.[sessionKey]?.uploadedFiles || [];
+
+			return res.render('views/cases/view/manage-reps/review/redact-document.njk', {
+				reference: representationRef,
+				originalFileId: itemId,
+				fileName: document?.fileName,
+				redactedFileId: redactedFile?.itemId || document?.redactedItemId,
+				redactedFileName: redactedFile?.fileName || document?.redactedFileName,
+				allowedMimeTypes: ALLOWED_MIME_TYPES,
+				journeyTitle: 'Manage Reps',
+				layoutTemplate: 'views/layouts/forms-question.njk',
+				backLinkUrl: req.baseUrl + '/task-list/' + itemId,
+				currentUrl: req.baseUrl + '/task-list/' + itemId + '/redact',
+				errors,
+				errorSummary,
+				...viewData
+			});
+		},
+		async redactRepresentationDocumentPost(req, res) {
+			const { id, representationRef } = validateParams(req.params);
+			const itemId = req.params.itemId;
+			if (!itemId) {
+				throw new Error('itemId param required');
+			}
+
+			const sessionKey = `${representationRef}_${itemId}`;
+			const [redactedFile] = req.session?.files?.[id]?.[sessionKey]?.uploadedFiles || [];
+
+			if (!redactedFile) {
+				req.body.errors = {
+					'upload-form': {
+						msg: 'Upload an attachment'
+					}
+				};
+				req.body.errorSummary = expressValidationErrorsToGovUkErrorList(req.body.errors);
+				await controllers.redactRepresentationDocument(req, res, {
+					errors: req.body.errors,
+					errorSummary: req.body.errorSummary
+				});
+				return;
+			}
+
+			addRepReviewStatusSession(req, id, representationRef, itemId, ACCEPT_AND_REDACT);
+
+			res.redirect(req.baseUrl + '/task-list');
 		}
 	};
 
@@ -385,6 +463,35 @@ function addRepReviewedSession(req, id, reviewDecision) {
 }
 
 /**
+ * Add a representation review decision to the session
+ *
+ * @param {{session?: Object<string, any>}} req
+ * @param {string} id
+ * @param {string} representationRef
+ * @param {string} itemId
+ * @param {string} reviewDecision
+ */
+function addRepReviewStatusSession(req, id, representationRef, itemId, reviewDecision) {
+	const currentData = req.session?.reviewDecisions?.[id] || {};
+	const currentItemData = currentData[representationRef] || {};
+
+	const newItemData = {
+		...currentItemData,
+		[itemId]: { reviewDecision }
+	};
+
+	addSessionData(req, id, { [representationRef]: newItemData }, 'reviewDecisions');
+}
+
+function readRepCommentReviewStatusSession(req, id, representationRef) {
+	return req.session?.reviewDecisions?.[id]?.[representationRef]?.comment?.reviewDecision || {};
+}
+
+function readRepReviewStatusSession(req, id, representationRef) {
+	return req.session?.reviewDecisions?.[id]?.[representationRef] || {};
+}
+
+/**
  * Read a rep reviewed flag from the session
  *
  * @param {{session?: Object<string, any>}} req
@@ -409,14 +516,13 @@ export function clearRepReviewedSession(req, id) {
  * Generate govUk tag information based on review task status
  *
  * @param {string} status
- * @param {boolean} isRedacted
  * @returns {{text: (string), classes: string}|{text: string, classes: string}}
  */
-function getReviewTaskStatus(status, isRedacted) {
+function getReviewTaskStatus(status) {
 	switch (status) {
 		case REPRESENTATION_STATUS_ID.ACCEPTED:
 			return {
-				text: isRedacted ? 'Accepted and redacted' : 'Accepted',
+				text: 'Accepted',
 				classes: 'govuk-tag--green status-tag-width'
 			};
 		case ACCEPT_AND_REDACT:
@@ -438,6 +544,7 @@ function getReviewTaskStatus(status, isRedacted) {
 }
 
 async function updateDocumentStatus(db, logger, id, representationRef, representationId, isRejected) {
+	// TODO: change this so that it doesn't make changes in the DB, instead it makes changes to the session
 	try {
 		await db.representationDocument.updateMany({
 			where: { representationId },

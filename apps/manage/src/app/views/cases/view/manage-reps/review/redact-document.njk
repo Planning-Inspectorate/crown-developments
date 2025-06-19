@@ -1,0 +1,153 @@
+{% extends layoutTemplate %}
+
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/file-upload/macro.njk" import govukFileUpload %}
+
+{% set title = "Confirm redaction - " + journeyTitle + " - GOV.UK" %}
+
+{% block pageTitle %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            <h1 class="govuk-heading-l">
+                <span class="govuk-caption-xl">{{ reference }}</span>
+                Redact original attachment
+            </h1>
+        </div>
+    </div>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            <dl class="govuk-summary-list">
+                <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">Reference</dt>
+                    <dd class="govuk-summary-list__value">{{ reference }}</dd>
+                </div>
+                <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">Original attachment</dt>
+                    <dd class="govuk-summary-list__value">
+                        <a href="{{ currentUrl }}/{{ originalFileId }}/view"
+                           class="govuk-link govuk-link--no-visited-state"
+                           target="_blank"
+                           rel="noreferrer">
+                            {{ fileName }}
+                        </a>
+                    </dd>
+                </div>
+                <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">Redacted attachment</dt>
+                    <dd class="govuk-summary-list__value">
+                        {% if redactedFileId and redactedFileName %}
+                            <a href="{{ currentUrl }}/{{ redactedFileId }}/view" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noreferrer">{{ redactedFileName }}</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </dd>
+                    <dd class="govuk-summary-list__actions">
+                        {% if redactedFileId and redactedFileName %}
+                            <form id="removeRedactedForm" action="{{ currentUrl }}/remove-document/{{ redactedFileId }}" method="POST">
+                                <input type="hidden" name="_csrf" value="{{ _csrf }}">
+                                <noscript>
+                                    {{ govukButton({
+                                        text: "Remove",
+                                        classes: "govuk-button--warning"
+                                    }) }}
+                                </noscript>
+                            </form>
+                            <a href="#" role="button" class="js-remove-link govuk-link js-enabled-link" data-form-id="removeRedactedForm">Remove<span class="govuk-visually-hidden"> redacted attachment</span></a>
+                        {% endif %}
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+    {% if not redactedFileId and not redactedFileName %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <h2 class="govuk-heading-m">
+                Upload redacted attachment
+            </h2>
+            <p class="govuk-body">Your files need to be:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>PDF, PNG, DOC, DOCX, JPG, JPEG, TIF, TIFF, XLS or XSLX</li>
+                <li>a single document not compressed as a zip file</li>
+                <li>smaller than 50mb</li>
+            </ul>
+
+            {% set uploadForm = "upload-form" %}
+
+            <form id={{ uploadForm }} method="post" enctype="multipart/form-data" action="{{ currentUrl }}/upload-documents">
+                <input type="hidden" name="_csrf" value="{{ _csrf }}">
+                {{ govukFileUpload({
+                    id: "redactedFile",
+                    name: "files[]",
+                    label: {
+                        text: "Upload attachment",
+                        classes: "govuk-visually-hidden"
+                    },
+                    javascript: true,
+                    multiple: false,
+                    chooseFilesButtonText: "Select attachment",
+                    dropInstructionText: "or drag and drop attachment here",
+                    attributes: {
+                        accept: allowedMimeTypes | join(", ")
+                    },
+                    errorMessage: errors[uploadForm] and {
+                        text: errors[uploadForm].msg
+                    }
+                }) }}
+                <noscript>
+                    {{ govukButton({
+                        text: "Upload"
+                    }) }}
+                </noscript>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+    <form method="POST">
+        <div class="govuk-grid-row">
+            <input type="hidden" name="_csrf" value="{{ _csrf }}">
+            <div class="govuk-grid-column-full">
+                {{  govukButton({ text: 'Continue' }) }}
+            </div>
+        </div>
+    </form>
+    <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
+			document.addEventListener('DOMContentLoaded', function () {
+				document.querySelectorAll('.js-remove-link').forEach(function (link) {
+					link.addEventListener('click', function (event) {
+						event.preventDefault();
+						const formId = link.getAttribute('data-form-id');
+						const form = document.getElementById(formId);
+						if (form) form.submit();
+					});
+				});
+			});
+
+			document.addEventListener('DOMContentLoaded', function () {
+				const fileInput = document.querySelector('#redactedFile-input');
+				const form = document.querySelector('#upload-form');
+
+				if (fileInput && form) {
+					console.log('here');
+					fileInput.addEventListener('change', function () {
+						const files = fileInput.files;
+						if (files.length === 0) return;
+
+						form.submit();
+					});
+				}
+			});
+
+			window.addEventListener("DOMContentLoaded", () => {
+				const links = document.querySelectorAll(".js-enabled-link");
+				links.forEach(link => {
+					link.style.display = "inline";
+				});
+			});
+    </script>
+{% endblock %}

@@ -8,12 +8,16 @@ import { addSessionData } from '../../../util/session.js';
 import { getSubmittedForId } from '../../../util/questions.js';
 
 const CONTENT_UPLOAD_FILE_LIMIT = 4 * 1024 * 1024; // 4MB
+const TOTAL_UPLOAD_LIMIT = 1073741824; // 1GB
 
 export function uploadDocumentsController(
 	{ db, logger, appName, sharePointDrive, getSharePointDrive },
+	journeyId,
 	allowedFileExtensions,
 	allowedMimeTypes,
-	maxFileSize
+	maxFileSize,
+	maxNumberOfFiles = 3,
+	maxNumberOfFilesErrorMsg = `You can only upload up to ${maxNumberOfFiles} files at a time`
 ) {
 	return async (req, res) => {
 		const applicationId = req.params.id || req.params.applicationId;
@@ -33,8 +37,11 @@ export function uploadDocumentsController(
 		const caseReference = crownDevelopment.reference;
 		const sessionId = req.sessionID;
 		const journeyResponse = res.locals?.journeyResponse;
-		const journeyId = journeyResponse?.journeyId;
-		const submittedForId = getSubmittedForId(journeyResponse?.answers);
+
+		let submittedForId;
+		if (journeyId !== 'manage-reps-review') {
+			submittedForId = getSubmittedForId(journeyResponse?.answers);
+		}
 
 		const folderPath = await createSessionSharepointFolders(
 			drive,
@@ -50,9 +57,9 @@ export function uploadDocumentsController(
 		const totalSize = documents.reduce((sum, item) => sum + (item.size || 0), 0);
 		const fileErrors = [];
 
-		if (Array.isArray(req.files) && req.files.length > 3) {
+		if (Array.isArray(req.files) && req.files.length > maxNumberOfFiles) {
 			fileErrors.push({
-				text: 'You can only upload up to 3 files at a time',
+				text: maxNumberOfFilesErrorMsg,
 				href: '#upload-form'
 			});
 		}
@@ -76,7 +83,7 @@ export function uploadDocumentsController(
 			});
 		}
 
-		if (totalSize > 1073741824) {
+		if (totalSize > TOTAL_UPLOAD_LIMIT) {
 			fileErrors.push({
 				text: 'Total file size of all attachments must be smaller than 1GB',
 				href: '#upload-form'
@@ -119,23 +126,20 @@ export function uploadDocumentsController(
 				});
 			});
 
-			addSessionData(req, applicationId, { [submittedForId]: { uploadedFiles } }, 'files');
+			const sessionKey = submittedForId || `${req.params.representationRef}_${req.params.itemId}`;
+			addSessionData(req, applicationId, { [sessionKey]: { uploadedFiles } }, 'files');
 		}
 
-		const redirectUrl = getRedirectUrl(appName, applicationId, journeyId, submittedForId);
+		const redirectUrl = getRedirectUrl(appName, applicationId, journeyId, submittedForId, req.params);
 		res.redirect(redirectUrl);
 	};
 }
 
-export function deleteDocumentsController({ logger, appName, sharePointDrive, getSharePointDrive }) {
+export function deleteDocumentsController({ logger, appName, sharePointDrive, getSharePointDrive }, journeyId) {
 	return async (req, res) => {
 		const drive = sharePointDrive ? sharePointDrive : getSharePointDrive(req.session);
-
 		const applicationId = req.params.id || req.params.applicationId;
 		const itemId = req.params.documentId;
-		const journeyResponse = res.locals?.journeyResponse;
-		const journeyId = journeyResponse?.journeyId;
-		const submittedForId = getSubmittedForId(journeyResponse?.answers);
 
 		try {
 			await drive.deleteDocumentById(itemId);
@@ -144,12 +148,20 @@ export function deleteDocumentsController({ logger, appName, sharePointDrive, ge
 			throw new Error('Failed to delete file');
 		}
 
-		let uploadedFiles = req.session?.files?.[applicationId]?.[submittedForId]?.uploadedFiles || [];
+		const journeyResponse = res.locals?.journeyResponse;
+		let submittedForId;
+		if (journeyId !== 'manage-reps-review') {
+			submittedForId = getSubmittedForId(journeyResponse?.answers);
+		}
+
+		const sessionKey = submittedForId || `${req.params.representationRef}_${req.params.itemId}`;
+
+		let uploadedFiles = req.session?.files?.[applicationId]?.[sessionKey]?.uploadedFiles || [];
 		uploadedFiles = uploadedFiles.filter((file) => file.itemId !== itemId);
+		addSessionData(req, applicationId, { [sessionKey]: { [itemId]: { uploadedFiles } } }, 'files');
 
-		addSessionData(req, applicationId, { [submittedForId]: { uploadedFiles } }, 'files');
+		const redirectUrl = getRedirectUrl(appName, applicationId, journeyId, submittedForId, req.params);
 
-		const redirectUrl = getRedirectUrl(appName, applicationId, journeyId, submittedForId);
 		res.redirect(redirectUrl);
 	};
 }
@@ -174,9 +186,8 @@ async function createSessionSharepointFolders(
 		{ name: sessionId, description: 'Session ID folder' },
 		{ name: applicationId, description: 'Application ID folder' },
 		{ name: journeyId, description: `"${journeyId}" folder` },
-		{ name: submittedForId, description: `"${submittedForId}" folder` }
+		...(submittedForId ? [{ name: submittedForId, description: `"${submittedForId}" folder` }] : [])
 	];
-
 	let currentPath = caseReferenceFolder;
 
 	for (const step of folderSteps) {
@@ -256,7 +267,7 @@ async function processChunkDocumentUpload(file, uploadUrl, logger) {
 	logger.info({ fileName: file.originalname }, 'large file successfully uploaded');
 }
 
-function getRedirectUrl(appName, applicationId, journeyId, submittedForId) {
+function getRedirectUrl(appName, applicationId, journeyId, submittedForId, requestParams) {
 	const journeyMap = {
 		myself: 'myself',
 		'on-behalf-of': 'agent'
@@ -264,7 +275,9 @@ function getRedirectUrl(appName, applicationId, journeyId, submittedForId) {
 
 	const redirectUrlMap = {
 		'have-your-say': `/applications/${applicationId}/${journeyId}/${journeyMap[submittedForId]}/select-attachments`,
-		'add-representation': `/cases/${applicationId}/manage-representations/${journeyId}/${journeyMap[submittedForId]}/select-attachments`
+		'add-representation': `/cases/${applicationId}/manage-representations/${journeyId}/${journeyMap[submittedForId]}/select-attachments`,
+		'manage-reps-edit': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/edit/${journeyMap[submittedForId]}/select-attachments`,
+		'manage-reps-review': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/review/task-list/${requestParams?.itemId}/redact`
 	};
 
 	return redirectUrlMap[journeyId];
