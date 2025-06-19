@@ -41,11 +41,26 @@ export function publishedRepresentationsAttachmentsFolderPath(caseReference, rep
 }
 
 /**
- * Returns the representation attachments folder path for the given case reference and representation reference
+ * Return the representation attachments folder path for the given case reference and representation reference
+ * @param {string} caseReference
+ * @param {string} repReference
+ * @returns {string} path to the representation attachments folder
+ */
+export function representationAttachmentsFolderPath(caseReference, repReference) {
+	return buildPath(
+		caseReferenceToFolderName(caseReference),
+		APPLICATION_FOLDERS.SYSTEM,
+		APPLICATION_FOLDERS.REPRESENTATIONS,
+		repReference
+	);
+}
+
+/**
+ * Returns the representation attachments folder path for the given case reference
  * @param { string } caseReference
  * @returns { string }
  */
-export function representationAttachmentsFolderPath(caseReference) {
+export function representationFolderPath(caseReference) {
 	return buildPath(
 		caseReferenceToFolderName(caseReference),
 		APPLICATION_FOLDERS.SYSTEM,

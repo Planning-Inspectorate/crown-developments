@@ -1,4 +1,4 @@
-import { representationAttachmentsFolderPath } from './sharepoint-path.js';
+import { representationFolderPath } from './sharepoint-path.js';
 
 /**
  * @typedef {Object} RepresentationAttachment
@@ -20,7 +20,7 @@ import { representationAttachmentsFolderPath } from './sharepoint-path.js';
  */
 export async function moveAttachmentsToCaseFolder(
 	{ service, applicationReference, representationReference, representationAttachments },
-	representationAttachmentsFolderPathFn = representationAttachmentsFolderPath,
+	representationAttachmentsFolderPathFn = representationFolderPath,
 	getRepresentationFolderFn = getRepresentationFolder
 ) {
 	const { logger, sharePointDrive } = service;

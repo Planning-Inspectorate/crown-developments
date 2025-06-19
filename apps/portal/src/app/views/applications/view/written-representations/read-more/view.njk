@@ -50,12 +50,12 @@
         }) }}
         <p class="govuk-body">{{ representationViewModel.representationComment }}</p>
 
-        {% if representationViewModel.representationContainsAttachments %}
+        {% if documents|length %}
             <h2 class="govuk-heading-m">Attachment(s)</h2>
             <ul class="govuk-list document-list">
                 {% for document in documents %}
                     <li>
-                        <a class="govuk-link" href="{{ currentUrl }}/{{ representationViewModel.representationReference }}/{{ document.id }}" target="_blank" rel="noreferrer">
+                        <a class="govuk-link" href="{{ currentUrl }}{{ representationViewModel.representationReference }}/{{ document.id }}" target="_blank" rel="noreferrer">
                             ({{ document.type }}, {{ document.size }}) (opens in new window)
                         </a>
                     </li>
