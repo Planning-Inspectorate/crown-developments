@@ -20,63 +20,64 @@
         </div>
     </div>
 
-    {# TODO: wrap in form - currently a placeholder page #}
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full">
-            {{ govukSummaryList({
-                rows: [
-                    {
-                        key: {
-                            text: "Reference"
+    <form method="POST">
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full">
+                {{ govukSummaryList({
+                    rows: [
+                        {
+                            key: {
+                                text: "Reference"
+                            },
+                            value: {
+                                text: reference
+                            }
                         },
-                        value: {
-                            text: reference
+                        {
+                            key: {
+                                text: "Original attachment"
+                            },
+                            value: {
+                                html: '<a href="'+ currentUrl +'/view" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noreferrer">' + fileName + '</a>'
+                            }
                         }
-                    },
-                    {
-                        key: {
-                            text: "Original attachment"
-                        },
-                        value: {
-                            html: '<a href="#" class="govuk-link govuk-link--no-visited-state">' + fileName + '</a>'
-                        }
-                    }
-                ]
-            }) }}
+                    ]
+                }) }}
 
-            {{  govukRadios({
-                name: 'reviewDocumentDecision',
-                value: documentStatus,
-                fieldset: {
-                    legend: {
-                        text: 'Review decision',
-                        isPageHeading: false,
-                        classes: 'govuk-fieldset__legend--m'
-                    }
-                },
-                items: [
-                    {
-                        value: accept,
-                        text: "Accept"
+                {{  govukRadios({
+                    name: 'reviewDocumentDecision',
+                    value: documentStatus,
+                    fieldset: {
+                        legend: {
+                            text: 'Review decision',
+                            isPageHeading: false,
+                            classes: 'govuk-fieldset__legend--m'
+                        }
                     },
-                    {
-                        value: acceptAndRedact,
-                        text: "Accept and redact"
-                    },
-                    {
-                        value: reject,
-                        text: "Reject"
+                    items: [
+                        {
+                            value: accept,
+                            text: "Accept"
+                        },
+                        {
+                            value: acceptAndRedact,
+                            text: "Accept and redact"
+                        },
+                        {
+                            value: reject,
+                            text: "Reject"
+                        }
+                    ],
+                    errorMessage: errors.reviewDocumentDecision and {
+                        text: errors.reviewDocumentDecision.msg
                     }
-                ],
-                errorMessage: errors.reviewDocumentDecision and {
-                    text: errors.reviewDocumentDecision.msg
-                }
-            }) }}
+                }) }}
+            </div>
         </div>
-    </div>
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full">
-            {{  govukButton({ text: 'Continue' }) }}
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full">
+                {{  govukButton({ text: 'Continue' }) }}
+            </div>
         </div>
-    </div>
+    </form>
 {% endblock %}
