@@ -3,8 +3,11 @@ import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { fetchPublishedApplication } from '#util/applications.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { applicationLinks, representationToViewModel } from '../../view-model.js';
-import { publishedRepresentationsAttachmentsFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
-import { getDocuments } from '@pins/crowndev-lib/documents/get.js';
+import {
+	publishedRepresentationsAttachmentsFolderPath,
+	representationAttachmentsFolderPath
+} from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { getDocuments, getDocumentsById } from '@pins/crowndev-lib/documents/get.js';
 
 /**
  * Render written representation read more page
@@ -12,7 +15,7 @@ import { getDocuments } from '@pins/crowndev-lib/documents/get.js';
  * @param {import('#service').PortalService} service
  * @returns {import('express').RequestHandler}
  */
-export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePointDrive }) {
+export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePointDrive, isRepsUploadDocsLive }) {
 	return async (req, res) => {
 		const id = req.params.applicationId;
 		if (!id) {
@@ -51,6 +54,7 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 				statusId: REPRESENTATION_STATUS_ID.ACCEPTED
 			},
 			select: {
+				id: true,
 				reference: true,
 				submittedDate: true,
 				comment: true,
@@ -72,9 +76,46 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 
 		let documents;
 		if (representation.containsAttachments === true) {
-			const folderPath = publishedRepresentationsAttachmentsFolderPath(reference, representationReference);
-			logger.info({ folderPath }, 'view documents');
-			documents = await getDocuments({ sharePointDrive, folderPath, logger, id });
+			if (!isRepsUploadDocsLive) {
+				const folderPath = publishedRepresentationsAttachmentsFolderPath(reference, representationReference);
+				logger.info({ folderPath }, 'view documents');
+				documents = await getDocuments({ sharePointDrive, folderPath, logger, id });
+			} else {
+				let documentsToFetch;
+				try {
+					documentsToFetch = await db.representationDocument.findMany({
+						where: {
+							representationId: representation.id,
+							statusId: REPRESENTATION_STATUS_ID.ACCEPTED
+						},
+						select: {
+							itemId: true,
+							fileName: true,
+							redactedItemId: true,
+							redactedFileName: true
+						}
+					});
+				} catch (error) {
+					logger.error({ error }, 'Error fetching documents from database');
+					documents = [];
+				}
+				if (!documents) {
+					// No documents were fetched; skipping further processing.
+				} else if (!Array.isArray(documentsToFetch) || documentsToFetch.length === 0) {
+					logger.error('No documents found for the representation');
+				} else {
+					logger.info({ documentsToFetch }, 'Fetched accepted documents for representation');
+					const folderPath = representationAttachmentsFolderPath(reference, representationReference);
+					const ids = documentsToFetch.map((doc) => doc.redactedItemId ?? doc.itemId).filter(Boolean);
+					documents = await getDocumentsById({
+						sharePointDrive,
+						folderPath,
+						logger,
+						ids
+					});
+					logger.info({ documents }, 'Fetched documents to display from SharePoint');
+				}
+			}
 		}
 
 		const haveYourSayPeriod = {

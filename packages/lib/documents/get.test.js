@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import { mockLogger } from '../testing/mock-logger.js';
 import assert from 'node:assert';
-import { getDocuments } from './get.js';
+import { getDocuments, getDocumentsById } from './get.js';
 
 describe('get', () => {
 	describe('getDocuments', () => {
@@ -68,5 +68,60 @@ describe('get', () => {
 				}
 			);
 		});
+	});
+});
+describe('getDocumentsById', () => {
+	it('should fetch and map documents by ids', async () => {
+		const mockSharePoint = {
+			getDriveItem: mock.fn((id) => ({ id, name: `File ${id}`, file: { mimeType: 'application/pdf' } }))
+		};
+		const documents = await getDocumentsById({
+			ids: [1, 2],
+			logger: mockLogger(),
+			folderPath: 'CROWN-2025-0000001/Published',
+			sharePointDrive: mockSharePoint
+		});
+		assert.strictEqual(mockSharePoint.getDriveItem.mock.callCount(), 2);
+		assert.deepStrictEqual(
+			documents.map((d) => d.name),
+			['File 1', 'File 2']
+		);
+	});
+
+	it('should filter out invalid or null mappings', async () => {
+		const mockSharePoint = {
+			getDriveItem: mock.fn(
+				(id) =>
+					id === 1 ? { id, name: 'File 1', file: { mimeType: 'application/pdf' } } : { id, name: null, file: null } // check returns null
+			)
+		};
+		const documents = await getDocumentsById({
+			ids: [1, 2],
+			logger: mockLogger(),
+			folderPath: 'CROWN-2025-0000001/Published',
+			sharePointDrive: mockSharePoint
+		});
+		assert.strictEqual(documents.length, 1);
+		assert.strictEqual(documents[0].name, 'File 1');
+	});
+
+	it('should not throw sharepoint errors', async () => {
+		const mockSharePoint = {
+			getDriveItem: mock.fn(() => {
+				throw new Error('SharePoint error');
+			})
+		};
+		await assert.rejects(
+			() =>
+				getDocumentsById({
+					ids: [1],
+					logger: mockLogger(),
+					folderPath: 'CROWN-2025-0000001/Published',
+					sharePointDrive: mockSharePoint
+				}),
+			{
+				message: 'There is a problem fetching documents'
+			}
+		);
 	});
 });
