@@ -4,7 +4,7 @@ import {
 	buildPath,
 	caseReferenceToFolderName,
 	getSharePointReceivedPathId,
-	representationAttachmentsFolderPath
+	representationFolderPath
 } from './sharepoint-path.js';
 import assert from 'node:assert';
 
@@ -75,7 +75,7 @@ describe('sharepoint-path', () => {
 	describe('representationAttachmentsFolderPath', () => {
 		it('should return the representation attachments folder path for a given case reference', () => {
 			const caseReference = 'CROWN-2025-0100001';
-			const actual = representationAttachmentsFolderPath(caseReference);
+			const actual = representationFolderPath(caseReference);
 			assert.strictEqual(actual, 'CROWN-2025-0100001/System/Representations');
 		});
 	});
