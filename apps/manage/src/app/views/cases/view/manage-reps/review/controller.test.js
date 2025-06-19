@@ -1,5 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
+import EventEmitter from 'node:events';
 import {
 	buildReviewControllers,
 	clearRepReviewedSession,
@@ -14,6 +15,7 @@ import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { Prisma } from '@prisma/client';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
+import { ReadableStream } from 'node:stream/web';
 
 describe('controller', () => {
 	describe('viewRepresentationAwaitingReview', () => {
@@ -736,10 +738,10 @@ describe('controller', () => {
 				reject: 'rejected',
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list'
+				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list',
+				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234'
 			});
 		});
-
 		it('should render 404 if document not found', async () => {
 			const mockDb = {
 				representationDocument: {
@@ -755,6 +757,52 @@ describe('controller', () => {
 			};
 
 			await assertRenders404Page(reviewRepresentationDocument, mockReq, false);
+		});
+	});
+
+	describe('viewDocument', () => {
+		it('should render representation if errors', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+				}
+			};
+			const logger = mockLogger();
+			const mockSharePoint = {
+				getDriveItemDownloadUrl: mock.fn(() => '/some/url')
+			};
+			const mockFetchRes = {
+				headers: new Map([
+					['Content-Type', 'application/pdf'],
+					['Content-Length', '12345']
+				]),
+				body: ReadableStream.from([1, 2, 3])
+			};
+			const mockFetch = mock.fn(() => mockFetchRes);
+
+			const { viewDocument } = buildReviewControllers({ db: mockDb, logger, getSharePointDrive: () => mockSharePoint });
+
+			const req = new EventEmitter();
+			req.params = { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' };
+			const res = new EventEmitter();
+			res.header = mock.fn();
+			await viewDocument(req, res, mockFetch);
+			assert.strictEqual(mockSharePoint.getDriveItemDownloadUrl.mock.callCount(), 1);
+			// headers are forwarded
+			assert.strictEqual(res.header.mock.callCount(), 2);
+			assert.deepStrictEqual(res.header.mock.calls[0].arguments, ['Content-Type', 'application/pdf']);
+			assert.deepStrictEqual(res.header.mock.calls[1].arguments, ['Content-Length', '12345']);
+		});
+		it('should return an error if itemId parameter not provided', async () => {
+			const mockSharePoint = {
+				getDriveItemDownloadUrl: mock.fn(() => '/some/url')
+			};
+
+			const { viewDocument } = buildReviewControllers({ getSharePointDrive: () => mockSharePoint });
+
+			await assert.rejects(() => viewDocument({ params: { id: 'case-1', representationRef: 'ref-1' } }, {}), {
+				message: 'itemId param required'
+			});
 		});
 	});
 
