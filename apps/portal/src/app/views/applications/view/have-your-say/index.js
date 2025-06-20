@@ -48,9 +48,9 @@ export function createHaveYourSayRoutes(service) {
 	const saveRepresentation = asyncHandler(buildSaveHaveYourSayController(service));
 	const handleUploads = multer();
 	const uploadDocuments = asyncHandler(
-		uploadDocumentsController(service, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE)
+		uploadDocumentsController(service, JOURNEY_ID, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE)
 	);
-	const deleteDocuments = asyncHandler(deleteDocumentsController(service));
+	const deleteDocuments = asyncHandler(deleteDocumentsController(service, JOURNEY_ID));
 
 	router.use(isRepresentationWindowOpen);
 

@@ -85,10 +85,10 @@
                         classes: "govuk-visually-hidden"
                     },
                     javascript: true,
+                    multiple: true,
                     chooseFilesButtonText: "Select attachments",
                     dropInstructionText: "or drag and drop attachments here",
                     attributes: {
-                        multiple: true,
                         accept: question.allowedMimeTypes | join(", ")
                     },
                     errorMessage: errors[uploadForm] and {
@@ -111,17 +111,6 @@
                     attributes: { "data-cy":"button-save-and-continue"}
                 }) }}
             </form>
-
-            {% set formattedTypes = "" %}
-            {% for ext in upperExtensions %}
-                {% if loop.last and not loop.first %}
-                    {% set formattedTypes = formattedTypes + " or " + ext %}
-                {% elseif loop.first %}
-                    {% set formattedTypes = formattedTypes + ext %}
-                {% else %}
-                    {% set formattedTypes = formattedTypes + ", " + ext %}
-                {% endif %}
-            {% endfor %}
 
             <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
                 document.addEventListener('DOMContentLoaded', function () {

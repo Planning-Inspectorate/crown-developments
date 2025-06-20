@@ -37,9 +37,9 @@ export function createRoutes(service) {
 
 	const handleUploads = multer();
 	const uploadDocuments = asyncHandler(
-		uploadDocumentsController(service, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE)
+		uploadDocumentsController(service, 'manage-reps-edit', ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE)
 	);
-	const deleteDocuments = asyncHandler(deleteDocumentsController(service));
+	const deleteDocuments = asyncHandler(deleteDocumentsController(service, 'manage-reps-edit'));
 
 	router.get('/', asyncHandler(list));
 	router.use('/add-representation', addRepRoutes);
