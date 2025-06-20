@@ -52,39 +52,17 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 	const controllers = {
 		async reviewRepresentationSubmission(req, res) {
 			const { id, representationRef } = validateParams(req.params);
-			const representation = await db.representation.findUnique({
-				where: { reference: representationRef },
-				select: { commentStatus: true }
-			});
 
-			if (representation === null) {
-				return notFoundHandler(req, res);
-			}
+			const commentStatus = readRepCommentReviewStatusSession(req, representationRef);
+			const reviewDecision = getReviewStatus(commentStatus);
 
-			const reviewDecision =
-				representation.commentStatus === ACCEPT_AND_REDACT
-					? REPRESENTATION_STATUS_ID.ACCEPTED
-					: representation.commentStatus;
+			await updateDocumentStatus(req, db, logger);
 
-			/** @type {import('@prisma/client').Prisma.RepresentationUpdateInput} */
-			const repUpdate = {};
-			repUpdate.statusId = reviewDecision;
-			logger.info({ representationRef, repUpdate }, 'submit representation review');
-			try {
-				await db.representation.update({
-					where: { reference: representationRef },
-					data: repUpdate
-				});
-			} catch (error) {
-				wrapPrismaError({
-					error,
-					logger,
-					message: 'submitting representation review',
-					logParams: { id, representationRef }
-				});
-			}
+			//TODO: move from session folder to permanent folder
+			//TODO: clear reviewDecisions from session after data is saved successfully in DB
+			//TODO: clear files from session after data is saved successfully in DB
 
-			//TODO: clear comment and document status' from session after saving to db
+			delete req.session?.reviewDecisions?.[representationRef];
 
 			const statusName = getStatusDisplayName(reviewDecision);
 			addRepReviewedSession(req, id, statusName);
@@ -101,13 +79,17 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			res.redirect(req.baseUrl + '/task-list');
 		},
 		async representationTaskList(req, res) {
-			const { id, representationRef } = validateParams(req.params);
+			const { representationRef } = validateParams(req.params);
 			const representation = await db.representation.findUnique({
 				where: { reference: representationRef },
 				include: { Attachments: true }
 			});
 
-			const repItemsReviewStatus = readRepReviewStatusSession(req, id, representationRef);
+			if (!req.session?.reviewDecisions) {
+				initialiseRepresentationReviewSession(req, representationRef, representation?.Attachments);
+			}
+
+			const repItemsReviewStatus = readRepReviewStatusSession(req, representationRef);
 
 			const commentStatusTag = getReviewTaskStatus(repItemsReviewStatus?.comment?.reviewDecision);
 			const representationAttachments = representation?.Attachments || [];
@@ -131,6 +113,8 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				...representationAttachments.map((attachment) => repItemsReviewStatus?.[attachment.itemId]?.reviewDecision)
 			];
 
+			console.log(JSON.stringify(req.session));
+
 			return res.render('views/cases/view/manage-reps/review/task-list.njk', {
 				reference: representationRef,
 				commentStatusTag,
@@ -143,10 +127,10 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			});
 		},
 		async reviewRepresentationComment(req, res, viewData = {}) {
-			const { id, representationRef } = validateParams(req.params);
+			const { representationRef } = validateParams(req.params);
 			const representation = await db.representation.findUnique({
 				where: { reference: representationRef },
-				select: { comment: true, commentStatus: true }
+				select: { comment: true }
 			});
 
 			if (representation === null) {
@@ -156,7 +140,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			return res.render('views/cases/view/manage-reps/review/review-comment.njk', {
 				reference: representationRef,
 				comment: representation.comment,
-				commentStatus: readRepCommentReviewStatusSession(req, id, representationRef),
+				commentStatus: readRepCommentReviewStatusSession(req, representationRef),
 				accept: REPRESENTATION_STATUS_ID.ACCEPTED,
 				acceptAndRedact: ACCEPT_AND_REDACT,
 				reject: REPRESENTATION_STATUS_ID.REJECTED,
@@ -167,7 +151,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			});
 		},
 		async reviewRepresentationCommentDecision(req, res) {
-			const { id, representationRef } = validateParams(req.params);
+			const { representationRef } = validateParams(req.params);
 			const { reviewCommentDecision } = req.body;
 			if (!reviewCommentDecision) {
 				req.body.errors = {
@@ -185,20 +169,19 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 
 			if (reviewCommentDecision !== ACCEPT_AND_REDACT) {
 				const isRejected = reviewCommentDecision === REPRESENTATION_STATUS_ID.REJECTED;
-				const commentStatusBeforeUpdate = readRepCommentReviewStatusSession(req, id, representationRef);
+				const commentStatusBeforeUpdate = readRepCommentReviewStatusSession(req, representationRef);
 				const wasRejected = commentStatusBeforeUpdate === REPRESENTATION_STATUS_ID.REJECTED;
 
 				if (isRejected || (wasRejected && !isRejected)) {
-					//TODO: update the updateDocumentStatus function to update session not DB
-					// await updateDocumentStatus(db, logger, id, representationRef, representation.id, isRejected);
+					updateDocumentStatusSession(req, logger, representationRef, isRejected);
 				}
 			}
-
-			addRepReviewStatusSession(req, id, representationRef, 'comment', reviewCommentDecision);
 
 			if (reviewCommentDecision === ACCEPT_AND_REDACT) {
 				res.redirect(req.baseUrl + '/task-list/comment/redact');
 			} else {
+				updateRepReviewSession(req, representationRef, 'comment', { reviewDecision: reviewCommentDecision });
+				clearRepRedactedCommentSession(req, representationRef);
 				res.redirect(req.baseUrl + '/task-list');
 			}
 		},
@@ -211,7 +194,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 
 			const response = new JourneyResponse(JOURNEY_ID, 'ref-1', {
 				comment: representation.comment,
-				commentRedacted: readSessionData(req, representationRef, 'commentRedacted', '', 'representations')
+				commentRedacted: readRepRedactedCommentSession(req, representationRef) || ''
 			});
 			const journey = new createRedactJourney(response, req);
 			const section = journey.sections[0];
@@ -229,7 +212,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 		async redactRepresentationPost(req, res) {
 			const { representationRef } = validateParams(req.params);
 			const { comment } = req.body;
-			addSessionData(req, representationRef, { commentRedacted: comment }, 'representations');
+			updateRepReviewSession(req, representationRef, 'comment', { commentRedacted: comment });
 			if (!comment || !comment.includes(REDACT_CHARACTER)) {
 				req.body.errors = {
 					comment: {
@@ -244,7 +227,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 		},
 		async redactConfirmation(req, res) {
 			const { representationRef } = validateParams(req.params);
-			const commentRedacted = readSessionData(req, representationRef, 'commentRedacted', '', 'representations');
+			const commentRedacted = readRepRedactedCommentSession(req, representationRef);
 			const answers = res.locals.journeyResponse.answers;
 			const originalComment = answers.myselfComment || answers.submitterComment;
 
@@ -258,23 +241,14 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			});
 		},
 		async acceptRedactedComment(req, res) {
-			const { id, representationRef } = validateParams(req.params);
-			const commentRedacted = readSessionData(req, representationRef, 'commentRedacted', '', 'representations');
-			console.log(commentRedacted);
-			const representation = await db.representation.findUnique({
-				where: { reference: representationRef },
-				select: { id: true, commentStatus: true }
-			});
-			//TODO: read this from the session before we update it with new value
-			const commentStatusBeforeUpdate = representation?.commentStatus;
+			const { representationRef } = validateParams(req.params);
 
+			const commentStatusBeforeUpdate = readRepCommentReviewStatusSession(req, representationRef);
 			if (commentStatusBeforeUpdate === REPRESENTATION_STATUS_ID.REJECTED) {
-				await updateDocumentStatus(db, logger, id, representationRef, representation.id, false);
+				updateDocumentStatusSession(req, logger, representationRef, false);
 			}
 
-			//TODO: these should move to the submission of the review
-			clearSessionData(req, representationRef, 'commentRedacted', 'representations');
-			clearSessionData(req, representationRef, 'commentStatus', 'representations');
+			updateRepReviewSession(req, representationRef, 'comment', { reviewDecision: ACCEPT_AND_REDACT });
 			res.redirect(req.baseUrl + '/task-list');
 		},
 		async reviewRepresentationDocument(req, res, viewData = {}) {
@@ -295,6 +269,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			return res.render('views/cases/view/manage-reps/review/review-document.njk', {
 				reference: representationRef,
 				fileName: document?.fileName,
+				documentStatus: readRepDocumentReviewStatusSession(req, representationRef, itemId),
 				accept: REPRESENTATION_STATUS_ID.ACCEPTED,
 				acceptAndRedact: ACCEPT_AND_REDACT,
 				reject: REPRESENTATION_STATUS_ID.REJECTED,
@@ -320,7 +295,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			await forwardStreamContents(downloadUrl, req, res, logger, itemToDownloadId, fetchImpl);
 		},
 		async reviewDocumentDecision(req, res) {
-			const { id, representationRef } = validateParams(req.params);
+			const { representationRef } = validateParams(req.params);
 			const itemId = req.params.itemId;
 			if (!itemId) {
 				throw new Error('itemId param required');
@@ -341,16 +316,16 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				return;
 			}
 
-			addRepReviewStatusSession(req, id, representationRef, itemId, reviewDocumentDecision);
-
 			if (reviewDocumentDecision === ACCEPT_AND_REDACT) {
 				res.redirect(req.baseUrl + '/task-list/' + itemId + '/redact');
 			} else {
+				await removeRedactedDocument(req, getSharePointDrive, logger);
+				updateRepReviewSession(req, representationRef, itemId, { reviewDecision: reviewDocumentDecision });
 				res.redirect(req.baseUrl + '/task-list');
 			}
 		},
 		async redactRepresentationDocument(req, res, viewData = {}) {
-			const { id, representationRef } = validateParams(req.params);
+			const { representationRef } = validateParams(req.params);
 			const itemId = req.params.itemId;
 			if (!itemId) {
 				throw new Error('itemId param required');
@@ -370,8 +345,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				return notFoundHandler(req, res);
 			}
 
-			const sessionKey = `${representationRef}_${itemId}`;
-			const [redactedFile] = req.session?.files?.[id]?.[sessionKey]?.uploadedFiles || [];
+			const [redactedFile] = req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles || [];
 
 			return res.render('views/cases/view/manage-reps/review/redact-document.njk', {
 				reference: representationRef,
@@ -390,14 +364,13 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			});
 		},
 		async redactRepresentationDocumentPost(req, res) {
-			const { id, representationRef } = validateParams(req.params);
+			const { representationRef } = validateParams(req.params);
 			const itemId = req.params.itemId;
 			if (!itemId) {
 				throw new Error('itemId param required');
 			}
 
-			const sessionKey = `${representationRef}_${itemId}`;
-			const [redactedFile] = req.session?.files?.[id]?.[sessionKey]?.uploadedFiles || [];
+			const [redactedFile] = req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles || [];
 
 			if (!redactedFile) {
 				req.body.errors = {
@@ -413,7 +386,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				return;
 			}
 
-			addRepReviewStatusSession(req, id, representationRef, itemId, ACCEPT_AND_REDACT);
+			updateRepReviewSession(req, representationRef, itemId, { reviewDecision: ACCEPT_AND_REDACT });
 
 			res.redirect(req.baseUrl + '/task-list');
 		}
@@ -463,35 +436,6 @@ function addRepReviewedSession(req, id, reviewDecision) {
 }
 
 /**
- * Add a representation review decision to the session
- *
- * @param {{session?: Object<string, any>}} req
- * @param {string} id
- * @param {string} representationRef
- * @param {string} itemId
- * @param {string} reviewDecision
- */
-function addRepReviewStatusSession(req, id, representationRef, itemId, reviewDecision) {
-	const currentData = req.session?.reviewDecisions?.[id] || {};
-	const currentItemData = currentData[representationRef] || {};
-
-	const newItemData = {
-		...currentItemData,
-		[itemId]: { reviewDecision }
-	};
-
-	addSessionData(req, id, { [representationRef]: newItemData }, 'reviewDecisions');
-}
-
-function readRepCommentReviewStatusSession(req, id, representationRef) {
-	return req.session?.reviewDecisions?.[id]?.[representationRef]?.comment?.reviewDecision || {};
-}
-
-function readRepReviewStatusSession(req, id, representationRef) {
-	return req.session?.reviewDecisions?.[id]?.[representationRef] || {};
-}
-
-/**
  * Read a rep reviewed flag from the session
  *
  * @param {{session?: Object<string, any>}} req
@@ -500,6 +444,104 @@ function readRepReviewStatusSession(req, id, representationRef) {
  */
 export function readRepReviewedSession(req, id) {
 	return readSessionData(req, id, 'representationReviewed', false);
+}
+
+/**
+ * Initialise session data for representation review
+ *
+ * @param {{session?: Object<string, any>}} req
+ * @param {string} representationRef
+ * @param {Array.<Object>} attachments
+ */
+function initialiseRepresentationReviewSession(req, representationRef, attachments) {
+	const existingReviewData = req.session?.reviewDecisions?.[representationRef] || {};
+	const defaultReviewDecision = { reviewDecision: '' };
+
+	const attachmentEntries = Object.fromEntries(attachments.map(({ itemId }) => [itemId, defaultReviewDecision]));
+
+	const newReviewData = {
+		...existingReviewData,
+		comment: defaultReviewDecision,
+		...attachmentEntries
+	};
+
+	addSessionData(req, representationRef, newReviewData, 'reviewDecisions');
+}
+
+/**
+ * Add or update review decision data for a representation item in the session
+ *
+ * @param {{session?: Object<string, any>}} req
+ * @param {string} representationRef
+ * @param {string} itemId
+ * @param {Object<string, any>} updates - Fields to merge into the item (e.g. { reviewDecision, commentRedacted })
+ */
+function updateRepReviewSession(req, representationRef, itemId, updates) {
+	const currentItemData = req.session?.reviewDecisions?.[representationRef] || {};
+
+	const newItemData = {
+		...currentItemData,
+		[itemId]: {
+			...currentItemData[itemId],
+			...updates
+		}
+	};
+
+	addSessionData(req, representationRef, newItemData, 'reviewDecisions');
+}
+
+/**
+ * Read review decision for comment for given representationRef
+ *
+ * @param {{session?: Object<string, any>}} req
+ * @param {string} representationRef
+ * @returns {string|undefined}
+ */
+function readRepCommentReviewStatusSession(req, representationRef) {
+	return req.session?.reviewDecisions?.[representationRef]?.comment?.reviewDecision;
+}
+
+/**
+ * Read redacted comment for given representationRef
+ *
+ * @param {{session?: Object<string, any>}} req
+ * @param {string} representationRef
+ * @returns {string|undefined}
+ */
+function readRepRedactedCommentSession(req, representationRef) {
+	return req.session?.reviewDecisions?.[representationRef]?.comment?.commentRedacted;
+}
+
+/**
+ * Read document item review decision for given representationRef
+ *
+ * @param {{session?: Object<string, any>}} req
+ * @param {string} representationRef
+ * @returns {string|undefined}
+ */
+function readRepDocumentReviewStatusSession(req, representationRef, itemId) {
+	return req.session?.reviewDecisions?.[representationRef]?.[itemId]?.reviewDecision;
+}
+
+/**
+ * Clear redacted comment from session for given representationRef
+ *
+ * @param {{session?: Object<string, any>}} req
+ * @param {string} representationRef
+ */
+function clearRepRedactedCommentSession(req, representationRef) {
+	delete req.session?.reviewDecisions?.[representationRef]?.comment?.commentRedacted;
+}
+
+/**
+ * Read review status' for given representationRef
+ *
+ * @param {{session?: Object<string, any>}} req
+ * @param {string} representationRef
+ * @returns {object}
+ */
+function readRepReviewStatusSession(req, representationRef) {
+	return req.session?.reviewDecisions?.[representationRef] || {};
 }
 
 /**
@@ -543,22 +585,112 @@ function getReviewTaskStatus(status) {
 	}
 }
 
-async function updateDocumentStatus(db, logger, id, representationRef, representationId, isRejected) {
-	// TODO: change this so that it doesn't make changes in the DB, instead it makes changes to the session
-	try {
-		await db.representationDocument.updateMany({
-			where: { representationId },
-			data: {
-				statusId: isRejected ? REPRESENTATION_STATUS_ID.REJECTED : REPRESENTATION_STATUS_ID.AWAITING_REVIEW
+function updateDocumentStatusSession(req, logger, representationRef, isRejected) {
+	Object.entries(req.session?.reviewDecisions?.[representationRef])
+		.filter(([key]) => key !== 'comment')
+		.forEach(([, value]) => {
+			value.reviewDecision = isRejected ? REPRESENTATION_STATUS_ID.REJECTED : REPRESENTATION_STATUS_ID.AWAITING_REVIEW;
+		});
+}
+
+async function updateDocumentStatus(req, db, logger) {
+	const { id, representationRef } = req.params;
+
+	const decisions = req.session?.reviewDecisions?.[representationRef] || {};
+	const files = req.session?.files?.[representationRef] || {};
+
+	for (const [key, value] of Object.entries(decisions)) {
+		if (key === 'comment') {
+			/** @type {import('@prisma/client').Prisma.RepresentationUpdateInput} */
+			const repUpdate = {
+				statusId: getReviewStatus(value.reviewDecision),
+				commentRedacted: readRepRedactedCommentSession(req, representationRef)
+			};
+
+			logger.info({ representationRef, repUpdate }, 'submit representation review');
+
+			try {
+				await db.representation.update({
+					where: { reference: representationRef },
+					data: repUpdate
+				});
+			} catch (error) {
+				wrapPrismaError({
+					error,
+					logger,
+					message: 'submitting representation review',
+					logParams: { id, representationRef }
+				});
 			}
-		});
-	} catch (error) {
-		wrapPrismaError({
-			error,
-			logger,
-			message: 'updating representation documents',
-			logParams: { id, representationRef }
-		});
+			continue;
+		}
+
+		const repDocUpdate = {
+			statusId: getReviewStatus(value.reviewDecision)
+		};
+
+		const [redactedFile] = files[key]?.uploadedFiles || [];
+		if (redactedFile) {
+			repDocUpdate.redactedItemId = redactedFile.itemId;
+			repDocUpdate.redactedFileName = redactedFile.fileName;
+		}
+
+		let documentId;
+		try {
+			const document = await db.representationDocument.findFirst({
+				where: { itemId: key },
+				select: { id: true }
+			});
+			documentId = document.id;
+		} catch (error) {
+			wrapPrismaError({
+				error,
+				logger,
+				message: 'finding document',
+				logParams: { id, representationRef, key }
+			});
+			continue;
+		}
+
+		logger.info({ representationRef, itemId: documentId, repUpdate: repDocUpdate }, 'update document status');
+
+		try {
+			await db.representationDocument.update({
+				where: { id: documentId },
+				data: repDocUpdate
+			});
+		} catch (error) {
+			wrapPrismaError({
+				error,
+				logger,
+				message: 'updating document status',
+				logParams: { id, representationRef, key }
+			});
+		}
+	}
+}
+
+/**
+ * Clears redacted from Sharepoint and session for given itemId
+ *
+ * @param {Array.<string>} req
+ * @param {function(session): SharePointDrive | null} getSharePointDrive
+ * @param {import('pino').Logger} logger
+ */
+async function removeRedactedDocument(req, getSharePointDrive, logger) {
+	const { id, representationRef, itemId } = req.params;
+	const [redactedFile] = req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles || [];
+
+	if (redactedFile) {
+		delete req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles;
+
+		try {
+			const sharePointDrive = getSharePointDrive(req.session);
+			await sharePointDrive.deleteDocumentById(redactedFile.itemId);
+		} catch (error) {
+			logger.error({ error, id, representationRef, itemId }, `Error deleting file: ${itemId} from Sharepoint folder`);
+			throw new Error('Failed to delete file');
+		}
 	}
 }
 
@@ -592,4 +724,8 @@ function getStatusDisplayName(reviewDecision) {
 	]);
 
 	return statusDisplayMap.get(reviewDecision) ?? '';
+}
+
+function getReviewStatus(reviewDecision) {
+	return reviewDecision === ACCEPT_AND_REDACT ? REPRESENTATION_STATUS_ID.ACCEPTED : reviewDecision;
 }

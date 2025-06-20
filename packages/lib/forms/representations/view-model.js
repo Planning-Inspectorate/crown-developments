@@ -22,7 +22,6 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'representedContactId',
 	'comment',
 	'commentRedacted',
-	'commentStatus',
 	'containsAttachments',
 	'sharePointFolderCreated'
 ]);
@@ -263,7 +262,6 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 		SubmittedFor: { connect: { id: answers.submittedForId } },
 		submittedByAgent: yesNoToBoolean(answers.isAgent) || false,
 		comment: answers[`${prefix}Comment`],
-		commentStatus: REPRESENTATION_STATUS_ID.AWAITING_REVIEW,
 		SubmittedByContact: {
 			create: {
 				email: answers[`${prefix}Email`],
