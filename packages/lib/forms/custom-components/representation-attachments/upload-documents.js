@@ -38,10 +38,11 @@ export function uploadDocumentsController(
 		const sessionId = req.sessionID;
 		const journeyResponse = res.locals?.journeyResponse;
 
-		let submittedForId;
-		if (journeyId !== 'manage-reps-review') {
-			submittedForId = getSubmittedForId(journeyResponse?.answers);
-		}
+		const isManageRepsReview = journeyId === 'manage-reps-review';
+
+		const submittedForId = isManageRepsReview ? undefined : getSubmittedForId(journeyResponse?.answers);
+
+		const leafFolderName = isManageRepsReview ? req.params.itemId : submittedForId;
 
 		const folderPath = await createSessionSharepointFolders(
 			drive,
@@ -51,7 +52,7 @@ export function uploadDocumentsController(
 			sessionId,
 			applicationId,
 			journeyId,
-			submittedForId
+			leafFolderName
 		);
 		const documents = await fetchDocumentsInFolderPath(drive, folderPath);
 		const totalSize = documents.reduce((sum, item) => sum + (item.size || 0), 0);
@@ -126,8 +127,9 @@ export function uploadDocumentsController(
 				});
 			});
 
-			const sessionKey = submittedForId || `${req.params.representationRef}_${req.params.itemId}`;
-			addSessionData(req, applicationId, { [sessionKey]: { uploadedFiles } }, 'files');
+			const sessionId = isManageRepsReview ? req.params.representationRef : applicationId;
+			const sessionKey = isManageRepsReview ? req.params.itemId : submittedForId;
+			addSessionData(req, sessionId, { [sessionKey]: { uploadedFiles } }, 'files');
 		}
 
 		const redirectUrl = getRedirectUrl(appName, applicationId, journeyId, submittedForId, req.params);
@@ -149,16 +151,18 @@ export function deleteDocumentsController({ logger, appName, sharePointDrive, ge
 		}
 
 		const journeyResponse = res.locals?.journeyResponse;
+		const isManageRepsReview = journeyId === 'manage-reps-review';
 		let submittedForId;
-		if (journeyId !== 'manage-reps-review') {
+		if (!isManageRepsReview) {
 			submittedForId = getSubmittedForId(journeyResponse?.answers);
 		}
 
-		const sessionKey = submittedForId || `${req.params.representationRef}_${req.params.itemId}`;
+		const sessionId = isManageRepsReview ? req.params.representationRef : applicationId;
+		const sessionKey = isManageRepsReview ? req.params.itemId : submittedForId;
 
-		let uploadedFiles = req.session?.files?.[applicationId]?.[sessionKey]?.uploadedFiles || [];
+		let uploadedFiles = req.session?.files?.[sessionId]?.[sessionKey]?.uploadedFiles || [];
 		uploadedFiles = uploadedFiles.filter((file) => file.itemId !== itemId);
-		addSessionData(req, applicationId, { [sessionKey]: { [itemId]: { uploadedFiles } } }, 'files');
+		addSessionData(req, sessionId, { [sessionKey]: { [itemId]: { uploadedFiles } } }, 'files');
 
 		const redirectUrl = getRedirectUrl(appName, applicationId, journeyId, submittedForId, req.params);
 
@@ -174,7 +178,7 @@ async function createSessionSharepointFolders(
 	sessionId,
 	applicationId,
 	journeyId,
-	submittedForId
+	leafFolderName
 ) {
 	const caseReferenceFolder = caseReferenceToFolderName(caseReference);
 	const applicationNameFolder = appName === 'portal' ? APPLICATION_FOLDERS.PORTAL : APPLICATION_FOLDERS.MANAGE;
@@ -186,7 +190,7 @@ async function createSessionSharepointFolders(
 		{ name: sessionId, description: 'Session ID folder' },
 		{ name: applicationId, description: 'Application ID folder' },
 		{ name: journeyId, description: `"${journeyId}" folder` },
-		...(submittedForId ? [{ name: submittedForId, description: `"${submittedForId}" folder` }] : [])
+		{ name: leafFolderName, description: `"${leafFolderName}" folder` }
 	];
 	let currentPath = caseReferenceFolder;
 
