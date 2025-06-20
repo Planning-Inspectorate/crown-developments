@@ -27,7 +27,6 @@ describe('view-model', () => {
 				categoryId: 'c-id-1',
 				submittedForId: 'id-1',
 				comment: 'comment one',
-				commentStatus: REPRESENTATION_STATUS_ID.ACCEPTED,
 				commentRedacted: '███████ one',
 				containsAttachments: false,
 				sharePointFolderCreated: false
@@ -65,7 +64,6 @@ describe('view-model', () => {
 				representedContactId: undefined,
 				submittedByAddressId: undefined,
 				comment: undefined,
-				commentStatus: undefined,
 				commentRedacted: undefined,
 				containsAttachments: 'no',
 				sharePointFolderCreated: 'no'
@@ -80,7 +78,6 @@ describe('view-model', () => {
 				wantsToBeHeard: true,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
 				comment: 'my comments',
-				commentStatus: REPRESENTATION_STATUS_ID.REJECTED,
 				containsAttachments: true,
 				sharePointFolderCreated: true,
 				submittedByContactId: 'sub-id-1',
@@ -129,7 +126,6 @@ describe('view-model', () => {
 				representedContactId: undefined,
 				submittedByAddressId: 'abc-123',
 				comment: 'my comments',
-				commentStatus: 'rejected',
 				commentRedacted: undefined,
 				containsAttachments: 'yes',
 				sharePointFolderCreated: 'yes'
@@ -144,7 +140,6 @@ describe('view-model', () => {
 				wantsToBeHeard: true,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				comment: 'my comments',
-				commentStatus: REPRESENTATION_STATUS_ID.ACCEPTED,
 				containsAttachments: true,
 				sharePointFolderCreated: false,
 				submittedByContactId: 'sub-id-1',
@@ -179,7 +174,6 @@ describe('view-model', () => {
 				representedContactId: undefined,
 				submittedByAddressId: undefined,
 				comment: 'my comments',
-				commentStatus: 'accepted',
 				commentRedacted: undefined,
 				containsAttachments: 'yes',
 				sharePointFolderCreated: 'no'
@@ -194,7 +188,6 @@ describe('view-model', () => {
 				wantsToBeHeard: true,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				comment: 'my comments',
-				commentStatus: REPRESENTATION_STATUS_ID.ACCEPTED,
 				containsAttachments: false,
 				sharePointFolderCreated: false,
 				submittedByContactId: 'sub-id-1',
@@ -239,7 +232,6 @@ describe('view-model', () => {
 				representedContactId: 'rep-id-1',
 				submittedByAddressId: undefined,
 				comment: 'my comments',
-				commentStatus: 'accepted',
 				commentRedacted: undefined,
 				containsAttachments: 'no',
 				sharePointFolderCreated: 'no'
@@ -254,7 +246,6 @@ describe('view-model', () => {
 				wantsToBeHeard: true,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				comment: 'my comments',
-				commentStatus: REPRESENTATION_STATUS_ID.AWAITING_REVIEW,
 				containsAttachments: false,
 				sharePointFolderCreated: false,
 				submittedByContactId: 'sub-id-1',
@@ -295,7 +286,6 @@ describe('view-model', () => {
 				submittedByContactId: 'sub-id-1',
 				representedContactId: 'rep-id-1',
 				comment: 'my comments',
-				commentStatus: 'awaiting-review',
 				commentRedacted: undefined,
 				containsAttachments: 'no',
 				sharePointFolderCreated: 'no'
@@ -310,7 +300,6 @@ describe('view-model', () => {
 				wantsToBeHeard: true,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				comment: 'my comments',
-				commentStatus: REPRESENTATION_STATUS_ID.ACCEPTED,
 				containsAttachments: false,
 				sharePointFolderCreated: false,
 				submittedByContactId: 'sub-id-1',
@@ -353,7 +342,6 @@ describe('view-model', () => {
 				submittedByContactId: 'sub-id-1',
 				representedContactId: 'rep-id-1',
 				comment: 'my comments',
-				commentStatus: 'accepted',
 				commentRedacted: undefined,
 				containsAttachments: 'no',
 				sharePointFolderCreated: 'no'
@@ -559,8 +547,7 @@ describe('view-model', () => {
 						}
 					},
 					comment: 'my comments',
-					containsAttachments: false,
-					commentStatus: 'awaiting-review'
+					containsAttachments: false
 				});
 			});
 			it('should map on agent on behalf of a person journey answers to Prisma Input', (context) => {
@@ -622,7 +609,6 @@ describe('view-model', () => {
 					},
 					comment: 'my comments',
 					containsAttachments: false,
-					commentStatus: 'awaiting-review',
 					RepresentedType: {
 						connect: {
 							id: REPRESENTED_TYPE_ID.PERSON
@@ -694,7 +680,6 @@ describe('view-model', () => {
 					},
 					comment: 'my comments',
 					containsAttachments: false,
-					commentStatus: 'awaiting-review',
 					RepresentedType: {
 						connect: {
 							id: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR
@@ -764,7 +749,6 @@ describe('view-model', () => {
 					},
 					comment: 'my comments',
 					containsAttachments: false,
-					commentStatus: 'awaiting-review',
 					RepresentedType: {
 						connect: {
 							id: REPRESENTED_TYPE_ID.ORGANISATION
@@ -834,7 +818,6 @@ describe('view-model', () => {
 					},
 					comment: 'my comments',
 					containsAttachments: false,
-					commentStatus: 'awaiting-review',
 					wantsToBeHeard: true
 				});
 			});
@@ -912,7 +895,6 @@ describe('view-model', () => {
 					},
 					comment: 'my comments',
 					containsAttachments: false,
-					commentStatus: 'awaiting-review',
 					RepresentedType: {
 						connect: {
 							id: REPRESENTED_TYPE_ID.PERSON
@@ -981,7 +963,6 @@ describe('view-model', () => {
 					},
 					comment: 'my comments',
 					containsAttachments: false,
-					commentStatus: 'awaiting-review',
 					RepresentedType: {
 						connect: {
 							id: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR
@@ -1051,7 +1032,6 @@ describe('view-model', () => {
 					},
 					comment: 'my comments',
 					containsAttachments: false,
-					commentStatus: 'awaiting-review',
 					RepresentedType: {
 						connect: {
 							id: REPRESENTED_TYPE_ID.ORGANISATION
