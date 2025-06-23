@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildValidateRepresentationMiddleware } from './validation-middleware.js';
+import { buildValidateRedactedFileMiddleware, buildValidateRepresentationMiddleware } from './validation-middleware.js';
 import {
 	REPRESENTATION_CATEGORY_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
@@ -857,6 +857,295 @@ describe('validate-representation-middleware', () => {
 			assert.strictEqual(mockNext.mock.callCount(), 0);
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], mockReq.baseUrl);
+		});
+	});
+	describe('buildValidateRedactedFileMiddleware', () => {
+		it('should return next if no errors are found', async () => {
+			const mockReq = {
+				params: {
+					id: '123',
+					representationRef: '456',
+					itemId: '123'
+				},
+				session: {},
+				baseUrl: `/cases/123/manage-representations/456/review`,
+				files: [
+					{
+						itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+						originalname: 'test-pdf.pdf',
+						mimeType: 'application/pdf',
+						size: 227787
+					}
+				]
+			};
+			const mockRes = {
+				redirect: mock.fn()
+			};
+			const mockNext = mock.fn();
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'id-1',
+						reference: 'CROWN/2025/0000001'
+					}))
+				},
+				representationDocument: {
+					findFirst: mock.fn(() => ({
+						fileName: 'test.pdf'
+					}))
+				}
+			};
+			const mockSharePoint = {
+				getItemsByPath: mock.fn(() => [{ name: 'test5.pdf', size: 123456 }])
+			};
+			const logger = mockLogger();
+
+			const validatedRedactedFile = buildValidateRedactedFileMiddleware({
+				db: mockDb,
+				logger,
+				getSharePointDrive: () => mockSharePoint
+			});
+			await validatedRedactedFile(mockReq, mockRes, mockNext);
+
+			assert.deepStrictEqual(mockReq.session, {});
+			assert.strictEqual(mockNext.mock.callCount(), 1);
+		});
+		it('should return errors if original attachment has the same name', async () => {
+			const mockReq = {
+				params: {
+					id: '123',
+					representationRef: '456',
+					itemId: '123'
+				},
+				session: {},
+				baseUrl: `/cases/123/manage-representations/456/review`,
+				body: {},
+				files: [
+					{
+						itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+						originalname: 'test-pdf.pdf',
+						mimeType: 'application/pdf',
+						size: 227787
+					}
+				]
+			};
+			const mockRes = {
+				render: mock.fn()
+			};
+			const mockNext = mock.fn();
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'id-1',
+						reference: 'CROWN/2025/0000001'
+					}))
+				},
+				representationDocument: {
+					findFirst: mock.fn(() => ({
+						fileName: 'test-pdf.pdf'
+					}))
+				}
+			};
+			const mockSharePoint = {
+				getItemsByPath: mock.fn(() => [{ name: 'test5.pdf', size: 123456 }])
+			};
+			const logger = mockLogger();
+
+			const validatedRedactedFile = buildValidateRedactedFileMiddleware({
+				db: mockDb,
+				logger,
+				getSharePointDrive: () => mockSharePoint
+			});
+			await validatedRedactedFile(mockReq, mockRes, mockNext);
+
+			assert.deepStrictEqual(mockReq.session, {});
+			assert.strictEqual(mockNext.mock.callCount(), 0);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				reference: '456',
+				originalFileId: '123',
+				fileName: 'test-pdf.pdf',
+				redactedFileId: undefined,
+				redactedFileName: undefined,
+				allowedMimeTypes: [
+					'application/pdf',
+					'image/png',
+					'image/jpeg',
+					'image/tiff',
+					'application/msword',
+					'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+					'application/vnd.ms-excel',
+					'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+				],
+				journeyTitle: 'Manage Reps',
+				layoutTemplate: 'views/layouts/forms-question.njk',
+				backLinkUrl: '/cases/123/manage-representations/456/review/task-list/123',
+				currentUrl: '/cases/123/manage-representations/456/review/task-list/123/redact',
+				errors: { 'upload-form': { msg: 'Original attachment has the same name' } },
+				errorSummary: [
+					{
+						text: 'Original attachment has the same name',
+						href: '#upload-form'
+					}
+				]
+			});
+		});
+		it('should return errors if file with same name already exists in sharepoint folder', async () => {
+			const mockReq = {
+				params: {
+					id: '123',
+					representationRef: '456',
+					itemId: '123'
+				},
+				session: {},
+				baseUrl: `/cases/123/manage-representations/456/review`,
+				body: {},
+				files: [
+					{
+						itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+						originalname: 'test5.pdf',
+						mimeType: 'application/pdf',
+						size: 227787
+					}
+				]
+			};
+			const mockRes = {
+				render: mock.fn()
+			};
+			const mockNext = mock.fn();
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'id-1',
+						reference: 'CROWN/2025/0000001'
+					}))
+				},
+				representationDocument: {
+					findFirst: mock.fn(() => ({
+						fileName: 'test-pdf.pdf'
+					}))
+				}
+			};
+			const mockSharePoint = {
+				getItemsByPath: mock.fn(() => [{ name: 'test5.pdf', size: 123456 }])
+			};
+			const logger = mockLogger();
+
+			const validatedRedactedFile = buildValidateRedactedFileMiddleware({
+				db: mockDb,
+				logger,
+				getSharePointDrive: () => mockSharePoint
+			});
+			await validatedRedactedFile(mockReq, mockRes, mockNext);
+
+			assert.deepStrictEqual(mockReq.session, {});
+			assert.strictEqual(mockNext.mock.callCount(), 0);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				reference: '456',
+				originalFileId: '123',
+				fileName: 'test-pdf.pdf',
+				redactedFileId: undefined,
+				redactedFileName: undefined,
+				allowedMimeTypes: [
+					'application/pdf',
+					'image/png',
+					'image/jpeg',
+					'image/tiff',
+					'application/msword',
+					'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+					'application/vnd.ms-excel',
+					'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+				],
+				journeyTitle: 'Manage Reps',
+				layoutTemplate: 'views/layouts/forms-question.njk',
+				backLinkUrl: '/cases/123/manage-representations/456/review/task-list/123',
+				currentUrl: '/cases/123/manage-representations/456/review/task-list/123/redact',
+				errors: { 'upload-form': { msg: 'File with this name already exists on Representation' } },
+				errorSummary: [
+					{
+						text: 'File with this name already exists on Representation',
+						href: '#upload-form'
+					}
+				]
+			});
+		});
+		it('should return not found handler when id req param is null', async () => {
+			const mockReq = {
+				params: {},
+				session: {},
+				baseUrl: `/cases/123/manage-representations/456/review`,
+				files: [
+					{
+						itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+						fileName: 'test-pdf.pdf',
+						mimeType: 'application/pdf',
+						size: 227787
+					}
+				]
+			};
+			const mockRes = {
+				status: mock.fn(),
+				render: mock.fn()
+			};
+			const mockNext = mock.fn();
+
+			const validatedRedactedFile = buildValidateRedactedFileMiddleware({});
+
+			await assert.rejects(() => validatedRedactedFile(mockReq, mockRes, mockNext));
+		});
+		it('should return not found handler when representationRef req param is null', async () => {
+			const mockReq = {
+				params: {
+					id: '123'
+				},
+				session: {},
+				baseUrl: `/cases/123/manage-representations/456/review`,
+				files: [
+					{
+						itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+						fileName: 'test-pdf.pdf',
+						mimeType: 'application/pdf',
+						size: 227787
+					}
+				]
+			};
+			const mockRes = {
+				status: mock.fn(),
+				render: mock.fn()
+			};
+			const mockNext = mock.fn();
+
+			const validatedRedactedFile = buildValidateRedactedFileMiddleware({});
+
+			await assert.rejects(() => validatedRedactedFile(mockReq, mockRes, mockNext));
+		});
+		it('should return not found handler when itemId req param is null', async () => {
+			const mockReq = {
+				params: {
+					id: '123',
+					representationRef: '456'
+				},
+				session: {},
+				baseUrl: `/cases/123/manage-representations/456/review`,
+				files: [
+					{
+						itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+						fileName: 'test-pdf.pdf',
+						mimeType: 'application/pdf',
+						size: 227787
+					}
+				]
+			};
+			const mockRes = {
+				status: mock.fn(),
+				render: mock.fn()
+			};
+			const mockNext = mock.fn();
+
+			const validatedRedactedFile = buildValidateRedactedFileMiddleware({});
+
+			await assert.rejects(() => validatedRedactedFile(mockReq, mockRes, mockNext));
 		});
 	});
 });
