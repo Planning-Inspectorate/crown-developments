@@ -13,7 +13,6 @@ import { ACCEPT_AND_REDACT, getQuestions } from '@pins/crowndev-lib/forms/repres
 import { createJourney } from '../view/journey.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
-import { Prisma } from '@prisma/client';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
 import { ReadableStream } from 'node:stream/web';
 
@@ -57,13 +56,18 @@ describe('controller', () => {
 	});
 
 	describe('reviewRepresentationSubmission', () => {
-		it('should handle accept/reject', async () => {
+		it('should handle submission and clear related session data', async () => {
 			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: 'CROWN/2025/0000001' }))
+				},
 				representation: {
-					update: mock.fn(),
-					findUnique: mock.fn(() => ({
-						commentStatus: 'accepted'
-					}))
+					update: mock.fn()
+				},
+				representationDocument: {
+					findFirst: mock.fn(() => ({ id: 'doc-id-1' })),
+					update: mock.fn()
 				}
 			};
 			const logger = mockLogger();
@@ -71,9 +75,48 @@ describe('controller', () => {
 
 			const mockReq = {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
-				params: { id: 'case-1', representationRef: 'ref-1' },
+				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'ID1234' },
 				body: {},
-				session: {}
+				files: {
+					'ref-1': {
+						ID1234: {
+							uploadedFiles: [
+								{
+									itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+									fileName: 'test-pdf.pdf',
+									mimeType: 'application/pdf',
+									size: 227787
+								}
+							]
+						},
+						ID9876: {
+							uploadedFiles: [
+								{
+									itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+									fileName: 'redacted-file.pdf',
+									mimeType: 'application/pdf',
+									size: 227787
+								}
+							]
+						}
+					}
+				},
+				session: {
+					reviewDecisions: {
+						['ref-1']: {
+							comment: {
+								commentRedacted: 'Some comment to ██████ here',
+								reviewDecision: 'accepted'
+							},
+							ID1234: {
+								reviewDecision: 'accept-and-redact'
+							},
+							ID9876: {
+								reviewDecision: 'accept-and-redact'
+							}
+						}
+					}
+				}
 			};
 			const mockRes = {
 				locals: { journey: { sections: [], isComplete: () => true }, journeyResponse: { answers: {} } },
@@ -88,74 +131,25 @@ describe('controller', () => {
 			assert.strictEqual(updateCall.where.reference, 'ref-1');
 			const updateData = updateCall.data;
 			assert.strictEqual(updateData.statusId, REPRESENTATION_STATUS_ID.ACCEPTED);
+
+			assert.strictEqual(mockDb.representationDocument.update.mock.callCount(), 2);
+			const updateFirstDocCall = mockDb.representationDocument.update.mock.calls[0].arguments[0];
+			assert.strictEqual(updateFirstDocCall.where.id, 'doc-id-1');
+			const updateFirstDocData = updateFirstDocCall.data;
+			assert.strictEqual(updateFirstDocData.statusId, REPRESENTATION_STATUS_ID.ACCEPTED);
+
+			const updateSecondDocCall = mockDb.representationDocument.update.mock.calls[1].arguments[0];
+			assert.strictEqual(updateSecondDocCall.where.id, 'doc-id-1');
+			const updateSecondDocData = updateFirstDocCall.data;
+			assert.strictEqual(updateSecondDocData.statusId, REPRESENTATION_STATUS_ID.ACCEPTED);
+
+			assert.strictEqual(mockReq.session?.reviewDecisions?.['ref-1'], undefined);
+			assert.strictEqual(mockReq.session?.files?.['ref-1'], undefined);
+
 			assert.strictEqual(mockReq.session?.cases['case-1'].representationReviewed, 'accepted');
 			assert.strictEqual(mockRes.render.mock.callCount(), 0);
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], 'some-url-here/case-1/manage-representations');
-		});
-		it('should handle accept-and-redact', async () => {
-			const mockDb = {
-				representation: {
-					update: mock.fn(),
-					findUnique: mock.fn(() => ({
-						commentStatus: ACCEPT_AND_REDACT
-					}))
-				}
-			};
-			const logger = mockLogger();
-			const { reviewRepresentationSubmission } = buildReviewControllers({ db: mockDb, logger });
-
-			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
-				params: { id: 'case-1', representationRef: 'ref-1' },
-				body: {},
-				session: {}
-			};
-			const mockRes = {
-				locals: { journey: { sections: [], isComplete: () => true }, journeyResponse: { answers: {} } },
-				render: mock.fn(),
-				redirect: mock.fn()
-			};
-			await reviewRepresentationSubmission(mockReq, mockRes);
-			assert.strictEqual(mockDb.representation.update.mock.callCount(), 1);
-			assert.deepStrictEqual(mockReq.session?.cases, {
-				'case-1': {
-					representationReviewed: 'accepted'
-				}
-			});
-			assert.strictEqual(mockRes.render.mock.callCount(), 0);
-			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
-			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], 'some-url-here/case-1/manage-representations');
-		});
-		it('should wrap prisma errors', async () => {
-			const mockDb = {
-				representation: {
-					update: mock.fn(() => {
-						throw new Prisma.PrismaClientKnownRequestError('some error', { code: '101' });
-					}),
-					findUnique: mock.fn(() => ({
-						commentStatus: ACCEPT_AND_REDACT
-					}))
-				}
-			};
-			const logger = mockLogger();
-			const { reviewRepresentationSubmission } = buildReviewControllers({ db: mockDb, logger });
-
-			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
-				params: { id: 'case-1', representationRef: 'ref-1' },
-				body: { reviewDecision: REPRESENTATION_STATUS_ID.ACCEPTED },
-				session: {}
-			};
-			const mockRes = {
-				locals: { journey: { sections: [], isComplete: () => true }, journeyResponse: { answers: {} } },
-				render: mock.fn(),
-				redirect: mock.fn()
-			};
-			await assert.rejects(() => reviewRepresentationSubmission(mockReq, mockRes), {
-				message: 'Error submitting representation review (101)'
-			});
-			assert.strictEqual(mockRes.redirect.mock.callCount(), 0);
 		});
 	});
 
@@ -370,79 +364,68 @@ describe('controller', () => {
 			assert.match(redirectUrl, /some\/url\/task-list\/comment\/redact$/);
 		});
 		it('should update document status if moving from rejected into non-rejected status', async () => {
-			const mockDb = {
-				representation: {
-					update: mock.fn(),
-					findUnique: mock.fn(() => ({ comment: 'Some comment to redact here', commentStatus: 'rejected' }))
-				},
-				representationDocument: {
-					updateMany: mock.fn()
-				}
-			};
-			const logger = mockLogger();
-			const { reviewRepresentationCommentDecision } = buildReviewControllers({ db: mockDb, logger });
+			const { reviewRepresentationCommentDecision } = buildReviewControllers({});
 
 			const mockReq = {
 				baseUrl: 'some/url',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: { reviewCommentDecision: 'accepted' },
-				session: {}
+				session: {
+					reviewDecisions: {
+						['ref-1']: {
+							comment: {
+								commentRedacted: 'Some comment to ██████ here',
+								reviewDecision: 'rejected'
+							},
+							'doc-1': {
+								reviewDecision: 'rejected'
+							},
+							'doc-2': {
+								reviewDecision: 'rejected'
+							}
+						}
+					}
+				}
 			};
 			const mockRes = { redirect: mock.fn() };
 
 			await reviewRepresentationCommentDecision(mockReq, mockRes);
 
-			assert.strictEqual(mockDb.representationDocument.updateMany.mock.callCount(), 1);
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1'].comment?.reviewDecision, 'accepted');
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1']?.['doc-1']?.reviewDecision, 'awaiting-review');
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1']?.['doc-2']?.reviewDecision, 'awaiting-review');
 		});
 		it('should update document status if comment is rejected', async () => {
-			const mockDb = {
-				representation: {
-					update: mock.fn(),
-					findUnique: mock.fn(() => ({ comment: 'Some comment to redact here' }))
-				},
-				representationDocument: {
-					updateMany: mock.fn()
-				}
-			};
-			const logger = mockLogger();
-			const { reviewRepresentationCommentDecision } = buildReviewControllers({ db: mockDb, logger });
+			const { reviewRepresentationCommentDecision } = buildReviewControllers({});
 
 			const mockReq = {
 				baseUrl: 'some/url',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: { reviewCommentDecision: 'rejected' },
-				session: {}
+				session: {
+					reviewDecisions: {
+						['ref-1']: {
+							comment: {
+								commentRedacted: 'Some comment to ██████ here',
+								reviewDecision: 'accepted'
+							},
+							'doc-1': {
+								reviewDecision: 'accepted'
+							},
+							'doc-2': {
+								reviewDecision: 'accept-and-redact'
+							}
+						}
+					}
+				}
 			};
 			const mockRes = { redirect: mock.fn() };
 
 			await reviewRepresentationCommentDecision(mockReq, mockRes);
 
-			assert.strictEqual(mockDb.representationDocument.updateMany.mock.callCount(), 1);
-		});
-		it('should wrap prisma errors when error encountered on update', async () => {
-			const mockDb = {
-				representation: {
-					update: mock.fn(() => {
-						throw new Prisma.PrismaClientKnownRequestError('some error', { code: '101' });
-					}),
-					findUnique: mock.fn(() => ({ comment: 'Some comment to redact here' }))
-				}
-			};
-			const logger = mockLogger();
-			const { reviewRepresentationCommentDecision } = buildReviewControllers({ db: mockDb, logger });
-
-			const mockReq = {
-				baseUrl: 'some/url',
-				params: { id: 'case-1', representationRef: 'ref-1' },
-				body: { reviewCommentDecision: 'accept' },
-				session: {}
-			};
-			const mockRes = { redirect: mock.fn() };
-
-			await assert.rejects(() => reviewRepresentationCommentDecision(mockReq, mockRes), {
-				message: 'Error updating representation (101)'
-			});
-			assert.strictEqual(mockRes.redirect.mock.callCount(), 0);
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1'].comment?.reviewDecision, 'rejected');
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1']?.['doc-1']?.reviewDecision, 'rejected');
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1']?.['doc-2']?.reviewDecision, 'rejected');
 		});
 		it('should return errors if no comment decision provided', async () => {
 			const mockDb = {
@@ -526,9 +509,11 @@ describe('controller', () => {
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: {},
 				session: {
-					representations: {
+					reviewDecisions: {
 						['ref-1']: {
-							commentRedacted: 'Some comment to ██████ here'
+							comment: {
+								commentRedacted: 'Some comment to ██████ here'
+							}
 						}
 					}
 				}
@@ -560,7 +545,10 @@ describe('controller', () => {
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			const redirectUrl = mockRes.redirect.mock.calls[0].arguments[0];
 			assert.match(redirectUrl, /\/redact\/confirmation$/);
-			assert.strictEqual(mockReq.session.representations['ref-1'].commentRedacted, 'Some comment to ██████ here');
+			assert.strictEqual(
+				mockReq.session.reviewDecisions['ref-1'].comment.commentRedacted,
+				'Some comment to ██████ here'
+			);
 		});
 	});
 
@@ -574,9 +562,11 @@ describe('controller', () => {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				session: {
-					representations: {
+					reviewDecisions: {
 						['ref-1']: {
-							commentRedacted: 'Some comment to ██████ here'
+							comment: {
+								commentRedacted: 'Some comment to ██████ here'
+							}
 						}
 					}
 				}
@@ -613,9 +603,11 @@ describe('controller', () => {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				session: {
-					representations: {
+					reviewDecisions: {
 						['ref-1']: {
-							commentRedacted: 'Some comment to ██████ here'
+							comment: {
+								commentRedacted: 'Some comment to ██████ here'
+							}
 						}
 					}
 				}
@@ -624,40 +616,34 @@ describe('controller', () => {
 
 			await acceptRedactedComment(mockReq, mockRes);
 
-			assert.strictEqual(mockDb.representation.update.mock.callCount(), 1);
-			const updateArgs = mockDb.representation.update.mock.calls[0].arguments[0];
-			assert.strictEqual(updateArgs.where.reference, 'ref-1');
-			const updateData = updateArgs.data;
-			assert.strictEqual(updateData.commentRedacted, 'Some comment to ██████ here');
-			assert.strictEqual(updateData.commentStatus, ACCEPT_AND_REDACT);
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			const redirectUrl = mockRes.redirect.mock.calls[0].arguments[0];
 			assert.match(redirectUrl, /^some-url-here\/case-1\/manage-representations\/ref-1\/review\/task-list$/);
-			assert.strictEqual(mockReq.session.representations['ref-1'].commentRedacted, undefined);
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1'].comment?.reviewDecision, 'accept-and-redact');
+			assert.strictEqual(
+				mockReq.session.reviewDecisions['ref-1'].comment?.commentRedacted,
+				'Some comment to ██████ here'
+			);
 		});
 		it('should update document status if comment status was previously rejected', async () => {
-			const mockDb = {
-				representation: {
-					update: mock.fn(),
-					findUnique: mock.fn(() => ({
-						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
-						commentStatus: 'rejected'
-					}))
-				},
-				representationDocument: {
-					updateMany: mock.fn()
-				}
-			};
-			const logger = mockLogger();
-			const { acceptRedactedComment } = buildReviewControllers({ db: mockDb, logger });
+			const { acceptRedactedComment } = buildReviewControllers({});
 
 			const mockReq = {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/comment/redact/confirmation',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				session: {
-					representations: {
+					reviewDecisions: {
 						['ref-1']: {
-							commentRedacted: 'Some comment to ██████ here'
+							comment: {
+								commentRedacted: 'Some comment to ██████ here',
+								reviewDecision: 'rejected'
+							},
+							'doc-1': {
+								reviewDecision: 'rejected'
+							},
+							'doc-2': {
+								reviewDecision: 'rejected'
+							}
 						}
 					}
 				}
@@ -666,44 +652,9 @@ describe('controller', () => {
 
 			await acceptRedactedComment(mockReq, mockRes);
 
-			assert.strictEqual(mockDb.representationDocument.updateMany.mock.callCount(), 1);
-		});
-		it('should wrap prisma errors', async () => {
-			const mockDb = {
-				representation: {
-					update: mock.fn(() => {
-						throw new Prisma.PrismaClientKnownRequestError('some error', { code: '101' });
-					}),
-					findUnique: mock.fn(() => ({
-						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
-						commentStatus: ACCEPT_AND_REDACT
-					}))
-				}
-			};
-			const logger = mockLogger();
-			const { acceptRedactedComment } = buildReviewControllers({ db: mockDb, logger });
-
-			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
-				params: { id: 'case-1', representationRef: 'ref-1' },
-				body: { reviewDecision: ACCEPT_AND_REDACT },
-				session: {
-					representations: {
-						['ref-1']: {
-							commentRedacted: 'Some comment to ██████ here'
-						}
-					}
-				}
-			};
-			const mockRes = {
-				locals: { journey: { sections: [], isComplete: () => true }, journeyResponse: { answers: {} } },
-				render: mock.fn(),
-				redirect: mock.fn()
-			};
-			await assert.rejects(() => acceptRedactedComment(mockReq, mockRes), {
-				message: 'Error accepting representation (101)'
-			});
-			assert.strictEqual(mockRes.redirect.mock.callCount(), 0);
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1'].comment?.reviewDecision, 'accept-and-redact');
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1']?.['doc-1']?.reviewDecision, 'awaiting-review');
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1']?.['doc-2']?.reviewDecision, 'awaiting-review');
 		});
 	});
 
@@ -720,6 +671,15 @@ describe('controller', () => {
 			const mockReq = {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
+				session: {
+					reviewDecisions: {
+						'ref-1': {
+							DOC1234: {
+								reviewDecision: 'accepted'
+							}
+						}
+					}
+				},
 				body: {}
 			};
 			const mockRes = {
@@ -733,6 +693,7 @@ describe('controller', () => {
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
 				reference: 'ref-1',
 				fileName: 'test.pdf',
+				documentStatus: 'accepted',
 				accept: 'accepted',
 				acceptAndRedact: 'accept-and-redact',
 				reject: 'rejected',

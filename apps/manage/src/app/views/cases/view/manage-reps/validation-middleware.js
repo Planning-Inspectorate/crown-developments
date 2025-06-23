@@ -245,7 +245,8 @@ export function buildValidateRedactedFileMiddleware(services) {
 		}
 
 		const crownDevelopment = await db.crownDevelopment.findUnique({
-			where: { id }
+			where: { id },
+			select: { reference: true }
 		});
 
 		if (!crownDevelopment) {
