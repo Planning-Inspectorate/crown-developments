@@ -8,6 +8,8 @@ import {
 	representationAttachmentsFolderPath
 } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { getDocuments, getDocumentsById } from '@pins/crowndev-lib/documents/get.js';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
+import { isValidUniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
 
 /**
  * Render written representation read more page
@@ -44,8 +46,8 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 		const { reference } = crownDevelopment;
 
 		const representationReference = req.params.representationReference;
-		if (!representationReference) {
-			throw new Error('representationReference param required');
+		if (!representationReference || !isValidUniqueReference(representationReference)) {
+			return notFoundHandler(req, res);
 		}
 
 		const representation = await db.representation.findUnique({
@@ -66,7 +68,8 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 				SubmittedFor: { select: { displayName: true } },
 				SubmittedByContact: { select: { firstName: true, lastName: true } },
 				RepresentedContact: { select: { orgName: true, firstName: true, lastName: true } },
-				Category: { select: { displayName: true } }
+				Category: { select: { displayName: true } },
+				Attachments: true
 			}
 		});
 
@@ -97,12 +100,17 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 					});
 				} catch (error) {
 					logger.error({ error }, 'Error fetching documents from database');
-					documents = [];
+					wrapPrismaError({
+						error,
+						logger,
+						message: 'fetching representation documents',
+						logParams: { id }
+					});
 				}
-				if (!documents) {
-					// No documents were fetched; skipping further processing.
-				} else if (!Array.isArray(documentsToFetch) || documentsToFetch.length === 0) {
-					logger.error('No documents found for the representation');
+
+				if (!Array.isArray(documentsToFetch) || documentsToFetch.length === 0) {
+					logger.error('No documents found for the representation, but representation contains attachments');
+					documents = [];
 				} else {
 					logger.info({ documentsToFetch }, 'Fetched accepted documents for representation');
 					const folderPath = representationAttachmentsFolderPath(reference, representationReference);

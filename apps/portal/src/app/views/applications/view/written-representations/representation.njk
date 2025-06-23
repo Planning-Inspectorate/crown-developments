@@ -20,7 +20,7 @@
             <p class="govuk-body"><strong>Date submitted:</strong> {{ representation.dateRepresentationSubmitted }}</p>
         </div>
     </div>
-    {% if representation.representationContainsAttachments %}
+    {% if representation.hasAttachments %}
         <p class="govuk-body">Contains attachment(s)</p>
     {% endif %}
     <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
