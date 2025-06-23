@@ -128,8 +128,7 @@ export function eventQuestions(prefix) {
 					{
 						text: 'Remove and save',
 						type: 'submit',
-						formaction: `${camelCaseToUrlCase(prefix)}-date/remove`,
-						classes: 'govuk-button--warning'
+						formaction: `${camelCaseToUrlCase(prefix)}-date/remove`
 					}
 				]
 			}
