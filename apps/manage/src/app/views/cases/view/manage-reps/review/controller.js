@@ -11,6 +11,7 @@ import { expressValidationErrorsToGovUkErrorList } from '@pins/dynamic-forms/src
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { forwardStreamContents, getDriveItemDownloadUrl } from '@pins/crowndev-lib/documents/utils.js';
 import { ALLOWED_MIME_TYPES } from '@pins/crowndev-lib/forms/representations/question-utils.js';
+import { representationAttachmentsFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
 /**
  * @typedef {import('express').Handler} Handler
@@ -52,17 +53,59 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 	const controllers = {
 		async reviewRepresentationSubmission(req, res) {
 			const { id, representationRef } = validateParams(req.params);
+			const crownDevelopment = await db.crownDevelopment.findUnique({
+				where: { id }
+			});
+
+			if (!crownDevelopment) {
+				return notFoundHandler(req, res);
+			}
+
+			const caseReference = crownDevelopment.reference;
 
 			const commentStatus = readRepCommentReviewStatusSession(req, representationRef);
 			const reviewDecision = getReviewStatus(commentStatus);
+			const sessionFiles = req.session?.files?.[representationRef];
 
 			await updateDocumentStatus(req, db, logger);
 
-			//TODO: move from session folder to permanent folder
-			//TODO: clear reviewDecisions from session after data is saved successfully in DB
-			//TODO: clear files from session after data is saved successfully in DB
+			if (sessionFiles) {
+				const sharePointDrive = getSharePointDrive(req.session);
+
+				const allUploadedFileIds = Object.values(sessionFiles)
+					.flatMap((entry) => entry.uploadedFiles)
+					.map((attachment) => attachment.itemId);
+
+				const representationFolderPath = representationAttachmentsFolderPath(caseReference);
+				const folderPath = `${representationFolderPath}/${representationRef}`;
+
+				try {
+					const representationFolder = await sharePointDrive.getDriveItemByPath(folderPath);
+					const representationFolderId = representationFolder.id;
+
+					logger.info(
+						{ id, representationRef, allUploadedFileIds, representationFolderId, folderPath },
+						'Moving representation attachments'
+					);
+					await sharePointDrive.moveItemsToFolder(allUploadedFileIds, representationFolderId);
+				} catch (error) {
+					logger.error(
+						{
+							error,
+							id,
+							representationRef,
+							allUploadedFileIds,
+							folderPath
+						},
+						'Error moving representation attachments'
+					);
+					throw new Error(`Failed to move representation attachments: ${error.message}`);
+				}
+			}
+			logger.info({ id, representationRef }, 'moved representation attachments');
 
 			delete req.session?.reviewDecisions?.[representationRef];
+			delete req.session?.files?.[representationRef];
 
 			const statusName = getStatusDisplayName(reviewDecision);
 			addRepReviewedSession(req, id, statusName);
@@ -112,8 +155,6 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				repItemsReviewStatus?.comment?.reviewDecision,
 				...representationAttachments.map((attachment) => repItemsReviewStatus?.[attachment.itemId]?.reviewDecision)
 			];
-
-			console.log(JSON.stringify(req.session));
 
 			return res.render('views/cases/view/manage-reps/review/task-list.njk', {
 				reference: representationRef,
@@ -425,6 +466,28 @@ export function viewReviewRedirect(req, res, next) {
 }
 
 /**
+ * Initialise session data for representation review
+ *
+ * @param {{session?: Object<string, any>}} req
+ * @param {string} representationRef
+ * @param {Array.<Object>} attachments
+ */
+function initialiseRepresentationReviewSession(req, representationRef, attachments) {
+	const existingReviewData = req.session?.reviewDecisions?.[representationRef] || {};
+	const defaultReviewDecision = { reviewDecision: '' };
+
+	const attachmentEntries = Object.fromEntries(attachments.map(({ itemId }) => [itemId, defaultReviewDecision]));
+
+	const newReviewData = {
+		...existingReviewData,
+		comment: defaultReviewDecision,
+		...attachmentEntries
+	};
+
+	addSessionData(req, representationRef, newReviewData, 'reviewDecisions');
+}
+
+/**
  * Add a rep reviewed flag to the session
  *
  * @param {{session?: Object<string, any>}} req
@@ -447,25 +510,13 @@ export function readRepReviewedSession(req, id) {
 }
 
 /**
- * Initialise session data for representation review
+ * Clear a rep reviewed flag from the session
  *
  * @param {{session?: Object<string, any>}} req
- * @param {string} representationRef
- * @param {Array.<Object>} attachments
+ * @param {string} id
  */
-function initialiseRepresentationReviewSession(req, representationRef, attachments) {
-	const existingReviewData = req.session?.reviewDecisions?.[representationRef] || {};
-	const defaultReviewDecision = { reviewDecision: '' };
-
-	const attachmentEntries = Object.fromEntries(attachments.map(({ itemId }) => [itemId, defaultReviewDecision]));
-
-	const newReviewData = {
-		...existingReviewData,
-		comment: defaultReviewDecision,
-		...attachmentEntries
-	};
-
-	addSessionData(req, representationRef, newReviewData, 'reviewDecisions');
+export function clearRepReviewedSession(req, id) {
+	clearSessionData(req, id, 'representationReviewed');
 }
 
 /**
@@ -545,16 +596,6 @@ function readRepReviewStatusSession(req, representationRef) {
 }
 
 /**
- * Clear a rep reviewed flag from the session
- *
- * @param {{session?: Object<string, any>}} req
- * @param {string} id
- */
-export function clearRepReviewedSession(req, id) {
-	clearSessionData(req, id, 'representationReviewed');
-}
-
-/**
  * Generate govUk tag information based on review task status
  *
  * @param {string} status
@@ -599,74 +640,63 @@ async function updateDocumentStatus(req, db, logger) {
 	const decisions = req.session?.reviewDecisions?.[representationRef] || {};
 	const files = req.session?.files?.[representationRef] || {};
 
-	for (const [key, value] of Object.entries(decisions)) {
-		if (key === 'comment') {
-			/** @type {import('@prisma/client').Prisma.RepresentationUpdateInput} */
-			const repUpdate = {
-				statusId: getReviewStatus(value.reviewDecision),
-				commentRedacted: readRepRedactedCommentSession(req, representationRef)
-			};
+	if (!Object.keys(decisions).length) return;
 
-			logger.info({ representationRef, repUpdate }, 'submit representation review');
+	try {
+		await db.$transaction(async (tx) => {
+			for (const [key, value] of Object.entries(decisions)) {
+				if (key === 'comment') {
+					/** @type {import('@prisma/client').Prisma.RepresentationUpdateInput} */
+					const repUpdate = {
+						statusId: getReviewStatus(value.reviewDecision),
+						commentRedacted: readRepRedactedCommentSession(req, representationRef)
+					};
 
-			try {
-				await db.representation.update({
-					where: { reference: representationRef },
-					data: repUpdate
+					logger.info({ representationRef, repUpdate }, 'submit representation review');
+
+					await tx.representation.update({
+						where: { reference: representationRef },
+						data: repUpdate
+					});
+					continue;
+				}
+
+				/** @type {import('@prisma/client').Prisma.RepresentationDocumentUpdateInput} */
+				const repDocUpdate = {
+					statusId: getReviewStatus(value.reviewDecision)
+				};
+
+				const [redactedFile] = files[key]?.uploadedFiles || [];
+				if (redactedFile) {
+					repDocUpdate.redactedItemId = redactedFile.itemId;
+					repDocUpdate.redactedFileName = redactedFile.fileName;
+				}
+
+				const document = await tx.representationDocument.findFirst({
+					where: { itemId: key },
+					select: { id: true }
 				});
-			} catch (error) {
-				wrapPrismaError({
-					error,
-					logger,
-					message: 'submitting representation review',
-					logParams: { id, representationRef }
+
+				if (!document) {
+					logger.warn({ id, representationRef, key }, 'Document not found for itemId');
+					continue;
+				}
+
+				logger.info({ representationRef, itemId: document.id, repUpdate: repDocUpdate }, 'update document status');
+
+				await tx.representationDocument.update({
+					where: { id: document.id },
+					data: repDocUpdate
 				});
 			}
-			continue;
-		}
-
-		const repDocUpdate = {
-			statusId: getReviewStatus(value.reviewDecision)
-		};
-
-		const [redactedFile] = files[key]?.uploadedFiles || [];
-		if (redactedFile) {
-			repDocUpdate.redactedItemId = redactedFile.itemId;
-			repDocUpdate.redactedFileName = redactedFile.fileName;
-		}
-
-		let documentId;
-		try {
-			const document = await db.representationDocument.findFirst({
-				where: { itemId: key },
-				select: { id: true }
-			});
-			documentId = document.id;
-		} catch (error) {
-			wrapPrismaError({
-				error,
-				logger,
-				message: 'finding document',
-				logParams: { id, representationRef, key }
-			});
-			continue;
-		}
-
-		logger.info({ representationRef, itemId: documentId, repUpdate: repDocUpdate }, 'update document status');
-
-		try {
-			await db.representationDocument.update({
-				where: { id: documentId },
-				data: repDocUpdate
-			});
-		} catch (error) {
-			wrapPrismaError({
-				error,
-				logger,
-				message: 'updating document status',
-				logParams: { id, representationRef, key }
-			});
-		}
+		});
+	} catch (error) {
+		wrapPrismaError({
+			error,
+			logger,
+			message: 'Error during representation/document updates transaction',
+			logParams: { id, representationRef }
+		});
 	}
 }
 

@@ -1,6 +1,12 @@
 import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { addSessionData } from '@pins/crowndev-lib/util/session.js';
+import { fileAlreadyExistsInFolder } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/document-validation-util.js';
+import { expressValidationErrorsToGovUkErrorList } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
+import { buildReviewControllers } from './review/controller.js';
+import { fetchDocumentsInFolderPath } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-documents.js';
+import { representationAttachmentsFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { validateParams } from './view/controller.js';
 
 /**
  * Validate a representation before it can be accepted, rejected or redacted
@@ -226,4 +232,73 @@ function checkRequiredAnswer(value, errorMessage, pageLink) {
 			href: pageLink
 		};
 	}
+}
+
+export function buildValidateRedactedFileMiddleware(services) {
+	return async (req, res, next) => {
+		const { db, getSharePointDrive } = services;
+		const { id, representationRef } = validateParams(req.params);
+		const itemId = req.params.itemId;
+
+		if (!itemId) {
+			throw new Error('itemId param required');
+		}
+
+		const crownDevelopment = await db.crownDevelopment.findUnique({
+			where: { id }
+		});
+
+		if (!crownDevelopment) {
+			return notFoundHandler(req, res);
+		}
+
+		const document = await db.representationDocument.findFirst({
+			where: { itemId: itemId },
+			select: { fileName: true }
+		});
+		if (!document) {
+			return notFoundHandler(req, res);
+		}
+
+		const caseReference = crownDevelopment.reference;
+		const folderPath = `${representationAttachmentsFolderPath(caseReference)}/${representationRef}`;
+
+		const sharePointDrive = getSharePointDrive(req.session);
+		const documentsInFolder = await fetchDocumentsInFolderPath(sharePointDrive, folderPath);
+
+		const { redactRepresentationDocument } = buildReviewControllers(services);
+		const handleDuplicateFiles = async (fileAlreadyExistsInFolder, msg) => {
+			if (!fileAlreadyExistsInFolder) {
+				return false;
+			}
+
+			req.body.errors = { 'upload-form': { msg } };
+			req.body.errorSummary = expressValidationErrorsToGovUkErrorList(req.body.errors);
+
+			await redactRepresentationDocument(req, res, {
+				errors: req.body.errors,
+				errorSummary: req.body.errorSummary
+			});
+
+			return true;
+		};
+
+		if (
+			await handleDuplicateFiles(
+				fileAlreadyExistsInFolder([{ name: document.fileName }], req.files),
+				'Original attachment has the same name'
+			)
+		)
+			return;
+
+		if (
+			await handleDuplicateFiles(
+				fileAlreadyExistsInFolder(documentsInFolder, req.files),
+				'File with this name already exists on Representation'
+			)
+		)
+			return;
+
+		return next();
+	};
 }
