@@ -170,6 +170,12 @@ export function deleteDocumentsController({ logger, appName, sharePointDrive, ge
 	};
 }
 
+export async function fetchDocumentsInFolderPath(sharePointDrive, folderPath) {
+	const documents = await sharePointDrive.getItemsByPath(folderPath, [['$select', FILE_PROPERTIES.join(',')]]);
+	documents.sort(sortByField('lastModifiedDateTime', true));
+	return documents;
+}
+
 async function createSessionSharepointFolders(
 	sharePointDrive,
 	logger,
@@ -223,12 +229,6 @@ async function createFolder({ sharePointDrive, logger, caseReference, sessionId,
 			throw new Error(`Failed to create SharePoint folder: ${description}`);
 		}
 	}
-}
-
-async function fetchDocumentsInFolderPath(sharePointDrive, folderPath) {
-	const documents = await sharePointDrive.getItemsByPath(folderPath, [['$select', FILE_PROPERTIES.join(',')]]);
-	documents.sort(sortByField('lastModifiedDateTime', true));
-	return documents;
 }
 
 async function processChunkDocumentUpload(file, uploadUrl, logger) {

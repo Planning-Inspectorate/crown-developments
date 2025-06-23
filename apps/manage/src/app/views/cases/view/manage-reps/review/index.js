@@ -3,7 +3,10 @@ import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/valida
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 import { buildReviewControllers, viewRepresentationAwaitingReview, viewReviewRedirect } from './controller.js';
 import { buildGetJourneyMiddleware } from '../view/controller.js';
-import { buildValidateRepresentationMiddleware } from '../validation-middleware.js';
+import {
+	buildValidateRedactedFileMiddleware,
+	buildValidateRepresentationMiddleware
+} from '../validation-middleware.js';
 import multer from 'multer';
 import {
 	deleteDocumentsController,
@@ -39,6 +42,7 @@ export function createRoutes(service) {
 		redactRepresentationDocumentPost
 	} = buildReviewControllers(service);
 	const validatePostRepresentation = buildValidateRepresentationMiddleware(service);
+	const validateRedactedFileMiddleware = buildValidateRedactedFileMiddleware(service);
 	const handleUploads = multer();
 	const uploadDocuments = asyncHandler(
 		uploadDocumentsController(
@@ -73,7 +77,12 @@ export function createRoutes(service) {
 	router.post('/task-list/:itemId/redact', asyncHandler(redactRepresentationDocumentPost));
 	router.get('/task-list/:taskId/redact/:documentId/view', asyncHandler(viewDocument));
 
-	router.post('/task-list/:itemId/redact/upload-documents', handleUploads.array('files[]'), uploadDocuments);
+	router.post(
+		'/task-list/:itemId/redact/upload-documents',
+		handleUploads.array('files[]'),
+		validateRedactedFileMiddleware,
+		uploadDocuments
+	);
 
 	router.post('/task-list/:itemId/redact/remove-document/:documentId', deleteDocuments);
 
