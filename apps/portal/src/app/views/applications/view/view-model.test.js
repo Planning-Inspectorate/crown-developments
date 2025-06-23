@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { applicationLinks, crownDevelopmentToViewModel, representationTitle } from './view-model.js';
+import { applicationLinks, crownDevelopmentToViewModel, documentsLink, representationTitle } from './view-model.js';
 import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 describe('view-model', () => {
@@ -193,6 +193,16 @@ describe('view-model', () => {
 					text: 'Documents'
 				}
 			]);
+		});
+	});
+	describe('documentsLink', () => {
+		it('should return the correct documents link', () => {
+			const id = 'id-1';
+			const result = documentsLink(id);
+			assert.deepStrictEqual(result, {
+				href: `/applications/${id}/documents`,
+				text: 'Documents'
+			});
 		});
 	});
 	describe('representationTitle', () => {

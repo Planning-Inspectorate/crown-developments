@@ -35,7 +35,9 @@ const listArgs = Prisma.validator<Prisma.CrownDevelopmentDefaultArgs>()({
 		ApplicantContact: { include: { Address: true } },
 		Lpa: true,
 		Type: true,
-		SiteAddress: true
+		SiteAddress: true,
+		Category: true,
+		Attachments: true
 	}
 });
 
@@ -53,6 +55,7 @@ export type RepresentationViewModel = {
 	representationCategory: string;
 	dateRepresentationSubmitted: string;
 	representationContainsAttachments: string;
+	hasAcceptedAttachments: boolean;
 };
 
 export interface ApplicationLink {

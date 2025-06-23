@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { generateNewReference, uniqueReference } from './random-reference.js';
+import { generateNewReference, isValidUniqueReference, uniqueReference } from './random-reference.js';
 
 describe('random-reference', () => {
 	describe('generateRepresentationReference', () => {
@@ -50,6 +50,19 @@ describe('random-reference', () => {
 		it('should generate references with valid characters', () => {
 			const reference = generateNewReference();
 			assert.ok(/^[A-Z0-9-]+$/.test(reference));
+		});
+	});
+
+	describe('isValidUniqueReference', () => {
+		it('should validate a correct reference format', () => {
+			assert.ok(isValidUniqueReference('AAAAA-BBBBB'));
+			assert.ok(isValidUniqueReference('CCCCC-DDDDD'));
+			assert.ok(isValidUniqueReference('12345-67890'));
+			assert.ok(isValidUniqueReference('ABC12-34DEF'));
+		});
+		it('should invalidate an incorrect reference format', () => {
+			assert.ok(!isValidUniqueReference('ZZZZZ-ZZZZZ'));
+			assert.ok(!isValidUniqueReference('AAAAA-BB!BB'));
 		});
 	});
 });

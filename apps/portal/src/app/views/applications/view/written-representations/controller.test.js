@@ -43,7 +43,8 @@ describe('written representations', () => {
 							SubmittedFor: { displayName: 'John Doe' },
 							SubmittedByContact: { firstName: 'Jane', lastName: 'Smith' },
 							RepresentedContact: { firstName: 'Alice', lastName: 'Brown' },
-							Category: { displayName: 'General Representation' }
+							Category: { displayName: 'General Representation' },
+							Attachments: [{ statusId: 'accepted' }]
 						}
 					]),
 					count: mock.fn(() => 1)
@@ -70,7 +71,8 @@ describe('written representations', () => {
 				representationCommentIsRedacted: true,
 				representationContainsAttachments: true,
 				representationReference: '4SNR8-ZS27T',
-				representationTitle: 'Jane Smith on behalf of Alice Brown'
+				representationTitle: 'Jane Smith on behalf of Alice Brown',
+				hasAttachments: true
 			});
 			assert.strictEqual(viewData.selectedItemsPerPage, 25);
 			assert.strictEqual(viewData.totalRepresentations, 1);

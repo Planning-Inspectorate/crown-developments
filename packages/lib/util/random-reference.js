@@ -28,3 +28,9 @@ export function generateNewReference() {
 	const ref = crypto.randomBytes(5).toString('hex').toUpperCase();
 	return ref.replace(/([A-Z0-9]{5})([A-Z0-9]{5})/, '$1-$2');
 }
+
+export function isValidUniqueReference(reference) {
+	// Check if the reference is in the format AAAAA-BBBBB
+	const regex = /^[A-F0-9]{5}-[A-F0-9]{5}$/;
+	return regex.test(reference);
+}

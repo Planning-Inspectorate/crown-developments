@@ -1,6 +1,7 @@
 import { formatDateForDisplay, isNowAfterStartDate, nowIsWithinRange } from '@pins/dynamic-forms/src/lib/date-utils.js';
 import {
 	APPLICATION_PROCEDURE_ID,
+	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
@@ -140,7 +141,8 @@ export function representationToViewModel(representation) {
 		representationCommentIsRedacted: Boolean(representation.commentRedacted),
 		representationCategory: representation.Category?.displayName,
 		dateRepresentationSubmitted: formatDateForDisplay(representation.submittedDate),
-		representationContainsAttachments: representation.containsAttachments
+		representationContainsAttachments: representation.containsAttachments,
+		hasAttachments: representation.Attachments?.some((doc) => doc.statusId === REPRESENTATION_STATUS_ID.ACCEPTED)
 	};
 }
 
