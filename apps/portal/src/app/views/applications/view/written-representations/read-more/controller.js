@@ -69,7 +69,7 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 				SubmittedByContact: { select: { firstName: true, lastName: true } },
 				RepresentedContact: { select: { orgName: true, firstName: true, lastName: true } },
 				Category: { select: { displayName: true } },
-				Attachments: true
+				Attachments: { select: { statusId: true } }
 			}
 		});
 
@@ -109,7 +109,7 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 				}
 
 				if (!Array.isArray(documentsToFetch) || documentsToFetch.length === 0) {
-					logger.error('No documents found for the representation, but representation contains attachments');
+					logger.warn('No documents found for the representation, but representation contains attachments');
 					documents = [];
 				} else {
 					logger.info({ documentsToFetch }, 'Fetched accepted documents for representation');

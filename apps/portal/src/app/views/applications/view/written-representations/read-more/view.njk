@@ -50,7 +50,7 @@
         }) }}
         <p class="govuk-body">{{ representationViewModel.representationComment }}</p>
 
-        {% if documents|length %}
+        {% if representationViewModel.hasAttachments %}
             <h2 class="govuk-heading-m">Attachment(s)</h2>
             <ul class="govuk-list document-list">
                 {% for document in documents %}

@@ -55,7 +55,7 @@ export type RepresentationViewModel = {
 	representationCategory: string;
 	dateRepresentationSubmitted: string;
 	representationContainsAttachments: string;
-	hasAcceptedAttachments: boolean;
+	hasAttachments: boolean;
 };
 
 export interface ApplicationLink {
