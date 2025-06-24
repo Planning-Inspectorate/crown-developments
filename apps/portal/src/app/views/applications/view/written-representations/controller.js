@@ -57,7 +57,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 						SubmittedByContact: { select: { firstName: true, lastName: true } },
 						RepresentedContact: { select: { orgName: true, firstName: true, lastName: true } },
 						Category: { select: { displayName: true } },
-						Attachments: true
+						Attachments: { select: { statusId: true } }
 					},
 					orderBy: { submittedDate: 'desc' },
 					skip: skipSize,

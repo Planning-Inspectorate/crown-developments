@@ -1,6 +1,12 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { applicationLinks, crownDevelopmentToViewModel, documentsLink, representationTitle } from './view-model.js';
+import {
+	applicationLinks,
+	crownDevelopmentToViewModel,
+	documentsLink,
+	representationTitle,
+	representationToViewModel
+} from './view-model.js';
 import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 describe('view-model', () => {
@@ -255,6 +261,56 @@ describe('view-model', () => {
 			};
 
 			assert.strictEqual(representationTitle(representation), undefined);
+		});
+	});
+	describe('representationToViewModel', () => {
+		it('should map representation to view model with attachments', () => {
+			const representation = {
+				reference: 'ref-123',
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+				SubmittedByContact: { firstName: 'John', lastName: 'Doe', orgName: null },
+				comment: 'This is a comment',
+				commentRedacted: null,
+				Category: { displayName: 'Category 1' },
+				submittedDate: '2025-01-01T00:00:00.000Z',
+				containsAttachments: true,
+				Attachments: [{ statusId: 'accepted' }, { statusId: 'rejected' }]
+			};
+			const result = representationToViewModel(representation);
+			assert.deepStrictEqual(result, {
+				representationReference: 'ref-123',
+				representationTitle: 'John Doe',
+				representationComment: 'This is a comment',
+				representationCommentIsRedacted: false,
+				representationCategory: 'Category 1',
+				dateRepresentationSubmitted: '1 Jan 2025',
+				representationContainsAttachments: true,
+				hasAttachments: true
+			});
+		});
+		it('should map representation to view model without attachments', () => {
+			const representation = {
+				reference: 'ref-123',
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+				SubmittedByContact: { firstName: 'John', lastName: 'Doe', orgName: null },
+				comment: 'This is a comment',
+				commentRedacted: null,
+				Category: { displayName: 'Category 1' },
+				submittedDate: '2025-01-01T00:00:00.000Z',
+				containsAttachments: true,
+				Attachments: [{ statusId: 'rejected' }, { statusId: 'awaiting-review' }]
+			};
+			const result = representationToViewModel(representation);
+			assert.deepStrictEqual(result, {
+				representationReference: 'ref-123',
+				representationTitle: 'John Doe',
+				representationComment: 'This is a comment',
+				representationCommentIsRedacted: false,
+				representationCategory: 'Category 1',
+				dateRepresentationSubmitted: '1 Jan 2025',
+				representationContainsAttachments: true,
+				hasAttachments: false
+			});
 		});
 	});
 });
