@@ -76,8 +76,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 					.flatMap((entry) => entry.uploadedFiles)
 					.map((attachment) => attachment.itemId);
 
-				const representationFolderPath = representationAttachmentsFolderPath(caseReference);
-				const folderPath = `${representationFolderPath}/${representationRef}`;
+				const folderPath = representationAttachmentsFolderPath(caseReference, representationRef);
 
 				try {
 					const representationFolder = await sharePointDrive.getDriveItemByPath(folderPath);
