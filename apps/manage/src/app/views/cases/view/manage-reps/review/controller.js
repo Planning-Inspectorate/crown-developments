@@ -752,7 +752,7 @@ function getReviewStatus(reviewDecision) {
 }
 
 function safeDeleteUploadedFilesSession(req, representationRef, itemId) {
-	const isSafeKey = (key) => typeof key === 'string' && !Object.prototype.hasOwnProperty.call(Object.prototype, key);
+	const isSafeKey = (key) => typeof key === 'string' && !['__proto__', 'constructor', 'prototype'].includes(key);
 
 	if (isSafeKey(representationRef) && isSafeKey(itemId)) {
 		delete req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles;
