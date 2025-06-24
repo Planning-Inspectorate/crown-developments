@@ -336,7 +336,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			await forwardStreamContents(downloadUrl, req, res, logger, itemToDownloadId, fetchImpl);
 		},
 		async reviewDocumentDecision(req, res) {
-			const { representationRef } = validateParams(req.params);
+			const { id, representationRef } = validateParams(req.params);
 			const itemId = req.params.itemId;
 			if (!itemId) {
 				throw new Error('itemId param required');
@@ -360,7 +360,23 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			if (reviewDocumentDecision === ACCEPT_AND_REDACT) {
 				res.redirect(req.baseUrl + '/task-list/' + itemId + '/redact');
 			} else {
-				await removeRedactedDocument(req, getSharePointDrive, logger);
+				const [redactedFile] = req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles || [];
+
+				if (redactedFile) {
+					delete req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles;
+
+					try {
+						const sharePointDrive = getSharePointDrive(req.session);
+						await sharePointDrive.deleteDocumentById(redactedFile.itemId);
+					} catch (error) {
+						logger.error(
+							{ error, id, representationRef, itemId },
+							`Error deleting file: ${itemId} from Sharepoint folder`
+						);
+						throw new Error('Failed to delete file');
+					}
+				}
+
 				updateRepReviewSession(req, representationRef, itemId, { reviewDecision: reviewDocumentDecision });
 				res.redirect(req.baseUrl + '/task-list');
 			}
@@ -697,30 +713,6 @@ async function updateDocumentStatus(req, db, logger) {
 			message: 'Error during representation/document updates transaction',
 			logParams: { id, representationRef }
 		});
-	}
-}
-
-/**
- * Clears redacted from Sharepoint and session for given itemId
- *
- * @param {Array.<string>} req
- * @param {function(session): SharePointDrive | null} getSharePointDrive
- * @param {import('pino').Logger} logger
- */
-async function removeRedactedDocument(req, getSharePointDrive, logger) {
-	const { id, representationRef, itemId } = req.params;
-	const [redactedFile] = req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles || [];
-
-	if (redactedFile) {
-		delete req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles;
-
-		try {
-			const sharePointDrive = getSharePointDrive(req.session);
-			await sharePointDrive.deleteDocumentById(redactedFile.itemId);
-		} catch (error) {
-			logger.error({ error, id, representationRef, itemId }, `Error deleting file: ${itemId} from Sharepoint folder`);
-			throw new Error('Failed to delete file');
-		}
 	}
 }
 
