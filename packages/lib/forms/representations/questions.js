@@ -226,17 +226,6 @@ export const questionProps = {
 		url: 'address',
 		validators: [new AddressValidator()]
 	},
-	commentRedacted: {
-		type: COMPONENT_TYPES.TEXT_ENTRY_REDACT,
-		title: 'Redacted Comment',
-		question: 'Representation Comment',
-		fieldName: 'comment',
-		url: 'redacted-comment',
-		validators: [],
-		editable: false,
-		onlyShowRedactedValueForSummary: true,
-		useRedactedFieldNameForSave: true
-	},
 	submittedDate: {
 		type: COMPONENT_TYPES.DATE,
 		title: 'What date was the representation received?',

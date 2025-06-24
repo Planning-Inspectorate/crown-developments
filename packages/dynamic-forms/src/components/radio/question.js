@@ -1,4 +1,6 @@
 import OptionsQuestion from '../../questions/options-question.js';
+import { nl2br } from '../../lib/utils.js';
+import escape from 'escape-html';
 
 export default class RadioQuestion extends OptionsQuestion {
 	/**
@@ -80,9 +82,31 @@ export default class RadioQuestion extends OptionsQuestion {
 			return super.formatAnswerForSummary(sectionSegment, journey, formattedAnswer, false);
 		} else if (answer) {
 			const selectedOption = this.options.find((option) => option.value === answer);
-			const selectedText = selectedOption?.text || '';
-			return super.formatAnswerForSummary(sectionSegment, journey, selectedText, false);
+			const formattedAnswer = selectedOption?.text ?? this.notStartedText;
+
+			return [
+				{
+					key: this.title ?? this.question,
+					value: nl2br(escape(formattedAnswer)),
+					action: this.getAction(sectionSegment, journey, answer)
+				}
+			];
 		}
 		return super.formatAnswerForSummary(sectionSegment, journey, answer);
+	}
+
+	getAction(sectionSegment, journey, answer) {
+		if (journey.journeyId === 'manage-representations' && this.fieldName === 'statusId') {
+			const manageTaskListUrl = journey.initialBackLink.replace(/\/view$/, '/manage/task-list');
+			return [
+				{
+					href: manageTaskListUrl,
+					text: this.manageActionText,
+					visuallyHiddenText: this.question
+				}
+			];
+		} else {
+			return super.getAction(sectionSegment, journey, answer);
+		}
 	}
 }

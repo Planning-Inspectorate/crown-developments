@@ -1,6 +1,7 @@
 import { Question } from '@pins/dynamic-forms/src/questions/question.js';
 import { nl2br } from '@pins/dynamic-forms/src/lib/utils.js';
 import { clearSessionData } from '../../../util/session.js';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
  * @typedef {Object} TextEntryCheckbox
@@ -73,15 +74,13 @@ export default class RepresentationAttachments extends Question {
 	}
 
 	formatAnswerForSummary(sectionSegment, journey, answer) {
-		// Added to handle if something goes wrong and the answer ends up undefined
-		if (!Array.isArray(answer) || answer.length === 0) {
-			return [];
-		}
-		const formattedAnswer = nl2br(answer.map((file) => file.fileName).join('\n'));
+		const hasFiles = Array.isArray(answer) && answer.length > 0;
+		const value = hasFiles ? nl2br(answer.map((file) => file.fileName).join('\n')) : '-';
+
 		return [
 			{
-				key: `${this.title}`,
-				value: formattedAnswer,
+				key: this.title,
+				value,
 				action: this.getAction(sectionSegment, journey, answer)
 			}
 		];
@@ -89,11 +88,34 @@ export default class RepresentationAttachments extends Question {
 
 	getAction(sectionSegment, journey, answer) {
 		if (journey.journeyId === 'manage-representations') {
-			return {
-				href: journey.getCurrentQuestionUrl(sectionSegment, this.fieldName),
-				text: this.addActionText,
-				visuallyHiddenText: this.question
-			};
+			const statusId = journey.response?.answers?.statusId;
+			if (statusId === REPRESENTATION_STATUS_ID.ACCEPTED) {
+				const manageTaskListUrl = journey.initialBackLink.replace(/\/view$/, '/manage/task-list');
+				return [
+					{
+						href: manageTaskListUrl,
+						text: this.manageActionText,
+						visuallyHiddenText: this.question
+					},
+					{
+						href: manageTaskListUrl,
+						text: this.addActionText,
+						visuallyHiddenText: this.question
+					}
+				];
+			}
+
+			if (statusId === REPRESENTATION_STATUS_ID.REJECTED) {
+				return null;
+			}
+
+			return [
+				{
+					href: journey.getCurrentQuestionUrl(sectionSegment, this.fieldName),
+					text: this.addActionText,
+					visuallyHiddenText: this.question
+				}
+			];
 		} else {
 			return super.getAction(sectionSegment, journey, answer);
 		}
