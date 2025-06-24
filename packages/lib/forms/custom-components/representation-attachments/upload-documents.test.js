@@ -57,6 +57,7 @@ describe('upload-documents.js', () => {
 					sharePointDrive,
 					appName: 'portal'
 				},
+				'have-your-say',
 				ALLOWED_EXTENSIONS,
 				ALLOWED_MIME_TYPES,
 				MAX_FILE_SIZE
@@ -120,6 +121,7 @@ describe('upload-documents.js', () => {
 					getSharePointDrive: () => sharePointDrive,
 					appName: 'manage'
 				},
+				'add-representation',
 				ALLOWED_EXTENSIONS,
 				ALLOWED_MIME_TYPES,
 				MAX_FILE_SIZE
@@ -186,6 +188,7 @@ describe('upload-documents.js', () => {
 					sharePointDrive,
 					appName: 'portal'
 				},
+				'have-your-say',
 				ALLOWED_EXTENSIONS,
 				ALLOWED_MIME_TYPES,
 				MAX_FILE_SIZE
@@ -260,6 +263,7 @@ describe('upload-documents.js', () => {
 					sharePointDrive,
 					appName: 'portal'
 				},
+				'have-your-say',
 				ALLOWED_EXTENSIONS,
 				ALLOWED_MIME_TYPES,
 				MAX_FILE_SIZE
@@ -334,6 +338,7 @@ describe('upload-documents.js', () => {
 					sharePointDrive,
 					appName: 'portal'
 				},
+				'have-your-say',
 				ALLOWED_EXTENSIONS,
 				ALLOWED_MIME_TYPES,
 				MAX_FILE_SIZE
@@ -456,11 +461,14 @@ describe('upload-documents.js', () => {
 
 			let redirectCalledWith;
 
-			const controller = deleteDocumentsController({
-				logger: mockLogger,
-				appName: 'portal',
-				sharePointDrive: mockSharePointDrive
-			});
+			const controller = deleteDocumentsController(
+				{
+					logger: mockLogger,
+					appName: 'portal',
+					sharePointDrive: mockSharePointDrive
+				},
+				'have-your-say'
+			);
 
 			await controller(req, res);
 
@@ -516,11 +524,14 @@ describe('upload-documents.js', () => {
 
 			let redirectCalledWith;
 
-			const controller = deleteDocumentsController({
-				logger: mockLogger,
-				appName: 'manage',
-				sharePointDrive: mockSharePointDrive
-			});
+			const controller = deleteDocumentsController(
+				{
+					logger: mockLogger,
+					appName: 'manage',
+					sharePointDrive: mockSharePointDrive
+				},
+				'add-representation'
+			);
 
 			await controller(req, res);
 

@@ -127,9 +127,9 @@ export function uploadDocumentsController(
 				});
 			});
 
-			const sessionId = isManageRepsReview ? req.params.representationRef : applicationId;
+			const sessionIdKey = isManageRepsReview ? req.params.representationRef : applicationId;
 			const sessionKey = isManageRepsReview ? req.params.itemId : submittedForId;
-			addSessionData(req, sessionId, { [sessionKey]: { uploadedFiles } }, 'files');
+			addSessionData(req, sessionIdKey, { [sessionKey]: { uploadedFiles } }, 'files');
 		}
 
 		const redirectUrl = getRedirectUrl(appName, applicationId, journeyId, submittedForId, req.params);
@@ -157,12 +157,12 @@ export function deleteDocumentsController({ logger, appName, sharePointDrive, ge
 			submittedForId = getSubmittedForId(journeyResponse?.answers);
 		}
 
-		const sessionId = isManageRepsReview ? req.params.representationRef : applicationId;
+		const sessionIdKey = isManageRepsReview ? req.params.representationRef : applicationId;
 		const sessionKey = isManageRepsReview ? req.params.itemId : submittedForId;
 
-		let uploadedFiles = req.session?.files?.[sessionId]?.[sessionKey]?.uploadedFiles || [];
+		let uploadedFiles = req.session?.files?.[sessionIdKey]?.[sessionKey]?.uploadedFiles || [];
 		uploadedFiles = uploadedFiles.filter((file) => file.itemId !== itemId);
-		addSessionData(req, sessionId, { [sessionKey]: { [itemId]: { uploadedFiles } } }, 'files');
+		addSessionData(req, sessionIdKey, { [sessionKey]: { uploadedFiles } }, 'files');
 
 		const redirectUrl = getRedirectUrl(appName, applicationId, journeyId, submittedForId, req.params);
 
