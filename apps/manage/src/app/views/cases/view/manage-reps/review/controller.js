@@ -363,8 +363,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				const [redactedFile] = req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles || [];
 
 				if (redactedFile) {
-					delete req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles;
-
+					safeDeleteUploadedFilesSession(req, representationRef, itemId);
 					try {
 						const sharePointDrive = getSharePointDrive(req.session);
 						await sharePointDrive.deleteDocumentById(redactedFile.itemId);
@@ -750,4 +749,14 @@ function getStatusDisplayName(reviewDecision) {
 
 function getReviewStatus(reviewDecision) {
 	return reviewDecision === ACCEPT_AND_REDACT ? REPRESENTATION_STATUS_ID.ACCEPTED : reviewDecision;
+}
+
+function safeDeleteUploadedFilesSession(req, representationRef, itemId) {
+	const isSafeKey = (key) => typeof key === 'string' && !Object.prototype.hasOwnProperty.call(Object.prototype, key);
+
+	if (isSafeKey(representationRef) && isSafeKey(itemId)) {
+		delete req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles;
+	} else {
+		throw new Error('Invalid key provided to delete uploadedFiles from session data');
+	}
 }
