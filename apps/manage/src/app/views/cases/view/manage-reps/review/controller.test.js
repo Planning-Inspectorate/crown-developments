@@ -767,6 +767,557 @@ describe('controller', () => {
 		});
 	});
 
+	describe('reviewDocumentDecision', () => {
+		it('should redirect to document redact page when reviewDocumentDecision is accept and redact', async () => {
+			const mockDb = {};
+			const logger = mockLogger();
+
+			const { reviewDocumentDecision } = buildReviewControllers({ db: mockDb, logger });
+
+			const mockReq = {
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
+				session: {
+					reviewDecisions: {
+						'ref-1': {
+							DOC1234: {}
+						}
+					}
+				},
+				body: {
+					reviewDocumentDecision: 'accept-and-redact'
+				}
+			};
+			const mockRes = {
+				locals: { journey: { sections: [], isComplete: () => true }, journeyResponse: { answers: {} } },
+				redirect: mock.fn()
+			};
+
+			await reviewDocumentDecision(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRes.redirect.mock.calls[0].arguments[0],
+				'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234/redact'
+			);
+		});
+		it('should redirect to task-list and delete uploaded files from session and sharepoint', async () => {
+			const mockSharePoint = {
+				deleteDocumentById: mock.fn()
+			};
+			const logger = mockLogger();
+			const { reviewDocumentDecision } = buildReviewControllers({ logger, getSharePointDrive: () => mockSharePoint });
+			const mockReq = {
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
+				session: {
+					files: {
+						'ref-1': {
+							DOC1234: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'test-pdf.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							},
+							DOC9876: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'redacted-file.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							}
+						}
+					},
+					reviewDecisions: {
+						'ref-1': {
+							DOC1234: {}
+						}
+					}
+				},
+				body: {
+					reviewDocumentDecision: 'accepted'
+				}
+			};
+			const mockRes = {
+				locals: { journey: { sections: [], isComplete: () => true }, journeyResponse: { answers: {} } },
+				redirect: mock.fn()
+			};
+
+			await reviewDocumentDecision(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRes.redirect.mock.calls[0].arguments[0],
+				'some-url-here/case-1/manage-representations/ref-1/task-list'
+			);
+			assert.strictEqual(mockSharePoint.deleteDocumentById.mock.callCount(), 1);
+			assert.deepStrictEqual(mockReq.session.files?.['ref-1']?.DOC1234.uploadedFiles, undefined);
+		});
+		it('should throw error if error returned from sharepoint', async () => {
+			const mockSharePoint = {
+				deleteDocumentById: mock.fn(() => {
+					throw new Error('Error creating folder');
+				})
+			};
+			const logger = mockLogger();
+			const { reviewDocumentDecision } = buildReviewControllers({ logger, getSharePointDrive: () => mockSharePoint });
+			const mockReq = {
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
+				session: {
+					files: {
+						'ref-1': {
+							DOC1234: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'test-pdf.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							},
+							DOC9876: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'redacted-file.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							}
+						}
+					},
+					reviewDecisions: {
+						'ref-1': {
+							DOC1234: {}
+						}
+					}
+				},
+				body: {
+					reviewDocumentDecision: 'accepted'
+				}
+			};
+			const mockRes = {
+				locals: { journey: { sections: [], isComplete: () => true }, journeyResponse: { answers: {} } },
+				redirect: mock.fn()
+			};
+
+			await assert.rejects(() => reviewDocumentDecision(mockReq, mockRes), {
+				message: 'Failed to delete file'
+			});
+		});
+		it('should render the page with errors if reviewDocumentDecision not provided', async () => {
+			const mockDb = {
+				representationDocument: {
+					findFirst: mock.fn(() => ({ fileName: 'test.pdf' }))
+				}
+			};
+			const logger = mockLogger();
+
+			const { reviewDocumentDecision } = buildReviewControllers({ db: mockDb, logger });
+
+			const mockReq = {
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
+				session: {
+					files: {
+						'ref-1': {
+							DOC1234: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'test-pdf.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							},
+							DOC9876: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'redacted-file.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							}
+						}
+					},
+					reviewDecisions: {
+						'ref-1': {
+							DOC1234: {
+								reviewDecision: 'accepted'
+							}
+						}
+					}
+				},
+				body: {}
+			};
+			const mockRes = {
+				locals: { journey: { sections: [], isComplete: () => true }, journeyResponse: { answers: {} } },
+				render: mock.fn()
+			};
+
+			await reviewDocumentDecision(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/cases/view/manage-reps/review/review-document.njk'
+			);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				reference: 'ref-1',
+				fileName: 'test.pdf',
+				documentStatus: 'accepted',
+				accept: 'accepted',
+				acceptAndRedact: 'accept-and-redact',
+				reject: 'rejected',
+				journeyTitle: 'Manage Reps',
+				layoutTemplate: 'views/layouts/forms-question.njk',
+				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list',
+				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234',
+				errors: { reviewDocumentDecision: { msg: 'Select the review decision' } },
+				errorSummary: [
+					{
+						text: 'Select the review decision',
+						href: '#reviewDocumentDecision'
+					}
+				]
+			});
+		});
+	});
+
+	describe('redactRepresentationDocument', () => {
+		it('should render representation document page without errors', async () => {
+			const mockDb = {
+				representationDocument: {
+					findFirst: mock.fn(() => ({ fileName: 'test.pdf' }))
+				}
+			};
+			const logger = mockLogger();
+			const { redactRepresentationDocument } = buildReviewControllers({ db: mockDb, logger });
+			const mockReq = {
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
+				session: {
+					files: {
+						'ref-1': {
+							DOC1234: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'test-pdf.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							},
+							DOC9876: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'redacted-file.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							}
+						}
+					},
+					reviewDecisions: {
+						'ref-1': {
+							DOC1234: {
+								reviewDecision: 'accepted'
+							}
+						}
+					}
+				},
+				body: {}
+			};
+			const mockRes = {
+				locals: { journey: { sections: [], isComplete: () => true }, journeyResponse: { answers: {} } },
+				render: mock.fn()
+			};
+
+			await redactRepresentationDocument(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/cases/view/manage-reps/review/redact-document.njk'
+			);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				reference: 'ref-1',
+				originalFileId: 'DOC1234',
+				fileName: 'test.pdf',
+				redactedFileId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+				redactedFileName: 'test-pdf.pdf',
+				allowedMimeTypes: [
+					'application/pdf',
+					'image/png',
+					'image/jpeg',
+					'image/tiff',
+					'application/msword',
+					'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+					'application/vnd.ms-excel',
+					'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+				],
+				journeyTitle: 'Manage Reps',
+				layoutTemplate: 'views/layouts/forms-question.njk',
+				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234',
+				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234/redact',
+				errors: undefined,
+				errorSummary: undefined
+			});
+		});
+		it('should render representation document page with errors', async () => {
+			const mockDb = {
+				representationDocument: {
+					findFirst: mock.fn(() => ({ fileName: 'test.pdf' }))
+				}
+			};
+			const logger = mockLogger();
+
+			const { redactRepresentationDocument } = buildReviewControllers({ db: mockDb, logger });
+
+			const mockReq = {
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
+				session: {
+					errors: { 'upload-form': { msg: 'Upload an attachment' } },
+					errorSummary: [{ text: 'Upload an attachment', href: '#upload-form' }],
+					files: {
+						'ref-1': {
+							DOC1234: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'test-pdf.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							},
+							DOC9876: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'redacted-file.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							}
+						}
+					},
+					reviewDecisions: {
+						'ref-1': {
+							DOC1234: {
+								reviewDecision: 'accepted'
+							}
+						}
+					}
+				},
+				body: {}
+			};
+			const mockRes = {
+				locals: { journey: { sections: [], isComplete: () => true }, journeyResponse: { answers: {} } },
+				render: mock.fn()
+			};
+
+			await redactRepresentationDocument(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/cases/view/manage-reps/review/redact-document.njk'
+			);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				reference: 'ref-1',
+				originalFileId: 'DOC1234',
+				fileName: 'test.pdf',
+				redactedFileId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+				redactedFileName: 'test-pdf.pdf',
+				allowedMimeTypes: [
+					'application/pdf',
+					'image/png',
+					'image/jpeg',
+					'image/tiff',
+					'application/msword',
+					'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+					'application/vnd.ms-excel',
+					'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+				],
+				journeyTitle: 'Manage Reps',
+				layoutTemplate: 'views/layouts/forms-question.njk',
+				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234',
+				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234/redact',
+				errors: { 'upload-form': { msg: 'Upload an attachment' } },
+				errorSummary: [{ text: 'Upload an attachment', href: '#upload-form' }]
+			});
+			assert.deepStrictEqual(mockReq.session.errors, undefined);
+			assert.deepStrictEqual(mockRes.render.errorSummary, undefined);
+		});
+	});
+
+	describe('redactRepresentationDocumentPost', () => {
+		it('should update session and redirect back to task-list', async () => {
+			const mockDb = {
+				representationDocument: {
+					findFirst: mock.fn(() => ({ fileName: 'test.pdf' }))
+				}
+			};
+			const logger = mockLogger();
+			const { redactRepresentationDocumentPost } = buildReviewControllers({ db: mockDb, logger });
+
+			const mockReq = {
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
+				session: {
+					files: {
+						'ref-1': {
+							DOC1234: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'test-pdf.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							},
+							DOC9876: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'redacted-file.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							}
+						}
+					},
+					reviewDecisions: {
+						'ref-1': {
+							DOC1234: {
+								reviewDecision: 'accepted'
+							}
+						}
+					}
+				},
+				body: {}
+			};
+			const mockRes = {
+				locals: { journey: { sections: [], isComplete: () => true }, journeyResponse: { answers: {} } },
+				redirect: mock.fn()
+			};
+
+			await redactRepresentationDocumentPost(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRes.redirect.mock.calls[0].arguments[0],
+				'some-url-here/case-1/manage-representations/ref-1/task-list'
+			);
+			assert.deepStrictEqual(mockReq.session.reviewDecisions?.['ref-1']?.DOC1234.reviewDecision, 'accept-and-redact');
+		});
+		it('should return errors and error summary if no redactedFile in session and not update existing reviewDecision', async () => {
+			const mockDb = {
+				representationDocument: {
+					findFirst: mock.fn(() => ({ fileName: 'test.pdf' }))
+				}
+			};
+			const logger = mockLogger();
+			const { redactRepresentationDocumentPost } = buildReviewControllers({ db: mockDb, logger });
+
+			const mockReq = {
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
+				session: {
+					files: {
+						'ref-1': {
+							DOC1234: {},
+							DOC9876: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'redacted-file.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							}
+						}
+					},
+					reviewDecisions: {
+						'ref-1': {
+							DOC1234: {
+								reviewDecision: 'accepted'
+							}
+						}
+					}
+				},
+				body: {}
+			};
+			const mockRes = {
+				locals: { journey: { sections: [], isComplete: () => true }, journeyResponse: { answers: {} } },
+				render: mock.fn()
+			};
+
+			await redactRepresentationDocumentPost(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/cases/view/manage-reps/review/redact-document.njk'
+			);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				reference: 'ref-1',
+				originalFileId: 'DOC1234',
+				fileName: 'test.pdf',
+				redactedFileId: undefined,
+				redactedFileName: undefined,
+				allowedMimeTypes: [
+					'application/pdf',
+					'image/png',
+					'image/jpeg',
+					'image/tiff',
+					'application/msword',
+					'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+					'application/vnd.ms-excel',
+					'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+				],
+				journeyTitle: 'Manage Reps',
+				layoutTemplate: 'views/layouts/forms-question.njk',
+				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234',
+				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234/redact',
+				errors: { 'upload-form': { msg: 'Upload an attachment' } },
+				errorSummary: [{ text: 'Upload an attachment', href: '#upload-form' }]
+			});
+			assert.deepStrictEqual(mockReq.session.reviewDecisions?.['ref-1']?.DOC1234.reviewDecision, 'accepted');
+		});
+		it('should throw error if no itemId in req params', async () => {
+			const { redactRepresentationDocumentPost } = buildReviewControllers({});
+			await assert.rejects(
+				() => redactRepresentationDocumentPost({ params: { id: 'case-1', representationRef: 'ref-1' } }, {}),
+				{
+					message: 'itemId param required'
+				}
+			);
+		});
+	});
+
 	describe('viewReviewRedirect', () => {
 		it('should redirect to review page', () => {
 			const mockReq = { originalUrl: '/case-1/manage-representations/view' };
