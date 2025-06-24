@@ -47,11 +47,11 @@ export default class NumberEntryQuestion extends Question {
 	 * @returns {Array<{
 	 *   key: string;
 	 *   value: string | Object;
-	 *   action: {
+	 *   action: [{
 	 *     href: string;
 	 *     text: string;
 	 *     visuallyHiddenText: string;
-	 *   };
+	 *   }];
 	 * }>}
 	 */
 	formatAnswerForSummary(sectionSegment, journey, answer) {

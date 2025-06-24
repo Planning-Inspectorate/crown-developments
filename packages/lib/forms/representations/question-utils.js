@@ -196,6 +196,18 @@ export function representationsContactQuestions({ prefix }) {
 		validators: [new DocumentUploadValidator(`${prefix}Attachments`)]
 	};
 
+	questions[`${prefix}CommentRedacted`] = {
+		type: COMPONENT_TYPES.TEXT_ENTRY_REDACT,
+		title: 'Redacted Comment',
+		question: 'Representation Comment',
+		fieldName: 'comment',
+		url: 'redacted-comment',
+		validators: [],
+		editable: false,
+		onlyShowRedactedValueForSummary: true,
+		useRedactedFieldNameForSave: true
+	};
+
 	return questions;
 }
 

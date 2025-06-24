@@ -1,4 +1,5 @@
 import { Question } from '../../questions/question.js';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
  * @typedef {import('../../questions/question.js').QuestionViewModel} QuestionViewModel
@@ -61,7 +62,7 @@ export default class TextEntryRedactQuestion extends Question {
 		return viewModel;
 	}
 
-	formatAnswerForSummary(sectionSegment, journey, answer, capitals = true) {
+	formatAnswerForSummary(sectionSegment, journey, answer) {
 		const redacted = journey.response.answers[this.fieldName + 'Redacted'];
 		let toShow;
 		if (this.onlyShowRedactedValueForSummary) {
@@ -69,6 +70,29 @@ export default class TextEntryRedactQuestion extends Question {
 		} else {
 			toShow = redacted || answer;
 		}
-		return super.formatAnswerForSummary(sectionSegment, journey, toShow, capitals);
+
+		return [
+			{
+				key: this.title,
+				value: toShow ?? this.notStartedText,
+				action: this.getAction(sectionSegment, journey)
+			}
+		];
+	}
+
+	getAction(sectionSegment, journey) {
+		const statusId = journey.response?.answers?.statusId;
+		if (journey.journeyId === 'manage-representations' && statusId === REPRESENTATION_STATUS_ID.ACCEPTED) {
+			const manageTaskListUrl = journey.initialBackLink.replace(/\/view$/, '/manage/task-list');
+			return [
+				{
+					href: manageTaskListUrl,
+					text: this.manageActionText,
+					visuallyHiddenText: this.question
+				}
+			];
+		} else {
+			return null;
+		}
 	}
 }
