@@ -26,6 +26,7 @@ import {
  * @returns {import('express').Router}
  */
 export function createRoutes(service) {
+	const MANAGE_REPS_EDIT_JOURNEY_ID = 'manage-reps-edit';
 	const router = createRouter({ mergeParams: true });
 	const repsRouter = createRouter({ mergeParams: true });
 	const list = buildListReps(service);
@@ -37,9 +38,15 @@ export function createRoutes(service) {
 
 	const handleUploads = multer();
 	const uploadDocuments = asyncHandler(
-		uploadDocumentsController(service, 'manage-reps-edit', ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE)
+		uploadDocumentsController(
+			service,
+			MANAGE_REPS_EDIT_JOURNEY_ID,
+			ALLOWED_EXTENSIONS,
+			ALLOWED_MIME_TYPES,
+			MAX_FILE_SIZE
+		)
 	);
-	const deleteDocuments = asyncHandler(deleteDocumentsController(service, 'manage-reps-edit'));
+	const deleteDocuments = asyncHandler(deleteDocumentsController(service, MANAGE_REPS_EDIT_JOURNEY_ID));
 
 	router.get('/', asyncHandler(list));
 	router.use('/add-representation', addRepRoutes);
