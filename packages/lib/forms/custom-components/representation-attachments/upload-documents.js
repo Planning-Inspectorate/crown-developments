@@ -10,6 +10,8 @@ import { getSubmittedForId } from '../../../util/questions.js';
 const CONTENT_UPLOAD_FILE_LIMIT = 4 * 1024 * 1024; // 4MB
 const TOTAL_UPLOAD_LIMIT = 1073741824; // 1GB
 
+const MANAGE_REPS_REVIEW_JOURNEY_ID = 'manage-reps-review';
+
 export function uploadDocumentsController(
 	{ db, logger, appName, sharePointDrive, getSharePointDrive },
 	journeyId,
@@ -38,7 +40,7 @@ export function uploadDocumentsController(
 		const sessionId = req.sessionID;
 		const journeyResponse = res.locals?.journeyResponse;
 
-		const isManageRepsReview = journeyId === 'manage-reps-review';
+		const isManageRepsReview = journeyId === MANAGE_REPS_REVIEW_JOURNEY_ID;
 
 		const submittedForId = isManageRepsReview ? undefined : getSubmittedForId(journeyResponse?.answers);
 
@@ -151,7 +153,7 @@ export function deleteDocumentsController({ logger, appName, sharePointDrive, ge
 		}
 
 		const journeyResponse = res.locals?.journeyResponse;
-		const isManageRepsReview = journeyId === 'manage-reps-review';
+		const isManageRepsReview = journeyId === MANAGE_REPS_REVIEW_JOURNEY_ID;
 		let submittedForId;
 		if (!isManageRepsReview) {
 			submittedForId = getSubmittedForId(journeyResponse?.answers);

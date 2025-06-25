@@ -23,6 +23,7 @@ import {
  * @returns {import('express').Router}
  */
 export function createRoutes(service) {
+	const MANAGE_REPS_REVIEW_JOURNEY_ID = 'manage-reps-review';
 	const router = createRouter({ mergeParams: true });
 	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
 	const {
@@ -47,7 +48,7 @@ export function createRoutes(service) {
 	const uploadDocuments = asyncHandler(
 		uploadDocumentsController(
 			service,
-			'manage-reps-review',
+			MANAGE_REPS_REVIEW_JOURNEY_ID,
 			ALLOWED_EXTENSIONS,
 			ALLOWED_MIME_TYPES,
 			MAX_FILE_SIZE,
@@ -55,7 +56,7 @@ export function createRoutes(service) {
 			`You can only upload 1 file`
 		)
 	);
-	const deleteDocuments = asyncHandler(deleteDocumentsController(service, 'manage-reps-review'));
+	const deleteDocuments = asyncHandler(deleteDocumentsController(service, MANAGE_REPS_REVIEW_JOURNEY_ID));
 
 	router.get('/', getJourney, viewReviewRedirect, asyncHandler(viewRepresentationAwaitingReview));
 	router.post('/', getJourney, validatePostRepresentation, validationErrorHandler, asyncHandler(reviewRepresentation));

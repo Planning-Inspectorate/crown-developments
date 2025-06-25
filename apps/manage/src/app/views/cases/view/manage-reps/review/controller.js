@@ -67,7 +67,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			const reviewDecision = getReviewStatus(commentStatus);
 			const sessionFiles = req.session?.files?.[representationRef];
 
-			await updateDocumentStatus(req, db, logger);
+			await updateRepresentationItemsReviewStatus(req, db, logger);
 
 			if (sessionFiles) {
 				const sharePointDrive = getSharePointDrive(req.session);
@@ -359,7 +359,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			if (reviewDocumentDecision === ACCEPT_AND_REDACT) {
 				res.redirect(req.baseUrl + '/task-list/' + itemId + '/redact');
 			} else {
-				const [redactedFile] = req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles || [];
+				const [redactedFile] = getRedactedFile(req, representationRef, itemId);
 
 				if (redactedFile) {
 					safeDeleteUploadedFilesSession(req, representationRef, itemId);
@@ -400,7 +400,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				return notFoundHandler(req, res);
 			}
 
-			const [redactedFile] = req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles || [];
+			const [redactedFile] = getRedactedFile(req, representationRef, itemId);
 
 			return res.render('views/cases/view/manage-reps/review/redact-document.njk', {
 				reference: representationRef,
@@ -425,7 +425,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				throw new Error('itemId param required');
 			}
 
-			const [redactedFile] = req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles || [];
+			const [redactedFile] = getRedactedFile(req, representationRef, itemId);
 
 			if (!redactedFile) {
 				req.body.errors = {
@@ -648,7 +648,12 @@ function updateDocumentStatusSession(req, logger, representationRef, isRejected)
 		});
 }
 
-async function updateDocumentStatus(req, db, logger) {
+function getRedactedFile(req, representationRef, itemId) {
+	const files = req.session?.files ?? {};
+	return files?.[representationRef]?.[itemId]?.uploadedFiles || [];
+}
+
+async function updateRepresentationItemsReviewStatus(req, db, logger) {
 	const { id, representationRef } = req.params;
 
 	const decisions = req.session?.reviewDecisions?.[representationRef] || {};
@@ -708,7 +713,7 @@ async function updateDocumentStatus(req, db, logger) {
 		wrapPrismaError({
 			error,
 			logger,
-			message: 'Error during representation/document updates transaction',
+			message: 'updating representation/document within transaction',
 			logParams: { id, representationRef }
 		});
 	}

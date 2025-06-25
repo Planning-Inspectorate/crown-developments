@@ -57,10 +57,14 @@ describe('controller', () => {
 
 	describe('reviewRepresentationSubmission', () => {
 		it('should handle submission and clear related session data', async () => {
+			const mockSharePoint = {
+				getDriveItemByPath: mock.fn(() => 'drive-id'),
+				moveItemsToFolder: mock.fn()
+			};
 			const mockDb = {
 				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
-					findUnique: mock.fn(() => ({ id: 'CROWN/2025/0000001' }))
+					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
 				},
 				representation: {
 					update: mock.fn()
@@ -71,37 +75,41 @@ describe('controller', () => {
 				}
 			};
 			const logger = mockLogger();
-			const { reviewRepresentationSubmission } = buildReviewControllers({ db: mockDb, logger });
+			const { reviewRepresentationSubmission } = buildReviewControllers({
+				db: mockDb,
+				logger,
+				getSharePointDrive: () => mockSharePoint
+			});
 
 			const mockReq = {
 				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'ID1234' },
 				body: {},
-				files: {
-					'ref-1': {
-						ID1234: {
-							uploadedFiles: [
-								{
-									itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
-									fileName: 'test-pdf.pdf',
-									mimeType: 'application/pdf',
-									size: 227787
-								}
-							]
-						},
-						ID9876: {
-							uploadedFiles: [
-								{
-									itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
-									fileName: 'redacted-file.pdf',
-									mimeType: 'application/pdf',
-									size: 227787
-								}
-							]
-						}
-					}
-				},
 				session: {
+					files: {
+						'ref-1': {
+							ID1234: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFYL8',
+										fileName: 'test-pdf.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							},
+							ID9876: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'redacted-file.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							}
+						}
+					},
 					reviewDecisions: {
 						['ref-1']: {
 							comment: {
@@ -143,6 +151,18 @@ describe('controller', () => {
 			const updateSecondDocData = updateFirstDocCall.data;
 			assert.strictEqual(updateSecondDocData.statusId, REPRESENTATION_STATUS_ID.ACCEPTED);
 
+			assert.strictEqual(mockSharePoint.getDriveItemByPath.mock.callCount(), 1);
+			assert.strictEqual(
+				mockSharePoint.getDriveItemByPath.mock.calls[0].arguments[0],
+				'CROWN-2025-0000001/System/Representations/ref-1'
+			);
+
+			assert.strictEqual(mockSharePoint.moveItemsToFolder.mock.callCount(), 1);
+			assert.deepStrictEqual(mockSharePoint.moveItemsToFolder.mock.calls[0].arguments[0], [
+				'012D6AZFDCQ6AFNGRA35HJKMBRK34SFYL8',
+				'012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7'
+			]);
+
 			assert.strictEqual(mockReq.session?.reviewDecisions?.['ref-1'], undefined);
 			assert.strictEqual(mockReq.session?.files?.['ref-1'], undefined);
 
@@ -150,6 +170,106 @@ describe('controller', () => {
 			assert.strictEqual(mockRes.render.mock.callCount(), 0);
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], 'some-url-here/case-1/manage-representations');
+		});
+		it('should throw error if issue encountered during db transaction', async () => {
+			const mockSharePoint = {
+				getDriveItemByPath: mock.fn(() => 'drive-id'),
+				moveItemsToFolder: mock.fn()
+			};
+			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+				},
+				representation: {
+					update: mock.fn()
+				},
+				representationDocument: {
+					findFirst: mock.fn(() => ({ id: 'doc-id-1' })),
+					update: mock.fn(() => {
+						throw new Error('Error saving');
+					})
+				}
+			};
+			const logger = mockLogger();
+			const { reviewRepresentationSubmission } = buildReviewControllers({
+				db: mockDb,
+				logger,
+				getSharePointDrive: () => mockSharePoint
+			});
+
+			const mockReq = {
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
+				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'ID1234' },
+				body: {},
+				session: {
+					files: {
+						'ref-1': {
+							ID1234: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFYL8',
+										fileName: 'test-pdf.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							},
+							ID9876: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'redacted-file.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							}
+						}
+					},
+					reviewDecisions: {
+						['ref-1']: {
+							comment: {
+								commentRedacted: 'Some comment to ██████ here',
+								reviewDecision: 'accepted'
+							},
+							ID1234: {
+								reviewDecision: 'accept-and-redact'
+							},
+							ID9876: {
+								reviewDecision: 'accept-and-redact'
+							}
+						}
+					}
+				}
+			};
+			const mockRes = {
+				locals: { journey: { sections: [], isComplete: () => true }, journeyResponse: { answers: {} } },
+				render: mock.fn(),
+				redirect: mock.fn()
+			};
+
+			await assert.rejects(() => reviewRepresentationSubmission(mockReq, mockRes));
+		});
+		it('should throw error if crown development not found in db', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn()
+				}
+			};
+			const mockReq = { params: { id: '123', representationRef: 'ref-1' } };
+			const mockRes = {
+				status: mock.fn(),
+				render: mock.fn()
+			};
+
+			const { reviewRepresentationSubmission } = buildReviewControllers({ db: mockDb });
+
+			await reviewRepresentationSubmission(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.status.mock.callCount(), 1);
+			assert.strictEqual(mockRes.status.mock.calls[0].arguments[0], 404);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 		});
 	});
 
