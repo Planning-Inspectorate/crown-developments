@@ -108,7 +108,12 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 
 			const statusName = getStatusDisplayName(reviewDecision);
 			addRepReviewedSession(req, id, statusName);
-			res.redirect(req.baseUrl.replace(`/${representationRef}/review`, ''));
+
+			const repRefUrlSegment = `/${representationRef}`;
+			const redirectUrl = req.baseUrl.includes(repRefUrlSegment)
+				? req.baseUrl.slice(0, req.baseUrl.indexOf(repRefUrlSegment))
+				: req.baseUrl;
+			res.redirect(redirectUrl);
 		},
 		async reviewRepresentation(req, res) {
 			const { errors = {}, errorSummary = [] } = req.body;
@@ -163,7 +168,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				reviewComplete: isReviewComplete(taskStatusList),
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: req.baseUrl
+				backLinkUrl: getTaskListBackLinkUrl(req)
 			});
 		},
 		async reviewRepresentationComment(req, res, viewData = {}) {
@@ -477,6 +482,10 @@ export function viewReviewRedirect(req, res, next) {
 		return undefined;
 	}
 	next();
+}
+
+function getTaskListBackLinkUrl(req) {
+	return req.baseUrl.endsWith('/review') ? req.baseUrl : `${req.baseUrl}/edit`;
 }
 
 /**

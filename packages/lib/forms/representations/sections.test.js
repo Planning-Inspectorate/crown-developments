@@ -32,7 +32,7 @@ describe('have-your-say', () => {
 			});
 			const sections = journey.sections;
 
-			assert.strictEqual(sections.length, 5);
+			assert.strictEqual(sections.length, 4);
 			sections.forEach((section) => section.questions.forEach((q) => assert.ok(q !== undefined)));
 		});
 
@@ -722,7 +722,7 @@ describe('have-your-say', () => {
 			assert.strictEqual(mainSection.questions.length, 3);
 
 			const myselfSection = sections[1];
-			assert.strictEqual(myselfSection.questions.length, 8);
+			assert.strictEqual(myselfSection.questions.length, 9);
 
 			for (const myselfQuestion of myselfSection.questions) {
 				const expected = expectedMyselfQuestions.includes(myselfQuestion.fieldName);
@@ -733,7 +733,7 @@ describe('have-your-say', () => {
 				);
 			}
 			const onBehalfOfSection = sections[2];
-			assert.strictEqual(onBehalfOfSection.questions.length, 15);
+			assert.strictEqual(onBehalfOfSection.questions.length, 16);
 
 			for (const onBehalfOfQuestion of onBehalfOfSection.questions) {
 				const expected = expectedOnBehalfOfQuestions.includes(onBehalfOfQuestion.fieldName);

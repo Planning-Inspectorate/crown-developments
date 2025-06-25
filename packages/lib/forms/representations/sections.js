@@ -20,7 +20,8 @@ export function haveYourSayManageSections(questions, isRepsUploadDocsLive, isVie
 			.addQuestion(questions.reference)
 			.addQuestion(questions.submittedDate)
 			.addQuestion(questions.category)
-			.addQuestion(questions.status),
+			.addQuestion(questions.status)
+			.withCondition(() => isViewJourney),
 		new Section('Representation', 'start').addQuestion(questions.submittedFor),
 		addRepMyselfSection(questions, isRepsUploadDocsLive, isViewJourney),
 		addRepAgentSection(questions, isRepsUploadDocsLive, isViewJourney)
