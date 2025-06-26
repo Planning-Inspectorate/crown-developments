@@ -270,7 +270,7 @@ describe('have-your-say journey', () => {
 		}
 
 		const onBehalfOfSection = sections[2];
-		assert.strictEqual(onBehalfOfSection.questions.length, 12);
+		assert.strictEqual(onBehalfOfSection.questions.length, 13);
 
 		for (const onBehalfOfQuestion of onBehalfOfSection.questions) {
 			const expected = expectedOnBehalfOfQuestions.includes(onBehalfOfQuestion.fieldName);

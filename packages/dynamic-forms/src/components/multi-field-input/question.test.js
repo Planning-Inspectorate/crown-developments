@@ -238,11 +238,13 @@ describe('./src/dynamic-forms/components/single-line-input/question.js', () => {
 
 			const expectedResult = [
 				{
-					action: {
-						href: 'base/cases/create-a-case/check-your-answers',
-						text: 'Change',
-						visuallyHiddenText: 'Question?'
-					},
+					action: [
+						{
+							href: 'base/cases/create-a-case/check-your-answers',
+							text: 'Change',
+							visuallyHiddenText: 'Question?'
+						}
+					],
 					key: 'title',
 					value: 'planning-permission<br>Test User<br>'
 				}
@@ -272,11 +274,13 @@ describe('./src/dynamic-forms/components/single-line-input/question.js', () => {
 
 			const expectedResult = [
 				{
-					action: {
-						href: 'base/cases/create-a-case/check-your-answers',
-						text: 'Answer',
-						visuallyHiddenText: 'Question?'
-					},
+					action: [
+						{
+							href: 'base/cases/create-a-case/check-your-answers',
+							text: 'Answer',
+							visuallyHiddenText: 'Question?'
+						}
+					],
 					key: 'title',
 					value: ''
 				}
@@ -306,11 +310,13 @@ describe('./src/dynamic-forms/components/single-line-input/question.js', () => {
 
 			const expectedResult = [
 				{
-					action: {
-						href: 'base/cases/create-a-case/check-your-answers',
-						text: 'Answer',
-						visuallyHiddenText: 'Question?'
-					},
+					action: [
+						{
+							href: 'base/cases/create-a-case/check-your-answers',
+							text: 'Answer',
+							visuallyHiddenText: 'Question?'
+						}
+					],
 					key: 'title',
 					value: 'Not started'
 				}

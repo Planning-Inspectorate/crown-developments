@@ -27,6 +27,17 @@ export const questionHasAnswer = (response, question, expectedValue) => {
 	}
 };
 
+export const attachmentsContainsRedactedItems = (response, attachmentsQuestion) => {
+	if (!response.answers) return false;
+	const answerField = response.answers[attachmentsQuestion.fieldName];
+
+	if (Array.isArray(answerField) && answerField.length > 0) {
+		return answerField.some((answer) => answer.redactedItemId && answer.redactedFileName);
+	}
+
+	return false;
+};
+
 // TODO Make a type for all the question classes and use it here
 /** @type {(response: JourneyResponse, questionKeyTuples: [any, unknown][], options?: {logicalCombinator: 'and' | 'or'}) => boolean} */
 export const questionsHaveAnswers = (

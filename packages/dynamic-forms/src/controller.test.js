@@ -72,11 +72,13 @@ const sections = [
 					{
 						key: 'Title 2a',
 						value: mockAnswer,
-						action: {
-							href: '/manage-appeals/questionnaire/123456/segment-2/title-2a',
-							text: 'Answer',
-							visuallyHiddenText: 'Answer'
-						}
+						action: [
+							{
+								href: '/manage-appeals/questionnaire/123456/segment-2/title-2a',
+								text: 'Answer',
+								visuallyHiddenText: 'Answer'
+							}
+						]
 					}
 				]
 			},
@@ -90,11 +92,13 @@ const sections = [
 					{
 						key: 'Title 2b',
 						value: mockAnswer,
-						action: {
-							href: '/manage-appeals/questionnaire/123456/segment-2/title-2b',
-							text: 'Answer',
-							visuallyHiddenText: 'Answer'
-						}
+						action: [
+							{
+								href: '/manage-appeals/questionnaire/123456/segment-2/title-2b',
+								text: 'Answer',
+								visuallyHiddenText: 'Answer'
+							}
+						]
 					}
 				]
 			}
@@ -136,11 +140,13 @@ const sections = [
 					{
 						key: 'Title 3b',
 						value: mockAnswer,
-						action: {
-							href: '/manage-appeals/questionnaire/123456/segment-3/title-3b',
-							text: 'Answer',
-							visuallyHiddenText: 'Answer'
-						}
+						action: [
+							{
+								href: '/manage-appeals/questionnaire/123456/segment-3/title-3b',
+								text: 'Answer',
+								visuallyHiddenText: 'Answer'
+							}
+						]
 					}
 				]
 			}
@@ -198,11 +204,13 @@ describe('dynamic-form/controller', () => {
 			{
 				key: 'Title 1a',
 				value: mockAnswer,
-				action: {
-					href: '/manage-appeals/questionnaire/123456/segment-1/title-1a',
-					text: 'Answer',
-					visuallyHiddenText: 'Answer'
-				}
+				action: [
+					{
+						href: '/manage-appeals/questionnaire/123456/segment-1/title-1a',
+						text: 'Answer',
+						visuallyHiddenText: 'Answer'
+					}
+				]
 			}
 		]);
 		mockJourney.sections[2].isComplete = mock.fn(() => false);

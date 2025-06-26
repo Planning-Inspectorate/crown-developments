@@ -121,6 +121,7 @@ describe('view-model', () => {
 				myselfContactPreference: 'post',
 				myselfContainsAttachments: 'yes',
 				myselfAttachments: undefined,
+				myselfRedactedAttachments: [],
 				requiresReview: false,
 				submittedByContactId: 'sub-id-1',
 				representedContactId: undefined,
@@ -129,6 +130,100 @@ describe('view-model', () => {
 				commentRedacted: undefined,
 				containsAttachments: 'yes',
 				sharePointFolderCreated: 'yes'
+			});
+		});
+		it('should map the myself fields when contains attachments and redacted attachments', () => {
+			const representation = {
+				reference: 'ref',
+				statusId: 'status-1',
+				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				categoryId: 'c-id-1',
+				wantsToBeHeard: true,
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+				comment: 'my comments',
+				containsAttachments: true,
+				sharePointFolderCreated: true,
+				submittedByContactId: 'sub-id-1',
+				SubmittedByContact: {
+					firstName: 'firstName',
+					lastName: 'lastName',
+					email: 'email@example.com',
+					contactPreferenceId: 'post',
+					addressId: 'abc-123',
+					Address: {
+						id: 'abc-123',
+						line1: '221b Baker Street',
+						line2: 'apartment 2',
+						townCity: 'London',
+						county: 'Greater London',
+						postcode: 'NW1 6XE'
+					}
+				},
+				Attachments: [
+					{
+						itemId: 'file-1',
+						fileName: 'file1.pdf',
+						size: 12345,
+						redactedItemId: 'redacted-file-1',
+						redactedFileName: 'redacted-file1.pdf'
+					},
+					{
+						itemId: 'file-2',
+						fileName: 'file2.pdf',
+						size: 67890,
+						redactedItemId: 'redacted-file-2',
+						redactedFileName: 'redacted-file2.pdf'
+					}
+				]
+			};
+			const viewModel = representationToManageViewModel(representation, applicationReference);
+			assert.deepStrictEqual(viewModel, {
+				applicationReference: 'app/ref',
+				requiresReview: false,
+				submittedByAddressId: 'abc-123',
+				reference: 'ref',
+				statusId: 'status-1',
+				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				categoryId: 'c-id-1',
+				submittedForId: 'myself',
+				submittedByContactId: 'sub-id-1',
+				representedContactId: undefined,
+				comment: 'my comments',
+				commentRedacted: undefined,
+				containsAttachments: 'yes',
+				sharePointFolderCreated: 'yes',
+				myselfFirstName: 'firstName',
+				myselfLastName: 'lastName',
+				myselfEmail: 'email@example.com',
+				myselfComment: 'my comments',
+				myselfContactPreference: 'post',
+				myselfAddress: {
+					id: 'abc-123',
+					addressLine1: '221b Baker Street',
+					addressLine2: 'apartment 2',
+					townCity: 'London',
+					county: 'Greater London',
+					postcode: 'NW1 6XE'
+				},
+				myselfHearingPreference: 'yes',
+				myselfContainsAttachments: 'yes',
+				myselfAttachments: [
+					{
+						itemId: 'file-1',
+						fileName: 'file1.pdf',
+						size: 12345,
+						redactedItemId: 'redacted-file-1',
+						redactedFileName: 'redacted-file1.pdf'
+					},
+					{
+						itemId: 'file-2',
+						fileName: 'file2.pdf',
+						size: 67890,
+						redactedItemId: 'redacted-file-2',
+						redactedFileName: 'redacted-file2.pdf'
+					}
+				],
+				myselfRedactedAttachments: [{ fileName: 'redacted-file1.pdf' }, { fileName: 'redacted-file2.pdf' }]
 			});
 		});
 		it('should map the on behalf of common fields', () => {
@@ -169,6 +264,7 @@ describe('view-model', () => {
 				submitterComment: 'my comments',
 				submitterContainsAttachments: 'yes',
 				submitterAttachments: undefined,
+				submitterRedactedAttachments: [],
 				requiresReview: false,
 				submittedByContactId: 'sub-id-1',
 				representedContactId: undefined,
@@ -223,6 +319,7 @@ describe('view-model', () => {
 				submitterComment: 'my comments',
 				submitterContainsAttachments: 'no',
 				submitterAttachments: undefined,
+				submitterRedactedAttachments: [],
 				representedFirstName: 'represented firstName',
 				representedLastName: 'represented lastName',
 				isAgent: 'yes',
@@ -235,6 +332,96 @@ describe('view-model', () => {
 				commentRedacted: undefined,
 				containsAttachments: 'no',
 				sharePointFolderCreated: 'no'
+			});
+		});
+		it('should map the on behalf of person fields when contains attachments and redacted attachments', () => {
+			const representation = {
+				reference: 'ref',
+				statusId: 'status-1',
+				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				categoryId: 'c-id-1',
+				wantsToBeHeard: true,
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+				comment: 'my comments',
+				containsAttachments: true,
+				sharePointFolderCreated: true,
+				submittedByContactId: 'sub-id-1',
+				SubmittedByContact: {
+					firstName: 'firstName',
+					lastName: 'lastName',
+					email: 'email@example.com'
+				},
+				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
+				representedContactId: 'rep-id-1',
+				RepresentedContact: {
+					firstName: 'represented firstName',
+					lastName: 'represented lastName'
+				},
+				submittedByAgent: true,
+				submittedByAgentOrgName: 'agent org',
+				Attachments: [
+					{
+						itemId: 'file-1',
+						fileName: 'file1.pdf',
+						size: 12345,
+						redactedItemId: 'redacted-file-1',
+						redactedFileName: 'redacted-file1.pdf'
+					},
+					{
+						itemId: 'file-2',
+						fileName: 'file2.pdf',
+						size: 67890,
+						redactedItemId: 'redacted-file-2',
+						redactedFileName: 'redacted-file2.pdf'
+					}
+				]
+			};
+			const viewModel = representationToManageViewModel(representation, applicationReference);
+			assert.deepStrictEqual(viewModel, {
+				applicationReference: 'app/ref',
+				requiresReview: false,
+				submittedByAddressId: undefined,
+				reference: 'ref',
+				statusId: 'status-1',
+				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				categoryId: 'c-id-1',
+				submittedForId: 'on-behalf-of',
+				submittedByContactId: 'sub-id-1',
+				representedContactId: 'rep-id-1',
+				comment: 'my comments',
+				commentRedacted: undefined,
+				containsAttachments: 'yes',
+				sharePointFolderCreated: 'yes',
+				representedTypeId: 'person',
+				submitterFirstName: 'firstName',
+				submitterLastName: 'lastName',
+				submitterEmail: 'email@example.com',
+				submitterComment: 'my comments',
+				submitterContactPreference: undefined,
+				submitterAddress: {},
+				submitterHearingPreference: 'yes',
+				submitterContainsAttachments: 'yes',
+				submitterAttachments: [
+					{
+						itemId: 'file-1',
+						fileName: 'file1.pdf',
+						size: 12345,
+						redactedItemId: 'redacted-file-1',
+						redactedFileName: 'redacted-file1.pdf'
+					},
+					{
+						itemId: 'file-2',
+						fileName: 'file2.pdf',
+						size: 67890,
+						redactedItemId: 'redacted-file-2',
+						redactedFileName: 'redacted-file2.pdf'
+					}
+				],
+				submitterRedactedAttachments: [{ fileName: 'redacted-file1.pdf' }, { fileName: 'redacted-file2.pdf' }],
+				representedFirstName: 'represented firstName',
+				representedLastName: 'represented lastName',
+				isAgent: 'yes',
+				agentOrgName: 'agent org'
 			});
 		});
 		it('should map the on behalf of org fields', () => {
@@ -279,6 +466,7 @@ describe('view-model', () => {
 				submitterComment: 'my comments',
 				submitterContainsAttachments: 'no',
 				submitterAttachments: undefined,
+				submitterRedactedAttachments: [],
 				orgName: 'the orgs name',
 				orgRoleName: 'my role',
 				requiresReview: false,
@@ -335,6 +523,7 @@ describe('view-model', () => {
 				submitterComment: 'my comments',
 				submitterContainsAttachments: 'no',
 				submitterAttachments: undefined,
+				submitterRedactedAttachments: [],
 				isAgent: 'yes',
 				agentOrgName: 'agent org',
 				representedOrgName: 'Represented orgName',
