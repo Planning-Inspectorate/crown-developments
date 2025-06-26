@@ -327,7 +327,7 @@ describe('controller', () => {
 			const { representationTaskList } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some/url',
+				baseUrl: 'some/url/review',
 				originalUrl: 'some/url/task-list',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: { comment: 'Some comment to ██████ here' },
@@ -359,7 +359,7 @@ describe('controller', () => {
 				reviewComplete: false,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: 'some/url'
+				backLinkUrl: 'some/url/review'
 			});
 		});
 		it('should render task list without documents if does not contains attachments', async () => {
@@ -394,7 +394,7 @@ describe('controller', () => {
 				reviewComplete: false,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: 'some/url'
+				backLinkUrl: 'some/url/edit'
 			});
 		});
 	});

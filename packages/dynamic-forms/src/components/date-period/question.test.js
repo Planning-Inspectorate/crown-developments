@@ -249,9 +249,7 @@ describe('DatePeriodQuestion', () => {
 			const result = dateQuestion.formatAnswerForSummary('segment', journey, answer);
 
 			assert.strictEqual(result[0].value, 'Start: 00:00 1 January 2023<br>End: 00:00 10 January 2023');
-			assert.strictEqual(result[0].action.href, href);
-			assert.strictEqual(result[0].action.text, 'Change');
-			assert.strictEqual(result[0].action.visuallyHiddenText, QUESTION);
+			assert.deepStrictEqual(result[0].action, [{ href: href, text: 'Change', visuallyHiddenText: QUESTION }]);
 			assert.strictEqual(result[0].key, TITLE);
 		});
 		it('should return start only if set', () => {
@@ -277,9 +275,7 @@ describe('DatePeriodQuestion', () => {
 			const result = dateQuestion.formatAnswerForSummary('segment', journey, answer);
 
 			assert.strictEqual(result[0].value, 'Start: 00:00 1 January 2023');
-			assert.strictEqual(result[0].action.href, href);
-			assert.strictEqual(result[0].action.text, 'Change');
-			assert.strictEqual(result[0].action.visuallyHiddenText, QUESTION);
+			assert.deepStrictEqual(result[0].action, [{ href: href, text: 'Change', visuallyHiddenText: QUESTION }]);
 			assert.strictEqual(result[0].key, TITLE);
 		});
 
@@ -308,9 +304,7 @@ describe('DatePeriodQuestion', () => {
 			const result = dateQuestion.formatAnswerForSummary('segment', journey, answer);
 
 			assert.strictEqual(result[0].value, 'Open: 00:00 1 January 2023<br>Close: 00:00 10 January 2023');
-			assert.strictEqual(result[0].action.href, href);
-			assert.strictEqual(result[0].action.text, 'Change');
-			assert.strictEqual(result[0].action.visuallyHiddenText, QUESTION);
+			assert.deepStrictEqual(result[0].action, [{ href: href, text: 'Change', visuallyHiddenText: QUESTION }]);
 			assert.strictEqual(result[0].key, TITLE);
 		});
 
@@ -336,9 +330,7 @@ describe('DatePeriodQuestion', () => {
 			const result = dateQuestion.formatAnswerForSummary('segment', journey, answer);
 
 			assert.strictEqual(result[0].value, 'Not started');
-			assert.strictEqual(result[0].action.href, href);
-			assert.strictEqual(result[0].action.text, 'Answer');
-			assert.strictEqual(result[0].action.visuallyHiddenText, QUESTION);
+			assert.deepStrictEqual(result[0].action, [{ href: href, text: 'Answer', visuallyHiddenText: QUESTION }]);
 			assert.strictEqual(result[0].key, TITLE);
 		});
 	});

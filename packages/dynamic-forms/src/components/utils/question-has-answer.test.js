@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { questionHasAnswer, questionsHaveAnswers } from './question-has-answer.js';
+import { attachmentsContainsRedactedItems, questionHasAnswer, questionsHaveAnswers } from './question-has-answer.js';
 
 const aTestQuestionExpectedResult = 'yes';
 const aTestQuestionUnexpectedResult = 'no';
@@ -120,6 +120,66 @@ describe('question-has-answer', () => {
 		it('should only split string answers', () => {
 			const result = questionHasAnswer(testResponse, testQuestions.aThirdTestQuestion, true);
 			assert.strictEqual(result, true);
+		});
+	});
+
+	describe('attachmentsContainsRedactedItems', () => {
+		it('should return false if response.answer is falsy', () => {
+			const testCases = [{ answers: null }, { answers: undefined }, { answers: '' }];
+			for (const testCase of testCases) {
+				assert.strictEqual(attachmentsContainsRedactedItems(testCase, {}), false);
+			}
+		});
+		it('should return false if answerField is not an array', () => {
+			const response = {
+				answers: {
+					myselfAttachments: 'test'
+				}
+			};
+
+			assert.strictEqual(attachmentsContainsRedactedItems(response, { fieldName: 'myselfAttachments' }), false);
+		});
+		it('should return false if answerField is an array but length is not greater than 0', () => {
+			const response = {
+				answers: {
+					myselfAttachments: []
+				}
+			};
+			assert.strictEqual(attachmentsContainsRedactedItems(response, { fieldName: 'myselfAttachments' }), false);
+		});
+		it('should return false if answerField is an array but does not contain both redacted fields', () => {
+			const response = {
+				answers: {
+					myselfAttachments: [
+						{ itemId: 'file-1', fileName: 'file1.pdf', size: 12345, redactedFileName: 'redacted-file1.pdf' },
+						{ itemId: 'file-2', fileName: 'file2.pdf', size: 67890, redactedItemId: 'redacted-file-2' }
+					]
+				}
+			};
+			assert.strictEqual(attachmentsContainsRedactedItems(response, { fieldName: 'myselfAttachments' }), false);
+		});
+		it('should return true if answerField is an array and contains redacted fields', () => {
+			const response = {
+				answers: {
+					submitterAttachments: [
+						{
+							itemId: 'file-1',
+							fileName: 'file1.pdf',
+							size: 12345,
+							redactedItemId: 'redacted-file-1',
+							redactedFileName: 'redacted-file1.pdf'
+						},
+						{
+							itemId: 'file-2',
+							fileName: 'file2.pdf',
+							size: 67890,
+							redactedItemId: 'redacted-file-2',
+							redactedFileName: 'redacted-file2.pdf'
+						}
+					]
+				}
+			};
+			assert.strictEqual(attachmentsContainsRedactedItems(response, { fieldName: 'submitterAttachments' }), true);
 		});
 	});
 

@@ -174,6 +174,18 @@ export function representationsContactQuestions({ prefix }) {
 		validators: [new RequiredValidator('Select the hearing preference')]
 	};
 
+	questions[`${prefix}CommentRedacted`] = {
+		type: COMPONENT_TYPES.TEXT_ENTRY_REDACT,
+		title: 'Redacted Comment',
+		question: 'Representation Comment',
+		fieldName: 'comment',
+		url: 'redacted-comment',
+		validators: [],
+		editable: false,
+		onlyShowRedactedValueForSummary: true,
+		useRedactedFieldNameForSave: true
+	};
+
 	questions[`${prefix}HasAttachments`] = {
 		type: COMPONENT_TYPES.BOOLEAN,
 		title: 'Attachments uploaded?',
@@ -196,16 +208,13 @@ export function representationsContactQuestions({ prefix }) {
 		validators: [new DocumentUploadValidator(`${prefix}Attachments`)]
 	};
 
-	questions[`${prefix}CommentRedacted`] = {
-		type: COMPONENT_TYPES.TEXT_ENTRY_REDACT,
-		title: 'Redacted Comment',
-		question: 'Representation Comment',
-		fieldName: 'comment',
-		url: 'redacted-comment',
-		validators: [],
-		editable: false,
-		onlyShowRedactedValueForSummary: true,
-		useRedactedFieldNameForSave: true
+	questions[`${prefix}RedactedAttachments`] = {
+		type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS,
+		title: 'Redacted attachments',
+		question: 'Redacted attachments',
+		fieldName: `${prefix}RedactedAttachments`,
+		url: 'redacted-attachments', //TODO need to ensure there is no edit button
+		validators: []
 	};
 
 	return questions;

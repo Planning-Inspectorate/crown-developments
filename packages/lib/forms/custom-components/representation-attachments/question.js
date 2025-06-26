@@ -11,6 +11,8 @@ import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-
  * @property {string} [errorMessage]
  */
 
+const REDACTED_FLAG = 'Redacted';
+
 /**
  * @class
  */
@@ -76,12 +78,13 @@ export default class RepresentationAttachments extends Question {
 	formatAnswerForSummary(sectionSegment, journey, answer) {
 		const hasFiles = Array.isArray(answer) && answer.length > 0;
 		const value = hasFiles ? nl2br(answer.map((file) => file.fileName).join('\n')) : '-';
+		const isRedactedField = this.fieldName.includes(REDACTED_FLAG);
 
 		return [
 			{
 				key: this.title,
 				value,
-				action: this.getAction(sectionSegment, journey, answer)
+				action: isRedactedField ? null : this.getAction(sectionSegment, journey, answer)
 			}
 		];
 	}
