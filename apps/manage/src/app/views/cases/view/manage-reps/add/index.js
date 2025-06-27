@@ -43,6 +43,8 @@ export function createRoutes(service) {
 	);
 	const deleteDocuments = asyncHandler(deleteDocumentsController(service, JOURNEY_ID));
 
+	//TODO: GET '/' -> clear session, then  redirect to first question in the journey ('manage-representations/add-representation/start/representation-date').
+
 	router.get('/:section/:question', getJourneyResponse, getJourney, uploadDocumentQuestion, question);
 	router.post(
 		'/:section/:question',
