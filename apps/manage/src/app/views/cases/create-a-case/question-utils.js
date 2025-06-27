@@ -1,7 +1,7 @@
-import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
-import RequiredValidator from '@pins/dynamic-forms/src/validator/required-validator.js';
-import StringValidator from '@pins/dynamic-forms/src/validator/string-validator.js';
-import { COMPONENT_TYPES } from '@pins/dynamic-forms';
+import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
+import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
+import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
+import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 
 /**
  *
@@ -9,7 +9,7 @@ import { COMPONENT_TYPES } from '@pins/dynamic-forms';
  * @param {string} opts.prefix
  * @param {string} opts.title
  * @param {boolean} opts.addressRequired
- * @returns {Record<string, import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps>}
+ * @returns {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>}
  */
 export function contactQuestions({ prefix, title, addressRequired }) {
 	// fromCamelCase -> to-url-case
@@ -17,7 +17,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 		.split(/(?=[A-Z])/)
 		.map((s) => s.toLowerCase())
 		.join('-');
-	/** @type {Record<string, import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
+	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {};
 
 	questions[`${prefix}Name`] = {

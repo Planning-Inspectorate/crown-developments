@@ -2,7 +2,7 @@ import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crow
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { addSessionData } from '@pins/crowndev-lib/util/session.js';
 import { fileAlreadyExistsInFolder } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/document-validation-util.js';
-import { expressValidationErrorsToGovUkErrorList } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
+import { expressValidationErrorsToGovUkErrorList } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
 import { buildReviewControllers } from './review/controller.js';
 import { fetchDocumentsInFolderPath } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-documents.js';
 import { representationAttachmentsFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';

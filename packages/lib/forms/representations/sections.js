@@ -1,10 +1,10 @@
-import { Section } from '@pins/dynamic-forms/src/section.js';
+import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
 import {
-	attachmentsContainItemsMatching,
+	questionArrayMeetsCondition,
 	questionHasAnswer
-} from '@pins/dynamic-forms/src/components/utils/question-has-answer.js';
+} from '@planning-inspectorate/dynamic-forms/src/components/utils/question-has-answer.js';
 import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
-import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 /**
  * @typedef {Object<string, import('@pins/dynamic-forms/src/questions/question.js').Question>} Questions
@@ -107,7 +107,7 @@ function addRepMyselfSection(questions, isRepsUploadDocsLive, isViewJourney) {
 		.withCondition((response) => questionHasAnswer(response, questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES))
 		.addQuestion(questions.myselfRedactedAttachments)
 		.withCondition((response) =>
-			attachmentsContainItemsMatching(
+			questionArrayMeetsCondition(
 				response,
 				questions.myselfSelectAttachments,
 				(answer) => answer.redactedItemId && answer.redactedFileName
@@ -159,7 +159,7 @@ function agentSection(questions, isRepsUploadDocsLive) {
 		.withCondition((response) => questionHasAnswer(response, questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES))
 		.addQuestion(questions.submitterRedactedAttachments)
 		.withCondition((response) =>
-			attachmentsContainItemsMatching(
+			questionArrayMeetsCondition(
 				response,
 				questions.submitterSelectAttachments,
 				(answer) => answer.redactedItemId && answer.redactedFileName

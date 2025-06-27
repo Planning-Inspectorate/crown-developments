@@ -1,8 +1,8 @@
 import { Router as createRouter } from 'express';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
-import { buildSave, question } from '@pins/dynamic-forms/src/controller.js';
-import validate from '@pins/dynamic-forms/src/validator/validator.js';
-import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
+import { buildSave, question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
+import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
+import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
 import { buildGetJourneyMiddleware, buildViewCaseDetails, validateIdFormat } from './controller.js';
 import { createRoutes as createCasePublishRoutes } from './publish/index.js';
 import { createRoutes as createCaseUnpublishRoutes } from './unpublish/index.js';

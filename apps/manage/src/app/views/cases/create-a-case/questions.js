@@ -1,17 +1,17 @@
-import RequiredValidator from '@pins/dynamic-forms/src/validator/required-validator.js';
-import DateValidator from '@pins/dynamic-forms/src/validator/date-validator.js';
-import StringValidator from '@pins/dynamic-forms/src/validator/string-validator.js';
-import NumericValidator from '@pins/dynamic-forms/src/validator/numeric-validator.js';
-import { createQuestions } from '@pins/dynamic-forms/src/questions/create-questions.js';
-import { questionClasses } from '@pins/dynamic-forms/src/questions/questions.js';
-import { COMPONENT_TYPES } from '@pins/dynamic-forms';
+import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
+import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
+import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
+import NumericValidator from '@planning-inspectorate/dynamic-forms/src/validator/numeric-validator.js';
+import { createQuestions } from '@planning-inspectorate/dynamic-forms/src/questions/create-questions.js';
+import { questionClasses } from '@planning-inspectorate/dynamic-forms/src/questions/questions.js';
+import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import { APPLICATION_TYPES } from '@pins/crowndev-database/src/seed/data-static.js';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.js';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.js';
 import { contactQuestions } from './question-utils.js';
 import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
-import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
-import CoordinatesValidator from '@pins/dynamic-forms/src/validator/coordinates-validator.js';
+import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
+import CoordinatesValidator from '@planning-inspectorate/dynamic-forms/src/validator/coordinates-validator.js';
 
 export function getQuestions() {
 	const env = loadEnvironmentConfig();
@@ -25,7 +25,7 @@ export function getQuestions() {
 		// todo: sort LPA list?
 	];
 
-	/** @type {Record<string, import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
+	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {
 		typeOfApplication: {
 			type: COMPONENT_TYPES.RADIO,

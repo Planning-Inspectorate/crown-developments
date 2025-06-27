@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { CUSTOM_COMPONENTS } from '../index.js';
-import DocumentUploadValidator from '@pins/dynamic-forms/src/validator/document-upload-validator.js';
+import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/validator/document-upload-validator.js';
 import RepresentationAttachments from './question.js';
 import { ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '../../representations/question-utils.js';
 
@@ -258,13 +258,11 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 
 			assert.deepStrictEqual(formattedAnswer, [
 				{
-					action: [
-						{
-							href: 'url',
-							text: 'Change',
-							visuallyHiddenText: 'Select Attachments'
-						}
-					],
+					action: {
+						href: 'url',
+						text: 'Change',
+						visuallyHiddenText: 'Select Attachments'
+					},
 					key: 'Attachments',
 					value: 'test.pdf<br>test1.pdf'
 				}
@@ -427,13 +425,11 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 
 			const result = question.getAction(section, journey, answer);
 
-			assert.deepStrictEqual(result, [
-				{
-					href: 'url',
-					text: 'Change',
-					visuallyHiddenText: 'Select Attachments'
-				}
-			]);
+			assert.deepStrictEqual(result, {
+				href: 'url',
+				text: 'Change',
+				visuallyHiddenText: 'Select Attachments'
+			});
 		});
 	});
 	describe('getDataToSave', () => {

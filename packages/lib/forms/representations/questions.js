@@ -1,9 +1,9 @@
-import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
-import RequiredValidator from '@pins/dynamic-forms/src/validator/required-validator.js';
-import StringValidator from '@pins/dynamic-forms/src/validator/string-validator.js';
-import { createQuestions } from '@pins/dynamic-forms/src/questions/create-questions.js';
-import { questionClasses } from '@pins/dynamic-forms/src/questions/questions.js';
-import { COMPONENT_TYPES } from '@pins/dynamic-forms';
+import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
+import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
+import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
+import { createQuestions } from '@planning-inspectorate/dynamic-forms/src/questions/create-questions.js';
+import { questionClasses } from '@planning-inspectorate/dynamic-forms/src/questions/questions.js';
+import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import {
 	REPRESENTATION_CATEGORY,
 	REPRESENTATION_STATUS,
@@ -13,13 +13,17 @@ import {
 import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
 import { CUSTOM_COMPONENT_CLASSES } from '../custom-components/index.js';
 import { representationsContactQuestions } from './question-utils.js';
-import DateValidator from '@pins/dynamic-forms/src/validator/date-validator.js';
-import MultiFieldInputValidator from '@pins/dynamic-forms/src/validator/multi-field-input-validator.js';
+import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
+import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
 
 export const ACCEPT_AND_REDACT = 'accept-and-redact';
 
 export const getQuestions = ({ methodOverrides = {}, textOverrides = {}, actionOverrides = {} } = {}) => {
-	/** @type {Record<string, import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
+	const actionLinkOverride = {
+		text: 'Manage',
+		href: actionOverrides.taskListUrl
+	};
+	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questionProps = {
 		reference: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
@@ -32,11 +36,13 @@ export const getQuestions = ({ methodOverrides = {}, textOverrides = {}, actionO
 		},
 		...representationsContactQuestions({
 			prefix: 'myself',
-			actionOverrides
+			actionOverrides,
+			actionLinkOverride
 		}),
 		...representationsContactQuestions({
 			prefix: 'submitter',
-			actionOverrides
+			actionOverrides,
+			actionLinkOverride
 		}),
 		status: {
 			type: COMPONENT_TYPES.RADIO,
@@ -46,8 +52,7 @@ export const getQuestions = ({ methodOverrides = {}, textOverrides = {}, actionO
 			url: 'status',
 			validators: [new RequiredValidator()],
 			options: referenceDataToRadioOptions(REPRESENTATION_STATUS),
-			showManageAction: actionOverrides.statusShouldShowManageAction,
-			taskListUrl: actionOverrides.taskListUrl
+			actionLink: actionOverrides.statusShouldShowManageAction ? actionLinkOverride : undefined
 		},
 		reviewDecision: {
 			type: COMPONENT_TYPES.RADIO,
