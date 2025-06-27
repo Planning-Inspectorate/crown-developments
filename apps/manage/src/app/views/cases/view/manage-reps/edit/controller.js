@@ -3,11 +3,11 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { validateParams } from '../view/controller.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { publishedRepresentationsAttachmentsRootFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
-import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 /**
  * @param {import('#service').ManageService} service
- * @returns {import('@pins/dynamic-forms/src/controller.js').SaveDataFn}
+ * @returns {import('@planning-inspectorate/dynamic-forms/src/controller.js').SaveDataFn}
  */
 export function buildUpdateRepresentation({ db, logger, getSharePointDrive }) {
 	return async ({ res, req, data }) => {

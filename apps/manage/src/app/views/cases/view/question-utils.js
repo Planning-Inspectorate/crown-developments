@@ -1,9 +1,9 @@
-import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
-import DateValidator from '@pins/dynamic-forms/src/validator/date-validator.js';
-import { COMPONENT_TYPES } from '@pins/dynamic-forms';
-import MultiFieldInputValidator from '@pins/dynamic-forms/src/validator/multi-field-input-validator.js';
-import RequiredValidator from '@pins/dynamic-forms/src/validator/required-validator.js';
-import StringValidator from '@pins/dynamic-forms/src/validator/string-validator.js';
+import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
+import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
+import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
+import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
+import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
+import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
 import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
 
 /**
@@ -12,11 +12,11 @@ import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.j
  * @param {string} opts.prefix
  * @param {string} opts.title
  * @param {boolean} opts.addressRequired
- * @returns {Record<string, import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps>}
+ * @returns {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>}
  */
 export function contactQuestions({ prefix, title, addressRequired }) {
 	const prefixUrl = camelCaseToUrlCase(prefix);
-	/** @type {Record<string, import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
+	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {};
 
 	questions[`${prefix}Contact`] = {
@@ -95,7 +95,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
  * @param {string} [opts.hint]
  * @param {boolean} [opts.editable]
  * @param {Object<string, any>} [opts.viewData]
- * @returns {import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps}
+ * @returns {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps}
  */
 export function dateQuestion({ fieldName, title, hint, editable = true, viewData = {} }) {
 	if (!title) {
@@ -116,7 +116,7 @@ export function dateQuestion({ fieldName, title, hint, editable = true, viewData
 
 /**
  * @param {string} prefix
- * @returns {Record<string, import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps>}
+ * @returns {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>}
  */
 export function eventQuestions(prefix) {
 	const title = titleCase(prefix);
@@ -179,7 +179,7 @@ export function eventQuestions(prefix) {
 
 /**
  * @param {import('@prisma/client').Prisma.CategoryCreateInput[]} categories
- * @returns {import('@pins/dynamic-forms/src/questions/question-props.js').Option[]}
+ * @returns {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').Option[]}
  */
 export function subCategoriesToRadioOptions(categories) {
 	const parents = categories.filter((c) => !c.ParentCategory);
@@ -198,7 +198,7 @@ export function subCategoriesToRadioOptions(categories) {
 
 /**
  * @param {{id: string, name: string}[]} lpaList
- * @returns {import('@pins/dynamic-forms/src/questions/question-props.js').Option[]}
+ * @returns {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').Option[]}
  */
 export function lpaListToRadioOptions(lpaList) {
 	return [

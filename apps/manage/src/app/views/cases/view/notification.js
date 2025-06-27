@@ -1,7 +1,7 @@
-import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js';
+import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { crownDevelopmentToViewModel } from './view-model.js';
-import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
-import { addressToViewModel } from '@pins/dynamic-forms/src/lib/address-utils.js';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { addressToViewModel } from '@planning-inspectorate/dynamic-forms/src/lib/address-utils.js';
 
 /**
  * @param {import('#service').ManageService} service

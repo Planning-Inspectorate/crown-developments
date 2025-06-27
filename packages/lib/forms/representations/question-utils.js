@@ -1,12 +1,12 @@
 import { CUSTOM_COMPONENTS } from '../custom-components/index.js';
-import RequiredValidator from '@pins/dynamic-forms/src/validator/required-validator.js';
-import StringValidator from '@pins/dynamic-forms/src/validator/string-validator.js';
-import { COMPONENT_TYPES } from '@pins/dynamic-forms';
+import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
+import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
+import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import { referenceDataToRadioOptions } from '../../util/questions.js';
 import { CONTACT_PREFERENCE } from '@pins/crowndev-database/src/seed/data-static.js';
-import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
-import MultiFieldInputValidator from '@pins/dynamic-forms/src/validator/multi-field-input-validator.js';
-import DocumentUploadValidator from '@pins/dynamic-forms/src/validator/document-upload-validator.js';
+import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
+import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
+import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/validator/document-upload-validator.js';
 
 export const ALLOWED_EXTENSIONS = ['pdf', 'png', 'jpg', 'jpeg', 'tif', 'tiff', 'doc', 'docx', 'xls', 'xlsx'];
 export const ALLOWED_MIME_TYPES = [
@@ -25,10 +25,10 @@ export const MAX_FILE_SIZE = 20 * 1024 * 1024;
  *
  * @param {Object} opts
  * @param {string} opts.prefix
- * @returns {Record<string, import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps>}
+ * @returns {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>}
  */
 export function representationsContactQuestions({ prefix }) {
-	/** @type {Record<string, import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
+	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {};
 
 	questions[`${prefix}FullName`] = {

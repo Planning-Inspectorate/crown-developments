@@ -1,13 +1,13 @@
 import { Router as createRouter } from 'express';
 import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
-import { buildGetJourney } from '@pins/dynamic-forms/src/middleware/build-get-journey.js';
+import { buildGetJourney } from '@planning-inspectorate/dynamic-forms/src/middleware/build-get-journey.js';
 import {
 	buildGetJourneyResponseFromSession,
 	buildSaveDataToSession
-} from '@pins/dynamic-forms/src/lib/session-answer-store.js';
-import validate from '@pins/dynamic-forms/src/validator/validator.js';
-import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
-import { buildSave, question, list } from '@pins/dynamic-forms/src/controller.js';
+} from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
+import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
+import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
+import { buildSave, question, list } from '@planning-inspectorate/dynamic-forms/src/controller.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { viewAddRepresentationSuccessPage, buildSaveRepresentationController } from './save.js';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';

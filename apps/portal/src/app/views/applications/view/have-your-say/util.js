@@ -3,7 +3,7 @@ import {
 	dateIsToday,
 	isNowAfterStartDate,
 	nowIsWithinRange
-} from '@pins/dynamic-forms/src/lib/date-utils.js';
+} from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 
 export const HAVE_YOUR_SAY_STATUS = {
 	OPEN: 'open',

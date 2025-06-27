@@ -9,7 +9,7 @@ export function configureNunjucks() {
 	// get the require function, see https://nodejs.org/api/module.html#modulecreaterequirefilename
 	const require = createRequire(import.meta.url);
 	// path to dynamic forms folder
-	const dynamicFormsRoot = path.resolve(require.resolve('@pins/dynamic-forms'), '..');
+	const dynamicFormsRoot = path.resolve(require.resolve('@planning-inspectorate/dynamic-forms'), '..');
 	// get the path to the govuk-frontend folder, in node_modules, using the node require resolution
 	const govukFrontendRoot = path.resolve(require.resolve('govuk-frontend'), '../..');
 	// path to packages/lib/forms folder with custom form components

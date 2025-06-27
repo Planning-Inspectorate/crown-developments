@@ -1,11 +1,15 @@
-import { formatDateForDisplay, isNowAfterStartDate, nowIsWithinRange } from '@pins/dynamic-forms/src/lib/date-utils.js';
+import {
+	formatDateForDisplay,
+	isNowAfterStartDate,
+	nowIsWithinRange
+} from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import {
 	APPLICATION_PROCEDURE_ID,
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
-import { addressToViewModel } from '@pins/dynamic-forms/src/lib/address-utils.js';
+import { addressToViewModel } from '@planning-inspectorate/dynamic-forms/src/lib/address-utils.js';
 import { nameToViewModel } from '@pins/crowndev-lib/util/name.js';
 
 /**

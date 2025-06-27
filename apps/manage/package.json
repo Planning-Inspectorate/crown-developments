@@ -18,7 +18,7 @@
     "@pins/crowndev-database": "^0.0.0",
     "@pins/crowndev-lib": "^0.0.0",
     "@pins/crowndev-sharepoint": "^0.0.0",
-    "@pins/dynamic-forms": "^0.0.0",
+    "@planning-inspectorate/dynamic-forms": "*",
     "accessible-autocomplete": "*",
     "body-parser": "*",
     "connect-redis": "*",

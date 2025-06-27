@@ -1,4 +1,7 @@
-import { booleanToYesNoValue, yesNoToBoolean } from '@pins/dynamic-forms/src/components/boolean/question.js';
+import {
+	booleanToYesNoValue,
+	yesNoToBoolean
+} from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import {
 	CONTACT_PREFERENCE_ID,
 	REPRESENTATION_STATUS_ID,

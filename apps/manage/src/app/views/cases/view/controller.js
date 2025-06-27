@@ -1,12 +1,12 @@
-import { list } from '@pins/dynamic-forms/src/controller.js';
+import { list } from '@planning-inspectorate/dynamic-forms/src/controller.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { crownDevelopmentToViewModel } from './view-model.js';
 import { getQuestions } from './questions.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
-import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
+import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { getEntraGroupMembers } from '#util/entra-groups.js';
-import { dateIsBeforeToday, dateIsToday } from '@pins/dynamic-forms/src/lib/date-utils.js';
+import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
