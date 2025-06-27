@@ -307,6 +307,135 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 			]);
 		});
 	});
+	describe('getAction', () => {
+		it('should format action if journey is manage-representations and status is accepted', () => {
+			const journey = {
+				baseUrl: '',
+				taskListUrl: 'task',
+				journeyTemplate: 'template',
+				journeyTitle: 'title',
+				journeyId: 'manage-representations',
+				initialBackLink: '/view',
+				response: {
+					answers: {
+						statusId: 'accepted'
+					}
+				},
+				getCurrentQuestionUrl: () => {
+					return 'url';
+				},
+				getBackLink: () => {
+					return 'back';
+				}
+			};
+			const section = {
+				name: 'section-name'
+			};
+			const answer = [{ fileName: 'test.pdf' }, { fileName: 'test1.pdf' }];
+
+			const result = question.getAction(section, journey, answer);
+			assert.deepStrictEqual(result, [
+				{
+					href: '/manage/task-list',
+					text: 'Manage',
+					visuallyHiddenText: 'Select Attachments'
+				},
+				{
+					href: 'url',
+					text: 'Add',
+					visuallyHiddenText: 'Select Attachments'
+				}
+			]);
+		});
+		it('should format action if journey is manage-representations and status is rejected', () => {
+			const journey = {
+				baseUrl: '',
+				taskListUrl: 'task',
+				journeyTemplate: 'template',
+				journeyTitle: 'title',
+				journeyId: 'manage-representations',
+				response: {
+					answers: {
+						statusId: 'rejected'
+					}
+				},
+				getCurrentQuestionUrl: () => {
+					return 'url';
+				},
+				getBackLink: () => {
+					return 'back';
+				}
+			};
+			const section = {
+				name: 'section-name'
+			};
+			const answer = [{ fileName: 'test.pdf' }, { fileName: 'test1.pdf' }];
+
+			const result = question.getAction(section, journey, answer);
+
+			assert.strictEqual(result, null);
+		});
+		it('should format action if journey is manage-representations and status is neither accepted or rejected', () => {
+			const journey = {
+				baseUrl: '',
+				taskListUrl: 'task',
+				journeyTemplate: 'template',
+				journeyTitle: 'title',
+				journeyId: 'manage-representations',
+				response: { answers: {} },
+				getCurrentQuestionUrl: () => {
+					return 'url';
+				},
+				getBackLink: () => {
+					return 'back';
+				}
+			};
+			const section = {
+				name: 'section-name'
+			};
+			const answer = [{ fileName: 'test.pdf' }, { fileName: 'test1.pdf' }];
+
+			const result = question.getAction(section, journey, answer);
+
+			assert.deepStrictEqual(result, [
+				{
+					href: 'url',
+					text: 'Add',
+					visuallyHiddenText: 'Select Attachments'
+				}
+			]);
+		});
+		it('should format action if journey is not manage-representations', () => {
+			const journey = {
+				baseUrl: '',
+				taskListUrl: 'task',
+				journeyTemplate: 'template',
+				journeyTitle: 'title',
+				journeyId: 'add-representation',
+				response: { answers: {} },
+				getCurrentQuestionUrl: () => {
+					return 'url';
+				},
+				getBackLink: () => {
+					return 'back';
+				}
+			};
+			const section = {
+				name: 'section-name'
+			};
+			const answer = [{ fileName: 'test.pdf' }, { fileName: 'test1.pdf' }];
+
+			const result = question.getAction(section, journey, answer);
+
+			assert.deepStrictEqual(result, [
+				{
+					href: 'url',
+					text: 'Change',
+					visuallyHiddenText: 'Select Attachments'
+				}
+			]);
+		});
+	});
 	describe('getDataToSave', () => {
 		it('should prepare data to be saved', async () => {
 			const req = {

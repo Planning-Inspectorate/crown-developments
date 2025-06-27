@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { attachmentsContainsRedactedItems, questionHasAnswer, questionsHaveAnswers } from './question-has-answer.js';
+import { attachmentsContainItemsMatching, questionHasAnswer, questionsHaveAnswers } from './question-has-answer.js';
 
 const aTestQuestionExpectedResult = 'yes';
 const aTestQuestionUnexpectedResult = 'no';
@@ -127,7 +127,7 @@ describe('question-has-answer', () => {
 		it('should return false if response.answer is falsy', () => {
 			const testCases = [{ answers: null }, { answers: undefined }, { answers: '' }];
 			for (const testCase of testCases) {
-				assert.strictEqual(attachmentsContainsRedactedItems(testCase, {}), false);
+				assert.strictEqual(attachmentsContainItemsMatching(testCase, {}), false);
 			}
 		});
 		it('should return false if answerField is not an array', () => {
@@ -137,7 +137,7 @@ describe('question-has-answer', () => {
 				}
 			};
 
-			assert.strictEqual(attachmentsContainsRedactedItems(response, { fieldName: 'myselfAttachments' }), false);
+			assert.strictEqual(attachmentsContainItemsMatching(response, { fieldName: 'myselfAttachments' }), false);
 		});
 		it('should return false if answerField is an array but length is not greater than 0', () => {
 			const response = {
@@ -145,7 +145,7 @@ describe('question-has-answer', () => {
 					myselfAttachments: []
 				}
 			};
-			assert.strictEqual(attachmentsContainsRedactedItems(response, { fieldName: 'myselfAttachments' }), false);
+			assert.strictEqual(attachmentsContainItemsMatching(response, { fieldName: 'myselfAttachments' }), false);
 		});
 		it('should return false if answerField is an array but does not contain both redacted fields', () => {
 			const response = {
@@ -156,7 +156,14 @@ describe('question-has-answer', () => {
 					]
 				}
 			};
-			assert.strictEqual(attachmentsContainsRedactedItems(response, { fieldName: 'myselfAttachments' }), false);
+			assert.strictEqual(
+				attachmentsContainItemsMatching(
+					response,
+					{ fieldName: 'myselfAttachments' },
+					(answer) => answer.redactedItemId && answer.redactedFileName
+				),
+				false
+			);
 		});
 		it('should return true if answerField is an array and contains redacted fields', () => {
 			const response = {
@@ -179,7 +186,14 @@ describe('question-has-answer', () => {
 					]
 				}
 			};
-			assert.strictEqual(attachmentsContainsRedactedItems(response, { fieldName: 'submitterAttachments' }), true);
+			assert.strictEqual(
+				attachmentsContainItemsMatching(
+					response,
+					{ fieldName: 'submitterAttachments' },
+					(answer) => answer.redactedItemId && answer.redactedFileName
+				),
+				true
+			);
 		});
 	});
 

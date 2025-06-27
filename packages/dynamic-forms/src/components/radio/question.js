@@ -19,6 +19,8 @@ export default class RadioQuestion extends OptionsQuestion {
 	 * @param {Array.<import('../../questions/options-question.js').Option>} params.options
 	 * @param {Array.<import('../../questions/question.js').BaseValidator>} [params.validators]
 	 * @param {boolean} [params.editable]
+	 * @param {boolean} [params.showManageAction]
+	 * @param {string} [params.taskListUrl]
 	 */
 	constructor({
 		title,
@@ -34,7 +36,9 @@ export default class RadioQuestion extends OptionsQuestion {
 		legend,
 		options,
 		validators,
-		editable
+		editable,
+		showManageAction,
+		taskListUrl
 	}) {
 		super({
 			title,
@@ -53,6 +57,8 @@ export default class RadioQuestion extends OptionsQuestion {
 		this.html = html;
 		this.label = label;
 		this.legend = legend;
+		this.showManageAction = showManageAction;
+		this.taskListUrl = taskListUrl;
 	}
 
 	/**
@@ -96,11 +102,10 @@ export default class RadioQuestion extends OptionsQuestion {
 	}
 
 	getAction(sectionSegment, journey, answer) {
-		if (journey.journeyId === 'manage-representations' && this.fieldName === 'statusId') {
-			const manageTaskListUrl = journey.initialBackLink.replace(/\/view$/, '/manage/task-list');
+		if (this.showManageAction) {
 			return [
 				{
-					href: manageTaskListUrl,
+					href: this.taskListUrl,
 					text: this.manageActionText,
 					visuallyHiddenText: this.question
 				}
