@@ -47,6 +47,14 @@ export function buildHaveYourSayPage(service) {
 	};
 }
 
+export function startHaveYourSayJourney(service) {
+	const { logger } = service;
+	return async (req, res) => {
+		logger.info('Redirecting to Have Your Say Journey');
+		res.redirect(req.baseUrl + '/start/who-submitting-for');
+	};
+}
+
 /**
  *
  * @param { import('@prisma/client').PrismaClient } db
