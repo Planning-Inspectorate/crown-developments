@@ -27,12 +27,20 @@ export const questionHasAnswer = (response, question, expectedValue) => {
 	}
 };
 
-export const attachmentsContainsRedactedItems = (response, attachmentsQuestion) => {
+/**
+ * Checks if any item in the specified answer field matches a condition.
+ *
+ * @param {Object} response - The response object containing answers.
+ * @param {Object} attachmentsQuestion - The question containing the fieldName.
+ * @param {(item: any) => boolean} [conditionFn] - A function to test each item. Returns true to indicate a match.
+ * @returns {boolean} True if at least one item matches the condition.
+ */
+export const attachmentsContainItemsMatching = (response, attachmentsQuestion, conditionFn = () => false) => {
 	if (!response.answers) return false;
 	const answerField = response.answers[attachmentsQuestion.fieldName];
 
 	if (Array.isArray(answerField) && answerField.length > 0) {
-		return answerField.some((answer) => answer.redactedItemId && answer.redactedFileName);
+		return answerField.some(conditionFn);
 	}
 
 	return false;

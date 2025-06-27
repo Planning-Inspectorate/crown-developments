@@ -1,6 +1,6 @@
 import { Section } from '@pins/dynamic-forms/src/section.js';
 import {
-	attachmentsContainsRedactedItems,
+	attachmentsContainItemsMatching,
 	questionHasAnswer
 } from '@pins/dynamic-forms/src/components/utils/question-has-answer.js';
 import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
@@ -106,7 +106,13 @@ function addRepMyselfSection(questions, isRepsUploadDocsLive, isViewJourney) {
 		.addQuestion(questions.myselfSelectAttachments)
 		.withCondition((response) => questionHasAnswer(response, questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES))
 		.addQuestion(questions.myselfRedactedAttachments)
-		.withCondition((response) => attachmentsContainsRedactedItems(response, questions.myselfSelectAttachments));
+		.withCondition((response) =>
+			attachmentsContainItemsMatching(
+				response,
+				questions.myselfSelectAttachments,
+				(answer) => answer.redactedItemId && answer.redactedFileName
+			)
+		);
 }
 
 /**
@@ -152,7 +158,13 @@ function agentSection(questions, isRepsUploadDocsLive) {
 		.addQuestion(questions.submitterSelectAttachments)
 		.withCondition((response) => questionHasAnswer(response, questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES))
 		.addQuestion(questions.submitterRedactedAttachments)
-		.withCondition((response) => attachmentsContainsRedactedItems(response, questions.submitterSelectAttachments));
+		.withCondition((response) =>
+			attachmentsContainItemsMatching(
+				response,
+				questions.submitterSelectAttachments,
+				(answer) => answer.redactedItemId && answer.redactedFileName
+			)
+		);
 }
 
 /**

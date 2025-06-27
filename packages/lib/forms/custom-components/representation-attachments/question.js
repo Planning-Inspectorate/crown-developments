@@ -101,7 +101,7 @@ export default class RepresentationAttachments extends Question {
 						visuallyHiddenText: this.question
 					},
 					{
-						href: manageTaskListUrl,
+						href: journey.getCurrentQuestionUrl(sectionSegment, this.fieldName),
 						text: this.addActionText,
 						visuallyHiddenText: this.question
 					}

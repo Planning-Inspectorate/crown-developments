@@ -25,9 +25,10 @@ export const MAX_FILE_SIZE = 20 * 1024 * 1024;
  *
  * @param {Object} opts
  * @param {string} opts.prefix
+ * @param {object} [opts.actionOverrides]
  * @returns {Record<string, import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps>}
  */
-export function representationsContactQuestions({ prefix }) {
+export function representationsContactQuestions({ prefix, actionOverrides = {} }) {
 	/** @type {Record<string, import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {};
 
@@ -183,7 +184,9 @@ export function representationsContactQuestions({ prefix }) {
 		validators: [],
 		editable: false,
 		onlyShowRedactedValueForSummary: true,
-		useRedactedFieldNameForSave: true
+		useRedactedFieldNameForSave: true,
+		showManageAction: actionOverrides.redactedCommentShowManageAction,
+		taskListUrl: actionOverrides.taskListUrl
 	};
 
 	questions[`${prefix}HasAttachments`] = {
