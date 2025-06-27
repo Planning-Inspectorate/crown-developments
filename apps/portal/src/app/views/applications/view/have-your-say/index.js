@@ -55,6 +55,9 @@ export function createHaveYourSayRoutes(service) {
 	router.use(isRepresentationWindowOpen);
 
 	router.get('/', asyncHandler(viewHaveYourSayPage));
+
+	//TODO -> GET '/start'  -> clear session, then  redirect to first question in the journey ('/have-your-say/start/who-submitting-for').
+
 	router.get('/:section/:question', getJourneyResponse, getJourney, uploadDocumentQuestion, question);
 	router.post(
 		'/:section/:question',
