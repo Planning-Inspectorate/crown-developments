@@ -14,6 +14,7 @@ import {
 	addRepresentationErrors,
 	buildHaveYourSayPage,
 	getIsRepresentationWindowOpen,
+	startHaveYourSayJourney,
 	viewHaveYourSayDeclarationPage
 } from './controller.js';
 import { buildSaveHaveYourSayController, viewHaveYourSaySuccessPage } from './save.js';
@@ -28,6 +29,7 @@ import {
 	MAX_FILE_SIZE
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
 import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
+import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/session.js';
 
 const applicationIdParam = 'applicationId';
 
@@ -44,6 +46,7 @@ export function createHaveYourSayRoutes(service) {
 	);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID, applicationIdParam);
 	const viewHaveYourSayPage = buildHaveYourSayPage(service);
+	const redirectToHaveYourSayJourney = startHaveYourSayJourney(service);
 	const saveDataToSession = buildSaveDataToSession({ reqParam: applicationIdParam });
 	const saveRepresentation = asyncHandler(buildSaveHaveYourSayController(service));
 	const handleUploads = multer();
@@ -51,12 +54,13 @@ export function createHaveYourSayRoutes(service) {
 		uploadDocumentsController(service, JOURNEY_ID, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE)
 	);
 	const deleteDocuments = asyncHandler(deleteDocumentsController(service, JOURNEY_ID));
+	const resetSessionMiddleware = buildResetSessionMiddleware(service.logger);
 
 	router.use(isRepresentationWindowOpen);
 
 	router.get('/', asyncHandler(viewHaveYourSayPage));
 
-	//TODO -> GET '/start'  -> clear session, then  redirect to first question in the journey ('/have-your-say/start/who-submitting-for').
+	router.get('/start', resetSessionMiddleware, asyncHandler(redirectToHaveYourSayJourney));
 
 	router.get('/:section/:question', getJourneyResponse, getJourney, uploadDocumentQuestion, question);
 	router.post(
