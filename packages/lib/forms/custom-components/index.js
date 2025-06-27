@@ -11,7 +11,7 @@ export const CUSTOM_COMPONENTS = Object.freeze({
 	FEE_AMOUNT: 'fee-amount'
 });
 
-/** @type {Record<string, import('@pins/dynamic-forms/src/questions/question.js').Question>} */
+/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question>} */
 export const CUSTOM_COMPONENT_CLASSES = Object.freeze({
 	[CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS]: RepresentationAttachments,
 	[CUSTOM_COMPONENTS.REPRESENTATION_COMMENT]: RepresentationComment,

@@ -1,9 +1,9 @@
-import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js';
-import { clearDataFromSession } from '@pins/dynamic-forms/src/lib/session-answer-store.js';
+import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
+import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { JOURNEY_ID } from './journey.js';
 import { toFloat } from '@pins/crowndev-lib/util/numbers.js';
 import { caseReferenceToFolderName, getSharePointReceivedPathId } from '@pins/crowndev-lib/util/sharepoint-path.js';
-import { yesNoToBoolean } from '@pins/dynamic-forms/src/components/boolean/question.js';
+import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -15,7 +15,7 @@ export function buildSaveController(service) {
 		if (!res.locals || !res.locals.journeyResponse) {
 			throw new Error('journey response required');
 		}
-		/** @type {import('@pins/dynamic-forms/src/journey/journey-response.js').JourneyResponse} */
+		/** @type {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} */
 		const journeyResponse = res.locals.journeyResponse;
 		/**
 		 * @type {import('./types.d.ts').CreateCaseAnswers}

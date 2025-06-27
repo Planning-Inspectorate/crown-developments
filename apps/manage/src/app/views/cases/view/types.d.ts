@@ -1,4 +1,4 @@
-import { Address } from '@pins/dynamic-forms/src/lib/address';
+import { Address } from '@planning-inspectorate/dynamic-forms/src/lib/address';
 import { Prisma } from '@prisma/client';
 
 export interface CrownDevelopmentViewModel {

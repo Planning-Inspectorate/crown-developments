@@ -1,4 +1,4 @@
-import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js';
+import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { bytesToUnit } from '../util/numbers.js';
 
 // file properties to fetch for display

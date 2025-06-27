@@ -1,11 +1,11 @@
 import { JOURNEY_ID } from '../view/journey.js';
-import TextEntryRedactQuestion from '@pins/dynamic-forms/src/components/text-entry-redact/question.js';
-import { Journey } from '@pins/dynamic-forms/src/journey/journey.js';
-import { Section } from '@pins/dynamic-forms/src/section.js';
+import TextEntryRedactQuestion from '@planning-inspectorate/dynamic-forms/src/components/text-entry-redact/question.js';
+import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
+import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
 import { generateJourneyTitle } from '../manage-reps-utils.js';
 
 /**
- * @param {import('@pins/dynamic-forms/src/journey/journey-response.js').JourneyResponse} response
+ * @param {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} response
  * @param {import('express').Request} req
  * @returns {Journey}
  */

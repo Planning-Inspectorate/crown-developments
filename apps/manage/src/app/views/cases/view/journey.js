@@ -1,13 +1,13 @@
-import { Section } from '@pins/dynamic-forms/src/section.js';
-import { Journey } from '@pins/dynamic-forms/src/journey/journey.js';
-import { questionHasAnswer } from '@pins/dynamic-forms/src/components/utils/question-has-answer.js';
+import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
+import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
+import { questionHasAnswer } from '@planning-inspectorate/dynamic-forms/src/components/utils/question-has-answer.js';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 export const JOURNEY_ID = 'case-details';
 
 /**
- * @param {{[questionType: string]: import('@pins/dynamic-forms/src/questions/question.js').Question}} questions
- * @param {import('@pins/dynamic-forms/src/journey/journey-response.js').JourneyResponse} response
+ * @param {{[questionType: string]: import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question}} questions
+ * @param {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} response
  * @param {import('express').Request} req
  * @returns {Journey}
  */

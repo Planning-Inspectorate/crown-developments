@@ -1,9 +1,9 @@
-import RequiredValidator from '@pins/dynamic-forms/src/validator/required-validator.js';
-import StringValidator from '@pins/dynamic-forms/src/validator/string-validator.js';
-import NumericValidator from '@pins/dynamic-forms/src/validator/numeric-validator.js';
-import { createQuestions } from '@pins/dynamic-forms/src/questions/create-questions.js';
-import { questionClasses } from '@pins/dynamic-forms/src/questions/questions.js';
-import { COMPONENT_TYPES } from '@pins/dynamic-forms';
+import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
+import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
+import NumericValidator from '@planning-inspectorate/dynamic-forms/src/validator/numeric-validator.js';
+import { createQuestions } from '@planning-inspectorate/dynamic-forms/src/questions/create-questions.js';
+import { questionClasses } from '@planning-inspectorate/dynamic-forms/src/questions/questions.js';
+import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import {
 	APPLICATION_DECISION_OUTCOME,
 	APPLICATION_PROCEDURE,
@@ -22,9 +22,9 @@ import {
 	subCategoriesToRadioOptions
 } from './question-utils.js';
 import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
-import AddressValidator from '@pins/dynamic-forms/src/validator/address-validator.js';
-import CoordinatesValidator from '@pins/dynamic-forms/src/validator/coordinates-validator.js';
-import DatePeriodValidator from '@pins/dynamic-forms/src/validator/date-period-validator.js';
+import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
+import CoordinatesValidator from '@planning-inspectorate/dynamic-forms/src/validator/coordinates-validator.js';
+import DatePeriodValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-period-validator.js';
 import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.js';
 import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
@@ -40,7 +40,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 	// the options here should match the dev/prod seed scripts
 	const LPAs = env === ENVIRONMENT_NAME.PROD ? LOCAL_PLANNING_AUTHORITIES_PROD : LOCAL_PLANNING_AUTHORITIES_DEV;
 
-	/** @type {Record<string, import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
+	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {
 		reference: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,

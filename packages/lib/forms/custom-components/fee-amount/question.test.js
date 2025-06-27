@@ -2,7 +2,7 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import FeeAmountQuestion from './question.js';
 import FeeAmountValidator from './fee-amount-validator.js';
-import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import nunjucks from 'nunjucks';
 
 describe('./lib/forms/custom-components/fee-amount/question.js', () => {

@@ -1,13 +1,13 @@
-import { Section } from '@pins/dynamic-forms/src/section.js';
-import { Journey } from '@pins/dynamic-forms/src/journey/journey.js';
-import { questionHasAnswer } from '@pins/dynamic-forms/src/components/utils/question-has-answer.js';
-import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
+import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
+import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
+import { questionHasAnswer } from '@planning-inspectorate/dynamic-forms/src/components/utils/question-has-answer.js';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 export const JOURNEY_ID = 'create-a-case';
 
 /**
- * @param {{[questionType: string]: import('@pins/dynamic-forms/src/questions/question.js').Question}} questions
- * @param {import('@pins/dynamic-forms/src/journey/journey-response.js').JourneyResponse} response
+ * @param {{[questionType: string]: import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question}} questions
+ * @param {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} response
  * @param {import('express').Request} req
  * @returns {Journey}
  */

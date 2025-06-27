@@ -1,14 +1,14 @@
 import { Router as createRouter } from 'express';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
-import { buildGetJourney } from '@pins/dynamic-forms/src/middleware/build-get-journey.js';
-import { list, question, buildSave } from '@pins/dynamic-forms/src/controller.js';
-import { redirectToUnansweredQuestion } from '@pins/dynamic-forms/src/middleware/redirect-to-unanswered-question.js';
-import validate from '@pins/dynamic-forms/src/validator/validator.js';
-import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
+import { buildGetJourney } from '@planning-inspectorate/dynamic-forms/src/middleware/build-get-journey.js';
+import { list, question, buildSave } from '@planning-inspectorate/dynamic-forms/src/controller.js';
+import { redirectToUnansweredQuestion } from '@planning-inspectorate/dynamic-forms/src/middleware/redirect-to-unanswered-question.js';
+import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
+import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
 import {
 	saveDataToSession,
 	buildGetJourneyResponseFromSession
-} from '@pins/dynamic-forms/src/lib/session-answer-store.js';
+} from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { JOURNEY_ID, createJourney } from './journey.js';
 import { getQuestions } from './questions.js';
 import { buildSaveController, successController } from './save.js';

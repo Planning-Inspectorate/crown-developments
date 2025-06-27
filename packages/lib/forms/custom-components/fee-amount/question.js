@@ -1,5 +1,5 @@
-import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
-import OptionsQuestion from '@pins/dynamic-forms/src/questions/options-question.js';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import OptionsQuestion from '@planning-inspectorate/dynamic-forms/src/questions/options-question.js';
 
 export default class FeeAmountQuestion extends OptionsQuestion {
 	constructor({ title, question, fieldName, url, hint, validators, html, feeAmountInputFieldName, feeAmountQuestion }) {

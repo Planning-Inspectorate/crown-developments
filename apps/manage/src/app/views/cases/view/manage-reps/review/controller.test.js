@@ -9,7 +9,7 @@ import {
 	viewRepresentationAwaitingReview,
 	viewReviewRedirect
 } from './controller.js';
-import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
+import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import { ACCEPT_AND_REDACT, getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { createJourney } from '../view/journey.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';

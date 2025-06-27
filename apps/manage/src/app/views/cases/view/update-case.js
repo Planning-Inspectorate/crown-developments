@@ -1,4 +1,4 @@
-import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import {
 	sendApplicationNotOfNationalImportanceNotification,
 	sendApplicationReceivedNotification,
@@ -10,7 +10,7 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 /**
  * @param {import('#service').ManageService} service
  * @param {boolean} [clearAnswer=false] - whether to clear the answer before saving
- * @returns {import('@pins/dynamic-forms/src/controller.js').SaveDataFn}
+ * @returns {import('@planning-inspectorate/dynamic-forms/src/controller.js').SaveDataFn}
  */
 export function buildUpdateCase(service, clearAnswer = false) {
 	return async ({ req, res, data }) => {

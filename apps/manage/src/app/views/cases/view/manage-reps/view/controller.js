@@ -1,8 +1,8 @@
-import { list } from '@pins/dynamic-forms/src/controller.js';
+import { list } from '@planning-inspectorate/dynamic-forms/src/controller.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
-import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
+import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import { representationToManageViewModel } from '@pins/crowndev-lib/forms/representations/view-model.js';
 import { clearRepUpdatedSession, readRepUpdatedSession } from '../edit/controller.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';

@@ -1,6 +1,6 @@
 import { addSessionData } from '../../util/session.js';
 import { viewModelToRepresentationCreateInput } from './view-model.js';
-import { clearDataFromSession } from '@pins/dynamic-forms/src/lib/session-answer-store.js';
+import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { wrapPrismaError } from '../../util/database.js';
 import { uniqueReference } from '../../util/random-reference.js';
 import {
