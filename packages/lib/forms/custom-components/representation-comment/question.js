@@ -1,4 +1,4 @@
-import { Question } from '@pins/dynamic-forms/src/questions/question.js';
+import { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
 
 /**
  * @typedef {Object} TextEntryCheckbox
@@ -13,7 +13,7 @@ import { Question } from '@pins/dynamic-forms/src/questions/question.js';
  */
 export default class RepresentationComment extends Question {
 	/**
-	 * @param {import('@pins/dynamic-forms/src/questions/question-types.js').QuestionParameters} params
+	 * @param {import('@planning-inspectorate/dynamic-forms/src/questions/question-types.js').QuestionParameters} params
 	 * @param {TextEntryCheckbox} [params.textEntryCheckbox]
 	 * @param {string|undefined} [params.label] if defined this show as a label for the input and the question will just be a standard h1
 	 */

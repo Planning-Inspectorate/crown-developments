@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { getQuestions } from './questions.js';
-import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
+import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 describe('case details journey', () => {

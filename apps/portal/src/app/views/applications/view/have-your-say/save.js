@@ -2,7 +2,7 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { crownDevelopmentToViewModel } from '../view-model.js';
 import { fetchPublishedApplication } from '#util/applications.js';
-import { formatDateForDisplay } from '@pins/dynamic-forms/src/lib/date-utils.js';
+import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { uniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
 import { JOURNEY_ID } from './journey.js';

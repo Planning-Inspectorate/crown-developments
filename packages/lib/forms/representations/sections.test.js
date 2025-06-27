@@ -1,10 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-response.js';
+import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import { getQuestions } from './questions.js';
 import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
-import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
-import { Journey } from '@pins/dynamic-forms/src/journey/journey.js';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
 import { addRepresentationSection, haveYourSayManageSections, haveYourSaySections } from './sections.js';
 
 describe('have-your-say', () => {

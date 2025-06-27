@@ -1,10 +1,10 @@
-import { Section } from '@pins/dynamic-forms/src/section.js';
-import { questionHasAnswer } from '@pins/dynamic-forms/src/components/utils/question-has-answer.js';
+import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
+import { questionHasAnswer } from '@planning-inspectorate/dynamic-forms/src/components/utils/question-has-answer.js';
 import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
-import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 /**
- * @typedef {Object<string, import('@pins/dynamic-forms/src/questions/question.js').Question>} Questions
+ * @typedef {Object<string, import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question>} Questions
  */
 
 /**

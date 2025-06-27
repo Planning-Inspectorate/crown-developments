@@ -1,6 +1,6 @@
-import BaseValidator from '@pins/dynamic-forms/src/validator/base-validator.js';
+import BaseValidator from '@planning-inspectorate/dynamic-forms/src/validator/base-validator.js';
 import { body } from 'express-validator';
-import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 export default class FeeAmountValidator extends BaseValidator {
 	constructor() {

@@ -1,5 +1,5 @@
-import { Question } from '@pins/dynamic-forms/src/questions/question.js';
-import { nl2br } from '@pins/dynamic-forms/src/lib/utils.js';
+import { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
+import { nl2br } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
 import { clearSessionData } from '../../../util/session.js';
 
 /**
@@ -15,7 +15,7 @@ import { clearSessionData } from '../../../util/session.js';
  */
 export default class RepresentationAttachments extends Question {
 	/**
-	 * @param {import('@pins/dynamic-forms/src/questions/question-types.js').QuestionParameters} params
+	 * @param {import('@planning-inspectorate/dynamic-forms/src/questions/question-types.js').QuestionParameters} params
 	 * @param {Array<string>} allowedFileExtensions
 	 * @param {Array<string>} allowedMimeTypes
 	 * @param {number} maxFileSizeValue
