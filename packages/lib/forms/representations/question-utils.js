@@ -213,7 +213,7 @@ export function representationsContactQuestions({ prefix }) {
 		title: 'Redacted attachments',
 		question: 'Redacted attachments',
 		fieldName: `${prefix}RedactedAttachments`,
-		url: 'redacted-attachments', //TODO need to ensure there is no edit button
+		url: 'redacted-attachments',
 		validators: []
 	};
 
