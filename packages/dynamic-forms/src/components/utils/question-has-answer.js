@@ -27,6 +27,25 @@ export const questionHasAnswer = (response, question, expectedValue) => {
 	}
 };
 
+/**
+ * Checks if any item in the specified answer field matches a condition.
+ *
+ * @param {Object} response - The response object containing answers.
+ * @param {Object} attachmentsQuestion - The question containing the fieldName.
+ * @param {(item: any) => boolean} [conditionFn] - A function to test each item. Returns true to indicate a match.
+ * @returns {boolean} True if at least one item matches the condition.
+ */
+export const attachmentsContainItemsMatching = (response, attachmentsQuestion, conditionFn = () => false) => {
+	if (!response.answers) return false;
+	const answerField = response.answers[attachmentsQuestion.fieldName];
+
+	if (Array.isArray(answerField) && answerField.length > 0) {
+		return answerField.some(conditionFn);
+	}
+
+	return false;
+};
+
 // TODO Make a type for all the question classes and use it here
 /** @type {(response: JourneyResponse, questionKeyTuples: [any, unknown][], options?: {logicalCombinator: 'and' | 'or'}) => boolean} */
 export const questionsHaveAnswers = (

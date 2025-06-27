@@ -1,4 +1,6 @@
 import OptionsQuestion from '../../questions/options-question.js';
+import { nl2br } from '../../lib/utils.js';
+import escape from 'escape-html';
 
 export default class RadioQuestion extends OptionsQuestion {
 	/**
@@ -17,6 +19,8 @@ export default class RadioQuestion extends OptionsQuestion {
 	 * @param {Array.<import('../../questions/options-question.js').Option>} params.options
 	 * @param {Array.<import('../../questions/question.js').BaseValidator>} [params.validators]
 	 * @param {boolean} [params.editable]
+	 * @param {boolean} [params.showManageAction]
+	 * @param {string} [params.taskListUrl]
 	 */
 	constructor({
 		title,
@@ -32,7 +36,9 @@ export default class RadioQuestion extends OptionsQuestion {
 		legend,
 		options,
 		validators,
-		editable
+		editable,
+		showManageAction,
+		taskListUrl
 	}) {
 		super({
 			title,
@@ -51,6 +57,8 @@ export default class RadioQuestion extends OptionsQuestion {
 		this.html = html;
 		this.label = label;
 		this.legend = legend;
+		this.showManageAction = showManageAction;
+		this.taskListUrl = taskListUrl;
 	}
 
 	/**
@@ -80,9 +88,30 @@ export default class RadioQuestion extends OptionsQuestion {
 			return super.formatAnswerForSummary(sectionSegment, journey, formattedAnswer, false);
 		} else if (answer) {
 			const selectedOption = this.options.find((option) => option.value === answer);
-			const selectedText = selectedOption?.text || '';
-			return super.formatAnswerForSummary(sectionSegment, journey, selectedText, false);
+			const formattedAnswer = selectedOption?.text ?? this.notStartedText;
+
+			return [
+				{
+					key: this.title ?? this.question,
+					value: nl2br(escape(formattedAnswer)),
+					action: this.getAction(sectionSegment, journey, answer)
+				}
+			];
 		}
 		return super.formatAnswerForSummary(sectionSegment, journey, answer);
+	}
+
+	getAction(sectionSegment, journey, answer) {
+		if (this.showManageAction) {
+			return [
+				{
+					href: this.taskListUrl,
+					text: this.manageActionText,
+					visuallyHiddenText: this.question
+				}
+			];
+		} else {
+			return super.getAction(sectionSegment, journey, answer);
+		}
 	}
 }

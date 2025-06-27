@@ -76,6 +76,8 @@ export class Question {
 	answerActionText = 'Answer';
 	/** @type {string} text to display for 'add' link */
 	addActionText = 'Add';
+	/** @type {string} text to display for 'manage' link */
+	manageActionText = 'Manage';
 
 	/**
 	 * @param {JourneyResponse} [response]
@@ -296,11 +298,11 @@ export class Question {
 	 * @returns {Array<{
 	 *   key: string;
 	 *   value: string | Object;
-	 *   action: {
+	 *   action: [{
 	 *     href: string;
 	 *     text: string;
 	 *     visuallyHiddenText: string;
-	 *   };
+	 *   }];
 	 * }>}
 	 */
 	formatAnswerForSummary(sectionSegment, journey, answer, capitals = true) {
@@ -321,19 +323,21 @@ export class Question {
 	 * @param {Object} answer
 	 * @param {Journey} journey
 	 * @param {String} sectionSegment
-	 * @returns {{ href: string; text: string; visuallyHiddenText: string; }|undefined}
+	 * @returns {{ href: string; text: string; visuallyHiddenText: string; }[]|undefined}
 	 */
 	getAction(sectionSegment, journey, answer) {
 		if (!this.editable) {
-			return;
+			return [];
 		}
 		const isAnswerProvided = answer !== null && answer !== undefined && answer !== '';
 
-		return {
-			href: journey.getCurrentQuestionUrl(sectionSegment, this.fieldName),
-			text: isAnswerProvided ? this.changeActionText : this.answerActionText,
-			visuallyHiddenText: this.question
-		};
+		return [
+			{
+				href: journey.getCurrentQuestionUrl(sectionSegment, this.fieldName),
+				text: isAnswerProvided ? this.changeActionText : this.answerActionText,
+				visuallyHiddenText: this.question
+			}
+		];
 	}
 
 	/**

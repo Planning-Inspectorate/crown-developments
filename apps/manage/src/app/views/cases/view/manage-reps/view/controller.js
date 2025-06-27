@@ -6,6 +6,7 @@ import { JourneyResponse } from '@pins/dynamic-forms/src/journey/journey-respons
 import { representationToManageViewModel } from '@pins/crowndev-lib/forms/representations/view-model.js';
 import { clearRepUpdatedSession, readRepUpdatedSession } from '../edit/controller.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
  * @typedef {import('express').Handler} Handler
@@ -107,6 +108,11 @@ export function buildGetJourneyMiddleware({ db, logger, isRepsUploadDocsLive }) 
 				continueButtonText: 'Save',
 				changeActionText: 'Edit',
 				answerActionText: 'Edit'
+			},
+			actionOverrides: {
+				statusShouldShowManageAction: true,
+				redactedCommentShowManageAction: answers?.statusId === REPRESENTATION_STATUS_ID.ACCEPTED,
+				taskListUrl: req.baseUrl + '/manage/task-list'
 			}
 		});
 		// put these on locals for the list controller

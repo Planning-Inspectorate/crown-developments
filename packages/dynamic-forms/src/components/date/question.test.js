@@ -198,9 +198,7 @@ describe('DateQuestion', () => {
 			const result = dateQuestion.formatAnswerForSummary('segment', journey, answer);
 
 			assert.strictEqual(result[0].value, '1 January 2023');
-			assert.strictEqual(result[0].action.href, href);
-			assert.strictEqual(result[0].action.text, 'Change');
-			assert.strictEqual(result[0].action.visuallyHiddenText, QUESTION);
+			assert.deepStrictEqual(result[0].action, [{ href: href, text: 'Change', visuallyHiddenText: QUESTION }]);
 			assert.strictEqual(result[0].key, TITLE);
 		});
 
@@ -226,9 +224,7 @@ describe('DateQuestion', () => {
 			const result = dateQuestion.formatAnswerForSummary('segment', journey, answer);
 
 			assert.strictEqual(result[0].value, 'Not started');
-			assert.strictEqual(result[0].action.href, href);
-			assert.strictEqual(result[0].action.text, 'Answer');
-			assert.strictEqual(result[0].action.visuallyHiddenText, QUESTION);
+			assert.deepStrictEqual(result[0].action, [{ href: href, text: 'Answer', visuallyHiddenText: QUESTION }]);
 			assert.strictEqual(result[0].key, TITLE);
 		});
 	});

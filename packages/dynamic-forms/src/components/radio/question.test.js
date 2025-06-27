@@ -170,4 +170,82 @@ describe('./src/dynamic-forms/components/radio/question.js', () => {
 		const rowParams = radioQuestion.formatAnswerForSummary(SECTION, JOURNEY, 'no');
 		assert.strictEqual(rowParams[0].value, 'No');
 	});
+	it('should format action to show manage action', () => {
+		const radioQuestion = new RadioQuestion({
+			title: TITLE,
+			question: QUESTION,
+			description: DESCRIPTION,
+			fieldName: FIELDNAME,
+			viewFolder: VIEWFOLDER,
+			html: HTML,
+			label: LABEL,
+			options: OPTIONS,
+			showManageAction: true,
+			taskListUrl: '/manage/task-list'
+		});
+		const journey = {
+			baseUrl: '',
+			taskListUrl: 'task',
+			journeyTemplate: 'template',
+			journeyTitle: 'title',
+			journeyId: 'manage-representations',
+			getCurrentQuestionUrl: () => {
+				return 'url';
+			},
+			getBackLink: () => {
+				return 'back';
+			}
+		};
+		const section = {
+			name: 'section-name'
+		};
+		const answer = [{ fileName: 'test.pdf' }, { fileName: 'test1.pdf' }];
+
+		const result = radioQuestion.getAction(section, journey, answer);
+		assert.deepStrictEqual(result, [
+			{
+				href: '/manage/task-list',
+				text: 'Manage',
+				visuallyHiddenText: 'A radio question'
+			}
+		]);
+	});
+	it('should format action to show default action', () => {
+		const radioQuestion = new RadioQuestion({
+			title: TITLE,
+			question: QUESTION,
+			description: DESCRIPTION,
+			fieldName: FIELDNAME,
+			viewFolder: VIEWFOLDER,
+			html: HTML,
+			label: LABEL,
+			options: OPTIONS
+		});
+		const journey = {
+			baseUrl: '',
+			taskListUrl: 'task',
+			journeyTemplate: 'template',
+			journeyTitle: 'title',
+			journeyId: 'manage-representations',
+			getCurrentQuestionUrl: () => {
+				return 'url';
+			},
+			getBackLink: () => {
+				return 'back';
+			}
+		};
+		const section = {
+			name: 'section-name'
+		};
+		const answer = [{ fileName: 'test.pdf' }, { fileName: 'test1.pdf' }];
+
+		const result = radioQuestion.getAction(section, journey, answer);
+		assert.deepStrictEqual(result, [
+			{
+				href: 'url',
+				text: 'Change',
+				visuallyHiddenText: 'A radio question'
+			}
+		]);
+	});
 });

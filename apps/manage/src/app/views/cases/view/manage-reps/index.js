@@ -2,7 +2,7 @@ import { Router as createRouter } from 'express';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 import { buildListReps } from './list/controller.js';
 import { buildGetJourneyMiddleware, viewRepresentation } from './view/controller.js';
-import { viewReviewRedirect } from './review/controller.js';
+import { buildReviewControllers, viewReviewRedirect } from './review/controller.js';
 import validate from '@pins/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
 import { buildSave, question } from '@pins/dynamic-forms/src/controller.js';
@@ -33,6 +33,7 @@ export function createRoutes(service) {
 	const reviewRoutes = createReviewRoutes(service);
 	const addRepRoutes = createAddRoutes(service);
 	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
+	const { representationTaskList } = buildReviewControllers(service);
 	const updateRepFn = buildUpdateRepresentation(service);
 	const saveAnswer = buildSave(updateRepFn, true);
 
@@ -70,6 +71,8 @@ export function createRoutes(service) {
 	);
 
 	repsRouter.post('/edit/:section/:question/delete-document/:documentId', getJourney, deleteDocuments);
+
+	repsRouter.get('/manage/task-list', asyncHandler(representationTaskList));
 
 	return router;
 }

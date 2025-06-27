@@ -25,9 +25,10 @@ export const MAX_FILE_SIZE = 20 * 1024 * 1024;
  *
  * @param {Object} opts
  * @param {string} opts.prefix
+ * @param {object} [opts.actionOverrides]
  * @returns {Record<string, import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps>}
  */
-export function representationsContactQuestions({ prefix }) {
+export function representationsContactQuestions({ prefix, actionOverrides = {} }) {
 	/** @type {Record<string, import('@pins/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {};
 
@@ -174,6 +175,20 @@ export function representationsContactQuestions({ prefix }) {
 		validators: [new RequiredValidator('Select the hearing preference')]
 	};
 
+	questions[`${prefix}CommentRedacted`] = {
+		type: COMPONENT_TYPES.TEXT_ENTRY_REDACT,
+		title: 'Redacted Comment',
+		question: 'Representation Comment',
+		fieldName: 'comment',
+		url: 'redacted-comment',
+		validators: [],
+		editable: false,
+		onlyShowRedactedValueForSummary: true,
+		useRedactedFieldNameForSave: true,
+		showManageAction: actionOverrides.redactedCommentShowManageAction,
+		taskListUrl: actionOverrides.taskListUrl
+	};
+
 	questions[`${prefix}HasAttachments`] = {
 		type: COMPONENT_TYPES.BOOLEAN,
 		title: 'Attachments uploaded?',
@@ -194,6 +209,15 @@ export function representationsContactQuestions({ prefix }) {
 		maxFileSizeValue: MAX_FILE_SIZE,
 		maxFileSizeString: '20MB',
 		validators: [new DocumentUploadValidator(`${prefix}Attachments`)]
+	};
+
+	questions[`${prefix}RedactedAttachments`] = {
+		type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS,
+		title: 'Redacted attachments',
+		question: 'Redacted attachments',
+		fieldName: `${prefix}RedactedAttachments`,
+		url: 'redacted-attachments',
+		validators: []
 	};
 
 	return questions;

@@ -1,5 +1,8 @@
 import { Section } from '@pins/dynamic-forms/src/section.js';
-import { questionHasAnswer } from '@pins/dynamic-forms/src/components/utils/question-has-answer.js';
+import {
+	attachmentsContainItemsMatching,
+	questionHasAnswer
+} from '@pins/dynamic-forms/src/components/utils/question-has-answer.js';
 import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { BOOLEAN_OPTIONS } from '@pins/dynamic-forms/src/components/boolean/question.js';
 
@@ -19,11 +22,12 @@ export function haveYourSayManageSections(questions, isRepsUploadDocsLive, isVie
 		new Section('Details', 'details')
 			.addQuestion(questions.reference)
 			.addQuestion(questions.submittedDate)
-			.addQuestion(questions.category),
+			.addQuestion(questions.category)
+			.addQuestion(questions.status)
+			.withCondition(() => isViewJourney),
 		new Section('Representation', 'start').addQuestion(questions.submittedFor),
-		addRepMyselfSection(questions, isRepsUploadDocsLive),
-		addRepAgentSection(questions, isRepsUploadDocsLive),
-		...(isViewJourney ? [new Section('More Details', 'more-details').addQuestion(questions.commentRedacted)] : [])
+		addRepMyselfSection(questions, isRepsUploadDocsLive, isViewJourney),
+		addRepAgentSection(questions, isRepsUploadDocsLive, isViewJourney)
 	];
 }
 
@@ -50,8 +54,8 @@ export function addRepresentationSection(questions, isRepsUploadDocsLive) {
 			.addQuestion(questions.submittedDate)
 			.addQuestion(questions.category)
 			.addQuestion(questions.submittedFor),
-		addRepMyselfSection(questions, isRepsUploadDocsLive),
-		addRepAgentSection(questions, isRepsUploadDocsLive)
+		addRepMyselfSection(questions, isRepsUploadDocsLive, false),
+		addRepAgentSection(questions, isRepsUploadDocsLive, false)
 	];
 }
 
@@ -79,9 +83,10 @@ function myselfSection(questions, isRepsUploadDocsLive) {
  *
  * @param {Questions} questions
  * @param {boolean} isRepsUploadDocsLive
+ * @param {boolean} isViewJourney
  * @returns {Section}
  */
-function addRepMyselfSection(questions, isRepsUploadDocsLive) {
+function addRepMyselfSection(questions, isRepsUploadDocsLive, isViewJourney) {
 	return new Section('Myself', 'myself')
 		.withSectionCondition((response) =>
 			questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
@@ -94,10 +99,20 @@ function addRepMyselfSection(questions, isRepsUploadDocsLive) {
 		.withCondition((response) => questionHasAnswer(response, questions.myselfContactPreference, 'post'))
 		.addQuestion(questions.myselfTellUsAboutApplication)
 		.addQuestion(questions.myselfHearingPreference)
+		.addQuestion(questions.myselfCommentRedacted)
+		.withCondition(() => isViewJourney)
 		.addQuestion(questions.myselfHasAttachments)
 		.withCondition(() => isRepsUploadDocsLive === true)
 		.addQuestion(questions.myselfSelectAttachments)
-		.withCondition((response) => questionHasAnswer(response, questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES));
+		.withCondition((response) => questionHasAnswer(response, questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES))
+		.addQuestion(questions.myselfRedactedAttachments)
+		.withCondition((response) =>
+			attachmentsContainItemsMatching(
+				response,
+				questions.myselfSelectAttachments,
+				(answer) => answer.redactedItemId && answer.redactedFileName
+			)
+		);
 }
 
 /**
@@ -141,15 +156,24 @@ function agentSection(questions, isRepsUploadDocsLive) {
 		.addQuestion(questions.submitterHasAttachments)
 		.withCondition(() => isRepsUploadDocsLive === true)
 		.addQuestion(questions.submitterSelectAttachments)
-		.withCondition((response) => questionHasAnswer(response, questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES));
+		.withCondition((response) => questionHasAnswer(response, questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES))
+		.addQuestion(questions.submitterRedactedAttachments)
+		.withCondition((response) =>
+			attachmentsContainItemsMatching(
+				response,
+				questions.submitterSelectAttachments,
+				(answer) => answer.redactedItemId && answer.redactedFileName
+			)
+		);
 }
 
 /**
  * @param {Questions} questions
  * @param {boolean} isRepsUploadDocsLive
+ * @param {boolean} isViewJourney
  * @returns {Section}
  */
-function addRepAgentSection(questions, isRepsUploadDocsLive) {
+function addRepAgentSection(questions, isRepsUploadDocsLive, isViewJourney) {
 	const isRepresentationPerson = (response) =>
 		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON);
 	const isOrgWorkFor = (response) =>
@@ -187,6 +211,8 @@ function addRepAgentSection(questions, isRepsUploadDocsLive) {
 		.withCondition(isOrgNotWorkFor)
 		.addQuestion(questions.submitterTellUsAboutApplication)
 		.addQuestion(questions.submitterHearingPreference)
+		.addQuestion(questions.submitterCommentRedacted)
+		.withCondition(() => isViewJourney)
 		.addQuestion(questions.submitterHasAttachments)
 		.withCondition(() => isRepsUploadDocsLive === true)
 		.addQuestion(questions.submitterSelectAttachments)

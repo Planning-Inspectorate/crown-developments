@@ -53,6 +53,7 @@ export function representationToManageViewModel(representation, applicationRefer
 		model.myselfHearingPreference = mapFieldValue(representation.wantsToBeHeard);
 		model.myselfContainsAttachments = mapFieldValue(representation.containsAttachments);
 		model.myselfAttachments = representation.Attachments;
+		model.myselfRedactedAttachments = mapRedactedAttachments(representation.Attachments);
 	} else if (representation.submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF) {
 		model.representedTypeId = representation.representedTypeId;
 		model.submitterFirstName = representation.SubmittedByContact?.firstName;
@@ -64,6 +65,7 @@ export function representationToManageViewModel(representation, applicationRefer
 		model.submitterHearingPreference = mapFieldValue(representation.wantsToBeHeard);
 		model.submitterContainsAttachments = mapFieldValue(representation.containsAttachments);
 		model.submitterAttachments = representation.Attachments;
+		model.submitterRedactedAttachments = mapRedactedAttachments(representation.Attachments);
 
 		if (representation.representedTypeId === REPRESENTED_TYPE_ID.PERSON) {
 			model.representedFirstName = representation.RepresentedContact?.firstName;
@@ -80,6 +82,18 @@ export function representationToManageViewModel(representation, applicationRefer
 		}
 	}
 	return model;
+}
+
+function mapRedactedAttachments(attachments) {
+	if (Array.isArray(attachments) && attachments.length > 0) {
+		return attachments
+			.filter((attachment) => attachment.redactedItemId && attachment.redactedFileName)
+			.map((attachment) => {
+				return { fileName: attachment.redactedFileName };
+			});
+	}
+
+	return [];
 }
 
 /**

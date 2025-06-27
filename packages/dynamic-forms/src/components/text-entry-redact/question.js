@@ -27,8 +27,17 @@ export default class TextEntryRedactQuestion extends Question {
 	 * @param {string|undefined} [params.label] if defined this show as a label for the input and the question will just be a standard h1
 	 * @param {boolean} [params.onlyShowRedactedValueForSummary] whether to only show redacted value for summary
 	 * @param {boolean} [params.useRedactedFieldNameForSave] whether to use the redacted field name when saving answers
+	 * @param {boolean} [params.showManageAction] whether to hide action on summary list display
 	 */
-	constructor({ textEntryCheckbox, label, onlyShowRedactedValueForSummary, useRedactedFieldNameForSave, ...params }) {
+	constructor({
+		textEntryCheckbox,
+		label,
+		onlyShowRedactedValueForSummary,
+		useRedactedFieldNameForSave,
+		showManageAction,
+		taskListUrl,
+		...params
+	}) {
 		super({
 			...params,
 			viewFolder: 'text-entry-redact'
@@ -38,6 +47,8 @@ export default class TextEntryRedactQuestion extends Question {
 		this.label = label;
 		this.onlyShowRedactedValueForSummary = onlyShowRedactedValueForSummary;
 		this.useRedactedFieldNameForSave = useRedactedFieldNameForSave;
+		this.showManageAction = showManageAction;
+		this.taskListUrl = taskListUrl;
 	}
 
 	async getDataToSave(req, journeyResponse) {
@@ -61,7 +72,7 @@ export default class TextEntryRedactQuestion extends Question {
 		return viewModel;
 	}
 
-	formatAnswerForSummary(sectionSegment, journey, answer, capitals = true) {
+	formatAnswerForSummary(sectionSegment, journey, answer) {
 		const redacted = journey.response.answers[this.fieldName + 'Redacted'];
 		let toShow;
 		if (this.onlyShowRedactedValueForSummary) {
@@ -69,6 +80,26 @@ export default class TextEntryRedactQuestion extends Question {
 		} else {
 			toShow = redacted || answer;
 		}
-		return super.formatAnswerForSummary(sectionSegment, journey, toShow, capitals);
+
+		return [
+			{
+				key: this.title,
+				value: toShow ?? this.notStartedText,
+				action: this.getAction()
+			}
+		];
+	}
+
+	getAction() {
+		if (this.showManageAction) {
+			return [
+				{
+					href: this.taskListUrl,
+					text: this.manageActionText,
+					visuallyHiddenText: this.question
+				}
+			];
+		}
+		return null;
 	}
 }
