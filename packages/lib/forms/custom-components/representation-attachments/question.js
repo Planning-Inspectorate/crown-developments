@@ -73,15 +73,13 @@ export default class RepresentationAttachments extends Question {
 	}
 
 	formatAnswerForSummary(sectionSegment, journey, answer) {
-		// Added to handle if something goes wrong and the answer ends up undefined
-		if (!Array.isArray(answer) || answer.length === 0) {
-			return [];
-		}
-		const formattedAnswer = nl2br(answer.map((file) => file.fileName).join('\n'));
+		const hasFiles = Array.isArray(answer) && answer.length > 0;
+		const value = hasFiles ? nl2br(answer.map((file) => file.fileName).join('\n')) : '-';
+
 		return [
 			{
-				key: `${this.title}`,
-				value: formattedAnswer,
+				key: this.title,
+				value,
 				action: this.getAction(sectionSegment, journey, answer)
 			}
 		];

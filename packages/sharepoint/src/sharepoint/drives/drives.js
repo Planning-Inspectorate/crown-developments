@@ -113,6 +113,27 @@ export class SharePointDrive {
 	}
 
 	/**
+	 * Get item children by ID in a SharePoint drive
+	 * @param itemId
+	 * @param [queries]
+	 * @returns {Promise<*>}
+	 */
+	async getItemsById(itemId, queries) {
+		// queries => [['key', 'value']]
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('items')
+			.addPathSegment(itemId)
+			.addPathSegment('children')
+			.addQueryParams(queries);
+
+		const response = await this.client.api(urlBuilder.toString()).get();
+
+		return response.value;
+	}
+
+	/**
 	 * Create a new folder in SharePoint drive at path
 	 * @param {string} path - the relative path where the folder should be created
 	 * @param {string} folderName - the name of the folder to create
@@ -429,5 +450,59 @@ export class SharePointDrive {
 		return await Promise.all(promises).catch((err) => {
 			throw new Error(`Failed to move items to folder: ${err.message}`);
 		});
+	}
+
+	/**
+	 * Deletes an item and its children recursively from SharePoint drive
+	 * @param {string} itemId
+	 * @param {function} [getItemsById] get the items by ID function, defaults to this.getItemsById (optional: used for testing)
+	 * @returns {Promise<any>}
+	 */
+	async deleteItemsRecursivelyById(itemId, getItemsById = this.getItemsById) {
+		try {
+			const children = await getItemsById(itemId);
+			// If the item has children, delete them first
+			if (children.length > 0) {
+				await this.#deleteItemsInBatches(children, getItemsById);
+			}
+
+			const urlBuilder = new UrlBuilder('')
+				.addPathSegment('drives')
+				.addPathSegment(this.driveId)
+				.addPathSegment('items')
+				.addPathSegment(itemId);
+
+			// Delete the item itself
+			return await this.client.api(urlBuilder.toString()).delete();
+		} catch (error) {
+			throw new Error(`Failed to delete SharePoint item: ${error.message}`);
+		}
+	}
+	/**
+	 * Deletes items in batches to avoid hitting API limits
+	 * @param {Array<import('@microsoft/microsoft-graph-types').DriveItem>} items
+	 * @param {function} [getItemsById] - function to get items by ID, defaults to this.getItemsById (optional: used for testing)
+	 * @returns {Promise<void>}
+	 */
+	async #deleteItemsInBatches(items, getItemsById = this.getItemsById) {
+		const batchSize = 20; // Maximum batch size for SharePoint API
+		for (let i = 0; i < items.length; i += batchSize) {
+			const batch = items.slice(i, i + batchSize);
+			await Promise.allSettled(
+				batch.map(async (item) => {
+					// If it's a folder, delete recursively
+					if (item.folder) {
+						await this.deleteItemsRecursivelyById(item.id, getItemsById);
+					} else {
+						const urlBuilder = new UrlBuilder('')
+							.addPathSegment('drives')
+							.addPathSegment(this.driveId)
+							.addPathSegment('items')
+							.addPathSegment(item.id);
+						return await this.client.api(urlBuilder.toString()).delete();
+					}
+				})
+			);
+		}
 	}
 }

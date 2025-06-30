@@ -7,7 +7,7 @@ import {
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
-import { moveAttachmentsToCaseFolder } from '../../util/handle-attachments.js';
+import { deleteRepresentationAttachmentsFolder, moveAttachmentsToCaseFolder } from '../../util/handle-attachments.js';
 import { getSubmittedForId } from '../../util/questions.js';
 /**
  * Save representation to the database
@@ -33,12 +33,13 @@ export async function saveRepresentation(
 		applicationReference,
 		uniqueReferenceFn = uniqueReference,
 		moveAttachmentsFn = moveAttachmentsToCaseFolder,
+		deleteRepresentationFolderFn = deleteRepresentationAttachmentsFolder,
 		notificationFn = null
 	},
 	req,
 	res
 ) {
-	const { db, logger } = service;
+	const { db, logger, appName } = service;
 
 	const id = req.params.id || req.params.applicationId;
 	const sessionReqParam = req.params.applicationId ? 'applicationId' : 'id';
@@ -72,6 +73,7 @@ export async function saveRepresentation(
 	if (hasAttachments && (!representationAttachments || representationAttachments.length === 0)) {
 		throw new Error('No representation attachments found in answers');
 	}
+
 	try {
 		await db.$transaction(async ($tx) => {
 			representationReference = await uniqueReferenceFn($tx);
@@ -107,9 +109,24 @@ export async function saveRepresentation(
 		await notificationFn(service, answers, id, representationReference);
 	}
 	if (hasAttachments) {
-		await moveAttachmentsFn({ service, applicationReference, representationReference, representationAttachments });
+		await moveAttachmentsFn({
+			service,
+			applicationReference,
+			representationReference,
+			representationAttachments
+		});
 	}
 
+	await deleteRepresentationFolderFn(
+		{
+			service,
+			applicationReference,
+			representationReference,
+			appName
+		},
+		req,
+		res
+	);
 	clearDataFromSession({ req, journeyId, reqParam: sessionReqParam });
 	addSessionData(req, id, { representationReference, representationSubmitted: true }, 'representations');
 

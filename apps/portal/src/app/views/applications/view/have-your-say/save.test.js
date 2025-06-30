@@ -137,14 +137,17 @@ describe('have your say', () => {
 				sendAcknowledgementOfRepresentation: mock.fn()
 			};
 			const mockUniqueReferenceFn = mock.fn(() => 'AAAAA-BBBBB');
-
+			const mockMoveAttachmentsFn = mock.fn();
+			const mockDeleteRepresentationFolderFn = mock.fn();
 			const saveHaveYourSayController = buildSaveHaveYourSayController(
 				{
 					db: mockDb,
 					logger: mockLogger(),
 					notifyClient: mockNotifyClient
 				},
-				mockUniqueReferenceFn
+				mockUniqueReferenceFn,
+				mockMoveAttachmentsFn, // Mock moveAttachmentsFn
+				mockDeleteRepresentationFolderFn
 			);
 			await saveHaveYourSayController(mockReq, mockRes);
 			assert.strictEqual(mockDb.representation.create.mock.callCount(), 1);
@@ -179,12 +182,19 @@ describe('have your say', () => {
 			const mockNotifyClient = {
 				sendAcknowledgementOfRepresentation: mock.fn()
 			};
-
-			const saveHaveYourSayController = buildSaveHaveYourSayController({
-				db: mockDb,
-				logger: {},
-				notifyClient: mockNotifyClient
-			});
+			const deleteRepresentationFolderFn = mock.fn();
+			const uniqueReferenceFn = mock.fn(() => 'AAAAA-BBBBB');
+			const moveAttachmentsFn = mock.fn();
+			const saveHaveYourSayController = buildSaveHaveYourSayController(
+				{
+					db: mockDb,
+					logger: {},
+					notifyClient: mockNotifyClient
+				},
+				uniqueReferenceFn,
+				moveAttachmentsFn,
+				deleteRepresentationFolderFn
+			);
 			await saveHaveYourSayController(mockReq, mockRes);
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			assert.strictEqual(
@@ -230,7 +240,9 @@ describe('have your say', () => {
 					logger: mockLogger(),
 					notifyClient: mockNotifyClient
 				},
-				() => 'AAAAA-BBBBB'
+				() => 'AAAAA-BBBBB',
+				mock.fn(),
+				mock.fn()
 			);
 			await saveHaveYourSayController(mockReq, mockRes);
 			assert.deepStrictEqual(mockReq.session, {
@@ -293,7 +305,9 @@ describe('have your say', () => {
 					logger: mockLogger(),
 					notifyClient: mockNotifyClient
 				},
-				() => 'AAAAA-BBBBB'
+				() => 'AAAAA-BBBBB',
+				mock.fn(),
+				mock.fn()
 			);
 			await saveHaveYourSayController(mockReq, mockRes);
 			assert.strictEqual(mockNotifyClient.sendAcknowledgementOfRepresentation.mock.callCount(), 1);
@@ -460,7 +474,8 @@ describe('have your say', () => {
 			const saveHaveYourSayController = buildSaveHaveYourSayController(
 				{ db: mockDb, logger, notifyClient: mockNotifyClient },
 				uniqueReferenceFn,
-				moveAttachmentsFn
+				moveAttachmentsFn,
+				mock.fn()
 			);
 
 			await saveHaveYourSayController(mockReq, mockRes);
@@ -523,7 +538,8 @@ describe('have your say', () => {
 			const saveHaveYourSayController = buildSaveHaveYourSayController(
 				{ db: mockDb, logger, notifyClient: mockNotifyClient },
 				uniqueReferenceFn,
-				moveAttachmentsFn
+				moveAttachmentsFn,
+				mock.fn()
 			);
 
 			await saveHaveYourSayController(mockReq, mockRes);

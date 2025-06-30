@@ -4,7 +4,10 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { JOURNEY_ID } from './journey.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { saveRepresentation } from '@pins/crowndev-lib/forms/representations/save.js';
-import { moveAttachmentsToCaseFolder } from '@pins/crowndev-lib/util/handle-attachments.js';
+import {
+	deleteRepresentationAttachmentsFolder,
+	moveAttachmentsToCaseFolder
+} from '@pins/crowndev-lib/util/handle-attachments.js';
 
 /**
  * Render add representation success page
@@ -49,13 +52,14 @@ export async function viewAddRepresentationSuccessPage(req, res) {
  * @param {import('#service').ManageService} service
  * @param {function} [uniqueReferenceFn] - optional function used for testing
  * @param {function} [moveAttachmentsFn] - optional function to move attachments to case folder for testing
- * @param getSharePointDrive
+ * @param {function} [deleteRepresentationFolderFn] - optional function to delete representation folder for testing
  * @returns {import('express').Handler}
  */
 export function buildSaveRepresentationController(
 	service,
 	uniqueReferenceFn = uniqueReference,
-	moveAttachmentsFn = moveAttachmentsToCaseFolder
+	moveAttachmentsFn = moveAttachmentsToCaseFolder,
+	deleteRepresentationFolderFn = deleteRepresentationAttachmentsFolder
 ) {
 	return async (req, res) => {
 		const applicationReference = await getApplicationReference(service.db, req, res);
@@ -72,7 +76,8 @@ export function buildSaveRepresentationController(
 				successUrl: `/cases/${req.params.id}/manage-representations/add-representation/success`,
 				applicationReference,
 				uniqueReferenceFn,
-				moveAttachmentsFn
+				moveAttachmentsFn,
+				deleteRepresentationFolderFn // not used in this context
 			},
 			req,
 			res

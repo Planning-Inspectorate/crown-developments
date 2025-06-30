@@ -3,7 +3,7 @@ import { test, describe, mock } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { SharePointDrive } from './drives.js';
 import { UrlBuilder } from '../../util/url-builder/url-builder.js';
-import { getDriveItemsByPathData, listItemPermissions } from '../../fixtures/sharepoint.js';
+import { getDriveItems, getDriveItemsByPathData, listItemPermissions } from '../../fixtures/sharepoint.js';
 
 describe('drives', () => {
 	const mockClient = () => {
@@ -909,6 +909,91 @@ describe('drives', () => {
 					await sharePointDrive.moveItemsToFolder(itemIds, folderId);
 				},
 				(e) => e.message === 'Failed to move items to folder: Item 123 failed to move'
+			);
+		});
+	});
+	describe('getItemsById', () => {
+		test('should fetch items by id', async () => {
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+
+			const client = mockClient();
+			sharePointDrive = new SharePointDrive(client, driveId);
+
+			const mockResponse = getDriveItemsByPathData;
+			sharePointDrive.client.get = async () => mockResponse;
+
+			const result = await sharePointDrive.getItemsById(itemId);
+
+			assert.equal(client.api.mock.callCount(), 1);
+			assert.equal(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.addPathSegment('children')
+					.toString()
+			);
+
+			assert.deepEqual(result, mockResponse.value);
+		});
+	});
+	describe('deleteItemsRecursivelyById', () => {
+		test('should delete the item itself', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+			const mockGetItemsById = mock.fn(async () => {
+				return [];
+			});
+
+			await sharePointDrive.deleteItemsRecursivelyById(itemId, mockGetItemsById);
+			assert.strictEqual(client.api.mock.callCount(), 1);
+			assert.strictEqual(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment(itemId)
+					.toString()
+			);
+		});
+		test('should delete a child item before deleting itself', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+			const children = getDriveItems.value;
+			let parent = true;
+			const mockGetItemsById = mock.fn(async () => {
+				const returnValue = parent ? children : [];
+				parent = false;
+				return returnValue;
+			});
+			await sharePointDrive.deleteItemsRecursivelyById(itemId, mockGetItemsById);
+			assert.strictEqual(
+				client.api.mock.callCount(),
+				children.length + 1,
+				`API call count should be ${children.length} + 1 (itself), got ${client.api.mock.callCount()}`
+			);
+			assert.strictEqual(
+				client.delete.mock.callCount(),
+				children.length + 1,
+				`DELETE call count should be ${children.length} + 1 (itself), got ${client.delete.mock.callCount()}`
+			);
+			assert.strictEqual(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('items')
+					.addPathSegment('id')
+					.toString(),
+				`URL should match the expected format`
 			);
 		});
 	});

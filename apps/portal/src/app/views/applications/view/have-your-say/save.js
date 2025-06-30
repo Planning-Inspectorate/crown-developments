@@ -9,19 +9,24 @@ import { JOURNEY_ID } from './journey.js';
 import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { saveRepresentation } from '@pins/crowndev-lib/forms/representations/save.js';
 import { nameToViewModel } from '@pins/crowndev-lib/util/name.js';
-import { moveAttachmentsToCaseFolder } from '@pins/crowndev-lib/util/handle-attachments.js';
+import {
+	deleteRepresentationAttachmentsFolder,
+	moveAttachmentsToCaseFolder
+} from '@pins/crowndev-lib/util/handle-attachments.js';
 import { checkApplicationPublished } from '../../../util/application-util.js';
 
 /**
  * @param {import('#service').PortalService} service
  * @param {function} [uniqueReferenceFn] - optional function used for testing
  * @param {function} [moveAttachmentsFn] - optional function used for testing
+ * @param {function} [deleteRepresentationFolderFn] - optional function used for testing
  * @returns {import('express').Handler}
  */
 export function buildSaveHaveYourSayController(
 	service,
 	uniqueReferenceFn = uniqueReference,
-	moveAttachmentsFn = moveAttachmentsToCaseFolder
+	moveAttachmentsFn = moveAttachmentsToCaseFolder,
+	deleteRepresentationFolderFn = deleteRepresentationAttachmentsFolder
 ) {
 	return async (req, res) => {
 		const crownDevelopment = await checkApplicationPublished(req, res, service.db);
@@ -39,6 +44,7 @@ export function buildSaveHaveYourSayController(
 				uniqueReferenceFn,
 				notificationFn: sendAcknowledgementOfRepresentationNotification,
 				moveAttachmentsFn,
+				deleteRepresentationFolderFn,
 				applicationReference: crownDevelopment.reference
 			},
 			req,
