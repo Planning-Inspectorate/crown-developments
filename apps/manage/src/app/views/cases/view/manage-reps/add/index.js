@@ -22,6 +22,7 @@ import {
 	MAX_FILE_SIZE
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
 import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
+import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/session.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -42,8 +43,11 @@ export function createRoutes(service) {
 		uploadDocumentsController(service, JOURNEY_ID, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE)
 	);
 	const deleteDocuments = asyncHandler(deleteDocumentsController(service, JOURNEY_ID));
+	const resetSessionMiddleware = buildResetSessionMiddleware(service.logger);
 
-	//TODO: GET '/' -> clear session, then  redirect to first question in the journey ('manage-representations/add-representation/start/representation-date').
+	router.get('/start', resetSessionMiddleware, (req, res) => {
+		res.redirect(req.baseUrl + '/start/representation-date');
+	});
 
 	router.get('/:section/:question', getJourneyResponse, getJourney, uploadDocumentQuestion, question);
 	router.post(
