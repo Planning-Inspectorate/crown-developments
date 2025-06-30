@@ -131,8 +131,8 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				include: { Attachments: true }
 			});
 
-			if (!req.session?.reviewDecisions) {
-				initialiseRepresentationReviewSession(req, representationRef, representation?.Attachments);
+			if (!req.session?.reviewDecisions?.[representationRef]) {
+				initialiseRepresentationReviewSession(req, representationRef, representation);
 			}
 
 			const repItemsReviewStatus = readRepReviewStatusSession(req, representationRef);
@@ -502,21 +502,36 @@ function getTaskListBackLinkUrl(req) {
  *
  * @param {{session?: Object<string, any>}} req
  * @param {string} representationRef
- * @param {Array.<Object>} attachments
+ * @param {Object} representation
  */
-function initialiseRepresentationReviewSession(req, representationRef, attachments) {
+function initialiseRepresentationReviewSession(req, representationRef, representation) {
 	const existingReviewData = req.session?.reviewDecisions?.[representationRef] || {};
-	const defaultReviewDecision = { reviewDecision: '' };
-
-	const attachmentEntries = Object.fromEntries(attachments.map(({ itemId }) => [itemId, defaultReviewDecision]));
-
+	const attachmentEntries = Object.fromEntries(
+		representation?.Attachments.map(({ itemId, statusId, redactedItemId, redactedFileName }) => [
+			itemId,
+			getReviewDecision(statusId, redactedItemId && redactedFileName)
+		])
+	);
 	const newReviewData = {
 		...existingReviewData,
-		comment: defaultReviewDecision,
+		comment: getReviewDecision(representation?.statusId, representation?.commentRedacted),
 		...attachmentEntries
 	};
 
 	addSessionData(req, representationRef, newReviewData, 'reviewDecisions');
+}
+
+function getReviewDecision(statusId, isRedacted) {
+	switch (statusId) {
+		case REPRESENTATION_STATUS_ID.ACCEPTED:
+			return {
+				reviewDecision: isRedacted ? ACCEPT_AND_REDACT : REPRESENTATION_STATUS_ID.ACCEPTED
+			};
+		case REPRESENTATION_STATUS_ID.REJECTED:
+			return { reviewDecision: REPRESENTATION_STATUS_ID.REJECTED };
+		default:
+			return { reviewDecision: '' };
+	}
 }
 
 /**
