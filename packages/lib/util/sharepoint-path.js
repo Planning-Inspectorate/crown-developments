@@ -68,6 +68,16 @@ export function representationFolderPath(caseReference) {
 	);
 }
 
+export function representationSessionFolderPath(caseReference, applicationNameFolder, sessionId) {
+	return buildPath(
+		caseReferenceToFolderName(caseReference),
+		APPLICATION_FOLDERS.SYSTEM,
+		APPLICATION_FOLDERS.SESSIONS,
+		applicationNameFolder,
+		sessionId
+	);
+}
+
 /**
  * Converts caseReference (which uses slashes) into folder name (which uses dashes)
  *

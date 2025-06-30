@@ -1,4 +1,4 @@
-import { representationFolderPath } from './sharepoint-path.js';
+import { APPLICATION_FOLDERS, representationFolderPath, representationSessionFolderPath } from './sharepoint-path.js';
 
 /**
  * @typedef {Object} RepresentationAttachment
@@ -71,4 +71,42 @@ export async function getRepresentationFolder(sharePointDrive, folderPath, repre
 		throw new Error(`Representation subfolder not found for reference: ${representationReference}`);
 	}
 	return subFolderResponse;
+}
+
+export async function deleteRepresentationAttachmentsFolder(
+	{ service, applicationReference, representationReference, appName },
+	req,
+	res,
+	representationSessionFolderPathFn = representationSessionFolderPath
+) {
+	const { logger, sharePointDrive } = service;
+	const applicationNameFolder = appName === 'portal' ? APPLICATION_FOLDERS.PORTAL : APPLICATION_FOLDERS.MANAGE;
+	const sessionId = req.sessionID;
+
+	const folderPath = representationSessionFolderPathFn(applicationReference, applicationNameFolder, sessionId);
+	const representationFolder = await sharePointDrive.getDriveItemByPath(folderPath);
+	if (!representationFolder || !representationFolder.id) {
+		logger.warn(
+			{ applicationReference, representationReference },
+			`Representation session folder not found for ${representationReference}`
+		);
+		return; // No folder to delete
+	}
+	logger.info(
+		{ applicationReference, representationReference, folderPath },
+		`Deleting representation session attachments folder for ${representationReference}`
+	);
+	try {
+		await sharePointDrive.deleteItemsRecursivelyById(representationFolder.id);
+	} catch (error) {
+		logger.error(
+			{ error, applicationReference, representationReference },
+			`Error deleting representation attachments for ${representationReference}`
+		);
+		throw new Error(`Failed to delete representation attachments: ${error.message}`);
+	}
+	logger.info(
+		{ applicationReference, representationReference },
+		`Deleted representation attachments folder for ${representationReference}`
+	);
 }

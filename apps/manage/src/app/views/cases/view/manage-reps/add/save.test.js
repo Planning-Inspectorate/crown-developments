@@ -175,16 +175,19 @@ describe('written representations', () => {
 				}
 			};
 			const getSharePointDrive = mock.fn(() => () => null);
+			const deleteRepresentationFolderFn = mock.fn();
 
 			const mockUniqueReferenceFn = mock.fn(() => 'AAAAA-BBBBB');
-
+			const mockMoveAttachmentsFn = mock.fn();
 			const saveRepresentationController = buildSaveRepresentationController(
 				{
 					db: mockDb,
 					logger: mockLogger(),
 					getSharePointDrive
 				},
-				mockUniqueReferenceFn
+				mockUniqueReferenceFn,
+				mockMoveAttachmentsFn,
+				deleteRepresentationFolderFn
 			);
 			await saveRepresentationController(mockReq, mockRes);
 			assert.deepStrictEqual(mockDb.representation.create.mock.calls[0].arguments[0].data.reference, 'AAAAA-BBBBB');
@@ -300,11 +303,13 @@ describe('written representations', () => {
 				sendAcknowledgementOfRepresentation: mock.fn()
 			};
 			const getSharePointDrive = mock.fn(() => () => null);
+			const deleteRepresentationFolderFn = mock.fn();
 			const service = { db: mockDb, logger, notifyClient: mockNotifyClient, getSharePointDrive };
 			const saveRepresentationController = buildSaveRepresentationController(
 				service,
 				uniqueReferenceFn,
-				moveAttachmentsFn
+				moveAttachmentsFn,
+				deleteRepresentationFolderFn
 			);
 
 			await saveRepresentationController(mockReq, mockRes);
@@ -339,6 +344,7 @@ describe('written representations', () => {
 				redirect: mock.fn()
 			};
 			const moveAttachmentsFn = mock.fn();
+			const deleteRepresentationFolderFn = mock.fn();
 			const mockDb = {
 				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
@@ -369,7 +375,8 @@ describe('written representations', () => {
 			const saveRepresentationController = buildSaveRepresentationController(
 				service,
 				uniqueReferenceFn,
-				moveAttachmentsFn
+				moveAttachmentsFn,
+				deleteRepresentationFolderFn
 			);
 
 			await saveRepresentationController(mockReq, mockRes);
