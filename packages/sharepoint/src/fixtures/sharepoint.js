@@ -222,9 +222,6 @@ export const getDriveItems = {
 				createdDateTime: '2024-12-04T16:19:13Z',
 				lastModifiedDateTime: '2024-12-04T16:19:46Z'
 			},
-			folder: {
-				childCount: 3
-			},
 			shared: {
 				scope: 'users'
 			}

@@ -115,11 +115,10 @@ export class SharePointDrive {
 	/**
 	 * Get item children by ID in a SharePoint drive
 	 * @param itemId
-	 * @param [queries]
+	 * @param [queries] queries => [['key', 'value']]
 	 * @returns {Promise<*>}
 	 */
 	async getItemsById(itemId, queries) {
-		// queries => [['key', 'value']]
 		const urlBuilder = new UrlBuilder('')
 			.addPathSegment('drives')
 			.addPathSegment(this.driveId)
@@ -455,15 +454,14 @@ export class SharePointDrive {
 	/**
 	 * Deletes an item and its children recursively from SharePoint drive
 	 * @param {string} itemId
-	 * @param {function} [getItemsById] get the items by ID function, defaults to this.getItemsById (optional: used for testing)
 	 * @returns {Promise<any>}
 	 */
-	async deleteItemsRecursivelyById(itemId, getItemsById = this.getItemsById) {
+	async deleteItemsRecursivelyById(itemId) {
 		try {
-			const children = await getItemsById(itemId);
+			const children = await this.getItemsById(itemId);
 			// If the item has children, delete them first
 			if (children.length > 0) {
-				await this.#deleteItemsInBatches(children, getItemsById);
+				await this.#deleteItemsInBatches(children);
 			}
 
 			const urlBuilder = new UrlBuilder('')
@@ -481,10 +479,9 @@ export class SharePointDrive {
 	/**
 	 * Deletes items in batches to avoid hitting API limits
 	 * @param {Array<import('@microsoft/microsoft-graph-types').DriveItem>} items
-	 * @param {function} [getItemsById] - function to get items by ID, defaults to this.getItemsById (optional: used for testing)
 	 * @returns {Promise<void>}
 	 */
-	async #deleteItemsInBatches(items, getItemsById = this.getItemsById) {
+	async #deleteItemsInBatches(items) {
 		const batchSize = 20; // Maximum batch size for SharePoint API
 		for (let i = 0; i < items.length; i += batchSize) {
 			const batch = items.slice(i, i + batchSize);
@@ -492,7 +489,7 @@ export class SharePointDrive {
 				batch.map(async (item) => {
 					// If it's a folder, delete recursively
 					if (item.folder) {
-						await this.deleteItemsRecursivelyById(item.id, getItemsById);
+						await this.deleteItemsRecursivelyById(item.id);
 					} else {
 						const urlBuilder = new UrlBuilder('')
 							.addPathSegment('drives')

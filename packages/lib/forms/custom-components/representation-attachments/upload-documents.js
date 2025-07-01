@@ -6,6 +6,7 @@ import { notFoundHandler } from '../../../middleware/errors.js';
 import { sortByField } from '../../../util/array.js';
 import { addSessionData } from '../../../util/session.js';
 import { getSubmittedForId } from '../../../util/questions.js';
+import { getApplicationNameFolder } from '../../../util/handle-attachments.js';
 
 const CONTENT_UPLOAD_FILE_LIMIT = 4 * 1024 * 1024; // 4MB
 const TOTAL_UPLOAD_LIMIT = 1073741824; // 1GB
@@ -189,7 +190,7 @@ async function createSessionSharepointFolders(
 	leafFolderName
 ) {
 	const caseReferenceFolder = caseReferenceToFolderName(caseReference);
-	const applicationNameFolder = appName === 'portal' ? APPLICATION_FOLDERS.PORTAL : APPLICATION_FOLDERS.MANAGE;
+	const applicationNameFolder = getApplicationNameFolder(appName);
 
 	const folderSteps = [
 		{ name: APPLICATION_FOLDERS.SYSTEM, description: 'System folder' },

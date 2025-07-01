@@ -146,7 +146,7 @@ describe('have your say', () => {
 					notifyClient: mockNotifyClient
 				},
 				mockUniqueReferenceFn,
-				mockMoveAttachmentsFn, // Mock moveAttachmentsFn
+				mockMoveAttachmentsFn,
 				mockDeleteRepresentationFolderFn
 			);
 			await saveHaveYourSayController(mockReq, mockRes);
