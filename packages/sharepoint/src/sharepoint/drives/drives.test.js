@@ -945,12 +945,12 @@ describe('drives', () => {
 			const client = mockClient();
 			const itemId = 'testItem';
 			driveId = 'testDriveId';
-			sharePointDrive = new SharePointDrive(client, driveId);
-			const mockGetItemsById = mock.fn(async () => {
+			const sharePointDrive = new SharePointDrive(client, driveId);
+			sharePointDrive.getItemsById = mock.fn(async () => {
 				return [];
 			});
 
-			await sharePointDrive.deleteItemsRecursivelyById(itemId, mockGetItemsById);
+			await sharePointDrive.deleteItemsRecursivelyById(itemId);
 			assert.strictEqual(client.api.mock.callCount(), 1);
 			assert.strictEqual(
 				client.api.mock.calls[0].arguments[0],
@@ -966,15 +966,15 @@ describe('drives', () => {
 			const client = mockClient();
 			const itemId = 'testItem';
 			driveId = 'testDriveId';
-			sharePointDrive = new SharePointDrive(client, driveId);
+			const sharePointDrive = new SharePointDrive(client, driveId);
 			const children = getDriveItems.value;
 			let parent = true;
-			const mockGetItemsById = mock.fn(async () => {
+			sharePointDrive.getItemsById = mock.fn(async () => {
 				const returnValue = parent ? children : [];
 				parent = false;
 				return returnValue;
 			});
-			await sharePointDrive.deleteItemsRecursivelyById(itemId, mockGetItemsById);
+			await sharePointDrive.deleteItemsRecursivelyById(itemId);
 			assert.strictEqual(
 				client.api.mock.callCount(),
 				children.length + 1,
@@ -995,6 +995,22 @@ describe('drives', () => {
 					.toString(),
 				`URL should match the expected format`
 			);
+		});
+		test('should throw an error if itemId is not provided', async () => {
+			const client = mockClient();
+			driveId = 'testDriveId';
+			const sharePointDrive = new SharePointDrive(client, driveId);
+
+			try {
+				await sharePointDrive.deleteItemsRecursivelyById(undefined);
+				assert.fail('Expected error was not thrown');
+			} catch (e) {
+				assert.equal(
+					e.message,
+					"Failed to delete SharePoint item: Cannot read properties of undefined (reading 'value')"
+				);
+				assert.strictEqual(client.api.mock.callCount(), 1);
+			}
 		});
 	});
 });

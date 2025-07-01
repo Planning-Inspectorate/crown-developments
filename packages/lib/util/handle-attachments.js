@@ -80,7 +80,8 @@ export async function deleteRepresentationAttachmentsFolder(
 	representationSessionFolderPathFn = representationSessionFolderPath
 ) {
 	const { logger, sharePointDrive } = service;
-	const applicationNameFolder = appName === 'portal' ? APPLICATION_FOLDERS.PORTAL : APPLICATION_FOLDERS.MANAGE;
+	const applicationNameFolder = getApplicationNameFolder(appName);
+
 	const sessionId = req.sessionID;
 
 	const folderPath = representationSessionFolderPathFn(applicationReference, applicationNameFolder, sessionId);
@@ -109,4 +110,8 @@ export async function deleteRepresentationAttachmentsFolder(
 		{ applicationReference, representationReference },
 		`Deleted representation attachments folder for ${representationReference}`
 	);
+}
+
+export function getApplicationNameFolder(appName) {
+	return appName === 'portal' ? APPLICATION_FOLDERS.PORTAL : APPLICATION_FOLDERS.MANAGE;
 }
