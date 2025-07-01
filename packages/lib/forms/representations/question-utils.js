@@ -153,6 +153,7 @@ export function representationsContactQuestions({ prefix, actionOverrides = {} }
 		type: COMPONENT_TYPES.ADDRESS,
 		title: 'What is your address',
 		question: 'What is your address?',
+		hint: 'We will not publish your address',
 		fieldName: `${prefix}Address`,
 		url: 'address',
 		validators: [
