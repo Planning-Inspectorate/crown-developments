@@ -1,6 +1,10 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { getRepresentationFolder, moveAttachmentsToCaseFolder } from './handle-attachments.js';
+import {
+	deleteRepresentationAttachmentsFolder,
+	getRepresentationFolder,
+	moveAttachmentsToCaseFolder
+} from './handle-attachments.js';
 import { mockLogger } from '../testing/mock-logger.js';
 
 describe('handleAttachments', () => {
@@ -159,6 +163,139 @@ describe('handleAttachments', () => {
 					);
 				},
 				(e) => e.message === 'Failed to move representation attachments: Move failed'
+			);
+		});
+	});
+	describe('deleteRepresentationAttachmentsFolder', () => {
+		it('should delete the representation attachments folder', async () => {
+			const mockReq = {
+				session: {},
+				sessionId: 'sub-folder-id'
+			};
+			const mockSharePointDrive = {
+				getDriveItemByPath: mock.fn(() => {
+					return { id: 'folder-id' };
+				}),
+				deleteItemsRecursivelyById: mock.fn()
+			};
+			const mockRepresentationSessionFolderPathFn = mock.fn(() => `${applicationReference}/${representationReference}`);
+			const mockService = {
+				logger: mockLogger(),
+				sharePointDrive: mockSharePointDrive
+			};
+			const applicationReference = 'application-reference';
+			const representationReference = 'rep-ref';
+
+			await deleteRepresentationAttachmentsFolder(
+				{
+					service: mockService,
+					applicationReference,
+					representationReference,
+					appName: 'manage'
+				},
+				mockReq,
+				{},
+				mockRepresentationSessionFolderPathFn
+			);
+			assert.strictEqual(mockSharePointDrive.deleteItemsRecursivelyById.mock.calls.length, 1);
+			assert.strictEqual(mockSharePointDrive.deleteItemsRecursivelyById.mock.calls[0].arguments[0], 'folder-id');
+		});
+		it('should handle if the folder does not exist', async () => {
+			const mockReq = {
+				session: {},
+				sessionId: 'sub-folder-id'
+			};
+			const mockSharePointDrive = {
+				getDriveItemByPath: mock.fn(() => Promise.reject({ statusCode: 404 })),
+				deleteItemsRecursivelyById: mock.fn()
+			};
+			const mockRepresentationSessionFolderPathFn = mock.fn(() => `${applicationReference}/${representationReference}`);
+			const mockService = {
+				logger: mockLogger(),
+				sharePointDrive: mockSharePointDrive
+			};
+			const applicationReference = 'application-reference';
+			const representationReference = 'rep-ref';
+
+			await deleteRepresentationAttachmentsFolder(
+				{
+					service: mockService,
+					applicationReference,
+					representationReference,
+					appName: 'manage'
+				},
+				mockReq,
+				{},
+				mockRepresentationSessionFolderPathFn
+			);
+			assert.strictEqual(mockSharePointDrive.deleteItemsRecursivelyById.mock.calls.length, 0);
+		});
+		it('should handle if it doesnt return an id', async () => {
+			const mockReq = {
+				session: {},
+				sessionId: 'sub-folder-id'
+			};
+			const mockSharePointDrive = {
+				getDriveItemByPath: mock.fn(() => {
+					return { otherId: 'folder-id' };
+				}),
+				deleteItemsRecursivelyById: mock.fn()
+			};
+			const mockRepresentationSessionFolderPathFn = mock.fn(() => `${applicationReference}/${representationReference}`);
+			const mockService = {
+				logger: mockLogger(),
+				sharePointDrive: mockSharePointDrive
+			};
+			const applicationReference = 'application-reference';
+			const representationReference = 'rep-ref';
+
+			await deleteRepresentationAttachmentsFolder(
+				{
+					service: mockService,
+					applicationReference,
+					representationReference,
+					appName: 'manage'
+				},
+				mockReq,
+				{},
+				mockRepresentationSessionFolderPathFn
+			);
+			assert.strictEqual(mockSharePointDrive.deleteItemsRecursivelyById.mock.calls.length, 0);
+		});
+		it('should throw an error if deleting the folder fails', async () => {
+			const mockReq = {
+				session: {},
+				sessionId: 'sub-folder-id'
+			};
+			const mockSharePointDrive = {
+				getDriveItemByPath: mock.fn(() => ({ id: 'folder-id' })),
+				deleteItemsRecursivelyById: mock.fn(() => {
+					throw new Error('Delete failed');
+				})
+			};
+			const mockRepresentationSessionFolderPathFn = mock.fn(() => `${applicationReference}/${representationReference}`);
+			const mockService = {
+				logger: mockLogger(),
+				sharePointDrive: mockSharePointDrive
+			};
+			const applicationReference = 'application-reference';
+			const representationReference = 'rep-ref';
+
+			await assert.rejects(
+				async () => {
+					await deleteRepresentationAttachmentsFolder(
+						{
+							service: mockService,
+							applicationReference,
+							representationReference,
+							appName: 'manage'
+						},
+						mockReq,
+						{},
+						mockRepresentationSessionFolderPathFn
+					);
+				},
+				(e) => e.message === `Failed to delete representation attachments: Delete failed`
 			);
 		});
 	});
