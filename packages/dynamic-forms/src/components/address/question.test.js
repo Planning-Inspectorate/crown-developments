@@ -121,6 +121,17 @@ describe('AddressQuestion', () => {
 			assert.strictEqual(model.question.labels.county, 'County (optional)');
 			assert.strictEqual(model.question.labels.postcode, 'Postcode (optional)');
 		});
+
+		it('should include the hint under the h1 title', async () => {
+			const { question } = setup();
+			question.hint = 'We will not publish your address';
+
+			const response = { journeyId: 'testJourney', answers: { siteAddress: testAddress } };
+			const model = await question.prepQuestionForRendering({}, { getBackLink: mock.fn(), response });
+
+			assert.strictEqual(model.question.hint, question.hint);
+		});
+
 		it('should set required labels when required', async () => {
 			VALIDATORS.push(
 				new AddressValidator({

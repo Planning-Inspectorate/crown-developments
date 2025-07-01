@@ -39,6 +39,9 @@
                         isPageHeading: true
                     }
                 }) %}
+                    {% if question.hint %}
+                        <div class="govuk-hint">{{ question.hint }}</div>
+                    {% endif %}
 
                     {% if question.html %}
                         {% include question.html ignore missing %}
