@@ -85,7 +85,24 @@ export async function deleteRepresentationAttachmentsFolder(
 	const sessionId = req.sessionID;
 
 	const folderPath = representationSessionFolderPathFn(applicationReference, applicationNameFolder, sessionId);
-	const representationFolder = await sharePointDrive.getDriveItemByPath(folderPath);
+	let representationFolder;
+	try {
+		representationFolder = await sharePointDrive.getDriveItemByPath(folderPath);
+	} catch (error) {
+		if (error.statusCode === 404) {
+			logger.warn(
+				{ applicationReference, representationReference, folderPath },
+				`Representation session folder not found for ${representationReference}`
+			);
+			return null; // Folder does not exist
+		} else {
+			logger.error(
+				{ error, applicationReference, representationReference, folderPath },
+				`Error retrieving representation session folder for ${representationReference}`
+			);
+			throw new Error(`Failed to retrieve representation session folder: ${error.message}`);
+		}
+	}
 	if (!representationFolder || !representationFolder.id) {
 		logger.warn(
 			{ applicationReference, representationReference },
