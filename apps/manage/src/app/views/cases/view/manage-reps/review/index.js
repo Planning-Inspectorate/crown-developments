@@ -1,7 +1,12 @@
 import { Router as createRouter } from 'express';
 import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
-import { buildReviewControllers, viewRepresentationAwaitingReview, viewReviewRedirect } from './controller.js';
+import {
+	buildReviewControllers,
+	buildViewDocument,
+	viewRepresentationAwaitingReview,
+	viewReviewRedirect
+} from './controller.js';
 import { buildGetJourneyMiddleware } from '../view/controller.js';
 import {
 	buildValidateRedactedFileMiddleware,
@@ -37,11 +42,11 @@ export function createRoutes(service) {
 		redactConfirmation,
 		acceptRedactedComment,
 		reviewRepresentationDocument,
-		viewDocument,
 		reviewDocumentDecision,
 		redactRepresentationDocument,
 		redactRepresentationDocumentPost
 	} = buildReviewControllers(service);
+	const viewDocument = buildViewDocument(service);
 	const validatePostRepresentation = buildValidateRepresentationMiddleware(service);
 	const validateRedactedFileMiddleware = buildValidateRedactedFileMiddleware(service);
 	const handleUploads = multer();
@@ -76,7 +81,7 @@ export function createRoutes(service) {
 	router.get('/task-list/:itemId/view', asyncHandler(viewDocument));
 	router.get('/task-list/:itemId/redact', asyncHandler(redactRepresentationDocument));
 	router.post('/task-list/:itemId/redact', asyncHandler(redactRepresentationDocumentPost));
-	router.get('/task-list/:taskId/redact/:documentId/view', asyncHandler(viewDocument));
+	router.get('/task-list/:itemId/redact/:documentId/view', asyncHandler(viewDocument));
 
 	router.post(
 		'/task-list/:itemId/redact/upload-documents',

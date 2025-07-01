@@ -3,6 +3,7 @@ import assert from 'node:assert';
 import EventEmitter from 'node:events';
 import {
 	buildReviewControllers,
+	buildViewDocument,
 	clearRepReviewedSession,
 	readRepReviewedSession,
 	viewRepresentationAwaitingReview,
@@ -861,13 +862,16 @@ describe('controller', () => {
 			};
 			const mockFetch = mock.fn(() => mockFetchRes);
 
-			const { viewDocument } = buildReviewControllers({ db: mockDb, logger, getSharePointDrive: () => mockSharePoint });
+			const viewDocument = buildViewDocument(
+				{ db: mockDb, logger, getSharePointDrive: () => mockSharePoint },
+				mockFetch
+			);
 
 			const req = new EventEmitter();
 			req.params = { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' };
 			const res = new EventEmitter();
 			res.header = mock.fn();
-			await viewDocument(req, res, mockFetch);
+			await viewDocument(req, res);
 			assert.strictEqual(mockSharePoint.getDriveItemDownloadUrl.mock.callCount(), 1);
 			// headers are forwarded
 			assert.strictEqual(res.header.mock.callCount(), 2);
@@ -879,7 +883,7 @@ describe('controller', () => {
 				getDriveItemDownloadUrl: mock.fn(() => '/some/url')
 			};
 
-			const { viewDocument } = buildReviewControllers({ getSharePointDrive: () => mockSharePoint });
+			const viewDocument = buildViewDocument({ getSharePointDrive: () => mockSharePoint });
 
 			await assert.rejects(() => viewDocument({ params: { id: 'case-1', representationRef: 'ref-1' } }, {}), {
 				message: 'itemId param required'

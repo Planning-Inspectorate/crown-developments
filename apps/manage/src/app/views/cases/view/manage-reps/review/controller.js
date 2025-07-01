@@ -29,7 +29,6 @@ import { representationAttachmentsFolderPath } from '@pins/crowndev-lib/util/sha
  * @property {Handler} redactConfirmation - handles GET for /review/task-list/comment/redact/confirmation
  * @property {Handler} acceptRedactedComment - handles POST for /review/task-list/comment/redact/confirmation
  * @property {Handler} reviewRepresentationDocument - handles GET for /review/task-list/:itemId
- * @proterty {Handler} viewDocument - handles GET and document download for /review/task-list/:itemId/view
  * @property {Handler} reviewDocumentDecision - handles POST for /review/task-list/:itemId
  * @property {Handler} redactRepresentationDocument - handles GET for /task-list/:itemId/redact
  * @property {Handler} redactRepresentationDocumentPost - handles POST for /task-list/:itemId/redact
@@ -325,20 +324,6 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				...viewData
 			});
 		},
-		async viewDocument(req, res, fetchImpl) {
-			const sharePointDrive = getSharePointDrive(req.session);
-			const itemId = req.params.itemId;
-			if (!itemId) {
-				throw new Error('itemId param required');
-			}
-
-			// to facilitate download of redacted file
-			const documentId = req.params.documentId;
-			const itemToDownloadId = documentId || itemId;
-
-			const downloadUrl = await getDriveItemDownloadUrl(sharePointDrive, itemToDownloadId, logger);
-			await forwardStreamContents(downloadUrl, req, res, logger, itemToDownloadId, fetchImpl);
-		},
 		async reviewDocumentDecision(req, res) {
 			const { id, representationRef } = validateParams(req.params);
 			const itemId = req.params.itemId;
@@ -482,6 +467,30 @@ export function viewReviewRedirect(req, res, next) {
 		return undefined;
 	}
 	next();
+}
+
+/**
+ * Render a document
+ * @param {import('#service').ManageService} service
+ * @param {global.fetch} [fetchImpl] - for testing
+ * @returns {Handler}
+ */
+export function buildViewDocument(service, fetchImpl) {
+	const { logger, getSharePointDrive } = service;
+	return async (req, res) => {
+		const sharePointDrive = getSharePointDrive(req.session);
+		const itemId = req.params.itemId;
+		if (!itemId) {
+			throw new Error('itemId param required');
+		}
+
+		// to facilitate download of redacted file
+		const documentId = req.params.documentId;
+		const itemToDownloadId = documentId || itemId;
+
+		const downloadUrl = await getDriveItemDownloadUrl(sharePointDrive, itemToDownloadId, logger);
+		await forwardStreamContents(downloadUrl, req, res, logger, itemToDownloadId, fetchImpl);
+	};
 }
 
 function getTaskListBackLinkUrl(req) {
