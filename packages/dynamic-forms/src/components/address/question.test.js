@@ -124,12 +124,13 @@ describe('AddressQuestion', () => {
 
 		it('should include the hint under the h1 title', async () => {
 			const { question } = setup();
-			question.hint = 'We will not publish your address';
+			const hintText = 'We will not publish your address';
+			question.hint = hintText;
 
 			const response = { journeyId: 'testJourney', answers: { siteAddress: testAddress } };
 			const model = await question.prepQuestionForRendering({}, { getBackLink: mock.fn(), response });
 
-			assert.strictEqual(model.question.hint, question.hint);
+			assert.strictEqual(model.question.hint, hintText);
 		});
 
 		it('should set required labels when required', async () => {
