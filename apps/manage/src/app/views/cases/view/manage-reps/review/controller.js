@@ -108,10 +108,11 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			const statusName = getStatusDisplayName(reviewDecision);
 			addRepReviewedSession(req, id, statusName);
 
+			const baseUrl = getBaseUrl(req);
 			const repRefUrlSegment = `/${representationRef}`;
-			const redirectUrl = req.baseUrl.includes(repRefUrlSegment)
-				? req.baseUrl.slice(0, req.baseUrl.indexOf(repRefUrlSegment))
-				: req.baseUrl;
+			const redirectUrl = baseUrl.includes(repRefUrlSegment)
+				? baseUrl.slice(0, baseUrl.indexOf(repRefUrlSegment))
+				: baseUrl;
 			res.redirect(redirectUrl);
 		},
 		async reviewRepresentation(req, res) {
@@ -122,7 +123,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				return;
 			}
 
-			res.redirect(req.baseUrl + '/task-list');
+			res.redirect(getBaseUrl(req) + '/task-list');
 		},
 		async representationTaskList(req, res) {
 			const { representationRef } = validateParams(req.params);
@@ -190,7 +191,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				reject: REPRESENTATION_STATUS_ID.REJECTED,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: req.baseUrl + '/task-list',
+				backLinkUrl: getBaseUrl(req) + '/task-list',
 				...viewData
 			});
 		},
@@ -222,11 +223,11 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			}
 
 			if (reviewCommentDecision === ACCEPT_AND_REDACT) {
-				res.redirect(req.baseUrl + '/task-list/comment/redact');
+				res.redirect(getBaseUrl(req) + '/task-list/comment/redact');
 			} else {
 				updateRepReviewSession(req, representationRef, 'comment', { reviewDecision: reviewCommentDecision });
 				clearRepRedactedCommentSession(req, representationRef);
-				res.redirect(req.baseUrl + '/task-list');
+				res.redirect(getBaseUrl(req) + '/task-list');
 			}
 		},
 		async redactRepresentation(req, res) {
@@ -267,7 +268,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				return controllers.redactRepresentation(req, res);
 			}
 			logger.info('saving redacted comment to session');
-			res.redirect(req.baseUrl + '/task-list/comment/redact/confirmation');
+			res.redirect(getBaseUrl(req) + '/task-list/comment/redact/confirmation');
 		},
 		async redactConfirmation(req, res) {
 			const { representationRef } = validateParams(req.params);
@@ -281,7 +282,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				reference: representationRef,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: req.baseUrl + '/task-list/comment/redact'
+				backLinkUrl: getBaseUrl(req) + '/task-list/comment/redact'
 			});
 		},
 		async acceptRedactedComment(req, res) {
@@ -293,7 +294,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			}
 
 			updateRepReviewSession(req, representationRef, 'comment', { reviewDecision: ACCEPT_AND_REDACT });
-			res.redirect(req.baseUrl + '/task-list');
+			res.redirect(getBaseUrl(req) + '/task-list');
 		},
 		async reviewRepresentationDocument(req, res, viewData = {}) {
 			const { representationRef } = validateParams(req.params);
@@ -319,8 +320,8 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				reject: REPRESENTATION_STATUS_ID.REJECTED,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: req.baseUrl + '/task-list',
-				currentUrl: req.baseUrl + '/task-list/' + itemId,
+				backLinkUrl: getBaseUrl(req) + '/task-list',
+				currentUrl: getBaseUrl(req) + '/task-list/' + itemId,
 				...viewData
 			});
 		},
@@ -347,7 +348,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			}
 
 			if (reviewDocumentDecision === ACCEPT_AND_REDACT) {
-				res.redirect(req.baseUrl + '/task-list/' + itemId + '/redact');
+				res.redirect(getBaseUrl(req) + '/task-list/' + itemId + '/redact');
 			} else {
 				const [redactedFile] = getRedactedFile(req, representationRef, itemId);
 
@@ -366,7 +367,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				}
 
 				updateRepReviewSession(req, representationRef, itemId, { reviewDecision: reviewDocumentDecision });
-				res.redirect(req.baseUrl + '/task-list');
+				res.redirect(getBaseUrl(req) + '/task-list');
 			}
 		},
 		async redactRepresentationDocument(req, res, viewData = {}) {
@@ -401,8 +402,8 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				allowedMimeTypes: ALLOWED_MIME_TYPES,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: req.baseUrl + '/task-list/' + itemId,
-				currentUrl: req.baseUrl + '/task-list/' + itemId + '/redact',
+				backLinkUrl: getBaseUrl(req) + '/task-list/' + itemId,
+				currentUrl: getBaseUrl(req) + '/task-list/' + itemId + '/redact',
 				errors,
 				errorSummary,
 				...viewData
@@ -433,7 +434,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 
 			updateRepReviewSession(req, representationRef, itemId, { reviewDecision: ACCEPT_AND_REDACT });
 
-			res.redirect(req.baseUrl + '/task-list');
+			res.redirect(getBaseUrl(req) + '/task-list');
 		}
 	};
 
@@ -491,6 +492,10 @@ export function buildViewDocument(service, fetchImpl) {
 		const downloadUrl = await getDriveItemDownloadUrl(sharePointDrive, itemToDownloadId, logger);
 		await forwardStreamContents(downloadUrl, req, res, logger, itemToDownloadId, fetchImpl);
 	};
+}
+
+function getBaseUrl(req) {
+	return req.baseUrl.endsWith('/review') ? req.baseUrl : `${req.baseUrl}/manage`;
 }
 
 function getTaskListBackLinkUrl(req) {
@@ -694,6 +699,8 @@ async function updateRepresentationItemsReviewStatus(req, db, logger) {
 
 	if (!Object.keys(decisions).length) return;
 
+	//TODO: if rejected or doc status is no longer accept & redact then we need to clear the redacted item id and redacted filename from db
+	//TODO: also clear redactedComment if the comment is no longer accept & redact
 	try {
 		await db.$transaction(async (tx) => {
 			for (const [key, value] of Object.entries(decisions)) {
