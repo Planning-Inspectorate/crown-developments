@@ -299,6 +299,7 @@ describe('controller', () => {
 
 			const mockReq = {
 				params: { id: 'case-1', representationRef: 'ref-1' },
+				baseUrl: '/manage',
 				body: {}
 			};
 			const mockRes = {
@@ -410,7 +411,7 @@ describe('controller', () => {
 			const { reviewRepresentationComment } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: {}
 			};
@@ -431,7 +432,7 @@ describe('controller', () => {
 				reject: 'rejected',
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list'
+				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list'
 			});
 		});
 	});
@@ -447,7 +448,7 @@ describe('controller', () => {
 			const { reviewRepresentationCommentDecision } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some/url',
+				baseUrl: 'some/url/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: { reviewCommentDecision: 'approved' },
 				session: {}
@@ -458,7 +459,7 @@ describe('controller', () => {
 
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			const redirectUrl = mockRes.redirect.mock.calls[0].arguments[0];
-			assert.match(redirectUrl, /some\/url\/task-list$/);
+			assert.match(redirectUrl, /some\/url\/ref-1\/review\/task-list$/);
 		});
 		it('should save and redirect to redact page if accepted and redacted', async () => {
 			const mockDb = {
@@ -471,7 +472,7 @@ describe('controller', () => {
 			const { reviewRepresentationCommentDecision } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some/url',
+				baseUrl: 'some/url/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: { reviewCommentDecision: ACCEPT_AND_REDACT },
 				session: {}
@@ -482,7 +483,7 @@ describe('controller', () => {
 
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			const redirectUrl = mockRes.redirect.mock.calls[0].arguments[0];
-			assert.match(redirectUrl, /some\/url\/task-list\/comment\/redact$/);
+			assert.match(redirectUrl, /some\/url\/ref-1\/review\/task-list\/comment\/redact$/);
 		});
 		it('should update document status if moving from rejected into non-rejected status', async () => {
 			const { reviewRepresentationCommentDecision } = buildReviewControllers({});
@@ -558,7 +559,7 @@ describe('controller', () => {
 			const { reviewRepresentationCommentDecision } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: {},
 				session: {}
@@ -581,7 +582,7 @@ describe('controller', () => {
 				reject: 'rejected',
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list',
+				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list',
 				errors: { reviewCommentDecision: { msg: 'Select the review decision' } },
 				errorSummary: [
 					{
@@ -790,7 +791,7 @@ describe('controller', () => {
 			const { reviewRepresentationDocument } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
 				session: {
 					reviewDecisions: {
@@ -820,8 +821,8 @@ describe('controller', () => {
 				reject: 'rejected',
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list',
-				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234'
+				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list',
+				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234'
 			});
 		});
 		it('should render 404 if document not found', async () => {
@@ -899,7 +900,7 @@ describe('controller', () => {
 			const { reviewDocumentDecision } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
 				session: {
 					reviewDecisions: {
@@ -922,7 +923,7 @@ describe('controller', () => {
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockRes.redirect.mock.calls[0].arguments[0],
-				'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234/redact'
+				'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234/redact'
 			);
 		});
 		it('should redirect to task-list and delete uploaded files from session and sharepoint', async () => {
@@ -932,7 +933,7 @@ describe('controller', () => {
 			const logger = mockLogger();
 			const { reviewDocumentDecision } = buildReviewControllers({ logger, getSharePointDrive: () => mockSharePoint });
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
 				session: {
 					files: {
@@ -979,7 +980,7 @@ describe('controller', () => {
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockRes.redirect.mock.calls[0].arguments[0],
-				'some-url-here/case-1/manage-representations/ref-1/task-list'
+				'some-url-here/case-1/manage-representations/ref-1/review/task-list'
 			);
 			assert.strictEqual(mockSharePoint.deleteDocumentById.mock.callCount(), 1);
 			assert.deepStrictEqual(mockReq.session.files?.['ref-1']?.DOC1234.uploadedFiles, undefined);
@@ -1050,7 +1051,7 @@ describe('controller', () => {
 			const { reviewDocumentDecision } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
 				session: {
 					files: {
@@ -1108,8 +1109,8 @@ describe('controller', () => {
 				reject: 'rejected',
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list',
-				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234',
+				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list',
+				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234',
 				errors: { reviewDocumentDecision: { msg: 'Select the review decision' } },
 				errorSummary: [
 					{
@@ -1131,7 +1132,7 @@ describe('controller', () => {
 			const logger = mockLogger();
 			const { redactRepresentationDocument } = buildReviewControllers({ db: mockDb, logger });
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
 				session: {
 					files: {
@@ -1198,8 +1199,8 @@ describe('controller', () => {
 				],
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234',
-				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234/redact',
+				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234',
+				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234/redact',
 				errors: undefined,
 				errorSummary: undefined
 			});
@@ -1215,7 +1216,7 @@ describe('controller', () => {
 			const { redactRepresentationDocument } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
 				session: {
 					errors: { 'upload-form': { msg: 'Upload an attachment' } },
@@ -1284,8 +1285,8 @@ describe('controller', () => {
 				],
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234',
-				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234/redact',
+				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234',
+				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234/redact',
 				errors: { 'upload-form': { msg: 'Upload an attachment' } },
 				errorSummary: [{ text: 'Upload an attachment', href: '#upload-form' }]
 			});
@@ -1305,7 +1306,7 @@ describe('controller', () => {
 			const { redactRepresentationDocumentPost } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
 				session: {
 					files: {
@@ -1352,7 +1353,7 @@ describe('controller', () => {
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			assert.deepStrictEqual(
 				mockRes.redirect.mock.calls[0].arguments[0],
-				'some-url-here/case-1/manage-representations/ref-1/task-list'
+				'some-url-here/case-1/manage-representations/ref-1/review/task-list'
 			);
 			assert.deepStrictEqual(mockReq.session.reviewDecisions?.['ref-1']?.DOC1234.reviewDecision, 'accept-and-redact');
 		});
@@ -1366,7 +1367,7 @@ describe('controller', () => {
 			const { redactRepresentationDocumentPost } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
 				session: {
 					files: {
@@ -1424,8 +1425,8 @@ describe('controller', () => {
 				],
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234',
-				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/task-list/DOC1234/redact',
+				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234',
+				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234/redact',
 				errors: { 'upload-form': { msg: 'Upload an attachment' } },
 				errorSummary: [{ text: 'Upload an attachment', href: '#upload-form' }]
 			});
