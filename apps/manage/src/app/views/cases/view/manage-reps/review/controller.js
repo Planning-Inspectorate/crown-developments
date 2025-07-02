@@ -12,6 +12,7 @@ import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { forwardStreamContents, getDriveItemDownloadUrl } from '@pins/crowndev-lib/documents/utils.js';
 import { ALLOWED_MIME_TYPES } from '@pins/crowndev-lib/forms/representations/question-utils.js';
 import { representationAttachmentsFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { fetchRedactionSuggestions, highlightRedactionSuggestions } from '#util/azure-language-redaction.js';
 
 /**
  * @typedef {import('express').Handler} Handler
@@ -50,7 +51,7 @@ export async function viewRepresentationAwaitingReview(req, res) {
  * @param {string} [journeyId]
  * @returns {ReviewControllers}
  */
-export function buildReviewControllers({ db, logger, getSharePointDrive }, journeyId) {
+export function buildReviewControllers({ db, logger, getSharePointDrive, textAnalyticsClient }, journeyId) {
 	/** @type {ReviewControllers} */
 	const controllers = {
 		async reviewRepresentationSubmission(req, res) {
@@ -259,13 +260,34 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }, journ
 			const { representationRef } = validateParams(req.params);
 			const representation = await db.representation.findUnique({
 				where: { reference: representationRef },
-				select: { comment: true }
+				select: { comment: true, commentRedacted: true }
 			});
 
+			const comment = representation.comment;
+
+			const result = await fetchRedactionSuggestions(comment, textAnalyticsClient, logger);
+
+			// session data takes precedence
+			let commentRedacted = readRepRedactedCommentSession(req, representationRef);
+			if (!commentRedacted) {
+				commentRedacted = representation.redactedComment || comment;
+			}
+			const redactionSuggestions = result?.entities || [];
+			const noUserChanges = comment === commentRedacted;
+			if (noUserChanges) {
+				// 'accept' all suggestions if there haven't been any changes made by the user
+				commentRedacted = result?.redactedText || comment;
+			}
+			for (const redactionSuggestion of redactionSuggestions) {
+				redactionSuggestion.accepted =
+					noUserChanges || commentRedacted.charAt(redactionSuggestion.offset) === REDACT_CHARACTER;
+			}
+
 			const response = new JourneyResponse(JOURNEY_ID, 'ref-1', {
-				comment: representation.comment,
-				commentRedacted: readRepRedactedCommentSession(req, representationRef) || ''
+				comment: highlightRedactionSuggestions(comment, redactionSuggestions),
+				commentRedacted
 			});
+
 			const journey = new createRedactJourney(response, req);
 			const section = journey.sections[0];
 			const question = section.questions[0];
@@ -275,8 +297,10 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }, journ
 				question.renderAction(res, validationErrors);
 				return;
 			}
-			const viewModel = question.prepQuestionForRendering(section, journey);
-			viewModel.reference = representationRef;
+			const viewModel = question.prepQuestionForRendering(section, journey, {
+				reference: representationRef,
+				redactionSuggestions
+			});
 			question.renderAction(res, viewModel);
 		},
 		async redactRepresentationPost(req, res) {
