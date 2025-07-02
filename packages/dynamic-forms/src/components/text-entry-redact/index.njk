@@ -53,9 +53,15 @@
                     {% include question.html ignore missing %}
                 {% endif %}
 
+                <label class="govuk-label govuk-label--s govuk-!-margin-top-5" for="{{ question.fieldName }}-unredacted">
+                    Original
+                    <a href="#" class="govuk-link govuk-!-margin-left-2" id="toggle-original">Hide</a>
+                </label>
+
                 {{ govukInsetText({
                     html: question.value,
-                    id: question.fieldName + "-unredacted"
+                    id: question.fieldName + "-unredacted",
+                    classes: "govuk-!-margin-top-0"
                 }) }}
 
                 {{ govukTextarea({
@@ -154,8 +160,9 @@
              * @param {HTMLDivElement} unredactedText
              * @param {HTMLAnchorElement[]} rejectLinks
              * @param {import('@azure/ai-text-analytics').PiiEntity[]} suggestions
+             * @param {HTMLAnchorElement} toggleOriginal
              */
-            function registerEventListeners({textArea, redactSelectedText, redactUndo, redactUndoAll, unredactedText, rejectLinks, suggestions}) {
+            function registerEventListeners({textArea, redactSelectedText, redactUndo, redactUndoAll, unredactedText, rejectLinks, suggestions, toggleOriginal}) {
 				const formGroup = textArea.parentElement;
                 const errorMessage = document.createElement('p');
                 errorMessage.id = '{{ question.fieldName }}-error';
@@ -223,6 +230,16 @@
                         }
                     });
                 }
+                toggleOriginal.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    if (unredactedText.classList.contains('govuk-!-display-none')) {
+                        unredactedText.classList.remove('govuk-!-display-none');
+                        toggleOriginal.text = 'Hide';
+                    } else {
+                        unredactedText.classList.add('govuk-!-display-none');
+                        toggleOriginal.text = 'Show';
+                    }
+                });
             }
 
             function initRedact() {
@@ -231,6 +248,7 @@
                 const redactUndo = document.querySelector('#redact-undo');
                 const redactUndoAll = document.querySelector('#redact-undo-all');
                 const unredactedText = document.querySelector('#{{ question.fieldName }}-unredacted');
+                const toggleOriginal = document.querySelector('#toggle-original');
                 const rejectLinks = document.querySelectorAll('[data-redact]');
                 {% if not redactionSuggestions %}
                     {% set redactionSuggestions = [] %}
@@ -252,8 +270,11 @@
                 if (!unredactedText || !(unredactedText instanceof HTMLDivElement)) {
                     return;
                 }
+                if (!toggleOriginal || !(toggleOriginal instanceof HTMLAnchorElement)) {
+                    return;
+                }
 
-                registerEventListeners({textArea, redactSelectedText, redactUndo, redactUndoAll, unredactedText, rejectLinks, suggestions});
+                registerEventListeners({textArea, redactSelectedText, redactUndo, redactUndoAll, unredactedText, rejectLinks, suggestions, toggleOriginal});
             }
 
             initRedact();
