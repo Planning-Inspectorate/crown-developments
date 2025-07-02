@@ -12,6 +12,9 @@
     "express-validator": "*",
     "nunjucks": "*"
   },
+  "devDependencies": {
+    "govuk-frontend": "*"
+  },
   "imports": {
     "#question-types": "./src/questions/question-types.d.ts"
   }

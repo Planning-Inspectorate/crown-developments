@@ -6,7 +6,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
 {% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
-
+{% from "govuk/components/table/macro.njk" import govukTable %}
 
 {% block before_content %}
     <div class="govuk-grid-row">
@@ -24,9 +24,14 @@
     {{ super() }}
 {% endblock before_content %}
 
+{% set columnWidth = 'govuk-grid-column-two-thirds' %}
+{% if showSuggestionsUi %}
+    {% set columnWidth = 'govuk-grid-column-one-half' %}
+{% endif %}
+
 {% block content %}
     <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
+        <div class="{{ columnWidth }}">
             <form action="" method="post" novalidate>
                 <input type="hidden" name="_csrf" value="{{ _csrf }}">
 
@@ -48,9 +53,15 @@
                     {% include question.html ignore missing %}
                 {% endif %}
 
+                <label class="govuk-label govuk-label--s govuk-!-margin-top-5" for="{{ question.fieldName }}-unredacted">
+                    Original
+                    <a href="#" class="govuk-link govuk-!-margin-left-2" id="toggle-original">Hide</a>
+                </label>
+
                 {{ govukInsetText({
-                    text: question.value,
-                    id: question.fieldName + "-unredacted"
+                    html: question.value,
+                    id: question.fieldName + "-unredacted",
+                    classes: "govuk-!-margin-top-0"
                 }) }}
 
                 {{ govukTextarea({
@@ -97,6 +108,48 @@
                 }) }}
             </form>
         </div>
+        {% if showSuggestionsUi %}
+            <div class="govuk-grid-column-one-half">
+                <h2 class="govuk-heading-m">Redaction suggestions</h2>
+                <p class="govuk-body">
+                    This section includes system suggestions for redactions.
+                    Each row shows the text that is suggested for redaction and the category detected.
+                    They are all redacted by default, you can reject any that should not be redacted by clicking the "Reject" link next to each suggestion.
+                </p>
+                {% set suggestionTableRows = [] %}
+                {% for s in redactionSuggestions  %}
+                    {% set category = s.category %}
+                    {% if s.subCategory %}
+                        {% set category = category + " (" +  s.subCategory + ")" %}
+                    {% endif %}
+                    {% set action = 'Accept' %}
+                    {% if s.accepted %}
+                        {% set action = 'Reject' %}
+                    {% endif %}
+                    {% set suggestionTableRows = (suggestionTableRows.push([
+                        {text: s.text},
+                        {text: category },
+                        {
+                            html: '<a href="#" class="govuk-link" data-redact="suggestion-reject-' + loop.index0 + '">' + action + '</a>'
+                        }
+                    ]), suggestionTableRows) %}
+                {% endfor %}
+                {{  govukTable({
+                    head: [
+                        {
+                            text: "Text"
+                        },
+                        {
+                            text: "Category"
+                        },
+                        {
+                            text: "Action"
+                        }
+                    ],
+                    rows: suggestionTableRows
+                }) }}
+            </div>
+        {% endif %}
 
         <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
             /**
@@ -105,8 +158,11 @@
              * @param {HTMLButtonElement} redactUndo
              * @param {HTMLButtonElement} redactUndoAll
              * @param {HTMLDivElement} unredactedText
+             * @param {HTMLAnchorElement[]} rejectLinks
+             * @param {import('@azure/ai-text-analytics').PiiEntity[]} suggestions
+             * @param {HTMLAnchorElement} toggleOriginal
              */
-            function registerEventListeners({textArea, redactSelectedText, redactUndo, redactUndoAll, unredactedText}) {
+            function registerEventListeners({textArea, redactSelectedText, redactUndo, redactUndoAll, unredactedText, rejectLinks, suggestions, toggleOriginal}) {
 				const formGroup = textArea.parentElement;
                 const errorMessage = document.createElement('p');
                 errorMessage.id = '{{ question.fieldName }}-error';
@@ -160,6 +216,30 @@
                     textArea.value = unredated || '';
                     history.length = 0;
                 });
+                for (const rejectLink of rejectLinks) {
+                    rejectLink.addEventListener('click', () => {
+                        const index = parseInt(rejectLink.getAttribute('data-redact').replace('suggestion-reject-', ''));
+                        const suggestion = suggestions[index];
+                        if (rejectLink.text === 'Reject') {
+                            textArea.value = textArea.value.substring(0, suggestion.offset) + suggestion.text + textArea.value.substring(suggestion.offset + suggestion.length);
+                            rejectLink.text = 'Accept';
+                        } else {
+                            const redactedText = '█'.repeat(suggestion.length);
+                            textArea.value = textArea.value.substring(0, suggestion.offset) + redactedText+ textArea.value.substring(suggestion.offset + suggestion.length);
+                            rejectLink.text = 'Reject';
+                        }
+                    });
+                }
+                toggleOriginal.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    if (unredactedText.classList.contains('govuk-!-display-none')) {
+                        unredactedText.classList.remove('govuk-!-display-none');
+                        toggleOriginal.text = 'Hide';
+                    } else {
+                        unredactedText.classList.add('govuk-!-display-none');
+                        toggleOriginal.text = 'Show';
+                    }
+                });
             }
 
             function initRedact() {
@@ -168,6 +248,12 @@
                 const redactUndo = document.querySelector('#redact-undo');
                 const redactUndoAll = document.querySelector('#redact-undo-all');
                 const unredactedText = document.querySelector('#{{ question.fieldName }}-unredacted');
+                const toggleOriginal = document.querySelector('#toggle-original');
+                const rejectLinks = document.querySelectorAll('[data-redact]');
+                {% if not redactionSuggestions %}
+                    {% set redactionSuggestions = [] %}
+                {% endif %}
+                const suggestions = {{ redactionSuggestions | dump | safe }}
 
                 if (!textArea || !(textArea instanceof HTMLTextAreaElement)) {
                     return;
@@ -184,8 +270,11 @@
                 if (!unredactedText || !(unredactedText instanceof HTMLDivElement)) {
                     return;
                 }
+                if (!toggleOriginal || !(toggleOriginal instanceof HTMLAnchorElement)) {
+                    return;
+                }
 
-                registerEventListeners({textArea, redactSelectedText, redactUndo, redactUndoAll, unredactedText});
+                registerEventListeners({textArea, redactSelectedText, redactUndo, redactUndoAll, unredactedText, rejectLinks, suggestions, toggleOriginal});
             }
 
             initRedact();
