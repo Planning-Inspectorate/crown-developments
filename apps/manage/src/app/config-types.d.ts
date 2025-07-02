@@ -16,6 +16,10 @@ interface Config {
 		redirectUri: string;
 		signoutUrl: string;
 	};
+	azureLanguage: {
+		endpoint: string;
+		key: string;
+	};
 	cacheControl: {
 		maxAge: string;
 	};

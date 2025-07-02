@@ -5,6 +5,7 @@ import { MapCache } from '@pins/crowndev-lib/util/map-cache.js';
 import { buildInitEntraClient } from '@pins/crowndev-lib/graph/cached-entra-client.js';
 import { initLogger } from '@pins/crowndev-lib/util/logger.js';
 import { initGovNotify } from '@pins/crowndev-lib/govnotify/index.js';
+import { AzureKeyCredential, TextAnalyticsClient } from '@azure/ai-text-analytics';
 
 /**
  * This class encapsulates all the services and clients for the application
@@ -39,6 +40,10 @@ export class ManageService {
 	 * @type {import('@pins/crowndev-lib/govnotify/gov-notify-client.js').GovNotifyClient|null}
 	 */
 	notifyClient;
+	/**
+	 * @type {import('@azure/ai-text-analytics').TextAnalyticsClient|null}
+	 */
+	textAnalyticsClient = null;
 
 	/**
 	 * @param {import('./config-types.js').Config} config
@@ -54,6 +59,17 @@ export class ManageService {
 		const entraGroupCache = new MapCache(config.entra.cacheTtl);
 		this.getEntraClient = buildInitEntraClient(!config.auth.disabled, entraGroupCache);
 		this.notifyClient = initGovNotify(config.govNotify, logger);
+
+		// set up the Azure AI Language client if configured
+		if (config.azureLanguage.endpoint && config.azureLanguage.key) {
+			logger.info('initializing Azure AI Language client');
+			this.textAnalyticsClient = new TextAnalyticsClient(
+				config.azureLanguage.endpoint,
+				new AzureKeyCredential(config.azureLanguage.key)
+			);
+		} else {
+			logger.info('Azure AI Language client not configured, skipping initialization');
+		}
 	}
 
 	get appName() {
