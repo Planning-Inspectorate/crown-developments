@@ -473,4 +473,95 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 			assert.deepStrictEqual(journeyResponse.answers[question.fieldName], expectedFiles);
 		});
 	});
+	it('should remove attachment when user removes all files', async () => {
+		const req = {
+			params: { id: 'app123' },
+			session: {
+				files: {
+					app123: {
+						myself: {
+							uploadedFiles: []
+						}
+					}
+				}
+			}
+		};
+		const journeyResponse = {
+			answers: {
+				submittedForId: 'myself',
+				myselfAttachments: [{ name: 'old.pdf', size: 1000 }]
+			}
+		};
+		const result = await question.getDataToSave(req, journeyResponse);
+		assert.deepStrictEqual(result, { answers: { [question.fieldName]: [] } });
+		assert.deepStrictEqual(journeyResponse.answers[question.fieldName], []);
+	});
+
+	it('should show attachments in check-your-answers summary', () => {
+		const journey = {
+			baseUrl: '',
+			taskListUrl: 'task',
+			journeyTemplate: 'template',
+			journeyTitle: 'title',
+			response: {
+				answers: {
+					[question.fieldName]: [{ fileName: 'doc1.pdf' }, { fileName: 'doc2.pdf' }]
+				}
+			},
+			getCurrentQuestionUrl: () => 'url',
+			getBackLink: () => 'back'
+		};
+		const section = { name: 'section-name' };
+		const answer = [{ fileName: 'doc1.pdf' }, { fileName: 'doc2.pdf' }];
+
+		const summary = question.formatAnswerForSummary(section, journey, answer);
+
+		assert.deepStrictEqual(summary, [
+			{
+				key: 'Attachments',
+				value: 'doc1.pdf<br>doc2.pdf',
+				action: [
+					{
+						href: 'url',
+						text: 'Change',
+						visuallyHiddenText: 'Select Attachments'
+					}
+				]
+			}
+		]);
+	});
+
+	it('should handle empty attachments in check-your-answers summary', () => {
+		const journey = {
+			baseUrl: '',
+			taskListUrl: 'task',
+			journeyTemplate: 'template',
+			journeyTitle: 'title',
+			response: {
+				answers: {
+					[question.fieldName]: []
+				}
+			},
+			getCurrentQuestionUrl: () => 'url',
+			getBackLink: () => 'back'
+		};
+		const section = { name: 'section-name' };
+		const answer = [];
+
+		const summary = question.formatAnswerForSummary(section, journey, answer);
+
+		assert.deepStrictEqual(summary, [
+			{
+				key: 'Attachments',
+				value: '-',
+				action: [
+					{
+						href: 'url',
+						text: 'Change',
+						visuallyHiddenText: 'Select Attachments'
+					}
+				]
+			}
+		]);
+	});
 });
