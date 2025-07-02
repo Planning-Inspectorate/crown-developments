@@ -1,6 +1,5 @@
 import { Question } from '@pins/dynamic-forms/src/questions/question.js';
 import { nl2br } from '@pins/dynamic-forms/src/lib/utils.js';
-import { clearSessionData } from '../../../util/session.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
@@ -11,19 +10,21 @@ import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-
  * @property {string} [errorMessage]
  */
 
-const REDACTED_FLAG = 'Redacted';
-
 /**
  * @class
  */
+
+/**
+ * @param {import('@pins/dynamic-forms/src/questions/question-types.js').QuestionParameters} params
+ * @param {Array<string>} allowedFileExtensions
+ * @param {Array<string>} allowedMimeTypes
+ * @param {number} maxFileSizeValue
+ * @param {number} maxFileSizeString
+ */
+
+const REDACTED_FLAG = 'Redacted';
+
 export default class RepresentationAttachments extends Question {
-	/**
-	 * @param {import('@pins/dynamic-forms/src/questions/question-types.js').QuestionParameters} params
-	 * @param {Array<string>} allowedFileExtensions
-	 * @param {Array<string>} allowedMimeTypes
-	 * @param {number} maxFileSizeValue
-	 * @param {number} maxFileSizeString
-	 */
 	constructor({ allowedFileExtensions, allowedMimeTypes, maxFileSizeValue, maxFileSizeString, ...params }) {
 		super({
 			...params,
@@ -129,10 +130,14 @@ export default class RepresentationAttachments extends Question {
 		const applicationId = req.params.id || req.params.applicationId;
 		const submittedForId = journeyResponse.answers?.submittedForId;
 
-		responseToSave.answers[this.fieldName] = req.session.files?.[applicationId]?.[submittedForId]?.uploadedFiles;
-		journeyResponse.answers[this.fieldName] = responseToSave.answers[this.fieldName];
+		let uploadedFiles = req.session.files?.[applicationId]?.[submittedForId]?.uploadedFiles;
 
-		clearSessionData(req, applicationId, [submittedForId], 'files');
+		if (uploadedFiles === undefined) {
+			uploadedFiles = journeyResponse.answers[this.fieldName] || [];
+		}
+
+		responseToSave.answers[this.fieldName] = uploadedFiles;
+		journeyResponse.answers[this.fieldName] = uploadedFiles;
 
 		return responseToSave;
 	}
