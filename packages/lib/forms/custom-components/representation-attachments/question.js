@@ -38,7 +38,11 @@ export default class RepresentationAttachments extends Question {
 
 	prepQuestionForRendering(section, journey, customViewData, payload) {
 		let viewModel = super.prepQuestionForRendering(section, journey, customViewData);
-		viewModel.question.value = payload ? payload[viewModel.question.fieldName] : viewModel.question.value;
+		if (journey.baseUrl.endsWith('/edit')) {
+			viewModel.question.value = payload ? payload[viewModel.question.fieldName] : [];
+		} else {
+			viewModel.question.value = payload ? payload[viewModel.question.fieldName] : viewModel.question.value;
+		}
 
 		const submittedForId = journey.response?.answers?.submittedForId;
 		const fileGroup = customViewData?.files?.[customViewData.id];
