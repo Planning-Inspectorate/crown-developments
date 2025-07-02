@@ -13,6 +13,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@azure/ai-text-analytics": "*",
+    "@azure/identity": "*",
     "@azure/msal-node": "*",
     "@microsoft/microsoft-graph-client": "*",
     "@ministryofjustice/frontend": "*",
