@@ -34,6 +34,8 @@ import { representationAttachmentsFolderPath } from '@pins/crowndev-lib/util/sha
  * @property {Handler} redactRepresentationDocumentPost - handles POST for /task-list/:itemId/redact
  */
 
+const MANAGE_REPS_MANAGE_JOURNEY_ID = 'manage-reps-manage';
+
 /**
  * @type {Handler}
  */
@@ -45,9 +47,10 @@ export async function viewRepresentationAwaitingReview(req, res) {
 
 /**
  * @param {import('#service').ManageService} service
+ * @param {string} [journeyId]
  * @returns {ReviewControllers}
  */
-export function buildReviewControllers({ db, logger, getSharePointDrive }) {
+export function buildReviewControllers({ db, logger, getSharePointDrive }, journeyId) {
 	/** @type {ReviewControllers} */
 	const controllers = {
 		async reviewRepresentationSubmission(req, res) {
@@ -64,13 +67,16 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 
 			const commentStatus = readRepCommentReviewStatusSession(req, representationRef);
 			const reviewDecision = getReviewStatus(commentStatus);
+			const hasUploadedFiles = Object.values(req.session?.files?.[representationRef]).some(
+				({ uploadedFiles }) => uploadedFiles?.length > 0
+			);
 			const sessionFiles = req.session?.files?.[representationRef];
 
 			await updateRepresentationItemsReviewStatus(req, db, logger);
 
-			if (sessionFiles) {
-				const sharePointDrive = getSharePointDrive(req.session);
+			const sharePointDrive = getSharePointDrive(req.session);
 
+			if (hasUploadedFiles) {
 				const allUploadedFileIds = Object.values(sessionFiles)
 					.flatMap((entry) => entry.uploadedFiles)
 					.map((attachment) => attachment.itemId);
@@ -99,20 +105,30 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 					);
 					throw new Error(`Failed to move representation attachments: ${error.message}`);
 				}
+
+				logger.info({ id, representationRef }, 'moved representation attachments');
 			}
-			logger.info({ id, representationRef }, 'moved representation attachments');
+
+			const itemsToDelete = [...new Set(req.session?.itemsToBeDeleted?.[representationRef])];
+			if (itemsToDelete.length > 0) {
+				await Promise.all(
+					itemsToDelete.map((itemId) => deleteDocumentFromSharePointById(req, sharePointDrive, logger, itemId))
+				);
+
+				logger.info({ id, representationRef }, 'deleted all representation attachments marked for deletion');
+			}
 
 			delete req.session?.reviewDecisions?.[representationRef];
 			delete req.session?.files?.[representationRef];
+			delete req.session?.itemsToBeDeleted?.[representationRef];
 
 			const statusName = getStatusDisplayName(reviewDecision);
 			addRepReviewedSession(req, id, statusName);
 
-			const baseUrl = getBaseUrl(req);
 			const repRefUrlSegment = `/${representationRef}`;
-			const redirectUrl = baseUrl.includes(repRefUrlSegment)
-				? baseUrl.slice(0, baseUrl.indexOf(repRefUrlSegment))
-				: baseUrl;
+			const redirectUrl = req.baseUrl.includes(repRefUrlSegment)
+				? req.baseUrl.slice(0, req.baseUrl.indexOf(repRefUrlSegment))
+				: req.baseUrl;
 			res.redirect(redirectUrl);
 		},
 		async reviewRepresentation(req, res) {
@@ -123,7 +139,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				return;
 			}
 
-			res.redirect(getBaseUrl(req) + '/task-list');
+			res.redirect(req.baseUrl + '/task-list');
 		},
 		async representationTaskList(req, res) {
 			const { representationRef } = validateParams(req.params);
@@ -134,6 +150,15 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 
 			if (!req.session?.reviewDecisions?.[representationRef]) {
 				initialiseRepresentationReviewSession(req, representationRef, representation);
+			}
+
+			if (!req.session?.files?.[representationRef]) {
+				initialiseSessionFilesFromRepresentation(req, representationRef, representation);
+			}
+
+			if (journeyId === MANAGE_REPS_MANAGE_JOURNEY_ID && !req.session?.itemsToBeDeleted?.[representationRef]) {
+				req.session.itemsToBeDeleted || (req.session.itemsToBeDeleted = {});
+				req.session.itemsToBeDeleted[representationRef] = [];
 			}
 
 			const repItemsReviewStatus = readRepReviewStatusSession(req, representationRef);
@@ -160,7 +185,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				...representationAttachments.map((attachment) => repItemsReviewStatus?.[attachment.itemId]?.reviewDecision)
 			];
 
-			return res.render('views/cases/view/manage-reps/review/task-list.njk', {
+			return res.render('views/cases/view/manage-reps/task-list/task-list.njk', {
 				reference: representationRef,
 				commentStatusTag,
 				isCommentRejected: representation?.commentStatus === REPRESENTATION_STATUS_ID.REJECTED,
@@ -168,7 +193,8 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				reviewComplete: isReviewComplete(taskStatusList),
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: getTaskListBackLinkUrl(req)
+				backLinkUrl: getTaskListBackLinkUrl(req),
+				isReview: representation?.statusId === REPRESENTATION_STATUS_ID.AWAITING_REVIEW
 			});
 		},
 		async reviewRepresentationComment(req, res, viewData = {}) {
@@ -191,7 +217,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				reject: REPRESENTATION_STATUS_ID.REJECTED,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: getBaseUrl(req) + '/task-list',
+				backLinkUrl: req.baseUrl.slice(0, req.baseUrl.indexOf('/comment')),
 				...viewData
 			});
 		},
@@ -212,7 +238,9 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				return;
 			}
 
-			if (reviewCommentDecision !== ACCEPT_AND_REDACT) {
+			if (reviewCommentDecision === ACCEPT_AND_REDACT) {
+				res.redirect(req.baseUrl + '/redact');
+			} else {
 				const isRejected = reviewCommentDecision === REPRESENTATION_STATUS_ID.REJECTED;
 				const commentStatusBeforeUpdate = readRepCommentReviewStatusSession(req, representationRef);
 				const wasRejected = commentStatusBeforeUpdate === REPRESENTATION_STATUS_ID.REJECTED;
@@ -220,14 +248,13 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				if (isRejected || (wasRejected && !isRejected)) {
 					updateDocumentStatusSession(req, logger, representationRef, isRejected);
 				}
-			}
+				if (isRejected) {
+					await handleDocumentsOnRejectedRepresentation(req, journeyId, getSharePointDrive, db, logger);
+				}
 
-			if (reviewCommentDecision === ACCEPT_AND_REDACT) {
-				res.redirect(getBaseUrl(req) + '/task-list/comment/redact');
-			} else {
 				updateRepReviewSession(req, representationRef, 'comment', { reviewDecision: reviewCommentDecision });
 				clearRepRedactedCommentSession(req, representationRef);
-				res.redirect(getBaseUrl(req) + '/task-list');
+				res.redirect(req.baseUrl.slice(0, req.baseUrl.indexOf('/comment')));
 			}
 		},
 		async redactRepresentation(req, res) {
@@ -268,7 +295,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				return controllers.redactRepresentation(req, res);
 			}
 			logger.info('saving redacted comment to session');
-			res.redirect(getBaseUrl(req) + '/task-list/comment/redact/confirmation');
+			res.redirect(req.baseUrl + '/redact/confirmation');
 		},
 		async redactConfirmation(req, res) {
 			const { representationRef } = validateParams(req.params);
@@ -282,7 +309,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				reference: representationRef,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: getBaseUrl(req) + '/task-list/comment/redact'
+				backLinkUrl: req.baseUrl + '/redact'
 			});
 		},
 		async acceptRedactedComment(req, res) {
@@ -294,7 +321,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			}
 
 			updateRepReviewSession(req, representationRef, 'comment', { reviewDecision: ACCEPT_AND_REDACT });
-			res.redirect(getBaseUrl(req) + '/task-list');
+			res.redirect(req.baseUrl.slice(0, req.baseUrl.indexOf('/comment')));
 		},
 		async reviewRepresentationDocument(req, res, viewData = {}) {
 			const { representationRef } = validateParams(req.params);
@@ -320,13 +347,13 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				reject: REPRESENTATION_STATUS_ID.REJECTED,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: getBaseUrl(req) + '/task-list',
-				currentUrl: getBaseUrl(req) + '/task-list/' + itemId,
+				backLinkUrl: req.baseUrl.slice(0, req.baseUrl.indexOf(`/${itemId}`)),
+				currentUrl: req.baseUrl,
 				...viewData
 			});
 		},
 		async reviewDocumentDecision(req, res) {
-			const { id, representationRef } = validateParams(req.params);
+			const { representationRef } = validateParams(req.params);
 			const itemId = req.params.itemId;
 			if (!itemId) {
 				throw new Error('itemId param required');
@@ -348,26 +375,23 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			}
 
 			if (reviewDocumentDecision === ACCEPT_AND_REDACT) {
-				res.redirect(getBaseUrl(req) + '/task-list/' + itemId + '/redact');
+				res.redirect(req.baseUrl + '/redact');
 			} else {
 				const [redactedFile] = getRedactedFile(req, representationRef, itemId);
 
 				if (redactedFile) {
 					safeDeleteUploadedFilesSession(req, representationRef, itemId);
-					try {
+
+					if (journeyId === MANAGE_REPS_MANAGE_JOURNEY_ID) {
+						req.session?.itemsToBeDeleted?.[representationRef]?.push(redactedFile.itemId);
+					} else {
 						const sharePointDrive = getSharePointDrive(req.session);
-						await sharePointDrive.deleteDocumentById(redactedFile.itemId);
-					} catch (error) {
-						logger.error(
-							{ error, id, representationRef, itemId },
-							`Error deleting file: ${itemId} from Sharepoint folder`
-						);
-						throw new Error('Failed to delete file');
+						await deleteDocumentFromSharePointById(req, sharePointDrive, logger, redactedFile.itemId);
 					}
 				}
 
 				updateRepReviewSession(req, representationRef, itemId, { reviewDecision: reviewDocumentDecision });
-				res.redirect(getBaseUrl(req) + '/task-list');
+				res.redirect(req.baseUrl.slice(0, req.baseUrl.indexOf(`/${itemId}`)));
 			}
 		},
 		async redactRepresentationDocument(req, res, viewData = {}) {
@@ -397,13 +421,13 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 				reference: representationRef,
 				originalFileId: itemId,
 				fileName: document?.fileName,
-				redactedFileId: redactedFile?.itemId || document?.redactedItemId,
-				redactedFileName: redactedFile?.fileName || document?.redactedFileName,
+				redactedFileId: redactedFile?.itemId,
+				redactedFileName: redactedFile?.fileName,
 				allowedMimeTypes: ALLOWED_MIME_TYPES,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: getBaseUrl(req) + '/task-list/' + itemId,
-				currentUrl: getBaseUrl(req) + '/task-list/' + itemId + '/redact',
+				backLinkUrl: req.baseUrl,
+				currentUrl: `${req.baseUrl}/redact`,
 				errors,
 				errorSummary,
 				...viewData
@@ -433,8 +457,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }) {
 			}
 
 			updateRepReviewSession(req, representationRef, itemId, { reviewDecision: ACCEPT_AND_REDACT });
-
-			res.redirect(getBaseUrl(req) + '/task-list');
+			res.redirect(req.baseUrl.slice(0, req.baseUrl.indexOf(`/${itemId}`)));
 		}
 	};
 
@@ -494,12 +517,9 @@ export function buildViewDocument(service, fetchImpl) {
 	};
 }
 
-function getBaseUrl(req) {
-	return req.baseUrl.endsWith('/review') ? req.baseUrl : `${req.baseUrl}/manage`;
-}
-
 function getTaskListBackLinkUrl(req) {
-	return req.baseUrl.endsWith('/review') ? req.baseUrl : `${req.baseUrl}/edit`;
+	const trimmedUrl = req.baseUrl.split('/').slice(0, -2).join('/');
+	return req.baseUrl.endsWith('/review/task-list') ? `${trimmedUrl}/review` : `${trimmedUrl}/view`;
 }
 
 /**
@@ -519,11 +539,41 @@ function initialiseRepresentationReviewSession(req, representationRef, represent
 	);
 	const newReviewData = {
 		...existingReviewData,
-		comment: getReviewDecision(representation?.statusId, representation?.commentRedacted),
+		comment: {
+			...getReviewDecision(representation?.statusId, representation?.commentRedacted),
+			commentRedacted: representation?.commentRedacted
+		},
 		...attachmentEntries
 	};
 
 	addSessionData(req, representationRef, newReviewData, 'reviewDecisions');
+}
+
+function initialiseSessionFilesFromRepresentation(req, representationRef, representation) {
+	const existingFilesData = req.session?.files?.[representationRef] || {};
+	const attachmentEntries = Object.fromEntries(
+		representation?.Attachments.map(({ itemId, redactedItemId, redactedFileName }) => [
+			itemId,
+			{
+				uploadedFiles:
+					redactedItemId && redactedFileName ? [{ itemId: redactedItemId, fileName: redactedFileName }] : []
+			}
+		])
+	);
+	const newReviewData = {
+		...existingFilesData,
+		...attachmentEntries
+	};
+
+	addSessionData(req, representationRef, newReviewData, 'files');
+}
+
+function initialiseEmptySessionFiles(req, representationRef, representation) {
+	const attachmentEntries = Object.fromEntries(
+		representation?.Attachments.map(({ itemId }) => [itemId, { uploadedFiles: [] }])
+	);
+
+	addSessionData(req, representationRef, { ...attachmentEntries }, 'files');
 }
 
 function getReviewDecision(statusId, isRedacted) {
@@ -699,8 +749,6 @@ async function updateRepresentationItemsReviewStatus(req, db, logger) {
 
 	if (!Object.keys(decisions).length) return;
 
-	//TODO: if rejected or doc status is no longer accept & redact then we need to clear the redacted item id and redacted filename from db
-	//TODO: also clear redactedComment if the comment is no longer accept & redact
 	try {
 		await db.$transaction(async (tx) => {
 			for (const [key, value] of Object.entries(decisions)) {
@@ -708,7 +756,7 @@ async function updateRepresentationItemsReviewStatus(req, db, logger) {
 					/** @type {import('@prisma/client').Prisma.RepresentationUpdateInput} */
 					const repUpdate = {
 						statusId: getReviewStatus(value.reviewDecision),
-						commentRedacted: readRepRedactedCommentSession(req, representationRef)
+						commentRedacted: readRepRedactedCommentSession(req, representationRef) || null
 					};
 
 					logger.info({ representationRef, repUpdate }, 'submit representation review');
@@ -729,6 +777,9 @@ async function updateRepresentationItemsReviewStatus(req, db, logger) {
 				if (redactedFile) {
 					repDocUpdate.redactedItemId = redactedFile.itemId;
 					repDocUpdate.redactedFileName = redactedFile.fileName;
+				} else if (value.reviewDecision !== ACCEPT_AND_REDACT) {
+					repDocUpdate.redactedItemId = null;
+					repDocUpdate.redactedFileName = null;
 				}
 
 				const document = await tx.representationDocument.findFirst({
@@ -796,11 +847,57 @@ function getReviewStatus(reviewDecision) {
 }
 
 function safeDeleteUploadedFilesSession(req, representationRef, itemId) {
-	const isSafeKey = (key) => typeof key === 'string' && !['__proto__', 'constructor', 'prototype'].includes(key);
-
-	if (isSafeKey(representationRef) && isSafeKey(itemId)) {
-		delete req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles;
+	if (req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles) {
+		req.session.files[representationRef][itemId].uploadedFiles = [];
 	} else {
 		throw new Error('Invalid key provided to delete uploadedFiles from session data');
+	}
+}
+
+async function deleteDocumentFromSharePointById(req, sharePointDrive, logger, itemId) {
+	const { id, representationRef } = validateParams(req.params);
+	try {
+		await sharePointDrive.deleteDocumentById(itemId);
+	} catch (error) {
+		logger.error({ error, id, representationRef, itemId }, `Error deleting file: ${itemId} from Sharepoint folder`);
+		throw new Error('Failed to delete file');
+	}
+}
+
+async function handleDocumentsOnRejectedRepresentation(req, journeyId, getSharePointDrive, db, logger) {
+	const { representationRef } = validateParams(req.params);
+
+	const sessionFiles = req.session?.files?.[representationRef] || {};
+	const allUploadedFileIds = Object.values(sessionFiles)
+		.flatMap((entry) => entry.uploadedFiles || [])
+		.map((attachment) => attachment.itemId)
+		.filter(Boolean);
+
+	if (allUploadedFileIds.length === 0) return;
+
+	await processUploadedFilesOnRejection(
+		req,
+		journeyId,
+		representationRef,
+		allUploadedFileIds,
+		getSharePointDrive,
+		logger
+	);
+
+	const representation = await db.representation.findUnique({
+		where: { reference: representationRef },
+		include: { Attachments: true }
+	});
+
+	initialiseEmptySessionFiles(req, representationRef, representation);
+}
+
+async function processUploadedFilesOnRejection(req, journeyId, representationRef, fileIds, getSharePointDrive, logger) {
+	if (journeyId === MANAGE_REPS_MANAGE_JOURNEY_ID) {
+		const existingItems = req.session.itemsToBeDeleted?.[representationRef] || [];
+		req.session.itemsToBeDeleted[representationRef] = [...new Set([...existingItems, ...fileIds])];
+	} else {
+		const sharePointDrive = getSharePointDrive(req.session);
+		await Promise.all(fileIds.map((itemId) => deleteDocumentFromSharePointById(req, sharePointDrive, logger, itemId)));
 	}
 }

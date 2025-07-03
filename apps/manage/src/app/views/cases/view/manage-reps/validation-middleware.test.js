@@ -918,7 +918,7 @@ describe('validate-representation-middleware', () => {
 					itemId: '123'
 				},
 				session: {},
-				baseUrl: `/cases/123/manage-representations/456/review`,
+				baseUrl: `/cases/123/manage-representations/456/review/task-list/123`,
 				body: {},
 				files: [
 					{
@@ -998,7 +998,7 @@ describe('validate-representation-middleware', () => {
 					itemId: '123'
 				},
 				session: {},
-				baseUrl: `/cases/123/manage-representations/456/review`,
+				baseUrl: `/cases/123/manage-representations/456/review/task-list/123`,
 				body: {},
 				files: [
 					{
