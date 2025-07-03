@@ -846,7 +846,7 @@ function getReviewStatus(reviewDecision) {
 	return reviewDecision === ACCEPT_AND_REDACT ? REPRESENTATION_STATUS_ID.ACCEPTED : reviewDecision;
 }
 
-function safeDeleteUploadedFilesSession(req, representationRef, itemId) {
+export function safeDeleteUploadedFilesSession(req, representationRef, itemId) {
 	if (req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles) {
 		req.session.files[representationRef][itemId].uploadedFiles = [];
 	} else {
