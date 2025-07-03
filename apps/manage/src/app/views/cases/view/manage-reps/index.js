@@ -2,13 +2,14 @@ import { Router as createRouter } from 'express';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 import { buildListReps } from './list/controller.js';
 import { buildGetJourneyMiddleware, viewRepresentation } from './view/controller.js';
-import { buildReviewControllers, buildViewDocument, viewReviewRedirect } from './review/controller.js';
+import { viewReviewRedirect } from './review/controller.js';
 import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
 import { buildSave, question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
-import { createRoutes as createReviewRoutes } from './review/index.js';
 import { buildUpdateRepresentation } from './edit/controller.js';
 import { createRoutes as createAddRoutes } from './add/index.js';
+import { createRoutes as createReviewRoutes } from './review/index.js';
+import { createRoutes as createTaskListRoutes } from './task-list/index.js';
 import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
 import multer from 'multer';
 import {
@@ -27,27 +28,17 @@ import {
  */
 export function createRoutes(service) {
 	const MANAGE_REPS_EDIT_JOURNEY_ID = 'manage-reps-edit';
+	const MANAGE_REPS_MANAGE_JOURNEY_ID = 'manage-reps-manage';
 	const router = createRouter({ mergeParams: true });
 	const repsRouter = createRouter({ mergeParams: true });
 	const list = buildListReps(service);
-	const reviewRoutes = createReviewRoutes(service);
+
 	const addRepRoutes = createAddRoutes(service);
+	const reviewRoutes = createReviewRoutes(service);
+	const taskListRoutes = createTaskListRoutes(service, MANAGE_REPS_MANAGE_JOURNEY_ID);
+
 	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
-	const {
-		reviewRepresentationSubmission,
-		representationTaskList,
-		reviewRepresentationComment,
-		reviewRepresentationCommentDecision,
-		redactRepresentation,
-		redactRepresentationPost,
-		redactConfirmation,
-		acceptRedactedComment,
-		reviewRepresentationDocument,
-		reviewDocumentDecision,
-		redactRepresentationDocument,
-		redactRepresentationDocumentPost
-	} = buildReviewControllers(service); //TODO: add baseUrl as param for buildReviewControllers to handle redirects etc??
-	const viewDocument = buildViewDocument(service);
+
 	const updateRepFn = buildUpdateRepresentation(service);
 	const saveAnswer = buildSave(updateRepFn, true);
 
@@ -86,22 +77,7 @@ export function createRoutes(service) {
 
 	repsRouter.post('/edit/:section/:question/delete-document/:documentId', getJourney, deleteDocuments);
 
-	repsRouter.get('/manage/task-list', asyncHandler(representationTaskList));
-	repsRouter.post('/manage/task-list', asyncHandler(reviewRepresentationSubmission));
-	repsRouter.get('/manage/task-list/comment', asyncHandler(reviewRepresentationComment));
-	repsRouter.post('/manage/task-list/comment', asyncHandler(reviewRepresentationCommentDecision));
-
-	repsRouter.get('/manage/task-list/comment/redact', asyncHandler(redactRepresentation));
-	repsRouter.post('/manage/task-list/comment/redact', asyncHandler(redactRepresentationPost));
-	repsRouter.get('/manage/task-list/comment/redact/confirmation', getJourney, asyncHandler(redactConfirmation));
-	repsRouter.post('/manage/task-list/comment/redact/confirmation', getJourney, asyncHandler(acceptRedactedComment));
-
-	repsRouter.get('/manage/task-list/:itemId', asyncHandler(reviewRepresentationDocument));
-	repsRouter.post('/manage/task-list/:itemId', asyncHandler(reviewDocumentDecision));
-	repsRouter.get('/manage/task-list/:itemId/view', asyncHandler(viewDocument));
-	repsRouter.get('/manage/task-list/:itemId/redact', asyncHandler(redactRepresentationDocument));
-	repsRouter.post('/manage/task-list/:itemId/redact', asyncHandler(redactRepresentationDocumentPost));
-	repsRouter.get('/manage/task-list/:itemId/redact/:documentId/view', asyncHandler(viewDocument));
+	repsRouter.use('/manage/task-list', taskListRoutes);
 
 	return router;
 }

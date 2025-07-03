@@ -4,7 +4,8 @@
 {% from "govuk/components/task-list/macro.njk" import govukTaskList %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
-{% set title = "Review representation - " + journeyTitle + " - GOV.UK" %}
+{% set titleText = isReview and "Review representation - " or "Manage representation - " %}
+{% set title = titleText + journeyTitle + " - GOV.UK" %}
 {% block pageTitle %}
     {{ title }}
 {% endblock %}
@@ -15,7 +16,7 @@
         <div class="govuk-grid-column-full">
             <h1 class="govuk-heading-l">
                 <span class="govuk-caption-xl">{{ reference }}</span>
-                Review representation
+                {% if isReview %}Review{% else %}Manage{% endif %} representation
             </h1>
         </div>
     </div>

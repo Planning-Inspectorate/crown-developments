@@ -361,7 +361,8 @@ describe('controller', () => {
 				reviewComplete: false,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: 'some/url/review'
+				backLinkUrl: 'some/view',
+				isReview: false
 			});
 		});
 		it('should render task list without documents if does not contains attachments', async () => {
@@ -396,7 +397,37 @@ describe('controller', () => {
 				reviewComplete: false,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: 'some/url/edit'
+				backLinkUrl: '/view',
+				isReview: false
+			});
+		});
+		it('should  populate all session fields if not present at beginning of the journey', async () => {
+			const mockDb = {
+				representation: {
+					findUnique: mock.fn(() => ({
+						comment: 'Some comment to redact here',
+						containsAttachments: false,
+						Attachments: []
+					}))
+				}
+			};
+			const logger = mockLogger();
+			const { representationTaskList } = buildReviewControllers({ db: mockDb, logger }, 'manage-reps-manage');
+
+			const mockReq = {
+				baseUrl: 'some/url',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				body: { comment: 'Some comment to ██████ here' },
+				session: {}
+			};
+			const mockRes = { render: mock.fn() };
+
+			await representationTaskList(mockReq, mockRes);
+
+			assert.deepStrictEqual(mockReq.session, {
+				reviewDecisions: { 'ref-1': { comment: { commentRedacted: undefined, reviewDecision: '' } } },
+				files: { 'ref-1': {} },
+				itemsToBeDeleted: { 'ref-1': [] }
 			});
 		});
 	});
@@ -411,7 +442,7 @@ describe('controller', () => {
 			const { reviewRepresentationComment } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/comment',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: {}
 			};
@@ -432,7 +463,7 @@ describe('controller', () => {
 				reject: 'rejected',
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list'
+				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/review'
 			});
 		});
 	});
@@ -448,7 +479,7 @@ describe('controller', () => {
 			const { reviewRepresentationCommentDecision } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some/url/ref-1/review',
+				baseUrl: 'some/url/ref-1/review/comment',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: { reviewCommentDecision: 'approved' },
 				session: {}
@@ -459,7 +490,7 @@ describe('controller', () => {
 
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			const redirectUrl = mockRes.redirect.mock.calls[0].arguments[0];
-			assert.match(redirectUrl, /some\/url\/ref-1\/review\/task-list$/);
+			assert.match(redirectUrl, /some\/url\/ref-1\/review$/);
 		});
 		it('should save and redirect to redact page if accepted and redacted', async () => {
 			const mockDb = {
@@ -472,7 +503,7 @@ describe('controller', () => {
 			const { reviewRepresentationCommentDecision } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some/url/ref-1/review',
+				baseUrl: 'some/url/ref-1/review/task-list/comment',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: { reviewCommentDecision: ACCEPT_AND_REDACT },
 				session: {}
@@ -493,6 +524,19 @@ describe('controller', () => {
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: { reviewCommentDecision: 'accepted' },
 				session: {
+					itemsToBeDeleted: {
+						'ref-1': []
+					},
+					files: {
+						'ref-1': {
+							DOC1234: {
+								uploadedFiles: []
+							},
+							DOC9876: {
+								uploadedFiles: []
+							}
+						}
+					},
 					reviewDecisions: {
 						['ref-1']: {
 							comment: {
@@ -517,14 +561,53 @@ describe('controller', () => {
 			assert.strictEqual(mockReq.session.reviewDecisions['ref-1']?.['doc-1']?.reviewDecision, 'awaiting-review');
 			assert.strictEqual(mockReq.session.reviewDecisions['ref-1']?.['doc-2']?.reviewDecision, 'awaiting-review');
 		});
-		it('should update document status if comment is rejected', async () => {
-			const { reviewRepresentationCommentDecision } = buildReviewControllers({});
+		it('should update document status and delete from sharepoint if comment is rejected', async () => {
+			const mockSharePoint = {
+				deleteDocumentById: mock.fn()
+			};
+			const mockDb = {
+				representation: {
+					findUnique: mock.fn(() => ({
+						reference: 'ref-1',
+						Attachments: [{ itemId: 'DOC1234' }, { itemId: 'DOC9876' }]
+					}))
+				}
+			};
+
+			const { reviewRepresentationCommentDecision } = buildReviewControllers({
+				db: mockDb,
+				getSharePointDrive: () => mockSharePoint
+			});
 
 			const mockReq = {
 				baseUrl: 'some/url',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: { reviewCommentDecision: 'rejected' },
 				session: {
+					files: {
+						'ref-1': {
+							DOC1234: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'test-pdf.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							},
+							DOC9876: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'redacted-file.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							}
+						}
+					},
 					reviewDecisions: {
 						['ref-1']: {
 							comment: {
@@ -548,6 +631,155 @@ describe('controller', () => {
 			assert.strictEqual(mockReq.session.reviewDecisions['ref-1'].comment?.reviewDecision, 'rejected');
 			assert.strictEqual(mockReq.session.reviewDecisions['ref-1']?.['doc-1']?.reviewDecision, 'rejected');
 			assert.strictEqual(mockReq.session.reviewDecisions['ref-1']?.['doc-2']?.reviewDecision, 'rejected');
+
+			assert.strictEqual(mockSharePoint.deleteDocumentById.mock.callCount(), 2);
+			assert.deepStrictEqual(mockReq.session.files, {
+				'ref-1': { DOC1234: { uploadedFiles: [] }, DOC9876: { uploadedFiles: [] } }
+			});
+		});
+		it('should update document status if comment is rejected without calling sharepoint if no files to delete', async () => {
+			const mockSharePoint = {
+				deleteDocumentById: mock.fn()
+			};
+			const mockDb = {
+				representation: {
+					findUnique: mock.fn(() => ({
+						reference: 'ref-1',
+						Attachments: [{ itemId: 'DOC1234' }, { itemId: 'DOC9876' }]
+					}))
+				}
+			};
+
+			const { reviewRepresentationCommentDecision } = buildReviewControllers({
+				db: mockDb,
+				getSharePointDrive: () => mockSharePoint
+			});
+
+			const mockReq = {
+				baseUrl: 'some/url',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				body: { reviewCommentDecision: 'rejected' },
+				session: {
+					itemsToBeDeleted: {
+						'ref-1': []
+					},
+					files: {
+						'ref-1': {
+							DOC1234: {
+								uploadedFiles: []
+							},
+							DOC9876: {
+								uploadedFiles: []
+							}
+						}
+					},
+					reviewDecisions: {
+						['ref-1']: {
+							comment: {
+								commentRedacted: 'Some comment to ██████ here',
+								reviewDecision: 'accepted'
+							},
+							'doc-1': {
+								reviewDecision: 'accepted'
+							},
+							'doc-2': {
+								reviewDecision: 'accepted'
+							}
+						}
+					}
+				}
+			};
+			const mockRes = { redirect: mock.fn() };
+
+			await reviewRepresentationCommentDecision(mockReq, mockRes);
+
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1'].comment?.reviewDecision, 'rejected');
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1']?.['doc-1']?.reviewDecision, 'rejected');
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1']?.['doc-2']?.reviewDecision, 'rejected');
+
+			assert.strictEqual(mockSharePoint.deleteDocumentById.mock.callCount(), 0);
+			assert.deepStrictEqual(mockReq.session.files, {
+				'ref-1': { DOC1234: { uploadedFiles: [] }, DOC9876: { uploadedFiles: [] } }
+			});
+		});
+		it('should update document status and add to itemsToBeDeleted if comment is rejected and is manage journey', async () => {
+			const mockSharePoint = {
+				deleteDocumentById: mock.fn()
+			};
+			const mockDb = {
+				representation: {
+					findUnique: mock.fn(() => ({
+						reference: 'ref-1',
+						Attachments: [{ itemId: 'DOC1234' }, { itemId: 'DOC9876' }]
+					}))
+				}
+			};
+
+			const { reviewRepresentationCommentDecision } = buildReviewControllers(
+				{ db: mockDb, getSharePointDrive: () => mockSharePoint },
+				'manage-reps-manage'
+			);
+
+			const mockReq = {
+				baseUrl: 'some/url',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				body: { reviewCommentDecision: 'rejected' },
+				session: {
+					itemsToBeDeleted: {
+						'ref-1': []
+					},
+					files: {
+						'ref-1': {
+							DOC1234: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'test-pdf.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							},
+							DOC9876: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'redacted-file.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							}
+						}
+					},
+					reviewDecisions: {
+						['ref-1']: {
+							comment: {
+								commentRedacted: 'Some comment to ██████ here',
+								reviewDecision: 'accepted'
+							},
+							'doc-1': {
+								reviewDecision: 'accepted'
+							},
+							'doc-2': {
+								reviewDecision: 'accept-and-redact'
+							}
+						}
+					}
+				}
+			};
+			const mockRes = { redirect: mock.fn() };
+
+			await reviewRepresentationCommentDecision(mockReq, mockRes);
+
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1'].comment?.reviewDecision, 'rejected');
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1']?.['doc-1']?.reviewDecision, 'rejected');
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1']?.['doc-2']?.reviewDecision, 'rejected');
+
+			assert.strictEqual(mockSharePoint.deleteDocumentById.mock.callCount(), 0);
+			assert.deepStrictEqual(mockReq.session.itemsToBeDeleted, {
+				'ref-1': ['012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7']
+			});
 		});
 		it('should return errors if no comment decision provided', async () => {
 			const mockDb = {
@@ -559,7 +791,7 @@ describe('controller', () => {
 			const { reviewRepresentationCommentDecision } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/comment',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: {},
 				session: {}
@@ -722,7 +954,7 @@ describe('controller', () => {
 			const { acceptRedactedComment } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/comment',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				session: {
 					reviewDecisions: {
@@ -791,7 +1023,7 @@ describe('controller', () => {
 			const { reviewRepresentationDocument } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
 				session: {
 					reviewDecisions: {
@@ -900,7 +1132,7 @@ describe('controller', () => {
 			const { reviewDocumentDecision } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
 				session: {
 					reviewDecisions: {
@@ -933,7 +1165,7 @@ describe('controller', () => {
 			const logger = mockLogger();
 			const { reviewDocumentDecision } = buildReviewControllers({ logger, getSharePointDrive: () => mockSharePoint });
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
 				session: {
 					files: {
@@ -983,7 +1215,7 @@ describe('controller', () => {
 				'some-url-here/case-1/manage-representations/ref-1/review/task-list'
 			);
 			assert.strictEqual(mockSharePoint.deleteDocumentById.mock.callCount(), 1);
-			assert.deepStrictEqual(mockReq.session.files?.['ref-1']?.DOC1234.uploadedFiles, undefined);
+			assert.deepStrictEqual(mockReq.session.files?.['ref-1']?.DOC1234.uploadedFiles, []);
 		});
 		it('should throw error if error returned from sharepoint', async () => {
 			const mockSharePoint = {
@@ -1051,7 +1283,7 @@ describe('controller', () => {
 			const { reviewDocumentDecision } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
 				session: {
 					files: {
@@ -1132,7 +1364,7 @@ describe('controller', () => {
 			const logger = mockLogger();
 			const { redactRepresentationDocument } = buildReviewControllers({ db: mockDb, logger });
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
 				session: {
 					files: {
@@ -1216,7 +1448,7 @@ describe('controller', () => {
 			const { redactRepresentationDocument } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
 				session: {
 					errors: { 'upload-form': { msg: 'Upload an attachment' } },
@@ -1306,7 +1538,7 @@ describe('controller', () => {
 			const { redactRepresentationDocumentPost } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
 				session: {
 					files: {
@@ -1367,7 +1599,7 @@ describe('controller', () => {
 			const { redactRepresentationDocumentPost } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234',
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
 				session: {
 					files: {
