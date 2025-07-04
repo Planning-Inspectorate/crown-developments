@@ -60,7 +60,8 @@ describe('controller', () => {
 		it('should handle submission and clear related session data', async () => {
 			const mockSharePoint = {
 				getDriveItemByPath: mock.fn(() => 'drive-id'),
-				moveItemsToFolder: mock.fn()
+				moveItemsToFolder: mock.fn(),
+				deleteDocumentById: mock.fn()
 			};
 			const mockDb = {
 				$transaction: mock.fn((fn) => fn(mockDb)),
@@ -87,6 +88,9 @@ describe('controller', () => {
 				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'ID1234' },
 				body: {},
 				session: {
+					itemsToBeDeleted: {
+						'ref-1': ['012D6AZFDCQ6AFNGRA35HJKMBRK34SFYL6', '012D6AZFDCQ6AFNGRA35HJKMBRK34SFYL3']
+					},
 					files: {
 						'ref-1': {
 							ID1234: {
@@ -163,6 +167,8 @@ describe('controller', () => {
 				'012D6AZFDCQ6AFNGRA35HJKMBRK34SFYL8',
 				'012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7'
 			]);
+
+			assert.strictEqual(mockSharePoint.deleteDocumentById.mock.callCount(), 2);
 
 			assert.strictEqual(mockReq.session?.reviewDecisions?.['ref-1'], undefined);
 			assert.strictEqual(mockReq.session?.files?.['ref-1'], undefined);
