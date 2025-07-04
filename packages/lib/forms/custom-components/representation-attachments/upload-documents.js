@@ -11,6 +11,8 @@ import { getApplicationNameFolder } from '../../../util/handle-attachments.js';
 const CONTENT_UPLOAD_FILE_LIMIT = 4 * 1024 * 1024; // 4MB
 const TOTAL_UPLOAD_LIMIT = 1073741824; // 1GB
 
+const MANAGE_REPS_EDIT_JOURNEY_ID = 'manage-reps-edit';
+const MANAGE_REPS_MANAGE_JOURNEY_ID = 'manage-reps-manage';
 const MANAGE_REPS_REVIEW_JOURNEY_ID = 'manage-reps-review';
 
 export function uploadDocumentsController(
@@ -41,11 +43,11 @@ export function uploadDocumentsController(
 		const sessionId = req.sessionID;
 		const journeyResponse = res.locals?.journeyResponse;
 
-		const isManageRepsReview = journeyId === MANAGE_REPS_REVIEW_JOURNEY_ID;
+		const isManageRepsJourney = isManageRepsJourneyId(journeyId);
 
-		const submittedForId = isManageRepsReview ? undefined : getSubmittedForId(journeyResponse?.answers);
+		const submittedForId = isManageRepsJourney ? undefined : getSubmittedForId(journeyResponse?.answers);
 
-		const leafFolderName = isManageRepsReview ? req.params.itemId : submittedForId;
+		const leafFolderName = isManageRepsJourney ? req.params.itemId : submittedForId;
 
 		const folderPath = await createSessionSharepointFolders(
 			drive,
@@ -130,8 +132,8 @@ export function uploadDocumentsController(
 				});
 			});
 
-			const sessionIdKey = isManageRepsReview ? req.params.representationRef : applicationId;
-			const sessionKey = isManageRepsReview ? req.params.itemId : submittedForId;
+			const sessionIdKey = isManageRepsJourney ? req.params.representationRef : applicationId;
+			const sessionKey = isManageRepsJourney ? req.params.itemId : submittedForId;
 			addSessionData(req, sessionIdKey, { [sessionKey]: { uploadedFiles } }, 'files');
 		}
 
@@ -154,14 +156,14 @@ export function deleteDocumentsController({ logger, appName, sharePointDrive, ge
 		}
 
 		const journeyResponse = res.locals?.journeyResponse;
-		const isManageRepsReview = journeyId === MANAGE_REPS_REVIEW_JOURNEY_ID;
+		const isManageRepsJourney = isManageRepsJourneyId(journeyId);
 		let submittedForId;
-		if (!isManageRepsReview) {
+		if (!isManageRepsJourney) {
 			submittedForId = getSubmittedForId(journeyResponse?.answers);
 		}
 
-		const sessionIdKey = isManageRepsReview ? req.params.representationRef : applicationId;
-		const sessionKey = isManageRepsReview ? req.params.itemId : submittedForId;
+		const sessionIdKey = isManageRepsJourney ? req.params.representationRef : applicationId;
+		const sessionKey = isManageRepsJourney ? req.params.itemId : submittedForId;
 
 		let uploadedFiles = req.session?.files?.[sessionIdKey]?.[sessionKey]?.uploadedFiles || [];
 		uploadedFiles = uploadedFiles.filter((file) => file.itemId !== itemId);
@@ -284,8 +286,17 @@ function getRedirectUrl(appName, applicationId, journeyId, submittedForId, reque
 		'have-your-say': `/applications/${applicationId}/${journeyId}/${journeyMap[submittedForId]}/select-attachments`,
 		'add-representation': `/cases/${applicationId}/manage-representations/${journeyId}/${journeyMap[submittedForId]}/select-attachments`,
 		'manage-reps-edit': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/edit/${journeyMap[submittedForId]}/select-attachments`,
+		'manage-reps-manage': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/manage/task-list/${requestParams?.itemId}/redact`,
 		'manage-reps-review': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/review/task-list/${requestParams?.itemId}/redact`
 	};
 
 	return redirectUrlMap[journeyId];
+}
+
+function isManageRepsJourneyId(journeyId) {
+	return (
+		journeyId === MANAGE_REPS_REVIEW_JOURNEY_ID ||
+		journeyId === MANAGE_REPS_EDIT_JOURNEY_ID ||
+		journeyId === MANAGE_REPS_MANAGE_JOURNEY_ID
+	);
 }

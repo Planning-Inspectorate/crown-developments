@@ -2,13 +2,14 @@ import { Router as createRouter } from 'express';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 import { buildListReps } from './list/controller.js';
 import { buildGetJourneyMiddleware, viewRepresentation } from './view/controller.js';
-import { buildReviewControllers, viewReviewRedirect } from './review/controller.js';
+import { viewReviewRedirect } from './review/controller.js';
 import validate from '@pins/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@pins/dynamic-forms/src/validator/validation-error-handler.js';
 import { buildSave, question } from '@pins/dynamic-forms/src/controller.js';
-import { createRoutes as createReviewRoutes } from './review/index.js';
 import { buildUpdateRepresentation } from './edit/controller.js';
 import { createRoutes as createAddRoutes } from './add/index.js';
+import { createRoutes as createReviewRoutes } from './review/index.js';
+import { createRoutes as createTaskListRoutes } from './task-list/index.js';
 import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
 import multer from 'multer';
 import {
@@ -27,13 +28,17 @@ import {
  */
 export function createRoutes(service) {
 	const MANAGE_REPS_EDIT_JOURNEY_ID = 'manage-reps-edit';
+	const MANAGE_REPS_MANAGE_JOURNEY_ID = 'manage-reps-manage';
 	const router = createRouter({ mergeParams: true });
 	const repsRouter = createRouter({ mergeParams: true });
 	const list = buildListReps(service);
-	const reviewRoutes = createReviewRoutes(service);
+
 	const addRepRoutes = createAddRoutes(service);
+	const reviewRoutes = createReviewRoutes(service);
+	const taskListRoutes = createTaskListRoutes(service, MANAGE_REPS_MANAGE_JOURNEY_ID);
+
 	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
-	const { representationTaskList } = buildReviewControllers(service);
+
 	const updateRepFn = buildUpdateRepresentation(service);
 	const saveAnswer = buildSave(updateRepFn, true);
 
@@ -72,7 +77,7 @@ export function createRoutes(service) {
 
 	repsRouter.post('/edit/:section/:question/delete-document/:documentId', getJourney, deleteDocuments);
 
-	repsRouter.get('/manage/task-list', asyncHandler(representationTaskList));
+	repsRouter.use('/manage/task-list', taskListRoutes);
 
 	return router;
 }
