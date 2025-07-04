@@ -112,7 +112,7 @@ export function buildGetJourneyMiddleware({ db, logger, isRepsUploadDocsLive }) 
 			actionOverrides: {
 				statusShouldShowManageAction: true,
 				redactedCommentShowManageAction: answers?.statusId === REPRESENTATION_STATUS_ID.ACCEPTED,
-				canEditAttachmentsUploadedAction: answers?.statusId !== REPRESENTATION_STATUS_ID.REJECTED,
+				canEditAttachmentsUploaded: answers?.statusId !== REPRESENTATION_STATUS_ID.REJECTED,
 				taskListUrl: req.baseUrl + '/manage/task-list'
 			}
 		});
