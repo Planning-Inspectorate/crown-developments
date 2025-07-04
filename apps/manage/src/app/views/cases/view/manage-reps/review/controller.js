@@ -409,13 +409,19 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }, journ
 
 			const document = await db.representationDocument.findFirst({
 				where: { itemId: itemId },
-				select: { fileName: true, redactedItemId: true, redactedFileName: true }
+				select: { statusId: true, fileName: true, redactedItemId: true, redactedFileName: true }
 			});
 			if (document === null) {
 				return notFoundHandler(req, res);
 			}
 
 			const [redactedFile] = getRedactedFile(req, representationRef, itemId);
+
+			const isAccepted = document?.statusId === REPRESENTATION_STATUS_ID.ACCEPTED;
+			const isMatchingRedactedItem = document?.redactedItemId === redactedFile?.itemId;
+			const isMatchingRedactedFile = document?.redactedFileName === redactedFile?.fileName;
+
+			const shouldShowHintText = isAccepted && isMatchingRedactedItem && isMatchingRedactedFile;
 
 			return res.render('views/cases/view/manage-reps/review/redact-document.njk', {
 				reference: representationRef,
@@ -428,6 +434,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }, journ
 				layoutTemplate: 'views/layouts/forms-question.njk',
 				backLinkUrl: req.baseUrl,
 				currentUrl: `${req.baseUrl}/redact`,
+				shouldShowHintText,
 				errors,
 				errorSummary,
 				...viewData
