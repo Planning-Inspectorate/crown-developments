@@ -398,6 +398,39 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				}
 			]);
 		});
+		it('should format action with add only if journey is manage-representations and status is accepted and documents list is empty', () => {
+			const journey = {
+				baseUrl: '',
+				taskListUrl: 'task',
+				journeyTemplate: 'template',
+				journeyTitle: 'title',
+				journeyId: 'manage-representations',
+				initialBackLink: '/view',
+				response: {
+					answers: {
+						statusId: 'accepted'
+					}
+				},
+				getCurrentQuestionUrl: () => {
+					return 'url';
+				},
+				getBackLink: () => {
+					return 'back';
+				}
+			};
+			const section = {
+				name: 'section-name'
+			};
+
+			const result = question.getAction(section, journey, []);
+			assert.deepStrictEqual(result, [
+				{
+					href: 'url',
+					text: 'Add',
+					visuallyHiddenText: 'Select Attachments'
+				}
+			]);
+		});
 		it('should format action if journey is manage-representations and status is rejected', () => {
 			const journey = {
 				baseUrl: '',
