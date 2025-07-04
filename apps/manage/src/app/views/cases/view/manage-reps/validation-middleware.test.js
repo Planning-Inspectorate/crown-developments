@@ -987,7 +987,8 @@ describe('validate-representation-middleware', () => {
 						text: 'Original attachment has the same name',
 						href: '#upload-form'
 					}
-				]
+				],
+				shouldShowHintText: false
 			});
 		});
 		it('should return errors if file with same name already exists in sharepoint folder', async () => {
@@ -1067,7 +1068,8 @@ describe('validate-representation-middleware', () => {
 						text: 'File with this name already exists on Representation',
 						href: '#upload-form'
 					}
-				]
+				],
+				shouldShowHintText: false
 			});
 		});
 		it('should return not found handler when id req param is null', async () => {

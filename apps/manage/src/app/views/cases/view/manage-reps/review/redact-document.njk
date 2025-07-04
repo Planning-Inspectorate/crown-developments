@@ -17,6 +17,9 @@
                 <span class="govuk-caption-xl">{{ reference }}</span>
                 Redact original attachment
             </h1>
+            {% if shouldShowHintText %}
+                <div class="govuk-hint">When replacing the redacted file you must use a new file name.</div>
+            {% endif %}
         </div>
     </div>
     <div class="govuk-grid-row">
