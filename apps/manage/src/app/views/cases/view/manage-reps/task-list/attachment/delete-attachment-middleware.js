@@ -18,7 +18,7 @@ export function buildDeleteRepresentationRedactedDocumentMiddleware(journeyId) {
 			}
 
 			safeDeleteUploadedFilesSession(req, representationRef, itemId);
-			req.session?.itemsToBeDeleted?.[representationRef]?.push(params.documentId);
+			req.session?.itemsToBeDeleted?.[representationRef]?.push(documentId);
 
 			return res.redirect(req.baseUrl + '/redact');
 		}
