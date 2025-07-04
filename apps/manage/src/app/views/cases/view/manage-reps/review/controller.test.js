@@ -1440,7 +1440,96 @@ describe('controller', () => {
 				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234',
 				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234/redact',
 				errors: undefined,
-				errorSummary: undefined
+				errorSummary: undefined,
+				shouldShowHintText: false
+			});
+		});
+		it('should render representation document page without errors and with hint text', async () => {
+			const mockDb = {
+				representationDocument: {
+					findFirst: mock.fn(() => ({
+						statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+						fileName: 'test.pdf',
+						redactedItemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+						redactedFileName: 'test-pdf.pdf'
+					}))
+				}
+			};
+			const logger = mockLogger();
+			const { redactRepresentationDocument } = buildReviewControllers({ db: mockDb, logger });
+			const mockReq = {
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234',
+				params: { id: 'case-1', representationRef: 'ref-1', itemId: 'DOC1234' },
+				session: {
+					files: {
+						'ref-1': {
+							DOC1234: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'test-pdf.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							},
+							DOC9876: {
+								uploadedFiles: [
+									{
+										itemId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+										fileName: 'redacted-file.pdf',
+										mimeType: 'application/pdf',
+										size: 227787
+									}
+								]
+							}
+						}
+					},
+					reviewDecisions: {
+						'ref-1': {
+							DOC1234: {
+								reviewDecision: 'accepted'
+							}
+						}
+					}
+				},
+				body: {}
+			};
+			const mockRes = {
+				locals: { journey: { sections: [], isComplete: () => true }, journeyResponse: { answers: {} } },
+				render: mock.fn()
+			};
+
+			await redactRepresentationDocument(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/cases/view/manage-reps/review/redact-document.njk'
+			);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				reference: 'ref-1',
+				originalFileId: 'DOC1234',
+				fileName: 'test.pdf',
+				redactedFileId: '012D6AZFDCQ6AFNGRA35HJKMBRK34SFXK7',
+				redactedFileName: 'test-pdf.pdf',
+				allowedMimeTypes: [
+					'application/pdf',
+					'image/png',
+					'image/jpeg',
+					'image/tiff',
+					'application/msword',
+					'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+					'application/vnd.ms-excel',
+					'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+				],
+				journeyTitle: 'Manage Reps',
+				layoutTemplate: 'views/layouts/forms-question.njk',
+				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234',
+				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234/redact',
+				errors: undefined,
+				errorSummary: undefined,
+				shouldShowHintText: true
 			});
 		});
 		it('should render representation document page with errors', async () => {
@@ -1526,7 +1615,8 @@ describe('controller', () => {
 				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234',
 				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234/redact',
 				errors: { 'upload-form': { msg: 'Upload an attachment' } },
-				errorSummary: [{ text: 'Upload an attachment', href: '#upload-form' }]
+				errorSummary: [{ text: 'Upload an attachment', href: '#upload-form' }],
+				shouldShowHintText: false
 			});
 			assert.deepStrictEqual(mockReq.session.errors, undefined);
 			assert.deepStrictEqual(mockRes.render.errorSummary, undefined);
@@ -1666,7 +1756,8 @@ describe('controller', () => {
 				backLinkUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234',
 				currentUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234/redact',
 				errors: { 'upload-form': { msg: 'Upload an attachment' } },
-				errorSummary: [{ text: 'Upload an attachment', href: '#upload-form' }]
+				errorSummary: [{ text: 'Upload an attachment', href: '#upload-form' }],
+				shouldShowHintText: false
 			});
 			assert.deepStrictEqual(mockReq.session.reviewDecisions?.['ref-1']?.DOC1234.reviewDecision, 'accepted');
 		});
