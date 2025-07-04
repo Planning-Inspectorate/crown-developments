@@ -196,7 +196,8 @@ export function representationsContactQuestions({ prefix, actionOverrides = {}, 
 		question: 'Do you want to include attachments with your comment?',
 		fieldName: `${prefix}ContainsAttachments`,
 		url: 'do-you-want-attachment',
-		validators: [new RequiredValidator('Select yes if you want to include attachments')]
+		validators: [new RequiredValidator('Select yes if you want to include attachments')],
+		editable: actionOverrides.canEditAttachmentsUploadedAction
 	};
 
 	questions[`${prefix}SelectAttachments`] = {
