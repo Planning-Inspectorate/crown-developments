@@ -4,15 +4,27 @@ import { validateParams } from '../view/controller.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { publishedRepresentationsAttachmentsRootFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import {
+	deleteRepresentationAttachmentsFolder,
+	moveAttachmentsToCaseFolder
+} from '@pins/crowndev-lib/util/handle-attachments.js';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
  * @param {import('#service').ManageService} service
+ * @param {import('@pins/crowndev-lib/util/handle-attachments.js').MoveAttachmentsToCaseFolderFn} [moveAttachmentsToCaseFolderFn] Optional function to move attachments to case folder for testing
+ * @param {import('@pins/crowndev-lib/util/handle-attachments.js').DeleteRepresentationAttachmentsFolderFn} [deleteRepresentationAttachmentsFolderFn] Optional function to delete representation attachments folder for testing
  * @returns {import('@planning-inspectorate/dynamic-forms/src/controller.js').SaveDataFn}
  */
-export function buildUpdateRepresentation({ db, logger, getSharePointDrive }) {
+export function buildUpdateRepresentation(
+	{ db, logger, getSharePointDrive },
+	moveAttachmentsToCaseFolderFn = moveAttachmentsToCaseFolder,
+	deleteRepresentationAttachmentsFolderFn = deleteRepresentationAttachmentsFolder
+) {
 	return async ({ res, req, data }) => {
 		const { id, representationRef } = validateParams(req.params);
 		const toSave = data?.answers || {};
+		const sharePointDrive = getSharePointDrive(req.session);
 		if (Object.keys(toSave).length === 0) {
 			logger.info({ id, representationRef }, 'no representation updates to apply');
 			return;
@@ -21,7 +33,6 @@ export function buildUpdateRepresentation({ db, logger, getSharePointDrive }) {
 		const fullViewModel = res.locals?.journeyResponse?.answers || {};
 
 		if (toSave.containsAttachments && fullViewModel.sharePointFolderCreated !== BOOLEAN_OPTIONS.YES) {
-			const sharePointDrive = getSharePointDrive(req.session);
 			await addRepresentationFolderToSharepoint(
 				sharePointDrive,
 				logger,
@@ -29,6 +40,61 @@ export function buildUpdateRepresentation({ db, logger, getSharePointDrive }) {
 				representationRef
 			);
 			toSave['sharePointFolderCreated'] = true;
+		}
+
+		const hasAttachments =
+			(toSave.myselfAttachments && toSave.myselfAttachments.length > 0) ||
+			(toSave.submitterAttachments && toSave.submitterAttachments.length > 0);
+
+		if (hasAttachments) {
+			await moveAttachmentsToCaseFolderFn({
+				service: { db, logger, sharePointDrive: getSharePointDrive(req.session) },
+				applicationReference: fullViewModel.applicationReference,
+				representationReference: representationRef,
+				representationAttachments: toSave.myselfAttachments ?? toSave.submitterAttachments
+			});
+
+			try {
+				await db.$transaction(async ($tx) => {
+					const representation = await $tx.representation.findUnique({
+						where: {
+							reference: representationRef
+						}
+					});
+					await $tx.representationDocument.createMany({
+						data: toSave.myselfAttachments.map((attachment) => ({
+							representationId: representation.id,
+							fileName: attachment.fileName,
+							itemId: attachment.itemId,
+							statusId: REPRESENTATION_STATUS_ID.AWAITING_REVIEW
+						}))
+					});
+				});
+			} catch (err) {
+				wrapPrismaError({
+					error: err,
+					logger,
+					message: 'adding representation attachments',
+					logParams: { id, representationRef }
+				});
+			}
+			try {
+				await deleteRepresentationAttachmentsFolderFn(
+					{
+						service: { logger, sharePointDrive },
+						applicationReference: fullViewModel.applicationReference,
+						representationReference: representationRef,
+						appName: 'manage'
+					},
+					req,
+					res
+				);
+			} catch (error) {
+				logger.warn(
+					{ error, applicationReference: fullViewModel.applicationReference, representationRef },
+					'Error deleting representation attachments folder'
+				);
+			}
 		}
 
 		/** @type {import('@prisma/client').Prisma.RepresentationUpdateInput} */

@@ -24,9 +24,62 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 		});
 	});
 	describe('prepQuestionForRendering', () => {
+		it('should prep attachments question for rendering  for edit', () => {
+			const section = { name: 'sectionA' };
+			const journey = {
+				baseUrl: '/cases/123456ab-1234-1234-1234-1234567890ab/manage-representations/AAAAA-BBBBB/edit',
+				response: {
+					answers: {
+						myselfAttachments: [
+							{
+								originalname: 'test-pdf.pdf',
+								mimetype: 'application/pdf',
+								buffer: {
+									type: 'Buffer'
+								},
+								size: 227787
+							}
+						],
+						submittedForId: 'myself'
+					}
+				},
+				getCurrentQuestionUrl: () => {
+					return 'url';
+				},
+				getBackLink: () => {
+					return 'back';
+				}
+			};
+
+			const uploadedFiles = [
+				{ name: 'file1.pdf', size: 1111 },
+				{ name: 'file2.pdf', size: 2222 }
+			];
+
+			const customViewData = {
+				id: 'app123',
+				files: {
+					app123: {
+						myself: {
+							uploadedFiles
+						}
+					}
+				}
+			};
+
+			const result = question.prepQuestionForRendering(section, journey, customViewData);
+
+			assert.deepStrictEqual(result.question.value, []);
+			assert.deepStrictEqual(result.uploadedFiles, uploadedFiles);
+			assert.strictEqual(
+				result.uploadedFilesEncoded,
+				Buffer.from(JSON.stringify(uploadedFiles), 'utf-8').toString('base64')
+			);
+		});
 		it('should prep attachments question for rendering', () => {
 			const section = { name: 'sectionA' };
 			const journey = {
+				baseUrl: '/cases/123456ab-1234-1234-1234-1234567890ab/manage-representations/AAAAA-BBBBB/manage',
 				response: {
 					answers: {
 						myselfAttachments: [
