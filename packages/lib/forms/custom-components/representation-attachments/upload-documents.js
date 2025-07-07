@@ -4,7 +4,6 @@ import { FILE_PROPERTIES } from '../../../documents/view-model.js';
 import { isValidUuidFormat } from '../../../util/uuid.js';
 import { notFoundHandler } from '../../../middleware/errors.js';
 import { sortByField } from '../../../util/array.js';
-import { addSessionData } from '../../../util/session.js';
 import { getSubmittedForId } from '../../../util/questions.js';
 import { getApplicationNameFolder } from '../../../util/handle-attachments.js';
 
@@ -40,6 +39,7 @@ export function uploadDocumentsController(
 		const caseReference = crownDevelopment.reference;
 		const sessionId = req.sessionID;
 		const journeyResponse = res.locals?.journeyResponse;
+		const folderId = req.params.representationRef ?? applicationId;
 
 		const isManageRepsReview = journeyId === MANAGE_REPS_REVIEW_JOURNEY_ID;
 
@@ -53,7 +53,7 @@ export function uploadDocumentsController(
 			caseReference,
 			appName,
 			sessionId,
-			applicationId,
+			folderId,
 			journeyId,
 			leafFolderName
 		);
@@ -130,9 +130,8 @@ export function uploadDocumentsController(
 				});
 			});
 
-			const sessionIdKey = isManageRepsReview ? req.params.representationRef : applicationId;
-			const sessionKey = isManageRepsReview ? req.params.itemId : submittedForId;
-			addSessionData(req, sessionIdKey, { [sessionKey]: { uploadedFiles } }, 'files');
+			const { sessionIdKey, sessionKey } = getKeys(isManageRepsReview, req, journeyResponse);
+			req.session.forms[sessionIdKey][journeyId][`${sessionKey}Attachments`] = [...uploadedFiles];
 		}
 
 		const redirectUrl = getRedirectUrl(appName, applicationId, journeyId, submittedForId, req.params);
@@ -160,12 +159,11 @@ export function deleteDocumentsController({ logger, appName, sharePointDrive, ge
 			submittedForId = getSubmittedForId(journeyResponse?.answers);
 		}
 
-		const sessionIdKey = isManageRepsReview ? req.params.representationRef : applicationId;
-		const sessionKey = isManageRepsReview ? req.params.itemId : submittedForId;
+		const { sessionIdKey, sessionKey } = getKeys(isManageRepsReview, req, journeyResponse);
+		let uploadedFiles = req.session?.forms?.[sessionIdKey]?.[journeyId]?.[`${sessionKey}Attachments`] || [];
 
-		let uploadedFiles = req.session?.files?.[sessionIdKey]?.[sessionKey]?.uploadedFiles || [];
 		uploadedFiles = uploadedFiles.filter((file) => file.itemId !== itemId);
-		addSessionData(req, sessionIdKey, { [sessionKey]: { uploadedFiles } }, 'files');
+		req.session.forms[sessionIdKey][journeyId][`${sessionKey}Attachments`] = [...uploadedFiles];
 
 		const redirectUrl = getRedirectUrl(appName, applicationId, journeyId, submittedForId, req.params);
 
@@ -288,4 +286,14 @@ function getRedirectUrl(appName, applicationId, journeyId, submittedForId, reque
 	};
 
 	return redirectUrlMap[journeyId];
+}
+
+function getKeys(isManageRepsReview, req, journeyResponse) {
+	const sessionIdKey = isManageRepsReview ? req.params.representationRef : req.params.id || req.params.applicationId;
+	const sessionKey = isManageRepsReview
+		? req.params.itemId
+		: isManageRepsReview
+			? undefined
+			: getSubmittedForId(journeyResponse?.answers);
+	return { sessionIdKey, sessionKey };
 }

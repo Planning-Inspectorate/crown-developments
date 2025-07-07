@@ -19,7 +19,15 @@ describe('upload-documents.js', () => {
 				params: { id: '166c1754-f7dd-440a-b6f1-0f535ea008d5' },
 				sessionID: 'session123',
 				files: [file],
-				session: {},
+				session: {
+					forms: {
+						'166c1754-f7dd-440a-b6f1-0f535ea008d5': {
+							'have-your-say': {
+								submittedForId: 'myself'
+							}
+						}
+					}
+				},
 				body: {}
 			};
 			const res = {
@@ -37,9 +45,22 @@ describe('upload-documents.js', () => {
 					findUnique: mock.fn(() => ({ id: '166c1754-f7dd-440a-b6f1-0f535ea008d5', reference: 'CROWN/2025/00001' }))
 				}
 			};
-
+			const driveItems = [...getDriveItemsByPathData.value];
+			const driveItemsWithFile = [
+				...getDriveItemsByPathData.value,
+				{
+					id: 'newId',
+					name: 'test4.pdf',
+					size: 227787,
+					lastModifiedDateTime: '2024-12-04T12:26:45Z',
+					file: { mimeType: 'application/pdf' }
+				}
+			];
+			const getItemsValues = [driveItems, driveItemsWithFile];
 			const sharePointDrive = {
-				getItemsByPath: () => getDriveItemsByPathData.value,
+				getItemsByPath: mock.fn(() => {
+					return getItemsValues.shift();
+				}),
 				addNewFolder: async () => mock.fn(),
 				uploadDocumentToFolder: async () => mock.fn(),
 				createLargeDocumentUploadSession: async () => ({ uploadUrl: 'http://upload' })
@@ -69,6 +90,29 @@ describe('upload-documents.js', () => {
 				redirectCalledWith,
 				'/applications/166c1754-f7dd-440a-b6f1-0f535ea008d5/have-your-say/myself/select-attachments'
 			);
+			assert.deepStrictEqual(
+				req.session.forms['166c1754-f7dd-440a-b6f1-0f535ea008d5']['have-your-say'].myselfAttachments,
+				[
+					{
+						fileName: 'document_name.docx',
+						itemId: 'id',
+						mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+						size: 19511
+					},
+					{
+						fileName: 'document_name2.docx',
+						itemId: 'id2',
+						mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+						size: 19511
+					},
+					{
+						fileName: 'test4.pdf',
+						itemId: 'newId',
+						mimeType: 'application/pdf',
+						size: 227787
+					}
+				]
+			);
 		});
 		it('should successfully upload document from manage app', async () => {
 			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
@@ -83,7 +127,15 @@ describe('upload-documents.js', () => {
 				params: { id: '166c1754-f7dd-440a-b6f1-0f535ea008d5' },
 				sessionID: 'session123',
 				files: [file],
-				session: {},
+				session: {
+					forms: {
+						'166c1754-f7dd-440a-b6f1-0f535ea008d5': {
+							'add-representation': {
+								submittedForId: 'myself'
+							}
+						}
+					}
+				},
 				body: {}
 			};
 			const res = {
@@ -102,8 +154,22 @@ describe('upload-documents.js', () => {
 				}
 			};
 
+			const driveItems = [...getDriveItemsByPathData.value];
+			const driveItemsWithFile = [
+				...getDriveItemsByPathData.value,
+				{
+					id: 'newId',
+					name: 'test4.pdf',
+					size: 227787,
+					lastModifiedDateTime: '2024-12-04T12:26:45Z',
+					file: { mimeType: 'application/pdf' }
+				}
+			];
+			const getItemsValues = [driveItems, driveItemsWithFile];
 			const sharePointDrive = {
-				getItemsByPath: () => getDriveItemsByPathData.value,
+				getItemsByPath: mock.fn(() => {
+					return getItemsValues.shift();
+				}),
 				addNewFolder: async () => mock.fn(),
 				uploadDocumentToFolder: async () => mock.fn(),
 				createLargeDocumentUploadSession: async () => ({ uploadUrl: 'http://upload' })
@@ -132,6 +198,29 @@ describe('upload-documents.js', () => {
 			assert.strictEqual(
 				redirectCalledWith,
 				'/cases/166c1754-f7dd-440a-b6f1-0f535ea008d5/manage-representations/add-representation/myself/select-attachments'
+			);
+			assert.deepStrictEqual(
+				req.session.forms['166c1754-f7dd-440a-b6f1-0f535ea008d5']['add-representation'].myselfAttachments,
+				[
+					{
+						fileName: 'document_name.docx',
+						itemId: 'id',
+						mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+						size: 19511
+					},
+					{
+						fileName: 'document_name2.docx',
+						itemId: 'id2',
+						mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+						size: 19511
+					},
+					{
+						fileName: 'test4.pdf',
+						itemId: 'newId',
+						mimeType: 'application/pdf',
+						size: 227787
+					}
+				]
 			);
 		});
 		it('should return error messages when total size of files in folder exceeds 1GB and file already exists in folder', async () => {
@@ -432,10 +521,11 @@ describe('upload-documents.js', () => {
 					documentId: 'doc123'
 				},
 				session: {
-					files: {
+					forms: {
 						app456: {
-							myself: {
-								uploadedFiles: [
+							'have-your-say': {
+								submittedForId: 'myself',
+								myselfAttachments: [
 									{ itemId: 'doc123', fileName: 'to-delete.pdf' },
 									{ itemId: 'doc999', fileName: 'keep.pdf' }
 								]
@@ -450,7 +540,11 @@ describe('upload-documents.js', () => {
 					journeyResponse: {
 						journeyId: 'have-your-say',
 						answers: {
-							submittedForId: 'myself'
+							submittedForId: 'myself',
+							myselfAttachments: [
+								{ itemId: 'doc123', fileName: 'to-delete.pdf' },
+								{ itemId: 'doc999', fileName: 'keep.pdf' }
+							]
 						}
 					}
 				},
@@ -473,7 +567,7 @@ describe('upload-documents.js', () => {
 			await controller(req, res);
 
 			assert.strictEqual(redirectCalledWith, '/applications/app456/have-your-say/myself/select-attachments');
-			assert.deepStrictEqual(req.session.files.app456.myself.uploadedFiles, [
+			assert.deepStrictEqual(req.session.forms.app456['have-your-say'].myselfAttachments, [
 				{
 					itemId: 'doc999',
 					fileName: 'keep.pdf'
@@ -495,10 +589,11 @@ describe('upload-documents.js', () => {
 					documentId: 'doc123'
 				},
 				session: {
-					files: {
+					forms: {
 						app456: {
-							myself: {
-								uploadedFiles: [
+							'add-representation': {
+								submittedForId: 'myself',
+								myselfAttachments: [
 									{ itemId: 'doc123', fileName: 'to-delete.pdf' },
 									{ itemId: 'doc999', fileName: 'keep.pdf' }
 								]
@@ -513,7 +608,11 @@ describe('upload-documents.js', () => {
 					journeyResponse: {
 						journeyId: 'add-representation',
 						answers: {
-							submittedForId: 'myself'
+							submittedForId: 'myself',
+							myselfAttachments: [
+								{ itemId: 'doc123', fileName: 'to-delete.pdf' },
+								{ itemId: 'doc999', fileName: 'keep.pdf' }
+							]
 						}
 					}
 				},
@@ -539,7 +638,7 @@ describe('upload-documents.js', () => {
 				redirectCalledWith,
 				'/cases/app456/manage-representations/add-representation/myself/select-attachments'
 			);
-			assert.deepStrictEqual(req.session.files.app456.myself.uploadedFiles, [
+			assert.deepStrictEqual(req.session.forms.app456['add-representation'].myselfAttachments, [
 				{
 					itemId: 'doc999',
 					fileName: 'keep.pdf'

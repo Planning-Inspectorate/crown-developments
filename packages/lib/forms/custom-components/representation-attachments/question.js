@@ -1,6 +1,5 @@
 import { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
 import { nl2br } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
-import { clearSessionData } from '../../../util/session.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
@@ -37,17 +36,9 @@ export default class RepresentationAttachments extends Question {
 	}
 
 	prepQuestionForRendering(section, journey, customViewData, payload) {
-		let viewModel = super.prepQuestionForRendering(section, journey, customViewData);
-		viewModel.question.value = payload ? payload[viewModel.question.fieldName] : viewModel.question.value;
-
-		const submittedForId = journey.response?.answers?.submittedForId;
-		const fileGroup = customViewData?.files?.[customViewData.id];
-		const fileGroupUploadedFiles = fileGroup?.[submittedForId]?.uploadedFiles ?? [];
-		const uploadedFiles = fileGroupUploadedFiles.length > 0 ? fileGroupUploadedFiles : viewModel.question.value;
-
-		viewModel.uploadedFiles = uploadedFiles;
-		viewModel.uploadedFilesEncoded = Buffer.from(JSON.stringify(uploadedFiles), 'utf-8').toString('base64');
-
+		let viewModel = super.prepQuestionForRendering(section, journey, customViewData, payload);
+		viewModel.uploadedFiles = viewModel.question.value;
+		viewModel.uploadedFilesEncoded = Buffer.from(JSON.stringify(viewModel.question.value), 'utf-8').toString('base64');
 		viewModel.question.allowedFileExtensions = this.allowedFileExtensions;
 		viewModel.question.allowedMimeTypes = this.allowedMimeTypes;
 		viewModel.question.maxFileSizeValue = this.maxFileSizeValue;
@@ -68,7 +59,6 @@ export default class RepresentationAttachments extends Question {
 			return this.prepQuestionForRendering(sectionObj, journey, {
 				id: params.id || params.applicationId,
 				currentUrl: originalUrl,
-				files: session.files,
 				errors: hasBodyErrors ? bodyErrors : sessionErrors,
 				errorSummary: hasBodyErrors ? bodyErrorSummary : sessionErrorSummary
 			});
@@ -126,13 +116,7 @@ export default class RepresentationAttachments extends Question {
 
 	async getDataToSave(req, journeyResponse) {
 		let responseToSave = { answers: {} };
-		const applicationId = req.params.id || req.params.applicationId;
-		const submittedForId = journeyResponse.answers?.submittedForId;
-
-		responseToSave.answers[this.fieldName] = req.session.files?.[applicationId]?.[submittedForId]?.uploadedFiles;
-		journeyResponse.answers[this.fieldName] = responseToSave.answers[this.fieldName];
-
-		clearSessionData(req, applicationId, [submittedForId], 'files');
+		responseToSave.answers[this.fieldName] = journeyResponse.answers[this.fieldName];
 
 		return responseToSave;
 	}

@@ -31,11 +31,9 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 					answers: {
 						myselfAttachments: [
 							{
-								originalname: 'test-pdf.pdf',
+								fileName: 'test-pdf.pdf',
 								mimetype: 'application/pdf',
-								buffer: {
-									type: 'Buffer'
-								},
+								itemId: 'newId',
 								size: 227787
 							}
 						],
@@ -50,37 +48,17 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				}
 			};
 
-			const uploadedFiles = [
-				{ name: 'file1.pdf', size: 1111 },
-				{ name: 'file2.pdf', size: 2222 }
-			];
+			const viewModel = question.prepQuestionForRendering(section, journey);
 
-			const customViewData = {
-				id: 'app123',
-				files: {
-					app123: {
-						myself: {
-							uploadedFiles
-						}
-					}
-				}
-			};
-
-			const result = question.prepQuestionForRendering(section, journey, customViewData);
-
-			assert.deepStrictEqual(result.question.value, [
+			assert.deepStrictEqual(viewModel.question.value, [
 				{
-					originalname: 'test-pdf.pdf',
+					fileName: 'test-pdf.pdf',
 					mimetype: 'application/pdf',
-					buffer: { type: 'Buffer' },
+					itemId: 'newId',
 					size: 227787
 				}
 			]);
-			assert.deepStrictEqual(result.uploadedFiles, uploadedFiles);
-			assert.strictEqual(
-				result.uploadedFilesEncoded,
-				Buffer.from(JSON.stringify(uploadedFiles), 'utf-8').toString('base64')
-			);
+			assert.deepStrictEqual(viewModel.uploadedFiles, journey.response.answers.myselfAttachments);
 		});
 	});
 	describe('checkForValidationErrors', () => {
@@ -168,8 +146,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				files: undefined,
 				errors: { field1: 'Invalid' },
 				errorSummary: [{ text: 'Invalid input', href: '#field1' }],
-				uploadedFiles: [{ a: 1 }],
-				uploadedFilesEncoded: 'W3siYSI6MX1d'
+				uploadedFiles: [{ a: 1 }]
 			});
 		});
 		it('should return validation errors when req.session has errors', () => {
@@ -225,8 +202,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				files: ['doc.pdf'],
 				errors: { field2: 'Required' },
 				errorSummary: [{ text: 'Field is required', href: '#field2' }],
-				uploadedFiles: [{ a: 1 }],
-				uploadedFilesEncoded: 'W3siYSI6MX1d'
+				uploadedFiles: [{ a: 1 }]
 			});
 		});
 	});
@@ -437,28 +413,23 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 			const req = {
 				params: { id: 'app123' },
 				session: {
-					files: {
-						app123: {
-							myself: {
-								uploadedFiles: [
-									{ name: 'doc1.pdf', size: 12345 },
-									{ name: 'doc2.pdf', size: 67890 }
-								]
-							}
-						}
-					}
+					forms: {}
 				}
 			};
 
 			const journeyResponse = {
 				answers: {
-					submittedForId: 'myself'
+					submittedForId: 'myself',
+					myselfAttachments: [
+						{ fileName: 'doc1.pdf', itemId: 'id1', mimeType: 'application/pdf', size: 12345 },
+						{ fileName: 'doc2.pdf', itemId: 'id2', mimeType: 'application/pdf', size: 67890 }
+					]
 				}
 			};
 
 			const expectedFiles = [
-				{ name: 'doc1.pdf', size: 12345 },
-				{ name: 'doc2.pdf', size: 67890 }
+				{ fileName: 'doc1.pdf', itemId: 'id1', mimeType: 'application/pdf', size: 12345 },
+				{ fileName: 'doc2.pdf', itemId: 'id2', mimeType: 'application/pdf', size: 67890 }
 			];
 
 			const result = await question.getDataToSave(req, journeyResponse);
