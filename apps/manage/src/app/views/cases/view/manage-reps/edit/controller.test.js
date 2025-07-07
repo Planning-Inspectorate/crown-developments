@@ -7,6 +7,7 @@ import {
 	REPRESENTATION_SUBMITTED_FOR_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { Prisma } from '@prisma/client';
 
 describe('controller', () => {
 	describe('buildUpdateRepresentation', () => {
@@ -26,8 +27,9 @@ describe('controller', () => {
 			const mockDb = {
 				representation: { update: mock.fn() }
 			};
+			const mockSharePoint = mock.fn();
 			const logger = mockLogger();
-			const updateRep = buildUpdateRepresentation({ db: mockDb, logger });
+			const updateRep = buildUpdateRepresentation({ db: mockDb, logger, getSharePointDrive: () => mockSharePoint });
 			const mockReq = { params: { id: 'case-1', representationRef: 'ref-1' } };
 			const mockRes = { locals: {} };
 			await assert.doesNotReject(() => updateRep({ req: mockReq, res: mockRes, data: {} }));
@@ -40,7 +42,8 @@ describe('controller', () => {
 				representation: { update: mock.fn() }
 			};
 			const logger = mockLogger();
-			const updateRep = buildUpdateRepresentation({ db: mockDb, logger });
+			const mockSharePoint = mock.fn();
+			const updateRep = buildUpdateRepresentation({ db: mockDb, logger, getSharePointDrive: () => mockSharePoint });
 			const mockReq = {
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				session: {}
@@ -72,7 +75,11 @@ describe('controller', () => {
 				addNewFolder: mock.fn()
 			};
 
-			const updateRep = buildUpdateRepresentation({ db: mockDb, logger, getSharePointDrive: () => mockSharePoint });
+			const updateRep = buildUpdateRepresentation(
+				{ db: mockDb, logger, getSharePointDrive: () => mockSharePoint },
+				mock.fn,
+				mock.fn
+			);
 
 			const mockReq = {
 				params: { id: 'case-1', representationRef: 'ref-1' },
@@ -115,7 +122,11 @@ describe('controller', () => {
 				addNewFolder: mock.fn()
 			};
 
-			const updateRep = buildUpdateRepresentation({ db: mockDb, logger, getSharePointDrive: () => mockSharePoint });
+			const updateRep = buildUpdateRepresentation(
+				{ db: mockDb, logger, getSharePointDrive: () => mockSharePoint },
+				mock.fn,
+				mock.fn
+			);
 
 			const mockReq = {
 				params: { id: 'case-1', representationRef: 'ref-1' },
@@ -157,7 +168,11 @@ describe('controller', () => {
 				addNewFolder: mock.fn()
 			};
 
-			const updateRep = buildUpdateRepresentation({ db: mockDb, logger, getSharePointDrive: () => mockSharePoint });
+			const updateRep = buildUpdateRepresentation(
+				{ db: mockDb, logger, getSharePointDrive: () => mockSharePoint },
+				mock.fn,
+				mock.fn
+			);
 
 			const mockReq = {
 				params: { id: 'case-1', representationRef: 'ref-1' },
@@ -194,7 +209,11 @@ describe('controller', () => {
 				addNewFolder: mock.fn()
 			};
 
-			const updateRep = buildUpdateRepresentation({ db: mockDb, logger, getSharePointDrive: () => mockSharePoint });
+			const updateRep = buildUpdateRepresentation(
+				{ db: mockDb, logger, getSharePointDrive: () => mockSharePoint },
+				mock.fn,
+				mock.fn
+			);
 
 			const mockReq = {
 				params: { id: 'case-1', representationRef: 'ref-1' },
@@ -234,7 +253,11 @@ describe('controller', () => {
 				})
 			};
 
-			const updateRep = buildUpdateRepresentation({ db: mockDb, logger, getSharePointDrive: () => mockSharePoint });
+			const updateRep = buildUpdateRepresentation(
+				{ db: mockDb, logger, getSharePointDrive: () => mockSharePoint },
+				mock.fn,
+				mock.fn
+			);
 
 			const mockReq = {
 				params: { id: 'case-1', representationRef: 'ref-1' },
@@ -262,6 +285,179 @@ describe('controller', () => {
 			await assert.rejects(() => updateRep({ req: mockReq, res: mockRes, data: edits }), {
 				message: 'Error encountered during sharepoint folder creation'
 			});
+		});
+		it('should update representation with attachments', async () => {
+			const mockDb = {
+				representation: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => {
+						return { id: '12345' };
+					})
+				},
+				representationDocument: { createMany: mock.fn() },
+				$transaction: mock.fn((fn) => fn(mockDb))
+			};
+			const logger = mockLogger();
+			const mockSharePoint = {
+				addNewFolder: mock.fn()
+			};
+			const moveAttachmentsToCaseFolderFn = mock.fn();
+			const deleteRepresentationAttachmentsFolderFn = mock.fn();
+
+			const updateRep = buildUpdateRepresentation(
+				{ db: mockDb, logger, getSharePointDrive: () => mockSharePoint },
+				moveAttachmentsToCaseFolderFn,
+				deleteRepresentationAttachmentsFolderFn
+			);
+
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				session: {}
+			};
+			const edits = {
+				answers: {
+					statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+					wantsToBeHeard: BOOLEAN_OPTIONS.NO,
+					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+					categoryId: 'c-id-1',
+					containsAttachments: true,
+					myselfAttachments: [
+						{
+							itemId: 'item-1',
+							fileName: 'attachment-1.pdf'
+						}
+					]
+				}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							applicationReference: 'CROWN-2025-0000001',
+							sharePointFolderCreated: 'no'
+						}
+					}
+				}
+			};
+			await assert.doesNotReject(() => updateRep({ req: mockReq, res: mockRes, data: edits }));
+			assert.strictEqual(mockDb.$transaction.mock.callCount(), 1);
+			assert.strictEqual(mockDb.representation.findUnique.mock.callCount(), 1);
+			assert.strictEqual(mockDb.representationDocument.createMany.mock.callCount(), 1);
+			assert.strictEqual(mockDb.representationDocument.createMany.mock.calls[0].arguments[0].data.length, 1);
+			assert.deepStrictEqual(mockDb.representationDocument.createMany.mock.calls[0].arguments[0].data[0], {
+				representationId: '12345',
+				itemId: 'item-1',
+				fileName: 'attachment-1.pdf',
+				statusId: REPRESENTATION_STATUS_ID.AWAITING_REVIEW
+			});
+			assert.strictEqual(deleteRepresentationAttachmentsFolderFn.mock.callCount(), 1);
+		});
+		it('should handle prisma error when updating attachments', async () => {
+			const mockDb = {
+				representation: { update: mock.fn() },
+				$transaction: mock.fn(() => {
+					throw new Prisma.PrismaClientKnownRequestError('Error', { code: 'E1' });
+				})
+			};
+			const logger = mockLogger();
+			const mockSharePoint = {
+				addNewFolder: mock.fn()
+			};
+			const moveAttachmentsToCaseFolderFn = mock.fn();
+
+			const updateRep = buildUpdateRepresentation(
+				{ db: mockDb, logger, getSharePointDrive: () => mockSharePoint },
+				moveAttachmentsToCaseFolderFn
+			);
+
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				session: {}
+			};
+			const edits = {
+				answers: {
+					statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+					wantsToBeHeard: BOOLEAN_OPTIONS.NO,
+					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+					categoryId: 'c-id-1',
+					containsAttachments: true,
+					myselfAttachments: [
+						{
+							itemId: 'item-1',
+							fileName: 'attachment-1.pdf'
+						}
+					]
+				}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							applicationReference: 'CROWN-2025-0000001',
+							sharePointFolderCreated: 'no'
+						}
+					}
+				}
+			};
+			await assert.rejects(
+				() => updateRep({ req: mockReq, res: mockRes, data: edits }),
+				(err) => {
+					assert.strictEqual(err.name, 'Error');
+					assert.strictEqual(err.message, 'Error adding representation attachments (E1)');
+					return true;
+				}
+			);
+		});
+		it('should handle prisma errors when updating representation', async () => {
+			const mockDb = {
+				representation: {
+					update: mock.fn(() => {
+						throw new Prisma.PrismaClientKnownRequestError('Error', { code: 'E1' });
+					})
+				}
+			};
+			const logger = mockLogger();
+			const mockSharePoint = {
+				addNewFolder: mock.fn()
+			};
+			const moveAttachmentsToCaseFolderFn = mock.fn();
+
+			const updateRep = buildUpdateRepresentation(
+				{ db: mockDb, logger, getSharePointDrive: () => mockSharePoint },
+				moveAttachmentsToCaseFolderFn
+			);
+
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				session: {}
+			};
+			const edits = {
+				answers: {
+					statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+					wantsToBeHeard: BOOLEAN_OPTIONS.NO,
+					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+					categoryId: 'c-id-1',
+					containsAttachments: false
+				}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							applicationReference: 'CROWN-2025-0000001',
+							sharePointFolderCreated: 'no'
+						}
+					}
+				}
+			};
+			await assert.rejects(
+				() => updateRep({ req: mockReq, res: mockRes, data: edits }),
+				(err) => {
+					assert.strictEqual(err.name, 'Error');
+					assert.strictEqual(err.message, 'Error updating representation (E1)');
+					return true;
+				}
+			);
 		});
 	});
 });
