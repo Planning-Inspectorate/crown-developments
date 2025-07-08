@@ -414,7 +414,55 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 
 		writtenRepsProcedureNotificationDate: dateQuestion({ fieldName: 'writtenRepsProcedureNotificationDate' }),
 		...eventQuestions('hearing'),
+		hearingStatementsDate: {
+			...eventQuestions('hearing').hearingStatementsDate,
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'hearing-statements-date/remove'
+					}
+				]
+			}
+		},
 		...eventQuestions('inquiry'),
+		inquiryStatementsDate: {
+			...eventQuestions('inquiry').inquiryStatementsDate,
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'inquiry-statements-date/remove'
+					}
+				]
+			}
+		},
+		inquiryCaseManagementConferenceDate: {
+			...eventQuestions('inquiry').inquiryCaseManagementConferenceDate,
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'inquiry-case-management-conference-date/remove'
+					}
+				]
+			}
+		},
+		inquiryProofsOfEvidenceDate: {
+			...eventQuestions('inquiry').inquiryProofsOfEvidenceDate,
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'inquiry-proofs-of-evidence-date/remove'
+					}
+				]
+			}
+		},
 
 		hasApplicationFee: {
 			type: CUSTOM_COMPONENTS.FEE_AMOUNT,
