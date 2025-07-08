@@ -1,4 +1,4 @@
-import { addSessionData } from '../../util/session.js';
+import { addSessionData, clearSessionData } from '../../util/session.js';
 import { viewModelToRepresentationCreateInput } from './view-model.js';
 import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { wrapPrismaError } from '../../util/database.js';
@@ -127,6 +127,7 @@ export async function saveRepresentation(
 		req,
 		res
 	);
+	clearSessionData(req, id, [submittedForId], 'files');
 	clearDataFromSession({ req, journeyId, reqParam: sessionReqParam });
 	addSessionData(req, id, { representationReference, representationSubmitted: true }, 'representations');
 
