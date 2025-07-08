@@ -1,6 +1,5 @@
 import { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
 import { nl2br } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
-import { clearSessionData } from '../../../util/session.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
@@ -135,8 +134,6 @@ export default class RepresentationAttachments extends Question {
 
 		responseToSave.answers[this.fieldName] = req.session.files?.[applicationId]?.[submittedForId]?.uploadedFiles;
 		journeyResponse.answers[this.fieldName] = responseToSave.answers[this.fieldName];
-
-		clearSessionData(req, applicationId, [submittedForId], 'files');
 
 		return responseToSave;
 	}
