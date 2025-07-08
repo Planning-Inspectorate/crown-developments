@@ -71,6 +71,7 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.extendedTargetDecisionDate)
 				.addQuestion(questions.recoveredDate)
 				.addQuestion(questions.recoveredReportSentDate)
+				.addQuestion(questions.siteVisitDate)
 				.addQuestion(questions.withdrawnDate)
 				.addQuestion(questions.originalDecisionDate)
 				.addQuestion(questions.turnedAwayDate),

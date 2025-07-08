@@ -28,6 +28,7 @@ import DatePeriodValidator from '@planning-inspectorate/dynamic-forms/src/valida
 import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.js';
 import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
+import DateTimeValidator from '@pins/crowndev-lib/forms/custom-components/date-time/date-time-validator.js';
 
 /**
  * @param {import('../../../../util/entra-groups-types.js').EntraGroupMembers} [groupMembers]
@@ -317,6 +318,14 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		extendedTargetDecisionDate: dateQuestion({ fieldName: 'extendedTargetDecisionDate' }),
 		recoveredDate: dateQuestion({ fieldName: 'recoveredDate' }),
 		recoveredReportSentDate: dateQuestion({ fieldName: 'recoveredReportSentDate' }),
+		siteVisitDate: {
+			type: CUSTOM_COMPONENTS.DATE_TIME,
+			title: 'Site Visit',
+			question: 'When is the site visit?',
+			fieldName: 'siteVisitDate',
+			url: 'site-visit',
+			validators: [new DateTimeValidator('Site visit')]
+		},
 		withdrawnDate: dateQuestion({ fieldName: 'withdrawnDate' }),
 		originalDecisionDate: dateQuestion({ fieldName: 'originalDecisionDate' }),
 		turnedAwayDate: dateQuestion({
