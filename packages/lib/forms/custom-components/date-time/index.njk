@@ -1,0 +1,126 @@
+{% extends layoutTemplate %}
+
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/date-input/macro.njk" import govukDateInput %}
+
+{% set day = question.fieldName + "_day" %}
+{% set month = question.fieldName + "_month" %}
+{% set year = question.fieldName + "_year" %}
+{% set hour = question.fieldName + "_hour" %}
+{% set minutes = question.fieldName + "_minutes" %}
+{% set period = question.fieldName + "_period" %}
+
+{% if question.html %}
+    {% set htmlHint %}
+        {% include question.html ignore missing %}
+    {% endset %}
+{% endif %}
+
+{% block before_content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            {% if errorSummary %}
+                {{ govukErrorSummary({
+                    titleText: "There is a problem",
+                    errorList: errorSummary,
+                    attributes: {"data-cy": "error-wrapper"}
+                }) }}
+            {% endif %}
+        </div>
+    </div>
+
+    {{ super() }}
+{% endblock before_content %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <form action="" method="post" novalidate>
+                <input type="hidden" name="_csrf" value="{{ _csrf }}">
+                <h1 class="govuk-heading-l">{{ question.question }}</h1>
+                <p class="govuk-body">{{ question.description }}</p>
+
+                {{ govukDateInput({
+                    id: question.fieldName,
+                    errorMessage: (errors[day].msg or errors[month].msg or errors[year].msg) and {
+                        text: errors[question.fieldName].msg or errors[day].msg or errors[month].msg or errors[year].msg
+                    },
+                    items: [
+                        {
+                            classes: "govuk-input--width-2 govuk-input--error" if errors[question.fieldName] or errors[day] else "govuk-input--width-2",
+                            name: day,
+                            label: "Day",
+                            id: day,
+                            value: question.value[day]
+                        },
+                        {
+                            classes: "govuk-input--width-2 govuk-input--error" if errors[question.fieldName] or errors[month] else "govuk-input--width-2",
+                            name: month,
+                            label: "Month",
+                            id: month,
+                            value: question.value[month]
+                        },
+                        {
+                            classes: "govuk-input--width-4 govuk-input--error" if errors[question.fieldName] or errors[year] else "govuk-input--width-4",
+                            name: year,
+                            label: "Year",
+                            id: year,
+                            value: question.value[year]
+                        }
+                    ]
+                }) }}
+
+                <div class="govuk-form-group{% if errors[hour].msg or errors[minutes].msg or errors[period].msg %} govuk-form-group--error{% endif %}">
+                    <fieldset class="govuk-fieldset" role="group">
+                        <div id="{{ question.fieldName }}-hint" class="govuk-hint">For example, 9:30am or 2:55pm</div>
+                        {% if errors[hour].msg or errors[minutes].msg or errors[period].msg %}
+                            <p id="{{ question.fieldName }}-error" class="govuk-error-message">
+                                <span class="govuk-visually-hidden">Error:</span> {{ errors[hour].msg or errors[minutes].msg or errors[period].msg }}
+                            </p>
+                        {% endif %}
+                        <div class="govuk-date-input" id={{ question.fieldName }}>
+                            <div class="govuk-date-input__item">
+                                <div class="govuk-form-group">
+                                    <label class="govuk-label govuk-date-input__label" for={{ hour }}>
+                                        Hour
+                                    </label>
+                                    <input class="govuk-input govuk-date-input__input govuk-input--width-2 {% if errors[question.fieldName] or errors[hour] %}govuk-input--error{% endif %}" id={{ hour }} name={{ hour }} type="text" inputmode="numeric" value={{ question.value[hour] }}>
+                                </div>
+                            </div>
+                            <div class="govuk-date-input__item">
+                                <div class="govuk-form-group">
+                                    <label class="govuk-label govuk-date-input__label" for={{ minutes }}>
+                                        Minute
+                                    </label>
+                                    <input class="govuk-input govuk-date-input__input govuk-input--width-2 {% if errors[question.fieldName] or errors[minutes] %}govuk-input--error{% endif %}" id={{ minutes }} name={{ minutes }} type="text" inputmode="numeric" value={{ question.value[minutes] }}>
+                                </div>
+                            </div>
+                            <div class="govuk-date-input__item">
+                                <div class="govuk-form-group">
+                                    <label class="govuk-label" for={{ period }}>
+                                        AM or PM
+                                    </label>
+
+                                    <select class="govuk-select govuk-select--width-4 {% if errors[question.fieldName] or errors[period] %}govuk-select--error{% endif %}" id={{ period }} name={{ period }}>
+                                        <option value="not-selected"{% if question.value[period] == 'not-selected' or not question.value[period] %} selected{% endif %}></option>
+                                        <option value="am"{% if question.value[period] == 'am' %} selected{% endif %}>AM</option>
+                                        <option value="pm"{% if question.value[period] == 'p,m' %} selected{% endif %}>PM</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+
+                {{ govukButton({
+                    text: continueButtonText,
+                    type: "submit",
+                    attributes: { "data-cy":"button-save-and-continue"}
+                }) }}
+            </form>
+        </div>
+    </div>
+
+
+{% endblock %}

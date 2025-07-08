@@ -104,6 +104,8 @@ export interface CrownDevelopmentViewModel {
 
 	hasApplicationFee: string;
 	applicationFee: string;
+
+	siteVisitDate?: Date | string;
 }
 
 export type CrownDevelopmentViewModelFields = keyof CrownDevelopmentViewModel;

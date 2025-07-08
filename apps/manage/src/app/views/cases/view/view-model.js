@@ -63,7 +63,8 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'hasApplicationFee',
 	'applicationFee',
 	'applicationReceivedDateEmailSent',
-	'notNationallyImportantEmailSent'
+	'notNationallyImportantEmailSent',
+	'siteVisitDate'
 ]);
 
 /**

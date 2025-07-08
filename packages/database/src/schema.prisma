@@ -117,6 +117,7 @@ model CrownDevelopment {
   Representation                      Representation[]
   hasApplicationFee                   Boolean?
   applicationFee                      Decimal?
+  siteVisitDate                       DateTime?
 }
 
 /// Address represents an address of a property or place
