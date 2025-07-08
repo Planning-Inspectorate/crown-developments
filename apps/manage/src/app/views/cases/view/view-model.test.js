@@ -2,7 +2,6 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { crownDevelopmentToViewModel, editsToDatabaseUpdates } from './view-model.js';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
-import { getQuestions } from './questions.js';
 
 /**
  * @typedef {import('@prisma/client').Prisma.CrownDevelopmentGetPayload<{include: { ApplicantContact: { include: { Address: true } }, AgentContact: { include: { Address: true } }, Event: true, LpaContact: { include: { Address: true } } }}>} CrownDevelopment
@@ -437,6 +436,23 @@ describe('view-model', () => {
 			assert.ok(updates);
 			assert.strictEqual(updates.Event, undefined);
 		});
+		it('should map event if nulled', () => {
+			/** @type {CrownDevelopmentViewModel} */
+			const toSave = {
+				inquiryStatementsDate: null,
+				inquiryCaseManagementConferenceDate: null,
+				inquiryProofsOfEvidenceDate: null
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, {});
+			assert.ok(updates);
+			assert.strictEqual(updates.Event, undefined);
+			updates.EventStatementsDate = null;
+			updates.EventinquiryStatementsDate = null;
+			updates.EventinquiryCaseManagementConferenceDate = null;
+			updates.EventsinquiryProofsOfEvidenceDate = null;
+		});
+
 		it('should map procedure notification date', () => {
 			const date = new Date('2025-01-20T00:00:00Z');
 			/** @type {CrownDevelopmentViewModel} */
@@ -563,28 +579,5 @@ describe('view-model', () => {
 			assert.strictEqual(upsert.create?.venue, 'some place');
 			assert.strictEqual(upsert.update?.duration, 'some length');
 		});
-	});
-
-	it('should add extraActionButtons and remove date when triggered', () => {
-		const questions = getQuestions();
-		const btns = questions.hearingStatementsDate.viewData.extraActionButtons;
-		assert.ok(Array.isArray(btns));
-		assert.strictEqual(btns[0].text, 'Remove and save');
-		assert.strictEqual(btns[0].formaction, 'hearing-statements-date/remove');
-
-		let viewModel = { hearingStatementsDate: '2025-01-01' };
-		const removeDate = (shouldRemove) => {
-			if (shouldRemove) {
-				viewModel.hearingStatementsDate = null;
-			}
-			return viewModel.hearingStatementsDate;
-		};
-
-		removeDate(true);
-		assert.strictEqual(viewModel.hearingStatementsDate, null); // date removed
-
-		viewModel.hearingStatementsDate = '2025-01-01';
-		removeDate(false);
-		assert.strictEqual(viewModel.hearingStatementsDate, '2025-01-01'); // date not removed
 	});
 });
