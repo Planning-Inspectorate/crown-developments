@@ -381,6 +381,15 @@ function viewModelToEventUpdateInput(edits, procedureId) {
 	if (`${prefix}Date` in edits) {
 		eventUpdateInput.date = edits[`${prefix}Date`];
 	}
+	if (`${prefix}StatementsDate` in edits) {
+		eventUpdateInput.statementsDate = edits[`${prefix}StatementsDate`];
+	}
+	if (`${prefix}CaseManagementConferenceDate` in edits) {
+		eventUpdateInput.caseManagementConferenceDate = edits[`${prefix}CaseManagementConferenceDate`];
+	}
+	if (`${prefix}ProofsOfEvidenceDate` in edits) {
+		eventUpdateInput.proofsOfEvidenceDate = edits[`${prefix}ProofsOfEvidenceDate`];
+	}
 	if (edits[`${prefix}Duration`]) {
 		eventUpdateInput.duration = edits[`${prefix}Duration`];
 	}
