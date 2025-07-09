@@ -127,7 +127,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }, journ
 
 			const repRefUrlSegment = `/${representationRef}`;
 			const redirectUrl = req.baseUrl.includes(repRefUrlSegment)
-				? req.baseUrl.slice(0, req.baseUrl.indexOf(repRefUrlSegment))
+				? getTaskListURL(req.baseUrl, repRefUrlSegment)
 				: req.baseUrl;
 			res.redirect(redirectUrl);
 		},
@@ -217,7 +217,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }, journ
 				reject: REPRESENTATION_STATUS_ID.REJECTED,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: req.baseUrl.slice(0, req.baseUrl.indexOf('/comment')),
+				backLinkUrl: getTaskListURL(req.baseUrl, '/comment'),
 				...viewData
 			});
 		},
@@ -254,7 +254,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }, journ
 
 				updateRepReviewSession(req, representationRef, 'comment', { reviewDecision: reviewCommentDecision });
 				clearRepRedactedCommentSession(req, representationRef);
-				res.redirect(req.baseUrl.slice(0, req.baseUrl.indexOf('/comment')));
+				res.redirect(getTaskListURL(req.baseUrl, '/comment'));
 			}
 		},
 		async redactRepresentation(req, res) {
@@ -321,7 +321,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }, journ
 			}
 
 			updateRepReviewSession(req, representationRef, 'comment', { reviewDecision: ACCEPT_AND_REDACT });
-			res.redirect(req.baseUrl.slice(0, req.baseUrl.indexOf('/comment')));
+			res.redirect(getTaskListURL(req.baseUrl, '/comment'));
 		},
 		async reviewRepresentationDocument(req, res, viewData = {}) {
 			const { representationRef } = validateParams(req.params);
@@ -347,7 +347,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }, journ
 				reject: REPRESENTATION_STATUS_ID.REJECTED,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: req.baseUrl.slice(0, req.baseUrl.indexOf(`/${itemId}`)),
+				backLinkUrl: getTaskListURL(req.baseUrl, `/${itemId}`),
 				currentUrl: req.baseUrl,
 				...viewData
 			});
@@ -391,7 +391,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }, journ
 				}
 
 				updateRepReviewSession(req, representationRef, itemId, { reviewDecision: reviewDocumentDecision });
-				res.redirect(req.baseUrl.slice(0, req.baseUrl.indexOf(`/${itemId}`)));
+				res.redirect(getTaskListURL(req.baseUrl, `/${itemId}`));
 			}
 		},
 		async redactRepresentationDocument(req, res, viewData = {}) {
@@ -464,7 +464,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }, journ
 			}
 
 			updateRepReviewSession(req, representationRef, itemId, { reviewDecision: ACCEPT_AND_REDACT });
-			res.redirect(req.baseUrl.slice(0, req.baseUrl.indexOf(`/${itemId}`)));
+			res.redirect(getTaskListURL(req.baseUrl, `/${itemId}`));
 		}
 	};
 
@@ -539,7 +539,7 @@ function getTaskListBackLinkUrl(req) {
 function initialiseRepresentationReviewSession(req, representationRef, representation) {
 	const existingReviewData = req.session?.reviewDecisions?.[representationRef] || {};
 	const attachmentEntries = Object.fromEntries(
-		representation?.Attachments.map(({ itemId, statusId, redactedItemId, redactedFileName }) => [
+		representation?.Attachments?.map(({ itemId, statusId, redactedItemId, redactedFileName }) => [
 			itemId,
 			getReviewDecision(statusId, redactedItemId && redactedFileName)
 		])
@@ -559,7 +559,7 @@ function initialiseRepresentationReviewSession(req, representationRef, represent
 function initialiseSessionFilesFromRepresentation(req, representationRef, representation) {
 	const existingFilesData = req.session?.files?.[representationRef] || {};
 	const attachmentEntries = Object.fromEntries(
-		representation?.Attachments.map(({ itemId, redactedItemId, redactedFileName }) => [
+		representation?.Attachments?.map(({ itemId, redactedItemId, redactedFileName }) => [
 			itemId,
 			{
 				uploadedFiles:
@@ -907,4 +907,8 @@ async function processUploadedFilesOnRejection(req, journeyId, representationRef
 		const sharePointDrive = getSharePointDrive(req.session);
 		await Promise.all(fileIds.map((itemId) => deleteDocumentFromSharePointById(req, sharePointDrive, logger, itemId)));
 	}
+}
+
+function getTaskListURL(baseUrl, urlSegment) {
+	return baseUrl.slice(0, baseUrl.indexOf(urlSegment));
 }
