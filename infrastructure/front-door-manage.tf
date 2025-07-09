@@ -151,6 +151,40 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
         operator       = "Equals"
         selector       = "_csrf"
       }
+
+    }
+
+    override {
+      rule_group_name = "SQLI"
+      rule {
+        action  = "AnomalyScoring"
+        rule_id = "942390"
+      }
+      exclusion {
+        match_variable = "RequestBodyPostArgNames"
+        operator       = "Equals"
+        selector       = "myselfComment"
+      }
+      exclusion {
+        match_variable = "RequestBodyPostArgNames"
+        operator       = "Equals"
+        selector       = "submitterComment"
+      }
+      exclusion {
+        match_variable = "RequestBodyPostArgNames"
+        operator       = "Equals"
+        selector       = "applicationDescription"
+      }
+      exclusion {
+        match_variable = "RequestBodyPostArgNames"
+        operator       = "Equals"
+        selector       = "comment"
+      }
+      exclusion {
+        match_variable = "RequestBodyPostArgNames"
+        operator       = "Equals"
+        selector       = "_csrf"
+      }
     }
 
     override {
