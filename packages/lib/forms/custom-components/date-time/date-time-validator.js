@@ -34,7 +34,7 @@ export default class DateTimeValidator extends DateValidator {
 			body(hourInput)
 				.notEmpty()
 				.withMessage((_, { req }) => {
-					if (!req.body[minuteInput] && req.body[periodInput] === 'not-selected') {
+					if (!req.body[minuteInput] && req.body[periodInput] === '') {
 						return `Enter the ${this.inputLabel.toLowerCase()} time`;
 					}
 
@@ -44,14 +44,14 @@ export default class DateTimeValidator extends DateValidator {
 			body(minuteInput)
 				.notEmpty()
 				.withMessage((_, { req }) => {
-					if (req.body[hourInput] || req.body[periodInput] !== 'not-selected') {
+					if (req.body[hourInput] || req.body[periodInput] !== '') {
 						return `${this.inputLabel} time must include a minute`;
 					}
 				}),
 			body(minuteInput).isInt({ min: 0, max: 59 }).withMessage(`${this.inputLabel} minute must be between 0 and 59.`),
 			body(periodInput)
 				.not()
-				.equals('not-selected')
+				.equals('')
 				.withMessage((_, { req }) => {
 					if (req.body[hourInput] || req.body[minuteInput]) {
 						return `${this.inputLabel} time must include am/pm`;

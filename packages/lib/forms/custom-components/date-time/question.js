@@ -121,9 +121,6 @@ export default class DateTimeQuestion extends Question {
 
 	#getPeriodFromHourValue(hour) {
 		const hourValue = Number(hour);
-		if (isNaN(hourValue) || hourValue < 0 || hourValue > 23) {
-			return 'not-selected';
-		}
 		return hourValue < 12 ? DateTimeQuestion.AM : DateTimeQuestion.PM;
 	}
 }
