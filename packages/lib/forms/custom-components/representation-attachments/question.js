@@ -98,7 +98,7 @@ export default class RepresentationAttachments extends Question {
 			if (statusId === REPRESENTATION_STATUS_ID.ACCEPTED) {
 				const manageTaskListUrl = journey.initialBackLink.replace(/\/view$/, '/manage/task-list');
 				return [
-					...(answer.length > 0
+					...(Array.isArray(answer) && answer.length > 0
 						? [
 								{
 									href: manageTaskListUrl,
