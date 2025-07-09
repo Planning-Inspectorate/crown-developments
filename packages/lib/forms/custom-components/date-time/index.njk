@@ -105,7 +105,7 @@
                                     <select class="govuk-select govuk-select--width-4 {% if errors[question.fieldName] or errors[period] %}govuk-select--error{% endif %}" id={{ period }} name={{ period }}>
                                         <option value="not-selected"{% if question.value[period] == 'not-selected' or not question.value[period] %} selected{% endif %}></option>
                                         <option value="am"{% if question.value[period] == 'am' %} selected{% endif %}>AM</option>
-                                        <option value="pm"{% if question.value[period] == 'p,m' %} selected{% endif %}>PM</option>
+                                        <option value="pm"{% if question.value[period] == 'pm' %} selected{% endif %}>PM</option>
                                     </select>
                                 </div>
                             </div>
