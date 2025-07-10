@@ -444,13 +444,11 @@ describe('view-model', () => {
 				inquiryProofsOfEvidenceDate: null
 			};
 
-			const updates = editsToDatabaseUpdates(toSave, {});
-			assert.ok(updates);
-			assert.strictEqual(updates.Event, undefined);
-			updates.EventStatementsDate = null;
-			updates.EventinquiryStatementsDate = null;
-			updates.EventinquiryCaseManagementConferenceDate = null;
-			updates.EventsinquiryProofsOfEvidenceDate = null;
+			const updates = editsToDatabaseUpdates(toSave, { procedureId: APPLICATION_PROCEDURE_ID.INQUIRY });
+
+			assert.strictEqual(updates.Event?.upsert?.update?.statementsDate, null);
+			assert.strictEqual(updates.Event?.upsert?.update?.caseManagementConferenceDate, null);
+			assert.strictEqual(updates.Event?.upsert?.update?.proofsOfEvidenceDate, null);
 		});
 
 		it('should map procedure notification date', () => {
