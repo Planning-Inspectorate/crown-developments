@@ -187,7 +187,7 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 
 	if (hasProcedure(viewModel.procedureId)) {
 		const eventUpdates = viewModelToEventUpdateInput(edits, viewModel.procedureId);
-		if (eventUpdates.eventUpdateInput) {
+		if (eventUpdates.eventUpdateInput && Object.keys(eventUpdates.eventUpdateInput).length > 0) {
 			crownDevelopmentUpdateInput.Event = {
 				upsert: {
 					where: optionalWhere(viewModel.eventId),
@@ -390,31 +390,21 @@ function viewModelToEventUpdateInput(edits, procedureId) {
 	if (`${prefix}ProofsOfEvidenceDate` in edits) {
 		eventUpdateInput.proofsOfEvidenceDate = edits[`${prefix}ProofsOfEvidenceDate`];
 	}
-	if (edits[`${prefix}Duration`]) {
+	if (`${prefix}Duration` in edits) {
 		eventUpdateInput.duration = edits[`${prefix}Duration`];
 	}
-	if (edits[`${prefix}Venue`]) {
+	if (`${prefix}Venue` in edits) {
 		eventUpdateInput.venue = edits[`${prefix}Venue`];
 	}
-	if (edits[`${prefix}IssuesReportPublishedDate`]) {
+	if (`${prefix}IssuesReportPublishedDate` in edits) {
 		eventUpdateInput.issuesReportPublishedDate = edits[`${prefix}IssuesReportPublishedDate`];
 	}
-	if (edits[`${prefix}ProcedureNotificationDate`]) {
+	if (`${prefix}ProcedureNotificationDate` in edits) {
 		updates.procedureNotificationDate = edits[`${prefix}ProcedureNotificationDate`];
 	}
-	if (edits[`${prefix}NotificationDate`]) {
+	if (`${prefix}NotificationDate` in edits) {
 		eventUpdateInput.notificationDate = edits[`${prefix}NotificationDate`];
 	}
-	if (edits[`${prefix}StatementsDate`]) {
-		eventUpdateInput.statementsDate = edits[`${prefix}StatementsDate`];
-	}
-	if (edits[`${prefix}CaseManagementConferenceDate`]) {
-		eventUpdateInput.caseManagementConferenceDate = edits[`${prefix}CaseManagementConferenceDate`];
-	}
-	if (edits[`${prefix}ProofsOfEvidenceDate`]) {
-		eventUpdateInput.proofsOfEvidenceDate = edits[`${prefix}ProofsOfEvidenceDate`];
-	}
-
 	if (Object.keys(eventUpdateInput).length > 0) {
 		updates.eventUpdateInput = eventUpdateInput;
 	}
