@@ -47,7 +47,11 @@ export function uploadDocumentsController(
 
 		const submittedForId = isManageRepsJourney ? undefined : getSubmittedForId(journeyResponse?.answers);
 
-		const leafFolderName = isManageRepsJourney ? req.params.itemId : submittedForId;
+		const leafFolderName = isManageRepsJourney
+			? req.params.itemId
+			: isEditRepsJourneyId(journeyId)
+				? req.params.representationRef
+				: submittedForId;
 
 		const folderPath = await createSessionSharepointFolders(
 			drive,
@@ -294,9 +298,9 @@ function getRedirectUrl(appName, applicationId, journeyId, submittedForId, reque
 }
 
 function isManageRepsJourneyId(journeyId) {
-	return (
-		journeyId === MANAGE_REPS_REVIEW_JOURNEY_ID ||
-		journeyId === MANAGE_REPS_EDIT_JOURNEY_ID ||
-		journeyId === MANAGE_REPS_MANAGE_JOURNEY_ID
-	);
+	return journeyId === MANAGE_REPS_REVIEW_JOURNEY_ID || journeyId === MANAGE_REPS_MANAGE_JOURNEY_ID;
+}
+
+function isEditRepsJourneyId(journeyId) {
+	return journeyId === MANAGE_REPS_EDIT_JOURNEY_ID;
 }
