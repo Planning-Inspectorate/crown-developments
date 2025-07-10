@@ -312,5 +312,29 @@ describe('view-model', () => {
 				hasAttachments: false
 			});
 		});
+		it('should map representation to view model if containsAttachments is updated', () => {
+			const representation = {
+				reference: 'ref-123',
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+				SubmittedByContact: { firstName: 'John', lastName: 'Doe', orgName: null },
+				comment: 'This is a comment',
+				commentRedacted: null,
+				Category: { displayName: 'Category 1' },
+				submittedDate: '2025-01-01T00:00:00.000Z',
+				containsAttachments: false,
+				Attachments: [{ statusId: 'accepted' }, { statusId: 'awaiting-review' }]
+			};
+			const result = representationToViewModel(representation);
+			assert.deepStrictEqual(result, {
+				representationReference: 'ref-123',
+				representationTitle: 'John Doe',
+				representationComment: 'This is a comment',
+				representationCommentIsRedacted: false,
+				representationCategory: 'Category 1',
+				dateRepresentationSubmitted: '1 Jan 2025',
+				representationContainsAttachments: false,
+				hasAttachments: false
+			});
+		});
 	});
 });
