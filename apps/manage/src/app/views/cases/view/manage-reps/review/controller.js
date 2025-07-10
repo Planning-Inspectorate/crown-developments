@@ -148,12 +148,7 @@ export function buildReviewControllers({ db, logger, getSharePointDrive }, journ
 				include: { Attachments: true }
 			});
 
-			initialiseRepresentationReviewSession(
-				req,
-				representationRef,
-				representation?.containsAttachments,
-				representation?.Attachments
-			);
+			initialiseRepresentationReviewSession(req, representationRef, representation);
 
 			if (!req.session?.files?.[representationRef]) {
 				initialiseSessionFilesFromRepresentation(req, representationRef, representation);
@@ -543,28 +538,29 @@ function initialiseRepresentationReviewSession(req, representationRef, represent
 	const existingReviewData = req.session?.reviewDecisions?.[representationRef] || {};
 	const attachmentEntries = representation?.containsAttachments
 		? Object.fromEntries(representation?.Attachments?.map(({ itemId }) => [itemId, undefined]))
-
-	const attachmentEntries = Object.fromEntries(
-		representation?.Attachments?.map(({ itemId, statusId, redactedItemId, redactedFileName }) => [
-			itemId,
-			getReviewDecision(statusId, redactedItemId && redactedFileName)
-		])
-	);
+		: {};
 	const newReviewData = {
-		...existingReviewData,
-		comment: {
-			...getReviewDecision(representation?.statusId, representation?.commentRedacted),
-			commentRedacted: representation?.commentRedacted
-		},
+		comment: {},
 		...attachmentEntries
 	};
+
 	const commentAttachmentLengthHasChanged = req.session.reviewDecisions
 		? Object.keys(existingReviewData).length !== Object.keys(newReviewData).length
 		: false;
 
 	if (!req.session.reviewDecisions || commentAttachmentLengthHasChanged) {
 		for (const key in newReviewData) {
-			newReviewData[key] = existingReviewData[key] || getReviewDecision(statusId, redactedItemId && redactedFileName);
+			if (key === 'comment') {
+				newReviewData[key] = existingReviewData[key] || {
+					...getReviewDecision(representation?.statusId, representation?.commentRedacted),
+					commentRedacted: representation?.commentRedacted
+				};
+			} else {
+				const attachment = representation?.Attachments?.find((a) => a.itemId === key);
+				newReviewData[key] =
+					existingReviewData[key] ||
+					getReviewDecision(attachment.statusId, attachment.redactedItemId && attachment.redactedFileName);
+			}
 		}
 		clearSessionData(req, representationRef, Object.keys(existingReviewData), 'reviewDecisions');
 		addSessionData(req, representationRef, newReviewData, 'reviewDecisions');
