@@ -146,7 +146,9 @@ export function representationToViewModel(representation) {
 		representationCategory: representation.Category?.displayName,
 		dateRepresentationSubmitted: formatDateForDisplay(representation.submittedDate),
 		representationContainsAttachments: representation.containsAttachments,
-		hasAttachments: representation.Attachments?.some((doc) => doc.statusId === REPRESENTATION_STATUS_ID.ACCEPTED)
+		hasAttachments:
+			representation.Attachments?.some((doc) => doc.statusId === REPRESENTATION_STATUS_ID.ACCEPTED) &&
+			representation.containsAttachments
 	};
 }
 

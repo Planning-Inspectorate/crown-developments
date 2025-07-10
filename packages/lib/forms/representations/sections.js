@@ -106,12 +106,13 @@ function addRepMyselfSection(questions, isRepsUploadDocsLive, isViewJourney) {
 		.addQuestion(questions.myselfSelectAttachments)
 		.withCondition((response) => questionHasAnswer(response, questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES))
 		.addQuestion(questions.myselfRedactedAttachments)
-		.withCondition((response) =>
-			questionArrayMeetsCondition(
-				response,
-				questions.myselfSelectAttachments,
-				(answer) => answer.redactedItemId && answer.redactedFileName
-			)
+		.withCondition(
+			(response) =>
+				questionArrayMeetsCondition(
+					response,
+					questions.myselfSelectAttachments,
+					(answer) => answer.redactedItemId && answer.redactedFileName
+				) && questionHasAnswer(response, questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES)
 		);
 }
 
@@ -158,12 +159,13 @@ function agentSection(questions, isRepsUploadDocsLive) {
 		.addQuestion(questions.submitterSelectAttachments)
 		.withCondition((response) => questionHasAnswer(response, questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES))
 		.addQuestion(questions.submitterRedactedAttachments)
-		.withCondition((response) =>
-			questionArrayMeetsCondition(
-				response,
-				questions.submitterSelectAttachments,
-				(answer) => answer.redactedItemId && answer.redactedFileName
-			)
+		.withCondition(
+			(response) =>
+				questionArrayMeetsCondition(
+					response,
+					questions.submitterSelectAttachments,
+					(answer) => answer.redactedItemId && answer.redactedFileName
+				) && questionHasAnswer(response, questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES)
 		);
 }
 
