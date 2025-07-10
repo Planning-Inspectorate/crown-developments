@@ -94,6 +94,20 @@ This repository uses commitlint, eslint, and prettier. This are run with git hoo
 
 This respository uses the [Node test runner](https://nodejs.org/docs/latest-v22.x/api/test.html#test-runner). To run all tests, use `npm run test` from root.
 
+## Infrastructure
+The infrastructure is defined using [Terraform](https://www.terraform.io/). The main entry point is the `main.tf` file in the `infrastructure` directory.
+To make sure the terraform code is formatted correctly, you will need to have Terraform installed. You can then run the following commands:
+
+```shell
+terraform fmt -check -diff -recursive
+```
+
+To fix any formatting issues, you can run:
+
+```shell
+terraform fmt -recursive
+```
+
 ## Licensing
 
 [MIT](https://opensource.org/licenses/mit) © Planning Inspectorate
