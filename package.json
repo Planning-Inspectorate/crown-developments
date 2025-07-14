@@ -28,7 +28,7 @@
     "@azure/msal-node": "^3.5.3",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@planning-inspectorate/dynamic-forms": "^1.6.0",
-    "@prisma/client": "^6.9.0",
+    "@prisma/client": "^6.11.1",
     "accessible-autocomplete": "^3.0.1",
     "body-parser": "^2.2.0",
     "cfb": "^1.2.2",
