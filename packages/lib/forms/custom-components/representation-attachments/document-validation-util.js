@@ -7,6 +7,14 @@ export async function validateUploadedFile(file, logger, allowedFileExtensions, 
 	const validationErrors = [];
 	const { originalname, mimetype, buffer, size } = file;
 
+	if (typeof size !== 'number' || size <= 0) {
+		validationErrors.push({
+			text: `${originalname}: The attachment is empty`,
+			href: '#upload-form'
+		});
+		return validationErrors;
+	}
+
 	if (!allowedMimeTypes.includes(mimetype)) {
 		validationErrors.push({
 			text: `${originalname}: The attachment must be PDF, PNG, DOC, DOCX, JPG, JPEG, TIF, TIFF, XLS or XLSX`,

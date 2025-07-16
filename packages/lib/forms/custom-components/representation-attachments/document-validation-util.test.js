@@ -217,6 +217,66 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 				[]
 			);
 		});
+		it('should return validation error when file size is 0', async () => {
+			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
+			const file = {
+				originalname: 'test4.pdf',
+				mimetype: 'application/pdf',
+				buffer: Buffer.from(fakePdfContent, 'utf-8'),
+				size: 0
+			};
+			const logger = mockLogger();
+
+			assert.deepStrictEqual(
+				await validateUploadedFile(file, logger, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE),
+				[
+					{
+						href: '#upload-form',
+						text: 'test4.pdf: The attachment is empty'
+					}
+				]
+			);
+		});
+		it('should return validation error when file size is a negative number', async () => {
+			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
+			const file = {
+				originalname: 'test4.pdf',
+				mimetype: 'application/pdf',
+				buffer: Buffer.from(fakePdfContent, 'utf-8'),
+				size: -1000
+			};
+			const logger = mockLogger();
+
+			assert.deepStrictEqual(
+				await validateUploadedFile(file, logger, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE),
+				[
+					{
+						href: '#upload-form',
+						text: 'test4.pdf: The attachment is empty'
+					}
+				]
+			);
+		});
+		it('should return validation error when file size is not a numeric value', async () => {
+			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
+			const file = {
+				originalname: 'test4.pdf',
+				mimetype: 'application/pdf',
+				buffer: Buffer.from(fakePdfContent, 'utf-8'),
+				size: 'test'
+			};
+			const logger = mockLogger();
+
+			assert.deepStrictEqual(
+				await validateUploadedFile(file, logger, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE),
+				[
+					{
+						href: '#upload-form',
+						text: 'test4.pdf: The attachment is empty'
+					}
+				]
+			);
+		});
 	});
 	describe('fileAlreadyExistsInFolder', () => {
 		it('should return true if file already exists in documents list', () => {
