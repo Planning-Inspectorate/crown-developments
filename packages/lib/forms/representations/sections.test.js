@@ -32,7 +32,7 @@ describe('have-your-say', () => {
 			});
 			const sections = journey.sections;
 
-			assert.strictEqual(sections.length, 4);
+			assert.strictEqual(sections.length, 5);
 			sections.forEach((section) => section.questions.forEach((q) => assert.ok(q !== undefined)));
 		});
 
@@ -57,7 +57,7 @@ describe('have-your-say', () => {
 			});
 			const sections = journey.sections;
 
-			assert.strictEqual(sections.length, 4);
+			assert.strictEqual(sections.length, 5);
 			sections.forEach((section) => section.questions.forEach((q) => assert.ok(q !== undefined)));
 		});
 	});

@@ -23,8 +23,8 @@
     {% endif %}
 {% endblock %}
 
-{% if notifyWarningMessage %}
+{% if summaryWarningMessage %}
     {% set beforeSubmitButton = govukWarningText({
-        text: notifyWarningMessage
+        text: summaryWarningMessage
     }) %}
 {% endif %}

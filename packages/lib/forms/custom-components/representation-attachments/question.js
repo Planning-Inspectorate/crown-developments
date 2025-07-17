@@ -1,6 +1,7 @@
 import { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
 import { nl2br } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { JOURNEY_MAP } from './upload-documents.js';
 
 /**
  * @typedef {Object} TextEntryCheckbox
@@ -22,8 +23,16 @@ export default class RepresentationAttachments extends Question {
 	 * @param {Array<string>} allowedMimeTypes
 	 * @param {number} maxFileSizeValue
 	 * @param {number} maxFileSizeString
+	 * @param {boolean} showUploadWarning
 	 */
-	constructor({ allowedFileExtensions, allowedMimeTypes, maxFileSizeValue, maxFileSizeString, ...params }) {
+	constructor({
+		allowedFileExtensions,
+		allowedMimeTypes,
+		maxFileSizeValue,
+		maxFileSizeString,
+		showUploadWarning,
+		...params
+	}) {
 		super({
 			...params,
 			viewFolder: 'custom-components/representation-attachments'
@@ -33,6 +42,7 @@ export default class RepresentationAttachments extends Question {
 		this.allowedMimeTypes = allowedMimeTypes;
 		this.maxFileSizeValue = maxFileSizeValue;
 		this.maxFileSizeString = maxFileSizeString;
+		this.showUploadWarning = showUploadWarning;
 	}
 
 	prepQuestionForRendering(section, journey, customViewData, payload) {
@@ -44,8 +54,10 @@ export default class RepresentationAttachments extends Question {
 		}
 
 		const submittedForId = journey.response?.answers?.submittedForId;
+		const fileGroupKey = this.getFileGroupKey(submittedForId);
+
 		const fileGroup = customViewData?.files?.[customViewData.id];
-		const fileGroupUploadedFiles = fileGroup?.[submittedForId]?.uploadedFiles ?? [];
+		const fileGroupUploadedFiles = fileGroup?.[fileGroupKey]?.uploadedFiles ?? [];
 		const uploadedFiles = fileGroupUploadedFiles.length > 0 ? fileGroupUploadedFiles : viewModel.question.value;
 
 		viewModel.uploadedFiles = uploadedFiles;
@@ -55,6 +67,7 @@ export default class RepresentationAttachments extends Question {
 		viewModel.question.allowedMimeTypes = this.allowedMimeTypes;
 		viewModel.question.maxFileSizeValue = this.maxFileSizeValue;
 		viewModel.question.maxFileSizeString = this.maxFileSizeString;
+		viewModel.question.showUploadWarning = this.showUploadWarning;
 
 		return viewModel;
 	}
@@ -135,10 +148,15 @@ export default class RepresentationAttachments extends Question {
 		let responseToSave = { answers: {} };
 		const applicationId = req.params.representationRef || req.params.id || req.params.applicationId;
 		const submittedForId = journeyResponse.answers?.submittedForId;
+		const fileKey = this.getFileGroupKey(submittedForId);
 
-		responseToSave.answers[this.fieldName] = req.session.files?.[applicationId]?.[submittedForId]?.uploadedFiles;
+		responseToSave.answers[this.fieldName] = req.session.files?.[applicationId]?.[fileKey]?.uploadedFiles;
 		journeyResponse.answers[this.fieldName] = responseToSave.answers[this.fieldName];
 
 		return responseToSave;
+	}
+
+	getFileGroupKey(submittedForId) {
+		return this.fieldName === 'withdrawalRequests' ? 'withdraw' : JOURNEY_MAP[submittedForId];
 	}
 }

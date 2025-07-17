@@ -26,7 +26,10 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'comment',
 	'commentRedacted',
 	'containsAttachments',
-	'sharePointFolderCreated'
+	'sharePointFolderCreated',
+	'withdrawalRequestDate',
+	'withdrawalReasonId',
+	'dateWithdrawn'
 ]);
 
 /**
@@ -84,6 +87,9 @@ export function representationToManageViewModel(representation, applicationRefer
 			model.representedOrgName = representation.RepresentedContact?.orgName;
 		}
 	}
+
+	model.withdrawalRequests = representation.WithdrawalRequests;
+
 	return model;
 }
 

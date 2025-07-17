@@ -1,5 +1,6 @@
 export async function uploadDocumentQuestion(req, res, next) {
-	if (req.params.question === 'select-attachments') {
+	const uploadDocumentQuestionUrls = ['select-attachments', 'upload-request'];
+	if (uploadDocumentQuestionUrls.includes(req.params.question)) {
 		const { section, question } = req.params;
 		const { journey } = res.locals;
 
