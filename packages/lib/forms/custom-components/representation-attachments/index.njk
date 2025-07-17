@@ -93,6 +93,8 @@
                     },
                     errorMessage: errors[uploadForm] and {
                         text: errors[uploadForm].msg
+                    } or errors[question.fieldName] and {
+                        text: errors[question.fieldName].msg
                     }
                 }) }}
                 <noscript>
