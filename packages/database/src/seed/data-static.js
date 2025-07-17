@@ -305,6 +305,42 @@ export const REPRESENTED_TYPE = [
 	}
 ];
 
+/**
+ * @type {Readonly<{CHANGE_OF_OPINION: string, MISTAKEN_SUBMISSION: string, MISUNDERSTANDING: string, PERSONAL_REASONS: string}>}
+ */
+export const WITHDRAWAL_REASON_ID = Object.freeze({
+	CHANGE_OF_OPINION: 'change-of-opinion',
+	MISTAKEN_SUBMISSION: 'mistaken-submission',
+	MISUNDERSTANDING: 'misunderstanding',
+	PERSONAL_REASONS: 'personal-reasons'
+});
+
+/**
+ * @type {import('@prisma/client').Prisma.WithdrawalReasonCreateInput[]}
+ */
+export const WITHDRAWAL_REASON = [
+	{
+		id: WITHDRAWAL_REASON_ID.CHANGE_OF_OPINION,
+		displayName: 'Change of opinion',
+		hintText: 'They no longer feel the same way about the application'
+	},
+	{
+		id: WITHDRAWAL_REASON_ID.MISTAKEN_SUBMISSION,
+		displayName: 'Mistaken Submission',
+		hintText: 'They accidentally submitted the representation'
+	},
+	{
+		id: WITHDRAWAL_REASON_ID.MISUNDERSTANDING,
+		displayName: 'Misunderstanding',
+		hintText: 'They misunderstood the application or its implications'
+	},
+	{
+		id: WITHDRAWAL_REASON_ID.PERSONAL_REASONS,
+		displayName: 'Personal Reasons',
+		hintText: 'Such as privacy or a change in circumstances'
+	}
+];
+
 // this only works if the main categories are created first
 const majorParentConnection = { connect: { id: 'major' } };
 const nonMajorParentConnection = { connect: { id: 'non-major' } };
@@ -504,6 +540,10 @@ export async function seedStaticData(dbClient) {
 
 	await Promise.all(
 		CONTACT_PREFERENCE.map((input) => upsertReferenceData({ delegate: dbClient.contactPreference, input }))
+	);
+
+	await Promise.all(
+		WITHDRAWAL_REASON.map((input) => upsertReferenceData({ delegate: dbClient.withdrawalReason, input }))
 	);
 
 	const categories = CATEGORIES.filter((c) => !c.ParentCategory);

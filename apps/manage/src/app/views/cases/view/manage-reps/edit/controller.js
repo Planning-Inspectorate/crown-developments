@@ -98,6 +98,59 @@ export function buildUpdateRepresentation(
 			}
 		}
 
+		const hasWithdrawalRequests = toSave.withdrawalRequests && toSave.withdrawalRequests.length > 0;
+		if (hasWithdrawalRequests) {
+			const attachmentsToSave = toSave.withdrawalRequests;
+			await moveAttachmentsToCaseFolderFn({
+				service: { db, logger, sharePointDrive: getSharePointDrive(req.session) },
+				applicationReference: fullViewModel.applicationReference,
+				representationReference: representationRef,
+				representationAttachments: attachmentsToSave
+			});
+
+			try {
+				await db.$transaction(async ($tx) => {
+					const representation = await $tx.representation.findUnique({
+						where: {
+							reference: representationRef
+						}
+					});
+					await $tx.withdrawalRequestDocument.createMany({
+						data: attachmentsToSave.map((attachment) => ({
+							representationId: representation.id,
+							fileName: attachment.fileName,
+							itemId: attachment.itemId
+						}))
+					});
+				});
+			} catch (err) {
+				wrapPrismaError({
+					error: err,
+					logger,
+					message: 'adding withdrawal requests',
+					logParams: { id, representationRef }
+				});
+			}
+
+			try {
+				await deleteRepresentationAttachmentsFolderFn(
+					{
+						service: { logger, sharePointDrive },
+						applicationReference: fullViewModel.applicationReference,
+						representationReference: representationRef,
+						appName: 'manage'
+					},
+					req,
+					res
+				);
+			} catch (error) {
+				logger.warn(
+					{ error, applicationReference: fullViewModel.applicationReference, representationRef },
+					'Error deleting representation attachments folder'
+				);
+			}
+		}
+
 		/** @type {import('@prisma/client').Prisma.RepresentationUpdateInput} */
 		const updateInput = editsToDatabaseUpdates(toSave, fullViewModel);
 		logger.info({ id, representationRef, fields: Object.keys(toSave) }, 'update representation input');

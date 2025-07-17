@@ -57,9 +57,11 @@ export async function renderRepresentation(req, res, viewData = {}) {
 
 	await list(req, res, '', {
 		representationRef,
+		representationUpdated,
 		requiresReview: res.locals?.journeyResponse?.answers?.requiresReview,
 		backLinkUrl: `/cases/${req.params.id}/manage-representations`,
-		representationUpdated,
+		currentUrl: req.originalUrl,
+		representationStatus: res.locals?.journeyResponse?.answers?.statusId,
 		...viewData
 	});
 }
@@ -94,7 +96,8 @@ export function buildGetJourneyMiddleware({ db, logger, isRepsUploadDocsLive }) 
 					}
 				},
 				RepresentedContact: true,
-				Attachments: true
+				Attachments: true,
+				WithdrawalRequests: true
 			}
 		});
 		// Prisma will return null if not found
@@ -110,7 +113,7 @@ export function buildGetJourneyMiddleware({ db, logger, isRepsUploadDocsLive }) 
 				answerActionText: 'Edit'
 			},
 			actionOverrides: {
-				statusShouldShowManageAction: true,
+				statusShouldShowManageAction: answers?.statusId !== REPRESENTATION_STATUS_ID.WITHDRAWN,
 				redactedCommentShowManageAction: answers?.statusId === REPRESENTATION_STATUS_ID.ACCEPTED,
 				canEditAttachmentsUploaded: answers?.statusId !== REPRESENTATION_STATUS_ID.REJECTED,
 				taskListUrl: req.baseUrl + '/manage/task-list'

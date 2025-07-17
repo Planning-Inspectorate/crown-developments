@@ -8,12 +8,19 @@ import { addSessionData } from '../../../util/session.js';
 import { getSubmittedForId } from '../../../util/questions.js';
 import { getApplicationNameFolder } from '../../../util/handle-attachments.js';
 
+export const JOURNEY_MAP = {
+	myself: 'myself',
+	'on-behalf-of': 'agent'
+};
+
 const CONTENT_UPLOAD_FILE_LIMIT = 4 * 1024 * 1024; // 4MB
 const TOTAL_UPLOAD_LIMIT = 1073741824; // 1GB
 
 const MANAGE_REPS_EDIT_JOURNEY_ID = 'manage-reps-edit';
 const MANAGE_REPS_MANAGE_JOURNEY_ID = 'manage-reps-manage';
 const MANAGE_REPS_REVIEW_JOURNEY_ID = 'manage-reps-review';
+const MANAGE_REPS_WITHDRAW_VIEW_JOURNEY_ID = 'withdraw-representation-view';
+const MANAGE_REPS_WITHDRAW_REVIEW_JOURNEY_ID = 'withdraw-representation-review';
 
 export function uploadDocumentsController(
 	{ db, logger, appName, sharePointDrive, getSharePointDrive },
@@ -43,15 +50,11 @@ export function uploadDocumentsController(
 		const sessionId = req.sessionID;
 		const journeyResponse = res.locals?.journeyResponse;
 
-		const isManageRepsJourney = isManageRepsJourneyId(journeyId);
-		const isEditRepsJourney = isEditRepsJourneyId(journeyId);
-		const submittedForId = isManageRepsJourney ? undefined : getSubmittedForId(journeyResponse?.answers);
+		const submittedForId = isManageRepsJourneyId(journeyId)
+			? undefined
+			: JOURNEY_MAP[getSubmittedForId(journeyResponse?.answers)];
 
-		const leafFolderName = isManageRepsJourney
-			? req.params.itemId
-			: isEditRepsJourney
-				? req.params.representationRef
-				: submittedForId;
+		const leafFolderName = getLeafFolderName(journeyId, req, submittedForId);
 
 		const folderPath = await createSessionSharepointFolders(
 			drive,
@@ -136,8 +139,8 @@ export function uploadDocumentsController(
 				});
 			});
 
-			const sessionIdKey = isManageRepsJourney || isEditRepsJourney ? req.params.representationRef : applicationId;
-			const sessionKey = isManageRepsJourney ? req.params.itemId : submittedForId;
+			const sessionIdKey = isRepsJourneyId(journeyId) ? req.params.representationRef : applicationId;
+			const sessionKey = getSessionKey(journeyId, req, submittedForId);
 			addSessionData(req, sessionIdKey, { [sessionKey]: { uploadedFiles } }, 'files');
 		}
 
@@ -161,14 +164,13 @@ export function deleteDocumentsController({ logger, appName, sharePointDrive, ge
 
 		const journeyResponse = res.locals?.journeyResponse;
 		const isManageRepsJourney = isManageRepsJourneyId(journeyId);
-		const isEditRepsJourney = isEditRepsJourneyId(journeyId);
 		let submittedForId;
 		if (!isManageRepsJourney) {
-			submittedForId = getSubmittedForId(journeyResponse?.answers);
+			submittedForId = JOURNEY_MAP[getSubmittedForId(journeyResponse?.answers)];
 		}
 
-		const sessionIdKey = isManageRepsJourney || isEditRepsJourney ? req.params.representationRef : applicationId;
-		const sessionKey = isManageRepsJourney ? req.params.itemId : submittedForId;
+		const sessionIdKey = isRepsJourneyId(journeyId) ? req.params.representationRef : applicationId;
+		const sessionKey = getSessionKey(journeyId, req, submittedForId);
 
 		let uploadedFiles = req.session?.files?.[sessionIdKey]?.[sessionKey]?.uploadedFiles || [];
 		uploadedFiles = uploadedFiles.filter((file) => file.itemId !== itemId);
@@ -206,7 +208,7 @@ async function createSessionSharepointFolders(
 		{ name: sessionId, description: 'Session ID folder' },
 		{ name: applicationId, description: 'Application ID folder' },
 		{ name: journeyId, description: `"${journeyId}" folder` },
-		{ name: leafFolderName, description: `"${leafFolderName}" folder` }
+		...(leafFolderName ? [{ name: leafFolderName, description: `"${leafFolderName}" folder` }] : [])
 	];
 	let currentPath = caseReferenceFolder;
 
@@ -282,20 +284,43 @@ async function processChunkDocumentUpload(file, uploadUrl, logger) {
 }
 
 function getRedirectUrl(appName, applicationId, journeyId, submittedForId, requestParams) {
-	const journeyMap = {
-		myself: 'myself',
-		'on-behalf-of': 'agent'
-	};
-
 	const redirectUrlMap = {
-		'have-your-say': `/applications/${applicationId}/${journeyId}/${journeyMap[submittedForId]}/select-attachments`,
-		'add-representation': `/cases/${applicationId}/manage-representations/${journeyId}/${journeyMap[submittedForId]}/select-attachments`,
-		'manage-reps-edit': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/edit/${journeyMap[submittedForId]}/select-attachments`,
+		'have-your-say': `/applications/${applicationId}/${journeyId}/${submittedForId}/select-attachments`,
+		'add-representation': `/cases/${applicationId}/manage-representations/${journeyId}/${submittedForId}/select-attachments`,
+		'manage-reps-edit': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/edit/${requestParams?.section}/${requestParams?.question}`,
 		'manage-reps-manage': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/manage/task-list/${requestParams?.itemId}/redact`,
-		'manage-reps-review': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/review/task-list/${requestParams?.itemId}/redact`
+		'manage-reps-review': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/review/task-list/${requestParams?.itemId}/redact`,
+		'withdraw-representation-review': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/review/withdraw-representation/withdraw/upload-request`,
+		'withdraw-representation-view': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/view/withdraw-representation/withdraw/upload-request`
 	};
 
 	return redirectUrlMap[journeyId];
+}
+
+function getLeafFolderName(journeyId, req, submittedForId) {
+	if (isManageRepsJourneyId(journeyId)) {
+		return req.params.itemId;
+	} else if (isEditRepsJourneyId(journeyId)) {
+		return `${req.params.representationRef}-${req.params.section}`;
+	} else if (isWithdrawRepsJourneyId(journeyId)) {
+		return undefined;
+	} else {
+		return submittedForId;
+	}
+}
+
+function getSessionKey(journeyId, req, submittedForId) {
+	if (isManageRepsJourneyId(journeyId)) {
+		return req.params.itemId;
+	} else if (isWithdrawRepsJourneyId(journeyId) || req.params.section === 'withdraw') {
+		return 'withdraw';
+	} else {
+		return submittedForId;
+	}
+}
+
+function isRepsJourneyId(journeyId) {
+	return isManageRepsJourneyId(journeyId) || isEditRepsJourneyId(journeyId) || isWithdrawRepsJourneyId(journeyId);
 }
 
 function isManageRepsJourneyId(journeyId) {
@@ -304,4 +329,8 @@ function isManageRepsJourneyId(journeyId) {
 
 function isEditRepsJourneyId(journeyId) {
 	return journeyId === MANAGE_REPS_EDIT_JOURNEY_ID;
+}
+
+function isWithdrawRepsJourneyId(journeyId) {
+	return journeyId === MANAGE_REPS_WITHDRAW_VIEW_JOURNEY_ID || journeyId === MANAGE_REPS_WITHDRAW_REVIEW_JOURNEY_ID;
 }

@@ -16,7 +16,21 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 		allowedMimeTypes: ALLOWED_MIME_TYPES,
 		maxFileSizeValue: MAX_FILE_SIZE,
 		maxFileSizeString: '20MB',
+		showUploadWarning: true,
 		validators: [new DocumentUploadValidator('myselfAttachments')]
+	});
+	const withdrawalRequestsQuestion = new RepresentationAttachments({
+		type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS,
+		title: 'Upload the withdrawal request',
+		question: 'Upload the withdrawal request',
+		fieldName: 'withdrawalRequests',
+		url: 'upload-request',
+		allowedFileExtensions: ALLOWED_EXTENSIONS,
+		allowedMimeTypes: ALLOWED_MIME_TYPES,
+		maxFileSizeValue: MAX_FILE_SIZE,
+		maxFileSizeString: '20MB',
+		showUploadWarning: false,
+		validators: [new DocumentUploadValidator('withdrawalRequests')]
 	});
 	describe('RepresentationAttachmentsQuestion', () => {
 		it('should create', () => {
@@ -24,7 +38,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 		});
 	});
 	describe('prepQuestionForRendering', () => {
-		it('should prep attachments question for rendering  for edit', () => {
+		it('should prep attachments question for rendering for edit', () => {
 			const section = { name: 'sectionA' };
 			const journey = {
 				baseUrl: '/cases/123456ab-1234-1234-1234-1234567890ab/manage-representations/AAAAA-BBBBB/edit',
@@ -135,6 +149,65 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				Buffer.from(JSON.stringify(uploadedFiles), 'utf-8').toString('base64')
 			);
 		});
+		it('should use journey id to get uploadedFiles if submittedForId not in journey', () => {
+			const section = { name: 'sectionA' };
+			const journey = {
+				baseUrl: '/cases/case-1/manage-representations/ABCDE-12345/view/withdraw-representation',
+				response: {
+					journeyId: 'withdraw-representation',
+					answers: {
+						withdrawalRequests: [
+							{
+								originalname: 'test-pdf.pdf',
+								mimetype: 'application/pdf',
+								buffer: {
+									type: 'Buffer'
+								},
+								size: 227787
+							}
+						]
+					}
+				},
+				getCurrentQuestionUrl: () => {
+					return 'url';
+				},
+				getBackLink: () => {
+					return 'back';
+				}
+			};
+
+			const uploadedFiles = [
+				{ name: 'file1.pdf', size: 1111 },
+				{ name: 'file2.pdf', size: 2222 }
+			];
+
+			const customViewData = {
+				id: 'repRef123',
+				files: {
+					repRef123: {
+						withdraw: {
+							uploadedFiles
+						}
+					}
+				}
+			};
+
+			const result = withdrawalRequestsQuestion.prepQuestionForRendering(section, journey, customViewData);
+
+			assert.deepStrictEqual(result.question.value, [
+				{
+					originalname: 'test-pdf.pdf',
+					mimetype: 'application/pdf',
+					buffer: { type: 'Buffer' },
+					size: 227787
+				}
+			]);
+			assert.deepStrictEqual(result.uploadedFiles, uploadedFiles);
+			assert.strictEqual(
+				result.uploadedFilesEncoded,
+				Buffer.from(JSON.stringify(uploadedFiles), 'utf-8').toString('base64')
+			);
+		});
 	});
 	describe('checkForValidationErrors', () => {
 		const journey = {
@@ -204,7 +277,8 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 						'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 					],
 					maxFileSizeValue: 20971520,
-					maxFileSizeString: '20MB'
+					maxFileSizeString: '20MB',
+					showUploadWarning: true
 				},
 				answer: [{ a: 1 }],
 				layoutTemplate: 'template',
@@ -261,7 +335,8 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 						'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 					],
 					maxFileSizeValue: 20971520,
-					maxFileSizeString: '20MB'
+					maxFileSizeString: '20MB',
+					showUploadWarning: true
 				},
 				answer: [{ a: 1 }],
 				layoutTemplate: 'template',
@@ -328,6 +403,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				question: 'Redacted attachments',
 				fieldName: 'myselfRedactedAttachments',
 				url: 'select-attachments',
+				showUploadWarning: true,
 				validators: []
 			});
 			const journey = {
@@ -586,6 +662,40 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				answers: { [question.fieldName]: expectedFiles }
 			});
 			assert.deepStrictEqual(journeyResponse.answers[question.fieldName], expectedFiles);
+		});
+		it('should prepare data to be saved and use journeyId when submittedForId is not present', async () => {
+			const req = {
+				params: { id: 'app123' },
+				session: {
+					files: {
+						app123: {
+							withdraw: {
+								uploadedFiles: [
+									{ name: 'doc1.pdf', size: 12345 },
+									{ name: 'doc2.pdf', size: 67890 }
+								]
+							}
+						}
+					}
+				}
+			};
+
+			const journeyResponse = {
+				journeyId: 'withdraw-representation',
+				answers: {}
+			};
+
+			const expectedFiles = [
+				{ name: 'doc1.pdf', size: 12345 },
+				{ name: 'doc2.pdf', size: 67890 }
+			];
+
+			const result = await withdrawalRequestsQuestion.getDataToSave(req, journeyResponse);
+
+			assert.deepStrictEqual(result, {
+				answers: { [withdrawalRequestsQuestion.fieldName]: expectedFiles }
+			});
+			assert.deepStrictEqual(journeyResponse.answers[withdrawalRequestsQuestion.fieldName], expectedFiles);
 		});
 	});
 });
