@@ -57,9 +57,11 @@ export async function renderRepresentation(req, res, viewData = {}) {
 
 	await list(req, res, '', {
 		representationRef,
+		representationUpdated,
 		requiresReview: res.locals?.journeyResponse?.answers?.requiresReview,
 		backLinkUrl: `/cases/${req.params.id}/manage-representations`,
-		representationUpdated,
+		currentUrl: req.originalUrl,
+		representationStatus: res.locals?.journeyResponse?.answers?.statusId,
 		...viewData
 	});
 }

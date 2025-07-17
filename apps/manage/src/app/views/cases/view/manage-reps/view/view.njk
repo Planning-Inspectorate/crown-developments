@@ -53,6 +53,19 @@
         </div>
     </div>
 
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            {% set linkText = "Withdraw representation" %}
+            {% set linkUrl = "/withdrawal-request-date" %}
+            {% if representationStatus == 'withdrawn' %}
+                {% set linkText = "Reinstate representation" %}
+                {% set linkUrl = "/reinstate-representation-confirmation" %}
+            {% endif %}
+            <p class="govuk-body">
+                <a class="govuk-link govuk-link--no-visited-state" href={{ currentUrl }}{{ linkUrl }}>{{ linkText }}</a>
+            </p>
+        </div>
+    </div>
     {% if requiresReview %}
         <form method="POST">
             <div class="govuk-grid-row">

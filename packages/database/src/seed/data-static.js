@@ -252,7 +252,8 @@ export const REPRESENTATION_SUBMITTED_FOR = [
 export const REPRESENTATION_STATUS_ID = Object.freeze({
 	AWAITING_REVIEW: 'awaiting-review',
 	ACCEPTED: 'accepted',
-	REJECTED: 'rejected'
+	REJECTED: 'rejected',
+	WITHDRAWN: 'withdrawn'
 });
 
 /**
@@ -270,6 +271,10 @@ export const REPRESENTATION_STATUS = [
 	{
 		id: REPRESENTATION_STATUS_ID.REJECTED,
 		displayName: 'Rejected'
+	},
+	{
+		id: REPRESENTATION_STATUS_ID.WITHDRAWN,
+		displayName: 'Withdrawn'
 	}
 ];
 
