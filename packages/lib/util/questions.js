@@ -13,6 +13,19 @@ export function referenceDataToRadioOptions(reference, addNullOption = false) {
 	return options;
 }
 
+/**
+ * @param {{displayName?: string, id: string, hintText: string|undefined}[]} reference
+ * @param {boolean} [addNullOption]
+ * @returns {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').Option[]}
+ */
+export function referenceDataToRadioOptionsWithHintText(reference, addNullOption = false) {
+	const options = reference.map((t) => ({ text: t.displayName, value: t.id, hint: t.hintText }));
+	if (addNullOption) {
+		options.unshift({ text: '', value: '' });
+	}
+	return options;
+}
+
 export function getSubmittedForId(answers) {
 	return answers['submittedForId'] === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
 		? REPRESENTATION_SUBMITTED_FOR_ID.MYSELF

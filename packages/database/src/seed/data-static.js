@@ -252,7 +252,8 @@ export const REPRESENTATION_SUBMITTED_FOR = [
 export const REPRESENTATION_STATUS_ID = Object.freeze({
 	AWAITING_REVIEW: 'awaiting-review',
 	ACCEPTED: 'accepted',
-	REJECTED: 'rejected'
+	REJECTED: 'rejected',
+	WITHDRAWN: 'withdrawn'
 });
 
 /**
@@ -270,6 +271,10 @@ export const REPRESENTATION_STATUS = [
 	{
 		id: REPRESENTATION_STATUS_ID.REJECTED,
 		displayName: 'Rejected'
+	},
+	{
+		id: REPRESENTATION_STATUS_ID.WITHDRAWN,
+		displayName: 'Withdrawn'
 	}
 ];
 
@@ -297,6 +302,40 @@ export const REPRESENTED_TYPE = [
 	{
 		id: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
 		displayName: 'An organisation or charity I do not work or volunteer for'
+	}
+];
+
+export const WITHDRAWAL_REASON_ID = Object.freeze({
+	/**
+	 * @type {Readonly<{CHANGE_OF_OPINION: string, MISTAKEN_SUBMISSION: string, MISUNDERSTANDING: string, PERSONAL_REASONS: string}>}
+	 */
+	CHANGE_OF_OPINION: 'change-of-opinion',
+	MISTAKEN_SUBMISSION: 'mistaken-submission',
+	MISUNDERSTANDING: 'misunderstanding',
+	PERSONAL_REASONS: 'personal-reasons'
+});
+
+export const WITHDRAWAL_REASON = [
+	{
+		id: WITHDRAWAL_REASON_ID.CHANGE_OF_OPINION,
+		displayName: 'Change of opinion',
+		hintText: 'They no longer dell the same way about the application'
+	},
+	{
+		id: WITHDRAWAL_REASON_ID.MISTAKEN_SUBMISSION,
+		displayName: 'Mistaken Submission',
+		hintText: 'They accidentally submitted the representation'
+	},
+	{
+		id: WITHDRAWAL_REASON_ID.MISUNDERSTANDING,
+		displayName: 'Misunderstanding',
+		hintText: 'They misunderstood the application or its implications'
+	},
+	{
+		id: WITHDRAWAL_REASON_ID.PERSONAL_REASONS,
+		displayName: 'Personal Reasons',
+		hintText:
+			'They wish to withdraw their representation for personal reasons, such as privacy or a change in circumstances'
 	}
 ];
 

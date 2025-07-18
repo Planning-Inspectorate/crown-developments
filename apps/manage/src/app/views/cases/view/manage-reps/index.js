@@ -59,8 +59,10 @@ export function createRoutes(service) {
 
 	router.use('/:representationRef', repsRouter); // all routes for an existing representation
 	// view
+	//TODO: create new router for view
 	repsRouter.get('/view', getJourney, viewReviewRedirect, asyncHandler(viewRepresentation));
 	repsRouter.use('/review', reviewRoutes);
+
 	// edits
 	repsRouter.get('/edit', viewReviewRedirect);
 	repsRouter
