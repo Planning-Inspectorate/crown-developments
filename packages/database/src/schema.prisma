@@ -229,6 +229,12 @@ model Representation {
   containsAttachments     Boolean?                 @default(false)
   Attachments             RepresentationDocument[]
   sharePointFolderCreated Boolean?                 @default(false)
+
+  // withdrawal fields
+  withdrawalDate     DateTime?
+  withdrawalReasonId String?
+  WithdrawalReason   WithdrawalReason? @relation(fields: [withdrawalReasonId], references: [id])
+  // TODO: add withdrawal request doc field
 }
 
 // Document attached to a representation, such as evidence or a letter
@@ -339,5 +345,13 @@ model RepresentedType {
   /// unique machine-readable name, not generated, e.g. "person"
   id             String           @id
   displayName    String?
+  Representation Representation[]
+}
+
+model WithdrawalReason {
+  /// unique machine-readable name, not generated, e.g. "change-of-opinion"
+  id             String           @id
+  displayName    String?
+  hintText       String?
   Representation Representation[]
 }
