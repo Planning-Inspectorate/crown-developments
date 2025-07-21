@@ -10,17 +10,14 @@ export function representationsToViewModel(reps) {
 	reps.sort((a, b) => {
 		return a.submittedDate - b.submittedDate;
 	});
-	const repsByStatus = {};
+
+	const repsByStatus = [];
 	for (const rep of reps) {
-		const byStatus = repsByStatus[rep.statusId] || (repsByStatus[rep.statusId] = []);
-		byStatus.push(representationToViewModel(rep));
+		repsByStatus.push(representationToViewModel(rep));
 	}
+
 	return {
-		reps: {
-			awaitingReview: repsByStatus[REPRESENTATION_STATUS_ID.AWAITING_REVIEW] || [],
-			accepted: repsByStatus[REPRESENTATION_STATUS_ID.ACCEPTED] || [],
-			rejected: repsByStatus[REPRESENTATION_STATUS_ID.REJECTED] || []
-		}
+		reps: repsByStatus
 	};
 }
 
@@ -32,6 +29,8 @@ export function representationToViewModel(rep) {
 	return {
 		reference: rep.reference,
 		submittedDate: formatDateForDisplay(rep.submittedDate),
-		submittedByFullName: nameToViewModel(rep.SubmittedByContact?.firstName, rep.SubmittedByContact?.lastName) || ''
+		submittedByFullName: nameToViewModel(rep.SubmittedByContact?.firstName, rep.SubmittedByContact?.lastName) || '',
+		status: rep.Status?.displayName,
+		review: rep.statusId === REPRESENTATION_STATUS_ID.AWAITING_REVIEW
 	};
 }

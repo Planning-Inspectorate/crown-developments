@@ -1,3 +1,13 @@
 .js-enabled-link {
     display: none;
 }
+
+.sortable {
+    all: unset;
+    color: #1d70b8;
+    cursor: pointer;
+}
+
+.sortable:focus {
+    outline: 3px solid #ffbf47;
+}

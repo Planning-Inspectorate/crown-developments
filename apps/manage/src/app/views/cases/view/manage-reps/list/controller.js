@@ -1,5 +1,6 @@
 import { representationsToViewModel } from './view-model.js';
 import { clearRepReviewedSession, readRepReviewedSession } from '../review/controller.js';
+import { REPRESENTATION_STATUS } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
  * Return a handler to show the list of representations
@@ -13,12 +14,41 @@ export function buildListReps({ db }) {
 		if (!id) {
 			throw new Error('id param is required');
 		}
+		const queryFilters = getQueryFilters(req.query);
+		console.log(queryFilters);
+
 		const cd = await db.crownDevelopment.findUnique({
 			where: { id },
 			include: {
 				Representation: {
-					include: { SubmittedByContact: true }
+					include: { SubmittedByContact: true, Status: true }
 				}
+			}
+		});
+
+		const counts = statusCounts(
+			cd.Representation,
+			REPRESENTATION_STATUS.map((status) => status.id)
+		);
+
+		const filters = REPRESENTATION_STATUS.sort((statusA, statusB) =>
+			statusA.displayName.localeCompare(statusB.displayName)
+		).map((status) => ({
+			text: `${status.displayName} (${counts[status.id]})`,
+			value: status.id,
+			checked: queryFilters?.includes(status.id)
+		}));
+
+		const filteredRepresentations = await db.representation.findMany({
+			where: {
+				applicationId: id,
+				statusId: {
+					in: queryFilters
+				}
+			},
+			include: {
+				SubmittedByContact: true,
+				Status: true
 			}
 		});
 
@@ -30,8 +60,29 @@ export function buildListReps({ db }) {
 			pageCaption: cd.reference,
 			pageTitle: 'Manage representations',
 			baseUrl: req.baseUrl,
-			...representationsToViewModel(cd.Representation),
+			filters,
+			counts,
+			...representationsToViewModel(filteredRepresentations),
 			repReviewed
 		});
 	};
+}
+
+function getQueryFilters(query) {
+	const filters = query?.filters;
+	if (!filters) return;
+	return Array.isArray(filters) ? filters : [filters];
+}
+
+function statusCounts(array, statuses = []) {
+	const counts = Object.fromEntries(statuses.map((s) => [s, 0]));
+
+	array?.forEach((item) => {
+		const statusId = item.Status?.id;
+		if (statusId && statusId in counts) {
+			counts[statusId]++;
+		}
+	});
+
+	return counts;
 }
