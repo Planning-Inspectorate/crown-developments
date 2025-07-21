@@ -1,10 +1,15 @@
 {% extends "views/layouts/main.njk" %}
 
-{% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/table/macro.njk" import govukTable %}
-{% from "govuk/components/tag/macro.njk" import govukTag %}
-{% from "govuk/components/tabs/macro.njk" import govukTabs %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "search-filter/search-filter.njk" import searchFilters %}
+
+{% set doubleArrowSvg %}
+    <svg width="22" height="22" aria-hidden="true" focusable="false" viewBox="0 0 22 22">
+        <path d="M8.1875 9.5L10.9609 3.95703L13.7344 9.5H8.1875Z" fill="currentColor"></path>
+        <path d="M13.7344 12.0781L10.9609 17.6211L8.1875 12.0781H13.7344Z" fill="currentColor"></path>
+    </svg>
+{% endset %}
 
 {% block pageContent %}
     {% if repReviewed %}
@@ -16,58 +21,108 @@
 
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
+            <form id="search-filter-form" method="GET">
+                {{ searchFilters(filters) }}
+            </form>
+        </div>
+        <div class="govuk-grid-column-one-third">
+            <h3 class="govuk-heading-m">Actions</h3>
             <p class="govuk-body">
                 <a href="{{ baseUrl }}/add-representation/start" class="govuk-link govuk-link--no-visited-state">Add a representation</a>
             </p>
         </div>
     </div>
 
-    {% set awaitingReviewTable %}
-        {{ repsTable(reps.awaitingReview, true) }}
-    {% endset -%}
+    {{ repsTable(reps) }}
 
-    {% set acceptedTable %}
-        {{ repsTable(reps.accepted, false) }}
-    {% endset -%}
+    <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
+        const doubleArrowSvg = `{{ doubleArrowSvg | safe }}`;
 
-    {% set rejectedTable %}
-        {{ repsTable(reps.rejected, false) }}
-    {% endset -%}
+        const upArrowSvg = `▲`;
+        const downArrowSvg = `▼`;
 
-    {{ govukTabs({
-        items: [
-            {
-                label: "Awaiting Review",
-                id: "awaiting-review",
-                panel: {
-                html: awaitingReviewTable
-            }
-            },
-            {
-                label: "Accepted",
-                id: "accepted",
-                panel: {
-                html: acceptedTable
-            }
-            },
-            {
-                label: "Rejected",
-                id: "rejected",
-                panel: {
-                html: rejectedTable
-            }
-            }
-        ]
-    }) }}
+        document.addEventListener('DOMContentLoaded', function () {
+            // Specify which columns are dates (0 indexed array) - Submitted Date
+            const dateColumns = [2];
 
+            document.querySelectorAll('.sortable').forEach(button => {
+                button.addEventListener('click', () => {
+                    const table = document.getElementById('sortable-table');
+                    if (!table) return;
+                    const tbody = table.querySelector('tbody');
+                    if (!tbody) return;
+
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    const col = parseInt(button.dataset.column);
+                    const order = button.dataset.order;
+                    const newOrder = order === 'asc' ? 'desc' : 'asc';
+
+                    document.querySelectorAll('.sortable').forEach(btn => {
+                        btn.dataset.order = 'none';
+                        const icon = btn.querySelector('.sort-icon');
+                        if (icon) icon.innerHTML = doubleArrowSvg;
+                    });
+
+                    button.dataset.order = newOrder;
+                    const icon = button.querySelector('.sort-icon');
+                    if (icon) icon.innerHTML = newOrder === 'asc' ? upArrowSvg : downArrowSvg;
+
+                    rows.sort((a, b) => {
+                        const aText = a.children[col].textContent.trim();
+                        const bText = b.children[col].textContent.trim();
+
+                        if (dateColumns.includes(col)) {
+                            // Parse dates
+                            const aDate = Date.parse(aText);
+                            const bDate = Date.parse(bText);
+
+                            // Handle invalid dates
+                            if (isNaN(aDate) && isNaN(bDate)) return 0;
+                            if (isNaN(aDate)) return newOrder === 'asc' ? -1 : 1;
+                            if (isNaN(bDate)) return newOrder === 'asc' ? 1 : -1;
+
+                            return newOrder === 'asc' ? aDate - bDate : bDate - aDate;
+                        }
+
+                        // Non-date columns: number or string sorting
+                        const aVal = isNaN(aText) ? aText.toLowerCase() : parseFloat(aText);
+                        const bVal = isNaN(bText) ? bText.toLowerCase() : parseFloat(bText);
+
+                        if (aVal < bVal) return newOrder === 'asc' ? -1 : 1;
+                        if (aVal > bVal) return newOrder === 'asc' ? 1 : -1;
+                        return 0;
+                    });
+
+                    rows.forEach(row => tbody.appendChild(row));
+                });
+            });
+        });
+
+        // handle adding and removing search parameters from filter form
+        document.getElementById('search-filter-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const form = e.target;
+            const url = new URL(form.action, window.location.origin);
+            const params = new URLSearchParams();
+
+            new FormData(form).forEach((value, key) => {
+                if (value.trim()) params.append(key, value);
+            });
+
+            url.search = params.toString() ? `?${params}` : '';
+
+            window.location.href = url.toString();
+        });
+    </script>
 {% endblock %}
 
-{% macro repsTable(representations, review) %}
+{% macro repsTable(representations) %}
     {% set repsRows = [] %}
     {% for rep in representations %}
         {% set actionText = 'View' %}
         {% set actionLink = 'view' %}
-        {% if review %}
+        {% if rep.review %}
             {% set actionText = 'Review' %}
             {% set actionLink = 'review' %}
         {% endif  %}
@@ -82,6 +137,9 @@
                 text: rep.submittedDate
             },
             {
+                text: rep.status
+            },
+            {
                 html: '<a href="'+ baseUrl + '/' + rep.reference + '/' + actionLink + '" class="govuk-link">' + actionText + '</a>'
             }
         ] %}
@@ -90,20 +148,28 @@
 
     {% set headers = [
         {
-            text: "Reference"
+            html: '<button class="sortable" data-column="0" data-order="none">Reference <span class="sort-icon">' + doubleArrowSvg + '</span>
+                    </button>'
         },
         {
-            text: "From"
+            html: '<button class="sortable" data-column="1" data-order="none">From <span class="sort-icon"><span class="sort-icon">' + doubleArrowSvg + '</span></button>'
         },
         {
-            text: "Submitted Date"
+            html: '<button class="sortable" data-column="2" data-order="asc">Submitted Date <span class="sort-icon">▲</span></button>'
         },
         {
-            text: "Action"
+            html: '<button class="sortable" data-column="3" data-order="none">Status <span class="sort-icon">' + doubleArrowSvg + '</span>
+                    </button>'
+        },
+        {
+            text: 'Action'
         }
     ] %}
 
     {{ govukTable({
+        attributes: {
+            id: "sortable-table"
+        },
         head: headers,
         rows: repsRows
     }) }}

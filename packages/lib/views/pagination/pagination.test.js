@@ -1,10 +1,13 @@
 import { afterEach, beforeEach, describe, it } from 'node:test';
-import { configureNunjucks } from '../../../../nunjucks.js';
 import assert from 'node:assert';
+import { createRequire } from 'node:module';
+import path from 'path';
+import nunjucks from 'nunjucks';
+import { fileURLToPath } from 'url';
 
 describe('pagination macro', () => {
 	const wrapperTemplate = `
-      {% import 'views/layouts/components/pagination/pagination.njk' as pagination %}
+      {% import 'pagination/pagination.njk' as pagination %}
       {{ pagination.renderPagination(currentPage, totalPages, currentUrl) }}
     `;
 	const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
@@ -214,6 +217,19 @@ describe('pagination macro', () => {
 			rendered.includes('<nav class="govuk-pagination" aria-label="Pagination">'),
 			'Pagination element should be present'
 		);
-		assert.ok(rendered.includes('<ul class="govuk-pagination__list">\n  </ul>'), 'Pagination list should be empty');
+		assert.ok(rendered.includes('<ul class="govuk-pagination__list">\n  \n  </ul>'), 'Pagination list should be empty');
 	});
 });
+
+function configureNunjucks() {
+	const __filename = fileURLToPath(import.meta.url);
+	const __dirname = path.dirname(__filename);
+	const require = createRequire(import.meta.url);
+	const paths = [
+		// get the path to the govuk-frontend folder, in node_modules, using the node require resolution
+		path.resolve(require.resolve('govuk-frontend'), '../..'),
+		// path to src folder
+		path.join(__dirname, '..')
+	];
+	return nunjucks.configure(paths);
+}

@@ -31,3 +31,14 @@ $font-family: arial, helvetica, sans-serif;
 	min-width: 4.5em !important;
 	max-width: 4.5em !important;
 }
+
+.filter-container {
+	background-color: #f3f2f1;
+}
+
+.filter-box {
+	.govuk-checkboxes {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+	}
+}
