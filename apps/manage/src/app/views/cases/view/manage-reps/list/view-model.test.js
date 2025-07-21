@@ -28,9 +28,9 @@ describe('view-model', () => {
 			];
 
 			const got = representationsToViewModel(reps);
-			assert.strictEqual(got.reps.accepted[0].reference, 'abc-125');
-			assert.strictEqual(got.reps.accepted[1].reference, 'abc-123');
-			assert.strictEqual(got.reps.accepted[2].reference, 'abc-124');
+			assert.strictEqual(got.reps[0].reference, 'abc-125');
+			assert.strictEqual(got.reps[1].reference, 'abc-123');
+			assert.strictEqual(got.reps[2].reference, 'abc-124');
 		});
 		it('should group reps by status', () => {
 			/**
@@ -65,9 +65,7 @@ describe('view-model', () => {
 			];
 
 			const got = representationsToViewModel(reps);
-			assert.strictEqual(got.reps.accepted.length, 3);
-			assert.strictEqual(got.reps.rejected.length, 1);
-			assert.strictEqual(got.reps.awaitingReview.length, 1);
+			assert.strictEqual(got.reps.length, 5);
 		});
 	});
 	describe('representationToViewModel', () => {
@@ -80,12 +78,19 @@ describe('view-model', () => {
 				viewModel: {
 					reference: 'abc-123',
 					submittedDate: '',
-					submittedByFullName: ''
+					submittedByFullName: '',
+					review: false,
+					status: undefined
 				}
 			},
 			{
 				rep: {
 					reference: 'abc-123-all-fields',
+					statusId: 'awaiting-review',
+					Status: {
+						id: 'awaiting-review',
+						displayName: 'Awaiting Review'
+					},
 					submittedDate: new Date('2025-02-27T12:15:59Z'),
 					SubmittedByContact: {
 						firstName: 'Mandalorian',
@@ -95,7 +100,9 @@ describe('view-model', () => {
 				viewModel: {
 					reference: 'abc-123-all-fields',
 					submittedDate: '27 Feb 2025',
-					submittedByFullName: 'Mandalorian Skywalker'
+					submittedByFullName: 'Mandalorian Skywalker',
+					review: true,
+					status: 'Awaiting Review'
 				}
 			}
 		];
