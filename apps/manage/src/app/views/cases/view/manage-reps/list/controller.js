@@ -15,7 +15,6 @@ export function buildListReps({ db }) {
 			throw new Error('id param is required');
 		}
 		const queryFilters = getQueryFilters(req.query);
-		console.log(queryFilters);
 
 		const cd = await db.crownDevelopment.findUnique({
 			where: { id },
@@ -36,7 +35,7 @@ export function buildListReps({ db }) {
 		).map((status) => ({
 			text: `${status.displayName} (${counts[status.id]})`,
 			value: status.id,
-			checked: queryFilters?.includes(status.id)
+			checked: queryFilters?.includes(status.id) || false
 		}));
 
 		const filteredRepresentations = await db.representation.findMany({
