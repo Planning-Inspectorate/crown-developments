@@ -47,11 +47,12 @@ export function buildUpdateRepresentation(
 			(toSave.submitterAttachments && toSave.submitterAttachments.length > 0);
 
 		if (hasAttachments) {
+			const attachmentsToSave = toSave.myselfAttachments ?? toSave.submitterAttachments;
 			await moveAttachmentsToCaseFolderFn({
 				service: { db, logger, sharePointDrive: getSharePointDrive(req.session) },
 				applicationReference: fullViewModel.applicationReference,
 				representationReference: representationRef,
-				representationAttachments: toSave.myselfAttachments ?? toSave.submitterAttachments
+				representationAttachments: attachmentsToSave
 			});
 
 			try {
@@ -62,7 +63,7 @@ export function buildUpdateRepresentation(
 						}
 					});
 					await $tx.representationDocument.createMany({
-						data: toSave.myselfAttachments.map((attachment) => ({
+						data: attachmentsToSave.map((attachment) => ({
 							representationId: representation.id,
 							fileName: attachment.fileName,
 							itemId: attachment.itemId,
