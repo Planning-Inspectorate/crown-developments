@@ -23,7 +23,7 @@
             </form>
         </div>
         <div class="govuk-grid-column-one-third">
-            <h3 class="govuk-heading-m">Actions</h3>
+            <h3 class="govuk-heading-m">Add a representation</h3>
             <p class="govuk-body">
                 <a href="{{ baseUrl }}/add-representation/start" class="govuk-link govuk-link--no-visited-state">Add a representation</a>
             </p>
@@ -42,7 +42,7 @@
             // Specify which columns are dates (0 indexed array) - Submitted Date
             const dateColumns = [2];
 
-            document.querySelectorAll('.sortable').forEach(button => {
+            document.querySelectorAll('.pins-sortable').forEach(button => {
                 button.addEventListener('click', () => {
                     const table = document.getElementById('sortable-table');
                     if (!table) return;
@@ -54,14 +54,14 @@
                     const order = button.dataset.order;
                     const newOrder = order === 'asc' ? 'desc' : 'asc';
 
-                    document.querySelectorAll('.sortable').forEach(btn => {
+                    document.querySelectorAll('.pins-sortable').forEach(btn => {
                         btn.dataset.order = 'none';
-                        const icon = btn.querySelector('.sort-icon');
+                        const icon = btn.querySelector('.pins-sortable-icon');
                         if (icon) icon.innerHTML = doubleArrowSvg;
                     });
 
                     button.dataset.order = newOrder;
-                    const icon = button.querySelector('.sort-icon');
+                    const icon = button.querySelector('.pins-sortable-icon');
                     if (icon) icon.innerHTML = newOrder === 'asc' ? upArrowSvg : downArrowSvg;
 
                     rows.sort((a, b) => {
@@ -145,17 +145,17 @@
 
     {% set headers = [
         {
-            html: '<button class="sortable" data-column="0" data-order="none">Reference <span class="sort-icon">' + doubleArrowSvg + '</span>
+            html: '<button class="pins-sortable" data-column="0" data-order="none"><span class="pins-sortable-header-text">Reference </span><span class="pins-sortable-icon">' + doubleArrowSvg + '</span>
                     </button>'
         },
         {
-            html: '<button class="sortable" data-column="1" data-order="none">From <span class="sort-icon"><span class="sort-icon">' + doubleArrowSvg + '</span></button>'
+            html: '<button class="pins-sortable" data-column="1" data-order="none"><span class="pins-sortable-header-text">From </span><span class="pins-sortable-icon">' + doubleArrowSvg + '</span></button>'
         },
         {
-            html: '<button class="sortable" data-column="2" data-order="asc">Submitted Date <span class="sort-icon">▲</span></button>'
+            html: '<button class="pins-sortable" data-column="2" data-order="asc"><span class="pins-sortable-header-text">Submitted Date <span><span class="pins-sortable-icon">▲</span></button>'
         },
         {
-            html: '<button class="sortable" data-column="3" data-order="none">Status <span class="sort-icon">' + doubleArrowSvg + '</span>
+            html: '<button class="pins-sortable" data-column="3" data-order="none"><span class="pins-sortable-header-text">Status </span><span class="pins-sortable-icon">' + doubleArrowSvg + '</span>
                     </button>'
         },
         {
