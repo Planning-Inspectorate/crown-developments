@@ -115,7 +115,7 @@ export function buildUpdateRepresentation(
 				logParams: { id, representationRef }
 			});
 		}
-
+		clearSessionData(req, representationRef, req.params.section, 'files');
 		addRepUpdatedSession(req, representationRef);
 	};
 }
