@@ -113,6 +113,7 @@ describe('list representations', () => {
 					{
 						reference: 'E3B94-F5D67',
 						submittedDate: '8 May 2025',
+						submittedDateSortableValue: 1746707252150,
 						submittedByFullName: 'Person Twenty',
 						status: 'Withdrawn',
 						review: false
@@ -120,6 +121,7 @@ describe('list representations', () => {
 					{
 						reference: 'B4D70-A9C81',
 						submittedDate: '28 Aug 2024',
+						submittedDateSortableValue: 1724803912028,
 						submittedByFullName: 'Person Twenty',
 						status: 'Accepted',
 						review: false
@@ -127,6 +129,7 @@ describe('list representations', () => {
 					{
 						reference: '50315-3163D',
 						submittedDate: '3 Feb 2025',
+						submittedDateSortableValue: 1738578720000,
 						submittedByFullName: 'Person One',
 						status: 'Awaiting Review',
 						review: true
@@ -173,6 +176,7 @@ describe('list representations', () => {
 					{
 						reference: 'E3B94-F5D67',
 						submittedDate: '8 May 2025',
+						submittedDateSortableValue: 1746707252150,
 						submittedByFullName: 'Person Twenty',
 						status: 'Withdrawn',
 						review: false
@@ -180,6 +184,7 @@ describe('list representations', () => {
 					{
 						reference: 'B4D70-A9C81',
 						submittedDate: '28 Aug 2024',
+						submittedDateSortableValue: 1724803912028,
 						submittedByFullName: 'Person Twenty',
 						status: 'Accepted',
 						review: false
@@ -187,6 +192,7 @@ describe('list representations', () => {
 					{
 						reference: '50315-3163D',
 						submittedDate: '3 Feb 2025',
+						submittedDateSortableValue: 1738578720000,
 						submittedByFullName: 'Person One',
 						status: 'Awaiting Review',
 						review: true
@@ -232,6 +238,7 @@ describe('list representations', () => {
 					{
 						reference: 'E3B94-F5D67',
 						submittedDate: '8 May 2025',
+						submittedDateSortableValue: 1746707252150,
 						submittedByFullName: 'Person Twenty',
 						status: 'Withdrawn',
 						review: false
@@ -239,6 +246,7 @@ describe('list representations', () => {
 					{
 						reference: 'B4D70-A9C81',
 						submittedDate: '28 Aug 2024',
+						submittedDateSortableValue: 1724803912028,
 						submittedByFullName: 'Person Twenty',
 						status: 'Accepted',
 						review: false
@@ -246,6 +254,7 @@ describe('list representations', () => {
 					{
 						reference: '50315-3163D',
 						submittedDate: '3 Feb 2025',
+						submittedDateSortableValue: 1738578720000,
 						submittedByFullName: 'Person One',
 						status: 'Awaiting Review',
 						review: true

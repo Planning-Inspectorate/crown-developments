@@ -78,6 +78,7 @@ describe('view-model', () => {
 				viewModel: {
 					reference: 'abc-123',
 					submittedDate: '',
+					submittedDateSortableValue: '',
 					submittedByFullName: '',
 					review: false,
 					status: undefined
@@ -100,6 +101,7 @@ describe('view-model', () => {
 				viewModel: {
 					reference: 'abc-123-all-fields',
 					submittedDate: '27 Feb 2025',
+					submittedDateSortableValue: 1740658559000,
 					submittedByFullName: 'Mandalorian Skywalker',
 					review: true,
 					status: 'Awaiting Review'

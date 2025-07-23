@@ -15,6 +15,7 @@
   "dependencies": {
     "@azure/msal-node": "*",
     "@microsoft/microsoft-graph-client": "*",
+    "@ministryofjustice/frontend": "*",
     "@pins/crowndev-database": "^0.0.0",
     "@pins/crowndev-lib": "^0.0.0",
     "@pins/crowndev-sharepoint": "^0.0.0",

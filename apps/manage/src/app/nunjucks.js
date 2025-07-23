@@ -12,6 +12,8 @@ export function configureNunjucks() {
 	const dynamicFormsRoot = path.resolve(require.resolve('@planning-inspectorate/dynamic-forms'), '..');
 	// get the path to the govuk-frontend folder, in node_modules, using the node require resolution
 	const govukFrontendRoot = path.resolve(require.resolve('govuk-frontend'), '../..');
+	// get the path to the moj frontend folder in node_modules, using the node require resolution
+	const mojFrontendRoot = path.resolve(require.resolve('@ministryofjustice/frontend'), '../..');
 	// path to packages/lib/forms folder with custom form components
 	const customFormsRoot = path.resolve(require.resolve('@pins/crowndev-lib'), '..', 'forms');
 	// path to packages/lib/forms folder with custom views
@@ -21,7 +23,7 @@ export function configureNunjucks() {
 	// configure nunjucks
 	return nunjucks.configure(
 		// ensure nunjucks templates can use govuk-frontend components, and templates we've defined in `web/src/app`
-		[dynamicFormsRoot, govukFrontendRoot, customFormsRoot, customViewsRoot, appDir],
+		[dynamicFormsRoot, govukFrontendRoot, mojFrontendRoot, customFormsRoot, customViewsRoot, appDir],
 		{
 			// output with dangerous characters are escaped automatically
 			autoescape: true,

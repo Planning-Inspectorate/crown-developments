@@ -11,13 +11,14 @@ import { copyFile, copyFolder } from './copy.js';
  * @param {string} options.staticDir
  * @param {string} options.srcDir
  * @param {string} options.govUkRoot
+ * @param {string} options.mojRoot
  * @returns {Promise<void>}
  */
-async function compileSass({ staticDir, srcDir, govUkRoot }) {
+async function compileSass({ staticDir, srcDir, govUkRoot, mojRoot }) {
 	const styleFile = path.join(srcDir, 'app', 'sass/style.scss');
 	const out = sass.compile(styleFile, {
 		// ensure scss can find the govuk-frontend folders
-		loadPaths: [govUkRoot],
+		loadPaths: [govUkRoot, mojRoot],
 		style: 'compressed',
 		// don't show depreciate warnings for govuk
 		// see https://frontend.design-system.service.gov.uk/importing-css-assets-and-javascript/#silence-deprecation-warnings-from-dependencies-in-dart-sass
@@ -37,9 +38,10 @@ async function compileSass({ staticDir, srcDir, govUkRoot }) {
  * @param {Object} options
  * @param {string} options.staticDir
  * @param {string} options.govUkRoot
+ * @param {string} options.mojRoot
  * @returns {Promise<void>}
  */
-async function copyAssets({ staticDir, govUkRoot }) {
+async function copyAssets({ staticDir, govUkRoot, mojRoot }) {
 	const images = path.join(govUkRoot, 'node_modules/govuk-frontend/dist/govuk/assets/images');
 	const fonts = path.join(govUkRoot, 'node_modules/govuk-frontend/dist/govuk/assets/fonts');
 	const js = path.join(govUkRoot, 'node_modules/govuk-frontend/dist/govuk/govuk-frontend.min.js');
@@ -58,6 +60,14 @@ async function copyAssets({ staticDir, govUkRoot }) {
 	await copyFile(js, staticJs);
 	await copyFile(manifest, staticManifest);
 	await copyFolder(rebrand, staticRebrand);
+
+	const mojImages = path.join(mojRoot, 'node_modules/@ministryofjustice/frontend/moj/assets/images');
+	const mojJs = path.join(mojRoot, 'node_modules/@ministryofjustice/frontend/moj/moj-frontend.min.js');
+	const staticMojJs = path.join(staticDir, 'assets', 'js', 'moj-frontend.min.js');
+
+	// copy images and js for @ministryofjustice/frontend
+	await copyFolder(mojImages, staticImages);
+	await copyFile(mojJs, staticMojJs);
 }
 
 /**
@@ -89,8 +99,8 @@ async function copyAutocompleteAssets({ staticDir, root }) {
  * @param {string} [options.accessibleAutocompleteRoot]
  * @returns {Promise<void[]>}
  */
-export function runBuild({ staticDir, srcDir, govUkRoot, accessibleAutocompleteRoot }) {
-	const tasks = [compileSass({ staticDir, srcDir, govUkRoot }), copyAssets({ staticDir, govUkRoot })];
+export function runBuild({ staticDir, srcDir, govUkRoot, mojRoot, accessibleAutocompleteRoot }) {
+	const tasks = [compileSass({ staticDir, srcDir, govUkRoot, mojRoot }), copyAssets({ staticDir, govUkRoot, mojRoot })];
 	if (accessibleAutocompleteRoot) {
 		tasks.push(copyAutocompleteAssets({ staticDir, root: accessibleAutocompleteRoot }));
 	}

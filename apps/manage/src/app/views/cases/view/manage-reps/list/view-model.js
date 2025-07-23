@@ -29,6 +29,7 @@ export function representationToViewModel(rep) {
 	return {
 		reference: rep.reference,
 		submittedDate: formatDateForDisplay(rep.submittedDate),
+		submittedDateSortableValue: new Date(rep.submittedDate)?.getTime() || '',
 		submittedByFullName: nameToViewModel(rep.SubmittedByContact?.firstName, rep.SubmittedByContact?.lastName) || '',
 		status: rep.Status?.displayName,
 		review: rep.statusId === REPRESENTATION_STATUS_ID.AWAITING_REVIEW

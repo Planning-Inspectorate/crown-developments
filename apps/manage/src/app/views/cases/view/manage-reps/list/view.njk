@@ -4,10 +4,6 @@
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% from "search-filter/search-filter.njk" import searchFilters %}
 
-{% set doubleArrowSvg %}
-    <img src="/double-arrow.svg" alt="Icon">
-{% endset %}
-
 {% block pageContent %}
     {% if repReviewed %}
         {{ govukNotificationBanner({
@@ -33,68 +29,6 @@
     {{ repsTable(reps) }}
 
     <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-        const doubleArrowSvg = `{{ doubleArrowSvg | safe }}`;
-
-        const upArrowSvg = `▲`;
-        const downArrowSvg = `▼`;
-
-        document.addEventListener('DOMContentLoaded', function () {
-            // Specify which columns are dates (0 indexed array) - Submitted Date
-            const dateColumns = [2];
-
-            document.querySelectorAll('.pins-sortable').forEach(button => {
-                button.addEventListener('click', () => {
-                    const table = document.getElementById('sortable-table');
-                    if (!table) return;
-                    const tbody = table.querySelector('tbody');
-                    if (!tbody) return;
-
-                    const rows = Array.from(tbody.querySelectorAll('tr'));
-                    const col = parseInt(button.dataset.column);
-                    const order = button.dataset.order;
-                    const newOrder = order === 'asc' ? 'desc' : 'asc';
-
-                    document.querySelectorAll('.pins-sortable').forEach(btn => {
-                        btn.dataset.order = 'none';
-                        const icon = btn.querySelector('.pins-sortable-icon');
-                        if (icon) icon.innerHTML = doubleArrowSvg;
-                    });
-
-                    button.dataset.order = newOrder;
-                    const icon = button.querySelector('.pins-sortable-icon');
-                    if (icon) icon.innerHTML = newOrder === 'asc' ? upArrowSvg : downArrowSvg;
-
-                    rows.sort((a, b) => {
-                        const aText = a.children[col].textContent.trim();
-                        const bText = b.children[col].textContent.trim();
-
-                        if (dateColumns.includes(col)) {
-                            // Parse dates
-                            const aDate = Date.parse(aText);
-                            const bDate = Date.parse(bText);
-
-                            // Handle invalid dates
-                            if (isNaN(aDate) && isNaN(bDate)) return 0;
-                            if (isNaN(aDate)) return newOrder === 'asc' ? -1 : 1;
-                            if (isNaN(bDate)) return newOrder === 'asc' ? 1 : -1;
-
-                            return newOrder === 'asc' ? aDate - bDate : bDate - aDate;
-                        }
-
-                        // Non-date columns: number or string sorting
-                        const aVal = isNaN(aText) ? aText.toLowerCase() : parseFloat(aText);
-                        const bVal = isNaN(bText) ? bText.toLowerCase() : parseFloat(bText);
-
-                        if (aVal < bVal) return newOrder === 'asc' ? -1 : 1;
-                        if (aVal > bVal) return newOrder === 'asc' ? 1 : -1;
-                        return 0;
-                    });
-
-                    rows.forEach(row => tbody.appendChild(row));
-                });
-            });
-        });
-
         // handle adding and removing search parameters from filter form
         document.getElementById('search-filter-form').addEventListener('submit', function (e) {
             e.preventDefault();
@@ -131,7 +65,10 @@
                 text: rep.submittedByFullName
             },
             {
-                text: rep.submittedDate
+                text: rep.submittedDate,
+                attributes: {
+                    "data-sort-value": rep.submittedDateSortableValue
+                }
             },
             {
                 text: rep.status
@@ -145,18 +82,28 @@
 
     {% set headers = [
         {
-            html: '<button class="pins-sortable" data-column="0" data-order="none"><span class="pins-sortable-header-text">Reference </span><span class="pins-sortable-icon">' + doubleArrowSvg + '</span>
-                    </button>'
+            text: 'Reference',
+            attributes: {
+                "aria-sort": "none"
+            }
         },
         {
-            html: '<button class="pins-sortable" data-column="1" data-order="none"><span class="pins-sortable-header-text">From </span><span class="pins-sortable-icon">' + doubleArrowSvg + '</span></button>'
+            text: 'From',
+            attributes: {
+                "aria-sort": "none"
+            }
         },
         {
-            html: '<button class="pins-sortable" data-column="2" data-order="asc"><span class="pins-sortable-header-text">Submitted Date <span><span class="pins-sortable-icon">▲</span></button>'
+            text: 'Submitted Date',
+            attributes: {
+                "aria-sort": "ascending"
+            }
         },
         {
-            html: '<button class="pins-sortable" data-column="3" data-order="none"><span class="pins-sortable-header-text">Status </span><span class="pins-sortable-icon">' + doubleArrowSvg + '</span>
-                    </button>'
+            text: 'Status',
+            attributes: {
+                "aria-sort": "none"
+            }
         },
         {
             text: 'Action'
@@ -165,7 +112,7 @@
 
     {{ govukTable({
         attributes: {
-            id: "sortable-table"
+            "data-module": "moj-sortable-table"
         },
         head: headers,
         rows: repsRows
