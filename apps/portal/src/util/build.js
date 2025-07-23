@@ -12,9 +12,11 @@ async function run() {
 	const require = createRequire(import.meta.url);
 	// resolves to <root>/node_modules/govuk-frontend/dist/govuk/all.bundle.js than maps to `<root>`
 	const govUkRoot = path.resolve(require.resolve('govuk-frontend'), '../../../../..');
+	// resolves to <root>/node_modules/@ministryofjustice/frontend/moj/all.bundle.js than maps to `<root>`
+	const mojRoot = path.resolve(require.resolve('@ministryofjustice/frontend'), '../../../../..');
 
 	const config = loadBuildConfig();
-	await runBuild({ staticDir: config.staticDir, srcDir: config.srcDir, govUkRoot });
+	await runBuild({ staticDir: config.staticDir, srcDir: config.srcDir, govUkRoot, mojRoot });
 }
 
 // run the build, and write any errors to console

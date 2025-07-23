@@ -5,6 +5,7 @@
 		sans-serif
 	)
 );
+@forward 'node_modules/@ministryofjustice/frontend/moj/all';
 @use './components/application-links.scss';
 @use './components/pins-table.scss';
 @use './components/document-list.scss';
