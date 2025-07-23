@@ -324,7 +324,14 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			question: 'When is the site visit?',
 			fieldName: 'siteVisitDate',
 			url: 'site-visit',
-			validators: [new DateTimeValidator('Site visit', 'Site visit date')]
+			validators: [
+				new DateTimeValidator(
+					'Site visit',
+					'Site visit date',
+					{ ensureFuture: false, ensurePast: false },
+					{ emptyErrorMessage: 'Enter the site visit date' }
+				)
+			]
 		},
 		withdrawnDate: dateQuestion({ fieldName: 'withdrawnDate' }),
 		originalDecisionDate: dateQuestion({ fieldName: 'originalDecisionDate' }),
