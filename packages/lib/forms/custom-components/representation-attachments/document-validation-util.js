@@ -1,4 +1,4 @@
-import fileType from 'file-type';
+import { fileTypeFromBuffer } from 'file-type';
 
 import * as CFB from 'cfb';
 import { PDFDocument } from 'pdf-lib';
@@ -22,7 +22,7 @@ export async function validateUploadedFile(file, logger, allowedFileExtensions, 
 		});
 	}
 
-	const fileTypeResult = await fileType.fromBuffer(buffer);
+	const fileTypeResult = await fileTypeFromBuffer(buffer);
 	if (!fileTypeResult) {
 		validationErrors.push({
 			text: `${originalname}: Could not determine file type from signature`,
