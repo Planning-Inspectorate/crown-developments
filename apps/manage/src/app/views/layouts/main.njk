@@ -1,4 +1,4 @@
-{% extends "govuk/template.njk" %}
+{% extends "moj/template.njk" %}
 
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
@@ -83,8 +83,11 @@
 	</footer>
 
 	<script type="module" {% if cspNonce %}nonce={{ cspNonce }}{% endif %} src="/assets/js/govuk-frontend.min.js"></script>
+	<script type="module" {% if cspNonce %}nonce={{ cspNonce }}{% endif %} src="/assets/js/moj-frontend.min.js"></script>
 	<script type="module" {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-		import { initAll } from '/assets/js/govuk-frontend.min.js'
-		initAll()
+		import { initAll as govUkInitAll } from '/assets/js/govuk-frontend.min.js'
+		import { initAll as mojInitAll } from '/assets/js/moj-frontend.min.js'
+		govUkInitAll()
+		mojInitAll()
 	</script>
 {% endblock %}
