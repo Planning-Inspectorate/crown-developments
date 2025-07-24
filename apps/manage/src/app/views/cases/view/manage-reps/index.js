@@ -10,6 +10,7 @@ import { buildUpdateRepresentation } from './edit/controller.js';
 import { createRoutes as createAddRoutes } from './add/index.js';
 import { createRoutes as createReviewRoutes } from './review/index.js';
 import { createRoutes as createTaskListRoutes } from './task-list/index.js';
+import { createRoutes as createWithdrawRoutes } from './withdraw/index.js';
 import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
 import multer from 'multer';
 import {
@@ -21,6 +22,7 @@ import {
 	ALLOWED_MIME_TYPES,
 	MAX_FILE_SIZE
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
+import { buildReinstateRepConfirmation } from './reinstate/controller.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -32,9 +34,11 @@ export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
 	const repsRouter = createRouter({ mergeParams: true });
 	const list = buildListReps(service);
+	const reinstateRepConfirmation = buildReinstateRepConfirmation();
 
 	const addRepRoutes = createAddRoutes(service);
 	const reviewRoutes = createReviewRoutes(service);
+	const withdrawRoutes = createWithdrawRoutes(service);
 	const taskListRoutes = createTaskListRoutes(service, MANAGE_REPS_MANAGE_JOURNEY_ID);
 
 	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
@@ -59,8 +63,9 @@ export function createRoutes(service) {
 
 	router.use('/:representationRef', repsRouter); // all routes for an existing representation
 	// view
-	//TODO: create new router for view
 	repsRouter.get('/view', getJourney, viewReviewRedirect, asyncHandler(viewRepresentation));
+	repsRouter.use('/view/withdraw-representation', withdrawRoutes);
+	repsRouter.use('/view/reinstate-representation-confirmation', asyncHandler(reinstateRepConfirmation));
 	repsRouter.use('/review', reviewRoutes);
 
 	// edits

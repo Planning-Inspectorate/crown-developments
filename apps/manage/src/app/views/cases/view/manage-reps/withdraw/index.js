@@ -14,14 +14,19 @@ import { buildSave, list, question } from '@planning-inspectorate/dynamic-forms/
 import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
 import { Router as createRouter } from 'express';
-import { getQuestions } from './questions.js';
-import { createJourney, JOURNEY_ID } from './journey.js';
 import { buildGetJourney } from '@planning-inspectorate/dynamic-forms/src/middleware/build-get-journey.js';
 import {
 	buildGetJourneyResponseFromSession,
 	saveDataToSession
 } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
+import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/session.js';
+import { getQuestions } from './questions.js';
+import { createJourney, JOURNEY_ID } from './journey.js';
 
+/**
+ * @param {import('#service').ManageService} service
+ * @returns {import('express').Router}
+ */
 export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
 	const questions = getQuestions();
@@ -35,6 +40,11 @@ export function createRoutes(service) {
 		uploadDocumentsController(service, JOURNEY_ID, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE)
 	);
 	const deleteDocuments = asyncHandler(deleteDocumentsController(service, JOURNEY_ID));
+	const resetSessionMiddleware = buildResetSessionMiddleware(service.logger);
+
+	router.get('/', resetSessionMiddleware, (req, res) => {
+		res.redirect(req.baseUrl + '/withdraw/request-date');
+	});
 
 	router.get('/:section/:question', getJourneyResponse, getJourney, uploadDocumentQuestion, question);
 	router.post(
@@ -56,7 +66,9 @@ export function createRoutes(service) {
 
 	router.post('/:section/:question/delete-document/:documentId', getJourneyResponse, getJourney, deleteDocuments);
 
-	router.get('/withdrawal/check-your-answers', getJourneyResponse, getJourney, (req, res) => list(req, res, '', {}));
-	// router.post('/withdrawal/check-your-answers', getJourneyResponse, getJourney, asyncHandler(saveController)); //TODO: create save controller for withdraw rep
+	router.get('/check-your-answers', getJourneyResponse, getJourney, (req, res) => list(req, res, '', {}));
+	// router.post('/check-your-answers', getJourneyResponse, getJourney, asyncHandler(saveController)); //TODO: create save controller for withdraw rep
 	// router.get('/success', viewWithdrawRepresentationSuccessPage); //TODO: create withdraw rep success page controller
+
+	return router;
 }

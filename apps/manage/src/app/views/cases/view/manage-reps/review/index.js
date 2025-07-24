@@ -5,6 +5,7 @@ import { buildReviewControllers, viewRepresentationAwaitingReview, viewReviewRed
 import { buildGetJourneyMiddleware } from '../view/controller.js';
 import { buildValidateRepresentationMiddleware } from '../validation-middleware.js';
 import { createRoutes as createTaskListRoutes } from '../task-list/index.js';
+import { createRoutes as createWithdrawRoutes } from '../withdraw/index.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -14,6 +15,7 @@ export function createRoutes(service) {
 	const MANAGE_REPS_REVIEW_JOURNEY_ID = 'manage-reps-review';
 	const router = createRouter({ mergeParams: true });
 	const taskListRoutes = createTaskListRoutes(service, MANAGE_REPS_REVIEW_JOURNEY_ID);
+	const withdrawRoutes = createWithdrawRoutes(service);
 
 	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
 	const { reviewRepresentation } = buildReviewControllers(service);
@@ -22,6 +24,7 @@ export function createRoutes(service) {
 	router.get('/', getJourney, viewReviewRedirect, asyncHandler(viewRepresentationAwaitingReview));
 	router.post('/', getJourney, validatePostRepresentation, validationErrorHandler, asyncHandler(reviewRepresentation));
 	router.use('/task-list', taskListRoutes);
+	router.use('/withdraw-representation', withdrawRoutes);
 
 	return router;
 }
