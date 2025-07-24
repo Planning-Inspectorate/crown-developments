@@ -28,7 +28,9 @@
             <h1 class="govuk-heading-l">
                 {{ question.question }}
             </h1>
-            <p class="govuk-body">You should not use racist, inflammatory or abusive language, or include personal information (also called special category information) about yourself or others in your comments. Any attachments will be reviewed and redacted if necessary.</p>
+            {% if question.showUploadWarning %}
+                <p class="govuk-body">You should not use racist, inflammatory or abusive language, or include personal information (also called special category information) about yourself or others in your comments. Any attachments will be reviewed and redacted if necessary.</p>
+            {% endif %}
             <p class="govuk-body">
                 You can upload the following file types:
                 <br>
@@ -45,7 +47,9 @@
                 <li>Total upload size must be under 1GB</li>
             </ul>
 
-            {{ representationInformation.renderRepresentationInformation("Examples of personal information") }}
+            {% if question.showUploadWarning %}
+                {{ representationInformation.renderRepresentationInformation("Examples of personal information") }}
+            {% endif %}
 
             <p class="govuk-body govuk-!-font-weight-bold">Upload attachments</p>
 

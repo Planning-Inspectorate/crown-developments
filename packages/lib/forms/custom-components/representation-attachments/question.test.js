@@ -16,6 +16,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 		allowedMimeTypes: ALLOWED_MIME_TYPES,
 		maxFileSizeValue: MAX_FILE_SIZE,
 		maxFileSizeString: '20MB',
+		showUploadWarning: true,
 		validators: [new DocumentUploadValidator('myselfAttachments')]
 	});
 	describe('RepresentationAttachmentsQuestion', () => {
@@ -328,6 +329,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				question: 'Redacted attachments',
 				fieldName: 'myselfRedactedAttachments',
 				url: 'select-attachments',
+				showUploadWarning: true,
 				validators: []
 			});
 			const journey = {
