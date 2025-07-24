@@ -205,7 +205,8 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 						'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 					],
 					maxFileSizeValue: 20971520,
-					maxFileSizeString: '20MB'
+					maxFileSizeString: '20MB',
+					showUploadWarning: true
 				},
 				answer: [{ a: 1 }],
 				layoutTemplate: 'template',
@@ -262,7 +263,8 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 						'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 					],
 					maxFileSizeValue: 20971520,
-					maxFileSizeString: '20MB'
+					maxFileSizeString: '20MB',
+					showUploadWarning: true
 				},
 				answer: [{ a: 1 }],
 				layoutTemplate: 'template',
