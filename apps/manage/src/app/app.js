@@ -20,7 +20,11 @@ export function getApp(service) {
 	const logRequests = buildLogRequestsMiddleware(service.logger);
 	const trimEmptyQuery = (req, res, next) => {
 		if (!req.query?.filters && req.originalUrl.endsWith('?')) {
-			return res.redirect(req.path);
+			const redirectPath = req.path;
+			if (/^\/[a-zA-Z0-9/_-]*$/.test(redirectPath)) {
+				return res.redirect(redirectPath);
+			}
+			return res.redirect('/');
 		}
 		return next();
 	};
