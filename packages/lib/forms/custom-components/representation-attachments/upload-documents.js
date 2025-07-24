@@ -292,7 +292,9 @@ function getRedirectUrl(appName, applicationId, journeyId, submittedForId, reque
 		'add-representation': `/cases/${applicationId}/manage-representations/${journeyId}/${journeyMap[submittedForId]}/select-attachments`,
 		'manage-reps-edit': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/edit/${journeyMap[submittedForId]}/select-attachments`,
 		'manage-reps-manage': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/manage/task-list/${requestParams?.itemId}/redact`,
-		'manage-reps-review': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/review/task-list/${requestParams?.itemId}/redact`
+		'manage-reps-review': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/review/task-list/${requestParams?.itemId}/redact`,
+		'withdraw-representation-review': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/review/withdraw-representation/withdraw/upload-request`,
+		'withdraw-representation-view': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/view/withdraw-representation/withdraw/upload-request`
 	};
 
 	return redirectUrlMap[journeyId];
