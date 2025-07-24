@@ -25,9 +25,10 @@ import { createJourney, JOURNEY_ID } from './journey.js';
 
 /**
  * @param {import('#service').ManageService} service
+ * @param {string} viewOrReview
  * @returns {import('express').Router}
  */
-export function createRoutes(service) {
+export function createRoutes(service, viewOrReview) {
 	const router = createRouter({ mergeParams: true });
 	const questions = getQuestions();
 	const getJourney = buildGetJourney((req, journeyResponse) =>
@@ -37,7 +38,13 @@ export function createRoutes(service) {
 
 	const handleUploads = multer();
 	const uploadDocuments = asyncHandler(
-		uploadDocumentsController(service, JOURNEY_ID, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE)
+		uploadDocumentsController(
+			service,
+			`${JOURNEY_ID}-${viewOrReview}`,
+			ALLOWED_EXTENSIONS,
+			ALLOWED_MIME_TYPES,
+			MAX_FILE_SIZE
+		)
 	);
 	const deleteDocuments = asyncHandler(deleteDocumentsController(service, JOURNEY_ID));
 	const resetSessionMiddleware = buildResetSessionMiddleware(service.logger);

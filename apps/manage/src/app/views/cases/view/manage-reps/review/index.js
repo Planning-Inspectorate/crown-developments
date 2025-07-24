@@ -15,7 +15,7 @@ export function createRoutes(service) {
 	const MANAGE_REPS_REVIEW_JOURNEY_ID = 'manage-reps-review';
 	const router = createRouter({ mergeParams: true });
 	const taskListRoutes = createTaskListRoutes(service, MANAGE_REPS_REVIEW_JOURNEY_ID);
-	const withdrawRoutes = createWithdrawRoutes(service);
+	const withdrawRoutes = createWithdrawRoutes(service, 'review');
 
 	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
 	const { reviewRepresentation } = buildReviewControllers(service);
