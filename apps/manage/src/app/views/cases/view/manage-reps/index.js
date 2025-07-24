@@ -38,7 +38,7 @@ export function createRoutes(service) {
 
 	const addRepRoutes = createAddRoutes(service);
 	const reviewRoutes = createReviewRoutes(service);
-	const withdrawRoutes = createWithdrawRoutes(service);
+	const withdrawRoutes = createWithdrawRoutes(service, 'view');
 	const taskListRoutes = createTaskListRoutes(service, MANAGE_REPS_MANAGE_JOURNEY_ID);
 
 	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
