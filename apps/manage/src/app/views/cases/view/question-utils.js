@@ -179,7 +179,7 @@ export function eventQuestions(prefix) {
 							required: false,
 							regex: {
 								regex: '^$|^\\d+(\\.\\d+)?$', // Accepts empty or a decimal/integer
-								regexMessage: 'Prep must be empty or a number'
+								regexMessage: 'Prep must use numerical characters'
 							}
 						},
 						{
@@ -187,7 +187,7 @@ export function eventQuestions(prefix) {
 							required: false,
 							regex: {
 								regex: '^$|^\\d+(\\.\\d+)?$', // Accepts empty or a decimal/integer
-								regexMessage: 'Sitting must be empty or a number'
+								regexMessage: 'Sitting must use numerical characters'
 							}
 						},
 						{
@@ -195,7 +195,7 @@ export function eventQuestions(prefix) {
 							required: false,
 							regex: {
 								regex: '^$|^\\d+(\\.\\d+)?$', // Accepts empty or a decimal/integer
-								regexMessage: 'Reporting must be empty or a number'
+								regexMessage: 'Reporting must use numerical characters'
 							}
 						}
 					]
