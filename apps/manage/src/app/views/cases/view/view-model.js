@@ -3,7 +3,7 @@ import { toFloat, toInt } from '@pins/crowndev-lib/util/numbers.js';
 import { booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { optionalWhere } from '@pins/crowndev-lib/util/database.js';
 import { addressToViewModel, viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.js';
-
+import { parseNumberStringToNumber } from '@pins/crowndev-lib/util/numbers.js';
 /**
  * CrownDevelopment fields that do not need mapping to a (or from) the view model
  * @type {Readonly<import('./types.js').CrownDevelopmentViewModelFields[]>}
@@ -188,6 +188,19 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 
 	if (hasProcedure(viewModel.procedureId)) {
 		const eventUpdates = viewModelToEventUpdateInput(edits, viewModel.procedureId);
+
+		if (eventUpdates.eventUpdateInput) {
+			const prefix = eventPrefix(viewModel.procedureId);
+			if (`${prefix}DurationPrep` in edits)
+				eventUpdates.eventUpdateInput.prepDuration = parseNumberStringToNumber(edits[`${prefix}DurationPrep`]);
+			if (`${prefix}DurationSitting` in edits)
+				eventUpdates.eventUpdateInput.sittingDuration = parseNumberStringToNumber(edits[`${prefix}DurationSitting`]);
+			if (`${prefix}DurationReporting` in edits)
+				eventUpdates.eventUpdateInput.reportingDuration = parseNumberStringToNumber(
+					edits[`${prefix}DurationReporting`]
+				);
+		}
+
 		if (eventUpdates.eventUpdateInput && Object.keys(eventUpdates.eventUpdateInput).length > 0) {
 			crownDevelopmentUpdateInput.Event = {
 				upsert: {
@@ -300,11 +313,13 @@ function addEventToViewModel(viewModel, event, procedureId, procedureNotificatio
 	const prefix = eventPrefix(procedureId);
 	viewModel[`${prefix}ProcedureNotificationDate`] = procedureNotificationDate;
 	viewModel[`${prefix}Date`] = event.date;
-	viewModel[`${prefix}Duration`] = event.duration;
 	viewModel[`${prefix}Venue`] = event.venue;
 	viewModel[`${prefix}NotificationDate`] = event.notificationDate;
 	viewModel[`${prefix}StatementsDate`] = event.statementsDate;
 	viewModel[`${prefix}CaseManagementConferenceDate`] = event.caseManagementConferenceDate;
+	viewModel[`${prefix}DurationPrep`] = event.prepDuration ?? '';
+	viewModel[`${prefix}DurationSitting`] = event.sittingDuration ?? '';
+	viewModel[`${prefix}DurationReporting`] = event.reportingDuration ?? '';
 
 	if (isHearing(procedureId)) {
 		viewModel[`${prefix}IssuesReportPublishedDate`] = event.issuesReportPublishedDate;
@@ -391,9 +406,16 @@ function viewModelToEventUpdateInput(edits, procedureId) {
 	if (`${prefix}ProofsOfEvidenceDate` in edits) {
 		eventUpdateInput.proofsOfEvidenceDate = edits[`${prefix}ProofsOfEvidenceDate`];
 	}
-	if (`${prefix}Duration` in edits) {
-		eventUpdateInput.duration = edits[`${prefix}Duration`];
+	if (`${prefix}DurationPrep` in edits) {
+		eventUpdateInput.prepDuration = edits[`${prefix}DurationPrep`];
 	}
+	if (`${prefix}DurationSitting` in edits) {
+		eventUpdateInput.sittingDuration = edits[`${prefix}DurationSitting`];
+	}
+	if (`${prefix}DurationReporting` in edits) {
+		eventUpdateInput.reportingDuration = edits[`${prefix}DurationReporting`];
+	}
+
 	if (`${prefix}Venue` in edits) {
 		eventUpdateInput.venue = edits[`${prefix}Venue`];
 	}

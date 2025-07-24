@@ -180,6 +180,9 @@ model Event {
   id                           String             @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
   date                         DateTime?
   duration                     String?
+  prepDuration                 Decimal?
+  sittingDuration              Decimal?
+  reportingDuration            Decimal?
   venue                        String?
   notificationDate             DateTime?
   issuesReportPublishedDate    DateTime?
