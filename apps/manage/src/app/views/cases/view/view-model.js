@@ -191,14 +191,18 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 
 		if (eventUpdates.eventUpdateInput) {
 			const prefix = eventPrefix(viewModel.procedureId);
-			if (`${prefix}DurationPrep` in edits)
-				eventUpdates.eventUpdateInput.prepDuration = parseNumberStringToNumber(edits[`${prefix}DurationPrep`]);
-			if (`${prefix}DurationSitting` in edits)
-				eventUpdates.eventUpdateInput.sittingDuration = parseNumberStringToNumber(edits[`${prefix}DurationSitting`]);
-			if (`${prefix}DurationReporting` in edits)
-				eventUpdates.eventUpdateInput.reportingDuration = parseNumberStringToNumber(
-					edits[`${prefix}DurationReporting`]
-				);
+			if (`${prefix}DurationPrep` in edits) {
+				const val = edits[`${prefix}DurationPrep`];
+				eventUpdates.eventUpdateInput.prepDuration = parseNumberStringToNumber(val);
+			}
+			if (`${prefix}DurationSitting` in edits) {
+				const val = edits[`${prefix}DurationSitting`];
+				eventUpdates.eventUpdateInput.sittingDuration = parseNumberStringToNumber(val);
+			}
+			if (`${prefix}DurationReporting` in edits) {
+				const val = edits[`${prefix}DurationReporting`];
+				eventUpdates.eventUpdateInput.reportingDuration = parseNumberStringToNumber(val);
+			}
 		}
 
 		if (eventUpdates.eventUpdateInput && Object.keys(eventUpdates.eventUpdateInput).length > 0) {
@@ -317,9 +321,23 @@ function addEventToViewModel(viewModel, event, procedureId, procedureNotificatio
 	viewModel[`${prefix}NotificationDate`] = event.notificationDate;
 	viewModel[`${prefix}StatementsDate`] = event.statementsDate;
 	viewModel[`${prefix}CaseManagementConferenceDate`] = event.caseManagementConferenceDate;
-	viewModel[`${prefix}DurationPrep`] = event.prepDuration ?? '';
-	viewModel[`${prefix}DurationSitting`] = event.sittingDuration ?? '';
-	viewModel[`${prefix}DurationReporting`] = event.reportingDuration ?? '';
+
+	const prep = event.prepDuration ?? '';
+	const sitting = event.sittingDuration ?? '';
+	const reporting = event.reportingDuration ?? '';
+
+	if (
+		(prep === '' || prep === null) &&
+		(sitting === '' || sitting === null) &&
+		(reporting === '' || reporting === null)
+	) {
+		viewModel[`${prefix}Duration`] = '-';
+	} else {
+		delete viewModel[`${prefix}Duration`];
+		viewModel[`${prefix}DurationPrep`] = prep === '' || prep === null ? '' : prep;
+		viewModel[`${prefix}DurationSitting`] = sitting === '' || sitting === null ? '' : sitting;
+		viewModel[`${prefix}DurationReporting`] = reporting === '' || reporting === null ? '' : reporting;
+	}
 
 	if (isHearing(procedureId)) {
 		viewModel[`${prefix}IssuesReportPublishedDate`] = event.issuesReportPublishedDate;

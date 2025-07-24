@@ -516,15 +516,17 @@ describe('view-model', () => {
 					venue: 'Some Place',
 					prepDuration: null,
 					sittingDuration: undefined,
-					reportingDuration: ''
+					reportingDuration: '',
+					inquiryDuration: '-'
 				}
 			};
 			const result = crownDevelopmentToViewModel(input);
 			assert.strictEqual(result.inquiryDate, 'd-1');
 			assert.strictEqual(result.inquiryVenue, 'Some Place');
-			assert.strictEqual(result.inquiryDurationPrep, '');
-			assert.strictEqual(result.inquiryDurationSitting, '');
-			assert.strictEqual(result.inquiryDurationReporting, '');
+			assert.strictEqual(result.inquiryDuration, '-');
+			assert.strictEqual(result.inquiryDurationPrep, undefined);
+			assert.strictEqual(result.inquiryDurationSitting, undefined);
+			assert.strictEqual(result.inquiryDurationReporting, undefined);
 		});
 		it('should map all hearing fields', () => {
 			/** @type {CrownDevelopmentViewModel} */

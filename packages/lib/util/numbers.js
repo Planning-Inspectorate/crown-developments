@@ -39,13 +39,15 @@ export function bytesToUnit(bytes, decimalPoints = 1) {
 }
 
 /**
- * converts number strings to numbers, or returns null for empty strings
- * @returns {*|number|null}
+ * converts number strings to numbers or strings (for decimals), or returns null for empty strings
+ * @returns {*|number|string|null}
  * @param value
  */
-
 export function parseNumberStringToNumber(value) {
 	if (value === '' || value === null || value === undefined) return null;
-	const num = Number(value);
-	return isNaN(num) ? value : num;
+	if (typeof value === 'string') {
+		const num = Number(value);
+		return isNaN(num) ? value : num;
+	}
+	return Array.isArray(value) ? value : value;
 }
