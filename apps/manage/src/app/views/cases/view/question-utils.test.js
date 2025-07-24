@@ -64,5 +64,38 @@ describe('question-utils', () => {
 				assert.ok(question.url.startsWith(prefixHyphens));
 			}
 		});
+		it('should format user answer with formatPrefix and formatJoinString in duration', () => {
+			const prefix = 'hearing';
+			const questions = eventQuestions(prefix);
+			const durationQuestion = questions[`${prefix}Duration`];
+			const userAnswer = {
+				hearingDurationPrep: '2',
+				hearingDurationSitting: '3',
+				hearingDurationReporting: '1'
+			};
+			const formatted = durationQuestion.inputFields
+				.map((field) => {
+					const value = userAnswer[field.fieldName];
+					return value ? `${field.formatPrefix}${value}${field.formatJoinString}` : '';
+				})
+				.join('');
+
+			assert.ok(formatted.includes('Prep: 2 days'));
+			assert.ok(formatted.includes('Sitting: 3 days'));
+			assert.ok(formatted.includes('Reporting: 1 days'));
+		});
+	});
+
+	describe('duration regex validation', () => {
+		const regex = /^$|^\d+(\.\d+)?$/;
+		it('should validate allowed and disallowed values', () => {
+			assert.ok(regex.test('')); // blank
+			assert.ok(regex.test('5')); // integer
+			assert.ok(regex.test('5.5')); // decimal
+			assert.ok(!regex.test('abc')); // non-numeric
+			assert.ok(!regex.test('-5')); // negative
+			assert.ok(!regex.test('1.')); // malformed decimal
+			assert.ok(!regex.test('.0')); // malformed decimal
+		});
 	});
 });

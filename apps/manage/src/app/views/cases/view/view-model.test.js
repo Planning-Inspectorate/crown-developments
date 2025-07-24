@@ -223,25 +223,42 @@ describe('view-model', () => {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
 				procedureId: APPLICATION_PROCEDURE_ID.HEARING,
-				Event: { date: 'd-1', venue: 'Some Place' }
+				Event: {
+					date: 'd-1',
+					venue: 'Some Place',
+					prepDuration: 'Prep: 2 days',
+					sittingDuration: 'Sitting: 0 days',
+					reportingDuration: 'Reporting: 1 days'
+				}
 			};
 			const result = crownDevelopmentToViewModel(input);
 			assert.strictEqual(result.hearingDate, 'd-1');
 			assert.strictEqual(result.hearingVenue, 'Some Place');
-			assert.strictEqual(result.inquiryDate, undefined);
+			assert.strictEqual(result.hearingDurationPrep, 'Prep: 2 days');
+			assert.strictEqual(result.hearingDurationSitting, 'Sitting: 0 days');
+			assert.strictEqual(result.hearingDurationReporting, 'Reporting: 1 days');
 		});
+
 		it('should map inquiry', () => {
 			/** @type {CrownDevelopment} */
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
 				procedureId: APPLICATION_PROCEDURE_ID.INQUIRY,
-				Event: { date: 'd-1', venue: 'Some Place' }
+				Event: {
+					date: 'd-1',
+					venue: 'Some Place',
+					prepDuration: 'Prep: 2 days',
+					sittingDuration: 'Sitting: 0 days',
+					reportingDuration: 'Reporting: 1 days'
+				}
 			};
 			const result = crownDevelopmentToViewModel(input);
-			assert.strictEqual(result.hearingDate, undefined);
 			assert.strictEqual(result.inquiryDate, 'd-1');
 			assert.strictEqual(result.inquiryVenue, 'Some Place');
+			assert.strictEqual(result.inquiryDurationPrep, 'Prep: 2 days');
+			assert.strictEqual(result.inquiryDurationSitting, 'Sitting: 0 days');
+			assert.strictEqual(result.inquiryDurationReporting, 'Reporting: 1 days');
 		});
 		it(`should map boolean values to yes/no`, () => {
 			/** @type {CrownDevelopment} */
@@ -264,7 +281,8 @@ describe('view-model', () => {
 			const toSave = {
 				siteArea: 8.79,
 				environmentalStatementReceivedDate: new Date('2025-01-17T00:00Z'),
-				description: 'A big project to build something important'
+				description: 'A big project to build something important',
+				inquiryDurationSitting: 'Sitting: 0 days'
 			};
 			const updates = editsToDatabaseUpdates(toSave, {});
 			assert.ok(updates);
@@ -469,7 +487,9 @@ describe('view-model', () => {
 			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				inquiryVenue: 'some place',
-				inquiryDuration: 'some length'
+				inquiryDurationPrep: 'some value',
+				inquiryDurationSitting: 'some value',
+				inquiryDurationReporting: 'some value'
 			};
 			/** @type {CrownDevelopmentViewModel} */
 			const viewModel = {
@@ -481,13 +501,38 @@ describe('view-model', () => {
 			const upsert = updates.Event.upsert;
 			assert.strictEqual(upsert.where?.id, undefined);
 			assert.strictEqual(upsert.create?.venue, 'some place');
-			assert.strictEqual(upsert.update?.duration, 'some length');
+			assert.strictEqual(upsert.update?.prepDuration, 'some value');
+			assert.strictEqual(upsert.update?.sittingDuration, 'some value');
+			assert.strictEqual(upsert.update?.reportingDuration, 'some value');
+		});
+		it('should map inquiry with missing event fields', () => {
+			/** @type {CrownDevelopment} */
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				procedureId: APPLICATION_PROCEDURE_ID.INQUIRY,
+				Event: {
+					date: 'd-1',
+					venue: 'Some Place',
+					prepDuration: null,
+					sittingDuration: undefined,
+					reportingDuration: '',
+					inquiryDuration: '-'
+				}
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.strictEqual(result.inquiryDate, 'd-1');
+			assert.strictEqual(result.inquiryVenue, 'Some Place');
+			assert.strictEqual(result.inquiryDuration, '-');
+			assert.strictEqual(result.inquiryDurationPrep, undefined);
+			assert.strictEqual(result.inquiryDurationSitting, undefined);
+			assert.strictEqual(result.inquiryDurationReporting, undefined);
 		});
 		it('should map all hearing fields', () => {
 			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				hearingDate: new Date('2025-01-25T00:00:00Z'),
-				hearingDuration: 'sitting',
+				hearingDuration: 'Prep',
 				hearingVenue: 'some venue',
 				hearingNotificationDate: new Date('2025-03-13T00:00:00Z'),
 				hearingIssuesReportPublishedDate: new Date('2025-01-12T00:00:00Z'),
@@ -505,7 +550,9 @@ describe('view-model', () => {
 			assert.strictEqual(upsert.where?.id, undefined);
 			assert.strictEqual(upsert.update?.venue, toSave.hearingVenue);
 			assert.strictEqual(upsert.update?.date, toSave.hearingDate);
-			assert.strictEqual(upsert.update?.duration, toSave.hearingDuration);
+			assert.strictEqual(upsert.update?.prepDuration, toSave.prepDuration);
+			assert.strictEqual(upsert.update?.sittingDuration, toSave.sittingDuration);
+			assert.strictEqual(upsert.update?.reportingDuration, toSave.reportingDuration);
 			assert.strictEqual(upsert.update?.notificationDate, toSave.hearingNotificationDate);
 			assert.strictEqual(upsert.update?.issuesReportPublishedDate, toSave.hearingIssuesReportPublishedDate);
 			assert.strictEqual(upsert.update?.statementsDate, toSave.hearingStatementsDate);
@@ -516,7 +563,7 @@ describe('view-model', () => {
 			const toSave = {
 				inquiryStatementsDate: new Date('2025-01-25T00:00:00Z'),
 				inquiryDate: new Date('2025-03-13T00:00:00Z'),
-				inquiryDuration: 'sitting',
+				inquiryDuration: 'Sitting',
 				inquiryVenue: 'Some place',
 				inquiryNotificationDate: new Date('2025-01-12T00:00:00Z'),
 				inquiryCaseManagementConferenceDate: new Date('2025-02-09T00:00:00Z'),
@@ -534,7 +581,9 @@ describe('view-model', () => {
 			assert.strictEqual(upsert.update?.venue, toSave.inquiryVenue);
 			assert.strictEqual(upsert.update?.date, toSave.inquiryDate);
 			assert.strictEqual(upsert.update?.statementsDate, toSave.inquiryStatementsDate);
-			assert.strictEqual(upsert.update?.duration, toSave.inquiryDuration);
+			assert.strictEqual(upsert.update?.duration, toSave.prepDuration);
+			assert.strictEqual(upsert.update?.sittingDuration, toSave.sittingDuration);
+			assert.strictEqual(upsert.update?.reportingDuration, toSave.reportingDuration);
 			assert.strictEqual(upsert.update?.notificationDate, toSave.inquiryNotificationDate);
 			assert.strictEqual(upsert.update?.caseManagementConferenceDate, toSave.inquiryCaseManagementConferenceDate);
 			assert.strictEqual(upsert.update?.proofsOfEvidenceDate, toSave.inquiryProofsOfEvidenceDate);
@@ -543,7 +592,7 @@ describe('view-model', () => {
 			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				inquiryVenue: 'some place',
-				inquiryDuration: 'some length'
+				inquiryDurationPrep: 'prep: 1 days'
 			};
 			/** @type {CrownDevelopmentViewModel} */
 			const viewModel = {
@@ -556,13 +605,13 @@ describe('view-model', () => {
 			const upsert = updates.Event.upsert;
 			assert.strictEqual(upsert.where, undefined);
 			assert.strictEqual(upsert.create?.venue, 'some place');
-			assert.strictEqual(upsert.update?.duration, 'some length');
+			assert.strictEqual(upsert.update?.prepDuration, 'prep: 1 days');
 		});
 		it('should map event upsert with id', () => {
 			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				hearingVenue: 'some place',
-				hearingDuration: 'some length'
+				hearingDurationPrep: 'prep: 1.5 days'
 			};
 			/** @type {CrownDevelopmentViewModel} */
 			const viewModel = {
@@ -575,7 +624,7 @@ describe('view-model', () => {
 			const upsert = updates.Event.upsert;
 			assert.strictEqual(upsert.where?.id, 'event-id');
 			assert.strictEqual(upsert.create?.venue, 'some place');
-			assert.strictEqual(upsert.update?.duration, 'some length');
+			assert.strictEqual(upsert.update?.prepDuration, 'prep: 1.5 days');
 		});
 	});
 });

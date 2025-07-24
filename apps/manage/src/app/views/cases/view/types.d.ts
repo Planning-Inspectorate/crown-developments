@@ -92,6 +92,9 @@ export interface CrownDevelopmentViewModel {
 	hearingIssuesReportPublishedDate?: Date | string;
 	hearingStatementsDate?: Date | string;
 	hearingCaseManagementConferenceDate?: Date | string;
+	hearingDurationPrep?: number | string;
+	hearingDurationSitting?: number | string;
+	hearingDurationReporting?: number | string;
 
 	inquiryProcedureNotificationDate?: Date | string;
 	inquiryStatementsDate?: Date | string;
@@ -101,11 +104,18 @@ export interface CrownDevelopmentViewModel {
 	inquiryNotificationDate?: Date | string;
 	inquiryCaseManagementConferenceDate?: Date | string;
 	inquiryProofsOfEvidenceDate?: Date | string;
+	inquiryDurationPrep?: number | string;
+	inquiryDurationSitting?: number | string;
+	inquiryDurationReporting?: number | string;
 
 	hasApplicationFee: string;
 	applicationFee: string;
 
 	siteVisitDate?: Date | string;
+
+	prepDuration?: number | string;
+	sittingDuration?: number | string;
+	reportingDuration?: number | string;
 }
 
 export type CrownDevelopmentViewModelFields = keyof CrownDevelopmentViewModel;

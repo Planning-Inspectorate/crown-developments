@@ -1,0 +1,21 @@
+BEGIN TRY
+
+BEGIN TRAN;
+
+-- AlterTable
+ALTER TABLE [dbo].[Event] ADD [prepDuration] DECIMAL(32,16),
+[reportingDuration] DECIMAL(32,16),
+[sittingDuration] DECIMAL(32,16);
+
+COMMIT TRAN;
+
+END TRY
+BEGIN CATCH
+
+IF @@TRANCOUNT > 0
+BEGIN
+    ROLLBACK TRAN;
+END;
+THROW
+
+END CATCH
