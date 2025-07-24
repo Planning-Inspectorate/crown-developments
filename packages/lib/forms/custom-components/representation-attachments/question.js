@@ -133,7 +133,7 @@ export default class RepresentationAttachments extends Question {
 
 	async getDataToSave(req, journeyResponse) {
 		let responseToSave = { answers: {} };
-		const applicationId = req.params.id || req.params.applicationId;
+		const applicationId = req.params.representationRef || req.params.id || req.params.applicationId;
 		const submittedForId = journeyResponse.answers?.submittedForId;
 
 		responseToSave.answers[this.fieldName] = req.session.files?.[applicationId]?.[submittedForId]?.uploadedFiles;

@@ -15,7 +15,7 @@ export async function uploadDocumentQuestion(req, res, next) {
 		const viewModel = hasSessionErrors
 			? questionObj.checkForValidationErrors(req, sectionObj, journey)
 			: questionObj.prepQuestionForRendering(sectionObj, journey, {
-					id: req.params.id || req.params.applicationId,
+					id: req.params.representationRef || req.params.id || req.params.applicationId,
 					currentUrl: req.originalUrl,
 					files: req.session?.files
 				});
