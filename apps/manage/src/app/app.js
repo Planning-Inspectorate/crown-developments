@@ -18,6 +18,13 @@ export function getApp(service) {
 	const app = express();
 
 	const logRequests = buildLogRequestsMiddleware(service.logger);
+	const trimEmptyQuery = (req, res, next) => {
+		if (!req.query?.filters && req.originalUrl.endsWith('?')) {
+			return res.redirect(`${req.originalUrl.slice(0, -1)}`);
+		}
+		return next();
+	};
+	app.use(trimEmptyQuery);
 	app.use(logRequests);
 
 	// configure body-parser, to populate req.body

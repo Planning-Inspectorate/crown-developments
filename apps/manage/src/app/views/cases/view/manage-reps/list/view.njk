@@ -27,25 +27,6 @@
     </div>
 
     {{ repsTable(reps) }}
-
-    <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-        // handle adding and removing search parameters from filter form
-        document.getElementById('search-filter-form').addEventListener('submit', function (e) {
-            e.preventDefault();
-
-            const form = e.target;
-            const url = new URL(form.action, window.location.origin);
-            const params = new URLSearchParams();
-
-            new FormData(form).forEach((value, key) => {
-                if (value.trim()) params.append(key, value);
-            });
-
-            url.search = params.toString() ? `?${params}` : '';
-
-            window.location.href = url.toString();
-        });
-    </script>
 {% endblock %}
 
 {% macro repsTable(representations) %}
