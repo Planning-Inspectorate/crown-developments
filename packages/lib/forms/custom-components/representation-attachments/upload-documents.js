@@ -44,12 +44,12 @@ export function uploadDocumentsController(
 		const journeyResponse = res.locals?.journeyResponse;
 
 		const isManageRepsJourney = isManageRepsJourneyId(journeyId);
-
+		const isEditRepsJourney = isEditRepsJourneyId(journeyId);
 		const submittedForId = isManageRepsJourney ? undefined : getSubmittedForId(journeyResponse?.answers);
 
 		const leafFolderName = isManageRepsJourney
 			? req.params.itemId
-			: isEditRepsJourneyId(journeyId)
+			: isEditRepsJourney
 				? req.params.representationRef
 				: submittedForId;
 
@@ -136,7 +136,7 @@ export function uploadDocumentsController(
 				});
 			});
 
-			const sessionIdKey = isManageRepsJourney ? req.params.representationRef : applicationId;
+			const sessionIdKey = isManageRepsJourney || isEditRepsJourney ? req.params.representationRef : applicationId;
 			const sessionKey = isManageRepsJourney ? req.params.itemId : submittedForId;
 			addSessionData(req, sessionIdKey, { [sessionKey]: { uploadedFiles } }, 'files');
 		}
@@ -161,12 +161,13 @@ export function deleteDocumentsController({ logger, appName, sharePointDrive, ge
 
 		const journeyResponse = res.locals?.journeyResponse;
 		const isManageRepsJourney = isManageRepsJourneyId(journeyId);
+		const isEditRepsJourney = isEditRepsJourneyId(journeyId);
 		let submittedForId;
 		if (!isManageRepsJourney) {
 			submittedForId = getSubmittedForId(journeyResponse?.answers);
 		}
 
-		const sessionIdKey = isManageRepsJourney ? req.params.representationRef : applicationId;
+		const sessionIdKey = isManageRepsJourney || isEditRepsJourney ? req.params.representationRef : applicationId;
 		const sessionKey = isManageRepsJourney ? req.params.itemId : submittedForId;
 
 		let uploadedFiles = req.session?.files?.[sessionIdKey]?.[sessionKey]?.uploadedFiles || [];
