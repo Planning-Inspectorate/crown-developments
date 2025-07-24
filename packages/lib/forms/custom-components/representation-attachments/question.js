@@ -22,8 +22,16 @@ export default class RepresentationAttachments extends Question {
 	 * @param {Array<string>} allowedMimeTypes
 	 * @param {number} maxFileSizeValue
 	 * @param {number} maxFileSizeString
+	 * @param {boolean} showUploadWarning
 	 */
-	constructor({ allowedFileExtensions, allowedMimeTypes, maxFileSizeValue, maxFileSizeString, ...params }) {
+	constructor({
+		allowedFileExtensions,
+		allowedMimeTypes,
+		maxFileSizeValue,
+		maxFileSizeString,
+		showUploadWarning,
+		...params
+	}) {
 		super({
 			...params,
 			viewFolder: 'custom-components/representation-attachments'
@@ -33,6 +41,7 @@ export default class RepresentationAttachments extends Question {
 		this.allowedMimeTypes = allowedMimeTypes;
 		this.maxFileSizeValue = maxFileSizeValue;
 		this.maxFileSizeString = maxFileSizeString;
+		this.showUploadWarning = showUploadWarning;
 	}
 
 	prepQuestionForRendering(section, journey, customViewData, payload) {
@@ -55,6 +64,7 @@ export default class RepresentationAttachments extends Question {
 		viewModel.question.allowedMimeTypes = this.allowedMimeTypes;
 		viewModel.question.maxFileSizeValue = this.maxFileSizeValue;
 		viewModel.question.maxFileSizeString = this.maxFileSizeString;
+		viewModel.question.showUploadWarning = this.showUploadWarning;
 
 		return viewModel;
 	}

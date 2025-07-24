@@ -210,6 +210,7 @@ export function representationsContactQuestions({ prefix, actionOverrides = {}, 
 		allowedMimeTypes: ALLOWED_MIME_TYPES,
 		maxFileSizeValue: MAX_FILE_SIZE,
 		maxFileSizeString: '20MB',
+		showUploadWarning: true,
 		validators: [new DocumentUploadValidator(`${prefix}Attachments`)]
 	};
 
@@ -219,6 +220,7 @@ export function representationsContactQuestions({ prefix, actionOverrides = {}, 
 		question: 'Redacted attachments',
 		fieldName: `${prefix}RedactedAttachments`,
 		url: 'redacted-attachments',
+		showUploadWarning: true,
 		validators: []
 	};
 
