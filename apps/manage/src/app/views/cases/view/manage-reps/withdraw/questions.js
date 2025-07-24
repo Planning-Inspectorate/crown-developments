@@ -24,8 +24,17 @@ export function getQuestions() {
 			title: 'Withdrawal Date',
 			question: 'Enter date of withdrawal request',
 			fieldName: 'withdrawalDate',
-			url: 'withdrawal-date',
-			validators: [new DateValidator('Withdrawal date')]
+			url: 'request-date',
+			validators: [
+				new DateValidator(
+					'Withdrawal request date',
+					{
+						ensureFuture: false,
+						ensurePast: false
+					},
+					{ emptyErrorMessage: 'Enter withdrawal request date' }
+				)
+			]
 		},
 		withdrawalReason: {
 			type: COMPONENT_TYPES.RADIO,
@@ -41,7 +50,7 @@ export function getQuestions() {
 			title: 'Upload the withdrawal request',
 			question: 'Upload the withdrawal request',
 			fieldName: 'withdrawalRequest',
-			url: 'select-attachments',
+			url: 'upload-request',
 			allowedFileExtensions: ALLOWED_EXTENSIONS,
 			allowedMimeTypes: ALLOWED_MIME_TYPES,
 			maxFileSizeValue: MAX_FILE_SIZE,

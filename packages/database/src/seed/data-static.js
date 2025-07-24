@@ -319,7 +319,7 @@ export const WITHDRAWAL_REASON = [
 	{
 		id: WITHDRAWAL_REASON_ID.CHANGE_OF_OPINION,
 		displayName: 'Change of opinion',
-		hintText: 'They no longer dell the same way about the application'
+		hintText: 'They no longer feel the same way about the application'
 	},
 	{
 		id: WITHDRAWAL_REASON_ID.MISTAKEN_SUBMISSION,

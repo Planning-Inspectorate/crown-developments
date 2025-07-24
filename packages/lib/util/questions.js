@@ -19,9 +19,9 @@ export function referenceDataToRadioOptions(reference, addNullOption = false) {
  * @returns {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').Option[]}
  */
 export function referenceDataToRadioOptionsWithHintText(reference, addNullOption = false) {
-	const options = reference.map((t) => ({ text: t.displayName, value: t.id, hint: t.hintText }));
+	const options = reference.map((t) => ({ text: t.displayName, value: t.id, hint: { text: t.hintText } }));
 	if (addNullOption) {
-		options.unshift({ text: '', value: '' });
+		options.unshift({ text: '', value: '', hint: { text: '' } });
 	}
 	return options;
 }
