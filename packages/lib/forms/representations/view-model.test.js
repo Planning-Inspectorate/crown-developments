@@ -42,7 +42,10 @@ describe('view-model', () => {
 				comment: 'comment one',
 				commentRedacted: '███████ one',
 				containsAttachments: 'no',
-				sharePointFolderCreated: 'no'
+				sharePointFolderCreated: 'no',
+				withdrawalDate: undefined,
+				withdrawalReasonId: undefined,
+				withdrawalRequests: undefined
 			});
 		});
 		it('should map requires review', () => {
@@ -66,7 +69,10 @@ describe('view-model', () => {
 				comment: undefined,
 				commentRedacted: undefined,
 				containsAttachments: 'no',
-				sharePointFolderCreated: 'no'
+				sharePointFolderCreated: 'no',
+				withdrawalDate: undefined,
+				withdrawalReasonId: undefined,
+				withdrawalRequests: undefined
 			});
 		});
 		it('should map the myself fields', () => {
@@ -129,7 +135,10 @@ describe('view-model', () => {
 				comment: 'my comments',
 				commentRedacted: undefined,
 				containsAttachments: 'yes',
-				sharePointFolderCreated: 'yes'
+				sharePointFolderCreated: 'yes',
+				withdrawalDate: undefined,
+				withdrawalReasonId: undefined,
+				withdrawalRequests: undefined
 			});
 		});
 		it('should map the myself fields when contains attachments and redacted attachments', () => {
@@ -223,7 +232,10 @@ describe('view-model', () => {
 						redactedFileName: 'redacted-file2.pdf'
 					}
 				],
-				myselfRedactedAttachments: [{ fileName: 'redacted-file1.pdf' }, { fileName: 'redacted-file2.pdf' }]
+				myselfRedactedAttachments: [{ fileName: 'redacted-file1.pdf' }, { fileName: 'redacted-file2.pdf' }],
+				withdrawalDate: undefined,
+				withdrawalReasonId: undefined,
+				withdrawalRequests: undefined
 			});
 		});
 		it('should map the on behalf of common fields', () => {
@@ -272,7 +284,10 @@ describe('view-model', () => {
 				comment: 'my comments',
 				commentRedacted: undefined,
 				containsAttachments: 'yes',
-				sharePointFolderCreated: 'no'
+				sharePointFolderCreated: 'no',
+				withdrawalDate: undefined,
+				withdrawalReasonId: undefined,
+				withdrawalRequests: undefined
 			});
 		});
 		it('should map the on behalf of person fields', () => {
@@ -331,7 +346,10 @@ describe('view-model', () => {
 				comment: 'my comments',
 				commentRedacted: undefined,
 				containsAttachments: 'no',
-				sharePointFolderCreated: 'no'
+				sharePointFolderCreated: 'no',
+				withdrawalDate: undefined,
+				withdrawalReasonId: undefined,
+				withdrawalRequests: undefined
 			});
 		});
 		it('should map the on behalf of person fields when contains attachments and redacted attachments', () => {
@@ -421,7 +439,10 @@ describe('view-model', () => {
 				representedFirstName: 'represented firstName',
 				representedLastName: 'represented lastName',
 				isAgent: 'yes',
-				agentOrgName: 'agent org'
+				agentOrgName: 'agent org',
+				withdrawalDate: undefined,
+				withdrawalReasonId: undefined,
+				withdrawalRequests: undefined
 			});
 		});
 		it('should map the on behalf of org fields', () => {
@@ -476,7 +497,10 @@ describe('view-model', () => {
 				comment: 'my comments',
 				commentRedacted: undefined,
 				containsAttachments: 'no',
-				sharePointFolderCreated: 'no'
+				sharePointFolderCreated: 'no',
+				withdrawalDate: undefined,
+				withdrawalReasonId: undefined,
+				withdrawalRequests: undefined
 			});
 		});
 		it(`should map the on behalf of org don't work for fields`, () => {
@@ -533,7 +557,68 @@ describe('view-model', () => {
 				comment: 'my comments',
 				commentRedacted: undefined,
 				containsAttachments: 'no',
-				sharePointFolderCreated: 'no'
+				sharePointFolderCreated: 'no',
+				withdrawalDate: undefined,
+				withdrawalReasonId: undefined,
+				withdrawalRequests: undefined
+			});
+		});
+		it(`should map withdraw reps fields`, () => {
+			const representation = {
+				withdrawalDate: new Date('2025-01-01T00:00:00Z'),
+				withdrawalReasonId: 'change-of-opinion',
+				WithdrawalRequests: [
+					{
+						itemId: 'file-1',
+						fileName: 'file1.pdf',
+						size: 12345,
+						redactedItemId: 'redacted-file-1',
+						redactedFileName: 'redacted-file1.pdf'
+					},
+					{
+						itemId: 'file-2',
+						fileName: 'file2.pdf',
+						size: 67890,
+						redactedItemId: 'redacted-file-2',
+						redactedFileName: 'redacted-file2.pdf'
+					}
+				]
+			};
+			const viewModel = representationToManageViewModel(representation, applicationReference);
+			console.log(viewModel);
+			assert.deepStrictEqual(viewModel, {
+				applicationReference: 'app/ref',
+				requiresReview: false,
+				submittedByAddressId: undefined,
+				reference: undefined,
+				statusId: undefined,
+				submittedDate: undefined,
+				categoryId: undefined,
+				submittedForId: undefined,
+				submittedByContactId: undefined,
+				representedContactId: undefined,
+				comment: undefined,
+				commentRedacted: undefined,
+				containsAttachments: undefined,
+				sharePointFolderCreated: undefined,
+				withdrawalDate: new Date('2025-01-01T00:00:00Z'),
+				withdrawalReasonId: 'change-of-opinion',
+				withdrawalRequests: [
+					{
+						itemId: 'file-1',
+						fileName: 'file1.pdf',
+						size: 12345,
+						redactedItemId: 'redacted-file-1',
+						redactedFileName: 'redacted-file1.pdf'
+					},
+					{
+						itemId: 'file-2',
+						fileName: 'file2.pdf',
+						size: 67890,
+						redactedItemId: 'redacted-file-2',
+						redactedFileName: 'redacted-file2.pdf'
+					}
+				]
 			});
 		});
 	});

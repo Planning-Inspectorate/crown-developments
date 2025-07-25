@@ -17,11 +17,12 @@ import { Router as createRouter } from 'express';
 import { buildGetJourney } from '@planning-inspectorate/dynamic-forms/src/middleware/build-get-journey.js';
 import {
 	buildGetJourneyResponseFromSession,
-	saveDataToSession
+	buildSaveDataToSession
 } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/session.js';
 import { getQuestions } from './questions.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
+import { successController } from './controller.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -34,7 +35,8 @@ export function createRoutes(service, viewOrReview) {
 	const getJourney = buildGetJourney((req, journeyResponse) =>
 		createJourney(questions, journeyResponse, req, service.isRepsUploadDocsLive)
 	);
-	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID, 'id');
+	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID, 'representationRef');
+	const saveDataToSession = buildSaveDataToSession({ reqParam: 'representationRef' });
 
 	const handleUploads = multer();
 	const uploadDocuments = asyncHandler(
@@ -75,7 +77,7 @@ export function createRoutes(service, viewOrReview) {
 
 	router.get('/check-your-answers', getJourneyResponse, getJourney, (req, res) => list(req, res, '', {}));
 	// router.post('/check-your-answers', getJourneyResponse, getJourney, asyncHandler(saveController)); //TODO: create save controller for withdraw rep
-	// router.get('/success', viewWithdrawRepresentationSuccessPage); //TODO: create withdraw rep success page controller
+	router.get('/success', successController);
 
 	return router;
 }

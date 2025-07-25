@@ -233,9 +233,8 @@ model Representation {
   // withdrawal fields
   withdrawalDate     DateTime?
   withdrawalReasonId String?
-  WithdrawalReason   WithdrawalReason? @relation(fields: [withdrawalReasonId], references: [id])
-  // TODO: add withdrawal request doc field
-  // TODO: new withdrawal document relation??? since we can't have 2 fields that are RepresentationDocument?
+  WithdrawalReason   WithdrawalReason?           @relation(fields: [withdrawalReasonId], references: [id])
+  WithdrawalRequests WithdrawalRequestDocument[]
 }
 
 // Document attached to a representation, such as evidence or a letter
@@ -253,6 +252,19 @@ model RepresentationDocument {
   redactedFileName String?
   statusId         String
   Status           RepresentationStatus @relation(fields: [statusId], references: [id])
+}
+
+// Document relation used for representation withdrawal documents
+model WithdrawalRequestDocument {
+  // internal identifier
+  id               String         @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  // the representation this document relates to
+  representationId String         @db.UniqueIdentifier
+  Representation   Representation @relation(fields: [representationId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  // the document details
+  itemId   String
+  fileName String?
 }
 
 // reference data
