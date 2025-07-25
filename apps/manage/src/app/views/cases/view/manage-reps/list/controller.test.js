@@ -57,7 +57,7 @@ describe('list representations', () => {
 				},
 				Status: {
 					id: 'awaiting-review',
-					displayName: 'Awaiting Review'
+					displayName: 'Awaiting review'
 				}
 			}
 		];
@@ -101,7 +101,7 @@ describe('list representations', () => {
 				filters: [
 					{ text: 'Accepted (1)', value: 'accepted', checked: false },
 					{
-						text: 'Awaiting Review (1)',
+						text: 'Awaiting review (1)',
 						value: 'awaiting-review',
 						checked: false
 					},
@@ -131,7 +131,7 @@ describe('list representations', () => {
 						submittedDate: '3 Feb 2025',
 						submittedDateSortableValue: 1738578720000,
 						submittedByFullName: 'Person One',
-						status: 'Awaiting Review',
+						status: 'Awaiting review',
 						review: true
 					}
 				],
@@ -164,7 +164,7 @@ describe('list representations', () => {
 				filters: [
 					{ text: 'Accepted (1)', value: 'accepted', checked: false },
 					{
-						text: 'Awaiting Review (1)',
+						text: 'Awaiting review (1)',
 						value: 'awaiting-review',
 						checked: true
 					},
@@ -194,7 +194,7 @@ describe('list representations', () => {
 						submittedDate: '3 Feb 2025',
 						submittedDateSortableValue: 1738578720000,
 						submittedByFullName: 'Person One',
-						status: 'Awaiting Review',
+						status: 'Awaiting review',
 						review: true
 					}
 				],
@@ -226,7 +226,7 @@ describe('list representations', () => {
 				filters: [
 					{ text: 'Accepted (1)', value: 'accepted', checked: true },
 					{
-						text: 'Awaiting Review (1)',
+						text: 'Awaiting review (1)',
 						value: 'awaiting-review',
 						checked: true
 					},
@@ -256,7 +256,7 @@ describe('list representations', () => {
 						submittedDate: '3 Feb 2025',
 						submittedDateSortableValue: 1738578720000,
 						submittedByFullName: 'Person One',
-						status: 'Awaiting Review',
+						status: 'Awaiting review',
 						review: true
 					}
 				],
