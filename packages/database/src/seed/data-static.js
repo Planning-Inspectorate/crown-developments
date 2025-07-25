@@ -262,7 +262,7 @@ export const REPRESENTATION_STATUS_ID = Object.freeze({
 export const REPRESENTATION_STATUS = [
 	{
 		id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW,
-		displayName: 'Awaiting Review'
+		displayName: 'Awaiting review'
 	},
 	{
 		id: REPRESENTATION_STATUS_ID.ACCEPTED,
