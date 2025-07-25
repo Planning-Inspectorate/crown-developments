@@ -22,7 +22,9 @@ export function createRedactJourney(response, req) {
 					fieldName: 'comment',
 					url: 'redact',
 					question: 'Redact representation',
-					title: 'Redact representation'
+					title: 'Redact representation',
+					summaryText: 'Original representation',
+					showSuggestionsUi: true
 				})
 			)
 		],

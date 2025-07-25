@@ -24,11 +24,12 @@
     "test-coverage": "node --test --experimental-test-coverage"
   },
   "dependencies": {
+    "@azure/ai-text-analytics": "^5.1.0",
     "@azure/identity": "^4.10.1",
     "@azure/msal-node": "^3.5.3",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@ministryofjustice/frontend": "^5.1.5",
-    "@planning-inspectorate/dynamic-forms": "^1.8.0",
+    "@planning-inspectorate/dynamic-forms": "^1.9.0",
     "@prisma/client": "^6.11.1",
     "accessible-autocomplete": "^3.0.1",
     "body-parser": "^2.2.0",

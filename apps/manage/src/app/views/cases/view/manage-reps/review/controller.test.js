@@ -886,6 +886,47 @@ describe('controller', () => {
 			assert.strictEqual(viewData?.question?.value, 'Some comment to redact here');
 			assert.strictEqual(viewData?.question?.valueRedacted, 'Some comment to ██████ here');
 		});
+		it('should show redaction suggestions if available', async () => {
+			const mockDb = {
+				representation: {
+					findUnique: mock.fn(() => ({ comment: 'Some comment to redact here' }))
+				}
+			};
+			const logger = mockLogger();
+			const mockTextAnalyticsClient = {
+				recognizePiiEntities: mock.fn(() => [
+					{
+						entities: [{ text: 'redact', offset: 16, length: 6, category: 'PII', confidenceScore: 0.95 }],
+						redactedText: 'Some comment to ██████ here',
+						id: '1234',
+						warnings: []
+					}
+				])
+			};
+			const { redactRepresentation } = buildReviewControllers({
+				db: mockDb,
+				logger,
+				textAnalyticsClient: mockTextAnalyticsClient
+			});
+
+			const mockReq = {
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/redact',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				body: {},
+				session: {}
+			};
+			const mockRes = { render: mock.fn() };
+			await redactRepresentation(mockReq, mockRes);
+			assert.strictEqual(mockDb.representation.findUnique.mock.callCount(), 1);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.strictEqual(mockTextAnalyticsClient.recognizePiiEntities.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData?.showSuggestionsUi, true);
+			assert.strictEqual(viewData?.question?.value, 'Some comment to <mark>redact</mark> here');
+			assert.strictEqual(viewData?.question?.valueRedacted, 'Some comment to ██████ here');
+			assert.strictEqual(viewData?.redactionSuggestions.length, 1);
+			assert.strictEqual(viewData?.redactionSuggestions[0].text, 'redact');
+		});
 	});
 
 	describe('redactRepresentationPost', () => {
