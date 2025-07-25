@@ -42,23 +42,23 @@ export function getQuestions() {
 			title: 'Select the withdrawal reason',
 			question: 'Select the withdrawal reason',
 			description: 'Choose the reason for withdrawing the representation',
-			fieldName: 'withdrawalReason',
+			fieldName: 'withdrawalReasonId',
 			url: 'reason',
 			validators: [new RequiredValidator()],
 			options: referenceDataToRadioOptionsWithHintText(WITHDRAWAL_REASON)
 		},
-		withdrawalRequest: {
+		withdrawalRequests: {
 			type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS,
 			title: 'Upload the withdrawal request',
 			question: 'Upload the withdrawal request',
-			fieldName: 'withdrawalRequest',
+			fieldName: 'withdrawalRequests',
 			url: 'upload-request',
 			allowedFileExtensions: ALLOWED_EXTENSIONS,
 			allowedMimeTypes: ALLOWED_MIME_TYPES,
 			maxFileSizeValue: MAX_FILE_SIZE,
 			maxFileSizeString: '20MB',
 			showUploadWarning: false,
-			validators: [new DocumentUploadValidator('withdrawalAttachments')]
+			validators: [new DocumentUploadValidator('withdrawalRequests')]
 		}
 	};
 
