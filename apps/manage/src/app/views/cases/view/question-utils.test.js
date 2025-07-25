@@ -86,6 +86,33 @@ describe('question-utils', () => {
 		});
 	});
 
+	it('should format decimal values correctly in duration fields', () => {
+		const prefix = 'hearing';
+		const questions = eventQuestions(prefix);
+		const durationQuestion = questions[`${prefix}Duration`];
+		const userAnswer = {
+			hearingDurationPrep: '2.5',
+			hearingDurationSitting: '3.75',
+			hearingDurationReporting: '1.0'
+		};
+		const formatted = durationQuestion.inputFields
+			.map((field) => {
+				const value = userAnswer[field.fieldName];
+				return value ? `${field.formatPrefix}${value}${field.formatJoinString}` : '';
+			})
+			.join('');
+
+		assert.ok(formatted.includes('Prep: 2.5 days'));
+		assert.ok(formatted.includes('Sitting: 3.75 days'));
+		assert.ok(formatted.includes('Reporting: 1.0 days'));
+		assert.ok(!formatted.includes('Prep: 1.. days'));
+		assert.ok(!formatted.includes('Sitting: 1. days'));
+		assert.ok(!formatted.includes('Reporting: .0 days'));
+		assert.ok(!formatted.includes('Prep: 1.0. days'));
+		assert.ok(!formatted.includes('Sitting: 1.000 days'));
+		assert.ok(!formatted.includes('Reporting: 1000000.00 days'));
+	});
+
 	describe('duration regex validation', () => {
 		const regex = /^$|^\d+(\.\d+)?$/;
 		it('should validate allowed and disallowed values', () => {

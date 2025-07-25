@@ -188,23 +188,6 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 
 	if (hasProcedure(viewModel.procedureId)) {
 		const eventUpdates = viewModelToEventUpdateInput(edits, viewModel.procedureId);
-
-		if (eventUpdates.eventUpdateInput) {
-			const prefix = eventPrefix(viewModel.procedureId);
-			if (`${prefix}DurationPrep` in edits) {
-				const val = edits[`${prefix}DurationPrep`];
-				eventUpdates.eventUpdateInput.prepDuration = parseNumberStringToNumber(val);
-			}
-			if (`${prefix}DurationSitting` in edits) {
-				const val = edits[`${prefix}DurationSitting`];
-				eventUpdates.eventUpdateInput.sittingDuration = parseNumberStringToNumber(val);
-			}
-			if (`${prefix}DurationReporting` in edits) {
-				const val = edits[`${prefix}DurationReporting`];
-				eventUpdates.eventUpdateInput.reportingDuration = parseNumberStringToNumber(val);
-			}
-		}
-
 		if (eventUpdates.eventUpdateInput && Object.keys(eventUpdates.eventUpdateInput).length > 0) {
 			crownDevelopmentUpdateInput.Event = {
 				upsert: {
@@ -425,13 +408,13 @@ function viewModelToEventUpdateInput(edits, procedureId) {
 		eventUpdateInput.proofsOfEvidenceDate = edits[`${prefix}ProofsOfEvidenceDate`];
 	}
 	if (`${prefix}DurationPrep` in edits) {
-		eventUpdateInput.prepDuration = edits[`${prefix}DurationPrep`];
+		eventUpdateInput.prepDuration = parseNumberStringToNumber(edits[`${prefix}DurationPrep`]);
 	}
 	if (`${prefix}DurationSitting` in edits) {
-		eventUpdateInput.sittingDuration = edits[`${prefix}DurationSitting`];
+		eventUpdateInput.sittingDuration = parseNumberStringToNumber(edits[`${prefix}DurationSitting`]);
 	}
 	if (`${prefix}DurationReporting` in edits) {
-		eventUpdateInput.reportingDuration = edits[`${prefix}DurationReporting`];
+		eventUpdateInput.reportingDuration = parseNumberStringToNumber(edits[`${prefix}DurationReporting`]);
 	}
 
 	if (`${prefix}Venue` in edits) {

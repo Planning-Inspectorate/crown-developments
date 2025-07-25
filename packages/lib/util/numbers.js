@@ -49,5 +49,6 @@ export function parseNumberStringToNumber(value) {
 		const num = Number(value);
 		return isNaN(num) ? value : num;
 	}
-	return Array.isArray(value) ? value : value;
+	if (Array.isArray(value)) return value;
+	return value;
 }

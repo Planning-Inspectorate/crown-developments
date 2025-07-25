@@ -3,9 +3,9 @@ BEGIN TRY
 BEGIN TRAN;
 
 -- AlterTable
-ALTER TABLE [dbo].[Event] ADD [prepDuration] DECIMAL(32,16),
-[reportingDuration] DECIMAL(32,16),
-[sittingDuration] DECIMAL(32,16);
+ALTER TABLE [dbo].[Event] ADD [prepDuration] DECIMAL(6,2),
+[reportingDuration] DECIMAL(6,2),
+[sittingDuration] DECIMAL(6,2);
 
 COMMIT TRAN;
 
