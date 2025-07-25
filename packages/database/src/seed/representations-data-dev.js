@@ -399,7 +399,7 @@ export const representations = [
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
 		SubmittedByContact: { connect: { id: repsContacts[1].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.REJECTED } },
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.WITHDRAWN } },
 		containsAttachments: false
 	},
 	{
@@ -430,7 +430,7 @@ export const representations = [
 		submittedDate: new Date('2025-02-03T10:32:00.000Z'),
 		SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF } },
 		SubmittedByContact: { connect: { id: repsContacts[4].id } },
-		Status: { connect: { id: REPRESENTATION_STATUS_ID.ACCEPTED } },
+		Status: { connect: { id: REPRESENTATION_STATUS_ID.WITHDRAWN } },
 		containsAttachments: false,
 		sharePointFolderCreated: true
 	},
