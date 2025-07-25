@@ -115,4 +115,8 @@ export class ManageService {
 	get portalBaseUrl() {
 		return this.#config.portalBaseUrl;
 	}
+
+	get webHookToken() {
+		return this.#config.govNotify.webhookToken;
+	}
 }
