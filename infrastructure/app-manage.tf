@@ -86,6 +86,9 @@ module "app_manage" {
 
     #feature flags
     FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE = var.apps_config.feature_flags.upload_docs_not_live
+
+    # Azure Language Service
+    AZURE_AI_LANGUAGE_ENDPOINT = local.text_analytics_endpoint
   }
 
   providers = {

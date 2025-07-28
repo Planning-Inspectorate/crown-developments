@@ -144,6 +144,13 @@ variable "tags" {
   default     = {}
 }
 
+variable "text_analytics_config" {
+  description = "Config for the text analytics (language) service"
+  type = object({
+    deploy = bool # whether to deploy the resource or using the shared instance
+  })
+}
+
 variable "tooling_config" {
   description = "Config for the tooling subscription resources"
   type = object({
@@ -152,6 +159,7 @@ variable "tooling_config" {
     network_name            = string
     network_rg              = string
     subscription_id         = string
+    text_analytics_name     = string
   })
 }
 

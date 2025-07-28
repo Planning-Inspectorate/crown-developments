@@ -104,6 +104,10 @@ sql_config = {
   public_network_access_enabled = false
 }
 
+text_analytics_config = {
+  deploy = true
+}
+
 web_domains = { portal = "find-crown-development.planninginspectorate.gov.uk", manage = "crown-developments-manage.planninginspectorate.gov.uk" }
 
 vnet_config = {
