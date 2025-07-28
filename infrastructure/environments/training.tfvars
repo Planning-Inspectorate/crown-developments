@@ -109,6 +109,9 @@ sql_config = {
   public_network_access_enabled = false
 }
 
+text_analytics_config = {
+  deploy = false # use tooling subscription shared instance
+}
 
 vnet_config = {
   address_space                       = "10.20.8.0/22"

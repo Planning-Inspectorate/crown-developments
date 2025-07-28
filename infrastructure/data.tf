@@ -34,9 +34,15 @@ data "azurerm_private_dns_zone" "redis_cache" {
   provider = azurerm.tooling
 }
 
-
 data "azurerm_private_dns_zone" "database" {
   name                = "privatelink.database.windows.net"
+  resource_group_name = var.tooling_config.network_rg
+
+  provider = azurerm.tooling
+}
+
+data "azurerm_private_dns_zone" "cognitive" {
+  name                = "privatelink.cognitiveservices.azure.com"
   resource_group_name = var.tooling_config.network_rg
 
   provider = azurerm.tooling
