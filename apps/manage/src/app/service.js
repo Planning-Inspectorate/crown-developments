@@ -7,6 +7,7 @@ import { initLogger } from '@pins/crowndev-lib/util/logger.js';
 import { initGovNotify } from '@pins/crowndev-lib/govnotify/index.js';
 import { TextAnalyticsClient } from '@azure/ai-text-analytics';
 import { DefaultAzureCredential } from '@azure/identity';
+import { DEFAULT_CATEGORIES } from '#util/azure-language-redaction.js';
 
 /**
  * This class encapsulates all the services and clients for the application
@@ -83,6 +84,17 @@ export class ManageService {
 
 	get authDisabled() {
 		return this.#config.auth.disabled;
+	}
+
+	/**
+	 * @returns {string[]}
+	 */
+	get azureLanguageCategories() {
+		const categories = this.#config.azureLanguage.categories;
+		if (typeof categories === 'string') {
+			return categories.split(',').map((e) => e.trim());
+		}
+		return DEFAULT_CATEGORIES;
 	}
 
 	get cacheControl() {

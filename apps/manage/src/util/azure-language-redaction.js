@@ -7,12 +7,33 @@ export const MIN_CONFIDENCE_SCORE = 0.8;
 export const MAX_AZURE_LANGUAGE_REQUESTS = 3;
 
 /**
+ * Default categories for Azure AI Language Redaction, can be overridden in the config
+ * @see https://learn.microsoft.com/en-us/javascript/api/%40azure/ai-language-text/piientitycategory?view=azure-node-latest
+ * @type {string[]}
+ */
+export const DEFAULT_CATEGORIES = [
+	'Address',
+	'Age',
+	'Email',
+	'Person',
+	'PhoneNumber',
+	'UKDriversLicenseNumber',
+	'UKElectoralRollNumber',
+	'UKNationalHealthNumber',
+	'UKNationalInsuranceNumber',
+	'UKUniqueTaxpayerNumber',
+	'URL',
+	'USUKPassportNumber'
+];
+
+/**
  * @param {string} originalRepresentation
  * @param {import('@azure/ai-text-analytics').TextAnalyticsClient|null} textAnalyticsClient
+ * @param {string[]} categories
  * @param {BaseLogger} logger
  * @returns {Promise<import('@azure/ai-text-analytics').RecognizePiiEntitiesSuccessResult|null>}
  */
-export async function fetchRedactionSuggestions(originalRepresentation, textAnalyticsClient, logger) {
+export async function fetchRedactionSuggestions(originalRepresentation, textAnalyticsClient, categories, logger) {
 	if (!originalRepresentation || originalRepresentation.length === 0 || !textAnalyticsClient) {
 		return null;
 	}
@@ -33,8 +54,7 @@ export async function fetchRedactionSuggestions(originalRepresentation, textAnal
 		const results = [];
 		const processChunk = async (chunks) => {
 			const res = await textAnalyticsClient.recognizePiiEntities(chunks, 'en', {
-				// TODO: refine this list, and make this configurable
-				categoriesFilter: ['Address', 'Organization', 'Person', 'PhoneNumber', 'Email', 'URL']
+				categoriesFilter: categories
 			});
 			results.push(...res);
 		};

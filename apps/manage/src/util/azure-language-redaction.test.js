@@ -5,14 +5,15 @@ import {
 	fetchRedactionSuggestions,
 	highlightRedactionSuggestions,
 	arrayToArrays,
-	stringToChunks
+	stringToChunks,
+	DEFAULT_CATEGORIES
 } from '#util/azure-language-redaction.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 
 describe('azure-language-redaction', () => {
 	describe('fetchRedactionSuggestions', () => {
 		it('should return null for an empty string', async () => {
-			const result = await fetchRedactionSuggestions('', mock.fn(), mockLogger());
+			const result = await fetchRedactionSuggestions('', mock.fn(), DEFAULT_CATEGORIES, mockLogger());
 			assert.strictEqual(result, null);
 		});
 
@@ -21,7 +22,7 @@ describe('azure-language-redaction', () => {
 			const mockTextAnalyticsClient = {
 				recognizePiiEntities: async () => [{ entities: [], redactedText: '', id: '', warnings: [] }]
 			};
-			await fetchRedactionSuggestions(longString, mockTextAnalyticsClient, mockLogger());
+			await fetchRedactionSuggestions(longString, mockTextAnalyticsClient, DEFAULT_CATEGORIES, mockLogger());
 			assert.strictEqual(mockTextAnalyticsClient.recognizePiiEntities.callCount, undefined); // No call tracking
 		});
 
@@ -40,7 +41,12 @@ describe('azure-language-redaction', () => {
 					}
 				]
 			};
-			const result = await fetchRedactionSuggestions(longString, mockTextAnalyticsClient, mockLogger());
+			const result = await fetchRedactionSuggestions(
+				longString,
+				mockTextAnalyticsClient,
+				DEFAULT_CATEGORIES,
+				mockLogger()
+			);
 			assert.strictEqual(result, null);
 		});
 
@@ -51,7 +57,12 @@ describe('azure-language-redaction', () => {
 					throw new Error('Network error');
 				}
 			};
-			const result = await fetchRedactionSuggestions(longString, mockTextAnalyticsClient, mockLogger());
+			const result = await fetchRedactionSuggestions(
+				longString,
+				mockTextAnalyticsClient,
+				DEFAULT_CATEGORIES,
+				mockLogger()
+			);
 			assert.strictEqual(result, null);
 		});
 
@@ -82,7 +93,7 @@ describe('azure-language-redaction', () => {
 					}
 				]
 			};
-			const result = await fetchRedactionSuggestions(text, mockTextAnalyticsClient, mockLogger());
+			const result = await fetchRedactionSuggestions(text, mockTextAnalyticsClient, DEFAULT_CATEGORIES, mockLogger());
 			assert.ok(result);
 			assert.strictEqual(result.entities.length, 2);
 			assert.strictEqual(result.redactedText, '████████ lives' + middleChunk + 'at ███████████.');
@@ -114,7 +125,12 @@ describe('azure-language-redaction', () => {
 					}
 				])
 			};
-			const result = await fetchRedactionSuggestions(longString, mockTextAnalyticsClient, mockLogger());
+			const result = await fetchRedactionSuggestions(
+				longString,
+				mockTextAnalyticsClient,
+				DEFAULT_CATEGORIES,
+				mockLogger()
+			);
 			assert.ok(result);
 			assert.strictEqual(mockTextAnalyticsClient.recognizePiiEntities.mock.callCount(), 3); // 3 groups of 5 chunks
 			assert.strictEqual(result.entities.length, 6);
@@ -122,7 +138,7 @@ describe('azure-language-redaction', () => {
 
 		it('should return null if the number of requests exceeds the limit', async () => {
 			const longString = '0'.repeat(100000); // 100,000 characters -> 20 chunks of 5000 characters -> 4 groups of 5 chunks
-			const result = await fetchRedactionSuggestions(longString, mock.fn(), mockLogger());
+			const result = await fetchRedactionSuggestions(longString, mock.fn(), DEFAULT_CATEGORIES, mockLogger());
 			assert.strictEqual(result, null);
 		});
 	});

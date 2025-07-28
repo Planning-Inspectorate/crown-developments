@@ -17,6 +17,7 @@ interface Config {
 		signoutUrl: string;
 	};
 	azureLanguage: {
+		categories: string; // CSV string
 		endpoint: string;
 	};
 	cacheControl: {
