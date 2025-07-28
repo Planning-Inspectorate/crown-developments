@@ -51,7 +51,8 @@ export async function viewRepresentationAwaitingReview(req, res) {
  * @param {string} [journeyId]
  * @returns {ReviewControllers}
  */
-export function buildReviewControllers({ db, logger, getSharePointDrive, textAnalyticsClient }, journeyId) {
+export function buildReviewControllers(service, journeyId) {
+	const { db, logger, getSharePointDrive, textAnalyticsClient } = service;
 	/** @type {ReviewControllers} */
 	const controllers = {
 		async reviewRepresentationSubmission(req, res) {
@@ -265,7 +266,12 @@ export function buildReviewControllers({ db, logger, getSharePointDrive, textAna
 
 			const comment = representation.comment;
 
-			const result = await fetchRedactionSuggestions(comment, textAnalyticsClient, logger);
+			const result = await fetchRedactionSuggestions(
+				comment,
+				textAnalyticsClient,
+				service.azureLanguageCategories,
+				logger
+			);
 
 			// session data takes precedence
 			let commentRedacted = readRepRedactedCommentSession(req, representationRef);

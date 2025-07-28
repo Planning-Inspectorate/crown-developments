@@ -37,6 +37,7 @@ export function loadConfig() {
 		AUTH_DISABLED,
 		AUTH_GROUP_APPLICATION_ACCESS,
 		AUTH_TENANT_ID,
+		AZURE_AI_LANGUAGE_CATEGORIES,
 		AZURE_AI_LANGUAGE_ENDPOINT,
 		CACHE_CONTROL_MAX_AGE,
 		ENTRA_GROUP_CACHE_TTL,
@@ -146,6 +147,7 @@ export function loadConfig() {
 			signoutUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/logout'
 		},
 		azureLanguage: {
+			categories: AZURE_AI_LANGUAGE_CATEGORIES,
 			endpoint: AZURE_AI_LANGUAGE_ENDPOINT
 		},
 		cacheControl: {
