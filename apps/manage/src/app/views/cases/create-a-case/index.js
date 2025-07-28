@@ -39,7 +39,7 @@ export function createRoutes(service) {
 
 	router.get('/check-your-answers', getJourneyResponse, getJourney, (req, res) =>
 		list(req, res, '', {
-			notifyWarningMessage: 'Clicking Accept & Submit will send a notification to the applicant / agent'
+			summaryWarningMessage: 'Clicking Accept & Submit will send a notification to the applicant / agent'
 		})
 	);
 	router.post('/check-your-answers', getJourneyResponse, getJourney, asyncHandler(saveController));

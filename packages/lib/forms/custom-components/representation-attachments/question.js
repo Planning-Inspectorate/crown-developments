@@ -53,8 +53,10 @@ export default class RepresentationAttachments extends Question {
 		}
 
 		const submittedForId = journey.response?.answers?.submittedForId;
+		const journeyId = journey.response?.journeyId;
+
 		const fileGroup = customViewData?.files?.[customViewData.id];
-		const fileGroupUploadedFiles = fileGroup?.[submittedForId]?.uploadedFiles ?? [];
+		const fileGroupUploadedFiles = fileGroup?.[submittedForId || journeyId]?.uploadedFiles ?? [];
 		const uploadedFiles = fileGroupUploadedFiles.length > 0 ? fileGroupUploadedFiles : viewModel.question.value;
 
 		viewModel.uploadedFiles = uploadedFiles;
@@ -145,8 +147,10 @@ export default class RepresentationAttachments extends Question {
 		let responseToSave = { answers: {} };
 		const applicationId = req.params.representationRef || req.params.id || req.params.applicationId;
 		const submittedForId = journeyResponse.answers?.submittedForId;
+		const journeyId = journeyResponse?.journeyId;
 
-		responseToSave.answers[this.fieldName] = req.session.files?.[applicationId]?.[submittedForId]?.uploadedFiles;
+		responseToSave.answers[this.fieldName] =
+			req.session.files?.[applicationId]?.[submittedForId || journeyId]?.uploadedFiles;
 		journeyResponse.answers[this.fieldName] = responseToSave.answers[this.fieldName];
 
 		return responseToSave;

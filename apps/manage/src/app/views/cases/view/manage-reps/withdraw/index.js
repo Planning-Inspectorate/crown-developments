@@ -22,7 +22,7 @@ import {
 import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/session.js';
 import { getQuestions } from './questions.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
-import { successController } from './controller.js';
+import { buildSaveController, successController } from './controller.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -48,8 +48,10 @@ export function createRoutes(service, viewOrReview) {
 			MAX_FILE_SIZE
 		)
 	);
-	const deleteDocuments = asyncHandler(deleteDocumentsController(service, JOURNEY_ID));
+	const deleteDocuments = asyncHandler(deleteDocumentsController(service, `${JOURNEY_ID}-${viewOrReview}`));
 	const resetSessionMiddleware = buildResetSessionMiddleware(service.logger);
+
+	const saveController = buildSaveController(service);
 
 	router.get('/', resetSessionMiddleware, (req, res) => {
 		res.redirect(req.baseUrl + '/withdraw/request-date');
@@ -75,8 +77,12 @@ export function createRoutes(service, viewOrReview) {
 
 	router.post('/:section/:question/delete-document/:documentId', getJourneyResponse, getJourney, deleteDocuments);
 
-	router.get('/check-your-answers', getJourneyResponse, getJourney, (req, res) => list(req, res, '', {}));
-	// router.post('/check-your-answers', getJourneyResponse, getJourney, asyncHandler(saveController)); //TODO: create save controller for withdraw rep
+	router.get('/check-your-answers', getJourneyResponse, getJourney, (req, res) =>
+		list(req, res, '', {
+			summaryWarningMessage: 'The representation will be withdrawn'
+		})
+	);
+	router.post('/check-your-answers', getJourneyResponse, getJourney, asyncHandler(saveController));
 	router.get('/success', successController);
 
 	return router;

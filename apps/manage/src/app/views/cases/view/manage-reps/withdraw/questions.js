@@ -23,7 +23,7 @@ export function getQuestions() {
 			type: COMPONENT_TYPES.DATE,
 			title: 'Withdrawal Date',
 			question: 'Enter date of withdrawal request',
-			hint: 'For example, 21 11 2020',
+			hint: 'Use the date on the withdrawal correspondence. For example 27 3 2007',
 			fieldName: 'withdrawalDate',
 			url: 'request-date',
 			validators: [
@@ -39,9 +39,8 @@ export function getQuestions() {
 		},
 		withdrawalReason: {
 			type: COMPONENT_TYPES.RADIO,
-			title: 'Select the withdrawal reason',
-			question: 'Select the withdrawal reason',
-			description: 'Choose the reason for withdrawing the representation',
+			title: 'Why is the representation being withdrawn?',
+			question: 'Why is the representation being withdrawn?',
 			fieldName: 'withdrawalReasonId',
 			url: 'reason',
 			validators: [new RequiredValidator()],
