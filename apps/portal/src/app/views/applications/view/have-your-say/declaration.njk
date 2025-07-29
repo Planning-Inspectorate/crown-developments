@@ -5,6 +5,15 @@
 {% set title = "Declaration – " + config.haveYourSayServiceName %}
 {% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
 
+{% block pageHeading %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            <h1 class="govuk-heading-l">
+                {{ pageTitle }}
+            </h1>
+        </div>
+    </div>
+{% endblock %}
 {% block pageContent %}
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
@@ -25,6 +34,7 @@
             <form method="post" novalidate="novalidate">
                 {{ govukButton({
                     text: "Accept and submit",
+                    type: "submit",
                     preventDoubleClick: true
                 }) }}
             </form>
