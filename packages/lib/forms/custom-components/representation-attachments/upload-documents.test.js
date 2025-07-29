@@ -134,6 +134,70 @@ describe('upload-documents.js', () => {
 				'/cases/166c1754-f7dd-440a-b6f1-0f535ea008d5/manage-representations/add-representation/myself/select-attachments'
 			);
 		});
+		it('should successfully upload document from manage app for withdraw reps journey', async () => {
+			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
+			const file = {
+				originalname: 'test4.pdf',
+				mimetype: 'application/pdf',
+				buffer: Buffer.from(fakePdfContent, 'utf-8'),
+				size: 227787
+			};
+			let redirectCalledWith;
+			const req = {
+				params: { id: '166c1754-f7dd-440a-b6f1-0f535ea008d5', representationRef: 'ABCDE-12345' },
+				sessionID: 'session123',
+				files: [file],
+				session: {},
+				body: {}
+			};
+			const res = {
+				locals: {
+					journeyResponse: {
+						journeyId: 'withdraw-representation-view',
+						answers: { submittedForId: 'myself' }
+					}
+				},
+				redirect: (url) => (redirectCalledWith = url)
+			};
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: '166c1754-f7dd-440a-b6f1-0f535ea008d5', reference: 'CROWN/2025/00001' }))
+				}
+			};
+
+			const sharePointDrive = {
+				getItemsByPath: () => getDriveItemsByPathData.value,
+				addNewFolder: async () => mock.fn(),
+				uploadDocumentToFolder: async () => mock.fn(),
+				createLargeDocumentUploadSession: async () => ({ uploadUrl: 'http://upload' })
+			};
+
+			const mockLogger = {
+				info: mock.fn(),
+				error: mock.fn()
+			};
+
+			const controller = uploadDocumentsController(
+				{
+					db: mockDb,
+					logger: mockLogger,
+					getSharePointDrive: () => sharePointDrive,
+					appName: 'manage'
+				},
+				'withdraw-representation-view',
+				ALLOWED_EXTENSIONS,
+				ALLOWED_MIME_TYPES,
+				MAX_FILE_SIZE
+			);
+
+			await controller(req, res);
+
+			assert.strictEqual(
+				redirectCalledWith,
+				'/cases/166c1754-f7dd-440a-b6f1-0f535ea008d5/manage-representations/ABCDE-12345/view/withdraw-representation/withdraw/upload-request'
+			);
+		});
 		it('should return error messages when total size of files in folder exceeds 1GB and file already exists in folder', async () => {
 			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
 			const file = {
@@ -540,6 +604,71 @@ describe('upload-documents.js', () => {
 				'/cases/app456/manage-representations/add-representation/myself/select-attachments'
 			);
 			assert.deepStrictEqual(req.session.files.app456.myself.uploadedFiles, [
+				{
+					itemId: 'doc999',
+					fileName: 'keep.pdf'
+				}
+			]);
+		});
+		it('should successfully delete document from manage app for withdraw reps journey', async () => {
+			const mockLogger = {
+				error: mock.fn()
+			};
+
+			const mockSharePointDrive = {
+				deleteDocumentById: () => mock.fn()
+			};
+
+			const req = {
+				params: {
+					id: 'app456',
+					representationRef: 'ABCDE-12345',
+					documentId: 'doc123'
+				},
+				session: {
+					files: {
+						'ABCDE-12345': {
+							'withdraw-representation': {
+								uploadedFiles: [
+									{ itemId: 'doc123', fileName: 'to-delete.pdf' },
+									{ itemId: 'doc999', fileName: 'keep.pdf' }
+								]
+							}
+						}
+					}
+				}
+			};
+
+			const res = {
+				locals: {
+					journeyResponse: {
+						journeyId: 'withdraw-representation',
+						answers: {}
+					}
+				},
+				redirect: (url) => {
+					redirectCalledWith = url;
+				}
+			};
+
+			let redirectCalledWith;
+
+			const controller = deleteDocumentsController(
+				{
+					logger: mockLogger,
+					appName: 'manage',
+					sharePointDrive: mockSharePointDrive
+				},
+				'withdraw-representation-review'
+			);
+
+			await controller(req, res);
+
+			assert.strictEqual(
+				redirectCalledWith,
+				'/cases/app456/manage-representations/ABCDE-12345/review/withdraw-representation/withdraw/upload-request'
+			);
+			assert.deepStrictEqual(req.session.files['ABCDE-12345']['withdraw-representation'].uploadedFiles, [
 				{
 					itemId: 'doc999',
 					fileName: 'keep.pdf'

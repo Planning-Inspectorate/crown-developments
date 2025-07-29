@@ -7,8 +7,8 @@ import {
 	deleteRepresentationAttachmentsFolder,
 	moveAttachmentsToCaseFolder
 } from '@pins/crowndev-lib/util/handle-attachments.js';
-import { getApplicationReference } from '../add/save.js';
 import { clearSessionData } from '@pins/crowndev-lib/util/session.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 
 export function buildSaveController(service) {
 	const { db, getSharePointDrive, appName, logger } = service;
@@ -56,7 +56,15 @@ export function buildSaveController(service) {
 			});
 		}
 
-		const applicationReference = await getApplicationReference(db, req, res);
+		const crownDevelopment = await db.crownDevelopment.findUnique({
+			where: { id },
+			select: { reference: true }
+		});
+		if (!crownDevelopment) {
+			return notFoundHandler(req, res);
+		}
+
+		const applicationReference = crownDevelopment.reference;
 		const sharePointDrive = getSharePointDrive(req.session);
 
 		await moveAttachmentsToCaseFolder({
