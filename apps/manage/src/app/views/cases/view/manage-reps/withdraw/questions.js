@@ -18,7 +18,22 @@ import { WITHDRAWAL_REASON } from '@pins/crowndev-database/src/seed/data-static.
  */
 export function getQuestions() {
 	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
-	const questions = {
+	const questions = withdrawRepresentationQuestions();
+	const textOverrides = {
+		notStartedText: '-',
+		continueButtonText: 'Save',
+		changeActionText: 'Edit',
+		answerActionText: 'Edit'
+	};
+	const classes = {
+		...questionClasses,
+		...CUSTOM_COMPONENT_CLASSES
+	};
+	return createQuestions(questions, classes, {}, textOverrides);
+}
+
+export function withdrawRepresentationQuestions() {
+	return {
 		withdrawalRequestDate: {
 			type: COMPONENT_TYPES.DATE,
 			title: 'Withdrawal Date',
@@ -58,18 +73,15 @@ export function getQuestions() {
 			maxFileSizeString: '20MB',
 			showUploadWarning: false,
 			validators: [new DocumentUploadValidator('withdrawalRequests')]
+		},
+		dateWithdrawn: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Date of withdrawal',
+			question: 'Date of withdrawal',
+			fieldName: 'dateWithdrawn',
+			url: 'date-of-withdrawal',
+			validators: [],
+			editable: false
 		}
 	};
-
-	const textOverrides = {
-		notStartedText: '-',
-		continueButtonText: 'Save',
-		changeActionText: 'Edit',
-		answerActionText: 'Edit'
-	};
-	const classes = {
-		...questionClasses,
-		...CUSTOM_COMPONENT_CLASSES
-	};
-	return createQuestions(questions, classes, {}, textOverrides);
 }

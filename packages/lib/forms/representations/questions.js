@@ -15,6 +15,7 @@ import { CUSTOM_COMPONENT_CLASSES } from '../custom-components/index.js';
 import { representationsContactQuestions } from './question-utils.js';
 import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
 import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
+import { withdrawRepresentationQuestions } from 'crowndev-manage/src/app/views/cases/view/manage-reps/withdraw/questions.js';
 
 export const ACCEPT_AND_REDACT = 'accept-and-redact';
 
@@ -260,7 +261,8 @@ export const getQuestions = ({ methodOverrides = {}, textOverrides = {}, actionO
 			fieldName: 'containsAttachments',
 			url: 'representation-attachments',
 			validators: [new RequiredValidator('Select whether the representation has attachments')]
-		}
+		},
+		...withdrawRepresentationQuestions()
 	};
 
 	const classes = {

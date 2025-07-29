@@ -3,7 +3,11 @@ import {
 	questionArrayMeetsCondition,
 	questionHasAnswer
 } from '@planning-inspectorate/dynamic-forms/src/components/utils/question-has-answer.js';
-import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import {
+	REPRESENTATION_STATUS_ID,
+	REPRESENTATION_SUBMITTED_FOR_ID,
+	REPRESENTED_TYPE_ID
+} from '@pins/crowndev-database/src/seed/data-static.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 /**
@@ -27,7 +31,14 @@ export function haveYourSayManageSections(questions, isRepsUploadDocsLive, isVie
 			.withCondition(() => isViewJourney),
 		new Section('Representation', 'start').addQuestion(questions.submittedFor),
 		addRepMyselfSection(questions, isRepsUploadDocsLive, isViewJourney),
-		addRepAgentSection(questions, isRepsUploadDocsLive, isViewJourney)
+		addRepAgentSection(questions, isRepsUploadDocsLive, isViewJourney),
+		new Section('Withdrawal', 'withdraw')
+			.withSectionCondition((response) =>
+				questionHasAnswer(response, questions.status, REPRESENTATION_STATUS_ID.WITHDRAWN)
+			)
+			.addQuestion(questions.withdrawalDate)
+			.addQuestion(questions.withdrawalReason)
+			.addQuestion(questions.withdrawalRequests)
 	];
 }
 
