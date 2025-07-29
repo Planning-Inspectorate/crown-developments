@@ -235,6 +235,7 @@ model Representation {
   withdrawalReasonId String?
   WithdrawalReason   WithdrawalReason?           @relation(fields: [withdrawalReasonId], references: [id])
   WithdrawalRequests WithdrawalRequestDocument[]
+  dateOfWithdrawal   DateTime?
 }
 
 // Document attached to a representation, such as evidence or a letter

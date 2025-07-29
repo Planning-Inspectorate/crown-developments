@@ -3,7 +3,8 @@ BEGIN TRY
 BEGIN TRAN;
 
 -- AlterTable
-ALTER TABLE [dbo].[Representation] ADD [withdrawalDate] DATETIME2,
+ALTER TABLE [dbo].[Representation] ADD [dateOfWithdrawal] DATETIME2,
+[withdrawalDate] DATETIME2,
 [withdrawalReasonId] NVARCHAR(1000);
 
 -- CreateTable
