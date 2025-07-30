@@ -48,7 +48,7 @@ describe('withdraw rep controller', () => {
 						}
 					},
 					files: {
-						'case-1': {
+						'case-1-ref': {
 							'withdraw-representation': [
 								{ itemId: 'file-1', fileName: 'file1.pdf' },
 								{ itemId: 'file-2', fileName: 'file2.pdf' }
@@ -83,7 +83,7 @@ describe('withdraw rep controller', () => {
 				'/cases/case-1/manage-representations/case-1-ref/view/withdraw-representation/success'
 			);
 
-			assert.deepStrictEqual(mockReq.session.files, { 'case-1': {} });
+			assert.deepStrictEqual(mockReq.session.files, { 'case-1-ref': {} });
 			assert.deepStrictEqual(mockReq.session.forms, {});
 
 			assert.strictEqual(mockSharepointDrive.getDriveItemByPath.mock.callCount(), 2);
