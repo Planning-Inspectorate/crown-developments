@@ -96,7 +96,8 @@ export function buildGetJourneyMiddleware({ db, logger, isRepsUploadDocsLive }) 
 					}
 				},
 				RepresentedContact: true,
-				Attachments: true
+				Attachments: true,
+				WithdrawalRequests: true
 			}
 		});
 		// Prisma will return null if not found
@@ -112,7 +113,7 @@ export function buildGetJourneyMiddleware({ db, logger, isRepsUploadDocsLive }) 
 				answerActionText: 'Edit'
 			},
 			actionOverrides: {
-				statusShouldShowManageAction: true,
+				statusShouldShowManageAction: answers?.statusId !== REPRESENTATION_STATUS_ID.WITHDRAWN,
 				redactedCommentShowManageAction: answers?.statusId === REPRESENTATION_STATUS_ID.ACCEPTED,
 				canEditAttachmentsUploaded: answers?.statusId !== REPRESENTATION_STATUS_ID.REJECTED,
 				taskListUrl: req.baseUrl + '/manage/task-list'

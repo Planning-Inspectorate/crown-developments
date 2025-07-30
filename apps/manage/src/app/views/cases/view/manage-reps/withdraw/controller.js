@@ -86,7 +86,7 @@ export function buildSaveController(service) {
 			res
 		);
 
-		clearSessionData(req, representationRef, [JOURNEY_ID], 'files');
+		clearSessionData(req, representationRef, 'withdraw', 'files');
 		clearDataFromSession({ req, journeyId: JOURNEY_ID });
 
 		res.redirect(`${req.baseUrl}/success`);

@@ -42,6 +42,7 @@ export function buildUpdateRepresentation(
 			toSave['sharePointFolderCreated'] = true;
 		}
 
+		//TODO: add some logic for the withdrawal request docs so that they are added on edits save
 		const hasAttachments =
 			(toSave.myselfAttachments && toSave.myselfAttachments.length > 0) ||
 			(toSave.submitterAttachments && toSave.submitterAttachments.length > 0);

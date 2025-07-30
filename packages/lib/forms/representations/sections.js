@@ -39,6 +39,7 @@ export function haveYourSayManageSections(questions, isRepsUploadDocsLive, isVie
 			.addQuestion(questions.withdrawalDate)
 			.addQuestion(questions.withdrawalReason)
 			.addQuestion(questions.withdrawalRequests)
+			.addQuestion(questions.dateOfWithdrawal)
 	];
 }
 

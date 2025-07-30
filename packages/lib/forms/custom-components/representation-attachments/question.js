@@ -1,6 +1,7 @@
 import { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
 import { nl2br } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { JOURNEY_MAP } from './upload-documents.js';
 
 /**
  * @typedef {Object} TextEntryCheckbox
@@ -53,10 +54,10 @@ export default class RepresentationAttachments extends Question {
 		}
 
 		const submittedForId = journey.response?.answers?.submittedForId;
-		const journeyId = journey.response?.journeyId;
+		const fileGroupKey = this.getFileGroupKey(submittedForId);
 
 		const fileGroup = customViewData?.files?.[customViewData.id];
-		const fileGroupUploadedFiles = fileGroup?.[submittedForId || journeyId]?.uploadedFiles ?? [];
+		const fileGroupUploadedFiles = fileGroup?.[fileGroupKey]?.uploadedFiles ?? [];
 		const uploadedFiles = fileGroupUploadedFiles.length > 0 ? fileGroupUploadedFiles : viewModel.question.value;
 
 		viewModel.uploadedFiles = uploadedFiles;
@@ -147,12 +148,15 @@ export default class RepresentationAttachments extends Question {
 		let responseToSave = { answers: {} };
 		const applicationId = req.params.representationRef || req.params.id || req.params.applicationId;
 		const submittedForId = journeyResponse.answers?.submittedForId;
-		const journeyId = journeyResponse?.journeyId;
+		const fileKey = this.getFileGroupKey(submittedForId);
 
-		responseToSave.answers[this.fieldName] =
-			req.session.files?.[applicationId]?.[submittedForId || journeyId]?.uploadedFiles;
+		responseToSave.answers[this.fieldName] = req.session.files?.[applicationId]?.[fileKey]?.uploadedFiles;
 		journeyResponse.answers[this.fieldName] = responseToSave.answers[this.fieldName];
 
 		return responseToSave;
+	}
+
+	getFileGroupKey(submittedForId) {
+		return this.fieldName === 'withdrawalRequests' ? 'withdraw' : JOURNEY_MAP[submittedForId];
 	}
 }

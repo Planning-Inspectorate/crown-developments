@@ -8,6 +8,11 @@ import { addSessionData } from '../../../util/session.js';
 import { getSubmittedForId } from '../../../util/questions.js';
 import { getApplicationNameFolder } from '../../../util/handle-attachments.js';
 
+export const JOURNEY_MAP = {
+	myself: 'myself',
+	'on-behalf-of': 'agent'
+};
+
 const CONTENT_UPLOAD_FILE_LIMIT = 4 * 1024 * 1024; // 4MB
 const TOTAL_UPLOAD_LIMIT = 1073741824; // 1GB
 
@@ -45,7 +50,9 @@ export function uploadDocumentsController(
 		const sessionId = req.sessionID;
 		const journeyResponse = res.locals?.journeyResponse;
 
-		const submittedForId = isManageRepsJourneyId(journeyId) ? undefined : getSubmittedForId(journeyResponse?.answers);
+		const submittedForId = isManageRepsJourneyId(journeyId)
+			? undefined
+			: JOURNEY_MAP[getSubmittedForId(journeyResponse?.answers)];
 
 		const leafFolderName = getLeafFolderName(journeyId, req, submittedForId);
 
@@ -159,7 +166,7 @@ export function deleteDocumentsController({ logger, appName, sharePointDrive, ge
 		const isManageRepsJourney = isManageRepsJourneyId(journeyId);
 		let submittedForId;
 		if (!isManageRepsJourney) {
-			submittedForId = getSubmittedForId(journeyResponse?.answers);
+			submittedForId = JOURNEY_MAP[getSubmittedForId(journeyResponse?.answers)];
 		}
 
 		const sessionIdKey = isRepsJourneyId(journeyId) ? req.params.representationRef : applicationId;
@@ -277,15 +284,10 @@ async function processChunkDocumentUpload(file, uploadUrl, logger) {
 }
 
 function getRedirectUrl(appName, applicationId, journeyId, submittedForId, requestParams) {
-	const journeyMap = {
-		myself: 'myself',
-		'on-behalf-of': 'agent'
-	};
-
 	const redirectUrlMap = {
-		'have-your-say': `/applications/${applicationId}/${journeyId}/${journeyMap[submittedForId]}/select-attachments`,
-		'add-representation': `/cases/${applicationId}/manage-representations/${journeyId}/${journeyMap[submittedForId]}/select-attachments`,
-		'manage-reps-edit': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/edit/${journeyMap[submittedForId]}/select-attachments`,
+		'have-your-say': `/applications/${applicationId}/${journeyId}/${submittedForId}/select-attachments`,
+		'add-representation': `/cases/${applicationId}/manage-representations/${journeyId}/${submittedForId}/select-attachments`,
+		'manage-reps-edit': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/edit/${requestParams?.section}/${requestParams?.question}`,
 		'manage-reps-manage': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/manage/task-list/${requestParams?.itemId}/redact`,
 		'manage-reps-review': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/review/task-list/${requestParams?.itemId}/redact`,
 		'withdraw-representation-review': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/review/withdraw-representation/withdraw/upload-request`,
@@ -299,7 +301,7 @@ function getLeafFolderName(journeyId, req, submittedForId) {
 	if (isManageRepsJourneyId(journeyId)) {
 		return req.params.itemId;
 	} else if (isEditRepsJourneyId(journeyId)) {
-		return req.params.representationRef;
+		return `${req.params.representationRef}-${req.params.section}`;
 	} else if (isWithdrawRepsJourneyId(journeyId)) {
 		return undefined;
 	} else {
@@ -310,8 +312,8 @@ function getLeafFolderName(journeyId, req, submittedForId) {
 function getSessionKey(journeyId, req, submittedForId) {
 	if (isManageRepsJourneyId(journeyId)) {
 		return req.params.itemId;
-	} else if (isWithdrawRepsJourneyId(journeyId)) {
-		return 'withdraw-representation';
+	} else if (isWithdrawRepsJourneyId(journeyId) || req.params.section === 'withdraw') {
+		return 'withdraw';
 	} else {
 		return submittedForId;
 	}

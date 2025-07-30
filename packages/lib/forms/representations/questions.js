@@ -53,7 +53,8 @@ export const getQuestions = ({ methodOverrides = {}, textOverrides = {}, actionO
 			url: 'status',
 			validators: [new RequiredValidator()],
 			options: referenceDataToRadioOptions(REPRESENTATION_STATUS),
-			actionLink: actionOverrides.statusShouldShowManageAction ? actionLinkOverride : undefined
+			actionLink: actionOverrides.statusShouldShowManageAction ? actionLinkOverride : undefined,
+			editable: actionOverrides.statusShouldShowManageAction
 		},
 		reviewDecision: {
 			type: COMPONENT_TYPES.RADIO,
