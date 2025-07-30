@@ -14,7 +14,10 @@ import { FILE_PROPERTIES, mapDriveItemToViewModel } from './view-model.js';
  */
 export async function getDocuments({ sharePointDrive, folderPath, logger, id, sortFn }) {
 	try {
-		const items = await sharePointDrive.getItemsByPath(folderPath, [['$select', FILE_PROPERTIES.join(',')]]);
+		const items = await sharePointDrive.getItemsByPath(folderPath, [
+			['$top', '999'],
+			['$select', FILE_PROPERTIES.join(',')]
+		]);
 		if (sortFn) {
 			items.sort(sortFn);
 		}
