@@ -179,7 +179,6 @@ model Event {
   /// internal identifier
   id                           String             @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
   date                         DateTime?
-  duration                     String?
   prepDuration                 Decimal?           @db.Decimal(6, 2)
   sittingDuration              Decimal?           @db.Decimal(6, 2)
   reportingDuration            Decimal?           @db.Decimal(6, 2)
