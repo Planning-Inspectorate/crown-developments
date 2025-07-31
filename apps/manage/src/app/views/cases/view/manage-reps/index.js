@@ -5,7 +5,7 @@ import { buildGetJourneyMiddleware, viewRepresentation } from './view/controller
 import { viewReviewRedirect } from './review/controller.js';
 import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
-import { buildSave, question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
+import { question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
 import { buildUpdateRepresentation } from './edit/controller.js';
 import { createRoutes as createAddRoutes } from './add/index.js';
 import { createRoutes as createReviewRoutes } from './review/index.js';
@@ -23,6 +23,7 @@ import {
 	MAX_FILE_SIZE
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
 import { buildReinstateRepConfirmation } from './reinstate/controller.js';
+import { buildSave } from './edit/save.js';
 
 /**
  * @param {import('#service').ManageService} service

@@ -19,6 +19,19 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 		showUploadWarning: true,
 		validators: [new DocumentUploadValidator('myselfAttachments')]
 	});
+	const withdrawalRequestsQuestion = new RepresentationAttachments({
+		type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS,
+		title: 'Upload the withdrawal request',
+		question: 'Upload the withdrawal request',
+		fieldName: 'withdrawalRequests',
+		url: 'upload-request',
+		allowedFileExtensions: ALLOWED_EXTENSIONS,
+		allowedMimeTypes: ALLOWED_MIME_TYPES,
+		maxFileSizeValue: MAX_FILE_SIZE,
+		maxFileSizeString: '20MB',
+		showUploadWarning: false,
+		validators: [new DocumentUploadValidator('withdrawalRequests')]
+	});
 	describe('RepresentationAttachmentsQuestion', () => {
 		it('should create', () => {
 			assert.strictEqual(question.viewFolder, 'custom-components/representation-attachments');
@@ -143,7 +156,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				response: {
 					journeyId: 'withdraw-representation',
 					answers: {
-						myselfAttachments: [
+						withdrawalRequests: [
 							{
 								originalname: 'test-pdf.pdf',
 								mimetype: 'application/pdf',
@@ -169,17 +182,17 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 			];
 
 			const customViewData = {
-				id: 'app123',
+				id: 'repRef123',
 				files: {
-					app123: {
-						'withdraw-representation': {
+					repRef123: {
+						withdraw: {
 							uploadedFiles
 						}
 					}
 				}
 			};
 
-			const result = question.prepQuestionForRendering(section, journey, customViewData);
+			const result = withdrawalRequestsQuestion.prepQuestionForRendering(section, journey, customViewData);
 
 			assert.deepStrictEqual(result.question.value, [
 				{
@@ -656,7 +669,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				session: {
 					files: {
 						app123: {
-							'withdraw-representation': {
+							withdraw: {
 								uploadedFiles: [
 									{ name: 'doc1.pdf', size: 12345 },
 									{ name: 'doc2.pdf', size: 67890 }
@@ -677,12 +690,12 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				{ name: 'doc2.pdf', size: 67890 }
 			];
 
-			const result = await question.getDataToSave(req, journeyResponse);
+			const result = await withdrawalRequestsQuestion.getDataToSave(req, journeyResponse);
 
 			assert.deepStrictEqual(result, {
-				answers: { [question.fieldName]: expectedFiles }
+				answers: { [withdrawalRequestsQuestion.fieldName]: expectedFiles }
 			});
-			assert.deepStrictEqual(journeyResponse.answers[question.fieldName], expectedFiles);
+			assert.deepStrictEqual(journeyResponse.answers[withdrawalRequestsQuestion.fieldName], expectedFiles);
 		});
 	});
 });
