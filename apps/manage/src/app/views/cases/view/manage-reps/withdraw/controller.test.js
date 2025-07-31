@@ -49,7 +49,7 @@ describe('withdraw rep controller', () => {
 					},
 					files: {
 						'case-1-ref': {
-							'withdraw-representation': [
+							withdraw: [
 								{ itemId: 'file-1', fileName: 'file1.pdf' },
 								{ itemId: 'file-2', fileName: 'file2.pdf' }
 							]

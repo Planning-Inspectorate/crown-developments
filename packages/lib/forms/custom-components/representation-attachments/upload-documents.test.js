@@ -628,7 +628,7 @@ describe('upload-documents.js', () => {
 				session: {
 					files: {
 						'ABCDE-12345': {
-							'withdraw-representation': {
+							withdraw: {
 								uploadedFiles: [
 									{ itemId: 'doc123', fileName: 'to-delete.pdf' },
 									{ itemId: 'doc999', fileName: 'keep.pdf' }
@@ -668,7 +668,7 @@ describe('upload-documents.js', () => {
 				redirectCalledWith,
 				'/cases/app456/manage-representations/ABCDE-12345/review/withdraw-representation/withdraw/upload-request'
 			);
-			assert.deepStrictEqual(req.session.files['ABCDE-12345']['withdraw-representation'].uploadedFiles, [
+			assert.deepStrictEqual(req.session.files['ABCDE-12345']['withdraw'].uploadedFiles, [
 				{
 					itemId: 'doc999',
 					fileName: 'keep.pdf'
