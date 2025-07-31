@@ -585,7 +585,6 @@ describe('view-model', () => {
 				]
 			};
 			const viewModel = representationToManageViewModel(representation, applicationReference);
-			console.log(viewModel);
 			assert.deepStrictEqual(viewModel, {
 				applicationReference: 'app/ref',
 				requiresReview: false,
