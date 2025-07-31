@@ -134,19 +134,72 @@ export function eventQuestions(prefix) {
 			}
 		}),
 		[`${prefix}Duration`]: {
-			type: COMPONENT_TYPES.RADIO,
+			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
 			title: `${title} Duration`,
 			question: `What is the ${prefix} duration?`,
 			fieldName: `${prefix}Duration`,
 			url: `${prefix}-duration`,
-			validators: [new RequiredValidator()],
-			options: [
-				{ text: 'Prep', value: 'Prep' },
-				{ text: 'Sitting', value: 'Sitting' },
+			inputFields: [
 				{
-					text: 'Reporting',
-					value: 'Reporting'
+					fieldName: `${prefix}DurationPrep`,
+					label: 'Prep',
+					classes: 'govuk-input--width-5',
+					formatPrefix: 'Prep: ',
+					formatJoinString: ' days\r\n',
+					inputmode: 'numeric',
+					pattern: '[0-9]*',
+					suffix: { text: 'days' }
+				},
+				{
+					fieldName: `${prefix}DurationSitting`,
+					label: 'Sitting',
+					classes: 'govuk-input--width-5',
+					formatPrefix: 'Sitting: ',
+					formatJoinString: ' days\r\n',
+					inputmode: 'numeric',
+					pattern: '[0-9]*',
+					suffix: { text: 'days' }
+				},
+				{
+					fieldName: `${prefix}DurationReporting`,
+					label: 'Reporting',
+					classes: 'govuk-input--width-5',
+					formatPrefix: 'Reporting: ',
+					formatJoinString: ' days',
+					inputmode: 'numeric',
+					pattern: '[0-9]*',
+					suffix: { text: 'days' }
 				}
+			],
+			validators: [
+				new MultiFieldInputValidator({
+					fields: [
+						{
+							fieldName: `${prefix}DurationPrep`,
+							required: false,
+							regex: {
+								regex: '^$|^\\d+(\\.\\d+)?$', // Accepts empty or a decimal/integer
+								regexMessage: 'Prep must be a number'
+							}
+						},
+						{
+							fieldName: `${prefix}DurationSitting`,
+							required: false,
+							regex: {
+								regex: '^$|^\\d+(\\.\\d+)?$', // Accepts empty or a decimal/integer
+								regexMessage: 'Sitting must be a number'
+							}
+						},
+						{
+							fieldName: `${prefix}DurationReporting`,
+							required: false,
+							regex: {
+								regex: '^$|^\\d+(\\.\\d+)?$', // Accepts empty or a decimal/integer
+								regexMessage: 'Reporting must be a number'
+							}
+						}
+					]
+				})
 			]
 		},
 		[`${prefix}Venue`]: {
