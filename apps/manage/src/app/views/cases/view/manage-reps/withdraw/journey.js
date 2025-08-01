@@ -12,7 +12,7 @@ export function createJourney(questions, response, req, isRepsUploadDocsLive) {
 		journeyId: JOURNEY_ID,
 		sections: [
 			new Section('Withdraw', 'withdraw')
-				.addQuestion(questions.withdrawalDate)
+				.addQuestion(questions.withdrawalRequestDate)
 				.addQuestion(questions.withdrawalReason)
 				.addQuestion(questions.withdrawalRequests)
 				.withCondition(() => isRepsUploadDocsLive === true)

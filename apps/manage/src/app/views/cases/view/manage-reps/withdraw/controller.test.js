@@ -39,7 +39,7 @@ describe('withdraw rep controller', () => {
 				session: {
 					forms: {
 						'withdraw-representation': {
-							withdrawalDate: '2025-01-01',
+							withdrawalRequestDate: '2025-01-01',
 							withdrawalReasonId: 'change-of-opinion',
 							withdrawalRequests: [
 								{ itemId: 'file-1', fileName: 'file1.pdf' },
@@ -62,7 +62,7 @@ describe('withdraw rep controller', () => {
 				locals: {
 					journeyResponse: {
 						answers: {
-							withdrawalDate: '2025-01-01',
+							withdrawalRequestDate: '2025-01-01',
 							withdrawalReasonId: 'change-of-opinion',
 							withdrawalRequests: [
 								{ itemId: 'file-1', fileName: 'file1.pdf' },
@@ -120,7 +120,7 @@ describe('withdraw rep controller', () => {
 				session: {
 					forms: {
 						'withdraw-representation': {
-							withdrawalDate: '2025-01-01',
+							withdrawalRequestDate: '2025-01-01',
 							withdrawalReasonId: 'change-of-opinion',
 							withdrawalRequests: [
 								{ itemId: 'file-1', fileName: 'file1.pdf' },
@@ -143,7 +143,7 @@ describe('withdraw rep controller', () => {
 				locals: {
 					journeyResponse: {
 						answers: {
-							withdrawalDate: '2025-01-01',
+							withdrawalRequestDate: '2025-01-01',
 							withdrawalReasonId: 'change-of-opinion',
 							withdrawalRequests: [
 								{ itemId: 'file-1', fileName: 'file1.pdf' },

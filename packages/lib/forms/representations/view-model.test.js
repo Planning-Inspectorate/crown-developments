@@ -43,7 +43,7 @@ describe('view-model', () => {
 				commentRedacted: '███████ one',
 				containsAttachments: 'no',
 				sharePointFolderCreated: 'no',
-				withdrawalDate: undefined,
+				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined
 			});
@@ -70,7 +70,7 @@ describe('view-model', () => {
 				commentRedacted: undefined,
 				containsAttachments: 'no',
 				sharePointFolderCreated: 'no',
-				withdrawalDate: undefined,
+				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined
 			});
@@ -136,7 +136,7 @@ describe('view-model', () => {
 				commentRedacted: undefined,
 				containsAttachments: 'yes',
 				sharePointFolderCreated: 'yes',
-				withdrawalDate: undefined,
+				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined
 			});
@@ -233,7 +233,7 @@ describe('view-model', () => {
 					}
 				],
 				myselfRedactedAttachments: [{ fileName: 'redacted-file1.pdf' }, { fileName: 'redacted-file2.pdf' }],
-				withdrawalDate: undefined,
+				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined
 			});
@@ -285,7 +285,7 @@ describe('view-model', () => {
 				commentRedacted: undefined,
 				containsAttachments: 'yes',
 				sharePointFolderCreated: 'no',
-				withdrawalDate: undefined,
+				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined
 			});
@@ -347,7 +347,7 @@ describe('view-model', () => {
 				commentRedacted: undefined,
 				containsAttachments: 'no',
 				sharePointFolderCreated: 'no',
-				withdrawalDate: undefined,
+				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined
 			});
@@ -440,7 +440,7 @@ describe('view-model', () => {
 				representedLastName: 'represented lastName',
 				isAgent: 'yes',
 				agentOrgName: 'agent org',
-				withdrawalDate: undefined,
+				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined
 			});
@@ -498,7 +498,7 @@ describe('view-model', () => {
 				commentRedacted: undefined,
 				containsAttachments: 'no',
 				sharePointFolderCreated: 'no',
-				withdrawalDate: undefined,
+				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined
 			});
@@ -558,14 +558,14 @@ describe('view-model', () => {
 				commentRedacted: undefined,
 				containsAttachments: 'no',
 				sharePointFolderCreated: 'no',
-				withdrawalDate: undefined,
+				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined
 			});
 		});
 		it(`should map withdraw reps fields`, () => {
 			const representation = {
-				withdrawalDate: new Date('2025-01-01T00:00:00Z'),
+				withdrawalRequestDate: new Date('2025-01-01T00:00:00Z'),
 				withdrawalReasonId: 'change-of-opinion',
 				WithdrawalRequests: [
 					{
@@ -600,7 +600,7 @@ describe('view-model', () => {
 				commentRedacted: undefined,
 				containsAttachments: undefined,
 				sharePointFolderCreated: undefined,
-				withdrawalDate: new Date('2025-01-01T00:00:00Z'),
+				withdrawalRequestDate: new Date('2025-01-01T00:00:00Z'),
 				withdrawalReasonId: 'change-of-opinion',
 				withdrawalRequests: [
 					{

@@ -23,8 +23,8 @@ export function buildSaveController(service) {
 
 		const updateInput = {
 			Status: { connect: { id: REPRESENTATION_STATUS_ID.WITHDRAWN } },
-			withdrawalDate: answers?.withdrawalDate,
-			dateOfWithdrawal: new Date(),
+			withdrawalRequestDate: answers?.withdrawalRequestDate,
+			dateWithdrawn: new Date(),
 			WithdrawalReason: { connect: { id: answers?.withdrawalReasonId } }
 		};
 

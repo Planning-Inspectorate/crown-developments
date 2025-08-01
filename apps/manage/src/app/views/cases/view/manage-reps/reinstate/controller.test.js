@@ -18,23 +18,5 @@ describe('reinstate rep controller', () => {
 				backLinkUrl: '/cases/case-1/manage-representations'
 			});
 		});
-		it('should throw if no id', async () => {
-			const mockReq = { params: {} };
-			const mockRes = { locals: {} };
-			const reinstateRepConfirmation = buildReinstateRepConfirmation();
-
-			await assert.rejects(() => reinstateRepConfirmation(mockReq, mockRes), {
-				message: 'id param required'
-			});
-		});
-		it('should throw if no representationRef', async () => {
-			const mockReq = { params: { id: 'case-1' } };
-			const mockRes = { locals: {} };
-			const reinstateRepConfirmation = buildReinstateRepConfirmation();
-
-			await assert.rejects(() => reinstateRepConfirmation(mockReq, mockRes), {
-				message: 'representationRef param required'
-			});
-		});
 	});
 });

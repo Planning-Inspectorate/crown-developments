@@ -27,7 +27,7 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'commentRedacted',
 	'containsAttachments',
 	'sharePointFolderCreated',
-	'withdrawalDate',
+	'withdrawalRequestDate',
 	'withdrawalReasonId'
 ]);
 

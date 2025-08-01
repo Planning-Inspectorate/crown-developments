@@ -231,11 +231,11 @@ model Representation {
   sharePointFolderCreated Boolean?                 @default(false)
 
   // withdrawal fields
-  withdrawalDate     DateTime?
-  withdrawalReasonId String?
-  WithdrawalReason   WithdrawalReason?           @relation(fields: [withdrawalReasonId], references: [id])
-  WithdrawalRequests WithdrawalRequestDocument[]
-  dateOfWithdrawal   DateTime?
+  withdrawalRequestDate DateTime?
+  withdrawalReasonId    String?
+  WithdrawalReason      WithdrawalReason?           @relation(fields: [withdrawalReasonId], references: [id])
+  WithdrawalRequests    WithdrawalRequestDocument[]
+  dateWithdrawn         DateTime?
 }
 
 // Document attached to a representation, such as evidence or a letter

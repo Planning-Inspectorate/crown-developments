@@ -19,12 +19,12 @@ import { WITHDRAWAL_REASON } from '@pins/crowndev-database/src/seed/data-static.
 export function getQuestions() {
 	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {
-		withdrawalDate: {
+		withdrawalRequestDate: {
 			type: COMPONENT_TYPES.DATE,
 			title: 'Withdrawal Date',
 			question: 'Enter date of withdrawal request',
 			hint: 'Use the date on the withdrawal correspondence. For example 27 3 2007',
-			fieldName: 'withdrawalDate',
+			fieldName: 'withdrawalRequestDate',
 			url: 'request-date',
 			validators: [
 				new DateValidator(
