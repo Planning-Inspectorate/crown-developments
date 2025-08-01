@@ -56,6 +56,7 @@ export function loadConfig() {
 		SHAREPOINT_CASE_TEMPLATE_ID,
 		GOV_NOTIFY_DISABLED,
 		GOV_NOTIFY_API_KEY,
+		GOV_NOTIFY_WEBHOOK_TOKEN,
 		GOV_NOTIFY_TEST_TEMPLATE_ID,
 		GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
 		GOV_NOTIFY_ACK_REP_TEMPLATE_ID,
@@ -115,6 +116,7 @@ export function loadConfig() {
 	if (!govNotifyDisabled) {
 		const props = {
 			GOV_NOTIFY_API_KEY,
+			GOV_NOTIFY_WEBHOOK_TOKEN,
 			GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
 			GOV_NOTIFY_ACK_REP_TEMPLATE_ID,
 			GOV_NOTIFY_LPA_QNR_TEMPLATE_ID,
@@ -192,6 +194,7 @@ export function loadConfig() {
 		govNotify: {
 			disabled: govNotifyDisabled,
 			apiKey: GOV_NOTIFY_API_KEY,
+			webHookToken: GOV_NOTIFY_WEBHOOK_TOKEN,
 			templateIds: {
 				test: GOV_NOTIFY_TEST_TEMPLATE_ID,
 				acknowledgePreNotification: GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
