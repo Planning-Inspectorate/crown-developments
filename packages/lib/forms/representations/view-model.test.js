@@ -46,7 +46,7 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateOfWithdrawal: undefined
+				dateWithdrawn: undefined
 			});
 		});
 		it('should map requires review', () => {
@@ -74,7 +74,7 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateOfWithdrawal: undefined
+				dateWithdrawn: undefined
 			});
 		});
 		it('should map the myself fields', () => {
@@ -141,7 +141,7 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateOfWithdrawal: undefined
+				dateWithdrawn: undefined
 			});
 		});
 		it('should map the myself fields when contains attachments and redacted attachments', () => {
@@ -239,7 +239,7 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateOfWithdrawal: undefined
+				dateWithdrawn: undefined
 			});
 		});
 		it('should map the on behalf of common fields', () => {
@@ -292,7 +292,7 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateOfWithdrawal: undefined
+				dateWithdrawn: undefined
 			});
 		});
 		it('should map the on behalf of person fields', () => {
@@ -355,7 +355,7 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateOfWithdrawal: undefined
+				dateWithdrawn: undefined
 			});
 		});
 		it('should map the on behalf of person fields when contains attachments and redacted attachments', () => {
@@ -449,7 +449,7 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateOfWithdrawal: undefined
+				dateWithdrawn: undefined
 			});
 		});
 		it('should map the on behalf of org fields', () => {
@@ -508,7 +508,7 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateOfWithdrawal: undefined
+				dateWithdrawn: undefined
 			});
 		});
 		it(`should map the on behalf of org don't work for fields`, () => {
@@ -569,7 +569,7 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateOfWithdrawal: undefined
+				dateWithdrawn: undefined
 			});
 		});
 		it(`should map withdraw reps fields`, () => {
@@ -592,7 +592,7 @@ describe('view-model', () => {
 						redactedFileName: 'redacted-file2.pdf'
 					}
 				],
-				dateOfWithdrawal: new Date('2025-07-31T00:00:00Z')
+				dateWithdrawn: new Date('2025-07-31T00:00:00Z')
 			};
 			const viewModel = representationToManageViewModel(representation, applicationReference);
 			assert.deepStrictEqual(viewModel, {
@@ -628,7 +628,7 @@ describe('view-model', () => {
 						redactedFileName: 'redacted-file2.pdf'
 					}
 				],
-				dateOfWithdrawal: new Date('2025-07-31T00:00:00.000Z')
+				dateWithdrawn: new Date('2025-07-31T00:00:00.000Z')
 			});
 		});
 	});

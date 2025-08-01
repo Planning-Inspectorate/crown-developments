@@ -36,10 +36,10 @@ export function haveYourSayManageSections(questions, isRepsUploadDocsLive, isVie
 			.withSectionCondition((response) =>
 				questionHasAnswer(response, questions.status, REPRESENTATION_STATUS_ID.WITHDRAWN)
 			)
-			.addQuestion(questions.withdrawalDate)
+			.addQuestion(questions.withdrawalRequestDate)
 			.addQuestion(questions.withdrawalReason)
 			.addQuestion(questions.withdrawalRequests)
-			.addQuestion(questions.dateOfWithdrawal)
+			.addQuestion(questions.dateWithdrawn)
 	];
 }
 

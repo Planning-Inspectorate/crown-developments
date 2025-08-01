@@ -48,16 +48,12 @@ export function buildUpdateRepresentation(
 
 		if (hasAttachments) {
 			const attachmentsToSave = toSave.myselfAttachments ?? toSave.submitterAttachments;
-			await handleMoveAttachmentsToCaseFolder(
-				req,
-				attachmentsToSave,
-				moveAttachmentsToCaseFolderFn,
-				db,
-				sharePointDrive,
-				logger,
-				fullViewModel,
-				representationRef
-			);
+			await moveAttachmentsToCaseFolderFn({
+				service: { db, logger, sharePointDrive: getSharePointDrive(req.session) },
+				applicationReference: fullViewModel.applicationReference,
+				representationReference: representationRef,
+				representationAttachments: attachmentsToSave
+			});
 
 			try {
 				await db.$transaction(async ($tx) => {
@@ -83,32 +79,34 @@ export function buildUpdateRepresentation(
 					logParams: { id, representationRef }
 				});
 			}
-
-			await handleDeleteAttachmentsFolder(
-				req,
-				res,
-				deleteRepresentationAttachmentsFolderFn,
-				sharePointDrive,
-				logger,
-				fullViewModel,
-				representationRef,
-				'Error deleting representation attachments folder'
-			);
+			try {
+				await deleteRepresentationAttachmentsFolderFn(
+					{
+						service: { logger, sharePointDrive },
+						applicationReference: fullViewModel.applicationReference,
+						representationReference: representationRef,
+						appName: 'manage'
+					},
+					req,
+					res
+				);
+			} catch (error) {
+				logger.warn(
+					{ error, applicationReference: fullViewModel.applicationReference, representationRef },
+					'Error deleting representation attachments folder'
+				);
+			}
 		}
 
 		const hasWithdrawalRequests = toSave.withdrawalRequests && toSave.withdrawalRequests.length > 0;
 		if (hasWithdrawalRequests) {
 			const attachmentsToSave = toSave.withdrawalRequests;
-			await handleMoveAttachmentsToCaseFolder(
-				req,
-				attachmentsToSave,
-				moveAttachmentsToCaseFolderFn,
-				db,
-				sharePointDrive,
-				logger,
-				fullViewModel,
-				representationRef
-			);
+			await moveAttachmentsToCaseFolderFn({
+				service: { db, logger, sharePointDrive: getSharePointDrive(req.session) },
+				applicationReference: fullViewModel.applicationReference,
+				representationReference: representationRef,
+				representationAttachments: attachmentsToSave
+			});
 
 			try {
 				await db.$transaction(async ($tx) => {
@@ -134,16 +132,23 @@ export function buildUpdateRepresentation(
 				});
 			}
 
-			await handleDeleteAttachmentsFolder(
-				req,
-				res,
-				deleteRepresentationAttachmentsFolderFn,
-				sharePointDrive,
-				logger,
-				fullViewModel,
-				representationRef,
-				'Error deleting withdrawal requests folder'
-			);
+			try {
+				await deleteRepresentationAttachmentsFolderFn(
+					{
+						service: { logger, sharePointDrive },
+						applicationReference: fullViewModel.applicationReference,
+						representationReference: representationRef,
+						appName: 'manage'
+					},
+					req,
+					res
+				);
+			} catch (error) {
+				logger.warn(
+					{ error, applicationReference: fullViewModel.applicationReference, representationRef },
+					'Error deleting representation attachments folder'
+				);
+			}
 		}
 
 		/** @type {import('@prisma/client').Prisma.RepresentationUpdateInput} */
@@ -186,76 +191,6 @@ async function addRepresentationFolderToSharepoint(sharePointDrive, logger, appl
 			'error creating new sharepoint folder for representation'
 		);
 		throw new Error('Error encountered during sharepoint folder creation');
-	}
-}
-
-/**
- * Handle moving attachments to case folder in sharepoint
- *
- * @param {import('express').Request} req
- * @param {Array} attachmentsToSave
- * @param {import('@pins/crowndev-lib/util/handle-attachments.js').MoveAttachmentsToCaseFolderFn} moveAttachmentsToCaseFolderFn
- * @param {import('@prisma/client').PrismaClient} db
- * @param {SharePointDrive} sharePointDrive
- * @param {import('pino').BaseLogger} logger
- * @param {import('@pins/crowndev-lib/forms/representations/types.js').HaveYourSayManageModel} fullViewModel
- * @param {string} representationRef
- * @returns {Promise<void>}
- */
-async function handleMoveAttachmentsToCaseFolder(
-	req,
-	attachmentsToSave,
-	moveAttachmentsToCaseFolderFn,
-	db,
-	sharePointDrive,
-	logger,
-	fullViewModel,
-	representationRef
-) {
-	await moveAttachmentsToCaseFolderFn({
-		service: { db, logger, sharePointDrive },
-		applicationReference: fullViewModel.applicationReference,
-		representationReference: representationRef,
-		representationAttachments: attachmentsToSave
-	});
-}
-
-/**
- * Handle deletion of attachments from sharepoint
- *
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('@pins/crowndev-lib/util/handle-attachments.js').DeleteRepresentationAttachmentsFolderFn} deleteRepresentationAttachmentsFolderFn
- * @param {SharePointDrive} sharePointDrive
- * @param {import('pino').BaseLogger} logger
- * @param {import('@pins/crowndev-lib/forms/representations/types.js').HaveYourSayManageModel} fullViewModel
- * @param {string} representationRef
- * @param {string} errorMsg
- * @returns {Promise<void>}
- */
-async function handleDeleteAttachmentsFolder(
-	req,
-	res,
-	deleteRepresentationAttachmentsFolderFn,
-	sharePointDrive,
-	logger,
-	fullViewModel,
-	representationRef,
-	errorMsg
-) {
-	try {
-		await deleteRepresentationAttachmentsFolderFn(
-			{
-				service: { logger, sharePointDrive },
-				applicationReference: fullViewModel.applicationReference,
-				representationReference: representationRef,
-				appName: 'manage'
-			},
-			req,
-			res
-		);
-	} catch (error) {
-		logger.warn({ error, applicationReference: fullViewModel.applicationReference, representationRef }, errorMsg);
 	}
 }
 
