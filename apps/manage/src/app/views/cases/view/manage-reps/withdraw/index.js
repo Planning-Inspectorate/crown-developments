@@ -20,9 +20,9 @@ import {
 	buildSaveDataToSession
 } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/session.js';
-import { getQuestions } from './questions.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { buildSaveController, successController } from './controller.js';
+import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 
 /**
  * @param {import('#service').ManageService} service

@@ -8,14 +8,23 @@ import {
 	REPRESENTATION_CATEGORY,
 	REPRESENTATION_STATUS,
 	REPRESENTATION_SUBMITTED_FOR,
-	REPRESENTED_TYPE
+	REPRESENTED_TYPE,
+	WITHDRAWAL_REASON
 } from '@pins/crowndev-database/src/seed/data-static.js';
-import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
-import { CUSTOM_COMPONENT_CLASSES } from '../custom-components/index.js';
-import { representationsContactQuestions } from './question-utils.js';
+import {
+	referenceDataToRadioOptions,
+	referenceDataToRadioOptionsWithHintText
+} from '@pins/crowndev-lib/util/questions.js';
+import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '../custom-components/index.js';
+import {
+	ALLOWED_EXTENSIONS,
+	ALLOWED_MIME_TYPES,
+	MAX_FILE_SIZE,
+	representationsContactQuestions
+} from './question-utils.js';
 import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
 import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
-import { withdrawRepresentationQuestions } from 'crowndev-manage/src/app/views/cases/view/manage-reps/withdraw/questions.js';
+import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/validator/document-upload-validator.js';
 
 export const ACCEPT_AND_REDACT = 'accept-and-redact';
 
@@ -263,7 +272,55 @@ export const getQuestions = ({ methodOverrides = {}, textOverrides = {}, actionO
 			url: 'representation-attachments',
 			validators: [new RequiredValidator('Select whether the representation has attachments')]
 		},
-		...withdrawRepresentationQuestions()
+		withdrawalRequestDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Withdrawal Date',
+			question: 'Enter date of withdrawal request',
+			hint: 'Use the date on the withdrawal correspondence. For example 27 3 2007',
+			fieldName: 'withdrawalRequestDate',
+			url: 'request-date',
+			validators: [
+				new DateValidator(
+					'Withdrawal request date',
+					{
+						ensureFuture: false,
+						ensurePast: false
+					},
+					{ emptyErrorMessage: 'Enter withdrawal request date' }
+				)
+			]
+		},
+		withdrawalReason: {
+			type: COMPONENT_TYPES.RADIO,
+			title: 'Why is the representation being withdrawn?',
+			question: 'Why is the representation being withdrawn?',
+			fieldName: 'withdrawalReasonId',
+			url: 'reason',
+			validators: [new RequiredValidator()],
+			options: referenceDataToRadioOptionsWithHintText(WITHDRAWAL_REASON)
+		},
+		withdrawalRequests: {
+			type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS,
+			title: 'Upload the withdrawal request',
+			question: 'Upload the withdrawal request',
+			fieldName: 'withdrawalRequests',
+			url: 'upload-request',
+			allowedFileExtensions: ALLOWED_EXTENSIONS,
+			allowedMimeTypes: ALLOWED_MIME_TYPES,
+			maxFileSizeValue: MAX_FILE_SIZE,
+			maxFileSizeString: '20MB',
+			showUploadWarning: false,
+			validators: [new DocumentUploadValidator('withdrawalRequests')]
+		},
+		dateWithdrawn: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Date of withdrawal',
+			question: 'Date of withdrawal',
+			fieldName: 'dateWithdrawn',
+			url: 'date-of-withdrawal',
+			validators: [],
+			editable: false
+		}
 	};
 
 	const classes = {
