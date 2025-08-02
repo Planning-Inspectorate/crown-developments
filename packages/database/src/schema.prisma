@@ -153,7 +153,6 @@ model Contact {
   CrownDevelopmentAgent            CrownDevelopment[] @relation("AgentContact")
   RepresentationSubmittedByContact Representation[]   @relation("RepresentationSubmittedByContact")
   Representation                   Representation[]   @relation("RepresentedContact")
-  NotifyEmail                      NotifyEmail[]      @relation("Contact")
 }
 
 /// Lpa represents a Local Planning Authority
@@ -382,8 +381,6 @@ model NotifyEmail {
   createdDate     DateTime // When the notification was created in Notify
   createdBy       String?      @db.NVarChar(100) // The user who created the notification
   sentDate        DateTime?    @default(now()) // When the notification was sent
-  contactId       String?      @db.UniqueIdentifier // The contact this notification relates to, if any
-  Contact         Contact?     @relation("Contact", fields: [contactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   emailAddress    String?      @db.NVarChar(100) // Used if contact doesn't exist
   statusId        String // The status of the notification, e.g. sending, delivered...
   Status          NotifyStatus @relation(fields: [statusId], references: [id])

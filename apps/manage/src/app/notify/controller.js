@@ -27,6 +27,7 @@ export function buildNotifyCallbackController(service) {
 				reference: notification.reference ?? null,
 				createdDate: notification['created_at'] ?? null,
 				createdBy: notification['created_by_name'] ?? null,
+				email: notification.email_address,
 				sentDate: notification['completed_at'] ?? null,
 				Status: { connect: { id: notification.status } },
 				templateId: notification.template.id ?? null,
@@ -34,16 +35,8 @@ export function buildNotifyCallbackController(service) {
 				body: notification.body ?? null,
 				subject: notification.subject ?? null
 			};
-			const contact = await dbClient.contact.findFirst({
-				where: { email: req.body.email_address }
-			});
 
-			if (contact) {
-				formattedNotificationData.Contact = { connect: { id: contact.id } };
-			} else {
-				logger.warn({ email: req.body.email_address }, 'Contact not found for Notify callback, connecting by email');
-				formattedNotificationData.email = req.body.email_address;
-			}
+			//TODO: Find a way to connect to a contact (email is not currently unique as it can be used for multiple contacts)
 
 			await dbClient.notifyEmail.create({
 				data: formattedNotificationData
