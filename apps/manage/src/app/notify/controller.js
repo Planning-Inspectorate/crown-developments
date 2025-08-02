@@ -32,8 +32,7 @@ export function buildNotifyCallbackController(service) {
 				templateId: notification.template.id ?? null,
 				templateVersion: notification.template.version ?? null,
 				body: notification.body ?? null,
-				subject: notification.subject ?? null,
-				updatedAt: new Date()
+				subject: notification.subject ?? null
 			};
 			const contact = await dbClient.contact.findFirst({
 				where: { email: req.body.email_address }
@@ -46,10 +45,8 @@ export function buildNotifyCallbackController(service) {
 				formattedNotificationData.email = req.body.email_address;
 			}
 
-			await dbClient.notifyEmail.upsert({
-				where: { notifyId: notificationId },
-				create: formattedNotificationData,
-				update: formattedNotificationData
+			await dbClient.notifyEmail.create({
+				data: formattedNotificationData
 			});
 			logger.info({ notificationId }, 'Successfully saved Notify callback to database');
 			return res.status(200).send('Notify callback processed successfully');
