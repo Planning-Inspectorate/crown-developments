@@ -56,6 +56,7 @@ export function loadConfig() {
 		SHAREPOINT_CASE_TEMPLATE_ID,
 		GOV_NOTIFY_DISABLED,
 		GOV_NOTIFY_API_KEY,
+		GOV_NOTIFY_WEBHOOK_TOKEN,
 		GOV_NOTIFY_TEST_TEMPLATE_ID,
 		GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
 		GOV_NOTIFY_ACK_REP_TEMPLATE_ID,
@@ -63,7 +64,8 @@ export function loadConfig() {
 		GOV_NOTIFY_APP_REC_WITH_FEE_TEMPLATE_ID,
 		GOV_NOTIFY_APP_REC_WITHOUT_FEE_TEMPLATE_ID,
 		GOV_NOTIFY_APP_NOT_NAT_IMP_TEMPLATE_ID,
-		FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE
+		FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE,
+		FEATURE_FLAG_NOTIFY_CALLBACK_NOT_LIVE
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -115,6 +117,7 @@ export function loadConfig() {
 	if (!govNotifyDisabled) {
 		const props = {
 			GOV_NOTIFY_API_KEY,
+			GOV_NOTIFY_WEBHOOK_TOKEN,
 			GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
 			GOV_NOTIFY_ACK_REP_TEMPLATE_ID,
 			GOV_NOTIFY_LPA_QNR_TEMPLATE_ID,
@@ -166,7 +169,8 @@ export function loadConfig() {
 		},
 		featureFlags: {
 			// by default with no feature flag set, reps upload docs is live
-			isRepsUploadDocsLive: FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE !== 'true'
+			isRepsUploadDocsLive: FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE !== 'true',
+			isNotifyCallbackEnabled: FEATURE_FLAG_NOTIFY_CALLBACK_NOT_LIVE !== 'true'
 		},
 		gitSha: GIT_SHA,
 		// the log level to use
@@ -192,6 +196,7 @@ export function loadConfig() {
 		govNotify: {
 			disabled: govNotifyDisabled,
 			apiKey: GOV_NOTIFY_API_KEY,
+			webHookToken: GOV_NOTIFY_WEBHOOK_TOKEN,
 			templateIds: {
 				test: GOV_NOTIFY_TEST_TEMPLATE_ID,
 				acknowledgePreNotification: GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,

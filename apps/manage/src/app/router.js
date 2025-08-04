@@ -4,6 +4,7 @@ import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitorin
 import { createRoutes as createCasesRoutes } from './views/cases/index.js';
 import { createErrorRoutes } from './views/static/error/index.js';
 import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.js';
+import { createNotifyRoutes } from './notify/router.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -14,9 +15,12 @@ export function buildRouter(service) {
 	const monitoringRoutes = createMonitoringRoutes(service);
 	const { router: authRoutes, guards: authGuards } = createAuthRoutesAndGuards(service);
 	const casesRoutes = createCasesRoutes(service);
+	const notifyRoutes = createNotifyRoutes(service);
 
 	router.use('/', monitoringRoutes);
-
+	if (!service.notifyCallBackDisabled) {
+		router.use('/notify', notifyRoutes);
+	}
 	// don't cache responses, note no-cache allows some caching, but with revalidation
 	// see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#no-cache
 	router.use(cacheNoCacheMiddleware);

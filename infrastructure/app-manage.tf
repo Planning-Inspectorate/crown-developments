@@ -76,6 +76,7 @@ module "app_manage" {
     # gov notify
     GOV_NOTIFY_DISABLED                        = var.apps_config.gov_notify.disabled
     GOV_NOTIFY_API_KEY                         = local.key_vault_refs["crown-gov-notify-api-key"]
+    GOV_NOTIFY_WEBHOOK_TOKEN                   = local.key_vault_refs["crown-gov-notify-webhook-token"]
     GOV_NOTIFY_TEST_TEMPLATE_ID                = var.apps_config.gov_notify.templates.test_template_id
     GOV_NOTIFY_PRE_ACK_TEMPLATE_ID             = var.apps_config.gov_notify.templates.pre_ack_template_id
     GOV_NOTIFY_ACK_REP_TEMPLATE_ID             = var.apps_config.gov_notify.templates.ack_rep_template_id
@@ -86,6 +87,7 @@ module "app_manage" {
 
     #feature flags
     FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE = var.apps_config.feature_flags.upload_docs_not_live
+    FEATURE_FLAG_NOTIFY_CALLBACK_NOT_LIVE  = var.apps_config.feature_flags.notify_callback_not_live
 
     # Azure Language Service
     AZURE_AI_LANGUAGE_ENDPOINT = local.text_analytics_endpoint

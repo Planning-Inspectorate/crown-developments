@@ -183,6 +183,49 @@ export const APPLICATION_PROCEDURE = [
 	}
 ];
 /**
+ * @type {Readonly<{SENDING: string, DELIVERED: string, PERMANENT_FAILURE: string, TEMPORARY_FAILURE: string, TECHNICAL_FAILURE: string}>}
+ */
+export const NOTIFY_STATUS_ID = Object.freeze({
+	SENDING: 'sending',
+	DELIVERED: 'delivered',
+	PERMANENT_FAILURE: 'permanent-failure',
+	TEMPORARY_FAILURE: 'temporary-failure',
+	TECHNICAL_FAILURE: 'technical-failure'
+});
+
+/**
+ *
+ * @type {import('@prisma/client').Prisma.NotifyStatusCreateInput[]}
+ */
+export const NOTIFY_STATUS = [
+	{
+		id: NOTIFY_STATUS_ID.SENDING,
+		displayName: 'Sending'
+	},
+	{
+		id: NOTIFY_STATUS_ID.DELIVERED,
+		displayName: 'Delivered'
+	},
+	{
+		id: NOTIFY_STATUS_ID.PERMANENT_FAILURE,
+		displayName: 'Permanent failure'
+	},
+	{
+		id: NOTIFY_STATUS_ID.TEMPORARY_FAILURE,
+		displayName: 'Temporary failure'
+	},
+	{
+		id: NOTIFY_STATUS_ID.TECHNICAL_FAILURE,
+		displayName: 'Technical failure'
+	}
+];
+
+export const NOTIFICATION_SOURCE = Object.freeze({
+	REPRESENTATION: 'representation',
+	APPLICATION: 'application'
+});
+
+/**
  *
  * @type {Readonly<{CONSULTEES: string, INTERESTED_PARTIES: string}>}
  */
@@ -541,6 +584,7 @@ export async function seedStaticData(dbClient) {
 	await Promise.all(
 		CONTACT_PREFERENCE.map((input) => upsertReferenceData({ delegate: dbClient.contactPreference, input }))
 	);
+	await Promise.all(NOTIFY_STATUS.map((input) => upsertReferenceData({ delegate: dbClient.notifyStatus, input })));
 
 	await Promise.all(
 		WITHDRAWAL_REASON.map((input) => upsertReferenceData({ delegate: dbClient.withdrawalReason, input }))
