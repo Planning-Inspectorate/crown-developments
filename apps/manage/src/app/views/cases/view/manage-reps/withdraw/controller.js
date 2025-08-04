@@ -21,17 +21,21 @@ export function buildSaveController(service) {
 		const journeyResponse = res.locals.journeyResponse;
 		const answers = journeyResponse.answers;
 
+		const representation = await db.representation.findUnique({
+			where: { reference: representationRef },
+			select: {
+				id: true,
+				Status: { select: { id: true } }
+			}
+		});
+
 		const updateInput = {
 			Status: { connect: { id: REPRESENTATION_STATUS_ID.WITHDRAWN } },
 			withdrawalRequestDate: answers?.withdrawalRequestDate,
 			dateWithdrawn: new Date(),
-			WithdrawalReason: { connect: { id: answers?.withdrawalReasonId } }
+			WithdrawalReason: { connect: { id: answers?.withdrawalReasonId } },
+			preWithdrawalStatusId: representation.Status.id
 		};
-
-		const representation = await db.representation.findUnique({
-			where: { reference: representationRef },
-			select: { id: true }
-		});
 
 		try {
 			await db.$transaction(async ($tx) => {
@@ -53,7 +57,7 @@ export function buildSaveController(service) {
 				error,
 				logger,
 				message: 'withdrawing representation',
-				logParams: { id }
+				logParams: { id, representationRef }
 			});
 		}
 
