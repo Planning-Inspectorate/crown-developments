@@ -23,9 +23,14 @@
             </div>
         </div>
 
-        {# TODO: once reinstate jounrey set up, make this button submit post request #}
-        {{ govukButton({
-            text: "Reinstate representation"
-        }) }}
+        <form method="POST">
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-full">
+                    {{ govukButton({
+                        text: "Reinstate representation"
+                    }) }}
+                </div>
+            </div>
+        </form>
     {% endblock %}
 {% endblock %}

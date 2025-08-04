@@ -13,7 +13,7 @@ describe('withdraw rep controller', () => {
 					findUnique: mock.fn(() => ({ id: 'case-1', reference: 'case-1-ref' }))
 				},
 				representation: {
-					findUnique: mock.fn(() => ({ id: 'rep-1' })),
+					findUnique: mock.fn(() => ({ id: 'rep-1', Status: { id: 'approved' } })),
 					update: mock.fn()
 				},
 				withdrawalRequestDocument: {

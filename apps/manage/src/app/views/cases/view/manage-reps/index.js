@@ -22,7 +22,11 @@ import {
 	ALLOWED_MIME_TYPES,
 	MAX_FILE_SIZE
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
-import { buildReinstateRepConfirmation } from './reinstate/controller.js';
+import {
+	buildReinstateRepresentationController,
+	reinstateRepConfirmation,
+	successController
+} from './reinstate/controller.js';
 import { buildSave } from './edit/save.js';
 
 /**
@@ -35,7 +39,7 @@ export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
 	const repsRouter = createRouter({ mergeParams: true });
 	const list = buildListReps(service);
-	const reinstateRepConfirmation = buildReinstateRepConfirmation();
+	const reinstateRepresentation = buildReinstateRepresentationController(service);
 
 	const addRepRoutes = createAddRoutes(service);
 	const reviewRoutes = createReviewRoutes(service);
@@ -66,7 +70,9 @@ export function createRoutes(service) {
 	// view
 	repsRouter.get('/view', getJourney, viewReviewRedirect, asyncHandler(viewRepresentation));
 	repsRouter.use('/view/withdraw-representation', withdrawRoutes);
-	repsRouter.use('/view/reinstate-representation-confirmation', asyncHandler(reinstateRepConfirmation));
+	repsRouter.get('/view/reinstate-representation-confirmation', reinstateRepConfirmation);
+	repsRouter.post('/view/reinstate-representation-confirmation', asyncHandler(reinstateRepresentation));
+	repsRouter.get('/view/reinstate-representation-success', successController);
 	repsRouter.use('/review', reviewRoutes);
 
 	// edits
