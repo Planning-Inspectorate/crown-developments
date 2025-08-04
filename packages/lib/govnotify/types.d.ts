@@ -19,6 +19,7 @@ export interface TemplateIds {
 export interface NotifyConfig {
 	disabled: boolean;
 	apiKey: string;
+	webHookToken: string;
 	templateIds: TemplateIds;
 }
 

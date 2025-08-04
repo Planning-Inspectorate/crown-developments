@@ -81,6 +81,7 @@ module "app_portal" {
     # gov notify
     GOV_NOTIFY_DISABLED                        = var.apps_config.gov_notify.disabled
     GOV_NOTIFY_API_KEY                         = local.key_vault_refs["crown-gov-notify-api-key"]
+    GOV_NOTIFY_WEBHOOK_TOKEN                   = local.key_vault_refs["crown-gov-notify-webhook-token"]
     GOV_NOTIFY_TEST_TEMPLATE_ID                = var.apps_config.gov_notify.templates.test_template_id
     GOV_NOTIFY_PRE_ACK_TEMPLATE_ID             = var.apps_config.gov_notify.templates.pre_ack_template_id
     GOV_NOTIFY_ACK_REP_TEMPLATE_ID             = var.apps_config.gov_notify.templates.ack_rep_template_id

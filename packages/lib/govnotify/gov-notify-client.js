@@ -26,7 +26,8 @@ export class GovNotifyClient {
 	 */
 	async sendAcknowledgePreNotification(email, { reference, sharePointLink }) {
 		await this.sendEmail(this.#templateIds.acknowledgePreNotification, email, {
-			personalisation: { reference, sharePointLink }
+			personalisation: { reference, sharePointLink },
+			reference: reference
 		});
 	}
 
@@ -37,7 +38,8 @@ export class GovNotifyClient {
 	 */
 	async sendAcknowledgementOfRepresentation(email, personalisation) {
 		await this.sendEmail(this.#templateIds.acknowledgementOfRepresentation, email, {
-			personalisation: personalisation
+			personalisation: personalisation,
+			reference: personalisation.representationReferenceNo
 		});
 	}
 
@@ -48,7 +50,8 @@ export class GovNotifyClient {
 	 */
 	async sendLpaAcknowledgeReceiptOfQuestionnaire(email, personalisation) {
 		await this.sendEmail(this.#templateIds.lpaAcknowledgeReceiptOfQuestionnaire, email, {
-			personalisation: personalisation
+			personalisation: personalisation,
+			reference: personalisation.reference
 		});
 	}
 
@@ -62,7 +65,10 @@ export class GovNotifyClient {
 		const templateId = hasFee
 			? this.#templateIds.applicationReceivedDateWithFee
 			: this.#templateIds.applicationReceivedDateWithoutFee;
-		await this.sendEmail(templateId, email, { personalisation: personalisation });
+		await this.sendEmail(templateId, email, {
+			personalisation: personalisation,
+			reference: personalisation.reference
+		});
 	}
 
 	/**
@@ -72,7 +78,8 @@ export class GovNotifyClient {
 	 */
 	async sendApplicationNotOfNationalImportanceNotification(email, personalisation) {
 		await this.sendEmail(this.#templateIds.applicationNotOfNationalImportance, email, {
-			personalisation: personalisation
+			personalisation: personalisation,
+			reference: personalisation.reference
 		});
 	}
 
@@ -90,6 +97,16 @@ export class GovNotifyClient {
 			this.logger.error({ error: e, templateId }, 'failed to dispatch email');
 			this.logger.error({ message: e.response.data.errors }, 'received from Notify API');
 			throw new Error(`email failed to dispatch: ${e.message}`);
+		}
+	}
+
+	async getNotificationById(notificationId) {
+		try {
+			this.logger.info(`fetching notification by ID: ${notificationId}`);
+			return await this.notifyClient.getNotificationById(notificationId);
+		} catch (e) {
+			this.logger.error({ error: e, notificationId }, 'failed to fetch notification by ID');
+			throw new Error(`failed to fetch notification: ${e.message}`);
 		}
 	}
 }

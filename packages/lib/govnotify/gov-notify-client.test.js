@@ -140,7 +140,8 @@ describe(`gov-notify-client`, () => {
 						addressee: 'Sir/Madam',
 						applicationReceivedDate: '31 Mar 2025',
 						fee: '£1000.00'
-					}
+					},
+					reference: 'CROWN/2025/0000001'
 				}
 			]);
 		});
@@ -176,7 +177,8 @@ describe(`gov-notify-client`, () => {
 						addressee: 'Sir/Madam',
 						applicationReceivedDate: '31 Mar 2025',
 						fee: ''
-					}
+					},
+					reference: 'CROWN/2025/0000001'
 				}
 			]);
 		});
@@ -203,7 +205,8 @@ describe(`gov-notify-client`, () => {
 						applicationDescription: 'some detail',
 						reference: 'CROWN/2025/0000001',
 						siteAddress: '4 the street, town, wc1w 1bw'
-					}
+					},
+					reference: 'CROWN/2025/0000001'
 				}
 			]);
 		});
