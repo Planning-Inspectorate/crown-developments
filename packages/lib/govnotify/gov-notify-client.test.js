@@ -17,6 +17,39 @@ describe(`gov-notify-client`, () => {
 			const args = client.notifyClient.sendEmail.mock.calls[0].arguments;
 			assert.deepStrictEqual(args, ['templateId', 'emailAddress', { personalisation: {} }]);
 		});
+		it('should log an error if NotifyClient fails', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+			ctx.mock.method(client.notifyClient, 'sendEmail', () => {
+				throw new Error('Notify API error');
+			});
+			await assert.rejects(
+				async () => {
+					await client.sendEmail('templateId', 'emailAddress', { personalisation: {} });
+				},
+				{
+					message: 'email failed to dispatch: Notify API error'
+				}
+			);
+		});
+		it('should log errors from Notify API', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+			ctx.mock.method(client.notifyClient, 'sendEmail', () => {
+				const error = new Error('Notify API error');
+				error.response = { data: { errors: ['Error 1', 'Error 2'] } };
+				throw error;
+			});
+			await assert.rejects(
+				async () => {
+					await client.sendEmail('templateId', 'emailAddress', { personalisation: {} });
+				},
+				{
+					message: 'email failed to dispatch: Notify API error'
+				}
+			);
+			assert.strictEqual(logger.error.mock.callCount(), 2);
+		});
 	});
 	describe('sendAcknowledgePreNotification', () => {
 		it('should call sendEmail with personalisation', async (ctx) => {
@@ -38,7 +71,8 @@ describe(`gov-notify-client`, () => {
 					personalisation: {
 						reference: 'reference',
 						sharePointLink: 'link'
-					}
+					},
+					reference: 'reference'
 				}
 			]);
 		});
@@ -71,7 +105,8 @@ describe(`gov-notify-client`, () => {
 						representationReferenceNo: 'AAAAA-BBBBB',
 						siteAddress: '4 the street, town, wc1w 1bw',
 						submittedDate: '31 Mar 2025'
-					}
+					},
+					reference: 'AAAAA-BBBBB'
 				}
 			]);
 		});
@@ -102,7 +137,8 @@ describe(`gov-notify-client`, () => {
 						lpaQuestionnaireReceivedDate: '31 Mar 2025',
 						reference: 'CROWN/2025/0000001',
 						siteAddress: '4 the street, town, wc1w 1bw'
-					}
+					},
+					reference: 'CROWN/2025/0000001'
 				}
 			]);
 		});
@@ -209,6 +245,35 @@ describe(`gov-notify-client`, () => {
 					reference: 'CROWN/2025/0000001'
 				}
 			]);
+		});
+	});
+	describe('getNotificationById', () => {
+		it('should call notifyClient.getNotificationById with correct ID', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+			ctx.mock.method(client.notifyClient, 'getNotificationById', () => {
+				return { data: { id: 'notification-id' } };
+			});
+			const notification = await client.getNotificationById('notification-id');
+			assert.strictEqual(client.notifyClient.getNotificationById.mock.callCount(), 1);
+			assert.strictEqual(notification.data.id, 'notification-id');
+			const args = client.notifyClient.getNotificationById.mock.calls[0].arguments;
+			assert.deepStrictEqual(args, ['notification-id']);
+		});
+		it('should throw an error if notifyClient.getNotificationById fails', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+			ctx.mock.method(client.notifyClient, 'getNotificationById', () => {
+				throw new Error('Notify API error');
+			});
+			await assert.rejects(
+				async () => {
+					await client.getNotificationById('notification-id');
+				},
+				{
+					message: 'failed to fetch notification: Notify API error'
+				}
+			);
 		});
 	});
 });
