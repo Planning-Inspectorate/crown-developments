@@ -30,7 +30,12 @@ const HEADERS = Object.freeze({
 
 async function run() {
 	const contents = await readFile(process.env.LPA_DATA_FILE_PATH, 'utf8');
-	const lines = contents.toString().split('\n').filter(Boolean).map(parseCSVLine);
+	const lines = contents
+		.toString()
+		.split('\n')
+		.filter(Boolean)
+		.map((l) => l.trim())
+		.map(parseCSVLine);
 
 	const headers = lines[0];
 	if (headers.length !== 13) {
