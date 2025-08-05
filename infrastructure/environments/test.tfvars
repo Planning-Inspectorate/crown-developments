@@ -25,9 +25,9 @@ apps_config = {
   }
 
   feature_flags = {
-    portal_not_live           = false
-    upload_docs_not_live      = false
-    notify_callback_not_live  = false
+    portal_not_live          = false
+    upload_docs_not_live     = false
+    notify_callback_not_live = false
   }
 
   google_analytics_id = "G-PLMHFK18S7"
