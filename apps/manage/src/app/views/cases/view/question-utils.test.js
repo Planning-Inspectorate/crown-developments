@@ -127,10 +127,10 @@ describe('question-utils', () => {
 		});
 	});
 	describe('organisation name regex validation when creating a new case and editing', () => {
-		const regex = /^[A-Za-z0-9 ',’().,&-]+$/;
+		const regex = /^[A-Za-z0-9 ',’(),&-]+$/;
 		it('should allow valid organisation names', () => {
 			assert.ok(regex.test('My Organisation'));
-			assert.ok(regex.test("O'Reilly, Inc."));
+			assert.ok(regex.test("O'Reilly, Inc"));
 			assert.ok(regex.test('ACME (UK) Ltd'));
 			assert.ok(regex.test('Smith & Sons, 123'));
 		});
@@ -139,6 +139,7 @@ describe('question-utils', () => {
 			assert.ok(!regex.test('ACME@UK'));
 			assert.ok(!regex.test('Smith#Sons'));
 			assert.ok(!regex.test('ACME*Ltd'));
+			assert.ok(!regex.test('ACME.Ltd'));
 		});
 	});
 });
