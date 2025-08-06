@@ -1,5 +1,6 @@
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import OptionsQuestion from '@planning-inspectorate/dynamic-forms/src/questions/options-question.js';
+import { formatFee } from 'crowndev-manage/src/app/views/cases/view/question-utils.js';
 
 export default class FeeAmountQuestion extends OptionsQuestion {
 	constructor({ title, question, fieldName, url, hint, validators, html, feeAmountInputFieldName, feeAmountQuestion }) {
@@ -91,7 +92,7 @@ export default class FeeAmountQuestion extends OptionsQuestion {
 		if (!answer) {
 			return '-';
 		} else if (answer === BOOLEAN_OPTIONS.YES && !isNaN(feeAmountValue)) {
-			return `£${feeAmountValue.toFixed(2)}`;
+			return `£${formatFee(feeAmountValue)}`;
 		} else {
 			return 'N/A';
 		}

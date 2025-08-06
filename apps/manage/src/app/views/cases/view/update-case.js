@@ -37,6 +37,10 @@ export function buildUpdateCase(service, clearAnswer = false) {
 
 		await customUpdateCaseActions(service, id, toSave, fullViewModel);
 
+		if (typeof toSave.applicationFee === 'string') {
+			toSave.applicationFee = Number(toSave.applicationFee.replace(/,/g, ''));
+		}
+
 		const updateInput = editsToDatabaseUpdates(toSave, fullViewModel);
 		updateInput.updatedDate = new Date();
 

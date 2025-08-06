@@ -40,6 +40,7 @@ export interface LpaAcknowledgeReceiptOfQuestionnairePersonalisation extends Com
 }
 
 export interface ApplicationReceivedDatePersonalisation extends CommonNotificationPersonalisation {
+	feeAmount: number;
 	applicationReceivedDate: string;
 	fee: string;
 }
