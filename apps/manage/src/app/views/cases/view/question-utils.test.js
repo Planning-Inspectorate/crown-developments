@@ -64,6 +64,8 @@ describe('question-utils', () => {
 				assert.ok(question.url.startsWith(prefixHyphens));
 			}
 		});
+	});
+	describe('duration formatting', () => {
 		it('should format user answer with formatPrefix and formatJoinString in duration', () => {
 			const prefix = 'hearing';
 			const questions = eventQuestions(prefix);
@@ -122,6 +124,21 @@ describe('question-utils', () => {
 			assert.ok(!regex.test('-5')); // negative
 			assert.ok(!regex.test('1.')); // malformed decimal
 			assert.ok(!regex.test('.0')); // malformed decimal
+		});
+	});
+	describe('organisation name regex validation when creating a new case and editing', () => {
+		const regex = /^[A-Za-z0-9 ',’().,&-]+$/;
+		it('should allow valid organisation names', () => {
+			assert.ok(regex.test('My Organisation'));
+			assert.ok(regex.test("O'Reilly, Inc."));
+			assert.ok(regex.test('ACME (UK) Ltd'));
+			assert.ok(regex.test('Smith & Sons, 123'));
+		});
+		it('should reject invalid organisation names', () => {
+			assert.ok(!regex.test('My Organisation!'));
+			assert.ok(!regex.test('ACME@UK'));
+			assert.ok(!regex.test('Smith#Sons'));
+			assert.ok(!regex.test('ACME*Ltd'));
 		});
 	});
 });
