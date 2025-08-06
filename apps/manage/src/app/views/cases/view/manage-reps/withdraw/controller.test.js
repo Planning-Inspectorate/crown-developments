@@ -86,8 +86,8 @@ describe('withdraw rep controller', () => {
 			assert.deepStrictEqual(mockReq.session.files, { 'case-1-ref': {} });
 			assert.deepStrictEqual(mockReq.session.forms, {});
 
-			assert.strictEqual(mockSharepointDrive.getDriveItemByPath.mock.callCount(), 2);
-			assert.strictEqual(mockSharepointDrive.addNewFolder.mock.callCount(), 1);
+			assert.strictEqual(mockSharepointDrive.getDriveItemByPath.mock.callCount(), 1);
+			assert.strictEqual(mockSharepointDrive.addNewFolder.mock.callCount(), 2);
 			assert.strictEqual(mockSharepointDrive.moveItemsToFolder.mock.callCount(), 1);
 			assert.strictEqual(mockSharepointDrive.deleteItemsRecursivelyById.mock.callCount(), 1);
 		});

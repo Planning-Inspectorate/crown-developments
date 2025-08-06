@@ -2,13 +2,17 @@ import { editsToDatabaseUpdates } from '@pins/crowndev-lib/forms/representations
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { validateParams } from '../view/controller.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
-import { publishedRepresentationsAttachmentsRootFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import {
+	publishedRepresentationsAttachmentsRootFolderPath,
+	representationFolderPath
+} from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import {
 	deleteRepresentationAttachmentsFolder,
 	moveAttachmentsToCaseFolder
 } from '@pins/crowndev-lib/util/handle-attachments.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { getRepresentationWithdrawalRequestsFolder } from '../withdraw/controller.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -49,7 +53,7 @@ export function buildUpdateRepresentation(
 		if (hasAttachments) {
 			const attachmentsToSave = toSave.myselfAttachments ?? toSave.submitterAttachments;
 			await moveAttachmentsToCaseFolderFn({
-				service: { db, logger, sharePointDrive: getSharePointDrive(req.session) },
+				service: { db, logger, sharePointDrive },
 				applicationReference: fullViewModel.applicationReference,
 				representationReference: representationRef,
 				representationAttachments: attachmentsToSave
@@ -101,12 +105,16 @@ export function buildUpdateRepresentation(
 		const hasWithdrawalRequests = toSave.withdrawalRequests && toSave.withdrawalRequests.length > 0;
 		if (hasWithdrawalRequests) {
 			const attachmentsToSave = toSave.withdrawalRequests;
-			await moveAttachmentsToCaseFolderFn({
-				service: { db, logger, sharePointDrive: getSharePointDrive(req.session) },
-				applicationReference: fullViewModel.applicationReference,
-				representationReference: representationRef,
-				representationAttachments: attachmentsToSave
-			});
+			await moveAttachmentsToCaseFolderFn(
+				{
+					service: { db, logger, sharePointDrive },
+					applicationReference: fullViewModel.applicationReference,
+					representationReference: representationRef,
+					representationAttachments: attachmentsToSave
+				},
+				representationFolderPath,
+				getRepresentationWithdrawalRequestsFolder
+			);
 
 			try {
 				await db.$transaction(async ($tx) => {

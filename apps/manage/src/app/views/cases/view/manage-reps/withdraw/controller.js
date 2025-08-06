@@ -9,6 +9,7 @@ import {
 } from '@pins/crowndev-lib/util/handle-attachments.js';
 import { clearSessionData } from '@pins/crowndev-lib/util/session.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { buildPath, representationFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
 export function buildSaveController(service) {
 	const { db, getSharePointDrive, appName, logger } = service;
@@ -72,12 +73,16 @@ export function buildSaveController(service) {
 		const applicationReference = crownDevelopment.reference;
 		const sharePointDrive = getSharePointDrive(req.session);
 
-		await moveAttachmentsToCaseFolder({
-			service: { db, logger, sharePointDrive },
-			applicationReference,
-			representationReference: representationRef,
-			representationAttachments: answers?.withdrawalRequests
-		});
+		await moveAttachmentsToCaseFolder(
+			{
+				service: { db, logger, sharePointDrive },
+				applicationReference,
+				representationReference: representationRef,
+				representationAttachments: answers?.withdrawalRequests
+			},
+			representationFolderPath,
+			getRepresentationWithdrawalRequestsFolder
+		);
 
 		await deleteRepresentationAttachmentsFolder(
 			{
@@ -109,4 +114,36 @@ export function successController(req, res) {
 		successBackLinkUrl: req.baseUrl.replace(/\/withdraw-representation$/, ''),
 		successBackLinkText: `Go back to overview`
 	});
+}
+
+/**
+ * Create SharePoint folder: System/Representations/<representation-reference>/withdrawal-requests
+ *
+ * @param sharePointDrive
+ * @param folderPath
+ * @param representationReference
+ * @returns {Promise<{id}|*>}
+ */
+export async function getRepresentationWithdrawalRequestsFolder(sharePointDrive, folderPath, representationReference) {
+	const steps = [representationReference, 'withdrawal-requests'];
+
+	let subFolderResponse;
+	let currentPath = folderPath;
+	for (const step of steps) {
+		try {
+			subFolderResponse = await sharePointDrive.addNewFolder(currentPath, step);
+		} catch (error) {
+			if (error.statusCode === 409) {
+				subFolderResponse = await sharePointDrive.getDriveItemByPath(buildPath(currentPath, step));
+			} else {
+				throw new Error(`Failed to create SharePoint folder: ${step} folder`);
+			}
+		}
+		currentPath = buildPath(currentPath, step);
+	}
+
+	if (!subFolderResponse || !subFolderResponse.id) {
+		throw new Error(`Representation subfolder not found for reference: ${representationReference}`);
+	}
+	return subFolderResponse;
 }

@@ -26,12 +26,12 @@ export async function moveAttachmentsToCaseFolder(
 	const { logger, sharePointDrive } = service;
 	const folderPath = representationAttachmentsFolderPathFn(applicationReference);
 	const representationFolder = await getRepresentationFolderFn(sharePointDrive, folderPath, representationReference);
-	const representationSubFolderPath = `${folderPath}/${representationReference}`;
 	const representationSubFolderId = representationFolder.id;
+	const representationSubFolderName = representationFolder.name;
 	const representationAttachmentsIds = representationAttachments.map((attachment) => attachment.itemId);
 	try {
 		logger.info(
-			{ representationReference, representationAttachmentsIds, representationSubFolderId, representationSubFolderPath },
+			{ representationReference, representationAttachmentsIds, representationSubFolderId, representationSubFolderName },
 			'Moving representation attachments'
 		);
 		await sharePointDrive.moveItemsToFolder(representationAttachmentsIds, representationSubFolderId);
@@ -42,7 +42,7 @@ export async function moveAttachmentsToCaseFolder(
 				representationReference,
 				representationAttachmentsIds,
 				representationSubFolderId,
-				representationSubFolderPath
+				representationSubFolderName
 			},
 			'Error moving representation attachments'
 		);
