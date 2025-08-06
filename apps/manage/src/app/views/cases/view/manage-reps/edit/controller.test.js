@@ -418,6 +418,71 @@ describe('controller', () => {
 			});
 			assert.strictEqual(deleteRepresentationAttachmentsFolderFn.mock.callCount(), 1);
 		});
+		it('should update representation with withdrawalRequests', async () => {
+			const mockDb = {
+				representation: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => {
+						return { id: '12345' };
+					})
+				},
+				withdrawalRequestDocument: { createMany: mock.fn() },
+				$transaction: mock.fn((fn) => fn(mockDb))
+			};
+			const logger = mockLogger();
+			const mockSharePoint = {
+				addNewFolder: mock.fn()
+			};
+			const moveAttachmentsToCaseFolderFn = mock.fn();
+			const deleteRepresentationAttachmentsFolderFn = mock.fn();
+
+			const updateRep = buildUpdateRepresentation(
+				{ db: mockDb, logger, getSharePointDrive: () => mockSharePoint },
+				moveAttachmentsToCaseFolderFn,
+				deleteRepresentationAttachmentsFolderFn
+			);
+
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				session: {}
+			};
+			const edits = {
+				answers: {
+					statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+					wantsToBeHeard: BOOLEAN_OPTIONS.NO,
+					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+					categoryId: 'c-id-1',
+					containsAttachments: true,
+					withdrawalRequests: [
+						{
+							itemId: 'item-1',
+							fileName: 'attachment-1.pdf'
+						}
+					]
+				}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							applicationReference: 'CROWN-2025-0000001',
+							sharePointFolderCreated: 'no'
+						}
+					}
+				}
+			};
+			await assert.doesNotReject(() => updateRep({ req: mockReq, res: mockRes, data: edits }));
+			assert.strictEqual(mockDb.$transaction.mock.callCount(), 1);
+			assert.strictEqual(mockDb.representation.findUnique.mock.callCount(), 1);
+			assert.strictEqual(mockDb.withdrawalRequestDocument.createMany.mock.callCount(), 1);
+			assert.strictEqual(mockDb.withdrawalRequestDocument.createMany.mock.calls[0].arguments[0].data.length, 1);
+			assert.deepStrictEqual(mockDb.withdrawalRequestDocument.createMany.mock.calls[0].arguments[0].data[0], {
+				representationId: '12345',
+				itemId: 'item-1',
+				fileName: 'attachment-1.pdf'
+			});
+			assert.strictEqual(deleteRepresentationAttachmentsFolderFn.mock.callCount(), 1);
+		});
 		it('should handle prisma error when updating attachments', async () => {
 			const mockDb = {
 				representation: { update: mock.fn() },
