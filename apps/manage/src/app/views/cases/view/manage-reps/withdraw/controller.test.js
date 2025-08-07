@@ -176,7 +176,7 @@ describe('withdraw rep controller', () => {
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
 				bodyText: 'Representation reference <br><strong>ABCDE-12345</strong>',
 				successBackLinkText: 'Go back to overview',
-				successBackLinkUrl: '/cases/case-1/manage-representations/ABCDE-12345/view',
+				successBackLinkUrl: '/cases/case-1/manage-representations',
 				title: 'Representation Withdrawn'
 			});
 		});

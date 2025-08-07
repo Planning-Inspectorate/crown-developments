@@ -23,7 +23,7 @@ export function createJourney(questions, response, req, isRepsUploadDocsLive) {
 		journeyTitle: 'Withdraw Representation',
 		returnToListing: false,
 		makeBaseUrl: () => req.baseUrl,
-		initialBackLink: `/cases/${req.params?.id}/manage-representations`,
+		initialBackLink: req.baseUrl.replace(/\/withdraw-representation$/, ''),
 		response
 	});
 }
