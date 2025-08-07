@@ -106,12 +106,12 @@ export function buildSaveController(service) {
  * @type {import('express').Handler}
  */
 export function successController(req, res) {
-	const { representationRef } = validateParams(req.params);
+	const { id, representationRef } = validateParams(req.params);
 	clearDataFromSession({ req, journeyId: JOURNEY_ID });
 	res.render('views/cases/view/manage-reps/withdraw/success.njk', {
 		title: 'Representation Withdrawn',
 		bodyText: `Representation reference <br><strong>${representationRef}</strong>`,
-		successBackLinkUrl: req.baseUrl.replace(/\/withdraw-representation$/, ''),
+		successBackLinkUrl: `/cases/${id}/manage-representations`,
 		successBackLinkText: `Go back to overview`
 	});
 }
