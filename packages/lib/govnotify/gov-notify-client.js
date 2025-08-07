@@ -1,4 +1,5 @@
 import { NotifyClient } from 'notifications-node-client';
+import { formatFee } from 'crowndev-manage/src/app/views/cases/view/question-utils.js';
 
 /**
  * @typedef {import('./types.js').GovNotifyOptions} GovNotifyOptions
@@ -62,7 +63,11 @@ export class GovNotifyClient {
 		const templateId = hasFee
 			? this.#templateIds.applicationReceivedDateWithFee
 			: this.#templateIds.applicationReceivedDateWithoutFee;
-		await this.sendEmail(templateId, email, { personalisation: personalisation });
+		const formattedPersonalisation = { ...personalisation };
+		if (personalisation.feeAmount !== undefined) {
+			formattedPersonalisation.feeAmount = formatFee(personalisation.feeAmount);
+		}
+		await this.sendEmail(templateId, email, { personalisation: formattedPersonalisation });
 	}
 
 	/**

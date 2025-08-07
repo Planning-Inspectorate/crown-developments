@@ -17,11 +17,22 @@ export default class FeeAmountValidator extends BaseValidator {
 				.withMessage('Application fee is required')
 				.bail()
 				.custom((value) => {
-					if (!/^\d+(\.\d+)?$/.test(value)) {
+					const sanitized = (value || '').replace(/,/g, '');
+					if (!sanitized) {
+						throw new Error('Application fee is required');
+					}
+					if (/,/.test(value)) {
+						throw new Error('Do not use commas. Enter as a number, e.g. 1000 or 1000.00');
+					}
+					if (!/^\d+(\.\d+)?$/.test(sanitized)) {
 						throw new Error('Input must be numbers');
 					}
-					if (!/^\d+(\.\d{1,2})?$/.test(value)) {
+					if (!/^\d+(\.\d{1,2})?$/.test(sanitized)) {
 						throw new Error('Input must be a valid monetary value');
+					}
+					const num = Number(sanitized);
+					if (num < 0.01) {
+						throw new Error('Fee must be more than £0.01');
 					}
 					return true;
 				})

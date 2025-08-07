@@ -180,6 +180,18 @@ describe(`gov-notify-client`, () => {
 				}
 			]);
 		});
+		it('should format feeAmount with commas and two decimals', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {
+				applicationReceivedDateWithFee: 'template-id-fee',
+				applicationReceivedDateWithoutFee: 'template-id-no-fee'
+			});
+			ctx.mock.method(client, 'sendEmail', () => {});
+			await client.sendApplicationReceivedNotification('email', { feeAmount: 1000 }, true);
+			assert.strictEqual(client.sendEmail.mock.callCount(), 1);
+			const args = client.sendEmail.mock.calls[0].arguments;
+			assert.deepStrictEqual(args[2].personalisation.feeAmount, '1,000.00');
+		});
 	});
 	describe('sendApplicationNotOfNationalImportanceNotification', () => {
 		it('should call sendEmail with personalisation', async (ctx) => {
