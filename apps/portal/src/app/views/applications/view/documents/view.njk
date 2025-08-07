@@ -28,7 +28,7 @@
                                 Showing <strong>{{ resultsStartNumber }}</strong> to <strong>{{ resultsEndNumber if totalDocuments > resultsEndNumber else totalDocuments }}</strong>
                                 of <strong>{{ totalDocuments }}</strong> documents, newest first.
                             </p>
-                            <p class="govuk-body">{{ paginationOptions.renderPagination(selectedItemsPerPage, totalDocuments) }}</p>
+                            <p class="govuk-body">{{ paginationOptions.renderPagination(selectedItemsPerPage, totalDocuments, pageNumber) }}</p>
                             <ul class="govuk-list document-list">
                                 {% for document in documents %}
                                     <li>
