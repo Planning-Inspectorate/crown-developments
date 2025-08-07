@@ -43,7 +43,6 @@ export function buildApplicationDocumentsPage(service) {
 		const totalPages = Math.ceil(totalDocuments / pageSize);
 		const resultsStartNumber = Math.min((pageNumber - 1) * selectedItemsPerPage + 1, totalDocuments);
 		const resultsEndNumber = Math.min(pageNumber * selectedItemsPerPage, totalDocuments);
-		const currentUrl = `${req.baseUrl}/documents`;
 
 		res.render('views/applications/view/documents/view.njk', {
 			id,
@@ -52,7 +51,7 @@ export function buildApplicationDocumentsPage(service) {
 			applicationReference: crownDevelopment.reference,
 			pageCaption: reference,
 			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
-			currentUrl,
+			currentUrl: req.originalUrl,
 			documents: documents.slice(skipSize, skipSize + pageSize),
 			selectedItemsPerPage,
 			totalDocuments,

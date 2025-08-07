@@ -93,7 +93,7 @@ describe('controller', () => {
 						text: 'Documents'
 					}
 				],
-				currentUrl: 'test-baseUrl/documents',
+				currentUrl: '/documents',
 				documents: [],
 				selectedItemsPerPage: 25,
 				totalDocuments: 0,
