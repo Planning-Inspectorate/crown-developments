@@ -16,6 +16,6 @@ export interface CreateCaseAnswers {
 	siteNorthing?: string;
 	siteEasting?: string;
 	siteArea?: string;
-	applicationDescription?: string;
+	developmentDescription?: string;
 	expectedDateOfSubmission?: string;
 }

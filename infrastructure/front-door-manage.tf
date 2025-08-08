@@ -173,7 +173,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
       exclusion {
         match_variable = "RequestBodyPostArgNames"
         operator       = "Equals"
-        selector       = "applicationDescription"
+        selector       = "developmentDescription"
       }
       exclusion {
         match_variable = "RequestBodyPostArgNames"

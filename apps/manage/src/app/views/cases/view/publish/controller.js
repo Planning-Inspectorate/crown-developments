@@ -62,8 +62,8 @@ export function buildGetValidatedCaseMiddleware({ db, logger }) {
 		const answers = [
 			{
 				value: crownDevelopment.description,
-				errorMessage: 'Enter Application Description',
-				pageLink: 'application-description'
+				errorMessage: 'Enter Development Description',
+				pageLink: 'development-description'
 			},
 			{
 				value: crownDevelopment.typeId,

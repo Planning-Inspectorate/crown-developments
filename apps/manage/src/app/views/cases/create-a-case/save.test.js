@@ -52,7 +52,7 @@ describe('save', () => {
 
 			const save = buildSaveController(service);
 			const answers = {
-				applicationDescription: 'Project One',
+				developmentDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
 				lpaId: 'lpa-1'
 			};
@@ -89,7 +89,7 @@ describe('save', () => {
 			const { db } = service;
 			const save = buildSaveController(service);
 			const answers = {
-				applicationDescription: 'Project One',
+				developmentDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
 				lpaId: 'lpa-1'
 			};
@@ -150,7 +150,7 @@ describe('save', () => {
 			const save = buildSaveController(service);
 
 			const answers = {
-				applicationDescription: 'Project One',
+				developmentDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
 				lpaId: 'lpa-1',
 				applicantEmail: 'applicantEmail'
@@ -205,7 +205,7 @@ describe('save', () => {
 			const save = buildSaveController(service);
 
 			const answers = {
-				applicationDescription: 'Project One',
+				developmentDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
 				lpaId: 'lpa-1',
 				applicantEmail: 'applicantEmail',
@@ -277,7 +277,7 @@ describe('save', () => {
 				}
 			};
 			const answers = {
-				applicationDescription: 'Project One',
+				developmentDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
 				lpaId: 'lpa-1',
 				hasAgent: false,
@@ -348,7 +348,7 @@ describe('save', () => {
 				}
 			};
 			const answers = {
-				applicationDescription: 'Project One',
+				developmentDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
 				lpaId: 'lpa-1',
 				hasAgent: true,
