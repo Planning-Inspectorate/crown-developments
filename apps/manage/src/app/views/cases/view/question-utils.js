@@ -50,7 +50,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 							maxLengthMessage: `${title} organisation must be less than 250 characters`
 						},
 						regex: {
-							regex: "^[A-Za-z0-9 ',’(),&-]+$,",
+							regex: "^[A-Za-z0-9 ',’(),&-]+$",
 							regexMessage: `${title} organisation must only include letters, spaces, hyphens, apostrophes, commas, brackets, ampersands or numbers`
 						}
 					},
