@@ -42,7 +42,7 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.siteAddress)
 				.addQuestion(questions.siteCoordinates)
 				.addQuestion(questions.siteArea)
-				.addQuestion(questions.applicationDescription)
+				.addQuestion(questions.developmentDescription)
 				.addQuestion(questions.expectedDateOfSubmission)
 		],
 		taskListUrl: 'check-your-answers',

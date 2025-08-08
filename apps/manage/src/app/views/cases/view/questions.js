@@ -54,16 +54,17 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		description: {
 			type: COMPONENT_TYPES.TEXT_ENTRY,
-			title: 'Application Description',
-			question: 'What is the description of the application?',
+			title: 'Development Description',
+			question: 'What is the description of the development?',
+			hint: 'This will be published on the website.',
 			fieldName: 'description',
-			url: 'application-description',
+			url: 'development-description',
 			validators: [
-				new RequiredValidator(),
+				new RequiredValidator('Enter description of the proposed development'),
 				new StringValidator({
 					maxLength: {
 						maxLength: 1000,
-						maxLengthMessage: 'Description must be less than 1000 characters'
+						maxLengthMessage: 'Description of the proposed development must be 1000 characters or less'
 					}
 				})
 			]

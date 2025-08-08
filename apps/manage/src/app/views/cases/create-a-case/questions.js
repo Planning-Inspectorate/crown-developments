@@ -108,18 +108,19 @@ export function getQuestions() {
 			url: 'site-area',
 			validators: [new NumericValidator({ regex: /^$|^\d+(\.\d+)?$/, regexMessage: 'The value must be at least 0' })]
 		},
-		applicationDescription: {
+		developmentDescription: {
 			type: COMPONENT_TYPES.TEXT_ENTRY,
-			title: 'Application Description',
-			question: 'What is the description of the application?',
-			fieldName: 'applicationDescription',
-			url: 'application-description',
+			title: 'Development Description',
+			question: 'What is the description of the development?',
+			hint: 'This will be published on the website.',
+			fieldName: 'developmentDescription',
+			url: 'development-description',
 			validators: [
-				new RequiredValidator('Enter application description'),
+				new RequiredValidator('Enter description of the proposed development'),
 				new StringValidator({
 					maxLength: {
 						maxLength: 1000,
-						maxLengthMessage: 'Applicant description must be less than 1000 characters'
+						maxLengthMessage: 'Description of the proposed development must be 1000 characters or less'
 					}
 				})
 			]
