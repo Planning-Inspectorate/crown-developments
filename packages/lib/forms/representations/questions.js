@@ -296,7 +296,7 @@ export const getQuestions = ({ methodOverrides = {}, textOverrides = {}, actionO
 			question: 'Why is the representation being withdrawn?',
 			fieldName: 'withdrawalReasonId',
 			url: 'reason',
-			validators: [new RequiredValidator()],
+			validators: [new RequiredValidator('Select a reason for withdrawing the representation')],
 			options: referenceDataToRadioOptionsWithHintText(WITHDRAWAL_REASON)
 		},
 		withdrawalRequests: {
