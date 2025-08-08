@@ -110,7 +110,7 @@ function toCreateInput(answers, reference) {
 	/** @type {import('@prisma/client').Prisma.CrownDevelopmentCreateInput} */
 	const input = {
 		reference,
-		description: answers.applicationDescription,
+		description: answers.developmentDescription,
 		Lpa: { connect: { id: answers.lpaId } },
 		Type: { connect: { id: answers.typeOfApplication } },
 		Status: { connect: { id: 'new' } },
