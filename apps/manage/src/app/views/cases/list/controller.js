@@ -1,3 +1,5 @@
+import { createWhereClause, getStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
+
 /**
  * @param {import('#service').ManageService} service
  * @returns {import('express').Handler}
@@ -6,8 +8,12 @@ export function buildListCases(service) {
 	const { db, logger } = service;
 	return async (req, res) => {
 		logger.info('list cases');
+		const searchCriteria = createWhereClause(getStringQueries(req.query?.searchCriteria), [
+			{ field: 'reference', searchType: 'contains' }
+		]);
 
 		const crownDevelopments = await db.crownDevelopment.findMany({
+			where: searchCriteria,
 			select: {
 				id: true,
 				reference: true,
@@ -27,7 +33,8 @@ export function buildListCases(service) {
 		return res.render('views/cases/list/view.njk', {
 			pageHeading: 'All Crown Developments',
 			crownDevelopments: crownDevelopments.map(crownDevelopmentToViewModel),
-			containerClasses: 'pins-container-wide'
+			containerClasses: 'pins-container-wide',
+			searchValue: req.query?.searchCriteria || ''
 		});
 	};
 }
