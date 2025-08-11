@@ -174,7 +174,16 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			fieldName: 'procedureId',
 			url: 'procedure',
 			validators: [new RequiredValidator()],
-			options: referenceDataToRadioOptions(APPLICATION_PROCEDURE)
+			options: referenceDataToRadioOptions(APPLICATION_PROCEDURE),
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'procedure/remove'
+					}
+				]
+			}
 		},
 		status: {
 			type: COMPONENT_TYPES.RADIO,
