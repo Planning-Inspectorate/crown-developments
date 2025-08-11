@@ -429,7 +429,10 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		environmentalStatementReceivedDate: dateQuestion({ fieldName: 'environmentalStatementReceivedDate' }),
 
-		writtenRepsProcedureNotificationDate: dateQuestion({ fieldName: 'writtenRepsProcedureNotificationDate' }),
+		writtenRepsProcedureNotificationDate: dateQuestion({
+			fieldName: 'writtenRepsProcedureNotificationDate',
+			title: 'Notice of procedure date'
+		}),
 		...eventQuestions('hearing'),
 		hearingStatementsDate: {
 			...eventQuestions('hearing').hearingStatementsDate,
