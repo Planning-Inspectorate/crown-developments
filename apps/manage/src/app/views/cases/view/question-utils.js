@@ -104,7 +104,7 @@ export function dateQuestion({ fieldName, title, hint, editable = true, viewData
 	return {
 		type: COMPONENT_TYPES.DATE,
 		title: title,
-		question: `What is the ${title}?`,
+		question: `What is the ${title?.toLowerCase()}?`,
 		hint: hint,
 		fieldName: fieldName,
 		url: camelCaseToUrlCase(fieldName),
@@ -220,7 +220,10 @@ export function eventQuestions(prefix) {
 		},
 		[`${prefix}NotificationDate`]: dateQuestion({ fieldName: `${prefix}NotificationDate` }),
 		[`${prefix}IssuesReportPublishedDate`]: dateQuestion({ fieldName: `${prefix}IssuesReportPublishedDate` }),
-		[`${prefix}ProcedureNotificationDate`]: dateQuestion({ fieldName: `${prefix}ProcedureNotificationDate` }),
+		[`${prefix}ProcedureNotificationDate`]: dateQuestion({
+			fieldName: `${prefix}ProcedureNotificationDate`,
+			title: 'Notice of procedure date'
+		}),
 		[`${prefix}StatementsDate`]: dateQuestion({ fieldName: `${prefix}StatementsDate` }),
 		[`${prefix}CaseManagementConferenceDate`]: dateQuestion({ fieldName: `${prefix}CaseManagementConferenceDate` }),
 		[`${prefix}ProofsOfEvidenceDate`]: dateQuestion({
