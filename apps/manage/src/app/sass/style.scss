@@ -1,7 +1,6 @@
 $font-family: arial, helvetica, sans-serif;
-
 //Main gov styles
-@use 'node_modules/govuk-frontend/dist/govuk/all' with (
+@use 'node_modules/govuk-frontend/dist/govuk/all' as * with (
 	// don't use the GDS Transport font, this service is not on GOV.UK
 	// https://www.gov.uk/service-manual/design/making-your-service-look-like-govuk#if-your-service-isnt-on-govuk
 	$govuk-font-family: $font-family
@@ -41,5 +40,33 @@ $font-family: arial, helvetica, sans-serif;
 	.govuk-checkboxes {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
+	}
+}
+
+.row-inline {
+	display: flex;
+	gap: 8px;
+}
+
+.pins-dashboard-box {
+	padding: govuk-spacing(5) govuk-spacing(5) 1px;
+	margin-bottom: govuk-spacing(7);
+	box-shadow:
+		0 2px 0 govuk-colour('mid-grey'),
+		inset 2px 0 0 govuk-colour('mid-grey'),
+		inset -2px 0 0 govuk-colour('mid-grey'),
+		inset 0 4px 0 govuk-colour('blue');
+
+	&--title {
+		margin-bottom: govuk-spacing(4);
+	}
+
+	&--form {
+		position: relative;
+	}
+
+	&--btn {
+		margin-top: govuk-spacing(2);
+		margin-bottom: 2px;
 	}
 }

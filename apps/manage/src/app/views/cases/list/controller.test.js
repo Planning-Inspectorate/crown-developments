@@ -122,5 +122,26 @@ describe('case list', () => {
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments.length, 2);
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].crownDevelopments?.length, 2);
 		});
+		it('should call db with search criteria', async () => {
+			const nunjucks = configureNunjucks();
+			// mock response that calls nunjucks to render a result
+			const mockRes = {
+				render: mock.fn((view, data) => nunjucks.render(view, data))
+			};
+			const mockReq = {
+				query: { searchCriteria: 'case/ref' }
+			};
+			const mockDb = {
+				crownDevelopment: {
+					findMany: mock.fn(() => [{ id: 'id-1' }, { id: 'id-2' }])
+				}
+			};
+			const listCases = buildListCases({ db: mockDb, logger: mockLogger() });
+			await assert.doesNotReject(() => listCases(mockReq, mockRes));
+			assert.strictEqual(mockDb.crownDevelopment.findMany.mock.callCount(), 1);
+			assert.deepStrictEqual(mockDb.crownDevelopment.findMany.mock.calls[0].arguments[0].where, {
+				reference: { contains: 'case/ref' }
+			});
+		});
 	});
 });

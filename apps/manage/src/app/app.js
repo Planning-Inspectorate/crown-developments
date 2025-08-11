@@ -8,6 +8,7 @@ import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-re
 import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.js';
 import { addLocalsConfiguration } from '#util/config-middleware.js';
+import { cleanEmptyQueryParams, trimEmptyQuery } from '@pins/crowndev-lib/middleware/query-middleware.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -18,17 +19,10 @@ export function getApp(service) {
 	const app = express();
 
 	const logRequests = buildLogRequestsMiddleware(service.logger);
-	const trimEmptyQuery = (req, res, next) => {
-		if (!req.query?.filters && req.originalUrl.endsWith('?')) {
-			const redirectPath = req.path;
-			if (/^\/[a-zA-Z0-9/_-]*$/.test(redirectPath)) {
-				return res.redirect(redirectPath);
-			}
-			return res.redirect('/');
-		}
-		return next();
-	};
-	app.use(trimEmptyQuery);
+
+	// middleware to clean empty query params and trim empty query values
+	app.use(cleanEmptyQueryParams, trimEmptyQuery);
+
 	app.use(logRequests);
 
 	// configure body-parser, to populate req.body

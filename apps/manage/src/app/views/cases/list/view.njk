@@ -3,6 +3,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/table/macro.njk" import govukTable %}
 {% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "search-bar/search-bar.njk" import searchBar %}
 
 {% block pageTitle %}
     Case list - All Cases - Manage a Crown Development Application
@@ -10,18 +11,50 @@
 
 {% block pageContent %}
 
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            <p class="govuk-body">
-                {{ govukButton({
-                    text: "Create a case",
-                    href: "/cases/create-a-case",
-                    classes: "govuk-button--secondary"
-                }) }}
-            </p>
+    <div class="govuk-grid-row row-inline">
+        <div class="govuk-grid-column-two-thirds pins-dashboard-box ">
+            <form id="search-bar-form" method="GET">
+                {{ searchBar({
+                    input: {
+                        label: {
+                            text: "Search cases"
+                        },
+                        hint: {
+                            text: "To find a specific case, search by reference."
+                        },
+                        classes: "govuk-input govuk-input--width-30"
+                    },
+                    button: {
+                        text: "Search",
+                        classes: "govuk-button"
+                    }
+                }, searchValue) }}
+            </form>
+        </div>
+        <div class="govuk-grid-column-one-third pins-dashboard-box">
+                <div class="govuk-form-group">
+                    <h1 class="govuk-label-wrapper">
+                        <label class="govuk-label govuk-label--l" for="create-case-link">
+                            Create new case
+                        </label>
+                    </h1>
+                    <h2>
+                        <a href="/cases/create-a-case" id="create-case-link" class="govuk-link govuk-link--no-visited-state">Create a case</a>
+                    </h2>
+
+            </div>
         </div>
     </div>
 
+    {% if crownDevelopments|length == 0 %}
+        <p class="govuk-body">No results were found.</p>
+        <p class="govuk-body"><a href="/cases" class="govuk-link govuk-link--no-visited-state">Clear search</a> to view all cases.</p>
+    {% else %}
+        {{ casesTable(crownDevelopments) }}
+    {% endif %}
+{% endblock %}
+
+{% macro casesTable(developments) %}
     {% set developments = [] %}
 
     {% for development in crownDevelopments %}
@@ -45,24 +78,44 @@
         ]), developments) %}
     {% endfor %}
 
-    {{ govukTable({
-        head: [
-            {
-                text: "Reference"
-            },
-            {
-                text: "Site Location"
-            },
-            {
-                text: "Local Planning Authority (LPA)"
-            },
-            {
-                text: "Application Type"
-            },
-            {
-                text: "Status"
+    {% set headers = [
+        {
+            text: 'Reference',
+            attributes: {
+            "aria-sort": "descending"
             }
-        ],
+        },
+        {
+            text: 'Site Location',
+            attributes: {
+            "aria-sort": "none"
+            }
+        },
+        {
+            text: 'Local Planning Authority (LPA)',
+            attributes: {
+            "aria-sort": "none"
+            }
+        },
+        {
+          text: 'Application Type',
+            attributes: {
+            "aria-sort": "none"
+            }
+        },
+        {
+            text: 'Status',
+            attributes: {
+            "aria-sort": "none"
+            }
+        }
+    ] %}
+
+    {{ govukTable({
+        attributes: {
+            "data-module": "moj-sortable-table"
+        },
+        head: headers,
         rows: developments
     }) }}
-{% endblock %}
+{% endmacro %}
