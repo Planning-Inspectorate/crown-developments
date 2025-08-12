@@ -4,7 +4,7 @@ import * as CFB from 'cfb';
 import { PDFDocument } from 'pdf-lib';
 
 export async function validateUploadedFile(file, logger, allowedFileExtensions, allowedMimeTypes, maxFileSize) {
-	const validationErrors = [];
+	let validationErrors = [];
 	const { originalname, mimetype, buffer, size } = file;
 
 	if (typeof size !== 'number' || size <= 0) {
@@ -23,6 +23,7 @@ export async function validateUploadedFile(file, logger, allowedFileExtensions, 
 	}
 
 	const fileTypeResult = await fileTypeFromBuffer(buffer);
+	logger.info(fileTypeResult);
 	if (!fileTypeResult) {
 		validationErrors.push({
 			text: `${originalname}: Could not determine file type from signature`,
@@ -58,11 +59,13 @@ export async function validateUploadedFile(file, logger, allowedFileExtensions, 
 
 	// this check is to prevent file spoofing and checks the parsed result returned from file-type library
 	if (
-		!new Set([...allowedMimeTypes, 'application/x-cfb']).has(mime) ||
-		!new Set([...allowedFileExtensions, 'cfb']).has(ext)
+		allowedMimeTypes.includes(mimetype) &&
+		(!new Set([...allowedMimeTypes, 'application/x-cfb']).has(mime) ||
+			!new Set([...allowedFileExtensions, 'cfb']).has(ext))
 	) {
+		const declaredExt = mimetype.split('/')[1];
 		validationErrors.push({
-			text: `${originalname}: File signature mismatch: declared as .${mimetype} but detected as .${ext} (${mime})`,
+			text: `${originalname}: File signature mismatch: declared as .${declaredExt} (${mimetype}) but detected as .${ext} (${mime})`,
 			href: '#upload-form'
 		});
 	}
@@ -87,7 +90,7 @@ async function isPdfPasswordProtected(buffer, logger) {
 	}
 }
 
-function isDocOrXlsEncrypted(buffer, logger) {
+export function isDocOrXlsEncrypted(buffer, logger) {
 	try {
 		const container = CFB.parse(buffer, { type: 'buffer' });
 
