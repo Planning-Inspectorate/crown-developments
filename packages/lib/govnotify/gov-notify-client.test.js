@@ -218,6 +218,19 @@ describe(`gov-notify-client`, () => {
 				}
 			]);
 		});
+		it('should format feeAmount with commas and two decimals', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {
+				applicationReceivedDateWithFee: 'template-id-fee',
+				applicationReceivedDateWithoutFee: 'template-id-no-fee'
+			});
+			ctx.mock.method(client, 'sendEmail', () => {});
+			await client.sendApplicationReceivedNotification('email', { feeAmount: 1000 }, true);
+			assert.strictEqual(client.sendEmail.mock.callCount(), 1);
+			const args = client.sendEmail.mock.calls[0].arguments;
+			assert.strictEqual(args[2].personalisation.fee, '1,000.00'); // formatted string for display
+			assert.strictEqual(args[2].personalisation.feeAmount, 1000); // raw number for calculation
+		});
 	});
 	describe('sendApplicationNotOfNationalImportanceNotification', () => {
 		it('should call sendEmail with personalisation', async (ctx) => {
@@ -274,6 +287,63 @@ describe(`gov-notify-client`, () => {
 					message: 'failed to fetch notification: Notify API error'
 				}
 			);
+		});
+	});
+	describe('sendApplicationReceivedNotification fee formatting', () => {
+		it('should format fee as 1,000.00 when passed as a string', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {
+				applicationReceivedDateWithFee: 'template-id-fee',
+				applicationReceivedDateWithoutFee: 'template-id-no-fee'
+			});
+			ctx.mock.method(client, 'sendEmail', () => {});
+			await client.sendApplicationReceivedNotification('email', { fee: '1000.00' }, true);
+			const args = client.sendEmail.mock.calls[0].arguments;
+			assert.strictEqual(args[2].personalisation.fee, '1,000.00');
+			assert.notStrictEqual(args[2].personalisation.fee, '1,00.00');
+		});
+
+		it('should format fee as 10,000.00 when passed as a string', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {
+				applicationReceivedDateWithFee: 'template-id-fee',
+				applicationReceivedDateWithoutFee: 'template-id-no-fee'
+			});
+			ctx.mock.method(client, 'sendEmail', () => {});
+			await client.sendApplicationReceivedNotification('email', { fee: '10000.00' }, true);
+			const args = client.sendEmail.mock.calls[0].arguments;
+			assert.strictEqual(args[2].personalisation.fee, '10,000.00');
+			assert.notStrictEqual(args[2].personalisation.fee, '10,0.00');
+		});
+
+		it('should format fee as 100,000.00 when passed as a string', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {
+				applicationReceivedDateWithFee: 'template-id-fee',
+				applicationReceivedDateWithoutFee: 'template-id-no-fee'
+			});
+			ctx.mock.method(client, 'sendEmail', () => {});
+			await client.sendApplicationReceivedNotification('email', { fee: '100000.00' }, true);
+			const args = client.sendEmail.mock.calls[0].arguments;
+			assert.strictEqual(args[2].personalisation.fee, '100,000.00');
+			assert.notStrictEqual(args[2].personalisation.fee, '100,00.00');
+		});
+
+		it('should format fee as 1,000,000.00 when passed as a string', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {
+				applicationReceivedDateWithFee: 'template-id-fee',
+				applicationReceivedDateWithoutFee: 'template-id-no-fee'
+			});
+			ctx.mock.method(client, 'sendEmail', () => {});
+			await client.sendApplicationReceivedNotification('email', { fee: '1000000.00' }, true);
+			const args = client.sendEmail.mock.calls[0].arguments;
+			assert.strictEqual(args[2].personalisation.fee, '1,000,000.00');
+			assert.notStrictEqual(args[2].personalisation.fee, '1,000,00.00');
+			assert.notStrictEqual(args[2].personalisation.fee, '1,00,000.00');
+			assert.notStrictEqual(args[2].personalisation.fee, '1,000,000');
+			assert.notStrictEqual(args[2].personalisation.fee, '1,000,000.0');
+			assert.notStrictEqual(args[2].personalisation.fee, '1,');
 		});
 	});
 });
