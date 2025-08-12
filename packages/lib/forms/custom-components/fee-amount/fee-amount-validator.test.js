@@ -20,7 +20,7 @@ describe('./lib/forms/custom-components/fee-amount/fee-amount-validator.js', () 
 
 		assert.strictEqual(Object.keys(errors).length, 0);
 	});
-	it('should not return an error message if both values are valid (value does not contain decimal)', async () => {
+	it('should not return an error message if both values are valid (value is integer)', async () => {
 		const req = {
 			body: {
 				applicationFee: 'yes',
@@ -94,14 +94,74 @@ describe('./lib/forms/custom-components/fee-amount/fee-amount-validator.js', () 
 		const errors = await _validationMappedErrors(req, question);
 
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors.applicationFee_amount.msg, 'Fee must be more than £0.01');
+		assert.strictEqual(errors.applicationFee_amount.msg, 'Fee must be more than £0');
 	});
-});
+	it('should return an error message if fee amount contains commas', async () => {
+		const cases = ['1,000.00', '10,000', '100,000.00', '1,000,000', '1,000,000.00'];
+		for (const value of cases) {
+			const req = {
+				body: {
+					applicationFee: 'yes',
+					applicationFee_amount: value
+				}
+			};
+			const errors = await _validationMappedErrors(req, question);
+			assert.strictEqual(Object.keys(errors).length, 1);
+			assert.strictEqual(errors.applicationFee_amount.msg, 'Fee must be a number without commas, e.g. 1000 or 1000.00');
+		}
+	});
 
-const _validationMappedErrors = async (req, question) => {
-	const feeAmountValidator = new FeeAmountValidator();
-	const validationRules = feeAmountValidator.validate(question);
-	await Promise.all(validationRules.map((validator) => validator.run(req)));
-	const errors = validationResult(req);
-	return errors.mapped();
-};
+	it('should return an error message if fee amount contains currency symbol', async () => {
+		const req = {
+			body: {
+				applicationFee: 'yes',
+				applicationFee_amount: '£1000.00'
+			}
+		};
+		const errors = await _validationMappedErrors(req, question);
+		assert.strictEqual(Object.keys(errors).length, 1);
+		assert.strictEqual(errors.applicationFee_amount.msg, 'Input must be numbers');
+	});
+
+	it('should return an error message if fee amount is negative', async () => {
+		const req = {
+			body: {
+				applicationFee: 'yes',
+				applicationFee_amount: '-1000.00'
+			}
+		};
+		const errors = await _validationMappedErrors(req, question);
+		assert.strictEqual(Object.keys(errors).length, 1);
+		assert.strictEqual(errors.applicationFee_amount.msg, 'Input must be numbers');
+	});
+
+	it('should not return an error message for a very large valid number', async () => {
+		const req = {
+			body: {
+				applicationFee: 'yes',
+				applicationFee_amount: '1000000000.00'
+			}
+		};
+		const errors = await _validationMappedErrors(req, question);
+		assert.strictEqual(Object.keys(errors).length, 0);
+	});
+	it('should return an error message if fee amount is empty string when required', async () => {
+		const req = {
+			body: {
+				applicationFee: 'yes',
+				applicationFee_amount: ''
+			}
+		};
+		const errors = await _validationMappedErrors(req, question);
+		assert.strictEqual(Object.keys(errors).length, 1);
+		assert.strictEqual(errors.applicationFee_amount.msg, 'Application fee is required');
+	});
+
+	const _validationMappedErrors = async (req, question) => {
+		const feeAmountValidator = new FeeAmountValidator();
+		const validationRules = feeAmountValidator.validate(question);
+		await Promise.all(validationRules.map((validator) => validator.run(req)));
+		const errors = validationResult(req);
+		return errors.mapped();
+	};
+});

@@ -86,6 +86,10 @@ function addCaseUpdatedSession(req, id) {
  * @param {import('./types.js').CrownDevelopmentViewModel} fullViewModel
  */
 export async function customUpdateCaseActions(service, id, toSave, fullViewModel) {
+	if (toSave.applicationFee !== undefined) {
+		handleApplicationFee(toSave);
+	}
+
 	if (toSave.lpaQuestionnaireReceivedDate && fullViewModel.lpaQuestionnaireReceivedEmailSent !== BOOLEAN_OPTIONS.YES) {
 		await handleLpaQuestionnaireReceivedDateUpdate(service, id, toSave);
 	}
@@ -96,6 +100,12 @@ export async function customUpdateCaseActions(service, id, toSave, fullViewModel
 
 	if (toSave.turnedAwayDate && fullViewModel.notNationallyImportantEmailSent !== BOOLEAN_OPTIONS.YES) {
 		await handleTurnedAwayDateUpdate(service, id, toSave);
+	}
+}
+
+function handleApplicationFee(toSave) {
+	if (typeof toSave.applicationFee === 'string') {
+		toSave.applicationFee = Number(toSave.applicationFee.replace(/,/g, ''));
 	}
 }
 
