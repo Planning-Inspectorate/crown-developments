@@ -1,4 +1,3 @@
-{% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
 {% macro searchBar(options, searchValue) %}
@@ -13,9 +12,12 @@
         </div>
         <div class="row-inline">
             <input class="{{ options.input.classes or "govuk-input govuk-input--width-20" }}" id="search-input" value="{{ searchValue or "" }}" name="searchCriteria" type="text">
-            <button type="submit" class="{{ options.button.classes or "govuk-button" }}" id="search-button" data-module="govuk-button">
-                {{ options.button.text or "Search" }}
-            </button>
+            {{ govukButton({
+                text: options.button.text or 'Search',
+                id: 'search-button',
+                classes: options.button.classes,
+                type: 'submit'
+            }) }}
         </div>
     </div>
 {% endmacro %}
