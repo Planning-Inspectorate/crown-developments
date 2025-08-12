@@ -23,7 +23,7 @@ export async function validateUploadedFile(file, logger, allowedFileExtensions, 
 	}
 
 	const fileTypeResult = await fileTypeFromBuffer(buffer);
-	logger.info(fileTypeResult);
+
 	if (!fileTypeResult) {
 		validationErrors.push({
 			text: `${originalname}: Could not determine file type from signature`,
@@ -71,12 +71,13 @@ export async function validateUploadedFile(file, logger, allowedFileExtensions, 
 	}
 
 	if (ext === 'zip' || mime === 'application/zip') {
-		validationErrors = [
-			{
-				text: `${originalname}: The attachment must not be a zip file`,
-				href: '#upload-form'
-			}
-		];
+		// reset validation errors if zip file is detected
+		// zip files are not allowed, so we add a specific error message
+		validationErrors = [];
+		validationErrors.push({
+			text: `${originalname}: The attachment must not be a zip file`,
+			href: '#upload-form'
+		});
 	}
 
 	return validationErrors;
