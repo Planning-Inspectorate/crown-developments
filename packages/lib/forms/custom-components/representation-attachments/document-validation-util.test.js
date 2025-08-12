@@ -1,9 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { fileAlreadyExistsInFolder, validateUploadedFile } from './document-validation-util.js';
+import { fileAlreadyExistsInFolder, isDocOrXlsEncrypted, validateUploadedFile } from './document-validation-util.js';
 import { mockLogger } from '../../../testing/mock-logger.js';
 import * as CFB from 'cfb';
 import { ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '../../representations/question-utils.js';
+import { createMinimalZipBuffer } from './zip-file-util.js';
 
 describe('./lib/forms/custom-components/representation-attachments/document-validation-util.js', () => {
 	describe('validateUploadedFile', () => {
@@ -63,21 +64,20 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 			);
 		});
 		it('should return validation error when zip file passed', async () => {
-			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
+			const logger = mockLogger();
 			const file = {
 				originalname: 'test4.zip',
 				mimetype: 'application/zip',
-				buffer: Buffer.from(fakePdfContent, 'utf-8'),
-				size: 227787
+				buffer: createMinimalZipBuffer(),
+				size: 100
 			};
-			const logger = mockLogger();
 
 			assert.deepStrictEqual(
 				await validateUploadedFile(file, logger, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE),
 				[
 					{
 						href: '#upload-form',
-						text: 'test4.zip: The attachment must be PDF, PNG, DOC, DOCX, JPG, JPEG, TIF, TIFF, XLS or XLSX'
+						text: 'test4.zip: The attachment must not be a zip file'
 					}
 				]
 			);
@@ -117,7 +117,27 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 				[
 					{
 						href: '#upload-form',
-						text: 'test4.pdf: File signature mismatch: declared as .application/pdf but detected as .mp3 (audio/mpeg)'
+						text: 'test4.pdf: File signature mismatch: declared as .pdf (application/pdf) but detected as .mp3 (audio/mpeg)'
+					}
+				]
+			);
+		});
+		it('should return only show a file signature mismatch validation if the declared mimetype is accepted', async () => {
+			const fakeMp3Content = 'ID3\x03\x00\x00\x00\x00\x00\x21';
+			const file = {
+				originalname: 'test4.bmp',
+				mimetype: 'image/bmp',
+				buffer: Buffer.from(fakeMp3Content, 'utf-8'),
+				size: 227787
+			};
+			const logger = mockLogger();
+
+			assert.deepStrictEqual(
+				await validateUploadedFile(file, logger, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE),
+				[
+					{
+						href: '#upload-form',
+						text: 'test4.bmp: The attachment must be PDF, PNG, DOC, DOCX, JPG, JPEG, TIF, TIFF, XLS or XLSX'
 					}
 				]
 			);
@@ -173,7 +193,6 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 
 			await assertFileIsRejectedAsEncrypted(buffer);
 		});
-
 		it('should detect encrypted Excel file via FILEPASS record', async () => {
 			const cfbContainer = CFB.utils.cfb_new();
 			const content = Buffer.alloc(8);
@@ -184,7 +203,6 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 
 			await assertFileIsRejectedAsEncrypted(buffer);
 		});
-
 		it('should detect encrypted file via presence of encrypted streams', async () => {
 			const cfbContainer = CFB.utils.cfb_new();
 			CFB.utils.cfb_add(cfbContainer, 'EncryptedStream', Buffer.from('fake data'));
@@ -192,7 +210,6 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 
 			await assertFileIsRejectedAsEncrypted(buffer);
 		});
-
 		it('should not return any errors for valid office document', async () => {
 			const cfbContainer = CFB.utils.cfb_new();
 			const wordContent = Buffer.alloc(0x0c, 0);
@@ -299,6 +316,48 @@ describe('./lib/forms/custom-components/representation-attachments/document-vali
 		});
 		it('should return false if both lists passed are empty', () => {
 			assert.strictEqual(fileAlreadyExistsInFolder([], []), false);
+		});
+	});
+	describe('isDocOrXlsEncrypted', () => {
+		it('should return true for encrypted doc file', async () => {
+			const cfbContainer = CFB.utils.cfb_new();
+			CFB.utils.cfb_add(cfbContainer, 'EncryptedStream', Buffer.from('fake encrypted data'));
+			const buffer = CFB.write(cfbContainer, { type: 'buffer' });
+
+			assert.strictEqual(await isDocOrXlsEncrypted(buffer, mockLogger()), true);
+		});
+		it('should return false for unencrypted doc file', async () => {
+			const cfbContainer = CFB.utils.cfb_new();
+			const content = Buffer.alloc(0x0c, 0);
+			content[0x0b] = 0x00;
+			CFB.utils.cfb_add(cfbContainer, 'WordDocument', content);
+			const buffer = CFB.write(cfbContainer, { type: 'buffer' });
+
+			assert.strictEqual(await isDocOrXlsEncrypted(buffer, mockLogger()), false);
+		});
+		it('should return true for encrypted xls file', async () => {
+			const cfbContainer = CFB.utils.cfb_new();
+			const content = Buffer.alloc(8);
+			content.writeUInt16LE(0x002f, 0);
+			content.writeUInt16LE(0x0000, 2);
+			CFB.utils.cfb_add(cfbContainer, 'Workbook', content);
+			const buffer = CFB.write(cfbContainer, { type: 'buffer' });
+
+			assert.strictEqual(await isDocOrXlsEncrypted(buffer, mockLogger()), true);
+		});
+		it('should return false for unencrypted xls file', async () => {
+			const cfbContainer = CFB.utils.cfb_new();
+			const content = Buffer.alloc(8);
+			content.writeUInt16LE(0x0010, 0);
+			content.writeUInt16LE(0x0000, 2);
+			CFB.utils.cfb_add(cfbContainer, 'Workbook', content);
+			const buffer = CFB.write(cfbContainer, { type: 'buffer' });
+
+			assert.strictEqual(await isDocOrXlsEncrypted(buffer, mockLogger()), false);
+		});
+		it('should return true when isDocOrXlsEncrypted throws an error', async () => {
+			const invalidBuffer = Buffer.from('not a valid CFB file');
+			assert.strictEqual(isDocOrXlsEncrypted(invalidBuffer, mockLogger()), true);
 		});
 	});
 });
