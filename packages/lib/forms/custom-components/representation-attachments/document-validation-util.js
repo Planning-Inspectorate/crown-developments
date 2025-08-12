@@ -34,13 +34,6 @@ export async function validateUploadedFile(file, logger, allowedFileExtensions, 
 
 	const { mime, ext } = fileTypeResult;
 
-	if (ext === 'zip' || mime === 'application/zip') {
-		validationErrors.push({
-			text: `${originalname}: The attachment must not be a zip file`,
-			href: '#upload-form'
-		});
-	}
-
 	if ((ext === 'pdf' || mime === 'application/pdf') && (await isPdfPasswordProtected(buffer, logger))) {
 		validationErrors.push({
 			text: `${originalname}: File must not be password protected`,
@@ -75,6 +68,15 @@ export async function validateUploadedFile(file, logger, allowedFileExtensions, 
 			text: `${originalname}: The attachment must be smaller than 20MB`,
 			href: '#upload-form'
 		});
+	}
+
+	if (ext === 'zip' || mime === 'application/zip') {
+		validationErrors = [
+			{
+				text: `${originalname}: The attachment must not be a zip file`,
+				href: '#upload-form'
+			}
+		];
 	}
 
 	return validationErrors;
