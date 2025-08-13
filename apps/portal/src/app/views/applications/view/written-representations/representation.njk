@@ -6,10 +6,10 @@
     </p>
     <p class="govuk-body">
         {% if representation.representationCommentIsRedacted %}
-            <span class="redacted" aria-hidden="true">{{ representation.representationComment }}</span>
+            <span class="redacted" aria-hidden="true">{{ representation.representationComment }}{{ representation.truncatedReadMoreLink | safe }}</span>
             <span class="govuk-visually-hidden">Redacted representation comment</span>
         {% else %}
-            {{ representation.representationComment }}
+            {{ representation.representationComment }}{{ representation.truncatedReadMoreLink | safe }}
         {% endif %}
     </p>
     <div class="govuk-grid-row">

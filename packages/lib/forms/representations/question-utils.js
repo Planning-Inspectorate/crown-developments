@@ -187,7 +187,8 @@ export function representationsContactQuestions({ prefix, actionOverrides = {}, 
 		editable: false,
 		onlyShowRedactedValueForSummary: true,
 		useRedactedFieldNameForSave: true,
-		actionLink: actionOverrides.redactedCommentShowManageAction ? actionLinkOverride : undefined
+		actionLink: actionOverrides.redactedCommentShowManageAction ? actionLinkOverride : undefined,
+		shouldTruncateSummary: true
 	};
 
 	questions[`${prefix}HasAttachments`] = {

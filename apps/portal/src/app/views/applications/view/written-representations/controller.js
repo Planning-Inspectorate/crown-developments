@@ -96,7 +96,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 		res.render('views/applications/view/written-representations/view.njk', {
 			pageCaption: crownDevelopment.reference,
 			pageTitle: 'Written representations',
-			representations: representations.map(representationToViewModel),
+			representations: representations.map((representation) => representationToViewModel(representation, true)),
 			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
 			currentUrl: req.originalUrl,
 			selectedItemsPerPage,

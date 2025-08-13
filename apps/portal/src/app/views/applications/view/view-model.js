@@ -135,21 +135,37 @@ export function documentsLink(id) {
 
 /**
  * @param {import('./types.js').RepresentationsListFields} representation
+ * @param {boolean} truncateCommentForView
  * @return {import('./types.js').RepresentationViewModel}
  */
-export function representationToViewModel(representation) {
+export function representationToViewModel(representation, truncateCommentForView = false) {
+	const representationComment = representation.commentRedacted || representation.comment;
 	return {
 		representationReference: representation.reference,
 		representationTitle: representationTitle(representation),
-		representationComment: representation.commentRedacted || representation.comment,
+		representationComment: truncateCommentForView ? truncateComment(representationComment) : representationComment,
 		representationCommentIsRedacted: Boolean(representation.commentRedacted),
 		representationCategory: representation.Category?.displayName,
 		dateRepresentationSubmitted: formatDateForDisplay(representation.submittedDate),
 		representationContainsAttachments: representation.containsAttachments,
 		hasAttachments:
 			representation.Attachments?.some((doc) => doc.statusId === REPRESENTATION_STATUS_ID.ACCEPTED) &&
-			representation.containsAttachments
+			representation.containsAttachments,
+		...(truncateCommentForView && { truncatedReadMoreLink: truncatedReadMoreCommentLink(representation.reference) })
 	};
+}
+
+function truncateComment(comment) {
+	const MAX_LENGTH = 500;
+	if (comment.length > MAX_LENGTH) {
+		const truncated = comment.substring(0, MAX_LENGTH);
+		return `${truncated}... `;
+	}
+	return comment;
+}
+
+function truncatedReadMoreCommentLink(representationRef) {
+	return `<a class="govuk-link govuk-link--no-visited-state" href="written-representations/${representationRef}">Read more</a>`;
 }
 
 /**
