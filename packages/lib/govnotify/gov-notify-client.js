@@ -1,5 +1,5 @@
 import { NotifyClient } from 'notifications-node-client';
-import { formatFee } from 'crowndev-manage/src/app/views/cases/view/question-utils.js';
+import { formatFee } from '../util/numbers.js';
 
 /**
  * @typedef {import('./types.js').GovNotifyOptions} GovNotifyOptions

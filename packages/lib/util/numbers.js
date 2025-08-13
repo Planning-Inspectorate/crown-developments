@@ -49,3 +49,17 @@ export function parseNumberStringToNumber(value) {
 	const num = Number(value);
 	return isNaN(num) ? value : num;
 }
+
+/**
+ *  Formats a fee value to two decimal places with commas.
+ *  Accepts numbers or numeric strings.
+ *  @param {number|string} fee
+ *  @returns {string}
+ */
+export function formatFee(fee) {
+	if (fee === null || fee === undefined || fee === '') return '';
+
+	const num = Number(String(fee).replace(/,/g, ''));
+	if (isNaN(num)) return String(fee);
+	return num.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
