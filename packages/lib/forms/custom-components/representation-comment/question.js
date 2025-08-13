@@ -1,5 +1,6 @@
 import { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
 import { nl2br } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
+import { truncateComment, truncatedReadMoreCommentLink } from '../../../util/questions.js';
 
 /**
  * @typedef {Object} TextEntryCheckbox
@@ -42,8 +43,7 @@ export default class RepresentationComment extends Question {
 
 		let displayText = String(answer || '');
 		if (displayText.length > MAX_LENGTH) {
-			const truncated = displayText.substring(0, MAX_LENGTH);
-			displayText = `${truncated}... <a class="govuk-link govuk-link--no-visited-state" href="${action?.href}">Read more</a>`;
+			displayText = `${truncateComment(displayText)}${truncatedReadMoreCommentLink(action?.href)}`;
 		}
 
 		return [
