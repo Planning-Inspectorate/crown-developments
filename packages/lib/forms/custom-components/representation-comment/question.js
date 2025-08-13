@@ -1,4 +1,5 @@
 import { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
+import { nl2br } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
 
 /**
  * @typedef {Object} TextEntryCheckbox
@@ -33,5 +34,24 @@ export default class RepresentationComment extends Question {
 		viewModel.question.textEntryCheckbox = this.textEntryCheckbox;
 		viewModel.question.value = payload ? payload[viewModel.question.fieldName] : viewModel.question.value;
 		return viewModel;
+	}
+
+	formatAnswerForSummary(sectionSegment, journey, answer) {
+		const MAX_LENGTH = 500;
+		const action = this.getAction(sectionSegment, journey, answer);
+
+		let displayText = String(answer || '');
+		if (displayText.length > MAX_LENGTH) {
+			const truncated = displayText.substring(0, MAX_LENGTH);
+			displayText = `${truncated}... <a class="govuk-link govuk-link--no-visited-state" href="${action?.href}">Read more</a>`;
+		}
+
+		return [
+			{
+				key: this.title,
+				value: nl2br(displayText),
+				action
+			}
+		];
 	}
 }
