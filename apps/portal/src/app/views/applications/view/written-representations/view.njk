@@ -5,6 +5,7 @@
 {% import "pagination/pagination-options.njk" as paginationOptions %}
 
 {% from "views/applications/view/links.njk" import applicationLinks %}
+{% from "search-bar/search-bar.njk" import searchBar %}
 
 {% block pageHeading %}{% endblock %}
 
@@ -25,24 +26,55 @@
 					</h1>
 				</div>
 			</div>
+			<div class="govuk-grid-row">
+				<div class="govuk-grid-column-full">
+					<form id="search-bar-form" method="GET">
+						{{ searchBar({
+							input: {
+								label: {
+									hidden: true
+								},
+								hint: {
+									text: "Search by keywords or by name of person or organisation who made the submission."
+								},
+								classes: "govuk-input govuk-input--width-30"
+							},
+							button: {
+								text: "Search",
+								classes: "govuk-button"
+							}
+						}, searchValue) }}
+					</form>
+				</div>
 
-			<div id="pagination" class="govuk-body">
-				<p class="govuk-body">
-					Showing <strong>{{ resultsStartNumber }}</strong> to <strong>{{ resultsEndNumber if totalRepresentations > resultsEndNumber else totalRepresentations }}</strong>
-					of <strong>{{ totalRepresentations }}</strong> representations, newest first.
-				</p>
-
-				{{ paginationOptions.renderPagination(selectedItemsPerPage, totalRepresentations, pageNumber) }}
-
-				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
-
-				{% for rep in representations %}
-					{{ representation.renderRepresentation(rep) }}
-				{% endfor %}
 			</div>
 
-			{# if pageNumber and totalPages values are both 1 then pagination options not shown #}
-			{{ pagination.renderPagination(pageNumber, totalPages, currentUrl) }}
+			<div class="govuk-grid-row">
+				<div class="govuk-grid-column-full">
+					{% if representations|length == 0 %}
+						<p class="govuk-body">No results were found.</p>
+						<p class="govuk-body"><a href="{{ clearQueryUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search</a> to view all representations.</p>
+					{% else %}
+						<div id="pagination" class="govuk-body">
+							<p class="govuk-body">
+								Showing <strong>{{ resultsStartNumber }}</strong> to <strong>{{ resultsEndNumber if totalRepresentations > resultsEndNumber else totalRepresentations }}</strong>
+								of <strong>{{ totalRepresentations }}</strong> representations, newest first.
+							</p>
+
+							{{ paginationOptions.renderPagination(selectedItemsPerPage, totalRepresentations, pageNumber) }}
+
+							<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+							{% for rep in representations %}
+								{{ representation.renderRepresentation(rep) }}
+							{% endfor %}
+						</div>
+
+						{# if pageNumber and totalPages values are both 1 then pagination options not shown #}
+						{{ pagination.renderPagination(pageNumber, totalPages, currentUrl) }}
+					{% endif %}
+				</div>
+			</div>
 		</div>
 	</div>
 {% endblock %}

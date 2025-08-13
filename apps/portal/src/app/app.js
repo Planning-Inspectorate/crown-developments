@@ -8,6 +8,7 @@ import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.js';
 import { addLocalsConfiguration } from '#util/config-middleware.js';
 import { initContentSecurityPolicyMiddlewares } from '#util/csp-middleware.js';
 import { buildAnalyticsCookiesMiddleware } from '#util/cookies.js';
+import { cleanEmptyQueryParams, trimEmptyQuery } from '@pins/crowndev-lib/middleware/query-middleware.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -18,6 +19,8 @@ export function getApp(service) {
 	const app = express();
 
 	const logRequests = buildLogRequestsMiddleware(service.logger);
+	// middleware to clean empty query params and trim empty query values
+	app.use(cleanEmptyQueryParams, trimEmptyQuery);
 	app.use(logRequests);
 
 	// configure body-parser, to populate req.body
