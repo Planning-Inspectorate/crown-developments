@@ -31,3 +31,16 @@ export function getSubmittedForId(answers) {
 		? REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
 		: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF;
 }
+
+export function truncateComment(comment) {
+	const MAX_LENGTH = 500;
+	if (comment.length > MAX_LENGTH) {
+		const truncated = comment.substring(0, MAX_LENGTH);
+		return `${truncated}... `;
+	}
+	return comment;
+}
+
+export function truncatedReadMoreCommentLink(href) {
+	return `<a class="govuk-link govuk-link--no-visited-state" href="${href}">Read more</a>`;
+}
