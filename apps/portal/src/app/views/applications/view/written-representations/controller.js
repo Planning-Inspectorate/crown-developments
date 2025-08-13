@@ -99,6 +99,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			representations: representations.map(representationToViewModel),
 			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
 			currentUrl: req.originalUrl,
+			clearQueryUrl: req.baseUrl,
 			selectedItemsPerPage,
 			totalRepresentations,
 			pageNumber,

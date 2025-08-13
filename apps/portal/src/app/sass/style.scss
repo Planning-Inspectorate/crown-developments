@@ -13,3 +13,8 @@
 @use './components/pins-header.scss';
 @use './components/pins-navigation.scss';
 @use './components/pins-chevron-cards.scss';
+
+.row-inline {
+	display: flex;
+	gap: 8px;
+}
