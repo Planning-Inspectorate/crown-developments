@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { bytesToUnit, parseNumberStringToNumber } from './numbers.js';
+import { bytesToUnit, formatFee, parseNumberStringToNumber } from './numbers.js';
 
 describe('numbers', () => {
 	describe('bytesToUnit', () => {
@@ -53,5 +53,19 @@ describe('numbers', () => {
 				assert.deepStrictEqual(got, expected);
 			});
 		}
+	});
+	describe('formatFee', () => {
+		it('should format numbers with commas and two decimals', () => {
+			assert.strictEqual(formatFee(1000), '1,000.00');
+			assert.strictEqual(formatFee(1000000), '1,000,000.00');
+			assert.strictEqual(formatFee(99.5), '99.50');
+			assert.strictEqual(formatFee(0), '0.00');
+		});
+
+		it('should return the original value if not a number', () => {
+			assert.strictEqual(formatFee('abc'), 'abc');
+			assert.strictEqual(formatFee(undefined), ''); // updated expectation
+			assert.strictEqual(formatFee('1000'), '1,000.00'); // numeric string should be formatted
+		});
 	});
 });
