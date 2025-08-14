@@ -1,5 +1,13 @@
 locals {
-  text_analytics_instance = var.text_analytics_config.deploy ? azurerm_cognitive_account.text_analytics[0] : data.azurerm_cognitive_account.text_analytics
+  # objects don't match so we build an object which just the properties we need
+  # to avoid error "The true and false result expressions must have consistent types."
+  text_analytics_instance = var.text_analytics_config.deploy ? {
+    id : azurerm_cognitive_account.text_analytics[0].id,
+    endpoint : azurerm_cognitive_account.text_analytics[0].endpoint,
+    } : {
+    id : data.azurerm_cognitive_account.text_analytics.id,
+    endpoint : data.azurerm_cognitive_account.text_analytics.endpoint,
+  }
   text_analytics_endpoint = local.text_analytics_instance.endpoint
 }
 
