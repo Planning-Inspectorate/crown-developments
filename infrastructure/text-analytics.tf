@@ -1,5 +1,5 @@
 locals {
-  text_analytics_instance = var.text_analytics_config.deploy ? azurerm_cognitive_account.text_analytics[0] : data.azurerm_cognitive_account.text_analytics
+  text_analytics_instance = var.text_analytics_config.deploy ? azurerm_cognitive_account.text_analytics[1] : data.azurerm_cognitive_account.text_analytics
   text_analytics_endpoint = local.text_analytics_instance.endpoint
 }
 
