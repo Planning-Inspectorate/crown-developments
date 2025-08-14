@@ -1,5 +1,7 @@
 import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
+const MAX_LENGTH = 500;
+
 /**
  * @param {{displayName?: string, id: string}[]} reference
  * @param {boolean} [addNullOption]
@@ -32,9 +34,12 @@ export function getSubmittedForId(answers) {
 		: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF;
 }
 
+export function shouldTruncateComment(comment) {
+	return comment?.length > MAX_LENGTH;
+}
+
 export function truncateComment(comment) {
-	const MAX_LENGTH = 500;
-	if (comment.length > MAX_LENGTH) {
+	if (shouldTruncateComment(comment)) {
 		const truncated = comment.substring(0, MAX_LENGTH);
 		return `${truncated}... `;
 	}
