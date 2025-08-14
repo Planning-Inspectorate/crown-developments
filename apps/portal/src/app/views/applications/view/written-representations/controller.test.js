@@ -72,6 +72,81 @@ describe('written representations', () => {
 				representationContainsAttachments: true,
 				representationReference: '4SNR8-ZS27T',
 				representationTitle: 'Jane Smith on behalf of Alice Brown',
+				hasAttachments: true
+			});
+			assert.strictEqual(viewData.selectedItemsPerPage, 25);
+			assert.strictEqual(viewData.totalRepresentations, 1);
+			assert.strictEqual(viewData.pageNumber, 1);
+			assert.strictEqual(viewData.totalPages, 1);
+			assert.strictEqual(viewData.resultsStartNumber, 1);
+			assert.strictEqual(viewData.resultsEndNumber, 1);
+		});
+		it('should render the view with representation and read more link if the comment exceeds 500 chars', async () => {
+			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
+			const mockReq = {
+				params: {
+					applicationId
+				},
+				originalUrl: `/applications/${applicationId}/written-representations`
+			};
+			const mockRes = { render: mock.fn(), status: mock.fn() };
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
+						reference: 'CROWN/2025/0000001',
+						representationsPeriodStartDate: '2025-01-01',
+						representationsPeriodEndDate: '2025-02-01',
+						representationsPublishDate: '2025-03-01'
+					}))
+				},
+				representation: {
+					findMany: mock.fn(() => [
+						{
+							reference: '4SNR8-ZS27T',
+							submittedDate: new Date('2025-01-15'),
+							comment:
+								'It began with an ordinary morning. The air smelled faintly of dew, the street empty but for leaves drifting lazily. Johnathan Le-Smithard adjusted his collar, noting his watch was three minutes late—a stubborn old thing, loyal only to its own time. Across the street, a bakery opened, the scent of bread spilling into the cool air. A woman in a green scarf carried loaves in quiet balance. The square stirred slowly; Johnathan Le-Smithard wrote in his notebook, letting the day delay his errands, wholly unhurried and serene.',
+							commentRedacted:
+								'It began with an ordinary morning. The air smelled faintly of dew, the street empty but for leaves drifting lazily. ████████ ██████ adjusted his collar, noting his watch was three minutes late—a stubborn old thing, loyal only to its own time. Across the street, a bakery opened, the scent of bread spilling into the cool air. A woman in a green scarf carried loaves in quiet balance. The square stirred slowly; ████████ wrote in his notebook, letting the day delay his errands, wholly unhurried and serene.',
+							submittedByAgentOrgName: 'Test Organization',
+							submittedForId: 'on-behalf-of',
+							representedTypeId: 'organisation',
+							containsAttachments: true,
+							SubmittedFor: { displayName: 'John Doe' },
+							SubmittedByContact: { firstName: 'Jane', lastName: 'Smith' },
+							RepresentedContact: { firstName: 'Alice', lastName: 'Brown' },
+							Category: { displayName: 'General Representation' },
+							Attachments: [{ statusId: 'accepted' }]
+						}
+					]),
+					count: mock.fn(() => 1)
+				}
+			};
+
+			const handler = buildWrittenRepresentationsListPage({ db: mockDb });
+
+			await handler(mockReq, mockRes);
+
+			assert.strictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/applications/view/written-representations/view.njk'
+			);
+
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.pageCaption, 'CROWN/2025/0000001');
+			assert.strictEqual(viewData.pageTitle, 'Written representations');
+			assert.strictEqual(viewData.representations.length, 1);
+			assert.deepStrictEqual(viewData.representations[0], {
+				dateRepresentationSubmitted: '15 Jan 2025',
+				representationCategory: 'General Representation',
+				representationComment:
+					'It began with an ordinary morning. The air smelled faintly of dew, the street empty but for leaves drifting lazily. ████████ ██████ adjusted his collar, noting his watch was three minutes late—a stubborn old thing, loyal only to its own time. Across the street, a bakery opened, the scent of bread spilling into the cool air. A woman in a green scarf carried loaves in quiet balance. The square stirred slowly; ████████ wrote in his notebook, letting the day delay his errands, wholly unhurried and s... ',
+				representationCommentIsRedacted: true,
+				representationContainsAttachments: true,
+				representationReference: '4SNR8-ZS27T',
+				representationTitle: 'Jane Smith on behalf of Alice Brown',
 				hasAttachments: true,
 				truncatedReadMoreLink:
 					'<a class="govuk-link govuk-link--no-visited-state" href="written-representations/4SNR8-ZS27T">Read more</a>'
@@ -83,7 +158,6 @@ describe('written representations', () => {
 			assert.strictEqual(viewData.resultsStartNumber, 1);
 			assert.strictEqual(viewData.resultsEndNumber, 1);
 		});
-
 		it('should render the view with values provided in url query parameters', async () => {
 			const mockReq = {
 				params: {

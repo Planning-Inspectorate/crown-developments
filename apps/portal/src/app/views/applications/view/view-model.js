@@ -11,7 +11,11 @@ import {
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { addressToViewModel } from '@planning-inspectorate/dynamic-forms/src/lib/address-utils.js';
 import { nameToViewModel } from '@pins/crowndev-lib/util/name.js';
-import { truncateComment, truncatedReadMoreCommentLink } from '@pins/crowndev-lib/util/questions.js';
+import {
+	shouldTruncateComment,
+	truncateComment,
+	truncatedReadMoreCommentLink
+} from '@pins/crowndev-lib/util/questions.js';
 
 /**
  *
@@ -152,9 +156,10 @@ export function representationToViewModel(representation, truncateCommentForView
 		hasAttachments:
 			representation.Attachments?.some((doc) => doc.statusId === REPRESENTATION_STATUS_ID.ACCEPTED) &&
 			representation.containsAttachments,
-		...(truncateCommentForView && {
-			truncatedReadMoreLink: truncatedReadMoreCommentLink(`written-representations/${representation.reference}`)
-		})
+		...(truncateCommentForView &&
+			shouldTruncateComment(representationComment) && {
+				truncatedReadMoreLink: truncatedReadMoreCommentLink(`written-representations/${representation.reference}`)
+			})
 	};
 }
 
