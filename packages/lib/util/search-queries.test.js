@@ -13,7 +13,7 @@ describe('getStringQueries', () => {
 		assert.deepStrictEqual(getStringQueries('a, b c ,d'), ['a', 'b', 'c', 'd']);
 	});
 	it('should trim and filter empty values', () => {
-		assert.deepStrictEqual(getStringQueries(' a , , b ,,c '), ['a', 'b', 'c']);
+		assert.deepStrictEqual(getStringQueries(' a  , , b ,,c ,  '), ['a', 'b', 'c']);
 	});
 	it('should return undefined for undefined input', () => {
 		assert.strictEqual(getStringQueries(undefined), undefined);
@@ -125,6 +125,12 @@ describe('createWhereClause', () => {
 	describe('single embedded parent queries', () => {
 		const options = [{ parent: 'Contact', fields: ['firstName', 'lastName'], searchType: 'contains' }];
 
+		it('should create where clause with parent and single field', () => {
+			const singleFieldOptions = [{ parent: 'Profile', fields: ['email'], searchType: 'contains' }];
+			const result = createWhereClause(['test'], singleFieldOptions);
+			assert.deepStrictEqual(result, { Profile: { email: { contains: 'test' } } });
+		});
+
 		it('should create where clause with parent', () => {
 			const result = createWhereClause(['foo'], options);
 			assert.deepStrictEqual(result, {
@@ -156,6 +162,46 @@ describe('createWhereClause', () => {
 			assert.throws(() => createWhereClause(['foo'], badOptions), {
 				message: 'Parent must be a string if provided.'
 			});
+		});
+	});
+	describe('additional edge cases', () => {
+		it('should respect logic when parent is present', () => {
+			const options = [{ parent: 'User', fields: ['first', 'last'], searchType: 'contains', logic: 'or' }];
+			const result = createWhereClause(['foo', 'bar'], options);
+			assert.deepStrictEqual(result, {
+				User: {
+					OR: [{ first: { contains: 'foo | bar' } }, { last: { contains: 'foo | bar' } }]
+				}
+			});
+		});
+
+		it('should handle multiple parents', () => {
+			const options = [
+				{ parent: 'User', fields: ['first'], searchType: 'contains' },
+				{ parent: 'Profile', fields: ['email'], searchType: 'startsWith' }
+			];
+			const result = createWhereClause(['baz'], options);
+			assert.deepStrictEqual(result, {
+				OR: [{ User: { first: { contains: 'baz' } } }, { Profile: { email: { startsWith: 'baz' } } }]
+			});
+		});
+
+		it('should throw with options as empty array', () => {
+			assert.throws(() => createWhereClause(['foo'], []), {
+				message: 'Missing options for creating the query.'
+			});
+		});
+
+		it('should handle logic case insensitivity (Or, oR, etc)', () => {
+			const options = [{ fields: ['name'], searchType: 'contains', logic: 'Or' }];
+			const result = createWhereClause(['foo', 'bar'], options);
+			assert.deepStrictEqual(result, { name: { contains: 'foo | bar' } });
+		});
+
+		it('should handle non-string queries', () => {
+			const options = [{ fields: ['id'], searchType: 'equals' }];
+			const result = createWhereClause([123, 456], options);
+			assert.deepStrictEqual(result, { id: { equals: '123 & 456' } });
 		});
 	});
 });
