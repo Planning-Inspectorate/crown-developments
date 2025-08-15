@@ -9,7 +9,7 @@ export function buildListCases(service) {
 	return async (req, res) => {
 		logger.info('list cases');
 		const searchCriteria = createWhereClause(getStringQueries(req.query?.searchCriteria), [
-			{ field: 'reference', searchType: 'contains' }
+			{ fields: ['reference'], searchType: 'contains' }
 		]);
 
 		const crownDevelopments = await db.crownDevelopment.findMany({
