@@ -14,7 +14,8 @@ export function getStringQueries(query) {
 
 /**
  * @typedef {Object} SearchOption
- * @property {string} field - The field to search in.
+ * @property {string} [parent] - The parent field to search in (optional), used for nested queries.
+ * @property {string[]} fields - The fields to search in.
  * @property {string} searchType - The type of search (e.g., 'contains', 'startsWith') https://www.prisma.io/docs/orm/reference/prisma-client-reference#filter-conditions-and-operators
  * @property {string} [logic] - The logical operator to use for combining queries (default is 'AND').
  */
@@ -39,29 +40,60 @@ export function createWhereClause(queries, options) {
 }
 
 function singleFieldWhereClause(queries, options) {
-	if (!options || !options.field || !options.searchType) {
+	if (!options || !Array.isArray(options.fields) || options.fields.length === 0 || !options.searchType) {
 		throw new Error('Missing options for creating the query.');
 	}
-	return {
-		[options.field]: {
-			[options.searchType]: handleJoinQueries(queries, options.logic)
+	if (options.parent && typeof options.parent !== 'string') {
+		throw new Error('Parent must be a string if provided.');
+	}
+	const search = handleJoinQueries(queries, options.logic);
+	const mappedFields = options.fields.map((field) => ({ [field]: { [options.searchType]: search } }));
+
+	if (options.parent) {
+		if (mappedFields.length === 1) {
+			return {
+				[options.parent]: mappedFields[0]
+			};
+		} else {
+			return {
+				[options.parent]: { OR: mappedFields }
+			};
 		}
-	};
+	}
+
+	if (mappedFields.length === 1) {
+		return mappedFields[0];
+	} else {
+		return { OR: mappedFields };
+	}
 }
 
 function multiFieldWhereClause(queries, options) {
-	if (options.some((option) => !option.field || !option.searchType)) {
+	if (options.some((option) => !Array.isArray(option.fields) || option.fields.length === 0 || !option.searchType)) {
 		throw new Error('Missing options for creating the query.');
 	}
-	return {
-		OR: options
-			.filter((option) => option.field && option.searchType)
-			.map((option) => {
-				return {
-					[option.field]: { [option.searchType]: handleJoinQueries(queries, option.logic) }
-				};
-			})
-	};
+	const mappedOptions = options.flatMap((option) => {
+		const search = handleJoinQueries(queries, option.logic);
+		const mappedFields = option.fields.map((field) => ({ [field]: { [option.searchType]: search } }));
+		if (option.parent) {
+			if (mappedFields.length === 1) {
+				return { [option.parent]: mappedFields[0] };
+			} else {
+				return { [option.parent]: { OR: mappedFields } };
+			}
+		}
+		if (mappedFields.length === 1) {
+			return mappedFields[0];
+		} else {
+			return mappedFields;
+		}
+	});
+
+	if (mappedOptions.length === 1) {
+		return mappedOptions[0];
+	} else {
+		return { OR: mappedOptions };
+	}
 }
 
 function handleJoinQueries(queries, logic) {
