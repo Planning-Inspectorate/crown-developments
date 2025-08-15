@@ -3,6 +3,7 @@
 {% from "govuk/components/table/macro.njk" import govukTable %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% from "search-filter/search-filter.njk" import searchFilters %}
+{% from "search-bar/search-bar.njk" import searchBar %}
 
 {% block pageContent %}
     {% if repReviewed %}
@@ -12,21 +13,45 @@
         }) }}
     {% endif %}
 
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            <form id="search-filter-form" method="GET">
+    <form id="search-filter-form" method="GET">
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
                 {{ searchFilters(filters) }}
-            </form>
+            </div>
+            <div class="govuk-grid-column-one-third">
+                <h3 class="govuk-heading-m">Add a representation</h3>
+                <p class="govuk-body">
+                    <a href="{{ baseUrl }}/add-representation/start" class="govuk-link govuk-link--no-visited-state">Add a representation</a>
+                </p>
+            </div>
         </div>
-        <div class="govuk-grid-column-one-third">
-            <h3 class="govuk-heading-m">Add a representation</h3>
-            <p class="govuk-body">
-                <a href="{{ baseUrl }}/add-representation/start" class="govuk-link govuk-link--no-visited-state">Add a representation</a>
-            </p>
+        <div class="govuk-grid-row row-inline">
+            <div class="govuk-grid-column-full">
+                    {{ searchBar({
+                        input: {
+                            label: {
+                                text: "Search representations"
+                            },
+                            hint: {
+                                text: "Search by reference, keywords or by name of person or organisation who made the submission."
+                            },
+                            classes: "govuk-input govuk-input--width-50"
+                        },
+                        button: {
+                            text: "Search",
+                            classes: "govuk-button"
+                        }
+                    }, searchValue) }}
+            </div>
         </div>
-    </div>
+    </form>
 
-    {{ repsTable(reps) }}
+    {% if reps|length == 0 %}
+        <p class="govuk-body">No results were found.</p>
+        <p class="govuk-body"><a href="{{ baseUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search and filters</a> to view all representations.</p>
+    {% else %}
+        {{ repsTable(reps) }}
+    {% endif %}
 {% endblock %}
 
 {% macro repsTable(representations) %}

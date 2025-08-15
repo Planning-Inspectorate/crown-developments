@@ -1,6 +1,7 @@
 import { representationsToViewModel } from './view-model.js';
 import { clearRepReviewedSession, readRepReviewedSession } from '../review/controller.js';
 import { REPRESENTATION_STATUS } from '@pins/crowndev-database/src/seed/data-static.js';
+import { createWhereClause, getStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 
 /**
  * Return a handler to show the list of representations
@@ -38,12 +39,32 @@ export function buildListReps({ db }) {
 			checked: queryFilters?.includes(status.id) || false
 		}));
 
+		const searchCriteria = createWhereClause(getStringQueries(req.query?.searchCriteria), [
+			{ fields: ['reference'], searchType: 'contains' },
+			{ field: ['submittedByAgentOrgName'], searchType: 'contains' }
+
+			//Submitter Name SubmittedByContact.firstName
+			//Submitter Name SubmittedByContact.lastName
+
+			//Agent Organisation Name submittedByAgentOrgName
+
+			//Represented person’s name RepresentedContact.firstName
+			//Represented person’s name RepresentedContact.lastName
+
+			//Represented Organisation Name RepresentedContact?.orgName
+
+			//comment
+			// or
+			//commentRedacted
+		]);
+
 		const filteredRepresentations = await db.representation.findMany({
 			where: {
 				applicationId: id,
 				statusId: {
 					in: queryFilters
-				}
+				},
+				...searchCriteria
 			},
 			include: {
 				SubmittedByContact: true,
@@ -59,6 +80,7 @@ export function buildListReps({ db }) {
 			pageCaption: cd.reference,
 			pageTitle: 'Manage representations',
 			baseUrl: req.baseUrl,
+			searchValue: req.query?.searchCriteria || '',
 			filters,
 			counts,
 			...representationsToViewModel(filteredRepresentations),
