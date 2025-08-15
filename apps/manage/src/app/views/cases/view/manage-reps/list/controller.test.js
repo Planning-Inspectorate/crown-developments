@@ -109,6 +109,7 @@ describe('list representations', () => {
 					{ text: 'Withdrawn (1)', value: 'withdrawn', checked: false }
 				],
 				counts: { 'awaiting-review': 1, accepted: 1, rejected: 0, withdrawn: 1 },
+				searchValue: '',
 				reps: [
 					{
 						reference: 'E3B94-F5D67',
@@ -172,6 +173,7 @@ describe('list representations', () => {
 					{ text: 'Withdrawn (1)', value: 'withdrawn', checked: false }
 				],
 				counts: { 'awaiting-review': 1, accepted: 1, rejected: 0, withdrawn: 1 },
+				searchValue: '',
 				reps: [
 					{
 						reference: 'E3B94-F5D67',
@@ -234,6 +236,7 @@ describe('list representations', () => {
 					{ text: 'Withdrawn (1)', value: 'withdrawn', checked: true }
 				],
 				counts: { 'awaiting-review': 1, accepted: 1, rejected: 0, withdrawn: 1 },
+				searchValue: '',
 				reps: [
 					{
 						reference: 'E3B94-F5D67',
