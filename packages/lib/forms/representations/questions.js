@@ -101,8 +101,7 @@ export const getQuestions = ({ methodOverrides = {}, textOverrides = {}, actionO
 		representedFullName: {
 			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
 			title: 'Represented person name',
-			question: 'What is the full name of the person you are representing?',
-			hint: 'We will publish this on the website along with your comments about the application.',
+			question: 'What is the name of the person you are representing?',
 			fieldName: 'representedFullName',
 			url: 'name-person-representing',
 			inputFields: [

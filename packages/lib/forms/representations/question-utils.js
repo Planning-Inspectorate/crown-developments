@@ -36,8 +36,8 @@ export function representationsContactQuestions({ prefix, actionOverrides = {}, 
 	questions[`${prefix}FullName`] = {
 		type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
 		title: 'Your full name',
-		question: 'What is your full name?',
-		hint: 'We will publish this on the website along with your comments about the application.',
+		question: 'What is your name?',
+		hint: 'We’ll publish your name on the website along with your written representation.',
 		fieldName: `${prefix}FullName`,
 		url: isSubmitter(prefix) ? `agent-full-name` : `full-name`,
 		inputFields: [
