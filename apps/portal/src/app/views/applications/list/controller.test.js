@@ -64,7 +64,7 @@ describe('case list', () => {
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments.length, 2);
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/applications/list/view.njk');
-			assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].pageTitle, 'All Crown Development Applications');
+			assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].pageTitle, 'All Crown Development applications');
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].crownDevelopmentsViewModels.length, 2);
 		});
 		it('should render page without error when no crown dev cases returned', async () => {
@@ -85,7 +85,7 @@ describe('case list', () => {
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments.length, 2);
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/applications/list/view.njk');
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
-				pageTitle: 'All Crown Development Applications',
+				pageTitle: 'All Crown Development applications',
 				crownDevelopmentsViewModels: []
 			});
 		});

@@ -16,7 +16,7 @@ export function addLocalsConfiguration({
 
 		const links = [
 			{
-				text: 'All Applications',
+				text: 'All applications',
 				href: '/applications'
 			},
 			{
