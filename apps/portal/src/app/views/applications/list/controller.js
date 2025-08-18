@@ -32,7 +32,7 @@ export function buildApplicationListPage(service) {
 		);
 
 		return res.render('views/applications/list/view.njk', {
-			pageTitle: 'All Crown Development Applications',
+			pageTitle: 'All Crown Development applications',
 			crownDevelopmentsViewModels
 		});
 	};
