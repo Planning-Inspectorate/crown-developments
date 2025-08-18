@@ -60,7 +60,10 @@
     {% for development in crownDevelopments %}
         {% set developments = (developments.push([
             {
-                html: "<a class='govuk-link' href='/cases/" +  development.id +"'>" + development.reference + "</a>"
+                html: "<a class='govuk-link' href='/cases/" +  development.id +"'>" + development.reference + "</a>",
+                attributes: {
+                    "data-sort-value": development.reference
+                }
             },
             {
                 text: development.location,
