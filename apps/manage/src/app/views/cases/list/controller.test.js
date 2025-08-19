@@ -140,7 +140,7 @@ describe('case list', () => {
 			await assert.doesNotReject(() => listCases(mockReq, mockRes));
 			assert.strictEqual(mockDb.crownDevelopment.findMany.mock.callCount(), 1);
 			assert.deepStrictEqual(mockDb.crownDevelopment.findMany.mock.calls[0].arguments[0].where, {
-				reference: { contains: 'case/ref' }
+				AND: [{ OR: [{ reference: { contains: 'case/ref' } }] }]
 			});
 		});
 	});
