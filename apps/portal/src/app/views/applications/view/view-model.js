@@ -37,10 +37,10 @@ export function crownDevelopmentToViewModel(crownDevelopment, contactEmail) {
 		representationsPeriodStartDate: formatDateForDisplay(crownDevelopment.representationsPeriodStartDate),
 		representationsPeriodEndDate: formatDateForDisplay(crownDevelopment.representationsPeriodEndDate),
 		representationsPeriodStartDateTime: formatDateForDisplay(crownDevelopment.representationsPeriodStartDate, {
-			format: 'd MMM yyyy HH:mm'
+			format: `d MMMM yyyy 'at' h:mmaaa`
 		}),
 		representationsPeriodEndDateTime: formatDateForDisplay(crownDevelopment.representationsPeriodEndDate, {
-			format: 'd MMM yyyy HH:mm'
+			format: `d MMMM yyyy 'at' h:mmaaa`
 		}),
 		representationsPublishDate: formatDateForDisplay(crownDevelopment.representationsPublishDate),
 		decisionDate: formatDateForDisplay(crownDevelopment.decisionDate),

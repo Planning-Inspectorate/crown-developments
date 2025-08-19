@@ -67,9 +67,9 @@ describe('view-model', () => {
 				decisionOutcome: 'Approved',
 				procedure: 'Inquiry',
 				representationsPeriodEndDate: '10 Oct 2025',
-				representationsPeriodEndDateTime: '10 Oct 2025 00:00',
+				representationsPeriodEndDateTime: '10 October 2025 at 12:00am',
 				representationsPeriodStartDate: '10 Oct 2025',
-				representationsPeriodStartDateTime: '10 Oct 2025 00:00',
+				representationsPeriodStartDateTime: '10 October 2025 at 12:00am',
 				representationsPublishDate: '9 Oct 2025'
 			});
 		});
