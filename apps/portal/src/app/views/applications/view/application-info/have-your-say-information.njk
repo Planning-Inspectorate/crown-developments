@@ -2,11 +2,11 @@
 
 {% macro renderHaveYourSayInformation(haveYourSayStatus, crownDevelopmentFields) %}
     <h2 id="procedure" class="govuk-heading-m">Have your say</h2>
-
     {% if haveYourSayStatus === 'open' %}
-        <p class="govuk-body">Use this service to have your say about the application.</p>
-        <p class="govuk-body">We'll ask for your personal details and your comments about this application.</p>
-        <p class="govuk-body">The representation period is open from: {{ crownDevelopmentFields.representationsPeriodStartDateTime }} - {{ crownDevelopmentFields.representationsPeriodEndDateTime }}</p>
+        <p class="govuk-body">Use this service to submit a written representation with your views on this Crown Development application. A written representation includes your comment and any supporting documents. Written representations will be considered by the Planning Inspectors before a decision is made on an application.</p>
+        <p class="govuk-body">Your name and written representation will be published on this website.</p>
+        <p class="govuk-body">The representations period is open from:</p>
+        <p class="govuk-body">{{ crownDevelopmentFields.representationsPeriodStartDateTime }} to {{ crownDevelopmentFields.representationsPeriodEndDateTime }}</p>
         <br>
         {{ govukButton({
             text: "Have your say",
@@ -15,20 +15,21 @@
             href: "have-your-say"
         }) }}
     {% elif haveYourSayStatus === 'notOpenDatesSet' %}
-        <p class="govuk-body">You can use this service to have your say on this application when the representation period opens from: {{ crownDevelopmentFields.representationsPeriodStartDateTime }} - {{ crownDevelopmentFields.representationsPeriodEndDateTime }}.</p>
-        <p class="govuk-body">We'll ask for your personal details and your comments about this application.</p>
+        <p class="govuk-body">You can use this service to submit a written representation for this Crown Development application during the representations period:</p>
+        <p class="govuk-body">{{ crownDevelopmentFields.representationsPeriodStartDateTime }} to {{ crownDevelopmentFields.representationsPeriodEndDateTime }}.</p>
+        <p class="govuk-body">We’ll ask for your name, email address and written representation. Your name and written representation will be published on our website.</p>
     {% elif haveYourSayStatus === 'notOpenDatesNotSet' %}
-        <p class="govuk-body">You can use this service to have your say on this application when the representation period opens.</p>
-        <p class="govuk-body">We'll ask for your personal details and your comments about this application.</p>
-        <p class="govuk-body">Check back later to see when the representation period will be held.</p>
+        <p class="govuk-body">You can use this service to submit a written representation on this Crown Development application when the representations period starts.</p>
+        <p class="govuk-body">We’ll ask for your name, email address and written representation. Your name and written representation will be published on our website.</p>
+        <p class="govuk-body">The representations period will be published on this website as soon as dates are confirmed.</p>
     {% elif haveYourSayStatus === 'closedRepsPublished' %}
-        <p class="govuk-body">The representation period for this application has closed. </p>
-        <p class="govuk-body">You can view the published representations <a class="govuk-link" href="/applications/{{ crownDevelopmentFields.id }}/written-representations">here</a>.</p>
+        <p class="govuk-body">The representations period for this application has now ended.</p>
+        <p class="govuk-body">You can view the written representations <a class="govuk-link" href="/applications/{{ crownDevelopmentFields.id }}/written-representations">here</a>.</p>
     {% elif haveYourSayStatus === 'closedPublishedDateInFuture' %}{# Scenario 5 #}
-        <p class="govuk-body">The representation period for this application has closed.</p>
-        <p class="govuk-body">You can view the published representations from: {{ crownDevelopmentFields.representationsPublishDate }}</p>
+        <p class="govuk-body">The representations period for this application has now ended.</p>
+        <p class="govuk-body">You can view the written representations from: {{ crownDevelopmentFields.representationsPublishDate }}</p>
     {% elif haveYourSayStatus === 'closedRepsPublishedDateNotSet' %}
-        <p class="govuk-body">The representation period for this application has closed.</p>
-        <p class="govuk-body">Check back later to see the published representations.</p>
+        <p class="govuk-body">The representations period for this application has now ended.</p>
+        <p class="govuk-body">We’ll update the website with written representations as soon as these are available.</p>
     {% endif %}
 {% endmacro %}
