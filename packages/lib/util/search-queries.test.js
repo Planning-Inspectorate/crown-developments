@@ -34,24 +34,30 @@ describe('createWhereClause', () => {
 
 		it('should create where clause for single query', () => {
 			const result = createWhereClause(['foo'], options);
-			assert.deepStrictEqual(result, { name: { contains: 'foo' } });
+			assert.deepStrictEqual(result, { AND: [{ OR: [{ name: { contains: 'foo' } }] }] });
 		});
 
-		it('should by default join multiple queries with &', () => {
+		it('should by default join multiple queries with OR', () => {
 			const result = createWhereClause(['foo', 'bar'], options);
-			assert.deepStrictEqual(result, { name: { contains: 'foo & bar' } });
+			assert.deepStrictEqual(result, {
+				AND: [{ OR: [{ name: { contains: 'foo' } }] }, { OR: [{ name: { contains: 'bar' } }] }]
+			});
 		});
 
-		it('should join with or if specified in lowercase', () => {
-			const optionsWithOr = [{ fields: ['name'], searchType: 'contains', logic: 'or' }];
+		it('should join with "and" if specified in lowercase', () => {
+			const optionsWithOr = [{ fields: ['name'], searchType: 'contains', logic: 'and' }];
 			const result = createWhereClause(['foo', 'bar'], optionsWithOr);
-			assert.deepStrictEqual(result, { name: { contains: 'foo | bar' } });
+			assert.deepStrictEqual(result, {
+				AND: [{ AND: [{ name: { contains: 'foo' } }] }, { AND: [{ name: { contains: 'bar' } }] }]
+			});
 		});
 
-		it('should join with or if specified in uppercase', () => {
-			const optionsWithOr = [{ fields: ['name'], searchType: 'contains', logic: 'OR' }];
+		it('should join with "and" if specified in uppercase', () => {
+			const optionsWithOr = [{ fields: ['name'], searchType: 'contains', logic: 'AND' }];
 			const result = createWhereClause(['foo', 'bar'], optionsWithOr);
-			assert.deepStrictEqual(result, { name: { contains: 'foo | bar' } });
+			assert.deepStrictEqual(result, {
+				AND: [{ AND: [{ name: { contains: 'foo' } }] }, { AND: [{ name: { contains: 'bar' } }] }]
+			});
 		});
 
 		it('should throw missing searchType', () => {
@@ -72,12 +78,19 @@ describe('createWhereClause', () => {
 
 		it('should create where clause for single query', () => {
 			const result = createWhereClause(['foo'], options);
-			assert.deepStrictEqual(result, { OR: [{ name: { contains: 'foo' } }, { age: { contains: 'foo' } }] });
+			assert.deepStrictEqual(result, {
+				AND: [{ OR: [{ name: { contains: 'foo' } }, { age: { contains: 'foo' } }] }]
+			});
 		});
 
 		it('should by default join multiple queries with &', () => {
 			const result = createWhereClause(['foo', 'bar'], options);
-			assert.deepStrictEqual(result, { OR: [{ name: { contains: 'foo & bar' } }, { age: { contains: 'foo & bar' } }] });
+			assert.deepStrictEqual(result, {
+				AND: [
+					{ OR: [{ name: { contains: 'foo' } }, { age: { contains: 'foo' } }] },
+					{ OR: [{ name: { contains: 'bar' } }, { age: { contains: 'bar' } }] }
+				]
+			});
 		});
 	});
 	describe('multiple field queries', () => {
@@ -94,7 +107,10 @@ describe('createWhereClause', () => {
 		it('should create where clause for single query', () => {
 			const result = createWhereClause(['foo'], options);
 			assert.deepStrictEqual(result, {
-				OR: [{ name: { contains: 'foo' } }, { age: { contains: 'foo' } }, { desc: { startsWith: 'foo' } }]
+				OR: [
+					{ AND: [{ OR: [{ name: { contains: 'foo' } }, { age: { contains: 'foo' } }] }] },
+					{ AND: [{ OR: [{ desc: { startsWith: 'foo' } }] }] }
+				]
 			});
 		});
 
@@ -102,9 +118,13 @@ describe('createWhereClause', () => {
 			const result = createWhereClause(['foo', 'bar'], options);
 			assert.deepStrictEqual(result, {
 				OR: [
-					{ name: { contains: 'foo & bar' } },
-					{ age: { contains: 'foo & bar' } },
-					{ desc: { startsWith: 'foo & bar' } }
+					{
+						AND: [
+							{ OR: [{ name: { contains: 'foo' } }, { age: { contains: 'foo' } }] },
+							{ OR: [{ name: { contains: 'bar' } }, { age: { contains: 'bar' } }] }
+						]
+					},
+					{ AND: [{ OR: [{ desc: { startsWith: 'foo' } }] }, { OR: [{ desc: { startsWith: 'bar' } }] }] }
 				]
 			});
 		});
@@ -128,15 +148,13 @@ describe('createWhereClause', () => {
 		it('should create where clause with parent and single field', () => {
 			const singleFieldOptions = [{ parent: 'Profile', fields: ['email'], searchType: 'contains' }];
 			const result = createWhereClause(['test'], singleFieldOptions);
-			assert.deepStrictEqual(result, { Profile: { email: { contains: 'test' } } });
+			assert.deepStrictEqual(result, { Profile: { AND: [{ OR: [{ email: { contains: 'test' } }] }] } });
 		});
 
 		it('should create where clause with parent', () => {
 			const result = createWhereClause(['foo'], options);
 			assert.deepStrictEqual(result, {
-				Contact: {
-					OR: [{ firstName: { contains: 'foo' } }, { lastName: { contains: 'foo' } }]
-				}
+				Contact: { AND: [{ OR: [{ firstName: { contains: 'foo' } }, { lastName: { contains: 'foo' } }] }] }
 			});
 		});
 
@@ -147,11 +165,15 @@ describe('createWhereClause', () => {
 				OR: [
 					{
 						Contact: {
-							OR: [{ firstName: { contains: 'foo' } }, { lastName: { contains: 'foo' } }]
+							AND: [
+								{
+									OR: [{ firstName: { contains: 'foo' } }, { lastName: { contains: 'foo' } }]
+								}
+							]
 						}
 					},
 					{
-						city: { startsWith: 'foo' }
+						AND: [{ OR: [{ city: { startsWith: 'foo' } }] }]
 					}
 				]
 			});
@@ -170,19 +192,36 @@ describe('createWhereClause', () => {
 			const result = createWhereClause(['foo', 'bar'], options);
 			assert.deepStrictEqual(result, {
 				User: {
-					OR: [{ first: { contains: 'foo | bar' } }, { last: { contains: 'foo | bar' } }]
+					AND: [
+						{ OR: [{ first: { contains: 'foo' } }, { last: { contains: 'foo' } }] },
+						{ OR: [{ first: { contains: 'bar' } }, { last: { contains: 'bar' } }] }
+					]
 				}
 			});
 		});
 
 		it('should handle multiple parents', () => {
 			const options = [
-				{ parent: 'User', fields: ['first'], searchType: 'contains' },
+				{ parent: 'User', fields: ['first', 'last'], searchType: 'contains' },
 				{ parent: 'Profile', fields: ['email'], searchType: 'startsWith' }
 			];
-			const result = createWhereClause(['baz'], options);
+			const result = createWhereClause(['baz', 'buzz'], options);
 			assert.deepStrictEqual(result, {
-				OR: [{ User: { first: { contains: 'baz' } } }, { Profile: { email: { startsWith: 'baz' } } }]
+				OR: [
+					{
+						User: {
+							AND: [
+								{ OR: [{ first: { contains: 'baz' } }, { last: { contains: 'baz' } }] },
+								{ OR: [{ first: { contains: 'buzz' } }, { last: { contains: 'buzz' } }] }
+							]
+						}
+					},
+					{
+						Profile: {
+							AND: [{ OR: [{ email: { startsWith: 'baz' } }] }, { OR: [{ email: { startsWith: 'buzz' } }] }]
+						}
+					}
+				]
 			});
 		});
 
@@ -192,16 +231,18 @@ describe('createWhereClause', () => {
 			});
 		});
 
-		it('should handle logic case insensitivity (Or, oR, etc)', () => {
-			const options = [{ fields: ['name'], searchType: 'contains', logic: 'Or' }];
+		it('should handle logic case insensitivity (And, aND, etc)', () => {
+			const options = [{ fields: ['name'], searchType: 'contains', logic: 'AnD' }];
 			const result = createWhereClause(['foo', 'bar'], options);
-			assert.deepStrictEqual(result, { name: { contains: 'foo | bar' } });
+			assert.deepStrictEqual(result, {
+				AND: [{ AND: [{ name: { contains: 'foo' } }] }, { AND: [{ name: { contains: 'bar' } }] }]
+			});
 		});
 
 		it('should handle non-string queries', () => {
 			const options = [{ fields: ['id'], searchType: 'equals' }];
 			const result = createWhereClause([123, 456], options);
-			assert.deepStrictEqual(result, { id: { equals: '123 & 456' } });
+			assert.deepStrictEqual(result, { AND: [{ OR: [{ id: { equals: 123 } }] }, { OR: [{ id: { equals: 456 } }] }] });
 		});
 	});
 });

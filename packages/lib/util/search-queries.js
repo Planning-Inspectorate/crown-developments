@@ -17,13 +17,13 @@ export function getStringQueries(query) {
  * @property {string} [parent] - The parent field to search in (optional), used for nested queries.
  * @property {string[]} fields - The fields to search in.
  * @property {string} searchType - The type of search (e.g., 'contains', 'startsWith') https://www.prisma.io/docs/orm/reference/prisma-client-reference#filter-conditions-and-operators
- * @property {string} [logic] - The logical operator to use for combining queries (default is 'AND').
+ * @property {string} [logic] - The logical operator to use for combining queries (default is 'OR').
  */
 
 /**
  * Creates a where clause for Prisma queries based on the provided search queries.
  * @param queries
- * @param {SearchOption[] | SearchOption} options
+ * @param {SearchOption[]} options
  * @returns {{}|undefined}
  */
 export function createWhereClause(queries, options) {
@@ -46,25 +46,12 @@ function singleFieldWhereClause(queries, options) {
 	if (options.parent && typeof options.parent !== 'string') {
 		throw new Error('Parent must be a string if provided.');
 	}
-	const search = handleJoinQueries(queries, options.logic);
-	const mappedFields = options.fields.map((field) => ({ [field]: { [options.searchType]: search } }));
 
+	const mappedFields = buildFieldQueryCondition(queries, options.fields, options);
 	if (options.parent) {
-		if (mappedFields.length === 1) {
-			return {
-				[options.parent]: mappedFields[0]
-			};
-		} else {
-			return {
-				[options.parent]: { OR: mappedFields }
-			};
-		}
-	}
-
-	if (mappedFields.length === 1) {
-		return mappedFields[0];
+		return { [options.parent]: mappedFields };
 	} else {
-		return { OR: mappedFields };
+		return mappedFields;
 	}
 }
 
@@ -73,17 +60,10 @@ function multiFieldWhereClause(queries, options) {
 		throw new Error('Missing options for creating the query.');
 	}
 	const mappedOptions = options.flatMap((option) => {
-		const search = handleJoinQueries(queries, option.logic);
-		const mappedFields = option.fields.map((field) => ({ [field]: { [option.searchType]: search } }));
+		const mappedFields = buildFieldQueryCondition(queries, option.fields, option);
+
 		if (option.parent) {
-			if (mappedFields.length === 1) {
-				return { [option.parent]: mappedFields[0] };
-			} else {
-				return { [option.parent]: { OR: mappedFields } };
-			}
-		}
-		if (mappedFields.length === 1) {
-			return mappedFields[0];
+			return { [option.parent]: mappedFields };
 		} else {
 			return mappedFields;
 		}
@@ -96,7 +76,13 @@ function multiFieldWhereClause(queries, options) {
 	}
 }
 
-function handleJoinQueries(queries, logic) {
-	const joiner = logic && logic.toUpperCase() === 'OR' ? ' | ' : ' & ';
-	return queries.join(joiner);
+function buildFieldQueryCondition(queries, fields, option) {
+	const logicOperator = option.logic && option.logic.toUpperCase() === 'AND' ? 'AND' : 'OR';
+	return {
+		AND: queries.map((query) => ({
+			[logicOperator]: fields.map((field) => ({
+				[field]: { [option.searchType]: query }
+			}))
+		}))
+	};
 }
