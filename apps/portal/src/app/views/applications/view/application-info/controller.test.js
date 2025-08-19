@@ -63,7 +63,8 @@ describe('application info controller', () => {
 				config: {}
 			});
 			const mockReq = {
-				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' }
+				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
+				baseUrl: '/applications/'
 			};
 			const mockRes = {
 				status: mock.fn(),
@@ -78,7 +79,8 @@ describe('application info controller', () => {
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
 				pageCaption: 'CROWN/2025/0000001',
 				applicationReference: 'CROWN/2025/0000001',
-				pageTitle: 'Application Information',
+				pageTitle: 'Application information',
+				baseUrl: '/applications/',
 				shouldShowImportantDatesSection: true,
 				shouldShowApplicationDecisionSection: false,
 				links: [

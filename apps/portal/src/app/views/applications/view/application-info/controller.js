@@ -64,9 +64,10 @@ export function buildApplicationInformationPage(service) {
 
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
-			pageTitle: 'Application Information',
+			pageTitle: 'Application information',
 			applicationReference: crownDevelopment.reference,
 			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
+			baseUrl: req.baseUrl,
 			currentUrl: req.originalUrl,
 			shouldShowImportantDatesSection,
 			crownDevelopmentFields,
