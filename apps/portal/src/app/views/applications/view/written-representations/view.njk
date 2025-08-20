@@ -29,6 +29,7 @@
 			<div class="govuk-grid-row">
 				<div class="govuk-grid-column-full">
 					<form id="search-bar-form" method="GET">
+                        <input type="hidden" name="itemsPerPage" value="{{ selectedItemsPerPage }}">
 						{{ searchBar({
 							input: {
 								label: {
@@ -61,7 +62,7 @@
 								of <strong>{{ totalRepresentations }}</strong> representations, newest first.
 							</p>
 
-							{{ paginationOptions.renderPagination(selectedItemsPerPage, totalRepresentations, pageNumber) }}
+							{{ paginationOptions.renderPagination(selectedItemsPerPage, totalRepresentations, pageNumber, searchValue) }}
 
 							<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 

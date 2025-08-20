@@ -4,6 +4,7 @@ import { fetchPublishedApplication } from '#util/applications.js';
 import { applicationLinks, representationToViewModel } from '../view-model.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
+import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 
 /**
  * Render written representations page
@@ -30,6 +31,14 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 		if (!crownDevelopment) {
 			return notFoundHandler(req, res);
 		}
+		const stringQueriesArray = splitStringQueries(req.query?.searchCriteria);
+
+		const searchCriteria = createWhereClause(stringQueriesArray, [
+			{ parent: 'RepresentedContact', fields: ['firstName', 'lastName', 'orgName'] },
+			{ parent: 'SubmittedByContact', fields: ['firstName', 'lastName'] },
+			{ fields: ['commentRedacted'] },
+			{ fields: ['comment'], constraints: [{ commentRedacted: { equals: null } }] }
+		]);
 
 		const selectedItemsPerPage = Number(req.query?.itemsPerPage) || 25;
 		const pageNumber = Math.max(1, Number(req.query?.page) || 1);
@@ -42,7 +51,8 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 				db.representation.findMany({
 					where: {
 						applicationId: id,
-						statusId: REPRESENTATION_STATUS_ID.ACCEPTED
+						statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+						...searchCriteria
 					},
 					select: {
 						reference: true,
@@ -66,7 +76,8 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 				db.representation.count({
 					where: {
 						applicationId: id,
-						statusId: REPRESENTATION_STATUS_ID.ACCEPTED
+						statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+						...searchCriteria
 					}
 				})
 			]);
@@ -105,7 +116,8 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			pageNumber,
 			totalPages,
 			resultsStartNumber,
-			resultsEndNumber
+			resultsEndNumber,
+			searchValue: req.query?.searchCriteria || ''
 		});
 	};
 }
