@@ -5,6 +5,7 @@ import { applicationLinks, representationToViewModel } from '../view-model.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
+import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 
 /**
  * Render written representations page
@@ -31,6 +32,12 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 		if (!crownDevelopment) {
 			return notFoundHandler(req, res);
 		}
+		const publishedDate = crownDevelopment.representationsPublishDate;
+		const representationsPublished = publishedDate && (dateIsToday(publishedDate) || dateIsBeforeToday(publishedDate));
+		if (!representationsPublished) {
+			return notFoundHandler(req, res);
+		}
+
 		const stringQueriesArray = splitStringQueries(req.query?.searchCriteria);
 
 		const searchCriteria = createWhereClause(stringQueriesArray, [
@@ -102,13 +109,12 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			start: new Date(crownDevelopment.representationsPeriodStartDate),
 			end: new Date(crownDevelopment.representationsPeriodEndDate)
 		};
-		const representationsPublishDate = crownDevelopment.representationsPublishDate;
 
 		res.render('views/applications/view/written-representations/view.njk', {
 			pageCaption: crownDevelopment.reference,
 			pageTitle: 'Written representations',
 			representations: representations.map((representation) => representationToViewModel(representation, true)),
-			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
+			links: applicationLinks(id, haveYourSayPeriod, publishedDate),
 			currentUrl: req.originalUrl,
 			clearQueryUrl: req.baseUrl,
 			selectedItemsPerPage,
