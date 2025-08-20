@@ -1,4 +1,4 @@
-{% macro renderPagination(selectedItemsPerPage, totalRepresentations, pageNumber) %}
+{% macro renderPagination(selectedItemsPerPage, totalRepresentations, pageNumber, searchValue) %}
     {% if totalRepresentations > 25 %}
         <span><strong>Results per page</strong></span>&nbsp;&nbsp;&nbsp;&nbsp;
 
@@ -7,6 +7,8 @@
         {% for size in pageSizes %}
             {% if size == selectedItemsPerPage %}
                 <span class="govuk-body">{{ size }}</span>
+            {% elif searchValue %}
+                <a class="govuk-link--no-visited-state" href="{{ currentUrl }}?itemsPerPage={{ size }}&searchCriteria={{ searchValue | replace(" ", "+") }}" data-pagination="{{ size }}">{{ size }}</a>
             {% else %}
                 <a class="govuk-link--no-visited-state" href="{{ currentUrl }}?itemsPerPage={{ size }}&page={{ pageNumber }}" data-pagination="{{ size }}">{{ size }}</a>
             {% endif %}
