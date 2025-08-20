@@ -57,9 +57,9 @@
                     {% endif %}
                 {% endif %}
 
-                {% if crownDevelopmentFields.stage %}
+                {% if shouldShowProcedureDetailsSection %}
                     <h3 class="govuk-heading-s">Procedure Details</h3>
-                    <p class="govuk-body">Application Stage: {{ crownDevelopmentFields.stage }}</p>
+                    {% if crownDevelopmentFields.stage %}<p class="govuk-body">Application Stage: {{ crownDevelopmentFields.stage }}</p>{% endif %}
                     {% if crownDevelopmentFields.procedure %}<p class="govuk-body">Procedure Type: {{ crownDevelopmentFields.procedure }}</p>{% endif %}
                     {% if crownDevelopmentFields.isInquiry %}
                         {% if crownDevelopmentFields.inquiryDate %}<p class="govuk-body">Inquiry Date: {{ crownDevelopmentFields.inquiryDate }}</p>{% endif %}

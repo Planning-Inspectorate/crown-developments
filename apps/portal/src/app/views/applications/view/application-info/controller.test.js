@@ -2,6 +2,7 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildApplicationInformationPage } from './controller.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
+import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 describe('application info controller', () => {
 	describe('buildApplicationInformationPage', () => {
@@ -54,7 +55,12 @@ describe('application info controller', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: new Date('2025-01-01'),
 						representationsPeriodEndDate: new Date('2025-01-31'),
-						representationsPublishDate: '2025-10-09T09:00:00.000Z'
+						representationsPublishDate: '2025-10-09T09:00:00.000Z',
+						procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+						Event: {
+							date: new Date('2020-12-17T03:24:00.000Z'),
+							venue: 'the venue'
+						}
 					}))
 				}
 			};
@@ -83,6 +89,7 @@ describe('application info controller', () => {
 				baseUrl: '/applications/',
 				shouldShowImportantDatesSection: true,
 				shouldShowApplicationDecisionSection: false,
+				shouldShowProcedureDetailsSection: true,
 				links: [
 					{
 						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-information',
@@ -115,7 +122,10 @@ describe('application info controller', () => {
 					representationsPeriodStartDate: '1 Jan 2025',
 					representationsPeriodStartDateTime: '1 January 2025 at 12:00am',
 					representationsPublishDate: '9 Oct 2025',
-					stage: undefined
+					stage: undefined,
+					hearingDate: '17 Dec 2020',
+					hearingVenue: 'the venue',
+					isHearing: true
 				},
 				haveYourSayStatus: 'open'
 			});

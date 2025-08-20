@@ -53,14 +53,26 @@ export function buildApplicationInformationPage(service) {
 			applicationAcceptedDate,
 			decisionDate,
 			decisionOutcome,
+			hearingDate,
+			hearingVenue,
+			inquiryDate,
+			inquiryProofsOfEvidenceDate,
+			inquiryStatementsDate,
+			inquiryVenue,
+			procedure,
 			representationsPeriodStartDateTime,
-			representationsPeriodEndDateTime
+			representationsPeriodEndDateTime,
+			stage
 		} = crownDevelopmentFields;
 		const shouldShowImportantDatesSection = [
 			applicationAcceptedDate,
 			representationsPeriodStartDateTime && representationsPeriodEndDateTime
 		].some(Boolean);
 		const shouldShowApplicationDecisionSection = [decisionDate, decisionOutcome].some(Boolean);
+		const shouldShowProcedureDetailsSection =
+			[procedure, stage].some(Boolean) ||
+			[inquiryDate, inquiryVenue, inquiryStatementsDate, inquiryProofsOfEvidenceDate].some(Boolean) ||
+			[hearingDate, hearingVenue].some(Boolean);
 
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
@@ -69,9 +81,10 @@ export function buildApplicationInformationPage(service) {
 			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
 			baseUrl: req.baseUrl,
 			currentUrl: req.originalUrl,
-			shouldShowImportantDatesSection,
 			crownDevelopmentFields,
 			shouldShowApplicationDecisionSection,
+			shouldShowImportantDatesSection,
+			shouldShowProcedureDetailsSection,
 			haveYourSayStatus: getHaveYourSayStatus(haveYourSayPeriod, representationsPublishDate)
 		});
 	};
