@@ -1,4 +1,4 @@
-import { createWhereClause, getStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
+import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -8,7 +8,7 @@ export function buildListCases(service) {
 	const { db, logger } = service;
 	return async (req, res) => {
 		logger.info('list cases');
-		const searchCriteria = createWhereClause(getStringQueries(req.query?.searchCriteria), [
+		const searchCriteria = createWhereClause(splitStringQueries(req.query?.searchCriteria), [
 			{ fields: ['reference'], searchType: 'contains' }
 		]);
 
