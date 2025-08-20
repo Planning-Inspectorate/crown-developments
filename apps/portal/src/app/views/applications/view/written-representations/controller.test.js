@@ -24,9 +24,9 @@ describe('written representations', () => {
 					findUnique: mock.fn(() => ({
 						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
 						reference: 'CROWN/2025/0000001',
-						representationsPeriodStartDate: '2025-01-01',
-						representationsPeriodEndDate: '2025-02-01',
-						representationsPublishDate: '2025-03-01'
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01')
 					}))
 				},
 				representation: {
@@ -96,9 +96,9 @@ describe('written representations', () => {
 					findUnique: mock.fn(() => ({
 						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
 						reference: 'CROWN/2025/0000001',
-						representationsPeriodStartDate: '2025-01-01',
-						representationsPeriodEndDate: '2025-02-01',
-						representationsPublishDate: '2025-03-01'
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01')
 					}))
 				},
 				representation: {
@@ -178,9 +178,9 @@ describe('written representations', () => {
 					findUnique: mock.fn(() => ({
 						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
 						reference: 'CROWN/2025/0000001',
-						representationsPeriodStartDate: '2025-01-01',
-						representationsPeriodEndDate: '2025-02-01',
-						representationsPublishDate: '2025-03-01'
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01')
 					}))
 				},
 				representation: {
@@ -219,9 +219,9 @@ describe('written representations', () => {
 					findUnique: mock.fn(() => ({
 						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
 						reference: 'CROWN/2025/0000001',
-						representationsPeriodStartDate: '2025-01-01',
-						representationsPeriodEndDate: '2025-02-01',
-						representationsPublishDate: '2025-03-01'
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01')
 					}))
 				},
 				representation: {
@@ -257,9 +257,9 @@ describe('written representations', () => {
 					findUnique: mock.fn(() => ({
 						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
 						reference: 'CROWN/2025/0000001',
-						representationsPeriodStartDate: '2025-01-01',
-						representationsPeriodEndDate: '2025-02-01',
-						representationsPublishDate: '2025-03-01'
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01')
 					}))
 				},
 				representation: {
@@ -286,9 +286,9 @@ describe('written representations', () => {
 					findUnique: mock.fn(() => ({
 						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
 						reference: 'CROWN/2025/0000001',
-						representationsPeriodStartDate: '2025-01-01',
-						representationsPeriodEndDate: '2025-02-01',
-						representationsPublishDate: '2025-03-01'
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01')
 					}))
 				},
 				representation: {
@@ -326,9 +326,9 @@ describe('written representations', () => {
 					findUnique: mock.fn(() => ({
 						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
 						reference: 'CROWN/2025/0000001',
-						representationsPeriodStartDate: '2025-01-01',
-						representationsPeriodEndDate: '2025-02-01',
-						representationsPublishDate: '2025-03-01'
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01')
 					}))
 				},
 				representation: {
@@ -371,9 +371,9 @@ describe('written representations', () => {
 					findUnique: mock.fn(() => ({
 						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
 						reference: 'CROWN/2025/0000001',
-						representationsPeriodStartDate: '2025-01-01',
-						representationsPeriodEndDate: '2025-02-01',
-						representationsPublishDate: '2025-03-01'
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01')
 					}))
 				},
 				representation: {
@@ -399,9 +399,9 @@ describe('written representations', () => {
 					findUnique: mock.fn(() => ({
 						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
 						reference: 'CROWN/2025/0000001',
-						representationsPeriodStartDate: '2025-01-01',
-						representationsPeriodEndDate: '2025-02-01',
-						representationsPublishDate: '2025-03-01'
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01')
 					}))
 				},
 				representation: {
@@ -427,9 +427,9 @@ describe('written representations', () => {
 					findUnique: mock.fn(() => ({
 						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
 						reference: 'CROWN/2025/0000001',
-						representationsPeriodStartDate: '2025-01-01',
-						representationsPeriodEndDate: '2025-02-01',
-						representationsPublishDate: '2025-03-01'
+						representationsPeriodStartDate: new Date('2025-01-01T00:00:00Z'),
+						representationsPeriodEndDate: new Date('2025-02-01T00:00:00Z'),
+						representationsPublishDate: new Date('2025-04-09T23:00:00.00Z')
 					}))
 				},
 				representation: {
@@ -468,7 +468,7 @@ describe('written representations', () => {
 			await assertRenders404Page(handler, mockReq, false);
 		});
 
-		it('should 404 if the application is not found', async () => {
+		it('should 404 if the UUID is invalid', async () => {
 			const mockReq = { params: { applicationId: '123' } };
 			const mockDb = {
 				crownDevelopment: {
@@ -476,6 +476,49 @@ describe('written representations', () => {
 				}
 			};
 			const writtenRepresentationsPage = buildWrittenRepresentationsListPage({ mockDb, config: {} });
+			await assertRenders404Page(writtenRepresentationsPage, mockReq, false);
+		});
+		it('should 404 if the application is not found', async () => {
+			const mockReq = { params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' } };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => null)
+				}
+			};
+			const writtenRepresentationsPage = buildWrittenRepresentationsListPage({ db: mockDb, config: {} });
+			await assertRenders404Page(writtenRepresentationsPage, mockReq, false);
+		});
+		it('should 404 if the application written representations published date is in the future', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-03T03:24:00.000Z') });
+			const mockReq = { params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' } };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
+						reference: 'CROWN/2025/0000001',
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-01-05')
+					}))
+				}
+			};
+			const writtenRepresentationsPage = buildWrittenRepresentationsListPage({ db: mockDb, config: {} });
+			await assertRenders404Page(writtenRepresentationsPage, mockReq, false);
+		});
+		it('should 404 if the application written representations are not published', async () => {
+			const mockReq = { params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' } };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
+						reference: 'CROWN/2025/0000001',
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: null
+					}))
+				}
+			};
+			const writtenRepresentationsPage = buildWrittenRepresentationsListPage({ db: mockDb, config: {} });
 			await assertRenders404Page(writtenRepresentationsPage, mockReq, false);
 		});
 	});
