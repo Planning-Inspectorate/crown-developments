@@ -10,7 +10,7 @@
             {% elif searchValue %}
                 <a class="govuk-link--no-visited-state" href="{{ currentUrl }}?itemsPerPage={{ size }}&searchCriteria={{ searchValue | replace(" ", "+") }}" data-pagination="{{ size }}">{{ size }}</a>
             {% else %}
-                <a class="govuk-link--no-visited-state" href="{{ currentUrl }}?itemsPerPage={{ size }}&page={{ pageNumber }}" data-pagination="{{ size }}">{{ size }}</a>
+                <a class="govuk-link--no-visited-state" href="{{ currentUrl }}?itemsPerPage={{ size }}" data-pagination="{{ size }}">{{ size }}</a>
             {% endif %}
 
             {% if not loop.last %}&nbsp;&nbsp;|&nbsp;&nbsp;{% endif %}
