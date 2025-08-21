@@ -3,7 +3,7 @@ import { sortByField } from '@pins/crowndev-lib/util/array.js';
 import { checkApplicationPublished } from '../../../util/application-util.js';
 import { publishedFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { getDocuments } from '@pins/crowndev-lib/documents/get.js';
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 
 /**
  * Render the list of documents page
@@ -23,19 +23,25 @@ export function buildApplicationDocumentsPage(service) {
 
 		logger.info({ folderPath }, 'view documents');
 
-		const documents = await getDocuments({
+		let allDocuments = await getDocuments({
 			sharePointDrive,
 			folderPath,
 			logger,
 			id,
 			sortFn: sortByField('lastModifiedDateTime', true)
 		});
-		const totalDocuments = documents.length;
 
-		if ([null, undefined].includes(totalDocuments) || Number.isNaN(totalDocuments)) {
-			return notFoundHandler(req, res);
+		const queries = splitStringQueries(req.query?.searchCriteria);
+		if (queries && queries.length > 0) {
+			let filteredDocuments = allDocuments;
+			for (const query of queries) {
+				filteredDocuments = filteredDocuments.filter((document) =>
+					document.name.trim().toLowerCase().includes(query.trim().toLowerCase())
+				);
+			}
+			allDocuments = filteredDocuments;
 		}
-
+		const totalDocuments = allDocuments.length;
 		const selectedItemsPerPage = Number(req.query?.itemsPerPage) || 25;
 		const pageNumber = Math.max(1, Number(req.query?.page) || 1);
 		const pageSize = [25, 50, 100].includes(selectedItemsPerPage) ? selectedItemsPerPage : 100;
@@ -53,13 +59,14 @@ export function buildApplicationDocumentsPage(service) {
 			pageCaption: reference,
 			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
 			currentUrl,
-			documents: documents.slice(skipSize, skipSize + pageSize),
+			documents: allDocuments.slice(skipSize, skipSize + pageSize),
 			selectedItemsPerPage,
 			totalDocuments,
 			pageNumber,
 			totalPages,
 			resultsStartNumber,
-			resultsEndNumber
+			resultsEndNumber,
+			searchValue: req.query?.searchCriteria || ''
 		});
 	};
 }
