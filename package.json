@@ -30,7 +30,7 @@
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@ministryofjustice/frontend": "^5.1.5",
     "@planning-inspectorate/dynamic-forms": "^1.12.0",
-    "@prisma/client": "^6.13.0",
+    "@prisma/client": "^6.14.0",
     "accessible-autocomplete": "^3.0.1",
     "body-parser": "^2.2.0",
     "cfb": "^1.2.2",
