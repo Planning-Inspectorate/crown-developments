@@ -33,13 +33,9 @@ export function buildApplicationDocumentsPage(service) {
 
 		const queries = splitStringQueries(req.query?.searchCriteria);
 		if (queries && queries.length > 0) {
-			let filteredDocuments = allDocuments;
-			for (const query of queries) {
-				filteredDocuments = filteredDocuments.filter((document) =>
-					document.name.trim().toLowerCase().includes(query.trim().toLowerCase())
-				);
-			}
-			allDocuments = filteredDocuments;
+			allDocuments = allDocuments.filter((document) =>
+				queries.every((query) => document.name.trim().toLowerCase().includes(query.trim().toLowerCase()))
+			);
 		}
 		const totalDocuments = allDocuments.length;
 		const selectedItemsPerPage = Number(req.query?.itemsPerPage) || 25;
