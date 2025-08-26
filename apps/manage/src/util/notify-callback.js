@@ -7,7 +7,7 @@ export function buildNotifyCallbackTokenValidator(service) {
 	return async (req, res, next) => {
 		const authHeader = req.headers.authorization;
 		const token = authHeader && authHeader.split(' ')[1];
-		if (!service.webHookToken || service.webHookToken === '') {
+		if (!service.webHookToken) {
 			service.logger.warn('webHookToken is not set in Notify callback');
 			return res.status(500);
 		} else if (!token || token !== service.webHookToken) {
