@@ -5,10 +5,6 @@
   "private": true,
   "main": "./src/index.js",
   "type": "module",
-  "prisma": {
-    "schema": "src/schema.prisma",
-    "seed": "node src/seed/seed-dev.js"
-  },
   "scripts": {
     "migrate-dev": "npx prisma migrate dev",
     "migrate-prod": "npx prisma migrate deploy",
@@ -23,6 +19,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "*",
+    "dotenv": "*",
     "prisma": "*"
   }
 }
