@@ -69,7 +69,8 @@ describe('list representations', () => {
 				}))
 			},
 			representation: {
-				findMany: mock.fn(() => representations)
+				findMany: mock.fn(() => representations),
+				count: mock.fn(() => representations.length)
 			}
 		};
 
@@ -81,6 +82,7 @@ describe('list representations', () => {
 		it('should render page with no filter query params provided', async () => {
 			const mockReq = {
 				baseUrl: '/manage-representations',
+				originalUrl: '/manage-representations',
 				params: {
 					id: 'id-1'
 				},
@@ -98,6 +100,7 @@ describe('list representations', () => {
 				pageCaption: 'CROWN/2025/0000001',
 				pageTitle: 'Manage representations',
 				baseUrl: '/manage-representations',
+				currentUrl: '/manage-representations',
 				filters: [
 					{ text: 'Accepted (1)', value: 'accepted', checked: false },
 					{
@@ -108,6 +111,7 @@ describe('list representations', () => {
 					{ text: 'Rejected (0)', value: 'rejected', checked: false },
 					{ text: 'Withdrawn (1)', value: 'withdrawn', checked: false }
 				],
+				filtersValue: undefined,
 				counts: { 'awaiting-review': 1, accepted: 1, rejected: 0, withdrawn: 1 },
 				searchValue: '',
 				reps: [
@@ -136,13 +140,20 @@ describe('list representations', () => {
 						review: true
 					}
 				],
-				repReviewed: false
+				repReviewed: false,
+				pageNumber: 1,
+				resultsEndNumber: 3,
+				resultsStartNumber: 1,
+				selectedItemsPerPage: 25,
+				totalFilteredRepresentations: 3,
+				totalPages: 1
 			});
 		});
 
 		it('should render page with one filter query params provided', async () => {
 			const mockReq = {
 				baseUrl: '/manage-representations',
+				originalUrl: '/manage-representations',
 				params: {
 					id: 'id-1'
 				},
@@ -162,6 +173,7 @@ describe('list representations', () => {
 				pageCaption: 'CROWN/2025/0000001',
 				pageTitle: 'Manage representations',
 				baseUrl: '/manage-representations',
+				currentUrl: '/manage-representations',
 				filters: [
 					{ text: 'Accepted (1)', value: 'accepted', checked: false },
 					{
@@ -172,6 +184,7 @@ describe('list representations', () => {
 					{ text: 'Rejected (0)', value: 'rejected', checked: false },
 					{ text: 'Withdrawn (1)', value: 'withdrawn', checked: false }
 				],
+				filtersValue: '&filters=awaiting-review',
 				counts: { 'awaiting-review': 1, accepted: 1, rejected: 0, withdrawn: 1 },
 				searchValue: '',
 				reps: [
@@ -200,12 +213,19 @@ describe('list representations', () => {
 						review: true
 					}
 				],
-				repReviewed: false
+				repReviewed: false,
+				pageNumber: 1,
+				resultsEndNumber: 3,
+				resultsStartNumber: 1,
+				selectedItemsPerPage: 25,
+				totalFilteredRepresentations: 3,
+				totalPages: 1
 			});
 		});
 		it('should render page with multiple filter query params provided', async () => {
 			const mockReq = {
 				baseUrl: '/manage-representations',
+				originalUrl: '/manage-representations',
 				params: {
 					id: 'id-1'
 				},
@@ -225,6 +245,7 @@ describe('list representations', () => {
 				pageCaption: 'CROWN/2025/0000001',
 				pageTitle: 'Manage representations',
 				baseUrl: '/manage-representations',
+				currentUrl: '/manage-representations',
 				filters: [
 					{ text: 'Accepted (1)', value: 'accepted', checked: true },
 					{
@@ -235,6 +256,7 @@ describe('list representations', () => {
 					{ text: 'Rejected (0)', value: 'rejected', checked: true },
 					{ text: 'Withdrawn (1)', value: 'withdrawn', checked: true }
 				],
+				filtersValue: '&filters=awaiting-review&filters=rejected&filters=withdrawn&filters=accepted',
 				counts: { 'awaiting-review': 1, accepted: 1, rejected: 0, withdrawn: 1 },
 				searchValue: '',
 				reps: [
@@ -263,7 +285,13 @@ describe('list representations', () => {
 						review: true
 					}
 				],
-				repReviewed: false
+				repReviewed: false,
+				pageNumber: 1,
+				resultsEndNumber: 3,
+				resultsStartNumber: 1,
+				selectedItemsPerPage: 25,
+				totalFilteredRepresentations: 3,
+				totalPages: 1
 			});
 		});
 	});
