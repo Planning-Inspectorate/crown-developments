@@ -2,6 +2,7 @@ import { representationsToViewModel } from './view-model.js';
 import { clearRepReviewedSession, readRepReviewedSession } from '../review/controller.js';
 import { REPRESENTATION_STATUS } from '@pins/crowndev-database/src/seed/data-static.js';
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 
 /**
  * Return a handler to show the list of representations
@@ -39,6 +40,11 @@ export function buildListReps({ db }) {
 			checked: queryFilters?.includes(status.id) || false
 		}));
 
+		const selectedItemsPerPage = Number(req.query?.itemsPerPage) || 25;
+		const pageNumber = Math.max(1, Number(req.query?.page) || 1);
+		const pageSize = [25, 50, 100].includes(selectedItemsPerPage) ? selectedItemsPerPage : 100;
+		const skipSize = (pageNumber - 1) * pageSize;
+
 		const searchCriteria = createWhereClause(splitStringQueries(req.query?.searchCriteria), [
 			{ fields: ['reference'] },
 			{ fields: ['submittedByAgentOrgName'] },
@@ -48,19 +54,40 @@ export function buildListReps({ db }) {
 			{ fields: ['comment'], constraints: [{ commentRedacted: { equals: null } }] }
 		]);
 
-		const filteredRepresentations = await db.representation.findMany({
-			where: {
-				applicationId: id,
-				statusId: {
-					in: queryFilters
+		const [filteredRepresentations, totalFilteredRepresentations] = await Promise.all([
+			db.representation.findMany({
+				where: {
+					applicationId: id,
+					statusId: {
+						in: queryFilters
+					},
+					...searchCriteria
 				},
-				...searchCriteria
-			},
-			include: {
-				SubmittedByContact: true,
-				Status: true
-			}
-		});
+				include: {
+					SubmittedByContact: true,
+					Status: true
+				},
+				skip: skipSize,
+				take: pageSize
+			}),
+			db.representation.count({
+				where: {
+					applicationId: id,
+					statusId: {
+						in: queryFilters
+					},
+					...searchCriteria
+				}
+			})
+		]);
+
+		if ([null, undefined].includes(totalFilteredRepresentations) || Number.isNaN(totalFilteredRepresentations)) {
+			return notFoundHandler(req, res);
+		}
+
+		const totalPages = Math.ceil(totalFilteredRepresentations / pageSize);
+		const resultsStartNumber = Math.min((pageNumber - 1) * selectedItemsPerPage + 1, totalFilteredRepresentations);
+		const resultsEndNumber = Math.min(pageNumber * selectedItemsPerPage, totalFilteredRepresentations);
 
 		const repReviewed = readRepReviewedSession(req, id);
 		clearRepReviewedSession(req, id);
@@ -70,19 +97,32 @@ export function buildListReps({ db }) {
 			pageCaption: cd.reference,
 			pageTitle: 'Manage representations',
 			baseUrl: req.baseUrl,
+			currentUrl: req.originalUrl,
 			searchValue: req.query?.searchCriteria || '',
+			filtersValue: getFiltersQueryString(queryFilters),
 			filters,
 			counts,
 			...representationsToViewModel(filteredRepresentations),
-			repReviewed
+			repReviewed,
+			selectedItemsPerPage,
+			totalFilteredRepresentations,
+			pageNumber,
+			totalPages,
+			resultsStartNumber,
+			resultsEndNumber
 		});
 	};
 }
 
-function getQueryFilters(query) {
-	const filters = query?.filters;
+function getQueryFilters(query = {}) {
+	const filters = query.filters;
 	if (!filters) return;
 	return Array.isArray(filters) ? filters : [filters];
+}
+
+function getFiltersQueryString(queryFilters) {
+	if (!queryFilters) return;
+	return queryFilters.map((s) => `&filters=${s}`).join('');
 }
 
 function statusCounts(array, statuses = []) {

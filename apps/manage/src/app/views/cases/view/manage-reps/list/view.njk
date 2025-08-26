@@ -4,6 +4,8 @@
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% from "search-filter/search-filter.njk" import searchFilters %}
 {% from "search-bar/search-bar.njk" import searchBar %}
+{% import "pagination/pagination.njk" as pagination %}
+{% import "pagination/pagination-options.njk" as paginationOptions %}
 
 {% block pageContent %}
     {% if repReviewed %}
@@ -14,6 +16,7 @@
     {% endif %}
 
     <form id="search-filter-form" method="GET">
+        <input type="hidden" name="itemsPerPage" value="{{ selectedItemsPerPage }}">
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
                 {{ searchFilters(filters) }}
@@ -50,7 +53,23 @@
         <p class="govuk-body">No results were found.</p>
         <p class="govuk-body"><a href="{{ baseUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search and filters</a> to view all representations.</p>
     {% else %}
-        {{ repsTable(reps) }}
+        <div id="pagination" class="govuk-body">
+            <p class="govuk-body govuk-clearfix">
+                <span class="govuk-body">Showing <strong>{{ resultsStartNumber }}</strong> to
+                <strong>{{ resultsEndNumber if totalFilteredRepresentations > resultsEndNumber else totalFilteredRepresentations }}</strong>
+                of <strong>{{ totalFilteredRepresentations }}</strong> representations, newest first.
+                </span>
+                <span class="pins-pagination-options">
+                    {{ paginationOptions.renderPagination(selectedItemsPerPage, totalFilteredRepresentations, pageNumber, searchValue, filtersValue) }}
+                 </span>
+            </p>
+
+            <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+            {{ repsTable(reps) }}
+        </div>
+        {# if pageNumber and totalPages values are both 1 then pagination options not shown #}
+        {{ pagination.renderPagination(pageNumber, totalPages, currentUrl) }}
     {% endif %}
 {% endblock %}
 
