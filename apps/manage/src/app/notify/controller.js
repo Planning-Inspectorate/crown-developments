@@ -7,7 +7,7 @@ import { NOTIFICATION_SOURCE } from '@pins/crowndev-database/src/seed/data-stati
  */
 export function buildNotifyCallbackController(service) {
 	return async (req, res) => {
-		const { logger, notifyClient, dbClient } = service;
+		const { logger, notifyClient, db } = service;
 
 		const notificationId = req.body.id;
 		if (!notificationId) {
@@ -29,77 +29,97 @@ export function buildNotifyCallbackController(service) {
 		}
 
 		try {
-			const formattedNotificationData = {
-				notifyId: notification.id,
-				reference: notification.reference ?? findMissingReference(notification.body) ?? null,
-				createdDate: notification['created_at'] ?? null,
-				createdBy: notification['created_by_name'] ?? null,
-				completedDate: notification['completed_at'] ?? null,
-				Status: { connect: { id: notification.status } },
-				templateId: notification.template.id ?? null,
-				templateVersion: notification.template.version ?? null,
-				body: notification.body ?? null,
-				subject: notification.subject ?? null
-			};
+			// Build base payload once
+			const formattedNotificationData = buildBaseNotificationData(notification);
 
-			if (!formattedNotificationData.reference) {
-				logger.warn(`Failed to find reference for notificationId: ${notification.id}`);
-				formattedNotificationData.email = notification.email_address; // Fallback to email if no reference found
-			} else {
-				let contact;
-				const referenceOrigin = getNotificationSource(formattedNotificationData.reference);
-				switch (referenceOrigin) {
-					case NOTIFICATION_SOURCE.REPRESENTATION:
-						contact = await dbClient.representation.findUnique({
-							where: { reference: formattedNotificationData.reference },
-							include: { RepresentedContact: true, SubmittedByContact: true }
-						});
-						if (contact && contact.SubmittedByContact?.email === notification.email_address) {
-							formattedNotificationData.Contact = { connect: { id: contact.SubmittedByContact.id } };
-						} else if (contact && contact.RepresentedContact?.email === notification.email_address) {
-							formattedNotificationData.Contact = { connect: { id: contact.RepresentedContact.id } };
-						} else {
-							logger.warn(
-								`Failed to find contact for representation reference: ${formattedNotificationData.reference}`
-							);
-							formattedNotificationData.email = notification.email_address; // Fallback to email if no contact found
-						}
-						break;
-					case NOTIFICATION_SOURCE.APPLICATION:
-						contact = await dbClient.crownDevelopment.findUnique({
-							where: { reference: formattedNotificationData.reference },
-							include: { ApplicantContact: true, AgentContact: true, LPA: true }
-						});
-						if (contact && contact.ApplicantContact?.email === notification.email_address) {
-							formattedNotificationData.Contact = { connect: { id: contact.ApplicantContact.id } };
-						} else if (contact && contact.AgentContact?.email === notification.email_address) {
-							formattedNotificationData.Contact = { connect: { id: contact.AgentContact.id } };
-						} else if (contact && contact.LPA?.email === notification.email_address) {
-							formattedNotificationData.LPA = { connect: { id: contact.LPA.id } };
-						} else {
-							logger.warn(
-								`Failed to find contact for representation reference: ${formattedNotificationData.reference}`
-							);
-							formattedNotificationData.email = notification.email_address; // Fallback to email if no contact found
-						}
-						break;
-					default:
-						logger.warn(`Unknown reference origin for notificationId: ${notification.id}`);
-						formattedNotificationData.email = notification.email_address; // Fallback to email if no contact found
-						break;
-				}
-			}
-			await dbClient.notifyEmail.create({
+			// Resolve associations (Contact/Lpa) or fall back to email
+			const associationPatch = await resolveNotificationAssociations({
+				db,
+				logger,
+				reference: formattedNotificationData.reference,
+				emailAddress: notification.email_address,
+				notificationId: notification.id
+			});
+			Object.assign(formattedNotificationData, associationPatch);
+
+			await db.notifyEmail.create({
 				data: formattedNotificationData
 			});
 			logger.info({ notificationId }, 'Successfully saved Notify callback to database');
 			return res.status(200).send('Notify callback processed successfully');
-		} catch (dbError) {
-			logger.error({ error: JSON.stringify(dbError), notificationId }, 'Error saving Notify callback to database');
-
+		} catch (error) {
+			logger.error({ error, notificationId }, 'Fail to save Notify callback in database');
 			return res.status(500).send('Database operation failed');
 		}
 	};
+}
+
+// Builds the common notify payload, deriving reference if needed
+function buildBaseNotificationData(notification) {
+	return {
+		notifyId: notification.id,
+		reference: notification.reference ?? findMissingReference(notification.body) ?? null,
+		createdDate: notification.created_at ? new Date(notification.created_at) : null,
+		createdBy: notification.created_by_name ?? null,
+		completedDate: notification.completed_at ? new Date(notification.completed_at) : null,
+		Status: { connect: { id: notification.status } },
+		templateId: notification.template?.id ?? null,
+		templateVersion: notification.template?.version ?? null,
+		body: notification.body ?? null,
+		subject: notification.subject ?? null
+	};
+}
+
+// Determines and applies association logic (Contact/Lpa) or falls back to email
+async function resolveNotificationAssociations({ db, logger, reference, emailAddress, notificationId }) {
+	// If no reference, immediately fall back to email
+	if (!reference) {
+		logger.warn(`Failed to find reference for notificationId: ${notificationId}, using email as fallback`);
+		return { email: emailAddress };
+	}
+	const referenceSource = getNotificationSource(reference);
+	let contactId;
+	switch (referenceSource) {
+		case NOTIFICATION_SOURCE.REPRESENTATION: {
+			const rep = await db.representation.findUnique({
+				where: { reference },
+				include: { RepresentedContact: true, SubmittedByContact: true }
+			});
+			if (rep && rep.SubmittedByContact?.email === emailAddress) {
+				contactId = rep.submittedByContactId;
+			}
+			if (rep && rep.RepresentedContact?.email === emailAddress) {
+				contactId = rep.representedContactId;
+			}
+			break;
+		}
+		case NOTIFICATION_SOURCE.APPLICATION: {
+			const app = await db.crownDevelopment.findUnique({
+				where: { reference },
+				include: { ApplicantContact: true, AgentContact: true, Lpa: true }
+			});
+			if (app && app.Lpa?.email === emailAddress) {
+				logger.info(`Successfully linked ${notificationId} to contact`);
+				return { Lpa: { connect: { id: app.Lpa.id } } };
+			}
+			if (app && app.ApplicantContact?.email === emailAddress) {
+				contactId = app.applicantContactId;
+			}
+			if (app && app.AgentContact?.email === emailAddress) {
+				contactId = app.agentContactId;
+			}
+			break;
+		}
+		default:
+			logger.warn(`Unknown reference source for notificationId: ${notificationId}`);
+	}
+	if (contactId) {
+		logger.info(`Successfully linked ${notificationId} to contact`);
+		return { Contact: { connect: { id: contactId } } };
+	} else {
+		logger.warn(`Failed to find contact for notificationId: ${notificationId}, using email as fallback`);
+		return { email: emailAddress };
+	}
 }
 
 /**
