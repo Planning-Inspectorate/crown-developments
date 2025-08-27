@@ -1,5 +1,10 @@
 import { faker } from '@faker-js/faker';
-import { REPRESENTATION_STATUS_ID, REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from './data-static.js';
+import {
+	APPLICATION_UPDATE_STATUS_ID,
+	REPRESENTATION_STATUS_ID,
+	REPRESENTATION_SUBMITTED_FOR_ID,
+	REPRESENTED_TYPE_ID
+} from './data-static.js';
 
 export const representationContactAddresses = [
 	{
@@ -644,5 +649,248 @@ export const representationDocuments = [
 		redactedItemId: null,
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
 		fileName: 'representation-document-3.pdf'
+	}
+];
+
+export const applicationUpdates = [
+	{
+		id: 'fa5cb811-1d12-4674-b409-43b1c0a8609e',
+		details: 'An application update',
+		lastEdited: new Date('2024-02-03T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: '0bc0e072-49c1-4b33-8b9f-e9924132fa1b',
+		details: 'An application update',
+		lastEdited: new Date('2025-04-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2024-02-01T15:56:00.000Z')
+	},
+	{
+		id: 'e7b1d04f-8ceb-4746-9d57-bf5f0ec04350',
+		details: 'An application update',
+		lastEdited: new Date('2025-07-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.DRAFT } }
+	},
+	{
+		id: '0976c0e7-8c2d-46ca-99cc-c633401ac5d4',
+		details: 'An application update',
+		lastEdited: new Date('2025-01-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.UNPUBLISHED } },
+		firstPublished: new Date('2024-12-01T15:56:00.000Z')
+	},
+	{
+		id: '86ac4c85-5dde-4cd5-a686-b2bde856cb18',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-14T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: '8b3f79e6-9be1-47fb-b5ee-aaf3353d177e',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-18T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.DRAFT } }
+	},
+	{
+		id: '8410845d-0bc0-45f0-bfaa-5a7e89520a79',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-25T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.DRAFT } }
+	},
+	{
+		id: '6b72ef51-ca5d-4831-9609-7e93126ba177',
+		details: 'An application update',
+		lastEdited: new Date('2025-03-28T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-03-01T15:56:00.000Z')
+	},
+	{
+		id: '76dd75b2-ff5d-4305-9f8b-6b495ba263d0',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: '06151e41-5d16-449f-9d3a-1572a6a6ca6f',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: '411241fd-16b3-48c8-8311-a2f3b6ec28ec',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: 'be4c6090-af70-4569-aff7-baf76f3feb4a',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: 'd4f4df8f-a853-46fa-bf36-1ef32d981cbd',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: 'de11c8d3-afcf-4107-88c8-d2d635d5880a',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: '15071967-4fdd-412f-adf8-fbc730ef9ed3',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: 'd3de31e8-241d-42f1-a17e-d49cf63bf175',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: 'fa2967c1-138e-4c90-8a7f-a26b8a35fe5b',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: '9f2bcc65-a262-4eb8-92bd-a0690403126c',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: '0d8a2f51-6e2d-4d1d-aeee-61c6b91d0371',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: '12cfbd7f-75cd-4e95-8118-b1900d3ce3ab',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: 'a10a9ccf-7af0-43f2-8ced-a9f903fb074d',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: 'cb8a9786-2a55-4c47-aecc-a665d6095f7b',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: '3adc1894-d421-462c-8b6a-5555b6dcf091',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: 'e57dec57-523d-4284-af99-f28c97d690a6',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: '853bc3f6-5d50-466c-9af1-a9b8f37ff0e1',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: '38d13eb0-0dcb-48f4-a264-911088875228',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: 'be5ba643-2601-4bf9-b262-d4c14413bdd1',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: '51fc089c-5c56-46a5-bd81-511099dcdc68',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: '4a335c9f-0731-4419-b462-1d181a940d20',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: '29f4f1c5-cd75-4d8e-b528-fcbada753b4f',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: '187a0e39-84b7-40c6-99bc-cb97c605fdd8',
+		details: 'An application update',
+		lastEdited: new Date('2025-02-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: '7d959d0e-f9db-4000-9adb-084ad8edef16',
+		details: 'An application update',
+		lastEdited: new Date('2025-08-11T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.DRAFT } }
+	},
+	{
+		id: '3fb61b90-57ef-4512-849e-b28f81edc83e',
+		details: 'An application update',
+		lastEdited: new Date('2025-08-14T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-02-01T15:56:00.000Z')
+	},
+	{
+		id: 'cbbd9300-e19f-4877-b25f-26b4a7202c7f',
+		details: 'An application update',
+		lastEdited: new Date('2025-08-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.DRAFT } }
+	},
+	{
+		id: 'f3a06a5b-c66b-479a-bc1d-a3b918255179',
+		details: 'An application update',
+		lastEdited: new Date('2025-04-02T15:56:00.000Z'),
+		Status: { connect: { id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED } },
+		firstPublished: new Date('2025-03-30T15:56:00.000Z')
 	}
 ];

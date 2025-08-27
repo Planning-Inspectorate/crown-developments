@@ -11,6 +11,7 @@ interface Config {
 	featureFlags: {
 		isLive: boolean;
 		isRepsUploadDocsLive: boolean;
+		isApplicationUpdatesLive: boolean;
 	};
 	gitSha?: string;
 	googleAnalyticsId?: string;

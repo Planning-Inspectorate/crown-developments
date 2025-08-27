@@ -1,0 +1,47 @@
+{% extends "components/task-list/index.njk" %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% set title = "Review Draft Update - " + journeyTitle + " - Manage a Crown Development Application" %}
+
+{% block content %}
+    {% block beforeTaskList %}
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
+                <h1 class="govuk-heading-l">
+                    {{ pageHeading }}
+                </h1>
+            </div>
+        </div>
+    {% endblock %}
+
+    {% set summaryRows = [] %}
+    {% for section in summaryListData.sections %}
+        {% for row in section.list.rows %}
+            {% set summaryRows = (summaryRows.push(row), summaryRows) %}
+        {% endfor %}
+    {% endfor %}
+    {% set obj = { "rows": summaryRows } %}
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            {{ govukSummaryList(obj) }}
+        </div>
+    </div>
+
+    {% if journeyComplete %}
+        <form method="POST">
+            {{ govukButton({
+                text: "Save"
+            }) }}
+        </form>
+
+    {% else %}
+        <strong class="govuk-tag govuk-tag--grey">
+            Cannot submit yet
+        </strong>
+    {% endif %}
+
+    {% block afterTaskList %}
+    {% endblock %}
+{% endblock %}

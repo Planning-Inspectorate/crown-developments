@@ -4,6 +4,7 @@ import { checkApplicationPublished } from '../../../util/application-util.js';
 import { publishedFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { getDocuments } from '@pins/crowndev-lib/documents/get.js';
 import { splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
+import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 
 /**
  * Render the list of documents page
@@ -38,13 +39,16 @@ export function buildApplicationDocumentsPage(service) {
 			);
 		}
 		const totalDocuments = allDocuments.length;
-		const selectedItemsPerPage = Number(req.query?.itemsPerPage) || 25;
-		const pageNumber = Math.max(1, Number(req.query?.page) || 1);
-		const pageSize = [25, 50, 100].includes(selectedItemsPerPage) ? selectedItemsPerPage : 100;
-		const skipSize = (pageNumber - 1) * pageSize;
-		const totalPages = Math.ceil(totalDocuments / pageSize);
-		const resultsStartNumber = Math.min((pageNumber - 1) * selectedItemsPerPage + 1, totalDocuments);
-		const resultsEndNumber = Math.min(pageNumber * selectedItemsPerPage, totalDocuments);
+
+		const { selectedItemsPerPage, pageNumber, pageSize, skipSize } = getPaginationParams(req);
+
+		const { totalPages, resultsStartNumber, resultsEndNumber } = getPageData(
+			totalDocuments,
+			selectedItemsPerPage,
+			pageSize,
+			pageNumber
+		);
+
 		const currentUrl = `${req.baseUrl}/documents`;
 
 		res.render('views/applications/view/documents/view.njk', {

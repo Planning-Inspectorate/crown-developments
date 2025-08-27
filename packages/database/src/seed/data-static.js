@@ -182,6 +182,34 @@ export const APPLICATION_PROCEDURE = [
 		displayName: 'Inquiry'
 	}
 ];
+
+/**
+ * @type {Readonly<{DRAFT: string, PUBLISHED: string, UNPUBLISHED: string}>}
+ */
+export const APPLICATION_UPDATE_STATUS_ID = Object.freeze({
+	DRAFT: 'draft',
+	PUBLISHED: 'published',
+	UNPUBLISHED: 'unpublished'
+});
+
+/**
+ * @type {import('@prisma/client').Prisma.ApplicationUpdateStatusCreateInput[]}
+ */
+export const APPLICATION_UPDATE_STATUS = [
+	{
+		id: APPLICATION_UPDATE_STATUS_ID.DRAFT,
+		displayName: 'Draft'
+	},
+	{
+		id: APPLICATION_UPDATE_STATUS_ID.PUBLISHED,
+		displayName: 'Published'
+	},
+	{
+		id: APPLICATION_UPDATE_STATUS_ID.UNPUBLISHED,
+		displayName: 'Unpublished'
+	}
+];
+
 /**
  * @type {Readonly<{SENDING: string, DELIVERED: string, PERMANENT_FAILURE: string, TEMPORARY_FAILURE: string, TECHNICAL_FAILURE: string}>}
  */
@@ -561,6 +589,10 @@ export async function seedStaticData(dbClient) {
 
 	await Promise.all(
 		APPLICATION_PROCEDURE.map((input) => upsertReferenceData({ delegate: dbClient.applicationProcedure, input }))
+	);
+
+	await Promise.all(
+		APPLICATION_UPDATE_STATUS.map((input) => upsertReferenceData({ delegate: dbClient.applicationUpdateStatus, input }))
 	);
 
 	await Promise.all(
