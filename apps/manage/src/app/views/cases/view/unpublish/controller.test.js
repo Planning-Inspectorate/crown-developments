@@ -4,7 +4,7 @@ import { buildConfirmUnpublishCase, buildSubmitUnpublishCase, unpublishSuccessfu
 import { configureNunjucks } from '../../../../nunjucks.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@pins/crowndev-database/src/client/client.js';
 
 describe('unpublish case', () => {
 	describe('buildConfirmUnpublishCase', () => {
