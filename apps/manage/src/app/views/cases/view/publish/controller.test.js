@@ -45,7 +45,8 @@ describe('publish case', () => {
 				include: {
 					ApplicantContact: { include: { Address: true } },
 					AgentContact: { include: { Address: true } },
-					Lpa: { include: { Address: true } }
+					Lpa: { include: { Address: true } },
+					SiteAddress: true
 				}
 			});
 		});
@@ -80,7 +81,7 @@ describe('publish case', () => {
 			};
 			const next = mock.fn();
 			await middleware(req, res, next);
-			assert.strictEqual(req.session.cases['id-1'].publishErrors.length, 4);
+			assert.strictEqual(req.session.cases['id-1'].publishErrors.length, 5);
 			assert.strictEqual(res.redirect.mock.calls.length, 1);
 			assert.strictEqual(res.redirect.mock.calls[0].arguments[0], '/cases/id-1');
 		});
@@ -96,6 +97,9 @@ describe('publish case', () => {
 						typeId: 'type-1',
 						Lpa: {
 							id: 'lpa-1'
+						},
+						SiteAddress: {
+							postcode: 'postcode-1'
 						},
 						reference: 'ref-1'
 					}))

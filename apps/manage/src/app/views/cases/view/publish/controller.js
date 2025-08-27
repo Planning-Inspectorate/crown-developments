@@ -51,7 +51,8 @@ export function buildGetValidatedCaseMiddleware({ db, logger }) {
 			include: {
 				ApplicantContact: { include: { Address: true } },
 				AgentContact: { include: { Address: true } },
-				Lpa: { include: { Address: true } }
+				Lpa: { include: { Address: true } },
+				SiteAddress: true
 			}
 		});
 
@@ -63,22 +64,28 @@ export function buildGetValidatedCaseMiddleware({ db, logger }) {
 			{
 				value: crownDevelopment.description,
 				errorMessage: 'Enter Development Description',
-				pageLink: 'development-description'
+				pageLink: `/cases/${id}/overview/development-description`
 			},
 			{
 				value: crownDevelopment.typeId,
 				errorMessage: 'Enter Application Type',
-				pageLink: 'type-of-application'
+				pageLink: `/cases/${id}/overview/type-of-application`
 			},
 			{
 				value: crownDevelopment.ApplicantContact?.orgName,
 				errorMessage: 'Enter Applicant Organisation Contact Name',
-				pageLink: 'applicant-contact'
+				pageLink: `/cases/${id}/overview/applicant-contact`
 			},
 			{
 				value: crownDevelopment.Lpa?.id,
 				errorMessage: 'Enter Local Planning Authority',
-				pageLink: 'local-planning-authority'
+				pageLink: `/cases/${id}/overview/local-planning-authority`
+			},
+			{
+				value:
+					crownDevelopment.SiteAddress?.postcode || (crownDevelopment.siteEasting && crownDevelopment.siteNorthing),
+				errorMessage: 'You must enter site coordinates or postcode within the site address',
+				pageLink: `/cases/${id}#overview`
 			}
 		];
 
@@ -87,7 +94,7 @@ export function buildGetValidatedCaseMiddleware({ db, logger }) {
 			if (!answer.value) {
 				errors.push({
 					text: answer.errorMessage,
-					href: `/cases/${id}/overview/${answer.pageLink}`
+					href: answer.pageLink
 				});
 			}
 		}
