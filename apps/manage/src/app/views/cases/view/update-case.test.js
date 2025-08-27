@@ -3,7 +3,7 @@ import { buildUpdateCase } from './update-case.js';
 import assert from 'node:assert';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@pins/crowndev-database/src/client/client.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 describe('case details', () => {

@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@pins/crowndev-database/src/client/client.js';
 import { NotifyConfig } from '@pins/crowndev-lib/govnotify/types';
 
 interface Config {

@@ -4,7 +4,7 @@ import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.
 import { buildWrittenRepresentationsReadMorePage } from './controller.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { getDocumentsById } from '@pins/crowndev-lib/documents/get.js';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@pins/crowndev-database/src/client/client.js';
 
 describe('written representations read more', () => {
 	it('should filter out invalid or null documents', async () => {

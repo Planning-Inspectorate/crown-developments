@@ -1,5 +1,5 @@
 import { Address } from '@planning-inspectorate/dynamic-forms/src/lib/address';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@pins/crowndev-database/src/client/client.js';
 
 export interface CrownDevelopmentViewModel {
 	reference?: string;

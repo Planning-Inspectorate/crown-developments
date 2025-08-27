@@ -2,7 +2,7 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildReinstateRepresentationController, reinstateRepConfirmation, successController } from './controller.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@pins/crowndev-database/src/client/client.js';
 
 describe('reinstate rep controller', () => {
 	describe('buildReinstateRepConfirmation', () => {
