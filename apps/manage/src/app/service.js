@@ -122,6 +122,10 @@ export class ManageService {
 		return this.#config.featureFlags?.isRepsUploadDocsLive;
 	}
 
+	get isApplicationUpdatesLive() {
+		return this.#config.featureFlags?.isApplicationUpdatesLive;
+	}
+
 	get secureSession() {
 		return this.#config.NODE_ENV === 'production';
 	}

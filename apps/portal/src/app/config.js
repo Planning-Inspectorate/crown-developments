@@ -40,7 +40,8 @@ export function loadConfig() {
 		GOV_NOTIFY_TEST_TEMPLATE_ID,
 		GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
 		GOV_NOTIFY_ACK_REP_TEMPLATE_ID,
-		CROWN_DEV_CONTACT_EMAIL
+		CROWN_DEV_CONTACT_EMAIL,
+		FEATURE_FLAG_APPLICATION_UPDATES_NOT_LIVE
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -95,7 +96,9 @@ export function loadConfig() {
 			// by default with no feature flag set, the portal is live
 			isLive: FEATURE_FLAG_PORTAL_NOT_LIVE !== 'true',
 			// by default with no feature flag set, reps upload docs is live
-			isRepsUploadDocsLive: FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE !== 'true'
+			isRepsUploadDocsLive: FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE !== 'true',
+			// by default with no feature flag set, application updates is live
+			isApplicationUpdatesLive: FEATURE_FLAG_APPLICATION_UPDATES_NOT_LIVE !== 'true'
 		},
 		gitSha: GIT_SHA,
 		googleAnalyticsId: GOOGLE_ANALYTICS_ID,

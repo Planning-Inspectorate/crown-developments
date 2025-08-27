@@ -10,6 +10,7 @@
 {% set publishUrl = baseUrl + "/publish" %}
 {% set unpublishUrl = baseUrl + "/unpublish/confirm" %}
 {% set manageRepsUrl = baseUrl + "/manage-representations" %}
+{% set manageAppUpdatesUrl = baseUrl + "/application-updates" %}
 
 {% block pageTitle %}
     {{ title }}
@@ -65,6 +66,13 @@
                 href: manageRepsUrl,
                 classes: "govuk-button--secondary"
             }) }}
+            {% if isApplicationUpdatesLive %}
+                {{ govukButton({
+                    text: "Manage application updates",
+                    href: manageAppUpdatesUrl,
+                    classes: "govuk-button--secondary"
+                }) }}
+            {% endif %}
             {% if casePublished %}
 
                 {{ govukButton({

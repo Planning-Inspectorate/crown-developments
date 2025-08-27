@@ -1,5 +1,6 @@
 import { APPLICATION_TYPE_ID } from './data-static.js';
 import {
+	applicationUpdates,
 	generateWrittenRepresentation,
 	persistWrittenRepresentation,
 	repReferences,
@@ -100,6 +101,15 @@ export async function seedDev(dbClient) {
 			where: { id: representationDocument.id },
 			create: representationDocument,
 			update: representationDocument
+		});
+	}
+	//Create or update application updates and update the crown development application to contain application updates
+	for (const applicationUpdate of applicationUpdates) {
+		applicationUpdate.Application = { connect: { id: crownDev.id } };
+		await dbClient.applicationUpdate.upsert({
+			where: { id: applicationUpdate.id },
+			create: applicationUpdate,
+			update: applicationUpdate
 		});
 	}
 

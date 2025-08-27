@@ -13,7 +13,7 @@ import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-pa
 /**
  * @param {import('#service').ManageService} service
  */
-export function buildViewCaseDetails({ getSharePointDrive }) {
+export function buildViewCaseDetails({ getSharePointDrive, isApplicationUpdatesLive }) {
 	return async (req, res) => {
 		const reference = res.locals?.journeyResponse?.answers?.reference;
 		const id = req.params.id;
@@ -48,7 +48,8 @@ export function buildViewCaseDetails({ getSharePointDrive }) {
 			baseUrl,
 			sharePointLink,
 			hideButton: true,
-			hideStatus: true
+			hideStatus: true,
+			isApplicationUpdatesLive
 		});
 	};
 }

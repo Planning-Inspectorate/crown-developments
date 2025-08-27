@@ -7,6 +7,7 @@ import { buildGetJourneyMiddleware, buildViewCaseDetails, validateIdFormat } fro
 import { createRoutes as createCasePublishRoutes } from './publish/index.js';
 import { createRoutes as createCaseUnpublishRoutes } from './unpublish/index.js';
 import { createRoutes as createRepsRoutes } from './manage-reps/index.js';
+import { createRoutes as createApplicationUpdatesRoutes } from './application-updates/index.js';
 import { buildUpdateCase } from './update-case.js';
 
 /**
@@ -24,6 +25,7 @@ export function createRoutes(service) {
 	const updateCase = buildSave(updateCaseFn, true);
 	const publishCase = createCasePublishRoutes(service);
 	const unpublishCase = createCaseUnpublishRoutes(service);
+	const applicationUpdates = createApplicationUpdatesRoutes(service);
 
 	// view case details
 	router.get('/', validateIdFormat, getJourney, asyncHandler(viewCaseDetails));
@@ -31,6 +33,10 @@ export function createRoutes(service) {
 	router.use('/unpublish', unpublishCase);
 
 	router.use('/manage-representations', repsRoutes);
+
+	if (service.isApplicationUpdatesLive) {
+		router.use('/application-updates', applicationUpdates);
+	}
 
 	// view question page
 	router.get('/:section/:question', validateIdFormat, getJourney, asyncHandler(question));

@@ -492,7 +492,6 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 				]
 			}
 		},
-
 		hasApplicationFee: {
 			type: CUSTOM_COMPONENTS.FEE_AMOUNT,
 			title: 'Fee Amount',
@@ -502,6 +501,32 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			feeAmountInputFieldName: 'applicationFee',
 			feeAmountQuestion: 'For example, £1000.00',
 			validators: [new FeeAmountValidator()]
+		},
+		updateDetails: {
+			type: COMPONENT_TYPES.TEXT_ENTRY,
+			title: 'Update details',
+			question: 'Update details',
+			hint: 'The recommended length is 1000 characters',
+			fieldName: 'updateDetails',
+			url: 'update-details',
+			validators: [
+				new RequiredValidator('Enter update details'),
+				new StringValidator({
+					maxLength: {
+						maxLength: 1000,
+						maxLengthMessage: 'Update details must be 1000 characters or less'
+					}
+				})
+			]
+		},
+		publishNow: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Do you want to publish this update now?',
+			question: 'Do you want to publish this update now?',
+			hint: 'You can review the update before publishing',
+			fieldName: 'publishNow',
+			url: 'publish-now',
+			validators: [new RequiredValidator()]
 		}
 	};
 

@@ -9,6 +9,8 @@ import {
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { deleteRepresentationAttachmentsFolder, moveAttachmentsToCaseFolder } from '../../util/handle-attachments.js';
 import { getSubmittedForId } from '../../util/questions.js';
+import { getAnswers } from '../../util/answers.js';
+
 /**
  * Save representation to the database
  *
@@ -43,15 +45,8 @@ export async function saveRepresentation(
 
 	const id = req.params.id || req.params.applicationId;
 	const sessionReqParam = req.params.applicationId ? 'applicationId' : 'id';
-	if (!res.locals || !res.locals.journeyResponse) {
-		throw new Error('journey response required');
-	}
-	const journeyResponse = res.locals.journeyResponse;
+	const answers = getAnswers(res);
 	const journey = res.locals.journey;
-	const answers = journeyResponse.answers;
-	if (typeof answers !== 'object') {
-		throw new Error('answers should be an object');
-	}
 	if (!journey.isComplete()) {
 		const error = [
 			{

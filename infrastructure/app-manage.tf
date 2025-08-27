@@ -86,8 +86,9 @@ module "app_manage" {
     GOV_NOTIFY_APP_NOT_NAT_IMP_TEMPLATE_ID     = var.apps_config.gov_notify.templates.app_not_nat_imp_template_id
 
     #feature flags
-    FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE = var.apps_config.feature_flags.upload_docs_not_live
-    FEATURE_FLAG_NOTIFY_CALLBACK_NOT_LIVE  = var.apps_config.feature_flags.notify_callback_not_live
+    FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE    = var.apps_config.feature_flags.upload_docs_not_live
+    FEATURE_FLAG_NOTIFY_CALLBACK_NOT_LIVE     = var.apps_config.feature_flags.notify_callback_not_live
+    FEATURE_FLAG_APPLICATION_UPDATES_NOT_LIVE = var.apps_config.feature_flags.application_updates_not_live
 
     # Azure Language Service
     AZURE_AI_LANGUAGE_ENDPOINT = local.text_analytics_endpoint
