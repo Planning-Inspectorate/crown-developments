@@ -97,3 +97,6 @@ workspace.json
 .structurizr/*
 
 .static
+
+# generated Prisma client
+packages/database/src/client
