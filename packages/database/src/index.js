@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@pins/crowndev-database/src/client/client.js';
 
 /** @typedef {import('@prisma/client').Prisma.PrismaClientOptions} prismaConfig */
 
