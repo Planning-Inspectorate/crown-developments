@@ -119,6 +119,7 @@ model CrownDevelopment {
   hasApplicationFee                   Boolean?
   applicationFee                      Decimal?
   siteVisitDate                       DateTime?
+  ApplicationUpdates                  ApplicationUpdate[]
 }
 
 /// Address represents an address of a property or place
@@ -406,4 +407,27 @@ model NotifyStatus {
   id          String        @id
   displayName String?
   NotifyEmail NotifyEmail[]
+}
+
+/// ApplicationUpdate represents an application update created on an application
+model ApplicationUpdate {
+  /// internal identifier
+  id              String                  @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  /// the application this application update relates to
+  applicationId   String                  @db.UniqueIdentifier
+  Application     CrownDevelopment        @relation(fields: [applicationId], references: [id])
+  statusId        String
+  Status          ApplicationUpdateStatus @relation(fields: [statusId], references: [id])
+  details         String                  @db.NVarChar(1000)
+  firstPublished  DateTime?
+  unpublishedDate DateTime?
+  lastEdited      DateTime?
+}
+
+/// ApplicationUpdateStatus represents the status of a application update
+model ApplicationUpdateStatus {
+  /// unique machine-readable name, not generated, e.g. "draft / published / unpublished"
+  id                String              @id
+  displayName       String?
+  ApplicationUpdate ApplicationUpdate[]
 }

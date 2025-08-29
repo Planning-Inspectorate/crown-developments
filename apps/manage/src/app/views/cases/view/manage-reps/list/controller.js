@@ -3,6 +3,7 @@ import { clearRepReviewedSession, readRepReviewedSession } from '../review/contr
 import { REPRESENTATION_STATUS } from '@pins/crowndev-database/src/seed/data-static.js';
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 
 /**
  * Return a handler to show the list of representations
@@ -40,10 +41,7 @@ export function buildListReps({ db }) {
 			checked: queryFilters?.includes(status.id) || false
 		}));
 
-		const selectedItemsPerPage = Number(req.query?.itemsPerPage) || 25;
-		const pageNumber = Math.max(1, Number(req.query?.page) || 1);
-		const pageSize = [25, 50, 100].includes(selectedItemsPerPage) ? selectedItemsPerPage : 100;
-		const skipSize = (pageNumber - 1) * pageSize;
+		const { selectedItemsPerPage, pageNumber, pageSize, skipSize } = getPaginationParams(req);
 
 		const searchCriteria = createWhereClause(splitStringQueries(req.query?.searchCriteria), [
 			{ fields: ['reference'] },
@@ -85,9 +83,12 @@ export function buildListReps({ db }) {
 			return notFoundHandler(req, res);
 		}
 
-		const totalPages = Math.ceil(totalFilteredRepresentations / pageSize);
-		const resultsStartNumber = Math.min((pageNumber - 1) * selectedItemsPerPage + 1, totalFilteredRepresentations);
-		const resultsEndNumber = Math.min(pageNumber * selectedItemsPerPage, totalFilteredRepresentations);
+		const { totalPages, resultsStartNumber, resultsEndNumber } = getPageData(
+			totalFilteredRepresentations,
+			selectedItemsPerPage,
+			pageSize,
+			pageNumber
+		);
 
 		const repReviewed = readRepReviewedSession(req, id);
 		clearRepReviewedSession(req, id);

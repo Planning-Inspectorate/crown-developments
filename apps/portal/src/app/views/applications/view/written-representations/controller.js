@@ -6,6 +6,7 @@ import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
+import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 
 /**
  * Render written representations page
@@ -47,10 +48,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			{ fields: ['comment'], constraints: [{ commentRedacted: { equals: null } }] }
 		]);
 
-		const selectedItemsPerPage = Number(req.query?.itemsPerPage) || 25;
-		const pageNumber = Math.max(1, Number(req.query?.page) || 1);
-		const pageSize = [25, 50, 100].includes(selectedItemsPerPage) ? selectedItemsPerPage : 100;
-		const skipSize = (pageNumber - 1) * pageSize;
+		const { selectedItemsPerPage, pageNumber, pageSize, skipSize } = getPaginationParams(req);
 
 		let representations, totalRepresentations;
 		try {
@@ -101,9 +99,12 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			return notFoundHandler(req, res);
 		}
 
-		const totalPages = Math.ceil(totalRepresentations / pageSize);
-		const resultsStartNumber = Math.min((pageNumber - 1) * selectedItemsPerPage + 1, totalRepresentations);
-		const resultsEndNumber = Math.min(pageNumber * selectedItemsPerPage, totalRepresentations);
+		const { totalPages, resultsStartNumber, resultsEndNumber } = getPageData(
+			totalRepresentations,
+			selectedItemsPerPage,
+			pageSize,
+			pageNumber
+		);
 
 		const haveYourSayPeriod = {
 			start: new Date(crownDevelopment.representationsPeriodStartDate),
