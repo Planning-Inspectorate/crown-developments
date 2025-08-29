@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { crownDevelopmentToViewModel, editsToDatabaseUpdates } from './view-model.js';
+import { crownDevelopmentToViewModel, editsToDatabaseUpdates, eventPrefix } from './view-model.js';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
@@ -625,6 +625,103 @@ describe('view-model', () => {
 			assert.strictEqual(upsert.where?.id, 'event-id');
 			assert.strictEqual(upsert.create?.venue, 'some place');
 			assert.strictEqual(upsert.update?.prepDuration, 'prep: 1.5 days');
+		});
+		it('should update procedure relation and event type correctly', () => {
+			/** @type {CrownDevelopmentViewModel} */
+			const toSave = {
+				procedureId: 'proc-1',
+				eventTypeId: 'event-type-1'
+			};
+			const updates = editsToDatabaseUpdates(toSave, {});
+			assert.ok(updates.Procedure);
+			assert.deepStrictEqual(updates.Procedure, { connect: { id: 'proc-1' } });
+			assert.strictEqual(updates.procedureId, undefined);
+			assert.strictEqual(updates.eventTypeId, 'event-type-1');
+		});
+		it('should map procedureId to Procedure.connect and remove procedureId', () => {
+			/** @type {import('./types.js').CrownDevelopmentViewModel} */
+			const edits = {
+				procedureId: 'proc-2',
+				eventTypeId: 'event-type-2'
+			};
+			const updates = editsToDatabaseUpdates(edits, {});
+			assert.deepStrictEqual(updates.Procedure, { connect: { id: 'proc-2' } });
+			assert.strictEqual(updates.procedureId, undefined);
+			assert.strictEqual(updates.eventTypeId, 'event-type-2');
+		});
+		it('should throw error for invalid procedureId', () => {
+			const invalidId = 'WRONG_ID';
+			assert.throws(
+				() => eventPrefix(invalidId),
+				(err) => {
+					assert.strictEqual(
+						err.message,
+						`invalid procedureId, expected ${APPLICATION_PROCEDURE_ID.HEARING} or ${APPLICATION_PROCEDURE_ID.INQUIRY}, got ${invalidId}`
+					);
+					return true;
+				}
+			);
+		});
+		it('should return writtenReps prefix for written reps procedureId', () => {
+			const prefix = eventPrefix(APPLICATION_PROCEDURE_ID.WRITTEN_REPS);
+			assert.strictEqual(prefix, 'writtenReps');
+		});
+
+		it('should map writtenReps event fields', () => {
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				procedureId: APPLICATION_PROCEDURE_ID.WRITTEN_REPS,
+				Event: {
+					date: '2025-09-01',
+					venue: 'Written Venue',
+					notificationDate: '2025-09-02',
+					statementsDate: '2025-09-03',
+					caseManagementConferenceDate: '2025-09-04'
+				}
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.strictEqual(result.writtenRepsDate, '2025-09-01');
+			assert.strictEqual(result.writtenRepsVenue, 'Written Venue');
+			assert.strictEqual(result.writtenRepsNotificationDate, '2025-09-02');
+			assert.strictEqual(result.writtenRepsStatementsDate, '2025-09-03');
+			assert.strictEqual(result.writtenRepsCaseManagementConferenceDate, '2025-09-04');
+		});
+
+		it('should map event update input for writtenReps', () => {
+			const edits = {
+				writtenRepsDate: '2025-09-01',
+				writtenRepsVenue: 'Written Venue',
+				writtenRepsNotificationDate: '2025-09-02',
+				writtenRepsStatementsDate: '2025-09-03',
+				writtenRepsCaseManagementConferenceDate: '2025-09-04'
+			};
+			const viewModel = {
+				procedureId: APPLICATION_PROCEDURE_ID.WRITTEN_REPS
+			};
+			const updates = editsToDatabaseUpdates(edits, viewModel);
+			assert.ok(updates.Event?.upsert);
+			const upsert = updates.Event.upsert;
+			assert.strictEqual(upsert.create?.date, '2025-09-01');
+			assert.strictEqual(upsert.create?.venue, 'Written Venue');
+			assert.strictEqual(upsert.create?.notificationDate, '2025-09-02');
+			assert.strictEqual(upsert.create?.statementsDate, '2025-09-03');
+			assert.strictEqual(upsert.create?.caseManagementConferenceDate, '2025-09-04');
+		});
+
+		it('should leave procedure event fields undefined when procedure is selected for the first time', () => {
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				procedureId: APPLICATION_PROCEDURE_ID.WRITTEN_REPS,
+				Event: {}
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.strictEqual(result.writtenRepsDate, undefined);
+			assert.strictEqual(result.writtenRepsVenue, undefined);
+			assert.strictEqual(result.writtenRepsNotificationDate, undefined);
+			assert.strictEqual(result.writtenRepsStatementsDate, undefined);
+			assert.strictEqual(result.writtenRepsCaseManagementConferenceDate, undefined);
 		});
 	});
 });

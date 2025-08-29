@@ -59,6 +59,21 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'applicantContactId',
 	'agentContactId',
 	'eventId',
+	'procedureId',
+	'eventDate',
+	'venue',
+	'startTime',
+	'endTime',
+	'notificationDate',
+	'statementsDate',
+	'caseManagementConferenceDate',
+	'prepDuration',
+	'sittingDuration',
+	'reportingDuration',
+	'issuesReportPublishedDate',
+	'proofsOfEvidenceDate',
+	'procedureNotificationDate',
+	'eventTypeId',
 	'lpaQuestionnaireReceivedEmailSent',
 	'hasApplicationFee',
 	'applicationFee',
@@ -113,6 +128,20 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 	addContactToViewModel(viewModel, crownDevelopment.ApplicantContact, 'applicant');
 	addContactToViewModel(viewModel, crownDevelopment.AgentContact, 'agent');
 
+	const procedureId = crownDevelopment.procedureId;
+	const allPrefixes = ['writtenReps', 'hearing', 'inquiry'];
+	const currentPrefix = hasProcedure(procedureId) ? eventPrefix(procedureId) : null;
+	for (const prefix of allPrefixes) {
+		if (prefix !== currentPrefix) {
+			viewModel[`${prefix}CaseManagementConferenceDate`] = null;
+			viewModel[`${prefix}Duration`] = null;
+			viewModel[`${prefix}DurationPrep`] = null;
+			viewModel[`${prefix}DurationSitting`] = null;
+			viewModel[`${prefix}DurationReporting`] = null;
+			viewModel[`${prefix}IssuesReportPublishedDate`] = null;
+			viewModel[`${prefix}ProofsOfEvidenceDate`] = null;
+		}
+	}
 	if (hasProcedure(crownDevelopment.procedureId)) {
 		const event = crownDevelopment.Event || {};
 		addEventToViewModel(viewModel, event, crownDevelopment.procedureId, crownDevelopment.procedureNotificationDate);
@@ -161,6 +190,16 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		crownDevelopmentUpdateInput.Category = {
 			connect: { id: edits.subCategoryId }
 		};
+	}
+
+	if (edits.procedureId) {
+		crownDevelopmentUpdateInput.Procedure = {
+			connect: { id: edits.procedureId }
+		};
+		delete crownDevelopmentUpdateInput.procedureId;
+	}
+	if ('eventTypeId' in edits) {
+		crownDevelopmentUpdateInput.eventTypeId = edits.eventTypeId;
 	}
 
 	if ('siteAddress' in edits) {
@@ -367,7 +406,7 @@ function isHearing(procedureId) {
  * @param {string|null} procedureId
  * @returns {string}
  */
-function eventPrefix(procedureId) {
+export function eventPrefix(procedureId) {
 	switch (procedureId) {
 		case APPLICATION_PROCEDURE_ID.INQUIRY:
 			return 'inquiry';

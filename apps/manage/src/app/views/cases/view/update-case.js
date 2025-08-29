@@ -7,6 +7,63 @@ import {
 import { editsToDatabaseUpdates } from './view-model.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 
+function getClearedEventTypeFields(newEventTypeId) {
+	return {
+		eventTypeId: newEventTypeId,
+		eventDate: null,
+		venue: null,
+		startTime: null,
+		endTime: null,
+		prepDuration: null,
+		sittingDuration: null,
+		reportDuration: null,
+		notificationDate: null,
+		issuesReportPublishedDate: null,
+		statementsDate: null,
+		caseManagementConferenceDate: null,
+		proofOfEvidenceDate: null
+	};
+}
+function getClearedProcedureFields(eventId) {
+	const clearedEventFields = {
+		date: null,
+		prepDuration: null,
+		sittingDuration: null,
+		reportingDuration: null,
+		venue: null,
+		notificationDate: null,
+		issuesReportPublishedDate: null,
+		statementsDate: null,
+		caseManagementConferenceDate: null,
+		proofsOfEvidenceDate: null
+	};
+	return {
+		procedureNotificationDate: null,
+		Event: {
+			upsert: {
+				where: eventId ? { id: eventId } : undefined,
+				create: clearedEventFields,
+				update: clearedEventFields
+			}
+		}
+	};
+}
+export function clearEventFieldsIfChanged(edits, viewModel) {
+	const eventTypeChanged = 'eventTypeId' in edits && edits.eventTypeId !== viewModel.eventTypeId;
+	const procedureChanged = 'procedureId' in edits && edits.procedureId !== viewModel.procedureId;
+
+	if (!eventTypeChanged && !procedureChanged) {
+		return {};
+	}
+	let clearedFields = {};
+	if (eventTypeChanged) {
+		Object.assign(clearedFields, getClearedEventTypeFields(edits.eventTypeId));
+	}
+	if (procedureChanged) {
+		Object.assign(clearedFields, getClearedProcedureFields(viewModel.eventId));
+	}
+	return clearedFields;
+}
 /**
  * @param {import('#service').ManageService} service
  * @param {boolean} [clearAnswer=false] - whether to clear the answer before saving
@@ -37,7 +94,11 @@ export function buildUpdateCase(service, clearAnswer = false) {
 
 		await customUpdateCaseActions(service, id, toSave, fullViewModel);
 
-		const updateInput = editsToDatabaseUpdates(toSave, fullViewModel);
+		let updateInput = editsToDatabaseUpdates(toSave, fullViewModel);
+		const clearFields = clearEventFieldsIfChanged(toSave, fullViewModel);
+		if (Object.keys(clearFields).length > 0) {
+			updateInput = { ...updateInput, ...clearFields };
+		}
 		updateInput.updatedDate = new Date();
 
 		logger.info({ fields: Object.keys(toSave) }, 'update case input');
