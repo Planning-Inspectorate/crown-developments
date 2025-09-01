@@ -1,11 +1,8 @@
 import { Router as createRouter } from 'express';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
-import {
-	buildApplicationUpdates,
-	buildCreateController,
-	buildSaveController,
-	getSummaryHeading
-} from './controller.js';
+import { buildApplicationUpdates, getSummaryHeading } from './controller.js';
+import { buildCreateController, buildSaveController } from './create/controller.js';
+import { buildConfirmUnpublishUpdateController, buildUnpublishUpdateController } from './unpublish/controller.js';
 import { getQuestions } from '../questions.js';
 import { buildGetJourney } from '@planning-inspectorate/dynamic-forms/src/middleware/build-get-journey.js';
 import { createJourney } from './journey.js';
@@ -17,6 +14,7 @@ import { JOURNEY_ID } from './journey.js';
 import { buildSave, list, question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
 import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
+import { buildReviewController } from './review/controller.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -32,9 +30,20 @@ export function createRoutes(service) {
 	const applicationUpdatesController = buildApplicationUpdates(service);
 	const createController = buildCreateController();
 	const saveController = buildSaveController(service);
+	const reviewController = buildReviewController(service);
+	const confirmUnpublishUpdateController = buildConfirmUnpublishUpdateController(service);
+	const unpublishUpdateController = buildUnpublishUpdateController(service);
 
 	router.get('/', asyncHandler(applicationUpdatesController));
+
 	router.get('/create', asyncHandler(createController));
+
+	router.get('/:updateId/review-published', asyncHandler(reviewController));
+	router.get('/:updateId/review-unpublished', asyncHandler(reviewController));
+	router.get('/:updateId/review-update', asyncHandler(reviewController));
+
+	router.get('/:updateId/unpublish', asyncHandler(confirmUnpublishUpdateController));
+	router.post('/:updateId/unpublish', asyncHandler(unpublishUpdateController));
 
 	router.get('/:section/:question', getJourneyResponse, getJourney, question);
 	router.post(
