@@ -1,0 +1,30 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block pageContent %}
+    {{ govukSummaryList({
+        rows: summaryItems
+    }) }}
+
+    <form method="POST">
+        {% if applicationUpdateStatus == "published" %}
+            {{ govukButton({
+                text: "Unpublish update",
+                href: unpublishButtonUrl,
+                classes: "govuk-button--warning"
+            }) }}
+        {% elif applicationUpdateStatus == "draft" %}
+            {{ govukButton({
+                text: "Save",
+                href: ""
+            }) }}
+            {{ govukButton({
+                text: "Delete",
+                href: "",
+                classes: "govuk-button--warning"
+            }) }}
+        {% endif %}
+    </form>
+{% endblock %}
