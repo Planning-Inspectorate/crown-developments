@@ -49,7 +49,7 @@ export function buildListReps({ db }) {
 			{ parent: 'SubmittedByContact', fields: ['firstName', 'lastName'] },
 			{ parent: 'RepresentedContact', fields: ['firstName', 'lastName', 'orgName'] },
 			{ fields: ['commentRedacted'] },
-			{ fields: ['comment'], constraints: [{ commentRedacted: { equals: null } }] }
+			{ fields: ['comment'] }
 		]);
 
 		const [filteredRepresentations, totalFilteredRepresentations] = await Promise.all([
