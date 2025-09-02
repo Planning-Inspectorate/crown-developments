@@ -59,6 +59,20 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'applicantContactId',
 	'agentContactId',
 	'eventId',
+	'procedureId',
+	'eventDate',
+	'venue',
+	'startTime',
+	'endTime',
+	'notificationDate',
+	'statementsDate',
+	'caseManagementConferenceDate',
+	'prepDuration',
+	'sittingDuration',
+	'reportingDuration',
+	'issuesReportPublishedDate',
+	'proofsOfEvidenceDate',
+	'procedureNotificationDate',
 	'lpaQuestionnaireReceivedEmailSent',
 	'hasApplicationFee',
 	'applicationFee',
@@ -112,6 +126,36 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 	addLpaDetailsToViewModel(viewModel, crownDevelopment.Lpa);
 	addContactToViewModel(viewModel, crownDevelopment.ApplicantContact, 'applicant');
 	addContactToViewModel(viewModel, crownDevelopment.AgentContact, 'agent');
+	const procedureId = crownDevelopment.procedureId;
+	if (procedureId !== 'writtenReps') {
+		viewModel.writtenRepsProcedureNotificationDate = null;
+	}
+	if (procedureId !== 'hearing') {
+		viewModel.hearingProcedureNotificationDate = null;
+		viewModel.hearingDate = null;
+		viewModel.hearingDuration = null;
+		viewModel.hearingVenue = null;
+		viewModel.hearingNotificationDate = null;
+		viewModel.hearingIssuesReportPublishedDate = null;
+		viewModel.hearingStatementsDate = null;
+		viewModel.hearingCaseManagementConferenceDate = null;
+		viewModel.hearingDurationPrep = null;
+		viewModel.hearingDurationSitting = null;
+		viewModel.hearingDurationReporting = null;
+	}
+	if (procedureId !== 'inquiry') {
+		viewModel.inquiryProcedureNotificationDate = null;
+		viewModel.inquiryStatementsDate = null;
+		viewModel.inquiryDate = null;
+		viewModel.inquiryDuration = null;
+		viewModel.inquiryVenue = null;
+		viewModel.inquiryNotificationDate = null;
+		viewModel.inquiryCaseManagementConferenceDate = null;
+		viewModel.inquiryProofsOfEvidenceDate = null;
+		viewModel.inquiryDurationPrep = null;
+		viewModel.inquiryDurationSitting = null;
+		viewModel.inquiryDurationReporting = null;
+	}
 
 	if (hasProcedure(crownDevelopment.procedureId)) {
 		const event = crownDevelopment.Event || {};
@@ -161,6 +205,16 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		crownDevelopmentUpdateInput.Category = {
 			connect: { id: edits.subCategoryId }
 		};
+	}
+
+	if (edits.procedureId) {
+		crownDevelopmentUpdateInput.Procedure = {
+			connect: { id: edits.procedureId }
+		};
+		delete crownDevelopmentUpdateInput.procedureId;
+	}
+	if ('eventTypeId' in edits) {
+		crownDevelopmentUpdateInput.eventTypeId = edits.eventTypeId;
 	}
 
 	if ('siteAddress' in edits) {
@@ -367,7 +421,7 @@ function isHearing(procedureId) {
  * @param {string|null} procedureId
  * @returns {string}
  */
-function eventPrefix(procedureId) {
+export function eventPrefix(procedureId) {
 	switch (procedureId) {
 		case APPLICATION_PROCEDURE_ID.INQUIRY:
 			return 'inquiry';

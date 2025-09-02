@@ -7,6 +7,45 @@ import {
 import { editsToDatabaseUpdates } from './view-model.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 
+export async function clearProcedureData({ db }, edits, viewModel, applicationId) {
+	if (!('procedureId' in edits)) {
+		return {};
+	}
+	const validProcedures = ['hearing', 'inquiry', 'writtenReps'];
+	const procedureId = edits.procedureId;
+	if (procedureId && validProcedures.includes(procedureId)) {
+		const crownDevelopment = await db.crownDevelopment.findUnique({
+			where: { id: applicationId },
+			select: { procedureId: true, eventId: true }
+		});
+		if (
+			crownDevelopment?.eventId &&
+			crownDevelopment.procedureId !== null &&
+			crownDevelopment.procedureId !== procedureId
+		) {
+			return {
+				procedureNotificationDate: null,
+				Event: {
+					update: {
+						data: {
+							date: null,
+							prepDuration: null,
+							sittingDuration: null,
+							reportingDuration: null,
+							venue: null,
+							notificationDate: null,
+							issuesReportPublishedDate: null,
+							statementsDate: null,
+							caseManagementConferenceDate: null,
+							proofsOfEvidenceDate: null
+						}
+					}
+				}
+			};
+		}
+	}
+	return {};
+}
 /**
  * @param {import('#service').ManageService} service
  * @param {boolean} [clearAnswer=false] - whether to clear the answer before saving
@@ -37,7 +76,11 @@ export function buildUpdateCase(service, clearAnswer = false) {
 
 		await customUpdateCaseActions(service, id, toSave, fullViewModel);
 
-		const updateInput = editsToDatabaseUpdates(toSave, fullViewModel);
+		let updateInput = editsToDatabaseUpdates(toSave, fullViewModel);
+		const clearFields = await clearProcedureData(service, toSave, fullViewModel, id);
+		if (Object.keys(clearFields).length > 0) {
+			updateInput = { ...updateInput, ...clearFields };
+		}
 		updateInput.updatedDate = new Date();
 
 		logger.info({ fields: Object.keys(toSave) }, 'update case input');
