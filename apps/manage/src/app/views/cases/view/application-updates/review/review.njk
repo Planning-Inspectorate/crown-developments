@@ -7,24 +7,24 @@
     {{ govukSummaryList({
         rows: summaryItems
     }) }}
-
-    <form method="POST">
-        {% if applicationUpdateStatus == "published" %}
-            {{ govukButton({
-                text: "Unpublish update",
-                href: unpublishButtonUrl,
-                classes: "govuk-button--warning"
-            }) }}
-        {% elif applicationUpdateStatus == "draft" %}
-            {{ govukButton({
-                text: "Save",
-                href: ""
-            }) }}
-            {{ govukButton({
-                text: "Delete",
-                href: "",
-                classes: "govuk-button--warning"
-            }) }}
-        {% endif %}
-    </form>
+    <div class="govuk-button-group">
+        <form method="POST">
+            {% if applicationUpdateStatus == "published" %}
+                {{ govukButton({
+                    text: "Unpublish update",
+                    href: unpublishButtonUrl,
+                    classes: "govuk-button--warning"
+                }) }}
+            {% elif applicationUpdateStatus == "draft" %}
+                    {{ govukButton({
+                        text: "Save"
+                    }) }}
+                {{ govukButton({
+                    text: "Delete",
+                    href: deleteButtonUrl,
+                    classes: "govuk-button--warning"
+                }) }}
+            {% endif %}
+        </form>
+    </div>
 {% endblock %}

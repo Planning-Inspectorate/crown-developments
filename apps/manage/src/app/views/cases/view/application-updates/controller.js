@@ -2,7 +2,8 @@ import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 import { getAnswers } from '@pins/crowndev-lib/util/answers.js';
-import { clearAppUpdateStatusSession, readAppUpdateStatus } from './utils.js';
+import { clearAppUpdateStatusSession, readAppUpdateStatus, validateParams } from './utils.js';
+import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 export function buildApplicationUpdates({ db }) {
 	return async (req, res) => {
@@ -68,6 +69,40 @@ export function buildApplicationUpdates({ db }) {
 			totalPages,
 			resultsStartNumber,
 			resultsEndNumber
+		});
+	};
+}
+
+export function buildConfirmationController({ db }) {
+	return async (req, res) => {
+		const { id, applicationUpdateId } = validateParams(req.params);
+
+		const [crownDevelopment, applicationUpdate] = await Promise.all([
+			db.crownDevelopment.findUnique({
+				where: { id },
+				select: { reference: true }
+			}),
+			db.applicationUpdate.findUnique({
+				where: { id: applicationUpdateId },
+				select: { statusId: true, details: true }
+			})
+		]);
+
+		if (!crownDevelopment || !applicationUpdate) {
+			return notFoundHandler(req, res);
+		}
+
+		const applicationUpdateStatus = applicationUpdate.statusId;
+		const applicationUpdateIsDraft = applicationUpdateStatus === APPLICATION_UPDATE_STATUS_ID.DRAFT;
+
+		res.render('views/cases/view/application-updates/confirmation.njk', {
+			pageTitle: `Confirm ${applicationUpdateIsDraft ? 'delete' : 'unpublish'} update`,
+			pageCaption: crownDevelopment.reference,
+			updateDetails: applicationUpdate.details,
+			backLinkUrl: `${req.baseUrl}/${applicationUpdateId}/review-published`,
+			submitButtonText: `Confirm ${applicationUpdateIsDraft ? 'delete' : 'unpublish'}`,
+			cancelButtonUrl: req.baseUrl,
+			applicationUpdateIsDraft
 		});
 	};
 }
