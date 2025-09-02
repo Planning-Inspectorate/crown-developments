@@ -1,0 +1,24 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+
+{% block pageContent %}
+    {{ govukInsetText({
+        text: updateDetails
+    }) }}
+    <div class="govuk-button-group">
+        <form method="POST">
+            {{ govukButton({
+                text: submitButtonText
+            }) }}
+            {% if applicationUpdateIsDraft %}
+                {{ govukButton({
+                    text: "Cancel",
+                    href: cancelButtonUrl,
+                    classes: "govuk-button--secondary"
+                }) }}
+            {% endif %}
+        </form>
+    </div>
+{% endblock %}

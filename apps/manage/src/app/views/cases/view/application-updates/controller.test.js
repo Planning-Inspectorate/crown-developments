@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { buildApplicationUpdates, getSummaryHeading } from './controller.js';
+import { buildApplicationUpdates, buildConfirmationController, getSummaryHeading } from './controller.js';
 
 describe('application updates controller', () => {
 	describe('buildApplicationUpdates', () => {
@@ -206,6 +206,168 @@ describe('application updates controller', () => {
 
 			const controller = buildApplicationUpdates({ db: mockDb });
 
+			await controller(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/layouts/error');
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				pageTitle: 'Page not found',
+				messages: [
+					'If you typed the web address, check it is correct.',
+					'If you pasted the web address, check you copied the entire address.'
+				]
+			});
+		});
+	});
+	describe('buildConfirmationController', () => {
+		it('should render delete confirmation page if app update status is draft', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						reference: 'CROWN/2025/0000001'
+					}))
+				},
+				applicationUpdate: {
+					findUnique: mock.fn(() => ({
+						id: 'app-update-01',
+						details: 'an update',
+						statusId: 'draft',
+						Status: {
+							displayName: 'Draft'
+						},
+						lastEdited: new Date('2020-12-17T03:24:00.000Z')
+					})),
+					count: mock.fn(() => 3)
+				}
+			};
+			const mockReq = {
+				baseUrl: '/application-updates',
+				params: {
+					id: 'crown-dev-01',
+					updateId: 'app-update-01'
+				}
+			};
+			const mockRes = {
+				render: mock.fn()
+			};
+
+			const controller = buildConfirmationController({ db: mockDb });
+			await controller(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.strictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/cases/view/application-updates/confirmation.njk'
+			);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				pageTitle: 'Confirm delete update',
+				pageCaption: 'CROWN/2025/0000001',
+				updateDetails: 'an update',
+				backLinkUrl: '/application-updates/app-update-01/review-published',
+				submitButtonText: 'Confirm delete',
+				cancelButtonUrl: '/application-updates',
+				applicationUpdateIsDraft: true
+			});
+		});
+		it('should render delete confirmation page if app update status is published', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						reference: 'CROWN/2025/0000001'
+					}))
+				},
+				applicationUpdate: {
+					findUnique: mock.fn(() => ({
+						id: 'app-update-01',
+						details: 'an update',
+						statusId: 'published',
+						Status: {
+							displayName: 'Published'
+						},
+						lastEdited: new Date('2020-12-17T03:24:00.000Z')
+					})),
+					count: mock.fn(() => 3)
+				}
+			};
+			const mockReq = {
+				baseUrl: '/application-updates',
+				params: {
+					id: 'crown-dev-01',
+					updateId: 'app-update-01'
+				}
+			};
+			const mockRes = {
+				render: mock.fn()
+			};
+
+			const controller = buildConfirmationController({ db: mockDb });
+			await controller(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.strictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/cases/view/application-updates/confirmation.njk'
+			);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				pageTitle: 'Confirm unpublish update',
+				pageCaption: 'CROWN/2025/0000001',
+				updateDetails: 'an update',
+				backLinkUrl: '/application-updates/app-update-01/review-published',
+				submitButtonText: 'Confirm unpublish',
+				cancelButtonUrl: '/application-updates',
+				applicationUpdateIsDraft: false
+			});
+		});
+		it('should render not found page if application update not found in db', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						reference: 'CROWN/2025/0000001'
+					}))
+				},
+				applicationUpdate: {
+					findUnique: mock.fn()
+				}
+			};
+
+			const mockReq = { params: { id: 'crown-dev-01', updateId: 'app-update-01' } };
+			const mockRes = { status: mock.fn(), render: mock.fn() };
+
+			const controller = buildConfirmationController({ db: mockDb });
+			await controller(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/layouts/error');
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				pageTitle: 'Page not found',
+				messages: [
+					'If you typed the web address, check it is correct.',
+					'If you pasted the web address, check you copied the entire address.'
+				]
+			});
+		});
+		it('should render not found page if crown development not found in db', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn()
+				},
+				applicationUpdate: {
+					findUnique: mock.fn(() => ({
+						id: 'app-update-01',
+						details: 'an update',
+						statusId: 'published',
+						Status: {
+							displayName: 'Published'
+						},
+						lastEdited: new Date('2020-12-17T03:24:00.000Z')
+					}))
+				}
+			};
+
+			const mockReq = { params: { id: 'crown-dev-01', updateId: 'app-update-01' } };
+			const mockRes = { status: mock.fn(), render: mock.fn() };
+
+			const controller = buildConfirmationController({ db: mockDb });
 			await controller(mockReq, mockRes);
 
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
