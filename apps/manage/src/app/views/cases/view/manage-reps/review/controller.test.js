@@ -854,6 +854,7 @@ describe('controller', () => {
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.strictEqual(viewData?.question?.value, 'Some comment to redact here');
 			assert.strictEqual(viewData?.question?.valueRedacted, 'Some comment to redact here');
+			assert.strictEqual(viewData?.question?.valueOriginal, 'Some comment to redact here');
 		});
 		it('should render redaction page with redacted comment from session', async () => {
 			const mockDb = {
@@ -926,6 +927,53 @@ describe('controller', () => {
 			assert.strictEqual(viewData?.question?.valueRedacted, 'Some comment to ██████ here');
 			assert.strictEqual(viewData?.redactionSuggestions.length, 1);
 			assert.strictEqual(viewData?.redactionSuggestions[0].text, 'redact');
+		});
+		it('should normalise newlines before fetching suggestions', async () => {
+			const mockDb = {
+				representation: {
+					findUnique: mock.fn(() => ({
+						comment: 'Some comment to redact here\r\nWith multiple lines.\r\nAnother part.\rThis has a bad newline'
+					}))
+				}
+			};
+			const logger = mockLogger();
+			const mockTextAnalyticsClient = {
+				recognizePiiEntities: mock.fn(() => [
+					{
+						entities: [{ text: 'redact', offset: 16, length: 6, category: 'PII', confidenceScore: 0.95 }],
+						redactedText: 'Some comment to ██████ here',
+						id: '1234',
+						warnings: []
+					}
+				])
+			};
+			const { redactRepresentation } = buildReviewControllers({
+				db: mockDb,
+				logger,
+				textAnalyticsClient: mockTextAnalyticsClient
+			});
+
+			const mockReq = {
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/redact',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				body: {},
+				session: {}
+			};
+			const mockRes = { render: mock.fn() };
+			await redactRepresentation(mockReq, mockRes);
+			assert.strictEqual(mockDb.representation.findUnique.mock.callCount(), 1);
+			assert.strictEqual(mockTextAnalyticsClient.recognizePiiEntities.mock.callCount(), 1);
+			const redactionArgs = mockTextAnalyticsClient.recognizePiiEntities.mock.calls[0].arguments[0];
+			assert.deepStrictEqual(redactionArgs, [
+				'Some comment to redact here\nWith multiple lines.\nAnother part.\nThis has a bad newline'
+			]);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			// original but with normalised new lines
+			assert.strictEqual(
+				viewData?.question?.valueOriginal,
+				'Some comment to redact here\nWith multiple lines.\nAnother part.\nThis has a bad newline'
+			);
 		});
 	});
 
