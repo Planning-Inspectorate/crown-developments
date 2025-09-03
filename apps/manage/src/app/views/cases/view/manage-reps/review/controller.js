@@ -264,7 +264,8 @@ export function buildReviewControllers(service, journeyId) {
 				select: { comment: true, commentRedacted: true }
 			});
 
-			const comment = representation.comment;
+			// normalise new lines before processing to ensure suggestion offsets align on the front-end
+			const comment = representation.comment?.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
 			const result = await fetchRedactionSuggestions(
 				comment,
@@ -291,7 +292,8 @@ export function buildReviewControllers(service, journeyId) {
 
 			const response = new JourneyResponse(JOURNEY_ID, 'ref-1', {
 				comment: highlightRedactionSuggestions(comment, redactionSuggestions),
-				commentRedacted
+				commentRedacted,
+				commentOriginal: comment
 			});
 
 			const journey = new createRedactJourney(response, req);
