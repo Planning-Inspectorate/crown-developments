@@ -15,7 +15,7 @@ export function buildUnpublishUpdateController({ db, logger }) {
 			logger.info({ reference, applicationUpdateId }, 'unpublishing application update');
 
 			await db.applicationUpdate.update({
-				where: { id: applicationUpdateId },
+				where: { id: applicationUpdateId, applicationId: id },
 				data: {
 					unpublishedDate: new Date(),
 					Status: {

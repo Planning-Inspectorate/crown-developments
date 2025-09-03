@@ -50,7 +50,7 @@ describe('application updates unpublish controller', () => {
 			assert.strictEqual(mockDb.$transaction.mock.callCount(), 1);
 			assert.strictEqual(mockDb.applicationUpdate.update.mock.callCount(), 1);
 			assert.deepStrictEqual(mockDb.applicationUpdate.update.mock.calls[0].arguments[0], {
-				where: { id: 'app-update-01' },
+				where: { id: 'app-update-01', applicationId: 'crown-dev-01' },
 				data: {
 					unpublishedDate: new Date('2025-01-01T03:24:00.000Z'),
 					Status: {
