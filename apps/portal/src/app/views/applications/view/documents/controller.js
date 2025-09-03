@@ -49,16 +49,14 @@ export function buildApplicationDocumentsPage(service) {
 			pageNumber
 		);
 
-		const currentUrl = `${req.baseUrl}/documents`;
-
 		res.render('views/applications/view/documents/view.njk', {
 			id,
-			baseUrl: req.baseUrl,
+			baseUrl: `${req.baseUrl}/documents`,
 			pageTitle: 'Documents',
 			applicationReference: crownDevelopment.reference,
 			pageCaption: reference,
 			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
-			currentUrl,
+			currentUrl: req.originalUrl,
 			documents: allDocuments.slice(skipSize, skipSize + pageSize),
 			selectedItemsPerPage,
 			totalDocuments,

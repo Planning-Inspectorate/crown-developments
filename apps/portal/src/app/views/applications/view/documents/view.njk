@@ -43,18 +43,18 @@
 
                     {% if documents | length == 0 %}
                         <p class="govuk-body">No results were found.</p>
-                        <p class="govuk-body"><a href="{{ baseUrl }}/documents" class="govuk-link govuk-link--no-visited-state">Clear search</a> to view all documents.</p>
+                        <p class="govuk-body"><a href="{{ baseUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search</a> to view all documents.</p>
                     {% else %}
                         <div id="pagination" class="govuk-body">
                             <p class="govuk-body">
                                 Showing <strong>{{ resultsStartNumber }}</strong> to <strong>{{ resultsEndNumber if totalDocuments > resultsEndNumber else totalDocuments }}</strong>
                                 of <strong>{{ totalDocuments }}</strong> documents, newest first.
                             </p>
-                            <p class="govuk-body">{{ paginationOptions.renderPagination(selectedItemsPerPage, totalDocuments, pageNumber) }}</p>
+                            <p class="govuk-body">{{ paginationOptions.renderPagination(selectedItemsPerPage, totalDocuments, pageNumber, searchValue) }}</p>
                             <ul class="govuk-list document-list">
                                 {% for document in documents %}
                                     <li>
-                                        <a class="govuk-link" href="{{ currentUrl }}/{{ document.id }}" target="_blank" rel="noreferrer">
+                                        <a class="govuk-link" href="{{ baseUrl }}/{{ document.id }}" target="_blank" rel="noreferrer">
                                             {{ document.name }}
                                         </a>
                                         <div class="document-list__meta-data">

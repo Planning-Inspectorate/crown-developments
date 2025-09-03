@@ -67,7 +67,7 @@ describe('controller', () => {
 			const req = {
 				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
 				baseUrl: 'test-baseUrl',
-				originalUrl: '/documents'
+				originalUrl: 'test-baseUrl/documents?searchCriteria="test"'
 			};
 			const res = {
 				status: mock.fn(),
@@ -79,7 +79,7 @@ describe('controller', () => {
 			assert.strictEqual(res.render.mock.callCount(), 1);
 			assert.deepStrictEqual(res.render.mock.calls[0].arguments[1], {
 				id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
-				baseUrl: 'test-baseUrl',
+				baseUrl: 'test-baseUrl/documents',
 				pageTitle: 'Documents',
 				applicationReference: 'CROWN/2025/0000001',
 				pageCaption: 'CROWN/2025/0000001',
@@ -93,7 +93,7 @@ describe('controller', () => {
 						text: 'Documents'
 					}
 				],
-				currentUrl: 'test-baseUrl/documents',
+				currentUrl: 'test-baseUrl/documents?searchCriteria="test"',
 				documents: [],
 				selectedItemsPerPage: 25,
 				totalDocuments: 0,
