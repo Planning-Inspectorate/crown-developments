@@ -13,7 +13,7 @@ export function buildReviewController({ db }) {
 				select: { reference: true }
 			}),
 			db.applicationUpdate.findUnique({
-				where: { id: applicationUpdateId }
+				where: { id: applicationUpdateId, applicationId: id }
 			})
 		]);
 

@@ -83,7 +83,7 @@ export function buildConfirmationController({ db }) {
 				select: { reference: true }
 			}),
 			db.applicationUpdate.findUnique({
-				where: { id: applicationUpdateId },
+				where: { id: applicationUpdateId, applicationId: id },
 				select: { statusId: true, details: true }
 			})
 		]);

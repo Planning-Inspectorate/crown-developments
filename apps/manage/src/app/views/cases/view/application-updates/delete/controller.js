@@ -13,7 +13,7 @@ export function buildDeleteUpdateController({ db, logger }) {
 
 			logger.info({ reference, applicationUpdateId }, 'deleting application update');
 
-			await db.applicationUpdate.delete({ where: { id: applicationUpdateId } });
+			await db.applicationUpdate.delete({ where: { id: applicationUpdateId, applicationId: id } });
 
 			logger.info({ reference, applicationUpdateId }, 'application update successfully deleted');
 		});
