@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { crownDevelopmentToViewModel, editsToDatabaseUpdates, eventPrefix } from './view-model.js';
+import { crownDevelopmentToViewModel, editsToDatabaseUpdates } from './view-model.js';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
@@ -626,7 +626,7 @@ describe('view-model', () => {
 			assert.strictEqual(upsert.create?.venue, 'some place');
 			assert.strictEqual(upsert.update?.prepDuration, 'prep: 1.5 days');
 		});
-		it('should update procedure relation and event type correctly', () => {
+		it('should update procedure and event type correctly', () => {
 			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				procedureId: 'proc-1',
@@ -638,35 +638,17 @@ describe('view-model', () => {
 			assert.strictEqual(updates.procedureId, undefined);
 			assert.strictEqual(updates.eventTypeId, 'event-type-1');
 		});
-		it('should map procedureId to Procedure.connect and remove procedureId', () => {
+		it('should map eventTypeId when procedureId is undefined', () => {
 			/** @type {import('./types.js').CrownDevelopmentViewModel} */
 			const edits = {
-				procedureId: 'proc-2',
+				procedureId: undefined,
 				eventTypeId: 'event-type-2'
 			};
 			const updates = editsToDatabaseUpdates(edits, {});
-			assert.deepStrictEqual(updates.Procedure, { connect: { id: 'proc-2' } });
+			assert.strictEqual(updates.Procedure, undefined);
 			assert.strictEqual(updates.procedureId, undefined);
 			assert.strictEqual(updates.eventTypeId, 'event-type-2');
 		});
-		it('should throw error for invalid procedureId', () => {
-			const invalidId = 'WRONG_ID';
-			assert.throws(
-				() => eventPrefix(invalidId),
-				(err) => {
-					assert.strictEqual(
-						err.message,
-						`invalid procedureId, expected ${APPLICATION_PROCEDURE_ID.HEARING} or ${APPLICATION_PROCEDURE_ID.INQUIRY}, got ${invalidId}`
-					);
-					return true;
-				}
-			);
-		});
-		it('should return writtenReps prefix for written reps procedureId', () => {
-			const prefix = eventPrefix(APPLICATION_PROCEDURE_ID.WRITTEN_REPS);
-			assert.strictEqual(prefix, 'writtenReps');
-		});
-
 		it('should map writtenReps event fields', () => {
 			const input = {
 				id: 'id-1',
