@@ -25,3 +25,27 @@ export function readAppUpdateStatus(req, id) {
 export function clearAppUpdateStatusSession(req, id) {
 	clearSessionData(req, id, 'applicationUpdateStatus');
 }
+
+export function getApplicationUpdateSessionData(req, applicationUpdateId) {
+	return req.session?.appUpdates?.[applicationUpdateId] || {};
+}
+
+/**
+ * Clears application updates from the session
+ * @param {import('express').Request} req
+ * @param {string} [applicationUpdateId]
+ */
+export function clearAppUpdatesFromSession(req, applicationUpdateId) {
+	if (!req.session) {
+		return;
+	}
+
+	if (applicationUpdateId === undefined) {
+		req.session.appUpdates = {};
+		return;
+	}
+
+	/** @type {Record<string, any>} */
+	const appUpdates = req.session.appUpdates || (req.session.appUpdates = {});
+	delete appUpdates[applicationUpdateId];
+}

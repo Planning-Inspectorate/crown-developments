@@ -1,6 +1,13 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { buildReviewController, buildSaveDraftUpdateController } from './controller.js';
+import {
+	buildPublishNowPage,
+	buildReviewController,
+	buildSaveDraftUpdateController,
+	buildSubmitPublishNow,
+	buildSubmitUpdateDetails,
+	buildUpdateDetailsPage
+} from './controller.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 
 describe('application updates review controller', () => {
@@ -30,7 +37,8 @@ describe('application updates review controller', () => {
 				params: {
 					id: 'crown-dev-01',
 					updateId: 'app-update-01'
-				}
+				},
+				session: {}
 			};
 			const mockRes = {
 				render: mock.fn()
@@ -46,7 +54,6 @@ describe('application updates review controller', () => {
 			);
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
 				pageTitle: 'Review draft update',
-				pageCaption: 'CROWN/2025/0000001',
 				backLinkUrl: '/application-updates',
 				unpublishButtonUrl: '/application-updates/app-update-01/unpublish',
 				deleteButtonUrl: '/application-updates/app-update-01/delete',
@@ -62,7 +69,7 @@ describe('application updates review controller', () => {
 						actions: {
 							items: [
 								{
-									href: '',
+									href: '/application-updates/app-update-01/review/update-details',
 									text: 'Change',
 									visuallyHiddenText: 'details'
 								}
@@ -79,7 +86,7 @@ describe('application updates review controller', () => {
 						actions: {
 							items: [
 								{
-									href: '',
+									href: '/application-updates/app-update-01/review/publish-now',
 									text: 'Change',
 									visuallyHiddenText: 'publish now'
 								}
@@ -115,7 +122,8 @@ describe('application updates review controller', () => {
 				params: {
 					id: 'crown-dev-01',
 					updateId: 'app-update-01'
-				}
+				},
+				session: {}
 			};
 			const mockRes = {
 				render: mock.fn()
@@ -131,7 +139,6 @@ describe('application updates review controller', () => {
 			);
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
 				pageTitle: 'Review published update',
-				pageCaption: 'CROWN/2025/0000001',
 				backLinkUrl: '/application-updates',
 				unpublishButtonUrl: '/application-updates/app-update-01/unpublish',
 				deleteButtonUrl: '/application-updates/app-update-01/delete',
@@ -147,7 +154,7 @@ describe('application updates review controller', () => {
 						actions: {
 							items: [
 								{
-									href: '',
+									href: '/application-updates/app-update-01/review/update-details',
 									text: 'Change',
 									visuallyHiddenText: 'details'
 								}
@@ -200,7 +207,8 @@ describe('application updates review controller', () => {
 				params: {
 					id: 'crown-dev-01',
 					updateId: 'app-update-01'
-				}
+				},
+				session: {}
 			};
 			const mockRes = {
 				render: mock.fn()
@@ -216,7 +224,6 @@ describe('application updates review controller', () => {
 			);
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
 				pageTitle: 'Review unpublished update',
-				pageCaption: 'CROWN/2025/0000001',
 				backLinkUrl: '/application-updates',
 				unpublishButtonUrl: '/application-updates/app-update-01/unpublish',
 				deleteButtonUrl: '/application-updates/app-update-01/delete',
@@ -328,6 +335,9 @@ describe('application updates review controller', () => {
 					findUnique: mock.fn(() => ({
 						reference: 'CROWN/2025/0000001'
 					}))
+				},
+				applicationUpdate: {
+					update: mock.fn()
 				}
 			};
 			const mockReq = {
@@ -370,6 +380,455 @@ describe('application updates review controller', () => {
 
 			const controller = buildSaveDraftUpdateController({ db: mockDb, logger: mockLogger() });
 			await assert.rejects(() => controller(mockReq, {}));
+		});
+	});
+	describe('buildUpdateDetailsPage', () => {
+		it('should render update details page when status is draft', async () => {
+			const mockDb = {
+				applicationUpdate: {
+					findUnique: mock.fn(() => ({
+						statusId: 'draft'
+					}))
+				}
+			};
+			const mockReq = {
+				baseUrl: '/application-updates',
+				originalUrl: '/application-updates',
+				params: {
+					id: 'crown-dev-01',
+					updateId: 'app-update-01'
+				},
+				session: {
+					appUpdates: {
+						'app-update-01': {
+							details: 'an update',
+							publishNow: 'yes'
+						}
+					}
+				}
+			};
+			const mockRes = { render: mock.fn() };
+
+			const controller = buildUpdateDetailsPage({ db: mockDb });
+			await controller(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.strictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/cases/view/application-updates/review/update-details.njk'
+			);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				applicationUpdateStatus: 'draft',
+				details: 'an update',
+				backLinkUrl: '/application-updates/app-update-01/review-update',
+				errors: undefined,
+				errorSummary: undefined
+			});
+		});
+		it('should render update details page when status is published', async () => {
+			const mockDb = {
+				applicationUpdate: {
+					findUnique: mock.fn(() => ({
+						statusId: 'published'
+					}))
+				}
+			};
+			const mockReq = {
+				baseUrl: '/application-updates',
+				originalUrl: '/application-updates',
+				params: {
+					id: 'crown-dev-01',
+					updateId: 'app-update-01'
+				},
+				session: {
+					appUpdates: {
+						'app-update-01': {
+							details: 'an update',
+							publishNow: 'yes'
+						}
+					}
+				}
+			};
+			const mockRes = { render: mock.fn() };
+
+			const controller = buildUpdateDetailsPage({ db: mockDb });
+			await controller(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.strictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/cases/view/application-updates/review/update-details.njk'
+			);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				applicationUpdateStatus: 'published',
+				details: 'an update',
+				backLinkUrl: '/application-updates/app-update-01/review-published',
+				errors: undefined,
+				errorSummary: undefined
+			});
+		});
+		it('should render update details page with errors when present', async () => {
+			const mockDb = {
+				applicationUpdate: {
+					findUnique: mock.fn(() => ({
+						statusId: 'published'
+					}))
+				}
+			};
+			const mockReq = {
+				baseUrl: '/application-updates',
+				originalUrl: '/application-updates',
+				params: {
+					id: 'crown-dev-01',
+					updateId: 'app-update-01'
+				},
+				session: {
+					appUpdates: {
+						'app-update-01': {
+							details: 'an update',
+							publishNow: 'yes'
+						}
+					}
+				},
+				body: {
+					errors: {
+						details: {
+							msg: 'Enter update details'
+						}
+					},
+					errorSummary: [
+						{
+							text: 'Enter update details',
+							href: `#details`
+						}
+					]
+				}
+			};
+			const mockRes = {
+				render: mock.fn()
+			};
+
+			const controller = buildUpdateDetailsPage({ db: mockDb });
+			await controller(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.strictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/cases/view/application-updates/review/update-details.njk'
+			);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				applicationUpdateStatus: 'published',
+				details: 'an update',
+				backLinkUrl: '/application-updates/app-update-01/review-published',
+				errorSummary: [
+					{
+						href: '#details',
+						text: 'Enter update details'
+					}
+				],
+				errors: {
+					details: {
+						msg: 'Enter update details'
+					}
+				}
+			});
+		});
+	});
+	describe('buildSubmitUpdateDetails', () => {
+		it('should save changes and redirect to application updates list page if update in published state and change is valid', async () => {
+			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						reference: 'CROWN/2025/0000001'
+					}))
+				},
+				applicationUpdate: {
+					findUnique: mock.fn(() => ({
+						statusId: 'published',
+						details: 'an update'
+					})),
+					update: mock.fn()
+				}
+			};
+			const mockReq = {
+				baseUrl: '/application-updates',
+				originalUrl: '/application-updates',
+				params: {
+					id: 'crown-dev-01',
+					updateId: 'app-update-01'
+				},
+				session: {
+					appUpdates: {
+						'app-update-01': {
+							details: 'an update',
+							publishNow: 'yes'
+						}
+					}
+				},
+				body: {
+					details: 'an update updated'
+				}
+			};
+			const mockRes = { redirect: mock.fn() };
+
+			const controller = buildSubmitUpdateDetails({ db: mockDb, logger: mockLogger() });
+			await controller(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], '/application-updates');
+			assert.deepStrictEqual(mockReq.session, {
+				appUpdates: {},
+				cases: {
+					'crown-dev-01': {
+						applicationUpdateStatus: 'Your update was published'
+					}
+				}
+			});
+		});
+		it('should redirect to publish now page if update is not in published state', async () => {
+			const mockDb = {
+				applicationUpdate: {
+					findUnique: mock.fn(() => ({
+						statusId: 'draft',
+						details: 'an update'
+					}))
+				}
+			};
+			const mockReq = {
+				baseUrl: '/application-updates',
+				originalUrl: '/application-updates',
+				params: {
+					id: 'crown-dev-01',
+					updateId: 'app-update-01'
+				},
+				session: {
+					appUpdates: {
+						'app-update-01': {
+							details: 'an update',
+							publishNow: 'no'
+						}
+					}
+				},
+				body: {
+					details: 'an update updated'
+				}
+			};
+			const mockRes = { redirect: mock.fn() };
+
+			const controller = buildSubmitUpdateDetails({ db: mockDb });
+			await controller(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			assert.strictEqual(
+				mockRes.redirect.mock.calls[0].arguments[0],
+				'/application-updates/app-update-01/review/publish-now'
+			);
+			assert.deepStrictEqual(mockReq.session.appUpdates, {
+				'app-update-01': {
+					details: 'an update updated',
+					publishNow: 'no'
+				}
+			});
+		});
+		it('should redirect to update details page if validation fails with empty string', async () => {
+			const mockDb = {
+				applicationUpdate: {
+					findUnique: mock.fn(() => ({
+						statusId: 'published'
+					}))
+				}
+			};
+			const mockReq = {
+				baseUrl: '/application-updates',
+				originalUrl: '/application-updates',
+				params: {
+					id: 'crown-dev-01',
+					updateId: 'app-update-01'
+				},
+				session: {
+					appUpdates: {
+						'app-update-01': {
+							details: 'an update',
+							publishNow: 'no'
+						}
+					}
+				},
+				body: {
+					details: ''
+				}
+			};
+			const mockRes = { render: mock.fn() };
+
+			const controller = buildSubmitUpdateDetails({ db: mockDb });
+			await controller(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.strictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/cases/view/application-updates/review/update-details.njk'
+			);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				applicationUpdateStatus: 'published',
+				details: '',
+				backLinkUrl: '/application-updates/app-update-01/review-published',
+				errors: {
+					details: {
+						msg: 'Enter update details'
+					}
+				},
+				errorSummary: [{ text: 'Enter update details', href: '#details' }]
+			});
+		});
+		it('should redirect to update details page if validation fails with string over 1000 chars', async () => {
+			const mockDb = {
+				applicationUpdate: {
+					findUnique: mock.fn(() => ({
+						statusId: 'published'
+					}))
+				}
+			};
+			const invalidLongString = 'hello'.repeat(201);
+			const mockReq = {
+				baseUrl: '/application-updates',
+				originalUrl: '/application-updates',
+				params: {
+					id: 'crown-dev-01',
+					updateId: 'app-update-01'
+				},
+				session: {
+					appUpdates: {
+						'app-update-01': {
+							details: 'an update',
+							publishNow: 'no'
+						}
+					}
+				},
+				body: {
+					details: invalidLongString
+				}
+			};
+
+			const mockRes = { render: mock.fn() };
+
+			const controller = buildSubmitUpdateDetails({ db: mockDb });
+			await controller(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.strictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/cases/view/application-updates/review/update-details.njk'
+			);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				applicationUpdateStatus: 'published',
+				details: invalidLongString,
+				backLinkUrl: '/application-updates/app-update-01/review-published',
+				errors: {
+					details: {
+						msg: 'Update details must be 1000 characters or less'
+					}
+				},
+				errorSummary: [{ text: 'Update details must be 1000 characters or less', href: '#details' }]
+			});
+		});
+	});
+	describe('buildPublishNowPage', () => {
+		it('should render publish now page with session value', async () => {
+			const mockReq = {
+				baseUrl: '/application-updates',
+				originalUrl: '/application-updates',
+				params: {
+					id: 'crown-dev-01',
+					updateId: 'app-update-01'
+				},
+				session: {
+					appUpdates: {
+						'app-update-01': {
+							details: 'an update',
+							publishNow: 'yes'
+						}
+					}
+				}
+			};
+			const mockRes = { render: mock.fn() };
+
+			const controller = buildPublishNowPage();
+			await controller(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.strictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/cases/view/application-updates/review/publish-now.njk'
+			);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				backLinkUrl: '/application-updates/app-update-01/review/update-details',
+				publishNow: 'yes'
+			});
+		});
+		it('should render publish now page with default value if no session value exists', async () => {
+			const mockReq = {
+				baseUrl: '/application-updates',
+				originalUrl: '/application-updates',
+				params: {
+					id: 'crown-dev-01',
+					updateId: 'app-update-01'
+				}
+			};
+			const mockRes = { render: mock.fn() };
+
+			const controller = buildPublishNowPage();
+			await controller(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.strictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/cases/view/application-updates/review/publish-now.njk'
+			);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+				backLinkUrl: '/application-updates/app-update-01/review/update-details',
+				publishNow: 'no'
+			});
+		});
+	});
+	describe('buildSubmitPublishNow', () => {
+		it('should successfully submit publish now page and redirect to review page', async () => {
+			const mockReq = {
+				baseUrl: '/application-updates',
+				originalUrl: '/application-updates',
+				params: {
+					id: 'crown-dev-01',
+					updateId: 'app-update-01'
+				},
+				session: {
+					appUpdates: {
+						'app-update-01': {
+							details: 'an update',
+							publishNow: 'no'
+						}
+					}
+				},
+				body: {
+					publishNow: 'yes'
+				}
+			};
+			const mockRes = {
+				redirect: mock.fn()
+			};
+
+			const controller = buildSubmitPublishNow();
+			await controller(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			assert.strictEqual(
+				mockRes.redirect.mock.calls[0].arguments[0],
+				'/application-updates/app-update-01/review-update'
+			);
+			assert.deepStrictEqual(mockReq.session.appUpdates, {
+				'app-update-01': {
+					details: 'an update',
+					publishNow: 'yes'
+				}
+			});
 		});
 	});
 });

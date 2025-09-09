@@ -29,7 +29,7 @@ export function buildUnpublishUpdateController({ db, logger }) {
 			logger.info({ reference, applicationUpdateId }, 'application update successfully unpublished');
 		});
 
-		addAppUpdateStatus(req, id, 'unpublished');
+		addAppUpdateStatus(req, id, 'Your update was unpublished');
 
 		res.redirect(req.baseUrl);
 	};

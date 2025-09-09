@@ -36,7 +36,7 @@ describe('application updates delete controller', () => {
 			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], '/application-updates');
 
 			assert.deepStrictEqual(mockReq.session, {
-				cases: { 'crown-dev-01': { applicationUpdateStatus: 'deleted' } }
+				cases: { 'crown-dev-01': { applicationUpdateStatus: 'Your update was deleted' } }
 			});
 
 			assert.strictEqual(mockDb.$transaction.mock.callCount(), 1);
