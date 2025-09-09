@@ -18,7 +18,7 @@ export function buildDeleteUpdateController({ db, logger }) {
 			logger.info({ reference, applicationUpdateId }, 'application update successfully deleted');
 		});
 
-		addAppUpdateStatus(req, id, 'deleted');
+		addAppUpdateStatus(req, id, 'Your update was deleted');
 
 		res.redirect(req.baseUrl);
 	};

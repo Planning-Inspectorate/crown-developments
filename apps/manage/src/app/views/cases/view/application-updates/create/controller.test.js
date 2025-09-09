@@ -69,7 +69,7 @@ describe('application updates create controller', () => {
 			assert.deepStrictEqual(mockReq.session, {
 				forms: { 'crown-dev-01': {} },
 				'crown-dev-01': {},
-				cases: { 'crown-dev-01': { applicationUpdateStatus: 'published' } }
+				cases: { 'crown-dev-01': { applicationUpdateStatus: 'Your update was published' } }
 			});
 
 			assert.strictEqual(mockDb.$transaction.mock.callCount(), 1);

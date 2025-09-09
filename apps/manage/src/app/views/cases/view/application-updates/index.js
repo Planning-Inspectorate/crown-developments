@@ -4,9 +4,9 @@ import { buildApplicationUpdates, buildConfirmationController, getSummaryHeading
 import { buildCreateController, buildSaveController } from './create/controller.js';
 import { buildDeleteUpdateController } from './delete/controller.js';
 import { buildUnpublishUpdateController } from './unpublish/controller.js';
-import { getQuestions } from '../questions.js';
 import { buildGetJourney } from '@planning-inspectorate/dynamic-forms/src/middleware/build-get-journey.js';
 import { createJourney } from './journey.js';
+import { getQuestions } from './questions.js';
 import {
 	buildGetJourneyResponseFromSession,
 	buildSaveDataToSession
@@ -15,7 +15,15 @@ import { JOURNEY_ID } from './journey.js';
 import { buildSave, list, question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
 import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
-import { buildReviewController, buildSaveDraftUpdateController } from './review/controller.js';
+import {
+	buildPublishNowPage,
+	buildReviewController,
+	buildSaveDraftUpdateController,
+	buildSubmitPublishNow,
+	buildSubmitUpdateDetails,
+	buildUpdateDetailsPage
+} from './review/controller.js';
+import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/session.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -37,14 +45,26 @@ export function createRoutes(service) {
 	const unpublishUpdateController = buildUnpublishUpdateController(service);
 	const deleteUpdateController = buildDeleteUpdateController(service);
 
+	const updateDetailsPage = buildUpdateDetailsPage(service);
+	const submitUpdateDetails = buildSubmitUpdateDetails(service);
+	const publishNowPage = buildPublishNowPage();
+	const submitPublishNow = buildSubmitPublishNow(service);
+
+	const resetSessionMiddleware = buildResetSessionMiddleware(service.logger);
+
 	router.get('/', asyncHandler(applicationUpdatesController));
 
-	router.get('/create', asyncHandler(createController));
+	router.get('/create', resetSessionMiddleware, asyncHandler(createController));
 
 	router.get('/:updateId/review-published', asyncHandler(reviewController));
 	router.get('/:updateId/review-unpublished', asyncHandler(reviewController));
 	router.get('/:updateId/review-update', asyncHandler(reviewController));
 	router.post('/:updateId/review-update', asyncHandler(saveDraftUpdateController));
+
+	router.get('/:updateId/review/update-details', asyncHandler(updateDetailsPage));
+	router.post('/:updateId/review/update-details', asyncHandler(submitUpdateDetails));
+	router.get('/:updateId/review/publish-now', asyncHandler(publishNowPage));
+	router.post('/:updateId/review/publish-now', asyncHandler(submitPublishNow));
 
 	router.get('/:updateId/unpublish', asyncHandler(confirmationController));
 	router.post('/:updateId/unpublish', asyncHandler(unpublishUpdateController));

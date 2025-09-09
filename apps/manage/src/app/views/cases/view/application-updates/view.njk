@@ -10,7 +10,7 @@
 {% block pageContent %}
     {% if applicationUpdateStatus %}
         {{ govukNotificationBanner({
-            text: "Your update was " + applicationUpdateStatus,
+            text: applicationUpdateStatus,
             type: "success"
         }) }}
     {% endif %}
