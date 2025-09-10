@@ -202,8 +202,8 @@ describe('view-model', () => {
 				Event: { date: 'd-1', venue: 'Some Place' }
 			};
 			const result = crownDevelopmentToViewModel(input);
-			assert.strictEqual(result.hearingDate, undefined);
-			assert.strictEqual(result.inquiryDate, undefined);
+			assert.strictEqual(result.hearingDate, null);
+			assert.strictEqual(result.inquiryDate, null);
 		});
 		it('should not map event if written-reps', () => {
 			/** @type {CrownDevelopment} */
@@ -214,8 +214,8 @@ describe('view-model', () => {
 				Event: { date: 'd-1', venue: 'Some Place' }
 			};
 			const result = crownDevelopmentToViewModel(input);
-			assert.strictEqual(result.hearingDate, undefined);
-			assert.strictEqual(result.inquiryDate, undefined);
+			assert.strictEqual(result.hearingDate, null);
+			assert.strictEqual(result.inquiryDate, null);
 		});
 		it('should map hearing', () => {
 			/** @type {CrownDevelopment} */
@@ -625,6 +625,92 @@ describe('view-model', () => {
 			assert.strictEqual(upsert.where?.id, 'event-id');
 			assert.strictEqual(upsert.create?.venue, 'some place');
 			assert.strictEqual(upsert.update?.prepDuration, 'prep: 1.5 days');
+		});
+		it('should update procedure correctly', () => {
+			/** @type {CrownDevelopmentViewModel} */
+			const toSave = {
+				procedureId: 'proc-1'
+			};
+			const updates = editsToDatabaseUpdates(toSave, {});
+			assert.ok(updates.Procedure);
+			assert.deepStrictEqual(updates.Procedure, { connect: { id: 'proc-1' } });
+		});
+
+		it('should map writtenReps event fields', () => {
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				procedureId: APPLICATION_PROCEDURE_ID.WRITTEN_REPS,
+				Event: {
+					date: '2025-09-01'
+				}
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.strictEqual(result.writtenRepsDate, '2025-09-01');
+		});
+		it('should map hearing event fields', () => {
+			const input = {
+				id: 'id-2',
+				referenceId: 'reference-id-2',
+				procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+				Event: {
+					date: '2025-10-01',
+					venue: 'Hearing Venue',
+					prepDuration: 'Prep: 1 day',
+					sittingDuration: 'Sitting: 2 days',
+					reportingDuration: 'Reporting: 3 days'
+				}
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.strictEqual(result.hearingDate, '2025-10-01');
+			assert.strictEqual(result.hearingVenue, 'Hearing Venue');
+			assert.strictEqual(result.hearingDurationPrep, 'Prep: 1 day');
+			assert.strictEqual(result.hearingDurationSitting, 'Sitting: 2 days');
+			assert.strictEqual(result.hearingDurationReporting, 'Reporting: 3 days');
+			assert.strictEqual(result.writtenRepsDate, undefined);
+			assert.strictEqual(result.inquiryDate, null);
+		});
+
+		it('should map inquiry event fields', () => {
+			const input = {
+				id: 'id-3',
+				referenceId: 'reference-id-3',
+				procedureId: APPLICATION_PROCEDURE_ID.INQUIRY,
+				Event: {
+					date: '2025-11-01',
+					venue: 'Inquiry Venue',
+					prepDuration: 'Prep: 2 days',
+					sittingDuration: 'Sitting: 3 days',
+					reportingDuration: 'Reporting: 4 days'
+				}
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.strictEqual(result.inquiryDate, '2025-11-01');
+			assert.strictEqual(result.inquiryVenue, 'Inquiry Venue');
+			assert.strictEqual(result.inquiryDurationPrep, 'Prep: 2 days');
+			assert.strictEqual(result.inquiryDurationSitting, 'Sitting: 3 days');
+			assert.strictEqual(result.inquiryDurationReporting, 'Reporting: 4 days');
+			assert.strictEqual(result.writtenRepsDate, undefined);
+			assert.strictEqual(result.hearingDate, null);
+		});
+
+		it('should leave procedure event fields undefined when procedure is selected for the first time', () => {
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+				Event: {}
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.strictEqual(result.hearingDate, undefined);
+			assert.strictEqual(result.hearingVenue, undefined);
+			assert.strictEqual(result.hearingDurationPrep, undefined);
+			assert.strictEqual(result.hearingDurationSitting, undefined);
+			assert.strictEqual(result.hearingDurationReporting, undefined);
+			assert.strictEqual(result.hearingNotificationDate, undefined);
+			assert.strictEqual(result.hearingIssuesReportPublishedDate, undefined);
+			assert.strictEqual(result.hearingStatementsDate, undefined);
+			assert.strictEqual(result.hearingCaseManagementConferenceDate, undefined);
 		});
 	});
 });
