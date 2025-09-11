@@ -31,6 +31,12 @@ export function buildApplicationUpdates({ db }) {
 				include: {
 					Status: true
 				},
+				orderBy: {
+					firstPublished: {
+						sort: 'asc',
+						nulls: 'last'
+					}
+				},
 				skip: skipSize,
 				take: pageSize
 			}),
@@ -119,6 +125,7 @@ function applicationUpdateToViewModel(applicationUpdate) {
 		status: applicationUpdate.statusId,
 		firstPublished: applicationUpdate.firstPublished
 			? formatDateForDisplay(applicationUpdate.firstPublished, { format: 'd MMMM yyyy' })
-			: 'Not published'
+			: 'Not published',
+		firstPublishedSortableValue: new Date(applicationUpdate.firstPublished)?.getTime() || ''
 	};
 }
