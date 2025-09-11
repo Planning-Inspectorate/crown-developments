@@ -74,19 +74,22 @@ describe('application updates controller', () => {
 						id: 'id-1',
 						details: 'an update',
 						status: 'draft',
-						firstPublished: 'Not published'
+						firstPublished: 'Not published',
+						firstPublishedSortableValue: ''
 					},
 					{
 						id: 'id-2',
 						details: 'newer published update',
 						status: 'published',
-						firstPublished: '17 December 2020'
+						firstPublished: '17 December 2020',
+						firstPublishedSortableValue: 1608175440000
 					},
 					{
 						id: 'id-3',
 						details: 'a draft update',
 						status: 'draft',
-						firstPublished: 'Not published'
+						firstPublished: 'Not published',
+						firstPublishedSortableValue: ''
 					}
 				],
 				applicationUpdateStatus: false,
