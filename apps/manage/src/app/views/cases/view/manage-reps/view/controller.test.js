@@ -42,6 +42,73 @@ describe('controller', () => {
 			assert.strictEqual(viewData.requiresReview, true);
 			assert.strictEqual(viewData.representationRef, 'ref-1');
 			assert.strictEqual(viewData.representationUpdated, false);
+			assert.strictEqual(viewData.documentInfoBanner, undefined);
+		});
+		it('should render the representation with no attachments added banner', async () => {
+			const journeyResponse = new JourneyResponse('id-1', 'id-2', {
+				applicationReference: 'app-ref',
+				requiresReview: true,
+				submittedForId: 'myself',
+				myselfContainsAttachments: 'yes',
+				myselfAttachments: []
+			});
+			const questions = getQuestions();
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				baseUrl: 'case-1/manage-representations'
+			};
+			const mockRes = {
+				render: mock.fn(),
+				locals: {
+					journeyResponse: journeyResponse,
+					journey: createJourney(questions, journeyResponse, mockReq)
+				}
+			};
+			await assert.doesNotReject(() => viewRepresentation(mockReq, mockRes));
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.deepStrictEqual(viewData.documentInfoBanner, {
+				name: 'noAttachmentsAdded',
+				href: 'case-1/manage-representations/edit/myself/select-attachments'
+			});
+		});
+		it('should render the representation with awaiting review document banner', async () => {
+			const journeyResponse = new JourneyResponse('id-1', 'id-2', {
+				applicationReference: 'app-ref',
+				requiresReview: true,
+				statusId: 'accepted',
+				submittedForId: 'myself',
+				myselfContainsAttachments: 'yes',
+				myselfAttachments: [
+					{
+						fileName: 'test-pdf 1.pdf',
+						statusId: 'accepted'
+					},
+					{
+						fileName: 'test-pdf 2.pdf',
+						statusId: 'awaiting-review'
+					}
+				]
+			});
+			const questions = getQuestions();
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				baseUrl: 'case-1/manage-representations'
+			};
+			const mockRes = {
+				render: mock.fn(),
+				locals: {
+					journeyResponse: journeyResponse,
+					journey: createJourney(questions, journeyResponse, mockReq)
+				}
+			};
+			await assert.doesNotReject(() => viewRepresentation(mockReq, mockRes));
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.deepStrictEqual(viewData.documentInfoBanner, {
+				name: 'awaitingReview',
+				href: 'case-1/manage-representations/manage/task-list'
+			});
 		});
 		it('should read & clear rep updated session data', async () => {
 			const journeyResponse = new JourneyResponse('id-1', 'id-2', {

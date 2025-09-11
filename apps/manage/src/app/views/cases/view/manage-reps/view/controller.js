@@ -6,7 +6,12 @@ import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journe
 import { representationToManageViewModel } from '@pins/crowndev-lib/forms/representations/view-model.js';
 import { clearRepUpdatedSession, readRepUpdatedSession } from '../edit/controller.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
-import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import {
+	REPRESENTATION_STATUS_ID,
+	REPRESENTATION_SUBMITTED_FOR_ID
+} from '@pins/crowndev-database/src/seed/data-static.js';
+import { getSubmittedForId } from '@pins/crowndev-lib/util/questions.js';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 /**
  * @typedef {import('express').Handler} Handler
@@ -62,6 +67,7 @@ export async function renderRepresentation(req, res, viewData = {}) {
 		backLinkUrl: `/cases/${req.params.id}/manage-representations`,
 		currentUrl: req.originalUrl,
 		representationStatus: res.locals?.journeyResponse?.answers?.statusId,
+		documentInfoBanner: getDocumentInfoBanner(res, req.baseUrl),
 		...viewData
 	});
 }
@@ -131,4 +137,38 @@ export function buildGetJourneyMiddleware({ db, logger, isRepsUploadDocsLive }) 
 
 		next();
 	};
+}
+
+function getDocumentInfoBanner(res, currentUrl) {
+	const journey = res.locals.journey;
+	const answers = journey.response?.answers || {};
+
+	const submittedForId = getSubmittedForId(answers);
+	const prefix = submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF ? 'myself' : 'submitter';
+	const status = answers['statusId'];
+	const containsAttachments = answers[`${prefix}ContainsAttachments`];
+	const attachments = answers[`${prefix}Attachments`] || [];
+	const someAttachmentsAwaitingReview = attachments?.some(
+		(attachment) => attachment.statusId === REPRESENTATION_STATUS_ID.AWAITING_REVIEW
+	);
+	const trimmedUrl = currentUrl?.replace(/\/review$/, '');
+
+	if (containsAttachments === BOOLEAN_OPTIONS.YES && attachments.length === 0) {
+		const urlSection = submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF ? 'myself' : 'agent';
+		return {
+			name: 'noAttachmentsAdded',
+			href: `${trimmedUrl}/edit/${urlSection}/select-attachments`
+		};
+	}
+
+	const shouldShowAwaitingReviewBanner =
+		status !== REPRESENTATION_STATUS_ID.AWAITING_REVIEW &&
+		containsAttachments === BOOLEAN_OPTIONS.YES &&
+		someAttachmentsAwaitingReview;
+	if (shouldShowAwaitingReviewBanner) {
+		return {
+			name: 'awaitingReview',
+			href: `${trimmedUrl}/manage/task-list`
+		};
+	}
 }
