@@ -3,6 +3,12 @@ import { applicationLinks, crownDevelopmentToViewModel } from '../view-model.js'
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { fetchPublishedApplication } from '#util/applications.js';
 import { getHaveYourSayStatus } from '../have-your-say/util.js';
+import {
+	getAboutThisApplicationSectionItems,
+	getApplicationDecisionSectionItems,
+	getImportantDatesSectionItems,
+	getProcedureDetailsSectionItems
+} from './section-items.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -61,16 +67,16 @@ export function buildApplicationInformationPage(service) {
 			inquiryVenue,
 			procedure,
 			representationsPeriodStartDateTime,
-			representationsPeriodEndDateTime,
-			stage
+			representationsPeriodEndDateTime
 		} = crownDevelopmentFields;
 		const shouldShowImportantDatesSection = [
 			applicationAcceptedDate,
-			representationsPeriodStartDateTime && representationsPeriodEndDateTime
+			representationsPeriodStartDateTime && representationsPeriodEndDateTime,
+			decisionDate
 		].some(Boolean);
 		const shouldShowApplicationDecisionSection = [decisionDate, decisionOutcome].some(Boolean);
 		const shouldShowProcedureDetailsSection =
-			[procedure, stage].some(Boolean) ||
+			Boolean(procedure) ||
 			[inquiryDate, inquiryVenue, inquiryStatementsDate, inquiryProofsOfEvidenceDate].some(Boolean) ||
 			[hearingDate, hearingVenue].some(Boolean);
 
@@ -79,12 +85,24 @@ export function buildApplicationInformationPage(service) {
 			pageTitle: 'Application information',
 			applicationReference: crownDevelopment.reference,
 			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
-			baseUrl: req.baseUrl,
 			currentUrl: req.originalUrl,
 			crownDevelopmentFields,
-			shouldShowApplicationDecisionSection,
 			shouldShowImportantDatesSection,
 			shouldShowProcedureDetailsSection,
+			shouldShowApplicationDecisionSection,
+			aboutThisApplicationSectionItems: getAboutThisApplicationSectionItems(req.baseUrl, crownDevelopmentFields),
+			importantDatesSectionItems: getImportantDatesSectionItems(
+				shouldShowImportantDatesSection,
+				crownDevelopmentFields
+			),
+			procedureDetailsSectionItems: getProcedureDetailsSectionItems(
+				shouldShowProcedureDetailsSection,
+				crownDevelopmentFields
+			),
+			applicationDecisionSectionItems: getApplicationDecisionSectionItems(
+				shouldShowApplicationDecisionSection,
+				crownDevelopmentFields
+			),
 			haveYourSayStatus: getHaveYourSayStatus(haveYourSayPeriod, representationsPublishDate)
 		});
 	};

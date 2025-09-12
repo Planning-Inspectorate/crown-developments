@@ -33,30 +33,40 @@ export function crownDevelopmentToViewModel(crownDevelopment, contactEmail) {
 		description: crownDevelopment.description,
 		stage: crownDevelopment.Stage?.displayName,
 		procedure: crownDevelopment.Procedure?.displayName,
-		applicationAcceptedDate: formatDateForDisplay(crownDevelopment.applicationAcceptedDate),
-		representationsPeriodStartDate: formatDateForDisplay(crownDevelopment.representationsPeriodStartDate),
-		representationsPeriodEndDate: formatDateForDisplay(crownDevelopment.representationsPeriodEndDate),
+		applicationAcceptedDate: formatDateForDisplay(crownDevelopment.applicationAcceptedDate, { format: 'd MMMM yyyy' }),
+		representationsPeriodStartDate: formatDateForDisplay(crownDevelopment.representationsPeriodStartDate, {
+			format: 'd MMMM yyyy'
+		}),
+		representationsPeriodEndDate: formatDateForDisplay(crownDevelopment.representationsPeriodEndDate, {
+			format: 'd MMMM yyyy'
+		}),
 		representationsPeriodStartDateTime: formatDateForDisplay(crownDevelopment.representationsPeriodStartDate, {
 			format: `d MMMM yyyy 'at' h:mmaaa`
 		}),
 		representationsPeriodEndDateTime: formatDateForDisplay(crownDevelopment.representationsPeriodEndDate, {
 			format: `d MMMM yyyy 'at' h:mmaaa`
 		}),
-		representationsPublishDate: formatDateForDisplay(crownDevelopment.representationsPublishDate),
-		decisionDate: formatDateForDisplay(crownDevelopment.decisionDate),
+		representationsPublishDate: formatDateForDisplay(crownDevelopment.representationsPublishDate, {
+			format: 'd MMMM yyyy'
+		}),
+		decisionDate: formatDateForDisplay(crownDevelopment.decisionDate, { format: 'd MMMM yyyy' }),
 		decisionOutcome: crownDevelopment.DecisionOutcome?.displayName,
 		crownDevelopmentContactEmail: contactEmail
 	};
 
 	if (isInquiry(crownDevelopment.procedureId)) {
 		fields.isInquiry = true;
-		fields.inquiryDate = formatDateForDisplay(crownDevelopment.Event?.date);
+		fields.inquiryDate = formatDateForDisplay(crownDevelopment.Event?.date, { format: 'd MMMM yyyy' });
 		fields.inquiryVenue = crownDevelopment.Event?.venue;
-		fields.inquiryStatementsDate = formatDateForDisplay(crownDevelopment.Event?.statementsDate);
-		fields.inquiryProofsOfEvidenceDate = formatDateForDisplay(crownDevelopment.Event?.proofsOfEvidenceDate);
+		fields.inquiryStatementsDate = formatDateForDisplay(crownDevelopment.Event?.statementsDate, {
+			format: 'd MMMM yyyy'
+		});
+		fields.inquiryProofsOfEvidenceDate = formatDateForDisplay(crownDevelopment.Event?.proofsOfEvidenceDate, {
+			format: 'd MMMM yyyy'
+		});
 	} else if (isHearing(crownDevelopment.procedureId)) {
 		fields.isHearing = true;
-		fields.hearingDate = formatDateForDisplay(crownDevelopment.Event?.date);
+		fields.hearingDate = formatDateForDisplay(crownDevelopment.Event?.date, { format: 'd MMMM yyyy' });
 		fields.hearingVenue = crownDevelopment.Event?.venue;
 	}
 
