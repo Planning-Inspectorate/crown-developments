@@ -56,10 +56,33 @@ describe('application info controller', () => {
 						representationsPeriodStartDate: new Date('2025-01-01'),
 						representationsPeriodEndDate: new Date('2025-01-31'),
 						representationsPublishDate: '2025-10-09T09:00:00.000Z',
-						procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+						applicationAcceptedDate: '2025-10-09T09:00:00.000Z',
+						decisionDate: '2025-10-09T09:00:00.000Z',
+						siteEasting: 654321,
+						siteNorthing: 123456,
+						description: 'a new crown dev application',
+						ApplicantContact: {
+							orgName: 'Test Name'
+						},
+						Type: {
+							displayName: 'Planning permission'
+						},
+						Lpa: {
+							name: 'System Test Borough Council'
+						},
 						Event: {
 							date: new Date('2020-12-17T03:24:00.000Z'),
 							venue: 'the venue'
+						},
+						Stage: {
+							displayName: 'Consultation'
+						},
+						procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+						Procedure: {
+							displayName: 'Hearing'
+						},
+						DecisionOutcome: {
+							displayName: 'Approved'
 						}
 					}))
 				}
@@ -70,7 +93,7 @@ describe('application info controller', () => {
 			});
 			const mockReq = {
 				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
-				baseUrl: '/applications/'
+				baseUrl: '/applications'
 			};
 			const mockRes = {
 				status: mock.fn(),
@@ -86,9 +109,8 @@ describe('application info controller', () => {
 				pageCaption: 'CROWN/2025/0000001',
 				applicationReference: 'CROWN/2025/0000001',
 				pageTitle: 'Application information',
-				baseUrl: '/applications/',
 				shouldShowImportantDatesSection: true,
-				shouldShowApplicationDecisionSection: false,
+				shouldShowApplicationDecisionSection: true,
 				shouldShowProcedureDetailsSection: true,
 				links: [
 					{
@@ -106,27 +128,159 @@ describe('application info controller', () => {
 				],
 				currentUrl: undefined,
 				crownDevelopmentFields: {
-					applicantName: undefined,
-					applicationAcceptedDate: '',
-					applicationType: undefined,
+					applicantName: 'Test Name',
+					applicationAcceptedDate: '9 October 2025',
+					applicationType: 'Planning permission',
 					crownDevelopmentContactEmail: undefined,
-					decisionDate: '',
-					decisionOutcome: undefined,
-					description: undefined,
+					decisionDate: '9 October 2025',
+					decisionOutcome: 'Approved',
+					description: 'a new crown dev application',
 					id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
-					lpaName: undefined,
-					procedure: undefined,
+					lpaName: 'System Test Borough Council',
+					procedure: 'Hearing',
 					reference: 'CROWN/2025/0000001',
-					representationsPeriodEndDate: '31 Jan 2025',
+					representationsPeriodEndDate: '31 January 2025',
 					representationsPeriodEndDateTime: '31 January 2025 at 12:00am',
-					representationsPeriodStartDate: '1 Jan 2025',
+					representationsPeriodStartDate: '1 January 2025',
 					representationsPeriodStartDateTime: '1 January 2025 at 12:00am',
-					representationsPublishDate: '9 Oct 2025',
-					stage: undefined,
-					hearingDate: '17 Dec 2020',
+					representationsPublishDate: '9 October 2025',
+					siteCoordinates: {
+						easting: '654321',
+						northing: '123456'
+					},
+					stage: 'Consultation',
+					hearingDate: '17 December 2020',
 					hearingVenue: 'the venue',
 					isHearing: true
 				},
+				aboutThisApplicationSectionItems: [
+					{
+						key: {
+							text: 'Application type'
+						},
+						value: {
+							text: 'Planning permission'
+						}
+					},
+					{
+						key: {
+							text: 'Local planning authority'
+						},
+						value: {
+							text: 'System Test Borough Council'
+						}
+					},
+					{
+						key: {
+							text: 'Applicant name'
+						},
+						value: {
+							text: 'Test Name'
+						}
+					},
+					{
+						key: {
+							text: 'Site address'
+						},
+						value: {
+							text: 'Easting: 654321, Northing: 123456'
+						}
+					},
+					{
+						key: {
+							text: 'Description of the proposed development'
+						},
+						value: {
+							text: 'a new crown dev application'
+						}
+					},
+					{
+						key: {
+							text: 'Application Stage'
+						},
+						value: {
+							text: 'Consultation'
+						}
+					},
+					{
+						key: {
+							text: 'Application form'
+						},
+						value: {
+							html: '<p class="govuk-body">To view the full application, go to the <a class="govuk-link govuk-link--no-visited-state" href="/applications/documents">Documents</a> section.</p>'
+						}
+					}
+				],
+				importantDatesSectionItems: [
+					{
+						key: {
+							text: 'Application accepted date'
+						},
+						value: {
+							text: '9 October 2025'
+						}
+					},
+					{
+						key: {
+							text: 'Representation period'
+						},
+						value: {
+							text: '1 January 2025 at 12:00am to 31 January 2025 at 12:00am'
+						}
+					},
+					{
+						key: {
+							text: 'Decision date'
+						},
+						value: {
+							text: '9 October 2025'
+						}
+					}
+				],
+				procedureDetailsSectionItems: [
+					{
+						key: {
+							text: 'Procedure type'
+						},
+						value: {
+							text: 'Hearing'
+						}
+					},
+					{
+						key: {
+							text: 'Hearing date'
+						},
+						value: {
+							text: '17 December 2020'
+						}
+					},
+					{
+						key: {
+							text: 'Hearing venue'
+						},
+						value: {
+							text: 'the venue'
+						}
+					}
+				],
+				applicationDecisionSectionItems: [
+					{
+						key: {
+							text: 'Decision date'
+						},
+						value: {
+							text: '9 October 2025'
+						}
+					},
+					{
+						key: {
+							text: 'Decision outcome'
+						},
+						value: {
+							text: 'Approved'
+						}
+					}
+				],
 				haveYourSayStatus: 'open'
 			});
 		});

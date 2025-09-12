@@ -62,15 +62,15 @@ describe('view-model', () => {
 				stage: 'Inquiry',
 				lpaName: 'Test LPA',
 				siteAddress: 'Site Street, Site Town, Site ONE',
-				applicationAcceptedDate: '10 Oct 2025',
-				decisionDate: '10 Oct 2025',
+				applicationAcceptedDate: '10 October 2025',
+				decisionDate: '10 October 2025',
 				decisionOutcome: 'Approved',
 				procedure: 'Inquiry',
-				representationsPeriodEndDate: '10 Oct 2025',
+				representationsPeriodEndDate: '10 October 2025',
 				representationsPeriodEndDateTime: '10 October 2025 at 12:00am',
-				representationsPeriodStartDate: '10 Oct 2025',
+				representationsPeriodStartDate: '10 October 2025',
 				representationsPeriodStartDateTime: '10 October 2025 at 12:00am',
-				representationsPublishDate: '9 Oct 2025'
+				representationsPublishDate: '9 October 2025'
 			});
 		});
 		it(`should map site address if present`, () => {
@@ -129,10 +129,10 @@ describe('view-model', () => {
 			const config = {};
 			const result = crownDevelopmentToViewModel(input, config);
 			assert.strictEqual(result.isInquiry, true);
-			assert.strictEqual(result.inquiryDate, '2 Apr 2025');
+			assert.strictEqual(result.inquiryDate, '2 April 2025');
 			assert.strictEqual(result.inquiryVenue, 'City hall');
 			assert.strictEqual(result.inquiryStatementsDate, '1 May 2025');
-			assert.strictEqual(result.inquiryProofsOfEvidenceDate, '10 Oct 2025');
+			assert.strictEqual(result.inquiryProofsOfEvidenceDate, '10 October 2025');
 		});
 		it(`should map hearing fields if procedure id is hearing`, () => {
 			const input = {
@@ -145,7 +145,7 @@ describe('view-model', () => {
 			const config = {};
 			const result = crownDevelopmentToViewModel(input, config);
 			assert.strictEqual(result.isHearing, true);
-			assert.strictEqual(result.hearingDate, '2 Apr 2025');
+			assert.strictEqual(result.hearingDate, '2 April 2025');
 			assert.strictEqual(result.hearingVenue, 'City hall');
 		});
 	});
