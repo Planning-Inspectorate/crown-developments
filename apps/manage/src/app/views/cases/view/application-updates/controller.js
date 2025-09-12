@@ -33,8 +33,8 @@ export function buildApplicationUpdates({ db }) {
 				},
 				orderBy: {
 					firstPublished: {
-						sort: 'asc',
-						nulls: 'last'
+						sort: 'desc',
+						nulls: 'first'
 					}
 				},
 				skip: skipSize,
