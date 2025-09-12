@@ -1,5 +1,5 @@
 import { describe, it, mock } from 'node:test';
-import { buildUpdateCase } from './update-case.js';
+import { buildUpdateCase, clearProcedureData } from './update-case.js';
 import assert from 'node:assert';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
@@ -783,6 +783,115 @@ describe('case details', () => {
 			const updateArg = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
 			assert.strictEqual(updateArg.where?.id, 'case1');
 			assert.strictEqual(updateArg.data.description, null);
+		});
+	});
+	describe('clearProcedureData', () => {
+		it('should clear event fields when procedureId is changed and eventId is present', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: async () => ({ procedureId: 'hearing', eventId: 'event-1' })
+				}
+			};
+			const edits = { procedureId: 'writtenReps' };
+			const viewModel = { procedureId: 'hearing' };
+			const result = await clearProcedureData({ db: mockDb }, edits, viewModel, 'case1');
+			assert.deepStrictEqual(result, {
+				procedureNotificationDate: null,
+				Event: {
+					update: {
+						data: {
+							date: null,
+							prepDuration: null,
+							sittingDuration: null,
+							reportingDuration: null,
+							venue: null,
+							notificationDate: null,
+							issuesReportPublishedDate: null,
+							statementsDate: null,
+							caseManagementConferenceDate: null,
+							proofsOfEvidenceDate: null
+						}
+					}
+				}
+			});
+		});
+		it('should not clear if procedureId is unchanged', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: async () => ({ procedureId: 'hearing', eventId: 'event-1' })
+				}
+			};
+			const edits = { procedureId: 'hearing' };
+			const viewModel = {
+				procedureId: 'hearing',
+				date: '2025-09-01',
+				prepDuration: 60,
+				sittingDuration: 120,
+				reportingDuration: 30,
+				venue: 'Main Hall',
+				notificationDate: '2025-08-25',
+				issuesReportPublishedDate: '2025-08-20',
+				statementsDate: '2025-08-15',
+				caseManagementConferenceDate: '2025-08-10',
+				proofsOfEvidenceDate: '2025-08-05'
+			};
+			const result = await clearProcedureData({ db: mockDb }, edits, viewModel, 'case1');
+			assert.deepStrictEqual(result, {});
+			// Ensure original answers remain unchanged
+			assert.strictEqual(viewModel.date, '2025-09-01');
+			assert.strictEqual(viewModel.prepDuration, 60);
+			assert.strictEqual(viewModel.sittingDuration, 120);
+			assert.strictEqual(viewModel.reportingDuration, 30);
+			assert.strictEqual(viewModel.venue, 'Main Hall');
+			assert.strictEqual(viewModel.notificationDate, '2025-08-25');
+			assert.strictEqual(viewModel.issuesReportPublishedDate, '2025-08-20');
+			assert.strictEqual(viewModel.statementsDate, '2025-08-15');
+			assert.strictEqual(viewModel.caseManagementConferenceDate, '2025-08-10');
+			assert.strictEqual(viewModel.proofsOfEvidenceDate, '2025-08-05');
+		});
+		it('should not clear event fields when procedureId is set for the first time (null to valid) in buildUpdateCase', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ procedureId: null, eventId: 'event-1' })),
+					update: mock.fn()
+				}
+			};
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							procedureId: null,
+							date: null,
+							prepDuration: null,
+							sittingDuration: null,
+							reportingDuration: null,
+							venue: null,
+							notificationDate: null,
+							issuesReportPublishedDate: null,
+							statementsDate: null,
+							caseManagementConferenceDate: null,
+							proofsOfEvidenceDate: null
+						}
+					}
+				}
+			};
+			const data = {
+				answers: {
+					procedureId: 'hearing'
+				}
+			};
+			await updateCase({ req: mockReq, res: mockRes, data });
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+			const updateArg = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
+			// Should not contain cleared event fields
+			assert.strictEqual(updateArg.data.Event?.update, undefined);
+			assert.strictEqual(updateArg.data.procedureNotificationDate, undefined);
 		});
 	});
 });
