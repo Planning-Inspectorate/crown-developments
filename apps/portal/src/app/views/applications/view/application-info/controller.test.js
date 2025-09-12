@@ -156,7 +156,7 @@ describe('application info controller', () => {
 				aboutThisApplicationSectionItems: [
 					{
 						key: {
-							text: 'Application type'
+							text: 'Type of application'
 						},
 						value: {
 							text: 'Planning permission'
@@ -196,7 +196,7 @@ describe('application info controller', () => {
 					},
 					{
 						key: {
-							text: 'Application Stage'
+							text: 'Stage'
 						},
 						value: {
 							text: 'Consultation'
