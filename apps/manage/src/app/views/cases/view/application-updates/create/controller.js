@@ -36,7 +36,7 @@ export function buildSaveController({ db, logger }) {
 			logger.info({ reference, newApplicationUpdateId }, 'created a new application update');
 		});
 
-		addAppUpdateStatus(req, id, answers.publishNow === 'yes' ? 'published' : 'saved');
+		addAppUpdateStatus(req, id, `Your update was ${answers.publishNow === 'yes' ? 'published' : 'saved'}`);
 		clearDataFromSession({ req, journeyId: JOURNEY_ID, reqParam: 'id' });
 
 		res.redirect(req.baseUrl);

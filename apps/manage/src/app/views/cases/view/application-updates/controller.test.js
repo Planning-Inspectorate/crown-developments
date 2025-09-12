@@ -101,6 +101,60 @@ describe('application updates controller', () => {
 				resultsEndNumber: 3
 			});
 		});
+		it('should clear session data for update status and any app updates left in flight', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						reference: 'CROWN/2025/0000001'
+					})),
+					update: mock.fn()
+				},
+				applicationUpdate: {
+					findMany: mock.fn(() => [
+						{
+							id: 'id-1',
+							details: 'an update',
+							statusId: 'draft',
+							Status: {
+								displayName: 'Draft'
+							},
+							lastEdited: new Date('2020-12-17T03:24:00.000Z')
+						}
+					]),
+					count: mock.fn(() => 3)
+				}
+			};
+			const mockReq = {
+				baseUrl: '/application-updates',
+				originalUrl: '/application-updates',
+				params: {
+					id: 'crown-dev-01'
+				},
+				session: {
+					appUpdates: {
+						id1: {
+							details: 'an update',
+							publishNow: 'no'
+						}
+					},
+					cases: {
+						'crown-dev-01': {
+							applicationUpdateStatus: 'Your update was published'
+						}
+					}
+				}
+			};
+			const mockRes = {
+				render: mock.fn()
+			};
+
+			const controller = buildApplicationUpdates({ db: mockDb });
+
+			await controller(mockReq, mockRes);
+
+			assert.deepStrictEqual(mockReq.session.appUpdates, {});
+			assert.deepStrictEqual(mockReq.session.cases, { 'crown-dev-01': {} });
+		});
 		it('should throw error if id param not present', async () => {
 			const controller = buildApplicationUpdates({});
 			await assert.rejects(() => controller({}, {}), { message: 'id param required' });

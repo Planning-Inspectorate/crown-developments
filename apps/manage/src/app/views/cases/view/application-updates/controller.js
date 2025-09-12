@@ -2,8 +2,14 @@ import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 import { getAnswers } from '@pins/crowndev-lib/util/answers.js';
-import { clearAppUpdateStatusSession, readAppUpdateStatus, validateParams } from './utils.js';
+import {
+	clearAppUpdatesFromSession,
+	clearAppUpdateStatusSession,
+	readAppUpdateStatus,
+	validateParams
+} from './utils.js';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 export function buildApplicationUpdates({ db }) {
 	return async (req, res) => {
@@ -60,6 +66,7 @@ export function buildApplicationUpdates({ db }) {
 
 		const applicationUpdateStatus = readAppUpdateStatus(req, id);
 		clearAppUpdateStatusSession(req, id);
+		clearAppUpdatesFromSession(req);
 
 		res.render('views/cases/view/application-updates/view.njk', {
 			pageTitle: 'Manage application updates',
@@ -115,7 +122,7 @@ export function buildConfirmationController({ db }) {
 
 export function getSummaryHeading(res) {
 	const answers = getAnswers(res);
-	return answers?.publishNow === 'yes' ? 'Review update' : 'Review draft update';
+	return answers?.publishNow === BOOLEAN_OPTIONS.YES ? 'Review update' : 'Review draft update';
 }
 
 function applicationUpdateToViewModel(applicationUpdate) {
