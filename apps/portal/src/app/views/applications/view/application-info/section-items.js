@@ -2,7 +2,7 @@ export function getAboutThisApplicationSectionItems(baseUrl, crownDevelopmentFie
 	return [
 		{
 			key: {
-				text: 'Application type'
+				text: 'Type of application'
 			},
 			value: {
 				text: crownDevelopmentFields.applicationType
@@ -46,7 +46,7 @@ export function getAboutThisApplicationSectionItems(baseUrl, crownDevelopmentFie
 			? [
 					{
 						key: {
-							text: 'Application Stage'
+							text: 'Stage'
 						},
 						value: {
 							text: crownDevelopmentFields.stage

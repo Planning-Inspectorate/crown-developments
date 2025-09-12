@@ -25,7 +25,7 @@ describe('section-items.js', () => {
 			assert.deepStrictEqual(getAboutThisApplicationSectionItems(baseUrl, crownDevelopmentFields), [
 				{
 					key: {
-						text: 'Application type'
+						text: 'Type of application'
 					},
 					value: {
 						text: 'Planning permission'
@@ -65,7 +65,7 @@ describe('section-items.js', () => {
 				},
 				{
 					key: {
-						text: 'Application Stage'
+						text: 'Stage'
 					},
 					value: {
 						text: 'Consultation'
@@ -94,7 +94,7 @@ describe('section-items.js', () => {
 			assert.deepStrictEqual(getAboutThisApplicationSectionItems(baseUrl, crownDevelopmentFields), [
 				{
 					key: {
-						text: 'Application type'
+						text: 'Type of application'
 					},
 					value: {
 						text: 'Planning permission'
@@ -134,7 +134,7 @@ describe('section-items.js', () => {
 				},
 				{
 					key: {
-						text: 'Application Stage'
+						text: 'Stage'
 					},
 					value: {
 						text: 'Consultation'
@@ -162,7 +162,7 @@ describe('section-items.js', () => {
 			assert.deepStrictEqual(getAboutThisApplicationSectionItems(baseUrl, crownDevelopmentFields), [
 				{
 					key: {
-						text: 'Application type'
+						text: 'Type of application'
 					},
 					value: {
 						text: 'Planning permission'
