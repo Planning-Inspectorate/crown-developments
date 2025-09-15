@@ -182,6 +182,34 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "portal" {
     }
 
     override {
+      rule_group_name = "MS-ThreatIntel-SQLI"
+      rule {
+        action  = "AnomalyScoring"
+        rule_id = "99031003"
+      }
+      exclusion {
+        match_variable = "RequestBodyPostArgNames"
+        operator       = "Equals"
+        selector       = "myselfComment"
+      }
+      exclusion {
+        match_variable = "RequestBodyPostArgNames"
+        operator       = "Equals"
+        selector       = "submitterComment"
+      }
+      exclusion {
+        match_variable = "RequestBodyPostArgNames"
+        operator       = "Equals"
+        selector       = "_csrf"
+      }
+      exclusion {
+        match_variable = "RequestBodyPostArgNames"
+        operator       = "Equals"
+        selector       = "healthAndSafetyIssue"
+      }
+    }
+
+    override {
       rule_group_name = "General"
       rule {
         action  = "Log"
