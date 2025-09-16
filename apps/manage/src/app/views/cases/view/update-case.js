@@ -4,53 +4,9 @@ import {
 	sendApplicationReceivedNotification,
 	sendLpaAcknowledgeReceiptOfQuestionnaireNotification
 } from './notification.js';
-import { editsToDatabaseUpdates } from './view-model.js';
+import { editsToDatabaseUpdates, clearProcedureData } from './view-model.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 
-export async function clearProcedureData({ db }, edits, viewModel, applicationId) {
-	if (!('procedureId' in edits)) {
-		return {};
-	}
-	const validProcedures = ['hearing', 'inquiry', 'writtenReps'];
-	const procedureId = edits.procedureId;
-	if (procedureId && validProcedures.includes(procedureId)) {
-		const crownDevelopment = await db.crownDevelopment.findUnique({
-			where: { id: applicationId },
-			select: { procedureId: true, eventId: true }
-		});
-		if (
-			crownDevelopment?.eventId &&
-			crownDevelopment.procedureId !== null &&
-			crownDevelopment.procedureId !== procedureId
-		) {
-			return {
-				procedureNotificationDate: null,
-				Event: {
-					update: {
-						data: {
-							date: null,
-							prepDuration: null,
-							sittingDuration: null,
-							reportingDuration: null,
-							venue: null,
-							notificationDate: null,
-							issuesReportPublishedDate: null,
-							statementsDate: null,
-							caseManagementConferenceDate: null,
-							proofsOfEvidenceDate: null
-						}
-					}
-				}
-			};
-		}
-	}
-	return {};
-}
-/**
- * @param {import('#service').ManageService} service
- * @param {boolean} [clearAnswer=false] - whether to clear the answer before saving
- * @returns {import('@planning-inspectorate/dynamic-forms/src/controller.js').SaveDataFn}
- */
 export function buildUpdateCase(service, clearAnswer = false) {
 	return async ({ req, res, data }) => {
 		const { db, logger } = service;
@@ -79,7 +35,13 @@ export function buildUpdateCase(service, clearAnswer = false) {
 		let updateInput = editsToDatabaseUpdates(toSave, fullViewModel);
 		const clearFields = await clearProcedureData(service, toSave, fullViewModel, id);
 		if (Object.keys(clearFields).length > 0) {
-			updateInput = { ...updateInput, ...clearFields };
+			for (const key of Object.keys(clearFields)) {
+				if (key === 'Event') {
+					updateInput.Event = clearFields.Event;
+				} else {
+					updateInput[key] = null;
+				}
+			}
 		}
 		updateInput.updatedDate = new Date();
 

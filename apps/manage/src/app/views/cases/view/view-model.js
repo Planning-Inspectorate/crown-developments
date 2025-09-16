@@ -59,20 +59,6 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'applicantContactId',
 	'agentContactId',
 	'eventId',
-	'procedureId',
-	'eventDate',
-	'venue',
-	'startTime',
-	'endTime',
-	'notificationDate',
-	'statementsDate',
-	'caseManagementConferenceDate',
-	'prepDuration',
-	'sittingDuration',
-	'reportingDuration',
-	'issuesReportPublishedDate',
-	'proofsOfEvidenceDate',
-	'procedureNotificationDate',
 	'lpaQuestionnaireReceivedEmailSent',
 	'hasApplicationFee',
 	'applicationFee',
@@ -127,7 +113,10 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 	addContactToViewModel(viewModel, crownDevelopment.ApplicantContact, 'applicant');
 	addContactToViewModel(viewModel, crownDevelopment.AgentContact, 'agent');
 	const procedureId = crownDevelopment.procedureId;
-	if (procedureId !== 'writtenReps') {
+
+	clearProcedureFields(viewModel, procedureId);
+
+	if (procedureId !== 'written-reps') {
 		viewModel.writtenRepsProcedureNotificationDate = null;
 	}
 	if (procedureId !== 'hearing') {
@@ -207,15 +196,7 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		};
 	}
 
-	if (edits.procedureId) {
-		crownDevelopmentUpdateInput.Procedure = {
-			connect: { id: edits.procedureId }
-		};
-		delete crownDevelopmentUpdateInput.procedureId;
-	}
-	if ('eventTypeId' in edits) {
-		crownDevelopmentUpdateInput.eventTypeId = edits.eventTypeId;
-	}
+	connectProcedure(crownDevelopmentUpdateInput, edits.procedureId);
 
 	if ('siteAddress' in edits) {
 		const siteAddress = viewModelToAddressUpdateInput(edits.siteAddress);
@@ -260,6 +241,83 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	return crownDevelopmentUpdateInput;
 }
 
+function connectProcedure(updateInput, procedureId) {
+	if (procedureId) {
+		updateInput.Procedure = { connect: { id: procedureId } };
+		delete updateInput.procedureId;
+	}
+}
+
+export function clearProcedureFields(viewModel, procedureId, originalProcedureId, updateInput) {
+	const procedureFields = [
+		'writtenRepsProcedureNotificationDate',
+		'hearingProcedureNotificationDate',
+		'procedureNotificationDate',
+		'hearingDate',
+		'hearingDuration',
+		'hearingVenue',
+		'hearingNotificationDate',
+		'hearingIssuesReportPublishedDate',
+		'hearingStatementsDate',
+		'hearingCaseManagementConferenceDate',
+		'hearingDurationPrep',
+		'hearingDurationSitting',
+		'hearingDurationReporting',
+		'inquiryProcedureNotificationDate',
+		'inquiryStatementsDate',
+		'inquiryDate',
+		'inquiryDuration',
+		'inquiryVenue',
+		'inquiryNotificationDate',
+		'inquiryCaseManagementConferenceDate',
+		'inquiryProofsOfEvidenceDate',
+		'inquiryDurationPrep',
+		'inquiryDurationSitting',
+		'inquiryDurationReporting'
+	];
+	for (const field of procedureFields) {
+		viewModel[field] = null;
+	}
+	if (updateInput) {
+		updateInput.procedureNotificationDate = null;
+		updateInput.Event = {
+			update: {
+				data: {
+					date: null,
+					prepDuration: null,
+					sittingDuration: null,
+					reportingDuration: null,
+					venue: null,
+					notificationDate: null,
+					issuesReportPublishedDate: null,
+					statementsDate: null,
+					caseManagementConferenceDate: null,
+					proofsOfEvidenceDate: null
+				}
+			}
+		};
+	}
+}
+
+export async function clearProcedureData({ db }, edits, viewModel, applicationId) {
+	const updateInput = {};
+
+	const validProcedures = ['hearing', 'inquiry', 'written-reps'];
+	const procedureId = edits.procedureId;
+	if (procedureId && validProcedures.includes(procedureId)) {
+		const crownDevelopment = await db.crownDevelopment.findUnique({
+			where: { id: applicationId },
+			select: { procedureId: true, eventId: true }
+		});
+		if (crownDevelopment?.eventId && crownDevelopment.procedureId && crownDevelopment.procedureId !== procedureId) {
+			clearProcedureFields(viewModel, procedureId, crownDevelopment.procedureId, updateInput);
+		}
+	}
+
+	delete updateInput.procedureId;
+
+	return updateInput;
+}
 /**
  * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
  * @param {import('@prisma/client').Prisma.ContactGetPayload<{include: {Address: true}}>|null} contact
@@ -421,7 +479,7 @@ function isHearing(procedureId) {
  * @param {string|null} procedureId
  * @returns {string}
  */
-export function eventPrefix(procedureId) {
+function eventPrefix(procedureId) {
 	switch (procedureId) {
 		case APPLICATION_PROCEDURE_ID.INQUIRY:
 			return 'inquiry';

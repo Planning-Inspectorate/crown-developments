@@ -1,7 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { crownDevelopmentToViewModel, editsToDatabaseUpdates, eventPrefix } from './view-model.js';
+import { clearProcedureData, crownDevelopmentToViewModel, editsToDatabaseUpdates } from './view-model.js';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import * as viewModelModule from './view-model.js';
 
 /**
  * @typedef {import('@prisma/client').Prisma.CrownDevelopmentGetPayload<{include: { ApplicantContact: { include: { Address: true } }, AgentContact: { include: { Address: true } }, Event: true, LpaContact: { include: { Address: true } } }}>} CrownDevelopment
@@ -524,9 +525,9 @@ describe('view-model', () => {
 			assert.strictEqual(result.inquiryDate, 'd-1');
 			assert.strictEqual(result.inquiryVenue, 'Some Place');
 			assert.strictEqual(result.inquiryDuration, '-');
-			assert.strictEqual(result.inquiryDurationPrep, undefined);
-			assert.strictEqual(result.inquiryDurationSitting, undefined);
-			assert.strictEqual(result.inquiryDurationReporting, undefined);
+			assert.strictEqual(result.inquiryDurationPrep, null);
+			assert.strictEqual(result.inquiryDurationSitting, null);
+			assert.strictEqual(result.inquiryDurationReporting, null);
 		});
 		it('should map all hearing fields', () => {
 			/** @type {CrownDevelopmentViewModel} */
@@ -626,48 +627,81 @@ describe('view-model', () => {
 			assert.strictEqual(upsert.create?.venue, 'some place');
 			assert.strictEqual(upsert.update?.prepDuration, 'prep: 1.5 days');
 		});
-		it('should update procedure relation and event type correctly', () => {
+
+		it('should clear event fields when procedureId is changed and eventId is present', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: async () => ({ procedureId: 'hearing', eventId: 'event-1' })
+				}
+			};
+			const edits = { procedureId: 'written-reps' };
+			const viewModel = { procedureId: 'hearing' };
+			const result = await clearProcedureData({ db: mockDb }, edits, viewModel, 'case1');
+			assert.deepStrictEqual(result, {
+				procedureNotificationDate: null,
+				Event: {
+					update: {
+						data: {
+							date: null,
+							prepDuration: null,
+							sittingDuration: null,
+							reportingDuration: null,
+							venue: null,
+							notificationDate: null,
+							issuesReportPublishedDate: null,
+							statementsDate: null,
+							caseManagementConferenceDate: null,
+							proofsOfEvidenceDate: null
+						}
+					}
+				}
+			});
+		});
+		it('should not clear if procedureId is unchanged', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: async () => ({ procedureId: 'hearing', eventId: 'event-1' })
+				}
+			};
+			const edits = { procedureId: 'hearing' };
+			const viewModel = {
+				procedureId: 'hearing',
+				date: '2025-09-01',
+				prepDuration: 60,
+				sittingDuration: 120,
+				reportingDuration: 30,
+				venue: 'Main Hall',
+				notificationDate: '2025-08-25',
+				issuesReportPublishedDate: '2025-08-20',
+				statementsDate: '2025-08-15',
+				caseManagementConferenceDate: '2025-08-10',
+				proofsOfEvidenceDate: '2025-08-05'
+			};
+			const result = await clearProcedureData({ db: mockDb }, edits, viewModel, 'case1');
+			assert.deepStrictEqual(result, {});
+			// Ensure original answers remain unchanged
+			assert.strictEqual(viewModel.date, '2025-09-01');
+			assert.strictEqual(viewModel.prepDuration, 60);
+			assert.strictEqual(viewModel.sittingDuration, 120);
+			assert.strictEqual(viewModel.reportingDuration, 30);
+			assert.strictEqual(viewModel.venue, 'Main Hall');
+			assert.strictEqual(viewModel.notificationDate, '2025-08-25');
+			assert.strictEqual(viewModel.issuesReportPublishedDate, '2025-08-20');
+			assert.strictEqual(viewModel.statementsDate, '2025-08-15');
+			assert.strictEqual(viewModel.caseManagementConferenceDate, '2025-08-10');
+			assert.strictEqual(viewModel.proofsOfEvidenceDate, '2025-08-05');
+		});
+		it('should update procedure correctly', () => {
 			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
-				procedureId: 'proc-1',
-				eventTypeId: 'event-type-1'
+				procedureId: 'hearing'
 			};
 			const updates = editsToDatabaseUpdates(toSave, {});
 			assert.ok(updates.Procedure);
-			assert.deepStrictEqual(updates.Procedure, { connect: { id: 'proc-1' } });
-			assert.strictEqual(updates.procedureId, undefined);
-			assert.strictEqual(updates.eventTypeId, 'event-type-1');
-		});
-		it('should map procedureId to Procedure.connect and remove procedureId', () => {
-			/** @type {import('./types.js').CrownDevelopmentViewModel} */
-			const edits = {
-				procedureId: 'proc-2',
-				eventTypeId: 'event-type-2'
-			};
-			const updates = editsToDatabaseUpdates(edits, {});
-			assert.deepStrictEqual(updates.Procedure, { connect: { id: 'proc-2' } });
-			assert.strictEqual(updates.procedureId, undefined);
-			assert.strictEqual(updates.eventTypeId, 'event-type-2');
-		});
-		it('should throw error for invalid procedureId', () => {
-			const invalidId = 'WRONG_ID';
-			assert.throws(
-				() => eventPrefix(invalidId),
-				(err) => {
-					assert.strictEqual(
-						err.message,
-						`invalid procedureId, expected ${APPLICATION_PROCEDURE_ID.HEARING} or ${APPLICATION_PROCEDURE_ID.INQUIRY}, got ${invalidId}`
-					);
-					return true;
-				}
-			);
-		});
-		it('should return writtenReps prefix for written reps procedureId', () => {
-			const prefix = eventPrefix(APPLICATION_PROCEDURE_ID.WRITTEN_REPS);
-			assert.strictEqual(prefix, 'writtenReps');
+			assert.deepStrictEqual(updates.Procedure, { connect: { id: 'hearing' } });
 		});
 
-		it('should map writtenReps event fields', () => {
+		it('should map written-reps event fields', () => {
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
@@ -721,27 +755,65 @@ describe('view-model', () => {
 			assert.strictEqual(result.inquiryDurationPrep, 'Prep: 2 days');
 			assert.strictEqual(result.inquiryDurationSitting, 'Sitting: 3 days');
 			assert.strictEqual(result.inquiryDurationReporting, 'Reporting: 4 days');
-			assert.strictEqual(result.writtenRepsDate, undefined);
+			assert.strictEqual(result.writtenRepsProcedureNotificationDate, null);
 			assert.strictEqual(result.hearingDate, null);
 		});
 
-		it('should leave procedure event fields undefined when procedure is selected for the first time', () => {
+		it('should leave procedure event fields null when no procedure is set', () => {
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
-				procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+				procedureId: null,
 				Event: {}
 			};
 			const result = crownDevelopmentToViewModel(input);
-			assert.strictEqual(result.hearingDate, undefined);
-			assert.strictEqual(result.hearingVenue, undefined);
-			assert.strictEqual(result.hearingDurationPrep, undefined);
-			assert.strictEqual(result.hearingDurationSitting, undefined);
-			assert.strictEqual(result.hearingDurationReporting, undefined);
-			assert.strictEqual(result.hearingNotificationDate, undefined);
-			assert.strictEqual(result.hearingIssuesReportPublishedDate, undefined);
-			assert.strictEqual(result.hearingStatementsDate, undefined);
-			assert.strictEqual(result.hearingCaseManagementConferenceDate, undefined);
+			assert.strictEqual(result.hearingDate, null);
+			assert.strictEqual(result.hearingVenue, null);
+			assert.strictEqual(result.inquiryDate, null);
+			assert.strictEqual(result.inquiryVenue, null);
+			assert.strictEqual(result.writtenRepsProcedureNotificationDate, null);
+		});
+
+		it('clearProcedureData should clear event fields when procedureId changes', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: async () => ({ procedureId: 'hearing', eventId: 'event-1' })
+				}
+			};
+			const edits = { procedureId: 'written-reps' };
+			const viewModel = { procedureId: 'hearing' };
+			const result = await viewModelModule.clearProcedureData({ db: mockDb }, edits, viewModel, 'case1');
+			assert.deepStrictEqual(result, {
+				procedureNotificationDate: null,
+				Event: {
+					update: {
+						data: {
+							date: null,
+							prepDuration: null,
+							sittingDuration: null,
+							reportingDuration: null,
+							venue: null,
+							notificationDate: null,
+							issuesReportPublishedDate: null,
+							statementsDate: null,
+							caseManagementConferenceDate: null,
+							proofsOfEvidenceDate: null
+						}
+					}
+				}
+			});
+		});
+
+		it('should not clear clearProcedureData if procedureId is unchanged', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: async () => ({ procedureId: 'hearing', eventId: 'event-1' })
+				}
+			};
+			const edits = { procedureId: 'hearing' };
+			const viewModel = { procedureId: 'hearing' };
+			const result = await viewModelModule.clearProcedureData({ db: mockDb }, edits, viewModel, 'case1');
+			assert.deepStrictEqual(result, {});
 		});
 	});
 });

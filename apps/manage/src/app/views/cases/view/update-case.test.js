@@ -1,5 +1,5 @@
 import { describe, it, mock } from 'node:test';
-import { buildUpdateCase, clearProcedureData } from './update-case.js';
+import { buildUpdateCase } from './update-case.js';
 import assert from 'node:assert';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
@@ -786,68 +786,69 @@ describe('case details', () => {
 		});
 	});
 	describe('clearProcedureData', () => {
-		it('should clear event fields when procedureId is changed and eventId is present', async () => {
+		it('should clear procedure-specific fields when procedureId changes', async () => {
+			const logger = mockLogger();
 			const mockDb = {
 				crownDevelopment: {
-					findUnique: async () => ({ procedureId: 'hearing', eventId: 'event-1' })
+					findUnique: mock.fn(() => ({
+						procedureId: 'hearing',
+						eventId: 'event-1'
+					})),
+					update: mock.fn()
 				}
 			};
-			const edits = { procedureId: 'writtenReps' };
-			const viewModel = { procedureId: 'hearing' };
-			const result = await clearProcedureData({ db: mockDb }, edits, viewModel, 'case1');
-			assert.deepStrictEqual(result, {
-				procedureNotificationDate: null,
-				Event: {
-					update: {
-						data: {
-							date: null,
-							prepDuration: null,
-							sittingDuration: null,
-							reportingDuration: null,
-							venue: null,
-							notificationDate: null,
-							issuesReportPublishedDate: null,
-							statementsDate: null,
-							caseManagementConferenceDate: null,
-							proofsOfEvidenceDate: null
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							procedureId: 'hearing',
+							hearingDate: new Date('2025-01-01'),
+							hearingVenue: 'venue',
+							hearingProcedureNotificationDate: new Date('2025-01-02')
 						}
 					}
 				}
-			});
-		});
-		it('should not clear if procedureId is unchanged', async () => {
-			const mockDb = {
-				crownDevelopment: {
-					findUnique: async () => ({ procedureId: 'hearing', eventId: 'event-1' })
+			};
+			const data = {
+				answers: {
+					procedureId: 'written-reps'
 				}
 			};
-			const edits = { procedureId: 'hearing' };
-			const viewModel = {
-				procedureId: 'hearing',
-				date: '2025-09-01',
-				prepDuration: 60,
-				sittingDuration: 120,
-				reportingDuration: 30,
-				venue: 'Main Hall',
-				notificationDate: '2025-08-25',
-				issuesReportPublishedDate: '2025-08-20',
-				statementsDate: '2025-08-15',
-				caseManagementConferenceDate: '2025-08-10',
-				proofsOfEvidenceDate: '2025-08-05'
-			};
-			const result = await clearProcedureData({ db: mockDb }, edits, viewModel, 'case1');
-			assert.deepStrictEqual(result, {});
-			// Ensure original answers remain unchanged
-			assert.strictEqual(viewModel.date, '2025-09-01');
-			assert.strictEqual(viewModel.prepDuration, 60);
-			assert.strictEqual(viewModel.sittingDuration, 120);
-			assert.strictEqual(viewModel.reportingDuration, 30);
-			assert.strictEqual(viewModel.venue, 'Main Hall');
-			assert.strictEqual(viewModel.notificationDate, '2025-08-25');
-			assert.strictEqual(viewModel.issuesReportPublishedDate, '2025-08-20');
-			assert.strictEqual(viewModel.statementsDate, '2025-08-15');
-			assert.strictEqual(viewModel.caseManagementConferenceDate, '2025-08-10');
-			assert.strictEqual(viewModel.proofsOfEvidenceDate, '2025-08-05');
+			await updateCase({ req: mockReq, res: mockRes, data });
+			const updateArg = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
+			const procedureFields = [
+				'writtenRepsProcedureNotificationDate',
+				'inquiryProcedureNotificationDate',
+				'hearingProcedureNotificationDate',
+				'hearingDate',
+				'hearingDuration',
+				'hearingVenue',
+				'hearingNotificationDate',
+				'hearingIssuesReportPublishedDate',
+				'hearingStatementsDate',
+				'hearingCaseManagementConferenceDate',
+				'hearingDurationPrep',
+				'hearingDurationSitting',
+				'hearingDurationReporting',
+				'inquiryStatementsDate',
+				'inquiryDate',
+				'inquiryDuration',
+				'inquiryVenue',
+				'inquiryNotificationDate',
+				'inquiryCaseManagementConferenceDate',
+				'inquiryProofsOfEvidenceDate',
+				'inquiryDurationPrep',
+				'inquiryDurationSitting',
+				'inquiryDurationReporting'
+			];
+			for (const field of procedureFields) {
+				assert.strictEqual(updateArg.data[field], undefined);
+			}
 		});
 		it('should not clear event fields when procedureId is set for the first time (null to valid) in buildUpdateCase', async () => {
 			const logger = mockLogger();
