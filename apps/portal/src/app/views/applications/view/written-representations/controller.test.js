@@ -48,6 +48,10 @@ describe('written representations', () => {
 						}
 					]),
 					count: mock.fn(() => 1)
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
 				}
 			};
 
@@ -122,6 +126,10 @@ describe('written representations', () => {
 						}
 					]),
 					count: mock.fn(() => 1)
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
 				}
 			};
 
@@ -186,6 +194,10 @@ describe('written representations', () => {
 				representation: {
 					findMany: mock.fn(() => []),
 					count: mock.fn(() => 1)
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
 				}
 			};
 
@@ -227,6 +239,10 @@ describe('written representations', () => {
 				representation: {
 					findMany: mock.fn(() => []),
 					count: mock.fn(() => 204)
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
 				}
 			};
 
@@ -265,6 +281,10 @@ describe('written representations', () => {
 				representation: {
 					findMany: mock.fn(() => []),
 					count: mock.fn(() => 17)
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
 				}
 			};
 

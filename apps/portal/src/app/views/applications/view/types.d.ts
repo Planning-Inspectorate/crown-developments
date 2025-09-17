@@ -62,3 +62,8 @@ export interface ApplicationLink {
 	href: string;
 	text: string;
 }
+
+export interface ApplicationUpdate {
+	details: string;
+	lastEdited: string;
+}

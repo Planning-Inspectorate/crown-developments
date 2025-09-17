@@ -52,6 +52,10 @@ describe('have your say', () => {
 						reference: 'CROWN/2025/0000001',
 						publishDate: new Date('2025-01-01')
 					}))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
 				}
 			};
 			const haveYourSayPage = buildHaveYourSayPage({ db: mockDb, config: {} });

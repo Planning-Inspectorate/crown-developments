@@ -1,6 +1,6 @@
 import { applicationLinks } from '../view-model.js';
 import { sortByField } from '@pins/crowndev-lib/util/array.js';
-import { checkApplicationPublished } from '../../../util/application-util.js';
+import { checkApplicationPublished, shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
 import { publishedFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { getDocuments } from '@pins/crowndev-lib/documents/get.js';
 import { splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
@@ -49,13 +49,15 @@ export function buildApplicationDocumentsPage(service) {
 			pageNumber
 		);
 
+		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
+
 		res.render('views/applications/view/documents/view.njk', {
 			id,
 			baseUrl: `${req.baseUrl}/documents`,
 			pageTitle: 'Documents',
 			applicationReference: crownDevelopment.reference,
 			pageCaption: reference,
-			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
+			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate, displayApplicationUpdates),
 			currentUrl: req.originalUrl,
 			documents: allDocuments.slice(skipSize, skipSize + pageSize),
 			selectedItemsPerPage,

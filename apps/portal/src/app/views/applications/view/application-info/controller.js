@@ -1,5 +1,5 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
-import { applicationLinks, crownDevelopmentToViewModel } from '../view-model.js';
+import { applicationLinks, applicationUpdateToTimelineItem, crownDevelopmentToViewModel } from '../view-model.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { fetchPublishedApplication } from '#util/applications.js';
 import { getHaveYourSayStatus } from '../have-your-say/util.js';
@@ -9,6 +9,8 @@ import {
 	getImportantDatesSectionItems,
 	getProcedureDetailsSectionItems
 } from './section-items.js';
+import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
+import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -80,11 +82,27 @@ export function buildApplicationInformationPage(service) {
 			[inquiryDate, inquiryVenue, inquiryStatementsDate, inquiryProofsOfEvidenceDate].some(Boolean) ||
 			[hearingDate, hearingVenue].some(Boolean);
 
+		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
+		const latestApplicationUpdate = await db.applicationUpdate.findFirst({
+			where: {
+				applicationId: id,
+				statusId: APPLICATION_UPDATE_STATUS_ID.PUBLISHED
+			},
+			select: {
+				details: true,
+				firstPublished: true
+			},
+			orderBy: {
+				firstPublished: 'desc'
+			}
+		});
+
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Application information',
 			applicationReference: crownDevelopment.reference,
-			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
+			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate, displayApplicationUpdates),
+			baseUrl: req.baseUrl,
 			currentUrl: req.originalUrl,
 			crownDevelopmentFields,
 			shouldShowImportantDatesSection,
@@ -103,7 +121,8 @@ export function buildApplicationInformationPage(service) {
 				shouldShowApplicationDecisionSection,
 				crownDevelopmentFields
 			),
-			haveYourSayStatus: getHaveYourSayStatus(haveYourSayPeriod, representationsPublishDate)
+			haveYourSayStatus: getHaveYourSayStatus(haveYourSayPeriod, representationsPublishDate),
+			latestApplicationUpdate: applicationUpdateToTimelineItem(latestApplicationUpdate)
 		});
 	};
 }

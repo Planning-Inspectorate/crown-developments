@@ -129,6 +129,10 @@ describe('written representations read more', () => {
 					{ id: 1, itemId: '12345', fileName: 'doc1.pdf', redactedItemId: null, redactedFileName: null },
 					{ id: 2, itemId: '67890', fileName: 'doc2.pdf', redactedItemId: null, redactedFileName: null }
 				])
+			},
+			applicationUpdate: {
+				findFirst: mock.fn(() => undefined),
+				count: mock.fn(() => 0)
 			}
 		};
 		const mockSharePoint = {
@@ -247,6 +251,10 @@ describe('written representations read more', () => {
 			},
 			representationDocument: {
 				findMany: mock.fn(() => [])
+			},
+			applicationUpdate: {
+				findFirst: mock.fn(() => undefined),
+				count: mock.fn(() => 0)
 			}
 		};
 		const mockSharePoint = {
@@ -321,6 +329,10 @@ describe('written representations read more', () => {
 							{ itemId: 2, fileName: 'doc2.pdf', redactedItemId: null, redactedFileName: null, statusId: 'accepted' }
 						]
 					}))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
 				}
 			};
 			const mockSharePoint = {
@@ -399,6 +411,10 @@ describe('written representations read more', () => {
 						Category: { displayName: 'General Representation' },
 						Attachments: []
 					}))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
 				}
 			};
 

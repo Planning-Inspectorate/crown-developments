@@ -10,6 +10,7 @@ import {
 import { getDocuments, getDocumentsById } from '@pins/crowndev-lib/documents/get.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { isValidUniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
+import { shouldDisplayApplicationUpdatesLink } from '../../../../util/application-util.js';
 
 /**
  * Render written representation read more page
@@ -131,11 +132,12 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 			end: new Date(crownDevelopment.representationsPeriodEndDate)
 		};
 		const representationsPublishDate = crownDevelopment.representationsPublishDate;
+		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
 		const writtenRepresentationsUrl = req.originalUrl?.replace(`/${representationReference}`, '');
 
 		res.render('views/applications/view/written-representations/read-more/view.njk', {
 			pageCaption: crownDevelopment.reference,
-			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
+			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate, displayApplicationUpdates),
 			currentUrl: writtenRepresentationsUrl,
 			backLinkText: 'Back to list',
 			backLinkUrl: writtenRepresentationsUrl,

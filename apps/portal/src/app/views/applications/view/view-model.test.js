@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import {
 	applicationLinks,
+	applicationUpdateToTimelineItem,
 	crownDevelopmentToViewModel,
 	documentsLink,
 	representationTitle,
@@ -160,7 +161,7 @@ describe('view-model', () => {
 				end: new Date('2025-01-30T23:59:59.000Z')
 			};
 			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
-			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate);
+			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, false);
 			assert.deepStrictEqual(result, [
 				{
 					href: `/applications/${id}/application-information`,
@@ -180,6 +181,40 @@ describe('view-model', () => {
 				}
 			]);
 		});
+		it('should include application updates when present on crown dev application', (context) => {
+			const id = 'id-1';
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
+
+			/** @type {{start: Date, end: Date}} */
+			const haveYourSayPeriod = {
+				start: new Date('2025-01-01T00:00:00.000Z'),
+				end: new Date('2025-01-30T23:59:59.000Z')
+			};
+			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
+			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true);
+			assert.deepStrictEqual(result, [
+				{
+					href: `/applications/${id}/application-information`,
+					text: 'Application Information'
+				},
+				{
+					href: `/applications/${id}/documents`,
+					text: 'Documents'
+				},
+				{
+					href: `/applications/${id}/have-your-say`,
+					text: 'Have your say'
+				},
+				{
+					href: `/applications/${id}/application-updates`,
+					text: 'Application updates'
+				},
+				{
+					href: `/applications/${id}/written-representations`,
+					text: 'Written representations'
+				}
+			]);
+		});
 		it('should not include Have your say when outside the representation submission period or Written Representations when now before representations publish date', (context) => {
 			const id = 'id-1';
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-31T00:00:00.000Z') });
@@ -188,7 +223,7 @@ describe('view-model', () => {
 				end: new Date('2025-01-30T23:59:59.000Z')
 			};
 			const representationsPublishDate = new Date('2025-02-01T00:00:00.000Z');
-			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate);
+			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, false);
 			assert.deepStrictEqual(result, [
 				{
 					href: `/applications/${id}/application-information`,
@@ -334,6 +369,21 @@ describe('view-model', () => {
 				dateRepresentationSubmitted: '1 Jan 2025',
 				representationContainsAttachments: false,
 				hasAttachments: false
+			});
+		});
+	});
+	describe('applicationUpdateToTimelineItem', () => {
+		it('should return when application update is falsy value', () => {
+			assert.strictEqual(applicationUpdateToTimelineItem(null), undefined);
+		});
+		it('should map application update to timeline item if application update value is present', () => {
+			const response = applicationUpdateToTimelineItem({
+				details: 'an update',
+				firstPublished: new Date('2025-01-01T00:00:00.000Z')
+			});
+			assert.deepStrictEqual(response, {
+				details: 'an update',
+				firstPublished: '1 January 2025'
 			});
 		});
 	});

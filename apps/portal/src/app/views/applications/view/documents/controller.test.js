@@ -54,6 +54,10 @@ describe('controller', () => {
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
 				}
 			};
 			const mockSharePoint = {
@@ -109,6 +113,10 @@ describe('controller', () => {
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
 				}
 			};
 			const mockSharePoint = {
@@ -145,6 +153,10 @@ describe('controller', () => {
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
 				}
 			};
 			const mockSharePoint = {
@@ -181,6 +193,10 @@ describe('controller', () => {
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
 				}
 			};
 			const mockSharePoint = {
@@ -213,6 +229,10 @@ describe('controller', () => {
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
 				}
 			};
 			const mockSharePoint = {
@@ -251,6 +271,10 @@ describe('controller', () => {
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
 				}
 			};
 			const mockSharePoint = {
@@ -283,6 +307,10 @@ describe('controller', () => {
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
 				}
 			};
 			const mockSharePoint = {
@@ -316,6 +344,10 @@ describe('controller', () => {
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
 				}
 			};
 			const mockSharePoint = {
@@ -352,6 +384,10 @@ describe('controller', () => {
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
 				}
 			};
 			const mockSharePoint = {
