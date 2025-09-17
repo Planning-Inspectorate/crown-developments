@@ -85,6 +85,14 @@ describe('application info controller', () => {
 							displayName: 'Approved'
 						}
 					}))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => ({
+						id: 'app-update-01',
+						details: 'an update',
+						firstPublished: new Date('2020-12-17T03:24:00.000Z')
+					})),
+					count: mock.fn(() => 3)
 				}
 			};
 			const handler = buildApplicationInformationPage({
@@ -124,8 +132,13 @@ describe('application info controller', () => {
 					{
 						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/have-your-say',
 						text: 'Have your say'
+					},
+					{
+						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-updates',
+						text: 'Application updates'
 					}
 				],
+				baseUrl: '/applications',
 				currentUrl: undefined,
 				crownDevelopmentFields: {
 					applicantName: 'Test Name',
@@ -281,6 +294,10 @@ describe('application info controller', () => {
 						}
 					}
 				],
+				latestApplicationUpdate: {
+					details: 'an update',
+					firstPublished: '17 December 2020'
+				},
 				haveYourSayStatus: 'open'
 			});
 		});
@@ -294,6 +311,10 @@ describe('application info controller', () => {
 					reference: 'CROWN/2025/0000001',
 					representationsPeriodEndDate: new Date('2025-01-31')
 				}))
+			},
+			applicationUpdate: {
+				findFirst: mock.fn(() => undefined),
+				count: mock.fn(() => 0)
 			}
 		};
 		const handler = buildApplicationInformationPage({
@@ -322,6 +343,10 @@ describe('application info controller', () => {
 						displayName: 'Approved'
 					}
 				}))
+			},
+			applicationUpdate: {
+				findFirst: mock.fn(() => undefined),
+				count: mock.fn(() => 0)
 			}
 		};
 		const handler = buildApplicationInformationPage({
@@ -346,6 +371,10 @@ describe('application info controller', () => {
 					id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
 					reference: 'CROWN/2025/0000001'
 				}))
+			},
+			applicationUpdate: {
+				findFirst: mock.fn(() => undefined),
+				count: mock.fn(() => 0)
 			}
 		};
 		const handler = buildApplicationInformationPage({

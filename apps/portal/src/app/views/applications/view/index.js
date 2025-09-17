@@ -6,6 +6,7 @@ import { createHaveYourSayRoutes } from './have-your-say/index.js';
 import { createWrittenRepresentationsRoutes } from './written-representations/index.js';
 import { buildDocumentView } from '../../util/documents-util.js';
 import { buildDetailedInformationPage } from '../../static/detailed-information/controller.js';
+import { buildApplicationUpdatesPage } from './application-updates/controller.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -14,12 +15,14 @@ import { buildDetailedInformationPage } from '../../static/detailed-information/
 export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
 	const applicationInfoController = buildApplicationInformationPage(service);
+	const applicationUpdatesController = buildApplicationUpdatesPage(service);
 	const applicationDocumentsPage = buildApplicationDocumentsPage(service);
 	const viewDocumentPage = buildDocumentView(service);
 	const haveYourSayPageRoutes = createHaveYourSayRoutes(service);
 	const writtenRepresentationsRoutes = createWrittenRepresentationsRoutes(service);
 
 	router.get('/application-information', asyncHandler(applicationInfoController));
+	router.get('/application-updates', asyncHandler(applicationUpdatesController));
 	router.get('/documents', asyncHandler(applicationDocumentsPage));
 	router.get('/documents/:documentId', asyncHandler(viewDocumentPage));
 	router.get('/detailed-information', asyncHandler(buildDetailedInformationPage));

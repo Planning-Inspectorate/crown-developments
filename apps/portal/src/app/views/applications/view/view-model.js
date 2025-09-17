@@ -104,12 +104,13 @@ function isHearing(procedureId) {
  */
 
 /**
- * @param {string} id
+ * @param { string } id
  * @param { HaveYourSayPeriod } haveYourSayPeriod
  * @param { Date } representationsPublishDate
+ * @param { boolean } displayApplicationUpdates
  * @returns {import('./types.js').ApplicationLink[]}
  */
-export function applicationLinks(id, haveYourSayPeriod, representationsPublishDate) {
+export function applicationLinks(id, haveYourSayPeriod, representationsPublishDate, displayApplicationUpdates) {
 	const links = [
 		{
 			href: `/applications/${id}/application-information`,
@@ -125,6 +126,13 @@ export function applicationLinks(id, haveYourSayPeriod, representationsPublishDa
 		links.push({
 			href: `/applications/${id}/have-your-say`,
 			text: 'Have your say'
+		});
+	}
+
+	if (displayApplicationUpdates) {
+		links.push({
+			href: `/applications/${id}/application-updates`,
+			text: 'Application updates'
 		});
 	}
 
@@ -198,4 +206,18 @@ export function representationTitle(representation) {
 			? `${agentName} on behalf of ${representedName}`
 			: getOnBehalfTitle(agentName, submittedByAgentOrgName, representedName);
 	}
+}
+
+/**
+ * @param {import('./types.js').ApplicationUpdate} applicationUpdate
+ * @return {object|null}
+ */
+export function applicationUpdateToTimelineItem(applicationUpdate) {
+	if (!applicationUpdate) {
+		return;
+	}
+	return {
+		details: applicationUpdate.details,
+		firstPublished: formatDateForDisplay(applicationUpdate.firstPublished, { format: 'd MMMM yyyy' })
+	};
 }

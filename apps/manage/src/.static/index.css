@@ -1,3 +1,7 @@
 .js-enabled-link {
     display: none;
 }
+
+.pins-pre-wrap {
+    white-space: pre-wrap
+}

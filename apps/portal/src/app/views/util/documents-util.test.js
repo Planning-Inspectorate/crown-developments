@@ -75,6 +75,9 @@ describe('documents-util', () => {
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+				},
+				applicationUpdate: {
+					count: mock.fn(() => 0)
 				}
 			};
 			const mockSharePoint = {

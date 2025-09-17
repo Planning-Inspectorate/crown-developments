@@ -1,6 +1,7 @@
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { fetchPublishedApplication } from '#util/applications.js';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
+import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
  * @typedef {{start: Date, end: Date}} HaveYourSayPeriod
@@ -49,4 +50,14 @@ export async function checkApplicationPublished(req, res, db) {
 		},
 		representationsPublishDate: crownDevelopment.representationsPublishDate
 	};
+}
+
+export async function shouldDisplayApplicationUpdatesLink(db, id) {
+	const publishedAppUpdatesCount = await db.applicationUpdate.count({
+		where: {
+			applicationId: id,
+			statusId: APPLICATION_UPDATE_STATUS_ID.PUBLISHED
+		}
+	});
+	return publishedAppUpdatesCount > 0;
 }

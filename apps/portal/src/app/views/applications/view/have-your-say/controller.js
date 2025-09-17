@@ -4,6 +4,7 @@ import { applicationLinks, crownDevelopmentToViewModel } from '../view-model.js'
 import { fetchPublishedApplication } from '#util/applications.js';
 import { nowIsWithinRange } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
+import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -36,11 +37,12 @@ export function buildHaveYourSayPage(service) {
 			end: new Date(crownDevelopment.representationsPeriodEndDate)
 		};
 		const representationsPublishDate = crownDevelopment.representationsPublishDate;
+		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
 
 		res.render('views/applications/view/have-your-say/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Have your say on a Crown Development Application',
-			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate),
+			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate, displayApplicationUpdates),
 			currentUrl: req.originalUrl,
 			crownDevelopmentFields
 		});

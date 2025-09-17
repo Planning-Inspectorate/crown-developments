@@ -7,6 +7,7 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
+import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
 
 /**
  * Render written representations page
@@ -111,11 +112,13 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			end: new Date(crownDevelopment.representationsPeriodEndDate)
 		};
 
+		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
+
 		res.render('views/applications/view/written-representations/view.njk', {
 			pageCaption: crownDevelopment.reference,
 			pageTitle: 'Written representations',
 			representations: representations.map((representation) => representationToViewModel(representation, true)),
-			links: applicationLinks(id, haveYourSayPeriod, publishedDate),
+			links: applicationLinks(id, haveYourSayPeriod, publishedDate, displayApplicationUpdates),
 			currentUrl: req.originalUrl,
 			clearQueryUrl: req.baseUrl,
 			selectedItemsPerPage,
