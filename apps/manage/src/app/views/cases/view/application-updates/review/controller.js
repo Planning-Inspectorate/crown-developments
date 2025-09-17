@@ -8,7 +8,6 @@ import {
 	validateParams
 } from '../utils.js';
 import { addSessionData } from '@pins/crowndev-lib/util/session.js';
-import { expressValidationErrorsToGovUkErrorList } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 export function buildReviewController({ db }) {
@@ -127,21 +126,6 @@ export function buildSubmitUpdateDetails({ db, logger }) {
 	return async (req, res) => {
 		const { id, applicationUpdateId } = validateParams(req.params);
 
-		const updateDetailsValue = req.body.details;
-		if (!updateDetailsValue || updateDetailsValue.length > 1000) {
-			req.body.errors = {
-				details: {
-					msg: !updateDetailsValue ? 'Enter update details' : 'Update details must be 1000 characters or less'
-				}
-			};
-			req.body.errorSummary = expressValidationErrorsToGovUkErrorList(req.body.errors);
-
-			updateAppUpdatesSession(req, applicationUpdateId, updateDetailsValue);
-
-			const updateDetailsPage = buildUpdateDetailsPage({ db });
-			return updateDetailsPage(req, res);
-		}
-
 		const applicationUpdate = await db.applicationUpdate.findUnique({
 			where: { id: applicationUpdateId, applicationId: id },
 			select: { statusId: true, details: true }
@@ -149,6 +133,7 @@ export function buildSubmitUpdateDetails({ db, logger }) {
 
 		const applicationUpdateStatus = applicationUpdate.statusId;
 		const isUpdatePublished = applicationUpdateStatus === APPLICATION_UPDATE_STATUS_ID.PUBLISHED;
+		const updateDetailsValue = req.body.details;
 		const isDetailsUpdated = applicationUpdate.details !== updateDetailsValue;
 
 		if (isUpdatePublished) {
@@ -306,7 +291,7 @@ function getReviewPageTitle(currentUpdateStatusId, publishNow) {
 	}
 }
 
-function updateAppUpdatesSession(req, applicationUpdateId, updateDetailsValue) {
+export function updateAppUpdatesSession(req, applicationUpdateId, updateDetailsValue) {
 	const appUpdateSessionData = getApplicationUpdateSessionData(req, applicationUpdateId);
 
 	const applicationUpdateSession = {

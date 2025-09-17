@@ -24,6 +24,7 @@ import {
 	buildUpdateDetailsPage
 } from './review/controller.js';
 import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/session.js';
+import { buildValidateAppUpdateDetailsMiddleware } from './review/validation-middleware.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -51,6 +52,7 @@ export function createRoutes(service) {
 	const submitPublishNow = buildSubmitPublishNow(service);
 
 	const resetSessionMiddleware = buildResetSessionMiddleware(service.logger);
+	const validateAppUpdateDetailsMiddleware = buildValidateAppUpdateDetailsMiddleware(service);
 
 	router.get('/', asyncHandler(applicationUpdatesController));
 
@@ -62,7 +64,11 @@ export function createRoutes(service) {
 	router.post('/:updateId/review-update', asyncHandler(saveDraftUpdateController));
 
 	router.get('/:updateId/review/update-details', asyncHandler(updateDetailsPage));
-	router.post('/:updateId/review/update-details', asyncHandler(submitUpdateDetails));
+	router.post(
+		'/:updateId/review/update-details',
+		validateAppUpdateDetailsMiddleware,
+		asyncHandler(submitUpdateDetails)
+	);
 	router.get('/:updateId/review/publish-now', asyncHandler(publishNowPage));
 	router.post('/:updateId/review/publish-now', asyncHandler(submitPublishNow));
 
