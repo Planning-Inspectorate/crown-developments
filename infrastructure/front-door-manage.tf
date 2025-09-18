@@ -218,6 +218,11 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
         operator       = "Equals"
         selector       = "healthAndSafetyIssue"
       }
+      exclusion {
+        match_variable = "RequestBodyPostArgNames"
+        operator       = "Equals"
+        selector       = "details" # application update details
+      }
     }
 
     override {
