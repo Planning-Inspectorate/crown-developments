@@ -4,6 +4,7 @@ import { booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms/src/co
 import { optionalWhere } from '@pins/crowndev-lib/util/database.js';
 import { addressToViewModel, viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.js';
 import { parseNumberStringToNumber } from '@pins/crowndev-lib/util/numbers.js';
+import { clearProcedureData } from './question-utils.js';
 /**
  * CrownDevelopment fields that do not need mapping to a (or from) the view model
  * @type {Readonly<import('./types.js').CrownDevelopmentViewModelFields[]>}
@@ -112,39 +113,6 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 	addLpaDetailsToViewModel(viewModel, crownDevelopment.Lpa);
 	addContactToViewModel(viewModel, crownDevelopment.ApplicantContact, 'applicant');
 	addContactToViewModel(viewModel, crownDevelopment.AgentContact, 'agent');
-	const procedureId = crownDevelopment.procedureId;
-
-	clearProcedureFields(viewModel, procedureId);
-
-	if (procedureId !== 'written-reps') {
-		viewModel.writtenRepsProcedureNotificationDate = null;
-	}
-	if (procedureId !== 'hearing') {
-		viewModel.hearingProcedureNotificationDate = null;
-		viewModel.hearingDate = null;
-		viewModel.hearingDuration = null;
-		viewModel.hearingVenue = null;
-		viewModel.hearingNotificationDate = null;
-		viewModel.hearingIssuesReportPublishedDate = null;
-		viewModel.hearingStatementsDate = null;
-		viewModel.hearingCaseManagementConferenceDate = null;
-		viewModel.hearingDurationPrep = null;
-		viewModel.hearingDurationSitting = null;
-		viewModel.hearingDurationReporting = null;
-	}
-	if (procedureId !== 'inquiry') {
-		viewModel.inquiryProcedureNotificationDate = null;
-		viewModel.inquiryStatementsDate = null;
-		viewModel.inquiryDate = null;
-		viewModel.inquiryDuration = null;
-		viewModel.inquiryVenue = null;
-		viewModel.inquiryNotificationDate = null;
-		viewModel.inquiryCaseManagementConferenceDate = null;
-		viewModel.inquiryProofsOfEvidenceDate = null;
-		viewModel.inquiryDurationPrep = null;
-		viewModel.inquiryDurationSitting = null;
-		viewModel.inquiryDurationReporting = null;
-	}
 
 	if (hasProcedure(crownDevelopment.procedureId)) {
 		const event = crownDevelopment.Event || {};
@@ -159,14 +127,18 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
  *
  * @param {import('./types.js').CrownDevelopmentViewModel} edits - edited fields only
  * @param {import('./types.js').CrownDevelopmentViewModel} viewModel - full view model with all case details
- * @returns {import('@prisma/client').Prisma.CrownDevelopmentUpdateInput}
+ * @param {import('#service').ManageService} service - service object containing db/logger
+ * @param {string} applicationId - id of the application (used when procedure id changed)
+ * @returns {Promise<import('@prisma/client').Prisma.CrownDevelopmentUpdateInput>}
  */
-export function editsToDatabaseUpdates(edits, viewModel) {
+export async function editsToDatabaseUpdates(edits, viewModel, service, applicationId) {
 	/** @type {import('@prisma/client').Prisma.CrownDevelopmentUpdateInput} */
 	const crownDevelopmentUpdateInput = {};
 	// map all the regular fields to the update input
 	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
-		if (Object.hasOwn(edits, field)) {
+		if (field === 'procedureId' && edits.procedureId) {
+			crownDevelopmentUpdateInput.Procedure = { connect: { id: edits.procedureId } };
+		} else if (Object.hasOwn(edits, field)) {
 			crownDevelopmentUpdateInput[field] = edits[field];
 		}
 	}
@@ -195,8 +167,6 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 			connect: { id: edits.subCategoryId }
 		};
 	}
-
-	connectProcedure(crownDevelopmentUpdateInput, edits.procedureId);
 
 	if ('siteAddress' in edits) {
 		const siteAddress = viewModelToAddressUpdateInput(edits.siteAddress);
@@ -238,86 +208,21 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		}
 	}
 
+	if (edits.procedureId && applicationId) {
+		const clearFields = await clearProcedureData(service, edits, viewModel, applicationId);
+		if (Object.keys(clearFields).length > 0) {
+			for (const key of Object.keys(clearFields)) {
+				if (key === 'Event') {
+					crownDevelopmentUpdateInput.Event = clearFields.Event;
+				} else {
+					crownDevelopmentUpdateInput[key] = null;
+				}
+			}
+		}
+	}
 	return crownDevelopmentUpdateInput;
 }
 
-function connectProcedure(updateInput, procedureId) {
-	if (procedureId) {
-		updateInput.Procedure = { connect: { id: procedureId } };
-		delete updateInput.procedureId;
-	}
-}
-
-export function clearProcedureFields(viewModel, procedureId, originalProcedureId, updateInput) {
-	const procedureFields = [
-		'writtenRepsProcedureNotificationDate',
-		'hearingProcedureNotificationDate',
-		'procedureNotificationDate',
-		'hearingDate',
-		'hearingDuration',
-		'hearingVenue',
-		'hearingNotificationDate',
-		'hearingIssuesReportPublishedDate',
-		'hearingStatementsDate',
-		'hearingCaseManagementConferenceDate',
-		'hearingDurationPrep',
-		'hearingDurationSitting',
-		'hearingDurationReporting',
-		'inquiryProcedureNotificationDate',
-		'inquiryStatementsDate',
-		'inquiryDate',
-		'inquiryDuration',
-		'inquiryVenue',
-		'inquiryNotificationDate',
-		'inquiryCaseManagementConferenceDate',
-		'inquiryProofsOfEvidenceDate',
-		'inquiryDurationPrep',
-		'inquiryDurationSitting',
-		'inquiryDurationReporting'
-	];
-	for (const field of procedureFields) {
-		viewModel[field] = null;
-	}
-	if (updateInput) {
-		updateInput.procedureNotificationDate = null;
-		updateInput.Event = {
-			update: {
-				data: {
-					date: null,
-					prepDuration: null,
-					sittingDuration: null,
-					reportingDuration: null,
-					venue: null,
-					notificationDate: null,
-					issuesReportPublishedDate: null,
-					statementsDate: null,
-					caseManagementConferenceDate: null,
-					proofsOfEvidenceDate: null
-				}
-			}
-		};
-	}
-}
-
-export async function clearProcedureData({ db }, edits, viewModel, applicationId) {
-	const updateInput = {};
-
-	const validProcedures = ['hearing', 'inquiry', 'written-reps'];
-	const procedureId = edits.procedureId;
-	if (procedureId && validProcedures.includes(procedureId)) {
-		const crownDevelopment = await db.crownDevelopment.findUnique({
-			where: { id: applicationId },
-			select: { procedureId: true, eventId: true }
-		});
-		if (crownDevelopment?.eventId && crownDevelopment.procedureId && crownDevelopment.procedureId !== procedureId) {
-			clearProcedureFields(viewModel, procedureId, crownDevelopment.procedureId, updateInput);
-		}
-	}
-
-	delete updateInput.procedureId;
-
-	return updateInput;
-}
 /**
  * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
  * @param {import('@prisma/client').Prisma.ContactGetPayload<{include: {Address: true}}>|null} contact
@@ -479,14 +384,14 @@ function isHearing(procedureId) {
  * @param {string|null} procedureId
  * @returns {string}
  */
-function eventPrefix(procedureId) {
+export function eventPrefix(procedureId) {
 	switch (procedureId) {
 		case APPLICATION_PROCEDURE_ID.INQUIRY:
 			return 'inquiry';
 		case APPLICATION_PROCEDURE_ID.HEARING:
 			return 'hearing';
 		case APPLICATION_PROCEDURE_ID.WRITTEN_REPS:
-			return 'writtenReps';
+			return 'written-reps';
 	}
 	throw new Error(
 		`invalid procedureId, expected ${APPLICATION_PROCEDURE_ID.HEARING} or ${APPLICATION_PROCEDURE_ID.INQUIRY}, got ${procedureId}`

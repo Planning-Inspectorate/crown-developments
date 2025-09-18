@@ -4,7 +4,7 @@ import {
 	sendApplicationReceivedNotification,
 	sendLpaAcknowledgeReceiptOfQuestionnaireNotification
 } from './notification.js';
-import { editsToDatabaseUpdates, clearProcedureData } from './view-model.js';
+import { editsToDatabaseUpdates } from './view-model.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 
 export function buildUpdateCase(service, clearAnswer = false) {
@@ -31,18 +31,7 @@ export function buildUpdateCase(service, clearAnswer = false) {
 		const fullViewModel = res.locals?.journeyResponse?.answers || {};
 
 		await customUpdateCaseActions(service, id, toSave, fullViewModel);
-
-		let updateInput = editsToDatabaseUpdates(toSave, fullViewModel);
-		const clearFields = await clearProcedureData(service, toSave, fullViewModel, id);
-		if (Object.keys(clearFields).length > 0) {
-			for (const key of Object.keys(clearFields)) {
-				if (key === 'Event') {
-					updateInput.Event = clearFields.Event;
-				} else {
-					updateInput[key] = null;
-				}
-			}
-		}
+		let updateInput = await editsToDatabaseUpdates(toSave, fullViewModel, service, id);
 		updateInput.updatedDate = new Date();
 
 		logger.info({ fields: Object.keys(toSave) }, 'update case input');
@@ -74,7 +63,7 @@ export function buildUpdateCase(service, clearAnswer = false) {
  * @param {{session?: Object<string, any>}} req
  * @param {string} id
  */
-function addCaseUpdatedSession(req, id) {
+export function addCaseUpdatedSession(req, id) {
 	if (!req.session) {
 		throw new Error('request session required');
 	}

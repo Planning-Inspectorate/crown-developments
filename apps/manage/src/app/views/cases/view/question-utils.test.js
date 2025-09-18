@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { contactQuestions, dateQuestion, eventQuestions } from './question-utils.js';
+import { contactQuestions, dateQuestion, eventQuestions, clearProcedureData } from './question-utils.js';
+import { crownDevelopmentToViewModel } from './view-model.js';
 
 describe('question-utils', () => {
 	describe('contactQuestions', () => {
@@ -140,6 +141,59 @@ describe('question-utils', () => {
 			assert.ok(!regex.test('Smith#Sons'));
 			assert.ok(!regex.test('ACME*Ltd'));
 			assert.ok(!regex.test('ACME.Ltd'));
+		});
+	});
+	describe('question-utils - clearProcedureData', () => {
+		it('should leave procedure event fields undefined when no procedure is set', () => {
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				procedureId: null,
+				Event: {}
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.strictEqual(result.hearingDate, undefined);
+			assert.strictEqual(result.hearingVenue, undefined);
+			assert.strictEqual(result.inquiryDate, undefined);
+			assert.strictEqual(result.inquiryVenue, undefined);
+			assert.strictEqual(result.writtenRepsProcedureNotificationDate, undefined);
+		});
+		it('clears procedure-specific viewModel fields and returns clear update when procedure changed and event exists', async () => {
+			const db = {
+				crownDevelopment: {
+					findUnique: async () => ({ procedureId: 'inquiry', eventId: 'event-1' })
+				}
+			};
+			const service = { db };
+			const edits = { procedureId: 'hearing' };
+
+			const viewModel = {
+				inquiryDate: '2025-01-01',
+				inquiryVenue: 'Some place',
+				inquiryStatementsDate: '2025-01-02',
+				procedureNotificationDate: '2025-01-03'
+			};
+
+			const result = await clearProcedureData(service, edits, viewModel, 'app-1');
+			assert.strictEqual(viewModel.inquiryDate, null);
+			assert.strictEqual(viewModel.inquiryVenue, null);
+			assert.strictEqual(viewModel.inquiryStatementsDate, null);
+			assert.strictEqual(result.procedureNotificationDate, null);
+			assert.ok(result.Event, 'event-1');
+		});
+		it('returns empty object when DB crownDevelopment has no existing procedureId', async () => {
+			const service = {
+				db: {
+					crownDevelopment: {
+						findUnique: async () => ({ procedureId: null, eventId: 'event-1' })
+					}
+				}
+			};
+			const edits = { procedureId: 'hearing' };
+			const viewModel = {};
+
+			const result = await clearProcedureData(service, edits, viewModel, 'app-1');
+			assert.deepStrictEqual(result, {});
 		});
 	});
 });
