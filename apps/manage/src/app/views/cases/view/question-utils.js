@@ -291,3 +291,93 @@ function camelCaseToTitleCase(str) {
 function titleCase(str) {
 	return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+/**
+ * Clear procedure-specific fields on a viewModel and prepare DB update input to clear Event/procedureNotificationDate.
+ *
+ * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
+ * @param {string|null} procedureId
+ * @param {string|null} originalProcedureId
+ * @param {Object|null} updateInput
+ */
+export function clearProcedureFields(viewModel, procedureId, originalProcedureId, updateInput) {
+	const fields = [
+		'writtenRepsProcedureNotificationDate',
+		'hearingProcedureNotificationDate',
+		'procedureNotificationDate',
+		'hearingDate',
+		'hearingDuration',
+		'hearingVenue',
+		'hearingNotificationDate',
+		'hearingIssuesReportPublishedDate',
+		'hearingStatementsDate',
+		'hearingCaseManagementConferenceDate',
+		'hearingDurationPrep',
+		'hearingDurationSitting',
+		'hearingDurationReporting',
+		'inquiryProcedureNotificationDate',
+		'inquiryStatementsDate',
+		'inquiryDate',
+		'inquiryDuration',
+		'inquiryVenue',
+		'inquiryNotificationDate',
+		'inquiryCaseManagementConferenceDate',
+		'inquiryProofsOfEvidenceDate',
+		'inquiryDurationPrep',
+		'inquiryDurationSitting',
+		'inquiryDurationReporting'
+	];
+	fields.forEach((field) => {
+		viewModel[field] = null;
+	});
+
+	if (updateInput) {
+		Object.assign(updateInput, {
+			procedureNotificationDate: null,
+			Event: {
+				update: {
+					data: {
+						date: null,
+						prepDuration: null,
+						sittingDuration: null,
+						reportingDuration: null,
+						venue: null,
+						notificationDate: null,
+						issuesReportPublishedDate: null,
+						statementsDate: null,
+						caseManagementConferenceDate: null,
+						proofsOfEvidenceDate: null
+					}
+				}
+			}
+		});
+	}
+}
+
+/**
+ * If the procedure has changed on the existing DB record, return an update object that clears procedure fields.
+ *
+ * @param {{db: import('#service').DbService}} serviceOrCtx - object containing db (keeps signature similar to prior usage)
+ * @param {import('./types.js').CrownDevelopmentViewModel} edits
+ * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
+ * @param {string} applicationId
+ * @returns {Promise<Object>} update input with fields to clear (or empty object)
+ */
+export async function clearProcedureData({ db }, edits, viewModel, applicationId) {
+	const updateInput = {};
+	const validProcedures = ['hearing', 'inquiry', 'written-reps'];
+	const { procedureId } = edits;
+
+	if (procedureId && validProcedures.includes(procedureId)) {
+		const crownDevelopment = await db.crownDevelopment.findUnique({
+			where: { id: applicationId },
+			select: { procedureId: true, eventId: true }
+		});
+		if (crownDevelopment?.eventId && crownDevelopment.procedureId && crownDevelopment.procedureId !== procedureId) {
+			clearProcedureFields(viewModel, procedureId, crownDevelopment.procedureId, updateInput);
+		}
+	}
+
+	delete updateInput.procedureId;
+	return updateInput;
+}
