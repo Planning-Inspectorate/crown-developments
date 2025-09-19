@@ -5,7 +5,7 @@ import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-u
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
- * Render written representation read more page
+ * Render application updates page
  *
  * @param {import('#service').PortalService} service
  * @returns {import('express').Handler}
