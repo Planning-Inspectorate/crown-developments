@@ -5,6 +5,7 @@ export interface CrownDevelopmentViewModel {
 	reference?: string;
 	description?: string;
 	typeOfApplication?: string;
+	subTypeId?: string;
 	lpaId?: string;
 	siteAddressId?: string;
 	siteAddress?: Address;

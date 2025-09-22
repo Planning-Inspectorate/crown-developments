@@ -90,7 +90,11 @@ export async function customUpdateCaseActions(service, id, toSave, fullViewModel
 		handleApplicationFee(toSave);
 	}
 
-	if (toSave.lpaQuestionnaireReceivedDate && fullViewModel.lpaQuestionnaireReceivedEmailSent !== BOOLEAN_OPTIONS.YES) {
+	if (
+		toSave.lpaQuestionnaireReceivedDate &&
+		fullViewModel.lpaQuestionnaireReceivedEmailSent !== BOOLEAN_OPTIONS.YES &&
+		!fullViewModel.subTypeId
+	) {
 		await handleLpaQuestionnaireReceivedDateUpdate(service, id, toSave);
 	}
 
@@ -98,7 +102,11 @@ export async function customUpdateCaseActions(service, id, toSave, fullViewModel
 		await handleApplicationReceivedDateUpdate(service, id, toSave, fullViewModel);
 	}
 
-	if (toSave.turnedAwayDate && fullViewModel.notNationallyImportantEmailSent !== BOOLEAN_OPTIONS.YES) {
+	if (
+		toSave.turnedAwayDate &&
+		fullViewModel.notNationallyImportantEmailSent !== BOOLEAN_OPTIONS.YES &&
+		!fullViewModel.subTypeId
+	) {
 		await handleTurnedAwayDateUpdate(service, id, toSave);
 	}
 }
@@ -157,7 +165,7 @@ async function handleApplicationReceivedDateUpdate(service, id, toSave, fullView
 		throw error;
 	}
 
-	if (fullViewModel.applicationReceivedDateEmailSent !== BOOLEAN_OPTIONS.YES) {
+	if (fullViewModel.applicationReceivedDateEmailSent !== BOOLEAN_OPTIONS.YES && !fullViewModel.subTypeId) {
 		await sendApplicationReceivedNotification(service, id, toSave.applicationReceivedDate);
 		toSave['applicationReceivedDateEmailSent'] = true;
 	}

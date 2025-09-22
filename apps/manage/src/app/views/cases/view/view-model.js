@@ -12,6 +12,7 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'reference',
 	'description',
 	'typeId',
+	'subTypeId',
 	'lpaId',
 	'siteNorthing',
 	'siteEasting',

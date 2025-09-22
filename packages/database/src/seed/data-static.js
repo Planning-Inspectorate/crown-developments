@@ -54,7 +54,29 @@ export const APPLICATION_TYPES = [
 	{
 		id: APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT,
 		displayName:
-			'Planning permission and listed building consent for alterations, extension or demolition of a listed building'
+			'Planning permission and listed building consent (LBC) for alterations, extension or demolition of a listed building'
+	}
+];
+
+/**
+ * @type {Readonly<{PLANNING_PERMISSION: string, LISTED_BUILDING_CONSENT: string}>}
+ */
+export const APPLICATION_SUB_TYPE_ID = Object.freeze({
+	PLANNING_PERMISSION: 'planning-permission',
+	LISTED_BUILDING_CONSENT: 'listed-building-consent'
+});
+
+/**
+ * @type {import('@prisma/client').Prisma.ApplicationSubTypeCreateInput[]}
+ */
+export const APPLICATION_SUB_TYPES = [
+	{
+		id: APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION,
+		displayName: 'Planning permission'
+	},
+	{
+		id: APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT,
+		displayName: 'Listed building consent (LBC)'
 	}
 ];
 
@@ -577,6 +599,10 @@ export async function seedStaticData(dbClient) {
 
 	await Promise.all(
 		APPLICATION_TYPES.map((input) => upsertReferenceData({ delegate: dbClient.applicationType, input }))
+	);
+
+	await Promise.all(
+		APPLICATION_SUB_TYPES.map((input) => upsertReferenceData({ delegate: dbClient.applicationSubType, input }))
 	);
 
 	await Promise.all(
