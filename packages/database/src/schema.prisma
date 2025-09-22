@@ -30,7 +30,12 @@ model CrownDevelopment {
   /// type of application, such as outline, extension
   typeId                              String
   Type                                ApplicationType             @relation(fields: [typeId], references: [id])
-  // project description
+  /// subtype of application
+  subTypeId                           String?
+  SubType                             ApplicationSubType?         @relation(fields: [subTypeId], references: [id])
+  /// linked case id
+  linkedCaseId                        String?
+  /// project description
   description                         String?                     @db.NVarChar(2000)
   /// LPA associated with this application
   lpaId                               String?                     @db.UniqueIdentifier
@@ -286,6 +291,14 @@ model ApplicationDecisionOutcome {
 /// ApplicationType represents types of applications we recieve
 model ApplicationType {
   /// unique machine-readable name, not generated, e.g. "change-of-use"
+  id               String             @id
+  displayName      String?
+  CrownDevelopment CrownDevelopment[]
+}
+
+/// ApplicationSubType represents subtypes of applications we recieve
+model ApplicationSubType {
+  /// unique machine-readable name, not generated, e.g. "planning-permission"
   id               String             @id
   displayName      String?
   CrownDevelopment CrownDevelopment[]

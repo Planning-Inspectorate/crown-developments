@@ -4,6 +4,7 @@ import { JOURNEY_ID } from './journey.js';
 import { toFloat } from '@pins/crowndev-lib/util/numbers.js';
 import { caseReferenceToFolderName, getSharePointReceivedPathId } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -28,14 +29,37 @@ export function buildSaveController(service) {
 		let id;
 		// create a new case in a transaction to ensure reference generation is safe
 		await db.$transaction(async ($tx) => {
+			async function createCase(reference, subType, extraData = {}) {
+				const input = toCreateInput(answers, reference, subType);
+				Object.assign(input, extraData);
+				logger.info({ reference }, 'creating a new case');
+				console.log(JSON.stringify(input));
+				const created = await $tx.crownDevelopment.create({ data: input });
+				logger.info({ reference }, 'created a new case');
+				return created;
+			}
+
 			reference = await newReference($tx);
-			const input = toCreateInput(answers, reference);
-			logger.info({ reference }, 'creating a new case');
-			const created = await $tx.crownDevelopment.create({
-				data: input
-			});
+
+			const subType =
+				answers.typeOfApplication === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
+					? APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION
+					: null;
+
+			const created = await createCase(reference, subType);
 			id = created.id;
-			logger.info({ reference }, 'created a new case');
+
+			if (answers.typeOfApplication === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT) {
+				const linkedRef = `${reference}/LBC`;
+				const linkedCase = await createCase(linkedRef, APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT, {
+					linkedCaseId: id
+				});
+
+				await $tx.crownDevelopment.update({
+					where: { id },
+					data: { linkedCaseId: linkedCase.id }
+				});
+			}
 		});
 
 		const sharePointDrive = getSharePointDrive(req.session);
@@ -59,7 +83,7 @@ export function buildSaveController(service) {
 			logger.warn(
 				'Gov Notify is not enabled, to use Gov Notify functionality setup Gov Notify environment variables. See README'
 			);
-		} else {
+		} else if (answers.typeOfApplication !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT) {
 			try {
 				await notifyClient.sendAcknowledgePreNotification(notificationData.recipientEmail, {
 					reference,
@@ -104,9 +128,10 @@ export function successController(req, res) {
 /**
  * @param {import('./types.d.ts').CreateCaseAnswers} answers
  * @param {string} reference
+ * @param {string|null} subType
  * @returns {import('@prisma/client').Prisma.CrownDevelopmentCreateInput}
  */
-function toCreateInput(answers, reference) {
+function toCreateInput(answers, reference, subType) {
 	/** @type {import('@prisma/client').Prisma.CrownDevelopmentCreateInput} */
 	const input = {
 		reference,
@@ -119,6 +144,14 @@ function toCreateInput(answers, reference) {
 		siteNorthing: toFloat(answers.siteNorthing),
 		expectedDateOfSubmission: answers.expectedDateOfSubmission
 	};
+
+	if (subType) {
+		input.SubType = { connect: { id: subType } };
+	}
+
+	if (subType === APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT) {
+		input.hasApplicationFee = false;
+	}
 
 	if (hasAnswers(answers, 'siteAddress')) {
 		input.SiteAddress = {
