@@ -33,7 +33,6 @@ export function buildSaveController(service) {
 				const input = toCreateInput(answers, reference, subType);
 				Object.assign(input, extraData);
 				logger.info({ reference }, 'creating a new case');
-				console.log(JSON.stringify(input));
 				const created = await $tx.crownDevelopment.create({ data: input });
 				logger.info({ reference }, 'created a new case');
 				return created;

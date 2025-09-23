@@ -10,7 +10,8 @@ describe('save', () => {
 			return {
 				crownDevelopment: {
 					create: mock.fn(() => ({ id: 'id-1' })),
-					findMany: mock.fn(() => [])
+					findMany: mock.fn(() => []),
+					update: mock.fn()
 				},
 				$transaction(fn) {
 					return fn(this);
@@ -118,6 +119,45 @@ describe('save', () => {
 
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
 			// todo: integration test to run Prisma's validation?
+		});
+
+		it('should create linked case when case is Planning and LBC', async () => {
+			const service = mockService();
+			const { db } = service;
+			const save = buildSaveController(service);
+			const answers = {
+				developmentDescription: 'Project One',
+				typeOfApplication: 'planning-permission-and-listed-building-consent',
+				lpaId: 'lpa-1'
+			};
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers
+					}
+				}
+			};
+
+			await save({}, res, mock.fn());
+
+			assert.strictEqual(res.redirect.mock.callCount(), 1);
+			assert.strictEqual(service.db.crownDevelopment.create.mock.callCount(), 2);
+			assert.strictEqual(service.db.crownDevelopment.update.mock.callCount(), 1);
+
+			const { data: caseData } = db.crownDevelopment.create.mock.calls[0].arguments[0];
+			assert.deepStrictEqual(caseData.Type, { connect: { id: 'planning-permission-and-listed-building-consent' } });
+			assert.deepStrictEqual(caseData.SubType, { connect: { id: 'planning-permission' } });
+
+			const { data: linkedCaseData } = db.crownDevelopment.create.mock.calls[1].arguments[0];
+			assert.deepStrictEqual(linkedCaseData.Type, {
+				connect: { id: 'planning-permission-and-listed-building-consent' }
+			});
+			assert.deepStrictEqual(linkedCaseData.SubType, { connect: { id: 'listed-building-consent' } });
+			assert.strictEqual(linkedCaseData.linkedCaseId, 'id-1');
+
+			const { data: updatedCaseData } = db.crownDevelopment.update.mock.calls[0].arguments[0];
+			assert.deepStrictEqual(updatedCaseData, { linkedCaseId: 'id-1' });
 		});
 
 		it('should call copyDriveItem and grant write access to the applicant when sharepoint is enabled and no agent email is provided', async () => {
@@ -375,6 +415,70 @@ describe('save', () => {
 					sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id'
 				}
 			]);
+		});
+		it('should not send email when case type is planning permission and lbc', async () => {
+			const sharepointDrive = {
+				copyDriveItem: mock.fn(),
+				getItemsByPath: mock.fn(() => {
+					return [
+						{ id: 'id1', name: 'Applicant' },
+						{ id: 'id2', name: 'LPA' }
+					];
+				}),
+				getDriveItemByPath: mock.fn(() => {
+					return {
+						webUrl: 'www.test-sharepoint.com/folder'
+					};
+				}),
+				addItemPermissions: mock.fn(),
+				fetchUserInviteLink: mock.fn(() => {
+					return {
+						link: {
+							webUrl: 'https://sharepoint.com/:f:/s/site/random_id'
+						}
+					};
+				})
+			};
+			const notifyClient = {
+				sendAcknowledgePreNotification: mock.fn()
+			};
+			const service = mockService();
+			service.getSharePointDrive = () => sharepointDrive;
+			service.notifyClient = notifyClient;
+			const save = buildSaveController(service);
+
+			const req = {
+				session: {
+					forms: {
+						'create-a-case': {
+							hasAgent: false,
+							applicantEmail: 'applicantEmail@mail.com',
+							agentEmail: 'agentEmail@mail.com'
+						}
+					}
+				}
+			};
+			const answers = {
+				developmentDescription: 'Project One',
+				typeOfApplication: 'planning-permission-and-listed-building-consent',
+				lpaId: 'lpa-1',
+				hasAgent: false,
+				applicantEmail: 'applicantEmail@mail.com',
+				agentEmail: 'agentEmail@mail.com'
+			};
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers
+					}
+				}
+			};
+
+			await save(req, res, mock.fn());
+
+			assert.strictEqual(res.redirect.mock.callCount(), 1);
+			assert.strictEqual(notifyClient.sendAcknowledgePreNotification.mock.callCount(), 0);
 		});
 	});
 
