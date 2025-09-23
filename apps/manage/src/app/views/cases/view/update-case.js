@@ -43,9 +43,24 @@ export function buildUpdateCase(service, clearAnswer = false) {
 		logger.info({ fields: Object.keys(toSave) }, 'update case input');
 
 		try {
-			await db.crownDevelopment.update({
-				where: { id },
-				data: updateInput
+			await db.$transaction(async ($tx) => {
+				await $tx.crownDevelopment.update({
+					where: { id },
+					data: updateInput
+				});
+
+				const crownDevelopment = await $tx.crownDevelopment.findUnique({
+					where: { id },
+					select: { linkedCaseId: true }
+				});
+				const linkedCaseId = crownDevelopment.linkedCaseId;
+
+				if (linkedCaseId && !updateContainsDeLinkedField(updateInput)) {
+					await $tx.crownDevelopment.update({
+						where: { id: linkedCaseId },
+						data: updateInput
+					});
+				}
 			});
 		} catch (error) {
 			wrapPrismaError({
@@ -179,4 +194,31 @@ async function handleApplicationReceivedDateUpdate(service, id, toSave, fullView
 async function handleTurnedAwayDateUpdate(service, id, toSave) {
 	await sendApplicationNotOfNationalImportanceNotification(service, id);
 	toSave['notNationallyImportantEmailSent'] = true;
+}
+
+/**
+ * @param {object} updateInput
+ * @returns {boolean}
+ */
+function updateContainsDeLinkedField(updateInput) {
+	const deLinkedFields = [
+		'id',
+		'expectedDateOfSubmission',
+		'reference',
+		'statusId',
+		'lpaReference',
+		'applicationAcceptedDate',
+		'lpaQuestionnaireReceivedDate',
+		'publishDate',
+		'neighboursNotifiedByLpaDate',
+		'decisionOutcomeId',
+		'representationsPublishDate',
+		'representationsPeriodStartDate',
+		'representationsPeriodEndDate',
+		'assessorInspectorId',
+		'subTypeId',
+		'hasApplicationFee',
+		'applicationFee'
+	];
+	return Object.keys(updateInput).some((key) => deLinkedFields.includes(key));
 }
