@@ -18,6 +18,7 @@ describe('case details', () => {
 		it('should do nothing if no updates', async () => {
 			const logger = mockLogger();
 			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
 					update: mock.fn()
 				}
@@ -35,8 +36,10 @@ describe('case details', () => {
 		it('should call db update and add to session', async () => {
 			const logger = mockLogger();
 			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
-					update: mock.fn()
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({}))
 				}
 			};
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
@@ -57,11 +60,73 @@ describe('case details', () => {
 			assert.strictEqual(updateArg.where?.id, 'case1');
 			assert.strictEqual(mockReq.session?.cases?.case1.updated, true);
 		});
+		it('should update both case and linked case if linkedCaseId present and field not in deLinked field list', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({
+						linkedCaseId: 'linked-case-id-1'
+					}))
+				}
+			};
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = { locals: {} };
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					description: 'My new application description'
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 2);
+
+			const updateArg = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
+			assert.strictEqual(updateArg.where?.id, 'case1');
+
+			const updateLinkedCaseArg = mockDb.crownDevelopment.update.mock.calls[1].arguments[0];
+			assert.strictEqual(updateLinkedCaseArg.where?.id, 'linked-case-id-1');
+		});
+		it('should call update case but not the linked case if linkedCaseId present and field is in deLinked field list', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({
+						linkedCaseId: 'case-id-1'
+					}))
+				}
+			};
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = { locals: {} };
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					statusId: 'acceptance'
+				}
+			};
+			await updateCase({ req: mockReq, res: mockRes, data });
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+		});
 		it('should fetch case data from the journey for relation IDs', async () => {
 			const logger = mockLogger();
 			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
-					update: mock.fn()
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({}))
 				}
 			};
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
@@ -96,6 +161,7 @@ describe('case details', () => {
 		it('should dispatch Lpa Acknowledge Receipt Of Questionnaire Notification with site address', async () => {
 			const logger = mockLogger();
 			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
 						id: 'case-1',
@@ -162,6 +228,7 @@ describe('case details', () => {
 		it('should dispatch Lpa Acknowledge Receipt Of Questionnaire Notification with northing/easting', async () => {
 			const logger = mockLogger();
 			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
 						id: 'case-1',
@@ -228,6 +295,7 @@ describe('case details', () => {
 		it('should throw error if lpa notification dispatch fails', async () => {
 			const logger = mockLogger();
 			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
 						id: 'case-1',
@@ -277,6 +345,7 @@ describe('case details', () => {
 		it('should dispatch Application Received Date Notification with fee', async () => {
 			const logger = mockLogger();
 			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
 						id: 'case-1',
@@ -348,6 +417,7 @@ describe('case details', () => {
 		it('should dispatch Application Received Date Notification without fee', async () => {
 			const logger = mockLogger();
 			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
 						id: 'case-1',
@@ -421,6 +491,7 @@ describe('case details', () => {
 		it('should throw error if site address, coordinates and fee are not set on the case', async () => {
 			const logger = mockLogger();
 			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
 					findUnique: mock.fn(),
 					update: mock.fn()
@@ -470,6 +541,7 @@ describe('case details', () => {
 		it('should throw error if site address and coordinates are not set on the case', async () => {
 			const logger = mockLogger();
 			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
 					findUnique: mock.fn(),
 					update: mock.fn()
@@ -515,6 +587,7 @@ describe('case details', () => {
 		it('should throw error if site address and coordinates are not set on the case', async () => {
 			const logger = mockLogger();
 			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
 					findUnique: mock.fn(),
 					update: mock.fn()
@@ -562,6 +635,7 @@ describe('case details', () => {
 		it('should throw error if Application Received Date Notification fails', async () => {
 			const logger = mockLogger();
 			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
 						id: 'case-1',
@@ -615,6 +689,7 @@ describe('case details', () => {
 		it('should dispatch Application not of national importance Notification', async () => {
 			const logger = mockLogger();
 			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
 						id: 'case-1',
@@ -683,6 +758,7 @@ describe('case details', () => {
 		it('should throw error if Application not of national importance Notification fails', async () => {
 			const logger = mockLogger();
 			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
 						id: 'case-1',
@@ -731,6 +807,7 @@ describe('case details', () => {
 		it('should not throw Prisma errors', async () => {
 			const logger = mockLogger();
 			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
 					update: mock.fn(() => {
 						throw new Prisma.PrismaClientKnownRequestError('Error', { code: 'E101' });
@@ -762,8 +839,10 @@ describe('case details', () => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
 			const logger = mockLogger();
 			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
-					update: mock.fn()
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({}))
 				}
 			};
 			const updateCase = buildUpdateCase({ db: mockDb, logger }, true);
