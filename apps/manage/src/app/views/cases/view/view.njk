@@ -17,6 +17,11 @@
 {% endblock %}
 
 {% block content %}
+    {% if hasLinkedCase %}
+        {{ govukNotificationBanner({
+            html: '<p class="govuk-notification-banner__heading">This application is connected to a ' + linkedCaseLink + '.</p>'
+        }) }}
+    {% endif %}
     {% if caseUpdated and casePublished %}
         {{ govukNotificationBanner({
             text: "Any updates made to this case will be automatically published.",

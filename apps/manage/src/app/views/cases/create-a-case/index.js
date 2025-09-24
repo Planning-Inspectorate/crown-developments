@@ -11,7 +11,8 @@ import {
 } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { JOURNEY_ID, createJourney } from './journey.js';
 import { getQuestions } from './questions.js';
-import { buildSaveController, successController } from './save.js';
+import { buildSaveController, buildSuccessController } from './save.js';
+import { getSummaryWarningMessage } from './util.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -23,6 +24,7 @@ export function createRoutes(service) {
 	const getJourney = buildGetJourney((req, journeyResponse) => createJourney(questions, journeyResponse, req));
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const saveController = buildSaveController(service);
+	const successController = buildSuccessController(service);
 
 	router.get('/', getJourneyResponse, getJourney, redirectToUnansweredQuestion());
 
@@ -38,12 +40,10 @@ export function createRoutes(service) {
 	);
 
 	router.get('/check-your-answers', getJourneyResponse, getJourney, (req, res) =>
-		list(req, res, '', {
-			summaryWarningMessage: 'Clicking Accept & Submit will send a notification to the applicant / agent'
-		})
+		list(req, res, '', { summaryWarningMessage: getSummaryWarningMessage(res) })
 	);
 	router.post('/check-your-answers', getJourneyResponse, getJourney, asyncHandler(saveController));
-	router.get('/success', successController);
+	router.get('/success', asyncHandler(successController));
 
 	return router;
 }
