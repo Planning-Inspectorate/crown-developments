@@ -5,6 +5,7 @@ import { toFloat } from '@pins/crowndev-lib/util/numbers.js';
 import { caseReferenceToFolderName, getSharePointReceivedPathId } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -100,20 +101,50 @@ export function buildSaveController(service) {
 }
 
 /**
- * @type {import('express').Handler}
+ * @param {import('#service').ManageService} service
+ * @returns {import('express').Handler}
  */
-export function successController(req, res) {
-	const data = req.session?.forms && req.session?.forms[JOURNEY_ID];
-	if (!data || !data.id || !data.reference) {
-		throw new Error('invalid create case session');
-	}
-	clearDataFromSession({ req, journeyId: JOURNEY_ID });
-	res.render('views/cases/create-a-case/success.njk', {
-		title: 'Case created',
-		bodyText: `Case reference <br><strong>${data.reference}</strong>`,
-		successBackLinkUrl: `/cases/${data.id}`,
-		successBackLinkText: `View case details for ${data.reference}`
-	});
+export function buildSuccessController({ db, logger }) {
+	return async (req, res) => {
+		const data = req.session?.forms && req.session?.forms[JOURNEY_ID];
+		if (!data || !data.id || !data.reference) {
+			throw new Error('invalid create case session');
+		}
+
+		const crownDevelopment = await db.crownDevelopment.findUnique({
+			where: { id: data.id }
+		});
+
+		const linkedCaseId = crownDevelopment?.linkedCaseId;
+		const hasLinkedCase = typeof linkedCaseId === 'string' && linkedCaseId.trim() !== '';
+		let linkedCase;
+		if (hasLinkedCase) {
+			try {
+				linkedCase = await db.crownDevelopment.findUnique({
+					where: { id: linkedCaseId },
+					select: { reference: true }
+				});
+			} catch (error) {
+				wrapPrismaError({
+					error,
+					logger,
+					message: 'fetching linked case',
+					logParams: { linkedCaseId }
+				});
+			}
+		}
+
+		clearDataFromSession({ req, journeyId: JOURNEY_ID });
+		res.render('views/cases/create-a-case/success.njk', {
+			title: 'Case created',
+			bodyText: `Case reference <br><strong>${data.reference}</strong>${hasLinkedCase ? `<br><br><strong>${linkedCase.reference}</strong>` : ''}`,
+			successBackLinkUrl: `/cases/${data.id}`,
+			successBackLinkText: `View case details for ${data.reference}`,
+			hasLinkedCase,
+			successBackLinkLinkedCaseUrl: hasLinkedCase ? `/cases/${linkedCaseId}` : '',
+			successBackLinkLinkedCaseText: hasLinkedCase ? `View case details for ${linkedCase.reference}` : ''
+		});
+	};
 }
 
 /**

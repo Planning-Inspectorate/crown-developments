@@ -9,11 +9,12 @@ import { getEntraGroupMembers } from '#util/entra-groups.js';
 import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { APPLICATION_SUB_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
  * @param {import('#service').ManageService} service
  */
-export function buildViewCaseDetails({ getSharePointDrive, isApplicationUpdatesLive }) {
+export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpdatesLive }) {
 	return async (req, res) => {
 		const reference = res.locals?.journeyResponse?.answers?.reference;
 		const id = req.params.id;
@@ -41,6 +42,26 @@ export function buildViewCaseDetails({ getSharePointDrive, isApplicationUpdatesL
 			sharePointLink = await getSharePointFolderLink(sharePointDrive, caseReferenceToFolderName(reference));
 		}
 
+		const crownDevelopment = await db.crownDevelopment.findUnique({
+			where: { id },
+			select: { linkedCaseId: true }
+		});
+		const linkedCaseId = crownDevelopment?.linkedCaseId;
+		const hasLinkedCase = typeof linkedCaseId === 'string' && linkedCaseId.trim() !== '';
+		let linkedCaseLink;
+		if (hasLinkedCase) {
+			const linkedCase = await db.crownDevelopment.findUnique({
+				where: { id: linkedCaseId },
+				select: { subTypeId: true }
+			});
+
+			const linkText =
+				linkedCase?.subTypeId === APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION
+					? 'planning permission'
+					: 'Listed Building Consent (LBC)';
+			linkedCaseLink = `<a href="/cases/${linkedCaseId}" class="govuk-link govuk-link--no-visited-state">${linkText} application</a>`;
+		}
+
 		await list(req, res, '', {
 			reference,
 			caseUpdated,
@@ -49,7 +70,9 @@ export function buildViewCaseDetails({ getSharePointDrive, isApplicationUpdatesL
 			sharePointLink,
 			hideButton: true,
 			hideStatus: true,
-			isApplicationUpdatesLive
+			isApplicationUpdatesLive,
+			hasLinkedCase,
+			linkedCaseLink
 		});
 	};
 }
