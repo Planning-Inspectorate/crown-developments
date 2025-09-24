@@ -34,10 +34,11 @@ export function buildUpdateCase(service, clearAnswer = false) {
 		}
 		/** @type {import('./types.js').CrownDevelopmentViewModel} */
 		const fullViewModel = res.locals?.journeyResponse?.answers || {};
+		const originalAnswers = res.locals?.originalAnswers || {};
 
 		await customUpdateCaseActions(service, id, toSave, fullViewModel);
 
-		const updateInput = editsToDatabaseUpdates(toSave, fullViewModel);
+		const updateInput = editsToDatabaseUpdates(toSave, originalAnswers);
 		updateInput.updatedDate = new Date();
 
 		logger.info({ fields: Object.keys(toSave) }, 'update case input');
