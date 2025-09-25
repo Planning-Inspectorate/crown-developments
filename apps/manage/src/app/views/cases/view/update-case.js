@@ -7,11 +7,6 @@ import {
 import { editsToDatabaseUpdates } from './view-model.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 
-/**
- * @param {import('#service').ManageService} service
- * @param {boolean} [clearAnswer=false] - whether to clear the answer before saving
- * @returns {import('@planning-inspectorate/dynamic-forms/src/controller.js').SaveDataFn}
- */
 export function buildUpdateCase(service, clearAnswer = false) {
 	return async ({ req, res, data }) => {
 		const { db, logger } = service;
@@ -36,8 +31,7 @@ export function buildUpdateCase(service, clearAnswer = false) {
 		const fullViewModel = res.locals?.journeyResponse?.answers || {};
 
 		await customUpdateCaseActions(service, id, toSave, fullViewModel);
-
-		const updateInput = editsToDatabaseUpdates(toSave, fullViewModel);
+		let updateInput = await editsToDatabaseUpdates(toSave, fullViewModel, service, id);
 		updateInput.updatedDate = new Date();
 
 		logger.info({ fields: Object.keys(toSave) }, 'update case input');
@@ -69,7 +63,7 @@ export function buildUpdateCase(service, clearAnswer = false) {
  * @param {{session?: Object<string, any>}} req
  * @param {string} id
  */
-function addCaseUpdatedSession(req, id) {
+export function addCaseUpdatedSession(req, id) {
 	if (!req.session) {
 		throw new Error('request session required');
 	}

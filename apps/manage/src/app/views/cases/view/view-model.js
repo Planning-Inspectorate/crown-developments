@@ -4,6 +4,7 @@ import { booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms/src/co
 import { optionalWhere } from '@pins/crowndev-lib/util/database.js';
 import { addressToViewModel, viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.js';
 import { parseNumberStringToNumber } from '@pins/crowndev-lib/util/numbers.js';
+import { clearProcedureData } from './question-utils.js';
 /**
  * CrownDevelopment fields that do not need mapping to a (or from) the view model
  * @type {Readonly<import('./types.js').CrownDevelopmentViewModelFields[]>}
@@ -126,14 +127,18 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
  *
  * @param {import('./types.js').CrownDevelopmentViewModel} edits - edited fields only
  * @param {import('./types.js').CrownDevelopmentViewModel} viewModel - full view model with all case details
- * @returns {import('@prisma/client').Prisma.CrownDevelopmentUpdateInput}
+ * @param {import('#service').ManageService} service - service object containing db/logger
+ * @param {string} applicationId - id of the application (used when procedure id changed)
+ * @returns {Promise<import('@prisma/client').Prisma.CrownDevelopmentUpdateInput>}
  */
-export function editsToDatabaseUpdates(edits, viewModel) {
+export async function editsToDatabaseUpdates(edits, viewModel, service, applicationId) {
 	/** @type {import('@prisma/client').Prisma.CrownDevelopmentUpdateInput} */
 	const crownDevelopmentUpdateInput = {};
 	// map all the regular fields to the update input
 	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
-		if (Object.hasOwn(edits, field)) {
+		if (field === 'procedureId' && edits.procedureId) {
+			crownDevelopmentUpdateInput.Procedure = { connect: { id: edits.procedureId } };
+		} else if (Object.hasOwn(edits, field)) {
 			crownDevelopmentUpdateInput[field] = edits[field];
 		}
 	}
@@ -203,6 +208,18 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		}
 	}
 
+	if (edits.procedureId && applicationId) {
+		const clearFields = await clearProcedureData(service, edits, viewModel, applicationId);
+		if (Object.keys(clearFields).length > 0) {
+			for (const key of Object.keys(clearFields)) {
+				if (key === 'Event') {
+					crownDevelopmentUpdateInput.Event = clearFields.Event;
+				} else {
+					crownDevelopmentUpdateInput[key] = null;
+				}
+			}
+		}
+	}
 	return crownDevelopmentUpdateInput;
 }
 
@@ -367,14 +384,14 @@ function isHearing(procedureId) {
  * @param {string|null} procedureId
  * @returns {string}
  */
-function eventPrefix(procedureId) {
+export function eventPrefix(procedureId) {
 	switch (procedureId) {
 		case APPLICATION_PROCEDURE_ID.INQUIRY:
 			return 'inquiry';
 		case APPLICATION_PROCEDURE_ID.HEARING:
 			return 'hearing';
 		case APPLICATION_PROCEDURE_ID.WRITTEN_REPS:
-			return 'writtenReps';
+			return 'written-reps';
 	}
 	throw new Error(
 		`invalid procedureId, expected ${APPLICATION_PROCEDURE_ID.HEARING} or ${APPLICATION_PROCEDURE_ID.INQUIRY}, got ${procedureId}`
