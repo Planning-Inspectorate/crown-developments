@@ -143,7 +143,6 @@ describe('save', () => {
 
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
 			assert.strictEqual(service.db.crownDevelopment.create.mock.callCount(), 2);
-			assert.strictEqual(service.db.crownDevelopment.update.mock.callCount(), 1);
 
 			const { data: caseData } = db.crownDevelopment.create.mock.calls[0].arguments[0];
 			assert.deepStrictEqual(caseData.Type, { connect: { id: 'planning-permission-and-listed-building-consent' } });
@@ -154,10 +153,7 @@ describe('save', () => {
 				connect: { id: 'planning-permission-and-listed-building-consent' }
 			});
 			assert.deepStrictEqual(linkedCaseData.SubType, { connect: { id: 'listed-building-consent' } });
-			assert.strictEqual(linkedCaseData.linkedCaseId, 'id-1');
-
-			const { data: updatedCaseData } = db.crownDevelopment.update.mock.calls[0].arguments[0];
-			assert.deepStrictEqual(updatedCaseData, { linkedCaseId: 'id-1' });
+			assert.deepStrictEqual(linkedCaseData.ParentCrownDevelopment, { connect: { id: 'id-1' } });
 		});
 
 		it('should call copyDriveItem and grant write access to the applicant when sharepoint is enabled and no agent email is provided', async () => {

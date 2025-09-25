@@ -60,14 +60,18 @@ describe('case details', () => {
 			assert.strictEqual(updateArg.where?.id, 'case1');
 			assert.strictEqual(mockReq.session?.cases?.case1.updated, true);
 		});
-		it('should update both case and linked case if linkedCaseId present and field not in deLinked field list', async () => {
+		it('should update both parent case and linked child case if child linked case id is present and field not in deLinked field list', async () => {
 			const logger = mockLogger();
 			const mockDb = {
 				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
 					update: mock.fn(),
 					findUnique: mock.fn(() => ({
-						linkedCaseId: 'linked-case-id-1'
+						ChildrenCrownDevelopment: [
+							{
+								id: 'linked-case-id-1'
+							}
+						]
 					}))
 				}
 			};
@@ -94,6 +98,40 @@ describe('case details', () => {
 			const updateLinkedCaseArg = mockDb.crownDevelopment.update.mock.calls[1].arguments[0];
 			assert.strictEqual(updateLinkedCaseArg.where?.id, 'linked-case-id-1');
 		});
+		it('should update both child case and linked parent case if child linked case id is present and field not in deLinked field list', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({
+						linkedParentId: 'case1'
+					}))
+				}
+			};
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'linked-case-id-1' },
+				session: {}
+			};
+			const mockRes = { locals: {} };
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					description: 'My new application description'
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 2);
+
+			const updateArg = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
+			assert.strictEqual(updateArg.where?.id, 'linked-case-id-1');
+
+			const updateLinkedCaseArg = mockDb.crownDevelopment.update.mock.calls[1].arguments[0];
+			assert.strictEqual(updateLinkedCaseArg.where?.id, 'case1');
+		});
 		it('should call update case but not the linked case if linkedCaseId present and field is in deLinked field list', async () => {
 			const logger = mockLogger();
 			const mockDb = {
@@ -101,7 +139,11 @@ describe('case details', () => {
 				crownDevelopment: {
 					update: mock.fn(),
 					findUnique: mock.fn(() => ({
-						linkedCaseId: 'case-id-1'
+						ChildrenCrownDevelopment: [
+							{
+								id: 'linked-case-id-1'
+							}
+						]
 					}))
 				}
 			};
@@ -809,7 +851,7 @@ describe('case details', () => {
 			const mockDb = {
 				$transaction: mock.fn((fn) => fn(mockDb)),
 				crownDevelopment: {
-					update: mock.fn(() => {
+					findUnique: mock.fn(() => {
 						throw new Prisma.PrismaClientKnownRequestError('Error', { code: 'E101' });
 					})
 				}

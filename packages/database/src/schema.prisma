@@ -33,8 +33,10 @@ model CrownDevelopment {
   /// subtype of application
   subTypeId                           String?
   SubType                             ApplicationSubType?         @relation(fields: [subTypeId], references: [id])
-  /// linked case id
-  linkedCaseId                        String?
+  /// linked case relationship parent <-> children
+  linkedParentId                      String?                     @db.UniqueIdentifier
+  ParentCrownDevelopment              CrownDevelopment?           @relation("CrownDevelopmentChildren", fields: [linkedParentId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  ChildrenCrownDevelopment            CrownDevelopment[]          @relation("CrownDevelopmentChildren")
   /// project description
   description                         String?                     @db.NVarChar(2000)
   /// LPA associated with this application

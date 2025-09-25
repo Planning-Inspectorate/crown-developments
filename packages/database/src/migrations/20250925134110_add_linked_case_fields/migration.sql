@@ -3,7 +3,7 @@ BEGIN TRY
 BEGIN TRAN;
 
 -- AlterTable
-ALTER TABLE [dbo].[CrownDevelopment] ADD [linkedCaseId] NVARCHAR(1000),
+ALTER TABLE [dbo].[CrownDevelopment] ADD [linkedParentId] UNIQUEIDENTIFIER,
 [subTypeId] NVARCHAR(1000);
 
 -- CreateTable
@@ -15,6 +15,9 @@ CREATE TABLE [dbo].[ApplicationSubType] (
 
 -- AddForeignKey
 ALTER TABLE [dbo].[CrownDevelopment] ADD CONSTRAINT [CrownDevelopment_subTypeId_fkey] FOREIGN KEY ([subTypeId]) REFERENCES [dbo].[ApplicationSubType]([id]) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE [dbo].[CrownDevelopment] ADD CONSTRAINT [CrownDevelopment_linkedParentId_fkey] FOREIGN KEY ([linkedParentId]) REFERENCES [dbo].[CrownDevelopment]([id]) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 COMMIT TRAN;
 
