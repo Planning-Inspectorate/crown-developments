@@ -20,7 +20,7 @@
                 <div class="govuk-grid-row">
                     {% set html %}
                         <h3 class="govuk-notification-banner__heading">Latest update - {{ latestApplicationUpdate.firstPublished }}</h3>
-                        <p class="govuk-body pins-pre-wrap">{{ latestApplicationUpdate.details }}</p>
+                        <p class="govuk-body pins-pre-line">{{ latestApplicationUpdate.details }}</p>
                         <p><a class="govuk-notification-banner__link" href="{{ baseUrl }}/application-updates">View all updates</a></p>
                     {% endset %}
                     {{ govukNotificationBanner({
