@@ -21,16 +21,17 @@
     </div>
 
     <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full pins-pre-wrap">
+        <div class="govuk-grid-column-full">
             {{ govukSummaryList({
                 rows: [
                     {
                         key: {text: 'Original representation'},
-                        value: {text: originalComment}
+                        value: {html:"<span class='pins-white-space-pre-line'>" + originalComment + "</span>"}
+
                     },
                     {
                         key: {text: 'Redacted representation'},
-                        value: {text: commentRedacted},
+                        value: {html:"<span class='pins-white-space-pre-line'>" + commentRedacted + "</span>"},
                         actions: {
                         items: [
                             {

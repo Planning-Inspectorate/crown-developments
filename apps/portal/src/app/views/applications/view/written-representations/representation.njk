@@ -6,7 +6,7 @@
     </p>
     <p class="govuk-body">
         {% if representation.representationCommentIsRedacted %}
-            <span class="redacted" aria-hidden="true">{{ representation.representationComment }}{{ representation.truncatedReadMoreLink | safe }}</span>
+            <span class="redacted pins-pre-line pins-overflow-break-word" aria-hidden="true">{{ representation.representationComment }}{{ representation.truncatedReadMoreLink | safe }}</span>
             <span class="govuk-visually-hidden">Redacted representation comment</span>
         {% else %}
             {{ representation.representationComment }}{{ representation.truncatedReadMoreLink | safe }}
