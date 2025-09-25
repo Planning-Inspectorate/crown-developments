@@ -44,23 +44,35 @@ export function buildUpdateCase(service, clearAnswer = false) {
 
 		try {
 			await db.$transaction(async ($tx) => {
-				await $tx.crownDevelopment.update({
-					where: { id },
-					data: updateInput
-				});
-
 				const crownDevelopment = await $tx.crownDevelopment.findUnique({
 					where: { id },
-					select: { linkedCaseId: true }
+					include: {
+						ParentCrownDevelopment: true,
+						ChildrenCrownDevelopment: true
+					}
 				});
-				const linkedCaseId = crownDevelopment.linkedCaseId;
-
-				if (linkedCaseId && !updateContainsDeLinkedField(updateInput)) {
-					await $tx.crownDevelopment.update({
-						where: { id: linkedCaseId },
-						data: updateInput
-					});
+				if (!crownDevelopment) {
+					throw new Error('Crown Development case not found');
 				}
+
+				const updates = [id];
+
+				if (crownDevelopment.linkedParentId && !updateContainsDeLinkedField(updateInput)) {
+					updates.push(crownDevelopment.linkedParentId);
+				}
+
+				if (crownDevelopment.ChildrenCrownDevelopment?.length > 0 && !updateContainsDeLinkedField(updateInput)) {
+					updates.push(...crownDevelopment.ChildrenCrownDevelopment.map((child) => child.id));
+				}
+
+				await Promise.all(
+					updates.map((caseId) =>
+						$tx.crownDevelopment.update({
+							where: { id: caseId },
+							data: updateInput
+						})
+					)
+				);
 			});
 		} catch (error) {
 			wrapPrismaError({

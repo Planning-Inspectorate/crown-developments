@@ -39,24 +39,16 @@ export function buildSaveController(service) {
 			}
 
 			reference = await newReference($tx);
-
-			const subType =
-				answers.typeOfApplication === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
-					? APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION
-					: null;
+			const isPlanningAndLbcCase =
+				answers.typeOfApplication === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
+			const subType = isPlanningAndLbcCase ? APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION : null;
 
 			const created = await createCase(reference, subType);
 			id = created.id;
 
-			if (answers.typeOfApplication === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT) {
-				const linkedRef = `${reference}/LBC`;
-				const linkedCase = await createCase(linkedRef, APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT, {
-					linkedCaseId: id
-				});
-
-				await $tx.crownDevelopment.update({
-					where: { id },
-					data: { linkedCaseId: linkedCase.id }
+			if (isPlanningAndLbcCase) {
+				await createCase(`${reference}/LBC`, APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT, {
+					ParentCrownDevelopment: { connect: { id } }
 				});
 			}
 		});
