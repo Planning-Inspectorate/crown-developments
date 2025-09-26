@@ -6,7 +6,7 @@ import { caseReferenceToFolderName, getSharePointReceivedPathId } from '@pins/cr
 import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
-import { getLinkedCaseId, hasLinkedCase } from '@pins/crowndev-lib/util/linked-case.js';
+import { getLinkedCaseId, hasLinkedCase as hasLinkedCaseFunction } from '@pins/crowndev-lib/util/linked-case.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -129,7 +129,8 @@ export function buildSuccessController({ db, logger }) {
 		});
 
 		let linkedCase;
-		if (hasLinkedCase(crownDevelopment)) {
+		const hasLinkedCase = hasLinkedCaseFunction(crownDevelopment);
+		if (hasLinkedCase) {
 			const linkedCaseId = getLinkedCaseId(crownDevelopment);
 			try {
 				linkedCase = await db.crownDevelopment.findUnique({

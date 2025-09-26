@@ -347,5 +347,51 @@ describe('case details', () => {
 			assert.ok(viewData);
 			assert.strictEqual(viewData.sharePointLink, 'https://example.com');
 		});
+		it('should set hasLinkedCase and linkedCaseLink appropriately when there is case linked', async () => {
+			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
+			const nunjucks = configureNunjucks();
+			// mock response that calls nunjucks to render a result
+			const mockRes = {
+				locals: {},
+				render: mock.fn((view, data) => nunjucks.render(view, data))
+			};
+			const mockReq = {
+				params: { id: 'case-1' },
+				baseUrl: 'case-1',
+				session: {}
+			};
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						reference: 'CROWN/2025/0000001',
+						linkedParentId: 'linked-case-id'
+					}))
+				}
+			};
+			const next = mock.fn();
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds
+			});
+			await middleware(mockReq, mockRes, next);
+			const mockSharePoint = {
+				getDriveItemByPath: mock.fn(() => ({ webUrl: 'https://example.com' }))
+			};
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => mockSharePoint });
+			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
+
+			assert.strictEqual(next.mock.callCount(), 1);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.ok(viewData);
+			assert.strictEqual(viewData.hasLinkedCase, true);
+			assert.strictEqual(
+				viewData.linkedCaseLink,
+				`<a href="/cases/linked-case-id" class="govuk-link govuk-link--no-visited-state">Listed Building Consent (LBC) application</a>`
+			);
+		});
 	});
 });
