@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
-import { getSummaryWarningMessage } from './util.js';
+import { getSummaryWarningMessage } from '../util.js';
 
 describe('create-a-case util', () => {
 	describe('getSummaryWarningMessage', () => {

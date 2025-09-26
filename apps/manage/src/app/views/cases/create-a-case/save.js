@@ -6,6 +6,7 @@ import { caseReferenceToFolderName, getSharePointReceivedPathId } from '@pins/cr
 import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
+import { getLinkedCaseId, hasLinkedCase } from '../util.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -28,6 +29,7 @@ export function buildSaveController(service) {
 		}
 		let reference;
 		let id;
+		const isPlanningAndLbcCase = answers.typeOfApplication === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
 		// create a new case in a transaction to ensure reference generation is safe
 		await db.$transaction(async ($tx) => {
 			async function createCase(reference, subType, extraData = {}) {
@@ -40,8 +42,6 @@ export function buildSaveController(service) {
 			}
 
 			reference = await newReference($tx);
-			const isPlanningAndLbcCase =
-				answers.typeOfApplication === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
 			const subType = isPlanningAndLbcCase ? APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION : null;
 
 			const created = await createCase(reference, subType);
@@ -68,6 +68,15 @@ export function buildSaveController(service) {
 				caseReferenceToFolderName(reference),
 				answers
 			);
+
+			if (isPlanningAndLbcCase) {
+				await createCaseSharePointActions(
+					sharePointDrive,
+					service.sharePointCaseTemplateId,
+					caseReferenceToFolderName(`${reference}/LBC`),
+					answers
+				);
+			}
 		}
 		// todo: redirect to check-your-answers on failure?
 
@@ -112,13 +121,16 @@ export function buildSuccessController({ db, logger }) {
 		}
 
 		const crownDevelopment = await db.crownDevelopment.findUnique({
-			where: { id: data.id }
+			where: { id: data.id },
+			include: {
+				ParentCrownDevelopment: true,
+				ChildrenCrownDevelopment: true
+			}
 		});
 
-		const linkedCaseId = crownDevelopment?.linkedCaseId;
-		const hasLinkedCase = typeof linkedCaseId === 'string' && linkedCaseId.trim() !== '';
 		let linkedCase;
-		if (hasLinkedCase) {
+		if (hasLinkedCase(crownDevelopment)) {
+			const linkedCaseId = getLinkedCaseId(crownDevelopment);
 			try {
 				linkedCase = await db.crownDevelopment.findUnique({
 					where: { id: linkedCaseId },
@@ -141,7 +153,7 @@ export function buildSuccessController({ db, logger }) {
 			successBackLinkUrl: `/cases/${data.id}`,
 			successBackLinkText: `View case details for ${data.reference}`,
 			hasLinkedCase,
-			successBackLinkLinkedCaseUrl: hasLinkedCase ? `/cases/${linkedCaseId}` : '',
+			successBackLinkLinkedCaseUrl: hasLinkedCase ? `/cases/${getLinkedCaseId(crownDevelopment)}` : '',
 			successBackLinkLinkedCaseText: hasLinkedCase ? `View case details for ${linkedCase.reference}` : ''
 		});
 	};
