@@ -9,11 +9,12 @@ import { getEntraGroupMembers } from '#util/entra-groups.js';
 import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { getLinkedCaseId, getLinkedCaseLinkText, hasLinkedCase } from '@pins/crowndev-lib/util/linked-case.js';
 
 /**
  * @param {import('#service').ManageService} service
  */
-export function buildViewCaseDetails({ getSharePointDrive, isApplicationUpdatesLive }) {
+export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpdatesLive }) {
 	return async (req, res) => {
 		const reference = res.locals?.journeyResponse?.answers?.reference;
 		const id = req.params.id;
@@ -41,6 +42,14 @@ export function buildViewCaseDetails({ getSharePointDrive, isApplicationUpdatesL
 			sharePointLink = await getSharePointFolderLink(sharePointDrive, caseReferenceToFolderName(reference));
 		}
 
+		const crownDevelopment = await db.crownDevelopment.findUnique({
+			where: { id },
+			include: {
+				ParentCrownDevelopment: { select: { id: true } },
+				ChildrenCrownDevelopment: { select: { id: true } }
+			}
+		});
+
 		await list(req, res, '', {
 			reference,
 			caseUpdated,
@@ -49,9 +58,17 @@ export function buildViewCaseDetails({ getSharePointDrive, isApplicationUpdatesL
 			sharePointLink,
 			hideButton: true,
 			hideStatus: true,
-			isApplicationUpdatesLive
+			isApplicationUpdatesLive,
+			hasLinkedCase: hasLinkedCase(crownDevelopment),
+			linkedCaseLink: await getLinkedCaseLink(db, crownDevelopment)
 		});
 	};
+}
+
+async function getLinkedCaseLink(db, crownDevelopment) {
+	if (hasLinkedCase(crownDevelopment)) {
+		return `<a href="/cases/${getLinkedCaseId(crownDevelopment)}" class="govuk-link govuk-link--no-visited-state">${await getLinkedCaseLinkText(db, crownDevelopment)} application</a>`;
+	}
 }
 
 /**

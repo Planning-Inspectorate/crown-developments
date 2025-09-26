@@ -5,6 +5,8 @@ import { toFloat } from '@pins/crowndev-lib/util/numbers.js';
 import { caseReferenceToFolderName, getSharePointReceivedPathId } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
+import { getLinkedCaseId, hasLinkedCase as hasLinkedCaseFunction } from '@pins/crowndev-lib/util/linked-case.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -27,6 +29,7 @@ export function buildSaveController(service) {
 		}
 		let reference;
 		let id;
+		const isPlanningAndLbcCase = answers.typeOfApplication === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
 		// create a new case in a transaction to ensure reference generation is safe
 		await db.$transaction(async ($tx) => {
 			async function createCase(reference, subType, extraData = {}) {
@@ -39,8 +42,6 @@ export function buildSaveController(service) {
 			}
 
 			reference = await newReference($tx);
-			const isPlanningAndLbcCase =
-				answers.typeOfApplication === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
 			const subType = isPlanningAndLbcCase ? APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION : null;
 
 			const created = await createCase(reference, subType);
@@ -67,6 +68,15 @@ export function buildSaveController(service) {
 				caseReferenceToFolderName(reference),
 				answers
 			);
+
+			if (isPlanningAndLbcCase) {
+				await createCaseSharePointActions(
+					sharePointDrive,
+					service.sharePointCaseTemplateId,
+					caseReferenceToFolderName(`${reference}/LBC`),
+					answers
+				);
+			}
 		}
 		// todo: redirect to check-your-answers on failure?
 
@@ -100,20 +110,54 @@ export function buildSaveController(service) {
 }
 
 /**
- * @type {import('express').Handler}
+ * @param {import('#service').ManageService} service
+ * @returns {import('express').Handler}
  */
-export function successController(req, res) {
-	const data = req.session?.forms && req.session?.forms[JOURNEY_ID];
-	if (!data || !data.id || !data.reference) {
-		throw new Error('invalid create case session');
-	}
-	clearDataFromSession({ req, journeyId: JOURNEY_ID });
-	res.render('views/cases/create-a-case/success.njk', {
-		title: 'Case created',
-		bodyText: `Case reference <br><strong>${data.reference}</strong>`,
-		successBackLinkUrl: `/cases/${data.id}`,
-		successBackLinkText: `View case details for ${data.reference}`
-	});
+export function buildSuccessController({ db, logger }) {
+	return async (req, res) => {
+		const data = req.session?.forms && req.session?.forms[JOURNEY_ID];
+		if (!data || !data.id || !data.reference) {
+			throw new Error('invalid create case session');
+		}
+
+		const crownDevelopment = await db.crownDevelopment.findUnique({
+			where: { id: data.id },
+			include: {
+				ParentCrownDevelopment: { select: { id: true } },
+				ChildrenCrownDevelopment: { select: { id: true } }
+			}
+		});
+
+		let linkedCase;
+		const hasLinkedCase = hasLinkedCaseFunction(crownDevelopment);
+		if (hasLinkedCase) {
+			const linkedCaseId = getLinkedCaseId(crownDevelopment);
+			try {
+				linkedCase = await db.crownDevelopment.findUnique({
+					where: { id: linkedCaseId },
+					select: { reference: true }
+				});
+			} catch (error) {
+				wrapPrismaError({
+					error,
+					logger,
+					message: 'fetching linked case',
+					logParams: { linkedCaseId }
+				});
+			}
+		}
+
+		clearDataFromSession({ req, journeyId: JOURNEY_ID });
+		res.render('views/cases/create-a-case/success.njk', {
+			title: 'Case created',
+			bodyText: `Case reference <br><strong>${data.reference}</strong>${hasLinkedCase ? `<br><br><strong>${linkedCase.reference}</strong>` : ''}`,
+			successBackLinkUrl: `/cases/${data.id}`,
+			successBackLinkText: `View case details for ${data.reference}`,
+			hasLinkedCase,
+			successBackLinkLinkedCaseUrl: hasLinkedCase ? `/cases/${getLinkedCaseId(crownDevelopment)}` : '',
+			successBackLinkLinkedCaseText: hasLinkedCase ? `View case details for ${linkedCase.reference}` : ''
+		});
+	};
 }
 
 /**

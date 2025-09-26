@@ -48,8 +48,8 @@ export function buildUpdateCase(service, clearAnswer = false) {
 				const crownDevelopment = await $tx.crownDevelopment.findUnique({
 					where: { id },
 					include: {
-						ParentCrownDevelopment: true,
-						ChildrenCrownDevelopment: true
+						ParentCrownDevelopment: { select: { id: true } },
+						ChildrenCrownDevelopment: { select: { id: true } }
 					}
 				});
 				if (!crownDevelopment) {

@@ -2,5 +2,5 @@
 {% from "success/success.njk" import success %}
 
 {% block pageContent %}
-	{{ success(title, bodyText, successBackLinkUrl, successBackLinkText) }}
+	{{ success(title, bodyText, successBackLinkUrl, successBackLinkText, hasLinkedCase, successBackLinkLinkedCaseUrl, successBackLinkLinkedCaseText) }}
 {% endblock %}
