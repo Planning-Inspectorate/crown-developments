@@ -77,3 +77,11 @@ $font-family: arial, helvetica, sans-serif;
 .pins-pagination-options {
 	float: right;
 }
+.uploading-bar--hidden {
+	display: none;
+	margin-bottom: 1em;
+}
+.uploading-bar--visible {
+	display: block;
+	margin-bottom: 1em;
+}
