@@ -117,7 +117,7 @@ describe('case details', () => {
 				groupIds
 			});
 			await middleware(mockReq, mockRes, next);
-			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => null });
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
 			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
@@ -151,7 +151,7 @@ describe('case details', () => {
 				groupIds
 			});
 			await middleware(mockReq, mockRes, next);
-			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => null });
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
 			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
@@ -193,7 +193,7 @@ describe('case details', () => {
 				groupIds
 			});
 			await middleware(mockReq, mockRes, next);
-			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => null });
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
 			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
@@ -227,7 +227,7 @@ describe('case details', () => {
 				groupIds
 			});
 			await middleware(mockReq, mockRes, next);
-			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => null });
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
 			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
@@ -265,7 +265,7 @@ describe('case details', () => {
 				groupIds
 			});
 			await middleware(mockReq, mockRes, next);
-			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => null });
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
 			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
@@ -298,7 +298,7 @@ describe('case details', () => {
 				groupIds
 			});
 			await middleware(mockReq, mockRes, next);
-			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => null });
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
 			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
@@ -339,7 +339,7 @@ describe('case details', () => {
 			const mockSharePoint = {
 				getDriveItemByPath: mock.fn(() => ({ webUrl: 'https://example.com' }))
 			};
-			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => mockSharePoint });
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => mockSharePoint });
 			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);

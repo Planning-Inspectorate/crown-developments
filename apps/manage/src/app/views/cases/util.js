@@ -7,3 +7,12 @@ export function getSummaryWarningMessage(res) {
 		? 'Clicking accept & submit will create a second case as part of the connected application'
 		: 'Clicking Accept & Submit will send a notification to the applicant / agent';
 }
+
+export function getLinkedCaseId(crownDevelopment) {
+	return crownDevelopment?.linkedParentId || crownDevelopment?.ChildrenCrownDevelopment?.find(() => true)?.id;
+}
+
+export function hasLinkedCase(crownDevelopment) {
+	const linkedCaseId = getLinkedCaseId(crownDevelopment);
+	return typeof linkedCaseId === 'string' && linkedCaseId.trim() !== '';
+}

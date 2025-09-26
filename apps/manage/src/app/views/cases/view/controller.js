@@ -10,6 +10,7 @@ import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-f
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { APPLICATION_SUB_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { getLinkedCaseId, hasLinkedCase } from '../util.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -44,12 +45,15 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpda
 
 		const crownDevelopment = await db.crownDevelopment.findUnique({
 			where: { id },
-			select: { linkedCaseId: true }
+			include: {
+				ParentCrownDevelopment: true,
+				ChildrenCrownDevelopment: true
+			}
 		});
-		const linkedCaseId = crownDevelopment?.linkedCaseId;
-		const hasLinkedCase = typeof linkedCaseId === 'string' && linkedCaseId.trim() !== '';
+
 		let linkedCaseLink;
-		if (hasLinkedCase) {
+		if (hasLinkedCase(crownDevelopment)) {
+			const linkedCaseId = getLinkedCaseId(crownDevelopment);
 			const linkedCase = await db.crownDevelopment.findUnique({
 				where: { id: linkedCaseId },
 				select: { subTypeId: true }
