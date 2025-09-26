@@ -1,6 +1,6 @@
 {% from "govuk/components/panel/macro.njk" import govukPanel %}
 
-{% macro success(title, bodyText, successBackLinkUrl, successBackLinkText) %}
+{% macro success(title, bodyText, successBackLinkUrl, successBackLinkText, hasLinkedCase, successBackLinkLinkedCaseUrl, successBackLinkLinkedCaseText) %}
     {{ govukPanel({
         titleText: title,
         html: bodyText
@@ -11,6 +11,11 @@
             <p class="govuk-body">
                 <a href="{{ successBackLinkUrl }}" class="govuk-link">{{ successBackLinkText }}</a>
             </p>
+            {% if hasLinkedCase %}
+                <p class="govuk-body">
+                    <a href="{{ successBackLinkLinkedCaseUrl }}" class="govuk-link">{{ successBackLinkLinkedCaseText }}</a>
+                </p>
+            {% endif %}
         </div>
     </div>
 {% endmacro %}
