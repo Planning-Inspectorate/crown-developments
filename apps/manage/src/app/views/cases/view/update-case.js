@@ -6,6 +6,7 @@ import {
 } from './notification.js';
 import { editsToDatabaseUpdates } from './view-model.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
+import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -132,7 +133,7 @@ export async function customUpdateCaseActions(service, id, toSave, fullViewModel
 	if (
 		toSave.turnedAwayDate &&
 		fullViewModel.notNationallyImportantEmailSent !== BOOLEAN_OPTIONS.YES &&
-		!fullViewModel.subTypeId
+		fullViewModel.typeOfApplication !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
 	) {
 		await handleTurnedAwayDateUpdate(service, id, toSave);
 	}
