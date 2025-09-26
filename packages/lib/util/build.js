@@ -1,6 +1,7 @@
 import * as sass from 'sass';
 import path from 'node:path';
 import fs from 'node:fs/promises';
+import crypto from 'node:crypto';
 import { copyFile, copyFolder } from './copy.js';
 
 /**
@@ -24,11 +25,33 @@ async function compileSass({ staticDir, srcDir, govUkRoot, mojRoot }) {
 		// see https://frontend.design-system.service.gov.uk/importing-css-assets-and-javascript/#silence-deprecation-warnings-from-dependencies-in-dart-sass
 		quietDeps: true
 	});
-	const outputPath = path.join(staticDir, 'style.css');
+	// create a hash of the css content, so we can use it in the filename for cache busting
+	// use first 8 characters of sha256 hash
+	const hash = crypto.createHash('sha256').update(out.css).digest('hex').slice(0, 8);
+	const outputPath = path.join(staticDir, `style-${hash}.css`);
 	// make sure the static directory exists
 	await fs.mkdir(staticDir, { recursive: true });
 	// write the css file
 	await fs.writeFile(outputPath, out.css);
+
+	// create a manifest file to store the mapping of original filename to hashed filename
+	const manifest = {
+		'style.css': `style-${hash}.css`
+	};
+	const manifestPath = path.join(staticDir, 'manifest.json');
+	await fs.mkdir(path.dirname(manifestPath), { recursive: true });
+	await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
+
+	// Delete the old style.css and style-${hash}.css files if the hash has changed
+	const files = await fs.readdir(staticDir);
+	const oldStyleFiles = files.filter(
+		(file) => file.startsWith('style') && file.endsWith('.css') && file !== `style-${hash}.css`
+	);
+	const deleteTasks = [];
+	for (const file of oldStyleFiles) {
+		deleteTasks.push(fs.unlink(path.join(staticDir, file)));
+	}
+	await Promise.all(deleteTasks);
 }
 
 /**
