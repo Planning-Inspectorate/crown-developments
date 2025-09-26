@@ -12,7 +12,7 @@ import {
 import { JOURNEY_ID, createJourney } from './journey.js';
 import { getQuestions } from './questions.js';
 import { buildSaveController, buildSuccessController } from './save.js';
-import { getSummaryWarningMessage } from '../util.js';
+import { getSummaryWarningMessage } from '@pins/crowndev-lib/util/linked-case.js';
 
 /**
  * @param {import('#service').ManageService} service

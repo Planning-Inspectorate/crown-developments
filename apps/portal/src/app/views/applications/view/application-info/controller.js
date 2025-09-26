@@ -11,6 +11,12 @@ import {
 } from './section-items.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import {
+	getLinkedCaseId,
+	getLinkedCaseLinkText,
+	hasLinkedCase,
+	linkedCaseIsPublished
+} from '@pins/crowndev-lib/util/linked-case.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -39,7 +45,9 @@ export function buildApplicationInformationPage(service) {
 					SiteAddress: true,
 					Event: true,
 					Stage: { select: { displayName: true } },
-					Procedure: { select: { displayName: true } }
+					Procedure: { select: { displayName: true } },
+					ParentCrownDevelopment: { select: { id: true } },
+					ChildrenCrownDevelopment: { select: { id: true } }
 				}
 			}
 		});
@@ -122,7 +130,15 @@ export function buildApplicationInformationPage(service) {
 				crownDevelopmentFields
 			),
 			haveYourSayStatus: getHaveYourSayStatus(haveYourSayPeriod, representationsPublishDate),
-			latestApplicationUpdate: applicationUpdateToTimelineItem(latestApplicationUpdate)
+			latestApplicationUpdate: applicationUpdateToTimelineItem(latestApplicationUpdate),
+			hasLinkedCase: hasLinkedCase(crownDevelopment) && (await linkedCaseIsPublished(db, crownDevelopment)),
+			linkedCaseLink: await getLinkedCaseLink(db, crownDevelopment)
 		});
 	};
+}
+
+async function getLinkedCaseLink(db, crownDevelopment) {
+	if (hasLinkedCase(crownDevelopment)) {
+		return `<a href="/applications/${getLinkedCaseId(crownDevelopment)}/application-information" class="govuk-link govuk-link--no-visited-state">${await getLinkedCaseLinkText(db, crownDevelopment)} application</a>`;
+	}
 }

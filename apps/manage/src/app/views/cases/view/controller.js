@@ -9,8 +9,7 @@ import { getEntraGroupMembers } from '#util/entra-groups.js';
 import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
-import { APPLICATION_SUB_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
-import { getLinkedCaseId, hasLinkedCase } from '../util.js';
+import { getLinkedCaseId, getLinkedCaseLinkText, hasLinkedCase } from '@pins/crowndev-lib/util/linked-case.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -46,25 +45,10 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpda
 		const crownDevelopment = await db.crownDevelopment.findUnique({
 			where: { id },
 			include: {
-				ParentCrownDevelopment: true,
-				ChildrenCrownDevelopment: true
+				ParentCrownDevelopment: { select: { id: true } },
+				ChildrenCrownDevelopment: { select: { id: true } }
 			}
 		});
-
-		let linkedCaseLink;
-		if (hasLinkedCase(crownDevelopment)) {
-			const linkedCaseId = getLinkedCaseId(crownDevelopment);
-			const linkedCase = await db.crownDevelopment.findUnique({
-				where: { id: linkedCaseId },
-				select: { subTypeId: true }
-			});
-
-			const linkText =
-				linkedCase?.subTypeId === APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION
-					? 'planning permission'
-					: 'Listed Building Consent (LBC)';
-			linkedCaseLink = `<a href="/cases/${linkedCaseId}" class="govuk-link govuk-link--no-visited-state">${linkText} application</a>`;
-		}
 
 		await list(req, res, '', {
 			reference,
@@ -75,10 +59,16 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpda
 			hideButton: true,
 			hideStatus: true,
 			isApplicationUpdatesLive,
-			hasLinkedCase,
-			linkedCaseLink
+			hasLinkedCase: hasLinkedCase(crownDevelopment),
+			linkedCaseLink: await getLinkedCaseLink(db, crownDevelopment)
 		});
 	};
+}
+
+async function getLinkedCaseLink(db, crownDevelopment) {
+	if (hasLinkedCase(crownDevelopment)) {
+		return `<a href="/cases/${getLinkedCaseId(crownDevelopment)}" class="govuk-link govuk-link--no-visited-state">${await getLinkedCaseLinkText(db, crownDevelopment)} application</a>`;
+	}
 }
 
 /**

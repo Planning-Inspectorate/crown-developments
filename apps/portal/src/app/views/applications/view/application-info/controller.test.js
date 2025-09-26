@@ -140,6 +140,8 @@ describe('application info controller', () => {
 				],
 				baseUrl: '/applications',
 				currentUrl: undefined,
+				hasLinkedCase: false,
+				linkedCaseLink: undefined,
 				crownDevelopmentFields: {
 					applicantName: 'Test Name',
 					applicationAcceptedDate: '9 October 2025',
