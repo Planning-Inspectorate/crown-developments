@@ -96,11 +96,9 @@ describe('controller', () => {
 			};
 			const mockRes = {
 				locals: {
-					journeyResponse: {
-						answers: {
-							applicationReference: 'CROWN-2025-0000001',
-							sharePointFolderCreated: 'no'
-						}
+					originalAnswers: {
+						applicationReference: 'CROWN-2025-0000001',
+						sharePointFolderCreated: 'no'
 					}
 				}
 			};
@@ -143,10 +141,8 @@ describe('controller', () => {
 			};
 			const mockRes = {
 				locals: {
-					journeyResponse: {
-						answers: {
-							applicationReference: 'CROWN-2025-0000001'
-						}
+					originalAnswers: {
+						applicationReference: 'CROWN-2025-0000001'
 					}
 				}
 			};
@@ -230,11 +226,9 @@ describe('controller', () => {
 			};
 			const mockRes = {
 				locals: {
-					journeyResponse: {
-						answers: {
-							applicationReference: 'CROWN-2025-0000001',
-							sharePointFolderCreated: 'yes'
-						}
+					originalAnswers: {
+						applicationReference: 'CROWN-2025-0000001',
+						sharePointFolderCreated: 'yes'
 					}
 				}
 			};
