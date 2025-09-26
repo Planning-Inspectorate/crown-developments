@@ -140,7 +140,7 @@ export const APPLICATION_STAGE = [
 	},
 	{
 		id: 'written-representations',
-		displayName: 'Written Representations'
+		displayName: 'Written representations'
 	},
 	{
 		id: 'inquiry',
@@ -152,7 +152,7 @@ export const APPLICATION_STAGE = [
 	},
 	{
 		id: 'decision',
-		displayName: 'Decision'
+		displayName: 'Reporting and decision'
 	}
 ];
 
