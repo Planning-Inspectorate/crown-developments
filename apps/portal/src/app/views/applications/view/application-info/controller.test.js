@@ -304,6 +304,74 @@ describe('application info controller', () => {
 			});
 		});
 	});
+	it('should fetch published application', async (context) => {
+		context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
+		const mockDb = {
+			crownDevelopment: {
+				findUnique: mock.fn(() => ({
+					id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
+					reference: 'CROWN/2025/0000001',
+					representationsPeriodStartDate: new Date('2025-01-01'),
+					representationsPeriodEndDate: new Date('2025-01-31'),
+					representationsPublishDate: '2025-10-09T09:00:00.000Z',
+					applicationAcceptedDate: '2025-10-09T09:00:00.000Z',
+					decisionDate: '2025-10-09T09:00:00.000Z',
+					siteEasting: 654321,
+					siteNorthing: 123456,
+					linkedParentId: 'linked-case-id',
+					publishDate: new Date('2025-01-01T03:24:00.000Z'),
+					description: 'a new crown dev application',
+					ApplicantContact: {
+						orgName: 'Test Name'
+					},
+					Type: {
+						displayName: 'Planning permission'
+					},
+					Lpa: {
+						name: 'System Test Borough Council'
+					},
+					Event: {
+						date: new Date('2020-12-17T03:24:00.000Z'),
+						venue: 'the venue'
+					},
+					Stage: {
+						displayName: 'Consultation'
+					},
+					procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+					Procedure: {
+						displayName: 'Hearing'
+					},
+					DecisionOutcome: {
+						displayName: 'Approved'
+					}
+				}))
+			},
+			applicationUpdate: {
+				findFirst: mock.fn(),
+				count: mock.fn(() => 0)
+			}
+		};
+		const handler = buildApplicationInformationPage({
+			db: mockDb,
+			config: {}
+		});
+		const mockReq = {
+			params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
+			baseUrl: '/applications'
+		};
+		const mockRes = {
+			status: mock.fn(),
+			render: mock.fn()
+		};
+		await handler(mockReq, mockRes);
+		assert.strictEqual(mockRes.render.mock.callCount(), 1);
+		assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/applications/view/application-info/view.njk');
+		assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1].hasLinkedCase, true);
+		assert.deepStrictEqual(
+			mockRes.render.mock.calls[0].arguments[1].linkedCaseLink,
+			`<a href="/applications/linked-case-id/application-information" class="govuk-link govuk-link--no-visited-state">Listed Building Consent (LBC) application</a>`
+		);
+	});
 	it('shouldShowImportantDatesSection is false when required dates not present', async (context) => {
 		context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
 		const mockDb = {
