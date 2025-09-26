@@ -121,7 +121,7 @@ export async function customUpdateCaseActions(service, id, toSave, fullViewModel
 	if (
 		toSave.lpaQuestionnaireReceivedDate &&
 		fullViewModel.lpaQuestionnaireReceivedEmailSent !== BOOLEAN_OPTIONS.YES &&
-		!fullViewModel.subTypeId
+		fullViewModel.typeOfApplication !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
 	) {
 		await handleLpaQuestionnaireReceivedDateUpdate(service, id, toSave);
 	}
@@ -193,7 +193,10 @@ async function handleApplicationReceivedDateUpdate(service, id, toSave, fullView
 		throw error;
 	}
 
-	if (fullViewModel.applicationReceivedDateEmailSent !== BOOLEAN_OPTIONS.YES && !fullViewModel.subTypeId) {
+	if (
+		fullViewModel.applicationReceivedDateEmailSent !== BOOLEAN_OPTIONS.YES &&
+		fullViewModel.typeOfApplication !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
+	) {
 		await sendApplicationReceivedNotification(service, id, toSave.applicationReceivedDate);
 		toSave['applicationReceivedDateEmailSent'] = true;
 	}
