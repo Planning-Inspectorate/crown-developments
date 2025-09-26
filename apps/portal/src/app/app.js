@@ -1,5 +1,6 @@
 import bodyParser from 'body-parser';
 import express from 'express';
+import manifest from '../.static/manifest.json' with { type: 'json' };
 import { buildRouter } from './router.js';
 import { configureNunjucks } from './nunjucks.js';
 import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.js';
@@ -50,6 +51,12 @@ export function getApp(service) {
 
 	// static files
 	app.use(express.static(service.staticDir, service.cacheControl));
+
+	// Cache busting for CSS
+	app.use((req, res, next) => {
+		res.locals.styleCss = manifest['style.css'];
+		next();
+	});
 
 	const router = buildRouter(service);
 	// register the router, which will define any subpaths

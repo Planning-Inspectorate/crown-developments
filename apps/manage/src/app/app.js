@@ -1,4 +1,5 @@
 import bodyParser from 'body-parser';
+import manifest from '../.static/manifest.json' with { type: 'json' };
 import crypto from 'node:crypto';
 import express from 'express';
 import helmet from 'helmet';
@@ -41,6 +42,12 @@ export function getApp(service) {
 	// Generate the nonce for each request
 	app.use((req, res, next) => {
 		res.locals.cspNonce = crypto.randomBytes(32).toString('hex');
+		next();
+	});
+
+	// Cache busting for CSS
+	app.use((req, res, next) => {
+		res.locals.styleCss = manifest['style.css'];
 		next();
 	});
 
