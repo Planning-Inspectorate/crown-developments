@@ -80,6 +80,11 @@
             {% set uploadForm = "upload-form" %}
 
             <form id={{ uploadForm }} method="post" enctype="multipart/form-data" action="{{ currentUrl }}/upload-documents">
+                <div id="uploadingBar" class="govuk-notification-banner govuk-notification-banner--info uploading-bar--hidden" aria-live="polite" aria-hidden="true" role="region">
+                    <div class="govuk-notification-banner__content">
+                        <strong>Uploading...</strong>
+                    </div>
+                </div>
                 <input type="hidden" name="_csrf" value="{{ _csrf }}">
                 {{ govukFileUpload({
                     id: question.fieldName,
@@ -133,12 +138,15 @@
                 document.addEventListener('DOMContentLoaded', function () {
                     const fileInput = document.querySelector('#{{ question.fieldName }}-input');
                     const form = document.querySelector('#upload-form');
+                    const uploadingBar = document.getElementById('uploadingBar');
 
-                    if (fileInput && form) {
+                    if (fileInput && form && uploadingBar) {
                         fileInput.addEventListener('change', function () {
                             const files = fileInput.files;
                             if (files.length === 0) return;
-
+                            uploadingBar.classList.remove('uploading-bar--hidden');
+                            uploadingBar.classList.add('uploading-bar--visible');
+                            uploadingBar.setAttribute('aria-hidden', 'false');
                             form.submit();
                         });
                     }
@@ -149,6 +157,13 @@
                     links.forEach(link => {
                         link.style.display = "inline";
                     });
+                    // Hide the loading bar on page load
+                    const uploadingBar = document.getElementById('uploadingBar');
+                    if (uploadingBar) {
+                        uploadingBar.classList.remove('uploading-bar--visible');
+                        uploadingBar.classList.add('uploading-bar--hidden');
+                        uploadingBar.setAttribute('aria-hidden', 'true');
+                    }
                 });
             </script>
         </div>

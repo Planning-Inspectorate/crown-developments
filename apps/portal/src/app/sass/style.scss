@@ -28,3 +28,11 @@
 .pins-overflow-break-word {
 	overflow-wrap: break-word;
 }
+.uploading-bar--hidden {
+	display: none;
+	margin-bottom: 1em;
+}
+.uploading-bar--visible {
+	display: block;
+	margin-bottom: 1em;
+}
