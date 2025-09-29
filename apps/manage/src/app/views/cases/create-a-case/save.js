@@ -5,7 +5,6 @@ import { toFloat } from '@pins/crowndev-lib/util/numbers.js';
 import { caseReferenceToFolderName, getSharePointReceivedPathId } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { getLinkedCaseId, hasLinkedCase as hasLinkedCaseFunction } from '@pins/crowndev-lib/util/linked-case.js';
 
 /**
@@ -113,7 +112,7 @@ export function buildSaveController(service) {
  * @param {import('#service').ManageService} service
  * @returns {import('express').Handler}
  */
-export function buildSuccessController({ db, logger }) {
+export function buildSuccessController({ db }) {
 	return async (req, res) => {
 		const data = req.session?.forms && req.session?.forms[JOURNEY_ID];
 		if (!data || !data.id || !data.reference) {
@@ -123,39 +122,24 @@ export function buildSuccessController({ db, logger }) {
 		const crownDevelopment = await db.crownDevelopment.findUnique({
 			where: { id: data.id },
 			include: {
-				ParentCrownDevelopment: { select: { id: true } },
-				ChildrenCrownDevelopment: { select: { id: true } }
+				ChildrenCrownDevelopment: { select: { id: true, reference: true } }
 			}
 		});
 
-		let linkedCase;
 		const hasLinkedCase = hasLinkedCaseFunction(crownDevelopment);
-		if (hasLinkedCase) {
-			const linkedCaseId = getLinkedCaseId(crownDevelopment);
-			try {
-				linkedCase = await db.crownDevelopment.findUnique({
-					where: { id: linkedCaseId },
-					select: { reference: true }
-				});
-			} catch (error) {
-				wrapPrismaError({
-					error,
-					logger,
-					message: 'fetching linked case',
-					logParams: { linkedCaseId }
-				});
-			}
-		}
+		const linkedCaseReference = hasLinkedCase
+			? crownDevelopment?.ChildrenCrownDevelopment?.find(() => true)?.reference
+			: '';
 
 		clearDataFromSession({ req, journeyId: JOURNEY_ID });
 		res.render('views/cases/create-a-case/success.njk', {
 			title: 'Case created',
-			bodyText: `Case reference <br><strong>${data.reference}</strong>${hasLinkedCase ? `<br><br><strong>${linkedCase.reference}</strong>` : ''}`,
+			bodyText: `Case reference <br><strong>${data.reference}</strong>${hasLinkedCase ? `<br><br><strong>${linkedCaseReference}</strong>` : ''}`,
 			successBackLinkUrl: `/cases/${data.id}`,
 			successBackLinkText: `View case details for ${data.reference}`,
 			hasLinkedCase,
 			successBackLinkLinkedCaseUrl: hasLinkedCase ? `/cases/${getLinkedCaseId(crownDevelopment)}` : '',
-			successBackLinkLinkedCaseText: hasLinkedCase ? `View case details for ${linkedCase.reference}` : ''
+			successBackLinkLinkedCaseText: hasLinkedCase ? `View case details for ${linkedCaseReference}` : ''
 		});
 	};
 }

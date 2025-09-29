@@ -596,13 +596,11 @@ describe('save', () => {
 		it('should build the success page when there is a linked case', async () => {
 			const mockDb = {
 				crownDevelopment: {
-					findUnique: (() => {
-						const responses = [
-							{ id: 'case-id', linkedParentId: 'linked-case-id' },
-							{ id: 'linked-case-id', reference: 'linked-case-reference' }
-						];
-						return mock.fn(() => responses.shift());
-					})()
+					findUnique: mock.fn(() => ({
+						id: 'case-id',
+						reference: 'case-ref',
+						ChildrenCrownDevelopment: [{ id: 'linked-case-id', reference: 'linked-case-reference' }]
+					}))
 				}
 			};
 			const mockReq = {
@@ -624,7 +622,7 @@ describe('save', () => {
 			const successController = buildSuccessController({ db: mockDb });
 			await successController(mockReq, mockRes);
 
-			assert.strictEqual(mockDb.crownDevelopment.findUnique.mock.callCount(), 2);
+			assert.strictEqual(mockDb.crownDevelopment.findUnique.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/cases/create-a-case/success.njk');
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
