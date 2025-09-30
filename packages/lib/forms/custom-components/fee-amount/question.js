@@ -3,7 +3,18 @@ import OptionsQuestion from '@planning-inspectorate/dynamic-forms/src/questions/
 import { formatFee } from '../../../util/numbers.js';
 
 export default class FeeAmountQuestion extends OptionsQuestion {
-	constructor({ title, question, fieldName, url, hint, validators, html, feeAmountInputFieldName, feeAmountQuestion }) {
+	constructor({
+		title,
+		question,
+		fieldName,
+		url,
+		hint,
+		validators,
+		html,
+		feeAmountInputFieldName,
+		feeAmountQuestion,
+		editable
+	}) {
 		const options = [
 			{
 				text: 'Yes',
@@ -33,7 +44,8 @@ export default class FeeAmountQuestion extends OptionsQuestion {
 			validators,
 			options,
 			hint,
-			html
+			html,
+			editable
 		});
 
 		this.feeAmountInputFieldName = feeAmountInputFieldName;

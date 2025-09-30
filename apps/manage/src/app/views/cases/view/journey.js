@@ -1,7 +1,11 @@
 import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
 import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
 import { questionHasAnswer } from '@planning-inspectorate/dynamic-forms/src/components/utils/question-has-answer.js';
-import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import {
+	APPLICATION_PROCEDURE_ID,
+	APPLICATION_SUB_TYPE_ID,
+	APPLICATION_TYPE_ID
+} from '@pins/crowndev-database/src/seed/data-static.js';
 
 export const JOURNEY_ID = 'case-details';
 
@@ -23,6 +27,14 @@ export function createJourney(questions, response, req) {
 		questionHasAnswer(response, questions.procedure, APPLICATION_PROCEDURE_ID.WRITTEN_REPS);
 	const isInquiry = (response) => questionHasAnswer(response, questions.procedure, APPLICATION_PROCEDURE_ID.INQUIRY);
 	const isHearing = (response) => questionHasAnswer(response, questions.procedure, APPLICATION_PROCEDURE_ID.HEARING);
+	const isPlanningOrLbcCase = (response) =>
+		questionHasAnswer(
+			response,
+			questions.typeOfApplication,
+			APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
+		) &&
+		(questionHasAnswer(response, questions.subTypeOfApplication, APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION) ||
+			questionHasAnswer(response, questions.subTypeOfApplication, APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT));
 
 	return new Journey({
 		journeyId: JOURNEY_ID,
@@ -32,6 +44,8 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.applicantContact)
 				.addQuestion(questions.description)
 				.addQuestion(questions.typeOfApplication)
+				.addQuestion(questions.subTypeOfApplication)
+				.withCondition(isPlanningOrLbcCase)
 				.addQuestion(questions.localPlanningAuthority)
 				.addQuestion(questions.siteAddress)
 				.addQuestion(questions.siteCoordinates)
