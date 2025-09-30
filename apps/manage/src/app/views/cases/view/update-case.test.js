@@ -178,11 +178,9 @@ describe('case details', () => {
 			};
 			const mockRes = {
 				locals: {
-					journeyResponse: {
-						answers: {
-							eventId: 'event-1',
-							procedureId: APPLICATION_PROCEDURE_ID.INQUIRY
-						}
+					originalAnswers: {
+						eventId: 'event-1',
+						procedureId: APPLICATION_PROCEDURE_ID.INQUIRY
 					}
 				}
 			};

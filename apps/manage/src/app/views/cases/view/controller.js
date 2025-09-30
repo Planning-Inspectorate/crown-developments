@@ -169,6 +169,7 @@ export function buildGetJourneyMiddleware(service) {
 		});
 		const questions = getQuestions(groupMembers);
 		// put these on locals for the list controller
+		res.locals.originalAnswers = { ...answers };
 		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', answers);
 		res.locals.journey = createJourney(questions, res.locals.journeyResponse, req);
 

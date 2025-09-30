@@ -626,5 +626,125 @@ describe('view-model', () => {
 			assert.strictEqual(upsert.create?.venue, 'some place');
 			assert.strictEqual(upsert.update?.prepDuration, 'prep: 1.5 days');
 		});
+		describe('procedure-change', () => {
+			it('should delete event and nullify procedureNotificationDate if procedure changed from written reps to inquiry', () => {
+				const toSave = {
+					procedureId: APPLICATION_PROCEDURE_ID.INQUIRY
+				};
+				const viewModel = {
+					procedureId: APPLICATION_PROCEDURE_ID.WRITTEN_REPS,
+					eventId: 'event-id'
+				};
+				const updates = editsToDatabaseUpdates(toSave, viewModel);
+				assert.ok(updates);
+				assert.deepStrictEqual(updates.Procedure, {
+					connect: { id: APPLICATION_PROCEDURE_ID.INQUIRY }
+				});
+				assert.ok(updates.Event?.delete);
+				assert.strictEqual(updates.procedureNotificationDate, null);
+			});
+			it('should delete event and nullify procedureNotificationDate if procedure changed from written reps to hearing', () => {
+				const toSave = {
+					procedureId: APPLICATION_PROCEDURE_ID.HEARING
+				};
+				const viewModel = {
+					procedureId: APPLICATION_PROCEDURE_ID.WRITTEN_REPS,
+					eventId: 'event-id'
+				};
+				const updates = editsToDatabaseUpdates(toSave, viewModel);
+				assert.ok(updates);
+				assert.deepStrictEqual(updates.Procedure, {
+					connect: { id: APPLICATION_PROCEDURE_ID.HEARING }
+				});
+				assert.ok(updates.Event?.delete);
+				assert.strictEqual(updates.procedureNotificationDate, null);
+			});
+			it('should delete event and nullify procedureNotificationDate if procedure changed from inquiry to written representations', () => {
+				const toSave = {
+					procedureId: APPLICATION_PROCEDURE_ID.WRITTEN_REPS
+				};
+				const viewModel = {
+					procedureId: APPLICATION_PROCEDURE_ID.INQUIRY,
+					eventId: 'event-id'
+				};
+				const updates = editsToDatabaseUpdates(toSave, viewModel);
+				assert.ok(updates);
+				assert.deepStrictEqual(updates.Procedure, {
+					connect: { id: APPLICATION_PROCEDURE_ID.WRITTEN_REPS }
+				});
+				assert.ok(updates.Event?.delete);
+				assert.strictEqual(updates.procedureNotificationDate, null);
+			});
+			it('should delete event and nullify procedureNotificationDate if procedure changed from inquiry to hearing', () => {
+				const toSave = {
+					procedureId: APPLICATION_PROCEDURE_ID.HEARING
+				};
+				const viewModel = {
+					procedureId: APPLICATION_PROCEDURE_ID.INQUIRY,
+					eventId: 'event-id'
+				};
+				const updates = editsToDatabaseUpdates(toSave, viewModel);
+				assert.ok(updates);
+				assert.deepStrictEqual(updates.Procedure, {
+					connect: { id: APPLICATION_PROCEDURE_ID.HEARING }
+				});
+				assert.ok(updates.Event?.delete);
+				assert.strictEqual(updates.procedureNotificationDate, null);
+			});
+			it('should delete event and nullify procedureNotificationDate if procedure changed from hearing to written representations', () => {
+				const toSave = {
+					procedureId: APPLICATION_PROCEDURE_ID.WRITTEN_REPS
+				};
+				const viewModel = {
+					procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+					eventId: 'event-id'
+				};
+				const updates = editsToDatabaseUpdates(toSave, viewModel);
+				assert.ok(updates);
+				assert.deepStrictEqual(updates.Procedure, {
+					connect: { id: APPLICATION_PROCEDURE_ID.WRITTEN_REPS }
+				});
+				assert.ok(updates.Event?.delete);
+				assert.strictEqual(updates.procedureNotificationDate, null);
+			});
+			it('should delete event and nullify procedureNotificationDate if procedure changed from hearing to inquiry', () => {
+				const toSave = {
+					procedureId: APPLICATION_PROCEDURE_ID.INQUIRY
+				};
+				const viewModel = {
+					procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+					eventId: 'event-id'
+				};
+				const updates = editsToDatabaseUpdates(toSave, viewModel);
+				assert.ok(updates);
+				assert.deepStrictEqual(updates.Procedure, {
+					connect: { id: APPLICATION_PROCEDURE_ID.INQUIRY }
+				});
+				assert.ok(updates.Event?.delete);
+				assert.strictEqual(updates.procedureNotificationDate, null);
+			});
+			it('should not delete event or nullify procedureNotificationDate if procedure not changed', () => {
+				const toSave = {
+					procedureId: APPLICATION_PROCEDURE_ID.WRITTEN_REPS
+				};
+				const viewModel = {
+					procedureId: APPLICATION_PROCEDURE_ID.WRITTEN_REPS,
+					eventId: 'event-id'
+				};
+				const updates = editsToDatabaseUpdates(toSave, viewModel);
+				assert.deepStrictEqual(
+					{
+						Procedure: updates.Procedure,
+						EventDelete: updates.Event?.delete,
+						ProcedureNotificationDate: updates.procedureNotificationDate
+					},
+					{
+						Procedure: undefined,
+						EventDelete: undefined,
+						ProcedureNotificationDate: undefined
+					}
+				);
+			});
+		});
 	});
 });

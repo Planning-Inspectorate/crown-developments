@@ -186,7 +186,17 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	if (agentContactUpdates) {
 		crownDevelopmentUpdateInput.AgentContact = agentContactUpdates;
 	}
-
+	// When the procedure changes the event needs to be deleted
+	if ('procedureId' in edits && edits.procedureId !== viewModel.procedureId) {
+		delete crownDevelopmentUpdateInput.procedureId;
+		crownDevelopmentUpdateInput.procedureNotificationDate = null;
+		crownDevelopmentUpdateInput.Event = {
+			delete: true
+		};
+		crownDevelopmentUpdateInput.Procedure = {
+			connect: { id: edits.procedureId }
+		};
+	}
 	if (hasProcedure(viewModel.procedureId)) {
 		const eventUpdates = viewModelToEventUpdateInput(edits, viewModel.procedureId);
 

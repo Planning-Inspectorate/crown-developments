@@ -4,7 +4,8 @@ import { buildApplicationUpdatesPage } from './controller.js';
 
 describe('application-updates controller', () => {
 	describe('buildApplicationUpdatesPage', () => {
-		it('should render application updates page with updates', async () => {
+		it('should render application updates page with updates', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-02T03:24:00.000Z') });
 			const mockReq = {
 				params: {
 					applicationId: '9c8846dc-1949-47c4-804c-9f3865cff25e'
@@ -18,9 +19,9 @@ describe('application-updates controller', () => {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
 						reference: 'CROWN/2025/0000002/',
-						representationsPublishDate: new Date('2025-10-17T03:24:00.000Z'),
-						representationsPeriodStartDate: new Date('2025-08-17T03:24:00.000Z'),
-						representationsPeriodEndDate: new Date('2025-09-30T03:24:00.000Z')
+						representationsPublishDate: new Date('2025-01-17T03:24:00.000Z'),
+						representationsPeriodStartDate: new Date('2025-01-01T03:24:00.000Z'),
+						representationsPeriodEndDate: new Date('2025-01-30T03:24:00.000Z')
 					}))
 				},
 				applicationUpdate: {
