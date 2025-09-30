@@ -116,6 +116,7 @@ variable "monitoring_config" {
   description = "Config for monitoring"
   type = object({
     app_insights_web_test_enabled = bool
+    log_daily_cap                 = number
   })
 }
 

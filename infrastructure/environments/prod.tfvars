@@ -86,6 +86,7 @@ front_door_config = {
 
 monitoring_config = {
   app_insights_web_test_enabled = true
+  log_daily_cap                 = 0.5
 }
 
 sql_config = {
