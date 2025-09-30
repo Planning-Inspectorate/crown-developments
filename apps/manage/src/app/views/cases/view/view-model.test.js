@@ -626,5 +626,55 @@ describe('view-model', () => {
 			assert.strictEqual(upsert.create?.venue, 'some place');
 			assert.strictEqual(upsert.update?.prepDuration, 'prep: 1.5 days');
 		});
+		describe('should delete event and nullify procedureNotificationDate', () => {
+			const testCases = [
+				{ from: APPLICATION_PROCEDURE_ID.WRITTEN_REPS, to: APPLICATION_PROCEDURE_ID.INQUIRY },
+				{ from: APPLICATION_PROCEDURE_ID.WRITTEN_REPS, to: APPLICATION_PROCEDURE_ID.HEARING },
+				{ from: APPLICATION_PROCEDURE_ID.INQUIRY, to: APPLICATION_PROCEDURE_ID.WRITTEN_REPS },
+				{ from: APPLICATION_PROCEDURE_ID.INQUIRY, to: APPLICATION_PROCEDURE_ID.HEARING },
+				{ from: APPLICATION_PROCEDURE_ID.HEARING, to: APPLICATION_PROCEDURE_ID.WRITTEN_REPS },
+				{ from: APPLICATION_PROCEDURE_ID.HEARING, to: APPLICATION_PROCEDURE_ID.INQUIRY }
+			];
+			testCases.forEach(({ from, to }) => {
+				it(`if procedure changed from ${from} to ${to}`, () => {
+					const toSave = {
+						procedureId: to
+					};
+					const viewModel = {
+						procedureId: from,
+						eventId: 'event-id'
+					};
+					const updates = editsToDatabaseUpdates(toSave, viewModel);
+					assert.ok(updates);
+					assert.deepStrictEqual(updates.Procedure, {
+						connect: { id: to }
+					});
+					assert.ok(updates.Event?.delete);
+					assert.strictEqual(updates.procedureNotificationDate, null);
+				});
+			});
+		});
+		it('should not delete event or nullify procedureNotificationDate if procedure not changed', () => {
+			const toSave = {
+				procedureId: APPLICATION_PROCEDURE_ID.WRITTEN_REPS
+			};
+			const viewModel = {
+				procedureId: APPLICATION_PROCEDURE_ID.WRITTEN_REPS,
+				eventId: 'event-id'
+			};
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.deepStrictEqual(
+				{
+					Procedure: updates.Procedure,
+					EventDelete: updates.Event?.delete,
+					ProcedureNotificationDate: updates.procedureNotificationDate
+				},
+				{
+					Procedure: undefined,
+					EventDelete: undefined,
+					ProcedureNotificationDate: undefined
+				}
+			);
+		});
 	});
 });

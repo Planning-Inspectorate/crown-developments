@@ -34,7 +34,7 @@ export function buildUpdateRepresentation(
 			return;
 		}
 		/** @type {import('@pins/crowndev-lib/forms/representations/types.js').HaveYourSayManageModel} */
-		const fullViewModel = res.locals?.journeyResponse?.answers || {};
+		const fullViewModel = res.locals?.originalAnswers || {};
 
 		if (toSave.containsAttachments && fullViewModel.sharePointFolderCreated !== BOOLEAN_OPTIONS.YES) {
 			await addRepresentationFolderToSharepoint(
