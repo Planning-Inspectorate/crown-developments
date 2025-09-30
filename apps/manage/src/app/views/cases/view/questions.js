@@ -9,6 +9,7 @@ import {
 	APPLICATION_PROCEDURE,
 	APPLICATION_STAGE,
 	APPLICATION_STATUS,
+	APPLICATION_SUB_TYPES,
 	APPLICATION_TYPES,
 	CATEGORIES
 } from '@pins/crowndev-database/src/seed/data-static.js';
@@ -32,9 +33,10 @@ import DateTimeValidator from '@planning-inspectorate/dynamic-forms/src/validato
 
 /**
  * @param {import('../../../../util/entra-groups-types.js').EntraGroupMembers} [groupMembers]
+ * @param {object} actionOverrides
  * @returns {{[p: string]: *}}
  */
-export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }) {
+export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }, actionOverrides = {}) {
 	const env = loadEnvironmentConfig();
 
 	// this is to avoid a database read when the data is static - but it does vary by environment
@@ -76,7 +78,18 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			fieldName: 'typeId',
 			url: 'type-of-application',
 			validators: [new RequiredValidator('Select the type of application')],
-			options: referenceDataToRadioOptions(APPLICATION_TYPES)
+			options: referenceDataToRadioOptions(APPLICATION_TYPES),
+			editable: !actionOverrides.isApplicationTypePlanningOrLbc
+		},
+		subTypeOfApplication: {
+			type: COMPONENT_TYPES.RADIO,
+			title: 'Application Sub Type',
+			question: 'not editable',
+			fieldName: 'subTypeId',
+			url: '',
+			validators: [],
+			options: referenceDataToRadioOptions(APPLICATION_SUB_TYPES),
+			editable: false
 		},
 		localPlanningAuthority: {
 			type: COMPONENT_TYPES.SELECT,
@@ -500,7 +513,8 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			url: 'fee-amount',
 			feeAmountInputFieldName: 'applicationFee',
 			feeAmountQuestion: 'For example, £1000.00',
-			validators: [new FeeAmountValidator()]
+			validators: [new FeeAmountValidator()],
+			editable: !actionOverrides.isApplicationSubTypeLbc
 		},
 		updateDetails: {
 			type: COMPONENT_TYPES.TEXT_ENTRY,
