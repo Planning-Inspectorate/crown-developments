@@ -4,7 +4,8 @@ import { buildApplicationUpdatesPage } from './controller.js';
 
 describe('application-updates controller', () => {
 	describe('buildApplicationUpdatesPage', () => {
-		it('should render application updates page with updates', async () => {
+		it('should render application updates page with updates', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-08-20T03:24:00.000Z') });
 			const mockReq = {
 				params: {
 					applicationId: '9c8846dc-1949-47c4-804c-9f3865cff25e'
