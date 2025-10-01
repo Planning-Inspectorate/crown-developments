@@ -316,7 +316,7 @@ function addEventToViewModel(viewModel, event, procedureId, procedureNotificatio
 	viewModel[`${prefix}Venue`] = event.venue;
 	viewModel[`${prefix}NotificationDate`] = event.notificationDate;
 	viewModel[`${prefix}StatementsDate`] = event.statementsDate;
-	viewModel[`${prefix}CaseManagementConferenceDate`] = event.caseManagementConferenceDate;
+	viewModel.inquiryCaseManagementConferenceDate = event.caseManagementConferenceDate;
 
 	const prep = event.prepDuration ?? '';
 	const sitting = event.sittingDuration ?? '';
@@ -414,8 +414,8 @@ function viewModelToEventUpdateInput(edits, procedureId) {
 	if (`${prefix}StatementsDate` in edits) {
 		eventUpdateInput.statementsDate = edits[`${prefix}StatementsDate`];
 	}
-	if (`${prefix}CaseManagementConferenceDate` in edits) {
-		eventUpdateInput.caseManagementConferenceDate = edits[`${prefix}CaseManagementConferenceDate`];
+	if (`inquiryCaseManagementConferenceDate` in edits) {
+		eventUpdateInput.caseManagementConferenceDate = edits.inquiryCaseManagementConferenceDate;
 	}
 	if (`${prefix}ProofsOfEvidenceDate` in edits) {
 		eventUpdateInput.proofsOfEvidenceDate = edits[`${prefix}ProofsOfEvidenceDate`];

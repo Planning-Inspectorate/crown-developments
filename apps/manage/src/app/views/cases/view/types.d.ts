@@ -92,7 +92,6 @@ export interface CrownDevelopmentViewModel {
 	hearingNotificationDate?: Date | string;
 	hearingIssuesReportPublishedDate?: Date | string;
 	hearingStatementsDate?: Date | string;
-	hearingCaseManagementConferenceDate?: Date | string;
 	hearingDurationPrep?: number | string;
 	hearingDurationSitting?: number | string;
 	hearingDurationReporting?: number | string;
