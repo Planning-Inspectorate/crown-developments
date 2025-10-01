@@ -578,7 +578,7 @@ describe('have your say', () => {
 				'views/applications/view/have-your-say/success.njk'
 			);
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
-				title: 'Representation Submitted',
+				title: 'Written representation submitted',
 				bodyText: 'Your reference number <br><strong>AAAAA-BBBBB</strong>',
 				successBackLinkUrl: `/applications/${mockReq.params.applicationId}/application-information`,
 				successBackLinkText: 'Back to the application information page'
