@@ -624,7 +624,7 @@ describe('view-model', () => {
 			assert.strictEqual(upsert.create?.venue, 'some place');
 			assert.strictEqual(upsert.update?.prepDuration, 'prep: 1.5 days');
 		});
-		describe('should delete event and nullify procedureNotificationDate', () => {
+		describe('should delete the event if it exists and nullify procedureNotificationDate', () => {
 			const testCases = [
 				{ from: APPLICATION_PROCEDURE_ID.WRITTEN_REPS, to: APPLICATION_PROCEDURE_ID.INQUIRY },
 				{ from: APPLICATION_PROCEDURE_ID.WRITTEN_REPS, to: APPLICATION_PROCEDURE_ID.HEARING },
@@ -651,6 +651,28 @@ describe('view-model', () => {
 					assert.strictEqual(updates.procedureNotificationDate, null);
 				});
 			});
+		});
+		it('should not delete the event if no event exists', () => {
+			const toSave = {
+				procedureId: APPLICATION_PROCEDURE_ID.INQUIRY
+			};
+			const viewModel = {
+				procedureId: APPLICATION_PROCEDURE_ID.WRITTEN_REPS,
+				eventId: null
+			};
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.deepStrictEqual(
+				{
+					Procedure: updates.Procedure,
+					EventDelete: updates.Event?.delete,
+					ProcedureNotificationDate: updates.procedureNotificationDate
+				},
+				{
+					Procedure: { connect: { id: APPLICATION_PROCEDURE_ID.INQUIRY } },
+					EventDelete: undefined,
+					ProcedureNotificationDate: null
+				}
+			);
 		});
 		it('should not delete event or nullify procedureNotificationDate if procedure not changed', () => {
 			const toSave = {
