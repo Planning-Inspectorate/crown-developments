@@ -59,7 +59,7 @@ describe('case details journey', () => {
 
 		const hearingSection = sections.find((s) => s.segment === APPLICATION_PROCEDURE_ID.HEARING);
 		assert.ok(hearingSection);
-		assert.strictEqual(hearingSection.questions.length, 7);
+		assert.strictEqual(hearingSection.questions.length, 6);
 		for (const q of hearingSection.questions) {
 			assert.strictEqual(q.fieldName.startsWith(APPLICATION_PROCEDURE_ID.HEARING), true);
 			assert.strictEqual(

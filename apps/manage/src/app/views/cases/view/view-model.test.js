@@ -535,8 +535,7 @@ describe('view-model', () => {
 				hearingDuration: 'Prep',
 				hearingVenue: 'some venue',
 				hearingNotificationDate: new Date('2025-03-13T00:00:00Z'),
-				hearingIssuesReportPublishedDate: new Date('2025-01-12T00:00:00Z'),
-				hearingStatementsDate: new Date('2025-02-09T00:00:00Z')
+				hearingIssuesReportPublishedDate: new Date('2025-01-12T00:00:00Z')
 			};
 			/** @type {CrownDevelopmentViewModel} */
 			const viewModel = {
@@ -554,7 +553,6 @@ describe('view-model', () => {
 			assert.strictEqual(upsert.update?.reportingDuration, toSave.reportingDuration);
 			assert.strictEqual(upsert.update?.notificationDate, toSave.hearingNotificationDate);
 			assert.strictEqual(upsert.update?.issuesReportPublishedDate, toSave.hearingIssuesReportPublishedDate);
-			assert.strictEqual(upsert.update?.statementsDate, toSave.hearingStatementsDate);
 		});
 		it('should map all inquiry fields', () => {
 			/** @type {CrownDevelopmentViewModel} */
