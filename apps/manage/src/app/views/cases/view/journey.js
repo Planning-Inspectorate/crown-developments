@@ -118,8 +118,6 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.hearingNotificationDate)
 				.withCondition(isHearing)
 				.addQuestion(questions.hearingIssuesReportPublishedDate)
-				.withCondition(isHearing)
-				.addQuestion(questions.hearingStatementsDate)
 				.withCondition(isHearing),
 			new Section('Inquiry', 'inquiry')
 				.addQuestion(questions.inquiryProcedureNotificationDate)
