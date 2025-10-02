@@ -194,9 +194,12 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 			connect: { id: edits.procedureId }
 		};
 		crownDevelopmentUpdateInput.procedureNotificationDate = null;
-		crownDevelopmentUpdateInput.Event = {
-			delete: true
-		};
+		if (viewModel.eventId) {
+			// delete existing event if procedure changed and there is an existing event
+			crownDevelopmentUpdateInput.Event = {
+				delete: true
+			};
+		}
 	}
 	if (hasProcedure(viewModel.procedureId)) {
 		const eventUpdates = viewModelToEventUpdateInput(edits, viewModel.procedureId);
