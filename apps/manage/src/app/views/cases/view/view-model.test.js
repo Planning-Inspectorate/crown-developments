@@ -649,6 +649,29 @@ describe('view-model', () => {
 					assert.strictEqual(updates.procedureNotificationDate, null);
 				});
 			});
+			const nullTestCases = [
+				{ from: APPLICATION_PROCEDURE_ID.WRITTEN_REPS, to: null },
+				{ from: APPLICATION_PROCEDURE_ID.INQUIRY, to: null },
+				{ from: APPLICATION_PROCEDURE_ID.HEARING, to: null }
+			];
+			nullTestCases.forEach(({ from, to }) => {
+				it(`if procedure changed from ${from} to null`, () => {
+					const toSave = {
+						procedureId: to
+					};
+					const viewModel = {
+						procedureId: from,
+						eventId: 'event-id'
+					};
+					const updates = editsToDatabaseUpdates(toSave, viewModel);
+					assert.ok(updates);
+					assert.deepStrictEqual(updates.Procedure, {
+						disconnect: true
+					});
+					assert.ok(updates.Event?.delete);
+					assert.strictEqual(updates.procedureNotificationDate, null);
+				});
+			});
 		});
 		it('should not delete the event if no event exists', () => {
 			const toSave = {
