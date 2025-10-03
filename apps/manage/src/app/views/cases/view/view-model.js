@@ -190,9 +190,16 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	if ('procedureId' in edits && edits.procedureId !== viewModel.procedureId) {
 		// delete procedureId update due to needing to handle as relational change rather than scalar field update
 		delete crownDevelopmentUpdateInput.procedureId;
-		crownDevelopmentUpdateInput.Procedure = {
-			connect: { id: edits.procedureId }
-		};
+		if (edits.procedureId) {
+			crownDevelopmentUpdateInput.Procedure = {
+				connect: { id: edits.procedureId }
+			};
+		} else {
+			// Added to handle the case where a procedure is removed (set to null)
+			crownDevelopmentUpdateInput.Procedure = {
+				disconnect: true
+			};
+		}
 		crownDevelopmentUpdateInput.procedureNotificationDate = null;
 		if (viewModel.eventId) {
 			// delete existing event if procedure changed and there is an existing event
