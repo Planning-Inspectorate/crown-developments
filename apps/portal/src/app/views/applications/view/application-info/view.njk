@@ -5,7 +5,8 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "views/applications/view/links.njk" import applicationLinks %}
 
-{% import "views/applications/view/application-info/have-your-say-information.njk" as haveYourSayInfo %}
+{% from "views/applications/view/application-info/have-your-say-information.njk" import renderHaveYourSayInformation %}
+{% import "views/applications/view/application-info/application-stage/application-stage.njk" as applicationStage %}
 
 {% block pageHeading %}{% endblock %}
 
@@ -16,20 +17,17 @@
         </div>
 
         <div class="govuk-grid-column-two-thirds">
-            {% if hasLinkedCase %}
-                {{ govukNotificationBanner({
-                    html: '<p class="govuk-notification-banner__heading">This application is connected to a ' + linkedCaseLink + '.</p>'
-                }) }}
-            {% endif %}
             {% if latestApplicationUpdate %}
-                {% set html %}
-                    <h3 class="govuk-notification-banner__heading">Latest update - {{ latestApplicationUpdate.firstPublished }}</h3>
-                    <p class="govuk-body pins-pre-wrap">{{ latestApplicationUpdate.details }}</p>
-                    <p><a class="govuk-notification-banner__link" href="{{ baseUrl }}/application-updates">View all updates</a></p>
-                {% endset %}
-                {{ govukNotificationBanner({
-                    html: html
-                }) }}
+                <div class="govuk-grid-row">
+                    {% set html %}
+                        <h3 class="govuk-notification-banner__heading">Latest update - {{ latestApplicationUpdate.firstPublished }}</h3>
+                        <p class="govuk-body pins-pre-line">{{ latestApplicationUpdate.details }}</p>
+                        <p><a class="govuk-notification-banner__link" href="{{ baseUrl }}/application-updates">View all updates</a></p>
+                    {% endset %}
+                    {{ govukNotificationBanner({
+                        html: html
+                    }) }}
+                </div>
             {% endif %}
 
             <div class="govuk-grid-row">
@@ -71,7 +69,11 @@
                 {% endif %}
             </div>
 
-            {{ haveYourSayInfo.renderHaveYourSayInformation(haveYourSayStatus, crownDevelopmentFields) }}
+            {{ renderHaveYourSayInformation(haveYourSayStatus, crownDevelopmentFields) }}
+
+            <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+
+            {{ applicationStage.renderApplicationStage(currentStage, formattedApplicationStages) }}
 
             <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
 

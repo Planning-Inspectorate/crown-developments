@@ -2,7 +2,7 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildApplicationInformationPage } from './controller.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
-import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { APPLICATION_PROCEDURE_ID, APPLICATION_STAGE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 describe('application info controller', () => {
 	describe('buildApplicationInformationPage', () => {
@@ -74,6 +74,7 @@ describe('application info controller', () => {
 							date: new Date('2020-12-17T03:24:00.000Z'),
 							venue: 'the venue'
 						},
+						stageId: APPLICATION_STAGE_ID.CONSULTATION,
 						Stage: {
 							displayName: 'Consultation'
 						},
@@ -300,11 +301,55 @@ describe('application info controller', () => {
 					details: 'an update',
 					firstPublished: '17 December 2020'
 				},
+				currentStage: {
+					stageDisplayName: 'Consultation',
+					stageId: APPLICATION_STAGE_ID.CONSULTATION,
+					status: 'In progress',
+					isCurrentStage: true
+				},
+				formattedApplicationStages: [
+					{
+						stageDisplayName: 'Pre-application',
+						stageId: 'pre-application',
+						status: 'Completed',
+						isCurrentStage: false
+					},
+					{
+						stageDisplayName: 'Accepted',
+						stageId: APPLICATION_STAGE_ID.ACCEPTANCE,
+						status: 'Completed',
+						isCurrentStage: false
+					},
+					{
+						stageDisplayName: 'Consultation',
+						stageId: APPLICATION_STAGE_ID.CONSULTATION,
+						status: 'In progress',
+						isCurrentStage: true
+					},
+					{
+						stageDisplayName: 'Procedure choice',
+						stageId: APPLICATION_STAGE_ID.PROCEDURE_DECISION,
+						status: 'Not started',
+						isCurrentStage: false
+					},
+					{
+						stageDisplayName: 'Final decision',
+						stageId: APPLICATION_STAGE_ID.DECISION,
+						status: 'Not started',
+						isCurrentStage: false
+					},
+					{
+						stageDisplayName: 'Post decision',
+						stageId: 'post-decision',
+						status: 'Not started',
+						isCurrentStage: false
+					}
+				],
 				haveYourSayStatus: 'open'
 			});
 		});
 	});
-	it('should fetch published application', async (context) => {
+	it('should display linked case information when available', async (context) => {
 		context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
 		const mockDb = {
 			crownDevelopment: {

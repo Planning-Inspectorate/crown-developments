@@ -11,6 +11,7 @@ import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/sessi
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { getLinkedCaseId, getLinkedCaseLinkText, hasLinkedCase } from '@pins/crowndev-lib/util/linked-case.js';
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { filteredStagesToRadioOptions } from './question-utils.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -170,7 +171,8 @@ export function buildGetJourneyMiddleware(service) {
 		});
 		const actionOverrides = {
 			isApplicationTypePlanningOrLbc: answers.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT,
-			isApplicationSubTypeLbc: answers.subTypeId === APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT
+			isApplicationSubTypeLbc: answers.subTypeId === APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT,
+			filteredStageOptions: filteredStagesToRadioOptions(answers.procedureId)
 		};
 		const questions = getQuestions(groupMembers, actionOverrides);
 		// put these on locals for the list controller

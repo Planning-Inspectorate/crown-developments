@@ -36,3 +36,22 @@
 	display: block;
 	margin-bottom: 1em;
 }
+.pins-details-summary {
+	margin: 10px 0 10px 0;
+}
+.pins-application-stage-summary-content {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: calc(100% - 25px); // account for default padding
+}
+.pins-application-stage-summary-row {
+	display: block;
+	width: 100%;
+	border-bottom: 1px solid #b1b4b6;
+}
+.pins-application-stage-summary-row:last-child {
+	display: block;
+	width: 100%;
+	border-bottom: none;
+}

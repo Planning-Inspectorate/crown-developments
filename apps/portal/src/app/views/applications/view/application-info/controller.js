@@ -11,6 +11,7 @@ import {
 } from './section-items.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { buildApplicationStages, getCurrentStage } from './application-stage/controller.js';
 import {
 	getLinkedCaseId,
 	getLinkedCaseLinkText,
@@ -45,9 +46,7 @@ export function buildApplicationInformationPage(service) {
 					SiteAddress: true,
 					Event: true,
 					Stage: { select: { displayName: true } },
-					Procedure: { select: { displayName: true } },
-					ParentCrownDevelopment: { select: { id: true } },
-					ChildrenCrownDevelopment: { select: { id: true } }
+					Procedure: { select: { displayName: true } }
 				}
 			}
 		});
@@ -104,6 +103,8 @@ export function buildApplicationInformationPage(service) {
 				firstPublished: 'desc'
 			}
 		});
+		const formattedApplicationStages = buildApplicationStages(crownDevelopment);
+		const currentStage = getCurrentStage(formattedApplicationStages);
 
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
@@ -132,7 +133,9 @@ export function buildApplicationInformationPage(service) {
 			haveYourSayStatus: getHaveYourSayStatus(haveYourSayPeriod, representationsPublishDate),
 			latestApplicationUpdate: applicationUpdateToTimelineItem(latestApplicationUpdate),
 			hasLinkedCase: hasLinkedCase(crownDevelopment) && (await linkedCaseIsPublished(db, crownDevelopment)),
-			linkedCaseLink: await getLinkedCaseLink(db, crownDevelopment)
+			linkedCaseLink: await getLinkedCaseLink(db, crownDevelopment),
+			currentStage,
+			formattedApplicationStages
 		});
 	};
 }

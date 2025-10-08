@@ -1,0 +1,66 @@
+{% macro renderApplicationStage(currentStage, formattedApplicationStages) %}
+    {% set taskListItems = [] %}
+    <h2 id="application-stage" class="govuk-heading-m">Application stage</h2>
+    <p class="govuk-body">This application is at the <b>{{ currentStage.stageDisplayName | lower }}</b> stage.</p>
+    <div id="application-stages">
+        {% for stage in formattedApplicationStages %}
+            {{ stageItem(stage) }}
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro stageItem(stage) %}
+    <div class="pins-application-stage-summary-row">
+        <details class="govuk-details pins-details-summary" {% if stage.isCurrentStage %} open="open"{% endif %}>
+            <summary class="govuk-details__summary pins-application-stage-summary-content">
+                <div class="govuk-details__summary-text">
+                    <span>{{ stage.stageDisplayName }}</span>
+                </div>
+                {% if stage.status %}
+                <div>
+                    {% if stage.status == 'Completed' %}
+                        <strong class="govuk-tag govuk-tag--green">{{ stage.status }}</strong>
+                    {% elseif stage.status == 'In progress' %}
+                        <strong class="govuk-tag govuk-tag--yellow">{{ stage.status }}</strong>
+                    {% elseif stage.status == 'Not started' %}
+                        <strong class="govuk-tag govuk-tag--grey">{{ stage.status }}</strong>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </summary>
+            <div class="govuk-details__text">
+                {{ stageDetails(stage.stageId) }}
+            </div>
+        </details>
+    </div>
+{% endmacro %}
+
+{% macro stageDetails(stage) %}
+    {% if stage === 'pre-application' %}
+        {% include 'views/applications/view/application-info/application-stage/application-stage-details/pre-application-details.njk' %}
+    {% endif %}
+    {% if stage === 'acceptance' %}
+        {% include 'views/applications/view/application-info/application-stage/application-stage-details/accepted-details.njk' %}
+    {% endif %}
+    {% if stage === 'consultation' %}
+        {% include 'views/applications/view/application-info/application-stage/application-stage-details/consultation-details.njk' %}
+    {% endif %}
+    {% if stage === 'procedure-decision' %}
+        {% include 'views/applications/view/application-info/application-stage/application-stage-details/procedure-decision-details.njk' %}
+    {% endif %}
+    {% if stage === 'written-representations' %}
+        {% include 'views/applications/view/application-info/application-stage/application-stage-details/written-representation-details.njk' %}
+    {% endif %}
+    {% if stage === 'inquiry' %}
+        {% include 'views/applications/view/application-info/application-stage/application-stage-details/inquiry-details.njk' %}
+    {% endif %}
+    {% if stage === 'hearing' %}
+        {% include 'views/applications/view/application-info/application-stage/application-stage-details/hearing-details.njk' %}
+    {% endif %}
+    {% if stage === 'decision' %}
+        {% include 'views/applications/view/application-info/application-stage/application-stage-details/decision-details.njk' %}
+    {% endif %}
+    {% if stage === 'post-decision' %}
+        {% include 'views/applications/view/application-info/application-stage/application-stage-details/post-decision-details.njk' %}
+    {% endif %}
+{% endmacro %}

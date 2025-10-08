@@ -33,10 +33,10 @@ import DateTimeValidator from '@planning-inspectorate/dynamic-forms/src/validato
 
 /**
  * @param {import('../../../../util/entra-groups-types.js').EntraGroupMembers} [groupMembers]
- * @param {object} actionOverrides
+ * @param {object} overrides
  * @returns {{[p: string]: *}}
  */
-export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }, actionOverrides = {}) {
+export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }, overrides = {}) {
 	const env = loadEnvironmentConfig();
 
 	// this is to avoid a database read when the data is static - but it does vary by environment
@@ -79,7 +79,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			url: 'type-of-application',
 			validators: [new RequiredValidator('Select the type of application')],
 			options: referenceDataToRadioOptions(APPLICATION_TYPES),
-			editable: !actionOverrides.isApplicationTypePlanningOrLbc
+			editable: !overrides.isApplicationTypePlanningOrLbc
 		},
 		subTypeOfApplication: {
 			type: COMPONENT_TYPES.RADIO,
@@ -214,7 +214,9 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			fieldName: 'stageId',
 			url: 'stage',
 			validators: [new RequiredValidator()],
-			options: referenceDataToRadioOptions(APPLICATION_STAGE)
+			options: overrides.filteredStageOptions
+				? referenceDataToRadioOptions(overrides.filteredStageOptions)
+				: referenceDataToRadioOptions(APPLICATION_STAGE)
 		},
 		lpaReference: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
@@ -514,7 +516,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			feeAmountInputFieldName: 'applicationFee',
 			feeAmountQuestion: 'For example, £1000.00',
 			validators: [new FeeAmountValidator()],
-			editable: !actionOverrides.isApplicationSubTypeLbc
+			editable: !overrides.isApplicationSubTypeLbc
 		},
 		updateDetails: {
 			type: COMPONENT_TYPES.TEXT_ENTRY,

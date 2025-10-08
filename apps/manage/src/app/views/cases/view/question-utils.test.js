@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { contactQuestions, dateQuestion, eventQuestions } from './question-utils.js';
+import { contactQuestions, dateQuestion, eventQuestions, filteredStagesToRadioOptions } from './question-utils.js';
+import { APPLICATION_PROCEDURE_ID, APPLICATION_STAGE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 describe('question-utils', () => {
 	describe('contactQuestions', () => {
@@ -140,6 +141,54 @@ describe('question-utils', () => {
 			assert.ok(!regex.test('Smith#Sons'));
 			assert.ok(!regex.test('ACME*Ltd'));
 			assert.ok(!regex.test('ACME.Ltd'));
+		});
+	});
+	describe('filteredStagesToRadioOptions', () => {
+		it('should return correct stages for procedureId is null', () => {
+			const result = filteredStagesToRadioOptions(null);
+			const expected = [
+				{ id: APPLICATION_STAGE_ID.ACCEPTANCE, displayName: 'Accepted' },
+				{ id: APPLICATION_STAGE_ID.CONSULTATION, displayName: 'Consultation' },
+				{ id: APPLICATION_STAGE_ID.PROCEDURE_DECISION, displayName: 'Procedure choice' },
+				{ id: APPLICATION_STAGE_ID.DECISION, displayName: 'Final decision' }
+			];
+			assert.deepStrictEqual(result, expected);
+		});
+
+		it('should return correct stages for procedureId is written-reps', () => {
+			const result = filteredStagesToRadioOptions(APPLICATION_PROCEDURE_ID.WRITTEN_REPS);
+			const expected = [
+				{ id: APPLICATION_STAGE_ID.ACCEPTANCE, displayName: 'Accepted' },
+				{ id: APPLICATION_STAGE_ID.CONSULTATION, displayName: 'Consultation' },
+				{ id: APPLICATION_STAGE_ID.PROCEDURE_DECISION, displayName: 'Procedure choice' },
+				{ id: APPLICATION_STAGE_ID.WRITTEN_REPRESENTATIONS, displayName: 'Written representations' },
+				{ id: APPLICATION_STAGE_ID.DECISION, displayName: 'Final decision' }
+			];
+			assert.deepStrictEqual(result, expected);
+		});
+
+		it('should return correct stages for procedureId is hearing', () => {
+			const result = filteredStagesToRadioOptions(APPLICATION_PROCEDURE_ID.HEARING);
+			const expected = [
+				{ id: APPLICATION_STAGE_ID.ACCEPTANCE, displayName: 'Accepted' },
+				{ id: APPLICATION_STAGE_ID.CONSULTATION, displayName: 'Consultation' },
+				{ id: APPLICATION_STAGE_ID.PROCEDURE_DECISION, displayName: 'Procedure choice' },
+				{ id: APPLICATION_STAGE_ID.HEARING, displayName: 'Hearing' },
+				{ id: APPLICATION_STAGE_ID.DECISION, displayName: 'Final decision' }
+			];
+			assert.deepStrictEqual(result, expected);
+		});
+
+		it('should return correct stages for procedureId is inquiry', () => {
+			const result = filteredStagesToRadioOptions(APPLICATION_PROCEDURE_ID.INQUIRY);
+			const expected = [
+				{ id: APPLICATION_STAGE_ID.ACCEPTANCE, displayName: 'Accepted' },
+				{ id: APPLICATION_STAGE_ID.CONSULTATION, displayName: 'Consultation' },
+				{ id: APPLICATION_STAGE_ID.PROCEDURE_DECISION, displayName: 'Procedure choice' },
+				{ id: APPLICATION_STAGE_ID.INQUIRY, displayName: 'Inquiry' },
+				{ id: APPLICATION_STAGE_ID.DECISION, displayName: 'Final decision' }
+			];
+			assert.deepStrictEqual(result, expected);
 		});
 	});
 });
