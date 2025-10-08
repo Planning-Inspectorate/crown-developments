@@ -143,38 +143,48 @@ export const APPLICATION_STATUS = [
 	}
 ];
 
+export const APPLICATION_STAGE_ID = Object.freeze({
+	ACCEPTANCE: 'acceptance',
+	CONSULTATION: 'consultation',
+	PROCEDURE_DECISION: 'procedure-decision',
+	WRITTEN_REPRESENTATIONS: 'written-representations',
+	INQUIRY: 'inquiry',
+	HEARING: 'hearing',
+	DECISION: 'decision'
+});
+
 /**
  * @type {import('@prisma/client').Prisma.ApplicationStageCreateInput[]}
  */
 export const APPLICATION_STAGE = [
 	{
-		id: 'acceptance',
+		id: APPLICATION_STAGE_ID.ACCEPTANCE,
 		// called complete to match the terminology in the draft order
 		displayName: 'Accepted'
 	},
 	{
-		id: 'consultation',
+		id: APPLICATION_STAGE_ID.CONSULTATION,
 		displayName: 'Consultation'
 	},
 	{
-		id: 'procedure-decision',
-		displayName: 'Procedure decision'
+		id: APPLICATION_STAGE_ID.PROCEDURE_DECISION,
+		displayName: 'Procedure choice'
 	},
 	{
-		id: 'written-representations',
+		id: APPLICATION_STAGE_ID.WRITTEN_REPRESENTATIONS,
 		displayName: 'Written representations'
 	},
 	{
-		id: 'inquiry',
+		id: APPLICATION_STAGE_ID.INQUIRY,
 		displayName: 'Inquiry'
 	},
 	{
-		id: 'hearing',
+		id: APPLICATION_STAGE_ID.HEARING,
 		displayName: 'Hearing'
 	},
 	{
-		id: 'decision',
-		displayName: 'Reporting and decision'
+		id: APPLICATION_STAGE_ID.DECISION,
+		displayName: 'Final decision'
 	}
 ];
 
@@ -193,7 +203,7 @@ export const APPLICATION_PROCEDURE_ID = Object.freeze({
 export const APPLICATION_PROCEDURE = [
 	{
 		id: APPLICATION_PROCEDURE_ID.WRITTEN_REPS,
-		displayName: 'Written Representations'
+		displayName: 'Written representations'
 	},
 	{
 		id: APPLICATION_PROCEDURE_ID.HEARING,

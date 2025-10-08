@@ -5,6 +5,11 @@ import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/v
 import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
 import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
 import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
+import {
+	APPLICATION_PROCEDURE_ID,
+	APPLICATION_STAGE,
+	APPLICATION_STAGE_ID
+} from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
  *
@@ -290,4 +295,26 @@ function camelCaseToTitleCase(str) {
 
 function titleCase(str) {
 	return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+export function filteredStagesToRadioOptions(procedureId) {
+	const stageIds = [
+		APPLICATION_STAGE_ID.ACCEPTANCE,
+		APPLICATION_STAGE_ID.CONSULTATION,
+		APPLICATION_STAGE_ID.PROCEDURE_DECISION
+	];
+	if (procedureId) {
+		const mappedProcedureId =
+			procedureId === APPLICATION_PROCEDURE_ID.WRITTEN_REPS
+				? APPLICATION_STAGE_ID.WRITTEN_REPRESENTATIONS
+				: procedureId;
+		const procedure = APPLICATION_STAGE.find((procedure) => procedure.id === mappedProcedureId);
+		const procedureStage = APPLICATION_STAGE.find((stage) => stage.displayName === procedure.displayName).id;
+		stageIds.push(procedureStage);
+	}
+	stageIds.push(APPLICATION_STAGE_ID.DECISION);
+	return APPLICATION_STAGE.filter((stage) => stageIds.includes(stage.id)).map((s) => ({
+		id: s.id,
+		displayName: s.displayName
+	}));
 }

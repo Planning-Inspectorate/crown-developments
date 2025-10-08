@@ -1,4 +1,4 @@
-import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { APPLICATION_PROCEDURE_ID, APPLICATION_STAGE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { toFloat, toInt } from '@pins/crowndev-lib/util/numbers.js';
 import { booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { optionalWhere } from '@pins/crowndev-lib/util/database.js';
@@ -194,11 +194,27 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 			crownDevelopmentUpdateInput.Procedure = {
 				connect: { id: edits.procedureId }
 			};
+			if (stageIsProcedure(viewModel.stageId)) {
+				// If the current stage is a procedure, update it to match the new procedure
+				crownDevelopmentUpdateInput.Stage = {
+					connect: {
+						id:
+							edits.procedureId === APPLICATION_PROCEDURE_ID.WRITTEN_REPS
+								? APPLICATION_STAGE_ID.WRITTEN_REPRESENTATIONS
+								: edits.procedureId
+					}
+				};
+			}
 		} else {
 			// Added to handle the case where a procedure is removed (set to null)
 			crownDevelopmentUpdateInput.Procedure = {
 				disconnect: true
 			};
+			if (stageIsProcedure(viewModel.stageId)) {
+				crownDevelopmentUpdateInput.Stage = {
+					connect: { id: APPLICATION_STAGE_ID.PROCEDURE_DECISION }
+				};
+			}
 		}
 		crownDevelopmentUpdateInput.procedureNotificationDate = null;
 		if (viewModel.eventId) {
@@ -359,6 +375,10 @@ function addEventToViewModel(viewModel, event, procedureId, procedureNotificatio
  */
 function hasProcedure(procedureId) {
 	return isInquiry(procedureId) || isHearing(procedureId) || isWrittenReps(procedureId);
+}
+
+function stageIsProcedure(stageId) {
+	return isInquiry(stageId) || isHearing(stageId) || stageId === APPLICATION_STAGE_ID.WRITTEN_REPRESENTATIONS;
 }
 
 /**
