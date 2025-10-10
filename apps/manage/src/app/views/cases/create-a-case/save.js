@@ -133,7 +133,7 @@ export function buildSuccessController({ db }) {
 
 		clearDataFromSession({ req, journeyId: JOURNEY_ID });
 		res.render('views/cases/create-a-case/success.njk', {
-			title: 'Case created',
+			title: `${hasLinkedCase ? 'Cases' : 'Case'} created`,
 			bodyText: `Case reference <br><strong>${data.reference}</strong>${hasLinkedCase ? `<br><br><strong>${linkedCaseReference}</strong>` : ''}`,
 			successBackLinkUrl: `/cases/${data.id}`,
 			successBackLinkText: `View case details for ${data.reference}`,

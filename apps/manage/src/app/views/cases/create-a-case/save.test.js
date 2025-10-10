@@ -626,7 +626,7 @@ describe('save', () => {
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/cases/create-a-case/success.njk');
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
-				title: 'Case created',
+				title: 'Cases created',
 				bodyText: 'Case reference <br><strong>case-ref</strong><br><br><strong>linked-case-reference</strong>',
 				successBackLinkUrl: '/cases/case-id',
 				successBackLinkText: 'View case details for case-ref',
