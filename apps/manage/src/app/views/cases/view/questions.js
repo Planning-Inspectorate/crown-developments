@@ -184,6 +184,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			type: COMPONENT_TYPES.RADIO,
 			title: 'Procedure',
 			question: 'What is the application procedure?',
+			hint: "If you change the procedure after it's been set, any details you've added will be lost.",
 			fieldName: 'procedureId',
 			url: 'procedure',
 			validators: [new RequiredValidator()],
