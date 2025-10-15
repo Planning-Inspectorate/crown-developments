@@ -718,4 +718,66 @@ describe('view-model', () => {
 			);
 		});
 	});
+	it('should map secondary LPA fields if present', () => {
+		/** @type {CrownDevelopment} */
+		const input = {
+			id: 'id-1',
+			referenceId: 'reference-id-1',
+			createdDate: new Date(),
+			hasSecondaryLocalPlanningAuthority: true,
+			secondaryLpa: {
+				email: 'secondarylpa@example.com',
+				telephoneNumber: '0123456789',
+				Address: {
+					line1: 'Secondary LPA Street',
+					townCity: 'Secondary LPA Town',
+					postcode: 'SEC ONE'
+				}
+			}
+		};
+		const result = crownDevelopmentToViewModel(input);
+		assert.strictEqual(result.hasSecondaryLocalPlanningAuthority, 'yes');
+		assert.strictEqual(result.secondaryLpaEmail, 'secondarylpa@example.com');
+		assert.strictEqual(result.secondaryLpaTelephoneNumber, '0123456789');
+		assert.deepStrictEqual(result.secondaryLpaAddress, {
+			id: undefined,
+			addressLine1: 'Secondary LPA Street',
+			addressLine2: undefined,
+			county: undefined,
+			townCity: 'Secondary LPA Town',
+			postcode: 'SEC ONE'
+		});
+	});
+
+	it('should not map secondary LPA fields if not present', () => {
+		/** @type {CrownDevelopment} */
+		const input = {
+			id: 'id-1',
+			referenceId: 'reference-id-1',
+			createdDate: new Date(),
+			hasSecondaryLocalPlanningAuthority: false
+		};
+		const result = crownDevelopmentToViewModel(input);
+		assert.strictEqual(result.secondaryLpaEmail, undefined);
+		assert.strictEqual(result.secondaryLpaTelephoneNumber, undefined);
+		assert.strictEqual(result.secondaryLpaAddress, undefined);
+	});
+	it('disconnects secondaryLPA and removes related fields when hasSecondaryLocalPlanningAuthority is set to false', () => {
+		const viewModel = { hasSecondaryLocalPlanningAuthority: true };
+		const edits = {
+			hasSecondaryLocalPlanningAuthority: false,
+			secondaryLpaId: 'some-id',
+			secondaryLpaEmail: 'test@example.com',
+			secondaryLpaTelephoneNumber: '123',
+			secondaryLpaAddress: { line1: 'address' }
+		};
+		`1`;
+		const updates = editsToDatabaseUpdates(edits, viewModel);
+
+		assert.deepStrictEqual(updates.secondaryLpa, { disconnect: true });
+		assert.strictEqual(edits.secondaryLpaId, undefined);
+		assert.strictEqual(edits.secondaryLpaEmail, undefined);
+		assert.strictEqual(edits.secondaryLpaTelephoneNumber, undefined);
+		assert.strictEqual(edits.secondaryLpaAddress, undefined);
+	});
 });

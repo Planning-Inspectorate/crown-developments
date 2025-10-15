@@ -13,6 +13,7 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'description',
 	'typeId',
 	'subTypeId',
+	'secondaryLpaId',
 	'lpaId',
 	'siteNorthing',
 	'siteEasting',
@@ -65,7 +66,8 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'applicationFee',
 	'applicationReceivedDateEmailSent',
 	'notNationallyImportantEmailSent',
-	'siteVisitDate'
+	'siteVisitDate',
+	'hasSecondaryLocalPlanningAuthority'
 ]);
 
 /**
@@ -113,6 +115,11 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 	addLpaDetailsToViewModel(viewModel, crownDevelopment.Lpa);
 	addContactToViewModel(viewModel, crownDevelopment.ApplicantContact, 'applicant');
 	addContactToViewModel(viewModel, crownDevelopment.AgentContact, 'agent');
+
+	// Add secondary LPA details if present
+	if (hasSecondaryLpa(crownDevelopment.hasSecondaryLocalPlanningAuthority)) {
+		addSecondaryLpaEventToViewModel(viewModel, crownDevelopment.secondaryLpa);
+	}
 
 	if (hasProcedure(crownDevelopment.procedureId)) {
 		const event = crownDevelopment.Event || {};
@@ -187,6 +194,17 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		crownDevelopmentUpdateInput.AgentContact = agentContactUpdates;
 	}
 
+	if (
+		'hasSecondaryLocalPlanningAuthority' in edits &&
+		edits.hasSecondaryLocalPlanningAuthority !== viewModel.hasSecondaryLocalPlanningAuthority &&
+		edits.hasSecondaryLocalPlanningAuthority === false
+	) {
+		crownDevelopmentUpdateInput.secondaryLpa = { disconnect: true };
+		delete edits.secondaryLpaId;
+		delete edits.secondaryLpaEmail;
+		delete edits.secondaryLpaTelephoneNumber;
+		delete edits.secondaryLpaAddress;
+	}
 	if ('procedureId' in edits && edits.procedureId !== viewModel.procedureId) {
 		// delete procedureId update due to needing to handle as relational change rather than scalar field update
 		delete crownDevelopmentUpdateInput.procedureId;
@@ -325,6 +343,30 @@ function addLpaDetailsToViewModel(viewModel, lpa) {
 		viewModel['lpaEmail'] = lpa.email;
 		if (lpa.Address) {
 			viewModel['lpaAddress'] = addressToViewModel(lpa.Address);
+		}
+	}
+}
+
+/**
+ * Returns true if hasSecondaryLocalPlanningAuthority is true or 'Yes'
+ * @param {boolean|string|null|undefined} value
+ * @returns {boolean}
+ */
+function hasSecondaryLpa(value) {
+	return value === true || value === 'Yes' || value === 'yes';
+}
+
+/**
+ * Populates secondary LPA contact and address fields in the view model.
+ * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
+ * @param {import('@prisma/client').Prisma.LpaGetPayload<{include: {Address: true}}>|null|undefined} secondaryLpa
+ */
+function addSecondaryLpaEventToViewModel(viewModel, secondaryLpa) {
+	if (secondaryLpa) {
+		viewModel.secondaryLpaEmail = secondaryLpa.email;
+		viewModel.secondaryLpaTelephoneNumber = secondaryLpa.telephoneNumber;
+		if (secondaryLpa.Address) {
+			viewModel.secondaryLpaAddress = addressToViewModel(secondaryLpa.Address);
 		}
 	}
 }

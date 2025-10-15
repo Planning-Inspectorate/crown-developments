@@ -41,7 +41,7 @@ model CrownDevelopment {
   description                         String?                     @db.NVarChar(2000)
   /// LPA associated with this application
   lpaId                               String?                     @db.UniqueIdentifier
-  Lpa                                 Lpa?                        @relation(fields: [lpaId], references: [id])
+  Lpa                                 Lpa?                        @relation(fields: [lpaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   applicantContactId                  String?                     @db.UniqueIdentifier
   ApplicantContact                    Contact?                    @relation("ApplicantContact", fields: [applicantContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   agentContactId                      String?                     @db.UniqueIdentifier
@@ -127,6 +127,11 @@ model CrownDevelopment {
   applicationFee                      Decimal?
   siteVisitDate                       DateTime?
   ApplicationUpdates                  ApplicationUpdate[]
+
+  /// Secondary LPA associated with this application
+  hasSecondaryLocalPlanningAuthority Boolean? @default(false)
+  secondaryLpaId                     String?  @db.UniqueIdentifier
+  secondaryLpa                       Lpa?     @relation("SecondaryLpa", fields: [secondaryLpaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
 }
 
 /// Address represents an address of a property or place
@@ -178,11 +183,12 @@ model Lpa {
   Address         Address? @relation(fields: [addressId], references: [id])
 
   /// Horizon LPA identifier
-  pinsCode         String?
+  pinsCode                  String?
   /// ONS LPA identifier
-  onsCode          String?
-  CrownDevelopment CrownDevelopment[]
-  NotifyEmail      NotifyEmail[]
+  onsCode                   String?
+  CrownDevelopment          CrownDevelopment[]
+  SecondaryCrownDevelopment CrownDevelopment[] @relation("SecondaryLpa")
+  NotifyEmail               NotifyEmail[]
 }
 
 /// Event represents an event in relation to an application, such as a hearing or an inquiry

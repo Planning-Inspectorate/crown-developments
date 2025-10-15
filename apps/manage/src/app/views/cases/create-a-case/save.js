@@ -150,7 +150,7 @@ export function buildSuccessController({ db }) {
  * @param {string|null} subType
  * @returns {import('@prisma/client').Prisma.CrownDevelopmentCreateInput}
  */
-function toCreateInput(answers, reference, subType) {
+export function toCreateInput(answers, reference, subType) {
 	/** @type {import('@prisma/client').Prisma.CrownDevelopmentCreateInput} */
 	const input = {
 		reference,
@@ -163,6 +163,12 @@ function toCreateInput(answers, reference, subType) {
 		siteNorthing: toFloat(answers.siteNorthing),
 		expectedDateOfSubmission: answers.expectedDateOfSubmission
 	};
+
+	input.hasSecondaryLocalPlanningAuthority = yesNoToBoolean(answers.hasSecondaryLocalPlanningAuthority);
+
+	if (input.hasSecondaryLocalPlanningAuthority && answers.secondaryLpaId) {
+		input.secondaryLpa = { connect: { id: answers.secondaryLpaId } };
+	}
 
 	if (subType) {
 		input.SubType = { connect: { id: subType } };

@@ -42,6 +42,13 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 	// this is to avoid a database read when the data is static - but it does vary by environment
 	// the options here should match the dev/prod seed scripts
 	const LPAs = env === ENVIRONMENT_NAME.PROD ? LOCAL_PLANNING_AUTHORITIES_PROD : LOCAL_PLANNING_AUTHORITIES_DEV;
+	const secondaryLpaSelected = LPAs.find((lpa) => lpa.id === overrides.secondaryLpaId);
+
+	const secondaryLpaContact = {
+		email: secondaryLpaSelected?.email,
+		telephoneNumber: secondaryLpaSelected?.telephoneNumber
+	};
+	const secondaryLpaAddress = secondaryLpaSelected?.Address;
 
 	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {
@@ -99,6 +106,32 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			url: 'local-planning-authority',
 			validators: [new RequiredValidator('Select Local Planning Authority')],
 			options: lpaListToRadioOptions(LPAs)
+		},
+		hasSecondaryLocalPlanningAuthority: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Has Secondary Local Planning Authority',
+			question: 'Is there a secondary Local Planning Authority for this application?',
+			fieldName: 'hasSecondaryLocalPlanningAuthority',
+			url: 'has-secondary-local-planning-authority',
+			validators: [new RequiredValidator('Select if the applicant is using a secondary Local Planning Authority')]
+		},
+		secondaryLocalPlanningAuthority: {
+			type: COMPONENT_TYPES.SELECT,
+			title: 'Secondary Local Planning Authority',
+			question: 'Select the Secondary Local Planning Authority for this application',
+			fieldName: 'secondaryLpaId',
+			url: 'secondary-local-planning-authority',
+			validators: [new RequiredValidator('Select Secondary Local Planning Authority')],
+			options: lpaListToRadioOptions(LPAs),
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'secondary-local-planning-authority/remove'
+					}
+				]
+			}
 		},
 		siteAddress: {
 			type: COMPONENT_TYPES.ADDRESS,
@@ -304,6 +337,38 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			fieldName: `lpaAddress`,
 			url: `lpa-address`,
 			validators: [new AddressValidator()],
+			editable: false
+		},
+
+		secondaryLpaContact: {
+			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
+			title: `Secondary LPA Contact`,
+			question: `What are the Secondary LPA Contact details?`,
+			fieldName: 'secondaryLpaContact',
+			url: `secondary-lpa-contact`,
+			inputFields: [
+				{
+					fieldName: `secondaryLpaEmail`,
+					label: 'Email'
+				},
+				{
+					fieldName: `secondaryLpaTelephoneNumber`,
+					label: 'Telephone Number'
+				}
+			],
+			validators: [],
+			defaultValue: secondaryLpaContact,
+			editable: false
+		},
+		secondaryLpaAddress: {
+			type: COMPONENT_TYPES.ADDRESS,
+			title: 'Secondary LPA Address',
+			question: 'What is the address of the Secondary LPA?',
+			hint: 'Optional',
+			fieldName: `secondaryLpaAddress`,
+			url: `secondary-lpa-address`,
+			validators: [new AddressValidator()],
+			defaultValue: secondaryLpaAddress,
 			editable: false
 		},
 

@@ -2,6 +2,7 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildSaveController, buildSuccessController, newReference } from './save.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import { toCreateInput } from './save.js';
 
 describe('save', () => {
 	//I need to mock copyDriveItem which is a method of getSharepointDrive
@@ -671,5 +672,17 @@ describe('save', () => {
 			const successController = buildSuccessController({});
 			await assert.rejects(() => successController(mockReq, {}), { message: 'invalid create case session' });
 		});
+	});
+	it('should set hasSecondaryLocalPlanningAuthority as boolean and secondaryLpa when answered yes', () => {
+		const answers = {
+			developmentDescription: 'desc',
+			typeOfApplication: 'type',
+			lpaId: 'lpa-1',
+			hasSecondaryLocalPlanningAuthority: 'yes',
+			secondaryLpaId: 'lpa-2'
+		};
+		const input = toCreateInput(answers, 'ref-1', null);
+		assert.strictEqual(input.hasSecondaryLocalPlanningAuthority, true);
+		assert.deepStrictEqual(input.secondaryLpa, { connect: { id: 'lpa-2' } });
 	});
 });

@@ -10,6 +10,16 @@ import {
 export const JOURNEY_ID = 'case-details';
 
 /**
+ * Returns true if hasSecondaryLocalPlanningAuthority is true or 'Yes'
+ * @param {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} response
+ * @returns {boolean}
+ */
+function hasSecondaryLpa(response) {
+	const value = response.answers?.hasSecondaryLocalPlanningAuthority;
+	return value === true || value === 'Yes' || value === 'yes';
+}
+
+/**
  * @param {{[questionType: string]: import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question}} questions
  * @param {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} response
  * @param {import('express').Request} req
@@ -47,6 +57,9 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.subTypeOfApplication)
 				.withCondition(isPlanningOrLbcCase)
 				.addQuestion(questions.localPlanningAuthority)
+				.addQuestion(questions.hasSecondaryLocalPlanningAuthority)
+				.addQuestion(questions.secondaryLocalPlanningAuthority)
+				.withCondition(hasSecondaryLpa)
 				.addQuestion(questions.siteAddress)
 				.addQuestion(questions.siteCoordinates)
 				.addQuestion(questions.siteArea)
@@ -68,6 +81,10 @@ export function createJourney(questions, response, req) {
 			new Section('Contacts', 'contacts')
 				.addQuestion(questions.lpaContact)
 				.addQuestion(questions.lpaAddress)
+				.addQuestion(questions.secondaryLpaContact)
+				.withCondition(hasSecondaryLpa)
+				.addQuestion(questions.secondaryLpaAddress)
+				.withCondition(hasSecondaryLpa)
 				.addQuestion(questions.applicantContact)
 				.addQuestion(questions.applicantContactAddress)
 				.addQuestion(questions.agentContact)
