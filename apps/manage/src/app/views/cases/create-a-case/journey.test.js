@@ -54,4 +54,28 @@ describe('create-a-case journey', () => {
 	it('should include agent questions if hasAgent is answered yes', () => {
 		testAgentQuestionDisplay(BOOLEAN_OPTIONS.YES, true);
 	});
+
+	it('should not display secondaryLocalPlanningAuthority when hasSecondaryLpa is NO', () => {
+		process.env.ENVIRONMENT = 'dev';
+		const questions = getQuestions();
+		const answers = { hasSecondaryLpa: BOOLEAN_OPTIONS.NO };
+		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+		const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+		const section = journey.sections[0];
+		const secondaryLpaQ = section.questions.find((q) => q && q.fieldName === 'secondaryLpaId');
+		assert(secondaryLpaQ, 'secondaryLocalPlanningAuthority question should exist');
+		assert.strictEqual(secondaryLpaQ.shouldDisplay(response), false);
+	});
+
+	it('should display secondaryLocalPlanningAuthority when hasSecondaryLpa is YES', () => {
+		process.env.ENVIRONMENT = 'dev';
+		const questions = getQuestions();
+		const answers = { hasSecondaryLpa: BOOLEAN_OPTIONS.YES };
+		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
+		const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
+		const section = journey.sections[0];
+		const secondaryLpaQ = section.questions.find((q) => q && q.fieldName === 'secondaryLpaId');
+		assert(secondaryLpaQ, 'secondaryLocalPlanningAuthority question should exist');
+		assert.strictEqual(secondaryLpaQ.shouldDisplay(response), true);
+	});
 });

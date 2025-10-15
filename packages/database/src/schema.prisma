@@ -41,7 +41,13 @@ model CrownDevelopment {
   description                         String?                     @db.NVarChar(2000)
   /// LPA associated with this application
   lpaId                               String?                     @db.UniqueIdentifier
-  Lpa                                 Lpa?                        @relation(fields: [lpaId], references: [id])
+  Lpa                                 Lpa?                        @relation("PrimaryLpa", fields: [lpaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  /// Secondary LPA associated with this application
+  hasSecondaryLpa                     Boolean?                    @default(false)
+  /// hasSecondaryLpa added to allow secondaryLpa to be edited in overview
+  secondaryLpaId                      String?                     @db.UniqueIdentifier
+  SecondaryLpa                        Lpa?                        @relation("SecondaryLpa", fields: [secondaryLpaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  /// Applicant contact details
   applicantContactId                  String?                     @db.UniqueIdentifier
   ApplicantContact                    Contact?                    @relation("ApplicantContact", fields: [applicantContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   agentContactId                      String?                     @db.UniqueIdentifier
@@ -178,11 +184,12 @@ model Lpa {
   Address         Address? @relation(fields: [addressId], references: [id])
 
   /// Horizon LPA identifier
-  pinsCode         String?
+  pinsCode                  String?
   /// ONS LPA identifier
-  onsCode          String?
-  CrownDevelopment CrownDevelopment[]
-  NotifyEmail      NotifyEmail[]
+  onsCode                   String?
+  CrownDevelopment          CrownDevelopment[] @relation("PrimaryLpa")
+  SecondaryCrownDevelopment CrownDevelopment[] @relation("SecondaryLpa")
+  NotifyEmail               NotifyEmail[]
 }
 
 /// Event represents an event in relation to an application, such as a hearing or an inquiry

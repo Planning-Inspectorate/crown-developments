@@ -2,6 +2,7 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildSaveController, buildSuccessController, newReference } from './save.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import { toCreateInput } from './save.js';
 
 describe('save', () => {
 	//I need to mock copyDriveItem which is a method of getSharepointDrive
@@ -671,5 +672,31 @@ describe('save', () => {
 			const successController = buildSuccessController({});
 			await assert.rejects(() => successController(mockReq, {}), { message: 'invalid create case session' });
 		});
+	});
+});
+describe('toCreateInput', () => {
+	it('should save secondaryLpa when hasSecondaryLpa is yes', () => {
+		const answers = {
+			developmentDescription: 'desc',
+			typeOfApplication: 'type',
+			lpaId: 'lpa-1',
+			hasSecondaryLpa: true,
+			secondaryLpaId: 'lpa-2'
+		};
+		const input = toCreateInput(answers, 'ref-1', null);
+		assert.strictEqual(input.hasSecondaryLpa, true);
+		assert.deepStrictEqual(input.SecondaryLpa, { connect: { id: 'lpa-2' } });
+	});
+	it('should not save secondaryLpa when hasSeoncdaryLpa is no', () => {
+		const answers = {
+			developmentDescription: 'desc',
+			typeOfApplication: 'type',
+			lpaId: 'lpa-1',
+			hasSecondaryLpa: 'no',
+			secondaryLpaId: 'lpa-2'
+		};
+		const input = toCreateInput(answers, 'ref-1', null);
+		assert.strictEqual(input.hasSecondaryLpa, false);
+		assert.strictEqual(input.SecondaryLpa, undefined);
 	});
 });
