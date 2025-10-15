@@ -6,6 +6,7 @@ import {
 	APPLICATION_SUB_TYPE_ID,
 	APPLICATION_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
+import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 export const JOURNEY_ID = 'case-details';
 
@@ -22,7 +23,7 @@ export function createJourney(questions, response, req) {
 	if (!req.baseUrl?.includes(req.params.id)) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey (invalid baseUrl)`);
 	}
-
+	const hasSecondaryLpa = (response) => yesNoToBoolean(response.answers?.hasSecondaryLpa);
 	const isWrittenReps = (response) =>
 		questionHasAnswer(response, questions.procedure, APPLICATION_PROCEDURE_ID.WRITTEN_REPS);
 	const isInquiry = (response) => questionHasAnswer(response, questions.procedure, APPLICATION_PROCEDURE_ID.INQUIRY);
@@ -47,6 +48,9 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.subTypeOfApplication)
 				.withCondition(isPlanningOrLbcCase)
 				.addQuestion(questions.localPlanningAuthority)
+				.addQuestion(questions.hasSecondaryLpa)
+				.addQuestion(questions.secondaryLocalPlanningAuthority)
+				.withCondition(hasSecondaryLpa)
 				.addQuestion(questions.siteAddress)
 				.addQuestion(questions.siteCoordinates)
 				.addQuestion(questions.siteArea)
@@ -68,6 +72,10 @@ export function createJourney(questions, response, req) {
 			new Section('Contacts', 'contacts')
 				.addQuestion(questions.lpaContact)
 				.addQuestion(questions.lpaAddress)
+				.addQuestion(questions.secondaryLpaContact)
+				.withCondition(hasSecondaryLpa)
+				.addQuestion(questions.secondaryLpaAddress)
+				.withCondition(hasSecondaryLpa)
 				.addQuestion(questions.applicantContact)
 				.addQuestion(questions.applicantContactAddress)
 				.addQuestion(questions.agentContact)

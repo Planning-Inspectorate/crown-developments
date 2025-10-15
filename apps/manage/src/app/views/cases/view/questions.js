@@ -100,6 +100,32 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			validators: [new RequiredValidator('Select Local Planning Authority')],
 			options: lpaListToRadioOptions(LPAs)
 		},
+		hasSecondaryLpa: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Has Secondary Local Planning Authority',
+			question: 'Is there a secondary Local Planning Authority for this application?',
+			fieldName: 'hasSecondaryLpa',
+			url: 'has-secondary-local-planning-authority',
+			validators: [new RequiredValidator('Select if the applicant is using a secondary Local Planning Authority')]
+		},
+		secondaryLocalPlanningAuthority: {
+			type: COMPONENT_TYPES.SELECT,
+			title: 'Secondary Local Planning Authority',
+			question: 'Select the Secondary Local Planning Authority for this application',
+			fieldName: 'secondaryLpaId',
+			url: 'secondary-local-planning-authority',
+			validators: [new RequiredValidator('Select Secondary Local Planning Authority')],
+			options: lpaListToRadioOptions(LPAs),
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'secondary-local-planning-authority/remove'
+					}
+				]
+			}
+		},
 		siteAddress: {
 			type: COMPONENT_TYPES.ADDRESS,
 			title: `Site Address`,
@@ -303,6 +329,36 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			hint: 'Optional',
 			fieldName: `lpaAddress`,
 			url: `lpa-address`,
+			validators: [new AddressValidator()],
+			editable: false
+		},
+
+		secondaryLpaContact: {
+			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
+			title: `Secondary LPA Contact`,
+			question: `What are the Secondary LPA Contact details?`,
+			fieldName: 'secondaryLpaContact',
+			url: `secondary-lpa-contact`,
+			inputFields: [
+				{
+					fieldName: `secondaryLpaEmail`,
+					label: 'Email'
+				},
+				{
+					fieldName: `secondaryLpaTelephoneNumber`,
+					label: 'Telephone Number'
+				}
+			],
+			validators: [],
+			editable: false
+		},
+		secondaryLpaAddress: {
+			type: COMPONENT_TYPES.ADDRESS,
+			title: 'Secondary LPA Address',
+			question: 'What is the address of the Secondary LPA?',
+			hint: 'Optional',
+			fieldName: `secondaryLpaAddress`,
+			url: `secondary-lpa-address`,
 			validators: [new AddressValidator()],
 			editable: false
 		},

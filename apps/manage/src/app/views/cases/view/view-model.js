@@ -14,6 +14,8 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'typeId',
 	'subTypeId',
 	'lpaId',
+	'hasSecondaryLpa',
+	'secondaryLpaId',
 	'siteNorthing',
 	'siteEasting',
 	'siteArea',
@@ -111,14 +113,17 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 	}
 
 	addLpaDetailsToViewModel(viewModel, crownDevelopment.Lpa);
+
+	if (crownDevelopment.hasSecondaryLpa === true) {
+		addLpaDetailsToViewModel(viewModel, crownDevelopment.SecondaryLpa, 'secondaryLpa');
+	}
+
 	addContactToViewModel(viewModel, crownDevelopment.ApplicantContact, 'applicant');
 	addContactToViewModel(viewModel, crownDevelopment.AgentContact, 'agent');
-
 	if (hasProcedure(crownDevelopment.procedureId)) {
 		const event = crownDevelopment.Event || {};
 		addEventToViewModel(viewModel, event, crownDevelopment.procedureId, crownDevelopment.procedureNotificationDate);
 	}
-
 	return viewModel;
 }
 
@@ -241,6 +246,17 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		}
 	}
 
+	// If you select no for hasSecondaryLpa then it should remove the secondaryLpa answers,
+	// and if you remove the secondaryLpa then it should set hasSecondaryLpa to false
+	if (
+		('hasSecondaryLpa' in edits && edits.hasSecondaryLpa === false) ||
+		('secondaryLpaId' in edits && edits.secondaryLpaId === null)
+	) {
+		crownDevelopmentUpdateInput.hasSecondaryLpa = false;
+
+		delete crownDevelopmentUpdateInput.secondaryLpaId;
+		crownDevelopmentUpdateInput.SecondaryLpa = { disconnect: true };
+	}
 	return crownDevelopmentUpdateInput;
 }
 
@@ -316,15 +332,17 @@ function viewModelToNestedContactUpdate(edits, prefix, viewModel) {
 }
 
 /**
+ * Populates LPA or secondary LPA contact and address fields in the view model using a prefix.
  * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
- * @param {import('@prisma/client').Prisma.LpaGetPayload<{include: {Address: true}}>|null} lpa
+ * @param {import('@prisma/client').Prisma.LpaGetPayload<{include: {Address: true}}>|null|undefined} lpa
+ * @param {string} prefix - e.g. 'lpa' or 'secondaryLpa'
  */
-function addLpaDetailsToViewModel(viewModel, lpa) {
+function addLpaDetailsToViewModel(viewModel, lpa, prefix = 'lpa') {
 	if (lpa) {
-		viewModel['lpaTelephoneNumber'] = lpa.telephoneNumber;
-		viewModel['lpaEmail'] = lpa.email;
+		viewModel[`${prefix}TelephoneNumber`] = lpa.telephoneNumber;
+		viewModel[`${prefix}Email`] = lpa.email;
 		if (lpa.Address) {
-			viewModel['lpaAddress'] = addressToViewModel(lpa.Address);
+			viewModel[`${prefix}Address`] = addressToViewModel(lpa.Address);
 		}
 	}
 }

@@ -7,6 +7,8 @@ export interface CrownDevelopmentViewModel {
 	typeOfApplication?: string;
 	subTypeId?: string;
 	lpaId?: string;
+	hasSecondaryLpa?: boolean;
+	secondaryLpaId?: string;
 	siteAddressId?: string;
 	siteAddress?: Address;
 	siteNorthing?: number | string;
@@ -30,6 +32,10 @@ export interface CrownDevelopmentViewModel {
 	lpaEmail?: string;
 	lpaTelephoneNumber?: string;
 	lpaAddress?: Address;
+
+	secondaryLpaEmail?: string;
+	secondaryLpaTelephoneNumber?: string;
+	secondaryLpaAddress?: Address;
 
 	applicantContactId?: string;
 	applicantContactName?: string;
@@ -126,6 +132,7 @@ const viewArgs = Prisma.validator<Prisma.CrownDevelopmentDefaultArgs>()({
 		Category: { include: { ParentCategory: true } },
 		Event: true,
 		Lpa: { include: { Address: true } },
+		SecondaryLpa: { include: { Address: true } },
 		SiteAddress: true
 	}
 });
