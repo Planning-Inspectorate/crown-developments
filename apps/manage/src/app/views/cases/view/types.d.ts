@@ -7,7 +7,7 @@ export interface CrownDevelopmentViewModel {
 	typeOfApplication?: string;
 	subTypeId?: string;
 	lpaId?: string;
-	hasSecondaryLocalPlanningAuthority?: boolean;
+	hasSecondaryLpa?: boolean;
 	secondaryLpaId?: string;
 	siteAddressId?: string;
 	siteAddress?: Address;
@@ -132,7 +132,7 @@ const viewArgs = Prisma.validator<Prisma.CrownDevelopmentDefaultArgs>()({
 		Category: { include: { ParentCategory: true } },
 		Event: true,
 		Lpa: { include: { Address: true } },
-		secondaryLpa: { include: { Address: true } },
+		SecondaryLpa: { include: { Address: true } },
 		SiteAddress: true
 	}
 });

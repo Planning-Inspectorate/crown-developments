@@ -42,13 +42,6 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 	// this is to avoid a database read when the data is static - but it does vary by environment
 	// the options here should match the dev/prod seed scripts
 	const LPAs = env === ENVIRONMENT_NAME.PROD ? LOCAL_PLANNING_AUTHORITIES_PROD : LOCAL_PLANNING_AUTHORITIES_DEV;
-	const secondaryLpaSelected = LPAs.find((lpa) => lpa.id === overrides.secondaryLpaId);
-
-	const secondaryLpaContact = {
-		email: secondaryLpaSelected?.email,
-		telephoneNumber: secondaryLpaSelected?.telephoneNumber
-	};
-	const secondaryLpaAddress = secondaryLpaSelected?.Address;
 
 	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {
@@ -107,11 +100,11 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			validators: [new RequiredValidator('Select Local Planning Authority')],
 			options: lpaListToRadioOptions(LPAs)
 		},
-		hasSecondaryLocalPlanningAuthority: {
+		hasSecondaryLpa: {
 			type: COMPONENT_TYPES.BOOLEAN,
 			title: 'Has Secondary Local Planning Authority',
 			question: 'Is there a secondary Local Planning Authority for this application?',
-			fieldName: 'hasSecondaryLocalPlanningAuthority',
+			fieldName: 'hasSecondaryLpa',
 			url: 'has-secondary-local-planning-authority',
 			validators: [new RequiredValidator('Select if the applicant is using a secondary Local Planning Authority')]
 		},
@@ -357,7 +350,6 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 				}
 			],
 			validators: [],
-			defaultValue: secondaryLpaContact,
 			editable: false
 		},
 		secondaryLpaAddress: {
@@ -368,7 +360,6 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			fieldName: `secondaryLpaAddress`,
 			url: `secondary-lpa-address`,
 			validators: [new AddressValidator()],
-			defaultValue: secondaryLpaAddress,
 			editable: false
 		},
 

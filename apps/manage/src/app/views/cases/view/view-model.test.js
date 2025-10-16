@@ -724,8 +724,8 @@ describe('view-model', () => {
 			id: 'id-1',
 			referenceId: 'reference-id-1',
 			createdDate: new Date(),
-			hasSecondaryLocalPlanningAuthority: true,
-			secondaryLpa: {
+			hasSecondaryLpa: true,
+			SecondaryLpa: {
 				email: 'secondarylpa@example.com',
 				telephoneNumber: '0123456789',
 				Address: {
@@ -736,7 +736,7 @@ describe('view-model', () => {
 			}
 		};
 		const result = crownDevelopmentToViewModel(input);
-		assert.strictEqual(result.hasSecondaryLocalPlanningAuthority, 'yes');
+		assert.strictEqual(result.hasSecondaryLpa, 'yes');
 		assert.strictEqual(result.secondaryLpaEmail, 'secondarylpa@example.com');
 		assert.strictEqual(result.secondaryLpaTelephoneNumber, '0123456789');
 		assert.deepStrictEqual(result.secondaryLpaAddress, {
@@ -755,29 +755,17 @@ describe('view-model', () => {
 			id: 'id-1',
 			referenceId: 'reference-id-1',
 			createdDate: new Date(),
-			hasSecondaryLocalPlanningAuthority: false
+			hasSecondaryLpa: false
 		};
 		const result = crownDevelopmentToViewModel(input);
 		assert.strictEqual(result.secondaryLpaEmail, undefined);
 		assert.strictEqual(result.secondaryLpaTelephoneNumber, undefined);
 		assert.strictEqual(result.secondaryLpaAddress, undefined);
 	});
-	it('disconnects secondaryLPA and removes related fields when hasSecondaryLocalPlanningAuthority is set to false', () => {
-		const viewModel = { hasSecondaryLocalPlanningAuthority: true };
-		const edits = {
-			hasSecondaryLocalPlanningAuthority: false,
-			secondaryLpaId: 'some-id',
-			secondaryLpaEmail: 'test@example.com',
-			secondaryLpaTelephoneNumber: '123',
-			secondaryLpaAddress: { line1: 'address' }
-		};
-		`1`;
-		const updates = editsToDatabaseUpdates(edits, viewModel);
 
-		assert.deepStrictEqual(updates.secondaryLpa, { disconnect: true });
-		assert.strictEqual(edits.secondaryLpaId, undefined);
-		assert.strictEqual(edits.secondaryLpaEmail, undefined);
-		assert.strictEqual(edits.secondaryLpaTelephoneNumber, undefined);
-		assert.strictEqual(edits.secondaryLpaAddress, undefined);
+	it('should set hasSecondaryLpa to no by default for existing cases which have not answered hasSecondaryLpa previously', () => {
+		const toSave = {}; // no secondaryLpaId or secondaryLocalPlanningAuthority
+		const updates = editsToDatabaseUpdates(toSave, {});
+		assert.strictEqual(Object.prototype.hasOwnProperty.call(updates, 'hasSecondaryLpa'), false);
 	});
 });

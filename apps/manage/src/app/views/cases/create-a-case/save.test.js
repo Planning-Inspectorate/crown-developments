@@ -673,16 +673,30 @@ describe('save', () => {
 			await assert.rejects(() => successController(mockReq, {}), { message: 'invalid create case session' });
 		});
 	});
-	it('should set hasSecondaryLocalPlanningAuthority as boolean and secondaryLpa when answered yes', () => {
+});
+describe('toCreateInput', () => {
+	it('should set hasSecondaryLpa as boolean and secondaryLpa when answered yes', () => {
 		const answers = {
 			developmentDescription: 'desc',
 			typeOfApplication: 'type',
 			lpaId: 'lpa-1',
-			hasSecondaryLocalPlanningAuthority: 'yes',
+			hasSecondaryLpa: true,
 			secondaryLpaId: 'lpa-2'
 		};
 		const input = toCreateInput(answers, 'ref-1', null);
-		assert.strictEqual(input.hasSecondaryLocalPlanningAuthority, true);
-		assert.deepStrictEqual(input.secondaryLpa, { connect: { id: 'lpa-2' } });
+		assert.strictEqual(input.hasSecondaryLpa, true);
+		assert.deepStrictEqual(input.SecondaryLpa, { connect: { id: 'lpa-2' } });
+	});
+	it('should set hasSeoncdaryLpa to False when SecondaryLpa has been set to undefined', () => {
+		const answers = {
+			developmentDescription: 'desc',
+			typeOfApplication: 'type',
+			lpaId: 'lpa-1',
+			hasSecondaryLpa: 'no',
+			secondaryLpaId: 'lpa-2'
+		};
+		const input = toCreateInput(answers, 'ref-1', null);
+		assert.strictEqual(input.hasSecondaryLpa, false);
+		assert.strictEqual(input.SecondaryLpa, undefined);
 	});
 });

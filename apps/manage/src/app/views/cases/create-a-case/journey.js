@@ -22,11 +22,9 @@ export function createJourney(questions, response, req) {
 			new Section('Section 1', 'questions')
 				.addQuestion(questions.typeOfApplication)
 				.addQuestion(questions.localPlanningAuthority)
-				.addQuestion(questions.hasSecondaryLocalPlanningAuthority)
+				.addQuestion(questions.hasSecondaryLpa)
 				.addQuestion(questions.secondaryLocalPlanningAuthority)
-				.withCondition((response) =>
-					questionHasAnswer(response, questions.hasSecondaryLocalPlanningAuthority, BOOLEAN_OPTIONS.YES)
-				)
+				.withCondition((response) => questionHasAnswer(response, questions.hasSecondaryLpa, BOOLEAN_OPTIONS.YES))
 				.addQuestion(questions.applicantName)
 				.addQuestion(questions.applicantAddress)
 				.addQuestion(questions.hasAgent)

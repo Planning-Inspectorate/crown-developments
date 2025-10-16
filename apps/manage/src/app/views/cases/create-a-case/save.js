@@ -164,10 +164,10 @@ export function toCreateInput(answers, reference, subType) {
 		expectedDateOfSubmission: answers.expectedDateOfSubmission
 	};
 
-	input.hasSecondaryLocalPlanningAuthority = yesNoToBoolean(answers.hasSecondaryLocalPlanningAuthority);
+	input.hasSecondaryLpa = yesNoToBoolean(answers.hasSecondaryLpa);
 
-	if (input.hasSecondaryLocalPlanningAuthority && answers.secondaryLpaId) {
-		input.secondaryLpa = { connect: { id: answers.secondaryLpaId } };
+	if (input.hasSecondaryLpa && answers.secondaryLpaId) {
+		input.SecondaryLpa = { connect: { id: answers.secondaryLpaId } };
 	}
 
 	if (subType) {

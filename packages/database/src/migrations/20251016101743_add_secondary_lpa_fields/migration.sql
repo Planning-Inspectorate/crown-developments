@@ -6,7 +6,7 @@ BEGIN TRAN;
 ALTER TABLE [dbo].[CrownDevelopment] DROP CONSTRAINT [CrownDevelopment_lpaId_fkey];
 
 -- AlterTable
-ALTER TABLE [dbo].[CrownDevelopment] ADD [hasSecondaryLocalPlanningAuthority] BIT CONSTRAINT [CrownDevelopment_hasSecondaryLocalPlanningAuthority_df] DEFAULT 0,
+ALTER TABLE [dbo].[CrownDevelopment] ADD [hasSecondaryLpa] BIT CONSTRAINT [CrownDevelopment_hasSecondaryLpa_df] DEFAULT 0,
 [secondaryLpaId] UNIQUEIDENTIFIER;
 
 -- AddForeignKey

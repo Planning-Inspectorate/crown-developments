@@ -6,18 +6,9 @@ import {
 	APPLICATION_SUB_TYPE_ID,
 	APPLICATION_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
+import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 export const JOURNEY_ID = 'case-details';
-
-/**
- * Returns true if hasSecondaryLocalPlanningAuthority is true or 'Yes'
- * @param {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} response
- * @returns {boolean}
- */
-function hasSecondaryLpa(response) {
-	const value = response.answers?.hasSecondaryLocalPlanningAuthority;
-	return value === true || value === 'Yes' || value === 'yes';
-}
 
 /**
  * @param {{[questionType: string]: import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question}} questions
@@ -32,7 +23,7 @@ export function createJourney(questions, response, req) {
 	if (!req.baseUrl?.includes(req.params.id)) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey (invalid baseUrl)`);
 	}
-
+	const hasSecondaryLpa = (response) => yesNoToBoolean(response.answers?.hasSecondaryLpa);
 	const isWrittenReps = (response) =>
 		questionHasAnswer(response, questions.procedure, APPLICATION_PROCEDURE_ID.WRITTEN_REPS);
 	const isInquiry = (response) => questionHasAnswer(response, questions.procedure, APPLICATION_PROCEDURE_ID.INQUIRY);
@@ -57,7 +48,7 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.subTypeOfApplication)
 				.withCondition(isPlanningOrLbcCase)
 				.addQuestion(questions.localPlanningAuthority)
-				.addQuestion(questions.hasSecondaryLocalPlanningAuthority)
+				.addQuestion(questions.hasSecondaryLpa)
 				.addQuestion(questions.secondaryLocalPlanningAuthority)
 				.withCondition(hasSecondaryLpa)
 				.addQuestion(questions.siteAddress)
