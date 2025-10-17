@@ -717,5 +717,21 @@ describe('view-model', () => {
 				}
 			);
 		});
+		it('should error if lpa answer is the same as previous', () => {
+			const toSave = {
+				lpaId: 'Another System Test Borough Council'
+			};
+			const viewModel = {
+				lpaId: 'Another System Test Borough Council'
+			};
+			assert.throws(
+				() => editsToDatabaseUpdates(toSave, viewModel),
+				(err) => {
+					assert.strictEqual(err.fieldName, 'lpaId');
+					assert.match(err.message, /Select a new Local Planning Authority or select ‘Back’ to discard your changes/);
+					return true;
+				}
+			);
+		});
 	});
 });
