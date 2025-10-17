@@ -11,5 +11,11 @@ resource "azurerm_service_plan" "apps" {
   worker_count             = var.apps_config.app_service_plan.worker_count
   zone_balancing_enabled   = var.apps_config.app_service_plan.zone_balancing_enabled
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "No"
+    } : {}
+  )
 }

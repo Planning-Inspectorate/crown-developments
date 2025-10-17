@@ -20,7 +20,13 @@ resource "azurerm_mssql_server" "primary" { # create pins-odt-sql-<env>-crown
     type = "SystemAssigned"
   }
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "Yes"
+    } : {}
+  )
 }
 
 resource "azurerm_private_endpoint" "sql_primary" {
@@ -41,7 +47,13 @@ resource "azurerm_private_endpoint" "sql_primary" {
     is_manual_connection           = false
   }
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "No"
+    } : {}
+  )
 }
 
 resource "azurerm_mssql_database" "primary" {
@@ -65,7 +77,13 @@ resource "azurerm_mssql_database" "primary" {
     week_of_year      = var.sql_config.retention.long_term_week_of_year
   }
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "Yes"
+    } : {}
+  )
 }
 
 resource "azurerm_key_vault_secret" "sql_admin_connection_string" {

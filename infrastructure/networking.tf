@@ -4,7 +4,13 @@ resource "azurerm_virtual_network" "main" {
   resource_group_name = azurerm_resource_group.primary.name
   address_space       = [var.vnet_config.address_space]
 
-  tags = var.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 2"
+      PersonalData      = "No"
+    } : {}
+  )
 }
 
 resource "azurerm_subnet" "apps" {

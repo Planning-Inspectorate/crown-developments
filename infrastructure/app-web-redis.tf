@@ -27,6 +27,14 @@ resource "azurerm_private_endpoint" "redis_web" {
     is_manual_connection           = false
     subresource_names              = ["redisCache"]
   }
+
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "No"
+    } : {}
+  )
 }
 
 resource "azurerm_key_vault_secret" "redis_web_connection_string" {
