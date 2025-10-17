@@ -140,7 +140,6 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	// map all the regular fields to the update input
 	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
 		if (Object.hasOwn(edits, field)) {
-			if (field === 'secondaryLpaId') continue;
 			crownDevelopmentUpdateInput[field] = edits[field];
 		}
 	}
@@ -254,10 +253,9 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		('secondaryLpaId' in edits && edits.secondaryLpaId === null)
 	) {
 		crownDevelopmentUpdateInput.hasSecondaryLpa = false;
+
+		delete crownDevelopmentUpdateInput.secondaryLpaId;
 		crownDevelopmentUpdateInput.SecondaryLpa = { disconnect: true };
-	} else if ('secondaryLpaId' in edits && edits.secondaryLpaId) {
-		crownDevelopmentUpdateInput.hasSecondaryLpa = true;
-		crownDevelopmentUpdateInput.SecondaryLpa = { connect: { id: edits.secondaryLpaId } };
 	}
 	return crownDevelopmentUpdateInput;
 }

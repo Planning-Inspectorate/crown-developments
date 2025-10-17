@@ -771,18 +771,22 @@ describe('view-model', () => {
 
 	it('should set hasSecondaryLpa to false and disconnect SecondaryLpa if hasSecondaryLpa is false', () => {
 		const toSave = {
-			hasSecondaryLpa: false
+			hasSecondaryLpa: false,
+			secondaryLpaId: 'lpa-2'
 		};
 		const updates = editsToDatabaseUpdates(toSave, {});
 		assert.strictEqual(updates.hasSecondaryLpa, false);
 		assert.deepStrictEqual(updates.SecondaryLpa, { disconnect: true });
+		assert.strictEqual(updates.secondaryLpaId, undefined); // should be removed
 	});
-	it('should set hasSecondaryLpa to true and connect SecondaryLpa if secondaryLpaId is set', () => {
+
+	it('should set hasSecondaryLpa to false and disconnect SecondaryLpa if secondaryLpaId is null', () => {
 		const toSave = {
-			secondaryLpaId: 'lpa-2'
+			secondaryLpaId: null
 		};
 		const updates = editsToDatabaseUpdates(toSave, {});
-		assert.strictEqual(updates.hasSecondaryLpa, true);
-		assert.deepStrictEqual(updates.SecondaryLpa, { connect: { id: 'lpa-2' } });
+		assert.strictEqual(updates.hasSecondaryLpa, false);
+		assert.deepStrictEqual(updates.SecondaryLpa, { disconnect: true });
+		assert.strictEqual(updates.secondaryLpaId, undefined); // should be removed
 	});
 });
