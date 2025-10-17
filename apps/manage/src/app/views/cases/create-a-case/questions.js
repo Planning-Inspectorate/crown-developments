@@ -50,6 +50,23 @@ export function getQuestions() {
 			title: 'Applicant',
 			addressRequired: false
 		}),
+		hasSecondaryLpa: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Has Secondary Local Planning Authority',
+			question: 'Is there a secondary Local Planning Authority for this application?',
+			fieldName: 'hasSecondaryLpa',
+			url: 'has-secondary-local-planning-authority',
+			validators: [new RequiredValidator('Select if the applicant is using a secondary Local Planning Authority')]
+		},
+		secondaryLocalPlanningAuthority: {
+			type: COMPONENT_TYPES.SELECT,
+			title: 'Secondary LPA',
+			question: 'Select the secondary Local Planning Authority for this application',
+			fieldName: 'secondaryLpaId',
+			url: 'secondary-local-planning-authority',
+			validators: [new RequiredValidator('Select secondary Local Planning Authority')],
+			options: lpaOptions
+		},
 		hasAgent: {
 			type: COMPONENT_TYPES.BOOLEAN,
 			title: 'Has Agent',

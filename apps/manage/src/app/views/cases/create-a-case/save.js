@@ -150,7 +150,7 @@ export function buildSuccessController({ db }) {
  * @param {string|null} subType
  * @returns {import('@prisma/client').Prisma.CrownDevelopmentCreateInput}
  */
-function toCreateInput(answers, reference, subType) {
+export function toCreateInput(answers, reference, subType) {
 	/** @type {import('@prisma/client').Prisma.CrownDevelopmentCreateInput} */
 	const input = {
 		reference,
@@ -161,8 +161,13 @@ function toCreateInput(answers, reference, subType) {
 		siteArea: toFloat(answers.siteArea),
 		siteEasting: toFloat(answers.siteEasting),
 		siteNorthing: toFloat(answers.siteNorthing),
-		expectedDateOfSubmission: answers.expectedDateOfSubmission
+		expectedDateOfSubmission: answers.expectedDateOfSubmission,
+		hasSecondaryLpa: yesNoToBoolean(answers.hasSecondaryLpa)
 	};
+
+	if (input.hasSecondaryLpa && answers.secondaryLpaId) {
+		input.SecondaryLpa = { connect: { id: answers.secondaryLpaId } };
+	}
 
 	if (subType) {
 		input.SubType = { connect: { id: subType } };

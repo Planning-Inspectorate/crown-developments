@@ -156,6 +156,7 @@ export function buildGetJourneyMiddleware(service) {
 				Category: { include: { ParentCategory: true } },
 				Event: true,
 				Lpa: { include: { Address: true } },
+				SecondaryLpa: { include: { Address: true } },
 				SiteAddress: true
 			}
 		});

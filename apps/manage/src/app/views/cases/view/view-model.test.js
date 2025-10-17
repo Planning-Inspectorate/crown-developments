@@ -718,4 +718,75 @@ describe('view-model', () => {
 			);
 		});
 	});
+	it('should map secondary LPA fields if present', () => {
+		/** @type {CrownDevelopment} */
+		const input = {
+			id: 'id-1',
+			referenceId: 'reference-id-1',
+			createdDate: new Date(),
+			hasSecondaryLpa: true,
+			SecondaryLpa: {
+				email: 'secondarylpa@example.com',
+				telephoneNumber: '0123456789',
+				Address: {
+					line1: 'Secondary LPA Street',
+					townCity: 'Secondary LPA Town',
+					postcode: 'SEC ONE'
+				}
+			}
+		};
+		const result = crownDevelopmentToViewModel(input);
+		assert.strictEqual(result.hasSecondaryLpa, 'yes');
+		assert.strictEqual(result.secondaryLpaEmail, 'secondarylpa@example.com');
+		assert.strictEqual(result.secondaryLpaTelephoneNumber, '0123456789');
+		assert.deepStrictEqual(result.secondaryLpaAddress, {
+			id: undefined,
+			addressLine1: 'Secondary LPA Street',
+			addressLine2: undefined,
+			county: undefined,
+			townCity: 'Secondary LPA Town',
+			postcode: 'SEC ONE'
+		});
+	});
+
+	it('should not map secondary LPA fields if not present', () => {
+		/** @type {CrownDevelopment} */
+		const input = {
+			id: 'id-1',
+			referenceId: 'reference-id-1',
+			createdDate: new Date(),
+			hasSecondaryLpa: false
+		};
+		const result = crownDevelopmentToViewModel(input);
+		assert.strictEqual(result.secondaryLpaEmail, undefined);
+		assert.strictEqual(result.secondaryLpaTelephoneNumber, undefined);
+		assert.strictEqual(result.secondaryLpaAddress, undefined);
+	});
+
+	it('should set hasSecondaryLpa to no by default for existing cases which have not answered hasSecondaryLpa previously', () => {
+		const toSave = {}; // no secondaryLpaId or secondaryLocalPlanningAuthority
+		const updates = editsToDatabaseUpdates(toSave, {});
+		assert.strictEqual(Object.prototype.hasOwnProperty.call(updates, 'hasSecondaryLpa'), false);
+	});
+
+	it('should set hasSecondaryLpa to false and disconnect SecondaryLpa if hasSecondaryLpa is false', () => {
+		const toSave = {
+			hasSecondaryLpa: false,
+			secondaryLpaId: 'lpa-2'
+		};
+		const updates = editsToDatabaseUpdates(toSave, {});
+		assert.strictEqual(updates.hasSecondaryLpa, false);
+		assert.deepStrictEqual(updates.SecondaryLpa, { disconnect: true });
+		assert.strictEqual(updates.secondaryLpaId, undefined); // should be removed
+	});
+
+	it('should set hasSecondaryLpa to false and disconnect SecondaryLpa if secondaryLpaId is null', () => {
+		const toSave = {
+			secondaryLpaId: null
+		};
+		const updates = editsToDatabaseUpdates(toSave, {});
+		assert.strictEqual(updates.hasSecondaryLpa, false);
+		assert.deepStrictEqual(updates.SecondaryLpa, { disconnect: true });
+		assert.strictEqual(updates.secondaryLpaId, undefined); // should be removed
+	});
 });
