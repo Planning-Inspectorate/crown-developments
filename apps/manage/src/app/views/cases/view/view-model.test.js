@@ -768,4 +768,21 @@ describe('view-model', () => {
 		const updates = editsToDatabaseUpdates(toSave, {});
 		assert.strictEqual(Object.prototype.hasOwnProperty.call(updates, 'hasSecondaryLpa'), false);
 	});
+
+	it('should set hasSecondaryLpa to false and disconnect SecondaryLpa if hasSecondaryLpa is false', () => {
+		const toSave = {
+			hasSecondaryLpa: false
+		};
+		const updates = editsToDatabaseUpdates(toSave, {});
+		assert.strictEqual(updates.hasSecondaryLpa, false);
+		assert.deepStrictEqual(updates.SecondaryLpa, { disconnect: true });
+	});
+	it('should set hasSecondaryLpa to true and connect SecondaryLpa if secondaryLpaId is set', () => {
+		const toSave = {
+			secondaryLpaId: 'lpa-2'
+		};
+		const updates = editsToDatabaseUpdates(toSave, {});
+		assert.strictEqual(updates.hasSecondaryLpa, true);
+		assert.deepStrictEqual(updates.SecondaryLpa, { connect: { id: 'lpa-2' } });
+	});
 });

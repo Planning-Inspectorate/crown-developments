@@ -140,6 +140,7 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	// map all the regular fields to the update input
 	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
 		if (Object.hasOwn(edits, field)) {
+			if (field === 'secondaryLpaId') continue;
 			crownDevelopmentUpdateInput[field] = edits[field];
 		}
 	}
@@ -246,12 +247,17 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		}
 	}
 
+	// If you select no for hasSecondaryLpa then it should remove the secondaryLpa answers,
+	// and if you remove the secondaryLpa then it should set hasSecondaryLpa to false
 	if (
-		('secondaryLpaId' in edits && (edits.secondaryLpaId === null || edits.secondaryLpaId === undefined)) ||
-		('secondaryLocalPlanningAuthority' in edits &&
-			(edits.secondaryLocalPlanningAuthority === null || edits.secondaryLocalPlanningAuthority === undefined))
+		('hasSecondaryLpa' in edits && edits.hasSecondaryLpa === false) ||
+		('secondaryLpaId' in edits && edits.secondaryLpaId === null)
 	) {
 		crownDevelopmentUpdateInput.hasSecondaryLpa = false;
+		crownDevelopmentUpdateInput.SecondaryLpa = { disconnect: true };
+	} else if ('secondaryLpaId' in edits && edits.secondaryLpaId) {
+		crownDevelopmentUpdateInput.hasSecondaryLpa = true;
+		crownDevelopmentUpdateInput.SecondaryLpa = { connect: { id: edits.secondaryLpaId } };
 	}
 	return crownDevelopmentUpdateInput;
 }

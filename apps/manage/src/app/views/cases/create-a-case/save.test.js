@@ -675,7 +675,7 @@ describe('save', () => {
 	});
 });
 describe('toCreateInput', () => {
-	it('should set hasSecondaryLpa as boolean and secondaryLpa when answered yes', () => {
+	it('should save secondaryLpa when hasSecondaryLpa is yes', () => {
 		const answers = {
 			developmentDescription: 'desc',
 			typeOfApplication: 'type',
@@ -687,7 +687,7 @@ describe('toCreateInput', () => {
 		assert.strictEqual(input.hasSecondaryLpa, true);
 		assert.deepStrictEqual(input.SecondaryLpa, { connect: { id: 'lpa-2' } });
 	});
-	it('should set hasSeoncdaryLpa to False when SecondaryLpa has been set to undefined', () => {
+	it('should not save secondaryLpa when hasSeoncdaryLpa is no', () => {
 		const answers = {
 			developmentDescription: 'desc',
 			typeOfApplication: 'type',

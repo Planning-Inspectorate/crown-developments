@@ -161,10 +161,9 @@ export function toCreateInput(answers, reference, subType) {
 		siteArea: toFloat(answers.siteArea),
 		siteEasting: toFloat(answers.siteEasting),
 		siteNorthing: toFloat(answers.siteNorthing),
-		expectedDateOfSubmission: answers.expectedDateOfSubmission
+		expectedDateOfSubmission: answers.expectedDateOfSubmission,
+		hasSecondaryLpa: yesNoToBoolean(answers.hasSecondaryLpa)
 	};
-
-	input.hasSecondaryLpa = yesNoToBoolean(answers.hasSecondaryLpa);
 
 	if (input.hasSecondaryLpa && answers.secondaryLpaId) {
 		input.SecondaryLpa = { connect: { id: answers.secondaryLpaId } };

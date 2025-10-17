@@ -67,11 +67,6 @@ export function getQuestions() {
 			validators: [new RequiredValidator('Select secondary Local Planning Authority')],
 			options: lpaOptions
 		},
-		...contactQuestions({
-			prefix: 'Secondary Local Planning Authority',
-			title: 'Secondary Local Planning Authority',
-			addressRequired: false
-		}),
 		hasAgent: {
 			type: COMPONENT_TYPES.BOOLEAN,
 			title: 'Has Agent',
