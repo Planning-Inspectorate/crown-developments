@@ -33,6 +33,7 @@ extends:
           - Training
     extraVariables:
       - group: system_asset_owner
+    extraEnvironmentVariables:
       - name: TF_VAR_system_asset_owner
         value: $(system_asset_owner)
 
