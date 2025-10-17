@@ -135,6 +135,11 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	// map all the regular fields to the update input
 	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
 		if (Object.hasOwn(edits, field)) {
+			if (field === 'lpaId' && edits.lpaId === viewModel.lpaId) {
+				const error = new Error('Select a new Local Planning Authority or select ‘Back’ to discard your changes');
+				error.fieldName = 'lpaId';
+				throw error;
+			}
 			crownDevelopmentUpdateInput[field] = edits[field];
 		}
 	}
