@@ -6,6 +6,7 @@ export interface CrownDevelopmentListViewModel {
 	applicationType?: string;
 	applicantName?: string;
 	lpaName?: string;
+	secondaryLpaId?: string;
 	description?: string;
 	stage?: string;
 	procedure?: string;
@@ -34,6 +35,7 @@ const listArgs = Prisma.validator<Prisma.CrownDevelopmentDefaultArgs>()({
 		reference: true,
 		ApplicantContact: { include: { Address: true } },
 		Lpa: true,
+		SecondaryLpa: true,
 		Type: true,
 		SiteAddress: true,
 		Category: true,

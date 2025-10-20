@@ -210,6 +210,54 @@ describe('section-items.js', () => {
 				}
 			]);
 		});
+		it('should show both LPAs if SecondaryLpa is present and completed', async () => {
+			const baseUrl = '/applications';
+			const crownDevelopmentFields = {
+				lpaName: 'Primary LPA',
+				SecondaryLpa: { name: 'Secondary LPA' },
+				applicantName: 'Test Name',
+				siteAddress: '1 The street, the town, the county. W1 1BW.',
+				description: 'desc',
+				applicationType: 'Planning permission'
+			};
+			const items = getAboutThisApplicationSectionItems(baseUrl, crownDevelopmentFields);
+			const lpaItem = items.find((i) => i.key.text === 'Local planning authorities');
+			assert.ok(lpaItem);
+			assert.ok(lpaItem.value.html.includes('Primary LPA'));
+			assert.ok(lpaItem.value.html.includes('Secondary LPA'));
+		});
+
+		it('should show only primary LPA if SecondaryLpa is not present', async () => {
+			const baseUrl = '/applications';
+			const crownDevelopmentFields = {
+				lpaName: 'Primary LPA',
+				applicantName: 'Test Name',
+				siteAddress: '1 The street, the town, the county. W1 1BW.',
+				description: 'desc',
+				applicationType: 'Planning permission'
+				// SecondaryLpa is not present at all
+			};
+			const items = getAboutThisApplicationSectionItems(baseUrl, crownDevelopmentFields);
+			const lpaItem = items.find((i) => i.key.text === 'Local planning authority');
+			assert.ok(lpaItem);
+			assert.strictEqual(lpaItem.value.text, 'Primary LPA');
+		});
+
+		it('should not show SecondaryLpa if not completed (name missing)', async () => {
+			const baseUrl = '/applications';
+			const crownDevelopmentFields = {
+				lpaName: 'Primary LPA',
+				SecondaryLpa: {}, // present but not completed
+				applicantName: 'Test Name',
+				siteAddress: '1 The street, the town, the county. W1 1BW.',
+				description: 'desc',
+				applicationType: 'Planning permission'
+			};
+			const items = getAboutThisApplicationSectionItems(baseUrl, crownDevelopmentFields);
+			const lpaItem = items.find((i) => i.key.text === 'Local planning authority');
+			assert.ok(lpaItem);
+			assert.strictEqual(lpaItem.value.text, 'Primary LPA');
+		});
 	});
 	describe('getImportantDatesSectionItems', () => {
 		it('should return an empty list if important dates section should not be shown', async () => {
