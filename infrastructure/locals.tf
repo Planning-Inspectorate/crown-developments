@@ -38,7 +38,13 @@ locals {
       Environment = var.environment
       ServiceName = local.service_name
       location    = local.primary_location
-    }
+    },
+    var.environment == "prod" ? {
+      BusinessProcess     = "Crown"
+      ProtectiveMarking   = "Official-Sensitive-Mission-Critical"
+      SpecialCategoryData = "No"
+      SystemAssetOwner    = var.system_asset_owner
+    } : {}
   )
 
   tech_emails = [for rec in azurerm_monitor_action_group.crown_tech.email_receiver : rec.email_address]

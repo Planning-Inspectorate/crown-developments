@@ -34,7 +34,13 @@ resource "azurerm_storage_account" "sql_server" {
     type = "SystemAssigned"
   }
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "Yes"
+    } : {}
+  )
 }
 
 resource "azurerm_storage_container" "sql_server" {
@@ -124,7 +130,13 @@ resource "azurerm_monitor_metric_alert" "sql_db_cpu_alert" {
     action_group_id = azurerm_monitor_action_group.crown_tech.id
   }
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "No"
+    } : {}
+  )
 }
 
 resource "azurerm_monitor_metric_alert" "sql_db_dtu_alert" {
@@ -149,7 +161,13 @@ resource "azurerm_monitor_metric_alert" "sql_db_dtu_alert" {
     action_group_id = azurerm_monitor_action_group.crown_tech.id
   }
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "No"
+    } : {}
+  )
 }
 
 resource "azurerm_monitor_metric_alert" "sql_db_log_io_alert" {
@@ -174,7 +192,13 @@ resource "azurerm_monitor_metric_alert" "sql_db_log_io_alert" {
     action_group_id = azurerm_monitor_action_group.crown_tech.id
   }
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "No"
+    } : {}
+  )
 }
 
 resource "azurerm_monitor_metric_alert" "sql_db_deadlock_alert" {
@@ -199,5 +223,11 @@ resource "azurerm_monitor_metric_alert" "sql_db_deadlock_alert" {
     action_group_id = azurerm_monitor_action_group.crown_tech.id
   }
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "No"
+    } : {}
+  )
 }

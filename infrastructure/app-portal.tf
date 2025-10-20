@@ -9,7 +9,13 @@ module "app_portal" {
   app_name        = "portal"
   resource_suffix = var.environment
   service_name    = local.service_name
-  tags            = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "No"
+    } : {}
+  )
 
   # service plan & scaling
   app_service_plan_id                  = azurerm_service_plan.apps.id

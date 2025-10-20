@@ -5,7 +5,13 @@ resource "azurerm_log_analytics_workspace" "main" {
   sku                 = "PerGB2018"
   retention_in_days   = 30
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 3"
+      PersonalData      = "No"
+    } : {}
+  )
 }
 
 resource "azurerm_application_insights" "main" {
@@ -13,10 +19,16 @@ resource "azurerm_application_insights" "main" {
   location             = module.primary_region.location
   resource_group_name  = azurerm_resource_group.primary.name
   workspace_id         = azurerm_log_analytics_workspace.main.id
-  application_type     = "web" # should this be Node.JS, or general?
+  application_type     = "web"
   daily_data_cap_in_gb = 10
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 3"
+      PersonalData      = "No"
+    } : {}
+  )
 }
 
 # availability test for the portal app
@@ -45,7 +57,13 @@ resource "azurerm_application_insights_standard_web_test" "portal" {
     ssl_cert_remaining_lifetime = 7
   }
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 3"
+      PersonalData      = "No"
+    } : {}
+  )
 }
 
 resource "azurerm_monitor_metric_alert" "portal_availability" {
