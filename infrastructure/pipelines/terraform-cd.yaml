@@ -31,6 +31,12 @@ extends:
       - name: Prod
         dependsOn:
           - Training
+    extraVariables:
+      - group: extra_variables
+    extraEnvironmentVariables:
+      - name: TF_VAR_system_asset_owner
+        value: $(system_asset_owner)
+
     serviceConnectionPrefix: Azure DevOps Pipelines - Crown Development - Infrastructure
     storageAccountName: pinssttfstateukscrowndev
     resourceGroupName: pins-rg-shared-terraform-uks

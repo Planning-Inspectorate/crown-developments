@@ -67,5 +67,11 @@ resource "azurerm_private_endpoint" "text_analytics" {
     is_manual_connection           = false
   }
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "No"
+    } : {}
+  )
 }

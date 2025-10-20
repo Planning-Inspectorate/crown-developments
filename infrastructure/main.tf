@@ -2,14 +2,26 @@ resource "azurerm_resource_group" "primary" {
   name     = "${local.org}-rg-${local.resource_suffix}"
   location = module.primary_region.location
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "Yes"
+    } : {}
+  )
 }
 
 resource "azurerm_resource_group" "secondary" {
   name     = "${local.org}-rg-${local.secondary_resource_suffix}"
   location = module.secondary_region.location
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "Yes"
+    } : {}
+  )
 }
 
 resource "azurerm_key_vault" "main" {
@@ -26,7 +38,13 @@ resource "azurerm_key_vault" "main" {
   enable_rbac_authorization   = true
   sku_name                    = "standard"
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      Criticality-Rating = "Level 1"
+      Personal-Data      = "No"
+    } : {}
+  )
 }
 
 # secrets to be manually populated
