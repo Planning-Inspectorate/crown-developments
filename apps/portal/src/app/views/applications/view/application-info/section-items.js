@@ -10,11 +10,15 @@ export function getAboutThisApplicationSectionItems(baseUrl, crownDevelopmentFie
 		},
 		{
 			key: {
-				text: 'Local planning authority'
+				text: crownDevelopmentFields.SecondaryLpa?.name ? 'Local planning authorities' : 'Local planning authority'
 			},
-			value: {
-				text: crownDevelopmentFields.lpaName
-			}
+			value: crownDevelopmentFields.SecondaryLpa?.name
+				? {
+						html: `<p class="govuk-body">${crownDevelopmentFields.lpaName}</p> <p class ="govuk-body">${crownDevelopmentFields.SecondaryLpa.name}</p>`
+					}
+				: {
+						text: crownDevelopmentFields.lpaName
+					}
 		},
 		{
 			key: {

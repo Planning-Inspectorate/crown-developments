@@ -25,6 +25,9 @@ describe('view-model', () => {
 				Lpa: {
 					name: 'Test LPA'
 				},
+				SecondaryLpa: {
+					name: 'Test SecondaryLPA'
+				},
 				Stage: {
 					displayName: 'Inquiry'
 				},
@@ -62,6 +65,7 @@ describe('view-model', () => {
 				description: 'A significant project',
 				stage: 'Inquiry',
 				lpaName: 'Test LPA',
+				SecondaryLpa: { name: 'Test SecondaryLPA' },
 				siteAddress: 'Site Street, Site Town, Site ONE',
 				applicationAcceptedDate: '10 October 2025',
 				decisionDate: '10 October 2025',

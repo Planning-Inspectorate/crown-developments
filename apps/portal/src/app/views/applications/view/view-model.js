@@ -54,6 +54,10 @@ export function crownDevelopmentToViewModel(crownDevelopment, contactEmail) {
 		crownDevelopmentContactEmail: contactEmail
 	};
 
+	if (crownDevelopment.SecondaryLpa && crownDevelopment.SecondaryLpa.name) {
+		fields.SecondaryLpa = crownDevelopment.SecondaryLpa;
+	}
+
 	if (isInquiry(crownDevelopment.procedureId)) {
 		fields.isInquiry = true;
 		fields.inquiryDate = formatDateForDisplay(crownDevelopment.Event?.date, { format: 'd MMMM yyyy' });

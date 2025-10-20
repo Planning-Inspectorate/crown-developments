@@ -42,6 +42,7 @@ export function buildApplicationInformationPage(service) {
 					ApplicantContact: { select: { orgName: true } },
 					DecisionOutcome: { select: { displayName: true } },
 					Lpa: true,
+					SecondaryLpa: true,
 					Type: true,
 					SiteAddress: true,
 					Event: true,
