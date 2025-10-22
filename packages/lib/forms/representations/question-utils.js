@@ -127,8 +127,9 @@ export function representationsContactQuestions({ prefix, actionOverrides = {}, 
 		title: 'Tell us about application',
 		question: 'What do you want to say about this application?',
 		fieldName: `${prefix}Comment`,
-		label: 'Application comments',
+		label: 'Enter your comment',
 		url: 'tell-us-about-application',
+		hint: 'You must tell us in your comment if you’d like to attend a hearing in the event that one is scheduled.',
 		validators: [
 			new RequiredValidator('Enter what you want to tell us about this proposed application'),
 			new StringValidator({

@@ -2,25 +2,35 @@
 
 {% macro renderRepresentationInformation(summaryText) %}
     {% set detailsContent %}
-        <p class="govuk-body">Sensitive information refers to:</p>
+        <p class="govuk-body">Do not include:</p>
         <ul class="govuk-list govuk-list--bullet">
-            <li>comments from children</li>
-            <li>information relating to children</li>
-            <li>information relating to health</li>
-            <li>information relating to crime</li>
+            <li>personal data such as names, addresses, contact details, signatures and photos that could identify you
+                or anyone else
+            </li>
+            <li>links to third party websites, except GOV.UK or chartered professional websites</li>
+            <li>sensitive information</li>
+        </ul>
+        <p class="govuk-body">Sensitive information refers to information that:</p>
+        <ul class="govuk-list govuk-list--bullet">
+            <li>could identify a child</li>
+            <li>relates to health</li>
+            <li>relates to crime </li>
         </ul>
         <p class="govuk-body">It also means any information relating to an individual's:</p>
         <ul class="govuk-list govuk-list--bullet">
-            <li>race</li>
-            <li>ethnic origin</li>
-            <li>politics</li>
-            <li>religion</li>
+            <li>race or ethnic origin</li>
+            <li>political or religious beliefs</li>
             <li>trade union membership</li>
-            <li>genetics</li>
+            <li>genetic or biometric data</li>
             <li>physical characteristics</li>
-            <li>sex life</li>
-            <li>sexual orientation</li>
+            <li>mental health or sexual health</li>
+            <li>sexual orientation and sex life</li>
         </ul>
+        <p class="govuk-body">If you include any personal data, third party links or sensitive data in your comment or
+            supporting documents, this will be redacted and will not be taken into account by the Planning
+            Inspectors.</p>
+        <p class="govuk-body">If you include any racist, inflammatory or abusive language, your written representation
+            will be rejected.</p>
     {% endset %}
     {{ govukDetails({
         summaryText: summaryText,
