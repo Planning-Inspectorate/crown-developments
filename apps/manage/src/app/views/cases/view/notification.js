@@ -15,13 +15,20 @@ export async function sendLpaAcknowledgeReceiptOfQuestionnaireNotification(servi
 	const { notifyClient, logger, crownDevelopment, crownDevelopmentFields } = notificationContext;
 
 	try {
-		await notifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire(crownDevelopmentFields.lpaEmail, {
+		const personalisation = {
 			reference: crownDevelopmentFields.reference,
 			applicationDescription: crownDevelopmentFields.description,
 			siteAddress: formatSiteLocation(crownDevelopment),
 			lpaQuestionnaireReceivedDate: formatDateForDisplay(lpaQuestionnaireReceivedDate),
 			frontOfficeLink: `${service.portalBaseUrl}/applications`
-		});
+		};
+		const lpaRecipientEmails = [crownDevelopmentFields.lpaEmail, crownDevelopmentFields.secondaryLpaEmail].filter(
+			Boolean
+		);
+		const notifyRequests = lpaRecipientEmails.map((email) =>
+			notifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire(email, personalisation)
+		);
+		await Promise.all(notifyRequests);
 	} catch (error) {
 		logger.error(
 			{ error, reference: crownDevelopmentFields.reference },
@@ -114,7 +121,13 @@ async function prepareNotificationContext(service, id) {
 async function getCrownDevelopmentData(db, id) {
 	const crownDevelopment = await db.crownDevelopment.findUnique({
 		where: { id },
-		include: { SiteAddress: true, Lpa: true, ApplicantContact: true, AgentContact: true }
+		include: {
+			SiteAddress: true,
+			Lpa: true,
+			SecondaryLpa: true,
+			ApplicantContact: true,
+			AgentContact: true
+		}
 	});
 
 	const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment);

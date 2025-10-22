@@ -115,6 +115,80 @@ describe('notification', () => {
 				'Gov Notify is not enabled, to use Gov Notify functionality setup Gov Notify environment variables. See README'
 			]);
 		});
+		it('should send email only to LPA if secondaryLpaEmail does not exist', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						reference: 'CROWN/2025/0000001',
+						description: 'a big project',
+						siteNorthing: '123456',
+						siteEasting: '654321',
+						hasApplicationFee: false,
+						hasSecondaryLpa: false,
+						Lpa: { email: 'lpa@email.com' },
+						ApplicantContact: { email: 'applicant@email.com' },
+						agentContactId: null,
+						AgentContact: null
+					})),
+					update: mock.fn()
+				}
+			};
+			const mockNotifyClient = {
+				sendLpaAcknowledgeReceiptOfQuestionnaire: mock.fn()
+			};
+			const date = new Date('2025-01-02');
+
+			await sendLpaAcknowledgeReceiptOfQuestionnaireNotification(
+				{ db: mockDb, logger, notifyClient: mockNotifyClient, portalBaseUrl: 'https://test.com' },
+				'case-1',
+				date
+			);
+			assert.strictEqual(mockNotifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire.mock.callCount(), 1);
+			assert.strictEqual(
+				mockNotifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire.mock.calls[0].arguments[0],
+				'lpa@email.com'
+			);
+		});
+		it('should send two separate emails when both lpaEmail and secondaryLpaEmail are present', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-2',
+						reference: 'CROWN/2025/0000002',
+						description: 'another project',
+						siteNorthing: '111111',
+						siteEasting: '222222',
+						hasApplicationFee: false,
+						hasSecondaryLpa: true,
+						Lpa: { email: 'lpa@email.com' },
+						SecondaryLpa: { email: 'secondary@email.com' },
+						ApplicantContact: { email: 'applicant@email.com' },
+						agentContactId: null,
+						AgentContact: null
+					})),
+					update: mock.fn()
+				}
+			};
+			const mockNotifyClient = {
+				sendLpaAcknowledgeReceiptOfQuestionnaire: mock.fn()
+			};
+			const date = new Date('2025-02-02');
+
+			await sendLpaAcknowledgeReceiptOfQuestionnaireNotification(
+				{ db: mockDb, logger, notifyClient: mockNotifyClient, portalBaseUrl: 'https://test.com' },
+				'case-2',
+				date
+			);
+
+			assert.strictEqual(mockNotifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire.mock.callCount(), 2);
+			const emails = mockNotifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire.mock.calls.map(
+				(call) => call.arguments[0]
+			);
+			assert.deepStrictEqual(emails.sort(), ['lpa@email.com', 'secondary@email.com'].sort());
+		});
 	});
 	describe('sendApplicationReceivedNotification', () => {
 		it('should successfully dispatch notification', async () => {
