@@ -47,6 +47,8 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.typeOfApplication)
 				.addQuestion(questions.subTypeOfApplication)
 				.withCondition(isPlanningOrLbcCase)
+				.addQuestion(questions.connectedApplication)
+				.withCondition(isPlanningOrLbcCase)
 				.addQuestion(questions.localPlanningAuthority)
 				.addQuestion(questions.hasSecondaryLpa)
 				.addQuestion(questions.secondaryLocalPlanningAuthority)

@@ -91,6 +91,15 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			options: referenceDataToRadioOptions(APPLICATION_SUB_TYPES),
 			editable: false
 		},
+		connectedApplication: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Connected Application',
+			question: 'not editable',
+			fieldName: 'connectedApplication',
+			url: '',
+			validators: [],
+			editable: false
+		},
 		localPlanningAuthority: {
 			type: COMPONENT_TYPES.SELECT,
 			title: 'Local Planning Authority',
