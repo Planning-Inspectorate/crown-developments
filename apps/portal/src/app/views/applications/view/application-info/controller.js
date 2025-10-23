@@ -44,10 +44,13 @@ export function buildApplicationInformationPage(service) {
 					Lpa: true,
 					SecondaryLpa: true,
 					Type: true,
+					SubType: true,
 					SiteAddress: true,
 					Event: true,
 					Stage: { select: { displayName: true } },
-					Procedure: { select: { displayName: true } }
+					Procedure: { select: { displayName: true } },
+					ParentCrownDevelopment: { select: { id: true } },
+					ChildrenCrownDevelopment: { select: { id: true } }
 				}
 			}
 		});

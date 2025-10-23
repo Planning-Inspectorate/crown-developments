@@ -5,7 +5,7 @@ export function getAboutThisApplicationSectionItems(baseUrl, crownDevelopmentFie
 				text: 'Type of application'
 			},
 			value: {
-				text: crownDevelopmentFields.applicationType
+				text: crownDevelopmentFields.applicationSubType ?? crownDevelopmentFields.applicationType
 			}
 		},
 		{

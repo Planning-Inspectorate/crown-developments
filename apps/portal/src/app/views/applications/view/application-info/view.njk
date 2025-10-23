@@ -17,6 +17,11 @@
         </div>
 
         <div class="govuk-grid-column-two-thirds">
+            {% if hasLinkedCase %}
+                {{ govukNotificationBanner({
+                    html: '<p class="govuk-notification-banner__heading">This application is connected to a ' + linkedCaseLink + '.</p>'
+                }) }}
+            {% endif %}
             {% if latestApplicationUpdate %}
                 <div class="govuk-grid-row">
                     {% set html %}

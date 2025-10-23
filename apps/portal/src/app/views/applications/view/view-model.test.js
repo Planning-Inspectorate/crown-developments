@@ -153,6 +153,16 @@ describe('view-model', () => {
 			assert.strictEqual(result.hearingDate, '2 April 2025');
 			assert.strictEqual(result.hearingVenue, 'City hall');
 		});
+		it('should map subType field if a subType is present', () => {
+			const input = {
+				SubType: {
+					displayName: 'Sub Type'
+				}
+			};
+			const config = {};
+			const result = crownDevelopmentToViewModel(input, config);
+			assert.strictEqual(result.applicationSubType, 'Sub Type');
+		});
 	});
 	describe('applicationLinks', () => {
 		it('should include Have your say when within the representation submission period', (context) => {
