@@ -157,7 +157,9 @@ export function buildGetJourneyMiddleware(service) {
 				Event: true,
 				Lpa: { include: { Address: true } },
 				SecondaryLpa: { include: { Address: true } },
-				SiteAddress: true
+				SiteAddress: true,
+				ParentCrownDevelopment: { select: { reference: true } },
+				ChildrenCrownDevelopment: { select: { reference: true } }
 			}
 		});
 		if (crownDevelopment === null) {

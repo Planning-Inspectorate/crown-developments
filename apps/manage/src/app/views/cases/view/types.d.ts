@@ -113,6 +113,8 @@ export interface CrownDevelopmentViewModel {
 	inquiryDurationSitting?: number | string;
 	inquiryDurationReporting?: number | string;
 
+	connectedApplication?: string;
+
 	hasApplicationFee: string;
 	applicationFee: string;
 
@@ -133,7 +135,9 @@ const viewArgs = Prisma.validator<Prisma.CrownDevelopmentDefaultArgs>()({
 		Event: true,
 		Lpa: { include: { Address: true } },
 		SecondaryLpa: { include: { Address: true } },
-		SiteAddress: true
+		SiteAddress: true,
+		ParentCrownDevelopment: true,
+		ChildrenCrownDevelopment: true
 	}
 });
 

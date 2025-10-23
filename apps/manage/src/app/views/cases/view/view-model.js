@@ -112,6 +112,16 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 		viewModel.subCategoryId = crownDevelopment.Category.id;
 	}
 
+	if (
+		crownDevelopment.ParentCrownDevelopment ||
+		(crownDevelopment.ChildrenCrownDevelopment && crownDevelopment.ChildrenCrownDevelopment.length > 0)
+	) {
+		const childrenReferences = (crownDevelopment.ChildrenCrownDevelopment ?? []).map((child) => child.reference);
+
+		viewModel.connectedApplication =
+			crownDevelopment.ParentCrownDevelopment?.reference ?? childrenReferences.join(', ');
+	}
+
 	addLpaDetailsToViewModel(viewModel, crownDevelopment.Lpa);
 
 	if (crownDevelopment.hasSecondaryLpa === true) {
