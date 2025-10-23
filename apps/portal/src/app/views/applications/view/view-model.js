@@ -83,6 +83,9 @@ export function crownDevelopmentToViewModel(crownDevelopment, contactEmail) {
 			northing: crownDevelopment.siteNorthing.toString().padStart(6, '0')
 		};
 	}
+	if (crownDevelopment.SubType) {
+		fields.applicationSubType = crownDevelopment.SubType?.displayName;
+	}
 
 	return fields;
 }
