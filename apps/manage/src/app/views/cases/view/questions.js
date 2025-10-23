@@ -168,8 +168,8 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			],
 			validators: [
 				new CoordinatesValidator(
-					{ title: 'Easting', fieldName: 'siteEasting' },
-					{ title: 'Northing', fieldName: 'siteNorthing' }
+					{ title: 'Northing', fieldName: 'siteNorthing' },
+					{ title: 'Easting', fieldName: 'siteEasting' }
 				)
 			]
 		},

@@ -111,8 +111,8 @@ export function getQuestions() {
 			],
 			validators: [
 				new CoordinatesValidator(
-					{ title: 'Easting', fieldName: 'siteEasting' },
-					{ title: 'Northing', fieldName: 'siteNorthing' }
+					{ title: 'Northing', fieldName: 'siteNorthing' },
+					{ title: 'Easting', fieldName: 'siteEasting' }
 				)
 			]
 		},
