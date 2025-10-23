@@ -11,7 +11,7 @@ module "app_portal" {
   service_name    = local.service_name
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
+    var.environment == "training" ? {
       CriticalityRating = "Level 1"
       PersonalData      = "No"
     } : {}

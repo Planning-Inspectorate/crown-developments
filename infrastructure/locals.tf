@@ -39,7 +39,7 @@ locals {
       ServiceName = local.service_name
       location    = local.primary_location
     },
-    var.environment == "prod" ? {
+    var.environment == "training" ? {
       BusinessProcess     = "Crown"
       ProtectiveMarking   = "Official-Sensitive-Mission-Critical"
       SpecialCategoryData = "No"

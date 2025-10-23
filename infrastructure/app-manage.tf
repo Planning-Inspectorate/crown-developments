@@ -9,9 +9,10 @@ module "app_manage" {
   app_name        = "manage"
   resource_suffix = var.environment
   service_name    = local.service_name
+
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
+    var.environment == "training" ? {
       CriticalityRating = "Level 1"
       PersonalData      = "Yes"
     } : {}
