@@ -58,7 +58,7 @@ describe('pagination macro', () => {
 		);
 
 		assert.ok(
-			rendered.includes('<li class="govuk-pagination__item govuk-pagination__item--ellipses">'),
+			rendered.includes('<li class="govuk-pagination__item govuk-pagination__item--ellipsis">'),
 			'Elipses should be present'
 		);
 
@@ -103,7 +103,7 @@ describe('pagination macro', () => {
 		);
 
 		assert.ok(
-			rendered.includes('<li class="govuk-pagination__item govuk-pagination__item--ellipses">'),
+			rendered.includes('<li class="govuk-pagination__item govuk-pagination__item--ellipsis">'),
 			'Elipses should be present'
 		);
 
@@ -144,7 +144,7 @@ describe('pagination macro', () => {
 		);
 
 		assert.ok(
-			!rendered.includes('<li class="govuk-pagination__item govuk-pagination__item--ellipses">'),
+			!rendered.includes('<li class="govuk-pagination__item govuk-pagination__item--ellipsis">'),
 			'Elipses should not be present'
 		);
 
