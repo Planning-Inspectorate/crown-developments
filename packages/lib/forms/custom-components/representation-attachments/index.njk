@@ -4,6 +4,7 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/file-upload/macro.njk" import govukFileUpload %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 
 {% import "custom-components/representation-information/index.njk" as representationInformation %}
 
@@ -29,7 +30,12 @@
                 {{ question.question }}
             </h1>
             {% if question.showUploadWarning %}
-                <p class="govuk-body">You should not use racist, inflammatory or abusive language, or include personal information (also called special category information) about yourself or others in your comments. Any attachments will be reviewed and redacted if necessary.</p>
+                <p class="govuk-body">Use this page to upload your supporting documents. These will be published on the
+                    website along with your name and comment.</p>
+                {{ govukInsetText({
+                    text: "Do not include in your supporting documents any personal information that could identify you or another person."
+                }) }}
+
             {% endif %}
             <p class="govuk-body">
                 You can upload the following file types:
@@ -40,16 +46,13 @@
                 {% endfor %}
                 {{ upperExtensions | join(", ") }}
             </p>
+            <p class="govuk-body">Note that:</p>
             <ul class="govuk-list govuk-list--bullet">
-                <li>Files must not be compressed (e.g. no ZIP files)</li>
-                <li>Each file must be under {{ question.maxFileSizeString }}</li>
-                <li>Only 3 files can be uploaded at a time</li>
-                <li>Total upload size must be under 1GB</li>
+                <li>files must not be compressed (ZIP files will not be accepted)</li>
+                <li>each file must be under {{ question.maxFileSizeString }}</li>
+                <li>only 3 files can be uploaded at a time</li>
+                <li>total upload size must be under 1GB</li>
             </ul>
-
-            {% if question.showUploadWarning %}
-                {{ representationInformation.renderRepresentationInformation("Examples of personal information") }}
-            {% endif %}
 
             <p class="govuk-body govuk-!-font-weight-bold">Upload attachments</p>
 
@@ -112,6 +115,11 @@
                     }) }}
                 </noscript>
             </form>
+
+            {% if question.showUploadWarning %}
+                {{ representationInformation.renderRepresentationInformation("Guidance on what not to incldue") }}
+            {% endif %}
+
 
             <form action="" method="post" novalidate>
                 <input type="hidden" name="_csrf" value="{{ _csrf }}">
