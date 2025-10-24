@@ -34,7 +34,7 @@ locals {
   tags = merge(
     var.tags,
     {
-      CreatedBy   = "devops"
+      CreatedBy   = "terraform"
       Environment = var.environment
       ServiceName = local.service_name
       location    = local.primary_location
