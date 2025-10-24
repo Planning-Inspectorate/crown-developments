@@ -4,3 +4,9 @@
 	overflow-x: auto;
 	-webkit-overflow-scrolling: touch;
 }
+@media (max-width: 640px) {
+	/* zoom 400% and on mobile */
+	.pins-table-columns__hide-on-mobile {
+		display: none;
+	}
+}
