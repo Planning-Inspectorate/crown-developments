@@ -42,7 +42,7 @@
     "escape-html": "^1.0.3",
     "express": "^5.1.0",
     "express-session": "^1.18.1",
-    "express-validator": "^7.2.1",
+    "express-validator": "^7.3.0",
     "file-type": "^21.0.0",
     "govuk-frontend": "^5.13.0",
     "helmet": "^8.1.0",
