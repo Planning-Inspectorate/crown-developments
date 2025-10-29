@@ -106,7 +106,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			question: 'Select the Local Planning Authority for this application',
 			fieldName: 'lpaId',
 			url: 'local-planning-authority',
-			validators: [new RequiredValidator('Select Local Planning Authority')],
+			validators: [new RequiredValidator('Select the Local Planning Authority')],
 			options: lpaListToRadioOptions(LPAs)
 		},
 		hasSecondaryLpa: {
@@ -123,7 +123,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			question: 'Select the Secondary Local Planning Authority for this application',
 			fieldName: 'secondaryLpaId',
 			url: 'secondary-local-planning-authority',
-			validators: [new RequiredValidator('Select Secondary Local Planning Authority')],
+			validators: [new RequiredValidator('Select the secondary Local Planning Authority')],
 			options: lpaListToRadioOptions(LPAs),
 			viewData: {
 				extraActionButtons: [
