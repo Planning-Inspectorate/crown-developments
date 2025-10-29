@@ -42,7 +42,7 @@ export function getQuestions() {
 			question: 'Select the Local Planning Authority for this application',
 			fieldName: 'lpaId',
 			url: 'local-planning-authority',
-			validators: [new RequiredValidator('Select Local Planning Authority')],
+			validators: [new RequiredValidator('Select the Local Planning Authority')],
 			options: lpaOptions
 		},
 		...contactQuestions({
@@ -64,7 +64,7 @@ export function getQuestions() {
 			question: 'Select the secondary Local Planning Authority for this application',
 			fieldName: 'secondaryLpaId',
 			url: 'secondary-local-planning-authority',
-			validators: [new RequiredValidator('Select secondary Local Planning Authority')],
+			validators: [new RequiredValidator('Select the secondary Local Planning Authority')],
 			options: lpaOptions
 		},
 		hasAgent: {
