@@ -55,7 +55,7 @@ describe('./lib/forms/custom-components/fee-amount/fee-amount-validator.js', () 
 		const errors = await _validationMappedErrors(req, question);
 
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors.applicationFee.msg, 'Select Yes if there is an application fee');
+		assert.strictEqual(errors.applicationFee.msg, 'Select yes if there is an application fee');
 	});
 	it('should return an error message if fee amount is invalid - textual', async () => {
 		const req = {
@@ -68,7 +68,7 @@ describe('./lib/forms/custom-components/fee-amount/fee-amount-validator.js', () 
 		const errors = await _validationMappedErrors(req, question);
 
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors.applicationFee_amount.msg, 'Input must be numbers');
+		assert.strictEqual(errors.applicationFee_amount.msg, 'The application fee must be a number');
 	});
 	it('should return an error message if fee amount is invalid - monetary value', async () => {
 		const req = {
@@ -81,7 +81,7 @@ describe('./lib/forms/custom-components/fee-amount/fee-amount-validator.js', () 
 		const errors = await _validationMappedErrors(req, question);
 
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors.applicationFee_amount.msg, 'Input must be a valid monetary value');
+		assert.strictEqual(errors.applicationFee_amount.msg, 'Number must be a valid monetary value, like £100.00');
 	});
 	it('should return an error message if fee amount is invalid - less than minimum amount', async () => {
 		const req = {
@@ -120,7 +120,7 @@ describe('./lib/forms/custom-components/fee-amount/fee-amount-validator.js', () 
 		};
 		const errors = await _validationMappedErrors(req, question);
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors.applicationFee_amount.msg, 'Input must be numbers');
+		assert.strictEqual(errors.applicationFee_amount.msg, 'The application fee must be a number');
 	});
 
 	it('should return an error message if fee amount is negative', async () => {
@@ -132,7 +132,7 @@ describe('./lib/forms/custom-components/fee-amount/fee-amount-validator.js', () 
 		};
 		const errors = await _validationMappedErrors(req, question);
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors.applicationFee_amount.msg, 'Input must be numbers');
+		assert.strictEqual(errors.applicationFee_amount.msg, 'The application fee must be a number');
 	});
 
 	it('should not return an error message for a very large valid number', async () => {

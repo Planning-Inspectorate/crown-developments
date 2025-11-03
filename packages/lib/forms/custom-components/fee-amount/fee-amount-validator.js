@@ -10,7 +10,7 @@ export default class FeeAmountValidator extends BaseValidator {
 	validate(questionObj) {
 		const fieldName = questionObj.fieldName;
 		return [
-			body(fieldName).notEmpty().withMessage('Select Yes if there is an application fee'),
+			body(fieldName).notEmpty().withMessage('Select yes if there is an application fee'),
 			body(`${fieldName}_amount`)
 				.if(body(fieldName).equals(BOOLEAN_OPTIONS.YES))
 				.notEmpty()
@@ -24,14 +24,14 @@ export default class FeeAmountValidator extends BaseValidator {
 						throw new Error('Fee must be a number without commas, e.g. 1000 or 1000.00');
 					}
 					if (!/^\d+(\.\d+)?$/.test(value)) {
-						throw new Error('Input must be numbers');
+						throw new Error('The application fee must be a number');
 					}
 					if (!/^\d+(\.\d{1,2})?$/.test(value)) {
-						throw new Error('Input must be a valid monetary value');
+						throw new Error('Number must be a valid monetary value, like £100.00');
 					}
 					const num = Number(value);
 					if (num === 0) {
-						throw new Error('Fee must be more than £0');
+						throw new Error('Number must be more than 0.01');
 					}
 					return true;
 				})
