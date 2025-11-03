@@ -47,7 +47,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 	const questions = {
 		reference: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-			title: 'Application Reference',
+			title: 'Application reference',
 			question: 'not editable',
 			fieldName: 'reference',
 			url: '',
@@ -56,7 +56,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		description: {
 			type: COMPONENT_TYPES.TEXT_ENTRY,
-			title: 'Development Description',
+			title: 'Development description',
 			question: 'What is the description of the development?',
 			hint: 'This will be published on the website.',
 			fieldName: 'description',
@@ -73,7 +73,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		typeOfApplication: {
 			type: COMPONENT_TYPES.RADIO,
-			title: 'Application Type',
+			title: 'Application type',
 			question: 'What type of application is it?',
 			fieldName: 'typeId',
 			url: 'type-of-application',
@@ -102,7 +102,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		localPlanningAuthority: {
 			type: COMPONENT_TYPES.SELECT,
-			title: 'Local Planning Authority',
+			title: 'Local planning authority',
 			question: 'Select the Local Planning Authority for this application',
 			fieldName: 'lpaId',
 			url: 'local-planning-authority',
@@ -111,7 +111,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		hasSecondaryLpa: {
 			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'Has Secondary Local Planning Authority',
+			title: 'Has secondary local planning authority',
 			question: 'Is there a secondary Local Planning Authority for this application?',
 			fieldName: 'hasSecondaryLpa',
 			url: 'has-secondary-local-planning-authority',
@@ -119,7 +119,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		secondaryLocalPlanningAuthority: {
 			type: COMPONENT_TYPES.SELECT,
-			title: 'Secondary Local Planning Authority',
+			title: 'Secondary local planning authority',
 			question: 'Select the Secondary Local Planning Authority for this application',
 			fieldName: 'secondaryLpaId',
 			url: 'secondary-local-planning-authority',
@@ -137,16 +137,16 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		siteAddress: {
 			type: COMPONENT_TYPES.ADDRESS,
-			title: `Site Address`,
-			question: `What is the address of the site?`,
+			title: 'Site address',
+			question: 'What is the address of the site?',
 			hint: 'Optional',
-			fieldName: `siteAddress`,
-			url: `site-address`,
+			fieldName: 'siteAddress',
+			url: 'site-address',
 			validators: [new AddressValidator()]
 		},
 		siteCoordinates: {
 			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
-			title: 'Site Coordinates',
+			title: 'Site coordinates',
 			question: 'What are the coordinates of the site?',
 			fieldName: 'siteCoordinates',
 			url: 'site-coordinates',
@@ -175,20 +175,17 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		siteArea: {
 			type: COMPONENT_TYPES.NUMBER,
-			title: 'Site Area (ha)',
+			title: 'Site area (ha)',
 			question: 'What is the area of the site in hectares?',
 			suffix: 'ha',
 			fieldName: 'siteArea',
 			url: 'site-area',
 			validators: [new NumericValidator({ regex: /^$|^\d+(\.\d+)?$/, regexMessage: 'The value must be at least 0' })]
 		},
-		expectedDateOfSubmission: dateQuestion({
-			fieldName: 'expectedDateOfSubmission',
-			title: 'Expected Date of Submission'
-		}),
+		expectedDateOfSubmission: dateQuestion({ fieldName: 'expectedDateOfSubmission' }),
 		decisionOutcome: {
 			type: COMPONENT_TYPES.RADIO,
-			title: 'Decision Outcome',
+			title: 'Decision outcome',
 			question: 'What is the decision outcome?',
 			fieldName: 'decisionOutcomeId',
 			url: 'decision-outcome',
@@ -198,7 +195,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		decisionDate: dateQuestion({ fieldName: 'decisionDate' }),
 		updatedDate: {
 			type: COMPONENT_TYPES.DATE,
-			title: 'Last Updated',
+			title: 'Last updated',
 			question: 'not editable',
 			fieldName: 'updatedDate',
 			url: '',
@@ -256,7 +253,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		lpaReference: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-			title: 'LPA Reference',
+			title: 'LPA reference',
 			question: 'What is LPA reference for this application?',
 			fieldName: 'lpaReference',
 			url: 'lpa-reference',
@@ -265,14 +262,14 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 				new StringValidator({
 					maxLength: {
 						maxLength: 250,
-						maxLengthMessage: `LPA reference must be 250 characters or less`
+						maxLengthMessage: 'LPA reference must be 250 characters or less'
 					}
 				})
 			]
 		},
 		nationallyImportant: {
 			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'Nationally Important',
+			title: 'Nationally important',
 			question: 'Is this application nationally important?',
 			fieldName: 'nationallyImportant',
 			url: 'nationally-important',
@@ -281,7 +278,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		nationallyImportantConfirmationDate: dateQuestion({ fieldName: 'nationallyImportantConfirmationDate' }),
 		isGreenBelt: {
 			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'Green Belt',
+			title: 'Green belt',
 			question: 'Is this application in green belt land?',
 			fieldName: 'isGreenBelt',
 			url: 'is-green-belt',
@@ -289,7 +286,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		siteIsVisibleFromPublicLand: {
 			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'Site is Visible from Public Land',
+			title: 'Site is visible from public land',
 			question: 'Is the site visible from public land?',
 			fieldName: 'siteIsVisibleFromPublicLand',
 			url: 'site-is-visible-from-public-land',
@@ -297,7 +294,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		healthAndSafetyIssue: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-			title: 'Health and Safety Issues',
+			title: 'Health and safety issues',
 			question: 'What are the health and safety issues for the site?',
 			fieldName: 'healthAndSafetyIssue',
 			url: 'health-and-safety-issue',
@@ -306,7 +303,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 				new StringValidator({
 					maxLength: {
 						maxLength: 2000,
-						maxLengthMessage: `Health and safety issue must be 2000 characters or less`
+						maxLengthMessage: 'Health and safety issue must be 2000 characters or less'
 					}
 				})
 			]
@@ -314,17 +311,17 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 
 		lpaContact: {
 			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
-			title: `LPA Contact`,
-			question: `What are the LPA Contact details?`,
+			title: 'LPA contact',
+			question: 'What are the LPA Contact details?',
 			fieldName: 'lpaContact',
-			url: `lpa-contact`,
+			url: 'lpa-contact',
 			inputFields: [
 				{
-					fieldName: `lpaEmail`,
+					fieldName: 'lpaEmail',
 					label: 'Email'
 				},
 				{
-					fieldName: `lpaTelephoneNumber`,
+					fieldName: 'lpaTelephoneNumber',
 					label: 'Telephone Number'
 				}
 			],
@@ -333,28 +330,28 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		lpaAddress: {
 			type: COMPONENT_TYPES.ADDRESS,
-			title: 'LPA Address',
+			title: 'LPA address',
 			question: 'What is the address of the LPA?',
 			hint: 'Optional',
-			fieldName: `lpaAddress`,
-			url: `lpa-address`,
+			fieldName: 'lpaAddress',
+			url: 'lpa-address',
 			validators: [new AddressValidator()],
 			editable: false
 		},
 
 		secondaryLpaContact: {
 			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
-			title: `Secondary LPA Contact`,
-			question: `What are the Secondary LPA Contact details?`,
+			title: 'Secondary LPA contact',
+			question: 'What are the Secondary LPA Contact details?',
 			fieldName: 'secondaryLpaContact',
-			url: `secondary-lpa-contact`,
+			url: 'secondary-lpa-contact',
 			inputFields: [
 				{
-					fieldName: `secondaryLpaEmail`,
+					fieldName: 'secondaryLpaEmail',
 					label: 'Email'
 				},
 				{
-					fieldName: `secondaryLpaTelephoneNumber`,
+					fieldName: 'secondaryLpaTelephoneNumber',
 					label: 'Telephone Number'
 				}
 			],
@@ -363,11 +360,11 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		secondaryLpaAddress: {
 			type: COMPONENT_TYPES.ADDRESS,
-			title: 'Secondary LPA Address',
+			title: 'Secondary LPA address',
 			question: 'What is the address of the Secondary LPA?',
 			hint: 'Optional',
-			fieldName: `secondaryLpaAddress`,
-			url: `secondary-lpa-address`,
+			fieldName: 'secondaryLpaAddress',
+			url: 'secondary-lpa-address',
 			validators: [new AddressValidator()],
 			editable: false
 		},
@@ -391,27 +388,27 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		applicationAcceptedDate: dateQuestion({ fieldName: 'applicationAcceptedDate' }),
 		lpaQuestionnaireSentDate: dateQuestion({
 			fieldName: 'lpaQuestionnaireSentDate',
-			title: 'LPA Questionnaire Sent Date'
+			title: 'LPA questionnaire sent date'
 		}),
 		lpaQuestionnaireReceivedDate: dateQuestion({
 			fieldName: 'lpaQuestionnaireReceivedDate',
-			title: 'LPA Questionnaire Received Date',
+			title: 'LPA questionnaire received date',
 			viewData: { warningMessage: 'Adding a date will send an acknowledgement notification to the LPA' }
 		}),
-		publishDate: dateQuestion({ fieldName: 'publishDate', title: 'Publish Date', editable: false }),
+		publishDate: dateQuestion({ fieldName: 'publishDate', editable: false }),
 		pressNoticeDate: dateQuestion({ fieldName: 'pressNoticeDate' }),
 		neighboursNotifiedByLpaDate: dateQuestion({
 			fieldName: 'neighboursNotifiedByLpaDate',
-			title: 'Neighbours Notified By LPA Date'
+			title: 'Neighbours notified by LPA date'
 		}),
-		siteNoticeByLpaDate: dateQuestion({ fieldName: 'siteNoticeByLpaDate', title: 'Site Notice by LPA Date' }),
+		siteNoticeByLpaDate: dateQuestion({ fieldName: 'siteNoticeByLpaDate', title: 'Site notice by LPA date' }),
 		targetDecisionDate: dateQuestion({ fieldName: 'targetDecisionDate' }),
 		extendedTargetDecisionDate: dateQuestion({ fieldName: 'extendedTargetDecisionDate' }),
 		recoveredDate: dateQuestion({ fieldName: 'recoveredDate' }),
 		recoveredReportSentDate: dateQuestion({ fieldName: 'recoveredReportSentDate' }),
 		siteVisitDate: {
 			type: COMPONENT_TYPES.DATE_TIME,
-			title: 'Site Visit',
+			title: 'Site visit',
 			question: 'When is the site visit?',
 			fieldName: 'siteVisitDate',
 			url: 'site-visit',
@@ -435,8 +432,8 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 
 		representationsPeriod: {
 			type: COMPONENT_TYPES.DATE_PERIOD,
-			title: 'Representations Period',
-			question: `What is the Representations Period?`,
+			title: 'Representations period',
+			question: 'What is the Representations Period?',
 			fieldName: 'representationsPeriod',
 			url: 'representations-period',
 			validators: [new DatePeriodValidator('Representations period')],
@@ -475,7 +472,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		assessorInspector: {
 			type: COMPONENT_TYPES.SELECT,
-			title: 'Assessor Inspector',
+			title: 'Assessor inspector',
 			question: 'Which assessor inspector is assigned to this case?',
 			fieldName: 'assessorInspectorId',
 			url: 'assessor-inspector',
@@ -484,7 +481,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		caseOfficer: {
 			type: COMPONENT_TYPES.SELECT,
-			title: 'Case Officer',
+			title: 'Case officer',
 			question: 'Which case officer is assigned to this case?',
 			fieldName: 'caseOfficerId',
 			url: 'case-officer',
@@ -493,7 +490,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		planningOfficer: {
 			type: COMPONENT_TYPES.SELECT,
-			title: 'Planning Officer',
+			title: 'Planning officer',
 			question: 'Which planning officer is assigned to this case?',
 			fieldName: 'planningOfficerId',
 			url: 'planning-officer',
@@ -503,7 +500,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 
 		eiaScreening: {
 			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'EIA Screening',
+			title: 'EIA screening',
 			question: 'Is EIA Screening Required?',
 			fieldName: 'eiaScreening',
 			url: 'eia-screening',
@@ -511,7 +508,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		eiaScreeningOutcome: {
 			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'EIA Screening Outcome',
+			title: 'EIA screening outcome',
 			question: 'What is the EIA Screening Outcome?',
 			fieldName: 'eiaScreeningOutcome',
 			url: 'eia-screening-outcome',
@@ -575,7 +572,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		hasApplicationFee: {
 			type: CUSTOM_COMPONENTS.FEE_AMOUNT,
-			title: 'Fee Amount',
+			title: 'Fee amount',
 			question: 'Does the application have a fee?',
 			fieldName: 'hasApplicationFee',
 			url: 'fee-amount',
