@@ -31,7 +31,7 @@ export function buildListCases(service) {
 		});
 
 		return res.render('views/cases/list/view.njk', {
-			pageHeading: 'All Crown Developments',
+			pageHeading: 'Manage Crown Development applications',
 			crownDevelopments: crownDevelopments.map(crownDevelopmentToViewModel),
 			containerClasses: 'pins-container-wide',
 			searchValue: req.query?.searchCriteria || ''
