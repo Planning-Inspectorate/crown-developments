@@ -26,7 +26,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 
 	questions[`${prefix}Contact`] = {
 		type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
-		title: `${title} Contact`,
+		title: `${title} contact`,
 		question: `What are the ${title} Contact details?`,
 		fieldName: prefix,
 		url: `${prefixUrl}-contact`,
@@ -82,7 +82,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 
 	questions[`${prefix}ContactAddress`] = {
 		type: COMPONENT_TYPES.ADDRESS,
-		title: `${title} Address`,
+		title: `${title} address`,
 		question: `What is the address of the ${title}?`,
 		hint: addressRequired ? '' : 'Optional',
 		fieldName: `${prefix}ContactAddress`,
@@ -104,7 +104,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
  */
 export function dateQuestion({ fieldName, title, hint, editable = true, viewData = {} }) {
 	if (!title) {
-		title = camelCaseToTitleCase(fieldName);
+		title = camelCaseToSentenceCase(fieldName);
 	}
 	return {
 		type: COMPONENT_TYPES.DATE,
@@ -282,15 +282,17 @@ function camelCaseToUrlCase(str) {
 }
 
 /**
+ * Turns 'camelCaseString' into 'Sentence case string'
  * @param {string} str
  * @returns {string}
  */
-function camelCaseToTitleCase(str) {
-	// fromCamelCase -> To Url Case
-	return str
+export function camelCaseToSentenceCase(str) {
+	const sentence = str
 		.split(/(?=[A-Z])/)
-		.map(titleCase)
+		.map((s) => s.toLowerCase())
 		.join(' ');
+
+	return sentence.charAt(0).toUpperCase() + sentence.slice(1);
 }
 
 function titleCase(str) {

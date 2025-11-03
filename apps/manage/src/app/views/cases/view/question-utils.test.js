@@ -1,6 +1,12 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { contactQuestions, dateQuestion, eventQuestions, filteredStagesToRadioOptions } from './question-utils.js';
+import {
+	contactQuestions,
+	dateQuestion,
+	eventQuestions,
+	filteredStagesToRadioOptions,
+	camelCaseToSentenceCase
+} from './question-utils.js';
 import { APPLICATION_PROCEDURE_ID, APPLICATION_STAGE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 describe('question-utils', () => {
@@ -35,7 +41,7 @@ describe('question-utils', () => {
 			const q = dateQuestion({ fieldName: 'myDateField' });
 
 			assert.ok(q);
-			assert.strictEqual(q.title, 'My Date Field');
+			assert.strictEqual(q.title, 'My date field');
 			assert.strictEqual(q.fieldName, 'myDateField');
 			assert.strictEqual(q.url, 'my-date-field');
 		});
@@ -189,6 +195,14 @@ describe('question-utils', () => {
 				{ id: APPLICATION_STAGE_ID.DECISION, displayName: 'Final decision' }
 			];
 			assert.deepStrictEqual(result, expected);
+		});
+	});
+	describe('camelCaseToSentenceCase', () => {
+		it('should turn a basic camelCaseSentence into Sentence case', () => {
+			const sentence = camelCaseToSentenceCase('thisIsAnExample');
+
+			assert.ok(sentence);
+			assert.strictEqual(sentence, 'This is an example');
 		});
 	});
 });
