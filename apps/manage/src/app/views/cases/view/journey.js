@@ -102,14 +102,14 @@ export function createJourney(questions, response, req) {
 			new Section('Representations Period', 'representations')
 				.addQuestion(questions.representationsPeriod)
 				.addQuestion(questions.representationsPublishDate),
-			new Section('Case Involvement', 'case-involvement')
+			new Section('Case team', 'case-team')
 				.addQuestion(questions.inspector1)
 				.addQuestion(questions.inspector2)
 				.addQuestion(questions.inspector3)
 				.addQuestion(questions.assessorInspector)
 				.addQuestion(questions.caseOfficer)
 				.addQuestion(questions.planningOfficer),
-			new Section('EIA', 'eia')
+			new Section('Environmental impact assessment', 'eia')
 				.addQuestion(questions.eiaScreening)
 				.addQuestion(questions.eiaScreeningOutcome)
 				.addQuestion(questions.environmentalStatementReceivedDate),
