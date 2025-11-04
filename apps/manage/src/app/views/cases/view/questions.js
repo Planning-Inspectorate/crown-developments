@@ -335,7 +335,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 				},
 				{
 					fieldName: 'lpaTelephoneNumber',
-					label: 'Telephone Number'
+					label: 'Telephone number'
 				}
 			],
 			validators: [],
@@ -365,7 +365,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 				},
 				{
 					fieldName: 'secondaryLpaTelephoneNumber',
-					label: 'Telephone Number'
+					label: 'Telephone number'
 				}
 			],
 			validators: [],
