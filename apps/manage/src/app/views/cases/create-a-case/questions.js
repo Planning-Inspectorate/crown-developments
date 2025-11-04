@@ -12,6 +12,7 @@ import { contactQuestions } from './question-utils.js';
 import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
 import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
 import CoordinatesValidator from '@planning-inspectorate/dynamic-forms/src/validator/coordinates-validator.js';
+import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
 
 export function getQuestions() {
 	const env = loadEnvironmentConfig();
@@ -42,7 +43,13 @@ export function getQuestions() {
 			question: 'Select the Local Planning Authority for this application',
 			fieldName: 'lpaId',
 			url: 'local-planning-authority',
-			validators: [new RequiredValidator('Select the Local Planning Authority')],
+			validators: [
+				new SameAnswerValidator(
+					['secondaryLpaId'],
+					'Local Planning Authority cannot be the same as the secondary Local Planning Authority'
+				),
+				new RequiredValidator('Select the Local Planning Authority')
+			],
 			options: lpaOptions
 		},
 		...contactQuestions({
@@ -64,7 +71,13 @@ export function getQuestions() {
 			question: 'Select the secondary Local Planning Authority for this application',
 			fieldName: 'secondaryLpaId',
 			url: 'secondary-local-planning-authority',
-			validators: [new RequiredValidator('Select the secondary Local Planning Authority')],
+			validators: [
+				new SameAnswerValidator(
+					['lpaId'],
+					'Secondary Local Planning Authority cannot be the same as the Local Planning Authority'
+				),
+				new RequiredValidator('Select the secondary Local Planning Authority')
+			],
 			options: lpaOptions
 		},
 		hasAgent: {
