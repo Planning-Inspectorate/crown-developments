@@ -74,7 +74,8 @@ describe('case list', () => {
 			};
 			const mockDb = {
 				crownDevelopment: {
-					findMany: mock.fn(() => [])
+					findMany: mock.fn(() => []),
+					count: mock.fn(() => 0)
 				}
 			};
 
@@ -87,7 +88,15 @@ describe('case list', () => {
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/applications/list/view.njk');
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
 				pageTitle: 'All Crown Development applications',
-				crownDevelopmentsViewModels: []
+				crownDevelopmentsViewModels: [],
+				currentUrl: undefined,
+				pageNumber: 1,
+				pageSize: 25,
+				resultsEndNumber: 0,
+				resultsStartNumber: 0,
+				selectedItemsPerPage: 25,
+				totalCrownDevelopments: 0,
+				totalPages: 0
 			});
 		});
 	});
