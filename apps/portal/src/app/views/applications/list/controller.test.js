@@ -53,7 +53,8 @@ describe('case list', () => {
 								displayName: 'Outline planning permission with some matters reserved'
 							}
 						}
-					])
+					]),
+					count: mock.fn(() => 2)
 				}
 			};
 
