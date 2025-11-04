@@ -31,7 +31,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 			new StringValidator({
 				maxLength: {
 					maxLength: 250,
-					maxLengthMessage: `${title} organisation name must be less than 250 characters`
+					maxLengthMessage: `${title} organisation name must be 250 characters or less`
 				},
 				regex: {
 					regex: "^[A-Za-z0-9 ',’(),&-]+$",
@@ -62,7 +62,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 			new StringValidator({
 				maxLength: {
 					maxLength: 250,
-					maxLengthMessage: `${title} email must be less than 250 characters`
+					maxLengthMessage: `${title} email must be 50 characters or less`
 				}
 			})
 		]
@@ -70,7 +70,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 
 	questions[`${prefix}TelephoneNumber`] = {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-		title: `${title} Telephone Number`,
+		title: `${title} Telephone number`,
 		question: `What is the telephone number of the ${title}?`,
 		fieldName: `${prefix}TelephoneNumber`,
 		url: `${prefixUrl}-telephone-number`,
@@ -78,7 +78,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 			new StringValidator({
 				maxLength: {
 					maxLength: 15,
-					maxLengthMessage: `${title} telephone number must be less than 15 characters`
+					maxLengthMessage: `${title} telephone number must be 15 characters or less`
 				}
 			})
 		]

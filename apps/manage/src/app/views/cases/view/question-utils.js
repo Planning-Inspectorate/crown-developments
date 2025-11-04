@@ -33,7 +33,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 		inputFields: [
 			{
 				fieldName: `${prefix}ContactName`,
-				label: 'Organisation Name'
+				label: 'Organisation name'
 			},
 			{
 				fieldName: `${prefix}ContactEmail`,
@@ -41,7 +41,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 			},
 			{
 				fieldName: `${prefix}ContactTelephoneNumber`,
-				label: 'Telephone Number'
+				label: 'Telephone number'
 			}
 		],
 		validators: [
@@ -64,7 +64,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 						required: false,
 						maxLength: {
 							maxLength: 250,
-							maxLengthMessage: `${title} email must be less than 250 characters`
+							maxLengthMessage: `${title} email must be 50 characters or less`
 						}
 					},
 					{
@@ -72,7 +72,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 						required: false,
 						maxLength: {
 							maxLength: 15,
-							maxLengthMessage: `${title} telephone number must be less than 15 characters`
+							maxLengthMessage: `${title} telephone number must be 15 characters or less`
 						}
 					}
 				]
