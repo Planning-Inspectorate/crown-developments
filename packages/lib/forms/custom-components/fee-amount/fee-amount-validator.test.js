@@ -94,7 +94,7 @@ describe('./lib/forms/custom-components/fee-amount/fee-amount-validator.js', () 
 		const errors = await _validationMappedErrors(req, question);
 
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors.applicationFee_amount.msg, 'Number must be more than 0.01');
+		assert.strictEqual(errors.applicationFee_amount.msg, 'Number must be more than £0.01');
 	});
 	it('should return an error message if fee amount contains commas', async () => {
 		const cases = ['1,000.00', '10,000', '100,000.00', '1,000,000', '1,000,000.00'];
