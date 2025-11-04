@@ -1,4 +1,5 @@
 import { crownDevelopmentToViewModel } from '../view/view-model.js';
+import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -9,21 +10,29 @@ export function buildApplicationListPage(service) {
 	return async (req, res) => {
 		const now = new Date();
 
-		const crownDevelopments = await db.crownDevelopment.findMany({
-			where: { publishDate: { lte: now } },
-			select: {
-				id: true,
-				reference: true,
-				ApplicantContact: { select: { orgName: true, firstName: true, lastName: true } },
-				Lpa: { select: { name: true } },
-				Stage: { select: { displayName: true } },
-				Type: { select: { displayName: true } }
-			},
-			orderBy: {
-				createdDate: 'desc'
-			},
-			take: 1000 // upper limit until pagination/search is implemented
-		});
+		const { selectedItemsPerPage, pageNumber, pageSize, skipSize } = getPaginationParams(req);
+
+		const [crownDevelopments, totalCrownDevelopments] = await Promise.all([
+			db.crownDevelopment.findMany({
+				where: { publishDate: { lte: now } },
+				select: {
+					id: true,
+					reference: true,
+					ApplicantContact: { select: { orgName: true, firstName: true, lastName: true } },
+					Lpa: { select: { name: true } },
+					Stage: { select: { displayName: true } },
+					Type: { select: { displayName: true } }
+				},
+				orderBy: {
+					reference: 'desc'
+				},
+				skip: skipSize,
+				take: pageSize
+			}),
+			db.crownDevelopment.count({
+				where: { publishDate: { lte: now } }
+			})
+		]);
 
 		logger.info(`Crown development list page: ${crownDevelopments.length} case(s) fetched`);
 
@@ -31,9 +40,24 @@ export function buildApplicationListPage(service) {
 			crownDevelopmentToViewModel(crownDevelopment, service.contactEmail)
 		);
 
+		const { totalPages, resultsStartNumber, resultsEndNumber } = getPageData(
+			totalCrownDevelopments,
+			selectedItemsPerPage,
+			pageSize,
+			pageNumber
+		);
+
 		return res.render('views/applications/list/view.njk', {
 			pageTitle: 'All Crown Development applications',
-			crownDevelopmentsViewModels
+			crownDevelopmentsViewModels,
+			currentUrl: req.originalUrl,
+			totalCrownDevelopments,
+			selectedItemsPerPage,
+			pageSize,
+			pageNumber,
+			totalPages,
+			resultsStartNumber,
+			resultsEndNumber
 		});
 	};
 }
