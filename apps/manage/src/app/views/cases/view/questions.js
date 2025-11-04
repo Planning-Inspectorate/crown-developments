@@ -30,6 +30,7 @@ import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.j
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.js';
 import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
 import DateTimeValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-time-validator.js';
+import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
 
 /**
  * @param {import('../../../../util/entra-groups-types.js').EntraGroupMembers} [groupMembers]
@@ -106,7 +107,13 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			question: 'Select the Local Planning Authority for this application',
 			fieldName: 'lpaId',
 			url: 'local-planning-authority',
-			validators: [new RequiredValidator('Select the Local Planning Authority')],
+			validators: [
+				new SameAnswerValidator(
+					['secondaryLpaId'],
+					'Local Planning Authority cannot be the same as the secondary Local Planning Authority'
+				),
+				new RequiredValidator('Select the Local Planning Authority')
+			],
 			options: lpaListToRadioOptions(LPAs)
 		},
 		hasSecondaryLpa: {
@@ -123,7 +130,13 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			question: 'Select the Secondary Local Planning Authority for this application',
 			fieldName: 'secondaryLpaId',
 			url: 'secondary-local-planning-authority',
-			validators: [new RequiredValidator('Select the secondary Local Planning Authority')],
+			validators: [
+				new SameAnswerValidator(
+					['lpaId'],
+					'Secondary Local Planning Authority cannot be the same as the Local Planning Authority'
+				),
+				new RequiredValidator('Select the secondary Local Planning Authority')
+			],
 			options: lpaListToRadioOptions(LPAs),
 			viewData: {
 				extraActionButtons: [
