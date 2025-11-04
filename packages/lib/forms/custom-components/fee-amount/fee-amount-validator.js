@@ -31,7 +31,7 @@ export default class FeeAmountValidator extends BaseValidator {
 					}
 					const num = Number(value);
 					if (num === 0) {
-						throw new Error('Number must be more than 0.01');
+						throw new Error('Number must be more than £0.01');
 					}
 					return true;
 				})
