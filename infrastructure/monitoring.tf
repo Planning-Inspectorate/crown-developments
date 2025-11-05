@@ -8,7 +8,7 @@ resource "azurerm_log_analytics_workspace" "main" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
+    var.environment == "training" ? {
       CriticalityRating = "Level 3"
       PersonalData      = "No"
     } : {}
