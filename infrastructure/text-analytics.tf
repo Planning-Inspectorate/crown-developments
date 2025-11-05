@@ -46,7 +46,7 @@ resource "azurerm_cognitive_account" "text_analytics" {
 
   tags = merge(
     local.tags,
-    var.environment == "training" ? {
+    var.environment == "prod" ? {
       CriticalityRating = "Level 1"
       PersonalData      = "No"
     } : {}
@@ -75,7 +75,7 @@ resource "azurerm_private_endpoint" "text_analytics" {
 
   tags = merge(
     local.tags,
-    var.environment == "training" ? {
+    var.environment == "prod" ? {
       CriticalityRating = "Level 1"
       PersonalData      = "No"
     } : {}

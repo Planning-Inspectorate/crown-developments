@@ -1,6 +1,6 @@
 module "app_manage" {
   #checkov:skip=CKV_TF_1: Use of commit hash are not required for our Terraform modules
-  source = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/node-app-service?ref=612cbe1f8708bde96ee138d49462da9afe08c322"
+  source = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/node-app-service?ref=d43de9b0ad48b7bc740b5ffcb910fcab3317bc05"
 
   resource_group_name = azurerm_resource_group.primary.name
   location            = module.primary_region.location
@@ -10,14 +10,7 @@ module "app_manage" {
   resource_suffix = var.environment
   service_name    = local.service_name
 
-  tags = merge(
-    local.tags,
-    var.environment == "training" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "Yes"
-    } : {},
-    # module.security_tags.tags
-  )
+  tags = module.security_tags["manage"].tags
 
   # service plan & scaling
   app_service_plan_id                  = azurerm_service_plan.apps.id

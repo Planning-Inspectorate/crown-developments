@@ -89,7 +89,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
 
   # tags = merge(
   #   local.tags,
-  #   var.environment == "training" ? {
+  #   var.environment == "prod" ? {
   #     CriticalityRating = "Level 1"
   #     PersonalData      = "No"
   #   } : {}

@@ -24,7 +24,7 @@ resource "azurerm_mssql_server" "secondary" {
 
   tags = merge(
     local.tags,
-    var.environment == "training" ? {
+    var.environment == "prod" ? {
       CriticalityRating = "Level 1"
       PersonalData      = "No"
     } : {}
@@ -51,7 +51,7 @@ resource "azurerm_private_endpoint" "sql_secondary" {
 
   tags = merge(
     local.tags,
-    var.environment == "training" ? {
+    var.environment == "prod" ? {
       CriticalityRating = "Level 1"
       PersonalData      = "No"
     } : {}
@@ -75,7 +75,7 @@ resource "azurerm_mssql_failover_group" "sql_failover" {
 
   tags = merge(
     local.tags,
-    var.environment == "training" ? {
+    var.environment == "prod" ? {
       CriticalityRating = "Level 1"
       PersonalData      = "No"
     } : {}

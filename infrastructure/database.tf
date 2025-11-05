@@ -22,7 +22,7 @@ resource "azurerm_mssql_server" "primary" { # create pins-odt-sql-<env>-crown
 
   tags = merge(
     local.tags,
-    var.environment == "training" ? {
+    var.environment == "prod" ? {
       CriticalityRating = "Level 1"
       PersonalData      = "Yes"
     } : {}
@@ -47,13 +47,7 @@ resource "azurerm_private_endpoint" "sql_primary" {
     is_manual_connection           = false
   }
 
-  tags = merge(
-    local.tags,
-    var.environment == "training" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "No"
-    } : {}
-  )
+  tags = module.security_tags["sql"].tags
 }
 
 resource "azurerm_mssql_database" "primary" {
@@ -79,7 +73,7 @@ resource "azurerm_mssql_database" "primary" {
 
   tags = merge(
     local.tags,
-    var.environment == "training" ? {
+    var.environment == "prod" ? {
       CriticalityRating = "Level 1"
       PersonalData      = "Yes"
     } : {}

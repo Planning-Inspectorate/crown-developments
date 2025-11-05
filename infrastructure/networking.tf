@@ -6,7 +6,7 @@ resource "azurerm_virtual_network" "main" {
 
   tags = merge(
     local.tags,
-    var.environment == "training" ? {
+    var.environment == "prod" ? {
       CriticalityRating = "Level 2"
       PersonalData      = "No"
     } : {}
