@@ -1,9 +1,21 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { validationResult } from 'express-validator';
-import FeeAmountValidator from './fee-amount-validator.js';
+import MonetaryInputValidator from './monetary-input-validator.js';
 
-describe('./lib/forms/custom-components/fee-amount/fee-amount-validator.js', () => {
+class TestMonetaryValidator extends MonetaryInputValidator {
+	constructor() {
+		super();
+	}
+	get requiredMessage() {
+		return 'Required Message!';
+	}
+	get conditionalRequiredMessage() {
+		return 'Conditional Message!';
+	}
+}
+
+describe('./lib/forms/custom-components/monetary-input/monetary-input-validator.js', () => {
 	const question = {
 		fieldName: 'applicationFee'
 	};
@@ -55,7 +67,7 @@ describe('./lib/forms/custom-components/fee-amount/fee-amount-validator.js', () 
 		const errors = await _validationMappedErrors(req, question);
 
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors.applicationFee.msg, 'Select yes if there is an application fee');
+		assert.strictEqual(errors.applicationFee.msg, 'Required Message!');
 	});
 	it('should return an error message if fee amount is invalid - textual', async () => {
 		const req = {
@@ -68,7 +80,7 @@ describe('./lib/forms/custom-components/fee-amount/fee-amount-validator.js', () 
 		const errors = await _validationMappedErrors(req, question);
 
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors.applicationFee_amount.msg, 'The application fee must be a number');
+		assert.strictEqual(errors.applicationFee_amount.msg, 'The amount must be a number');
 	});
 	it('should return an error message if fee amount is invalid - monetary value', async () => {
 		const req = {
@@ -107,7 +119,10 @@ describe('./lib/forms/custom-components/fee-amount/fee-amount-validator.js', () 
 			};
 			const errors = await _validationMappedErrors(req, question);
 			assert.strictEqual(Object.keys(errors).length, 1);
-			assert.strictEqual(errors.applicationFee_amount.msg, 'Fee must be a number without commas, e.g. 1000 or 1000.00');
+			assert.strictEqual(
+				errors.applicationFee_amount.msg,
+				'Amount must be a number without commas, e.g. 1000 or 1000.00'
+			);
 		}
 	});
 
@@ -120,7 +135,7 @@ describe('./lib/forms/custom-components/fee-amount/fee-amount-validator.js', () 
 		};
 		const errors = await _validationMappedErrors(req, question);
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors.applicationFee_amount.msg, 'The application fee must be a number');
+		assert.strictEqual(errors.applicationFee_amount.msg, 'The amount must be a number');
 	});
 
 	it('should return an error message if fee amount is negative', async () => {
@@ -132,7 +147,7 @@ describe('./lib/forms/custom-components/fee-amount/fee-amount-validator.js', () 
 		};
 		const errors = await _validationMappedErrors(req, question);
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors.applicationFee_amount.msg, 'The application fee must be a number');
+		assert.strictEqual(errors.applicationFee_amount.msg, 'The amount must be a number');
 	});
 
 	it('should not return an error message for a very large valid number', async () => {
@@ -154,12 +169,12 @@ describe('./lib/forms/custom-components/fee-amount/fee-amount-validator.js', () 
 		};
 		const errors = await _validationMappedErrors(req, question);
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors.applicationFee_amount.msg, 'Application fee is required');
+		assert.strictEqual(errors.applicationFee_amount.msg, 'Conditional Message!');
 	});
 
 	const _validationMappedErrors = async (req, question) => {
-		const feeAmountValidator = new FeeAmountValidator();
-		const validationRules = feeAmountValidator.validate(question);
+		const monetaryInputValidator = new TestMonetaryValidator();
+		const validationRules = monetaryInputValidator.validate(question);
 		await Promise.all(validationRules.map((validator) => validator.run(req)));
 		const errors = validationResult(req);
 		return errors.mapped();
