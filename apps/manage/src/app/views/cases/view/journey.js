@@ -144,6 +144,8 @@ export function createJourney(questions, response, req) {
 				.withCondition(isInquiry)
 				.addQuestion(questions.inquiryCaseManagementConferenceDate)
 				.withCondition(isInquiry)
+				.addQuestion(questions.inquiryPreMeetingDate)
+				.withCondition(isInquiry)
 				.addQuestion(questions.inquiryProofsOfEvidenceDate)
 				.withCondition(isInquiry),
 			new Section('Fee', 'fee').addQuestion(questions.hasApplicationFee)

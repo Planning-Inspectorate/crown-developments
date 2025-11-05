@@ -71,7 +71,7 @@ describe('case details journey', () => {
 
 		const inquirySection = sections.find((s) => s.segment === APPLICATION_PROCEDURE_ID.INQUIRY);
 		assert.ok(inquirySection);
-		assert.strictEqual(inquirySection.questions.length, 8);
+		assert.strictEqual(inquirySection.questions.length, 9);
 		for (const q of inquirySection.questions) {
 			assert.strictEqual(q.fieldName.startsWith(APPLICATION_PROCEDURE_ID.INQUIRY), true);
 			assert.strictEqual(

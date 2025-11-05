@@ -53,7 +53,7 @@ describe('question-utils', () => {
 		it('should create nine questions with prefix in question keys', () => {
 			const questions = eventQuestions(prefix);
 
-			assert.strictEqual(Object.keys(questions).length, 9);
+			assert.strictEqual(Object.keys(questions).length, 10);
 			for (const key of Object.keys(questions)) {
 				assert.ok(key.startsWith(prefix));
 			}

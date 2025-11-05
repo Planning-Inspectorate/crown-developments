@@ -205,6 +205,7 @@ model Event {
   issuesReportPublishedDate    DateTime?
   statementsDate               DateTime?
   caseManagementConferenceDate DateTime?
+  preMeetingDate               DateTime?
   proofsOfEvidenceDate         DateTime?
   CrownDevelopment             CrownDevelopment[]
 }
