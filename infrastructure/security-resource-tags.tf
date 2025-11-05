@@ -1,7 +1,7 @@
 module "security_tags" {
   for_each   = local.resource_tags
 
-  source     = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/resource-tags?ref=67299bea06b43f03774d8665b184a093e4147359"
+  source     = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/resource-tags?ref=abf2c32917acf31125beafcc8457dae0953a5768"
   base_tags  = local.tags
   extra_tags = each.value
 }
