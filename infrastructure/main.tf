@@ -4,7 +4,7 @@ resource "azurerm_resource_group" "primary" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
+    var.environment == "training" ? {
       CriticalityRating = "Level 1"
       PersonalData      = "Yes"
     } : {}
@@ -17,7 +17,7 @@ resource "azurerm_resource_group" "secondary" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
+    var.environment == "training" ? {
       CriticalityRating = "Level 1"
       PersonalData      = "Yes"
     } : {}
@@ -40,7 +40,7 @@ resource "azurerm_key_vault" "main" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
+    var.environment == "training" ? {
       Criticality-Rating = "Level 1"
       Personal-Data      = "No"
     } : {}

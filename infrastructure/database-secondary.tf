@@ -22,7 +22,13 @@ resource "azurerm_mssql_server" "secondary" {
     type = "SystemAssigned"
   }
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "training" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "No"
+    } : {}
+  )
 }
 
 resource "azurerm_private_endpoint" "sql_secondary" {
@@ -43,7 +49,13 @@ resource "azurerm_private_endpoint" "sql_secondary" {
     is_manual_connection           = false
   }
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "training" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "No"
+    } : {}
+  )
 }
 
 resource "azurerm_mssql_failover_group" "sql_failover" {
@@ -61,5 +73,11 @@ resource "azurerm_mssql_failover_group" "sql_failover" {
     # grace_minutes = 60
   }
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "training" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "No"
+    } : {}
+  )
 }

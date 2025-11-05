@@ -85,13 +85,15 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
   custom_block_response_status_code = 403
   provider                          = azurerm.front_door
 
-  tags = merge(
-    local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "No"
-    } : {}
-  )
+  tags = local.tags
+
+  # tags = merge(
+  #   local.tags,
+  #   var.environment == "training" ? {
+  #     CriticalityRating = "Level 1"
+  #     PersonalData      = "No"
+  #   } : {}
+  # )
 
   # custom rules in priority order to match the API
   custom_rule {

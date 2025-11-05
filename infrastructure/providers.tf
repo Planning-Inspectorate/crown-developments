@@ -32,3 +32,22 @@ provider "azurerm" {
   subscription_id = var.tooling_config.subscription_id
   features {}
 }
+
+module "security_tags" {
+  source    = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/resource-tags?ref=fd5abf0861f2a9af42565ed854064986542a8737"
+  base_tags = local.tags
+  extra_tags = {
+    CriticalityRating = var.criticality_rating
+    PersonalData      = var.personal_data
+  }
+}
+
+variable "criticality_rating" {
+  type        = string
+  description = "Criticality rating for this resource"
+}
+
+variable "personal_data" {
+  type        = string
+  description = "Whether this resource processes personal data"
+}

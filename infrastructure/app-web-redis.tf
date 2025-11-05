@@ -8,6 +8,14 @@ resource "azurerm_redis_cache" "web" {
   sku_name                      = var.apps_config.redis.sku_name
   public_network_access_enabled = false
   minimum_tls_version           = "1.2"
+
+  tags = merge(
+    local.tags,
+    var.environment == "training" ? {
+      CriticalityRating = "Level 1"
+      PersonalData      = "No"
+    } : {}
+  )
 }
 
 resource "azurerm_private_endpoint" "redis_web" {
@@ -30,7 +38,7 @@ resource "azurerm_private_endpoint" "redis_web" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
+    var.environment == "training" ? {
       CriticalityRating = "Level 1"
       PersonalData      = "No"
     } : {}
