@@ -33,21 +33,29 @@ provider "azurerm" {
   features {}
 }
 
-module "security_tags" {
-  source    = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/resource-tags?ref=fd5abf0861f2a9af42565ed854064986542a8737"
-  base_tags = local.tags
-  extra_tags = {
-    CriticalityRating = var.criticality_rating
-    PersonalData      = var.personal_data
-  }
-}
+# module "security_tags" {
+#   source = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/resource-tags?ref=fd5abf0861f2a9af42565ed854064986542a8737"
+#   base_tags  = local.tags
+#   extra_tags = {
+#     CriticalityRating = var.criticality_rating
+#     PersonalData      = var.personal_data
+#   }
+# }
 
-variable "criticality_rating" {
-  type        = string
-  description = "Criticality rating for this resource"
-}
+# variable "criticality_rating" {
+#   type        = string
+#   description = "Criticality rating for this resource"
+#   validation {
+#     condition     = contains(["Level 1", "Level 2", "Level 3"], var.criticality_rating)
+#     error_message = "Criticality rating must be one of: Level 1, Level 2, Level 3."
+#   }
+# }
 
-variable "personal_data" {
-  type        = string
-  description = "Whether this resource processes personal data"
-}
+# variable "personal_data" {
+#   type        = string
+#   description = "Whether this resource processes personal data"
+#   validation {
+#     condition     = contains(["Yes", "No"], var.personal_data)
+#     error_message = "PersonalData must be Yes or No."
+#   }
+# }
