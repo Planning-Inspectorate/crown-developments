@@ -23,13 +23,7 @@ resource "azurerm_application_insights" "main" {
   application_type     = "web"
   daily_data_cap_in_gb = 10
 
-  tags = merge(
-    local.tags,
-    var.environment == "training" ? {
-      CriticalityRating = "Level 3"
-      PersonalData      = "No"
-    } : {}
-  )
+  tags = module.security_tags["monitoring"].tags
 }
 
 # availability test for the portal app

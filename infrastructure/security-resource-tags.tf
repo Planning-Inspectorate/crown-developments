@@ -20,5 +20,9 @@ locals {
       CriticalityRating = "Level 2"
       PersonalData      = "Yes"
     }
+    monitoring = {
+      CriticalityRating = "Level 99"
+      PersonalData      = "No"
+    }
   }
 }
