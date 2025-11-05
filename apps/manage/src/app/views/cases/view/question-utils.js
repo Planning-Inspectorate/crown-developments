@@ -231,6 +231,10 @@ export function eventQuestions(prefix) {
 		}),
 		[`${prefix}StatementsDate`]: dateQuestion({ fieldName: `${prefix}StatementsDate` }),
 		[`${prefix}CaseManagementConferenceDate`]: dateQuestion({ fieldName: `${prefix}CaseManagementConferenceDate` }),
+		[`${prefix}PreMeetingDate`]: dateQuestion({
+			fieldName: `${prefix}PreMeetingDate`,
+			title: 'Pre-Inquiry Meeting Date'
+		}),
 		[`${prefix}ProofsOfEvidenceDate`]: dateQuestion({
 			fieldName: `${prefix}ProofsOfEvidenceDate`,
 			title: `${titleCase(prefix)} Proofs of Evidence Date`

@@ -571,6 +571,18 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 				]
 			}
 		},
+		inquiryPreMeetingDate: {
+			...eventQuestions('inquiry').inquiryPreMeetingDate,
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'pre-inquiry-meeting-date/remove'
+					}
+				]
+			}
+		},
 		inquiryProofsOfEvidenceDate: {
 			...eventQuestions('inquiry').inquiryProofsOfEvidenceDate,
 			viewData: {

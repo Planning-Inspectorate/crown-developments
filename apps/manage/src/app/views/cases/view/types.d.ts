@@ -108,6 +108,7 @@ export interface CrownDevelopmentViewModel {
 	inquiryVenue?: string;
 	inquiryNotificationDate?: Date | string;
 	inquiryCaseManagementConferenceDate?: Date | string;
+	inquiryPreMeetingDate?: Date | string;
 	inquiryProofsOfEvidenceDate?: Date | string;
 	inquiryDurationPrep?: number | string;
 	inquiryDurationSitting?: number | string;

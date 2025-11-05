@@ -250,7 +250,8 @@ describe('view-model', () => {
 					venue: 'Some Place',
 					prepDuration: 'Prep: 2 days',
 					sittingDuration: 'Sitting: 0 days',
-					reportingDuration: 'Reporting: 1 days'
+					reportingDuration: 'Reporting: 1 days',
+					preMeetingDate: '2025 01 01'
 				}
 			};
 			const result = crownDevelopmentToViewModel(input);
@@ -259,6 +260,7 @@ describe('view-model', () => {
 			assert.strictEqual(result.inquiryDurationPrep, 'Prep: 2 days');
 			assert.strictEqual(result.inquiryDurationSitting, 'Sitting: 0 days');
 			assert.strictEqual(result.inquiryDurationReporting, 'Reporting: 1 days');
+			assert.strictEqual(result.inquiryPreMeetingDate, '2025 01 01');
 		});
 		it(`should map boolean values to yes/no`, () => {
 			/** @type {CrownDevelopment} */
@@ -563,6 +565,7 @@ describe('view-model', () => {
 				inquiryVenue: 'Some place',
 				inquiryNotificationDate: new Date('2025-01-12T00:00:00Z'),
 				inquiryCaseManagementConferenceDate: new Date('2025-02-09T00:00:00Z'),
+				inquiryPreMeetingDate: new Date('2025-01-12T00:00:00Z'),
 				inquiryProofsOfEvidenceDate: new Date('2025-03-01T00:00:00Z')
 			};
 			/** @type {CrownDevelopmentViewModel} */
@@ -582,6 +585,7 @@ describe('view-model', () => {
 			assert.strictEqual(upsert.update?.reportingDuration, toSave.reportingDuration);
 			assert.strictEqual(upsert.update?.notificationDate, toSave.inquiryNotificationDate);
 			assert.strictEqual(upsert.update?.caseManagementConferenceDate, toSave.inquiryCaseManagementConferenceDate);
+			assert.strictEqual(upsert.update?.preMeetingDate, toSave.inquiryPreMeetingDate);
 			assert.strictEqual(upsert.update?.proofsOfEvidenceDate, toSave.inquiryProofsOfEvidenceDate);
 		});
 		it('should set event upsert where to undefined not null', () => {
