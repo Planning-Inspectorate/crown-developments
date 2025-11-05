@@ -34,7 +34,7 @@ provider "azurerm" {
 }
 
 # module "security_tags" {
-#   source = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/resource-tags?ref=fd5abf0861f2a9af42565ed854064986542a8737"
+#   source = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/resource-tags?ref=612cbe1f8708bde96ee138d49462da9afe08c322"
 #   base_tags  = local.tags
 #   extra_tags = {
 #     CriticalityRating = var.criticality_rating
