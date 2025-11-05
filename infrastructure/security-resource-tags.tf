@@ -9,7 +9,7 @@ module "security_tags" {
 locals {
   resource_tags = {
     manage = {
-      CriticalityRating = "Level 1"
+      CriticalityRating = "Level 100"
       PersonalData      = "Yes"
     }
     sql = {
