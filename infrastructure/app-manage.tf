@@ -16,7 +16,7 @@ module "app_manage" {
       CriticalityRating = "Level 1"
       PersonalData      = "Yes"
     } : {},
-    module.security_tags.tags
+    # module.security_tags.tags
   )
 
   # service plan & scaling
