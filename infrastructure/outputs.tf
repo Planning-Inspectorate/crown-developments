@@ -16,6 +16,6 @@ output "app_manage_tags" {
 }
 
 output "app_portal_tags" {
-  description = "Computed tags for portal app"  
+  description = "Computed tags for portal app"
   value       = module.security_tags["portal"].tags
 }
