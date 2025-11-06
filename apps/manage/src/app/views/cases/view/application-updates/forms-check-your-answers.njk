@@ -1,8 +1,8 @@
-{% extends "components/task-list/index.njk" %}
+{% extends "views/layouts/main.njk" %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
-{% set title = "Review Draft Update - " + journeyTitle + " - Manage a Crown Development Application" %}
+{% block pageTitle %}{{ "Review Draft Update - " + journeyTitle + " - Manage a Crown Development Application" }}{% endblock %}
 
 {% block content %}
     {% block beforeTaskList %}

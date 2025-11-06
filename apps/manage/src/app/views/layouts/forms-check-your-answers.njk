@@ -1,9 +1,9 @@
-{% extends "components/task-list/index.njk" %}
+{% extends "views/layouts/main.njk" %}
 {% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
 
-{% set title = "Check your Answers - " + journeyTitle + " - Manage a Crown Development Application" %}
+{% block pageTitle %}{{"Check your Answers - " + journeyTitle + " - Manage a Crown Development Application" }}{% endblock %}
 
-{% block beforeTaskList %}
+{% block content %}
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
             <h1 class="govuk-heading-l">
@@ -21,6 +21,7 @@
             </div>
         </div>
     {% endif %}
+    {% block dynTaskList %}{% endblock %}
 {% endblock %}
 
 {% if summaryWarningMessage %}

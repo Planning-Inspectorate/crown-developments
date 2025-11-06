@@ -8,6 +8,11 @@
 
 {% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
 
+{# show question content within content, overrides main content #}
+{% block content %}
+    {% block dynQuestionContent %}{% endblock %}
+{% endblock %}
+
 {% block before_content %}
   {% if pageCaption %}
     <div class="govuk-grid-row">
