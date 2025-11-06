@@ -222,7 +222,7 @@ export const getQuestions = ({ methodOverrides = {}, textOverrides = {}, actionO
 		},
 		agentOrgName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-			title: 'Agent Organisation name',
+			title: 'Agent organisation name',
 			question: 'What is the name of the organisation you work for?',
 			hint: "We will publish your organisation name, your client's name and their representation on the website.",
 			fieldName: 'agentOrgName',
