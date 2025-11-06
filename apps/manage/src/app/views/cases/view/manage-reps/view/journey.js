@@ -24,7 +24,7 @@ export function createJourney(questions, response, req, isRepsUploadDocsLive) {
 		sections: haveYourSayManageSections(questions, isRepsUploadDocsLive, isViewJourney),
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',
-		listingPageViewPath: 'views/cases/view/manage-reps/view/view.njk',
+		taskListTemplate: 'views/cases/view/manage-reps/view/view.njk',
 		journeyTitle: generateJourneyTitle(response.answers?.statusId),
 		returnToListing: true,
 		makeBaseUrl: () => req.baseUrl.replace('/review', '') + '/edit',

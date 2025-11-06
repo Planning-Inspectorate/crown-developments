@@ -13,7 +13,7 @@ export function createJourney(questions, response, req, isRepsUploadDocsLive) {
 		sections: addRepresentationSection(questions, isRepsUploadDocsLive),
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',
-		listingPageViewPath: 'views/layouts/forms-representation-check-your-answers.njk',
+		taskListTemplate: 'views/layouts/forms-representation-check-your-answers.njk',
 		journeyTitle: 'Add representation',
 		returnToListing: false,
 		makeBaseUrl: () => req.baseUrl,

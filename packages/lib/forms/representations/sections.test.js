@@ -20,7 +20,7 @@ describe('have-your-say', () => {
 					sections: haveYourSayManageSections(questions, true, true),
 					makeBaseUrl: () => req.baseUrl,
 					journeyTemplate: 'template.njk',
-					listingPageViewPath: 'template-2.njk',
+					taskListTemplate: 'template-2.njk',
 					journeyTitle: 'Have your say',
 					response
 				});
@@ -45,7 +45,7 @@ describe('have-your-say', () => {
 					sections: haveYourSayManageSections(questions, true, false),
 					makeBaseUrl: () => req.baseUrl,
 					journeyTemplate: 'template.njk',
-					listingPageViewPath: 'template-2.njk',
+					taskListTemplate: 'template-2.njk',
 					journeyTitle: 'Have your say',
 					response
 				});
@@ -69,7 +69,7 @@ describe('have-your-say', () => {
 				sections: haveYourSaySections(questions, isRepsUploadDocsLive),
 				makeBaseUrl: () => req.baseUrl,
 				journeyTemplate: 'template.njk',
-				listingPageViewPath: 'template-2.njk',
+				taskListTemplate: 'template-2.njk',
 				journeyTitle: 'Have your say',
 				response
 			});
@@ -356,7 +356,7 @@ describe('have-your-say', () => {
 				sections: addRepresentationSection(questions),
 				makeBaseUrl: () => req.baseUrl,
 				journeyTemplate: 'template.njk',
-				listingPageViewPath: 'template-2.njk',
+				taskListTemplate: 'template-2.njk',
 				journeyTitle: 'Add a representation',
 				response
 			});

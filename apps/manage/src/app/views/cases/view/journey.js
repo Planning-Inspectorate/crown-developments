@@ -152,7 +152,7 @@ export function createJourney(questions, response, req) {
 		],
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',
-		listingPageViewPath: 'views/cases/view/view.njk',
+		taskListTemplate: 'views/cases/view/view.njk',
 		journeyTitle: 'Case details',
 		returnToListing: true,
 		makeBaseUrl: () => req.baseUrl,

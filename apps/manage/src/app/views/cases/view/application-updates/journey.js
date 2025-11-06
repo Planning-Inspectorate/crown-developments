@@ -13,7 +13,7 @@ export function createJourney(questions, response, req) {
 		sections: [new Section('Create', 'create').addQuestion(questions.updateDetails).addQuestion(questions.publishNow)],
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',
-		listingPageViewPath: 'views/cases/view/application-updates/forms-check-your-answers.njk',
+		taskListTemplate: 'views/cases/view/application-updates/forms-check-your-answers.njk',
 		journeyTitle: 'Application Updates',
 		makeBaseUrl: () => req.baseUrl,
 		initialBackLink: req.baseUrl,

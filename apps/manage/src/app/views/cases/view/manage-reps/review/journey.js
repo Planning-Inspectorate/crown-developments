@@ -30,7 +30,7 @@ export function createRedactJourney(response, req) {
 		],
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',
-		listingPageViewPath: 'views/cases/view/manage-reps/view/view.njk',
+		taskListTemplate: 'views/cases/view/manage-reps/view/view.njk',
 		journeyTitle: generateJourneyTitle(response.answers?.statusId),
 		initialBackLink: req.originalUrl?.replace('/redact', ''),
 		returnToListing: false,
