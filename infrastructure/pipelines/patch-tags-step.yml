@@ -1,6 +1,8 @@
 # Add this step after your Terraform Apply step in your pipeline
 # This patches tags that are ignored by lifecycle rules in modules
 
+## AI CODE
+
 - task: AzureCLI@2
   displayName: 'Patch App Service Tags'
   condition: and(succeeded(), ne(variables['Agent.JobStatus'], 'Failed'))
