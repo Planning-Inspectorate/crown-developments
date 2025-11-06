@@ -514,10 +514,12 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		eiaScreening: {
 			type: COMPONENT_TYPES.BOOLEAN,
 			title: 'EIA screening',
-			question: 'Is EIA Screening Required?',
+			question: 'Has an EIA screening been undertaken by PCU?',
 			fieldName: 'eiaScreening',
 			url: 'eia-screening',
-			validators: [new RequiredValidator()]
+			validators: [
+				new RequiredValidator('Select yes if an Environmental Impact Assessment (EIA) screening is required')
+			]
 		},
 		eiaScreeningOutcome: {
 			type: COMPONENT_TYPES.BOOLEAN,
@@ -525,9 +527,13 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			question: 'What is the EIA Screening Outcome?',
 			fieldName: 'eiaScreeningOutcome',
 			url: 'eia-screening-outcome',
-			validators: [new RequiredValidator()]
+			validators: [new RequiredValidator('Select the Environmental Impact Assessment (EIA) outcome')]
 		},
-		environmentalStatementReceivedDate: dateQuestion({ fieldName: 'environmentalStatementReceivedDate' }),
+		environmentalStatementReceivedDate: dateQuestion({
+			question: 'What date did the Planning Inspectorate receive the Environmental Statement (ES)?',
+			fieldName: 'environmentalStatementReceivedDate',
+			title: 'Environmental Statement Received Date'
+		}),
 
 		writtenRepsProcedureNotificationDate: dateQuestion({
 			fieldName: 'writtenRepsProcedureNotificationDate',

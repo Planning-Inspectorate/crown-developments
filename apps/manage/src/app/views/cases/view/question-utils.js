@@ -10,6 +10,7 @@ import {
 	APPLICATION_STAGE,
 	APPLICATION_STAGE_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
+import { EnvironmentalStatementReceivedDateValidator } from '@pins/crowndev-lib/forms/custom-components/custom-environmental-statement-date-validator.js';
 
 /**
  *
@@ -102,18 +103,22 @@ export function contactQuestions({ prefix, title, addressRequired }) {
  * @param {Object<string, any>} [opts.viewData]
  * @returns {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps}
  */
-export function dateQuestion({ fieldName, title, hint, editable = true, viewData = {} }) {
+export function dateQuestion({ fieldName, title, hint, editable = true, viewData = {}, question }) {
 	if (!title) {
 		title = camelCaseToSentenceCase(fieldName);
 	}
 	return {
 		type: COMPONENT_TYPES.DATE,
 		title: title,
-		question: `What is the ${title?.toLowerCase()}?`,
+		question: question || `What is the ${title?.toLowerCase()}?`,
 		hint: hint,
 		fieldName: fieldName,
 		url: camelCaseToUrlCase(fieldName),
-		validators: [new DateValidator(title)],
+		validators: [
+			fieldName === 'environmentalStatementReceivedDate'
+				? new EnvironmentalStatementReceivedDateValidator()
+				: new DateValidator(title)
+		],
 		editable: editable,
 		viewData
 	};
