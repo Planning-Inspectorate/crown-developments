@@ -92,8 +92,6 @@
 	{% include "views/layouts/components/core/cookie-banner.njk" %}
 {% endblock %}
 
-{% block before_content %}{% endblock %}
-
 {% block content %}
     {% block pageHeading %}
         <div class="govuk-grid-row">
@@ -108,8 +106,6 @@
         </div>
     {% endblock %}
     {% block pageContent %}{% endblock %}
-
-    {% block after_content %}{% endblock %}
 {% endblock %}
 
 {% block footer %}
