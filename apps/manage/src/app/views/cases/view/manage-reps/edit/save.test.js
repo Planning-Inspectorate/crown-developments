@@ -154,7 +154,7 @@ const journeyParams = {
 	taskListUrl: 'task-list',
 	makeBaseUrl: () => `${mockBaseUrl}/${mockRef}`,
 	journeyTemplate: mockTemplateUrl,
-	listingPageViewPath: mockListingPath,
+	taskListTemplate: mockListingPath,
 	journeyTitle: mockJourneyTitle
 };
 

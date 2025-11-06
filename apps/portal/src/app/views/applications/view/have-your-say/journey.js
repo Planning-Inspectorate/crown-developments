@@ -13,7 +13,7 @@ export function createJourney(questions, response, req, isRepsUploadDocsLive) {
 		sections: haveYourSaySections(questions, isRepsUploadDocsLive),
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',
-		listingPageViewPath: 'views/layouts/forms-have-your-say-check-your-answers.njk',
+		taskListTemplate: 'views/layouts/forms-have-your-say-check-your-answers.njk',
 		journeyTitle: 'Have Your Say',
 		returnToListing: false,
 		makeBaseUrl: () => req.baseUrl,

@@ -19,7 +19,7 @@ export function createJourney(questions, response, req, isRepsUploadDocsLive) {
 		],
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',
-		listingPageViewPath: 'views/layouts/forms-check-your-answers.njk',
+		taskListTemplate: 'views/layouts/forms-check-your-answers.njk',
 		journeyTitle: 'Withdraw Representation',
 		returnToListing: false,
 		makeBaseUrl: () => req.baseUrl,
