@@ -32,6 +32,7 @@ import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-a
 import DateTimeValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-time-validator.js';
 import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
 import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-validator.js';
+import CostsApplicationsCommentValidator from '@pins/crowndev-lib/forms/custom-components/costs-applications-comment/costs-applications-comment-validator.js';
 
 /**
  * @param {import('../../../../util/entra-groups-types.js').EntraGroupMembers} [groupMembers]
@@ -663,6 +664,16 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			fieldName: 'bngExempt',
 			url: 'bng-exempt',
 			validators: [new RequiredValidator('Select whether the application is BNG exempt')]
+		},
+		hasCostsApplications: {
+			type: CUSTOM_COMPONENTS.COSTS_APPLICATIONS,
+			title: 'Costs Application(s)',
+			question: 'Are there any costs applications?',
+			fieldName: 'hasCostsApplications',
+			url: 'costs-applications',
+			costsApplicationInputFieldName: 'costsApplicationsComment',
+			costsApplicationQuestion: 'Capture if a party is making a cost claim against another ofr unreasonable behaviour.',
+			validators: [new CostsApplicationsCommentValidator()]
 		}
 	};
 
