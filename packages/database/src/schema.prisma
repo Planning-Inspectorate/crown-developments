@@ -133,6 +133,11 @@ model CrownDevelopment {
   applicationFee                      Decimal?
   siteVisitDate                       DateTime?
   ApplicationUpdates                  ApplicationUpdate[]
+  cilLiable                           Boolean?
+  cilAmount                           Decimal?
+  bngExempt                           Boolean?
+  hasCostsApplications                Boolean?
+  costsApplicationsComment            String?                     @db.NVarChar(2000)
 }
 
 /// Address represents an address of a property or place
