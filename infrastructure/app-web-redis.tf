@@ -8,6 +8,11 @@ resource "azurerm_redis_cache" "web" {
   sku_name                      = var.apps_config.redis.sku_name
   public_network_access_enabled = false
   minimum_tls_version           = "1.2"
+
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? local.resource_tags["redis_cache_web"] : {}
+  )
 }
 
 resource "azurerm_private_endpoint" "redis_web" {
@@ -30,10 +35,7 @@ resource "azurerm_private_endpoint" "redis_web" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "No"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["private_endpoint_redis_web"] : {}
   )
 }
 
@@ -44,5 +46,8 @@ resource "azurerm_key_vault_secret" "redis_web_connection_string" {
   value        = azurerm_redis_cache.web.primary_connection_string
   content_type = "connection-string"
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? local.resource_tags["key_vault_secret_redis_web_connection_string"] : {}
+  )
 }

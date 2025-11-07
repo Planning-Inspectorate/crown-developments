@@ -87,10 +87,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "No"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["cdn_frontdoor_firewall_policy_manage"] : {}
   )
 
   # custom rules in priority order to match the API
