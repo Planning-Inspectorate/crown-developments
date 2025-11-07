@@ -28,7 +28,7 @@ export default class ConditionalTextInputValidator extends BaseValidator {
 
 		return [
 			body(fieldName).notEmpty().withMessage(this.requiredMessage),
-			body(`${fieldName}_amount`)
+			body(`${fieldName}_text`)
 				.if(body(fieldName).equals(BOOLEAN_OPTIONS.YES))
 				.notEmpty()
 				.withMessage(this.conditionalRequiredMessage)

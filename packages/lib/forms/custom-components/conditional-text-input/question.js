@@ -57,8 +57,7 @@ export default class ConditionalTextInputQuestion extends OptionsQuestion {
 	 * @returns {QuestionViewModel}
 	 */
 	prepQuestionForRendering(section, journey, customViewData, payload) {
-		journey.response.answers[`${this.fieldName}_amount`] =
-			journey.response.answers[this.conditionalTextFieldName] || '';
+		journey.response.answers[`${this.fieldName}_text`] = journey.response.answers[this.conditionalTextFieldName] || '';
 		return super.prepQuestionForRendering(section, journey, customViewData, payload);
 	}
 
@@ -76,10 +75,10 @@ export default class ConditionalTextInputQuestion extends OptionsQuestion {
 		responseToSave.answers[this.fieldName] = isYes;
 		journeyResponse.answers[this.fieldName] = fieldValue;
 
-		const amountFieldName = `${this.fieldName}_amount`;
-		const amountValue = body[amountFieldName]?.trim();
-		responseToSave.answers[this.conditionalTextFieldName] = isYes ? amountValue || null : null;
-		journeyResponse.answers[amountFieldName] = isYes ? amountValue : null;
+		const textFieldName = `${this.fieldName}_text`;
+		const textValue = body[textFieldName]?.trim();
+		responseToSave.answers[this.conditionalTextFieldName] = isYes ? textValue || null : null;
+		journeyResponse.answers[textFieldName] = isYes ? textValue : null;
 
 		return responseToSave;
 	}
