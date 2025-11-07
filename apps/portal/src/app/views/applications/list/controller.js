@@ -1,3 +1,4 @@
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { crownDevelopmentToViewModel } from '../view/view-model.js';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 
@@ -33,6 +34,10 @@ export function buildApplicationListPage(service) {
 				where: { publishDate: { lte: now } }
 			})
 		]);
+
+		if ([null, undefined].includes(totalCrownDevelopments) || Number.isNaN(totalCrownDevelopments)) {
+			return notFoundHandler(req, res);
+		}
 
 		logger.info(`Crown development list page: ${crownDevelopments.length} case(s) fetched`);
 
