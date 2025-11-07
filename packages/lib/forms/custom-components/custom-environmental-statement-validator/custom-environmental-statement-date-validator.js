@@ -22,5 +22,6 @@ export class EnvironmentalStatementReceivedDateValidator extends DateValidator {
 			...customErrorMessages,
 			...errorMessages
 		});
+		this.errorMessages = { ...customErrorMessages, ...errorMessages };
 	}
 }

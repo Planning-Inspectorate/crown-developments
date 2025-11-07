@@ -108,6 +108,9 @@ export function dateQuestion({ fieldName, title, hint, editable = true, viewData
 	if (!title) {
 		title = camelCaseToSentenceCase(fieldName);
 	}
+	if (!validator) {
+		validator = new DateValidator(title);
+	}
 	return {
 		type: COMPONENT_TYPES.DATE,
 		title: title,
@@ -115,7 +118,7 @@ export function dateQuestion({ fieldName, title, hint, editable = true, viewData
 		hint: hint,
 		fieldName: fieldName,
 		url: camelCaseToUrlCase(fieldName),
-		validators: [validator ? validator : new DateValidator(title)],
+		validators: [validator],
 		editable: editable,
 		viewData
 	};

@@ -31,7 +31,7 @@ import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/
 import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
 import DateTimeValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-time-validator.js';
 import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
-import { EnvironmentalStatementReceivedDateValidator } from '@pins/crowndev-lib/forms/custom-components/custom-environmental-statement-date-validator.js';
+import { EnvironmentalStatementReceivedDateValidator } from '@pins/crowndev-lib/forms/custom-components/custom-environmental-statement-validator/custom-environmental-statement-date-validator.js';
 
 /**
  * @param {import('../../../../util/entra-groups-types.js').EntraGroupMembers} [groupMembers]
