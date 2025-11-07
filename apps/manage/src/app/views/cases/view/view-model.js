@@ -67,7 +67,12 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'applicationFee',
 	'applicationReceivedDateEmailSent',
 	'notNationallyImportantEmailSent',
-	'siteVisitDate'
+	'siteVisitDate',
+	'cilLiable',
+	'cilAmount',
+	'bngExempt',
+	'hasCostsApplications',
+	'costsApplicationsComment'
 ]);
 
 /**
