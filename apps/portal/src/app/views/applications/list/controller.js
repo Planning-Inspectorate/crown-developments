@@ -1,4 +1,5 @@
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { crownDevelopmentToViewModel } from '../view/view-model.js';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 
@@ -13,27 +14,36 @@ export function buildApplicationListPage(service) {
 
 		const { selectedItemsPerPage, pageNumber, pageSize, skipSize } = getPaginationParams(req);
 
-		const [crownDevelopments, totalCrownDevelopments] = await Promise.all([
-			db.crownDevelopment.findMany({
-				where: { publishDate: { lte: now } },
-				select: {
-					id: true,
-					reference: true,
-					ApplicantContact: { select: { orgName: true, firstName: true, lastName: true } },
-					Lpa: { select: { name: true } },
-					Stage: { select: { displayName: true } },
-					Type: { select: { displayName: true } }
-				},
-				orderBy: {
-					reference: 'desc'
-				},
-				skip: skipSize,
-				take: pageSize
-			}),
-			db.crownDevelopment.count({
-				where: { publishDate: { lte: now } }
-			})
-		]);
+		let crownDevelopments, totalCrownDevelopments;
+		try {
+			[crownDevelopments, totalCrownDevelopments] = await Promise.all([
+				db.crownDevelopment.findMany({
+					where: { publishDate: { lte: now } },
+					select: {
+						id: true,
+						reference: true,
+						ApplicantContact: { select: { orgName: true, firstName: true, lastName: true } },
+						Lpa: { select: { name: true } },
+						Stage: { select: { displayName: true } },
+						Type: { select: { displayName: true } }
+					},
+					orderBy: {
+						reference: 'desc'
+					},
+					skip: skipSize,
+					take: pageSize
+				}),
+				db.crownDevelopment.count({
+					where: { publishDate: { lte: now } }
+				})
+			]);
+		} catch (error) {
+			wrapPrismaError({
+				error,
+				logger,
+				message: 'fetching crown developments'
+			});
+		}
 
 		if ([null, undefined].includes(totalCrownDevelopments) || Number.isNaN(totalCrownDevelopments)) {
 			return notFoundHandler(req, res);
