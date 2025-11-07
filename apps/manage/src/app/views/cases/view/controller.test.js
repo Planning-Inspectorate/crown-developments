@@ -89,6 +89,15 @@ describe('case details', () => {
 		});
 	});
 	describe('viewCaseDetails', () => {
+		const newMockRes = () => {
+			const nunjucks = configureNunjucks();
+			const ensureExtension = (view) => (view.endsWith('.njk') ? view : view + '.njk');
+			// mock response that calls nunjucks to render a result
+			return {
+				locals: {},
+				render: mock.fn((view, data) => nunjucks.render(ensureExtension(view), data))
+			};
+		};
 		it('should throw if no id', async () => {
 			const mockReq = { params: {} };
 			const mockRes = { locals: {} };
@@ -97,12 +106,7 @@ describe('case details', () => {
 		});
 		it('should render without error, with case reference', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
-			const nunjucks = configureNunjucks();
-			// mock response that calls nunjucks to render a result
-			const mockRes = {
-				locals: {},
-				render: mock.fn((view, data) => nunjucks.render(view, data))
-			};
+			const mockRes = newMockRes();
 			const mockReq = { params: { id: 'case-1' }, baseUrl: 'case-1' };
 			const mockDb = {
 				crownDevelopment: {
@@ -127,12 +131,7 @@ describe('case details', () => {
 		});
 		it('should include caseUpdated if present in session', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
-			const nunjucks = configureNunjucks();
-			// mock response that calls nunjucks to render a result
-			const mockRes = {
-				locals: {},
-				render: mock.fn((view, data) => nunjucks.render(view, data))
-			};
+			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
@@ -165,12 +164,7 @@ describe('case details', () => {
 		it('should display a publish button if publishDate is defined and not in the future', async (context) => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
-			const nunjucks = configureNunjucks();
-			// mock response that calls nunjucks to render a result
-			const mockRes = {
-				locals: {},
-				render: mock.fn((view, data) => nunjucks.render(view, data))
-			};
+			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
@@ -203,12 +197,7 @@ describe('case details', () => {
 		});
 		it('should display an unpublish button if publishDate is not defined', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
-			const nunjucks = configureNunjucks();
-			// mock response that calls nunjucks to render a result
-			const mockRes = {
-				locals: {},
-				render: mock.fn((view, data) => nunjucks.render(view, data))
-			};
+			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
@@ -238,12 +227,7 @@ describe('case details', () => {
 		it('should display an unpublish button if publishDate is in the future', async (context) => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
-			const nunjucks = configureNunjucks();
-			// mock response that calls nunjucks to render a result
-			const mockRes = {
-				locals: {},
-				render: mock.fn((view, data) => nunjucks.render(view, data))
-			};
+			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
@@ -275,15 +259,11 @@ describe('case details', () => {
 		});
 		it('should display error messages in errorSummary', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
-			const nunjucks = configureNunjucks();
+			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
 				session: { cases: { 'case-1': { publishErrors: [{ text: 'Error message', href: '#' }] } } }
-			};
-			const mockRes = {
-				locals: {},
-				render: mock.fn((view, data) => nunjucks.render(view, data))
 			};
 			const mockDb = {
 				crownDevelopment: {
@@ -311,12 +291,7 @@ describe('case details', () => {
 		});
 		it('should show a sharepoint link if available', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
-			const nunjucks = configureNunjucks();
-			// mock response that calls nunjucks to render a result
-			const mockRes = {
-				locals: {},
-				render: mock.fn((view, data) => nunjucks.render(view, data))
-			};
+			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
@@ -349,12 +324,7 @@ describe('case details', () => {
 		});
 		it('should set hasLinkedCase and linkedCaseLink appropriately when there is case linked', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
-			const nunjucks = configureNunjucks();
-			// mock response that calls nunjucks to render a result
-			const mockRes = {
-				locals: {},
-				render: mock.fn((view, data) => nunjucks.render(view, data))
-			};
+			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
