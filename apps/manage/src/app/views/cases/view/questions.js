@@ -649,7 +649,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		cilLiable: {
 			type: CUSTOM_COMPONENTS.CIL_AMOUNT,
-			title: 'CIL Liable',
+			title: 'CIL liable',
 			question: 'Is the application liable for the Community Infrastructure Levy (CIL)?',
 			fieldName: 'cilLiable',
 			url: 'cil-liable',
@@ -659,7 +659,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		bngExempt: {
 			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'BNG Exempt',
+			title: 'BNG exempt',
 			question: 'Is the application exempt from biodiversity net gain (BNG)?',
 			fieldName: 'bngExempt',
 			url: 'bng-exempt',
@@ -667,7 +667,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		hasCostsApplications: {
 			type: CUSTOM_COMPONENTS.COSTS_APPLICATIONS,
-			title: 'Costs Application(s)',
+			title: 'Costs application(s)',
 			question: 'Are there any costs applications?',
 			fieldName: 'hasCostsApplications',
 			url: 'costs-applications',
