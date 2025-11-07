@@ -22,10 +22,7 @@ resource "azurerm_mssql_server" "primary" { # create pins-odt-sql-<env>-crown
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "Yes"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["mssql_server_primary"] : {}
   )
 }
 
@@ -49,10 +46,7 @@ resource "azurerm_private_endpoint" "sql_primary" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "No"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["private_endpoint_sql_primary"] : {}
   )
 }
 
@@ -79,10 +73,7 @@ resource "azurerm_mssql_database" "primary" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "Yes"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["mssql_database_primary"] : {}
   )
 }
 
@@ -102,7 +93,10 @@ resource "azurerm_key_vault_secret" "sql_admin_connection_string" {
   )
   content_type = "connection-string"
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? local.resource_tags["key_vault_secret_sql_admin_connection_string"] : {}
+  )
 }
 
 resource "azurerm_key_vault_secret" "sql_app_connection_string" {
@@ -121,7 +115,10 @@ resource "azurerm_key_vault_secret" "sql_app_connection_string" {
   )
   content_type = "connection-string"
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? local.resource_tags["key_vault_secret_sql_app_connection_string"] : {}
+  )
 }
 
 resource "random_id" "sql_admin_username" {

@@ -44,7 +44,10 @@ resource "azurerm_cognitive_account" "text_analytics" {
     type = "SystemAssigned"
   }
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? local.resource_tags["cognitive_account_text_analytics"] : {}
+  )
 }
 
 resource "azurerm_private_endpoint" "text_analytics" {
@@ -69,9 +72,6 @@ resource "azurerm_private_endpoint" "text_analytics" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "No"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["private_endpoint_text_analytics"] : {}
   )
 }
