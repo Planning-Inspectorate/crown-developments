@@ -73,6 +73,10 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 						maxLength: {
 							maxLength: 15,
 							maxLengthMessage: `${title} telephone number must be 15 characters or less`
+						},
+						regex: {
+							regex: '^\\+?\\d+$',
+							regexMessage: 'Enter a valid telephone number'
 						}
 					}
 				]
