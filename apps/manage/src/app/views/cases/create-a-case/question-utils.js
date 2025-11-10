@@ -61,7 +61,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 			new RequiredValidator(`Enter ${title} email address`),
 			new StringValidator({
 				maxLength: {
-					maxLength: 250,
+					maxLength: 50,
 					maxLengthMessage: `${title} email must be 50 characters or less`
 				}
 			})

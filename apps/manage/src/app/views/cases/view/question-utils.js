@@ -63,7 +63,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 						fieldName: `${prefix}ContactEmail`,
 						required: false,
 						maxLength: {
-							maxLength: 250,
+							maxLength: 50,
 							maxLengthMessage: `${title} email must be 50 characters or less`
 						}
 					},
