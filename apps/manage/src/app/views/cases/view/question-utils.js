@@ -106,6 +106,7 @@ export function dateQuestion({ fieldName, title, hint, editable = true, viewData
 	if (!title) {
 		title = camelCaseToSentenceCase(fieldName);
 	}
+	const errorMessageText = `Date application was ${title?.toLowerCase()}`;
 	return {
 		type: COMPONENT_TYPES.DATE,
 		title: title,
@@ -118,19 +119,16 @@ export function dateQuestion({ fieldName, title, hint, editable = true, viewData
 				title,
 				{ ensureFuture: false, ensurePast: false },
 				{
-					// title :  application received date
-					emptyErrorMessage: `Enter date application was received`,
-					noDayErrorMessage: `Date application was received must include a day `,
-					noMonthErrorMessage: `Date application was received must include a month`,
-
-					noYearErrorMessage: `Date application was received must include a year`,
-					noDayMonthErrorMessage: `Date application was received must include a day and month`,
-					noDayYearErrorMessage: `Date application was received must include a day and year`,
-
-					noMonthYearErrorMessage: `Date application was received must include a month and year`,
-					invalidDateErrorMessage: `Date application was received day must be a real day`,
-					invalidMonthErrorMessage: `Date application was received month must be a month between 1 and 12`,
-					invalidYearErrorMessage: `Date application was received year must include 4 numbers`
+					emptyErrorMessage: `Enter date application was ${title?.toLowerCase()}`,
+					noDayErrorMessage: `${errorMessageText} must include a day `,
+					noMonthErrorMessage: `${errorMessageText} must include a month`,
+					noYearErrorMessage: `${errorMessageText} must include a year`,
+					noDayMonthErrorMessage: `${errorMessageText} must include a day and month`,
+					noDayYearErrorMessage: `${errorMessageText} must include a day and year`,
+					noMonthYearErrorMessage: `${errorMessageText} must include a month and year`,
+					invalidDateErrorMessage: `${errorMessageText} day must be a real day`,
+					invalidMonthErrorMessage: `${errorMessageText} month must be a month between 1 and 12`,
+					invalidYearErrorMessage: `${errorMessageText} year must include 4 numbers`
 				}
 			)
 		],
