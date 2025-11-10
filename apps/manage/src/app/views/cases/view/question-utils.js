@@ -113,7 +113,27 @@ export function dateQuestion({ fieldName, title, hint, editable = true, viewData
 		hint: hint,
 		fieldName: fieldName,
 		url: camelCaseToUrlCase(fieldName),
-		validators: [new DateValidator(title)],
+		validators: [
+			new DateValidator(
+				title,
+				{ ensureFuture: false, ensurePast: false },
+				{
+					// title :  application received date
+					emptyErrorMessage: `Enter date application was received`,
+					noDayErrorMessage: `Date application was received must include a day `,
+					noMonthErrorMessage: `Date application was received must include a month`,
+
+					noYearErrorMessage: `Date application was received must include a year`,
+					noDayMonthErrorMessage: `Date application was received must include a day and month`,
+					noDayYearErrorMessage: `Date application was received must include a day and year`,
+
+					noMonthYearErrorMessage: `Date application was received must include a month and year`,
+					invalidDateErrorMessage: `Date application was received day must be a real day`,
+					invalidMonthErrorMessage: `Date application was received month must be a month between 1 and 12`,
+					invalidYearErrorMessage: `Date application was received year must include 4 numbers`
+				}
+			)
+		],
 		editable: editable,
 		viewData
 	};
