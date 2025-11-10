@@ -672,7 +672,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			fieldName: 'hasCostsApplications',
 			url: 'costs-applications',
 			costsApplicationInputFieldName: 'costsApplicationsComment',
-			costsApplicationQuestion: 'Capture if a party is making a cost claim against another ofr unreasonable behaviour.',
+			costsApplicationQuestion: 'Capture if a party is making a cost claim against another for unreasonable behaviour.',
 			validators: [new CostsApplicationsCommentValidator()]
 		}
 	};
