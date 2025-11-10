@@ -35,6 +35,25 @@ describe('question-utils', () => {
 				assert.ok(question.url.startsWith(prefixHyphens));
 			}
 		});
+		describe('contact phone number regex validations', () => {
+			// Hard coded regex taken from ./question-utils.js
+			const regex = new RegExp(/^\+?\d+$/);
+
+			it('should allow valid phone numbers', () => {
+				assert.ok(regex.test('1234567890'), 'Should match digits only');
+				assert.ok(regex.test('+1234567890'), 'Should match leading plus followed by digits');
+				assert.ok(regex.test('1'), 'Should match a single digit');
+			});
+
+			it('should reject invalid phone numbers', () => {
+				assert.strictEqual(regex.test('+'), false, 'Should reject only plus sign');
+				assert.strictEqual(regex.test('+123A'), false, 'Should reject letters');
+				assert.strictEqual(regex.test('123 456'), false, 'Should reject spaces');
+				assert.strictEqual(regex.test('123-456'), false, 'Should reject hyphens');
+				assert.strictEqual(regex.test('123.456'), false, 'Should reject decimal point');
+				assert.strictEqual(regex.test(''), false, 'Should reject empty string');
+			});
+		});
 	});
 	describe('dateQuestion', () => {
 		it('should create a date question based on a field name only', () => {
