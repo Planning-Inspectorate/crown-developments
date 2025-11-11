@@ -27,10 +27,11 @@
             <div id="pagination" class="govuk-body">
                 <p class="govuk-body govuk-clearfix">
                     <p class="govuk-body">
-                        Showing <strong>{{ resultsStartNumber }}</strong> to <strong>{{ resultsEndNumber if totalCrownDevelopments > resultsEndNumber else totalCrownDevelopments }}</strong>
-                        of <strong>{{ totalCrownDevelopments }}</strong> results
+                        Showing <strong>{{ paginationParams.resultsStartNumber }}</strong>
+                        to <strong>{{ paginationParams.resultsEndNumber if paginationParams.totalCrownDevelopments > paginationParams.resultsEndNumber else paginationParams.totalCrownDevelopments }}</strong>
+                        of <strong>{{ paginationParams.totalCrownDevelopments }}</strong> results
                     </p>
-                    {{ paginationOptions.renderPagination(selectedItemsPerPage, totalCrownDevelopments, pageNumber, searchValue) }}
+                    {{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalCrownDevelopments, paginationParams.pageNumber) }}
                 </p>
                 <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
@@ -38,7 +39,7 @@
             </div>
 
             {# if pageNumber and totalPages values are both 1 then pagination options not shown #}
-            {{ pagination.renderPagination(pageNumber, totalPages, currentUrl) }}
+            {{ pagination.renderPagination(paginationParams.pageNumber, paginationParams.totalPages, currentUrl) }}
         </div>
     </div>
 {% endblock %}

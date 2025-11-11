@@ -4,6 +4,16 @@ import { crownDevelopmentToViewModel } from '../view/view-model.js';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 
 /**
+ * @typedef {object} PaginationParams
+ * @property {number} selectedItemsPerPage The number of items the user has selected to view per page.
+ * @property {number} pageNumber The current page number being viewed (1-based).
+ * @property {number} totalPages The total number of pages available based on the total items and items per page.
+ * @property {number} resultsStartNumber The index (1-based) of the first result on the current page.
+ * @property {number} resultsEndNumber The index (1-based) of the last result on the current page.
+ * @property {number} totalCrownDevelopments The total count of all items across all pages.
+ */
+
+/**
  * @param {import('#service').PortalService} service
  * @returns {import('express').Handler}
  */
@@ -62,17 +72,21 @@ export function buildApplicationListPage(service) {
 			pageNumber
 		);
 
+		/** @type {PaginationParams} */
+		const paginationParams = {
+			selectedItemsPerPage,
+			pageNumber,
+			totalPages,
+			resultsStartNumber,
+			resultsEndNumber,
+			totalCrownDevelopments
+		};
+
 		return res.render('views/applications/list/view.njk', {
 			pageTitle: 'All Crown Development applications',
 			crownDevelopmentsViewModels,
 			currentUrl: req.originalUrl,
-			totalCrownDevelopments,
-			selectedItemsPerPage,
-			pageSize,
-			pageNumber,
-			totalPages,
-			resultsStartNumber,
-			resultsEndNumber
+			paginationParams
 		});
 	};
 }
