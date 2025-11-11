@@ -12,7 +12,7 @@ import { getLinkedCaseId, hasLinkedCase as hasLinkedCaseFunction } from '@pins/c
  * @returns {import('express').Handler}
  */
 export function buildSaveController(service) {
-	const { db, getSharePointDrive, logger, notifyClient } = service;
+	const { db, appSharePointDrive, logger, notifyClient } = service;
 	return async (req, res) => {
 		if (!res.locals || !res.locals.journeyResponse) {
 			throw new Error('journey response required');
@@ -53,16 +53,15 @@ export function buildSaveController(service) {
 			}
 		});
 
-		const sharePointDrive = getSharePointDrive(req.session);
 		let notificationData = {};
 
-		if (sharePointDrive === null) {
+		if (appSharePointDrive === null) {
 			logger.warn(
 				'SharePoint not enabled, to use SharePoint functionality setup SharePoint environment variables. See README'
 			);
 		} else {
 			notificationData = await createCaseSharePointActions(
-				sharePointDrive,
+				appSharePointDrive,
 				service.sharePointCaseTemplateId,
 				caseReferenceToFolderName(reference),
 				answers
@@ -70,7 +69,7 @@ export function buildSaveController(service) {
 
 			if (isPlanningAndLbcCase) {
 				await createCaseSharePointActions(
-					sharePointDrive,
+					appSharePointDrive,
 					service.sharePointCaseTemplateId,
 					caseReferenceToFolderName(`${reference}/LBC`),
 					answers
