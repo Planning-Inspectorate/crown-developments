@@ -52,10 +52,10 @@ module "app_manage" {
 
     APP_HOSTNAME                  = var.web_domains.manage
     PORTAL_HOSTNAME               = "https://${var.web_domains.portal}"
-    AUTH_CLIENT_ID                = var.apps_config.auth.client_id
-    AUTH_CLIENT_SECRET            = local.key_vault_refs["crown-client-secret"]
+    AZURE_CLIENT_ID               = var.apps_config.auth.client_id
+    AZURE_CLIENT_SECRET           = local.key_vault_refs["crown-client-secret"]
     AUTH_GROUP_APPLICATION_ACCESS = var.apps_config.auth.group_application_access
-    AUTH_TENANT_ID                = data.azurerm_client_config.current.tenant_id
+    AZURE_TENANT_ID               = data.azurerm_client_config.current.tenant_id
     ENTRA_GROUP_ID_CASE_OFFICERS  = var.apps_config.entra.group_ids.case_officers
     ENTRA_GROUP_ID_INSPECTORS     = var.apps_config.entra.group_ids.inspectors
 

@@ -32,11 +32,11 @@ export function loadConfig() {
 	const {
 		APP_HOSTNAME,
 		PORTAL_HOSTNAME,
-		AUTH_CLIENT_ID,
-		AUTH_CLIENT_SECRET,
 		AUTH_DISABLED,
+		AZURE_CLIENT_ID, // required for SharePoint
+		AZURE_CLIENT_SECRET, // required for SharePoint
+		AZURE_TENANT_ID, // required for SharePoint
 		AUTH_GROUP_APPLICATION_ACCESS,
-		AUTH_TENANT_ID,
 		AZURE_AI_LANGUAGE_CATEGORIES,
 		AZURE_AI_LANGUAGE_ENDPOINT,
 		CACHE_CONTROL_MAX_AGE,
@@ -90,10 +90,10 @@ export function loadConfig() {
 	const authDisabled = AUTH_DISABLED === 'true' && !isProduction;
 	if (!authDisabled) {
 		const props = {
-			AUTH_CLIENT_ID,
-			AUTH_CLIENT_SECRET,
+			AZURE_CLIENT_ID,
+			AZURE_CLIENT_SECRET,
 			AUTH_GROUP_APPLICATION_ACCESS,
-			AUTH_TENANT_ID,
+			AZURE_TENANT_ID,
 			ENTRA_GROUP_ID_CASE_OFFICERS,
 			ENTRA_GROUP_ID_INSPECTORS
 		};
@@ -140,9 +140,9 @@ export function loadConfig() {
 		appHostname: APP_HOSTNAME,
 		portalBaseUrl: PORTAL_HOSTNAME,
 		auth: {
-			authority: `https://login.microsoftonline.com/${AUTH_TENANT_ID}`,
-			clientId: AUTH_CLIENT_ID,
-			clientSecret: AUTH_CLIENT_SECRET,
+			authority: `https://login.microsoftonline.com/${AZURE_TENANT_ID}`,
+			clientId: AZURE_CLIENT_ID,
+			clientSecret: AZURE_CLIENT_SECRET,
 			disabled: authDisabled,
 			groups: {
 				applicationAccess: AUTH_GROUP_APPLICATION_ACCESS

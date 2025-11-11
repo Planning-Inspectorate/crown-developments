@@ -25,7 +25,7 @@ describe('save', () => {
 				sharePointCaseTemplateId: '789',
 				db: dbMock(),
 				logger: mockLogger(),
-				getSharePointDrive: () => null,
+				appSharePointDrive: null,
 				notifyClient: null
 			};
 		};
@@ -146,7 +146,7 @@ describe('save', () => {
 				})
 			};
 			const service = mockService();
-			service.getSharePointDrive = () => sharepointDrive;
+			service.appSharePointDrive = sharepointDrive;
 			const { db } = service;
 			const save = buildSaveController(service);
 			const answers = {
@@ -219,7 +219,7 @@ describe('save', () => {
 				})
 			};
 			const service = mockService();
-			service.getSharePointDrive = () => sharepointDrive;
+			service.appSharePointDrive = sharepointDrive;
 			const save = buildSaveController(service);
 
 			const answers = {
@@ -274,7 +274,7 @@ describe('save', () => {
 				})
 			};
 			const service = mockService();
-			service.getSharePointDrive = () => sharepointDrive;
+			service.appSharePointDrive = sharepointDrive;
 			const save = buildSaveController(service);
 
 			const answers = {
@@ -334,7 +334,7 @@ describe('save', () => {
 				sendAcknowledgePreNotification: mock.fn()
 			};
 			const service = mockService();
-			service.getSharePointDrive = () => sharepointDrive;
+			service.appSharePointDrive = sharepointDrive;
 			service.notifyClient = notifyClient;
 			const save = buildSaveController(service);
 
@@ -405,7 +405,7 @@ describe('save', () => {
 				sendAcknowledgePreNotification: mock.fn()
 			};
 			const service = mockService();
-			service.getSharePointDrive = () => sharepointDrive;
+			service.appSharePointDrive = sharepointDrive;
 			service.notifyClient = notifyClient;
 			const save = buildSaveController(service);
 
@@ -476,7 +476,7 @@ describe('save', () => {
 				sendAcknowledgePreNotification: mock.fn()
 			};
 			const service = mockService();
-			service.getSharePointDrive = () => sharepointDrive;
+			service.appSharePointDrive = sharepointDrive;
 			service.notifyClient = notifyClient;
 			const save = buildSaveController(service);
 
