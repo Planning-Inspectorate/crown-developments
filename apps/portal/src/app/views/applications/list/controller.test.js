@@ -171,13 +171,14 @@ describe('case list', () => {
 				pageTitle: 'All Crown Development applications',
 				crownDevelopmentsViewModels: [],
 				currentUrl: undefined,
-				pageNumber: 1,
-				pageSize: 25,
-				resultsEndNumber: 0,
-				resultsStartNumber: 0,
-				selectedItemsPerPage: 25,
-				totalCrownDevelopments: 0,
-				totalPages: 0
+				paginationParams: {
+					pageNumber: 1,
+					resultsEndNumber: 0,
+					resultsStartNumber: 0,
+					selectedItemsPerPage: 25,
+					totalCrownDevelopments: 0,
+					totalPages: 0
+				}
 			});
 		});
 
@@ -213,13 +214,14 @@ describe('case list', () => {
 					assert.deepStrictEqual(onlyRelevantKeys, {
 						pageTitle: 'All Crown Development applications',
 						currentUrl: undefined,
-						pageNumber: requestedPage,
-						pageSize: itemsPerPage,
-						resultsEndNumber: expected.resultsEndNumber,
-						resultsStartNumber: expected.resultsStartNumber,
-						selectedItemsPerPage: itemsPerPage,
-						totalCrownDevelopments: totalItems,
-						totalPages: expected.totalPages
+						paginationParams: {
+							pageNumber: requestedPage,
+							resultsEndNumber: expected.resultsEndNumber,
+							resultsStartNumber: expected.resultsStartNumber,
+							selectedItemsPerPage: itemsPerPage,
+							totalCrownDevelopments: totalItems,
+							totalPages: expected.totalPages
+						}
 					});
 				});
 			});
