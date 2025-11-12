@@ -106,7 +106,178 @@ export function dateQuestion({ fieldName, title, hint, editable = true, viewData
 	if (!title) {
 		title = camelCaseToSentenceCase(fieldName);
 	}
-	const errorMessageText = `Date application was ${title?.toLowerCase()}`;
+
+	const errorMessages = {
+		'application received date?': {
+			emptyErrorMessage: 'Enter date application was received',
+			noDayErrorMessage: 'Date application was received must include a day',
+			noMonthErrorMessage: 'Date application was received must include a month',
+			noYearErrorMessage: 'Date application was received must include a year',
+			noDayMonthErrorMessage: 'Date application was received must include a day and month',
+			noDayYearErrorMessage: 'Date application was received must include a day and year',
+			noMonthYearErrorMessage: 'Date application was received must include a month and year',
+			invalidDateErrorMessage: 'Date application was received day must be a real day',
+			invalidMonthErrorMessage: 'Date application was received month must be a month between 1 and 12',
+			invalidYearErrorMessage: 'Date application was received year must include 4 numbers'
+		},
+		'application accepted date?': {
+			emptyErrorMessage: 'Enter date the application was accepted',
+			noDayErrorMessage: 'Date the application was accepted must include a day',
+			noMonthErrorMessage: 'Date the application was accepted must include a month',
+			noYearErrorMessage: 'Date the application was accepted must include a year',
+			noDayMonthErrorMessage: 'Date the application was accepted must include a day and month',
+			noDayYearErrorMessage: 'Date the application was accepted must include a day and year',
+			noMonthYearErrorMessage: 'Date the application was accepted must include a month and year',
+			invalidDateErrorMessage: 'Date the application was accepted day must be a real day',
+			invalidMonthErrorMessage: 'Date the application was accepted month must be between 1 and 12',
+			invalidYearErrorMessage: 'Date the application was accepted year must include 4 numbers'
+		},
+		'lpa questionnaire sent date?': {
+			emptyErrorMessage: 'Enter date LPA questionnaire was sent',
+			noDayErrorMessage: 'Date LPA questionnaire was sent must include a day',
+			noMonthErrorMessage: 'Date LPA questionnaire was sent must include a month',
+			noYearErrorMessage: 'Date LPA questionnaire was sent must include a year',
+			noDayMonthErrorMessage: 'Date LPA questionnaire was sent must include a day and month',
+			noDayYearErrorMessage: 'Date LPA questionnaire was sent must include a day and year',
+			noMonthYearErrorMessage: 'Date LPA questionnaire was sent must include a month and year',
+			invalidDateErrorMessage: 'Date LPA questionnaire was sent day must be a real day',
+			invalidMonthErrorMessage: 'Date LPA questionnaire was sent month must be between 1 and 12',
+			invalidYearErrorMessage: 'Date LPA questionnaire was sent year must include 4 numbers'
+		},
+		'lpa questionnaire received date?': {
+			emptyErrorMessage: 'Enter date LPA questionnaire was received',
+			noDayErrorMessage: 'Date LPA questionnaire was received must include a day',
+			noMonthErrorMessage: 'Date LPA questionnaire was received must include a month',
+			noYearErrorMessage: 'Date LPA questionnaire was received must include a year',
+			noDayMonthErrorMessage: 'Date LPA questionnaire was received must include a day and month',
+			noDayYearErrorMessage: 'Date LPA questionnaire was received must include a day and year',
+			noMonthYearErrorMessage: 'Date LPA questionnaire was received must include a month and year',
+			invalidDateErrorMessage: 'Date LPA questionnaire was received day must be a real day',
+			invalidMonthErrorMessage: 'Date LPA questionnaire was received month must be between 1 and 12',
+			invalidYearErrorMessage: 'Date LPA questionnaire was received year must include 4 numbers'
+		},
+		'press notice date?': {
+			emptyErrorMessage: 'Enter date the press notice was published',
+			noDayErrorMessage: 'Date the press notice was published must include a day',
+			noMonthErrorMessage: 'Date the press notice was published must include a month',
+			noYearErrorMessage: 'Date the press notice was published must include a year',
+			noDayMonthErrorMessage: 'Date the press notice was published must include a day and month',
+			noDayYearErrorMessage: 'Date the press notice was published must include a day and year',
+			noMonthYearErrorMessage: 'Date the press notice was published must include a month and year',
+			invalidDateErrorMessage: 'Date the press notice was published day must be a real day',
+			invalidMonthErrorMessage: 'Date the press notice was published month must be between 1 and 12',
+			invalidYearErrorMessage: 'Date the press notice was published year must include 4 numbers'
+		},
+		'neighbours notified by lpa date?': {
+			emptyErrorMessage: 'Enter date neighbours were notified by LPA',
+			noDayErrorMessage: 'Date neighbours were notified by LPA must include a day',
+			noMonthErrorMessage: 'Date neighbours were notified by LPA must include a month',
+			noYearErrorMessage: 'Date neighbours were notified by LPA must include a year',
+			noDayMonthErrorMessage: 'Date neighbours were notified by LPA must include a day and month',
+			noDayYearErrorMessage: 'Date neighbours were notified by LPA must include a day and year',
+			noMonthYearErrorMessage: 'Date neighbours were notified by LPA must include a month and year',
+			invalidDateErrorMessage: 'Date neighbours were notified by LPA day must be a real day',
+			invalidMonthErrorMessage: 'Date neighbours were notified by LPA month must be between 1 and 12',
+			invalidYearErrorMessage: 'Date neighbours were notified by LPA year must include 4 numbers'
+		},
+		'site notice by lpa date?': {
+			emptyErrorMessage: 'Enter date site notice was erected by LPA',
+			noDayErrorMessage: 'Date site notice was erected by LPA must include a day',
+			noMonthErrorMessage: 'Date site notice was erected by LPA must include a month',
+			noYearErrorMessage: 'Date site notice was erected by LPA must include a year',
+			noDayMonthErrorMessage: 'Date site notice was erected by LPA must include a day and month',
+			noDayYearErrorMessage: 'Date site notice was erected by LPA must include a day and year',
+			noMonthYearErrorMessage: 'Date site notice was erected by LPA must include a month and year',
+			invalidDateErrorMessage: 'Date site notice was erected by LPA day must be a real day',
+			invalidMonthErrorMessage: 'Date site notice was erected by LPA month must be between 1 and 12',
+			invalidYearErrorMessage: 'Date site notice was erected by LPA year must include 4 numbers'
+		},
+		'target decision date?': {
+			emptyErrorMessage: 'Enter target decision date',
+			noDayErrorMessage: 'Target decision date must include a day',
+			noMonthErrorMessage: 'Target decision date must include a month',
+			noYearErrorMessage: 'Target decision date must include a year',
+			noDayMonthErrorMessage: 'Target decision date must include a day and month',
+			noDayYearErrorMessage: 'Target decision date must include a day and year',
+			noMonthYearErrorMessage: 'Target decision date must include a month and year',
+			invalidDateErrorMessage: 'Target decision date day must be a real day',
+			invalidMonthErrorMessage: 'Target decision date month must be between 1 and 12',
+			invalidYearErrorMessage: 'Target decision date year must include 4 numbers'
+		},
+		'extended target decision date?': {
+			emptyErrorMessage: 'Enter extended target decision date',
+			noDayErrorMessage: 'Extended target decision date must include a day',
+			noMonthErrorMessage: 'Extended target decision date must include a month',
+			noYearErrorMessage: 'Extended target decision date must include a year',
+			noDayMonthErrorMessage: 'Extended target decision date must include a day and month',
+			noDayYearErrorMessage: 'Extended target decision date must include a day and year',
+			noMonthYearErrorMessage: 'Extended target decision date must include a month and year',
+			invalidDateErrorMessage: 'Extended target decision date day must be a real day',
+			invalidMonthErrorMessage: 'Extended target decision date month must be between 1 and 12',
+			invalidYearErrorMessage: 'Extended target decision date year must include 4 numbers'
+		},
+		'recovered date?': {
+			emptyErrorMessage: 'Enter date application was recovered',
+			noDayErrorMessage: 'Date application was recovered must include a day',
+			noMonthErrorMessage: 'Date application was recovered must include a month',
+			noYearErrorMessage: 'Date application was recovered must include a year',
+			noDayMonthErrorMessage: 'Date application was recovered must include a day and month',
+			noDayYearErrorMessage: 'Date application was recovered must include a day and year',
+			noMonthYearErrorMessage: 'Date application was recovered must include a month and year',
+			invalidDateErrorMessage: 'Date application was recovered day must be a real day',
+			invalidMonthErrorMessage: 'Date application was recovered month must be between 1 and 12',
+			invalidYearErrorMessage: 'Date application was recovered year must include 4 numbers'
+		},
+		'recovered report sent date?': {
+			emptyErrorMessage: 'Enter date recovered report was sent',
+			noDayErrorMessage: 'Date recovered report was sent must include a day',
+			noMonthErrorMessage: 'Date recovered report was sent must include a month',
+			noYearErrorMessage: 'Date recovered report was sent must include a year',
+			noDayMonthErrorMessage: 'Date recovered report was sent must include a day and month',
+			noDayYearErrorMessage: 'Date recovered report was sent must include a day and year',
+			noMonthYearErrorMessage: 'Date recovered report was sent must include a month and year',
+			invalidDateErrorMessage: 'Date recovered report was sent day must be a real day',
+			invalidMonthErrorMessage: 'Date recovered report was sent month must be between 1 and 12',
+			invalidYearErrorMessage: 'Date recovered report was sent year must include 4 numbers'
+		},
+		'withdrawn date?': {
+			emptyErrorMessage: 'Enter date application was withdrawn',
+			noDayErrorMessage: 'Date application was withdrawn must include a day',
+			noMonthErrorMessage: 'Date application was withdrawn must include a month',
+			noYearErrorMessage: 'Date application was withdrawn must include a year',
+			noDayMonthErrorMessage: 'Date application was withdrawn must include a day and month',
+			noDayYearErrorMessage: 'Date application was withdrawn must include a day and year',
+			noMonthYearErrorMessage: 'Date application was withdrawn must include a month and year',
+			invalidDateErrorMessage: 'Date application was withdrawn day must be a real day',
+			invalidMonthErrorMessage: 'Date application was withdrawn month must be between 1 and 12',
+			invalidYearErrorMessage: 'Date application was withdrawn year must include 4 numbers'
+		},
+		'original decision date?': {
+			emptyErrorMessage: 'Enter original decision date',
+			noDayErrorMessage: 'Original decision date must include a day',
+			noMonthErrorMessage: 'Original decision date must include a month',
+			noYearErrorMessage: 'Original decision date must include a year',
+			noDayMonthErrorMessage: 'Original decision date must include a day and month',
+			noDayYearErrorMessage: 'Original decision date must include a day and year',
+			noMonthYearErrorMessage: 'Original decision date must include a month and year',
+			invalidDateErrorMessage: 'Original decision date day must be a real day',
+			invalidMonthErrorMessage: 'Original decision date month must be between 1 and 12',
+			invalidYearErrorMessage: 'Original decision date year must include 4 numbers'
+		},
+		'turned away date?': {
+			emptyErrorMessage: 'Enter date application was turned away',
+			noDayErrorMessage: 'Date application was turned away must include a day',
+			noMonthErrorMessage: 'Date application was turned away must include a month',
+			noYearErrorMessage: 'Date application was turned away must include a year',
+			noDayMonthErrorMessage: 'Date application was turned away must include a day and month',
+			noDayYearErrorMessage: 'Date application was turned away must include a day and year',
+			noMonthYearErrorMessage: 'Date application was turned away must include a month and year',
+			invalidDateErrorMessage: 'Date application was turned away day must be a real day',
+			invalidMonthErrorMessage: 'Date application was turned away month must be between 1 and 12',
+			invalidYearErrorMessage: 'Date application was turned away year must include 4 numbers'
+		}
+	};
+
 	return {
 		type: COMPONENT_TYPES.DATE,
 		title: title,
@@ -115,22 +286,7 @@ export function dateQuestion({ fieldName, title, hint, editable = true, viewData
 		fieldName: fieldName,
 		url: camelCaseToUrlCase(fieldName),
 		validators: [
-			new DateValidator(
-				title,
-				{ ensureFuture: false, ensurePast: false },
-				{
-					emptyErrorMessage: `Enter date application was ${title?.toLowerCase()}`,
-					noDayErrorMessage: `${errorMessageText} must include a day `,
-					noMonthErrorMessage: `${errorMessageText} must include a month`,
-					noYearErrorMessage: `${errorMessageText} must include a year`,
-					noDayMonthErrorMessage: `${errorMessageText} must include a day and month`,
-					noDayYearErrorMessage: `${errorMessageText} must include a day and year`,
-					noMonthYearErrorMessage: `${errorMessageText} must include a month and year`,
-					invalidDateErrorMessage: `${errorMessageText} day must be a real day`,
-					invalidMonthErrorMessage: `${errorMessageText} month must be a month between 1 and 12`,
-					invalidYearErrorMessage: `${errorMessageText} year must include 4 numbers`
-				}
-			)
+			new DateValidator(title, { ensureFuture: false, ensurePast: false }, errorMessages[title?.toLowerCase()])
 		],
 		editable: editable,
 		viewData
