@@ -1,6 +1,6 @@
 module "app_manage" {
   #checkov:skip=CKV_TF_1: Use of commit hash are not required for our Terraform modules
-  source = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/node-app-service?ref=1.53"
+  source = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/node-app-service?ref=e863aab3b18d072d1d227f90fbc6359f5d853de8"
 
   resource_group_name = azurerm_resource_group.primary.name
   location            = module.primary_region.location
@@ -9,12 +9,10 @@ module "app_manage" {
   app_name        = "manage"
   resource_suffix = var.environment
   service_name    = local.service_name
+
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "Yes"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["linux_web_app_manage"] : {}
   )
 
   # service plan & scaling
@@ -133,5 +131,8 @@ resource "azurerm_key_vault_secret" "manage_session_secret" {
   value        = random_password.manage_session_secret.result
   content_type = "session-secret"
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? local.resource_tags["key_vault_secret_manage_session_secret"] : {}
+  )
 }

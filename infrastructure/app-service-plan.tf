@@ -13,9 +13,6 @@ resource "azurerm_service_plan" "apps" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "No"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["service_plan_apps"] : {}
   )
 }

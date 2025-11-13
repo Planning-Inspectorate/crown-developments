@@ -8,10 +8,7 @@ resource "azurerm_log_analytics_workspace" "main" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 3"
-      PersonalData      = "No"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["log_analytics_workspace_main"] : {}
   )
 }
 
@@ -25,10 +22,7 @@ resource "azurerm_application_insights" "main" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 3"
-      PersonalData      = "No"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["application_insights_main"] : {}
   )
 }
 
@@ -60,10 +54,7 @@ resource "azurerm_application_insights_standard_web_test" "portal" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 3"
-      PersonalData      = "No"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["application_insights_standard_web_test_portal"] : {}
   )
 }
 
@@ -95,6 +86,11 @@ resource "azurerm_monitor_metric_alert" "portal_availability" {
   action {
     action_group_id = local.action_group_ids.its
   }
+
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? local.resource_tags["monitor_metric_alert_portal_availability"] : {}
+  )
 }
 
 resource "azurerm_key_vault_secret" "app_insights_connection_string" {
@@ -104,14 +100,20 @@ resource "azurerm_key_vault_secret" "app_insights_connection_string" {
   value        = azurerm_application_insights.main.connection_string
   content_type = "connection-string"
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? local.resource_tags["key_vault_secret_app_insights_connection_string"] : {}
+  )
 }
 
 resource "azurerm_monitor_action_group" "crown_tech" {
   name                = "pins-ag-crown-tech-${var.environment}"
   resource_group_name = azurerm_resource_group.primary.name
   short_name          = "CrownDev"
-  tags                = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? local.resource_tags["monitor_action_group_crown_tech"] : {}
+  )
 
   # we set emails in the action groups in Azure Portal - to avoid needing to manage emails in terraform
   lifecycle {
@@ -125,7 +127,10 @@ resource "azurerm_monitor_action_group" "crown_service_manager" {
   name                = "pins-ag-crown-service-manager-${var.environment}"
   resource_group_name = azurerm_resource_group.primary.name
   short_name          = "CrownDev"
-  tags                = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? local.resource_tags["monitor_action_group_crown_service_manager"] : {}
+  )
 
   # we set emails in the action groups in Azure Portal - to avoid needing to manage emails in terraform
   lifecycle {
