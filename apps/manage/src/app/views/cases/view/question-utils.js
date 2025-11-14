@@ -105,6 +105,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
  * @param {boolean} [opts.editable]
  * @param {string} [opts.question]
  * @param {Object<string, any>} [opts.viewData]
+ * @param {string} [opts.question]
  * @returns {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps}
  */
 export function dateQuestion({ fieldName, title, hint, editable = true, viewData = {}, question }) {
