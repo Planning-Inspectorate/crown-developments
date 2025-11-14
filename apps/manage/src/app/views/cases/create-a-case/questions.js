@@ -40,7 +40,7 @@ export function getQuestions() {
 		localPlanningAuthority: {
 			type: COMPONENT_TYPES.SELECT,
 			title: 'LPA',
-			question: 'Select the Local Planning Authority for this application',
+			question: 'Select the local planning authority for this application',
 			fieldName: 'lpaId',
 			url: 'local-planning-authority',
 			validators: [
@@ -48,7 +48,7 @@ export function getQuestions() {
 					['secondaryLpaId'],
 					'Local Planning Authority cannot be the same as the secondary Local Planning Authority'
 				),
-				new RequiredValidator('Select the Local Planning Authority')
+				new RequiredValidator('Select the local planning authority')
 			],
 			options: lpaOptions
 		},
@@ -63,7 +63,7 @@ export function getQuestions() {
 			question: 'Is there a secondary Local Planning Authority for this application?',
 			fieldName: 'hasSecondaryLpa',
 			url: 'has-secondary-local-planning-authority',
-			validators: [new RequiredValidator('Select if the applicant is using a secondary Local Planning Authority')]
+			validators: [new RequiredValidator('Select if the applicant is using a secondary local planning authority')]
 		},
 		secondaryLocalPlanningAuthority: {
 			type: COMPONENT_TYPES.SELECT,
@@ -82,7 +82,7 @@ export function getQuestions() {
 		},
 		hasAgent: {
 			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'Has Agent',
+			title: 'Has agent',
 			question: 'Is the applicant using an agent?',
 			fieldName: 'hasAgent',
 			url: 'has-agent',
@@ -95,8 +95,8 @@ export function getQuestions() {
 		}),
 		siteAddress: {
 			type: COMPONENT_TYPES.ADDRESS,
-			title: `Site Address`,
-			question: `What is the address of the site?`,
+			title: `Site address`,
+			question: `What is the site address?`,
 			hint: 'Optional',
 			fieldName: `siteAddress`,
 			url: `site-address`,
@@ -104,22 +104,21 @@ export function getQuestions() {
 		},
 		siteCoordinates: {
 			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
-			title: 'Site Coordinates',
+			title: 'Site coordinates',
 			question: 'What are the coordinates of the site?',
+			hint: 'Optional',
 			fieldName: 'siteCoordinates',
 			url: 'site-coordinates',
 			inputFields: [
 				{
 					fieldName: 'siteEasting',
 					label: 'Easting',
-					formatPrefix: 'Easting: ',
-					hint: 'Optional'
+					formatPrefix: 'Easting: '
 				},
 				{
 					fieldName: 'siteNorthing',
 					label: 'Northing',
-					formatPrefix: 'Northing: ',
-					hint: 'Optional'
+					formatPrefix: 'Northing: '
 				}
 			],
 			validators: [
@@ -131,16 +130,19 @@ export function getQuestions() {
 		},
 		siteArea: {
 			type: COMPONENT_TYPES.NUMBER,
-			title: 'Site Area (ha)',
+			title: 'Site area (ha)',
 			question: 'What is the area of the site in hectares?',
 			suffix: 'ha',
+			hint: 'Optional',
 			fieldName: 'siteArea',
 			url: 'site-area',
-			validators: [new NumericValidator({ regex: /^$|^\d+(\.\d+)?$/, regexMessage: 'The value must be at least 0' })]
+			validators: [
+				new NumericValidator({ regex: /^$|^\d+(\.\d+)?$/, regexMessage: 'The area of the site must be a number' })
+			]
 		},
 		developmentDescription: {
 			type: COMPONENT_TYPES.TEXT_ENTRY,
-			title: 'Development Description',
+			title: 'Development description',
 			question: 'What is the description of the development?',
 			hint: 'This will be published on the website.',
 			fieldName: 'developmentDescription',
@@ -158,10 +160,10 @@ export function getQuestions() {
 		expectedDateOfSubmission: {
 			type: COMPONENT_TYPES.DATE,
 			title: 'Expected date of submission',
-			question: 'What is the expected date of submission?',
+			question: 'What is the expected submission date for the application?',
 			fieldName: 'expectedDateOfSubmission',
 			url: 'expected-date-of-submission',
-			validators: [new DateValidator('Expected date of submission')]
+			validators: [new DateValidator('expected submission date')]
 		}
 	};
 
