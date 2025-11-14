@@ -70,7 +70,10 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.nationallyImportantConfirmationDate)
 				.addQuestion(questions.isGreenBelt)
 				.addQuestion(questions.siteIsVisibleFromPublicLand)
-				.addQuestion(questions.healthAndSafetyIssue),
+				.addQuestion(questions.healthAndSafetyIssue)
+				.addQuestion(questions.cilLiable)
+				.addQuestion(questions.bngExempt)
+				.addQuestion(questions.hasCostsApplications),
 			new Section('Contacts', 'contacts')
 				.addQuestion(questions.lpaContact)
 				.addQuestion(questions.lpaAddress)

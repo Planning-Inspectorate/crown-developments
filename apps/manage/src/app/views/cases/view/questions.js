@@ -31,6 +31,8 @@ import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/
 import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
 import DateTimeValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-time-validator.js';
 import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
+import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-validator.js';
+import CostsApplicationsCommentValidator from '@pins/crowndev-lib/forms/custom-components/costs-applications-comment/costs-applications-comment-validator.js';
 
 /**
  * @param {import('../../../../util/entra-groups-types.js').EntraGroupMembers} [groupMembers]
@@ -631,6 +633,34 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			fieldName: 'publishNow',
 			url: 'publish-now',
 			validators: [new RequiredValidator()]
+		},
+		cilLiable: {
+			type: CUSTOM_COMPONENTS.CIL_AMOUNT,
+			title: 'CIL liable',
+			question: 'Is the application liable for the Community Infrastructure Levy (CIL)?',
+			fieldName: 'cilLiable',
+			url: 'cil-liable',
+			cilAmountInputFieldName: 'cilAmount',
+			cilAmountQuestion: 'What is the CIL amount?',
+			validators: [new CILAmountValidator()]
+		},
+		bngExempt: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'BNG exempt',
+			question: 'Is the application exempt from biodiversity net gain (BNG)?',
+			fieldName: 'bngExempt',
+			url: 'bng-exempt',
+			validators: [new RequiredValidator('Select whether the application is BNG exempt')]
+		},
+		hasCostsApplications: {
+			type: CUSTOM_COMPONENTS.COSTS_APPLICATIONS,
+			title: 'Costs application(s)',
+			question: 'Are there any costs applications?',
+			fieldName: 'hasCostsApplications',
+			url: 'costs-applications',
+			costsApplicationInputFieldName: 'costsApplicationsComment',
+			costsApplicationQuestion: 'Capture if a party is making a cost claim against another for unreasonable behaviour.',
+			validators: [new CostsApplicationsCommentValidator()]
 		}
 	};
 
