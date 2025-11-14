@@ -104,16 +104,17 @@ export function contactQuestions({ prefix, title, addressRequired }) {
  * @param {string} [opts.hint]
  * @param {boolean} [opts.editable]
  * @param {Object<string, any>} [opts.viewData]
+ * @param {string} [opts.question]
  * @returns {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps}
  */
-export function dateQuestion({ fieldName, title, hint, editable = true, viewData = {} }) {
+export function dateQuestion({ fieldName, title, hint, editable = true, viewData = {}, question }) {
 	if (!title) {
 		title = camelCaseToSentenceCase(fieldName);
 	}
 	return {
 		type: COMPONENT_TYPES.DATE,
 		title: title,
-		question: `What is the ${title?.toLowerCase()}?`,
+		question: question || `What is the ${title?.toLowerCase()}?`,
 		hint: hint,
 		fieldName: fieldName,
 		url: camelCaseToUrlCase(fieldName),
