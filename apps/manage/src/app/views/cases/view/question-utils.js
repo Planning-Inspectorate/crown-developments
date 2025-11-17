@@ -27,7 +27,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 	questions[`${prefix}Contact`] = {
 		type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
 		title: `${title} contact`,
-		question: `What are the ${title} Contact details?`,
+		question: `What are the ${title.toLowerCase()} contact details?`,
 		fieldName: prefix,
 		url: `${prefixUrl}-contact`,
 		inputFields: [
@@ -52,7 +52,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 						required: false,
 						maxLength: {
 							maxLength: 250,
-							maxLengthMessage: `${title} organisation must be less than 250 characters`
+							maxLengthMessage: `${title} organisation name must be 250 characters or less`
 						},
 						regex: {
 							regex: "^[A-Za-z0-9 ',’(),&-]+$",
@@ -87,7 +87,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 	questions[`${prefix}ContactAddress`] = {
 		type: COMPONENT_TYPES.ADDRESS,
 		title: `${title} address`,
-		question: `What is the address of the ${title}?`,
+		question: `What is the ${title.toLowerCase()} address?`,
 		hint: addressRequired ? '' : 'Optional',
 		fieldName: `${prefix}ContactAddress`,
 		url: `${prefixUrl}-contact-address`,
@@ -103,17 +103,18 @@ export function contactQuestions({ prefix, title, addressRequired }) {
  * @param {string} [opts.title]
  * @param {string} [opts.hint]
  * @param {boolean} [opts.editable]
+ * @param {string} [opts.question]
  * @param {Object<string, any>} [opts.viewData]
  * @returns {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps}
  */
-export function dateQuestion({ fieldName, title, hint, editable = true, viewData = {} }) {
+export function dateQuestion({ fieldName, title, hint, editable = true, viewData = {}, question }) {
 	if (!title) {
 		title = camelCaseToSentenceCase(fieldName);
 	}
 	return {
 		type: COMPONENT_TYPES.DATE,
 		title: title,
-		question: `What is the ${title?.toLowerCase()}?`,
+		question: question || `What is the ${title?.toLowerCase()}?`,
 		hint: hint,
 		fieldName: fieldName,
 		url: camelCaseToUrlCase(fieldName),
