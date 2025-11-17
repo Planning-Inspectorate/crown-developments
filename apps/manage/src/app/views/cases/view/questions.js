@@ -104,7 +104,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		localPlanningAuthority: {
 			type: COMPONENT_TYPES.SELECT,
 			title: 'Local planning authority',
-			question: 'Select the Local Planning Authority for this application',
+			question: 'Select the local planning authority for this application',
 			fieldName: 'lpaId',
 			url: 'local-planning-authority',
 			validators: [
@@ -112,7 +112,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 					['secondaryLpaId'],
 					'Local Planning Authority cannot be the same as the secondary Local Planning Authority'
 				),
-				new RequiredValidator('Select the Local Planning Authority')
+				new RequiredValidator('Select the local planning authority')
 			],
 			options: lpaListToRadioOptions(LPAs)
 		},
@@ -151,7 +151,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		siteAddress: {
 			type: COMPONENT_TYPES.ADDRESS,
 			title: 'Site address',
-			question: 'What is the address of the site?',
+			question: `What is the site address?`,
 			hint: 'Optional',
 			fieldName: 'siteAddress',
 			url: 'site-address',
@@ -161,6 +161,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
 			title: 'Site coordinates',
 			question: 'What are the coordinates of the site?',
+			hint: 'Optional',
 			fieldName: 'siteCoordinates',
 			url: 'site-coordinates',
 			inputFields: [
@@ -168,14 +169,12 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 					fieldName: 'siteEasting',
 					label: 'Easting',
 					formatPrefix: 'Easting: ',
-					hint: 'Optional',
 					formatTextFunction: (string) => string.toString().padStart(6, '0')
 				},
 				{
 					fieldName: 'siteNorthing',
 					label: 'Northing',
 					formatPrefix: 'Northing: ',
-					hint: 'Optional',
 					formatTextFunction: (string) => string.toString().padStart(6, '0')
 				}
 			],
@@ -195,17 +194,25 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			url: 'site-area',
 			validators: [new NumericValidator({ regex: /^$|^\d+(\.\d+)?$/, regexMessage: 'The value must be at least 0' })]
 		},
-		expectedDateOfSubmission: dateQuestion({ fieldName: 'expectedDateOfSubmission' }),
+		expectedDateOfSubmission: dateQuestion({
+			title: 'Expected submission date',
+			question: 'What is the expected submission date for the application?',
+			fieldName: 'expectedDateOfSubmission'
+		}),
 		decisionOutcome: {
 			type: COMPONENT_TYPES.RADIO,
 			title: 'Decision outcome',
-			question: 'What is the decision outcome?',
+			question: 'What was the decision outcome?',
 			fieldName: 'decisionOutcomeId',
 			url: 'decision-outcome',
-			validators: [new RequiredValidator()],
+			validators: [new RequiredValidator('Select the decision outcome')],
 			options: referenceDataToRadioOptions(APPLICATION_DECISION_OUTCOME)
 		},
-		decisionDate: dateQuestion({ fieldName: 'decisionDate' }),
+		decisionDate: dateQuestion({
+			title: 'decision date',
+			question: 'What date was the decision made?',
+			fieldName: 'decisionDate'
+		}),
 		updatedDate: {
 			type: COMPONENT_TYPES.DATE,
 			title: 'Last updated',

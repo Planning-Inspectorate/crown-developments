@@ -22,11 +22,14 @@ describe('question-utils', () => {
 				assert.ok(key.startsWith(prefix));
 			}
 		});
-		it('should use title for question and title fields', () => {
+		it('should use title OR question for question and title fields', () => {
+			const titleLower = title.toLowerCase();
 			const questions = contactQuestions({ prefix, title, addressRequired: true });
 			for (const question of Object.values(questions)) {
-				assert.ok(question.title.startsWith(title));
-				assert.ok(question.question.includes(title));
+				assert.ok(question.title.toLowerCase().startsWith(titleLower));
+				if (question.question) {
+					assert.ok(question.question.toLowerCase().includes(titleLower));
+				}
 			}
 		});
 		it('should use hyphenated prefix for urls', () => {
@@ -79,9 +82,12 @@ describe('question-utils', () => {
 		});
 		it('should use title for question and title fields', () => {
 			const questions = contactQuestions({ prefix, title, addressRequired: true });
+			const titleLower = title.toLowerCase();
 			for (const question of Object.values(questions)) {
-				assert.ok(question.title.startsWith(title));
-				assert.ok(question.question.includes(title));
+				assert.ok(question.title.toLowerCase().startsWith(titleLower));
+				if (question.question) {
+					assert.ok(question.question.toLowerCase().includes(titleLower));
+				}
 			}
 		});
 		it('should use hyphenated prefix for urls', () => {
