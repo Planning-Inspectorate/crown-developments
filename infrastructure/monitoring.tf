@@ -68,7 +68,7 @@ resource "azurerm_application_insights_standard_web_test" "portal" {
 }
 
 resource "azurerm_monitor_metric_alert" "portal_availability" {
-  count = var.monitoring_config.app_insights_web_test_enabled ? 1 : 0 # perhaps you could add a condition here for prod?
+  count = var.monitoring_config.app_insights_web_test_enabled ? 1 : 0
 
   name                = "Portal Availablity - ${local.resource_suffix}"
   resource_group_name = azurerm_resource_group.primary.name
