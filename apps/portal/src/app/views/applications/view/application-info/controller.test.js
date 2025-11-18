@@ -301,50 +301,54 @@ describe('application info controller', () => {
 					details: 'an update',
 					firstPublished: '17 December 2020'
 				},
-				currentStage: {
-					stageDisplayName: 'Consultation',
-					stageId: APPLICATION_STAGE_ID.CONSULTATION,
-					status: 'In progress',
-					isCurrentStage: true
-				},
-				formattedApplicationStages: [
-					{
-						stageDisplayName: 'Pre-application',
-						stageId: 'pre-application',
-						status: 'Completed',
-						isCurrentStage: false
-					},
-					{
-						stageDisplayName: 'Accepted',
-						stageId: APPLICATION_STAGE_ID.ACCEPTANCE,
-						status: 'Completed',
-						isCurrentStage: false
-					},
-					{
+				applicationStageItems: {
+					currentStage: {
 						stageDisplayName: 'Consultation',
 						stageId: APPLICATION_STAGE_ID.CONSULTATION,
 						status: 'In progress',
 						isCurrentStage: true
 					},
-					{
-						stageDisplayName: 'Procedure choice',
-						stageId: APPLICATION_STAGE_ID.PROCEDURE_DECISION,
-						status: 'Not started',
-						isCurrentStage: false
-					},
-					{
-						stageDisplayName: 'Final decision',
-						stageId: APPLICATION_STAGE_ID.DECISION,
-						status: 'Not started',
-						isCurrentStage: false
-					},
-					{
-						stageDisplayName: 'Post decision',
-						stageId: 'post-decision',
-						status: 'Not started',
-						isCurrentStage: false
-					}
-				],
+					formattedApplicationStages: [
+						{
+							stageDisplayName: 'Pre-application',
+							stageId: 'pre-application',
+							status: 'Completed',
+							isCurrentStage: false
+						},
+						{
+							stageDisplayName: 'Accepted',
+							stageId: APPLICATION_STAGE_ID.ACCEPTANCE,
+							status: 'Completed',
+							isCurrentStage: false
+						},
+						{
+							stageDisplayName: 'Consultation',
+							stageId: APPLICATION_STAGE_ID.CONSULTATION,
+							status: 'In progress',
+							isCurrentStage: true
+						},
+						{
+							stageDisplayName: 'Procedure choice',
+							stageId: APPLICATION_STAGE_ID.PROCEDURE_DECISION,
+							status: 'Not started',
+							isCurrentStage: false
+						},
+						{
+							stageDisplayName: 'Final decision',
+							stageId: APPLICATION_STAGE_ID.DECISION,
+							status: 'Not started',
+							isCurrentStage: false
+						},
+						{
+							stageDisplayName: 'Post decision',
+							stageId: 'post-decision',
+							status: 'Not started',
+							isCurrentStage: false
+						}
+					],
+					formattedConsultationEndDate: 'Friday 31 January 2025'
+				},
+
 				haveYourSayStatus: 'open'
 			});
 		});

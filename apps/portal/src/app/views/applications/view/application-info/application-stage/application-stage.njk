@@ -1,7 +1,11 @@
-{% macro renderApplicationStage(currentStage, formattedApplicationStages) %}
+{% macro renderApplicationStage(currentStage, formattedApplicationStages, formattedConsultationEndDate, crownDevelopmentFields) %}
     {% set taskListItems = [] %}
     <h2 id="application-stage" class="govuk-heading-m">Application stage</h2>
     <p class="govuk-body">This application is at the <b>{{ currentStage.stageDisplayName | lower }}</b> stage.</p>
+    {% if currentStage.stageId === 'consultation' %}
+        <p class="govuk-body">At this stage, you can have your say about the application.</p>
+        <p class="govuk-body"><a class="govuk-link" href="/applications/{{ crownDevelopmentFields.id }}/have-your-say">Comment on the proposed development by  {{ formattedConsultationEndDate }}.</a></p>
+    {% endif %}
     <div id="application-stages">
         {% for stage in formattedApplicationStages %}
             {{ stageItem(stage) }}
