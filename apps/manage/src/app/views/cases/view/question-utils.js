@@ -146,7 +146,7 @@ export function eventQuestions(prefix) {
 		}),
 		[`${prefix}Duration`]: {
 			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
-			title: `${title} Duration`,
+			title: `${title} duration`,
 			question: `What is the ${prefix} duration?`,
 			fieldName: `${prefix}Duration`,
 			url: `${prefix}-duration`,
@@ -215,7 +215,7 @@ export function eventQuestions(prefix) {
 		},
 		[`${prefix}Venue`]: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-			title: `${title} Venue`,
+			title: `${title} venue`,
 			question: `What is the venue of the ${prefix}?`,
 			fieldName: `${prefix}Venue`,
 			url: `${prefix}-venue`,
@@ -224,7 +224,7 @@ export function eventQuestions(prefix) {
 				new StringValidator({
 					maxLength: {
 						maxLength: 250,
-						maxLengthMessage: `${title} Venue must be less than 250 characters`
+						maxLengthMessage: `${title} venue must be less than 250 characters`
 					}
 				})
 			]
@@ -239,11 +239,11 @@ export function eventQuestions(prefix) {
 		[`${prefix}CaseManagementConferenceDate`]: dateQuestion({ fieldName: `${prefix}CaseManagementConferenceDate` }),
 		[`${prefix}PreMeetingDate`]: dateQuestion({
 			fieldName: `${prefix}PreMeetingDate`,
-			title: 'Pre-Inquiry Meeting Date'
+			title: 'Pre-inquiry meeting date'
 		}),
 		[`${prefix}ProofsOfEvidenceDate`]: dateQuestion({
 			fieldName: `${prefix}ProofsOfEvidenceDate`,
-			title: `${titleCase(prefix)} Proofs of Evidence Date`
+			title: `${titleCase(prefix)} proofs of evidence date`
 		})
 	};
 }
