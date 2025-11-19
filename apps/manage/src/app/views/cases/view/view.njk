@@ -19,17 +19,20 @@
 {% block content %}
     {% if hasLinkedCase %}
         {{ govukNotificationBanner({
+            classes: "govuk-notification-banner__heading govuk-grid-column-two-thirds",
             html: '<p class="govuk-notification-banner__heading">This application is connected to a ' + linkedCaseLink + '.</p>'
         }) }}
     {% endif %}
     {% if caseUpdated and casePublished %}
         {{ govukNotificationBanner({
+            classes: "govuk-notification-banner__heading govuk-grid-column-two-thirds",
             text: "Any updates made to this case will be automatically published.",
             type: "success"
         }) }}
     {% endif %}
     {% if caseUpdated %}
         {{ govukNotificationBanner({
+            classes: "govuk-notification-banner__heading govuk-grid-column-two-thirds",
             text: "Application has been updated",
             type: "success"
         }) }}
