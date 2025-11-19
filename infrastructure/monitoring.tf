@@ -8,10 +8,7 @@ resource "azurerm_log_analytics_workspace" "main" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 3"
-      PersonalData      = "No"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["log_analytics_workspace_main"] : {}
   )
 }
 
@@ -25,10 +22,7 @@ resource "azurerm_application_insights" "main" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 3"
-      PersonalData      = "No"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["application_insights_main"] : {}
   )
 }
 
@@ -60,10 +54,7 @@ resource "azurerm_application_insights_standard_web_test" "portal" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 3"
-      PersonalData      = "No"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["application_insights_standard_web_test_portal"] : {}
   )
 }
 
@@ -95,6 +86,76 @@ resource "azurerm_monitor_metric_alert" "portal_availability" {
   action {
     action_group_id = local.action_group_ids.its
   }
+
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? local.resource_tags["monitor_metric_alert_portal_availability"] : {}
+  )
+}
+
+# availability test for the manage app
+resource "azurerm_application_insights_standard_web_test" "manage" {
+  count = var.monitoring_config.manage_app_insights_web_test_enabled ? 1 : 0
+
+  name                    = "${local.org}-ai-swt-manage-${local.resource_suffix}"
+  resource_group_name     = azurerm_resource_group.primary.name
+  location                = module.primary_region.location
+  application_insights_id = azurerm_application_insights.main.id
+  geo_locations = [
+    "emea-se-sto-edge", # UK West
+    "emea-ru-msa-edge", # UK South
+    "emea-gb-db3-azr",  # North Europe
+    "emea-nl-ams-azr"   # West Europe
+  ]
+  retry_enabled = true
+  enabled       = true
+
+  request {
+    # manage app health check endpoint
+    url = "https://${var.web_domains.manage}/health"
+  }
+  validation_rules {
+    ssl_check_enabled           = true
+    ssl_cert_remaining_lifetime = 7
+  }
+
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? {
+      CriticalityRating = "Level 3"
+      PersonalData      = "No"
+    } : {}
+  )
+}
+
+resource "azurerm_monitor_metric_alert" "manage_availability" {
+  count = var.monitoring_config.manage_app_insights_web_test_enabled ? 1 : 0
+
+  name                = "Manage Availability - ${local.resource_suffix}"
+  resource_group_name = azurerm_resource_group.primary.name
+  scopes = [
+    azurerm_application_insights_standard_web_test.manage[0].id,
+    azurerm_application_insights.main.id
+  ]
+  description = "Metric alert for standard web test (availability) for the manage app - which also checks the certificate"
+
+  application_insights_web_test_location_availability_criteria {
+    web_test_id           = azurerm_application_insights_standard_web_test.manage[0].id
+    component_id          = azurerm_application_insights.main.id
+    failed_location_count = 1
+  }
+
+  action {
+    action_group_id = local.action_group_ids.tech
+  }
+
+  action {
+    action_group_id = local.action_group_ids.service_manager
+  }
+
+  action {
+    action_group_id = local.action_group_ids.its
+  }
 }
 
 resource "azurerm_key_vault_secret" "app_insights_connection_string" {
@@ -104,14 +165,20 @@ resource "azurerm_key_vault_secret" "app_insights_connection_string" {
   value        = azurerm_application_insights.main.connection_string
   content_type = "connection-string"
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? local.resource_tags["key_vault_secret_app_insights_connection_string"] : {}
+  )
 }
 
 resource "azurerm_monitor_action_group" "crown_tech" {
   name                = "pins-ag-crown-tech-${var.environment}"
   resource_group_name = azurerm_resource_group.primary.name
   short_name          = "CrownDev"
-  tags                = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? local.resource_tags["monitor_action_group_crown_tech"] : {}
+  )
 
   # we set emails in the action groups in Azure Portal - to avoid needing to manage emails in terraform
   lifecycle {
@@ -125,7 +192,10 @@ resource "azurerm_monitor_action_group" "crown_service_manager" {
   name                = "pins-ag-crown-service-manager-${var.environment}"
   resource_group_name = azurerm_resource_group.primary.name
   short_name          = "CrownDev"
-  tags                = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? local.resource_tags["monitor_action_group_crown_service_manager"] : {}
+  )
 
   # we set emails in the action groups in Azure Portal - to avoid needing to manage emails in terraform
   lifecycle {

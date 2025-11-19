@@ -115,8 +115,9 @@ variable "health_check_eviction_time_in_min" {
 variable "monitoring_config" {
   description = "Config for monitoring"
   type = object({
-    app_insights_web_test_enabled = bool
-    log_daily_cap                 = number
+    app_insights_web_test_enabled        = bool
+    manage_app_insights_web_test_enabled = bool
+    log_daily_cap                        = number
   })
 }
 

@@ -19,7 +19,7 @@ describe('question-utils', () => {
 			const questions = contactQuestions({ prefix, title, addressRequired: true });
 			for (const question of Object.values(questions)) {
 				assert.ok(question.title.startsWith(title));
-				assert.ok(question.question.includes(title));
+				assert.ok(question.question.includes(title.toLowerCase()));
 			}
 		});
 		it('should use hyphenated prefix for urls', () => {

@@ -4,10 +4,7 @@ resource "azurerm_resource_group" "primary" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "Yes"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["resource_group_primary"] : {}
   )
 }
 
@@ -17,10 +14,7 @@ resource "azurerm_resource_group" "secondary" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "Yes"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["resource_group_secondary"] : {}
   )
 }
 
@@ -40,10 +34,7 @@ resource "azurerm_key_vault" "main" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      Criticality-Rating = "Level 1"
-      Personal-Data      = "No"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["key_vault_main"] : {}
   )
 }
 
@@ -57,7 +48,10 @@ resource "azurerm_key_vault_secret" "manual_secrets" {
   value        = "<terraform_placeholder>"
   content_type = "plaintext"
 
-  tags = local.tags
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? local.resource_tags["key_vault_secret_manual_secrets"] : {}
+  )
 
   lifecycle {
     ignore_changes = [

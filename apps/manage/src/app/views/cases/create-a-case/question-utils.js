@@ -22,8 +22,8 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 
 	questions[`${prefix}Name`] = {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-		title: `${title} Name`,
-		question: `What is the name of the ${title} organisation?`,
+		title: `${title} name`,
+		question: `What is the name of the ${title.toLowerCase()} organisation?`,
 		fieldName: `${prefix}Name`,
 		url: `${prefixUrl}-name`,
 		validators: [
@@ -35,7 +35,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 				},
 				regex: {
 					regex: "^[A-Za-z0-9 ',’(),&-]+$",
-					regexMessage: `${title} organisation must only include letters, spaces, hyphens, apostrophes, commas, brackets, ampersands or numbers`
+					regexMessage: `${title} organisation name must only include letters, spaces, hyphens, apostrophes, commas and numbers`
 				}
 			})
 		]
@@ -43,8 +43,8 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 
 	questions[`${prefix}Address`] = {
 		type: COMPONENT_TYPES.ADDRESS,
-		title: `${title} Address`,
-		question: `What is the address of the ${title}?`,
+		title: `${title} address`,
+		question: `What is the ${title.toLowerCase()} organisation's address?`,
 		hint: addressRequired ? '' : 'Optional',
 		fieldName: `${prefix}Address`,
 		url: `${prefixUrl}-address`,
@@ -53,12 +53,13 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 
 	questions[`${prefix}Email`] = {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-		title: `${title} Email Address`,
-		question: `What is the email address of the ${title}?`,
+		title: `${title} email address`,
+		question: `What is the ${title.toLowerCase()}'s email address?`,
+		hint: 'This email will be used for notifications and will be given access to SharePoint.',
 		fieldName: `${prefix}Email`,
 		url: `${prefixUrl}-email`,
 		validators: [
-			new RequiredValidator(`Enter ${title} email address`),
+			new RequiredValidator(`Enter email address of the ${title}`),
 			new StringValidator({
 				maxLength: {
 					maxLength: 50,
@@ -71,7 +72,8 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 	questions[`${prefix}TelephoneNumber`] = {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: `${title} Telephone number`,
-		question: `What is the telephone number of the ${title}?`,
+		question: `What is the ${title.toLowerCase()}'s telephone number?`,
+		hint: 'Optional',
 		fieldName: `${prefix}TelephoneNumber`,
 		url: `${prefixUrl}-telephone-number`,
 		validators: [
@@ -81,7 +83,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 					maxLengthMessage: `${title} telephone number must be 15 characters or less`
 				},
 				regex: {
-					regex: '^\\+?\\d+$',
+					regex: '^$|^\\+?\\d+$',
 					regexMessage: 'Enter a valid telephone number'
 				}
 			})

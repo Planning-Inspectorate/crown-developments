@@ -36,10 +36,7 @@ resource "azurerm_storage_account" "sql_server" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "Yes"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["storage_account_sql_server"] : {}
   )
 }
 
@@ -132,10 +129,7 @@ resource "azurerm_monitor_metric_alert" "sql_db_cpu_alert" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "No"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["monitor_metric_alert_sql_db_cpu"] : {}
   )
 }
 
@@ -163,10 +157,7 @@ resource "azurerm_monitor_metric_alert" "sql_db_dtu_alert" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "No"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["monitor_metric_alert_sql_db_dtu"] : {}
   )
 }
 
@@ -194,10 +185,7 @@ resource "azurerm_monitor_metric_alert" "sql_db_log_io_alert" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "No"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["monitor_metric_alert_sql_db_log_io"] : {}
   )
 }
 
@@ -225,9 +213,6 @@ resource "azurerm_monitor_metric_alert" "sql_db_deadlock_alert" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? {
-      CriticalityRating = "Level 1"
-      PersonalData      = "No"
-    } : {}
+    var.environment == "prod" ? local.resource_tags["monitor_metric_alert_sql_db_deadlock"] : {}
   )
 }

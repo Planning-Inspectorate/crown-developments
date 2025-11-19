@@ -18,6 +18,7 @@ import {
 	hasLinkedCase,
 	linkedCaseIsPublished
 } from '@pins/crowndev-lib/util/linked-case.js';
+import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -138,8 +139,13 @@ export function buildApplicationInformationPage(service) {
 			latestApplicationUpdate: applicationUpdateToTimelineItem(latestApplicationUpdate),
 			hasLinkedCase: hasLinkedCase(crownDevelopment) && (await linkedCaseIsPublished(db, crownDevelopment)),
 			linkedCaseLink: await getLinkedCaseLink(db, crownDevelopment),
-			currentStage,
-			formattedApplicationStages
+			applicationStageItems: {
+				currentStage,
+				formattedApplicationStages,
+				formattedConsultationEndDate: formatDateForDisplay(crownDevelopment.representationsPeriodEndDate, {
+					format: 'eeee d MMMM yyyy'
+				})
+			}
 		});
 	};
 }
