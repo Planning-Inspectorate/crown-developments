@@ -87,7 +87,7 @@ export function createHaveYourSayRoutes(service) {
 	);
 
 	router.get('/declaration', getJourneyResponse, getJourney, asyncHandler(viewHaveYourSayDeclarationPage));
-	router.post('/declaration', getJourneyResponse, getJourney, saveRepresentation);
+	router.post('/declaration', getJourneyResponse, getJourney, viewHaveYourSayDeclarationPage, saveRepresentation);
 
 	router.get('/success', viewHaveYourSaySuccessPage);
 
