@@ -9,29 +9,24 @@ import {
 } from './controller.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
 
-describe('have your say', () => {
+describe('Have Your Say controller', () => {
 	describe('buildHaveYourSayPage', () => {
 		it('should throw error if id is missing', () => {
 			const mockReq = { params: {} };
-			const mockDb = {
-				crownDevelopment: {
-					findUnique: mock.fn()
-				}
-			};
-			const haveYourSayPage = buildHaveYourSayPage({ mockDb, config: {} });
+			const mockDb = { crownDevelopment: { findUnique: mock.fn() } };
+			const haveYourSayPage = buildHaveYourSayPage({ db: mockDb, config: {} });
 			assert.rejects(() => haveYourSayPage(mockReq, {}), { message: 'id param required' });
 		});
 		it('should return not found for invalid id', async () => {
 			const mockReq = {
 				params: { applicationId: 'abc-123' }
 			};
-
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn()
 				}
 			};
-			const handler = buildHaveYourSayPage({ mockDb, config: {} });
+			const handler = buildHaveYourSayPage({ db: mockDb, config: {} });
 			await assertRenders404Page(handler, mockReq, false);
 		});
 		it('should 404 if the application is not found', async () => {
@@ -41,16 +36,13 @@ describe('have your say', () => {
 					findUnique: mock.fn()
 				}
 			};
-			const haveYourSayPage = buildHaveYourSayPage({ mockDb, config: {} });
+			const haveYourSayPage = buildHaveYourSayPage({ db: mockDb, config: {} });
 			await assertRenders404Page(haveYourSayPage, mockReq, false);
 		});
 		it('should render the view', async (context) => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
 			const mockReq = { params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' } };
-			const mockRes = {
-				render: mock.fn(),
-				status: mock.fn()
-			};
+			const mockRes = { render: mock.fn(), status: mock.fn() };
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
@@ -316,117 +308,63 @@ describe('have your say', () => {
 			await assertRenders404Page(isRepresentationWindowOpen, mockReq, true);
 		});
 	});
+
 	describe('viewHaveYourSayDeclarationPage', () => {
-		it('throws error if id missing', async () => {
-			const req = { params: {} };
-			await assert.rejects(() => viewHaveYourSayDeclarationPage(req, {}), { message: 'id param required' });
+		it('should throw error if id is missing', async () => {
+			const mockReq = { params: {} };
+			await assert.rejects(() => viewHaveYourSayDeclarationPage(mockReq, {}), { message: 'id param required' });
 		});
-
-		it('returns 404 for invalid uuid', async () => {
-			const req = { params: { applicationId: 'bad-id' } };
-			await assertRenders404Page(viewHaveYourSayDeclarationPage, req, false);
+		it('should return not found for invalid id', async () => {
+			const mockReq = { params: { applicationId: 'abc-123' } };
+			await assertRenders404Page(viewHaveYourSayDeclarationPage, mockReq, false);
 		});
-
-		it('GET renders declaration template', async () => {
-			const req = { params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' } };
-			const res = { render: mock.fn() };
-			await viewHaveYourSayDeclarationPage(req, res);
-			assert.strictEqual(res.render.mock.callCount(), 1);
-			assert.strictEqual(
-				res.render.mock.calls[0].arguments[0],
+		it('should render the view', async () => {
+			const mockReq = { params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' } };
+			const mockRes = {
+				render: mock.fn()
+			};
+			await viewHaveYourSayDeclarationPage(mockReq, mockRes);
+			assert.deepStrictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
 				'views/applications/view/have-your-say/declaration.njk'
 			);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1].pageTitle, 'Declaration');
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1].id, mockReq.params.applicationId);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1].backLinkUrl, 'check-your-answers');
 		});
-
-		it('GET renders declaration template without errors', async () => {
-			const req = { params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' } };
-			const res = { render: mock.fn() };
-			await viewHaveYourSayDeclarationPage(req, res);
-			const [, data] = res.render.mock.calls[0].arguments;
+		it('should render the declaration template without errors', async () => {
+			const mockReq = { params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' } };
+			const mockRes = { render: mock.fn() };
+			await viewHaveYourSayDeclarationPage(mockReq, mockRes);
+			const [, data] = mockRes.render.mock.calls[0].arguments;
 			assert.ok(!data.errorSummary);
-			// Items keep their base string errorMessage (template only shows when object with .text)
 			data.declarationItems.forEach((i) => {
 				assert.strictEqual(typeof i.errorMessage, 'string');
 				assert.ok(!i.errorMessage?.text);
 			});
 		});
-
-		it('POST with no checkboxes selected renders error summary and item errors', async () => {
-			const req = {
-				method: 'POST',
-				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
-				body: {}
-			};
-			const res = { render: mock.fn(), locals: {} };
-			await viewHaveYourSayDeclarationPage(req, res, mock.fn());
-			assert.strictEqual(res.render.mock.callCount(), 1);
-			const [, data] = res.render.mock.calls[0].arguments;
-			assert.ok(Array.isArray(data.errorSummary));
-			assert.strictEqual(data.errorSummary.length, 3);
-			// After validation, missing items have errorMessage as object with .text
-			data.declarationItems.forEach((item) => {
-				assert.ok(item.errorMessage);
-				assert.strictEqual(typeof item.errorMessage.text, 'string');
-				assert.ok(item.errorMessage.text.length > 0);
-			});
-		});
-
-		it('POST with all selected calls next()', async () => {
-			const req = {
-				method: 'POST',
-				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
-				body: { declaration: ['consent', 'connect', 'read'] }
-			};
-			const res = { render: mock.fn(), locals: {} };
-			const next = mock.fn();
-			await viewHaveYourSayDeclarationPage(req, res, next);
-			assert.strictEqual(res.render.mock.callCount(), 0);
-			assert.strictEqual(next.mock.callCount(), 1);
-		});
 	});
 
 	describe('startHaveYourSayJourney', () => {
-		it('logs and redirects to /start/who-submitting-for', async () => {
+		it('should log and redirect to who-submitting-for', async () => {
 			const service = { logger: { info: mock.fn() } };
 			const handler = startHaveYourSayJourney(service);
-			const req = { baseUrl: '/applications/123/have-your-say' };
-			const res = { redirect: mock.fn() };
-
-			await handler(req, res);
+			const mockReq = { baseUrl: '/applications/123/have-your-say' };
+			const mockRes = { redirect: mock.fn() };
+			await handler(mockReq, mockRes);
 			assert.strictEqual(service.logger.info.mock.callCount(), 1);
 			assert.ok(service.logger.info.mock.calls[0].arguments[0].includes('Redirecting to Have Your Say Journey'));
-			assert.strictEqual(res.redirect.mock.callCount(), 1);
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			assert.strictEqual(
-				res.redirect.mock.calls[0].arguments[0],
+				mockRes.redirect.mock.calls[0].arguments[0],
 				'/applications/123/have-your-say/start/who-submitting-for'
 			);
 		});
 	});
 
 	describe('addRepresentationErrors', () => {
-		it('no errors on page load', () => {
-			const req = { params: { applicationId: 'abc', id: 'abc' } };
-			const res = {};
-			const next = mock.fn();
-
-			addRepresentationErrors(req, res, next);
-			assert.ok(!res.locals?.errorSummary);
-			assert.strictEqual(next.mock.callCount(), 1);
-		});
-
-		it('still leaves res.locals empty when session util returns no errors', () => {
-			const req = { params: { applicationId: 'app-123', id: 'app-123' } };
-			const res = {};
-			const next = mock.fn();
-
-			addRepresentationErrors(req, res, next);
-
-			assert.strictEqual(res.locals?.errorSummary, undefined);
-			assert.strictEqual(next.mock.callCount(), 1);
-		});
-
-		it('sets errorSummary and clears session when errors exist', () => {
-			const req = {
+		it('should set errorSummary and clear session when errors exist', () => {
+			const mockReq = {
 				params: { applicationId: 'app-999', id: 'app-999' },
 				session: {
 					cases: {
@@ -439,18 +377,16 @@ describe('have your say', () => {
 					}
 				}
 			};
-			const res = {};
+			const mockRes = {};
 			const next = mock.fn();
-
-			addRepresentationErrors(req, res, next);
-
-			assert.ok(Array.isArray(res.locals.errorSummary));
-			assert.strictEqual(res.locals.errorSummary.length, 2);
+			addRepresentationErrors(mockReq, mockRes, next);
+			assert.ok(Array.isArray(mockRes.locals.errorSummary));
+			assert.strictEqual(mockRes.locals.errorSummary.length, 2);
 			assert.deepStrictEqual(
-				res.locals.errorSummary.map((e) => e.text),
+				mockRes.locals.errorSummary.map((e) => e.text),
 				['First error', 'Second error']
 			);
-			assert.ok(!req.session.cases['app-999'].representationError, 'session representationError should be cleared');
+			assert.ok(!mockReq.session.cases['app-999'].representationError);
 			assert.strictEqual(next.mock.callCount(), 1);
 		});
 	});

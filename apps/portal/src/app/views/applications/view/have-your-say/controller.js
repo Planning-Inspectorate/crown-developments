@@ -5,37 +5,8 @@ import { fetchPublishedApplication } from '#util/applications.js';
 import { nowIsWithinRange } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
-import { buildRequiredCheckboxGroup } from '@pins/crowndev-lib/forms/custom-components/checkbox-validation/checkbox-validation.js';
-
-const declarationItems = [
-	{
-		value: 'consent',
-		text: 'I consent to my name, comment and supporting documents being published on this website',
-		errorMessage: 'Select that you agree to publish your name, comment and supporting documents'
-	},
-	{
-		value: 'connect',
-		text: 'The Planning Inspectorate may contact me by email about my comment and supporting documents',
-		errorMessage: 'Select that you agree to be contacted by email about your comment and documents'
-	},
-	{
-		value: 'read',
-		html: "I have read and understood the <a href='https://www.gov.uk/government/publications/planning-inspectorate-privacy-notices/customer-privacy-notice'>Customer Privacy Notice</a>",
-		errorMessage: 'Select that you have read and understood the Customer Privacy Notice'
-	}
-];
-
-function renderDeclaration(res, applicationId, items, errorSummary = undefined) {
-	return res.render('views/applications/view/have-your-say/declaration.njk', {
-		pageTitle: 'Declaration',
-		id: applicationId,
-		backLinkUrl: 'check-your-answers',
-		declarationItems: items,
-		errorSummary,
-		errors: errorSummary,
-		...(res.req?.app?.locals?.config ? { config: res.req.app.locals.config } : {})
-	});
-}
+import { declarationItems } from '@pins/crowndev-lib/forms/custom-components/checkbox-validation/checkbox-validation.js';
+export { haveYourSayDeclarationValidation } from '@pins/crowndev-lib/forms/custom-components/checkbox-validation/checkbox-validation.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -133,10 +104,9 @@ export function getIsRepresentationWindowOpen(db) {
  *
  * @param {import('express').Request} req
  * @param {import('express').Response} res
- * @param {viewHaveYourSayDeclarationPage} next
  * @returns {import('express').Handler}
  */
-export async function viewHaveYourSayDeclarationPage(req, res, next) {
+export async function viewHaveYourSayDeclarationPage(req, res) {
 	const id = req.params?.applicationId;
 	if (!id) {
 		throw new Error('id param required');
@@ -144,27 +114,13 @@ export async function viewHaveYourSayDeclarationPage(req, res, next) {
 	if (!isValidUuidFormat(id)) {
 		return notFoundHandler(req, res);
 	}
-	if (req.method === 'POST') {
-		const groupRequiredCheckbox = buildRequiredCheckboxGroup(req.body?.declaration, declarationItems, {
-			idPrefix: 'declaration'
-		});
-
-		if (!groupRequiredCheckbox.valid) {
-			res.locals = res.locals || {};
-			res.locals.errorSummary = groupRequiredCheckbox.errorSummary;
-			return renderDeclaration(res, id, groupRequiredCheckbox.items, groupRequiredCheckbox.errorSummary);
-		}
-
-		return next();
-	}
 
 	const items = declarationItems.map((item) => ({ ...item }));
 	return res.render('views/applications/view/have-your-say/declaration.njk', {
 		pageTitle: 'Declaration',
-		id: id,
+		id,
 		declarationItems: items,
-		backlinkUrl: `check-your-answers`,
-		errorMessage: undefined
+		backLinkUrl: `check-your-answers`
 	});
 }
 

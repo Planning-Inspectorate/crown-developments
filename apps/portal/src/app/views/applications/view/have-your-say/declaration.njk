@@ -5,7 +5,6 @@
 
 {% set title = "Declaration – " + config.haveYourSayServiceName %}
 {% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
-  {% if errorSummary and errorSummary.length %}Error: {{ title }}{% else %}{{ title }}{% endif %}
 
 {% block pageHeading %}
     <div class="govuk-grid-row">
