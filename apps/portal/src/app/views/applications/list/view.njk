@@ -52,18 +52,10 @@
                 html: "<a class='govuk-link' href='/applications/" +  crownDevelopment.id + "/application-information'>" + insertWbr(crownDevelopment.reference) + "</a>"
             },
             {
-                text: crownDevelopment.applicationType,
-                classes: "pins-table-columns__hide-on-mobile"
-            },
-            {
                 text: crownDevelopment.applicantName
             },
             {
                 text: crownDevelopment.lpaName
-            },
-            {
-                text: crownDevelopment.stage,
-                classes: "pins-table-columns__hide-on-mobile"
             }
         ]), crownDevelopmentRows) %}
     {% endfor %}
@@ -76,18 +68,10 @@
                 text: "Application reference"
             },
             {
-                text: "Application type",
-                classes: "pins-table-columns__hide-on-mobile"
-            },
-            {
                 text: "Applicant name"
             },
             {
                 text: "Local planning authority"
-            },
-            {
-                text: "Stage",
-                classes: "pins-table-columns__hide-on-mobile"
             }
         ],
         rows: crownDevelopmentRows
