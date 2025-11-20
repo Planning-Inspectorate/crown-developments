@@ -5,6 +5,8 @@ import { fetchPublishedApplication } from '#util/applications.js';
 import { nowIsWithinRange } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
+import { declarationItems } from '@pins/crowndev-lib/forms/custom-components/checkbox-validation/checkbox-validation.js';
+export { haveYourSayDeclarationValidation } from '@pins/crowndev-lib/forms/custom-components/checkbox-validation/checkbox-validation.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -105,7 +107,7 @@ export function getIsRepresentationWindowOpen(db) {
  * @returns {import('express').Handler}
  */
 export async function viewHaveYourSayDeclarationPage(req, res) {
-	const id = req.params.applicationId;
+	const id = req.params?.applicationId;
 	if (!id) {
 		throw new Error('id param required');
 	}
@@ -113,18 +115,22 @@ export async function viewHaveYourSayDeclarationPage(req, res) {
 		return notFoundHandler(req, res);
 	}
 
-	res.render('views/applications/view/have-your-say/declaration.njk', {
+	const items = declarationItems.map((item) => ({ ...item }));
+	return res.render('views/applications/view/have-your-say/declaration.njk', {
 		pageTitle: 'Declaration',
-		id: id,
+		id,
+		declarationItems: items,
 		backLinkUrl: `check-your-answers`
 	});
 }
 
 export const addRepresentationErrors = (req, res, next) => {
-	const errors = readSessionData(req, req.params.id, 'representationError', [], 'cases');
+	const id = req.params.applicationId || req.params.id;
+	const errors = readSessionData(req, id, 'representationError', [], 'cases');
 	if (errors.length > 0) {
+		res.locals = res.locals || {};
 		res.locals.errorSummary = errors;
-		clearSessionData(req, req.params.applicationId, 'representationError', 'cases');
+		clearSessionData(req, id, 'representationError', 'cases');
 	}
 	next();
 };

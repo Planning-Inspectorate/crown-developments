@@ -1,31 +1,32 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { buildHaveYourSayPage, getIsRepresentationWindowOpen, viewHaveYourSayDeclarationPage } from './controller.js';
+import {
+	buildHaveYourSayPage,
+	getIsRepresentationWindowOpen,
+	viewHaveYourSayDeclarationPage,
+	startHaveYourSayJourney,
+	addRepresentationErrors
+} from './controller.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
 
-describe('have your say', () => {
+describe('Have Your Say controller', () => {
 	describe('buildHaveYourSayPage', () => {
 		it('should throw error if id is missing', () => {
 			const mockReq = { params: {} };
-			const mockDb = {
-				crownDevelopment: {
-					findUnique: mock.fn()
-				}
-			};
-			const haveYourSayPage = buildHaveYourSayPage({ mockDb, config: {} });
+			const mockDb = { crownDevelopment: { findUnique: mock.fn() } };
+			const haveYourSayPage = buildHaveYourSayPage({ db: mockDb, config: {} });
 			assert.rejects(() => haveYourSayPage(mockReq, {}), { message: 'id param required' });
 		});
 		it('should return not found for invalid id', async () => {
 			const mockReq = {
 				params: { applicationId: 'abc-123' }
 			};
-
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn()
 				}
 			};
-			const handler = buildHaveYourSayPage({ mockDb, config: {} });
+			const handler = buildHaveYourSayPage({ db: mockDb, config: {} });
 			await assertRenders404Page(handler, mockReq, false);
 		});
 		it('should 404 if the application is not found', async () => {
@@ -35,16 +36,13 @@ describe('have your say', () => {
 					findUnique: mock.fn()
 				}
 			};
-			const haveYourSayPage = buildHaveYourSayPage({ mockDb, config: {} });
+			const haveYourSayPage = buildHaveYourSayPage({ db: mockDb, config: {} });
 			await assertRenders404Page(haveYourSayPage, mockReq, false);
 		});
 		it('should render the view', async (context) => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
 			const mockReq = { params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' } };
-			const mockRes = {
-				render: mock.fn(),
-				status: mock.fn()
-			};
+			const mockRes = { render: mock.fn(), status: mock.fn() };
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
@@ -310,6 +308,7 @@ describe('have your say', () => {
 			await assertRenders404Page(isRepresentationWindowOpen, mockReq, true);
 		});
 	});
+
 	describe('viewHaveYourSayDeclarationPage', () => {
 		it('should throw error if id is missing', async () => {
 			const mockReq = { params: {} };
@@ -329,11 +328,66 @@ describe('have your say', () => {
 				mockRes.render.mock.calls[0].arguments[0],
 				'views/applications/view/have-your-say/declaration.njk'
 			);
-			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
-				pageTitle: 'Declaration',
-				id: mockReq.params.applicationId,
-				backLinkUrl: 'check-your-answers'
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1].pageTitle, 'Declaration');
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1].id, mockReq.params.applicationId);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1].backLinkUrl, 'check-your-answers');
+		});
+		it('should render the declaration template without errors', async () => {
+			const mockReq = { params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' } };
+			const mockRes = { render: mock.fn() };
+			await viewHaveYourSayDeclarationPage(mockReq, mockRes);
+			const [, data] = mockRes.render.mock.calls[0].arguments;
+			assert.ok(!data.errorSummary);
+			data.declarationItems.forEach((i) => {
+				assert.strictEqual(typeof i.errorMessage, 'string');
+				assert.ok(!i.errorMessage?.text);
 			});
+		});
+	});
+
+	describe('startHaveYourSayJourney', () => {
+		it('should log and redirect to who-submitting-for', async () => {
+			const service = { logger: { info: mock.fn() } };
+			const handler = startHaveYourSayJourney(service);
+			const mockReq = { baseUrl: '/applications/123/have-your-say' };
+			const mockRes = { redirect: mock.fn() };
+			await handler(mockReq, mockRes);
+			assert.strictEqual(service.logger.info.mock.callCount(), 1);
+			assert.ok(service.logger.info.mock.calls[0].arguments[0].includes('Redirecting to Have Your Say Journey'));
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			assert.strictEqual(
+				mockRes.redirect.mock.calls[0].arguments[0],
+				'/applications/123/have-your-say/start/who-submitting-for'
+			);
+		});
+	});
+
+	describe('addRepresentationErrors', () => {
+		it('should set errorSummary and clear session when errors exist', () => {
+			const mockReq = {
+				params: { applicationId: 'app-999', id: 'app-999' },
+				session: {
+					cases: {
+						'app-999': {
+							representationError: [
+								{ text: 'First error', href: '#declaration-consent' },
+								{ text: 'Second error', href: '#declaration-connect' }
+							]
+						}
+					}
+				}
+			};
+			const mockRes = {};
+			const next = mock.fn();
+			addRepresentationErrors(mockReq, mockRes, next);
+			assert.ok(Array.isArray(mockRes.locals.errorSummary));
+			assert.strictEqual(mockRes.locals.errorSummary.length, 2);
+			assert.deepStrictEqual(
+				mockRes.locals.errorSummary.map((e) => e.text),
+				['First error', 'Second error']
+			);
+			assert.ok(!mockReq.session.cases['app-999'].representationError);
+			assert.strictEqual(next.mock.callCount(), 1);
 		});
 	});
 });
