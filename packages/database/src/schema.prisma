@@ -133,10 +133,15 @@ model CrownDevelopment {
   applicationFee                      Decimal?
   siteVisitDate                       DateTime?
   ApplicationUpdates                  ApplicationUpdate[]
+  /// whether liable for a Community Infrastructure Levy (CIL)
   cilLiable                           Boolean?
+  /// how much it is CIL liable for
   cilAmount                           Decimal?
+  /// whether exempt from biodiversity net gain (BNG)
   bngExempt                           Boolean?
+  /// whether has costs applications
   hasCostsApplications                Boolean?
+  /// details on those costs applications
   costsApplicationsComment            String?                     @db.NVarChar(2000)
 }
 
