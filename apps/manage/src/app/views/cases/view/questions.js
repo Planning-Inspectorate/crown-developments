@@ -20,7 +20,8 @@ import {
 	dateQuestion,
 	eventQuestions,
 	lpaListToRadioOptions,
-	subCategoriesToRadioOptions
+	subCategoriesToRadioOptions,
+	CIL_DATA
 } from './question-utils.js';
 import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
 import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
@@ -31,7 +32,6 @@ import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/
 import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
 import DateTimeValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-time-validator.js';
 import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
-import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-validator.js';
 import CostsApplicationsCommentValidator from '@pins/crowndev-lib/forms/custom-components/costs-applications-comment/costs-applications-comment-validator.js';
 
 /**
@@ -648,14 +648,14 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			validators: [new RequiredValidator()]
 		},
 		cilLiable: {
-			type: CUSTOM_COMPONENTS.CIL_AMOUNT,
+			...CIL_DATA,
 			title: 'CIL liable',
-			question: 'Is the application liable for the Community Infrastructure Levy (CIL)?',
-			fieldName: 'cilLiable',
-			url: 'cil-liable',
-			cilAmountInputFieldName: 'cilAmount',
-			cilAmountQuestion: 'What is the CIL amount?',
-			validators: [new CILAmountValidator()]
+			fieldToShow: 'cilLiable'
+		},
+		cilAmount: {
+			...CIL_DATA,
+			title: 'CIL amount',
+			fieldToShow: 'cilAmount'
 		},
 		bngExempt: {
 			type: COMPONENT_TYPES.BOOLEAN,
