@@ -20,7 +20,8 @@ import {
 	dateQuestion,
 	eventQuestions,
 	lpaListToRadioOptions,
-	subCategoriesToRadioOptions
+	subCategoriesToRadioOptions,
+	CIL_DATA
 } from './question-utils.js';
 import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
 import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
@@ -31,6 +32,7 @@ import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/
 import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
 import DateTimeValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-time-validator.js';
 import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
+import CostsApplicationsCommentValidator from '@pins/crowndev-lib/forms/custom-components/costs-applications-comment/costs-applications-comment-validator.js';
 
 /**
  * @param {import('../../../../util/entra-groups-types.js').EntraGroupMembers} [groupMembers]
@@ -644,6 +646,34 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			fieldName: 'publishNow',
 			url: 'publish-now',
 			validators: [new RequiredValidator()]
+		},
+		cilLiable: {
+			...CIL_DATA,
+			title: 'CIL liable',
+			fieldToShow: 'cilLiable'
+		},
+		cilAmount: {
+			...CIL_DATA,
+			title: 'CIL amount',
+			fieldToShow: 'cilAmount'
+		},
+		bngExempt: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'BNG exempt',
+			question: 'Is the application exempt from biodiversity net gain (BNG)?',
+			fieldName: 'bngExempt',
+			url: 'bng-exempt',
+			validators: [new RequiredValidator('Select whether the application is BNG exempt')]
+		},
+		hasCostsApplications: {
+			type: CUSTOM_COMPONENTS.COSTS_APPLICATIONS,
+			title: 'Costs application(s)',
+			question: 'Are there any costs applications?',
+			fieldName: 'hasCostsApplications',
+			url: 'costs-applications',
+			costsApplicationInputFieldName: 'costsApplicationsComment',
+			costsApplicationQuestion: 'Capture if a party is making a cost claim against another for unreasonable behaviour.',
+			validators: [new CostsApplicationsCommentValidator()]
 		}
 	};
 

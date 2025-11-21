@@ -10,6 +10,8 @@ import {
 	APPLICATION_STAGE,
 	APPLICATION_STAGE_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
+import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.js';
+import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-validator.js';
 
 /**
  *
@@ -330,3 +332,13 @@ export function filteredStagesToRadioOptions(procedureId) {
 		displayName: s.displayName
 	}));
 }
+
+export const CIL_DATA = {
+	type: CUSTOM_COMPONENTS.CIL_AMOUNT,
+	question: 'Is the application liable for the Community Infrastructure Levy (CIL)?',
+	fieldName: 'cilLiable',
+	url: 'cil-liable',
+	cilAmountInputFieldName: 'cilAmount',
+	cilAmountQuestion: 'What is the CIL amount?',
+	validators: [new CILAmountValidator()]
+};

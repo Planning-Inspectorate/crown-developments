@@ -36,6 +36,7 @@ export function createJourney(questions, response, req) {
 		) &&
 		(questionHasAnswer(response, questions.subTypeOfApplication, APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION) ||
 			questionHasAnswer(response, questions.subTypeOfApplication, APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT));
+	const iscilLiable = (response) => yesNoToBoolean(response.answers?.cilLiable);
 
 	return new Journey({
 		journeyId: JOURNEY_ID,
@@ -70,7 +71,12 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.nationallyImportantConfirmationDate)
 				.addQuestion(questions.isGreenBelt)
 				.addQuestion(questions.siteIsVisibleFromPublicLand)
-				.addQuestion(questions.healthAndSafetyIssue),
+				.addQuestion(questions.healthAndSafetyIssue)
+				.addQuestion(questions.cilLiable)
+				.addQuestion(questions.cilAmount)
+				.withCondition(iscilLiable)
+				.addQuestion(questions.bngExempt)
+				.addQuestion(questions.hasCostsApplications),
 			new Section('Contacts', 'contacts')
 				.addQuestion(questions.lpaContact)
 				.addQuestion(questions.lpaAddress)
