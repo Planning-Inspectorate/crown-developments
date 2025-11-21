@@ -1,6 +1,5 @@
 import { Router as createRouter } from 'express';
-
-import { buildGetValidatedCaseMiddleware, buildPublishCase, publishSuccessfulController } from './controller.js';
+import { buildGetValidatedCaseMiddleware, buildPublishCase } from './controller.js';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 import { buildGetJourneyMiddleware } from '../controller.js';
 
@@ -14,6 +13,5 @@ export function createRoutes(service) {
 	const getCaseMiddleware = buildGetValidatedCaseMiddleware(service);
 	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
 	router.get('/', getJourney, getCaseMiddleware, asyncHandler(publishController));
-	router.get('/success', publishSuccessfulController);
 	return router;
 }

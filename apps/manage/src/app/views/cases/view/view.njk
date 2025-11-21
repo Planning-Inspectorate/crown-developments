@@ -17,6 +17,18 @@
 {% endblock %}
 
 {% block content %}
+    {% if casePublishSuccess %}
+        {{ govukNotificationBanner({
+            text: "Application published",
+            type: "success"
+        }) }}
+    {% endif %}
+    {% if caseUnpublishSuccess %}
+        {{ govukNotificationBanner({
+            text: "Application unpublished",
+            type: "success"
+        }) }}
+    {% endif %}
     {% if hasLinkedCase %}
         {{ govukNotificationBanner({
             classes: "govuk-notification-banner__heading govuk-grid-column-two-thirds",
@@ -116,5 +128,4 @@
 
     {% block afterTaskList %}
     {% endblock %}
-
 {% endblock %}

@@ -37,7 +37,9 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpda
 		const publishDate = res.locals?.journeyResponse?.answers?.publishDate;
 		const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
 		const baseUrl = req.baseUrl;
-
+		const successParam = req.query.success;
+		const casePublishSuccess = successParam === 'published' && casePublished;
+		const caseUnpublishSuccess = successParam === 'unpublish' && !casePublished;
 		const sharePointDrive = getSharePointDrive(req.session);
 		let sharePointLink = '';
 		if (sharePointDrive) {
@@ -56,6 +58,8 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpda
 			reference,
 			caseUpdated,
 			casePublished,
+			casePublishSuccess,
+			caseUnpublishSuccess,
 			baseUrl,
 			sharePointLink,
 			hideButton: true,

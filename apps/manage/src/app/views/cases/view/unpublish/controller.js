@@ -1,5 +1,4 @@
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 
 /**
@@ -67,28 +66,6 @@ export function buildSubmitUnpublishCase({ db, logger }) {
 				logParams: { id }
 			});
 		}
-		addSessionData(req, id, { reference: crownDevelopment.reference, caseUnpublished: true });
-		res.redirect(`/cases/${id}/unpublish/success`);
+		return res.redirect(`/cases/${id}?success=unpublish`);
 	};
-}
-
-export async function unpublishSuccessfulController(req, res) {
-	const id = req.params.id;
-	if (!id) {
-		throw new Error('id param required');
-	}
-
-	const reference = readSessionData(req, id, 'reference');
-	const caseUnpublished = readSessionData(req, id, 'caseUnpublished');
-	if (!caseUnpublished || !reference) {
-		throw new Error('invalid publish case session');
-	}
-
-	clearSessionData(req, id, ['reference', 'caseUnpublished']);
-	res.render('views/cases/view/unpublish/success.njk', {
-		title: 'Case Successfully Unpublished',
-		bodyText: `Case reference <br><strong>${reference}</strong>`,
-		successBackLinkUrl: `/cases/${id}`,
-		successBackLinkText: 'Back to overview'
-	});
 }

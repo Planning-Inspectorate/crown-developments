@@ -107,7 +107,7 @@ describe('case details', () => {
 		it('should render without error, with case reference', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const mockRes = newMockRes();
-			const mockReq = { params: { id: 'case-1' }, baseUrl: 'case-1' };
+			const mockReq = { params: { id: 'case-1' }, baseUrl: 'case-1', query: {} };
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({ id: 'case-1', reference: 'C/A/1' }))
@@ -135,7 +135,8 @@ describe('case details', () => {
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
-				session: { cases: { 'case-1': { updated: true } } }
+				session: { cases: { 'case-1': { updated: true } } },
+				query: {}
 			};
 			const mockDb = {
 				crownDevelopment: {
@@ -168,7 +169,8 @@ describe('case details', () => {
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
-				session: {}
+				session: {},
+				query: {}
 			};
 			const mockDb = {
 				crownDevelopment: {
@@ -201,7 +203,8 @@ describe('case details', () => {
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
-				session: {}
+				session: {},
+				query: {}
 			};
 			const mockDb = {
 				crownDevelopment: {
@@ -231,7 +234,8 @@ describe('case details', () => {
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
-				session: {}
+				session: {},
+				query: {}
 			};
 
 			const tomorrow = new Date('2025-01-02T03:24:00.000Z');
@@ -263,7 +267,8 @@ describe('case details', () => {
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
-				session: { cases: { 'case-1': { publishErrors: [{ text: 'Error message', href: '#' }] } } }
+				session: { cases: { 'case-1': { publishErrors: [{ text: 'Error message', href: '#' }] } } },
+				query: {}
 			};
 			const mockDb = {
 				crownDevelopment: {
@@ -295,7 +300,8 @@ describe('case details', () => {
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
-				session: {}
+				session: {},
+				query: {}
 			};
 
 			const mockDb = {
@@ -328,7 +334,8 @@ describe('case details', () => {
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
-				session: {}
+				session: {},
+				query: {}
 			};
 			const mockDb = {
 				crownDevelopment: {
@@ -362,6 +369,69 @@ describe('case details', () => {
 				viewData.linkedCaseLink,
 				`<a href="/cases/linked-case-id" class="govuk-link govuk-link--no-visited-state">Listed Building Consent (LBC) application</a>`
 			);
+		});
+		it('should set casePublishSuccess when success=published and publishDate is today/past', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T10:00:00.000Z') });
+			const nunjucksRes = newMockRes();
+			const mockReq = {
+				params: { id: 'case-1' },
+				baseUrl: 'case-1',
+				query: { success: 'published' },
+				session: {}
+			};
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						reference: 'REF/1',
+						publishDate: new Date('2025-01-01T09:00:00.000Z')
+					}))
+				}
+			};
+			const next = mock.fn();
+			const journeyMw = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mock.fn(),
+				groupIds
+			});
+			await journeyMw(mockReq, nunjucksRes, next);
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
+			await viewCaseDetails(mockReq, nunjucksRes);
+			const viewData = nunjucksRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.casePublishSuccess, true);
+			assert.strictEqual(viewData.caseUnpublishSuccess, false);
+		});
+		it('should set caseUnpublishSuccess when success=unpublish and publishDate is null', async () => {
+			const nunjucksRes = newMockRes();
+			const mockReq = {
+				params: { id: 'case-2' },
+				baseUrl: 'case-2',
+				query: { success: 'unpublish' },
+				session: {}
+			};
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-2',
+						reference: 'REF/2',
+						publishDate: null
+					}))
+				}
+			};
+			const next = mock.fn();
+			const journeyMw = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mock.fn(),
+				groupIds
+			});
+			await journeyMw(mockReq, nunjucksRes, next);
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
+			await viewCaseDetails(mockReq, nunjucksRes);
+			const viewData = nunjucksRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.caseUnpublishSuccess, true);
+			assert.strictEqual(viewData.casePublishSuccess, false);
 		});
 	});
 });

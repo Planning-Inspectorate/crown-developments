@@ -1,5 +1,5 @@
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
+import { addSessionData } from '@pins/crowndev-lib/util/session.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 
 /**
@@ -29,7 +29,7 @@ export function buildPublishCase({ db, logger }) {
 				logParams: { id }
 			});
 		}
-		return res.redirect(`/cases/${id}/publish/success`);
+		return res.redirect(`/cases/${id}?success=published`);
 	};
 }
 
@@ -103,34 +103,6 @@ export function buildGetValidatedCaseMiddleware({ db, logger }) {
 			addSessionData(req, id, { publishErrors: errors });
 			return res.redirect(`/cases/${id}`);
 		}
-
-		const reference = crownDevelopment.reference;
-		addSessionData(req, id, { reference, casePublished: true });
 		return next();
 	};
-}
-
-/**
- * @type {import('express').Handler}
- */
-export async function publishSuccessfulController(req, res) {
-	const id = req.params.id;
-	if (!id) {
-		throw new Error('id param required');
-	}
-
-	const reference = readSessionData(req, id, 'reference');
-	const casePublished = readSessionData(req, id, 'casePublished');
-
-	if (!reference || !casePublished) {
-		throw new Error('invalid publish case session');
-	}
-
-	clearSessionData(req, id, ['reference', 'casePublished']);
-	res.render('views/cases/view/publish/success.njk', {
-		title: 'Case Successfully Published',
-		bodyText: `Case reference <br><strong>${reference}</strong>`,
-		successBackLinkUrl: `/cases/${id}`,
-		successBackLinkText: 'Back to overview'
-	});
 }
