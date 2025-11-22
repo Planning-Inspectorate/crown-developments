@@ -1,0 +1,213 @@
+import { describe, it, beforeEach, mock } from 'node:test';
+import assert from 'node:assert';
+import { buildFilters, hasQueries, getFilterQueryItems, mapWithAndWithoutToBoolean } from './filters.js';
+import { REPRESENTATION_CATEGORY_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { Prisma } from '@pins/crowndev-database/src/client/client.js';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+
+// Helper to create a mock db with overridable count behaviour
+function createMockDb(counts) {
+	return {
+		representation: {
+			count: mock.fn((args) => {
+				// Decide which count to return based on args.where
+				if (args?.where?.categoryId === REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES) {
+					return counts.interestedPartyCount;
+				}
+				if (args?.where?.categoryId === REPRESENTATION_CATEGORY_ID.CONSULTEES) {
+					return counts.consulteeCount;
+				}
+				if (typeof args?.where?.containsAttachments === 'boolean') {
+					return args.where.containsAttachments ? counts.withAttachmentsCount : counts.withoutAttachmentsCount;
+				}
+				return 0;
+			})
+		}
+	};
+}
+
+describe('Filters', () => {
+	describe('buildFilters', () => {
+		let logger;
+		beforeEach(() => {
+			logger = mockLogger();
+		});
+
+		it('should builds filter sections with counts and unchecked items when no queryFilters', async () => {
+			const mockDb = createMockDb({
+				interestedPartyCount: 3,
+				consulteeCount: 5,
+				withAttachmentsCount: 7,
+				withoutAttachmentsCount: 11
+			});
+			const sections = await buildFilters({ db: mockDb, logger }, 'app-123', {});
+			assert.ok(Array.isArray(sections));
+			assert.strictEqual(sections.length, 2);
+
+			const submittedBy = sections[0];
+			assert.strictEqual(submittedBy.title, 'Submitted by');
+			assert.strictEqual(submittedBy.type, 'checkboxes');
+			assert.strictEqual(submittedBy.options.items.length, 2);
+			assert.match(submittedBy.options.items[0].text, /Interested party \(3\)/);
+			assert.match(submittedBy.options.items[1].text, /Consultee \(5\)/);
+			assert.strictEqual(submittedBy.options.items[0].checked, false);
+			assert.strictEqual(submittedBy.options.items[1].checked, false);
+
+			const attachments = sections[1];
+			assert.strictEqual(attachments.title, 'Contains attachments');
+			assert.strictEqual(attachments.type, 'checkboxes');
+			assert.strictEqual(attachments.options.items.length, 2);
+			assert.match(attachments.options.items[0].text, /Yes \(7\)/);
+			assert.match(attachments.options.items[1].text, /No \(11\)/);
+			assert.strictEqual(attachments.options.items[0].checked, false);
+			assert.strictEqual(attachments.options.items[1].checked, false);
+		});
+
+		it('should mark items as checked based on queryFilters arrays', async () => {
+			const mockDb = createMockDb({
+				interestedPartyCount: 1,
+				consulteeCount: 2,
+				withAttachmentsCount: 3,
+				withoutAttachmentsCount: 4
+			});
+			const queryFilters = {
+				filterSubmittedBy: [REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES, REPRESENTATION_CATEGORY_ID.CONSULTEES],
+				filterByAttachments: ['withAttachments']
+			};
+			const sections = await buildFilters({ db: mockDb, logger }, 'app-123', queryFilters);
+			const submittedByItems = sections[0].options.items;
+			assert.strictEqual(submittedByItems[0].checked, true);
+			assert.strictEqual(submittedByItems[1].checked, true);
+
+			const attachmentsItems = sections[1].options.items;
+			assert.strictEqual(attachmentsItems[0].checked, true);
+			assert.strictEqual(attachmentsItems[1].checked, false);
+		});
+
+		it('should support both attachment options checked', async () => {
+			const mockDb = createMockDb({
+				interestedPartyCount: 0,
+				consulteeCount: 0,
+				withAttachmentsCount: 10,
+				withoutAttachmentsCount: 20
+			});
+			const queryFilters = {
+				filterByAttachments: ['withAttachments', 'withoutAttachments']
+			};
+			const sections = await buildFilters({ db: mockDb, logger }, 'app-123', queryFilters);
+			const attachmentsItems = sections[1].options.items;
+			assert.strictEqual(attachmentsItems[0].checked, true);
+			assert.strictEqual(attachmentsItems[1].checked, true);
+		});
+
+		it('should return undefined on error and does not throw', async () => {
+			const mockDb = {
+				representation: {
+					count: mock.fn(() => {
+						throw new Prisma.PrismaClientValidationError('some error', { code: '101' });
+					})
+				}
+			};
+			await assert.rejects(() => buildFilters({ db: mockDb, logger }, 'app-123', {}), {
+				message: 'Error fetching written representations (PrismaClientValidationError)'
+			});
+		});
+	});
+
+	describe('hasQueries', () => {
+		it('returns false for empty object', () => {
+			assert.strictEqual(hasQueries({}), false);
+		});
+		it('returns false when only excluded keys present', () => {
+			assert.strictEqual(hasQueries({ itemsPerPage: '25', page: '2', searchCriteria: 'test' }), false);
+		});
+		it('returns false when filter arrays only contain empty values', () => {
+			assert.strictEqual(hasQueries({ filterSubmittedBy: [''] }), false);
+			assert.strictEqual(hasQueries({ filterSubmittedBy: ['', null] }), false);
+		});
+		it('returns true when at least one non-empty value exists', () => {
+			assert.strictEqual(hasQueries({ filterSubmittedBy: ['party'] }), true);
+			assert.strictEqual(hasQueries({ filterByAttachments: ['withAttachments'] }), true);
+		});
+		it('returns true for mixed array values with one non-empty', () => {
+			assert.strictEqual(hasQueries({ filterSubmittedBy: ['', 'value'] }), true);
+		});
+		it('returns false for null/undefined query', () => {
+			assert.strictEqual(hasQueries(undefined), false);
+		});
+	});
+
+	describe('getFilterQueryItems', () => {
+		it('extracts checked items from filters', () => {
+			const filters = [
+				{
+					title: 'Submitted by',
+					type: 'checkboxes',
+					name: 'filterSubmittedBy',
+					options: {
+						items: [
+							{ displayName: 'Interested Party', text: 'Interested (3)', value: 'a', checked: true },
+							{ displayName: 'Consultee', text: 'Consultee (5)', value: 'b', checked: false }
+						]
+					}
+				},
+				{
+					title: 'Contains attachments',
+					type: 'checkboxes',
+					name: 'filterByAttachments',
+					options: {
+						items: [
+							{ displayName: 'Yes', text: 'Yes (7)', value: 'withAttachments', checked: true },
+							{ displayName: 'No', text: 'No (11)', value: 'withoutAttachments', checked: true }
+						]
+					}
+				}
+			];
+			const items = getFilterQueryItems(filters);
+			assert.deepStrictEqual(items, [
+				{ label: 'Submitted by', id: 'a', displayName: 'Interested Party' },
+				{ label: 'Contains attachments', id: 'withAttachments', displayName: 'Yes' },
+				{ label: 'Contains attachments', id: 'withoutAttachments', displayName: 'No' }
+			]);
+		});
+		it('returns empty array when no items checked', () => {
+			const filters = [
+				{
+					title: 'Submitted by',
+					type: 'checkboxes',
+					name: 'filterSubmittedBy',
+					options: { items: [{ displayName: 'Interested Party', text: 'Interested (0)', value: 'a', checked: false }] }
+				}
+			];
+			assert.deepStrictEqual(getFilterQueryItems(filters), []);
+		});
+	});
+
+	describe('mapWithAndWithoutToBoolean', () => {
+		it('maps recognised values to booleans', () => {
+			assert.deepStrictEqual(
+				mapWithAndWithoutToBoolean(['withAttachments', 'withoutAttachments'], 'withAttachments', 'withoutAttachments'),
+				[true, false]
+			);
+		});
+		it('ignores unknown values', () => {
+			assert.deepStrictEqual(
+				mapWithAndWithoutToBoolean(['foo', 'withAttachments'], 'withAttachments', 'withoutAttachments'),
+				[true]
+			);
+		});
+		it('returns empty array for empty input', () => {
+			assert.deepStrictEqual(mapWithAndWithoutToBoolean([], 'withAttachments', 'withoutAttachments'), []);
+		});
+		it('returns boolean array length matching recognised inputs only', () => {
+			assert.deepStrictEqual(
+				mapWithAndWithoutToBoolean(
+					['withAttachments', 'bar', 'baz', 'withoutAttachments'],
+					'withAttachments',
+					'withoutAttachments'
+				),
+				[true, false]
+			);
+		});
+	});
+});

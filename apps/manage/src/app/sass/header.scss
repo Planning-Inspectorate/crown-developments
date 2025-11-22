@@ -1,6 +1,7 @@
 @use 'node_modules/govuk-frontend/dist/govuk/settings/_colours-applied.scss' as colors;
 @use 'node_modules/govuk-frontend/dist/govuk/helpers/media-queries' as mixins;
 @use 'node_modules/govuk-frontend/dist/govuk/settings/media-queries' as settings;
+@use 'sass:map';
 
 @use 'node_modules/govuk-frontend/dist/govuk/objects/_width-container' as width-container;
 
@@ -15,7 +16,7 @@ $pins-colours-teal-100: #10847e;
 }
 
 .pins-header__navigation--align-right {
-	@include mixins.govuk-media-query($from: map-get(settings.$govuk-breakpoints, 'desktop')) {
+	@include mixins.govuk-media-query($from: map.get(settings.$govuk-breakpoints, 'desktop')) {
 		float: right;
 	}
 }

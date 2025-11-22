@@ -8,6 +8,7 @@ import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/s
 import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
+import { buildFilters, getFilterQueryItems, hasQueries, mapWithAndWithoutToBoolean } from './filters/filters.js';
 
 /**
  * Render written representations page
@@ -42,6 +43,22 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 
 		const stringQueriesArray = splitStringQueries(req.query?.searchCriteria);
 
+		const filters = await buildFilters({ db, logger }, id, req.query);
+		const filterSubmittedBy = req.query?.filterSubmittedBy ? [].concat(req.query.filterSubmittedBy) : [];
+		const filterByAttachments = req.query?.filterByAttachments ? [].concat(req.query.filterByAttachments) : [];
+
+		const filterQueryItems = getFilterQueryItems(filters);
+		const mappedFilterByAttachments = mapWithAndWithoutToBoolean(
+			filterByAttachments,
+			'withAttachments',
+			'withoutAttachments'
+		);
+
+		const whereFilters = {
+			...(filterSubmittedBy.length && { categoryId: { in: filterSubmittedBy } }),
+			// Only apply if exactly one boolean selected
+			...(mappedFilterByAttachments.length === 1 && { containsAttachments: mappedFilterByAttachments[0] })
+		};
 		const searchCriteria = createWhereClause(stringQueriesArray, [
 			{ parent: 'RepresentedContact', fields: ['firstName', 'lastName', 'orgName'] },
 			{ parent: 'SubmittedByContact', fields: ['firstName', 'lastName'] },
@@ -58,7 +75,8 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 					where: {
 						applicationId: id,
 						statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
-						...searchCriteria
+						...searchCriteria,
+						...whereFilters
 					},
 					select: {
 						reference: true,
@@ -83,7 +101,8 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 					where: {
 						applicationId: id,
 						statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
-						...searchCriteria
+						...searchCriteria,
+						...whereFilters
 					}
 				})
 			]);
@@ -127,7 +146,10 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			totalPages,
 			resultsStartNumber,
 			resultsEndNumber,
-			searchValue: req.query?.searchCriteria || ''
+			searchValue: req.query?.searchCriteria || '',
+			filters,
+			hasQueries: hasQueries(req.query),
+			filterQueries: filterQueryItems
 		});
 	};
 }
