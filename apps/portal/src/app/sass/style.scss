@@ -1,4 +1,4 @@
-@use 'node_modules/govuk-frontend/dist/govuk/all' as govuk with (
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk with (
 	$govuk-font-family: (
 		Arial,
 		Helvetica,
@@ -13,6 +13,7 @@
 @use './components/pins-header.scss';
 @use './components/pins-navigation.scss';
 @use './components/pins-chevron-cards.scss';
+@use 'components/pins-filter-accordion';
 
 .row-inline {
 	display: flex;
@@ -52,4 +53,8 @@
 }
 .pins-application-stage-summary-row:last-child {
 	border-bottom: none;
+}
+
+.pins-sidebar-alignment {
+	margin-left: calc(-0.7em);
 }

@@ -4,6 +4,7 @@
 {% import "pagination/pagination.njk" as pagination %}
 {% import "pagination/pagination-options.njk" as paginationOptions %}
 
+{% from "filter-accordion/filter-accordion.njk" import filterAccordion %}
 {% from "views/applications/view/links.njk" import applicationLinks %}
 {% from "search-bar/search-bar.njk" import searchBar %}
 
@@ -13,6 +14,12 @@
 	<div class="govuk-grid-row">
 		<div class="govuk-grid-column-one-third">
 			{{ applicationLinks(links, currentUrl) }}
+            <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible pins-sidebar-alignment">
+            <form id="search-filter-form" method="GET">
+                <input type="hidden" name="searchCriteria" value="{{ searchValue }}">
+                <input type="hidden" name="itemsPerPage" value="{{ selectedItemsPerPage }}">
+            {{ filterAccordion(filters, 'Filters', id, cspNonce) }}
+            </form>
 		</div>
 
 		<div class="govuk-grid-column-two-thirds">
@@ -30,6 +37,13 @@
 				<div class="govuk-grid-column-full">
 					<form id="search-bar-form" method="GET">
                         <input type="hidden" name="itemsPerPage" value="{{ selectedItemsPerPage }}">
+                        {% for filter in filters %}
+                            {% for option in filter.options.items %}
+                                {% if option.checked %}
+                                    <input type="hidden" name="{{ filter.name }}" value="{{ option.value }}">
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
 						{{ searchBar({
 							input: {
 								label: {
@@ -46,15 +60,20 @@
 							}
 						}, searchValue) }}
 					</form>
+                    {% if hasQueries %}
+                        <p class="govuk-body">Active filters</p>
+                        {% for query in filterQueries %}
+                            <button type="button" id="{{ query.id }}" class="govuk-body selected-filter-tag">× {{ query.label }}: {{ query.displayName }}</button>
+                        {% endfor %}
+                        <p class="govuk-body"><a href="{{ clearQueryUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search and filters</a></p>
+                        <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+                    {% endif %}
 				</div>
-
 			</div>
-
 			<div class="govuk-grid-row">
 				<div class="govuk-grid-column-full">
 					{% if representations|length == 0 %}
 						<p class="govuk-body">No results were found.</p>
-						<p class="govuk-body"><a href="{{ clearQueryUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search</a> to view all representations.</p>
 					{% else %}
 						<div id="pagination" class="govuk-body">
 							<p class="govuk-body">
@@ -77,5 +96,22 @@
 				</div>
 			</div>
 		</div>
+        <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
+            document.querySelectorAll('.selected-filter-tag').forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    const filterId = e.currentTarget && e.currentTarget.id;
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const updatedParams = new URLSearchParams();
+                    urlParams.forEach((value, key) => {
+                        if (value !== filterId) {
+                            updatedParams.append(key, value);
+                        }
+                    });
+
+                    // Redirect to the updated URL
+                    window.location.search = updatedParams.toString();
+                });
+            });
+        </script>
 	</div>
 {% endblock %}
