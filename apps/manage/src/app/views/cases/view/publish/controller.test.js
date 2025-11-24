@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { buildGetValidatedCaseMiddleware, buildPublishCase, publishSuccessfulController } from './controller.js';
+import { buildGetValidatedCaseMiddleware, buildPublishCase } from './controller.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { Prisma } from '@pins/crowndev-database/src/client/client.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
@@ -85,37 +85,27 @@ describe('publish case', () => {
 			assert.strictEqual(res.redirect.mock.calls.length, 1);
 			assert.strictEqual(res.redirect.mock.calls[0].arguments[0], '/cases/id-1');
 		});
-		it('should add the reference to session and call next when validated successfully', async () => {
+		it('should call next when all required fields present', async () => {
 			const db = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
 						id: 'id-1',
-						ApplicantContact: {
-							orgName: 'applicant-1'
-						},
+						ApplicantContact: { orgName: 'applicant-1', Address: {} },
+						AgentContact: { Address: {} },
 						description: 'description-1',
 						typeId: 'type-1',
-						Lpa: {
-							id: 'lpa-1'
-						},
-						SiteAddress: {
-							postcode: 'postcode-1'
-						},
-						reference: 'ref-1'
+						Lpa: { id: 'lpa-1', Address: {} },
+						SiteAddress: { postcode: 'postcode-1' }
 					}))
 				}
 			};
 			const middleware = buildGetValidatedCaseMiddleware({ db, logger: mockLogger() });
 			const req = { params: { id: 'id-1' }, session: {} };
-			const res = {
-				locals: {},
-				redirect: mock.fn()
-			};
+			const res = { locals: {}, redirect: mock.fn() };
 			const next = mock.fn();
 			await middleware(req, res, next);
 			assert.strictEqual(next.mock.callCount(), 1);
-			assert.ok(req.session.cases['id-1'].reference);
-			assert.ok(req.session.cases['id-1'].casePublished);
+			assert.ok(!req.session.cases || !req.session.cases['id-1'] || !req.session.cases['id-1'].reference);
 		});
 	});
 	describe('publishCase', () => {
@@ -158,7 +148,7 @@ describe('publish case', () => {
 			});
 
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
-			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], '/cases/case-1/publish/success');
+			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], '/cases/case-1?success=published');
 		});
 		it('should not throw Prisma errors', async () => {
 			const mockReq = { params: { id: 'case-1' } };
@@ -230,46 +220,6 @@ describe('publish case', () => {
 					return true;
 				}
 			);
-		});
-	});
-	describe('publishSuccessfulController', () => {
-		it('should render the correct view', async () => {
-			const mockReq = {
-				params: { id: 'case-1' },
-				session: { cases: { 'case-1': { reference: 'ref-1', casePublished: true } } }
-			};
-			const mockRes = {
-				locals: {},
-				render: mock.fn()
-			};
-
-			await publishSuccessfulController(mockReq, mockRes);
-			assert.strictEqual(mockRes.render.mock.callCount(), 1);
-			assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/cases/view/publish/success.njk');
-			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
-				title: 'Case Successfully Published',
-				bodyText: 'Case reference <br><strong>ref-1</strong>',
-				successBackLinkText: 'Back to overview',
-				successBackLinkUrl: `/cases/${mockReq.params.id}`
-			});
-			// And clear the session
-			assert.strictEqual(mockReq.session.cases['case-1'].reference, undefined);
-		});
-		it('should throw if no id', async () => {
-			const mockReq = { params: {} };
-			const mockRes = { locals: {} };
-			await assert.rejects(() => publishSuccessfulController(mockReq, mockRes), { message: 'id param required' });
-		});
-		it('should throw if no reference', async () => {
-			const mockReq = {
-				params: {
-					id: 'case-1'
-				}
-			};
-			const mockRes = { locals: {} };
-			await assert.rejects(() => publishSuccessfulController(mockReq, mockRes), {
-				message: 'invalid publish case session'
-			});
 		});
 	});
 });
