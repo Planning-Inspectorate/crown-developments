@@ -8,7 +8,7 @@
 
 {% set title = reference + " - " + journeyTitle + " - Manage a Crown Development Application" %}
 {% set publishUrl = baseUrl + "/publish" %}
-{% set unpublishUrl = baseUrl + "/unpublish/confirm" %}
+{% set unpublishUrl = baseUrl + "/unpublish" %}
 {% set manageRepsUrl = baseUrl + "/manage-representations" %}
 {% set manageAppUpdatesUrl = baseUrl + "/application-updates" %}
 
@@ -17,6 +17,18 @@
 {% endblock %}
 
 {% block content %}
+    {% if casePublishSuccess %}
+        {{ govukNotificationBanner({
+            text: "Application published",
+            type: "success"
+        }) }}
+    {% endif %}
+    {% if caseUnpublishSuccess %}
+        {{ govukNotificationBanner({
+            text: "Application unpublished",
+            type: "success"
+        }) }}
+    {% endif %}
     {% if hasLinkedCase %}
         {{ govukNotificationBanner({
             classes: "govuk-notification-banner__heading govuk-grid-column-two-thirds",
@@ -82,7 +94,6 @@
                 }) }}
             {% endif %}
             {% if casePublished %}
-
                 {{ govukButton({
                     text: "Unpublish Application",
                     href: unpublishUrl,
@@ -116,5 +127,4 @@
 
     {% block afterTaskList %}
     {% endblock %}
-
 {% endblock %}

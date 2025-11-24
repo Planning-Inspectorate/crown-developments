@@ -1,6 +1,12 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { buildGetJourneyMiddleware, buildViewCaseDetails } from './controller.js';
+import {
+	buildGetJourneyMiddleware,
+	buildViewCaseDetails,
+	validateIdFormat,
+	readCaseUpdatedSession,
+	clearCaseUpdatedSession
+} from './controller.js';
 import { configureNunjucks } from '../../../nunjucks.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
@@ -107,7 +113,7 @@ describe('case details', () => {
 		it('should render without error, with case reference', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const mockRes = newMockRes();
-			const mockReq = { params: { id: 'case-1' }, baseUrl: 'case-1' };
+			const mockReq = { params: { id: 'case-1' }, baseUrl: 'case-1', query: {} };
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({ id: 'case-1', reference: 'C/A/1' }))
@@ -135,7 +141,8 @@ describe('case details', () => {
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
-				session: { cases: { 'case-1': { updated: true } } }
+				session: { cases: { 'case-1': { updated: true } } },
+				query: {}
 			};
 			const mockDb = {
 				crownDevelopment: {
@@ -168,7 +175,8 @@ describe('case details', () => {
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
-				session: {}
+				session: {},
+				query: {}
 			};
 			const mockDb = {
 				crownDevelopment: {
@@ -201,7 +209,8 @@ describe('case details', () => {
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
-				session: {}
+				session: {},
+				query: {}
 			};
 			const mockDb = {
 				crownDevelopment: {
@@ -231,7 +240,8 @@ describe('case details', () => {
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
-				session: {}
+				session: {},
+				query: {}
 			};
 
 			const tomorrow = new Date('2025-01-02T03:24:00.000Z');
@@ -263,7 +273,8 @@ describe('case details', () => {
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
-				session: { cases: { 'case-1': { publishErrors: [{ text: 'Error message', href: '#' }] } } }
+				session: { cases: { 'case-1': { publishErrors: [{ text: 'Error message', href: '#' }] } } },
+				query: {}
 			};
 			const mockDb = {
 				crownDevelopment: {
@@ -295,7 +306,8 @@ describe('case details', () => {
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
-				session: {}
+				session: {},
+				query: {}
 			};
 
 			const mockDb = {
@@ -328,7 +340,8 @@ describe('case details', () => {
 			const mockReq = {
 				params: { id: 'case-1' },
 				baseUrl: 'case-1',
-				session: {}
+				session: {},
+				query: {}
 			};
 			const mockDb = {
 				crownDevelopment: {
@@ -362,6 +375,138 @@ describe('case details', () => {
 				viewData.linkedCaseLink,
 				`<a href="/cases/linked-case-id" class="govuk-link govuk-link--no-visited-state">Listed Building Consent (LBC) application</a>`
 			);
+		});
+		it('should set casePublishSuccess when success=published and publishDate is today/past', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T10:00:00.000Z') });
+			const nunjucksRes = newMockRes();
+			const mockReq = {
+				params: { id: 'case-1' },
+				baseUrl: 'case-1',
+				query: { success: 'published' },
+				session: {}
+			};
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						reference: 'REF/1',
+						publishDate: new Date('2025-01-01T09:00:00.000Z')
+					}))
+				}
+			};
+			const next = mock.fn();
+			const journeyMw = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mock.fn(),
+				groupIds
+			});
+			await journeyMw(mockReq, nunjucksRes, next);
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
+			await viewCaseDetails(mockReq, nunjucksRes);
+			const viewData = nunjucksRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.casePublishSuccess, true);
+			assert.strictEqual(viewData.caseUnpublishSuccess, false);
+		});
+		it('should set caseUnpublishSuccess when success=unpublish and publishDate is null', async () => {
+			const nunjucksRes = newMockRes();
+			const mockReq = {
+				params: { id: 'case-2' },
+				baseUrl: 'case-2',
+				query: { success: 'unpublish' },
+				session: {}
+			};
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-2',
+						reference: 'REF/2',
+						publishDate: null
+					}))
+				}
+			};
+			const next = mock.fn();
+			const journeyMw = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mock.fn(),
+				groupIds
+			});
+			await journeyMw(mockReq, nunjucksRes, next);
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
+			await viewCaseDetails(mockReq, nunjucksRes);
+			const viewData = nunjucksRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.caseUnpublishSuccess, true);
+			assert.strictEqual(viewData.casePublishSuccess, false);
+		});
+	});
+	describe('helper coverage', () => {
+		it('should throw error when id param missing in validateIdFormat', () => {
+			const req = { params: {} };
+			const res = {};
+			assert.throws(() => validateIdFormat(req, res, () => {}), /id param required/);
+		});
+
+		it('should call notFoundHandler for invalid uuid in validateIdFormat', () => {
+			const req = { params: { id: 'not-a-uuid' } };
+			const renderFn = mock.fn();
+			const statusFn = mock.fn(() => ({ render: renderFn }));
+			const res = { status: statusFn, render: renderFn };
+			let nextCalled = false;
+			validateIdFormat(req, res, () => {
+				nextCalled = true;
+			});
+			assert.strictEqual(nextCalled, false);
+			assert.strictEqual(statusFn.mock.callCount(), 1);
+			assert.strictEqual(statusFn.mock.calls[0].arguments[0], 404);
+			assert.strictEqual(renderFn.mock.callCount(), 1);
+		});
+
+		it('should call next for valid uuid in validateIdFormat', () => {
+			const req = { params: { id: '123e4567-e89b-12d3-a456-426614174000' } };
+			const res = {};
+			let nextCalled = false;
+			validateIdFormat(req, res, () => {
+				nextCalled = true;
+			});
+			assert.strictEqual(nextCalled, true);
+		});
+
+		it('readCaseUpdatedSession should return false when no session', () => {
+			const req = {};
+			assert.strictEqual(readCaseUpdatedSession(req, 'id-1'), false);
+		});
+
+		it('readCaseUpdatedSession should return false when no cases object', () => {
+			const req = { session: {} };
+			assert.strictEqual(readCaseUpdatedSession(req, 'id-1'), false);
+		});
+
+		it('readCaseUpdatedSession should return false when updated flag absent', () => {
+			const req = { session: { cases: { 'id-1': {} } } };
+			assert.strictEqual(readCaseUpdatedSession(req, 'id-1'), false);
+		});
+
+		it('readCaseUpdatedSession should return true when updated flag truthy', () => {
+			const req = { session: { cases: { 'id-1': { updated: true } } } };
+			assert.strictEqual(readCaseUpdatedSession(req, 'id-1'), true);
+		});
+
+		it('clearCaseUpdatedSession should be noop when no session', () => {
+			const req = {};
+			assert.doesNotThrow(() => clearCaseUpdatedSession(req, 'id-1'));
+		});
+
+		it('clearCaseUpdatedSession should remove updated flag only', () => {
+			const req = { session: { cases: { 'id-1': { updated: true, other: 'x' } } } };
+			clearCaseUpdatedSession(req, 'id-1');
+			assert.ok(!req.session.cases['id-1'].updated);
+			assert.strictEqual(req.session.cases['id-1'].other, 'x');
+		});
+
+		it('clearCaseUpdatedSession should handle missing case entry', () => {
+			const req = { session: { cases: {} } };
+			assert.doesNotThrow(() => clearCaseUpdatedSession(req, 'id-1'));
 		});
 	});
 });
