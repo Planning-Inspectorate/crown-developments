@@ -5,7 +5,6 @@ generator client {
 
 datasource db {
   provider = "sqlserver"
-  url      = env("SQL_CONNECTION_STRING_ADMIN")
 }
 
 // NOTES
