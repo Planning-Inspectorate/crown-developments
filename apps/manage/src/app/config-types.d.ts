@@ -23,7 +23,9 @@ interface Config {
 	cacheControl: {
 		maxAge: string;
 	};
-	database: Prisma.PrismaClientOptions;
+	database: {
+		datasourceUrl: string;
+	};
 	entra: {
 		// group cache ttl in minutes
 		cacheTtl: number;

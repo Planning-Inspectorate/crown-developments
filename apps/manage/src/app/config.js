@@ -135,6 +135,10 @@ export function loadConfig() {
 
 	const protocol = APP_HOSTNAME?.startsWith('localhost') ? 'http://' : 'https://';
 
+	if (!SQL_CONNECTION_STRING) {
+		throw new Error('SQL_CONNECTION_STRING is required');
+	}
+
 	config = {
 		appName: 'manage',
 		appHostname: APP_HOSTNAME,

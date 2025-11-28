@@ -7,7 +7,9 @@ interface Config {
 	cacheControl: {
 		maxAge: string;
 	};
-	database: Prisma.PrismaClientOptions;
+	database: {
+		datasourceUrl: string;
+	};
 	featureFlags: {
 		isLive: boolean;
 		isRepsUploadDocsLive: boolean;
