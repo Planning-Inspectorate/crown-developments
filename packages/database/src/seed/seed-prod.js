@@ -5,11 +5,7 @@ import { seedProdLpas } from './data-lpa-prod.js';
 
 async function run() {
 	const config = loadConfig();
-	const prismaConfig = {
-		datasourceUrl: config.db
-	};
-
-	const dbClient = newDatabaseClient(prismaConfig);
+	const dbClient = newDatabaseClient(config.db);
 
 	try {
 		await seedStaticData(dbClient);
