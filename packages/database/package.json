@@ -8,7 +8,7 @@
   "scripts": {
     "migrate-dev": "npx prisma migrate dev",
     "migrate-prod": "npx prisma migrate deploy",
-    "generate": "npx prisma generate",
+    "generate": "npx prisma generate && tsc --project src/client-tsconfig.json",
     "seed": "npx prisma db seed",
     "seed-prod": "npm run generate && node src/seed/seed-prod.js",
     "read-lpa-data": "node src/seed/data-lpa-prod-read.js"
@@ -21,6 +21,7 @@
   "devDependencies": {
     "@faker-js/faker": "*",
     "dotenv": "*",
-    "prisma": "*"
+    "prisma": "*",
+    "typescript": "*"
   }
 }

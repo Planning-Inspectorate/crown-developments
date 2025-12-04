@@ -64,7 +64,7 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 }
 
 /**
- * @param {import('@prisma/client').Prisma.AddressGetPayload<{}>} address
+ * @param {import('@pins/crowndev-database').Prisma.AddressGetPayload<{}>} address
  * @returns {string}
  */
 function addressToViewModel(address) {

@@ -159,7 +159,7 @@ export function buildUpdateRepresentation(
 			}
 		}
 
-		/** @type {import('@prisma/client').Prisma.RepresentationUpdateInput} */
+		/** @type {import('@pins/crowndev-database').Prisma.RepresentationUpdateInput} */
 		const updateInput = editsToDatabaseUpdates(toSave, fullViewModel);
 		logger.info({ id, representationRef, fields: Object.keys(toSave) }, 'update representation input');
 
