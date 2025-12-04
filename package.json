@@ -29,7 +29,7 @@
     "@azure/msal-node": "^3.8.3",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@ministryofjustice/frontend": "^7.1.0",
-    "@planning-inspectorate/dynamic-forms": "^2.0.3",
+    "@planning-inspectorate/dynamic-forms": "^2.2.0",
     "@prisma/adapter-mssql": "^7.0.1",
     "@prisma/client": "^7.0.0",
     "accessible-autocomplete": "^3.0.1",
