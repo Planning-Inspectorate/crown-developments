@@ -115,7 +115,7 @@ async function prepareNotificationContext(service, id) {
 
 /**
  * Fetch crown development data
- * @param {import('@prisma/client').PrismaClient} db
+ * @param {import('@pins/crowndev-database').PrismaClient} db
  * @param {string} id
  */
 async function getCrownDevelopmentData(db, id) {

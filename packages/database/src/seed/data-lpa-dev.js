@@ -20,7 +20,7 @@ export const ADDRESSES = [
 /**
  * IDs here are just generated GUIDs
  * (e.g. run `node -e "console.log(require('crypto').randomUUID())"'`)
- * @type {import('@prisma/client').Prisma.LpaCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.LpaCreateInput[]}
  */
 export const LOCAL_PLANNING_AUTHORITIES = [
 	{
@@ -41,7 +41,7 @@ export const LOCAL_PLANNING_AUTHORITIES = [
 ];
 
 /**
- * @param {import('@prisma/client').PrismaClient} dbClient
+ * @param {import('@pins/crowndev-database').PrismaClient} dbClient
  */
 export async function seedDevLpas(dbClient) {
 	await Promise.all(

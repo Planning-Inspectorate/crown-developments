@@ -13,7 +13,7 @@ import {
 } from './representations-data-dev.js';
 
 /**
- * @param {import('@prisma/client').PrismaClient} dbClient
+ * @param {import('@pins/crowndev-database').PrismaClient} dbClient
  */
 export async function seedDev(dbClient) {
 	// ensure there is a case to link representations to

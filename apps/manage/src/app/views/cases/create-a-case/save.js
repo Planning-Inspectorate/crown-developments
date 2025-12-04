@@ -147,10 +147,10 @@ export function buildSuccessController({ db }) {
  * @param {import('./types.d.ts').CreateCaseAnswers} answers
  * @param {string} reference
  * @param {string|null} subType
- * @returns {import('@prisma/client').Prisma.CrownDevelopmentCreateInput}
+ * @returns {import('@pins/crowndev-database').Prisma.CrownDevelopmentCreateInput}
  */
 export function toCreateInput(answers, reference, subType) {
-	/** @type {import('@prisma/client').Prisma.CrownDevelopmentCreateInput} */
+	/** @type {import('@pins/crowndev-database').Prisma.CrownDevelopmentCreateInput} */
 	const input = {
 		reference,
 		description: answers.developmentDescription,
@@ -217,7 +217,7 @@ export function toCreateInput(answers, reference, subType) {
 
 /**
  * @param {import('./types.d.ts').Address} address
- * @returns {import('@prisma/client').Prisma.AddressCreateInput}
+ * @returns {import('@pins/crowndev-database').Prisma.AddressCreateInput}
  */
 function toAddressInput(address) {
 	return {
@@ -245,7 +245,7 @@ function hasAnswers(answers, prefix) {
 /**
  * Generate a new case reference
  *
- * @param {import('@prisma/client').PrismaClient} db
+ * @param {import('@pins/crowndev-database').PrismaClient} db
  * @param {Date} [date]
  * @returns {Promise<string>}
  */

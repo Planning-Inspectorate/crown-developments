@@ -3,7 +3,7 @@ import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-
 import { nameToViewModel } from '@pins/crowndev-lib/util/name.js';
 
 /**
- * @param {import('@prisma/client').Representation[]} reps
+ * @param {import('@pins/crowndev-database').Representation[]} reps
  * @returns {import('./types.js').ListRepsViewModel}
  */
 export function representationsToViewModel(reps) {
@@ -22,7 +22,7 @@ export function representationsToViewModel(reps) {
 }
 
 /**
- * @param {import('@prisma/client').Representation} rep
+ * @param {import('@pins/crowndev-database').Representation} rep
  * @returns {import('./types.js').ListRepViewModel}
  */
 export function representationToViewModel(rep) {

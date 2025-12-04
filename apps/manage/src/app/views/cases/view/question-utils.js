@@ -251,7 +251,7 @@ export function eventQuestions(prefix) {
 }
 
 /**
- * @param {import('@prisma/client').Prisma.CategoryCreateInput[]} categories
+ * @param {import('@pins/crowndev-database').Prisma.CategoryCreateInput[]} categories
  * @returns {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').Option[]}
  */
 export function subCategoriesToRadioOptions(categories) {

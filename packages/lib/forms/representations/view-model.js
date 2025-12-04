@@ -33,7 +33,7 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 ]);
 
 /**
- * @param {import('@prisma/client').Prisma.RepresentationGetPayload<{include: {SubmittedByContact: true, RepresentedContact: true}}>} representation
+ * @param {import('@pins/crowndev-database').Prisma.RepresentationGetPayload<{include: {SubmittedByContact: true, RepresentedContact: true}}>} representation
  * @param {string} [applicationReference]
  * @returns {import('./types.js').HaveYourSayManageModel}
  */
@@ -110,10 +110,10 @@ function mapRedactedAttachments(attachments) {
  *
  * @param {import('./types.js').HaveYourSayManageModel} edits - edited fields only
  * @param {import('./types.js').HaveYourSayManageModel} viewModel - full view model with all case details
- * @returns {import('@prisma/client').Prisma.RepresentationUpdateInput}
+ * @returns {import('@pins/crowndev-database').Prisma.RepresentationUpdateInput}
  */
 export function editsToDatabaseUpdates(edits, viewModel) {
-	/** @type {import('@prisma/client').Prisma.RepresentationUpdateInput} */
+	/** @type {import('@pins/crowndev-database').Prisma.RepresentationUpdateInput} */
 	const representationUpdateInput = {};
 	// map all the regular fields to the update input
 	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
@@ -123,11 +123,11 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	}
 	// don't support updating these fields
 	delete representationUpdateInput.reference;
-	/** @type {import('@prisma/client').Prisma.ContactCreateWithoutRepresentationSubmittedByContactInput} */
+	/** @type {import('@pins/crowndev-database').Prisma.ContactCreateWithoutRepresentationSubmittedByContactInput} */
 	const submittedByContactUpdate = {};
-	/** @type {import('@prisma/client').Prisma.ContactCreateWithoutRepresentationSubmittedByContactInput} */
+	/** @type {import('@pins/crowndev-database').Prisma.ContactCreateWithoutRepresentationSubmittedByContactInput} */
 	const representedContactUpdate = {};
-	/** @type {import('@prisma/client').Prisma.AddressCreateWithoutContactInput} */
+	/** @type {import('@pins/crowndev-database').Prisma.AddressCreateWithoutContactInput} */
 	let addressUpdate = {};
 
 	// myself fields
@@ -265,7 +265,7 @@ function mapFieldValue(fieldValue) {
  * @param {HaveYourSayManageModelFields} answers
  * @param {string} reference
  * @param {string} applicationId
- * @returns {import('@prisma/client').Prisma.RepresentationCreateInput}
+ * @returns {import('@pins/crowndev-database').Prisma.RepresentationCreateInput}
  */
 export function viewModelToRepresentationCreateInput(answers, reference, applicationId) {
 	const isRepresentation =

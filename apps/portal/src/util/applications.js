@@ -1,8 +1,8 @@
 /**
  * @param {Object} opts
- * @param {import('@prisma/client').PrismaClient} opts.db
+ * @param {import('@pins/crowndev-database').PrismaClient} opts.db
  * @param {string} opts.id
- * @param {import('@prisma/client').Prisma.CrownDevelopmentFindUniqueArgs} opts.args
+ * @param {import('@pins/crowndev-database').Prisma.CrownDevelopmentFindUniqueArgs} opts.args
  * @returns {Promise<import('@priam/client').CrownDevelopment|null>}
  */
 export async function fetchPublishedApplication({ db, id, args }) {

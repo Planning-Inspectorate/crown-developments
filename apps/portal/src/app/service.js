@@ -21,7 +21,7 @@ export class PortalService {
 	 */
 	logger;
 	/**
-	 * @type {import('@prisma/client').PrismaClient}
+	 * @type {import('@pins/crowndev-database').PrismaClient}
 	 */
 	dbClient;
 	/**
@@ -72,7 +72,7 @@ export class PortalService {
 	/**
 	 * Alias of dbClient
 	 *
-	 * @returns {import('@prisma/client').PrismaClient}
+	 * @returns {import('@pins/crowndev-database').PrismaClient}
 	 */
 	get db() {
 		return this.dbClient;

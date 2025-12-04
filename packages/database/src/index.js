@@ -6,7 +6,7 @@ import { PrismaMssql } from '@prisma/adapter-mssql';
 /**
  * @param {{database: prismaConfig, NODE_ENV: string}} config
  * @param {import('pino').Logger} logger
- * @returns {import('@prisma/client').PrismaClient}
+ * @returns {import('@pins/crowndev-database').PrismaClient}
  */
 export function initDatabaseClient(config, logger) {
 	let prismaLogger;
@@ -21,7 +21,7 @@ export function initDatabaseClient(config, logger) {
 /**
  * @param {string} connectionString
  * @param {import('pino').Logger} [logger]
- * @returns {import('@prisma/client').PrismaClient}
+ * @returns {import('@pins/crowndev-database').PrismaClient}
  */
 export function newDatabaseClient(connectionString, logger) {
 	const adapter = new PrismaMssql(connectionString);
@@ -48,20 +48,20 @@ export function newDatabaseClient(connectionString, logger) {
 	});
 
 	if (logger) {
-		/** @param {import('@prisma/client').Prisma.QueryEvent} e */
+		/** @param {import('@pins/crowndev-database').Prisma.QueryEvent} e */
 		const logQuery = (e) => {
 			logger.debug('Query: ' + e.query);
 			logger.debug('Params: ' + e.params);
 			logger.debug('Duration: ' + e.duration + 'ms');
 		};
 
-		/** @param {import('@prisma/client').Prisma.LogEvent} e */
+		/** @param {import('@pins/crowndev-database').Prisma.LogEvent} e */
 		const logError = (e) => logger.error({ e }, 'Prisma error');
 
-		/** @param {import('@prisma/client').Prisma.LogEvent} e */
+		/** @param {import('@pins/crowndev-database').Prisma.LogEvent} e */
 		const logInfo = (e) => logger.debug({ e });
 
-		/** @param {import('@prisma/client').Prisma.LogEvent} e */
+		/** @param {import('@pins/crowndev-database').Prisma.LogEvent} e */
 		const logWarn = (e) => logger.warn({ e });
 
 		prisma.$on('query', logQuery);
