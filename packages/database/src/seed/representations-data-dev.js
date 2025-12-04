@@ -113,8 +113,8 @@ export const representationContactAddresses = [
 	}
 ];
 /**
- * @param {import('@prisma/client').PrismaClient} dbClient
- * @param {import('@prisma/client').Prisma.RepresentationCreateInput} representation
+ * @param {import('@pins/crowndev-database').PrismaClient} dbClient
+ * @param {import('@pins/crowndev-database').Prisma.RepresentationCreateInput} representation
  */
 export async function persistWrittenRepresentation(dbClient, representation) {
 	await dbClient.representation.upsert({
@@ -126,7 +126,7 @@ export async function persistWrittenRepresentation(dbClient, representation) {
 
 /**
  * @param {string} reference
- * @returns {import('@prisma/client').Prisma.RepresentationCreateInput}
+ * @returns {import('@pins/crowndev-database').Prisma.RepresentationCreateInput}
  */
 export function generateWrittenRepresentation(reference) {
 	return {
@@ -153,7 +153,7 @@ export function generateRandomRepresentationReference() {
 /**
  * IDs here are just generated GUIDs
  * (e.g. run `node -e "console.log(require('crypto').randomUUID())"'`)
- * @type {import('@prisma/client').Prisma.ContactCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.ContactCreateInput[]}
  */
 export const repsContacts = [
 	{
@@ -306,7 +306,7 @@ export const repsContacts = [
 /**
  * IDs here are just generated GUIDs
  * (e.g. run `node -e "console.log(require('crypto').randomUUID())"'`)
- * @type {import('@prisma/client').Prisma.ContactCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.ContactCreateInput[]}
  */
 export const repsOnBehalfOfOrgContacts = [
 	{ id: 'c561a9bb-a1c4-4836-9f6f-0ea904c79475', orgName: 'Org One' },
@@ -319,7 +319,7 @@ export const repsOnBehalfOfOrgContacts = [
 /**
  * IDs here are just generated GUIDs
  * (e.g. run `node -e "console.log(require('crypto').randomUUID())"'`)
- * @type {import('@prisma/client').Prisma.ContactCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.ContactCreateInput[]}
  */
 export const repsBehalfOfPersonContacts = [
 	{ id: '7c3619fb-81ff-4164-8edb-8baae3dfc087', firstName: 'Person', lastName: 'Alpha' },
@@ -384,7 +384,7 @@ export const repReferences = [
 
 /**
  * References here are generated with generateNewReference function in have-your-say
- * @type {import('@prisma/client').Prisma.RepresentationCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.RepresentationCreateInput[]}
  */
 export const representations = [
 	{

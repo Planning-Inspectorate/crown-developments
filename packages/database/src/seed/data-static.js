@@ -1,5 +1,5 @@
 /**
- * @type {import('@prisma/client').Prisma.ApplicationDecisionOutcomeCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.ApplicationDecisionOutcomeCreateInput[]}
  */
 export const APPLICATION_DECISION_OUTCOME = [
 	{
@@ -32,7 +32,7 @@ export const APPLICATION_TYPE_ID = Object.freeze({
 });
 
 /**
- * @type {import('@prisma/client').Prisma.ApplicationTypeCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.ApplicationTypeCreateInput[]}
  */
 export const APPLICATION_TYPES = [
 	{
@@ -67,7 +67,7 @@ export const APPLICATION_SUB_TYPE_ID = Object.freeze({
 });
 
 /**
- * @type {import('@prisma/client').Prisma.ApplicationSubTypeCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.ApplicationSubTypeCreateInput[]}
  */
 export const APPLICATION_SUB_TYPES = [
 	{
@@ -81,7 +81,7 @@ export const APPLICATION_SUB_TYPES = [
 ];
 
 /**
- * @type {import('@prisma/client').Prisma.ApplicationStatusCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.ApplicationStatusCreateInput[]}
  */
 export const APPLICATION_STATUS = [
 	{
@@ -154,7 +154,7 @@ export const APPLICATION_STAGE_ID = Object.freeze({
 });
 
 /**
- * @type {import('@prisma/client').Prisma.ApplicationStageCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.ApplicationStageCreateInput[]}
  */
 export const APPLICATION_STAGE = [
 	{
@@ -198,7 +198,7 @@ export const APPLICATION_PROCEDURE_ID = Object.freeze({
 });
 
 /**
- * @type {import('@prisma/client').Prisma.ApplicationProcedureCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.ApplicationProcedureCreateInput[]}
  */
 export const APPLICATION_PROCEDURE = [
 	{
@@ -225,7 +225,7 @@ export const APPLICATION_UPDATE_STATUS_ID = Object.freeze({
 });
 
 /**
- * @type {import('@prisma/client').Prisma.ApplicationUpdateStatusCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.ApplicationUpdateStatusCreateInput[]}
  */
 export const APPLICATION_UPDATE_STATUS = [
 	{
@@ -255,7 +255,7 @@ export const NOTIFY_STATUS_ID = Object.freeze({
 
 /**
  *
- * @type {import('@prisma/client').Prisma.NotifyStatusCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.NotifyStatusCreateInput[]}
  */
 export const NOTIFY_STATUS = [
 	{
@@ -294,7 +294,7 @@ export const REPRESENTATION_CATEGORY_ID = Object.freeze({
 	INTERESTED_PARTIES: 'interested-parties'
 });
 /**
- * @type {import('@prisma/client').Prisma.RepresentationCategoryCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.RepresentationCategoryCreateInput[]}
  */
 export const REPRESENTATION_CATEGORY = [
 	{
@@ -314,7 +314,7 @@ export const CONTACT_PREFERENCE_ID = Object.freeze({
 	POST: 'post'
 });
 /**
- * @type {import('@prisma/client').Prisma.ContactPreferenceCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.ContactPreferenceCreateInput[]}
  */
 export const CONTACT_PREFERENCE = [
 	{
@@ -336,7 +336,7 @@ export const REPRESENTATION_SUBMITTED_FOR_ID = Object.freeze({
 });
 
 /**
- * @type {import('@prisma/client').Prisma.RepresentationSubmittedForCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.RepresentationSubmittedForCreateInput[]}
  */
 export const REPRESENTATION_SUBMITTED_FOR = [
 	{
@@ -360,7 +360,7 @@ export const REPRESENTATION_STATUS_ID = Object.freeze({
 });
 
 /**
- * @type {import('@prisma/client').Prisma.RepresentationStatusCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.RepresentationStatusCreateInput[]}
  */
 export const REPRESENTATION_STATUS = [
 	{
@@ -391,7 +391,7 @@ export const REPRESENTED_TYPE_ID = Object.freeze({
 });
 
 /**
- * @type {import('@prisma/client').Prisma.RepresentedTypeCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.RepresentedTypeCreateInput[]}
  */
 export const REPRESENTED_TYPE = [
 	{
@@ -419,7 +419,7 @@ export const WITHDRAWAL_REASON_ID = Object.freeze({
 });
 
 /**
- * @type {import('@prisma/client').Prisma.WithdrawalReasonCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.WithdrawalReasonCreateInput[]}
  */
 export const WITHDRAWAL_REASON = [
 	{
@@ -449,7 +449,7 @@ const majorParentConnection = { connect: { id: 'major' } };
 const nonMajorParentConnection = { connect: { id: 'non-major' } };
 
 /**
- * @type {import('@prisma/client').Prisma.CategoryCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.CategoryCreateInput[]}
  */
 export const CATEGORIES = [
 	{
@@ -545,29 +545,29 @@ export const CATEGORIES = [
 ];
 
 /**
- * @typedef {import('@prisma/client').Prisma.ApplicationDecisionOutcomeDelegate} ApplicationDecisionOutcomeDelegate
- * @typedef {import('@prisma/client').Prisma.ApplicationTypeDelegate} ApplicationTypeDelegate
- * @typedef {import('@prisma/client').Prisma.ApplicationStageDelegate} ApplicationStageDelegate
- * @typedef {import('@prisma/client').Prisma.ApplicationStatusDelegate} ApplicationStatusDelegate
- * @typedef {import('@prisma/client').Prisma.ApplicationProcedureDelegate} ApplicationProcedureDelegate
- * @typedef {import('@prisma/client').Prisma.RepresentationCategoryDelegate} RepresentationCategoryDelegate
- * @typedef {import('@prisma/client').Prisma.RepresentationSubmittedForDelegate} RepresentationSubmittedForDelegate
- * @typedef {import('@prisma/client').Prisma.RepresentationStatusDelegate} RepresentationStatusDelegate
- * @typedef {import('@prisma/client').Prisma.RepresentedTypeDelegate} RepresentedTypeDelegate
- * @typedef {import('@prisma/client').Prisma.CategoryDelegate} CategoryDelegate
+ * @typedef {import('@pins/crowndev-database').Prisma.ApplicationDecisionOutcomeDelegate} ApplicationDecisionOutcomeDelegate
+ * @typedef {import('@pins/crowndev-database').Prisma.ApplicationTypeDelegate} ApplicationTypeDelegate
+ * @typedef {import('@pins/crowndev-database').Prisma.ApplicationStageDelegate} ApplicationStageDelegate
+ * @typedef {import('@pins/crowndev-database').Prisma.ApplicationStatusDelegate} ApplicationStatusDelegate
+ * @typedef {import('@pins/crowndev-database').Prisma.ApplicationProcedureDelegate} ApplicationProcedureDelegate
+ * @typedef {import('@pins/crowndev-database').Prisma.RepresentationCategoryDelegate} RepresentationCategoryDelegate
+ * @typedef {import('@pins/crowndev-database').Prisma.RepresentationSubmittedForDelegate} RepresentationSubmittedForDelegate
+ * @typedef {import('@pins/crowndev-database').Prisma.RepresentationStatusDelegate} RepresentationStatusDelegate
+ * @typedef {import('@pins/crowndev-database').Prisma.RepresentedTypeDelegate} RepresentedTypeDelegate
+ * @typedef {import('@pins/crowndev-database').Prisma.CategoryDelegate} CategoryDelegate
  */
 
 /**
- * @typedef {import('@prisma/client').Prisma.ApplicationDecisionOutcomeCreateInput} ApplicationDecisionOutcomeCreateInput
- * @typedef {import('@prisma/client').Prisma.ApplicationTypeCreateInput} ApplicationTypeCreateInput
- * @typedef {import('@prisma/client').Prisma.ApplicationStageCreateInput} ApplicationStageCreateInput
- * @typedef {import('@prisma/client').Prisma.ApplicationStatusCreateInput} ApplicationStatusCreateInput
- * @typedef {import('@prisma/client').Prisma.ApplicationProcedureCreateInput} ApplicationProcedureCreateInput
- * @typedef {import('@prisma/client').Prisma.RepresentationCategoryCreateInput} RepresentationCategoryCreateInput
- * @typedef {import('@prisma/client').Prisma.RepresentationSubmittedForCreateInput} RepresentationSubmittedForCreateInput
- * @typedef {import('@prisma/client').Prisma.RepresentationStatusCreateInput} RepresentationStatusCreateInput
- * @typedef {import('@prisma/client').Prisma.RepresentedTypeCreateInput} RepresentedTypeCreateInput
- * @typedef {import('@prisma/client').Prisma.CategoryCreateInput} CategoryCreateInput
+ * @typedef {import('@pins/crowndev-database').Prisma.ApplicationDecisionOutcomeCreateInput} ApplicationDecisionOutcomeCreateInput
+ * @typedef {import('@pins/crowndev-database').Prisma.ApplicationTypeCreateInput} ApplicationTypeCreateInput
+ * @typedef {import('@pins/crowndev-database').Prisma.ApplicationStageCreateInput} ApplicationStageCreateInput
+ * @typedef {import('@pins/crowndev-database').Prisma.ApplicationStatusCreateInput} ApplicationStatusCreateInput
+ * @typedef {import('@pins/crowndev-database').Prisma.ApplicationProcedureCreateInput} ApplicationProcedureCreateInput
+ * @typedef {import('@pins/crowndev-database').Prisma.RepresentationCategoryCreateInput} RepresentationCategoryCreateInput
+ * @typedef {import('@pins/crowndev-database').Prisma.RepresentationSubmittedForCreateInput} RepresentationSubmittedForCreateInput
+ * @typedef {import('@pins/crowndev-database').Prisma.RepresentationStatusCreateInput} RepresentationStatusCreateInput
+ * @typedef {import('@pins/crowndev-database').Prisma.RepresentedTypeCreateInput} RepresentedTypeCreateInput
+ * @typedef {import('@pins/crowndev-database').Prisma.CategoryCreateInput} CategoryCreateInput
  */
 
 /**
@@ -598,7 +598,7 @@ async function upsertReferenceData({ delegate, input }) {
 }
 
 /**
- * @param {import('@prisma/client').PrismaClient} dbClient
+ * @param {import('@pins/crowndev-database').PrismaClient} dbClient
  */
 export async function seedStaticData(dbClient) {
 	await Promise.all(
