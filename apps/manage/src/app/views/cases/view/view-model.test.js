@@ -4,7 +4,7 @@ import { crownDevelopmentToViewModel, editsToDatabaseUpdates } from './view-mode
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
- * @typedef {import('@prisma/client').Prisma.CrownDevelopmentGetPayload<{include: { ApplicantContact: { include: { Address: true } }, AgentContact: { include: { Address: true } }, Event: true, LpaContact: { include: { Address: true } } }}>} CrownDevelopment
+ * @typedef {import('@pins/crowndev-database').Prisma.CrownDevelopmentGetPayload<{include: { ApplicantContact: { include: { Address: true } }, AgentContact: { include: { Address: true } }, Event: true, LpaContact: { include: { Address: true } } }}>} CrownDevelopment
  * @typedef {import('./types.js').CrownDevelopmentViewModel} CrownDevelopmentViewModel
  */
 

@@ -147,10 +147,10 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
  *
  * @param {import('./types.js').CrownDevelopmentViewModel} edits - edited fields only
  * @param {import('./types.js').CrownDevelopmentViewModel} viewModel - full view model with all case details
- * @returns {import('@prisma/client').Prisma.CrownDevelopmentUpdateInput}
+ * @returns {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput}
  */
 export function editsToDatabaseUpdates(edits, viewModel) {
-	/** @type {import('@prisma/client').Prisma.CrownDevelopmentUpdateInput} */
+	/** @type {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput} */
 	const crownDevelopmentUpdateInput = {};
 	// map all the regular fields to the update input
 	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
@@ -277,7 +277,7 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 
 /**
  * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
- * @param {import('@prisma/client').Prisma.ContactGetPayload<{include: {Address: true}}>|null} contact
+ * @param {import('@pins/crowndev-database').Prisma.ContactGetPayload<{include: {Address: true}}>|null} contact
  * @param {import('./types.js').ContactTypeValues} prefix
  */
 function addContactToViewModel(viewModel, contact, prefix) {
@@ -296,10 +296,10 @@ function addContactToViewModel(viewModel, contact, prefix) {
  * @param {import('./types.js').CrownDevelopmentViewModel} edits
  * @param {import('./types.js').ContactTypeValues} prefix
  * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
- * @returns {import('@prisma/client').Prisma.ContactUpdateOneWithoutCrownDevelopmentApplicantNestedInput|null}
+ * @returns {import('@pins/crowndev-database').Prisma.ContactUpdateOneWithoutCrownDevelopmentApplicantNestedInput|null}
  */
 function viewModelToNestedContactUpdate(edits, prefix, viewModel) {
-	/** @type {import('@prisma/client').Prisma.ContactCreateInput} */
+	/** @type {import('@pins/crowndev-database').Prisma.ContactCreateInput} */
 	const createInput = {};
 
 	if (`${prefix}ContactName` in edits) {
@@ -327,7 +327,7 @@ function viewModelToNestedContactUpdate(edits, prefix, viewModel) {
 			create: createInput
 		};
 	}
-	/** @type {import('@prisma/client').Prisma.ContactUpdateInput} */
+	/** @type {import('@pins/crowndev-database').Prisma.ContactUpdateInput} */
 	const updateInput = {
 		...createInput
 	};
@@ -349,7 +349,7 @@ function viewModelToNestedContactUpdate(edits, prefix, viewModel) {
 /**
  * Populates LPA or secondary LPA contact and address fields in the view model using a prefix.
  * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
- * @param {import('@prisma/client').Prisma.LpaGetPayload<{include: {Address: true}}>|null|undefined} lpa
+ * @param {import('@pins/crowndev-database').Prisma.LpaGetPayload<{include: {Address: true}}>|null|undefined} lpa
  * @param {string} prefix - e.g. 'lpa' or 'secondaryLpa'
  */
 function addLpaDetailsToViewModel(viewModel, lpa, prefix = 'lpa') {
@@ -364,7 +364,7 @@ function addLpaDetailsToViewModel(viewModel, lpa, prefix = 'lpa') {
 
 /**
  * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
- * @param {import('@prisma/client').Prisma.EventGetPayload<{}>} event
+ * @param {import('@pins/crowndev-database').Prisma.EventGetPayload<{}>} event
  * @param {string|null} procedureId
  * @param {Date|null} [procedureNotificationDate]
  */
@@ -460,10 +460,10 @@ function eventPrefix(procedureId) {
 /**
  * @param {import('./types.js').CrownDevelopmentViewModel} edits
  * @param {string} procedureId
- * @returns {{eventUpdateInput: import('@prisma/client').Prisma.EventUpdateInput|null, procedureNotificationDate: Date|string|null}}
+ * @returns {{eventUpdateInput: import('@pins/crowndev-database').Prisma.EventUpdateInput|null, procedureNotificationDate: Date|string|null}}
  */
 function viewModelToEventUpdateInput(edits, procedureId) {
-	/** @type {import('@prisma/client').Prisma.EventUpdateInput} */
+	/** @type {import('@pins/crowndev-database').Prisma.EventUpdateInput} */
 	const eventUpdateInput = {};
 	const updates = {
 		eventUpdateInput: null,

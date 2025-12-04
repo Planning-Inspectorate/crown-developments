@@ -803,7 +803,7 @@ async function updateRepresentationItemsReviewStatus(req, db, logger) {
 		await db.$transaction(async (tx) => {
 			for (const [key, value] of Object.entries(decisions)) {
 				if (key === 'comment') {
-					/** @type {import('@prisma/client').Prisma.RepresentationUpdateInput} */
+					/** @type {import('@pins/crowndev-database').Prisma.RepresentationUpdateInput} */
 					const repUpdate = {
 						statusId: getReviewStatus(value.reviewDecision),
 						commentRedacted: readRepRedactedCommentSession(req, representationRef) || null
@@ -818,7 +818,7 @@ async function updateRepresentationItemsReviewStatus(req, db, logger) {
 					continue;
 				}
 
-				/** @type {import('@prisma/client').Prisma.RepresentationDocumentUpdateInput} */
+				/** @type {import('@pins/crowndev-database').Prisma.RepresentationDocumentUpdateInput} */
 				const repDocUpdate = {
 					statusId: getReviewStatus(value.reviewDecision)
 				};

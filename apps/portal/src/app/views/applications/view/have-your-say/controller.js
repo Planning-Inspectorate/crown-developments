@@ -66,7 +66,7 @@ export function startHaveYourSayJourney(service) {
 
 /**
  * Ensures representations window is open.
- * @param { import('@prisma/client').PrismaClient } db
+ * @param { import('@pins/crowndev-database').PrismaClient } db
  * @returns {import('express').Handler}
  */
 export function getIsRepresentationWindowOpen(db) {

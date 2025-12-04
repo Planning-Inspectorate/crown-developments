@@ -1,12 +1,12 @@
 import PROD_LPAS from './data-lpa-prod-list.json' with { type: 'json' };
 
 /**
- * @type {import('@prisma/client').Prisma.LpaCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.LpaCreateInput[]}
  */
 export const LOCAL_PLANNING_AUTHORITIES = PROD_LPAS;
 
 /**
- * @param {import('@prisma/client').PrismaClient} dbClient
+ * @param {import('@pins/crowndev-database').PrismaClient} dbClient
  */
 export async function seedProdLpas(dbClient) {
 	const counts = {
@@ -26,8 +26,8 @@ export async function seedProdLpas(dbClient) {
 }
 
 /**
- * @param {import('@prisma/client').PrismaClient} dbClient
- * @param {import('@prisma/client').Prisma.LpaCreateInput} lpaCreateInput
+ * @param {import('@pins/crowndev-database').PrismaClient} dbClient
+ * @param {import('@pins/crowndev-database').Prisma.LpaCreateInput} lpaCreateInput
  * @returns {Promise<boolean>} - true if created
  */
 async function seedLpa(dbClient, lpaCreateInput) {

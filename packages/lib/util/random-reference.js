@@ -4,7 +4,7 @@ import crypto from 'node:crypto';
  * Generate a unique reference for a representation.
  * Will error after 10 tries.
  *
- * @param {import('@prisma/client').PrismaClient} db
+ * @param {import('@pins/crowndev-database').PrismaClient} db
  * @param {() => string} [generateReference] - this is for testing
  * @returns {Promise<string>}
  */

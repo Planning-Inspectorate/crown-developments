@@ -1,5 +1,5 @@
 /**
- * @param {import('@prisma/client').Prisma.AddressGetPayload<{}>} address
+ * @param {import('@pins/crowndev-database').Prisma.AddressGetPayload<{}>} address
  * @returns {import('@planning-inspectorate/dynamic-forms/src/lib/address.js').Address}
  */
 export function addressToViewModel(address) {
@@ -18,7 +18,7 @@ export function addressToViewModel(address) {
 
 /**
  * @param {import('@planning-inspectorate/dynamic-forms/src/lib/address.js').Address} edits
- * @returns {import('@prisma/client').Prisma.AddressCreateInput|null}
+ * @returns {import('@pins/crowndev-database').Prisma.AddressCreateInput|null}
  */
 export function viewModelToAddressUpdateInput(edits) {
 	return {
