@@ -542,4 +542,144 @@ describe('written representations', () => {
 			await assertRenders404Page(writtenRepresentationsPage, mockReq, false);
 		});
 	});
+	describe('date filters in controller', () => {
+		it(' should apply submittedDate when complete valid From/To date provided', async () => {
+			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
+			const mockReq = {
+				params: { applicationId },
+				query: {
+					submittedDateFrom_day: '01',
+					submittedDateFrom_month: '02',
+					submittedDateFrom_year: '2025',
+					submittedDateTo_day: '10',
+					submittedDateTo_month: '02',
+					submittedDateTo_year: '2025'
+				},
+				originalUrl: `/applications/${applicationId}/written-representations`
+			};
+			const mockRes = { render: mock.fn(), status: mock.fn() };
+
+			const findManySpy = mock.fn(() => []);
+			const countSpy = mock.fn(() => 0);
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: applicationId,
+						reference: 'CROWN/2025/0000001',
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01')
+					}))
+				},
+				representation: {
+					findMany: findManySpy,
+					count: countSpy
+				},
+				applicationUpdate: { findFirst: mock.fn(() => undefined), count: mock.fn(() => 0) }
+			};
+
+			const handler = buildWrittenRepresentationsListPage({ db: mockDb });
+			await handler(mockReq, mockRes);
+
+			const findManyArgs = findManySpy.mock.calls[0].arguments[0];
+			assert.ok(findManyArgs.where.submittedDate);
+			assert.ok(findManyArgs.where.submittedDate.gte instanceof Date);
+			assert.ok(findManyArgs.where.submittedDate.lte instanceof Date);
+
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.errorSummary, null);
+			assert.ok(Array.isArray(viewData.dateErrors));
+		});
+		it('builds error summary entries when incomplete date provided', async () => {
+			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
+			const mockReq = {
+				params: { applicationId },
+				query: { submittedDateFrom_day: '', submittedDateFrom_month: '02', submittedDateFrom_year: '2025' },
+				originalUrl: `/applications/${applicationId}/written-representations`
+			};
+			const mockRes = { render: mock.fn(), status: mock.fn() };
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: applicationId,
+						reference: 'CROWN/2025/0000001',
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01')
+					}))
+				},
+				representation: {
+					findMany: mock.fn(() => []),
+					count: mock.fn(() => 0)
+				},
+				applicationUpdate: { findFirst: mock.fn(() => undefined), count: mock.fn(() => 0) }
+			};
+
+			const handler = buildWrittenRepresentationsListPage({ db: mockDb });
+			await handler(mockReq, mockRes);
+
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.ok(Array.isArray(viewData.dateErrors));
+			assert.ok(viewData.dateErrors.length >= 1);
+			assert.match(viewData.dateErrors[0].text, /day|month|year|Enter/i);
+			assert.match(viewData.dateErrors[0].href, /submittedDateFrom_day/);
+		});
+		it('does not apply submittedDate filter when all parts empty', async () => {
+			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
+			const mockReq = {
+				params: { applicationId },
+				query: { submittedDateFrom_day: '', submittedDateFrom_month: '', submittedDateFrom_year: '' }
+			};
+			const mockRes = { render: mock.fn(), status: mock.fn() };
+			const findManySpy = mock.fn(() => []);
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: applicationId,
+						reference: 'CROWN/2025/0000001',
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01')
+					}))
+				},
+				representation: { findMany: findManySpy, count: mock.fn(() => 0) },
+				applicationUpdate: { findFirst: mock.fn(() => undefined), count: mock.fn(() => 0) }
+			};
+			const handler = buildWrittenRepresentationsListPage({ db: mockDb });
+			await handler(mockReq, mockRes);
+			const args = findManySpy.mock.calls[0].arguments[0];
+			assert.strictEqual(!!args.where.submittedDate, false);
+		});
+		it('keeps submitted date values in view for date inputs', async () => {
+			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
+			const mockReq = {
+				params: { applicationId },
+				query: { submittedDateFrom_day: '01', submittedDateFrom_month: '02', submittedDateFrom_year: '2025' }
+			};
+			const mockRes = { render: mock.fn(), status: mock.fn() };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: applicationId,
+						reference: 'CROWN/2025/0000001',
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01')
+					}))
+				},
+				representation: { findMany: mock.fn(() => []), count: mock.fn(() => 0) },
+				applicationUpdate: { findFirst: mock.fn(() => undefined), count: mock.fn(() => 0) }
+			};
+			const handler = buildWrittenRepresentationsListPage({ db: mockDb });
+			await handler(mockReq, mockRes);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.filters.length, 3);
+			const dateSection = viewData.filters.find((s) => s.type === 'date-input');
+			assert.strictEqual(dateSection.dateInputs[0].value.day, '01');
+			assert.strictEqual(dateSection.dateInputs[0].value.month, '02');
+			assert.strictEqual(dateSection.dateInputs[0].value.year, '2025');
+		});
+	});
 });

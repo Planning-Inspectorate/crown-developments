@@ -9,6 +9,7 @@ import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-f
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
 import { buildFilters, getFilterQueryItems, hasQueries, mapWithAndWithoutToBoolean } from './filters/filters.js';
+import { parseDateFromParts } from './filters/date-filters-validator.js';
 
 /**
  * Render written representations page
@@ -46,8 +47,17 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 		const filters = await buildFilters({ db, logger }, id, req.query);
 		const filterSubmittedBy = req.query?.filterSubmittedBy ? [].concat(req.query.filterSubmittedBy) : [];
 		const filterByAttachments = req.query?.filterByAttachments ? [].concat(req.query.filterByAttachments) : [];
-
-		const filterQueryItems = getFilterQueryItems(filters);
+		const filterBySubmissionFromDate = parseDateFromParts(
+			req.query?.submittedDateFrom_day,
+			req.query?.submittedDateFrom_month,
+			req.query?.submittedDateFrom_year
+		);
+		const filterBySubmissionToDate = parseDateFromParts(
+			req.query?.submittedDateTo_day,
+			req.query?.submittedDateTo_month,
+			req.query?.submittedDateTo_year
+		);
+		const filterQueryItems = getFilterQueryItems(filters, req.query);
 		const mappedFilterByAttachments = mapWithAndWithoutToBoolean(
 			filterByAttachments,
 			'withAttachments',
@@ -56,8 +66,15 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 
 		const whereFilters = {
 			...(filterSubmittedBy.length && { categoryId: { in: filterSubmittedBy } }),
-			// Only apply if exactly one boolean selected
-			...(mappedFilterByAttachments.length === 1 && { containsAttachments: mappedFilterByAttachments[0] })
+			...(mappedFilterByAttachments.length === 1 && { containsAttachments: mappedFilterByAttachments[0] }),
+			...(filterBySubmissionFromDate || filterBySubmissionToDate
+				? {
+						submittedDate: {
+							...(filterBySubmissionFromDate && { gte: filterBySubmissionFromDate }),
+							...(filterBySubmissionToDate && { lte: filterBySubmissionToDate })
+						}
+					}
+				: {})
 		};
 		const searchCriteria = createWhereClause(stringQueriesArray, [
 			{ parent: 'RepresentedContact', fields: ['firstName', 'lastName', 'orgName'] },
@@ -132,6 +149,18 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 		};
 
 		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
+		const activeFilters = getFilterQueryItems(filters, req.query);
+		const errorSummary = [];
+		(filters || []).forEach((section) => {
+			if (section?.title === 'Submitted date' && Array.isArray(section.dateInputs)) {
+				section.dateInputs.forEach((dateInput) => {
+					const errText = dateInput?.errorMessage?.text;
+					if (errText) {
+						errorSummary.push({ text: errText, href: `#${dateInput.idPrefix}_day` });
+					}
+				});
+			}
+		});
 
 		res.render('views/applications/view/written-representations/view.njk', {
 			pageCaption: crownDevelopment.reference,
@@ -149,7 +178,12 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			searchValue: req.query?.searchCriteria || '',
 			filters,
 			hasQueries: hasQueries(req.query),
-			filterQueries: filterQueryItems
+			filterQueries: filterQueryItems,
+			activeFilters,
+			errorSummary: errorSummary.length ? errorSummary : null,
+			dateErrors: errorSummary
+				.filter((e) => e.href && e.href.startsWith('#submittedDate'))
+				.map((e) => ({ text: e.text, href: e.href }))
 		});
 	};
 }

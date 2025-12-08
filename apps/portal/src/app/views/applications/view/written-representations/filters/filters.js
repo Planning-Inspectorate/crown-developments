@@ -1,5 +1,6 @@
 import { REPRESENTATION_CATEGORY_ID, REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
+import { dateFilter, parseDateFromParts } from './date-filters-validator.js';
 
 const excludedFilterKeys = ['itemsPerPage', 'page', 'searchCriteria'];
 /**
@@ -77,7 +78,50 @@ export async function buildFilters({ db, logger }, id, queryFilters) {
 			}
 		};
 
-		return [submittedBySection, attachmentsSection];
+		queryFilters = queryFilters || {};
+		const fromValues = {
+			day: queryFilters['submittedDateFrom-day'] || queryFilters['submittedDateFrom_day'],
+			month: queryFilters['submittedDateFrom-month'] || queryFilters['submittedDateFrom_month'],
+			year: queryFilters['submittedDateFrom-year'] || queryFilters['submittedDateFrom_year']
+		};
+		const toValues = {
+			day: queryFilters['submittedDateTo-day'] || queryFilters['submittedDateTo_day'],
+			month: queryFilters['submittedDateTo-month'] || queryFilters['submittedDateTo_month'],
+			year: queryFilters['submittedDateTo-year'] || queryFilters['submittedDateTo_year']
+		};
+		const fromDate = parseDateFromParts(fromValues.day, fromValues.month, fromValues.year);
+		const toDate = parseDateFromParts(toValues.day, toValues.month, toValues.year);
+		const dateSubmissionsSection = {
+			title: 'Submitted date',
+			type: 'date-input',
+			name: 'submittedDate',
+			dateInputs: [
+				Object.assign(
+					dateFilter({
+						id: 'submittedDateFrom',
+						title: 'From',
+						hint: { text: 'For example, 5 7 2022' },
+						values: fromValues,
+						compareDate: toDate,
+						compareType: 'before'
+					}),
+					{ value: fromValues }
+				),
+				Object.assign(
+					dateFilter({
+						id: 'submittedDateTo',
+						title: 'To',
+						hint: { text: 'For example, 27 3 2023' },
+						values: toValues,
+						compareDate: fromDate,
+						compareType: 'after'
+					}),
+					{ value: toValues }
+				)
+			]
+		};
+
+		return [submittedBySection, attachmentsSection, dateSubmissionsSection];
 	} catch (error) {
 		wrapPrismaError({
 			error,
@@ -102,26 +146,43 @@ export function hasQueries(query) {
 }
 
 /**
- * @typedef { {label: string, id: string, displayName: string}} FilterQueryItem
+ * @typedef { {label: string, id: string, displayName: string, queryKeys?: string[]} } FilterQueryItem
  */
 
 /**
  * Extracts selected filter items from the filters array.
+ *
  * @param {Filter[]} filters
- * @returns {FilterQueryItem[]}
+ * @returns { {label: string, id: string, displayName: string}[] }
  */
 export function getFilterQueryItems(filters) {
 	const filterQueryItems = [];
 	filters.forEach((filter) => {
-		const {
-			title,
-			options: { items }
-		} = filter;
-		items.forEach((item) => {
-			if (item.checked) {
-				filterQueryItems.push({ label: title, id: item.value, displayName: item.displayName });
-			}
-		});
+		if (filter.options?.items) {
+			filter.options.items.forEach((item) => {
+				if (item.checked) {
+					filterQueryItems.push({ label: filter.title, id: item.value, displayName: item.displayName });
+				}
+			});
+		}
+		if (filter.dateInputs) {
+			filter.dateInputs?.forEach((dateInput) => {
+				const hasAllValues = dateInput.items?.every((item) => item.value);
+				const hasNoError = !dateInput.errorMessage;
+				if (hasAllValues && hasNoError) {
+					const day = dateInput.items.find((item) => item.id === 'day')?.value;
+					const month = dateInput.items.find((item) => item.id === 'month')?.value;
+					const year = dateInput.items.find((item) => item.id === 'year')?.value;
+
+					filterQueryItems.push({
+						label: dateInput.title,
+						id: dateInput.idPrefix,
+						displayName: `${day.padStart(2, 0)}/${month.padStart(2, 0)}/${year}`,
+						queryKeys: [`${dateInput.idPrefix}-day`, `${dateInput.idPrefix}-month`, `${dateInput.idPrefix}-year`]
+					});
+				}
+			});
+		}
 	});
 	return filterQueryItems;
 }
