@@ -4,6 +4,7 @@ import { buildFilters, hasQueries, getFilterQueryItems, mapWithAndWithoutToBoole
 import { REPRESENTATION_CATEGORY_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { Prisma } from '@pins/crowndev-database/src/client/client.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import { dateFilter, parseDateFromParts } from './date-filters-validator.js';
 
 // Helper to create a mock db with overridable count behaviour
 function createMockDb(counts) {
@@ -42,7 +43,7 @@ describe('Filters', () => {
 			});
 			const sections = await buildFilters({ db: mockDb, logger }, 'app-123', {});
 			assert.ok(Array.isArray(sections));
-			assert.strictEqual(sections.length, 2);
+			assert.strictEqual(sections.length, 3);
 
 			const submittedBy = sections[0];
 			assert.strictEqual(submittedBy.title, 'Submitted by');
@@ -209,5 +210,77 @@ describe('Filters', () => {
 				[true, false]
 			);
 		});
+	});
+});
+
+describe('dateFilter range validation', () => {
+	it('should not error for valid from/to range', () => {
+		const toDate = parseDateFromParts(2, 11, 2025);
+		const result = dateFilter({
+			id: 'submittedDateFrom',
+			title: 'From',
+			values: { day: '1', month: '11', year: '2025' },
+			compareDate: toDate,
+			compareType: 'before'
+		});
+		assert.strictEqual(result.errorMessage, undefined);
+	});
+
+	it('should error if from date is after to date', () => {
+		const toDate = parseDateFromParts(2, 11, 2025);
+		const result = dateFilter({
+			id: 'submittedDateFrom',
+			title: 'From',
+			values: { day: '4', month: '11', year: '2025' },
+			compareDate: toDate,
+			compareType: 'before'
+		});
+		assert.notStrictEqual(result.errorMessage, undefined);
+		assert.match(result.errorMessage.text, /before the entered To date/);
+	});
+
+	it('should not error for same from/to date', () => {
+		const toDate = parseDateFromParts(2, 11, 2025);
+		const result = dateFilter({
+			id: 'submittedDateFrom',
+			title: 'From',
+			values: { day: '2', month: '11', year: '2025' },
+			compareDate: toDate,
+			compareType: 'before'
+		});
+		assert.strictEqual(result.errorMessage, undefined);
+	});
+
+	it('should error for incomplete date', () => {
+		const result = dateFilter({
+			id: 'submittedDateFrom',
+			title: 'From',
+			values: { day: '', month: '11', year: '2025' }
+		});
+		assert.notStrictEqual(result.errorMessage, undefined);
+		assert.match(result.errorMessage.text, /must include a day/);
+	});
+
+	it('should error for invalid date', () => {
+		const result = dateFilter({
+			id: 'submittedDateFrom',
+			title: 'From',
+			values: { day: '31', month: '2', year: '2025' }
+		});
+		assert.notStrictEqual(result.errorMessage, undefined);
+		assert.match(result.errorMessage.text, /day must be a real day/);
+	});
+
+	it('should error if to date is before from date', () => {
+		const fromDate = parseDateFromParts(4, 11, 2025);
+		const result = dateFilter({
+			id: 'submittedDateTo',
+			title: 'To',
+			values: { day: '2', month: '11', year: '2025' },
+			compareDate: fromDate,
+			compareType: 'after'
+		});
+		assert.notStrictEqual(result.errorMessage, undefined);
+		assert.match(result.errorMessage.text, /after the entered From date/);
 	});
 });

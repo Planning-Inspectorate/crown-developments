@@ -1,12 +1,11 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
 {% from "govuk/components/date-input/macro.njk" import govukDateInput %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 
 {% macro filterAccordion(sections, title, id, cspNonce) %}
-    <div
-        class="filter-accordion"
-        {% if id %}id="{{ id }}"{% endif %}
-    >
+    <form id="filter-accordion-form" method="GET">
+    <div class="filter-accordion" {% if id %}id="{{ id }}"{% endif %}>
         <div class="filter-accordion__outer-container">
             <div>
                 <h3 class="filter-accordion__title">
@@ -31,80 +30,80 @@
                                 <summary class="filter-accordion__section-summary">
                                     {{ section.title }}
                                 </summary>
-                                {% if section.subSection %}
-                                    {# TODO: CROWN-981 -- build the ability to have multiple components under a filter heading  #}
-{#                                    <div class="filter-accordion__section-content">#}
-{#                                        {% for subSection in section.subSections %}#}
-{#                                            <div class="filter-accordion__sub-section">#}
-{#                                                <h4 class="filter-accordion__sub-section-title">#}
-{#                                                    {{ subSection.title }}#}
-{#                                                </h4>#}
-{#                                                {% if subSection.type == 'checkboxes' %}#}
-{#                                                    {{ govukCheckboxes(subSection.options) }}#}
-{#                                                {% elif subSection.type == 'date-input' %}#}
-{#                                                    {{ govukDateInput(subSection.dateInput) }}#}
-{#                                                {% endif %}#}
-{#                                            </div>#}
-{#                                        {% endfor %}#}
-{#                                    </div>#}
-                                {% else %}
-                                    <div class="filter-accordion__section-content">
-                                        {% if section.type == 'checkboxes' %}
-                                            {{ govukCheckboxes(
-                                                {
-                                                    name: section.name,
-                                                    items: section.options.items,
-                                                    classes: "govuk-checkboxes--small",
-                                                    hint: {
-                                                        text: section.options.hintText
-                                                    }
-                                                }
-                                            ) }}
-                                            {# TODO: CROWN-981 -- build for unique dateinput functionality #}
-{#                                            {% elif section.type == 'date-input' %}#}
-{#                                            {{ govukDateInput(section.dateInput) }}#}
+                                <div class="filter-accordion__section-content">
+                                    {# Render checkboxes #}
+                                    {% if section.type == 'checkboxes' and section.options.items %}
+                                        {{ govukCheckboxes({
+                                            name: section.name,
+                                            items: section.options.items,
+                                            classes: "govuk-checkboxes--small",
+                                            hint: { text: section.options.hintText }
+                                        }) }}
+                                    {% endif %}
+                                    {% if section.type == 'date-input' and section.dateInputs %}
+                                        {% for dateInput in section.dateInputs %}
+                                            {{ govukDateInput(dateInput) }}
+                                        {% endfor %}
+                                    {% else %}
+                                        {% if section.options and section.options.dateInputFrom %}
+                                            {{ govukDateInput(section.options.dateInputFrom) }}
                                         {% endif %}
-                                    </div>
-                                {% endif %}
+                                        {% if section.options and section.options.dateInputTo %}
+                                            {{ govukDateInput(section.options.dateInputTo) }}
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
                             </details>
                         {% endfor %}
                     </div>
                 </div>
-                <button class="govuk-button" id="toggleButton" data-module="govuk-button">
-                    Search
-                </button>
+                <button class="govuk-button" id="filter-search-button" data-module="govuk-button" type="submit">Search</button>
             </div>
         </div>
         <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-					document.addEventListener('DOMContentLoaded', function () {
-						const accordion = document.querySelector('.filter-accordion__inner-container');
-						const toggleButton = document.getElementById('show-hide-all-filters');
-						const sections = accordion.querySelectorAll('.filter-accordion__section');
+            document.addEventListener('DOMContentLoaded', function () {
+                const accordionForm = document.getElementById('filter-accordion-form');
+                const searchButton = document.getElementById('filter-search-button');
 
-						sections.forEach(section => {
-							section.addEventListener('click', function () {
-								// Use a tiny timeout to allow the 'open' attribute to update
-                                setTimeout(() => {
-                                    const allOpen = Array.from(sections).every(sec => sec.hasAttribute('open'));
-                                    toggleButton.textContent = allOpen ? 'Hide all filters' : 'Show all filters';
-                                }, 10);
-                            })
-                        });
+                searchButton.addEventListener('click', function (e) {
+                    let fromDay = accordionForm.querySelector('input[name="submittedDateFrom-day"]')?.value;
+                    let fromMonth = accordionForm.querySelector('input[name="submittedDateFrom-month"]')?.value;
+                    let fromYear = accordionForm.querySelector('input[name="submittedDateFrom-year"]')?.value;
+                    let toDay = accordionForm.querySelector('input[name="submittedDateTo-day"]')?.value;
+                    let toMonth = accordionForm.querySelector('input[name="submittedDateTo-month"]')?.value;
+                    let toYear = accordionForm.querySelector('input[name="submittedDateTo-year"]')?.value;
 
-						toggleButton.addEventListener('click', function () {
-							const allOpen = Array.from(sections).every(section => section.hasAttribute('open'));
+                    // If any part of from or to date is present but not all, prevent submit
+                    const fromIncomplete = (fromDay || fromMonth || fromYear) && !(fromDay && fromMonth && fromYear);
+                    const toIncomplete = (toDay || toMonth || toYear) && !(toDay && toMonth && toYear);
+                    if (fromIncomplete || toIncomplete) {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
 
-							sections.forEach(section => {
-								if (allOpen) {
-									section.removeAttribute('open');
-								} else {
-									section.setAttribute('open', '');
-								}
-							});
+                const accordion = document.querySelector('.filter-accordion__inner-container');
+                const toggleButton = document.getElementById('show-hide-all-filters');
+                const sections = accordion.querySelectorAll('.filter-accordion__section');
 
-							toggleButton.textContent = allOpen ? 'Show all filters' : 'Hide all filters';
-						});
-					});
+                sections.forEach(section => {
+                    section.addEventListener('click', function () {
+                        setTimeout(() => {
+                            const allOpen = Array.from(sections).every(sec => sec.hasAttribute('open'));
+                            toggleButton.textContent = allOpen ? 'Hide all filters' : 'Show all filters';
+                        }, 10);
+                    });
+                });
+                toggleButton.addEventListener('click', function () {
+                    const allOpen = Array.from(sections).every(section => section.hasAttribute('open'));
+                    sections.forEach(section => {
+                        if (allOpen) section.removeAttribute('open');
+                        else section.setAttribute('open', '');
+                    });
+                    toggleButton.textContent = allOpen ? 'Show all filters' : 'Hide all filters';
+                });
+            });
         </script>
     </div>
+    </form>
 {% endmacro %}
