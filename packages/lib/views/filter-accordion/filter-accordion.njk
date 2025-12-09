@@ -1,7 +1,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
-{% from "govuk/components/date-input/macro.njk" import govukDateInput %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/date-input/macro.njk" import govukDateInput %}
 
 {% macro filterAccordion(sections, title, id, cspNonce) %}
     <form id="filter-accordion-form" method="GET">
@@ -26,12 +26,11 @@
                     </div>
                     <div class="filter-accordion__sections-container">
                         {% for section in sections %}
-                            <details class="filter-accordion__section">
+                            <details class="filter-accordion__section" {% if section.hasErrors %} open {% endif %}>
                                 <summary class="filter-accordion__section-summary">
                                     {{ section.title }}
                                 </summary>
                                 <div class="filter-accordion__section-content">
-                                    {# Render checkboxes #}
                                     {% if section.type == 'checkboxes' and section.options.items %}
                                         {{ govukCheckboxes({
                                             name: section.name,
@@ -42,15 +41,8 @@
                                     {% endif %}
                                     {% if section.type == 'date-input' and section.dateInputs %}
                                         {% for dateInput in section.dateInputs %}
-                                            {{ govukDateInput(dateInput) }}
+                                            {{ govukDateInput( dateInput ) }}
                                         {% endfor %}
-                                    {% else %}
-                                        {% if section.options and section.options.dateInputFrom %}
-                                            {{ govukDateInput(section.options.dateInputFrom) }}
-                                        {% endif %}
-                                        {% if section.options and section.options.dateInputTo %}
-                                            {{ govukDateInput(section.options.dateInputTo) }}
-                                        {% endif %}
                                     {% endif %}
                                 </div>
                             </details>
@@ -62,26 +54,6 @@
         </div>
         <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
             document.addEventListener('DOMContentLoaded', function () {
-                const accordionForm = document.getElementById('filter-accordion-form');
-                const searchButton = document.getElementById('filter-search-button');
-
-                searchButton.addEventListener('click', function (e) {
-                    let fromDay = accordionForm.querySelector('input[name="submittedDateFrom-day"]')?.value;
-                    let fromMonth = accordionForm.querySelector('input[name="submittedDateFrom-month"]')?.value;
-                    let fromYear = accordionForm.querySelector('input[name="submittedDateFrom-year"]')?.value;
-                    let toDay = accordionForm.querySelector('input[name="submittedDateTo-day"]')?.value;
-                    let toMonth = accordionForm.querySelector('input[name="submittedDateTo-month"]')?.value;
-                    let toYear = accordionForm.querySelector('input[name="submittedDateTo-year"]')?.value;
-
-                    // If any part of from or to date is present but not all, prevent submit
-                    const fromIncomplete = (fromDay || fromMonth || fromYear) && !(fromDay && fromMonth && fromYear);
-                    const toIncomplete = (toDay || toMonth || toYear) && !(toDay && toMonth && toYear);
-                    if (fromIncomplete || toIncomplete) {
-                        e.preventDefault();
-                        return false;
-                    }
-                });
-
                 const accordion = document.querySelector('.filter-accordion__inner-container');
                 const toggleButton = document.getElementById('show-hide-all-filters');
                 const sections = accordion.querySelectorAll('.filter-accordion__section');

@@ -12,6 +12,48 @@ import { buildFilters, getFilterQueryItems, hasQueries, mapWithAndWithoutToBoole
 import { parseDateFromParts } from './filters/date-filters-validator.js';
 
 /**
+ * Processes filters and error summaries for written representations.
+ * @param {object} params
+ * @param {object} params.db
+ * @param {object} params.logger
+ * @param {string} id
+ * @param {object} query
+ * @returns {{ filters: any[], filterQueryItems: any[], errorSummary: any[], dateErrors: any[] }}
+ */
+function getFiltersAndErrors({ db, logger }, id, query) {
+	const filters = buildFilters({ db, logger }, id, query);
+
+	return Promise.resolve(filters).then((filters) => {
+		const filterQueryItems = getFilterQueryItems(filters, query);
+		const errorSummary = mapErrorSummary(filters);
+		const dateErrors = errorSummary
+			.filter((e) => e.href && e.href.startsWith('#submittedDate'))
+			.map((e) => ({ text: e.text, href: e.href }));
+		return { filters, filterQueryItems, errorSummary: errorSummary.length ? errorSummary : null, dateErrors };
+	});
+}
+
+/**
+ * Maps error summary from filters.
+ * @param {any[]} filters
+ * @returns {Array<{ text: string, href: string }>}
+ */
+function mapErrorSummary(filters) {
+	const errorSummary = [];
+	(filters || []).forEach((section) => {
+		if (section?.title === 'Submitted date' && Array.isArray(section.dateInputs)) {
+			section.dateInputs.forEach((dateInput) => {
+				const errText = dateInput?.errorMessage?.text;
+				if (errText) {
+					errorSummary.push({ text: errText, href: `#${dateInput.idPrefix}-day` });
+				}
+			});
+		}
+	});
+	return errorSummary;
+}
+
+/**
  * Render written representations page
  *
  * @param {import('#service').PortalService} service
@@ -43,21 +85,24 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 		}
 
 		const stringQueriesArray = splitStringQueries(req.query?.searchCriteria);
-
-		const filters = await buildFilters({ db, logger }, id, req.query);
+		const { filters, filterQueryItems, errorSummary, dateErrors } = await getFiltersAndErrors(
+			{ db, logger },
+			id,
+			req.query
+		);
 		const filterSubmittedBy = req.query?.filterSubmittedBy ? [].concat(req.query.filterSubmittedBy) : [];
 		const filterByAttachments = req.query?.filterByAttachments ? [].concat(req.query.filterByAttachments) : [];
+
 		const filterBySubmissionFromDate = parseDateFromParts(
-			req.query?.submittedDateFrom_day,
-			req.query?.submittedDateFrom_month,
-			req.query?.submittedDateFrom_year
+			req.query?.['submittedDateFrom-day'],
+			req.query?.['submittedDateFrom-month'],
+			req.query?.['submittedDateFrom-year']
 		);
 		const filterBySubmissionToDate = parseDateFromParts(
-			req.query?.submittedDateTo_day,
-			req.query?.submittedDateTo_month,
-			req.query?.submittedDateTo_year
+			req.query?.['submittedDateTo-day'],
+			req.query?.['submittedDateTo-month'],
+			req.query?.['submittedDateTo-year']
 		);
-		const filterQueryItems = getFilterQueryItems(filters, req.query);
 		const mappedFilterByAttachments = mapWithAndWithoutToBoolean(
 			filterByAttachments,
 			'withAttachments',
@@ -149,18 +194,6 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 		};
 
 		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
-		const activeFilters = getFilterQueryItems(filters, req.query);
-		const errorSummary = [];
-		(filters || []).forEach((section) => {
-			if (section?.title === 'Submitted date' && Array.isArray(section.dateInputs)) {
-				section.dateInputs.forEach((dateInput) => {
-					const errText = dateInput?.errorMessage?.text;
-					if (errText) {
-						errorSummary.push({ text: errText, href: `#${dateInput.idPrefix}_day` });
-					}
-				});
-			}
-		});
 
 		res.render('views/applications/view/written-representations/view.njk', {
 			pageCaption: crownDevelopment.reference,
@@ -179,11 +212,8 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			filters,
 			hasQueries: hasQueries(req.query),
 			filterQueries: filterQueryItems,
-			activeFilters,
-			errorSummary: errorSummary.length ? errorSummary : null,
-			dateErrors: errorSummary
-				.filter((e) => e.href && e.href.startsWith('#submittedDate'))
-				.map((e) => ({ text: e.text, href: e.href }))
+			errorSummary,
+			dateErrors
 		});
 	};
 }

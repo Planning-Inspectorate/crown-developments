@@ -1,8 +1,28 @@
 import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
 
 /**
- * Build props for a GOV.UK date input used in filters.
- * Accepts optional compareDate and compareType for range validation.
+ * Validates a date input
+ * @param {{ day: string, month: string, year: string }} values
+ * @param {string} title
+ * @param {string} id
+ * @param {{ text: string }} [hint]
+ * @param {date} [compareDate]
+ * @param {'before' | 'after'} [compareType]
+ *  @returns {{
+ *   fieldset: { legend: { text: string, classes: string } },
+ *    title: string,
+ *   idPrefix: string,
+ *    namePrefix: string,
+ *  hint?: { text: string },
+ *  validators: any[],
+ *  items: Array<{
+ *     id: string,
+ *    name: string,
+ *     label: string,
+ *    value: string
+ *   }>,
+ *   errorMessage?: { text: string }
+ *  }}
  */
 export function dateFilter({ title, id, hint, values = {}, compareDate, compareType }) {
 	const validator = new DateValidator(title);
@@ -35,17 +55,23 @@ export function dateFilter({ title, id, hint, values = {}, compareDate, compareT
 			const d = parseInt(day, 10);
 			const m = parseInt(month, 10);
 			const y = parseInt(year, 10);
-			thisDate = parseDateFromParts(d, m, y);
-			if (!thisDate) {
-				errorMessage = { text: validator.invalidDateErrorMessage };
-			}
-			// Range validation: compareType can be 'before' or 'after'
-			if (compareDate && thisDate) {
-				if (compareType === 'before' && thisDate > compareDate) {
-					errorMessage = { text: 'The From date must be before the entered To date' };
+
+			// Check year is 4-digits and return invalidYearErrorMessage from DateValidator if not
+			if (year && year.length <= 3) {
+				errorMessage = { text: validator.invalidYearErrorMessage };
+			} else {
+				thisDate = parseDateFromParts(d, m, y);
+				if (!thisDate) {
+					errorMessage = { text: validator.invalidDateErrorMessage };
 				}
-				if (compareType === 'after' && thisDate < compareDate) {
-					errorMessage = { text: 'The To date must be after the entered From date' };
+				// Range validation: compareType can be 'before' or 'after'
+				if (compareDate && thisDate) {
+					if (compareType === 'before' && thisDate > compareDate) {
+						errorMessage = { text: 'The From date must be before the entered To date' };
+					}
+					if (compareType === 'after' && thisDate < compareDate) {
+						errorMessage = { text: 'The To date must be after the entered From date' };
+					}
 				}
 			}
 		}
@@ -81,14 +107,17 @@ export function dateFilter({ title, id, hint, values = {}, compareDate, compareT
 				value: values.year
 			}
 		],
+		value: { day: values.day, month: values.month, year: values.year },
 		...(errorMessage && { errorMessage })
 	};
 }
 
 /**
- * Parse a day/month/year triple into a real JS Date.
- * - Returns Date when complete and valid
- * - Returns null when incomplete or invalid
+ * Parse a day/month/year into a real JS Date.
+ * @param {string} day
+ * @param {string} month
+ * @param {string} year
+ * @returns {Date | null}
  */
 export function parseDateFromParts(day, month, year) {
 	if (!day && !month && !year) return null; // all empty
