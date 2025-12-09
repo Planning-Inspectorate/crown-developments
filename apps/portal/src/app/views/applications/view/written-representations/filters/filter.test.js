@@ -162,13 +162,51 @@ describe('Filters', () => {
 							{ displayName: 'No', text: 'No (11)', value: 'withoutAttachments', checked: true }
 						]
 					}
+				},
+				{
+					title: 'Submitted date',
+					type: 'date-input',
+					name: 'submittedDate',
+					dateInputs: [
+						{
+							idPrefix: 'submittedDateFrom',
+							title: 'From',
+							items: [
+								{ id: 'day', value: '01' },
+								{ id: 'month', value: '02' },
+								{ id: 'year', value: '2025' }
+							]
+						},
+						{
+							idPrefix: 'submittedDateTo',
+							title: 'To',
+							items: [
+								{ id: 'day', value: '10' },
+								{ id: 'month', value: '02' },
+								{ id: 'year', value: '2025' }
+							]
+						}
+					]
 				}
 			];
-			const items = getFilterQueryItems(filters);
-			assert.deepStrictEqual(items, [
+			const itemsMacro = getFilterQueryItems(filters);
+
+			assert.deepStrictEqual(itemsMacro, [
 				{ label: 'Submitted by', id: 'a', displayName: 'Interested Party' },
 				{ label: 'Contains attachments', id: 'withAttachments', displayName: 'Yes' },
-				{ label: 'Contains attachments', id: 'withoutAttachments', displayName: 'No' }
+				{ label: 'Contains attachments', id: 'withoutAttachments', displayName: 'No' },
+				{
+					label: 'From',
+					id: 'submittedDateFrom',
+					displayName: '01/02/2025',
+					queryKeys: ['submittedDateFrom-day', 'submittedDateFrom-month', 'submittedDateFrom-year']
+				},
+				{
+					label: 'To',
+					id: 'submittedDateTo',
+					displayName: '10/02/2025',
+					queryKeys: ['submittedDateTo-day', 'submittedDateTo-month', 'submittedDateTo-year']
+				}
 			]);
 		});
 		it('returns empty array when no items checked', () => {
@@ -258,7 +296,7 @@ describe('dateFilter range validation', () => {
 			values: { day: '', month: '11', year: '2025' }
 		});
 		assert.notStrictEqual(result.errorMessage, undefined);
-		assert.match(result.errorMessage.text, /must include a day/);
+		assert.match(result.errorMessage.text, /must include a day/i);
 	});
 
 	it('should error for invalid date', () => {
@@ -268,7 +306,7 @@ describe('dateFilter range validation', () => {
 			values: { day: '31', month: '2', year: '2025' }
 		});
 		assert.notStrictEqual(result.errorMessage, undefined);
-		assert.match(result.errorMessage.text, /day must be a real day/);
+		assert.match(result.errorMessage.text, /day must be a real day/i);
 	});
 
 	it('should error if to date is before from date', () => {

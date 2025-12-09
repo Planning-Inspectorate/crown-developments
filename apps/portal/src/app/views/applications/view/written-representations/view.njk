@@ -19,27 +19,12 @@
             <form id="search-filter-form" method="GET">
                 <input type="hidden" name="searchCriteria" value="{{ searchValue }}">
                 <input type="hidden" name="itemsPerPage" value="{{ selectedItemsPerPage }}">
-                {# Preserve current active filters so they persist when adding new ones #}
+                {# Remove hidden date inputs, only keep filterAccordion #}
                 {% for filter in filters %}
-                    {% if filter.type|lower == 'date' %}
-                        {% set from = filter.options.currentRange.from %}
-                        {% set to = filter.options.currentRange.to %}
-                        {% set fromHasError = filter.options.dateInputFrom and filter.options.dateInputFrom.errorMessage %}
-                        {% set toHasError = filter.options.dateInputTo and filter.options.dateInputTo.errorMessage %}
-                        {% if (not fromHasError) and (from.day and from.month and from.year) %}
-                            <input type="hidden" name="filterSubmissionDateFrom-day" value="{{ from.day }}">
-                            <input type="hidden" name="filterSubmissionDateFrom-month" value="{{ from.month }}">
-                            <input type="hidden" name="filterSubmissionDateFrom-year" value="{{ from.year }}">
-                        {% endif %}
-                        {% if (not toHasError) and (to.day and to.month and to.year) %}
-                            <input type="hidden" name="filterSubmissionDateTo-day" value="{{ to.day }}">
-                            <input type="hidden" name="filterSubmissionDateTo-month" value="{{ to.month }}">
-                            <input type="hidden" name="filterSubmissionDateTo-year" value="{{ to.year }}">
-                        {% endif %}
-                    {% else %}
+                    {% if filter.type != 'date-input' %}
                         {% for option in filter.options.items %}
                             {% if option.checked %}
-                                <input type="hidden" name="{{ filter.name }}" value="{{ option.value }}">
+                                <input type="hidden" name="{{ filter.name }}[]" value="{{ option.value }}">
                             {% endif %}
                         {% endfor %}
                     {% endif %}
@@ -64,20 +49,19 @@
 					<form id="search-bar-form" method="GET">
                         <input type="hidden" name="itemsPerPage" value="{{ selectedItemsPerPage }}">
                         {% for filter in filters %}
-                            {% if filter.type|lower == 'date' %}
-                                    <input type="hidden" name="filterSubmittedDateFrom-day" value="{{ from.day }}">
-                                    <input type="hidden" name="filterSubmittedDateFrom-month" value="{{ from.month }}">
-                                    <input type="hidden" name="filterSubmittedDateFrom-year" value="{{ from.year }}">
-                                    <input type="hidden" name="filterSubmittedDateTo-day" value="{{ to.day }}">
-                                    <input type="hidden" name="filterSubmittedDateTo-month" value="{{ to.month }}">
-                                    <input type="hidden" name="filterSubmittedDateTo-year" value="{{ to.year }}">
-                                {% endif %}
+                            {% if filter.type == 'date-input' and filter.dateInputs %}
+                                {% for dateInput in filter.dateInputs %}
+                                    <input type="hidden" name="{{ dateInput.idPrefix }}-day" value="{{ dateInput.value.day | default('') }}">
+                                    <input type="hidden" name="{{ dateInput.idPrefix }}-month" value="{{ dateInput.value.month | default('') }}">
+                                    <input type="hidden" name="{{ dateInput.idPrefix }}-year" value="{{ dateInput.value.year | default('') }}">
+                                {% endfor %}
                             {% else %}
                                 {% for option in filter.options.items %}
                                     {% if option.checked %}
-                                        <input type="hidden" name="{{ filter.name }}" value="{{ option.value }}">
+                                        <input type="hidden" name="{{ filter.name }}[]" value="{{ option.value }}">
                                     {% endif %}
                                 {% endfor %}
+                            {% endif %}
                         {% endfor %}
 						{{ searchBar({
 							input: {

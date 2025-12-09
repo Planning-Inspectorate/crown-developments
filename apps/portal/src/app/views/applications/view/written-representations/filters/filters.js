@@ -3,17 +3,13 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { dateFilter, parseDateFromParts } from './date-filters-validator.js';
 
 const excludedFilterKeys = ['itemsPerPage', 'page', 'searchCriteria'];
-/**
- * @typedef {displayName: string, text: string, value: string, checked: boolean} FilterItem
- * @typedef {{title: string, type: string, name: string, options: {items: FilterItem[]}}} Filter
- */
 
 /**
  * Builds filter sections for representations based on database counts.
  * @param {import('#service').PortalService} service
  * @param {string} id
  * @param {{[key: string]: string | string[] }} queryFilters
- * @returns {Promise<Filter[]> | Promise<void>}
+ * @returns {Promise<(CheckboxFilter | DateFilter)[]>}
  */
 export async function buildFilters({ db, logger }, id, queryFilters) {
 	const interestedParties = REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES;
@@ -80,14 +76,14 @@ export async function buildFilters({ db, logger }, id, queryFilters) {
 
 		queryFilters = queryFilters || {};
 		const fromValues = {
-			day: queryFilters['submittedDateFrom-day'] || queryFilters['submittedDateFrom_day'],
-			month: queryFilters['submittedDateFrom-month'] || queryFilters['submittedDateFrom_month'],
-			year: queryFilters['submittedDateFrom-year'] || queryFilters['submittedDateFrom_year']
+			day: queryFilters['submittedDateFrom-day'],
+			month: queryFilters['submittedDateFrom-month'],
+			year: queryFilters['submittedDateFrom-year']
 		};
 		const toValues = {
-			day: queryFilters['submittedDateTo-day'] || queryFilters['submittedDateTo_day'],
-			month: queryFilters['submittedDateTo-month'] || queryFilters['submittedDateTo_month'],
-			year: queryFilters['submittedDateTo-year'] || queryFilters['submittedDateTo_year']
+			day: queryFilters['submittedDateTo-day'],
+			month: queryFilters['submittedDateTo-month'],
+			year: queryFilters['submittedDateTo-year']
 		};
 		const fromDate = parseDateFromParts(fromValues.day, fromValues.month, fromValues.year);
 		const toDate = parseDateFromParts(toValues.day, toValues.month, toValues.year);
@@ -120,6 +116,7 @@ export async function buildFilters({ db, logger }, id, queryFilters) {
 				)
 			]
 		};
+		dateSubmissionsSection.hasErrors = !!dateSubmissionsSection.dateInputs.some((input) => input.errorMessage);
 
 		return [submittedBySection, attachmentsSection, dateSubmissionsSection];
 	} catch (error) {
@@ -151,9 +148,8 @@ export function hasQueries(query) {
 
 /**
  * Extracts selected filter items from the filters array.
- *
  * @param {Filter[]} filters
- * @returns { {label: string, id: string, displayName: string}[] }
+ * @returns {FilterQueryItem[]}
  */
 export function getFilterQueryItems(filters) {
 	const filterQueryItems = [];

@@ -47,4 +47,13 @@ describe('date-filters-validator', () => {
 		});
 		assert.strictEqual(result.errorMessage, undefined);
 	});
+
+	it('should error if year is less than 4 digits', () => {
+		const result = dateFilter({
+			id: 'date',
+			title: 'Date',
+			values: { day: '10', month: '12', year: '25' }
+		});
+		assert.match(result.errorMessage.text, /Date year must include 4 numbers/);
+	});
 });
