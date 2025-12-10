@@ -141,8 +141,9 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
     override {
       rule_group_name = "PROTOCOL-ATTACK"
       rule {
-        action  = "AnomalyScoring"
+        action  = "Log"
         rule_id = "921110"
+        enabled = true
       }
       exclusion {
         match_variable = "RequestBodyPostArgNames"
@@ -160,8 +161,9 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
     override {
       rule_group_name = "SQLI"
       rule {
-        action  = "AnomalyScoring"
+        action  = "Log"
         rule_id = "942390"
+        enabled = true
       }
       exclusion {
         match_variable = "RequestBodyPostArgNames"
@@ -198,8 +200,9 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
     override {
       rule_group_name = "MS-ThreatIntel-SQLI"
       rule {
-        action  = "AnomalyScoring"
+        action  = "Log"
         rule_id = "99031003"
+        enabled = true
       }
       exclusion {
         match_variable = "RequestBodyPostArgNames"
@@ -233,10 +236,12 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
       rule {
         action  = "Log"
         rule_id = "200002"
+        enabled = true
       }
       rule {
         action  = "Log"
         rule_id = "200003"
+        enabled = true
       }
     }
   }
