@@ -58,3 +58,20 @@
 .pins-sidebar-alignment {
 	margin-left: calc(-0.7em);
 }
+
+.mobile-default {
+	display: none;
+}
+
+.desktop-default {
+	display: block;
+}
+
+@media (max-width: 768px) {
+	.mobile-default {
+		display: block;
+	}
+	.desktop-default {
+		display: none;
+	}
+}

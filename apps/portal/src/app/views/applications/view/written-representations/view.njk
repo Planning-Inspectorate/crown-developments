@@ -15,11 +15,13 @@
 		<div class="govuk-grid-column-one-third">
 			{{ applicationLinks(links, currentUrl) }}
             <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible pins-sidebar-alignment">
-            <form id="search-filter-form" method="GET">
-                <input type="hidden" name="searchCriteria" value="{{ searchValue }}">
-                <input type="hidden" name="itemsPerPage" value="{{ selectedItemsPerPage }}">
-            {{ filterAccordion(filters, 'Filters', id, cspNonce) }}
-            </form>
+            <div class="desktop-default">
+                <form id="search-filter-form" method="GET">
+                    <input type="hidden" name="searchCriteria" value="{{ searchValue }}">
+                    <input type="hidden" name="itemsPerPage" value="{{ selectedItemsPerPage }}">
+                    {{ filterAccordion(filters, 'Filters', id, cspNonce, 'desktop', false) }}
+                </form>
+            </div>
 		</div>
 
 		<div class="govuk-grid-column-two-thirds">
@@ -60,6 +62,15 @@
 							}
 						}, searchValue) }}
 					</form>
+                    {# only show on mobile #}
+                    <div class="mobile-default">
+                        <form id="search-filter-form" method="GET">
+                            <input type="hidden" name="searchCriteria" value="{{ searchValue }}">
+                            <input type="hidden" name="itemsPerPage" value="{{ selectedItemsPerPage }}">
+                            {{ filterAccordion(filters, 'Filters', id, cspNonce, 'mobile', true) }}
+                        </form>
+                    </div>
+                    {# ### #}
                     {% if hasQueries %}
                         <p class="govuk-body">Active filters</p>
                         {% for query in filterQueries %}
