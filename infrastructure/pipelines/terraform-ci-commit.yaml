@@ -27,6 +27,8 @@ extends:
     validationJobs:
       - name: Check Commits
         steps:
+          - script: mkdir -p $(Pipeline.Workspace)/.npm
+            displayName: Ensure NPM cache directory exists
           - task: Cache@2
             inputs:
               key: 'npm | "$(Agent.OS)" | package-lock.json'
