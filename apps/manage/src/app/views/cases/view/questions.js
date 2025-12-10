@@ -211,7 +211,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			options: referenceDataToRadioOptions(APPLICATION_DECISION_OUTCOME)
 		},
 		decisionDate: dateQuestion({
-			title: 'decision date',
+			title: 'Decision date',
 			question: 'What date was the decision made?',
 			fieldName: 'decisionDate'
 		}),
