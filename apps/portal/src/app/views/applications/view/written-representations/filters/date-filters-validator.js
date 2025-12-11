@@ -1,34 +1,39 @@
 import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
 
 /**
+ * @typedef {Object} DateFilter
+ * @property {{ legend: { text: string, classes: string } }} fieldset
+ * @property {string} title
+ * @property {string} idPrefix
+ * @property {string} namePrefix
+ * @property {{ text: string }} hint
+ * @property {any[]} validators
+ * @property {Array<{ id: string, name: string, label: string, value: string | undefined, classes?: string }>} items
+ * @property {{ day: string | undefined, month: string | undefined, year: string | undefined }} value
+ * @property {{ text: string }=} errorMessage
+ */
+
+/**
  * Validates a date input
  * @param {{ day: string, month: string, year: string }} values
  * @param {string} title
  * @param {string} id
  * @param {{ text: string }} [hint]
- * @param {date} [compareDate]
+ * @param {Date} [compareDate]
  * @param {'before' | 'after'} [compareType]
- *  @returns {{
- *   fieldset: { legend: { text: string, classes: string } },
- *    title: string,
- *   idPrefix: string,
- *    namePrefix: string,
- *  hint?: { text: string },
- *  validators: any[],
- *  items: Array<{
- *     id: string,
- *    name: string,
- *     label: string,
- *    value: string
- *   }>,
- *   errorMessage?: { text: string }
- *  }}
+ * @returns {DateFilter}
  */
 export function dateFilter({ title, id, hint, values = {}, compareDate, compareType }) {
 	const validator = new DateValidator(title);
-	const day = values.day;
-	const month = values.month;
-	const year = values.year;
+	let day = values.day;
+	let month = values.month;
+	let year = values.year;
+
+	// Normalize possible array values from untrusted input to strings or undefined.
+	day = typeof day === 'string' ? day : undefined;
+	month = typeof month === 'string' ? month : undefined;
+	year = typeof year === 'string' ? year : undefined;
+
 	const anyPresent = Boolean(day || month || year);
 	const allPresent = Boolean(day && month && year);
 	let errorMessage;
@@ -90,24 +95,24 @@ export function dateFilter({ title, id, hint, values = {}, compareDate, compareT
 				id: `day`,
 				name: `day`,
 				label: 'Day',
-				value: values.day
+				value: day
 			},
 			{
 				classes: 'govuk-input--width-2',
 				id: `month`,
 				name: `month`,
 				label: 'Month',
-				value: values.month
+				value: month
 			},
 			{
 				classes: 'govuk-input--width-4',
 				id: `year`,
 				name: `year`,
 				label: 'Year',
-				value: values.year
+				value: year
 			}
 		],
-		value: { day: values.day, month: values.month, year: values.year },
+		value: { day, month, year },
 		...(errorMessage && { errorMessage })
 	};
 }
