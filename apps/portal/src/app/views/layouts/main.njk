@@ -73,8 +73,7 @@
         {% endif %}
 	{% endblock %}
 	{% block error_summary %}
-        {# TODO: CROWN-1385 Normalise errorSummary so consistant with other pages #}
-        {% if errors or errorSummary %}
+        {% if errorSummary %}
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-two-thirds">
                     {{

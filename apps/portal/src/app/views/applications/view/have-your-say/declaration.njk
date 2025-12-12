@@ -1,6 +1,8 @@
 {% extends "views/layouts/main.njk" %}
 
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
 
 {% set title = "Declaration – " + config.haveYourSayServiceName %}
 {% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
@@ -15,29 +17,36 @@
     </div>
 {% endblock %}
 {% block pageContent %}
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            <p class="govuk-body">By submitting this form you are commenting on the application.</p>
-            <p class="govuk-body">Your comments will be taken into account before the application is determined.</p>
-            <p class="govuk-body">You are agreeing that we will use your details to contact you about the
-                application.</p>
-            {% if not config.isRepsUploadDocsLive %}
-            <p class="govuk-body">You are also agreeing that all comments you submit, along with your name, and any
-                represented party’s names will be published on this website. No contact details will be made public.</p>
-            {% else %}
-            <p class="govuk-body">You are also agreeing that all comments and attachments you submit, along with your name,
-                and any represented party’s names will be published on this website. No contact details will be made public.</p>
-            {% endif %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      <p class="govuk-body">
+        By submitting this form, you are making a written representation on a Crown
+        development application. Your comment will be considered before a decision is made.
+      </p>
+
+      <form method="post" novalidate>
+        <div class="govuk-form-group {% if errorSummary and errorSummary.length %}govuk-form-group--error{% endif %}">
+          <fieldset class="govuk-fieldset" aria-describedby="{% if errorSummary and errorSummary.length %}checkbox-hint{% endif %}">
+            <legend id="checkbox-hint" class="govuk-hint"> Select each statement to confirm that you agree.</legend>
+            <div class="govuk-checkboxes" data-module="govuk-checkboxes">
+                {{ govukCheckboxes({
+                    idPrefix: declarationCheckbox.idPrefix,
+                    name: declarationCheckbox.name,
+                    items: declarationCheckbox.items
+                }) }}
+            </div>
+          </fieldset>
             <br>
         </div>
         <div class="govuk-grid-column-two-thirds">
-            <form method="post" novalidate="novalidate">
-                {{ govukButton({
-                    text: "Accept and submit",
-                    type: "submit",
-                    preventDoubleClick: true
-                }) }}
-            </form>
+          {{ govukButton({
+            text: "Accept and submit",
+            type: "submit",
+            preventDoubleClick: true
+          }) }}
         </div>
+      </form>
     </div>
+  </div>
 {% endblock %}
