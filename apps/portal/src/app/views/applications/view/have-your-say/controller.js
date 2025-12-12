@@ -5,8 +5,15 @@ import { fetchPublishedApplication } from '#util/applications.js';
 import { nowIsWithinRange } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
+import {
+	buildRequiredCheckboxGroup,
+	declarationItems,
+	CheckboxValidator,
+	normaliseCheckboxValues
+} from '@pins/crowndev-lib/forms/custom-components/checkbox-validation/checkbox-validation.js';
 
 /**
+ * Builds Have Your Say landing page.
  * @param {import('#service').PortalService} service
  * @returns {import('express').Handler}
  */
@@ -58,7 +65,7 @@ export function startHaveYourSayJourney(service) {
 }
 
 /**
- *
+ * Ensures representations window is open.
  * @param { import('@prisma/client').PrismaClient } db
  * @returns {import('express').Handler}
  */
@@ -99,13 +106,13 @@ export function getIsRepresentationWindowOpen(db) {
 }
 
 /**
- *
+ * GET /declaration
+ * If POST errors exist, rebuild items with per-item hint messages via buildRequiredCheckboxGroup.
  * @param {import('express').Request} req
  * @param {import('express').Response} res
- * @returns {import('express').Handler}
  */
 export async function viewHaveYourSayDeclarationPage(req, res) {
-	const id = req.params.applicationId;
+	const id = req.params?.applicationId;
 	if (!id) {
 		throw new Error('id param required');
 	}
@@ -113,18 +120,81 @@ export async function viewHaveYourSayDeclarationPage(req, res) {
 		return notFoundHandler(req, res);
 	}
 
-	res.render('views/applications/view/have-your-say/declaration.njk', {
+	let declarationCheckbox;
+	if (res.locals?.errorSummary) {
+		const submitted = req.body?.declaration;
+		const validator = new CheckboxValidator('Declaration', {
+			emptyErrorMessage: 'You must confirm all statements to continue'
+		});
+		const group = buildRequiredCheckboxGroup(submitted, declarationItems, {
+			idPrefix: 'declaration',
+			validator
+		});
+		declarationCheckbox = {
+			name: 'declaration',
+			idPrefix: 'declaration',
+			items: group.items
+		};
+	} else {
+		declarationCheckbox = {
+			name: 'declaration',
+			idPrefix: 'declaration',
+			items: declarationItems.map((item) => ({
+				value: item.value,
+				text: item.text,
+				html: item.html,
+				checked: false
+			}))
+		};
+	}
+
+	return res.render('views/applications/view/have-your-say/declaration.njk', {
 		pageTitle: 'Declaration',
-		id: id,
-		backLinkUrl: `check-your-answers`
+		id,
+		backLinkUrl: `check-your-answers`,
+		declarationCheckbox,
+		errorSummary: res.locals?.errorSummary
 	});
 }
 
+/**
+ * POST /declaration
+ * Validation middleware. On failure, re-renders with per-item hints and component-level errorMessage.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
+export async function haveYourSayDeclarationValidation(req, res, next) {
+	const submitted = req.body?.declaration;
+
+	const validator = new CheckboxValidator('Declaration', {
+		emptyErrorMessage: 'You must confirm all statements to continue'
+	});
+
+	const group = buildRequiredCheckboxGroup(submitted, declarationItems, {
+		idPrefix: 'declaration',
+		validator
+	});
+
+	if (!group.valid) {
+		res.locals = res.locals || {};
+		res.locals.errorSummary = group.errorSummary;
+		if (typeof res.status === 'function') {
+			res.status(400);
+		}
+		return await viewHaveYourSayDeclarationPage(req, res);
+	}
+	req.body.declaration = normaliseCheckboxValues(submitted);
+	return next();
+}
+
 export const addRepresentationErrors = (req, res, next) => {
-	const errors = readSessionData(req, req.params.id, 'representationError', [], 'cases');
+	const id = req.params.applicationId || req.params.id;
+	const errors = readSessionData(req, id, 'representationError', [], 'cases');
 	if (errors.length > 0) {
+		res.locals = res.locals || {};
 		res.locals.errorSummary = errors;
-		clearSessionData(req, req.params.applicationId, 'representationError', 'cases');
+		clearSessionData(req, id, 'representationError', 'cases');
 	}
 	next();
 };
