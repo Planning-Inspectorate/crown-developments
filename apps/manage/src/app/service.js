@@ -26,7 +26,7 @@ export class ManageService {
 	 */
 	logger;
 	/**
-	 * @type {import('@prisma/client').PrismaClient}
+	 * @type {import('@pins/crowndev-database').PrismaClient}
 	 */
 	dbClient;
 	/**
@@ -117,7 +117,7 @@ export class ManageService {
 	/**
 	 * Alias of dbClient
 	 *
-	 * @returns {import('@prisma/client').PrismaClient}
+	 * @returns {import('@pins/crowndev-database').PrismaClient}
 	 */
 	get db() {
 		return this.dbClient;

@@ -71,7 +71,7 @@ async function run() {
 
 /**
  * @param {Object<string, string>} lpa
- * @returns {import('@prisma/client').Prisma.LpaCreateInput}
+ * @returns {import('@pins/crowndev-database').Prisma.LpaCreateInput}
  */
 function toCreateInput(lpa) {
 	const address = {
@@ -82,7 +82,7 @@ function toCreateInput(lpa) {
 		postcode: lpa[HEADERS.POSTCODE] || null
 	};
 	/**
-	 * @type {import('@prisma/client').Prisma.LpaCreateInput}
+	 * @type {import('@pins/crowndev-database').Prisma.LpaCreateInput}
 	 */
 	const createInput = {
 		id: ONS_CODE_TO_ID[lpa[HEADERS.ONS_LPA_CODE]],

@@ -5,7 +5,7 @@ import { cacheNoStoreMiddleware } from '../middleware/cache.js';
  * @param {Object} params
  * @param {import('pino').BaseLogger} params.logger
  * @param {string} [params.gitSha]
- * @param {import('@prisma/client').PrismaClient} params.dbClient
+ * @param {import('@pins/crowndev-database').PrismaClient} params.dbClient
  * @returns {import('express').Router}
  */
 export function createMonitoringRoutes({ gitSha, dbClient, logger }) {
@@ -29,7 +29,7 @@ export function handleHeadHealthCheck(_, response) {
 /**
  * @param {import('pino').BaseLogger} logger
  * @param {string} [gitSha]
- * @param {import('@prisma/client').PrismaClient} dbClient
+ * @param {import('@pins/crowndev-database').PrismaClient} dbClient
  * @returns {import('express').RequestHandler}
  */
 export function buildHandleHeathCheck(logger, gitSha, dbClient) {

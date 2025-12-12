@@ -10,7 +10,7 @@ import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/d
 /**
  * @param {import('express').Request} req
  * @param {import('express').Response} res
- * @param {import('@prisma/client').PrismaClient} db
+ * @param {import('@pins/crowndev-database').PrismaClient} db
  * @returns {Promise<undefined|{id: string, reference: string, haveYourSayPeriod: HaveYourSayPeriod}>}
  */
 export async function checkApplicationPublished(req, res, db) {

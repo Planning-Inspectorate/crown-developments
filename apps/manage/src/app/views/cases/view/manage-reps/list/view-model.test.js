@@ -7,7 +7,7 @@ describe('view-model', () => {
 	describe('representationsToViewModel', () => {
 		it('should sort reps by date', () => {
 			/**
-			 * @type {import('@prisma/client').Prisma.RepresentationCreateInput[]}
+			 * @type {import('@pins/crowndev-database').Prisma.RepresentationCreateInput[]}
 			 */
 			const reps = [
 				{
@@ -34,7 +34,7 @@ describe('view-model', () => {
 		});
 		it('should group reps by status', () => {
 			/**
-			 * @type {import('@prisma/client').Prisma.RepresentationCreateInput[]}
+			 * @type {import('@pins/crowndev-database').Prisma.RepresentationCreateInput[]}
 			 */
 			const reps = [
 				{
