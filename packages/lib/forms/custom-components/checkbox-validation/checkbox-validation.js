@@ -35,30 +35,6 @@ export function normaliseCheckboxValues(submitted) {
 }
 
 /**
- * Renders the declaration page with supplied items and optional error summary.
- * Per-item messages are rendered via item.html (used by govukCheckboxes).
- * @param {import('express').Response} res
- * @param {string} applicationId
- * @param {Array<Object>} items
- * @param {{ text:string, href:string }[] | undefined} [errorSummary]
- */
-export function renderDeclaration(res, applicationId, items, errorSummary = undefined) {
-	return res.render('views/applications/view/have-your-say/declaration.njk', {
-		pageTitle: 'Declaration',
-		id: applicationId,
-		backLinkUrl: 'check-your-answers',
-		declarationCheckbox: {
-			name: 'declaration',
-			idPrefix: 'declaration',
-			items
-		},
-		errorSummary,
-		errors: errorSummary,
-		...(res.req?.app?.locals?.config ? { config: res.req.app.locals.config } : {})
-	});
-}
-
-/**
  * Simple checkbox validator with a group-level default message.
  */
 export class CheckboxValidator {

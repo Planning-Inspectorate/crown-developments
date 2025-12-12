@@ -164,7 +164,7 @@ export async function viewHaveYourSayDeclarationPage(req, res) {
  * @param {import('express').Response} res
  * @param {import('express').NextFunction} next
  */
-export async function haveYourSayDeclarationValidation(req, res, next) {
+export async function declarationValidator(req, res, next) {
 	const submitted = req.body?.declaration;
 
 	const validator = new CheckboxValidator('Declaration', {

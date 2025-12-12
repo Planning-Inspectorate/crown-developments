@@ -14,7 +14,7 @@ import {
 	addRepresentationErrors,
 	buildHaveYourSayPage,
 	getIsRepresentationWindowOpen,
-	haveYourSayDeclarationValidation,
+	declarationValidator,
 	startHaveYourSayJourney,
 	viewHaveYourSayDeclarationPage
 } from './controller.js';
@@ -88,7 +88,7 @@ export function createHaveYourSayRoutes(service) {
 	);
 
 	router.get('/declaration', getJourneyResponse, getJourney, asyncHandler(viewHaveYourSayDeclarationPage));
-	router.post('/declaration', getJourneyResponse, getJourney, haveYourSayDeclarationValidation, saveRepresentation);
+	router.post('/declaration', getJourneyResponse, getJourney, declarationValidator, saveRepresentation);
 
 	router.get('/success', viewHaveYourSaySuccessPage);
 
