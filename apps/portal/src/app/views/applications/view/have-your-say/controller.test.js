@@ -6,7 +6,7 @@ import {
 	viewHaveYourSayDeclarationPage,
 	startHaveYourSayJourney,
 	addRepresentationErrors,
-	haveYourSayDeclarationValidation
+	declarationValidator
 } from './controller.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
 
@@ -352,8 +352,10 @@ describe('Have Your Say controller', () => {
 			assert.ok(data.declarationCheckbox.items.some((i) => i.html && i.html.includes('govuk-error-message')));
 			assert.ok(Array.isArray(data.errorSummary));
 		});
+	});
 
-		it('should display errors when none selected on POST', async () => {
+	describe('declarationValidator', () => {
+		it('should not call next when validation error', async () => {
 			const mockReq = { method: 'POST', params: { applicationId: 'app-123' }, body: {} };
 			const mockRes = {
 				render: mock.fn((view, data) => {
@@ -364,13 +366,24 @@ describe('Have Your Say controller', () => {
 				locals: {}
 			};
 			let nextCalled = false;
-			await haveYourSayDeclarationValidation(mockReq, mockRes, () => {
+			await declarationValidator(mockReq, mockRes, () => {
 				nextCalled = true;
 			});
 			assert.strictEqual(nextCalled, false);
-			assert.strictEqual(mockRes._view, 'views/applications/view/have-your-say/declaration.njk');
-			assert.ok(Array.isArray(mockRes._data.errorSummary));
-			assert.ok(mockRes._data.declarationCheckbox.items.every((i) => i.html && i.html.includes('govuk-error-message')));
+		});
+		it('should add errors to errorSummary when validation error', async () => {
+			const mockReq = { params: { applicationId: 'app-123' }, body: {} };
+			const mockRes = {
+				status: mock.fn(() => mockRes),
+				render: mock.fn(),
+				locals: {}
+			};
+			let nextCalled = false;
+			await declarationValidator(mockReq, mockRes, () => {
+				nextCalled = true;
+			});
+			assert.strictEqual(nextCalled, false);
+			assert.ok(mockRes.locals.errorSummary.length > 0);
 		});
 
 		it('should call next when all declaration items are selected', async () => {
@@ -381,7 +394,7 @@ describe('Have Your Say controller', () => {
 			};
 			const mockRes = { render: mock.fn(), locals: {}, status: mock.fn(() => mockRes) };
 			let nextCount = 0;
-			await haveYourSayDeclarationValidation(mockReq, mockRes, () => {
+			await declarationValidator(mockReq, mockRes, () => {
 				nextCount++;
 			});
 			assert.strictEqual(nextCount, 1);
