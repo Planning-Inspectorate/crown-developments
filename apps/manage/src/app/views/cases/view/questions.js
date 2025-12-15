@@ -621,6 +621,29 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			validators: [new FeeAmountValidator()],
 			editable: !overrides.isApplicationSubTypeLbc
 		},
+		applicationFeeReceivedDate: dateQuestion({
+			fieldName: 'applicationFeeReceivedDate',
+			question: 'When was the application fee received?',
+			title: 'Fee received date',
+			editable: !overrides.isApplicationSubTypeLbc && overrides.hasApplicationFee
+		}),
+		eligibleForFeeRefund: {
+			type: CUSTOM_COMPONENTS.FEE_AMOUNT,
+			title: 'Fee refund amount',
+			question: 'Is the applicant eligible for a refund?',
+			fieldName: 'eligibleForFeeRefund',
+			url: 'refund-amount',
+			feeAmountInputFieldName: 'applicationFeeRefundAmount',
+			feeAmountQuestion: 'For example, £1000.00',
+			validators: [new FeeAmountValidator()],
+			editable: !overrides.isApplicationSubTypeLbc
+		},
+		applicationFeeRefundDate: dateQuestion({
+			fieldName: 'applicationFeeRefundDate',
+			question: 'When was the refund paid?',
+			title: 'Fee refund date',
+			editable: !overrides.isApplicationSubTypeLbc
+		}),
 		updateDetails: {
 			type: COMPONENT_TYPES.TEXT_ENTRY,
 			title: 'Update details',

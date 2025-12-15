@@ -37,6 +37,9 @@ export function createJourney(questions, response, req) {
 		(questionHasAnswer(response, questions.subTypeOfApplication, APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION) ||
 			questionHasAnswer(response, questions.subTypeOfApplication, APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT));
 	const iscilLiable = (response) => yesNoToBoolean(response.answers?.cilLiable);
+	const hasApplicationFee = (response) => yesNoToBoolean(response.answers?.hasApplicationFee);
+	const feeReceived = (response) => questionHasNonNullAnswer(response, questions.applicationFeeReceivedDate);
+	const eligibleForRefund = (response) => yesNoToBoolean(response.answers?.eligibleForFeeRefund);
 
 	return new Journey({
 		journeyId: JOURNEY_ID,
@@ -154,7 +157,14 @@ export function createJourney(questions, response, req) {
 				.withCondition(isInquiry)
 				.addQuestion(questions.inquiryProofsOfEvidenceDate)
 				.withCondition(isInquiry),
-			new Section('Fee', 'fee').addQuestion(questions.hasApplicationFee)
+			new Section('Fee', 'fee')
+				.addQuestion(questions.hasApplicationFee)
+				.addQuestion(questions.applicationFeeReceivedDate)
+				.withCondition(hasApplicationFee)
+				.addQuestion(questions.eligibleForFeeRefund)
+				.withCondition(feeReceived)
+				.addQuestion(questions.applicationFeeRefundDate)
+				.withCondition(eligibleForRefund)
 		],
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',
@@ -165,3 +175,10 @@ export function createJourney(questions, response, req) {
 		response
 	});
 }
+
+export const questionHasNonNullAnswer = (response, question) => {
+	if (!response.answers) return false;
+	if (!question || !question.fieldName) return false;
+	const answerField = response.answers[question.fieldName];
+	return answerField !== null && answerField !== undefined;
+};
