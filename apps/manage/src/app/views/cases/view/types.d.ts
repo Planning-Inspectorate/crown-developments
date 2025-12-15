@@ -118,6 +118,10 @@ export interface CrownDevelopmentViewModel {
 
 	hasApplicationFee: string;
 	applicationFee: string;
+	applicationFeeReceivedDate?: Date | string;
+	eligibleForFeeRefund?: string;
+	applicationFeeRefundAmount?: string;
+	applicationFeeRefundDate?: Date | string;
 
 	siteVisitDate?: Date | string;
 

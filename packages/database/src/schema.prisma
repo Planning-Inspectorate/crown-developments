@@ -131,6 +131,10 @@ model CrownDevelopment {
   Representation                      Representation[]
   hasApplicationFee                   Boolean?
   applicationFee                      Decimal?
+  applicationFeeReceivedDate          DateTime?
+  eligibleForFeeRefund                Boolean?
+  applicationFeeRefundAmount          Decimal?
+  applicationFeeRefundDate            DateTime?
   siteVisitDate                       DateTime?
   ApplicationUpdates                  ApplicationUpdate[]
   /// whether liable for a Community Infrastructure Levy (CIL)
