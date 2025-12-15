@@ -63,10 +63,11 @@
 		transform-origin: center;
 	}
 
-	&__section[open] &__section-summary::before {
+	& [class*='filter-accordion__section'][open] &__section-summary::before {
 		transform: rotate(180deg);
 	}
 }
+
 .filter-selected-tag {
 	margin: 0;
 	background: #f3f2f1;
