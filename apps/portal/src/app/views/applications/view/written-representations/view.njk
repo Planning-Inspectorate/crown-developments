@@ -48,7 +48,7 @@
 			</div>
 			<div class="govuk-grid-row">
 				<div class="govuk-grid-column-full">
-					<form id="search-bar-form" method="GET">
+					<form id="search-bar-form" method="GET" action="{{ buildUrlWithParams(baseUrl, queryParams, { page: 1 }) }}">
                         <input type="hidden" name="itemsPerPage" value="{{ selectedItemsPerPage }}">
                         {% for filter in filters %}
                             {% if filter.type == 'date-input' and filter.dateInputs %}
@@ -114,7 +114,7 @@
 								of <strong>{{ totalRepresentations }}</strong> representations, newest first.
 							</p>
 
-							{{ paginationOptions.renderPagination(selectedItemsPerPage, totalRepresentations, pageNumber, searchValue) }}
+							{{ paginationOptions.renderPagination(selectedItemsPerPage, totalRepresentations, baseUrl, queryParams) }}
 
 							<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
@@ -124,7 +124,7 @@
 						</div>
 
 						{# if pageNumber and totalPages values are both 1 then pagination options not shown #}
-						{{ pagination.renderPagination(pageNumber, totalPages, currentUrl) }}
+						{{ pagination.renderPagination(pageNumber, totalPages, baseUrl, queryParams) }}
 					{% endif %}
 				</div>
 			</div>

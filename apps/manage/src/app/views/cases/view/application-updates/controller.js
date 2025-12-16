@@ -74,6 +74,7 @@ export function buildApplicationUpdates({ db }) {
 			backLinkUrl: `/cases/${id}`,
 			baseUrl: req.baseUrl,
 			currentUrl: req.originalUrl,
+			queryParam: req.query && Object.keys(req.query).length > 0 ? req.query : undefined,
 			applicationUpdates: applicationUpdates.map(applicationUpdateToViewModel),
 			applicationUpdateStatus,
 			selectedItemsPerPage,

@@ -26,13 +26,11 @@
             </h2>
             <div id="pagination" class="govuk-body">
                 <p class="govuk-body govuk-clearfix">
-                    <p class="govuk-body">
-                        Showing <strong>{{ paginationParams.resultsStartNumber }}</strong>
-                        to <strong>{{ paginationParams.resultsEndNumber if paginationParams.totalCrownDevelopments > paginationParams.resultsEndNumber else paginationParams.totalCrownDevelopments }}</strong>
-                        of <strong>{{ paginationParams.totalCrownDevelopments }}</strong> results
-                    </p>
-                    {{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalCrownDevelopments, paginationParams.pageNumber) }}
+                    Showing <strong>{{ paginationParams.resultsStartNumber }}</strong>
+                    to <strong>{{ paginationParams.resultsEndNumber if paginationParams.totalCrownDevelopments > paginationParams.resultsEndNumber else paginationParams.totalCrownDevelopments }}</strong>
+                    of <strong>{{ paginationParams.totalCrownDevelopments }}</strong> results
                 </p>
+                {{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalCrownDevelopments, baseUrl, queryParams) }}
                 <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
                 {{ crownDevelopmentsTable(crownDevelopmentsViewModels) }}

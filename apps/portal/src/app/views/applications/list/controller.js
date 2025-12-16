@@ -86,7 +86,9 @@ export function buildApplicationListPage(service) {
 			pageTitle: 'All Crown Development applications',
 			crownDevelopmentsViewModels,
 			currentUrl: req.originalUrl,
-			paginationParams
+			paginationParams,
+			baseUrl: '/applications',
+			queryParams: req.query
 		});
 	};
 }

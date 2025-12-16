@@ -34,7 +34,9 @@ export function buildListCases(service) {
 			pageHeading: 'Manage Crown Development applications',
 			crownDevelopments: crownDevelopments.map(crownDevelopmentToViewModel),
 			containerClasses: 'pins-container-wide',
-			searchValue: req.query?.searchCriteria || ''
+			searchValue: req.query?.searchCriteria || '',
+			baseUrl: '/cases',
+			queryParams: req.query
 		});
 	};
 }

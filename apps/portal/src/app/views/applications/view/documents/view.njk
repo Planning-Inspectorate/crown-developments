@@ -22,7 +22,7 @@
                         {% endif %}
                         {{ pageTitle }}
                     </h1>
-                    <form id="govuk-row" method="GET">
+                    <form id="govuk-row" method="GET" action="{{ buildUrlWithParams(baseUrl, queryParams, { page: 1 }) }}">
                         {# TODO: CROWN-923 keywords to be added to hint text #}
                         {{ searchBar({
                             input: {
@@ -43,14 +43,14 @@
 
                     {% if documents | length == 0 %}
                         <p class="govuk-body">No results were found.</p>
-                        <p class="govuk-body"><a href="{{ baseUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search</a> to view all documents.</p>
+                        <p class="govuk-body"><a href="{{ buildUrlWithParams(baseUrl, queryParams, { page: 1 }, ['searchCriteria']) }}" class="govuk-link govuk-link--no-visited-state">Clear search</a> to view all documents.</p>
                     {% else %}
                         <div id="pagination" class="govuk-body">
                             <p class="govuk-body">
                                 Showing <strong>{{ resultsStartNumber }}</strong> to <strong>{{ resultsEndNumber if totalDocuments > resultsEndNumber else totalDocuments }}</strong>
                                 of <strong>{{ totalDocuments }}</strong> documents, newest first.
                             </p>
-                            <p class="govuk-body">{{ paginationOptions.renderPagination(selectedItemsPerPage, totalDocuments, pageNumber, searchValue) }}</p>
+                            <p class="govuk-body">{{ paginationOptions.renderPagination(selectedItemsPerPage, totalDocuments, baseUrl, queryParams) }}</p>
                             <ul class="govuk-list document-list">
                                 {% for document in documents %}
                                     <li>
@@ -68,7 +68,7 @@
                         </div>
 
                         {# if pageNumber and totalPages values are both 1 then pagination options not shown #}
-                        {{ pagination.renderPagination(pageNumber, totalPages, currentUrl) }}
+                        {{ pagination.renderPagination(pageNumber, totalPages, baseUrl, queryParams) }}
                     {% endif %}
                 </div>
             </div>

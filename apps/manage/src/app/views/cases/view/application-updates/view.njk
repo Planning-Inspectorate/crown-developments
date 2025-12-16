@@ -29,7 +29,7 @@
                         of <strong>{{ totalApplicationUpdates }}</strong> results
                     </span>
                     <span class="pins-pagination-options">
-                        {{ paginationOptions.renderPagination(selectedItemsPerPage, totalApplicationUpdates, pageNumber, searchValue) }}
+                        {{ paginationOptions.renderPagination(selectedItemsPerPage, totalApplicationUpdates, baseUrl, queryParams) }}
                     </span>
                 </p>
                 <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
@@ -38,7 +38,7 @@
             </div>
 
             {# if pageNumber and totalPages values are both 1 then pagination options not shown #}
-            {{ pagination.renderPagination(pageNumber, totalPages, currentUrl) }}
+            {{ pagination.renderPagination(pageNumber, totalPages, baseUrl, queryParam) }}
         </div>
     </div>
 {% endblock %}

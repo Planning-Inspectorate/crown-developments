@@ -110,7 +110,8 @@ export function buildListReps({ db }) {
 			pageNumber,
 			totalPages,
 			resultsStartNumber,
-			resultsEndNumber
+			resultsEndNumber,
+			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined
 		});
 	};
 }
