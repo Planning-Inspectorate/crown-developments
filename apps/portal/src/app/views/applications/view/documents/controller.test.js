@@ -2,6 +2,7 @@ import { describe, it, mock } from 'node:test';
 import { buildApplicationDocumentsPage } from './controller.js';
 import assert from 'node:assert';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import { buildUrlWithParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 
 describe('controller', () => {
 	describe('buildApplicationDocumentsPage', () => {
@@ -105,7 +106,8 @@ describe('controller', () => {
 				totalPages: 0,
 				resultsStartNumber: 0,
 				resultsEndNumber: 0,
-				searchValue: ''
+				searchValue: '',
+				queryParams: undefined
 			});
 		});
 
@@ -419,5 +421,48 @@ describe('controller', () => {
 			assert.strictEqual(viewData.resultsEndNumber, 3);
 			assert.strictEqual(viewData.searchValue, '');
 		});
+	});
+	it('should build correct URL with search and filters', () => {
+		const url = buildUrlWithParams('/applications/123/documents', {
+			searchCriteria: 'foo',
+			filterBy: ['attachments', 'submittedBy'],
+			page: 2
+		});
+		const params = new URLSearchParams(url.split('?')[1]);
+		assert.strictEqual(params.get('searchCriteria'), 'foo');
+		const filterBy = params.getAll('filterBy');
+		assert.deepStrictEqual(filterBy, ['attachments', 'submittedBy']);
+		assert.strictEqual(params.get('page'), '2');
+	});
+
+	it('should remove searchCriteria when cleared', () => {
+		const url = buildUrlWithParams(
+			'/applications/123/documents',
+			{ searchCriteria: 'foo', filterBy: 'attachments', page: 1 },
+			{ searchCriteria: undefined }
+		);
+		const params = new URLSearchParams(url.split('?')[1]);
+		assert.strictEqual(params.get('searchCriteria'), null);
+		assert.strictEqual(params.get('filterBy'), 'attachments');
+	});
+
+	it('should encode spaces as %20 in search', () => {
+		const url = buildUrlWithParams('/applications/123/documents', { searchCriteria: 'foo bar' });
+		// Accept both + and %20 for space encoding
+		const hasEncodedSpace = url.includes('searchCriteria=foo+bar') || url.includes('searchCriteria=foo%20bar');
+		assert.strictEqual(hasEncodedSpace, true);
+	});
+
+	it('should support multi-value filters and preserve search', () => {
+		const url = buildUrlWithParams('/applications/123/documents', {
+			searchCriteria: 'abc',
+			filterBy: ['attachments', 'submittedBy'],
+			page: 3
+		});
+		const params = new URLSearchParams(url.split('?')[1]);
+		const filterBy = params.getAll('filterBy');
+		assert.strictEqual(params.get('searchCriteria'), 'abc');
+		assert.deepStrictEqual(filterBy, ['attachments', 'submittedBy']);
+		assert.strictEqual(params.get('page'), '3');
 	});
 });

@@ -170,7 +170,9 @@ describe('case list', () => {
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
 				pageTitle: 'All Crown Development applications',
 				crownDevelopmentsViewModels: [],
+				baseUrl: '/applications',
 				currentUrl: undefined,
+				queryParams: undefined,
 				paginationParams: {
 					pageNumber: 1,
 					resultsEndNumber: 0,
@@ -213,7 +215,12 @@ describe('case list', () => {
 
 					assert.deepStrictEqual(onlyRelevantKeys, {
 						pageTitle: 'All Crown Development applications',
+						baseUrl: '/applications',
 						currentUrl: undefined,
+						queryParams: {
+							itemsPerPage: itemsPerPage,
+							page: requestedPage
+						},
 						paginationParams: {
 							pageNumber: requestedPage,
 							resultsEndNumber: expected.resultsEndNumber,

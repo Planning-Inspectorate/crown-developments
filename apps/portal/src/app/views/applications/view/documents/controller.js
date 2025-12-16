@@ -59,6 +59,7 @@ export function buildApplicationDocumentsPage(service) {
 			pageCaption: reference,
 			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate, displayApplicationUpdates),
 			currentUrl: req.originalUrl,
+			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined,
 			documents: allDocuments.slice(skipSize, skipSize + pageSize),
 			selectedItemsPerPage,
 			totalDocuments,

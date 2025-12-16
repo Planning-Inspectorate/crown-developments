@@ -2,6 +2,11 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import nunjucks from 'nunjucks';
 import { loadConfig } from './config.js';
+import {
+	buildUrlWithParams,
+	buildPageUrl,
+	buildItemsPerPageUrl
+} from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 
 export function configureNunjucks() {
 	const config = loadConfig();
@@ -21,7 +26,7 @@ export function configureNunjucks() {
 	const appDir = path.join(config.srcDir, 'app');
 
 	// configure nunjucks
-	return nunjucks.configure(
+	const env = nunjucks.configure(
 		// ensure nunjucks templates can use govuk-frontend components, and templates we've defined in `web/src/app`
 		[dynamicFormsRoot, govukFrontendRoot, mojFrontendRoot, customFormsRoot, customViewsRoot, appDir],
 		{
@@ -33,4 +38,11 @@ export function configureNunjucks() {
 			lstripBlocks: true
 		}
 	);
+
+	// helps for building URLs in templates
+	env.addGlobal('buildUrlWithParams', buildUrlWithParams);
+	env.addGlobal('buildPageUrl', buildPageUrl);
+	env.addGlobal('buildItemsPerPageUrl', buildItemsPerPageUrl);
+
+	return env;
 }

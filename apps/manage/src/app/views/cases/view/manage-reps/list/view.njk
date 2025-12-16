@@ -60,7 +60,7 @@
                 of <strong>{{ totalFilteredRepresentations }}</strong> representations, newest first.
                 </span>
                 <span class="pins-pagination-options">
-                    {{ paginationOptions.renderPagination(selectedItemsPerPage, totalFilteredRepresentations, pageNumber, searchValue, filtersValue) }}
+                    {{ paginationOptions.renderPagination(selectedItemsPerPage, totalFilteredRepresentations, baseUrl, queryParams) }}
                  </span>
             </p>
 
@@ -69,7 +69,7 @@
             {{ repsTable(reps) }}
         </div>
         {# if pageNumber and totalPages values are both 1 then pagination options not shown #}
-        {{ pagination.renderPagination(pageNumber, totalPages, currentUrl) }}
+        {{ pagination.renderPagination(pageNumber, totalPages, baseUrl, queryParams) }}
     {% endif %}
 {% endblock %}
 

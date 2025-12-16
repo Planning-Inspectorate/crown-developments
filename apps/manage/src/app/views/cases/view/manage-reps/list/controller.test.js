@@ -101,6 +101,7 @@ describe('list representations', () => {
 				pageTitle: 'Manage representations',
 				baseUrl: '/manage-representations',
 				currentUrl: '/manage-representations',
+				queryParams: undefined,
 				filters: [
 					{ text: 'Accepted (1)', value: 'accepted', checked: false },
 					{
@@ -154,6 +155,7 @@ describe('list representations', () => {
 			const mockReq = {
 				baseUrl: '/manage-representations',
 				originalUrl: '/manage-representations',
+				queryParams: undefined,
 				params: {
 					id: 'id-1'
 				},
@@ -174,6 +176,7 @@ describe('list representations', () => {
 				pageTitle: 'Manage representations',
 				baseUrl: '/manage-representations',
 				currentUrl: '/manage-representations',
+				queryParams: { filters: 'awaiting-review' },
 				filters: [
 					{ text: 'Accepted (1)', value: 'accepted', checked: false },
 					{
@@ -226,6 +229,7 @@ describe('list representations', () => {
 			const mockReq = {
 				baseUrl: '/manage-representations',
 				originalUrl: '/manage-representations',
+				queryParams: undefined,
 				params: {
 					id: 'id-1'
 				},
@@ -246,6 +250,7 @@ describe('list representations', () => {
 				pageTitle: 'Manage representations',
 				baseUrl: '/manage-representations',
 				currentUrl: '/manage-representations',
+				queryParams: { filters: ['awaiting-review', 'rejected', 'withdrawn', 'accepted'] },
 				filters: [
 					{ text: 'Accepted (1)', value: 'accepted', checked: true },
 					{

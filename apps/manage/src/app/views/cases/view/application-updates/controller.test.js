@@ -69,6 +69,7 @@ describe('application updates controller', () => {
 				backLinkUrl: '/cases/crown-dev-01',
 				baseUrl: '/application-updates',
 				currentUrl: '/application-updates',
+				queryParam: undefined,
 				applicationUpdates: [
 					{
 						id: 'id-1',
