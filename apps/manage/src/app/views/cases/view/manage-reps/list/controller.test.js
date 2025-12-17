@@ -155,7 +155,6 @@ describe('list representations', () => {
 			const mockReq = {
 				baseUrl: '/manage-representations',
 				originalUrl: '/manage-representations',
-				queryParams: undefined,
 				params: {
 					id: 'id-1'
 				},
@@ -229,7 +228,6 @@ describe('list representations', () => {
 			const mockReq = {
 				baseUrl: '/manage-representations',
 				originalUrl: '/manage-representations',
-				queryParams: undefined,
 				params: {
 					id: 'id-1'
 				},

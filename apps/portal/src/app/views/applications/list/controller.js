@@ -88,7 +88,7 @@ export function buildApplicationListPage(service) {
 			currentUrl: req.originalUrl,
 			paginationParams,
 			baseUrl: '/applications',
-			queryParams: req.query
+			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined
 		});
 	};
 }

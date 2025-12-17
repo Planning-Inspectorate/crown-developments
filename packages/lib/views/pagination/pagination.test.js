@@ -44,28 +44,28 @@ describe('pagination macro', () => {
 		// Page 1 as a link
 		assert.match(
 			rendered,
-			/<a[^>]*href="[^"]*page=1"[^>]*aria-label="Page 1"[^>]*>[\s\S]*1[\s\S]*<\/a>/,
+			/<a[^>]*href="[^"]*page=1"[^>]*aria-label="Page 1"[^>]*>[\s]*1[\s]*<\/a>/,
 			'Page 1 link should be present'
 		);
 
 		// Page 3 as a link
 		assert.match(
 			rendered,
-			/<a[^>]*href="[^"]*page=3"[^>]*aria-label="Page 3"[^>]*>[\s\S]*3[\s\S]*<\/a>/,
+			/<a[^>]*href="[^"]*page=3"[^>]*aria-label="Page 3"[^>]*>[\s]*3[\s]*<\/a>/,
 			'Page 3 link should be present'
 		);
 
 		// Page 4 as current page
 		assert.match(
 			rendered,
-			/<a[^>]*href="[^"]*page=4"[^>]*aria-label="Page 4"[^>]*aria-current="page"[^>]*>[\s\S]*4[\s\S]*<\/a>/,
+			/<a[^>]*href="[^"]*page=4"[^>]*aria-label="Page 4"[^>]*aria-current="page"[^>]*>[\s]*4[\s]*<\/a>/,
 			'Page 4 link should be current page and present'
 		);
 
 		// Page 5 as a link
 		assert.match(
 			rendered,
-			/<a[^>]*href="[^"]*page=5"[^>]*aria-label="Page 5"[^>]*>[\s\S]*5[\s\S]*<\/a>/,
+			/<a[^>]*href="[^"]*page=5"[^>]*aria-label="Page 5"[^>]*>[\s]*5[\s]*<\/a>/,
 			'Page 5 link should be present'
 		);
 
@@ -98,26 +98,26 @@ describe('pagination macro', () => {
 
 		assert.match(
 			rendered,
-			/<a[^>]*href="[^"]*page=1"[^>]*aria-label="Page 1"[^>]*>[\s\S]*1[\s\S]*<\/a>/,
+			/<a[^>]*href="[^"]*page=1"[^>]*aria-label="Page 1"[^>]*>[\s]*1[\s]*<\/a>/,
 			'Page 1 link should be present'
 		);
 
 		// Page 2 as current page
 		assert.match(
 			rendered,
-			/<a[^>]*href="[^"]*page=2"[^>]*aria-label="Page 2"[^>]*aria-current="page"[^>]*>[\s\S]*2[\s\S]*<\/a>/,
+			/<a[^>]*href="[^"]*page=2"[^>]*aria-label="Page 2"[^>]*aria-current="page"[^>]*>[\s]*2[\s]*<\/a>/,
 			'Page 2 link should be current page and present'
 		);
 		// Page 3 as a link
 		assert.match(
 			rendered,
-			/<a[^>]*href="[^"]*page=3"[^>]*aria-label="Page 3"[^>]*>[\s\S]*3[\s\S]*<\/a>/,
+			/<a[^>]*href="[^"]*page=3"[^>]*aria-label="Page 3"[^>]*>[\s]*3[\s]*<\/a>/,
 			'Page 3 link should be present'
 		);
 		// Page 7 as a link
 		assert.match(
 			rendered,
-			/<a[^>]*href="[^"]*page=7"[^>]*aria-label="Page 7"[^>]*>[\s\S]*7[\s\S]*<\/a>/,
+			/<a[^>]*href="[^"]*page=7"[^>]*aria-label="Page 7"[^>]*>[\s]*7[\s]*<\/a>/,
 			'Page 7 link should be present'
 		);
 		// Elipses
@@ -148,19 +148,20 @@ describe('pagination macro', () => {
 		// Page 1 as a link
 		assert.match(
 			rendered,
-			/<a[^>]*href="[^"]*page=1"[^>]*aria-label="Page 1"[^>]*>[\s\S]*1[\s\S]*<\/a>/,
+			/<a[^>]*href="[^"]*page=1"[^>]*aria-label="Page 1"[^>]*>[\s]*1[\s]*<\/a>/,
 			'Page 1 link should be present'
 		);
 		// page 2 as current page
 		assert.match(
 			rendered,
-			/<a[^>]*href="[^"]*page=2"[^>]*aria-label="Page 2"[^>]*aria-current="page"[^>]*>[\s\S]*2[\s\S]*<\/a>/,
+			/<a[^>]*href="[^"]*page=2"[^>]*aria-label="Page 2"[^>]*aria-current="page"[^>]*>[\s]*2[\s]*<\/a>/,
 			'Page 2 link should be current page and present'
 		);
 		// page 3 as a link
 		assert.match(
 			rendered,
-			/<a[^>]*href="[^"]*page=3"[^>]*aria-label="Page 3"[^>]*>[\s\S]*1[\s\S]*<\/a>/,
+			/<a[^>]*href="[^"]*page=3"[^>]*aria-label="Page 3"[^>]*>[\s]*3[\s]*<\/a>/,
+
 			'Page 3 link should be present'
 		);
 
@@ -193,21 +194,21 @@ describe('pagination macro', () => {
 		// Page 1 as a link
 		assert.match(
 			rendered,
-			/<a[^>]*href="[^"]*itemsPerPage=25[^"]*page=1"[^>]*aria-label="Page 1"[^>]*>[\s\S]*1[\s\S]*<\/a>/,
+			/<a[^>]*href="[^"]*itemsPerPage=25[^"]*page=1"[^>]*aria-label="Page 1"[^>]*>[\s]*1[\s]*<\/a>/,
 			'Page 1 link should be present'
 		);
 
 		// Page 2 as current page
 		assert.match(
 			rendered,
-			/<a[^>]*href="[^"]*itemsPerPage=25[^"]*page=2"[^>]*aria-label="Page 2"[^>]*aria-current="page"[^>]*>[\s\S]*2[\sS]*<\/a>/,
+			/<a[^>]*href="[^"]*itemsPerPage=25[^"]*page=2"[^>]*aria-label="Page 2"[^>]*aria-current="page"[^>]*>[\s]*2[\sS]*<\/a>/,
 			'Page 2 link should be current page and present'
 		);
 
 		// Page 3 as a link (fix: match 3, not 1)
 		assert.match(
 			rendered,
-			/<a[^>]*href="[^"]*itemsPerPage=25[^"]*page=3"[^>]*aria-label="Page 3"[^>]*>[\s\S]*3[\s\S]*<\/a>/,
+			/<a[^>]*href="[^"]*itemsPerPage=25[^"]*page=3"[^>]*aria-label="Page 3"[^>]*>[\s]*3[\s]*<\/a>/,
 			'Page 3 link should be present'
 		);
 
@@ -238,24 +239,8 @@ describe('pagination macro', () => {
 			baseUrl,
 			queryParams
 		});
-
-		// Previous page link
-		assert.ok(
-			!/<a[^>]*href="[^"]*itemsPerPage=25[^"]*page=1"[^>]*rel="prev"[^>]*>/.test(rendered),
-			'Previous page link should not be rendered'
-		);
-
-		// Next page link
-		assert.ok(
-			!/<a[^>]*href="[^"]*itemsPerPage=25[^"]*page=3"[^>]*rel="next"[^>]*>/.test(rendered),
-			'Next page link should not be rendered'
-		);
-
-		assert.ok(
-			!/<nav class="govuk-pagination" aria-label="Pagination">/.test(rendered),
-			'Pagination element should not be present'
-		);
-		assert.ok(!/<ul class="govuk-pagination__list">\n{2}\n <\/ul>/.test(rendered), 'Pagination list should be empty');
+		// previous, next and pagination links should not render if current page and total pages have values of 1
+		assert.strictEqual(rendered.trim(), '');
 	});
 });
 

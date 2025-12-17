@@ -75,7 +75,7 @@ export function buildUrlWithParams(baseUrl, currentQuery, updates = {}, removals
 
 	for (const r of removals) params.delete(r);
 
-	const queryString = params.toString().replace(/\+/g, '%20');
+	const queryString = params.toString();
 	return queryString ? `${baseUrl}?${queryString}` : baseUrl;
 }
 
