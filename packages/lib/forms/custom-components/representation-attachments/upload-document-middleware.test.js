@@ -94,5 +94,73 @@ describe('upload-document-middleware.js', () => {
 			assert.deepStrictEqual(mockReq.session.errors, [{ message: 'errors!' }]);
 			assert.deepStrictEqual(mockReq.session.errorSummary, [{ message: 'errorSummary!' }]);
 		});
+		it('should redirect to task list if the section is missing', async () => {
+			const prepQuestionForRenderingMock = mock.fn();
+			const mockReq = {
+				params: {
+					question: 'select-attachments'
+				},
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journey: {
+						sections: [],
+						taskListUrl: '/task-list',
+						isComplete: () => true,
+						getSection: mock.fn(() => null),
+						getQuestionBySectionAndName: mock.fn(() => {
+							return {
+								prepQuestionForRendering: prepQuestionForRenderingMock,
+								renderAction: mock.fn()
+							};
+						})
+					},
+					journeyResponse: {
+						answers: {
+							applicationReference: 'CROWN-2025-0000001',
+							sharePointFolderCreated: 'yes'
+						}
+					}
+				},
+				redirect: mock.fn()
+			};
+
+			await uploadDocumentQuestion(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], '/task-list');
+		});
+		it('should redirect to task list if the question is missing', async () => {
+			const mockReq = {
+				params: {
+					question: 'select-attachments'
+				},
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journey: {
+						sections: [],
+						taskListUrl: '/task-list',
+						isComplete: () => true,
+						getSection: mock.fn(() => 'section'),
+						getQuestionBySectionAndName: mock.fn(() => null)
+					},
+					journeyResponse: {
+						answers: {
+							applicationReference: 'CROWN-2025-0000001',
+							sharePointFolderCreated: 'yes'
+						}
+					}
+				},
+				redirect: mock.fn()
+			};
+
+			await uploadDocumentQuestion(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], '/task-list');
+		});
 	});
 });

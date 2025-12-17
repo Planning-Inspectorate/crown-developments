@@ -668,7 +668,15 @@ describe('view-model', () => {
 				myselfEmail: 'some@example.email',
 				myselfComment: 'my comment',
 				myselfContainsAttachments: 'no',
-				myselfHearingPreference: 'yes'
+				myselfHearingPreference: 'yes',
+				myselfContactPreference: 'email',
+				myselfAddress: {
+					addressLine1: 'line 1',
+					addressLine2: 'line 2',
+					townCity: 'town',
+					county: 'county',
+					postcode: 'AB12 3CD'
+				}
 			};
 			const updates = editsToDatabaseUpdates(edits, {});
 			assert.ok(updates);
@@ -680,7 +688,17 @@ describe('view-model', () => {
 			assert.deepStrictEqual(updates.SubmittedByContact?.create, {
 				firstName: 'firstName',
 				lastName: 'lastName',
-				email: 'some@example.email'
+				email: 'some@example.email',
+				contactPreferenceId: 'email',
+				Address: {
+					create: {
+						line1: 'line 1',
+						line2: 'line 2',
+						townCity: 'town',
+						county: 'county',
+						postcode: 'AB12 3CD'
+					}
+				}
 			});
 		});
 		it('should map submitter field edits', () => {
@@ -692,7 +710,15 @@ describe('view-model', () => {
 				submitterEmail: 'some@example.email',
 				submitterComment: 'my comment',
 				submitterContainsAttachments: 'yes',
-				submitterHearingPreference: 'no'
+				submitterHearingPreference: 'no',
+				submitterContactPreference: 'post',
+				submitterAddress: {
+					addressLine1: 'line 1',
+					addressLine2: 'line 2',
+					townCity: 'town',
+					county: 'county',
+					postcode: 'AB12 3CD'
+				}
 			};
 			const updates = editsToDatabaseUpdates(edits, {});
 			assert.ok(updates);
@@ -705,7 +731,17 @@ describe('view-model', () => {
 			assert.deepStrictEqual(updates.SubmittedByContact?.create, {
 				firstName: 'firstName',
 				lastName: 'lastName',
-				email: 'some@example.email'
+				email: 'some@example.email',
+				contactPreferenceId: 'post',
+				Address: {
+					create: {
+						line1: 'line 1',
+						line2: 'line 2',
+						townCity: 'town',
+						county: 'county',
+						postcode: 'AB12 3CD'
+					}
+				}
 			});
 		});
 		it('should map org field edits', () => {
@@ -1327,6 +1363,64 @@ describe('view-model', () => {
 						}
 					},
 					wantsToBeHeard: false
+				});
+			});
+			it('should allow the user to override the submittedDate', (context) => {
+				context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T00:00:00Z') });
+				const id = 'id-1';
+				const reference = 'ref';
+				const mockAnswers = {
+					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+					myselfFirstName: 'firstName',
+					myselfLastName: 'lastName',
+					myselfContactPreference: 'email',
+					myselfEmail: 'myemail@email.com',
+					myselfComment: 'my comments',
+					myselfHearingPreference: 'yes',
+					myselfContainsAttachments: 'no',
+					submittedDate: new Date('2024-12-25T00:00:00Z')
+				};
+				const representationCreateInput = viewModelToRepresentationCreateInput(mockAnswers, reference, id);
+
+				assert.deepStrictEqual(representationCreateInput, {
+					reference: 'ref',
+					Status: {
+						connect: {
+							id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW
+						}
+					},
+					Application: {
+						connect: {
+							id: 'id-1'
+						}
+					},
+					Category: {
+						connect: {
+							id: 'interested-parties'
+						}
+					},
+					submittedDate: new Date('2024-12-25T00:00:00Z'),
+					submittedByAgent: false,
+					SubmittedByContact: {
+						create: {
+							firstName: 'firstName',
+							lastName: 'lastName',
+							email: 'myemail@email.com',
+							ContactPreference: {
+								connect: {
+									id: 'email'
+								}
+							}
+						}
+					},
+					SubmittedFor: {
+						connect: {
+							id: 'myself'
+						}
+					},
+					comment: 'my comments',
+					containsAttachments: false,
+					wantsToBeHeard: true
 				});
 			});
 		});

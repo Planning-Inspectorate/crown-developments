@@ -347,6 +347,132 @@ describe('upload-documents.js', () => {
 				}
 			]);
 		});
+		it('should return error messages when unable to create path', async () => {
+			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
+			const file = {
+				originalname: 'test4.pdf',
+				mimetype: 'application/pdf',
+				buffer: Buffer.from(fakePdfContent, 'utf-8'),
+				size: 227787
+			};
+			const req = {
+				params: { id: '166c1754-f7dd-440a-b6f1-0f535ea008d5' },
+				sessionID: 'session123',
+				files: [file, file, file, file],
+				session: {},
+				body: {}
+			};
+			const res = {
+				locals: {
+					journeyResponse: {
+						journeyId: 'have-your-say',
+						answers: { submittedForId: 'on-behalf-of' }
+					}
+				},
+				redirect: mock.fn()
+			};
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: '166c1754-f7dd-440a-b6f1-0f535ea008d5', reference: 'CROWN/2025/00001' }))
+				}
+			};
+
+			const sharePointDrive = {
+				getItemsByPath: () => [{ name: 'test5.pdf', size: 123456 }],
+				addNewFolder: async () => {
+					const err = new Error('Simulated failure');
+					err.statusCode = 500;
+					throw err;
+				},
+				uploadDocumentToFolder: async () => mock.fn(),
+				createLargeDocumentUploadSession: async () => ({ uploadUrl: 'http://upload' })
+			};
+
+			const mockLogger = {
+				info: mock.fn(),
+				error: mock.fn()
+			};
+
+			const controller = uploadDocumentsController(
+				{
+					db: mockDb,
+					logger: mockLogger,
+					sharePointDrive,
+					appName: 'portal'
+				},
+				'have-your-say',
+				ALLOWED_EXTENSIONS,
+				ALLOWED_MIME_TYPES,
+				MAX_FILE_SIZE
+			);
+
+			await assert.rejects(() => controller(req, res), {
+				message: 'Failed to create SharePoint folder: System folder'
+			});
+		});
+		it('should successfully upload if folders already exist', async () => {
+			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
+			const file = {
+				originalname: 'test4.pdf',
+				mimetype: 'application/pdf',
+				buffer: Buffer.from(fakePdfContent, 'utf-8'),
+				size: 227787
+			};
+			const req = {
+				params: { id: '166c1754-f7dd-440a-b6f1-0f535ea008d5' },
+				sessionID: 'session123',
+				files: [file, file, file, file],
+				session: {},
+				body: {}
+			};
+			const res = {
+				locals: {
+					journeyResponse: {
+						journeyId: 'have-your-say',
+						answers: { submittedForId: 'on-behalf-of' }
+					}
+				},
+				redirect: mock.fn()
+			};
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: '166c1754-f7dd-440a-b6f1-0f535ea008d5', reference: 'CROWN/2025/00001' }))
+				}
+			};
+
+			const sharePointDrive = {
+				getItemsByPath: () => [{ name: 'test5.pdf', size: 123456 }],
+				addNewFolder: async () => {
+					const err = new Error('Simulated failure');
+					err.statusCode = 409;
+					throw err;
+				},
+				uploadDocumentToFolder: async () => mock.fn(),
+				createLargeDocumentUploadSession: async () => ({ uploadUrl: 'http://upload' })
+			};
+
+			const mockLogger = {
+				info: mock.fn(),
+				error: mock.fn()
+			};
+
+			const controller = uploadDocumentsController(
+				{
+					db: mockDb,
+					logger: mockLogger,
+					sharePointDrive,
+					appName: 'portal'
+				},
+				'have-your-say',
+				ALLOWED_EXTENSIONS,
+				ALLOWED_MIME_TYPES,
+				MAX_FILE_SIZE
+			);
+
+			await assert.doesNotReject(() => controller(req, res));
+		});
 		it('should throw error if error thrown on large upload session', async () => {
 			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
 			const file = {
@@ -478,6 +604,154 @@ describe('upload-documents.js', () => {
 					'If you pasted the web address, check you copied the entire address.'
 				]
 			});
+		});
+		it('should handle large documents uploads correctly', async () => {
+			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
+			const originalFetch = global.fetch;
+			global.fetch = mock.fn(() =>
+				Promise.resolve({
+					ok: true,
+					status: 200,
+					json: async () => ({})
+				})
+			);
+			const file = {
+				originalname: 'test4.pdf',
+				mimetype: 'application/pdf',
+				buffer: Buffer.from(fakePdfContent, 'utf-8'),
+				size: 4 * 1024 * 1024 + 1
+			};
+			const req = {
+				params: { id: '166c1754-f7dd-440a-b6f1-0f535ea008d5' },
+				sessionID: 'session123',
+				files: [file],
+				session: {},
+				body: {}
+			};
+			const res = {
+				locals: {
+					journeyResponse: {
+						journeyId: 'have-your-say',
+						answers: { submittedForId: 'myself' }
+					}
+				},
+				redirect: () => mock.fn()
+			};
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: '166c1754-f7dd-440a-b6f1-0f535ea008d5', reference: 'CROWN/2025/00001' }))
+				}
+			};
+
+			const sharePointDrive = {
+				getItemsByPath: () => [],
+				addNewFolder: async () => mock.fn(),
+				uploadDocumentToFolder: async () => mock.fn(),
+				createLargeDocumentUploadSession: mock.fn(() => {
+					return {
+						uploadUrl: 'http://upload'
+					};
+				})
+			};
+
+			const mockLogger = {
+				info: mock.fn(),
+				error: mock.fn()
+			};
+
+			const controller = uploadDocumentsController(
+				{
+					db: mockDb,
+					logger: mockLogger,
+					sharePointDrive,
+					appName: 'portal'
+				},
+				'have-your-say',
+				ALLOWED_EXTENSIONS,
+				ALLOWED_MIME_TYPES,
+				MAX_FILE_SIZE,
+				3,
+				`You can only upload up to 3 files at a time`
+			);
+
+			await assert.doesNotReject(() => controller(req, res));
+			assert.strictEqual(global.fetch.mock.callCount(), 1);
+			global.fetch = originalFetch;
+		});
+		it('should throw an error if fetch fails during large upload', async () => {
+			const fakePdfContent = '%PDF-1.4\n%âãÏÓ\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<<>>\n%%EOF';
+			const originalFetch = global.fetch;
+			global.fetch = mock.fn(() =>
+				Promise.resolve({
+					ok: true,
+					status: 500,
+					json: async () => ({})
+				})
+			);
+			const file = {
+				originalname: 'test4.pdf',
+				mimetype: 'application/pdf',
+				buffer: Buffer.from(fakePdfContent, 'utf-8'),
+				size: 4 * 1024 * 1024 + 1
+			};
+			const req = {
+				params: { id: '166c1754-f7dd-440a-b6f1-0f535ea008d5' },
+				sessionID: 'session123',
+				files: [file],
+				session: {},
+				body: {}
+			};
+			const res = {
+				locals: {
+					journeyResponse: {
+						journeyId: 'have-your-say',
+						answers: { submittedForId: 'myself' }
+					}
+				},
+				redirect: () => mock.fn()
+			};
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: '166c1754-f7dd-440a-b6f1-0f535ea008d5', reference: 'CROWN/2025/00001' }))
+				}
+			};
+
+			const sharePointDrive = {
+				getItemsByPath: () => [],
+				addNewFolder: async () => mock.fn(),
+				uploadDocumentToFolder: async () => mock.fn(),
+				createLargeDocumentUploadSession: mock.fn(() => {
+					return {
+						uploadUrl: 'http://upload'
+					};
+				})
+			};
+
+			const mockLogger = {
+				info: mock.fn(),
+				error: mock.fn()
+			};
+
+			const controller = uploadDocumentsController(
+				{
+					db: mockDb,
+					logger: mockLogger,
+					sharePointDrive,
+					appName: 'portal'
+				},
+				'have-your-say',
+				ALLOWED_EXTENSIONS,
+				ALLOWED_MIME_TYPES,
+				MAX_FILE_SIZE,
+				3,
+				`You can only upload up to 3 files at a time`
+			);
+
+			await assert.rejects(() => controller(req, res), { message: 'Failed to upload file: test4.pdf' });
+
+			global.fetch = originalFetch;
 		});
 	});
 	describe('deleteDocumentsController', () => {
