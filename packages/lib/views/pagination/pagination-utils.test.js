@@ -55,14 +55,16 @@ describe('pagination-utils', () => {
 		it('should merge and override existing params', () => {
 			const url = buildUrlWithParams(
 				base,
-				{ searchCriteria: 'red book', itemsPerPage: '25', filterBy: 'attachments' },
-				{ page: 3, itemsPerPage: 50 }
+				{ searchCriteria: 'red book', itemsPerPage: '25', filterBy: 'attachments', filterBySubmitter: 'consultee' },
+				{ page: 3, itemsPerPage: 50, filterBySubmitter: ['consultee', 'interested-party'] }
 			);
 			const params = new URLSearchParams(url.split('?')[1]);
+			console.log(params.getAll('filterBySubmitter'));
 			assert.strictEqual(params.get('searchCriteria'), 'red book');
 			assert.strictEqual(params.get('itemsPerPage'), '50');
 			assert.strictEqual(params.get('filterBy'), 'attachments');
 			assert.strictEqual(params.get('page'), '3');
+			assert.deepStrictEqual(params.getAll('filterBySubmitter'), ['consultee', 'interested-party']);
 		});
 
 		it('should remove specified keys only', () => {
@@ -88,7 +90,7 @@ describe('pagination-utils', () => {
 			assert.strictEqual(params.get('page'), '2');
 		});
 
-		it('should set and reset itemsPerPage and can reset page', () => {
+		it('should set and reset itemsPerPage and resets page when resetPage is true', () => {
 			const url = buildItemsPerPageUrl(
 				base,
 				{ page: '4', searchCriteria: 'plan', filterBy: 'submittedDate', submittedDate: '2024-01-01' },
@@ -97,6 +99,20 @@ describe('pagination-utils', () => {
 			);
 			const params = new URLSearchParams(url.split('?')[1]);
 			assert.strictEqual(params.get('page'), '1');
+			assert.strictEqual(params.get('searchCriteria'), 'plan');
+			assert.strictEqual(params.get('filterBy'), 'submittedDate');
+			assert.strictEqual(params.get('submittedDate'), '2024-01-01');
+			assert.strictEqual(params.get('itemsPerPage'), '25');
+		});
+		it('should set and reset itemsPerPage and does not reset page when resetPage is false', () => {
+			const url = buildItemsPerPageUrl(
+				base,
+				{ page: '4', searchCriteria: 'plan', filterBy: 'submittedDate', submittedDate: '2024-01-01' },
+				25,
+				false
+			);
+			const params = new URLSearchParams(url.split('?')[1]);
+			assert.strictEqual(params.get('page'), '4');
 			assert.strictEqual(params.get('searchCriteria'), 'plan');
 			assert.strictEqual(params.get('filterBy'), 'submittedDate');
 			assert.strictEqual(params.get('submittedDate'), '2024-01-01');

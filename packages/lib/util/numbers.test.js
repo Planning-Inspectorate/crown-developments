@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { bytesToUnit, formatFee, parseNumberStringToNumber } from './numbers.js';
+import { bytesToUnit, formatFee, parseNumberStringToNumber, toFloat, toInt } from './numbers.js';
 
 describe('numbers', () => {
 	describe('bytesToUnit', () => {
@@ -54,6 +54,49 @@ describe('numbers', () => {
 			});
 		}
 	});
+	describe('toInt', () => {
+		const tests = [
+			{ input: '123', expected: 123 },
+			{ input: '0', expected: 0 },
+			{ input: '', expected: null },
+			{ input: null, expected: null },
+			{ input: undefined, expected: null },
+			{ input: 'abc', expected: NaN },
+			{ input: '12.34', expected: 12 },
+			{ input: '-123', expected: -123 },
+			{ input: '-12.34', expected: -12 },
+			{ input: '+123', expected: 123 },
+			{ input: '+12.34', expected: 12 },
+			{ input: '0.0', expected: 0 },
+			{ input: '0.00', expected: 0 }
+		];
+		for (const { input, expected } of tests) {
+			it(`should convert "${input}" to ${expected}`, () => {
+				const got = toInt(input);
+				assert.deepStrictEqual(got, expected);
+			});
+		}
+	});
+	describe('toFloat', () => {
+		const tests = [
+			{ input: '123.45', expected: 123.45 },
+			{ input: '0', expected: 0 },
+			{ input: '', expected: null },
+			{ input: null, expected: null },
+			{ input: undefined, expected: null },
+			{ input: 'abc', expected: NaN },
+			{ input: '-123.45', expected: -123.45 },
+			{ input: '+123.45', expected: 123.45 },
+			{ input: '0.0', expected: 0 },
+			{ input: '0.00', expected: 0 }
+		];
+		for (const { input, expected } of tests) {
+			it(`should convert "${input}" to ${expected}`, () => {
+				const got = toFloat(input);
+				assert.deepStrictEqual(got, expected);
+			});
+		}
+	});
 	describe('formatFee', () => {
 		it('should format numbers with commas and two decimals', () => {
 			assert.strictEqual(formatFee(1000), '1,000.00');
@@ -64,8 +107,11 @@ describe('numbers', () => {
 
 		it('should return the original value if not a number', () => {
 			assert.strictEqual(formatFee('abc'), 'abc');
-			assert.strictEqual(formatFee(undefined), ''); // updated expectation
 			assert.strictEqual(formatFee('1000'), '1,000.00'); // numeric string should be formatted
+		});
+		it('should return empty string for null or undefined', () => {
+			assert.strictEqual(formatFee(null), '');
+			assert.strictEqual(formatFee(undefined), '');
 		});
 	});
 });
