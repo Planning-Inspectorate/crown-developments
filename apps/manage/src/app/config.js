@@ -1,6 +1,6 @@
-import dotenv from 'dotenv';
 import path from 'node:path';
 import { fileURLToPath } from 'url';
+import { loadEnvFile } from 'node:process';
 
 /**
  * The environment names
@@ -26,7 +26,8 @@ export function loadConfig() {
 		return config;
 	}
 	// load configuration from .env file into process.env
-	dotenv.config();
+	// prettier-ignore
+	try { loadEnvFile() } catch {/* ignore errors here */}
 
 	// get values from the environment
 	const {
@@ -245,7 +246,8 @@ export function loadBuildConfig() {
  */
 export function loadEnvironmentConfig() {
 	// load configuration from .env file into process.env
-	dotenv.config();
+	// prettier-ignore
+	try{ loadEnvFile() } catch {/* ignore errors here */}
 
 	// get values from the environment
 	const { ENVIRONMENT } = process.env;

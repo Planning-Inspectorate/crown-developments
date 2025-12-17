@@ -1,6 +1,6 @@
-import dotenv from 'dotenv';
 import path from 'node:path';
 import { fileURLToPath } from 'url';
+import { loadEnvFile } from 'node:process';
 
 // cache the config
 /** @type {undefined|import('./config-types.js').Config} */
@@ -14,7 +14,11 @@ export function loadConfig() {
 		return config;
 	}
 	// load configuration from .env file into process.env
-	dotenv.config();
+	try {
+		loadEnvFile();
+	} catch {
+		/* ignore errors here */
+	}
 
 	// get values from the environment
 	const {

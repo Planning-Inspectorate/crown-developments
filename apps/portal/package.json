@@ -23,7 +23,6 @@
     "body-parser": "*",
     "cookie": "*",
     "connect-redis": "*",
-    "dotenv": "*",
     "express": "*",
     "express-session": "*",
     "express-validator": "*",
