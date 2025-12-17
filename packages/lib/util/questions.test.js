@@ -2,11 +2,13 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import {
 	getSubmittedForId,
+	referenceDataToRadioOptions,
+	referenceDataToRadioOptionsWithHintText,
 	shouldTruncateComment,
 	truncateComment,
 	truncatedReadMoreCommentLink
 } from './questions.js';
-import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { REPRESENTATION_SUBMITTED_FOR_ID, WITHDRAWAL_REASON } from '@pins/crowndev-database/src/seed/data-static.js';
 
 describe('questions', () => {
 	describe('shouldTruncateComment', () => {
@@ -63,6 +65,129 @@ describe('questions', () => {
 		});
 		it('should return on-behalf-of by default', () => {
 			assert.deepEqual(getSubmittedForId({}), REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF);
+		});
+	});
+	describe('referenceDataToRadioOptionsWithHintText', () => {
+		it('should return radio options with hint text from reference data', () => {
+			const radioOptions = referenceDataToRadioOptionsWithHintText(WITHDRAWAL_REASON);
+			assert.deepStrictEqual(radioOptions, [
+				{
+					text: 'Change of opinion',
+					value: 'change-of-opinion',
+					hint: {
+						text: 'They no longer feel the same way about the application'
+					}
+				},
+				{
+					text: 'Mistaken Submission',
+					value: 'mistaken-submission',
+					hint: {
+						text: 'They accidentally submitted the representation'
+					}
+				},
+				{
+					text: 'Misunderstanding',
+					value: 'misunderstanding',
+					hint: {
+						text: 'They misunderstood the application or its implications'
+					}
+				},
+				{
+					text: 'Personal Reasons',
+					value: 'personal-reasons',
+					hint: {
+						text: 'Such as privacy or a change in circumstances'
+					}
+				}
+			]);
+		});
+		it('should allow for a null option', () => {
+			const radioOptions = referenceDataToRadioOptionsWithHintText(WITHDRAWAL_REASON, true);
+			assert.deepStrictEqual(radioOptions, [
+				{
+					text: '',
+					value: '',
+					hint: {
+						text: ''
+					}
+				},
+				{
+					text: 'Change of opinion',
+					value: 'change-of-opinion',
+					hint: {
+						text: 'They no longer feel the same way about the application'
+					}
+				},
+				{
+					text: 'Mistaken Submission',
+					value: 'mistaken-submission',
+					hint: {
+						text: 'They accidentally submitted the representation'
+					}
+				},
+				{
+					text: 'Misunderstanding',
+					value: 'misunderstanding',
+					hint: {
+						text: 'They misunderstood the application or its implications'
+					}
+				},
+				{
+					text: 'Personal Reasons',
+					value: 'personal-reasons',
+					hint: {
+						text: 'Such as privacy or a change in circumstances'
+					}
+				}
+			]);
+		});
+	});
+	describe('referenceDateToRadioOptions', () => {
+		it('should return radio options from reference data', () => {
+			const radioOptions = referenceDataToRadioOptions(WITHDRAWAL_REASON, false);
+			assert.deepStrictEqual(radioOptions, [
+				{
+					text: 'Change of opinion',
+					value: 'change-of-opinion'
+				},
+				{
+					text: 'Mistaken Submission',
+					value: 'mistaken-submission'
+				},
+				{
+					text: 'Misunderstanding',
+					value: 'misunderstanding'
+				},
+				{
+					text: 'Personal Reasons',
+					value: 'personal-reasons'
+				}
+			]);
+		});
+		it('should allow for a null option', () => {
+			const radioOptions = referenceDataToRadioOptions(WITHDRAWAL_REASON, true);
+			assert.deepStrictEqual(radioOptions, [
+				{
+					text: '',
+					value: ''
+				},
+				{
+					text: 'Change of opinion',
+					value: 'change-of-opinion'
+				},
+				{
+					text: 'Mistaken Submission',
+					value: 'mistaken-submission'
+				},
+				{
+					text: 'Misunderstanding',
+					value: 'misunderstanding'
+				},
+				{
+					text: 'Personal Reasons',
+					value: 'personal-reasons'
+				}
+			]);
 		});
 	});
 });
