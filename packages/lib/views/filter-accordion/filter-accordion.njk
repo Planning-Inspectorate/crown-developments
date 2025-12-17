@@ -19,7 +19,7 @@
             </div>
             <div class="filter-accordion__sections-container">
                 {% for section in sections %}
-                    <details class="filter-accordion__section {% if section.hasErrors %} open {% endif %}">
+                    <details class="filter-accordion__section {% if section.hasErrors %} open {% endif %}" {% if section.open %}open{% endif %}>
                         <summary class="filter-accordion__section-summary">
                             {{ section.title }}
                         </summary>
@@ -42,7 +42,7 @@
                 {% endfor %}
             </div>
         </div>
-        <button class="govuk-button" id="filter-search-button" data-module="govuk-button" type="submit">Search</button>
+        <button class="govuk-button" id="filter-search-button" data-module="govuk-button" type="submit">Apply filter</button>
         <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
 					document.addEventListener('DOMContentLoaded', function () {
 						const accordion = document.querySelector('.filter-accordion__inner-container{{ suffix }}');
@@ -111,4 +111,3 @@
     </div>
 
 {% endmacro %}
-

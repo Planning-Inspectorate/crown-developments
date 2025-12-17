@@ -50,7 +50,7 @@ describe('Filters', () => {
 			assert.strictEqual(submittedBy.type, 'checkboxes');
 			assert.strictEqual(submittedBy.options.items.length, 2);
 			assert.match(submittedBy.options.items[0].text, /Interested party \(3\)/);
-			assert.match(submittedBy.options.items[1].text, /Consultee \(5\)/);
+			assert.match(submittedBy.options.items[1].text, /Consultees \(5\)/);
 			assert.strictEqual(submittedBy.options.items[0].checked, false);
 			assert.strictEqual(submittedBy.options.items[1].checked, false);
 
@@ -148,7 +148,7 @@ describe('Filters', () => {
 					options: {
 						items: [
 							{ displayName: 'Interested Party', text: 'Interested (3)', value: 'a', checked: true },
-							{ displayName: 'Consultee', text: 'Consultee (5)', value: 'b', checked: false }
+							{ displayName: 'Consultees', text: 'Consultees (5)', value: 'b', checked: false }
 						]
 					}
 				},
@@ -249,76 +249,119 @@ describe('Filters', () => {
 			);
 		});
 	});
-});
 
-describe('dateFilter range validation', () => {
-	it('should not error for valid from/to range', () => {
-		const toDate = parseDateFromParts(2, 11, 2025);
-		const result = dateFilter({
-			id: 'submittedDateFrom',
-			title: 'From',
-			values: { day: '1', month: '11', year: '2025' },
-			compareDate: toDate,
-			compareType: 'before'
+	describe('dateFilter range validation', () => {
+		it('should not error for valid from/to range', () => {
+			const toDate = parseDateFromParts(2, 11, 2025);
+			const result = dateFilter({
+				id: 'submittedDateFrom',
+				title: 'From',
+				values: { day: '1', month: '11', year: '2025' },
+				compareDate: toDate,
+				compareType: 'before'
+			});
+			assert.strictEqual(result.errorMessage, undefined);
 		});
-		assert.strictEqual(result.errorMessage, undefined);
+
+		it('should error if from date is after to date', () => {
+			const toDate = parseDateFromParts(2, 11, 2025);
+			const result = dateFilter({
+				id: 'submittedDateFrom',
+				title: 'From',
+				values: { day: '4', month: '11', year: '2025' },
+				compareDate: toDate,
+				compareType: 'before'
+			});
+			assert.notStrictEqual(result.errorMessage, undefined);
+			assert.match(result.errorMessage.text, /before the entered To date/);
+		});
+
+		it('should not error for same from/to date', () => {
+			const toDate = parseDateFromParts(2, 11, 2025);
+			const result = dateFilter({
+				id: 'submittedDateFrom',
+				title: 'From',
+				values: { day: '2', month: '11', year: '2025' },
+				compareDate: toDate,
+				compareType: 'before'
+			});
+			assert.strictEqual(result.errorMessage, undefined);
+		});
+
+		it('should error for incomplete date', () => {
+			const result = dateFilter({
+				id: 'submittedDateFrom',
+				title: 'From',
+				values: { day: '', month: '11', year: '2025' }
+			});
+			assert.notStrictEqual(result.errorMessage, undefined);
+			assert.match(result.errorMessage.text, /must include a day/i);
+		});
+
+		it('should error for invalid date', () => {
+			const result = dateFilter({
+				id: 'submittedDateFrom',
+				title: 'From',
+				values: { day: '31', month: '2', year: '2025' }
+			});
+			assert.notStrictEqual(result.errorMessage, undefined);
+			assert.match(result.errorMessage.text, /day must be a real day/i);
+		});
+
+		it('should error if to date is before from date', () => {
+			const fromDate = parseDateFromParts(4, 11, 2025);
+			const result = dateFilter({
+				id: 'submittedDateTo',
+				title: 'To',
+				values: { day: '2', month: '11', year: '2025' },
+				compareDate: fromDate,
+				compareType: 'after'
+			});
+			assert.notStrictEqual(result.errorMessage, undefined);
+			assert.match(result.errorMessage.text, /after the entered From date/);
+		});
 	});
 
-	it('should error if from date is after to date', () => {
-		const toDate = parseDateFromParts(2, 11, 2025);
-		const result = dateFilter({
-			id: 'submittedDateFrom',
-			title: 'From',
-			values: { day: '4', month: '11', year: '2025' },
-			compareDate: toDate,
-			compareType: 'before'
+	describe('buildFilters open property', () => {
+		const mockDb = createMockDb({
+			interestedPartyCount: 1,
+			consulteeCount: 2,
+			withAttachmentsCount: 3,
+			withoutAttachmentsCount: 4
 		});
-		assert.notStrictEqual(result.errorMessage, undefined);
-		assert.match(result.errorMessage.text, /before the entered To date/);
-	});
+		const logger = mockLogger();
+		const appId = 'app-123';
 
-	it('should not error for same from/to date', () => {
-		const toDate = parseDateFromParts(2, 11, 2025);
-		const result = dateFilter({
-			id: 'submittedDateFrom',
-			title: 'From',
-			values: { day: '2', month: '11', year: '2025' },
-			compareDate: toDate,
-			compareType: 'before'
-		});
-		assert.strictEqual(result.errorMessage, undefined);
-	});
+		const cases = [
+			['submittedBy: array value', { filterSubmittedBy: [REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES] }, 0, true],
+			['submittedBy: string value', { filterSubmittedBy: REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES }, 0, true],
+			['submittedBy: empty', {}, 0, false],
+			['attachments: array value', { filterByAttachments: ['withAttachments'] }, 1, true],
+			['attachments: string value', { filterByAttachments: 'withAttachments' }, 1, true],
+			['attachments: empty', {}, 1, false],
+			['date: from-year filled', { 'submittedDateFrom-year': '2025' }, 2, true],
+			['date: all empty', {}, 2, false],
+			['date: to-day filled', { 'submittedDateTo-day': '1' }, 2, true]
+		];
 
-	it('should error for incomplete date', () => {
-		const result = dateFilter({
-			id: 'submittedDateFrom',
-			title: 'From',
-			values: { day: '', month: '11', year: '2025' }
+		cases.forEach(([desc, query, idx, expected]) => {
+			it(`open is ${expected} for ${desc}`, async () => {
+				const filters = await buildFilters({ db: mockDb, logger }, appId, query);
+				assert.strictEqual(filters[idx].open, expected);
+			});
 		});
-		assert.notStrictEqual(result.errorMessage, undefined);
-		assert.match(result.errorMessage.text, /must include a day/i);
-	});
 
-	it('should error for invalid date', () => {
-		const result = dateFilter({
-			id: 'submittedDateFrom',
-			title: 'From',
-			values: { day: '31', month: '2', year: '2025' }
+		it('open is true for all filters when all are set', async () => {
+			const filters = await buildFilters({ db: mockDb, logger }, appId, {
+				filterSubmittedBy: [REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES],
+				filterByAttachments: ['withAttachments'],
+				'submittedDateFrom-day': '1',
+				'submittedDateFrom-month': '1',
+				'submittedDateFrom-year': '2025'
+			});
+			assert.strictEqual(filters[0].open, true);
+			assert.strictEqual(filters[1].open, true);
+			assert.strictEqual(filters[2].open, true);
 		});
-		assert.notStrictEqual(result.errorMessage, undefined);
-		assert.match(result.errorMessage.text, /day must be a real day/i);
-	});
-
-	it('should error if to date is before from date', () => {
-		const fromDate = parseDateFromParts(4, 11, 2025);
-		const result = dateFilter({
-			id: 'submittedDateTo',
-			title: 'To',
-			values: { day: '2', month: '11', year: '2025' },
-			compareDate: fromDate,
-			compareType: 'after'
-		});
-		assert.notStrictEqual(result.errorMessage, undefined);
-		assert.match(result.errorMessage.text, /after the entered From date/);
 	});
 });
