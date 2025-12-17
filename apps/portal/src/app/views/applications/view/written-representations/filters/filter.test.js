@@ -1,6 +1,12 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
-import { buildFilters, hasQueries, getFilterQueryItems, mapWithAndWithoutToBoolean } from './filters.js';
+import {
+	buildFilters,
+	hasQueries,
+	getFilterQueryItems,
+	mapWithAndWithoutToBoolean,
+	sanitiseQueryToStringArray
+} from './filters.js';
 import { REPRESENTATION_CATEGORY_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { Prisma } from '@pins/crowndev-database/src/client/client.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
@@ -363,5 +369,47 @@ describe('Filters', () => {
 			assert.strictEqual(filters[1].open, true);
 			assert.strictEqual(filters[2].open, true);
 		});
+	});
+});
+
+describe('sanitisedQuery', () => {
+	it('returns empty array for null, undefined, or empty string', () => {
+		assert.deepStrictEqual(sanitiseQueryToStringArray(null), []);
+		assert.deepStrictEqual(sanitiseQueryToStringArray(undefined), []);
+		assert.deepStrictEqual(sanitiseQueryToStringArray(''), []);
+	});
+
+	it('wraps a string in an array', () => {
+		assert.deepStrictEqual(sanitiseQueryToStringArray('foo'), ['foo']);
+	});
+
+	it('filters non-string values from arrays', () => {
+		assert.deepStrictEqual(sanitiseQueryToStringArray(['foo', '', 123, null, undefined, {}, [], 'bar']), [
+			'foo',
+			'bar'
+		]);
+	});
+
+	it('returns empty array for objects, numbers, booleans', () => {
+		assert.deepStrictEqual(sanitiseQueryToStringArray({ a: 1 }), []);
+		assert.deepStrictEqual(sanitiseQueryToStringArray(123), []);
+		assert.deepStrictEqual(sanitiseQueryToStringArray(true), []);
+		assert.deepStrictEqual(sanitiseQueryToStringArray(false), []);
+	});
+
+	it('returns empty array for function and symbol', () => {
+		assert.deepStrictEqual(
+			sanitiseQueryToStringArray(() => {}),
+			[]
+		);
+		assert.deepStrictEqual(sanitiseQueryToStringArray(Symbol('x')), []);
+	});
+
+	it('returns empty array for array of only non-strings', () => {
+		assert.deepStrictEqual(sanitiseQueryToStringArray([1, 2, null, undefined, {}, []]), []);
+	});
+
+	it('returns array of strings for array of strings', () => {
+		assert.deepStrictEqual(sanitiseQueryToStringArray(['a', 'b', 'c']), ['a', 'b', 'c']);
 	});
 });
