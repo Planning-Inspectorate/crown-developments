@@ -29,6 +29,11 @@ export async function buildFilters({ db, logger }, id, queryFilters) {
 				where: { containsAttachments: false, applicationId: id, statusId: REPRESENTATION_STATUS_ID.ACCEPTED }
 			})
 		]);
+		//normalize to array to allow for single values or arrays of values to remain open
+		const normalizeToArray = (value) => (Array.isArray(value) ? value : value ? [value] : []);
+
+		const submittedByArray = normalizeToArray(queryFilters?.filterSubmittedBy);
+		const attachmentsArray = normalizeToArray(queryFilters?.filterByAttachments);
 
 		const submittedBySection = {
 			title: 'Submitted by',
@@ -43,13 +48,14 @@ export async function buildFilters({ db, logger }, id, queryFilters) {
 						checked: queryFilters?.filterSubmittedBy?.includes(interestedParties) || false
 					},
 					{
-						displayName: 'Consultee',
-						text: `Consultee (${consulteeCount})`,
+						displayName: 'Consultees',
+						text: `Consultees (${consulteeCount})`,
 						value: consultees,
 						checked: queryFilters?.filterSubmittedBy?.includes(consultees) || false
 					}
 				]
-			}
+			},
+			open: submittedByArray.some(Boolean)
 		};
 
 		const attachmentsSection = {
@@ -71,7 +77,8 @@ export async function buildFilters({ db, logger }, id, queryFilters) {
 						checked: queryFilters?.filterByAttachments?.includes('withoutAttachments') || false
 					}
 				]
-			}
+			},
+			open: attachmentsArray.some(Boolean)
 		};
 
 		queryFilters = queryFilters || {};
@@ -114,7 +121,8 @@ export async function buildFilters({ db, logger }, id, queryFilters) {
 					}),
 					{ value: toValues }
 				)
-			]
+			],
+			open: [fromValues, toValues].some((value) => value.day || value.month || value.year)
 		};
 		dateSubmissionsSection.hasErrors = !!dateSubmissionsSection.dateInputs.some((input) => input.errorMessage);
 
