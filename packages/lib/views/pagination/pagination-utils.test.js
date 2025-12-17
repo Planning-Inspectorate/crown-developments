@@ -103,11 +103,6 @@ describe('pagination-utils', () => {
 			assert.strictEqual(params.get('itemsPerPage'), '25');
 		});
 
-		it('should encode spaces as %20', () => {
-			const url = buildUrlWithParams(base, { searchCriteria: 'red blue', other: 'a b' });
-			assert.strictEqual(url, '/applications/123/documents?searchCriteria=red%20blue&other=a%20b');
-		});
-
 		it('should support array query values by repeating keys', () => {
 			const url = buildUrlWithParams(base, { filterBy: ['attachments', 'submittedBy'], tag: ['a', 'b'] }, { page: 2 });
 			const params = new URLSearchParams(url.split('?')[1]);

@@ -37,7 +37,7 @@
             </div>
 
             {# if pageNumber and totalPages values are both 1 then pagination options not shown #}
-            {{ pagination.renderPagination(paginationParams.pageNumber, paginationParams.totalPages, currentUrl) }}
+            {{ pagination.renderPagination(paginationParams.pageNumber, paginationParams.totalPages, baseUrl, queryParams) }}
         </div>
     </div>
 {% endblock %}
