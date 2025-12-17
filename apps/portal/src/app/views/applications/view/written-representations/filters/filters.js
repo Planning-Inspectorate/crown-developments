@@ -5,6 +5,14 @@ import { dateFilter, parseDateFromParts } from './date-filters-validator.js';
 const excludedFilterKeys = ['itemsPerPage', 'page', 'searchCriteria'];
 
 /**
+ * @typedef CheckboxFilter
+ * @property {string} title
+ * @property {'checkboxes'} type
+ * @property {string} name
+ * @property {{ items: { displayName: string, text: string, value: string, checked: boolean }[] }} options
+ */
+
+/**
  * Builds filter sections for representations based on database counts.
  * @param {import('#service').PortalService} service
  * @param {string} id
@@ -40,13 +48,13 @@ export async function buildFilters({ db, logger }, id, queryFilters) {
 						displayName: 'Interested Party',
 						text: `Interested party (${interestedPartyCount})`,
 						value: interestedParties,
-						checked: queryFilters?.filterSubmittedBy?.includes(interestedParties) || false
+						checked: sanitiseQueryToStringArray(queryFilters?.filterSubmittedBy).includes(interestedParties) || false
 					},
 					{
 						displayName: 'Consultee',
 						text: `Consultee (${consulteeCount})`,
 						value: consultees,
-						checked: queryFilters?.filterSubmittedBy?.includes(consultees) || false
+						checked: sanitiseQueryToStringArray(queryFilters?.filterSubmittedBy).includes(consultees) || false
 					}
 				]
 			}
@@ -62,13 +70,14 @@ export async function buildFilters({ db, logger }, id, queryFilters) {
 						displayName: 'Yes',
 						text: `Yes (${withAttachmentsCount})`,
 						value: 'withAttachments',
-						checked: queryFilters?.filterByAttachments?.includes('withAttachments') || false
+						checked: sanitiseQueryToStringArray(queryFilters?.filterByAttachments).includes('withAttachments') || false
 					},
 					{
 						displayName: 'No',
 						text: `No (${withoutAttachmentsCount})`,
 						value: 'withoutAttachments',
-						checked: queryFilters?.filterByAttachments?.includes('withoutAttachments') || false
+						checked:
+							sanitiseQueryToStringArray(queryFilters?.filterByAttachments).includes('withoutAttachments') || false
 					}
 				]
 			}
@@ -194,4 +203,17 @@ export function mapWithAndWithoutToBoolean(filters, trueValue, falseValue) {
 	return filters
 		.map((value) => (value === trueValue ? true : value === falseValue ? false : null))
 		.filter((value) => value !== null);
+}
+
+/**
+ * Sanitises a query parameter into an array of strings.
+ * @param {*} query
+ * @returns {string[]|*|*[]}
+ */
+export function sanitiseQueryToStringArray(query) {
+	const val = query;
+	if (Array.isArray(val)) return val.filter((v) => typeof v === 'string' && v !== '');
+	if (val == null || val === '') return [];
+	if (typeof val === 'string') return [val];
+	return [];
 }
