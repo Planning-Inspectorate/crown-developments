@@ -158,6 +158,157 @@ describe('withdraw rep controller', () => {
 
 			await assert.rejects(() => saveController(mockReq, mockRes));
 		});
+		it('should throw if no id param', async () => {
+			const mockService = {
+				db: {},
+				logger: mockLogger(),
+				getSharePointDrive: () => {},
+				appName: 'manage'
+			};
+
+			const mockReq = {
+				params: {},
+				session: {}
+			};
+			const mockRes = {
+				locals: {}
+			};
+
+			const saveController = buildSaveController(mockService);
+
+			await assert.rejects(() => saveController(mockReq, mockRes), {
+				message: 'id param required'
+			});
+		});
+		it('should throw if no representationRef param', async () => {
+			const mockService = {
+				db: {},
+				logger: mockLogger(),
+				getSharePointDrive: () => {},
+				appName: 'manage'
+			};
+
+			const mockReq = {
+				params: { id: 'case-1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {}
+			};
+
+			const saveController = buildSaveController(mockService);
+
+			await assert.rejects(() => saveController(mockReq, mockRes), {
+				message: 'representationRef param required'
+			});
+		});
+		it('should throw if no journey response', async () => {
+			const mockService = {
+				db: {},
+				logger: mockLogger(),
+				getSharePointDrive: () => {},
+				appName: 'manage'
+			};
+
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'case-1-ref' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {}
+			};
+
+			const saveController = buildSaveController(mockService);
+
+			await assert.rejects(() => saveController(mockReq, mockRes), {
+				message: 'journey response required'
+			});
+		});
+		it('should wrap and throw prisma error', async () => {
+			const mockService = {
+				db: {
+					representation: {
+						findUnique: mock.fn(() => {
+							return {
+								Status: {
+									id: 'approved'
+								}
+							};
+						})
+					},
+					$transaction: () => {
+						throw new Prisma.PrismaClientKnownRequestError('Error', { code: 'E101' });
+					}
+				},
+				logger: mockLogger(),
+				getSharePointDrive: () => {},
+				appName: 'manage'
+			};
+
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'case-1-ref' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {}
+				}
+			};
+
+			const saveController = buildSaveController(mockService);
+			await assert.rejects(() => saveController(mockReq, mockRes), {
+				message: 'Error withdrawing representation (E101)'
+			});
+		});
+		it('should 404 error when the cases not found', async () => {
+			const mockService = {
+				db: {
+					representation: {
+						findUnique: mock.fn(() => {
+							return {
+								Status: {
+									id: 'approved'
+								}
+							};
+						})
+					},
+					crownDevelopment: {
+						findUnique: mock.fn(() => null)
+					},
+					$transaction: () => mock.fn()
+				},
+				logger: mockLogger(),
+				getSharePointDrive: () => {},
+				appName: 'manage'
+			};
+
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'case-1-ref' },
+				session: {}
+			};
+			const mockRes = {
+				status: mock.fn(),
+				render: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers: {
+							withdrawalRequestDate: '2025-01-01',
+							withdrawalReasonId: 'change-of-opinion',
+							withdrawalRequests: [
+								{ itemId: 'file-1', fileName: 'file1.pdf' },
+								{ itemId: 'file-2', fileName: 'file2.pdf' }
+							]
+						}
+					}
+				}
+			};
+
+			const saveController = buildSaveController(mockService);
+			await assert.doesNotReject(() => saveController(mockReq, mockRes));
+			assert.strictEqual(mockRes.status.mock.callCount(), 1);
+			assert.strictEqual(mockRes.status.mock.calls[0].arguments[0], 404);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+		});
 	});
 	describe('successController', () => {
 		it('should render reinstate rep confirmation page', () => {
