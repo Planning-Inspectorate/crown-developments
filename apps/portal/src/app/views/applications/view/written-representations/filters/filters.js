@@ -30,8 +30,7 @@ export async function buildFilters({ db, logger }, id, queryFilters) {
 			})
 		]);
 		//normalize to array to allow for single values or arrays of values to remain open
-		const normalizeToArray = (value) => (Array.isArray(value) ? value : value ? [value] : []);
-
+		const normalizeToArray = (value) => [value].flat(1).filter((value) => value !== undefined);
 		const submittedByArray = normalizeToArray(queryFilters?.filterSubmittedBy);
 		const attachmentsArray = normalizeToArray(queryFilters?.filterByAttachments);
 
@@ -48,8 +47,8 @@ export async function buildFilters({ db, logger }, id, queryFilters) {
 						checked: queryFilters?.filterSubmittedBy?.includes(interestedParties) || false
 					},
 					{
-						displayName: 'Consultees',
-						text: `Consultees (${consulteeCount})`,
+						displayName: 'Consultee',
+						text: `Consultee (${consulteeCount})`,
 						value: consultees,
 						checked: queryFilters?.filterSubmittedBy?.includes(consultees) || false
 					}

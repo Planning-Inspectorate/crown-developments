@@ -50,7 +50,7 @@ describe('Filters', () => {
 			assert.strictEqual(submittedBy.type, 'checkboxes');
 			assert.strictEqual(submittedBy.options.items.length, 2);
 			assert.match(submittedBy.options.items[0].text, /Interested party \(3\)/);
-			assert.match(submittedBy.options.items[1].text, /Consultees \(5\)/);
+			assert.match(submittedBy.options.items[1].text, /Consultee \(5\)/);
 			assert.strictEqual(submittedBy.options.items[0].checked, false);
 			assert.strictEqual(submittedBy.options.items[1].checked, false);
 
@@ -148,7 +148,7 @@ describe('Filters', () => {
 					options: {
 						items: [
 							{ displayName: 'Interested Party', text: 'Interested (3)', value: 'a', checked: true },
-							{ displayName: 'Consultees', text: 'Consultees (5)', value: 'b', checked: false }
+							{ displayName: 'Consultee', text: 'Consultee (5)', value: 'b', checked: false }
 						]
 					}
 				},
