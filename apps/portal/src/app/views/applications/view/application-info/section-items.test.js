@@ -258,6 +258,30 @@ describe('section-items.js', () => {
 			assert.ok(lpaItem);
 			assert.strictEqual(lpaItem.value.text, 'Primary LPA');
 		});
+		it('should include withdrawn info if withdrawnDate is present', () => {
+			const fields = {
+				id: 'id-1',
+				reference: 'reference-id-1',
+				withdrawnDate: '1 January 2025'
+			};
+			const items = getImportantDatesSectionItems('/applications/id-1', fields);
+			const withdrawnDate = items.some(
+				(item) => item.key && item.key.text && item.key.text.toLowerCase() === 'withdrawal date'
+			);
+			assert.ok(withdrawnDate);
+		});
+
+		it('should not include withdrawn info if withdrawnDate is undefined', () => {
+			const fields = {
+				id: 'id-1',
+				reference: 'reference-id-1'
+			};
+			const items = getAboutThisApplicationSectionItems('/applications/id-1', fields);
+			const withdrawnDate = items.some(
+				(item) => item.key && item.key.text && item.key.text.toLowerCase() === 'withdrawn date'
+			);
+			assert.ok(!withdrawnDate);
+		});
 	});
 	describe('getImportantDatesSectionItems', () => {
 		it('should return an empty list if important dates section should not be shown', async () => {
