@@ -1,6 +1,6 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { fetchPublishedApplication } from '#util/applications.js';
+import { fetchPublishedApplication, ApplicationStatus } from '#util/applications.js';
 import { applicationLinks, representationToViewModel } from '../view-model.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
@@ -195,11 +195,22 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 
 		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
 
+		const applicationStatus = crownDevelopment.applicationStatus;
+		const isWithdrawn =
+			applicationStatus === ApplicationStatus.WITHDRAWN || applicationStatus === ApplicationStatus.WITHDRAWN_EXPIRED;
+		const isExpired = applicationStatus === ApplicationStatus.WITHDRAWN_EXPIRED;
+
 		res.render('views/applications/view/written-representations/view.njk', {
 			pageCaption: crownDevelopment.reference,
 			pageTitle: 'Written representations',
 			representations: representations.map((representation) => representationToViewModel(representation, true)),
-			links: applicationLinks(id, haveYourSayPeriod, publishedDate, displayApplicationUpdates),
+			links: applicationLinks(
+				id,
+				haveYourSayPeriod,
+				publishedDate,
+				displayApplicationUpdates,
+				!(isWithdrawn && isExpired)
+			),
 			baseUrl: req.baseUrl,
 			currentUrl: req.originalUrl,
 			queryParams: req.query,

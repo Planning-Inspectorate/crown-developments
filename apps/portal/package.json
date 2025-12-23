@@ -20,6 +20,7 @@
     "@pins/crowndev-lib": "^0.0.0",
     "@pins/crowndev-sharepoint": "^0.0.0",
     "@planning-inspectorate/dynamic-forms": "*",
+    "date-fns": "*",
     "body-parser": "*",
     "cookie": "*",
     "connect-redis": "*",

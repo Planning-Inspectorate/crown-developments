@@ -1,6 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildApplicationUpdatesPage } from './controller.js';
+import * as applicationsUtil from '#util/applications.js';
 
 describe('application-updates controller', () => {
 	describe('buildApplicationUpdatesPage', () => {
@@ -43,8 +44,14 @@ describe('application-updates controller', () => {
 					count: mock.fn(() => 3)
 				}
 			};
+			const mockFetchPublishedApplication = async () => ({
+				applicationStatus: applicationsUtil.ApplicationStatus.ACTIVE
+			});
 
-			const handler = buildApplicationUpdatesPage({ db: mockDb });
+			const handler = buildApplicationUpdatesPage({
+				db: mockDb,
+				fetchPublishedApplication: mockFetchPublishedApplication
+			});
 			await handler(mockReq, mockRes);
 
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
@@ -52,14 +59,17 @@ describe('application-updates controller', () => {
 				mockRes.render.mock.calls[0].arguments[0],
 				'views/applications/view/application-updates/view.njk'
 			);
-			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
+
+			const renderLocals = mockRes.render.mock.calls[0].arguments[1];
+
+			assert.deepStrictEqual(renderLocals, {
 				pageTitle: 'Application updates',
 				pageCaption: 'CROWN/2025/0000002/',
 				currentUrl: '/application-updates',
 				links: [
 					{
 						href: '/applications/9c8846dc-1949-47c4-804c-9f3865cff25e/application-information',
-						text: 'Application Information'
+						text: 'Application information'
 					},
 					{
 						href: '/applications/9c8846dc-1949-47c4-804c-9f3865cff25e/documents',
@@ -84,7 +94,10 @@ describe('application-updates controller', () => {
 						firstPublished: '17 August 2025'
 					},
 					{ details: 'the project is new', firstPublished: '17 May 2025' }
-				]
+				],
+				applicationStatus: applicationsUtil.ApplicationStatus.ACTIVE,
+				isWithdrawn: false,
+				isExpired: false
 			});
 		});
 		it('should throw error if id not present', async () => {

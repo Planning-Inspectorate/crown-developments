@@ -54,6 +54,11 @@ export function crownDevelopmentToViewModel(crownDevelopment, contactEmail) {
 		crownDevelopmentContactEmail: contactEmail
 	};
 
+	const withdrawnDateFormatted = formatDateForDisplay(crownDevelopment.withdrawnDate, { format: 'd MMMM yyyy' });
+	if (withdrawnDateFormatted) {
+		fields.withdrawnDate = withdrawnDateFormatted;
+	}
+
 	if (crownDevelopment.SecondaryLpa && crownDevelopment.SecondaryLpa.name) {
 		fields.SecondaryLpa = crownDevelopment.SecondaryLpa;
 	}
@@ -115,52 +120,47 @@ function isHearing(procedureId) {
  * @param { HaveYourSayPeriod } haveYourSayPeriod
  * @param { Date } representationsPublishDate
  * @param { boolean } displayApplicationUpdates
+ * @param { boolean } restrictLinks - If false, restrict links (withdrawn AND expired)
  * @returns {import('./types.js').ApplicationLink[]}
  */
-export function applicationLinks(id, haveYourSayPeriod, representationsPublishDate, displayApplicationUpdates) {
+export function applicationLinks(
+	id,
+	haveYourSayPeriod,
+	representationsPublishDate,
+	displayApplicationUpdates,
+	restrictLinks = true
+) {
 	const links = [
 		{
 			href: `/applications/${id}/application-information`,
-			text: 'Application Information'
-		},
-		{
-			href: `/applications/${id}/documents`,
-			text: 'Documents'
+			text: 'Application information'
 		}
 	];
-
-	if (nowIsWithinRange(haveYourSayPeriod?.start, haveYourSayPeriod?.end)) {
+	if (restrictLinks !== false) {
 		links.push({
-			href: `/applications/${id}/have-your-say`,
-			text: 'Have your say'
+			href: `/applications/${id}/documents`,
+			text: 'Documents'
 		});
-	}
-
-	if (displayApplicationUpdates) {
-		links.push({
-			href: `/applications/${id}/application-updates`,
-			text: 'Application updates'
-		});
-	}
-
-	if (isNowAfterStartDate(representationsPublishDate)) {
-		links.push({
-			href: `/applications/${id}/written-representations`,
-			text: 'Written representations'
-		});
+		if (nowIsWithinRange(haveYourSayPeriod?.start, haveYourSayPeriod?.end)) {
+			links.push({
+				href: `/applications/${id}/have-your-say`,
+				text: 'Have your say'
+			});
+		}
+		if (displayApplicationUpdates) {
+			links.push({
+				href: `/applications/${id}/application-updates`,
+				text: 'Application updates'
+			});
+		}
+		if (isNowAfterStartDate(representationsPublishDate)) {
+			links.push({
+				href: `/applications/${id}/written-representations`,
+				text: 'Written representations'
+			});
+		}
 	}
 	return links;
-}
-
-/**
- * @param {string} id
- * @returns {import('./types.js').ApplicationLink}
- */
-export function documentsLink(id) {
-	return {
-		href: `/applications/${id}/documents`,
-		text: 'Documents'
-	};
 }
 
 /**
