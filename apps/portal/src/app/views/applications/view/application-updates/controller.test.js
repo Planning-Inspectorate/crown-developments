@@ -45,7 +45,7 @@ describe('application-updates controller', () => {
 				}
 			};
 			const mockFetchPublishedApplication = async () => ({
-				applicationStatus: applicationsUtil.ApplicationStatus.ACTIVE
+				applicationStatus: applicationsUtil.APPLICATION_PUBLISH_STATUS.ACTIVE
 			});
 
 			const handler = buildApplicationUpdatesPage({
@@ -95,7 +95,7 @@ describe('application-updates controller', () => {
 					},
 					{ details: 'the project is new', firstPublished: '17 May 2025' }
 				],
-				applicationStatus: applicationsUtil.ApplicationStatus.ACTIVE,
+				applicationStatus: applicationsUtil.APPLICATION_PUBLISH_STATUS.ACTIVE,
 				isWithdrawn: false,
 				isExpired: false
 			});
