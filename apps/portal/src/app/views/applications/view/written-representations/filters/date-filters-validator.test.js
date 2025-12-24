@@ -56,4 +56,49 @@ describe('date-filters-validator', () => {
 		});
 		assert.match(result.errorMessage.text, /Date year must include 4 numbers/);
 	});
+
+	it('should error for invalid date like 31/02/2025', () => {
+		const result = dateFilter({
+			id: 'date',
+			title: 'Date',
+			values: { day: '31', month: '02', year: '2025' }
+		});
+		assert.match(result.errorMessage.text, /day must be a real day/i);
+	});
+
+	it('should error for non-leap year 29/02/2025', () => {
+		const result = dateFilter({
+			id: 'date',
+			title: 'Date',
+			values: { day: '29', month: '02', year: '2025' }
+		});
+		assert.match(result.errorMessage.text, /day must be a real day/i);
+	});
+
+	it('should not error for leap year 29/02/2024', () => {
+		const result = dateFilter({
+			id: 'date',
+			title: 'Date',
+			values: { day: '29', month: '02', year: '2024' }
+		});
+		assert.strictEqual(result.errorMessage, undefined);
+	});
+
+	it('should error for invalid day 32/12/2025', () => {
+		const result = dateFilter({
+			id: 'date',
+			title: 'Date',
+			values: { day: '32', month: '12', year: '2025' }
+		});
+		assert.match(result.errorMessage.text, /day must be a real day/i);
+	});
+
+	it('should error for invalid month 15/13/2025', () => {
+		const result = dateFilter({
+			id: 'date',
+			title: 'Date',
+			values: { day: '15', month: '13', year: '2025' }
+		});
+		assert.match(result.errorMessage.text, /day must be a real day/i);
+	});
 });

@@ -1,5 +1,6 @@
 import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
-
+import { formatInTimeZone } from 'date-fns-tz';
+import { enGB } from 'date-fns/locale/en-GB';
 /**
  * @typedef {Object} DateFilter
  * @property {{ legend: { text: string, classes: string } }} fieldset
@@ -144,7 +145,12 @@ export function parseDateFromParts(day, month, year) {
 		return null;
 	}
 
-	const date = new Date(Date.UTC(y, m - 1, d));
-	const isSame = date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d;
-	return isSame ? date : null;
+	const date = new Date(y, m - 1, d);
+	const formatted = formatInTimeZone(date, 'Europe/London', 'dd/MM/yyyy', { locale: enGB });
+	const inputPadded = `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${String(y).padStart(4, '0')}`;
+	if (formatted !== inputPadded) {
+		return null;
+	}
+
+	return date;
 }
