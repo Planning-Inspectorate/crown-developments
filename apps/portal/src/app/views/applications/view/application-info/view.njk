@@ -8,6 +8,19 @@
 {% from "views/applications/view/application-info/have-your-say-information.njk" import renderHaveYourSayInformation %}
 {% import "views/applications/view/application-info/application-stage/application-stage.njk" as applicationStage %}
 
+{% macro formatWithdrawnText(isExpired) %}
+        {% if isExpired %}
+            <p class="govuk-body">This application was <strong>withdrawn</strong> on {{ crownDevelopmentFields.withdrawnDate }}.</p>
+            <p class="govuk-body">Information about this application is no longer available.</p>
+            <p class="govuk-body"><a class="govuk-link" href="/">Back to homepage</a>.</p>
+        {% else %}
+            <h3 class="govuk-heading-m">Application stage</h3>
+            <p class="govuk-body">This application was <strong>withdrawn</strong> on {{ crownDevelopmentFields.withdrawnDate }}.</p>
+            <p class="govuk-body">The details and documents for this application will be available for 1 year from the date of withdrawal.</p>
+            <p class="govuk-body">Get more <a class="govuk-link" href="https://www.gov.uk/guidance/crown-development-applications">information about Crown Development applications</a>.</p>
+        {% endif %}
+{% endmacro %}
+
 {% block pageHeading %}{% endblock %}
 
 {% block pageContent %}
@@ -22,6 +35,7 @@
                     html: '<p class="govuk-notification-banner__heading">This application is connected to a ' + linkedCaseLink + '.</p>'
                 }) }}
             {% endif %}
+            {% if not isExpired %}
             {% if latestApplicationUpdate %}
                 <div class="govuk-grid-row">
                     {% set html %}
@@ -34,6 +48,7 @@
                     }) }}
                 </div>
             {% endif %}
+                {% endif %}
 
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-full">
@@ -45,7 +60,7 @@
                     </h1>
                 </div>
             </div>
-
+            {% if not isExpired %}
             <div>
                 <h2 class="govuk-heading-m">About this application</h2>
                 {{ govukSummaryList({
@@ -77,9 +92,11 @@
             {{ renderHaveYourSayInformation(haveYourSayStatus, crownDevelopmentFields) }}
 
             <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
-
-            {{ applicationStage.renderApplicationStage(applicationStageItems.currentStage, applicationStageItems.formattedApplicationStages, applicationStageItems.formattedConsultationEndDate, crownDevelopmentFields) }}
-
+                {% if isWithdrawn %}
+                    {{ formatWithdrawnText(isExpired) }}
+                {% else %}
+                        {{ applicationStage.renderApplicationStage(applicationStageItems.currentStage, applicationStageItems.formattedApplicationStages, applicationStageItems.formattedConsultationEndDate, crownDevelopmentFields) }}
+                {% endif %}
             <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
 
             <div>
@@ -103,6 +120,9 @@
                 <h3 class="govuk-heading-s">Alternative formats</h3>
                 <p class="govuk-body">Call or email to ask for project documents in alternative formats such as PDF, large print, easy read, audio recording or braille.</p>
             </div>
+            {% else %}
+                {{ formatWithdrawnText(isExpired) }}
+            {% endif %}
         </div>
     </div>
 {% endblock %}

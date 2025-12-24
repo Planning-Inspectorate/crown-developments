@@ -110,6 +110,18 @@ export function getImportantDatesSectionItems(shouldShowImportantDatesSection, c
 						}
 					}
 				]
+			: []),
+		...(crownDevelopmentFields.withdrawnDate
+			? [
+					{
+						key: {
+							text: 'Withdrawal date'
+						},
+						value: {
+							text: crownDevelopmentFields.withdrawnDate
+						}
+					}
+				]
 			: [])
 	];
 }

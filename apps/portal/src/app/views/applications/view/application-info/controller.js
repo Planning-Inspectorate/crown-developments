@@ -1,7 +1,7 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { applicationLinks, applicationUpdateToTimelineItem, crownDevelopmentToViewModel } from '../view-model.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { fetchPublishedApplication } from '#util/applications.js';
+import { fetchPublishedApplication, APPLICATION_PUBLISH_STATUS } from '#util/applications.js';
 import { getHaveYourSayStatus } from '../have-your-say/util.js';
 import {
 	getAboutThisApplicationSectionItems,
@@ -110,12 +110,25 @@ export function buildApplicationInformationPage(service) {
 		});
 		const formattedApplicationStages = buildApplicationStages(crownDevelopment);
 		const currentStage = getCurrentStage(formattedApplicationStages);
+		const applicationStatus = crownDevelopment.applicationStatus;
+		const isWithdrawn =
+			applicationStatus === APPLICATION_PUBLISH_STATUS.WITHDRAWN ||
+			applicationStatus === APPLICATION_PUBLISH_STATUS.EXPIRED;
+		const isExpired = applicationStatus === APPLICATION_PUBLISH_STATUS.EXPIRED;
 
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Application information',
 			applicationReference: crownDevelopment.reference,
-			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate, displayApplicationUpdates),
+			isWithdrawn,
+			isExpired,
+			links: applicationLinks(
+				id,
+				haveYourSayPeriod,
+				representationsPublishDate,
+				displayApplicationUpdates,
+				!(isWithdrawn && isExpired)
+			),
 			baseUrl: req.baseUrl,
 			currentUrl: req.originalUrl,
 			crownDevelopmentFields,

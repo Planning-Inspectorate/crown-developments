@@ -91,7 +91,7 @@ describe('controller', () => {
 				links: [
 					{
 						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-information',
-						text: 'Application Information'
+						text: 'Application information'
 					},
 					{
 						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/documents',
