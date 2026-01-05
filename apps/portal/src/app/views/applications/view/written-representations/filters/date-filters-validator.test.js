@@ -1,6 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { dateFilter, parseDateFromParts } from './date-filters-validator.js';
+import { formatInTimeZone } from 'date-fns-tz';
+import { enGB } from 'date-fns/locale/en-GB';
 
 describe('date-filters-validator', () => {
 	it('should not error when all date fields are blank', () => {
@@ -100,5 +102,21 @@ describe('date-filters-validator', () => {
 			values: { day: '15', month: '13', year: '2025' }
 		});
 		assert.match(result.errorMessage.text, /day must be a real day/i);
+	});
+});
+
+describe('date-filters-validator timezone-aware parsing', () => {
+	it('should parse date on BST start (clocks go forward)', () => {
+		// 29 March 2026 - start of BST in Europe/London
+		const parsed = parseDateFromParts('29', '03', '2026');
+		assert.notStrictEqual(parsed, null);
+		assert.strictEqual(formatInTimeZone(parsed, 'Europe/London', 'dd/MM/yyyy', { locale: enGB }), '29/03/2026');
+	});
+
+	it('should parse date on BST end (clocks go backward)', () => {
+		// 25 October 2026 - end of BST in Europe/London
+		const parsed = parseDateFromParts('25', '10', '2026');
+		assert.notStrictEqual(parsed, null);
+		assert.strictEqual(formatInTimeZone(parsed, 'Europe/London', 'dd/MM/yyyy', { locale: enGB }), '25/10/2026');
 	});
 });
