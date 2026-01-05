@@ -3,27 +3,27 @@ import { addYears, isAfter, isValid } from 'date-fns';
 /**
  * Application status for clarity and readability
  */
-export const ApplicationStatus = {
+export const APPLICATION_PUBLISH_STATUS = {
 	ACTIVE: 'active',
 	WITHDRAWN: 'withdrawn',
-	WITHDRAWN_EXPIRED: 'withdrawn_expired'
+	EXPIRED: 'expired'
 };
 
 /**
  * Determine application status based on withdrawnDate and expiry
  * @param {Date|null|undefined} withdrawnDate
- * @param {Date} [now]
  * @returns {string} ApplicationStatus
  */
-export function getApplicationStatus(withdrawnDate, now = new Date()) {
+export function getApplicationStatus(withdrawnDate) {
+	const now = new Date();
 	if (!withdrawnDate || !(withdrawnDate instanceof Date) || !isValid(withdrawnDate)) {
-		return ApplicationStatus.ACTIVE;
+		return APPLICATION_PUBLISH_STATUS.ACTIVE;
 	}
 	if (isAfter(withdrawnDate, now)) {
-		return ApplicationStatus.ACTIVE;
+		return APPLICATION_PUBLISH_STATUS.ACTIVE;
 	}
 	const expired = isAfter(now, addYears(withdrawnDate, 1));
-	return expired ? ApplicationStatus.WITHDRAWN_EXPIRED : ApplicationStatus.WITHDRAWN;
+	return expired ? APPLICATION_PUBLISH_STATUS.EXPIRED : APPLICATION_PUBLISH_STATUS.WITHDRAWN;
 }
 
 /**
@@ -46,9 +46,9 @@ export async function fetchPublishedApplication({ db, id, args }) {
 	args.where.publishDate = { lte: now };
 	const crownDevelopment = await db.crownDevelopment.findUnique(args);
 	if (crownDevelopment) {
-		crownDevelopment.applicationStatus = getApplicationStatus(crownDevelopment.withdrawnDate, now);
-		crownDevelopment.withdrawnDateIsExpired =
-			crownDevelopment.applicationStatus === ApplicationStatus.WITHDRAWN_EXPIRED;
+		const status = getApplicationStatus(crownDevelopment.withdrawnDate);
+		crownDevelopment.applicationStatus = status;
+		crownDevelopment.withdrawnDateIsExpired = status === APPLICATION_PUBLISH_STATUS.EXPIRED;
 	}
 	return crownDevelopment;
 }
