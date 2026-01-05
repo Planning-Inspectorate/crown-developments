@@ -6,6 +6,8 @@ import { toCreateInput } from './save.js';
 
 describe('save', () => {
 	//I need to mock copyDriveItem which is a method of getSharepointDrive
+	const today = new Date();
+	const mockReference = `CROWN/${today.getFullYear()}/0000001`;
 	describe('buildSaveController', () => {
 		const dbMock = () => {
 			return {
@@ -373,7 +375,7 @@ describe('save', () => {
 			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotification.mock.calls[0].arguments, [
 				'applicantEmail@mail.com',
 				{
-					reference: 'CROWN/2025/0000001',
+					reference: mockReference,
 					sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id'
 				}
 			]);
@@ -444,7 +446,7 @@ describe('save', () => {
 			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotification.mock.calls[0].arguments, [
 				'agentEmail@mail.com',
 				{
-					reference: 'CROWN/2025/0000001',
+					reference: mockReference,
 					sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id'
 				}
 			]);
