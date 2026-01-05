@@ -3,18 +3,14 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
-import {
-	fetchPublishedApplication as defaultFetchPublishedApplication,
-	ApplicationStatus
-} from '#util/applications.js';
 
 /**
  * Render application updates page
  *
- * @param {import('#service').PortalService & { fetchPublishedApplication?: Function }} service
+ * @param {import('#service').PortalService} service
  * @returns {import('express').Handler}
  */
-export function buildApplicationUpdatesPage({ db, fetchPublishedApplication = defaultFetchPublishedApplication }) {
+export function buildApplicationUpdatesPage({ db }) {
 	return async (req, res) => {
 		const id = req.params.applicationId;
 		if (!id) {
@@ -61,27 +57,13 @@ export function buildApplicationUpdatesPage({ db, fetchPublishedApplication = de
 		};
 
 		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
-		const fullCrownDevelopment = await fetchPublishedApplication({ db, id, args: {} });
-		const applicationStatus = fullCrownDevelopment?.applicationStatus;
-		const isWithdrawn =
-			applicationStatus === ApplicationStatus.WITHDRAWN || applicationStatus === ApplicationStatus.WITHDRAWN_EXPIRED;
-		const isExpired = applicationStatus === ApplicationStatus.WITHDRAWN_EXPIRED;
 
 		return res.render('views/applications/view/application-updates/view.njk', {
 			pageTitle: 'Application updates',
 			pageCaption: crownDevelopment.reference,
 			currentUrl: req.originalUrl,
-			links: applicationLinks(
-				id,
-				haveYourSayPeriod,
-				publishedDate,
-				displayApplicationUpdates,
-				!(isWithdrawn && isExpired)
-			),
-			applicationUpdates: applicationUpdates.map(applicationUpdateToTimelineItem),
-			applicationStatus,
-			isWithdrawn,
-			isExpired
+			links: applicationLinks(id, haveYourSayPeriod, publishedDate, displayApplicationUpdates),
+			applicationUpdates: applicationUpdates.map(applicationUpdateToTimelineItem)
 		});
 	};
 }

@@ -1,7 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildApplicationUpdatesPage } from './controller.js';
-import * as applicationsUtil from '#util/applications.js';
 
 describe('application-updates controller', () => {
 	describe('buildApplicationUpdatesPage', () => {
@@ -44,13 +43,9 @@ describe('application-updates controller', () => {
 					count: mock.fn(() => 3)
 				}
 			};
-			const mockFetchPublishedApplication = async () => ({
-				applicationStatus: applicationsUtil.ApplicationStatus.ACTIVE
-			});
 
 			const handler = buildApplicationUpdatesPage({
-				db: mockDb,
-				fetchPublishedApplication: mockFetchPublishedApplication
+				db: mockDb
 			});
 			await handler(mockReq, mockRes);
 
@@ -94,10 +89,7 @@ describe('application-updates controller', () => {
 						firstPublished: '17 August 2025'
 					},
 					{ details: 'the project is new', firstPublished: '17 May 2025' }
-				],
-				applicationStatus: applicationsUtil.ApplicationStatus.ACTIVE,
-				isWithdrawn: false,
-				isExpired: false
+				]
 			});
 		});
 		it('should throw error if id not present', async () => {

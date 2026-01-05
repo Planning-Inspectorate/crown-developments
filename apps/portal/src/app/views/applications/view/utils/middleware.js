@@ -1,21 +1,28 @@
-import { fetchPublishedApplication as defaultFetchPublishedApplication } from '#util/applications.js';
-import { notFoundHandler as realNotFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { APPLICATION_PUBLISH_STATUS, fetchPublishedApplication } from '#util/applications.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 
-export function checkIfExpiredMiddleware(service) {
-	const { db, fetchPublishedApplication = defaultFetchPublishedApplication } = service;
+/**
+ * Middleware to check if the application is expired and redirect to the expired page if so.
+ * @param {import('#service').PortalService} service
+ * @param {function} fetchPublishedApplicationFn
+ * @returns {import('express').RequestHandler}
+ */
+
+export function checkIfExpiredMiddleware(service, fetchPublishedApplicationFn = fetchPublishedApplication) {
+	const { db } = service;
 	return async (req, res, next) => {
 		const id = req.params.applicationId;
 		if (!id) {
 			throw new Error('id param required');
 		}
-		const crownDevelopment = await fetchPublishedApplication({
+		const crownDevelopment = await fetchPublishedApplicationFn({
 			db,
 			id,
 			args: {}
 		});
-		const withdrawnDateIsExpired = !!crownDevelopment?.withdrawnDateIsExpired;
+		const withdrawnDateIsExpired = crownDevelopment?.applicationStatus === APPLICATION_PUBLISH_STATUS.EXPIRED;
 		if (!crownDevelopment || withdrawnDateIsExpired) {
-			return realNotFoundHandler(req, res);
+			return notFoundHandler(req, res);
 		} else {
 			return next();
 		}

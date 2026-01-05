@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { describe, it } from 'node:test';
-import { getApplicationStatus, ApplicationStatus } from './applications.js';
+import { getApplicationStatus, APPLICATION_PUBLISH_STATUS } from './applications.js';
 import { fetchPublishedApplication } from './applications.js';
 
 describe('getApplicationStatus', () => {
@@ -8,27 +8,27 @@ describe('getApplicationStatus', () => {
 
 	it('should return ACTIVE when withdrawnDate is an invalid date object', () => {
 		const withdrawnDate = new Date('invalid-date');
-		assert.strictEqual(getApplicationStatus(withdrawnDate, now), ApplicationStatus.ACTIVE);
+		assert.strictEqual(getApplicationStatus(withdrawnDate, now), APPLICATION_PUBLISH_STATUS.ACTIVE);
 	});
 
 	it('should return ACTIVE when withdrawnDate is a string', () => {
 		const withdrawnDate = '2025-12-22';
-		assert.strictEqual(getApplicationStatus(withdrawnDate, now), ApplicationStatus.ACTIVE);
+		assert.strictEqual(getApplicationStatus(withdrawnDate, now), APPLICATION_PUBLISH_STATUS.ACTIVE);
 	});
 
-	it('should return WITHDRAWN when withdrawnDate is exactly one year before now', () => {
-		const withdrawnDate = new Date('2024-12-22T00:00:00.000Z');
-		assert.strictEqual(getApplicationStatus(withdrawnDate, now), ApplicationStatus.WITHDRAWN);
+	it('should return WITHDRAWN when withdrawnDate iS less than one year before now', () => {
+		const withdrawnDate = new Date('2025-02-22T00:00:00.000Z');
+		assert.strictEqual(getApplicationStatus(withdrawnDate, now), APPLICATION_PUBLISH_STATUS.WITHDRAWN);
 	});
 
-	it('should return WITHDRAWN_EXPIRED when withdrawnDate is more than one year before now', () => {
+	it('should return EXPIRED when withdrawnDate is more than one year before now', () => {
 		const withdrawnDate = new Date('2024-12-21T23:59:59.000Z');
-		assert.strictEqual(getApplicationStatus(withdrawnDate, now), ApplicationStatus.WITHDRAWN_EXPIRED);
+		assert.strictEqual(getApplicationStatus(withdrawnDate, now), APPLICATION_PUBLISH_STATUS.EXPIRED);
 	});
 
 	it('should return ACTIVE when withdrawnDate is in the future', () => {
-		const withdrawnDate = new Date('2026-01-01T00:00:00.000Z');
-		assert.strictEqual(getApplicationStatus(withdrawnDate, now), ApplicationStatus.ACTIVE);
+		const withdrawnDate = new Date('2026-05-01T00:00:00.000Z');
+		assert.strictEqual(getApplicationStatus(withdrawnDate, now), APPLICATION_PUBLISH_STATUS.ACTIVE);
 	});
 });
 
@@ -54,7 +54,7 @@ describe('fetchPublishedApplication', () => {
 			}
 		};
 		const result = await fetchPublishedApplication({ db, id: 'app-1', args: {} });
-		assert.strictEqual(result.applicationStatus, ApplicationStatus.ACTIVE);
+		assert.strictEqual(result.applicationStatus, APPLICATION_PUBLISH_STATUS.ACTIVE);
 		assert.strictEqual(result.withdrawnDateIsExpired, false);
 	});
 
@@ -69,7 +69,7 @@ describe('fetchPublishedApplication', () => {
 			}
 		};
 		const result = await fetchPublishedApplication({ db, id: 'app-2', args: {} });
-		assert.strictEqual(result.applicationStatus, ApplicationStatus.WITHDRAWN);
+		assert.strictEqual(result.applicationStatus, APPLICATION_PUBLISH_STATUS.WITHDRAWN);
 		assert.strictEqual(result.withdrawnDateIsExpired, false);
 	});
 
@@ -84,7 +84,7 @@ describe('fetchPublishedApplication', () => {
 			}
 		};
 		const result = await fetchPublishedApplication({ db, id: 'app-3', args: {} });
-		assert.strictEqual(result.applicationStatus, ApplicationStatus.WITHDRAWN_EXPIRED);
+		assert.strictEqual(result.applicationStatus, APPLICATION_PUBLISH_STATUS.EXPIRED);
 		assert.strictEqual(result.withdrawnDateIsExpired, true);
 	});
 
