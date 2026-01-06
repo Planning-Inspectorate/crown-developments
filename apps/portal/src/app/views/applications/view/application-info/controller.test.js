@@ -468,8 +468,7 @@ describe('application info controller', () => {
 						DecisionOutcome: {
 							displayName: 'Approved'
 						},
-						withdrawnDate: new Date('2024-12-01T00:00:00.000Z'),
-						withdrawnDateIsExpired: false
+						withdrawnDate: new Date('2024-12-01T00:00:00.000Z')
 					}))
 				},
 				applicationUpdate: {
@@ -543,8 +542,7 @@ describe('application info controller', () => {
 						DecisionOutcome: {
 							displayName: 'Approved'
 						},
-						withdrawnDate: new Date('2024-01-01T00:00:00.000Z'),
-						withdrawnDateIsExpired: true
+						withdrawnDate: new Date('2024-01-01T00:00:00.000Z')
 					}))
 				},
 				applicationUpdate: {
@@ -623,8 +621,7 @@ describe('application info controller', () => {
 						DecisionOutcome: {
 							displayName: 'Approved'
 						},
-						withdrawnDate: false,
-						withdrawnDateIsExpired: false
+						withdrawnDate: false
 					}))
 				},
 				applicationUpdate: {
