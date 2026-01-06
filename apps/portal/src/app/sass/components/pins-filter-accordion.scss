@@ -14,8 +14,7 @@
 	box-sizing: border-box;
 
 	&__title {
-		@extend .govuk-heading-s;
-
+		@extend .govuk-heading-m;
 		display: block;
 	}
 
@@ -23,20 +22,57 @@
 		@extend .govuk-link;
 		@extend .govuk-link--no-visited-state;
 		@include index.govuk-responsive-margin(4, 'bottom');
+		font-size: 1em;
 		background: none;
 		border: none;
 		padding: 0;
 		cursor: pointer;
+
 		&:focus {
 			@extend .-link-focus;
 		}
 	}
 
+	.filter-accordion__sections-container {
+		.filter-accordion__section {
+			.filter-accordion__section-summary {
+				@extend .govuk-heading-s;
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				width: 100%;
+				padding: 0.5rem 0 0.5rem 0.9375rem;
+				border-bottom: 1px solid #b1b4b6;
+				color: #1d70b8;
+				text-decoration: none;
+				cursor: pointer;
+
+				& > * {
+					vertical-align: middle;
+				}
+
+				a {
+					color: inherit;
+					text-decoration: none;
+				}
+			}
+
+			&:last-child .filter-accordion__section-summary {
+				border-bottom: none;
+			}
+		}
+	}
+
 	&__sections {
 		border-bottom: 1px solid #f3f2f1;
+
+		&:last-child {
+			border-bottom: none;
+		}
 	}
-	&__sections:last-child {
-		border-bottom: none;
+
+	.filter-accordion__section-content {
+		padding-left: 0.9375rem;
 	}
 
 	&__section-summary {
@@ -44,23 +80,24 @@
 		@extend .govuk-link--no-visited-state;
 		@include index.govuk-responsive-margin(4, 'bottom');
 		list-style: none !important;
-	}
 
-	&__section-summary::-webkit-details-marker {
-		display: none !important;
-	}
+		&::-webkit-details-marker {
+			display: none !important;
+		}
 
-	&__section-summary::before {
-		content: '';
-		display: inline-block;
-		width: 1em;
-		height: 1em;
-		background: black;
-		clip-path: polygon(6.38% 22.63%, 49.5% 65.75%, 92.63% 22.63%, 100% 30%, 50% 80%, 0% 30%);
-		margin-right: 0.5rem;
-		margin-bottom: 0.5rem;
-		vertical-align: middle;
-		transform-origin: center;
+		&::before {
+			content: '';
+			display: block;
+			flex: 0 0 1em;
+			width: 1em;
+			height: 1em;
+			background: black;
+			clip-path: polygon(6.38% 22.63%, 49.5% 65.75%, 92.63% 22.63%, 100% 30%, 50% 80%, 0% 30%);
+			margin: 0;
+			vertical-align: middle;
+			line-height: 0;
+			transform-origin: center;
+		}
 	}
 
 	& [class*='filter-accordion__section'][open] &__section-summary::before {
