@@ -15,7 +15,7 @@ export const declarationItems = [
 	},
 	{
 		value: 'read',
-		html: "I have read and understood the <a href='https://www.gov.uk/government/publications/planning-inspectorate-privacy-notices/customer-privacy-notice'>Customer Privacy Notice</a>",
+		html: "I have read and understood the <a href='https://www.gov.uk/government/publications/planning-inspectorate-privacy-notices/customer-privacy-notice' target='_blank' rel='noreferrer'>Customer Privacy Notice</a>",
 		errorMessage: 'Select that you have read and understood the Customer Privacy Notice'
 	}
 ];
