@@ -108,9 +108,18 @@ export function contactQuestions({ prefix, title, addressRequired }) {
  * @param {string} [opts.question]
  * @param {Object<string, any>} [opts.viewData]
  * @param {string} [opts.question]
+ * @param {string|null} [opts.emptyErrorMessage]
  * @returns {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps}
  */
-export function dateQuestion({ fieldName, title, hint, editable = true, viewData = {}, question }) {
+export function dateQuestion({
+	fieldName,
+	title,
+	hint,
+	editable = true,
+	viewData = {},
+	question,
+	emptyErrorMessage = null
+}) {
 	if (!title) {
 		title = camelCaseToSentenceCase(fieldName);
 	}
@@ -121,7 +130,9 @@ export function dateQuestion({ fieldName, title, hint, editable = true, viewData
 		hint: hint,
 		fieldName: fieldName,
 		url: camelCaseToUrlCase(fieldName),
-		validators: [new DateValidator(title)],
+		validators: [
+			new DateValidator(title, { ensureFuture: false, ensurePast: false }, { emptyErrorMessage: emptyErrorMessage })
+		],
 		editable: editable,
 		viewData
 	};
