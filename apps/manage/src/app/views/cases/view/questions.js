@@ -625,7 +625,8 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			fieldName: 'applicationFeeReceivedDate',
 			question: 'When was the application fee received?',
 			title: 'Fee received date',
-			editable: !overrides.isApplicationSubTypeLbc && overrides.hasApplicationFee
+			editable: !overrides.isApplicationSubTypeLbc && overrides.hasApplicationFee,
+			emptyErrorMessage: 'Enter the date the application fee was received'
 		}),
 		eligibleForFeeRefund: {
 			type: CUSTOM_COMPONENTS.FEE_AMOUNT,
@@ -635,14 +636,24 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			url: 'refund-amount',
 			feeAmountInputFieldName: 'applicationFeeRefundAmount',
 			feeAmountQuestion: 'For example, £1000.00',
-			validators: [new FeeAmountValidator()],
+			validators: [
+				new FeeAmountValidator({
+					errorMessages: {
+						conditionalRequiredMessage: 'Enter an amount',
+						validNumberMessage: 'Input must be numbers',
+						validMoneyMessage: 'Input must be valid monetary value',
+						moreThanZeroMessage: 'Refund amount must be more than £0'
+					}
+				})
+			],
 			editable: !overrides.isApplicationSubTypeLbc
 		},
 		applicationFeeRefundDate: dateQuestion({
 			fieldName: 'applicationFeeRefundDate',
 			question: 'When was the refund paid?',
 			title: 'Fee refund date',
-			editable: !overrides.isApplicationSubTypeLbc
+			editable: !overrides.isApplicationSubTypeLbc,
+			emptyErrorMessage: 'Enter the date the refund was paid'
 		}),
 		updateDetails: {
 			type: COMPONENT_TYPES.TEXT_ENTRY,

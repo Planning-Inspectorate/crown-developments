@@ -2,9 +2,26 @@ import BaseValidator from '@planning-inspectorate/dynamic-forms/src/validator/ba
 import { body } from 'express-validator';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
+/**
+ * @typedef {Object} ErrorMessages
+ * @property {string} [validNumberMessage] - Custom message for invalid number.
+ * @property {string} [validMoneyMessage] - Custom message for invalid money format.
+ * @property {string} [moreThanZeroMessage] - Custom message for zero or negative values.
+ * @property {string} [conditionalRequiredMessage] - Custom message for conditional required validation.
+ */
+
+/**
+ * Base validator for monetary input fields.
+ * @property {ErrorMessages} errorMessages - Custom error messages for validation.
+ */
 export default class MonetaryInputValidator extends BaseValidator {
-	constructor() {
+	/**
+	 * @param {Object} [options={}] - Optional constructor options
+	 * @param {ErrorMessages} [options.errorMessages] - Custom error messages that can override defaults
+	 */
+	constructor({ errorMessages = {} } = {}) {
 		super();
+		this.errorMessages = errorMessages;
 	}
 
 	/**
@@ -41,14 +58,16 @@ export default class MonetaryInputValidator extends BaseValidator {
 						throw new Error('Amount must be a number without commas, e.g. 1000 or 1000.00');
 					}
 					if (!/^\d+(\.\d+)?$/.test(value)) {
-						throw new Error('The amount must be a number');
+						throw new Error(this.errorMessages?.validNumberMessage ?? 'The amount must be a number');
 					}
 					if (!/^\d+(\.\d{1,2})?$/.test(value)) {
-						throw new Error('Number must be a valid monetary value, like £100.00');
+						throw new Error(
+							this.errorMessages?.validMoneyMessage ?? 'Number must be a valid monetary value, like £100.00'
+						);
 					}
 					const num = Number(value);
 					if (num === 0) {
-						throw new Error('Number must be more than £0.01');
+						throw new Error(this.errorMessages?.moreThanZeroMessage ?? 'Number must be more than £0.01');
 					}
 					return true;
 				})
