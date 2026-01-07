@@ -81,10 +81,10 @@
 			line-height: 0;
 			transform-origin: center;
 		}
+	}
 
-		&__section[open] &__section-summary::before {
-			transform: rotate(180deg);
-		}
+	& [class*='filter-accordion__section'][open] &__section-summary::before {
+		transform: rotate(180deg);
 	}
 }
 
