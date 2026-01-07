@@ -641,7 +641,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 					errorMessages: {
 						conditionalRequiredMessage: 'Enter an amount',
 						validNumberMessage: 'Input must be numbers',
-						validMoneyMessage: 'Input must be valid monetary value',
+						validMoneyMessage: 'Input must be a valid monetary value',
 						moreThanZeroMessage: 'Refund amount must be more than £0'
 					}
 				})

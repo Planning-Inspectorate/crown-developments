@@ -57,7 +57,7 @@ describe('./lib/forms/custom-components/fee-amount/fee-amount-validator.js', () 
 		assert.strictEqual(errors.applicationFee_amount.msg, 'Refund amount must be more than £0');
 	});
 
-	it('should return a custom error message if custom error is set and fee amount is less than the minimum amount', async () => {
+	it('should return a custom error message if custom error is set and fee amount is empty', async () => {
 		const req = {
 			body: {
 				applicationFee: 'yes',
