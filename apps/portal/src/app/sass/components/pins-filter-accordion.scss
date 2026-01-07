@@ -1,5 +1,10 @@
 @use 'node_modules/govuk-frontend/dist/govuk/index';
 
+%govuk-link-reset {
+	@extend .govuk-link;
+	@extend .govuk-link--no-visited-state;
+}
+
 .-link-focus {
 	outline: 3px solid rgba(0, 0, 0, 0);
 	color: #0b0c0c;
@@ -19,8 +24,7 @@
 	}
 
 	&__show-hide-all-filters-button {
-		@extend .govuk-link;
-		@extend .govuk-link--no-visited-state;
+		@extend %govuk-link-reset;
 		@include index.govuk-responsive-margin(4, 'bottom');
 		font-size: 1em;
 		background: none;
@@ -33,52 +37,31 @@
 		}
 	}
 
-	.filter-accordion__sections-container {
-		.filter-accordion__section {
-			.filter-accordion__section-summary {
-				@extend .govuk-heading-s;
-				display: flex;
-				align-items: center;
-				gap: 0.5rem;
-				width: 100%;
-				padding: 0.5rem 0 0.5rem 0.9375rem;
-				border-bottom: 1px solid #b1b4b6;
-				color: #1d70b8;
-				text-decoration: none;
-				cursor: pointer;
-
-				& > * {
-					vertical-align: middle;
-				}
-
-				a {
-					color: inherit;
-					text-decoration: none;
-				}
-			}
-
-			&:last-child .filter-accordion__section-summary {
-				border-bottom: none;
-			}
-		}
+	&__section {
+		border-bottom: 1px solid #b1b4b6;
+		padding: 1rem 0 0 0.9375rem;
 	}
 
-	&__sections {
-		border-bottom: 1px solid #f3f2f1;
-
-		&:last-child {
-			border-bottom: none;
-		}
+	&__section:last-child {
+		border-bottom: none;
+		padding-bottom: 1.5rem;
 	}
 
-	.filter-accordion__section-content {
-		padding-left: 0.9375rem;
+	.govuk-form-group {
+		margin-bottom: 0.625rem !important;
 	}
 
 	&__section-summary {
-		@extend .govuk-link;
-		@extend .govuk-link--no-visited-state;
-		@include index.govuk-responsive-margin(4, 'bottom');
+		@extend .govuk-heading-s;
+		@extend %govuk-link-reset;
+		display: flex;
+		font-weight: normal !important;
+		align-items: center;
+		gap: 0.5rem;
+		width: 100%;
+		color: #1d70b8;
+		text-decoration: none;
+		cursor: pointer;
 		list-style: none !important;
 
 		&::-webkit-details-marker {
@@ -98,10 +81,10 @@
 			line-height: 0;
 			transform-origin: center;
 		}
-	}
 
-	& [class*='filter-accordion__section'][open] &__section-summary::before {
-		transform: rotate(180deg);
+		&__section[open] &__section-summary::before {
+			transform: rotate(180deg);
+		}
 	}
 }
 
