@@ -5,20 +5,15 @@ import MonetaryInputValidator from '../monetary-input/monetary-input-validator.j
 
 /**
  * Validator for fee amount input fields.
- * @property {ErrorMessages} errorMessages - Custom error messages for validation.
  */
 export default class FeeAmountValidator extends MonetaryInputValidator {
-	/**
-	 * @param {Object} [options={}] - Optional constructor options
-	 * @param {ErrorMessages} [options.errorMessages] - Custom error messages that can override defaults
-	 */
-	constructor({ errorMessages = {} } = {}) {
-		super({ errorMessages });
+	constructor() {
+		super();
 	}
 	get requiredMessage() {
 		return 'Select yes if there is an application fee';
 	}
 	get conditionalRequiredMessage() {
-		return this.errorMessages?.conditionalRequiredMessage ?? 'Application fee is required';
+		return 'Enter an amount';
 	}
 }

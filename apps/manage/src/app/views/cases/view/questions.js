@@ -636,16 +636,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			url: 'refund-amount',
 			feeAmountInputFieldName: 'applicationFeeRefundAmount',
 			feeAmountQuestion: 'For example, £1000.00',
-			validators: [
-				new FeeAmountValidator({
-					errorMessages: {
-						conditionalRequiredMessage: 'Enter an amount',
-						validNumberMessage: 'Input must be numbers',
-						validMoneyMessage: 'Input must be a valid monetary value',
-						moreThanZeroMessage: 'Refund amount must be more than £0'
-					}
-				})
-			],
+			validators: [new FeeAmountValidator()],
 			editable: !overrides.isApplicationSubTypeLbc
 		},
 		applicationFeeRefundDate: dateQuestion({
