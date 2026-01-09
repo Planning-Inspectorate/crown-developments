@@ -17,7 +17,8 @@ class TestMonetaryValidator extends MonetaryInputValidator {
 
 describe('./lib/forms/custom-components/monetary-input/monetary-input-validator.js', () => {
 	const question = {
-		fieldName: 'applicationFee'
+		fieldName: 'applicationFee',
+		title: 'Application fee'
 	};
 
 	it('should not return an error message if both values are valid (value contains decimal)', async () => {
@@ -80,7 +81,7 @@ describe('./lib/forms/custom-components/monetary-input/monetary-input-validator.
 		const errors = await _validationMappedErrors(req, question);
 
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors.applicationFee_amount.msg, 'The amount must be a number');
+		assert.strictEqual(errors.applicationFee_amount.msg, 'Application fee must be a number');
 	});
 	it('should return an error message if fee amount is invalid - monetary value', async () => {
 		const req = {
@@ -93,7 +94,7 @@ describe('./lib/forms/custom-components/monetary-input/monetary-input-validator.
 		const errors = await _validationMappedErrors(req, question);
 
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors.applicationFee_amount.msg, 'Number must be a valid monetary value, like £100.00');
+		assert.strictEqual(errors.applicationFee_amount.msg, 'Application fee must be to the nearest pence');
 	});
 	it('should return an error message if fee amount is invalid - less than minimum amount', async () => {
 		const req = {
@@ -106,7 +107,7 @@ describe('./lib/forms/custom-components/monetary-input/monetary-input-validator.
 		const errors = await _validationMappedErrors(req, question);
 
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors.applicationFee_amount.msg, 'Number must be more than £0.01');
+		assert.strictEqual(errors.applicationFee_amount.msg, 'Application fee must be more than £0');
 	});
 	it('should return an error message if fee amount contains commas', async () => {
 		const cases = ['1,000.00', '10,000', '100,000.00', '1,000,000', '1,000,000.00'];
@@ -119,10 +120,7 @@ describe('./lib/forms/custom-components/monetary-input/monetary-input-validator.
 			};
 			const errors = await _validationMappedErrors(req, question);
 			assert.strictEqual(Object.keys(errors).length, 1);
-			assert.strictEqual(
-				errors.applicationFee_amount.msg,
-				'Amount must be a number without commas, e.g. 1000 or 1000.00'
-			);
+			assert.strictEqual(errors.applicationFee_amount.msg, 'Application fee must not include commas');
 		}
 	});
 
@@ -135,7 +133,7 @@ describe('./lib/forms/custom-components/monetary-input/monetary-input-validator.
 		};
 		const errors = await _validationMappedErrors(req, question);
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors.applicationFee_amount.msg, 'The amount must be a number');
+		assert.strictEqual(errors.applicationFee_amount.msg, 'Application fee must be a number');
 	});
 
 	it('should return an error message if fee amount is negative', async () => {
@@ -147,7 +145,7 @@ describe('./lib/forms/custom-components/monetary-input/monetary-input-validator.
 		};
 		const errors = await _validationMappedErrors(req, question);
 		assert.strictEqual(Object.keys(errors).length, 1);
-		assert.strictEqual(errors.applicationFee_amount.msg, 'The amount must be a number');
+		assert.strictEqual(errors.applicationFee_amount.msg, 'Application fee must be a number');
 	});
 
 	it('should not return an error message for a very large valid number', async () => {
