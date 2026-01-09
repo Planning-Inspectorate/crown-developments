@@ -314,6 +314,16 @@ describe('Filters', () => {
 			assert.match(result.errorMessage.text, /day must be a real day/i);
 		});
 
+		it('should error for invalid month in date', () => {
+			const result = dateFilter({
+				id: 'submittedDateFrom',
+				title: 'From',
+				values: { day: '1', month: '13', year: '2025' }
+			});
+			assert.notStrictEqual(result.errorMessage, undefined);
+			assert.match(result.errorMessage.text, /month must be a real month/i);
+		});
+
 		it('should error if to date is before from date', () => {
 			const fromDate = parseDateFromParts(4, 11, 2025);
 			const result = dateFilter({
