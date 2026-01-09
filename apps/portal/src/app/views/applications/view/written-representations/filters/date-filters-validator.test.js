@@ -101,7 +101,7 @@ describe('date-filters-validator', () => {
 			title: 'Date',
 			values: { day: '15', month: '13', year: '2025' }
 		});
-		assert.match(result.errorMessage.text, /day must be a real day/i);
+		assert.match(result.errorMessage.text, /month must be a real month/i);
 	});
 });
 
