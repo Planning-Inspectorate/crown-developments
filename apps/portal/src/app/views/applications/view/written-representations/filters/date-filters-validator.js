@@ -20,11 +20,12 @@ import { enGB } from 'date-fns/locale/en-GB';
  * @param {string} month
  * @param {string} year
  * @param {DateValidator} validator
+ * @param {string} title
  * @param {Date} [compareDate]
  * @param {'before' | 'after'} [compareType]
  * @returns {{text: string}|null}
  */
-function maybeGetDateError(day, month, year, validator, compareDate, compareType) {
+function maybeGetDateError(day, month, year, validator, title, compareDate, compareType) {
 	const anyPresent = Boolean(day || month || year);
 	const allPresent = Boolean(day && month && year);
 
@@ -57,8 +58,13 @@ function maybeGetDateError(day, month, year, validator, compareDate, compareType
 	}
 
 	// Check year is 4-digits and return invalidYearErrorMessage from DateValidator if not
-	if (year && year.length <= 3) {
+	if (year.length !== 4) {
 		return { text: validator.invalidYearErrorMessage };
+	}
+
+	if (parseInt(month) > 12 || parseInt(month) < 1) {
+		// This case not included in validator's messages
+		return { text: `${title} month must be a real month` };
 	}
 
 	const thisDate = parseDateFromParts(day, month, year);
@@ -105,7 +111,7 @@ export function dateFilter({ title, id, hint, values = {}, compareDate, compareT
 	month = typeof month === 'string' ? month : undefined;
 	year = typeof year === 'string' ? year : undefined;
 
-	const errorMessage = maybeGetDateError(day, month, year, validator, compareDate, compareType);
+	const errorMessage = maybeGetDateError(day, month, year, validator, title, compareDate, compareType);
 
 	return {
 		fieldset: { legend: { text: title, classes: 'govuk-fieldset__legend--s' } },
