@@ -15,6 +15,76 @@ import { enGB } from 'date-fns/locale/en-GB';
  */
 
 /**
+ * Validate date and return an error message object if not valid.
+ * @param {string} day
+ * @param {string} month
+ * @param {string} year
+ * @param {DateValidator} validator
+ * @param {Date} [compareDate]
+ * @param {'before' | 'after'} [compareType]
+ * @returns {{text: string}|null}
+ */
+function maybeGetDateError(day, month, year, validator, compareDate, compareType) {
+	const anyPresent = Boolean(day || month || year);
+	const allPresent = Boolean(day && month && year);
+
+	if (!anyPresent) {
+		// Should not error when all date fields are blank
+		return null;
+	}
+
+	if (!allPresent) {
+		// Map to specific DateValidator messages based on which are missing
+		if (!day && !month && year) {
+			return { text: validator.noDayMonthErrorMessage };
+		}
+		if (!day && month && !year) {
+			return { text: validator.noDayYearErrorMessage };
+		}
+		if (day && !month && !year) {
+			return { text: validator.noMonthYearErrorMessage };
+		}
+		if (!day && month && year) {
+			return { text: validator.noDayErrorMessage };
+		}
+		if (day && !month && year) {
+			return { text: validator.noMonthErrorMessage };
+		}
+		if (day && month && !year) {
+			return { text: validator.noYearErrorMessage };
+		}
+		return { text: validator.emptyErrorMessage };
+	}
+
+	// Check year is 4-digits and return invalidYearErrorMessage from DateValidator if not
+	if (year && year.length <= 3) {
+		return { text: validator.invalidYearErrorMessage };
+	}
+
+	const thisDate = parseDateFromParts(day, month, year);
+
+	if (!thisDate) {
+		return { text: validator.invalidDateErrorMessage };
+	}
+
+	if (!compareDate) {
+		// No further possible errors if nothing to compare to
+		return null;
+	}
+
+	// Range validation: compareType can be 'before' or 'after'
+	if (compareType === 'before' && thisDate > compareDate) {
+		return { text: 'The From date must be before the entered To date' };
+	}
+	if (compareType === 'after' && thisDate < compareDate) {
+		return { text: 'The To date must be after the entered From date' };
+	}
+
+	// No errors
+	return null;
+}
+
+/**
  * Validates a date input
  * @param {{ day: string, month: string, year: string }} values
  * @param {string} title
@@ -35,53 +105,7 @@ export function dateFilter({ title, id, hint, values = {}, compareDate, compareT
 	month = typeof month === 'string' ? month : undefined;
 	year = typeof year === 'string' ? year : undefined;
 
-	const anyPresent = Boolean(day || month || year);
-	const allPresent = Boolean(day && month && year);
-	let errorMessage;
-	let thisDate = null;
-	if (anyPresent) {
-		if (!allPresent) {
-			// Map to specific DateValidator messages based on which are missing
-			if (!day && !month && year) {
-				errorMessage = { text: validator.noDayMonthErrorMessage };
-			} else if (!day && month && !year) {
-				errorMessage = { text: validator.noDayYearErrorMessage };
-			} else if (day && !month && !year) {
-				errorMessage = { text: validator.noMonthYearErrorMessage };
-			} else if (!day && month && year) {
-				errorMessage = { text: validator.noDayErrorMessage };
-			} else if (day && !month && year) {
-				errorMessage = { text: validator.noMonthErrorMessage };
-			} else if (day && month && !year) {
-				errorMessage = { text: validator.noYearErrorMessage };
-			} else {
-				errorMessage = { text: validator.emptyErrorMessage };
-			}
-		} else {
-			const d = parseInt(day, 10);
-			const m = parseInt(month, 10);
-			const y = parseInt(year, 10);
-
-			// Check year is 4-digits and return invalidYearErrorMessage from DateValidator if not
-			if (year && year.length <= 3) {
-				errorMessage = { text: validator.invalidYearErrorMessage };
-			} else {
-				thisDate = parseDateFromParts(d, m, y);
-				if (!thisDate) {
-					errorMessage = { text: validator.invalidDateErrorMessage };
-				}
-				// Range validation: compareType can be 'before' or 'after'
-				if (compareDate && thisDate) {
-					if (compareType === 'before' && thisDate > compareDate) {
-						errorMessage = { text: 'The From date must be before the entered To date' };
-					}
-					if (compareType === 'after' && thisDate < compareDate) {
-						errorMessage = { text: 'The To date must be after the entered From date' };
-					}
-				}
-			}
-		}
-	}
+	const errorMessage = maybeGetDateError(day, month, year, validator, compareDate, compareType);
 
 	return {
 		fieldset: { legend: { text: title, classes: 'govuk-fieldset__legend--s' } },
