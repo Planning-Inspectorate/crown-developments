@@ -25,7 +25,7 @@ import { enGB } from 'date-fns/locale/en-GB';
  * @param {'before' | 'after'} [compareType]
  * @returns {{text: string}|null}
  */
-function maybeGetDateError(day, month, year, validator, title, compareDate, compareType) {
+function validateDate(day, month, year, validator, title, compareDate, compareType) {
 	const anyPresent = Boolean(day || month || year);
 	const allPresent = Boolean(day && month && year);
 
@@ -111,7 +111,7 @@ export function dateFilter({ title, id, hint, values = {}, compareDate, compareT
 	month = typeof month === 'string' ? month : undefined;
 	year = typeof year === 'string' ? year : undefined;
 
-	const errorMessage = maybeGetDateError(day, month, year, validator, title, compareDate, compareType);
+	const errorMessage = validateDate(day, month, year, validator, title, compareDate, compareType);
 
 	return {
 		fieldset: { legend: { text: title, classes: 'govuk-fieldset__legend--s' } },
