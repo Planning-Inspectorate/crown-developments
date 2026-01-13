@@ -88,23 +88,24 @@
     </div>
 {% endmacro %}
 
-{% macro collapsableOuterContainer(sections, title, cspNonce, suffix) %}
+{% macro collapsableOuterContainer(sections, title, cspNonce, suffix, open) %}
     <div class="filter-accordion__outer-container{{ suffix }}">
         {{ govukDetails({
             summaryText: title,
-            html: innerContainer(sections, cspNonce, suffix)
+            html: innerContainer(sections, cspNonce, suffix),
+            open: open
         }) }}
     </div>
 {% endmacro %}
 
-{% macro filterAccordion(sections, title, id, cspNonce, showHideIdSuffix, collapsable=false) %}
+{% macro filterAccordion(sections, title, id, cspNonce, showHideIdSuffix, collapsable=false, open=false) %}
     {% set suffix = "-" + showHideIdSuffix | default("") %}
     <div
         class="filter-accordion"
         {% if id %}id="{{ id }}"{% endif %}
     >
         {% if collapsable %}
-            {{ collapsableOuterContainer(sections, title, cspNonce, suffix) }}
+            {{ collapsableOuterContainer(sections, title, cspNonce, suffix, open) }}
         {% else %}
             {{ fixedOuterContainer(sections, title, cspNonce, suffix) }}
         {% endif %}

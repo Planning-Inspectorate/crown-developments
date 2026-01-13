@@ -18,18 +18,25 @@ import { parseDateFromParts } from './filters/date-filters-validator.js';
  * @param {object} params.logger
  * @param {string} id
  * @param {object} query
- * @returns {{ filters: any[], filterQueryItems: any[], errorSummary: any[], dateErrors: any[] }}
+ * @returns {Promise<{ filters: (CheckboxFilter|DateFilter)[], filterQueryItems: FilterQueryItem[], errorSummary: { text: string, href: string }[], dateErrors: {text: string, href: string }[], isMobileFilterOpen: boolean }>}
  */
 function getFiltersAndErrors({ db, logger }, id, query) {
 	const filters = buildFilters({ db, logger }, id, query);
 
 	return Promise.resolve(filters).then((filters) => {
-		const filterQueryItems = getFilterQueryItems(filters, query);
+		const filterQueryItems = getFilterQueryItems(filters);
 		const errorSummary = mapErrorSummary(filters);
 		const dateErrors = errorSummary
 			.filter((e) => e.href && e.href.startsWith('#submittedDate'))
 			.map((e) => ({ text: e.text, href: e.href }));
-		return { filters, filterQueryItems, errorSummary: errorSummary.length ? errorSummary : null, dateErrors };
+		const isMobileFilterOpen = filterQueryItems.length > 0 || dateErrors.length > 0;
+		return {
+			filters,
+			filterQueryItems,
+			errorSummary: errorSummary.length ? errorSummary : null,
+			dateErrors,
+			isMobileFilterOpen
+		};
 	});
 }
 
@@ -85,7 +92,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 		}
 
 		const stringQueriesArray = splitStringQueries(req.query?.searchCriteria);
-		const { filters, filterQueryItems, errorSummary, dateErrors } = await getFiltersAndErrors(
+		const { filters, filterQueryItems, errorSummary, dateErrors, isMobileFilterOpen } = await getFiltersAndErrors(
 			{ db, logger },
 			id,
 			req.query
@@ -212,6 +219,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			resultsEndNumber,
 			searchValue: req.query?.searchCriteria || '',
 			filters,
+			isMobileFilterOpen,
 			hasQueries: hasQueries(req.query),
 			filterQueries: filterQueryItems,
 			errorSummary,
