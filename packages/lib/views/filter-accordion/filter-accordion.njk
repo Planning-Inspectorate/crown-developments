@@ -27,6 +27,7 @@
                             {% if section.type == 'checkboxes' and section.options.items %}
                                 {{ govukCheckboxes({
                                     name: section.name,
+                                    idPrefix: section.name + suffix,
                                     items: section.options.items,
                                     classes: "govuk-checkboxes--small",
                                     hint: { text: section.options.hintText }
@@ -42,7 +43,7 @@
                 {% endfor %}
             </div>
         </div>
-        <button class="govuk-button" id="filter-search-button" data-module="govuk-button" type="submit">Apply filter</button>
+        <button class="govuk-button" id="filter-search-button{{ suffix }}" data-module="govuk-button" type="submit">Apply filter</button>
         <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
 					document.addEventListener('DOMContentLoaded', function () {
 						const accordion = document.querySelector('.filter-accordion__inner-container{{ suffix }}');

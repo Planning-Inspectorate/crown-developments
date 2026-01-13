@@ -25,7 +25,8 @@ function getFiltersAndErrors({ db, logger }, id, query) {
 
 	return Promise.resolve(filters).then((filters) => {
 		const filterQueryItems = getFilterQueryItems(filters);
-		const errorSummary = mapErrorSummary(filters);
+		const formType = getFormType(query);
+		const errorSummary = mapErrorSummary(filters, formType);
 		const dateErrors = errorSummary
 			.filter((e) => e.href && e.href.startsWith('#submittedDate'))
 			.map((e) => ({ text: e.text, href: e.href }));
@@ -41,18 +42,29 @@ function getFiltersAndErrors({ db, logger }, id, query) {
 }
 
 /**
+ * Determines which form (desktop or mobile) was submitted based on query fields
+ * @param {object} query
+ * @returns {'desktop'|'mobile'}
+ */
+function getFormType(query) {
+	return query?.formType === 'mobile' ? 'mobile' : 'desktop';
+}
+
+/**
  * Maps error summary from filters.
  * @param {any[]} filters
+ * @param {'desktop'|'mobile'} formType
  * @returns {Array<{ text: string, href: string }>}
  */
-function mapErrorSummary(filters) {
+function mapErrorSummary(filters, formType) {
 	const errorSummary = [];
 	(filters || []).forEach((section) => {
 		if (section?.title === 'Submitted date' && Array.isArray(section.dateInputs)) {
 			section.dateInputs.forEach((dateInput) => {
 				const errText = dateInput?.errorMessage?.text;
 				if (errText) {
-					errorSummary.push({ text: errText, href: `#${dateInput.idPrefix}-day` });
+					const prefix = formType === 'mobile' ? `${dateInput.idPrefix}-mobile` : dateInput.idPrefix;
+					errorSummary.push({ text: errText, href: `#${prefix}-day` });
 				}
 			});
 		}
@@ -202,6 +214,29 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 
 		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
 
+		// Duplicate filters for mobile with unique ids
+		const mobileFilters = filters.map((filter) => {
+			// Create a shallow copy of the filter object
+			const filterCopy = { ...filter };
+			if (!Array.isArray(filter.dateInputs)) {
+				return filterCopy;
+			}
+			// Create a new array of dateInputs, each being a shallow copy
+			filterCopy.dateInputs = filter.dateInputs.map((dateInput) => {
+				const dateInputCopy = { ...dateInput };
+				if (dateInputCopy.id) {
+					dateInputCopy.id = `${dateInputCopy.id}-mobile`;
+				}
+				if (dateInputCopy.idPrefix) {
+					dateInputCopy.idPrefix = `${dateInputCopy.idPrefix}-mobile`;
+				}
+
+				return dateInputCopy;
+			});
+
+			return filterCopy;
+		});
+
 		res.render('views/applications/view/written-representations/view.njk', {
 			pageCaption: crownDevelopment.reference,
 			pageTitle: 'Written representations',
@@ -219,6 +254,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			resultsEndNumber,
 			searchValue: req.query?.searchCriteria || '',
 			filters,
+			mobileFilters,
 			isMobileFilterOpen,
 			hasQueries: hasQueries(req.query),
 			filterQueries: filterQueryItems,
