@@ -116,6 +116,7 @@ export function dateFilter({ title, id, hint, values = {}, compareDate, compareT
 	return {
 		fieldset: { legend: { text: title, classes: 'govuk-fieldset__legend--s' } },
 		title,
+		id: id,
 		idPrefix: id,
 		namePrefix: id,
 		hint,
@@ -123,21 +124,18 @@ export function dateFilter({ title, id, hint, values = {}, compareDate, compareT
 		items: [
 			{
 				classes: 'govuk-input--width-2',
-				id: `day`,
 				name: `day`,
 				label: 'Day',
 				value: day
 			},
 			{
 				classes: 'govuk-input--width-2',
-				id: `month`,
 				name: `month`,
 				label: 'Month',
 				value: month
 			},
 			{
 				classes: 'govuk-input--width-4',
-				id: `year`,
 				name: `year`,
 				label: 'Year',
 				value: year

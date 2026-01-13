@@ -178,18 +178,18 @@ describe('Filters', () => {
 							idPrefix: 'submittedDateFrom',
 							title: 'From',
 							items: [
-								{ id: 'day', value: '01' },
-								{ id: 'month', value: '02' },
-								{ id: 'year', value: '2025' }
+								{ name: 'day', value: '01' },
+								{ name: 'month', value: '02' },
+								{ name: 'year', value: '2025' }
 							]
 						},
 						{
 							idPrefix: 'submittedDateTo',
 							title: 'To',
 							items: [
-								{ id: 'day', value: '10' },
-								{ id: 'month', value: '02' },
-								{ id: 'year', value: '2025' }
+								{ name: 'day', value: '10' },
+								{ name: 'month', value: '02' },
+								{ name: 'year', value: '2025' }
 							]
 						}
 					]
