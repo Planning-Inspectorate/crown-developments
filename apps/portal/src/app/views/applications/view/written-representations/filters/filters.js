@@ -182,9 +182,9 @@ export function getFilterQueryItems(filters) {
 				const hasAllValues = dateInput.items?.every((item) => item.value);
 				const hasNoError = !dateInput.errorMessage;
 				if (hasAllValues && hasNoError) {
-					const day = dateInput.items.find((item) => item.id === 'day')?.value;
-					const month = dateInput.items.find((item) => item.id === 'month')?.value;
-					const year = dateInput.items.find((item) => item.id === 'year')?.value;
+					const day = dateInput.items.find((item) => item.name === 'day')?.value;
+					const month = dateInput.items.find((item) => item.name === 'month')?.value;
+					const year = dateInput.items.find((item) => item.name === 'year')?.value;
 
 					filterQueryItems.push({
 						label: dateInput.title,
