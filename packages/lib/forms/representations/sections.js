@@ -26,6 +26,8 @@ export function haveYourSayManageSections(questions, isRepsUploadDocsLive, isVie
 		new Section('Details', 'details')
 			.addQuestion(questions.reference)
 			.addQuestion(questions.submittedDate)
+			.addQuestion(questions.submittedReceivedMethod)
+			.addQuestion(questions.submissionMethodReason)
 			.addQuestion(questions.category)
 			.addQuestion(questions.status)
 			.withCondition(() => isViewJourney),
@@ -64,6 +66,8 @@ export function addRepresentationSection(questions, isRepsUploadDocsLive) {
 	return [
 		new Section('Representation', 'start')
 			.addQuestion(questions.submittedDate)
+			.addQuestion(questions.submittedReceivedMethod)
+			.addQuestion(questions.submissionMethodReason)
 			.addQuestion(questions.category)
 			.addQuestion(questions.submittedFor),
 		addRepMyselfSection(questions, isRepsUploadDocsLive, false),

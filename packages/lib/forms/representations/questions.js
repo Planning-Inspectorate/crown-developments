@@ -5,6 +5,8 @@ import { createQuestions } from '@planning-inspectorate/dynamic-forms/src/questi
 import { questionClasses } from '@planning-inspectorate/dynamic-forms/src/questions/questions.js';
 import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import {
+	RECEIVED_METHOD,
+	RECEIVED_METHOD_ID,
 	REPRESENTATION_CATEGORY,
 	REPRESENTATION_STATUS,
 	REPRESENTATION_SUBMITTED_FOR,
@@ -253,6 +255,32 @@ export const getQuestions = ({ methodOverrides = {}, textOverrides = {}, actionO
 			fieldName: 'submittedDate',
 			url: 'representation-date',
 			validators: [new DateValidator('Representation received date')]
+		},
+		submittedReceivedMethod: {
+			type: COMPONENT_TYPES.RADIO,
+			title: 'How was this representation received?',
+			question: 'How was this representation received?',
+			fieldName: 'submittedReceivedMethodId',
+			url: 'submission-method',
+			validators: [new RequiredValidator('Select how this representation was received')],
+			options: referenceDataToRadioOptions(RECEIVED_METHOD.filter(({ id }) => id !== RECEIVED_METHOD_ID.ONLINE))
+		},
+
+		submissionMethodReason: {
+			type: COMPONENT_TYPES.TEXT_ENTRY,
+			title: 'Reason for not using the online service',
+			question: 'Reason for not using the online service (optional)?',
+			fieldName: `submissionMethodReason`,
+			url: 'submission-reason',
+			hint: 'If you have them, add details about why the written representation was not submitted using the online service.',
+			validators: [
+				new StringValidator({
+					maxLength: {
+						maxLength: 50,
+						maxLengthMessage: 'What you want to tell us must be 50 characters or less'
+					}
+				})
+			]
 		},
 		category: {
 			type: COMPONENT_TYPES.RADIO,

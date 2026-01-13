@@ -286,6 +286,28 @@ export const NOTIFICATION_SOURCE = Object.freeze({
 });
 
 /**
+ * @type {Readonly<{PHONE: string, EMAIL: string, POST: string, IN_PERSON: string, ONLINE: string}>}}>}
+ */
+export const RECEIVED_METHOD_ID = Object.freeze({
+	ONLINE: 'online',
+	PHONE: 'phone',
+	EMAIL: 'email',
+	POST: 'post',
+	IN_PERSON: 'in-person'
+});
+
+/**
+ * @type {import('@pins/crowndev-database').Prisma.ReceivedMethodCreateInput[]}
+ */
+export const RECEIVED_METHOD = [
+	{ id: RECEIVED_METHOD_ID.ONLINE, displayName: 'Online' },
+	{ id: RECEIVED_METHOD_ID.PHONE, displayName: 'Phone' },
+	{ id: RECEIVED_METHOD_ID.EMAIL, displayName: 'Email' },
+	{ id: RECEIVED_METHOD_ID.POST, displayName: 'Post' },
+	{ id: RECEIVED_METHOD_ID.IN_PERSON, displayName: 'In person' }
+];
+
+/**
  *
  * @type {Readonly<{CONSULTEES: string, INTERESTED_PARTIES: string}>}
  */
@@ -629,6 +651,10 @@ export async function seedStaticData(dbClient) {
 
 	await Promise.all(
 		APPLICATION_UPDATE_STATUS.map((input) => upsertReferenceData({ delegate: dbClient.applicationUpdateStatus, input }))
+	);
+
+	await Promise.all(
+		RECEIVED_METHOD.map((input) => upsertReferenceData({ delegate: dbClient.representationReceivedMethod, input }))
 	);
 
 	await Promise.all(
