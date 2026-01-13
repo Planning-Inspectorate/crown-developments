@@ -164,7 +164,7 @@ export function hasQueries(query) {
 
 /**
  * Extracts selected filter items from the filters array.
- * @param {Filter[]} filters
+ * @param {(CheckboxFilter|DateFilter)[]} filters
  * @returns {FilterQueryItem[]}
  */
 export function getFilterQueryItems(filters) {
