@@ -245,6 +245,7 @@ model Representation {
   submittedDate             DateTime
   submittedReceivedMethodId String?
   SubmittedReceivedMethod   RepresentationReceivedMethod? @relation(fields: [submittedReceivedMethodId], references: [id])
+  submissionMethodReason    String?                       @db.NVarChar(50)
 
   comment         String  @db.NVarChar(MAX)
   commentRedacted String? @db.NVarChar(MAX)
