@@ -83,10 +83,11 @@
 					</form>
                     {# only show on mobile #}
                     <div class="mobile-default">
-                        <form id="search-filter-form" method="GET">
+                        <form id="search-filter-form-mobile" method="GET">
+                            <input type="hidden" name="formType" value="mobile">
                             <input type="hidden" name="searchCriteria" value="{{ searchValue }}">
                             <input type="hidden" name="itemsPerPage" value="{{ selectedItemsPerPage }}">
-                            {{ filterAccordion(filters, 'Filters', id, cspNonce, 'mobile', true) }}
+                            {{ filterAccordion(mobileFilters, 'Filters', id, cspNonce, 'mobile', true, isMobileFilterOpen) }}
                         </form>
                     </div>
                     {# ### #}
