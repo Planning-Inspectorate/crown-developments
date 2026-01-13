@@ -28,7 +28,7 @@
     "@azure/identity": "^4.13.0",
     "@azure/msal-node": "^3.8.4",
     "@microsoft/microsoft-graph-client": "^3.0.7",
-    "@ministryofjustice/frontend": "^7.1.0",
+    "@ministryofjustice/frontend": "^8.0.0",
     "@planning-inspectorate/dynamic-forms": "^2.3.0",
     "@prisma/adapter-mssql": "^7.2.0",
     "@prisma/client": "^7.2.0",
