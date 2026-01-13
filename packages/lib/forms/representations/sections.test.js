@@ -2,7 +2,11 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import { getQuestions } from './questions.js';
-import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import {
+	REPRESENTATION_SUBMITTED_FOR_ID,
+	REPRESENTED_TYPE_ID,
+	RECEIVED_METHOD_ID
+} from '@pins/crowndev-database/src/seed/data-static.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
 import { addRepresentationSection, haveYourSayManageSections, haveYourSaySections } from './sections.js';
@@ -752,5 +756,90 @@ describe('have-your-say', () => {
 				);
 			}
 		};
+	});
+	describe('submissionMethodReason', () => {
+		it('should return true when submissionMethodReason is defined and not empty for non-online received method', () => {
+			const response = {
+				RECEIVED_METHOD_ID: 'email',
+				answers: {
+					submissionMethodReason: 'Valid reason'
+				}
+			};
+
+			const condition =
+				response.RECEIVED_METHOD_ID !== RECEIVED_METHOD_ID.ONLINE &&
+				response.answers &&
+				response.answers.submissionMethodReason != null &&
+				String(response.answers.submissionMethodReason).trim() !== '';
+
+			assert.strictEqual(condition, true);
+		});
+
+		it('should return false when submissionMethodReason is null for non-online received method', () => {
+			const response = {
+				RECEIVED_METHOD_ID: 'email',
+				answers: {
+					submissionMethodReason: null
+				}
+			};
+
+			const condition =
+				response.RECEIVED_METHOD_ID !== RECEIVED_METHOD_ID.ONLINE &&
+				response.answers &&
+				response.answers.submissionMethodReason != null &&
+				String(response.answers.submissionMethodReason).trim() !== '';
+
+			assert.strictEqual(condition, false);
+		});
+
+		it('should return false when submissionMethodReason is an empty string for non-online received method', () => {
+			const response = {
+				RECEIVED_METHOD_ID: 'email',
+				answers: {
+					submissionMethodReason: '   '
+				}
+			};
+
+			const condition =
+				response.RECEIVED_METHOD_ID !== RECEIVED_METHOD_ID.ONLINE &&
+				response.answers &&
+				response.answers.submissionMethodReason != null &&
+				String(response.answers.submissionMethodReason).trim() !== '';
+
+			assert.strictEqual(condition, false);
+		});
+
+		it('should return false when received method is online regardless of submissionMethodReason', () => {
+			const response = {
+				RECEIVED_METHOD_ID: RECEIVED_METHOD_ID.ONLINE,
+				answers: {
+					submissionMethodReason: undefined
+				}
+			};
+
+			const condition =
+				response.RECEIVED_METHOD_ID !== RECEIVED_METHOD_ID.ONLINE &&
+				response.answers &&
+				response.answers.submissionMethodReason != null &&
+				String(response.answers.submissionMethodReason).trim() !== '';
+
+			assert.strictEqual(condition, false);
+		});
+		it('should return false when submissionMethodReason answer object is undefined', () => {
+			const response = {
+				RECEIVED_METHOD_ID: 'email',
+				answers: {
+					submissionMethodReason: undefined
+				}
+			};
+
+			const condition =
+				response.RECEIVED_METHOD_ID !== RECEIVED_METHOD_ID.ONLINE &&
+				response.answers &&
+				response.answers.submissionMethodReason != null &&
+				String(response.answers.submissionMethodReason).trim() !== '';
+
+			assert.strictEqual(condition, false);
+		});
 	});
 });

@@ -333,12 +333,19 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 		createInput.submittedDate = answers.submittedDate;
 	}
 
+	const receivedMethodId = answers.submittedReceivedMethodId ?? RECEIVED_METHOD_ID.ONLINE;
+
 	if (answers.submittedReceivedMethodId) {
 		createInput.SubmittedReceivedMethod = { connect: { id: answers.submittedReceivedMethodId } };
 	}
 
-	if (answers.submissionMethodReason) {
-		createInput.submissionMethodReason = answers.submissionMethodReason;
+	const submissionReason =
+		typeof answers.submissionMethodReason === 'string'
+			? answers.submissionMethodReason.trim()
+			: answers.submissionMethodReason;
+
+	if (receivedMethodId !== RECEIVED_METHOD_ID.ONLINE && submissionReason !== null) {
+		createInput.submissionMethodReason = submissionReason;
 	}
 
 	createInput.Category = {

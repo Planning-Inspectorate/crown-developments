@@ -1526,7 +1526,10 @@ describe('view-model', () => {
 		});
 
 		it('should include submissionMethodReason when provided', () => {
-			const mockAnswers = { submissionMethodReason: 'User prefers email for communication' };
+			const mockAnswers = {
+				submittedReceivedMethodId: 'email',
+				submissionMethodReason: 'User prefers email for communication'
+			};
 			const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
 			assert.strictEqual(createInput.submissionMethodReason, 'User prefers email for communication');
 		});
