@@ -116,19 +116,20 @@ export function buildApplicationInformationPage(service) {
 			applicationStatus === APPLICATION_PUBLISH_STATUS.EXPIRED;
 		const isExpired = applicationStatus === APPLICATION_PUBLISH_STATUS.EXPIRED;
 
+		let links = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, displayApplicationUpdates, true);
+		if (isWithdrawn && isExpired) {
+			links = links.filter((link) => link.href === `/applications/${id}/application-information`);
+		} else if (isWithdrawn) {
+			links = links.filter((link) => link.href !== `/applications/${id}/have-your-say`);
+		}
+
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Application information',
 			applicationReference: crownDevelopment.reference,
 			isWithdrawn,
 			isExpired,
-			links: applicationLinks(
-				id,
-				haveYourSayPeriod,
-				representationsPublishDate,
-				displayApplicationUpdates,
-				!(isWithdrawn && isExpired)
-			),
+			links,
 			baseUrl: req.baseUrl,
 			currentUrl: req.originalUrl,
 			crownDevelopmentFields,
