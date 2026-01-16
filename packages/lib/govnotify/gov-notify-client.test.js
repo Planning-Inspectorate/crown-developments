@@ -70,7 +70,34 @@ describe(`gov-notify-client`, () => {
 				{
 					personalisation: {
 						reference: 'reference',
-						sharePointLink: 'link'
+						sharePointLink: 'link',
+						isLbcCase: 'no'
+					},
+					reference: 'reference'
+				}
+			]);
+		});
+		it('should call sendEmail with LBC case flag if specified', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {
+				acknowledgePreNotification: 'template-id-1'
+			});
+			ctx.mock.method(client, 'sendEmail', () => {});
+			await client.sendAcknowledgePreNotification('email', {
+				reference: 'reference',
+				sharePointLink: 'link',
+				isLbcCase: true
+			});
+			assert.strictEqual(client.sendEmail.mock.callCount(), 1);
+			const args = client.sendEmail.mock.calls[0].arguments;
+			assert.deepStrictEqual(args, [
+				'template-id-1',
+				'email',
+				{
+					personalisation: {
+						reference: 'reference',
+						sharePointLink: 'link',
+						isLbcCase: 'yes'
 					},
 					reference: 'reference'
 				}
