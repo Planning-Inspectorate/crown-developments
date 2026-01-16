@@ -22,12 +22,12 @@ export class GovNotifyClient {
 
 	/**
 	 * @param {string} email - Recipients email address
-	 * @param {{reference: string, sharePointLink: string}} personalisation
+	 * @param {{reference: string, sharePointLink: string, isLbcCase: boolean}} personalisation
 	 * @returns {Promise<void>}
 	 */
-	async sendAcknowledgePreNotification(email, { reference, sharePointLink }) {
+	async sendAcknowledgePreNotification(email, { reference, sharePointLink, isLbcCase = false }) {
 		await this.sendEmail(this.#templateIds.acknowledgePreNotification, email, {
-			personalisation: { reference, sharePointLink },
+			personalisation: { reference, sharePointLink, isLbcCase: isLbcCase ? 'yes' : 'no' },
 			reference: reference
 		});
 	}
