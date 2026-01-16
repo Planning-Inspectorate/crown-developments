@@ -8,7 +8,8 @@ import assert from 'node:assert';
 import {
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
-	REPRESENTED_TYPE_ID
+	REPRESENTED_TYPE_ID,
+	RECEIVED_METHOD_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
@@ -24,6 +25,8 @@ describe('view-model', () => {
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				submittedReceivedMethodId: 'phone',
+				submissionMethodReason: 'This is a test',
 				categoryId: 'c-id-1',
 				submittedForId: 'id-1',
 				comment: 'comment one',
@@ -54,6 +57,8 @@ describe('view-model', () => {
 				reference: 'ref',
 				statusId: REPRESENTATION_STATUS_ID.AWAITING_REVIEW,
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				submittedReceivedMethodId: 'phone',
+				submissionMethodReason: undefined,
 				categoryId: 'c-id-1',
 				submittedForId: 'id-1',
 				containsAttachments: false,
@@ -82,6 +87,8 @@ describe('view-model', () => {
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				submittedReceivedMethodId: 'phone',
+				submissionMethodReason: undefined,
 				categoryId: 'c-id-1',
 				wantsToBeHeard: true,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
@@ -111,6 +118,8 @@ describe('view-model', () => {
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				submittedReceivedMethodId: 'phone',
+				submissionMethodReason: undefined,
 				categoryId: 'c-id-1',
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
 				myselfHearingPreference: 'yes',
@@ -149,6 +158,8 @@ describe('view-model', () => {
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				submittedReceivedMethodId: 'phone',
+				submissionMethodReason: 'This is a test',
 				categoryId: 'c-id-1',
 				wantsToBeHeard: true,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
@@ -196,6 +207,8 @@ describe('view-model', () => {
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				submittedReceivedMethodId: 'phone',
+				submissionMethodReason: 'This is a test',
 				categoryId: 'c-id-1',
 				submittedForId: 'myself',
 				submittedByContactId: 'sub-id-1',
@@ -247,6 +260,8 @@ describe('view-model', () => {
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				submittedReceivedMethodId: 'phone',
+				submissionMethodReason: undefined,
 				categoryId: 'c-id-1',
 				wantsToBeHeard: true,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
@@ -268,6 +283,8 @@ describe('view-model', () => {
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				submittedReceivedMethodId: 'phone',
+				submissionMethodReason: undefined,
 				categoryId: 'c-id-1',
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				representedTypeId: 'r-id-1',
@@ -300,6 +317,8 @@ describe('view-model', () => {
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				submittedReceivedMethodId: 'phone',
+				submissionMethodReason: 'This is a test',
 				categoryId: 'c-id-1',
 				wantsToBeHeard: true,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
@@ -327,6 +346,8 @@ describe('view-model', () => {
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				submittedReceivedMethodId: 'phone',
+				submissionMethodReason: 'This is a test',
 				categoryId: 'c-id-1',
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
@@ -363,6 +384,8 @@ describe('view-model', () => {
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				submittedReceivedMethodId: 'phone',
+				submissionMethodReason: 'This is a test',
 				categoryId: 'c-id-1',
 				wantsToBeHeard: true,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
@@ -408,6 +431,8 @@ describe('view-model', () => {
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				submittedReceivedMethodId: 'phone',
+				submissionMethodReason: 'This is a test',
 				categoryId: 'c-id-1',
 				submittedForId: 'on-behalf-of',
 				submittedByContactId: 'sub-id-1',
@@ -457,6 +482,8 @@ describe('view-model', () => {
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				submittedReceivedMethodId: 'phone',
+				submissionMethodReason: 'This is a test',
 				categoryId: 'c-id-1',
 				wantsToBeHeard: true,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
@@ -482,6 +509,8 @@ describe('view-model', () => {
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				submittedReceivedMethodId: 'phone',
+				submissionMethodReason: 'This is a test',
 				categoryId: 'c-id-1',
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
@@ -516,6 +545,8 @@ describe('view-model', () => {
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				submittedReceivedMethodId: 'phone',
+				submissionMethodReason: 'This is a test',
 				categoryId: 'c-id-1',
 				wantsToBeHeard: true,
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
@@ -542,6 +573,8 @@ describe('view-model', () => {
 				reference: 'ref',
 				statusId: 'status-1',
 				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				submittedReceivedMethodId: 'phone',
+				submissionMethodReason: 'This is a test',
 				categoryId: 'c-id-1',
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 				representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
@@ -602,6 +635,8 @@ describe('view-model', () => {
 				reference: undefined,
 				statusId: undefined,
 				submittedDate: undefined,
+				submittedReceivedMethodId: 'online',
+				submissionMethodReason: undefined,
 				categoryId: undefined,
 				submittedForId: undefined,
 				submittedByContactId: undefined,
@@ -847,6 +882,11 @@ describe('view-model', () => {
 							id: 'interested-parties'
 						}
 					},
+					SubmittedReceivedMethod: {
+						connect: {
+							id: 'online'
+						}
+					},
 					submittedDate: now,
 					submittedByAgent: false,
 					SubmittedByContact: {
@@ -905,6 +945,11 @@ describe('view-model', () => {
 					Category: {
 						connect: {
 							id: 'interested-parties'
+						}
+					},
+					SubmittedReceivedMethod: {
+						connect: {
+							id: 'online'
 						}
 					},
 					submittedDate: now,
@@ -978,6 +1023,11 @@ describe('view-model', () => {
 							id: 'consultees'
 						}
 					},
+					SubmittedReceivedMethod: {
+						connect: {
+							id: 'online'
+						}
+					},
 					submittedDate: now,
 					submittedByAgent: true,
 					submittedByAgentOrgName: 'my role',
@@ -1045,6 +1095,11 @@ describe('view-model', () => {
 					Category: {
 						connect: {
 							id: 'interested-parties'
+						}
+					},
+					SubmittedReceivedMethod: {
+						connect: {
+							id: 'online'
 						}
 					},
 					submittedDate: now,
@@ -1117,6 +1172,11 @@ describe('view-model', () => {
 							id: 'interested-parties'
 						}
 					},
+					SubmittedReceivedMethod: {
+						connect: {
+							id: 'online'
+						}
+					},
 					submittedDate: now,
 					submittedByAgent: false,
 					SubmittedByContact: {
@@ -1184,6 +1244,11 @@ describe('view-model', () => {
 					Category: {
 						connect: {
 							id: 'interested-parties'
+						}
+					},
+					SubmittedReceivedMethod: {
+						connect: {
+							id: 'online'
 						}
 					},
 					submittedDate: now,
@@ -1265,6 +1330,11 @@ describe('view-model', () => {
 							id: 'interested-parties'
 						}
 					},
+					SubmittedReceivedMethod: {
+						connect: {
+							id: 'online'
+						}
+					},
 					submittedDate: now,
 					submittedByAgent: true,
 					submittedByAgentOrgName: 'my role',
@@ -1273,7 +1343,11 @@ describe('view-model', () => {
 							firstName: 'firstName',
 							lastName: 'lastName',
 							email: 'myemail@email.com',
-							ContactPreference: { connect: { id: 'email' } }
+							ContactPreference: {
+								connect: {
+									id: 'email'
+								}
+							}
 						}
 					},
 					SubmittedFor: {
@@ -1332,6 +1406,11 @@ describe('view-model', () => {
 					Category: {
 						connect: {
 							id: 'interested-parties'
+						}
+					},
+					SubmittedReceivedMethod: {
+						connect: {
+							id: 'online'
 						}
 					},
 					submittedDate: now,
@@ -1399,6 +1478,11 @@ describe('view-model', () => {
 							id: 'interested-parties'
 						}
 					},
+					SubmittedReceivedMethod: {
+						connect: {
+							id: 'online'
+						}
+					},
 					submittedDate: new Date('2024-12-25T00:00:00Z'),
 					submittedByAgent: false,
 					SubmittedByContact: {
@@ -1422,6 +1506,127 @@ describe('view-model', () => {
 					containsAttachments: false,
 					wantsToBeHeard: true
 				});
+			});
+		});
+		describe('submissionMethodReason', () => {
+			it('should include submissionMethodReason when non-online and non-empty', () => {
+				const mockAnswers = {
+					submittedReceivedMethodId: 'email',
+					submissionMethodReason: 'Valid reason'
+				};
+
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.strictEqual(createInput.submissionMethodReason, 'Valid reason');
+			});
+
+			it('should not include submissionMethodReason when it is null for non-online received method', () => {
+				const mockAnswers = {
+					submittedReceivedMethodId: 'email',
+					submissionMethodReason: null
+				};
+
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.strictEqual(createInput.submissionMethodReason, undefined);
+			});
+
+			it('should not include submissionMethodReason when it is an empty string for non-online received method', () => {
+				const mockAnswers = {
+					submittedReceivedMethodId: 'email',
+					submissionMethodReason: '   '
+				};
+
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.strictEqual(createInput.submissionMethodReason, undefined);
+			});
+
+			it('should not include submissionMethodReason when received method is online and no reason provided', () => {
+				const mockAnswers = {
+					submittedReceivedMethodId: RECEIVED_METHOD_ID.ONLINE,
+					submissionMethodReason: undefined
+				};
+
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.strictEqual(createInput.submissionMethodReason, undefined);
+			});
+
+			it('should not include submissionMethodReason when submissionMethodReason answer object is undefined', () => {
+				const mockAnswers = {
+					submittedReceivedMethodId: 'email',
+					submissionMethodReason: undefined
+				};
+
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.strictEqual(createInput.submissionMethodReason, undefined);
+			});
+		});
+		describe('SubmittedReceivedMethod and submissionMethodReason', () => {
+			it('should default SubmittedReceivedMethod to ONLINE when submittedReceivedMethodId is not provided', () => {
+				const RECEIVED_METHOD_ID = {
+					ONLINE: 'online',
+					EMAIL: 'email'
+				};
+				const mockAnswers = {};
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.deepStrictEqual(createInput.SubmittedReceivedMethod, { connect: { id: RECEIVED_METHOD_ID.ONLINE } });
+			});
+
+			it('should use the provided submittedReceivedMethodId when given', () => {
+				const RECEIVED_METHOD_ID = {
+					ONLINE: 'online',
+					EMAIL: 'email'
+				};
+				const mockAnswers = { submittedReceivedMethodId: RECEIVED_METHOD_ID.EMAIL };
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.deepStrictEqual(createInput.SubmittedReceivedMethod, { connect: { id: RECEIVED_METHOD_ID.EMAIL } });
+			});
+
+			it('should include submissionMethodReason when provided', () => {
+				const mockAnswers = {
+					submittedReceivedMethodId: 'email',
+					submissionMethodReason: 'User prefers email for communication'
+				};
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.strictEqual(createInput.submissionMethodReason, 'User prefers email for communication');
+			});
+
+			it('should not include submissionMethodReason when not provided', () => {
+				const mockAnswers = {};
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.strictEqual(createInput.submissionMethodReason, undefined);
+			});
+		});
+		describe('submittedReceivedMethodId behaviour', () => {
+			it('should set submittedReceivedMethodId to ONLINE when it is null', () => {
+				const representation = {
+					submittedReceivedMethodId: null,
+					statusId: 'status-1',
+					SubmittedByContact: null
+				};
+				const applicationReference = 'app/ref';
+				const viewModel = representationToManageViewModel(representation, applicationReference);
+				assert.strictEqual(viewModel.submittedReceivedMethodId, RECEIVED_METHOD_ID.ONLINE);
+			});
+
+			it('should retain submittedReceivedMethodId when it is not null', () => {
+				const representation = {
+					submittedReceivedMethodId: RECEIVED_METHOD_ID.EMAIL,
+					statusId: 'status-1',
+					SubmittedByContact: null
+				};
+				const applicationReference = 'app/ref';
+				const viewModel = representationToManageViewModel(representation, applicationReference);
+				assert.strictEqual(viewModel.submittedReceivedMethodId, RECEIVED_METHOD_ID.EMAIL);
+			});
+
+			it('should handle undefined submittedReceivedMethodId and set it to ONLINE', () => {
+				const representation = {
+					submittedReceivedMethodId: undefined,
+					statusId: 'status-1',
+					SubmittedByContact: null
+				};
+				const applicationReference = 'app/ref';
+				const viewModel = representationToManageViewModel(representation, applicationReference);
+				assert.strictEqual(viewModel.submittedReceivedMethodId, RECEIVED_METHOD_ID.ONLINE);
 			});
 		});
 	});

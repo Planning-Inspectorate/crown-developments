@@ -1,7 +1,8 @@
 import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
 import {
 	questionArrayMeetsCondition,
-	questionHasAnswer
+	questionHasAnswer,
+	questionHasNonEmptyStringAnswer
 } from '@planning-inspectorate/dynamic-forms/src/components/utils/question-has-answer.js';
 import {
 	REPRESENTATION_STATUS_ID,
@@ -26,6 +27,9 @@ export function haveYourSayManageSections(questions, isRepsUploadDocsLive, isVie
 		new Section('Details', 'details')
 			.addQuestion(questions.reference)
 			.addQuestion(questions.submittedDate)
+			.addQuestion(questions.submittedReceivedMethod)
+			.addQuestion(questions.submissionMethodReason)
+			.withCondition((response) => questionHasNonEmptyStringAnswer(response, questions.submissionMethodReason))
 			.addQuestion(questions.category)
 			.addQuestion(questions.status)
 			.withCondition(() => isViewJourney),
@@ -64,6 +68,8 @@ export function addRepresentationSection(questions, isRepsUploadDocsLive) {
 	return [
 		new Section('Representation', 'start')
 			.addQuestion(questions.submittedDate)
+			.addQuestion(questions.submittedReceivedMethod)
+			.addQuestion(questions.submissionMethodReason)
 			.addQuestion(questions.category)
 			.addQuestion(questions.submittedFor),
 		addRepMyselfSection(questions, isRepsUploadDocsLive, false),

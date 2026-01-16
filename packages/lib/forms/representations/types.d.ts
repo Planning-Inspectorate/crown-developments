@@ -26,6 +26,8 @@ export namespace HaveYourSay {
 		reference: string;
 		statusId: string;
 		submittedDate: string | Date;
+		submittedReceivedMethod: string | Radio;
+		submissionMethodReason?: string;
 		categoryId?: string;
 		wantsToBeHeard?: boolean;
 		containsAttachments: boolean;

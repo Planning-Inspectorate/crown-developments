@@ -236,13 +236,16 @@ model Representation {
   Status        RepresentationStatus? @relation(fields: [statusId], references: [id])
 
   // common fields
-  submittedForId          String
-  SubmittedFor            RepresentationSubmittedFor? @relation(fields: [submittedForId], references: [id])
-  submittedByContactId    String?                     @db.UniqueIdentifier
-  SubmittedByContact      Contact?                    @relation("RepresentationSubmittedByContact", fields: [submittedByContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-  submittedByAgent        Boolean?
-  submittedByAgentOrgName String?
-  submittedDate           DateTime
+  submittedForId            String
+  SubmittedFor              RepresentationSubmittedFor?   @relation(fields: [submittedForId], references: [id])
+  submittedByContactId      String?                       @db.UniqueIdentifier
+  SubmittedByContact        Contact?                      @relation("RepresentationSubmittedByContact", fields: [submittedByContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  submittedByAgent          Boolean?
+  submittedByAgentOrgName   String?
+  submittedDate             DateTime
+  submittedReceivedMethodId String?
+  SubmittedReceivedMethod   RepresentationReceivedMethod? @relation(fields: [submittedReceivedMethodId], references: [id])
+  submissionMethodReason    String?                       @db.NVarChar(50)
 
   comment         String  @db.NVarChar(MAX)
   commentRedacted String? @db.NVarChar(MAX)
@@ -467,4 +470,11 @@ model ApplicationUpdateStatus {
   id                String              @id
   displayName       String?
   ApplicationUpdate ApplicationUpdate[]
+}
+
+/// RepresentationReceivedMethod represents the method by which a representation was received
+model RepresentationReceivedMethod {
+  id             String           @id
+  displayName    String?
+  Representation Representation[]
 }

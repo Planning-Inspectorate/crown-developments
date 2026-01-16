@@ -4,6 +4,7 @@ import {
 } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import {
 	CONTACT_PREFERENCE_ID,
+	RECEIVED_METHOD_ID,
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
@@ -29,7 +30,9 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'sharePointFolderCreated',
 	'withdrawalRequestDate',
 	'withdrawalReasonId',
-	'dateWithdrawn'
+	'dateWithdrawn',
+	'submittedReceivedMethodId',
+	'submissionMethodReason'
 ]);
 
 /**
@@ -42,12 +45,15 @@ export function representationToManageViewModel(representation, applicationRefer
 	const model = {
 		applicationReference: applicationReference,
 		requiresReview: representation.statusId === REPRESENTATION_STATUS_ID.AWAITING_REVIEW,
-		submittedByAddressId: representation.SubmittedByContact?.addressId
+		submittedByAddressId: representation.SubmittedByContact?.addressId,
+		submittedReceivedMethodId: representation.submittedReceivedMethodId
 	};
 
 	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
 		model[field] = mapFieldValue(representation[field]);
 	}
+	model.submittedReceivedMethodId =
+		model.submittedReceivedMethodId ?? representation.SubmittedReceivedMethod?.id ?? RECEIVED_METHOD_ID.ONLINE;
 
 	if (representation.submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF) {
 		model.myselfFirstName = representation.SubmittedByContact?.firstName;
@@ -281,6 +287,7 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 		reference,
 		Application: { connect: { id: applicationId } },
 		submittedDate: answers.submittedDate ?? new Date(),
+		SubmittedReceivedMethod: { connect: { id: RECEIVED_METHOD_ID.ONLINE } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
 		SubmittedFor: { connect: { id: answers.submittedForId } },
 		submittedByAgent: yesNoToBoolean(answers.isAgent) || false,
@@ -326,6 +333,17 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 
 	if (answers.submittedDate) {
 		createInput.submittedDate = answers.submittedDate;
+	}
+
+	if (answers.submittedReceivedMethodId) {
+		createInput.SubmittedReceivedMethod = { connect: { id: answers.submittedReceivedMethodId } };
+	}
+
+	const submissionReason =
+		answers.submissionMethodReason == null ? null : String(answers.submissionMethodReason).trim();
+
+	if (submissionReason) {
+		createInput.submissionMethodReason = submissionReason;
 	}
 
 	createInput.Category = {

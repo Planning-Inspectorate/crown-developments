@@ -8,7 +8,8 @@ import { clearRepUpdatedSession, readRepUpdatedSession } from '../edit/controlle
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import {
 	REPRESENTATION_STATUS_ID,
-	REPRESENTATION_SUBMITTED_FOR_ID
+	REPRESENTATION_SUBMITTED_FOR_ID,
+	RECEIVED_METHOD_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { getSubmittedForId } from '@pins/crowndev-lib/util/questions.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
@@ -112,6 +113,11 @@ export function buildGetJourneyMiddleware({ db, logger, isRepsUploadDocsLive }) 
 		}
 		const answers = representationToManageViewModel(representation, crownDevelopment.reference);
 		const questions = getQuestions({
+			methodOverrides: {
+				initialValues: {
+					submittedReceivedMethodId: answers?.submittedReceivedMethodId
+				}
+			},
 			textOverrides: {
 				notStartedText: '-',
 				continueButtonText: 'Save',
@@ -123,6 +129,10 @@ export function buildGetJourneyMiddleware({ db, logger, isRepsUploadDocsLive }) 
 				redactedCommentShowManageAction: answers?.statusId === REPRESENTATION_STATUS_ID.ACCEPTED,
 				canEditAttachmentsUploaded: answers?.statusId !== REPRESENTATION_STATUS_ID.REJECTED,
 				taskListUrl: req.baseUrl + '/manage/task-list'
+			},
+			editActionOverrides: {
+				submittedReceivedMethodShouldShowEditAction:
+					answers?.submittedReceivedMethodId != null && answers?.submittedReceivedMethodId !== RECEIVED_METHOD_ID.ONLINE
 			}
 		});
 		// put these on locals for the list controller
