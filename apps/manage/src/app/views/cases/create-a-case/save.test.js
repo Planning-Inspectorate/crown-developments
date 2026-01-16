@@ -451,7 +451,7 @@ describe('save', () => {
 				}
 			]);
 		});
-		it('should not send email when case type is planning permission and lbc', async () => {
+		it('should send two emails when case type is planning permission and lbc', async () => {
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
 				getItemsByPath: mock.fn(() => {
@@ -466,14 +466,15 @@ describe('save', () => {
 					};
 				}),
 				addItemPermissions: mock.fn(),
-				fetchUserInviteLink: mock.fn(() => {
-					return {
-						link: {
-							webUrl: 'https://sharepoint.com/:f:/s/site/random_id'
-						}
-					};
-				})
+				fetchUserInviteLink: mock.fn()
 			};
+			// Provide sequential implementations: first Planning, then LBC
+			sharepointDrive.fetchUserInviteLink.mock.mockImplementationOnce(() => ({
+				link: { webUrl: 'https://sharepoint.com/:f:/s/site/planning_link' }
+			}));
+			sharepointDrive.fetchUserInviteLink.mock.mockImplementation(() => ({
+				link: { webUrl: 'https://sharepoint.com/:f:/s/site/lbc_link' }
+			}));
 			const notifyClient = {
 				sendAcknowledgePreNotification: mock.fn()
 			};
@@ -513,7 +514,22 @@ describe('save', () => {
 			await save(req, res, mock.fn());
 
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
-			assert.strictEqual(notifyClient.sendAcknowledgePreNotification.mock.callCount(), 0);
+			assert.strictEqual(notifyClient.sendAcknowledgePreNotification.mock.callCount(), 2);
+			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotification.mock.calls[0].arguments, [
+				'applicantEmail@mail.com',
+				{
+					reference: mockReference,
+					sharePointLink: 'https://sharepoint.com/:f:/s/site/planning_link'
+				}
+			]);
+			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotification.mock.calls[1].arguments, [
+				'applicantEmail@mail.com',
+				{
+					reference: mockReference + '/LBC',
+					sharePointLink: 'https://sharepoint.com/:f:/s/site/lbc_link',
+					isLbcCase: true
+				}
+			]);
 		});
 	});
 	describe('newReference', () => {
@@ -689,7 +705,7 @@ describe('toCreateInput', () => {
 		assert.strictEqual(input.hasSecondaryLpa, true);
 		assert.deepStrictEqual(input.SecondaryLpa, { connect: { id: 'lpa-2' } });
 	});
-	it('should not save secondaryLpa when hasSeoncdaryLpa is no', () => {
+	it('should not save secondaryLpa when hasSecondaryLpa is no', () => {
 		const answers = {
 			developmentDescription: 'desc',
 			typeOfApplication: 'type',
