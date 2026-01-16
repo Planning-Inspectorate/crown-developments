@@ -27,6 +27,7 @@ export function buildSaveController(service) {
 			throw new Error('answers should be an object');
 		}
 		let reference;
+		let lbcReference;
 		let id;
 		const isPlanningAndLbcCase = answers.typeOfApplication === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
 		// create a new case in a transaction to ensure reference generation is safe
@@ -41,19 +42,21 @@ export function buildSaveController(service) {
 			}
 
 			reference = await newReference($tx);
+			lbcReference = reference + '/LBC';
 			const subType = isPlanningAndLbcCase ? APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION : null;
 
 			const created = await createCase(reference, subType);
 			id = created.id;
 
 			if (isPlanningAndLbcCase) {
-				await createCase(`${reference}/LBC`, APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT, {
+				await createCase(lbcReference, APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT, {
 					ParentCrownDevelopment: { connect: { id } }
 				});
 			}
 		});
 
 		let notificationData = {};
+		let lbcNotificationData = {};
 
 		if (appSharePointDrive === null) {
 			logger.warn(
@@ -68,10 +71,10 @@ export function buildSaveController(service) {
 			);
 
 			if (isPlanningAndLbcCase) {
-				await createCaseSharePointActions(
+				lbcNotificationData = await createCaseSharePointActions(
 					appSharePointDrive,
 					service.sharePointCaseTemplateId,
-					caseReferenceToFolderName(`${reference}/LBC`),
+					caseReferenceToFolderName(lbcReference),
 					answers
 				);
 			}
@@ -82,7 +85,7 @@ export function buildSaveController(service) {
 			logger.warn(
 				'Gov Notify is not enabled, to use Gov Notify functionality setup Gov Notify environment variables. See README'
 			);
-		} else if (answers.typeOfApplication !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT) {
+		} else {
 			try {
 				await notifyClient.sendAcknowledgePreNotification(notificationData.recipientEmail, {
 					reference,
@@ -91,6 +94,22 @@ export function buildSaveController(service) {
 			} catch (error) {
 				logger.error({ error, reference }, `error dispatching Acknowledgement of pre-notification email notification`);
 				throw new Error('Error encountered during email notification dispatch');
+			}
+
+			if (isPlanningAndLbcCase) {
+				try {
+					await notifyClient.sendAcknowledgePreNotification(lbcNotificationData.recipientEmail, {
+						reference: lbcReference,
+						sharePointLink: lbcNotificationData.sharePointLink,
+						isLbcCase: true
+					});
+				} catch (error) {
+					logger.error(
+						{ error, lbcReference },
+						`error dispatching Acknowledgement of pre-notification email notification`
+					);
+					throw new Error('Error encountered during email notification dispatch');
+				}
 			}
 		}
 
