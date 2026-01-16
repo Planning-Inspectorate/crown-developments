@@ -525,7 +525,7 @@ describe('save', () => {
 			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotification.mock.calls[1].arguments, [
 				'applicantEmail@mail.com',
 				{
-					reference: mockReference + '/LBC',
+					reference: `${mockReference}/LBC`,
 					sharePointLink: 'https://sharepoint.com/:f:/s/site/lbc_link',
 					isLbcCase: true
 				}
