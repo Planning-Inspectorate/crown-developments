@@ -8,7 +8,8 @@ import assert from 'node:assert';
 import {
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
-	REPRESENTED_TYPE_ID
+	REPRESENTED_TYPE_ID,
+	RECEIVED_METHOD_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
@@ -634,7 +635,7 @@ describe('view-model', () => {
 				reference: undefined,
 				statusId: undefined,
 				submittedDate: undefined,
-				submittedReceivedMethodId: undefined,
+				submittedReceivedMethodId: 'online',
 				submissionMethodReason: undefined,
 				categoryId: undefined,
 				submittedForId: undefined,
@@ -1342,7 +1343,11 @@ describe('view-model', () => {
 							firstName: 'firstName',
 							lastName: 'lastName',
 							email: 'myemail@email.com',
-							ContactPreference: { connect: { id: 'email' } }
+							ContactPreference: {
+								connect: {
+									id: 'email'
+								}
+							}
 						}
 					},
 					SubmittedFor: {
@@ -1503,41 +1508,126 @@ describe('view-model', () => {
 				});
 			});
 		});
-	});
-	describe('SubmittedReceivedMethod and submissionMethodReason', () => {
-		it('should default SubmittedReceivedMethod to ONLINE when submittedReceivedMethodId is not provided', () => {
-			const RECEIVED_METHOD_ID = {
-				ONLINE: 'online',
-				EMAIL: 'email'
-			};
-			const mockAnswers = {};
-			const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
-			assert.deepStrictEqual(createInput.SubmittedReceivedMethod, { connect: { id: RECEIVED_METHOD_ID.ONLINE } });
-		});
+		describe('submissionMethodReason', () => {
+			it('should include submissionMethodReason when non-online and non-empty', () => {
+				const mockAnswers = {
+					submittedReceivedMethodId: 'email',
+					submissionMethodReason: 'Valid reason'
+				};
 
-		it('should use the provided submittedReceivedMethodId when given', () => {
-			const RECEIVED_METHOD_ID = {
-				ONLINE: 'online',
-				EMAIL: 'email'
-			};
-			const mockAnswers = { submittedReceivedMethodId: RECEIVED_METHOD_ID.EMAIL };
-			const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
-			assert.deepStrictEqual(createInput.SubmittedReceivedMethod, { connect: { id: RECEIVED_METHOD_ID.EMAIL } });
-		});
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.strictEqual(createInput.submissionMethodReason, 'Valid reason');
+			});
 
-		it('should include submissionMethodReason when provided', () => {
-			const mockAnswers = {
-				submittedReceivedMethodId: 'email',
-				submissionMethodReason: 'User prefers email for communication'
-			};
-			const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
-			assert.strictEqual(createInput.submissionMethodReason, 'User prefers email for communication');
-		});
+			it('should not include submissionMethodReason when it is null for non-online received method', () => {
+				const mockAnswers = {
+					submittedReceivedMethodId: 'email',
+					submissionMethodReason: null
+				};
 
-		it('should not include submissionMethodReason when not provided', () => {
-			const mockAnswers = {};
-			const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
-			assert.strictEqual(createInput.submissionMethodReason, undefined);
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.strictEqual(createInput.submissionMethodReason, undefined);
+			});
+
+			it('should not include submissionMethodReason when it is an empty string for non-online received method', () => {
+				const mockAnswers = {
+					submittedReceivedMethodId: 'email',
+					submissionMethodReason: '   '
+				};
+
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.strictEqual(createInput.submissionMethodReason, undefined);
+			});
+
+			it('should not include submissionMethodReason when received method is online and no reason provided', () => {
+				const mockAnswers = {
+					submittedReceivedMethodId: RECEIVED_METHOD_ID.ONLINE,
+					submissionMethodReason: undefined
+				};
+
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.strictEqual(createInput.submissionMethodReason, undefined);
+			});
+
+			it('should not include submissionMethodReason when submissionMethodReason answer object is undefined', () => {
+				const mockAnswers = {
+					submittedReceivedMethodId: 'email',
+					submissionMethodReason: undefined
+				};
+
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.strictEqual(createInput.submissionMethodReason, undefined);
+			});
+		});
+		describe('SubmittedReceivedMethod and submissionMethodReason', () => {
+			it('should default SubmittedReceivedMethod to ONLINE when submittedReceivedMethodId is not provided', () => {
+				const RECEIVED_METHOD_ID = {
+					ONLINE: 'online',
+					EMAIL: 'email'
+				};
+				const mockAnswers = {};
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.deepStrictEqual(createInput.SubmittedReceivedMethod, { connect: { id: RECEIVED_METHOD_ID.ONLINE } });
+			});
+
+			it('should use the provided submittedReceivedMethodId when given', () => {
+				const RECEIVED_METHOD_ID = {
+					ONLINE: 'online',
+					EMAIL: 'email'
+				};
+				const mockAnswers = { submittedReceivedMethodId: RECEIVED_METHOD_ID.EMAIL };
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.deepStrictEqual(createInput.SubmittedReceivedMethod, { connect: { id: RECEIVED_METHOD_ID.EMAIL } });
+			});
+
+			it('should include submissionMethodReason when provided', () => {
+				const mockAnswers = {
+					submittedReceivedMethodId: 'email',
+					submissionMethodReason: 'User prefers email for communication'
+				};
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.strictEqual(createInput.submissionMethodReason, 'User prefers email for communication');
+			});
+
+			it('should not include submissionMethodReason when not provided', () => {
+				const mockAnswers = {};
+				const createInput = viewModelToRepresentationCreateInput(mockAnswers, 'ref', 'id-1');
+				assert.strictEqual(createInput.submissionMethodReason, undefined);
+			});
+		});
+		describe('submittedReceivedMethodId behaviour', () => {
+			it('should set submittedReceivedMethodId to ONLINE when it is null', () => {
+				const representation = {
+					submittedReceivedMethodId: null,
+					statusId: 'status-1',
+					SubmittedByContact: null
+				};
+				const applicationReference = 'app/ref';
+				const viewModel = representationToManageViewModel(representation, applicationReference);
+				assert.strictEqual(viewModel.submittedReceivedMethodId, RECEIVED_METHOD_ID.ONLINE);
+			});
+
+			it('should retain submittedReceivedMethodId when it is not null', () => {
+				const representation = {
+					submittedReceivedMethodId: RECEIVED_METHOD_ID.EMAIL,
+					statusId: 'status-1',
+					SubmittedByContact: null
+				};
+				const applicationReference = 'app/ref';
+				const viewModel = representationToManageViewModel(representation, applicationReference);
+				assert.strictEqual(viewModel.submittedReceivedMethodId, RECEIVED_METHOD_ID.EMAIL);
+			});
+
+			it('should handle undefined submittedReceivedMethodId and set it to ONLINE', () => {
+				const representation = {
+					submittedReceivedMethodId: undefined,
+					statusId: 'status-1',
+					SubmittedByContact: null
+				};
+				const applicationReference = 'app/ref';
+				const viewModel = representationToManageViewModel(representation, applicationReference);
+				assert.strictEqual(viewModel.submittedReceivedMethodId, RECEIVED_METHOD_ID.ONLINE);
+			});
 		});
 	});
 });

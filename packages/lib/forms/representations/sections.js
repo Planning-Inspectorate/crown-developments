@@ -1,14 +1,14 @@
 import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
 import {
 	questionArrayMeetsCondition,
-	questionHasAnswer
+	questionHasAnswer,
+	questionHasNonEmptyStringAnswer
 } from '@planning-inspectorate/dynamic-forms/src/components/utils/question-has-answer.js';
 import {
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
-import { RECEIVED_METHOD_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 /**
@@ -29,13 +29,7 @@ export function haveYourSayManageSections(questions, isRepsUploadDocsLive, isVie
 			.addQuestion(questions.submittedDate)
 			.addQuestion(questions.submittedReceivedMethod)
 			.addQuestion(questions.submissionMethodReason)
-			.withCondition(
-				(response) =>
-					response.RECEIVED_METHOD_ID !== RECEIVED_METHOD_ID.ONLINE &&
-					response.answers &&
-					response.answers.submissionMethodReason != null &&
-					String(response.answers.submissionMethodReason).trim() !== ''
-			)
+			.withCondition((response) => questionHasNonEmptyStringAnswer(response, questions.submissionMethodReason))
 			.addQuestion(questions.category)
 			.addQuestion(questions.status)
 			.withCondition(() => isViewJourney),

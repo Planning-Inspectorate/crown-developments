@@ -52,6 +52,8 @@ export function representationToManageViewModel(representation, applicationRefer
 	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
 		model[field] = mapFieldValue(representation[field]);
 	}
+	model.submittedReceivedMethodId =
+		model.submittedReceivedMethodId ?? representation.SubmittedReceivedMethod?.id ?? RECEIVED_METHOD_ID.ONLINE;
 
 	if (representation.submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF) {
 		model.myselfFirstName = representation.SubmittedByContact?.firstName;
@@ -333,18 +335,14 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 		createInput.submittedDate = answers.submittedDate;
 	}
 
-	const receivedMethodId = answers.submittedReceivedMethodId ?? RECEIVED_METHOD_ID.ONLINE;
-
 	if (answers.submittedReceivedMethodId) {
 		createInput.SubmittedReceivedMethod = { connect: { id: answers.submittedReceivedMethodId } };
 	}
 
 	const submissionReason =
-		typeof answers.submissionMethodReason === 'string'
-			? answers.submissionMethodReason.trim()
-			: answers.submissionMethodReason;
+		answers.submissionMethodReason == null ? null : String(answers.submissionMethodReason).trim();
 
-	if (receivedMethodId !== RECEIVED_METHOD_ID.ONLINE && submissionReason !== null) {
+	if (submissionReason) {
 		createInput.submissionMethodReason = submissionReason;
 	}
 

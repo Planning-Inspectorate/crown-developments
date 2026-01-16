@@ -30,11 +30,30 @@ import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/va
 
 export const ACCEPT_AND_REDACT = 'accept-and-redact';
 
-export const getQuestions = ({ methodOverrides = {}, textOverrides = {}, actionOverrides = {} } = {}) => {
+export const getQuestions = ({
+	methodOverrides = {},
+	textOverrides = {},
+	actionOverrides = {},
+	editActionOverrides = {}
+} = {}) => {
 	const actionLinkOverride = {
 		text: 'Manage',
 		href: actionOverrides.taskListUrl
 	};
+
+	const currentSubmittedMethod =
+		methodOverrides?.initialValues?.submittedReceivedMethodId ??
+		methodOverrides?.formData?.submittedReceivedMethodId ??
+		methodOverrides?.values?.submittedReceivedMethodId;
+
+	const receivedMethodOptions = (() => {
+		const base = referenceDataToRadioOptions(RECEIVED_METHOD.filter(({ id }) => id !== RECEIVED_METHOD_ID.ONLINE));
+		if (currentSubmittedMethod === RECEIVED_METHOD_ID.ONLINE) {
+			return [...base, { text: 'Online', value: RECEIVED_METHOD_ID.ONLINE, disabled: true }];
+		}
+		return base;
+	})();
+
 	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questionProps = {
 		reference: {
@@ -263,13 +282,15 @@ export const getQuestions = ({ methodOverrides = {}, textOverrides = {}, actionO
 			fieldName: 'submittedReceivedMethodId',
 			url: 'submission-method',
 			validators: [new RequiredValidator('Select how this representation was received')],
-			options: referenceDataToRadioOptions(RECEIVED_METHOD.filter(({ id }) => id !== RECEIVED_METHOD_ID.ONLINE))
+			defaultValue: RECEIVED_METHOD_ID.ONLINE,
+			editable: !!editActionOverrides?.submittedReceivedMethodShouldShowEditAction,
+			options: receivedMethodOptions
 		},
 
 		submissionMethodReason: {
 			type: COMPONENT_TYPES.TEXT_ENTRY,
 			title: 'Reason for not using the online service',
-			question: 'Reason for not using the online service (optional)?',
+			question: 'Reason for not using the online service (optional)',
 			fieldName: `submissionMethodReason`,
 			url: 'submission-reason',
 			hint: 'If you have them, add details about why the written representation was not submitted using the online service.',
@@ -277,7 +298,7 @@ export const getQuestions = ({ methodOverrides = {}, textOverrides = {}, actionO
 				new StringValidator({
 					maxLength: {
 						maxLength: 50,
-						maxLengthMessage: 'What you want to tell us must be 50 characters or less'
+						maxLengthMessage: 'Reason must be 50 characters or less'
 					}
 				})
 			]
