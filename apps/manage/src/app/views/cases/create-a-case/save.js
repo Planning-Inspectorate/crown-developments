@@ -42,7 +42,7 @@ export function buildSaveController(service) {
 			}
 
 			reference = await newReference($tx);
-			lbcReference = reference + '/LBC';
+			lbcReference = `${reference}/LBC`;
 			const subType = isPlanningAndLbcCase ? APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION : null;
 
 			const created = await createCase(reference, subType);
