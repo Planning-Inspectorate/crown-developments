@@ -102,13 +102,14 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 /**
  * @param {Object} opts
  * @param {string} opts.fieldName
- * @param {string} [opts.title]
+ * @param {string} [opts.title] This should be uncapitalised (unless it's a proper noun)
  * @param {string} [opts.hint]
  * @param {boolean} [opts.editable]
  * @param {string} [opts.question]
  * @param {Object<string, any>} [opts.viewData]
  * @param {string} [opts.question]
  * @param {string|null} [opts.emptyErrorMessage]
+ * @param {string|null} [opts.validationTitle] This should be uncapitalised (unless it's a proper noun). Only required if specified differently to title in validation messages.
  * @returns {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps}
  */
 export function dateQuestion({
@@ -118,20 +119,28 @@ export function dateQuestion({
 	editable = true,
 	viewData = {},
 	question,
-	emptyErrorMessage = null
+	emptyErrorMessage = null,
+	validationTitle = null
 }) {
+	// remove capitalisation for fallback title, since used in fallback question
+	const fallbackTitle = camelCaseToSentenceCase(fieldName).toLowerCase();
 	if (!title) {
-		title = camelCaseToSentenceCase(fieldName);
+		title = fallbackTitle;
 	}
+	validationTitle = validationTitle ?? title;
 	return {
 		type: COMPONENT_TYPES.DATE,
-		title: title,
-		question: question || `What is the ${title?.toLowerCase()}?`,
+		title: titleCase(title),
+		question: question || `What is the ${title}?`,
 		hint: hint,
 		fieldName: fieldName,
 		url: camelCaseToUrlCase(fieldName),
 		validators: [
-			new DateValidator(title, { ensureFuture: false, ensurePast: false }, { emptyErrorMessage: emptyErrorMessage })
+			new DateValidator(
+				validationTitle,
+				{ ensureFuture: false, ensurePast: false },
+				{ emptyErrorMessage: emptyErrorMessage }
+			)
 		],
 		editable: editable,
 		viewData
@@ -155,7 +164,8 @@ export function eventQuestions(prefix) {
 						formaction: `${camelCaseToUrlCase(prefix)}-date/remove`
 					}
 				]
-			}
+			},
+			question: `What date is the ${prefix}?`
 		}),
 		[`${prefix}Duration`]: {
 			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
@@ -233,7 +243,7 @@ export function eventQuestions(prefix) {
 			fieldName: `${prefix}Venue`,
 			url: `${prefix}-venue`,
 			validators: [
-				new RequiredValidator(),
+				new RequiredValidator(`Enter ${prefix} venue`),
 				new StringValidator({
 					maxLength: {
 						maxLength: 250,
@@ -242,8 +252,15 @@ export function eventQuestions(prefix) {
 				})
 			]
 		},
-		[`${prefix}NotificationDate`]: dateQuestion({ fieldName: `${prefix}NotificationDate` }),
-		[`${prefix}IssuesReportPublishedDate`]: dateQuestion({ fieldName: `${prefix}IssuesReportPublishedDate` }),
+		[`${prefix}NotificationDate`]: dateQuestion({
+			fieldName: `${prefix}NotificationDate`,
+			question: `What is the ${prefix} notification date?`
+		}),
+		[`${prefix}IssuesReportPublishedDate`]: dateQuestion({
+			fieldName: `${prefix}IssuesReportPublishedDate`,
+			question: `When was the ${prefix} issues report published?`,
+			validationTitle: `date the ${prefix} issues report was published`
+		}),
 		[`${prefix}ProcedureNotificationDate`]: dateQuestion({
 			fieldName: `${prefix}ProcedureNotificationDate`,
 			title: 'Notice of procedure date'
@@ -318,6 +335,11 @@ export function camelCaseToSentenceCase(str) {
 	return sentence.charAt(0).toUpperCase() + sentence.slice(1);
 }
 
+/**
+ * Turns 'string containing a Proper Noun' into 'String containing a Proper Noun'
+ * @param {string} str
+ * @returns {string}
+ * */
 function titleCase(str) {
 	return str.charAt(0).toUpperCase() + str.slice(1);
 }
