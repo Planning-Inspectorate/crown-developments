@@ -409,6 +409,8 @@ describe('have-your-say', () => {
 				const questions = getQuestions();
 				const answers = {
 					submittedDate: new Date(),
+					submittedReceivedMethodId: 'email',
+					submissionMethodReason: 'This is a test',
 					categoryId: 'consultees',
 					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
 					myselfFirstName: 'FirstName',
@@ -492,6 +494,8 @@ describe('have-your-say', () => {
 					const questions = getQuestions();
 					const answers = {
 						submittedDate: new Date(),
+						submittedReceivedMethodId: 'email',
+						submissionMethodReason: 'This is a test',
 						categoryId: 'consultees',
 						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 						representedTypeId: REPRESENTED_TYPE_ID.PERSON,
@@ -587,6 +591,8 @@ describe('have-your-say', () => {
 					const questions = getQuestions();
 					const answers = {
 						submittedDate: new Date(),
+						submittedReceivedMethodId: 'email',
+						submissionMethodReason: undefined,
 						categoryId: 'consultees',
 						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 						representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
@@ -671,6 +677,8 @@ describe('have-your-say', () => {
 					const questions = getQuestions();
 					const answers = {
 						submittedDate: new Date(),
+						submittedReceivedMethodId: 'email',
+						submissionMethodReason: 'This is a test',
 						categoryId: 'consultees',
 						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 						representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
@@ -719,7 +727,7 @@ describe('have-your-say', () => {
 			assert.strictEqual(sections.length, 3);
 
 			const mainSection = sections[0];
-			assert.strictEqual(mainSection.questions.length, 3);
+			assert.strictEqual(mainSection.questions.length, 5);
 
 			const myselfSection = sections[1];
 			assert.strictEqual(myselfSection.questions.length, 10);
