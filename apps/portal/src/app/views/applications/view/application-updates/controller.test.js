@@ -22,7 +22,8 @@ describe('application-updates controller', () => {
 						reference: 'CROWN/2025/0000002/',
 						representationsPublishDate: new Date('2025-10-17T03:24:00.000Z'),
 						representationsPeriodStartDate: new Date('2025-08-17T03:24:00.000Z'),
-						representationsPeriodEndDate: new Date('2025-09-30T03:24:00.000Z')
+						representationsPeriodEndDate: new Date('2025-09-30T03:24:00.000Z'),
+						applicationStatus: 'active'
 					}))
 				},
 				applicationUpdate: {
@@ -61,6 +62,7 @@ describe('application-updates controller', () => {
 				pageTitle: 'Application updates',
 				pageCaption: 'CROWN/2025/0000002/',
 				currentUrl: '/application-updates',
+				isWithdrawn: false,
 				links: [
 					{
 						href: '/applications/9c8846dc-1949-47c4-804c-9f3865cff25e/application-information',

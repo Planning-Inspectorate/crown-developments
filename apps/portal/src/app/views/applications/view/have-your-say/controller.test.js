@@ -49,7 +49,8 @@ describe('Have Your Say controller', () => {
 					findUnique: mock.fn(() => ({
 						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
 						reference: 'CROWN/2025/0000001',
-						publishDate: new Date('2025-01-01')
+						publishDate: new Date('2025-01-01'),
+						applicationStatus: 'active'
 					}))
 				},
 				applicationUpdate: {

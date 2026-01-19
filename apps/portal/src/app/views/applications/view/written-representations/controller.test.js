@@ -26,7 +26,8 @@ describe('written representations', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: new Date('2025-01-01'),
 						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01')
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active'
 					}))
 				},
 				representation: {
@@ -102,7 +103,8 @@ describe('written representations', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: new Date('2025-01-01'),
 						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01')
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active'
 					}))
 				},
 				representation: {
@@ -188,7 +190,8 @@ describe('written representations', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: new Date('2025-01-01'),
 						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01')
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active'
 					}))
 				},
 				representation: {
@@ -233,7 +236,8 @@ describe('written representations', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: new Date('2025-01-01'),
 						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01')
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active'
 					}))
 				},
 				representation: {
@@ -275,7 +279,8 @@ describe('written representations', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: new Date('2025-01-01'),
 						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01')
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active'
 					}))
 				},
 				representation: {
@@ -308,7 +313,8 @@ describe('written representations', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: new Date('2025-01-01'),
 						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01')
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active'
 					}))
 				},
 				representation: {
@@ -348,7 +354,8 @@ describe('written representations', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: new Date('2025-01-01'),
 						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01')
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active'
 					}))
 				},
 				representation: {
@@ -393,7 +400,8 @@ describe('written representations', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: new Date('2025-01-01'),
 						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01')
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active'
 					}))
 				},
 				representation: {
@@ -421,7 +429,8 @@ describe('written representations', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: new Date('2025-01-01'),
 						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01')
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active'
 					}))
 				},
 				representation: {
@@ -449,7 +458,8 @@ describe('written representations', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: new Date('2025-01-01T00:00:00Z'),
 						representationsPeriodEndDate: new Date('2025-02-01T00:00:00Z'),
-						representationsPublishDate: new Date('2025-04-09T23:00:00.00Z')
+						representationsPublishDate: new Date('2025-04-09T23:00:00.00Z'),
+						applicationStatus: 'active'
 					}))
 				},
 				representation: {
@@ -569,7 +579,8 @@ describe('written representations', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: new Date('2025-01-01'),
 						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01')
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active'
 					}))
 				},
 				representation: { findMany: findManySpy, count: countSpy },
@@ -604,7 +615,8 @@ describe('written representations', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: new Date('2025-01-01'),
 						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01')
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active'
 					}))
 				},
 				representation: { findMany: mock.fn(() => []), count: mock.fn(() => 0) },
@@ -636,7 +648,8 @@ describe('written representations', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: new Date('2025-01-01'),
 						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01')
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active'
 					}))
 				},
 				representation: { findMany: findManySpy, count: mock.fn(() => 0) },
@@ -679,7 +692,8 @@ describe('written representations', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: new Date('2025-01-01'),
 						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01')
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active'
 					}))
 				},
 				representation: {

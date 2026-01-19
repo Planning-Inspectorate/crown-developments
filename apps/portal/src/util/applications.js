@@ -44,6 +44,10 @@ export async function fetchPublishedApplication({ db, id, args }) {
 	args.where.id = id;
 	const now = new Date();
 	args.where.publishDate = { lte: now };
+
+	if (args && args.select) {
+		args.select = { ...args.select, withdrawnDate: true };
+	}
 	const crownDevelopment = await db.crownDevelopment.findUnique(args);
 	if (crownDevelopment) {
 		const status = getApplicationStatus(crownDevelopment.withdrawnDate);
