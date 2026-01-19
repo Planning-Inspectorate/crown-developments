@@ -60,12 +60,47 @@ describe('question-utils', () => {
 	});
 	describe('dateQuestion', () => {
 		it('should create a date question based on a field name only', () => {
-			const q = dateQuestion({ fieldName: 'myDateField' });
+			const question = dateQuestion({ fieldName: 'myDateField' });
 
-			assert.ok(q);
-			assert.strictEqual(q.title, 'My date field');
-			assert.strictEqual(q.fieldName, 'myDateField');
-			assert.strictEqual(q.url, 'my-date-field');
+			assert.ok(question);
+			assert.strictEqual(question.title, 'My date field');
+			assert.strictEqual(question.fieldName, 'myDateField');
+			assert.strictEqual(question.url, 'my-date-field');
+		});
+		it('should create a date question with a captialised title', () => {
+			const question = dateQuestion({ fieldName: 'myDateField', title: 'my date field' });
+			assert.ok(question);
+			assert.strictEqual(question.title, 'My date field');
+		});
+		it('should not captialise the title in the default question', () => {
+			const question = dateQuestion({ fieldName: 'myDateField', title: 'test date field' });
+			assert.ok(question);
+			assert.strictEqual(question.question, 'What is the test date field?');
+		});
+		it('should not captialise the title in the default question when inferred from field name', () => {
+			const question = dateQuestion({ fieldName: 'testDateField' });
+			assert.ok(question);
+			assert.strictEqual(question.question, 'What is the test date field?');
+		});
+		it('should not make the title lowercase in the default question if it contains uppercase letters', () => {
+			const question = dateQuestion({ fieldName: 'myDateField', title: 'ABC date field' });
+			assert.ok(question);
+			assert.strictEqual(question.question, 'What is the ABC date field?');
+		});
+		it('should create a date question with a custom question', () => {
+			const question = dateQuestion({ fieldName: 'myDateField', title: 'my date field', question: 'Custom question?' });
+			assert.ok(question);
+			assert.strictEqual(question.question, 'Custom question?');
+		});
+		it('should not captialise the title in the validation message', () => {
+			const question = dateQuestion({ fieldName: 'myDateField', title: 'test date field' });
+			assert.ok(question);
+			assert.strictEqual(question.validators[0].emptyErrorMessage, 'Enter test date field');
+		});
+		it('should not make the title lowercase in the validation message if it contains uppercase letters', () => {
+			const question = dateQuestion({ fieldName: 'myDateField', title: 'ABC date field' });
+			assert.ok(question);
+			assert.strictEqual(question.validators[0].emptyErrorMessage, 'Enter ABC date field');
 		});
 	});
 	describe('eventQuestions', () => {
