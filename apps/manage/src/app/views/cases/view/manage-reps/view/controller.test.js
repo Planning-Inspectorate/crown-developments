@@ -6,6 +6,7 @@ import { buildGetJourneyMiddleware, validateParams, viewRepresentation } from '.
 import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import { createJourney } from './journey.js';
 import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
+import { RECEIVED_METHOD_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 describe('controller', () => {
 	describe('viewRepresentation', () => {
@@ -256,6 +257,23 @@ describe('controller', () => {
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.ok(mockRes.locals.journey);
 			assert.strictEqual(mockRes.locals.backLinkUrl, 'case-1/manage-representations/view');
+		});
+		it('should show submission method as online when representation has undefined submittedReceivedMethodId', async () => {
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				baseUrl: 'case-1/manage-representations'
+			};
+			const mockRes = { locals: {} };
+			const mockDb = {
+				crownDevelopment: { findUnique: mock.fn(() => ({ reference: 'app-ref' })) },
+				representation: { findUnique: mock.fn(() => ({ reference: 'ref-1' })) }
+			};
+			const next = mock.fn();
+			const middleware = buildGetJourneyMiddleware({ db: mockDb, logger: mockLogger() });
+			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
+			assert.strictEqual(next.mock.callCount(), 1);
+			assert.ok(mockRes.locals.originalAnswers);
+			assert.strictEqual(mockRes.locals.originalAnswers.submittedReceivedMethodId, RECEIVED_METHOD_ID.ONLINE);
 		});
 	});
 	describe('validateParams', () => {
