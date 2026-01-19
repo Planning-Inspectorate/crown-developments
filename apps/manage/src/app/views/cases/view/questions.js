@@ -404,30 +404,53 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 
 		applicationReceivedDate: dateQuestion({
 			fieldName: 'applicationReceivedDate',
+			question: 'When was the application received?',
 			hint: 'You must first add the application fee and the site address or site coordinates.',
-			viewData: { warningMessage: 'Adding a date will send a notification to the applicant / agent' }
+			viewData: { warningMessage: 'Adding a date will send a notification to the applicant / agent' },
+			validationTitle: 'date application was received'
 		}),
-		applicationAcceptedDate: dateQuestion({ fieldName: 'applicationAcceptedDate' }),
+		applicationAcceptedDate: dateQuestion({
+			fieldName: 'applicationAcceptedDate',
+			question: 'When was the application accepted?',
+			validationTitle: 'date the application was accepted'
+		}),
 		lpaQuestionnaireSentDate: dateQuestion({
 			fieldName: 'lpaQuestionnaireSentDate',
-			title: 'LPA questionnaire sent date'
+			question: 'When was the LPA questionnaire sent?',
+			title: 'LPA questionnaire sent date',
+			validationTitle: ' date LPA questionnaire was sent'
 		}),
 		lpaQuestionnaireReceivedDate: dateQuestion({
 			fieldName: 'lpaQuestionnaireReceivedDate',
+			question: 'When was the LPA questionnaire received?',
 			title: 'LPA questionnaire received date',
-			viewData: { warningMessage: 'Adding a date will send an acknowledgement notification to the LPA' }
+			viewData: { warningMessage: 'Adding a date will send an acknowledgement notification to the LPA' },
+			validationTitle: 'date LPA questionnaire was received'
 		}),
 		publishDate: dateQuestion({ fieldName: 'publishDate', editable: false }),
-		pressNoticeDate: dateQuestion({ fieldName: 'pressNoticeDate' }),
+		pressNoticeDate: dateQuestion({
+			fieldName: 'pressNoticeDate',
+			question: 'When was the press notice published?',
+			validationTitle: 'date the press notice was published'
+		}),
 		neighboursNotifiedByLpaDate: dateQuestion({
 			fieldName: 'neighboursNotifiedByLpaDate',
-			title: 'Neighbours notified by LPA date'
+			title: 'neighbours notified by LPA date',
+			validationTitle: 'date neighbours were notified by LPA'
 		}),
-		siteNoticeByLpaDate: dateQuestion({ fieldName: 'siteNoticeByLpaDate', title: 'Site notice by LPA date' }),
+		siteNoticeByLpaDate: dateQuestion({
+			fieldName: 'siteNoticeByLpaDate',
+			question: 'When was the site notice erected by the LPA?',
+			title: 'Site notice by LPA date',
+			validationTitle: 'date site notice was erected by LPA'
+		}),
 		targetDecisionDate: dateQuestion({ fieldName: 'targetDecisionDate' }),
 		extendedTargetDecisionDate: dateQuestion({ fieldName: 'extendedTargetDecisionDate' }),
-		recoveredDate: dateQuestion({ fieldName: 'recoveredDate' }),
-		recoveredReportSentDate: dateQuestion({ fieldName: 'recoveredReportSentDate' }),
+		recoveredDate: dateQuestion({ fieldName: 'recoveredDate', validationTitle: 'date application was recovered' }),
+		recoveredReportSentDate: dateQuestion({
+			fieldName: 'recoveredReportSentDate',
+			validationTitle: 'date recovered report was sent'
+		}),
 		siteVisitDate: {
 			type: COMPONENT_TYPES.DATE_TIME,
 			title: 'Site visit',
@@ -443,13 +466,14 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 				)
 			]
 		},
-		withdrawnDate: dateQuestion({ fieldName: 'withdrawnDate' }),
+		withdrawnDate: dateQuestion({ fieldName: 'withdrawnDate', validationTitle: 'date application was withdrawn' }),
 		originalDecisionDate: dateQuestion({ fieldName: 'originalDecisionDate' }),
 		turnedAwayDate: dateQuestion({
 			fieldName: 'turnedAwayDate',
 			viewData: {
 				warningMessage: 'Adding a date will notify the applicant that the application is not of national importance.'
-			}
+			},
+			validationTitle: 'date application was turned away'
 		}),
 
 		representationsPeriod: {
