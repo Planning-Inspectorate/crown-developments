@@ -98,6 +98,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			return notFoundHandler(req, res);
 		}
 		const publishedDate = crownDevelopment.representationsPublishDate;
+		const applicationStatus = crownDevelopment.applicationStatus;
 		const representationsPublished = publishedDate && (dateIsToday(publishedDate) || dateIsBeforeToday(publishedDate));
 		if (!representationsPublished) {
 			return notFoundHandler(req, res);
@@ -241,7 +242,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			pageCaption: crownDevelopment.reference,
 			pageTitle: 'Written representations',
 			representations: representations.map((representation) => representationToViewModel(representation, true)),
-			links: applicationLinks(id, haveYourSayPeriod, publishedDate, displayApplicationUpdates),
+			links: applicationLinks(id, haveYourSayPeriod, publishedDate, displayApplicationUpdates, applicationStatus),
 			baseUrl: req.baseUrl,
 			currentUrl: req.originalUrl,
 			queryParams: req.query,

@@ -54,7 +54,7 @@ describe('controller', () => {
 		it('should fetch published documents', async () => {
 			const mockDb = {
 				crownDevelopment: {
-					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001', applicationStatus: 'active' }))
 				},
 				applicationUpdate: {
 					findFirst: mock.fn(() => undefined),
@@ -88,6 +88,7 @@ describe('controller', () => {
 				pageTitle: 'Documents',
 				applicationReference: 'CROWN/2025/0000001',
 				pageCaption: 'CROWN/2025/0000001',
+				isWithdrawn: false,
 				links: [
 					{
 						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-information',
@@ -114,7 +115,7 @@ describe('controller', () => {
 		it('should not render folders', async () => {
 			const mockDb = {
 				crownDevelopment: {
-					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001', applicationStatus: 'active' }))
 				},
 				applicationUpdate: {
 					findFirst: mock.fn(() => undefined),
@@ -154,7 +155,7 @@ describe('controller', () => {
 		it('should filter documents by search name', async () => {
 			const mockDb = {
 				crownDevelopment: {
-					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001', applicationStatus: 'active' }))
 				},
 				applicationUpdate: {
 					findFirst: mock.fn(() => undefined),
@@ -194,7 +195,7 @@ describe('controller', () => {
 		it('should handle multiple queries in search query ', async () => {
 			const mockDb = {
 				crownDevelopment: {
-					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001', applicationStatus: 'active' }))
 				},
 				applicationUpdate: {
 					findFirst: mock.fn(() => undefined),
@@ -230,7 +231,7 @@ describe('controller', () => {
 		it('should only return documents containing all queries within a search', async () => {
 			const mockDb = {
 				crownDevelopment: {
-					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001', applicationStatus: 'active' }))
 				},
 				applicationUpdate: {
 					findFirst: mock.fn(() => undefined),
@@ -272,7 +273,7 @@ describe('controller', () => {
 		it('should show all documents when no searchCriteria is provided ', async () => {
 			const mockDb = {
 				crownDevelopment: {
-					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001', applicationStatus: 'active' }))
 				},
 				applicationUpdate: {
 					findFirst: mock.fn(() => undefined),
@@ -308,7 +309,7 @@ describe('controller', () => {
 		it('should show all documents when searchCriteria is an empty string', async () => {
 			const mockDb = {
 				crownDevelopment: {
-					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001', applicationStatus: 'active' }))
 				},
 				applicationUpdate: {
 					findFirst: mock.fn(() => undefined),
@@ -345,7 +346,7 @@ describe('controller', () => {
 		it('should show all documents when searchCriteria is null or undefined', async () => {
 			const mockDb = {
 				crownDevelopment: {
-					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001', applicationStatus: 'active' }))
 				},
 				applicationUpdate: {
 					findFirst: mock.fn(() => undefined),
@@ -385,7 +386,7 @@ describe('controller', () => {
 		it('should default to pageSize 100 when query itemsPerPage is not 25, 50, or 100', async () => {
 			const mockDb = {
 				crownDevelopment: {
-					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' }))
+					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001', applicationStatus: 'active' }))
 				},
 				applicationUpdate: {
 					findFirst: mock.fn(() => undefined),

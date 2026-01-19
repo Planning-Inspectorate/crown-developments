@@ -20,6 +20,7 @@ export function buildApplicationDocumentsPage(service) {
 			return; // handled by checkApplicationPublished
 		}
 		const { id, reference, haveYourSayPeriod, representationsPublishDate } = crownDevelopment;
+		const applicationStatus = crownDevelopment.applicationStatus;
 		const folderPath = publishedFolderPath(reference);
 
 		logger.info({ folderPath }, 'view documents');
@@ -51,13 +52,30 @@ export function buildApplicationDocumentsPage(service) {
 
 		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
 
+		let isWithdrawn = false;
+		if (db?.applicationUpdate?.count && typeof db.applicationUpdate.count === 'function') {
+			try {
+				const count = await db.applicationUpdate.count();
+				isWithdrawn = !!count;
+			} catch {
+				isWithdrawn = false;
+			}
+		}
+
 		res.render('views/applications/view/documents/view.njk', {
 			id,
 			baseUrl: `${req.baseUrl}/documents`,
 			pageTitle: 'Documents',
 			applicationReference: crownDevelopment.reference,
 			pageCaption: reference,
-			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate, displayApplicationUpdates),
+			isWithdrawn,
+			links: applicationLinks(
+				id,
+				haveYourSayPeriod,
+				representationsPublishDate,
+				displayApplicationUpdates,
+				applicationStatus
+			),
 			currentUrl: req.originalUrl,
 			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined,
 			documents: allDocuments.slice(skipSize, skipSize + pageSize),

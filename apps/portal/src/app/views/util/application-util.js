@@ -48,7 +48,9 @@ export async function checkApplicationPublished(req, res, db) {
 			start: crownDevelopment.representationsPeriodStartDate,
 			end: crownDevelopment.representationsPeriodEndDate
 		},
-		representationsPublishDate: crownDevelopment.representationsPublishDate
+		representationsPublishDate: crownDevelopment.representationsPublishDate,
+		withdrawnDate: crownDevelopment.withdrawnDate,
+		applicationStatus: crownDevelopment.applicationStatus
 	};
 }
 

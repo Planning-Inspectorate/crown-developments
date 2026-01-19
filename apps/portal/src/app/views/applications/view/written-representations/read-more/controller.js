@@ -133,11 +133,18 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 		};
 		const representationsPublishDate = crownDevelopment.representationsPublishDate;
 		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
+		const applicationStatus = crownDevelopment.applicationStatus;
 		const writtenRepresentationsUrl = req.originalUrl?.replace(`/${representationReference}`, '');
 
 		res.render('views/applications/view/written-representations/read-more/view.njk', {
 			pageCaption: crownDevelopment.reference,
-			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate, displayApplicationUpdates),
+			links: applicationLinks(
+				id,
+				haveYourSayPeriod,
+				representationsPublishDate,
+				displayApplicationUpdates,
+				applicationStatus
+			),
 			currentUrl: writtenRepresentationsUrl,
 			backLinkText: 'Back to list',
 			backLinkUrl: writtenRepresentationsUrl,

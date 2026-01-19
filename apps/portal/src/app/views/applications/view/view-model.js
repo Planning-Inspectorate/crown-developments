@@ -116,11 +116,20 @@ function isHearing(procedureId) {
  */
 
 /**
+ * Build the application navigation links for the various application view pages.
+ *
+ * This function accepts two different calling styles used in the codebase:
+ *  - applicationLinks(id, haveYourSayPeriod, representationsPublishDate, displayApplicationUpdates, restrictLinks)
+ *    where the 5th argument is a boolean that forces link restriction.
+ *  - applicationLinks(id, haveYourSayPeriod, representationsPublishDate, displayApplicationUpdates, applicationStatus, restrictLinks)
+ *    where the 5th argument is the applicationStatus string (e.g. 'active'|'withdrawn'|'expired') and the 6th is an optional restrictLinks boolean.
+ *
  * @param { string } id
  * @param { HaveYourSayPeriod } haveYourSayPeriod
  * @param { Date } representationsPublishDate
  * @param { boolean } displayApplicationUpdates
- * @param { boolean } restrictLinks - If false, restrict links (withdrawn AND expired)
+ * @param { string|boolean|undefined } applicationStatus - Either the applicationStatus string (e.g. 'active') or `undefined`.
+ * @param { boolean|undefined } restrictLinks - A flag to restrict links, default is `true`.
  * @returns {import('./types.js').ApplicationLink[]}
  */
 export function applicationLinks(
@@ -128,6 +137,7 @@ export function applicationLinks(
 	haveYourSayPeriod,
 	representationsPublishDate,
 	displayApplicationUpdates,
+	applicationStatus = undefined,
 	restrictLinks = true
 ) {
 	const links = [
@@ -137,27 +147,32 @@ export function applicationLinks(
 		}
 	];
 	if (restrictLinks !== false) {
-		links.push({
-			href: `/applications/${id}/documents`,
-			text: 'Documents'
-		});
-		if (nowIsWithinRange(haveYourSayPeriod?.start, haveYourSayPeriod?.end)) {
+		const isWithdrawn = applicationStatus === 'withdrawn' || applicationStatus === 'expired';
+		const isExpired = applicationStatus === 'expired';
+
+		if (!(isWithdrawn && isExpired)) {
 			links.push({
-				href: `/applications/${id}/have-your-say`,
-				text: 'Have your say'
+				href: `/applications/${id}/documents`,
+				text: 'Documents'
 			});
-		}
-		if (displayApplicationUpdates) {
-			links.push({
-				href: `/applications/${id}/application-updates`,
-				text: 'Application updates'
-			});
-		}
-		if (isNowAfterStartDate(representationsPublishDate)) {
-			links.push({
-				href: `/applications/${id}/written-representations`,
-				text: 'Written representations'
-			});
+			if (!isWithdrawn && nowIsWithinRange(haveYourSayPeriod?.start, haveYourSayPeriod?.end)) {
+				links.push({
+					href: `/applications/${id}/have-your-say`,
+					text: 'Have your say'
+				});
+			}
+			if (displayApplicationUpdates) {
+				links.push({
+					href: `/applications/${id}/application-updates`,
+					text: 'Application updates'
+				});
+			}
+			if (isNowAfterStartDate(representationsPublishDate)) {
+				links.push({
+					href: `/applications/${id}/written-representations`,
+					text: 'Written representations'
+				});
+			}
 		}
 	}
 	return links;

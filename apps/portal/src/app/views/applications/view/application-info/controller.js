@@ -116,19 +116,22 @@ export function buildApplicationInformationPage(service) {
 			applicationStatus === APPLICATION_PUBLISH_STATUS.EXPIRED;
 		const isExpired = applicationStatus === APPLICATION_PUBLISH_STATUS.EXPIRED;
 
+		const links = applicationLinks(
+			id,
+			haveYourSayPeriod,
+			representationsPublishDate,
+			displayApplicationUpdates,
+			applicationStatus,
+			true
+		);
+
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Application information',
 			applicationReference: crownDevelopment.reference,
 			isWithdrawn,
 			isExpired,
-			links: applicationLinks(
-				id,
-				haveYourSayPeriod,
-				representationsPublishDate,
-				displayApplicationUpdates,
-				!(isWithdrawn && isExpired)
-			),
+			links,
 			baseUrl: req.baseUrl,
 			currentUrl: req.originalUrl,
 			crownDevelopmentFields,

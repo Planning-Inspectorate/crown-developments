@@ -49,7 +49,13 @@ export function buildHaveYourSayPage(service) {
 		res.render('views/applications/view/have-your-say/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Have your say on a Crown Development Application',
-			links: applicationLinks(id, haveYourSayPeriod, representationsPublishDate, displayApplicationUpdates),
+			links: applicationLinks(
+				id,
+				haveYourSayPeriod,
+				representationsPublishDate,
+				displayApplicationUpdates,
+				crownDevelopment.applicationStatus
+			),
 			currentUrl: req.originalUrl,
 			crownDevelopmentFields
 		});

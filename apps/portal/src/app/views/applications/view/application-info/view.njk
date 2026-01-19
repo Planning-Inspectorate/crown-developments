@@ -89,9 +89,10 @@
                 {% endif %}
             </div>
 
+                {% if not isWithdrawn and not isExpired %}
             {{ renderHaveYourSayInformation(haveYourSayStatus, crownDevelopmentFields) }}
-
             <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+                {% endif %}
                 {% if isWithdrawn %}
                     {{ formatWithdrawnText(isExpired) }}
                 {% else %}

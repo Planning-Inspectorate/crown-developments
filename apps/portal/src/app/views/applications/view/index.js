@@ -7,7 +7,7 @@ import { createWrittenRepresentationsRoutes } from './written-representations/in
 import { buildDocumentView } from '../../util/documents-util.js';
 import { buildDetailedInformationPage } from '../../static/detailed-information/controller.js';
 import { buildApplicationUpdatesPage } from './application-updates/controller.js';
-import { checkIfExpiredMiddleware } from './utils/middleware.js';
+import { checkIfExpiredMiddleware, checkIfWithdrawnOrExpiredMiddleware } from './utils/middleware.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -22,13 +22,14 @@ export function createRoutes(service) {
 	const haveYourSayPageRoutes = createHaveYourSayRoutes(service);
 	const writtenRepresentationsRoutes = createWrittenRepresentationsRoutes(service);
 	const isPublishedAndNotExpired = checkIfExpiredMiddleware(service);
+	const isPublishedAndNotWithdrawnOrExpired = checkIfWithdrawnOrExpiredMiddleware(service);
 
 	router.get('/application-information', asyncHandler(applicationInfoController));
 	router.get('/application-updates', isPublishedAndNotExpired, asyncHandler(applicationUpdatesController));
 	router.get('/documents', isPublishedAndNotExpired, asyncHandler(applicationDocumentsPage));
 	router.get('/documents/:documentId', isPublishedAndNotExpired, asyncHandler(viewDocumentPage));
 	router.get('/detailed-information', isPublishedAndNotExpired, asyncHandler(buildDetailedInformationPage));
-	router.use('/have-your-say', isPublishedAndNotExpired, haveYourSayPageRoutes);
+	router.use('/have-your-say', isPublishedAndNotWithdrawnOrExpired, haveYourSayPageRoutes);
 	router.use('/written-representations', isPublishedAndNotExpired, writtenRepresentationsRoutes);
 
 	return router;
