@@ -67,17 +67,17 @@ describe('question-utils', () => {
 			assert.strictEqual(question.fieldName, 'myDateField');
 			assert.strictEqual(question.url, 'my-date-field');
 		});
-		it('should create a date question with a captialised title', () => {
+		it('should create a date question with a capitalised title', () => {
 			const question = dateQuestion({ fieldName: 'myDateField', title: 'my date field' });
 			assert.ok(question);
 			assert.strictEqual(question.title, 'My date field');
 		});
-		it('should not captialise the title in the default question', () => {
+		it('should not capitalise the title in the default question', () => {
 			const question = dateQuestion({ fieldName: 'myDateField', title: 'test date field' });
 			assert.ok(question);
 			assert.strictEqual(question.question, 'What is the test date field?');
 		});
-		it('should not captialise the title in the default question when inferred from field name', () => {
+		it('should not capitalise the title in the default question when inferred from field name', () => {
 			const question = dateQuestion({ fieldName: 'testDateField' });
 			assert.ok(question);
 			assert.strictEqual(question.question, 'What is the test date field?');
@@ -92,7 +92,7 @@ describe('question-utils', () => {
 			assert.ok(question);
 			assert.strictEqual(question.question, 'Custom question?');
 		});
-		it('should not captialise the title in the validation message', () => {
+		it('should not capitalise the title in the validation message', () => {
 			const question = dateQuestion({ fieldName: 'myDateField', title: 'test date field' });
 			assert.ok(question);
 			assert.strictEqual(question.validators[0].emptyErrorMessage, 'Enter test date field');
