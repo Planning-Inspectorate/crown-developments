@@ -277,22 +277,7 @@ describe('view-model', () => {
 				}
 			]);
 		});
-		it('should only show Application information link when withdrawnDateIsNotExpired is false (withdrawn AND expired)', () => {
-			const id = 'id-1';
-			const haveYourSayPeriod = {
-				start: new Date('2025-01-01T00:00:00.000Z'),
-				end: new Date('2025-01-30T23:59:59.000Z')
-			};
-			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
-			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, undefined, false);
-			assert.deepStrictEqual(result, [
-				{
-					href: `/applications/${id}/application-information`,
-					text: 'Application information'
-				}
-			]);
-		});
-		it('should default to showing all links if withdrawnDateIsNotExpired is undefined', (context) => {
+		it('should show all links if applicationStatus is active', (context) => {
 			const id = 'id-1';
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-15T12:00:00.000Z') }); // within period
 			const haveYourSayPeriod = {
@@ -305,6 +290,62 @@ describe('view-model', () => {
 			assert(result.some((link) => link.text === 'Have your say'));
 			assert(result.some((link) => link.text === 'Application updates'));
 			assert(result.some((link) => link.text === 'Written representations'));
+		});
+
+		it('should not include have your say link when applicationStatus is withdrawn', (context) => {
+			const id = 'id-1';
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-15T12:00:00.000Z') }); // within period
+			const haveYourSayPeriod = {
+				start: new Date('2025-01-01T00:00:00.000Z'),
+				end: new Date('2025-01-30T23:59:59.000Z')
+			};
+			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
+			const result = applicationLinks(
+				id,
+				haveYourSayPeriod,
+				representationsPublishDate,
+				true,
+				'withdrawn',
+				'withdrawn'
+			);
+			assert.deepStrictEqual(result, [
+				{ href: `/applications/${id}/application-information`, text: 'Application information' },
+				{ href: `/applications/${id}/documents`, text: 'Documents' },
+				{ href: `/applications/${id}/application-updates`, text: 'Application updates' },
+				{ href: `/applications/${id}/written-representations`, text: 'Written representations' }
+			]);
+		});
+		it('should only show Application information link when applicationStatus is expired', () => {
+			const id = 'id-1';
+			const haveYourSayPeriod = {
+				start: new Date('2025-01-01T00:00:00.000Z'),
+				end: new Date('2025-01-30T23:59:59.000Z')
+			};
+			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
+			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, 'expired');
+			assert.deepStrictEqual(result, [
+				{
+					href: `/applications/${id}/application-information`,
+					text: 'Application information'
+				}
+			]);
+		});
+		it('should default to showing all links when applicationStatus is undefined', (context) => {
+			const id = 'id-1';
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-15T12:00:00.000Z') }); // within period
+			const haveYourSayPeriod = {
+				start: new Date('2025-01-01T00:00:00.000Z'),
+				end: new Date('2025-01-30T23:59:59.000Z')
+			};
+			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
+			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, undefined, 'withdrawn');
+			assert.deepStrictEqual(result, [
+				{ href: `/applications/${id}/application-information`, text: 'Application information' },
+				{ href: `/applications/${id}/documents`, text: 'Documents' },
+				{ href: `/applications/${id}/have-your-say`, text: 'Have your say' },
+				{ href: `/applications/${id}/application-updates`, text: 'Application updates' },
+				{ href: `/applications/${id}/written-representations`, text: 'Written representations' }
+			]);
 		});
 	});
 	describe('representationTitle', () => {

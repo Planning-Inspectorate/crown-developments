@@ -128,7 +128,7 @@ function isHearing(procedureId) {
  * @param { HaveYourSayPeriod } haveYourSayPeriod
  * @param { Date } representationsPublishDate
  * @param { boolean } displayApplicationUpdates
- * @param { string|boolean|undefined } applicationStatus - Either the applicationStatus string (e.g. 'active') or `undefined`.
+ * @param { string|undefined } applicationStatus - Either the applicationStatus string (e.g. 'active') or `undefined`.
  * @param { boolean|undefined } restrictLinks - A flag to restrict links, default is `true`.
  * @returns {import('./types.js').ApplicationLink[]}
  */
