@@ -292,7 +292,7 @@ export const getQuestions = ({
 			title: 'Reason for not using the online service',
 			question: 'Reason for not using the online service (optional)',
 			fieldName: `submissionMethodReason`,
-			url: 'submission-reason',
+			url: 'non-submission-method-reason',
 			hint: 'If you have them, add details about why the written representation was not submitted using the online service.',
 			validators: [
 				new StringValidator({
