@@ -224,8 +224,8 @@ describe('dynamic-form/controller', () => {
 				notSampleFieldName: 'do not send this'
 			};
 
-			mockJourney.getQuestionBySectionAndName = mock.fn();
-			mockJourney.getQuestionBySectionAndName.mock.mockImplementationOnce(() => sampleQuestionObj);
+			mockJourney.getQuestionByParams = mock.fn();
+			mockJourney.getQuestionByParams.mock.mockImplementationOnce(() => sampleQuestionObj);
 
 			const saveData = mock.fn();
 			await buildSave(saveData)(req, res, journeyId);
@@ -294,8 +294,8 @@ describe('dynamic-form/controller', () => {
 				}
 			};
 
-			mockJourney.getQuestionBySectionAndName = mock.fn();
-			mockJourney.getQuestionBySectionAndName.mock.mockImplementationOnce(() => sampleQuestionObjWithActions);
+			mockJourney.getQuestionByParams = mock.fn();
+			mockJourney.getQuestionByParams.mock.mockImplementationOnce(() => sampleQuestionObjWithActions);
 
 			const saveData = mock.fn(() => {
 				throw new Error('Expected error message');
@@ -366,8 +366,8 @@ describe('dynamic-form/controller', () => {
 				answers: {}
 			};
 
-			mockJourney.getQuestionBySectionAndName = mock.fn();
-			mockJourney.getQuestionBySectionAndName.mock.mockImplementationOnce(() => sampleQuestionObjWithActions);
+			mockJourney.getQuestionByParams = mock.fn();
+			mockJourney.getQuestionByParams.mock.mockImplementationOnce(() => sampleQuestionObjWithActions);
 
 			const saveData = mock.fn();
 			await buildSave(saveData)(req, res, journeyId);
@@ -399,8 +399,8 @@ describe('dynamic-form/controller', () => {
 			};
 
 			mockJourney.getSection = mock.fn(() => ({}));
-			mockJourney.getQuestionBySectionAndName = mock.fn();
-			mockJourney.getQuestionBySectionAndName.mock.mockImplementationOnce(() => sampleQuestionObjWithActions);
+			mockJourney.getQuestionByParams = mock.fn();
+			mockJourney.getQuestionByParams.mock.mockImplementationOnce(() => sampleQuestionObjWithActions);
 			mockJourney.getNextQuestionUrl = mock.fn(() => expectedUrl);
 
 			const saveData = mock.fn();
@@ -434,8 +434,8 @@ describe('dynamic-form/controller', () => {
 			};
 
 			mockJourney.getSection = mock.fn(() => ({}));
-			mockJourney.getQuestionBySectionAndName = mock.fn();
-			mockJourney.getQuestionBySectionAndName.mock.mockImplementationOnce(() => sampleQuestionObjWithActions);
+			mockJourney.getQuestionByParams = mock.fn();
+			mockJourney.getQuestionByParams.mock.mockImplementationOnce(() => sampleQuestionObjWithActions);
 			mockJourney.getNextQuestionUrl = mock.fn(() => expectedUrl);
 
 			const saveData = mock.fn();

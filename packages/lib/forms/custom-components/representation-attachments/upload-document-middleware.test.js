@@ -21,7 +21,7 @@ describe('upload-document-middleware.js', () => {
 						sections: [],
 						isComplete: () => true,
 						getSection: mock.fn(() => 'section'),
-						getQuestionBySectionAndName: mock.fn(() => {
+						getQuestionByParams: mock.fn(() => {
 							return {
 								checkForValidationErrors: checkForValidationErrorsMock,
 								renderAction: mock.fn()
@@ -58,7 +58,7 @@ describe('upload-document-middleware.js', () => {
 						sections: [],
 						isComplete: () => true,
 						getSection: mock.fn(() => 'section'),
-						getQuestionBySectionAndName: mock.fn(() => {
+						getQuestionByParams: mock.fn(() => {
 							return {
 								prepQuestionForRendering: prepQuestionForRenderingMock,
 								renderAction: mock.fn()
@@ -109,7 +109,7 @@ describe('upload-document-middleware.js', () => {
 						taskListUrl: '/task-list',
 						isComplete: () => true,
 						getSection: mock.fn(() => null),
-						getQuestionBySectionAndName: mock.fn(() => {
+						getQuestionByParams: mock.fn(() => {
 							return {
 								prepQuestionForRendering: prepQuestionForRenderingMock,
 								renderAction: mock.fn()
@@ -145,7 +145,7 @@ describe('upload-document-middleware.js', () => {
 						taskListUrl: '/task-list',
 						isComplete: () => true,
 						getSection: mock.fn(() => 'section'),
-						getQuestionBySectionAndName: mock.fn(() => null)
+						getQuestionByParams: mock.fn(() => null)
 					},
 					journeyResponse: {
 						answers: {
