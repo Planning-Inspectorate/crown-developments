@@ -1,21 +1,20 @@
 export async function uploadDocumentQuestion(req, res, next) {
 	const uploadDocumentQuestionUrls = ['select-attachments', 'upload-request'];
 	if (uploadDocumentQuestionUrls.includes(req.params.question)) {
-		const { section, question } = req.params;
 		const { journey } = res.locals;
 
-		const sectionObj = journey.getSection(section);
-		const questionObj = journey.getQuestionBySectionAndName(section, question);
+		const section = journey.getSection(req.params.section);
+		const question = journey.getQuestionByParams(req.params);
 
-		if (!questionObj || !sectionObj) {
+		if (!question || !section) {
 			return res.redirect(journey.taskListUrl);
 		}
 
 		const hasSessionErrors = req.session?.errorSummary?.length > 0 || Object.keys(req.session?.errors || {}).length > 0;
 
 		const viewModel = hasSessionErrors
-			? questionObj.checkForValidationErrors(req, sectionObj, journey)
-			: questionObj.prepQuestionForRendering(sectionObj, journey, {
+			? question.checkForValidationErrors(req, section, journey)
+			: question.prepQuestionForRendering(section, journey, {
 					id: req.params.representationRef || req.params.id || req.params.applicationId,
 					currentUrl: req.originalUrl,
 					files: req.session?.files
@@ -26,7 +25,7 @@ export async function uploadDocumentQuestion(req, res, next) {
 			delete req.session.errorSummary;
 		}
 
-		return questionObj.renderAction(res, viewModel);
+		return question.renderAction(res, viewModel);
 	}
 	next();
 }

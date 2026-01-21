@@ -1,25 +1,24 @@
 export function buildSave(saveData, redirectToTaskListOnSuccess) {
 	return async (req, res) => {
-		const { section, question } = req.params;
 		/** @type {import('@planning-inspectorate/dynamic-forms/src/journey/journey.js').Journey} */
 		const journey = res.locals.journey;
 		/** @type {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} */
 		const journeyResponse = res.locals.journeyResponse;
 
-		const sectionObj = journey.getSection(section);
-		const questionObj = journey.getQuestionBySectionAndName(section, question);
+		const section = journey.getSection(req.params.section);
+		const question = journey.getQuestionByParams(req.params);
 
-		if (!questionObj || !sectionObj) {
+		if (!question || !section) {
 			return res.redirect(journey.taskListUrl);
 		}
 
 		try {
-			const errorViewModel = questionObj.checkForValidationErrors(req, sectionObj, journey);
+			const errorViewModel = question.checkForValidationErrors(req, section, journey);
 			if (errorViewModel) {
-				return questionObj.renderAction(res, errorViewModel);
+				return question.renderAction(res, errorViewModel);
 			}
 
-			const data = await questionObj.getDataToSave(req, journeyResponse);
+			const data = await question.getDataToSave(req, journeyResponse);
 
 			await saveData({
 				req,
@@ -29,22 +28,22 @@ export function buildSave(saveData, redirectToTaskListOnSuccess) {
 				data
 			});
 
-			const saveViewModel = questionObj.checkForSavingErrors(req, sectionObj, journey);
+			const saveViewModel = question.checkForSavingErrors(req, section, journey);
 			if (saveViewModel) {
-				return questionObj.renderAction(res, saveViewModel);
+				return question.renderAction(res, saveViewModel);
 			}
 			if (redirectToTaskListOnSuccess) {
 				return res.redirect(journey.taskListUrl);
 			}
-			return questionObj.handleNextQuestion(res, journey, sectionObj.segment, questionObj.fieldName);
+			return question.handleNextQuestion(res, journey, section.segment, question.fieldName);
 		} catch (err) {
-			const viewModel = questionObj.prepQuestionForRendering(sectionObj, journey, {
+			const viewModel = question.prepQuestionForRendering(section, journey, {
 				id: req.params.representationRef || req.params.id || req.params.applicationId,
 				currentUrl: req.originalUrl,
 				files: req.session?.files,
 				errorSummary: err.errorSummary ?? [{ text: err.toString(), href: '#' }]
 			});
-			return questionObj.renderAction(res, viewModel);
+			return question.renderAction(res, viewModel);
 		}
 	};
 }
