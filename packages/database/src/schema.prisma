@@ -22,34 +22,40 @@ datasource db {
 /// CrownDevelopment represents a case in the system
 model CrownDevelopment {
   /// internal identifier
-  id                                  String                      @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  id                       String                           @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
   /// external identifier, shown to users as a unique reference
-  reference                           String                      @unique
-  createdDate                         DateTime                    @default(now())
-  updatedDate                         DateTime?
+  reference                String                           @unique
+  createdDate              DateTime                         @default(now())
+  updatedDate              DateTime?
   /// type of application, such as outline, extension
-  typeId                              String
-  Type                                ApplicationType             @relation(fields: [typeId], references: [id])
-  /// subtype of application
-  subTypeId                           String?
-  SubType                             ApplicationSubType?         @relation(fields: [subTypeId], references: [id])
+  typeId                   String
+  Type                     ApplicationType                  @relation(fields: [typeId], references: [id])
+  /// subtype of application, such as planning permission, listed building consent
+  subTypeId                String?
+  SubType                  ApplicationSubType?              @relation(fields: [subTypeId], references: [id])
   /// linked case relationship parent <-> children
-  linkedParentId                      String?                     @db.UniqueIdentifier
-  ParentCrownDevelopment              CrownDevelopment?           @relation("CrownDevelopmentChildren", fields: [linkedParentId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-  ChildrenCrownDevelopment            CrownDevelopment[]          @relation("CrownDevelopmentChildren")
+  linkedParentId           String?                          @db.UniqueIdentifier
+  ParentCrownDevelopment   CrownDevelopment?                @relation("CrownDevelopmentChildren", fields: [linkedParentId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  ChildrenCrownDevelopment CrownDevelopment[]               @relation("CrownDevelopmentChildren")
   /// project description
-  description                         String?                     @db.NVarChar(2000)
+  description              String?                          @db.NVarChar(2000)
   /// LPA associated with this application
-  lpaId                               String?                     @db.UniqueIdentifier
-  Lpa                                 Lpa?                        @relation("PrimaryLpa", fields: [lpaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  lpaId                    String?                          @db.UniqueIdentifier
+  Lpa                      Lpa?                             @relation("PrimaryLpa", fields: [lpaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   /// Secondary LPA associated with this application
-  hasSecondaryLpa                     Boolean?                    @default(false)
+  hasSecondaryLpa          Boolean?                         @default(false)
   /// hasSecondaryLpa added to allow secondaryLpa to be edited in overview
-  secondaryLpaId                      String?                     @db.UniqueIdentifier
-  SecondaryLpa                        Lpa?                        @relation("SecondaryLpa", fields: [secondaryLpaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-  /// Applicant contact details
+  secondaryLpaId           String?                          @db.UniqueIdentifier
+  SecondaryLpa             Lpa?                             @relation("SecondaryLpa", fields: [secondaryLpaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  /// Applicant organisations details
+  Organisations            CrownDevelopmentToOrganisation[]
+
+  /// Applicant contact details (To be migrated to ApplicantContacts)
+  ///TODO: Remove applicantContactId and ApplicantContact relation after migration
   applicantContactId                  String?                     @db.UniqueIdentifier
   ApplicantContact                    Contact?                    @relation("ApplicantContact", fields: [applicantContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  /// Agent contact details (To be migrated to AgentContacts)
+  ///TODO: Remove agentContactId and AgentContact relation after migration
   agentContactId                      String?                     @db.UniqueIdentifier
   AgentContact                        Contact?                    @relation("AgentContact", fields: [agentContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   /// Address of the site, if known
@@ -161,28 +167,79 @@ model Address {
   Contact          Contact[]
   Lpa              Lpa[]
   CrownDevelopment CrownDevelopment[]
+  Organisation     Organisation[]
+}
+
+model Organisation {
+  /// internal identifier
+  id        String   @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  name      String
+  addressId String?  @db.UniqueIdentifier
+  Address   Address? @relation(fields: [addressId], references: [id])
+
+  /// Relationships between CrownDevelopments and Organisations
+  CrownDevelopmentToOrganisation CrownDevelopmentToOrganisation[]
+  /// Relationships between Organisations and Contacts
+  OrganisationToContact          OrganisationToContact[]
+}
+
+/// CrownDevelopmentToOrganisation represents the relationship between CrownDevelopments and Organisations
+/// This is a many-to-many relationship
+model CrownDevelopmentToOrganisation {
+  id                 String           @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  organisationId     String           @db.UniqueIdentifier
+  Organisation       Organisation     @relation(fields: [organisationId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  crownDevelopmentId String           @db.UniqueIdentifier
+  CrownDevelopment   CrownDevelopment @relation(fields: [crownDevelopmentId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  @@index([crownDevelopmentId])
+  @@index([organisationId])
 }
 
 /// Contact represents the details of a person or organisation
 model Contact {
   /// internal identifier
-  id                  String             @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
-  orgName             String?
-  firstName           String?
-  lastName            String?
-  telephoneNumber     String?
-  email               String?
-  addressId           String?            @db.UniqueIdentifier
-  Address             Address?           @relation(fields: [addressId], references: [id])
-  jobTitleOrRole      String?
+  id              String  @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  firstName       String?
+  lastName        String?
+  telephoneNumber String?
+  email           String?
+
   contactPreferenceId String?
   ContactPreference   ContactPreference? @relation(fields: [contactPreferenceId], references: [id])
 
-  CrownDevelopmentApplicant        CrownDevelopment[] @relation("ApplicantContact")
-  CrownDevelopmentAgent            CrownDevelopment[] @relation("AgentContact")
-  RepresentationSubmittedByContact Representation[]   @relation("RepresentationSubmittedByContact")
-  Representation                   Representation[]   @relation("RepresentedContact")
+  /// Used for written-representation on behalf of an organisation
+  orgName        String?
+  jobTitleOrRole String?
+  /// Used for written-representation contact preference 'post'
+  addressId      String?  @db.UniqueIdentifier
+  Address        Address? @relation(fields: [addressId], references: [id])
+
+  /// TODO: Remove  after migrating CrownDevelopment applicant and agent contacts to OrganisationToContact
+  CrownDevelopmentApplicant CrownDevelopment[] @relation("ApplicantContact")
+  CrownDevelopmentAgent     CrownDevelopment[] @relation("AgentContact")
+
+  RepresentationSubmittedByContact Representation[]        @relation("RepresentationSubmittedByContact")
+  Representation                   Representation[]        @relation("RepresentedContact")
   NotifyEmail                      NotifyEmail[]
+  /// Relationships between Organisations and Contacts
+  OrganisationToContact            OrganisationToContact[]
+}
+
+/// OrganisationToContact represents the relationship between Organisations and Contacts
+/// This is a many-to-many relationship
+model OrganisationToContact {
+  id             String                    @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  organisationId String                    @db.UniqueIdentifier
+  Organisation   Organisation              @relation(fields: [organisationId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  contactId      String                    @db.UniqueIdentifier
+  Contact        Contact                   @relation(fields: [contactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  /// role of the contact within the organisation for this application
+  role           String
+  Role           OrganisationToContactRole @relation(fields: [role], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  @@index([organisationId])
+  @@index([contactId])
 }
 
 /// Lpa represents a Local Planning Authority
@@ -470,6 +527,14 @@ model ApplicationUpdateStatus {
   id                String              @id
   displayName       String?
   ApplicationUpdate ApplicationUpdate[]
+}
+
+/// OrganisationToContactRole represents the role the contact has for the organisation
+model OrganisationToContactRole {
+  /// unique machine-readable name, not generated, e.g. "applicant" / "agent"
+  id                    String                  @id
+  displayName           String?
+  OrganisationToContact OrganisationToContact[]
 }
 
 /// RepresentationReceivedMethod represents the method by which a representation was received
