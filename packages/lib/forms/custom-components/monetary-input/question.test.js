@@ -22,7 +22,7 @@ describe('MonetaryInputQuestion (Abstract Base Logic)', () => {
 		conditionalAmountQuestion: 'Enter the amount'
 	});
 
-	describe('prepQuestionForRendering', () => {
+	describe('toViewModel', () => {
 		it('should correctly map the saved amount to the conditional input field, formatted to 2 decimal places', (ctx) => {
 			nunjucks.render = ctx.mock.fn();
 			const journey = {
@@ -34,7 +34,7 @@ describe('MonetaryInputQuestion (Abstract Base Logic)', () => {
 				getBackLink: mock.fn()
 			};
 
-			question.prepQuestionForRendering({}, journey, {});
+			question.toViewModel({ section: {}, journey });
 
 			const args = nunjucks.render.mock.calls[0].arguments;
 

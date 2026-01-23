@@ -37,7 +37,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 			assert.strictEqual(question.viewFolder, 'custom-components/representation-attachments');
 		});
 	});
-	describe('prepQuestionForRendering', () => {
+	describe('toViewModel', () => {
 		it('should prep attachments question for rendering for edit', () => {
 			const section = { name: 'sectionA' };
 			const journey = {
@@ -81,7 +81,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				}
 			};
 
-			const result = question.prepQuestionForRendering(section, journey, customViewData);
+			const result = question.toViewModel({ section, journey, customViewData });
 
 			assert.deepStrictEqual(result.question.value, []);
 			assert.deepStrictEqual(result.uploadedFiles, uploadedFiles);
@@ -133,7 +133,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				}
 			};
 
-			const result = question.prepQuestionForRendering(section, journey, customViewData);
+			const result = question.toViewModel({ section, journey, customViewData });
 
 			assert.deepStrictEqual(result.question.value, [
 				{
@@ -192,7 +192,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				}
 			};
 
-			const result = withdrawalRequestsQuestion.prepQuestionForRendering(section, journey, customViewData);
+			const result = withdrawalRequestsQuestion.toViewModel({ section, journey, customViewData });
 
 			assert.deepStrictEqual(result.question.value, [
 				{
@@ -254,6 +254,8 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 			};
 
 			const result = question.checkForValidationErrors(req, section, journey);
+			// toViewModel now includes a util helper; ignore it for structural comparison
+			if (result && result.util) delete result.util;
 			assert.deepStrictEqual(result, {
 				question: {
 					value: [{ a: 1 }],
@@ -283,7 +285,6 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				answer: [{ a: 1 }],
 				layoutTemplate: 'template',
 				pageCaption: 'section-name',
-				navigation: ['', 'back'],
 				backLink: 'back',
 				showBackToListLink: true,
 				listLink: 'task',
@@ -312,6 +313,8 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 			};
 
 			const result = question.checkForValidationErrors(req, section, journey);
+			// toViewModel now includes a util helper; ignore it for structural comparison
+			if (result && result.util) delete result.util;
 			assert.deepStrictEqual(result, {
 				question: {
 					value: [{ a: 1 }],
@@ -341,7 +344,6 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				answer: [{ a: 1 }],
 				layoutTemplate: 'template',
 				pageCaption: 'section-name',
-				navigation: ['', 'back'],
 				backLink: 'back',
 				showBackToListLink: true,
 				listLink: 'task',

@@ -175,7 +175,7 @@ const sampleQuestionObj = {
 	getDataToSave: mock.fn(),
 	checkForValidationErrors: mock.fn(),
 	checkForSavingErrors: mock.fn(),
-	prepQuestionForRendering: mock.fn(),
+	toViewModel: mock.fn(),
 	formatAnswerForSummary: mock.fn(() => [mockAnswer]),
 	viewFolder: 'sampleType',
 	handleNextQuestion: mock.fn()
@@ -254,7 +254,7 @@ describe('dynamic-form/controller', () => {
 			const sampleQuestionObjWithActions = {
 				...sampleQuestionObj,
 				saveAction: mock.fn(),
-				prepQuestionForRendering: mock.fn(() => expectedViewModel),
+				toViewModel: mock.fn(() => expectedViewModel),
 				renderAction: mock.fn()
 			};
 
@@ -313,7 +313,7 @@ describe('dynamic-form/controller', () => {
 				}
 			]);
 
-			assert.deepStrictEqual(sampleQuestionObjWithActions.prepQuestionForRendering.mock.calls[0].arguments[2], {
+			assert.deepStrictEqual(sampleQuestionObjWithActions.toViewModel.mock.calls[0].arguments[0].customViewData, {
 				id: '123456',
 				currentUrl: '/edit/files',
 				files: {

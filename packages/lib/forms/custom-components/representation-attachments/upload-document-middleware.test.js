@@ -44,8 +44,8 @@ describe('upload-document-middleware.js', () => {
 
 			assert.strictEqual(checkForValidationErrorsMock.mock.callCount(), 1);
 		});
-		it('should call prepQuestionForRendering if no errors in req.session', async () => {
-			const prepQuestionForRenderingMock = mock.fn();
+		it('should call toViewModel if no errors in req.session', async () => {
+			const toViewModelMock = mock.fn();
 			const mockReq = {
 				params: {
 					question: 'select-attachments'
@@ -60,7 +60,7 @@ describe('upload-document-middleware.js', () => {
 						getSection: mock.fn(() => 'section'),
 						getQuestionByParams: mock.fn(() => {
 							return {
-								prepQuestionForRendering: prepQuestionForRenderingMock,
+								toViewModel: toViewModelMock,
 								renderAction: mock.fn()
 							};
 						})
@@ -76,7 +76,7 @@ describe('upload-document-middleware.js', () => {
 
 			await uploadDocumentQuestion(mockReq, mockRes);
 
-			assert.strictEqual(prepQuestionForRenderingMock.mock.callCount(), 1);
+			assert.strictEqual(toViewModelMock.mock.callCount(), 1);
 		});
 		it('should not delete session errors and errorSummary if present and question is NOT select-attachments', async () => {
 			const mockReq = {
@@ -95,7 +95,7 @@ describe('upload-document-middleware.js', () => {
 			assert.deepStrictEqual(mockReq.session.errorSummary, [{ message: 'errorSummary!' }]);
 		});
 		it('should redirect to task list if the section is missing', async () => {
-			const prepQuestionForRenderingMock = mock.fn();
+			const toViewModelMock = mock.fn();
 			const mockReq = {
 				params: {
 					question: 'select-attachments'
@@ -111,7 +111,7 @@ describe('upload-document-middleware.js', () => {
 						getSection: mock.fn(() => null),
 						getQuestionByParams: mock.fn(() => {
 							return {
-								prepQuestionForRendering: prepQuestionForRenderingMock,
+								toViewModel: toViewModelMock,
 								renderAction: mock.fn()
 							};
 						})

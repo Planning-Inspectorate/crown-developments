@@ -299,15 +299,23 @@ export function buildReviewControllers(service, journeyId) {
 			const journey = new createRedactJourney(response, req);
 			const section = journey.sections[0];
 			const question = section.questions[0];
-			const validationErrors = question.checkForValidationErrors(req, res, journey);
+			const validationErrors = question.checkForValidationErrors(req, section, journey);
 			if (validationErrors) {
 				validationErrors.reference = representationRef;
 				question.renderAction(res, validationErrors);
 				return;
 			}
-			const viewModel = question.prepQuestionForRendering(section, journey, {
-				reference: representationRef,
-				redactionSuggestions
+			const viewModel = question.toViewModel({
+				params: {
+					section: section.segment,
+					question: question.fieldName
+				},
+				section,
+				journey,
+				customViewData: {
+					reference: representationRef,
+					redactionSuggestions
+				}
 			});
 			question.renderAction(res, viewModel);
 		},

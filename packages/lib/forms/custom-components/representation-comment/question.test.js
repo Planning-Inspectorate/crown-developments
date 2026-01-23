@@ -53,7 +53,7 @@ describe('./src/dynamic-forms/components/text-entry-details/question.js', () => 
 			}
 		};
 
-		const viewModel = question.prepQuestionForRendering('section', journey, {});
+		const viewModel = question.toViewModel({ section: { name: 'section' }, journey });
 
 		assert.deepStrictEqual(viewModel.question, {
 			value: 'a representation comment',
