@@ -153,6 +153,12 @@ model CrownDevelopment {
   hasCostsApplications                Boolean?
   /// details on those costs applications
   costsApplicationsComment            String?                     @db.NVarChar(2000)
+  /// whether this applicant is an Environmental Impact Assessment (EIA) development
+  environmentalImpactAssessment       Boolean?
+  /// whether this application accords with the development plan
+  developmentPlan                     Boolean?
+  /// whether this application involves a right of way
+  rightOfWay                          Boolean?
 }
 
 /// Address represents an address of a property or place

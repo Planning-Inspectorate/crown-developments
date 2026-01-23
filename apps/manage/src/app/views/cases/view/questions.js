@@ -723,6 +723,35 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			costsApplicationInputFieldName: 'costsApplicationsComment',
 			costsApplicationQuestion: 'Capture if a party is making a cost claim against another for unreasonable behaviour.',
 			validators: [new CostsApplicationsCommentValidator()]
+		},
+		environmentalImpactAssessment: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Environmental impact assessment (EIA) development?',
+			question: 'Is this application an Environmental Impact Assessment (EIA) development?',
+			fieldName: 'environmentalImpactAssessment',
+			url: 'environmental-impact-assessment',
+			validators: [
+				new RequiredValidator('Select whether this applicant is an Environmental Impact Assessment (EIA) development')
+			],
+			hint: "If you select 'Yes' this application will be saved as a special development."
+		},
+		developmentPlan: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Development plan',
+			question: 'Does this application accord with the development plan?',
+			fieldName: 'developmentPlan',
+			url: 'development-plan',
+			validators: [new RequiredValidator('Select whether this application accords with the development plan')],
+			hint: "If you select 'No', this application will be saved as a special development."
+		},
+		rightOfWay: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Right of way',
+			question: 'Does this application affect a right of way?',
+			fieldName: 'rightOfWay',
+			url: 'right-of-way',
+			validators: [new RequiredValidator('Select whether this application involves a right of way')],
+			hint: "If you select 'Yes' this application will be saved as a special development."
 		}
 	};
 
