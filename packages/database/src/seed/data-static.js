@@ -79,6 +79,29 @@ export const APPLICATION_SUB_TYPES = [
 		displayName: 'Listed building consent (LBC)'
 	}
 ];
+/**
+ *
+ * @type {Readonly<{APPLICANT: string, AGENT: string}>}
+ */
+export const CONTACT_ROLES_ID = Object.freeze({
+	APPLICANT: 'applicant',
+	AGENT: 'agent'
+});
+
+/**
+ *
+ * @type {import('@pins/crowndev-database').Prisma.OrganisationToContactRoleCreateInput[]}
+ */
+export const CONTACT_ROLES = [
+	{
+		id: CONTACT_ROLES_ID.APPLICANT,
+		displayName: 'Applicant'
+	},
+	{
+		id: CONTACT_ROLES_ID.AGENT,
+		displayName: 'Agent'
+	}
+];
 
 /**
  * @type {import('@pins/crowndev-database').Prisma.ApplicationStatusCreateInput[]}
@@ -682,6 +705,10 @@ export async function seedStaticData(dbClient) {
 
 	await Promise.all(
 		WITHDRAWAL_REASON.map((input) => upsertReferenceData({ delegate: dbClient.withdrawalReason, input }))
+	);
+
+	await Promise.all(
+		CONTACT_ROLES.map((input) => upsertReferenceData({ delegate: dbClient.organisationToContactRole, input }))
 	);
 
 	const categories = CATEGORIES.filter((c) => !c.ParentCategory);
