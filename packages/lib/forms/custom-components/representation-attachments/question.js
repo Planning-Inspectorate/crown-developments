@@ -10,6 +10,11 @@ import { JOURNEY_MAP } from './upload-documents.js';
  * @property {string} name
  * @property {string} [errorMessage]
  */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/options-question.js').QuestionViewModel} QuestionViewModel */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question-types.js').QuestionParameters} QuestionParameters */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/section.js').Section} Section */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey.js').Journey} Journey */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey-types.d.ts').RouteParams} RouteParams */
 
 const REDACTED_FLAG = 'Redacted';
 
@@ -18,12 +23,13 @@ const REDACTED_FLAG = 'Redacted';
  */
 export default class RepresentationAttachments extends Question {
 	/**
-	 * @param {import('@planning-inspectorate/dynamic-forms/src/questions/question-types.js').QuestionParameters} params
-	 * @param {Array<string>} allowedFileExtensions
-	 * @param {Array<string>} allowedMimeTypes
-	 * @param {number} maxFileSizeValue
-	 * @param {number} maxFileSizeString
-	 * @param {boolean} showUploadWarning
+	 * @param {Object} options
+	 * @param {QuestionParameters} options.params
+	 * @param {Array<string>} options.allowedFileExtensions
+	 * @param {Array<string>} options.allowedMimeTypes
+	 * @param {number} options.maxFileSizeValue
+	 * @param {number} options.maxFileSizeString
+	 * @param {boolean} options.showUploadWarning
 	 */
 	constructor({
 		allowedFileExtensions,
@@ -45,24 +51,38 @@ export default class RepresentationAttachments extends Question {
 		this.showUploadWarning = showUploadWarning;
 	}
 
-	prepQuestionForRendering(section, journey, customViewData, payload) {
-		let viewModel = super.prepQuestionForRendering(section, journey, customViewData);
-		if (journey.baseUrl.endsWith('/edit')) {
+	/**
+	 * Build the view model and attach custom data/configuration
+	 * @param {Object} options
+	 * @param {RouteParams} options.params
+	 * @param {Section} options.section
+	 * @param {Journey} options.journey
+	 * @param {Record<string, unknown>} [options.customViewData]
+	 * @param {Record<string, unknown>} [options.payload]
+	 * @returns {QuestionViewModel}
+	 */
+	toViewModel({ params, section, journey, customViewData, payload }) {
+		const viewModel = super.toViewModel({ params, section, journey, customViewData, payload });
+
+		const isEdit = Boolean(journey?.baseUrl?.endsWith('/edit'));
+		// Set the question value: in edit without payload, reset to []
+		if (isEdit) {
 			viewModel.question.value = payload ? payload[viewModel.question.fieldName] : [];
 		} else {
 			viewModel.question.value = payload ? payload[viewModel.question.fieldName] : viewModel.question.value;
 		}
 
-		const submittedForId = journey.response?.answers?.submittedForId;
+		// Compute uploaded files from session/customViewData or fallback to question value
+		const submittedForId = journey?.response?.answers?.submittedForId;
 		const fileGroupKey = this.getFileGroupKey(submittedForId);
-
-		const fileGroup = customViewData?.files?.[customViewData.id];
+		const fileGroup = customViewData?.files?.[customViewData?.id];
 		const fileGroupUploadedFiles = fileGroup?.[fileGroupKey]?.uploadedFiles ?? [];
 		const uploadedFiles = fileGroupUploadedFiles.length > 0 ? fileGroupUploadedFiles : viewModel.question.value;
 
 		viewModel.uploadedFiles = uploadedFiles;
 		viewModel.uploadedFilesEncoded = Buffer.from(JSON.stringify(uploadedFiles), 'utf-8').toString('base64');
 
+		// Attach configuration to the question
 		viewModel.question.allowedFileExtensions = this.allowedFileExtensions;
 		viewModel.question.allowedMimeTypes = this.allowedMimeTypes;
 		viewModel.question.maxFileSizeValue = this.maxFileSizeValue;
@@ -72,7 +92,14 @@ export default class RepresentationAttachments extends Question {
 		return viewModel;
 	}
 
-	checkForValidationErrors(req, sectionObj, journey) {
+	/**
+	 * check for validation errors
+	 * @param {import('express').Request} req
+	 * @param {Section} section
+	 * @param {Journey} journey
+	 * @returns {QuestionViewModel|undefined} returns the view model for displaying the error or undefined if there are no errors
+	 */
+	checkForValidationErrors(req, section, journey) {
 		const { session = {}, body = {}, params, originalUrl } = req;
 		const { errors: bodyErrors = {}, errorSummary: bodyErrorSummary = [] } = body;
 		const { errors: sessionErrors = {}, errorSummary: sessionErrorSummary = [] } = session;
@@ -81,12 +108,17 @@ export default class RepresentationAttachments extends Question {
 		const hasSessionErrors = sessionErrorSummary.length > 0;
 
 		if (hasBodyErrors || hasSessionErrors) {
-			return this.prepQuestionForRendering(sectionObj, journey, {
-				id: params.id || params.applicationId,
-				currentUrl: originalUrl,
-				files: session.files,
-				errors: hasBodyErrors ? bodyErrors : sessionErrors,
-				errorSummary: hasBodyErrors ? bodyErrorSummary : sessionErrorSummary
+			return this.toViewModel({
+				params,
+				section,
+				journey,
+				customViewData: {
+					id: params.id || params.applicationId,
+					currentUrl: originalUrl,
+					files: session.files,
+					errors: hasBodyErrors ? bodyErrors : sessionErrors,
+					errorSummary: hasBodyErrors ? bodyErrorSummary : sessionErrorSummary
+				}
 			});
 		}
 	}

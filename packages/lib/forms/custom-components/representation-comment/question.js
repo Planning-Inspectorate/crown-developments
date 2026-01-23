@@ -9,15 +9,21 @@ import { truncateComment, truncatedReadMoreCommentLink } from '../../../util/que
  * @property {string} name
  * @property {string} [errorMessage]
  */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/options-question.js').QuestionViewModel} QuestionViewModel */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question-types.js').QuestionParameters} QuestionParameters */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/section.js').Section} Section */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey.js').Journey} Journey */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey-types.d.ts').RouteParams} RouteParams */
 
 /**
  * @class
  */
 export default class RepresentationComment extends Question {
 	/**
-	 * @param {import('@planning-inspectorate/dynamic-forms/src/questions/question-types.js').QuestionParameters} params
-	 * @param {TextEntryCheckbox} [params.textEntryCheckbox]
-	 * @param {string|undefined} [params.label] if defined this show as a label for the input and the question will just be a standard h1
+	 * @param {object} options
+	 * @param {TextEntryCheckbox} [options.textEntryCheckbox]
+	 * @param {string|undefined} [options.label] if defined this show as a label for the input and the question will just be a standard h1
+	 * @param {QuestionParameters} options.params
 	 */
 	constructor({ textEntryCheckbox, label, ...params }) {
 		super({
@@ -29,8 +35,19 @@ export default class RepresentationComment extends Question {
 		this.label = label;
 	}
 
-	prepQuestionForRendering(section, journey, customViewData, payload) {
-		let viewModel = super.prepQuestionForRendering(section, journey, customViewData);
+	/**
+	 *
+	 * @param {Object} options
+	 * @param {RouteParams} options.params
+	 * @param {Section} options.section
+	 * @param {Journey} options.journey
+	 * @param {Record<string, unknown>} [options.customViewData]
+	 * @param {unknown} [options.payload]
+	 * @returns {QuestionViewModel}
+	 */
+	toViewModel({ params, section, journey, customViewData, payload }) {
+		const viewModel = super.toViewModel({ params, section, journey, customViewData, payload });
+
 		viewModel.question.label = this.label;
 		viewModel.question.textEntryCheckbox = this.textEntryCheckbox;
 		viewModel.question.value = payload ? payload[viewModel.question.fieldName] : viewModel.question.value;

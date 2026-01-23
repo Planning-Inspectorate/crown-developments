@@ -2,19 +2,22 @@ import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/compon
 import OptionsQuestion from '@planning-inspectorate/dynamic-forms/src/questions/options-question.js';
 import { formatFee } from '../../../util/numbers.js';
 
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question} Question */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/options-question.js').QuestionViewModel} QuestionViewModel */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/section.js').Section} Section */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response').JourneyResponse} JourneyResponse */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey.js').Journey} Journey */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey-types.d.ts').RouteParams} RouteParams */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question-types.js').QuestionParameters} QuestionParameters */
+
 export default class MonetaryInputQuestion extends OptionsQuestion {
-	constructor({
-		title,
-		question,
-		fieldName,
-		url,
-		hint,
-		validators,
-		html,
-		conditionalAmountFieldName,
-		conditionalAmountQuestion,
-		editable
-	}) {
+	/**
+	 * @param {Object} options
+	 * @param {QuestionParameters} options.params
+	 * @param {string} options.conditionalAmountFieldName
+	 * @param {string} options.conditionalAmountQuestion
+	 */
+	constructor({ conditionalAmountFieldName, conditionalAmountQuestion, ...params }) {
 		const options = [
 			{
 				text: 'Yes',
@@ -36,32 +39,28 @@ export default class MonetaryInputQuestion extends OptionsQuestion {
 		];
 
 		super({
-			title,
-			viewFolder: 'custom-components/monetary-input',
-			fieldName,
-			url,
-			question,
-			validators,
+			...params,
 			options,
-			hint,
-			html,
-			editable
+			viewFolder: 'custom-components/monetary-input'
 		});
 
 		this.conditionalAmountFieldName = conditionalAmountFieldName;
 	}
 
 	/**
-	 * @param {Section} section
-	 * @param {Journey} journey
-	 * @param {Record<string, unknown>} customViewData
-	 * @param {Record<string, unknown>} [payload]
+	 *
+	 * @param {Object} options
+	 * @param {RouteParams} options.params
+	 * @param {Section} options.section
+	 * @param {Journey} options.journey
+	 * @param {Record<string, unknown>} [options.customViewData]
+	 * @param {Record<string, unknown>} [options.payload]
 	 * @returns {QuestionViewModel}
 	 */
-	prepQuestionForRendering(section, journey, customViewData, payload) {
+	toViewModel({ params, section, journey, customViewData, payload }) {
 		journey.response.answers[`${this.fieldName}_amount`] =
 			journey.response.answers[this.conditionalAmountFieldName]?.toFixed(2) || '';
-		return super.prepQuestionForRendering(section, journey, customViewData, payload);
+		return super.toViewModel({ params, section, journey, customViewData, payload });
 	}
 
 	/**

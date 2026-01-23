@@ -37,11 +37,15 @@ export function buildSave(saveData, redirectToTaskListOnSuccess) {
 			}
 			return question.handleNextQuestion(res, journey, section.segment, question.fieldName);
 		} catch (err) {
-			const viewModel = question.prepQuestionForRendering(section, journey, {
-				id: req.params.representationRef || req.params.id || req.params.applicationId,
-				currentUrl: req.originalUrl,
-				files: req.session?.files,
-				errorSummary: err.errorSummary ?? [{ text: err.toString(), href: '#' }]
+			const viewModel = question.toViewModel({
+				section,
+				journey,
+				customViewData: {
+					id: req.params.representationRef || req.params.id || req.params.applicationId,
+					currentUrl: req.originalUrl,
+					files: req.session?.files,
+					errorSummary: err.errorSummary ?? [{ text: err.toString(), href: '#' }]
+				}
 			});
 			return question.renderAction(res, viewModel);
 		}

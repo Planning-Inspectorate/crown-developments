@@ -1,3 +1,9 @@
+/**
+ * Middleware to handle upload document questions
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
 export async function uploadDocumentQuestion(req, res, next) {
 	const uploadDocumentQuestionUrls = ['select-attachments', 'upload-request'];
 	if (uploadDocumentQuestionUrls.includes(req.params.question)) {
@@ -14,12 +20,16 @@ export async function uploadDocumentQuestion(req, res, next) {
 
 		const viewModel = hasSessionErrors
 			? question.checkForValidationErrors(req, section, journey)
-			: question.prepQuestionForRendering(section, journey, {
-					id: req.params.representationRef || req.params.id || req.params.applicationId,
-					currentUrl: req.originalUrl,
-					files: req.session?.files
+			: question.toViewModel({
+					params: req.params,
+					section,
+					journey,
+					customViewData: {
+						id: req.params.representationRef || req.params.id || req.params.applicationId,
+						currentUrl: req.originalUrl,
+						files: req.session?.files
+					}
 				});
-
 		if (req.session) {
 			delete req.session.errors;
 			delete req.session.errorSummary;

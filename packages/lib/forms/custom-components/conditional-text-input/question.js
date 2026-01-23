@@ -1,19 +1,22 @@
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import OptionsQuestion from '@planning-inspectorate/dynamic-forms/src/questions/options-question.js';
 
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question} Question */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/options-question.js').QuestionViewModel} QuestionViewModel */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/section.js').Section} Section */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response').JourneyResponse} JourneyResponse */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey.js').Journey} Journey */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey-types.d.ts').RouteParams} RouteParams */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question-types.js').QuestionParameters} QuestionParameters */
+
 export default class ConditionalTextInputQuestion extends OptionsQuestion {
-	constructor({
-		title,
-		question,
-		fieldName,
-		url,
-		hint,
-		validators,
-		html,
-		conditionalTextFieldName,
-		conditionalTextQuestion,
-		editable
-	}) {
+	/**
+	 * @param {Object} options
+	 * @param {string} options.conditionalTextFieldName
+	 * @param {string} options.conditionalTextQuestion
+	 * @param {QuestionParameters} options.params
+	 */
+	constructor({ conditionalTextFieldName, conditionalTextQuestion, ...params }) {
 		const options = [
 			{
 				text: 'Yes',
@@ -34,31 +37,26 @@ export default class ConditionalTextInputQuestion extends OptionsQuestion {
 		];
 
 		super({
-			title,
+			...params,
 			viewFolder: 'custom-components/conditional-text-input',
-			fieldName,
-			url,
-			question,
-			validators,
-			options,
-			hint,
-			html,
-			editable
+			options
 		});
 
 		this.conditionalTextFieldName = conditionalTextFieldName;
 	}
 
 	/**
-	 * @param {Section} section
-	 * @param {Journey} journey
-	 * @param {Record<string, unknown>} customViewData
-	 * @param {Record<string, unknown>} [payload]
+	 * @param {Object} options
+	 * @param {RouteParams} options.params
+	 * @param {Section} options.section
+	 * @param {Journey} options.journey
+	 * @param {Record<string, unknown>} [options.customViewData]
+	 * @param  {Record<string, unknown>} [options.payload]
 	 * @returns {QuestionViewModel}
 	 */
-	prepQuestionForRendering(section, journey, customViewData, payload) {
+	toViewModel({ params, section, journey, customViewData, payload }) {
 		journey.response.answers[`${this.fieldName}_text`] = journey.response.answers[this.conditionalTextFieldName] || '';
-		return super.prepQuestionForRendering(section, journey, customViewData, payload);
+		return super.toViewModel({ params, section, journey, customViewData, payload });
 	}
 
 	/**

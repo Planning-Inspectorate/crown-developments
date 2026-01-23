@@ -23,7 +23,7 @@ describe('ConditionalTextInputQuestion (Abstract Base Logic)', () => {
 		testTextQuestion: 'Enter the text'
 	});
 
-	describe('prepQuestionForRendering', () => {
+	describe('toViewModel', () => {
 		it('should correctly map the saved text to the conditional input field', (ctx) => {
 			nunjucks.render = ctx.mock.fn();
 			const journey = {
@@ -35,7 +35,7 @@ describe('ConditionalTextInputQuestion (Abstract Base Logic)', () => {
 				getBackLink: mock.fn()
 			};
 
-			question.prepQuestionForRendering({}, journey, {});
+			question.toViewModel({ section: {}, journey });
 
 			const args = nunjucks.render.mock.calls[0].arguments;
 
