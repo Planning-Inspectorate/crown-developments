@@ -76,7 +76,10 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'cilAmount',
 	'bngExempt',
 	'hasCostsApplications',
-	'costsApplicationsComment'
+	'costsApplicationsComment',
+	'environmentalImpactAssessment',
+	'developmentPlan',
+	'rightOfWay'
 ]);
 
 /**
