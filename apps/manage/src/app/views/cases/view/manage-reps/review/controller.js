@@ -728,6 +728,7 @@ function readRepRedactedCommentSession(req, representationRef) {
  *
  * @param {{session?: Object<string, any>}} req
  * @param {string} representationRef
+ * @param {string} itemId
  * @returns {string|undefined}
  */
 function readRepDocumentReviewStatusSession(req, representationRef, itemId) {

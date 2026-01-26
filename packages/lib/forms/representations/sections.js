@@ -2,7 +2,8 @@ import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
 import {
 	questionArrayMeetsCondition,
 	questionHasAnswer,
-	questionHasNonEmptyStringAnswer
+	questionHasNonEmptyStringAnswer,
+	whenQuestionHasAnswer
 } from '@planning-inspectorate/dynamic-forms/src/components/utils/question-has-answer.js';
 import {
 	REPRESENTATION_STATUS_ID,
@@ -37,9 +38,7 @@ export function haveYourSayManageSections(questions, isRepsUploadDocsLive, isVie
 		addRepMyselfSection(questions, isRepsUploadDocsLive, isViewJourney),
 		addRepAgentSection(questions, isRepsUploadDocsLive, isViewJourney),
 		new Section('Withdrawal', 'withdraw')
-			.withSectionCondition((response) =>
-				questionHasAnswer(response, questions.status, REPRESENTATION_STATUS_ID.WITHDRAWN)
-			)
+			.withSectionCondition(whenQuestionHasAnswer(questions.status, REPRESENTATION_STATUS_ID.WITHDRAWN))
 			.addQuestion(questions.withdrawalRequestDate)
 			.addQuestion(questions.withdrawalReason)
 			.addQuestion(questions.withdrawalRequests)
@@ -84,16 +83,14 @@ export function addRepresentationSection(questions, isRepsUploadDocsLive) {
  */
 function myselfSection(questions, isRepsUploadDocsLive) {
 	return new Section('Myself', 'myself')
-		.withSectionCondition((response) =>
-			questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
-		)
+		.withSectionCondition(whenQuestionHasAnswer(questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF))
 		.addQuestion(questions.myselfFullName)
 		.addQuestion(questions.myselfEmail)
 		.addQuestion(questions.myselfTellUsAboutApplication)
 		.addQuestion(questions.myselfHasAttachments)
 		.withCondition(() => isRepsUploadDocsLive === true)
 		.addQuestion(questions.myselfSelectAttachments)
-		.withCondition((response) => questionHasAnswer(response, questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES));
+		.withCondition(whenQuestionHasAnswer(questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES));
 }
 
 /**
@@ -106,15 +103,13 @@ function myselfSection(questions, isRepsUploadDocsLive) {
  */
 function addRepMyselfSection(questions, isRepsUploadDocsLive, isViewJourney) {
 	return new Section('Myself', 'myself')
-		.withSectionCondition((response) =>
-			questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF)
-		)
+		.withSectionCondition(whenQuestionHasAnswer(questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF))
 		.addQuestion(questions.myselfFullName)
 		.addQuestion(questions.myselfContactPreference)
 		.addQuestion(questions.myselfEmail)
-		.withCondition((response) => questionHasAnswer(response, questions.myselfContactPreference, 'email'))
+		.withCondition(whenQuestionHasAnswer(questions.myselfContactPreference, 'email'))
 		.addQuestion(questions.myselfAddress)
-		.withCondition((response) => questionHasAnswer(response, questions.myselfContactPreference, 'post'))
+		.withCondition(whenQuestionHasAnswer(questions.myselfContactPreference, 'post'))
 		.addQuestion(questions.myselfTellUsAboutApplication)
 		.addQuestion(questions.myselfHearingPreference)
 		.addQuestion(questions.myselfCommentRedacted)
@@ -122,7 +117,7 @@ function addRepMyselfSection(questions, isRepsUploadDocsLive, isViewJourney) {
 		.addQuestion(questions.myselfHasAttachments)
 		.withCondition(() => isRepsUploadDocsLive === true)
 		.addQuestion(questions.myselfSelectAttachments)
-		.withCondition((response) => questionHasAnswer(response, questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES))
+		.withCondition(whenQuestionHasAnswer(questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES))
 		.addQuestion(questions.myselfRedactedAttachments)
 		.withCondition(
 			(response) =>
@@ -140,26 +135,21 @@ function addRepMyselfSection(questions, isRepsUploadDocsLive, isViewJourney) {
  * @returns {Section}
  */
 function agentSection(questions, isRepsUploadDocsLive) {
-	const isRepresentationPerson = (response) =>
-		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON);
-	const isOrgWorkFor = (response) =>
-		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORGANISATION);
-	const isOrgNotWorkFor = (response) =>
-		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR);
+	const isRepresentationPerson = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON);
+	const isOrgWorkFor = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.ORGANISATION);
+	const isOrgNotWorkFor = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR);
 	const isRepresentationPersonOrOrgNotWorkFor = (response) =>
 		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON) ||
 		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR);
 
 	return new Section('Agent', 'agent')
-		.withSectionCondition((response) =>
-			questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF)
-		)
+		.withSectionCondition(whenQuestionHasAnswer(questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF))
 		.addQuestion(questions.whoRepresenting)
 		.addQuestion(questions.submitterFullName)
 		.startMultiQuestionCondition('representation-person-or-org-not-work-for', isRepresentationPersonOrOrgNotWorkFor)
 		.addQuestion(questions.isAgent)
 		.addQuestion(questions.agentOrgName)
-		.withCondition((response) => questionHasAnswer(response, questions.isAgent, BOOLEAN_OPTIONS.YES))
+		.withCondition(whenQuestionHasAnswer(questions.isAgent, BOOLEAN_OPTIONS.YES))
 		.endMultiQuestionCondition('representation-person-or-org-not-work-for')
 		.addQuestion(questions.submitterEmail)
 		.addQuestion(questions.representedOrgName)
@@ -175,7 +165,7 @@ function agentSection(questions, isRepsUploadDocsLive) {
 		.addQuestion(questions.submitterHasAttachments)
 		.withCondition(() => isRepsUploadDocsLive === true)
 		.addQuestion(questions.submitterSelectAttachments)
-		.withCondition((response) => questionHasAnswer(response, questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES))
+		.withCondition(whenQuestionHasAnswer(questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES))
 		.addQuestion(questions.submitterRedactedAttachments)
 		.withCondition(
 			(response) =>
@@ -194,32 +184,27 @@ function agentSection(questions, isRepsUploadDocsLive) {
  * @returns {Section}
  */
 function addRepAgentSection(questions, isRepsUploadDocsLive, isViewJourney) {
-	const isRepresentationPerson = (response) =>
-		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON);
-	const isOrgWorkFor = (response) =>
-		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORGANISATION);
-	const isOrgNotWorkFor = (response) =>
-		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR);
+	const isRepresentationPerson = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON);
+	const isOrgWorkFor = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.ORGANISATION);
+	const isOrgNotWorkFor = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR);
 	const isRepresentationPersonOrOrgNotWorkFor = (response) =>
 		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON) ||
 		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR);
 
 	return new Section('Agent', 'agent')
-		.withSectionCondition((response) =>
-			questionHasAnswer(response, questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF)
-		)
+		.withSectionCondition(whenQuestionHasAnswer(questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF))
 		.addQuestion(questions.whoRepresenting)
 		.addQuestion(questions.submitterFullName)
 		.startMultiQuestionCondition('representation-person-or-org-not-work-for', isRepresentationPersonOrOrgNotWorkFor)
 		.addQuestion(questions.isAgent)
 		.addQuestion(questions.agentOrgName)
-		.withCondition((response) => questionHasAnswer(response, questions.isAgent, BOOLEAN_OPTIONS.YES))
+		.withCondition(whenQuestionHasAnswer(questions.isAgent, BOOLEAN_OPTIONS.YES))
 		.endMultiQuestionCondition('representation-person-or-org-not-work-for')
 		.addQuestion(questions.submitterContactPreference)
 		.addQuestion(questions.submitterEmail)
-		.withCondition((response) => questionHasAnswer(response, questions.submitterContactPreference, 'email'))
+		.withCondition(whenQuestionHasAnswer(questions.submitterContactPreference, 'email'))
 		.addQuestion(questions.submitterAddress)
-		.withCondition((response) => questionHasAnswer(response, questions.submitterContactPreference, 'post'))
+		.withCondition(whenQuestionHasAnswer(questions.submitterContactPreference, 'post'))
 		.startMultiQuestionCondition('representation-person', isRepresentationPerson)
 		.addQuestion(questions.representedFullName)
 		.endMultiQuestionCondition('representation-person')
@@ -236,5 +221,5 @@ function addRepAgentSection(questions, isRepsUploadDocsLive, isViewJourney) {
 		.addQuestion(questions.submitterHasAttachments)
 		.withCondition(() => isRepsUploadDocsLive === true)
 		.addQuestion(questions.submitterSelectAttachments)
-		.withCondition((response) => questionHasAnswer(response, questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES));
+		.withCondition(whenQuestionHasAnswer(questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES));
 }
