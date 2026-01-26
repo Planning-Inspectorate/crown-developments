@@ -12,6 +12,15 @@ export function buildSave(saveData, redirectToTaskListOnSuccess) {
 			return res.redirect(journey.taskListUrl);
 		}
 
+		let manageListQuestion;
+		if (question.isInManageListSection) {
+			// find parent question for the manage list
+			manageListQuestion = journey.getQuestionByParams({ section: req.params.section, question: req.params.question });
+			if (!manageListQuestion) {
+				return res.redirect(journey.taskListUrl);
+			}
+		}
+
 		try {
 			const errorViewModel = question.checkForValidationErrors(req, section, journey);
 			if (errorViewModel) {
@@ -35,9 +44,14 @@ export function buildSave(saveData, redirectToTaskListOnSuccess) {
 			if (redirectToTaskListOnSuccess) {
 				return res.redirect(journey.taskListUrl);
 			}
-			return question.handleNextQuestion(res, journey, section.segment, question.fieldName);
+			return journey.redirectToNextQuestion(res, {
+				section: section.segment,
+				question: question.fieldName
+			});
 		} catch (err) {
 			const viewModel = question.toViewModel({
+				params: req.params,
+				manageListQuestion,
 				section,
 				journey,
 				customViewData: {
