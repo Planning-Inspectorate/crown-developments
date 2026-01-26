@@ -1,6 +1,9 @@
 import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
 import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
-import { questionHasAnswer } from '@planning-inspectorate/dynamic-forms/src/components/utils/question-has-answer.js';
+import {
+	questionHasAnswer,
+	whenQuestionHasAnswer
+} from '@planning-inspectorate/dynamic-forms/src/components/utils/question-has-answer.js';
 import {
 	APPLICATION_PROCEDURE_ID,
 	APPLICATION_SUB_TYPE_ID,
@@ -24,10 +27,9 @@ export function createJourney(questions, response, req) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey (invalid baseUrl)`);
 	}
 	const hasSecondaryLpa = (response) => yesNoToBoolean(response.answers?.hasSecondaryLpa);
-	const isWrittenReps = (response) =>
-		questionHasAnswer(response, questions.procedure, APPLICATION_PROCEDURE_ID.WRITTEN_REPS);
-	const isInquiry = (response) => questionHasAnswer(response, questions.procedure, APPLICATION_PROCEDURE_ID.INQUIRY);
-	const isHearing = (response) => questionHasAnswer(response, questions.procedure, APPLICATION_PROCEDURE_ID.HEARING);
+	const isWrittenReps = whenQuestionHasAnswer(questions.procedure, APPLICATION_PROCEDURE_ID.WRITTEN_REPS);
+	const isInquiry = whenQuestionHasAnswer(questions.procedure, APPLICATION_PROCEDURE_ID.INQUIRY);
+	const isHearing = whenQuestionHasAnswer(questions.procedure, APPLICATION_PROCEDURE_ID.HEARING);
 	const isPlanningOrLbcCase = (response) =>
 		questionHasAnswer(
 			response,
