@@ -418,7 +418,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			fieldName: 'lpaQuestionnaireSentDate',
 			question: 'When was the LPA questionnaire sent?',
 			title: 'LPA questionnaire sent date',
-			validationTitle: ' date LPA questionnaire was sent'
+			validationTitle: 'date LPA questionnaire was sent'
 		}),
 		lpaQuestionnaireReceivedDate: dateQuestion({
 			fieldName: 'lpaQuestionnaireReceivedDate',
