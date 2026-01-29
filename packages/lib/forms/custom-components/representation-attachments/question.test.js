@@ -131,7 +131,8 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 							uploadedFiles
 						}
 					}
-				}
+				},
+				currentUrl: '/cases/123456ab-1234-1234-1234-1234567890ab/manage-representations/AAAAA-BBBBB/manage'
 			};
 
 			const result = question.toViewModel({ section, journey, customViewData });
@@ -189,7 +190,8 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 							uploadedFiles
 						}
 					}
-				}
+				},
+				currentUrl: '/cases/123456ab-1234-1234-1234-1234567890ab/manage-representations/AAAAA-BBBBB/manage'
 			};
 
 			const result = withdrawalRequestsQuestion.toViewModel({ section, journey, customViewData });
@@ -381,7 +383,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				continueButtonText: 'Continue',
 				id: '456',
 				currentUrl: '/form',
-				files: undefined,
+				files: {},
 				errors: { field1: 'Invalid' },
 				errorSummary: [{ text: 'Invalid input', href: '#field1' }],
 				uploadedFiles: [],
@@ -493,6 +495,10 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				question: 'Redacted attachments',
 				fieldName: 'myselfRedactedAttachments',
 				url: 'select-attachments',
+				allowedFileExtensions: ALLOWED_EXTENSIONS,
+				allowedMimeTypes: ALLOWED_MIME_TYPES,
+				maxFileSizeValue: MAX_FILE_SIZE,
+				maxFileSizeString: '20MB',
 				showUploadWarning: true,
 				validators: []
 			});
