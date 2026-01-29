@@ -65,7 +65,7 @@ export default class RepresentationAttachments extends Question {
 		const viewModel = super.toViewModel({ params, section, journey, customViewData, payload });
 
 		const isEdit = Boolean(journey?.baseUrl?.endsWith('/edit'));
-		// Set the question value: in edit without payload, reset to []
+		// On edit pages users shouldn't be able to remove the previously uploaded files.
 		if (isEdit) {
 			viewModel.question.value = payload ? payload[viewModel.question.fieldName] : [];
 		} else {
@@ -76,8 +76,7 @@ export default class RepresentationAttachments extends Question {
 		const submittedForId = journey?.response?.answers?.submittedForId;
 		const fileGroupKey = this.getFileGroupKey(submittedForId);
 		const fileGroup = customViewData?.files?.[customViewData?.id];
-		const fileGroupUploadedFiles = fileGroup?.[fileGroupKey]?.uploadedFiles ?? [];
-		const uploadedFiles = fileGroupUploadedFiles.length > 0 ? fileGroupUploadedFiles : viewModel.question.value;
+		const uploadedFiles = fileGroup?.[fileGroupKey]?.uploadedFiles ?? [];
 
 		viewModel.uploadedFiles = uploadedFiles;
 		viewModel.uploadedFilesEncoded = Buffer.from(JSON.stringify(uploadedFiles), 'utf-8').toString('base64');
