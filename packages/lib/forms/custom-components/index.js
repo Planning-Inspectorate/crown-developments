@@ -3,9 +3,9 @@ import FeeAmountQuestion from './fee-amount/question.js';
 import RepresentationAttachments from './representation-attachments/question.js';
 import CILAmountQuestion from './cil-amount/question.js';
 import CostsApplicationsCommentQuestion from './costs-applications-comment/question.js';
-
 /**
- * @type {Readonly<{REPRESENTATION_COMMENT: string}>}
+ * Derive the union type of allowed components from the object.
+ * @typedef {typeof CUSTOM_COMPONENTS[keyof typeof CUSTOM_COMPONENTS]} CustomQuestionTypes
  */
 export const CUSTOM_COMPONENTS = Object.freeze({
 	REPRESENTATION_ATTACHMENTS: 'representation-attachments',
@@ -15,7 +15,7 @@ export const CUSTOM_COMPONENTS = Object.freeze({
 	COSTS_APPLICATIONS: 'costs-applications'
 });
 
-/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question>} */
+/** @type {Readonly<Record<string, typeof RepresentationAttachments | typeof RepresentationComment | typeof FeeAmountQuestion | typeof CILAmountQuestion | typeof CostsApplicationsCommentQuestion>>} */
 export const CUSTOM_COMPONENT_CLASSES = Object.freeze({
 	[CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS]: RepresentationAttachments,
 	[CUSTOM_COMPONENTS.REPRESENTATION_COMMENT]: RepresentationComment,
