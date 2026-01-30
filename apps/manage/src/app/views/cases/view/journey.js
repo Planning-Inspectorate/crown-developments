@@ -10,7 +10,6 @@ import {
 	APPLICATION_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
-
 export const JOURNEY_ID = 'case-details';
 
 /**
@@ -81,7 +80,10 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.cilAmount)
 				.withCondition(iscilLiable)
 				.addQuestion(questions.bngExempt)
-				.addQuestion(questions.hasCostsApplications),
+				.addQuestion(questions.hasCostsApplications)
+				.addQuestion(questions.environmentalImpactAssessment)
+				.addQuestion(questions.developmentPlan)
+				.addQuestion(questions.rightOfWay),
 			new Section('Contacts', 'contacts')
 				.addQuestion(questions.lpaContact)
 				.addQuestion(questions.lpaAddress)
