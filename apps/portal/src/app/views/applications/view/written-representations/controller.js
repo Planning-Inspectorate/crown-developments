@@ -9,7 +9,7 @@ import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-f
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
 import { buildFilters, getFilterQueryItems, hasQueries, mapWithAndWithoutToBoolean } from './filters/filters.js';
-import { parseDateFromParts } from './filters/date-filters-validator.js';
+import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
 
 /**
  * Processes filters and error summaries for written representations.
