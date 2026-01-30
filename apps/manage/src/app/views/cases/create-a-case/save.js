@@ -201,6 +201,24 @@ export function toCreateInput(answers, reference, subType) {
 		};
 	}
 
+	if (hasAnswers(answers, 'manageApplicantDetails')) {
+		const formattedApplicantDetails = answers.manageApplicantDetails.map((applicantDetail) => ({
+			name: applicantDetail.organisationName.trim(),
+			// Only create an address if at least one field is filled in
+			Address: Object.values(applicantDetail.organisationAddress || {}).some((v) => v)
+				? { create: toAddressInput(applicantDetail.organisationAddress) }
+				: undefined
+		}));
+		// Prisma doesn't allow nested createMany with relations, so we have to map to individual creates
+		input.Organisations = {
+			create: formattedApplicantDetails.map((applicantDetail) => ({
+				Organisation: {
+					create: applicantDetail
+				}
+			}))
+		};
+	}
+
 	if (hasAnswers(answers, 'applicant')) {
 		input.ApplicantContact = {
 			create: {
