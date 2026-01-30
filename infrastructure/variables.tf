@@ -37,6 +37,7 @@ variable "apps_config" {
       upload_docs_not_live         = bool
       notify_callback_not_live     = bool
       application_updates_not_live = bool
+      multiple_applicants_not_live = bool
     })
 
     google_analytics_id = string

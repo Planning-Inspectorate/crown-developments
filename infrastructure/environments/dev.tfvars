@@ -29,6 +29,7 @@ apps_config = {
     upload_docs_not_live         = false
     notify_callback_not_live     = false
     application_updates_not_live = false
+    multiple_applicants_not_live = true
   }
 
   google_analytics_id = "G-X08SNFE249"

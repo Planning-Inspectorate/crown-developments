@@ -67,7 +67,8 @@ export function loadConfig() {
 		GOV_NOTIFY_APP_NOT_NAT_IMP_TEMPLATE_ID,
 		FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE,
 		FEATURE_FLAG_NOTIFY_CALLBACK_NOT_LIVE,
-		FEATURE_FLAG_APPLICATION_UPDATES_NOT_LIVE
+		FEATURE_FLAG_APPLICATION_UPDATES_NOT_LIVE,
+		FEATURE_FLAG_MULTIPLE_APPLICANTS_NOT_LIVE
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -177,7 +178,8 @@ export function loadConfig() {
 			// by default with no feature flag set, reps upload docs is live
 			isRepsUploadDocsLive: FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE !== 'true',
 			isNotifyCallbackEnabled: FEATURE_FLAG_NOTIFY_CALLBACK_NOT_LIVE !== 'true',
-			isApplicationUpdatesLive: FEATURE_FLAG_APPLICATION_UPDATES_NOT_LIVE !== 'true'
+			isApplicationUpdatesLive: FEATURE_FLAG_APPLICATION_UPDATES_NOT_LIVE !== 'true',
+			isMultipleApplicantsLive: FEATURE_FLAG_MULTIPLE_APPLICANTS_NOT_LIVE !== 'true'
 		},
 		gitSha: GIT_SHA,
 		// the log level to use
