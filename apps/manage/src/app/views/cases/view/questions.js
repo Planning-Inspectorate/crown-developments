@@ -726,12 +726,12 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		},
 		environmentalImpactAssessment: {
 			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'Environmental impact assessment (EIA) development?',
+			title: 'Environmental Impact Assessment (EIA) development',
 			question: 'Is this application an Environmental Impact Assessment (EIA) development?',
 			fieldName: 'environmentalImpactAssessment',
-			url: 'environmental-impact-assessment',
+			url: 'eia-development',
 			validators: [
-				new RequiredValidator('Select whether this applicant is an Environmental Impact Assessment (EIA) development')
+				new RequiredValidator('Select whether this application is an Environmental Impact Assessment (EIA) development')
 			],
 			hint: "If you select 'Yes' this application will be saved as a special development."
 		},
