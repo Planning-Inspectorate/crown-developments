@@ -15,6 +15,29 @@ import { JOURNEY_MAP } from './upload-documents.js';
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/section.js').Section} Section */
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey.js').Journey} Journey */
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey-types.d.ts').RouteParams} RouteParams */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/components/manage-list/question.js')} ManageListQuestion */
+/** @typedef {QuestionViewModel & { uploadedFiles: Array<Object>, uploadedFilesEncoded: string }} RepresentationAttachmentsViewModel */
+/** @typedef {import('./upload-document-middleware.js').Files} Files */
+/** @typedef {import('./upload-document-middleware.js').ErrorSummary} ErrorSummary */
+/** @typedef {import('./upload-document-middleware.js').UploadDocumentSession} UploadDocumentSession */
+/**
+ * @typedef {Object} RepresentationAttachmentsViewData
+ * @property {string} id
+ * @property {string} currentUrl
+ * @property {Files} [files]
+ * @property {Record<string, string>} [errors]
+ * @property {ErrorSummary} [errorSummary]
+ */
+/**
+ * @typedef {Object} RepresentationAttachmentsConfig
+ * @property {'representation-attachments'} type
+ * @property {Array<string>} allowedFileExtensions
+ * @property {Array<string>} allowedMimeTypes
+ * @property {number} maxFileSizeValue
+ * @property {string} maxFileSizeString
+ * @property {boolean} showUploadWarning
+ */
+/** @typedef {Omit<QuestionParameters, 'viewFolder'> & RepresentationAttachmentsConfig } RepresentationAttachmentsParameters */
 
 const REDACTED_FLAG = 'Redacted';
 
@@ -23,13 +46,7 @@ const REDACTED_FLAG = 'Redacted';
  */
 export default class RepresentationAttachments extends Question {
 	/**
-	 * @param {Object} options
-	 * @param {QuestionParameters} options.params
-	 * @param {Array<string>} options.allowedFileExtensions
-	 * @param {Array<string>} options.allowedMimeTypes
-	 * @param {number} options.maxFileSizeValue
-	 * @param {number} options.maxFileSizeString
-	 * @param {boolean} options.showUploadWarning
+	 * @param {RepresentationAttachmentsParameters} options
 	 */
 	constructor({
 		allowedFileExtensions,
@@ -55,14 +72,17 @@ export default class RepresentationAttachments extends Question {
 	 * Build the view model and attach custom data/configuration
 	 * @param {Object} options
 	 * @param {RouteParams} options.params
+	 * @param {ManageListQuestion} [options.manageListQuestion]
 	 * @param {Section} options.section
 	 * @param {Journey} options.journey
-	 * @param {Record<string, unknown>} [options.customViewData]
+	 * @param {RepresentationAttachmentsViewData} [options.customViewData]
 	 * @param {Record<string, unknown>} [options.payload]
-	 * @returns {QuestionViewModel}
+	 * @returns {RepresentationAttachmentsViewModel}
 	 */
-	toViewModel({ params, section, journey, customViewData, payload }) {
-		const viewModel = super.toViewModel({ params, section, journey, customViewData, payload });
+	toViewModel({ params, manageListQuestion, section, journey, customViewData, payload }) {
+		const viewModel = /** @type {RepresentationAttachmentsViewModel} */ (
+			super.toViewModel({ params, manageListQuestion, section, journey, customViewData, payload })
+		);
 
 		const isEdit = Boolean(journey?.baseUrl?.endsWith('/edit'));
 		// Set the question value: in edit without payload, reset to []
@@ -97,19 +117,21 @@ export default class RepresentationAttachments extends Question {
 	 * @param {import('express').Request} req
 	 * @param {Section} section
 	 * @param {Journey} journey
+	 * @param {ManageListQuestion} manageListQuestion
 	 * @returns {QuestionViewModel|undefined} returns the view model for displaying the error or undefined if there are no errors
 	 */
-	checkForValidationErrors(req, section, journey) {
-		const { session = {}, body = {}, params, originalUrl } = req;
+	checkForValidationErrors(req, section, journey, manageListQuestion) {
+		const { body = {}, params, originalUrl } = req;
+		const session = this.normaliseSession('session' in req ? req.session : {});
 		const { errors: bodyErrors = {}, errorSummary: bodyErrorSummary = [] } = body;
-		const { errors: sessionErrors = {}, errorSummary: sessionErrorSummary = [] } = session;
+		const { errors: sessionErrors, errorSummary: sessionErrorSummary } = session;
 
 		const hasBodyErrors = bodyErrorSummary.length > 0;
 		const hasSessionErrors = sessionErrorSummary.length > 0;
-
 		if (hasBodyErrors || hasSessionErrors) {
 			return this.toViewModel({
 				params,
+				manageListQuestion,
 				section,
 				journey,
 				customViewData: {
@@ -121,6 +143,19 @@ export default class RepresentationAttachments extends Question {
 				}
 			});
 		}
+	}
+
+	/**
+	 * Ensures the session object conforms to UploadDocumentSession shape with default values.
+	 * @param {unknown} session
+	 * @returns {Required<UploadDocumentSession>}
+	 */
+	normaliseSession(session) {
+		return {
+			files: typeof session?.files === 'object' && session.files !== null ? session.files : {},
+			errorSummary: Array.isArray(session?.errorSummary) ? session.errorSummary : [],
+			errors: typeof session?.errors === 'object' && session.errors !== null ? session.errors : {}
+		};
 	}
 
 	formatAnswerForSummary(sectionSegment, journey, answer) {
