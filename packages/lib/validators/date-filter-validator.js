@@ -1,31 +1,28 @@
 import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
 import { formatInTimeZone } from 'date-fns-tz';
 import { enGB } from 'date-fns/locale/en-GB';
-/**
- * @typedef {Object} DateFilter
- * @property {{ legend: { text: string, classes: string } }} fieldset
- * @property {string} title
- * @property {string} idPrefix
- * @property {string} namePrefix
- * @property {{ text: string }} hint
- * @property {any[]} validators
- * @property {Array<{ id: string, name: string, label: string, value: string | undefined, classes?: string }>} items
- * @property {{ day: string | undefined, month: string | undefined, year: string | undefined }} value
- * @property {{ text: string }=} errorMessage
- */
 
 /**
  * Validate date and return an error message object if not valid.
  * @param {string} day
  * @param {string} month
  * @param {string} year
- * @param {DateValidator} validator
  * @param {string} title
  * @param {Date} [compareDate]
  * @param {'before' | 'after'} [compareType]
  * @returns {{text: string}|null}
  */
-function validateDate(day, month, year, validator, title, compareDate, compareType) {
+export function validateDate(day = '', month = '', year = '', title, compareDate, compareType) {
+	// We use DateValidator's messages, but there is no POST request to validate here,
+	// so we manually check the fields and return appropriate messages.
+	const validator = new DateValidator(
+		title,
+		{
+			ensureFuture: false,
+			ensurePast: false
+		},
+		{ invalidMonthErrorMessage: `${title} month must be a real month` }
+	);
 	const anyPresent = Boolean(day || month || year);
 	const allPresent = Boolean(day && month && year);
 
@@ -57,14 +54,27 @@ function validateDate(day, month, year, validator, title, compareDate, compareTy
 		return { text: validator.emptyErrorMessage };
 	}
 
+	// Extra checks needed as date parser will accept some invalid inputs like '1A'
+	if (!isIntegerString(day)) {
+		return { text: validator.invalidDateErrorMessage };
+	}
+
+	if (!isIntegerString(month)) {
+		return { text: validator.invalidMonthErrorMessage };
+	}
+
+	if (!isIntegerString(year)) {
+		return { text: validator.invalidYearErrorMessage };
+	}
+
 	// Check year is 4-digits and return invalidYearErrorMessage from DateValidator if not
 	if (year.length !== 4) {
 		return { text: validator.invalidYearErrorMessage };
 	}
 
-	if (parseInt(month) > 12 || parseInt(month) < 1) {
+	if (parseInt(month, 10) > 12 || parseInt(month, 10) < 1) {
 		// This case not included in validator's messages
-		return { text: `${title} month must be a real month` };
+		return { text: validator.invalidMonthErrorMessage };
 	}
 
 	const thisDate = parseDateFromParts(day, month, year);
@@ -88,62 +98,6 @@ function validateDate(day, month, year, validator, title, compareDate, compareTy
 
 	// No errors
 	return null;
-}
-
-/**
- * Validates a date input
- * @param {{ day: string, month: string, year: string }} values
- * @param {string} title
- * @param {string} id
- * @param {{ text: string }} [hint]
- * @param {Date} [compareDate]
- * @param {'before' | 'after'} [compareType]
- * @returns {DateFilter}
- */
-export function dateFilter({ title, id, hint, values = {}, compareDate, compareType }) {
-	const validator = new DateValidator(title);
-	let day = values.day;
-	let month = values.month;
-	let year = values.year;
-
-	// Normalize possible array values from untrusted input to strings or undefined.
-	day = typeof day === 'string' ? day : undefined;
-	month = typeof month === 'string' ? month : undefined;
-	year = typeof year === 'string' ? year : undefined;
-
-	const errorMessage = validateDate(day, month, year, validator, title, compareDate, compareType);
-
-	return {
-		fieldset: { legend: { text: title, classes: 'govuk-fieldset__legend--s' } },
-		title,
-		id: id,
-		idPrefix: id,
-		namePrefix: id,
-		hint,
-		validators: [validator],
-		items: [
-			{
-				classes: 'govuk-input--width-2',
-				name: `day`,
-				label: 'Day',
-				value: day
-			},
-			{
-				classes: 'govuk-input--width-2',
-				name: `month`,
-				label: 'Month',
-				value: month
-			},
-			{
-				classes: 'govuk-input--width-4',
-				name: `year`,
-				label: 'Year',
-				value: year
-			}
-		],
-		value: { day, month, year },
-		...(errorMessage && { errorMessage })
-	};
 }
 
 /**
@@ -181,4 +135,13 @@ export function parseDateFromParts(day, month, year) {
 	}
 
 	return date;
+}
+
+/**
+ * Is the value a string representing an integer (digits only)?
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+function isIntegerString(value) {
+	return typeof value === 'string' && /^[0-9]+$/.test(value);
 }

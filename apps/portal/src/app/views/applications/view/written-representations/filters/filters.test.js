@@ -10,7 +10,8 @@ import {
 import { REPRESENTATION_CATEGORY_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { Prisma } from '@pins/crowndev-database/src/client/client.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
-import { dateFilter, parseDateFromParts } from './date-filters-validator.js';
+import { dateFilter } from './date-filter.js';
+import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
 
 // Helper to create a mock db with overridable count behaviour
 function createMockDb(counts) {
