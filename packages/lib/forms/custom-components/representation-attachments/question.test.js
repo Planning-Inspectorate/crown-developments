@@ -69,6 +69,8 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				{ name: 'file1.pdf', size: 1111 },
 				{ name: 'file2.pdf', size: 2222 }
 			];
+			const uploadedFilesEncoded =
+				'W3sibmFtZSI6ImZpbGUxLnBkZiIsInNpemUiOjExMTF9LHsibmFtZSI6ImZpbGUyLnBkZiIsInNpemUiOjIyMjJ9XQ==';
 
 			const customViewData = {
 				id: 'app123',
@@ -85,10 +87,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 
 			assert.deepStrictEqual(result.question.value, []);
 			assert.deepStrictEqual(result.uploadedFiles, uploadedFiles);
-			assert.strictEqual(
-				result.uploadedFilesEncoded,
-				Buffer.from(JSON.stringify(uploadedFiles), 'utf-8').toString('base64')
-			);
+			assert.strictEqual(result.uploadedFilesEncoded, uploadedFilesEncoded);
 		});
 		it('should prep attachments question for rendering', () => {
 			const section = { name: 'sectionA' };
@@ -121,6 +120,8 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				{ name: 'file1.pdf', size: 1111 },
 				{ name: 'file2.pdf', size: 2222 }
 			];
+			const uploadedFilesEncoded =
+				'W3sibmFtZSI6ImZpbGUxLnBkZiIsInNpemUiOjExMTF9LHsibmFtZSI6ImZpbGUyLnBkZiIsInNpemUiOjIyMjJ9XQ==';
 
 			const customViewData = {
 				id: 'app123',
@@ -144,10 +145,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				}
 			]);
 			assert.deepStrictEqual(result.uploadedFiles, uploadedFiles);
-			assert.strictEqual(
-				result.uploadedFilesEncoded,
-				Buffer.from(JSON.stringify(uploadedFiles), 'utf-8').toString('base64')
-			);
+			assert.strictEqual(result.uploadedFilesEncoded, uploadedFilesEncoded);
 		});
 		it('should use journey id to get uploadedFiles if submittedForId not in journey', () => {
 			const section = { name: 'sectionA' };
@@ -180,6 +178,8 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				{ name: 'file1.pdf', size: 1111 },
 				{ name: 'file2.pdf', size: 2222 }
 			];
+			const uploadedFilesEncoded =
+				'W3sibmFtZSI6ImZpbGUxLnBkZiIsInNpemUiOjExMTF9LHsibmFtZSI6ImZpbGUyLnBkZiIsInNpemUiOjIyMjJ9XQ==';
 
 			const customViewData = {
 				id: 'repRef123',
@@ -203,10 +203,98 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				}
 			]);
 			assert.deepStrictEqual(result.uploadedFiles, uploadedFiles);
-			assert.strictEqual(
-				result.uploadedFilesEncoded,
-				Buffer.from(JSON.stringify(uploadedFiles), 'utf-8').toString('base64')
-			);
+			assert.strictEqual(result.uploadedFilesEncoded, uploadedFilesEncoded);
+		});
+		it('handles extra uploadedFiles not present in question.value', () => {
+			const section = { name: 'sectionA' };
+			const existingFiles = {
+				originalname: 'test-pdf.pdf',
+				mimetype: 'application/pdf',
+				buffer: { type: 'Buffer' },
+				size: 227787
+			};
+			const journey = {
+				baseUrl: '/cases/123456ab-1234-1234-1234-1234567890ab/manage-representations/AAAAA-BBBBB/manage',
+				response: {
+					answers: {
+						myselfAttachments: [existingFiles],
+						submittedForId: 'myself'
+					}
+				},
+				getCurrentQuestionUrl: () => 'url',
+				getBackLink: () => 'back'
+			};
+
+			const uploadedFiles = [
+				{ name: 'file1.pdf', size: 1111 },
+				{ name: 'file2.pdf', size: 2222 },
+				{ name: 'extra-file.docx', size: 3333 }
+			];
+			const uploadedFilesEncoded =
+				'W3sibmFtZSI6ImZpbGUxLnBkZiIsInNpemUiOjExMTF9LHsibmFtZSI6ImZpbGUyLnBkZiIsInNpemUiOjIyMjJ9LHsibmFtZSI6ImV4dHJhLWZpbGUuZG9jeCIsInNpemUiOjMzMzN9XQ==';
+
+			const customViewData = {
+				id: 'app123',
+				files: {
+					app123: {
+						myself: {
+							uploadedFiles
+						}
+					}
+				},
+				currentUrl: '/cases/123456ab-1234-1234-1234-1234567890ab/manage-representations/AAAAA-BBBBB/manage'
+			};
+
+			const result = question.toViewModel({ section, journey, customViewData });
+
+			assert.deepStrictEqual(result.question.value, [existingFiles]);
+			assert.deepStrictEqual(result.uploadedFiles, uploadedFiles);
+			assert.strictEqual(result.uploadedFilesEncoded, uploadedFilesEncoded);
+		});
+
+		it('should return empty question value on edit url, with uploadFiles unaffected', () => {
+			const section = { name: 'sectionA' };
+			const existingFiles = {
+				originalname: 'test-pdf.pdf',
+				mimetype: 'application/pdf',
+				buffer: { type: 'Buffer' },
+				size: 227787
+			};
+			const journey = {
+				baseUrl: '/cases/123456ab-1234-1234-1234-1234567890ab/manage-representations/AAAAA-BBBBB/edit',
+				response: {
+					answers: {
+						myselfAttachments: [existingFiles],
+						submittedForId: 'myself'
+					}
+				},
+				getCurrentQuestionUrl: () => {
+					return 'url';
+				},
+				getBackLink: () => {
+					return 'back';
+				}
+			};
+			const uploadedFiles = [
+				{ name: 'file1.pdf', size: 1111 },
+				{ name: 'file2.pdf', size: 2222 },
+				{ name: 'extra-file.docx', size: 3333 }
+			];
+			const customViewData = {
+				id: 'app123',
+				files: {
+					app123: {
+						myself: {
+							uploadedFiles
+						}
+					}
+				},
+				currentUrl: '/cases/123456ab-1234-1234-1234-1234567890ab/manage-representations/AAAAA-BBBBB/edit'
+			};
+			const result = question.toViewModel({ section, journey, customViewData });
+
+			assert.deepStrictEqual(result.question.value, []);
+			assert.deepStrictEqual(result.uploadedFiles, uploadedFiles);
 		});
 	});
 	describe('checkForValidationErrors', () => {
@@ -296,8 +384,8 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				files: undefined,
 				errors: { field1: 'Invalid' },
 				errorSummary: [{ text: 'Invalid input', href: '#field1' }],
-				uploadedFiles: [{ a: 1 }],
-				uploadedFilesEncoded: 'W3siYSI6MX1d'
+				uploadedFiles: [],
+				uploadedFilesEncoded: 'W10='
 			});
 		});
 		it('should return validation errors when req.session has errors', () => {
@@ -355,8 +443,8 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				files: ['doc.pdf'],
 				errors: { field2: 'Required' },
 				errorSummary: [{ text: 'Field is required', href: '#field2' }],
-				uploadedFiles: [{ a: 1 }],
-				uploadedFilesEncoded: 'W3siYSI6MX1d'
+				uploadedFiles: [],
+				uploadedFilesEncoded: 'W10='
 			});
 		});
 	});
