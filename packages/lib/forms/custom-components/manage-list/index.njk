@@ -1,0 +1,65 @@
+{% extends layoutTemplate %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block dynQuestionContent %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            <form action="" method="post" novalidate>
+                {% if _csrf %}<input type="hidden" name="_csrf" value="{{ _csrf }}">{% endif %}
+
+                <h1 class="govuk-heading-l">{{ question.pageTitle }}</h1>
+                {% if question.valueSummary.length < 1 %}
+                    <p class="govuk-body">{{ emptyListText }}</p>
+                {% endif %}
+                <dl class="govuk-summary-list">
+                    {% for item in question.valueSummary %}
+                        <div class="govuk-summary-list__row ">
+                            <dt class="govuk-summary-list__key">
+                                {{ titleSingular }} {{ loop.index }}
+                            </dt>
+                            <dt class="govuk-summary-list__value">
+                                {% for value in item.value %}
+                                    {% if showManageListQuestions %}
+                                        {{ value.question }}:<br>
+                                    {% endif %}
+                                    {{ value.answer | safe }}
+                                    {% if not loop.last %}
+                                        <br>{% if showManageListQuestions %}<br>{% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            </dt>
+                            <dd class="govuk-summary-list__actions">
+                                <ul class="govuk-summary-list__actions-list">
+                                    <li class="govuk-summary-list__actions-list-item">
+                                        <a class="govuk-link" href="{{ util.trimTrailingSlash(originalUrl) }}/edit/{{ item.id }}/{{ question.firstQuestionUrl }}">
+                                            Change <span class="govuk-visually-hidden">{{ titleSingular }} {{ loop.index }}</span>
+                                        </a>
+                                    </li>
+                                    {% if not question.hideRemoveButton %}
+                                        <li class="govuk-summary-list__actions-list-item">
+                                            <a class="govuk-link" href="{{ util.trimTrailingSlash(originalUrl) }}/remove/{{ item.id }}/confirm">
+                                                Remove <span class="govuk-visually-hidden">{{ titleSingular }} {{ loop.index }}</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </dd>
+                        </div>
+                    {% endfor %}
+                </dl>
+                {% if not hideAddButton %}
+                    <p class="govuk-body">
+                        <a href="{{ util.trimTrailingSlash(originalUrl) }}/{{ question.addAnotherLink }}" class="govuk-link">Add another</a>
+                    </p>
+                {% endif %}
+
+                {{ govukButton({
+                    text: continueButtonText,
+                    type: "submit",
+                    attributes: { "data-cy":"button-save-and-continue"}
+                }) }}
+            </form>
+        </div>
+    </div>
+{% endblock %}
