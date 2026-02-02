@@ -275,6 +275,78 @@ describe('view-model', () => {
 			assert.equal(result.isGreenBelt, 'yes');
 			assert.equal(result.siteIsVisibleFromPublicLand, 'no');
 		});
+		it('should map applicant organisations if they exist', () => {
+			/** @type {CrownDevelopment} */
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				Organisations: [
+					{
+						id: 'relation-1',
+						organisationId: 'org-1',
+						crownDevelopmentId: 'id-1',
+						Organisation: {
+							id: 'org-1',
+							addressId: 'address-1',
+							name: 'Org One',
+							Address: {
+								id: 'address-1',
+								line1: 'Org Street',
+								line2: 'Flat 1',
+								townCity: 'Org Town',
+								county: 'Org County',
+								postcode: 'ORG1ST'
+							}
+						}
+					},
+					{
+						id: 'relation-2',
+						organisationId: 'org-2',
+						crownDevelopmentId: 'id-1',
+						Organisation: {
+							id: 'org-2',
+							addressId: 'address-2',
+							name: 'Org Two',
+							Address: {
+								id: 'address-2',
+								line1: 'Org Street 2',
+								line2: 'Flat 2',
+								townCity: 'Org Town 2',
+								county: 'Org County 2',
+								postcode: 'ORG2ND'
+							}
+						}
+					}
+				]
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.ok(Array.isArray(result.manageApplicantDetails));
+			assert.strictEqual(result.manageApplicantDetails.length, 2);
+			assert.deepStrictEqual(result.manageApplicantDetails[0], {
+				id: 'org-1',
+				organisationName: 'Org One',
+				organisationAddress: {
+					id: 'address-1',
+					addressLine1: 'Org Street',
+					addressLine2: 'Flat 1',
+					townCity: 'Org Town',
+					county: 'Org County',
+					postcode: 'ORG1ST'
+				}
+			});
+			assert.deepStrictEqual(result.manageApplicantDetails[1], {
+				id: 'org-2',
+				organisationName: 'Org Two',
+				organisationAddress: {
+					id: 'address-2',
+					addressLine1: 'Org Street 2',
+					addressLine2: 'Flat 2',
+					townCity: 'Org Town 2',
+					county: 'Org County 2',
+					postcode: 'ORG2ND'
+				}
+			});
+		});
 	});
 
 	describe('editsToDatabaseUpdates', () => {

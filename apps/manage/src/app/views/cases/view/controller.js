@@ -2,7 +2,7 @@ import { list } from '@planning-inspectorate/dynamic-forms/src/controller.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { crownDevelopmentToViewModel } from './view-model.js';
 import { getQuestions } from './questions.js';
-import { createJourney, JOURNEY_ID } from './journey.js';
+import { createJourney, createJourneyV2, JOURNEY_ID } from './journey.js';
 import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { getEntraGroupMembers } from '#util/entra-groups.js';
@@ -163,7 +163,16 @@ export function buildGetJourneyMiddleware(service) {
 				SecondaryLpa: { include: { Address: true } },
 				SiteAddress: true,
 				ParentCrownDevelopment: { select: { reference: true } },
-				ChildrenCrownDevelopment: { select: { reference: true } }
+				ChildrenCrownDevelopment: { select: { reference: true } },
+				Organisations: {
+					include: {
+						Organisation: {
+							include: {
+								Address: true
+							}
+						}
+					}
+				}
 			}
 		});
 		if (crownDevelopment === null) {
@@ -185,7 +194,9 @@ export function buildGetJourneyMiddleware(service) {
 		// put these on locals for the list controller
 		res.locals.originalAnswers = { ...answers };
 		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', answers);
-		res.locals.journey = createJourney(questions, res.locals.journeyResponse, req);
+		res.locals.journey = service.isMultipleApplicantsLive
+			? createJourneyV2(questions, res.locals.journeyResponse, req)
+			: createJourney(questions, res.locals.journeyResponse, req);
 
 		if (req.originalUrl !== req.baseUrl) {
 			// back link goes to details page

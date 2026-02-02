@@ -40,6 +40,7 @@ export interface CrownDevelopmentViewModel {
 	secondaryLpaTelephoneNumber?: string;
 	secondaryLpaAddress?: Address;
 
+	manageApplicantDetails?: ManageApplicantDetails[];
 	applicantContactId?: string;
 	applicantContactName?: string;
 	applicantContactAddress?: Address;
@@ -146,7 +147,8 @@ const viewArgs = Prisma.validator<Prisma.CrownDevelopmentDefaultArgs>()({
 		SecondaryLpa: { include: { Address: true } },
 		SiteAddress: true,
 		ParentCrownDevelopment: true,
-		ChildrenCrownDevelopment: true
+		ChildrenCrownDevelopment: true,
+		Organisations: { include: { Organisation: { include: { Address: true } } } }
 	}
 });
 
@@ -162,3 +164,9 @@ export const CONTACT_PREFIXES = {
 
 type ContactTypeKeys = keyof typeof CONTACT_PREFIXES;
 type ContactTypeValues = (typeof CONTACT_PREFIXES)[ContactTypeKeys];
+
+interface ManageApplicantDetails {
+	id?: string;
+	organisationName?: string;
+	organisationAddress?: Address;
+}

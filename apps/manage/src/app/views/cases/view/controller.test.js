@@ -93,6 +93,54 @@ describe('case details', () => {
 			assert.ok(mockRes.locals.journey);
 			assert.strictEqual(mockRes.locals.backLinkUrl, '/case-1');
 		});
+		it('should use createJourneyV2 when isMultipleApplicantsLive is true', async () => {
+			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
+			const mockReq = { params: { id: 'case-1' }, baseUrl: 'case-1' };
+			const mockRes = { locals: {} };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: 'case-1' }))
+				}
+			};
+			const next = mock.fn();
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds,
+				isMultipleApplicantsLive: true
+			});
+
+			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
+			assert.strictEqual(next.mock.callCount(), 1);
+			assert.ok(mockRes.locals.journey);
+			//Check that the journey is created using createJourneyV2 by checking for a property unique to V2 journeys
+			assert.deepStrictEqual(JSON.stringify(mockRes.locals.journey).includes('manageApplicantDetails'), true);
+		});
+		it('should use createJourney when isMultipleApplicantsLive is false', async () => {
+			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
+			const mockReq = { params: { id: 'case-1' }, baseUrl: 'case-1' };
+			const mockRes = { locals: {} };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: 'case-1' }))
+				}
+			};
+			const next = mock.fn();
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds,
+				isMultipleApplicantsLive: false
+			});
+
+			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
+			assert.strictEqual(next.mock.callCount(), 1);
+			assert.ok(mockRes.locals.journey);
+			//Check that the journey is created using createJourney by checking for a property unique to V2 journeys
+			assert.deepStrictEqual(JSON.stringify(mockRes.locals.journey).includes('manageApplicantDetails'), false);
+		});
 	});
 	describe('viewCaseDetails', () => {
 		const newMockRes = () => {
