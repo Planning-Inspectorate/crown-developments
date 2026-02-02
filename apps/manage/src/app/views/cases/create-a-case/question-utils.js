@@ -2,6 +2,11 @@ import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator
 import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
 import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
 import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
+import { camelCaseToUrlCase } from '@pins/crowndev-lib/util/string.js';
+import { capitalize } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
+import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
+import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.js';
+import EmailValidator from '@planning-inspectorate/dynamic-forms/src/validator/email-validator.js';
 
 /**
  *
@@ -12,11 +17,7 @@ import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
  * @returns {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>}
  */
 export function contactQuestions({ prefix, title, addressRequired }) {
-	// fromCamelCase -> to-url-case
-	const prefixUrl = prefix
-		.split(/(?=[A-Z])/)
-		.map((s) => s.toLowerCase())
-		.join('-');
+	const prefixUrl = camelCaseToUrlCase(prefix);
 	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {};
 
@@ -76,16 +77,80 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 		hint: 'Optional',
 		fieldName: `${prefix}TelephoneNumber`,
 		url: `${prefixUrl}-telephone-number`,
+		validators: [new TelephoneNumberValidator()]
+	};
+
+	return questions;
+}
+
+/**
+ *
+ * @param {Object} opts
+ * @param {string} opts.prefix
+ * @param {string} opts.title This should be uncapitalised (unless it's a proper noun)
+ * @returns {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>}
+ */
+export function multiContactQuestions({ prefix, title }) {
+	const prefixUrl = camelCaseToUrlCase(prefix);
+	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
+	const questions = {};
+	questions[`${prefix}ContactDetails`] = {
+		type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
+		title: `${capitalize(title)} contact`,
+		question: `What are the ${title} contact details?`,
+		fieldName: prefix,
+		url: `${prefixUrl}-contact`,
+		inputFields: [
+			{
+				fieldName: `${prefix}FirstName`,
+				label: 'First name',
+				autocomplete: 'given-name',
+				formatJoinString: ' '
+			},
+			{
+				fieldName: `${prefix}LastName`,
+				label: 'Last name',
+				autocomplete: 'family-name'
+			},
+			{
+				fieldName: `${prefix}ContactEmail`,
+				label: 'Email'
+			},
+			{
+				fieldName: `${prefix}ContactTelephoneNumber`,
+				label: 'Phone number (optional)'
+			}
+		],
 		validators: [
-			new StringValidator({
-				maxLength: {
-					maxLength: 15,
-					maxLengthMessage: `${title} telephone number must be 15 characters or less`
-				},
-				regex: {
-					regex: '^$|^\\+?\\d+$',
-					regexMessage: 'Enter a valid telephone number'
-				}
+			new MultiFieldInputValidator({
+				fields: [
+					{
+						fieldName: `${prefix}FirstName`,
+						validators: [
+							new RequiredValidator(`Enter ${title} contact first name`),
+							new StringValidator({ maxLength: { maxLength: 250 } })
+						]
+					},
+					{
+						fieldName: `${prefix}LastName`,
+						validators: [
+							new RequiredValidator(`Enter ${title} contact last name`),
+							new StringValidator({ maxLength: { maxLength: 250 } })
+						]
+					},
+					{
+						fieldName: `${prefix}ContactEmail`,
+						validators: [
+							new RequiredValidator(`Enter ${title} contact email address`),
+							new StringValidator({ maxLength: { maxLength: 50 } }),
+							new EmailValidator()
+						]
+					},
+					{
+						fieldName: `${prefix}ContactTelephoneNumber`,
+						validators: [new TelephoneNumberValidator()]
+					}
+				]
 			})
 		]
 	};

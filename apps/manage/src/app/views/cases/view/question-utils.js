@@ -12,6 +12,7 @@ import {
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.js';
 import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-validator.js';
+import { camelCaseToUrlCase } from '@pins/crowndev-lib/util/string.js';
 
 /**
  *
@@ -307,18 +308,6 @@ export function lpaListToRadioOptions(lpaList) {
 		// todo: sort LPA list?
 		...lpaList.map((t) => ({ text: t.name, value: t.id }))
 	];
-}
-
-/**
- * @param {string} str
- * @returns {string}
- */
-function camelCaseToUrlCase(str) {
-	// fromCamelCase -> to-url-case
-	return str
-		.split(/(?=[A-Z])/)
-		.map((s) => s.toLowerCase())
-		.join('-');
 }
 
 /**
