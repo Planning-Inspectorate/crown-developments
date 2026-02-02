@@ -106,6 +106,7 @@ module "app_portal" {
     FEATURE_FLAG_PORTAL_NOT_LIVE              = var.apps_config.feature_flags.portal_not_live
     FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE    = var.apps_config.feature_flags.upload_docs_not_live
     FEATURE_FLAG_APPLICATION_UPDATES_NOT_LIVE = var.apps_config.feature_flags.application_updates_not_live
+    FEATURE_FLAG_MULTIPLE_APPLICANTS_NOT_LIVE = var.apps_config.feature_flags.multiple_applicants_not_live
 
     GOOGLE_ANALYTICS_ID = var.apps_config.google_analytics_id
   }

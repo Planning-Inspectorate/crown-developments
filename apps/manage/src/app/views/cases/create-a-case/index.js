@@ -9,7 +9,7 @@ import {
 	saveDataToSession,
 	buildGetJourneyResponseFromSession
 } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
-import { JOURNEY_ID, createJourney } from './journey.js';
+import { JOURNEY_ID, createJourney, createJourneyV2 } from './journey.js';
 import { getQuestions } from './questions.js';
 import { buildSaveController, buildSuccessController } from './save.js';
 import { getSummaryWarningMessage } from '@pins/crowndev-lib/util/linked-case.js';
@@ -21,21 +21,31 @@ import { getSummaryWarningMessage } from '@pins/crowndev-lib/util/linked-case.js
 export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
 	const questions = getQuestions();
-	const getJourney = buildGetJourney((req, journeyResponse) => createJourney(questions, journeyResponse, req));
+	const getJourney = buildGetJourney((req, journeyResponse) =>
+		service.isMultipleApplicantsLive
+			? createJourneyV2(questions, journeyResponse, req)
+			: createJourney(questions, journeyResponse, req)
+	);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const saveController = buildSaveController(service);
 	const successController = buildSuccessController(service);
 
 	router.get('/', getJourneyResponse, getJourney, redirectToUnansweredQuestion());
 
-	router.get('/:section/:question', getJourneyResponse, getJourney, question);
+	router.get(
+		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
+		getJourneyResponse,
+		getJourney,
+		question
+	);
 
 	router.post(
-		'/:section/:question',
+		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
 		getJourneyResponse,
 		getJourney,
 		validate,
 		validationErrorHandler,
+
 		buildSave(saveDataToSession)
 	);
 

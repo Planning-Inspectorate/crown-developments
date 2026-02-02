@@ -139,6 +139,10 @@ export class ManageService {
 		return this.#config.featureFlags?.isApplicationUpdatesLive;
 	}
 
+	get isMultipleApplicantsLive() {
+		return this.#config.featureFlags?.isMultipleApplicantsLive;
+	}
+
 	get secureSession() {
 		return this.#config.NODE_ENV === 'production';
 	}
