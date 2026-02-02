@@ -39,11 +39,16 @@ export function createRoutes(service) {
 	}
 
 	// view question page
-	router.get('/:section/:question', validateIdFormat, getJourney, asyncHandler(question));
+	router.get(
+		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
+		validateIdFormat,
+		getJourney,
+		asyncHandler(question)
+	);
 
 	// submit edit
 	router.post(
-		'/:section/:question',
+		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
 		validateIdFormat,
 		getJourney,
 		validate,
