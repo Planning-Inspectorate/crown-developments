@@ -20,12 +20,13 @@ import { getSummaryWarningMessage } from '@pins/crowndev-lib/util/linked-case.js
  */
 export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
-	const questions = getQuestions();
-	const getJourney = buildGetJourney((req, journeyResponse) =>
-		service.isMultipleApplicantsLive
+	// Build the Journey per-request so we can derive question options from the latest journeyResponse
+	const getJourney = buildGetJourney((req, journeyResponse) => {
+		const questions = getQuestions(journeyResponse);
+		return service.isMultipleApplicantsLive
 			? createJourneyV2(questions, journeyResponse, req)
-			: createJourney(questions, journeyResponse, req)
-	);
+			: createJourney(questions, journeyResponse, req);
+	});
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const saveController = buildSaveController(service);
 	const successController = buildSuccessController(service);
