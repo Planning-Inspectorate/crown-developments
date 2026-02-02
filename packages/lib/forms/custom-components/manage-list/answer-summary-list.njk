@@ -1,0 +1,12 @@
+<ul id="answer-list" class="govuk-list govuk-list--bullet">
+    {% for question in answers %}
+        {% if answers.length > 2 and loop.index == 3 %}
+            <a href="#" id="toggle-list">Show {{ answers.length - 2 }} more</a>
+        {% endif %}
+        <li {% if loop.index > 2 %}hidden{% endif %}>
+            {% for value in question %}
+                {{ value.answer | safe }}{% if not loop.last %}<br/>{% endif %}
+            {% endfor %}
+        </li>
+    {% endfor %}
+</ul>

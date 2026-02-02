@@ -13,6 +13,8 @@ import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
 import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
 import CoordinatesValidator from '@planning-inspectorate/dynamic-forms/src/validator/coordinates-validator.js';
 import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
+import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.js';
+import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-components/manage-list/validator.js';
 
 export function getQuestions() {
 	const env = loadEnvironmentConfig();
@@ -57,6 +59,41 @@ export function getQuestions() {
 			title: 'Applicant',
 			addressRequired: false
 		}),
+		manageApplicants: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			title: 'Check applicant details',
+			question: 'Check applicant details',
+			url: 'check-applicant-details',
+			fieldName: 'manageApplicantDetails',
+			titleSingular: 'Applicant',
+			emptyListText: 'No applicants found',
+			showAnswersInSummary: true,
+			maximumAnswers: 5,
+			validators: [
+				new CustomManageListValidator({
+					minimumAnswers: 1,
+					errorMessages: {
+						minimumAnswers: 'At least one applicant organisation is required'
+					}
+				})
+			]
+		},
+		addApplicantName: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Applicant organisation name',
+			question: 'What is the name of the applicant organisation?',
+			url: 'add-applicant-details',
+			fieldName: 'organisationName',
+			validators: [new RequiredValidator('Enter the applicant organisation name')]
+		},
+		addApplicantAddress: {
+			type: COMPONENT_TYPES.ADDRESS,
+			title: 'Applicant address',
+			question: 'What is the address of the applicant organisation?',
+			url: 'applicant-address',
+			fieldName: 'organisationAddress',
+			validators: [new AddressValidator()]
+		},
 		hasSecondaryLpa: {
 			type: COMPONENT_TYPES.BOOLEAN,
 			title: 'Has Secondary Local Planning Authority',
@@ -166,6 +203,9 @@ export function getQuestions() {
 			validators: [new DateValidator('expected submission date')]
 		}
 	};
-
-	return createQuestions(questions, questionClasses, {});
+	const classes = {
+		...questionClasses,
+		...CUSTOM_COMPONENT_CLASSES
+	};
+	return createQuestions(questions, classes, {});
 }

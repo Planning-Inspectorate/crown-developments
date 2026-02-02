@@ -37,6 +37,7 @@ interface Config {
 	featureFlags: {
 		isRepsUploadDocsLive: boolean;
 		isApplicationUpdatesLive: boolean;
+		isMultipleApplicantsLive: boolean;
 	};
 	gitSha?: string;
 	govNotify: NotifyConfig;

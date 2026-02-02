@@ -691,30 +691,131 @@ describe('save', () => {
 			await assert.rejects(() => successController(mockReq, {}), { message: 'invalid create case session' });
 		});
 	});
-});
-describe('toCreateInput', () => {
-	it('should save secondaryLpa when hasSecondaryLpa is yes', () => {
-		const answers = {
-			developmentDescription: 'desc',
-			typeOfApplication: 'type',
-			lpaId: 'lpa-1',
-			hasSecondaryLpa: true,
-			secondaryLpaId: 'lpa-2'
-		};
-		const input = toCreateInput(answers, 'ref-1', null);
-		assert.strictEqual(input.hasSecondaryLpa, true);
-		assert.deepStrictEqual(input.SecondaryLpa, { connect: { id: 'lpa-2' } });
-	});
-	it('should not save secondaryLpa when hasSecondaryLpa is no', () => {
-		const answers = {
-			developmentDescription: 'desc',
-			typeOfApplication: 'type',
-			lpaId: 'lpa-1',
-			hasSecondaryLpa: 'no',
-			secondaryLpaId: 'lpa-2'
-		};
-		const input = toCreateInput(answers, 'ref-1', null);
-		assert.strictEqual(input.hasSecondaryLpa, false);
-		assert.strictEqual(input.SecondaryLpa, undefined);
+	describe('toCreateInput', () => {
+		it('should save secondaryLpa when hasSecondaryLpa is yes', () => {
+			const answers = {
+				developmentDescription: 'desc',
+				typeOfApplication: 'type',
+				lpaId: 'lpa-1',
+				hasSecondaryLpa: true,
+				secondaryLpaId: 'lpa-2'
+			};
+			const input = toCreateInput(answers, 'ref-1', null);
+			assert.strictEqual(input.hasSecondaryLpa, true);
+			assert.deepStrictEqual(input.SecondaryLpa, { connect: { id: 'lpa-2' } });
+		});
+		it('should not save secondaryLpa when hasSecondaryLpa is no', () => {
+			const answers = {
+				developmentDescription: 'desc',
+				typeOfApplication: 'type',
+				lpaId: 'lpa-1',
+				hasSecondaryLpa: 'no',
+				secondaryLpaId: 'lpa-2'
+			};
+			const input = toCreateInput(answers, 'ref-1', null);
+			assert.strictEqual(input.hasSecondaryLpa, false);
+			assert.strictEqual(input.SecondaryLpa, undefined);
+		});
+		it('should save Organisation name when it has one applicant', () => {
+			const answers = {
+				developmentDescription: 'desc',
+				typeOfApplication: 'type',
+				lpaId: 'lpa-1',
+				manageApplicantDetails: [
+					{
+						organisationName: 'Applicant One'
+					}
+				]
+			};
+			const input = toCreateInput(answers, 'ref-1', null);
+			assert.deepStrictEqual(input.Organisations, {
+				create: [
+					{
+						Organisation: {
+							create: {
+								name: 'Applicant One',
+								Address: undefined
+							}
+						}
+					}
+				]
+			});
+		});
+		it('should save Organisation address when at least one field is provided', () => {
+			const answers = {
+				developmentDescription: 'desc',
+				typeOfApplication: 'type',
+				lpaId: 'lpa-1',
+				manageApplicantDetails: [
+					{
+						organisationName: 'Applicant One',
+						organisationAddress: {
+							addressLine1: '123 Street'
+						}
+					}
+				]
+			};
+			const input = toCreateInput(answers, 'ref-1', null);
+			assert.deepStrictEqual(input.Organisations, {
+				create: [
+					{
+						Organisation: {
+							create: {
+								name: 'Applicant One',
+								Address: {
+									create: {
+										line1: '123 Street',
+										line2: undefined,
+										townCity: undefined,
+										county: undefined,
+										postcode: undefined
+									}
+								}
+							}
+						}
+					}
+				]
+			});
+		});
+		it('should save all Organisation address when they are provided', () => {
+			const answers = {
+				developmentDescription: 'desc',
+				typeOfApplication: 'type',
+				lpaId: 'lpa-1',
+				manageApplicantDetails: [
+					{
+						organisationName: 'Applicant One',
+						organisationAddress: {
+							addressLine1: '123 Street',
+							addressLine2: 'Line 2',
+							townCity: 'Town',
+							county: 'County',
+							postcode: 'POSTCODE'
+						}
+					}
+				]
+			};
+			const input = toCreateInput(answers, 'ref-1', null);
+			assert.deepStrictEqual(input.Organisations, {
+				create: [
+					{
+						Organisation: {
+							create: {
+								name: 'Applicant One',
+								Address: {
+									create: {
+										line1: '123 Street',
+										line2: 'Line 2',
+										townCity: 'Town',
+										county: 'County',
+										postcode: 'POSTCODE'
+									}
+								}
+							}
+						}
+					}
+				]
+			});
+		});
 	});
 });
