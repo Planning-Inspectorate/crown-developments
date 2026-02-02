@@ -127,26 +127,26 @@
 
     {% block afterTaskList %}
         <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-					document.addEventListener("DOMContentLoaded", function() {
-						const toggle = document.getElementById('toggle-list');
-						const list = document.getElementById('answer-list');
-						if (!toggle || !list) {
-							return;
-						}
-						const items = list.querySelectorAll('li');
-						const hiddenCount = items.length - 2;
-						let expanded = false;
-						toggle.addEventListener('click', function(e) {
-							e.preventDefault();
-							expanded = !expanded;
-							for (let i = 2; i < items.length; i++) {
-								items[i].hidden = !expanded;
-							}
-							toggle.textContent = expanded
-								? 'Show less'
-								: 'Show ' + hiddenCount + ' more';
-						});
-					});
+            document.addEventListener("DOMContentLoaded", function() {
+                const toggle = document.getElementById('toggle-list');
+                const list = document.getElementById('answer-list');
+                if (!toggle || !list) {
+                    return;
+                }
+                const items = list.querySelectorAll('li');
+                const hiddenCount = items.length - 2;
+                let expanded = false;
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    expanded = !expanded;
+                    for (let i = 2; i < items.length; i++) {
+                        items[i].hidden = !expanded;
+                    }
+                    toggle.textContent = expanded
+                        ? 'Show less'
+                        : 'Show ' + hiddenCount + ' more';
+                });
+            });
         </script>
     {% endblock %}
 {% endblock %}
