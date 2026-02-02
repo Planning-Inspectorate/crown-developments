@@ -56,7 +56,7 @@ export function createRoutes(service) {
 
 	// submit edit
 	router.post(
-		'/:section/:question',
+		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
 		validateIdFormat,
 		getJourneyResponse,
 		getQuestionJourney,
