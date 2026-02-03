@@ -50,7 +50,8 @@ export function buildUpdateCase(service, clearAnswer = false) {
 					where: { id },
 					include: {
 						ParentCrownDevelopment: { select: { id: true } },
-						ChildrenCrownDevelopment: { select: { id: true } }
+						ChildrenCrownDevelopment: { select: { id: true } },
+						Organisations: { include: { Address: true } }
 					}
 				});
 				if (!crownDevelopment) {
