@@ -12,6 +12,7 @@ import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-pa
 import { getLinkedCaseId, getLinkedCaseLinkText, hasLinkedCase } from '@pins/crowndev-lib/util/linked-case.js';
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { filteredStagesToRadioOptions } from './question-utils.js';
+import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -33,6 +34,7 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpda
 		// immediately clear this so the banner only shows once
 		const caseUpdated = readCaseUpdatedSession(req, id);
 		clearCaseUpdatedSession(req, id);
+		clearAllSessionData(req, res, id);
 
 		const publishDate = res.locals?.journeyResponse?.answers?.publishDate;
 		const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
@@ -145,8 +147,13 @@ export function clearCaseUpdatedSession(req, id) {
 export function buildGetJourneyMiddleware(service) {
 	const { db, logger, getEntraClient } = service;
 	const groupIds = service.entraGroupIds;
+	/**
+	 * @param {import('express').Request} req
+	 * @param {import('express').Response} res
+	 * @param {import('express').NextFunction} next
+	 */
 	return async (req, res, next) => {
-		const id = req.params.id;
+		const { id, section, manageListQuestion } = req.params;
 		if (!id) {
 			throw new Error('id param required');
 		}
@@ -191,19 +198,112 @@ export function buildGetJourneyMiddleware(service) {
 			filteredStageOptions: filteredStagesToRadioOptions(answers.procedureId)
 		};
 		const questions = getQuestions(groupMembers, actionOverrides);
+
+		const finalAnswers = combineSessionAndDbData(res, answers);
+
 		// put these on locals for the list controller
 		res.locals.originalAnswers = { ...answers };
-		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', answers);
+		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', finalAnswers);
 		res.locals.journey = service.isMultipleApplicantsLive
 			? createJourneyV2(questions, res.locals.journeyResponse, req)
 			: createJourney(questions, res.locals.journeyResponse, req);
 
-		if (req.originalUrl !== req.baseUrl) {
-			// back link goes to details page
-			// only if not on the details page
+		// set a back link to the case details page when viewing a section/question not within a manage list question
+		// e.g. /cases/:id/:section/:question and not /cases/:id/:section/:question/:manageListAction/:manageListItemId/:manageListQuestion
+		if (section && !manageListQuestion) {
 			res.locals.backLinkUrl = req.baseUrl;
 		}
 
 		next();
 	};
+}
+
+/**
+ * Combine session answers with DB answers
+ *
+ * Session answers take precedence unless they are undefined or null.
+ * For array answers (e.g. manage list questions), the arrays are merged
+ * such that items with matching IDs are merged together to preserve
+ * any unchanged data from the DB.
+ * @param {import('express').Response} res
+ * @param {CrownDevelopmentViewModel} answers
+ * @returns {CrownDevelopmentViewModel}
+ */
+export function combineSessionAndDbData(res, answers) {
+	const finalAnswers = { ...answers };
+	const journeyResponseAnswers = res.locals.journeyResponse?.answers;
+	if (!journeyResponseAnswers || Object.keys(journeyResponseAnswers).length === 0) return finalAnswers;
+
+	const sessionAnswers = res.locals.journeyResponse.answers;
+
+	Object.keys(sessionAnswers).forEach((key) => {
+		const dbValue = answers[key];
+		const sessionValue = sessionAnswers[key];
+
+		// prefer session value unless it's undefined or null
+		if (sessionValue !== undefined && sessionValue !== null) {
+			if (Array.isArray(dbValue) && Array.isArray(sessionValue)) {
+				// merge arrays (for manage list questions)
+				finalAnswers[key] = mergeArraysById(dbValue, sessionValue);
+			} else {
+				finalAnswers[key] = sessionValue;
+			}
+		} else {
+			finalAnswers[key] = dbValue;
+		}
+	});
+	return finalAnswers;
+}
+
+/**
+ * Helper to merge two arrays
+ *
+ * If a session item has an ID that matches a DB item, it is merged with it to overwrite the different keys.
+ * If no match is found, it is appended as a new item.
+ * @param {Array<Object>} dbArray
+ * @param {Array<Object>} sessionArray
+ * @param {string} [idKey='id']
+ * @returns {Array<Object>}
+ *
+ */
+export function mergeArraysById(dbArray, sessionArray, idKey = 'id') {
+	const merged = [...dbArray];
+
+	sessionArray.forEach((sessionItem) => {
+		const existingIndex = merged.findIndex(
+			(dbItem) => dbItem[idKey] && sessionItem[idKey] && dbItem[idKey] === sessionItem[idKey]
+		);
+
+		if (existingIndex !== -1) {
+			// If not found (-1) spread the two items together such that the new session data overwrites the key
+			merged[existingIndex] = { ...merged[existingIndex], ...sessionItem };
+		} else {
+			merged.push(sessionItem);
+		}
+	});
+
+	return merged;
+}
+
+/**
+ * Clears the session data for the Journey as well
+ * as for any specifically added session data like
+ * error flags.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {string} id
+ */
+function clearAllSessionData(req, res, id) {
+	// We clear the journey session to avoid ghost data from partially saved answers
+	clearDataFromSession({ req, journeyId: JOURNEY_ID });
+
+	// Clear updated flag if present so that we only see it once.
+	clearSessionData(req, id, 'updated');
+
+	const errors = readSessionData(req, id, 'updateErrors', [], 'cases');
+	if (!(typeof errors === 'boolean') && errors.length > 0) {
+		if (!res.locals.errorSummary) res.locals.errorSummary = [];
+		res.locals.errorSummary.push(errors);
+	}
+	clearSessionData(req, id, 'updateErrors', 'cases');
 }
