@@ -2,6 +2,7 @@ import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/l
 import { crownDevelopmentToViewModel } from './view-model.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { addressToViewModel } from '@planning-inspectorate/dynamic-forms/src/lib/address-utils.js';
+import { caseReferenceToFolderName, grantLpaSharePointAccess } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -92,6 +93,68 @@ export async function sendApplicationNotOfNationalImportanceNotification(service
 			`error dispatching Application not of national importance email notification`
 		);
 		throw new Error('Error encountered during email notification dispatch');
+	}
+}
+/**
+ * @param {import('#service').ManageService} service
+ * @param {string} id
+ */
+export async function sendLpaQuestionnaireSentNotification(service, id) {
+	const notificationContext = await prepareNotificationContext(service, id);
+	if (!notificationContext) return;
+
+	const { notifyClient, logger, crownDevelopment, crownDevelopmentFields } = notificationContext;
+
+	try {
+		const isEIA = crownDevelopmentFields.environmentalImpactAssessment === BOOLEAN_OPTIONS.YES;
+		const isStandard = crownDevelopmentFields.developmentPlan === BOOLEAN_OPTIONS.YES && !isEIA;
+		const sharePointDrive = service.appSharePointDrive;
+
+		let sharePointLink = null;
+		if (sharePointDrive) {
+			try {
+				const folderName = caseReferenceToFolderName(crownDevelopmentFields.reference);
+				const inviteLink = await grantLpaSharePointAccess(sharePointDrive, crownDevelopment, folderName);
+				if (inviteLink) {
+					sharePointLink = inviteLink;
+				} else {
+					logger.warn({ reference: crownDevelopmentFields.reference }, 'SharePoint invite link for LPA was empty');
+				}
+			} catch (spError) {
+				logger.warn(
+					{ error: spError, reference: crownDevelopmentFields.reference },
+					'failed to grant LPA SharePoint access or fetch link'
+				);
+			}
+		}
+
+		const personalisation = {
+			reference: crownDevelopmentFields.reference,
+			lpaName: crownDevelopment?.Lpa?.name,
+			description: crownDevelopmentFields.description,
+			siteAddress: formatSiteLocation(crownDevelopment),
+			dateAccepted: formatDateForDisplay(crownDevelopmentFields.applicationAcceptedDate),
+			sharePointLink,
+			lpaQuestionnaireReceivedDate: formatDateForDisplay(crownDevelopmentFields.lpaQuestionnaireReceivedDate),
+			frontOfficeLink: `${service.portalBaseUrl}/applications`,
+			notEIA: !isEIA,
+			isEIA,
+			isStandard,
+			isSpecial: !isStandard,
+			representationEndDate: formatDateForDisplay(crownDevelopmentFields.representationsPeriod?.end || '')
+		};
+
+		const lpaRecipientEmails = [crownDevelopment?.Lpa?.email, crownDevelopment?.SecondaryLpa?.email].filter(Boolean);
+		const notifyRequests = lpaRecipientEmails.map((email) =>
+			notifyClient.sendLpaQuestionnaireNotification(email, personalisation)
+		);
+		await Promise.all(notifyRequests);
+	} catch (error) {
+		logger.error(
+			{ error, reference: crownDevelopmentFields?.reference },
+			'error dispatching LPA questionnaire sent email notification'
+		);
+		throw error;
 	}
 }
 

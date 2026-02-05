@@ -373,4 +373,54 @@ describe(`gov-notify-client`, () => {
 			assert.notStrictEqual(args[2].personalisation.fee, '1,');
 		});
 	});
+	describe('sendLpaQuestionnaireNotification', () => {
+		it('should call sendEmail with correct templateId and personalisation', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {
+				lpaQuestionnaireSentNotification: 'template-id-1'
+			});
+			ctx.mock.method(client, 'sendEmail', () => {});
+			await client.sendLpaQuestionnaireNotification('test@email.com', {
+				reference: 'CROWN/2025/0000001',
+				applicationDescription: 'some detail',
+				siteAddress: '4 the street, town, wc1w 1bw'
+			});
+			assert.strictEqual(client.sendEmail.mock.callCount(), 1);
+			const args = client.sendEmail.mock.calls[0].arguments;
+			assert.deepStrictEqual(args, [
+				'template-id-1',
+				'test@email.com',
+				{
+					personalisation: {
+						reference: 'CROWN/2025/0000001',
+						applicationDescription: 'some detail',
+						siteAddress: '4 the street, town, wc1w 1bw'
+					},
+					reference: 'CROWN/2025/0000001'
+				}
+			]);
+		});
+
+		it('should throw an error if sendEmail fails', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {
+				lpaQuestionnaireSentNotification: 'template-id-1'
+			});
+			ctx.mock.method(client, 'sendEmail', () => {
+				throw new Error('Notify API error');
+			});
+			await assert.rejects(
+				async () => {
+					await client.sendLpaQuestionnaireNotification('test@email.com', {
+						reference: 'CROWN/2025/0000001',
+						applicationDescription: 'some detail',
+						siteAddress: '4 the street, town, wc1w 1bw'
+					});
+				},
+				{
+					message: 'Notify API error'
+				}
+			);
+		});
+	});
 });
