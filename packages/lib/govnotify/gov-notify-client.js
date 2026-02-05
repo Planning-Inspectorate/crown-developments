@@ -83,6 +83,18 @@ export class GovNotifyClient {
 	 * @param {import('./types.js').CommonNotificationPersonalisation} personalisation
 	 * @returns {Promise<void>}
 	 */
+	async sendLpaQuestionnaireNotification(email, personalisation) {
+		await this.sendEmail(this.#templateIds.lpaQuestionnaireSentNotification, email, {
+			personalisation: personalisation,
+			reference: personalisation.reference
+		});
+	}
+
+	/**
+	 * @param {string} email - Recipients email address
+	 * @param {import('./types.js').CommonNotificationPersonalisation} personalisation
+	 * @returns {Promise<void>}
+	 */
 	async sendApplicationNotOfNationalImportanceNotification(email, personalisation) {
 		await this.sendEmail(this.#templateIds.applicationNotOfNationalImportance, email, {
 			personalisation: personalisation,

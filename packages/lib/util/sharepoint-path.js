@@ -100,7 +100,7 @@ export async function getSharePointReceivedPathId(sharePointDrive, { caseRootNam
 		throw new Error('Invalid path');
 	}
 	const folderPath = buildPath(caseRootName, APPLICATION_FOLDERS.RECEIVED);
-	const receivedFolders = await sharePointDrive.getItemsByPath(folderPath, []);
+	const receivedFolders = await sharePointDrive.getItemsByPath(folderPath);
 
 	const userFolder = receivedFolders.find((folder) => folder.name === user);
 
@@ -109,6 +109,33 @@ export async function getSharePointReceivedPathId(sharePointDrive, { caseRootNam
 	}
 
 	return userFolder.id;
+}
+
+/**
+ * Grant access to the case "Received" folder and return invite link webUrl for LPA
+ *
+ * @param {sharePointDrive} sharePointDrive
+ * @param {object} crownDevelopment
+ * @param {string} caseRootName
+ * @returns {Promise<string|null>}
+ */
+export async function grantLpaSharePointAccess(sharePointDrive, crownDevelopment, caseRootName) {
+	const lpaReceivedFolderId = await getSharePointReceivedPathId(sharePointDrive, {
+		caseRootName,
+		user: 'LPA'
+	});
+
+	const lpaEmails = [crownDevelopment?.Lpa?.email, crownDevelopment?.SecondaryLpa?.email].filter(Boolean);
+	if (lpaEmails.length === 0) {
+		throw new Error('No LPA emails provided');
+	}
+	if (lpaEmails.length) {
+		const users = lpaEmails.map((email) => ({ email, id: '' }));
+		await sharePointDrive.addItemPermissions(lpaReceivedFolderId, { role: 'write', users });
+	}
+
+	const inviteLink = await sharePointDrive.fetchUserInviteLink(lpaReceivedFolderId);
+	return inviteLink?.link?.webUrl || inviteLink?.webUrl || null;
 }
 
 /**
