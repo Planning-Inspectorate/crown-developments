@@ -2,7 +2,8 @@ import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/compon
 import {
 	sendApplicationNotOfNationalImportanceNotification,
 	sendApplicationReceivedNotification,
-	sendLpaAcknowledgeReceiptOfQuestionnaireNotification
+	sendLpaAcknowledgeReceiptOfQuestionnaireNotification,
+	sendLpaQuestionnaireSentNotification
 } from './notification.js';
 import { editsToDatabaseUpdates } from './view-model.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
@@ -127,6 +128,10 @@ export async function customUpdateCaseActions(service, id, toSave, fullViewModel
 		await handleLpaQuestionnaireReceivedDateUpdate(service, id, toSave);
 	}
 
+	if (toSave.lpaQuestionnaireSentDate && fullViewModel.lpaQuestionnaireSentSpecialEmailSent !== BOOLEAN_OPTIONS.YES) {
+		await handleLpaQuestionnaireSentDateUpdate(service, id, toSave);
+	}
+
 	if (toSave.applicationReceivedDate) {
 		await handleApplicationReceivedDateUpdate(service, id, toSave, fullViewModel);
 	}
@@ -154,6 +159,16 @@ function handleApplicationFee(toSave) {
 async function handleLpaQuestionnaireReceivedDateUpdate(service, id, toSave) {
 	await sendLpaAcknowledgeReceiptOfQuestionnaireNotification(service, id, toSave.lpaQuestionnaireReceivedDate);
 	toSave['lpaQuestionnaireReceivedEmailSent'] = true;
+}
+
+/**
+ * @param {import('#service').ManageService} service
+ * @param {string} id
+ * @param {import('./types.js').CrownDevelopmentViewModel} toSave
+ */
+async function handleLpaQuestionnaireSentDateUpdate(service, id, toSave) {
+	await sendLpaQuestionnaireSentNotification(service, id);
+	toSave['lpaQuestionnaireSentSpecialEmailSent'] = true;
 }
 
 /**

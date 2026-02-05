@@ -3,9 +3,11 @@ import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import {
 	sendApplicationNotOfNationalImportanceNotification,
 	sendApplicationReceivedNotification,
-	sendLpaAcknowledgeReceiptOfQuestionnaireNotification
+	sendLpaAcknowledgeReceiptOfQuestionnaireNotification,
+	sendLpaQuestionnaireSentNotification
 } from './notification.js';
 import assert from 'node:assert';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 describe('notification', () => {
 	describe('sendLpaAcknowledgeReceiptOfQuestionnaireNotification', () => {
@@ -394,6 +396,229 @@ describe('notification', () => {
 			assert.deepStrictEqual(logger.warn.mock.calls[0].arguments, [
 				'Gov Notify is not enabled, to use Gov Notify functionality setup Gov Notify environment variables. See README'
 			]);
+		});
+		describe('sendLpaQuestionnaireNotification', () => {
+			it('should send notifications to all LPA emails with a valid SharePoint link', async () => {
+				const logger = mockLogger();
+				const mockDb = {
+					crownDevelopment: {
+						findUnique: () => ({
+							id: 'case-1',
+							reference: 'CROWN/2025/0000001',
+							description: 'a big project',
+							applicationAcceptedDate: new Date('2025-01-01'),
+							lpaQuestionnaireReceivedDate: new Date('2025-01-02'),
+							representationsPeriod: { end: new Date('2025-01-15') },
+							Lpa: { email: 'lpa1@example.com' },
+							SecondaryLpa: { email: 'lpa2@example.com' },
+							environmentalImpactAssessment: BOOLEAN_OPTIONS.NO,
+							developmentPlan: BOOLEAN_OPTIONS.YES
+						}),
+						update: () => {}
+					}
+				};
+
+				const notifyCalls = [];
+				const mockNotifyClient = {
+					sendLpaQuestionnaireNotification: async (email, personalisation) => {
+						notifyCalls.push({ email, personalisation });
+						return Promise.resolve();
+					}
+				};
+
+				const sharePointDrive = {
+					getItemsByPath: async () => [{ name: 'LPA', id: 'lpa-folder-id' }],
+					fetchUserInviteLink: async () => ({ link: { webUrl: 'https://sharepoint.example/link' } }),
+					addItemPermissions: async () => {}
+				};
+
+				const service = {
+					db: mockDb,
+					logger,
+					notifyClient: mockNotifyClient,
+					portalBaseUrl: 'https://test.com',
+					appSharePointDrive: sharePointDrive
+				};
+
+				await sendLpaQuestionnaireSentNotification(service, 'case-1');
+
+				assert.strictEqual(notifyCalls.length, 2);
+				assert.strictEqual(notifyCalls[0].personalisation.sharePointLink, 'https://sharepoint.example/link');
+			});
+			it('should send lpa questionnaire for EIA special (EIA=yes, developmentPlan=no, rightOfWay=yes)', async () => {
+				const logger = mockLogger();
+				const mockDb = {
+					crownDevelopment: {
+						findUnique: () => ({
+							id: 'case-1',
+							reference: 'CROWN/2025/0000001',
+							description: 'a big project',
+							applicationAcceptedDate: new Date('2025-01-01'),
+							lpaQuestionnaireReceivedDate: new Date('2025-01-02'),
+							representationsPeriod: { end: new Date('2025-01-15') },
+							Lpa: { email: 'lpa1@example.com' },
+							environmentalImpactAssessment: BOOLEAN_OPTIONS.YES,
+							developmentPlan: BOOLEAN_OPTIONS.NO,
+							rightOfWay: BOOLEAN_OPTIONS.YES
+						}),
+						update: () => {}
+					}
+				};
+
+				const notifyCalls = [];
+				const mockNotifyClient = {
+					sendLpaQuestionnaireNotification: async (email, personalisation) => {
+						notifyCalls.push({ email, personalisation });
+						return Promise.resolve();
+					}
+				};
+
+				const service = {
+					db: mockDb,
+					logger,
+					notifyClient: mockNotifyClient,
+					portalBaseUrl: 'https://test.com'
+				};
+
+				await sendLpaQuestionnaireSentNotification(service, 'case-1');
+
+				assert.strictEqual(notifyCalls.length, 1);
+				const p = notifyCalls[0].personalisation;
+				assert.strictEqual(p.isEIA, true);
+				assert.strictEqual(p.isStandard, false);
+				assert.strictEqual(p.isSpecial, true);
+				assert.strictEqual(p.notEIA, false);
+			});
+
+			it('should send lpa questionnaire for non-EIA special (EIA=no, developmentPlan=no, rightOfWay=yes)', async () => {
+				const logger = mockLogger();
+				const mockDb = {
+					crownDevelopment: {
+						findUnique: () => ({
+							id: 'case-1',
+							reference: 'CROWN/2025/0000001',
+							description: 'a big project',
+							applicationAcceptedDate: new Date('2025-01-01'),
+							lpaQuestionnaireReceivedDate: new Date('2025-01-02'),
+							representationsPeriod: { end: new Date('2025-01-15') },
+							Lpa: { email: 'lpa1@example.com' },
+							environmentalImpactAssessment: BOOLEAN_OPTIONS.NO,
+							developmentPlan: BOOLEAN_OPTIONS.NO,
+							rightOfWay: BOOLEAN_OPTIONS.YES
+						}),
+						update: () => {}
+					}
+				};
+
+				const notifyCalls = [];
+				const mockNotifyClient = {
+					sendLpaQuestionnaireNotification: async (email, personalisation) => {
+						notifyCalls.push({ email, personalisation });
+						return Promise.resolve();
+					}
+				};
+
+				const service = {
+					db: mockDb,
+					logger,
+					notifyClient: mockNotifyClient,
+					portalBaseUrl: 'https://test.com'
+				};
+
+				await sendLpaQuestionnaireSentNotification(service, 'case-1');
+
+				assert.strictEqual(notifyCalls.length, 1);
+				const p = notifyCalls[0].personalisation;
+				assert.strictEqual(p.isEIA, false);
+				assert.strictEqual(p.isStandard, false);
+				assert.strictEqual(p.isSpecial, true);
+				assert.strictEqual(p.notEIA, true);
+			});
+
+			it('should send lpa questionnaire for non-EIA standard (EIA=no, developmentPlan=yes, rightOfWay=no)', async () => {
+				const logger = mockLogger();
+				const mockDb = {
+					crownDevelopment: {
+						findUnique: () => ({
+							id: 'case-1',
+							reference: 'CROWN/2025/0000001',
+							description: 'a big project',
+							applicationAcceptedDate: new Date('2025-01-01'),
+							lpaQuestionnaireReceivedDate: new Date('2025-01-02'),
+							representationsPeriod: { end: new Date('2025-01-15') },
+							Lpa: { email: 'lpa1@example.com' },
+							environmentalImpactAssessment: BOOLEAN_OPTIONS.NO,
+							developmentPlan: BOOLEAN_OPTIONS.YES,
+							rightOfWay: BOOLEAN_OPTIONS.NO
+						}),
+						update: () => {}
+					}
+				};
+
+				const notifyCalls = [];
+				const mockNotifyClient = {
+					sendLpaQuestionnaireNotification: async (email, personalisation) => {
+						notifyCalls.push({ email, personalisation });
+						return Promise.resolve();
+					}
+				};
+
+				const service = {
+					db: mockDb,
+					logger,
+					notifyClient: mockNotifyClient,
+					portalBaseUrl: 'https://test.com'
+				};
+
+				await sendLpaQuestionnaireSentNotification(service, 'case-1');
+
+				assert.strictEqual(notifyCalls.length, 1);
+				const p = notifyCalls[0].personalisation;
+				assert.strictEqual(p.isEIA, false);
+				assert.strictEqual(p.isStandard, true);
+				assert.strictEqual(p.isSpecial, false);
+				assert.strictEqual(p.notEIA, true);
+			});
+
+			it('should error when notify client throws', async () => {
+				const logger = mockLogger();
+				const mockDb = {
+					crownDevelopment: {
+						findUnique: mock.fn(() => ({
+							id: 'case-1',
+							reference: 'CROWN/2025/0000001',
+							description: 'a big project',
+							applicationAcceptedDate: new Date('2025-01-01'),
+							lpaQuestionnaireReceivedDate: new Date('2025-01-02'),
+							representationsPeriod: { end: new Date('2025-01-15') },
+							Lpa: { email: 'lpa1@example.com' }
+						})),
+						update: mock.fn()
+					}
+				};
+
+				const mockNotifyClient = {
+					sendLpaQuestionnaireNotification: mock.fn(() => {
+						throw new Error('Notify failure');
+					})
+				};
+
+				const sharePointDrive = {
+					getItemsByPath: async () => [{ name: 'LPA', id: 'folder-id' }],
+					addItemPermissions: async () => {},
+					fetchUserInviteLink: async () => ({ link: { webUrl: 'https://sharepoint.example/link' } })
+				};
+
+				const service = {
+					db: mockDb,
+					logger,
+					notifyClient: mockNotifyClient,
+					portalBaseUrl: 'https://test.com',
+					appSharePointDrive: sharePointDrive
+				};
+
+				await assert.rejects(() => sendLpaQuestionnaireSentNotification(service, 'case-1'), /Notify failure/);
+			});
 		});
 	});
 });

@@ -54,6 +54,7 @@ export interface CrownDevelopmentViewModel {
 	applicationReceivedDateEmailSent?: Boolean | string;
 	applicationAcceptedDate?: Date | string;
 	lpaQuestionnaireSentDate?: Date | string;
+	lpaQuestionnaireSentSpecialEmailSent?: Boolean | string;
 	lpaQuestionnaireReceivedDate?: Date | string;
 	lpaQuestionnaireReceivedEmailSent?: Boolean | string;
 	publishDate?: Date | string;

@@ -903,5 +903,152 @@ describe('case details', () => {
 			assert.strictEqual(updateArg.where?.id, 'case1');
 			assert.strictEqual(updateArg.data.description, null);
 		});
+		it('should handle LPA Questionnaire Sent Date update when the date is provided and email not sent', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						reference: 'CROWN/2025/0000001',
+						description: 'a big project',
+						Lpa: { email: 'test@email.com' }
+					})),
+					update: mock.fn()
+				}
+			};
+			const mockNotifyClient = {
+				sendLpaQuestionnaireNotification: mock.fn()
+			};
+			const updateCase = buildUpdateCase({
+				db: mockDb,
+				logger,
+				notifyClient: mockNotifyClient
+			});
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							lpaQuestionnaireSentSpecialEmailSent: false
+						}
+					}
+				}
+			};
+			const data = {
+				answers: {
+					lpaQuestionnaireSentDate: new Date('2025-01-02')
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			assert.strictEqual(mockNotifyClient.sendLpaQuestionnaireNotification.mock.callCount(), 1);
+			assert.strictEqual(data.answers.lpaQuestionnaireSentSpecialEmailSent, true);
+		});
+		it('should throw an error if LPA Questionnaire Sent Notification fails', async () => {
+			const logger = mockLogger();
+			const mockNotifyClient = {
+				sendLpaQuestionnaireSentNotification: mock.fn(() => {
+					throw new Error('Notification error');
+				})
+			};
+			const updateCase = buildUpdateCase({
+				db: {},
+				logger,
+				notifyClient: mockNotifyClient
+			});
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							lpaQuestionnaireSentSpecialEmailSent: false
+						}
+					}
+				}
+			};
+			const data = {
+				answers: {
+					lpaQuestionnaireSentDate: new Date('2025-01-02')
+				}
+			};
+
+			await assert.rejects(() => updateCase({ req: mockReq, res: mockRes, data }));
+			assert.strictEqual(data.answers.lpaQuestionnaireSentSpecialEmailSent, undefined);
+		});
+		it('should send LPA Questionnaire Sent Notification and update', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						reference: 'CROWN/2025/0000001',
+						description: 'a big project',
+						Lpa: { email: 'test@email.com' }
+					})),
+					update: mock.fn()
+				}
+			};
+			const mockNotifyClient = {
+				sendLpaQuestionnaireNotification: mock.fn()
+			};
+			const updateCase = buildUpdateCase({
+				db: mockDb,
+				logger,
+				notifyClient: mockNotifyClient
+			});
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = { locals: {} };
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					lpaQuestionnaireSentDate: new Date('2025-01-02')
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			assert.strictEqual(mockNotifyClient.sendLpaQuestionnaireNotification.mock.callCount(), 1);
+			assert.strictEqual(data.answers.lpaQuestionnaireSentSpecialEmailSent, true);
+		});
+
+		it('should not update the flag if notification sending fails', async () => {
+			const logger = mockLogger();
+			const mockNotifyClient = {
+				sendLpaQuestionnaireSentNotification: mock.fn(() => {
+					throw new Error('Notification error');
+				})
+			};
+			const updateCase = buildUpdateCase({
+				db: {},
+				logger,
+				notifyClient: mockNotifyClient
+			});
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = { locals: {} };
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					lpaQuestionnaireSentDate: new Date('2025-01-02')
+				}
+			};
+
+			await assert.rejects(() => updateCase({ req: mockReq, res: mockRes, data }));
+			assert.strictEqual(data.answers.lpaQuestionnaireSentSpecialEmailSent, undefined);
+		});
 	});
 });

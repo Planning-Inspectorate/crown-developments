@@ -14,6 +14,7 @@ export interface TemplateIds {
 	applicationReceivedDateWithFee: string;
 	applicationReceivedDateWithoutFee: string;
 	applicationNotOfNationalImportance: string;
+	lpaQuestionnaireSentNotification: string;
 }
 
 export interface NotifyConfig {
