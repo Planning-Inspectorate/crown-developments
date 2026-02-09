@@ -131,7 +131,7 @@ export async function sendLpaQuestionnaireSentNotification(service, id) {
 		const personalisation = {
 			reference: crownDevelopmentFields.reference,
 			lpaName: crownDevelopment?.Lpa?.name,
-			description: crownDevelopmentFields.description,
+			applicationDescription: crownDevelopmentFields.description,
 			siteAddress: formatSiteLocation(crownDevelopment),
 			dateAccepted: formatDateForDisplay(crownDevelopmentFields.applicationAcceptedDate),
 			sharePointLink,

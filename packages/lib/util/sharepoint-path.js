@@ -1,3 +1,6 @@
+/**
+ * @typedef {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives').SharePointDrive} SharePointDrive
+ */
 export const APPLICATION_FOLDERS = Object.freeze({
 	MANAGE: 'Manage',
 	PORTAL: 'Portal',
@@ -100,7 +103,7 @@ export async function getSharePointReceivedPathId(sharePointDrive, { caseRootNam
 		throw new Error('Invalid path');
 	}
 	const folderPath = buildPath(caseRootName, APPLICATION_FOLDERS.RECEIVED);
-	const receivedFolders = await sharePointDrive.getItemsByPath(folderPath);
+	const receivedFolders = await sharePointDrive.getItemsByPath(folderPath, []);
 
 	const userFolder = receivedFolders.find((folder) => folder.name === user);
 
@@ -114,8 +117,8 @@ export async function getSharePointReceivedPathId(sharePointDrive, { caseRootNam
 /**
  * Grant access to the case "Received" folder and return invite link webUrl for LPA
  *
- * @param {sharePointDrive} sharePointDrive
- * @param {object} crownDevelopment
+ * @param {SharePointDrive} sharePointDrive
+ * @param {import('@pins/crowndev-database').Prisma.CrownDevelopmentGetPayload<{include: {Lpa: true, SecondaryLpa: true}}>} crownDevelopment
  * @param {string} caseRootName
  * @returns {Promise<string|null>}
  */
@@ -139,7 +142,7 @@ export async function grantLpaSharePointAccess(sharePointDrive, crownDevelopment
 }
 
 /**
- * @param {string} parts
+ * @param {...string} parts
  * @returns {string}
  */
 export function buildPath(...parts) {

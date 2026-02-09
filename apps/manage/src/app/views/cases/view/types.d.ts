@@ -28,6 +28,9 @@ export interface CrownDevelopmentViewModel {
 	isGreenBelt?: boolean;
 	siteIsVisibleFromPublicLand?: boolean;
 	healthAndSafetyIssue?: string;
+	environmentalImpactAssessment?: boolean | string;
+	developmentPlan?: boolean | string;
+	rightOfWay?: boolean | string;
 
 	lpaEmail?: string;
 	lpaTelephoneNumber?: string;
