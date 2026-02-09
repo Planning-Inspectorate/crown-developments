@@ -405,7 +405,7 @@ describe('notification', () => {
 						findUnique: () => ({
 							id: 'case-1',
 							reference: 'CROWN/2025/0000001',
-							description: 'a big project',
+							applicationDescription: 'a big project',
 							applicationAcceptedDate: new Date('2025-01-01'),
 							lpaQuestionnaireReceivedDate: new Date('2025-01-02'),
 							representationsPeriod: { end: new Date('2025-01-15') },
@@ -452,7 +452,7 @@ describe('notification', () => {
 						findUnique: () => ({
 							id: 'case-1',
 							reference: 'CROWN/2025/0000001',
-							description: 'a big project',
+							applicationDescription: 'a big project',
 							applicationAcceptedDate: new Date('2025-01-01'),
 							lpaQuestionnaireReceivedDate: new Date('2025-01-02'),
 							representationsPeriod: { end: new Date('2025-01-15') },
@@ -497,7 +497,7 @@ describe('notification', () => {
 						findUnique: () => ({
 							id: 'case-1',
 							reference: 'CROWN/2025/0000001',
-							description: 'a big project',
+							applicationDescription: 'a big project',
 							applicationAcceptedDate: new Date('2025-01-01'),
 							lpaQuestionnaireReceivedDate: new Date('2025-01-02'),
 							representationsPeriod: { end: new Date('2025-01-15') },
@@ -542,7 +542,7 @@ describe('notification', () => {
 						findUnique: () => ({
 							id: 'case-1',
 							reference: 'CROWN/2025/0000001',
-							description: 'a big project',
+							applicationDescription: 'a big project',
 							applicationAcceptedDate: new Date('2025-01-01'),
 							lpaQuestionnaireReceivedDate: new Date('2025-01-02'),
 							representationsPeriod: { end: new Date('2025-01-15') },
@@ -587,7 +587,7 @@ describe('notification', () => {
 						findUnique: mock.fn(() => ({
 							id: 'case-1',
 							reference: 'CROWN/2025/0000001',
-							description: 'a big project',
+							applicationDescription: 'a big project',
 							applicationAcceptedDate: new Date('2025-01-01'),
 							lpaQuestionnaireReceivedDate: new Date('2025-01-02'),
 							representationsPeriod: { end: new Date('2025-01-15') },
