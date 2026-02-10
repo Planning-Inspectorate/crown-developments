@@ -24,9 +24,10 @@ import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
 /**
  *
  * @param {JourneyResponse} journeyResponse
+ * @param {boolean} isQuestionView - whether this is for a single question view
  * @returns
  */
-export function getQuestions(journeyResponse) {
+export function getQuestions(journeyResponse, isQuestionView = false) {
 	const env = loadEnvironmentConfig();
 
 	// this is to avoid a database read when the data is static - but it does vary by environment
@@ -123,7 +124,7 @@ export function getQuestions(journeyResponse) {
 		}),
 		manageApplicants: {
 			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
-			title: 'Check applicant details',
+			title: isQuestionView ? 'Check applicant details' : 'Applicants',
 			question: 'Check applicant details',
 			url: 'check-applicant-details',
 			fieldName: 'manageApplicantDetails',
@@ -158,7 +159,7 @@ export function getQuestions(journeyResponse) {
 		},
 		manageApplicantContacts: {
 			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
-			title: 'Check applicant contact details',
+			title: isQuestionView ? 'Check applicant contact details' : 'Applicant contacts',
 			question: 'Check applicant contact details',
 			url: 'check-applicant-contact-details',
 			fieldName: 'manageApplicantContactDetails',
