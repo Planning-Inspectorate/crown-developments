@@ -2,6 +2,7 @@ import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator
 import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
 import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
 import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
+import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.js';
 
 /**
  *
@@ -76,18 +77,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 		hint: 'Optional',
 		fieldName: `${prefix}TelephoneNumber`,
 		url: `${prefixUrl}-telephone-number`,
-		validators: [
-			new StringValidator({
-				maxLength: {
-					maxLength: 15,
-					maxLengthMessage: `${title} telephone number must be 15 characters or less`
-				},
-				regex: {
-					regex: '^$|^\\+?\\d+$',
-					regexMessage: 'Enter a valid telephone number'
-				}
-			})
-		]
+		validators: [new TelephoneNumberValidator()]
 	};
 
 	return questions;
