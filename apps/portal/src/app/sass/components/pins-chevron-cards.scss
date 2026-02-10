@@ -1,6 +1,8 @@
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
+
 .pins-chevron-card {
 	&__wrapper {
-		border-top: 1px solid #bfc1c3 !important;
+		border-top: 1px solid govuk.govuk-colour('mid-grey');
 		position: relative;
 		padding: 15px 0 0 0;
 		margin-bottom: 20px;
@@ -26,7 +28,7 @@
 		top: 1.4rem;
 		right: 0;
 		transform: rotate(45deg);
-		color: #1d70b8;
+		color: govuk.govuk-colour('blue');
 	}
 
 	&__link::before {
