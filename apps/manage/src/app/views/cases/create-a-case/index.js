@@ -20,40 +20,45 @@ import { getSummaryWarningMessage } from '@pins/crowndev-lib/util/linked-case.js
  */
 export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
-	// Build the Journey per-request so we can derive question options from the latest journeyResponse
-	const getJourney = buildGetJourney((req, journeyResponse) => {
-		const questions = getQuestions(journeyResponse);
-		return service.isMultipleApplicantsLive
-			? createJourneyV2(questions, journeyResponse, req)
-			: createJourney(questions, journeyResponse, req);
-	});
+
+	function makeGetJourneyCallback(isQuestionView) {
+		return (req, journeyResponse) => {
+			const questions = getQuestions(journeyResponse, isQuestionView);
+			return service.isMultipleApplicantsLive
+				? createJourneyV2(questions, journeyResponse, req)
+				: createJourney(questions, journeyResponse, req);
+		};
+	}
+
+	const getQuestionJourney = buildGetJourney(makeGetJourneyCallback(true));
+	const getCheckJourney = buildGetJourney(makeGetJourneyCallback(false));
+
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const saveController = buildSaveController(service);
 	const successController = buildSuccessController(service);
 
-	router.get('/', getJourneyResponse, getJourney, redirectToUnansweredQuestion());
+	router.get('/', getJourneyResponse, getQuestionJourney, redirectToUnansweredQuestion());
 
 	router.get(
 		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
 		getJourneyResponse,
-		getJourney,
+		getQuestionJourney,
 		question
 	);
 
 	router.post(
 		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
 		getJourneyResponse,
-		getJourney,
+		getQuestionJourney,
 		validate,
 		validationErrorHandler,
-
 		buildSave(saveDataToSession)
 	);
 
-	router.get('/check-your-answers', getJourneyResponse, getJourney, (req, res) =>
+	router.get('/check-your-answers', getJourneyResponse, getCheckJourney, (req, res) =>
 		list(req, res, '', { summaryWarningMessage: getSummaryWarningMessage(res) })
 	);
-	router.post('/check-your-answers', getJourneyResponse, getJourney, asyncHandler(saveController));
+	router.post('/check-your-answers', getJourneyResponse, getCheckJourney, asyncHandler(saveController));
 	router.get('/success', asyncHandler(successController));
 
 	return router;
