@@ -1,18 +1,8 @@
-@use 'node_modules/govuk-frontend/dist/govuk/index';
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
 
 %govuk-link-reset {
 	@extend .govuk-link;
 	@extend .govuk-link--no-visited-state;
-}
-
-.-link-focus {
-	outline: 3px solid rgba(0, 0, 0, 0);
-	color: #0b0c0c;
-	background-color: #fd0;
-	box-shadow:
-		0 -2px #fd0,
-		0 4px #0b0c0c;
-	text-decoration: none;
 }
 
 .filter-accordion {
@@ -25,7 +15,7 @@
 
 	&__show-hide-all-filters-button {
 		@extend %govuk-link-reset;
-		@include index.govuk-responsive-margin(4, 'bottom');
+		@include govuk.govuk-responsive-margin(4, 'bottom');
 		font-size: 1em;
 		background: none;
 		border: none;
@@ -33,12 +23,12 @@
 		cursor: pointer;
 
 		&:focus {
-			@extend .-link-focus;
+			@include govuk.govuk-focused-text;
 		}
 	}
 
 	&__section {
-		border-bottom: 1px solid #b1b4b6;
+		border-bottom: 1px solid govuk.govuk-colour('mid-grey');
 		padding: 1rem 0 0 0.9375rem;
 	}
 
@@ -59,7 +49,7 @@
 		align-items: center;
 		gap: 0.5rem;
 		width: 100%;
-		color: #1d70b8;
+		color: govuk.govuk-colour('blue');
 		text-decoration: none;
 		cursor: pointer;
 		list-style: none !important;
@@ -74,7 +64,7 @@
 			flex: 0 0 1em;
 			width: 1em;
 			height: 1em;
-			background: black;
+			background: govuk.govuk-colour('black');
 			clip-path: polygon(6.38% 22.63%, 49.5% 65.75%, 92.63% 22.63%, 100% 30%, 50% 80%, 0% 30%);
 			margin: 0;
 			vertical-align: middle;
@@ -90,8 +80,8 @@
 
 .filter-selected-tag {
 	margin: 0;
-	background: #f3f2f1;
-	border: solid 1px #b1b4b6;
+	background: govuk.govuk-colour('light-grey');
+	border: solid 1px govuk.govuk-colour('mid-grey');
 	padding: 4px 12px;
 
 	&__remove-button {

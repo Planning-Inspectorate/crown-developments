@@ -1,4 +1,4 @@
-@use 'node_modules/govuk-frontend/dist/govuk/settings/_colours-applied.scss' as colors;
+@use 'node_modules/govuk-frontend/dist/govuk/settings/_colours-applied.scss' as colours;
 @use 'node_modules/govuk-frontend/dist/govuk/helpers/media-queries' as mixins;
 @use 'node_modules/govuk-frontend/dist/govuk/settings/media-queries' as settings;
 @use 'sass:map';
@@ -6,8 +6,8 @@
 @use 'node_modules/govuk-frontend/dist/govuk/objects/_width-container' as width-container;
 
 /// pins colours
-$pins-colours-grey-100: #f3f2f1;
-$pins-colours-blue-500: #1d70b8;
+$pins-colours-grey-100: colours.govuk-colour('light-grey');
+$pins-colours-blue-500: colours.govuk-colour('blue');
 $pins-colours-green-200: #13a19b;
 $pins-colours-teal-100: #10847e;
 
@@ -33,7 +33,7 @@ nav.govuk-header__navigation.pins-header-navigation {
 	.govuk-header__navigation-list {
 		.govuk-header__navigation-item {
 			.govuk-header__link {
-				color: colors.govuk-colour('black');
+				color: colours.govuk-colour('black');
 			}
 
 			&--active .govuk-header__link {
@@ -45,7 +45,7 @@ nav.govuk-header__navigation.pins-header-navigation {
 
 #pins-header {
 	background: white;
-	color: colors.govuk-colour('black');
+	color: colours.govuk-colour('black');
 	display: inline-block;
 	width: 100%;
 	padding: 1rem 0;
