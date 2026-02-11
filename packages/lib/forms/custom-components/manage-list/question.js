@@ -11,27 +11,34 @@ import nunjucks from 'nunjucks';
  * @typedef {QuestionParameters & ManageListQuestionParameters & {
  *  maximumAnswers?: number;
  *  emptyListText?: string;
+ * 	isAllowedEmpty?: boolean;
  * }} CustomManageListQuestionParameters
  */
 
 export default class CustomManageListQuestion extends ManageListQuestion {
+	/** @type {boolean} */
+	#showAnswersInSummary;
+
 	/**
 	 * @param {CustomManageListQuestionParameters} params
 	 */
-	#showAnswersInSummary;
 	constructor(params) {
 		super(params);
 		this.viewFolder = 'custom-components/manage-list';
 		this.#showAnswersInSummary = true;
 		this.maximumAnswers = params.maximumAnswers;
 		this.emptyListText = params.emptyListText || 'No items have been added yet.';
+		this.isAllowedEmpty = params.isAllowedEmpty;
 	}
 	/**
-	 * @param {import('#question').QuestionViewModel} viewModel
+	 * @param {QuestionViewModel} viewModel
 	 */
 	addCustomDataToViewModel(viewModel) {
 		super.addCustomDataToViewModel(viewModel);
-		viewModel.question.hideRemoveButton = !viewModel.question.value || viewModel.question.value.length <= 1;
+
+		const hasMoreThanOneAnswer =
+			viewModel.question.value && Array.isArray(viewModel.question.value) && viewModel.question.value.length > 1;
+		viewModel.question.hideRemoveButton = !this.isAllowedEmpty && !hasMoreThanOneAnswer;
 		viewModel.emptyListText = this.emptyListText;
 		viewModel.hideAddButton = this.maximumAnswers && viewModel.question.value.length >= this.maximumAnswers;
 	}
@@ -119,15 +126,15 @@ export default class CustomManageListQuestion extends ManageListQuestion {
 		return (
 			this.section.questions
 				// only show questions which should be displayed based on any conditional logic
-				.filter((q) => q.shouldDisplay({ answers: answer }))
-				.map((q) => {
-					const formatted = q
-						.formatAnswerForSummary('', mockJourney, answer[q.fieldName])
-						.map((a) => a.value)
+				.filter((question) => question.shouldDisplay({ answers: answer }))
+				.map((question) => {
+					const formatted = question
+						.formatAnswerForSummary('', mockJourney, answer[question.fieldName])
+						.map((answer) => answer.value)
 						.join(', ');
 
 					return {
-						question: q.title,
+						question: question.title,
 						answer: formatted
 					};
 				})

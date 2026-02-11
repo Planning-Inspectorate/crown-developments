@@ -2,7 +2,18 @@ import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator
 import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
 import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
 import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
+import { camelCaseToUrlCase } from '@pins/crowndev-lib/util/string.js';
+import { capitalize } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
+import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.js';
+import EmailValidator from '@planning-inspectorate/dynamic-forms/src/validator/email-validator.js';
+import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.js';
+import { HIDDEN_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
+
+/**
+ * @typedef {import('@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js').CustomMultiFieldInputQuestionProps} CustomMultiFieldInputQuestionProps
+ * @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps} QuestionProps
+ */
 
 /**
  *
@@ -10,15 +21,11 @@ import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-nu
  * @param {string} opts.prefix
  * @param {string} opts.title
  * @param {boolean} opts.addressRequired
- * @returns {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>}
+ * @returns {Record<string, QuestionProps>}
  */
 export function contactQuestions({ prefix, title, addressRequired }) {
-	// fromCamelCase -> to-url-case
-	const prefixUrl = prefix
-		.split(/(?=[A-Z])/)
-		.map((s) => s.toLowerCase())
-		.join('-');
-	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
+	const prefixUrl = camelCaseToUrlCase(prefix);
+	/** @type {Record<string, QuestionProps>} */
 	const questions = {};
 
 	questions[`${prefix}Name`] = {
@@ -78,6 +85,123 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 		fieldName: `${prefix}TelephoneNumber`,
 		url: `${prefixUrl}-telephone-number`,
 		validators: [new TelephoneNumberValidator()]
+	};
+
+	return questions;
+}
+
+/**
+ *
+ * @param {Object} opts
+ * @param {string} opts.prefix
+ * @param {string} opts.title This should be uncapitalised (unless it's a proper noun)
+ * @param {Array<{text: string, value: string}>} opts.options
+ * @returns {Record<string, CustomMultiFieldInputQuestionProps>}
+ */
+export function multiContactQuestions({ prefix, title, options }) {
+	const prefixUrl = camelCaseToUrlCase(prefix);
+	const isSingleOption = Array.isArray(options) && options.length === 1;
+	/**
+	 * @param {string} value
+	 * @returns {string}
+	 */
+	const formatOrganisationFunction = (value) => {
+		const option = options.find((opt) => opt.value === value);
+		return option ? option.text : value;
+	};
+
+	/** @type {Record<string, CustomMultiFieldInputQuestionProps>} */
+	const questions = {};
+	questions[`${prefix}ContactDetails`] = {
+		type: CUSTOM_COMPONENTS.CUSTOM_MULTI_FIELD_INPUT,
+		title: `${capitalize(title)} contact`,
+		question: `Add ${title} contact details`,
+		fieldName: `${prefix}ContactDetails`,
+		url: `${prefixUrl}-contact`,
+		inputFields: [
+			{
+				type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+				fieldName: `${prefix}FirstName`,
+				label: 'First name',
+				autocomplete: 'given-name',
+				formatJoinString: ' '
+			},
+			{
+				type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+				fieldName: `${prefix}LastName`,
+				label: 'Last name',
+				autocomplete: 'family-name'
+			},
+			{
+				type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+				fieldName: `${prefix}ContactEmail`,
+				label: 'Email'
+			},
+			{
+				type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+				fieldName: `${prefix}ContactTelephoneNumber`,
+				label: 'Phone number (optional)'
+			},
+			// Organisation: hidden single value if exactly one option, else radio
+			...(isSingleOption
+				? [
+						{
+							type: HIDDEN_TYPE,
+							fieldName: `${prefix}ContactOrganisation`,
+							value: options[0].value,
+							formatTextFunction: formatOrganisationFunction
+						}
+					]
+				: [
+						{
+							type: COMPONENT_TYPES.RADIO,
+							fieldName: `${prefix}ContactOrganisation`,
+							legend: 'Organisation',
+							options,
+							formatTextFunction: formatOrganisationFunction
+						}
+					])
+		],
+		validators: [
+			new MultiFieldInputValidator({
+				fields: [
+					{
+						fieldName: `${prefix}FirstName`,
+						validators: [
+							new RequiredValidator(`Enter ${title} contact first name`),
+							new StringValidator({ maxLength: { maxLength: 250 } })
+						]
+					},
+					{
+						fieldName: `${prefix}LastName`,
+						validators: [
+							new RequiredValidator(`Enter ${title} contact last name`),
+							new StringValidator({ maxLength: { maxLength: 250 } })
+						]
+					},
+					{
+						fieldName: `${prefix}ContactEmail`,
+						validators: [
+							new RequiredValidator(`Enter ${title} contact email address`),
+							new StringValidator({ maxLength: { maxLength: 50 } }),
+							new EmailValidator()
+						]
+					},
+					{
+						fieldName: `${prefix}ContactTelephoneNumber`,
+						validators: [new TelephoneNumberValidator()]
+					},
+					...(isSingleOption
+						? []
+						: [
+								{
+									fieldName: `${prefix}ContactOrganisation`,
+									validators: [new RequiredValidator(`Select the organisation for this contact`)]
+								}
+							])
+				]
+			})
+		]
 	};
 
 	return questions;
