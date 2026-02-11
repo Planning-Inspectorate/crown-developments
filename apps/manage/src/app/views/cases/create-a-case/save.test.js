@@ -818,4 +818,331 @@ describe('save', () => {
 			});
 		});
 	});
+
+	describe('save applicant contacts linked to organisations', () => {
+		const buildDbMock = () => {
+			return {
+				crownDevelopment: {
+					create: mock.fn(() => ({ id: 'crown-dev-id-1' })),
+					findMany: mock.fn(() => [])
+				},
+				organisationToContact: {
+					createMany: mock.fn()
+				},
+				contact: {
+					create: mock.fn(() => ({ id: 'contact-id-1' })),
+					createMany: mock.fn(),
+					findMany: mock.fn()
+				},
+				$transaction(fn) {
+					return fn(this);
+				}
+			};
+		};
+
+		const buildServiceMock = () => {
+			return {
+				sharePointCaseTemplateId: 'template-id',
+				db: buildDbMock(),
+				logger: mockLogger(),
+				appSharePointDrive: null,
+				notifyClient: null
+			};
+		};
+
+		it('creates organisation-to-contact relationships using ID matching', async () => {
+			const service = buildServiceMock();
+			const save = buildSaveController(service);
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers: {
+							developmentDescription: 'Project',
+							typeOfApplication: 'application-type-1',
+							lpaId: 'lpa-1',
+							manageApplicantDetails: [{ id: 'org-id-1', organisationName: 'Org A', organisationAddress: {} }],
+							manageApplicantContactDetails: [
+								{
+									applicantFirstName: 'Alex',
+									applicantLastName: 'Smith',
+									applicantContactEmail: 'alex@example.com',
+									applicantContactTelephoneNumber: '1',
+									applicantContactOrganisation: 'org-id-1'
+								}
+							]
+						}
+					}
+				}
+			};
+			await save({}, res);
+			const createArgs = service.db.crownDevelopment.create.mock.calls[0].arguments[0];
+			const orgCreates = createArgs.data.Organisations.create;
+			const orgA = orgCreates[0].Organisation.create;
+			assert.strictEqual(orgA.OrganisationToContact.create.length, 1);
+			assert.strictEqual(orgA.OrganisationToContact.create[0].Contact.create.firstName, 'Alex');
+		});
+
+		it('creates organisation-to-contact relationships for multiple contacts and organisations', async () => {
+			const service = buildServiceMock();
+			// findUnique is no longer called for organisations
+			service.db.crownDevelopment.findUnique = mock.fn(() => null);
+			// contact create is no longer called directly
+			service.db.contact.create = mock.fn(() => ({ id: 'contact-id-1' }));
+
+			const save = buildSaveController(service);
+
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers: {
+							developmentDescription: 'Project',
+							typeOfApplication: 'application-type-1',
+							lpaId: 'lpa-1',
+							manageApplicantDetails: [
+								{
+									id: 'org-id-A',
+									organisationName: 'Org A',
+									organisationAddress: {}
+								},
+								{
+									id: 'org-id-B',
+									organisationName: 'Org B',
+									organisationAddress: {}
+								}
+							],
+							manageApplicantContactDetails: [
+								{
+									applicantFirstName: 'Alex',
+									applicantLastName: 'Smith',
+									applicantContactEmail: 'alex@example.com',
+									applicantContactTelephoneNumber: '0123456789',
+									applicantContactOrganisation: 'org-id-A'
+								},
+								{
+									applicantFirstName: 'Jamie',
+									applicantLastName: 'Jones',
+									applicantContactEmail: 'jamie@example.com',
+									applicantContactTelephoneNumber: '',
+									applicantContactOrganisation: 'org-id-B'
+								},
+								{
+									applicantFirstName: 'Sam',
+									applicantLastName: 'Doe',
+									applicantContactEmail: 'sam@example.com',
+									applicantContactTelephoneNumber: '',
+									applicantContactOrganisation: 'org-id-A'
+								}
+							]
+						}
+					}
+				}
+			};
+
+			await save({}, res);
+
+			assert.strictEqual(service.db.crownDevelopment.create.mock.callCount(), 1);
+			// Nested writes replace separate calls
+			assert.strictEqual(service.db.organisationToContact.createMany.mock.callCount(), 0);
+			assert.strictEqual(service.db.contact.create.mock.callCount(), 0);
+
+			const createArgs = service.db.crownDevelopment.create.mock.calls[0].arguments[0];
+			const orgCreates = createArgs.data.Organisations.create;
+
+			assert.strictEqual(orgCreates.length, 2);
+
+			// Org A should have Alex Smith and Sam Doe
+			const orgA = orgCreates[0].Organisation.create;
+			assert.strictEqual(orgA.name, 'Org A');
+			assert.ok(orgA.OrganisationToContact);
+			const contactsA = orgA.OrganisationToContact.create;
+			assert.strictEqual(contactsA.length, 2);
+
+			assert.strictEqual(contactsA[0].Contact.create.firstName, 'Alex');
+			assert.deepStrictEqual(contactsA[0].Role, { connect: { id: 'applicant' } });
+			assert.strictEqual(contactsA[1].Contact.create.firstName, 'Sam');
+
+			// Org B should have Jamie Jones
+			const orgB = orgCreates[1].Organisation.create;
+			assert.strictEqual(orgB.name, 'Org B');
+			assert.ok(orgB.OrganisationToContact);
+			const contactsB = orgB.OrganisationToContact.create;
+			assert.strictEqual(contactsB.length, 1);
+			assert.strictEqual(contactsB[0].Contact.create.firstName, 'Jamie');
+		});
+
+		it('throws error if applicantContactOrganisation does not match any organisation ID', async () => {
+			const service = buildServiceMock();
+			const save = buildSaveController(service);
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers: {
+							developmentDescription: 'Project',
+							typeOfApplication: 'application-type-1',
+							lpaId: 'lpa-1',
+							manageApplicantDetails: [{ id: 'org-id-3', organisationName: 'Org C', organisationAddress: {} }],
+							manageApplicantContactDetails: [
+								{
+									applicantFirstName: 'Unmatched',
+									applicantLastName: 'Applicant',
+									applicantContactEmail: 'unmatched@example.com',
+									applicantContactTelephoneNumber: '4',
+									applicantContactOrganisation: 'non-existent-id'
+								},
+								{
+									applicantFirstName: 'Kit',
+									applicantLastName: 'Swift',
+									applicantContactEmail: 'kit@example.com',
+									applicantContactTelephoneNumber: '4',
+									applicantContactOrganisation: 'org-id-3'
+								}
+							]
+						}
+					}
+				}
+			};
+			await assert.rejects(
+				() => save({}, res),
+				(error) =>
+					error.message.includes(
+						'Found an orphaned contact with selector "non-existent-id" that does not match any organisation'
+					)
+			);
+		});
+
+		it('throws error if applicantContactOrganisation is missing or empty', async () => {
+			const service = buildServiceMock();
+			const save = buildSaveController(service);
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers: {
+							developmentDescription: 'Project',
+							typeOfApplication: 'application-type-1',
+							lpaId: 'lpa-1',
+							manageApplicantDetails: [{ id: 'org-id-4', organisationName: 'Org D', organisationAddress: {} }],
+							manageApplicantContactDetails: [
+								{
+									applicantFirstName: 'Rowan',
+									applicantLastName: 'Pine',
+									applicantContactEmail: 'rowan@example.com',
+									applicantContactTelephoneNumber: '5'
+								}
+							]
+						}
+					}
+				}
+			};
+			await assert.rejects(
+				() => save({}, res),
+				(error) => error.message.includes('Unable to match applicant contact to organisation - no valid selector')
+			);
+		});
+
+		it('does not link contact to wrong organisation if names are duplicated, only matches by ID', async () => {
+			const service = buildServiceMock();
+			const save = buildSaveController(service);
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers: {
+							developmentDescription: 'Project',
+							typeOfApplication: 'application-type-1',
+							lpaId: 'lpa-1',
+							manageApplicantDetails: [
+								{ id: 'org-id-5', organisationName: 'Org E', organisationAddress: {} },
+								{ id: 'org-id-6', organisationName: 'Org E', organisationAddress: {} }
+							],
+							manageApplicantContactDetails: [
+								{
+									applicantFirstName: 'Jordan',
+									applicantLastName: 'Smith',
+									applicantContactEmail: 'jordan@example.com',
+									applicantContactTelephoneNumber: '6',
+									applicantContactOrganisation: 'org-id-6'
+								},
+								{
+									applicantFirstName: 'Bordan',
+									applicantLastName: 'Smith',
+									applicantContactEmail: 'bordan@example.com',
+									applicantContactTelephoneNumber: '1',
+									applicantContactOrganisation: 'org-id-5'
+								}
+							]
+						}
+					}
+				}
+			};
+			await save({}, res);
+			const createArgs = service.db.crownDevelopment.create.mock.calls[0].arguments[0];
+			const orgCreates = createArgs.data.Organisations.create;
+			const orgE1 = orgCreates[0].Organisation.create;
+			const orgE2 = orgCreates[1].Organisation.create;
+			assert.ok(orgE1.OrganisationToContact);
+			assert.strictEqual(orgE1.OrganisationToContact.create[0].Contact.create.firstName, 'Bordan');
+			assert.ok(orgE2.OrganisationToContact);
+			assert.strictEqual(orgE2.OrganisationToContact.create[0].Contact.create.firstName, 'Jordan');
+		});
+
+		it('handles minimal input: one org, one contact', async () => {
+			const service = buildServiceMock();
+			const save = buildSaveController(service);
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers: {
+							developmentDescription: 'Project',
+							typeOfApplication: 'application-type-1',
+							lpaId: 'lpa-1',
+							manageApplicantDetails: [{ id: 'org-id-7', organisationName: 'Org F', organisationAddress: {} }],
+							manageApplicantContactDetails: [
+								{
+									applicantFirstName: 'Kit',
+									applicantLastName: 'Swift',
+									applicantContactEmail: 'kit@example.com',
+									applicantContactTelephoneNumber: '7',
+									applicantContactOrganisation: 'org-id-7'
+								}
+							]
+						}
+					}
+				}
+			};
+			await save({}, res);
+			const createArgs = service.db.crownDevelopment.create.mock.calls[0].arguments[0];
+			const orgCreates = createArgs.data.Organisations.create;
+			const orgF = orgCreates[0].Organisation.create;
+			assert.ok(orgF.OrganisationToContact);
+			assert.strictEqual(orgF.OrganisationToContact.create.length, 1);
+			assert.strictEqual(orgF.OrganisationToContact.create[0].Contact.create.firstName, 'Kit');
+		});
+
+		it('handles minimal input: empty arrays', async () => {
+			const service = buildServiceMock();
+			const save = buildSaveController(service);
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers: {
+							developmentDescription: 'Project',
+							typeOfApplication: 'application-type-1',
+							lpaId: 'lpa-1',
+							manageApplicantDetails: [],
+							manageApplicantContactDetails: []
+						}
+					}
+				}
+			};
+			await save({}, res);
+			const createArgs = service.db.crownDevelopment.create.mock.calls[0].arguments[0];
+			assert.strictEqual(createArgs.data.Organisations, undefined);
+		});
+	});
 });
