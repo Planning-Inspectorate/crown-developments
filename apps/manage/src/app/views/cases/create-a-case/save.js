@@ -8,6 +8,11 @@ import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-dat
 import { getLinkedCaseId, hasLinkedCase as hasLinkedCaseFunction } from '@pins/crowndev-lib/util/linked-case.js';
 
 /**
+ * @typedef {import('./types.d.ts').CreateCaseAnswers} CreateCaseAnswers
+ * @typedef {import('@pins/crowndev-database').Prisma.CrownDevelopmentCreateInput} CrownDevelopmentCreateInput
+ */
+
+/**
  * @param {import('#service').ManageService} service
  * @returns {import('express').Handler}
  */
@@ -163,13 +168,105 @@ export function buildSuccessController({ db }) {
 }
 
 /**
+ * Validate that all contacts are linked to an organisation in the answers.
+ * This is an extra safety check - the UI should prevent this from happening, but we want to be sure before we try to create records in the database.
+ * @param {CreateCaseAnswers} answers
+ */
+function validateOrphanedContacts(answers) {
+	if (!hasAnswers(answers, 'manageApplicantDetails') || !hasAnswers(answers, 'manageApplicantContactDetails')) {
+		return;
+	}
+
+	answers.manageApplicantContactDetails.forEach((contact) => {
+		const selector = contact.applicantContactOrganisation;
+		if (!selector) throw new Error('Unable to match applicant contact to organisation - no valid selector');
+
+		// Bail if we have a match
+		if (answers.manageApplicantDetails.some((detail) => detail.id && detail.id === selector)) return;
+
+		throw new Error(
+			`Found an orphaned contact with selector "${selector}" that does not match any organisation: ${contact.applicantContactEmail}`
+		);
+	});
+}
+
+/**
+ * Add organisations and their contacts to the input.
+ *
+ * Because Prisma doesn't allow nested createMany with relations, we have to map to individual
+ * creates for organisations and their contacts.
+ *
+ * @param {CrownDevelopmentCreateInput} input
+ * @param {CreateCaseAnswers} answers
+ */
+function addOrganisationsAndContacts(input, answers) {
+	if (!hasAnswers(answers, 'manageApplicantDetails')) {
+		return;
+	}
+
+	validateOrphanedContacts(answers);
+
+	input.Organisations = {
+		create: answers.manageApplicantDetails.map((applicantDetail) => {
+			/** @type {import('@pins/crowndev-database').Prisma.OrganisationCreateInput} */
+			const organisationCreate = {
+				name: applicantDetail.organisationName.trim(),
+				// Only create an address if at least one field is filled in
+				Address:
+					applicantDetail.organisationAddress && Object.values(applicantDetail.organisationAddress || {}).some((v) => v)
+						? { create: toAddressInput(applicantDetail.organisationAddress) }
+						: undefined
+			};
+
+			if (hasAnswers(answers, 'manageApplicantContactDetails')) {
+				const linkedContacts = answers.manageApplicantContactDetails.filter((contact) => {
+					const selector = contact.applicantContactOrganisation;
+					if (!selector) throw new Error('Unable to match applicant contact to organisation - no valid selector');
+
+					// Match by ID (if session data has IDs)
+					return !!(applicantDetail.id && selector === applicantDetail.id);
+				});
+
+				// Organisations without contacts are valid in the hasAgent case.
+				if (linkedContacts.length === 0) {
+					return {
+						Organisation: {
+							create: organisationCreate
+						}
+					};
+				}
+
+				organisationCreate.OrganisationToContact = {
+					create: linkedContacts.map((contact) => ({
+						Role: { connect: { id: 'applicant' } },
+						Contact: {
+							create: {
+								firstName: contact.applicantFirstName?.trim() || null,
+								lastName: contact.applicantLastName?.trim() || null,
+								email: contact.applicantContactEmail?.trim() || null,
+								telephoneNumber: contact.applicantContactTelephoneNumber?.trim() || null
+							}
+						}
+					}))
+				};
+			}
+			return {
+				Organisation: {
+					create: organisationCreate
+				}
+			};
+		})
+	};
+}
+
+/**
  * @param {import('./types.d.ts').CreateCaseAnswers} answers
  * @param {string} reference
  * @param {string|null} subType
- * @returns {import('@pins/crowndev-database').Prisma.CrownDevelopmentCreateInput}
+ * @returns {CrownDevelopmentCreateInput}
  */
 export function toCreateInput(answers, reference, subType) {
-	/** @type {import('@pins/crowndev-database').Prisma.CrownDevelopmentCreateInput} */
+	/** @type CrownDevelopmentCreateInput */
 	const input = {
 		reference,
 		description: answers.developmentDescription,
@@ -201,25 +298,9 @@ export function toCreateInput(answers, reference, subType) {
 		};
 	}
 
-	if (hasAnswers(answers, 'manageApplicantDetails')) {
-		const formattedApplicantDetails = answers.manageApplicantDetails.map((applicantDetail) => ({
-			name: applicantDetail.organisationName.trim(),
-			// Only create an address if at least one field is filled in
-			Address: Object.values(applicantDetail.organisationAddress || {}).some((v) => v)
-				? { create: toAddressInput(applicantDetail.organisationAddress) }
-				: undefined
-		}));
-		// Prisma doesn't allow nested createMany with relations, so we have to map to individual creates
-		input.Organisations = {
-			create: formattedApplicantDetails.map((applicantDetail) => ({
-				Organisation: {
-					create: applicantDetail
-				}
-			}))
-		};
-	}
+	addOrganisationsAndContacts(input, answers);
 
-	if (hasAnswers(answers, 'applicant')) {
+	if (hasAnswersBeginningWith(answers, 'applicant')) {
 		input.ApplicantContact = {
 			create: {
 				orgName: answers.applicantName,
@@ -234,7 +315,7 @@ export function toCreateInput(answers, reference, subType) {
 		}
 	}
 
-	if (hasAnswers(answers, 'agent')) {
+	if (hasAnswersBeginningWith(answers, 'agent')) {
 		input.AgentContact = {
 			create: {
 				orgName: answers.agentName,
@@ -253,7 +334,7 @@ export function toCreateInput(answers, reference, subType) {
 }
 
 /**
- * @param {import('./types.d.ts').Address} address
+ * @param {import('@planning-inspectorate/dynamic-forms/src/lib/address.js').Address} address
  * @returns {import('@pins/crowndev-database').Prisma.AddressCreateInput}
  */
 function toAddressInput(address) {
@@ -267,16 +348,30 @@ function toAddressInput(address) {
 }
 
 /**
- * Have any of the answers with a given prefix got an answer
+ * Have any of the answers with a given prefix got an answer?
+ * TODO: Because this uses startsWith(prefix) it doesn't infer types well - replace with hasAnswers where possible
  *
  * @param {import('./types.d.ts').CreateCaseAnswers} answers
  * @param {string} prefix
  * @returns {boolean}
  */
-function hasAnswers(answers, prefix) {
+function hasAnswersBeginningWith(answers, prefix) {
 	return Object.entries(answers)
 		.filter(([k]) => k.startsWith(prefix))
 		.some(([, v]) => Boolean(v));
+}
+
+/**
+ * Does an answer with the exact given key exist and have a value?
+ *
+ * @template {keyof CreateCaseAnswers} K
+ * @param {CreateCaseAnswers} answers
+ * @param {K} key
+ * @returns {answers is CreateCaseAnswers & Required<Pick<CreateCaseAnswers, K>>}
+ */
+function hasAnswers(answers, key) {
+	const value = answers[key];
+	return Array.isArray(value) ? value.length > 0 : Boolean(value);
 }
 
 /**
@@ -344,11 +439,11 @@ async function grantUsersAccess(sharePointDrive, answers, folderName) {
 	});
 
 	const users = [];
-	if (hasAnswers(answers, 'applicant') && answers.applicantEmail) {
+	if (hasAnswersBeginningWith(answers, 'applicant') && answers.applicantEmail) {
 		users.push({ email: answers.applicantEmail, id: '' });
 	}
 
-	if (hasAnswers(answers, 'agent') && answers.agentEmail) {
+	if (hasAnswersBeginningWith(answers, 'agent') && answers.agentEmail) {
 		users.push({ email: answers.agentEmail, id: '' });
 	}
 
