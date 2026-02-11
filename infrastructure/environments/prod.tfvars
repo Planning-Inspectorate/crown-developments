@@ -53,6 +53,7 @@ apps_config = {
       app_rec_with_fee_template_id    = "6b7e7f49-e0da-4dc7-82dd-2faf033921d3"
       app_rec_without_fee_template_id = "c544f588-fdb2-449f-82ad-cf3f96c8aa43"
       app_not_nat_imp_template_id     = "8c8c5976-ddad-4837-8af5-b7a9ba0db4a4"
+      lpa_quest_sent_template_id      = "1cd9d371-61d4-4643-aadf-3d1d98d9b6d4"
     }
   }
 
