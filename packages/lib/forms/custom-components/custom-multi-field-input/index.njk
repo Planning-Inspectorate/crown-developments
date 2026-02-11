@@ -1,0 +1,100 @@
+{% extends layoutTemplate %}
+
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/label/macro.njk" import govukLabel %}
+{% from "govuk/components/fieldset/macro.njk" import govukFieldset %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+
+{% set inputFields = question.value %}
+
+{% block dynQuestionContent %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <form action="" method="post" novalidate>
+                {% if _csrf %}<input type="hidden" name="_csrf" value="{{ _csrf }}">{% endif %}
+
+                {% call govukFieldset({
+                    legend: {
+                        text: question.question,
+                        classes: "govuk-fieldset__legend--l",
+                        isPageHeading: true
+                    },
+                    describedBy: question.hint and "multi-field-hint"
+                }) %}
+
+                    {%- if question.hint -%}
+                        <div id="multi-field-hint" class="govuk-hint">
+                            {{ question.hint }}
+                        </div>
+                    {%- endif %}
+
+                    {% if question.description %}
+                        <p class="govuk-body">
+                            {{ question.description }}
+                        </p>
+                    {% endif %}
+
+                    {% if question.html %}
+                        {% include question.html ignore missing %}
+                    {% endif %}
+
+                    {% for inputField in inputFields %}
+                        {% if inputField.type == 'single-line-input' %}
+                            {{ govukInput({
+                                label: {
+                                    text: inputField.label,
+                                    classes: 'govuk-label',
+                                    for: inputField.fieldName
+                                },
+                                id: inputField.fieldName,
+                                name: inputField.fieldName,
+                                errorMessage: errors[inputField.fieldName] and {
+                                    text: errors[inputField.fieldName].msg
+                                },
+                                prefix: inputField.prefix,
+                                suffix: inputField.suffix,
+                                value: inputField.value,
+                                hint: inputField.hint and {
+                                    text: inputField.hint
+                                },
+                                classes: inputField.classes or "govuk-input-!-width-three-quarters",
+                                attributes: inputField.attributes
+                            }) }}
+                        {% elseif inputField.type == 'radio' %}
+                            {{ govukRadios({
+                                classes: "govuk-radios",
+                                idPrefix: inputField.fieldName,
+                                name: inputField.fieldName,
+                                errorMessage: errors[inputField.fieldName] and {
+                                    text: errors[inputField.fieldName].msg
+                                },
+                                fieldset: {
+                                    legend: {
+                                        text: inputField.legend,
+                                        classes: "govuk-fieldset__legend--m"
+                                    }
+                                },
+                                items: inputField.options
+                            }) }}
+                        {% elseif inputField.type == 'hidden' %}
+                            <input
+                                type="hidden"
+                                id="{{ inputField.fieldName }}"
+                                name="{{ inputField.fieldName }}"
+                                value="{{ inputField.value | default('') }}"
+                            >
+                        {% endif %}
+                    {% endfor %}
+                {% endcall %}
+
+                {{ govukButton({
+                    text: continueButtonText,
+                    type: "submit",
+                    attributes: { "data-cy":"button-save-and-continue"}
+                }) }}
+
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -8,15 +8,25 @@ import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import { APPLICATION_TYPES } from '@pins/crowndev-database/src/seed/data-static.js';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.js';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.js';
-import { contactQuestions } from './question-utils.js';
+import { contactQuestions, multiContactQuestions } from './question-utils.js';
 import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
 import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
 import CoordinatesValidator from '@planning-inspectorate/dynamic-forms/src/validator/coordinates-validator.js';
 import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.js';
 import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-components/manage-list/validator.js';
+import CrossQuestionValidator from '@pins/crowndev-lib/validators/cross-question-validator.js';
+import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
 
-export function getQuestions() {
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response').JourneyResponse} JourneyResponse */
+
+/**
+ *
+ * @param {JourneyResponse} journeyResponse
+ * @returns
+ */
+export function getQuestions(journeyResponse) {
 	const env = loadEnvironmentConfig();
 
 	// this is to avoid a database read when the data is static - but it does vary by environment
@@ -27,6 +37,58 @@ export function getQuestions() {
 		...LPAs.map((t) => ({ text: t.name, value: t.id }))
 		// todo: sort LPA list?
 	];
+
+	// derive applicant organisation radio options from manageApplicants answers held in the journey response
+	const applicantOrganisationOptions = (() => {
+		const organisations = journeyResponse?.answers?.manageApplicantDetails;
+		if (!Array.isArray(organisations) || organisations.length === 0) return [];
+		return organisations
+			.map((answer) => {
+				const name = answer?.organisationName || '';
+				const id = answer?.id;
+				if (!name || !id) return null;
+				return { text: name, value: id };
+			})
+			.filter(isDefined);
+	})();
+
+	// When there is no agent, at least one applicant contact is required
+	const hasAgentAnswer = yesNoToBoolean(journeyResponse?.answers?.hasAgent);
+	const applicantContactsValidator = hasAgentAnswer
+		? []
+		: [
+				new CustomManageListValidator({
+					minimumAnswers: 1,
+					errorMessages: {
+						minimumAnswers: `At least one contact is required`
+					}
+				}),
+				new CrossQuestionValidator({
+					otherFieldName: 'manageApplicantDetails',
+					validationFunction: (contacts, applicants) => {
+						if (!Array.isArray(contacts) || !Array.isArray(applicants)) return true; // other validators will catch this
+
+						const contactOrgIds = contacts.map((contact) => contact.applicantContactOrganisation);
+						const applicantOrgIds = applicants.map((org) => org.id);
+						const allContactsHaveValidOrg = contactOrgIds.every((orgId) => applicantOrgIds.includes(orgId));
+						// This only happens if an organisation was deleted after a contact was added
+						if (!allContactsHaveValidOrg) {
+							throw new Error('All applicant contacts must be associated with an applicant organisation');
+						}
+
+						applicants.forEach((organisation) => {
+							const hasMatchingContact = contacts.some(
+								(contact) => contact.applicantContactOrganisation === organisation.id
+							);
+							if (!hasMatchingContact) {
+								throw new Error(`You must add a contact for ${organisation.organisationName}`);
+							}
+						});
+
+						return true;
+					}
+				})
+			];
 
 	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {
@@ -94,6 +156,24 @@ export function getQuestions() {
 			fieldName: 'organisationAddress',
 			validators: [new AddressValidator()]
 		},
+		manageApplicantContacts: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			title: 'Check applicant contact details',
+			question: 'Check applicant contact details',
+			url: 'check-applicant-contact-details',
+			fieldName: 'manageApplicantContactDetails',
+			titleSingular: 'Applicant contact',
+			emptyListText: 'No applicant contacts found',
+			showAnswersInSummary: true,
+			maximumAnswers: 10,
+			isAllowedEmpty: yesNoToBoolean(journeyResponse?.answers?.hasAgent), // if there is an agent, applicant contacts are optional
+			validators: applicantContactsValidator // populated from session-managed journey response
+		},
+		...multiContactQuestions({
+			prefix: 'applicant',
+			title: 'applicant',
+			options: applicantOrganisationOptions // populated from session-managed journey response
+		}),
 		hasSecondaryLpa: {
 			type: COMPONENT_TYPES.BOOLEAN,
 			title: 'Has Secondary Local Planning Authority',
@@ -207,5 +287,5 @@ export function getQuestions() {
 		...questionClasses,
 		...CUSTOM_COMPONENT_CLASSES
 	};
-	return createQuestions(questions, classes, {});
+	return createQuestions(questions, classes, journeyResponse || {});
 }
