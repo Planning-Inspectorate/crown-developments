@@ -324,13 +324,21 @@ export function buildReviewControllers(service, journeyId) {
 			const { comment } = req.body;
 			updateRepReviewSession(req, representationRef, 'comment', { commentRedacted: comment });
 			if (!comment || !comment.includes(REDACT_CHARACTER)) {
-				req.body.errors = {
-					comment: {
-						msg: 'To accept the representation without redactions, return to the previous page and select "Accept".'
-					}
-				};
-				req.body.errorSummary = expressValidationErrorsToGovUkErrorList(req.body.errors);
-				return controllers.redactRepresentation(req, res);
+				const commentStatusBeforeUpdate = readRepCommentReviewStatusSession(req, representationRef);
+
+				if (commentStatusBeforeUpdate === REPRESENTATION_STATUS_ID.REJECTED) {
+					updateDocumentStatusSession(req, logger, representationRef, false);
+				}
+
+				updateRepReviewSession(req, representationRef, 'comment', {
+					reviewDecision: REPRESENTATION_STATUS_ID.ACCEPTED
+				});
+				clearRepRedactedCommentSession(req, representationRef);
+
+				await updateRepresentationItemsReviewStatus(req, db, logger);
+
+				res.redirect(getTaskListURL(req.baseUrl, '/comment'));
+				return;
 			}
 			logger.info('saving redacted comment to session');
 			res.redirect(req.baseUrl + '/redact/confirmation');
