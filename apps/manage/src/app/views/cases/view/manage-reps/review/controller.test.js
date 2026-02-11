@@ -999,6 +999,98 @@ describe('controller', () => {
 				'Some comment to ██████ here'
 			);
 		});
+		it('should mark comment as accepted and clear redacted comment if comment is empty', async () => {
+			const mockDb = {
+				$transaction: async (fn) =>
+					await fn({
+						representation: { update: mock.fn(), findUnique: mock.fn() },
+						representationDocument: { update: mock.fn(), findFirst: mock.fn() }
+					}),
+				representation: { update: mock.fn(), findUnique: mock.fn() },
+				representationDocument: { update: mock.fn(), findFirst: mock.fn() }
+			};
+			const logger = mockLogger();
+			const { redactRepresentationPost } = buildReviewControllers({ db: mockDb, logger });
+
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				baseUrl: '/manage',
+				body: { comment: '' },
+				session: { reviewDecisions: { 'ref-1': { comment: { reviewDecision: '', commentRedacted: 'something' } } } }
+			};
+			const mockRes = { redirect: mock.fn() };
+
+			await redactRepresentationPost(mockReq, mockRes);
+
+			assert.strictEqual(
+				mockReq.session.reviewDecisions['ref-1'].comment.reviewDecision,
+				REPRESENTATION_STATUS_ID.ACCEPTED
+			);
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1'].comment.commentRedacted, undefined);
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+		});
+
+		it('should mark comment as accepted and clear redacted comment if comment does not include redaction character', async () => {
+			const mockDb = {
+				$transaction: async (fn) =>
+					await fn({
+						representation: { update: mock.fn(), findUnique: mock.fn() },
+						representationDocument: { update: mock.fn(), findFirst: mock.fn() }
+					}),
+				representation: { update: mock.fn(), findUnique: mock.fn() },
+				representationDocument: { update: mock.fn(), findFirst: mock.fn() }
+			};
+			const logger = mockLogger();
+			const { redactRepresentationPost } = buildReviewControllers({ db: mockDb, logger });
+
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				baseUrl: '/manage',
+				body: { comment: 'No redaction here' },
+				session: { reviewDecisions: { 'ref-1': { comment: { reviewDecision: '', commentRedacted: 'something' } } } }
+			};
+			const mockRes = { redirect: mock.fn() };
+
+			await redactRepresentationPost(mockReq, mockRes);
+
+			assert.strictEqual(
+				mockReq.session.reviewDecisions['ref-1'].comment.reviewDecision,
+				REPRESENTATION_STATUS_ID.ACCEPTED
+			);
+			assert.strictEqual(mockReq.session.reviewDecisions['ref-1'].comment.commentRedacted, undefined);
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+		});
+
+		it('should not mark comment as accepted if comment includes redaction character', async () => {
+			const mockDb = {
+				$transaction: async (fn) =>
+					await fn({
+						representation: { update: mock.fn(), findUnique: mock.fn() },
+						representationDocument: { update: mock.fn(), findFirst: mock.fn() }
+					}),
+				representation: { update: mock.fn(), findUnique: mock.fn() },
+				representationDocument: { update: mock.fn(), findFirst: mock.fn() }
+			};
+			const logger = mockLogger();
+			const { redactRepresentationPost } = buildReviewControllers({ db: mockDb, logger });
+
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				baseUrl: '/manage',
+				body: { comment: 'Some comment to ██████ here' },
+				session: { reviewDecisions: { 'ref-1': { comment: { reviewDecision: '', commentRedacted: 'something' } } } }
+			};
+			const mockRes = { redirect: mock.fn() };
+
+			await redactRepresentationPost(mockReq, mockRes);
+
+			assert.notStrictEqual(
+				mockReq.session.reviewDecisions['ref-1'].comment.reviewDecision,
+				REPRESENTATION_STATUS_ID.ACCEPTED
+			);
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			assert.match(mockRes.redirect.mock.calls[0].arguments[0], /\/redact\/confirmation$/);
+		});
 	});
 
 	describe('redactConfirmation', () => {
