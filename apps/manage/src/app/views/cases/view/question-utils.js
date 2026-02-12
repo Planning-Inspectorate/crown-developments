@@ -12,7 +12,7 @@ import {
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.js';
 import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-validator.js';
-import { camelCaseToUrlCase } from '@pins/crowndev-lib/util/string.js';
+import { camelCaseToUrlCase, camelCaseToSentenceCase, sentenceCase } from '@pins/crowndev-lib/util/string.js';
 
 /**
  *
@@ -131,7 +131,7 @@ export function dateQuestion({
 	validationTitle = validationTitle ?? title;
 	return {
 		type: COMPONENT_TYPES.DATE,
-		title: titleCase(title),
+		title: sentenceCase(title),
 		question: question || `What is the ${title}?`,
 		hint: hint,
 		fieldName: fieldName,
@@ -153,7 +153,7 @@ export function dateQuestion({
  * @returns {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>}
  */
 export function eventQuestions(prefix) {
-	const title = titleCase(prefix);
+	const title = sentenceCase(prefix);
 	return {
 		[`${prefix}Date`]: dateQuestion({
 			fieldName: `${prefix}Date`,
@@ -274,7 +274,7 @@ export function eventQuestions(prefix) {
 		}),
 		[`${prefix}ProofsOfEvidenceDate`]: dateQuestion({
 			fieldName: `${prefix}ProofsOfEvidenceDate`,
-			title: `${titleCase(prefix)} proofs of evidence date`
+			title: `${sentenceCase(prefix)} proofs of evidence date`
 		})
 	};
 }
@@ -308,29 +308,6 @@ export function lpaListToRadioOptions(lpaList) {
 		// todo: sort LPA list?
 		...lpaList.map((t) => ({ text: t.name, value: t.id }))
 	];
-}
-
-/**
- * Turns 'camelCaseString' into 'Sentence case string'
- * @param {string} str
- * @returns {string}
- */
-export function camelCaseToSentenceCase(str) {
-	const sentence = str
-		.split(/(?=[A-Z])/)
-		.map((s) => s.toLowerCase())
-		.join(' ');
-
-	return sentence.charAt(0).toUpperCase() + sentence.slice(1);
-}
-
-/**
- * Turns 'string containing a Proper Noun' into 'String containing a Proper Noun'
- * @param {string} str
- * @returns {string}
- * */
-function titleCase(str) {
-	return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 export function filteredStagesToRadioOptions(procedureId) {
