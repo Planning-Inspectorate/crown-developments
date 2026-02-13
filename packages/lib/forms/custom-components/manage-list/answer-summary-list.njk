@@ -7,7 +7,7 @@
         </ul>
         {% if answers.length > 2 %}
             {#  Graceful degradation: JS will show toggle and hide extra list on load #}
-            <a href="#" hidden data-toggle>Show {{ answers.length - 2 }} more</a>
+            <button class="pins-button-link" hidden data-toggle>Show {{ answers.length - 2 }} more</button>
             <ul class="govuk-list govuk-list--bullet govuk-!-padding-top-4" data-show-more>
                 {% for question in (answers.slice(2)) %}
                     {{ listItem(question) }}

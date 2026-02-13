@@ -85,3 +85,17 @@ $font-family: arial, helvetica, sans-serif;
 	display: block;
 	margin-bottom: 1em;
 }
+
+%pins-button-reset {
+	font-size: 1em;
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+}
+
+.pins-button-link {
+	@extend %pins-button-reset;
+	@extend .govuk-link;
+	@extend .govuk-link--no-visited-state;
+}
