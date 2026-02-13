@@ -34,18 +34,29 @@ import DateTimeValidator from '@planning-inspectorate/dynamic-forms/src/validato
 import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
 import CostsApplicationsCommentValidator from '@pins/crowndev-lib/forms/custom-components/costs-applications-comment/costs-applications-comment-validator.js';
 import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-components/manage-list/validator.js';
+import { multiContactQuestions } from '../create-a-case/question-utils.js';
+import { getApplicantContactsValidator } from '../util/applicant-contacts-validator.js';
 
 /**
  * @param {import('../../../../util/entra-groups-types.js').EntraGroupMembers} [groupMembers]
- * @param {object} overrides
+ * @param {import('./types').QuestionOverrides} overrides
  * @returns {{[p: string]: *}}
  */
-export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }, overrides = {}) {
+export function getQuestions(
+	groupMembers = { caseOfficers: [], inspectors: [] },
+	overrides = {
+		isApplicationTypePlanningOrLbc: false,
+		isApplicationSubTypeLbc: false,
+		hasAgentAnswer: false,
+		isQuestionView: false
+	}
+) {
 	const env = loadEnvironmentConfig();
 
 	// this is to avoid a database read when the data is static - but it does vary by environment
 	// the options here should match the dev/prod seed scripts
 	const LPAs = env === ENVIRONMENT_NAME.PROD ? LOCAL_PLANNING_AUTHORITIES_PROD : LOCAL_PLANNING_AUTHORITIES_DEV;
+	const applicantContactsValidator = getApplicantContactsValidator(overrides.hasAgentAnswer);
 
 	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {
@@ -404,7 +415,7 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		}),
 		manageApplicants: {
 			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
-			title: 'Applicants',
+			title: overrides.isQuestionView ? 'Check applicant details' : 'Applicants',
 			question: 'Check applicant details',
 			url: 'check-applicant-details',
 			fieldName: 'manageApplicantDetails',
@@ -421,6 +432,24 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 				})
 			]
 		},
+		manageApplicantContacts: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			title: overrides.isQuestionView ? 'Check applicant contact details' : 'Applicant contacts',
+			question: 'Check applicant contact details',
+			url: 'check-applicant-contact-details',
+			fieldName: 'manageApplicantContactDetails',
+			titleSingular: 'Applicant contact',
+			emptyListText: 'No applicant contacts found',
+			showAnswersInSummary: true,
+			maximumAnswers: 10,
+			isAllowedEmpty: overrides.hasAgentAnswer, // if there is an agent, applicant contacts are optional
+			validators: applicantContactsValidator
+		},
+		...multiContactQuestions({
+			prefix: 'applicant',
+			title: 'applicant',
+			options: overrides.applicantOrganisationOptions ?? []
+		}),
 		addApplicantName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 			title: 'Applicant organisation name',

@@ -263,6 +263,10 @@ export function createJourneyV2(questions, response, req) {
 				.addQuestion(
 					questions.manageApplicants,
 					new ManageListSection().addQuestion(questions.addApplicantName).addQuestion(questions.addApplicantAddress)
+				)
+				.addQuestion(
+					questions.manageApplicantContacts,
+					new ManageListSection().addQuestion(questions.applicantContactDetails)
 				),
 			new Section('Dates', 'dates')
 				.addQuestion(questions.applicationReceivedDate)
