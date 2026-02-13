@@ -108,6 +108,13 @@ describe('ManageApplicantsQuestion', () => {
 			assert.strictEqual(nunjucks.render.mock.callCount(), 1);
 			assert.strictEqual(answerForSummary[0].value, 'mocked rendered string');
 		});
+
+		it('should return notStartedText if no answers', (context) => {
+			const { question, journey } = questionWithManageQuestions(context, {}, 0);
+			const answerForSummary = question.formatAnswerForSummary('section-1', journey, []);
+			assert.strictEqual(answerForSummary.length, 1);
+			assert.strictEqual(answerForSummary[0].value, question.notStartedText);
+		});
 	});
 
 	describe('checkForValidationErrors', () => {
