@@ -15,30 +15,30 @@ function createMockRequest(answers) {
 }
 
 describe('CrossQuestionValidator', () => {
-	test('throws error if otherFieldName is missing', () => {
+	test('throws error if dependencyFieldName is missing', () => {
 		assert.throws(() => {
 			new CrossQuestionValidator({ validationFunction: () => true });
-		}, /requires otherFieldName/);
+		}, /requires dependencyFieldName/);
 	});
 
 	test('throws error if validationFunction is missing', () => {
 		assert.throws(() => {
-			new CrossQuestionValidator({ otherFieldName: 'other' });
+			new CrossQuestionValidator({ dependencyFieldName: 'other' });
 		}, /requires a validationFunction/);
 	});
 
 	test('throws error if validationFunction is not a function', () => {
 		assert.throws(() => {
-			new CrossQuestionValidator({ otherFieldName: 'other', validationFunction: 123 });
+			new CrossQuestionValidator({ dependencyFieldName: 'other', validationFunction: 123 });
 		}, /requires a validationFunction/);
 	});
 
 	test('returns a validation chain that calls the validation function with correct answers', async () => {
 		let calledWith;
 		const validator = new CrossQuestionValidator({
-			otherFieldName: 'other',
-			validationFunction: (questionAnswer, otherQuestionAnswer) => {
-				calledWith = { questionAnswer, otherQuestionAnswer };
+			dependencyFieldName: 'other',
+			validationFunction: (currentAnswer, dependencyAnswer) => {
+				calledWith = { currentAnswer, dependencyAnswer };
 				return true;
 			}
 		});
@@ -46,12 +46,12 @@ describe('CrossQuestionValidator', () => {
 		const chain = validator.validate(questionObj);
 		const req = createMockRequest({ field: 'foo', other: 'bar' });
 		await chain[0].run(req);
-		assert.deepEqual(calledWith, { questionAnswer: 'foo', otherQuestionAnswer: 'bar' });
+		assert.deepEqual(calledWith, { currentAnswer: 'foo', dependencyAnswer: 'bar' });
 	});
 
 	test('validation fails if validation function returns false', async () => {
 		const validator = new CrossQuestionValidator({
-			otherFieldName: 'other',
+			dependencyFieldName: 'other',
 			validationFunction: () => false
 		});
 		const questionObj = { fieldName: 'field' };
@@ -66,9 +66,9 @@ describe('CrossQuestionValidator', () => {
 	test('validation function called when journeyResponse is missing', async () => {
 		let calledWith;
 		const validator = new CrossQuestionValidator({
-			otherFieldName: 'other',
-			validationFunction: (questionAnswer, otherQuestionAnswer) => {
-				calledWith = { questionAnswer, otherQuestionAnswer };
+			dependencyFieldName: 'other',
+			validationFunction: (currentAnswer, dependencyAnswer) => {
+				calledWith = { currentAnswer, dependencyAnswer };
 				return true;
 			}
 		});
@@ -76,6 +76,6 @@ describe('CrossQuestionValidator', () => {
 		const chain = validator.validate(questionObj);
 		const req = { res: { locals: {} } };
 		await chain[0].run(req);
-		assert.deepEqual(calledWith, { questionAnswer: undefined, otherQuestionAnswer: undefined });
+		assert.deepEqual(calledWith, { currentAnswer: undefined, dependencyAnswer: undefined });
 	});
 });

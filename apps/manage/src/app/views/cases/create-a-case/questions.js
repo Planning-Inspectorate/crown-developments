@@ -52,6 +52,27 @@ export function getQuestions(journeyResponse) {
 			.filter(isDefined);
 	})();
 
+	const validateContactsAgainstOrganisations = (contacts, organisations) => {
+		if (!Array.isArray(contacts) || !Array.isArray(organisations)) return true; // other validators will catch this
+
+		const contactOrgIds = contacts.map((contact) => contact.applicantContactOrganisation);
+		const applicantOrgIds = organisations.map((org) => org.id);
+		const allContactsHaveValidOrg = contactOrgIds.every((orgId) => applicantOrgIds.includes(orgId));
+		// This only happens if an organisation was deleted after a contact was added
+		if (!allContactsHaveValidOrg) {
+			throw new Error('All applicant contacts must be associated with an applicant organisation');
+		}
+
+		organisations.forEach((organisation) => {
+			const hasMatchingContact = contacts.some((contact) => contact.applicantContactOrganisation === organisation.id);
+			if (!hasMatchingContact) {
+				throw new Error(`You must add a contact for ${organisation.organisationName}`);
+			}
+		});
+
+		return true;
+	};
+
 	// When there is no agent, at least one applicant contact is required
 	const hasAgentAnswer = yesNoToBoolean(journeyResponse?.answers?.hasAgent);
 	const applicantContactsValidator = hasAgentAnswer
@@ -64,29 +85,8 @@ export function getQuestions(journeyResponse) {
 					}
 				}),
 				new CrossQuestionValidator({
-					otherFieldName: 'manageApplicantDetails',
-					validationFunction: (contacts, applicants) => {
-						if (!Array.isArray(contacts) || !Array.isArray(applicants)) return true; // other validators will catch this
-
-						const contactOrgIds = contacts.map((contact) => contact.applicantContactOrganisation);
-						const applicantOrgIds = applicants.map((org) => org.id);
-						const allContactsHaveValidOrg = contactOrgIds.every((orgId) => applicantOrgIds.includes(orgId));
-						// This only happens if an organisation was deleted after a contact was added
-						if (!allContactsHaveValidOrg) {
-							throw new Error('All applicant contacts must be associated with an applicant organisation');
-						}
-
-						applicants.forEach((organisation) => {
-							const hasMatchingContact = contacts.some(
-								(contact) => contact.applicantContactOrganisation === organisation.id
-							);
-							if (!hasMatchingContact) {
-								throw new Error(`You must add a contact for ${organisation.organisationName}`);
-							}
-						});
-
-						return true;
-					}
+					dependencyFieldName: 'manageApplicantDetails',
+					validationFunction: validateContactsAgainstOrganisations
 				})
 			];
 
