@@ -12,22 +12,22 @@ import { body } from 'express-validator';
 export default class CrossQuestionValidator extends BaseValidator {
 	/**
 	 * @param {Object} params
-	 * @param {string} params.otherFieldName - The field name of the other question to compare against.
-	 * @param {((questionAnswer: any, otherQuestionAnswer: any) => boolean)| null} params.validationFunction - A function that takes the current question's answer and the other question's answer and returns true if valid, false otherwise.
+	 * @param {string} params.dependencyFieldName - The field name of the other question to compare against.
+	 * @param {((currentAnswer: any, dependencyAnswer: any) => boolean)| null} params.validationFunction - A function that takes the current question's answer and the other question's answer and returns true if valid, false otherwise.
 	 * @throws {Error} If validationFunction is not provided or is not a function.
-	 * @throws {Error} If otherFieldName is not provided
+	 * @throws {Error} If dependencyFieldName is not provided
 	 */
-	constructor({ otherFieldName, validationFunction } = { otherFieldName: '', validationFunction: null }) {
+	constructor({ dependencyFieldName, validationFunction } = { dependencyFieldName: '', validationFunction: null }) {
 		super();
 
-		if (!otherFieldName) {
-			throw new Error('CrossQuestionValidator requires otherFieldName');
+		if (!dependencyFieldName) {
+			throw new Error('CrossQuestionValidator requires dependencyFieldName');
 		}
 		if (!validationFunction || typeof validationFunction !== 'function') {
 			throw new Error('CrossQuestionValidator requires a validationFunction');
 		}
 
-		this.otherFieldName = otherFieldName;
+		this.dependencyFieldName = dependencyFieldName;
 		this.validationFunction = validationFunction;
 	}
 
@@ -42,11 +42,14 @@ export default class CrossQuestionValidator extends BaseValidator {
 		return [
 			body(fieldName).custom((value, { req }) => {
 				const answers = req?.res?.locals?.journeyResponse?.answers || {};
-				const questionAnswer = answers[fieldName];
-				const otherQuestionAnswer = answers[this.otherFieldName];
+				const currentAnswer = answers[fieldName];
+				const dependencyAnswer = answers[this.dependencyFieldName];
 				return (
-					this.validationFunction(questionAnswer, otherQuestionAnswer) ||
-					Promise.reject(new Error('Cross-question validation failed'))
+					this.validationFunction(currentAnswer, dependencyAnswer) ||
+					// Fallback if validation fails without throwing an error
+					Promise.reject(
+						new Error(`Cross-question validation failed between ${fieldName} and ${this.dependencyFieldName}`)
+					)
 				);
 			})
 		];
