@@ -13,9 +13,17 @@ export default defineConfig([
 			globals: globals.node
 		}
 	},
-	...tseslint.configs.recommended.map((config) => ({
+	...tseslint.configs.recommendedTypeChecked.map((config) => ({
 		...config,
-		files: ['**/*.ts']
+		files: ['**/*.ts'],
+		ignores: ['**/*.d.ts'],
+		languageOptions: {
+			parser: tseslint.parser,
+			parserOptions: {
+				projectService: true,
+				tsconfigRootDir: import.meta.dirname
+			}
+		}
 	})),
 	globalIgnores([
 		'.husky',
@@ -28,6 +36,7 @@ export default defineConfig([
 	eslintConfigPrettier,
 	{
 		files: ['**/*.ts'],
+		ignores: ['**/*.d.ts'],
 		rules: {
 			'@typescript-eslint/consistent-type-imports': 'error'
 		}
