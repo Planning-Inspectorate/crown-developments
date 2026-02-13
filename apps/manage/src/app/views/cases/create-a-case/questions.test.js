@@ -104,4 +104,107 @@ describe('create-a-case questions', () => {
 		);
 		assert.ok(validator);
 	});
+	it('sets manageApplicants title to "Check applicant details" when isQuestionView is true', () => {
+		const journeyResponse = {
+			answers: {
+				hasAgent: 'yes',
+				manageApplicantDetails: [{ id: 'org-1', organisationName: 'Org One' }]
+			}
+		};
+		const questions = getQuestions(journeyResponse, true);
+		assert.strictEqual(questions.manageApplicants.title, 'Check applicant details');
+	});
+
+	it('sets manageApplicants title to "Applicants" when isQuestionView is false', () => {
+		const journeyResponse = {
+			answers: {
+				hasAgent: 'yes',
+				manageApplicantDetails: [{ id: 'org-1', organisationName: 'Org One' }]
+			}
+		};
+		const questions = getQuestions(journeyResponse, false);
+		assert.strictEqual(questions.manageApplicants.title, 'Applicants');
+	});
+	describe('validateContactsAgainstOrganisations', () => {
+		function getCrossValidator(questions) {
+			return questions.manageApplicantContacts.validators.find(
+				(validator) => validator.constructor.name === 'CrossQuestionValidator'
+			);
+		}
+		it('allows validation when every applicant contact references an existing applicant organisation and every organisation has a contact', () => {
+			const journeyResponse = {
+				answers: {
+					hasAgent: 'no',
+					manageApplicantDetails: [
+						{ id: 'org-1', organisationName: 'Org One' },
+						{ id: 'org-2', organisationName: 'Org Two' }
+					]
+				}
+			};
+
+			const questions = getQuestions(journeyResponse);
+
+			const crossValidator = getCrossValidator(questions);
+			assert.ok(crossValidator);
+
+			assert.strictEqual(
+				crossValidator.validationFunction(
+					[{ applicantContactOrganisation: 'org-1' }, { applicantContactOrganisation: 'org-2' }],
+					journeyResponse.answers.manageApplicantDetails
+				),
+				true
+			);
+		});
+		it('returns true when contacts is not an array', () => {
+			const questions = getQuestions({ answers: { hasAgent: 'no' } });
+
+			const crossValidator = getCrossValidator(questions);
+			assert.ok(crossValidator);
+
+			assert.strictEqual(
+				crossValidator.validationFunction('not-an-array', [{ id: 'org-1', organisationName: 'Org One' }]),
+				true
+			);
+		});
+
+		it('returns true when organisations is not an array', () => {
+			const questions = getQuestions({ answers: { hasAgent: 'no' } });
+
+			const crossValidator = getCrossValidator(questions);
+			assert.ok(crossValidator);
+
+			assert.strictEqual(crossValidator.validationFunction([{ applicantContactOrganisation: 'org-1' }], null), true);
+		});
+
+		it('throws when a contact references an organisation id that is not present in organisations', () => {
+			const questions = getQuestions({ answers: { hasAgent: 'no' } });
+
+			const crossValidator = getCrossValidator(questions);
+			assert.ok(crossValidator);
+
+			assert.throws(() => {
+				crossValidator.validationFunction(
+					[{ applicantContactOrganisation: 'org-1' }, { applicantContactOrganisation: 'org-2' }],
+					[{ id: 'org-2', organisationName: 'Org Two' }]
+				);
+			}, /All applicant contacts must be associated with an applicant organisation/);
+		});
+
+		it('throws when an organisation is not referenced by any contact', () => {
+			const questions = getQuestions({ answers: { hasAgent: 'no' } });
+
+			const crossValidator = getCrossValidator(questions);
+			assert.ok(crossValidator);
+
+			assert.throws(() => {
+				crossValidator.validationFunction(
+					[{ applicantContactOrganisation: 'org-1' }],
+					[
+						{ id: 'org-1', organisationName: 'Org One' },
+						{ id: 'org-2', organisationName: 'Org Two' }
+					]
+				);
+			}, /You must add a contact for Org Two/);
+		});
+	});
 });
