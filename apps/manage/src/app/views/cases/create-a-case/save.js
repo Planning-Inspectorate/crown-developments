@@ -4,7 +4,11 @@ import { JOURNEY_ID } from './journey.js';
 import { toFloat } from '@pins/crowndev-lib/util/numbers.js';
 import { caseReferenceToFolderName, getSharePointReceivedPathId } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
-import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import {
+	APPLICATION_SUB_TYPE_ID,
+	APPLICATION_TYPE_ID,
+	CONTACT_ROLES_ID
+} from '@pins/crowndev-database/src/seed/data-static.js';
 import { getLinkedCaseId, hasLinkedCase as hasLinkedCaseFunction } from '@pins/crowndev-lib/util/linked-case.js';
 
 /**
@@ -238,7 +242,7 @@ function addOrganisationsAndContacts(input, answers) {
 
 				organisationCreate.OrganisationToContact = {
 					create: linkedContacts.map((contact) => ({
-						Role: { connect: { id: 'applicant' } },
+						Role: { connect: { id: CONTACT_ROLES_ID.APPLICANT } },
 						Contact: {
 							create: {
 								firstName: contact.applicantFirstName?.trim() || null,
@@ -300,7 +304,7 @@ export function toCreateInput(answers, reference, subType) {
 
 	addOrganisationsAndContacts(input, answers);
 
-	if (hasAnswersBeginningWith(answers, 'applicant')) {
+	if (hasAnswersBeginningWith(answers, CONTACT_ROLES_ID.APPLICANT)) {
 		input.ApplicantContact = {
 			create: {
 				orgName: answers.applicantName,
@@ -315,7 +319,7 @@ export function toCreateInput(answers, reference, subType) {
 		}
 	}
 
-	if (hasAnswersBeginningWith(answers, 'agent')) {
+	if (hasAnswersBeginningWith(answers, CONTACT_ROLES_ID.AGENT)) {
 		input.AgentContact = {
 			create: {
 				orgName: answers.agentName,
@@ -439,11 +443,11 @@ async function grantUsersAccess(sharePointDrive, answers, folderName) {
 	});
 
 	const users = [];
-	if (hasAnswersBeginningWith(answers, 'applicant') && answers.applicantEmail) {
+	if (hasAnswersBeginningWith(answers, CONTACT_ROLES_ID.APPLICANT) && answers.applicantEmail) {
 		users.push({ email: answers.applicantEmail, id: '' });
 	}
 
-	if (hasAnswersBeginningWith(answers, 'agent') && answers.agentEmail) {
+	if (hasAnswersBeginningWith(answers, CONTACT_ROLES_ID.AGENT) && answers.agentEmail) {
 		users.push({ email: answers.agentEmail, id: '' });
 	}
 
