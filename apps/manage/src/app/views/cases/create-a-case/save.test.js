@@ -826,14 +826,6 @@ describe('save', () => {
 					create: mock.fn(() => ({ id: 'crown-dev-id-1' })),
 					findMany: mock.fn(() => [])
 				},
-				organisationToContact: {
-					createMany: mock.fn()
-				},
-				contact: {
-					create: mock.fn(() => ({ id: 'contact-id-1' })),
-					createMany: mock.fn(),
-					findMany: mock.fn()
-				},
 				$transaction(fn) {
 					return fn(this);
 				}
@@ -887,8 +879,6 @@ describe('save', () => {
 			const service = buildServiceMock();
 			// findUnique is no longer called for organisations
 			service.db.crownDevelopment.findUnique = mock.fn(() => null);
-			// contact create is no longer called directly
-			service.db.contact.create = mock.fn(() => ({ id: 'contact-id-1' }));
 
 			const save = buildSaveController(service);
 
@@ -943,9 +933,6 @@ describe('save', () => {
 			await save({}, res);
 
 			assert.strictEqual(service.db.crownDevelopment.create.mock.callCount(), 1);
-			// Nested writes replace separate calls
-			assert.strictEqual(service.db.organisationToContact.createMany.mock.callCount(), 0);
-			assert.strictEqual(service.db.contact.create.mock.callCount(), 0);
 
 			const createArgs = service.db.crownDevelopment.create.mock.calls[0].arguments[0];
 			const orgCreates = createArgs.data.Organisations.create;
