@@ -22,7 +22,8 @@ import {
 	ALLOWED_EXTENSIONS,
 	ALLOWED_MIME_TYPES,
 	MAX_FILE_SIZE,
-	representationsContactQuestions
+	representationsContactQuestions,
+	isFrontEndQuestion
 } from './question-utils.js';
 import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
 import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
@@ -34,7 +35,8 @@ export const getQuestions = ({
 	methodOverrides = {},
 	textOverrides = {},
 	actionOverrides = {},
-	editActionOverrides = {}
+	editActionOverrides = {},
+	isFrontend = false
 } = {}) => {
 	const actionLinkOverride = {
 		text: 'Manage',
@@ -67,11 +69,13 @@ export const getQuestions = ({
 		},
 		...representationsContactQuestions({
 			prefix: 'myself',
+			isFrontend,
 			actionOverrides,
 			actionLinkOverride
 		}),
 		...representationsContactQuestions({
 			prefix: 'submitter',
+			isFrontend,
 			actionOverrides,
 			actionLinkOverride
 		}),
@@ -104,7 +108,9 @@ export const getQuestions = ({
 		submittedFor: {
 			type: COMPONENT_TYPES.RADIO,
 			title: 'Who you are submitting for',
-			question: 'Who are you submitting a representation for?',
+			question: isFrontEndQuestion(isFrontend)
+				? 'Who are you submitting a representation for?'
+				: 'Source of representation',
 			fieldName: 'submittedForId',
 			url: 'who-submitting-for',
 			validators: [new RequiredValidator('Select who you are submitting for')],
@@ -113,7 +119,7 @@ export const getQuestions = ({
 		whoRepresenting: {
 			type: COMPONENT_TYPES.RADIO,
 			title: 'Who are you representing?',
-			question: 'Who are you representing?',
+			question: isFrontEndQuestion(isFrontend) ? 'Who are you representing?' : 'Representation made on behalf of',
 			fieldName: 'representedTypeId',
 			url: 'who-representing',
 			validators: [new RequiredValidator('Select who you are representing')],
@@ -122,7 +128,9 @@ export const getQuestions = ({
 		representedFullName: {
 			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
 			title: 'Represented person name',
-			question: 'What is the name of the person you are representing?',
+			question: isFrontEndQuestion(isFrontend)
+				? 'What is the name of the person you are representing?'
+				: 'Name of the individual being represented',
 			fieldName: 'representedFullName',
 			url: 'name-person-representing',
 			inputFields: [
@@ -182,7 +190,9 @@ export const getQuestions = ({
 		orgName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 			title: 'Your organisation or charity name',
-			question: 'What is the name of your organisation or charity?',
+			question: isFrontEndQuestion(isFrontend)
+				? 'What is the name of your organisation or charity?'
+				: "Name of the sender's organisation or charity",
 			hint: 'We will publish your organisation name on the website along with your representation.',
 			fieldName: 'orgName',
 			url: 'name-organisation',
@@ -199,7 +209,9 @@ export const getQuestions = ({
 		orgRoleName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 			title: 'Your job title or volunteer role?',
-			question: 'What is your job title or volunteer role?',
+			question: isFrontEndQuestion(isFrontend)
+				? 'What is your job title or volunteer role?'
+				: "Sender's job title or role",
 			fieldName: 'orgRoleName',
 			url: 'what-job-title-or-role',
 			validators: [
@@ -215,7 +227,9 @@ export const getQuestions = ({
 		representedOrgName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 			title: 'Name of the organisation or charity representing',
-			question: 'What is the full name of the organisation or charity that you are representing?',
+			question: isFrontEndQuestion(isFrontend)
+				? 'What is the full name of the organisation or charity that you are representing?'
+				: 'Name of organisation or charity being represented',
 			fieldName: 'representedOrgName',
 			url: 'name-organisation-representing',
 			validators: [
@@ -235,7 +249,9 @@ export const getQuestions = ({
 		isAgent: {
 			type: COMPONENT_TYPES.BOOLEAN,
 			title: 'Are you acting as an agent on behalf of a client?',
-			question: 'Are you acting as an agent on behalf of a client?',
+			question: isFrontEndQuestion(isFrontend)
+				? 'Are you acting as an agent on behalf of a client?'
+				: 'Was the representation submitted by an agent?',
 			hint: 'For example, your organisation has been hired to represent a client on planning matters.',
 			fieldName: 'isAgent',
 			url: 'are-you-agent',
@@ -244,7 +260,9 @@ export const getQuestions = ({
 		agentOrgName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 			title: 'Agent organisation name',
-			question: 'What is the name of the organisation you work for?',
+			question: isFrontEndQuestion(isFrontend)
+				? 'What is the name of the organisation you work for?'
+				: "Name of agent's organisation",
 			hint: "We will publish your organisation name, your client's name and their representation on the website.",
 			fieldName: 'agentOrgName',
 			url: 'agent-organisation-name',
@@ -270,10 +288,10 @@ export const getQuestions = ({
 		submittedDate: {
 			type: COMPONENT_TYPES.DATE,
 			title: 'What date was the representation received?',
-			question: 'What date was the representation received?',
+			question: 'Date the representation was received',
 			fieldName: 'submittedDate',
 			url: 'representation-date',
-			validators: [new DateValidator('Representation received date')]
+			validators: [new DateValidator('representation received date')]
 		},
 		submittedReceivedMethod: {
 			type: COMPONENT_TYPES.RADIO,
@@ -306,7 +324,7 @@ export const getQuestions = ({
 		category: {
 			type: COMPONENT_TYPES.RADIO,
 			title: 'Representation type',
-			question: 'What type of representation is it?',
+			question: 'Type of representation submitted',
 			fieldName: 'categoryId',
 			url: 'representation-type',
 			validators: [new RequiredValidator('Select a representation type')],

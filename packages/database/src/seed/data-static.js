@@ -348,7 +348,7 @@ export const REPRESENTATION_CATEGORY = [
 	},
 	{
 		id: 'interested-parties',
-		displayName: 'Interested Party'
+		displayName: 'Interested party'
 	}
 ];
 /**
