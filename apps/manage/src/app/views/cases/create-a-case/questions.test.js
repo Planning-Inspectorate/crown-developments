@@ -30,20 +30,13 @@ describe('create-a-case questions', () => {
 			{ text: 'Org Four', value: 'org-4' }
 		];
 
-		const fieldWithApplicantOptions = Object.values(questions)
-			.flatMap((question) => (Array.isArray(question.inputFields) ? question.inputFields : []))
-			.find((inputField) => {
-				const options = inputField.options;
-				if (!Array.isArray(options)) {
-					return false;
-				}
-				return options.some((option) => option.value === 'org-1' && option.text === 'Org One');
-			});
-
+		const applicantContactDetailsQuestion = questions.applicantContactDetails;
+		const fieldWithApplicantOptions = applicantContactDetailsQuestion.inputFields.find(
+			(inputField) => inputField.fieldName === 'applicantContactOrganisation'
+		);
 		assert.ok(fieldWithApplicantOptions, 'Could not find a question containing the expected applicant options');
 
 		const foundOptions = fieldWithApplicantOptions.options;
-
 		expectedOptions.forEach((expectedOption) => {
 			const matchingOption = foundOptions.find(
 				(option) => option.value === expectedOption.value && option.text === expectedOption.text
