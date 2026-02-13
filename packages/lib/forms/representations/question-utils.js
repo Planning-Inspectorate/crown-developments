@@ -29,14 +29,21 @@ export const MAX_FILE_SIZE = 20 * 1024 * 1024;
  * @param {object} [opts.actionLinkOverride]
  * @returns {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>}
  */
-export function representationsContactQuestions({ prefix, actionOverrides = {}, actionLinkOverride }) {
+export function representationsContactQuestions({
+	prefix,
+	textOverrides = {},
+	actionOverrides = {},
+	actionLinkOverride
+} = {}) {
 	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {};
+	const isPortalQuestion = textOverrides.appName === 'portal';
+	const getQuestionText = (isPortalText, isManageText) => (isPortalQuestion ? isPortalText : isManageText);
 
 	questions[`${prefix}FullName`] = {
 		type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
 		title: 'Your full name',
-		question: 'What is your name?',
+		question: getQuestionText('What is your name?', 'Name of the person submitting the representation'),
 		hint: 'We’ll publish your name on the website along with your written representation.',
 		fieldName: `${prefix}FullName`,
 		url: isSubmitter(prefix) ? `agent-full-name` : `full-name`,
@@ -98,7 +105,7 @@ export function representationsContactQuestions({ prefix, actionOverrides = {}, 
 	questions[`${prefix}Email`] = {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Email address',
-		question: 'What is your email address?',
+		question: getQuestionText('What is your email address?', 'Email address provided'),
 		hint: 'We’ll use this email address to send you information about the application. We will not publish your email address.',
 		fieldName: `${prefix}Email`,
 		url: isSubmitter(prefix) ? `agent-email-address` : `email-address`,
@@ -125,7 +132,7 @@ export function representationsContactQuestions({ prefix, actionOverrides = {}, 
 	questions[`${prefix}TellUsAboutApplication`] = {
 		type: CUSTOM_COMPONENTS.REPRESENTATION_COMMENT,
 		title: 'Tell us about application',
-		question: 'What do you want to say about this application?',
+		question: getQuestionText('What do you want to say about this application?', 'Written representation submitted'),
 		fieldName: `${prefix}Comment`,
 		label: 'Enter your comment',
 		url: 'tell-us-about-application',
@@ -144,7 +151,7 @@ export function representationsContactQuestions({ prefix, actionOverrides = {}, 
 	questions[`${prefix}ContactPreference`] = {
 		type: COMPONENT_TYPES.RADIO,
 		title: 'What is your contact preference',
-		question: 'What is your preferred contact method?',
+		question: 'Preferred contact method',
 		fieldName: `${prefix}ContactPreference`,
 		url: 'contact-preference',
 		validators: [new RequiredValidator('Select the contact preference')],
@@ -154,7 +161,7 @@ export function representationsContactQuestions({ prefix, actionOverrides = {}, 
 	questions[`${prefix}Address`] = {
 		type: COMPONENT_TYPES.ADDRESS,
 		title: 'What is your address',
-		question: 'What is your address?',
+		question: 'Postal address provided',
 		hint: 'We will not publish your address',
 		fieldName: `${prefix}Address`,
 		url: 'address',
@@ -195,7 +202,10 @@ export function representationsContactQuestions({ prefix, actionOverrides = {}, 
 	questions[`${prefix}HasAttachments`] = {
 		type: COMPONENT_TYPES.BOOLEAN,
 		title: 'Attachments uploaded?',
-		question: 'Do you want to include any supporting documents with your comment?',
+		question: getQuestionText(
+			'Do you want to include any supporting documents with your comment?',
+			'Are there any attachments?'
+		),
 		hint: 'Include any relevant documents such as reports, photographs or previous submissions.',
 		fieldName: `${prefix}ContainsAttachments`,
 		url: 'do-you-want-attachment',

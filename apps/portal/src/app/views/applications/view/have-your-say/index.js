@@ -41,7 +41,9 @@ const applicationIdParam = 'applicationId';
 export function createHaveYourSayRoutes(service) {
 	const router = createRouter({ mergeParams: true });
 	const isRepresentationWindowOpen = getIsRepresentationWindowOpen(service.db);
-	const questions = getQuestions();
+	const questions = getQuestions({
+		textOverrides: { appName: service.appName }
+	});
 	const getJourney = buildGetJourney((req, journeyResponse) =>
 		createJourney(questions, journeyResponse, req, service.isRepsUploadDocsLive)
 	);
