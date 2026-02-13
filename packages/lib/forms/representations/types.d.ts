@@ -1,4 +1,4 @@
-import { Address } from '@planning-inspectorate/dynamic-forms/src/lib/address.js';
+import type { Address } from '@planning-inspectorate/dynamic-forms/src/lib/address.js';
 /**
  * The view model used for have-your-say answers
  */

@@ -29,7 +29,7 @@
     "@azure/msal-node": "^5.0.2",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@ministryofjustice/frontend": "^8.0.0",
-    "@planning-inspectorate/dynamic-forms": "^3.3.4",
+    "@planning-inspectorate/dynamic-forms": "^3.6.0",
     "@prisma/adapter-mssql": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "accessible-autocomplete": "^3.0.1",
@@ -69,7 +69,8 @@
     "prisma": "^7.2.0",
     "sass": "^1.97.2",
     "supertest": "^7.2.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.55.0"
   },
   "lint-staged": {
     "*.js": [
