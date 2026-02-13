@@ -17,13 +17,19 @@ import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/compone
 import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.js';
 
 /**
+ * @typedef {import('./types').CrownDevelopmentViewModel} CrownDevelopmentViewModel
+ * @typedef {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').DriveItemByPathResponse} DriveItemByPathResponse
+ */
+
+/**
  * @param {import('#service').ManageService} service
+ * @returns {import('express').Handler}
  */
 export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpdatesLive }) {
 	return async (req, res) => {
 		const reference = res.locals?.journeyResponse?.answers?.reference;
 		const id = req.params.id;
-		if (!id) {
+		if (!id || typeof id !== 'string') {
 			throw new Error('id param required');
 		}
 		// Show publish case validation errors
@@ -70,11 +76,17 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpda
 			hideStatus: true,
 			isApplicationUpdatesLive,
 			hasLinkedCase: hasLinkedCase(crownDevelopment),
-			linkedCaseLink: await getLinkedCaseLink(db, crownDevelopment)
+			linkedCaseLink: crownDevelopment ? await getLinkedCaseLink(db, crownDevelopment) : undefined
 		});
 	};
 }
 
+/**
+ * Get the linked case link HTML
+ * @param {import('#service').ManageService['db']} db
+ * @param {ReturnType<import('#service').ManageService['db']['crownDevelopment']['findUnique']> extends Promise<infer T> ? T : never} crownDevelopment
+ * @returns {Promise<string|undefined>}
+ */
 async function getLinkedCaseLink(db, crownDevelopment) {
 	if (hasLinkedCase(crownDevelopment)) {
 		return `<a href="/cases/${getLinkedCaseId(crownDevelopment)}" class="govuk-link govuk-link--no-visited-state">${await getLinkedCaseLinkText(db, crownDevelopment)} application</a>`;
@@ -157,7 +169,7 @@ export function buildGetJourneyMiddleware(service, isQuestionView = false) {
 	 */
 	return async (req, res, next) => {
 		const { id, section, manageListQuestion } = req.params;
-		if (!id) {
+		if (!id || typeof id !== 'string') {
 			throw new Error('id param required');
 		}
 		logger.info({ id }, 'view case');
@@ -239,7 +251,7 @@ export function buildGetJourneyMiddleware(service, isQuestionView = false) {
  * any unchanged data from the DB.
  * @param {import('express').Response} res
  * @param {CrownDevelopmentViewModel} answers
- * @returns {CrownDevelopmentViewModel}
+ * @returns {CrownDevelopmentViewModel & import('@planning-inspectorate/dynamic-forms/src/journey/journey-types').JourneyAnswers}
  */
 export function combineSessionAndDbData(res, answers) {
 	const finalAnswers = { ...answers };
@@ -264,18 +276,20 @@ export function combineSessionAndDbData(res, answers) {
 			finalAnswers[key] = dbValue;
 		}
 	});
+	// Type assertion: result is a superset of both types
+	/** @type {CrownDevelopmentViewModel & import('@planning-inspectorate/dynamic-forms/src/journey/journey-types').JourneyAnswers} */
 	return finalAnswers;
 }
 
 /**
- * Helper to merge two arrays
+ * Helper to merge two arrays of objects
  *
  * If a session item has an ID that matches a DB item, it is merged with it to overwrite the different keys.
  * If no match is found, it is appended as a new item.
- * @param {Array<Object>} dbArray
- * @param {Array<Object>} sessionArray
+ * @param {Array<Record<string, any>>} dbArray
+ * @param {Array<Record<string, any>>} sessionArray
  * @param {string} [idKey='id']
- * @returns {Array<Object>}
+ * @returns {Array<Record<string, any>>}
  *
  */
 export function mergeArraysById(dbArray, sessionArray, idKey = 'id') {

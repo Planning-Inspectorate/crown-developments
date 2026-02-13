@@ -1,16 +1,16 @@
 /**
- * @param {import('@pins/crowndev-database').Prisma.AddressGetPayload<{}>} address
- * @returns {import('@planning-inspectorate/dynamic-forms/src/lib/address.js').Address}
+ * @param {import('@pins/crowndev-database').Prisma.AddressGetPayload<{}> | null} address
+ * @returns {import('@planning-inspectorate/dynamic-forms/src/lib/address.js').Address &{id: string}|{}}
  */
 export function addressToViewModel(address) {
 	if (address) {
 		return {
 			id: address.id,
-			addressLine1: address.line1,
-			addressLine2: address.line2,
-			townCity: address.townCity,
-			county: address.county,
-			postcode: address.postcode
+			addressLine1: address.line1 ?? undefined,
+			addressLine2: address.line2 ?? undefined,
+			townCity: address.townCity ?? undefined,
+			county: address.county ?? undefined,
+			postcode: address.postcode ?? undefined
 		};
 	}
 	return {};
