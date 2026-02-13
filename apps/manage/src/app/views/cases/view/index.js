@@ -22,7 +22,8 @@ import { JOURNEY_ID } from './journey.js';
 export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
 	const repsRoutes = createRepsRoutes(service);
-	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
+	const getQuestionJourney = asyncHandler(buildGetJourneyMiddleware(service, true));
+	const getViewJourney = asyncHandler(buildGetJourneyMiddleware(service, false));
 	const viewCaseDetails = buildViewCaseDetails(service);
 	const updateCaseFn = buildUpdateCase(service);
 	const clearAndUpdateCaseFn = buildUpdateCase(service, true);
@@ -34,7 +35,7 @@ export function createRoutes(service) {
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 
 	// view case details
-	router.get('/', validateIdFormat, getJourney, asyncHandler(viewCaseDetails));
+	router.get('/', validateIdFormat, getViewJourney, asyncHandler(viewCaseDetails));
 	router.use('/publish', publishCase);
 	router.use('/unpublish', unpublishCase);
 
@@ -49,7 +50,7 @@ export function createRoutes(service) {
 		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
 		validateIdFormat,
 		getJourneyResponse,
-		getJourney,
+		getQuestionJourney,
 		asyncHandler(question)
 	);
 
@@ -57,7 +58,7 @@ export function createRoutes(service) {
 	router.post(
 		'/:section/:question',
 		validateIdFormat,
-		getJourney,
+		getQuestionJourney,
 		validate,
 		validationErrorHandler,
 		asyncHandler(updateCase)
@@ -66,13 +67,13 @@ export function createRoutes(service) {
 	router.post(
 		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
 		getJourneyResponse,
-		getJourney,
+		getQuestionJourney,
 		validate,
 		validationErrorHandler,
 		buildSave(saveDataToSession)
 	);
 
-	router.post('/:section/:question/remove', validateIdFormat, getJourney, asyncHandler(clearAndUpdateCase));
+	router.post('/:section/:question/remove', validateIdFormat, getQuestionJourney, asyncHandler(clearAndUpdateCase));
 
 	return router;
 }

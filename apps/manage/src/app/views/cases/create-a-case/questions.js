@@ -15,9 +15,9 @@ import CoordinatesValidator from '@planning-inspectorate/dynamic-forms/src/valid
 import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.js';
 import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-components/manage-list/validator.js';
-import CrossQuestionValidator from '@pins/crowndev-lib/validators/cross-question-validator.js';
 import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
-import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
+import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.js';
+import { getApplicantContactsValidator } from '../util/applicant-contacts-validator.js';
 
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response').JourneyResponse} JourneyResponse */
 
@@ -40,56 +40,14 @@ export function getQuestions(journeyResponse, isQuestionView = false) {
 	];
 
 	// derive applicant organisation radio options from manageApplicants answers held in the journey response
-	const applicantOrganisationOptions = (() => {
-		const organisations = journeyResponse?.answers?.manageApplicantDetails;
-		if (!Array.isArray(organisations) || organisations.length === 0) return [];
-		return organisations
-			.map((answer) => {
-				const name = answer?.organisationName || '';
-				const id = answer?.id;
-				if (!name || !id) return null;
-				return { text: name, value: id };
-			})
-			.filter(isDefined);
-	})();
-
-	const validateContactsAgainstOrganisations = (contacts, organisations) => {
-		if (!Array.isArray(contacts) || !Array.isArray(organisations)) return true; // other validators will catch this
-
-		const contactOrgIds = contacts.map((contact) => contact.applicantContactOrganisation);
-		const applicantOrgIds = organisations.map((org) => org.id);
-		const allContactsHaveValidOrg = contactOrgIds.every((orgId) => applicantOrgIds.includes(orgId));
-		// This only happens if an organisation was deleted after a contact was added
-		if (!allContactsHaveValidOrg) {
-			throw new Error('All applicant contacts must be associated with an applicant organisation');
-		}
-
-		organisations.forEach((organisation) => {
-			const hasMatchingContact = contacts.some((contact) => contact.applicantContactOrganisation === organisation.id);
-			if (!hasMatchingContact) {
-				throw new Error(`You must add a contact for ${organisation.organisationName}`);
-			}
-		});
-
-		return true;
-	};
+	const manageApplicantDetails = journeyResponse?.answers?.manageApplicantDetails;
+	const applicantOrganisationOptions = getApplicantOrganisationOptions(
+		Array.isArray(manageApplicantDetails) ? manageApplicantDetails : []
+	);
 
 	// When there is no agent, at least one applicant contact is required
 	const hasAgentAnswer = yesNoToBoolean(journeyResponse?.answers?.hasAgent);
-	const applicantContactsValidator = hasAgentAnswer
-		? []
-		: [
-				new CustomManageListValidator({
-					minimumAnswers: 1,
-					errorMessages: {
-						minimumAnswers: `At least one contact is required`
-					}
-				}),
-				new CrossQuestionValidator({
-					dependencyFieldName: 'manageApplicantDetails',
-					validationFunction: validateContactsAgainstOrganisations
-				})
-			];
+	const applicantContactsValidator = getApplicantContactsValidator(hasAgentAnswer);
 
 	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {

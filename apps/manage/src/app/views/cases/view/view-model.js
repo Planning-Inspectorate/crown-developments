@@ -142,6 +142,20 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 				organisationAddress: addressToViewModel(organisation.Organisation.Address)
 			};
 		});
+
+		viewModel.manageApplicantContactDetails = crownDevelopment.Organisations.flatMap(
+			(organisation) =>
+				organisation.Organisation.OrganisationToContact?.filter(
+					(orgToContact) => orgToContact.role === 'applicant'
+				).map((orgToContact) => ({
+					id: orgToContact.Contact.id,
+					applicantFirstName: orgToContact.Contact.firstName ?? '',
+					applicantLastName: orgToContact.Contact.lastName ?? '',
+					applicantContactEmail: orgToContact.Contact.email ?? '',
+					applicantContactTelephoneNumber: orgToContact.Contact.telephoneNumber ?? '',
+					applicantContactOrganisation: organisation.organisationId
+				})) || []
+		);
 	}
 
 	addLpaDetailsToViewModel(viewModel, crownDevelopment.Lpa);

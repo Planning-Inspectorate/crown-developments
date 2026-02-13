@@ -13,6 +13,8 @@ import { getLinkedCaseId, getLinkedCaseLinkText, hasLinkedCase } from '@pins/cro
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { filteredStagesToRadioOptions } from './question-utils.js';
 import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
+import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -142,9 +144,10 @@ export function clearCaseUpdatedSession(req, id) {
  * Fetch the case details from the database to create the journey
  *
  * @param {import('#service').ManageService} service
+ * @param {boolean} isQuestionView - whether this journey is for a question page (true) or the case details page (false).
  * @returns {import('express').Handler}
  */
-export function buildGetJourneyMiddleware(service) {
+export function buildGetJourneyMiddleware(service, isQuestionView = false) {
 	const { db, logger, getEntraClient } = service;
 	const groupIds = service.entraGroupIds;
 	/**
@@ -175,7 +178,12 @@ export function buildGetJourneyMiddleware(service) {
 					include: {
 						Organisation: {
 							include: {
-								Address: true
+								Address: true,
+								OrganisationToContact: {
+									include: {
+										Contact: { include: { Address: true } }
+									}
+								}
 							}
 						}
 					}
@@ -192,12 +200,16 @@ export function buildGetJourneyMiddleware(service) {
 			session: req.session,
 			groupIds
 		});
-		const actionOverrides = {
+		const overrides = {
 			isApplicationTypePlanningOrLbc: answers.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT,
 			isApplicationSubTypeLbc: answers.subTypeId === APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT,
-			filteredStageOptions: filteredStagesToRadioOptions(answers.procedureId)
+			filteredStageOptions: filteredStagesToRadioOptions(answers.procedureId),
+			applicantOrganisationOptions: getApplicantOrganisationOptions(answers.manageApplicantDetails || []),
+			hasAgentAnswer: yesNoToBoolean(answers.hasAgent),
+			isQuestionView: isQuestionView
 		};
-		const questions = getQuestions(groupMembers, actionOverrides);
+
+		const questions = getQuestions(groupMembers, overrides);
 
 		const finalAnswers = combineSessionAndDbData(res, answers);
 
