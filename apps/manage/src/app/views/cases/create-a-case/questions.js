@@ -5,7 +5,7 @@ import NumericValidator from '@planning-inspectorate/dynamic-forms/src/validator
 import { createQuestions } from '@planning-inspectorate/dynamic-forms/src/questions/create-questions.js';
 import { questionClasses } from '@planning-inspectorate/dynamic-forms/src/questions/questions.js';
 import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
-import { APPLICATION_TYPES } from '@pins/crowndev-database/src/seed/data-static.js';
+import { APPLICATION_TYPES, CONTACT_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.js';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.js';
 import { contactQuestions, multiContactQuestions } from './question-utils.js';
@@ -170,8 +170,8 @@ export function getQuestions(journeyResponse) {
 			validators: applicantContactsValidator // populated from session-managed journey response
 		},
 		...multiContactQuestions({
-			prefix: 'applicant',
-			title: 'applicant',
+			prefix: CONTACT_ROLES_ID.APPLICANT,
+			title: CONTACT_ROLES_ID.APPLICANT,
 			options: applicantOrganisationOptions // populated from session-managed journey response
 		}),
 		hasSecondaryLpa: {
