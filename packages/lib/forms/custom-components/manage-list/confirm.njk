@@ -7,15 +7,21 @@
         <div class="govuk-grid-column-two-thirds">
             <form action="" method="post" novalidate>
                 {% if _csrf %}<input type="hidden" name="_csrf" value="{{ _csrf }}">{% endif %}
-                <h1>Are you sure you want to remove the following {{ titleSingular }}:</h1>
-                {% for item in questionSummary %}
-                    <p class="govuk-body-m">{{ item.answer | safe }}</p>
-                {% endfor %}
+                <h1 class="govuk-heading-l">Remove {{ titleSingular | lower }}</h1>
+                <p class="govuk-body" id="remove-description">Are you sure you want to remove this {{ titleSingular | lower }}?</p>
+
+                <div class="govuk-inset-text">
+                    {% for item in questionSummary %}
+                        <p class="govuk-body">{{ item.answer | safe }}</p>
+                    {% endfor %}
+                </div>
                 {{ govukButton({
-                    text: continueButtonText,
+                    text: confirmRemoveButtonText,
                     type: "submit",
+                    classes: "govuk-button--warning",
                     attributes: { "data-cy":"button-save-and-continue"}
                 }) }}
+                <a href="{{ backLink }}" class="govuk-button govuk-button--secondary" data-cy="button-back" aria-describedby="remove-description">Cancel</a>
             </form>
         </div>
     </div>

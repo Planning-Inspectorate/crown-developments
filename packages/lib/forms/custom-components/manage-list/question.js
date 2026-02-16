@@ -12,6 +12,7 @@ import nunjucks from 'nunjucks';
  *  maximumAnswers?: number;
  *  emptyListText?: string;
  * 	isAllowedEmpty?: boolean;
+ * 	confirmRemoveButtonText?: string;
  * }} CustomManageListQuestionParameters
  */
 
@@ -29,6 +30,7 @@ export default class CustomManageListQuestion extends ManageListQuestion {
 		this.maximumAnswers = params.maximumAnswers;
 		this.emptyListText = params.emptyListText || 'No items have been added yet.';
 		this.isAllowedEmpty = params.isAllowedEmpty;
+		this.confirmRemoveButtonText = params.confirmRemoveButtonText || `Remove ${params.titleSingular.toLowerCase()}`;
 	}
 	/**
 	 * @param {QuestionViewModel} viewModel
@@ -39,6 +41,7 @@ export default class CustomManageListQuestion extends ManageListQuestion {
 		const hasMoreThanOneAnswer =
 			viewModel.question.value && Array.isArray(viewModel.question.value) && viewModel.question.value.length > 1;
 		viewModel.question.hideRemoveButton = !this.isAllowedEmpty && !hasMoreThanOneAnswer;
+		viewModel.confirmRemoveButtonText = this.confirmRemoveButtonText;
 		viewModel.emptyListText = this.emptyListText;
 		viewModel.hideAddButton = this.maximumAnswers && viewModel.question.value.length >= this.maximumAnswers;
 	}
