@@ -4,7 +4,10 @@ import { NotifyConfig } from '@pins/crowndev-lib/govnotify/types';
 interface Config {
 	appName: string;
 	appHostname: string;
-	cacheControl: {
+	staticCacheControl: {
+		maxAge: string;
+	};
+	dynamicCacheControl: {
 		maxAge: string;
 	};
 	database: {

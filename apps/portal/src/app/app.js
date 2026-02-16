@@ -50,7 +50,7 @@ export function getApp(service) {
 	app.set('view engine', 'njk');
 
 	// static files
-	app.use(express.static(service.staticDir, service.cacheControl));
+	app.use(express.static(service.staticDir, service.staticCacheControl));
 
 	// Cache busting for CSS
 	app.use((req, res, next) => {
