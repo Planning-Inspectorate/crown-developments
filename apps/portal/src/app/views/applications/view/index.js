@@ -8,6 +8,7 @@ import { buildDocumentView } from '../../util/documents-util.js';
 import { buildDetailedInformationPage } from '../../static/detailed-information/controller.js';
 import { buildApplicationUpdatesPage } from './application-updates/controller.js';
 import { checkIfExpiredMiddleware, checkIfWithdrawnOrExpiredMiddleware } from './utils/middleware.js';
+import { buildCachingDynamicContentMiddleware } from '../../util/caching-middleware.js';
 
 /**
  * @param {import('#service').PortalService} service
@@ -23,12 +24,23 @@ export function createRoutes(service) {
 	const writtenRepresentationsRoutes = createWrittenRepresentationsRoutes(service);
 	const isPublishedAndNotExpired = checkIfExpiredMiddleware(service);
 	const isPublishedAndNotWithdrawnOrExpired = checkIfWithdrawnOrExpiredMiddleware(service);
+	const cachingMiddleware = buildCachingDynamicContentMiddleware(service);
 
-	router.get('/application-information', asyncHandler(applicationInfoController));
-	router.get('/application-updates', isPublishedAndNotExpired, asyncHandler(applicationUpdatesController));
-	router.get('/documents', isPublishedAndNotExpired, asyncHandler(applicationDocumentsPage));
-	router.get('/documents/:documentId', isPublishedAndNotExpired, asyncHandler(viewDocumentPage));
-	router.get('/detailed-information', isPublishedAndNotExpired, asyncHandler(buildDetailedInformationPage));
+	router.get('/application-information', cachingMiddleware, asyncHandler(applicationInfoController));
+	router.get(
+		'/application-updates',
+		isPublishedAndNotExpired,
+		cachingMiddleware,
+		asyncHandler(applicationUpdatesController)
+	);
+	router.get('/documents', isPublishedAndNotExpired, cachingMiddleware, asyncHandler(applicationDocumentsPage));
+	router.get('/documents/:documentId', isPublishedAndNotExpired, cachingMiddleware, asyncHandler(viewDocumentPage));
+	router.get(
+		'/detailed-information',
+		isPublishedAndNotExpired,
+		cachingMiddleware,
+		asyncHandler(buildDetailedInformationPage)
+	);
 	router.use('/have-your-say', isPublishedAndNotWithdrawnOrExpired, haveYourSayPageRoutes);
 	router.use('/written-representations', isPublishedAndNotExpired, writtenRepresentationsRoutes);
 

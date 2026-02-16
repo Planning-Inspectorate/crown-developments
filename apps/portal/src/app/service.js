@@ -65,8 +65,12 @@ export class PortalService {
 		return this.#config.appHostname;
 	}
 
-	get cacheControl() {
-		return this.#config.cacheControl;
+	get staticCacheControl() {
+		return this.#config.staticCacheControl;
+	}
+
+	get dynamicCacheControl() {
+		return this.#config.dynamicCacheControl;
 	}
 
 	/**
