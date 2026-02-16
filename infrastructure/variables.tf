@@ -40,6 +40,11 @@ variable "apps_config" {
       multiple_applicants_not_live = bool
     })
 
+    dynamic_cache_control = object({
+      enabled = bool
+      max_age = number
+    })
+
     google_analytics_id = string
 
     logging = object({
@@ -188,7 +193,7 @@ variable "vnet_config" {
 }
 
 variable "waf_rate_limits" {
-  description = "Config for Service Bus"
+  description = "Config for WAF rate limiting"
   type = object({
     enabled             = bool
     duration_in_minutes = number

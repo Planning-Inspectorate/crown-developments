@@ -108,6 +108,11 @@ module "app_portal" {
     FEATURE_FLAG_APPLICATION_UPDATES_NOT_LIVE = var.apps_config.feature_flags.application_updates_not_live
     FEATURE_FLAG_MULTIPLE_APPLICANTS_NOT_LIVE = var.apps_config.feature_flags.multiple_applicants_not_live
 
+    # Cache Controls
+    DYNAMIC_CACHE_CONTROL_ENABLED = var.apps_config.dynamic_cache_control.enabled
+    DYNAMIC_CACHE_CONTROL_MAX_AGE = var.apps_config.dynamic_cache_control.max_age
+
+    # Google Analytics
     GOOGLE_ANALYTICS_ID = var.apps_config.google_analytics_id
   }
 
