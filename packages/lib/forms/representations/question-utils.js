@@ -25,21 +25,25 @@ export const MAX_FILE_SIZE = 20 * 1024 * 1024;
  *
  * @param {Object} opts
  * @param {string} opts.prefix
- * @param {boolean} [opts.isFrontend] - Whether this is a frontend context
+ * @param {boolean} [opts.isPortal] - Whether to use Portal question
  * @param {object} [opts.actionOverrides]
  * @param {object} [opts.actionLinkOverride]
  * @returns {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>}
  */
-export function representationsContactQuestions({ prefix, isFrontend, actionOverrides = {}, actionLinkOverride }) {
+export function representationsContactQuestions({
+	prefix,
+	isPortal = false,
+	actionOverrides = {},
+	actionLinkOverride
+} = {}) {
 	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {};
+	const isPortalQuestion = Boolean(isPortal);
 
 	questions[`${prefix}FullName`] = {
 		type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
 		title: 'Your full name',
-		question: isFrontEndQuestion(isFrontend)
-			? 'What is your name?'
-			: 'Name of the person submitting the representation',
+		question: isPortalQuestion ? 'What is your name?' : 'Name of the person submitting the representation',
 		hint: 'We’ll publish your name on the website along with your written representation.',
 		fieldName: `${prefix}FullName`,
 		url: isSubmitter(prefix) ? `agent-full-name` : `full-name`,
@@ -101,7 +105,7 @@ export function representationsContactQuestions({ prefix, isFrontend, actionOver
 	questions[`${prefix}Email`] = {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Email address',
-		question: isFrontEndQuestion(isFrontend) ? 'What is your email address?' : 'Email address provided',
+		question: isPortalQuestion ? 'What is your email address?' : 'Email address provided',
 		hint: 'We’ll use this email address to send you information about the application. We will not publish your email address.',
 		fieldName: `${prefix}Email`,
 		url: isSubmitter(prefix) ? `agent-email-address` : `email-address`,
@@ -128,9 +132,7 @@ export function representationsContactQuestions({ prefix, isFrontend, actionOver
 	questions[`${prefix}TellUsAboutApplication`] = {
 		type: CUSTOM_COMPONENTS.REPRESENTATION_COMMENT,
 		title: 'Tell us about application',
-		question: isFrontEndQuestion(isFrontend)
-			? 'What do you want to say about this application?'
-			: 'Written representation submitted',
+		question: isPortalQuestion ? 'What do you want to say about this application?' : 'Written representation submitted',
 		fieldName: `${prefix}Comment`,
 		label: 'Enter your comment',
 		url: 'tell-us-about-application',
@@ -200,7 +202,7 @@ export function representationsContactQuestions({ prefix, isFrontend, actionOver
 	questions[`${prefix}HasAttachments`] = {
 		type: COMPONENT_TYPES.BOOLEAN,
 		title: 'Attachments uploaded?',
-		question: isFrontEndQuestion(isFrontend)
+		question: isPortalQuestion
 			? 'Do you want to include any supporting documents with your comment?'
 			: 'Are there any attachments?',
 		hint: 'Include any relevant documents such as reports, photographs or previous submissions.',
@@ -239,13 +241,4 @@ export function representationsContactQuestions({ prefix, isFrontend, actionOver
 
 function isSubmitter(prefix) {
 	return prefix === 'submitter';
-}
-
-/**
- * Check if this is a frontend context
- * @param {boolean} isFrontend - Whether this is a frontend context
- * @returns {boolean}
- */
-export function isFrontEndQuestion(isFrontend) {
-	return isFrontend === true;
 }
