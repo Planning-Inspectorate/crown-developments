@@ -27,6 +27,7 @@ export function loadConfig() {
 		AZURE_CLIENT_SECRET, // required for SharePoint
 		AZURE_TENANT_ID, // required for SharePoint
 		STATIC_CACHE_CONTROL_MAX_AGE,
+		DYNAMIC_CACHE_CONTROL_ENABLED,
 		DYNAMIC_CACHE_CONTROL_MAX_AGE,
 		FEATURE_FLAG_PORTAL_NOT_LIVE,
 		FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE,
@@ -100,7 +101,9 @@ export function loadConfig() {
 			immutable: true
 		},
 		dynamicCacheControl: {
-			maxAge: DYNAMIC_CACHE_CONTROL_MAX_AGE || '600' // 10 minutes in seconds
+			// by default, dynamic cache control is disabled
+			enabled: DYNAMIC_CACHE_CONTROL_ENABLED === 'true',
+			maxAge: DYNAMIC_CACHE_CONTROL_MAX_AGE || 600 // 10 minutes in seconds
 		},
 		database: {
 			datasourceUrl: SQL_CONNECTION_STRING

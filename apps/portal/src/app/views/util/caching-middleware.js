@@ -7,7 +7,10 @@
  */
 export function buildCachingDynamicContentMiddleware(service) {
 	return (req, res, next) => {
-		res.setHeader('Cache-Control', `public, max-age=${service.dynamicCacheControl}`);
+		if (service.dynamicCacheControl.enabled) {
+			// If the dynamic cache control is enabled, set the cache control header to the value defined in the service configuration.
+			res.setHeader('Cache-Control', `public, max-age=${service.dynamicCacheControl.maxAge}`);
+		}
 		next();
 	};
 }
