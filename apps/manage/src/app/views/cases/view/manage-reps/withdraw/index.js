@@ -31,7 +31,10 @@ import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions
  */
 export function createRoutes(service, viewOrReview) {
 	const router = createRouter({ mergeParams: true });
-	const questions = getQuestions();
+	const questions = getQuestions({
+		textOverrides: { appName: service.appName },
+		isManage: true
+	});
 	const getJourney = buildGetJourney((req, journeyResponse) =>
 		createJourney(questions, journeyResponse, req, service.isRepsUploadDocsLive)
 	);
