@@ -6,6 +6,7 @@ export interface CrownDevelopmentViewModel {
 	description?: string;
 	containsDistressingContent?: boolean;
 	typeOfApplication?: string;
+	typeId: string;
 	subTypeId?: string;
 	lpaId?: string;
 	hasSecondaryLpa?: boolean;

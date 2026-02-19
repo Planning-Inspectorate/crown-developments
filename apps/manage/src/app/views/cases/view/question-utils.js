@@ -328,7 +328,7 @@ export function filteredStagesToRadioOptions(procedureId) {
 	stageIds.push(APPLICATION_STAGE_ID.DECISION);
 	return APPLICATION_STAGE.filter((stage) => stageIds.includes(stage.id)).map((s) => ({
 		id: s.id,
-		displayName: s.displayName
+		displayName: s.displayName ?? ''
 	}));
 }
 
