@@ -5,9 +5,72 @@ import {
 	sendLpaAcknowledgeReceiptOfQuestionnaireNotification,
 	sendLpaQuestionnaireSentNotification
 } from './notification.js';
-import { editsToDatabaseUpdates } from './view-model.js';
+import { editsToDatabaseUpdates, crownDevelopmentToViewModel } from './view-model.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
+
+/**
+ * We have to handle updates to multi-applicant contact details separately
+ * as they are not directly editable via nested writes in the main crown
+ * development update, and require special handling to determine whether to
+ * update existing contacts or create new ones without creating duplicates.
+ *
+ * @param {import('./types.js').CrownDevelopmentViewModel} dbViewModel
+ * @param {import('./types.js').CrownDevelopmentViewModel} toSave
+ * @param {import('@pins/crowndev-database').Prisma.TransactionClient} $tx
+ * @returns {Promise<void>}
+ */
+async function updateContacts(dbViewModel, toSave, $tx) {
+	if (!Array.isArray(toSave.manageApplicantContactDetails)) {
+		return;
+	}
+
+	const existingByJoinId = new Map(
+		(dbViewModel.manageApplicantContactDetails || [])
+			.filter((contact) => contact.organisationToContactRelationId && contact.id)
+			.map((contact) => [contact.organisationToContactRelationId, contact])
+	);
+
+	const contactUpdates = toSave.manageApplicantContactDetails
+		.map((contact) => {
+			if (!contact?.organisationToContactRelationId) return null; // case 1 handled via nested Contact.create
+			const existing = existingByJoinId.get(contact.organisationToContactRelationId);
+			if (!existing?.id) return null;
+
+			const next = {
+				firstName: contact.applicantFirstName?.trim() || null,
+				lastName: contact.applicantLastName?.trim() || null,
+				email: contact.applicantContactEmail?.trim() || null,
+				telephoneNumber: contact.applicantContactTelephoneNumber?.trim() || null
+			};
+			const prev = {
+				firstName: existing.applicantFirstName?.trim() || null,
+				lastName: existing.applicantLastName?.trim() || null,
+				email: existing.applicantContactEmail?.trim() || null,
+				telephoneNumber: existing.applicantContactTelephoneNumber?.trim() || null
+			};
+
+			const changed =
+				next.firstName !== prev.firstName ||
+				next.lastName !== prev.lastName ||
+				next.email !== prev.email ||
+				next.telephoneNumber !== prev.telephoneNumber;
+
+			if (!changed) return null;
+			return { contactId: existing.id, data: next };
+		})
+		.filter(isDefined);
+
+	await Promise.all(
+		contactUpdates.map(({ contactId, data }) =>
+			$tx.contact.update({
+				where: { id: contactId },
+				data
+			})
+		)
+	);
+}
 
 /**
  * @param {import('#service').ManageService} service
@@ -18,7 +81,7 @@ export function buildUpdateCase(service, clearAnswer = false) {
 	return async ({ req, res, data }) => {
 		const { db, logger } = service;
 		const { id } = req.params;
-		if (!id) {
+		if (!id || typeof id !== 'string') {
 			throw new Error(`invalid update case request, id param required (id:${id})`);
 		}
 		logger.info({ id }, 'case update');
@@ -40,11 +103,6 @@ export function buildUpdateCase(service, clearAnswer = false) {
 
 		await customUpdateCaseActions(service, id, toSave, fullViewModel);
 
-		const updateInput = editsToDatabaseUpdates(toSave, originalAnswers);
-		updateInput.updatedDate = new Date();
-
-		logger.info({ fields: Object.keys(toSave) }, 'update case input');
-
 		try {
 			await db.$transaction(async ($tx) => {
 				const crownDevelopment = await $tx.crownDevelopment.findUnique({
@@ -59,6 +117,27 @@ export function buildUpdateCase(service, clearAnswer = false) {
 					throw new Error('Crown Development case not found');
 				}
 
+				// Fresh DB view model gives correct relation ids (organisationRelationId / organisationToContactRelationId)
+				const dbViewModel = crownDevelopmentToViewModel(crownDevelopment);
+				/** @type {import('./types.js').CrownDevelopmentViewModel} */
+				const viewModelForUpdates = { ...dbViewModel };
+				for (const [key, value] of Object.entries(originalAnswers)) {
+					if (viewModelForUpdates[key] === undefined || viewModelForUpdates[key] === null) {
+						viewModelForUpdates[key] = value;
+					}
+				}
+
+				const updateInput = editsToDatabaseUpdates(toSave, viewModelForUpdates);
+				updateInput.updatedDate = new Date();
+
+				logger.info({ fields: Object.keys(toSave) }, 'update case input');
+				logger.info(updateInput.Organisations, 'organisation update');
+
+				// Update multi-applicant Contact details directly (cases 2 and 4)
+				if (Array.isArray(toSave.manageApplicantContactDetails)) {
+					await updateContacts(dbViewModel, toSave, $tx);
+				}
+
 				const updates = [id];
 
 				if (crownDevelopment.linkedParentId && !updateContainsDeLinkedField(updateInput)) {
@@ -71,6 +150,7 @@ export function buildUpdateCase(service, clearAnswer = false) {
 
 				await Promise.all(
 					updates.map((caseId) =>
+						// todo Include contact.update in this $tx
 						$tx.crownDevelopment.update({
 							where: { id: caseId },
 							data: updateInput

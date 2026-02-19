@@ -183,13 +183,15 @@ type ContactTypeKeys = keyof typeof CONTACT_PREFIXES;
 type ContactTypeValues = (typeof CONTACT_PREFIXES)[ContactTypeKeys];
 
 interface ManageApplicantDetails {
-	id?: string;
-	organisationName?: string;
+	id: string;
+	organisationRelationId: string;
+	organisationName: string;
 	organisationAddress?: Address;
 }
 
 interface ManageApplicantContactDetails {
 	id: string;
+	organisationToContactRelationId: string;
 	applicantFirstName: string;
 	applicantLastName: string;
 	applicantContactEmail: string;
