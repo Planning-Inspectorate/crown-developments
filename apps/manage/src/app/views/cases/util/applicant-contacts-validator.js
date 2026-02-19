@@ -21,7 +21,7 @@ export function getApplicantContactsValidator(hasAgentAnswer) {
 					}
 				}),
 				new CrossQuestionValidator({
-					otherFieldName: 'manageApplicantDetails',
+					dependencyFieldName: 'manageApplicantDetails',
 					validationFunction: (contacts, applicants) => {
 						if (!Array.isArray(contacts) || !Array.isArray(applicants)) return true;
 						const contactOrgIds = contacts.map((contact) => contact.applicantContactOrganisation);
