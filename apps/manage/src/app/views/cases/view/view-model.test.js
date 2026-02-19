@@ -51,8 +51,8 @@ describe('view-model', () => {
 			assert.deepStrictEqual(result.siteAddress, {
 				id: undefined,
 				addressLine1: 'Site Street',
-				addressLine2: undefined,
-				county: undefined,
+				addressLine2: '',
+				county: '',
 				townCity: 'Site Town',
 				postcode: 'Site ONE'
 			});
@@ -110,8 +110,8 @@ describe('view-model', () => {
 			assert.deepStrictEqual(result.lpaAddress, {
 				id: undefined,
 				addressLine1: 'LPA Street',
-				addressLine2: undefined,
-				county: undefined,
+				addressLine2: '',
+				county: '',
 				townCity: 'LPA Town',
 				postcode: 'LPA ONE'
 			});
@@ -188,7 +188,7 @@ describe('view-model', () => {
 				addressLine1: 'Some Street',
 				addressLine2: 'Some Village',
 				townCity: 'Some Place',
-				county: undefined,
+				county: '',
 				postcode: 'Some PostCode'
 			});
 			assert.strictEqual(result.applicantContactAddressId, 'address-id-1');
@@ -818,8 +818,8 @@ describe('view-model', () => {
 		assert.deepStrictEqual(result.secondaryLpaAddress, {
 			id: undefined,
 			addressLine1: 'Secondary LPA Street',
-			addressLine2: undefined,
-			county: undefined,
+			addressLine2: '',
+			county: '',
 			townCity: 'Secondary LPA Town',
 			postcode: 'SEC ONE'
 		});
