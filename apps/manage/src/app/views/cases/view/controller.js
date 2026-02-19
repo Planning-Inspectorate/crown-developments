@@ -214,6 +214,15 @@ export function buildGetJourneyMiddleware(service) {
 			res.locals.backLinkUrl = req.baseUrl;
 		}
 
+		// set a back link to the case details page when on an edit page
+		// e.g. /cases/:id/edit
+		if (!res.locals.backLinkUrl) {
+			const originalUrl = typeof req.originalUrl === 'string' ? req.originalUrl : '';
+			if (/\/edit\/?$/.test(originalUrl)) {
+				res.locals.backLinkUrl = req.baseUrl;
+			}
+		}
+
 		next();
 	};
 }
