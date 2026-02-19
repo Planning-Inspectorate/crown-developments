@@ -57,7 +57,7 @@ export function wrapPrismaErrors(error) {
 /**
  * A catch-all handler to serve a 404 page
  *
- * @type {import('express').RequestHandler}
+ * @type {(req: import('express').Request, res: import('express').Response) => void}
  */
 export function notFoundHandler(req, res) {
 	res.status(404);
