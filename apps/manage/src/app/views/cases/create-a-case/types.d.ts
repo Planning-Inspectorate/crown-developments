@@ -37,4 +37,5 @@ export interface CreateCaseAnswers {
 	// TODO make this required when we fully switch over to V2
 	manageApplicantDetails?: ApplicantOrganisation[];
 	manageApplicantContactDetails?: ApplicantContact[];
+	containsDistressingContent?: boolean;
 }

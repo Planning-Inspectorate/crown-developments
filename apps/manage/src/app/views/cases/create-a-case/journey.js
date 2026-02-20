@@ -47,6 +47,7 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.siteCoordinates)
 				.addQuestion(questions.siteArea)
 				.addQuestion(questions.developmentDescription)
+				.addQuestion(questions.containsDistressingContent)
 				.addQuestion(questions.expectedDateOfSubmission)
 		],
 		taskListUrl: 'check-your-answers',
@@ -93,6 +94,7 @@ export function createJourneyV2(questions, response, req) {
 				.addQuestion(questions.siteCoordinates)
 				.addQuestion(questions.siteArea)
 				.addQuestion(questions.developmentDescription)
+				.addQuestion(questions.containsDistressingContent)
 				.addQuestion(questions.expectedDateOfSubmission)
 		],
 		taskListUrl: 'check-your-answers',
