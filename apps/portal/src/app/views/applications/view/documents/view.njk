@@ -3,6 +3,7 @@
 {% from "views/applications/view/links.njk" import applicationLinks %}
 {% import "pagination/pagination.njk" as pagination %}
 {% import "pagination/pagination-options.njk" as paginationOptions %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "search-bar/search-bar.njk" import searchBar %}
 
 {% block pageHeading %}{% endblock %}
@@ -54,9 +55,17 @@
                             <ul class="govuk-list document-list">
                                 {% for document in documents %}
                                     <li>
-                                        <a class="govuk-link" href="{{ baseUrl }}/{{ document.id }}" target="_blank" rel="noreferrer">
-                                            {{ document.name }}
-                                        </a>
+                                        <div>
+                                                {% if document.distressing %}
+                                                    {{ govukTag({
+                                                        text: "Content warning",
+                                                        classes: "govuk-tag--red"
+                                                    }) }}
+                                                {% endif %}
+                                            <a class="govuk-link" href="{{ baseUrl }}/{{ document.id }}" target="_blank" rel="noreferrer">
+                                                {{ document.name }}
+                                            </a>
+                                        </div>
                                         <div class="document-list__meta-data">
                                             <div>{{ document.lastModified }}</div>
                                             <div>{{ document.type }}</div>
