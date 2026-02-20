@@ -4,6 +4,7 @@ import { Prisma } from '@pins/crowndev-database/src/client/client.js';
 export interface CrownDevelopmentViewModel {
 	reference?: string;
 	description?: string;
+	containsDistressingContent?: boolean;
 	typeOfApplication?: string;
 	subTypeId?: string;
 	lpaId?: string;
