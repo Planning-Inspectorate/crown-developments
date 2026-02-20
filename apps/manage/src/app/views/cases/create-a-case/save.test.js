@@ -817,6 +817,27 @@ describe('save', () => {
 				]
 			});
 		});
+		it('should save containsDistressingContent as true when it is yes', () => {
+			const answers = {
+				developmentDescription: 'desc',
+				typeOfApplication: 'type',
+				lpaId: 'lpa-1',
+				containsDistressingContent: 'yes'
+			};
+			const input = toCreateInput(answers, 'ref-1', null);
+			//TODO: check typed once generated
+			assert.strictEqual(input.containsDistressingContent, true);
+		});
+		it('should save containsDistressingContent as false when it is no', () => {
+			const answers = {
+				developmentDescription: 'desc',
+				typeOfApplication: 'type',
+				lpaId: 'lpa-1',
+				containsDistressingContent: 'no'
+			};
+			const input = toCreateInput(answers, 'ref-1', null);
+			assert.strictEqual(input.containsDistressingContent, false);
+		});
 	});
 
 	describe('save applicant contacts linked to organisations', () => {
