@@ -32,6 +32,11 @@ apps_config = {
     multiple_applicants_not_live = true
   }
 
+  dynamic_cache_control = {
+    enabled = false
+    max_age = 300
+  }
+
   google_analytics_id = null
 
   logging = {
