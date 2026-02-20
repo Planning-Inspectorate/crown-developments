@@ -121,12 +121,17 @@ export function dateQuestion({
 	viewData = {},
 	question,
 	emptyErrorMessage = null,
-	validationTitle = null
+	validationTitle = null,
+	validator: ValidatorClass = DateValidator
 }) {
 	// remove capitalisation for fallback title, since used in fallback question
 	const fallbackTitle = camelCaseToSentenceCase(fieldName).toLowerCase();
 	if (!title) {
 		title = fallbackTitle;
+	}
+	const errorMessages = {};
+	if (emptyErrorMessage != null) {
+		errorMessages.emptyErrorMessage = emptyErrorMessage;
 	}
 	validationTitle = validationTitle ?? title;
 	return {
@@ -136,13 +141,7 @@ export function dateQuestion({
 		hint: hint,
 		fieldName: fieldName,
 		url: camelCaseToUrlCase(fieldName),
-		validators: [
-			new DateValidator(
-				validationTitle,
-				{ ensureFuture: false, ensurePast: false },
-				{ emptyErrorMessage: emptyErrorMessage }
-			)
-		],
+		validators: [new ValidatorClass(validationTitle, { ensureFuture: false, ensurePast: false }, errorMessages)],
 		editable: editable,
 		viewData
 	};
