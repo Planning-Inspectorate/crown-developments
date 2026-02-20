@@ -2,8 +2,7 @@ import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator
 import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
 import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
 import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
-import { camelCaseToUrlCase } from '@pins/crowndev-lib/util/string.js';
-import { capitalize } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
+import { camelCaseToUrlCase, sentenceCase } from '@pins/crowndev-lib/util/string.js';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.js';
 import EmailValidator from '@planning-inspectorate/dynamic-forms/src/validator/email-validator.js';
@@ -114,7 +113,7 @@ export function multiContactQuestions({ prefix, title, options }) {
 	const questions = {};
 	questions[`${prefix}ContactDetails`] = {
 		type: CUSTOM_COMPONENTS.CUSTOM_MULTI_FIELD_INPUT,
-		title: `${capitalize(title)} contact`,
+		title: `${sentenceCase(title)} contact`,
 		question: `Add ${title} contact details`,
 		fieldName: `${prefix}ContactDetails`,
 		url: `${prefixUrl}-contact`,
@@ -168,21 +167,21 @@ export function multiContactQuestions({ prefix, title, options }) {
 					{
 						fieldName: `${prefix}FirstName`,
 						validators: [
-							new RequiredValidator(`Enter ${title} contact first name`),
+							new RequiredValidator(`Enter a first name`),
 							new StringValidator({ maxLength: { maxLength: 250 } })
 						]
 					},
 					{
 						fieldName: `${prefix}LastName`,
 						validators: [
-							new RequiredValidator(`Enter ${title} contact last name`),
+							new RequiredValidator(`Enter a last name`),
 							new StringValidator({ maxLength: { maxLength: 250 } })
 						]
 					},
 					{
 						fieldName: `${prefix}ContactEmail`,
 						validators: [
-							new RequiredValidator(`Enter ${title} contact email address`),
+							new RequiredValidator(`Enter an email address`),
 							new StringValidator({ maxLength: { maxLength: 50 } }),
 							new EmailValidator()
 						]
@@ -196,7 +195,7 @@ export function multiContactQuestions({ prefix, title, options }) {
 						: [
 								{
 									fieldName: `${prefix}ContactOrganisation`,
-									validators: [new RequiredValidator(`Select the organisation for this contact`)]
+									validators: [new RequiredValidator(`Select an organisation for this contact`)]
 								}
 							])
 				]
