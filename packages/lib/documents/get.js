@@ -10,14 +10,21 @@ import { FILE_PROPERTIES, mapDriveItemToViewModel } from './view-model.js';
  * @param {import('pino').BaseLogger} opts.logger
  * @param {string} opts.id
  * @param {function(a, b): number} [opts.sortFn]
+ * @param {string[]} [opts.metaDataFields]
  * @returns {Promise<import('./types.js').DocumentViewModel[]>}
  */
-export async function getDocuments({ sharePointDrive, folderPath, logger, id, sortFn }) {
+export async function getDocuments({ sharePointDrive, folderPath, logger, id, sortFn, metaDataFields }) {
 	try {
-		const items = await sharePointDrive.getItemsByPath(folderPath, [
-			['$top', '999'],
-			['$select', FILE_PROPERTIES.join(',')]
-		]);
+		let items;
+		if (metaDataFields && metaDataFields.length > 0) {
+			items = await sharePointDrive.getItemsByPathWithCustomMetadata(
+				folderPath,
+				[['$select', FILE_PROPERTIES.join(',')]],
+				metaDataFields
+			);
+		} else {
+			items = await sharePointDrive.getItemsByPath(folderPath, [['$select', FILE_PROPERTIES.join(',')]]);
+		}
 		if (sortFn) {
 			items.sort(sortFn);
 		}

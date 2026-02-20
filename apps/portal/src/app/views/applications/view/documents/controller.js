@@ -30,7 +30,8 @@ export function buildApplicationDocumentsPage(service) {
 			folderPath,
 			logger,
 			id,
-			sortFn: sortByField('lastModifiedDateTime', true)
+			sortFn: sortByField('lastModifiedDateTime', true),
+			metaDataFields: ['Distressing']
 		});
 
 		const queries = splitStringQueries(req.query?.searchCriteria);

@@ -1013,4 +1013,85 @@ describe('drives', () => {
 			}
 		});
 	});
+	describe('pagination via getItemsByPath and getItemsByPathWithCustomMetadata', () => {
+		test('getItemsByPath should follow @odata.nextLink and return all items', async () => {
+			const client = mockClient();
+			const driveId = 'testDriveId';
+			const sharePointDrive = new SharePointDrive(client, driveId);
+
+			const firstPage = {
+				value: [{ id: '1' }],
+				'@odata.nextLink': 'https://graph.microsoft.com/v1.0/drives/testDriveId/root/children?$skiptoken=abc'
+			};
+			const secondPage = {
+				value: [{ id: '2' }]
+			};
+
+			let call = 0;
+			client.get = async () => {
+				call += 1;
+				return call === 1 ? firstPage : secondPage;
+			};
+
+			const result = await sharePointDrive.getItemsByPath('testPath', []);
+
+			// 2 API calls: initial URL, then nextLink
+			assert.equal(client.api.mock.callCount(), 2);
+			assert.equal(
+				client.api.mock.calls[0].arguments[0],
+				new UrlBuilder('')
+					.addPathSegment('drives')
+					.addPathSegment(driveId)
+					.addPathSegment('root:')
+					.addPathSegment('testPath:')
+					.addPathSegment('children')
+					.toString()
+			);
+			assert.equal(client.api.mock.calls[1].arguments[0], firstPage['@odata.nextLink']);
+
+			// result should be flattened
+			assert.deepEqual(result, [{ id: '1' }, { id: '2' }]);
+		});
+		test('getItemsByPathWithCustomMetadata should follow @odata.nextLink and return all items', async () => {
+			const client = mockClient();
+			const driveId = 'testDriveId';
+			const sharePointDrive = new SharePointDrive(client, driveId);
+
+			const firstPage = {
+				value: [{ id: '1', listItem: { fields: { Foo: 'Bar' } } }],
+				'@odata.nextLink': 'https://graph.microsoft.com/v1.0/drives/testDriveId/root/children?$skiptoken=xyz'
+			};
+			const secondPage = {
+				value: [{ id: '2', listItem: { fields: { Foo: 'Baz' } } }]
+			};
+
+			let call = 0;
+			client.get = async () => {
+				call += 1;
+				return call === 1 ? firstPage : secondPage;
+			};
+
+			const metaFields = ['Foo'];
+			const result = await sharePointDrive.getItemsByPathWithCustomMetadata('testPath', [], metaFields);
+
+			// 2 API calls: initial URL, then nextLink
+			assert.equal(client.api.mock.callCount(), 2);
+			const expectedBaseUrl = new UrlBuilder('')
+				.addPathSegment('drives')
+				.addPathSegment(driveId)
+				.addPathSegment('root:')
+				.addPathSegment('testPath:')
+				.addPathSegment('children')
+				.addQueryParam('$expand', 'listItem')
+				.toString();
+			assert.equal(
+				client.api.mock.calls[0].arguments[0],
+				`${expectedBaseUrl}($expand=fields($select=${metaFields.join(',')}))`
+			);
+			assert.equal(client.api.mock.calls[1].arguments[0], firstPage['@odata.nextLink']);
+
+			// result should be flattened
+			assert.deepEqual(result, firstPage.value.concat(secondPage.value));
+		});
+	});
 });
