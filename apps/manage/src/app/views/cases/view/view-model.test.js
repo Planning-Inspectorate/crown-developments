@@ -4,7 +4,8 @@ import { crownDevelopmentToViewModel, editsToDatabaseUpdates } from './view-mode
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 
 /**
- * @typedef {import('@pins/crowndev-database').Prisma.CrownDevelopmentGetPayload<{include: { ApplicantContact: { include: { Address: true } }, AgentContact: { include: { Address: true } }, Event: true, LpaContact: { include: { Address: true } } }}>} CrownDevelopment
+ * @typedef {import('@pins/crowndev-database').Prisma.CrownDevelopmentGetPayload<{
+ * 	include: { ApplicantContact: { include: { Address: true } }, AgentContact: { include: { Address: true } }, Event: true, LpaContact: { include: { Address: true } } }}>} CrownDevelopment
  * @typedef {import('./types.js').CrownDevelopmentViewModel} CrownDevelopmentViewModel
  */
 
@@ -269,11 +270,13 @@ describe('view-model', () => {
 				referenceId: 'reference-id-1',
 				createdDate: new Date(),
 				isGreenBelt: true,
-				siteIsVisibleFromPublicLand: false
+				siteIsVisibleFromPublicLand: false,
+				containsDistressingContent: true
 			};
 			const result = crownDevelopmentToViewModel(input);
 			assert.equal(result.isGreenBelt, 'yes');
 			assert.equal(result.siteIsVisibleFromPublicLand, 'no');
+			assert.equal(result.containsDistressingContent, 'yes');
 		});
 	});
 

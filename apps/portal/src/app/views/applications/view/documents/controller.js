@@ -85,7 +85,8 @@ export function buildApplicationDocumentsPage(service) {
 			totalPages,
 			resultsStartNumber,
 			resultsEndNumber,
-			searchValue: req.query?.searchCriteria || ''
+			searchValue: req.query?.searchCriteria || '',
+			containsDistressingContent: crownDevelopment.containsDistressingContent || false
 		});
 	};
 }

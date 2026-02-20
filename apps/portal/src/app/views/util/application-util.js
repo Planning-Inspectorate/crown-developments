@@ -32,7 +32,8 @@ export async function checkApplicationPublished(req, res, db) {
 				reference: true,
 				representationsPeriodStartDate: true,
 				representationsPeriodEndDate: true,
-				representationsPublishDate: true
+				representationsPublishDate: true,
+				containsDistressingContent: true
 			}
 		}
 	});
@@ -50,7 +51,8 @@ export async function checkApplicationPublished(req, res, db) {
 		},
 		representationsPublishDate: crownDevelopment.representationsPublishDate,
 		withdrawnDate: crownDevelopment.withdrawnDate,
-		applicationStatus: crownDevelopment.applicationStatus
+		applicationStatus: crownDevelopment.applicationStatus,
+		containsDistressingContent: crownDevelopment.containsDistressingContent
 	};
 }
 
