@@ -752,6 +752,15 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			url: 'right-of-way',
 			validators: [new RequiredValidator('Select whether this application involves a right of way')],
 			hint: "If you select 'Yes' this application will be saved as a special development."
+		},
+		containsDistressingContent: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Distressing content',
+			question: 'Does this application involve potentially distressing content?',
+			hint: "If you select 'Yes', this will trigger a warning on the portal",
+			fieldName: 'containsDistressingContent',
+			url: 'distressing-content',
+			validators: [new RequiredValidator('Select whether this application involves potentially distressing content')]
 		}
 	};
 
