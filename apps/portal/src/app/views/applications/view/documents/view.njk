@@ -4,6 +4,7 @@
 {% import "pagination/pagination.njk" as pagination %}
 {% import "pagination/pagination-options.njk" as paginationOptions %}
 {% from "search-bar/search-bar.njk" import searchBar %}
+{% from "distressing-content/distressing-content-banner.njk" import distressingContentBanner %}
 
 {% block pageHeading %}{% endblock %}
 
@@ -14,6 +15,7 @@
         </div>
 
         <div class="govuk-grid-column-two-thirds">
+            {{ distressingContentBanner(containsDistressingContent) }}
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-full">
                     <h1 class="govuk-heading-l">

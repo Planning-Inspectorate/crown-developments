@@ -12,12 +12,14 @@ export function mapDriveItemToViewModel(driveItem) {
 	if (!driveItem.file) {
 		return undefined; // not a file, a folder
 	}
+
 	return {
 		id: driveItem.id,
 		name: driveItem.name,
 		size: driveItem.size && bytesToUnit(driveItem.size, 0),
 		lastModified: formatDateForDisplay(driveItem.lastModifiedDateTime),
-		type: mapMimeTypeToDisplayName(driveItem.file?.mimeType)
+		type: mapMimeTypeToDisplayName(driveItem.file?.mimeType),
+		distressing: isDistressingContent(driveItem?.listItem?.fields)
 	};
 }
 
@@ -45,3 +47,11 @@ const mimeTypeMappings = Object.freeze({
 	'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word',
 	'application/x-zip-compressed': 'Zip'
 });
+
+const isDistressingContent = (fields) => {
+	return Boolean(
+		fields?.['Distressing'] &&
+		typeof fields['Distressing'] === 'string' &&
+		fields['Distressing'].toLowerCase() === 'yes'
+	);
+};

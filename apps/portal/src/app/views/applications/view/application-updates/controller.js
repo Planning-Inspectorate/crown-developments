@@ -30,7 +30,8 @@ export function buildApplicationUpdatesPage({ db }) {
 						reference: true,
 						representationsPublishDate: true,
 						representationsPeriodStartDate: true,
-						representationsPeriodEndDate: true
+						representationsPeriodEndDate: true,
+						containsDistressingContent: true
 					}
 				}
 			}),
@@ -70,7 +71,8 @@ export function buildApplicationUpdatesPage({ db }) {
 			currentUrl: req.originalUrl,
 			links: applicationLinks(id, haveYourSayPeriod, publishedDate, displayApplicationUpdates, applicationStatus),
 			isWithdrawn,
-			applicationUpdates: applicationUpdates.map(applicationUpdateToTimelineItem)
+			applicationUpdates: applicationUpdates.map(applicationUpdateToTimelineItem),
+			containsDistressingContent: crownDevelopment.containsDistressingContent || false
 		});
 	};
 }

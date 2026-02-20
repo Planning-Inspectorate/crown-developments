@@ -32,7 +32,7 @@ describe('controller', () => {
 				}
 			};
 			const mockSharePoint = {
-				getItemsByPath: mock.fn()
+				getItemsByPathWithCustomMetadata: mock.fn()
 			};
 			const handler = buildApplicationDocumentsPage({
 				db: mockDb,
@@ -62,7 +62,7 @@ describe('controller', () => {
 				}
 			};
 			const mockSharePoint = {
-				getItemsByPath: mock.fn(() => [])
+				getItemsByPathWithCustomMetadata: mock.fn(() => [])
 			};
 			const handler = buildApplicationDocumentsPage({
 				db: mockDb,
@@ -79,8 +79,11 @@ describe('controller', () => {
 				render: mock.fn()
 			};
 			await handler(req, res);
-			assert.strictEqual(mockSharePoint.getItemsByPath.mock.callCount(), 1);
-			assert.match(mockSharePoint.getItemsByPath.mock.calls[0].arguments[0], /^CROWN-2025-0000001\/Published$/);
+			assert.strictEqual(mockSharePoint.getItemsByPathWithCustomMetadata.mock.callCount(), 1);
+			assert.match(
+				mockSharePoint.getItemsByPathWithCustomMetadata.mock.calls[0].arguments[0],
+				/^CROWN-2025-0000001\/Published$/
+			);
 			assert.strictEqual(res.render.mock.callCount(), 1);
 			assert.deepStrictEqual(res.render.mock.calls[0].arguments[1], {
 				id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
@@ -89,6 +92,7 @@ describe('controller', () => {
 				applicationReference: 'CROWN/2025/0000001',
 				pageCaption: 'CROWN/2025/0000001',
 				isWithdrawn: false,
+				containsDistressingContent: false,
 				links: [
 					{
 						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-information',
@@ -123,7 +127,7 @@ describe('controller', () => {
 				}
 			};
 			const mockSharePoint = {
-				getItemsByPath: mock.fn(() => [
+				getItemsByPathWithCustomMetadata: mock.fn(() => [
 					{ id: 1, name: 'File 1', file: { mimeType: 'image/png' } },
 					{ id: 2, name: 'File 2', file: { mimeType: 'application/pdf' } },
 					{ id: 3, name: 'Folder A' }
@@ -142,8 +146,11 @@ describe('controller', () => {
 				render: mock.fn()
 			};
 			await handler(req, res);
-			assert.strictEqual(mockSharePoint.getItemsByPath.mock.callCount(), 1);
-			assert.match(mockSharePoint.getItemsByPath.mock.calls[0].arguments[0], /^CROWN-2025-0000001\/Published$/);
+			assert.strictEqual(mockSharePoint.getItemsByPathWithCustomMetadata.mock.callCount(), 1);
+			assert.match(
+				mockSharePoint.getItemsByPathWithCustomMetadata.mock.calls[0].arguments[0],
+				/^CROWN-2025-0000001\/Published$/
+			);
 			assert.strictEqual(res.render.mock.callCount(), 1);
 			const viewData = res.render.mock.calls[0].arguments[1];
 			assert.strictEqual(viewData.documents.length, 2);
@@ -152,6 +159,66 @@ describe('controller', () => {
 				undefined
 			);
 		});
+		it('should render a banner and tags when contains distressing content', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						reference: 'CROWN/2025/0000001',
+						applicationStatus: 'active',
+						containsDistressingContent: true
+					}))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
+				}
+			};
+			const mockSharePoint = {
+				getItemsByPathWithCustomMetadata: mock.fn(() => [
+					{ id: 1, name: 'File 1', file: { mimeType: 'image/png' }, listItem: { fields: { Distressing: 'Yes' } } },
+					{ id: 2, name: 'File 2', file: { mimeType: 'application/pdf' } },
+					{ id: 3, name: 'Folder A' }
+				])
+			};
+			const handler = buildApplicationDocumentsPage({
+				db: mockDb,
+				logger: mockLogger(),
+				sharePointDrive: mockSharePoint
+			});
+			const req = {
+				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' }
+			};
+			const res = {
+				status: mock.fn(),
+				render: mock.fn()
+			};
+			await handler(req, res);
+			const viewData = res.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.documents.length, 2);
+			assert.deepStrictEqual(
+				viewData.documents.find((d) => d.name === 'File 1'),
+				{
+					id: 1,
+					name: 'File 1',
+					type: 'Image',
+					distressing: true,
+					size: undefined,
+					lastModified: ''
+				}
+			);
+			assert.deepStrictEqual(
+				viewData.documents.find((d) => d.name === 'File 2'),
+				{
+					id: 2,
+					name: 'File 2',
+					type: 'PDF',
+					distressing: false,
+					size: undefined,
+					lastModified: ''
+				}
+			);
+		});
+
 		it('should filter documents by search name', async () => {
 			const mockDb = {
 				crownDevelopment: {
@@ -163,7 +230,7 @@ describe('controller', () => {
 				}
 			};
 			const mockSharePoint = {
-				getItemsByPath: mock.fn(() => [
+				getItemsByPathWithCustomMetadata: mock.fn(() => [
 					{ id: '1', name: 'Test Report', file: { mimeType: 'application/pdf' } },
 					{ id: '2', name: 'Statement test', file: { mimeType: 'application/pdf' } },
 					{ id: '3', name: 'TEST FILE', file: { mimeType: 'application/pdf' } }
@@ -203,7 +270,7 @@ describe('controller', () => {
 				}
 			};
 			const mockSharePoint = {
-				getItemsByPath: mock.fn(() => [
+				getItemsByPathWithCustomMetadata: mock.fn(() => [
 					{ id: '3', name: '(test) Flood Risk Assessment.pdf', file: { mimeType: 'application/pdf' } },
 					{ id: '4', name: 'test', file: { mimeType: 'application/pdf' } },
 					{ id: '5', name: 'FILE test', file: { mimeType: 'application/pdf' } }
@@ -239,7 +306,7 @@ describe('controller', () => {
 				}
 			};
 			const mockSharePoint = {
-				getItemsByPath: mock.fn(() => [
+				getItemsByPathWithCustomMetadata: mock.fn(() => [
 					{ id: '1', name: 'Test Statement Report.pdf', file: { mimeType: 'application/pdf' } },
 					{ id: '2', name: 'Test Statement.pdf', file: { mimeType: 'application/pdf' } },
 					{ id: '3', name: 'Statement Report.pdf', file: { mimeType: 'application/pdf' } },
@@ -281,7 +348,7 @@ describe('controller', () => {
 				}
 			};
 			const mockSharePoint = {
-				getItemsByPath: mock.fn(() => [
+				getItemsByPathWithCustomMetadata: mock.fn(() => [
 					{ id: '1', name: 'Doc 1', file: { mimeType: 'application/pdf' } },
 					{ id: '2', name: 'Doc 2', file: { mimeType: 'application/pdf' } }
 				])
@@ -317,7 +384,7 @@ describe('controller', () => {
 				}
 			};
 			const mockSharePoint = {
-				getItemsByPath: mock.fn(() => [
+				getItemsByPathWithCustomMetadata: mock.fn(() => [
 					{ id: '1', name: 'Doc 1', file: { mimeType: 'application/pdf' } },
 					{ id: '2', name: 'Doc 2', file: { mimeType: 'application/pdf' } }
 				])
@@ -354,7 +421,7 @@ describe('controller', () => {
 				}
 			};
 			const mockSharePoint = {
-				getItemsByPath: mock.fn(() => [
+				getItemsByPathWithCustomMetadata: mock.fn(() => [
 					{ id: '1', name: 'Doc 1', file: { mimeType: 'application/pdf' } },
 					{ id: '2', name: 'Doc 2', file: { mimeType: 'application/pdf' } }
 				])
@@ -394,7 +461,7 @@ describe('controller', () => {
 				}
 			};
 			const mockSharePoint = {
-				getItemsByPath: mock.fn(() => [
+				getItemsByPathWithCustomMetadata: mock.fn(() => [
 					{ id: '1', name: 'Doc 1', file: { mimeType: 'application/pdf' } },
 					{ id: '2', name: 'Doc 2', file: { mimeType: 'application/pdf' } },
 					{ id: '3', name: 'Doc 3', file: { mimeType: 'application/pdf' } }
