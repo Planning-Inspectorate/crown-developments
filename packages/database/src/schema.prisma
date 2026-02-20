@@ -78,6 +78,8 @@ model CrownDevelopment {
   nationallyImportant                 Boolean?
   nationallyImportantConfirmationDate DateTime?
   notNationallyImportantEmailSent     Boolean?                    @default(false)
+  /// Distressing content involved in the application
+  containsDistressingContent          Boolean?
   /// LPA cross reference
   lpaReference                        String?
   /// case category
@@ -489,7 +491,7 @@ model NotifyEmail {
   createdDate     DateTime // When the notification was created in Notify
   createdBy       String?      @db.NVarChar(100) // The user who created the notification
   completedDate   DateTime?    @default(now()) // When the notification was completed
-  email           String?      @db.NVarChar(100) //Used when email is not sent to a contact or the LPA
+  email           String?      @db.NVarChar(100) // Used when email is not sent to a contact or the LPA
   lpaId           String?      @db.UniqueIdentifier // The LPA this notification relates to, if applicable
   Lpa             Lpa?         @relation(fields: [lpaId], references: [id])
   contactId       String?      @db.UniqueIdentifier // The contact this notification relates to, if applicable
