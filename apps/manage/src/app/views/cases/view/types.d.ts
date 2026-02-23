@@ -183,13 +183,16 @@ type ContactTypeKeys = keyof typeof CONTACT_PREFIXES;
 type ContactTypeValues = (typeof CONTACT_PREFIXES)[ContactTypeKeys];
 
 interface ManageApplicantDetails {
-	id?: string;
-	organisationName?: string;
-	organisationAddress?: Address;
+	id: string;
+	organisationRelationId: string;
+	organisationName: string;
+	// Empty object used to avoid marking question as unanswered in manage list questions.
+	organisationAddress?: Address | {};
 }
 
 interface ManageApplicantContactDetails {
 	id: string;
+	organisationToContactRelationId: string;
 	applicantFirstName: string;
 	applicantLastName: string;
 	applicantContactEmail: string;

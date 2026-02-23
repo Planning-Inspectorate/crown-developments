@@ -26,7 +26,7 @@ export function camelCaseToSentenceCase(str) {
 
 /**
  * Turns 'string containing a Proper Noun' into 'String containing a Proper Noun'
- * @param {string|any} str
+ * @param {string} str
  * @returns {string}
  * */
 export function sentenceCase(str) {

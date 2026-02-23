@@ -978,4 +978,313 @@ describe('case details', () => {
 			assert.strictEqual(data.answers.lpaQuestionnaireSentSpecialEmailSent, true);
 		});
 	});
+
+	describe('multi applicant contact updates', () => {
+		const buildDbWithOrgs = (organisations) => ({
+			$transaction: mock.fn(() => Promise.resolve()),
+			contact: {
+				update: mock.fn(() => ({ kind: 'contact.update' }))
+			},
+			crownDevelopment: {
+				findUnique: mock.fn(() => ({
+					id: 'case-1',
+					linkedParentId: null,
+					ChildrenCrownDevelopment: [],
+					ParentCrownDevelopment: null,
+					Organisations: organisations
+				})),
+				update: mock.fn(() => ({ kind: 'crownDevelopment.update' }))
+			}
+		});
+
+		const buildReq = () => ({ params: { id: 'case-1' }, session: {} });
+
+		const buildRes = (originalAnswers) => ({
+			locals: {
+				journeyResponse: {
+					answers: {}
+				},
+				originalAnswers
+			}
+		});
+
+		const runUpdateCase = async ({ db, logger, req, res, answers }) => {
+			const updateCase = buildUpdateCase({ db, logger, notifyClient: {} });
+			await updateCase({
+				req,
+				res,
+				data: {
+					answers
+				}
+			});
+		};
+
+		it('updates a single existing contact when details have changed', async () => {
+			const logger = mockLogger();
+			const db = buildDbWithOrgs([
+				{
+					id: 'rel-1',
+					organisationId: 'org-1',
+					crownDevelopmentId: 'case-1',
+					Organisation: {
+						id: 'org-1',
+						name: 'Org 1',
+						Address: null,
+						OrganisationToContact: [
+							{
+								id: 'join-1',
+								role: 'applicant',
+								Contact: {
+									id: 'contact-1',
+									firstName: 'Old',
+									lastName: 'Name',
+									email: 'old@example.com',
+									telephoneNumber: null
+								}
+							},
+							{
+								id: 'join-2',
+								role: 'applicant',
+								Contact: {
+									id: 'contact-2',
+									firstName: 'Old2',
+									lastName: 'Name2',
+									email: 'old2@example.com',
+									telephoneNumber: '01234'
+								}
+							}
+						]
+					}
+				}
+			]);
+
+			const req = buildReq();
+			const res = buildRes();
+
+			await runUpdateCase({
+				db,
+				logger,
+				req,
+				res,
+				answers: {
+					manageApplicantContactDetails: [
+						{
+							organisationToContactRelationId: 'join-1',
+							id: 'contact-1',
+							applicantContactOrganisation: 'org-1',
+							organisationToContactRelationIdSelector: 'join-1',
+							applicantFirstName: 'New',
+							applicantLastName: 'Name',
+							applicantContactEmail: 'new@example.com',
+							applicantContactTelephoneNumber: '111'
+						}
+					]
+				}
+			});
+
+			assert.strictEqual(db.contact.update.mock.callCount(), 1);
+			const arg = db.contact.update.mock.calls[0].arguments[0];
+			assert.deepStrictEqual(arg.where, { id: 'contact-1' });
+			assert.deepStrictEqual(arg.data, {
+				firstName: 'New',
+				lastName: 'Name',
+				email: 'new@example.com',
+				telephoneNumber: '111'
+			});
+		});
+
+		it('updates multiple existing contacts when their details have changed', async () => {
+			const logger = mockLogger();
+			const db = buildDbWithOrgs([
+				{
+					id: 'rel-1',
+					organisationId: 'org-1',
+					crownDevelopmentId: 'case-1',
+					Organisation: {
+						id: 'org-1',
+						name: 'Org 1',
+						Address: null,
+						OrganisationToContact: [
+							{
+								id: 'join-1',
+								role: 'applicant',
+								Contact: {
+									id: 'contact-1',
+									firstName: 'Old',
+									lastName: 'One',
+									email: 'old@example.com',
+									telephoneNumber: '000'
+								}
+							}
+						]
+					}
+				},
+				{
+					id: 'rel-2',
+					organisationId: 'org-2',
+					crownDevelopmentId: 'case-1',
+					Organisation: {
+						id: 'org-2',
+						name: 'Org 2',
+						Address: null,
+						OrganisationToContact: [
+							{
+								id: 'join-2',
+								role: 'applicant',
+								Contact: {
+									id: 'contact-2',
+									firstName: 'Old',
+									lastName: 'Two',
+									email: 'two@example.com',
+									telephoneNumber: '999'
+								}
+							}
+						]
+					}
+				}
+			]);
+
+			const req = buildReq();
+			const res = buildRes();
+
+			await runUpdateCase({
+				db,
+				logger,
+				req,
+				res,
+				answers: {
+					manageApplicantDetails: [
+						{
+							id: 'org-1',
+							organisationRelationId: 'rel-1',
+							OrganisationToContactRelationId: 'org-1',
+							OrganisationToContact: [{ id: 'join-1', Contact: { id: 'contact-1' } }]
+						},
+						{
+							id: 'org-2',
+							organisationRelationId: 'rel-2',
+							OrganisationToContactRelationId: 'org-2',
+							OrganisationToContact: [{ id: 'join-2', Contact: { id: 'contact-2' } }]
+						}
+					],
+					manageApplicantContactDetails: [
+						{
+							organisationToContactRelationId: 'join-1',
+							id: 'contact-1',
+							applicantContactOrganisation: 'org-1',
+							organisationToContactRelationIdSelector: 'join-1',
+							applicantFirstName: 'New',
+							applicantLastName: 'One',
+							applicantContactEmail: 'one-new@example.com',
+							applicantContactTelephoneNumber: '111'
+						},
+						{
+							organisationToContactRelationId: 'join-2',
+							id: 'contact-2',
+							applicantContactOrganisation: 'org-2',
+							organisationToContactRelationIdSelector: 'join-2',
+							applicantFirstName: 'New',
+							applicantLastName: 'Two',
+							applicantContactEmail: 'two-new@example.com',
+							applicantContactTelephoneNumber: '222'
+						}
+					]
+				}
+			});
+
+			assert.strictEqual(db.contact.update.mock.callCount(), 2);
+			assert.deepStrictEqual(db.contact.update.mock.calls[0].arguments[0].where, { id: 'contact-1' });
+			assert.deepStrictEqual(db.contact.update.mock.calls[1].arguments[0].where, { id: 'contact-2' });
+		});
+
+		it('does not update an existing contact when no contact fields have changed', async () => {
+			const logger = mockLogger();
+			const db = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				contact: {
+					update: mock.fn(() => ({ kind: 'contact.update' }))
+				},
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: 'case-1' })),
+					update: mock.fn(() => ({ kind: 'crownDevelopment.update' }))
+				}
+			};
+			const updateCase = buildUpdateCase({ db, logger, notifyClient: {} });
+
+			const req = { params: { id: 'case-1' }, session: {} };
+			const res = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							manageApplicantDetails: [{ id: 'org-1', organisationRelationId: 'rel-1' }],
+							manageApplicantContactDetails: [
+								{
+									organisationToContactRelationId: 'join-1',
+									id: 'contact-1',
+									applicantContactOrganisation: 'org-1',
+									applicantFirstName: 'Same',
+									applicantLastName: 'Same',
+									applicantContactEmail: 'same@example.com',
+									applicantContactTelephoneNumber: '000'
+								}
+							]
+						}
+					},
+					originalAnswers: {}
+				}
+			};
+
+			await updateCase({
+				req,
+				res,
+				data: {
+					answers: {
+						manageApplicantDetails: [{ id: 'org-1', organisationRelationId: 'rel-1' }]
+					}
+				}
+			});
+
+			assert.strictEqual(db.contact.update.mock.callCount(), 0);
+		});
+
+		it('does not update a contact for new contact entries without organisationToContactRelationId', async () => {
+			const logger = mockLogger();
+			const db = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				contact: {
+					update: mock.fn(() => ({ kind: 'contact.update' }))
+				},
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: 'case-1' })),
+					update: mock.fn(() => ({ kind: 'crownDevelopment.update' }))
+				}
+			};
+			const updateCase = buildUpdateCase({ db, logger, notifyClient: {} });
+
+			const req = { params: { id: 'case-1' }, session: {} };
+			const res = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							manageApplicantDetails: [{ id: 'org-1', organisationRelationId: 'rel-1' }],
+							manageApplicantContactDetails: []
+						}
+					},
+					originalAnswers: {}
+				}
+			};
+
+			await updateCase({
+				req,
+				res,
+				data: {
+					answers: {
+						manageApplicantDetails: [{ id: 'org-1', organisationRelationId: 'rel-1' }]
+					}
+				}
+			});
+
+			assert.strictEqual(db.contact.update.mock.callCount(), 0);
+		});
+	});
 });

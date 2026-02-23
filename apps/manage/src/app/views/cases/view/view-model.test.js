@@ -793,76 +793,336 @@ describe('view-model', () => {
 				}
 			);
 		});
-	});
-	it('should map secondary LPA fields if present', () => {
-		/** @type {CrownDevelopment} */
-		const input = {
-			id: 'id-1',
-			referenceId: 'reference-id-1',
-			createdDate: new Date(),
-			hasSecondaryLpa: true,
-			SecondaryLpa: {
-				email: 'secondarylpa@example.com',
-				telephoneNumber: '0123456789',
-				Address: {
-					line1: 'Secondary LPA Street',
-					townCity: 'Secondary LPA Town',
-					postcode: 'SEC ONE'
+		it('should map secondary LPA fields if present', () => {
+			/** @type {CrownDevelopment} */
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				createdDate: new Date(),
+				hasSecondaryLpa: true,
+				SecondaryLpa: {
+					email: 'secondarylpa@example.com',
+					telephoneNumber: '0123456789',
+					Address: {
+						line1: 'Secondary LPA Street',
+						townCity: 'Secondary LPA Town',
+						postcode: 'SEC ONE'
+					}
 				}
-			}
-		};
-		const result = crownDevelopmentToViewModel(input);
-		assert.strictEqual(result.hasSecondaryLpa, 'yes');
-		assert.strictEqual(result.secondaryLpaEmail, 'secondarylpa@example.com');
-		assert.strictEqual(result.secondaryLpaTelephoneNumber, '0123456789');
-		assert.deepStrictEqual(result.secondaryLpaAddress, {
-			id: undefined,
-			addressLine1: 'Secondary LPA Street',
-			addressLine2: '',
-			county: '',
-			townCity: 'Secondary LPA Town',
-			postcode: 'SEC ONE'
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.strictEqual(result.hasSecondaryLpa, 'yes');
+			assert.strictEqual(result.secondaryLpaEmail, 'secondarylpa@example.com');
+			assert.strictEqual(result.secondaryLpaTelephoneNumber, '0123456789');
+			assert.deepStrictEqual(result.secondaryLpaAddress, {
+				id: undefined,
+				addressLine1: 'Secondary LPA Street',
+				addressLine2: '',
+				county: '',
+				townCity: 'Secondary LPA Town',
+				postcode: 'SEC ONE'
+			});
+		});
+
+		it('should not map secondary LPA fields if not present', () => {
+			/** @type {CrownDevelopment} */
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				createdDate: new Date(),
+				hasSecondaryLpa: false
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.strictEqual(result.secondaryLpaEmail, undefined);
+			assert.strictEqual(result.secondaryLpaTelephoneNumber, undefined);
+			assert.strictEqual(result.secondaryLpaAddress, undefined);
+		});
+
+		it('should set hasSecondaryLpa to no by default for existing cases which have not answered hasSecondaryLpa previously', () => {
+			const toSave = {}; // no secondaryLpaId or secondaryLocalPlanningAuthority
+			const updates = editsToDatabaseUpdates(toSave, {});
+			assert.strictEqual(Object.prototype.hasOwnProperty.call(updates, 'hasSecondaryLpa'), false);
+		});
+
+		it('should set hasSecondaryLpa to false and disconnect SecondaryLpa if hasSecondaryLpa is false', () => {
+			const toSave = {
+				hasSecondaryLpa: false,
+				secondaryLpaId: 'lpa-2'
+			};
+			const updates = editsToDatabaseUpdates(toSave, {});
+			assert.strictEqual(updates.hasSecondaryLpa, false);
+			assert.deepStrictEqual(updates.SecondaryLpa, { disconnect: true });
+			assert.strictEqual(updates.secondaryLpaId, undefined); // should be removed
+		});
+
+		it('should set hasSecondaryLpa to false and disconnect SecondaryLpa if secondaryLpaId is null', () => {
+			const toSave = {
+				secondaryLpaId: null
+			};
+			const updates = editsToDatabaseUpdates(toSave, {});
+			assert.strictEqual(updates.hasSecondaryLpa, false);
+			assert.deepStrictEqual(updates.SecondaryLpa, { disconnect: true });
+			assert.strictEqual(updates.secondaryLpaId, undefined); // should be removed
 		});
 	});
 
-	it('should not map secondary LPA fields if not present', () => {
-		/** @type {CrownDevelopment} */
-		const input = {
-			id: 'id-1',
-			referenceId: 'reference-id-1',
-			createdDate: new Date(),
-			hasSecondaryLpa: false
-		};
-		const result = crownDevelopmentToViewModel(input);
-		assert.strictEqual(result.secondaryLpaEmail, undefined);
-		assert.strictEqual(result.secondaryLpaTelephoneNumber, undefined);
-		assert.strictEqual(result.secondaryLpaAddress, undefined);
-	});
+	describe('manageApplicantContactDetails organisation updates', () => {
+		const getUpdateByRelationId = (updates, relationId) =>
+			updates?.Organisations?.update?.find((u) => u.where?.id === relationId);
 
-	it('should set hasSecondaryLpa to no by default for existing cases which have not answered hasSecondaryLpa previously', () => {
-		const toSave = {}; // no secondaryLpaId or secondaryLocalPlanningAuthority
-		const updates = editsToDatabaseUpdates(toSave, {});
-		assert.strictEqual(Object.prototype.hasOwnProperty.call(updates, 'hasSecondaryLpa'), false);
-	});
+		it('does not create join-table updates when changing details for a single existing contact', () => {
+			const toSave = {
+				manageApplicantContactDetails: [
+					{
+						organisationToContactRelationId: 'join-1',
+						id: 'contact-1',
+						applicantContactOrganisation: 'org-1',
+						applicantFirstName: 'New',
+						applicantLastName: 'Name',
+						applicantContactEmail: 'new@example.com'
+					}
+				]
+			};
+			const viewModel = {
+				manageApplicantDetails: [
+					{ id: 'org-1', organisationRelationId: 'rel-1' },
+					{ id: 'org-2', organisationRelationId: 'rel-2' }
+				],
+				manageApplicantContactDetails: [
+					{
+						id: 'contact-1',
+						organisationToContactRelationId: 'join-1',
+						applicantContactOrganisation: 'org-1',
+						applicantFirstName: 'Old',
+						applicantLastName: 'Name',
+						applicantContactEmail: 'old@example.com'
+					}
+				]
+			};
 
-	it('should set hasSecondaryLpa to false and disconnect SecondaryLpa if hasSecondaryLpa is false', () => {
-		const toSave = {
-			hasSecondaryLpa: false,
-			secondaryLpaId: 'lpa-2'
-		};
-		const updates = editsToDatabaseUpdates(toSave, {});
-		assert.strictEqual(updates.hasSecondaryLpa, false);
-		assert.deepStrictEqual(updates.SecondaryLpa, { disconnect: true });
-		assert.strictEqual(updates.secondaryLpaId, undefined); // should be removed
-	});
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.deepStrictEqual(updates.Organisations, { update: [] });
+		});
 
-	it('should set hasSecondaryLpa to false and disconnect SecondaryLpa if secondaryLpaId is null', () => {
-		const toSave = {
-			secondaryLpaId: null
-		};
-		const updates = editsToDatabaseUpdates(toSave, {});
-		assert.strictEqual(updates.hasSecondaryLpa, false);
-		assert.deepStrictEqual(updates.SecondaryLpa, { disconnect: true });
-		assert.strictEqual(updates.secondaryLpaId, undefined); // should be removed
+		it('does not create join-table updates when changing details for multiple existing contacts', () => {
+			const toSave = {
+				manageApplicantContactDetails: [
+					{
+						organisationToContactRelationId: 'join-1',
+						id: 'contact-1',
+						applicantContactOrganisation: 'org-1',
+						applicantFirstName: 'Changed'
+					},
+					{
+						organisationToContactRelationId: 'join-2',
+						id: 'contact-2',
+						applicantContactOrganisation: 'org-2',
+						applicantContactTelephoneNumber: '0123456789'
+					}
+				]
+			};
+			const viewModel = {
+				manageApplicantDetails: [
+					{ id: 'org-1', organisationRelationId: 'rel-1' },
+					{ id: 'org-2', organisationRelationId: 'rel-2' }
+				],
+				manageApplicantContactDetails: [
+					{
+						id: 'contact-1',
+						organisationToContactRelationId: 'join-1',
+						applicantContactOrganisation: 'org-1',
+						applicantFirstName: 'Old'
+					},
+					{
+						id: 'contact-2',
+						organisationToContactRelationId: 'join-2',
+						applicantContactOrganisation: 'org-2',
+						applicantContactTelephoneNumber: ''
+					}
+				]
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.deepStrictEqual(updates.Organisations, { update: [] });
+		});
+
+		it('creates join-table updates when moving a single existing contact to a different organisation', () => {
+			const toSave = {
+				manageApplicantContactDetails: [
+					{
+						organisationToContactRelationId: 'join-1',
+						id: 'contact-1',
+						applicantContactOrganisation: 'org-2'
+					}
+				]
+			};
+			const viewModel = {
+				manageApplicantDetails: [
+					{ id: 'org-1', organisationRelationId: 'rel-1' },
+					{ id: 'org-2', organisationRelationId: 'rel-2' }
+				],
+				manageApplicantContactDetails: [
+					{ id: 'contact-1', organisationToContactRelationId: 'join-1', applicantContactOrganisation: 'org-1' }
+				]
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.ok(updates.Organisations?.update);
+
+			const source = getUpdateByRelationId(updates, 'rel-1');
+			const target = getUpdateByRelationId(updates, 'rel-2');
+
+			assert.deepStrictEqual(source?.data?.Organisation?.update?.OrganisationToContact?.deleteMany, [{ id: 'join-1' }]);
+			assert.strictEqual(
+				target?.data?.Organisation?.update?.OrganisationToContact?.create?.[0]?.Contact?.connect?.id,
+				'contact-1'
+			);
+		});
+
+		it('creates join-table updates when moving multiple existing contacts to different organisations', () => {
+			const toSave = {
+				manageApplicantContactDetails: [
+					{
+						organisationToContactRelationId: 'join-1',
+						id: 'contact-1',
+						applicantContactOrganisation: 'org-2'
+					},
+					{
+						organisationToContactRelationId: 'join-2',
+						id: 'contact-2',
+						applicantContactOrganisation: 'org-1'
+					}
+				]
+			};
+			const viewModel = {
+				manageApplicantDetails: [
+					{ id: 'org-1', organisationRelationId: 'rel-1' },
+					{ id: 'org-2', organisationRelationId: 'rel-2' }
+				],
+				manageApplicantContactDetails: [
+					{ id: 'contact-1', organisationToContactRelationId: 'join-1', applicantContactOrganisation: 'org-1' },
+					{ id: 'contact-2', organisationToContactRelationId: 'join-2', applicantContactOrganisation: 'org-2' }
+				]
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.ok(updates.Organisations?.update);
+
+			const rel1 = getUpdateByRelationId(updates, 'rel-1');
+			const rel2 = getUpdateByRelationId(updates, 'rel-2');
+
+			assert.ok(rel1?.data?.Organisation?.update?.OrganisationToContact?.create);
+			assert.ok(rel1?.data?.Organisation?.update?.OrganisationToContact?.deleteMany);
+			assert.ok(rel2?.data?.Organisation?.update?.OrganisationToContact?.create);
+			assert.ok(rel2?.data?.Organisation?.update?.OrganisationToContact?.deleteMany);
+
+			assert.deepStrictEqual(rel1.data.Organisation.update.OrganisationToContact.deleteMany, [{ id: 'join-1' }]);
+			assert.strictEqual(rel1.data.Organisation.update.OrganisationToContact.create[0].Contact.connect.id, 'contact-2');
+
+			assert.deepStrictEqual(rel2.data.Organisation.update.OrganisationToContact.deleteMany, [{ id: 'join-2' }]);
+			assert.strictEqual(rel2.data.Organisation.update.OrganisationToContact.create[0].Contact.connect.id, 'contact-1');
+		});
+		it('moves an existing contact and keeps using Contact.connect when details are also edited', () => {
+			const toSave = {
+				manageApplicantContactDetails: [
+					{
+						organisationToContactRelationId: 'join-1',
+						id: 'contact-1',
+						applicantContactOrganisation: 'org-2',
+						applicantFirstName: 'Edited',
+						applicantContactEmail: 'edited@example.com'
+					}
+				]
+			};
+			const viewModel = {
+				manageApplicantDetails: [
+					{ id: 'org-1', organisationRelationId: 'rel-1' },
+					{ id: 'org-2', organisationRelationId: 'rel-2' }
+				],
+				manageApplicantContactDetails: [
+					{
+						id: 'contact-1',
+						organisationToContactRelationId: 'join-1',
+						applicantContactOrganisation: 'org-1',
+						applicantFirstName: 'Old',
+						applicantContactEmail: 'old@example.com'
+					}
+				]
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			const target = getUpdateByRelationId(updates, 'rel-2');
+			assert.strictEqual(
+				target?.data?.Organisation?.update?.OrganisationToContact?.create?.[0]?.Contact?.create,
+				undefined
+			);
+			assert.strictEqual(
+				target?.data?.Organisation?.update?.OrganisationToContact?.create?.[0]?.Contact?.connect?.id,
+				'contact-1'
+			);
+		});
+
+		it('adds a new contact to an organisation using Contact.create', () => {
+			const toSave = {
+				manageApplicantContactDetails: [
+					{
+						applicantContactOrganisation: 'org-1',
+						applicantFirstName: 'First',
+						applicantLastName: 'Last',
+						applicantContactEmail: 'new@example.com',
+						applicantContactTelephoneNumber: '01234'
+					}
+				]
+			};
+			const viewModel = {
+				manageApplicantDetails: [{ id: 'org-1', organisationRelationId: 'rel-1' }]
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			const rel1 = getUpdateByRelationId(updates, 'rel-1');
+			assert.ok(rel1?.data?.Organisation?.update?.OrganisationToContact?.create);
+			assert.strictEqual(
+				rel1.data.Organisation.update.OrganisationToContact.create[0].Contact.create.email,
+				'new@example.com'
+			);
+		});
+
+		it('adds multiple new contacts across organisations', () => {
+			const toSave = {
+				manageApplicantContactDetails: [
+					{
+						applicantContactOrganisation: 'org-1',
+						applicantFirstName: 'A',
+						applicantLastName: 'One',
+						applicantContactEmail: 'a@example.com'
+					},
+					{
+						applicantContactOrganisation: 'org-2',
+						applicantFirstName: 'B',
+						applicantLastName: 'Two',
+						applicantContactEmail: 'b@example.com'
+					}
+				]
+			};
+			const viewModel = {
+				manageApplicantDetails: [
+					{ id: 'org-1', organisationRelationId: 'rel-1' },
+					{ id: 'org-2', organisationRelationId: 'rel-2' }
+				]
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			const rel1 = getUpdateByRelationId(updates, 'rel-1');
+			const rel2 = getUpdateByRelationId(updates, 'rel-2');
+
+			assert.strictEqual(
+				rel1?.data?.Organisation?.update?.OrganisationToContact?.create?.[0]?.Contact?.create?.email,
+				'a@example.com'
+			);
+			assert.strictEqual(
+				rel2?.data?.Organisation?.update?.OrganisationToContact?.create?.[0]?.Contact?.create?.email,
+				'b@example.com'
+			);
+		});
 	});
 });
