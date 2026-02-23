@@ -4,6 +4,7 @@
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "views/applications/view/links.njk" import applicationLinks %}
+{% from "distressing-content/distressing-content-banner.njk" import distressingContentBanner %}
 
 {% from "views/applications/view/application-info/have-your-say-information.njk" import renderHaveYourSayInformation %}
 {% import "views/applications/view/application-info/application-stage/application-stage.njk" as applicationStage %}
@@ -30,6 +31,8 @@
         </div>
 
         <div class="govuk-grid-column-two-thirds">
+
+            {{ distressingContentBanner(crownDevelopmentFields.containsDistressingContent) }}
             {% if hasLinkedCase %}
                 {{ govukNotificationBanner({
                     html: '<p class="govuk-notification-banner__heading">This application is connected to a ' + linkedCaseLink + '.</p>'

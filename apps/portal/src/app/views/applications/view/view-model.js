@@ -51,7 +51,8 @@ export function crownDevelopmentToViewModel(crownDevelopment, contactEmail) {
 		}),
 		decisionDate: formatDateForDisplay(crownDevelopment.decisionDate, { format: 'd MMMM yyyy' }),
 		decisionOutcome: crownDevelopment.DecisionOutcome?.displayName,
-		crownDevelopmentContactEmail: contactEmail
+		crownDevelopmentContactEmail: contactEmail,
+		containsDistressingContent: crownDevelopment.containsDistressingContent
 	};
 
 	const withdrawnDateFormatted = formatDateForDisplay(crownDevelopment.withdrawnDate, { format: 'd MMMM yyyy' });

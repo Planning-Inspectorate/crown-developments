@@ -63,6 +63,99 @@ describe('application-updates controller', () => {
 				pageCaption: 'CROWN/2025/0000002/',
 				currentUrl: '/application-updates',
 				isWithdrawn: false,
+				containsDistressingContent: false,
+				links: [
+					{
+						href: '/applications/9c8846dc-1949-47c4-804c-9f3865cff25e/application-information',
+						text: 'Application information'
+					},
+					{
+						href: '/applications/9c8846dc-1949-47c4-804c-9f3865cff25e/documents',
+						text: 'Documents'
+					},
+					{
+						href: '/applications/9c8846dc-1949-47c4-804c-9f3865cff25e/have-your-say',
+						text: 'Have your say'
+					},
+					{
+						href: '/applications/9c8846dc-1949-47c4-804c-9f3865cff25e/application-updates',
+						text: 'Application updates'
+					}
+				],
+				applicationUpdates: [
+					{
+						details: 'have your say will close soon',
+						firstPublished: '17 September 2025'
+					},
+					{
+						details: 'can start having your say',
+						firstPublished: '17 August 2025'
+					},
+					{ details: 'the project is new', firstPublished: '17 May 2025' }
+				]
+			});
+		});
+		it('should render application updates page with content warning banner', async (ctx) => {
+			const now = new Date('2025-09-27T00:00:00.000Z');
+			ctx.mock.timers.enable({ apis: ['Date'], now });
+			const mockReq = {
+				params: {
+					applicationId: '9c8846dc-1949-47c4-804c-9f3865cff25e'
+				},
+				originalUrl: '/application-updates'
+			};
+			const mockRes = {
+				render: mock.fn()
+			};
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						reference: 'CROWN/2025/0000002/',
+						representationsPublishDate: new Date('2025-10-17T03:24:00.000Z'),
+						representationsPeriodStartDate: new Date('2025-08-17T03:24:00.000Z'),
+						representationsPeriodEndDate: new Date('2025-09-30T03:24:00.000Z'),
+						applicationStatus: 'active',
+						containsDistressingContent: true
+					}))
+				},
+				applicationUpdate: {
+					findMany: mock.fn(() => [
+						{
+							details: 'have your say will close soon',
+							firstPublished: new Date('2025-09-17T03:24:00.000Z')
+						},
+						{
+							details: 'can start having your say',
+							firstPublished: new Date('2025-08-17T03:24:00.000Z')
+						},
+						{
+							details: 'the project is new',
+							firstPublished: new Date('2025-05-17T03:24:00.000Z')
+						}
+					]),
+					count: mock.fn(() => 3)
+				}
+			};
+
+			const handler = buildApplicationUpdatesPage({
+				db: mockDb
+			});
+			await handler(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.strictEqual(
+				mockRes.render.mock.calls[0].arguments[0],
+				'views/applications/view/application-updates/view.njk'
+			);
+
+			const renderLocals = mockRes.render.mock.calls[0].arguments[1];
+
+			assert.deepStrictEqual(renderLocals, {
+				pageTitle: 'Application updates',
+				pageCaption: 'CROWN/2025/0000002/',
+				currentUrl: '/application-updates',
+				isWithdrawn: false,
+				containsDistressingContent: true,
 				links: [
 					{
 						href: '/applications/9c8846dc-1949-47c4-804c-9f3865cff25e/application-information',

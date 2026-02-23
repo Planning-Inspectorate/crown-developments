@@ -1,8 +1,8 @@
 {% extends "views/layouts/main.njk" %}
 {% from "govuk/components/details/macro.njk" import govukDetails %}
-
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from  "views/applications/view/links.njk" import applicationLinks %}
+{% from "distressing-content/distressing-content-banner.njk" import distressingContentBanner %}
 
 {% block pageHeading %}{% endblock %}
 
@@ -17,6 +17,7 @@
         </div>
 
         <div class="govuk-grid-column-two-thirds">
+            {{ distressingContentBanner(crownDevelopmentFields.containsDistressingContent) }}
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-full">
                     <h1 class="govuk-heading-l">

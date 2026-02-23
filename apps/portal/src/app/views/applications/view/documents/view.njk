@@ -4,6 +4,8 @@
 {% import "pagination/pagination.njk" as pagination %}
 {% import "pagination/pagination-options.njk" as paginationOptions %}
 {% from "search-bar/search-bar.njk" import searchBar %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "distressing-content/distressing-content-banner.njk" import distressingContentBanner %}
 
 {% block pageHeading %}{% endblock %}
 
@@ -14,6 +16,7 @@
         </div>
 
         <div class="govuk-grid-column-two-thirds">
+            {{ distressingContentBanner(containsDistressingContent) }}
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-full">
                     <h1 class="govuk-heading-l">
@@ -54,9 +57,17 @@
                             <ul class="govuk-list document-list">
                                 {% for document in documents %}
                                     <li>
-                                        <a class="govuk-link" href="{{ baseUrl }}/{{ document.id }}" target="_blank" rel="noreferrer">
-                                            {{ document.name }}
-                                        </a>
+                                        <div>
+                                            {% if document.distressing %}
+                                                {{ govukTag({
+                                                    text: "Content warning",
+                                                    classes: "govuk-tag--red"
+                                                }) }}
+                                            {% endif %}
+                                            <a class="govuk-link" href="{{ baseUrl }}/{{ document.id }}" target="_blank" rel="noreferrer">
+                                                {{ document.name }}
+                                            </a>
+                                        </div>
                                         <div class="document-list__meta-data">
                                             <div>{{ document.lastModified }}</div>
                                             <div>{{ document.type }}</div>

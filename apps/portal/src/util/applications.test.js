@@ -16,17 +16,20 @@ describe('getApplicationStatus', () => {
 		assert.strictEqual(getApplicationStatus(withdrawnDate, now), APPLICATION_PUBLISH_STATUS.ACTIVE);
 	});
 
-	it('should return WITHDRAWN when withdrawnDate iS less than one year before now', () => {
+	it('should return WITHDRAWN when withdrawnDate is less than one year before now', (context) => {
+		context.mock.timers.enable({ api: ['DATE'], now: new Date('2025-02-23T00:00:00.000Z') });
 		const withdrawnDate = new Date('2025-02-22T00:00:00.000Z');
 		assert.strictEqual(getApplicationStatus(withdrawnDate, now), APPLICATION_PUBLISH_STATUS.WITHDRAWN);
 	});
 
-	it('should return EXPIRED when withdrawnDate is more than one year before now', () => {
-		const withdrawnDate = new Date('2024-12-21T23:59:59.000Z');
+	it('should return EXPIRED when withdrawnDate is more than one year before now', (context) => {
+		context.mock.timers.enable({ api: ['DATE'], now: new Date('2025-02-23T00:00:00.000Z') });
+		const withdrawnDate = new Date('2024-02-22T23:59:59.000Z');
 		assert.strictEqual(getApplicationStatus(withdrawnDate, now), APPLICATION_PUBLISH_STATUS.EXPIRED);
 	});
 
-	it('should return ACTIVE when withdrawnDate is in the future', () => {
+	it('should return ACTIVE when withdrawnDate is in the future', (context) => {
+		context.mock.timers.enable({ api: ['DATE'], now: new Date('2025-02-23T00:00:00.000Z') });
 		const withdrawnDate = new Date('2026-05-01T00:00:00.000Z');
 		assert.strictEqual(getApplicationStatus(withdrawnDate, now), APPLICATION_PUBLISH_STATUS.ACTIVE);
 	});
