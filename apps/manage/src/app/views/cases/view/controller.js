@@ -19,6 +19,12 @@ import { getApplicantOrganisationOptions } from '../util/applicant-organisation-
 /**
  * @typedef {import('./types').CrownDevelopmentViewModel} CrownDevelopmentViewModel
  * @typedef {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').DriveItemByPathResponse} DriveItemByPathResponse
+ * @typedef {import('@pins/crowndev-database').Prisma.CrownDevelopmentGetPayload<{
+ *  	include: {
+ *  		ParentCrownDevelopment: { select: { id: true } },
+ *  		ChildrenCrownDevelopment: { select: { id: true } }
+ *  	}
+ * }>} CrownDevelopmentWithLinkedCase
  */
 
 /**
@@ -84,7 +90,7 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpda
 /**
  * Get the linked case link HTML
  * @param {import('#service').ManageService['db']} db
- * @param {ReturnType<import('#service').ManageService['db']['crownDevelopment']['findUnique']> extends Promise<infer T> ? T : never} crownDevelopment
+ * @param {CrownDevelopmentWithLinkedCase} crownDevelopment
  * @returns {Promise<string|undefined>}
  */
 async function getLinkedCaseLink(db, crownDevelopment) {
