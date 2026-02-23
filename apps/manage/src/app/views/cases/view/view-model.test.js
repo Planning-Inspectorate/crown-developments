@@ -335,7 +335,8 @@ describe('view-model', () => {
 					townCity: 'Org Town',
 					county: 'Org County',
 					postcode: 'ORG1ST'
-				}
+				},
+				organisationRelationId: 'relation-1'
 			});
 			assert.deepStrictEqual(result.manageApplicantDetails[1], {
 				id: 'org-2',
@@ -347,7 +348,8 @@ describe('view-model', () => {
 					townCity: 'Org Town 2',
 					county: 'Org County 2',
 					postcode: 'ORG2ND'
-				}
+				},
+				organisationRelationId: 'relation-2'
 			});
 		});
 	});
