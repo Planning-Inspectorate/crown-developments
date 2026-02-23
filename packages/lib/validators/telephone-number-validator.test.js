@@ -30,19 +30,19 @@ describe('TelephoneNumberValidator', () => {
 	it('rejects a telephone number with letters', async () => {
 		const errors = await getValidationErrors('123ABC456', question);
 		assert.strictEqual(errors.length, 1);
-		assert.strictEqual(errors[0].msg, 'Enter a valid telephone number');
+		assert.strictEqual(errors[0].msg, 'Enter a valid phone number');
 	});
 
 	it('rejects a telephone number with special characters', async () => {
 		const errors = await getValidationErrors('123-456-7890', question);
 		assert.strictEqual(errors.length, 1);
-		assert.strictEqual(errors[0].msg, 'Enter a valid telephone number');
+		assert.strictEqual(errors[0].msg, 'Enter a valid phone number');
 	});
 
 	it('rejects a telephone number longer than 15 characters', async () => {
 		const errors = await getValidationErrors('1234567890123456', question);
 		assert.strictEqual(errors.length, 1);
-		assert.strictEqual(errors[0].msg, 'Telephone number must be 15 characters or less');
+		assert.strictEqual(errors[0].msg, 'Phone number must be 15 characters or less');
 	});
 
 	it('accepts a telephone number with exactly 15 digits', async () => {
