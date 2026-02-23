@@ -52,7 +52,8 @@ describe('view-model', () => {
 					line1: 'Site Street',
 					townCity: 'Site Town',
 					postcode: 'Site ONE'
-				}
+				},
+				containsDistressingContent: true
 			};
 			const result = crownDevelopmentToViewModel(input, 'crown.dev@planninginspectorate.gov.uk');
 			assert.deepStrictEqual(result, {
@@ -74,7 +75,8 @@ describe('view-model', () => {
 				representationsPeriodEndDateTime: '10 October 2025 at 12:00am',
 				representationsPeriodStartDate: '10 October 2025',
 				representationsPeriodStartDateTime: '10 October 2025 at 12:00am',
-				representationsPublishDate: '9 October 2025'
+				representationsPublishDate: '9 October 2025',
+				containsDistressingContent: true
 			});
 		});
 		it(`should map site address if present`, () => {

@@ -1,0 +1,19 @@
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+
+{% macro distressingContentBanner(containsDistressingContent) %}
+    {% set html %}
+        <h3 class="govuk-notification-banner__heading">
+            Application may contain distressing content
+        </h3>
+        <p class="govuk-body">A content warning tag has been applied to documents containing content that some may find distressing.</p>
+    {% endset %}
+    {% if containsDistressingContent %}
+        <div class="govuk-grid-row">
+            {{ govukNotificationBanner({
+                titleText: "Important",
+                html: html
+            }) }}
+        </div>
+    {% endif %}
+{% endmacro %}

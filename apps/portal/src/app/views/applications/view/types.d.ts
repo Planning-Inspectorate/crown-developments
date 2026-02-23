@@ -27,6 +27,7 @@ export interface CrownDevelopmentListViewModel {
 	crownDevelopmentContactEmail?: string;
 	siteAddress?: string;
 	siteCoordinates?: { easting: string; northing: string };
+	containsDistressingContent?: boolean;
 }
 
 const listArgs = Prisma.validator<Prisma.CrownDevelopmentDefaultArgs>()({

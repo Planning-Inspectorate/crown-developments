@@ -23,7 +23,8 @@ describe('get', () => {
 				name: 'File 1',
 				type: 'Image',
 				lastModified: '',
-				size: undefined
+				size: undefined,
+				distressing: false
 			});
 		});
 

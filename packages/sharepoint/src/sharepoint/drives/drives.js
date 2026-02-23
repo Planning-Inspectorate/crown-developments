@@ -107,9 +107,30 @@ export class SharePointDrive {
 			.addPathSegment('children')
 			.addQueryParams(queries);
 
-		const response = await this.client.api(urlBuilder.toString()).get();
+		return this.#fetchAllPages(urlBuilder.toString());
+	}
 
-		return response.value;
+	/**
+	 * Get items by path with custom metadata fields
+	 * @param {string} path
+	 * @param {[key: string, value: string][]} queries
+	 * @param {string[]} metaDataFields
+	 * @returns {Promise<*>}
+	 */
+	async getItemsByPathWithCustomMetadata(path, queries, metaDataFields) {
+		// queries => [['key', 'value']]
+		const urlBuilder = new UrlBuilder('')
+			.addPathSegment('drives')
+			.addPathSegment(this.driveId)
+			.addPathSegment('root:')
+			.addPathSegment(path + ':')
+			.addPathSegment('children')
+			.addQueryParams(queries)
+			.addQueryParam('$expand', 'listItem');
+
+		const url = `${urlBuilder.toString()}($expand=fields($select=${metaDataFields.join(',')}))`;
+
+		return this.#fetchAllPages(url);
 	}
 
 	/**
@@ -501,5 +522,28 @@ export class SharePointDrive {
 				})
 			);
 		}
+	}
+
+	/**
+	 * Internal helper to follow @odata.nextLink and return a flat array of items.
+	 * @param {string} initialUrl
+	 * @returns {Promise<any[]>}
+	 */
+	async #fetchAllPages(initialUrl) {
+		let response = await this.client.api(initialUrl).get();
+		let nextLink = (response && response['@odata.nextLink']) ?? (response && response.nextLink) ?? undefined;
+
+		const results = response.value ? [...response.value] : [];
+
+		while (nextLink) {
+			response = await this.client.api(nextLink).get();
+			nextLink = (response && response['@odata.nextLink']) ?? (response && response.nextLink) ?? undefined;
+
+			if (response.value && Array.isArray(response.value)) {
+				results.push(...response.value);
+			}
+		}
+
+		return results;
 	}
 }

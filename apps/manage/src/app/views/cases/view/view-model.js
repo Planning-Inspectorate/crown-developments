@@ -57,6 +57,7 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'eiaScreening',
 	'eiaScreeningOutcome',
 	'environmentalStatementReceivedDate',
+	'containsDistressingContent',
 	// map relation ids for updates
 	'siteAddressId',
 	'applicantContactId',
