@@ -33,6 +33,7 @@ import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-a
 import DateTimeValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-time-validator.js';
 import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
 import CostsApplicationsCommentValidator from '@pins/crowndev-lib/forms/custom-components/costs-applications-comment/costs-applications-comment-validator.js';
+import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-components/manage-list/validator.js';
 
 /**
  * @param {import('../../../../util/entra-groups-types.js').EntraGroupMembers} [groupMembers]
@@ -401,7 +402,41 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 			title: 'Agent',
 			addressRequired: true
 		}),
-
+		manageApplicants: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			title: 'Applicants',
+			question: 'Check applicant details',
+			url: 'check-applicant-details',
+			fieldName: 'manageApplicantDetails',
+			titleSingular: 'Applicant',
+			emptyListText: 'No applicants found',
+			showAnswersInSummary: true,
+			maximumAnswers: 5,
+			validators: [
+				new CustomManageListValidator({
+					minimumAnswers: 1,
+					errorMessages: {
+						minimumAnswers: 'At least one applicant organisation is required'
+					}
+				})
+			]
+		},
+		addApplicantName: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Applicant organisation name',
+			question: 'What is the name of the applicant organisation?',
+			url: 'add-applicant-details',
+			fieldName: 'organisationName',
+			validators: [new RequiredValidator('Enter the applicant organisation name')]
+		},
+		addApplicantAddress: {
+			type: COMPONENT_TYPES.ADDRESS,
+			title: 'Applicant address',
+			question: 'What is the address of the applicant organisation?',
+			url: 'applicant-address',
+			fieldName: 'organisationAddress',
+			validators: [new AddressValidator()]
+		},
 		applicationReceivedDate: dateQuestion({
 			fieldName: 'applicationReceivedDate',
 			question: 'When was the application received?',

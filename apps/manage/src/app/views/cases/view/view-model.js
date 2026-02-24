@@ -135,6 +135,16 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 			crownDevelopment.ParentCrownDevelopment?.reference ?? childrenReferences.join(', ');
 	}
 
+	if (crownDevelopment.Organisations) {
+		viewModel.manageApplicantDetails = crownDevelopment.Organisations.map((organisation) => {
+			return {
+				id: organisation.Organisation.id,
+				organisationName: organisation.Organisation.name,
+				organisationAddress: addressToViewModel(organisation.Organisation.Address)
+			};
+		});
+	}
+
 	addLpaDetailsToViewModel(viewModel, crownDevelopment.Lpa);
 
 	if (crownDevelopment.hasSecondaryLpa === true) {
