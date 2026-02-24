@@ -1,5 +1,5 @@
+import { sentenceCase } from '../../../util/string.js';
 import MonetaryInputQuestion from '../monetary-input/question.js';
-import { capitalize } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
 
 export default class CILAmountQuestion extends MonetaryInputQuestion {
 	constructor(props) {
@@ -26,7 +26,7 @@ export default class CILAmountQuestion extends MonetaryInputQuestion {
 		return [
 			{
 				key: this.title,
-				value: capitalize(journey.response.answers[this.fieldName]) || '-',
+				value: sentenceCase(journey.response.answers[this.fieldName] || '-'),
 				action: this.getAction(sectionSegment, journey, answer)
 			}
 		];

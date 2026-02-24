@@ -63,12 +63,12 @@ export default class CustomManageListQuestion extends ManageListQuestion {
 	 */
 	formatAnswerForSummary(sectionSegment, journey, answer) {
 		let formattedAnswer = this.notStartedText;
-		if (answer && Array.isArray(answer)) {
+		if (answer && Array.isArray(answer) && answer.length > 0) {
 			if (this.#showAnswersInSummary) {
 				const showAll = false;
 				const answers = answer.map((a) => this.#formatItemAnswers(a));
 				formattedAnswer = nunjucks.render(`${this.viewFolder}/answer-summary-list.njk`, { answers, showAll });
-			} else if (answer.length > 0) {
+			} else {
 				formattedAnswer = `${answer.length} ${this.title}`;
 			}
 		}

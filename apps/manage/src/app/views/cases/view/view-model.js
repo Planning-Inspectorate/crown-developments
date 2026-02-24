@@ -1,9 +1,15 @@
-import { APPLICATION_PROCEDURE_ID, APPLICATION_STAGE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import {
+	APPLICATION_PROCEDURE_ID,
+	APPLICATION_STAGE_ID,
+	CONTACT_ROLES_ID
+} from '@pins/crowndev-database/src/seed/data-static.js';
 import { toFloat, toInt } from '@pins/crowndev-lib/util/numbers.js';
 import { booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { optionalWhere } from '@pins/crowndev-lib/util/database.js';
 import { addressToViewModel, viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.js';
 import { parseNumberStringToNumber } from '@pins/crowndev-lib/util/numbers.js';
+import { extractContactFields } from '../util/contact.js';
+
 /**
  * CrownDevelopment fields that do not need mapping to a (or from) the view model
  * @type {Readonly<import('./types.js').CrownDevelopmentViewModelFields[]>}
@@ -135,6 +141,36 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 			crownDevelopment.ParentCrownDevelopment?.reference ?? childrenReferences.join(', ');
 	}
 
+	if (crownDevelopment.Organisations) {
+		viewModel.manageApplicantDetails = crownDevelopment.Organisations.map((crownToOrganisation) => {
+			return {
+				id: crownToOrganisation.Organisation.id,
+				organisationName: crownToOrganisation.Organisation.name,
+				organisationAddress: addressToViewModel(crownToOrganisation.Organisation.Address) || {},
+				organisationRelationId: crownToOrganisation.id
+			};
+		});
+
+		viewModel.manageApplicantContactDetails = crownDevelopment.Organisations.flatMap((crownToOrganisation) =>
+			(crownToOrganisation.Organisation.OrganisationToContact ?? [])
+				.filter((orgToContact) => orgToContact.role === CONTACT_ROLES_ID.APPLICANT)
+				.map((orgToContact) => ({
+					// This ID is used for the session. However, it should be fine to use the
+					// database-generated contact ID here.
+					id: orgToContact.Contact.id,
+					// Used for updating existing contacts, as the relation ID is needed to
+					// target the correct relation record for updates. If this is not present,
+					// the update will assume it's a new contact and attempt to create it instead.
+					organisationToContactRelationId: orgToContact.id,
+					applicantFirstName: orgToContact.Contact.firstName ?? '',
+					applicantLastName: orgToContact.Contact.lastName ?? '',
+					applicantContactEmail: orgToContact.Contact.email ?? '',
+					applicantContactTelephoneNumber: orgToContact.Contact.telephoneNumber ?? '',
+					applicantContactOrganisation: crownToOrganisation.organisationId
+				}))
+		);
+	}
+
 	addLpaDetailsToViewModel(viewModel, crownDevelopment.Lpa);
 
 	if (crownDevelopment.hasSecondaryLpa === true) {
@@ -213,6 +249,11 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	const agentContactUpdates = viewModelToNestedContactUpdate(edits, CONTACT_PREFIXES.AGENT, viewModel);
 	if (agentContactUpdates) {
 		crownDevelopmentUpdateInput.AgentContact = agentContactUpdates;
+	}
+
+	// Applicant contacts linked to organisations (multi-applicant feature)
+	if ('manageApplicantContactDetails' in edits) {
+		crownDevelopmentUpdateInput.Organisations = buildApplicantContactOrganisationUpdates(edits, viewModel);
 	}
 
 	if ('procedureId' in edits && edits.procedureId !== viewModel.procedureId) {
@@ -355,15 +396,154 @@ function viewModelToNestedContactUpdate(edits, prefix, viewModel) {
 }
 
 /**
+ * Build nested updates for applicant organisation contacts.
+ *
+ * @param {import('./types.js').CrownDevelopmentViewModel} edits
+ * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
+ * @returns {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput['Organisations']}
+ */
+function buildApplicantContactOrganisationUpdates(edits, viewModel) {
+	const contacts = Array.isArray(edits.manageApplicantContactDetails) ? edits.manageApplicantContactDetails : [];
+	if (contacts.length === 0) {
+		return undefined;
+	}
+
+	// Map of organisationId -> relationId (CrownDevelopmentToOrganisation id)
+	/** @type {Map<string, string>} */
+	const orgIdToRelationId = new Map(
+		(viewModel.manageApplicantDetails || [])
+			.map(
+				(organisation) =>
+					/** @type {readonly [string, string]} */ ([organisation?.id, organisation?.organisationRelationId])
+			)
+			.filter((pair) => pair[0] && pair[1])
+	);
+
+	// Map of organisationToContactRelationId -> current organisationId + contactId
+	// Used to support moving a contact to a different organisation without creating a new Contact.
+	/** @type {Map<string, {organisationId: string, contactId: string}>} */
+	const existingRelationToOrgAndContact = new Map(
+		(viewModel.manageApplicantContactDetails || [])
+			.map(
+				(contact) =>
+					/** @type {const} */ ([
+						contact?.organisationToContactRelationId,
+						{ organisationId: contact?.applicantContactOrganisation, contactId: contact?.id }
+					])
+			)
+			.filter(
+				(pair) =>
+					typeof pair[0] === 'string' &&
+					typeof pair[1]?.organisationId === 'string' &&
+					typeof pair[1]?.contactId === 'string'
+			)
+	);
+
+	/** @type {Map<string, {create: any[], deleteMany: any[]}>} */
+	const byRelation = new Map();
+
+	/**
+	 * @typedef {Object} OrganisationRelationBucket
+	 * @property {Array<{Role: {connect: {id: string}}, Contact: {create: any} | {connect: {id: string}}}>} create
+	 * @property {Array<{id: string}>} deleteMany
+	 */
+
+	/**
+	 * @param {string} relationId
+	 * @returns {OrganisationRelationBucket}
+	 */
+	const ensureBucket = (relationId) => {
+		if (!byRelation.has(relationId)) byRelation.set(relationId, { create: [], deleteMany: [] });
+		const bucket = byRelation.get(relationId);
+		if (!bucket) throw new Error('Failed to initialize bucket for organisation relation selector');
+		return bucket;
+	};
+
+	for (const contact of contacts) {
+		const targetOrganisationId = contact?.applicantContactOrganisation;
+		if (!targetOrganisationId) {
+			throw new Error('Unable to match applicant contact to organisation - no valid selector');
+		}
+
+		const targetRelationId = orgIdToRelationId.get(targetOrganisationId);
+		if (!targetRelationId) {
+			throw new Error(
+				`Found an orphaned contact with selector "${targetOrganisationId}" that does not match any organisation on this case: ${contact?.applicantContactEmail}`
+			);
+		}
+
+		const contactCreate = extractContactFields(contact);
+
+		if (!contact.organisationToContactRelationId) {
+			// (1) New contact: create join row + Contact
+			ensureBucket(targetRelationId).create.push({
+				Role: { connect: { id: CONTACT_ROLES_ID.APPLICANT } },
+				Contact: { create: contactCreate }
+			});
+			continue;
+		}
+
+		// For existing contacts, ALWAYS determine the organisation that currently owns the join row
+		// from the persisted view-model, not from the edited selector.
+		const existing = existingRelationToOrgAndContact.get(contact.organisationToContactRelationId);
+		if (!existing) {
+			// If we don't recognise this join row, don't attempt any nested update (it may be under a different org).
+			// Contact details will be handled by the separate $tx.contact.update step.
+			continue;
+		}
+
+		const isChangingOrganisation = existing.organisationId !== targetOrganisationId;
+		if (!isChangingOrganisation) {
+			// (2) Details update only: no join-table change required; Contact update happens separately.
+			continue;
+		}
+
+		// (3) Org change (and (4) org+details change): move the join row
+		const sourceRelationId = orgIdToRelationId.get(existing.organisationId);
+		if (!sourceRelationId) {
+			throw new Error(
+				`Unable to move contact - source organisation "${existing.organisationId}" is not present on this case`
+			);
+		}
+
+		ensureBucket(sourceRelationId).deleteMany.push({ id: contact.organisationToContactRelationId });
+		ensureBucket(targetRelationId).create.push({
+			Role: { connect: { id: CONTACT_ROLES_ID.APPLICANT } },
+			Contact: { connect: { id: existing.contactId } }
+		});
+	}
+
+	const updateOperations = Array.from(byRelation.entries()).map(([relationId, operations]) => {
+		/** @type {any} */
+		const organisationToContact = {};
+		if (operations.create.length) organisationToContact.create = operations.create;
+		if (operations.deleteMany.length) organisationToContact.deleteMany = operations.deleteMany;
+
+		return {
+			where: { id: relationId },
+			data: {
+				Organisation: {
+					update: {
+						OrganisationToContact: organisationToContact
+					}
+				}
+			}
+		};
+	});
+
+	return { update: updateOperations };
+}
+
+/**
  * Populates LPA or secondary LPA contact and address fields in the view model using a prefix.
  * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
  * @param {import('@pins/crowndev-database').Prisma.LpaGetPayload<{include: {Address: true}}>|null|undefined} lpa
- * @param {string} prefix - e.g. 'lpa' or 'secondaryLpa'
+ * @param {'lpa' | 'secondaryLpa'} prefix - e.g. 'lpa' or 'secondaryLpa'
  */
 function addLpaDetailsToViewModel(viewModel, lpa, prefix = 'lpa') {
 	if (lpa) {
-		viewModel[`${prefix}TelephoneNumber`] = lpa.telephoneNumber;
-		viewModel[`${prefix}Email`] = lpa.email;
+		viewModel[`${prefix}TelephoneNumber`] = lpa.telephoneNumber ?? undefined;
+		viewModel[`${prefix}Email`] = lpa.email ?? undefined;
 		if (lpa.Address) {
 			viewModel[`${prefix}Address`] = addressToViewModel(lpa.Address);
 		}
@@ -378,7 +558,7 @@ function addLpaDetailsToViewModel(viewModel, lpa, prefix = 'lpa') {
  */
 function addEventToViewModel(viewModel, event, procedureId, procedureNotificationDate) {
 	const prefix = eventPrefix(procedureId);
-	viewModel[`${prefix}ProcedureNotificationDate`] = procedureNotificationDate;
+	viewModel[`${prefix}ProcedureNotificationDate`] = procedureNotificationDate ?? undefined;
 	viewModel[`${prefix}Date`] = event.date;
 	viewModel[`${prefix}Venue`] = event.venue;
 	viewModel[`${prefix}NotificationDate`] = event.notificationDate;
@@ -449,7 +629,7 @@ function isHearing(procedureId) {
 
 /**
  * @param {string|null} procedureId
- * @returns {string}
+ * @returns {'inquiry' | 'hearing' | 'writtenReps'}
  */
 function eventPrefix(procedureId) {
 	switch (procedureId) {
