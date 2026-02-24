@@ -135,6 +135,30 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 			crownDevelopment.ParentCrownDevelopment?.reference ?? childrenReferences.join(', ');
 	}
 
+	if (crownDevelopment.Organisations) {
+		viewModel.manageApplicantDetails = crownDevelopment.Organisations.map((organisation) => {
+			return {
+				id: organisation.Organisation.id,
+				organisationName: organisation.Organisation.name,
+				organisationAddress: addressToViewModel(organisation.Organisation.Address)
+			};
+		});
+
+		viewModel.manageApplicantContactDetails = crownDevelopment.Organisations.flatMap(
+			(organisation) =>
+				organisation.Organisation.OrganisationToContact?.filter(
+					(orgToContact) => orgToContact.role === 'applicant'
+				).map((orgToContact) => ({
+					id: orgToContact.Contact.id,
+					applicantFirstName: orgToContact.Contact.firstName ?? '',
+					applicantLastName: orgToContact.Contact.lastName ?? '',
+					applicantContactEmail: orgToContact.Contact.email ?? '',
+					applicantContactTelephoneNumber: orgToContact.Contact.telephoneNumber ?? '',
+					applicantContactOrganisation: organisation.organisationId
+				})) || []
+		);
+	}
+
 	addLpaDetailsToViewModel(viewModel, crownDevelopment.Lpa);
 
 	if (crownDevelopment.hasSecondaryLpa === true) {
@@ -358,12 +382,12 @@ function viewModelToNestedContactUpdate(edits, prefix, viewModel) {
  * Populates LPA or secondary LPA contact and address fields in the view model using a prefix.
  * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
  * @param {import('@pins/crowndev-database').Prisma.LpaGetPayload<{include: {Address: true}}>|null|undefined} lpa
- * @param {string} prefix - e.g. 'lpa' or 'secondaryLpa'
+ * @param {'lpa' | 'secondaryLpa'} prefix - e.g. 'lpa' or 'secondaryLpa'
  */
 function addLpaDetailsToViewModel(viewModel, lpa, prefix = 'lpa') {
 	if (lpa) {
-		viewModel[`${prefix}TelephoneNumber`] = lpa.telephoneNumber;
-		viewModel[`${prefix}Email`] = lpa.email;
+		viewModel[`${prefix}TelephoneNumber`] = lpa.telephoneNumber ?? undefined;
+		viewModel[`${prefix}Email`] = lpa.email ?? undefined;
 		if (lpa.Address) {
 			viewModel[`${prefix}Address`] = addressToViewModel(lpa.Address);
 		}
@@ -378,7 +402,7 @@ function addLpaDetailsToViewModel(viewModel, lpa, prefix = 'lpa') {
  */
 function addEventToViewModel(viewModel, event, procedureId, procedureNotificationDate) {
 	const prefix = eventPrefix(procedureId);
-	viewModel[`${prefix}ProcedureNotificationDate`] = procedureNotificationDate;
+	viewModel[`${prefix}ProcedureNotificationDate`] = procedureNotificationDate ?? undefined;
 	viewModel[`${prefix}Date`] = event.date;
 	viewModel[`${prefix}Venue`] = event.venue;
 	viewModel[`${prefix}NotificationDate`] = event.notificationDate;
@@ -449,7 +473,7 @@ function isHearing(procedureId) {
 
 /**
  * @param {string|null} procedureId
- * @returns {string}
+ * @returns {'inquiry' | 'hearing' | 'writtenReps'}
  */
 function eventPrefix(procedureId) {
 	switch (procedureId) {

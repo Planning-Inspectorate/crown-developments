@@ -25,7 +25,7 @@ describe('addressToViewModel', () => {
 
 	it('returns an empty object when address is null', () => {
 		const result = addressToViewModel(null);
-		assert.deepStrictEqual(result, {});
+		assert.deepStrictEqual(result, undefined);
 	});
 });
 

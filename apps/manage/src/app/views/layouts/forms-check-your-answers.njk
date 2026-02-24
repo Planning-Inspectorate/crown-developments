@@ -22,31 +22,6 @@
         </div>
     {% endif %}
     {% block dynTaskList %}{% endblock %}
-    <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-        document.addEventListener("DOMContentLoaded", function() {
-            const toggleLists = document.querySelectorAll('[data-behaviour="toggle-list"]');
-            toggleLists.forEach(toggleList => {
-                const toggle = toggleList.querySelector('[data-toggle]');
-                const hiddenList = toggleList.querySelector('[data-show-more]');
-                if (!toggle || !hiddenList) {
-                    return;
-                }
-                toggle.hidden = false;
-                hiddenList.hidden = true;
-                const totalItems = toggleList.querySelectorAll('li');
-                const hiddenCount = totalItems.length - 2;
-                let expanded = false;
-                toggle.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    expanded = !expanded;
-                    hiddenList.hidden = !expanded;
-                    toggle.textContent = expanded
-                        ? 'Hide'
-                        : 'Show ' + hiddenCount + ' more';
-                });
-            });
-        });
-    </script>
 {% endblock %}
 
 {% if summaryWarningMessage %}

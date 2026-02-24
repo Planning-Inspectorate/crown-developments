@@ -6,6 +6,7 @@ export interface CrownDevelopmentViewModel {
 	description?: string;
 	containsDistressingContent?: boolean;
 	typeOfApplication?: string;
+	typeId: string;
 	subTypeId?: string;
 	lpaId?: string;
 	hasSecondaryLpa?: boolean;
@@ -41,6 +42,9 @@ export interface CrownDevelopmentViewModel {
 	secondaryLpaTelephoneNumber?: string;
 	secondaryLpaAddress?: Address;
 
+	hasAgent?: string;
+	manageApplicantDetails?: ManageApplicantDetails[];
+	manageApplicantContactDetails?: ManageApplicantContactDetails[];
 	applicantContactId?: string;
 	applicantContactName?: string;
 	applicantContactAddress?: Address;
@@ -127,6 +131,11 @@ export interface CrownDevelopmentViewModel {
 	eligibleForFeeRefund?: string;
 	applicationFeeRefundAmount?: string;
 	applicationFeeRefundDate?: Date | string;
+	cilLiable?: boolean | string;
+	cilAmount?: number | string;
+	bngExempt?: boolean | string;
+	hasCostsApplications?: boolean | string;
+	costsApplicationsComment?: string;
 
 	siteVisitDate?: Date | string;
 
@@ -137,23 +146,33 @@ export interface CrownDevelopmentViewModel {
 
 export type CrownDevelopmentViewModelFields = keyof CrownDevelopmentViewModel;
 
-const viewArgs = Prisma.validator<Prisma.CrownDevelopmentDefaultArgs>()({
+export type CrownDevelopmentPayload = Prisma.CrownDevelopmentGetPayload<{
 	include: {
-		ApplicantContact: { include: { Address: true } },
-		AgentContact: { include: { Address: true } },
-		Category: { include: { ParentCategory: true } },
-		Event: true,
-		Lpa: { include: { Address: true } },
-		SecondaryLpa: { include: { Address: true } },
-		SiteAddress: true,
-		ParentCrownDevelopment: true,
-		ChildrenCrownDevelopment: true
-	}
-});
-
-// todo: this doesn't seem to work in WebStorm, but is fine in vscode
-// see https://www.prisma.io/docs/orm/prisma-client/type-safety/operating-against-partial-structures-of-model-types#solution
-export type CrownDevelopmentPayload = Prisma.CrownDevelopmentGetPayload<typeof viewArgs>;
+		ApplicantContact: { include: { Address: true } };
+		AgentContact: { include: { Address: true } };
+		Category: { include: { ParentCategory: true } };
+		Event: true;
+		Lpa: { include: { Address: true } };
+		SecondaryLpa: { include: { Address: true } };
+		SiteAddress: true;
+		ParentCrownDevelopment: { select: { reference: true } };
+		ChildrenCrownDevelopment: { select: { reference: true } };
+		Organisations: {
+			include: {
+				Organisation: {
+					include: {
+						Address: true;
+						OrganisationToContact: {
+							include: {
+								Contact: { include: { Address: true } };
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+}>;
 
 // duplicated in JS for use in code
 export const CONTACT_PREFIXES = {
@@ -163,3 +182,27 @@ export const CONTACT_PREFIXES = {
 
 type ContactTypeKeys = keyof typeof CONTACT_PREFIXES;
 type ContactTypeValues = (typeof CONTACT_PREFIXES)[ContactTypeKeys];
+
+interface ManageApplicantDetails {
+	id?: string;
+	organisationName?: string;
+	organisationAddress?: Address;
+}
+
+interface ManageApplicantContactDetails {
+	id: string;
+	applicantFirstName: string;
+	applicantLastName: string;
+	applicantContactEmail: string;
+	applicantContactTelephoneNumber?: string;
+	applicantContactOrganisation: string;
+}
+
+export interface QuestionOverrides {
+	isApplicationTypePlanningOrLbc: boolean;
+	isApplicationSubTypeLbc: boolean;
+	filteredStageOptions?: Array<{ id: string; displayName: string }>;
+	applicantOrganisationOptions?: Array<{ text: string; value: string }>;
+	hasAgentAnswer: boolean;
+	isQuestionView: boolean;
+}
