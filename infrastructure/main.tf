@@ -19,9 +19,7 @@ resource "azurerm_resource_group" "secondary" {
 }
 
 resource "azurerm_key_vault" "main" {
-  #checkov:skip=CKV_AZURE_109: TODO: consider firewall settings, route traffic via VNet
-  #checkov:skip=CKV_AZURE_189: "Ensure that Azure Key Vault disables public network access" ##### REMEMBER TO REMOVE THIS ONE
-  #checkov:skip=CKV2_AZURE_32: "Ensure private endpoint is configured to key vault" -  ##### REMEMBER TO REMOVE THIS ONE
+  #checkov:skip=CKV_AZURE_109: TODO: consider firewall settings
   name                          = "${local.org}-kv-${local.resource_suffix}"
   location                      = module.primary_region.location
   resource_group_name           = azurerm_resource_group.primary.name
