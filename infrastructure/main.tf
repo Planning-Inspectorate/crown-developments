@@ -20,6 +20,7 @@ resource "azurerm_resource_group" "secondary" {
 
 resource "azurerm_key_vault" "main" {
   #checkov:skip=CKV_AZURE_109: TODO: consider firewall settings
+  #checkov:skip=CKV_AZURE_189: "Ensure that Azure Key Vault disables public network access" - remove once all environments have private endpoint and public access is disabled.
   # when ready for all environments:
   ## uncomment public access, remove the count.
   ## remove correspdonding vars.
