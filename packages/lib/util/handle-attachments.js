@@ -46,7 +46,7 @@ export async function moveAttachmentsToCaseFolder(
 			},
 			'Error moving representation attachments'
 		);
-		throw new Error(`Failed to move representation attachments: ${error.message}`);
+		throw new Error(`Failed to move representation attachments: ${error.message}`, { cause: error });
 	}
 	logger.info({ representationReference }, 'moved representation attachments');
 }
@@ -64,7 +64,7 @@ export async function getRepresentationFolder(sharePointDrive, folderPath, repre
 		if (error.statusCode === 409) {
 			subFolderResponse = await sharePointDrive.getDriveItemByPath(subFolderPath);
 		} else {
-			throw new Error(`Failed to create SharePoint folder: ${representationReference} folder`);
+			throw new Error(`Failed to create SharePoint folder: ${representationReference} folder`, { cause: error });
 		}
 	}
 	if (!subFolderResponse || !subFolderResponse.id) {
@@ -100,7 +100,7 @@ export async function deleteRepresentationAttachmentsFolder(
 				{ error, applicationReference, representationReference, folderPath },
 				`Error retrieving representation session folder for ${representationReference}`
 			);
-			throw new Error(`Failed to retrieve representation session folder: ${error.message}`);
+			throw new Error(`Failed to retrieve representation session folder: ${error.message}`, { cause: error });
 		}
 	}
 	if (!representationFolder || !representationFolder.id) {
@@ -121,7 +121,7 @@ export async function deleteRepresentationAttachmentsFolder(
 			{ error, applicationReference, representationReference },
 			`Error deleting representation attachments for ${representationReference}`
 		);
-		throw new Error(`Failed to delete representation attachments: ${error.message}`);
+		throw new Error(`Failed to delete representation attachments: ${error.message}`, { cause: error });
 	}
 	logger.info(
 		{ applicationReference, representationReference },

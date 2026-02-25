@@ -29,10 +29,10 @@ export async function getDocuments({ sharePointDrive, folderPath, logger, id, so
 			items.sort(sortFn);
 		}
 		return items.map(mapDriveItemToViewModel).filter(Boolean);
-	} catch (err) {
+	} catch (error) {
 		// don't show SharePoint errors to the user
-		logger.error({ err, id, folderPath }, 'error fetching documents from sharepoint');
-		throw new Error('There is a problem fetching documents');
+		logger.error({ error, id, folderPath }, 'error fetching documents from sharepoint');
+		throw new Error('There is a problem fetching documents', { cause: error });
 	}
 }
 
@@ -59,8 +59,8 @@ export async function getDocumentsById({ sharePointDrive, folderPath, logger, id
 			items.sort(sortFn);
 		}
 		return items.map(mapDriveItemToViewModel).filter(Boolean);
-	} catch (err) {
-		logger.error({ err, ids, folderPath }, 'error fetching documents from sharepoint');
-		throw new Error('There is a problem fetching documents');
+	} catch (error) {
+		logger.error({ error, ids, folderPath }, 'error fetching documents from sharepoint');
+		throw new Error('There is a problem fetching documents', { cause: error });
 	}
 }

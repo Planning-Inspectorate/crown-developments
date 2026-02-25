@@ -35,7 +35,7 @@ export async function sendLpaAcknowledgeReceiptOfQuestionnaireNotification(servi
 			{ error, reference: crownDevelopmentFields.reference },
 			`error dispatching LPA - Acknowledge Receipt of Questionnaire email notification`
 		);
-		throw new Error('Error encountered during email notification dispatch');
+		throw new Error('Error encountered during email notification dispatch', { cause: error });
 	}
 }
 
@@ -67,7 +67,7 @@ export async function sendApplicationReceivedNotification(service, id, applicati
 			{ error, reference: crownDevelopmentFields.reference },
 			`error dispatching Application Received email notification`
 		);
-		throw new Error('Error encountered during email notification dispatch');
+		throw new Error('Error encountered during email notification dispatch', { cause: error });
 	}
 }
 
@@ -92,7 +92,7 @@ export async function sendApplicationNotOfNationalImportanceNotification(service
 			{ error, reference: crownDevelopmentFields.reference },
 			`error dispatching Application not of national importance email notification`
 		);
-		throw new Error('Error encountered during email notification dispatch');
+		throw new Error('Error encountered during email notification dispatch', { cause: error });
 	}
 }
 /**

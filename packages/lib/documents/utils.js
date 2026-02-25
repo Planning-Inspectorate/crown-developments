@@ -11,10 +11,10 @@ import { Readable } from 'stream';
 export async function getDriveItemDownloadUrl(sharePointDrive, documentId, logger) {
 	try {
 		return await sharePointDrive.getDriveItemDownloadUrl(documentId);
-	} catch (err) {
+	} catch (error) {
 		// don't show SharePoint errors to the user
-		logger.error({ err, documentId }, 'error fetching document URL from sharepoint');
-		throw new Error('There is a problem fetching this document');
+		logger.error({ error, documentId }, 'error fetching document URL from sharepoint');
+		throw new Error('There is a problem fetching this document', { cause: error });
 	}
 }
 

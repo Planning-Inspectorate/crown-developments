@@ -74,7 +74,7 @@ export async function sendAcknowledgementOfRepresentationNotification(service, a
 				{ error, representationReference },
 				`error dispatching Acknowledgement of representation email notification`
 			);
-			throw new Error('Error encountered during email notification dispatch');
+			throw new Error('Error encountered during email notification dispatch', { cause: error });
 		}
 	}
 }
