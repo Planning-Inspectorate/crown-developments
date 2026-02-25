@@ -91,6 +91,8 @@ front_door_config = {
   use_tooling = false
 }
 
+keyvault_enable_private_endpoint = false
+
 monitoring_config = {
   app_insights_web_test_enabled        = true
   manage_app_insights_web_test_enabled = true

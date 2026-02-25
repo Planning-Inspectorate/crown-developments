@@ -20,16 +20,22 @@ resource "azurerm_resource_group" "secondary" {
 
 resource "azurerm_key_vault" "main" {
   #checkov:skip=CKV_AZURE_109: TODO: consider firewall settings
-  name                          = "${local.org}-kv-${local.resource_suffix}"
-  location                      = module.primary_region.location
-  resource_group_name           = azurerm_resource_group.primary.name
-  enabled_for_disk_encryption   = true
-  tenant_id                     = data.azurerm_client_config.current.tenant_id
-  soft_delete_retention_days    = 7
-  purge_protection_enabled      = true
-  rbac_authorization_enabled    = true
-  public_network_access_enabled = false
-  sku_name                      = "standard"
+  # when ready for all environments:
+  ## uncomment public access, remove the count.
+  ## remove correspdonding vars.
+  ## remove count on the private endpoint resource.
+  public_network_access_enabled = !var.keyvault_enable_private_endpoint
+
+  name                        = "${local.org}-kv-${local.resource_suffix}"
+  location                    = module.primary_region.location
+  resource_group_name         = azurerm_resource_group.primary.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = true
+  rbac_authorization_enabled  = true
+  # public_network_access_enabled = false
+  sku_name = "standard"
 
   tags = merge(
     local.tags,

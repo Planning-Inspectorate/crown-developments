@@ -111,6 +111,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "keyvault" {
 
 # Private Endpoints
 resource "azurerm_private_endpoint" "keyvault" {
+  count = var.keyvault_enable_private_endpoint ? 1 : 0
+
   name                = "${local.org}-pe-keyvault-${local.resource_suffix}"
   location            = module.primary_region.location
   resource_group_name = azurerm_resource_group.primary.name
