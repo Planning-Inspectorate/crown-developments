@@ -101,6 +101,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "redis_cache" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "keyvault" {
+  count = var.keyvault_enable_private_endpoint ? 1 : 0
+
   name                  = "${local.org}-vnetlink-keyvault-${local.resource_suffix}"
   resource_group_name   = var.tooling_config.network_rg
   private_dns_zone_name = data.azurerm_private_dns_zone.keyvault.name
