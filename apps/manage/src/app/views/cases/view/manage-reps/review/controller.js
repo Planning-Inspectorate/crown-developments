@@ -105,7 +105,7 @@ export function buildReviewControllers(service, journeyId) {
 						},
 						'Error moving representation attachments'
 					);
-					throw new Error(`Failed to move representation attachments: ${error.message}`);
+					throw new Error(`Failed to move representation attachments: ${error.message}`, { cause: error });
 				}
 
 				logger.info({ id, representationRef }, 'moved representation attachments');
@@ -927,7 +927,7 @@ async function deleteDocumentFromSharePointById(req, sharePointDrive, logger, it
 		await sharePointDrive.deleteDocumentById(itemId);
 	} catch (error) {
 		logger.error({ error, id, representationRef, itemId }, `Error deleting file: ${itemId} from Sharepoint folder`);
-		throw new Error('Failed to delete file');
+		throw new Error('Failed to delete file', { cause: error });
 	}
 }
 

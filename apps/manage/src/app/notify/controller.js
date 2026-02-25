@@ -14,7 +14,7 @@ export function buildNotifyCallbackController(service) {
 			logger.warn('Missing notification ID in Notify callback');
 			return res.status(400).send('Bad Request: Missing notification ID');
 		}
-		let notification = {};
+		let notification;
 		try {
 			const response = await notifyClient.getNotificationById(notificationId);
 			notification = response.data;

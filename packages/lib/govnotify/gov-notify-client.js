@@ -111,14 +111,14 @@ export class GovNotifyClient {
 		try {
 			this.logger.info(`dispatching email template: ${templateId}`);
 			await this.notifyClient.sendEmail(templateId, emailAddress, options);
-		} catch (e) {
+		} catch (error) {
 			// log the original error
-			this.logger.error({ error: e, templateId }, 'failed to dispatch email');
-			if (e.response && e.response.data && e.response.data.errors) {
+			this.logger.error({ error, templateId }, 'failed to dispatch email');
+			if (error.response && error.response.data && error.response.data.errors) {
 				// log the errors received from Notify API
-				this.logger.error({ message: e.response.data.errors }, 'received from Notify API');
+				this.logger.error({ message: error.response.data.errors }, 'received from Notify API');
 			}
-			throw new Error(`email failed to dispatch: ${e.message}`);
+			throw new Error(`email failed to dispatch: ${error.message}`, { cause: error });
 		}
 	}
 
@@ -126,9 +126,9 @@ export class GovNotifyClient {
 		try {
 			this.logger.info(`fetching notification by ID: ${notificationId}`);
 			return await this.notifyClient.getNotificationById(notificationId);
-		} catch (e) {
-			this.logger.error({ error: e, notificationId }, 'failed to fetch notification by ID');
-			throw new Error(`failed to fetch notification: ${e.message}`);
+		} catch (error) {
+			this.logger.error({ error, notificationId }, 'failed to fetch notification by ID');
+			throw new Error(`failed to fetch notification: ${error.message}`, { cause: error });
 		}
 	}
 }

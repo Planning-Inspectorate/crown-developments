@@ -124,7 +124,7 @@ export function uploadDocumentsController(
 						{ error, caseReference, sessionId },
 						`Error uploading file: ${filename} to Sharepoint folder: ${folderPath}`
 					);
-					throw new Error(`Failed to upload file: ${filename}`);
+					throw new Error(`Failed to upload file: ${filename}`, { cause: error });
 				}
 			}
 
@@ -159,7 +159,7 @@ export function deleteDocumentsController({ logger, appName, sharePointDrive, ge
 			await drive.deleteDocumentById(itemId);
 		} catch (error) {
 			logger.error({ error, applicationId, itemId }, `Error deleting file: ${itemId} from Sharepoint folder`);
-			throw new Error('Failed to delete file');
+			throw new Error('Failed to delete file', { cause: error });
 		}
 
 		const journeyResponse = res.locals?.journeyResponse;
@@ -238,7 +238,7 @@ async function createFolder({ sharePointDrive, logger, caseReference, sessionId,
 			logger.info({ path, folderName }, `Folder already exists: ${description}`);
 		} else {
 			logger.error({ error, caseReference, sessionId, path, folderName }, `Error creating ${description}`);
-			throw new Error(`Failed to create SharePoint folder: ${description}`);
+			throw new Error(`Failed to create SharePoint folder: ${description}`, { cause: error });
 		}
 	}
 }
