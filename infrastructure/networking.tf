@@ -17,7 +17,6 @@ resource "azurerm_subnet" "apps" {
   address_prefixes                  = [var.vnet_config.apps_subnet_address_space]
   private_endpoint_network_policies = "Enabled"
 
-  # for app services
   delegation {
     name = "delegation"
 
@@ -55,10 +54,7 @@ resource "azurerm_virtual_network_peering" "tooling_to_crown" {
   provider = azurerm.tooling
 }
 
-## DNS Zones for Azure Services
-## Private DNS Zones exist in the tooling subscription and are shared
-## here we link them to the VNet
-
+# Virtual Network Links to Private DNS Zones in the Tooling subscription
 resource "azurerm_private_dns_zone_virtual_network_link" "app_config" {
   name                  = "${local.org}-vnetlink-app-config-${local.resource_suffix}"
   resource_group_name   = var.tooling_config.network_rg
@@ -99,6 +95,17 @@ resource "azurerm_private_dns_zone_virtual_network_link" "redis_cache" {
   name                  = "${local.org}-vnetlink-redis-cache-${local.resource_suffix}"
   resource_group_name   = var.tooling_config.network_rg
   private_dns_zone_name = data.azurerm_private_dns_zone.redis_cache.name
+  virtual_network_id    = azurerm_virtual_network.main.id
+
+  provider = azurerm.tooling
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "keyvault" {
+  count = var.keyvault_enable_private_endpoint ? 1 : 0
+
+  name                  = "${local.org}-vnetlink-keyvault-${local.resource_suffix}"
+  resource_group_name   = var.tooling_config.network_rg
+  private_dns_zone_name = data.azurerm_private_dns_zone.keyvault.name
   virtual_network_id    = azurerm_virtual_network.main.id
 
   provider = azurerm.tooling
