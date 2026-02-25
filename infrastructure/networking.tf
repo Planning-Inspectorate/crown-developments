@@ -17,7 +17,6 @@ resource "azurerm_subnet" "apps" {
   address_prefixes                  = [var.vnet_config.apps_subnet_address_space]
   private_endpoint_network_policies = "Enabled"
 
-  # for app services
   delegation {
     name = "delegation"
 
@@ -55,10 +54,8 @@ resource "azurerm_virtual_network_peering" "tooling_to_crown" {
   provider = azurerm.tooling
 }
 
-## DNS Zones for Azure Services
-## Private DNS Zones exist in the tooling subscription and are shared
-## here we link them to the VNet
-
+# DNS Zones for Azure Services
+# Private DNS Zones exist in the tooling subscription linked here them to Crown VNet
 resource "azurerm_private_dns_zone_virtual_network_link" "app_config" {
   name                  = "${local.org}-vnetlink-app-config-${local.resource_suffix}"
   resource_group_name   = var.tooling_config.network_rg
@@ -102,4 +99,33 @@ resource "azurerm_private_dns_zone_virtual_network_link" "redis_cache" {
   virtual_network_id    = azurerm_virtual_network.main.id
 
   provider = azurerm.tooling
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "keyvault" {
+  name                  = "${local.org}-vnetlink-keyvault-${local.resource_suffix}"
+  resource_group_name   = var.tooling_config.network_rg
+  private_dns_zone_name = data.azurerm_private_dns_zone.keyvault.name
+  virtual_network_id    = azurerm_virtual_network.main.id
+
+  provider = azurerm.tooling
+}
+
+# Private Endpoints
+resource "azurerm_private_endpoint" "keyvault" {
+  name                = "${local.org}-pe-keyvault-${local.resource_suffix}"
+  location            = module.primary_region.location
+  resource_group_name = azurerm_resource_group.primary.name
+  subnet_id           = azurerm_subnet.main.id
+
+  private_dns_zone_group {
+    name                 = "${local.org}-pdns-${local.service_name}-keyvault-${var.environment}"
+    private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault.id]
+  }
+
+  private_service_connection {
+    name                           = "${local.org}-psc-keyvault-${local.resource_suffix}"
+    private_connection_resource_id = azurerm_key_vault.main.id
+    subresource_names              = ["vault"]
+    is_manual_connection           = false
+  }
 }
