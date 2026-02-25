@@ -198,7 +198,7 @@ async function addRepresentationFolderToSharepoint(sharePointDrive, logger, appl
 			{ error, applicationReference, representationRef },
 			'error creating new sharepoint folder for representation'
 		);
-		throw new Error('Error encountered during sharepoint folder creation');
+		throw new Error('Error encountered during sharepoint folder creation', { cause: error });
 	}
 }
 

@@ -102,7 +102,7 @@ export function buildSaveController(service) {
 				});
 			} catch (error) {
 				logger.error({ error, reference }, `error dispatching Acknowledgement of pre-notification email notification`);
-				throw new Error('Error encountered during email notification dispatch');
+				throw new Error('Error encountered during email notification dispatch', { cause: error });
 			}
 
 			if (isPlanningAndLbcCase) {
@@ -117,7 +117,7 @@ export function buildSaveController(service) {
 						{ error, lbcReference },
 						`error dispatching Acknowledgement of pre-notification email notification`
 					);
-					throw new Error('Error encountered during email notification dispatch');
+					throw new Error('Error encountered during email notification dispatch', { cause: error });
 				}
 			}
 		}

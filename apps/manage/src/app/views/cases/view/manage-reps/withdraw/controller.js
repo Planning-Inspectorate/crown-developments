@@ -136,7 +136,7 @@ export async function getRepresentationWithdrawalRequestsFolder(sharePointDrive,
 			if (error.statusCode === 409) {
 				subFolderResponse = await sharePointDrive.getDriveItemByPath(buildPath(currentPath, step));
 			} else {
-				throw new Error(`Failed to create SharePoint folder: ${step} folder`);
+				throw new Error(`Failed to create SharePoint folder: ${step} folder`, { cause: error });
 			}
 		}
 		currentPath = buildPath(currentPath, step);

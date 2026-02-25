@@ -494,7 +494,7 @@ export class SharePointDrive {
 			// Delete the item itself
 			return await this.client.api(urlBuilder.toString()).delete();
 		} catch (error) {
-			throw new Error(`Failed to delete SharePoint item: ${error.message}`);
+			throw new Error(`Failed to delete SharePoint item: ${error.message}`, { cause: error });
 		}
 	}
 	/**
