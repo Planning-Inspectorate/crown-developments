@@ -54,8 +54,7 @@ resource "azurerm_virtual_network_peering" "tooling_to_crown" {
   provider = azurerm.tooling
 }
 
-# DNS Zones for Azure Services
-# Private DNS Zones exist in the tooling subscription linked here them to Crown VNet
+# Virtual Network Links to Private DNS Zones in the Tooling subscription
 resource "azurerm_private_dns_zone_virtual_network_link" "app_config" {
   name                  = "${local.org}-vnetlink-app-config-${local.resource_suffix}"
   resource_group_name   = var.tooling_config.network_rg
