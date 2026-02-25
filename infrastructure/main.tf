@@ -65,3 +65,24 @@ resource "azurerm_key_vault_secret" "manual_secrets" {
     ]
   }
 }
+
+resource "azurerm_private_endpoint" "keyvault" {
+  count = var.keyvault_enable_private_endpoint ? 1 : 0
+
+  name                = "${local.org}-pe-keyvault-${local.resource_suffix}"
+  location            = module.primary_region.location
+  resource_group_name = azurerm_resource_group.primary.name
+  subnet_id           = azurerm_subnet.main.id
+
+  private_dns_zone_group {
+    name                 = "${local.org}-pdns-${local.service_name}-keyvault-${var.environment}"
+    private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault.id]
+  }
+
+  private_service_connection {
+    name                           = "${local.org}-psc-keyvault-${local.resource_suffix}"
+    private_connection_resource_id = azurerm_key_vault.main.id
+    subresource_names              = ["vault"]
+    is_manual_connection           = false
+  }
+}
