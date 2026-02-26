@@ -27,6 +27,7 @@ import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
 import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
 import CoordinatesValidator from '@planning-inspectorate/dynamic-forms/src/validator/coordinates-validator.js';
 import DatePeriodValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-period-validator.js';
+import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
 import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.js';
 import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
@@ -652,6 +653,13 @@ export function getQuestions(
 		...eventQuestions('inquiry'),
 		inquiryStatementsDate: {
 			...eventQuestions('inquiry').inquiryStatementsDate,
+			validators: [
+				new DateValidator(
+					'Date the inquiry statements will be published',
+					{ ensureFuture: false, ensurePast: false },
+					{ emptyErrorMessage: 'Enter date the inquiry statements will be published' }
+				)
+			],
 			viewData: {
 				extraActionButtons: [
 					{
@@ -664,6 +672,14 @@ export function getQuestions(
 		},
 		inquiryCaseManagementConferenceDate: {
 			...eventQuestions('inquiry').inquiryCaseManagementConferenceDate,
+			question: 'When is the inquiry case management conference?',
+			validators: [
+				new DateValidator(
+					'Date of inquiry case management conference',
+					{ ensureFuture: false, ensurePast: false },
+					{ emptyErrorMessage: 'Enter date of inquiry case management conference' }
+				)
+			],
 			viewData: {
 				extraActionButtons: [
 					{
@@ -688,6 +704,14 @@ export function getQuestions(
 		},
 		inquiryProofsOfEvidenceDate: {
 			...eventQuestions('inquiry').inquiryProofsOfEvidenceDate,
+			question: 'What is the inquiry proofs of evidence date?',
+			validators: [
+				new DateValidator(
+					'Date inquiry proofs of evidence',
+					{ ensureFuture: false, ensurePast: false },
+					{ emptyErrorMessage: 'Enter date inquiry proofs of evidence' }
+				)
+			],
 			viewData: {
 				extraActionButtons: [
 					{
