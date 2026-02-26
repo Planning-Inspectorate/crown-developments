@@ -166,7 +166,7 @@ export function eventQuestions(prefix) {
 					}
 				]
 			},
-			question: `What date is the ${prefix}?`
+			question: `What is the ${prefix} date?`
 		}),
 		[`${prefix}Duration`]: {
 			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
