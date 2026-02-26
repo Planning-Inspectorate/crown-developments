@@ -26,7 +26,7 @@ import {
 import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
 import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
 import CoordinatesValidator from '@planning-inspectorate/dynamic-forms/src/validator/coordinates-validator.js';
-import DatePeriodValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-period-validator.js';
+import CustomDatePeriodValidator from '@pins/crowndev-lib/validators/custom-date-period-validator.js';
 import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.js';
 import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
@@ -479,14 +479,27 @@ export function getQuestions(groupMembers = { caseOfficers: [], inspectors: [] }
 		representationsPeriod: {
 			type: COMPONENT_TYPES.DATE_PERIOD,
 			title: 'Representations period',
-			question: 'What is the Representations Period?',
+			question: 'What is the representations period?',
 			fieldName: 'representationsPeriod',
 			url: 'representations-period',
-			validators: [new DatePeriodValidator('Representations period')],
-			labels: { start: 'Open', end: 'Close' },
+			validators: [
+				new CustomDatePeriodValidator(
+					'representations period',
+					{ ensureFuture: false, ensurePast: false },
+					{ endDateAfterStartDate: true }
+				)
+			],
+			labels: { start: 'Start', end: 'End' },
+			hintStart: 'Enter date the representations period will open',
+			hintEnd: 'Enter date the representations period will close',
 			endTime: { hour: 23, minute: 59 }
 		},
-		representationsPublishDate: dateQuestion({ fieldName: 'representationsPublishDate' }),
+		representationsPublishDate: dateQuestion({
+			fieldName: 'representationsPublishDate',
+			title: 'Representations publish date',
+			question: 'When will written representations be published?',
+			validationTitle: 'date representations have been or will be published'
+		}),
 
 		// todo: needs to be autocomplete with options loaded from Entra
 		inspector1: {
