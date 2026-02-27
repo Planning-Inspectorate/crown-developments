@@ -13,7 +13,7 @@ describe('have-your-say journey', () => {
 
 	it('all questions should be defined', () => {
 		process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
-		const questions = getQuestions({ isPortal: true });
+		const questions = getQuestions({ textOverrides: { appName: 'portal' } });
 		const answers = {};
 		const response = new JourneyResponse(JOURNEY_ID, 'session-id', answers);
 		const journey = createJourney(questions, response, {
@@ -100,7 +100,7 @@ describe('have-your-say journey', () => {
 	});
 
 	it('isComplete should return true if Representation and Myself sections completed', () => {
-		const questions = getQuestions({ isPortal: true });
+		const questions = getQuestions({ textOverrides: { appName: 'portal' } });
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
 			myselfFirstName: 'Test Name',
@@ -116,7 +116,7 @@ describe('have-your-say journey', () => {
 	});
 
 	it('isComplete should return false if Myself section incomplete', () => {
-		const questions = getQuestions({ isPortal: true });
+		const questions = getQuestions({ textOverrides: { appName: 'portal' } });
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
 			myselfFirstName: 'Test Name',
@@ -131,7 +131,7 @@ describe('have-your-say journey', () => {
 	});
 
 	it('isComplete should return true if on behalf of person journey completed', () => {
-		const questions = getQuestions({ isPortal: true });
+		const questions = getQuestions({ textOverrides: { appName: 'portal' } });
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.PERSON,
@@ -152,7 +152,7 @@ describe('have-your-say journey', () => {
 	});
 
 	it('isComplete should return false if on behalf of person journey incomplete', () => {
-		const questions = getQuestions({ isPortal: true });
+		const questions = getQuestions({ textOverrides: { appName: 'portal' } });
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.PERSON,
@@ -171,7 +171,7 @@ describe('have-your-say journey', () => {
 	});
 
 	it('isComplete should return true if on behalf of org work for journey completed', () => {
-		const questions = getQuestions({ isPortal: true });
+		const questions = getQuestions({ textOverrides: { appName: 'portal' } });
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
@@ -190,7 +190,7 @@ describe('have-your-say journey', () => {
 	});
 
 	it('isComplete should false true if on behalf of org work for journey incomplete', () => {
-		const questions = getQuestions({ isPortal: true });
+		const questions = getQuestions({ textOverrides: { appName: 'portal' } });
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
@@ -208,7 +208,7 @@ describe('have-your-say journey', () => {
 	});
 
 	it('isComplete should return true if on behalf of org not work for journey completed', () => {
-		const questions = getQuestions({ isPortal: true });
+		const questions = getQuestions({ textOverrides: { appName: 'portal' } });
 		const answers = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
@@ -247,7 +247,7 @@ describe('have-your-say journey', () => {
 	});
 
 	const testHaveYourSayQuestionsDisplay = (answers, expectedOnBehalfOfQuestions, shouldMyselfDisplay) => {
-		const questions = getQuestions({ isPortal: true });
+		const questions = getQuestions({ textOverrides: { appName: 'portal' } });
 
 		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
 		const isRepsUploadDocsLive = true;
