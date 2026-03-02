@@ -9,6 +9,11 @@ import { createRoutes as createCaseUnpublishRoutes } from './unpublish/index.js'
 import { createRoutes as createRepsRoutes } from './manage-reps/index.js';
 import { createRoutes as createApplicationUpdatesRoutes } from './application-updates/index.js';
 import { buildUpdateCase } from './update-case.js';
+import {
+	buildGetJourneyResponseFromSession,
+	saveDataToSession
+} from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
+import { JOURNEY_ID } from './journey.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -26,6 +31,7 @@ export function createRoutes(service) {
 	const publishCase = createCasePublishRoutes(service);
 	const unpublishCase = createCaseUnpublishRoutes(service);
 	const applicationUpdates = createApplicationUpdatesRoutes(service);
+	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 
 	// view case details
 	router.get('/', validateIdFormat, getJourney, asyncHandler(viewCaseDetails));
@@ -39,7 +45,13 @@ export function createRoutes(service) {
 	}
 
 	// view question page
-	router.get('/:section/:question', validateIdFormat, getJourney, asyncHandler(question));
+	router.get(
+		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
+		validateIdFormat,
+		getJourneyResponse,
+		getJourney,
+		asyncHandler(question)
+	);
 
 	// submit edit
 	router.post(
@@ -49,6 +61,15 @@ export function createRoutes(service) {
 		validate,
 		validationErrorHandler,
 		asyncHandler(updateCase)
+	);
+
+	router.post(
+		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
+		getJourneyResponse,
+		getJourney,
+		validate,
+		validationErrorHandler,
+		buildSave(saveDataToSession)
 	);
 
 	router.post('/:section/:question/remove', validateIdFormat, getJourney, asyncHandler(clearAndUpdateCase));
