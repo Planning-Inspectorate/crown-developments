@@ -1,7 +1,7 @@
 import { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
-import { nl2br } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { JOURNEY_MAP } from './upload-documents.js';
+import nunjucks from 'nunjucks';
 
 /**
  * @typedef {Object} TextEntryCheckbox
@@ -157,16 +157,57 @@ export default class RepresentationAttachments extends Question {
 		};
 	}
 
+	/**
+	 * Format the answer for display in a summary view with clickable file links
+	 * @param {string} sectionSegment
+	 * @param {Journey} journey
+	 * @param {Array} answer - Array of file objects with itemId/id and fileName
+	 * @returns {Array} Formatted summary row(s)
+	 */
 	formatAnswerForSummary(sectionSegment, journey, answer) {
-		const hasFiles = Array.isArray(answer) && answer.length > 0;
-		const value = hasFiles ? nl2br(answer.map((file) => file.fileName).join('\n')) : '-';
-		const isRedactedField = this.fieldName.includes(REDACTED_FLAG);
+		let formattedAnswer = this.notStartedText;
+		const action = this.fieldName.includes(REDACTED_FLAG) ? null : this.getAction(sectionSegment, journey, answer);
+
+		if (answer && Array.isArray(answer) && answer.length > 0) {
+			// Remove any trailing /edit, /view, or trailing slashes from the current URL
+			const currentUrl = journey?.params?.currentUrl || journey?.customViewData?.currentUrl || journey?.baseUrl || '';
+			let baseUrl = '';
+			const manageRepMatch = currentUrl.match(/^(\/cases\/[^/]+\/manage-representations\/[^/]+)(?:\/.*)?$/);
+			if (manageRepMatch) {
+				baseUrl = manageRepMatch[1];
+			} else {
+				// Strip trailing edit/view/review (and any following segments) OR
+				// strip /manage/task-list (and any following segments). Handle optional trailing slashes.
+				baseUrl = currentUrl
+					.replace(/\/(edit|view|review)(\/.*)?\/?$/i, '')
+					.replace(/\/manage\/task-list(\/.*)?\/?$/i, '')
+					.replace(/\/$/, '');
+			}
+
+			// Ensure a sensible fallback and that baseUrl ends with /manage
+			if (!baseUrl) baseUrl = '/manage';
+			if (!baseUrl.endsWith('/manage')) {
+				baseUrl = `${baseUrl}/manage`;
+			}
+
+			// Format items for the nunjucks template
+			const items = answer.map(({ itemId, id, fileName }) => {
+				const fileId = itemId || id || '';
+				const href = fileId ? `${baseUrl}/task-list/${fileId}/view` : '#';
+				return {
+					href,
+					name: fileName || ''
+				};
+			});
+
+			formattedAnswer = nunjucks.render(`${this.viewFolder}/attachments-list.njk`, { items });
+		}
 
 		return [
 			{
 				key: this.title,
-				value,
-				action: isRedactedField ? null : this.getAction(sectionSegment, journey, answer)
+				value: formattedAnswer,
+				action
 			}
 		];
 	}
