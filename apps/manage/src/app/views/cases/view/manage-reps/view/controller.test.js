@@ -7,8 +7,17 @@ import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journe
 import { createJourney } from './journey.js';
 import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { RECEIVED_METHOD_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import nunjucks from 'nunjucks';
 
 describe('controller', () => {
+	const originalRender = nunjucks.render;
+	nunjucks.render = mock.fn((template, data) => {
+		if (template.includes('attachments-list.njk')) {
+			return '<mocked-attachments-list>';
+		}
+
+		return originalRender.call(nunjucks, template, data);
+	});
 	describe('viewRepresentation', () => {
 		it('should throw if no id', async () => {
 			const mockReq = { params: {} };

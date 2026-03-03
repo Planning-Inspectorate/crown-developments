@@ -1,0 +1,8 @@
+{# Render a list of attachments as an ordered list. Items is an array of { href, name } #}
+<ol class="govuk-list govuk-list--number">
+{% for item in items %}
+  <li>
+    <a href="{{ item.href | e }}" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noopener noreferrer">{{ item.name | e }}</a>
+  </li>
+{% endfor %}
+</ol>

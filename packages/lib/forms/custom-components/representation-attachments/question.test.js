@@ -1,9 +1,10 @@
-import { describe, it } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { CUSTOM_COMPONENTS } from '../index.js';
 import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/validator/document-upload-validator.js';
 import RepresentationAttachments from './question.js';
 import { ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '../../representations/question-utils.js';
+import nunjucks from 'nunjucks';
 
 describe('./lib/forms/custom-components/representation-attachments/question.js', () => {
 	const question = new RepresentationAttachments({
@@ -474,7 +475,21 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 			};
 			const answer = [{ fileName: 'test.pdf' }, { fileName: 'test1.pdf' }];
 
+			nunjucks.render = mock.fn(() => '<mocked-template-output>');
+
 			const formattedAnswer = question.formatAnswerForSummary(section, journey, answer);
+
+			assert.strictEqual(nunjucks.render.mock.callCount(), 1);
+
+			const renderCall = nunjucks.render.mock.calls[0];
+			assert.strictEqual(renderCall.arguments[0], 'custom-components/representation-attachments/attachments-list.njk');
+
+			const items = renderCall.arguments[1].items;
+			assert.strictEqual(items.length, 2);
+			assert.strictEqual(items[0].href, '#');
+			assert.strictEqual(items[0].name, 'test.pdf');
+			assert.strictEqual(items[1].href, '#');
+			assert.strictEqual(items[1].name, 'test1.pdf');
 
 			assert.deepStrictEqual(formattedAnswer, [
 				{
@@ -484,7 +499,7 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 						visuallyHiddenText: 'Select Attachments'
 					},
 					key: 'Attachments',
-					value: 'test.pdf<br>test1.pdf'
+					value: '<mocked-template-output>'
 				}
 			]);
 		});
@@ -519,13 +534,15 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 			};
 			const answer = [{ fileName: 'test.pdf' }, { fileName: 'test1.pdf' }];
 
+			nunjucks.render = mock.fn(() => '<mocked-template-output>');
+
 			const formattedAnswer = redactedAttachmentsQuestion.formatAnswerForSummary(section, journey, answer);
 
 			assert.deepStrictEqual(formattedAnswer, [
 				{
 					action: null,
 					key: 'Redacted attachments',
-					value: 'test.pdf<br>test1.pdf'
+					value: '<mocked-template-output>'
 				}
 			]);
 		});
@@ -792,6 +809,356 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				answers: { [withdrawalRequestsQuestion.fieldName]: expectedFiles }
 			});
 			assert.deepStrictEqual(journeyResponse.answers[withdrawalRequestsQuestion.fieldName], expectedFiles);
+		});
+	});
+	describe('formatAnswerForSummary - URL handling and edge cases', () => {
+		it('should format files with itemId as link when itemId is present', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/',
+				params: { currentUrl: '/cases/123/manage-representations/456/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [
+				{ itemId: 'abc123', fileName: 'file1.pdf' },
+				{ itemId: 'def456', fileName: 'file2.pdf' }
+			];
+
+			nunjucks.render = mock.fn(() => 'mocked-output');
+			question.formatAnswerForSummary({}, journey, answer);
+			const renderCall = nunjucks.render.mock.calls[0];
+			const items = renderCall.arguments[1].items;
+			assert.strictEqual(items.length, 2);
+			assert.strictEqual(items[0].href, '/cases/123/manage-representations/456/manage/task-list/abc123/view');
+			assert.strictEqual(items[0].name, 'file1.pdf');
+			assert.strictEqual(items[1].href, '/cases/123/manage-representations/456/manage/task-list/def456/view');
+			assert.strictEqual(items[1].name, 'file2.pdf');
+		});
+
+		it('should format files with "#" as link when itemId is missing', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/manage',
+				params: { currentUrl: '/cases/123/manage-representations/456/manage' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ fileName: 'file1.pdf' }, { fileName: 'file2.pdf' }];
+
+			nunjucks.render = mock.fn(() => 'rendered-content');
+
+			question.formatAnswerForSummary({}, journey, answer);
+
+			const renderCall = nunjucks.render.mock.calls[0];
+			const items = renderCall.arguments[1].items;
+			assert.strictEqual(items.length, 2);
+			assert.strictEqual(items[0].href, '#');
+			assert.strictEqual(items[0].name, 'file1.pdf');
+			assert.strictEqual(items[1].href, '#');
+			assert.strictEqual(items[1].name, 'file2.pdf');
+		});
+
+		it('should remove trailing "/edit" or "/view" from baseUrl', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/manage/edit',
+				params: { currentUrl: '/cases/123/manage-representations/456/manage/edit' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: 'abc123', fileName: 'file1.pdf' }];
+
+			nunjucks.render = mock.fn(() => 'content');
+
+			question.formatAnswerForSummary({}, journey, answer);
+
+			const renderCall = nunjucks.render.mock.calls[0];
+			const items = renderCall.arguments[1].items;
+			assert.strictEqual(items[0].href, '/cases/123/manage-representations/456/manage/task-list/abc123/view');
+		});
+
+		it('should return null action when fieldName includes "Redacted"', () => {
+			const redactedQuestion = new RepresentationAttachments({
+				type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS,
+				title: 'Redacted attachments',
+				question: 'Redacted attachments',
+				fieldName: 'myselfRedactedAttachments',
+				url: 'select-attachments',
+				allowedFileExtensions: ALLOWED_EXTENSIONS,
+				allowedMimeTypes: ALLOWED_MIME_TYPES,
+				maxFileSizeValue: MAX_FILE_SIZE,
+				maxFileSizeString: '20MB',
+				showUploadWarning: true,
+				validators: []
+			});
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/manage',
+				params: { currentUrl: '/cases/123/manage-representations/456/manage' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: 'abc123', fileName: 'file1.pdf' }];
+
+			const result = redactedQuestion.formatAnswerForSummary({}, journey, answer);
+
+			assert.strictEqual(result[0].action, null);
+		});
+
+		it('should format files using id when itemId is not present', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/',
+				params: { currentUrl: '/cases/123/manage-representations/456/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ id: 'xyz789', fileName: 'document.pdf' }];
+
+			nunjucks.render = mock.fn(() => 'formatted-result');
+
+			question.formatAnswerForSummary({}, journey, answer);
+
+			const renderCall = nunjucks.render.mock.calls[0];
+			const items = renderCall.arguments[1].items;
+			assert.strictEqual(items[0].href, '/cases/123/manage-representations/456/manage/task-list/xyz789/view');
+			assert.strictEqual(items[0].name, 'document.pdf');
+		});
+
+		it('should handle mixed files with itemId and id', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/',
+				params: { currentUrl: '/cases/123/manage-representations/456/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [
+				{ itemId: 'abc123', fileName: 'file1.pdf' },
+				{ id: 'xyz789', fileName: 'file2.pdf' }
+			];
+
+			nunjucks.render = mock.fn(() => 'mixed-content');
+
+			question.formatAnswerForSummary({}, journey, answer);
+
+			const renderCall = nunjucks.render.mock.calls[0];
+			const items = renderCall.arguments[1].items;
+			assert.strictEqual(items[0].href, '/cases/123/manage-representations/456/manage/task-list/abc123/view');
+			assert.strictEqual(items[0].name, 'file1.pdf');
+			assert.strictEqual(items[1].href, '/cases/123/manage-representations/456/manage/task-list/xyz789/view');
+			assert.strictEqual(items[1].name, 'file2.pdf');
+		});
+
+		it('should handle files with missing fileName', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/',
+				params: { currentUrl: '/cases/123/manage-representations/456/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: 'abc123' }];
+
+			nunjucks.render = mock.fn(() => 'missing-name-content');
+
+			question.formatAnswerForSummary({}, journey, answer);
+
+			const renderCall = nunjucks.render.mock.calls[0];
+			const items = renderCall.arguments[1].items;
+			assert.strictEqual(items[0].href, '/cases/123/manage-representations/456/manage/task-list/abc123/view');
+			assert.strictEqual(items[0].name, '');
+		});
+
+		it('should return "Not started" when no files are provided', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/',
+				params: { currentUrl: '/cases/123/manage-representations/456/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [];
+
+			const result = question.formatAnswerForSummary({}, journey, answer);
+
+			assert.strictEqual(result[0].value, question.notStartedText);
+		});
+
+		it('should return "Not started" when answer is null', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/',
+				params: { currentUrl: '/cases/123/manage-representations/456/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = null;
+
+			const result = question.formatAnswerForSummary({}, journey, answer);
+
+			assert.strictEqual(result[0].value, question.notStartedText);
+		});
+
+		it('should return "Not started" when answer is undefined', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/',
+				params: { currentUrl: '/cases/123/manage-representations/456/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = undefined;
+
+			const result = question.formatAnswerForSummary({}, journey, answer);
+
+			assert.strictEqual(result[0].value, question.notStartedText);
+		});
+
+		it('should handle journey with no URL properties gracefully', () => {
+			const journey = {
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: 'abc123', fileName: 'file1.pdf' }];
+
+			nunjucks.render = mock.fn(() => 'graceful-content');
+
+			question.formatAnswerForSummary({}, journey, answer);
+
+			const renderCall = nunjucks.render.mock.calls[0];
+			const items = renderCall.arguments[1].items;
+			assert.strictEqual(items[0].href, '/manage/task-list/abc123/view');
+		});
+
+		it('should remove trailing "/view" from baseUrl', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/manage/view',
+				params: { currentUrl: '/cases/123/manage-representations/456/manage/view' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: 'abc123', fileName: 'file1.pdf' }];
+
+			nunjucks.render = mock.fn(() => 'view-removed-content');
+
+			question.formatAnswerForSummary({}, journey, answer);
+
+			const renderCall = nunjucks.render.mock.calls[0];
+			const items = renderCall.arguments[1].items;
+			assert.strictEqual(items[0].href, '/cases/123/manage-representations/456/manage/task-list/abc123/view');
+		});
+
+		it('should remove trailing "/review" from baseUrl', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/manage/review',
+				params: { currentUrl: '/cases/123/manage-representations/456/manage/review' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: 'abc123', fileName: 'file1.pdf' }];
+
+			nunjucks.render = mock.fn(() => 'review-removed-content');
+
+			question.formatAnswerForSummary({}, journey, answer);
+
+			const renderCall = nunjucks.render.mock.calls[0];
+			const items = renderCall.arguments[1].items;
+			assert.strictEqual(items[0].href, '/cases/123/manage-representations/456/manage/task-list/abc123/view');
+		});
+
+		it('should use journey.customViewData.currentUrl when params.currentUrl is not available', () => {
+			const journey = {
+				customViewData: { currentUrl: '/cases/123/manage-representations/456/manage' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: 'abc123', fileName: 'file1.pdf' }];
+
+			nunjucks.render = mock.fn(() => 'custom-view-content');
+
+			question.formatAnswerForSummary({}, journey, answer);
+
+			const renderCall = nunjucks.render.mock.calls[0];
+			const items = renderCall.arguments[1].items;
+			assert.strictEqual(items[0].href, '/cases/123/manage-representations/456/manage/task-list/abc123/view');
+		});
+
+		it('should strip /manage/task-list from currentUrl', () => {
+			const journey = {
+				params: { currentUrl: '/cases/123/manage-representations/456/manage/task-list/item123/edit' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: 'abc123', fileName: 'file1.pdf' }];
+
+			nunjucks.render = mock.fn(() => 'task-list-stripped');
+
+			question.formatAnswerForSummary({}, journey, answer);
+
+			const renderCall = nunjucks.render.mock.calls[0];
+			const items = renderCall.arguments[1].items;
+			assert.strictEqual(items[0].href, '/cases/123/manage-representations/456/manage/task-list/abc123/view');
+		});
+
+		it('should handle URLs with trailing slashes', () => {
+			const journey = {
+				params: { currentUrl: '/cases/123/manage-representations/456/manage/edit/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: 'abc123', fileName: 'file1.pdf' }];
+
+			nunjucks.render = mock.fn(() => 'trailing-slash-handled');
+
+			question.formatAnswerForSummary({}, journey, answer);
+
+			const renderCall = nunjucks.render.mock.calls[0];
+			const items = renderCall.arguments[1].items;
+			assert.strictEqual(items[0].href, '/cases/123/manage-representations/456/manage/task-list/abc123/view');
+		});
+
+		it('should handle case-insensitive edit/view/review', () => {
+			const journey = {
+				params: { currentUrl: '/cases/123/manage-representations/456/manage/EDIT' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: 'abc123', fileName: 'file1.pdf' }];
+
+			nunjucks.render = mock.fn(() => 'case-insensitive-content');
+
+			question.formatAnswerForSummary({}, journey, answer);
+
+			const renderCall = nunjucks.render.mock.calls[0];
+			const items = renderCall.arguments[1].items;
+			assert.strictEqual(items[0].href, '/cases/123/manage-representations/456/manage/task-list/abc123/view');
+		});
+
+		it('should handle manage-representations URL with trailing segments', () => {
+			const journey = {
+				params: { currentUrl: '/cases/123/manage-representations/456/manage/edit/extra' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: 'abc123', fileName: 'file1.pdf' }];
+
+			nunjucks.render = mock.fn(() => 'trailing-segments-content');
+
+			question.formatAnswerForSummary({}, journey, answer);
+
+			const renderCall = nunjucks.render.mock.calls[0];
+			const items = renderCall.arguments[1].items;
+			assert.strictEqual(items[0].href, '/cases/123/manage-representations/456/manage/task-list/abc123/view');
 		});
 	});
 });
