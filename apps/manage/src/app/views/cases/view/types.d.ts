@@ -126,7 +126,7 @@ export interface CrownDevelopmentViewModel {
 	connectedApplication?: string;
 
 	hasApplicationFee: string;
-	applicationFee: string;
+	applicationFee: number;
 	applicationFeeReceivedDate?: Date | string;
 	eligibleForFeeRefund?: string;
 	applicationFeeRefundAmount?: string;
