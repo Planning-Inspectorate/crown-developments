@@ -241,10 +241,10 @@ export function getQuestions(
 		category: {
 			type: COMPONENT_TYPES.RADIO,
 			title: 'Category',
-			question: 'What is the category?',
+			question: 'What is the application category?',
 			fieldName: 'subCategoryId',
 			url: 'category',
-			validators: [new RequiredValidator()],
+			validators: [new RequiredValidator('Select the application category')],
 			options: subCategoriesToRadioOptions(CATEGORIES)
 		},
 		procedure: {
@@ -254,7 +254,7 @@ export function getQuestions(
 			hint: "If you change the procedure after it's been set, any details you've added will be lost.",
 			fieldName: 'procedureId',
 			url: 'procedure',
-			validators: [new RequiredValidator()],
+			validators: [new RequiredValidator('Select the application procedure')],
 			options: referenceDataToRadioOptions(APPLICATION_PROCEDURE),
 			viewData: {
 				extraActionButtons: [
@@ -272,7 +272,7 @@ export function getQuestions(
 			question: 'What is the application status?',
 			fieldName: 'statusId',
 			url: 'status',
-			validators: [new RequiredValidator()],
+			validators: [new RequiredValidator('Select the application status')],
 			options: referenceDataToRadioOptions(APPLICATION_STATUS)
 		},
 		stage: {
@@ -281,7 +281,7 @@ export function getQuestions(
 			question: 'What is the application stage?',
 			fieldName: 'stageId',
 			url: 'stage',
-			validators: [new RequiredValidator()],
+			validators: [new RequiredValidator('Select the application stage')],
 			options: overrides.filteredStageOptions
 				? referenceDataToRadioOptions(overrides.filteredStageOptions)
 				: referenceDataToRadioOptions(APPLICATION_STAGE)
@@ -289,15 +289,16 @@ export function getQuestions(
 		lpaReference: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 			title: 'LPA reference',
-			question: 'What is LPA reference for this application?',
+			question: 'What is the LPA reference for this application?',
+			hint: 'Enter the local planning authority reference',
 			fieldName: 'lpaReference',
 			url: 'lpa-reference',
 			validators: [
-				new RequiredValidator('Enter the LPA reference'),
+				new RequiredValidator(),
 				new StringValidator({
 					maxLength: {
 						maxLength: 250,
-						maxLengthMessage: 'LPA reference must be 250 characters or less'
+						maxLengthMessage: 'LPA Reference must be 250 characters or less'
 					}
 				})
 			]
@@ -308,16 +309,19 @@ export function getQuestions(
 			question: 'Is this application nationally important?',
 			fieldName: 'nationallyImportant',
 			url: 'nationally-important',
-			validators: [new RequiredValidator()]
+			validators: [new RequiredValidator('Select yes if the application is nationally important')]
 		},
-		nationallyImportantConfirmationDate: dateQuestion({ fieldName: 'nationallyImportantConfirmationDate' }),
+		nationallyImportantConfirmationDate: dateQuestion({
+			fieldName: 'nationallyImportantConfirmationDate',
+			question: 'What date was national importance confirmed?'
+		}),
 		isGreenBelt: {
 			type: COMPONENT_TYPES.BOOLEAN,
 			title: 'Green belt',
-			question: 'Is this application in green belt land?',
+			question: 'Is the proposed development in green belt land?',
 			fieldName: 'isGreenBelt',
 			url: 'is-green-belt',
-			validators: [new RequiredValidator()]
+			validators: [new RequiredValidator('Select yes if the application is in green belt land')]
 		},
 		siteIsVisibleFromPublicLand: {
 			type: COMPONENT_TYPES.BOOLEAN,
@@ -325,7 +329,7 @@ export function getQuestions(
 			question: 'Is the site visible from public land?',
 			fieldName: 'siteIsVisibleFromPublicLand',
 			url: 'site-is-visible-from-public-land',
-			validators: [new RequiredValidator()]
+			validators: [new RequiredValidator('Select yes if the site is visible from public land')]
 		},
 		healthAndSafetyIssue: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
@@ -338,7 +342,7 @@ export function getQuestions(
 				new StringValidator({
 					maxLength: {
 						maxLength: 2000,
-						maxLengthMessage: 'Health and safety issue must be 2000 characters or less'
+						maxLengthMessage: 'Health and safety issues must be 2000 characters or less'
 					}
 				})
 			]
