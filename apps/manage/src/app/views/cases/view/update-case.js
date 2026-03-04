@@ -52,7 +52,11 @@ export function buildUpdateCase(service, clearAnswer = false) {
 					include: {
 						ParentCrownDevelopment: { select: { id: true } },
 						ChildrenCrownDevelopment: { select: { id: true } },
-						Organisations: { include: { Address: true } }
+						Organisations: {
+							include: {
+								Organisation: { include: { Address: true } }
+							}
+						}
 					}
 				});
 				if (!crownDevelopment) {
