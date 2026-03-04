@@ -107,6 +107,38 @@ describe('publish case', () => {
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.ok(!req.session.cases || !req.session.cases['id-1'] || !req.session.cases['id-1'].reference);
 		});
+		it('should not require applicant organisation contact name when multiple applicants feature is live', async () => {
+			const db = {
+				crownDevelopment: {
+					findUnique: mock.fn(() =>
+						Promise.resolve({
+							id: 'id-1',
+							ApplicantContact: { Address: {} },
+							AgentContact: { Address: {} },
+							Lpa: { Address: {} }
+						})
+					)
+				}
+			};
+			const middleware = buildGetValidatedCaseMiddleware({
+				db,
+				logger: mockLogger(),
+				isMultipleApplicantsLive: true
+			});
+			const req = { params: { id: 'id-1' }, session: {} };
+			const res = {
+				locals: {},
+				redirect: mock.fn()
+			};
+			const next = mock.fn();
+
+			await middleware(req, res, next);
+
+			// Same missing fields as the default test, but applicant org contact name is not required when feature flag is on.
+			assert.strictEqual(req.session.cases['id-1'].publishErrors.length, 4);
+			assert.strictEqual(res.redirect.mock.calls.length, 1);
+			assert.strictEqual(res.redirect.mock.calls[0].arguments[0], '/cases/id-1');
+		});
 	});
 	describe('publishCase', () => {
 		it('should throw if id is not provided', async () => {
