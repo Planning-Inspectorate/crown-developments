@@ -38,7 +38,8 @@ export function buildPublishCase({ db, logger }) {
  * @param {import('#service').ManageService} service
  * @returns {import('express').Handler}
  */
-export function buildGetValidatedCaseMiddleware({ db, logger }) {
+export function buildGetValidatedCaseMiddleware(service) {
+	const { db, logger } = service;
 	return async (req, res, next) => {
 		const id = req.params.id;
 		if (!id) {
@@ -72,11 +73,6 @@ export function buildGetValidatedCaseMiddleware({ db, logger }) {
 				pageLink: `/cases/${id}/overview/type-of-application`
 			},
 			{
-				value: crownDevelopment.ApplicantContact?.orgName,
-				errorMessage: 'Enter Applicant Organisation Contact Name',
-				pageLink: `/cases/${id}/overview/applicant-contact`
-			},
-			{
 				value: crownDevelopment.Lpa?.id,
 				errorMessage: 'Enter Local Planning Authority',
 				pageLink: `/cases/${id}/overview/local-planning-authority`
@@ -88,6 +84,14 @@ export function buildGetValidatedCaseMiddleware({ db, logger }) {
 				pageLink: `/cases/${id}#overview`
 			}
 		];
+
+		if (!service.isMultipleApplicantsLive) {
+			answers.push({
+				value: crownDevelopment.ApplicantContact?.orgName,
+				errorMessage: 'Enter Applicant Organisation Contact Name',
+				pageLink: `/cases/${id}/overview/applicant-contact`
+			});
+		}
 
 		const errors = [];
 		for (const answer of answers) {
