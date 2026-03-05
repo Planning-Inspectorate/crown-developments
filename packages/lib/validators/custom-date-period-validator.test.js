@@ -748,12 +748,32 @@ const _validationMappedErrors = async (req, question, validatorOptions = {}) => 
 			? validatorOptions
 			: (validatorOptions?.inputLabel ?? 'Representations period');
 
-	const dateValidationSettings = validatorOptions?.dateValidationSettings ?? { ensureFuture: false, ensurePast: false };
-	const endDateAfterStartDate = validatorOptions?.endDateAfterStartDate ?? true;
+	const defaultDateValidationSettings = validatorOptions?.dateValidationSettings ?? {
+		ensureFuture: false,
+		ensurePast: false
+	};
+	const startDateValidationSettings =
+		typeof validatorOptions === 'string'
+			? defaultDateValidationSettings
+			: (validatorOptions?.startDateValidationSettings ??
+				validatorOptions?.startDateValidator ??
+				defaultDateValidationSettings);
+	const endDateValidationSettings =
+		typeof validatorOptions === 'string'
+			? defaultDateValidationSettings
+			: (validatorOptions?.endDateValidationSettings ??
+				validatorOptions?.endDateValidator ??
+				defaultDateValidationSettings);
 
-	const validationRules = new CustomDatePeriodValidator(inputLabel, dateValidationSettings, {
+	const endDateAfterStartDate =
+		typeof validatorOptions === 'string' ? true : (validatorOptions?.endDateAfterStartDate ?? true);
+
+	const validationRules = new CustomDatePeriodValidator(
+		inputLabel,
+		startDateValidationSettings,
+		endDateValidationSettings,
 		endDateAfterStartDate
-	}).validate(question);
+	).validate(question);
 
 	await Promise.all(validationRules.map((validator) => validator.run(req)));
 
