@@ -1,42 +1,44 @@
 @use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
 
+.grid-row-chevrons > .govuk-grid-column-one-half {
+	box-sizing: border-box;
+}
+
+.grid-row-chevrons {
+	display: flex;
+	flex-wrap: wrap;
+}
+
 .pins-chevron-card {
 	&__wrapper {
 		border-top: 1px solid govuk.govuk-colour('mid-grey');
-		position: relative;
-		padding: 15px 0 0 0;
+		padding: 15px 0 0;
 		margin-bottom: 20px;
 	}
 
 	&__heading {
 		margin-bottom: 10px;
+		position: relative;
 	}
 
 	&__link {
-		display: inline-block;
 		max-width: 90%;
 	}
 
 	&__link::after {
 		content: '';
 		position: absolute;
-		display: block;
 		border-style: solid;
 		border-width: 0.2rem 0.2rem 0 0;
 		height: 0.45rem;
 		width: 0.45rem;
-		top: 1.4rem;
+		top: 50%;
 		right: 0;
-		transform: rotate(45deg);
+		transform: translateY(-50%) rotate(45deg);
 		color: govuk.govuk-colour('blue');
 	}
 
-	&__link::before {
-		content: '';
-		position: absolute;
-		top: 0;
-		right: 0;
-		bottom: 0;
-		left: 0;
+	&__description {
+		margin: 0.25rem 1.25rem 0 0;
 	}
 }
