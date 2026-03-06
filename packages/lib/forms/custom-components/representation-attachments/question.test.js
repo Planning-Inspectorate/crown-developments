@@ -484,7 +484,8 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 						visuallyHiddenText: 'Select Attachments'
 					},
 					key: 'Attachments',
-					value: 'test.pdf<br>test1.pdf'
+					value:
+						'<ol><li><a href="#" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noopener noreferrer">test.pdf</a></li><li><a href="#" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noopener noreferrer">test1.pdf</a></li></ol>'
 				}
 			]);
 		});
@@ -525,7 +526,8 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				{
 					action: null,
 					key: 'Redacted attachments',
-					value: 'test.pdf<br>test1.pdf'
+					value:
+						'<ol><li><a href="#" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noopener noreferrer">test.pdf</a></li><li><a href="#" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noopener noreferrer">test1.pdf</a></li></ol>'
 				}
 			]);
 		});
@@ -792,6 +794,260 @@ describe('./lib/forms/custom-components/representation-attachments/question.js',
 				answers: { [withdrawalRequestsQuestion.fieldName]: expectedFiles }
 			});
 			assert.deepStrictEqual(journeyResponse.answers[withdrawalRequestsQuestion.fieldName], expectedFiles);
+		});
+		it('should format files with itemId as link when itemId is present', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/',
+				params: { currentUrl: '/cases/123/manage-representations/456/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [
+				{ itemId: 'abc123', fileName: 'file1.pdf' },
+				{ itemId: 'def456', fileName: 'file2.pdf' }
+			];
+
+			const result = question.formatAnswerForSummary({}, journey, answer);
+
+			assert.strictEqual(
+				result[0].value,
+				'<ol><li><a href="/cases/123/manage-representations/456/manage/task-list/abc123/view" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noopener noreferrer">file1.pdf</a></li><li><a href="/cases/123/manage-representations/456/manage/task-list/def456/view" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noopener noreferrer">file2.pdf</a></li></ol>'
+			);
+		});
+
+		it('should format files with "#" as link when itemId is missing', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/manage',
+				params: { currentUrl: '/cases/123/manage-representations/456/manage' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ fileName: 'file1.pdf' }, { fileName: 'file2.pdf' }];
+
+			const result = question.formatAnswerForSummary({}, journey, answer);
+
+			assert.strictEqual(
+				result[0].value,
+				'<ol><li><a href="#" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noopener noreferrer">file1.pdf</a></li><li><a href="#" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noopener noreferrer">file2.pdf</a></li></ol>'
+			);
+		});
+
+		it('should remove trailing "/edit" or "/view" from baseUrl', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/manage/edit',
+				params: { currentUrl: '/cases/123/manage-representations/456/manage/edit' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: 'abc123', fileName: 'file1.pdf' }];
+
+			const result = question.formatAnswerForSummary({}, journey, answer);
+
+			assert.strictEqual(
+				result[0].value,
+				'<ol><li><a href="/cases/123/manage-representations/456/manage/task-list/abc123/view" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noopener noreferrer">file1.pdf</a></li></ol>'
+			);
+		});
+
+		it('should return null action when fieldName includes "Redacted"', () => {
+			const redactedQuestion = new RepresentationAttachments({
+				type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS,
+				title: 'Redacted attachments',
+				question: 'Redacted attachments',
+				fieldName: 'myselfRedactedAttachments',
+				url: 'select-attachments',
+				allowedFileExtensions: ALLOWED_EXTENSIONS,
+				allowedMimeTypes: ALLOWED_MIME_TYPES,
+				maxFileSizeValue: MAX_FILE_SIZE,
+				maxFileSizeString: '20MB',
+				showUploadWarning: true,
+				validators: []
+			});
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/manage',
+				params: { currentUrl: '/cases/123/manage-representations/456/manage' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: 'abc123', fileName: 'file1.pdf' }];
+
+			const result = redactedQuestion.formatAnswerForSummary({}, journey, answer);
+
+			assert.strictEqual(result[0].action, null);
+		});
+
+		it('should format files using id when itemId is not present', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/',
+				params: { currentUrl: '/cases/123/manage-representations/456/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ id: 'xyz789', fileName: 'document.pdf' }];
+
+			const result = question.formatAnswerForSummary({}, journey, answer);
+
+			assert.strictEqual(
+				result[0].value,
+				'<ol><li><a href="/cases/123/manage-representations/456/manage/task-list/xyz789/view" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noopener noreferrer">document.pdf</a></li></ol>'
+			);
+		});
+
+		it('should handle mixed files with itemId and id', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/',
+				params: { currentUrl: '/cases/123/manage-representations/456/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [
+				{ itemId: 'abc123', fileName: 'file1.pdf' },
+				{ id: 'xyz789', fileName: 'file2.pdf' }
+			];
+
+			const result = question.formatAnswerForSummary({}, journey, answer);
+
+			assert.strictEqual(
+				result[0].value,
+				'<ol><li><a href="/cases/123/manage-representations/456/manage/task-list/abc123/view" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noopener noreferrer">file1.pdf</a></li><li><a href="/cases/123/manage-representations/456/manage/task-list/xyz789/view" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noopener noreferrer">file2.pdf</a></li></ol>'
+			);
+		});
+
+		it('should handle files with missing fileName', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/',
+				params: { currentUrl: '/cases/123/manage-representations/456/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: 'abc123' }];
+
+			const result = question.formatAnswerForSummary({}, journey, answer);
+
+			assert.strictEqual(
+				result[0].value,
+				'<ol><li><a href="/cases/123/manage-representations/456/manage/task-list/abc123/view" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noopener noreferrer"></a></li></ol>'
+			);
+		});
+
+		it('should return "-" when no files are provided', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/',
+				params: { currentUrl: '/cases/123/manage-representations/456/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [];
+
+			const result = question.formatAnswerForSummary({}, journey, answer);
+
+			assert.strictEqual(result[0].value, '-');
+		});
+
+		it('should return "-" when answer is null', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/',
+				params: { currentUrl: '/cases/123/manage-representations/456/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = null;
+
+			const result = question.formatAnswerForSummary({}, journey, answer);
+
+			assert.strictEqual(result[0].value, '-');
+		});
+
+		it('should return "-" when answer is undefined', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/',
+				params: { currentUrl: '/cases/123/manage-representations/456/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = undefined;
+
+			const result = question.formatAnswerForSummary({}, journey, answer);
+
+			assert.strictEqual(result[0].value, '-');
+		});
+
+		it('should use escape-HTML in fileName to prevent XSS', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/',
+				params: { currentUrl: '/cases/123/manage-representations/456/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: 'abc123', fileName: '<script>alert("xss")</script>evil.pdf' }];
+
+			const result = question.formatAnswerForSummary({}, journey, answer);
+
+			assert.ok(result[0].value.includes('&lt;script&gt;'));
+			assert.ok(result[0].value.includes('&lt;/script&gt;'));
+			assert.ok(!result[0].value.includes('<script>'));
+		});
+
+		it('should use escape-HTML in href to prevent XSS', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/',
+				params: { currentUrl: '/cases/123/manage-representations/456/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: '"><script>alert("xss")</script>', fileName: 'file.pdf' }];
+
+			const result = question.formatAnswerForSummary({}, journey, answer);
+
+			assert.ok(result[0].value.includes('&quot;&gt;&lt;script&gt;'));
+			assert.ok(!result[0].value.includes('"><script>'));
+		});
+
+		it('should handle single attachment correctly', () => {
+			const journey = {
+				baseUrl: '/cases/123/manage-representations/456/',
+				params: { currentUrl: '/cases/123/manage-representations/456/' },
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: 'abc123', fileName: 'single-file.pdf' }];
+
+			const result = question.formatAnswerForSummary({}, journey, answer);
+
+			assert.strictEqual(
+				result[0].value,
+				'<ol><li><a href="/cases/123/manage-representations/456/manage/task-list/abc123/view" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noopener noreferrer">single-file.pdf</a></li></ol>'
+			);
+			assert.strictEqual(result[0].key, question.title);
+		});
+
+		it('should handle journey with no URL properties gracefully', () => {
+			const journey = {
+				getCurrentQuestionUrl: function () {
+					return 'url';
+				}
+			};
+			const answer = [{ itemId: 'abc123', fileName: 'file1.pdf' }];
+
+			const result = question.formatAnswerForSummary({}, journey, answer);
+
+			assert.strictEqual(
+				result[0].value,
+				'<ol><li><a href="/manage/task-list/abc123/view" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noopener noreferrer">file1.pdf</a></li></ol>'
+			);
 		});
 	});
 });
