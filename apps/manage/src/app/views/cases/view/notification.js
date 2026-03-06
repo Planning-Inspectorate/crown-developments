@@ -3,6 +3,12 @@ import { crownDevelopmentToViewModel } from './view-model.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { addressToViewModel } from '@planning-inspectorate/dynamic-forms/src/lib/address-utils.js';
 import { caseReferenceToFolderName, grantLpaSharePointAccess } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
+
+/**
+ * @typedef {import('@pins/crowndev-lib/types/crown/types').YesNo} YesNo
+ */
 
 /**
  * @param {import('#service').ManageService} service
@@ -247,30 +253,49 @@ function getRecipientEmail(crownDevelopmentFields) {
 }
 
 /**
- * Get recipient email addresses for notification
- *
- * @param {import('./types.js').CrownDevelopmentViewModel} crownDevelopmentFields
- * @return {string[]}
+ * @typedef {Object} ApplicantContact
+ * @property {string} applicantContactEmail
  */
-function getRecipientEmails(crownDevelopmentFields) {
-	/** @type {string[]} */
-	const emails = [];
 
+/**
+ * @typedef {Object} ContactDetailsData
+ * @property {YesNo} hasAgent
+ * @property {ApplicantContact[]} manageApplicantContactDetails
+ */
+
+/**
+ * @typedef {Object} UnknownContactDetailsData
+ * @property {YesNo} [hasAgent]
+ * @property {ApplicantContact[] | undefined} [manageApplicantContactDetails]
+ */
+
+/**
+ * Type guard to check for manageApplicantContactDetails property
+ *
+ * @param {any} obj
+ * @returns {obj is ContactDetailsData}
+ */
+function hasManageApplicantContactDetails(obj) {
+	return obj && typeof obj === 'object' && Array.isArray(obj.manageApplicantContactDetails);
+}
+
+/**
+ * Extract recipient emails from applicant contact details.
+ *
+ * @param {UnknownContactDetailsData} data - The source object containing contact details and agent info.
+ * @returns {string[]} Array of recipient emails.
+ */
+export function getRecipientEmails(data) {
 	// TODO handle agents
-	if (crownDevelopmentFields.hasAgent) {
-		return emails;
+	if (yesNoToBoolean(data.hasAgent)) {
+		return [];
 	}
 
-	if (!crownDevelopmentFields.manageApplicantContactDetails) {
+	if (!hasManageApplicantContactDetails(data)) {
 		throw new Error('Could not find applicant contact details for case, cannot send notification email');
 	}
 
-	crownDevelopmentFields.manageApplicantContactDetails.forEach((contact) => {
-		if (contact.applicantContactEmail) {
-			emails.push(contact.applicantContactEmail);
-		}
-	});
-	return emails;
+	return data.manageApplicantContactDetails.map((contact) => contact.applicantContactEmail).filter(isDefined);
 }
 
 /**
