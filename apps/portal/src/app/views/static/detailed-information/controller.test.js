@@ -3,7 +3,7 @@ import { describe, it, mock } from 'node:test';
 import { buildDetailedInformationPage } from './controller.js';
 
 describe('Detailed Information page controller', () => {
-	it('should render with the Detailed Information page with the 3 chevrons', () => {
+	it('should render with the Detailed Information page with all chevrons', () => {
 		const mockReq = {};
 		const mockRes = {
 			render: mock.fn()
@@ -12,7 +12,7 @@ describe('Detailed Information page controller', () => {
 		detailedInformationPage(mockReq, mockRes);
 		assert.strictEqual(mockRes.render.mock.callCount(), 1);
 		assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/static/detailed-information/view.njk');
-		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].chevrons.length, 3, 'Detailed Information');
+		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].chevrons.length, 4, 'Detailed Information');
 	});
 
 	it('should render the detailed information page with the right object structure', () => {

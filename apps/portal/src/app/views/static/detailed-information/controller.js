@@ -15,6 +15,11 @@ export function buildDetailedInformationPage() {
 				title: 'Legislation information',
 				href: 'https://www.legislation.gov.uk/uksi/2025/409/contents/made',
 				description: 'View The Town and Country Planning Order 2025 to understand our legal duties.'
+			},
+			{
+				title: 'Words we use',
+				href: 'https://www.gov.uk/government/publications/words-we-use-to-talk-about-crown-development-applications',
+				description: 'Definitions of the words we use to talk about Crown development applications.'
 			}
 		];
 		return res.render('views/static/detailed-information/view.njk', { chevrons });
