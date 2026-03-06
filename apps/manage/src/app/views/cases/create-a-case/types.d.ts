@@ -1,4 +1,5 @@
 import { Address } from '@planning-inspectorate/dynamic-forms/src/lib/address.js';
+import { YesNo } from '@pins/crowndev-lib/types/crown/types';
 
 export interface AgentContact {
 	agentFirstName: string;
@@ -24,13 +25,13 @@ export interface ApplicantOrganisation {
 export interface CreateCaseAnswers {
 	typeOfApplication?: string;
 	lpaId?: string;
-	hasSecondaryLpa?: boolean;
+	hasSecondaryLpa?: YesNo;
 	secondaryLpaId?: string;
 	applicantName?: string;
 	applicantAddress?: Address;
 	applicantEmail?: string;
 	applicantTelephoneNumber?: string;
-	hasAgent?: boolean;
+	hasAgent?: YesNo;
 	agentName?: string;
 	agentAddress?: Address;
 	agentEmail?: string;
@@ -47,5 +48,5 @@ export interface CreateCaseAnswers {
 	// TODO make this required when we fully switch over to V2
 	manageApplicantDetails?: ApplicantOrganisation[];
 	manageApplicantContactDetails?: ApplicantContact[];
-	containsDistressingContent?: boolean;
+	containsDistressingContent?: YesNo;
 }
