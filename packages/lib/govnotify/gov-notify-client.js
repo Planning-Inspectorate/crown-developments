@@ -22,7 +22,7 @@ export class GovNotifyClient {
 
 	/**
 	 * @param {string} email - Recipients email address
-	 * @param {{reference: string, sharePointLink: string, isLbcCase: boolean}} personalisation
+	 * @param {{reference: string, sharePointLink: string, isLbcCase?: boolean}} personalisation
 	 * @returns {Promise<void>}
 	 */
 	async sendAcknowledgePreNotification(email, { reference, sharePointLink, isLbcCase = false }) {
@@ -30,6 +30,21 @@ export class GovNotifyClient {
 			personalisation: { reference, sharePointLink, isLbcCase: isLbcCase ? 'yes' : 'no' },
 			reference: reference
 		});
+	}
+
+	/**
+	 * Sends acknowledge pre-notification to multiple email addresses.
+	 *
+	 * @param {string[]} emailAddresses - Recipient email addresses
+	 * @param {{reference: string, sharePointLink: string, isLbcCase?: boolean}} personalisation
+	 * @returns {Promise<void>}
+	 */
+	async sendAcknowledgePreNotificationToMany(emailAddresses, { reference, sharePointLink, isLbcCase = false }) {
+		return this.#sendToMany(
+			emailAddresses,
+			(address) => this.sendAcknowledgePreNotification(address, { reference, sharePointLink, isLbcCase }),
+			'Failed to send acknowledge pre-notification to one or more email addresses.'
+		);
 	}
 
 	/**
@@ -76,6 +91,22 @@ export class GovNotifyClient {
 			personalisation: formattedPersonalisation,
 			reference: personalisation.reference
 		});
+	}
+
+	/**
+	 * Sends application received notification to multiple email addresses. Errors for individual email addresses are logged but do not prevent attempts to send to other addresses.
+	 *
+	 * @param {string[]} emailAddresses
+	 * @param {import('./types.js').ApplicationReceivedDatePersonalisation} personalisation
+	 * @param {boolean} hasFee
+	 * @return {Promise<void>}
+	 */
+	async sendApplicationReceivedNotificationToMany(emailAddresses, personalisation, hasFee) {
+		return this.#sendToMany(
+			emailAddresses,
+			(address) => this.sendApplicationReceivedNotification(address, personalisation, hasFee),
+			'Failed to send application received notification to one or more email addresses.'
+		);
 	}
 
 	/**
@@ -129,6 +160,35 @@ export class GovNotifyClient {
 		} catch (error) {
 			this.logger.error({ error, notificationId }, 'failed to fetch notification by ID');
 			throw new Error(`failed to fetch notification: ${error.message}`, { cause: error });
+		}
+	}
+
+	/**
+	 * Helper to send notifications to many recipients and handle errors.
+	 *
+	 * @param {string[]} emailAddresses
+	 * @param {(address: string) => Promise<void>} sendFunction
+	 * @param {string} errorMessage
+	 * @returns {Promise<void>}
+	 */
+	async #sendToMany(emailAddresses, sendFunction, errorMessage) {
+		if (emailAddresses.length === 0) {
+			throw new Error('No email addresses provided to send application received notification');
+		}
+
+		const results = await Promise.allSettled(emailAddresses.map((address) => sendFunction(address)));
+
+		let atLeastOneFailed = false;
+
+		results.forEach((result, index) => {
+			if (result.status === 'rejected') {
+				atLeastOneFailed = true;
+				const address = emailAddresses[index];
+				this.logger.error({ error: result.reason, emailAddress: address }, errorMessage);
+			}
+		});
+		if (atLeastOneFailed) {
+			throw new Error(errorMessage);
 		}
 	}
 }

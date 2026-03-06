@@ -94,8 +94,9 @@ export function caseReferenceToFolderName(name) {
 /**
  *
  * @param {SharePointDrive} sharePointDrive
- * @param {string} caseRootName
- * @param {'Applicant' | 'LPA' } [user] Requires type = Received
+ * @param {Object} options
+ * @param {string} options.caseRootName
+ * @param {'Applicant' | 'LPA' } [options.user] Requires type = Received
  * @returns {Promise<string>}
  */
 export async function getSharePointReceivedPathId(sharePointDrive, { caseRootName, user }) {

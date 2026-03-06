@@ -3,6 +3,12 @@ import { crownDevelopmentToViewModel } from './view-model.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { addressToViewModel } from '@planning-inspectorate/dynamic-forms/src/lib/address-utils.js';
 import { caseReferenceToFolderName, grantLpaSharePointAccess } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
+
+/**
+ * @typedef {import('@pins/crowndev-lib/types/crown/types').YesNo} YesNo
+ */
 
 /**
  * @param {import('#service').ManageService} service
@@ -51,17 +57,29 @@ export async function sendApplicationReceivedNotification(service, id, applicati
 	const { notifyClient, logger, crownDevelopment, crownDevelopmentFields } = notificationContext;
 
 	try {
-		await notifyClient.sendApplicationReceivedNotification(
-			getRecipientEmail(crownDevelopmentFields),
-			{
-				reference: crownDevelopmentFields.reference,
-				applicationDescription: crownDevelopmentFields.description,
-				siteAddress: formatSiteLocation(crownDevelopment),
-				applicationReceivedDate: formatDateForDisplay(applicationReceivedDate),
-				fee: crownDevelopmentFields.applicationFee?.toFixed(2) || ''
-			},
-			crownDevelopmentFields.hasApplicationFee === BOOLEAN_OPTIONS.YES
-		);
+		service.isMultipleApplicantsLive
+			? await notifyClient.sendApplicationReceivedNotificationToMany(
+					getRecipientEmails(crownDevelopmentFields),
+					{
+						reference: crownDevelopmentFields.reference ?? '',
+						applicationDescription: crownDevelopmentFields.description ?? '',
+						siteAddress: formatSiteLocation(crownDevelopment),
+						applicationReceivedDate: formatDateForDisplay(applicationReceivedDate),
+						fee: crownDevelopmentFields.applicationFee?.toFixed(2) || ''
+					},
+					crownDevelopmentFields.hasApplicationFee === BOOLEAN_OPTIONS.YES
+				)
+			: await notifyClient.sendApplicationReceivedNotification(
+					getRecipientEmail(crownDevelopmentFields),
+					{
+						reference: crownDevelopmentFields.reference ?? '',
+						applicationDescription: crownDevelopmentFields.description ?? '',
+						siteAddress: formatSiteLocation(crownDevelopment),
+						applicationReceivedDate: formatDateForDisplay(applicationReceivedDate),
+						fee: crownDevelopmentFields.applicationFee?.toFixed(2) || ''
+					},
+					crownDevelopmentFields.hasApplicationFee === BOOLEAN_OPTIONS.YES
+				);
 	} catch (error) {
 		logger.error(
 			{ error, reference: crownDevelopmentFields.reference },
@@ -189,7 +207,33 @@ async function getCrownDevelopmentData(db, id) {
 			Lpa: true,
 			SecondaryLpa: true,
 			ApplicantContact: true,
-			AgentContact: true
+			AgentContact: true,
+			Organisations: {
+				include: {
+					Organisation: {
+						select: {
+							id: true,
+							name: true,
+							Address: true,
+							OrganisationToContact: {
+								select: {
+									id: true,
+									role: true,
+									Contact: {
+										select: {
+											id: true,
+											firstName: true,
+											lastName: true,
+											email: true,
+											telephoneNumber: true
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	});
 
@@ -206,6 +250,52 @@ function getRecipientEmail(crownDevelopmentFields) {
 	return crownDevelopmentFields.agentContactId
 		? crownDevelopmentFields.agentContactEmail
 		: crownDevelopmentFields.applicantContactEmail;
+}
+
+/**
+ * @typedef {Object} ApplicantContact
+ * @property {string} applicantContactEmail
+ */
+
+/**
+ * @typedef {Object} ContactDetailsData
+ * @property {YesNo} hasAgent
+ * @property {ApplicantContact[]} manageApplicantContactDetails
+ */
+
+/**
+ * @typedef {Object} UnknownContactDetailsData
+ * @property {YesNo} [hasAgent]
+ * @property {ApplicantContact[] | undefined} [manageApplicantContactDetails]
+ */
+
+/**
+ * Type guard to check for manageApplicantContactDetails property
+ *
+ * @param {any} obj
+ * @returns {obj is ContactDetailsData}
+ */
+function hasManageApplicantContactDetails(obj) {
+	return obj && typeof obj === 'object' && Array.isArray(obj.manageApplicantContactDetails);
+}
+
+/**
+ * Extract recipient emails from applicant contact details.
+ *
+ * @param {UnknownContactDetailsData} data - The source object containing contact details and agent info.
+ * @returns {string[]} Array of recipient emails.
+ */
+export function getRecipientEmails(data) {
+	// TODO handle agents
+	if (yesNoToBoolean(data.hasAgent)) {
+		return [];
+	}
+
+	if (!hasManageApplicantContactDetails(data)) {
+		throw new Error('Could not find applicant contact details for case, cannot send notification email');
+	}
+
+	return data.manageApplicantContactDetails.map((contact) => contact.applicantContactEmail).filter(isDefined);
 }
 
 /**
