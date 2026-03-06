@@ -4,7 +4,8 @@ import {
 	sendApplicationNotOfNationalImportanceNotification,
 	sendApplicationReceivedNotification,
 	sendLpaAcknowledgeReceiptOfQuestionnaireNotification,
-	sendLpaQuestionnaireSentNotification
+	sendLpaQuestionnaireSentNotification,
+	getRecipientEmails
 } from './notification.js';
 import assert from 'node:assert';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
@@ -737,6 +738,42 @@ describe('notification', () => {
 				};
 
 				await assert.rejects(() => sendLpaQuestionnaireSentNotification(service, 'case-1'), /Notify failure/);
+			});
+		});
+		describe('getRecipientEmails', () => {
+			it('should return applicant contact emails when hasAgent is NO', () => {
+				const emails = getRecipientEmails({
+					hasAgent: BOOLEAN_OPTIONS.NO,
+					manageApplicantContactDetails: [
+						{ applicantContactEmail: 'a@example.com' },
+						{ applicantContactEmail: 'b@example.com' }
+					]
+				});
+				assert.deepStrictEqual(emails, ['a@example.com', 'b@example.com']);
+			});
+
+			it('should throw when applicant contact details are missing and hasAgent is NO', () => {
+				assert.throws(
+					() =>
+						getRecipientEmails({
+							hasAgent: BOOLEAN_OPTIONS.NO
+						}),
+					{
+						message: 'Could not find applicant contact details for case, cannot send notification email'
+					}
+				);
+			});
+
+			it('should filter out undefined applicant contact emails', () => {
+				const emails = getRecipientEmails({
+					hasAgent: BOOLEAN_OPTIONS.NO,
+					manageApplicantContactDetails: [
+						{ applicantContactEmail: 'a@example.com' },
+						{ applicantContactEmail: undefined },
+						{ applicantContactEmail: 'b@example.com' }
+					]
+				});
+				assert.deepStrictEqual(emails, ['a@example.com', 'b@example.com']);
 			});
 		});
 	});
