@@ -119,6 +119,12 @@ variable "health_check_eviction_time_in_min" {
   default     = 10
 }
 
+variable "keyvault_enable_private_endpoint" {
+  description = "If true, create a private endpoint for key vault and disable public network access."
+  type        = bool
+  default     = false
+}
+
 variable "monitoring_config" {
   description = "Config for monitoring"
   type = object({

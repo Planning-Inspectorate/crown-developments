@@ -133,6 +133,11 @@ resource "azurerm_key_vault_secret" "manage_session_secret" {
   value        = random_password.manage_session_secret.result
   content_type = "session-secret"
 
+  depends_on = [
+    azurerm_private_endpoint.keyvault,
+    azurerm_private_dns_zone_virtual_network_link.keyvault
+  ]
+
   tags = merge(
     local.tags,
     var.environment == "prod" ? local.resource_tags["key_vault_secret_manage_session_secret"] : {}

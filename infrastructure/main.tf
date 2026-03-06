@@ -19,9 +19,14 @@ resource "azurerm_resource_group" "secondary" {
 }
 
 resource "azurerm_key_vault" "main" {
-  #checkov:skip=CKV_AZURE_109: TODO: consider firewall settings, route traffic via VNet
-  #checkov:skip=CKV_AZURE_189: "Ensure that Azure Key Vault disables public network access"
-  #checkov:skip=CKV2_AZURE_32: "Ensure private endpoint is configured to key vault"
+  #checkov:skip=CKV_AZURE_109: TODO: consider firewall settings
+  #checkov:skip=CKV_AZURE_189: "Ensure that Azure Key Vault disables public network access" - remove once all environments have private endpoint and public access is disabled.
+  # when ready for all environments:
+  ## uncomment public access, remove the count.
+  ## remove correspdonding vars.
+  ## remove count on the private endpoint resource.
+  public_network_access_enabled = !var.keyvault_enable_private_endpoint
+
   name                        = "${local.org}-kv-${local.resource_suffix}"
   location                    = module.primary_region.location
   resource_group_name         = azurerm_resource_group.primary.name
@@ -29,8 +34,14 @@ resource "azurerm_key_vault" "main" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
   purge_protection_enabled    = true
-  enable_rbac_authorization   = true
-  sku_name                    = "standard"
+  rbac_authorization_enabled  = true
+  # public_network_access_enabled = false
+  sku_name = "standard"
+
+  # network_acls {
+  #   bypass         = "AzureServices"
+  #   default_action = "Deny"
+  # }
 
   tags = merge(
     local.tags,
@@ -48,6 +59,11 @@ resource "azurerm_key_vault_secret" "manual_secrets" {
   value        = "<terraform_placeholder>"
   content_type = "plaintext"
 
+  depends_on = [
+    azurerm_private_endpoint.keyvault,
+    azurerm_private_dns_zone_virtual_network_link.keyvault
+  ]
+
   tags = merge(
     local.tags,
     var.environment == "prod" ? local.resource_tags["key_vault_secret_manual_secrets"] : {}
@@ -58,4 +74,30 @@ resource "azurerm_key_vault_secret" "manual_secrets" {
       value
     ]
   }
+}
+
+resource "azurerm_private_endpoint" "keyvault" {
+  count = var.keyvault_enable_private_endpoint ? 1 : 0
+
+  name                = "${local.org}-pe-keyvault-${local.resource_suffix}"
+  location            = module.primary_region.location
+  resource_group_name = azurerm_resource_group.primary.name
+  subnet_id           = azurerm_subnet.main.id
+
+  private_dns_zone_group {
+    name                 = "${local.org}-pdns-${local.service_name}-keyvault-${var.environment}"
+    private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault.id]
+  }
+
+  private_service_connection {
+    name                           = "${local.org}-psc-keyvault-${local.resource_suffix}"
+    private_connection_resource_id = azurerm_key_vault.main.id
+    subresource_names              = ["vault"]
+    is_manual_connection           = false
+  }
+
+  tags = merge(
+    local.tags,
+    var.environment == "prod" ? local.resource_tags["key_vault_secret_manual_secrets"] : {}
+  )
 }
