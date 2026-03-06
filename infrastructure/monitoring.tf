@@ -199,6 +199,11 @@ resource "azurerm_key_vault_secret" "app_insights_connection_string" {
   value        = azurerm_application_insights.main.connection_string
   content_type = "connection-string"
 
+  depends_on = [
+    azurerm_private_endpoint.keyvault,
+    azurerm_private_dns_zone_virtual_network_link.keyvault
+  ]
+
   tags = merge(
     local.tags,
     var.environment == "prod" ? local.resource_tags["key_vault_secret_app_insights_connection_string"] : {}
