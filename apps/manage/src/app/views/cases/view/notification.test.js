@@ -298,6 +298,125 @@ describe('notification', () => {
 				'Gov Notify is not enabled, to use Gov Notify functionality setup Gov Notify environment variables. See README'
 			]);
 		});
+		it('calls sendApplicationReceivedNotificationToMany with correct arguments when isMultipleApplicantsLive is true', async () => {
+			const logger = mockLogger();
+			const notifyClient = { sendApplicationReceivedNotificationToMany: mock.fn() };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						reference: 'REF123',
+						description: 'desc',
+						applicationFee: 123.45,
+						hasApplicationFee: true,
+						Organisations: [
+							{
+								organisationId: 'org-1',
+								Organisation: {
+									id: 'org-1',
+									name: 'Org 1',
+									Address: {},
+									OrganisationToContact: [
+										{
+											role: 'applicant',
+											Contact: { id: 'c1', email: 'a@a.com', firstName: 'A', lastName: 'A' }
+										},
+										{
+											role: 'applicant',
+											Contact: { id: 'c2', email: 'b@b.com', firstName: 'B', lastName: 'B' }
+										}
+									]
+								}
+							}
+						],
+						Lpa: {},
+						ApplicantContact: null,
+						AgentContact: null,
+						agentContactId: null,
+						siteAddressId: null,
+						siteEasting: '1',
+						siteNorthing: '2',
+						hasSecondaryLpa: false
+					}))
+				}
+			};
+			const service = {
+				isMultipleApplicantsLive: true,
+				logger,
+				notifyClient,
+				db: mockDb,
+				portalBaseUrl: 'https://test.com'
+			};
+			await sendApplicationReceivedNotification(service, 'id1', new Date('2025-01-01'));
+			assert.strictEqual(notifyClient.sendApplicationReceivedNotificationToMany.mock.callCount(), 1);
+			const [emails, personalisation, hasFee] =
+				notifyClient.sendApplicationReceivedNotificationToMany.mock.calls[0].arguments;
+			assert.deepStrictEqual(emails, ['a@a.com', 'b@b.com']);
+			assert.strictEqual(personalisation.reference, 'REF123');
+			assert.strictEqual(personalisation.applicationDescription, 'desc');
+			assert.strictEqual(personalisation.fee, '123.45');
+			assert.strictEqual(hasFee, true);
+		});
+
+		it('throws and logs error if sendApplicationReceivedNotificationToMany throws', async () => {
+			const logger = mockLogger();
+			const notifyClient = {
+				sendApplicationReceivedNotificationToMany: mock.fn(() => {
+					throw new Error('fail');
+				})
+			};
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'id1',
+						reference: 'REF123',
+						description: 'desc',
+						applicationFee: 123.45,
+						hasApplicationFee: true,
+						siteAddressId: null,
+						siteEasting: '1',
+						siteNorthing: '2',
+						hasSecondaryLpa: false,
+						Organisations: [
+							{
+								organisationId: 'org-1',
+								Organisation: {
+									id: 'org-1',
+									name: 'Org 1',
+									Address: {},
+									OrganisationToContact: [
+										{
+											role: 'applicant',
+											Contact: { id: 'c1', email: 'a@a.com', firstName: 'A', lastName: 'A' }
+										}
+									]
+								}
+							}
+						],
+						Lpa: {},
+						ApplicantContact: null,
+						AgentContact: null,
+						agentContactId: null
+					}))
+				}
+			};
+
+			const service = {
+				isMultipleApplicantsLive: true,
+				logger,
+				notifyClient,
+				db: mockDb,
+				portalBaseUrl: 'https://test.com'
+			};
+
+			await assert.rejects(
+				() => sendApplicationReceivedNotification(service, 'id1', new Date('2025-01-01')),
+				/Error encountered during email notification dispatch/
+			);
+
+			assert.strictEqual(notifyClient.sendApplicationReceivedNotificationToMany.mock.callCount(), 1);
+			assert.strictEqual(logger.error.mock.callCount(), 1);
+		});
 	});
 	describe('sendApplicationNotOfNationalImportanceNotification', () => {
 		it('should successfully dispatch notification', async () => {
