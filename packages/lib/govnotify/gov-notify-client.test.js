@@ -423,4 +423,162 @@ describe(`gov-notify-client`, () => {
 			);
 		});
 	});
+	describe('sendApplicationReceivedNotificationToMany', () => {
+		it('sends notifications to all email addresses (happy path)', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+			ctx.mock.method(client, 'sendApplicationReceivedNotification', () => {});
+
+			await client.sendApplicationReceivedNotificationToMany(['a@a.com', 'b@b.com'], { reference: 'ref' }, true);
+			assert.strictEqual(client.sendApplicationReceivedNotification.mock.callCount(), 2);
+			assert.strictEqual(logger.error.mock.callCount(), 0);
+		});
+		it('logs error for rejected promises but continues sending to others', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+			ctx.mock.method(client, 'sendApplicationReceivedNotification', (address) => {
+				if (address === 'b@b.com') return Promise.reject(new Error('fail'));
+				return Promise.resolve();
+			});
+			await assert.rejects(
+				async () => {
+					await client.sendApplicationReceivedNotificationToMany(['a@a.com', 'b@b.com'], { reference: 'ref' }, false);
+				},
+				{
+					message: 'Failed to send application received notification to one or more email addresses.'
+				}
+			);
+			assert.strictEqual(client.sendApplicationReceivedNotification.mock.callCount(), 2);
+			assert.strictEqual(logger.error.mock.callCount(), 1);
+			assert.strictEqual(logger.error.mock.calls[0].arguments[0].emailAddress, 'b@b.com');
+		});
+		it('throws if emailAddresses is empty', async () => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+			await assert.rejects(
+				async () => {
+					await client.sendApplicationReceivedNotificationToMany([], { reference: 'ref' }, false);
+				},
+				{
+					message: 'No email addresses provided to send application received notification'
+				}
+			);
+		});
+	});
+
+	describe('sendAcknowledgePreNotificationToMany', () => {
+		it('sends notifications to all email addresses (happy path)', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+			ctx.mock.method(client, 'sendAcknowledgePreNotification', () => {});
+
+			await client.sendAcknowledgePreNotificationToMany(['a@a.com', 'b@b.com'], {
+				reference: 'ref',
+				sharePointLink: 'link',
+				isLbcCase: true
+			});
+
+			assert.strictEqual(client.sendAcknowledgePreNotification.mock.callCount(), 2);
+			assert.strictEqual(logger.error.mock.callCount(), 0);
+		});
+
+		it('logs error for rejected promises but still attempts to send to other recipients', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+			ctx.mock.method(client, 'sendAcknowledgePreNotification', (address) => {
+				if (address === 'b@b.com') return Promise.reject(new Error('fail'));
+				return Promise.resolve();
+			});
+
+			await assert.rejects(
+				async () => {
+					await client.sendAcknowledgePreNotificationToMany(['a@a.com', 'b@b.com'], {
+						reference: 'ref',
+						sharePointLink: 'link'
+					});
+				},
+				{
+					message: 'Failed to send acknowledge pre-notification to one or more email addresses.'
+				}
+			);
+
+			assert.strictEqual(client.sendAcknowledgePreNotification.mock.callCount(), 2);
+			assert.strictEqual(logger.error.mock.callCount(), 1);
+			assert.strictEqual(logger.error.mock.calls[0].arguments[0].emailAddress, 'b@b.com');
+		});
+
+		it('throws if emailAddresses is empty', async () => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+
+			await assert.rejects(
+				async () => {
+					await client.sendAcknowledgePreNotificationToMany([], { reference: 'ref', sharePointLink: 'link' });
+				},
+				{
+					message: 'No email addresses provided to send application received notification'
+				}
+			);
+		});
+	});
+	describe('sendApplicationNotOfNationalImportanceNotificationToMany', () => {
+		it('sends notifications to all email addresses (happy path)', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+			ctx.mock.method(client, 'sendApplicationNotOfNationalImportanceNotification', () => {});
+
+			await client.sendApplicationNotOfNationalImportanceNotificationToMany(['a@a.com', 'b@b.com'], {
+				reference: 'ref',
+				applicationDescription: 'desc',
+				siteAddress: 'site'
+			});
+
+			assert.strictEqual(client.sendApplicationNotOfNationalImportanceNotification.mock.callCount(), 2);
+			assert.strictEqual(logger.error.mock.callCount(), 0);
+		});
+
+		it('logs an error for a failed recipient and still attempts to send to other recipients', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+			ctx.mock.method(client, 'sendApplicationNotOfNationalImportanceNotification', (address) => {
+				if (address === 'b@b.com') return Promise.reject(new Error('fail'));
+				return Promise.resolve();
+			});
+
+			await assert.rejects(
+				async () => {
+					await client.sendApplicationNotOfNationalImportanceNotificationToMany(['a@a.com', 'b@b.com'], {
+						reference: 'ref',
+						applicationDescription: 'desc',
+						siteAddress: 'site'
+					});
+				},
+				{
+					message: 'Failed to send application not of national importance notification to one or more email addresses.'
+				}
+			);
+
+			assert.strictEqual(client.sendApplicationNotOfNationalImportanceNotification.mock.callCount(), 2);
+			assert.strictEqual(logger.error.mock.callCount(), 1);
+			assert.strictEqual(logger.error.mock.calls[0].arguments[0].emailAddress, 'b@b.com');
+		});
+
+		it('throws if emailAddresses is empty', async () => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+
+			await assert.rejects(
+				async () => {
+					await client.sendApplicationNotOfNationalImportanceNotificationToMany([], {
+						reference: 'ref',
+						applicationDescription: 'desc',
+						siteAddress: 'site'
+					});
+				},
+				{
+					message: 'No email addresses provided to send application received notification'
+				}
+			);
+		});
+	});
 });

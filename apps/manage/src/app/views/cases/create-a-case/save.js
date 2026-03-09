@@ -10,10 +10,16 @@ import {
 	CONTACT_ROLES_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { getLinkedCaseId, hasLinkedCase as hasLinkedCaseFunction } from '@pins/crowndev-lib/util/linked-case.js';
+import { getRecipientEmails } from '../view/notification.js';
 
 /**
  * @typedef {import('./types.d.ts').CreateCaseAnswers} CreateCaseAnswers
  * @typedef {import('@pins/crowndev-database').Prisma.CrownDevelopmentCreateInput} CrownDevelopmentCreateInput
+ * @typedef {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} SharePointDrive
+ * @typedef {import('@pins/crowndev-lib/govnotify/gov-notify-client.js').GovNotifyClient} GovNotifyClient
+ * @typedef {{ kind: 'many', recipientEmails: string[], sharePointLink: string }} NotificationDataMany
+ * @typedef {{ kind: 'one', recipientEmail: string, sharePointLink: string }} NotificationDataOne
+ * @typedef {NotificationDataMany | NotificationDataOne} NotificationData
  */
 
 /**
@@ -41,6 +47,20 @@ export function buildSaveController(service) {
 		const isPlanningAndLbcCase = answers.typeOfApplication === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
 		// create a new case in a transaction to ensure reference generation is safe
 		await db.$transaction(async ($tx) => {
+			/**
+			 * @typedef {import('@pins/crowndev-database').Prisma.CrownDevelopmentCreateArgs['data']} CrownDevelopmentData
+			 */
+
+			/**
+			 * @typedef {import('@pins/crowndev-database').Prisma.CrownDevelopmentGetPayload<{ include: {} }>} CreatedCrownDevelopment
+			 */
+
+			/**
+			 * @param {string} reference
+			 * @param {string|null} subType
+			 * @param {Partial<CrownDevelopmentData>} [extraData={}]
+			 * @returns {Promise<CreatedCrownDevelopment>}
+			 */
 			async function createCase(reference, subType, extraData = {}) {
 				const input = toCreateInput(answers, reference, subType);
 				Object.assign(input, extraData);
@@ -64,28 +84,21 @@ export function buildSaveController(service) {
 			}
 		});
 
-		let notificationData = {};
-		let lbcNotificationData = {};
+		if (!reference || !lbcReference) {
+			throw new Error('Failed to generate case reference');
+		}
+
+		let notificationData = null;
+		let lbcNotificationData = null;
 
 		if (appSharePointDrive === null) {
 			logger.warn(
 				'SharePoint not enabled, to use SharePoint functionality setup SharePoint environment variables. See README'
 			);
 		} else {
-			notificationData = await createCaseSharePointActions(
-				appSharePointDrive,
-				service.sharePointCaseTemplateId,
-				caseReferenceToFolderName(reference),
-				answers
-			);
-
+			notificationData = await getNotificationData(service, appSharePointDrive, reference, answers);
 			if (isPlanningAndLbcCase) {
-				lbcNotificationData = await createCaseSharePointActions(
-					appSharePointDrive,
-					service.sharePointCaseTemplateId,
-					caseReferenceToFolderName(lbcReference),
-					answers
-				);
+				lbcNotificationData = await getNotificationData(service, appSharePointDrive, lbcReference, answers);
 			}
 		}
 		// todo: redirect to check-your-answers on failure?
@@ -95,30 +108,10 @@ export function buildSaveController(service) {
 				'Gov Notify is not enabled, to use Gov Notify functionality setup Gov Notify environment variables. See README'
 			);
 		} else {
-			try {
-				await notifyClient.sendAcknowledgePreNotification(notificationData.recipientEmail, {
-					reference,
-					sharePointLink: notificationData.sharePointLink
-				});
-			} catch (error) {
-				logger.error({ error, reference }, `error dispatching Acknowledgement of pre-notification email notification`);
-				throw new Error('Error encountered during email notification dispatch', { cause: error });
-			}
+			await sendAcknowledgementPreNotification(notificationData, notifyClient, reference, logger, false);
 
 			if (isPlanningAndLbcCase) {
-				try {
-					await notifyClient.sendAcknowledgePreNotification(lbcNotificationData.recipientEmail, {
-						reference: lbcReference,
-						sharePointLink: lbcNotificationData.sharePointLink,
-						isLbcCase: true
-					});
-				} catch (error) {
-					logger.error(
-						{ error, lbcReference },
-						`error dispatching Acknowledgement of pre-notification email notification`
-					);
-					throw new Error('Error encountered during email notification dispatch', { cause: error });
-				}
+				await sendAcknowledgementPreNotification(lbcNotificationData, notifyClient, lbcReference, logger, true);
 			}
 		}
 
@@ -382,7 +375,7 @@ function hasAnswers(answers, key) {
 /**
  * Generate a new case reference
  *
- * @param {import('@pins/crowndev-database').PrismaClient} db
+ * @param {Omit<import('@pins/crowndev-database').PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>} db
  * @param {Date} [date]
  * @returns {Promise<string>}
  */
@@ -459,12 +452,45 @@ async function grantUsersAccess(sharePointDrive, answers, folderName) {
 }
 
 /**
+ * Grant Sharepoint access to all relevant users for a case, including multiple applicants if applicable.
+ *
+ * @param {SharePointDrive} sharePointDrive
+ * @param {import('./types.d.ts').CreateCaseAnswers} answers
+ * @param {string} folderName
+ * @returns {Promise<import('@microsoft/microsoft-graph-types').Permission>}
+ */
+async function grantUsersAccessV2(sharePointDrive, answers, folderName) {
+	const applicantReceivedFolderId = await getSharePointReceivedPathId(sharePointDrive, {
+		caseRootName: folderName,
+		user: 'Applicant'
+	});
+
+	/** @type {Array<{ email: string, id: string }>} */
+	const users = [];
+
+	if (hasAnswers(answers, 'manageApplicantContactDetails')) {
+		answers.manageApplicantContactDetails.forEach((contact) => {
+			if (contact.applicantContactEmail) {
+				users.push({ email: contact.applicantContactEmail, id: '' });
+			}
+		});
+	}
+	// 	TODO agents
+
+	await sharePointDrive.addItemPermissions(applicantReceivedFolderId, { role: 'write', users: users });
+	// todo: Add LPA permissions too.
+
+	return sharePointDrive.fetchUserInviteLink(applicantReceivedFolderId);
+}
+
+/**
+ * TODO remove when multiple applicants is live
  *
  * @param {SharePointDrive} sharePointDrive
  * @param {string} caseTemplateId
  * @param {string} folderName
  * @param {import('./types.d.ts').CreateCaseAnswers} answers
- * @returns {Promise<{recipientEmail: string, sharePointLink: string}>}
+ * @returns {Promise<NotificationDataOne>}
  */
 async function createCaseSharePointActions(sharePointDrive, caseTemplateId, folderName, answers) {
 	// Copy template folder structure and rename to %folderName%
@@ -476,7 +502,112 @@ async function createCaseSharePointActions(sharePointDrive, caseTemplateId, fold
 	const inviteLink = await grantUsersAccess(sharePointDrive, answers, folderName);
 
 	return {
+		kind: 'one',
 		recipientEmail: yesNoToBoolean(answers.hasAgent) ? answers.agentEmail : answers.applicantEmail,
 		sharePointLink: inviteLink.link.webUrl
 	};
+}
+
+/**
+ * Grant Sharepoint access to all relevant users for a case, including multiple applicants if applicable.
+ *
+ * @param {SharePointDrive} sharePointDrive
+ * @param {string} caseTemplateId
+ * @param {string} folderName
+ * @param {import('./types.d.ts').CreateCaseAnswers} answers
+ * @returns {Promise<NotificationDataMany>}
+ */
+async function createCaseSharePointActionsV2(sharePointDrive, caseTemplateId, folderName, answers) {
+	// Copy template folder structure and rename to %folderName%
+	await sharePointDrive.copyDriveItem({
+		copyItemId: caseTemplateId,
+		newItemName: folderName
+	});
+	// Grant write access to applicant and agent as required
+	const inviteLink = await grantUsersAccessV2(sharePointDrive, answers, folderName);
+
+	if (!inviteLink || !inviteLink.link || !inviteLink.link.webUrl) {
+		throw new Error('Failed to get SharePoint invite link');
+	}
+
+	return {
+		kind: 'many',
+		recipientEmails: getRecipientEmails(answers),
+		sharePointLink: inviteLink.link?.webUrl
+	};
+}
+
+/**
+ * Send acknowledgement pre-notification email, handling the case where the notification data may not be available and logging appropriately.
+ *
+ * @param {NotificationData|null} notificationData
+ * @param {GovNotifyClient} notifyClient
+ * @param {string} reference
+ * @param {import('pino').Logger} logger
+ * @param {boolean} [isLbcCase=false] - Whether this is a listed building consent case, which requires different email content
+ * @return {Promise<void>}
+ */
+async function sendAcknowledgementPreNotification(
+	notificationData,
+	notifyClient,
+	reference,
+	logger,
+	isLbcCase = false
+) {
+	if (!notificationData) {
+		throw new Error(`Notification data not available, skipping email notification for  ${reference}`);
+	}
+
+	try {
+		switch (notificationData.kind) {
+			case 'many':
+				await notifyClient.sendAcknowledgePreNotificationToMany(notificationData.recipientEmails, {
+					reference: reference,
+					sharePointLink: notificationData.sharePointLink,
+					isLbcCase
+				});
+				break;
+			case 'one':
+				await notifyClient.sendAcknowledgePreNotification(notificationData.recipientEmail, {
+					reference: reference,
+					sharePointLink: notificationData.sharePointLink,
+					isLbcCase
+				});
+				break;
+		}
+	} catch (error) {
+		logger.error({ error, reference }, `error dispatching Acknowledgement of pre-notification email notification`);
+		throw new Error('Error encountered during email notification dispatch', { cause: error });
+	}
+}
+
+/**
+ * Get the data needed to send a notification email, including generating the SharePoint folder and invite link.
+ *
+ * @param {import('#service').ManageService} service
+ * @param {SharePointDrive} appSharePointDrive
+ * @param {string} reference
+ * @param {import('./types.d.ts').CreateCaseAnswers} answers
+ * @returns {Promise<NotificationData>}
+ */
+async function getNotificationData(service, appSharePointDrive, reference, answers) {
+	if (!service.sharePointCaseTemplateId) {
+		throw new Error(
+			'SharePoint case template ID is not configured. Please set the sharePointCaseTemplateId environment variable.'
+		);
+	}
+
+	return service.isMultipleApplicantsLive
+		? await createCaseSharePointActionsV2(
+				appSharePointDrive,
+				service.sharePointCaseTemplateId,
+				caseReferenceToFolderName(reference),
+				answers
+			)
+		: await createCaseSharePointActions(
+				appSharePointDrive,
+				service.sharePointCaseTemplateId,
+				caseReferenceToFolderName(reference),
+				answers
+			);
 }

@@ -149,6 +149,7 @@ describe('save', () => {
 			};
 			const service = mockService();
 			service.appSharePointDrive = sharepointDrive;
+			service.isMultipleApplicantsLive = false;
 			const { db } = service;
 			const save = buildSaveController(service);
 			const answers = {
@@ -222,6 +223,7 @@ describe('save', () => {
 			};
 			const service = mockService();
 			service.appSharePointDrive = sharepointDrive;
+			service.isMultipleApplicantsLive = false;
 			const save = buildSaveController(service);
 
 			const answers = {
@@ -277,6 +279,7 @@ describe('save', () => {
 			};
 			const service = mockService();
 			service.appSharePointDrive = sharepointDrive;
+			service.isMultipleApplicantsLive = false;
 			const save = buildSaveController(service);
 
 			const answers = {
@@ -338,6 +341,7 @@ describe('save', () => {
 			const service = mockService();
 			service.appSharePointDrive = sharepointDrive;
 			service.notifyClient = notifyClient;
+			service.isMultipleApplicantsLive = false;
 			const save = buildSaveController(service);
 
 			const req = {
@@ -376,7 +380,8 @@ describe('save', () => {
 				'applicantEmail@mail.com',
 				{
 					reference: mockReference,
-					sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id'
+					sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id',
+					isLbcCase: false
 				}
 			]);
 		});
@@ -447,7 +452,8 @@ describe('save', () => {
 				'agentEmail@mail.com',
 				{
 					reference: mockReference,
-					sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id'
+					sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id',
+					isLbcCase: false
 				}
 			]);
 		});
@@ -481,6 +487,7 @@ describe('save', () => {
 			const service = mockService();
 			service.appSharePointDrive = sharepointDrive;
 			service.notifyClient = notifyClient;
+			service.isMultipleApplicantsLive = false;
 			const save = buildSaveController(service);
 
 			const req = {
@@ -519,7 +526,8 @@ describe('save', () => {
 				'applicantEmail@mail.com',
 				{
 					reference: mockReference,
-					sharePointLink: 'https://sharepoint.com/:f:/s/site/planning_link'
+					sharePointLink: 'https://sharepoint.com/:f:/s/site/planning_link',
+					isLbcCase: false
 				}
 			]);
 			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotification.mock.calls[1].arguments, [
@@ -530,6 +538,297 @@ describe('save', () => {
 					isLbcCase: true
 				}
 			]);
+		});
+		it('should throw an error if reference generation fails', async () => {
+			const service = mockService();
+			// Prevent the transaction callback from running so `reference` and `lbcReference`
+			// are never set. This triggers the guard in save.js (line 80).
+			service.db.$transaction = mock.fn(async () => undefined);
+
+			const save = buildSaveController(service);
+			const answers = {
+				developmentDescription: 'Project One',
+				typeOfApplication: 'application-type-1',
+				lpaId: 'lpa-1'
+			};
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers
+					}
+				}
+			};
+
+			await assert.rejects(() => save({}, res, mock.fn()), { message: 'Failed to generate case reference' });
+		});
+		it('should throw when answers is not an object', async () => {
+			const save = buildSaveController(mockService());
+			await assert.rejects(
+				() =>
+					save(
+						{},
+						{
+							locals: {
+								journeyResponse: {
+									answers: 'not-an-object'
+								}
+							}
+						}
+					),
+				{ message: 'answers should be an object' }
+			);
+		});
+
+		it('should throw when sharepoint is enabled but template ID is not configured', async () => {
+			const service = mockService();
+			service.appSharePointDrive = { copyDriveItem: mock.fn() };
+			service.sharePointCaseTemplateId = '';
+			const save = buildSaveController(service);
+
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers: {
+							developmentDescription: 'Project One',
+							typeOfApplication: 'application-type-1',
+							lpaId: 'lpa-1'
+						}
+					}
+				}
+			};
+
+			await assert.rejects(() => save({}, res), {
+				message:
+					'SharePoint case template ID is not configured. Please set the sharePointCaseTemplateId environment variable.'
+			});
+		});
+
+		it('should send email to many recipients when multiple applicants is live', async () => {
+			const sharepointDrive = {
+				copyDriveItem: mock.fn(),
+				getItemsByPath: mock.fn(() => [
+					{ id: 'id1', name: 'Applicant' },
+					{ id: 'id2', name: 'LPA' }
+				]),
+				addItemPermissions: mock.fn(),
+				fetchUserInviteLink: mock.fn(() => ({
+					link: { webUrl: 'https://sharepoint.com/:f:/s/site/random_id' }
+				}))
+			};
+
+			const notifyClient = {
+				sendAcknowledgePreNotificationToMany: mock.fn(),
+				sendAcknowledgePreNotification: mock.fn()
+			};
+
+			const service = mockService();
+			service.appSharePointDrive = sharepointDrive;
+			service.notifyClient = notifyClient;
+			service.isMultipleApplicantsLive = true;
+
+			const save = buildSaveController(service);
+
+			const answers = {
+				developmentDescription: 'Project One',
+				typeOfApplication: 'application-type-1',
+				lpaId: 'lpa-1',
+				manageApplicantDetails: [{ id: 'org-id-1', organisationName: 'Org A', organisationAddress: {} }],
+				manageApplicantContactDetails: [
+					{
+						applicantFirstName: 'Alex',
+						applicantLastName: 'Smith',
+						applicantContactEmail: 'alex@example.com',
+						applicantContactTelephoneNumber: '1',
+						applicantContactOrganisation: 'org-id-1'
+					},
+					{
+						applicantFirstName: 'Sam',
+						applicantLastName: 'Doe',
+						applicantContactEmail: 'sam@example.com',
+						applicantContactTelephoneNumber: '2',
+						applicantContactOrganisation: 'org-id-1'
+					}
+				]
+			};
+
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers
+					}
+				}
+			};
+
+			await save({}, res);
+
+			assert.strictEqual(res.redirect.mock.callCount(), 1);
+			assert.strictEqual(sharepointDrive.copyDriveItem.mock.callCount(), 1);
+			assert.strictEqual(sharepointDrive.addItemPermissions.mock.callCount(), 1);
+			assert.deepStrictEqual(sharepointDrive.addItemPermissions.mock.calls[0].arguments[1], {
+				role: 'write',
+				users: [
+					{ email: 'alex@example.com', id: '' },
+					{ email: 'sam@example.com', id: '' }
+				]
+			});
+
+			assert.strictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.callCount(), 1);
+			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.calls[0].arguments, [
+				['alex@example.com', 'sam@example.com'],
+				{
+					reference: mockReference,
+					sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id',
+					isLbcCase: false
+				}
+			]);
+			assert.strictEqual(notifyClient.sendAcknowledgePreNotification.mock.callCount(), 0);
+		});
+
+		it('should throw when SharePoint invite link is missing in multiple applicants flow', async () => {
+			const sharepointDrive = {
+				copyDriveItem: mock.fn(),
+				getItemsByPath: mock.fn(() => [
+					{ id: 'id1', name: 'Applicant' },
+					{ id: 'id2', name: 'LPA' }
+				]),
+				addItemPermissions: mock.fn(),
+				fetchUserInviteLink: mock.fn(() => null)
+			};
+
+			const service = mockService();
+			service.appSharePointDrive = sharepointDrive;
+			service.isMultipleApplicantsLive = true;
+
+			const save = buildSaveController(service);
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers: {
+							developmentDescription: 'Project One',
+							typeOfApplication: 'application-type-1',
+							lpaId: 'lpa-1',
+							manageApplicantDetails: [{ id: 'org-id-1', organisationName: 'Org A', organisationAddress: {} }],
+							manageApplicantContactDetails: [
+								{
+									applicantFirstName: 'Alex',
+									applicantLastName: 'Smith',
+									applicantContactEmail: 'alex@example.com',
+									applicantContactTelephoneNumber: '1',
+									applicantContactOrganisation: 'org-id-1'
+								}
+							]
+						}
+					}
+				}
+			};
+
+			await assert.rejects(() => save({}, res), { message: 'Failed to get SharePoint invite link' });
+		});
+
+		it('should call sendAcknowledgePreNotificationToMany for planning and LBC and also send LBC acknowledgement', async () => {
+			const sharepointDrive = {
+				copyDriveItem: mock.fn(),
+				getItemsByPath: mock.fn(() => [
+					{ id: 'id1', name: 'Applicant' },
+					{ id: 'id2', name: 'LPA' }
+				]),
+				addItemPermissions: mock.fn(),
+				fetchUserInviteLink: mock.fn()
+			};
+
+			// createCaseSharePointActionsV2 requests an invite link twice per case.
+			// First case = Planning (return planning link twice), second case = LBC (return LBC link from then on).
+			let inviteLinkCalls = 0;
+			sharepointDrive.fetchUserInviteLink.mock.mockImplementation(() => {
+				inviteLinkCalls++;
+				const webUrl =
+					inviteLinkCalls <= 2
+						? 'https://sharepoint.com/:f:/s/site/planning_link'
+						: 'https://sharepoint.com/:f:/s/site/lbc_link';
+
+				return { link: { webUrl } };
+			});
+
+			const notifyClient = {
+				sendAcknowledgePreNotificationToMany: mock.fn(),
+				sendAcknowledgePreNotification: mock.fn()
+			};
+
+			const service = mockService();
+			service.appSharePointDrive = sharepointDrive;
+			service.notifyClient = notifyClient;
+			service.isMultipleApplicantsLive = true;
+
+			const save = buildSaveController(service);
+
+			const answers = {
+				developmentDescription: 'Project One',
+				typeOfApplication: 'planning-permission-and-listed-building-consent',
+				lpaId: 'lpa-1',
+				manageApplicantDetails: [{ id: 'org-id-1', organisationName: 'Org A', organisationAddress: {} }],
+				manageApplicantContactDetails: [
+					{
+						applicantFirstName: 'Alex',
+						applicantLastName: 'Smith',
+						applicantContactEmail: 'alex@example.com',
+						applicantContactTelephoneNumber: '1',
+						applicantContactOrganisation: 'org-id-1'
+					}
+				]
+			};
+
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers
+					}
+				}
+			};
+
+			await save({}, res);
+
+			assert.strictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.callCount(), 2);
+
+			const bulkCalls = notifyClient.sendAcknowledgePreNotificationToMany.mock.calls.map((c) => c.arguments);
+
+			assert.ok(
+				bulkCalls.some(
+					(args) =>
+						JSON.stringify(args) ===
+						JSON.stringify([
+							['alex@example.com'],
+							{
+								reference: mockReference,
+								sharePointLink: 'https://sharepoint.com/:f:/s/site/planning_link',
+								isLbcCase: false
+							}
+						])
+				),
+				'Expected a bulk planning acknowledgement'
+			);
+
+			assert.ok(
+				bulkCalls.some(
+					(args) =>
+						JSON.stringify(args) ===
+						JSON.stringify([
+							['alex@example.com'],
+							{
+								reference: `${mockReference}/LBC`,
+								sharePointLink: 'https://sharepoint.com/:f:/s/site/planning_link',
+								isLbcCase: true
+							}
+						])
+				),
+				'Expected a bulk LBC acknowledgement'
+			);
+
+			assert.strictEqual(notifyClient.sendAcknowledgePreNotification.mock.callCount(), 0);
 		});
 	});
 	describe('newReference', () => {
@@ -839,7 +1138,6 @@ describe('save', () => {
 			assert.strictEqual(input.containsDistressingContent, false);
 		});
 	});
-
 	describe('save applicant contacts linked to organisations', () => {
 		const buildDbMock = () => {
 			return {

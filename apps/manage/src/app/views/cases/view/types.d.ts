@@ -1,15 +1,16 @@
 import { Address } from '@planning-inspectorate/dynamic-forms/src/lib/address';
 import { Prisma } from '@pins/crowndev-database/src/client/client.js';
+import { YesNo } from '@pins/crowndev-lib/types/crown/types';
 
 export interface CrownDevelopmentViewModel {
 	reference?: string;
 	description?: string;
-	containsDistressingContent?: boolean;
+	containsDistressingContent?: YesNo;
 	typeOfApplication?: string;
 	typeId: string;
 	subTypeId?: string;
 	lpaId?: string;
-	hasSecondaryLpa?: boolean;
+	hasSecondaryLpa?: YesNo;
 	secondaryLpaId?: string;
 	siteAddressId?: string;
 	siteAddress?: Address;
@@ -25,14 +26,14 @@ export interface CrownDevelopmentViewModel {
 	statusId?: string;
 	stageId?: string;
 	lpaReference?: string;
-	nationallyImportant?: boolean;
+	nationallyImportant?: YesNo;
 	nationallyImportantConfirmationDate?: Date | string;
-	isGreenBelt?: boolean;
-	siteIsVisibleFromPublicLand?: boolean;
+	isGreenBelt?: YesNo;
+	siteIsVisibleFromPublicLand?: YesNo;
 	healthAndSafetyIssue?: string;
-	environmentalImpactAssessment?: boolean | string;
-	developmentPlan?: boolean | string;
-	rightOfWay?: boolean | string;
+	environmentalImpactAssessment?: YesNo;
+	developmentPlan?: YesNo;
+	rightOfWay?: YesNo;
 
 	lpaEmail?: string;
 	lpaTelephoneNumber?: string;
@@ -42,7 +43,7 @@ export interface CrownDevelopmentViewModel {
 	secondaryLpaTelephoneNumber?: string;
 	secondaryLpaAddress?: Address;
 
-	hasAgent?: string;
+	hasAgent?: YesNo;
 	manageApplicantDetails?: ManageApplicantDetails[];
 	manageApplicantContactDetails?: ManageApplicantContactDetails[];
 	applicantContactId?: string;
@@ -59,12 +60,12 @@ export interface CrownDevelopmentViewModel {
 	agentContactTelephoneNumber?: string;
 
 	applicationReceivedDate?: Date | string;
-	applicationReceivedDateEmailSent?: Boolean | string;
+	applicationReceivedDateEmailSent?: YesNo;
 	applicationAcceptedDate?: Date | string;
 	lpaQuestionnaireSentDate?: Date | string;
-	lpaQuestionnaireSentSpecialEmailSent?: Boolean | string;
+	lpaQuestionnaireSentSpecialEmailSent?: YesNo;
 	lpaQuestionnaireReceivedDate?: Date | string;
-	lpaQuestionnaireReceivedEmailSent?: Boolean | string;
+	lpaQuestionnaireReceivedEmailSent?: YesNo;
 	publishDate?: Date | string;
 	pressNoticeDate?: Date | string;
 	neighboursNotifiedByLpaDate?: Date | string;
@@ -76,7 +77,7 @@ export interface CrownDevelopmentViewModel {
 	withdrawnDate?: Date | string;
 	originalDecisionDate?: Date | string;
 	turnedAwayDate?: Date | string;
-	notNationallyImportantEmailSent?: Boolean | string;
+	notNationallyImportantEmailSent?: YesNo;
 
 	representationsPeriod?: {
 		start?: Date | string;
@@ -91,8 +92,8 @@ export interface CrownDevelopmentViewModel {
 	caseOfficerId?: string;
 	planningOfficerId?: string;
 
-	eiaScreening?: boolean;
-	eiaScreeningOutcome?: boolean;
+	eiaScreening?: YesNo;
+	eiaScreeningOutcome?: YesNo;
 	environmentalStatementReceivedDate?: Date | string;
 
 	procedureId?: string;
@@ -125,16 +126,16 @@ export interface CrownDevelopmentViewModel {
 
 	connectedApplication?: string;
 
-	hasApplicationFee: string;
-	applicationFee: string;
+	hasApplicationFee: YesNo;
+	applicationFee: number;
 	applicationFeeReceivedDate?: Date | string;
-	eligibleForFeeRefund?: string;
+	eligibleForFeeRefund?: YesNo;
 	applicationFeeRefundAmount?: string;
 	applicationFeeRefundDate?: Date | string;
-	cilLiable?: boolean | string;
+	cilLiable?: YesNo;
 	cilAmount?: number | string;
-	bngExempt?: boolean | string;
-	hasCostsApplications?: boolean | string;
+	bngExempt?: YesNo;
+	hasCostsApplications?: YesNo;
 	costsApplicationsComment?: string;
 
 	siteVisitDate?: Date | string;
