@@ -134,6 +134,21 @@ export class GovNotifyClient {
 	}
 
 	/**
+	 * Send application not of national importance notification to multiple email addresses.
+	 *
+	 * @param {string[]} emailAddresses
+	 * @param {import('./types.js').CommonNotificationPersonalisation} personalisation
+	 * @return {Promise<void>}
+	 */
+	async sendApplicationNotOfNationalImportanceNotificationToMany(emailAddresses, personalisation) {
+		return this.#sendToMany(
+			emailAddresses,
+			(address) => this.sendApplicationNotOfNationalImportanceNotification(address, personalisation),
+			'Failed to send application not of national importance notification to one or more email addresses.'
+		);
+	}
+
+	/**
 	 * @param {string} templateId - Gov Notify email template id
 	 * @param {string} emailAddress - Recipients email address
 	 * @param {GovNotifyOptions} options - Options to pass to Gov Notify
