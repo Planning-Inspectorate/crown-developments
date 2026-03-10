@@ -41,6 +41,8 @@ export interface CreateCaseAnswers {
 	siteArea?: string;
 	developmentDescription?: string;
 	expectedDateOfSubmission?: string;
+	agentOrganisationName?: string;
+	agentOrganisationAddress?: Address;
 	manageAgentContactDetails?: AgentContact[];
 	// TODO make this required when we fully switch over to V2
 	manageApplicantDetails?: ApplicantOrganisation[];

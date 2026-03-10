@@ -133,6 +133,22 @@ export function getQuestions(journeyResponse, isQuestionView = false) {
 			title: CONTACT_ROLES_ID.APPLICANT,
 			organisationOptions: applicantOrganisationOptions // populated from session-managed journey response
 		}),
+		addAgentName: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Agent organisation name',
+			question: 'What is the name of the agent organisation?',
+			url: 'add-agent-details',
+			fieldName: 'agentOrganisationName',
+			validators: [new RequiredValidator('Enter the agent organisation name')]
+		},
+		addAgentAddress: {
+			type: COMPONENT_TYPES.ADDRESS,
+			title: 'Agent address',
+			question: 'What is the address of the agent organisation?',
+			url: 'agent-address',
+			fieldName: 'agentOrganisationAddress',
+			validators: [new AddressValidator()]
+		},
 		manageAgentContacts: {
 			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
 			title: isQuestionView ? 'Check agent contact details' : 'Agent contacts',
