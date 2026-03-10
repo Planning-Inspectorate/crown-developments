@@ -11,10 +11,10 @@ export default class TelephoneNumberValidator extends StringValidator {
 	 */
 	constructor({ fieldName } = {}) {
 		super({
-			maxLength: { maxLength: 15, maxLengthMessage: 'Telephone number must be 15 characters or less' },
+			maxLength: { maxLength: 15, maxLengthMessage: 'Phone number must be 15 characters or less' },
 			regex: {
 				regex: '^$|^\\+?\\d+$',
-				regexMessage: 'Enter a valid telephone number'
+				regexMessage: 'Enter a valid phone number'
 			},
 			fieldName
 		});
