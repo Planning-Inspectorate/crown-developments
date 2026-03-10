@@ -131,7 +131,32 @@ export function getQuestions(journeyResponse, isQuestionView = false) {
 		...multiContactQuestions({
 			prefix: CONTACT_ROLES_ID.APPLICANT,
 			title: CONTACT_ROLES_ID.APPLICANT,
-			options: applicantOrganisationOptions // populated from session-managed journey response
+			organisationOptions: applicantOrganisationOptions // populated from session-managed journey response
+		}),
+		manageAgentContacts: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			title: isQuestionView ? 'Check agent contact details' : 'Agent contacts',
+			question: 'Check agent contact details',
+			url: 'check-agent-contact-details',
+			fieldName: 'manageAgentContactDetails',
+			titleSingular: 'Agent contact',
+			emptyListText: 'No agent contacts found',
+			showAnswersInSummary: true,
+			maximumAnswers: 10,
+			isAllowedEmpty: false,
+			validators: [
+				new CustomManageListValidator({
+					minimumAnswers: 1,
+					errorMessages: {
+						minimumAnswers: `At least one contact is required`
+					}
+				})
+			]
+		},
+		...multiContactQuestions({
+			prefix: CONTACT_ROLES_ID.AGENT,
+			title: CONTACT_ROLES_ID.AGENT,
+			organisationOptions: null
 		}),
 		hasSecondaryLpa: {
 			type: COMPONENT_TYPES.BOOLEAN,

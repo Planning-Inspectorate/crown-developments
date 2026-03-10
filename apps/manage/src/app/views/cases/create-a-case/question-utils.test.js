@@ -36,7 +36,7 @@ describe('multiContactQuestions', () => {
 		const questions = multiContactQuestions({
 			prefix: 'applicant',
 			title: 'applicant',
-			options: [{ text: 'Org One', value: 'org-1' }]
+			organisationOptions: [{ text: 'Org One', value: 'org-1' }]
 		});
 
 		assert.deepStrictEqual(Object.keys(questions), ['applicantContactDetails']);
@@ -53,7 +53,7 @@ describe('multiContactQuestions', () => {
 		const questions = multiContactQuestions({
 			prefix: 'applicant',
 			title: 'applicant',
-			options: [{ text: 'Org One', value: 'org-1' }]
+			organisationOptions: [{ text: 'Org One', value: 'org-1' }]
 		});
 
 		const question = questions.applicantContactDetails;
@@ -75,7 +75,7 @@ describe('multiContactQuestions', () => {
 		const questions = multiContactQuestions({
 			prefix: 'applicant',
 			title: 'applicant',
-			options: organisationOptions
+			organisationOptions: organisationOptions
 		});
 
 		const question = questions.applicantContactDetails;
@@ -85,7 +85,7 @@ describe('multiContactQuestions', () => {
 
 		assert.ok(organisationField);
 		assert.strictEqual(organisationField.type, 'radio');
-		assert.deepStrictEqual(organisationField.options, organisationOptions);
+		assert.deepStrictEqual(organisationField.organisationOptions, organisationOptions);
 		assert.strictEqual(organisationField.formatTextFunction('org-2'), 'Org Two');
 		assert.strictEqual(organisationField.formatTextFunction('unknown-org'), 'unknown-org');
 	});
@@ -94,7 +94,7 @@ describe('multiContactQuestions', () => {
 		const questions = multiContactQuestions({
 			prefix: 'applicant',
 			title: 'applicant',
-			options: [{ text: 'Org One', value: 'org-1' }]
+			organisationOptions: [{ text: 'Org One', value: 'org-1' }]
 		});
 
 		const question = questions.applicantContactDetails;
@@ -111,7 +111,7 @@ describe('multiContactQuestions', () => {
 		const questions = multiContactQuestions({
 			prefix: 'applicant',
 			title: 'applicant',
-			options: [
+			organisationOptions: [
 				{ text: 'Org One', value: 'org-1' },
 				{ text: 'Org Two', value: 'org-2' }
 			]
@@ -133,7 +133,7 @@ describe('multiContactQuestions', () => {
 		const questions = multiContactQuestions({
 			prefix: 'myFieldName',
 			title: 'applicant',
-			options: [{ text: 'Org One', value: 'org-1' }]
+			organisationOptions: [{ text: 'Org One', value: 'org-1' }]
 		});
 
 		assert.strictEqual(questions.myFieldNameContactDetails.url, 'my-field-name-contact');
@@ -143,7 +143,7 @@ describe('multiContactQuestions', () => {
 		const questions = multiContactQuestions({
 			prefix: 'applicant',
 			title: 'applicant',
-			options: [{ text: 'Org One', value: 'org-1' }]
+			organisationOptions: [{ text: 'Org One', value: 'org-1' }]
 		});
 
 		const question = questions.applicantContactDetails;
@@ -154,5 +154,35 @@ describe('multiContactQuestions', () => {
 		assert.ok(inputFieldNames.includes('applicantContactEmail'));
 		assert.ok(inputFieldNames.includes('applicantContactTelephoneNumber'));
 		assert.ok(inputFieldNames.includes('applicantContactOrganisation'));
+	});
+
+	it('should not include an organisation input field when options is null', () => {
+		const questions = multiContactQuestions({
+			prefix: 'agent',
+			title: 'agent',
+			organisationOptions: null
+		});
+
+		const question = questions.agentContactDetails;
+		const inputFieldNames = question.inputFields.map((inputField) => inputField.fieldName);
+
+		assert.ok(!inputFieldNames.includes('agentContactOrganisation'));
+	});
+
+	it('should not include an organisation required validator when options is null', () => {
+		const questions = multiContactQuestions({
+			prefix: 'agent',
+			title: 'agent',
+			organisationOptions: null
+		});
+
+		const question = questions.agentContactDetails;
+		const [multiFieldValidator] = question.validators;
+
+		const organisationFieldRule = multiFieldValidator.fields.find(
+			(fieldRule) => fieldRule.fieldName === 'agentContactOrganisation'
+		);
+
+		assert.strictEqual(organisationFieldRule, undefined);
 	});
 });

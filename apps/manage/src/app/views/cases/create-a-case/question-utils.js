@@ -94,18 +94,19 @@ export function contactQuestions({ prefix, title, addressRequired }) {
  * @param {Object} opts
  * @param {string} opts.prefix
  * @param {string} opts.title This should be uncapitalised (unless it's a proper noun)
- * @param {Array<{text: string, value: string}>} opts.options
+ * @param {Array<{text: string, value: string}>|null} opts.organisationOptions
  * @returns {Record<string, CustomMultiFieldInputQuestionProps>}
  */
-export function multiContactQuestions({ prefix, title, options }) {
+export function multiContactQuestions({ prefix, title, organisationOptions }) {
 	const prefixUrl = camelCaseToUrlCase(prefix);
-	const isSingleOption = Array.isArray(options) && options.length === 1;
+	const isNullOption = organisationOptions === null;
+	const isSingleOption = Array.isArray(organisationOptions) && organisationOptions.length === 1;
 	/**
 	 * @param {string} value
 	 * @returns {string}
 	 */
 	const formatOrganisationFunction = (value) => {
-		const option = options.find((opt) => opt.value === value);
+		const option = organisationOptions && organisationOptions.find((opt) => opt.value === value);
 		return option ? option.text : value;
 	};
 
@@ -142,24 +143,26 @@ export function multiContactQuestions({ prefix, title, options }) {
 				label: 'Phone number (optional)'
 			},
 			// Organisation: hidden single value if exactly one option, else radio
-			...(isSingleOption
-				? [
-						{
-							type: HIDDEN_TYPE,
-							fieldName: `${prefix}ContactOrganisation`,
-							value: options[0].value,
-							formatTextFunction: formatOrganisationFunction
-						}
-					]
-				: [
-						{
-							type: COMPONENT_TYPES.RADIO,
-							fieldName: `${prefix}ContactOrganisation`,
-							legend: 'Organisation',
-							options,
-							formatTextFunction: formatOrganisationFunction
-						}
-					])
+			...(isNullOption
+				? []
+				: isSingleOption
+					? [
+							{
+								type: HIDDEN_TYPE,
+								fieldName: `${prefix}ContactOrganisation`,
+								value: organisationOptions[0].value,
+								formatTextFunction: formatOrganisationFunction
+							}
+						]
+					: [
+							{
+								type: COMPONENT_TYPES.RADIO,
+								fieldName: `${prefix}ContactOrganisation`,
+								legend: 'Organisation',
+								organisationOptions,
+								formatTextFunction: formatOrganisationFunction
+							}
+						])
 		],
 		validators: [
 			new MultiFieldInputValidator({
@@ -190,7 +193,7 @@ export function multiContactQuestions({ prefix, title, options }) {
 						fieldName: `${prefix}ContactTelephoneNumber`,
 						validators: [new TelephoneNumberValidator()]
 					},
-					...(isSingleOption
+					...(isNullOption || isSingleOption
 						? []
 						: [
 								{

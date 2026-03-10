@@ -1,5 +1,12 @@
 import { Address } from '@planning-inspectorate/dynamic-forms/src/lib/address.js';
 
+export interface AgentContact {
+	agentFirstName: string;
+	agentLastName: string;
+	agentContactEmail: string;
+	agentContactTelephoneNumber?: string;
+}
+
 export interface ApplicantContact {
 	applicantContactOrganisation: string;
 	applicantFirstName: string;
@@ -34,6 +41,7 @@ export interface CreateCaseAnswers {
 	siteArea?: string;
 	developmentDescription?: string;
 	expectedDateOfSubmission?: string;
+	manageAgentContactDetails?: AgentContact[];
 	// TODO make this required when we fully switch over to V2
 	manageApplicantDetails?: ApplicantOrganisation[];
 	manageApplicantContactDetails?: ApplicantContact[];
