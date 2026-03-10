@@ -19,13 +19,17 @@
  <div class="full-width-line full-width-line--bg-blue"></div>
   <section class="page-section full-width-section full-width-section--bg-lightgrey govuk-!-margin-bottom-6 govuk-!-padding-top-6">
     <div class="page-section__content">
-      <div class="grid-row-chevrons govuk-grid-row">
         {% for item in chevrons %}
-          <div class="govuk-grid-column-one-half">
-            {{ chevronCard(item.title, item.href, item.description) }}
-          </div>
+            {% if loop.index0 % 2 == 0 %}
+                <div class="govuk-grid-row">
+            {% endif %}
+            <div class="govuk-grid-column-one-half">
+                {{ chevronCard(item.title, item.href, item.description) }}
+            </div>
+            {% if loop.index0 % 2 == 1 or loop.last %}
+                </div>
+            {% endif %}
         {% endfor %}
-      </div>
     </div>
   </section>
     </div>
