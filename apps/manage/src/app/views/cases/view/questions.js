@@ -453,7 +453,7 @@ export function getQuestions(
 		...multiContactQuestions({
 			prefix: 'applicant',
 			title: 'applicant',
-			options: overrides.applicantOrganisationOptions ?? []
+			organisationOptions: overrides.applicantOrganisationOptions ?? []
 		}),
 		addApplicantName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,

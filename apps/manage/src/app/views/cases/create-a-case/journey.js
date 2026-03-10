@@ -82,6 +82,8 @@ export function createJourneyV2(questions, response, req) {
 				.addQuestion(questions.secondaryLocalPlanningAuthority)
 				.withCondition(whenQuestionHasAnswer(questions.hasSecondaryLpa, BOOLEAN_OPTIONS.YES))
 				.addQuestion(questions.hasAgent)
+				.addQuestion(questions.manageAgentContacts, new ManageListSection().addQuestion(questions.agentContactDetails))
+				.withCondition(whenQuestionHasAnswer(questions.hasAgent, BOOLEAN_OPTIONS.YES))
 				.addQuestion(
 					questions.manageApplicants,
 					new ManageListSection().addQuestion(questions.addApplicantName).addQuestion(questions.addApplicantAddress)

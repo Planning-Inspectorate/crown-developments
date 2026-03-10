@@ -43,6 +43,7 @@ export interface CrownDevelopmentViewModel {
 	secondaryLpaAddress?: Address;
 
 	hasAgent?: string;
+	manageAgentContactDetails?: ManageAgentContactDetails[];
 	manageApplicantDetails?: ManageApplicantDetails[];
 	manageApplicantContactDetails?: ManageApplicantContactDetails[];
 	applicantContactId?: string;
@@ -196,6 +197,14 @@ interface ManageApplicantContactDetails {
 	applicantContactEmail: string;
 	applicantContactTelephoneNumber?: string;
 	applicantContactOrganisation: string;
+}
+
+interface ManageAgentContactDetails {
+	id: string;
+	agentFirstName: string;
+	agentLastName: string;
+	agentContactEmail: string;
+	agentContactTelephoneNumber?: string;
 }
 
 export interface QuestionOverrides {
