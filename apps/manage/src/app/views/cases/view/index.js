@@ -58,6 +58,7 @@ export function createRoutes(service) {
 	router.post(
 		'/:section/:question',
 		validateIdFormat,
+		getJourneyResponse,
 		getQuestionJourney,
 		validate,
 		validationErrorHandler,
