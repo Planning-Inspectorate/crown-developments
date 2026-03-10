@@ -170,21 +170,21 @@ export function multiContactQuestions({ prefix, title, organisationOptions }) {
 					{
 						fieldName: `${prefix}FirstName`,
 						validators: [
-							new RequiredValidator(`Enter ${title} contact first name`),
+							new RequiredValidator(`Enter a first name`),
 							new StringValidator({ maxLength: { maxLength: 250 } })
 						]
 					},
 					{
 						fieldName: `${prefix}LastName`,
 						validators: [
-							new RequiredValidator(`Enter ${title} contact last name`),
+							new RequiredValidator(`Enter a last name`),
 							new StringValidator({ maxLength: { maxLength: 250 } })
 						]
 					},
 					{
 						fieldName: `${prefix}ContactEmail`,
 						validators: [
-							new RequiredValidator(`Enter ${title} contact email address`),
+							new RequiredValidator(`Enter an email address`),
 							new StringValidator({ maxLength: { maxLength: 50 } }),
 							new EmailValidator()
 						]
@@ -198,7 +198,7 @@ export function multiContactQuestions({ prefix, title, organisationOptions }) {
 						: [
 								{
 									fieldName: `${prefix}ContactOrganisation`,
-									validators: [new RequiredValidator(`Select the organisation for this contact`)]
+									validators: [new RequiredValidator(`Select an organisation for this contact`)]
 								}
 							])
 				]
