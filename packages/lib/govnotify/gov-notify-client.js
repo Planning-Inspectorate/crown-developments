@@ -79,6 +79,41 @@ export class GovNotifyClient {
 	}
 
 	/**
+	 * Sends application received notification to multiple email addresses. Errors for individual email addresses are logged but do not prevent attempts to send to other addresses.
+	 *
+	 * @param {string[]} emailAddresses
+	 * @param {import('./types.js').ApplicationReceivedDatePersonalisation} personalisation
+	 * @param {boolean} hasFee
+	 * @return {Promise<void>}
+	 */
+	async sendApplicationReceivedNotificationToMany(emailAddresses, personalisation, hasFee) {
+		if (emailAddresses.length === 0) {
+			throw new Error('No email addresses provided to send application received notification');
+		}
+
+		const results = await Promise.allSettled(
+			emailAddresses.map((address) => this.sendApplicationReceivedNotification(address, personalisation, hasFee))
+		);
+
+		let atLeastOneFailed = false;
+
+		results.forEach((result, index) => {
+			if (result.status === 'rejected') {
+				// TODO retry mechanism CROWN-582
+				atLeastOneFailed = true;
+				const address = emailAddresses[index];
+				this.logger.error(
+					{ error: result.reason, emailAddress: address },
+					'failed to send application received notification to email address'
+				);
+			}
+		});
+		if (atLeastOneFailed) {
+			throw new Error('Failed to send application received notification to one or more email addresses.');
+		}
+	}
+
+	/**
 	 * @param {string} email - Recipients email address
 	 * @param {import('./types.js').CommonNotificationPersonalisation} personalisation
 	 * @returns {Promise<void>}
