@@ -85,7 +85,7 @@ describe('multiContactQuestions', () => {
 
 		assert.ok(organisationField);
 		assert.strictEqual(organisationField.type, 'radio');
-		assert.deepStrictEqual(organisationField.organisationOptions, organisationOptions);
+		assert.deepStrictEqual(organisationField.options, organisationOptions);
 		assert.strictEqual(organisationField.formatTextFunction('org-2'), 'Org Two');
 		assert.strictEqual(organisationField.formatTextFunction('unknown-org'), 'unknown-org');
 	});

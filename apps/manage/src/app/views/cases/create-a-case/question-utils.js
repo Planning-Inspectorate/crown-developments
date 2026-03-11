@@ -159,7 +159,7 @@ export function multiContactQuestions({ prefix, title, organisationOptions }) {
 								type: COMPONENT_TYPES.RADIO,
 								fieldName: `${prefix}ContactOrganisation`,
 								legend: 'Organisation',
-								organisationOptions,
+								options: organisationOptions,
 								formatTextFunction: formatOrganisationFunction
 							}
 						])
