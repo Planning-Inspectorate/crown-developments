@@ -51,17 +51,29 @@ export async function sendApplicationReceivedNotification(service, id, applicati
 	const { notifyClient, logger, crownDevelopment, crownDevelopmentFields } = notificationContext;
 
 	try {
-		await notifyClient.sendApplicationReceivedNotification(
-			getRecipientEmail(crownDevelopmentFields),
-			{
-				reference: crownDevelopmentFields.reference,
-				applicationDescription: crownDevelopmentFields.description,
-				siteAddress: formatSiteLocation(crownDevelopment),
-				applicationReceivedDate: formatDateForDisplay(applicationReceivedDate),
-				fee: crownDevelopmentFields.applicationFee?.toFixed(2) || ''
-			},
-			crownDevelopmentFields.hasApplicationFee === BOOLEAN_OPTIONS.YES
-		);
+		service.isMultipleApplicantsLive
+			? await notifyClient.sendApplicationReceivedNotificationToMany(
+					getRecipientEmails(crownDevelopmentFields),
+					{
+						reference: crownDevelopmentFields.reference ?? '',
+						applicationDescription: crownDevelopmentFields.description ?? '',
+						siteAddress: formatSiteLocation(crownDevelopment),
+						applicationReceivedDate: formatDateForDisplay(applicationReceivedDate),
+						fee: crownDevelopmentFields.applicationFee?.toFixed(2) || ''
+					},
+					crownDevelopmentFields.hasApplicationFee === BOOLEAN_OPTIONS.YES
+				)
+			: await notifyClient.sendApplicationReceivedNotification(
+					getRecipientEmail(crownDevelopmentFields),
+					{
+						reference: crownDevelopmentFields.reference ?? '',
+						applicationDescription: crownDevelopmentFields.description ?? '',
+						siteAddress: formatSiteLocation(crownDevelopment),
+						applicationReceivedDate: formatDateForDisplay(applicationReceivedDate),
+						fee: crownDevelopmentFields.applicationFee?.toFixed(2) || ''
+					},
+					crownDevelopmentFields.hasApplicationFee === BOOLEAN_OPTIONS.YES
+				);
 	} catch (error) {
 		logger.error(
 			{ error, reference: crownDevelopmentFields.reference },
@@ -189,7 +201,17 @@ async function getCrownDevelopmentData(db, id) {
 			Lpa: true,
 			SecondaryLpa: true,
 			ApplicantContact: true,
-			AgentContact: true
+			AgentContact: true,
+			Organisations: {
+				include: {
+					Organisation: {
+						include: {
+							Address: true,
+							OrganisationToContact: { include: { Contact: true } }
+						}
+					}
+				}
+			}
 		}
 	});
 
@@ -206,6 +228,33 @@ function getRecipientEmail(crownDevelopmentFields) {
 	return crownDevelopmentFields.agentContactId
 		? crownDevelopmentFields.agentContactEmail
 		: crownDevelopmentFields.applicantContactEmail;
+}
+
+/**
+ * Get recipient email addresses for notification
+ *
+ * @param {import('./types.js').CrownDevelopmentViewModel} crownDevelopmentFields
+ * @return {string[]}
+ */
+function getRecipientEmails(crownDevelopmentFields) {
+	/** @type {string[]} */
+	const emails = [];
+
+	// TODO handle agents in CROWN-1311, CROWN-1312 and CROWN-1313
+	if (crownDevelopmentFields.hasAgent) {
+		return emails;
+	}
+
+	if (!crownDevelopmentFields.manageApplicantContactDetails) {
+		throw new Error('Could not find applicant contact details for case, cannot send notification email');
+	}
+
+	crownDevelopmentFields.manageApplicantContactDetails.forEach((contact) => {
+		if (contact.applicantContactEmail) {
+			emails.push(contact.applicantContactEmail);
+		}
+	});
+	return emails;
 }
 
 /**
