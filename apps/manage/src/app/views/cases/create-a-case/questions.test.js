@@ -36,7 +36,7 @@ describe('create-a-case questions', () => {
 		);
 		assert.ok(fieldWithApplicantOptions, 'Could not find a question containing the expected applicant options');
 
-		const foundOptions = fieldWithApplicantOptions.organisationOptions;
+		const foundOptions = fieldWithApplicantOptions.options;
 		expectedOptions.forEach((expectedOption) => {
 			const matchingOption = foundOptions.find(
 				(option) => option.value === expectedOption.value && option.text === expectedOption.text
