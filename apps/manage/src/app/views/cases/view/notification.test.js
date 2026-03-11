@@ -9,6 +9,14 @@ import {
 import assert from 'node:assert';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
+const DEFAULT_CROWN_DEVELOPMENT = {
+	id: 'case-1',
+	reference: 'CROWN/2025/0000001',
+	description: 'a big project',
+	siteEasting: '654321',
+	siteNorthing: '123456'
+};
+
 describe('notification', () => {
 	describe('sendLpaAcknowledgeReceiptOfQuestionnaireNotification', () => {
 		it('should successfully dispatch notification', async () => {
@@ -16,11 +24,7 @@ describe('notification', () => {
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
-						id: 'case-1',
-						reference: 'CROWN/2025/0000001',
-						description: 'a big project',
-						siteNorthing: '123456',
-						siteEasting: '654321',
+						...DEFAULT_CROWN_DEVELOPMENT,
 						hasApplicationFee: false,
 						Lpa: { email: 'test@email.com' },
 						ApplicantContact: { email: 'test@email.com' },
@@ -63,11 +67,7 @@ describe('notification', () => {
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
-						id: 'case-1',
-						reference: 'CROWN/2025/0000001',
-						description: 'a big project',
-						siteNorthing: '123456',
-						siteEasting: '654321',
+						...DEFAULT_CROWN_DEVELOPMENT,
 						hasApplicationFee: false,
 						Lpa: { email: 'test@email.com' },
 						ApplicantContact: { email: 'test@email.com' },
@@ -122,11 +122,7 @@ describe('notification', () => {
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
-						id: 'case-1',
-						reference: 'CROWN/2025/0000001',
-						description: 'a big project',
-						siteNorthing: '123456',
-						siteEasting: '654321',
+						...DEFAULT_CROWN_DEVELOPMENT,
 						hasApplicationFee: false,
 						hasSecondaryLpa: false,
 						Lpa: { email: 'lpa@email.com' },
@@ -198,9 +194,7 @@ describe('notification', () => {
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
-						id: 'case-1',
-						reference: 'CROWN/2025/0000001',
-						description: 'a big project',
+						...DEFAULT_CROWN_DEVELOPMENT,
 						siteAddressId: 'address-1',
 						hasApplicationFee: true,
 						applicationFee: 1100,
@@ -245,11 +239,7 @@ describe('notification', () => {
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
-						id: 'case-1',
-						reference: 'CROWN/2025/0000001',
-						description: 'a big project',
-						siteNorthing: '123456',
-						siteEasting: '654321',
+						...DEFAULT_CROWN_DEVELOPMENT,
 						hasApplicationFee: false,
 						Lpa: { email: 'test@email.com' },
 						ApplicantContact: { email: 'test@email.com' },
@@ -305,11 +295,7 @@ describe('notification', () => {
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
-						id: 'case-1',
-						reference: 'CROWN/2025/0000001',
-						description: 'a big project',
-						siteNorthing: '123456',
-						siteEasting: '654321',
+						...DEFAULT_CROWN_DEVELOPMENT,
 						ApplicantContact: { email: 'test@email.com' },
 						agentContactId: 'agent-id',
 						AgentContact: { email: 'agent@email.com' }
@@ -349,11 +335,7 @@ describe('notification', () => {
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
-						id: 'case-1',
-						reference: 'CROWN/2025/0000001',
-						description: 'a big project',
-						siteNorthing: '123456',
-						siteEasting: '654321',
+						...DEFAULT_CROWN_DEVELOPMENT,
 						ApplicantContact: { email: 'test@email.com' },
 						agentContactId: 'agent-id',
 						AgentContact: { email: 'agent@email.com' }
