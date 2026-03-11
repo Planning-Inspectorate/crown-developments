@@ -114,7 +114,7 @@ export const getQuestions = ({
 		submittedFor: {
 			type: COMPONENT_TYPES.RADIO,
 			title: 'Who you are submitting for',
-			question: getQuestionText('Who are you submitting a representation for?', 'Source of representation'),
+			question: getQuestionText('Who are you submitting a representation for?', 'Source of the representation'),
 			fieldName: 'submittedForId',
 			url: 'who-submitting-for',
 			validators: [new RequiredValidator('Select who you are submitting for')],

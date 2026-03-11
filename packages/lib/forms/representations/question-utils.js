@@ -39,6 +39,7 @@ export function representationsContactQuestions({
 	const questions = {};
 	const isPortalQuestion = textOverrides.appName === 'portal';
 	const getQuestionText = (isPortalText, isManageText) => (isPortalQuestion ? isPortalText : isManageText);
+	const getQuestionUrl = (isPortalUrl, isManageUrl) => (isPortalQuestion ? isPortalUrl : isManageUrl);
 
 	questions[`${prefix}FullName`] = {
 		type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
@@ -216,9 +217,9 @@ export function representationsContactQuestions({
 	questions[`${prefix}SelectAttachments`] = {
 		type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS,
 		title: 'Attachments',
-		question: 'Upload supporting documents',
+		question: getQuestionText('Upload supporting documents', 'Select attachments'),
 		fieldName: `${prefix}Attachments`,
-		url: 'select-attachments',
+		url: getQuestionUrl('select-attachments', 'attachments'),
 		allowedFileExtensions: ALLOWED_EXTENSIONS,
 		allowedMimeTypes: ALLOWED_MIME_TYPES,
 		maxFileSizeValue: MAX_FILE_SIZE,
