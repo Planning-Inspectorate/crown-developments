@@ -1,10 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { extractContactFields } from './contact.js';
+import { extractApplicantContactFields } from './contact.js';
 
-describe('extractContactFields', () => {
+describe('extractApplicantContactFields', () => {
 	it('returns trimmed contact fields when provided', () => {
-		const result = extractContactFields({
+		const result = extractApplicantContactFields({
 			applicantFirstName: '  Alice  ',
 			applicantLastName: '  Smith ',
 			applicantContactEmail: '  alice@example.com  ',
@@ -20,7 +20,7 @@ describe('extractContactFields', () => {
 	});
 
 	it('returns nulls when fields are missing', () => {
-		const result = extractContactFields({});
+		const result = extractApplicantContactFields({});
 		assert.deepStrictEqual(result, {
 			firstName: null,
 			lastName: null,
@@ -30,7 +30,7 @@ describe('extractContactFields', () => {
 	});
 
 	it('returns nulls when fields are empty or whitespace only', () => {
-		const result = extractContactFields({
+		const result = extractApplicantContactFields({
 			applicantFirstName: '   ',
 			applicantLastName: '\n\t',
 			applicantContactEmail: '',
@@ -45,7 +45,7 @@ describe('extractContactFields', () => {
 	});
 
 	it('preserves null values as null', () => {
-		const result = extractContactFields({
+		const result = extractApplicantContactFields({
 			applicantFirstName: null,
 			applicantLastName: null,
 			applicantContactEmail: null,

@@ -9,7 +9,7 @@ import { editsToDatabaseUpdates, crownDevelopmentToViewModel } from './view-mode
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
-import { extractContactFields } from '../util/contact.js';
+import { extractApplicantContactFields } from '../util/contact.js';
 
 /**
  * @template T
@@ -49,8 +49,8 @@ function updateContacts(dbViewModel, toSave, db) {
 			const existing = existingByJoinId.get(contact.organisationToContactRelationId);
 			if (!existing?.id) return null;
 
-			const next = extractContactFields(contact);
-			const prev = extractContactFields(existing);
+			const next = extractApplicantContactFields(contact);
+			const prev = extractApplicantContactFields(existing);
 
 			const changed =
 				next.firstName !== prev.firstName ||

@@ -8,7 +8,7 @@ import { booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms/src/co
 import { optionalWhere } from '@pins/crowndev-lib/util/database.js';
 import { addressToViewModel, viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.js';
 import { parseNumberStringToNumber } from '@pins/crowndev-lib/util/numbers.js';
-import { extractContactFields } from '../util/contact.js';
+import { extractApplicantContactFields } from '../util/contact.js';
 
 /**
  * CrownDevelopment fields that do not need mapping to a (or from) the view model
@@ -481,7 +481,7 @@ function buildApplicantContactOrganisationUpdates(edits, viewModel) {
 
 		if (!contact.organisationToContactRelationId) {
 			// (1) New contact: create join row + Contact
-			const contactCreate = extractContactFields(contact);
+			const contactCreate = extractApplicantContactFields(contact);
 			ensureBucket(targetRelationId).create.push({
 				Contact: { create: contactCreate }
 			});
