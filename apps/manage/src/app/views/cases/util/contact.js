@@ -3,11 +3,12 @@
  */
 
 /**
- * Extracts and normalizes contact fields from a contact object.
+ * Extracts and normalizes contact fields from an applicant contact object.
+ *
  * @param {ApplicantContact} contact
  * @returns {{firstName: string|null, lastName: string|null, email: string|null, telephoneNumber: string|null}}
  */
-export function extractContactFields(contact) {
+export function extractApplicantContactFields(contact) {
 	return {
 		firstName: contact.applicantFirstName?.trim() || null,
 		lastName: contact.applicantLastName?.trim() || null,

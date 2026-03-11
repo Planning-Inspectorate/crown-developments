@@ -10,7 +10,7 @@ import {
 	ORGANISATION_ROLES_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { getLinkedCaseId, hasLinkedCase as hasLinkedCaseFunction } from '@pins/crowndev-lib/util/linked-case.js';
-import { extractContactFields } from '../util/contact.js';
+import { extractApplicantContactFields } from '../util/contact.js';
 
 /**
  * @typedef {import('./types.d.ts').CreateCaseAnswers} CreateCaseAnswers
@@ -245,7 +245,7 @@ function addOrganisationsAndContacts(input, answers) {
 				organisationCreate.OrganisationToContact = {
 					create: linkedContacts.map((contact) => ({
 						Contact: {
-							create: extractContactFields(contact)
+							create: extractApplicantContactFields(contact)
 						}
 					}))
 				};
