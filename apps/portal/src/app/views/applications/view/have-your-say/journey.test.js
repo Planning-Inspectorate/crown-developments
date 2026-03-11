@@ -288,6 +288,6 @@ describe('have-your-say journey', () => {
 
 	it('should set manage question text when appName is manage', () => {
 		const questions = getQuestions({ textOverrides: { appName: 'manage' } });
-		assert.strictEqual(questions.submittedFor.question, 'Source of representation');
+		assert.strictEqual(questions.submittedFor.question, 'Source of the representation');
 	});
 });
