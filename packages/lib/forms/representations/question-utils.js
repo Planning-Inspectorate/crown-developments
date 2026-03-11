@@ -38,13 +38,14 @@ export function representationsContactQuestions({
 	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {};
 	const isPortalQuestion = textOverrides.appName === 'portal';
-	const getQuestionText = (isPortalText, isManageText) => (isPortalQuestion ? isPortalText : isManageText);
-	const getQuestionUrl = (isPortalUrl, isManageUrl) => (isPortalQuestion ? isPortalUrl : isManageUrl);
+
+	/**	 @type {(portalValue: string, manageValue: string) => string}	 */
+	const getAppSpecificValue = (portalValue, manageValue) => (isPortalQuestion ? portalValue : manageValue);
 
 	questions[`${prefix}FullName`] = {
 		type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
 		title: 'Your full name',
-		question: getQuestionText('What is your name?', 'Name of the person submitting the representation'),
+		question: getAppSpecificValue('What is your name?', 'Name of the person submitting the representation'),
 		hint: 'We’ll publish your name on the website along with your written representation.',
 		fieldName: `${prefix}FullName`,
 		url: isSubmitter(prefix) ? `agent-full-name` : `full-name`,
@@ -106,7 +107,7 @@ export function representationsContactQuestions({
 	questions[`${prefix}Email`] = {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 		title: 'Email address',
-		question: getQuestionText('What is your email address?', 'Email address provided'),
+		question: getAppSpecificValue('What is your email address?', 'Email address provided'),
 		hint: 'We’ll use this email address to send you information about the application. We will not publish your email address.',
 		fieldName: `${prefix}Email`,
 		url: isSubmitter(prefix) ? `agent-email-address` : `email-address`,
@@ -133,7 +134,10 @@ export function representationsContactQuestions({
 	questions[`${prefix}TellUsAboutApplication`] = {
 		type: CUSTOM_COMPONENTS.REPRESENTATION_COMMENT,
 		title: 'Tell us about application',
-		question: getQuestionText('What do you want to say about this application?', 'Written representation submitted'),
+		question: getAppSpecificValue(
+			'What do you want to say about this application?',
+			'Written representation submitted'
+		),
 		fieldName: `${prefix}Comment`,
 		label: 'Enter your comment',
 		url: 'tell-us-about-application',
@@ -203,7 +207,7 @@ export function representationsContactQuestions({
 	questions[`${prefix}HasAttachments`] = {
 		type: COMPONENT_TYPES.BOOLEAN,
 		title: 'Attachments uploaded?',
-		question: getQuestionText(
+		question: getAppSpecificValue(
 			'Do you want to include any supporting documents with your comment?',
 			'Are there any attachments?'
 		),
@@ -217,9 +221,9 @@ export function representationsContactQuestions({
 	questions[`${prefix}SelectAttachments`] = {
 		type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS,
 		title: 'Attachments',
-		question: getQuestionText('Upload supporting documents', 'Select attachments'),
+		question: getAppSpecificValue('Upload supporting documents', 'Select attachments'),
 		fieldName: `${prefix}Attachments`,
-		url: getQuestionUrl('select-attachments', 'attachments'),
+		url: getAppSpecificValue('select-attachments', 'attachments'),
 		allowedFileExtensions: ALLOWED_EXTENSIONS,
 		allowedMimeTypes: ALLOWED_MIME_TYPES,
 		maxFileSizeValue: MAX_FILE_SIZE,

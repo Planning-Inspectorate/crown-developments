@@ -57,7 +57,8 @@ export const getQuestions = ({
 	})();
 
 	const isPortalQuestion = textOverrides.appName === 'portal';
-	const getQuestionText = (isPortalText, isManageText) => (isPortalQuestion ? isPortalText : isManageText);
+	/**	 @type {(portalValue: string, manageValue: string) => string}	 */
+	const getAppSpecificValue = (portalValue, manageValue) => (isPortalQuestion ? portalValue : manageValue);
 	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questionProps = {
 		reference: {
@@ -114,7 +115,7 @@ export const getQuestions = ({
 		submittedFor: {
 			type: COMPONENT_TYPES.RADIO,
 			title: 'Who you are submitting for',
-			question: getQuestionText('Who are you submitting a representation for?', 'Source of the representation'),
+			question: getAppSpecificValue('Who are you submitting a representation for?', 'Source of the representation'),
 			fieldName: 'submittedForId',
 			url: 'who-submitting-for',
 			validators: [new RequiredValidator('Select who you are submitting for')],
@@ -123,7 +124,7 @@ export const getQuestions = ({
 		whoRepresenting: {
 			type: COMPONENT_TYPES.RADIO,
 			title: 'Who are you representing?',
-			question: getQuestionText('Who are you representing?', 'Representation made on behalf of'),
+			question: getAppSpecificValue('Who are you representing?', 'Representation made on behalf of'),
 			fieldName: 'representedTypeId',
 			url: 'who-representing',
 			validators: [new RequiredValidator('Select who you are representing')],
@@ -132,7 +133,7 @@ export const getQuestions = ({
 		representedFullName: {
 			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
 			title: 'Represented person name',
-			question: getQuestionText(
+			question: getAppSpecificValue(
 				'What is the name of the person you are representing?',
 				'Name of the individual being represented'
 			),
@@ -195,7 +196,7 @@ export const getQuestions = ({
 		orgName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 			title: 'Your organisation or charity name',
-			question: getQuestionText(
+			question: getAppSpecificValue(
 				'What is the name of your organisation or charity?',
 				"Name of the sender's organisation or charity"
 			),
@@ -215,7 +216,7 @@ export const getQuestions = ({
 		orgRoleName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 			title: 'Your job title or volunteer role?',
-			question: getQuestionText('What is your job title or volunteer role?', "Sender's job title or role"),
+			question: getAppSpecificValue('What is your job title or volunteer role?', "Sender's job title or role"),
 			fieldName: 'orgRoleName',
 			url: 'what-job-title-or-role',
 			validators: [
@@ -231,7 +232,7 @@ export const getQuestions = ({
 		representedOrgName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 			title: 'Name of the organisation or charity representing',
-			question: getQuestionText(
+			question: getAppSpecificValue(
 				'What is the full name of the organisation or charity that you are representing?',
 				'Name of organisation or charity being represented'
 			),
@@ -254,7 +255,7 @@ export const getQuestions = ({
 		isAgent: {
 			type: COMPONENT_TYPES.BOOLEAN,
 			title: 'Are you acting as an agent on behalf of a client?',
-			question: getQuestionText(
+			question: getAppSpecificValue(
 				'Are you acting as an agent on behalf of a client?',
 				'Was the representation submitted by an agent?'
 			),
@@ -266,7 +267,10 @@ export const getQuestions = ({
 		agentOrgName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 			title: 'Agent organisation name',
-			question: getQuestionText('What is the name of the organisation you work for?', "Name of agent's organisation"),
+			question: getAppSpecificValue(
+				'What is the name of the organisation you work for?',
+				"Name of agent's organisation"
+			),
 			hint: "We will publish your organisation name, your client's name and their representation on the website.",
 			fieldName: 'agentOrgName',
 			url: 'agent-organisation-name',
