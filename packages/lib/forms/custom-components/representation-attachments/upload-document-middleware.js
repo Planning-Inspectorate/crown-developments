@@ -19,7 +19,7 @@
  * @param {import('express').NextFunction} next
  */
 export async function uploadDocumentQuestion(req, res, next) {
-	const uploadDocumentQuestionUrls = ['select-attachments', 'upload-request'];
+	const uploadDocumentQuestionUrls = ['select-attachments', 'attachments', 'upload-request'];
 	if (uploadDocumentQuestionUrls.includes(req.params.question)) {
 		const { journey } = res.locals;
 

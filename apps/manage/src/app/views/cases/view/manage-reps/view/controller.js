@@ -168,7 +168,7 @@ function getDocumentInfoBanner(res, currentUrl) {
 		const urlSection = submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF ? 'myself' : 'agent';
 		return {
 			name: 'noAttachmentsAdded',
-			href: `${trimmedUrl}/edit/${urlSection}/select-attachments`
+			href: `${trimmedUrl}/edit/${urlSection}/attachments`
 		};
 	}
 

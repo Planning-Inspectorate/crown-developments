@@ -79,7 +79,7 @@ describe('controller', () => {
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.deepStrictEqual(viewData.documentInfoBanner, {
 				name: 'noAttachmentsAdded',
-				href: 'case-1/manage-representations/edit/myself/select-attachments'
+				href: 'case-1/manage-representations/edit/myself/attachments'
 			});
 		});
 		it('should render the representation with awaiting review document banner', async () => {
