@@ -10,7 +10,7 @@ import {
 	ORGANISATION_ROLES_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { getLinkedCaseId, hasLinkedCase as hasLinkedCaseFunction } from '@pins/crowndev-lib/util/linked-case.js';
-import { extractApplicantContactFields } from '../util/contact.js';
+import { extractAgentContactFields, extractApplicantContactFields } from '../util/contact.js';
 
 /**
  * @typedef {import('./types.d.ts').CreateCaseAnswers} CreateCaseAnswers
@@ -196,52 +196,43 @@ function validateOrphanedContacts(answers) {
 }
 
 /**
- * Add organisations and their contacts to the input.
+ * Build organisations and their contacts from applicants.
  *
  * Because Prisma doesn't allow nested createMany with relations, we have to map to individual
  * creates for organisations and their contacts.
  *
- * @param {CrownDevelopmentCreateInput} input
  * @param {CreateCaseAnswers} answers
+ * @returns {Array<{Organisation: {create: import('@pins/crowndev-database').Prisma.OrganisationCreateInput}}>|null}
  */
-function addOrganisationsAndContacts(input, answers) {
+function buildApplicantOrganisationCreates(answers) {
 	if (!hasAnswers(answers, 'manageApplicantDetails')) {
-		return;
+		return null;
 	}
 
 	validateOrphanedContacts(answers);
 
-	input.Organisations = {
-		create: answers.manageApplicantDetails.map((applicantDetail) => {
-			/** @type {import('@pins/crowndev-database').Prisma.OrganisationCreateInput} */
-			const organisationCreate = {
-				name: applicantDetail.organisationName.trim(),
-				// Only create an address if at least one field is filled in
-				Address:
-					applicantDetail.organisationAddress && Object.values(applicantDetail.organisationAddress || {}).some((v) => v)
-						? { create: toAddressInput(applicantDetail.organisationAddress) }
-						: undefined
-			};
+	return answers.manageApplicantDetails.map((applicantDetail) => {
+		/** @type {import('@pins/crowndev-database').Prisma.OrganisationCreateInput} */
+		const organisationCreate = {
+			name: applicantDetail.organisationName.trim(),
+			// Only create an address if at least one field is filled in
+			Address:
+				applicantDetail.organisationAddress && Object.values(applicantDetail.organisationAddress || {}).some((v) => v)
+					? { create: toAddressInput(applicantDetail.organisationAddress) }
+					: undefined
+		};
 
-			if (hasAnswers(answers, 'manageApplicantContactDetails')) {
-				const linkedContacts = answers.manageApplicantContactDetails.filter((contact) => {
-					const selector = contact.applicantContactOrganisation;
-					if (!selector) throw new Error('Unable to match applicant contact to organisation - no valid selector');
+		if (hasAnswers(answers, 'manageApplicantContactDetails')) {
+			const linkedContacts = answers.manageApplicantContactDetails.filter((contact) => {
+				const selector = contact.applicantContactOrganisation;
+				if (!selector) throw new Error('Unable to match applicant contact to organisation - no valid selector');
 
-					// Match by ID (if session data has IDs)
-					return !!(applicantDetail.id && selector === applicantDetail.id);
-				});
+				// Match by ID (if session data has IDs)
+				return !!(applicantDetail.id && selector === applicantDetail.id);
+			});
 
-				// Organisations without contacts are valid in the hasAgent case.
-				if (linkedContacts.length === 0) {
-					return {
-						Role: { connect: { id: ORGANISATION_ROLES_ID.APPLICANT } },
-						Organisation: {
-							create: organisationCreate
-						}
-					};
-				}
-
+			// Organisations without contacts are valid in the hasAgent case.
+			if (linkedContacts.length > 0) {
 				organisationCreate.OrganisationToContact = {
 					create: linkedContacts.map((contact) => ({
 						Contact: {
@@ -250,14 +241,64 @@ function addOrganisationsAndContacts(input, answers) {
 					}))
 				};
 			}
-			return {
-				Role: { connect: { id: ORGANISATION_ROLES_ID.APPLICANT } },
-				Organisation: {
-					create: organisationCreate
+		}
+
+		return {
+			Role: { connect: { id: ORGANISATION_ROLES_ID.APPLICANT } },
+			Organisation: {
+				create: organisationCreate
+			}
+		};
+	});
+}
+
+/**
+ * Build the single agent organisation and its contacts.
+ *
+ * @param {CreateCaseAnswers} answers
+ * @returns {Array<{Organisation: {create: import('@pins/crowndev-database').Prisma.OrganisationCreateInput}}>|null}
+ */
+function buildAgentOrganisationCreates(answers) {
+	if (!hasAnswers(answers, 'hasAgent')) {
+		return null;
+	}
+
+	if (!yesNoToBoolean(answers.hasAgent)) {
+		return null;
+	}
+
+	// For the old flow - hasAgent might be true without multiple agent contacts
+	// TODO - throw error after migration CROWN-1509
+	if (!hasAnswers(answers, 'manageAgentContactDetails')) {
+		return null;
+	}
+
+	if (!hasAnswers(answers, 'agentOrganisationName')) {
+		throw new Error('Agent name is required when the case has an agent');
+	}
+
+	return [
+		{
+			Role: { connect: { id: ORGANISATION_ROLES_ID.AGENT } },
+			Organisation: {
+				create: {
+					name: answers.agentOrganisationName.trim(),
+					// Only create an address if at least one field is filled in
+					Address:
+						answers.agentOrganisationAddress && Object.values(answers.agentOrganisationAddress || {}).some((v) => v)
+							? { create: toAddressInput(answers.agentOrganisationAddress) }
+							: undefined,
+					OrganisationToContact: {
+						create: answers.manageAgentContactDetails.map((contact) => ({
+							Contact: {
+								create: extractAgentContactFields(contact)
+							}
+						}))
+					}
 				}
-			};
-		})
-	};
+			}
+		}
+	];
 }
 
 /**
@@ -300,8 +341,15 @@ export function toCreateInput(answers, reference, subType) {
 		};
 	}
 
-	addOrganisationsAndContacts(input, answers);
+	const organisationsCreate = [
+		...(buildAgentOrganisationCreates(answers) ?? []),
+		...(buildApplicantOrganisationCreates(answers) ?? [])
+	];
+	if (organisationsCreate.length > 0) {
+		input.Organisations = { create: organisationsCreate };
+	}
 
+	// TODO remove once multiple entities complete CROWN-1509
 	if (hasAnswersBeginningWith(answers, ORGANISATION_ROLES_ID.APPLICANT)) {
 		input.ApplicantContact = {
 			create: {
@@ -317,6 +365,7 @@ export function toCreateInput(answers, reference, subType) {
 		}
 	}
 
+	// TODO remove once multiple entities complete CROWN-1509
 	if (hasAnswersBeginningWith(answers, ORGANISATION_ROLES_ID.AGENT)) {
 		input.AgentContact = {
 			create: {
