@@ -194,11 +194,14 @@ model Organisation {
 /// CrownDevelopmentToOrganisation represents the relationship between CrownDevelopments and Organisations
 /// This is a many-to-many relationship
 model CrownDevelopmentToOrganisation {
-  id                 String           @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
-  organisationId     String           @db.UniqueIdentifier
-  Organisation       Organisation     @relation(fields: [organisationId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-  crownDevelopmentId String           @db.UniqueIdentifier
-  CrownDevelopment   CrownDevelopment @relation(fields: [crownDevelopmentId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  id                 String                             @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  organisationId     String                             @db.UniqueIdentifier
+  Organisation       Organisation                       @relation(fields: [organisationId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  crownDevelopmentId String                             @db.UniqueIdentifier
+  CrownDevelopment   CrownDevelopment                   @relation(fields: [crownDevelopmentId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  /// role of the organisation for this application
+  role               String
+  Role               CrownDevelopmentToOrganisationRole @relation(fields: [role], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   @@index([crownDevelopmentId])
   @@index([organisationId])
@@ -237,14 +240,11 @@ model Contact {
 /// OrganisationToContact represents the relationship between Organisations and Contacts
 /// This is a many-to-many relationship
 model OrganisationToContact {
-  id             String                    @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
-  organisationId String                    @db.UniqueIdentifier
-  Organisation   Organisation              @relation(fields: [organisationId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-  contactId      String                    @db.UniqueIdentifier
-  Contact        Contact                   @relation(fields: [contactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-  /// role of the contact within the organisation for this application
-  role           String
-  Role           OrganisationToContactRole @relation(fields: [role], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  id             String       @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  organisationId String       @db.UniqueIdentifier
+  Organisation   Organisation @relation(fields: [organisationId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  contactId      String       @db.UniqueIdentifier
+  Contact        Contact      @relation(fields: [contactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
   @@index([organisationId])
   @@index([contactId])
@@ -537,12 +537,12 @@ model ApplicationUpdateStatus {
   ApplicationUpdate ApplicationUpdate[]
 }
 
-/// OrganisationToContactRole represents the role the contact has for the organisation
-model OrganisationToContactRole {
+/// CrownDevelopmentToOrganisationRole represents the role the organisation has for the case
+model CrownDevelopmentToOrganisationRole {
   /// unique machine-readable name, not generated, e.g. "applicant" / "agent"
-  id                    String                  @id
-  displayName           String?
-  OrganisationToContact OrganisationToContact[]
+  id                             String                           @id
+  displayName                    String?
+  CrownDevelopmentToOrganisation CrownDevelopmentToOrganisation[]
 }
 
 /// RepresentationReceivedMethod represents the method by which a representation was received
