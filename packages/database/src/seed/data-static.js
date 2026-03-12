@@ -83,22 +83,22 @@ export const APPLICATION_SUB_TYPES = [
  *
  * @type {Readonly<{APPLICANT: string, AGENT: string}>}
  */
-export const CONTACT_ROLES_ID = Object.freeze({
+export const ORGANISATION_ROLES_ID = Object.freeze({
 	APPLICANT: 'applicant',
 	AGENT: 'agent'
 });
 
 /**
  *
- * @type {import('@pins/crowndev-database').Prisma.OrganisationToContactRoleCreateInput[]}
+ * @type {import('@pins/crowndev-database').Prisma.CrownDevelopmentToOrganisationRoleCreateInput[]}
  */
-export const CONTACT_ROLES = [
+export const ORGANISATION_ROLES = [
 	{
-		id: CONTACT_ROLES_ID.APPLICANT,
+		id: ORGANISATION_ROLES_ID.APPLICANT,
 		displayName: 'Applicant'
 	},
 	{
-		id: CONTACT_ROLES_ID.AGENT,
+		id: ORGANISATION_ROLES_ID.AGENT,
 		displayName: 'Agent'
 	}
 ];
@@ -708,7 +708,9 @@ export async function seedStaticData(dbClient) {
 	);
 
 	await Promise.all(
-		CONTACT_ROLES.map((input) => upsertReferenceData({ delegate: dbClient.organisationToContactRole, input }))
+		ORGANISATION_ROLES.map((input) =>
+			upsertReferenceData({ delegate: dbClient.crownDevelopmentToOrganisationRole, input })
+		)
 	);
 
 	const categories = CATEGORIES.filter((c) => !c.ParentCategory);
