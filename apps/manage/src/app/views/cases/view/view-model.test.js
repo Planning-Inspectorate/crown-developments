@@ -288,6 +288,7 @@ describe('view-model', () => {
 						id: 'relation-1',
 						organisationId: 'org-1',
 						crownDevelopmentId: 'id-1',
+						role: 'applicant',
 						Organisation: {
 							id: 'org-1',
 							addressId: 'address-1',
@@ -306,6 +307,7 @@ describe('view-model', () => {
 						id: 'relation-2',
 						organisationId: 'org-2',
 						crownDevelopmentId: 'id-1',
+						role: 'applicant',
 						Organisation: {
 							id: 'org-2',
 							addressId: 'address-2',

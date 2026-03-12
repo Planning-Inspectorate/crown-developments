@@ -736,7 +736,8 @@ describe('save', () => {
 								name: 'Applicant One',
 								Address: undefined
 							}
-						}
+						},
+						Role: { connect: { id: 'applicant' } }
 					}
 				]
 			});
@@ -772,7 +773,8 @@ describe('save', () => {
 									}
 								}
 							}
-						}
+						},
+						Role: { connect: { id: 'applicant' } }
 					}
 				]
 			});
@@ -812,7 +814,8 @@ describe('save', () => {
 									}
 								}
 							}
-						}
+						},
+						Role: { connect: { id: 'applicant' } }
 					}
 				]
 			});
@@ -891,6 +894,7 @@ describe('save', () => {
 			await save({}, res);
 			const createArgs = service.db.crownDevelopment.create.mock.calls[0].arguments[0];
 			const orgCreates = createArgs.data.Organisations.create;
+			assert.deepStrictEqual(orgCreates[0].Role, { connect: { id: 'applicant' } });
 			const orgA = orgCreates[0].Organisation.create;
 			assert.strictEqual(orgA.OrganisationToContact.create.length, 1);
 			assert.strictEqual(orgA.OrganisationToContact.create[0].Contact.create.firstName, 'Alex');
@@ -968,7 +972,6 @@ describe('save', () => {
 			assert.strictEqual(contactsA.length, 2);
 
 			assert.strictEqual(contactsA[0].Contact.create.firstName, 'Alex');
-			assert.deepStrictEqual(contactsA[0].Role, { connect: { id: 'applicant' } });
 			assert.strictEqual(contactsA[1].Contact.create.firstName, 'Sam');
 
 			// Org B should have Jamie Jones
