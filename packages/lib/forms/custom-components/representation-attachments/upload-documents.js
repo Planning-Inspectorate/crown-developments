@@ -286,7 +286,7 @@ async function processChunkDocumentUpload(file, uploadUrl, logger) {
 function getRedirectUrl(appName, applicationId, journeyId, submittedForId, requestParams) {
 	const redirectUrlMap = {
 		'have-your-say': `/applications/${applicationId}/${journeyId}/${submittedForId}/select-attachments`,
-		'add-representation': `/cases/${applicationId}/manage-representations/${journeyId}/${submittedForId}/select-attachments`,
+		'add-representation': `/cases/${applicationId}/manage-representations/${journeyId}/${submittedForId}/attachments`,
 		'manage-reps-edit': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/edit/${requestParams?.section}/${requestParams?.question}`,
 		'manage-reps-manage': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/manage/task-list/${requestParams?.itemId}/redact`,
 		'manage-reps-review': `/cases/${applicationId}/manage-representations/${requestParams?.representationRef}/review/task-list/${requestParams?.itemId}/redact`,

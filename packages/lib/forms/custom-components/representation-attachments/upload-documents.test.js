@@ -131,7 +131,7 @@ describe('upload-documents.js', () => {
 
 			assert.strictEqual(
 				redirectCalledWith,
-				'/cases/166c1754-f7dd-440a-b6f1-0f535ea008d5/manage-representations/add-representation/myself/select-attachments'
+				'/cases/166c1754-f7dd-440a-b6f1-0f535ea008d5/manage-representations/add-representation/myself/attachments'
 			);
 		});
 		it('should successfully upload document from manage app for withdraw reps journey', async () => {
@@ -875,7 +875,7 @@ describe('upload-documents.js', () => {
 
 			assert.strictEqual(
 				redirectCalledWith,
-				'/cases/app456/manage-representations/add-representation/myself/select-attachments'
+				'/cases/app456/manage-representations/add-representation/myself/attachments'
 			);
 			assert.deepStrictEqual(req.session.files.app456.myself.uploadedFiles, [
 				{
