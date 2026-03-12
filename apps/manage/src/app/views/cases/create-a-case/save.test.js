@@ -841,6 +841,110 @@ describe('save', () => {
 			const input = toCreateInput(answers, 'ref-1', null);
 			assert.strictEqual(input.containsDistressingContent, false);
 		});
+		it('should include both agent and applicant organisations when a case has an agent and applicants', () => {
+			const answers = {
+				developmentDescription: 'desc',
+				typeOfApplication: 'type',
+				lpaId: 'lpa-1',
+				hasAgent: 'yes',
+				agentOrganisationName: 'Agent Org',
+				manageAgentContactDetails: [
+					{
+						agentFirstName: 'A',
+						agentLastName: 'One',
+						agentEmail: 'a.one@example.com',
+						agentTelephoneNumber: '123'
+					}
+				],
+				manageApplicantDetails: [
+					{
+						organisationName: 'Applicant One'
+					}
+				]
+			};
+
+			const input = toCreateInput(answers, 'ref-1', null);
+			assert.ok(input.Organisations);
+			assert.ok(Array.isArray(input.Organisations.create));
+
+			const orgCreates = input.Organisations.create;
+			assert.strictEqual(orgCreates.length, 2);
+			assert.deepStrictEqual(orgCreates[0].Role, { connect: { id: 'agent' } });
+			assert.deepStrictEqual(orgCreates[1].Role, { connect: { id: 'applicant' } });
+
+			const names = orgCreates.map((o) => o.Organisation.create.name);
+			assert.deepStrictEqual(names, ['Agent Org', 'Applicant One']);
+
+			const agentOrg = orgCreates[0].Organisation.create;
+			assert.ok(agentOrg.OrganisationToContact);
+		});
+		it('should include agent organisation and contacts when agent is present', () => {
+			const answers = {
+				hasAgent: 'yes',
+				agentOrganisationName: 'Agent Org',
+				agentOrganisationAddress: { addressLine1: '1 Street', postcode: 'AB1 2CD' },
+				manageAgentContactDetails: [
+					{
+						agentFirstName: 'Alice',
+						agentLastName: 'Smith',
+						agentEmail: 'alice@example.com',
+						agentTelephoneNumber: '123'
+					}
+				],
+				developmentDescription: 'desc',
+				typeOfApplication: 'type',
+				lpaId: 'lpa-1'
+			};
+			const input = toCreateInput(answers, 'ref-1', null);
+			const orgs = input.Organisations.create;
+			assert.strictEqual(orgs.length, 1);
+			assert.strictEqual(orgs[0].Organisation.create.name, 'Agent Org');
+			assert.ok(orgs[0].Organisation.create.Address);
+			assert.strictEqual(orgs[0].Organisation.create.OrganisationToContact.create.length, 1);
+			assert.strictEqual(orgs[0].Organisation.create.OrganisationToContact.create[0].Contact.create.firstName, 'Alice');
+			assert.deepStrictEqual(orgs[0].Role, {
+				connect: { id: 'agent' }
+			});
+		});
+
+		it('should not include agent organisation if hasAgent is no', () => {
+			const answers = {
+				hasAgent: 'no',
+				developmentDescription: 'desc',
+				typeOfApplication: 'type',
+				lpaId: 'lpa-1'
+			};
+			const input = toCreateInput(answers, 'ref-1', null);
+			assert.ok(
+				!input.Organisations || !input.Organisations.create.some((o) => o.Organisation.create.name === 'Agent Org')
+			);
+		});
+
+		it('should throw error if agentOrganisationName is missing but hasAgent is yes', () => {
+			const answers = {
+				hasAgent: 'yes',
+				manageAgentContactDetails: [{ agentFirstName: 'A' }],
+				developmentDescription: 'desc',
+				typeOfApplication: 'type',
+				lpaId: 'lpa-1'
+			};
+			assert.throws(() => toCreateInput(answers, 'ref-1', null), /Agent name is required when the case has an agent/);
+		});
+
+		it('should not create address for agent if all address fields are empty', () => {
+			const answers = {
+				hasAgent: 'yes',
+				agentOrganisationName: 'Agent Org',
+				agentOrganisationAddress: { addressLine1: '', postcode: '' },
+				manageAgentContactDetails: [{ agentFirstName: 'A' }],
+				developmentDescription: 'desc',
+				typeOfApplication: 'type',
+				lpaId: 'lpa-1'
+			};
+			const input = toCreateInput(answers, 'ref-1', null);
+			const org = input.Organisations.create[0].Organisation.create;
+			assert.strictEqual(org.Address, undefined);
+		});
 	});
 
 	describe('save applicant contacts linked to organisations', () => {
@@ -866,7 +970,7 @@ describe('save', () => {
 			};
 		};
 
-		it('creates organisation-to-contact relationships using ID matching', async () => {
+		it('should create organisation-to-contact relationships using ID matching', async () => {
 			const service = buildServiceMock();
 			const save = buildSaveController(service);
 			const res = {
@@ -900,7 +1004,7 @@ describe('save', () => {
 			assert.strictEqual(orgA.OrganisationToContact.create[0].Contact.create.firstName, 'Alex');
 		});
 
-		it('creates organisation-to-contact relationships for multiple contacts and organisations', async () => {
+		it('should create organisation-to-contact relationships for multiple contacts and organisations', async () => {
 			const service = buildServiceMock();
 			// findUnique is no longer called for organisations
 			service.db.crownDevelopment.findUnique = mock.fn(() => null);
@@ -983,7 +1087,7 @@ describe('save', () => {
 			assert.strictEqual(contactsB[0].Contact.create.firstName, 'Jamie');
 		});
 
-		it('throws error if applicantContactOrganisation does not match any organisation ID', async () => {
+		it('should throw error if applicantContactOrganisation does not match any organisation ID', async () => {
 			const service = buildServiceMock();
 			const save = buildSaveController(service);
 			const res = {
@@ -1024,7 +1128,7 @@ describe('save', () => {
 			);
 		});
 
-		it('throws error if applicantContactOrganisation is missing or empty', async () => {
+		it('should throw error if applicantContactOrganisation is missing or empty', async () => {
 			const service = buildServiceMock();
 			const save = buildSaveController(service);
 			const res = {
@@ -1054,7 +1158,7 @@ describe('save', () => {
 			);
 		});
 
-		it('does not link contact to wrong organisation if names are duplicated, only matches by ID', async () => {
+		it('should not link contact to wrong organisation if names are duplicated, only matches by ID', async () => {
 			const service = buildServiceMock();
 			const save = buildSaveController(service);
 			const res = {
@@ -1100,7 +1204,7 @@ describe('save', () => {
 			assert.strictEqual(orgE2.OrganisationToContact.create[0].Contact.create.firstName, 'Jordan');
 		});
 
-		it('handles minimal input: one org, one contact', async () => {
+		it('should handle minimal input: one org, one contact', async () => {
 			const service = buildServiceMock();
 			const save = buildSaveController(service);
 			const res = {
@@ -1134,7 +1238,7 @@ describe('save', () => {
 			assert.strictEqual(orgF.OrganisationToContact.create[0].Contact.create.firstName, 'Kit');
 		});
 
-		it('handles minimal input: empty arrays', async () => {
+		it('should handle minimal input: empty arrays', async () => {
 			const service = buildServiceMock();
 			const save = buildSaveController(service);
 			const res = {
