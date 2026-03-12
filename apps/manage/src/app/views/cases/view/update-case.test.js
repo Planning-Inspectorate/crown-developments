@@ -980,6 +980,13 @@ describe('case details', () => {
 	});
 
 	describe('multi applicant contact updates', () => {
+		// Mock CrownDevelopmentToOrganisationRole
+		const mockRole = {
+			id: 'applicant',
+			displayName: 'Applicant'
+		};
+
+		// Patch buildDbWithOrgs to include role and Role
 		const buildDbWithOrgs = (organisations) => ({
 			$transaction: mock.fn(() => Promise.resolve()),
 			contact: {
@@ -991,7 +998,11 @@ describe('case details', () => {
 					linkedParentId: null,
 					ChildrenCrownDevelopment: [],
 					ParentCrownDevelopment: null,
-					Organisations: organisations
+					Organisations: organisations.map((org) => ({
+						...org,
+						role: mockRole.id,
+						Role: mockRole
+					}))
 				})),
 				update: mock.fn(() => ({ kind: 'crownDevelopment.update' }))
 			}
@@ -1033,7 +1044,6 @@ describe('case details', () => {
 						OrganisationToContact: [
 							{
 								id: 'join-1',
-								role: 'applicant',
 								Contact: {
 									id: 'contact-1',
 									firstName: 'Old',
@@ -1044,7 +1054,6 @@ describe('case details', () => {
 							},
 							{
 								id: 'join-2',
-								role: 'applicant',
 								Contact: {
 									id: 'contact-2',
 									firstName: 'Old2',
@@ -1107,7 +1116,6 @@ describe('case details', () => {
 						OrganisationToContact: [
 							{
 								id: 'join-1',
-								role: 'applicant',
 								Contact: {
 									id: 'contact-1',
 									firstName: 'Old',
@@ -1130,7 +1138,6 @@ describe('case details', () => {
 						OrganisationToContact: [
 							{
 								id: 'join-2',
-								role: 'applicant',
 								Contact: {
 									id: 'contact-2',
 									firstName: 'Old',

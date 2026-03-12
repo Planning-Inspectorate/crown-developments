@@ -1,7 +1,7 @@
 import {
 	APPLICATION_PROCEDURE_ID,
 	APPLICATION_STAGE_ID,
-	CONTACT_ROLES_ID
+	ORGANISATION_ROLES_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { toFloat, toInt } from '@pins/crowndev-lib/util/numbers.js';
 import { booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
@@ -142,7 +142,9 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 	}
 
 	if (crownDevelopment.Organisations) {
-		viewModel.manageApplicantDetails = crownDevelopment.Organisations.map((crownToOrganisation) => {
+		viewModel.manageApplicantDetails = crownDevelopment.Organisations.filter(
+			(crownToOrganisation) => crownToOrganisation.role === ORGANISATION_ROLES_ID.APPLICANT
+		).map((crownToOrganisation) => {
 			return {
 				id: crownToOrganisation.Organisation.id,
 				organisationName: crownToOrganisation.Organisation.name,
@@ -151,23 +153,23 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 			};
 		});
 
-		viewModel.manageApplicantContactDetails = crownDevelopment.Organisations.flatMap((crownToOrganisation) =>
-			(crownToOrganisation.Organisation.OrganisationToContact ?? [])
-				.filter((orgToContact) => orgToContact.role === CONTACT_ROLES_ID.APPLICANT)
-				.map((orgToContact) => ({
-					// This ID is used for the session. However, it should be fine to use the
-					// database-generated contact ID here.
-					id: orgToContact.Contact.id,
-					// Used for updating existing contacts, as the relation ID is needed to
-					// target the correct relation record for updates. If this is not present,
-					// the update will assume it's a new contact and attempt to create it instead.
-					organisationToContactRelationId: orgToContact.id,
-					applicantFirstName: orgToContact.Contact.firstName ?? '',
-					applicantLastName: orgToContact.Contact.lastName ?? '',
-					applicantContactEmail: orgToContact.Contact.email ?? '',
-					applicantContactTelephoneNumber: orgToContact.Contact.telephoneNumber ?? '',
-					applicantContactOrganisation: crownToOrganisation.organisationId
-				}))
+		viewModel.manageApplicantContactDetails = crownDevelopment.Organisations.filter(
+			(crownToOrganisation) => crownToOrganisation.role === ORGANISATION_ROLES_ID.APPLICANT
+		).flatMap((crownToOrganisation) =>
+			(crownToOrganisation.Organisation.OrganisationToContact ?? []).map((orgToContact) => ({
+				// This ID is used for the session. However, it should be fine to use the
+				// database-generated contact ID here.
+				id: orgToContact.Contact.id,
+				// Used for updating existing contacts, as the relation ID is needed to
+				// target the correct relation record for updates. If this is not present,
+				// the update will assume it's a new contact and attempt to create it instead.
+				organisationToContactRelationId: orgToContact.id,
+				applicantFirstName: orgToContact.Contact.firstName ?? '',
+				applicantLastName: orgToContact.Contact.lastName ?? '',
+				applicantContactEmail: orgToContact.Contact.email ?? '',
+				applicantContactTelephoneNumber: orgToContact.Contact.telephoneNumber ?? '',
+				applicantContactOrganisation: crownToOrganisation.organisationId
+			}))
 		);
 	}
 
@@ -481,7 +483,6 @@ function buildApplicantContactOrganisationUpdates(edits, viewModel) {
 			// (1) New contact: create join row + Contact
 			const contactCreate = extractContactFields(contact);
 			ensureBucket(targetRelationId).create.push({
-				Role: { connect: { id: CONTACT_ROLES_ID.APPLICANT } },
 				Contact: { create: contactCreate }
 			});
 			continue;
@@ -512,7 +513,6 @@ function buildApplicantContactOrganisationUpdates(edits, viewModel) {
 
 		ensureBucket(sourceRelationId).deleteMany.push({ id: contact.organisationToContactRelationId });
 		ensureBucket(targetRelationId).create.push({
-			Role: { connect: { id: CONTACT_ROLES_ID.APPLICANT } },
 			Contact: { connect: { id: existing.contactId } }
 		});
 	}

@@ -7,7 +7,7 @@ import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/compone
 import {
 	APPLICATION_SUB_TYPE_ID,
 	APPLICATION_TYPE_ID,
-	CONTACT_ROLES_ID
+	ORGANISATION_ROLES_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { getLinkedCaseId, hasLinkedCase as hasLinkedCaseFunction } from '@pins/crowndev-lib/util/linked-case.js';
 import { extractContactFields } from '../util/contact.js';
@@ -235,6 +235,7 @@ function addOrganisationsAndContacts(input, answers) {
 				// Organisations without contacts are valid in the hasAgent case.
 				if (linkedContacts.length === 0) {
 					return {
+						Role: { connect: { id: ORGANISATION_ROLES_ID.APPLICANT } },
 						Organisation: {
 							create: organisationCreate
 						}
@@ -243,7 +244,6 @@ function addOrganisationsAndContacts(input, answers) {
 
 				organisationCreate.OrganisationToContact = {
 					create: linkedContacts.map((contact) => ({
-						Role: { connect: { id: CONTACT_ROLES_ID.APPLICANT } },
 						Contact: {
 							create: extractContactFields(contact)
 						}
@@ -251,6 +251,7 @@ function addOrganisationsAndContacts(input, answers) {
 				};
 			}
 			return {
+				Role: { connect: { id: ORGANISATION_ROLES_ID.APPLICANT } },
 				Organisation: {
 					create: organisationCreate
 				}
@@ -301,7 +302,7 @@ export function toCreateInput(answers, reference, subType) {
 
 	addOrganisationsAndContacts(input, answers);
 
-	if (hasAnswersBeginningWith(answers, CONTACT_ROLES_ID.APPLICANT)) {
+	if (hasAnswersBeginningWith(answers, ORGANISATION_ROLES_ID.APPLICANT)) {
 		input.ApplicantContact = {
 			create: {
 				orgName: answers.applicantName,
@@ -316,7 +317,7 @@ export function toCreateInput(answers, reference, subType) {
 		}
 	}
 
-	if (hasAnswersBeginningWith(answers, CONTACT_ROLES_ID.AGENT)) {
+	if (hasAnswersBeginningWith(answers, ORGANISATION_ROLES_ID.AGENT)) {
 		input.AgentContact = {
 			create: {
 				orgName: answers.agentName,
@@ -440,11 +441,11 @@ async function grantUsersAccess(sharePointDrive, answers, folderName) {
 	});
 
 	const users = [];
-	if (hasAnswersBeginningWith(answers, CONTACT_ROLES_ID.APPLICANT) && answers.applicantEmail) {
+	if (hasAnswersBeginningWith(answers, ORGANISATION_ROLES_ID.APPLICANT) && answers.applicantEmail) {
 		users.push({ email: answers.applicantEmail, id: '' });
 	}
 
-	if (hasAnswersBeginningWith(answers, CONTACT_ROLES_ID.AGENT) && answers.agentEmail) {
+	if (hasAnswersBeginningWith(answers, ORGANISATION_ROLES_ID.AGENT) && answers.agentEmail) {
 		users.push({ email: answers.agentEmail, id: '' });
 	}
 
