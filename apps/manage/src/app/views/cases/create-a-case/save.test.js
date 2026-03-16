@@ -864,6 +864,7 @@ describe('save', () => {
 			};
 
 			const input = toCreateInput(answers, 'ref-1', null);
+			assert.strictEqual(input.hasAgent, true);
 			assert.ok(input.Organisations);
 			assert.ok(Array.isArray(input.Organisations.create));
 
@@ -915,6 +916,7 @@ describe('save', () => {
 				lpaId: 'lpa-1'
 			};
 			const input = toCreateInput(answers, 'ref-1', null);
+			assert.strictEqual(input.hasAgent, false);
 			assert.ok(
 				!input.Organisations || !input.Organisations.create.some((o) => o.Organisation.create.name === 'Agent Org')
 			);
