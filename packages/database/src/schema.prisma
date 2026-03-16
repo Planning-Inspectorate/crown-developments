@@ -47,6 +47,7 @@ model CrownDevelopment {
   /// hasSecondaryLpa added to allow secondaryLpa to be edited in overview
   secondaryLpaId           String?                          @db.UniqueIdentifier
   SecondaryLpa             Lpa?                             @relation("SecondaryLpa", fields: [secondaryLpaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  hasAgent                 Boolean                          @default(false)
   /// Applicant organisations details
   Organisations            CrownDevelopmentToOrganisation[]
 

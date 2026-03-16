@@ -320,7 +320,8 @@ export function toCreateInput(answers, reference, subType) {
 		siteNorthing: toFloat(answers.siteNorthing),
 		expectedDateOfSubmission: answers.expectedDateOfSubmission,
 		hasSecondaryLpa: yesNoToBoolean(answers.hasSecondaryLpa),
-		containsDistressingContent: yesNoToBoolean(answers.containsDistressingContent)
+		containsDistressingContent: yesNoToBoolean(answers.containsDistressingContent),
+		hasAgent: yesNoToBoolean(answers.hasAgent)
 	};
 
 	if (input.hasSecondaryLpa && answers.secondaryLpaId) {
