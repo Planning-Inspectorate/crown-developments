@@ -459,7 +459,63 @@ describe(`gov-notify-client`, () => {
 					await client.sendApplicationReceivedNotificationToMany([], { reference: 'ref' }, false);
 				},
 				{
-					message: 'No email addresses provided to send application received notification'
+					message: 'No email addresses provided to send notification'
+				}
+			);
+		});
+	});
+
+	describe('sendAcknowledgePreNotificationToMany', () => {
+		it('should send notifications to all email addresses (happy path)', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+			ctx.mock.method(client, 'sendAcknowledgePreNotification', () => {});
+
+			await client.sendAcknowledgePreNotificationToMany(['a@a.com', 'b@b.com'], {
+				reference: 'ref',
+				sharePointLink: 'link',
+				isLbcCase: true
+			});
+
+			assert.strictEqual(client.sendAcknowledgePreNotification.mock.callCount(), 2);
+			assert.strictEqual(logger.error.mock.callCount(), 0);
+		});
+
+		it('should log errors for rejected promises but still attempts to send to other recipients', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+			ctx.mock.method(client, 'sendAcknowledgePreNotification', (address) => {
+				if (address === 'b@b.com') return Promise.reject(new Error('fail'));
+				return Promise.resolve();
+			});
+
+			await assert.rejects(
+				async () => {
+					await client.sendAcknowledgePreNotificationToMany(['a@a.com', 'b@b.com'], {
+						reference: 'ref',
+						sharePointLink: 'link'
+					});
+				},
+				{
+					message: 'Failed to send acknowledge pre-notification to one or more email addresses.'
+				}
+			);
+
+			assert.strictEqual(client.sendAcknowledgePreNotification.mock.callCount(), 2);
+			assert.strictEqual(logger.error.mock.callCount(), 1);
+			assert.strictEqual(logger.error.mock.calls[0].arguments[0].emailAddress, 'b@b.com');
+		});
+
+		it('should throw if emailAddresses is empty', async () => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+
+			await assert.rejects(
+				async () => {
+					await client.sendAcknowledgePreNotificationToMany([], { reference: 'ref', sharePointLink: 'link' });
+				},
+				{
+					message: 'No email addresses provided to send notification'
 				}
 			);
 		});
