@@ -40,8 +40,8 @@ import { fetchRedactionSuggestions, highlightRedactionSuggestions } from '#util/
 const MANAGE_REPS_MANAGE_JOURNEY_ID = 'manage-reps-manage';
 
 // Distressing content review constants
-const CONTENT_WARNING = 'CONTENT_WARNING';
-const NO_CONTENT_WARNING = 'NO_CONTENT_WARNING';
+const CONTENT_WARNING = 'content-warning';
+const NO_CONTENT_WARNING = 'no-content-warning';
 
 /**
  * @type {Handler}
@@ -165,13 +165,6 @@ export function buildReviewControllers(service, journeyId) {
 			if (journeyId === MANAGE_REPS_MANAGE_JOURNEY_ID && !req.session?.itemsToBeDeleted?.[representationRef]) {
 				req.session.itemsToBeDeleted || (req.session.itemsToBeDeleted = {});
 				req.session.itemsToBeDeleted[representationRef] = [];
-			}
-
-			if (journeyId === MANAGE_REPS_MANAGE_JOURNEY_ID) {
-				const repDecision = req.session?.reviewDecisions?.[representationRef]?.distressingContentInRepresentation;
-				req.session.distressingContentInRepresentation = {
-					reviewDecision: repDecision ? repDecision.reviewDecision : ''
-				};
 			}
 
 			const repItemsReviewStatus = readRepReviewStatusSession(req, representationRef);
@@ -415,7 +408,29 @@ export function buildReviewControllers(service, journeyId) {
 			const { representationRef } = validateParams(req.params);
 			const { reviewDistressingContentDecision } = req.body;
 
-			if (!reviewDistressingContentDecision) {
+			if (
+				!reviewDistressingContentDecision ||
+				(reviewDistressingContentDecision !== CONTENT_WARNING &&
+					reviewDistressingContentDecision !== NO_CONTENT_WARNING)
+			) {
+				req.body.errors = {
+					reviewDistressingContentDecision: {
+						msg: 'Select whether the representation contains potentially distressing content'
+					}
+				};
+				req.body.errorSummary = expressValidationErrorsToGovUkErrorList(req.body.errors);
+				await controllers.reviewDistressingContent(req, res, {
+					errors: req.body.errors,
+					errorSummary: req.body.errorSummary
+				});
+				return;
+			}
+
+			// Validate that the submitted value is one of the allowed constants
+			if (
+				reviewDistressingContentDecision !== CONTENT_WARNING &&
+				reviewDistressingContentDecision !== NO_CONTENT_WARNING
+			) {
 				req.body.errors = {
 					reviewDistressingContentDecision: {
 						msg: 'Select whether the representation contains potentially distressing content'
@@ -656,7 +671,10 @@ function initialiseRepresentationReviewSession(req, representationRef, represent
 		comment: {},
 		...attachmentEntries,
 		distressingContentInRepresentation: {
-			reviewDecision: getDistressingContentReviewDecision(representation?.distressingContentInRepresentation)
+			reviewDecision: getDistressingContentReviewDecision(
+				representation?.distressingContentInRepresentation,
+				representation?.statusId
+			)
 		}
 	};
 
@@ -672,9 +690,8 @@ function initialiseRepresentationReviewSession(req, representationRef, represent
 					commentRedacted: representation?.commentRedacted
 				};
 			} else if (key === 'distressingContentInRepresentation') {
-				if (existingReviewData.distressingContentInRepresentation) {
-					newReviewData.distressingContentInRepresentation = existingReviewData.distressingContentInRepresentation;
-				}
+				newReviewData.distressingContentInRepresentation =
+					existingReviewData.distressingContentInRepresentation || newReviewData.distressingContentInRepresentation;
 			} else {
 				const attachment = representation?.Attachments?.find((a) => a.itemId === key);
 				const attachmentStatusId = attachment?.statusId;
@@ -727,14 +744,25 @@ function getReviewDecision(statusId, isRedacted) {
 	}
 }
 
-function getDistressingContentReviewDecision(distressingContentInRepresentation) {
+/**
+ * Get review decision for distressing content based on representation value
+ * @param {boolean} distressingContentInRepresentation
+ * @param representationStatusId
+ * @returns {string}
+ */
+
+function getDistressingContentReviewDecision(distressingContentInRepresentation, representationStatusId) {
+	if (representationStatusId === REPRESENTATION_STATUS_ID.REJECTED) {
+		return REPRESENTATION_STATUS_ID.REJECTED;
+	}
+
 	if (distressingContentInRepresentation === true) {
 		return CONTENT_WARNING;
-	} else if (distressingContentInRepresentation === false) {
-		return NO_CONTENT_WARNING;
-	} else {
-		return '';
 	}
+	if (distressingContentInRepresentation === false) {
+		return NO_CONTENT_WARNING;
+	}
+	return '';
 }
 
 /**
@@ -899,7 +927,12 @@ function getReviewTaskStatus(status) {
 }
 
 function updateDocumentStatusSession(req, logger, representationRef, isRejected) {
-	Object.entries(req.session?.reviewDecisions?.[representationRef])
+	const reviewDecisions = req.session?.reviewDecisions?.[representationRef];
+	if (!reviewDecisions) {
+		return;
+	}
+
+	Object.entries(reviewDecisions)
 		.filter(([key]) => key !== 'comment')
 		.forEach(([, value]) => {
 			value.reviewDecision = isRejected ? REPRESENTATION_STATUS_ID.REJECTED : REPRESENTATION_STATUS_ID.AWAITING_REVIEW;
@@ -939,19 +972,24 @@ async function updateRepresentationItemsReviewStatus(req, db, logger) {
 				}
 
 				if (key === 'distressingContentInRepresentation') {
-					if (value.reviewDecision === CONTENT_WARNING || value.reviewDecision === NO_CONTENT_WARNING) {
-						const distressingContentValue = value.reviewDecision === CONTENT_WARNING;
+					let distressingContentValue = null;
 
-						logger.info(
-							{ representationRef, distressingContentInRepresentation: distressingContentValue },
-							'update distressing content status'
-						);
-
-						await tx.representation.update({
-							where: { reference: representationRef },
-							data: { distressingContentInRepresentation: distressingContentValue }
-						});
+					if (value.reviewDecision === CONTENT_WARNING) {
+						distressingContentValue = true;
+					} else if (value.reviewDecision === NO_CONTENT_WARNING) {
+						distressingContentValue = false;
 					}
+
+					logger.info(
+						{ representationRef, distressingContentInRepresentation: distressingContentValue },
+						'update distressing content status'
+					);
+
+					await tx.representation.update({
+						where: { reference: representationRef },
+						data: { distressingContentInRepresentation: distressingContentValue }
+					});
+
 					continue;
 				}
 

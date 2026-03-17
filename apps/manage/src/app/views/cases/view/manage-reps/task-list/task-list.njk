@@ -55,8 +55,9 @@
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-full">
             <h2 class="govuk-heading-m">Mark distressing content</h2>
-            {{ govukTaskList({
-                items: [
+                {{ govukTaskList({
+                            idPrefix: 'task-list-distressing-content',
+                            items: [
                     {
                         title: {
                             text: "Mark distressing content"
