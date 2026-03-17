@@ -29,6 +29,8 @@ import { fetchRedactionSuggestions, highlightRedactionSuggestions } from '#util/
  * @property {Handler} redactRepresentationPost - handles POST for /review/task-list/comment/redact
  * @property {Handler} redactConfirmation - handles GET for /review/task-list/comment/redact/confirmation
  * @property {Handler} acceptRedactedComment - handles POST for /review/task-list/comment/redact/confirmation
+ * @property {Handler} reviewDistressingContent - handles GET for /review/task-list/distressing-content
+ * @property {Handler} reviewDistressingContentDecision - handles POST for /review/task-list/distressing-content
  * @property {Handler} reviewRepresentationDocument - handles GET for /review/task-list/:itemId
  * @property {Handler} reviewDocumentDecision - handles POST for /review/task-list/:itemId
  * @property {Handler} redactRepresentationDocument - handles GET for /task-list/:itemId/redact
@@ -36,6 +38,10 @@ import { fetchRedactionSuggestions, highlightRedactionSuggestions } from '#util/
  */
 
 const MANAGE_REPS_MANAGE_JOURNEY_ID = 'manage-reps-manage';
+
+// Distressing content review constants
+const CONTENT_WARNING = 'CONTENT_WARNING';
+const NO_CONTENT_WARNING = 'NO_CONTENT_WARNING';
 
 /**
  * @type {Handler}
@@ -161,9 +167,19 @@ export function buildReviewControllers(service, journeyId) {
 				req.session.itemsToBeDeleted[representationRef] = [];
 			}
 
+			if (journeyId === MANAGE_REPS_MANAGE_JOURNEY_ID) {
+				const repDecision = req.session?.reviewDecisions?.[representationRef]?.distressingContentInRepresentation;
+				req.session.distressingContentInRepresentation = {
+					reviewDecision: repDecision ? repDecision.reviewDecision : ''
+				};
+			}
+
 			const repItemsReviewStatus = readRepReviewStatusSession(req, representationRef);
 
 			const commentStatusTag = getReviewTaskStatus(repItemsReviewStatus?.comment?.reviewDecision);
+			const distressingContentStatusTag = getReviewTaskStatus(
+				repItemsReviewStatus?.distressingContentInRepresentation?.reviewDecision
+			);
 			const representationAttachments = representation?.containsAttachments ? representation?.Attachments || [] : [];
 			const documents = representationAttachments.map((attachment) => {
 				return {
@@ -182,12 +198,14 @@ export function buildReviewControllers(service, journeyId) {
 
 			const taskStatusList = [
 				repItemsReviewStatus?.comment?.reviewDecision,
+				repItemsReviewStatus?.distressingContentInRepresentation?.reviewDecision,
 				...representationAttachments.map((attachment) => repItemsReviewStatus?.[attachment.itemId]?.reviewDecision)
 			];
 
 			return res.render('views/cases/view/manage-reps/task-list/task-list.njk', {
 				reference: representationRef,
 				commentStatusTag,
+				distressingContentStatusTag,
 				isCommentRejected: representation?.commentStatus === REPRESENTATION_STATUS_ID.REJECTED,
 				documents: representation?.containsAttachments === true ? documents : [],
 				reviewComplete: isReviewComplete(taskStatusList),
@@ -368,6 +386,53 @@ export function buildReviewControllers(service, journeyId) {
 
 			updateRepReviewSession(req, representationRef, 'comment', { reviewDecision: ACCEPT_AND_REDACT });
 			res.redirect(getTaskListURL(req.baseUrl, '/comment'));
+		},
+
+		async reviewDistressingContent(req, res, viewData = {}) {
+			const { representationRef } = validateParams(req.params);
+			const currentStatus = readRepDistressingContentReviewStatusSession(req, representationRef);
+
+			let currentStatusText = 'Incomplete';
+			if (currentStatus === CONTENT_WARNING) {
+				currentStatusText = 'Content warning';
+			} else if (currentStatus === NO_CONTENT_WARNING) {
+				currentStatusText = 'No content warning';
+			}
+			return res.render('views/cases/view/manage-reps/review/review-distressing-content.njk', {
+				reference: representationRef,
+				distressingContentStatus: currentStatus,
+				currentStatusText,
+				contentWarning: CONTENT_WARNING,
+				noContentWarning: NO_CONTENT_WARNING,
+				journeyTitle: 'Manage Reps',
+				layoutTemplate: 'views/layouts/forms-question.njk',
+				backLinkUrl: getTaskListURL(req.baseUrl, '/distressing-content'),
+				...viewData
+			});
+		},
+
+		async reviewDistressingContentDecision(req, res) {
+			const { representationRef } = validateParams(req.params);
+			const { reviewDistressingContentDecision } = req.body;
+
+			if (!reviewDistressingContentDecision) {
+				req.body.errors = {
+					reviewDistressingContentDecision: {
+						msg: 'Select whether the representation contains potentially distressing content'
+					}
+				};
+				req.body.errorSummary = expressValidationErrorsToGovUkErrorList(req.body.errors);
+				await controllers.reviewDistressingContent(req, res, {
+					errors: req.body.errors,
+					errorSummary: req.body.errorSummary
+				});
+				return;
+			}
+
+			updateRepReviewSession(req, representationRef, 'distressingContentInRepresentation', {
+				reviewDecision: reviewDistressingContentDecision
+			});
+			res.redirect(getTaskListURL(req.baseUrl, '/distressing-content'));
 		},
 		async reviewRepresentationDocument(req, res, viewData = {}) {
 			const { representationRef } = validateParams(req.params);
@@ -589,7 +654,10 @@ function initialiseRepresentationReviewSession(req, representationRef, represent
 		: {};
 	const newReviewData = {
 		comment: {},
-		...attachmentEntries
+		...attachmentEntries,
+		distressingContentInRepresentation: {
+			reviewDecision: getDistressingContentReviewDecision(representation?.distressingContentInRepresentation)
+		}
 	};
 
 	const commentAttachmentLengthHasChanged = req.session.reviewDecisions
@@ -603,11 +671,15 @@ function initialiseRepresentationReviewSession(req, representationRef, represent
 					...getReviewDecision(representation?.statusId, representation?.commentRedacted),
 					commentRedacted: representation?.commentRedacted
 				};
+			} else if (key === 'distressingContentInRepresentation') {
+				if (existingReviewData.distressingContentInRepresentation) {
+					newReviewData.distressingContentInRepresentation = existingReviewData.distressingContentInRepresentation;
+				}
 			} else {
 				const attachment = representation?.Attachments?.find((a) => a.itemId === key);
-				newReviewData[key] =
-					existingReviewData[key] ||
-					getReviewDecision(attachment.statusId, attachment.redactedItemId && attachment.redactedFileName);
+				const attachmentStatusId = attachment?.statusId;
+				const attachmentIsRedacted = !!(attachment?.redactedItemId && attachment?.redactedFileName);
+				newReviewData[key] = existingReviewData[key] || getReviewDecision(attachmentStatusId, attachmentIsRedacted);
 			}
 		}
 		clearSessionData(req, representationRef, Object.keys(existingReviewData), 'reviewDecisions');
@@ -652,6 +724,16 @@ function getReviewDecision(statusId, isRedacted) {
 			return { reviewDecision: REPRESENTATION_STATUS_ID.REJECTED };
 		default:
 			return { reviewDecision: '' };
+	}
+}
+
+function getDistressingContentReviewDecision(distressingContentInRepresentation) {
+	if (distressingContentInRepresentation === true) {
+		return CONTENT_WARNING;
+	} else if (distressingContentInRepresentation === false) {
+		return NO_CONTENT_WARNING;
+	} else {
+		return '';
 	}
 }
 
@@ -744,6 +826,17 @@ function readRepDocumentReviewStatusSession(req, representationRef, itemId) {
 }
 
 /**
+ * Read distressing content review decision for given representationRef
+ *
+ * @param {{session?: Object<string, any>}} req
+ * @param {string} representationRef
+ * @returns {string|undefined}
+ */
+function readRepDistressingContentReviewStatusSession(req, representationRef) {
+	return req.session?.reviewDecisions?.[representationRef]?.distressingContentInRepresentation?.reviewDecision;
+}
+
+/**
  * Clear redacted comment from session for given representationRef
  *
  * @param {{session?: Object<string, any>}} req
@@ -786,6 +879,16 @@ function getReviewTaskStatus(status) {
 			return {
 				text: 'Rejected',
 				classes: 'govuk-tag--red'
+			};
+		case CONTENT_WARNING:
+			return {
+				text: 'Content warning',
+				classes: 'govuk-tag--red'
+			};
+		case NO_CONTENT_WARNING:
+			return {
+				text: 'Not distressing',
+				classes: 'govuk-tag--green'
 			};
 		default:
 			return {
@@ -832,6 +935,23 @@ async function updateRepresentationItemsReviewStatus(req, db, logger) {
 						where: { reference: representationRef },
 						data: repUpdate
 					});
+					continue;
+				}
+
+				if (key === 'distressingContentInRepresentation') {
+					if (value.reviewDecision === CONTENT_WARNING || value.reviewDecision === NO_CONTENT_WARNING) {
+						const distressingContentValue = value.reviewDecision === CONTENT_WARNING;
+
+						logger.info(
+							{ representationRef, distressingContentInRepresentation: distressingContentValue },
+							'update distressing content status'
+						);
+
+						await tx.representation.update({
+							where: { reference: representationRef },
+							data: { distressingContentInRepresentation: distressingContentValue }
+						});
+					}
 					continue;
 				}
 
@@ -887,7 +1007,9 @@ function isReviewComplete(taskStatusList) {
 	const validStatuses = new Set([
 		REPRESENTATION_STATUS_ID.ACCEPTED,
 		ACCEPT_AND_REDACT,
-		REPRESENTATION_STATUS_ID.REJECTED
+		REPRESENTATION_STATUS_ID.REJECTED,
+		CONTENT_WARNING,
+		NO_CONTENT_WARNING
 	]);
 
 	return taskStatusList.every((status) => validStatuses.has(status));

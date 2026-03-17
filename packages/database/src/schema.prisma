@@ -332,6 +332,9 @@ model Representation {
   Attachments             RepresentationDocument[]
   sharePointFolderCreated Boolean?                 @default(false)
 
+  // distressing content manage representation flag
+  distressingContentInRepresentation Boolean?
+
   // withdrawal fields
   withdrawalRequestDate DateTime?
   withdrawalReasonId    String?

@@ -327,7 +327,8 @@ describe('controller', () => {
 					findUnique: mock.fn(() => ({
 						comment: 'Some comment to redact here',
 						containsAttachments: true,
-						Attachments: [{ itemId: 'item-1', fileName: 'test.pdf' }]
+						Attachments: [{ itemId: 'item-1', fileName: 'test.pdf' }],
+						distressingContentInRepresentation: null
 					}))
 				}
 			};
@@ -364,6 +365,10 @@ describe('controller', () => {
 						}
 					}
 				],
+				distressingContentStatusTag: {
+					classes: 'govuk-tag--blue',
+					text: 'Incomplete'
+				},
 				reviewComplete: false,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
@@ -377,7 +382,8 @@ describe('controller', () => {
 					findUnique: mock.fn(() => ({
 						comment: 'Some comment to redact here',
 						containsAttachments: false,
-						Attachments: []
+						Attachments: [],
+						distressingContentInRepresentation: null
 					}))
 				}
 			};
@@ -400,6 +406,10 @@ describe('controller', () => {
 				commentStatusTag: { text: 'Incomplete', classes: 'govuk-tag--blue' },
 				isCommentRejected: false,
 				documents: [],
+				distressingContentStatusTag: {
+					classes: 'govuk-tag--blue',
+					text: 'Incomplete'
+				},
 				reviewComplete: false,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
@@ -431,9 +441,15 @@ describe('controller', () => {
 			await representationTaskList(mockReq, mockRes);
 
 			assert.deepStrictEqual(mockReq.session, {
-				reviewDecisions: { 'ref-1': { comment: { commentRedacted: undefined, reviewDecision: '' } } },
+				reviewDecisions: {
+					'ref-1': {
+						comment: { commentRedacted: undefined, reviewDecision: '' },
+						distressingContentInRepresentation: { reviewDecision: '' }
+					}
+				},
 				files: { 'ref-1': {} },
-				itemsToBeDeleted: { 'ref-1': [] }
+				itemsToBeDeleted: { 'ref-1': [] },
+				distressingContentInRepresentation: { reviewDecision: '' }
 			});
 		});
 	});
@@ -1950,6 +1966,422 @@ describe('controller', () => {
 					message: 'itemId param required'
 				}
 			);
+		});
+	});
+
+	describe('distressing content', () => {
+		it('should render distressing content page with Incomplete when no status in session', async () => {
+			const { reviewDistressingContent } = buildReviewControllers({}, 'manage-reps-manage');
+			const mockReq = {
+				baseUrl: 'some/url/ref-1/review/task-list/distressing-content',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				session: {}
+			};
+			const mockRes = { render: mock.fn() };
+
+			await reviewDistressingContent(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const template = mockRes.render.mock.calls[0].arguments[0];
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(template, 'views/cases/view/manage-reps/review/review-distressing-content.njk');
+			assert.strictEqual(viewData.reference, 'ref-1');
+			assert.strictEqual(viewData.distressingContentStatus, undefined);
+			assert.strictEqual(viewData.currentStatusText, 'Incomplete');
+			assert.strictEqual(viewData.contentWarning, 'CONTENT_WARNING');
+			assert.strictEqual(viewData.noContentWarning, 'NO_CONTENT_WARNING');
+			assert.strictEqual(viewData.backLinkUrl, 'some/url/ref-1/review/task-list');
+		});
+
+		it('should render distressing content page with Content warning status text when session has CONTENT_WARNING', async () => {
+			const { reviewDistressingContent } = buildReviewControllers({}, 'manage-reps-manage');
+			const mockReq = {
+				baseUrl: 'some/url/ref-1/review/task-list/distressing-content',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				session: {
+					reviewDecisions: {
+						'ref-1': {
+							distressingContentInRepresentation: { reviewDecision: 'CONTENT_WARNING' }
+						}
+					}
+				}
+			};
+			const mockRes = { render: mock.fn() };
+
+			await reviewDistressingContent(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.reference, 'ref-1');
+			assert.strictEqual(viewData.distressingContentStatus, 'CONTENT_WARNING');
+			assert.strictEqual(viewData.currentStatusText, 'Content warning');
+			assert.strictEqual(viewData.contentWarning, 'CONTENT_WARNING');
+			assert.strictEqual(viewData.noContentWarning, 'NO_CONTENT_WARNING');
+		});
+
+		it('should render distressing content page with No content warning status text when session has NO_CONTENT_WARNING', async () => {
+			const { reviewDistressingContent } = buildReviewControllers({});
+			const mockReq = {
+				baseUrl: 'some/url/ref-1/review/task-list/distressing-content',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				session: {
+					reviewDecisions: {
+						'ref-1': {
+							distressingContentInRepresentation: { reviewDecision: 'NO_CONTENT_WARNING' }
+						}
+					}
+				}
+			};
+			const mockRes = { render: mock.fn() };
+
+			await reviewDistressingContent(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.distressingContentStatus, 'NO_CONTENT_WARNING');
+			assert.strictEqual(viewData.currentStatusText, 'No content warning');
+		});
+
+		it('should return errors and render page if no decision provided', async () => {
+			const logger = mockLogger();
+			const { reviewDistressingContentDecision } = buildReviewControllers({ logger });
+			const mockReq = {
+				baseUrl: 'some/url/ref-1/review/task-list/distressing-content',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				body: {},
+				session: {}
+			};
+			const mockRes = { render: mock.fn() };
+
+			await reviewDistressingContentDecision(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const template = mockRes.render.mock.calls[0].arguments[0];
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(template, 'views/cases/view/manage-reps/review/review-distressing-content.njk');
+			assert.ok(viewData.errors?.reviewDistressingContentDecision);
+			assert.ok(Array.isArray(viewData.errorSummary));
+			assert.strictEqual(
+				viewData.errorSummary[0].text,
+				'Select whether the representation contains potentially distressing content'
+			);
+		});
+
+		it('should save CONTENT_WARNING decision to session and redirect to task-list', async () => {
+			const logger = mockLogger();
+			const { reviewDistressingContentDecision } = buildReviewControllers({ logger });
+			const mockReq = {
+				baseUrl: 'some/url/ref-1/review/task-list/distressing-content',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				body: { reviewDistressingContentDecision: 'CONTENT_WARNING' },
+				session: {}
+			};
+			const mockRes = { redirect: mock.fn() };
+
+			await reviewDistressingContentDecision(mockReq, mockRes);
+
+			assert.strictEqual(
+				mockReq.session.reviewDecisions['ref-1'].distressingContentInRepresentation.reviewDecision,
+				'CONTENT_WARNING'
+			);
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], 'some/url/ref-1/review/task-list');
+		});
+
+		it('should save NO_CONTENT_WARNING decision to session and redirect to task-list', async () => {
+			const logger = mockLogger();
+			const { reviewDistressingContentDecision } = buildReviewControllers({ logger });
+			const mockReq = {
+				baseUrl: 'some/url/ref-1/review/task-list/distressing-content',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				body: { reviewDistressingContentDecision: 'NO_CONTENT_WARNING' },
+				session: {}
+			};
+			const mockRes = { redirect: mock.fn() };
+
+			await reviewDistressingContentDecision(mockReq, mockRes);
+
+			assert.strictEqual(
+				mockReq.session.reviewDecisions['ref-1'].distressingContentInRepresentation.reviewDecision,
+				'NO_CONTENT_WARNING'
+			);
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], 'some/url/ref-1/review/task-list');
+		});
+
+		it('should update existing decision in session when user changes answer', async () => {
+			const logger = mockLogger();
+			const { reviewDistressingContentDecision } = buildReviewControllers({ logger });
+			const mockReq = {
+				baseUrl: 'some/url/ref-1/review/task-list/distressing-content',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				body: { reviewDistressingContentDecision: 'NO_CONTENT_WARNING' },
+				session: {
+					reviewDecisions: {
+						'ref-1': {
+							distressingContentInRepresentation: { reviewDecision: 'CONTENT_WARNING' }
+						}
+					}
+				}
+			};
+			const mockRes = { redirect: mock.fn() };
+
+			await reviewDistressingContentDecision(mockReq, mockRes);
+
+			assert.strictEqual(
+				mockReq.session.reviewDecisions['ref-1'].distressingContentInRepresentation.reviewDecision,
+				'NO_CONTENT_WARNING'
+			);
+		});
+	});
+
+	describe('database updates', () => {
+		it('should update representation.distressingContentInRepresentation to true in database when submitted with CONTENT_WARNING', async () => {
+			const mockSharePoint = {
+				getDriveItemByPath: mock.fn(() => ({ id: 'drive-id' })),
+				moveItemsToFolder: mock.fn(),
+				deleteDocumentById: mock.fn()
+			};
+			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
+				crownDevelopment: { findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' })) },
+				representation: { update: mock.fn() },
+				representationDocument: { findFirst: mock.fn(), update: mock.fn() }
+			};
+			const logger = mockLogger();
+			const { reviewRepresentationSubmission } = buildReviewControllers({
+				db: mockDb,
+				logger,
+				getSharePointDrive: () => mockSharePoint
+			});
+			const mockReq = {
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				body: {},
+				session: {
+					reviewDecisions: {
+						'ref-1': {
+							distressingContentInRepresentation: { reviewDecision: 'CONTENT_WARNING' }
+						}
+					},
+					files: { 'ref-1': {} },
+					itemsToBeDeleted: { 'ref-1': [] }
+				}
+			};
+			const mockRes = {
+				locals: { journey: { sections: [], isComplete: () => true }, journeyResponse: { answers: {} } },
+				render: mock.fn(),
+				redirect: mock.fn()
+			};
+
+			await reviewRepresentationSubmission(mockReq, mockRes);
+
+			assert.strictEqual(mockDb.representation.update.mock.callCount(), 1);
+			const updateCall = mockDb.representation.update.mock.calls[0].arguments[0];
+			assert.strictEqual(updateCall.where.reference, 'ref-1');
+			assert.deepStrictEqual(updateCall.data, { distressingContentInRepresentation: true });
+		});
+
+		it('should update representation.distressingContentInRepresentation to false in database when submitted with NO_CONTENT_WARNING', async () => {
+			const mockSharePoint = {
+				getDriveItemByPath: mock.fn(() => ({ id: 'drive-id' })),
+				moveItemsToFolder: mock.fn(),
+				deleteDocumentById: mock.fn()
+			};
+			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
+				crownDevelopment: { findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' })) },
+				representation: { update: mock.fn() },
+				representationDocument: { findFirst: mock.fn(), update: mock.fn() }
+			};
+			const logger = mockLogger();
+			const { reviewRepresentationSubmission } = buildReviewControllers({
+				db: mockDb,
+				logger,
+				getSharePointDrive: () => mockSharePoint
+			});
+			const mockReq = {
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				body: {},
+				session: {
+					reviewDecisions: {
+						'ref-1': {
+							distressingContentInRepresentation: { reviewDecision: 'NO_CONTENT_WARNING' }
+						}
+					},
+					files: { 'ref-1': {} },
+					itemsToBeDeleted: { 'ref-1': [] }
+				}
+			};
+			const mockRes = {
+				locals: { journey: { sections: [], isComplete: () => true }, journeyResponse: { answers: {} } },
+				render: mock.fn(),
+				redirect: mock.fn()
+			};
+
+			await reviewRepresentationSubmission(mockReq, mockRes);
+
+			assert.strictEqual(mockDb.representation.update.mock.callCount(), 1);
+			const updateCall = mockDb.representation.update.mock.calls[0].arguments[0];
+			assert.strictEqual(updateCall.where.reference, 'ref-1');
+			assert.deepStrictEqual(updateCall.data, { distressingContentInRepresentation: false });
+		});
+
+		it('should not update representation.distressingContentInRepresentation in database when decision is incomplete', async () => {
+			const mockSharePoint = {
+				getDriveItemByPath: mock.fn(() => ({ id: 'drive-id' })),
+				moveItemsToFolder: mock.fn(),
+				deleteDocumentById: mock.fn()
+			};
+			const mockDb = {
+				$transaction: mock.fn((fn) => fn(mockDb)),
+				crownDevelopment: { findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' })) },
+				representation: { update: mock.fn() },
+				representationDocument: { findFirst: mock.fn(), update: mock.fn() }
+			};
+			const logger = mockLogger();
+			const { reviewRepresentationSubmission } = buildReviewControllers({
+				db: mockDb,
+				logger,
+				getSharePointDrive: () => mockSharePoint
+			});
+			const mockReq = {
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				body: {},
+				session: {
+					reviewDecisions: {
+						'ref-1': {
+							comment: { reviewDecision: 'accepted' },
+							distressingContentInRepresentation: { reviewDecision: '' }
+						}
+					},
+					files: { 'ref-1': {} },
+					itemsToBeDeleted: { 'ref-1': [] }
+				}
+			};
+			const mockRes = {
+				locals: { journey: { sections: [], isComplete: () => true }, journeyResponse: { answers: {} } },
+				render: mock.fn(),
+				redirect: mock.fn()
+			};
+
+			await reviewRepresentationSubmission(mockReq, mockRes);
+
+			// Should update comment but not distressingContentInRepresentation
+			assert.strictEqual(mockDb.representation.update.mock.callCount(), 1);
+			const updateCall = mockDb.representation.update.mock.calls[0].arguments[0];
+			assert.strictEqual(updateCall.data.statusId, 'accepted');
+			assert.strictEqual(updateCall.data.distressingContentInRepresentation, undefined);
+		});
+
+		it('should render red Content warning tag in task list when distressingContentInRepresentation decision is CONTENT_WARNING', async () => {
+			const mockDb = {
+				representation: {
+					findUnique: mock.fn(() => ({
+						comment: 'Some comment to redact here',
+						containsAttachments: false,
+						Attachments: [],
+						distressingContentInRepresentation: null
+					}))
+				}
+			};
+			const logger = mockLogger();
+			const { representationTaskList } = buildReviewControllers({ db: mockDb, logger });
+			const mockReq = {
+				baseUrl: 'some/url/review',
+				originalUrl: 'some/url/task-list',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				session: {
+					reviewDecisions: {
+						'ref-1': {
+							comment: { reviewDecision: '' },
+							distressingContentInRepresentation: { reviewDecision: 'CONTENT_WARNING' }
+						}
+					}
+				}
+			};
+			const mockRes = { render: mock.fn() };
+
+			await representationTaskList(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.distressingContentStatusTag.text, 'Content warning');
+			assert.strictEqual(viewData.distressingContentStatusTag.classes, 'govuk-tag--red');
+		});
+
+		it('should render green Not distressing tag in task list when distressingContentInRepresentation decision is NO_CONTENT_WARNING', async () => {
+			const mockDb = {
+				representation: {
+					findUnique: mock.fn(() => ({
+						comment: 'Some comment',
+						containsAttachments: false,
+						Attachments: [],
+						distressingContentInRepresentation: null
+					}))
+				}
+			};
+			const logger = mockLogger();
+			const { representationTaskList } = buildReviewControllers({ db: mockDb, logger });
+			const mockReq = {
+				baseUrl: 'some/url/review',
+				originalUrl: 'some/url/task-list',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				session: {
+					reviewDecisions: {
+						'ref-1': {
+							comment: { reviewDecision: '' },
+							distressingContentInRepresentation: { reviewDecision: 'NO_CONTENT_WARNING' }
+						}
+					}
+				}
+			};
+			const mockRes = { render: mock.fn() };
+
+			await representationTaskList(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.distressingContentStatusTag.text, 'Not distressing');
+			assert.strictEqual(viewData.distressingContentStatusTag.classes, 'govuk-tag--green');
+		});
+
+		it('should render blue Incomplete tag in task list when distressingContentInRepresentation decision is not set', async () => {
+			const mockDb = {
+				representation: {
+					findUnique: mock.fn(() => ({
+						comment: 'Some comment',
+						containsAttachments: false,
+						Attachments: [],
+						distressingContentInRepresentation: null
+					}))
+				}
+			};
+			const logger = mockLogger();
+			const { representationTaskList } = buildReviewControllers({ db: mockDb, logger });
+			const mockReq = {
+				baseUrl: 'some/url/review',
+				originalUrl: 'some/url/task-list',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				session: {
+					reviewDecisions: {
+						'ref-1': {
+							comment: { reviewDecision: '' },
+							distressingContentInRepresentation: { reviewDecision: '' }
+						}
+					}
+				}
+			};
+			const mockRes = { render: mock.fn() };
+
+			await representationTaskList(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.distressingContentStatusTag.text, 'Incomplete');
+			assert.strictEqual(viewData.distressingContentStatusTag.classes, 'govuk-tag--blue');
 		});
 	});
 
