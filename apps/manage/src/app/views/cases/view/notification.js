@@ -239,30 +239,45 @@ function getRecipientEmail(crownDevelopmentFields) {
 }
 
 /**
- * @typedef {Object} ApplicantContact
- * @property {string} applicantContactEmail
+ * @typedef {import('../view/types').ManageApplicantContactDetails} ManageApplicantContactDetails
+ * @typedef {import('../view/types').ManageAgentContactDetails} ManageAgentContactDetails
  */
 
 /**
- * @typedef {Object} ContactDetailsData
- * @property {YesNo} hasAgent
- * @property {ApplicantContact[]} manageApplicantContactDetails
+ * @typedef {Object} HasApplicantContactDetailsData
+ * @property {ManageApplicantContactDetails[]} manageApplicantContactDetails
+ */
+
+/**
+ * @typedef {Object} HasAgentContactDetailsData
+ * @property {ManageAgentContactDetails[]} manageAgentContactDetails
  */
 
 /**
  * @typedef {Object} UnknownContactDetailsData
  * @property {YesNo} [hasAgent]
- * @property {ApplicantContact[] | undefined} [manageApplicantContactDetails]
+ * @property {ManageApplicantContactDetails[]} [manageApplicantContactDetails]
+ * @property {ManageAgentContactDetails[]} [manageAgentContactDetails]
  */
 
 /**
  * Type guard to check for manageApplicantContactDetails property
  *
  * @param {any} obj
- * @returns {obj is ContactDetailsData}
+ * @returns {obj is UnknownContactDetailsData & HasApplicantContactDetailsData}
  */
 function hasManageApplicantContactDetails(obj) {
 	return obj && typeof obj === 'object' && Array.isArray(obj.manageApplicantContactDetails);
+}
+
+/**
+ * Type guard to check for manageAgentContactDetails property
+ *
+ * @param {any} obj
+ * @returns {obj is UnknownContactDetailsData & HasAgentContactDetailsData}
+ */
+function hasManageAgentContactDetails(obj) {
+	return obj && typeof obj === 'object' && Array.isArray(obj.manageAgentContactDetails);
 }
 
 /**
@@ -272,16 +287,31 @@ function hasManageApplicantContactDetails(obj) {
  * @returns {string[]} Array of recipient emails.
  */
 export function getRecipientEmails(data) {
-	// TODO handle agents in CROWN-1311, CROWN-1312 and CROWN-1313
+	/**
+	 * @type {string[]}
+	 */
+	let recipients = [];
+
 	if (yesNoToBoolean(data.hasAgent)) {
-		return [];
+		if (!hasManageAgentContactDetails(data)) {
+			throw new Error('Case has an agent but could not find agent contact details, cannot send notification email');
+		}
+
+		recipients = data.manageAgentContactDetails.map((contact) => contact.agentContactEmail).filter(isDefined);
 	}
 
-	if (!hasManageApplicantContactDetails(data)) {
+	// If there is no agent, then applicant contacts are required.
+	if (!yesNoToBoolean(data.hasAgent) && !hasManageApplicantContactDetails(data)) {
 		throw new Error('Could not find applicant contact details for case, cannot send notification email');
 	}
 
-	return data.manageApplicantContactDetails.map((contact) => contact.applicantContactEmail).filter(isDefined);
+	if (hasManageApplicantContactDetails(data)) {
+		recipients.push(
+			...data.manageApplicantContactDetails.map((contact) => contact.applicantContactEmail).filter(isDefined)
+		);
+	}
+
+	return recipients;
 }
 
 /**
