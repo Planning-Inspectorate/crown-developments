@@ -193,7 +193,7 @@ interface ManageApplicantDetails {
 	organisationAddress?: Address | {};
 }
 
-interface ManageApplicantContactDetails {
+export interface ManageApplicantContactDetails {
 	id: string;
 	organisationToContactRelationId: string;
 	applicantFirstName: string;
@@ -203,7 +203,7 @@ interface ManageApplicantContactDetails {
 	applicantContactOrganisation: string;
 }
 
-interface ManageAgentContactDetails {
+export interface ManageAgentContactDetails {
 	id: string;
 	agentFirstName: string;
 	agentLastName: string;

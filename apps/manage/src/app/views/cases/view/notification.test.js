@@ -716,6 +716,26 @@ describe('notification', () => {
 		});
 	});
 	describe('getRecipientEmails', () => {
+		it('should return agent contact emails when hasAgent is YES', () => {
+			const emails = getRecipientEmails({
+				hasAgent: BOOLEAN_OPTIONS.YES,
+				manageAgentContactDetails: [{ agentContactEmail: 'a@agent.com' }, { agentContactEmail: 'b@agent.com' }]
+			});
+			assert.deepStrictEqual(emails, ['a@agent.com', 'b@agent.com']);
+		});
+
+		it('should return agent and applicant contact emails when hasAgent is YES and both are present', () => {
+			const emails = getRecipientEmails({
+				hasAgent: BOOLEAN_OPTIONS.YES,
+				manageAgentContactDetails: [{ agentContactEmail: 'a@agent.com' }, { agentContactEmail: 'b@agent.com' }],
+				manageApplicantContactDetails: [
+					{ applicantContactEmail: 'c@example.com' },
+					{ applicantContactEmail: 'd@example.com' }
+				]
+			});
+			assert.deepStrictEqual(emails, ['a@agent.com', 'b@agent.com', 'c@example.com', 'd@example.com']);
+		});
+
 		it('should return applicant contact emails when hasAgent is NO', () => {
 			const emails = getRecipientEmails({
 				hasAgent: BOOLEAN_OPTIONS.NO,
@@ -737,6 +757,30 @@ describe('notification', () => {
 					message: 'Could not find applicant contact details for case, cannot send notification email'
 				}
 			);
+		});
+
+		it('should throw when agent contact details are missing and hasAgent is YES', () => {
+			assert.throws(
+				() =>
+					getRecipientEmails({
+						hasAgent: BOOLEAN_OPTIONS.YES
+					}),
+				{
+					message: 'Case has an agent but could not find agent contact details, cannot send notification email'
+				}
+			);
+		});
+
+		it('should filter out undefined agent contact emails', () => {
+			const emails = getRecipientEmails({
+				hasAgent: BOOLEAN_OPTIONS.YES,
+				manageAgentContactDetails: [
+					{ agentContactEmail: 'a@agent.com' },
+					{ agentContactEmail: undefined },
+					{ agentContactEmail: 'b@agent.com' }
+				]
+			});
+			assert.deepStrictEqual(emails, ['a@agent.com', 'b@agent.com']);
 		});
 
 		it('should filter out undefined applicant contact emails', () => {
