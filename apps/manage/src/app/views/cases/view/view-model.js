@@ -86,7 +86,8 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'costsApplicationsComment',
 	'environmentalImpactAssessment',
 	'developmentPlan',
-	'rightOfWay'
+	'rightOfWay',
+	'hasAgent'
 ]);
 
 /**
@@ -142,6 +143,25 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 	}
 
 	if (crownDevelopment.Organisations) {
+		// There will be a maximum of one agent organisation linked to a case.
+		const agentOrganisation = crownDevelopment.Organisations.find(
+			(crownToOrganisation) => crownToOrganisation.role === ORGANISATION_ROLES_ID.AGENT
+		);
+		viewModel.agentOrganisationName = agentOrganisation?.Organisation?.name;
+		viewModel.agentOrganisationAddress = agentOrganisation?.Organisation?.Address
+			? addressToViewModel(agentOrganisation.Organisation.Address)
+			: undefined;
+
+		viewModel.manageAgentContactDetails = agentOrganisation?.Organisation?.OrganisationToContact?.map(
+			(orgToContact) => ({
+				id: orgToContact.Contact.id,
+				agentFirstName: orgToContact.Contact.firstName ?? '',
+				agentLastName: orgToContact.Contact.lastName ?? '',
+				agentContactEmail: orgToContact.Contact.email ?? '',
+				agentContactTelephoneNumber: orgToContact.Contact.telephoneNumber ?? ''
+			})
+		);
+
 		viewModel.manageApplicantDetails = crownDevelopment.Organisations.filter(
 			(crownToOrganisation) => crownToOrganisation.role === ORGANISATION_ROLES_ID.APPLICANT
 		).map((crownToOrganisation) => {

@@ -2,7 +2,8 @@ import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
 import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
 import {
 	questionHasAnswer,
-	whenQuestionHasAnswer
+	whenQuestionHasAnswer,
+	questionHasNonEmptyStringAnswer
 } from '@planning-inspectorate/dynamic-forms/src/components/utils/question-has-answer.js';
 import {
 	APPLICATION_PROCEDURE_ID,
@@ -13,23 +14,28 @@ import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/compone
 import { ManageListSection } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-section.js';
 export const JOURNEY_ID = 'case-details';
 
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} JourneyResponse */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question} Question */
+
 /**
- * @param {{[questionType: string]: import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question}} questions
- * @param {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} response
+ * @param {{[questionType: string]: Question}} questions
+ * @param {JourneyResponse} response
  * @param {import('express').Request} req
  * @returns {Journey}
  */
 export function createJourney(questions, response, req) {
-	if (!req.params.id) {
+	if (!req.params.id || Array.isArray(req.params.id)) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey (no id param)`);
 	}
 	if (!req.baseUrl?.includes(req.params.id)) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey (invalid baseUrl)`);
 	}
+	/** @param {JourneyResponse} response */
 	const hasSecondaryLpa = (response) => yesNoToBoolean(response.answers?.hasSecondaryLpa);
 	const isWrittenReps = whenQuestionHasAnswer(questions.procedure, APPLICATION_PROCEDURE_ID.WRITTEN_REPS);
 	const isInquiry = whenQuestionHasAnswer(questions.procedure, APPLICATION_PROCEDURE_ID.INQUIRY);
 	const isHearing = whenQuestionHasAnswer(questions.procedure, APPLICATION_PROCEDURE_ID.HEARING);
+	/** @param {JourneyResponse} response */
 	const isPlanningOrLbcCase = (response) =>
 		questionHasAnswer(
 			response,
@@ -38,9 +44,13 @@ export function createJourney(questions, response, req) {
 		) &&
 		(questionHasAnswer(response, questions.subTypeOfApplication, APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION) ||
 			questionHasAnswer(response, questions.subTypeOfApplication, APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT));
+	/** @param {JourneyResponse} response */
 	const iscilLiable = (response) => yesNoToBoolean(response.answers?.cilLiable);
+	/** @param {JourneyResponse} response */
 	const hasApplicationFee = (response) => yesNoToBoolean(response.answers?.hasApplicationFee);
+	/** @param {JourneyResponse} response */
 	const feeReceived = (response) => questionHasNonNullAnswer(response, questions.applicationFeeReceivedDate);
+	/** @param {JourneyResponse} response */
 	const eligibleForRefund = (response) => yesNoToBoolean(response.answers?.eligibleForFeeRefund);
 
 	return new Journey({
@@ -183,22 +193,24 @@ export function createJourney(questions, response, req) {
 }
 
 /**
- * @param {{[questionType: string]: import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question}} questions
- * @param {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} response
+ * @param {{[questionType: string]: Question}} questions
+ * @param {JourneyResponse} response
  * @param {import('express').Request} req
  * @returns {Journey}
  */
 export function createJourneyV2(questions, response, req) {
-	if (!req.params.id) {
+	if (!req.params.id || Array.isArray(req.params.id)) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey (no id param)`);
 	}
 	if (!req.baseUrl?.includes(req.params.id)) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey (invalid baseUrl)`);
 	}
+	/** @param {JourneyResponse} response */
 	const hasSecondaryLpa = (response) => yesNoToBoolean(response.answers?.hasSecondaryLpa);
 	const isWrittenReps = whenQuestionHasAnswer(questions.procedure, APPLICATION_PROCEDURE_ID.WRITTEN_REPS);
 	const isInquiry = whenQuestionHasAnswer(questions.procedure, APPLICATION_PROCEDURE_ID.INQUIRY);
 	const isHearing = whenQuestionHasAnswer(questions.procedure, APPLICATION_PROCEDURE_ID.HEARING);
+	/** @param {JourneyResponse} response */
 	const isPlanningOrLbcCase = (response) =>
 		questionHasAnswer(
 			response,
@@ -207,10 +219,19 @@ export function createJourneyV2(questions, response, req) {
 		) &&
 		(questionHasAnswer(response, questions.subTypeOfApplication, APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION) ||
 			questionHasAnswer(response, questions.subTypeOfApplication, APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT));
+	/** @param {JourneyResponse} response */
 	const iscilLiable = (response) => yesNoToBoolean(response.answers?.cilLiable);
+	/** @param {JourneyResponse} response */
 	const hasApplicationFee = (response) => yesNoToBoolean(response.answers?.hasApplicationFee);
+	/** @param {JourneyResponse} response */
 	const feeReceived = (response) => questionHasNonNullAnswer(response, questions.applicationFeeReceivedDate);
+	/** @param {JourneyResponse} response */
 	const eligibleForRefund = (response) => yesNoToBoolean(response.answers?.eligibleForFeeRefund);
+	/** @param {JourneyResponse} response */
+	const hasAgent = (response) => yesNoToBoolean(response.answers?.hasAgent);
+	/** @param {JourneyResponse} response */
+	const hasAgentOrganisationName = (response) =>
+		questionHasNonEmptyStringAnswer(response, questions.addAgentOrganisationName);
 
 	return new Journey({
 		journeyId: JOURNEY_ID,
@@ -261,9 +282,18 @@ export function createJourneyV2(questions, response, req) {
 				.withCondition(hasSecondaryLpa)
 				.addQuestion(questions.secondaryLpaAddress)
 				.withCondition(hasSecondaryLpa)
+				.addQuestion(questions.hasAgent)
+				.startMultiQuestionCondition('has-agent', hasAgent)
+				.addQuestion(questions.addAgentOrganisationName)
+				.addQuestion(questions.addAgentAddress)
+				.addQuestion(questions.manageAgentContacts, new ManageListSection().addQuestion(questions.agentContactDetails))
+				.withCondition(hasAgentOrganisationName)
+				.endMultiQuestionCondition('has-agent')
 				.addQuestion(
 					questions.manageApplicants,
-					new ManageListSection().addQuestion(questions.addApplicantName).addQuestion(questions.addApplicantAddress)
+					new ManageListSection()
+						.addQuestion(questions.addApplicantOrganisationName)
+						.addQuestion(questions.addApplicantAddress)
 				)
 				.addQuestion(
 					questions.manageApplicantContacts,
@@ -354,6 +384,10 @@ export function createJourneyV2(questions, response, req) {
 	});
 }
 
+/**
+ * @param {JourneyResponse} response
+ * @param {Question} question
+ */
 export const questionHasNonNullAnswer = (response, question) => {
 	if (!response.answers) return false;
 	if (!question || !question.fieldName) return false;

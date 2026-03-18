@@ -99,7 +99,7 @@ export function getQuestions(journeyResponse, isQuestionView = false) {
 				})
 			]
 		},
-		addApplicantName: {
+		addApplicantOrganisationName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 			title: 'Applicant organisation name',
 			question: 'What is the name of the applicant organisation?',
@@ -133,7 +133,7 @@ export function getQuestions(journeyResponse, isQuestionView = false) {
 			title: ORGANISATION_ROLES_ID.APPLICANT,
 			organisationOptions: applicantOrganisationOptions // populated from session-managed journey response
 		}),
-		addAgentName: {
+		addAgentOrganisationName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 			title: 'Agent organisation name',
 			question: 'What is the name of the agent organisation?',
