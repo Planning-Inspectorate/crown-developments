@@ -43,7 +43,9 @@ export interface CrownDevelopmentViewModel {
 	secondaryLpaTelephoneNumber?: string;
 	secondaryLpaAddress?: Address;
 
-	hasAgent?: YesNo;
+	hasAgent: YesNo;
+	agentOrganisationName?: string;
+	agentOrganisationAddress?: Address;
 	manageAgentContactDetails?: ManageAgentContactDetails[];
 	manageApplicantDetails?: ManageApplicantDetails[];
 	manageApplicantContactDetails?: ManageApplicantContactDetails[];

@@ -11,7 +11,8 @@ import {
 	APPLICATION_STATUS,
 	APPLICATION_SUB_TYPES,
 	APPLICATION_TYPES,
-	CATEGORIES
+	CATEGORIES,
+	ORGANISATION_ROLES_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.js';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.js';
@@ -418,6 +419,55 @@ export function getQuestions(
 			title: 'Agent',
 			addressRequired: true
 		}),
+		hasAgent: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Has agent',
+			question: 'Is the applicant using an agent?',
+			fieldName: 'hasAgent',
+			url: 'has-agent',
+			validators: [new RequiredValidator('Select if the applicant is using an agent')]
+		},
+		addAgentOrganisationName: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Agent organisation name',
+			question: 'What is the name of the agent organisation?',
+			url: 'add-agent-details',
+			fieldName: 'agentOrganisationName',
+			validators: [new RequiredValidator('Enter the agent organisation name')]
+		},
+		addAgentAddress: {
+			type: COMPONENT_TYPES.ADDRESS,
+			title: 'Agent address',
+			question: 'What is the address of the agent organisation?',
+			url: 'agent-address',
+			fieldName: 'agentOrganisationAddress',
+			validators: [new AddressValidator()]
+		},
+		manageAgentContacts: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			title: overrides.isQuestionView ? 'Check agent contact details' : 'Agent contacts',
+			question: 'Check agent contact details',
+			url: 'check-agent-contact-details',
+			fieldName: 'manageAgentContactDetails',
+			titleSingular: 'Agent contact',
+			emptyListText: 'No agent contacts found',
+			showAnswersInSummary: true,
+			maximumAnswers: 10,
+			isAllowedEmpty: false,
+			validators: [
+				new CustomManageListValidator({
+					minimumAnswers: 1,
+					errorMessages: {
+						minimumAnswers: `At least one contact is required`
+					}
+				})
+			]
+		},
+		...multiContactQuestions({
+			prefix: ORGANISATION_ROLES_ID.AGENT,
+			title: ORGANISATION_ROLES_ID.AGENT,
+			organisationOptions: null
+		}),
 		manageApplicants: {
 			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
 			title: overrides.isQuestionView ? 'Check applicant details' : 'Applicants',
@@ -451,11 +501,11 @@ export function getQuestions(
 			validators: applicantContactsValidator
 		},
 		...multiContactQuestions({
-			prefix: 'applicant',
-			title: 'applicant',
+			prefix: ORGANISATION_ROLES_ID.APPLICANT,
+			title: ORGANISATION_ROLES_ID.APPLICANT,
 			organisationOptions: overrides.applicantOrganisationOptions ?? []
 		}),
-		addApplicantName: {
+		addApplicantOrganisationName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 			title: 'Applicant organisation name',
 			question: 'What is the name of the applicant organisation?',

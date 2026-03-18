@@ -278,6 +278,99 @@ describe('view-model', () => {
 			assert.equal(result.siteIsVisibleFromPublicLand, 'no');
 			assert.equal(result.containsDistressingContent, 'yes');
 		});
+		it(`should map agent organisation if it exists`, () => {
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				Organisations: [
+					{
+						id: 'relation-1',
+						organisationId: 'org-1',
+						crownDevelopmentId: 'id-1',
+						role: 'agent',
+						Organisation: {
+							id: 'org-1',
+							addressId: 'address-1',
+							name: 'Agent name',
+							Address: {
+								id: 'address-1',
+								line1: 'Org Street',
+								line2: 'Flat 1',
+								townCity: 'Org Town',
+								county: 'Org County',
+								postcode: 'ORG1ST'
+							}
+						}
+					}
+				]
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.strictEqual(result.agentOrganisationName, 'Agent name');
+			assert.deepStrictEqual(result.agentOrganisationAddress, {
+				id: 'address-1',
+				addressLine1: 'Org Street',
+				addressLine2: 'Flat 1',
+				townCity: 'Org Town',
+				county: 'Org County',
+				postcode: 'ORG1ST'
+			});
+		});
+		it('should map agent contacts if they exist', () => {
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				Organisations: [
+					{
+						id: 'relation-1',
+						organisationId: 'org-1',
+						crownDevelopmentId: 'id-1',
+						role: 'agent',
+						Organisation: {
+							id: 'org-1',
+							OrganisationToContact: [
+								{
+									id: 'agent-relation-1',
+									Contact: {
+										id: 'agent-id-1',
+										firstName: 'Agent',
+										lastName: 'One',
+										email: 'agent1@test.com',
+										telephoneNumber: null
+									}
+								},
+								{
+									id: 'agent-relation-2',
+									Contact: {
+										id: 'agent-id-2',
+										firstName: 'Agent',
+										lastName: 'Two',
+										email: 'agent2@test.com',
+										telephoneNumber: '2'
+									}
+								}
+							]
+						}
+					}
+				]
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.ok(Array.isArray(result.manageAgentContactDetails));
+			assert.strictEqual(result.manageAgentContactDetails.length, 2);
+			assert.deepStrictEqual(result.manageAgentContactDetails[0], {
+				id: 'agent-id-1',
+				agentFirstName: 'Agent',
+				agentLastName: 'One',
+				agentContactEmail: 'agent1@test.com',
+				agentContactTelephoneNumber: ''
+			});
+			assert.deepStrictEqual(result.manageAgentContactDetails[1], {
+				id: 'agent-id-2',
+				agentFirstName: 'Agent',
+				agentLastName: 'Two',
+				agentContactEmail: 'agent2@test.com',
+				agentContactTelephoneNumber: '2'
+			});
+		});
 		it('should map applicant organisations if they exist', () => {
 			/** @type {CrownDevelopment} */
 			const input = {
@@ -352,6 +445,66 @@ describe('view-model', () => {
 					postcode: 'ORG2ND'
 				},
 				organisationRelationId: 'relation-2'
+			});
+		});
+		it('should map applicant contacts if they exist', () => {
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				Organisations: [
+					{
+						id: 'relation-1',
+						organisationId: 'org-1',
+						crownDevelopmentId: 'id-1',
+						role: 'applicant',
+						Organisation: {
+							id: 'org-1',
+							OrganisationToContact: [
+								{
+									id: 'applicant-relation-1',
+									Contact: {
+										id: 'applicant-id-1',
+										firstName: 'Applicant',
+										lastName: 'One',
+										email: 'applicant1@test.com',
+										telephoneNumber: '123'
+									}
+								},
+								{
+									id: 'applicant-relation-2',
+									Contact: {
+										id: 'applicant-id-2',
+										firstName: 'Applicant',
+										lastName: 'Two',
+										email: 'applicant2@test.com',
+										telephoneNumber: '456'
+									}
+								}
+							]
+						}
+					}
+				]
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.ok(Array.isArray(result.manageApplicantContactDetails));
+			assert.strictEqual(result.manageApplicantContactDetails.length, 2);
+			assert.deepStrictEqual(result.manageApplicantContactDetails[0], {
+				id: 'applicant-id-1',
+				applicantFirstName: 'Applicant',
+				applicantLastName: 'One',
+				applicantContactEmail: 'applicant1@test.com',
+				applicantContactTelephoneNumber: '123',
+				applicantContactOrganisation: 'org-1',
+				organisationToContactRelationId: 'applicant-relation-1'
+			});
+			assert.deepStrictEqual(result.manageApplicantContactDetails[1], {
+				id: 'applicant-id-2',
+				applicantFirstName: 'Applicant',
+				applicantLastName: 'Two',
+				applicantContactEmail: 'applicant2@test.com',
+				applicantContactTelephoneNumber: '456',
+				applicantContactOrganisation: 'org-1',
+				organisationToContactRelationId: 'applicant-relation-2'
 			});
 		});
 	});

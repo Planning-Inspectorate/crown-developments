@@ -83,13 +83,15 @@ export function createJourneyV2(questions, response, req) {
 				.withCondition(whenQuestionHasAnswer(questions.hasSecondaryLpa, BOOLEAN_OPTIONS.YES))
 				.addQuestion(questions.hasAgent)
 				.startMultiQuestionCondition('has-agent', whenQuestionHasAnswer(questions.hasAgent, BOOLEAN_OPTIONS.YES))
-				.addQuestion(questions.addAgentName)
+				.addQuestion(questions.addAgentOrganisationName)
 				.addQuestion(questions.addAgentAddress)
 				.addQuestion(questions.manageAgentContacts, new ManageListSection().addQuestion(questions.agentContactDetails))
 				.endMultiQuestionCondition('has-agent')
 				.addQuestion(
 					questions.manageApplicants,
-					new ManageListSection().addQuestion(questions.addApplicantName).addQuestion(questions.addApplicantAddress)
+					new ManageListSection()
+						.addQuestion(questions.addApplicantOrganisationName)
+						.addQuestion(questions.addApplicantAddress)
 				)
 				.addQuestion(
 					questions.manageApplicantContacts,
