@@ -221,7 +221,7 @@ export function representationsContactQuestions({
 	questions[`${prefix}SelectAttachments`] = {
 		type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS,
 		title: 'Attachments',
-		question: getAppSpecificValue('Upload supporting documents', 'Select attachments'),
+		question: getAppSpecificValue('Upload supporting documents', 'Upload attachments'),
 		fieldName: `${prefix}Attachments`,
 		url: getAppSpecificValue('select-attachments', 'attachments'),
 		allowedFileExtensions: ALLOWED_EXTENSIONS,
