@@ -520,4 +520,64 @@ describe(`gov-notify-client`, () => {
 			);
 		});
 	});
+	describe('sendApplicationNotOfNationalImportanceNotificationToMany', () => {
+		it('sends notifications to all email addresses (happy path)', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+			ctx.mock.method(client, 'sendApplicationNotOfNationalImportanceNotification', () => {});
+
+			await client.sendApplicationNotOfNationalImportanceNotificationToMany(['a@a.com', 'b@b.com'], {
+				reference: 'ref',
+				applicationDescription: 'desc',
+				siteAddress: 'site'
+			});
+
+			assert.strictEqual(client.sendApplicationNotOfNationalImportanceNotification.mock.callCount(), 2);
+			assert.strictEqual(logger.error.mock.callCount(), 0);
+		});
+
+		it('logs an error for a failed recipient and still attempts to send to other recipients', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+			ctx.mock.method(client, 'sendApplicationNotOfNationalImportanceNotification', (address) => {
+				if (address === 'b@b.com') return Promise.reject(new Error('fail'));
+				return Promise.resolve();
+			});
+
+			await assert.rejects(
+				async () => {
+					await client.sendApplicationNotOfNationalImportanceNotificationToMany(['a@a.com', 'b@b.com'], {
+						reference: 'ref',
+						applicationDescription: 'desc',
+						siteAddress: 'site'
+					});
+				},
+				{
+					message: 'Failed to send application not of national importance notification to one or more email addresses.'
+				}
+			);
+
+			assert.strictEqual(client.sendApplicationNotOfNationalImportanceNotification.mock.callCount(), 2);
+			assert.strictEqual(logger.error.mock.callCount(), 1);
+			assert.strictEqual(logger.error.mock.calls[0].arguments[0].emailAddress, 'b@b.com');
+		});
+
+		it('throws if emailAddresses is empty', async () => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {});
+
+			await assert.rejects(
+				async () => {
+					await client.sendApplicationNotOfNationalImportanceNotificationToMany([], {
+						reference: 'ref',
+						applicationDescription: 'desc',
+						siteAddress: 'site'
+					});
+				},
+				{
+					message: 'No email addresses provided to send notification'
+				}
+			);
+		});
+	});
 });
