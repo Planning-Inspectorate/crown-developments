@@ -491,6 +491,108 @@ describe('notification', () => {
 				'Gov Notify is not enabled, to use Gov Notify functionality setup Gov Notify environment variables. See README'
 			]);
 		});
+
+		it('should call sendApplicationNotOfNationalImportanceNotificationToMany with correct arguments when isMultipleApplicantsLive is true', async () => {
+			const logger = mockLogger();
+			const notifyClient = { sendApplicationNotOfNationalImportanceNotificationToMany: mock.fn() };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						...DEFAULT_CROWN_DEVELOPMENT,
+						siteAddressId: null,
+						hasSecondaryLpa: false,
+						Organisations: [
+							{
+								organisationId: 'org-1',
+								role: 'applicant',
+								Organisation: {
+									id: 'org-1',
+									name: 'Org 1',
+									Address: {},
+									OrganisationToContact: [
+										{ Contact: { id: 'c1', email: 'a@a.com', firstName: 'A', lastName: 'A' } },
+										{ Contact: { id: 'c2', email: 'b@b.com', firstName: 'B', lastName: 'B' } }
+									]
+								}
+							}
+						],
+						Lpa: {},
+						ApplicantContact: null,
+						AgentContact: null,
+						agentContactId: null
+					}))
+				}
+			};
+
+			const service = {
+				isMultipleApplicantsLive: true,
+				logger,
+				notifyClient,
+				db: mockDb,
+				portalBaseUrl: 'https://test.com'
+			};
+
+			await sendApplicationNotOfNationalImportanceNotification(service, 'case-1');
+
+			assert.strictEqual(notifyClient.sendApplicationNotOfNationalImportanceNotificationToMany.mock.callCount(), 1);
+			const [emails, personalisation] =
+				notifyClient.sendApplicationNotOfNationalImportanceNotificationToMany.mock.calls[0].arguments;
+			assert.deepStrictEqual(emails, ['a@a.com', 'b@b.com']);
+			assert.strictEqual(personalisation.reference, 'CROWN/2025/0000001');
+			assert.strictEqual(personalisation.applicationDescription, 'a big project');
+			assert.strictEqual(personalisation.siteAddress, 'Easting: 654321 , Northing: 123456');
+		});
+
+		it('should throw and log error if sendApplicationNotOfNationalImportanceNotificationToMany throws', async () => {
+			const logger = mockLogger();
+			const notifyClient = {
+				sendApplicationNotOfNationalImportanceNotificationToMany: mock.fn(() => {
+					throw new Error('fail');
+				})
+			};
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						...DEFAULT_CROWN_DEVELOPMENT,
+						siteAddressId: null,
+						hasSecondaryLpa: false,
+						Organisations: [
+							{
+								organisationId: 'org-1',
+								role: 'applicant',
+								Organisation: {
+									id: 'org-1',
+									name: 'Org 1',
+									Address: {},
+									OrganisationToContact: [{ Contact: { id: 'c1', email: 'a@a.com', firstName: 'A', lastName: 'A' } }]
+								}
+							}
+						],
+						Lpa: {},
+						ApplicantContact: null,
+						AgentContact: null,
+						agentContactId: null
+					}))
+				}
+			};
+
+			const service = {
+				isMultipleApplicantsLive: true,
+				logger,
+				notifyClient,
+				db: mockDb,
+				portalBaseUrl: 'https://test.com'
+			};
+
+			await assert.rejects(
+				() => sendApplicationNotOfNationalImportanceNotification(service, 'case-1'),
+				/Error encountered during email notification dispatch/
+			);
+
+			assert.strictEqual(notifyClient.sendApplicationNotOfNationalImportanceNotificationToMany.mock.callCount(), 1);
+			assert.strictEqual(logger.error.mock.callCount(), 1);
+		});
 		describe('sendLpaQuestionnaireNotification', () => {
 			it('should send notifications to all LPA emails with a valid SharePoint link', async () => {
 				const logger = mockLogger();
