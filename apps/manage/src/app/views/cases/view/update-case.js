@@ -9,7 +9,7 @@ import { editsToDatabaseUpdates, crownDevelopmentToViewModel } from './view-mode
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
-import { extractApplicantContactFields } from '../util/contact.js';
+import { extractApplicantContactFields, extractAgentContactFields } from '../util/contact.js';
 
 /**
  * @template T
@@ -30,7 +30,7 @@ import { extractApplicantContactFields } from '../util/contact.js';
  * @param {import('#service').ManageService['db']} db
  * @returns {Array<PrismaPromise<import('@pins/crowndev-database').Contact>>}
  */
-function updateContacts(dbViewModel, toSave, db) {
+function updateApplicantContacts(dbViewModel, toSave, db) {
 	if (!Array.isArray(toSave.manageApplicantContactDetails)) {
 		return [];
 	}
@@ -49,17 +49,63 @@ function updateContacts(dbViewModel, toSave, db) {
 			const existing = existingByJoinId.get(contact.organisationToContactRelationId);
 			if (!existing?.id) return null;
 
-			const next = extractApplicantContactFields(contact);
-			const prev = extractApplicantContactFields(existing);
+			const newData = extractApplicantContactFields(contact);
+			const existingData = extractApplicantContactFields(existing);
 
 			const changed =
-				next.firstName !== prev.firstName ||
-				next.lastName !== prev.lastName ||
-				next.email !== prev.email ||
-				next.telephoneNumber !== prev.telephoneNumber;
+				newData.firstName !== existingData.firstName ||
+				newData.lastName !== existingData.lastName ||
+				newData.email !== existingData.email ||
+				newData.telephoneNumber !== existingData.telephoneNumber;
 
 			if (!changed) return null;
-			return { contactId: existing.id, data: next };
+			return { contactId: existing.id, data: newData };
+		})
+		.filter(isDefined);
+
+	return contactUpdates.map(({ contactId, data }) =>
+		db.contact.update({
+			where: { id: contactId },
+			data
+		})
+	);
+}
+
+/**
+ * Same as applicant contacts, these need to be separate transactions.
+ *
+ * @param {import('./types.js').CrownDevelopmentViewModel} dbViewModel
+ * @param {import('./types.js').CrownDevelopmentViewModel} toSave
+ * @param {import('#service').ManageService['db']} db
+ * @returns {Array<PrismaPromise<import('@pins/crowndev-database').Contact>>}
+ */
+function updateAgentContacts(dbViewModel, toSave, db) {
+	if (!Array.isArray(toSave.manageAgentContactDetails)) {
+		return [];
+	}
+
+	const existingByContactId = new Map(
+		(dbViewModel.manageAgentContactDetails || [])
+			.filter((contact) => contact.id)
+			.map((contact) => [contact.id, contact])
+	);
+
+	const contactUpdates = toSave.manageAgentContactDetails
+		.map((contact) => {
+			const existing = existingByContactId.get(contact.id);
+			if (!existing?.id) return null;
+
+			const newData = extractAgentContactFields(contact);
+			const existingData = extractAgentContactFields(existing);
+
+			const changed =
+				newData.firstName !== existingData.firstName ||
+				newData.lastName !== existingData.lastName ||
+				newData.email !== existingData.email ||
+				newData.telephoneNumber !== existingData.telephoneNumber;
+
+			if (!changed) return null;
+			return { contactId: contact.id, data: newData };
 		})
 		.filter(isDefined);
 
@@ -157,7 +203,8 @@ export function buildUpdateCase(service, clearAnswer = false) {
 			const transactionOperations = [];
 
 			// Contact detail updates for existing contacts
-			transactionOperations.push(...updateContacts(dbViewModel, toSave, db));
+			transactionOperations.push(...updateApplicantContacts(dbViewModel, toSave, db));
+			transactionOperations.push(...updateAgentContacts(dbViewModel, toSave, db));
 
 			// CrownDevelopment updates (including join-table moves & new contacts)
 			transactionOperations.push(

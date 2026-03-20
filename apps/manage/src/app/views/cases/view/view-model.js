@@ -8,7 +8,7 @@ import { booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms/src/co
 import { optionalWhere } from '@pins/crowndev-lib/util/database.js';
 import { addressToViewModel, viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.js';
 import { parseNumberStringToNumber } from '@pins/crowndev-lib/util/numbers.js';
-import { extractApplicantContactFields } from '../util/contact.js';
+import { extractAgentContactFields, extractApplicantContactFields } from '../util/contact.js';
 
 /**
  * CrownDevelopment fields that do not need mapping to a (or from) the view model
@@ -144,17 +144,23 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 
 	if (crownDevelopment.Organisations) {
 		// There will be a maximum of one agent organisation linked to a case.
-		const agentOrganisation = crownDevelopment.Organisations.find(
+		const agentOrganisationRelationship = crownDevelopment.Organisations.find(
 			(crownToOrganisation) => crownToOrganisation.role === ORGANISATION_ROLES_ID.AGENT
 		);
-		viewModel.agentOrganisationName = agentOrganisation?.Organisation?.name;
-		viewModel.agentOrganisationAddress = agentOrganisation?.Organisation?.Address
-			? addressToViewModel(agentOrganisation.Organisation.Address)
+		viewModel.agentOrganisationName = agentOrganisationRelationship?.Organisation?.name;
+		viewModel.agentOrganisationRelationId = agentOrganisationRelationship?.id;
+		// Needed for address upserts when editing the agent organisation address.
+		viewModel.agentOrganisationAddressId =
+			agentOrganisationRelationship?.Organisation?.addressId ??
+			agentOrganisationRelationship?.Organisation?.Address?.id;
+		viewModel.agentOrganisationAddress = agentOrganisationRelationship?.Organisation?.Address
+			? addressToViewModel(agentOrganisationRelationship.Organisation.Address)
 			: undefined;
 
-		viewModel.manageAgentContactDetails = agentOrganisation?.Organisation?.OrganisationToContact?.map(
+		viewModel.manageAgentContactDetails = agentOrganisationRelationship?.Organisation?.OrganisationToContact?.map(
 			(orgToContact) => ({
 				id: orgToContact.Contact.id,
+				organisationToContactRelationId: orgToContact.id,
 				agentFirstName: orgToContact.Contact.firstName ?? '',
 				agentLastName: orgToContact.Contact.lastName ?? '',
 				agentContactEmail: orgToContact.Contact.email ?? '',
@@ -273,9 +279,24 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		crownDevelopmentUpdateInput.AgentContact = agentContactUpdates;
 	}
 
-	// Applicant contacts linked to organisations (multi-applicant feature)
+	// Applicant contacts linked to organisations
 	if ('manageApplicantContactDetails' in edits) {
 		crownDevelopmentUpdateInput.Organisations = buildApplicantContactOrganisationUpdates(edits, viewModel);
+	}
+
+	// Agent contacts linked to organisations
+	if ('manageAgentContactDetails' in edits) {
+		crownDevelopmentUpdateInput.Organisations = buildAgentContactOrganisationUpdates(edits, viewModel);
+	}
+
+	const agentOrganisationNameUpdates = buildAgentOrganisationNameUpdates(edits, viewModel);
+	if (agentOrganisationNameUpdates) {
+		crownDevelopmentUpdateInput.Organisations = agentOrganisationNameUpdates;
+	}
+
+	const agentOrganisationAddressUpdates = buildAgentOrganisationAddressUpdates(edits, viewModel);
+	if (agentOrganisationAddressUpdates) {
+		crownDevelopmentUpdateInput.Organisations = agentOrganisationAddressUpdates;
 	}
 
 	if ('procedureId' in edits && edits.procedureId !== viewModel.procedureId) {
@@ -344,6 +365,81 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		crownDevelopmentUpdateInput.SecondaryLpa = { disconnect: true };
 	}
 	return crownDevelopmentUpdateInput;
+}
+
+/**
+ * Build nested updates for agent organisation name.
+ *
+ * @param {import('./types.js').CrownDevelopmentViewModel} edits
+ * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
+ * @returns {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput['Organisations']}
+ */
+function buildAgentOrganisationNameUpdates(edits, viewModel) {
+	if (!('agentOrganisationName' in edits) || !edits.agentOrganisationName) {
+		return undefined;
+	}
+
+	if (!viewModel.agentOrganisationRelationId) {
+		throw new Error('Unable to find agent organisation for this case - cannot update agent name');
+	}
+
+	return {
+		update: [
+			{
+				where: { id: viewModel.agentOrganisationRelationId },
+				data: {
+					Organisation: {
+						update: { name: edits.agentOrganisationName }
+					}
+				}
+			}
+		]
+	};
+}
+
+/**
+ * Build nested updates for agent organisation address.
+ *
+ * @param {import('./types.js').CrownDevelopmentViewModel} edits
+ * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
+ * @returns {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput['Organisations']}
+ */
+function buildAgentOrganisationAddressUpdates(edits, viewModel) {
+	if (!('agentOrganisationAddress' in edits)) {
+		return undefined;
+	}
+
+	const agentAddress = edits.agentOrganisationAddress
+		? viewModelToAddressUpdateInput(edits.agentOrganisationAddress)
+		: null;
+	if (!agentAddress) {
+		return undefined;
+	}
+
+	if (!viewModel.agentOrganisationRelationId) {
+		throw new Error('Unable to find agent organisation for this case - cannot update agent address');
+	}
+
+	return {
+		update: [
+			{
+				where: { id: viewModel.agentOrganisationRelationId },
+				data: {
+					Organisation: {
+						update: {
+							Address: {
+								upsert: {
+									where: optionalWhere(viewModel.agentOrganisationAddressId),
+									create: agentAddress,
+									update: agentAddress
+								}
+							}
+						}
+					}
+				}
+			}
+		]
+	};
 }
 
 /**
@@ -418,6 +514,58 @@ function viewModelToNestedContactUpdate(edits, prefix, viewModel) {
 }
 
 /**
+ * Build create updates for agent organisation contacts.
+ * Updates for existing contacts are handled in a separate transaction.
+ *
+ * @param {import('./types.js').CrownDevelopmentViewModel} edits
+ * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
+ * @returns {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput['Organisations']}
+ */
+function buildAgentContactOrganisationUpdates(edits, viewModel) {
+	const contacts = Array.isArray(edits.manageAgentContactDetails) ? edits.manageAgentContactDetails : [];
+	const contactCreate = [];
+
+	if (contacts.length === 0) {
+		return undefined;
+	}
+
+	if (!viewModel.agentOrganisationRelationId) {
+		throw new Error('Unable to find agent organisation for this case - cannot update agent contacts');
+	}
+
+	for (const contact of contacts) {
+		// Only new contacts get created
+		if (contact.organisationToContactRelationId) {
+			continue;
+		}
+
+		const individualContactCreate = extractAgentContactFields(contact);
+		contactCreate.push({
+			Contact: { create: individualContactCreate }
+		});
+	}
+
+	if (contactCreate.length === 0) {
+		return undefined;
+	}
+
+	return {
+		update: [
+			{
+				where: { id: viewModel.agentOrganisationRelationId },
+				data: {
+					Organisation: {
+						update: {
+							OrganisationToContact: { create: contactCreate }
+						}
+					}
+				}
+			}
+		]
+	};
+}
+
+/**
  * Build nested updates for applicant organisation contacts.
  *
  * @param {import('./types.js').CrownDevelopmentViewModel} edits
@@ -448,7 +596,7 @@ function buildApplicantContactOrganisationUpdates(edits, viewModel) {
 		(viewModel.manageApplicantContactDetails || [])
 			.map(
 				(contact) =>
-					/** @type {const} */ ([
+					/** @type {[string, {organisationId: string, contactId: string}]} */ ([
 						contact?.organisationToContactRelationId,
 						{ organisationId: contact?.applicantContactOrganisation, contactId: contact?.id }
 					])
@@ -469,7 +617,7 @@ function buildApplicantContactOrganisationUpdates(edits, viewModel) {
 
 	/**
 	 * @typedef {Object} OrganisationRelationBucket
-	 * @property {Array<{Role: {connect: {id: string}}, Contact: {create: any} | {connect: {id: string}}}>} create
+	 * @property {Array<{Contact: {create: any} | {connect: {id: string}}}>} create
 	 * @property {Array<{id: string}>} deleteMany
 	 */
 
