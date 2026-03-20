@@ -52,25 +52,27 @@
         </div>
     {% endif %}
 
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full">
-            <h2 class="govuk-heading-m">Mark distressing content</h2>
-                {{ govukTaskList({
-                            idPrefix: 'task-list-distressing-content',
-                            items: [
-                    {
-                        title: {
-                            text: "Mark distressing content"
-                        },
-                        href: "task-list/distressing-content",
-                        status: {
-                            tag: distressingContentStatusTag
+    {% if not isCommentRejected %}
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full">
+                <h2 class="govuk-heading-m">Mark distressing content</h2>
+                    {{ govukTaskList({
+                                idPrefix: 'task-list-distressing-content',
+                                items: [
+                        {
+                            title: {
+                                text: "Mark distressing content"
+                            },
+                            href: "task-list/distressing-content",
+                            status: {
+                                tag: distressingContentStatusTag
+                            }
                         }
-                    }
-                ]
-            }) }}
+                    ]
+                }) }}
+            </div>
         </div>
-    </div>
+    {% endif %}
 
     {% if reviewComplete %}
         <form method="POST">
