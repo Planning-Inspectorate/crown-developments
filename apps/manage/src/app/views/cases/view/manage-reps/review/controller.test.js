@@ -2026,7 +2026,7 @@ describe('controller', () => {
 				session: {
 					reviewDecisions: {
 						'ref-1': {
-							distressingContentInRepresentation: { reviewDecision: 'no-Content warning' }
+							distressingContentInRepresentation: { reviewDecision: 'no-content-warning' }
 						}
 					}
 				}
@@ -2037,7 +2037,30 @@ describe('controller', () => {
 
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
-			assert.strictEqual(viewData.distressingContentStatus, 'no-Content warning');
+			assert.strictEqual(viewData.distressingContentStatus, 'no-content-warning');
+			assert.strictEqual(viewData.currentStatusText, 'No content warning');
+		});
+
+		it('should render Incomplete status text when reviewDecision is an unexpected non-falsy value', async () => {
+			const { reviewDistressingContent } = buildReviewControllers({});
+			const mockReq = {
+				baseUrl: 'some/url/ref-1/review/task-list/distressing-content',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				session: {
+					reviewDecisions: {
+						'ref-1': {
+							distressingContentInRepresentation: { reviewDecision: 'invalid-unexpected-value' }
+						}
+					}
+				}
+			};
+			const mockRes = { render: mock.fn() };
+
+			await reviewDistressingContent(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.distressingContentStatus, 'invalid-unexpected-value');
 			assert.strictEqual(viewData.currentStatusText, 'Incomplete');
 		});
 
@@ -2385,50 +2408,13 @@ describe('controller', () => {
 			assert.strictEqual(viewData.distressingContentStatusTag.text, 'Incomplete');
 			assert.strictEqual(viewData.distressingContentStatusTag.classes, 'govuk-tag--blue');
 		});
-
-		it('should render red Rejected tag in task list when representation is REJECTED in database', async () => {
-			const mockDb = {
-				representation: {
-					findUnique: mock.fn(() => ({
-						comment: 'Some comment',
-						statusId: 'rejected', // Representation is rejected
-						containsAttachments: false,
-						Attachments: [],
-						distressingContentInRepresentation: null // Database has null (was cleared on rejection)
-					}))
-				}
-			};
-			const logger = mockLogger();
-			const { representationTaskList } = buildReviewControllers({ db: mockDb, logger });
-			const mockReq = {
-				baseUrl: 'some/url/review',
-				originalUrl: 'some/url/task-list',
-				params: { id: 'case-1', representationRef: 'ref-1' },
-				session: {} // Empty session - reading from database
-			};
-			const mockRes = { render: mock.fn() };
-
-			await representationTaskList(mockReq, mockRes);
-
-			assert.strictEqual(mockRes.render.mock.callCount(), 1);
-			const viewData = mockRes.render.mock.calls[0].arguments[1];
-			// Should show as Rejected because representation statusId is rejected
-			assert.strictEqual(viewData.distressingContentStatusTag.text, 'Rejected');
-			assert.strictEqual(viewData.distressingContentStatusTag.classes, 'govuk-tag--red');
-
-			// Session should also have rejected status
-			assert.strictEqual(
-				mockReq.session.reviewDecisions['ref-1'].distressingContentInRepresentation.reviewDecision,
-				'rejected'
-			);
-		});
-		it('should update distressingContentInRepresentation to incomplete when unrejecting comment', async () => {
+		it('should set distressingContentInRepresentation to awaiting-review when unrejecting comment', async () => {
 			const { reviewRepresentationCommentDecision } = buildReviewControllers({});
 
 			const mockReq = {
 				baseUrl: 'some/url',
 				params: { id: 'case-1', representationRef: 'ref-1' },
-				body: { reviewCommentDecision: 'accepted' },
+				body: { reviewCommentDecision: 'accepted' }, // Changing from rejected to accepted
 				session: {
 					itemsToBeDeleted: {
 						'ref-1': []
@@ -2441,14 +2427,13 @@ describe('controller', () => {
 					reviewDecisions: {
 						['ref-1']: {
 							comment: {
-								commentRedacted: 'Some comment',
-								reviewDecision: 'rejected'
+								reviewDecision: 'rejected' // Was rejected
 							},
 							'doc-1': {
 								reviewDecision: 'rejected'
 							},
 							distressingContentInRepresentation: {
-								reviewDecision: 'rejected'
+								reviewDecision: 'content-warning' // Had a previous answer
 							}
 						}
 					}
@@ -2458,11 +2443,12 @@ describe('controller', () => {
 
 			await reviewRepresentationCommentDecision(mockReq, mockRes);
 
-			// Comment should be accepted and document should be awaiting-review
+			// Comment should be accepted
 			assert.strictEqual(mockReq.session.reviewDecisions['ref-1'].comment?.reviewDecision, 'accepted');
+			// Documents should be awaiting-review (unrejected)
 			assert.strictEqual(mockReq.session.reviewDecisions['ref-1']?.['doc-1']?.reviewDecision, 'awaiting-review');
 
-			// Distressing content should also be set to awaiting-review
+			// Distressing content should be set to awaiting-review (not left as content-warning)
 			assert.strictEqual(
 				mockReq.session.reviewDecisions['ref-1']?.distressingContentInRepresentation?.reviewDecision,
 				'awaiting-review'

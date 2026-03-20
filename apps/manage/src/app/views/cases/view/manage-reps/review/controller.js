@@ -170,6 +170,7 @@ export function buildReviewControllers(service, journeyId) {
 			const repItemsReviewStatus = readRepReviewStatusSession(req, representationRef);
 
 			const commentStatusTag = getReviewTaskStatus(repItemsReviewStatus?.comment?.reviewDecision);
+			const isCommentRejected = repItemsReviewStatus?.comment?.reviewDecision === REPRESENTATION_STATUS_ID.REJECTED;
 			const distressingContentStatusTag = getReviewTaskStatus(
 				repItemsReviewStatus?.distressingContentInRepresentation?.reviewDecision
 			);
@@ -179,10 +180,7 @@ export function buildReviewControllers(service, journeyId) {
 					title: {
 						text: attachment.fileName
 					},
-					href:
-						repItemsReviewStatus?.comment?.reviewDecision !== REPRESENTATION_STATUS_ID.REJECTED
-							? `${req.originalUrl}/${attachment.itemId}`
-							: '',
+					href: !isCommentRejected ? `${req.originalUrl}/${attachment.itemId}` : '',
 					status: {
 						tag: getReviewTaskStatus(repItemsReviewStatus?.[attachment.itemId]?.reviewDecision)
 					}
@@ -191,7 +189,7 @@ export function buildReviewControllers(service, journeyId) {
 
 			const taskStatusList = [
 				repItemsReviewStatus?.comment?.reviewDecision,
-				repItemsReviewStatus?.distressingContentInRepresentation?.reviewDecision,
+				...(isCommentRejected ? [] : [repItemsReviewStatus?.distressingContentInRepresentation?.reviewDecision]),
 				...representationAttachments.map((attachment) => repItemsReviewStatus?.[attachment.itemId]?.reviewDecision)
 			];
 
@@ -199,7 +197,7 @@ export function buildReviewControllers(service, journeyId) {
 				reference: representationRef,
 				commentStatusTag,
 				distressingContentStatusTag,
-				isCommentRejected: representation?.commentStatus === REPRESENTATION_STATUS_ID.REJECTED,
+				isCommentRejected,
 				documents: representation?.containsAttachments === true ? documents : [],
 				reviewComplete: isReviewComplete(taskStatusList),
 				journeyTitle: 'Manage Reps',
@@ -425,25 +423,6 @@ export function buildReviewControllers(service, journeyId) {
 				});
 				return;
 			}
-
-			// Validate that the submitted value is one of the allowed constants
-			if (
-				reviewDistressingContentDecision !== CONTENT_WARNING &&
-				reviewDistressingContentDecision !== NO_CONTENT_WARNING
-			) {
-				req.body.errors = {
-					reviewDistressingContentDecision: {
-						msg: 'Select whether the representation contains potentially distressing content'
-					}
-				};
-				req.body.errorSummary = expressValidationErrorsToGovUkErrorList(req.body.errors);
-				await controllers.reviewDistressingContent(req, res, {
-					errors: req.body.errors,
-					errorSummary: req.body.errorSummary
-				});
-				return;
-			}
-
 			updateRepReviewSession(req, representationRef, 'distressingContentInRepresentation', {
 				reviewDecision: reviewDistressingContentDecision
 			});
@@ -747,15 +726,9 @@ function getReviewDecision(statusId, isRedacted) {
 /**
  * Get review decision for distressing content based on representation value
  * @param {boolean} distressingContentInRepresentation
- * @param representationStatusId
  * @returns {string}
  */
-
-function getDistressingContentReviewDecision(distressingContentInRepresentation, representationStatusId) {
-	if (representationStatusId === REPRESENTATION_STATUS_ID.REJECTED) {
-		return REPRESENTATION_STATUS_ID.REJECTED;
-	}
-
+function getDistressingContentReviewDecision(distressingContentInRepresentation) {
 	if (distressingContentInRepresentation === true) {
 		return CONTENT_WARNING;
 	}
@@ -764,7 +737,6 @@ function getDistressingContentReviewDecision(distressingContentInRepresentation,
 	}
 	return '';
 }
-
 /**
  * Add a rep reviewed flag to the session
  *
@@ -927,12 +899,7 @@ function getReviewTaskStatus(status) {
 }
 
 function updateDocumentStatusSession(req, logger, representationRef, isRejected) {
-	const reviewDecisions = req.session?.reviewDecisions?.[representationRef];
-	if (!reviewDecisions) {
-		return;
-	}
-
-	Object.entries(reviewDecisions)
+	Object.entries(req.session?.reviewDecisions?.[representationRef])
 		.filter(([key]) => key !== 'comment')
 		.forEach(([, value]) => {
 			value.reviewDecision = isRejected ? REPRESENTATION_STATUS_ID.REJECTED : REPRESENTATION_STATUS_ID.AWAITING_REVIEW;
