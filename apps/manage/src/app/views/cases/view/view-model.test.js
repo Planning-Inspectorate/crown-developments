@@ -195,6 +195,60 @@ describe('view-model', () => {
 			assert.strictEqual(result.applicantContactAddressId, 'address-id-1');
 			assert.strictEqual(result.agentContactName, undefined);
 		});
+
+		it('should map agent organisation address id if present', () => {
+			/** @type {CrownDevelopment} */
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				createdDate: new Date(),
+				Organisations: [
+					{
+						id: 'applicant-rel',
+						role: 'applicant',
+						Organisation: {
+							id: 'applicant-org',
+							name: 'Applicant Org',
+							addressId: 'address-id-2',
+							Address: {
+								id: 'address-id-2',
+								line1: 'Some Street',
+								line2: 'Some Village',
+								townCity: 'Some Place',
+								postcode: 'AP2 2AP'
+							}
+						}
+					},
+					{
+						id: 'rel-1',
+						role: 'agent',
+						Organisation: {
+							id: 'org-1',
+							name: 'Agent Org',
+							addressId: 'address-1',
+							Address: {
+								id: 'address-1',
+								line1: '1 Agent Street',
+								townCity: 'Agent Town',
+								postcode: 'AG1 1AA'
+							}
+						}
+					}
+				]
+			};
+
+			const result = crownDevelopmentToViewModel(input);
+			assert.strictEqual(result.agentOrganisationRelationId, 'rel-1');
+			assert.strictEqual(result.agentOrganisationAddressId, 'address-1');
+			assert.deepStrictEqual(result.agentOrganisationAddress, {
+				id: 'address-1',
+				addressLine1: '1 Agent Street',
+				addressLine2: '',
+				county: '',
+				townCity: 'Agent Town',
+				postcode: 'AG1 1AA'
+			});
+		});
 		it('should not map event if not hearing or inquiry', () => {
 			/** @type {CrownDevelopment} */
 			const input = {
@@ -358,6 +412,7 @@ describe('view-model', () => {
 			assert.strictEqual(result.manageAgentContactDetails.length, 2);
 			assert.deepStrictEqual(result.manageAgentContactDetails[0], {
 				id: 'agent-id-1',
+				organisationToContactRelationId: 'agent-relation-1',
 				agentFirstName: 'Agent',
 				agentLastName: 'One',
 				agentContactEmail: 'agent1@test.com',
@@ -365,6 +420,7 @@ describe('view-model', () => {
 			});
 			assert.deepStrictEqual(result.manageAgentContactDetails[1], {
 				id: 'agent-id-2',
+				organisationToContactRelationId: 'agent-relation-2',
 				agentFirstName: 'Agent',
 				agentLastName: 'Two',
 				agentContactEmail: 'agent2@test.com',
@@ -1026,11 +1082,23 @@ describe('view-model', () => {
 		});
 	});
 
-	describe('manageApplicantContactDetails organisation updates', () => {
-		const getUpdateByRelationId = (updates, relationId) =>
-			updates?.Organisations?.update?.find((u) => u.where?.id === relationId);
+	const getUpdateByRelationId = (updates, relationId) =>
+		updates?.Organisations?.update?.find((u) => u.where?.id === relationId);
 
-		it('does not create join-table updates when changing details for a single existing contact', () => {
+	describe('manageApplicantContactDetails organisation updates', () => {
+		it('should not create updates when saving an empty list of applicant contacts', () => {
+			const toSave = {
+				manageApplicantContactDetails: []
+			};
+
+			const viewModel = {
+				manageApplicantContactDetails: []
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.strictEqual(updates.Organisations, undefined);
+		});
+		it('should not create join-table updates when changing details for a single existing contact', () => {
 			const toSave = {
 				manageApplicantContactDetails: [
 					{
@@ -1064,7 +1132,7 @@ describe('view-model', () => {
 			assert.deepStrictEqual(updates.Organisations, { update: [] });
 		});
 
-		it('does not create join-table updates when changing details for multiple existing contacts', () => {
+		it('should not create join-table updates when changing details for multiple existing contacts', () => {
 			const toSave = {
 				manageApplicantContactDetails: [
 					{
@@ -1106,7 +1174,7 @@ describe('view-model', () => {
 			assert.deepStrictEqual(updates.Organisations, { update: [] });
 		});
 
-		it('creates join-table updates when moving a single existing contact to a different organisation', () => {
+		it('should create join-table updates when moving a single existing contact to a different organisation', () => {
 			const toSave = {
 				manageApplicantContactDetails: [
 					{
@@ -1139,7 +1207,7 @@ describe('view-model', () => {
 			);
 		});
 
-		it('creates join-table updates when moving multiple existing contacts to different organisations', () => {
+		it('should create join-table updates when moving multiple existing contacts to different organisations', () => {
 			const toSave = {
 				manageApplicantContactDetails: [
 					{
@@ -1182,7 +1250,7 @@ describe('view-model', () => {
 			assert.deepStrictEqual(rel2.data.Organisation.update.OrganisationToContact.deleteMany, [{ id: 'join-2' }]);
 			assert.strictEqual(rel2.data.Organisation.update.OrganisationToContact.create[0].Contact.connect.id, 'contact-1');
 		});
-		it('moves an existing contact and keeps using Contact.connect when details are also edited', () => {
+		it('should move an existing contact and keeps using Contact.connect when details are also edited', () => {
 			const toSave = {
 				manageApplicantContactDetails: [
 					{
@@ -1222,7 +1290,7 @@ describe('view-model', () => {
 			);
 		});
 
-		it('adds a new contact to an organisation using Contact.create', () => {
+		it('should add a new contact to an organisation using Contact.create', () => {
 			const toSave = {
 				manageApplicantContactDetails: [
 					{
@@ -1247,7 +1315,7 @@ describe('view-model', () => {
 			);
 		});
 
-		it('adds multiple new contacts across organisations', () => {
+		it('should add multiple new contacts across organisations', () => {
 			const toSave = {
 				manageApplicantContactDetails: [
 					{
@@ -1283,6 +1351,336 @@ describe('view-model', () => {
 				rel2?.data?.Organisation?.update?.OrganisationToContact?.create?.[0]?.Contact?.create?.email,
 				'b@example.com'
 			);
+		});
+	});
+	describe('manageAgentContactDetails organisation updates', () => {
+		it('should not create updates when saving an empty list of agent contacts', () => {
+			const toSave = {
+				manageAgentContactDetails: []
+			};
+
+			const viewModel = {
+				agentOrganisationRelationId: 'join-1',
+				manageAgentContactDetails: []
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.strictEqual(updates.Organisations, undefined);
+		});
+		it('should not create updates when agent contact details payload is not an array', () => {
+			const toSave = {
+				manageAgentContactDetails: /** @type {any} */ ({})
+			};
+
+			const viewModel = {
+				agentOrganisationRelationId: 'join-1',
+				manageAgentContactDetails: []
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.strictEqual(updates.Organisations, undefined);
+		});
+		it('should not create updates when changing details for a single existing contact', () => {
+			const toSave = {
+				manageAgentContactDetails: [
+					{
+						organisationToContactRelationId: 'join-1',
+						id: 'contact-1',
+						agentContactOrganisation: 'org-1',
+						agentFirstName: 'New',
+						agentLastName: 'Name',
+						agentContactEmail: 'new@example.com'
+					}
+				]
+			};
+			const viewModel = {
+				agentOrganisationRelationId: 'join-1',
+				manageAgentContactDetails: [
+					{
+						id: 'contact-1',
+						organisationToContactRelationId: 'join-1',
+						agentContactOrganisation: 'org-1',
+						agentFirstName: 'Old',
+						agentLastName: 'Name',
+						agentContactEmail: 'old@example.com'
+					}
+				]
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.strictEqual(updates.Organisations, undefined);
+		});
+		it('should not create updates when saving only existing agent contacts', () => {
+			const toSave = {
+				manageAgentContactDetails: [
+					{
+						organisationToContactRelationId: 'join-1',
+						id: 'contact-1',
+						agentContactOrganisation: 'org-1',
+						agentFirstName: 'New',
+						agentLastName: 'One',
+						agentContactEmail: 'one@agent.com'
+					},
+					{
+						organisationToContactRelationId: 'join-2',
+						id: 'contact-2',
+						agentContactOrganisation: 'org-1',
+						agentFirstName: 'New',
+						agentLastName: 'Two',
+						agentContactEmail: 'two@agent.com'
+					}
+				]
+			};
+			const viewModel = {
+				agentOrganisationRelationId: 'join-1',
+				manageAgentContactDetails: [
+					{ id: 'contact-1', organisationToContactRelationId: 'join-1' },
+					{ id: 'contact-2', organisationToContactRelationId: 'join-2' }
+				]
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.strictEqual(updates.Organisations, undefined);
+		});
+		it('should throw when adding a new agent contact without a linked agent organisation', () => {
+			const toSave = {
+				manageAgentContactDetails: [
+					{
+						id: 'contact-1',
+						agentContactOrganisation: 'org-1',
+						agentFirstName: 'New',
+						agentLastName: 'Name',
+						agentContactEmail: 'new@example.com'
+					}
+				]
+			};
+			const viewModel = {
+				manageAgentContactDetails: []
+			};
+
+			assert.throws(
+				() => editsToDatabaseUpdates(toSave, viewModel),
+				/Unable to find agent organisation for this case - cannot update agent contacts/
+			);
+		});
+		it('should create updates only for new agent contacts when input includes existing and new contacts', () => {
+			const toSave = {
+				manageAgentContactDetails: [
+					{
+						organisationToContactRelationId: 'join-existing',
+						id: 'existing-contact',
+						agentContactOrganisation: 'org-1',
+						agentFirstName: 'Existing',
+						agentLastName: 'Contact',
+						agentContactEmail: 'existing@agent.com'
+					},
+					{
+						id: 'new-contact',
+						agentContactOrganisation: 'org-1',
+						agentFirstName: 'New',
+						agentLastName: 'Contact',
+						agentContactEmail: 'new@agent.com',
+						agentContactTelephoneNumber: '07000000000'
+					}
+				]
+			};
+			const viewModel = {
+				agentOrganisationRelationId: 'join-1',
+				manageAgentContactDetails: [{ id: 'existing-contact', organisationToContactRelationId: 'join-existing' }]
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.strictEqual(
+				updates.Organisations.update[0].data.Organisation.update.OrganisationToContact.create.length,
+				1
+			);
+			assert.deepStrictEqual(
+				updates.Organisations.update[0].data.Organisation.update.OrganisationToContact.create[0].Contact.create,
+				{
+					firstName: 'New',
+					lastName: 'Contact',
+					email: 'new@agent.com',
+					telephoneNumber: '07000000000'
+				}
+			);
+		});
+		it('should create updates when adding a new contact', () => {
+			const toSave = {
+				manageAgentContactDetails: [
+					{
+						id: 'contact-1',
+						agentContactOrganisation: 'org-1',
+						agentFirstName: 'New',
+						agentLastName: 'Name',
+						agentContactEmail: 'new@example.com'
+					}
+				]
+			};
+			const viewModel = {
+				agentOrganisationRelationId: 'join-1',
+				manageAgentContactDetails: []
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.ok(
+				updates.Organisations.update[0].data.Organisation.update.OrganisationToContact.create[0].Contact.create
+			);
+			assert.deepStrictEqual(
+				updates.Organisations.update[0].data.Organisation.update.OrganisationToContact.create[0].Contact.create,
+				{
+					firstName: 'New',
+					lastName: 'Name',
+					email: 'new@example.com',
+					telephoneNumber: null
+				}
+			);
+		});
+		it('should create updates when adding multiple new contacts', () => {
+			const toSave = {
+				manageAgentContactDetails: [
+					{
+						id: 'contact-1',
+						agentContactOrganisation: 'org-1',
+						agentFirstName: 'New',
+						agentLastName: 'One',
+						agentContactEmail: 'new@agent.com'
+					},
+					{
+						id: 'contact-2',
+						agentContactOrganisation: 'org-1',
+						agentFirstName: 'New',
+						agentLastName: 'Two',
+						agentContactEmail: 'new2@agent.com',
+						agentContactTelephoneNumber: '0123456789'
+					}
+				]
+			};
+			const viewModel = {
+				agentOrganisationRelationId: 'join-1',
+				manageAgentContactDetails: []
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.strictEqual(
+				updates.Organisations.update[0].data.Organisation.update.OrganisationToContact.create.length,
+				2
+			);
+			assert.deepStrictEqual(
+				updates.Organisations.update[0].data.Organisation.update.OrganisationToContact.create[0].Contact.create,
+				{
+					firstName: 'New',
+					lastName: 'One',
+					email: 'new@agent.com',
+					telephoneNumber: null
+				}
+			);
+			assert.deepStrictEqual(
+				updates.Organisations.update[0].data.Organisation.update.OrganisationToContact.create[1].Contact.create,
+				{
+					firstName: 'New',
+					lastName: 'Two',
+					email: 'new2@agent.com',
+					telephoneNumber: '0123456789'
+				}
+			);
+		});
+		it('should update agent name', () => {
+			const toSave = {
+				agentOrganisationName: 'New agent name'
+			};
+			const viewModel = {
+				agentOrganisationName: 'Old agent name',
+				agentOrganisationAddress: null,
+				agentOrganisationRelationId: 'join-1'
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.strictEqual(updates.Organisations.update[0].data.Organisation.update.name, 'New agent name');
+		});
+		it('should not create organisation updates when agent organisation name is an empty string', () => {
+			const toSave = {
+				agentOrganisationName: ''
+			};
+			const viewModel = {
+				agentOrganisationName: 'Old agent name',
+				agentOrganisationAddress: null,
+				agentOrganisationRelationId: 'join-1'
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.strictEqual(updates.Organisations, undefined);
+		});
+		it('should throw when updating agent organisation name without an agent organisation relation id', () => {
+			const toSave = {
+				agentOrganisationName: 'New agent name'
+			};
+			const viewModel = {
+				agentOrganisationName: 'Old agent name',
+				agentOrganisationAddress: null,
+				agentOrganisationRelationId: null
+			};
+
+			assert.throws(
+				() => editsToDatabaseUpdates(toSave, viewModel),
+				/Unable to find agent organisation for this case - cannot update agent name/
+			);
+		});
+		it('should update agent address', () => {
+			const toSave = {
+				agentOrganisationAddress: {
+					addressLine1: 'New agent street',
+					addressLine2: 'New agent street 2',
+					townCity: 'New agent city',
+					postcode: 'NEW 123'
+				}
+			};
+			const viewModel = {
+				agentOrganisationName: 'Old agent name',
+				agentOrganisationAddress: null,
+				agentOrganisationRelationId: 'join-1'
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.deepStrictEqual(updates.Organisations.update[0].data.Organisation.update.Address.upsert.create, {
+				line1: 'New agent street',
+				line2: 'New agent street 2',
+				townCity: 'New agent city',
+				county: null,
+				postcode: 'NEW 123'
+			});
+		});
+		it('should throw when updating agent organisation address without an agent organisation relation id', () => {
+			const toSave = {
+				agentOrganisationAddress: {
+					addressLine1: 'New agent street',
+					addressLine2: 'New agent street 2',
+					townCity: 'New agent city',
+					postcode: 'NEW 123'
+				}
+			};
+			const viewModel = {
+				agentOrganisationName: 'Old agent name',
+				agentOrganisationAddress: null,
+				agentOrganisationRelationId: null
+			};
+
+			assert.throws(
+				() => editsToDatabaseUpdates(toSave, viewModel),
+				/Unable to find agent organisation for this case - cannot update agent address/
+			);
+		});
+		it('should not create organisation updates when agent organisation address does not map to an address input', () => {
+			const toSave = {
+				agentOrganisationAddress: undefined
+			};
+			const viewModel = {
+				agentOrganisationName: 'Old agent name',
+				agentOrganisationAddress: null,
+				agentOrganisationRelationId: 'join-1'
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.strictEqual(updates.Organisations, undefined);
 		});
 	});
 });

@@ -45,7 +45,9 @@ export interface CrownDevelopmentViewModel {
 
 	hasAgent: YesNo;
 	agentOrganisationName?: string;
+	agentOrganisationAddressId?: string;
 	agentOrganisationAddress?: Address;
+	agentOrganisationRelationId?: string;
 	manageAgentContactDetails?: ManageAgentContactDetails[];
 	manageApplicantDetails?: ManageApplicantDetails[];
 	manageApplicantContactDetails?: ManageApplicantContactDetails[];
@@ -207,6 +209,7 @@ export interface ManageApplicantContactDetails {
 
 export interface ManageAgentContactDetails {
 	id: string;
+	organisationToContactRelationId: string;
 	agentFirstName: string;
 	agentLastName: string;
 	agentContactEmail: string;
