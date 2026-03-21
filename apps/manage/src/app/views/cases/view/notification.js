@@ -102,11 +102,23 @@ export async function sendApplicationNotOfNationalImportanceNotification(service
 	const { notifyClient, logger, crownDevelopment, crownDevelopmentFields } = notificationContext;
 
 	try {
-		await notifyClient.sendApplicationNotOfNationalImportanceNotification(getRecipientEmail(crownDevelopmentFields), {
-			reference: crownDevelopmentFields.reference,
-			applicationDescription: crownDevelopmentFields.description,
-			siteAddress: formatSiteLocation(crownDevelopment)
-		});
+		service.isMultipleApplicantsLive
+			? await notifyClient.sendApplicationNotOfNationalImportanceNotificationToMany(
+					getRecipientEmails(crownDevelopmentFields),
+					{
+						reference: crownDevelopmentFields.reference ?? '',
+						applicationDescription: crownDevelopmentFields.description ?? '',
+						siteAddress: formatSiteLocation(crownDevelopment)
+					}
+				)
+			: await notifyClient.sendApplicationNotOfNationalImportanceNotification(
+					getRecipientEmail(crownDevelopmentFields),
+					{
+						reference: crownDevelopmentFields.reference ?? '',
+						applicationDescription: crownDevelopmentFields.description ?? '',
+						siteAddress: formatSiteLocation(crownDevelopment)
+					}
+				);
 	} catch (error) {
 		logger.error(
 			{ error, reference: crownDevelopmentFields.reference },
