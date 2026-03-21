@@ -44,7 +44,7 @@
     "express-session": "^1.19.0",
     "express-validator": "^7.3.1",
     "file-type": "^21.3.2",
-    "govuk-frontend": "^5.14.0",
+    "govuk-frontend": "^6.1.0",
     "helmet": "^8.1.0",
     "multer": "^2.1.1",
     "notifications-node-client": "^8.3.0",
