@@ -30,6 +30,46 @@ import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/va
 
 export const ACCEPT_AND_REDACT = 'accept-and-redact';
 
+/**
+ * @typedef {object} MethodOverridesValues
+ * @property {string} [submittedReceivedMethodId]
+ */
+/**
+ * @typedef {object} MethodOverrides
+ * @property {MethodOverridesValues} [initialValues]
+ * @property {MethodOverridesValues} [formData]
+ * @property {MethodOverridesValues} [values]
+ */
+/**
+ * @typedef {object} ActionOverrides
+ * @property {string} [taskListUrl]
+ * @property {boolean} [statusShouldShowManageAction]
+ * @property {boolean} [redactedCommentShowManageAction]
+ * @property {boolean} [canEditAttachmentsUploaded]
+ * @property {boolean} [distressingContentInRepresentationShowManageAction]
+ */
+/**
+ * @typedef {object} EditActionOverrides
+ * @property {boolean} [submittedReceivedMethodShouldShowEditAction]
+ */
+/**
+ * @typedef {object} TextOverrides
+ * @property {'portal'|'manage'|string} [appName]
+ */
+/**
+ * @typedef {object} GetQuestionsOptions
+ * @property {MethodOverrides} [methodOverrides]
+ * @property {TextOverrides} [textOverrides]
+ * @property {ActionOverrides} [actionOverrides]
+ * @property {EditActionOverrides} [editActionOverrides]
+ * @property {boolean} [isPortal]
+ * @property {boolean} [isManage]
+ */
+/**
+ * Generate question properties for representation contact details and representation details questions.
+ *
+ * @param {GetQuestionsOptions} [opts]
+ */
 export const getQuestions = ({
 	methodOverrides = {},
 	textOverrides = {},
@@ -394,6 +434,16 @@ export const getQuestions = ({
 			url: 'date-of-withdrawal',
 			validators: [],
 			editable: false
+		},
+		distressingContentInRepresentation: {
+			type: CUSTOM_COMPONENTS.DISTRESSING_CONTENT,
+			title: 'Distressing content',
+			question: 'Does the representation contain distressing content?',
+			fieldName: 'distressingContentInRepresentation',
+			url: 'distressing-content',
+			validators: [],
+			actionLink: actionOverrides.distressingContentInRepresentationShowManageAction ? actionLinkOverride : undefined,
+			editable: actionOverrides.distressingContentInRepresentationShowManageAction
 		}
 	};
 

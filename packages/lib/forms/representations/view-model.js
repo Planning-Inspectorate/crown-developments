@@ -54,6 +54,7 @@ export function representationToManageViewModel(representation, applicationRefer
 	}
 	model.submittedReceivedMethodId =
 		model.submittedReceivedMethodId ?? representation.SubmittedReceivedMethod?.id ?? RECEIVED_METHOD_ID.ONLINE;
+	model.distressingContentInRepresentation = mapFieldValue(representation.distressingContentInRepresentation);
 
 	if (representation.submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF) {
 		model.myselfFirstName = representation.SubmittedByContact?.firstName;
@@ -215,6 +216,13 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 	// on behalf of org not work for fields
 	if ('representedOrgName' in edits) {
 		representedContactUpdate.orgName = edits.representedOrgName;
+	}
+
+	// distressing content field
+	if ('distressingContentInRepresentation' in edits) {
+		representationUpdateInput.distressingContentInRepresentation = yesNoToBoolean(
+			edits.distressingContentInRepresentation
+		);
 	}
 
 	if (Object.keys(addressUpdate).length > 0) {

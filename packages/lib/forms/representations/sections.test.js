@@ -2,7 +2,11 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import { getQuestions } from './questions.js';
-import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import {
+	REPRESENTATION_SUBMITTED_FOR_ID,
+	REPRESENTED_TYPE_ID,
+	REPRESENTATION_STATUS_ID
+} from '@pins/crowndev-database/src/seed/data-static.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
 import { addRepresentationSection, haveYourSayManageSections, haveYourSaySections } from './sections.js';
@@ -32,7 +36,7 @@ describe('have-your-say', () => {
 			});
 			const sections = journey.sections;
 
-			assert.strictEqual(sections.length, 5);
+			assert.strictEqual(sections.length, 6);
 			sections.forEach((section) => section.questions.forEach((q) => assert.ok(q !== undefined)));
 		});
 
@@ -57,8 +61,115 @@ describe('have-your-say', () => {
 			});
 			const sections = journey.sections;
 
-			assert.strictEqual(sections.length, 5);
+			assert.strictEqual(sections.length, 6);
 			sections.forEach((section) => section.questions.forEach((q) => assert.ok(q !== undefined)));
+		});
+
+		it('should hide distressing content section when status is REJECTED', () => {
+			const questions = getQuestions();
+			const answers = {
+				statusId: REPRESENTATION_STATUS_ID.REJECTED
+			};
+			const createJourney = (questions, response, req) => {
+				return new Journey({
+					journeyId: JOURNEY_ID,
+					sections: haveYourSayManageSections(questions, true, true),
+					makeBaseUrl: () => req.baseUrl,
+					journeyTemplate: 'template.njk',
+					taskListTemplate: 'template-2.njk',
+					journeyTitle: 'Have your say',
+					response
+				});
+			};
+			const response = new JourneyResponse(JOURNEY_ID, 'session-id', answers);
+			const journey = createJourney(questions, response, {
+				baseUrl: `/some/path/${JOURNEY_ID}`,
+				params: { applicationId: 'CROWN123' }
+			});
+			const sections = journey.sections;
+
+			// Verify distressing content section exists but its condition evaluates to false
+			const distressingContentSection = sections.find((s) => s.segment === 'distressing-content');
+			assert.ok(distressingContentSection, 'Section should exist');
+			distressingContentSection.questions.forEach((question) => {
+				assert.ok(question, 'Question should exist');
+				assert.strictEqual(
+					question.shouldDisplay(response),
+					false,
+					'Section condition should return false when status is REJECTED'
+				);
+			});
+
+			it('should show distressing content section when status is not REJECTED', () => {
+				const questions = getQuestions();
+				const answers = {
+					statusId: REPRESENTATION_STATUS_ID.ACCEPTED
+				};
+				const createJourney = (questions, response, req) => {
+					return new Journey({
+						journeyId: JOURNEY_ID,
+						sections: haveYourSayManageSections(questions, true, true),
+						makeBaseUrl: () => req.baseUrl,
+						journeyTemplate: 'template.njk',
+						taskListTemplate: 'template-2.njk',
+						journeyTitle: 'Have your say',
+						response
+					});
+				};
+				const response = new JourneyResponse(JOURNEY_ID, 'session-id', answers);
+				const journey = createJourney(questions, response, {
+					baseUrl: `/some/path/${JOURNEY_ID}`,
+					params: { applicationId: 'CROWN123' }
+				});
+				const sections = journey.sections;
+
+				// Verify distressing content section exists and its condition evaluates to true
+				const distressingContentSection = sections.find((s) => s.segment === 'distressing-content');
+				assert.ok(distressingContentSection, 'Section should exist');
+				distressingContentSection.questions.forEach((question) => {
+					assert.strictEqual(
+						question.shouldDisplay(response),
+						true,
+						'Section condition should return true when status is not REJECTED'
+					);
+				});
+			});
+		});
+
+		it('should hide distressing content section when status is not REJECTED but not view journey', () => {
+			const questions = getQuestions();
+			const answers = {
+				[questions.status.fieldName]: REPRESENTATION_STATUS_ID.ACCEPTED
+			};
+			const createJourney = (questions, response, req) => {
+				return new Journey({
+					journeyId: JOURNEY_ID,
+					sections: haveYourSayManageSections(questions, true, false),
+					makeBaseUrl: () => req.baseUrl,
+					journeyTemplate: 'template.njk',
+					taskListTemplate: 'template-2.njk',
+					journeyTitle: 'Have your say',
+					response
+				});
+			};
+			const response = new JourneyResponse(JOURNEY_ID, 'session-id', answers);
+			const journey = createJourney(questions, response, {
+				baseUrl: `/some/path/${JOURNEY_ID}`,
+				params: { applicationId: 'CROWN123' }
+			});
+			const sections = journey.sections;
+
+			// Verify distressing content section exists and its condition evaluates to true
+			const distressingContentSection = sections.find((s) => s.segment === 'distressing-content');
+
+			assert.ok(distressingContentSection, 'Section should exist');
+			distressingContentSection.questions.forEach((question) => {
+				assert.strictEqual(
+					question.shouldDisplay(response),
+					false,
+					'Section condition should return false when not view journey'
+				);
+			});
 		});
 	});
 	describe('have-your-say section', () => {

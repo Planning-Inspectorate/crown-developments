@@ -128,6 +128,7 @@ export function buildGetJourneyMiddleware({ db, logger, isRepsUploadDocsLive }) 
 				statusShouldShowManageAction: answers?.statusId !== REPRESENTATION_STATUS_ID.WITHDRAWN,
 				redactedCommentShowManageAction: answers?.statusId === REPRESENTATION_STATUS_ID.ACCEPTED,
 				canEditAttachmentsUploaded: answers?.statusId !== REPRESENTATION_STATUS_ID.REJECTED,
+				distressingContentInRepresentationShowManageAction: answers?.statusId !== REPRESENTATION_STATUS_ID.REJECTED,
 				taskListUrl: req.baseUrl + '/manage/task-list'
 			},
 			editActionOverrides: {
