@@ -15,7 +15,7 @@ describe('Accessibility page controller', () => {
 		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].pageTitle, 'Accessibility Statement');
 		assert.strictEqual(
 			mockRes.render.mock.calls[0].arguments[1].pageHeading,
-			'Accessibility statement for the Find a Crown Development service'
+			'Accessibility statement for Find a Crown development'
 		);
 	});
 
