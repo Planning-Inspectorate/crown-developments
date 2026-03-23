@@ -23,6 +23,9 @@ import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/compon
  * @returns {Section[]}
  */
 export function haveYourSayManageSections(questions, isRepsUploadDocsLive, isViewJourney) {
+	/** @param {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} response */
+	const distressingContentCondition = (response) =>
+		isViewJourney && !questionHasAnswer(response, questions.status, REPRESENTATION_STATUS_ID.REJECTED);
 	// section names aren't used
 	return [
 		new Section('Details', 'details')
@@ -37,6 +40,9 @@ export function haveYourSayManageSections(questions, isRepsUploadDocsLive, isVie
 		new Section('Representation', 'start').addQuestion(questions.submittedFor),
 		addRepMyselfSection(questions, isRepsUploadDocsLive, isViewJourney),
 		addRepAgentSection(questions, isRepsUploadDocsLive, isViewJourney),
+		new Section('Distressing Content', 'distressing-content')
+			.withSectionCondition(distressingContentCondition)
+			.addQuestion(questions.distressingContentInRepresentation),
 		new Section('Withdrawal', 'withdraw')
 			.withSectionCondition(whenQuestionHasAnswer(questions.status, REPRESENTATION_STATUS_ID.WITHDRAWN))
 			.addQuestion(questions.withdrawalRequestDate)

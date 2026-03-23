@@ -49,7 +49,8 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateWithdrawn: undefined
+				dateWithdrawn: undefined,
+				distressingContentInRepresentation: undefined
 			});
 		});
 		it('should map requires review', () => {
@@ -79,7 +80,8 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateWithdrawn: undefined
+				dateWithdrawn: undefined,
+				distressingContentInRepresentation: undefined
 			});
 		});
 		it('should map the myself fields', () => {
@@ -150,7 +152,8 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateWithdrawn: undefined
+				dateWithdrawn: undefined,
+				distressingContentInRepresentation: undefined
 			});
 		});
 		it('should map the myself fields when contains attachments and redacted attachments', () => {
@@ -252,7 +255,8 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateWithdrawn: undefined
+				dateWithdrawn: undefined,
+				distressingContentInRepresentation: undefined
 			});
 		});
 		it('should map the on behalf of common fields', () => {
@@ -309,7 +313,8 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateWithdrawn: undefined
+				dateWithdrawn: undefined,
+				distressingContentInRepresentation: undefined
 			});
 		});
 		it('should map the on behalf of person fields', () => {
@@ -376,7 +381,8 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateWithdrawn: undefined
+				dateWithdrawn: undefined,
+				distressingContentInRepresentation: undefined
 			});
 		});
 		it('should map the on behalf of person fields when contains attachments and redacted attachments', () => {
@@ -474,7 +480,8 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateWithdrawn: undefined
+				dateWithdrawn: undefined,
+				distressingContentInRepresentation: undefined
 			});
 		});
 		it('should map the on behalf of org fields', () => {
@@ -537,7 +544,8 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateWithdrawn: undefined
+				dateWithdrawn: undefined,
+				distressingContentInRepresentation: undefined
 			});
 		});
 		it(`should map the on behalf of org don't work for fields`, () => {
@@ -602,7 +610,8 @@ describe('view-model', () => {
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
-				dateWithdrawn: undefined
+				dateWithdrawn: undefined,
+				distressingContentInRepresentation: undefined
 			});
 		});
 		it(`should map withdraw reps fields`, () => {
@@ -645,6 +654,7 @@ describe('view-model', () => {
 				commentRedacted: undefined,
 				containsAttachments: undefined,
 				sharePointFolderCreated: undefined,
+				distressingContentInRepresentation: undefined,
 				withdrawalRequestDate: new Date('2025-01-01T00:00:00Z'),
 				withdrawalReasonId: 'change-of-opinion',
 				withdrawalRequests: [
@@ -665,6 +675,31 @@ describe('view-model', () => {
 				],
 				dateWithdrawn: new Date('2025-07-31T00:00:00.000Z')
 			});
+		});
+		it('should map distressingContentInRepresentation boolean to yes/no', () => {
+			const representation = {
+				reference: 'ref',
+				statusId: 'status-1',
+				submittedDate: new Date('2025-01-01T00:00:00Z'),
+				submittedReceivedMethodId: 'phone',
+				categoryId: 'c-id-1',
+				submittedForId: 'id-1',
+				containsAttachments: false,
+				sharePointFolderCreated: false,
+				distressingContentInRepresentation: true
+			};
+			const viewModel = representationToManageViewModel(representation, applicationReference);
+			assert.strictEqual(viewModel.distressingContentInRepresentation, 'yes');
+
+			// Test false value
+			representation.distressingContentInRepresentation = false;
+			const viewModel2 = representationToManageViewModel(representation, applicationReference);
+			assert.strictEqual(viewModel2.distressingContentInRepresentation, 'no');
+
+			// Test null value
+			representation.distressingContentInRepresentation = null;
+			const viewModel3 = representationToManageViewModel(representation, applicationReference);
+			assert.strictEqual(viewModel3.distressingContentInRepresentation, null);
 		});
 	});
 	describe('editsToDatabaseUpdates', () => {
@@ -846,6 +881,21 @@ describe('view-model', () => {
 			assert.deepStrictEqual(updates.RepresentedContact.upsert?.where, {
 				id: 'rep-id-1'
 			});
+		});
+		it('should convert distressingContentInRepresentation yes/no to boolean', () => {
+			/** @type {HaveYourSayManageModel} */
+			const edits = {
+				distressingContentInRepresentation: 'yes'
+			};
+			const updates = editsToDatabaseUpdates(edits, {});
+			assert.ok(updates);
+			assert.strictEqual(updates.distressingContentInRepresentation, true);
+
+			// Test 'no' value
+			edits.distressingContentInRepresentation = 'no';
+			const updates2 = editsToDatabaseUpdates(edits, {});
+			assert.ok(updates2);
+			assert.strictEqual(updates2.distressingContentInRepresentation, false);
 		});
 	});
 	describe('viewModelToRepresentationCreateInput', () => {

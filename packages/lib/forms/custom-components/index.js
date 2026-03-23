@@ -5,6 +5,7 @@ import CILAmountQuestion from './cil-amount/question.js';
 import CostsApplicationsCommentQuestion from './costs-applications-comment/question.js';
 import CustomManageListQuestion from './manage-list/question.js';
 import CustomMultiFieldInputQuestion from './custom-multi-field-input/question.js';
+import DistressingContentQuestion from './distressing-content/question.js';
 
 /**
  * Typed wrapper around Object.freeze() to preserve inference for object literals.
@@ -25,7 +26,8 @@ export const CUSTOM_COMPONENTS = Object.freeze({
 	CIL_AMOUNT: 'cil-amount',
 	COSTS_APPLICATIONS: 'costs-applications',
 	CUSTOM_MANAGE_LIST: 'manage-list',
-	CUSTOM_MULTI_FIELD_INPUT: 'custom-multi-field-input'
+	CUSTOM_MULTI_FIELD_INPUT: 'custom-multi-field-input',
+	DISTRESSING_CONTENT: 'distressing-content'
 });
 
 export const CUSTOM_COMPONENT_CLASSES = freeze({
@@ -35,5 +37,6 @@ export const CUSTOM_COMPONENT_CLASSES = freeze({
 	[CUSTOM_COMPONENTS.CIL_AMOUNT]: CILAmountQuestion,
 	[CUSTOM_COMPONENTS.COSTS_APPLICATIONS]: CostsApplicationsCommentQuestion,
 	[CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST]: CustomManageListQuestion,
-	[CUSTOM_COMPONENTS.CUSTOM_MULTI_FIELD_INPUT]: CustomMultiFieldInputQuestion
+	[CUSTOM_COMPONENTS.CUSTOM_MULTI_FIELD_INPUT]: CustomMultiFieldInputQuestion,
+	[CUSTOM_COMPONENTS.DISTRESSING_CONTENT]: DistressingContentQuestion
 });

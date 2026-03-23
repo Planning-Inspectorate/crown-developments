@@ -1,4 +1,5 @@
 import { Address } from '@planning-inspectorate/dynamic-forms/src/lib/address.js';
+import { YesNo } from '@pins/crowndev-lib/types/crown/types';
 /**
  * The view model used for have-your-say answers
  */
@@ -33,6 +34,8 @@ export namespace HaveYourSay {
 		containsAttachments: boolean;
 		sharePointFolderCreated?: string;
 		commentRedacted?: string;
+		distressingContentInRepresentation?: YesNo;
+		distressingContentInRepresentationShowManageAction?: boolean;
 
 		readonly applicationReference?: string;
 		readonly requiresReview?: boolean;
