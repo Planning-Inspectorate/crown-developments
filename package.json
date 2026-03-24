@@ -55,8 +55,8 @@
     "redis": "^5.10.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.4.3",
-    "@commitlint/config-conventional": "^20.4.3",
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
     "@eslint/js": "^10.0.1",
     "@faker-js/faker": "^10.2.0",
     "@microsoft/microsoft-graph-types": "^2.43.1",
