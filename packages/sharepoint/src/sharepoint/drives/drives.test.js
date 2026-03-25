@@ -374,7 +374,7 @@ describe('drives', () => {
 				await sharePointDrive.addItemPermissions(itemId, { role: 'write', users: user });
 				assert.fail('Expected error was not thrown');
 			} catch (e) {
-				assert.equal(e.message, 'No users provided');
+				assert.equal(e.message, 'No users provided. SharePoint item permissions have not been granted.');
 				assert.strictEqual(client.api.mock.callCount(), 0);
 			}
 		});
