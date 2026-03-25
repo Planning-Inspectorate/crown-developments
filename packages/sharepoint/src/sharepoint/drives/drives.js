@@ -249,7 +249,7 @@ export class SharePointDrive {
 			.addPathSegment('invite');
 
 		if (users.length < 1) {
-			throw new Error('No users provided');
+			throw new Error('No users provided. SharePoint item permissions have not been granted.');
 		}
 
 		if (!role || (role !== 'write' && role !== 'read' && role !== 'owner')) {

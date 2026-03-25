@@ -522,7 +522,14 @@ async function grantUsersAccessV2(sharePointDrive, answers, folderName) {
 			}
 		});
 	}
-	// 	TODO agents CROWN-1311
+
+	if (hasAnswers(answers, 'manageAgentContactDetails')) {
+		answers.manageAgentContactDetails.forEach((contact) => {
+			if (contact.agentContactEmail) {
+				users.push({ email: contact.agentContactEmail, id: '' });
+			}
+		});
+	}
 
 	await sharePointDrive.addItemPermissions(applicantReceivedFolderId, { role: 'write', users: users });
 	// todo: Add LPA permissions too.

@@ -687,6 +687,144 @@ describe('save', () => {
 			assert.strictEqual(notifyClient.sendAcknowledgePreNotification.mock.callCount(), 0);
 		});
 
+		it('should grant write access to applicant and agent contacts when multiple applicants is live', async () => {
+			const sharepointDrive = {
+				copyDriveItem: mock.fn(),
+				getItemsByPath: mock.fn(() => [
+					{ id: 'id1', name: 'Applicant' },
+					{ id: 'id2', name: 'LPA' }
+				]),
+				addItemPermissions: mock.fn(),
+				fetchUserInviteLink: mock.fn(() => ({
+					link: { webUrl: 'https://sharepoint.com/:f:/s/site/random_id' }
+				}))
+			};
+
+			const service = mockService();
+			service.appSharePointDrive = sharepointDrive;
+			service.isMultipleApplicantsLive = true;
+
+			const save = buildSaveController(service);
+
+			const answers = {
+				developmentDescription: 'Project One',
+				typeOfApplication: 'application-type-1',
+				lpaId: 'lpa-1',
+				manageApplicantDetails: [{ id: 'org-id-1', organisationName: 'Org A', organisationAddress: {} }],
+				manageApplicantContactDetails: [
+					{
+						applicantFirstName: 'Alex',
+						applicantLastName: 'Smith',
+						applicantContactEmail: 'alex@example.com',
+						applicantContactTelephoneNumber: '1',
+						applicantContactOrganisation: 'org-id-1'
+					}
+				],
+				hasAgent: 'yes',
+				agentOrganisationName: 'Agent Org',
+				agentOrganisationAddress: {},
+				manageAgentContactDetails: [
+					{
+						agentFirstName: 'Jamie',
+						agentLastName: 'Jones',
+						agentContactEmail: 'jamie@example.com',
+						agentContactTelephoneNumber: '2'
+					}
+				]
+			};
+
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers
+					}
+				}
+			};
+
+			await save({}, res);
+
+			assert.strictEqual(sharepointDrive.addItemPermissions.mock.callCount(), 1);
+			assert.deepStrictEqual(sharepointDrive.addItemPermissions.mock.calls[0].arguments[1], {
+				role: 'write',
+				users: [
+					{ email: 'alex@example.com', id: '' },
+					{ email: 'jamie@example.com', id: '' }
+				]
+			});
+		});
+
+		it('should only grant write access for contacts with an email when multiple applicants is live', async () => {
+			const sharepointDrive = {
+				copyDriveItem: mock.fn(),
+				getItemsByPath: mock.fn(() => [
+					{ id: 'id1', name: 'Applicant' },
+					{ id: 'id2', name: 'LPA' }
+				]),
+				addItemPermissions: mock.fn(),
+				fetchUserInviteLink: mock.fn(() => ({
+					link: { webUrl: 'https://sharepoint.com/:f:/s/site/random_id' }
+				}))
+			};
+
+			const service = mockService();
+			service.appSharePointDrive = sharepointDrive;
+			service.isMultipleApplicantsLive = true;
+
+			const save = buildSaveController(service);
+
+			const answers = {
+				developmentDescription: 'Project One',
+				typeOfApplication: 'application-type-1',
+				lpaId: 'lpa-1',
+				manageApplicantDetails: [{ id: 'org-id-1', organisationName: 'Org A', organisationAddress: {} }],
+				manageApplicantContactDetails: [
+					{
+						applicantFirstName: 'Alex',
+						applicantLastName: 'Smith',
+						applicantContactEmail: '',
+						applicantContactTelephoneNumber: '1',
+						applicantContactOrganisation: 'org-id-1'
+					},
+					{
+						applicantFirstName: 'Sam',
+						applicantLastName: 'Doe',
+						applicantContactEmail: 'sam@example.com',
+						applicantContactTelephoneNumber: '2',
+						applicantContactOrganisation: 'org-id-1'
+					}
+				],
+				hasAgent: 'yes',
+				agentOrganisationName: 'Agent Org',
+				agentOrganisationAddress: {},
+				manageAgentContactDetails: [
+					{
+						agentFirstName: 'Jamie',
+						agentLastName: 'Jones',
+						agentContactEmail: null,
+						agentContactTelephoneNumber: '3'
+					}
+				]
+			};
+
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers
+					}
+				}
+			};
+
+			await save({}, res);
+
+			assert.strictEqual(sharepointDrive.addItemPermissions.mock.callCount(), 1);
+			assert.deepStrictEqual(sharepointDrive.addItemPermissions.mock.calls[0].arguments[1], {
+				role: 'write',
+				users: [{ email: 'sam@example.com', id: '' }]
+			});
+		});
+
 		it('should throw when SharePoint invite link is missing in multiple applicants flow', async () => {
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
