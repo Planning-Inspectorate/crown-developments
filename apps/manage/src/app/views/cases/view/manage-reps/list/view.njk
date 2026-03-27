@@ -8,13 +8,6 @@
 {% import "pagination/pagination-options.njk" as paginationOptions %}
 
 {% block pageContent %}
-    {% if repReviewed %}
-        {{ govukNotificationBanner({
-            text: "Representation has been " + repReviewed,
-            type: "success"
-        }) }}
-    {% endif %}
-
     {% if showDistressingContentBanner %}
         {% set html %}
             <p class="govuk-notification-banner__heading">Representation has been accepted</p>
@@ -29,6 +22,11 @@
         {{ govukNotificationBanner({
             titleText: "Important",
             html: html
+        }) }}
+    {% elif repReviewed %}
+        {{ govukNotificationBanner({
+            text: "Representation has been " + repReviewed,
+            type: "success"
         }) }}
     {% endif %}
 
