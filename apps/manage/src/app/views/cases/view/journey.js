@@ -262,6 +262,7 @@ export function createJourneyV2(questions, response, req) {
 				.addQuestion(questions.status)
 				.addQuestion(questions.stage)
 				.addQuestion(questions.lpaReference)
+				.addQuestion(questions.containsDistressingContent)
 				.addQuestion(questions.nationallyImportant)
 				.addQuestion(questions.nationallyImportantConfirmationDate)
 				.addQuestion(questions.isGreenBelt)

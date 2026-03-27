@@ -113,6 +113,7 @@ describe('list representations', () => {
 					{ text: 'Withdrawn (1)', value: 'withdrawn', checked: false }
 				],
 				filtersValue: undefined,
+				id: 'id-1',
 				counts: { 'awaiting-review': 1, accepted: 1, rejected: 0, withdrawn: 1 },
 				searchValue: '',
 				reps: [
@@ -146,6 +147,7 @@ describe('list representations', () => {
 				resultsEndNumber: 3,
 				resultsStartNumber: 1,
 				selectedItemsPerPage: 25,
+				showDistressingContentBanner: false,
 				totalFilteredRepresentations: 3,
 				totalPages: 1
 			});
@@ -187,6 +189,7 @@ describe('list representations', () => {
 					{ text: 'Withdrawn (1)', value: 'withdrawn', checked: false }
 				],
 				filtersValue: '&filters=awaiting-review',
+				id: 'id-1',
 				counts: { 'awaiting-review': 1, accepted: 1, rejected: 0, withdrawn: 1 },
 				searchValue: '',
 				reps: [
@@ -220,6 +223,7 @@ describe('list representations', () => {
 				resultsEndNumber: 3,
 				resultsStartNumber: 1,
 				selectedItemsPerPage: 25,
+				showDistressingContentBanner: false,
 				totalFilteredRepresentations: 3,
 				totalPages: 1
 			});
@@ -260,6 +264,7 @@ describe('list representations', () => {
 					{ text: 'Withdrawn (1)', value: 'withdrawn', checked: true }
 				],
 				filtersValue: '&filters=awaiting-review&filters=rejected&filters=withdrawn&filters=accepted',
+				id: 'id-1',
 				counts: { 'awaiting-review': 1, accepted: 1, rejected: 0, withdrawn: 1 },
 				searchValue: '',
 				reps: [
@@ -293,9 +298,174 @@ describe('list representations', () => {
 				resultsEndNumber: 3,
 				resultsStartNumber: 1,
 				selectedItemsPerPage: 25,
+				showDistressingContentBanner: false,
 				totalFilteredRepresentations: 3,
 				totalPages: 1
 			});
+		});
+		it('should show distressing content banner when any representation is marked distressing and case flag is false', async () => {
+			const representations = [
+				{ id: 'r-1', reference: 'R1', Status: { id: 'accepted', displayName: 'Accepted' }, SubmittedByContact: {} },
+				{
+					id: 'r-2',
+					reference: 'R2',
+					Status: { id: 'awaiting-review', displayName: 'Awaiting review' },
+					SubmittedByContact: {},
+					distressingContentInRepresentation: true
+				}
+			];
+			const mockDbLocal = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						reference: 'CROWN/2025/0000002',
+						Representation: representations,
+						containsDistressingContent: false
+					}))
+				},
+				representation: { findMany: mock.fn(() => representations), count: mock.fn(() => representations.length) }
+			};
+			const mockReq = {
+				baseUrl: '/manage-representations',
+				originalUrl: '/manage-representations',
+				params: { id: 'id-1' },
+				query: {}
+			};
+			const mockRes = { render: mock.fn() };
+			const controller = buildListReps({ db: mockDbLocal });
+			await controller(mockReq, mockRes);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const ctx = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(ctx.showDistressingContentBanner, true);
+		});
+		it('should not show distressing content banner when representation is marked distressing but case-level flag is true', async () => {
+			const representations = [
+				{
+					id: 'r-1',
+					reference: 'R1',
+					Status: { id: 'accepted', displayName: 'Accepted' },
+					SubmittedByContact: {},
+					distressingContentInRepresentation: true
+				}
+			];
+			const mockDbLocal = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						reference: 'CROWN/2025/0000003',
+						Representation: representations,
+						containsDistressingContent: true
+					}))
+				},
+				representation: { findMany: mock.fn(() => representations), count: mock.fn(() => representations.length) }
+			};
+			const mockReq = {
+				baseUrl: '/manage-representations',
+				originalUrl: '/manage-representations',
+				params: { id: 'id-2' },
+				query: {}
+			};
+			const mockRes = { render: mock.fn() };
+			const controller = buildListReps({ db: mockDbLocal });
+			await controller(mockReq, mockRes);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const ctx = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(ctx.showDistressingContentBanner, false);
+		});
+		it('should not show distressing content banner when no representation is marked distressing even if case flag is false', async () => {
+			const representations = [
+				{
+					id: 'r-1',
+					reference: 'R1',
+					Status: { id: 'accepted', displayName: 'Accepted' },
+					SubmittedByContact: {},
+					distressingContentInRepresentation: false
+				},
+				{
+					id: 'r-2',
+					reference: 'R2',
+					Status: { id: 'withdrawn', displayName: 'Withdrawn' },
+					SubmittedByContact: {},
+					distressingContentInRepresentation: false
+				}
+			];
+			const mockDbLocal = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						reference: 'CROWN/2025/0000004',
+						Representation: representations,
+						containsDistressingContent: false
+					}))
+				},
+				representation: { findMany: mock.fn(() => representations), count: mock.fn(() => representations.length) }
+			};
+			const mockReq = {
+				baseUrl: '/manage-representations',
+				originalUrl: '/manage-representations',
+				params: { id: 'id-3' },
+				query: {}
+			};
+			const mockRes = { render: mock.fn() };
+			const controller = buildListReps({ db: mockDbLocal });
+			await controller(mockReq, mockRes);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const ctx = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(ctx.showDistressingContentBanner, false);
+		});
+		it('should not show distressing content banner when representations are missing from crown development record', async () => {
+			const mockDbLocal = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						reference: 'CROWN/2025/0000005',
+						Representation: undefined,
+						containsDistressingContent: false
+					}))
+				},
+				representation: { findMany: mock.fn(() => []), count: mock.fn(() => 0) }
+			};
+			const mockReq = {
+				baseUrl: '/manage-representations',
+				originalUrl: '/manage-representations',
+				params: { id: 'id-4' },
+				query: {}
+			};
+			const mockRes = { render: mock.fn() };
+			const controller = buildListReps({ db: mockDbLocal });
+			await controller(mockReq, mockRes);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const ctx = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(ctx.showDistressingContentBanner, false);
+		});
+		it('should not treat string "yes" as distressing with the current representation check (only boolean true triggers)', async () => {
+			const representations = [
+				{
+					id: 'r-1',
+					reference: 'R1',
+					Status: { id: 'accepted', displayName: 'Accepted' },
+					SubmittedByContact: {},
+					distressingContentInRepresentation: 'yes'
+				}
+			];
+			const mockDbLocal = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						reference: 'CROWN/2025/0000006',
+						Representation: representations,
+						containsDistressingContent: false
+					}))
+				},
+				representation: { findMany: mock.fn(() => representations), count: mock.fn(() => representations.length) }
+			};
+			const mockReq = {
+				baseUrl: '/manage-representations',
+				originalUrl: '/manage-representations',
+				params: { id: 'id-5' },
+				query: {}
+			};
+			const mockRes = { render: mock.fn() };
+			const controller = buildListReps({ db: mockDbLocal });
+			await controller(mockReq, mockRes);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const ctx = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(ctx.showDistressingContentBanner, false);
 		});
 	});
 });

@@ -15,6 +15,23 @@
         }) }}
     {% endif %}
 
+    {% if showDistressingContentBanner %}
+        {% set html %}
+            <p class="govuk-notification-banner__heading">Representation has been accepted</p>
+            <p class="govuk-body">
+                You set this representation as potentially distressing, but the application is not set as potentially
+                distressing.</p>
+            <p class="govuk-body">
+                <a class="govuk-notification-banner__link" href="/cases/{{ id }}/details/distressing-content">Set the
+                    application as potentially distressing</a>.
+            </p>
+        {% endset %}
+        {{ govukNotificationBanner({
+            titleText: "Important",
+            html: html
+        }) }}
+    {% endif %}
+
     <form id="search-filter-form" method="GET">
         <input type="hidden" name="itemsPerPage" value="{{ selectedItemsPerPage }}">
         <div class="govuk-grid-row">
@@ -24,34 +41,36 @@
             <div class="govuk-grid-column-one-third">
                 <h3 class="govuk-heading-m">Add a representation</h3>
                 <p class="govuk-body">
-                    <a href="{{ baseUrl }}/add-representation/start" class="govuk-link govuk-link--no-visited-state">Add a representation</a>
+                    <a href="{{ baseUrl }}/add-representation/start" class="govuk-link govuk-link--no-visited-state">Add
+                        a representation</a>
                 </p>
             </div>
         </div>
         <div class="govuk-grid-row row-inline">
             <div class="govuk-grid-column-full">
-                    {{ searchBar({
-                        input: {
-                            label: {
-                                text: "Search representations"
-                            },
-                            hint: {
-                                text: "Search by reference, keywords or by name of person or organisation who made the submission."
-                            },
-                            classes: "govuk-input govuk-input--width-50"
+                {{ searchBar({
+                    input: {
+                        label: {
+                            text: "Search representations"
                         },
-                        button: {
-                            text: "Search",
-                            classes: "govuk-button"
-                        }
-                    }, searchValue) }}
+                        hint: {
+                            text: "Search by reference, keywords or by name of person or organisation who made the submission."
+                        },
+                        classes: "govuk-input govuk-input--width-50"
+                    },
+                    button: {
+                        text: "Search",
+                        classes: "govuk-button"
+                    }
+                }, searchValue) }}
             </div>
         </div>
     </form>
 
     {% if reps|length == 0 %}
         <p class="govuk-body">No results were found.</p>
-        <p class="govuk-body"><a href="{{ baseUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search and filters</a> to view all representations.</p>
+        <p class="govuk-body"><a href="{{ baseUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search and
+                filters</a> to view all representations.</p>
     {% else %}
         <div id="pagination" class="govuk-body">
             <p class="govuk-body govuk-clearfix">
@@ -81,7 +100,7 @@
         {% if rep.review %}
             {% set actionText = 'Review' %}
             {% set actionLink = 'review' %}
-        {% endif  %}
+        {% endif %}
         {% set row = [
             {
                 text: rep.reference
@@ -92,8 +111,8 @@
             {
                 text: rep.submittedDate,
                 attributes: {
-                    "data-sort-value": rep.submittedDateSortableValue
-                }
+                "data-sort-value": rep.submittedDateSortableValue
+            }
             },
             {
                 text: rep.status
@@ -109,26 +128,26 @@
         {
             text: 'Reference',
             attributes: {
-                "aria-sort": "none"
-            }
+            "aria-sort": "none"
+        }
         },
         {
             text: 'From',
             attributes: {
-                "aria-sort": "none"
-            }
+            "aria-sort": "none"
+        }
         },
         {
             text: 'Submission date',
             attributes: {
-                "aria-sort": "ascending"
-            }
+            "aria-sort": "ascending"
+        }
         },
         {
             text: 'Status',
             attributes: {
-                "aria-sort": "none"
-            }
+            "aria-sort": "none"
+        }
         },
         {
             text: 'Action'
