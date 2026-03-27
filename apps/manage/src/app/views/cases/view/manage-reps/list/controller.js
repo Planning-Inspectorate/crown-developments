@@ -93,6 +93,11 @@ export function buildListReps({ db }) {
 		const repReviewed = readRepReviewedSession(req, id);
 		clearRepReviewedSession(req, id);
 
+		const showDistressingContentBanner = Boolean(
+			!cd.containsDistressingContent &&
+			cd.Representation?.some((rep) => rep.distressingContentInRepresentation === true)
+		);
+
 		res.render('views/cases/view/manage-reps/list/view.njk', {
 			backLink: `/cases/${req.params.id}`,
 			pageCaption: cd.reference,
@@ -111,7 +116,9 @@ export function buildListReps({ db }) {
 			totalPages,
 			resultsStartNumber,
 			resultsEndNumber,
-			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined
+			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined,
+			showDistressingContentBanner,
+			id
 		});
 	};
 }
