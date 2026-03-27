@@ -93,7 +93,9 @@ export function buildListReps({ db }) {
 		const repReviewed = readRepReviewedSession(req, id);
 		clearRepReviewedSession(req, id);
 
+		// to show distressing content banner on save
 		const showDistressingContentBanner = Boolean(
+			repReviewed &&
 			!cd.containsDistressingContent &&
 			cd.Representation?.some((rep) => rep.distressingContentInRepresentation === true)
 		);

@@ -86,7 +86,8 @@ describe('list representations', () => {
 				params: {
 					id: 'id-1'
 				},
-				query: {}
+				query: {},
+				session: {}
 			};
 			const mockRes = { render: mock.fn() };
 
@@ -162,7 +163,8 @@ describe('list representations', () => {
 				},
 				query: {
 					filters: 'awaiting-review'
-				}
+				},
+				session: {}
 			};
 			const mockRes = { render: mock.fn() };
 
@@ -237,7 +239,8 @@ describe('list representations', () => {
 				},
 				query: {
 					filters: ['awaiting-review', 'rejected', 'withdrawn', 'accepted']
-				}
+				},
+				session: {}
 			};
 			const mockRes = { render: mock.fn() };
 
@@ -303,7 +306,7 @@ describe('list representations', () => {
 				totalPages: 1
 			});
 		});
-		it('should show distressing content banner when any representation is marked distressing and case flag is false', async () => {
+		it('should not show distressing content banner when not saving (no repReviewed session)', async () => {
 			const representations = [
 				{ id: 'r-1', reference: 'R1', Status: { id: 'accepted', displayName: 'Accepted' }, SubmittedByContact: {} },
 				{
@@ -328,7 +331,43 @@ describe('list representations', () => {
 				baseUrl: '/manage-representations',
 				originalUrl: '/manage-representations',
 				params: { id: 'id-1' },
-				query: {}
+				query: {},
+				session: {} // No repReviewed session
+			};
+			const mockRes = { render: mock.fn() };
+			const controller = buildListReps({ db: mockDbLocal });
+			await controller(mockReq, mockRes);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const ctx = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(ctx.showDistressingContentBanner, false);
+		});
+		it('should show distressing content banner when saving with mismatch', async () => {
+			const representations = [
+				{ id: 'r-1', reference: 'R1', Status: { id: 'accepted', displayName: 'Accepted' }, SubmittedByContact: {} },
+				{
+					id: 'r-2',
+					reference: 'R2',
+					Status: { id: 'awaiting-review', displayName: 'Awaiting review' },
+					SubmittedByContact: {},
+					distressingContentInRepresentation: true
+				}
+			];
+			const mockDbLocal = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						reference: 'CROWN/2025/0000002',
+						Representation: representations,
+						containsDistressingContent: false
+					}))
+				},
+				representation: { findMany: mock.fn(() => representations), count: mock.fn(() => representations.length) }
+			};
+			const mockReq = {
+				baseUrl: '/manage-representations',
+				originalUrl: '/manage-representations',
+				params: { id: 'id-1' },
+				query: {},
+				session: { cases: { 'id-1': { representationReviewed: 'accepted' } } }
 			};
 			const mockRes = { render: mock.fn() };
 			const controller = buildListReps({ db: mockDbLocal });
@@ -361,7 +400,8 @@ describe('list representations', () => {
 				baseUrl: '/manage-representations',
 				originalUrl: '/manage-representations',
 				params: { id: 'id-2' },
-				query: {}
+				query: {},
+				session: { cases: { 'id-2': { representationReviewed: 'accepted' } } }
 			};
 			const mockRes = { render: mock.fn() };
 			const controller = buildListReps({ db: mockDbLocal });
@@ -401,7 +441,8 @@ describe('list representations', () => {
 				baseUrl: '/manage-representations',
 				originalUrl: '/manage-representations',
 				params: { id: 'id-3' },
-				query: {}
+				query: {},
+				session: { cases: { 'id-3': { representationReviewed: 'accepted' } } }
 			};
 			const mockRes = { render: mock.fn() };
 			const controller = buildListReps({ db: mockDbLocal });
@@ -425,7 +466,8 @@ describe('list representations', () => {
 				baseUrl: '/manage-representations',
 				originalUrl: '/manage-representations',
 				params: { id: 'id-4' },
-				query: {}
+				query: {},
+				session: {}
 			};
 			const mockRes = { render: mock.fn() };
 			const controller = buildListReps({ db: mockDbLocal });
@@ -458,7 +500,8 @@ describe('list representations', () => {
 				baseUrl: '/manage-representations',
 				originalUrl: '/manage-representations',
 				params: { id: 'id-5' },
-				query: {}
+				query: {},
+				session: {}
 			};
 			const mockRes = { render: mock.fn() };
 			const controller = buildListReps({ db: mockDbLocal });
