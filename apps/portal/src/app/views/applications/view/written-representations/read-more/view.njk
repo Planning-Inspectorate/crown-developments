@@ -3,6 +3,7 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "views/applications/view/links.njk" import applicationLinks %}
 {% from "distressing-content/distressing-content-banner.njk" import distressingContentBanner %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
 
 {% block pageHeading %}{% endblock %}
 
@@ -27,6 +28,11 @@
                     {% endif %}
                     {{ representationViewModel.representationTitle }}
                 </h2>
+                {% if representationViewModel.distressingContent %}
+                    <div class="govuk-!-padding-bottom-3">
+                    {{ govukTag({ text: "Content warning", classes: "govuk-tag--red" }) }}
+                    </div>
+                        {% endif %}
             </div>
         </div>
         {{ govukSummaryList({
