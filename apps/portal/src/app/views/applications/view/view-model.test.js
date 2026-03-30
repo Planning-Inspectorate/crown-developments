@@ -424,7 +424,8 @@ describe('view-model', () => {
 				representationCategory: 'Category 1',
 				dateRepresentationSubmitted: '1 Jan 2025',
 				representationContainsAttachments: true,
-				hasAttachments: true
+				hasAttachments: true,
+				distressingContent: false
 			});
 		});
 		it('should map representation to view model without attachments', () => {
@@ -448,7 +449,8 @@ describe('view-model', () => {
 				representationCategory: 'Category 1',
 				dateRepresentationSubmitted: '1 Jan 2025',
 				representationContainsAttachments: true,
-				hasAttachments: false
+				hasAttachments: false,
+				distressingContent: false
 			});
 		});
 		it('should map representation to view model if containsAttachments is updated', () => {
@@ -472,7 +474,60 @@ describe('view-model', () => {
 				representationCategory: 'Category 1',
 				dateRepresentationSubmitted: '1 Jan 2025',
 				representationContainsAttachments: false,
-				hasAttachments: false
+				hasAttachments: false,
+				distressingContent: false
+			});
+		});
+		it('should map distressingContent to true when distressingContentInRepresentation is true', () => {
+			const representation = {
+				reference: 'ref-123',
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+				SubmittedByContact: { firstName: 'John', lastName: 'Doe', orgName: null },
+				comment: 'This is a comment',
+				commentRedacted: null,
+				Category: { displayName: 'Category 1' },
+				submittedDate: '2025-01-01T00:00:00.000Z',
+				containsAttachments: false,
+				Attachments: [],
+				distressingContentInRepresentation: true
+			};
+			const result = representationToViewModel(representation);
+			assert.deepStrictEqual(result, {
+				representationReference: 'ref-123',
+				representationTitle: 'John Doe',
+				representationComment: 'This is a comment',
+				representationCommentIsRedacted: false,
+				representationCategory: 'Category 1',
+				dateRepresentationSubmitted: '1 Jan 2025',
+				representationContainsAttachments: false,
+				hasAttachments: false,
+				distressingContent: true
+			});
+		});
+		it('should map distressingContent to false when distressingContentInRepresentation is null', () => {
+			const representation = {
+				reference: 'ref-123',
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+				SubmittedByContact: { firstName: 'John', lastName: 'Doe', orgName: null },
+				comment: 'This is a comment',
+				commentRedacted: null,
+				Category: { displayName: 'Category 1' },
+				submittedDate: '2025-01-01T00:00:00.000Z',
+				containsAttachments: false,
+				Attachments: [],
+				distressingContentInRepresentation: null
+			};
+			const result = representationToViewModel(representation);
+			assert.deepStrictEqual(result, {
+				representationReference: 'ref-123',
+				representationTitle: 'John Doe',
+				representationComment: 'This is a comment',
+				representationCommentIsRedacted: false,
+				representationCategory: 'Category 1',
+				dateRepresentationSubmitted: '1 Jan 2025',
+				representationContainsAttachments: false,
+				hasAttachments: false,
+				distressingContent: false
 			});
 		});
 	});

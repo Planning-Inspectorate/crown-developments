@@ -197,6 +197,7 @@ export function representationToViewModel(representation, truncateCommentForView
 		hasAttachments:
 			representation.Attachments?.some((doc) => doc.statusId === REPRESENTATION_STATUS_ID.ACCEPTED) &&
 			representation.containsAttachments,
+		distressingContent: representation.distressingContentInRepresentation || false,
 		...(truncateCommentForView &&
 			shouldTruncateComment(representationComment) && {
 				truncatedReadMoreLink: truncatedReadMoreCommentLink(`written-representations/${representation.reference}`)

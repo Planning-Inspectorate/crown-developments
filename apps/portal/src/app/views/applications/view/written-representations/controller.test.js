@@ -77,7 +77,8 @@ describe('written representations', () => {
 				representationContainsAttachments: true,
 				representationReference: '4SNR8-ZS27T',
 				representationTitle: 'Jane Smith on behalf of Alice Brown',
-				hasAttachments: true
+				hasAttachments: true,
+				distressingContent: false
 			});
 			assert.strictEqual(viewData.selectedItemsPerPage, 25);
 			assert.strictEqual(viewData.totalRepresentations, 1);
@@ -158,6 +159,7 @@ describe('written representations', () => {
 				representationReference: '4SNR8-ZS27T',
 				representationTitle: 'Jane Smith on behalf of Alice Brown',
 				hasAttachments: true,
+				distressingContent: false,
 				truncatedReadMoreLink:
 					'<a class="govuk-link govuk-link--no-visited-state" href="written-representations/4SNR8-ZS27T">Read more</a>'
 			});
