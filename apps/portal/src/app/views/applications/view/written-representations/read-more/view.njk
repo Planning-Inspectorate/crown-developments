@@ -19,7 +19,7 @@
         {% block backLink %}
             {{ govukBackLink({ text: backLinkText, href: backLinkUrl }) }}
         {% endblock %}
-        {{  distressingContentBanner(crownDevelopmentFields.containsDistressingContent) }}
+        {{ distressingContentBanner(containsDistressingContent) }}
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-full">
                 <h2 class="govuk-heading-l">
@@ -30,9 +30,9 @@
                 </h2>
                 {% if representationViewModel.distressingContent %}
                     <div class="govuk-!-padding-bottom-3">
-                    {{ govukTag({ text: "Content warning", classes: "govuk-tag--red" }) }}
+                        {{ govukTag({ text: "Content warning", classes: "govuk-tag--red" }) }}
                     </div>
-                        {% endif %}
+                {% endif %}
             </div>
         </div>
         {{ govukSummaryList({

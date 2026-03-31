@@ -39,7 +39,8 @@ describe('written representations read more', () => {
 					reference: 'CROWN/2025/0000001',
 					representationsPeriodStartDate: '2025-01-01',
 					representationsPeriodEndDate: '2025-02-01',
-					representationsPublishDate: '2025-03-01'
+					representationsPublishDate: '2025-03-01',
+					containsDistressingContent: false
 				}))
 			},
 			representation: {
@@ -87,7 +88,8 @@ describe('written representations read more', () => {
 					reference: 'CROWN/2025/0000001',
 					representationsPeriodStartDate: '2025-01-01',
 					representationsPeriodEndDate: '2025-02-01',
-					representationsPublishDate: '2025-03-01'
+					representationsPublishDate: '2025-03-01',
+					containsDistressingContent: false
 				}))
 			},
 			representation: {
@@ -165,6 +167,7 @@ describe('written representations read more', () => {
 			hasAttachments: true,
 			distressingContent: false
 		});
+		assert.strictEqual(viewData.containsDistressingContent, false);
 		assert.strictEqual(mockSharePoint.getDriveItem.mock.callCount(), 2);
 	});
 	it('should return a 404 if the representation is not found', async () => {
@@ -183,7 +186,8 @@ describe('written representations read more', () => {
 					reference: 'CROWN/2025/0000001',
 					representationsPeriodStartDate: '2025-01-01',
 					representationsPeriodEndDate: '2025-02-01',
-					representationsPublishDate: '2025-03-01'
+					representationsPublishDate: '2025-03-01',
+					containsDistressingContent: false
 				}))
 			},
 			representation: {
@@ -213,7 +217,8 @@ describe('written representations read more', () => {
 					reference: 'CROWN/2025/0000001',
 					representationsPeriodStartDate: '2025-01-01',
 					representationsPeriodEndDate: '2025-02-01',
-					representationsPublishDate: '2025-03-01'
+					representationsPublishDate: '2025-03-01',
+					containsDistressingContent: false
 				}))
 			},
 			representation: {
@@ -285,6 +290,7 @@ describe('written representations read more', () => {
 			hasAttachments: false,
 			distressingContent: false
 		});
+		assert.strictEqual(viewData.containsDistressingContent, false);
 		assert.strictEqual(viewData.documents.length, 0);
 		assert.strictEqual(mockSharePoint.getDriveItem.mock.callCount(), 0);
 	});
@@ -309,7 +315,8 @@ describe('written representations read more', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: '2025-01-01',
 						representationsPeriodEndDate: '2025-02-01',
-						representationsPublishDate: '2025-03-01'
+						representationsPublishDate: '2025-03-01',
+						containsDistressingContent: false
 					}))
 				},
 				representation: {
@@ -367,6 +374,7 @@ describe('written representations read more', () => {
 				hasAttachments: true,
 				distressingContent: false
 			});
+			assert.strictEqual(viewData.containsDistressingContent, false);
 			assert.deepStrictEqual(viewData.documents, []);
 
 			assert.strictEqual(mockSharePoint.getItemsByPath.mock.callCount(), 1);
@@ -395,7 +403,8 @@ describe('written representations read more', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: '2025-01-01',
 						representationsPeriodEndDate: '2025-02-01',
-						representationsPublishDate: '2025-03-01'
+						representationsPublishDate: '2025-03-01',
+						containsDistressingContent: false
 					}))
 				},
 				representation: {
@@ -443,6 +452,7 @@ describe('written representations read more', () => {
 				hasAttachments: false,
 				distressingContent: false
 			});
+			assert.strictEqual(viewData.containsDistressingContent, false);
 		});
 	});
 
@@ -466,7 +476,8 @@ describe('written representations read more', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: '2025-01-01',
 						representationsPeriodEndDate: '2025-02-01',
-						representationsPublishDate: '2025-03-01'
+						representationsPublishDate: '2025-03-01',
+						containsDistressingContent: true
 					}))
 				},
 				representation: {
@@ -526,7 +537,8 @@ describe('written representations read more', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: '2025-01-01',
 						representationsPeriodEndDate: '2025-02-01',
-						representationsPublishDate: '2025-03-01'
+						representationsPublishDate: '2025-03-01',
+						containsDistressingContent: true
 					}))
 				},
 				representation: {
@@ -581,7 +593,8 @@ describe('written representations read more', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: '2025-01-01',
 						representationsPeriodEndDate: '2025-02-01',
-						representationsPublishDate: '2025-03-01'
+						representationsPublishDate: '2025-03-01',
+						containsDistressingContent: false
 					}))
 				},
 				representation: {
@@ -636,7 +649,8 @@ describe('written representations read more', () => {
 						reference: 'CROWN/2025/0000001',
 						representationsPeriodStartDate: '2025-01-01',
 						representationsPeriodEndDate: '2025-02-01',
-						representationsPublishDate: '2025-03-01'
+						representationsPublishDate: '2025-03-01',
+						containsDistressingContent: false
 					}))
 				},
 				representation: {
@@ -669,6 +683,117 @@ describe('written representations read more', () => {
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.strictEqual(viewData.representationViewModel.distressingContent, false);
+		});
+
+		it('should show containsDistressingContent banner flag when true on application', async () => {
+			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
+			const representationReference = 'AAAAA-BBBBB';
+			const mockReq = {
+				params: {
+					applicationId,
+					representationReference
+				},
+				originalUrl: `/applications/${applicationId}/written-representations/${representationReference}`
+			};
+			const mockRes = { render: mock.fn(), status: mock.fn() };
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: applicationId,
+						reference: 'CROWN/2025/0000001',
+						representationsPeriodStartDate: '2025-01-01',
+						representationsPeriodEndDate: '2025-02-01',
+						representationsPublishDate: '2025-03-01',
+						containsDistressingContent: true
+					}))
+				},
+				representation: {
+					findUnique: mock.fn(() => ({
+						reference: 'AAAAA-BBBBB',
+						submittedDate: new Date('2025-01-15'),
+						comment: 'This is a test representation.',
+						commentRedacted: 'This is a test representation.',
+						submittedByAgentOrgName: 'Test Organization',
+						submittedForId: 'on-behalf-of',
+						representedTypeId: 'organisation',
+						containsAttachments: false,
+						distressingContentInRepresentation: false,
+						SubmittedFor: { displayName: 'John Doe' },
+						SubmittedByContact: { firstName: 'Jane', lastName: ' Smith' },
+						RepresentedContact: { firstName: 'Alice', lastName: ' Brown' },
+						Category: { displayName: 'General Representation' },
+						Attachments: []
+					}))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
+				}
+			};
+
+			const handler = buildWrittenRepresentationsReadMorePage({ db: mockDb, logger: mockLogger() });
+
+			await handler(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.containsDistressingContent, true);
+		});
+
+		it('should not show containsDistressingContent banner flag when false on application', async () => {
+			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
+			const representationReference = 'AAAAA-BBBBB';
+			const mockReq = {
+				params: {
+					applicationId,
+					representationReference
+				},
+				originalUrl: `/applications/${applicationId}/written-representations/${representationReference}`
+			};
+			const mockRes = { render: mock.fn(), status: mock.fn() };
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: applicationId,
+						reference: 'CROWN/2025/0000001',
+						representationsPeriodStartDate: '2025-01-01',
+						representationsPeriodEndDate: '2025-02-01',
+						representationsPublishDate: '2025-03-01',
+						containsDistressingContent: false
+					}))
+				},
+				representation: {
+					findUnique: mock.fn(() => ({
+						reference: 'AAAAA-BBBBB',
+						submittedDate: new Date('2025-01-15'),
+						comment: 'This is a test representation.',
+						commentRedacted: 'This is a test representation.',
+						submittedByAgentOrgName: 'Test Organization',
+						submittedForId: 'on-behalf-of',
+						representedTypeId: 'organisation',
+						containsAttachments: false,
+						SubmittedFor: { displayName: 'John Doe' },
+						SubmittedByContact: { firstName: 'Jane', lastName: ' Smith' },
+						RepresentedContact: { firstName: 'Alice', lastName: ' Brown' },
+						Category: { displayName: 'General Representation' },
+						Attachments: []
+					}))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => undefined),
+					count: mock.fn(() => 0)
+				}
+			};
+
+			const handler = buildWrittenRepresentationsReadMorePage({ db: mockDb, logger: mockLogger() });
+
+			await handler(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.containsDistressingContent, false);
 		});
 	});
 	describe('error cases', () => {
