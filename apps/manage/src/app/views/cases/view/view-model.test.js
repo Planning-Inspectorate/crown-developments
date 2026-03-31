@@ -487,7 +487,8 @@ describe('view-model', () => {
 					county: 'Org County',
 					postcode: 'ORG1ST'
 				},
-				organisationRelationId: 'relation-1'
+				organisationRelationId: 'relation-1',
+				organisationAddressId: 'address-1'
 			});
 			assert.deepStrictEqual(result.manageApplicantDetails[1], {
 				id: 'org-2',
@@ -500,7 +501,8 @@ describe('view-model', () => {
 					county: 'Org County 2',
 					postcode: 'ORG2ND'
 				},
-				organisationRelationId: 'relation-2'
+				organisationRelationId: 'relation-2',
+				organisationAddressId: 'address-2'
 			});
 		});
 		it('should map applicant contacts if they exist', () => {
@@ -1084,6 +1086,310 @@ describe('view-model', () => {
 
 	const getUpdateByRelationId = (updates, relationId) =>
 		updates?.Organisations?.update?.find((u) => u.where?.id === relationId);
+
+	describe('manageApplicantDetails organisation updates', () => {
+		it('should not create updates when saving an empty list of applicant organisations', () => {
+			const toSave = {
+				manageApplicantDetails: []
+			};
+			const viewModel = {
+				manageApplicantDetails: []
+			};
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.strictEqual(updates.Organisations, undefined);
+		});
+
+		it('should create updates when changing details for a single existing organisation', () => {
+			const toSave = {
+				manageApplicantDetails: [
+					{
+						id: 'org-1',
+						organisationRelationId: 'org-relation-1',
+						organisationName: 'Organisation One New Name',
+						organisationAddress: undefined
+					}
+				]
+			};
+			const viewModel = {
+				manageApplicantDetails: [
+					{
+						id: 'org-1',
+						organisationRelationId: 'org-relation-1',
+						organisationName: 'Organisation One',
+						organisationAddress: undefined
+					}
+				]
+			};
+
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.ok(updates.Organisations?.update);
+			const orgUpdate = getUpdateByRelationId(updates, 'org-relation-1');
+			assert.strictEqual(orgUpdate?.data?.Organisation?.update?.name, 'Organisation One New Name');
+			assert.strictEqual(orgUpdate?.data?.Organisation?.update?.Address, undefined);
+		});
+
+		it('should update address when changing details for a single existing organisation', () => {
+			const toSave = {
+				manageApplicantDetails: [
+					{
+						id: 'org-1',
+						organisationRelationId: 'org-relation-1',
+						organisationName: 'Organisation One New Name',
+						organisationAddress: {
+							addressLine1: 'New line one',
+							addressLine2: 'New line two',
+							townCity: 'New city',
+							county: 'New county',
+							postcode: 'NEWPSCD'
+						}
+					}
+				]
+			};
+			const viewModel = {
+				manageApplicantDetails: [
+					{
+						id: 'org-1',
+						organisationRelationId: 'org-relation-1',
+						organisationName: 'Organisation One',
+						organisationAddressId: 'address-id-1',
+						organisationAddress: {
+							addressLine1: 'Old line one',
+							addressLine2: 'Old line two',
+							townCity: 'Old city',
+							county: 'Old county',
+							postcode: 'OLDPSCD'
+						}
+					}
+				]
+			};
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.ok(updates.Organisations?.update);
+			const orgUpdate = getUpdateByRelationId(updates, 'org-relation-1');
+			assert.strictEqual(orgUpdate?.data?.Organisation?.update?.Address.upsert.where?.id, 'address-id-1');
+			assert.deepStrictEqual(orgUpdate?.data?.Organisation?.update?.Address.upsert.update, {
+				line1: 'New line one',
+				line2: 'New line two',
+				townCity: 'New city',
+				county: 'New county',
+				postcode: 'NEWPSCD'
+			});
+		});
+		it('should update address when adding an address for a single existing organisation', () => {
+			const toSave = {
+				manageApplicantDetails: [
+					{
+						id: 'org-1',
+						organisationRelationId: 'org-relation-1',
+						organisationName: 'Organisation One New Name',
+						organisationAddress: {
+							addressLine1: 'New line one',
+							addressLine2: 'New line two',
+							townCity: 'New city',
+							county: 'New county',
+							postcode: 'NEWPSCD'
+						}
+					}
+				]
+			};
+			const viewModel = {
+				manageApplicantDetails: [
+					{
+						id: 'org-1',
+						organisationRelationId: 'org-relation-1',
+						organisationName: 'Organisation One'
+					}
+				]
+			};
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.ok(updates.Organisations?.update);
+			const orgUpdate = getUpdateByRelationId(updates, 'org-relation-1');
+			assert.deepStrictEqual(orgUpdate?.data?.Organisation?.update?.Address.upsert.update, {
+				line1: 'New line one',
+				line2: 'New line two',
+				townCity: 'New city',
+				county: 'New county',
+				postcode: 'NEWPSCD'
+			});
+		});
+		it('should not create updates when details are unchanged for a single existing applicant organisation', () => {
+			const toSave = {
+				manageApplicantDetails: [
+					{
+						id: 'org-1',
+						organisationRelationId: 'org-relation-1',
+						organisationName: 'Organisation One Unchanged',
+						organisationAddress: {
+							addressLine1: 'Unchanged line one',
+							addressLine2: 'Unchanged line two',
+							townCity: 'Unchanged city',
+							county: 'Unchanged county',
+							postcode: 'UNCPSCD'
+						}
+					}
+				]
+			};
+			const viewModel = {
+				manageApplicantDetails: [
+					{
+						id: 'org-1',
+						organisationRelationId: 'org-relation-1',
+						organisationName: 'Organisation One Unchanged',
+						organisationAddressId: 'address-id-1',
+						organisationAddress: {
+							addressLine1: 'Unchanged line one',
+							addressLine2: 'Unchanged line two',
+							townCity: 'Unchanged city',
+							county: 'Unchanged county',
+							postcode: 'UNCPSCD'
+						}
+					}
+				]
+			};
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.strictEqual(updates.Organisations, undefined);
+		});
+
+		it('should create updates when changing details for multiple existing organisations', () => {
+			const toSave = {
+				manageApplicantDetails: [
+					{
+						id: 'org-1',
+						organisationRelationId: 'org-relation-1',
+						organisationName: 'Organisation One New Name',
+						organisationAddress: {
+							addressLine1: 'New line one',
+							addressLine2: 'New line two',
+							townCity: 'New city',
+							county: 'New county',
+							postcode: 'NEWPSCD'
+						}
+					},
+					{
+						id: 'org-2',
+						organisationRelationId: 'org-relation-2',
+						organisationName: 'Organisation Two New Name',
+						organisationAddress: {
+							addressLine1: 'Another line one',
+							addressLine2: 'Another line two',
+							townCity: 'Another city',
+							county: 'Another county',
+							postcode: 'ANOPSCD'
+						}
+					}
+				]
+			};
+			const viewModel = {
+				manageApplicantDetails: [
+					{
+						id: 'org-1',
+						organisationRelationId: 'org-relation-1',
+						organisationName: 'Organisation One',
+						organisationAddressId: 'address-id-1',
+						organisationAddress: {
+							addressLine1: 'Old line one',
+							addressLine2: 'Old line two',
+							townCity: 'Old city',
+							county: 'Old county',
+							postcode: 'OLDPSCD'
+						}
+					},
+					{
+						id: 'org-2',
+						organisationRelationId: 'org-relation-2',
+						organisationName: 'Organisation Two Old Name',
+						organisationAddressId: 'address-id-2',
+						organisationAddress: {
+							addressLine1: 'Another line one',
+							addressLine2: 'Another line two',
+							townCity: 'Another city',
+							county: 'Another county',
+							postcode: 'ANOPSCD'
+						}
+					}
+				]
+			};
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.ok(updates.Organisations?.update);
+			const orgUpdate1 = getUpdateByRelationId(updates, 'org-relation-1');
+			assert.strictEqual(orgUpdate1?.data?.Organisation?.update?.name, 'Organisation One New Name');
+			assert.strictEqual(orgUpdate1?.data?.Organisation?.update?.Address.upsert.where?.id, 'address-id-1');
+			assert.deepStrictEqual(orgUpdate1?.data?.Organisation?.update?.Address.upsert.update, {
+				line1: 'New line one',
+				line2: 'New line two',
+				townCity: 'New city',
+				county: 'New county',
+				postcode: 'NEWPSCD'
+			});
+			const orgUpdate2 = getUpdateByRelationId(updates, 'org-relation-2');
+			assert.strictEqual(orgUpdate2?.data?.Organisation?.update?.name, 'Organisation Two New Name');
+			// address shouldn't update if the same
+			assert.strictEqual(orgUpdate2?.data?.Organisation?.update?.Address, undefined);
+		});
+		it('should create updates when adding a new applicant organisation', () => {
+			const toSave = {
+				manageApplicantDetails: [
+					{
+						id: 'org-1',
+						organisationName: 'New Organisation',
+						organisationAddress: {
+							addressLine1: 'New line one',
+							addressLine2: 'New line two',
+							townCity: 'New city',
+							county: 'New county',
+							postcode: 'NEWPSCD'
+						}
+					}
+				]
+			};
+			const viewModel = {
+				manageApplicantDetails: []
+			};
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.ok(updates.Organisations?.create);
+			const orgCreate = updates.Organisations.create[0];
+			assert.strictEqual(orgCreate?.Role.connect.id, 'applicant');
+			assert.strictEqual(orgCreate?.Organisation?.create?.name, 'New Organisation');
+			assert.deepStrictEqual(orgCreate?.Organisation?.create?.Address.create, {
+				line1: 'New line one',
+				line2: 'New line two',
+				townCity: 'New city',
+				county: 'New county',
+				postcode: 'NEWPSCD'
+			});
+		});
+		it('should create updates and creates when both changing details and adding a new organisation', () => {
+			const toSave = {
+				manageApplicantDetails: [
+					{
+						id: 'org-1',
+						organisationRelationId: 'org-relation-1',
+						organisationName: 'Organisation One New Name'
+					},
+					{
+						id: 'org-2',
+						organisationName: 'New Organisation'
+					}
+				]
+			};
+			const viewModel = {
+				manageApplicantDetails: [
+					{
+						id: 'org-1',
+						organisationRelationId: 'org-relation-1',
+						organisationName: 'Organisation One'
+					}
+				]
+			};
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.ok(updates.Organisations?.update);
+			const orgUpdate1 = getUpdateByRelationId(updates, 'org-relation-1');
+			assert.strictEqual(orgUpdate1?.data?.Organisation?.update?.name, 'Organisation One New Name');
+			assert.ok(updates.Organisations?.create);
+			const orgCreate = updates.Organisations.create[0];
+			assert.strictEqual(orgCreate?.Role.connect.id, 'applicant');
+			assert.strictEqual(orgCreate?.Organisation?.create?.name, 'New Organisation');
+		});
+	});
 
 	describe('manageApplicantContactDetails organisation updates', () => {
 		it('should not create updates when saving an empty list of applicant contacts', () => {
