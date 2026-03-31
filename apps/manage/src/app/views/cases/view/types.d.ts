@@ -195,6 +195,7 @@ interface ManageApplicantDetails {
 	organisationName: string;
 	// Empty object used to avoid marking question as unanswered in manage list questions.
 	organisationAddress?: Address | {};
+	organisationAddressId?: string;
 }
 
 export interface ManageApplicantContactDetails {
