@@ -2,7 +2,7 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { fetchPublishedApplication } from '#util/applications.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
-import { applicationLinks, representationToViewModel, crownDevelopmentToViewModel } from '../../view-model.js';
+import { applicationLinks, representationToViewModel } from '../../view-model.js';
 import {
 	publishedRepresentationsAttachmentsFolderPath,
 	representationAttachmentsFolderPath
@@ -137,7 +137,6 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
 		const applicationStatus = crownDevelopment.applicationStatus;
 		const writtenRepresentationsUrl = req.originalUrl?.replace(`/${representationReference}`, '');
-		const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment);
 
 		res.render('views/applications/view/written-representations/read-more/view.njk', {
 			pageCaption: crownDevelopment.reference,
@@ -152,7 +151,7 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 			backLinkText: 'Back to list',
 			backLinkUrl: writtenRepresentationsUrl,
 			representationViewModel: representationToViewModel(representation),
-			crownDevelopmentFields,
+			containsDistressingContent: crownDevelopment.containsDistressingContent || false,
 			documents
 		});
 	};
