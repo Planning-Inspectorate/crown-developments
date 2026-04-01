@@ -164,6 +164,12 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
         rule_id = "942390"
         enabled = true
       }
+      rule {
+        # SQL Injection Attack: SQL Operator Detected
+        action  = "Log"
+        enabled = true
+        rule_id = "942120"
+      }
       exclusion {
         match_variable = "RequestBodyPostArgNames"
         operator       = "Equals"
