@@ -5,6 +5,10 @@ import 'express-session';
 // properties to req.session / SessionData.
 
 declare module 'express-session' {
+	interface FormSessionData {
+		[key: string]: unknown;
+	}
+
 	interface SessionData {
 		// Auth
 		account?: import('@azure/msal-node').AccountInfo & {
@@ -28,7 +32,7 @@ declare module 'express-session' {
 		reviewDecisions?: Record<string, unknown>;
 		itemsToBeDeleted?: Record<string, string[]>;
 		files?: Record<string, unknown>;
-		forms?: Record<string, unknown>;
+		forms?: Record<string, FormSessionData>;
 		bannerMessage?: Record<string, boolean>;
 
 		// Common error/session transient state
