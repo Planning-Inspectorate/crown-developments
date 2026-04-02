@@ -1,10 +1,10 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { buildDeleteManageListItemOnConfirmRemove } from './index.js';
+import { addSuccessBannerFromMessage, buildDeleteManageListItemOnConfirmRemove } from './delete.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 
 describe('buildDeleteManageListItemOnConfirmRemove', () => {
-	it('calls next without deleting when not on remove confirm step', async () => {
+	it('should call next without deleting when not on remove confirm step', async () => {
 		const db = {
 			crownDevelopmentToOrganisation: { deleteMany: mock.fn(), findFirst: mock.fn() },
 			organisationToContact: { deleteMany: mock.fn() },
@@ -126,7 +126,7 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 		assert.strictEqual(next.mock.callCount(), 1);
 	});
 
-	it('calls next without deleting when id is missing', async () => {
+	it('should call next without deleting when id is missing', async () => {
 		const db = {
 			crownDevelopmentToOrganisation: { deleteMany: mock.fn(), findFirst: mock.fn() },
 			organisationToContact: { deleteMany: mock.fn() },
@@ -289,7 +289,7 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
 	});
 
-	it('calls next without deleting when required route params are missing or not strings', async () => {
+	it('should call next without deleting when required route params are missing or not strings', async () => {
 		const db = {
 			crownDevelopmentToOrganisation: { deleteMany: mock.fn(), findFirst: mock.fn() },
 			organisationToContact: { deleteMany: mock.fn() },
@@ -362,7 +362,7 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 		assert.strictEqual(next.mock.callCount(), 1);
 	});
 
-	it('calls next without deleting when no handler exists for question', async () => {
+	it('should call next without deleting when no handler exists for question', async () => {
 		const logger = mockLogger();
 		const db = {
 			crownDevelopmentToOrganisation: { deleteMany: mock.fn(), findFirst: mock.fn() },
@@ -592,5 +592,152 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 		assert.strictEqual(req.session.bannerMessage?.['check-applicant-details:item-removed-success'], undefined);
 		assert.strictEqual(next.mock.callCount(), 1);
 		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
+	});
+});
+
+describe('addSuccessBannerFromMessage', () => {
+	it('should set success banner and clear session key for check-agent-contact-details', () => {
+		const req = {
+			params: { question: 'check-agent-contact-details' },
+			session: {
+				bannerMessage: {
+					'check-agent-contact-details:item-removed-success': true
+				}
+			}
+		};
+		const res = { locals: {} };
+		const next = mock.fn();
+
+		addSuccessBannerFromMessage(req, res, next);
+
+		assert.strictEqual(res.locals.notificationBannerSuccess, 'Contact removed');
+		assert.strictEqual(req.session.bannerMessage['check-agent-contact-details:item-removed-success'], undefined);
+		assert.strictEqual(next.mock.callCount(), 1);
+		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
+	});
+
+	it('should set success banner and clear session key for check-applicant-contact-details', () => {
+		const req = {
+			params: { question: 'check-applicant-contact-details' },
+			session: {
+				bannerMessage: {
+					'check-applicant-contact-details:item-removed-success': true
+				}
+			}
+		};
+		const res = { locals: {} };
+		const next = mock.fn();
+
+		addSuccessBannerFromMessage(req, res, next);
+
+		assert.strictEqual(res.locals.notificationBannerSuccess, 'Contact removed');
+		assert.strictEqual(req.session.bannerMessage['check-applicant-contact-details:item-removed-success'], undefined);
+		assert.strictEqual(next.mock.callCount(), 1);
+		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
+	});
+
+	it('should set success banner and clear session key for check-applicant-details', () => {
+		const req = {
+			params: { question: 'check-applicant-details' },
+			session: {
+				bannerMessage: {
+					'check-applicant-details:item-removed-success': true
+				}
+			}
+		};
+		const res = { locals: {} };
+		const next = mock.fn();
+
+		addSuccessBannerFromMessage(req, res, next);
+
+		assert.strictEqual(res.locals.notificationBannerSuccess, 'Organisation removed');
+		assert.strictEqual(req.session.bannerMessage['check-applicant-details:item-removed-success'], undefined);
+		assert.strictEqual(next.mock.callCount(), 1);
+		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
+	});
+
+	it('should call next when req.params.question is missing', () => {
+		const req = { params: {}, session: { bannerMessage: {} } };
+		const res = { locals: {} };
+		const next = mock.fn();
+
+		addSuccessBannerFromMessage(req, res, next);
+
+		assert.strictEqual(res.locals.notificationBannerSuccess, undefined);
+		assert.strictEqual(next.mock.callCount(), 1);
+		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
+	});
+
+	it('should call next when req.params.question is not a string', () => {
+		const req = { params: { question: 123 }, session: { bannerMessage: {} } };
+		const res = { locals: {} };
+		const next = mock.fn();
+
+		addSuccessBannerFromMessage(req, res, next);
+
+		assert.strictEqual(res.locals.notificationBannerSuccess, undefined);
+		assert.strictEqual(next.mock.callCount(), 1);
+		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
+	});
+
+	it('should call next when question is not configured for a delete success banner', () => {
+		const req = {
+			params: { question: 'some-other-question' },
+			session: {
+				bannerMessage: {
+					'some-other-question:item-removed-success': true
+				}
+			}
+		};
+		const res = { locals: {} };
+		const next = mock.fn();
+
+		addSuccessBannerFromMessage(req, res, next);
+
+		assert.strictEqual(res.locals.notificationBannerSuccess, undefined);
+		assert.strictEqual(req.session.bannerMessage['some-other-question:item-removed-success'], true);
+		assert.strictEqual(next.mock.callCount(), 1);
+		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
+	});
+
+	it('should call next when session is missing', () => {
+		const req = { params: { question: 'check-agent-contact-details' } };
+		const res = { locals: {} };
+		const next = mock.fn();
+
+		addSuccessBannerFromMessage(req, res, next);
+
+		assert.strictEqual(res.locals.notificationBannerSuccess, undefined);
+		assert.strictEqual(next.mock.callCount(), 1);
+		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
+	});
+
+	it('should do nothing when session exists but banner key is not set', () => {
+		const req = {
+			params: { question: 'check-agent-contact-details' },
+			session: {
+				bannerMessage: {}
+			}
+		};
+		const res = { locals: {} };
+		const next = mock.fn();
+
+		addSuccessBannerFromMessage(req, res, next);
+
+		assert.strictEqual(res.locals.notificationBannerSuccess, undefined);
+		assert.deepStrictEqual(req.session.bannerMessage, {});
+		assert.strictEqual(next.mock.callCount(), 1);
+		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
+	});
+
+	it('should pass error to next when middleware throws', () => {
+		const res = { locals: {} };
+		const next = mock.fn();
+
+		addSuccessBannerFromMessage(undefined, res, next);
+
+		assert.strictEqual(next.mock.callCount(), 1);
+		assert.strictEqual(next.mock.calls[0].arguments.length, 1);
+		assert.ok(next.mock.calls[0].arguments[0] instanceof Error);
 	});
 });
