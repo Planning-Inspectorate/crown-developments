@@ -39,10 +39,15 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 				deleteMany: mock.fn(async () => ({ count: 1 })),
 				findFirst: mock.fn()
 			},
-			organisationToContact: { deleteMany: mock.fn() },
+			organisationToContact: { deleteMany: mock.fn(), findMany: mock.fn(async () => []) },
 			organisation: { delete: mock.fn(async () => ({ id: 'org-1' })) },
 			contact: { delete: mock.fn() }
 		};
+		db.$transaction = mock.fn(async (ops) => {
+			// prisma allows passing an array of operations; we just execute them in order for this test
+			for (const op of ops) await op;
+			return [];
+		});
 		const middleware = buildDeleteManageListItemOnConfirmRemove({ db, logger: mockLogger() });
 		const req = {
 			params: {
@@ -59,6 +64,9 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 
 		await middleware(req, res, next);
 
+		assert.strictEqual(db.$transaction.mock.callCount(), 1);
+		assert.strictEqual(db.organisationToContact.findMany.mock.callCount(), 1);
+		assert.strictEqual(db.organisationToContact.deleteMany.mock.callCount(), 1);
 		assert.strictEqual(db.crownDevelopmentToOrganisation.deleteMany.mock.callCount(), 1);
 		assert.strictEqual(db.organisation.delete.mock.callCount(), 1);
 		assert.strictEqual(req.session.bannerMessage?.['check-applicant-details:item-removed-success'], true);
@@ -148,9 +156,14 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 				deleteMany: mock.fn(async () => ({ count: 1 })),
 				findFirst: mock.fn()
 			},
-			organisationToContact: { deleteMany: mock.fn() },
+			organisationToContact: { deleteMany: mock.fn(), findMany: mock.fn(async () => []) },
+			organisation: { delete: mock.fn(async () => ({ id: 'org-1' })) },
 			contact: { delete: mock.fn() }
 		};
+		db.$transaction = mock.fn(async (ops) => {
+			for (const op of ops) await op;
+			return [];
+		});
 		const middleware = buildDeleteManageListItemOnConfirmRemove({ db, logger: mockLogger() });
 		const req = {
 			params: {
@@ -166,6 +179,7 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 
 		await middleware(req, res, next);
 
+		assert.strictEqual(db.$transaction.mock.callCount(), 1);
 		assert.strictEqual(db.crownDevelopmentToOrganisation.deleteMany.mock.callCount(), 1);
 		assert.deepStrictEqual(db.crownDevelopmentToOrganisation.deleteMany.mock.calls[0].arguments[0], {
 			where: { crownDevelopmentId: 'case-1', organisationId: 'org-1' }
@@ -407,5 +421,176 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 		assert.strictEqual(next.mock.callCount(), 1);
 		assert.strictEqual(next.mock.calls[0].arguments.length, 1);
 		assert.ok(next.mock.calls[0].arguments[0] instanceof Error);
+	});
+
+	it('should delete linked contacts after deleting an applicant organisation', async () => {
+		const db = {
+			crownDevelopmentToOrganisation: {
+				deleteMany: mock.fn(async () => ({ count: 1 })),
+				findFirst: mock.fn()
+			},
+			organisationToContact: {
+				deleteMany: mock.fn(async () => ({ count: 2 })),
+				findMany: mock.fn(async () => [{ contactId: 'contact-1' }, { contactId: 'contact-2' }])
+			},
+			organisation: { delete: mock.fn(async () => ({ id: 'org-1' })) },
+			contact: { delete: mock.fn(), deleteMany: mock.fn(async () => ({ count: 2 })) }
+		};
+		db.$transaction = mock.fn(async (ops) => {
+			for (const op of ops) await op;
+			return [];
+		});
+		const middleware = buildDeleteManageListItemOnConfirmRemove({ db, logger: mockLogger() });
+		const req = {
+			params: {
+				id: 'case-1',
+				manageListAction: 'remove',
+				manageListItemId: 'org-1',
+				manageListQuestion: 'confirm',
+				question: 'check-applicant-details'
+			},
+			session: {}
+		};
+		const res = {};
+		const next = mock.fn();
+
+		await middleware(req, res, next);
+
+		assert.strictEqual(db.contact.deleteMany.mock.callCount(), 1);
+		assert.deepStrictEqual(db.contact.deleteMany.mock.calls[0].arguments[0], {
+			where: { id: { in: ['contact-1', 'contact-2'] } }
+		});
+		assert.strictEqual(req.session.bannerMessage?.['check-applicant-details:item-removed-success'], true);
+		assert.strictEqual(next.mock.callCount(), 1);
+		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
+	});
+
+	it('should not attempt to delete contacts when an applicant organisation has no linked contacts', async () => {
+		const db = {
+			crownDevelopmentToOrganisation: {
+				deleteMany: mock.fn(async () => ({ count: 1 })),
+				findFirst: mock.fn()
+			},
+			organisationToContact: { deleteMany: mock.fn(async () => ({ count: 0 })), findMany: mock.fn(async () => []) },
+			organisation: { delete: mock.fn(async () => ({ id: 'org-1' })) },
+			contact: { delete: mock.fn(), deleteMany: mock.fn() }
+		};
+		db.$transaction = mock.fn(async (ops) => {
+			for (const op of ops) await op;
+			return [];
+		});
+		const middleware = buildDeleteManageListItemOnConfirmRemove({ db, logger: mockLogger() });
+		const req = {
+			params: {
+				id: 'case-1',
+				manageListAction: 'remove',
+				manageListItemId: 'org-1',
+				manageListQuestion: 'confirm',
+				question: 'check-applicant-details'
+			},
+			session: {}
+		};
+		const res = {};
+		const next = mock.fn();
+
+		await middleware(req, res, next);
+
+		assert.strictEqual(db.contact.deleteMany.mock.callCount(), 0);
+		assert.strictEqual(req.session.bannerMessage?.['check-applicant-details:item-removed-success'], true);
+		assert.strictEqual(next.mock.callCount(), 1);
+		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
+	});
+
+	it('should continue when linked contact cleanup fails after deleting an applicant organisation', async () => {
+		const logger = mockLogger();
+		const db = {
+			crownDevelopmentToOrganisation: {
+				deleteMany: mock.fn(async () => ({ count: 1 })),
+				findFirst: mock.fn()
+			},
+			organisationToContact: {
+				deleteMany: mock.fn(async () => ({ count: 2 })),
+				findMany: mock.fn(async () => [{ contactId: 'contact-1' }])
+			},
+			organisation: { delete: mock.fn(async () => ({ id: 'org-1' })) },
+			contact: {
+				delete: mock.fn(),
+				deleteMany: mock.fn(async () => {
+					throw new Error('still referenced');
+				})
+			}
+		};
+		db.$transaction = mock.fn(async (ops) => {
+			for (const op of ops) await op;
+			return [];
+		});
+		const middleware = buildDeleteManageListItemOnConfirmRemove({ db, logger });
+		const req = {
+			params: {
+				id: 'case-1',
+				manageListAction: 'remove',
+				manageListItemId: 'org-1',
+				manageListQuestion: 'confirm',
+				question: 'check-applicant-details'
+			},
+			session: {}
+		};
+		const res = {};
+		const next = mock.fn();
+
+		await middleware(req, res, next);
+
+		assert.strictEqual(logger.warn.mock.callCount(), 1);
+		assert.strictEqual(
+			logger.warn.mock.calls[0].arguments[1],
+			'Unable to delete contact record linked to organisation.'
+		);
+		assert.strictEqual(req.session.bannerMessage?.['check-applicant-details:item-removed-success'], true);
+		assert.strictEqual(next.mock.callCount(), 1);
+		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
+	});
+
+	it('should attempt to delete linked contacts even when applicant organisation deletion fails', async () => {
+		const logger = mockLogger();
+		const db = {
+			crownDevelopmentToOrganisation: {
+				deleteMany: mock.fn(async () => ({ count: 1 })),
+				findFirst: mock.fn()
+			},
+			organisationToContact: {
+				deleteMany: mock.fn(async () => ({ count: 2 })),
+				findMany: mock.fn(async () => [{ contactId: 'contact-1' }, { contactId: 'contact-2' }])
+			},
+			organisation: { delete: mock.fn(async () => ({ id: 'org-1' })) },
+			contact: { delete: mock.fn(), deleteMany: mock.fn(async () => ({ count: 2 })) }
+		};
+		db.$transaction = mock.fn(async () => {
+			throw new Error('org still referenced');
+		});
+		const middleware = buildDeleteManageListItemOnConfirmRemove({ db, logger });
+		const req = {
+			params: {
+				id: 'case-1',
+				manageListAction: 'remove',
+				manageListItemId: 'org-1',
+				manageListQuestion: 'confirm',
+				question: 'check-applicant-details'
+			},
+			session: {}
+		};
+		const res = {};
+		const next = mock.fn();
+
+		await middleware(req, res, next);
+
+		assert.strictEqual(logger.warn.mock.callCount(), 1);
+		assert.strictEqual(
+			logger.warn.mock.calls[0].arguments[1],
+			'Unable to delete Organisation record (may still be referenced)'
+		);
+		assert.strictEqual(db.contact.deleteMany.mock.callCount(), 1);
+		assert.strictEqual(req.session.bannerMessage?.['check-applicant-details:item-removed-success'], undefined);
+		assert.strictEqual(next.mock.callCount(), 1);
+		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
 	});
 });
