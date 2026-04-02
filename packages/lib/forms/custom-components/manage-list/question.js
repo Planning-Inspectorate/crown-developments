@@ -13,12 +13,23 @@ import nunjucks from 'nunjucks';
  *  emptyListText?: string;
  * 	isAllowedEmpty?: boolean;
  * 	confirmRemoveButtonText?: string;
+ * 	removalPrompt?: string;
  * }} CustomManageListQuestionParameters
  */
 
 export default class CustomManageListQuestion extends ManageListQuestion {
 	/** @type {boolean} */
 	#showAnswersInSummary;
+	/** @type {number|null} */
+	maximumAnswers;
+	/** @type {string} */
+	emptyListText;
+	/** @type {boolean} */
+	isAllowedEmpty;
+	/** @type {string} */
+	confirmRemoveButtonText;
+	/** @type {string} */
+	removalPrompt;
 
 	/**
 	 * @param {CustomManageListQuestionParameters} params
@@ -27,10 +38,12 @@ export default class CustomManageListQuestion extends ManageListQuestion {
 		super(params);
 		this.viewFolder = 'custom-components/manage-list';
 		this.#showAnswersInSummary = true;
-		this.maximumAnswers = params.maximumAnswers;
+		this.maximumAnswers = params.maximumAnswers ?? null;
 		this.emptyListText = params.emptyListText || 'No items have been added yet.';
-		this.isAllowedEmpty = params.isAllowedEmpty;
+		this.isAllowedEmpty = params.isAllowedEmpty ?? false;
 		this.confirmRemoveButtonText = params.confirmRemoveButtonText || `Remove ${params.titleSingular.toLowerCase()}`;
+		this.removalPrompt =
+			params.removalPrompt || `Are you sure you want to remove this ${params.titleSingular.toLowerCase()}?`;
 	}
 	/**
 	 * @param {QuestionViewModel} viewModel
@@ -44,6 +57,7 @@ export default class CustomManageListQuestion extends ManageListQuestion {
 		viewModel.confirmRemoveButtonText = this.confirmRemoveButtonText;
 		viewModel.emptyListText = this.emptyListText;
 		viewModel.hideAddButton = this.maximumAnswers && viewModel.question.value.length >= this.maximumAnswers;
+		viewModel.removalPrompt = this.removalPrompt;
 	}
 
 	/**

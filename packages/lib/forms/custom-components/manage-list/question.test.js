@@ -73,6 +73,27 @@ describe('ManageApplicantsQuestion', () => {
 	};
 
 	describe('addCustomDataToViewModel', () => {
+		it('should set default remove button text and removal prompt using lowercased titleSingular', (context) => {
+			const { question, journey } = questionWithManageQuestions(context, { titleSingular: 'APPLICANT' }, 2);
+			const viewModel = question.prepQuestionForRendering({}, journey);
+			assert.strictEqual(viewModel?.confirmRemoveButtonText, 'Remove applicant');
+			assert.strictEqual(viewModel?.removalPrompt, 'Are you sure you want to remove this applicant?');
+		});
+
+		it('should use provided confirmRemoveButtonText and removalPrompt overrides', (context) => {
+			const { question, journey } = questionWithManageQuestions(
+				context,
+				{
+					confirmRemoveButtonText: 'Delete applicant',
+					removalPrompt: 'This will permanently delete the applicant. Continue?'
+				},
+				2
+			);
+			const viewModel = question.prepQuestionForRendering({}, journey);
+			assert.strictEqual(viewModel?.confirmRemoveButtonText, 'Delete applicant');
+			assert.strictEqual(viewModel?.removalPrompt, 'This will permanently delete the applicant. Continue?');
+		});
+
 		it('should hide the remove button if only one is added', (context) => {
 			const { question, journey } = questionWithManageQuestions(context, {}, 1);
 			const viewModel = question.prepQuestionForRendering({}, journey);

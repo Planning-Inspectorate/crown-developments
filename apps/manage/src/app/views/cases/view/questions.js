@@ -476,6 +476,8 @@ export function getQuestions(
 			fieldName: 'manageApplicantDetails',
 			titleSingular: 'Applicant',
 			emptyListText: 'No applicants found',
+			removalPrompt:
+				'Removing this organisation will also remove any linked contacts. You will not be able to undo this.',
 			showAnswersInSummary: true,
 			maximumAnswers: 5,
 			validators: [
