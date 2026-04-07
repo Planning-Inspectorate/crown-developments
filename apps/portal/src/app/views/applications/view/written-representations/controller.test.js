@@ -9,7 +9,9 @@ describe('written representations', () => {
 	const logger = mockLogger();
 
 	describe('buildWrittenRepresentationsPage', () => {
-		it('should render the view with representations', async () => {
+		it('should render the view with representations', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
+
 			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
 			const mockReq = {
 				params: {
@@ -88,7 +90,8 @@ describe('written representations', () => {
 			assert.strictEqual(viewData.resultsStartNumber, 1);
 			assert.strictEqual(viewData.resultsEndNumber, 1);
 		});
-		it('should show representation-level distressing tag when a representation has distressingContentInRepresentation true', async () => {
+		it('should show representation-level distressing tag when a representation has distressingContentInRepresentation true', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
 			const mockReq = {
 				params: {
@@ -142,7 +145,8 @@ describe('written representations', () => {
 			assert.strictEqual(viewData.representations[0].distressingContent, true);
 		});
 
-		it('should not show representation-level distressing tag when a representation has distressingContentInRepresentation false', async () => {
+		it('should not show representation-level distressing tag when a representation has distressingContentInRepresentation false', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
 			const mockReq = {
 				params: {
@@ -196,7 +200,8 @@ describe('written representations', () => {
 			assert.strictEqual(viewData.representations[0].distressingContent, false);
 		});
 
-		it('should show application-level distressing tag when application containsDistressingContent is true', async () => {
+		it('should show application-level distressing tag when application containsDistressingContent is true', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
 			const mockReq = {
 				params: {
@@ -249,7 +254,8 @@ describe('written representations', () => {
 			assert.strictEqual(viewData.representations.length, 1);
 		});
 
-		it('should not show application-level distressing tag when application containsDistressingContent is false', async () => {
+		it('should not show application-level distressing tag when application containsDistressingContent is false', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
 			const mockReq = {
 				params: {
@@ -301,7 +307,8 @@ describe('written representations', () => {
 			assert.strictEqual(viewData.containsDistressingContent, false);
 			assert.strictEqual(viewData.representations.length, 1);
 		});
-		it('should render the view with representation and read more link if the comment exceeds 500 chars', async () => {
+		it('should render the view with representation and read more link if the comment exceeds 500 chars', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
 			const mockReq = {
 				params: {
@@ -385,7 +392,8 @@ describe('written representations', () => {
 			assert.strictEqual(viewData.resultsStartNumber, 1);
 			assert.strictEqual(viewData.resultsEndNumber, 1);
 		});
-		it('should render the view with values provided in url query parameters', async () => {
+		it('should render the view with values provided in url query parameters', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const mockReq = {
 				params: {
 					applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8'
@@ -431,7 +439,8 @@ describe('written representations', () => {
 			assert.strictEqual(viewData.pageNumber, 4);
 		});
 
-		it('should render the view with values for pagination based on url params', async () => {
+		it('should render the view with values for pagination based on url params', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const mockReq = {
 				params: {
 					applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8'
@@ -478,7 +487,8 @@ describe('written representations', () => {
 			assert.strictEqual(viewData.resultsEndNumber, 200);
 		});
 
-		it('should render the view with values for pagination when total representations less than 25', async () => {
+		it('should render the view with values for pagination when total representations less than 25', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const mockReq = {
 				params: {
 					applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8'
@@ -521,7 +531,8 @@ describe('written representations', () => {
 			assert.strictEqual(viewData.resultsEndNumber, 17);
 		});
 
-		it('should wrap prisma errors if error on findMany query', async () => {
+		it('should wrap prisma errors if error on findMany query', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
 			const mockDb = {
 				crownDevelopment: {
@@ -562,7 +573,8 @@ describe('written representations', () => {
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 0);
 		});
 
-		it('should wrap prisma errors if error on count query', async () => {
+		it('should wrap prisma errors if error on count query', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
 			const mockDb = {
 				crownDevelopment: {
@@ -603,7 +615,8 @@ describe('written representations', () => {
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 0);
 		});
 
-		it('should throw error if totalRepresentations is null', async () => {
+		it('should throw error if totalRepresentations is null', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const mockReq = {
 				params: {
 					applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8'
@@ -632,7 +645,8 @@ describe('written representations', () => {
 			await assertRenders404Page(handler, mockReq, false);
 		});
 
-		it('should throw error if totalRepresentations is undefined', async () => {
+		it('should throw error if totalRepresentations is undefined', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const mockReq = {
 				params: {
 					applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8'
@@ -661,7 +675,8 @@ describe('written representations', () => {
 			await assertRenders404Page(handler, mockReq, false);
 		});
 
-		it('should throw error if totalRepresentations is NaN', async () => {
+		it('should throw error if totalRepresentations is NaN', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const mockReq = {
 				params: {
 					applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8'
@@ -752,7 +767,8 @@ describe('written representations', () => {
 			const writtenRepresentationsPage = buildWrittenRepresentationsListPage({ db: mockDb, config: {} });
 			await assertRenders404Page(writtenRepresentationsPage, mockReq, false);
 		});
-		it('should 404 if the application written representations are not published', async () => {
+		it('should 404 if the application written representations are not published', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const mockReq = { params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' } };
 			const mockDb = {
 				crownDevelopment: {
@@ -770,7 +786,8 @@ describe('written representations', () => {
 		});
 	});
 	describe('date filters in controller', () => {
-		it('should apply submittedDate when complete valid From/To date provided', async () => {
+		it('should apply submittedDate when complete valid From/To date provided', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
 			const mockReq = {
 				params: { applicationId },
@@ -816,7 +833,8 @@ describe('written representations', () => {
 			assert.strictEqual(viewData.errorSummary, null, 'errorSummary should be null for complete dates');
 			assert.ok(Array.isArray(viewData.dateErrors), 'dateErrors should be an array');
 		});
-		it('should build error summary entries when incomplete From date provided', async () => {
+		it('should build error summary entries when incomplete From date provided', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
 			const mockReq = {
 				params: { applicationId },
@@ -849,7 +867,8 @@ describe('written representations', () => {
 			assert.match(viewData.dateErrors[0].href, /submittedDateFrom-day/, 'error href should point to From day input');
 		});
 
-		it('should not apply submittedDate filter when all From parts are empty', async () => {
+		it('should not apply submittedDate filter when all From parts are empty', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
 			const mockReq = {
 				params: { applicationId },
@@ -879,7 +898,8 @@ describe('written representations', () => {
 			assert.strictEqual(!!args.where.submittedDate, false, 'submittedDate should not be present when all parts empty');
 		});
 
-		it('should apply date range filter and return only in-range representations', async () => {
+		it('should apply date range filter and return only in-range representations', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
 			const mockReq = {
 				params: { applicationId },
