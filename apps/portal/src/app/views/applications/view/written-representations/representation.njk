@@ -1,5 +1,13 @@
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
 {% macro renderRepresentation(representation) %}
     <p class="govuk-body govuk-!-font-weight-bold">
+        {% if representation.distressingContent %}
+            {{ govukTag({
+                text: "Content warning",
+                classes: "govuk-tag--red"
+            }) }}
+        {% endif %}
         <a href="written-representations/{{ representation.representationReference }}" class="govuk-link">
             {{ representation.representationTitle }}
         </a>

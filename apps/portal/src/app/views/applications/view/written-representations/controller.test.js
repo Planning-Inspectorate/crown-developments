@@ -41,6 +41,7 @@ describe('written representations', () => {
 							submittedForId: 'on-behalf-of',
 							representedTypeId: 'organisation',
 							containsAttachments: true,
+							distressingContentInRepresentation: false,
 							SubmittedFor: { displayName: 'John Doe' },
 							SubmittedByContact: { firstName: 'Jane', lastName: 'Smith' },
 							RepresentedContact: { firstName: 'Alice', lastName: 'Brown' },
@@ -87,6 +88,219 @@ describe('written representations', () => {
 			assert.strictEqual(viewData.resultsStartNumber, 1);
 			assert.strictEqual(viewData.resultsEndNumber, 1);
 		});
+		it('should show representation-level distressing tag when a representation has distressingContentInRepresentation true', async () => {
+			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
+			const mockReq = {
+				params: {
+					applicationId
+				},
+				originalUrl: `/applications/${applicationId}/written-representations`
+			};
+
+			const mockRes = { render: mock.fn(), status: mock.fn() };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: applicationId,
+						reference: 'CROWN/2025/0000001',
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active',
+						containsDistressingContent: false
+					}))
+				},
+				representation: {
+					findMany: mock.fn(() => [
+						{
+							reference: '4SNR8-ZS27T',
+							submittedDate: new Date('2025-01-15'),
+							comment: 'This is a test representation.',
+							commentRedacted: null,
+							submittedByAgentOrgName: 'Test Organization',
+							submittedForId: 'on-behalf-of',
+							representedTypeId: 'organisation',
+							containsAttachments: false,
+							distressingContentInRepresentation: true,
+							SubmittedFor: { displayName: 'John Doe' },
+							SubmittedByContact: { firstName: 'Jane', lastName: 'Smith' },
+							RepresentedContact: { firstName: 'Alice', lastName: 'Brown' },
+							Category: { displayName: 'General Representation' },
+							Attachments: []
+						}
+					]),
+					count: mock.fn(() => 1)
+				},
+				applicationUpdate: { findFirst: mock.fn(() => undefined), count: mock.fn(() => 0) }
+			};
+
+			const handler = buildWrittenRepresentationsListPage({ db: mockDb });
+			await handler(mockReq, mockRes);
+
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.representations.length, 1);
+			assert.strictEqual(viewData.representations[0].distressingContent, true);
+		});
+
+		it('should not show representation-level distressing tag when a representation has distressingContentInRepresentation false', async () => {
+			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
+			const mockReq = {
+				params: {
+					applicationId
+				},
+				originalUrl: `/applications/${applicationId}/written-representations`
+			};
+
+			const mockRes = { render: mock.fn(), status: mock.fn() };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: applicationId,
+						reference: 'CROWN/2025/0000001',
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active',
+						containsDistressingContent: false
+					}))
+				},
+				representation: {
+					findMany: mock.fn(() => [
+						{
+							reference: '4SNR8-ZS27T',
+							submittedDate: new Date('2025-01-15'),
+							comment: 'This is a test representation.',
+							commentRedacted: null,
+							submittedByAgentOrgName: 'Test Organization',
+							submittedForId: 'on-behalf-of',
+							representedTypeId: 'organisation',
+							containsAttachments: false,
+							distressingContentInRepresentation: false,
+							SubmittedFor: { displayName: 'John Doe' },
+							SubmittedByContact: { firstName: 'Jane', lastName: 'Smith' },
+							RepresentedContact: { firstName: 'Alice', lastName: 'Brown' },
+							Category: { displayName: 'General Representation' },
+							Attachments: []
+						}
+					]),
+					count: mock.fn(() => 1)
+				},
+				applicationUpdate: { findFirst: mock.fn(() => undefined), count: mock.fn(() => 0) }
+			};
+
+			const handler = buildWrittenRepresentationsListPage({ db: mockDb });
+			await handler(mockReq, mockRes);
+
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.representations.length, 1);
+			assert.strictEqual(viewData.representations[0].distressingContent, false);
+		});
+
+		it('should show application-level distressing tag when application containsDistressingContent is true', async () => {
+			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
+			const mockReq = {
+				params: {
+					applicationId
+				},
+				originalUrl: `/applications/${applicationId}/written-representations`
+			};
+			const mockRes = { render: mock.fn(), status: mock.fn() };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: applicationId,
+						reference: 'CROWN/2025/0000001',
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active',
+						containsDistressingContent: true
+					}))
+				},
+				representation: {
+					findMany: mock.fn(() => [
+						{
+							reference: '4SNR8-ZS27T',
+							submittedDate: new Date('2025-01-15'),
+							comment: 'This is a test representation.',
+							commentRedacted: null,
+							submittedByAgentOrgName: 'Test Organization',
+							submittedForId: 'on-behalf-of',
+							representedTypeId: 'organisation',
+							containsAttachments: false,
+							distressingContentInRepresentation: false,
+							SubmittedFor: { displayName: 'John Doe' },
+							SubmittedByContact: { firstName: 'Jane', lastName: 'Smith' },
+							RepresentedContact: { firstName: 'Alice', lastName: 'Brown' },
+							Category: { displayName: 'General Representation' },
+							Attachments: []
+						}
+					]),
+					count: mock.fn(() => 1)
+				},
+				applicationUpdate: { findFirst: mock.fn(() => undefined), count: mock.fn(() => 0) }
+			};
+
+			const handler = buildWrittenRepresentationsListPage({ db: mockDb });
+			await handler(mockReq, mockRes);
+
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.containsDistressingContent, true);
+			assert.strictEqual(viewData.representations.length, 1);
+		});
+
+		it('should not show application-level distressing tag when application containsDistressingContent is false', async () => {
+			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
+			const mockReq = {
+				params: {
+					applicationId
+				},
+				originalUrl: `/applications/${applicationId}/written-representations`
+			};
+			const mockRes = { render: mock.fn(), status: mock.fn() };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: applicationId,
+						reference: 'CROWN/2025/0000001',
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active',
+						containsDistressingContent: false
+					}))
+				},
+				representation: {
+					findMany: mock.fn(() => [
+						{
+							reference: '4SNR8-ZS27T',
+							submittedDate: new Date('2025-01-15'),
+							comment: 'This is a test representation.',
+							commentRedacted: null,
+							submittedByAgentOrgName: 'Test Organization',
+							submittedForId: 'on-behalf-of',
+							representedTypeId: 'organisation',
+							containsAttachments: false,
+							distressingContentInRepresentation: false,
+							SubmittedFor: { displayName: 'John Doe' },
+							SubmittedByContact: { firstName: 'Jane', lastName: 'Smith' },
+							RepresentedContact: { firstName: 'Alice', lastName: 'Brown' },
+							Category: { displayName: 'General Representation' },
+							Attachments: []
+						}
+					]),
+					count: mock.fn(() => 1)
+				},
+				applicationUpdate: { findFirst: mock.fn(() => undefined), count: mock.fn(() => 0) }
+			};
+
+			const handler = buildWrittenRepresentationsListPage({ db: mockDb });
+			await handler(mockReq, mockRes);
+
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.containsDistressingContent, false);
+			assert.strictEqual(viewData.representations.length, 1);
+		});
 		it('should render the view with representation and read more link if the comment exceeds 500 chars', async () => {
 			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
 			const mockReq = {
@@ -121,6 +335,7 @@ describe('written representations', () => {
 							submittedForId: 'on-behalf-of',
 							representedTypeId: 'organisation',
 							containsAttachments: true,
+							distressingContentInRepresentation: false,
 							SubmittedFor: { displayName: 'John Doe' },
 							SubmittedByContact: { firstName: 'Jane', lastName: 'Smith' },
 							RepresentedContact: { firstName: 'Alice', lastName: 'Brown' },
@@ -713,6 +928,7 @@ describe('written representations', () => {
 								submittedForId: '',
 								representedTypeId: '',
 								containsAttachments: false,
+								distressingContentInRepresentation: true,
 								SubmittedFor: { displayName: '' },
 								SubmittedByContact: { firstName: '', lastName: '' },
 								RepresentedContact: { orgName: '', firstName: '', lastName: '' },
