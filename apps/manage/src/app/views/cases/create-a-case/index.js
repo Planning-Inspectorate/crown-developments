@@ -13,6 +13,7 @@ import { JOURNEY_ID, createJourney, createJourneyV2 } from './journey.js';
 import { getQuestions } from './questions.js';
 import { buildSaveController, buildSuccessController } from './save.js';
 import { getSummaryWarningMessage } from '@pins/crowndev-lib/util/linked-case.js';
+import { removeApplicantContactsWhenOrganisationRemoved } from './session.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -21,8 +22,14 @@ import { getSummaryWarningMessage } from '@pins/crowndev-lib/util/linked-case.js
 export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
 
+	/**
+	 * @param {boolean} isQuestionView
+	 */
 	function makeGetJourneyCallback(isQuestionView) {
-		return (req, journeyResponse) => {
+		return (
+			/** @type {import('express').Request} */ req,
+			/** @type {import('@planning-inspectorate/dynamic-forms/src/journey/journey.js').JourneyResponse} */ journeyResponse
+		) => {
 			const questions = getQuestions(journeyResponse, isQuestionView);
 			return service.isMultipleApplicantsLive
 				? createJourneyV2(questions, journeyResponse, req)
@@ -52,6 +59,7 @@ export function createRoutes(service) {
 		getQuestionJourney,
 		validate,
 		validationErrorHandler,
+		removeApplicantContactsWhenOrganisationRemoved(),
 		buildSave(saveDataToSession)
 	);
 
