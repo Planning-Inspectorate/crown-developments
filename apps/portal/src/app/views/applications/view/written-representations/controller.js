@@ -169,6 +169,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 						submittedForId: true,
 						representedTypeId: true,
 						containsAttachments: true,
+						distressingContentInRepresentation: true,
 						SubmittedFor: { select: { displayName: true } },
 						SubmittedByContact: { select: { firstName: true, lastName: true } },
 						RepresentedContact: { select: { orgName: true, firstName: true, lastName: true } },
@@ -260,7 +261,8 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			hasQueries: hasQueries(req.query),
 			filterQueries: filterQueryItems,
 			errorSummary,
-			dateErrors
+			dateErrors,
+			containsDistressingContent: crownDevelopment.containsDistressingContent || false
 		});
 	};
 }
