@@ -69,17 +69,57 @@ export function buildDeleteManageListItemOnConfirmRemove(service) {
 	const deleteHandlersByFieldName = {
 		// Applicants: session item id is Organisation.id; remove relationship record for this case
 		manageApplicantDetails: async ({ req, id, manageListItemId }) => {
-			await db.crownDevelopmentToOrganisation.deleteMany({
-				where: { crownDevelopmentId: id, organisationId: manageListItemId }
+			// Fetch linked contacts up-front (we may attempt to clean them up later)
+			const contacts = await db.organisationToContact.findMany({
+				where: {
+					organisationId: manageListItemId,
+					Organisation: {
+						CrownDevelopmentToOrganisation: {
+							some: { crownDevelopmentId: id, role: ORGANISATION_ROLES_ID.APPLICANT }
+						}
+					}
+				},
+				select: { contactId: true }
 			});
+
 			try {
-				await db.organisation.delete({ where: { id: manageListItemId } });
+				await db.$transaction([
+					// 1) remove contact join rows for this organisation first (prevents foreign key failures)
+					db.organisationToContact.deleteMany({
+						where: {
+							organisationId: manageListItemId,
+							Organisation: {
+								CrownDevelopmentToOrganisation: {
+									some: { crownDevelopmentId: id, role: ORGANISATION_ROLES_ID.APPLICANT }
+								}
+							}
+						}
+					}),
+					// 2) remove relationship to this case
+					db.crownDevelopmentToOrganisation.deleteMany({
+						where: { crownDevelopmentId: id, organisationId: manageListItemId, role: ORGANISATION_ROLES_ID.APPLICANT }
+					}),
+					// 3) remove the organisation row (may still fail if referenced elsewhere)
+					db.organisation.delete({ where: { id: manageListItemId } })
+				]);
 				setBannerMessage(req, id, 'check-applicant-details');
 			} catch (error) {
 				logger.warn(
 					{ id, manageListItemId, err: error },
 					'Unable to delete Organisation record (may still be referenced)'
 				);
+			}
+
+			// Best-effort cleanup of contacts (only safe if contacts are not shared elsewhere)
+			const contactIds = contacts.map((c) => c.contactId);
+			if (contactIds.length) {
+				try {
+					await db.contact.deleteMany({
+						where: { id: { in: contactIds }, OrganisationToContact: { none: {} } }
+					});
+				} catch (error) {
+					logger.warn({ id, manageListItemId, err: error }, 'Unable to delete contact record linked to organisation.');
+				}
 			}
 		},
 		// Applicant contacts: session item id is Contact.id; remove join rows across the organisations for this case
