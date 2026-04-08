@@ -1,5 +1,7 @@
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
+import type { Handler, NextFunction, Request, Response } from 'express';
+import type { ManageService } from '#service';
 
 export const questionConfig = {
 	'check-agent-contact-details': {
@@ -16,20 +18,12 @@ export const questionConfig = {
 	}
 };
 
-/**
- * @param {string} questionUrl
- * @returns {string}
- */
-const buildSuccessBannerMessageKey = (questionUrl) => `${questionUrl}:item-removed-success`;
+const buildSuccessBannerMessageKey = (questionUrl: string) => `${questionUrl}:item-removed-success`;
 
 /**
  * Mark a banner message as present for a given question URL.
- *
- * @param {import('express').Request} req
- * @param {string} id
- * @param {string} questionUrl
  */
-const setBannerMessage = (req, id, questionUrl) => {
+const setBannerMessage = (req: Request, id: string, questionUrl: string) => {
 	addSessionData(req, id, { [buildSuccessBannerMessageKey(questionUrl)]: true }, 'bannerMessage');
 };
 
@@ -43,32 +37,31 @@ const questionsWithDeleteSuccessBanner = new Set(Object.keys(questionConfig));
  * on each request, so we also need to delete the item from the DB at confirm time.
  *
  * This middleware runs ahead of the normal dynamic-forms save-to-session handler.
- *
- * @param {import('#service').ManageService} service
- * @returns {import('express').Handler}
  */
-export function buildDeleteManageListItemOnConfirmRemove(service) {
+export function buildDeleteManageListItemOnConfirmRemove(service: ManageService): Handler {
 	const { db, logger } = service;
 	/**
 	 * dynamic-forms routes use the question URL segment (Question#url) not the Question#fieldName.
 	 * For delete handling we key off fieldName, so we need a small mapping.
-	 *
-	 * @type {Record<string, string>}
 	 */
-	const questionUrlToFieldName = Object.fromEntries(
+	const questionUrlToFieldName: Record<string, string> = Object.fromEntries(
 		Object.entries(questionConfig).map(([questionUrl, cfg]) => [questionUrl, cfg.fieldName])
 	);
 
-	/**
-	 * @typedef DeleteHandlerArgs
-	 * @property {import('express').Request} req
-	 * @property {string} id
-	 * @property {string} manageListItemId
-	 */
-	/** @type {Record<string, (args: DeleteHandlerArgs) => Promise<void>>} */
-	const deleteHandlersByFieldName = {
+	const deleteHandlersByFieldName: Record<
+		string,
+		(args: { req: Request; id: string; manageListItemId: string }) => Promise<void>
+	> = {
 		// Applicants: session item id is Organisation.id; remove relationship record for this case
-		manageApplicantDetails: async ({ req, id, manageListItemId }) => {
+		manageApplicantDetails: async ({
+			req,
+			id,
+			manageListItemId
+		}: {
+			req: Request;
+			id: string;
+			manageListItemId: string;
+		}) => {
 			await db.crownDevelopmentToOrganisation.deleteMany({
 				where: { crownDevelopmentId: id, organisationId: manageListItemId }
 			});
@@ -83,7 +76,15 @@ export function buildDeleteManageListItemOnConfirmRemove(service) {
 			}
 		},
 		// Applicant contacts: session item id is Contact.id; remove join rows across the organisations for this case
-		manageApplicantContactDetails: async ({ req, id, manageListItemId }) => {
+		manageApplicantContactDetails: async ({
+			req,
+			id,
+			manageListItemId
+		}: {
+			req: Request;
+			id: string;
+			manageListItemId: string;
+		}) => {
 			// 1) remove join rows for this case
 			await db.organisationToContact.deleteMany({
 				where: {
@@ -104,7 +105,15 @@ export function buildDeleteManageListItemOnConfirmRemove(service) {
 			}
 		},
 		// Agent contacts: session item id is Contact.id; remove join rows for the agent organisation on this case
-		manageAgentContactDetails: async ({ req, id, manageListItemId }) => {
+		manageAgentContactDetails: async ({
+			req,
+			id,
+			manageListItemId
+		}: {
+			req: Request;
+			id: string;
+			manageListItemId: string;
+		}) => {
 			await db.organisationToContact.deleteMany({
 				where: {
 					contactId: manageListItemId,
@@ -126,7 +135,7 @@ export function buildDeleteManageListItemOnConfirmRemove(service) {
 		}
 	};
 
-	return async (req, res, next) => {
+	return async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const { manageListAction, manageListItemId, manageListQuestion, question, id } = req.params;
 			if (
@@ -167,7 +176,6 @@ export function buildDeleteManageListItemOnConfirmRemove(service) {
 
 /**
  * Map question URL to success message
- * @type {Record<string, string>}
  */
 const questionUrlToSuccessMessage = Object.fromEntries(
 	Object.entries(questionConfig).map(([questionUrl, cfg]) => [questionUrl, cfg.successMessage])
@@ -175,13 +183,8 @@ const questionUrlToSuccessMessage = Object.fromEntries(
 
 /**
  * Middleware to add a success banner after confirming deletion of a manage-list item, where the deletion was successful.
- *
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
- * @returns {void}
  */
-export function addSuccessBannerFromMessage(req, res, next) {
+export function addSuccessBannerFromMessage(req: Request, res: Response, next: NextFunction) {
 	try {
 		const { question, id } = req.params;
 		// Bail if no question
