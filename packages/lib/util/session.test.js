@@ -37,6 +37,11 @@ describe('session', () => {
 			const data = readSessionData(req, 'id2', 'data', 'default');
 			assert.deepStrictEqual(data, 'default');
 		});
+		it('should preserve intentional false values', () => {
+			const req = { session: { cases: { id: { data: false } } } };
+			const data = readSessionData(req, 'id', 'data', 'default');
+			assert.deepStrictEqual(data, false);
+		});
 	});
 	describe('clearSessionData', () => {
 		it('should return if no session', () => {
