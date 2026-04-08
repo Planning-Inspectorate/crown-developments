@@ -14,6 +14,7 @@ import {
 	saveDataToSession
 } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { JOURNEY_ID } from './journey.js';
+import { buildDeleteManageListItemOnConfirmRemove, addSuccessBannerFromMessage } from './delete.js';
 
 /**
  * @param {import('#service').ManageService} service
@@ -33,6 +34,7 @@ export function createRoutes(service) {
 	const unpublishCase = createCaseUnpublishRoutes(service);
 	const applicationUpdates = createApplicationUpdatesRoutes(service);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
+	const deleteManageListItemOnConfirmRemove = asyncHandler(buildDeleteManageListItemOnConfirmRemove(service));
 
 	// view case details
 	router.get('/', validateIdFormat, getViewJourney, asyncHandler(viewCaseDetails));
@@ -51,6 +53,7 @@ export function createRoutes(service) {
 		validateIdFormat,
 		getJourneyResponse,
 		getQuestionJourney,
+		addSuccessBannerFromMessage,
 		asyncHandler(question)
 	);
 
@@ -71,6 +74,7 @@ export function createRoutes(service) {
 		getQuestionJourney,
 		validate,
 		validationErrorHandler,
+		deleteManageListItemOnConfirmRemove,
 		buildSave(saveDataToSession)
 	);
 
