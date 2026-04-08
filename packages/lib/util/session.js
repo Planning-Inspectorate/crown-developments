@@ -1,5 +1,7 @@
 import session from 'express-session';
 
+//TODO improve req type in these functions CROWN-1576
+
 /**
  *
  * @param {object} options
@@ -61,7 +63,7 @@ export function readSessionData(req, id, field, defaultValue, sessionField = 'ca
 		return false;
 	}
 	const fieldProps = (req.session[sessionField] && req.session[sessionField][id]) || {};
-	return fieldProps[field] || defaultValue;
+	return fieldProps[field] ?? defaultValue;
 }
 
 /**
@@ -73,17 +75,18 @@ export function readSessionData(req, id, field, defaultValue, sessionField = 'ca
  * @param {string} [sessionField]
  */
 export function clearSessionData(req, id, fieldOrFields, sessionField = 'cases') {
-	if (!req.session) {
+	const session = req.session;
+	if (!session) {
 		return; // no need to error here
 	}
 	if (fieldOrFields instanceof Array) {
 		fieldOrFields.forEach((field) => {
-			const fieldProps = (req.session[sessionField] && req.session[sessionField][id]) || {};
+			const fieldProps = (session[sessionField] && session[sessionField][id]) || {};
 			delete fieldProps[field];
 		});
 		return;
 	}
 
-	const fieldProps = (req.session[sessionField] && req.session[sessionField][id]) || {};
+	const fieldProps = (session[sessionField] && session[sessionField][id]) || {};
 	delete fieldProps[fieldOrFields];
 }
