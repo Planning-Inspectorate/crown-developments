@@ -1,28 +1,34 @@
 {% extends layoutTemplate %}
-
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
 {% block dynQuestionContent %}
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            <form action="" method="post" novalidate>
-                {% if _csrf %}<input type="hidden" name="_csrf" value="{{ _csrf }}">{% endif %}
-                <h1 class="govuk-heading-l">Remove {{ titleSingular | lower }}</h1>
-                <p class="govuk-body" id="remove-description">Are you sure you want to remove this {{ titleSingular | lower }}?</p>
+<div class="govuk-grid-row">
+	<div class="govuk-grid-column-two-thirds">
+		<form action="" method="post" novalidate>
+			{% if _csrf %}<input type="hidden" name="_csrf" value="{{ _csrf }}">{% endif %}
+			<h1 class="govuk-heading-l">Remove {{ titleSingular | lower }}</h1>
+			<p class="govuk-body" id="remove-description">{{ removalPrompt }}</p>
 
-                <div class="govuk-inset-text">
-                    {% for item in questionSummary %}
-                        <p class="govuk-body">{{ item.answer | safe }}</p>
-                    {% endfor %}
-                </div>
-                {{ govukButton({
-                    text: confirmRemoveButtonText,
-                    type: "submit",
-                    classes: "govuk-button--warning",
-                    attributes: { "data-cy":"button-save-and-continue"}
-                }) }}
-                <a href="{{ backLink }}" class="govuk-button govuk-button--secondary" data-cy="button-back" aria-describedby="remove-description">Cancel</a>
-            </form>
-        </div>
-    </div>
+			<div class="govuk-inset-text">
+				{% for item in questionSummary %}
+					<p class="govuk-body">{{ item.answer | safe }}</p>
+				{% endfor %}
+			</div>
+			{{
+				govukButton({
+				text: confirmRemoveButtonText,
+				type: "submit",
+				classes: "govuk-button--warning",
+				attributes: { "data-cy":"button-save-and-continue"}
+				})
+			}}
+			<a
+				href="{{ backLink }}"
+				class="govuk-button govuk-button--secondary"
+				data-cy="button-back"
+				aria-describedby="remove-description"
+			>Cancel</a>
+		</form>
+	</div>
+</div>
 {% endblock %}
