@@ -11,6 +11,8 @@ import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-stati
 import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
 import { extractApplicantContactFields, extractAgentContactFields } from '../util/contact.js';
 
+import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+
 /**
  * @template T
  * @typedef {import('@prisma/client/runtime/client').PrismaPromise<T>} PrismaPromise
@@ -118,6 +120,123 @@ function updateAgentContacts(dbViewModel, toSave, db) {
 }
 
 /**
+ * For linked-case updates, avoid creating duplicate Organisations by creating any new applicant Organisations once
+ * and then linking them to each case via the join table.
+ * If there are new organisations to add, it will perform that in this function and then return the link operations in
+ *
+ * @param {import('./types.js').CrownDevelopmentViewModel} toSave
+ * @param {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput} updateInput
+ * @param {Array<string>} updates
+ * @param {import('#service').ManageService['db']} db
+ * @returns {Promise<{ updateInput: import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput, linkOperations: PrismaPromise<unknown>[] }>}
+ */
+async function applySharedApplicantOrganisationCreates(toSave, updateInput, updates, db) {
+	// Bail if no linked cases
+	if (updates.length < 2) {
+		return { updateInput, linkOperations: [] };
+	}
+	// Bail if no change in applicant orgs being saved
+	if (!Array.isArray(toSave.manageApplicantDetails) || toSave.manageApplicantDetails.length === 0) {
+		return { updateInput, linkOperations: [] };
+	}
+	// Bail if no Organisations field in the updateInput (shouldn't be possible if there are applicant org changes, but just in case)
+	if (!updateInput?.Organisations || typeof updateInput.Organisations !== 'object') {
+		return { updateInput, linkOperations: [] };
+	}
+	// Bail if applicant orgs not being created
+	if (!('create' in updateInput.Organisations) || !Array.isArray(updateInput.Organisations.create)) {
+		return { updateInput, linkOperations: [] };
+	}
+
+	// Identify the *new* applicant org creates coming from the nested write input.
+	// We only want to create these once, then connect them to all linked cases.
+	const createOps = /** @type {any[]} */ (updateInput.Organisations.create);
+	/** @type {import('@pins/crowndev-database').Prisma.CrownDevelopmentToOrganisationCreateWithoutCrownDevelopmentInput[]} */
+	const newApplicantOrgCreates = createOps.filter((createOp) => {
+		if (!createOp || typeof createOp !== 'object') return false;
+		if (createOp?.Role?.connect?.id !== ORGANISATION_ROLES_ID.APPLICANT) return false;
+		const org = createOp?.Organisation;
+		if (!org || typeof org !== 'object') return false;
+		return 'create' in org;
+	});
+
+	if (newApplicantOrgCreates.length === 0) {
+		return { updateInput, linkOperations: [] };
+	}
+
+	// Leader case: the first id in `updates` (always the current case id) will do the nested creates.
+	// Other linked cases will just connect to the created Organisations.
+	const [leaderCaseId, ...otherCaseIds] = updates;
+
+	/** @type {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput} */
+	const nextUpdateInput = { ...updateInput };
+	delete nextUpdateInput.Organisations;
+
+	// NOTE: Prisma nested create does not let us return *only* the newly created related rows.
+	// Selecting applicant Organisations after the update returns *all* applicant orgs linked to the case.
+	// To reliably link only the newly created Organisations, we explicitly create them and then link them.
+	const createInputs = newApplicantOrgCreates
+		.map((createOp) => createOp?.Organisation?.create)
+		.filter((v) => v && typeof v === 'object');
+
+	if (createInputs.length === 0) {
+		return { updateInput: nextUpdateInput, linkOperations: [] };
+	}
+
+	/** @type {Array<string>} */
+	const createdOrgIds = [];
+	for (const orgCreate of createInputs) {
+		const createdOrg = await db.organisation.create({
+			data: orgCreate,
+			select: { id: true }
+		});
+		createdOrgIds.push(createdOrg.id);
+	}
+
+	if (createdOrgIds.length === 0) {
+		return { updateInput: nextUpdateInput, linkOperations: [] };
+	}
+
+	const leaderLinkOperations = createdOrgIds.map((orgId) =>
+		db.crownDevelopment.update({
+			where: { id: leaderCaseId },
+			data: {
+				Organisations: {
+					create: [
+						{
+							Role: { connect: { id: ORGANISATION_ROLES_ID.APPLICANT } },
+							Organisation: { connect: { id: orgId } }
+						}
+					]
+				}
+			}
+		})
+	);
+
+	const linkOperations = leaderLinkOperations.concat(
+		otherCaseIds.flatMap((caseId) =>
+			createdOrgIds.map((orgId) =>
+				db.crownDevelopment.update({
+					where: { id: caseId },
+					data: {
+						Organisations: {
+							create: [
+								{
+									Role: { connect: { id: ORGANISATION_ROLES_ID.APPLICANT } },
+									Organisation: { connect: { id: orgId } }
+								}
+							]
+						}
+					}
+				})
+			)
+		)
+	);
+
+	return { updateInput: nextUpdateInput, linkOperations };
+}
+
+/**
  * @param {import('#service').ManageService} service
  * @param {boolean} [clearAnswer=false] - whether to clear the answer before saving
  * @returns {import('@planning-inspectorate/dynamic-forms/src/controller.js').SaveDataFn}
@@ -186,7 +305,7 @@ export function buildUpdateCase(service, clearAnswer = false) {
 				}
 			}
 
-			const updateInput = editsToDatabaseUpdates(toSave, viewModelForUpdates);
+			let updateInput = editsToDatabaseUpdates(toSave, viewModelForUpdates);
 			updateInput.updatedDate = new Date();
 
 			const updates = [id];
@@ -206,6 +325,9 @@ export function buildUpdateCase(service, clearAnswer = false) {
 			transactionOperations.push(...updateApplicantContacts(dbViewModel, toSave, db));
 			transactionOperations.push(...updateAgentContacts(dbViewModel, toSave, db));
 
+			const sharedApplicantOrgs = await applySharedApplicantOrganisationCreates(toSave, updateInput, updates, db);
+			updateInput = sharedApplicantOrgs.updateInput;
+			transactionOperations.push(...sharedApplicantOrgs.linkOperations);
 			// CrownDevelopment updates (including join-table moves & new contacts)
 			transactionOperations.push(
 				...updates.map((caseId) =>
