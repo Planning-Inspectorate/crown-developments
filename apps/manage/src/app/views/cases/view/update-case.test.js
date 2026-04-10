@@ -162,6 +162,118 @@ describe('case details', () => {
 			await updateCase({ req: mockReq, res: mockRes, data });
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
 		});
+
+		it('should create new applicant organisation once and link it to both cases when updating linked cases', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				organisation: {
+					create: mock.fn(() => ({ id: 'org-shared-1' }))
+				},
+				contact: {
+					update: mock.fn()
+				},
+				crownDevelopment: {
+					update: mock.fn(({ where, data }) => ({ where, data })),
+					findUnique: mock.fn(() => ({
+						linkedParentId: 'linked-case-id-1',
+						ChildrenCrownDevelopment: [],
+						Organisations: []
+					}))
+				}
+			};
+
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = { locals: {} };
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					manageApplicantDetails: [
+						{
+							organisationName: 'New Applicant Org',
+							organisationAddress: {}
+						}
+					]
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			// Organisation should be created once (explicit create) then linked to both cases via connect in join table
+			assert.strictEqual(mockDb.organisation.create.mock.callCount(), 1);
+			const orgCreateArg = mockDb.organisation.create.mock.calls[0].arguments[0];
+			assert.strictEqual(orgCreateArg.data?.name, 'New Applicant Org');
+
+			// All writes are submitted via a single transaction
+			assert.strictEqual(mockDb.$transaction.mock.callCount(), 1);
+			const ops = mockDb.$transaction.mock.calls[0].arguments[0];
+			assert.ok(Array.isArray(ops));
+
+			const updateCalls = mockDb.crownDevelopment.update.mock.calls.map((c) => c.arguments[0]);
+			// Two link operations: leader case + linked parent case
+			const connectCalls = updateCalls.filter((arg) => arg.data?.Organisations?.create?.[0]?.Organisation?.connect);
+			assert.strictEqual(connectCalls.length, 2);
+			assert.deepStrictEqual(connectCalls.map((c) => c.where.id).sort(), ['case1', 'linked-case-id-1'].sort());
+			connectCalls.forEach((call) => {
+				assert.deepStrictEqual(call.data.Organisations.create[0].Organisation, {
+					connect: { id: 'org-shared-1' }
+				});
+			});
+		});
+
+		it('should create a new applicant organisation via nested write when updating a single case', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				organisation: {
+					create: mock.fn(() => ({ id: 'org-should-not-be-created-here' }))
+				},
+				contact: {
+					update: mock.fn()
+				},
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({
+						linkedParentId: null,
+						ChildrenCrownDevelopment: [],
+						Organisations: []
+					}))
+				}
+			};
+
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = { locals: {} };
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					manageApplicantDetails: [
+						{
+							organisationName: 'Single Case Applicant Org',
+							organisationAddress: {}
+						}
+					]
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			assert.strictEqual(mockDb.organisation.create.mock.callCount(), 0);
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+			const updateArg = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
+			assert.strictEqual(updateArg.where?.id, 'case1');
+			assert.ok(updateArg.data?.Organisations?.create);
+			assert.strictEqual(updateArg.data.Organisations.create.length, 1);
+			assert.ok(updateArg.data.Organisations.create[0].Organisation?.create);
+			assert.strictEqual(updateArg.data.Organisations.create[0].Organisation.create.name, 'Single Case Applicant Org');
+		});
 		it('should fetch case data from the journey for relation IDs', async () => {
 			const logger = mockLogger();
 			const mockDb = {
