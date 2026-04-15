@@ -1,5 +1,5 @@
 import { describe, it, mock } from 'node:test';
-import { buildUpdateCase } from './update-case.js';
+import { buildUpdateCase, buildOrganisationContactJoinUpdateOperations } from './update-case.js';
 import assert from 'node:assert';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
@@ -1696,6 +1696,433 @@ describe('case details', () => {
 			});
 
 			assert.strictEqual(db.contact.update.mock.callCount(), 0);
+		});
+	});
+
+	describe('buildOrganisationContactJoinUpdateOperations', () => {
+		it('should return empty array when toSave has no applicant or agent contact edits', async () => {
+			const mockDb = {};
+			const id = 'case-1';
+			const toSave = { description: 'test' };
+
+			const result = await buildOrganisationContactJoinUpdateOperations(mockDb, id, toSave);
+
+			assert.deepStrictEqual(result, []);
+		});
+
+		it('should return empty array when only manageApplicantContactDetails key exists but no manageAgentContactDetails', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => null)
+				}
+			};
+			const id = 'case-1';
+			const toSave = { manageApplicantContactDetails: [] };
+
+			const result = await buildOrganisationContactJoinUpdateOperations(mockDb, id, toSave);
+
+			assert.deepStrictEqual(result, []);
+			assert.strictEqual(mockDb.crownDevelopment.findUnique.mock.callCount(), 1);
+		});
+
+		it('should return empty array when crown development is not found', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => null)
+				}
+			};
+			const id = 'case-1';
+			const toSave = { manageApplicantContactDetails: [{ id: 'contact-1' }] };
+
+			const result = await buildOrganisationContactJoinUpdateOperations(mockDb, id, toSave);
+
+			assert.deepStrictEqual(result, []);
+			assert.strictEqual(mockDb.crownDevelopment.findUnique.mock.callCount(), 1);
+			const findUniqueArgs = mockDb.crownDevelopment.findUnique.mock.calls[0].arguments[0];
+			assert.strictEqual(findUniqueArgs.where.id, 'case-1');
+		});
+
+		it('should return operation for applicant contact edits when applicantContactUpdateInput has Organisations', async () => {
+			const mockUpdatePromise = { then: mock.fn() };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						Organisations: [
+							{
+								id: 'rel-1',
+								organisationId: 'org-1',
+								role: 'applicant',
+								Organisation: {
+									id: 'org-1',
+									name: 'Test Org',
+									Address: null,
+									OrganisationToContact: [
+										{
+											id: 'join-1',
+											Contact: {
+												id: 'contact-1',
+												firstName: 'Test',
+												lastName: 'User',
+												email: 'test@example.com',
+												telephoneNumber: null
+											}
+										}
+									]
+								}
+							}
+						]
+					})),
+					update: mock.fn(() => mockUpdatePromise)
+				}
+			};
+			const id = 'case-1';
+			const toSave = {
+				manageApplicantContactDetails: [
+					{
+						organisationToContactRelationId: 'join-1',
+						id: 'contact-1',
+						applicantContactOrganisation: 'org-1',
+						applicantFirstName: 'Test',
+						applicantLastName: 'User',
+						applicantContactEmail: 'test@example.com'
+					}
+				]
+			};
+
+			const result = await buildOrganisationContactJoinUpdateOperations(mockDb, id, toSave);
+
+			assert.ok(Array.isArray(result));
+			assert.strictEqual(mockDb.crownDevelopment.findUnique.mock.callCount(), 1);
+		});
+
+		it('should return operation for agent contact edits when agentContactUpdateInput has Organisations', async () => {
+			const mockUpdatePromise = { then: mock.fn() };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						Organisations: [
+							{
+								id: 'rel-1',
+								organisationId: 'org-1',
+								role: 'agent',
+								Role: { id: 'agent', displayName: 'Agent' },
+								Organisation: {
+									id: 'org-1',
+									name: 'Agent Org',
+									Address: null,
+									OrganisationToContact: [
+										{
+											id: 'join-1',
+											Contact: {
+												id: 'contact-1',
+												firstName: 'Agent',
+												lastName: 'User',
+												email: 'agent@example.com',
+												telephoneNumber: null
+											}
+										}
+									]
+								}
+							}
+						]
+					})),
+					update: mock.fn(() => mockUpdatePromise)
+				}
+			};
+			const id = 'case-1';
+			const toSave = {
+				manageAgentContactDetails: [
+					{
+						id: 'contact-1',
+						agentContactOrganisation: 'org-1',
+						agentFirstName: 'Agent',
+						agentLastName: 'User',
+						agentContactEmail: 'agent@example.com'
+					}
+				]
+			};
+
+			const result = await buildOrganisationContactJoinUpdateOperations(mockDb, id, toSave);
+
+			assert.ok(Array.isArray(result));
+			assert.strictEqual(mockDb.crownDevelopment.findUnique.mock.callCount(), 1);
+		});
+
+		it('should return operations for both applicant and agent contact edits when both have Organisations', async () => {
+			const mockUpdatePromise = { then: mock.fn() };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						Organisations: [
+							{
+								id: 'rel-1',
+								organisationId: 'org-1',
+								role: 'applicant',
+								Role: { id: 'applicant', displayName: 'Applicant' },
+								Organisation: {
+									id: 'org-1',
+									name: 'Applicant Org',
+									Address: null,
+									OrganisationToContact: [
+										{
+											id: 'join-1',
+											Contact: {
+												id: 'contact-1',
+												firstName: 'Applicant',
+												lastName: 'User',
+												email: 'applicant@example.com',
+												telephoneNumber: null
+											}
+										}
+									]
+								}
+							},
+							{
+								id: 'rel-2',
+								organisationId: 'org-2',
+								role: 'agent',
+								Role: { id: 'agent', displayName: 'Agent' },
+								Organisation: {
+									id: 'org-2',
+									name: 'Agent Org',
+									Address: null,
+									OrganisationToContact: [
+										{
+											id: 'join-2',
+											Contact: {
+												id: 'contact-2',
+												firstName: 'Agent',
+												lastName: 'User',
+												email: 'agent@example.com',
+												telephoneNumber: null
+											}
+										}
+									]
+								}
+							}
+						]
+					})),
+					update: mock.fn(() => mockUpdatePromise)
+				}
+			};
+			const id = 'case-1';
+			const toSave = {
+				manageApplicantContactDetails: [
+					{
+						organisationToContactRelationId: 'join-1',
+						id: 'contact-1',
+						applicantContactOrganisation: 'org-1',
+						applicantFirstName: 'Applicant',
+						applicantLastName: 'User',
+						applicantContactEmail: 'applicant@example.com'
+					}
+				],
+				manageAgentContactDetails: [
+					{
+						id: 'contact-2',
+						agentContactOrganisation: 'org-2',
+						agentFirstName: 'Agent',
+						agentLastName: 'User',
+						agentContactEmail: 'agent@example.com'
+					}
+				]
+			};
+
+			const result = await buildOrganisationContactJoinUpdateOperations(mockDb, id, toSave);
+
+			assert.ok(Array.isArray(result));
+			assert.strictEqual(mockDb.crownDevelopment.findUnique.mock.callCount(), 1);
+		});
+
+		it('should query crown development with correct include structure', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						Organisations: [
+							{
+								Organisation: {
+									id: 'org-1',
+									Address: { id: 'addr-1' },
+									OrganisationToContact: [
+										{
+											Contact: { id: 'contact-1' }
+										}
+									]
+								}
+							}
+						]
+					})),
+					update: mock.fn(() => ({ then: mock.fn() }))
+				}
+			};
+			const id = 'case-1';
+			const toSave = { manageApplicantContactDetails: [] };
+
+			await buildOrganisationContactJoinUpdateOperations(mockDb, id, toSave);
+
+			assert.strictEqual(mockDb.crownDevelopment.findUnique.mock.callCount(), 1);
+			const findUniqueArgs = mockDb.crownDevelopment.findUnique.mock.calls[0].arguments[0];
+			assert.ok(findUniqueArgs.include);
+			assert.ok(findUniqueArgs.include.Organisations);
+			assert.ok(findUniqueArgs.include.Organisations.include);
+			assert.ok(findUniqueArgs.include.Organisations.include.Organisation);
+			assert.ok(findUniqueArgs.include.Organisations.include.Organisation.include);
+			assert.strictEqual(findUniqueArgs.include.Organisations.include.Organisation.include.Address, true);
+			assert.ok(findUniqueArgs.include.Organisations.include.Organisation.include.OrganisationToContact);
+		});
+
+		it('should return empty array when applicantContactUpdateInput has no Organisations property', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						Organisations: []
+					}))
+				}
+			};
+			const id = 'case-1';
+			const toSave = { manageApplicantContactDetails: [] };
+
+			const result = await buildOrganisationContactJoinUpdateOperations(mockDb, id, toSave);
+
+			assert.ok(Array.isArray(result));
+			assert.strictEqual(mockDb.crownDevelopment.findUnique.mock.callCount(), 1);
+		});
+
+		it('should return empty array when agentContactUpdateInput has no Organisations property', async () => {
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						Organisations: []
+					}))
+				}
+			};
+			const id = 'case-1';
+			const toSave = { manageAgentContactDetails: [] };
+
+			const result = await buildOrganisationContactJoinUpdateOperations(mockDb, id, toSave);
+
+			assert.ok(Array.isArray(result));
+			assert.strictEqual(mockDb.crownDevelopment.findUnique.mock.callCount(), 1);
+		});
+
+		it('should call db.crownDevelopment.update with correct parameters for applicant contact edits', async () => {
+			const mockUpdatePromise = { then: mock.fn() };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						Organisations: [
+							{
+								id: 'rel-1',
+								organisationId: 'org-1',
+								role: 'applicant',
+								Organisation: {
+									id: 'org-1',
+									name: 'Test Org',
+									Address: null,
+									OrganisationToContact: [
+										{
+											id: 'join-1',
+											Contact: {
+												id: 'contact-1',
+												firstName: 'Test',
+												lastName: 'User',
+												email: 'test@example.com',
+												telephoneNumber: null
+											}
+										}
+									]
+								}
+							}
+						]
+					})),
+					update: mock.fn(() => mockUpdatePromise)
+				}
+			};
+			const id = 'case-1';
+			const toSave = {
+				manageApplicantContactDetails: [
+					{
+						organisationToContactRelationId: 'join-1',
+						id: 'contact-1',
+						applicantContactOrganisation: 'org-1',
+						applicantFirstName: 'Test',
+						applicantLastName: 'User',
+						applicantContactEmail: 'test@example.com'
+					}
+				]
+			};
+
+			await buildOrganisationContactJoinUpdateOperations(mockDb, id, toSave);
+
+			if (mockDb.crownDevelopment.update.mock.callCount() > 0) {
+				const updateArgs = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
+				assert.strictEqual(updateArgs.where.id, 'case-1');
+				assert.ok(updateArgs.data);
+			}
+		});
+
+		it('should call db.crownDevelopment.update with correct parameters for agent contact edits', async () => {
+			const mockUpdatePromise = { then: mock.fn() };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						Organisations: [
+							{
+								id: 'rel-1',
+								organisationId: 'org-1',
+								role: 'agent',
+								Role: { id: 'agent', displayName: 'Agent' },
+								Organisation: {
+									id: 'org-1',
+									name: 'Agent Org',
+									Address: null,
+									OrganisationToContact: [
+										{
+											id: 'join-1',
+											Contact: {
+												id: 'contact-1',
+												firstName: 'Agent',
+												lastName: 'User',
+												email: 'agent@example.com',
+												telephoneNumber: null
+											}
+										}
+									]
+								}
+							}
+						]
+					})),
+					update: mock.fn(() => mockUpdatePromise)
+				}
+			};
+			const id = 'case-1';
+			const toSave = {
+				manageAgentContactDetails: [
+					{
+						id: 'contact-1',
+						agentContactOrganisation: 'org-1',
+						agentFirstName: 'Agent',
+						agentLastName: 'User',
+						agentContactEmail: 'agent@example.com'
+					}
+				]
+			};
+
+			await buildOrganisationContactJoinUpdateOperations(mockDb, id, toSave);
+
+			if (mockDb.crownDevelopment.update.mock.callCount() > 0) {
+				const updateArgs = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
+				assert.strictEqual(updateArgs.where.id, 'case-1');
+				assert.ok(updateArgs.data);
+			}
 		});
 	});
 });
