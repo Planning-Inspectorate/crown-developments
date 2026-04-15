@@ -1997,5 +1997,52 @@ describe('view-model', () => {
 			const updates = editsToDatabaseUpdates(toSave, viewModel);
 			assert.strictEqual(updates.Organisations, undefined);
 		});
+		it('should skip updates for an organisation relation that is not present on the view-model', () => {
+			const toSave = {
+				manageApplicantContactDetails: [
+					{
+						applicantContactOrganisation: 'org-2',
+						applicantFirstName: 'New',
+						applicantLastName: 'Contact'
+					}
+				]
+			};
+			const viewModel = {
+				manageApplicantDetails: [
+					{ id: 'org-1', organisationRelationId: 'rel-1' }
+					// org-2's relation is missing from view-model but targetOrganisationId matches its ID
+				]
+			};
+
+			assert.throws(
+				() => editsToDatabaseUpdates(toSave, viewModel),
+				/Found an orphaned contact with selector "org-2" that does not match any organisation on this case/
+			);
+		});
+
+		it('should skip updates for an organisation relation that is not present in manageApplicantDetails', () => {
+			const toSave = {
+				manageApplicantContactDetails: [
+					{
+						// A contact that looks like it belongs to org-1
+						applicantContactOrganisation: 'org-1',
+						applicantFirstName: 'New',
+						applicantLastName: 'Contact'
+					}
+				]
+			};
+			// Even though orgIdToRelationId will find 'rel-1',
+			// the ensureBucket logic will try to update it.
+			// But we then filter by existsOnCase.
+			const viewModel = {
+				manageApplicantDetails: [] // Nothing on case
+			};
+
+			// This will throw at the targetRelationId check first in the current implementation
+			assert.throws(
+				() => editsToDatabaseUpdates(toSave, viewModel),
+				/Found an orphaned contact with selector "org-1" that does not match any organisation on this case/
+			);
+		});
 	});
 });
