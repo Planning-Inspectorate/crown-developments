@@ -224,7 +224,7 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 /**
  * Answers/edits are received in 'view-model' form, and are mapped here to the appropriate database input.
  *
- * @param {import('./types.js').CrownDevelopmentViewModel} edits - edited fields only
+ * @param {Partial<import('./types.js').CrownDevelopmentViewModel>} edits - edited fields only
  * @param {import('./types.js').CrownDevelopmentViewModel} viewModel - full view model with all case details
  * @returns {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput}
  */
@@ -839,23 +839,33 @@ function buildApplicantContactOrganisationUpdates(edits, viewModel) {
 		});
 	}
 
-	const updateOperations = Array.from(byRelation.entries()).map(([relationId, operations]) => {
-		/** @type {any} */
-		const organisationToContact = {};
-		if (operations.create.length) organisationToContact.create = operations.create;
-		if (operations.deleteMany.length) organisationToContact.deleteMany = operations.deleteMany;
+	const updateOperations = Array.from(byRelation.entries())
+		.map(([relationId, operations]) => {
+			/** @type {any} */
+			const organisationToContact = {};
+			if (operations.create.length) organisationToContact.create = operations.create;
+			if (operations.deleteMany.length) organisationToContact.deleteMany = operations.deleteMany;
 
-		return {
-			where: { id: relationId },
-			data: {
-				Organisation: {
-					update: {
-						OrganisationToContact: organisationToContact
+			// Ensure the join-row id belongs to this case
+			const existsOnCase = (viewModel.manageApplicantDetails || []).some(
+				(o) => o?.organisationRelationId === relationId
+			);
+			if (!existsOnCase) {
+				return;
+			}
+
+			return {
+				where: { id: relationId },
+				data: {
+					Organisation: {
+						update: {
+							OrganisationToContact: organisationToContact
+						}
 					}
 				}
-			}
-		};
-	});
+			};
+		})
+		.filter(isDefined);
 
 	return { update: updateOperations };
 }

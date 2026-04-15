@@ -237,6 +237,107 @@ async function applySharedApplicantOrganisationCreates(toSave, updateInput, upda
 }
 
 /**
+ * If the save payload contains contact-edit answers that create nested writes under `Organisations`,
+ * we intentionally strip *all* `updateInput.Organisations` from the shared update payload.
+ *
+ * Those contact-join updates target case-specific join-row ids and cannot be safely applied to
+ * linked cases using the same nested-write object.
+ *
+ * NOTE: this is intentionally broad in this codebase (other edit sections are not present in one save).
+ *
+ * @param {import('./types.js').CrownDevelopmentViewModel} toSave
+ * @param {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput} updateInput
+ * @returns {{ sharedUpdateInput: import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput, hasOrganisationContactEdits: boolean }}
+ */
+function splitSharedUpdateFromOrganisationContactEdits(toSave, updateInput) {
+	const hasApplicantContactEdits = Object.hasOwn(toSave, 'manageApplicantContactDetails');
+	const hasAgentContactEdits = Object.hasOwn(toSave, 'manageAgentContactDetails');
+	const hasOrganisationContactEdits = hasApplicantContactEdits || hasAgentContactEdits;
+
+	if (!hasOrganisationContactEdits) {
+		return { sharedUpdateInput: updateInput, hasOrganisationContactEdits: false };
+	}
+
+	/** @type {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput} */
+	const sharedUpdateInput = { ...updateInput };
+	delete sharedUpdateInput.Organisations;
+	return { sharedUpdateInput, hasOrganisationContactEdits: true };
+}
+
+/**
+ * Build current-case-only nested writes for Organisation contact join updates.
+ *
+ * These are built against a fresh DB view model for the *current case* so relation ids are correct.
+ *
+ * @param {import('#service').ManageService['db']} db
+ * @param {string} id
+ * @param {import('./types.js').CrownDevelopmentViewModel} toSave
+ * @returns {Promise<PrismaPromise<unknown>[]>}
+ */
+export async function buildOrganisationContactJoinUpdateOperations(db, id, toSave) {
+	const hasApplicantContactEdits = Object.hasOwn(toSave, 'manageApplicantContactDetails');
+	const hasAgentContactEdits = Object.hasOwn(toSave, 'manageAgentContactDetails');
+	if (!hasApplicantContactEdits && !hasAgentContactEdits) {
+		return [];
+	}
+
+	const crownDevelopment = await db.crownDevelopment.findUnique({
+		where: { id },
+		include: {
+			Organisations: {
+				include: {
+					Organisation: {
+						include: {
+							Address: true,
+							OrganisationToContact: { include: { Contact: true } }
+						}
+					}
+				}
+			}
+		}
+	});
+	if (!crownDevelopment) {
+		return [];
+	}
+
+	const caseViewModel = crownDevelopmentToViewModel(crownDevelopment);
+	/** @type {PrismaPromise<unknown>[]} */
+	const operations = [];
+
+	if (hasApplicantContactEdits) {
+		const applicantContactUpdateInput = editsToDatabaseUpdates(
+			{ manageApplicantContactDetails: toSave.manageApplicantContactDetails },
+			caseViewModel
+		);
+		if (applicantContactUpdateInput?.Organisations) {
+			operations.push(
+				db.crownDevelopment.update({
+					where: { id },
+					data: { Organisations: applicantContactUpdateInput.Organisations }
+				})
+			);
+		}
+	}
+
+	if (hasAgentContactEdits) {
+		const agentContactUpdateInput = editsToDatabaseUpdates(
+			{ manageAgentContactDetails: toSave.manageAgentContactDetails },
+			caseViewModel
+		);
+		if (agentContactUpdateInput?.Organisations) {
+			operations.push(
+				db.crownDevelopment.update({
+					where: { id },
+					data: { Organisations: agentContactUpdateInput.Organisations }
+				})
+			);
+		}
+	}
+
+	return operations;
+}
+
+/**
  * @param {import('#service').ManageService} service
  * @param {boolean} [clearAnswer=false] - whether to clear the answer before saving
  * @returns {import('@planning-inspectorate/dynamic-forms/src/controller.js').SaveDataFn}
@@ -308,6 +409,9 @@ export function buildUpdateCase(service, clearAnswer = false) {
 			let updateInput = editsToDatabaseUpdates(toSave, viewModelForUpdates);
 			updateInput.updatedDate = new Date();
 
+			const split = splitSharedUpdateFromOrganisationContactEdits(toSave, updateInput);
+			updateInput = split.sharedUpdateInput;
+
 			const updates = [id];
 
 			if (crownDevelopment.linkedParentId && !updateContainsDeLinkedField(updateInput)) {
@@ -328,7 +432,7 @@ export function buildUpdateCase(service, clearAnswer = false) {
 			const sharedApplicantOrgs = await applySharedApplicantOrganisationCreates(toSave, updateInput, updates, db);
 			updateInput = sharedApplicantOrgs.updateInput;
 			transactionOperations.push(...sharedApplicantOrgs.linkOperations);
-			// CrownDevelopment updates (including join-table moves & new contacts)
+			// CrownDevelopment updates (excluding applicant-contact join-table updates if present)
 			transactionOperations.push(
 				...updates.map((caseId) =>
 					db.crownDevelopment.update({
@@ -337,6 +441,10 @@ export function buildUpdateCase(service, clearAnswer = false) {
 					})
 				)
 			);
+
+			if (split.hasOrganisationContactEdits) {
+				transactionOperations.push(...(await buildOrganisationContactJoinUpdateOperations(db, id, toSave)));
+			}
 
 			await db.$transaction(transactionOperations);
 		} catch (error) {
