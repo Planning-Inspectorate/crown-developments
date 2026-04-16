@@ -93,9 +93,7 @@ export function createJourney(questions, response, req) {
 				.withCondition(iscilLiable)
 				.addQuestion(questions.bngExempt)
 				.addQuestion(questions.hasCostsApplications)
-				.addQuestion(questions.environmentalImpactAssessment)
-				.addQuestion(questions.developmentPlan)
-				.addQuestion(questions.rightOfWay),
+				.addQuestion(questions.applicationCategory),
 			new Section('Contacts', 'contacts')
 				.addQuestion(questions.lpaContact)
 				.addQuestion(questions.lpaAddress)
@@ -273,9 +271,7 @@ export function createJourneyV2(questions, response, req) {
 				.withCondition(iscilLiable)
 				.addQuestion(questions.bngExempt)
 				.addQuestion(questions.hasCostsApplications)
-				.addQuestion(questions.environmentalImpactAssessment)
-				.addQuestion(questions.developmentPlan)
-				.addQuestion(questions.rightOfWay),
+				.addQuestion(questions.applicationCategory),
 			new Section('Contacts', 'contacts')
 				.addQuestion(questions.lpaContact)
 				.addQuestion(questions.lpaAddress)
