@@ -147,8 +147,12 @@ export function buildSaveController(service) {
 export function buildSuccessController({ db }) {
 	return async (req, res) => {
 		const data = req.session?.forms && req.session?.forms[JOURNEY_ID];
-		if (!data || !data.id || !data.reference) {
+		if (!data || typeof data !== 'object' || !('id' in data) || !('reference' in data)) {
 			throw new Error('invalid create case session');
+		}
+
+		if (!data.id || typeof data.id !== 'string' || !data.reference || typeof data.reference !== 'string') {
+			throw new Error('Case ID or reference missing');
 		}
 
 		const crownDevelopment = await db.crownDevelopment.findUnique({

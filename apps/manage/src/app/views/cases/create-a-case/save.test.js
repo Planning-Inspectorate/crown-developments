@@ -1299,6 +1299,54 @@ describe('save', () => {
 			const successController = buildSuccessController({});
 			await assert.rejects(() => successController({}, {}), { message: 'invalid create case session' });
 		});
+		it('should throw error when id or reference is missing, empty or not a string', async () => {
+			const successController = buildSuccessController({});
+
+			const cases = [
+				{
+					name: 'id is empty string',
+					data: { id: '', reference: 'ref' }
+				},
+				{
+					name: 'reference is empty string',
+					data: { id: 'id', reference: '' }
+				},
+				{
+					name: 'id is not a string',
+					data: { id: 123, reference: 'ref' }
+				},
+				{
+					name: 'reference is not a string',
+					data: { id: 'id', reference: 456 }
+				},
+				{
+					name: 'id is null',
+					data: { id: null, reference: 'ref' }
+				},
+				{
+					name: 'reference is null',
+					data: { id: 'id', reference: null }
+				}
+			];
+
+			for (const tc of cases) {
+				const mockReq = {
+					session: {
+						forms: {
+							'create-a-case': tc.data
+						}
+					}
+				};
+
+				await assert.rejects(
+					() => successController(mockReq, {}),
+					{
+						message: 'Case ID or reference missing'
+					},
+					`Missing case detail not caught for ${tc.name}`
+				);
+			}
+		});
 		it('should throw error when no id exists in data object', async () => {
 			const mockReq = {
 				session: {
