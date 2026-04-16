@@ -36,6 +36,47 @@ const setBannerMessage = (req, id, questionUrl) => {
 const questionsWithDeleteSuccessBanner = new Set(Object.keys(questionConfig));
 
 /**
+ * Get all case IDs in the same linked-case group as the provided case.
+ *
+ * A linked-case group is represented by a parent CrownDevelopment (linkedParentId is null)
+ * and zero-or-more children (linkedParentId points to the parent).
+ *
+ * If the case is unlinked, this returns an array containing only the original ID.
+ *
+ * @param {import('#service').ManageService['db']} db
+ * @param {string} caseId
+ * @returns {Promise<string[]>}
+ */
+async function getLinkedCaseGroupIds(db, caseId) {
+	const current = await db.crownDevelopment.findUnique({
+		where: { id: caseId },
+		select: {
+			id: true,
+			linkedParentId: true,
+			ChildrenCrownDevelopment: { select: { id: true } }
+		}
+	});
+
+	if (!current) return [caseId];
+
+	const rootId = current.linkedParentId || current.id;
+	// If this is already the root, we already have the children in-hand.
+	if (rootId === current.id) {
+		const childIds = current.ChildrenCrownDevelopment?.map((c) => c.id) || [];
+		return Array.from(new Set([current.id, ...childIds]));
+	}
+
+	const root = await db.crownDevelopment.findUnique({
+		where: { id: rootId },
+		select: { id: true, ChildrenCrownDevelopment: { select: { id: true } } }
+	});
+	if (!root) return Array.from(new Set([caseId, rootId]));
+
+	const childIds = root.ChildrenCrownDevelopment?.map((c) => c.id) || [];
+	return Array.from(new Set([root.id, ...childIds]));
+}
+
+/**
  * Delete DB-backed manage-list items immediately when remove is confirmed.
  *
  * dynamic-forms stores answers in session and (for manage-lists) will remove the item
@@ -67,59 +108,58 @@ export function buildDeleteManageListItemOnConfirmRemove(service) {
 	 */
 	/** @type {Record<string, (args: DeleteHandlerArgs) => Promise<void>>} */
 	const deleteHandlersByFieldName = {
-		// Applicants: session item id is Organisation.id; remove relationship record for this case
+		// Applicants: session item id is Organisation.id; remove relationship records for this case and any linked cases
 		manageApplicantDetails: async ({ req, id, manageListItemId }) => {
-			// Fetch linked contacts up-front (we may attempt to clean them up later)
-			const contacts = await db.organisationToContact.findMany({
+			// Remove the applicant organisation link from the whole linked-case group (parent + children)
+			const caseIds = await getLinkedCaseGroupIds(db, id);
+			await db.crownDevelopmentToOrganisation.deleteMany({
 				where: {
+					crownDevelopmentId: { in: caseIds },
 					organisationId: manageListItemId,
-					Organisation: {
-						CrownDevelopmentToOrganisation: {
-							some: { crownDevelopmentId: id, role: ORGANISATION_ROLES_ID.APPLICANT }
-						}
-					}
-				},
-				select: { contactId: true }
+					role: ORGANISATION_ROLES_ID.APPLICANT
+				}
 			});
 
+			// Success banner is about removal from the case journey; DB row cleanup is best-effort.
+			setBannerMessage(req, id, 'check-applicant-details');
+
+			// Best-effort cleanup: only delete the Organisation row if it is no longer referenced by any case.
 			try {
+				const stillReferenced = await db.crownDevelopmentToOrganisation.findFirst({
+					where: { organisationId: manageListItemId }
+				});
+				if (stillReferenced) return;
+
+				// Fetch linked contacts (for orphan cleanup) before we delete join rows.
+				const contacts = await db.organisationToContact.findMany({
+					where: { organisationId: manageListItemId },
+					select: { contactId: true }
+				});
+
 				await db.$transaction([
-					// 1) remove contact join rows for this organisation first (prevents foreign key failures)
-					db.organisationToContact.deleteMany({
-						where: {
-							organisationId: manageListItemId,
-							Organisation: {
-								CrownDevelopmentToOrganisation: {
-									some: { crownDevelopmentId: id, role: ORGANISATION_ROLES_ID.APPLICANT }
-								}
-							}
-						}
-					}),
-					// 2) remove relationship to this case
-					db.crownDevelopmentToOrganisation.deleteMany({
-						where: { crownDevelopmentId: id, organisationId: manageListItemId, role: ORGANISATION_ROLES_ID.APPLICANT }
-					}),
-					// 3) remove the organisation row (may still fail if referenced elsewhere)
+					db.organisationToContact.deleteMany({ where: { organisationId: manageListItemId } }),
 					db.organisation.delete({ where: { id: manageListItemId } })
 				]);
-				setBannerMessage(req, id, 'check-applicant-details');
+
+				// Best-effort cleanup of orphan contacts (only safe if contacts are not shared elsewhere)
+				const contactIds = contacts.map((c) => c.contactId);
+				if (contactIds.length) {
+					try {
+						await db.contact.deleteMany({
+							where: { id: { in: contactIds }, OrganisationToContact: { none: {} } }
+						});
+					} catch (error) {
+						logger.warn(
+							{ id, manageListItemId, err: error },
+							'Unable to delete contact record linked to organisation.'
+						);
+					}
+				}
 			} catch (error) {
 				logger.warn(
 					{ id, manageListItemId, err: error },
 					'Unable to delete Organisation record (may still be referenced)'
 				);
-			}
-
-			// Best-effort cleanup of contacts (only safe if contacts are not shared elsewhere)
-			const contactIds = contacts.map((c) => c.contactId);
-			if (contactIds.length) {
-				try {
-					await db.contact.deleteMany({
-						where: { id: { in: contactIds }, OrganisationToContact: { none: {} } }
-					});
-				} catch (error) {
-					logger.warn({ id, manageListItemId, err: error }, 'Unable to delete contact record linked to organisation.');
-				}
 			}
 		},
 		// Applicant contacts: session item id is Contact.id; remove join rows across the organisations for this case
