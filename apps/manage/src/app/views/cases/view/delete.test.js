@@ -35,9 +35,12 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 
 	it('should set a success banner message in session when applicant organisation is deleted', async () => {
 		const db = {
+			crownDevelopment: {
+				findUnique: mock.fn(async () => ({ id: 'case-1', linkedParentId: null, ChildrenCrownDevelopment: [] }))
+			},
 			crownDevelopmentToOrganisation: {
 				deleteMany: mock.fn(async () => ({ count: 1 })),
-				findFirst: mock.fn()
+				findFirst: mock.fn(async () => null)
 			},
 			organisationToContact: { deleteMany: mock.fn(), findMany: mock.fn(async () => []) },
 			organisation: { delete: mock.fn(async () => ({ id: 'org-1' })) },
@@ -64,12 +67,97 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 
 		await middleware(req, res, next);
 
+		assert.strictEqual(db.crownDevelopmentToOrganisation.deleteMany.mock.callCount(), 1);
 		assert.strictEqual(db.$transaction.mock.callCount(), 1);
 		assert.strictEqual(db.organisationToContact.findMany.mock.callCount(), 1);
 		assert.strictEqual(db.organisationToContact.deleteMany.mock.callCount(), 1);
-		assert.strictEqual(db.crownDevelopmentToOrganisation.deleteMany.mock.callCount(), 1);
 		assert.strictEqual(db.organisation.delete.mock.callCount(), 1);
 		assert.strictEqual(req.session.bannerMessage['case-1']['check-applicant-details:item-removed-success'], true);
+		assert.strictEqual(next.mock.callCount(), 1);
+		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
+	});
+
+	it('should delete applicant organisation relation when remove is confirmed for check-applicant-details', async () => {
+		const db = {
+			crownDevelopment: {
+				findUnique: mock.fn(async () => ({ id: 'case-1', linkedParentId: null, ChildrenCrownDevelopment: [] }))
+			},
+			crownDevelopmentToOrganisation: {
+				deleteMany: mock.fn(async () => ({ count: 1 })),
+				// Simulate the organisation still being referenced elsewhere, so we only unlink it from this case.
+				findFirst: mock.fn(async () => ({ id: 'still-referenced' }))
+			}
+		};
+		const middleware = buildDeleteManageListItemOnConfirmRemove({ db, logger: mockLogger() });
+		const req = {
+			params: {
+				id: 'case-1',
+				manageListAction: 'remove',
+				manageListItemId: 'org-1',
+				manageListQuestion: 'confirm',
+				question: 'check-applicant-details'
+			},
+			session: {}
+		};
+		const res = {};
+		const next = mock.fn();
+
+		await middleware(req, res, next);
+
+		assert.strictEqual(db.crownDevelopmentToOrganisation.deleteMany.mock.callCount(), 1);
+		assert.deepStrictEqual(db.crownDevelopmentToOrganisation.deleteMany.mock.calls[0].arguments[0], {
+			where: { crownDevelopmentId: { in: ['case-1'] }, organisationId: 'org-1', role: 'applicant' }
+		});
+		assert.strictEqual(req.session.bannerMessage['case-1']['check-applicant-details:item-removed-success'], true);
+		assert.strictEqual(next.mock.callCount(), 1);
+		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
+	});
+
+	it('should delete applicant organisation relations across linked cases', async () => {
+		const db = {
+			crownDevelopment: {
+				findUnique: mock.fn(async ({ where }) => {
+					if (where.id === 'case-child') {
+						return { id: 'case-child', linkedParentId: 'case-parent', ChildrenCrownDevelopment: [] };
+					}
+					if (where.id === 'case-parent') {
+						return {
+							id: 'case-parent',
+							ChildrenCrownDevelopment: [{ id: 'case-child' }, { id: 'case-sibling' }]
+						};
+					}
+					return null;
+				})
+			},
+			crownDevelopmentToOrganisation: {
+				deleteMany: mock.fn(async () => ({ count: 2 })),
+				findFirst: mock.fn(async () => ({ id: 'still-referenced' }))
+			}
+		};
+		const middleware = buildDeleteManageListItemOnConfirmRemove({ db, logger: mockLogger() });
+		const req = {
+			params: {
+				id: 'case-child',
+				manageListAction: 'remove',
+				manageListItemId: 'org-1',
+				manageListQuestion: 'confirm',
+				question: 'check-applicant-details'
+			},
+			session: {}
+		};
+		const res = {};
+		const next = mock.fn();
+
+		await middleware(req, res, next);
+
+		assert.deepStrictEqual(db.crownDevelopmentToOrganisation.deleteMany.mock.calls[0].arguments[0], {
+			where: {
+				crownDevelopmentId: { in: ['case-parent', 'case-child', 'case-sibling'] },
+				organisationId: 'org-1',
+				role: 'applicant'
+			}
+		});
+		assert.strictEqual(req.session.bannerMessage['case-child']['check-applicant-details:item-removed-success'], true);
 		assert.strictEqual(next.mock.callCount(), 1);
 		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
 	});
@@ -153,28 +241,19 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 		assert.strictEqual(db.crownDevelopmentToOrganisation.deleteMany.mock.callCount(), 0);
 	});
 
-	it('should delete applicant organisation relation when remove is confirmed for check-applicant-details', async () => {
+	it('should call next without deleting when required route params are missing or not strings', async () => {
 		const db = {
-			crownDevelopmentToOrganisation: {
-				deleteMany: mock.fn(async () => ({ count: 1 })),
-				findFirst: mock.fn()
-			},
-			organisationToContact: { deleteMany: mock.fn(), findMany: mock.fn(async () => []) },
-			organisation: { delete: mock.fn(async () => ({ id: 'org-1' })) },
+			crownDevelopmentToOrganisation: { deleteMany: mock.fn(), findFirst: mock.fn() },
+			organisationToContact: { deleteMany: mock.fn() },
 			contact: { delete: mock.fn() }
 		};
-		db.$transaction = mock.fn(async (ops) => {
-			for (const op of ops) await op;
-			return [];
-		});
 		const middleware = buildDeleteManageListItemOnConfirmRemove({ db, logger: mockLogger() });
 		const req = {
 			params: {
 				id: 'case-1',
 				manageListAction: 'remove',
-				manageListItemId: 'org-1',
-				manageListQuestion: 'confirm',
-				question: 'check-applicant-details'
+				manageListItemId: 123,
+				manageListQuestion: 'confirm'
 			}
 		};
 		const res = {};
@@ -182,13 +261,11 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 
 		await middleware(req, res, next);
 
-		assert.strictEqual(db.$transaction.mock.callCount(), 1);
-		assert.strictEqual(db.crownDevelopmentToOrganisation.deleteMany.mock.callCount(), 1);
-		assert.deepStrictEqual(db.crownDevelopmentToOrganisation.deleteMany.mock.calls[0].arguments[0], {
-			where: { crownDevelopmentId: 'case-1', organisationId: 'org-1', role: 'applicant' }
-		});
 		assert.strictEqual(next.mock.callCount(), 1);
 		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
+		assert.strictEqual(db.crownDevelopmentToOrganisation.deleteMany.mock.callCount(), 0);
+		assert.strictEqual(db.organisationToContact.deleteMany.mock.callCount(), 0);
+		assert.strictEqual(db.contact.delete.mock.callCount(), 0);
 	});
 
 	it('should delete applicant contact join rows and then delete the contact when remove is confirmed', async () => {
@@ -292,33 +369,6 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
 	});
 
-	it('should call next without deleting when required route params are missing or not strings', async () => {
-		const db = {
-			crownDevelopmentToOrganisation: { deleteMany: mock.fn(), findFirst: mock.fn() },
-			organisationToContact: { deleteMany: mock.fn() },
-			contact: { delete: mock.fn() }
-		};
-		const middleware = buildDeleteManageListItemOnConfirmRemove({ db, logger: mockLogger() });
-		const req = {
-			params: {
-				id: 'case-1',
-				manageListAction: 'remove',
-				manageListItemId: 123,
-				manageListQuestion: 'confirm'
-			}
-		};
-		const res = {};
-		const next = mock.fn();
-
-		await middleware(req, res, next);
-
-		assert.strictEqual(next.mock.callCount(), 1);
-		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
-		assert.strictEqual(db.crownDevelopmentToOrganisation.deleteMany.mock.callCount(), 0);
-		assert.strictEqual(db.organisationToContact.deleteMany.mock.callCount(), 0);
-		assert.strictEqual(db.contact.delete.mock.callCount(), 0);
-	});
-
 	it('should delete agent contact join rows for agent organisation and then delete the contact', async () => {
 		const db = {
 			crownDevelopmentToOrganisation: { deleteMany: mock.fn(), findFirst: mock.fn() },
@@ -397,6 +447,9 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 
 	it('should pass error to next when delete handler throws', async () => {
 		const db = {
+			crownDevelopment: {
+				findUnique: mock.fn(async () => ({ id: 'case-1', linkedParentId: null, ChildrenCrownDevelopment: [] }))
+			},
 			crownDevelopmentToOrganisation: {
 				deleteMany: mock.fn(async () => {
 					throw new Error('db failed');
@@ -428,9 +481,12 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 
 	it('should delete linked contacts after deleting an applicant organisation', async () => {
 		const db = {
+			crownDevelopment: {
+				findUnique: mock.fn(async () => ({ id: 'case-1', linkedParentId: null, ChildrenCrownDevelopment: [] }))
+			},
 			crownDevelopmentToOrganisation: {
 				deleteMany: mock.fn(async () => ({ count: 1 })),
-				findFirst: mock.fn()
+				findFirst: mock.fn(async () => null)
 			},
 			organisationToContact: {
 				deleteMany: mock.fn(async () => ({ count: 2 })),
@@ -470,9 +526,12 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 
 	it('should not attempt to delete contacts when an applicant organisation has no linked contacts', async () => {
 		const db = {
+			crownDevelopment: {
+				findUnique: mock.fn(async () => ({ id: 'case-1', linkedParentId: null, ChildrenCrownDevelopment: [] }))
+			},
 			crownDevelopmentToOrganisation: {
 				deleteMany: mock.fn(async () => ({ count: 1 })),
-				findFirst: mock.fn()
+				findFirst: mock.fn(async () => null)
 			},
 			organisationToContact: { deleteMany: mock.fn(async () => ({ count: 0 })), findMany: mock.fn(async () => []) },
 			organisation: { delete: mock.fn(async () => ({ id: 'org-1' })) },
@@ -507,9 +566,12 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 	it('should continue when linked contact cleanup fails after deleting an applicant organisation', async () => {
 		const logger = mockLogger();
 		const db = {
+			crownDevelopment: {
+				findUnique: mock.fn(async () => ({ id: 'case-1', linkedParentId: null, ChildrenCrownDevelopment: [] }))
+			},
 			crownDevelopmentToOrganisation: {
 				deleteMany: mock.fn(async () => ({ count: 1 })),
-				findFirst: mock.fn()
+				findFirst: mock.fn(async () => null)
 			},
 			organisationToContact: {
 				deleteMany: mock.fn(async () => ({ count: 2 })),
@@ -553,12 +615,15 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
 	});
 
-	it('should attempt to delete linked contacts even when applicant organisation deletion fails', async () => {
+	it('should set the success banner even when Organisation row deletion fails', async () => {
 		const logger = mockLogger();
 		const db = {
+			crownDevelopment: {
+				findUnique: mock.fn(async () => ({ id: 'case-1', linkedParentId: null, ChildrenCrownDevelopment: [] }))
+			},
 			crownDevelopmentToOrganisation: {
 				deleteMany: mock.fn(async () => ({ count: 1 })),
-				findFirst: mock.fn()
+				findFirst: mock.fn(async () => null)
 			},
 			organisationToContact: {
 				deleteMany: mock.fn(async () => ({ count: 2 })),
@@ -591,12 +656,13 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 			logger.warn.mock.calls[0].arguments[1],
 			'Unable to delete Organisation record (may still be referenced)'
 		);
-		assert.strictEqual(db.contact.deleteMany.mock.callCount(), 1);
-		assert.strictEqual(req.session.bannerMessage?.['check-applicant-details:item-removed-success'], undefined);
+		assert.strictEqual(db.contact.deleteMany.mock.callCount(), 0);
+		assert.strictEqual(req.session.bannerMessage['case-1']['check-applicant-details:item-removed-success'], true);
 		assert.strictEqual(next.mock.callCount(), 1);
 		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
 	});
 });
+
 describe('addSuccessBannerFromMessage', () => {
 	it('should set success banner and clear session key for check-agent-contact-details', () => {
 		const req = {
