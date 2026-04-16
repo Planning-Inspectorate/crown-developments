@@ -5,8 +5,25 @@
 {% from "govuk/components/fieldset/macro.njk" import govukFieldset %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 
 {% set inputFields = question.value %}
+
+{% block error_summary %}
+    {% if errorSummary %}
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+                {{
+                govukErrorSummary({
+                    titleText: "There is a problem",
+                    descriptionText: "The combination of answers you selected is invalid. Check your answers for:",
+                    errorList: errorSummary
+                })
+                }}
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
 
 {% block dynQuestionContent %}
     <div class="govuk-grid-row">
@@ -72,6 +89,25 @@
                                 fieldset: {
                                     legend: {
                                         text: inputField.legend,
+                                        classes: "govuk-fieldset__legend--l"
+                                    }
+                                },
+                                items: inputField.options
+                            }) }}
+                        {% elseif inputField.type == 'boolean' %}
+                            {{ govukRadios({
+                                classes: "govuk-radios",
+                                idPrefix: inputField.fieldName,
+                                name: inputField.fieldName,
+                                errorMessage: errors[inputField.fieldName] and {
+                                    text: errors[inputField.fieldName].msg
+                                },
+                                hint: inputField.hint and {
+                                    text: inputField.hint
+                                },
+                                fieldset: {
+                                    legend: {
+                                        text: inputField.question,
                                         classes: "govuk-fieldset__legend--m"
                                     }
                                 },

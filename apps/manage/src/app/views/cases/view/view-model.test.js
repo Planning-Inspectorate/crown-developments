@@ -615,6 +615,91 @@ describe('view-model', () => {
 			assert.strictEqual(result.siteNorthing, 123);
 			assert.strictEqual(result.siteEasting, 456);
 		});
+
+		it('should convert environmentalImpactAssessment from "yes" to true', () => {
+			/** @type {CrownDevelopmentViewModel} */
+			const toSave = {
+				environmentalImpactAssessment: 'yes'
+			};
+			const result = editsToDatabaseUpdates(toSave, {});
+			assert.strictEqual(result.environmentalImpactAssessment, true);
+		});
+
+		it('should convert environmentalImpactAssessment from "no" to false', () => {
+			/** @type {CrownDevelopmentViewModel} */
+			const toSave = {
+				environmentalImpactAssessment: 'no'
+			};
+			const result = editsToDatabaseUpdates(toSave, {});
+			assert.strictEqual(result.environmentalImpactAssessment, false);
+		});
+
+		it('should convert developmentPlan from "yes" to true', () => {
+			const toSave = {
+				developmentPlan: 'yes'
+			};
+			const result = editsToDatabaseUpdates(toSave, {});
+			assert.strictEqual(result.developmentPlan, true);
+		});
+
+		it('should convert developmentPlan from "no" to false', () => {
+			const toSave = {
+				developmentPlan: 'no'
+			};
+			const result = editsToDatabaseUpdates(toSave, {});
+			assert.strictEqual(result.developmentPlan, false);
+		});
+
+		it('should convert rightOfWay from "yes" to true', () => {
+			const toSave = {
+				rightOfWay: 'yes'
+			};
+			const result = editsToDatabaseUpdates(toSave, {});
+			assert.strictEqual(result.rightOfWay, true);
+		});
+
+		it('should convert rightOfWay from "no" to false', () => {
+			const toSave = {
+				rightOfWay: 'no'
+			};
+			const result = editsToDatabaseUpdates(toSave, {});
+			assert.strictEqual(result.rightOfWay, false);
+		});
+
+		it('should convert all three boolean fields together', () => {
+			const toSave = {
+				environmentalImpactAssessment: 'yes',
+				developmentPlan: 'no',
+				rightOfWay: 'yes'
+			};
+			const result = editsToDatabaseUpdates(toSave, {});
+			assert.strictEqual(result.environmentalImpactAssessment, true);
+			assert.strictEqual(result.developmentPlan, false);
+			assert.strictEqual(result.rightOfWay, true);
+		});
+
+		it('should convert non yes/no values to null for boolean fields', () => {
+			const toSave = {
+				environmentalImpactAssessment: 'maybe',
+				developmentPlan: '',
+				rightOfWay: undefined
+			};
+			const result = editsToDatabaseUpdates(toSave, {});
+			assert.strictEqual(result.environmentalImpactAssessment, null);
+			assert.strictEqual(result.developmentPlan, null);
+			assert.strictEqual(result.rightOfWay, null);
+		});
+
+		it('should not include boolean fields if not in edits', () => {
+			const toSave = {
+				siteArea: 8.79
+			};
+			const result = editsToDatabaseUpdates(toSave, {});
+			assert.strictEqual(result.environmentalImpactAssessment, undefined);
+			assert.strictEqual(result.developmentPlan, undefined);
+			assert.strictEqual(result.rightOfWay, undefined);
+		});
+
 		it(`should map reps period`, () => {
 			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
