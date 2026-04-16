@@ -287,6 +287,7 @@ export function createJourneyV2(questions, response, req) {
 				.startMultiQuestionCondition('has-agent', hasAgent)
 				.addQuestion(questions.addAgentOrganisationName)
 				.addQuestion(questions.addAgentAddress)
+				.withCondition(hasAgentOrganisationName)
 				.addQuestion(questions.manageAgentContacts, new ManageListSection().addQuestion(questions.agentContactDetails))
 				.withCondition(hasAgentOrganisationName)
 				.endMultiQuestionCondition('has-agent')
