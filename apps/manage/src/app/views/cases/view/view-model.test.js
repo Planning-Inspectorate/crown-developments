@@ -1916,20 +1916,29 @@ describe('view-model', () => {
 			const updates = editsToDatabaseUpdates(toSave, viewModel);
 			assert.strictEqual(updates.Organisations, undefined);
 		});
-		it('should throw when updating agent organisation name without an agent organisation relation id', () => {
+		it('should create new organisation when updating agent organisation name without an agent organisation relation id', () => {
 			const toSave = {
 				agentOrganisationName: 'New agent name'
 			};
 			const viewModel = {
-				agentOrganisationName: 'Old agent name',
+				agentOrganisationName: null,
 				agentOrganisationAddress: null,
 				agentOrganisationRelationId: null
 			};
 
-			assert.throws(
-				() => editsToDatabaseUpdates(toSave, viewModel),
-				/Unable to find agent organisation for this case - cannot update agent name/
-			);
+			const updates = editsToDatabaseUpdates(toSave, viewModel);
+			assert.deepStrictEqual(updates.Organisations, {
+				create: [
+					{
+						Organisation: {
+							create: {
+								name: 'New agent name'
+							}
+						},
+						Role: { connect: { id: 'agent' } }
+					}
+				]
+			});
 		});
 		it('should update agent address', () => {
 			const toSave = {

@@ -391,7 +391,18 @@ function buildAgentOrganisationNameUpdates(edits, viewModel) {
 	}
 
 	if (!viewModel.agentOrganisationRelationId) {
-		throw new Error('Unable to find agent organisation for this case - cannot update agent name');
+		return {
+			create: [
+				{
+					Role: { connect: { id: ORGANISATION_ROLES_ID.AGENT } },
+					Organisation: {
+						create: {
+							name: edits.agentOrganisationName
+						}
+					}
+				}
+			]
+		};
 	}
 
 	return {
