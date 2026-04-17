@@ -12,6 +12,8 @@ import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
 import { extractApplicantContactFields, extractAgentContactFields } from '../util/contact.js';
 
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { optionalWhere } from '@pins/crowndev-lib/util/database.js';
+import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.js';
 
 /**
  * @template T
@@ -237,31 +239,49 @@ async function applySharedApplicantOrganisationCreates(toSave, updateInput, upda
 }
 
 /**
- * If the save payload contains contact-edit answers that create nested writes under `Organisations`,
+ * If the save payload contains answers that create nested writes under `Organisations`,
  * we intentionally strip *all* `updateInput.Organisations` from the shared update payload.
  *
- * Those contact-join updates target case-specific join-row ids and cannot be safely applied to
- * linked cases using the same nested-write object.
+ * Some nested writes target case-specific join-row ids (e.g. OrganisationToContact, and the case's
+ * CrownDevelopmentToOrganisation row for the agent org). These cannot be safely applied to linked
+ * cases using the same nested-write object.
  *
  * NOTE: this is intentionally broad in this codebase (other edit sections are not present in one save).
  *
  * @param {import('./types.js').CrownDevelopmentViewModel} toSave
  * @param {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput} updateInput
- * @returns {{ sharedUpdateInput: import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput, hasOrganisationContactEdits: boolean }}
+ * @returns {{
+ *  sharedUpdateInput: import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput,
+ *  hasOrganisationContactEdits: boolean,
+ *  hasAgentOrganisationEdits: boolean
+ * }}
  */
 function splitSharedUpdateFromOrganisationContactEdits(toSave, updateInput) {
 	const hasApplicantContactEdits = Object.hasOwn(toSave, 'manageApplicantContactDetails');
 	const hasAgentContactEdits = Object.hasOwn(toSave, 'manageAgentContactDetails');
 	const hasOrganisationContactEdits = hasApplicantContactEdits || hasAgentContactEdits;
 
-	if (!hasOrganisationContactEdits) {
-		return { sharedUpdateInput: updateInput, hasOrganisationContactEdits: false };
+	const hasAgentOrganisationEdits =
+		Object.hasOwn(toSave, 'agentOrganisationName') || Object.hasOwn(toSave, 'agentOrganisationAddress');
+
+	const hasOrganisationNestedEdits = hasOrganisationContactEdits || hasAgentOrganisationEdits;
+
+	if (!hasOrganisationNestedEdits) {
+		return {
+			sharedUpdateInput: updateInput,
+			hasOrganisationContactEdits: false,
+			hasAgentOrganisationEdits: false
+		};
 	}
 
 	/** @type {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput} */
 	const sharedUpdateInput = { ...updateInput };
 	delete sharedUpdateInput.Organisations;
-	return { sharedUpdateInput, hasOrganisationContactEdits: true };
+	return {
+		sharedUpdateInput,
+		hasOrganisationContactEdits,
+		hasAgentOrganisationEdits
+	};
 }
 
 /**
@@ -335,6 +355,123 @@ export async function buildOrganisationContactJoinUpdateOperations(db, id, toSav
 	}
 
 	return operations;
+}
+
+/**
+ * For linked-case updates, treat the agent organisation like a shared Organisation record:
+ * - update the Organisation directly by Organisation.id (safe across linked cases)
+ * - if an agent org doesn't exist yet, create it once and link any cases missing the join row
+ *
+ * @param {import('./types.js').CrownDevelopmentViewModel} toSave
+ * @param {string[]} caseIds
+ * @param {import('#service').ManageService['db']} db
+ * @returns {Promise<{ organisationUpdateOperation: PrismaPromise<unknown>|null, linkOperations: PrismaPromise<unknown>[] }>}
+ */
+async function applySharedAgentOrganisationEdits(toSave, caseIds, db) {
+	const hasNameEdit = Object.hasOwn(toSave, 'agentOrganisationName');
+	const hasAddressEdit = Object.hasOwn(toSave, 'agentOrganisationAddress');
+	if (!hasNameEdit && !hasAddressEdit) {
+		return { organisationUpdateOperation: null, linkOperations: [] };
+	}
+
+	const crownDevelopments = await db.crownDevelopment.findMany({
+		where: { id: { in: caseIds } },
+		include: {
+			Organisations: {
+				include: {
+					Organisation: { include: { Address: true } }
+				}
+			}
+		}
+	});
+
+	const byCaseId = new Map(crownDevelopments.map((cd) => [cd.id, cd]));
+
+	// Pick an existing agent Organisation if present (prefer the current/leader case).
+	const leaderCase = byCaseId.get(caseIds[0]);
+	const leaderAgentRel = leaderCase?.Organisations?.find((r) => r.role === ORGANISATION_ROLES_ID.AGENT);
+	let agentOrganisationId = leaderAgentRel?.Organisation?.id;
+	let agentOrganisationAddressId = leaderAgentRel?.Organisation?.addressId ?? leaderAgentRel?.Organisation?.Address?.id;
+
+	if (!agentOrganisationId) {
+		const anyRel = crownDevelopments
+			.flatMap((cd) => cd.Organisations || [])
+			.find((r) => r.role === ORGANISATION_ROLES_ID.AGENT && r?.Organisation?.id);
+		agentOrganisationId = anyRel?.Organisation?.id;
+		agentOrganisationAddressId = anyRel?.Organisation?.addressId ?? anyRel?.Organisation?.Address?.id;
+	}
+
+	// If no agent org exists yet, create it once (requires a name).
+	if (!agentOrganisationId) {
+		if (!toSave.agentOrganisationName) {
+			// Nothing we can create/update without a name.
+			return { organisationUpdateOperation: null, linkOperations: [] };
+		}
+
+		const addressCreate = hasAddressEdit ? viewModelToAddressUpdateInput(toSave.agentOrganisationAddress) : null;
+
+		const created = await db.organisation.create({
+			data: {
+				name: toSave.agentOrganisationName,
+				...(addressCreate ? { Address: { create: addressCreate } } : {})
+			},
+			select: { id: true }
+		});
+		agentOrganisationId = created.id;
+		agentOrganisationAddressId = undefined;
+	}
+
+	/** @type {PrismaPromise<unknown>[]} */
+	const linkOperations = [];
+	for (const caseId of caseIds) {
+		const cd = byCaseId.get(caseId);
+		const hasAgentLink = Boolean(cd?.Organisations?.some((r) => r.role === ORGANISATION_ROLES_ID.AGENT));
+		if (hasAgentLink) continue;
+
+		linkOperations.push(
+			db.crownDevelopment.update({
+				where: { id: caseId },
+				data: {
+					Organisations: {
+						create: [
+							{
+								Role: { connect: { id: ORGANISATION_ROLES_ID.AGENT } },
+								Organisation: { connect: { id: agentOrganisationId } }
+							}
+						]
+					}
+				}
+			})
+		);
+	}
+
+	/** @type {import('@pins/crowndev-database').Prisma.OrganisationUpdateInput} */
+	const organisationUpdate = {};
+	if (hasNameEdit && toSave.agentOrganisationName) {
+		organisationUpdate.name = toSave.agentOrganisationName;
+	}
+	if (hasAddressEdit) {
+		const address = viewModelToAddressUpdateInput(toSave.agentOrganisationAddress);
+		if (address) {
+			organisationUpdate.Address = {
+				upsert: {
+					where: optionalWhere(agentOrganisationAddressId),
+					create: address,
+					update: address
+				}
+			};
+		}
+	}
+
+	const organisationUpdateOperation =
+		Object.keys(organisationUpdate).length > 0
+			? db.organisation.update({
+					where: { id: agentOrganisationId },
+					data: organisationUpdate
+				})
+			: null;
+
+	return { organisationUpdateOperation, linkOperations };
 }
 
 /**
@@ -432,6 +569,14 @@ export function buildUpdateCase(service, clearAnswer = false) {
 			const sharedApplicantOrgs = await applySharedApplicantOrganisationCreates(toSave, updateInput, updates, db);
 			updateInput = sharedApplicantOrgs.updateInput;
 			transactionOperations.push(...sharedApplicantOrgs.linkOperations);
+
+			if (split.hasAgentOrganisationEdits) {
+				const sharedAgentOrg = await applySharedAgentOrganisationEdits(toSave, updates, db);
+				transactionOperations.push(...sharedAgentOrg.linkOperations);
+				if (sharedAgentOrg.organisationUpdateOperation) {
+					transactionOperations.push(sharedAgentOrg.organisationUpdateOperation);
+				}
+			}
 			// CrownDevelopment updates (excluding applicant-contact join-table updates if present)
 			transactionOperations.push(
 				...updates.map((caseId) =>

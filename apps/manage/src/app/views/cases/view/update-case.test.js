@@ -194,6 +194,8 @@ describe('case details', () => {
 				answers: {
 					manageApplicantDetails: [
 						{
+							id: 'new-org-1',
+							// New organisations do not have a relation id yet.
 							organisationName: 'New Applicant Org',
 							organisationAddress: {}
 						}
@@ -203,7 +205,7 @@ describe('case details', () => {
 
 			await updateCase({ req: mockReq, res: mockRes, data });
 
-			// Organisation should be created once (explicit create) then linked to both cases via connect in join table
+			// Linked-case flow: organisation is created once, then both cases are linked via connect
 			assert.strictEqual(mockDb.organisation.create.mock.callCount(), 1);
 			const orgCreateArg = mockDb.organisation.create.mock.calls[0].arguments[0];
 			assert.strictEqual(orgCreateArg.data?.name, 'New Applicant Org');
@@ -256,6 +258,8 @@ describe('case details', () => {
 				answers: {
 					manageApplicantDetails: [
 						{
+							id: 'new-org-1',
+							// New organisations do not have a relation id yet.
 							organisationName: 'Single Case Applicant Org',
 							organisationAddress: {}
 						}
@@ -1089,6 +1093,128 @@ describe('case details', () => {
 			assert.strictEqual(mockNotifyClient.sendLpaQuestionnaireNotification.mock.callCount(), 1);
 			assert.strictEqual(data.answers.lpaQuestionnaireSentSpecialEmailSent, true);
 		});
+
+		it('should update shared agent organisation once and link it to both cases when updating linked cases', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				organisation: {
+					create: mock.fn(() => ({ id: 'org-created' })),
+					update: mock.fn(() => ({ kind: 'organisation.update' }))
+				},
+				contact: {
+					update: mock.fn()
+				},
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						linkedParentId: 'linked-parent-1',
+						ChildrenCrownDevelopment: [],
+						Organisations: []
+					})),
+					findMany: mock.fn(() =>
+						Promise.resolve([
+							{
+								id: 'case1',
+								Organisations: [
+									{
+										role: 'agent',
+										Organisation: { id: 'shared-agent-org-1', addressId: 'addr-1', Address: { id: 'addr-1' } }
+									}
+								]
+							},
+							{
+								id: 'linked-parent-1',
+								Organisations: []
+							}
+						])
+					),
+					update: mock.fn(() => ({}))
+				}
+			};
+
+			const updateCase = buildUpdateCase({ db: mockDb, logger, notifyClient: {} });
+			const mockReq = { params: { id: 'case1' }, session: {} };
+			const mockRes = { locals: {} };
+			await updateCase({
+				req: mockReq,
+				res: mockRes,
+				data: {
+					answers: {
+						agentOrganisationName: 'Updated Agent Org'
+					}
+				}
+			});
+
+			assert.strictEqual(mockDb.organisation.update.mock.callCount(), 1);
+			assert.deepStrictEqual(mockDb.organisation.update.mock.calls[0].arguments[0].where, { id: 'shared-agent-org-1' });
+			assert.deepStrictEqual(mockDb.organisation.update.mock.calls[0].arguments[0].data, { name: 'Updated Agent Org' });
+
+			const updateCalls = mockDb.crownDevelopment.update.mock.calls.map((c) => c.arguments[0]);
+			const agentLinkCalls = updateCalls.filter(
+				(arg) => arg.data?.Organisations?.create?.[0]?.Role?.connect?.id === 'agent'
+			);
+			assert.strictEqual(agentLinkCalls.length, 1);
+			assert.strictEqual(agentLinkCalls[0].where.id, 'linked-parent-1');
+			assert.deepStrictEqual(agentLinkCalls[0].data.Organisations.create[0].Organisation, {
+				connect: { id: 'shared-agent-org-1' }
+			});
+		});
+
+		it('should create a shared agent organisation once then link it to both cases when updating linked cases', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				organisation: {
+					create: mock.fn(() => ({ id: 'new-agent-org-1' })),
+					update: mock.fn(() => ({ kind: 'organisation.update' }))
+				},
+				contact: {
+					update: mock.fn()
+				},
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						linkedParentId: 'linked-parent-1',
+						ChildrenCrownDevelopment: [],
+						Organisations: []
+					})),
+					findMany: mock.fn(() =>
+						Promise.resolve([
+							{ id: 'case1', Organisations: [] },
+							{ id: 'linked-parent-1', Organisations: [] }
+						])
+					),
+					update: mock.fn(() => ({}))
+				}
+			};
+
+			const updateCase = buildUpdateCase({ db: mockDb, logger, notifyClient: {} });
+			const mockReq = { params: { id: 'case1' }, session: {} };
+			const mockRes = { locals: {} };
+			await updateCase({
+				req: mockReq,
+				res: mockRes,
+				data: {
+					answers: {
+						agentOrganisationName: 'New Shared Agent Org'
+					}
+				}
+			});
+
+			assert.strictEqual(mockDb.organisation.create.mock.callCount(), 1);
+			assert.strictEqual(mockDb.organisation.create.mock.calls[0].arguments[0].data?.name, 'New Shared Agent Org');
+
+			const updateCalls = mockDb.crownDevelopment.update.mock.calls.map((c) => c.arguments[0]);
+			const agentLinkCalls = updateCalls.filter(
+				(arg) => arg.data?.Organisations?.create?.[0]?.Role?.connect?.id === 'agent'
+			);
+			assert.strictEqual(agentLinkCalls.length, 2);
+			assert.deepStrictEqual(agentLinkCalls.map((c) => c.where.id).sort(), ['case1', 'linked-parent-1'].sort());
+			agentLinkCalls.forEach((call) => {
+				assert.deepStrictEqual(call.data.Organisations.create[0].Organisation, {
+					connect: { id: 'new-agent-org-1' }
+				});
+			});
+		});
 	});
 
 	describe('multi applicant contact updates', () => {
@@ -1416,6 +1542,10 @@ describe('case details', () => {
 		// Patch buildDbWithOrgs to include role and Role
 		const buildDbWithOrgs = (organisations) => ({
 			$transaction: mock.fn(() => Promise.resolve()),
+			organisation: {
+				create: mock.fn(() => ({ id: 'org-created' })),
+				update: mock.fn(() => ({ kind: 'organisation.update' }))
+			},
 			contact: {
 				update: mock.fn(() => ({ kind: 'contact.update' }))
 			},
@@ -1431,6 +1561,18 @@ describe('case details', () => {
 						Role: mockRole
 					}))
 				})),
+				findMany: mock.fn(() =>
+					Promise.resolve([
+						{
+							id: 'case-1',
+							Organisations: organisations.map((org) => ({
+								...org,
+								role: mockRole.id,
+								Role: mockRole
+							}))
+						}
+					])
+				),
 				update: mock.fn(() => ({ kind: 'crownDevelopment.update' }))
 			}
 		});
