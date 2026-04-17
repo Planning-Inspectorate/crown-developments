@@ -182,10 +182,20 @@ export default class CustomMultiFieldInputQuestion extends Question {
 	 */
 	formatAnswerForSummary(sectionSegment, journey) {
 		const summaryDetails = this.inputFields.reduce((acc, field) => {
-			const answer =
-				(field.type === 'boolean' || field.type === 'radio') && field.options
-					? field.options.find((opt) => opt.value === journey.response.answers[field.fieldName])?.text || ''
-					: this.#formatValue(String(journey.response.answers[field.fieldName] || ''), field.formatTextFunction);
+			let answer;
+			if (field.type === 'boolean' || field.type === 'radio') {
+				const options =
+					field.options ||
+					(field.type === 'boolean'
+						? [
+								{ text: 'Yes', value: 'yes' },
+								{ text: 'No', value: 'no' }
+							]
+						: []);
+				answer = options.find((opt) => opt.value === journey.response.answers[field.fieldName])?.text || '';
+			} else {
+				answer = this.#formatValue(String(journey.response.answers[field.fieldName] || ''), field.formatTextFunction);
+			}
 			return answer ? acc + (field.formatPrefix || '') + answer + (field.formatJoinString || '\n') : acc;
 		}, '');
 
