@@ -1,4 +1,4 @@
-import { describe, test } from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import CustomMultiFieldInputQuestion from './question.js';
 
@@ -42,7 +42,7 @@ const buildJourneyWithAnswers = (answers = {}) => ({
 });
 
 describe('CustomMultiFieldInputQuestion', () => {
-	test('throws when inputFields are missing', () => {
+	it('should throw error when inputFields are missing', () => {
 		assert.throws(
 			() =>
 				new CustomMultiFieldInputQuestion({
@@ -52,7 +52,7 @@ describe('CustomMultiFieldInputQuestion', () => {
 		);
 	});
 
-	test('answerForViewModel returns values for input fields and preserves hidden fields', () => {
+	it('should return values for input fields and preserve hidden fields', () => {
 		const question = buildQuestion();
 		const answers = {
 			firstName: 'Alice',
@@ -78,7 +78,7 @@ describe('CustomMultiFieldInputQuestion', () => {
 		]);
 	});
 
-	test('answerForViewModel applies formatTextFunction when provided and value exists', () => {
+	it('should apply formatTextFunction when provided and value exists', () => {
 		const question = buildQuestion({
 			inputFields: [
 				{
@@ -93,7 +93,7 @@ describe('CustomMultiFieldInputQuestion', () => {
 		assert.equal(result[0].label, 'First name');
 	});
 
-	test('answerForViewModel does not format falsy values', () => {
+	it('should not format falsy values', () => {
 		const question = buildQuestion({
 			inputFields: [
 				{
@@ -107,7 +107,7 @@ describe('CustomMultiFieldInputQuestion', () => {
 		assert.equal(question.answerForViewModel({ firstName: undefined })[0].value, undefined);
 	});
 
-	test('addCustomDataToViewModel sets label and attributes', () => {
+	it('should set label and attributes in view model', () => {
 		const question = buildQuestion({ label: 'Enter your contact details' });
 		const viewModel = { question: {} };
 		question.addCustomDataToViewModel(viewModel);
@@ -115,7 +115,7 @@ describe('CustomMultiFieldInputQuestion', () => {
 		assert.deepEqual(viewModel.question.attributes, { 'data-test': 'attr' });
 	});
 
-	test('getDataToSave trims string values and preserves non-string values', async () => {
+	it('should trim string values and preserve non-string values when saving data', async () => {
 		const question = buildQuestion({
 			inputFields: [
 				{ fieldName: 'name', label: 'Name' },
@@ -127,7 +127,7 @@ describe('CustomMultiFieldInputQuestion', () => {
 		assert.deepEqual(result, { answers: { name: 'Bob', age: 42 } });
 	});
 
-	test('formatAnswerForSummary returns not started when all unanswered', () => {
+	it('should return not started when all unanswered', () => {
 		const question = buildQuestion();
 		question.notStartedText = 'Not started';
 
@@ -137,7 +137,7 @@ describe('CustomMultiFieldInputQuestion', () => {
 		assert.deepEqual(summary[0].action, { href: '/edit', text: 'Change', visuallyHiddenText: 'Contact details' });
 	});
 
-	test('formatAnswerForSummary concatenates answers with prefix and line breaks', () => {
+	it('should concatenate answers with prefix and line breaks', () => {
 		const question = buildQuestion();
 
 		const summary = question.formatAnswerForSummary(
@@ -150,7 +150,7 @@ describe('CustomMultiFieldInputQuestion', () => {
 		assert.ok(String(summary[0].value).includes('email<br>'));
 	});
 
-	test('formatAnswerForSummary uses custom formatJoinString', () => {
+	it('should use custom formatJoinString', () => {
 		const question = buildQuestion({
 			inputFields: [
 				{ fieldName: 'a', label: 'A', formatJoinString: ' | ' },
@@ -162,7 +162,7 @@ describe('CustomMultiFieldInputQuestion', () => {
 		assert.equal(summary[0].value, 'Apple | Banana<br>');
 	});
 
-	test('formatAnswerForSummary escapes HTML and avoids double <br> in manage list section', () => {
+	it('should escape HTML and avoid double br in manage list section', () => {
 		const question = buildQuestion({
 			inputFields: [{ fieldName: 'bio', label: 'Bio' }]
 		});
@@ -175,7 +175,7 @@ describe('CustomMultiFieldInputQuestion', () => {
 		assert.equal(summary[0].value, 'Hello &lt;b&gt;World&lt;/b&gt;<br>Line2\n');
 	});
 
-	test('formatAnswerForSummary returns empty string when some unanswered but not all', () => {
+	it('should return empty string when some unanswered but not all', () => {
 		const question = buildQuestion({
 			inputFields: [
 				{ fieldName: 'firstName', label: 'First name' },
@@ -190,7 +190,7 @@ describe('CustomMultiFieldInputQuestion', () => {
 		assert.equal(summary[0].value, '');
 	});
 
-	test('allQuestionsUnanswered returns true only when every input field is undefined', () => {
+	it('should return true only when every input field is undefined', () => {
 		const question = buildQuestion({
 			inputFields: [
 				{ fieldName: 'a', label: 'A' },
@@ -208,7 +208,7 @@ describe('CustomMultiFieldInputQuestion', () => {
 		assert.equal(summaryOneDefined[0].value, '');
 	});
 
-	test('formatting function is applied only when value is truthy', () => {
+	it('should apply formatting function only when value is truthy', () => {
 		const question = buildQuestion({
 			inputFields: [{ fieldName: 'x', label: 'X', formatTextFunction: (value) => `Value:${value}` }]
 		});
@@ -218,5 +218,259 @@ describe('CustomMultiFieldInputQuestion', () => {
 		assert.equal(answersTruthy, 'Value:hello');
 		assert.equal(answersFalsyEmpty, '');
 		assert.equal(answersFalsyUndefined, undefined);
+	});
+
+	it('should handle boolean field with default options', () => {
+		const question = buildQuestion({
+			inputFields: [
+				{
+					type: 'boolean',
+					fieldName: 'hasAgent',
+					question: 'Do you have an agent?'
+				}
+			]
+		});
+		const viewAnswers = question.answerForViewModel({ hasAgent: 'yes' });
+
+		assert.equal(viewAnswers[0].type, 'boolean');
+		assert.equal(viewAnswers[0].fieldName, 'hasAgent');
+		assert.equal(viewAnswers[0].question, 'Do you have an agent?');
+		assert.deepEqual(viewAnswers[0].options, [
+			{ text: 'Yes', value: 'yes', checked: true },
+			{ text: 'No', value: 'no', checked: false }
+		]);
+	});
+
+	it('should handle boolean field with no answer selected', () => {
+		const question = buildQuestion({
+			inputFields: [
+				{
+					type: 'boolean',
+					fieldName: 'hasAgent',
+					question: 'Do you have an agent?'
+				}
+			]
+		});
+		const viewAnswers = question.answerForViewModel({ hasAgent: undefined });
+
+		assert.deepEqual(viewAnswers[0].options, [
+			{ text: 'Yes', value: 'yes', checked: false },
+			{ text: 'No', value: 'no', checked: false }
+		]);
+	});
+
+	it('should handle boolean field with no selected', () => {
+		const question = buildQuestion({
+			inputFields: [
+				{
+					type: 'boolean',
+					fieldName: 'hasAgent',
+					question: 'Do you have an agent?'
+				}
+			]
+		});
+		const viewAnswers = question.answerForViewModel({ hasAgent: 'no' });
+
+		assert.deepEqual(viewAnswers[0].options, [
+			{ text: 'Yes', value: 'yes', checked: false },
+			{ text: 'No', value: 'no', checked: true }
+		]);
+	});
+
+	it('should handle boolean field with custom options', () => {
+		const question = buildQuestion({
+			inputFields: [
+				{
+					type: 'boolean',
+					fieldName: 'agreement',
+					question: 'Do you agree?',
+					options: [
+						{ text: 'I agree', value: 'agree' },
+						{ text: 'I disagree', value: 'disagree' }
+					]
+				}
+			]
+		});
+		const viewAnswers = question.answerForViewModel({ agreement: 'agree' });
+
+		assert.deepEqual(viewAnswers[0].options, [
+			{ text: 'I agree', value: 'agree', checked: true },
+			{ text: 'I disagree', value: 'disagree', checked: false }
+		]);
+	});
+
+	it('should handle multiple boolean fields', () => {
+		const question = buildQuestion({
+			inputFields: [
+				{
+					type: 'boolean',
+					fieldName: 'field1',
+					question: 'Question 1'
+				},
+				{
+					type: 'boolean',
+					fieldName: 'field2',
+					question: 'Question 2'
+				}
+			]
+		});
+		const viewAnswers = question.answerForViewModel({ field1: 'yes', field2: 'no' });
+
+		assert.equal(viewAnswers[0].options[0].checked, true);
+		assert.equal(viewAnswers[0].options[1].checked, false);
+		assert.equal(viewAnswers[1].options[0].checked, false);
+		assert.equal(viewAnswers[1].options[1].checked, true);
+	});
+
+	it('should handle boolean field with yes answer in summary', () => {
+		const question = buildQuestion({
+			inputFields: [
+				{
+					type: 'boolean',
+					fieldName: 'hasAgent',
+					question: 'Do you have an agent?',
+					options: [
+						{ text: 'Yes', value: 'yes' },
+						{ text: 'No', value: 'no' }
+					]
+				}
+			]
+		});
+
+		const summary = question.formatAnswerForSummary('segment', buildJourneyWithAnswers({ hasAgent: 'yes' }));
+		assert.ok(String(summary[0].value).includes('Yes'));
+	});
+
+	it('should handle boolean field with no answer in summary', () => {
+		const question = buildQuestion({
+			inputFields: [
+				{
+					type: 'boolean',
+					fieldName: 'hasAgent',
+					question: 'Do you have an agent?',
+					options: [
+						{ text: 'Yes', value: 'yes' },
+						{ text: 'No', value: 'no' }
+					]
+				}
+			]
+		});
+
+		const summary = question.formatAnswerForSummary('segment', buildJourneyWithAnswers({ hasAgent: 'no' }));
+		assert.ok(String(summary[0].value).includes('No'));
+	});
+
+	it('should handle boolean field with custom options in summary', () => {
+		const question = buildQuestion({
+			inputFields: [
+				{
+					type: 'boolean',
+					fieldName: 'agreement',
+					question: 'Do you agree?',
+					options: [
+						{ text: 'I agree', value: 'agree' },
+						{ text: 'I disagree', value: 'disagree' }
+					]
+				}
+			]
+		});
+
+		const summary = question.formatAnswerForSummary('segment', buildJourneyWithAnswers({ agreement: 'agree' }));
+		assert.ok(String(summary[0].value).includes('I agree'));
+	});
+
+	it('should handle boolean field with undefined answer in summary', () => {
+		const question = buildQuestion({
+			inputFields: [
+				{
+					type: 'boolean',
+					fieldName: 'hasAgent',
+					question: 'Do you have an agent?',
+					options: [
+						{ text: 'Yes', value: 'yes' },
+						{ text: 'No', value: 'no' }
+					]
+				}
+			]
+		});
+		question.notStartedText = 'Not started';
+
+		const summary = question.formatAnswerForSummary('segment', buildJourneyWithAnswers({ hasAgent: undefined }));
+		assert.ok(String(summary[0].value).includes('Not started'));
+	});
+
+	it('should handle mixed field types including boolean in summary', () => {
+		const question = buildQuestion({
+			inputFields: [
+				{ fieldName: 'name', label: 'Name' },
+				{
+					type: 'boolean',
+					fieldName: 'hasAgent',
+					question: 'Do you have an agent?',
+					options: [
+						{ text: 'Yes', value: 'yes' },
+						{ text: 'No', value: 'no' }
+					]
+				}
+			]
+		});
+
+		const summary = question.formatAnswerForSummary(
+			'segment',
+			buildJourneyWithAnswers({ name: 'Alice', hasAgent: 'yes' })
+		);
+		assert.ok(String(summary[0].value).includes('Alice'));
+		assert.ok(String(summary[0].value).includes('Yes'));
+	});
+
+	it('should handle boolean field values when saving data', async () => {
+		const question = buildQuestion({
+			inputFields: [
+				{
+					type: 'boolean',
+					fieldName: 'hasAgent',
+					question: 'Do you have an agent?'
+				}
+			]
+		});
+		const request = { body: { hasAgent: 'yes' } };
+		const result = await question.getDataToSave(request, {});
+		assert.deepEqual(result, { answers: { hasAgent: 'yes' } });
+	});
+
+	it('should handle boolean field with hint', () => {
+		const question = buildQuestion({
+			inputFields: [
+				{
+					type: 'boolean',
+					fieldName: 'hasAgent',
+					question: 'Do you have an agent?',
+					hint: 'This is a helpful hint'
+				}
+			]
+		});
+		const viewAnswers = question.answerForViewModel({ hasAgent: 'yes' });
+
+		assert.equal(viewAnswers[0].hint, 'This is a helpful hint');
+	});
+
+	it('should handle boolean field with formatPrefix in summary', () => {
+		const question = buildQuestion({
+			inputFields: [
+				{
+					type: 'boolean',
+					fieldName: 'hasAgent',
+					question: 'Do you have an agent?',
+					formatPrefix: 'Agent: ',
+					options: [
+						{ text: 'Yes', value: 'yes' },
+						{ text: 'No', value: 'no' }
+					]
+				}
+			]
+		});
+
+		const summary = question.formatAnswerForSummary('segment', buildJourneyWithAnswers({ hasAgent: 'yes' }));
+		assert.ok(String(summary[0].value).includes('Agent: Yes'));
 	});
 });

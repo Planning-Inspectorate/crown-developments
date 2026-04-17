@@ -36,6 +36,7 @@ import DateTimeValidator from '@planning-inspectorate/dynamic-forms/src/validato
 import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
 import CostsApplicationsCommentValidator from '@pins/crowndev-lib/forms/custom-components/costs-applications-comment/costs-applications-comment-validator.js';
 import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-components/manage-list/validator.js';
+import ApplicationCategoryValidator from '@pins/crowndev-lib/validators/application-category-validator.js';
 import { multiContactQuestions } from '../create-a-case/question-utils.js';
 import { getApplicantContactsValidator } from '../util/applicant-contacts-validator.js';
 
@@ -882,34 +883,48 @@ export function getQuestions(
 			costsApplicationQuestion: 'Capture if a party is making a cost claim against another for unreasonable behaviour.',
 			validators: [new CostsApplicationsCommentValidator()]
 		},
-		environmentalImpactAssessment: {
-			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'Environmental Impact Assessment (EIA) development',
-			question: 'Is this application an Environmental Impact Assessment (EIA) development?',
-			fieldName: 'environmentalImpactAssessment',
-			url: 'eia-development',
-			validators: [
-				new RequiredValidator('Select whether this application is an Environmental Impact Assessment (EIA) development')
+		applicationCategory: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MULTI_FIELD_INPUT,
+			title: 'Application category',
+			question: 'What is the application category?',
+			fieldName: 'applicationCategory',
+			url: 'application-category',
+			inputFields: [
+				{
+					fieldName: 'environmentalImpactAssessment',
+					type: 'boolean',
+					formatPrefix: 'EIA development: ',
+					question: 'Is this application an Environmental Impact Assessment (EIA) development?',
+					hint: "If 'Yes', this application will be marked as a special development",
+					options: [
+						{ text: 'Yes', value: 'yes' },
+						{ text: 'No', value: 'no' }
+					]
+				},
+				{
+					fieldName: 'developmentPlan',
+					type: 'boolean',
+					formatPrefix: 'Development plan: ',
+					question: 'Does this application accord with the development plan?',
+					hint: "If you select 'No', this application will be saved as a special development.",
+					options: [
+						{ text: 'Yes', value: 'yes' },
+						{ text: 'No', value: 'no' }
+					]
+				},
+				{
+					fieldName: 'rightOfWay',
+					type: 'boolean',
+					formatPrefix: 'Right of way: ',
+					question: 'Does this application affect a right of way?',
+					hint: "If 'Yes' this application will be saved as a special development.",
+					options: [
+						{ text: 'Yes', value: 'yes' },
+						{ text: 'No', value: 'no' }
+					]
+				}
 			],
-			hint: "If you select 'Yes' this application will be saved as a special development."
-		},
-		developmentPlan: {
-			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'Development plan',
-			question: 'Does this application accord with the development plan?',
-			fieldName: 'developmentPlan',
-			url: 'development-plan',
-			validators: [new RequiredValidator('Select whether this application accords with the development plan')],
-			hint: "If you select 'No', this application will be saved as a special development."
-		},
-		rightOfWay: {
-			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'Right of way',
-			question: 'Does this application affect a right of way?',
-			fieldName: 'rightOfWay',
-			url: 'right-of-way',
-			validators: [new RequiredValidator('Select whether this application involves a right of way')],
-			hint: "If you select 'Yes' this application will be saved as a special development."
+			validators: [new ApplicationCategoryValidator()]
 		},
 		containsDistressingContent: {
 			type: COMPONENT_TYPES.BOOLEAN,

@@ -250,6 +250,14 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		crownDevelopmentUpdateInput.siteArea = toFloat(edits.siteArea);
 	}
 
+	// convert yes/no string values to boolean for database boolean fields
+	['environmentalImpactAssessment', 'developmentPlan', 'rightOfWay'].forEach((field) => {
+		if (field in crownDevelopmentUpdateInput) {
+			const value = crownDevelopmentUpdateInput[field];
+			crownDevelopmentUpdateInput[field] = value === 'yes' ? true : value === 'no' ? false : null;
+		}
+	});
+
 	if (edits.representationsPeriod) {
 		crownDevelopmentUpdateInput.representationsPeriodStartDate = edits.representationsPeriod.start;
 		crownDevelopmentUpdateInput.representationsPeriodEndDate = edits.representationsPeriod.end;

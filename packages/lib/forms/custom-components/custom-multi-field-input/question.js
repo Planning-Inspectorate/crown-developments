@@ -51,12 +51,22 @@ import { nl2br } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
  */
 
 /**
+ * @typedef {BaseField & {
+ *   type: 'boolean',
+ *   question: string,
+ *   hint?: string,
+ *   options?: Array<{ text: string, value: string }>,
+ *   validators?: Array<any>
+ * }} BooleanField
+ */
+
+/**
  * @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.d.ts').CommonQuestionProps} CommonQuestionProps
  * @typedef {Omit<CommonQuestionProps, 'type'> & {
  *   type: 'custom-multi-field-input';
  *   label?: string;
  *   inputAttributes?: Record<string, string>;
- *   inputFields: (InputField|RadioField|HiddenField)[];
+ *   inputFields: (InputField|RadioField|HiddenField|BooleanField)[];
  * }} CustomMultiFieldInputQuestionProps
  */
 
@@ -69,7 +79,7 @@ export const HIDDEN_TYPE = 'hidden';
 export default class CustomMultiFieldInputQuestion extends Question {
 	/** @type {Record<string, string>} */
 	inputAttributes;
-	/** @type {(InputField|RadioField|HiddenField)[]} */
+	/** @type {(InputField|RadioField|HiddenField|BooleanField)[]} */
 	inputFields;
 
 	/**
@@ -77,7 +87,7 @@ export default class CustomMultiFieldInputQuestion extends Question {
 	 * @param {QuestionParameters} options.params
 	 * @param {string|undefined} [options.label] if defined this show as a label for the input and the question will just be a standard h1
 	 * @param {Record<string, string>} [options.inputAttributes] html attributes to add to the input
-	 * @param {(InputField|RadioField|HiddenField)[]} options.inputFields input fields
+	 * @param {(InputField|RadioField|HiddenField|BooleanField)[]} options.inputFields input fields
 	 */
 	constructor({ label, inputAttributes = {}, inputFields, ...params }) {
 		super({
@@ -105,10 +115,15 @@ export default class CustomMultiFieldInputQuestion extends Question {
 				return inputField;
 			}
 
-			if (inputField.type === 'radio') {
+			if (inputField.type === 'radio' || inputField.type === 'boolean') {
+				const options = inputField.options || [
+					{ text: 'Yes', value: 'yes' },
+					{ text: 'No', value: 'no' }
+				];
+
 				return {
 					...inputField,
-					options: inputField.options.map((option) => ({
+					options: options.map((option) => ({
 						...option,
 						checked: option.value === answers[inputField.fieldName]
 					}))
@@ -167,10 +182,20 @@ export default class CustomMultiFieldInputQuestion extends Question {
 	 */
 	formatAnswerForSummary(sectionSegment, journey) {
 		const summaryDetails = this.inputFields.reduce((acc, field) => {
-			const answer = this.#formatValue(
-				String(journey.response.answers[field.fieldName] || ''),
-				field.formatTextFunction
-			);
+			let answer;
+			if (field.type === 'boolean' || field.type === 'radio') {
+				const options =
+					field.options ||
+					(field.type === 'boolean'
+						? [
+								{ text: 'Yes', value: 'yes' },
+								{ text: 'No', value: 'no' }
+							]
+						: []);
+				answer = options.find((opt) => opt.value === journey.response.answers[field.fieldName])?.text || '';
+			} else {
+				answer = this.#formatValue(String(journey.response.answers[field.fieldName] || ''), field.formatTextFunction);
+			}
 			return answer ? acc + (field.formatPrefix || '') + answer + (field.formatJoinString || '\n') : acc;
 		}, '');
 
