@@ -847,14 +847,6 @@ function buildApplicantContactOrganisationUpdates(edits, viewModel) {
 			if (operations.create.length) organisationToContact.create = operations.create;
 			if (operations.deleteMany.length) organisationToContact.deleteMany = operations.deleteMany;
 
-			// Ensure the join-row id belongs to this case
-			const existsOnCase = (viewModel.manageApplicantDetails || []).some(
-				(o) => o?.organisationRelationId === relationId
-			);
-			if (!existsOnCase) {
-				return;
-			}
-
 			return {
 				where: { id: relationId },
 				data: {
