@@ -154,6 +154,7 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 			(crownToOrganisation) => crownToOrganisation.role === ORGANISATION_ROLES_ID.AGENT
 		);
 		viewModel.agentOrganisationName = agentOrganisationRelationship?.Organisation?.name;
+		viewModel.agentOrganisationId = agentOrganisationRelationship?.Organisation?.id;
 		viewModel.agentOrganisationRelationId = agentOrganisationRelationship?.id;
 		// Needed for address upserts when editing the agent organisation address.
 		viewModel.agentOrganisationAddressId =
