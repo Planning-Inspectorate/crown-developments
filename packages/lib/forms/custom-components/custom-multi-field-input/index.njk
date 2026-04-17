@@ -11,12 +11,18 @@
 
 {% block error_summary %}
     {% if errorSummary %}
+        {% set hasCombinationError = false %}
+        {% for error in errorSummary %}
+            {% if error.text and "Applications cannot accord" in error.text %}
+                {% set hasCombinationError = true %}
+            {% endif %}
+        {% endfor %}
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
                 {{
                 govukErrorSummary({
                     titleText: "There is a problem",
-                    descriptionText: "The combination of answers you selected is invalid. Check your answers for:",
+                    descriptionText: hasCombinationError and "The combination of answers you selected is invalid. Check your answers for:",
                     errorList: errorSummary
                 })
                 }}
