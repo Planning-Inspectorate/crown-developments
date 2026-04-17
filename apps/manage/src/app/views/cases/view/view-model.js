@@ -6,15 +6,16 @@ import {
 import { toFloat, toInt } from '@pins/crowndev-lib/util/numbers.js';
 import { booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { optionalWhere } from '@pins/crowndev-lib/util/database.js';
-import {
-	addressToViewModel,
-	viewModelToAddressUpdateInput,
-	isAddress,
-	isSameAddress
-} from '@pins/crowndev-lib/util/address.js';
+import { addressToViewModel, viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.js';
 import { parseNumberStringToNumber } from '@pins/crowndev-lib/util/numbers.js';
-import { extractAgentContactFields, extractApplicantContactFields } from '../util/contact.js';
-import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
+import {
+	buildAgentOrganisationNameUpdates,
+	buildAgentOrganisationAddressUpdates,
+	viewModelToNestedContactUpdate,
+	buildApplicantOrganisationUpdates,
+	buildApplicantContactOrganisationUpdates,
+	buildAgentContactOrganisationUpdates
+} from './organisation-contact-updates.js';
 
 /**
  * CrownDevelopment fields that do not need mapping to a (or from) the view model
@@ -227,9 +228,11 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
  *
  * @param {Partial<import('./types.js').CrownDevelopmentViewModel>} edits - edited fields only
  * @param {import('./types.js').CrownDevelopmentViewModel} viewModel - full view model with all case details
+ * @param {{includeOrganisations?: boolean}} [options] - default true
  * @returns {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput}
  */
-export function editsToDatabaseUpdates(edits, viewModel) {
+export function editsToDatabaseUpdates(edits, viewModel, options = {}) {
+	const includeOrganisations = options?.includeOrganisations !== false;
 	/** @type {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput} */
 	const crownDevelopmentUpdateInput = {};
 	// map all the regular fields to the update input
@@ -287,28 +290,30 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		crownDevelopmentUpdateInput.AgentContact = agentContactUpdates;
 	}
 
-	if ('manageApplicantDetails' in edits) {
-		crownDevelopmentUpdateInput.Organisations = buildApplicantOrganisationUpdates(edits, viewModel);
-	}
+	if (includeOrganisations) {
+		if ('manageApplicantDetails' in edits) {
+			crownDevelopmentUpdateInput.Organisations = buildApplicantOrganisationUpdates(edits, viewModel);
+		}
 
-	// Applicant contacts linked to organisations
-	if ('manageApplicantContactDetails' in edits) {
-		crownDevelopmentUpdateInput.Organisations = buildApplicantContactOrganisationUpdates(edits, viewModel);
-	}
+		// Applicant contacts linked to organisations
+		if ('manageApplicantContactDetails' in edits) {
+			crownDevelopmentUpdateInput.Organisations = buildApplicantContactOrganisationUpdates(edits, viewModel);
+		}
 
-	// Agent contacts linked to organisations
-	if ('manageAgentContactDetails' in edits) {
-		crownDevelopmentUpdateInput.Organisations = buildAgentContactOrganisationUpdates(edits, viewModel);
-	}
+		// Agent contacts linked to organisations
+		if ('manageAgentContactDetails' in edits) {
+			crownDevelopmentUpdateInput.Organisations = buildAgentContactOrganisationUpdates(edits, viewModel);
+		}
 
-	const agentOrganisationNameUpdates = buildAgentOrganisationNameUpdates(edits, viewModel);
-	if (agentOrganisationNameUpdates) {
-		crownDevelopmentUpdateInput.Organisations = agentOrganisationNameUpdates;
-	}
+		const agentOrganisationNameUpdates = buildAgentOrganisationNameUpdates(edits, viewModel);
+		if (agentOrganisationNameUpdates) {
+			crownDevelopmentUpdateInput.Organisations = agentOrganisationNameUpdates;
+		}
 
-	const agentOrganisationAddressUpdates = buildAgentOrganisationAddressUpdates(edits, viewModel);
-	if (agentOrganisationAddressUpdates) {
-		crownDevelopmentUpdateInput.Organisations = agentOrganisationAddressUpdates;
+		const agentOrganisationAddressUpdates = buildAgentOrganisationAddressUpdates(edits, viewModel);
+		if (agentOrganisationAddressUpdates) {
+			crownDevelopmentUpdateInput.Organisations = agentOrganisationAddressUpdates;
+		}
 	}
 
 	if ('procedureId' in edits && edits.procedureId !== viewModel.procedureId) {
@@ -380,92 +385,6 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 }
 
 /**
- * Build nested updates for agent organisation name.
- *
- * @param {import('./types.js').CrownDevelopmentViewModel} edits
- * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
- * @returns {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput['Organisations']}
- */
-function buildAgentOrganisationNameUpdates(edits, viewModel) {
-	if (!('agentOrganisationName' in edits) || !edits.agentOrganisationName) {
-		return undefined;
-	}
-
-	if (!viewModel.agentOrganisationRelationId) {
-		return {
-			create: [
-				{
-					Role: { connect: { id: ORGANISATION_ROLES_ID.AGENT } },
-					Organisation: {
-						create: {
-							name: edits.agentOrganisationName
-						}
-					}
-				}
-			]
-		};
-	}
-
-	return {
-		update: [
-			{
-				where: { id: viewModel.agentOrganisationRelationId },
-				data: {
-					Organisation: {
-						update: { name: edits.agentOrganisationName }
-					}
-				}
-			}
-		]
-	};
-}
-
-/**
- * Build nested updates for agent organisation address.
- *
- * @param {import('./types.js').CrownDevelopmentViewModel} edits
- * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
- * @returns {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput['Organisations']}
- */
-function buildAgentOrganisationAddressUpdates(edits, viewModel) {
-	if (!('agentOrganisationAddress' in edits)) {
-		return undefined;
-	}
-
-	const agentAddress = edits.agentOrganisationAddress
-		? viewModelToAddressUpdateInput(edits.agentOrganisationAddress)
-		: null;
-	if (!agentAddress) {
-		return undefined;
-	}
-
-	if (!viewModel.agentOrganisationRelationId) {
-		throw new Error('Unable to find agent organisation for this case - cannot update agent address');
-	}
-
-	return {
-		update: [
-			{
-				where: { id: viewModel.agentOrganisationRelationId },
-				data: {
-					Organisation: {
-						update: {
-							Address: {
-								upsert: {
-									where: optionalWhere(viewModel.agentOrganisationAddressId),
-									create: agentAddress,
-									update: agentAddress
-								}
-							}
-						}
-					}
-				}
-			}
-		]
-	};
-}
-
-/**
  * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
  * @param {import('@pins/crowndev-database').Prisma.ContactGetPayload<{include: {Address: true}}>|null} contact
  * @param {import('./types.js').ContactTypeValues} prefix
@@ -480,387 +399,6 @@ function addContactToViewModel(viewModel, contact, prefix) {
 			viewModel[`${prefix}ContactAddressId`] = contact.addressId;
 		}
 	}
-}
-
-/**
- * @param {import('./types.js').CrownDevelopmentViewModel} edits
- * @param {import('./types.js').ContactTypeValues} prefix
- * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
- * @returns {import('@pins/crowndev-database').Prisma.ContactUpdateOneWithoutCrownDevelopmentApplicantNestedInput|null}
- */
-function viewModelToNestedContactUpdate(edits, prefix, viewModel) {
-	/** @type {import('@pins/crowndev-database').Prisma.ContactCreateInput} */
-	const createInput = {};
-
-	if (`${prefix}ContactName` in edits) {
-		createInput.orgName = edits[`${prefix}ContactName`];
-	}
-	if (`${prefix}ContactTelephoneNumber` in edits) {
-		createInput.telephoneNumber = edits[`${prefix}ContactTelephoneNumber`];
-	}
-	if (`${prefix}ContactEmail` in edits) {
-		createInput.email = edits[`${prefix}ContactEmail`];
-	}
-	if (`${prefix}ContactAddress` in edits) {
-		const addressUpdateInput = viewModelToAddressUpdateInput(edits[`${prefix}ContactAddress`]);
-		createInput.Address = {
-			create: addressUpdateInput
-		};
-	}
-	if (Object.keys(createInput).length === 0) {
-		return null;
-	}
-	const contactExists = Boolean(viewModel[`${prefix}ContactId`]);
-
-	if (!contactExists) {
-		return {
-			create: createInput
-		};
-	}
-	/** @type {import('@pins/crowndev-database').Prisma.ContactUpdateInput} */
-	const updateInput = {
-		...createInput
-	};
-	if (updateInput.Address) {
-		const addressId = viewModel[`${prefix}ContactAddressId`];
-		updateInput.Address = {
-			upsert: {
-				where: optionalWhere(addressId),
-				create: updateInput.Address.create,
-				update: updateInput.Address.create
-			}
-		};
-	}
-	return {
-		update: updateInput
-	};
-}
-
-/**
- * Build create updates for agent organisation contacts.
- * Updates for existing contacts are handled in a separate transaction.
- *
- * @param {import('./types.js').CrownDevelopmentViewModel} edits
- * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
- * @returns {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput['Organisations']}
- */
-function buildAgentContactOrganisationUpdates(edits, viewModel) {
-	const contacts = Array.isArray(edits.manageAgentContactDetails) ? edits.manageAgentContactDetails : [];
-	const contactCreate = [];
-
-	if (contacts.length === 0) {
-		return undefined;
-	}
-
-	if (!viewModel.agentOrganisationRelationId) {
-		throw new Error('Unable to find agent organisation for this case - cannot update agent contacts');
-	}
-
-	for (const contact of contacts) {
-		// Only new contacts get created
-		if (contact.organisationToContactRelationId) {
-			continue;
-		}
-
-		const individualContactCreate = extractAgentContactFields(contact);
-		contactCreate.push({
-			Contact: { create: individualContactCreate }
-		});
-	}
-
-	if (contactCreate.length === 0) {
-		return undefined;
-	}
-
-	return {
-		update: [
-			{
-				where: { id: viewModel.agentOrganisationRelationId },
-				data: {
-					Organisation: {
-						update: {
-							OrganisationToContact: { create: contactCreate }
-						}
-					}
-				}
-			}
-		]
-	};
-}
-
-/**
- * Build nested updates for applicant organisations.
- *
- * @param {import('./types.js').CrownDevelopmentViewModel} edits
- * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
- * @returns {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput['Organisations']}
- */
-function buildApplicantOrganisationUpdates(edits, viewModel) {
-	const organisations = Array.isArray(edits.manageApplicantDetails) ? edits.manageApplicantDetails : [];
-	if (organisations.length === 0) {
-		return undefined;
-	}
-
-	const existingByRelationId = new Map(
-		(viewModel.manageApplicantDetails || [])
-			.map(
-				(organisation) =>
-					/** @type {readonly [string, import('./types.js').ManageApplicantDetails]} */ ([
-						organisation.organisationRelationId,
-						organisation
-					])
-			)
-			.filter(([key]) => typeof key === 'string' && key.length)
-	);
-
-	/** @type {import('./types.js').ManageApplicantDetails[]} **/
-	const update = [];
-	/** @type {import('./types.js').ManageApplicantDetails[]} **/
-	const create = [];
-
-	organisations.forEach((organisation) => {
-		if (!organisation.organisationRelationId) {
-			create.push(organisation);
-			return;
-		}
-		update.push(organisation);
-	});
-
-	/** @type {import('@pins/crowndev-database').Prisma.CrownDevelopmentToOrganisationCreateWithoutCrownDevelopmentInput[]} */
-	const createOperations = create.map((organisation) => {
-		/** @type {any} */
-		const createOperation = {
-			Role: { connect: { id: ORGANISATION_ROLES_ID.APPLICANT } },
-			Organisation: {
-				create: {
-					name: organisation.organisationName
-				}
-			}
-		};
-
-		const address =
-			organisation.organisationAddress && isAddress(organisation.organisationAddress)
-				? viewModelToAddressUpdateInput(organisation.organisationAddress)
-				: null;
-		if (address) {
-			createOperation.Organisation.create.Address = {
-				create: address
-			};
-		}
-
-		return createOperation;
-	});
-
-	/** @type {import('@pins/crowndev-database').Prisma.CrownDevelopmentToOrganisationUpdateWithWhereUniqueWithoutCrownDevelopmentInput[]} */
-	const updateOperations = update
-		.map((organisation) => {
-			const existing = existingByRelationId.get(organisation.organisationRelationId);
-
-			// If we can’t find existing, fall back to updating (or you could throw)
-			const nameChanged = !existing || (organisation.organisationName ?? '') !== (existing.organisationName ?? '');
-
-			const existingAddress =
-				existing && isAddress(existing.organisationAddress) ? existing.organisationAddress : undefined;
-
-			const addressChanged =
-				isAddress(organisation.organisationAddress) &&
-				(!existingAddress || !isSameAddress(organisation.organisationAddress, existingAddress));
-
-			if (!nameChanged && !addressChanged) {
-				return;
-			}
-
-			/** @type {import('@pins/crowndev-database').Prisma.OrganisationUpdateInput} */
-			const organisationUpdate = {};
-
-			if (nameChanged) {
-				organisationUpdate.name = organisation.organisationName;
-			}
-
-			if (addressChanged) {
-				const address =
-					organisation.organisationAddress && isAddress(organisation.organisationAddress)
-						? viewModelToAddressUpdateInput(organisation.organisationAddress)
-						: null;
-
-				if (address) {
-					organisationUpdate.Address = {
-						upsert: {
-							where: optionalWhere(existing?.organisationAddressId),
-							create: address,
-							update: address
-						}
-					};
-				}
-			}
-
-			// If nothing changed, return undefined and filter it out
-			if (Object.keys(organisationUpdate).length === 0) {
-				return;
-			}
-
-			return {
-				where: { id: organisation.organisationRelationId },
-				data: {
-					Organisation: {
-						update: organisationUpdate
-					}
-				}
-			};
-		})
-		.filter(isDefined);
-
-	if (updateOperations.length === 0 && createOperations.length === 0) {
-		return undefined;
-	}
-
-	return {
-		update: updateOperations,
-		create: createOperations
-	};
-}
-
-/**
- * Build nested updates for applicant organisation contacts.
- *
- * @param {import('./types.js').CrownDevelopmentViewModel} edits
- * @param {import('./types.js').CrownDevelopmentViewModel} viewModel
- * @returns {import('@pins/crowndev-database').Prisma.CrownDevelopmentUpdateInput['Organisations']}
- */
-function buildApplicantContactOrganisationUpdates(edits, viewModel) {
-	const contacts = Array.isArray(edits.manageApplicantContactDetails) ? edits.manageApplicantContactDetails : [];
-	if (contacts.length === 0) {
-		return undefined;
-	}
-
-	// Map of organisationId -> relationId (CrownDevelopmentToOrganisation id)
-	/** @type {Map<string, string>} */
-	const orgIdToRelationId = new Map(
-		(viewModel.manageApplicantDetails || [])
-			.map(
-				(organisation) =>
-					/** @type {readonly [string, string]} */ ([organisation?.id, organisation?.organisationRelationId])
-			)
-			.filter((pair) => pair[0] && pair[1])
-	);
-
-	// Map of organisationToContactRelationId -> current organisationId + contactId
-	// Used to support moving a contact to a different organisation without creating a new Contact.
-	/** @type {Map<string, {organisationId: string, contactId: string}>} */
-	const existingRelationToOrgAndContact = new Map(
-		(viewModel.manageApplicantContactDetails || [])
-			.map(
-				(contact) =>
-					/** @type {[string, {organisationId: string, contactId: string}]} */ ([
-						contact?.organisationToContactRelationId,
-						{ organisationId: contact?.applicantContactOrganisation, contactId: contact?.id }
-					])
-			)
-			.filter(
-				(pair) =>
-					typeof pair[0] === 'string' &&
-					typeof pair[1]?.organisationId === 'string' &&
-					typeof pair[1]?.contactId === 'string'
-			)
-	);
-
-	/**
-	 * Map of relationId -> create/delete operations to perform on that relation's join table
-	 */
-	/** @type {Map<string, {create: any[], deleteMany: any[]}>} */
-	const byRelation = new Map();
-
-	/**
-	 * @typedef {Object} OrganisationRelationBucket
-	 * @property {Array<{Contact: {create: any} | {connect: {id: string}}}>} create
-	 * @property {Array<{id: string}>} deleteMany
-	 */
-
-	/**
-	 * Helper to get or initialize the create/delete buckets for a given relation ID
-	 *
-	 * @param {string} relationId
-	 * @returns {OrganisationRelationBucket}
-	 */
-	const ensureBucket = (relationId) => {
-		if (!byRelation.has(relationId)) byRelation.set(relationId, { create: [], deleteMany: [] });
-		const bucket = byRelation.get(relationId);
-		if (!bucket) throw new Error('Failed to initialize bucket for organisation relation selector');
-		return bucket;
-	};
-
-	for (const contact of contacts) {
-		const targetOrganisationId = contact?.applicantContactOrganisation;
-		if (!targetOrganisationId) {
-			throw new Error('Unable to match applicant contact to organisation - no valid selector');
-		}
-
-		const targetRelationId = orgIdToRelationId.get(targetOrganisationId);
-		if (!targetRelationId) {
-			throw new Error(
-				`Found an orphaned contact with selector "${targetOrganisationId}" that does not match any organisation on this case`
-			);
-		}
-
-		if (!contact.organisationToContactRelationId) {
-			// (1) New contact: create join row + Contact
-			const contactCreate = extractApplicantContactFields(contact);
-			ensureBucket(targetRelationId).create.push({
-				Contact: { create: contactCreate }
-			});
-			continue;
-		}
-
-		// For existing contacts, ALWAYS determine the organisation that currently owns the join row
-		// from the persisted view-model, not from the edited selector.
-		const existing = existingRelationToOrgAndContact.get(contact.organisationToContactRelationId);
-		if (!existing) {
-			// If we don't recognise this join row, don't attempt any nested update (it may be under a different org).
-			// Contact details will be handled by the separate $tx.contact.update step.
-			continue;
-		}
-
-		const isChangingOrganisation = existing.organisationId !== targetOrganisationId;
-		if (!isChangingOrganisation) {
-			// (2) Details update only: no join-table change required; Contact update happens separately.
-			continue;
-		}
-
-		// (3) Org change (and (4) org+details change): move the join row
-		const sourceRelationId = orgIdToRelationId.get(existing.organisationId);
-		if (!sourceRelationId) {
-			throw new Error(
-				`Unable to move contact - source organisation "${existing.organisationId}" is not present on this case`
-			);
-		}
-
-		ensureBucket(sourceRelationId).deleteMany.push({ id: contact.organisationToContactRelationId });
-		ensureBucket(targetRelationId).create.push({
-			Contact: { connect: { id: existing.contactId } }
-		});
-	}
-
-	const updateOperations = Array.from(byRelation.entries())
-		.map(([relationId, operations]) => {
-			/** @type {any} */
-			const organisationToContact = {};
-			if (operations.create.length) organisationToContact.create = operations.create;
-			if (operations.deleteMany.length) organisationToContact.deleteMany = operations.deleteMany;
-
-			return {
-				where: { id: relationId },
-				data: {
-					Organisation: {
-						update: {
-							OrganisationToContact: organisationToContact
-						}
-					}
-				}
-			};
-		})
-		.filter(isDefined);
-
-	return { update: updateOperations };
 }
 
 /**
