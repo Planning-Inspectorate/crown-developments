@@ -16,6 +16,15 @@ describe('save', () => {
 					findMany: mock.fn(() => []),
 					update: mock.fn()
 				},
+				organisation: {
+					create: mock.fn(() => ({ id: 'org-db-id-1' }))
+				},
+				contact: {
+					create: mock.fn(() => ({ id: 'contact-db-id-1' }))
+				},
+				organisationToContact: {
+					create: mock.fn(() => ({ id: 'org-to-contact-id-1' }))
+				},
 				$transaction(fn) {
 					return fn(this);
 				}
@@ -968,6 +977,201 @@ describe('save', () => {
 
 			assert.strictEqual(notifyClient.sendAcknowledgePreNotification.mock.callCount(), 0);
 		});
+		it('should create linked applicants and agents when case is Planning and LBC', async () => {
+			const service = mockService();
+			service.isMultipleApplicantsLive = true;
+			const { db } = service;
+			const save = buildSaveController(service);
+			const answers = {
+				applicantEmail: 'applicant@test.com',
+				developmentDescription: 'Project One',
+				typeOfApplication: 'planning-permission-and-listed-building-consent',
+				lpaId: 'lpa-1',
+				hasAgent: 'yes',
+				agentOrganisationName: 'Agent Org',
+				agentOrganisationAddress: {},
+				manageAgentContactDetails: [
+					{
+						agentFirstName: 'Agent contact',
+						agentLastName: 'one',
+						agentContactEmail: 'agent1@test.com',
+						agentContactTelephoneNumber: '123'
+					}
+				],
+				manageApplicantDetails: [
+					{
+						id: 'applicant-org-1',
+						organisationName: 'Applicant Org',
+						organisationAddress: {
+							addressLine1: '1 Test Street',
+							addressLine2: '',
+							townCity: 'Testville',
+							county: 'Testshire',
+							postcode: 'TE1 1ST'
+						}
+					}
+				],
+				manageApplicantContactDetails: [
+					{
+						applicantContactOrganisation: 'applicant-org-1',
+						applicantFirstName: 'A',
+						applicantLastName: 'Person',
+						applicantContactEmail: 'applicant-contact@test.com',
+						applicantContactTelephoneNumber: '0123456789'
+					}
+				]
+			};
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers
+					}
+				}
+			};
+
+			await save({}, res, mock.fn());
+
+			assert.strictEqual(db.organisation.create.mock.callCount(), 2);
+			assert.strictEqual(
+				db.contact.create.mock.callCount(),
+				0,
+				'Shared org/contact creation should be done via nested writes, not separate creates'
+			);
+			assert.strictEqual(
+				db.organisationToContact.create.mock.callCount(),
+				0,
+				'Shared org/contact creation should be done via nested writes, not separate creates'
+			);
+			const orgCreateArgs = db.organisation.create.mock.calls[0].arguments[0];
+			assert.ok(orgCreateArgs.data.OrganisationToContact);
+			assert.ok(Array.isArray(orgCreateArgs.data.OrganisationToContact.create));
+		});
+
+		it('should connect both linked cases to the same shared organisations when case is Planning and LBC', async () => {
+			const service = mockService();
+			service.isMultipleApplicantsLive = true;
+			const { db } = service;
+			db.organisation.create.mock.mockImplementationOnce(() => ({ id: 'org-db-id-1' }));
+			db.organisation.create.mock.mockImplementationOnce(() => ({ id: 'org-db-id-2' }));
+			const save = buildSaveController(service);
+			const answers = {
+				developmentDescription: 'Project One',
+				typeOfApplication: 'planning-permission-and-listed-building-consent',
+				lpaId: 'lpa-1',
+				hasAgent: 'yes',
+				agentOrganisationName: 'Agent Org',
+				agentOrganisationAddress: {},
+				manageAgentContactDetails: [
+					{
+						agentFirstName: 'Agent contact',
+						agentLastName: 'one',
+						agentContactEmail: 'agent1@test.com',
+						agentContactTelephoneNumber: '123'
+					}
+				],
+				manageApplicantDetails: [
+					{
+						id: 'applicant-org-1',
+						organisationName: 'Applicant Org',
+						organisationAddress: {
+							addressLine1: '1 Test Street',
+							addressLine2: '',
+							townCity: 'Testville',
+							county: 'Testshire',
+							postcode: 'TE1 1ST'
+						}
+					}
+				],
+				manageApplicantContactDetails: [
+					{
+						applicantContactOrganisation: 'applicant-org-1',
+						applicantFirstName: 'A',
+						applicantLastName: 'Person',
+						applicantContactEmail: 'applicant-contact@test.com',
+						applicantContactTelephoneNumber: '0123456789'
+					}
+				]
+			};
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers
+					}
+				}
+			};
+
+			await save({}, res, mock.fn());
+
+			assert.strictEqual(db.crownDevelopment.create.mock.callCount(), 2);
+			assert.strictEqual(db.organisation.create.mock.callCount(), 2);
+
+			const { data: caseData } = db.crownDevelopment.create.mock.calls[0].arguments[0];
+			const { data: linkedCaseData } = db.crownDevelopment.create.mock.calls[1].arguments[0];
+			assert.deepStrictEqual(
+				caseData.Organisations,
+				linkedCaseData.Organisations,
+				'Organisations are not shared between cases'
+			);
+			assert.ok(Array.isArray(caseData.Organisations?.create));
+			// Order of applicant/agent creation is not important, so sort before comparing
+			assert.deepStrictEqual(caseData.Organisations.create.map((c) => c.Organisation.connect.id).sort(), [
+				'org-db-id-1',
+				'org-db-id-2'
+			]);
+		});
+
+		it('should not create cases if shared organisation creation fails for linked case flow', async () => {
+			const service = mockService();
+			const { db } = service;
+			const failure = new Error('Organisation create failed');
+			db.organisation.create = mock.fn(() => {
+				throw failure;
+			});
+
+			const save = buildSaveController(service);
+			const answers = {
+				applicantEmail: 'applicant@test.com',
+				developmentDescription: 'Project One',
+				typeOfApplication: 'planning-permission-and-listed-building-consent',
+				lpaId: 'lpa-1',
+				manageApplicantDetails: [
+					{
+						id: 'applicant-org-1',
+						organisationName: 'Applicant Org',
+						organisationAddress: {
+							addressLine1: '1 Test Street',
+							addressLine2: '',
+							townCity: 'Testville',
+							county: 'Testshire',
+							postcode: 'TE1 1ST'
+						}
+					}
+				],
+				manageApplicantContactDetails: [
+					{
+						applicantContactOrganisation: 'applicant-org-1',
+						applicantFirstName: 'A',
+						applicantLastName: 'Person',
+						applicantContactEmail: 'applicant-contact@test.com',
+						applicantContactTelephoneNumber: '0123456789'
+					}
+				]
+			};
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers
+					}
+				}
+			};
+
+			await assert.rejects(() => save({}, res, mock.fn()), /Organisation create failed/);
+			assert.strictEqual(db.crownDevelopment.create.mock.callCount(), 0);
+			assert.strictEqual(res.redirect.mock.callCount(), 0);
+		});
 	});
 	describe('newReference', () => {
 		const dbMock = () => {
@@ -1094,6 +1298,54 @@ describe('save', () => {
 		it('should throw error when no data object', async () => {
 			const successController = buildSuccessController({});
 			await assert.rejects(() => successController({}, {}), { message: 'invalid create case session' });
+		});
+		it('should throw error when id or reference is missing, empty or not a string', async () => {
+			const successController = buildSuccessController({});
+
+			const cases = [
+				{
+					name: 'id is empty string',
+					data: { id: '', reference: 'ref' }
+				},
+				{
+					name: 'reference is empty string',
+					data: { id: 'id', reference: '' }
+				},
+				{
+					name: 'id is not a string',
+					data: { id: 123, reference: 'ref' }
+				},
+				{
+					name: 'reference is not a string',
+					data: { id: 'id', reference: 456 }
+				},
+				{
+					name: 'id is null',
+					data: { id: null, reference: 'ref' }
+				},
+				{
+					name: 'reference is null',
+					data: { id: 'id', reference: null }
+				}
+			];
+
+			for (const tc of cases) {
+				const mockReq = {
+					session: {
+						forms: {
+							'create-a-case': tc.data
+						}
+					}
+				};
+
+				await assert.rejects(
+					() => successController(mockReq, {}),
+					{
+						message: 'Case ID or reference missing'
+					},
+					`Missing case detail not caught for ${tc.name}`
+				);
+			}
 		});
 		it('should throw error when no id exists in data object', async () => {
 			const mockReq = {
@@ -1307,13 +1559,13 @@ describe('save', () => {
 
 			const orgCreates = input.Organisations.create;
 			assert.strictEqual(orgCreates.length, 2);
-			assert.deepStrictEqual(orgCreates[0].Role, { connect: { id: 'agent' } });
-			assert.deepStrictEqual(orgCreates[1].Role, { connect: { id: 'applicant' } });
+			assert.deepStrictEqual(orgCreates[0].Role, { connect: { id: 'applicant' } });
+			assert.deepStrictEqual(orgCreates[1].Role, { connect: { id: 'agent' } });
 
 			const names = orgCreates.map((o) => o.Organisation.create.name);
-			assert.deepStrictEqual(names, ['Agent Org', 'Applicant One']);
+			assert.deepStrictEqual(names, ['Applicant One', 'Agent Org']);
 
-			const agentOrg = orgCreates[0].Organisation.create;
+			const agentOrg = orgCreates[1].Organisation.create;
 			assert.ok(agentOrg.OrganisationToContact);
 		});
 		it('should include agent organisation and contacts when agent is present', () => {

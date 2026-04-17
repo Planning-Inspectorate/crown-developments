@@ -60,10 +60,11 @@ export function buildSaveController(service) {
 			 * @param {string} reference
 			 * @param {string|null} subType
 			 * @param {Partial<CrownDevelopmentData>} [extraData={}]
+			 * @param {import('@pins/crowndev-database').Prisma.CrownDevelopmentToOrganisationCreateWithoutCrownDevelopmentInput[]|undefined} [organisations]
 			 * @returns {Promise<CreatedCrownDevelopment>}
 			 */
-			async function createCase(reference, subType, extraData = {}) {
-				const input = toCreateInput(answers, reference, subType);
+			async function createCase(reference, subType, extraData = {}, organisations) {
+				const input = toCreateInput(answers, reference, subType, { organisations });
 				Object.assign(input, extraData);
 				logger.info({ reference }, 'creating a new case');
 				const created = await $tx.crownDevelopment.create({ data: input });
@@ -75,13 +76,23 @@ export function buildSaveController(service) {
 			lbcReference = `${reference}/LBC`;
 			const subType = isPlanningAndLbcCase ? APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION : null;
 
-			const created = await createCase(reference, subType);
+			// If we are creating a linked pair, create shared organisations/contacts once and connect both cases to them.
+			const sharedOrganisations = isPlanningAndLbcCase
+				? await createSharedPartiesAndBuildOrganisationConnects($tx, answers)
+				: undefined;
+
+			const created = await createCase(reference, subType, {}, sharedOrganisations);
 			id = created.id;
 
 			if (isPlanningAndLbcCase) {
-				await createCase(lbcReference, APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT, {
-					ParentCrownDevelopment: { connect: { id } }
-				});
+				await createCase(
+					lbcReference,
+					APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT,
+					{
+						ParentCrownDevelopment: { connect: { id } }
+					},
+					sharedOrganisations
+				);
 			}
 		});
 
@@ -136,8 +147,12 @@ export function buildSaveController(service) {
 export function buildSuccessController({ db }) {
 	return async (req, res) => {
 		const data = req.session?.forms && req.session?.forms[JOURNEY_ID];
-		if (!data || !data.id || !data.reference) {
+		if (!data || typeof data !== 'object' || !('id' in data) || !('reference' in data)) {
 			throw new Error('invalid create case session');
+		}
+
+		if (!data.id || typeof data.id !== 'string' || !data.reference || typeof data.reference !== 'string') {
+			throw new Error('Case ID or reference missing');
 		}
 
 		const crownDevelopment = await db.crownDevelopment.findUnique({
@@ -189,17 +204,18 @@ function validateOrphanedContacts(answers) {
 }
 
 /**
- * Build organisations and their contacts from applicants.
- *
- * Because Prisma doesn't allow nested createMany with relations, we have to map to individual
- * creates for organisations and their contacts.
+ * Extract applicant organisations and their linked contacts from answers.
  *
  * @param {CreateCaseAnswers} answers
- * @returns {Array<{Organisation: {create: import('@pins/crowndev-database').Prisma.OrganisationCreateInput}}>|null}
+ * @returns {Array<{
+ *  role: string,
+ *  organisation: import('@pins/crowndev-database').Prisma.OrganisationCreateInput,
+ *  contacts: import('@pins/crowndev-database').Prisma.ContactCreateInput[]
+ * }>}
  */
-function buildApplicantOrganisationCreates(answers) {
+function extractApplicantParties(answers) {
 	if (!hasAnswers(answers, 'manageApplicantDetails')) {
-		return null;
+		return [];
 	}
 
 	validateOrphanedContacts(answers);
@@ -215,43 +231,36 @@ function buildApplicantOrganisationCreates(answers) {
 					: undefined
 		};
 
+		/** @type {import('@pins/crowndev-database').Prisma.ContactCreateInput[]} */
+		let contacts = [];
 		if (hasAnswers(answers, 'manageApplicantContactDetails')) {
 			const linkedContacts = answers.manageApplicantContactDetails.filter((contact) => {
 				const selector = contact.applicantContactOrganisation;
 				if (!selector) throw new Error('Unable to match applicant contact to organisation - no valid selector');
-
-				// Match by ID (if session data has IDs)
-				return !!(applicantDetail.id && selector === applicantDetail.id);
+				return Boolean(applicantDetail.id && selector === applicantDetail.id);
 			});
-
-			// Organisations without contacts are valid in the hasAgent case.
-			if (linkedContacts.length > 0) {
-				organisationCreate.OrganisationToContact = {
-					create: linkedContacts.map((contact) => ({
-						Contact: {
-							create: extractApplicantContactFields(contact)
-						}
-					}))
-				};
-			}
+			contacts = linkedContacts.map((contact) => extractApplicantContactFields(contact));
 		}
 
 		return {
-			Role: { connect: { id: ORGANISATION_ROLES_ID.APPLICANT } },
-			Organisation: {
-				create: organisationCreate
-			}
+			role: ORGANISATION_ROLES_ID.APPLICANT,
+			organisation: organisationCreate,
+			contacts
 		};
 	});
 }
 
 /**
- * Build the single agent organisation and its contacts.
+ * Extract the single agent organisation and its contacts from answers.
  *
  * @param {CreateCaseAnswers} answers
- * @returns {Array<{Organisation: {create: import('@pins/crowndev-database').Prisma.OrganisationCreateInput}}>|null}
+ * @returns {{
+ *  role: string,
+ *  organisation: import('@pins/crowndev-database').Prisma.OrganisationCreateInput,
+ *  contacts: import('@pins/crowndev-database').Prisma.ContactCreateInput[]
+ * }|null}
  */
-function buildAgentOrganisationCreates(answers) {
+function extractAgentParty(answers) {
 	if (!hasAnswers(answers, 'hasAgent')) {
 		return null;
 	}
@@ -270,37 +279,129 @@ function buildAgentOrganisationCreates(answers) {
 		throw new Error('Agent name is required when the case has an agent');
 	}
 
-	return [
-		{
-			Role: { connect: { id: ORGANISATION_ROLES_ID.AGENT } },
-			Organisation: {
-				create: {
-					name: answers.agentOrganisationName.trim(),
-					// Only create an address if at least one field is filled in
-					Address:
-						answers.agentOrganisationAddress && Object.values(answers.agentOrganisationAddress || {}).some((v) => v)
-							? { create: toAddressInput(answers.agentOrganisationAddress) }
-							: undefined,
-					OrganisationToContact: {
-						create: answers.manageAgentContactDetails.map((contact) => ({
-							Contact: {
-								create: extractAgentContactFields(contact)
-							}
-						}))
-					}
-				}
-			}
+	const contacts = answers.manageAgentContactDetails.map((contact) => extractAgentContactFields(contact));
+
+	return {
+		role: ORGANISATION_ROLES_ID.AGENT,
+		organisation: {
+			name: answers.agentOrganisationName.trim(),
+			Address:
+				answers.agentOrganisationAddress && Object.values(answers.agentOrganisationAddress || {}).some((v) => v)
+					? { create: toAddressInput(answers.agentOrganisationAddress) }
+					: undefined
+		},
+		contacts
+	};
+}
+
+/**
+ * Canonical extraction of organisations + contacts from journey answers.
+ *
+ * This is used as the shared source for:
+ * - nested case creation (Organisation.create + OrganisationToContact.create)
+ * - shared-party creation (create once, then connect multiple cases)
+ *
+ * @param {CreateCaseAnswers} answers
+ * @returns {{
+ *  organisations: Array<{
+ *    role: string,
+ *    organisation: import('@pins/crowndev-database').Prisma.OrganisationCreateInput,
+ *    contacts: import('@pins/crowndev-database').Prisma.ContactCreateInput[]
+ *  }>
+ * }}
+ */
+function extractCasePartiesModel(answers) {
+	/** @type {Array<{ role: string, organisation: import('@pins/crowndev-database').Prisma.OrganisationCreateInput, contacts: import('@pins/crowndev-database').Prisma.ContactCreateInput[] }>} */
+	const organisations = [...extractApplicantParties(answers)];
+	const agent = extractAgentParty(answers);
+	if (agent) {
+		organisations.push(agent);
+	}
+
+	return { organisations };
+}
+
+/**
+ * Map the canonical parties model to nested create inputs on CrownDevelopment.
+ *
+ * @param {ReturnType<typeof extractCasePartiesModel>} model
+ * @returns {import('@pins/crowndev-database').Prisma.CrownDevelopmentToOrganisationCreateWithoutCrownDevelopmentInput[]}
+ */
+function toNestedOrganisationCreates(model) {
+	/** @type {import('@pins/crowndev-database').Prisma.CrownDevelopmentToOrganisationCreateWithoutCrownDevelopmentInput[]} */
+	const creates = [];
+
+	for (const org of model.organisations) {
+		/** @type {import('@pins/crowndev-database').Prisma.OrganisationCreateInput} */
+		const organisationCreate = { ...org.organisation };
+
+		if (org.contacts.length > 0) {
+			organisationCreate.OrganisationToContact = {
+				create: org.contacts.map((contact) => ({
+					Contact: { create: contact }
+				}))
+			};
 		}
-	];
+
+		creates.push({
+			Role: { connect: { id: org.role } },
+			Organisation: { create: organisationCreate }
+		});
+	}
+
+	return creates;
+}
+
+/**
+ * Create organisations + contacts once, returning nested create inputs that connect a case to those organisations.
+ * This is specifically used for the Planning + LBC linked pair creation.
+ *
+ * @param {import('@pins/crowndev-database').Prisma.TransactionClient} $tx
+ * @param {CreateCaseAnswers} answers
+ * @returns {Promise<import('@pins/crowndev-database').Prisma.CrownDevelopmentToOrganisationCreateWithoutCrownDevelopmentInput[]>}
+ */
+async function createSharedPartiesAndBuildOrganisationConnects($tx, answers) {
+	const model = extractCasePartiesModel(answers);
+
+	/** @type {import('@pins/crowndev-database').Prisma.CrownDevelopmentToOrganisationCreateWithoutCrownDevelopmentInput[]} */
+	const connects = [];
+
+	for (const org of model.organisations) {
+		const createdOrganisation = await $tx.organisation.create({
+			data: {
+				...org.organisation,
+				...(org.contacts.length
+					? {
+							OrganisationToContact: {
+								create: org.contacts.map((contact) => ({
+									Contact: { create: contact }
+								}))
+							}
+						}
+					: {})
+			},
+			select: { id: true }
+		});
+
+		connects.push({
+			Role: { connect: { id: org.role } },
+			Organisation: { connect: { id: createdOrganisation.id } }
+		});
+	}
+
+	return connects;
 }
 
 /**
  * @param {import('./types.d.ts').CreateCaseAnswers} answers
  * @param {string} reference
  * @param {string|null} subType
+ * @param {{
+ *  organisations?: import('@pins/crowndev-database').Prisma.CrownDevelopmentToOrganisationCreateWithoutCrownDevelopmentInput[]
+ * }} [options]
  * @returns {CrownDevelopmentCreateInput}
  */
-export function toCreateInput(answers, reference, subType) {
+export function toCreateInput(answers, reference, subType, options = {}) {
 	/** @type CrownDevelopmentCreateInput */
 	const input = {
 		reference,
@@ -335,12 +436,16 @@ export function toCreateInput(answers, reference, subType) {
 		};
 	}
 
-	const organisationsCreate = [
-		...(buildAgentOrganisationCreates(answers) ?? []),
-		...(buildApplicantOrganisationCreates(answers) ?? [])
-	];
-	if (organisationsCreate.length > 0) {
-		input.Organisations = { create: organisationsCreate };
+	if (options.organisations) {
+		// Pre-created organisation links are passed for linked cases
+		input.Organisations = { create: options.organisations };
+	} else {
+		// Otherwise build organisation creates
+		const model = extractCasePartiesModel(answers);
+		const organisationsCreate = toNestedOrganisationCreates(model);
+		if (organisationsCreate.length > 0) {
+			input.Organisations = { create: organisationsCreate };
+		}
 	}
 
 	// TODO remove once multiple entities complete CROWN-1509

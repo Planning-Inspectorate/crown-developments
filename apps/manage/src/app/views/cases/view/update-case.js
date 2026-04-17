@@ -6,116 +6,13 @@ import {
 	sendLpaQuestionnaireSentNotification
 } from './notification.js';
 import { editsToDatabaseUpdates, crownDevelopmentToViewModel } from './view-model.js';
+import {
+	hasOrganisationWriteEdits,
+	buildCaseUpdateWritePlan,
+	executeCaseUpdateWritePlan
+} from './organisation-contact-updates.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
-import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
-import { extractApplicantContactFields, extractAgentContactFields } from '../util/contact.js';
-
-/**
- * @template T
- * @typedef {import('@prisma/client/runtime/client').PrismaPromise<T>} PrismaPromise
- */
-
-/**
- * We have to handle updates to multi-applicant contact details separately
- * as they are not directly editable via nested writes in the main crown
- * development update, and require special handling to determine whether to
- * update existing contacts or create new ones without creating duplicates.
- *
- * NOTE: This is used with `db.$transaction([...])`, so it must return PrismaPromises
- * created from the same Prisma client instance.
- *
- * @param {import('./types.js').CrownDevelopmentViewModel} dbViewModel
- * @param {import('./types.js').CrownDevelopmentViewModel} toSave
- * @param {import('#service').ManageService['db']} db
- * @returns {Array<PrismaPromise<import('@pins/crowndev-database').Contact>>}
- */
-function updateApplicantContacts(dbViewModel, toSave, db) {
-	if (!Array.isArray(toSave.manageApplicantContactDetails)) {
-		return [];
-	}
-
-	const existingByJoinId = new Map(
-		(dbViewModel.manageApplicantContactDetails || [])
-			.filter((contact) => contact.organisationToContactRelationId && contact.id)
-			.map((contact) => [contact.organisationToContactRelationId, contact])
-	);
-
-	const contactUpdates = toSave.manageApplicantContactDetails
-		.map((contact) => {
-			// If there is no organisationToContactRelationId, this is a new contact that will be
-			// created via nested write in the main update, so we skip it here.
-			if (!contact?.organisationToContactRelationId) return null;
-			const existing = existingByJoinId.get(contact.organisationToContactRelationId);
-			if (!existing?.id) return null;
-
-			const newData = extractApplicantContactFields(contact);
-			const existingData = extractApplicantContactFields(existing);
-
-			const changed =
-				newData.firstName !== existingData.firstName ||
-				newData.lastName !== existingData.lastName ||
-				newData.email !== existingData.email ||
-				newData.telephoneNumber !== existingData.telephoneNumber;
-
-			if (!changed) return null;
-			return { contactId: existing.id, data: newData };
-		})
-		.filter(isDefined);
-
-	return contactUpdates.map(({ contactId, data }) =>
-		db.contact.update({
-			where: { id: contactId },
-			data
-		})
-	);
-}
-
-/**
- * Same as applicant contacts, these need to be separate transactions.
- *
- * @param {import('./types.js').CrownDevelopmentViewModel} dbViewModel
- * @param {import('./types.js').CrownDevelopmentViewModel} toSave
- * @param {import('#service').ManageService['db']} db
- * @returns {Array<PrismaPromise<import('@pins/crowndev-database').Contact>>}
- */
-function updateAgentContacts(dbViewModel, toSave, db) {
-	if (!Array.isArray(toSave.manageAgentContactDetails)) {
-		return [];
-	}
-
-	const existingByContactId = new Map(
-		(dbViewModel.manageAgentContactDetails || [])
-			.filter((contact) => contact.id)
-			.map((contact) => [contact.id, contact])
-	);
-
-	const contactUpdates = toSave.manageAgentContactDetails
-		.map((contact) => {
-			const existing = existingByContactId.get(contact.id);
-			if (!existing?.id) return null;
-
-			const newData = extractAgentContactFields(contact);
-			const existingData = extractAgentContactFields(existing);
-
-			const changed =
-				newData.firstName !== existingData.firstName ||
-				newData.lastName !== existingData.lastName ||
-				newData.email !== existingData.email ||
-				newData.telephoneNumber !== existingData.telephoneNumber;
-
-			if (!changed) return null;
-			return { contactId: contact.id, data: newData };
-		})
-		.filter(isDefined);
-
-	return contactUpdates.map(({ contactId, data }) =>
-		db.contact.update({
-			where: { id: contactId },
-			data
-		})
-	);
-}
 
 /**
  * @param {import('#service').ManageService} service
@@ -149,74 +46,78 @@ export function buildUpdateCase(service, clearAnswer = false) {
 		await customUpdateCaseActions(service, id, toSave, fullViewModel);
 
 		try {
-			// Build the full set of PrismaPromises first, then submit them in one atomic transaction.
-			// We still do a pre-read to compute relation ids, but the writes are all via db.$transaction([...]).
-			const crownDevelopment = await db.crownDevelopment.findUnique({
-				where: { id },
-				include: {
-					ParentCrownDevelopment: { select: { id: true } },
-					ChildrenCrownDevelopment: { select: { id: true } },
-					Organisations: {
-						include: {
-							Organisation: {
-								include: {
-									Address: true,
-									OrganisationToContact: {
-										include: {
-											Contact: true
-										}
+			// Build a deterministic write-plan (no shared nested Organisations writes) and execute it
+			// inside a single interactive transaction.
+			await db.$transaction(async (tx) => {
+				const crownDevelopment = await tx.crownDevelopment.findUnique({
+					where: { id },
+					include: {
+						ParentCrownDevelopment: { select: { id: true } },
+						ChildrenCrownDevelopment: { select: { id: true } },
+						Organisations: {
+							include: {
+								Organisation: {
+									include: {
+										Address: true,
+										OrganisationToContact: { include: { Contact: true } }
 									}
 								}
 							}
 						}
 					}
+				});
+				if (!crownDevelopment) {
+					throw new Error('Crown Development case not found');
 				}
+
+				// Fresh DB view model gives correct relation ids (organisationRelationId / organisationToContactRelationId)
+				const dbViewModel = crownDevelopmentToViewModel(crownDevelopment);
+				/** @type {import('./types.js').CrownDevelopmentViewModel} */
+				const viewModelForUpdates = { ...dbViewModel };
+				for (const [key, value] of Object.entries(originalAnswers)) {
+					if (viewModelForUpdates[key] === undefined || viewModelForUpdates[key] === null) {
+						viewModelForUpdates[key] = value;
+					}
+				}
+
+				// IMPORTANT: organisations are excluded here because organisation/contact updates are handled
+				// separately via the deterministic write plan (see buildCaseUpdateWritePlan/executeCaseUpdateWritePlan).
+				let updateInput = editsToDatabaseUpdates(toSave, viewModelForUpdates, { includeOrganisations: false });
+				updateInput.updatedDate = new Date();
+
+				const caseIds = [id];
+				if (crownDevelopment.linkedParentId && !updateContainsDeLinkedField(updateInput)) {
+					caseIds.push(crownDevelopment.linkedParentId);
+				}
+				if (crownDevelopment.ChildrenCrownDevelopment?.length > 0 && !updateContainsDeLinkedField(updateInput)) {
+					caseIds.push(...crownDevelopment.ChildrenCrownDevelopment.map((child) => child.id));
+				}
+
+				let crownDevelopmentsForPlanning = [crownDevelopment];
+				if (hasOrganisationWriteEdits(toSave) && caseIds.length > 1) {
+					crownDevelopmentsForPlanning = await tx.crownDevelopment.findMany({
+						where: { id: { in: caseIds } },
+						include: {
+							Organisations: {
+								include: {
+									Organisation: {
+										include: { Address: true, OrganisationToContact: { include: { Contact: true } } }
+									}
+								}
+							}
+						}
+					});
+				}
+
+				const plan = buildCaseUpdateWritePlan({
+					toSave,
+					dbViewModel,
+					caseIds,
+					scalarUpdateInput: updateInput,
+					crownDevelopments: crownDevelopmentsForPlanning
+				});
+				await executeCaseUpdateWritePlan(plan, tx);
 			});
-			if (!crownDevelopment) {
-				throw new Error('Crown Development case not found');
-			}
-
-			// Fresh DB view model gives correct relation ids (organisationRelationId / organisationToContactRelationId)
-			const dbViewModel = crownDevelopmentToViewModel(crownDevelopment);
-			/** @type {import('./types.js').CrownDevelopmentViewModel} */
-			const viewModelForUpdates = { ...dbViewModel };
-			for (const [key, value] of Object.entries(originalAnswers)) {
-				if (viewModelForUpdates[key] === undefined || viewModelForUpdates[key] === null) {
-					viewModelForUpdates[key] = value;
-				}
-			}
-
-			const updateInput = editsToDatabaseUpdates(toSave, viewModelForUpdates);
-			updateInput.updatedDate = new Date();
-
-			const updates = [id];
-
-			if (crownDevelopment.linkedParentId && !updateContainsDeLinkedField(updateInput)) {
-				updates.push(crownDevelopment.linkedParentId);
-			}
-
-			if (crownDevelopment.ChildrenCrownDevelopment?.length > 0 && !updateContainsDeLinkedField(updateInput)) {
-				updates.push(...crownDevelopment.ChildrenCrownDevelopment.map((child) => child.id));
-			}
-
-			/** @type {PrismaPromise<unknown>[]} */
-			const transactionOperations = [];
-
-			// Contact detail updates for existing contacts
-			transactionOperations.push(...updateApplicantContacts(dbViewModel, toSave, db));
-			transactionOperations.push(...updateAgentContacts(dbViewModel, toSave, db));
-
-			// CrownDevelopment updates (including join-table moves & new contacts)
-			transactionOperations.push(
-				...updates.map((caseId) =>
-					db.crownDevelopment.update({
-						where: { id: caseId },
-						data: updateInput
-					})
-				)
-			);
-
-			await db.$transaction(transactionOperations);
 		} catch (error) {
 			wrapPrismaError({
 				error,
@@ -298,7 +199,8 @@ function handleApplicationFee(toSave) {
  */
 async function handleLpaQuestionnaireReceivedDateUpdate(service, id, toSave) {
 	await sendLpaAcknowledgeReceiptOfQuestionnaireNotification(service, id, toSave.lpaQuestionnaireReceivedDate);
-	toSave['lpaQuestionnaireReceivedEmailSent'] = true;
+	// Persisted as a boolean in the DB, but represented as Yes/No in the view-model.
+	toSave['lpaQuestionnaireReceivedEmailSent'] = /** @type {any} */ (true);
 }
 
 /**
@@ -308,7 +210,8 @@ async function handleLpaQuestionnaireReceivedDateUpdate(service, id, toSave) {
  */
 async function handleLpaQuestionnaireSentDateUpdate(service, id, toSave) {
 	await sendLpaQuestionnaireSentNotification(service, id);
-	toSave['lpaQuestionnaireSentSpecialEmailSent'] = true;
+	// Persisted as a boolean in the DB, but represented as Yes/No in the view-model.
+	toSave['lpaQuestionnaireSentSpecialEmailSent'] = /** @type {any} */ (true);
 }
 
 /**
@@ -354,7 +257,8 @@ async function handleApplicationReceivedDateUpdate(service, id, toSave, fullView
 		fullViewModel.typeOfApplication !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
 	) {
 		await sendApplicationReceivedNotification(service, id, toSave.applicationReceivedDate);
-		toSave['applicationReceivedDateEmailSent'] = true;
+		// Persisted as a boolean in the DB, but represented as Yes/No in the view-model.
+		toSave['applicationReceivedDateEmailSent'] = /** @type {any} */ (true);
 	}
 }
 
@@ -365,7 +269,8 @@ async function handleApplicationReceivedDateUpdate(service, id, toSave, fullView
  */
 async function handleTurnedAwayDateUpdate(service, id, toSave) {
 	await sendApplicationNotOfNationalImportanceNotification(service, id);
-	toSave['notNationallyImportantEmailSent'] = true;
+	// Persisted as a boolean in the DB, but represented as Yes/No in the view-model.
+	toSave['notNationallyImportantEmailSent'] = /** @type {any} */ (true);
 }
 
 /**

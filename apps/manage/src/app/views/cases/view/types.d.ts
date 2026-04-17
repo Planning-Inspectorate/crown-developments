@@ -45,6 +45,7 @@ export interface CrownDevelopmentViewModel {
 
 	hasAgent: YesNo;
 	agentOrganisationName?: string;
+	agentOrganisationId?: string;
 	agentOrganisationAddressId?: string;
 	agentOrganisationAddress?: Address;
 	agentOrganisationRelationId?: string;

@@ -2,9 +2,28 @@ import { describe, it, mock } from 'node:test';
 import { buildUpdateCase } from './update-case.js';
 import assert from 'node:assert';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
-import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { APPLICATION_PROCEDURE_ID, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { Prisma } from '@pins/crowndev-database/src/client/client.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+
+/**
+ * buildUpdateCase now uses an interactive transaction: db.$transaction(async (tx) => { ... }).
+ * Most tests use a plain mocked db object as the tx client, so we make $transaction invoke
+ * the callback with that same object.
+ *
+ * @param {any} mockDb
+ */
+function makeTransactionInteractive(mockDb) {
+	mockDb.$transaction.mock.mockImplementation(async (arg) => {
+		if (typeof arg === 'function') {
+			return arg(mockDb);
+		}
+		if (Array.isArray(arg)) {
+			return Promise.all(arg);
+		}
+		return undefined;
+	});
+}
 
 describe('case details', () => {
 	describe('buildUpdateCase', () => {
@@ -23,6 +42,7 @@ describe('case details', () => {
 					update: mock.fn()
 				}
 			};
+			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
 			const mockReq = { params: { id: 'case-1' } };
 			const mockRes = { locals: {} };
@@ -42,6 +62,7 @@ describe('case details', () => {
 					findUnique: mock.fn(() => ({}))
 				}
 			};
+			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
 			const mockReq = {
 				params: { id: 'case1' },
@@ -75,6 +96,7 @@ describe('case details', () => {
 					}))
 				}
 			};
+			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
 			const mockReq = {
 				params: { id: 'case1' },
@@ -109,6 +131,7 @@ describe('case details', () => {
 					}))
 				}
 			};
+			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
 			const mockReq = {
 				params: { id: 'linked-case-id-1' },
@@ -147,6 +170,7 @@ describe('case details', () => {
 					}))
 				}
 			};
+			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
 			const mockReq = {
 				params: { id: 'case1' },
@@ -162,6 +186,127 @@ describe('case details', () => {
 			await updateCase({ req: mockReq, res: mockRes, data });
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
 		});
+
+		it('should create new applicant organisation once and link it to both cases when updating linked cases', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				organisation: {
+					create: mock.fn(() => ({ id: 'org-shared-1' }))
+				},
+				contact: {
+					update: mock.fn()
+				},
+				crownDevelopmentToOrganisation: {
+					create: mock.fn((args) => args)
+				},
+				crownDevelopment: {
+					update: mock.fn(({ where, data }) => ({ where, data })),
+					findMany: mock.fn(() => [
+						{ id: 'case1', Organisations: [] },
+						{ id: 'linked-case-id-1', Organisations: [] }
+					]),
+					findUnique: mock.fn(() => ({
+						linkedParentId: 'linked-case-id-1',
+						ChildrenCrownDevelopment: [],
+						Organisations: []
+					}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = { locals: {} };
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					manageApplicantDetails: [
+						{
+							id: 'new-org-1',
+							// New organisations do not have a relation id yet.
+							organisationName: 'New Applicant Org',
+							organisationAddress: {}
+						}
+					]
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			// Linked-case flow: organisation is created once, then both cases are linked via the join table
+			assert.strictEqual(mockDb.organisation.create.mock.callCount(), 1);
+			const orgCreateArg = mockDb.organisation.create.mock.calls[0].arguments[0];
+			assert.strictEqual(orgCreateArg.data?.name, 'New Applicant Org');
+
+			// All writes are submitted via a single transaction
+			assert.strictEqual(mockDb.$transaction.mock.callCount(), 1);
+			assert.strictEqual(typeof mockDb.$transaction.mock.calls[0].arguments[0], 'function');
+
+			assert.strictEqual(mockDb.crownDevelopmentToOrganisation.create.mock.callCount(), 2);
+			const linkCalls = mockDb.crownDevelopmentToOrganisation.create.mock.calls.map((c) => c.arguments[0]);
+			assert.deepStrictEqual(
+				linkCalls.map((c) => c.data?.crownDevelopmentId).sort(),
+				['case1', 'linked-case-id-1'].sort()
+			);
+		});
+
+		it('should create a new applicant organisation and link it to the case when updating a single case', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				organisation: {
+					create: mock.fn(() => ({ id: 'org-created-1' }))
+				},
+				contact: {
+					update: mock.fn()
+				},
+				crownDevelopmentToOrganisation: {
+					create: mock.fn((args) => args)
+				},
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({
+						linkedParentId: null,
+						ChildrenCrownDevelopment: [],
+						Organisations: []
+					}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = { locals: {} };
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					manageApplicantDetails: [
+						{
+							id: 'new-org-1',
+							// New organisations do not have a relation id yet.
+							organisationName: 'Single Case Applicant Org',
+							organisationAddress: {}
+						}
+					]
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			assert.strictEqual(mockDb.organisation.create.mock.callCount(), 1);
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+			assert.strictEqual(mockDb.crownDevelopmentToOrganisation.create.mock.callCount(), 1);
+			const linkArg = mockDb.crownDevelopmentToOrganisation.create.mock.calls[0].arguments[0];
+			assert.strictEqual(linkArg.data?.crownDevelopmentId, 'case1');
+			assert.strictEqual(linkArg.data?.role, ORGANISATION_ROLES_ID.APPLICANT);
+		});
 		it('should fetch case data from the journey for relation IDs', async () => {
 			const logger = mockLogger();
 			const mockDb = {
@@ -171,6 +316,7 @@ describe('case details', () => {
 					findUnique: mock.fn(() => ({}))
 				}
 			};
+			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
 			const mockReq = {
 				params: { id: 'case1' },
@@ -214,6 +360,7 @@ describe('case details', () => {
 					update: mock.fn()
 				}
 			};
+			makeTransactionInteractive(mockDb);
 			const mockNotifyClient = {
 				sendLpaAcknowledgeReceiptOfQuestionnaire: mock.fn()
 			};
@@ -281,6 +428,7 @@ describe('case details', () => {
 					update: mock.fn()
 				}
 			};
+			makeTransactionInteractive(mockDb);
 			const mockNotifyClient = {
 				sendLpaAcknowledgeReceiptOfQuestionnaire: mock.fn()
 			};
@@ -348,6 +496,7 @@ describe('case details', () => {
 					update: mock.fn()
 				}
 			};
+			makeTransactionInteractive(mockDb);
 			const mockNotifyClient = {
 				sendLpaAcknowledgeReceiptOfQuestionnaire: mock.fn(() => {
 					throw new Error('Exception error');
@@ -401,6 +550,7 @@ describe('case details', () => {
 					update: mock.fn()
 				}
 			};
+			makeTransactionInteractive(mockDb);
 			const mockNotifyClient = {
 				sendApplicationReceivedNotification: mock.fn()
 			};
@@ -474,6 +624,7 @@ describe('case details', () => {
 					update: mock.fn()
 				}
 			};
+			makeTransactionInteractive(mockDb);
 			const mockNotifyClient = {
 				sendApplicationReceivedNotification: mock.fn()
 			};
@@ -744,6 +895,7 @@ describe('case details', () => {
 					update: mock.fn()
 				}
 			};
+			makeTransactionInteractive(mockDb);
 			const mockNotifyClient = {
 				sendApplicationNotOfNationalImportanceNotification: mock.fn()
 			};
@@ -811,6 +963,7 @@ describe('case details', () => {
 					update: mock.fn()
 				}
 			};
+			makeTransactionInteractive(mockDb);
 			const mockNotifyClient = {
 				sendApplicationNotOfNationalImportanceNotification: mock.fn(() => {
 					throw new Error('Exception error');
@@ -854,6 +1007,7 @@ describe('case details', () => {
 					})
 				}
 			};
+			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
 			const mockReq = {
 				params: { id: 'case1' },
@@ -885,6 +1039,7 @@ describe('case details', () => {
 					findUnique: mock.fn(() => ({}))
 				}
 			};
+			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger }, true);
 			const mockReq = {
 				params: { id: 'case1' },
@@ -952,6 +1107,7 @@ describe('case details', () => {
 					update: mock.fn()
 				}
 			};
+			makeTransactionInteractive(mockDb);
 			const mockNotifyClient = {
 				sendLpaQuestionnaireNotification: mock.fn()
 			};
@@ -977,6 +1133,130 @@ describe('case details', () => {
 			assert.strictEqual(mockNotifyClient.sendLpaQuestionnaireNotification.mock.callCount(), 1);
 			assert.strictEqual(data.answers.lpaQuestionnaireSentSpecialEmailSent, true);
 		});
+
+		it('should update shared agent organisation once and link it to both cases when updating linked cases', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				organisation: {
+					create: mock.fn(() => ({ id: 'org-created' })),
+					update: mock.fn(() => ({ kind: 'organisation.update' }))
+				},
+				contact: {
+					update: mock.fn()
+				},
+				crownDevelopmentToOrganisation: {
+					create: mock.fn((args) => args)
+				},
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						linkedParentId: 'linked-parent-1',
+						ChildrenCrownDevelopment: [],
+						Organisations: []
+					})),
+					findMany: mock.fn(() =>
+						Promise.resolve([
+							{
+								id: 'case1',
+								Organisations: [
+									{
+										role: 'agent',
+										organisationId: 'shared-agent-org-1',
+										Organisation: { id: 'shared-agent-org-1', addressId: 'addr-1', Address: { id: 'addr-1' } }
+									}
+								]
+							},
+							{
+								id: 'linked-parent-1',
+								Organisations: []
+							}
+						])
+					),
+					update: mock.fn(() => ({}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+
+			const updateCase = buildUpdateCase({ db: mockDb, logger, notifyClient: {} });
+			const mockReq = { params: { id: 'case1' }, session: {} };
+			const mockRes = { locals: {} };
+			await updateCase({
+				req: mockReq,
+				res: mockRes,
+				data: {
+					answers: {
+						agentOrganisationName: 'Updated Agent Org'
+					}
+				}
+			});
+
+			assert.strictEqual(mockDb.organisation.update.mock.callCount(), 1);
+			assert.deepStrictEqual(mockDb.organisation.update.mock.calls[0].arguments[0].where, { id: 'shared-agent-org-1' });
+			assert.deepStrictEqual(mockDb.organisation.update.mock.calls[0].arguments[0].data, { name: 'Updated Agent Org' });
+
+			assert.strictEqual(mockDb.crownDevelopmentToOrganisation.create.mock.callCount(), 1);
+			assert.deepStrictEqual(mockDb.crownDevelopmentToOrganisation.create.mock.calls[0].arguments[0].data, {
+				crownDevelopmentId: 'linked-parent-1',
+				organisationId: 'shared-agent-org-1',
+				role: ORGANISATION_ROLES_ID.AGENT
+			});
+		});
+
+		it('should create a shared agent organisation once then link it to both cases when updating linked cases', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				organisation: {
+					create: mock.fn(() => ({ id: 'new-agent-org-1' })),
+					update: mock.fn(() => ({ kind: 'organisation.update' }))
+				},
+				contact: {
+					update: mock.fn()
+				},
+				crownDevelopmentToOrganisation: {
+					create: mock.fn((args) => args)
+				},
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						linkedParentId: 'linked-parent-1',
+						ChildrenCrownDevelopment: [],
+						Organisations: []
+					})),
+					findMany: mock.fn(() =>
+						Promise.resolve([
+							{ id: 'case1', Organisations: [] },
+							{ id: 'linked-parent-1', Organisations: [] }
+						])
+					),
+					update: mock.fn(() => ({}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+
+			const updateCase = buildUpdateCase({ db: mockDb, logger, notifyClient: {} });
+			const mockReq = { params: { id: 'case1' }, session: {} };
+			const mockRes = { locals: {} };
+			await updateCase({
+				req: mockReq,
+				res: mockRes,
+				data: {
+					answers: {
+						agentOrganisationName: 'New Shared Agent Org'
+					}
+				}
+			});
+
+			assert.strictEqual(mockDb.organisation.create.mock.callCount(), 1);
+			assert.strictEqual(mockDb.organisation.create.mock.calls[0].arguments[0].data?.name, 'New Shared Agent Org');
+
+			assert.strictEqual(mockDb.crownDevelopmentToOrganisation.create.mock.callCount(), 2);
+			const linkCalls = mockDb.crownDevelopmentToOrganisation.create.mock.calls.map((c) => c.arguments[0].data);
+			assert.deepStrictEqual(linkCalls.map((d) => d.crownDevelopmentId).sort(), ['case1', 'linked-parent-1'].sort());
+			linkCalls.forEach((d) => {
+				assert.strictEqual(d.organisationId, 'new-agent-org-1');
+				assert.strictEqual(d.role, ORGANISATION_ROLES_ID.AGENT);
+			});
+		});
 	});
 
 	describe('multi applicant contact updates', () => {
@@ -987,26 +1267,35 @@ describe('case details', () => {
 		};
 
 		// Patch buildDbWithOrgs to include role and Role
-		const buildDbWithOrgs = (organisations) => ({
-			$transaction: mock.fn(() => Promise.resolve()),
-			contact: {
-				update: mock.fn(() => ({ kind: 'contact.update' }))
-			},
-			crownDevelopment: {
-				findUnique: mock.fn(() => ({
-					id: 'case-1',
-					linkedParentId: null,
-					ChildrenCrownDevelopment: [],
-					ParentCrownDevelopment: null,
-					Organisations: organisations.map((org) => ({
-						...org,
-						role: mockRole.id,
-						Role: mockRole
-					}))
-				})),
-				update: mock.fn(() => ({ kind: 'crownDevelopment.update' }))
-			}
-		});
+		const buildDbWithOrgs = (organisations) => {
+			const db = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				contact: {
+					update: mock.fn(() => ({ kind: 'contact.update' })),
+					create: mock.fn(() => ({ id: 'created-contact-id' }))
+				},
+				organisationToContact: {
+					create: mock.fn(() => ({ id: 'created-join-id' })),
+					delete: mock.fn(() => ({ id: 'deleted-join-id' }))
+				},
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						linkedParentId: null,
+						ChildrenCrownDevelopment: [],
+						ParentCrownDevelopment: null,
+						Organisations: organisations.map((org) => ({
+							...org,
+							role: mockRole.id,
+							Role: mockRole
+						}))
+					})),
+					update: mock.fn(() => ({ kind: 'crownDevelopment.update' }))
+				}
+			};
+			makeTransactionInteractive(db);
+			return db;
+		};
 
 		const buildReq = () => ({ params: { id: 'case-1' }, session: {} });
 
@@ -1302,26 +1591,54 @@ describe('case details', () => {
 		};
 
 		// Patch buildDbWithOrgs to include role and Role
-		const buildDbWithOrgs = (organisations) => ({
-			$transaction: mock.fn(() => Promise.resolve()),
-			contact: {
-				update: mock.fn(() => ({ kind: 'contact.update' }))
-			},
-			crownDevelopment: {
-				findUnique: mock.fn(() => ({
-					id: 'case-1',
-					linkedParentId: null,
-					ChildrenCrownDevelopment: [],
-					ParentCrownDevelopment: null,
-					Organisations: organisations.map((org) => ({
-						...org,
-						role: mockRole.id,
-						Role: mockRole
-					}))
-				})),
-				update: mock.fn(() => ({ kind: 'crownDevelopment.update' }))
-			}
-		});
+		const buildDbWithOrgs = (organisations) => {
+			const db = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				organisation: {
+					create: mock.fn(() => ({ id: 'org-created' })),
+					update: mock.fn(() => ({ kind: 'organisation.update' }))
+				},
+				contact: {
+					update: mock.fn(() => ({ kind: 'contact.update' })),
+					create: mock.fn(() => ({ id: 'created-contact-id' }))
+				},
+				organisationToContact: {
+					create: mock.fn(() => ({ id: 'created-join-id' })),
+					delete: mock.fn(() => ({ id: 'deleted-join-id' }))
+				},
+				crownDevelopmentToOrganisation: {
+					create: mock.fn((args) => args)
+				},
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						linkedParentId: null,
+						ChildrenCrownDevelopment: [],
+						ParentCrownDevelopment: null,
+						Organisations: organisations.map((org) => ({
+							...org,
+							role: mockRole.id,
+							Role: mockRole
+						}))
+					})),
+					findMany: mock.fn(() =>
+						Promise.resolve([
+							{
+								id: 'case-1',
+								Organisations: organisations.map((org) => ({
+									...org,
+									role: mockRole.id,
+									Role: mockRole
+								}))
+							}
+						])
+					),
+					update: mock.fn(() => ({ kind: 'crownDevelopment.update' }))
+				}
+			};
+			makeTransactionInteractive(db);
+			return db;
+		};
 
 		const buildReq = () => ({ params: { id: 'case-1' }, session: {} });
 
