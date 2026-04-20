@@ -1,4 +1,4 @@
-import { describe, test } from 'node:test';
+import { describe, test, it } from 'node:test';
 import assert from 'node:assert/strict';
 import CrossQuestionValidator from './cross-question-validator.js';
 
@@ -75,6 +75,78 @@ describe('CrossQuestionValidator', () => {
 		const questionObj = { fieldName: 'field' };
 		const chain = validator.validate(questionObj);
 		const req = { res: { locals: {} } };
+		await chain[0].run(req);
+		assert.deepEqual(calledWith, { currentAnswer: undefined, dependencyAnswer: undefined });
+	});
+
+	it('should use session answers instead of request body values when useBodyValues is false', async () => {
+		let calledWith;
+		const validator = new CrossQuestionValidator({
+			dependencyFieldName: 'other',
+			validationFunction: (currentAnswer, dependencyAnswer) => {
+				calledWith = { currentAnswer, dependencyAnswer };
+				return true;
+			}
+		});
+		const questionObj = { fieldName: 'field' };
+		const chain = validator.validate(questionObj);
+		const req = createMockRequest({ field: 'from-session', other: 'from-session-dependency' });
+		req.body = { field: 'from-body', other: 'from-body-dependency' };
+		await chain[0].run(req);
+		assert.deepEqual(calledWith, {
+			currentAnswer: 'from-session',
+			dependencyAnswer: 'from-session-dependency'
+		});
+	});
+
+	it('should use request body values when useBodyValues is true', async () => {
+		let calledWith;
+		const validator = new CrossQuestionValidator({
+			dependencyFieldName: 'other',
+			useBodyValues: true,
+			validationFunction: (currentAnswer, dependencyAnswer) => {
+				calledWith = { currentAnswer, dependencyAnswer };
+				return true;
+			}
+		});
+		const questionObj = { fieldName: 'field' };
+		const chain = validator.validate(questionObj);
+		const req = createMockRequest({ field: 'from-session', other: 'from-session-dependency' });
+		req.body = { field: 'from-body', other: 'from-body-dependency' };
+		await chain[0].run(req);
+		assert.deepEqual(calledWith, {
+			currentAnswer: 'from-body',
+			dependencyAnswer: 'from-body-dependency'
+		});
+	});
+
+	it('should fail validation with thrown error message when validation function throws', async () => {
+		const validator = new CrossQuestionValidator({
+			dependencyFieldName: 'other',
+			validationFunction: () => {
+				throw new Error('boom');
+			}
+		});
+		const questionObj = { fieldName: 'field' };
+		const chain = validator.validate(questionObj);
+		const req = createMockRequest({ field: 'foo', other: 'bar' });
+		const result = await chain[0].run(req);
+		assert.strictEqual(result.isEmpty(), false);
+		assert.strictEqual(result.array()[0].msg, 'boom');
+	});
+
+	it('should call validation function with undefined values when journeyResponse has no answers object', async () => {
+		let calledWith;
+		const validator = new CrossQuestionValidator({
+			dependencyFieldName: 'other',
+			validationFunction: (currentAnswer, dependencyAnswer) => {
+				calledWith = { currentAnswer, dependencyAnswer };
+				return true;
+			}
+		});
+		const questionObj = { fieldName: 'field' };
+		const chain = validator.validate(questionObj);
+		const req = { res: { locals: { journeyResponse: {} } } };
 		await chain[0].run(req);
 		assert.deepEqual(calledWith, { currentAnswer: undefined, dependencyAnswer: undefined });
 	});
