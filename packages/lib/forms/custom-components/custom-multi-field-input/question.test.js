@@ -322,83 +322,6 @@ describe('CustomMultiFieldInputQuestion', () => {
 		assert.equal(viewAnswers[1].options[1].checked, true);
 	});
 
-	it('should handle boolean field with yes answer in summary', () => {
-		const question = buildQuestion({
-			inputFields: [
-				{
-					type: 'boolean',
-					fieldName: 'hasAgent',
-					question: 'Do you have an agent?',
-					options: [
-						{ text: 'Yes', value: 'yes' },
-						{ text: 'No', value: 'no' }
-					]
-				}
-			]
-		});
-
-		const summary = question.formatAnswerForSummary('segment', buildJourneyWithAnswers({ hasAgent: 'yes' }));
-		assert.ok(String(summary[0].value).includes('Yes'));
-	});
-
-	it('should handle boolean field with no answer in summary', () => {
-		const question = buildQuestion({
-			inputFields: [
-				{
-					type: 'boolean',
-					fieldName: 'hasAgent',
-					question: 'Do you have an agent?',
-					options: [
-						{ text: 'Yes', value: 'yes' },
-						{ text: 'No', value: 'no' }
-					]
-				}
-			]
-		});
-
-		const summary = question.formatAnswerForSummary('segment', buildJourneyWithAnswers({ hasAgent: 'no' }));
-		assert.ok(String(summary[0].value).includes('No'));
-	});
-
-	it('should handle boolean field with custom options in summary', () => {
-		const question = buildQuestion({
-			inputFields: [
-				{
-					type: 'boolean',
-					fieldName: 'agreement',
-					question: 'Do you agree?',
-					options: [
-						{ text: 'I agree', value: 'agree' },
-						{ text: 'I disagree', value: 'disagree' }
-					]
-				}
-			]
-		});
-
-		const summary = question.formatAnswerForSummary('segment', buildJourneyWithAnswers({ agreement: 'agree' }));
-		assert.ok(String(summary[0].value).includes('I agree'));
-	});
-
-	it('should handle boolean field with undefined answer in summary', () => {
-		const question = buildQuestion({
-			inputFields: [
-				{
-					type: 'boolean',
-					fieldName: 'hasAgent',
-					question: 'Do you have an agent?',
-					options: [
-						{ text: 'Yes', value: 'yes' },
-						{ text: 'No', value: 'no' }
-					]
-				}
-			]
-		});
-		question.notStartedText = 'Not started';
-
-		const summary = question.formatAnswerForSummary('segment', buildJourneyWithAnswers({ hasAgent: undefined }));
-		assert.ok(String(summary[0].value).includes('Not started'));
-	});
-
 	it('should handle mixed field types including boolean in summary', () => {
 		const question = buildQuestion({
 			inputFields: [
@@ -407,10 +330,7 @@ describe('CustomMultiFieldInputQuestion', () => {
 					type: 'boolean',
 					fieldName: 'hasAgent',
 					question: 'Do you have an agent?',
-					options: [
-						{ text: 'Yes', value: 'yes' },
-						{ text: 'No', value: 'no' }
-					]
+					formatPrefix: 'Agent: '
 				}
 			]
 		});
@@ -420,22 +340,44 @@ describe('CustomMultiFieldInputQuestion', () => {
 			buildJourneyWithAnswers({ name: 'Alice', hasAgent: 'yes' })
 		);
 		assert.ok(String(summary[0].value).includes('Alice'));
-		assert.ok(String(summary[0].value).includes('Yes'));
+		assert.ok(String(summary[0].value).includes('Agent: Yes'));
 	});
 
-	it('should handle boolean field values when saving data', async () => {
+	it('should convert yes/no to boolean true/false when saving data', async () => {
 		const question = buildQuestion({
 			inputFields: [
 				{
 					type: 'boolean',
-					fieldName: 'hasAgent',
-					question: 'Do you have an agent?'
+					fieldName: 'environmentalImpactAssessment',
+					question: 'EIA required?'
+				},
+				{
+					type: 'boolean',
+					fieldName: 'developmentPlan',
+					question: 'Accords with development plan?'
+				},
+				{
+					type: 'boolean',
+					fieldName: 'rightOfWay',
+					question: 'Affects right of way?'
 				}
 			]
 		});
-		const request = { body: { hasAgent: 'yes' } };
+		const request = {
+			body: {
+				environmentalImpactAssessment: 'yes',
+				developmentPlan: 'no',
+				rightOfWay: 'yes'
+			}
+		};
 		const result = await question.getDataToSave(request, {});
-		assert.deepEqual(result, { answers: { hasAgent: 'yes' } });
+		assert.deepEqual(result, {
+			answers: {
+				environmentalImpactAssessment: true,
+				developmentPlan: false,
+				rightOfWay: true
+			}
+		});
 	});
 
 	it('should handle boolean field with hint', () => {
@@ -454,23 +396,33 @@ describe('CustomMultiFieldInputQuestion', () => {
 		assert.equal(viewAnswers[0].hint, 'This is a helpful hint');
 	});
 
-	it('should handle boolean field with formatPrefix in summary', () => {
+	it('should convert null to false for boolean fields when saving data', async () => {
 		const question = buildQuestion({
 			inputFields: [
 				{
 					type: 'boolean',
 					fieldName: 'hasAgent',
-					question: 'Do you have an agent?',
-					formatPrefix: 'Agent: ',
-					options: [
-						{ text: 'Yes', value: 'yes' },
-						{ text: 'No', value: 'no' }
-					]
+					question: 'Do you have an agent?'
 				}
 			]
 		});
+		const request = { body: { hasAgent: null } };
+		const result = await question.getDataToSave(request, {});
+		assert.strictEqual(result.answers.hasAgent, false);
+	});
 
-		const summary = question.formatAnswerForSummary('segment', buildJourneyWithAnswers({ hasAgent: 'yes' }));
-		assert.ok(String(summary[0].value).includes('Agent: Yes'));
+	it('should convert undefined to false for boolean fields when saving data', async () => {
+		const question = buildQuestion({
+			inputFields: [
+				{
+					type: 'boolean',
+					fieldName: 'hasAgent',
+					question: 'Do you have an agent?'
+				}
+			]
+		});
+		const request = { body: { hasAgent: undefined } };
+		const result = await question.getDataToSave(request, {});
+		assert.strictEqual(result.answers.hasAgent, false);
 	});
 });

@@ -1,6 +1,7 @@
 import { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
 import escape from 'escape-html';
 import { nl2br } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
+import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
 
 /**
  * @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question.js').QuestionViewModel} QuestionViewModel
@@ -56,7 +57,6 @@ import { nl2br } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
  *   question: string,
  *   hint?: string,
  *   options?: Array<{ text: string, value: string }>,
- *   validators?: Array<any>
  * }} BooleanField
  */
 
@@ -101,7 +101,18 @@ export default class CustomMultiFieldInputQuestion extends Question {
 			throw new Error('inputFields are mandatory');
 		}
 
-		this.inputFields = inputFields;
+		// Set default options for boolean fields if not provided
+		this.inputFields = inputFields.map((field) => {
+			if (field.type !== 'boolean') return field;
+			if (field.options) return field;
+			return {
+				...field,
+				options: [
+					{ text: 'Yes', value: 'yes' },
+					{ text: 'No', value: 'no' }
+				]
+			};
+		});
 	}
 
 	/**
@@ -116,14 +127,9 @@ export default class CustomMultiFieldInputQuestion extends Question {
 			}
 
 			if (inputField.type === 'radio' || inputField.type === 'boolean') {
-				const options = inputField.options || [
-					{ text: 'Yes', value: 'yes' },
-					{ text: 'No', value: 'no' }
-				];
-
 				return {
 					...inputField,
-					options: options.map((option) => ({
+					options: inputField.options.map((option) => ({
 						...option,
 						checked: option.value === answers[inputField.fieldName]
 					}))
@@ -160,6 +166,9 @@ export default class CustomMultiFieldInputQuestion extends Question {
 			if (typeof value === 'string') {
 				value = value.trim();
 			}
+			if (inputField.type === 'boolean') {
+				value = yesNoToBoolean(value);
+			}
 			answers[inputField.fieldName] = value;
 		}
 
@@ -184,15 +193,7 @@ export default class CustomMultiFieldInputQuestion extends Question {
 		const summaryDetails = this.inputFields.reduce((acc, field) => {
 			let answer;
 			if (field.type === 'boolean' || field.type === 'radio') {
-				const options =
-					field.options ||
-					(field.type === 'boolean'
-						? [
-								{ text: 'Yes', value: 'yes' },
-								{ text: 'No', value: 'no' }
-							]
-						: []);
-				answer = options.find((opt) => opt.value === journey.response.answers[field.fieldName])?.text || '';
+				answer = field.options.find((opt) => opt.value === journey.response.answers[field.fieldName])?.text || '';
 			} else {
 				answer = this.#formatValue(String(journey.response.answers[field.fieldName] || ''), field.formatTextFunction);
 			}
