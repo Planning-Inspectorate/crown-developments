@@ -8,8 +8,8 @@
 		margin-left: calc(-0.7em);
 	}
 	li.application-links__active {
-		background-color: govuk.govuk-colour('light-grey');
+		background-color: govuk.govuk-colour('black', $variant: 'tint-95');
 		margin-left: calc(-0.7em - 6px);
-		border-left: 6px solid govuk.govuk-colour('turquoise');
+		border-left: 6px solid govuk.govuk-colour('teal');
 	}
 }

@@ -28,7 +28,7 @@
 	}
 
 	&__section {
-		border-bottom: 1px solid govuk.govuk-colour('mid-grey');
+		border-bottom: 1px solid govuk.govuk-colour('black', $variant: 'tint-80');
 		padding: 1rem 0 0 0.9375rem;
 	}
 
@@ -80,8 +80,8 @@
 
 .filter-selected-tag {
 	margin: 0;
-	background: govuk.govuk-colour('light-grey');
-	border: solid 1px govuk.govuk-colour('mid-grey');
+	background: govuk.govuk-colour('black', $variant: 'tint-95');
+	border: solid 1px govuk.govuk-colour('black', $variant: 'tint-80');
 	padding: 4px 12px;
 
 	&__remove-button {
