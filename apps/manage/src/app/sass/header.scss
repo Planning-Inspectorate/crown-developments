@@ -39,6 +39,67 @@ nav.govuk-header__navigation.pins-header-navigation {
 	}
 }
 
+// Temporary fix to get old header working with govuk-frontend > 6
+// TODO remove in CROWN-1510
+.pins-header-navigation {
+	.govuk-header__navigation-list {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		.govuk-header__navigation-item {
+			padding: govuk.govuk-spacing(2) 0;
+
+			@media #{govuk.govuk-from-breakpoint(desktop)} {
+				display: inline-block;
+				margin-right: govuk.govuk-spacing(3);
+				padding: govuk.govuk-spacing(1) 0;
+				border: 0;
+			}
+
+			a {
+				@include govuk.govuk-font-size($size: 16);
+				@include govuk.govuk-typography-weight-regular;
+				white-space: nowrap;
+			}
+		}
+
+		.govuk-header__navigation-item--active {
+			a {
+				@include govuk.govuk-typography-weight-bold;
+
+				&:link,
+				&:hover,
+				&:visited {
+					color: inherit;
+				}
+
+				&:focus {
+					color: govuk.$govuk-focus-text-colour;
+				}
+			}
+		}
+	}
+	.govuk-header__link {
+		@include govuk.govuk-link-style-inverse;
+
+		text-decoration: none;
+
+		&:hover {
+			text-decoration: underline;
+			text-decoration-thickness: 3px;
+
+			@if govuk.$govuk-link-underline-offset {
+				text-underline-offset: govuk.$govuk-link-underline-offset;
+			}
+		}
+
+		&:focus {
+			@include govuk.govuk-focused-text;
+		}
+	}
+}
+// End section to remove in CROWN-1510
+
 #pins-header {
 	background: govuk.govuk-colour('white');
 	color: govuk.govuk-colour('black');
