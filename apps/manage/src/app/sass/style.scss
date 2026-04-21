@@ -36,7 +36,7 @@ $font-family: arial, helvetica, sans-serif;
 }
 
 .filter-container {
-	background-color: govuk.govuk-colour('light-grey');
+	background-color: govuk.govuk-colour('black', $variant: 'tint-95');
 }
 
 .filter-box {
@@ -55,9 +55,9 @@ $font-family: arial, helvetica, sans-serif;
 	padding: govuk.govuk-spacing(5) govuk.govuk-spacing(5) 1px;
 	margin-bottom: govuk.govuk-spacing(7);
 	box-shadow:
-		0 2px 0 govuk.govuk-colour('mid-grey'),
-		inset 2px 0 0 govuk.govuk-colour('mid-grey'),
-		inset -2px 0 0 govuk.govuk-colour('mid-grey'),
+		0 2px 0 govuk.govuk-colour('black', $variant: 'tint-80'),
+		inset 2px 0 0 govuk.govuk-colour('black', $variant: 'tint-80'),
+		inset -2px 0 0 govuk.govuk-colour('black', $variant: 'tint-80'),
 		inset 0 4px 0 govuk.govuk-colour('blue');
 
 	&--title {

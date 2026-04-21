@@ -2,7 +2,7 @@
 @use 'sass:map';
 
 /// pins colours
-$pins-colours-grey-100: govuk.govuk-colour('light-grey');
+$pins-colours-grey-100: govuk.govuk-colour('black', $variant: 'tint-95');
 $pins-colours-blue-500: govuk.govuk-colour('blue');
 $pins-colours-green-200: #13a19b;
 $pins-colours-teal-100: #10847e;

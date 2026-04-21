@@ -2,7 +2,7 @@
 
 .pins-chevron-card {
 	&__wrapper {
-		border-top: 1px solid govuk.govuk-colour('mid-grey');
+		border-top: 1px solid govuk.govuk-colour('black', $variant: 'tint-80');
 		padding: 15px 0;
 		margin-bottom: 20px;
 	}

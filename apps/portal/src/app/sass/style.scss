@@ -49,7 +49,7 @@
 .pins-application-stage-summary-row {
 	display: block;
 	width: 100%;
-	border-bottom: 1px solid govuk.govuk-colour('mid-grey');
+	border-bottom: 1px solid govuk.govuk-colour('black', $variant: 'tint-80');
 }
 .pins-application-stage-summary-row:last-child {
 	border-bottom: none;
