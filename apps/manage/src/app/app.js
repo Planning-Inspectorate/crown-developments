@@ -69,7 +69,6 @@ export function getApp(service) {
 	const nunjucksEnvironment = configureNunjucks();
 	// Set the express view engine to nunjucks
 	// calls to res.render will use nunjucks
-	nunjucksEnvironment.addGlobal('govukRebrand', true);
 	nunjucksEnvironment.express(app);
 	app.set('view engine', 'njk');
 
