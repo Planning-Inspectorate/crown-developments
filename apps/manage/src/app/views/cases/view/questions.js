@@ -36,9 +36,10 @@ import DateTimeValidator from '@planning-inspectorate/dynamic-forms/src/validato
 import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
 import CostsApplicationsCommentValidator from '@pins/crowndev-lib/forms/custom-components/costs-applications-comment/costs-applications-comment-validator.js';
 import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-components/manage-list/validator.js';
-import ApplicationCategoryValidator from '@pins/crowndev-lib/validators/application-category-validator.js';
 import { multiContactQuestions } from '../create-a-case/question-utils.js';
 import { getApplicantContactsValidator } from '../util/applicant-contacts-validator.js';
+import CrossQuestionValidator from '@pins/crowndev-lib/validators/cross-question-validator.js';
+import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 
 /**
  * @param {import('../../../../util/entra-groups-types.js').EntraGroupMembers} [groupMembers]
@@ -895,36 +896,73 @@ export function getQuestions(
 					type: 'boolean',
 					formatPrefix: 'EIA development: ',
 					question: 'Is this application an Environmental Impact Assessment (EIA) development?',
-					hint: "If 'Yes', this application will be marked as a special development",
-					options: [
-						{ text: 'Yes', value: 'yes' },
-						{ text: 'No', value: 'no' }
-					]
+					hint: "If 'Yes', this application will be marked as a special development"
 				},
 				{
 					fieldName: 'developmentPlan',
 					type: 'boolean',
 					formatPrefix: 'Development plan: ',
 					question: 'Does this application accord with the development plan?',
-					hint: "If you select 'No', this application will be saved as a special development.",
-					options: [
-						{ text: 'Yes', value: 'yes' },
-						{ text: 'No', value: 'no' }
-					]
+					hint: "If you select 'No', this application will be saved as a special development."
 				},
 				{
 					fieldName: 'rightOfWay',
 					type: 'boolean',
 					formatPrefix: 'Right of way: ',
 					question: 'Does this application affect a right of way?',
-					hint: "If 'Yes' this application will be saved as a special development.",
-					options: [
-						{ text: 'Yes', value: 'yes' },
-						{ text: 'No', value: 'no' }
-					]
+					hint: "If 'Yes' this application will be saved as a special development."
 				}
 			],
-			validators: [new ApplicationCategoryValidator()]
+			validators: [
+				new MultiFieldInputValidator({
+					fields: [
+						{
+							fieldName: 'environmentalImpactAssessment',
+							validators: [
+								new RequiredValidator(
+									'Select whether this application is an Environmental Impact Assessment (EIA) development'
+								)
+							]
+						},
+						{
+							fieldName: 'developmentPlan',
+							validators: [
+								new RequiredValidator('Select whether this application accords with the development plan'),
+								new CrossQuestionValidator({
+									dependencyFieldName: 'environmentalImpactAssessment',
+									validationFunction: (value, dependencyValue) => {
+										if (dependencyValue === 'yes' && value === 'yes') {
+											throw new Error(
+												'This combination is invalid. Applications cannot accord with the development plan and be an Environmental Impact Assessment (EIA) development.'
+											);
+										}
+										return true;
+									},
+									useBodyValues: true
+								})
+							]
+						},
+						{
+							fieldName: 'rightOfWay',
+							validators: [
+								new RequiredValidator('Select whether this application affects a right of way'),
+								new CrossQuestionValidator({
+									dependencyFieldName: 'developmentPlan',
+									validationFunction: (value, dependencyValue) => {
+										if (dependencyValue === 'yes' && value === 'yes') {
+											throw new Error(
+												'This combination is invalid. Applications cannot accord with the development plan and involve a right of way.'
+											);
+										}
+										return true;
+									},
+									useBodyValues: true
+								})
+							]
+						}
+					]
+				})
+			]
 		},
 		containsDistressingContent: {
 			type: COMPONENT_TYPES.BOOLEAN,
