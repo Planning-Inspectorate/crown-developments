@@ -52,13 +52,26 @@ import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
  */
 
 /**
+ * Boolean field as provided to the constructor/config.
+ * `options` is optional because the constructor will default it.
+ *
  * @typedef {BaseField & {
  *   type: 'boolean',
  *   question: string,
  *   hint?: string,
  *   options?: Array<{ text: string, value: string }>,
- * }} BooleanField
+ * }} BooleanFieldInput
  */
+/**
+ * Boolean field after constructor normalisation.
+ * `options` is guaranteed to be present.
+ *
+ * @typedef {BaseField & {
+ *   type: 'boolean',
+ *   question: string,
+ *   hint?: string,
+ *   options: Array<{ text: string, value: string }>,
+ * }} BooleanField
 
 /**
  * @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.d.ts').CommonQuestionProps} CommonQuestionProps
@@ -66,7 +79,7 @@ import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
  *   type: 'custom-multi-field-input';
  *   label?: string;
  *   inputAttributes?: Record<string, string>;
- *   inputFields: (InputField|RadioField|HiddenField|BooleanField)[];
+ *   inputFields: (InputField|RadioField|HiddenField|BooleanFieldInput)[];
  * }} CustomMultiFieldInputQuestionProps
  */
 
@@ -87,7 +100,7 @@ export default class CustomMultiFieldInputQuestion extends Question {
 	 * @param {QuestionParameters} options.params
 	 * @param {string|undefined} [options.label] if defined this show as a label for the input and the question will just be a standard h1
 	 * @param {Record<string, string>} [options.inputAttributes] html attributes to add to the input
-	 * @param {(InputField|RadioField|HiddenField|BooleanField)[]} options.inputFields input fields
+	 * @param {(InputField|RadioField|HiddenField|BooleanFieldInput)[]} options.inputFields input fields (BooleanFieldInput options are optional, will be set to default Yes/No if not provided)
 	 */
 	constructor({ label, inputAttributes = {}, inputFields, ...params }) {
 		super({
@@ -104,7 +117,7 @@ export default class CustomMultiFieldInputQuestion extends Question {
 		// Set default options for boolean fields if not provided
 		this.inputFields = inputFields.map((field) => {
 			if (field.type !== 'boolean') return field;
-			if (field.options) return field;
+			if (field.options) return /** type {BooleanField} */ field;
 			return {
 				...field,
 				options: [
