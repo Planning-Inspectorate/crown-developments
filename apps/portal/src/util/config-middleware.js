@@ -62,7 +62,10 @@ export function addLocalsConfiguration({
 			contactEmail,
 			googleAnalyticsId,
 			googleAnalyticsCookieDomain: appHostname,
-			serviceFeedbackUrl: 'https://forms.office.com/e/qea9t1nt8M'
+			serviceFeedbackUrl:
+				'https://forms.office.com/Pages/ResponsePage.aspx?id=mN94WIhvq0iTIpmM5VcIjUURDJ3wGfJKiFN5NOmxUcNURTNBUTQzS1JOVEtWSkJSR1I4MjNVTFBDQy4u',
+			serviceEOIUrl:
+				'https://forms.office.com/Pages/ResponsePage.aspx?id=mN94WIhvq0iTIpmM5VcIjUURDJ3wGfJKiFN5NOmxUcNUMElBMjI3RUQ3WEg5STdNMzk2NkhLUTcwTi4u'
 		};
 		next();
 	};

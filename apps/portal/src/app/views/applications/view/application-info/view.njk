@@ -102,7 +102,16 @@
                         {{ applicationStage.renderApplicationStage(applicationStageItems.currentStage, applicationStageItems.formattedApplicationStages, applicationStageItems.formattedConsultationEndDate, crownDevelopmentFields) }}
                 {% endif %}
             <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
-
+            <div>
+                <h2 class="govuk-heading-m">Give us feedback</h2>
+                <p class="govuk-body">Help us improve this service by
+                    <a class="govuk-link" href="{{ config.serviceFeedbackUrl }}" target="_blank">sharing your feedback</a>.
+                </p>
+                <p class="govuk-body">You can also sign up to
+                    <a class="govuk-link" href="{{ config.serviceEOIUrl }}" target="_blank">take part in user research</a>.
+                </p>
+            </div>
+            <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
             <div>
                 <h2 id="procedure" class="govuk-heading-m">Contact Us</h2>
                 <h3 class="govuk-heading-s">Telephone</h3>
