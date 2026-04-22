@@ -18,7 +18,7 @@ export function addressToViewModel(address) {
 
 /**
  * @param {import('@planning-inspectorate/dynamic-forms/src/lib/address.js').Address} edits
- * @returns {import('@pins/crowndev-database').Prisma.AddressCreateInput|null}
+ * @returns {import('@pins/crowndev-database').Prisma.AddressCreateInput}
  */
 export function viewModelToAddressUpdateInput(edits) {
 	return {
