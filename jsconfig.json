@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
 		"baseUrl": ".",
+		"allowImportingTsExtensions": true,
 		"allowSyntheticDefaultImports": true,
 		"checkJs": true,
 		"esModuleInterop": true,

@@ -1,0 +1,19 @@
+{
+	"include": ["**/*.ts"],
+	"exclude": ["node_modules", "packages/database/src/client/**", "**/*.test.ts"],
+	"compilerOptions": {
+		"allowImportingTsExtensions": true,
+		"allowJs": true,
+		"allowSyntheticDefaultImports": true,
+		"checkJs": false,
+		"erasableSyntaxOnly": true,
+		"esModuleInterop": true,
+		"module": "NodeNext",
+		"moduleResolution": "nodenext",
+		"noEmit": true,
+		"strict": true,
+		"target": "esnext",
+		"skipLibCheck": true,
+		"typeRoots": ["./node_modules/@types", "./packages/lib/types"]
+	}
+}
