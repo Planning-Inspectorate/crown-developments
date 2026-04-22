@@ -6,19 +6,31 @@ describe('Detailed Information page controller', () => {
 	it('should render with the Detailed Information page with all chevrons', () => {
 		const mockReq = {};
 		const mockRes = {
-			render: mock.fn()
+			render: mock.fn(),
+			locals: {
+				config: {
+					serviceFeedbackUrl: 'https://www.example.com/feedback',
+					serviceEOIUrl: 'https://www.example.com/user-research'
+				}
+			}
 		};
 		const detailedInformationPage = buildDetailedInformationPage();
 		detailedInformationPage(mockReq, mockRes);
 		assert.strictEqual(mockRes.render.mock.callCount(), 1);
 		assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/static/detailed-information/view.njk');
-		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].chevrons.length, 4, 'Detailed Information');
+		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].chevrons.length, 6, 'Detailed Information');
 	});
 
 	it('should render the detailed information page with the right object structure', () => {
 		const mockReq = {};
 		const mockRes = {
-			render: mock.fn()
+			render: mock.fn(),
+			locals: {
+				config: {
+					serviceFeedbackUrl: 'https://www.example.com/feedback',
+					serviceEOIUrl: 'https://www.example.com/user-research'
+				}
+			}
 		};
 		const detailedInformationPage = buildDetailedInformationPage();
 		detailedInformationPage(mockReq, mockRes);
@@ -42,7 +54,14 @@ describe('Detailed Information page controller', () => {
 
 	it('should handle missing render function in response object', () => {
 		const mockReq = {};
-		const mockRes = {};
+		const mockRes = {
+			locals: {
+				config: {
+					serviceFeedbackUrl: 'https://www.example.com/feedback',
+					serviceEOIUrl: 'https://www.example.com/user-research'
+				}
+			}
+		};
 		const detailedInformationPage = buildDetailedInformationPage();
 		assert.throws(() => detailedInformationPage(mockReq, mockRes), /render is not a function/);
 	});
@@ -58,9 +77,23 @@ describe('Detailed Information page controller', () => {
 		const mockRes = {
 			render: mock.fn(() => {
 				throw new Error('Render error');
-			})
+			}),
+			locals: {
+				config: {
+					serviceFeedbackUrl: 'https://www.example.com/feedback',
+					serviceEOIUrl: 'https://www.example.com/user-research'
+				}
+			}
 		};
 		const detailedInformationPage = buildDetailedInformationPage();
 		assert.throws(() => detailedInformationPage(mockReq, mockRes), /Render error/);
+	});
+	it('should error if config is missing from res.locals', () => {
+		const mockReq = {};
+		const mockRes = {
+			render: mock.fn()
+		};
+		const detailedInformationPage = buildDetailedInformationPage();
+		assert.throws(() => detailedInformationPage(mockReq, mockRes), /TypeError/);
 	});
 });
