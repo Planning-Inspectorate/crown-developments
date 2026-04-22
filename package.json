@@ -60,6 +60,8 @@
     "@eslint/js": "^10.0.1",
     "@faker-js/faker": "^10.4.0",
     "@microsoft/microsoft-graph-types": "^2.43.1",
+    "@types/escape-html": "^1.0.4",
+    "@types/express-session": "^1.19.0",
     "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.3.0",
