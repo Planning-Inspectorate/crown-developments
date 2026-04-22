@@ -1,4 +1,4 @@
-import type { CachedEntraClient } from './cached-entra-client';
+import type { CachedEntraClient } from './cached-entra-client.js';
 
 export interface GroupMember {
 	id: string;

@@ -1,9 +1,11 @@
 import 'express-session';
+import type { AccountInfo } from '@azure/msal-node';
+import type { questionConfig } from '../app/views/cases/view/delete.js';
 
 type CaseId = string;
 
 // Keep the supported questionUrl values in sync with `questionConfig` in delete.js.
-type BannerMessageQuestionUrl = keyof typeof import('../app/views/cases/view/delete.js').questionConfig;
+type BannerMessageQuestionUrl = keyof typeof questionConfig;
 
 type BannerMessageKey = `${BannerMessageQuestionUrl}:item-removed-success`;
 
@@ -18,7 +20,7 @@ declare module 'express-session' {
 
 	interface SessionData {
 		// Auth
-		account?: import('@azure/msal-node').AccountInfo & {
+		account?: AccountInfo & {
 			accessToken: string;
 			idToken?: string;
 			expiresOnTimestamp?: number;
