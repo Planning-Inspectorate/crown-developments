@@ -1,5 +1,5 @@
-import { Address } from '@planning-inspectorate/dynamic-forms/src/lib/address.js';
-import { YesNo } from '@pins/crowndev-lib/types/crown/types';
+import type { Address } from '@planning-inspectorate/dynamic-forms/src/lib/address.js';
+import type { YesNo } from '@pins/crowndev-lib/types/crown/types';
 /**
  * The view model used for have-your-say answers
  */
