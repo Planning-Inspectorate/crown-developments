@@ -1,7 +1,6 @@
 {
 	"include": ["./client/client.ts"],
 	"compilerOptions": {
-		"baseUrl": "./client",
 		"esModuleInterop": true,
 		"moduleResolution": "nodenext",
 		"checkJs": false,
