@@ -193,7 +193,7 @@ interface ManageApplicantDetails {
 	id: string;
 	organisationRelationId: string;
 	organisationName: string;
-	// Empty object used to avoid marking question as unanswered in manage list questions.
+	// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- Empty object used to avoid marking question as unanswered in manage list questions.
 	organisationAddress?: Address | {};
 	organisationAddressId?: string;
 }
