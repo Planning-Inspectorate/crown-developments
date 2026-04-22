@@ -1,6 +1,7 @@
 import type { Address } from '@planning-inspectorate/dynamic-forms/src/lib/address';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.js';
 import type { YesNo } from '@pins/crowndev-lib/types/crown/types';
+import type { ApplicantContact, AgentContact } from '../create-a-case/types.d.ts';
 
 export interface CrownDevelopmentViewModel {
 	reference?: string;
@@ -55,13 +56,13 @@ export interface CrownDevelopmentViewModel {
 	applicantContactId?: string;
 	applicantContactName?: string;
 	applicantContactAddress?: Address;
-	applicantContactAddressId?: Address;
+	applicantContactAddressId?: string;
 	applicantContactEmail?: string;
 	applicantContactTelephoneNumber?: string;
 	agentContactId?: string;
 	agentContactName?: string;
 	agentContactAddress?: Address;
-	agentContactAddressId?: Address;
+	agentContactAddressId?: string;
 	agentContactEmail?: string;
 	agentContactTelephoneNumber?: string;
 
@@ -199,23 +200,14 @@ interface ManageApplicantDetails {
 	organisationAddressId?: string;
 }
 
-export interface ManageApplicantContactDetails {
+export interface ManageApplicantContactDetails extends ApplicantContact {
 	id: string;
 	organisationToContactRelationId: string;
-	applicantFirstName: string;
-	applicantLastName: string;
-	applicantContactEmail: string;
-	applicantContactTelephoneNumber?: string;
-	applicantContactOrganisation: string;
 }
 
-export interface ManageAgentContactDetails {
+export interface ManageAgentContactDetails extends AgentContact {
 	id: string;
 	organisationToContactRelationId: string;
-	agentFirstName: string;
-	agentLastName: string;
-	agentContactEmail: string;
-	agentContactTelephoneNumber?: string;
 }
 
 export interface QuestionOverrides {
