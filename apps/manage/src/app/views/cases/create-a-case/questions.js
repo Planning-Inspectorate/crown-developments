@@ -69,7 +69,7 @@ export function getQuestions(journeyResponse, isQuestionView = false) {
 			validators: [
 				new SameAnswerValidator(
 					['secondaryLpaId'],
-					'Local Planning Authority cannot be the same as the secondary Local Planning Authority'
+					'Local planning authority cannot be the same as the secondary local planning authority'
 				),
 				new RequiredValidator('Select the local planning authority')
 			],
@@ -176,8 +176,8 @@ export function getQuestions(journeyResponse, isQuestionView = false) {
 		}),
 		hasSecondaryLpa: {
 			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'Has Secondary Local Planning Authority',
-			question: 'Is there a secondary Local Planning Authority for this application?',
+			title: 'Has secondary LPA',
+			question: 'Is there a secondary local planning authority for this application?',
 			fieldName: 'hasSecondaryLpa',
 			url: 'has-secondary-local-planning-authority',
 			validators: [new RequiredValidator('Select if the applicant is using a secondary local planning authority')]
@@ -185,15 +185,15 @@ export function getQuestions(journeyResponse, isQuestionView = false) {
 		secondaryLocalPlanningAuthority: {
 			type: COMPONENT_TYPES.SELECT,
 			title: 'Secondary LPA',
-			question: 'Select the secondary Local Planning Authority for this application',
+			question: 'Select the secondary local planning authority for this application',
 			fieldName: 'secondaryLpaId',
 			url: 'secondary-local-planning-authority',
 			validators: [
 				new SameAnswerValidator(
 					['lpaId'],
-					'Secondary Local Planning Authority cannot be the same as the Local Planning Authority'
+					'Secondary local planning authority cannot be the same as the local planning authority'
 				),
-				new RequiredValidator('Select the secondary Local Planning Authority')
+				new RequiredValidator('Select the secondary local planning authority')
 			],
 			options: lpaOptions
 		},

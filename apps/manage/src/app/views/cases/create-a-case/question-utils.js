@@ -78,7 +78,7 @@ export function contactQuestions({ prefix, title, addressRequired }) {
 
 	questions[`${prefix}TelephoneNumber`] = {
 		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-		title: `${title} Telephone number`,
+		title: `${title} telephone number`,
 		question: `What is the ${title.toLowerCase()}'s telephone number?`,
 		hint: 'Optional',
 		fieldName: `${prefix}TelephoneNumber`,

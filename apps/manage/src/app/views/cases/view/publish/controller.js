@@ -74,7 +74,7 @@ export function buildGetValidatedCaseMiddleware(service) {
 			},
 			{
 				value: crownDevelopment.Lpa?.id,
-				errorMessage: 'Enter Local Planning Authority',
+				errorMessage: 'Enter local planning authority',
 				pageLink: `/cases/${id}/overview/local-planning-authority`
 			},
 			{
