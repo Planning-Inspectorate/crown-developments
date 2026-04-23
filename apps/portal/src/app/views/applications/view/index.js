@@ -26,21 +26,11 @@ export function createRoutes(service) {
 	const isPublishedAndNotWithdrawnOrExpired = checkIfWithdrawnOrExpiredMiddleware(service);
 	const cachingMiddleware = buildCachingDynamicContentMiddleware(service);
 
-	router.get('/application-information', cachingMiddleware, asyncHandler(applicationInfoController));
-	router.get(
-		'/application-updates',
-		isPublishedAndNotExpired,
-		cachingMiddleware,
-		asyncHandler(applicationUpdatesController)
-	);
-	router.get('/documents', isPublishedAndNotExpired, cachingMiddleware, asyncHandler(applicationDocumentsPage));
+	router.get('/application-information', asyncHandler(applicationInfoController));
+	router.get('/application-updates', isPublishedAndNotExpired, asyncHandler(applicationUpdatesController));
+	router.get('/documents', isPublishedAndNotExpired, asyncHandler(applicationDocumentsPage));
 	router.get('/documents/:documentId', isPublishedAndNotExpired, cachingMiddleware, asyncHandler(viewDocumentPage));
-	router.get(
-		'/detailed-information',
-		isPublishedAndNotExpired,
-		cachingMiddleware,
-		asyncHandler(buildDetailedInformationPage)
-	);
+	router.get('/detailed-information', isPublishedAndNotExpired, asyncHandler(buildDetailedInformationPage));
 	router.use('/have-your-say', isPublishedAndNotWithdrawnOrExpired, haveYourSayPageRoutes);
 	router.use('/written-representations', isPublishedAndNotExpired, writtenRepresentationsRoutes);
 
