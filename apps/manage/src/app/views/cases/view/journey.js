@@ -9,7 +9,7 @@ import {
 	APPLICATION_PROCEDURE_ID,
 	APPLICATION_SUB_TYPE_ID,
 	APPLICATION_TYPE_ID
-} from '@pins/crowndev-database/src/seed/data-static.js';
+} from '@pins/crowndev-database/src/seed/data-static.ts';
 import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { ManageListSection } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-section.js';
 export const JOURNEY_ID = 'case-details';

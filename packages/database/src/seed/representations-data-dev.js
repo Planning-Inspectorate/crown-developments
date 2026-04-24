@@ -4,7 +4,7 @@ import {
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
-} from './data-static.js';
+} from './data-static.ts';
 
 export const representationContactAddresses = [
 	{

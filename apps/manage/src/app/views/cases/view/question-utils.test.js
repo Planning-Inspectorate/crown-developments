@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { contactQuestions, dateQuestion, eventQuestions, filteredStagesToRadioOptions } from './question-utils.js';
-import { APPLICATION_PROCEDURE_ID, APPLICATION_STAGE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { APPLICATION_PROCEDURE_ID, APPLICATION_STAGE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('question-utils', () => {
 	describe('contactQuestions', () => {

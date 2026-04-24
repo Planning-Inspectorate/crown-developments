@@ -7,7 +7,7 @@ import {
 	mapWithAndWithoutToBoolean,
 	sanitiseQueryToStringArray
 } from './filters.js';
-import { REPRESENTATION_CATEGORY_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { REPRESENTATION_CATEGORY_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { dateFilter } from './date-filter.js';

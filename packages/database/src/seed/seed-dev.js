@@ -1,5 +1,5 @@
 import { newDatabaseClient } from '../index.ts';
-import { seedStaticData } from './data-static.js';
+import { seedStaticData } from './data-static.ts';
 import { seedDev } from './data-dev.js';
 import { loadConfig } from '../configuration/config.js';
 import { seedDevLpas } from './data-lpa-dev.js';

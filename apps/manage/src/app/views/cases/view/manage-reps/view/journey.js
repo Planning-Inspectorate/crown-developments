@@ -1,7 +1,7 @@
 import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
 import { haveYourSayManageSections } from '@pins/crowndev-lib/forms/representations/sections.js';
 import { generateJourneyTitle } from '../manage-reps-utils.js';
-import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 export const JOURNEY_ID = 'manage-representations';
 

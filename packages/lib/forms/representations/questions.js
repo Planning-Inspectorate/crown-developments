@@ -12,7 +12,7 @@ import {
 	REPRESENTATION_SUBMITTED_FOR,
 	REPRESENTED_TYPE,
 	WITHDRAWAL_REASON
-} from '@pins/crowndev-database/src/seed/data-static.js';
+} from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
 	referenceDataToRadioOptions,
 	referenceDataToRadioOptionsWithHintText
