@@ -1,7 +1,7 @@
-import { newDatabaseClient } from '../index.js';
+import { newDatabaseClient } from '../index.ts';
 import { seedStaticData } from './data-static.ts';
-import { loadConfig } from '../configuration/config.js';
-import { seedProdLpas } from './data-lpa-prod.js';
+import { loadConfig } from '../configuration/config.ts';
+import { seedProdLpas } from './data-lpa-prod.ts';
 
 async function run() {
 	const config = loadConfig();
@@ -18,4 +18,4 @@ async function run() {
 	}
 }
 
-run();
+void run();
