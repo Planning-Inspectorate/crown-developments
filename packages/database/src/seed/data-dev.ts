@@ -10,12 +10,10 @@ import {
 	repsBehalfOfPersonContacts,
 	repsContacts,
 	repsOnBehalfOfOrgContacts
-} from './representations-data-dev.js';
+} from './representations-data-dev.ts';
+import type { PrismaClient } from '../client/client.ts';
 
-/**
- * @param {import('@pins/crowndev-database').PrismaClient} dbClient
- */
-export async function seedDev(dbClient) {
+export async function seedDev(dbClient: PrismaClient) {
 	// ensure there is a case to link representations to
 	const crownDev = await dbClient.crownDevelopment.upsert({
 		where: { reference: 'CROWN/2025/0000001' },
@@ -24,9 +22,12 @@ export async function seedDev(dbClient) {
 	});
 
 	const allAddresses = representationContactAddresses;
-	const addressIds = new Map();
+	const addressIds = new Map<string, boolean>();
 	// check IDs are unique
 	for (const address of allAddresses) {
+		if (!address.id) {
+			throw new Error('Address is missing ID');
+		}
 		if (addressIds.has(address.id)) {
 			throw new Error(`Duplicate address ID: ${address.id}`);
 		}
@@ -42,9 +43,12 @@ export async function seedDev(dbClient) {
 	}
 
 	const allContacts = [...repsContacts, ...repsOnBehalfOfOrgContacts, ...repsBehalfOfPersonContacts];
-	const contactIds = new Map();
+	const contactIds = new Map<string, boolean>();
 	// check IDs are unique
 	for (const contact of allContacts) {
+		if (!contact.id) {
+			throw new Error('Contact is missing ID');
+		}
 		if (contactIds.has(contact.id)) {
 			throw new Error(`Duplicate contact ID: ${contact.id}`);
 		}
@@ -59,7 +63,7 @@ export async function seedDev(dbClient) {
 		});
 	}
 
-	const repRefs = new Map();
+	const repRefs = new Map<string, boolean>();
 	// check references are unique
 	for (const representation of representations) {
 		if (repRefs.has(representation.reference)) {
@@ -75,14 +79,16 @@ export async function seedDev(dbClient) {
 		repRefs.set(representationReference, true);
 	}
 
-	for (const representation of representations) {
-		representation.Application = { connect: { id: crownDev.id } };
-		await persistWrittenRepresentation(dbClient, representation);
+	for (const partialRepresentation of representations) {
+		const fullRepresentation = {
+			...partialRepresentation,
+			Application: { connect: { id: crownDev.id } }
+		};
+		await persistWrittenRepresentation(dbClient, fullRepresentation);
 	}
 
 	for (const representationReference of repReferences) {
-		const representation = generateWrittenRepresentation(representationReference);
-		representation.Application = { connect: { id: crownDev.id } };
+		const representation = generateWrittenRepresentation(representationReference, crownDev.id);
 		await persistWrittenRepresentation(dbClient, representation);
 	}
 
@@ -104,8 +110,11 @@ export async function seedDev(dbClient) {
 		});
 	}
 	//Create or update application updates and update the crown development application to contain application updates
-	for (const applicationUpdate of applicationUpdates) {
-		applicationUpdate.Application = { connect: { id: crownDev.id } };
+	for (const partialApplicationUpdate of applicationUpdates) {
+		const applicationUpdate = {
+			...partialApplicationUpdate,
+			Application: { connect: { id: crownDev.id } }
+		};
 		await dbClient.applicationUpdate.upsert({
 			where: { id: applicationUpdate.id },
 			create: applicationUpdate,

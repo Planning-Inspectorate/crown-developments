@@ -1,14 +1,9 @@
 import PROD_LPAS from './data-lpa-prod-list.json' with { type: 'json' };
+import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 
-/**
- * @type {import('@pins/crowndev-database').Prisma.LpaCreateInput[]}
- */
-export const LOCAL_PLANNING_AUTHORITIES = PROD_LPAS;
+export const LOCAL_PLANNING_AUTHORITIES: Prisma.LpaCreateInput[] = PROD_LPAS;
 
-/**
- * @param {import('@pins/crowndev-database').PrismaClient} dbClient
- */
-export async function seedProdLpas(dbClient) {
+export async function seedProdLpas(dbClient: PrismaClient) {
 	const counts = {
 		created: 0,
 		updated: 0
@@ -25,13 +20,8 @@ export async function seedProdLpas(dbClient) {
 	console.log('prod LPAs seed complete', counts);
 }
 
-/**
- * @param {import('@pins/crowndev-database').PrismaClient} dbClient
- * @param {import('@pins/crowndev-database').Prisma.LpaCreateInput} lpaCreateInput
- * @returns {Promise<boolean>} - true if created
- */
-async function seedLpa(dbClient, lpaCreateInput) {
-	await dbClient.$transaction(async ($tx) => {
+async function seedLpa(dbClient: PrismaClient, lpaCreateInput: Prisma.LpaCreateInput): Promise<boolean> {
+	return await dbClient.$transaction(async ($tx) => {
 		const lpa = await $tx.lpa.findFirst({
 			where: {
 				onsCode: lpaCreateInput.onsCode
@@ -56,7 +46,7 @@ async function seedLpa(dbClient, lpaCreateInput) {
 			// update the address
 			await dbClient.address.update({
 				where: {
-					id: lpa.addressId
+					id: lpa.addressId ?? undefined
 				},
 				data: address
 			});
