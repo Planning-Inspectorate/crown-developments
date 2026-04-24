@@ -1,5 +1,5 @@
 import type { Address } from '@planning-inspectorate/dynamic-forms/src/lib/address';
-import type { Prisma } from '@pins/crowndev-database/src/client/client.js';
+import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { YesNo } from '@pins/crowndev-lib/types/crown/types';
 
 export interface CrownDevelopmentViewModel {

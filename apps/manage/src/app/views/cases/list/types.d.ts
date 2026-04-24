@@ -1,4 +1,4 @@
-import type { Prisma } from '@pins/crowndev-database/src/client/client.js';
+import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 export interface CrownDevelopmentListViewModel {
 	id: string;
