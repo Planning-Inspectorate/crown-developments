@@ -2,7 +2,7 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildGetValidatedCaseMiddleware, buildPublishCase } from './controller.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
-import { Prisma } from '@pins/crowndev-database/src/client/client.js';
+import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
 
 describe('publish case', () => {

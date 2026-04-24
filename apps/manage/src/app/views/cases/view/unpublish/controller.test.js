@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import { buildSubmitUnpublishCase } from './controller.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
-import { Prisma } from '@pins/crowndev-database/src/client/client.js';
+import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 describe('unpublish case', () => {
 	describe('buildSubmitUnpublishCase', () => {

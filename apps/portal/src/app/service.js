@@ -13,7 +13,6 @@ import { initGovNotify } from '@pins/crowndev-lib/govnotify/index.js';
 export class PortalService {
 	/**
 	 * @type {import('./config-types.js').Config}
-	 * @private
 	 */
 	#config;
 	/**
@@ -21,7 +20,7 @@ export class PortalService {
 	 */
 	logger;
 	/**
-	 * @type {import('@pins/crowndev-database').PrismaClient}
+	 * @type {import('@pins/crowndev-database/src/client/client.ts').PrismaClient}
 	 */
 	dbClient;
 	/**
@@ -76,7 +75,7 @@ export class PortalService {
 	/**
 	 * Alias of dbClient
 	 *
-	 * @returns {import('@pins/crowndev-database').PrismaClient}
+	 * @returns {import('@pins/crowndev-database/src/client/client.ts').PrismaClient}
 	 */
 	get db() {
 		return this.dbClient;

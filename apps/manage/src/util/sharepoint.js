@@ -4,7 +4,7 @@ import { Client } from '@microsoft/microsoft-graph-client';
 /**
  *
  * @param {import('../app/config-types.js').Config} config
- * @returns {function(session): SharePointDrive | null}
+ * @returns {function(import('express-session').Session): SharePointDrive | null}
  */
 export function buildInitSharePointDrive(config) {
 	return (session) => {

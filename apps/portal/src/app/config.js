@@ -106,7 +106,7 @@ export function loadConfig() {
 			maxAge: DYNAMIC_CACHE_CONTROL_MAX_AGE || 600 // 10 minutes in seconds
 		},
 		database: {
-			datasourceUrl: SQL_CONNECTION_STRING
+			connectionString: SQL_CONNECTION_STRING
 		},
 		featureFlags: {
 			// by default with no feature flag set, the portal is live

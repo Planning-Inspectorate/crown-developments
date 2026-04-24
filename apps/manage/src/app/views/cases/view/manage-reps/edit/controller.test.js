@@ -7,7 +7,7 @@ import {
 	REPRESENTATION_SUBMITTED_FOR_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
-import { Prisma } from '@pins/crowndev-database/src/client/client.js';
+import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 describe('controller', () => {
 	describe('buildUpdateRepresentation', () => {

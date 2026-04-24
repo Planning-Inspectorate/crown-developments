@@ -1,7 +1,7 @@
 import { test, describe, mock } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { buildDefaultErrorHandlerMiddleware, notFoundHandler, wrapPrismaErrors } from './errors.js';
-import { Prisma } from '@pins/crowndev-database/src/client/client.js';
+import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 describe('errors', () => {
 	describe('buildDefaultErrorHandlerMiddleware', () => {
