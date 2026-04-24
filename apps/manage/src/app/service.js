@@ -18,7 +18,6 @@ import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-grap
 export class ManageService {
 	/**
 	 * @type {import('./config-types.js').Config}
-	 * @private
 	 */
 	#config;
 	/**
@@ -26,7 +25,7 @@ export class ManageService {
 	 */
 	logger;
 	/**
-	 * @type {import('@pins/crowndev-database').PrismaClient}
+	 * @type {import('@pins/crowndev-database/src/client/client.ts').PrismaClient}
 	 */
 	dbClient;
 	/**
@@ -34,7 +33,7 @@ export class ManageService {
 	 */
 	redisClient;
 	/**
-	 * @type {function(session): SharePointDrive | null}
+	 * @type {function(import('express-session').Session): SharePointDrive | null}
 	 */
 	getSharePointDrive;
 	/**
@@ -117,7 +116,7 @@ export class ManageService {
 	/**
 	 * Alias of dbClient
 	 *
-	 * @returns {import('@pins/crowndev-database').PrismaClient}
+	 * @returns {import('@pins/crowndev-database/src/client/client.ts').PrismaClient}
 	 */
 	get db() {
 		return this.dbClient;

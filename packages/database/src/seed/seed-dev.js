@@ -1,4 +1,4 @@
-import { newDatabaseClient } from '../index.js';
+import { newDatabaseClient } from '../index.ts';
 import { seedStaticData } from './data-static.js';
 import { seedDev } from './data-dev.js';
 import { loadConfig } from '../configuration/config.js';

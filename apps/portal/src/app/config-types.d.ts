@@ -11,7 +11,7 @@ interface Config {
 		maxAge: string;
 	};
 	database: {
-		datasourceUrl: string;
+		connectionString: string;
 	};
 	featureFlags: {
 		isLive: boolean;

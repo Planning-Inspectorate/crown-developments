@@ -166,7 +166,7 @@ export function loadConfig() {
 			maxAge: STATIC_CACHE_CONTROL_MAX_AGE || '30d'
 		},
 		database: {
-			datasourceUrl: SQL_CONNECTION_STRING
+			connectionString: SQL_CONNECTION_STRING
 		},
 		entra: {
 			// in minutes

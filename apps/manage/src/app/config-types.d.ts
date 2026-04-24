@@ -23,7 +23,7 @@ interface Config {
 		maxAge: string;
 	};
 	database: {
-		datasourceUrl: string;
+		connectionString: string;
 	};
 	entra: {
 		// group cache ttl in minutes

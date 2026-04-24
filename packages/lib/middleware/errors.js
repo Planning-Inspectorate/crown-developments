@@ -1,4 +1,4 @@
-import { Prisma } from '@pins/crowndev-database/src/client/client.js';
+import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 /**
  * A catch-all error handler to use as express middleware

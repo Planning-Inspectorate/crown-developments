@@ -1,4 +1,4 @@
-import { Prisma } from '@pins/crowndev-database/src/client/client.js';
+import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 /**
  * @param {string} [id]
