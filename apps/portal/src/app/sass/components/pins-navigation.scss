@@ -1,7 +1,20 @@
 @use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
 
-.pins-navigation {
+.govuk-template--rebranded .govuk-service-navigation.pins-navigation {
+	background-color: #f3f3f3;
 	box-shadow: 0 0 0 100vmax govuk.govuk-colour('black', $variant: 'tint-95');
 	clip-path: inset(0 -100vmax);
-	border-bottom: none;
+}
+// Override GOV.UK default service navigation border
+.govuk-service-navigation {
+	border-bottom: 1px solid #cecece !important;
+}
+
+.govuk-service-navigation__item--active {
+	border-bottom-color: #0b0c0c !important;
+}
+.govuk-service-navigation__link:not(:hover):not(:focus),
+.govuk-service-navigation__link:hover,
+.govuk-service-navigation__link:visited {
+	color: #0b0c0c !important;
 }
