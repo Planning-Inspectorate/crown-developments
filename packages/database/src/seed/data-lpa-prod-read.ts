@@ -8,6 +8,7 @@
 import { readFile, writeFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,6 +30,9 @@ const HEADERS = Object.freeze({
 });
 
 async function run() {
+	if (!process.env.LPA_DATA_FILE_PATH) {
+		throw new Error('LPA_DATA_FILE_PATH environment variable not set');
+	}
 	const contents = await readFile(process.env.LPA_DATA_FILE_PATH, 'utf8');
 	const lines = contents
 		.toString()
@@ -52,7 +56,7 @@ async function run() {
 		.map(toCreateInput);
 
 	// quick data integrity check - ONS codes may not be unique, but should always have the same name
-	const onsCodeToName = new Map();
+	const onsCodeToName: Map<string, string> = new Map();
 	for (const lpa of createInputs) {
 		if (lpa.onsCode) {
 			if (onsCodeToName.has(lpa.onsCode)) {
@@ -69,11 +73,7 @@ async function run() {
 	console.log(`data-lpa-prod-list.json written with ${createInputs.length} LPAs`);
 }
 
-/**
- * @param {Object<string, string>} lpa
- * @returns {import('@pins/crowndev-database').Prisma.LpaCreateInput}
- */
-function toCreateInput(lpa) {
+function toCreateInput(lpa: Record<string, string>): Prisma.LpaCreateInput {
 	const address = {
 		line1: lpa[HEADERS.ADDRESS_1] || null,
 		line2: lpa[HEADERS.ADDRESS_2] || null,
@@ -81,11 +81,9 @@ function toCreateInput(lpa) {
 		county: lpa[HEADERS.COUNTY] || null,
 		postcode: lpa[HEADERS.POSTCODE] || null
 	};
-	/**
-	 * @type {import('@pins/crowndev-database').Prisma.LpaCreateInput}
-	 */
-	const createInput = {
-		id: ONS_CODE_TO_ID[lpa[HEADERS.ONS_LPA_CODE]],
+
+	const createInput: Prisma.LpaCreateInput = {
+		id: ONS_CODE_TO_ID[lpa[HEADERS.ONS_LPA_CODE] as keyof typeof ONS_CODE_TO_ID],
 		name: lpa[HEADERS.ONS_LPA_NAME],
 		pinsCode: lpa[HEADERS.PINS_LPA_CODE] || null,
 		onsCode: lpa[HEADERS.ONS_LPA_CODE] || null,
@@ -101,13 +99,8 @@ function toCreateInput(lpa) {
 	return createInput;
 }
 
-/**
- * @param {string[]} headers
- * @param {string[]} line
- * @returns {Object<string, string>}
- */
-function mapToObject(headers, line) {
-	const obj = {};
+function mapToObject(headers: string[], line: string[]): Record<string, string> {
+	const obj: Record<string, string> = {};
 	headers.forEach((header, i) => {
 		obj[header] = line[i];
 	});
@@ -116,11 +109,9 @@ function mapToObject(headers, line) {
 
 /**
  * Parse one line of a CSV file, handling quoted fields and escaped quotes
- * @param {string} line
- * @returns {string[]}
  */
-function parseCSVLine(line) {
-	const result = [];
+function parseCSVLine(line: string): string[] {
+	const result: string[] = [];
 	let field = '';
 	let inQuotes = false;
 
@@ -475,4 +466,4 @@ const ONS_CODE_TO_ID = Object.freeze({
 	E60000335: '8b03d137-de51-4bdd-92d2-b276522846f8',
 	E60000336: '5f69c564-97f5-40fd-939f-a8d4cbad8c5d',
 	E60000337: '61e47f7d-eaa1-4887-8c2d-13298b3a44e6'
-});
+} as const);
