@@ -1,5 +1,5 @@
 import { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
-import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { JOURNEY_MAP } from './upload-documents.js';
 import nunjucks from 'nunjucks';
 

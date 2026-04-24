@@ -7,7 +7,7 @@ import {
 } from './notification.js';
 import { editsToDatabaseUpdates, crownDevelopmentToViewModel } from './view-model.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
-import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
 import { extractApplicantContactFields, extractAgentContactFields } from '../util/contact.js';
 

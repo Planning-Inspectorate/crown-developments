@@ -6,7 +6,7 @@ import {
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID,
 	REPRESENTATION_STATUS_ID
-} from '@pins/crowndev-database/src/seed/data-static.js';
+} from '@pins/crowndev-database/src/seed/data-static.ts';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
 import { addRepresentationSection, haveYourSayManageSections, haveYourSaySections } from './sections.js';

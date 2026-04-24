@@ -1,7 +1,7 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { fetchPublishedApplication } from '#util/applications.js';
-import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { applicationLinks, representationToViewModel } from '../../view-model.js';
 import {
 	publishedRepresentationsAttachmentsFolderPath,

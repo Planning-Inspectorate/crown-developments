@@ -2,7 +2,7 @@ import {
 	APPLICATION_PROCEDURE,
 	APPLICATION_STAGE,
 	APPLICATION_STAGE_ID
-} from '@pins/crowndev-database/src/seed/data-static.js';
+} from '@pins/crowndev-database/src/seed/data-static.ts';
 
 export function buildApplicationStages(crownDevelopment) {
 	const applicableStageIds = [

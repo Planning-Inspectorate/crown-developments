@@ -1,7 +1,7 @@
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { fetchPublishedApplication } from '#util/applications.js';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
-import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 /**
  * @typedef {{start: Date, end: Date}} HaveYourSayPeriod

@@ -1,4 +1,4 @@
-import { APPLICATION_TYPE_ID } from './data-static.js';
+import { APPLICATION_TYPE_ID } from './data-static.ts';
 import {
 	applicationUpdates,
 	generateWrittenRepresentation,

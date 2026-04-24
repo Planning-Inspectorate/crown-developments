@@ -9,7 +9,7 @@ import {
 	APPLICATION_PROCEDURE_ID,
 	APPLICATION_STAGE,
 	APPLICATION_STAGE_ID
-} from '@pins/crowndev-database/src/seed/data-static.js';
+} from '@pins/crowndev-database/src/seed/data-static.ts';
 import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.js';
 import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-validator.js';
 import { camelCaseToUrlCase, camelCaseToSentenceCase, sentenceCase } from '@pins/crowndev-lib/util/string.js';

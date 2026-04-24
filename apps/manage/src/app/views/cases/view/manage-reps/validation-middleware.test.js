@@ -5,7 +5,7 @@ import {
 	REPRESENTATION_CATEGORY_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
-} from '@pins/crowndev-database/src/seed/data-static.js';
+} from '@pins/crowndev-database/src/seed/data-static.ts';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
 

@@ -2,7 +2,7 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { fetchPublishedApplication } from '#util/applications.js';
 import { applicationLinks, representationToViewModel } from '../view-model.js';
-import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
