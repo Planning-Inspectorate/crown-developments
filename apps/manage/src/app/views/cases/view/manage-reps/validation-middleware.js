@@ -1,4 +1,4 @@
-import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { addSessionData } from '@pins/crowndev-lib/util/session.js';
 import { fileAlreadyExistsInFolder } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/document-validation-util.js';

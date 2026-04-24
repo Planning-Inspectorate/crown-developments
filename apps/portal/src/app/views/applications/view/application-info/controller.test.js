@@ -2,7 +2,7 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildApplicationInformationPage } from './controller.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
-import { APPLICATION_PROCEDURE_ID, APPLICATION_STAGE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { APPLICATION_PROCEDURE_ID, APPLICATION_STAGE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('application info controller', () => {
 	describe('buildApplicationInformationPage', () => {

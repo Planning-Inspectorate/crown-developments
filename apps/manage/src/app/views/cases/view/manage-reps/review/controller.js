@@ -1,4 +1,4 @@
-import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { ACCEPT_AND_REDACT } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { renderRepresentation, validateParams } from '../view/controller.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';

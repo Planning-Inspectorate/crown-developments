@@ -2,7 +2,7 @@ import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/l
 import { JOURNEY_ID } from './journey.js';
 import { validateParams } from '../view/controller.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
-import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
 	deleteRepresentationAttachmentsFolder,
 	moveAttachmentsToCaseFolder

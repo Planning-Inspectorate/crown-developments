@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { crownDevelopmentToViewModel, editsToDatabaseUpdates } from './view-model.js';
-import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 /**
  * @typedef {import('@pins/crowndev-database').Prisma.CrownDevelopmentGetPayload<{
