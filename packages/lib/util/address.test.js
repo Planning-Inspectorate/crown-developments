@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { addressToViewModel, isAddress, isSameAddress, viewModelToAddressUpdateInput } from './address.js';
+import { addressToViewModel, isAddress, isSameAddress, viewModelToAddressUpdateInput } from './address.ts';
 
 describe('addressToViewModel', () => {
 	it('should return a view model with correct properties when address is provided', () => {

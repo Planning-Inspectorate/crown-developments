@@ -1,6 +1,6 @@
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { optionalWhere } from '@pins/crowndev-lib/util/database.js';
-import { viewModelToAddressUpdateInput, isAddress, isSameAddress } from '@pins/crowndev-lib/util/address.js';
+import { viewModelToAddressUpdateInput, isAddress, isSameAddress } from '@pins/crowndev-lib/util/address.ts';
 import { extractApplicantContactFields, extractAgentContactFields } from '../util/contact.js';
 import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
 import type {
@@ -11,7 +11,7 @@ import type {
 	ManageAgentContactDetails,
 	ManageApplicantContactDetails
 } from './types.js';
-import type { Prisma } from '@pins/crowndev-database';
+import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { ManageService } from '#service';
 
 type CaseUpdateWritePlan = {
