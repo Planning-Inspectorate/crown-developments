@@ -10,7 +10,7 @@ import {
 	REPRESENTED_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.js';
 import { optionalWhere } from '../../util/database.js';
-import { addressToViewModel, viewModelToAddressUpdateInput } from '../../util/address.js';
+import { addressToViewModel, viewModelToAddressUpdateInput } from '../../util/address.ts';
 
 /**
  * Representation fields that do not need mapping to a (or from) the view model

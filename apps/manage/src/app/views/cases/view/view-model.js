@@ -6,7 +6,7 @@ import {
 import { toFloat, toInt } from '@pins/crowndev-lib/util/numbers.js';
 import { booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { optionalWhere } from '@pins/crowndev-lib/util/database.js';
-import { addressToViewModel, viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.js';
+import { addressToViewModel, viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
 import { parseNumberStringToNumber } from '@pins/crowndev-lib/util/numbers.js';
 import {
 	buildAgentOrganisationNameUpdates,
