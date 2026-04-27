@@ -1,4 +1,4 @@
-import { APPLICATION_TYPE_ID } from './data-static.ts';
+import { APPLICATION_TYPE_ID, APPLICATION_STATUS } from './data-static.ts';
 import {
 	applicationUpdates,
 	generateWrittenRepresentation,
@@ -11,14 +11,22 @@ import {
 	repsContacts,
 	repsOnBehalfOfOrgContacts
 } from './representations-data-dev.ts';
+import { LOCAL_PLANNING_AUTHORITIES } from './data-lpa-dev.ts';
 import type { PrismaClient } from '../client/client.ts';
 
 export async function seedDev(dbClient: PrismaClient) {
 	// ensure there is a case to link representations to
+	const reference = `CROWN/${new Date().getFullYear()}/0000001`;
+	const upsertOperation = {
+		reference: reference,
+		Type: { connect: { id: APPLICATION_TYPE_ID.PLANNING_PERMISSION } },
+		Lpa: { connect: { id: LOCAL_PLANNING_AUTHORITIES[0].id } },
+		Status: { connect: { id: APPLICATION_STATUS[0].id } }
+	};
 	const crownDev = await dbClient.crownDevelopment.upsert({
-		where: { reference: 'CROWN/2025/0000001' },
-		create: { reference: 'CROWN/2025/0000001', Type: { connect: { id: APPLICATION_TYPE_ID.PLANNING_PERMISSION } } },
-		update: { reference: 'CROWN/2025/0000001', Type: { connect: { id: APPLICATION_TYPE_ID.PLANNING_PERMISSION } } }
+		where: { reference: reference },
+		create: upsertOperation,
+		update: upsertOperation
 	});
 
 	const allAddresses = representationContactAddresses;
