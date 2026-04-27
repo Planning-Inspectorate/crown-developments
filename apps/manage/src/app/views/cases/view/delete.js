@@ -130,6 +130,12 @@ export function buildDeleteManageListItemOnConfirmRemove(service) {
 				});
 				if (stillReferenced) return;
 
+				const organisation = await db.organisation.findUnique({
+					where: { id: manageListItemId },
+					select: { addressId: true }
+				});
+				const addressId = organisation?.addressId || null;
+
 				// Fetch linked contacts (for orphan cleanup) before we delete join rows.
 				const contacts = await db.organisationToContact.findMany({
 					where: { organisationId: manageListItemId },
@@ -140,6 +146,17 @@ export function buildDeleteManageListItemOnConfirmRemove(service) {
 					db.organisationToContact.deleteMany({ where: { organisationId: manageListItemId } }),
 					db.organisation.delete({ where: { id: manageListItemId } })
 				]);
+
+				if (addressId) {
+					try {
+						await db.address.delete({ where: { id: addressId } });
+					} catch (error) {
+						logger.warn(
+							{ id, manageListItemId, addressId, err: error },
+							'Unable to delete address record linked to organisation.'
+						);
+					}
+				}
 
 				// Best-effort cleanup of orphan contacts (only safe if contacts are not shared elsewhere)
 				const contactIds = contacts.map((c) => c.contactId);
