@@ -43,8 +43,12 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 				findFirst: mock.fn(async () => null)
 			},
 			organisationToContact: { deleteMany: mock.fn(), findMany: mock.fn(async () => []) },
-			organisation: { delete: mock.fn(async () => ({ id: 'org-1' })) },
-			contact: { delete: mock.fn() }
+			organisation: {
+				findUnique: mock.fn(async () => ({ addressId: 'addr-1' })),
+				delete: mock.fn(async () => ({ id: 'org-1' }))
+			},
+			address: { delete: mock.fn(async () => ({ id: 'addr-1' })) },
+			contact: { delete: mock.fn(), findFirst: mock.fn(async () => null) }
 		};
 		db.$transaction = mock.fn(async (ops) => {
 			// prisma allows passing an array of operations; we just execute them in order for this test
@@ -72,9 +76,107 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 		assert.strictEqual(db.organisationToContact.findMany.mock.callCount(), 1);
 		assert.strictEqual(db.organisationToContact.deleteMany.mock.callCount(), 1);
 		assert.strictEqual(db.organisation.delete.mock.callCount(), 1);
+		assert.strictEqual(db.address.delete.mock.callCount(), 1);
 		assert.strictEqual(req.session.bannerMessage['case-1']['check-applicant-details:item-removed-success'], true);
 		assert.strictEqual(next.mock.callCount(), 1);
 		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
+	});
+
+	it('should delete an orphan address after deleting an applicant organisation', async () => {
+		const db = {
+			crownDevelopment: {
+				findUnique: mock.fn(async () => ({ id: 'case-1', linkedParentId: null, ChildrenCrownDevelopment: [] })),
+				findFirst: mock.fn(async () => null)
+			},
+			crownDevelopmentToOrganisation: {
+				deleteMany: mock.fn(async () => ({ count: 1 })),
+				findFirst: mock.fn(async () => null)
+			},
+			organisationToContact: { deleteMany: mock.fn(), findMany: mock.fn(async () => []) },
+			organisation: {
+				findUnique: mock.fn(async () => ({ addressId: 'addr-1' })),
+				findFirst: mock.fn(async () => null),
+				delete: mock.fn(async () => ({ id: 'org-1' }))
+			},
+			address: { delete: mock.fn(async () => ({ id: 'addr-1' })) },
+			contact: { delete: mock.fn(), findFirst: mock.fn(async () => null) },
+			lpa: { findFirst: mock.fn(async () => null) }
+		};
+		db.$transaction = mock.fn(async (ops) => {
+			for (const op of ops) await op;
+			return [];
+		});
+		const middleware = buildDeleteManageListItemOnConfirmRemove({ db, logger: mockLogger() });
+		const req = {
+			params: {
+				id: 'case-1',
+				manageListAction: 'remove',
+				manageListItemId: 'org-1',
+				manageListQuestion: 'confirm',
+				question: 'check-applicant-details'
+			},
+			session: {}
+		};
+		const res = {};
+		const next = mock.fn();
+
+		await middleware(req, res, next);
+
+		assert.strictEqual(db.address.delete.mock.callCount(), 1);
+		assert.deepStrictEqual(db.address.delete.mock.calls[0].arguments[0], { where: { id: 'addr-1' } });
+		assert.strictEqual(next.mock.callCount(), 1);
+	});
+
+	it('should not delete address when still referenced after applicant organisation deletion', async () => {
+		const logger = mockLogger();
+		const db = {
+			crownDevelopment: {
+				findUnique: mock.fn(async () => ({ id: 'case-1', linkedParentId: null, ChildrenCrownDevelopment: [] })),
+				findFirst: mock.fn(async () => null)
+			},
+			crownDevelopmentToOrganisation: {
+				deleteMany: mock.fn(async () => ({ count: 1 })),
+				findFirst: mock.fn(async () => null)
+			},
+			organisationToContact: { deleteMany: mock.fn(), findMany: mock.fn(async () => []) },
+			organisation: {
+				findUnique: mock.fn(async () => ({ addressId: 'addr-1' })),
+				delete: mock.fn(async () => ({ id: 'org-1' }))
+			},
+			address: {
+				delete: mock.fn(async () => {
+					throw new Error('still referenced');
+				})
+			},
+			contact: { delete: mock.fn() }
+		};
+		db.$transaction = mock.fn(async (ops) => {
+			for (const op of ops) await op;
+			return [];
+		});
+		const middleware = buildDeleteManageListItemOnConfirmRemove({ db, logger });
+		const req = {
+			params: {
+				id: 'case-1',
+				manageListAction: 'remove',
+				manageListItemId: 'org-1',
+				manageListQuestion: 'confirm',
+				question: 'check-applicant-details'
+			},
+			session: {}
+		};
+		const res = {};
+		const next = mock.fn();
+
+		await middleware(req, res, next);
+
+		assert.strictEqual(db.address.delete.mock.callCount(), 1);
+		assert.strictEqual(logger.warn.mock.callCount(), 1);
+		assert.strictEqual(
+			logger.warn.mock.calls[0].arguments[1],
+			'Unable to delete address record linked to organisation.'
+		);
+		assert.strictEqual(next.mock.callCount(), 1);
 	});
 
 	it('should delete applicant organisation relation when remove is confirmed for check-applicant-details', async () => {
@@ -492,7 +594,11 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 				deleteMany: mock.fn(async () => ({ count: 2 })),
 				findMany: mock.fn(async () => [{ contactId: 'contact-1' }, { contactId: 'contact-2' }])
 			},
-			organisation: { delete: mock.fn(async () => ({ id: 'org-1' })) },
+			organisation: {
+				findUnique: mock.fn(async () => ({ addressId: 'addr-1' })),
+				delete: mock.fn(async () => ({ id: 'org-1' }))
+			},
+			address: { delete: mock.fn(async () => ({ id: 'addr-1' })) },
 			contact: { delete: mock.fn(), deleteMany: mock.fn(async () => ({ count: 2 })) }
 		};
 		db.$transaction = mock.fn(async (ops) => {
@@ -535,7 +641,8 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 			},
 			organisationToContact: { deleteMany: mock.fn(async () => ({ count: 0 })), findMany: mock.fn(async () => []) },
 			organisation: { delete: mock.fn(async () => ({ id: 'org-1' })) },
-			contact: { delete: mock.fn(), deleteMany: mock.fn() }
+			address: { delete: mock.fn(async () => ({ id: 'addr-1' })) },
+			contact: { delete: mock.fn(), deleteMany: mock.fn(), findFirst: mock.fn(async () => null) }
 		};
 		db.$transaction = mock.fn(async (ops) => {
 			for (const op of ops) await op;
@@ -577,7 +684,11 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 				deleteMany: mock.fn(async () => ({ count: 2 })),
 				findMany: mock.fn(async () => [{ contactId: 'contact-1' }])
 			},
-			organisation: { delete: mock.fn(async () => ({ id: 'org-1' })) },
+			organisation: {
+				findUnique: mock.fn(async () => ({ addressId: 'addr-1' })),
+				delete: mock.fn(async () => ({ id: 'org-1' }))
+			},
+			address: { delete: mock.fn(async () => ({ id: 'addr-1' })) },
 			contact: {
 				delete: mock.fn(),
 				deleteMany: mock.fn(async () => {
@@ -629,7 +740,11 @@ describe('buildDeleteManageListItemOnConfirmRemove', () => {
 				deleteMany: mock.fn(async () => ({ count: 2 })),
 				findMany: mock.fn(async () => [{ contactId: 'contact-1' }, { contactId: 'contact-2' }])
 			},
-			organisation: { delete: mock.fn(async () => ({ id: 'org-1' })) },
+			organisation: {
+				findUnique: mock.fn(async () => ({ addressId: 'addr-1' })),
+				delete: mock.fn(async () => ({ id: 'org-1' }))
+			},
+			address: { delete: mock.fn(async () => ({ id: 'addr-1' })) },
 			contact: { delete: mock.fn(), deleteMany: mock.fn(async () => ({ count: 2 })) }
 		};
 		db.$transaction = mock.fn(async () => {
