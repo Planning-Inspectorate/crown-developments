@@ -6,7 +6,7 @@ import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/l
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { uniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
 import { JOURNEY_ID } from './journey.js';
-import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { saveRepresentation } from '@pins/crowndev-lib/forms/representations/save.js';
 import { nameToViewModel } from '@pins/crowndev-lib/util/name.js';
 import {

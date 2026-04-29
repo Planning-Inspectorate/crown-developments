@@ -8,7 +8,7 @@ import {
 	readAppUpdateStatus,
 	validateParams
 } from './utils.js';
-import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 export function buildApplicationUpdates({ db }) {

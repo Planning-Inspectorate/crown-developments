@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import { representationsToViewModel, representationToViewModel } from './view-model.js';
 import assert from 'node:assert';
-import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('view-model', () => {
 	describe('representationsToViewModel', () => {

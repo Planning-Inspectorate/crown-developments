@@ -3,7 +3,7 @@ import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validato
 import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
 import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import { referenceDataToRadioOptions } from '../../util/questions.js';
-import { CONTACT_PREFERENCE } from '@pins/crowndev-database/src/seed/data-static.js';
+import { CONTACT_PREFERENCE } from '@pins/crowndev-database/src/seed/data-static.ts';
 import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
 import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
 import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/validator/document-upload-validator.js';

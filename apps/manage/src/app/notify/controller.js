@@ -1,4 +1,4 @@
-import { NOTIFICATION_SOURCE } from '@pins/crowndev-database/src/seed/data-static.js';
+import { NOTIFICATION_SOURCE } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 /**
  *

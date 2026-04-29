@@ -6,7 +6,7 @@ import { buildGetJourneyMiddleware, validateParams, viewRepresentation } from '.
 import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import { createJourney } from './journey.js';
 import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
-import { RECEIVED_METHOD_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { RECEIVED_METHOD_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import nunjucks from 'nunjucks';
 
 describe('controller', () => {

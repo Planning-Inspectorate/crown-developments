@@ -1,7 +1,9 @@
+import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
+
 const address1 = { connect: { id: 'c17101b1-b4bc-4824-928a-74a970f0e50a' } };
 const address2 = { connect: { id: '8e71bff1-e8c5-4980-8431-dd5c1cc766a4' } };
 
-export const ADDRESSES = [
+export const ADDRESSES: Prisma.AddressCreateInput[] = [
 	{
 		id: 'c17101b1-b4bc-4824-928a-74a970f0e50a',
 		line1: 'PO Box 270',
@@ -20,9 +22,8 @@ export const ADDRESSES = [
 /**
  * IDs here are just generated GUIDs
  * (e.g. run `node -e "console.log(require('crypto').randomUUID())"'`)
- * @type {import('@pins/crowndev-database').Prisma.LpaCreateInput[]}
  */
-export const LOCAL_PLANNING_AUTHORITIES = [
+export const LOCAL_PLANNING_AUTHORITIES: Prisma.LpaCreateInput[] = [
 	{
 		id: '4515ebac-65e2-4bcd-bc0b-a6fee69ae25a',
 		name: 'System Test Borough Council',
@@ -40,10 +41,7 @@ export const LOCAL_PLANNING_AUTHORITIES = [
 	}
 ];
 
-/**
- * @param {import('@pins/crowndev-database').PrismaClient} dbClient
- */
-export async function seedDevLpas(dbClient) {
+export async function seedDevLpas(dbClient: PrismaClient) {
 	await Promise.all(
 		ADDRESSES.map((address) =>
 			dbClient.address.upsert({

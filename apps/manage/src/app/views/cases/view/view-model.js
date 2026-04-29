@@ -2,7 +2,7 @@ import {
 	APPLICATION_PROCEDURE_ID,
 	APPLICATION_STAGE_ID,
 	ORGANISATION_ROLES_ID
-} from '@pins/crowndev-database/src/seed/data-static.js';
+} from '@pins/crowndev-database/src/seed/data-static.ts';
 import { toFloat, toInt } from '@pins/crowndev-lib/util/numbers.js';
 import { booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { optionalWhere } from '@pins/crowndev-lib/util/database.js';

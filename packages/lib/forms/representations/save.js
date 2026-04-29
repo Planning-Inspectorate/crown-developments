@@ -6,7 +6,7 @@ import { uniqueReference } from '../../util/random-reference.js';
 import {
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID
-} from '@pins/crowndev-database/src/seed/data-static.js';
+} from '@pins/crowndev-database/src/seed/data-static.ts';
 import { deleteRepresentationAttachmentsFolder, moveAttachmentsToCaseFolder } from '../../util/handle-attachments.js';
 import { getSubmittedForId } from '../../util/questions.js';
 import { getAnswers } from '../../util/answers.js';

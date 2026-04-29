@@ -8,7 +8,7 @@ import {
 	truncateComment,
 	truncatedReadMoreCommentLink
 } from './questions.js';
-import { REPRESENTATION_SUBMITTED_FOR_ID, WITHDRAWAL_REASON } from '@pins/crowndev-database/src/seed/data-static.js';
+import { REPRESENTATION_SUBMITTED_FOR_ID, WITHDRAWAL_REASON } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('questions', () => {
 	describe('shouldTruncateComment', () => {

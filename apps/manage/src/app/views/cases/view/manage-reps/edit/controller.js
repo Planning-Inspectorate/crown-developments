@@ -11,7 +11,7 @@ import {
 	deleteRepresentationAttachmentsFolder,
 	moveAttachmentsToCaseFolder
 } from '@pins/crowndev-lib/util/handle-attachments.js';
-import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { getRepresentationWithdrawalRequestsFolder } from '../withdraw/controller.js';
 
 /**

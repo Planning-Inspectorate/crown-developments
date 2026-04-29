@@ -13,9 +13,9 @@ import {
 	APPLICATION_TYPES,
 	CATEGORIES,
 	ORGANISATION_ROLES_ID
-} from '@pins/crowndev-database/src/seed/data-static.js';
-import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.js';
-import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.js';
+} from '@pins/crowndev-database/src/seed/data-static.ts';
+import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
+import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
 import {
 	contactQuestions,
 	dateQuestion,
