@@ -11,7 +11,7 @@ import {
 	buildApplicantOrganisationUpdates,
 	buildApplicantContactOrganisationUpdates
 } from './organisation-contact-updates.ts';
-import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('organisation/contact updates', () => {
 	describe('hasOrganisationWriteEdits', () => {
