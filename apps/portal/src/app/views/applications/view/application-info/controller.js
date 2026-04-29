@@ -19,11 +19,11 @@ import {
 	linkedCaseIsPublished
 } from '@pins/crowndev-lib/util/linked-case.js';
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
-import { buildInfoBanner } from '@pins/crowndev-lib/ui/banner/banner.ts';
+import { BannerBuilder } from '@pins/crowndev-lib/ui/banner/banner-builder.ts';
 import nunjucks from 'nunjucks';
 
 /**
- * @typedef {import('@pins/crowndev-lib/ui/banner/banner').BannerMessage} BannerMessage
+ * @typedef {import('@pins/crowndev-lib/ui/banner/banner-builder').StandardBannerMessage} StandardBannerMessage
  * @typedef {{containsDistressingContent: boolean, latestApplicationUpdate: ReturnType<typeof applicationUpdateToTimelineItem>, isExpired: boolean}} GetBannerMessagesOptions
  */
 
@@ -32,7 +32,7 @@ import nunjucks from 'nunjucks';
  * @param {import('express').Request} req
  * @param {import('#service').PortalService['db']} db
  * @param {GetBannerMessagesOptions} options
- * @return {Promise<BannerMessage[]>}
+ * @return {Promise<StandardBannerMessage | null>}
  */
 async function getBannerMessages(res, req, db, options) {
 	const id = req.params.applicationId;
@@ -40,8 +40,7 @@ async function getBannerMessages(res, req, db, options) {
 		throw new Error('id param required');
 	}
 
-	/** @type BannerMessage[] */
-	const messages = [];
+	const bannerBuilder = new BannerBuilder();
 
 	const crownDevelopment = await db.crownDevelopment.findUnique({
 		where: { id },
@@ -54,29 +53,20 @@ async function getBannerMessages(res, req, db, options) {
 	const caseHasLinkedCase = hasLinkedCase(crownDevelopment);
 	if (caseHasLinkedCase && crownDevelopment) {
 		const linkedCaseLink = await getLinkedCaseLink(db, crownDevelopment);
-		messages.push({
-			type: 'info',
-			html:
-				'<p class="govuk-notification-banner__heading">This application is connected to a ' + linkedCaseLink + '.</p>'
-		});
+		bannerBuilder.addLinkedCase(linkedCaseLink);
 	}
 	if (options.containsDistressingContent) {
-		messages.push({
-			type: 'info',
-			html: `<h3 class="govuk-notification-banner__heading">Application may contain distressing content</h3>
-				<p class="govuk-body">A content warning tag has been applied to documents containing content that some may find distressing.</p>`
-		});
+		bannerBuilder.addDistressingContent();
 	}
 	if (!options.isExpired && options.latestApplicationUpdate) {
-		messages.push({
-			type: 'info',
-			html: nunjucks.render('ui/banner/views/banner-latest-update.njk', {
+		bannerBuilder.addInfoHtml(
+			nunjucks.render('ui/banner/views/banner-latest-update.njk', {
 				latestApplicationUpdate: options.latestApplicationUpdate,
 				baseUrl: req.baseUrl
 			})
-		});
+		);
 	}
-	return messages;
+	return bannerBuilder.build();
 }
 
 /**
@@ -184,12 +174,11 @@ export function buildApplicationInformationPage(service) {
 			true
 		);
 
-		const bannerMessages = await getBannerMessages(res, req, db, {
+		const banner = await getBannerMessages(res, req, db, {
 			containsDistressingContent: crownDevelopmentFields.containsDistressingContent,
 			latestApplicationUpdate: applicationUpdateToTimelineItem(latestApplicationUpdate),
 			isExpired: isExpired
 		});
-		const banner = buildInfoBanner(bannerMessages);
 
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,

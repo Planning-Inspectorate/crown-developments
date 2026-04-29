@@ -15,7 +15,7 @@ import { filteredStagesToRadioOptions } from './question-utils.js';
 import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.js';
-import { buildInfoBanner } from '@pins/crowndev-lib/ui/banner/banner.ts';
+import { BannerBuilder } from '@pins/crowndev-lib/ui/banner/banner-builder.ts';
 
 /**
  * @typedef {import('./types').CrownDevelopmentViewModel} CrownDevelopmentViewModel
@@ -26,7 +26,7 @@ import { buildInfoBanner } from '@pins/crowndev-lib/ui/banner/banner.ts';
  *  		ChildrenCrownDevelopment: { select: { id: true } }
  *  	}
  * }>} CrownDevelopmentWithLinkedCase
- * @typedef {import('@pins/crowndev-lib/ui/banner/banner').BannerMessage} BannerMessage
+ * @typedef {import('@pins/crowndev-lib/ui/banner/banner-builder').StandardBannerMessage} StandardBannerMessage
  */
 
 /**
@@ -46,8 +46,7 @@ async function getBannerMessages(res, req, db) {
 		throw new Error('id param required');
 	}
 
-	/** @type BannerMessage[] */
-	const messages = [];
+	const bannerBuilder = new BannerBuilder();
 
 	const crownDevelopment = await db.crownDevelopment.findUnique({
 		where: { id },
@@ -60,11 +59,7 @@ async function getBannerMessages(res, req, db) {
 	const caseHasLinkedCase = hasLinkedCase(crownDevelopment);
 	if (caseHasLinkedCase && crownDevelopment) {
 		const linkedCaseLink = await getLinkedCaseLink(db, crownDevelopment);
-		messages.push({
-			type: 'info',
-			html:
-				'<p class="govuk-notification-banner__heading">This application is connected to a ' + linkedCaseLink + '.</p>'
-		});
+		bannerBuilder.addLinkedCase(linkedCaseLink);
 	}
 
 	const publishDate = res.locals?.journeyResponse?.answers?.publishDate;
@@ -72,20 +67,14 @@ async function getBannerMessages(res, req, db) {
 	const successParam = req.query.success;
 	const casePublishSuccess = successParam === 'published' && casePublished;
 	if (casePublishSuccess) {
-		messages.push({
-			type: 'success',
-			text: 'Application published'
-		});
-		return messages;
+		bannerBuilder.addSuccessText('Application published');
+		return bannerBuilder.build();
 	}
 
 	const caseUnpublishSuccess = successParam === 'unpublish' && !casePublished;
 	if (caseUnpublishSuccess) {
-		messages.push({
-			type: 'success',
-			text: 'Application unpublished'
-		});
-		return messages;
+		bannerBuilder.addSuccessText('Application unpublished');
+		return bannerBuilder.build();
 	}
 
 	// immediately clear this so the banner only shows once
@@ -94,20 +83,15 @@ async function getBannerMessages(res, req, db) {
 	clearAllSessionData(req, res, id);
 
 	if (caseUpdated) {
-		messages.push({
-			type: 'success',
-			text: 'Application has been updated.'
-		});
+		bannerBuilder.addSuccessText('Application has been updated.');
+
 		if (casePublished) {
-			messages.push({
-				type: 'success',
-				text: 'Any updates made to this case will be automatically published.'
-			});
+			bannerBuilder.addSuccessText('Any updates made to this case will be automatically published.');
 		}
-		return messages;
+		return bannerBuilder.build();
 	}
 
-	return messages;
+	return bannerBuilder.build();
 }
 
 /**
@@ -132,8 +116,7 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpda
 		const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
 		const baseUrl = req.baseUrl;
 
-		const bannerMessages = await getBannerMessages(res, req, db);
-		const banner = buildInfoBanner(bannerMessages);
+		const banner = await getBannerMessages(res, req, db);
 		const sharePointDrive = getSharePointDrive(req.session);
 		let sharePointLink = '';
 		if (sharePointDrive) {
