@@ -19,6 +19,65 @@ import {
 	linkedCaseIsPublished
 } from '@pins/crowndev-lib/util/linked-case.js';
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
+import { buildInfoBanner } from '@pins/crowndev-lib/ui/banner/banner.ts';
+import nunjucks from 'nunjucks';
+
+/**
+ * @typedef {import('@pins/crowndev-lib/ui/banner/banner').BannerMessage} BannerMessage
+ * @typedef {{containsDistressingContent: boolean, latestApplicationUpdate: ReturnType<typeof applicationUpdateToTimelineItem>, isExpired: boolean}} GetBannerMessagesOptions
+ */
+
+/**
+ * @param {import('express').Response} res
+ * @param {import('express').Request} req
+ * @param {import('#service').PortalService['db']} db
+ * @param {GetBannerMessagesOptions} options
+ * @return {Promise<BannerMessage[]>}
+ */
+async function getBannerMessages(res, req, db, options) {
+	const id = req.params.applicationId;
+	if (!id || typeof id !== 'string') {
+		throw new Error('id param required');
+	}
+
+	/** @type BannerMessage[] */
+	const messages = [];
+
+	const crownDevelopment = await db.crownDevelopment.findUnique({
+		where: { id },
+		include: {
+			ParentCrownDevelopment: { select: { id: true } },
+			ChildrenCrownDevelopment: { select: { id: true } }
+		}
+	});
+
+	const caseHasLinkedCase = hasLinkedCase(crownDevelopment);
+	if (caseHasLinkedCase && crownDevelopment) {
+		const linkedCaseLink = await getLinkedCaseLink(db, crownDevelopment);
+		messages.push({
+			type: 'info',
+			html:
+				'<p class="govuk-notification-banner__heading">This application is connected to a ' + linkedCaseLink + '.</p>'
+		});
+	}
+	if (options.containsDistressingContent) {
+		messages.push({
+			type: 'info',
+			html: `<h3 class="govuk-notification-banner__heading">Application may contain distressing content</h3>
+				<p class="govuk-body">A content warning tag has been applied to documents containing content that some may find distressing.</p>`
+		});
+	}
+	if (!options.isExpired && options.latestApplicationUpdate) {
+		messages.push({
+			type: 'info',
+			html: nunjucks.render('ui/banner/views/banner-latest-update.njk', {
+				latestApplicationUpdate: options.latestApplicationUpdate,
+				baseUrl: req.baseUrl
+			})
+		});
+	}
+	return messages;
+}
 
 /**
  * @param {import('#service').PortalService} service
@@ -125,6 +184,13 @@ export function buildApplicationInformationPage(service) {
 			true
 		);
 
+		const bannerMessages = await getBannerMessages(res, req, db, {
+			containsDistressingContent: crownDevelopmentFields.containsDistressingContent,
+			latestApplicationUpdate: applicationUpdateToTimelineItem(latestApplicationUpdate),
+			isExpired: isExpired
+		});
+		const banner = buildInfoBanner(bannerMessages);
+
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Application information',
@@ -132,9 +198,9 @@ export function buildApplicationInformationPage(service) {
 			isWithdrawn,
 			isExpired,
 			links,
-			baseUrl: req.baseUrl,
 			currentUrl: req.originalUrl,
 			crownDevelopmentFields,
+			banner,
 			shouldShowImportantDatesSection,
 			shouldShowProcedureDetailsSection,
 			shouldShowApplicationDecisionSection,
@@ -152,7 +218,6 @@ export function buildApplicationInformationPage(service) {
 				crownDevelopmentFields
 			),
 			haveYourSayStatus: getHaveYourSayStatus(haveYourSayPeriod, representationsPublishDate),
-			latestApplicationUpdate: applicationUpdateToTimelineItem(latestApplicationUpdate),
 			hasLinkedCase: hasLinkedCase(crownDevelopment) && (await linkedCaseIsPublished(db, crownDevelopment)),
 			linkedCaseLink: await getLinkedCaseLink(db, crownDevelopment),
 			applicationStageItems: {

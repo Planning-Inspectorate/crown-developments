@@ -15,6 +15,7 @@ import { filteredStagesToRadioOptions } from './question-utils.js';
 import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.js';
+import { buildInfoBanner } from '@pins/crowndev-lib/ui/banner/banner.ts';
 
 /**
  * @typedef {import('./types').CrownDevelopmentViewModel} CrownDevelopmentViewModel
@@ -25,7 +26,89 @@ import { getApplicantOrganisationOptions } from '../util/applicant-organisation-
  *  		ChildrenCrownDevelopment: { select: { id: true } }
  *  	}
  * }>} CrownDevelopmentWithLinkedCase
+ * @typedef {import('@pins/crowndev-lib/ui/banner/banner').BannerMessage} BannerMessage
  */
+
+/**
+ * @param {import('express').Response} res
+ * @param {import('express').Request} req
+ * @param {import('#service').ManageService['db']} db
+ * @return {Promise<BannerMessage[]>}
+ */
+async function getBannerMessages(res, req, db) {
+	// Don't show success or info if there is an error
+	if (res.locals.errorSummary) {
+		return [];
+	}
+
+	const id = req.params.id;
+	if (!id || typeof id !== 'string') {
+		throw new Error('id param required');
+	}
+
+	/** @type BannerMessage[] */
+	const messages = [];
+
+	const crownDevelopment = await db.crownDevelopment.findUnique({
+		where: { id },
+		include: {
+			ParentCrownDevelopment: { select: { id: true } },
+			ChildrenCrownDevelopment: { select: { id: true } }
+		}
+	});
+
+	const caseHasLinkedCase = hasLinkedCase(crownDevelopment);
+	if (caseHasLinkedCase && crownDevelopment) {
+		const linkedCaseLink = await getLinkedCaseLink(db, crownDevelopment);
+		messages.push({
+			type: 'info',
+			html:
+				'<p class="govuk-notification-banner__heading">This application is connected to a ' + linkedCaseLink + '.</p>'
+		});
+	}
+
+	const publishDate = res.locals?.journeyResponse?.answers?.publishDate;
+	const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
+	const successParam = req.query.success;
+	const casePublishSuccess = successParam === 'published' && casePublished;
+	if (casePublishSuccess) {
+		messages.push({
+			type: 'success',
+			text: 'Application published'
+		});
+		return messages;
+	}
+
+	const caseUnpublishSuccess = successParam === 'unpublish' && !casePublished;
+	if (caseUnpublishSuccess) {
+		messages.push({
+			type: 'success',
+			text: 'Application unpublished'
+		});
+		return messages;
+	}
+
+	// immediately clear this so the banner only shows once
+	const caseUpdated = readCaseUpdatedSession(req, id);
+	clearCaseUpdatedSession(req, id);
+	clearAllSessionData(req, res, id);
+
+	if (caseUpdated) {
+		messages.push({
+			type: 'success',
+			text: 'Application has been updated.'
+		});
+		if (casePublished) {
+			messages.push({
+				type: 'success',
+				text: 'Any updates made to this case will be automatically published.'
+			});
+		}
+		return messages;
+	}
+
+	return messages;
+}
 
 /**
  * @param {import('#service').ManageService} service
@@ -45,44 +128,27 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpda
 		}
 		clearSessionData(req, id, 'publishErrors', 'cases');
 
-		// immediately clear this so the banner only shows once
-		const caseUpdated = readCaseUpdatedSession(req, id);
-		clearCaseUpdatedSession(req, id);
-		clearAllSessionData(req, res, id);
-
 		const publishDate = res.locals?.journeyResponse?.answers?.publishDate;
 		const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
 		const baseUrl = req.baseUrl;
-		const successParam = req.query.success;
-		const casePublishSuccess = successParam === 'published' && casePublished;
-		const caseUnpublishSuccess = successParam === 'unpublish' && !casePublished;
+
+		const bannerMessages = await getBannerMessages(res, req, db);
+		const banner = buildInfoBanner(bannerMessages);
 		const sharePointDrive = getSharePointDrive(req.session);
 		let sharePointLink = '';
 		if (sharePointDrive) {
 			sharePointLink = await getSharePointFolderLink(sharePointDrive, caseReferenceToFolderName(reference));
 		}
 
-		const crownDevelopment = await db.crownDevelopment.findUnique({
-			where: { id },
-			include: {
-				ParentCrownDevelopment: { select: { id: true } },
-				ChildrenCrownDevelopment: { select: { id: true } }
-			}
-		});
-
 		await list(req, res, '', {
 			reference,
-			caseUpdated,
 			casePublished,
-			casePublishSuccess,
-			caseUnpublishSuccess,
 			baseUrl,
 			sharePointLink,
 			hideButton: true,
 			hideStatus: true,
 			isApplicationUpdatesLive,
-			hasLinkedCase: hasLinkedCase(crownDevelopment),
-			linkedCaseLink: crownDevelopment ? await getLinkedCaseLink(db, crownDevelopment) : undefined
+			banner
 		});
 	};
 }
