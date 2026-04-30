@@ -47,7 +47,7 @@ footer.govuk-footer {
 	}
 }
 
-.govuk-footer__ogl {
+.govuk-footer__licence {
 	display: flex;
 	align-items: flex-start;
 	justify-content: center;
@@ -62,27 +62,16 @@ footer.govuk-footer {
 	}
 }
 
-.govuk-footer__ogl-logo {
+.govuk-footer__licence-logo {
 	display: inline-block;
 	margin-right: govuk.govuk-spacing(2);
 	vertical-align: top;
 	flex-shrink: 0;
 }
 
-.govuk-footer__ogl-description {
+.govuk-footer__licence-description {
 	display: inline-block;
 	max-width: 90%;
-}
-
-.pins-footer__logo {
-	display: block;
-	width: auto;
-	height: 65px;
-	margin: 0 auto govuk.govuk-spacing(2);
-
-	@media (min-width: 540px) {
-		margin: 0 0 govuk.govuk-spacing(2) auto;
-	}
 }
 
 .govuk-footer__copyright-logo {
