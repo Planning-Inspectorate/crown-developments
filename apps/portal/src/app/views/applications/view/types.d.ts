@@ -1,4 +1,5 @@
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+import type { ApplicationPublishStatus } from '#util/applications.ts';
 
 export interface CrownDevelopmentListViewModel {
 	id: string;
@@ -28,6 +29,7 @@ export interface CrownDevelopmentListViewModel {
 	siteAddress?: string;
 	siteCoordinates?: { easting: string; northing: string };
 	containsDistressingContent?: boolean;
+	applicationStatus?: ApplicationPublishStatus;
 }
 
 type CrownDevelopmentListArgs = Prisma.CrownDevelopmentDefaultArgs & {

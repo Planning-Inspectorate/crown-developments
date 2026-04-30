@@ -3,7 +3,7 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { fetchPublishedApplication } from '#util/applications.js';
+import { fetchPublishedApplication, getApplicationStatus, isWithdrawnOrExpired } from '#util/applications.ts';
 
 /**
  * Render application updates page
@@ -55,7 +55,7 @@ export function buildApplicationUpdatesPage({ db }) {
 		}
 
 		const publishedDate = crownDevelopment.representationsPublishDate;
-		const applicationStatus = crownDevelopment.applicationStatus;
+		const applicationStatus = getApplicationStatus(crownDevelopment.withdrawnDate);
 
 		const haveYourSayPeriod = {
 			start: new Date(crownDevelopment.representationsPeriodStartDate),
@@ -63,14 +63,13 @@ export function buildApplicationUpdatesPage({ db }) {
 		};
 
 		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
-		const isWithdrawn = applicationStatus !== 'active';
 
 		return res.render('views/applications/view/application-updates/view.njk', {
 			pageTitle: 'Application updates',
 			pageCaption: crownDevelopment.reference,
 			currentUrl: req.originalUrl,
 			links: applicationLinks(id, haveYourSayPeriod, publishedDate, displayApplicationUpdates, applicationStatus),
-			isWithdrawn,
+			isWithdrawn: isWithdrawnOrExpired(applicationStatus),
 			applicationUpdates: applicationUpdates.map(applicationUpdateToTimelineItem),
 			containsDistressingContent: crownDevelopment.containsDistressingContent || false
 		});

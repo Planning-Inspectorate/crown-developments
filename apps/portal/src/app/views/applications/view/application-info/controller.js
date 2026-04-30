@@ -1,7 +1,7 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { applicationLinks, applicationUpdateToTimelineItem, crownDevelopmentToViewModel } from '../view-model.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { fetchPublishedApplication, APPLICATION_PUBLISH_STATUS } from '#util/applications.js';
+import { fetchPublishedApplication, isExpired, isWithdrawnOrExpired } from '#util/applications.ts';
 import { getHaveYourSayStatus } from '../have-your-say/util.js';
 import {
 	getAboutThisApplicationSectionItems,
@@ -110,11 +110,7 @@ export function buildApplicationInformationPage(service) {
 		});
 		const formattedApplicationStages = buildApplicationStages(crownDevelopment);
 		const currentStage = getCurrentStage(formattedApplicationStages);
-		const applicationStatus = crownDevelopment.applicationStatus;
-		const isWithdrawn =
-			applicationStatus === APPLICATION_PUBLISH_STATUS.WITHDRAWN ||
-			applicationStatus === APPLICATION_PUBLISH_STATUS.EXPIRED;
-		const isExpired = applicationStatus === APPLICATION_PUBLISH_STATUS.EXPIRED;
+		const applicationStatus = crownDevelopmentFields.applicationStatus;
 
 		const links = applicationLinks(
 			id,
@@ -129,8 +125,8 @@ export function buildApplicationInformationPage(service) {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Application information',
 			applicationReference: crownDevelopment.reference,
-			isWithdrawn,
-			isExpired,
+			isWithdrawn: isWithdrawnOrExpired(applicationStatus),
+			isExpired: isExpired(applicationStatus),
 			links,
 			baseUrl: req.baseUrl,
 			currentUrl: req.originalUrl,

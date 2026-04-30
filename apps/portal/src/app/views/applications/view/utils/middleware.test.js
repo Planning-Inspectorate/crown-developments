@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { checkIfExpiredMiddleware, checkIfWithdrawnOrExpiredMiddleware } from './middleware.js';
-import { APPLICATION_PUBLISH_STATUS } from '#util/applications.js';
+import { checkIfExpiredMiddleware, checkIfWithdrawnOrExpiredMiddleware } from './middleware.ts';
+import { APPLICATION_PUBLISH_STATUS } from '#util/applications.ts';
 
 describe('checkIfExpiredMiddleware', () => {
 	it('should call next middleware when application is not expired', async () => {
@@ -29,7 +29,9 @@ describe('checkIfExpiredMiddleware', () => {
 		assert.strictEqual(mockRes.status.mock.callCount(), 0);
 	});
 
-	it('should call notFoundHandler when application is expired', async () => {
+	it('should call notFoundHandler when application is expired', async (context) => {
+		context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
+
 		const mockReq = { params: { applicationId: 'expired-id' } };
 		const mockRes = {
 			render: mock.fn(),
@@ -44,7 +46,7 @@ describe('checkIfExpiredMiddleware', () => {
 			}
 		};
 		const mockFetchPublishedApplication = async () => ({
-			applicationStatus: APPLICATION_PUBLISH_STATUS.EXPIRED
+			withdrawnDate: new Date('2023-12-01T03:24:00.000Z')
 		});
 		const middleware = checkIfExpiredMiddleware({ db: mockDb }, mockFetchPublishedApplication);
 		await middleware(mockReq, mockRes, mockNext);
@@ -101,7 +103,9 @@ describe('checkIfExpiredMiddleware', () => {
 });
 
 describe('checkIfWithdrawnOrExpiredMiddleware', () => {
-	it('should call next middleware when application is not withdrawn and not expired', async () => {
+	it('should call next middleware when application is not withdrawn and not expired', async (context) => {
+		context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
+
 		const mockReq = { params: { applicationId: 'valid-id' } };
 		const mockRes = {
 			status: mock.fn(function () {
@@ -116,7 +120,7 @@ describe('checkIfWithdrawnOrExpiredMiddleware', () => {
 			}
 		};
 		const mockFetchPublishedApplication = async () => ({
-			applicationStatus: APPLICATION_PUBLISH_STATUS.ACTIVE
+			withdrawnDate: undefined
 		});
 		const middleware = checkIfWithdrawnOrExpiredMiddleware({ db: mockDb }, mockFetchPublishedApplication);
 		await middleware(mockReq, mockRes, mockNext);
@@ -126,7 +130,9 @@ describe('checkIfWithdrawnOrExpiredMiddleware', () => {
 		assert.strictEqual(mockRes.status.mock.callCount(), 0);
 	});
 
-	it('should call notFoundHandler when application is withdrawn', async () => {
+	it('should call notFoundHandler when application is withdrawn', async (context) => {
+		context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
+
 		const mockReq = { params: { applicationId: 'withdrawn-id' } };
 		const mockRes = {
 			render: mock.fn(),
@@ -141,7 +147,7 @@ describe('checkIfWithdrawnOrExpiredMiddleware', () => {
 			}
 		};
 		const mockFetchPublishedApplication = async () => ({
-			applicationStatus: APPLICATION_PUBLISH_STATUS.WITHDRAWN
+			withdrawnDate: new Date('2024-12-01T03:24:00.000Z')
 		});
 		const middleware = checkIfWithdrawnOrExpiredMiddleware({ db: mockDb }, mockFetchPublishedApplication);
 		await middleware(mockReq, mockRes, mockNext);
@@ -151,7 +157,9 @@ describe('checkIfWithdrawnOrExpiredMiddleware', () => {
 		assert.strictEqual(mockRes.status.mock.callCount(), 1);
 	});
 
-	it('should call notFoundHandler when application is expired', async () => {
+	it('should call notFoundHandler when application is expired', async (context) => {
+		context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
+
 		const mockReq = { params: { applicationId: 'expired-id' } };
 		const mockRes = {
 			render: mock.fn(),
@@ -166,7 +174,7 @@ describe('checkIfWithdrawnOrExpiredMiddleware', () => {
 			}
 		};
 		const mockFetchPublishedApplication = async () => ({
-			applicationStatus: APPLICATION_PUBLISH_STATUS.EXPIRED
+			withdrawnDate: new Date('2023-12-01T03:24:00.000Z')
 		});
 		const middleware = checkIfWithdrawnOrExpiredMiddleware({ db: mockDb }, mockFetchPublishedApplication);
 		await middleware(mockReq, mockRes, mockNext);

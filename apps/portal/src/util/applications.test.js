@@ -1,7 +1,6 @@
 import assert from 'assert';
 import { describe, it } from 'node:test';
-import { getApplicationStatus, APPLICATION_PUBLISH_STATUS } from './applications.js';
-import { fetchPublishedApplication } from './applications.js';
+import { getApplicationStatus, APPLICATION_PUBLISH_STATUS, fetchPublishedApplication } from './applications.ts';
 
 describe('getApplicationStatus', () => {
 	const now = new Date('2025-12-22T00:00:00.000Z');
@@ -44,51 +43,6 @@ describe('fetchPublishedApplication', () => {
 		};
 		const result = await fetchPublishedApplication({ db, id: 'non-existent-id', args: {} });
 		assert.strictEqual(result, null);
-	});
-
-	it('should return application with ACTIVE status when withdrawnDate is null', async () => {
-		const db = {
-			crownDevelopment: {
-				findUnique: async () => ({
-					id: 'app-1',
-					withdrawnDate: null,
-					publishDate: new Date('2025-12-21T00:00:00.000Z')
-				})
-			}
-		};
-		const result = await fetchPublishedApplication({ db, id: 'app-1', args: {} });
-		assert.strictEqual(result.applicationStatus, APPLICATION_PUBLISH_STATUS.ACTIVE);
-		assert.strictEqual(result.withdrawnDateIsExpired, false);
-	});
-
-	it('should return application with WITHDRAWN status when withdrawnDate is within one year', async () => {
-		const db = {
-			crownDevelopment: {
-				findUnique: async () => ({
-					id: 'app-2',
-					withdrawnDate: new Date('2025-06-01T00:00:00.000Z'),
-					publishDate: new Date('2025-12-21T00:00:00.000Z')
-				})
-			}
-		};
-		const result = await fetchPublishedApplication({ db, id: 'app-2', args: {} });
-		assert.strictEqual(result.applicationStatus, APPLICATION_PUBLISH_STATUS.WITHDRAWN);
-		assert.strictEqual(result.withdrawnDateIsExpired, false);
-	});
-
-	it('should return application with WITHDRAWN_EXPIRED status when withdrawnDate is over one year old', async () => {
-		const db = {
-			crownDevelopment: {
-				findUnique: async () => ({
-					id: 'app-3',
-					withdrawnDate: new Date('2024-12-20T00:00:00.000Z'),
-					publishDate: new Date('2025-12-21T00:00:00.000Z')
-				})
-			}
-		};
-		const result = await fetchPublishedApplication({ db, id: 'app-3', args: {} });
-		assert.strictEqual(result.applicationStatus, APPLICATION_PUBLISH_STATUS.EXPIRED);
-		assert.strictEqual(result.withdrawnDateIsExpired, true);
 	});
 
 	it('should add default where clause when args.where is undefined', async () => {
