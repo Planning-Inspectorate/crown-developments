@@ -1,10 +1,11 @@
-// Warnings/errors are intended to be handled separately
+// Warnings/errors should not be handled with notificationBanner
 type BannerMessageType = 'info' | 'success';
-export type BannerMessage = {
-	type: BannerMessageType;
-	text?: string;
-	html?: string;
-};
+
+// A message must have exactly one of `text` or `html`.
+export type BannerMessage =
+	| { type: BannerMessageType; text: string; html?: never }
+	| { type: BannerMessageType; html: string; text?: never };
+
 export type StandardBannerMessage = {
 	type: BannerMessageType;
 	html: string;
@@ -14,6 +15,18 @@ const priority: Record<BannerMessageType, number> = {
 	success: 1,
 	info: 0
 };
+
+const HTML_ESCAPES: Record<string, string> = {
+	'&': '&amp;',
+	'<': '&lt;',
+	'>': '&gt;',
+	'"': '&quot;',
+	"'": '&#39;'
+};
+
+function escapeHtml(value: string): string {
+	return value.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
+}
 
 export class BannerBuilder {
 	#messages: BannerMessage[] = [];
@@ -39,53 +52,44 @@ export class BannerBuilder {
 		return this.addMessage({ type: 'success', text });
 	}
 
-	addDistressingContent(): BannerBuilder {
-		return this
-			.addInfoHtml(`<h3 class="govuk-notification-banner__heading">Application may contain distressing content</h3>
-				<p class="govuk-body">A content warning tag has been applied to documents containing content that some may find distressing.</p>`);
-	}
-
 	addLinkedCase(linkedCaseLink: string): BannerBuilder {
-		return this.addInfoHtml(
-			'<p class="govuk-notification-banner__heading">This application is connected to a ' + linkedCaseLink + '.</p>'
-		);
-	}
-
-	build(): StandardBannerMessage | null {
-		return this.#buildInfoBanner(this.#messages);
+		// linkedCaseLink is a trusted HTML anchor produced server-side.
+		return this.addInfoHtml(`This application is connected to a ${linkedCaseLink}.`);
 	}
 
 	/**
 	 * Merge all success and info messages into a single banner message to avoid multiple banners showing.
-	 * Success styling overrides info.
-	 * */
-	#buildInfoBanner(messages: BannerMessage[]): StandardBannerMessage | null {
+	 * Success styling overrides info. Returns null when there are no messages.
+	 */
+	build(): StandardBannerMessage | null {
+		const messages = this.#messages;
 		if (messages.length === 0) {
 			return null;
 		}
-		let html = '';
-		let type: BannerMessageType = 'info';
 
-		const sortedMessages = [...messages].sort((a, b) => {
-			const aPriority = priority[a.type] ?? 0;
-			const bPriority = priority[b.type] ?? 0;
-			return bPriority - aPriority; // highest priority first
-		});
+		const type: BannerMessageType = messages.some((m) => m.type === 'success') ? 'success' : 'info';
 
-		sortedMessages.forEach((message) => {
-			if (message.type === 'success') {
-				type = 'success';
-			}
-			if (message.html) {
-				html += message.html;
-			}
-			if (message.text) {
-				html += `<p class="govuk-notification-banner__heading">${message.text}</p>`;
-			}
-		});
+		// Single message: render without a list wrapper.
+		if (messages.length === 1) {
+			const message = messages[0];
+			const html =
+				'html' in message && message.html !== undefined
+					? message.html
+					: `<p class="govuk-notification-banner__heading">${escapeHtml(message.text)}</p>`;
+			return { type, html };
+		}
+
+		// Multiple messages: sort by priority (success first) and render as a bullet list.
+		const sortedMessages = [...messages].sort((a, b) => priority[b.type] - priority[a.type]);
+		const items = sortedMessages.map((message) =>
+			'html' in message && message.html !== undefined
+				? `<li>${message.html}</li>`
+				: `<li><p class="govuk-body">${escapeHtml(message.text)}</p></li>`
+		);
+
 		return {
 			type,
-			html
+			html: `<ul class="govuk-list govuk-list--bullet">${items.join('')}</ul>`
 		};
 	}
 }

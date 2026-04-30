@@ -53,10 +53,9 @@ async function getBannerMessages(res, req, db, options) {
 	const caseHasLinkedCase = hasLinkedCase(crownDevelopment);
 	if (caseHasLinkedCase && crownDevelopment) {
 		const linkedCaseLink = await getLinkedCaseLink(db, crownDevelopment);
-		bannerBuilder.addLinkedCase(linkedCaseLink);
-	}
-	if (options.containsDistressingContent) {
-		bannerBuilder.addDistressingContent();
+		if (linkedCaseLink) {
+			bannerBuilder.addLinkedCase(linkedCaseLink);
+		}
 	}
 	if (!options.isExpired && options.latestApplicationUpdate) {
 		bannerBuilder.addInfoHtml(
@@ -175,7 +174,6 @@ export function buildApplicationInformationPage(service) {
 		);
 
 		const banner = await getBannerMessages(res, req, db, {
-			containsDistressingContent: crownDevelopmentFields.containsDistressingContent,
 			latestApplicationUpdate: applicationUpdateToTimelineItem(latestApplicationUpdate),
 			isExpired: isExpired
 		});

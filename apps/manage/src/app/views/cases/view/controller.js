@@ -33,12 +33,12 @@ import { BannerBuilder } from '@pins/crowndev-lib/ui/banner/banner-builder.ts';
  * @param {import('express').Response} res
  * @param {import('express').Request} req
  * @param {import('#service').ManageService['db']} db
- * @return {Promise<BannerMessage[]>}
+ * @return {Promise<StandardBannerMessage|null>}
  */
 async function getBannerMessages(res, req, db) {
 	// Don't show success or info if there is an error
 	if (res.locals.errorSummary) {
-		return [];
+		return null;
 	}
 
 	const id = req.params.id;

@@ -31,6 +31,7 @@
         </div>
 
         <div class="govuk-grid-column-two-thirds">
+            {{ distressingContentBanner(crownDevelopmentFields.containsDistressingContent) }}
             {% if banner %}
                 <div class="govuk-grid-row">
                     {{ govukNotificationBanner(banner) }}
