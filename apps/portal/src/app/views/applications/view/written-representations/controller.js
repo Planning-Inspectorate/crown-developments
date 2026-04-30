@@ -7,7 +7,7 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
-import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
+import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import { buildFilters, getFilterQueryItems, hasQueries, mapWithAndWithoutToBoolean } from './filters/filters.js';
 import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
 

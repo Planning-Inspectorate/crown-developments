@@ -1,11 +1,10 @@
 import { applicationLinks } from '../view-model.js';
 import { sortByField } from '@pins/crowndev-lib/util/array.js';
-import { checkApplicationPublished, shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
+import { loadPublishedApplicationOr404, shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import { publishedFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { getDocuments } from '@pins/crowndev-lib/documents/get.js';
 import { splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
-import { getApplicationStatus } from '#util/applications.ts';
 
 /**
  * Render the list of documents page
@@ -16,12 +15,11 @@ import { getApplicationStatus } from '#util/applications.ts';
 export function buildApplicationDocumentsPage(service) {
 	const { db, logger, sharePointDrive } = service;
 	return async (req, res) => {
-		const crownDevelopment = await checkApplicationPublished(req, res, db);
+		const crownDevelopment = await loadPublishedApplicationOr404(req, res, db);
 		if (!crownDevelopment) {
-			return; // handled by checkApplicationPublished
+			return; // 404 already handled
 		}
-		const { id, reference, haveYourSayPeriod, representationsPublishDate } = crownDevelopment;
-		const applicationStatus = getApplicationStatus(crownDevelopment.withdrawnDate);
+		const { id, reference, haveYourSayPeriod, representationsPublishDate, applicationStatus } = crownDevelopment;
 		const folderPath = publishedFolderPath(reference);
 
 		logger.info({ folderPath }, 'view documents');

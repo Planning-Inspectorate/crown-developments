@@ -1,4 +1,4 @@
-import { checkApplicationPublished } from './application-util.js';
+import { loadPublishedApplicationOr404 } from './application-util.ts';
 import { forwardStreamContents, getDriveItemDownloadUrl } from '@pins/crowndev-lib/documents/utils.js';
 
 /**
@@ -15,9 +15,9 @@ export function buildDocumentView(service, fetchImpl) {
 			throw new Error('documentId param is required');
 		}
 
-		const crownDevelopment = await checkApplicationPublished(req, res, db);
+		const crownDevelopment = await loadPublishedApplicationOr404(req, res, db);
 		if (!crownDevelopment) {
-			return; // handled by checkApplicationPublished
+			return; // 404 already handled
 		}
 		const { reference } = crownDevelopment;
 

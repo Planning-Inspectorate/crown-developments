@@ -10,7 +10,7 @@ import {
 import { getDocuments, getDocumentsById } from '@pins/crowndev-lib/documents/get.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { isValidUniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
-import { shouldDisplayApplicationUpdatesLink } from '../../../../util/application-util.js';
+import { shouldDisplayApplicationUpdatesLink } from '../../../../util/application-util.ts';
 
 /**
  * Render written representation read more page

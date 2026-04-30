@@ -9,7 +9,7 @@ import {
 	getImportantDatesSectionItems,
 	getProcedureDetailsSectionItems
 } from './section-items.js';
-import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
+import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { buildApplicationStages, getCurrentStage } from './application-stage/controller.js';
 import {
