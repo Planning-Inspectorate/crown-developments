@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { isValidUuidFormat } from './uuid.js';
+import { isValidUuidFormat } from './uuid.ts';
 import assert from 'node:assert';
 
 describe('uuid', () => {
