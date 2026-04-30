@@ -1,5 +1,6 @@
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
+import { BannerBuilder } from '@pins/crowndev-lib/ui/banner/banner-builder.ts';
 
 export const questionConfig = {
 	'check-agent-contact-details': {
@@ -290,7 +291,9 @@ export function addSuccessBannerFromMessage(req, res, next) {
 
 		const bannerMessageKey = buildSuccessBannerMessageKey(question);
 		if (readSessionData(req, id, bannerMessageKey, false, 'bannerMessage')) {
-			res.locals.notificationBannerSuccess = questionUrlToSuccessMessage[question] || 'Item removed';
+			res.locals.banner = new BannerBuilder()
+				.addSuccessText(questionUrlToSuccessMessage[question] || 'Item removed')
+				.build();
 			clearSessionData(req, id, bannerMessageKey, 'bannerMessage');
 		}
 		return next();

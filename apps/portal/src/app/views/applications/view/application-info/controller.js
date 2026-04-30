@@ -19,6 +19,54 @@ import {
 	linkedCaseIsPublished
 } from '@pins/crowndev-lib/util/linked-case.js';
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
+import { BannerBuilder } from '@pins/crowndev-lib/ui/banner/banner-builder.ts';
+import nunjucks from 'nunjucks';
+
+/**
+ * @typedef {import('@pins/crowndev-lib/ui/banner/banner-builder').StandardBannerMessage} StandardBannerMessage
+ * @typedef {{containsDistressingContent: boolean, latestApplicationUpdate: ReturnType<typeof applicationUpdateToTimelineItem>, isExpired: boolean}} GetBannerMessagesOptions
+ */
+
+/**
+ * @param {import('express').Response} res
+ * @param {import('express').Request} req
+ * @param {import('#service').PortalService['db']} db
+ * @param {GetBannerMessagesOptions} options
+ * @return {Promise<StandardBannerMessage | null>}
+ */
+async function getBannerMessages(res, req, db, options) {
+	const id = req.params.applicationId;
+	if (!id || typeof id !== 'string') {
+		throw new Error('id param required');
+	}
+
+	const bannerBuilder = new BannerBuilder();
+
+	const crownDevelopment = await db.crownDevelopment.findUnique({
+		where: { id },
+		include: {
+			ParentCrownDevelopment: { select: { id: true } },
+			ChildrenCrownDevelopment: { select: { id: true } }
+		}
+	});
+
+	const caseHasLinkedCase = hasLinkedCase(crownDevelopment);
+	if (caseHasLinkedCase && crownDevelopment) {
+		const linkedCaseLink = await getLinkedCaseLink(db, crownDevelopment);
+		if (linkedCaseLink) {
+			bannerBuilder.addLinkedCase(linkedCaseLink);
+		}
+	}
+	if (!options.isExpired && options.latestApplicationUpdate) {
+		bannerBuilder.addInfoHtml(
+			nunjucks.render('ui/banner/views/banner-latest-update.njk', {
+				latestApplicationUpdate: options.latestApplicationUpdate,
+				baseUrl: req.baseUrl
+			})
+		);
+	}
+	return bannerBuilder.build();
+}
 
 /**
  * @param {import('#service').PortalService} service
@@ -125,6 +173,11 @@ export function buildApplicationInformationPage(service) {
 			true
 		);
 
+		const banner = await getBannerMessages(res, req, db, {
+			latestApplicationUpdate: applicationUpdateToTimelineItem(latestApplicationUpdate),
+			isExpired: isExpired
+		});
+
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Application information',
@@ -132,9 +185,9 @@ export function buildApplicationInformationPage(service) {
 			isWithdrawn,
 			isExpired,
 			links,
-			baseUrl: req.baseUrl,
 			currentUrl: req.originalUrl,
 			crownDevelopmentFields,
+			banner,
 			shouldShowImportantDatesSection,
 			shouldShowProcedureDetailsSection,
 			shouldShowApplicationDecisionSection,
@@ -152,7 +205,6 @@ export function buildApplicationInformationPage(service) {
 				crownDevelopmentFields
 			),
 			haveYourSayStatus: getHaveYourSayStatus(haveYourSayPeriod, representationsPublishDate),
-			latestApplicationUpdate: applicationUpdateToTimelineItem(latestApplicationUpdate),
 			hasLinkedCase: hasLinkedCase(crownDevelopment) && (await linkedCaseIsPublished(db, crownDevelopment)),
 			linkedCaseLink: await getLinkedCaseLink(db, crownDevelopment),
 			applicationStageItems: {

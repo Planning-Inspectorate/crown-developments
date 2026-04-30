@@ -13,13 +13,10 @@
 
 {# show question content within content, overrides main content #}
 {% block content %}
-    {% if notificationBannerSuccess %}
+    {% if banner %}
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
-                {{ govukNotificationBanner({
-                    type: "success",
-                    text: notificationBannerSuccess
-                }) }}
+                {{ govukNotificationBanner(banner) }}
             </div>
         </div>
     {% endif %}
