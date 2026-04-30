@@ -1,4 +1,4 @@
-import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
+import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { fetchPublishedApplication, getApplicationStatus } from '#util/applications.ts';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';

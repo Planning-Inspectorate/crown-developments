@@ -3,11 +3,8 @@
  *
  * @see https://learn.microsoft.com/en-us/sql/t-sql/data-types/uniqueidentifier-transact-sql?view=sql-server-ver16#remarks
  * @see https://stackoverflow.com/a/6640851
- *
- * @param {*} str
- * @returns {boolean}
  */
-export function isValidUuidFormat(str) {
+export function isValidUuidFormat(str: unknown): str is string {
 	if (typeof str !== 'string') {
 		return false;
 	}
