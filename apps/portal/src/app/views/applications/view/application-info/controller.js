@@ -117,8 +117,7 @@ export function buildApplicationInformationPage(service) {
 			haveYourSayPeriod,
 			representationsPublishDate,
 			displayApplicationUpdates,
-			applicationStatus,
-			true
+			applicationStatus
 		);
 
 		return res.render('views/applications/view/application-info/view.njk', {
