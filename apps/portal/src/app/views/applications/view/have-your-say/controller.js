@@ -1,7 +1,7 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { applicationLinks, crownDevelopmentToViewModel } from '../view-model.js';
-import { fetchPublishedApplication } from '#util/applications.js';
+import { fetchPublishedApplication } from '#util/applications.ts';
 import { nowIsWithinRange } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
@@ -54,7 +54,7 @@ export function buildHaveYourSayPage(service) {
 				haveYourSayPeriod,
 				representationsPublishDate,
 				displayApplicationUpdates,
-				crownDevelopment.applicationStatus
+				crownDevelopmentFields.applicationStatus
 			),
 			currentUrl: req.originalUrl,
 			crownDevelopmentFields

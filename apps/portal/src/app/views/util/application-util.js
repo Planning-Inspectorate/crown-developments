@@ -1,5 +1,5 @@
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { fetchPublishedApplication } from '#util/applications.js';
+import { fetchPublishedApplication, getApplicationStatus } from '#util/applications.ts';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
@@ -8,6 +8,8 @@ import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/d
  */
 
 /**
+ * TODO this is manipulating db data so be explicit that it is returning a view model
+ *
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  * @param {import('@pins/crowndev-database').PrismaClient} db
@@ -42,6 +44,7 @@ export async function checkApplicationPublished(req, res, db) {
 		notFoundHandler(req, res);
 		return;
 	}
+
 	return {
 		id,
 		reference: crownDevelopment.reference,
@@ -51,7 +54,7 @@ export async function checkApplicationPublished(req, res, db) {
 		},
 		representationsPublishDate: crownDevelopment.representationsPublishDate,
 		withdrawnDate: crownDevelopment.withdrawnDate,
-		applicationStatus: crownDevelopment.applicationStatus,
+		applicationStatus: getApplicationStatus(crownDevelopment.withdrawnDate),
 		containsDistressingContent: crownDevelopment.containsDistressingContent
 	};
 }
