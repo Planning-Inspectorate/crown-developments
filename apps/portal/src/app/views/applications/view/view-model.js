@@ -117,15 +117,11 @@ function isHearing(procedureId) {
 }
 
 /**
- * @typedef {{start: Date, end: Date}} HaveYourSayPeriod
- */
-
-/**
  * Build the application navigation links for the various application view pages.
  *
  * @param { string } id
- * @param { HaveYourSayPeriod } haveYourSayPeriod
- * @param { Date } representationsPublishDate
+ * @param { import('../../util/application-util.ts').HaveYourSayPeriod } haveYourSayPeriod
+ * @param { Date|null } representationsPublishDate
  * @param { boolean } displayApplicationUpdates
  * @param { import('#util/applications.ts').ApplicationPublishStatus|undefined } applicationStatus - Either the applicationStatus string (e.g. 'active') or `undefined`.
  * @returns {import('./types.js').ApplicationLink[]}
@@ -152,7 +148,12 @@ export function applicationLinks(
 		href: `/applications/${id}/documents`,
 		text: 'Documents'
 	});
-	if (!isWithdrawnOrExpired(applicationStatus) && nowIsWithinRange(haveYourSayPeriod?.start, haveYourSayPeriod?.end)) {
+	if (
+		!isWithdrawnOrExpired(applicationStatus) &&
+		haveYourSayPeriod?.start &&
+		haveYourSayPeriod?.end &&
+		nowIsWithinRange(haveYourSayPeriod?.start, haveYourSayPeriod?.end)
+	) {
 		links.push({
 			href: `/applications/${id}/have-your-say`,
 			text: 'Have your say'
@@ -164,7 +165,7 @@ export function applicationLinks(
 			text: 'Application updates'
 		});
 	}
-	if (isNowAfterStartDate(representationsPublishDate)) {
+	if (representationsPublishDate && isNowAfterStartDate(representationsPublishDate)) {
 		links.push({
 			href: `/applications/${id}/written-representations`,
 			text: 'Written representations'
