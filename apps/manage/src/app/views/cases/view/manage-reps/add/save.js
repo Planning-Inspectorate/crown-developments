@@ -1,6 +1,6 @@
 import { uniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
+import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { JOURNEY_ID } from './journey.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { saveRepresentation } from '@pins/crowndev-lib/forms/representations/save.js';

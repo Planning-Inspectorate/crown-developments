@@ -1,7 +1,7 @@
 import { APPLICATION_FOLDERS, buildPath, caseReferenceToFolderName } from '../../../util/sharepoint-path.js';
 import { fileAlreadyExistsInFolder, validateUploadedFile } from './document-validation-util.js';
 import { FILE_PROPERTIES } from '../../../documents/view-model.js';
-import { isValidUuidFormat } from '../../../util/uuid.js';
+import { isValidUuidFormat } from '../../../util/uuid.ts';
 import { notFoundHandler } from '../../../middleware/errors.js';
 import { sortByField } from '../../../util/array.js';
 import { addSessionData } from '../../../util/session.js';

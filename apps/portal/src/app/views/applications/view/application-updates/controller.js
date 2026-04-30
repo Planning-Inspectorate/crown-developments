@@ -1,5 +1,5 @@
 import { applicationLinks, applicationUpdateToTimelineItem } from '../view-model.js';
-import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
+import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';

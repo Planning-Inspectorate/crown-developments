@@ -1,4 +1,4 @@
-import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
+import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { applicationLinks, applicationUpdateToTimelineItem, crownDevelopmentToViewModel } from '../view-model.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { fetchPublishedApplication, isExpired, isWithdrawnOrExpired } from '#util/applications.ts';
