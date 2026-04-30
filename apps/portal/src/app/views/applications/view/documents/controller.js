@@ -5,6 +5,7 @@ import { publishedFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js'
 import { getDocuments } from '@pins/crowndev-lib/documents/get.js';
 import { splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
+import { getApplicationStatus } from '#util/applications.ts';
 
 /**
  * Render the list of documents page
@@ -20,7 +21,7 @@ export function buildApplicationDocumentsPage(service) {
 			return; // handled by checkApplicationPublished
 		}
 		const { id, reference, haveYourSayPeriod, representationsPublishDate } = crownDevelopment;
-		const applicationStatus = crownDevelopment.applicationStatus;
+		const applicationStatus = getApplicationStatus(crownDevelopment.withdrawnDate);
 		const folderPath = publishedFolderPath(reference);
 
 		logger.info({ folderPath }, 'view documents');

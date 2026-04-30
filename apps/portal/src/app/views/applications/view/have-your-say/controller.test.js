@@ -69,6 +69,7 @@ describe('Have Your Say controller', () => {
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1].crownDevelopmentFields, {
 				id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
 				reference: 'CROWN/2025/0000001',
+				applicationStatus: 'active',
 				applicationType: undefined,
 				applicantName: undefined,
 				lpaName: undefined,
@@ -117,6 +118,7 @@ describe('Have Your Say controller', () => {
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1].crownDevelopmentFields, {
 				id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
 				reference: 'CROWN/2025/0000001',
+				applicationStatus: 'active',
 				applicationType: undefined,
 				applicantName: undefined,
 				lpaName: undefined,

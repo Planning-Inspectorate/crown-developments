@@ -1,6 +1,6 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { fetchPublishedApplication } from '#util/applications.js';
+import { fetchPublishedApplication, getApplicationStatus } from '#util/applications.ts';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { applicationLinks, representationToViewModel } from '../../view-model.js';
 import {
@@ -135,7 +135,7 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 		};
 		const representationsPublishDate = crownDevelopment.representationsPublishDate;
 		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
-		const applicationStatus = crownDevelopment.applicationStatus;
+		const applicationStatus = getApplicationStatus(crownDevelopment.withdrawnDate);
 		const writtenRepresentationsUrl = req.originalUrl?.replace(`/${representationReference}`, '');
 
 		res.render('views/applications/view/written-representations/read-more/view.njk', {

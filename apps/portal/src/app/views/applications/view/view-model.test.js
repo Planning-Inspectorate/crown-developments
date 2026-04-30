@@ -60,6 +60,7 @@ describe('view-model', () => {
 				id: 'id-1',
 				reference: 'reference-id-1',
 				applicantName: 'Applicant Name',
+				applicationStatus: 'active',
 				applicationType: 'Planning permission',
 				crownDevelopmentContactEmail: 'crown.dev@planninginspectorate.gov.uk',
 				description: 'A significant project',

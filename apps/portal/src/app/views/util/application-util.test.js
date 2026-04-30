@@ -4,7 +4,7 @@ import { checkApplicationPublished, shouldDisplayApplicationUpdatesLink } from '
 
 describe('application-util', () => {
 	describe('checkApplicationPublished', () => {
-		it('should format the application if it find a publishedApplicant', async (context) => {
+		it('should format the application if it finds a publishedApplicant', async (context) => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2021-01-20') });
 			const mockReq = {
 				params: {
