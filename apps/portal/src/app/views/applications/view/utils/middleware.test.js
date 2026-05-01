@@ -1,7 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { checkIfExpiredMiddleware, checkIfWithdrawnOrExpiredMiddleware } from './middleware.ts';
-import { APPLICATION_PUBLISH_STATUS } from '#util/applications.ts';
 
 describe('checkIfExpiredMiddleware', () => {
 	it('should call next middleware when application is not expired', async () => {
@@ -19,7 +18,7 @@ describe('checkIfExpiredMiddleware', () => {
 			}
 		};
 		const mockFetchPublishedApplication = async () => ({
-			applicationStatus: APPLICATION_PUBLISH_STATUS.ACTIVE
+			withdrawnDate: undefined
 		});
 		const middleware = checkIfExpiredMiddleware({ db: mockDb }, mockFetchPublishedApplication);
 		await middleware(mockReq, mockRes, mockNext);
