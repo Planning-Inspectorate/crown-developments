@@ -21,7 +21,6 @@ describe('application-util', () => {
 					findUnique: mock.fn(() => {
 						return {
 							reference: 'reference',
-							applicationStatus: 'published',
 							representationsPeriodStartDate: new Date('2021-01-01'),
 							representationsPeriodEndDate: new Date('2021-01-31'),
 							representationsPublishDate: new Date('2021-01-15'),
