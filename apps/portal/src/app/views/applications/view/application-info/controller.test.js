@@ -86,7 +86,7 @@ describe('application info controller', () => {
 						DecisionOutcome: {
 							displayName: 'Approved'
 						},
-						applicationStatus: 'active'
+						withdrawnDate: null
 					}))
 				},
 				applicationUpdate: {
@@ -401,7 +401,7 @@ describe('application info controller', () => {
 						DecisionOutcome: {
 							displayName: 'Approved'
 						},
-						applicationStatus: 'active'
+						withdrawnDate: null
 					}))
 				},
 				applicationUpdate: {
@@ -715,8 +715,7 @@ describe('application info controller', () => {
 						},
 						DecisionOutcome: {
 							displayName: 'Approved'
-						},
-						applicationStatus: 'active'
+						}
 					}))
 				},
 				applicationUpdate: {
@@ -787,8 +786,7 @@ describe('application info controller', () => {
 						DecisionOutcome: {
 							displayName: 'Approved'
 						},
-						withdrawnDate: new Date('2024-12-01T00:00:00.000Z'),
-						applicationStatus: 'active'
+						withdrawnDate: new Date('2024-12-01T00:00:00.000Z')
 					}))
 				},
 				applicationUpdate: {
@@ -862,8 +860,7 @@ describe('application info controller', () => {
 						DecisionOutcome: {
 							displayName: 'Approved'
 						},
-						withdrawnDate: new Date('2024-01-01T00:00:00.000Z'),
-						applicationStatus: 'active'
+						withdrawnDate: new Date('2024-01-01T00:00:00.000Z')
 					}))
 				},
 				applicationUpdate: {
@@ -942,8 +939,7 @@ describe('application info controller', () => {
 						DecisionOutcome: {
 							displayName: 'Approved'
 						},
-						withdrawnDate: false,
-						applicationStatus: 'active'
+						withdrawnDate: false
 					}))
 				},
 				applicationUpdate: {

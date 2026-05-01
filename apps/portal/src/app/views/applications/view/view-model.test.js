@@ -53,7 +53,8 @@ describe('view-model', () => {
 					townCity: 'Site Town',
 					postcode: 'Site ONE'
 				},
-				containsDistressingContent: true
+				containsDistressingContent: true,
+				withdrawnDate: null
 			};
 			const result = crownDevelopmentToViewModel(input, 'crown.dev@planninginspectorate.gov.uk');
 			assert.deepStrictEqual(result, {

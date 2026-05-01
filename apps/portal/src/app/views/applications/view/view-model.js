@@ -95,7 +95,9 @@ export function crownDevelopmentToViewModel(crownDevelopment, contactEmail) {
 		fields.applicationSubType = crownDevelopment.SubType?.displayName;
 	}
 
-	fields.applicationStatus = getApplicationStatus(crownDevelopment.withdrawnDate);
+	if (Object.prototype.hasOwnProperty.call(crownDevelopment, 'withdrawnDate')) {
+		fields.applicationStatus = getApplicationStatus(crownDevelopment.withdrawnDate);
+	}
 
 	return fields;
 }
