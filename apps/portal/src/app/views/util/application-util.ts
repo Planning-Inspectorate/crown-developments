@@ -4,6 +4,7 @@ import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { fetchPublishedApplication, getApplicationStatus, type ApplicationPublishStatus } from '#util/applications.ts';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
+import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
 
 export type HaveYourSayPeriod = {
 	start: Date | null;
@@ -19,9 +20,10 @@ export interface PublishedApplicationViewModel {
 	reference: string;
 	haveYourSayPeriod: HaveYourSayPeriod;
 	representationsPublishDate: Date | null;
+	representationsPeriodEndDateFormatted: string;
 	withdrawnDate: Date | null;
 	applicationStatus: ApplicationPublishStatus;
-	containsDistressingContent: boolean | null;
+	containsDistressingContent: boolean;
 }
 
 /**
@@ -65,9 +67,14 @@ export function toPublishedApplicationViewModel(
 			end: row.representationsPeriodEndDate
 		},
 		representationsPublishDate: row.representationsPublishDate,
+		representationsPeriodEndDateFormatted: row.representationsPeriodEndDate
+			? formatDateForDisplay(row.representationsPeriodEndDate, {
+					format: 'd MMMM yyyy'
+				})
+			: '',
 		withdrawnDate: row.withdrawnDate,
 		applicationStatus: getApplicationStatus(row.withdrawnDate),
-		containsDistressingContent: row.containsDistressingContent
+		containsDistressingContent: row.containsDistressingContent === true
 	};
 }
 

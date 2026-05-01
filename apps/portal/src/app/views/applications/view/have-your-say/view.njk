@@ -17,7 +17,7 @@
         </div>
 
         <div class="govuk-grid-column-two-thirds">
-            {{ distressingContentBanner(crownDevelopmentFields.containsDistressingContent) }}
+            {{ distressingContentBanner(containsDistressingContent) }}
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-full">
                     <h1 class="govuk-heading-l">
@@ -39,7 +39,7 @@
                 <li>published on this website along with your name, and the name of your organisation where applicable</li>
                 <li>considered by the Planning Inspectors before a decision is made on the application</li>
             </ul>
-            <p class="govuk-body">You must submit your written representation by 11:59pm on {{ crownDevelopmentFields.representationsPeriodEndDate }}.</p>
+            <p class="govuk-body">You must submit your written representation by 11:59pm on {{ representationsPeriodEndDateFormatted }}.</p>
 
             {{ govukButton({
                 text: "Start now",

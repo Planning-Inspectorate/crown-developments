@@ -41,6 +41,7 @@ describe('application-util', () => {
 					end: new Date('2021-01-31')
 				},
 				representationsPublishDate: new Date('2021-01-15'),
+				representationsPeriodEndDateFormatted: '31 January 2021',
 				containsDistressingContent: false,
 				withdrawnDate: new Date('2021-01-19')
 			});
