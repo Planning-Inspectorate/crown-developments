@@ -36,7 +36,7 @@ function checkStatusMiddleware(
 }
 
 /**
- * Middleware to check if the application is expired and redirect to the expired page if so.
+ * Middleware to check if the application is expired and serve 404 if so.
  */
 export function checkIfExpiredMiddleware(
 	service: PortalService,
@@ -46,7 +46,7 @@ export function checkIfExpiredMiddleware(
 }
 
 /**
- * Middleware to check if the application is withdrawn OR expired and redirect to not found if so.
+ * Middleware to check if the application is withdrawn OR expired and serve 404 if so.
  * This is used for routes (such as have-your-say) that should be inaccessible for withdrawn applications as well as expired ones.
  */
 export function checkIfWithdrawnOrExpiredMiddleware(
