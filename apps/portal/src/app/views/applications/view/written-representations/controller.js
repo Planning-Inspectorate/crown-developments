@@ -1,13 +1,13 @@
-import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
+import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { fetchPublishedApplication } from '#util/applications.js';
+import { fetchPublishedApplication, getApplicationStatus } from '#util/applications.ts';
 import { applicationLinks, representationToViewModel } from '../view-model.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
-import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
+import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import { buildFilters, getFilterQueryItems, hasQueries, mapWithAndWithoutToBoolean } from './filters/filters.js';
 import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
 
@@ -98,7 +98,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			return notFoundHandler(req, res);
 		}
 		const publishedDate = crownDevelopment.representationsPublishDate;
-		const applicationStatus = crownDevelopment.applicationStatus;
+		const applicationStatus = getApplicationStatus(crownDevelopment.withdrawnDate);
 		const representationsPublished = publishedDate && (dateIsToday(publishedDate) || dateIsBeforeToday(publishedDate));
 		if (!representationsPublished) {
 			return notFoundHandler(req, res);

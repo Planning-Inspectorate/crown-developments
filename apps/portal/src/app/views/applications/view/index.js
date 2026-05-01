@@ -7,7 +7,7 @@ import { createWrittenRepresentationsRoutes } from './written-representations/in
 import { buildDocumentView } from '../../util/documents-util.js';
 import { buildDetailedInformationPage } from '../../static/detailed-information/controller.js';
 import { buildApplicationUpdatesPage } from './application-updates/controller.js';
-import { checkIfExpiredMiddleware, checkIfWithdrawnOrExpiredMiddleware } from './utils/middleware.js';
+import { checkIfExpiredMiddleware, checkIfWithdrawnOrExpiredMiddleware } from './utils/middleware.ts';
 import { buildCachingDynamicContentMiddleware } from '../../util/caching-middleware.js';
 
 /**

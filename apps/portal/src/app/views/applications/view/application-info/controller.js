@@ -1,7 +1,7 @@
-import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
+import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { applicationLinks, applicationUpdateToTimelineItem, crownDevelopmentToViewModel } from '../view-model.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { fetchPublishedApplication, APPLICATION_PUBLISH_STATUS } from '#util/applications.js';
+import { fetchPublishedApplication, isExpired, isWithdrawnOrExpired } from '#util/applications.ts';
 import { getHaveYourSayStatus } from '../have-your-say/util.js';
 import {
 	getAboutThisApplicationSectionItems,
@@ -9,7 +9,7 @@ import {
 	getImportantDatesSectionItems,
 	getProcedureDetailsSectionItems
 } from './section-items.js';
-import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
+import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.js';
 import { buildApplicationStages, getCurrentStage } from './application-stage/controller.js';
 import {
@@ -110,27 +110,22 @@ export function buildApplicationInformationPage(service) {
 		});
 		const formattedApplicationStages = buildApplicationStages(crownDevelopment);
 		const currentStage = getCurrentStage(formattedApplicationStages);
-		const applicationStatus = crownDevelopment.applicationStatus;
-		const isWithdrawn =
-			applicationStatus === APPLICATION_PUBLISH_STATUS.WITHDRAWN ||
-			applicationStatus === APPLICATION_PUBLISH_STATUS.EXPIRED;
-		const isExpired = applicationStatus === APPLICATION_PUBLISH_STATUS.EXPIRED;
+		const applicationStatus = crownDevelopmentFields.applicationStatus;
 
 		const links = applicationLinks(
 			id,
 			haveYourSayPeriod,
 			representationsPublishDate,
 			displayApplicationUpdates,
-			applicationStatus,
-			true
+			applicationStatus
 		);
 
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Application information',
 			applicationReference: crownDevelopment.reference,
-			isWithdrawn,
-			isExpired,
+			isWithdrawn: isWithdrawnOrExpired(applicationStatus),
+			isExpired: isExpired(applicationStatus),
 			links,
 			baseUrl: req.baseUrl,
 			currentUrl: req.originalUrl,

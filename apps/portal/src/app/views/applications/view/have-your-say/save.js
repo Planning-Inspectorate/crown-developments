@@ -1,7 +1,7 @@
-import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
+import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { crownDevelopmentToViewModel } from '../view-model.js';
-import { fetchPublishedApplication } from '#util/applications.js';
+import { fetchPublishedApplication } from '#util/applications.ts';
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { uniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
@@ -13,7 +13,7 @@ import {
 	deleteRepresentationAttachmentsFolder,
 	moveAttachmentsToCaseFolder
 } from '@pins/crowndev-lib/util/handle-attachments.js';
-import { checkApplicationPublished } from '../../../util/application-util.js';
+import { loadPublishedApplicationOr404 } from '../../../util/application-util.ts';
 
 /**
  * @param {import('#service').PortalService} service
@@ -29,10 +29,10 @@ export function buildSaveHaveYourSayController(
 	deleteRepresentationFolderFn = deleteRepresentationAttachmentsFolder
 ) {
 	return async (req, res) => {
-		const crownDevelopment = await checkApplicationPublished(req, res, service.db);
+		const crownDevelopment = await loadPublishedApplicationOr404(req, res, service.db);
 
 		if (!crownDevelopment) {
-			return; // notFoundHandler will have been called in checkApplicationPublished
+			return; // 404 already handled
 		}
 
 		await saveRepresentation(

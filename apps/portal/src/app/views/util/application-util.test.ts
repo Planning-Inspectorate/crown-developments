@@ -1,10 +1,10 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { checkApplicationPublished, shouldDisplayApplicationUpdatesLink } from './application-util.js';
+import { loadPublishedApplicationOr404, shouldDisplayApplicationUpdatesLink } from './application-util.ts';
 
 describe('application-util', () => {
-	describe('checkApplicationPublished', () => {
-		it('should format the application if it find a publishedApplicant', async (context) => {
+	describe('loadPublishedApplicationOr404', () => {
+		it('should format the application if it finds a publishedApplicant', async (context) => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2021-01-20') });
 			const mockReq = {
 				params: {
@@ -21,7 +21,6 @@ describe('application-util', () => {
 					findUnique: mock.fn(() => {
 						return {
 							reference: 'reference',
-							applicationStatus: 'published',
 							representationsPeriodStartDate: new Date('2021-01-01'),
 							representationsPeriodEndDate: new Date('2021-01-31'),
 							representationsPublishDate: new Date('2021-01-15'),
@@ -31,7 +30,7 @@ describe('application-util', () => {
 					})
 				}
 			};
-			const response = await checkApplicationPublished(mockReq, mockRes, mockDb);
+			const response = await loadPublishedApplicationOr404(mockReq, mockRes, mockDb);
 			assert.deepStrictEqual(response, {
 				id: '123e4567-e89b-12d3-a456-426614174000',
 				reference: 'reference',
@@ -41,6 +40,7 @@ describe('application-util', () => {
 					end: new Date('2021-01-31')
 				},
 				representationsPublishDate: new Date('2021-01-15'),
+				representationsPeriodEndDateFormatted: '31 January 2021',
 				containsDistressingContent: false,
 				withdrawnDate: new Date('2021-01-19')
 			});
@@ -71,7 +71,7 @@ describe('application-util', () => {
 					})
 				}
 			};
-			const response = await checkApplicationPublished(mockReq, mockRes, mockDb);
+			const response = await loadPublishedApplicationOr404(mockReq, mockRes, mockDb);
 			assert.deepStrictEqual(response, undefined);
 			assert.strictEqual(mockRes.status.mock.callCount(), 1);
 			assert.strictEqual(mockRes.status.mock.calls[0].arguments[0], 404);
@@ -93,7 +93,7 @@ describe('application-util', () => {
 					findUnique: mock.fn(() => undefined)
 				}
 			};
-			const response = await checkApplicationPublished(mockReq, mockRes, mockDb);
+			const response = await loadPublishedApplicationOr404(mockReq, mockRes, mockDb);
 			assert.deepStrictEqual(response, undefined);
 			assert.strictEqual(mockRes.status.mock.callCount(), 1);
 			assert.strictEqual(mockRes.status.mock.calls[0].arguments[0], 404);
@@ -121,7 +121,9 @@ describe('application-util', () => {
 					})
 				}
 			};
-			await assert.rejects(() => checkApplicationPublished(mockReq, mockRes, mockDb), { message: 'id param required' });
+			await assert.rejects(() => loadPublishedApplicationOr404(mockReq, mockRes, mockDb), {
+				message: 'id param required'
+			});
 		});
 	});
 	describe('shouldDisplayApplicationUpdatesLink', () => {

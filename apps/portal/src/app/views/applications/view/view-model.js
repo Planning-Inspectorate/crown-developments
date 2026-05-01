@@ -16,6 +16,7 @@ import {
 	truncateComment,
 	truncatedReadMoreCommentLink
 } from '@pins/crowndev-lib/util/questions.js';
+import { getApplicationStatus, isWithdrawnOrExpired, isExpired } from '#util/applications.ts';
 
 /**
  *
@@ -24,6 +25,7 @@ import {
  * @return {import('./types.js').CrownDevelopmentListViewModel}
  */
 export function crownDevelopmentToViewModel(crownDevelopment, contactEmail) {
+	/** @type {import('./types.js').CrownDevelopmentListViewModel} */
 	const fields = {
 		id: crownDevelopment.id,
 		reference: crownDevelopment.reference,
@@ -93,6 +95,10 @@ export function crownDevelopmentToViewModel(crownDevelopment, contactEmail) {
 		fields.applicationSubType = crownDevelopment.SubType?.displayName;
 	}
 
+	if (Object.prototype.hasOwnProperty.call(crownDevelopment, 'withdrawnDate')) {
+		fields.applicationStatus = getApplicationStatus(crownDevelopment.withdrawnDate);
+	}
+
 	return fields;
 }
 
@@ -113,24 +119,13 @@ function isHearing(procedureId) {
 }
 
 /**
- * @typedef {{start: Date, end: Date}} HaveYourSayPeriod
- */
-
-/**
  * Build the application navigation links for the various application view pages.
  *
- * This function accepts two different calling styles used in the codebase:
- *  - applicationLinks(id, haveYourSayPeriod, representationsPublishDate, displayApplicationUpdates, restrictLinks)
- *    where the 5th argument is a boolean that forces link restriction.
- *  - applicationLinks(id, haveYourSayPeriod, representationsPublishDate, displayApplicationUpdates, applicationStatus, restrictLinks)
- *    where the 5th argument is the applicationStatus string (e.g. 'active'|'withdrawn'|'expired') and the 6th is an optional restrictLinks boolean.
- *
  * @param { string } id
- * @param { HaveYourSayPeriod } haveYourSayPeriod
- * @param { Date } representationsPublishDate
+ * @param { import('../../util/application-util.ts').HaveYourSayPeriod } haveYourSayPeriod
+ * @param { Date|null } representationsPublishDate
  * @param { boolean } displayApplicationUpdates
- * @param { string|undefined } applicationStatus - Either the applicationStatus string (e.g. 'active') or `undefined`.
- * @param { boolean|undefined } restrictLinks - A flag to restrict links, default is `true`.
+ * @param { import('#util/applications.ts').ApplicationPublishStatus|undefined } applicationStatus - Either the applicationStatus string (e.g. 'active') or `undefined`.
  * @returns {import('./types.js').ApplicationLink[]}
  */
 export function applicationLinks(
@@ -138,8 +133,7 @@ export function applicationLinks(
 	haveYourSayPeriod,
 	representationsPublishDate,
 	displayApplicationUpdates,
-	applicationStatus = undefined,
-	restrictLinks = true
+	applicationStatus = undefined
 ) {
 	const links = [
 		{
@@ -147,35 +141,39 @@ export function applicationLinks(
 			text: 'Application information'
 		}
 	];
-	if (restrictLinks !== false) {
-		const isWithdrawn = applicationStatus === 'withdrawn' || applicationStatus === 'expired';
-		const isExpired = applicationStatus === 'expired';
 
-		if (!(isWithdrawn && isExpired)) {
-			links.push({
-				href: `/applications/${id}/documents`,
-				text: 'Documents'
-			});
-			if (!isWithdrawn && nowIsWithinRange(haveYourSayPeriod?.start, haveYourSayPeriod?.end)) {
-				links.push({
-					href: `/applications/${id}/have-your-say`,
-					text: 'Have your say'
-				});
-			}
-			if (displayApplicationUpdates) {
-				links.push({
-					href: `/applications/${id}/application-updates`,
-					text: 'Application updates'
-				});
-			}
-			if (isNowAfterStartDate(representationsPublishDate)) {
-				links.push({
-					href: `/applications/${id}/written-representations`,
-					text: 'Written representations'
-				});
-			}
-		}
+	if (isExpired(applicationStatus)) {
+		return links;
 	}
+
+	links.push({
+		href: `/applications/${id}/documents`,
+		text: 'Documents'
+	});
+	if (
+		!isWithdrawnOrExpired(applicationStatus) &&
+		haveYourSayPeriod?.start &&
+		haveYourSayPeriod?.end &&
+		nowIsWithinRange(haveYourSayPeriod?.start, haveYourSayPeriod?.end)
+	) {
+		links.push({
+			href: `/applications/${id}/have-your-say`,
+			text: 'Have your say'
+		});
+	}
+	if (displayApplicationUpdates) {
+		links.push({
+			href: `/applications/${id}/application-updates`,
+			text: 'Application updates'
+		});
+	}
+	if (representationsPublishDate && isNowAfterStartDate(representationsPublishDate)) {
+		links.push({
+			href: `/applications/${id}/written-representations`,
+			text: 'Written representations'
+		});
+	}
+
 	return links;
 }
 

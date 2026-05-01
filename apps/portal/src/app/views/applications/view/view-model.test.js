@@ -53,13 +53,15 @@ describe('view-model', () => {
 					townCity: 'Site Town',
 					postcode: 'Site ONE'
 				},
-				containsDistressingContent: true
+				containsDistressingContent: true,
+				withdrawnDate: null
 			};
 			const result = crownDevelopmentToViewModel(input, 'crown.dev@planninginspectorate.gov.uk');
 			assert.deepStrictEqual(result, {
 				id: 'id-1',
 				reference: 'reference-id-1',
 				applicantName: 'Applicant Name',
+				applicationStatus: 'active',
 				applicationType: 'Planning permission',
 				crownDevelopmentContactEmail: 'crown.dev@planninginspectorate.gov.uk',
 				description: 'A significant project',
@@ -164,35 +166,6 @@ describe('view-model', () => {
 			const result = crownDevelopmentToViewModel(input, config);
 			assert.strictEqual(result.applicationSubType, 'Sub Type');
 		});
-		it('should include all links when restrictLinks is true', (context) => {
-			const id = 'id-1';
-			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-15T12:00:00.000Z') }); // within period
-			const haveYourSayPeriod = {
-				start: new Date('2025-01-01T00:00:00.000Z'),
-				end: new Date('2025-01-30T23:59:59.000Z')
-			};
-			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
-			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, undefined, true);
-			assert.deepStrictEqual(result, [
-				{ href: `/applications/${id}/application-information`, text: 'Application information' },
-				{ href: `/applications/${id}/documents`, text: 'Documents' },
-				{ href: `/applications/${id}/have-your-say`, text: 'Have your say' },
-				{ href: `/applications/${id}/application-updates`, text: 'Application updates' },
-				{ href: `/applications/${id}/written-representations`, text: 'Written representations' }
-			]);
-		});
-		it('should exclude all links except application information when restrictLinks is false and isWithdrawn and isExpired is true', () => {
-			const id = 'id-1';
-			const haveYourSayPeriod = {
-				start: new Date('2025-01-01T00:00:00.000Z'),
-				end: new Date('2025-01-30T23:59:59.000Z')
-			};
-			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
-			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, undefined, false);
-			assert.deepStrictEqual(result, [
-				{ href: `/applications/${id}/application-information`, text: 'Application information' }
-			]);
-		});
 	});
 	describe('applicationLinks', () => {
 		it('should include Have your say when within the representation submission period', (context) => {
@@ -235,7 +208,7 @@ describe('view-model', () => {
 				end: new Date('2025-01-30T23:59:59.000Z')
 			};
 			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
-			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, undefined, true);
+			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, undefined);
 			assert.deepStrictEqual(result, [
 				{
 					href: `/applications/${id}/application-information`,
@@ -287,7 +260,7 @@ describe('view-model', () => {
 				end: new Date('2025-01-30T23:59:59.000Z')
 			};
 			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
-			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, undefined, undefined);
+			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, undefined);
 			assert(result.some((link) => link.text === 'Documents'));
 			assert(result.some((link) => link.text === 'Have your say'));
 			assert(result.some((link) => link.text === 'Application updates'));
@@ -302,14 +275,7 @@ describe('view-model', () => {
 				end: new Date('2025-01-30T23:59:59.000Z')
 			};
 			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
-			const result = applicationLinks(
-				id,
-				haveYourSayPeriod,
-				representationsPublishDate,
-				true,
-				'withdrawn',
-				'withdrawn'
-			);
+			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, 'withdrawn');
 			assert.deepStrictEqual(result, [
 				{ href: `/applications/${id}/application-information`, text: 'Application information' },
 				{ href: `/applications/${id}/documents`, text: 'Documents' },
@@ -340,7 +306,7 @@ describe('view-model', () => {
 				end: new Date('2025-01-30T23:59:59.000Z')
 			};
 			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
-			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, undefined, 'withdrawn');
+			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, undefined);
 			assert.deepStrictEqual(result, [
 				{ href: `/applications/${id}/application-information`, text: 'Application information' },
 				{ href: `/applications/${id}/documents`, text: 'Documents' },

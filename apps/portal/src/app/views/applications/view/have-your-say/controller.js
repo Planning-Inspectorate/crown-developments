@@ -1,10 +1,10 @@
-import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.js';
+import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { applicationLinks, crownDevelopmentToViewModel } from '../view-model.js';
-import { fetchPublishedApplication } from '#util/applications.js';
+import { applicationLinks } from '../view-model.js';
+import { fetchPublishedApplication } from '#util/applications.ts';
 import { nowIsWithinRange } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
-import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.js';
+import { loadPublishedApplicationOr404, shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import {
 	buildRequiredCheckboxGroup,
 	declarationItems,
@@ -20,44 +20,28 @@ import {
 export function buildHaveYourSayPage(service) {
 	const { db } = service;
 	return async (req, res) => {
-		const id = req.params.applicationId;
-		if (!id) {
-			throw new Error('id param required');
-		}
-		if (!isValidUuidFormat(id)) {
-			return notFoundHandler(req, res);
-		}
-
-		const crownDevelopment = await fetchPublishedApplication({
-			id,
-			db,
-			args: {}
-		});
+		const crownDevelopment = await loadPublishedApplicationOr404(req, res, db);
 
 		if (!crownDevelopment) {
-			return notFoundHandler(req, res);
+			return; // 404 already handled
 		}
 
-		const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment, service.contactEmail);
-		const haveYourSayPeriod = {
-			start: new Date(crownDevelopment.representationsPeriodStartDate),
-			end: new Date(crownDevelopment.representationsPeriodEndDate)
-		};
-		const representationsPublishDate = crownDevelopment.representationsPublishDate;
+		const id = crownDevelopment.id;
 		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
 
 		res.render('views/applications/view/have-your-say/view.njk', {
-			pageCaption: crownDevelopmentFields.reference,
+			pageCaption: crownDevelopment.reference,
 			pageTitle: 'Have your say on a Crown Development Application',
 			links: applicationLinks(
 				id,
-				haveYourSayPeriod,
-				representationsPublishDate,
+				crownDevelopment.haveYourSayPeriod,
+				crownDevelopment.representationsPublishDate,
 				displayApplicationUpdates,
 				crownDevelopment.applicationStatus
 			),
 			currentUrl: req.originalUrl,
-			crownDevelopmentFields
+			containsDistressingContent: crownDevelopment.containsDistressingContent,
+			representationsPeriodEndDateFormatted: crownDevelopment.representationsPeriodEndDateFormatted
 		});
 	};
 }

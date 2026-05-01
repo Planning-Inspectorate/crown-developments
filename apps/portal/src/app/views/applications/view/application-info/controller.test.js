@@ -86,7 +86,7 @@ describe('application info controller', () => {
 						DecisionOutcome: {
 							displayName: 'Approved'
 						},
-						applicationStatus: 'active'
+						withdrawnDate: null
 					}))
 				},
 				applicationUpdate: {
@@ -150,6 +150,7 @@ describe('application info controller', () => {
 				crownDevelopmentFields: {
 					applicantName: 'Test Name',
 					applicationAcceptedDate: '9 October 2025',
+					applicationStatus: 'active',
 					applicationType: 'Planning permission',
 					crownDevelopmentContactEmail: undefined,
 					decisionDate: '9 October 2025',
@@ -400,7 +401,7 @@ describe('application info controller', () => {
 						DecisionOutcome: {
 							displayName: 'Approved'
 						},
-						applicationStatus: 'active'
+						withdrawnDate: null
 					}))
 				},
 				applicationUpdate: {
@@ -464,6 +465,7 @@ describe('application info controller', () => {
 				crownDevelopmentFields: {
 					applicantName: 'Test Name',
 					applicationAcceptedDate: '9 October 2025',
+					applicationStatus: 'active',
 					applicationType: 'Planning permission',
 					crownDevelopmentContactEmail: undefined,
 					decisionDate: '9 October 2025',
@@ -713,8 +715,7 @@ describe('application info controller', () => {
 						},
 						DecisionOutcome: {
 							displayName: 'Approved'
-						},
-						applicationStatus: 'active'
+						}
 					}))
 				},
 				applicationUpdate: {
@@ -785,8 +786,7 @@ describe('application info controller', () => {
 						DecisionOutcome: {
 							displayName: 'Approved'
 						},
-						withdrawnDate: new Date('2024-12-01T00:00:00.000Z'),
-						applicationStatus: 'active'
+						withdrawnDate: new Date('2024-12-01T00:00:00.000Z')
 					}))
 				},
 				applicationUpdate: {
@@ -813,8 +813,9 @@ describe('application info controller', () => {
 			await handler(mockReq, mockRes);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			const renderArgs = mockRes.render.mock.calls[0].arguments[1];
-			assert.strictEqual(renderArgs.isWithdrawn, true);
-			assert.strictEqual(renderArgs.isExpired, false);
+
+			assert.strictEqual(renderArgs.isWithdrawn, true, 'application should be withdrawn');
+			assert.strictEqual(renderArgs.isExpired, false, 'application should not be expired');
 			assert.strictEqual(
 				mockRes.render.mock.calls[0].arguments[0],
 				'views/applications/view/application-info/view.njk'
@@ -859,8 +860,7 @@ describe('application info controller', () => {
 						DecisionOutcome: {
 							displayName: 'Approved'
 						},
-						withdrawnDate: new Date('2024-01-01T00:00:00.000Z'),
-						applicationStatus: 'active'
+						withdrawnDate: new Date('2024-01-01T00:00:00.000Z')
 					}))
 				},
 				applicationUpdate: {
@@ -939,8 +939,7 @@ describe('application info controller', () => {
 						DecisionOutcome: {
 							displayName: 'Approved'
 						},
-						withdrawnDate: false,
-						applicationStatus: 'active'
+						withdrawnDate: false
 					}))
 				},
 				applicationUpdate: {
