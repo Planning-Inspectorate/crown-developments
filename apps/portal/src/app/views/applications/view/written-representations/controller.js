@@ -59,7 +59,7 @@ function getFormType(query) {
 function mapErrorSummary(filters, formType) {
 	const errorSummary = [];
 	(filters || []).forEach((section) => {
-		if (section?.title === 'Submitted date' && Array.isArray(section.dateInputs)) {
+		if (section?.title === 'Date submitted' && Array.isArray(section.dateInputs)) {
 			section.dateInputs.forEach((dateInput) => {
 				const errText = dateInput?.errorMessage?.text;
 				if (errText) {

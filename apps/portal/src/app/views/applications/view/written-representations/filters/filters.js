@@ -104,7 +104,7 @@ export async function buildFilters({ db, logger }, id, queryFilters) {
 		const fromDate = parseDateFromParts(fromValues.day, fromValues.month, fromValues.year);
 		const toDate = parseDateFromParts(toValues.day, toValues.month, toValues.year);
 		const dateSubmissionsSection = {
-			title: 'Submitted date',
+			title: 'Date submitted',
 			type: 'date-input',
 			name: 'submittedDate',
 			dateInputs: [
