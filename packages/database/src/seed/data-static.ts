@@ -82,62 +82,79 @@ export const ORGANISATION_ROLES: Prisma.CrownDevelopmentToOrganisationRoleCreate
 	}
 ];
 
+export const APPLICATION_STATUS_ID = Object.freeze({
+	NEW: 'new',
+	ACCEPTANCE: 'acceptance',
+	INVALID: 'invalid',
+	CONSULTATION_PERIOD_OPEN: 'consultation-period-open',
+	EVENT_DATE_SET: 'event-date-set',
+	ON_HOLD: 'on-hold',
+	REPORT_AWAITED: 'report-awaited',
+	REPORT_SENT: 'report-sent',
+	DECISION_AWAITED: 'decision-awaited',
+	DECIDED: 'decided',
+	WITHDRAWN: 'withdrawn',
+	DECLINED_TO_DETERMINE: 'declined-to-determine',
+	CLOSED_INVALID: 'closed-invalid',
+	CLOSED_OPEN_IN_ERROR: 'closed-open-in-error'
+} as const);
+
 export const APPLICATION_STATUS: Prisma.ApplicationStatusCreateInput[] = [
 	{
-		id: 'new',
+		id: APPLICATION_STATUS_ID.NEW,
 		displayName: 'New'
 	},
 	{
-		id: 'acceptance',
+		id: APPLICATION_STATUS_ID.ACCEPTANCE,
 		// called complete to match the terminology in the draft order
 		displayName: 'Accepted'
 	},
 	{
-		id: 'invalid',
+		id: APPLICATION_STATUS_ID.INVALID,
 		displayName: 'Invalid'
 	},
 	{
-		id: 'consultation-period-open',
+		id: APPLICATION_STATUS_ID.CONSULTATION_PERIOD_OPEN,
 		displayName: 'Consultation period open'
 	},
 	{
-		id: 'event-date-set',
+		id: APPLICATION_STATUS_ID.EVENT_DATE_SET,
 		displayName: 'Hearing/Inquiry date set'
 	},
 	{
-		id: 'on-hold',
+		id: APPLICATION_STATUS_ID.ON_HOLD,
 		displayName: 'Application on hold awaiting further information'
 	},
 	{
-		id: 'report-awaited',
+		id: APPLICATION_STATUS_ID.REPORT_AWAITED,
 		displayName: 'Report awaited'
 	},
 	{
-		id: 'report-sent',
+		id: APPLICATION_STATUS_ID.REPORT_SENT,
 		displayName: 'Report sent to Decision Branch'
 	},
 	{
-		id: 'decision-awaited',
+		id: APPLICATION_STATUS_ID.DECISION_AWAITED,
 		displayName: 'Decision awaited'
 	},
 	{
-		id: 'decided',
+		id: APPLICATION_STATUS_ID.DECIDED,
 		displayName: 'Decided'
 	},
 	{
-		id: 'withdrawn',
+		id: APPLICATION_STATUS_ID.WITHDRAWN,
 		displayName: 'Withdrawn'
 	},
 	{
-		id: 'declined-to-determine',
+		id: APPLICATION_STATUS_ID.DECLINED_TO_DETERMINE,
 		displayName: 'Declined to determine'
 	},
 	{
-		id: 'closed-invalid',
+		id: APPLICATION_STATUS_ID.CLOSED_INVALID,
 		displayName: 'Closed - invalid'
 	},
 	{
-		id: 'closed-open-in-error',
+		id: APPLICATION_STATUS_ID.CLOSED_OPEN_IN_ERROR,
 		displayName: 'Closed - opened in error'
 	}
 ];
