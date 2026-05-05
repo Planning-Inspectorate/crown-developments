@@ -27,7 +27,7 @@
   "dependencies": {
     "@azure/ai-text-analytics": "^5.1.0",
     "@azure/identity": "^4.13.1",
-    "@azure/msal-node": "^5.1.3",
+    "@azure/msal-node": "^5.1.4",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@ministryofjustice/frontend": "^9.0.0",
     "@planning-inspectorate/dynamic-forms": "^3.9.0",
