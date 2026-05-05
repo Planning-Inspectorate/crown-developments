@@ -2,6 +2,7 @@
 
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "header/pins-header.njk" import pinsHeader %}
 {% from "footer/pins-footer.njk" import pinsFooter %}
 
 {% block head %}
@@ -56,7 +57,7 @@
 {% endblock %}
 
 {% block header %}
-	{% include "views/layouts/components/core/header.njk" %}
+	{{ pinsHeader({ isExternal: true }, config) }}
 {% endblock %}
 
 {% block containerStart %}

@@ -1,0 +1,47 @@
+@use '../brand/pins-colors' as brand;
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
+
+header.govuk-header.pins-header {
+	min-height: 60px;
+	padding: 1rem 1rem 0;
+	background: brand.$pins-grey-100;
+	border-bottom: 0.5rem solid brand.$pins-green-200;
+
+	&.pins-header__external {
+		color: govuk.govuk-colour('white');
+		background-color: brand.$pins-mhclg-green;
+		font-family: govuk.$govuk-font-family;
+
+		& svg {
+			fill: govuk.govuk-colour('white');
+			& rect {
+				fill: govuk.govuk-colour('white');
+			}
+		}
+	}
+
+	& svg {
+		height: 40px;
+		& rect {
+			fill: brand.$pins-mhclg-green;
+		}
+	}
+}
+
+.govuk-service-navigation.pins-service-navigation {
+	background: brand.$pins-grey-100;
+	border-bottom: none;
+
+	& .govuk-service-navigation__item {
+		border-color: govuk.govuk-colour('black');
+	}
+
+	& .govuk-service-navigation__link {
+		color: govuk.govuk-colour('black');
+		border-bottom-color: govuk.govuk-colour('black');
+	}
+
+	& .govuk-service-navigation__link:hover {
+		color: govuk.govuk-colour('black');
+	}
+}
