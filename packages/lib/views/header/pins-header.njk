@@ -12,7 +12,7 @@
             {% endif %}
         </div>
     </header>
-    {% if config and (config.isLive is not defined or config.isLive) %}
+    {% if config.isLive %}
         {{ govukServiceNavigation({
             classes: 'pins-navigation',
             serviceName: config.headerTitle,
