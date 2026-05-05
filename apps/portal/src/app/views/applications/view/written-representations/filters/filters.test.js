@@ -171,7 +171,7 @@ describe('Filters', () => {
 					}
 				},
 				{
-					title: 'Submitted date',
+					title: 'Date submitted',
 					type: 'date-input',
 					name: 'submittedDate',
 					dateInputs: [
