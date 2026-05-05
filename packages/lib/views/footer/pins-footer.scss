@@ -1,0 +1,26 @@
+@use '../brand/pins-colors' as brand;
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
+
+.pins-footer {
+	background: brand.$pins-grey-100;
+	border-top: 0.25rem solid brand.$pins-green-200;
+}
+.pins-footer-container {
+	padding: 1.25rem 0;
+	font-family: govuk.$govuk-font-family;
+	color: govuk.govuk-colour('black');
+}
+.govuk-footer__meta {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+.govuk-footer__link {
+	color: brand.$pins-blue-500;
+	text-decoration: underline;
+	transition: color 0.2s;
+}
+.govuk-footer__link:hover {
+	color: govuk.govuk-colour('blue', $variant: 'shade-50');
+	text-decoration: none;
+}
