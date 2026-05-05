@@ -31,7 +31,7 @@ export function buildHaveYourSayPage(service) {
 
 		res.render('views/applications/view/have-your-say/view.njk', {
 			pageCaption: crownDevelopment.reference,
-			pageTitle: 'Have your say on a Crown Development Application',
+			pageTitle: 'Have your say on a Crown development application',
 			links: applicationLinks(
 				id,
 				crownDevelopment.haveYourSayPeriod,

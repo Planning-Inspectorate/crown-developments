@@ -12,7 +12,7 @@ describe('Terms and Conditions page controller', () => {
 		termsAndConditionsPage(mockReq, mockRes);
 		assert.strictEqual(mockRes.render.mock.callCount(), 1);
 		assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/static/terms-and-conditions/view.njk');
-		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].pageTitle, 'Terms and Conditions');
+		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].pageTitle, 'Terms and conditions');
 		assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].lastUpdatedDate, '26 Mar 2025');
 	});
 

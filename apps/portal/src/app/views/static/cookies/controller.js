@@ -16,7 +16,7 @@ export function buildCookiesPage() {
 		clearCookieSettingSession(req, 'preferenceSet');
 		res.render('views/static/cookies/view.njk', {
 			pageTitle: 'Cookies',
-			pageHeading: 'Cookies on the Find a Crown Development Application service',
+			pageHeading: 'Cookies on the Find a Crown development application service',
 			cookiePreferenceSet
 		});
 	};
