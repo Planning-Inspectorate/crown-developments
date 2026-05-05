@@ -2,6 +2,7 @@
 
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "footer/pins-footer.njk" import pinsFooter %}
 
 {% block head %}
 	{# setup the header tags, to link to the styles #}
@@ -109,7 +110,7 @@
 {% endblock %}
 
 {% block footer %}
-	{% include "views/layouts/components/core/footer.njk" %}
+	{{ pinsFooter(config.footerLinks) }}
 
 	<script type="module" {% if cspNonce %}nonce={{ cspNonce }}{% endif %} src="/assets/js/govuk-frontend.min.js"></script>
 	<script type="module" {% if cspNonce %}nonce={{ cspNonce }}{% endif %} src="/assets/js/moj-frontend.min.js"></script>
