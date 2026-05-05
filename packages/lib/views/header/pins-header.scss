@@ -14,6 +14,7 @@ header.govuk-header.pins-header {
 
 		& svg {
 			fill: govuk.govuk-colour('white');
+
 			& rect {
 				fill: govuk.govuk-colour('white');
 			}
@@ -22,6 +23,7 @@ header.govuk-header.pins-header {
 
 	& svg {
 		height: 40px;
+
 		& rect {
 			fill: brand.$pins-mhclg-green;
 		}
@@ -42,6 +44,23 @@ header.govuk-header.pins-header {
 	}
 
 	& .govuk-service-navigation__link:hover {
+		color: govuk.govuk-colour('black');
+	}
+}
+
+// Override GOV.UK default service navigation
+.pins-navigation {
+	&.govuk-service-navigation {
+		border-bottom: 1px solid govuk.govuk-colour('black', $variant: 'tint-80');
+	}
+
+	.govuk-service-navigation__item--active {
+		border-bottom-color: govuk.govuk-colour('black');
+	}
+
+	.govuk-service-navigation__link:not(:hover):not(:focus),
+	.govuk-service-navigation__link:hover,
+	.govuk-service-navigation__link:visited {
 		color: govuk.govuk-colour('black');
 	}
 }
