@@ -146,7 +146,7 @@ describe('case list', () => {
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments.length, 2);
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/applications/list/view.njk');
-			assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].pageTitle, 'All Crown Development applications');
+			assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].pageTitle, 'All Crown development applications');
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].crownDevelopmentsViewModels.length, 2);
 		});
 		it('should render page without error when no crown dev cases returned', async () => {
@@ -168,7 +168,7 @@ describe('case list', () => {
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments.length, 2);
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], 'views/applications/list/view.njk');
 			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
-				pageTitle: 'All Crown Development applications',
+				pageTitle: 'All Crown development applications',
 				crownDevelopmentsViewModels: [],
 				baseUrl: '/applications',
 				currentUrl: undefined,
@@ -214,7 +214,7 @@ describe('case list', () => {
 					delete onlyRelevantKeys.crownDevelopmentsViewModels;
 
 					assert.deepStrictEqual(onlyRelevantKeys, {
-						pageTitle: 'All Crown Development applications',
+						pageTitle: 'All Crown development applications',
 						baseUrl: '/applications',
 						currentUrl: undefined,
 						queryParams: {

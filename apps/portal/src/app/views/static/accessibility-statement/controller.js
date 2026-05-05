@@ -6,7 +6,7 @@
 export function buildAccessibilityStatementPage() {
 	return (req, res) => {
 		res.render('views/static/accessibility-statement/view.njk', {
-			pageTitle: 'Accessibility Statement',
+			pageTitle: 'Accessibility statement',
 			pageHeading: 'Accessibility statement for Find a Crown development'
 		});
 	};

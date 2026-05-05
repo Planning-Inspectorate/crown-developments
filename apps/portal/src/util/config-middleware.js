@@ -28,7 +28,7 @@ export function addLocalsConfiguration({
 		res.locals.config = {
 			appName,
 			cspNonce: res.locals.cspNonce,
-			headerTitle: 'Find a Crown Development Application',
+			headerTitle: 'Find a Crown development application',
 			footerLinks: [
 				{
 					text: 'Terms and conditions',
@@ -56,7 +56,7 @@ export function addLocalsConfiguration({
 				link.current = link.href === path;
 				return link;
 			}),
-			haveYourSayServiceName: 'Have your say on a Crown Development Application',
+			haveYourSayServiceName: 'Have your say on a Crown development application',
 			isLive,
 			isRepsUploadDocsLive,
 			contactEmail,

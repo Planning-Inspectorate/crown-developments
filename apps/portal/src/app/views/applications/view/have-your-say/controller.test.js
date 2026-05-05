@@ -65,7 +65,7 @@ describe('Have Your Say controller', () => {
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].pageCaption, 'CROWN/2025/0000001');
 			assert.strictEqual(
 				mockRes.render.mock.calls[0].arguments[1].pageTitle,
-				'Have your say on a Crown Development Application'
+				'Have your say on a Crown development application'
 			);
 			assert.strictEqual(mockRes.render.mock.calls[0].arguments[1].containsDistressingContent, false);
 			assert.ok(mockRes.render.mock.calls[0].arguments[1].representationsPeriodEndDateFormatted);

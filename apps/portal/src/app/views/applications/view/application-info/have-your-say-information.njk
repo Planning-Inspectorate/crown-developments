@@ -3,7 +3,7 @@
 {% macro renderHaveYourSayInformation(haveYourSayStatus, crownDevelopmentFields) %}
     <h2 id="procedure" class="govuk-heading-m">Have your say</h2>
     {% if haveYourSayStatus === 'open' %}
-        <p class="govuk-body">Use this service to submit a written representation with your views on this Crown Development application. A written representation includes your comment and any supporting documents. Written representations will be considered by the Planning Inspectors before a decision is made on an application.</p>
+        <p class="govuk-body">Use this service to submit a written representation with your views on this Crown development application. A written representation includes your comment and any supporting documents. Written representations will be considered by the Planning Inspectors before a decision is made on an application.</p>
         <p class="govuk-body">Your name and written representation will be published on this website.</p>
         <p class="govuk-body">The representations period is open from:</p>
         <p class="govuk-body">{{ crownDevelopmentFields.representationsPeriodStartDateTime }} to {{ crownDevelopmentFields.representationsPeriodEndDateTime }}</p>
