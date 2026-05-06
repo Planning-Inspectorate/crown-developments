@@ -1,4 +1,4 @@
-import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
+import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
 
 export function validateParams(params) {
 	const id = params.id;

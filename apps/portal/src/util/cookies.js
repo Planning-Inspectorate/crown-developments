@@ -1,5 +1,5 @@
 import cookie from 'cookie';
-import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
+import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
 
 export const COOKIE_NAME_ANALYTICS_ENABLED = 'CrownDevAnalyticsEnabled';
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;

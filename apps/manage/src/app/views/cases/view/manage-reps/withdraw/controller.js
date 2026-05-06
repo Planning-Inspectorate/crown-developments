@@ -7,7 +7,7 @@ import {
 	deleteRepresentationAttachmentsFolder,
 	moveAttachmentsToCaseFolder
 } from '@pins/crowndev-lib/util/handle-attachments.js';
-import { clearSessionData } from '@pins/crowndev-lib/util/session.js';
+import { clearSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { buildPath, representationFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 

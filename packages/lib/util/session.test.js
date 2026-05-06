@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { addSessionData, clearSessionData, readSessionData } from './session.js';
+import { addSessionData, clearSessionData, readSessionData } from './session.ts';
 import assert from 'node:assert';
 
 describe('session', () => {
