@@ -1072,4 +1072,262 @@ describe('organisation/contact updates', () => {
 			assert.deepStrictEqual(calls.caseUpdate.map((c) => c.where.id).sort(), ['case-1', 'case-2']);
 		});
 	});
+
+	describe('buildCaseUpdateWritePlan (site address sharing)', () => {
+		it('should extract site address update from scalar input for linked cases', () => {
+			const plan = buildCaseUpdateWritePlan({
+				toSave: {},
+				dbViewModel: {},
+				caseIds: ['parent-case', 'child-lbc-case'],
+				scalarUpdateInput: {
+					SiteAddress: {
+						upsert: {
+							where: { id: 'existing-address-1' },
+							create: {
+								line1: '123 Main St',
+								line2: '',
+								townCity: 'Bristol',
+								county: '',
+								postcode: 'BS10 1AA'
+							},
+							update: {
+								line1: '123 Main St',
+								line2: '',
+								townCity: 'Bristol',
+								county: '',
+								postcode: 'BS10 1AA'
+							}
+						}
+					}
+				},
+				crownDevelopments: [
+					{ id: 'parent-case', Organisations: [] },
+					{ id: 'child-lbc-case', Organisations: [] }
+				],
+				sharedSiteAddressId: 'existing-address-1'
+			});
+
+			assert.ok(plan.siteAddressUpdate, 'Site address update should be present');
+			assert.strictEqual(plan.siteAddressUpdate.addressId, 'existing-address-1');
+			assert.strictEqual(plan.siteAddressUpdate.addressData.line1, '123 Main St');
+			assert.strictEqual(plan.siteAddressUpdate.addressData.postcode, 'BS10 1AA');
+			assert.ok(plan.siteAddressCreateData, 'Site address create data should be present');
+			assert.strictEqual(plan.siteAddressCreateData.line1, '123 Main St');
+			assert.strictEqual(plan.scalarCaseUpdates.updateInput.SiteAddress, undefined);
+		});
+
+		it('should NOT extract site address for single case (not linked)', () => {
+			const plan = buildCaseUpdateWritePlan({
+				toSave: {},
+				dbViewModel: {},
+				caseIds: ['single-case'],
+				scalarUpdateInput: {
+					SiteAddress: {
+						upsert: {
+							where: { id: 'existing-address-1' },
+							create: { line1: '123 Main St', line2: '', townCity: 'Bristol', county: '', postcode: 'BS10 1AA' },
+							update: { line1: '123 Main St', line2: '', townCity: 'Bristol', county: '', postcode: 'BS10 1AA' }
+						}
+					}
+				},
+				crownDevelopments: [{ id: 'single-case', Organisations: [] }],
+				sharedSiteAddressId: 'existing-address-1'
+			});
+
+			// For single cases, site address should NOT be extracted
+			assert.strictEqual(plan.siteAddressUpdate, undefined);
+			assert.strictEqual(plan.siteAddressCreateData, undefined);
+
+			// SiteAddress should remain in scalar updates
+			assert.ok(plan.scalarCaseUpdates.updateInput.SiteAddress?.upsert);
+		});
+
+		it('should handle null sharedSiteAddressId for new address creation', () => {
+			const plan = buildCaseUpdateWritePlan({
+				toSave: {},
+				dbViewModel: {},
+				caseIds: ['parent-case', 'child-lbc-case'],
+				scalarUpdateInput: {
+					SiteAddress: {
+						upsert: {
+							where: undefined,
+							create: { line1: 'New Street', line2: '', townCity: 'Bristol', county: '', postcode: 'BS10 1AA' },
+							update: { line1: 'New Street', line2: '', townCity: 'Bristol', county: '', postcode: 'BS10 1AA' }
+						}
+					}
+				},
+				crownDevelopments: [
+					{ id: 'parent-case', Organisations: [] },
+					{ id: 'child-lbc-case', Organisations: [] }
+				],
+				sharedSiteAddressId: null
+			});
+
+			assert.strictEqual(plan.siteAddressUpdate?.addressId, null);
+			assert.strictEqual(plan.siteAddressCreateData?.line1, 'New Street');
+		});
+	});
+
+	describe('executeCaseUpdateWritePlan (site address sharing)', () => {
+		it('should update existing shared address and link all cases to it', async () => {
+			const plan = {
+				siteAddressUpdate: {
+					addressId: 'existing-address-1',
+					addressData: {
+						line1: 'Updated Street',
+						line2: '',
+						townCity: 'Bristol',
+						county: '',
+						postcode: 'BS10 1AA'
+					}
+				},
+				scalarCaseUpdates: {
+					caseIds: ['parent-case', 'child-lbc-case'],
+					updateInput: { description: 'Some description' }
+				},
+				shared: {
+					organisationCreates: [],
+					organisationUpdates: [],
+					linkCreates: [],
+					contactUpdates: [],
+					newOrganisationContacts: [],
+					organisationToContactDeletes: [],
+					organisationToContactCreates: []
+				}
+			};
+
+			const calls = {
+				addressUpdate: [],
+				caseUpdate: []
+			};
+
+			const tx = {
+				address: {
+					update: async (args) => {
+						calls.addressUpdate.push(args);
+						return { id: 'existing-address-1' };
+					}
+				},
+				organisation: { create: async () => ({}), update: async () => ({}) },
+				crownDevelopmentToOrganisation: { create: async () => ({}) },
+				contact: { update: async () => ({}), create: async () => ({ id: 'contact-id' }) },
+				organisationToContact: { delete: async () => ({}), create: async () => ({}) },
+				crownDevelopment: {
+					update: async (args) => calls.caseUpdate.push(args)
+				}
+			};
+
+			await executeCaseUpdateWritePlan(plan, tx);
+
+			assert.strictEqual(calls.addressUpdate.length, 1);
+			assert.strictEqual(calls.addressUpdate[0].where.id, 'existing-address-1');
+			assert.strictEqual(calls.addressUpdate[0].data.line1, 'Updated Street');
+			assert.strictEqual(calls.caseUpdate.length, 2);
+			assert.strictEqual(calls.caseUpdate[0].data.SiteAddress.connect.id, 'existing-address-1');
+			assert.strictEqual(calls.caseUpdate[1].data.SiteAddress.connect.id, 'existing-address-1');
+		});
+
+		it('should create new shared address when addressId is null and link all cases', async () => {
+			const plan = {
+				siteAddressUpdate: {
+					addressId: null,
+					addressData: {
+						line1: 'New Street',
+						line2: '',
+						townCity: 'Bristol',
+						county: '',
+						postcode: 'BS10 1AA'
+					}
+				},
+				siteAddressCreateData: {
+					line1: 'New Street',
+					line2: '',
+					townCity: 'Bristol',
+					county: '',
+					postcode: 'BS10 1AA'
+				},
+				scalarCaseUpdates: {
+					caseIds: ['parent-case', 'child-lbc-case'],
+					updateInput: {}
+				},
+				shared: {
+					organisationCreates: [],
+					organisationUpdates: [],
+					linkCreates: [],
+					contactUpdates: [],
+					newOrganisationContacts: [],
+					organisationToContactDeletes: [],
+					organisationToContactCreates: []
+				}
+			};
+
+			const calls = {
+				addressCreate: [],
+				caseUpdate: []
+			};
+
+			const tx = {
+				address: {
+					create: async (args) => {
+						calls.addressCreate.push(args);
+						return { id: 'new-address-123' };
+					}
+				},
+				organisation: { create: async () => ({}), update: async () => ({}) },
+				crownDevelopmentToOrganisation: { create: async () => ({}) },
+				contact: { update: async () => ({}), create: async () => ({ id: 'contact-id' }) },
+				organisationToContact: { delete: async () => ({}), create: async () => ({}) },
+				crownDevelopment: {
+					update: async (args) => calls.caseUpdate.push(args)
+				}
+			};
+
+			await executeCaseUpdateWritePlan(plan, tx);
+
+			assert.strictEqual(calls.addressCreate.length, 1);
+			assert.strictEqual(calls.addressCreate[0].data.line1, 'New Street');
+			assert.strictEqual(calls.addressCreate[0].data.postcode, 'BS10 1AA');
+			assert.strictEqual(calls.caseUpdate.length, 2);
+			assert.strictEqual(calls.caseUpdate[0].data.SiteAddress.connect.id, 'new-address-123');
+			assert.strictEqual(calls.caseUpdate[1].data.SiteAddress.connect.id, 'new-address-123');
+		});
+
+		it('should NOT modify case SiteAddress when no site address update in plan', async () => {
+			const plan = {
+				scalarCaseUpdates: {
+					caseIds: ['case-1'],
+					updateInput: { description: 'Some description' }
+				},
+				shared: {
+					organisationCreates: [],
+					organisationUpdates: [],
+					linkCreates: [],
+					contactUpdates: [],
+					newOrganisationContacts: [],
+					organisationToContactDeletes: [],
+					organisationToContactCreates: []
+				}
+			};
+
+			const calls = {
+				caseUpdate: []
+			};
+
+			const tx = {
+				organisation: { create: async () => ({}), update: async () => ({}) },
+				crownDevelopmentToOrganisation: { create: async () => ({}) },
+				contact: { update: async () => ({}), create: async () => ({ id: 'contact-id' }) },
+				organisationToContact: { delete: async () => ({}), create: async () => ({}) },
+				crownDevelopment: {
+					update: async (args) => calls.caseUpdate.push(args)
+				}
+			};
+
+			await executeCaseUpdateWritePlan(plan, tx);
+
+			assert.strictEqual(calls.caseUpdate.length, 1);
+			assert.strictEqual(calls.caseUpdate[0].data.SiteAddress, undefined);
+			assert.strictEqual(calls.caseUpdate[0].data.description, 'Some description');
+		});
+	});
 });
