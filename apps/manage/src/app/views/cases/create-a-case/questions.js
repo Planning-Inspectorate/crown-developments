@@ -278,7 +278,7 @@ export function getQuestions(journeyResponse, isQuestionView = false) {
 			type: COMPONENT_TYPES.BOOLEAN,
 			title: 'Distressing content',
 			question: 'Does this application involve potentially distressing content?',
-			hint: "If you select 'Yes', this will trigger a warning on the portal",
+			hint: "If you select 'Yes', this will trigger a warning on the front office",
 			fieldName: 'containsDistressingContent',
 			url: 'distressing-content',
 			validators: [new RequiredValidator('Select whether this application involves potentially distressing content')]
