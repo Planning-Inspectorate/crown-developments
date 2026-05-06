@@ -17,7 +17,7 @@ import {
 	getLinkedCaseLinkText,
 	hasLinkedCase,
 	linkedCaseIsPublished
-} from '@pins/crowndev-lib/util/linked-case.js';
+} from '@pins/crowndev-lib/util/linked-case.ts';
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 
 /**
