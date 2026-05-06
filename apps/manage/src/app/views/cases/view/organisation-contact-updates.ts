@@ -16,6 +16,8 @@ import type { ManageService } from '#service';
 
 type CaseUpdateWritePlan = {
 	scalarCaseUpdates: { caseIds: string[]; updateInput: Prisma.CrownDevelopmentUpdateInput };
+	siteAddressUpdate?: { addressId: string | null; addressData: Prisma.AddressUpdateInput } | null;
+	siteAddressCreateData?: Prisma.AddressCreateInput;
 	shared: {
 		organisationCreates: Array<{ placeholderId: string; data: Prisma.OrganisationCreateInput }>;
 		organisationUpdates: Array<{ organisationId: string; data: Prisma.OrganisationUpdateInput }>;
@@ -91,13 +93,15 @@ export function buildCaseUpdateWritePlan({
 	dbViewModel,
 	caseIds,
 	scalarUpdateInput,
-	crownDevelopments
+	crownDevelopments,
+	sharedSiteAddressId
 }: {
 	toSave: Partial<CrownDevelopmentViewModel>;
 	dbViewModel: CrownDevelopmentViewModel;
 	caseIds: string[];
 	scalarUpdateInput: Prisma.CrownDevelopmentUpdateInput;
 	crownDevelopments: CrownDevelopmentPayload[];
+	sharedSiteAddressId?: string | null;
 }): CaseUpdateWritePlan {
 	const plan: CaseUpdateWritePlan = {
 		scalarCaseUpdates: { caseIds, updateInput: scalarUpdateInput },
@@ -111,6 +115,25 @@ export function buildCaseUpdateWritePlan({
 			organisationToContactCreates: []
 		}
 	};
+
+	if (caseIds.length > 1 && scalarUpdateInput.SiteAddress && 'upsert' in scalarUpdateInput.SiteAddress) {
+		const upsert = scalarUpdateInput.SiteAddress.upsert;
+		if (upsert) {
+			const addressData = {
+				create: upsert.create as Prisma.AddressCreateInput,
+				update: upsert.update as Prisma.AddressUpdateInput
+			};
+
+			plan.siteAddressUpdate = {
+				addressId: sharedSiteAddressId ?? null,
+				addressData: addressData.update
+			};
+
+			plan.siteAddressCreateData = addressData.create;
+
+			delete scalarUpdateInput.SiteAddress;
+		}
+	}
 
 	const existingLinks = new Set();
 	const organisationById: Map<string, Prisma.OrganisationGetPayload<object>> = new Map();
@@ -396,6 +419,20 @@ export async function executeCaseUpdateWritePlan(plan: CaseUpdateWritePlan, tx: 
 	const createdOrgIds: Map<string, string> = new Map();
 	const resolveOrgId = (id: string) => createdOrgIds.get(id) || id;
 
+	let sharedSiteAddressId: string | null = null;
+	if (plan.siteAddressUpdate) {
+		const { addressId, addressData } = plan.siteAddressUpdate;
+
+		if (addressId) {
+			await tx.address.update({ where: { id: addressId }, data: addressData });
+			sharedSiteAddressId = addressId;
+		} else {
+			const createData = plan.siteAddressCreateData || (addressData as unknown as Prisma.AddressCreateInput);
+			const created = await tx.address.create({ data: createData });
+			sharedSiteAddressId = created.id;
+		}
+	}
+
 	for (const orgCreate of plan.shared.organisationCreates) {
 		const created = await tx.organisation.create({ data: orgCreate.data, select: { id: true } });
 		createdOrgIds.set(orgCreate.placeholderId, created.id);
@@ -434,9 +471,14 @@ export async function executeCaseUpdateWritePlan(plan: CaseUpdateWritePlan, tx: 
 			data: { organisationId: resolveOrgId(newContact.organisationId), contactId: createdContact.id }
 		});
 	}
-
 	for (const caseId of plan.scalarCaseUpdates.caseIds) {
-		await tx.crownDevelopment.update({ where: { id: caseId }, data: plan.scalarCaseUpdates.updateInput });
+		const updateData = { ...plan.scalarCaseUpdates.updateInput };
+
+		if (sharedSiteAddressId) {
+			updateData.SiteAddress = { connect: { id: sharedSiteAddressId } };
+		}
+
+		await tx.crownDevelopment.update({ where: { id: caseId }, data: updateData });
 	}
 }
 

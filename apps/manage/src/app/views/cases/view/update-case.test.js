@@ -307,6 +307,321 @@ describe('case details', () => {
 			assert.strictEqual(linkArg.data?.crownDevelopmentId, 'case1');
 			assert.strictEqual(linkArg.data?.role, ORGANISATION_ROLES_ID.APPLICANT);
 		});
+
+		it('should update existing site address and link both parent and child cases when updating from parent case', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				address: {
+					update: mock.fn(() => ({ id: 'existing-address-1' }))
+				},
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({
+						id: 'parent-case-id',
+						siteAddressId: 'existing-address-1',
+						ChildrenCrownDevelopment: [
+							{
+								id: 'child-lbc-case-id',
+								siteAddressId: 'existing-address-1'
+							}
+						],
+						Organisations: []
+					}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'parent-case-id' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							siteAddressId: 'existing-address-1'
+						}
+					}
+				}
+			};
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					siteAddress: {
+						addressLine1: '123 Main Street',
+						addressLine2: 'Building A',
+						townCity: 'London',
+						county: 'Greater London',
+						postcode: 'SW1A 1AA'
+					}
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			// Should update the existing address once
+			assert.strictEqual(mockDb.address.update.mock.callCount(), 1);
+			const addressUpdateArg = mockDb.address.update.mock.calls[0].arguments[0];
+			assert.strictEqual(addressUpdateArg.where?.id, 'existing-address-1');
+			assert.strictEqual(addressUpdateArg.data?.line1, '123 Main Street');
+			assert.strictEqual(addressUpdateArg.data?.postcode, 'SW1A 1AA');
+
+			// Should update both cases
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 2);
+
+			// Both cases should be connected to the same address
+			const parentUpdate = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
+			const childUpdate = mockDb.crownDevelopment.update.mock.calls[1].arguments[0];
+			assert.strictEqual(parentUpdate.where?.id, 'parent-case-id');
+			assert.strictEqual(childUpdate.where?.id, 'child-lbc-case-id');
+			assert.strictEqual(parentUpdate.data?.SiteAddress?.connect?.id, 'existing-address-1');
+			assert.strictEqual(childUpdate.data?.SiteAddress?.connect?.id, 'existing-address-1');
+		});
+
+		it('should update existing site address and link both child and parent cases when updating from child LBC case', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				address: {
+					update: mock.fn(() => ({ id: 'existing-address-1' }))
+				},
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({
+						id: 'child-lbc-case-id',
+						linkedParentId: 'parent-case-id',
+						siteAddressId: 'existing-address-1',
+						ParentCrownDevelopment: {
+							id: 'parent-case-id',
+							siteAddressId: 'existing-address-1'
+						},
+						Organisations: []
+					}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'child-lbc-case-id' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							siteAddressId: 'existing-address-1'
+						}
+					}
+				}
+			};
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					siteAddress: {
+						addressLine1: '456 Updated Street',
+						addressLine2: '',
+						townCity: 'Manchester',
+						county: '',
+						postcode: 'M1 1AA'
+					}
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			// Should update the parent's existing address
+			assert.strictEqual(mockDb.address.update.mock.callCount(), 1);
+			const addressUpdateArg = mockDb.address.update.mock.calls[0].arguments[0];
+			assert.strictEqual(addressUpdateArg.where?.id, 'existing-address-1');
+			assert.strictEqual(addressUpdateArg.data?.line1, '456 Updated Street');
+
+			// Should update both cases
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 2);
+
+			// Both cases should be connected to the same address
+			const childUpdate = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
+			const parentUpdate = mockDb.crownDevelopment.update.mock.calls[1].arguments[0];
+			assert.strictEqual(childUpdate.where?.id, 'child-lbc-case-id');
+			assert.strictEqual(parentUpdate.where?.id, 'parent-case-id');
+			assert.strictEqual(childUpdate.data?.SiteAddress?.connect?.id, 'existing-address-1');
+			assert.strictEqual(parentUpdate.data?.SiteAddress?.connect?.id, 'existing-address-1');
+		});
+
+		it('should create new site address and link both cases when neither case has a site address', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				address: {
+					create: mock.fn(() => ({ id: 'new-address-1' }))
+				},
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({
+						id: 'parent-case-id',
+						siteAddressId: null,
+						ChildrenCrownDevelopment: [
+							{
+								id: 'child-lbc-case-id',
+								siteAddressId: null
+							}
+						],
+						Organisations: []
+					}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'parent-case-id' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							siteAddressId: null
+						}
+					}
+				}
+			};
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					siteAddress: {
+						addressLine1: '789 New Street',
+						addressLine2: 'Floor 2',
+						townCity: 'Birmingham',
+						county: 'West Midlands',
+						postcode: 'B1 1AA'
+					}
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			// Should create a new address
+			assert.strictEqual(mockDb.address.create.mock.callCount(), 1);
+			const addressCreateArg = mockDb.address.create.mock.calls[0].arguments[0];
+			assert.strictEqual(addressCreateArg.data?.line1, '789 New Street');
+			assert.strictEqual(addressCreateArg.data?.townCity, 'Birmingham');
+
+			// Should update both cases
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 2);
+
+			// Both cases should be connected to the new address
+			const parentUpdate = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
+			const childUpdate = mockDb.crownDevelopment.update.mock.calls[1].arguments[0];
+			assert.strictEqual(parentUpdate.data?.SiteAddress?.connect?.id, 'new-address-1');
+			assert.strictEqual(childUpdate.data?.SiteAddress?.connect?.id, 'new-address-1');
+		});
+
+		it('should use child site address when parent has none and child has existing address', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				address: {
+					update: mock.fn(() => ({ id: 'child-address-1' }))
+				},
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({
+						id: 'parent-case-id',
+						siteAddressId: null,
+						ChildrenCrownDevelopment: [
+							{
+								id: 'child-lbc-case-id',
+								siteAddressId: 'child-address-1'
+							}
+						],
+						Organisations: []
+					}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'parent-case-id' },
+				session: {}
+			};
+			const mockRes = { locals: {} };
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					siteAddress: {
+						addressLine1: 'Updated Address',
+						addressLine2: '',
+						townCity: 'Leeds',
+						county: '',
+						postcode: 'LS1 1AA'
+					}
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			// Should update the child's existing address
+			assert.strictEqual(mockDb.address.update.mock.callCount(), 1);
+			const addressUpdateArg = mockDb.address.update.mock.calls[0].arguments[0];
+			assert.strictEqual(addressUpdateArg.where?.id, 'child-address-1');
+
+			// Both cases should be connected to the child's address
+			const parentUpdate = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
+			const childUpdate = mockDb.crownDevelopment.update.mock.calls[1].arguments[0];
+			assert.strictEqual(parentUpdate.data?.SiteAddress?.connect?.id, 'child-address-1');
+			assert.strictEqual(childUpdate.data?.SiteAddress?.connect?.id, 'child-address-1');
+		});
+
+		it('should update site address normally for a single case without linked cases', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({
+						id: 'single-case-id',
+						siteAddressId: 'existing-address-1',
+						linkedParentId: null,
+						ChildrenCrownDevelopment: [],
+						Organisations: []
+					}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'single-case-id' },
+				session: {}
+			};
+			const mockRes = { locals: {} };
+			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+			const data = {
+				answers: {
+					siteAddress: {
+						addressLine1: 'Single Case Address',
+						addressLine2: '',
+						townCity: 'Bristol',
+						county: '',
+						postcode: 'BS1 1AA'
+					}
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			// Should update only the single case (normal behavior)
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+			const updateArg = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
+			assert.strictEqual(updateArg.where?.id, 'single-case-id');
+			// For single cases, the address upsert is handled in the normal way (nested in the case update)
+			assert.ok(updateArg.data?.SiteAddress?.upsert);
+		});
+
 		it('should fetch case data from the journey for relation IDs', async () => {
 			const logger = mockLogger();
 			const mockDb = {

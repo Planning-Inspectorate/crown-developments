@@ -52,8 +52,8 @@ export function buildUpdateCase(service, clearAnswer = false) {
 				const crownDevelopment = await tx.crownDevelopment.findUnique({
 					where: { id },
 					include: {
-						ParentCrownDevelopment: { select: { id: true } },
-						ChildrenCrownDevelopment: { select: { id: true } },
+						ParentCrownDevelopment: { select: { id: true, siteAddressId: true } },
+						ChildrenCrownDevelopment: { select: { id: true, siteAddressId: true } },
 						Organisations: {
 							include: {
 								Organisation: {
@@ -109,12 +109,30 @@ export function buildUpdateCase(service, clearAnswer = false) {
 					});
 				}
 
+				let sharedSiteAddressId = null;
+				if ('siteAddress' in toSave && caseIds.length > 1) {
+					if (crownDevelopment.linkedParentId) {
+						sharedSiteAddressId = crownDevelopment.ParentCrownDevelopment?.siteAddressId;
+					} else {
+						sharedSiteAddressId = crownDevelopment.siteAddressId;
+					}
+
+					// If no existing address found, check if any child has an address
+					if (!sharedSiteAddressId) {
+						const linkedCaseWithAddress = crownDevelopment.ChildrenCrownDevelopment?.find(
+							(child) => child.siteAddressId
+						);
+						sharedSiteAddressId = linkedCaseWithAddress?.siteAddressId ?? null;
+					}
+				}
+
 				const plan = buildCaseUpdateWritePlan({
 					toSave,
 					dbViewModel,
 					caseIds,
 					scalarUpdateInput: updateInput,
-					crownDevelopments: crownDevelopmentsForPlanning
+					crownDevelopments: crownDevelopmentsForPlanning,
+					sharedSiteAddressId
 				});
 				await executeCaseUpdateWritePlan(plan, tx);
 			});
