@@ -185,7 +185,7 @@ describe('case details', () => {
 			assert.ok(viewData);
 			assert.strictEqual(viewData.reference, 'C/A/1');
 		});
-		it('should include caseUpdated if present in session', async () => {
+		it('should include case updated banner if present in session', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const mockRes = newMockRes();
 			const mockReq = {
@@ -213,7 +213,7 @@ describe('case details', () => {
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.ok(viewData);
-			assert.strictEqual(viewData.caseUpdated, true);
+			assert.strictEqual(viewData.banner.text, 'Application has been updated.');
 
 			// should also clear the session
 			assert.strictEqual(mockReq.session.cases['case-1'].updated, undefined);
@@ -252,6 +252,41 @@ describe('case details', () => {
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.ok(viewData);
 			assert.strictEqual(viewData.casePublished, true);
+		});
+		it('should include case updated banner with published message if case is published', async () => {
+			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
+			const mockRes = newMockRes();
+			const mockReq = {
+				params: { id: 'case-1' },
+				baseUrl: 'case-1',
+				session: { cases: { 'case-1': { updated: true } } },
+				query: {}
+			};
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						name: 'Case 1',
+						publishDate: new Date('2020-12-17T03:24:00.000Z')
+					}))
+				}
+			};
+			const next = mock.fn();
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds
+			});
+			await middleware(mockReq, mockRes, next);
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
+			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
+			assert.strictEqual(next.mock.callCount(), 1);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.ok(viewData);
+			assert.match(viewData.banner.html, /Application has been updated./);
+			assert.match(viewData.banner.html, /Any updates made to this case will be automatically published./);
 		});
 		it('should display an unpublish button if publishDate is not defined', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
@@ -384,7 +419,7 @@ describe('case details', () => {
 			assert.ok(viewData);
 			assert.strictEqual(viewData.sharePointLink, 'https://example.com');
 		});
-		it('should set hasLinkedCase and linkedCaseLink appropriately when there is case linked', async () => {
+		it('should set linked case banner appropriately when there is case linked', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const mockRes = newMockRes();
 			const mockReq = {
@@ -420,13 +455,12 @@ describe('case details', () => {
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.ok(viewData);
-			assert.strictEqual(viewData.hasLinkedCase, true);
 			assert.strictEqual(
-				viewData.linkedCaseLink,
-				`<a href="/cases/linked-case-id" class="govuk-link govuk-link--no-visited-state">Listed Building Consent (LBC) application</a>`
+				viewData.banner.html,
+				`This application is connected to a <a href="/cases/linked-case-id" class="govuk-link govuk-link--no-visited-state">Listed Building Consent (LBC) application</a>.`
 			);
 		});
-		it('should set casePublishSuccess when success=published and publishDate is today/past', async (context) => {
+		it('should set published banner when success=published and publishDate is today/past', async (context) => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T10:00:00.000Z') });
 			const nunjucksRes = newMockRes();
 			const mockReq = {
@@ -455,10 +489,9 @@ describe('case details', () => {
 			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
 			await viewCaseDetails(mockReq, nunjucksRes);
 			const viewData = nunjucksRes.render.mock.calls[0].arguments[1];
-			assert.strictEqual(viewData.casePublishSuccess, true);
-			assert.strictEqual(viewData.caseUnpublishSuccess, false);
+			assert.strictEqual(viewData.banner.text, 'Application published');
 		});
-		it('should set caseUnpublishSuccess when success=unpublish and publishDate is null', async () => {
+		it('should set unpublished banner message when success=unpublish and publishDate is null', async () => {
 			const nunjucksRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-2' },
@@ -486,8 +519,7 @@ describe('case details', () => {
 			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
 			await viewCaseDetails(mockReq, nunjucksRes);
 			const viewData = nunjucksRes.render.mock.calls[0].arguments[1];
-			assert.strictEqual(viewData.caseUnpublishSuccess, true);
-			assert.strictEqual(viewData.casePublishSuccess, false);
+			assert.strictEqual(viewData.banner.text, 'Application unpublished');
 		});
 	});
 	describe('helper coverage', () => {

@@ -795,7 +795,8 @@ describe('addSuccessBannerFromMessage', () => {
 
 		addSuccessBannerFromMessage(req, res, next);
 
-		assert.strictEqual(res.locals.notificationBannerSuccess, 'Contact removed');
+		assert.strictEqual(res.locals.banner.text, 'Contact removed');
+		assert.strictEqual(res.locals.banner.type, 'success');
 		assert.strictEqual(
 			req.session.bannerMessage['case-1']['check-agent-contact-details:item-removed-success'],
 			undefined
@@ -820,7 +821,8 @@ describe('addSuccessBannerFromMessage', () => {
 
 		addSuccessBannerFromMessage(req, res, next);
 
-		assert.strictEqual(res.locals.notificationBannerSuccess, 'Contact removed');
+		assert.strictEqual(res.locals.banner.text, 'Contact removed');
+		assert.strictEqual(res.locals.banner.type, 'success');
 		assert.strictEqual(
 			req.session.bannerMessage['case-1']['check-applicant-contact-details:item-removed-success'],
 			undefined
@@ -845,7 +847,8 @@ describe('addSuccessBannerFromMessage', () => {
 
 		addSuccessBannerFromMessage(req, res, next);
 
-		assert.strictEqual(res.locals.notificationBannerSuccess, 'Organisation removed');
+		assert.strictEqual(res.locals.banner.text, 'Organisation removed');
+		assert.strictEqual(res.locals.banner.type, 'success');
 		assert.strictEqual(req.session.bannerMessage['case-1']['check-applicant-details:item-removed-success'], undefined);
 		assert.strictEqual(next.mock.callCount(), 1);
 		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
@@ -858,7 +861,7 @@ describe('addSuccessBannerFromMessage', () => {
 
 		addSuccessBannerFromMessage(req, res, next);
 
-		assert.strictEqual(res.locals.notificationBannerSuccess, undefined);
+		assert.strictEqual(res.locals.banner, undefined);
 		assert.strictEqual(next.mock.callCount(), 1);
 		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
 	});
@@ -870,7 +873,7 @@ describe('addSuccessBannerFromMessage', () => {
 
 		addSuccessBannerFromMessage(req, res, next);
 
-		assert.strictEqual(res.locals.notificationBannerSuccess, undefined);
+		assert.strictEqual(res.locals.banner, undefined);
 		assert.strictEqual(next.mock.callCount(), 1);
 		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
 	});
@@ -889,7 +892,7 @@ describe('addSuccessBannerFromMessage', () => {
 
 		addSuccessBannerFromMessage(req, res, next);
 
-		assert.strictEqual(res.locals.notificationBannerSuccess, undefined);
+		assert.strictEqual(res.locals.banner, undefined);
 		assert.strictEqual(req.session.bannerMessage['some-other-question:item-removed-success'], true);
 		assert.strictEqual(next.mock.callCount(), 1);
 		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
@@ -902,7 +905,7 @@ describe('addSuccessBannerFromMessage', () => {
 
 		addSuccessBannerFromMessage(req, res, next);
 
-		assert.strictEqual(res.locals.notificationBannerSuccess, undefined);
+		assert.strictEqual(res.locals.banner, undefined);
 		assert.strictEqual(next.mock.callCount(), 1);
 		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
 	});
@@ -919,7 +922,7 @@ describe('addSuccessBannerFromMessage', () => {
 
 		addSuccessBannerFromMessage(req, res, next);
 
-		assert.strictEqual(res.locals.notificationBannerSuccess, undefined);
+		assert.strictEqual(res.locals.banner, undefined);
 		assert.deepStrictEqual(req.session.bannerMessage, {});
 		assert.strictEqual(next.mock.callCount(), 1);
 		assert.strictEqual(next.mock.calls[0].arguments.length, 0);
