@@ -18,17 +18,17 @@ export interface CrownDevelopmentViewModel {
 	siteNorthing?: number | string;
 	siteEasting?: number | string;
 	siteArea?: number | string;
-	expectedDateOfSubmission?: Date | string;
+	expectedDateOfSubmission?: Date;
 	decisionOutcomeId?: string;
-	decisionDate?: Date | string;
+	decisionDate?: Date;
 
-	updatedDate?: Date | string;
+	updatedDate?: Date;
 	subCategoryId?: string;
 	statusId?: string;
 	stageId?: string;
 	lpaReference?: string;
 	nationallyImportant?: YesNo;
-	nationallyImportantConfirmationDate?: Date | string;
+	nationallyImportantConfirmationDate?: Date;
 	isGreenBelt?: YesNo;
 	siteIsVisibleFromPublicLand?: YesNo;
 	healthAndSafetyIssue?: string;
@@ -66,31 +66,31 @@ export interface CrownDevelopmentViewModel {
 	agentContactEmail?: string;
 	agentContactTelephoneNumber?: string;
 
-	applicationReceivedDate?: Date | string;
+	applicationReceivedDate?: Date;
 	applicationReceivedDateEmailSent?: YesNo;
-	applicationAcceptedDate?: Date | string;
-	lpaQuestionnaireSentDate?: Date | string;
+	applicationAcceptedDate?: Date;
+	lpaQuestionnaireSentDate?: Date;
 	lpaQuestionnaireSentSpecialEmailSent?: YesNo;
-	lpaQuestionnaireReceivedDate?: Date | string;
+	lpaQuestionnaireReceivedDate?: Date;
 	lpaQuestionnaireReceivedEmailSent?: YesNo;
-	publishDate?: Date | string;
-	pressNoticeDate?: Date | string;
-	neighboursNotifiedByLpaDate?: Date | string;
-	siteNoticeByLpaDate?: Date | string;
-	targetDecisionDate?: Date | string;
-	extendedTargetDecisionDate?: Date | string;
-	recoveredDate?: Date | string;
-	recoveredReportSentDate?: Date | string;
-	withdrawnDate?: Date | string;
-	originalDecisionDate?: Date | string;
-	turnedAwayDate?: Date | string;
+	publishDate?: Date;
+	pressNoticeDate?: Date;
+	neighboursNotifiedByLpaDate?: Date;
+	siteNoticeByLpaDate?: Date;
+	targetDecisionDate?: Date;
+	extendedTargetDecisionDate?: Date;
+	recoveredDate?: Date;
+	recoveredReportSentDate?: Date;
+	withdrawnDate?: Date;
+	originalDecisionDate?: Date;
+	turnedAwayDate?: Date;
 	notNationallyImportantEmailSent?: YesNo;
 
 	representationsPeriod?: {
-		start?: Date | string;
-		end?: Date | string;
+		start?: Date;
+		end?: Date;
 	};
-	representationsPublishDate?: Date | string;
+	representationsPublishDate?: Date;
 
 	inspector1Id?: string;
 	inspector2Id?: string;
@@ -101,32 +101,32 @@ export interface CrownDevelopmentViewModel {
 
 	eiaScreening?: YesNo;
 	eiaScreeningOutcome?: YesNo;
-	environmentalStatementReceivedDate?: Date | string;
+	environmentalStatementReceivedDate?: Date;
 
 	procedureId?: string;
 	eventId?: string;
 
-	writtenRepsProcedureNotificationDate?: Date | string;
+	writtenRepsProcedureNotificationDate?: Date;
 
-	hearingProcedureNotificationDate?: Date | string;
-	hearingDate?: Date | string;
+	hearingProcedureNotificationDate?: Date;
+	hearingDate?: Date;
 	hearingDuration?: string;
 	hearingVenue?: string;
-	hearingNotificationDate?: Date | string;
-	hearingIssuesReportPublishedDate?: Date | string;
+	hearingNotificationDate?: Date;
+	hearingIssuesReportPublishedDate?: Date;
 	hearingDurationPrep?: number | string;
 	hearingDurationSitting?: number | string;
 	hearingDurationReporting?: number | string;
 
-	inquiryProcedureNotificationDate?: Date | string;
-	inquiryStatementsDate?: Date | string;
-	inquiryDate?: Date | string;
+	inquiryProcedureNotificationDate?: Date;
+	inquiryStatementsDate?: Date;
+	inquiryDate?: Date;
 	inquiryDuration?: string;
 	inquiryVenue?: string;
-	inquiryNotificationDate?: Date | string;
-	inquiryCaseManagementConferenceDate?: Date | string;
-	inquiryPreMeetingDate?: Date | string;
-	inquiryProofsOfEvidenceDate?: Date | string;
+	inquiryNotificationDate?: Date;
+	inquiryCaseManagementConferenceDate?: Date;
+	inquiryPreMeetingDate?: Date;
+	inquiryProofsOfEvidenceDate?: Date;
 	inquiryDurationPrep?: number | string;
 	inquiryDurationSitting?: number | string;
 	inquiryDurationReporting?: number | string;
@@ -135,17 +135,17 @@ export interface CrownDevelopmentViewModel {
 
 	hasApplicationFee: YesNo;
 	applicationFee: number;
-	applicationFeeReceivedDate?: Date | string;
+	applicationFeeReceivedDate?: Date;
 	eligibleForFeeRefund?: YesNo;
 	applicationFeeRefundAmount?: string;
-	applicationFeeRefundDate?: Date | string;
+	applicationFeeRefundDate?: Date;
 	cilLiable?: YesNo;
 	cilAmount?: number | string;
 	bngExempt?: YesNo;
 	hasCostsApplications?: YesNo;
 	costsApplicationsComment?: string;
 
-	siteVisitDate?: Date | string;
+	siteVisitDate?: Date;
 
 	prepDuration?: number | string;
 	sittingDuration?: number | string;
