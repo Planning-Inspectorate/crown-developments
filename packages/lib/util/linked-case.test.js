@@ -7,7 +7,7 @@ import {
 	getSummaryWarningMessage,
 	hasLinkedCase,
 	linkedCaseIsPublished
-} from './linked-case.js';
+} from './linked-case.ts';
 
 describe('linked case util', () => {
 	describe('getLinkedCaseId', () => {

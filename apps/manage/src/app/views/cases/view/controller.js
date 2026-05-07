@@ -9,7 +9,7 @@ import { getEntraGroupMembers } from '#util/entra-groups.ts';
 import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
-import { getLinkedCaseId, getLinkedCaseLinkText, hasLinkedCase } from '@pins/crowndev-lib/util/linked-case.js';
+import { getLinkedCaseId, getLinkedCaseLinkText, hasLinkedCase } from '@pins/crowndev-lib/util/linked-case.ts';
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { filteredStagesToRadioOptions } from './question-utils.js';
 import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
