@@ -152,6 +152,8 @@ export interface CrownDevelopmentViewModel {
 	reportingDuration?: number | string;
 }
 
+export type CrownJourneyAnswers = Partial<CrownDevelopmentViewModel>;
+
 export type CrownDevelopmentViewModelFields = keyof CrownDevelopmentViewModel;
 
 export type CrownDevelopmentPayload = Prisma.CrownDevelopmentGetPayload<{
