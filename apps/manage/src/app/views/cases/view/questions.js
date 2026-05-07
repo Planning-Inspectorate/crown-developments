@@ -42,7 +42,7 @@ import CrossQuestionValidator from '@pins/crowndev-lib/validators/cross-question
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 
 /**
- * @param {import('../../../../util/entra-groups-types.js').EntraGroupMembers} [groupMembers]
+ * @param {import('#util/entra-groups').EntraGroupMembers} [groupMembers]
  * @param {import('./types').QuestionOverrides} overrides
  * @returns {{[p: string]: *}}
  */
