@@ -15,7 +15,7 @@ import {
 	buildApplicantOrganisationUpdates,
 	buildApplicantContactOrganisationUpdates,
 	buildAgentContactOrganisationUpdates
-} from './organisation-contact-updates.ts';
+} from './linked-case-updates.ts';
 
 /**
  * CrownDevelopment fields that do not need mapping to a (or from) the view model
