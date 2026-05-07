@@ -113,6 +113,10 @@ export function buildUpdateCase(service, clearAnswer = false) {
 				if ('siteAddress' in toSave && caseIds.length > 1) {
 					if (crownDevelopment.linkedParentId) {
 						sharedSiteAddressId = crownDevelopment.ParentCrownDevelopment?.siteAddressId;
+						// If parent has no address, fall back to the current child's address
+						if (!sharedSiteAddressId) {
+							sharedSiteAddressId = crownDevelopment.siteAddressId;
+						}
 					} else {
 						sharedSiteAddressId = crownDevelopment.siteAddressId;
 					}
