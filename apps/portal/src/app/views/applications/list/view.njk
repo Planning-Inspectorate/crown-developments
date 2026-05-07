@@ -45,12 +45,18 @@
 {% macro crownDevelopmentsTable(crownDevelopments) %}
     {% set crownDevelopmentRows = [] %}
     {% for crownDevelopment in crownDevelopmentsViewModels %}
+        {% if crownDevelopment.applicantOrganisations and crownDevelopment.applicantOrganisations.length > 0 %}
+            {% set applicantName = crownDevelopment.applicantOrganisations | join(", ") %}
+        {% else %}
+{#            TODO(CROWN-1424): remove once migrated over to ME #}
+            {% set applicantName = crownDevelopment.applicantName %}
+        {% endif %}
         {% set crownDevelopmentRows = (crownDevelopmentRows.push([
             {
                 html: "<a class='govuk-link' href='/applications/" +  crownDevelopment.id + "/application-information'>" + insertWbr(crownDevelopment.reference) + "</a>"
             },
             {
-                text: crownDevelopment.applicantName
+                text: applicantName
             },
             {
                 text: crownDevelopment.lpaName

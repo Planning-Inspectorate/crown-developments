@@ -1,8 +1,8 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { applicationLinks } from '../view-model.js';
+import { applicationLinks } from '../view-model.ts';
 import { fetchPublishedApplication } from '#util/applications.ts';
-import { nowIsWithinRange } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
+import { nowIsWithinRange } from '@planning-inspectorate/dynamic-forms';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
 import { loadPublishedApplicationOr404, shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import {

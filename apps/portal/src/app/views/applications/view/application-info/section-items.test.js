@@ -5,9 +5,9 @@ import {
 	getApplicationDecisionSectionItems,
 	getImportantDatesSectionItems,
 	getProcedureDetailsSectionItems
-} from './section-items.js';
+} from './section-items.ts';
 
-describe('section-items.js', () => {
+describe('section-items.ts', () => {
 	describe('getAboutThisApplicationSectionItems', () => {
 		it('should return all section items with northing/easting', async () => {
 			const baseUrl = '/applications';
@@ -226,7 +226,6 @@ describe('section-items.js', () => {
 			assert.ok(lpaItem.value.html.includes('Primary LPA'));
 			assert.ok(lpaItem.value.html.includes('Secondary LPA'));
 		});
-
 		it('should show only primary LPA if SecondaryLpa is not present', async () => {
 			const baseUrl = '/applications';
 			const crownDevelopmentFields = {
@@ -242,7 +241,6 @@ describe('section-items.js', () => {
 			assert.ok(lpaItem);
 			assert.strictEqual(lpaItem.value.text, 'Primary LPA');
 		});
-
 		it('should not show SecondaryLpa if not completed (name missing)', async () => {
 			const baseUrl = '/applications';
 			const crownDevelopmentFields = {
@@ -270,7 +268,6 @@ describe('section-items.js', () => {
 			);
 			assert.ok(withdrawnDate);
 		});
-
 		it('should not include withdrawn info if withdrawnDate is undefined', () => {
 			const fields = {
 				id: 'id-1',
@@ -281,6 +278,45 @@ describe('section-items.js', () => {
 				(item) => item.key && item.key.text && item.key.text.toLowerCase() === 'withdrawn date'
 			);
 			assert.ok(!withdrawnDate);
+		});
+		// TODO(CROWN-1424): remove once fully migrated to multiple entities
+		it('should use applicantName (pre-manage list) if applicantOrganisations is missing', async () => {
+			const mockCrownDevelopmentFields = {
+				id: 'id-1',
+				applicantName: 'An amazing applicant name'
+			};
+			const items = getAboutThisApplicationSectionItems('/applications/id-1', mockCrownDevelopmentFields);
+			const applicantItem = items.find((item) => item.key.text === 'Applicant name');
+			assert.ok(applicantItem);
+			assert.strictEqual(applicantItem.value.text, 'An amazing applicant name');
+		});
+		//To here
+		it('should use applicantOrganisations if both applicantOrganisations and applicantName exist', async () => {
+			const mockCrownDevelopmentFields = {
+				id: 'id-1',
+				applicantName: 'An amazing applicant name',
+				applicantOrganisations: ['An even better applicant name']
+			};
+			const items = getAboutThisApplicationSectionItems('/applications/id-1', mockCrownDevelopmentFields);
+			const applicantItem = items.find((item) => item.key.text === 'Applicant name');
+			assert.ok(applicantItem);
+			assert.strictEqual(applicantItem.value.html, '<p class="govuk-body">An even better applicant name</p>');
+		});
+		it('should display Applicant Names as the title if there are more than one applicantOrganisations', async () => {
+			const mockCrownDevelopmentFields = {
+				id: 'id-1',
+				applicantName: 'An amazing applicant name',
+				applicantOrganisations: ['An even better applicant name', 'A tribute to the greatest applicant name']
+			};
+			const items = getAboutThisApplicationSectionItems('/applications/id-1', mockCrownDevelopmentFields);
+			const applicantItem = items.find((item) => item.key.text === 'Applicant name');
+			const applicantsItem = items.find((item) => item.key.text === 'Applicant names');
+			assert.ok(!applicantItem); //Applicant name should no longer exist
+			assert.ok(applicantsItem);
+			assert.strictEqual(
+				applicantsItem.value.html,
+				'<p class="govuk-body">An even better applicant name</p><p class="govuk-body">A tribute to the greatest applicant name</p>'
+			);
 		});
 	});
 	describe('getImportantDatesSectionItems', () => {

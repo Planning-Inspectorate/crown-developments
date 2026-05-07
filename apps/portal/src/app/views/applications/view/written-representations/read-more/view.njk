@@ -57,7 +57,7 @@
         }) }}
         <p class="govuk-body pins-pre-line pins-overflow-break-word">{{ representationViewModel.representationComment }}</p>
 
-        {% if representationViewModel.hasAttachments %}
+        {% if representationViewModel.hasAcceptedAttachments %}
             <h2 class="govuk-heading-m">Attachment(s)</h2>
             <ul class="govuk-list document-list">
                 {% for document in documents %}

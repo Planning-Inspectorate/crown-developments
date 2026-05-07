@@ -1,5 +1,5 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
-import { applicationLinks, applicationUpdateToTimelineItem, crownDevelopmentToViewModel } from '../view-model.js';
+import { applicationLinks, applicationUpdateToTimelineItem, crownDevelopmentToViewModel } from '../view-model.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { fetchPublishedApplication, isExpired, isWithdrawnOrExpired } from '#util/applications.ts';
 import { getHaveYourSayStatus } from '../have-your-say/util.js';
@@ -8,7 +8,7 @@ import {
 	getApplicationDecisionSectionItems,
 	getImportantDatesSectionItems,
 	getProcedureDetailsSectionItems
-} from './section-items.js';
+} from './section-items.ts';
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { buildApplicationStages, getCurrentStage } from './application-stage/controller.js';
@@ -18,7 +18,7 @@ import {
 	hasLinkedCase,
 	linkedCaseIsPublished
 } from '@pins/crowndev-lib/util/linked-case.js';
-import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
+import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
 
 /**
  * @param {import('#service').PortalService} service
@@ -51,7 +51,8 @@ export function buildApplicationInformationPage(service) {
 					Stage: { select: { displayName: true } },
 					Procedure: { select: { displayName: true } },
 					ParentCrownDevelopment: { select: { id: true } },
-					ChildrenCrownDevelopment: { select: { id: true } }
+					ChildrenCrownDevelopment: { select: { id: true } },
+					Organisations: { include: { Organisation: { select: { name: true } } } }
 				}
 			}
 		});

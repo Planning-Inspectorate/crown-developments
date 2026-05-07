@@ -161,10 +161,9 @@ describe('written representations read more', () => {
 			representationCategory: 'General Representation',
 			representationComment: 'This is a test representation.',
 			representationCommentIsRedacted: true,
-			representationContainsAttachments: true,
 			representationReference: 'AAAAA-BBBBB',
 			representationTitle: 'Jane Smith on behalf of Alice Brown',
-			hasAttachments: true,
+			hasAcceptedAttachments: true,
 			distressingContent: false
 		});
 		assert.strictEqual(viewData.containsDistressingContent, false);
@@ -284,10 +283,9 @@ describe('written representations read more', () => {
 			representationCategory: 'General Representation',
 			representationComment: 'This is a test representation.',
 			representationCommentIsRedacted: true,
-			representationContainsAttachments: true,
 			representationReference: 'AAAAA-BBBBB',
 			representationTitle: 'Jane Smith on behalf of Alice Brown',
-			hasAttachments: false,
+			hasAcceptedAttachments: false,
 			distressingContent: false
 		});
 		assert.strictEqual(viewData.containsDistressingContent, false);
@@ -368,10 +366,9 @@ describe('written representations read more', () => {
 				representationCategory: 'General Representation',
 				representationComment: 'This is a test representation.',
 				representationCommentIsRedacted: true,
-				representationContainsAttachments: true,
 				representationReference: 'AAAAA-BBBBB',
 				representationTitle: 'Jane Smith on behalf of Alice Brown',
-				hasAttachments: true,
+				hasAcceptedAttachments: true,
 				distressingContent: false
 			});
 			assert.strictEqual(viewData.containsDistressingContent, false);
@@ -446,10 +443,9 @@ describe('written representations read more', () => {
 				representationCategory: 'General Representation',
 				representationComment: 'This is a test representation.',
 				representationCommentIsRedacted: true,
-				representationContainsAttachments: false,
 				representationReference: 'AAAAA-BBBBB',
 				representationTitle: 'Jane Smith on behalf of Alice Brown',
-				hasAttachments: false,
+				hasAcceptedAttachments: false,
 				distressingContent: false
 			});
 			assert.strictEqual(viewData.containsDistressingContent, false);

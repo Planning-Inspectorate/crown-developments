@@ -1,6 +1,6 @@
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
-import { crownDevelopmentToViewModel } from '../view/view-model.js';
+import { crownDevelopmentToViewModel } from '../view/view-model.ts';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 
 /**
@@ -35,7 +35,8 @@ export function buildApplicationListPage(service) {
 						ApplicantContact: { select: { orgName: true, firstName: true, lastName: true } },
 						Lpa: { select: { name: true } },
 						Stage: { select: { displayName: true } },
-						Type: { select: { displayName: true } }
+						Type: { select: { displayName: true } },
+						Organisations: { include: { Organisation: { select: { name: true } } } }
 					},
 					orderBy: {
 						reference: 'desc'
