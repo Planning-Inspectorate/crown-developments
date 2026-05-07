@@ -10,7 +10,7 @@ import {
 	buildAgentContactOrganisationUpdates,
 	buildApplicantOrganisationUpdates,
 	buildApplicantContactOrganisationUpdates
-} from './organisation-contact-updates.ts';
+} from './linked-case-updates.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('organisation/contact updates', () => {
@@ -663,9 +663,9 @@ describe('organisation/contact updates', () => {
 				crownDevelopments: [{ id: 'case-1', Organisations: [] }]
 			});
 
-			assert.strictEqual(plan.shared.organisationCreates.length, 1);
-			assert.strictEqual(plan.shared.organisationCreates[0].data.Address?.create?.line1, '1 Agent Street');
-			assert.strictEqual(plan.shared.organisationCreates[0].data.Address?.create?.postcode, 'AG1 1AA');
+			assert.strictEqual(plan.organisationGraph.organisationCreates.length, 1);
+			assert.strictEqual(plan.organisationGraph.organisationCreates[0].data.Address?.create?.line1, '1 Agent Street');
+			assert.strictEqual(plan.organisationGraph.organisationCreates[0].data.Address?.create?.postcode, 'AG1 1AA');
 		});
 
 		it('should not create or link an agent organisation when only address is edited but no organisation exists and no name is provided', () => {
@@ -688,9 +688,9 @@ describe('organisation/contact updates', () => {
 				]
 			});
 
-			assert.strictEqual(plan.shared.organisationCreates.length, 0);
-			assert.strictEqual(plan.shared.organisationUpdates.length, 0);
-			assert.strictEqual(plan.shared.linkCreates.length, 0);
+			assert.strictEqual(plan.organisationGraph.organisationCreates.length, 0);
+			assert.strictEqual(plan.organisationGraph.organisationUpdates.length, 0);
+			assert.strictEqual(plan.organisationGraph.linkCreates.length, 0);
 		});
 
 		it('should ignore agent join rows when no contact details update or create is required', () => {
@@ -707,8 +707,8 @@ describe('organisation/contact updates', () => {
 				scalarUpdateInput: {},
 				crownDevelopments: [{ id: 'case-1', Organisations: [] }]
 			});
-			assert.strictEqual(plan.shared.newOrganisationContacts.length, 0);
-			assert.strictEqual(plan.shared.contactUpdates.length, 0);
+			assert.strictEqual(plan.organisationGraph.newOrganisationContacts.length, 0);
+			assert.strictEqual(plan.organisationGraph.contactUpdates.length, 0);
 		});
 
 		it('should create a new applicant organisation once and link it to all cases', () => {
@@ -736,10 +736,10 @@ describe('organisation/contact updates', () => {
 				]
 			});
 
-			assert.strictEqual(plan.shared.organisationCreates.length, 1);
-			assert.strictEqual(plan.shared.organisationCreates[0].data.name, 'New Org');
-			assert.strictEqual(plan.shared.linkCreates.length, 2);
-			assert.strictEqual(plan.shared.linkCreates[0].roleId, ORGANISATION_ROLES_ID.APPLICANT);
+			assert.strictEqual(plan.organisationGraph.organisationCreates.length, 1);
+			assert.strictEqual(plan.organisationGraph.organisationCreates[0].data.name, 'New Org');
+			assert.strictEqual(plan.organisationGraph.linkCreates.length, 2);
+			assert.strictEqual(plan.organisationGraph.linkCreates[0].roleId, ORGANISATION_ROLES_ID.APPLICANT);
 		});
 
 		it('should update an existing applicant organisation and link it only to missing cases', () => {
@@ -794,11 +794,11 @@ describe('organisation/contact updates', () => {
 				]
 			});
 
-			assert.strictEqual(plan.shared.organisationUpdates.length, 1);
-			assert.strictEqual(plan.shared.organisationUpdates[0].organisationId, 'org-1');
-			assert.strictEqual(plan.shared.organisationUpdates[0].data?.name, 'Org One Updated');
-			assert.strictEqual(plan.shared.organisationUpdates[0].data?.Address?.upsert?.where?.id, 'address-1');
-			assert.deepStrictEqual(plan.shared.linkCreates, [
+			assert.strictEqual(plan.organisationGraph.organisationUpdates.length, 1);
+			assert.strictEqual(plan.organisationGraph.organisationUpdates[0].organisationId, 'org-1');
+			assert.strictEqual(plan.organisationGraph.organisationUpdates[0].data?.name, 'Org One Updated');
+			assert.strictEqual(plan.organisationGraph.organisationUpdates[0].data?.Address?.upsert?.where?.id, 'address-1');
+			assert.deepStrictEqual(plan.organisationGraph.linkCreates, [
 				{ caseId: 'case-2', organisationId: 'org-1', roleId: ORGANISATION_ROLES_ID.APPLICANT }
 			]);
 		});
@@ -846,7 +846,7 @@ describe('organisation/contact updates', () => {
 					}
 				]
 			});
-			assert.strictEqual(plan.shared.contactUpdates.length, 0);
+			assert.strictEqual(plan.organisationGraph.contactUpdates.length, 0);
 
 			const changed = buildCaseUpdateWritePlan({
 				toSave: {
@@ -891,9 +891,9 @@ describe('organisation/contact updates', () => {
 				]
 			});
 
-			assert.strictEqual(changed.shared.contactUpdates.length, 1);
-			assert.strictEqual(changed.shared.contactUpdates[0].contactId, 'contact-1');
-			assert.strictEqual(changed.shared.contactUpdates[0].data.email, 'new@example.com');
+			assert.strictEqual(changed.organisationGraph.contactUpdates.length, 1);
+			assert.strictEqual(changed.organisationGraph.contactUpdates[0].contactId, 'contact-1');
+			assert.strictEqual(changed.organisationGraph.contactUpdates[0].data.email, 'new@example.com');
 		});
 
 		it('should create a new applicant contact linked to a persisted organisation', () => {
@@ -925,9 +925,9 @@ describe('organisation/contact updates', () => {
 					}
 				]
 			});
-			assert.strictEqual(plan.shared.newOrganisationContacts.length, 1);
-			assert.strictEqual(plan.shared.newOrganisationContacts[0].organisationId, 'org-1');
-			assert.strictEqual(plan.shared.newOrganisationContacts[0].data.email, 'applicant1@test.com');
+			assert.strictEqual(plan.organisationGraph.newOrganisationContacts.length, 1);
+			assert.strictEqual(plan.organisationGraph.newOrganisationContacts[0].organisationId, 'org-1');
+			assert.strictEqual(plan.organisationGraph.newOrganisationContacts[0].data.email, 'applicant1@test.com');
 		});
 
 		it('should move an applicant contact between organisations by deleting and recreating join rows', () => {
@@ -970,8 +970,8 @@ describe('organisation/contact updates', () => {
 					}
 				]
 			});
-			assert.deepStrictEqual(plan.shared.organisationToContactDeletes, [{ id: 'join-1' }]);
-			assert.deepStrictEqual(plan.shared.organisationToContactCreates, [
+			assert.deepStrictEqual(plan.organisationGraph.organisationToContactDeletes, [{ id: 'join-1' }]);
+			assert.deepStrictEqual(plan.organisationGraph.organisationToContactCreates, [
 				{ organisationId: 'org-2', contactId: 'contact-1' }
 			]);
 		});
@@ -995,10 +995,10 @@ describe('organisation/contact updates', () => {
 				crownDevelopments: [{ id: 'case-1', Organisations: [] }]
 			});
 
-			assert.strictEqual(plan.shared.organisationCreates.length, 1);
-			assert.strictEqual(plan.shared.organisationCreates[0].data.name, 'Agent Org');
-			assert.strictEqual(plan.shared.newOrganisationContacts.length, 1);
-			assert.ok(plan.shared.newOrganisationContacts[0].organisationId.startsWith('__new_org__:agent:0'));
+			assert.strictEqual(plan.organisationGraph.organisationCreates.length, 1);
+			assert.strictEqual(plan.organisationGraph.organisationCreates[0].data.name, 'Agent Org');
+			assert.strictEqual(plan.organisationGraph.newOrganisationContacts.length, 1);
+			assert.ok(plan.organisationGraph.newOrganisationContacts[0].organisationId.startsWith('__new_org__:agent:0'));
 		});
 	});
 
@@ -1006,7 +1006,7 @@ describe('organisation/contact updates', () => {
 		it('should resolve created organisation placeholder ids for links and organisation contacts', async () => {
 			const plan = {
 				scalarCaseUpdates: { caseIds: ['case-1', 'case-2'], updateInput: { description: 'updated' } },
-				shared: {
+				organisationGraph: {
 					organisationCreates: [{ placeholderId: '__new_org__:agent:0', data: { name: 'Agent Org' } }],
 					organisationUpdates: [],
 					linkCreates: [
@@ -1185,7 +1185,7 @@ describe('organisation/contact updates', () => {
 					caseIds: ['parent-case', 'child-lbc-case'],
 					updateInput: { description: 'Some description' }
 				},
-				shared: {
+				organisationGraph: {
 					organisationCreates: [],
 					organisationUpdates: [],
 					linkCreates: [],
@@ -1250,7 +1250,7 @@ describe('organisation/contact updates', () => {
 					caseIds: ['parent-case', 'child-lbc-case'],
 					updateInput: {}
 				},
-				shared: {
+				organisationGraph: {
 					organisationCreates: [],
 					organisationUpdates: [],
 					linkCreates: [],
@@ -1298,7 +1298,7 @@ describe('organisation/contact updates', () => {
 					caseIds: ['case-1'],
 					updateInput: { description: 'Some description' }
 				},
-				shared: {
+				organisationGraph: {
 					organisationCreates: [],
 					organisationUpdates: [],
 					linkCreates: [],

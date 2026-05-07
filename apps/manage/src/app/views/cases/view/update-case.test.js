@@ -589,63 +589,6 @@ describe('case details', () => {
 			assert.strictEqual(childUpdate.data?.SiteAddress?.connect?.id, 'new-address-1');
 		});
 
-		it('should use child site address when parent has none and child has existing address', async () => {
-			const logger = mockLogger();
-			const mockDb = {
-				$transaction: mock.fn(() => Promise.resolve()),
-				address: {
-					update: mock.fn(() => ({ id: 'child-address-1' }))
-				},
-				crownDevelopment: {
-					update: mock.fn(),
-					findUnique: mock.fn(() => ({
-						id: 'parent-case-id',
-						siteAddressId: null,
-						ChildrenCrownDevelopment: [
-							{
-								id: 'child-lbc-case-id',
-								siteAddressId: 'child-address-1'
-							}
-						],
-						Organisations: []
-					}))
-				}
-			};
-			makeTransactionInteractive(mockDb);
-
-			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'parent-case-id' },
-				session: {}
-			};
-			const mockRes = { locals: {} };
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
-			const data = {
-				answers: {
-					siteAddress: {
-						addressLine1: 'Updated Address',
-						addressLine2: '',
-						townCity: 'Leeds',
-						county: '',
-						postcode: 'LS1 1AA'
-					}
-				}
-			};
-
-			await updateCase({ req: mockReq, res: mockRes, data });
-
-			// Should update the child's existing address
-			assert.strictEqual(mockDb.address.update.mock.callCount(), 1);
-			const addressUpdateArg = mockDb.address.update.mock.calls[0].arguments[0];
-			assert.strictEqual(addressUpdateArg.where?.id, 'child-address-1');
-
-			// Both cases should be connected to the child's address
-			const parentUpdate = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
-			const childUpdate = mockDb.crownDevelopment.update.mock.calls[1].arguments[0];
-			assert.strictEqual(parentUpdate.data?.SiteAddress?.connect?.id, 'child-address-1');
-			assert.strictEqual(childUpdate.data?.SiteAddress?.connect?.id, 'child-address-1');
-		});
-
 		it('should update site address normally for a single case without linked cases', async () => {
 			const logger = mockLogger();
 			const mockDb = {

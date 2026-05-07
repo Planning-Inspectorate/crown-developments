@@ -18,7 +18,7 @@ type CaseUpdateWritePlan = {
 	scalarCaseUpdates: { caseIds: string[]; updateInput: Prisma.CrownDevelopmentUpdateInput };
 	siteAddressUpdate?: { addressId: string | null; addressData: Prisma.AddressUpdateInput } | null;
 	siteAddressCreateData?: Prisma.AddressCreateInput;
-	shared: {
+	organisationGraph: {
 		organisationCreates: Array<{ placeholderId: string; data: Prisma.OrganisationCreateInput }>;
 		organisationUpdates: Array<{ organisationId: string; data: Prisma.OrganisationUpdateInput }>;
 		linkCreates: Array<{ caseId: string; organisationId: string; roleId: string }>;
@@ -66,7 +66,7 @@ function queueContactUpdateIfChanged<TContact extends { id?: string | null }>({
 	const nextData = extractFields(contact);
 	const prevData = extractFields(existing);
 	if (contactCoreFieldsChanged(nextData, prevData)) {
-		plan.shared.contactUpdates.push({ contactId: contact.id, data: nextData });
+		plan.organisationGraph.contactUpdates.push({ contactId: contact.id, data: nextData });
 	}
 
 	return true;
@@ -105,7 +105,7 @@ export function buildCaseUpdateWritePlan({
 }): CaseUpdateWritePlan {
 	const plan: CaseUpdateWritePlan = {
 		scalarCaseUpdates: { caseIds, updateInput: scalarUpdateInput },
-		shared: {
+		organisationGraph: {
 			organisationCreates: [],
 			organisationUpdates: [],
 			linkCreates: [],
@@ -120,8 +120,8 @@ export function buildCaseUpdateWritePlan({
 		const upsert = scalarUpdateInput.SiteAddress.upsert;
 		if (upsert) {
 			const addressData = {
-				create: upsert.create as Prisma.AddressCreateInput,
-				update: upsert.update as Prisma.AddressUpdateInput
+				create: upsert.create,
+				update: upsert.update
 			};
 
 			plan.siteAddressUpdate = {
@@ -151,7 +151,7 @@ export function buildCaseUpdateWritePlan({
 		const key = `${caseId}:${roleId}:${organisationId}`;
 		if (existingLinks.has(key)) return;
 		existingLinks.add(key);
-		plan.shared.linkCreates.push({ caseId, roleId, organisationId });
+		plan.organisationGraph.linkCreates.push({ caseId, roleId, organisationId });
 	};
 
 	/** Applicant orgs: create once, update by Organisation.id, link missing cases via CrownDevelopmentToOrganisation */
@@ -201,7 +201,7 @@ export function buildCaseUpdateWritePlan({
 				}
 
 				if (Object.keys(organisationUpdate).length > 0) {
-					plan.shared.organisationUpdates.push({ organisationId: org.id, data: organisationUpdate });
+					plan.organisationGraph.organisationUpdates.push({ organisationId: org.id, data: organisationUpdate });
 				}
 
 				for (const caseId of caseIds) {
@@ -221,7 +221,7 @@ export function buildCaseUpdateWritePlan({
 					orgCreate.Address = { create: address };
 				}
 			}
-			plan.shared.organisationCreates.push({ placeholderId, data: orgCreate });
+			plan.organisationGraph.organisationCreates.push({ placeholderId, data: orgCreate });
 			for (const caseId of caseIds) {
 				ensureLink(caseId, ORGANISATION_ROLES_ID.APPLICANT, placeholderId);
 			}
@@ -251,7 +251,7 @@ export function buildCaseUpdateWritePlan({
 				if (address) {
 					orgCreate.Address = { create: address };
 				}
-				plan.shared.organisationCreates.push({ placeholderId, data: orgCreate });
+				plan.organisationGraph.organisationCreates.push({ placeholderId, data: orgCreate });
 			} else {
 				// No existing org and no name to create one: nothing to do.
 				agentOrgRef = null;
@@ -284,7 +284,7 @@ export function buildCaseUpdateWritePlan({
 				}
 			}
 			if (Object.keys(organisationUpdate).length > 0) {
-				plan.shared.organisationUpdates.push({ organisationId: agentOrgId, data: organisationUpdate });
+				plan.organisationGraph.organisationUpdates.push({ organisationId: agentOrgId, data: organisationUpdate });
 			}
 		}
 	}
@@ -344,7 +344,7 @@ export function buildCaseUpdateWritePlan({
 					);
 				}
 				const data = extractApplicantContactFields(contact);
-				plan.shared.newOrganisationContacts.push({ organisationId: targetOrgId, data });
+				plan.organisationGraph.newOrganisationContacts.push({ organisationId: targetOrgId, data });
 				continue;
 			}
 
@@ -364,8 +364,11 @@ export function buildCaseUpdateWritePlan({
 							`This should not be sent by the Manage UI (organisations are saved before contacts).`
 					);
 				}
-				plan.shared.organisationToContactDeletes.push({ id: contact.organisationToContactRelationId });
-				plan.shared.organisationToContactCreates.push({ organisationId: targetOrgId, contactId: existingJoin.id });
+				plan.organisationGraph.organisationToContactDeletes.push({ id: contact.organisationToContactRelationId });
+				plan.organisationGraph.organisationToContactCreates.push({
+					organisationId: targetOrgId,
+					contactId: existingJoin.id
+				});
 			}
 		}
 	}
@@ -377,7 +380,7 @@ export function buildCaseUpdateWritePlan({
 			(relationship) => relationship.role === ORGANISATION_ROLES_ID.AGENT && relationship?.Organisation?.id
 		);
 		const agentOrganisationId = existingAgentRel?.Organisation?.id;
-		const plannedAgentOrgCreate = plan.shared.organisationCreates.find(
+		const plannedAgentOrgCreate = plan.organisationGraph.organisationCreates.find(
 			(organisationCreatePlanItem) => organisationCreatePlanItem.placeholderId === `${ORG_PLACEHOLDER_PREFIX}agent:0`
 		);
 		const agentOrgRef = agentOrganisationId || (plannedAgentOrgCreate ? plannedAgentOrgCreate.placeholderId : null);
@@ -405,7 +408,7 @@ export function buildCaseUpdateWritePlan({
 				throw new Error('Unable to find agent organisation for this case - cannot create agent contacts');
 			}
 			const data = extractAgentContactFields(contact);
-			plan.shared.newOrganisationContacts.push({ organisationId: agentOrgRef, data });
+			plan.organisationGraph.newOrganisationContacts.push({ organisationId: agentOrgRef, data });
 		}
 	}
 
@@ -427,22 +430,24 @@ export async function executeCaseUpdateWritePlan(plan: CaseUpdateWritePlan, tx: 
 			await tx.address.update({ where: { id: addressId }, data: addressData });
 			sharedSiteAddressId = addressId;
 		} else {
-			const createData = plan.siteAddressCreateData || (addressData as unknown as Prisma.AddressCreateInput);
-			const created = await tx.address.create({ data: createData });
+			if (!plan.siteAddressCreateData) {
+				throw new Error('Missing AddressCreateInput for shared site address creation');
+			}
+			const created = await tx.address.create({ data: plan.siteAddressCreateData });
 			sharedSiteAddressId = created.id;
 		}
 	}
 
-	for (const orgCreate of plan.shared.organisationCreates) {
+	for (const orgCreate of plan.organisationGraph.organisationCreates) {
 		const created = await tx.organisation.create({ data: orgCreate.data, select: { id: true } });
 		createdOrgIds.set(orgCreate.placeholderId, created.id);
 	}
 
-	for (const orgUpdate of plan.shared.organisationUpdates) {
+	for (const orgUpdate of plan.organisationGraph.organisationUpdates) {
 		await tx.organisation.update({ where: { id: resolveOrgId(orgUpdate.organisationId) }, data: orgUpdate.data });
 	}
 
-	for (const linkCreate of plan.shared.linkCreates) {
+	for (const linkCreate of plan.organisationGraph.linkCreates) {
 		await tx.crownDevelopmentToOrganisation.create({
 			data: {
 				crownDevelopmentId: linkCreate.caseId,
@@ -452,20 +457,20 @@ export async function executeCaseUpdateWritePlan(plan: CaseUpdateWritePlan, tx: 
 		});
 	}
 
-	for (const contactUpdate of plan.shared.contactUpdates) {
+	for (const contactUpdate of plan.organisationGraph.contactUpdates) {
 		await tx.contact.update({ where: { id: contactUpdate.contactId }, data: contactUpdate.data });
 	}
 
-	for (const del of plan.shared.organisationToContactDeletes) {
+	for (const del of plan.organisationGraph.organisationToContactDeletes) {
 		await tx.organisationToContact.delete({ where: { id: del.id } });
 	}
-	for (const create of plan.shared.organisationToContactCreates) {
+	for (const create of plan.organisationGraph.organisationToContactCreates) {
 		await tx.organisationToContact.create({
 			data: { organisationId: resolveOrgId(create.organisationId), contactId: create.contactId }
 		});
 	}
 
-	for (const newContact of plan.shared.newOrganisationContacts) {
+	for (const newContact of plan.organisationGraph.newOrganisationContacts) {
 		const createdContact = await tx.contact.create({ data: newContact.data, select: { id: true } });
 		await tx.organisationToContact.create({
 			data: { organisationId: resolveOrgId(newContact.organisationId), contactId: createdContact.id }
