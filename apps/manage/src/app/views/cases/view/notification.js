@@ -9,7 +9,7 @@ import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
 import { caseReferenceToFolderName, grantLpaSharePointAccess } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
 /**
- * @typedef {import('@pins/crowndev-lib/types/crown/types').YesNo} YesNo
+ * @typedef {import('@pins/crowndev-lib/util/types').YesNo} YesNo
  */
 
 /**
