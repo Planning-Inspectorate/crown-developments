@@ -5,7 +5,7 @@ export interface GroupMember {
 	displayName: string;
 }
 
-interface AuthSession {
+export interface AuthSession {
 	account?: {
 		accessToken?: string;
 	};
