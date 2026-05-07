@@ -7,7 +7,7 @@ import {
 	getApplicationUpdateSessionData,
 	validateParams
 } from '../utils.js';
-import { addSessionData } from '@pins/crowndev-lib/util/session.js';
+import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 export function buildReviewController({ db }) {

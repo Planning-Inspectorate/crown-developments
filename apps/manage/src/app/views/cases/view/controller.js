@@ -7,7 +7,7 @@ import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journe
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { getEntraGroupMembers } from '#util/entra-groups.ts';
 import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
-import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
+import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { getLinkedCaseId, getLinkedCaseLinkText, hasLinkedCase } from '@pins/crowndev-lib/util/linked-case.ts';
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
