@@ -1,5 +1,5 @@
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
+import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
 
 export const questionConfig = {
 	'check-agent-contact-details': {

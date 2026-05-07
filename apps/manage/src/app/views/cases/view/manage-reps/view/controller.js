@@ -5,7 +5,7 @@ import { createJourney, JOURNEY_ID } from './journey.js';
 import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import { representationToManageViewModel } from '@pins/crowndev-lib/forms/representations/view-model.js';
 import { clearRepUpdatedSession, readRepUpdatedSession } from '../edit/controller.js';
-import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.js';
+import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
 import {
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,

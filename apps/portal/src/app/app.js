@@ -5,7 +5,7 @@ import { buildRouter } from './router.js';
 import { configureNunjucks } from './nunjucks.js';
 import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.js';
 import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.js';
+import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.ts';
 import { addLocalsConfiguration } from '#util/config-middleware.js';
 import { initContentSecurityPolicyMiddlewares } from '#util/csp-middleware.js';
 import { buildAnalyticsCookiesMiddleware } from '#util/cookies.js';
