@@ -6,7 +6,7 @@ import {
 	crownDevelopmentToViewModel,
 	representationTitle,
 	representationToViewModel
-} from './view-model.js';
+} from './view-model.ts';
 import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('view-model', () => {
@@ -165,6 +165,38 @@ describe('view-model', () => {
 			const config = {};
 			const result = crownDevelopmentToViewModel(input, config);
 			assert.strictEqual(result.applicationSubType, 'Sub Type');
+		});
+		it('should map applicantOrganisations if present', () => {
+			const input = {
+				id: 'id-1',
+				reference: 'reference-id-1',
+				Organisations: [
+					{
+						role: 'applicant',
+						Organisation: {
+							name: 'Applicant organisation 1'
+						}
+					},
+					{
+						role: 'applicant',
+						Organisation: {
+							name: 'Applicant organisation 2'
+						}
+					},
+					{
+						role: 'agent',
+						Organisation: {
+							name: 'Agent organisation'
+						}
+					}
+				]
+			};
+			const result = crownDevelopmentToViewModel(input, 'crown.dev@planninginspectorate.gov.uk');
+			assert.ok(result.applicantOrganisations);
+			assert.ok(Array.isArray(result.applicantOrganisations));
+			assert.ok(result.applicantOrganisations.length === 2);
+			assert.strictEqual(result.applicantOrganisations[0], 'Applicant organisation 1');
+			assert.strictEqual(result.applicantOrganisations[1], 'Applicant organisation 2');
 		});
 	});
 	describe('applicationLinks', () => {
@@ -389,8 +421,7 @@ describe('view-model', () => {
 				representationCommentIsRedacted: false,
 				representationCategory: 'Category 1',
 				dateRepresentationSubmitted: '1 Jan 2025',
-				representationContainsAttachments: true,
-				hasAttachments: true,
+				hasAcceptedAttachments: true,
 				distressingContent: false
 			});
 		});
@@ -414,8 +445,7 @@ describe('view-model', () => {
 				representationCommentIsRedacted: false,
 				representationCategory: 'Category 1',
 				dateRepresentationSubmitted: '1 Jan 2025',
-				representationContainsAttachments: true,
-				hasAttachments: false,
+				hasAcceptedAttachments: false,
 				distressingContent: false
 			});
 		});
@@ -439,8 +469,7 @@ describe('view-model', () => {
 				representationCommentIsRedacted: false,
 				representationCategory: 'Category 1',
 				dateRepresentationSubmitted: '1 Jan 2025',
-				representationContainsAttachments: false,
-				hasAttachments: false,
+				hasAcceptedAttachments: false,
 				distressingContent: false
 			});
 		});
@@ -465,8 +494,7 @@ describe('view-model', () => {
 				representationCommentIsRedacted: false,
 				representationCategory: 'Category 1',
 				dateRepresentationSubmitted: '1 Jan 2025',
-				representationContainsAttachments: false,
-				hasAttachments: false,
+				hasAcceptedAttachments: false,
 				distressingContent: true
 			});
 		});
@@ -491,8 +519,7 @@ describe('view-model', () => {
 				representationCommentIsRedacted: false,
 				representationCategory: 'Category 1',
 				dateRepresentationSubmitted: '1 Jan 2025',
-				representationContainsAttachments: false,
-				hasAttachments: false,
+				hasAcceptedAttachments: false,
 				distressingContent: false
 			});
 		});

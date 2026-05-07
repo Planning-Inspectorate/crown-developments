@@ -1,4 +1,4 @@
-import { applicationLinks, applicationUpdateToTimelineItem } from '../view-model.js';
+import { applicationLinks, applicationUpdateToTimelineItem } from '../view-model.ts';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';

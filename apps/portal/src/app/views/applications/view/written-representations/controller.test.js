@@ -77,10 +77,9 @@ describe('written representations', () => {
 				representationCategory: 'General Representation',
 				representationComment: 'This is a test representation.',
 				representationCommentIsRedacted: true,
-				representationContainsAttachments: true,
 				representationReference: '4SNR8-ZS27T',
 				representationTitle: 'Jane Smith on behalf of Alice Brown',
-				hasAttachments: true,
+				hasAcceptedAttachments: true,
 				distressingContent: false
 			});
 			assert.strictEqual(viewData.selectedItemsPerPage, 25);
@@ -377,10 +376,9 @@ describe('written representations', () => {
 				representationComment:
 					'It began with an ordinary morning. The air smelled faintly of dew, the street empty but for leaves drifting lazily. ████████ ██████ adjusted his collar, noting his watch was three minutes late—a stubborn old thing, loyal only to its own time. Across the street, a bakery opened, the scent of bread spilling into the cool air. A woman in a green scarf carried loaves in quiet balance. The square stirred slowly; ████████ wrote in his notebook, letting the day delay his errands, wholly unhurried and s... ',
 				representationCommentIsRedacted: true,
-				representationContainsAttachments: true,
 				representationReference: '4SNR8-ZS27T',
 				representationTitle: 'Jane Smith on behalf of Alice Brown',
-				hasAttachments: true,
+				hasAcceptedAttachments: true,
 				distressingContent: false,
 				truncatedReadMoreLink:
 					'<a class="govuk-link govuk-link--no-visited-state" href="written-representations/4SNR8-ZS27T">Read more</a>'

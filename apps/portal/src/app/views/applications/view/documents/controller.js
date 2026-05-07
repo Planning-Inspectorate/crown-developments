@@ -1,4 +1,4 @@
-import { applicationLinks } from '../view-model.js';
+import { applicationLinks } from '../view-model.ts';
 import { sortByField } from '@pins/crowndev-lib/util/array.js';
 import { loadPublishedApplicationOr404, shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import { publishedFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';

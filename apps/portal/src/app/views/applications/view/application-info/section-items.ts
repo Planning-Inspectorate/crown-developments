@@ -1,11 +1,54 @@
-export function getAboutThisApplicationSectionItems(baseUrl, crownDevelopmentFields) {
+import type { CrownDevelopmentView } from '../view-model.ts';
+
+export type SectionItem = {
+	key: { text: string };
+	value: { html: string } | { text: string };
+};
+/**
+ * Maps applicant names to a format suitable for display in the About this application section, handling both single and multiple organisations.
+ */
+const formattedOrganisationName = (crownDevelopmentFields: CrownDevelopmentView): SectionItem => {
+	// handle historic applicant names prior to multiple entities
+	// TODO: CROWN-1424 Remove once ME work is complete and all applications have been migrated to support multiple entities
+	if (!crownDevelopmentFields.applicantOrganisations) {
+		return {
+			key: {
+				text: 'Applicant name'
+			},
+			value: {
+				text: crownDevelopmentFields.applicantName ?? ''
+			}
+		};
+	}
+
+	return {
+		key: {
+			text: crownDevelopmentFields.applicantOrganisations?.length > 1 ? 'Applicant names' : 'Applicant name'
+		},
+		value: {
+			html: crownDevelopmentFields.applicantOrganisations
+				.map((applicant) => {
+					return `<p class="govuk-body">${applicant}</p>`;
+				})
+				.join('')
+		}
+	};
+};
+
+/**
+ * Maps section items for the 'About this application' section
+ */
+export function getAboutThisApplicationSectionItems(
+	baseUrl: string,
+	crownDevelopmentFields: CrownDevelopmentView
+): SectionItem[] {
 	return [
 		{
 			key: {
 				text: 'Type of application'
 			},
 			value: {
-				text: crownDevelopmentFields.applicationSubType ?? crownDevelopmentFields.applicationType
+				text: crownDevelopmentFields.applicationSubType ?? crownDevelopmentFields.applicationType ?? ''
 			}
 		},
 		{
@@ -17,17 +60,10 @@ export function getAboutThisApplicationSectionItems(baseUrl, crownDevelopmentFie
 						html: `<p class="govuk-body">${crownDevelopmentFields.lpaName}</p> <p class ="govuk-body">${crownDevelopmentFields.SecondaryLpa.name}</p>`
 					}
 				: {
-						text: crownDevelopmentFields.lpaName
+						text: crownDevelopmentFields.lpaName ?? ''
 					}
 		},
-		{
-			key: {
-				text: 'Applicant name'
-			},
-			value: {
-				text: crownDevelopmentFields.applicantName
-			}
-		},
+		formattedOrganisationName(crownDevelopmentFields),
 		{
 			key: {
 				text: 'Site address'
@@ -43,7 +79,7 @@ export function getAboutThisApplicationSectionItems(baseUrl, crownDevelopmentFie
 				text: 'Description of the proposed development'
 			},
 			value: {
-				text: crownDevelopmentFields.description
+				text: crownDevelopmentFields.description ?? ''
 			}
 		},
 		...(crownDevelopmentFields.stage
@@ -69,7 +105,13 @@ export function getAboutThisApplicationSectionItems(baseUrl, crownDevelopmentFie
 	];
 }
 
-export function getImportantDatesSectionItems(shouldShowImportantDatesSection, crownDevelopmentFields) {
+/**
+ * Maps section items for the 'Important Dates' section
+ */
+export function getImportantDatesSectionItems(
+	shouldShowImportantDatesSection: boolean,
+	crownDevelopmentFields: CrownDevelopmentView
+): SectionItem[] | [] {
 	if (!shouldShowImportantDatesSection) {
 		return [];
 	}
@@ -126,7 +168,13 @@ export function getImportantDatesSectionItems(shouldShowImportantDatesSection, c
 	];
 }
 
-export function getProcedureDetailsSectionItems(shouldShowProcedureDetailsSection, crownDevelopmentFields) {
+/**
+ * Maps section items for the 'Procedure details' section, handling both inquiry and hearing procedure types and their relevant fields
+ */
+export function getProcedureDetailsSectionItems(
+	shouldShowProcedureDetailsSection: boolean,
+	crownDevelopmentFields: CrownDevelopmentView
+): SectionItem[] | [] {
 	if (!shouldShowProcedureDetailsSection) {
 		return [];
 	}
@@ -137,7 +185,7 @@ export function getProcedureDetailsSectionItems(shouldShowProcedureDetailsSectio
 				text: 'Procedure type'
 			},
 			value: {
-				text: crownDevelopmentFields.procedure
+				text: crownDevelopmentFields.procedure ?? ''
 			}
 		},
 		...(crownDevelopmentFields.isInquiry && crownDevelopmentFields.inquiryStatementsDate
@@ -215,7 +263,13 @@ export function getProcedureDetailsSectionItems(shouldShowProcedureDetailsSectio
 	];
 }
 
-export function getApplicationDecisionSectionItems(shouldShowApplicationDecisionSection, crownDevelopmentFields) {
+/**
+ * Maps section items for the 'Application decision' section, showing decision date and outcome if the application has been decided
+ */
+export function getApplicationDecisionSectionItems(
+	shouldShowApplicationDecisionSection: boolean,
+	crownDevelopmentFields: CrownDevelopmentView
+): SectionItem[] | [] {
 	if (!shouldShowApplicationDecisionSection) {
 		return [];
 	}
