@@ -9,7 +9,7 @@ import {
 	APPLICATION_TYPE_ID,
 	ORGANISATION_ROLES_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { getLinkedCaseId, hasLinkedCase as hasLinkedCaseFunction } from '@pins/crowndev-lib/util/linked-case.js';
+import { getLinkedCaseId, hasLinkedCase as hasLinkedCaseFunction } from '@pins/crowndev-lib/util/linked-case.ts';
 import { extractAgentContactFields, extractApplicantContactFields } from '../util/contact.js';
 import { getRecipientEmails } from '../view/notification.js';
 

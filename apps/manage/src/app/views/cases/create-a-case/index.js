@@ -12,7 +12,7 @@ import {
 import { JOURNEY_ID, createJourney, createJourneyV2 } from './journey.js';
 import { getQuestions } from './questions.js';
 import { buildSaveController, buildSuccessController } from './save.js';
-import { getSummaryWarningMessage } from '@pins/crowndev-lib/util/linked-case.js';
+import { getSummaryWarningMessage } from '@pins/crowndev-lib/util/linked-case.ts';
 import { removeApplicantContactsWhenOrganisationRemoved } from './session.js';
 
 /**
