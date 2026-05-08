@@ -19,9 +19,12 @@ export async function seedDev(dbClient: PrismaClient) {
 	const reference = `CROWN/2025/0000001`;
 	const upsertOperation = {
 		reference: reference,
+		description: 'Test case',
 		Type: { connect: { id: APPLICATION_TYPE_ID.PLANNING_PERMISSION } },
 		Lpa: { connect: { id: LOCAL_PLANNING_AUTHORITIES[0].id } },
-		Status: { connect: { id: APPLICATION_STATUS_ID.NEW } }
+		Status: { connect: { id: APPLICATION_STATUS_ID.NEW } },
+		expectedDateOfSubmission: new Date(),
+		containsDistressingContent: true
 	};
 	const crownDev = await dbClient.crownDevelopment.upsert({
 		where: { reference: reference },
