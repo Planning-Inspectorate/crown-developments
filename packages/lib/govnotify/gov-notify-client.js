@@ -1,5 +1,5 @@
 import { NotifyClient } from 'notifications-node-client';
-import { formatFee } from '../util/numbers.js';
+import { formatFee } from '../util/numbers.ts';
 
 /**
  * @typedef {import('./types.js').GovNotifyOptions} GovNotifyOptions
