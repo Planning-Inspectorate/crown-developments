@@ -1,5 +1,5 @@
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
-import { bytesToUnit } from '../util/numbers.js';
+import { bytesToUnit } from '../util/numbers.ts';
 import { CATEGORY_SHAREPOINT_TO_VALUE } from './categories.ts';
 
 // file properties to fetch for display

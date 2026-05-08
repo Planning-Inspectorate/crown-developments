@@ -1,8 +1,7 @@
 /**
- * @param {string} [str]
- * @returns {number|null}
+ *
  */
-export function toFloat(str) {
+export function toFloat(str: string): number | null {
 	if (str) {
 		return parseFloat(str);
 	}
@@ -13,7 +12,7 @@ export function toFloat(str) {
  * @param {string} [str]
  * @returns {number|null}
  */
-export function toInt(str) {
+export function toInt(str: string): number | null {
 	if (str) {
 		return parseInt(str);
 	}
@@ -25,12 +24,8 @@ const SIZES = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
 
 /**
  * Convert a number of bytes to a human-readable unit
- *
- * @param {number} bytes
- * @param {number} [decimalPoints]
- * @returns {string}
  */
-export function bytesToUnit(bytes, decimalPoints = 1) {
+export function bytesToUnit(bytes: number, decimalPoints: number = 1): string {
 	if (bytes === 0) return '0 Byte';
 
 	const i = Math.floor(Math.log(bytes) / Math.log(K_UNIT));
@@ -40,23 +35,19 @@ export function bytesToUnit(bytes, decimalPoints = 1) {
 
 /**
  * converts number strings to numbers or strings (for decimals), or returns null for empty strings
- * @returns {*|number|string|null}
- * @param value
  */
-export function parseNumberStringToNumber(value) {
+export function parseNumberStringToNumber(value: string | null | undefined): number | null {
 	if (value === '' || value === null || value === undefined) return null;
-	if (Array.isArray(value)) return value;
+
 	const num = Number(value);
-	return isNaN(num) ? value : num;
+	return isNaN(num) ? null : num;
 }
 
 /**
  *  Formats a fee value to two decimal places with commas.
  *  Accepts numbers or numeric strings.
- *  @param {number|string} fee
- *  @returns {string}
  */
-export function formatFee(fee) {
+export function formatFee(fee: number | string): string {
 	if (fee === null || fee === undefined || fee === '') return '';
 
 	const num = Number(String(fee).replace(/,/g, ''));
