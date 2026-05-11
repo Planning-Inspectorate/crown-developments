@@ -158,11 +158,18 @@ describe('save', () => {
 			};
 			const service = mockService();
 			service.appSharePointDrive = sharepointDrive;
-			service.isMultipleApplicantsLive = false;
 			const { db } = service;
 			const save = buildSaveController(service);
 			const answers = {
-				applicantEmail: 'applicant@test.com',
+				manageApplicantDetails: [{ id: 'org-1', organisationName: 'Test Applicant Org' }],
+				manageApplicantContactDetails: [
+					{
+						applicantContactOrganisation: 'org-1',
+						applicantContactEmail: 'applicant@test.com',
+						applicantFirstName: 'Test',
+						applicantLastName: 'User'
+					}
+				],
 				developmentDescription: 'Project One',
 				typeOfApplication: 'planning-permission-and-listed-building-consent',
 				lpaId: 'lpa-1'
@@ -197,11 +204,11 @@ describe('save', () => {
 			assert.strictEqual(sharepointDrive.addItemPermissions.mock.callCount(), 2);
 			assert.deepStrictEqual(sharepointDrive.addItemPermissions.mock.calls[0].arguments[1], {
 				role: 'write',
-				users: [{ email: answers.applicantEmail, id: '' }]
+				users: [{ email: answers.manageApplicantContactDetails[0].applicantContactEmail, id: '' }]
 			});
 			assert.deepStrictEqual(sharepointDrive.addItemPermissions.mock.calls[1].arguments[1], {
 				role: 'write',
-				users: [{ email: answers.applicantEmail, id: '' }]
+				users: [{ email: answers.manageApplicantContactDetails[0].applicantContactEmail, id: '' }]
 			});
 		});
 
@@ -236,10 +243,18 @@ describe('save', () => {
 			const save = buildSaveController(service);
 
 			const answers = {
+				manageApplicantDetails: [{ id: 'org-1', organisationName: 'Test Applicant Org' }],
+				manageApplicantContactDetails: [
+					{
+						applicantContactOrganisation: 'org-1',
+						applicantContactEmail: 'applicantEmail',
+						applicantFirstName: 'Test',
+						applicantLastName: 'User'
+					}
+				],
 				developmentDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
-				lpaId: 'lpa-1',
-				applicantEmail: 'applicantEmail'
+				lpaId: 'lpa-1'
 			};
 			const res = {
 				redirect: mock.fn(),
@@ -258,7 +273,7 @@ describe('save', () => {
 			assert.strictEqual(sharepointDrive.addItemPermissions.mock.callCount(), 1);
 			assert.deepStrictEqual(sharepointDrive.addItemPermissions.mock.calls[0].arguments[1], {
 				role: 'write',
-				users: [{ email: answers.applicantEmail, id: '' }]
+				users: [{ email: answers.manageApplicantContactDetails[0].applicantContactEmail, id: '' }]
 			});
 		});
 		it('should call copyDriveItem and grant write access to the applicant and agent when sharepoint is enabled and an agentEmail was provided', async () => {
@@ -292,11 +307,29 @@ describe('save', () => {
 			const save = buildSaveController(service);
 
 			const answers = {
+				manageApplicantDetails: [{ id: 'org-1', organisationName: 'Test Applicant Org' }],
+				manageApplicantContactDetails: [
+					{
+						applicantContactOrganisation: 'org-1',
+						applicantContactEmail: 'applicantEmail',
+						applicantFirstName: 'Test',
+						applicantLastName: 'User'
+					}
+				],
+				hasAgent: true,
+				agentOrganisationName: 'Test Agent Org',
+				manageAgentDetails: { id: 'agent-org-1', organisationName: 'Test Agent Org' },
+				manageAgentContactDetails: [
+					{
+						agentContactOrganisation: 'agent-org-1',
+						agentContactEmail: 'agentEmail',
+						agentFirstName: 'Agent',
+						agentLastName: 'User'
+					}
+				],
 				developmentDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
-				lpaId: 'lpa-1',
-				applicantEmail: 'applicantEmail',
-				agentEmail: 'agentEmail'
+				lpaId: 'lpa-1'
 			};
 			const res = {
 				redirect: mock.fn(),
@@ -316,8 +349,8 @@ describe('save', () => {
 			assert.deepStrictEqual(sharepointDrive.addItemPermissions.mock.calls[0].arguments[1], {
 				role: 'write',
 				users: [
-					{ email: answers.applicantEmail, id: '' },
-					{ email: answers.agentEmail, id: '' }
+					{ email: answers.manageApplicantContactDetails[0].applicantContactEmail, id: '' },
+					{ email: answers.manageAgentContactDetails[0].agentContactEmail, id: '' }
 				]
 			});
 		});
@@ -345,7 +378,7 @@ describe('save', () => {
 				})
 			};
 			const notifyClient = {
-				sendAcknowledgePreNotification: mock.fn()
+				sendAcknowledgePreNotificationToMany: mock.fn()
 			};
 			const service = mockService();
 			service.appSharePointDrive = sharepointDrive;
@@ -357,20 +390,25 @@ describe('save', () => {
 				session: {
 					forms: {
 						'create-a-case': {
-							hasAgent: false,
-							applicantEmail: 'applicantEmail@mail.com',
-							agentEmail: 'agentEmail@mail.com'
+							hasAgent: false
 						}
 					}
 				}
 			};
 			const answers = {
+				manageApplicantDetails: [{ id: 'org-1', organisationName: 'Test Applicant Org' }],
+				manageApplicantContactDetails: [
+					{
+						applicantContactOrganisation: 'org-1',
+						applicantContactEmail: 'applicantEmail@mail.com',
+						applicantFirstName: 'Test',
+						applicantLastName: 'User'
+					}
+				],
 				developmentDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
 				lpaId: 'lpa-1',
-				hasAgent: false,
-				applicantEmail: 'applicantEmail@mail.com',
-				agentEmail: 'agentEmail@mail.com'
+				hasAgent: false
 			};
 			const res = {
 				redirect: mock.fn(),
@@ -384,9 +422,9 @@ describe('save', () => {
 			await save(req, res, mock.fn());
 
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
-			assert.strictEqual(notifyClient.sendAcknowledgePreNotification.mock.callCount(), 1);
-			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotification.mock.calls[0].arguments, [
-				'applicantEmail@mail.com',
+			assert.strictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.callCount(), 1);
+			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.calls[0].arguments, [
+				['applicantEmail@mail.com'],
 				{
 					reference: mockReference,
 					sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id',
@@ -394,7 +432,7 @@ describe('save', () => {
 				}
 			]);
 		});
-		it('should send email to the agent when there is an agent on the case', async () => {
+		it('should send emails to agent contacts when there is an agent on the case', async () => {
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
 				getItemsByPath: mock.fn(() => {
@@ -418,7 +456,7 @@ describe('save', () => {
 				})
 			};
 			const notifyClient = {
-				sendAcknowledgePreNotification: mock.fn()
+				sendAcknowledgePreNotificationToMany: mock.fn()
 			};
 			const service = mockService();
 			service.appSharePointDrive = sharepointDrive;
@@ -429,20 +467,35 @@ describe('save', () => {
 				session: {
 					forms: {
 						'create-a-case': {
-							hasAgent: true,
-							applicantEmail: 'applicantEmail@mail.com',
-							agentEmail: 'agentEmail@mail.com'
+							hasAgent: true
 						}
 					}
 				}
 			};
 			const answers = {
+				manageApplicantDetails: [{ id: 'org-1', organisationName: 'Test Applicant Org' }],
+				manageApplicantContactDetails: [
+					{
+						applicantContactOrganisation: 'org-1',
+						applicantContactEmail: 'applicantEmail@mail.com',
+						applicantFirstName: 'Test',
+						applicantLastName: 'User'
+					}
+				],
+				hasAgent: true,
+				agentOrganisationName: 'Test Agent Org',
+				manageAgentDetails: { id: 'agent-org-1', organisationName: 'Test Agent Org' },
+				manageAgentContactDetails: [
+					{
+						agentContactOrganisation: 'agent-org-1',
+						agentContactEmail: 'agentEmail@mail.com',
+						agentFirstName: 'Agent',
+						agentLastName: 'User'
+					}
+				],
 				developmentDescription: 'Project One',
 				typeOfApplication: 'application-type-1',
-				lpaId: 'lpa-1',
-				hasAgent: true,
-				applicantEmail: 'applicantEmail@mail.com',
-				agentEmail: 'agentEmail@mail.com'
+				lpaId: 'lpa-1'
 			};
 			const res = {
 				redirect: mock.fn(),
@@ -456,9 +509,9 @@ describe('save', () => {
 			await save(req, res, mock.fn());
 
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
-			assert.strictEqual(notifyClient.sendAcknowledgePreNotification.mock.callCount(), 1);
-			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotification.mock.calls[0].arguments, [
-				'agentEmail@mail.com',
+			assert.strictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.callCount(), 1);
+			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.calls[0].arguments, [
+				['agentEmail@mail.com', 'applicantEmail@mail.com'],
 				{
 					reference: mockReference,
 					sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id',
@@ -491,22 +544,17 @@ describe('save', () => {
 				link: { webUrl: 'https://sharepoint.com/:f:/s/site/lbc_link' }
 			}));
 			const notifyClient = {
-				sendAcknowledgePreNotification: mock.fn()
+				sendAcknowledgePreNotificationToMany: mock.fn()
 			};
 			const service = mockService();
 			service.appSharePointDrive = sharepointDrive;
 			service.notifyClient = notifyClient;
-			service.isMultipleApplicantsLive = false;
 			const save = buildSaveController(service);
 
 			const req = {
 				session: {
 					forms: {
-						'create-a-case': {
-							hasAgent: false,
-							applicantEmail: 'applicantEmail@mail.com',
-							agentEmail: 'agentEmail@mail.com'
-						}
+						'create-a-case': {}
 					}
 				}
 			};
@@ -514,9 +562,16 @@ describe('save', () => {
 				developmentDescription: 'Project One',
 				typeOfApplication: 'planning-permission-and-listed-building-consent',
 				lpaId: 'lpa-1',
-				hasAgent: false,
-				applicantEmail: 'applicantEmail@mail.com',
-				agentEmail: 'agentEmail@mail.com'
+				hasAgent: 'no',
+				manageApplicantDetails: [{ id: 'org-1', organisationName: 'Test Org' }],
+				manageApplicantContactDetails: [
+					{
+						applicantContactOrganisation: 'org-1',
+						applicantContactEmail: 'applicantEmail@mail.com',
+						applicantFirstName: 'Test',
+						applicantLastName: 'User'
+					}
+				]
 			};
 			const res = {
 				redirect: mock.fn(),
@@ -530,17 +585,17 @@ describe('save', () => {
 			await save(req, res, mock.fn());
 
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
-			assert.strictEqual(notifyClient.sendAcknowledgePreNotification.mock.callCount(), 2);
-			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotification.mock.calls[0].arguments, [
-				'applicantEmail@mail.com',
+			assert.strictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.callCount(), 2);
+			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.calls[0].arguments, [
+				['applicantEmail@mail.com'],
 				{
 					reference: mockReference,
 					sharePointLink: 'https://sharepoint.com/:f:/s/site/planning_link',
 					isLbcCase: false
 				}
 			]);
-			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotification.mock.calls[1].arguments, [
-				'applicantEmail@mail.com',
+			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.calls[1].arguments, [
+				['applicantEmail@mail.com'],
 				{
 					reference: `${mockReference}/LBC`,
 					sharePointLink: 'https://sharepoint.com/:f:/s/site/lbc_link',
