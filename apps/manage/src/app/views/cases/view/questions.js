@@ -769,7 +769,7 @@ export function getQuestions(
 					{
 						text: 'Remove and save',
 						type: 'submit',
-						formaction: 'pre-inquiry-meeting-date/remove'
+						formaction: 'inquiry-pre-meeting-date/remove'
 					}
 				]
 			}
