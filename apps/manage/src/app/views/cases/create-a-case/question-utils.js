@@ -2,7 +2,7 @@ import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator
 import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
 import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
 import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
-import { camelCaseToUrlCase, sentenceCase } from '@pins/crowndev-lib/util/string.js';
+import { camelCaseToUrlCase, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.js';
 import EmailValidator from '@planning-inspectorate/dynamic-forms/src/validator/email-validator.js';

@@ -1,5 +1,5 @@
 import { applicationLinks } from '../view-model.ts';
-import { sortByField } from '@pins/crowndev-lib/util/array.js';
+import { combineComparators, sortByField, sortByFileName } from '@pins/crowndev-lib/util/array.ts';
 import { loadPublishedApplicationOr404, shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import { publishedFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { getDocuments } from '@pins/crowndev-lib/documents/get.js';
@@ -29,7 +29,7 @@ export function buildApplicationDocumentsPage(service) {
 			folderPath,
 			logger,
 			id,
-			sortFn: sortByField('lastModifiedDateTime', true),
+			sortFn: combineComparators([sortByField('createdDateTime', true), sortByFileName('name')]),
 			metaDataFields: ['Distressing']
 		});
 

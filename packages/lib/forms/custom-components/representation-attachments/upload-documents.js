@@ -3,7 +3,7 @@ import { fileAlreadyExistsInFolder, validateUploadedFile } from './document-vali
 import { FILE_PROPERTIES } from '../../../documents/view-model.js';
 import { isValidUuidFormat } from '../../../util/uuid.ts';
 import { notFoundHandler } from '../../../middleware/errors.js';
-import { sortByField } from '../../../util/array.js';
+import { sortByField } from '../../../util/array.ts';
 import { addSessionData } from '../../../util/session.js';
 import { getSubmittedForId } from '../../../util/questions.js';
 import { getApplicationNameFolder } from '../../../util/handle-attachments.js';

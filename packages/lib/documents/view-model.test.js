@@ -10,6 +10,7 @@ describe('view-model', () => {
 				name: 'Document 1',
 				size: 2048,
 				lastModifiedDateTime: '2025-02-13T16:56:00Z',
+				createdDateTime: '2025-02-14T16:56:00Z',
 				file: { mimeType: 'application/pdf' }
 			};
 			assert.deepStrictEqual(mapDriveItemToViewModel(driveItem), {
@@ -17,6 +18,7 @@ describe('view-model', () => {
 				name: 'Document 1',
 				size: '2 KB',
 				lastModified: '13 Feb 2025',
+				createdDate: '14 Feb 2025',
 				type: 'PDF',
 				distressing: false
 			});
@@ -26,6 +28,7 @@ describe('view-model', () => {
 				id: 'abc-123',
 				name: 'Document 1',
 				lastModifiedDateTime: '2025-02-13T16:56:00Z',
+				createdDateTime: '2025-02-14T16:56:00Z',
 				file: { mimeType: 'application/pdf' }
 			};
 			assert.deepStrictEqual(mapDriveItemToViewModel(driveItem), {
@@ -33,6 +36,7 @@ describe('view-model', () => {
 				name: 'Document 1',
 				size: undefined,
 				lastModified: '13 Feb 2025',
+				createdDate: '14 Feb 2025',
 				type: 'PDF',
 				distressing: false
 			});
@@ -51,6 +55,7 @@ describe('view-model', () => {
 				name: 'Document 1',
 				size: 2048,
 				lastModifiedDateTime: '2025-02-13T16:56:00Z',
+				createdDateTime: '2025-02-14T16:56:00Z',
 				file: { mimeType: 'application/pdf' },
 				listItem: {
 					fields: {
@@ -63,6 +68,7 @@ describe('view-model', () => {
 				name: 'Document 1',
 				size: '2 KB',
 				lastModified: '13 Feb 2025',
+				createdDate: '14 Feb 2025',
 				type: 'PDF',
 				distressing: true
 			});
@@ -73,6 +79,7 @@ describe('view-model', () => {
 				name: 'Document 1',
 				size: 2048,
 				lastModifiedDateTime: '2025-02-13T16:56:00Z',
+				createdDateTime: '2025-02-14T16:56:00Z',
 				file: { mimeType: 'application/pdf' },
 				listItem: {
 					fields: {
@@ -85,6 +92,7 @@ describe('view-model', () => {
 				name: 'Document 1',
 				size: '2 KB',
 				lastModified: '13 Feb 2025',
+				createdDate: '14 Feb 2025',
 				type: 'PDF',
 				distressing: false
 			});
@@ -95,6 +103,7 @@ describe('view-model', () => {
 				name: 'Document 1',
 				size: 2048,
 				lastModifiedDateTime: '2025-02-13T16:56:00Z',
+				createdDateTime: '2025-02-14T16:56:00Z',
 				file: { mimeType: 'application/pdf' },
 				listItem: {
 					fields: {
@@ -107,6 +116,7 @@ describe('view-model', () => {
 				name: 'Document 1',
 				size: '2 KB',
 				lastModified: '13 Feb 2025',
+				createdDate: '14 Feb 2025',
 				type: 'PDF',
 				distressing: false
 			});

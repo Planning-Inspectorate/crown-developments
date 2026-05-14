@@ -203,7 +203,8 @@ describe('controller', () => {
 					type: 'Image',
 					distressing: true,
 					size: undefined,
-					lastModified: ''
+					lastModified: '',
+					createdDate: ''
 				}
 			);
 			assert.deepStrictEqual(
@@ -214,7 +215,8 @@ describe('controller', () => {
 					type: 'PDF',
 					distressing: false,
 					size: undefined,
-					lastModified: ''
+					lastModified: '',
+					createdDate: ''
 				}
 			);
 		});
@@ -255,7 +257,7 @@ describe('controller', () => {
 			assert.strictEqual(renderedDocs.length, 3);
 			assert.deepStrictEqual(
 				renderedDocs.map((doc) => doc.name),
-				['Test Report', 'Statement test', 'TEST FILE']
+				['Statement test', 'TEST FILE', 'Test Report']
 			);
 		});
 

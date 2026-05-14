@@ -2,7 +2,7 @@ import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/l
 import { bytesToUnit } from '../util/numbers.js';
 
 // file properties to fetch for display
-export const FILE_PROPERTIES = Object.freeze(['file', 'id', 'lastModifiedDateTime', 'name', 'size']);
+export const FILE_PROPERTIES = Object.freeze(['file', 'id', 'lastModifiedDateTime', 'createdDateTime', 'name', 'size']);
 
 /**
  * @param {import('@microsoft/microsoft-graph-types').DriveItem} driveItem
@@ -17,6 +17,7 @@ export function mapDriveItemToViewModel(driveItem) {
 		id: driveItem.id,
 		name: driveItem.name,
 		size: driveItem.size && bytesToUnit(driveItem.size, 0),
+		createdDate: formatDateForDisplay(driveItem.createdDateTime),
 		lastModified: formatDateForDisplay(driveItem.lastModifiedDateTime),
 		type: mapMimeTypeToDisplayName(driveItem.file?.mimeType),
 		distressing: isDistressingContent(driveItem?.listItem?.fields)

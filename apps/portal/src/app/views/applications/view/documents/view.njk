@@ -69,7 +69,8 @@
                                             </a>
                                         </div>
                                         <div class="document-list__meta-data">
-                                            <div>{{ document.lastModified }}</div>
+                                            {# Created date is the date it is published, newer being publish more recently #}
+                                            <div>{{ document.createdDate }}</div>
                                             <div>{{ document.type }}</div>
                                             <div>{{ document.size }}</div>
                                         </div>
