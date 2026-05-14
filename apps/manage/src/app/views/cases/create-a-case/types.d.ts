@@ -27,16 +27,7 @@ export interface CreateCaseAnswers {
 	lpaId?: string;
 	hasSecondaryLpa?: YesNo;
 	secondaryLpaId?: string;
-	// TODO single applicant/agent when we fully switch over to V2 CROWN-1509
-	applicantName?: string;
-	applicantAddress?: Address;
-	applicantEmail?: string;
-	applicantTelephoneNumber?: string;
 	hasAgent?: YesNo;
-	agentName?: string;
-	agentAddress?: Address;
-	agentEmail?: string;
-	agentTelephoneNumber?: string;
 	siteAddress?: Address;
 	siteNorthing?: string;
 	siteEasting?: string;
@@ -46,8 +37,7 @@ export interface CreateCaseAnswers {
 	agentOrganisationName?: string;
 	agentOrganisationAddress?: Address;
 	manageAgentContactDetails?: AgentContact[];
-	// TODO make this required when we fully switch over to V2 CROWN-1509
-	manageApplicantDetails?: ApplicantOrganisation[];
+	manageApplicantDetails: ApplicantOrganisation[];
 	manageApplicantContactDetails?: ApplicantContact[];
 	containsDistressingContent?: YesNo;
 }

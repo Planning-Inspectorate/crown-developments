@@ -269,10 +269,8 @@ function extractAgentParty(answers) {
 		return null;
 	}
 
-	// For the old flow - hasAgent might be true without multiple agent contacts
-	// TODO - throw error after migration CROWN-1509
 	if (!hasAnswers(answers, 'manageAgentContactDetails')) {
-		return null;
+		throw new Error('Agent contacts are required when the case has an agent');
 	}
 
 	if (!hasAnswers(answers, 'agentOrganisationName')) {
@@ -448,38 +446,6 @@ export function toCreateInput(answers, reference, subType, options = {}) {
 		}
 	}
 
-	// TODO remove once multiple entities complete CROWN-1509
-	if (hasAnswersBeginningWith(answers, ORGANISATION_ROLES_ID.APPLICANT)) {
-		input.ApplicantContact = {
-			create: {
-				orgName: answers.applicantName,
-				email: answers.applicantEmail,
-				telephoneNumber: answers.applicantTelephoneNumber
-			}
-		};
-		if (answers.applicantAddress) {
-			input.ApplicantContact.create.Address = {
-				create: toAddressInput(answers.applicantAddress)
-			};
-		}
-	}
-
-	// TODO remove once multiple entities complete CROWN-1509
-	if (hasAnswersBeginningWith(answers, ORGANISATION_ROLES_ID.AGENT)) {
-		input.AgentContact = {
-			create: {
-				orgName: answers.agentName,
-				email: answers.agentEmail,
-				telephoneNumber: answers.agentTelephoneNumber
-			}
-		};
-		if (answers.agentAddress) {
-			input.AgentContact.create.Address = {
-				create: toAddressInput(answers.agentAddress)
-			};
-		}
-	}
-
 	return input;
 }
 
@@ -495,20 +461,6 @@ function toAddressInput(address) {
 		county: address.county,
 		postcode: address.postcode
 	};
-}
-
-/**
- * Have any of the answers with a given prefix got an answer?
- * TODO: Because this uses startsWith(prefix) it doesn't infer types well - replace with hasAnswers where possible CROWN-1509
- *
- * @param {import('./types.d.ts').CreateCaseAnswers} answers
- * @param {string} prefix
- * @returns {boolean}
- */
-function hasAnswersBeginningWith(answers, prefix) {
-	return Object.entries(answers)
-		.filter(([k]) => k.startsWith(prefix))
-		.some(([, v]) => Boolean(v));
 }
 
 /**
@@ -576,34 +528,6 @@ function idFromReference(reference = '') {
 }
 
 /**
- *
- * @param {SharePointDrive} sharePointDrive
- * @param {import('./types.d.ts').CreateCaseAnswers} answers
- * @param {string} folderName
- * @returns {Promise<import('@microsoft/microsoft-graph-types').Permission>}
- */
-async function grantUsersAccess(sharePointDrive, answers, folderName) {
-	const applicantReceivedFolderId = await getSharePointReceivedPathId(sharePointDrive, {
-		caseRootName: folderName,
-		user: 'Applicant'
-	});
-
-	const users = [];
-	if (hasAnswersBeginningWith(answers, ORGANISATION_ROLES_ID.APPLICANT) && answers.applicantEmail) {
-		users.push({ email: answers.applicantEmail, id: '' });
-	}
-
-	if (hasAnswersBeginningWith(answers, ORGANISATION_ROLES_ID.AGENT) && answers.agentEmail) {
-		users.push({ email: answers.agentEmail, id: '' });
-	}
-
-	await sharePointDrive.addItemPermissions(applicantReceivedFolderId, { role: 'write', users: users });
-	// todo: Add LPA permissions too.
-
-	return await sharePointDrive.fetchUserInviteLink(applicantReceivedFolderId);
-}
-
-/**
  * Grant Sharepoint access to all relevant users for a case, including multiple applicants if applicable.
  *
  * @param {SharePointDrive} sharePointDrive
@@ -640,31 +564,6 @@ async function grantUsersAccessV2(sharePointDrive, answers, folderName) {
 	// todo: Add LPA permissions too.
 
 	return sharePointDrive.fetchUserInviteLink(applicantReceivedFolderId);
-}
-
-/**
- * TODO remove when multiple applicants is live CROWN-1509
- *
- * @param {SharePointDrive} sharePointDrive
- * @param {string} caseTemplateId
- * @param {string} folderName
- * @param {import('./types.d.ts').CreateCaseAnswers} answers
- * @returns {Promise<NotificationDataOne>}
- */
-async function createCaseSharePointActions(sharePointDrive, caseTemplateId, folderName, answers) {
-	// Copy template folder structure and rename to %folderName%
-	await sharePointDrive.copyDriveItem({
-		copyItemId: caseTemplateId,
-		newItemName: folderName
-	});
-	// Grant write access to applicant and agent as required
-	const inviteLink = await grantUsersAccess(sharePointDrive, answers, folderName);
-
-	return {
-		kind: 'one',
-		recipientEmail: yesNoToBoolean(answers.hasAgent) ? answers.agentEmail : answers.applicantEmail,
-		sharePointLink: inviteLink.link.webUrl
-	};
 }
 
 /**
@@ -757,17 +656,10 @@ async function getNotificationData(service, appSharePointDrive, reference, answe
 		);
 	}
 
-	return service.isMultipleApplicantsLive
-		? await createCaseSharePointActionsV2(
-				appSharePointDrive,
-				service.sharePointCaseTemplateId,
-				caseReferenceToFolderName(reference),
-				answers
-			)
-		: await createCaseSharePointActions(
-				appSharePointDrive,
-				service.sharePointCaseTemplateId,
-				caseReferenceToFolderName(reference),
-				answers
-			);
+	return await createCaseSharePointActionsV2(
+		appSharePointDrive,
+		service.sharePointCaseTemplateId,
+		caseReferenceToFolderName(reference),
+		answers
+	);
 }

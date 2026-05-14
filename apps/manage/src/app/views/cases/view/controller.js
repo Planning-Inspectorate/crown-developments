@@ -183,8 +183,6 @@ export function buildGetJourneyMiddleware(service, isQuestionView = false) {
 		const crownDevelopment = await db.crownDevelopment.findUnique({
 			where: { id },
 			include: {
-				ApplicantContact: { include: { Address: true } },
-				AgentContact: { include: { Address: true } },
 				Category: { include: { ParentCategory: true } },
 				Event: true,
 				Lpa: { include: { Address: true } },

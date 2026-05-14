@@ -51,13 +51,6 @@ model CrownDevelopment {
   Organisations            CrownDevelopmentToOrganisation[]
 
   /// Applicant contact details (To be migrated to ApplicantContacts)
-  ///TODO: Remove applicantContactId and ApplicantContact relation after migration CROWN-1509
-  applicantContactId                  String?                     @db.UniqueIdentifier
-  ApplicantContact                    Contact?                    @relation("ApplicantContact", fields: [applicantContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-  /// Agent contact details (To be migrated to AgentContacts)
-  ///TODO: Remove agentContactId and AgentContact relation after migration CROWN-1509
-  agentContactId                      String?                     @db.UniqueIdentifier
-  AgentContact                        Contact?                    @relation("AgentContact", fields: [agentContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   /// Address of the site, if known
   siteAddressId                       String?                     @db.UniqueIdentifier
   SiteAddress                         Address?                    @relation(fields: [siteAddressId], references: [id], onUpdate: NoAction, onDelete: NoAction)
@@ -220,16 +213,11 @@ model Contact {
   ContactPreference   ContactPreference? @relation(fields: [contactPreferenceId], references: [id])
 
   /// Used for written-representation on behalf of an organisation
-  orgName        String?
-  jobTitleOrRole String?
+  orgName                          String?
+  jobTitleOrRole                   String?
   /// Used for written-representation contact preference 'post'
-  addressId      String?  @db.UniqueIdentifier
-  Address        Address? @relation(fields: [addressId], references: [id])
-
-  /// TODO: Remove  after migrating CrownDevelopment applicant and agent contacts to OrganisationToContact CROWN-1509
-  CrownDevelopmentApplicant CrownDevelopment[] @relation("ApplicantContact")
-  CrownDevelopmentAgent     CrownDevelopment[] @relation("AgentContact")
-
+  addressId                        String?                 @db.UniqueIdentifier
+  Address                          Address?                @relation(fields: [addressId], references: [id])
   RepresentationSubmittedByContact Representation[]        @relation("RepresentationSubmittedByContact")
   Representation                   Representation[]        @relation("RepresentedContact")
   NotifyEmail                      NotifyEmail[]
