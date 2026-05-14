@@ -1,4 +1,4 @@
-import { sentenceCase } from '@pins/crowndev-lib/util/string.js';
+import { sentenceCase } from '@pins/crowndev-lib/util/string.ts';
 import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
 
 /**

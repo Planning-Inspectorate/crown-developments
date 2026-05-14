@@ -23,6 +23,7 @@ describe('get', () => {
 				name: 'File 1',
 				type: 'Image',
 				lastModified: '',
+				createdDate: '',
 				size: undefined,
 				distressing: false
 			});

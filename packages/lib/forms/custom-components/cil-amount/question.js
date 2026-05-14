@@ -1,4 +1,4 @@
-import { sentenceCase } from '../../../util/string.js';
+import { sentenceCase } from '../../../util/string.ts';
 import MonetaryInputQuestion from '../monetary-input/question.js';
 
 export default class CILAmountQuestion extends MonetaryInputQuestion {
