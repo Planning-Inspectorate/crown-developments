@@ -7,7 +7,7 @@ import { buildRouter } from './router.js';
 import { configureNunjucks } from './nunjucks.js';
 import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.js';
 import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.ts';
+import { initSessionMiddlewareWithCsrf } from '@pins/crowndev-lib/util/session.ts';
 import { addLocalsConfiguration } from '#util/config-middleware.js';
 import { cleanEmptyQueryParams, trimEmptyQuery } from '@pins/crowndev-lib/middleware/query-middleware.js';
 
@@ -31,7 +31,7 @@ export function getApp(service) {
 	app.use(bodyParser.urlencoded({ extended: true }));
 	app.use(bodyParser.json());
 
-	const sessionMiddleware = initSessionMiddleware({
+	const sessionMiddleware = initSessionMiddlewareWithCsrf({
 		redis: service.redisClient,
 		secure: service.secureSession,
 		secret: service.sessionSecret

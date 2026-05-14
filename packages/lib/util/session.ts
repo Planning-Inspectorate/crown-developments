@@ -1,6 +1,7 @@
 import session from 'express-session';
+import lusca from 'lusca';
 import type { RedisClient } from '../redis/redis-client.js';
-import type { Request } from 'express';
+import type { Request, RequestHandler } from 'express';
 
 type SessionFieldData = Record<string, Record<string, unknown>>;
 type SessionRecord = Record<string, SessionFieldData>;
@@ -13,7 +14,7 @@ function isUnsafeObjectKey(key: string): boolean {
 /**
  * Initialise session middleware, using Redis if available, otherwise falling back to in-memory store
  */
-export function initSessionMiddleware({
+function initSessionMiddleware({
 	redis,
 	secure,
 	secret
@@ -35,6 +36,17 @@ export function initSessionMiddleware({
 			maxAge: 86_400_000
 		}
 	});
+}
+
+/**
+ * Initialise session middleware with CSRF included
+ */
+export function initSessionMiddlewareWithCsrf(opts: {
+	redis: RedisClient | null;
+	secret: string;
+	secure: boolean;
+}): RequestHandler[] {
+	return [initSessionMiddleware(opts), lusca.csrf()];
 }
 
 /**
