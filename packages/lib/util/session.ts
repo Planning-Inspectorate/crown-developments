@@ -5,6 +5,11 @@ import type { Request } from 'express';
 type SessionFieldData = Record<string, Record<string, unknown>>;
 type SessionRecord = Record<string, SessionFieldData>;
 
+const UNSAFE_OBJECT_KEYS = new Set(['__proto__', 'prototype', 'constructor', 'proto']);
+function isUnsafeObjectKey(key: string): boolean {
+	return UNSAFE_OBJECT_KEYS.has(key);
+}
+
 /**
  * Initialise session middleware, using Redis if available, otherwise falling back to in-memory store
  */
@@ -44,6 +49,9 @@ export function addSessionData(
 	if (!req.session) {
 		throw new Error('request session required');
 	}
+	if (isUnsafeObjectKey(sessionField) || isUnsafeObjectKey(id)) {
+		throw new Error('unsafe session key');
+	}
 	// TODO extend express-session types for both apps CROWN-1603
 	const session = req.session as unknown as SessionRecord;
 	const field = session[sessionField] || (session[sessionField] = {});
@@ -64,6 +72,9 @@ export function readSessionData<T>(
 	if (!req.session) {
 		return false;
 	}
+	if (isUnsafeObjectKey(sessionField) || isUnsafeObjectKey(id) || isUnsafeObjectKey(field)) {
+		throw new Error('unsafe session key');
+	}
 	// TODO extend express-session types for both apps CROWN-1603
 	const session = req.session as unknown as SessionRecord;
 	const fieldProps = (session[sessionField] && session[sessionField][id]) || {};
@@ -82,16 +93,24 @@ export function clearSessionData(
 	if (!req.session) {
 		return;
 	}
+	if (isUnsafeObjectKey(sessionField) || isUnsafeObjectKey(id)) {
+		throw new Error('unsafe session key');
+	}
 	// TODO extend express-session types for both apps CROWN-1603
 	const session = req.session as unknown as SessionRecord;
 	if (fieldOrFields instanceof Array) {
 		fieldOrFields.forEach((field) => {
+			if (isUnsafeObjectKey(field) || isUnsafeObjectKey(id)) {
+				return;
+			}
 			const fieldProps = (session[sessionField] && session[sessionField][id]) || {};
 			delete fieldProps[field];
 		});
 		return;
 	}
-
+	if (isUnsafeObjectKey(fieldOrFields) || isUnsafeObjectKey(id)) {
+		return;
+	}
 	const fieldProps = (session[sessionField] && session[sessionField][id]) || {};
 	delete fieldProps[fieldOrFields];
 }
