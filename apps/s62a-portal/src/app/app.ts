@@ -45,7 +45,7 @@ export function createApp(service: PortalService): Express {
 
 	// Cache busting for CSS
 	app.use((req, res, next) => {
-		res.locals.styleCss = manifest['style.css'];
+		res.locals.styleCss = manifest['style.css'] ?? 'style.css';
 		next();
 	});
 
