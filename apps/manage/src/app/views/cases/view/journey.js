@@ -1,21 +1,21 @@
-import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
-import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
 import {
+	Journey,
+	Section,
 	questionHasAnswer,
 	whenQuestionHasAnswer,
-	questionHasNonEmptyStringAnswer
-} from '@planning-inspectorate/dynamic-forms/src/components/utils/question-has-answer.js';
+	questionHasNonEmptyStringAnswer,
+	yesNoToBoolean
+} from '@planning-inspectorate/dynamic-forms';
 import {
 	APPLICATION_PROCEDURE_ID,
 	APPLICATION_SUB_TYPE_ID,
 	APPLICATION_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { ManageListSection } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-section.js';
 export const JOURNEY_ID = 'case-details';
 
-/** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} JourneyResponse */
-/** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question} Question */
+/** @typedef {import('@planning-inspectorate/dynamic-forms').JourneyResponse} JourneyResponse */
+/** @typedef {import('@planning-inspectorate/dynamic-forms').Question} Question */
 
 /**
  * @param {{[questionType: string]: Question}} questions
