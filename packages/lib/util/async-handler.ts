@@ -15,12 +15,19 @@ export type AsyncRequestHandler<
 	next?: core.NextFunction
 ) => Promise<void>;
 
+<<<<<<< HEAD
 export function asyncHandler<P, ResBody, ReqBody, ReqQuery, LocalsObj extends Record<string, unknown>>(
 	// supports async or sync handlers
 	requestHandler:
 		| RequestHandler<P, ResBody, ReqBody, ReqQuery, LocalsObj>
 		| AsyncRequestHandler<P, ResBody, ReqBody, ReqQuery, LocalsObj>
 ): RequestHandler<P, ResBody, ReqBody, ReqQuery, LocalsObj> {
+=======
+export function asyncHandler<A, B, C, D, E extends Record<string, unknown>>(
+	// supports async or sync handlers
+	requestHandler: RequestHandler<A, B, C, D, E> | AsyncRequestHandler<A, B, C, D, E>
+): RequestHandler<A, B, C, D, E> {
+>>>>>>> 65945c29 (feat(portal): add initial setup for S62A portal with environment configuration and routing)
 	return (request, response, next) => {
 		try {
 			const p = requestHandler(request, response, next);

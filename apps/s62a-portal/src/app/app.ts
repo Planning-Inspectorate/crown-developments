@@ -1,4 +1,4 @@
-import type { S62APortalService } from '#service';
+import type { PortalService } from '#service';
 import { configureNunjucks } from './nunjucks.ts';
 import { buildRouter } from './router.ts';
 import bodyParser from 'body-parser';
@@ -9,11 +9,10 @@ import {
 } from '@pins/crowndev-lib/middleware/csp-middleware.ts';
 import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.ts';
-import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.ts';
+import { initSessionMiddlewareWithCsrf } from '@pins/crowndev-lib/util/session.ts';
 import manifest from '../.static/manifest.json' with { type: 'json' };
-import { addLocalsConfiguration } from '../util/config-middleware.ts';
 
-export function createApp(service: S62APortalService): Express {
+export function createApp(service: PortalService): Express {
 	// create an express app, and configure it for our usage
 	const app = express();
 
@@ -25,7 +24,7 @@ export function createApp(service: S62APortalService): Express {
 	app.use(bodyParser.urlencoded({ extended: true }));
 	app.use(bodyParser.json());
 
-	const sessionMiddleware = initSessionMiddleware({
+	const sessionMiddleware = initSessionMiddlewareWithCsrf({
 		redis: service.redisClient,
 		secure: service.secureSession,
 		secret: service.sessionSecret
@@ -47,7 +46,7 @@ export function createApp(service: S62APortalService): Express {
 
 	// Cache busting for CSS
 	app.use((req, res, next) => {
-		res.locals.styleCss = manifest['style.css'] ?? 'style.css';
+		res.locals.styleCss = manifest['style.css'];
 		next();
 	});
 

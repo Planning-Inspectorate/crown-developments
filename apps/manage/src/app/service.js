@@ -31,11 +31,7 @@ export class ManageService {
 	 */
 	dbClient;
 	/**
-	 * @type {import('./audit/index.js').AuditService}
-	 */
-	audit;
-	/**
-	 * @type {import('@pins/crowndev-lib/redis/redis-client.ts').RedisClient|null}
+	 * @type {import('@pins/crowndev-lib/redis/redis-client').RedisClient|null}
 	 */
 	redisClient;
 	/**

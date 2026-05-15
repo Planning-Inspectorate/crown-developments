@@ -1,7 +1,7 @@
 import { Router as createRouter } from 'express';
 import { buildGetValidatedCaseMiddleware, buildPublishCase } from './controller.js';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import { buildGetJourneyMiddleware } from '../controller.ts';
+import { buildGetJourneyMiddleware } from '../controller.js';
 
 /**
  * @param {import('#service').ManageService} service

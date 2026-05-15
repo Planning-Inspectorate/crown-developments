@@ -27,6 +27,11 @@ export class BaseService {
 		return this.#config.cacheControl;
 	}
 
+	/**
+	 * Alias of dbClient
+	 *
+	 * @returns {import('@pins/crowndev-database/src/client/client.ts').PrismaClient}
+	 */
 	get db() {
 		return this.dbClient;
 	}
