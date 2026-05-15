@@ -73,7 +73,7 @@ export interface CrownDevelopmentViewModel {
 	lpaQuestionnaireSentSpecialEmailSent?: YesNo;
 	lpaQuestionnaireReceivedDate?: Date | string;
 	lpaQuestionnaireReceivedEmailSent?: YesNo;
-	publishDate?: Date | string;
+	publishDate?: Date;
 	pressNoticeDate?: Date | string;
 	neighboursNotifiedByLpaDate?: Date | string;
 	siteNoticeByLpaDate?: Date | string;
@@ -151,6 +151,8 @@ export interface CrownDevelopmentViewModel {
 	sittingDuration?: number | string;
 	reportingDuration?: number | string;
 }
+
+export type CrownJourneyAnswers = Partial<CrownDevelopmentViewModel>;
 
 export type CrownDevelopmentViewModelFields = keyof CrownDevelopmentViewModel;
 
