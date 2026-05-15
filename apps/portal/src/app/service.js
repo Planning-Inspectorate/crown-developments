@@ -51,7 +51,9 @@ export class PortalService {
 				scopes: ['https://graph.microsoft.com/.default']
 			})
 		});
-
+		if (!config.sharePoint?.driveId) {
+			throw new Error('SharePoint driveId is missing');
+		}
 		this.sharePointDrive = new SharePointDrive(graphClient, config.sharePoint.driveId);
 		this.notifyClient = initGovNotify(config.govNotify, logger);
 	}

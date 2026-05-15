@@ -21,7 +21,7 @@ export function addLocalsConfiguration(service: S62APortalService): Handler {
 
 		res.locals.config = {
 			cspNonce: res.locals.cspNonce as string,
-			headerTitle: 'Find a Section 62A Portal',
+			headerTitle: 'A template service',
 			inBeta: false,
 			footerLinks: [
 				{
@@ -51,6 +51,13 @@ export function addLocalsConfiguration(service: S62APortalService): Handler {
 				current: link.href === path
 			})),
 			serviceFeedbackUrl: '#'
+=======
+			primaryNavigationLinks: links.map((l) => {
+				const link = { current: false, ...l };
+				link.current = link.href === path;
+				return link;
+			})
+>>>>>>> 65945c29 (feat(portal): add initial setup for S62A portal with environment configuration and routing)
 		};
 		next();
 	};

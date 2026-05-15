@@ -11,7 +11,7 @@ COPY package.json .
 COPY package-lock.json .
 
 COPY packages ./packages
-COPY apps/s62a-portal ./apps/s62a-portal
+COPY apps/portal ./apps/portal
 
 RUN npm ci --loglevel notice --workspace=s62a-portal --ignore-scripts
 
