@@ -83,12 +83,12 @@
             {% set uploadForm = "upload-form" %}
 
             <form id={{ uploadForm }} method="post" enctype="multipart/form-data" action="{{ currentUrl }}/upload-documents">
+                <input type="hidden" name="_csrf" value="{{ _csrf }}">
                 <div id="uploadingBar" class="govuk-notification-banner govuk-notification-banner--info uploading-bar--hidden" aria-live="polite" aria-hidden="true" role="region">
                     <div class="govuk-notification-banner__content">
                         <strong>Uploading...</strong>
                     </div>
                 </div>
-                <input type="hidden" name="_csrf" value="{{ _csrf }}">
                 {{ govukFileUpload({
                     id: question.fieldName,
                     name: "files[]",
