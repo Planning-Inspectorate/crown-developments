@@ -1,5 +1,5 @@
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
-import { crownDevelopmentToViewModel } from './view-model.js';
+import { crownDevelopmentToViewModel } from './view-model.ts';
 import {
 	BOOLEAN_OPTIONS,
 	yesNoToBoolean

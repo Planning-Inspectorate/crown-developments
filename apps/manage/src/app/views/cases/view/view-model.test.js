@@ -1,18 +1,18 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { crownDevelopmentToViewModel, editsToDatabaseUpdates } from './view-model.js';
+import { crownDevelopmentToViewModel, editsToDatabaseUpdates } from './view-model.ts';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 /**
- * @typedef {import('@pins/crowndev-database').Prisma.CrownDevelopmentGetPayload<{
+ * @typedef {import('@pins/crowndev-database/src/client/client.ts').Prisma.CrownDevelopmentGetPayload<{
  * 	include: { ApplicantContact: { include: { Address: true } }, AgentContact: { include: { Address: true } }, Event: true, LpaContact: { include: { Address: true } } }}>} CrownDevelopment
- * @typedef {import('./types.js').CrownDevelopmentViewModel} CrownDevelopmentViewModel
+ * @typedef {import('./view-model').CrownDevelopmentSaveModel} CrownDevelopmentSaveModel
  */
 
 describe('view-model', () => {
 	describe('crownDevelopmentToViewModel', () => {
 		it(`should use created date if no updated date`, () => {
-			/** @type {CrownDevelopment} */
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
@@ -22,22 +22,20 @@ describe('view-model', () => {
 			assert.strictEqual(result.updatedDate, input.createdDate);
 		});
 		it(`should map reps period`, () => {
-			/** @type {CrownDevelopment} */
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
 				createdDate: new Date(),
-				representationsPeriodStartDate: 'date-1',
-				representationsPeriodEndDate: 'date-2'
+				representationsPeriodStartDate: new Date('2025-01-01T00:00Z'),
+				representationsPeriodEndDate: new Date('2025-01-31T00:00Z')
 			};
 			const result = crownDevelopmentToViewModel(input);
 			assert.deepStrictEqual(result.representationsPeriod, {
-				start: 'date-1',
-				end: 'date-2'
+				start: new Date('2025-01-01T00:00Z'),
+				end: new Date('2025-01-31T00:00Z')
 			});
 		});
 		it(`should map site address if present`, () => {
-			/** @type {CrownDevelopment} */
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
@@ -59,7 +57,6 @@ describe('view-model', () => {
 			});
 		});
 		it(`should map category id if present`, () => {
-			/** @type {CrownDevelopment} */
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
@@ -72,7 +69,6 @@ describe('view-model', () => {
 			assert.deepStrictEqual(result.subCategoryId, 'cat-1');
 		});
 		it(`should map LPA fields`, () => {
-			/** @type {CrownDevelopment} */
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
@@ -89,7 +85,6 @@ describe('view-model', () => {
 			assert.strictEqual(result.lpaAddress, undefined);
 		});
 		it(`should map LPA address if present`, () => {
-			/** @type {CrownDevelopment} */
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
@@ -118,7 +113,6 @@ describe('view-model', () => {
 			});
 		});
 		it(`should ignore contacts if not present`, () => {
-			/** @type {CrownDevelopment} */
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
@@ -129,7 +123,6 @@ describe('view-model', () => {
 			assert.strictEqual(result.agentContactName, undefined);
 		});
 		it('should map applicant if present', () => {
-			/** @type {CrownDevelopment} */
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
@@ -143,7 +136,6 @@ describe('view-model', () => {
 			assert.strictEqual(result.agentContactName, undefined);
 		});
 		it('should map contacts if they exist', () => {
-			/** @type {CrownDevelopment} */
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
@@ -161,7 +153,6 @@ describe('view-model', () => {
 			assert.strictEqual(result.agentContactEmail, 'agent@example.com');
 		});
 		it('should map contact address if they exist', () => {
-			/** @type {CrownDevelopment} */
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
@@ -197,7 +188,6 @@ describe('view-model', () => {
 		});
 
 		it('should map agent organisation address id if present', () => {
-			/** @type {CrownDevelopment} */
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
@@ -250,7 +240,6 @@ describe('view-model', () => {
 			});
 		});
 		it('should not map event if not hearing or inquiry', () => {
-			/** @type {CrownDevelopment} */
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
@@ -260,20 +249,38 @@ describe('view-model', () => {
 			assert.strictEqual(result.hearingDate, undefined);
 			assert.strictEqual(result.inquiryDate, undefined);
 		});
-		it('should not map event if written-reps', () => {
-			/** @type {CrownDevelopment} */
+		it('should not map event fields if written-reps but should map procedureNotificationDate', () => {
+			const procedureNotificationDate = new Date('2025-03-01T00:00:00Z');
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
 				procedureId: APPLICATION_PROCEDURE_ID.WRITTEN_REPS,
+				procedureNotificationDate,
 				Event: { date: 'd-1', venue: 'Some Place' }
 			};
 			const result = crownDevelopmentToViewModel(input);
+			assert.strictEqual(result.writtenRepsProcedureNotificationDate, procedureNotificationDate);
 			assert.strictEqual(result.hearingDate, undefined);
 			assert.strictEqual(result.inquiryDate, undefined);
+			assert.strictEqual(result.writtenRepsDate, undefined);
+			assert.strictEqual(result.writtenRepsVenue, undefined);
+		});
+		it('should not map event fields if no event exists but should map procedureNotificationDate', () => {
+			const procedureNotificationDate = new Date('2025-04-01T00:00:00Z');
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				procedureId: APPLICATION_PROCEDURE_ID.INQUIRY,
+				procedureNotificationDate,
+				Event: null
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.strictEqual(result.inquiryProcedureNotificationDate, procedureNotificationDate);
+			assert.strictEqual(result.inquiryDate, undefined);
+			assert.strictEqual(result.inquiryVenue, undefined);
 		});
 		it('should map hearing', () => {
-			/** @type {CrownDevelopment} */
+			const issuesReportPublishedDate = new Date('2025-06-01T00:00:00Z');
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
@@ -281,21 +288,42 @@ describe('view-model', () => {
 				Event: {
 					date: 'd-1',
 					venue: 'Some Place',
-					prepDuration: 'Prep: 2 days',
-					sittingDuration: 'Sitting: 0 days',
-					reportingDuration: 'Reporting: 1 days'
+					prepDuration: new Prisma.Decimal(2),
+					sittingDuration: new Prisma.Decimal(0),
+					reportingDuration: new Prisma.Decimal(1),
+					issuesReportPublishedDate
 				}
 			};
 			const result = crownDevelopmentToViewModel(input);
 			assert.strictEqual(result.hearingDate, 'd-1');
 			assert.strictEqual(result.hearingVenue, 'Some Place');
-			assert.strictEqual(result.hearingDurationPrep, 'Prep: 2 days');
-			assert.strictEqual(result.hearingDurationSitting, 'Sitting: 0 days');
-			assert.strictEqual(result.hearingDurationReporting, 'Reporting: 1 days');
+			assert.strictEqual(result.hearingDurationPrep, 2);
+			assert.strictEqual(result.hearingDurationSitting, 0);
+			assert.strictEqual(result.hearingDurationReporting, 1);
+			assert.strictEqual(result.hearingIssuesReportPublishedDate, issuesReportPublishedDate);
+		});
+		it('should set hearing duration to dash when all duration fields are null', () => {
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+				Event: {
+					date: 'd-1',
+					venue: 'Some Place',
+					prepDuration: null,
+					sittingDuration: null,
+					reportingDuration: null
+				}
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.strictEqual(result.hearingDuration, '-');
+			assert.strictEqual(result.hearingDurationPrep, undefined);
+			assert.strictEqual(result.hearingDurationSitting, undefined);
+			assert.strictEqual(result.hearingDurationReporting, undefined);
 		});
 
 		it('should map inquiry', () => {
-			/** @type {CrownDevelopment} */
+			const proofsOfEvidenceDate = new Date('2025-07-01T00:00:00Z');
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
@@ -303,22 +331,44 @@ describe('view-model', () => {
 				Event: {
 					date: 'd-1',
 					venue: 'Some Place',
-					prepDuration: 'Prep: 2 days',
-					sittingDuration: 'Sitting: 0 days',
-					reportingDuration: 'Reporting: 1 days',
-					preMeetingDate: '2025 01 01'
+					prepDuration: new Prisma.Decimal(2),
+					sittingDuration: new Prisma.Decimal(0),
+					reportingDuration: new Prisma.Decimal(1),
+					preMeetingDate: '2025 01 01',
+					proofsOfEvidenceDate
 				}
 			};
 			const result = crownDevelopmentToViewModel(input);
 			assert.strictEqual(result.inquiryDate, 'd-1');
 			assert.strictEqual(result.inquiryVenue, 'Some Place');
-			assert.strictEqual(result.inquiryDurationPrep, 'Prep: 2 days');
-			assert.strictEqual(result.inquiryDurationSitting, 'Sitting: 0 days');
-			assert.strictEqual(result.inquiryDurationReporting, 'Reporting: 1 days');
+			assert.strictEqual(result.inquiryDurationPrep, 2);
+			assert.strictEqual(result.inquiryDurationSitting, 0);
+			assert.strictEqual(result.inquiryDurationReporting, 1);
 			assert.strictEqual(result.inquiryPreMeetingDate, '2025 01 01');
+			assert.strictEqual(result.inquiryProofsOfEvidenceDate, proofsOfEvidenceDate);
+		});
+		it('should set inquiry duration to dash when all duration fields are null', () => {
+			const input = {
+				id: 'id-1',
+				referenceId: 'reference-id-1',
+				procedureId: APPLICATION_PROCEDURE_ID.INQUIRY,
+				Event: {
+					date: new Date('2025-07-01T00:00:00Z'),
+					venue: 'Some Place',
+					prepDuration: null,
+					sittingDuration: null,
+					reportingDuration: null
+				}
+			};
+			const result = crownDevelopmentToViewModel(input);
+			assert.deepStrictEqual(result.inquiryDate, new Date('2025-07-01T00:00:00Z'));
+			assert.strictEqual(result.inquiryVenue, 'Some Place');
+			assert.strictEqual(result.inquiryDuration, '-');
+			assert.strictEqual(result.inquiryDurationPrep, undefined);
+			assert.strictEqual(result.inquiryDurationSitting, undefined);
+			assert.strictEqual(result.inquiryDurationReporting, undefined);
 		});
 		it(`should map boolean values to yes/no`, () => {
-			/** @type {CrownDevelopment} */
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
@@ -428,7 +478,6 @@ describe('view-model', () => {
 			});
 		});
 		it('should map applicant organisations if they exist', () => {
-			/** @type {CrownDevelopment} */
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
@@ -569,23 +618,21 @@ describe('view-model', () => {
 
 	describe('editsToDatabaseUpdates', () => {
 		it('should map crown development fields', () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
-				siteArea: 8.79,
+				siteArea: '8.79',
 				environmentalStatementReceivedDate: new Date('2025-01-17T00:00Z'),
 				description: 'A big project to build something important',
 				inquiryDurationSitting: 'Sitting: 0 days'
 			};
 			const updates = editsToDatabaseUpdates(toSave, {});
 			assert.ok(updates);
-			assert.strictEqual(updates.siteArea, toSave.siteArea);
+			assert.strictEqual(updates.siteArea, 8.79);
 			assert.strictEqual(updates.environmentalStatementReceivedDate, toSave.environmentalStatementReceivedDate);
 			assert.strictEqual(updates.description, toSave.description);
 		});
 		it('should not map uneditable fields', () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
-				siteArea: 8.79,
+				siteArea: '8.79',
 				environmentalStatementReceivedDate: new Date('2025-01-17T00:00Z'),
 				description: 'A big project to build something important',
 				reference: 'CASE/1',
@@ -598,7 +645,6 @@ describe('view-model', () => {
 		});
 
 		it(`should map siteArea to a number`, () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				siteArea: '0.125'
 			};
@@ -606,7 +652,6 @@ describe('view-model', () => {
 			assert.strictEqual(result.siteArea, 0.125);
 		});
 		it(`should map siteNorthing and siteEasting to an int`, () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				siteNorthing: '123',
 				siteEasting: '456'
@@ -618,7 +663,7 @@ describe('view-model', () => {
 
 		it('should not include boolean fields if not in edits', () => {
 			const toSave = {
-				siteArea: 8.79
+				siteArea: '8.79'
 			};
 			const result = editsToDatabaseUpdates(toSave, {});
 			assert.strictEqual(result.environmentalImpactAssessment, undefined);
@@ -627,19 +672,36 @@ describe('view-model', () => {
 		});
 
 		it(`should map reps period`, () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				representationsPeriod: {
-					start: 'date-1',
-					end: 'date-2'
+					start: new Date('2025-01-01T00:00Z'),
+					end: new Date('2025-01-31T00:00Z')
 				}
 			};
 			const result = editsToDatabaseUpdates(toSave, {});
-			assert.deepStrictEqual(result.representationsPeriodStartDate, 'date-1');
-			assert.deepStrictEqual(result.representationsPeriodEndDate, 'date-2');
+			assert.deepStrictEqual(result.representationsPeriodStartDate, new Date('2025-01-01T00:00Z'));
+			assert.deepStrictEqual(result.representationsPeriodEndDate, new Date('2025-01-31T00:00Z'));
+		});
+		it('should map required foreign key scalar fields', () => {
+			const edits = { typeId: 'type-2', lpaId: 'lpa-2' };
+			const result = editsToDatabaseUpdates(edits, {});
+			assert.deepStrictEqual(result.Type, { connect: { id: 'type-2' } });
+			assert.deepStrictEqual(result.Lpa, { connect: { id: 'lpa-2' } });
+		});
+		it('should map optional foreign key scalar fields via connect or disconnect', () => {
+			const edits = { decisionOutcomeId: 'dec-1', statusId: 'stat-1', stageId: 'stage-1' };
+			const result = editsToDatabaseUpdates(edits, {});
+			assert.deepStrictEqual(result.DecisionOutcome, { connect: { id: 'dec-1' } });
+			assert.deepStrictEqual(result.Status, { connect: { id: 'stat-1' } });
+			assert.deepStrictEqual(result.Stage, { connect: { id: 'stage-1' } });
+
+			const edits2 = { decisionOutcomeId: undefined, statusId: undefined, stageId: undefined };
+			const result2 = editsToDatabaseUpdates(edits2, {});
+			assert.deepStrictEqual(result2.DecisionOutcome, { disconnect: true });
+			assert.deepStrictEqual(result2.Status, { disconnect: true });
+			assert.deepStrictEqual(result2.Stage, { disconnect: true });
 		});
 		it('should map category relation', () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				subCategoryId: 'cat-1'
 			};
@@ -653,7 +715,6 @@ describe('view-model', () => {
 			assert.strictEqual(updates.SiteAddress, undefined);
 		});
 		it('should set site address fields to empty if data removed', () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				siteAddress: {
 					postcode: ''
@@ -671,13 +732,11 @@ describe('view-model', () => {
 			assert.strictEqual(upsert.update?.postcode, '');
 		});
 		it('should map site address upsert', () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				siteAddress: {
 					postcode: 'NEW PSCD'
 				}
 			};
-			/** @type {CrownDevelopmentViewModel} */
 			const viewModel = {
 				siteAddressId: 'address-1'
 			};
@@ -690,7 +749,6 @@ describe('view-model', () => {
 			assert.strictEqual(upsert.update?.postcode, 'NEW PSCD');
 		});
 		it('should map contact relation create', () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				applicantContactName: 'Applicant One',
 				applicantContactEmail: 'applicant@example.com',
@@ -707,12 +765,10 @@ describe('view-model', () => {
 			assert.strictEqual(updates.AgentContact?.create?.telephoneNumber, '0123456789');
 		});
 		it('should map contact relation update', () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				applicantContactName: 'Applicant One',
 				applicantContactEmail: 'applicant@example.com'
 			};
-			/** @type {CrownDevelopmentViewModel} */
 			const viewModel = {
 				applicantContactId: 'contact-id-1'
 			};
@@ -722,7 +778,6 @@ describe('view-model', () => {
 			assert.strictEqual(updates.ApplicantContact?.update?.email, 'applicant@example.com');
 		});
 		it('should map contact relation update with address upsert', () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				applicantContactName: 'Applicant One',
 				applicantContactEmail: 'applicant@example.com',
@@ -734,7 +789,6 @@ describe('view-model', () => {
 					postcode: 'PSC01D'
 				}
 			};
-			/** @type {CrownDevelopmentViewModel} */
 			const viewModel = {
 				applicantContactId: 'contact-id-1',
 				applicantContactAddressId: 'address-id-1'
@@ -753,14 +807,12 @@ describe('view-model', () => {
 		});
 
 		it('should not map event if no edits', () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {};
 			const updates = editsToDatabaseUpdates(toSave, {});
 			assert.ok(updates);
 			assert.strictEqual(updates.Event, undefined);
 		});
 		it('should map event if nulled', () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				inquiryStatementsDate: null,
 				inquiryCaseManagementConferenceDate: null,
@@ -776,11 +828,9 @@ describe('view-model', () => {
 
 		it('should map procedure notification date', () => {
 			const date = new Date('2025-01-20T00:00:00Z');
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				inquiryProcedureNotificationDate: date
 			};
-			/** @type {CrownDevelopmentViewModel} */
 			const viewModel = {
 				procedureId: APPLICATION_PROCEDURE_ID.INQUIRY
 			};
@@ -789,14 +839,12 @@ describe('view-model', () => {
 			assert.strictEqual(updates.procedureNotificationDate, date);
 		});
 		it('should map event upsert', () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				inquiryVenue: 'some place',
-				inquiryDurationPrep: 'some value',
-				inquiryDurationSitting: 'some value',
-				inquiryDurationReporting: 'some value'
+				inquiryDurationPrep: '1',
+				inquiryDurationSitting: '2',
+				inquiryDurationReporting: '3'
 			};
-			/** @type {CrownDevelopmentViewModel} */
 			const viewModel = {
 				procedureId: APPLICATION_PROCEDURE_ID.INQUIRY
 			};
@@ -806,35 +854,11 @@ describe('view-model', () => {
 			const upsert = updates.Event.upsert;
 			assert.strictEqual(upsert.where?.id, undefined);
 			assert.strictEqual(upsert.create?.venue, 'some place');
-			assert.strictEqual(upsert.update?.prepDuration, 'some value');
-			assert.strictEqual(upsert.update?.sittingDuration, 'some value');
-			assert.strictEqual(upsert.update?.reportingDuration, 'some value');
-		});
-		it('should map inquiry with missing event fields', () => {
-			/** @type {CrownDevelopment} */
-			const input = {
-				id: 'id-1',
-				referenceId: 'reference-id-1',
-				procedureId: APPLICATION_PROCEDURE_ID.INQUIRY,
-				Event: {
-					date: 'd-1',
-					venue: 'Some Place',
-					prepDuration: null,
-					sittingDuration: undefined,
-					reportingDuration: '',
-					inquiryDuration: '-'
-				}
-			};
-			const result = crownDevelopmentToViewModel(input);
-			assert.strictEqual(result.inquiryDate, 'd-1');
-			assert.strictEqual(result.inquiryVenue, 'Some Place');
-			assert.strictEqual(result.inquiryDuration, '-');
-			assert.strictEqual(result.inquiryDurationPrep, undefined);
-			assert.strictEqual(result.inquiryDurationSitting, undefined);
-			assert.strictEqual(result.inquiryDurationReporting, undefined);
+			assert.strictEqual(upsert.update?.prepDuration, 1);
+			assert.strictEqual(upsert.update?.sittingDuration, 2);
+			assert.strictEqual(upsert.update?.reportingDuration, 3);
 		});
 		it('should map all hearing fields', () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				hearingDate: new Date('2025-01-25T00:00:00Z'),
 				hearingDuration: 'Prep',
@@ -842,7 +866,6 @@ describe('view-model', () => {
 				hearingNotificationDate: new Date('2025-03-13T00:00:00Z'),
 				hearingIssuesReportPublishedDate: new Date('2025-01-12T00:00:00Z')
 			};
-			/** @type {CrownDevelopmentViewModel} */
 			const viewModel = {
 				procedureId: APPLICATION_PROCEDURE_ID.HEARING
 			};
@@ -860,7 +883,6 @@ describe('view-model', () => {
 			assert.strictEqual(upsert.update?.issuesReportPublishedDate, toSave.hearingIssuesReportPublishedDate);
 		});
 		it('should map all inquiry fields', () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				inquiryStatementsDate: new Date('2025-01-25T00:00:00Z'),
 				inquiryDate: new Date('2025-03-13T00:00:00Z'),
@@ -871,7 +893,7 @@ describe('view-model', () => {
 				inquiryPreMeetingDate: new Date('2025-01-12T00:00:00Z'),
 				inquiryProofsOfEvidenceDate: new Date('2025-03-01T00:00:00Z')
 			};
-			/** @type {CrownDevelopmentViewModel} */
+
 			const viewModel = {
 				procedureId: APPLICATION_PROCEDURE_ID.INQUIRY
 			};
@@ -892,12 +914,11 @@ describe('view-model', () => {
 			assert.strictEqual(upsert.update?.proofsOfEvidenceDate, toSave.inquiryProofsOfEvidenceDate);
 		});
 		it('should set event upsert where to undefined not null', () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				inquiryVenue: 'some place',
-				inquiryDurationPrep: 'prep: 1 days'
+				inquiryDurationPrep: '1'
 			};
-			/** @type {CrownDevelopmentViewModel} */
+
 			const viewModel = {
 				eventId: null,
 				procedureId: APPLICATION_PROCEDURE_ID.INQUIRY
@@ -908,15 +929,13 @@ describe('view-model', () => {
 			const upsert = updates.Event.upsert;
 			assert.strictEqual(upsert.where, undefined);
 			assert.strictEqual(upsert.create?.venue, 'some place');
-			assert.strictEqual(upsert.update?.prepDuration, 'prep: 1 days');
+			assert.strictEqual(upsert.update?.prepDuration, 1);
 		});
 		it('should map event upsert with id', () => {
-			/** @type {CrownDevelopmentViewModel} */
 			const toSave = {
 				hearingVenue: 'some place',
-				hearingDurationPrep: 'prep: 1.5 days'
+				hearingDurationPrep: '1.5'
 			};
-			/** @type {CrownDevelopmentViewModel} */
 			const viewModel = {
 				eventId: 'event-id',
 				procedureId: APPLICATION_PROCEDURE_ID.HEARING
@@ -927,7 +946,7 @@ describe('view-model', () => {
 			const upsert = updates.Event.upsert;
 			assert.strictEqual(upsert.where?.id, 'event-id');
 			assert.strictEqual(upsert.create?.venue, 'some place');
-			assert.strictEqual(upsert.update?.prepDuration, 'prep: 1.5 days');
+			assert.strictEqual(upsert.update?.prepDuration, 1.5);
 		});
 		describe('should delete the event if it exists and nullify procedureNotificationDate', () => {
 			const testCases = [
@@ -1024,8 +1043,37 @@ describe('view-model', () => {
 				}
 			);
 		});
+		it('should include organisation updates if includeOrganisations is true by default', () => {
+			const edits = {
+				manageApplicantDetails: [
+					{
+						id: 'org-1',
+						organisationRelationId: 'rel-1',
+						organisationName: 'Org',
+						organisationAddress: {},
+						organisationAddressId: 'addr-1'
+					}
+				]
+			};
+			const result = editsToDatabaseUpdates(edits, {});
+			assert.ok('Organisations' in result);
+		});
+		it('should not include organisation updates if includeOrganisations is false', () => {
+			const edits = {
+				manageApplicantDetails: [
+					{
+						id: 'org-1',
+						organisationRelationId: 'rel-1',
+						organisationName: 'Org',
+						organisationAddress: {},
+						organisationAddressId: 'addr-1'
+					}
+				]
+			};
+			const result = editsToDatabaseUpdates(edits, {}, { includeOrganisations: false });
+			assert.ok(!('Organisations' in result));
+		});
 		it('should map secondary LPA fields if present', () => {
-			/** @type {CrownDevelopment} */
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',
@@ -1056,7 +1104,6 @@ describe('view-model', () => {
 		});
 
 		it('should not map secondary LPA fields if not present', () => {
-			/** @type {CrownDevelopment} */
 			const input = {
 				id: 'id-1',
 				referenceId: 'reference-id-1',

@@ -7,7 +7,7 @@ import {
 	yesNoToBoolean
 } from '@planning-inspectorate/dynamic-forms';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { crownDevelopmentToViewModel } from './view-model.js';
+import { crownDevelopmentToViewModel, type CrownDevelopmentViewModel } from './view-model.ts';
 import { getQuestions } from './questions.js';
 import { createJourney, createJourneyV2, JOURNEY_ID } from './journey.js';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
@@ -18,7 +18,6 @@ import { getLinkedCaseId, getLinkedCaseLinkText, hasLinkedCase } from '@pins/cro
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { filteredStagesToRadioOptions } from './question-utils.js';
 import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.js';
-import type { CrownDevelopmentViewModel, CrownJourneyAnswers } from './types.d.ts';
 import type { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.js';
 import type { Response, Request, Handler, NextFunction } from 'express';
@@ -26,11 +25,10 @@ import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import type { ManageService } from '#service';
 
 /**
- * Get the journey answers typed as a subset of CrownDevelopmentViewModel
+ * Get the journey answers
  */
-function getJourneyAnswers(res: Response): CrownJourneyAnswers | undefined {
-	const journeyResponse = res.locals.journeyResponse as { answers: CrownJourneyAnswers | undefined };
-	return journeyResponse?.answers;
+function getJourneyAnswers(res: Response): CrownDevelopmentViewModel | undefined {
+	return res.locals.journeyResponse?.answers;
 }
 
 type CrownDevelopmentWithLinkedCase = Prisma.CrownDevelopmentGetPayload<{
@@ -219,7 +217,7 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		if (crownDevelopment === null) {
 			return notFoundHandler(req, res);
 		}
-		const answers = crownDevelopmentToViewModel(crownDevelopment);
+		const viewModel = crownDevelopmentToViewModel(crownDevelopment);
 		const groupMembers = await getEntraGroupMembers({
 			logger,
 			initClient: getEntraClient,
@@ -227,20 +225,20 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 			groupIds
 		});
 		const overrides = {
-			isApplicationTypePlanningOrLbc: answers.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT,
-			isApplicationSubTypeLbc: answers.subTypeId === APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT,
-			filteredStageOptions: filteredStagesToRadioOptions(answers.procedureId),
-			applicantOrganisationOptions: getApplicantOrganisationOptions(answers.manageApplicantDetails || []),
-			hasAgentAnswer: yesNoToBoolean(answers.hasAgent),
+			isApplicationTypePlanningOrLbc: viewModel.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT,
+			isApplicationSubTypeLbc: viewModel.subTypeId === APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT,
+			filteredStageOptions: filteredStagesToRadioOptions(viewModel.procedureId),
+			applicantOrganisationOptions: getApplicantOrganisationOptions(viewModel.manageApplicantDetails || []),
+			hasAgentAnswer: yesNoToBoolean(viewModel.hasAgent),
 			isQuestionView: isQuestionView
 		};
 
 		const questions = getQuestions(groupMembers, overrides);
 
-		const finalAnswers = combineSessionAndDbData(res, answers);
+		const finalAnswers = combineSessionAndDbData(res, viewModel);
 
 		// put these on locals for the list controller
-		res.locals.originalAnswers = { ...answers };
+		res.locals.originalAnswers = { ...viewModel };
 		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', finalAnswers);
 		res.locals.journey = service.isMultipleApplicantsLive
 			? createJourneyV2(questions, res.locals.journeyResponse, req)
@@ -317,7 +315,7 @@ function isMergeableAnswerArray(value: unknown): value is Array<{ id?: PropertyK
  */
 function mergeAnswerValue<K extends keyof CrownDevelopmentViewModel>(
 	dbValue: CrownDevelopmentViewModel[K],
-	sessionValue: CrownJourneyAnswers[K]
+	sessionValue: CrownDevelopmentViewModel[K]
 ): CrownDevelopmentViewModel[K] {
 	if (sessionValue === undefined || sessionValue === null) {
 		return dbValue;
