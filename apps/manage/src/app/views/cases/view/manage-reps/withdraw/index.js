@@ -23,6 +23,7 @@ import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/sessi
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { buildSaveController, successController } from './controller.js';
 import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
+import lusca from 'lusca';
 
 /**
  * @param {import('#service').ManageService} service
@@ -74,6 +75,8 @@ export function createRoutes(service, viewOrReview) {
 		getJourneyResponse,
 		getJourney,
 		handleUploads.array('files[]'),
+		// Lusca CSRF check performed after Multer handles the multipart/form-data
+		lusca({ csrf: true }),
 		uploadDocuments
 	);
 
