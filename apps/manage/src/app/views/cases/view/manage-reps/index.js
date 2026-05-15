@@ -28,6 +28,7 @@ import {
 	successController
 } from './reinstate/controller.js';
 import { buildSave } from './edit/save.js';
+import lusca from 'lusca';
 
 /**
  * @param {import('#service').ManageService} service
@@ -86,6 +87,8 @@ export function createRoutes(service) {
 		'/edit/:section/:question/upload-documents',
 		getJourney,
 		handleUploads.array('files[]'),
+		// Lusca CSRF check performed after Multer handles the multipart/form-data
+		lusca({ csrf: true }),
 		uploadDocuments
 	);
 

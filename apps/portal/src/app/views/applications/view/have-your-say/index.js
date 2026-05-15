@@ -31,6 +31,7 @@ import {
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
 import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
 import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/session.js';
+import lusca from 'lusca';
 
 const applicationIdParam = 'applicationId';
 
@@ -80,6 +81,8 @@ export function createHaveYourSayRoutes(service) {
 		getJourneyResponse,
 		getJourney,
 		handleUploads.array('files[]'),
+		// Lusca CSRF check performed after Multer handles the multipart/form-data
+		lusca({ csrf: true }),
 		uploadDocuments
 	);
 

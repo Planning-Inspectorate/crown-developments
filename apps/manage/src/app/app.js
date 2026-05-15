@@ -7,9 +7,10 @@ import { buildRouter } from './router.js';
 import { configureNunjucks } from './nunjucks.js';
 import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.js';
 import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
-import { initSessionMiddlewareWithCsrf } from '@pins/crowndev-lib/util/session.ts';
+import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.ts';
 import { addLocalsConfiguration } from '#util/config-middleware.js';
 import { cleanEmptyQueryParams, trimEmptyQuery } from '@pins/crowndev-lib/middleware/query-middleware.js';
+import lusca from 'lusca';
 
 /**
  * @param {import('#service').ManageService} service
@@ -31,12 +32,25 @@ export function getApp(service) {
 	app.use(bodyParser.urlencoded({ extended: true }));
 	app.use(bodyParser.json());
 
-	const sessionMiddleware = initSessionMiddlewareWithCsrf({
+	const sessionMiddleware = initSessionMiddleware({
 		redis: service.redisClient,
 		secure: service.secureSession,
 		secret: service.sessionSecret
 	});
 	app.use(sessionMiddleware);
+
+	// CSRF protection middleware, with an exception for the file upload endpoint which uses Multer and multipart/form-data
+	// see https://github.com/krakenjs/lusca/issues/70
+	app.use((req, res, next) => {
+		if (req.path.endsWith('/upload-documents') && req.method === 'POST') {
+			// Multer multipart/form-data needs to be handled before Lusca CSRF check
+			// upload-documents is the POST API the file-upload component in our journeys, which uses Multer
+			next();
+		} else {
+			lusca.csrf()(req, res, next);
+		}
+	});
+
 	app.use(addLocalsConfiguration(service));
 
 	// Generate the nonce for each request
