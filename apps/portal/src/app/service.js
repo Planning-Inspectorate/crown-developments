@@ -1,6 +1,6 @@
 import { initDatabaseClient } from '@pins/crowndev-database';
-import { initRedis } from '@pins/crowndev-lib/redis/index.js';
-import { initLogger } from '@pins/crowndev-lib/util/logger.js';
+import { initRedis } from '@pins/crowndev-lib/redis/index.ts';
+import { initLogger } from '@pins/crowndev-lib/util/logger.ts';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { DefaultAzureCredential } from '@azure/identity';
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js';
@@ -24,7 +24,7 @@ export class PortalService {
 	 */
 	dbClient;
 	/**
-	 * @type {import('@pins/crowndev-lib/redis/redis-client.js').RedisClient|null}
+	 * @type {import('@pins/crowndev-lib/redis/redis-client.ts').RedisClient|null}
 	 */
 	redisClient;
 	/**
@@ -51,7 +51,9 @@ export class PortalService {
 				scopes: ['https://graph.microsoft.com/.default']
 			})
 		});
-
+		if (!config.sharePoint?.driveId) {
+			throw new Error('SharePoint driveId is missing');
+		}
 		this.sharePointDrive = new SharePointDrive(graphClient, config.sharePoint.driveId);
 		this.notifyClient = initGovNotify(config.govNotify, logger);
 	}

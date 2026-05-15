@@ -1,0 +1,17 @@
+{% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
+{% from "header/pins-header.njk" import pinsHeader %}
+{% from "footer/pins-footer.njk" import pinsFooter %}
+
+{{ pinsHeader({isExternal: true}) }}
+
+{% if config.inBeta %}
+	<div class="govuk-width-container">
+		{% include "views/layouts/components/core/banner.njk" %}
+	</div>
+{% endif %}
+
+{{ govukServiceNavigation({
+	classes: 'pins-service-navigation',
+	serviceName: config.headerTitle,
+	navigation: config.primaryNavigationLinks
+}) }}

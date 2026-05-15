@@ -1,5 +1,5 @@
 import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { fileAlreadyExistsInFolder } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/document-validation-util.js';
 import { expressValidationErrorsToGovUkErrorList } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';

@@ -1,6 +1,6 @@
 import { Router as createRouter } from 'express';
 import { createRoutes as createCreateACaseRoutes } from './create-a-case/index.js';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { buildListCases } from './list/controller.js';
 import { createRoutes as createCaseRoutes } from './view/index.js';
 

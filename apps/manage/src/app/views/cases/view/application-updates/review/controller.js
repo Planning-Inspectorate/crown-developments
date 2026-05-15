@@ -1,4 +1,4 @@
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import {

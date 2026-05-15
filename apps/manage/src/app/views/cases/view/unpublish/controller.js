@@ -1,4 +1,4 @@
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 
 /**

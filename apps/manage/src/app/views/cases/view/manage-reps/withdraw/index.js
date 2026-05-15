@@ -1,5 +1,5 @@
 import multer from 'multer';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import {
 	deleteDocumentsController,
 	uploadDocumentsController

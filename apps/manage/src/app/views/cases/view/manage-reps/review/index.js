@@ -1,6 +1,6 @@
 import { Router as createRouter } from 'express';
 import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { buildReviewControllers, viewRepresentationAwaitingReview, viewReviewRedirect } from './controller.js';
 import { buildGetJourneyMiddleware } from '../view/controller.js';
 import { buildValidateRepresentationMiddleware } from '../validation-middleware.js';

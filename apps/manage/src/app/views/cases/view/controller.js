@@ -1,5 +1,5 @@
 import { list } from '@planning-inspectorate/dynamic-forms/src/controller.js';
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { crownDevelopmentToViewModel } from './view-model.js';
 import { getQuestions } from './questions.js';
 import { createJourney, createJourneyV2, JOURNEY_ID } from './journey.js';
