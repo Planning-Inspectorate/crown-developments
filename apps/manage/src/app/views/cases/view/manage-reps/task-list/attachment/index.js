@@ -1,5 +1,5 @@
 import { Router as createRouter } from 'express';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { buildReviewControllers, buildViewDocument } from '../../review/controller.js';
 import { buildValidateRedactedFileMiddleware } from '../../validation-middleware.js';
 import multer from 'multer';

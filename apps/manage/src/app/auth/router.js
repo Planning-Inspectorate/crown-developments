@@ -1,5 +1,5 @@
 import { Router as createRouter } from 'express';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { buildCompleteMsalAuthentication, buildHandleSignout, buildStartMsalAuthentication } from './controller.js';
 import { assertIsUnauthenticated, buildAssertGroupAccess, buildAssertIsAuthenticated } from './guards.js';
 import { AuthService, clearAuthenticationData, registerAuthLocals } from './auth-service.js';

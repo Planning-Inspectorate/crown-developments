@@ -3,7 +3,7 @@ import { initRedis } from '@pins/crowndev-lib/redis/index.js';
 import { buildInitSharePointDrive } from '#util/sharepoint.js';
 import { MapCache } from '@pins/crowndev-lib/util/map-cache.js';
 import { buildInitEntraClient } from '@pins/crowndev-lib/graph/cached-entra-client.js';
-import { initLogger } from '@pins/crowndev-lib/util/logger.js';
+import { initLogger } from '@pins/crowndev-lib/util/logger.ts';
 import { initGovNotify } from '@pins/crowndev-lib/govnotify/index.js';
 import { TextAnalyticsClient } from '@azure/ai-text-analytics';
 import { DefaultAzureCredential } from '@azure/identity';
@@ -29,7 +29,7 @@ export class ManageService {
 	 */
 	dbClient;
 	/**
-	 * @type {import('@pins/crowndev-lib/redis/redis-client.js').RedisClient|null}
+	 * @type {import('@pins/crowndev-lib/redis/redis-client').RedisClient|null}
 	 */
 	redisClient;
 	/**

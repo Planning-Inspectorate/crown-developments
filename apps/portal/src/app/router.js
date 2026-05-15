@@ -1,11 +1,11 @@
 import { Router as createRouter } from 'express';
-import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.js';
+import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.ts';
 import { createRoutes as applicationRoutes } from './views/applications/index.js';
 import { buildAccessibilityStatementPage } from './views/static/accessibility-statement/controller.js';
 import { buildTermsAndConditionsPage } from './views/static/terms-and-conditions/controller.js';
 import { buildContactUsPage } from './views/static/contact/controller.js';
 import { createErrorRoutes } from './views/static/error/index.js';
-import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.js';
+import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.ts';
 import { createRoutes as createCookieRoutes } from './views/static/cookies/index.js';
 import { buildDetailedInformationPage } from './views/static/detailed-information/controller.js';
 

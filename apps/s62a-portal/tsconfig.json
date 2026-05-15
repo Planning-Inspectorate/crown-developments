@@ -1,0 +1,11 @@
+{
+	"extends": "../../tsconfig.json",
+	"exclude": ["src/.static"],
+	"include": ["src/**/*.ts", "src/**/*.d.ts"],
+	"compilerOptions": {
+		"paths": {
+			"#service": ["./src/app/service.ts"],
+			"#util/*": ["./src/util/*"]
+		}
+	}
+}

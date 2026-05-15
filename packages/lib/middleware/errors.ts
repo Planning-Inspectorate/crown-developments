@@ -1,13 +1,11 @@
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-
+import type { Logger } from 'pino';
+import type { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 /**
  * A catch-all error handler to use as express middleware
- *
- * @param {import('pino').Logger} logger
- * @returns {import('express').ErrorRequestHandler}
  */
-export function buildDefaultErrorHandlerMiddleware(logger) {
-	return (error, req, res, next) => {
+export function buildDefaultErrorHandlerMiddleware(logger: Logger): ErrorRequestHandler {
+	return (error: Error, _req: Request, res: Response, next: NextFunction) => {
 		const wrappedError = wrapPrismaErrors(error);
 		const message = wrappedError.message || 'unknown error';
 		logger.error(error, message); // log the original error to include full details
@@ -18,7 +16,11 @@ export function buildDefaultErrorHandlerMiddleware(logger) {
 		}
 
 		// make sure we don't use an invalid code
-		const code = error.statusCode && error.statusCode > 399 ? error.statusCode : 500;
+		const statusCode =
+			error && typeof error === 'object' && 'statusCode' in error
+				? (error as { statusCode: number }).statusCode
+				: undefined;
+		const code = statusCode && statusCode > 399 ? statusCode : 500;
 		res.status(code);
 		res.render(`views/layouts/error`, {
 			pageTitle: 'Sorry, there was an error',
@@ -34,7 +36,7 @@ export function buildDefaultErrorHandlerMiddleware(logger) {
  * @param {Error} error
  * @returns {Error}
  */
-export function wrapPrismaErrors(error) {
+export function wrapPrismaErrors(error: Error): Error {
 	if (error instanceof Prisma.PrismaClientKnownRequestError) {
 		return new Error(`Request could not be handled (code: ${error.code})`);
 	}
@@ -56,10 +58,8 @@ export function wrapPrismaErrors(error) {
 
 /**
  * A catch-all handler to serve a 404 page
- *
- * @type {(req: import('express').Request, res: import('express').Response) => void}
  */
-export function notFoundHandler(req, res) {
+export function notFoundHandler(req: Request, res: Response): void {
 	res.status(404);
 	res.render(`views/layouts/error`, {
 		pageTitle: 'Page not found',

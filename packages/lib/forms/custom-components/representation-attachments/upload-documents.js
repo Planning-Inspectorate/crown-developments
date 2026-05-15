@@ -2,7 +2,7 @@ import { APPLICATION_FOLDERS, buildPath, caseReferenceToFolderName } from '../..
 import { fileAlreadyExistsInFolder, validateUploadedFile } from './document-validation-util.js';
 import { FILE_PROPERTIES } from '../../../documents/view-model.js';
 import { isValidUuidFormat } from '../../../util/uuid.ts';
-import { notFoundHandler } from '../../../middleware/errors.js';
+import { notFoundHandler } from '../../../middleware/errors.ts';
 import { sortByField } from '../../../util/array.ts';
 import { addSessionData } from '../../../util/session.ts';
 import { getSubmittedForId } from '../../../util/questions.js';

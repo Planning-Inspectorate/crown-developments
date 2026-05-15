@@ -1,5 +1,5 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { crownDevelopmentToViewModel } from '../view-model.ts';
 import { fetchPublishedApplication } from '#util/applications.ts';
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';

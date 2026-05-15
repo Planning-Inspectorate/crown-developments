@@ -1,4 +1,4 @@
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { crownDevelopmentToViewModel } from '../view/view-model.ts';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
