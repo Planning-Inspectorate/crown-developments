@@ -1,5 +1,5 @@
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
-import { bytesToUnit } from '../util/numbers.js';
+import { bytesToUnit } from '../util/numbers.ts';
 
 // file properties to fetch for display
 export const FILE_PROPERTIES = Object.freeze(['file', 'id', 'lastModifiedDateTime', 'createdDateTime', 'name', 'size']);

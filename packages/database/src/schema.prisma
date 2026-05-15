@@ -37,12 +37,12 @@ model CrownDevelopment {
   ParentCrownDevelopment   CrownDevelopment?                @relation("CrownDevelopmentChildren", fields: [linkedParentId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   ChildrenCrownDevelopment CrownDevelopment[]               @relation("CrownDevelopmentChildren")
   /// project description
-  description              String?                          @db.NVarChar(2000)
+  description              String                           @db.NVarChar(2000)
   /// LPA associated with this application
-  lpaId                    String?                          @db.UniqueIdentifier
-  Lpa                      Lpa?                             @relation("PrimaryLpa", fields: [lpaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  lpaId                    String                           @db.UniqueIdentifier
+  Lpa                      Lpa                              @relation("PrimaryLpa", fields: [lpaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   /// Secondary LPA associated with this application
-  hasSecondaryLpa          Boolean?                         @default(false)
+  hasSecondaryLpa          Boolean                          @default(false)
   /// hasSecondaryLpa added to allow secondaryLpa to be edited in overview
   secondaryLpaId           String?                          @db.UniqueIdentifier
   SecondaryLpa             Lpa?                             @relation("SecondaryLpa", fields: [secondaryLpaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
@@ -68,7 +68,7 @@ model CrownDevelopment {
   /// Site area in hectares
   siteArea                            Decimal?
   /// Likely date of submission
-  expectedDateOfSubmission            DateTime?
+  expectedDateOfSubmission            DateTime
   /// internal (PINS) status for the application
   statusId                            String?
   Status                              ApplicationStatus?          @relation(fields: [statusId], references: [id])
@@ -79,7 +79,7 @@ model CrownDevelopment {
   nationallyImportantConfirmationDate DateTime?
   notNationallyImportantEmailSent     Boolean?                    @default(false)
   /// Distressing content involved in the application
-  containsDistressingContent          Boolean?
+  containsDistressingContent          Boolean
   /// LPA cross reference
   lpaReference                        String?
   /// case category
@@ -91,6 +91,7 @@ model CrownDevelopment {
   applicationReceivedDateEmailSent    Boolean?                    @default(false)
   applicationAcceptedDate             DateTime?
   lpaQuestionnaireSentDate            DateTime?
+  lpaQuestionnaireSpecialEmailSent    Boolean?                    @default(false)
   lpaQuestionnaireReceivedDate        DateTime?
   lpaQuestionnaireReceivedEmailSent   Boolean?                    @default(false)
   /// the date the project is visible to the public

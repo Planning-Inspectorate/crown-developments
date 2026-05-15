@@ -5,12 +5,13 @@ import { extractApplicantContactFields, extractAgentContactFields } from '../uti
 import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
 import type {
 	CrownDevelopmentViewModel,
+	CrownDevelopmentSaveModel,
 	CrownDevelopmentPayload,
 	ContactTypeValues,
 	ManageApplicantDetails,
 	ManageAgentContactDetails,
 	ManageApplicantContactDetails
-} from './types.js';
+} from './view-model.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { ManageService } from '#service';
 
@@ -75,7 +76,7 @@ function queueContactUpdateIfChanged<TContact extends { id?: string | null }>({
 /**
  * Whether the save payload contains any fields that require organisation/contact writes.
  */
-export function hasOrganisationWriteEdits(toSave: CrownDevelopmentViewModel): boolean {
+export function hasOrganisationWriteEdits(toSave: CrownDevelopmentSaveModel): boolean {
 	return (
 		Object.hasOwn(toSave, 'manageApplicantDetails') ||
 		Object.hasOwn(toSave, 'manageApplicantContactDetails') ||
@@ -96,7 +97,7 @@ export function buildCaseUpdateWritePlan({
 	crownDevelopments,
 	sharedSiteAddressId
 }: {
-	toSave: Partial<CrownDevelopmentViewModel>;
+	toSave: CrownDevelopmentSaveModel;
 	dbViewModel: CrownDevelopmentViewModel;
 	caseIds: string[];
 	scalarUpdateInput: Prisma.CrownDevelopmentUpdateInput;
@@ -491,7 +492,7 @@ export async function executeCaseUpdateWritePlan(plan: CaseUpdateWritePlan, tx: 
  * Build nested updates for applicant/agent contact creates/updates, returning null if no contact-related fields are being edited.
  */
 export function viewModelToNestedContactUpdate(
-	edits: Partial<CrownDevelopmentViewModel>,
+	edits: CrownDevelopmentSaveModel,
 	prefix: ContactTypeValues,
 	viewModel: CrownDevelopmentViewModel
 ): Prisma.ContactUpdateOneWithoutCrownDevelopmentApplicantNestedInput | null {
@@ -545,7 +546,7 @@ export function viewModelToNestedContactUpdate(
  * Build nested updates for agent organisation name.
  */
 export function buildAgentOrganisationNameUpdates(
-	edits: Partial<CrownDevelopmentViewModel>,
+	edits: CrownDevelopmentSaveModel,
 	viewModel: CrownDevelopmentViewModel
 ): Prisma.CrownDevelopmentUpdateInput['Organisations'] | undefined {
 	if (!('agentOrganisationName' in edits) || !edits.agentOrganisationName) {
@@ -585,7 +586,7 @@ export function buildAgentOrganisationNameUpdates(
  * Build nested updates for agent organisation address.
  */
 export function buildAgentOrganisationAddressUpdates(
-	edits: Partial<CrownDevelopmentViewModel>,
+	edits: CrownDevelopmentSaveModel,
 	viewModel: CrownDevelopmentViewModel
 ): Prisma.CrownDevelopmentUpdateInput['Organisations'] | undefined {
 	if (!('agentOrganisationAddress' in edits)) {
@@ -630,7 +631,7 @@ export function buildAgentOrganisationAddressUpdates(
  * Updates for existing contacts are handled separately.
  */
 export function buildAgentContactOrganisationUpdates(
-	edits: Partial<CrownDevelopmentViewModel>,
+	edits: CrownDevelopmentSaveModel,
 	viewModel: CrownDevelopmentViewModel
 ): Prisma.CrownDevelopmentUpdateInput['Organisations'] | undefined {
 	const contacts = Array.isArray(edits.manageAgentContactDetails) ? edits.manageAgentContactDetails : [];
@@ -680,7 +681,7 @@ export function buildAgentContactOrganisationUpdates(
  * Build nested updates for applicant organisations.
  */
 export function buildApplicantOrganisationUpdates(
-	edits: Partial<CrownDevelopmentViewModel>,
+	edits: CrownDevelopmentSaveModel,
 	viewModel: CrownDevelopmentViewModel
 ): Prisma.CrownDevelopmentUpdateInput['Organisations'] | undefined {
 	const organisations = Array.isArray(edits.manageApplicantDetails) ? edits.manageApplicantDetails : [];
@@ -803,7 +804,7 @@ export function buildApplicantOrganisationUpdates(
  * Build nested updates for applicant organisation contacts.
  */
 export function buildApplicantContactOrganisationUpdates(
-	edits: Partial<CrownDevelopmentViewModel>,
+	edits: CrownDevelopmentSaveModel,
 	viewModel: CrownDevelopmentViewModel
 ): Prisma.CrownDevelopmentUpdateInput['Organisations'] | undefined {
 	const contacts = Array.isArray(edits.manageApplicantContactDetails) ? edits.manageApplicantContactDetails : [];

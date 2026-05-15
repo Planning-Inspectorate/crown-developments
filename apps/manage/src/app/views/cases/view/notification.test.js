@@ -9,6 +9,7 @@ import {
 } from './notification.js';
 import assert from 'node:assert';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 const DEFAULT_CROWN_DEVELOPMENT = {
 	id: 'case-1',
@@ -198,7 +199,7 @@ describe('notification', () => {
 						...DEFAULT_CROWN_DEVELOPMENT,
 						siteAddressId: 'address-1',
 						hasApplicationFee: true,
-						applicationFee: 1100,
+						applicationFee: new Prisma.Decimal('1100'),
 						SiteAddress: { line1: '4 the street', line2: 'town', postcode: 'wc1w 1bw' },
 						Lpa: { email: 'test@email.com' },
 						ApplicantContact: { email: 'test@email.com' }
@@ -296,7 +297,7 @@ describe('notification', () => {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
 						...DEFAULT_CROWN_DEVELOPMENT,
-						applicationFee: 123.45,
+						applicationFee: new Prisma.Decimal('123.45'),
 						hasApplicationFee: true,
 						Organisations: [
 							{
@@ -356,7 +357,7 @@ describe('notification', () => {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
 						...DEFAULT_CROWN_DEVELOPMENT,
-						applicationFee: 123.45,
+						applicationFee: new Prisma.Decimal('123.45'),
 						hasApplicationFee: true,
 						siteAddressId: null,
 						hasSecondaryLpa: false,
@@ -653,9 +654,9 @@ describe('notification', () => {
 							lpaQuestionnaireReceivedDate: new Date('2025-01-02'),
 							representationsPeriod: { end: new Date('2025-01-15') },
 							Lpa: { email: 'lpa1@example.com' },
-							environmentalImpactAssessment: BOOLEAN_OPTIONS.YES,
-							developmentPlan: BOOLEAN_OPTIONS.NO,
-							rightOfWay: BOOLEAN_OPTIONS.YES
+							environmentalImpactAssessment: true,
+							developmentPlan: false,
+							rightOfWay: true
 						}),
 						update: () => {}
 					}
@@ -743,9 +744,9 @@ describe('notification', () => {
 							lpaQuestionnaireReceivedDate: new Date('2025-01-02'),
 							representationsPeriod: { end: new Date('2025-01-15') },
 							Lpa: { email: 'lpa1@example.com' },
-							environmentalImpactAssessment: BOOLEAN_OPTIONS.NO,
-							developmentPlan: BOOLEAN_OPTIONS.YES,
-							rightOfWay: BOOLEAN_OPTIONS.NO
+							environmentalImpactAssessment: false,
+							developmentPlan: true,
+							rightOfWay: false
 						}),
 						update: () => {}
 					}

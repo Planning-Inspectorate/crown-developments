@@ -8,7 +8,7 @@ import {
 	clearCaseUpdatedSession,
 	combineSessionAndDbData,
 	mergeArraysById
-} from './controller.js';
+} from './controller.ts';
 import { configureNunjucks } from '../../../nunjucks.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
@@ -143,6 +143,55 @@ describe('case details', () => {
 			//Check that the journey is created using createJourney by checking for a property unique to V2 journeys
 			assert.deepStrictEqual(JSON.stringify(mockRes.locals.journey).includes('manageApplicantDetails'), false);
 		});
+		it('should set backLinkUrl to baseUrl when section is present and manageListQuestion is not present', async () => {
+			process.env.ENVIRONMENT = 'dev';
+			const mockReq = { params: { id: 'case-1', section: 'details' }, baseUrl: '/cases/case-1' };
+			const mockRes = { locals: {} };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: 'case-1' }))
+				}
+			};
+			const next = mock.fn();
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds
+			});
+
+			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
+
+			assert.strictEqual(next.mock.callCount(), 1);
+			assert.strictEqual(mockRes.locals.backLinkUrl, '/cases/case-1');
+		});
+		it('should not set backLinkUrl from section branch when manageListQuestion is present', async () => {
+			process.env.ENVIRONMENT = 'dev';
+			const mockReq = {
+				params: { id: 'case-1', section: 'details', manageListQuestion: 'manageListQuestion' },
+				baseUrl: '/cases/case-1',
+				originalUrl: '/cases/case-1/details/question'
+			};
+			const mockRes = { locals: {} };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: 'case-1' }))
+				}
+			};
+			const next = mock.fn();
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds
+			});
+
+			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
+
+			assert.strictEqual(next.mock.callCount(), 1);
+			// manageListQuestion will set this separately, so just check for undefined
+			assert.strictEqual(mockRes.locals.backLinkUrl, undefined);
+		});
 	});
 	describe('viewCaseDetails', () => {
 		const newMockRes = () => {
@@ -159,6 +208,13 @@ describe('case details', () => {
 			const mockRes = { locals: {} };
 			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => null });
 			await assert.rejects(() => viewCaseDetails(mockReq, mockRes));
+		});
+		it('should throw when id param is not a string', async () => {
+			const mockReq = { params: { id: 123 } };
+			const mockRes = { locals: { journeyResponse: { answers: { reference: 'C/A/1' } } } };
+			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => null });
+
+			await assert.rejects(() => viewCaseDetails(mockReq, mockRes), /id param required/);
 		});
 		it('should render without error, with case reference', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
@@ -196,7 +252,7 @@ describe('case details', () => {
 			};
 			const mockDb = {
 				crownDevelopment: {
-					findUnique: mock.fn(() => ({ id: 'case-1', name: 'Case 1' }))
+					findUnique: mock.fn(() => ({ id: 'case-1', name: 'Case 1', reference: 'TEST/1' }))
 				}
 			};
 			const next = mock.fn();
@@ -233,6 +289,7 @@ describe('case details', () => {
 					findUnique: mock.fn(() => ({
 						id: 'case-1',
 						name: 'Case 1',
+						reference: 'TEST/1',
 						publishDate: new Date('2020-12-17T03:24:00.000Z')
 					}))
 				}
@@ -264,7 +321,7 @@ describe('case details', () => {
 			};
 			const mockDb = {
 				crownDevelopment: {
-					findUnique: mock.fn(() => ({ id: 'case-1', name: 'Case 1' }))
+					findUnique: mock.fn(() => ({ id: 'case-1', name: 'Case 1', reference: 'TEST/1' }))
 				}
 			};
 			const next = mock.fn();
@@ -298,7 +355,7 @@ describe('case details', () => {
 
 			const mockDb = {
 				crownDevelopment: {
-					findUnique: mock.fn(() => ({ id: 'case-1', name: 'Case 1', publishDate: tomorrow }))
+					findUnique: mock.fn(() => ({ id: 'case-1', name: 'Case 1', reference: 'TEST/1', publishDate: tomorrow }))
 				}
 			};
 			const next = mock.fn();
@@ -663,15 +720,6 @@ describe('case details', () => {
 					{ id: '1', a: 'db-a' },
 					{ a: 'no-id' },
 					{ id: null, a: 'null-id' }
-				]);
-			});
-
-			it('uses a custom idKey when provided', () => {
-				const dbArray = [{ ref: 'r1', a: 'db-a', b: 'db-b' }];
-				const sessionArray = [{ ref: 'r1', b: 'session-b' }];
-
-				assert.deepStrictEqual(mergeArraysById(dbArray, sessionArray, 'ref'), [
-					{ ref: 'r1', a: 'db-a', b: 'session-b' }
 				]);
 			});
 		});

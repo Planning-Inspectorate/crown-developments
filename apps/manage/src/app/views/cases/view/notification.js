@@ -1,5 +1,5 @@
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
-import { crownDevelopmentToViewModel } from './view-model.js';
+import { crownDevelopmentToViewModel } from './view-model.ts';
 import {
 	BOOLEAN_OPTIONS,
 	yesNoToBoolean
@@ -9,7 +9,7 @@ import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
 import { caseReferenceToFolderName, grantLpaSharePointAccess } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
 /**
- * @typedef {import('@pins/crowndev-lib/types/crown/types').YesNo} YesNo
+ * @typedef {import('@pins/crowndev-lib/util/types').YesNo} YesNo
  */
 
 /**
