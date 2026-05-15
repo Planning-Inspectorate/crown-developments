@@ -5,7 +5,7 @@ import {
 	sendLpaAcknowledgeReceiptOfQuestionnaireNotification,
 	sendLpaQuestionnaireSentNotification
 } from './notification.js';
-import { editsToDatabaseUpdates, crownDevelopmentToViewModel } from './view-model.js';
+import { editsToDatabaseUpdates, crownDevelopmentToViewModel } from './view-model.ts';
 import {
 	hasOrganisationWriteEdits,
 	buildCaseUpdateWritePlan,
@@ -27,7 +27,7 @@ export function buildUpdateCase(service, clearAnswer = false) {
 			throw new Error(`invalid update case request, id param required (id:${id})`);
 		}
 		logger.info({ id }, 'case update');
-		/** @type {import('./types.js').CrownDevelopmentViewModel} */
+		/** @type {import('./view-model').CrownDevelopmentSaveModel} */
 		const toSave = data?.answers || {};
 		if (clearAnswer) {
 			// clear the answer if requested
@@ -39,7 +39,7 @@ export function buildUpdateCase(service, clearAnswer = false) {
 			logger.info({ id }, 'no case updates to apply');
 			return;
 		}
-		/** @type {import('./types.js').CrownDevelopmentViewModel} */
+		/** @type {import('./view-model').CrownDevelopmentViewModel} */
 		const fullViewModel = res.locals?.journeyResponse?.answers || {};
 		const originalAnswers = res.locals?.originalAnswers || {};
 
@@ -72,7 +72,7 @@ export function buildUpdateCase(service, clearAnswer = false) {
 
 				// Fresh DB view model gives correct relation ids (organisationRelationId / organisationToContactRelationId)
 				const dbViewModel = crownDevelopmentToViewModel(crownDevelopment);
-				/** @type {import('./types.js').CrownDevelopmentViewModel} */
+				/** @type {import('./view-model').CrownDevelopmentViewModel} */
 				const viewModelForUpdates = { ...dbViewModel };
 				for (const [key, value] of Object.entries(originalAnswers)) {
 					if (viewModelForUpdates[key] === undefined || viewModelForUpdates[key] === null) {
@@ -175,8 +175,8 @@ function addCaseUpdatedSession(req, id) {
  * Handle edit case updates with custom behaviour
  * @param {import('#service').ManageService} service
  * @param {string} id
- * @param {import('./types.js').CrownDevelopmentViewModel} toSave
- * @param {import('./types.js').CrownDevelopmentViewModel} fullViewModel
+ * @param {import('./view-model').CrownDevelopmentSaveModel} toSave
+ * @param {import('./view-model').CrownDevelopmentViewModel} fullViewModel
  */
 export async function customUpdateCaseActions(service, id, toSave, fullViewModel) {
 	if (toSave.applicationFee !== undefined) {
@@ -186,12 +186,12 @@ export async function customUpdateCaseActions(service, id, toSave, fullViewModel
 	if (
 		toSave.lpaQuestionnaireReceivedDate &&
 		fullViewModel.lpaQuestionnaireReceivedEmailSent !== BOOLEAN_OPTIONS.YES &&
-		fullViewModel.typeOfApplication !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
+		fullViewModel.typeId !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
 	) {
 		await handleLpaQuestionnaireReceivedDateUpdate(service, id, toSave);
 	}
 
-	if (toSave.lpaQuestionnaireSentDate && fullViewModel.lpaQuestionnaireSentSpecialEmailSent !== BOOLEAN_OPTIONS.YES) {
+	if (toSave.lpaQuestionnaireSentDate && fullViewModel.lpaQuestionnaireSpecialEmailSent !== BOOLEAN_OPTIONS.YES) {
 		await handleLpaQuestionnaireSentDateUpdate(service, id, toSave);
 	}
 
@@ -202,7 +202,7 @@ export async function customUpdateCaseActions(service, id, toSave, fullViewModel
 	if (
 		toSave.turnedAwayDate &&
 		fullViewModel.notNationallyImportantEmailSent !== BOOLEAN_OPTIONS.YES &&
-		fullViewModel.typeOfApplication !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
+		fullViewModel.typeId !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
 	) {
 		await handleTurnedAwayDateUpdate(service, id, toSave);
 	}
@@ -217,7 +217,7 @@ function handleApplicationFee(toSave) {
 /**
  * @param {import('#service').ManageService} service
  * @param {string} id
- * @param {import('./types.js').CrownDevelopmentViewModel} toSave
+ * @param {import('./view-model').CrownDevelopmentSaveModel} toSave
  */
 async function handleLpaQuestionnaireReceivedDateUpdate(service, id, toSave) {
 	await sendLpaAcknowledgeReceiptOfQuestionnaireNotification(service, id, toSave.lpaQuestionnaireReceivedDate);
@@ -227,18 +227,18 @@ async function handleLpaQuestionnaireReceivedDateUpdate(service, id, toSave) {
 /**
  * @param {import('#service').ManageService} service
  * @param {string} id
- * @param {import('./types.js').CrownDevelopmentViewModel} toSave
+ * @param {import('./view-model').CrownDevelopmentSaveModel} toSave
  */
 async function handleLpaQuestionnaireSentDateUpdate(service, id, toSave) {
 	await sendLpaQuestionnaireSentNotification(service, id);
-	toSave['lpaQuestionnaireSentSpecialEmailSent'] = true;
+	toSave['lpaQuestionnaireSpecialEmailSent'] = true;
 }
 
 /**
  * @param {import('#service').ManageService} service
  * @param {string} id
- * @param {import('./types.js').CrownDevelopmentViewModel} toSave
- * @param {import('./types.js').CrownDevelopmentViewModel} fullViewModel
+ * @param {import('./view-model').CrownDevelopmentSaveModel} toSave
+ * @param {import('./view-model').CrownDevelopmentViewModel} fullViewModel
  */
 async function handleApplicationReceivedDateUpdate(service, id, toSave, fullViewModel) {
 	const validations = [
@@ -274,7 +274,7 @@ async function handleApplicationReceivedDateUpdate(service, id, toSave, fullView
 
 	if (
 		fullViewModel.applicationReceivedDateEmailSent !== BOOLEAN_OPTIONS.YES &&
-		fullViewModel.typeOfApplication !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
+		fullViewModel.typeId !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
 	) {
 		await sendApplicationReceivedNotification(service, id, toSave.applicationReceivedDate);
 		toSave['applicationReceivedDateEmailSent'] = true;
@@ -284,7 +284,7 @@ async function handleApplicationReceivedDateUpdate(service, id, toSave, fullView
 /**
  * @param {import('#service').ManageService} service
  * @param {string} id
- * @param {import('./types.js').CrownDevelopmentViewModel} toSave
+ * @param {import('./view-model').CrownDevelopmentSaveModel} toSave
  */
 async function handleTurnedAwayDateUpdate(service, id, toSave) {
 	await sendApplicationNotOfNationalImportanceNotification(service, id);
@@ -292,6 +292,7 @@ async function handleTurnedAwayDateUpdate(service, id, toSave) {
 }
 
 /**
+ * Note that any scalar foreign keys also need their relation fields specifying (e.g. both statusId & Status)
  * @param {object} updateInput
  * @returns {boolean}
  */
@@ -301,17 +302,20 @@ function updateContainsDeLinkedField(updateInput) {
 		'expectedDateOfSubmission',
 		'reference',
 		'statusId',
+		'Status',
 		'lpaReference',
 		'applicationAcceptedDate',
 		'lpaQuestionnaireReceivedDate',
 		'publishDate',
 		'neighboursNotifiedByLpaDate',
 		'decisionOutcomeId',
+		'DecisionOutcome',
 		'representationsPublishDate',
 		'representationsPeriodStartDate',
 		'representationsPeriodEndDate',
 		'assessorInspectorId',
 		'subTypeId',
+		'SubType',
 		'hasApplicationFee',
 		'applicationFee'
 	];

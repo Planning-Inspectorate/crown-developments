@@ -870,7 +870,7 @@ describe('case details', () => {
 						description: 'a big project',
 						siteAddressId: 'address-1',
 						hasApplicationFee: true,
-						applicationFee: 1100,
+						applicationFee: new Prisma.Decimal('1100'),
 						SiteAddress: { line1: '4 the street', line2: 'town', postcode: 'wc1w 1bw' },
 						Lpa: { email: 'test@email.com' },
 						ApplicantContact: { email: 'test@email.com' }
@@ -1407,7 +1407,7 @@ describe('case details', () => {
 				locals: {
 					journeyResponse: {
 						answers: {
-							lpaQuestionnaireSentSpecialEmailSent: false
+							lpaQuestionnaireSpecialEmailSent: false
 						}
 					}
 				}
@@ -1419,7 +1419,7 @@ describe('case details', () => {
 			};
 
 			await assert.rejects(() => updateCase({ req: mockReq, res: mockRes, data }));
-			assert.strictEqual(data.answers.lpaQuestionnaireSentSpecialEmailSent, undefined);
+			assert.strictEqual(data.answers.lpaQuestionnaireSpecialEmailSent, undefined);
 		});
 		it('should send LPA Questionnaire Sent Notification and update', async () => {
 			const logger = mockLogger();
@@ -1459,7 +1459,7 @@ describe('case details', () => {
 			await updateCase({ req: mockReq, res: mockRes, data });
 
 			assert.strictEqual(mockNotifyClient.sendLpaQuestionnaireNotification.mock.callCount(), 1);
-			assert.strictEqual(data.answers.lpaQuestionnaireSentSpecialEmailSent, true);
+			assert.strictEqual(data.answers.lpaQuestionnaireSpecialEmailSent, true);
 		});
 
 		it('should update shared agent organisation once and link it to both cases when updating linked cases', async () => {
