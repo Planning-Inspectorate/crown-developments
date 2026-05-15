@@ -19,11 +19,8 @@ export function loadConfig(): Config {
 		return config;
 	}
 	// load configuration from .env file into process.env
-	try {
-		loadEnvFile();
-	} catch {
-		/* ignore errors*/
-	}
+	// prettier-ignore
+	try {loadEnvFile()} catch {/* ignore errors*/}
 
 	// get values from the environment
 	const {
