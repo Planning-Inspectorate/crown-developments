@@ -30,6 +30,7 @@
     "express-validator": "*",
     "govuk-frontend": "*",
     "helmet": "*",
+    "lusca": "*",
     "multer": "*",
     "nunjucks": "*",
     "pino": "*",
