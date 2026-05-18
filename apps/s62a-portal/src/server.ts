@@ -1,9 +1,9 @@
-import { PortalService } from '#service';
+import { S62APortalService } from '#service';
 import { createApp } from './app/app.ts';
 import { loadConfig } from './app/config.ts';
 
 const config = loadConfig();
-const service = new PortalService(config);
+const service = new S62APortalService(config);
 
 const app = createApp(service);
 // Trust proxy, because our application is behind Front Door
