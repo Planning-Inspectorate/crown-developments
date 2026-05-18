@@ -204,7 +204,9 @@ describe('controller', () => {
 					distressing: true,
 					size: undefined,
 					lastModified: '',
-					createdDate: ''
+					createdDate: '',
+					category: undefined,
+					lastModifiedDateTime: undefined
 				}
 			);
 			assert.deepStrictEqual(
@@ -216,7 +218,9 @@ describe('controller', () => {
 					distressing: false,
 					size: undefined,
 					lastModified: '',
-					createdDate: ''
+					createdDate: '',
+					category: undefined,
+					lastModifiedDateTime: undefined
 				}
 			);
 		});

@@ -24,8 +24,10 @@ describe('get', () => {
 				type: 'Image',
 				lastModified: '',
 				createdDate: '',
+				lastModifiedDateTime: undefined,
 				size: undefined,
-				distressing: false
+				distressing: false,
+				category: undefined
 			});
 		});
 
