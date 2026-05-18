@@ -4,4 +4,6 @@ export interface DocumentViewModel {
 	size?: string;
 	lastModified?: string;
 	type?: string;
+	distressing?: boolean;
+	category?: string;
 }

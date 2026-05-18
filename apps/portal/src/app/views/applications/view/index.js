@@ -1,5 +1,5 @@
 import { Router as createRouter } from 'express';
-import { buildApplicationDocumentsPage } from './documents/controller.js';
+import { buildApplicationDocumentsPage } from './documents/controller.ts';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 import { buildApplicationInformationPage } from './application-info/controller.js';
 import { createHaveYourSayRoutes } from './have-your-say/index.js';
@@ -10,10 +10,6 @@ import { buildApplicationUpdatesPage } from './application-updates/controller.js
 import { checkIfExpiredMiddleware, checkIfWithdrawnOrExpiredMiddleware } from './utils/middleware.ts';
 import { buildCachingDynamicContentMiddleware } from '../../util/caching-middleware.js';
 
-/**
- * @param {import('#service').PortalService} service
- * @returns {import('express').Router}
- */
 export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
 	const applicationInfoController = buildApplicationInformationPage(service);

@@ -1,5 +1,6 @@
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { bytesToUnit } from '../util/numbers.js';
+import { CATEGORY_SHAREPOINT_TO_VALUE } from './categories.ts';
 
 // file properties to fetch for display
 export const FILE_PROPERTIES = Object.freeze(['file', 'id', 'lastModifiedDateTime', 'createdDateTime', 'name', 'size']);
@@ -19,8 +20,10 @@ export function mapDriveItemToViewModel(driveItem) {
 		size: driveItem.size && bytesToUnit(driveItem.size, 0),
 		createdDate: formatDateForDisplay(driveItem.createdDateTime),
 		lastModified: formatDateForDisplay(driveItem.lastModifiedDateTime),
+		lastModifiedDateTime: driveItem.lastModifiedDateTime,
 		type: mapMimeTypeToDisplayName(driveItem.file?.mimeType),
-		distressing: isDistressingContent(driveItem?.listItem?.fields)
+		distressing: isDistressingContent(driveItem?.listItem?.fields),
+		category: getCategory(driveItem?.listItem?.fields)
 	};
 }
 
@@ -55,4 +58,17 @@ const isDistressingContent = (fields) => {
 		typeof fields['Distressing'] === 'string' &&
 		fields['Distressing'].toLowerCase() === 'yes'
 	);
+};
+
+/**
+ * Extract and normalize category from document metadata fields
+ * @param {Object} [fields]
+ * @returns {string|undefined}
+ */
+const getCategory = (fields) => {
+	if (fields?.['Category'] && typeof fields['Category'] === 'string') {
+		// Return the normalized camelCase value if it matches a known category
+		return CATEGORY_SHAREPOINT_TO_VALUE[fields['Category']] || undefined;
+	}
+	return undefined;
 };
