@@ -1,4 +1,4 @@
-import { runBuild } from '../../../../packages/lib/util/build.ts';
+import { runBuild } from '@pins/crowndev-lib/util/build.ts';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { loadBuildConfig } from '../app/config.ts';
@@ -8,9 +8,9 @@ import { loadBuildConfig } from '../app/config.ts';
  */
 async function run(): Promise<void> {
 	const require = createRequire(import.meta.url);
-	// resolves to <root>/node_modules/govuk-frontend/dist/govuk/all.bundle.js than maps to `<root>`
+	// resolves to <root>/node_modules/govuk-frontend/dist/govuk/all.bundle.js then maps to `<root>`
 	const govUkRoot = path.resolve(require.resolve('govuk-frontend'), '../../../../..');
-	// resolves to <root>/node_modules/@ministryofjustice/frontend/moj/all.bundle.js than maps to `<root>`
+	// resolves to <root>/node_modules/@ministryofjustice/frontend/moj/all.bundle.js then maps to `<root>`
 	const mojRoot = path.resolve(require.resolve('@ministryofjustice/frontend'), '../../../../..');
 
 	const config = loadBuildConfig();

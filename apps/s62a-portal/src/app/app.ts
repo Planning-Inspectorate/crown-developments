@@ -1,4 +1,4 @@
-import type { PortalService } from '#service';
+import type { S62APortalService } from '#service';
 import { configureNunjucks } from './nunjucks.ts';
 import { buildRouter } from './router.ts';
 import bodyParser from 'body-parser';
@@ -11,8 +11,9 @@ import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crown
 import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.ts';
 import { initSessionMiddlewareWithCsrf } from '@pins/crowndev-lib/util/session.ts';
 import manifest from '../.static/manifest.json' with { type: 'json' };
+import { addLocalsConfiguration } from '../util/config-middleware.ts';
 
-export function createApp(service: PortalService): Express {
+export function createApp(service: S62APortalService): Express {
 	// create an express app, and configure it for our usage
 	const app = express();
 
@@ -30,6 +31,7 @@ export function createApp(service: PortalService): Express {
 		secret: service.sessionSecret
 	});
 	app.use(sessionMiddleware);
+	app.use(addLocalsConfiguration());
 
 	// content security policy middleware including nonce generation
 	app.use(...initContentSecurityPolicyMiddlewares(cspDirectiveDefaults));
