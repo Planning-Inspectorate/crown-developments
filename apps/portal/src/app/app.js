@@ -19,7 +19,7 @@ import lusca from 'lusca';
 export function getApp(service) {
 	// create an express app, and configure it for our usage
 	const app = express();
-
+	const csrfMiddleware = lusca.csrf();
 	const logRequests = buildLogRequestsMiddleware(service.logger);
 	// middleware to clean empty query params and trim empty query values
 	app.use(cleanEmptyQueryParams, trimEmptyQuery);
@@ -40,12 +40,12 @@ export function getApp(service) {
 	// CSRF protection middleware, with an exception for the file upload endpoint which uses Multer and multipart/form-data
 	// see https://github.com/krakenjs/lusca/issues/70
 	app.use((req, res, next) => {
-		if (req.path.endsWith('/upload-documents') && req.method === 'POST') {
+		if (/\/upload-documents\/?$/.test(req.path) && req.method === 'POST') {
 			// Multer multipart/form-data needs to be handled before Lusca CSRF check
 			// upload-documents is the POST API the file-upload component in our journeys, which uses Multer
 			next();
 		} else {
-			lusca.csrf()(req, res, next);
+			csrfMiddleware(req, res, next);
 		}
 	});
 

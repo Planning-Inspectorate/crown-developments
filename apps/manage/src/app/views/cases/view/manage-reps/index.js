@@ -20,6 +20,7 @@ import {
 import {
 	ALLOWED_EXTENSIONS,
 	ALLOWED_MIME_TYPES,
+	MAX_FILE_NUMBER,
 	MAX_FILE_SIZE
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
 import {
@@ -52,7 +53,7 @@ export function createRoutes(service) {
 	const updateRepFn = buildUpdateRepresentation(service);
 	const saveAnswer = buildSave(updateRepFn, true);
 
-	const handleUploads = multer();
+	const handleUploads = multer({ limits: { fileSize: MAX_FILE_SIZE, files: MAX_FILE_NUMBER } });
 	const uploadDocuments = asyncHandler(
 		uploadDocumentsController(
 			service,
@@ -88,7 +89,7 @@ export function createRoutes(service) {
 		getJourney,
 		handleUploads.array('files[]'),
 		// Lusca CSRF check performed after Multer handles the multipart/form-data
-		lusca({ csrf: true }),
+		lusca.csrf(),
 		uploadDocuments
 	);
 

@@ -10,9 +10,11 @@ import {
 import {
 	ALLOWED_EXTENSIONS,
 	ALLOWED_MIME_TYPES,
+	MAX_FILE_NUMBER,
 	MAX_FILE_SIZE
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
 import { buildDeleteRepresentationRedactedDocumentMiddleware } from './delete-attachment-middleware.js';
+import lusca from 'lusca';
 
 export function createRoutes(service, journeyId) {
 	const router = createRouter({ mergeParams: true });
@@ -24,7 +26,7 @@ export function createRoutes(service, journeyId) {
 	} = buildReviewControllers(service, journeyId);
 	const viewDocument = buildViewDocument(service);
 	const validateRedactedFileMiddleware = buildValidateRedactedFileMiddleware(service);
-	const handleUploads = multer();
+	const handleUploads = multer({ limits: { fileSize: MAX_FILE_SIZE, files: MAX_FILE_NUMBER } });
 	const uploadDocuments = asyncHandler(
 		uploadDocumentsController(
 			service,
@@ -49,6 +51,8 @@ export function createRoutes(service, journeyId) {
 	router.post(
 		'/redact/upload-documents',
 		handleUploads.array('files[]'),
+		// Lusca CSRF check performed after Multer handles the multipart/form-data
+		lusca.csrf(),
 		validateRedactedFileMiddleware,
 		uploadDocuments
 	);
