@@ -27,6 +27,7 @@ import multer from 'multer';
 import {
 	ALLOWED_EXTENSIONS,
 	ALLOWED_MIME_TYPES,
+	MAX_FILE_NUMBER,
 	MAX_FILE_SIZE
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
 import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
@@ -53,7 +54,7 @@ export function createHaveYourSayRoutes(service) {
 	const redirectToHaveYourSayJourney = startHaveYourSayJourney(service);
 	const saveDataToSession = buildSaveDataToSession({ reqParam: applicationIdParam });
 	const saveRepresentation = asyncHandler(buildSaveHaveYourSayController(service));
-	const handleUploads = multer();
+	const handleUploads = multer({ limits: { fileSize: MAX_FILE_SIZE, files: MAX_FILE_NUMBER } });
 	const uploadDocuments = asyncHandler(
 		uploadDocumentsController(service, JOURNEY_ID, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE)
 	);
@@ -82,7 +83,7 @@ export function createHaveYourSayRoutes(service) {
 		getJourney,
 		handleUploads.array('files[]'),
 		// Lusca CSRF check performed after Multer handles the multipart/form-data
-		lusca({ csrf: true }),
+		lusca.csrf(),
 		uploadDocuments
 	);
 
