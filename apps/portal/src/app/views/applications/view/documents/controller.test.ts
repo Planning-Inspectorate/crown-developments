@@ -140,6 +140,7 @@ describe('controller', () => {
 			assert.strictEqual(renderArgs.isWithdrawn, false);
 			assert.strictEqual(renderArgs.containsDistressingContent, false);
 			assert.strictEqual(renderArgs.currentUrl, 'test-baseUrl/documents?searchCriteria="test"');
+			// No query params, so clearQueryUrl should be just the base URL
 			assert.strictEqual(renderArgs.clearQueryUrl, 'test-baseUrl/documents');
 			assert.strictEqual(renderArgs.selectedItemsPerPage, 25);
 			assert.strictEqual(renderArgs.totalDocuments, 0);
@@ -437,6 +438,42 @@ describe('controller', () => {
 			assert.strictEqual(viewData.resultsStartNumber, 1);
 			assert.strictEqual(viewData.resultsEndNumber, 3);
 			assert.strictEqual(viewData.searchValue, '');
+		});
+
+		it('should preserve itemsPerPage in clearQueryUrl while clearing search and filters', async () => {
+			const mockDb = createMockDb();
+			const mockSharePoint = createMockSharePoint([
+				{
+					id: '1',
+					name: 'Doc 1',
+					file: { mimeType: 'application/pdf' },
+					listItem: { fields: { Category: 'application' } }
+				}
+			]);
+			const handler = buildApplicationDocumentsPage({
+				db: mockDb,
+				logger: mockLogger(),
+				sharePointDrive: mockSharePoint
+			} as unknown as PortalService);
+			const req = createMockRequest({
+				query: {
+					searchCriteria: 'test',
+					filterCategory: 'application',
+					itemsPerPage: '50',
+					page: '2'
+				},
+				baseUrl: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8'
+			});
+			const res = createMockResponse();
+
+			await handler(req, res);
+
+			const viewData = getRenderArgs(res);
+			// clearQueryUrl should preserve itemsPerPage but clear searchCriteria and filterCategory, reset page to 1
+			assert.strictEqual(
+				viewData.clearQueryUrl,
+				'/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/documents?itemsPerPage=50&page=1'
+			);
 		});
 	});
 });

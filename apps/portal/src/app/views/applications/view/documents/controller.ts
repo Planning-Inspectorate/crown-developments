@@ -4,24 +4,22 @@ import { loadPublishedApplicationOr404, shouldDisplayApplicationUpdatesLink } fr
 import { publishedFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { getDocuments } from '@pins/crowndev-lib/documents/get.js';
 import { splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
-import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
-import { buildDocumentFilters, getFilterQueryItems, hasQueries } from './filters/filters.ts';
+import { isWithdrawnOrExpired } from '#util/applications.ts';
+import {
+	buildUrlWithParams,
+	getPageData,
+	getPaginationParams
+} from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
+import {
+	buildDocumentFilters,
+	createEmptyCategoryCounts,
+	getFilterQueryItems,
+	hasQueries,
+	type CategoryCounts
+} from './filters/filters.ts';
 import type { FilterSection } from './filters/filters.ts';
 import type { PortalService } from '#service';
 import type { RequestHandler } from 'express';
-
-/**
- * Represents the count of documents in each category.
- * Used to track how many documents belong to each category type.
- */
-export interface CategoryCounts {
-	application: number;
-	lpaQuestionnaire: number;
-	writtenRepresentations: number;
-	inquiry: number;
-	hearing: number;
-	decision: number;
-}
 
 type QueryParams = Record<string, string | string[] | undefined>;
 
@@ -84,18 +82,11 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 		}
 
 		// Count documents by category (before category filter is applied)
-		const categoryCounts: CategoryCounts = {
-			application: 0,
-			lpaQuestionnaire: 0,
-			writtenRepresentations: 0,
-			inquiry: 0,
-			hearing: 0,
-			decision: 0
-		};
+		const categoryCounts: CategoryCounts = createEmptyCategoryCounts();
 
 		allDocuments.forEach((document) => {
 			if (document.category && document.category in categoryCounts) {
-				categoryCounts[document.category as keyof CategoryCounts]++;
+				categoryCounts[document.category]++;
 			}
 		});
 
@@ -119,23 +110,27 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 
 		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
 
-		let isWithdrawn = false;
-		if (db?.applicationUpdate?.count && typeof db.applicationUpdate.count === 'function') {
-			try {
-				const count = await db.applicationUpdate.count();
-				isWithdrawn = count > 0;
-			} catch {
-				isWithdrawn = false;
-			}
-		}
+		const isWithdrawn = isWithdrawnOrExpired(applicationStatus);
 
 		const queryParams = (req.query || {}) as QueryParams;
 		const filters: FilterSection[] = buildDocumentFilters(queryParams, categoryCounts);
 		const filterQueryItems = getFilterQueryItems(filters);
 
+		const baseUrl = `${req.baseUrl}/documents`;
+
+		// Build clearQueryUrl: preserve itemsPerPage, remove search and filters
+		// Check if there are any params that should be preserved (like itemsPerPage)
+		const hasPreservedParams = queryParams.itemsPerPage !== undefined && queryParams.itemsPerPage !== '';
+		const clearQueryUrl = hasPreservedParams
+			? buildUrlWithParams(baseUrl, queryParams as Record<string, string | number | boolean | undefined>, { page: 1 }, [
+					'searchCriteria',
+					'filterCategory'
+				])
+			: baseUrl;
+
 		res.render('views/applications/view/documents/view.njk', {
 			id,
-			baseUrl: `${req.baseUrl}/documents`,
+			baseUrl,
 			pageTitle: 'Documents',
 			applicationReference: crownDevelopment.reference,
 			pageCaption: reference,
@@ -149,7 +144,7 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 			),
 			currentUrl: req.originalUrl,
 			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined,
-			clearQueryUrl: `${req.baseUrl}/documents`,
+			clearQueryUrl,
 			documents: allDocuments.slice(skipSize, skipSize + pageSize),
 			selectedItemsPerPage,
 			totalDocuments,
