@@ -34,14 +34,26 @@
                         {% endif %}
                         {{ pageTitle }}
                     </h1>
-                    <form id="govuk-row" method="GET" action="{{ buildUrlWithParams(baseUrl, queryParams, { page: 1 }) }}">
+                    <form id="govuk-row" method="GET"
+                          action="{{ buildUrlWithParams(baseUrl, queryParams, { page: 1 }) }}">
                         <input type="hidden" name="itemsPerPage" value="{{ selectedItemsPerPage }}">
                         {% for filter in filters %}
+                            {# Preserve date input filters for future use #}
                             {% if filter.type == 'date-input' and filter.dateInputs %}
                                 {% for dateInput in filter.dateInputs %}
-                                    <input type="hidden" name="{{ dateInput.idPrefix }}-day" value="{{ dateInput.value.day | default('') }}">
-                                    <input type="hidden" name="{{ dateInput.idPrefix }}-month" value="{{ dateInput.value.month | default('') }}">
-                                    <input type="hidden" name="{{ dateInput.idPrefix }}-year" value="{{ dateInput.value.year | default('') }}">
+                                    <input type="hidden" name="{{ dateInput.idPrefix }}-day"
+                                           value="{{ dateInput.value.day | default('') }}">
+                                    <input type="hidden" name="{{ dateInput.idPrefix }}-month"
+                                           value="{{ dateInput.value.month | default('') }}">
+                                    <input type="hidden" name="{{ dateInput.idPrefix }}-year"
+                                           value="{{ dateInput.value.year | default('') }}">
+                                {% endfor %}
+                                {# Preserve checked checkbox filters (e.g., category selections) #}
+                                {% elif filter.type == 'checkboxes' and filter.options and filter.options.items %}
+                                {% for item in filter.options.items %}
+                                    {% if item.checked %}
+                                        <input type="hidden" name="{{ filter.name }}" value="{{ item.value }}">
+                                    {% endif %}
                                 {% endfor %}
                             {% endif %}
                         {% endfor %}
@@ -52,7 +64,7 @@
                                     hidden: true
                                 },
                                 hint: {
-                                     text: "Search by document name"
+                                    text: "Search by document name"
                                 },
                                 classes: "govuk-input govuk-input--width-30"
                             },
@@ -68,7 +80,7 @@
                             <input type="hidden" name="formType" value="mobile">
                             <input type="hidden" name="searchCriteria" value="{{ searchValue }}">
                             <input type="hidden" name="itemsPerPage" value="{{ selectedItemsPerPage }}">
-                            {{ filterAccordion(mobileFilters, 'Filters', id, cspNonce, 'mobile', true, isMobileFilterOpen) }}
+                            {{ filterAccordion(mobileFilters or filters, 'Filters', id, cspNonce, 'mobile', true, isMobileFilterOpen or false) }}
                         </form>
                     </div>
                     {# ### #}
@@ -76,21 +88,27 @@
                         <p class="govuk-body">Active filters</p>
                         {% for query in filterQueries %}
                             <button
-                                type="button" id="{{ query.id }}"  class="govuk-body selected-filter-tag"
-                                {% if query.queryKeys %}data-query-keys="{{ query.queryKeys | join(',') }}"{% endif %}>×
+                                    type="button" id="{{ query.id }}" class="govuk-body selected-filter-tag"
+                                    {% if query.queryKeys %}data-query-keys="{{ query.queryKeys | join(',') }}"{% endif %}>
+                                ×
                                 {{ query.label }}: {{ query.displayName }}</button>
                         {% endfor %}
-                        <p class="govuk-body"><a href="{{ clearQueryUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search and filters</a></p>
+                        <p class="govuk-body"><a href="{{ clearQueryUrl }}"
+                                                 class="govuk-link govuk-link--no-visited-state">Clear search and
+                                filters</a></p>
                         <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
                     {% endif %}
 
                     {% if documents | length == 0 %}
                         <p class="govuk-body">No results were found.</p>
-                        <p class="govuk-body"><a href="{{ clearQueryUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search and filters</a> to view all documents.</p>
+                        <p class="govuk-body"><a href="{{ clearQueryUrl }}"
+                                                 class="govuk-link govuk-link--no-visited-state">Clear search and
+                                filters</a> to view all documents.</p>
                     {% else %}
                         <div id="pagination" class="govuk-body">
                             <p class="govuk-body">
-                                Showing <strong>{{ resultsStartNumber }}</strong> to <strong>{{ resultsEndNumber if totalDocuments > resultsEndNumber else totalDocuments }}</strong>
+                                Showing <strong>{{ resultsStartNumber }}</strong> to
+                                <strong>{{ resultsEndNumber if totalDocuments > resultsEndNumber else totalDocuments }}</strong>
                                 of <strong>{{ totalDocuments }}</strong> documents, newest first.
                             </p>
                             <p class="govuk-body">{{ paginationOptions.renderPagination(selectedItemsPerPage, totalDocuments, baseUrl, queryParams) }}</p>
@@ -104,7 +122,8 @@
                                                     classes: "govuk-tag--red"
                                                 }) }}
                                             {% endif %}
-                                            <a class="govuk-link" href="{{ baseUrl }}/{{ document.id }}" target="_blank" rel="noreferrer">
+                                            <a class="govuk-link" href="{{ baseUrl }}/{{ document.id }}" target="_blank"
+                                               rel="noreferrer">
                                                 {{ document.name }}
                                             </a>
                                         </div>
@@ -126,29 +145,33 @@
             </div>
         </div>
         <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-            document.querySelectorAll('.selected-filter-tag').forEach(function(button) {
-                button.addEventListener('click', function(e) {
-                    const filterId = e.currentTarget && e.currentTarget.id;
-                    const queryKeysAttr = e.currentTarget && e.currentTarget.getAttribute('data-query-keys');
-                    const extraKeys = (queryKeysAttr || '').split(',').map(k => k.trim()).filter(Boolean);
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const updatedParams = new URLSearchParams();
-                    urlParams.forEach((value, key) => {
-                        // If date range pill, drop all related keys
-                        if (extraKeys.length && extraKeys.includes(key)) {
-                            return; // skip adding
-                        }
-                        // Otherwise, remove only the matching value
-                        if (value === filterId) {
-                            return; // skip adding
-                        }
-                        updatedParams.append(key, value);
-                    });
+					document.querySelectorAll('.selected-filter-tag').forEach(function(button) {
+						button.addEventListener('click', function(e) {
+							const filterId = e.currentTarget && e.currentTarget.id;
+							const queryKeysAttr = e.currentTarget && e.currentTarget.getAttribute('data-query-keys');
+							const queryKeys = (queryKeysAttr || '').split(',').map(k => k.trim()).filter(Boolean);
+							const urlParams = new URLSearchParams(window.location.search);
+							const updatedParams = new URLSearchParams();
 
-                    // Redirect to the updated URL
-                    window.location.search = updatedParams.toString();
-                });
-            });
+							urlParams.forEach((value, key) => {
+								if (queryKeys.length > 0) {
+									if (queryKeys.includes(key)) {
+										if (value === filterId) {
+											return;
+										}
+									}
+									updatedParams.append(key, value);
+								} else {
+									if (value !== filterId) {
+										updatedParams.append(key, value);
+									}
+								}
+							});
+
+							// Redirect to the updated URL
+							window.location.search = updatedParams.toString();
+						});
+					});
         </script>
     </div>
 {% endblock %}

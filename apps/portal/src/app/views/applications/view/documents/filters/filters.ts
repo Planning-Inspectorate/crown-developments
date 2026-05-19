@@ -1,5 +1,27 @@
 import { DOCUMENT_CATEGORIES } from '@pins/crowndev-lib/documents/categories.ts';
-import { normalizeToArray, type CategoryCounts } from '../controller.ts';
+
+/**
+ * Type for category counts derived from DOCUMENT_CATEGORIES.
+ * Automatically includes all categories defined in the categories configuration.
+ */
+export type CategoryCounts = Record<string, number>;
+
+/**
+ * Creates a zero-initialized category counts object.
+ * Automatically includes all categories defined in DOCUMENT_CATEGORIES.
+ *
+ * @returns Object with all category values as keys, each initialized to 0
+ */
+export function createEmptyCategoryCounts(): CategoryCounts {
+	return Object.fromEntries(DOCUMENT_CATEGORIES.map((cat) => [cat.value, 0]));
+}
+
+function normalizeToArray(value: string | string[] | undefined): string[] {
+	if (Array.isArray(value)) {
+		return value;
+	}
+	return value == null || value === '' ? [] : [value];
+}
 
 /**
  * Represents query parameters from the URL.
@@ -69,7 +91,7 @@ export function buildDocumentFilters(
 	const categoryDefinitions = DOCUMENT_CATEGORIES.map((cat) => ({
 		value: cat.value,
 		displayName: cat.displayName,
-		count: categoryCounts[cat.value as keyof CategoryCounts],
+		count: categoryCounts[cat.value] ?? 0,
 		alwaysShow: cat.alwaysShow ?? false
 	}));
 
@@ -98,7 +120,7 @@ export function buildDocumentFilters(
 	return [categorySection];
 }
 
-const excludedFilterKeys = ['itemsPerPage', 'page', 'searchCriteria'] as const;
+const excludedFilterKeys = ['itemsPerPage', 'page', 'searchCriteria', 'formType'] as const;
 
 interface FilterQueryItem {
 	label: string;
@@ -138,7 +160,8 @@ export function getFilterQueryItems(filters: FilterSection[]): FilterQueryItem[]
 					filterQueryItems.push({
 						label: filter.title,
 						id: item.value,
-						displayName: item.displayName
+						displayName: item.displayName,
+						queryKeys: [filter.name] // Specify which URL parameter to remove (e.g., "filterCategory")
 					});
 				}
 			});
