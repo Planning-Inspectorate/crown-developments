@@ -65,10 +65,4 @@ const isDistressingContent = (fields) => {
  * @param {Object} [fields]
  * @returns {string|undefined}
  */
-const getCategory = (fields) => {
-	if (fields?.['Category'] && typeof fields['Category'] === 'string') {
-		// Return the normalized camelCase value if it matches a known category
-		return CATEGORY_SHAREPOINT_TO_VALUE[fields['Category']] || undefined;
-	}
-	return undefined;
-};
+const getCategory = (fields) => CATEGORY_SHAREPOINT_TO_VALUE[fields?.['Category']];

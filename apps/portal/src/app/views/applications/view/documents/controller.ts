@@ -1,5 +1,5 @@
 import { applicationLinks } from '../view-model.ts';
-import { combineComparators, sortByField, sortByFileName } from '@pins/crowndev-lib/util/array.ts';
+import { combineComparators, normalizeToArray, sortByField, sortByFileName } from '@pins/crowndev-lib/util/array.ts';
 import { loadPublishedApplicationOr404, shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import { publishedFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { getDocuments } from '@pins/crowndev-lib/documents/get.js';
@@ -15,31 +15,12 @@ import {
 	createEmptyCategoryCounts,
 	getFilterQueryItems,
 	hasQueries,
-	type CategoryCounts
+	type CategoryCounts,
+	type FilterSection,
+	type QueryFilters
 } from './filters/filters.ts';
-import type { FilterSection } from './filters/filters.ts';
 import type { PortalService } from '#service';
 import type { RequestHandler } from 'express';
-
-type QueryParams = Record<string, string | string[] | undefined>;
-
-/**
- * Normalizes a query parameter value to an array of strings.
- * This handles both single values and arrays from query parameters.
- *
- * @example
- * normalizeToArray('test')           // Returns: ['test']
- * normalizeToArray(['a', 'b'])       // Returns: ['a', 'b']
- * normalizeToArray(undefined)        // Returns: []
- * normalizeToArray(['', 'test', '']) // Returns: ['test']
- *
- * @param value - The value to normalize (can be string, string array, or undefined)
- * @returns An array of non-empty strings
- */
-export function normalizeToArray(value: string | string[] | undefined): string[] {
-	if (!value) return [];
-	return Array.isArray(value) ? value.filter((v) => v !== undefined && v !== '') : [value];
-}
 
 /**
  * Builds the application documents page controller.
@@ -73,7 +54,7 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 
 		// Apply search filter
 		const searchCriteria = req.query?.searchCriteria;
-		const queries = splitStringQueries(typeof searchCriteria === 'string' ? searchCriteria : undefined);
+		const queries = typeof searchCriteria === 'string' ? splitStringQueries(searchCriteria) : undefined;
 
 		if (queries && queries.length > 0) {
 			allDocuments = allDocuments.filter((document) =>
@@ -91,7 +72,7 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 		});
 
 		// Apply category filter
-		const selectedCategories = normalizeToArray(req.query?.filterCategory as string | string[] | undefined);
+		const selectedCategories = normalizeToArray(req.query?.filterCategory as string | string[] | null | undefined);
 
 		if (selectedCategories.length > 0) {
 			allDocuments = allDocuments.filter((document) => {
@@ -112,20 +93,16 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 
 		const isWithdrawn = isWithdrawnOrExpired(applicationStatus);
 
-		const queryParams = (req.query || {}) as QueryParams;
+		const queryParams = (req.query || {}) as QueryFilters;
 		const filters: FilterSection[] = buildDocumentFilters(queryParams, categoryCounts);
 		const filterQueryItems = getFilterQueryItems(filters);
 
 		const baseUrl = `${req.baseUrl}/documents`;
 
 		// Build clearQueryUrl: preserve itemsPerPage, remove search and filters
-		// Check if there are any params that should be preserved (like itemsPerPage)
 		const hasPreservedParams = queryParams.itemsPerPage !== undefined && queryParams.itemsPerPage !== '';
 		const clearQueryUrl = hasPreservedParams
-			? buildUrlWithParams(baseUrl, queryParams as Record<string, string | number | boolean | undefined>, { page: 1 }, [
-					'searchCriteria',
-					'filterCategory'
-				])
+			? buildUrlWithParams(baseUrl, queryParams, { page: 1 }, ['searchCriteria', 'filterCategory'])
 			: baseUrl;
 
 		res.render('views/applications/view/documents/view.njk', {

@@ -44,8 +44,8 @@ export function getPageData(totalItems, selectedItemsPerPage, pageSize, pageNumb
  * Spaces to be added as %20 by URLSearchParams.
  *
  * @param {string} baseUrl
- * @param {Record<string, string|number|boolean|undefined>} currentQuery
- * @param {Record<string, string|number|boolean|undefined>} [updates] - keys to set/override
+ * @param {Record<string, string|string[]|number|boolean|null|undefined>} currentQuery
+ * @param {Record<string, string|string[]|number|boolean|null|undefined>} [updates] - keys to set/override
  * @param {string[]} [removals] - keys to delete from the final query
  * @returns {string}
  */

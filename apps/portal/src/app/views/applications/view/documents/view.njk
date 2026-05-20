@@ -48,8 +48,8 @@
                                     <input type="hidden" name="{{ dateInput.idPrefix }}-year"
                                            value="{{ dateInput.value.year | default('') }}">
                                 {% endfor %}
-                                {# Preserve checked checkbox filters (e.g., category selections) #}
-                                {% elif filter.type == 'checkboxes' and filter.options and filter.options.items %}
+                            {# Preserve checked checkbox filters (e.g., category selections) #}
+                            {% elif filter.type == 'checkboxes' and filter.options and filter.options.items %}
                                 {% for item in filter.options.items %}
                                     {% if item.checked %}
                                         <input type="hidden" name="{{ filter.name }}" value="{{ item.value }}">
@@ -87,23 +87,28 @@
                     {% if hasQueries %}
                         <p class="govuk-body">Active filters</p>
                         {% for query in filterQueries %}
-                            <button
-                                    type="button" id="{{ query.id }}" class="govuk-body selected-filter-tag"
+                            <button type="button"
+                                    id="{{ query.id }}"
+                                    class="govuk-body selected-filter-tag"
                                     {% if query.queryKeys %}data-query-keys="{{ query.queryKeys | join(',') }}"{% endif %}>
-                                ×
-                                {{ query.label }}: {{ query.displayName }}</button>
+                                × {{ query.label }}: {{ query.displayName }}
+                            </button>
                         {% endfor %}
-                        <p class="govuk-body"><a href="{{ clearQueryUrl }}"
-                                                 class="govuk-link govuk-link--no-visited-state">Clear search and
-                                filters</a></p>
+                        <p class="govuk-body">
+                            <a href="{{ clearQueryUrl }}" class="govuk-link govuk-link--no-visited-state">
+                                Clear search and filters
+                            </a>
+                        </p>
                         <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
                     {% endif %}
 
                     {% if documents | length == 0 %}
                         <p class="govuk-body">No results were found.</p>
-                        <p class="govuk-body"><a href="{{ clearQueryUrl }}"
-                                                 class="govuk-link govuk-link--no-visited-state">Clear search and
-                                filters</a> to view all documents.</p>
+                        <p class="govuk-body">
+                            <a href="{{ clearQueryUrl }}" class="govuk-link govuk-link--no-visited-state">
+                                Clear search and filters
+                            </a> to view all documents.
+                        </p>
                     {% else %}
                         <div id="pagination" class="govuk-body">
                             <p class="govuk-body">
@@ -144,34 +149,33 @@
                 </div>
             </div>
         </div>
-        <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-					document.querySelectorAll('.selected-filter-tag').forEach(function(button) {
-						button.addEventListener('click', function(e) {
-							const filterId = e.currentTarget && e.currentTarget.id;
-							const queryKeysAttr = e.currentTarget && e.currentTarget.getAttribute('data-query-keys');
-							const queryKeys = (queryKeysAttr || '').split(',').map(k => k.trim()).filter(Boolean);
-							const urlParams = new URLSearchParams(window.location.search);
-							const updatedParams = new URLSearchParams();
+        <script {% if cspNonce %}nonce="{{ cspNonce }}"{% endif %}>
+            document.querySelectorAll('.selected-filter-tag').forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    const filterId = e.currentTarget && e.currentTarget.id;
+                    const queryKeysAttr = e.currentTarget && e.currentTarget.getAttribute('data-query-keys');
+                    const queryKeys = (queryKeysAttr || '').split(',').map(k => k.trim()).filter(Boolean);
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const updatedParams = new URLSearchParams();
+                    urlParams.forEach((value, key) => {
+                        if (queryKeys.length > 0) {
+                            if (queryKeys.includes(key)) {
+                                if (value === filterId) {
+                                    return;
+                                }
+                            }
+                            updatedParams.append(key, value);
+                        } else {
+                            if (value !== filterId) {
+                                updatedParams.append(key, value);
+                            }
+                        }
+                    });
 
-							urlParams.forEach((value, key) => {
-								if (queryKeys.length > 0) {
-									if (queryKeys.includes(key)) {
-										if (value === filterId) {
-											return;
-										}
-									}
-									updatedParams.append(key, value);
-								} else {
-									if (value !== filterId) {
-										updatedParams.append(key, value);
-									}
-								}
-							});
-
-							// Redirect to the updated URL
-							window.location.search = updatedParams.toString();
-						});
-					});
+                    // Redirect to the updated URL
+                    window.location.search = updatedParams.toString();
+                });
+            });
         </script>
     </div>
 {% endblock %}

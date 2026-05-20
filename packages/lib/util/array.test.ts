@@ -1,8 +1,45 @@
 import { describe, it } from 'node:test';
-import { combineComparators, sortByField, sortByFileName } from './array.ts';
+import { combineComparators, normalizeToArray, sortByField, sortByFileName } from './array.ts';
 import assert from 'node:assert';
 
 describe('array', () => {
+	describe('normalizeToArray', () => {
+		it('should convert a single string to an array', () => {
+			const result = normalizeToArray('test');
+			assert.deepStrictEqual(result, ['test']);
+		});
+
+		it('should return the array as-is when given an array', () => {
+			const result = normalizeToArray(['a', 'b', 'c']);
+			assert.deepStrictEqual(result, ['a', 'b', 'c']);
+		});
+
+		it('should return an empty array when given undefined', () => {
+			const result = normalizeToArray(undefined);
+			assert.deepStrictEqual(result, []);
+		});
+
+		it('should return an empty array when given null', () => {
+			const result = normalizeToArray(null);
+			assert.deepStrictEqual(result, []);
+		});
+
+		it('should return an empty array when given an empty string', () => {
+			const result = normalizeToArray('');
+			assert.deepStrictEqual(result, []);
+		});
+
+		it('should filter out undefined and empty strings from arrays', () => {
+			const result = normalizeToArray(['', 'test', '', 'value', undefined as any]);
+			assert.deepStrictEqual(result, ['test', 'value']);
+		});
+
+		it('should handle mixed valid and invalid array values', () => {
+			const result = normalizeToArray(['a', '', 'b', undefined as any, 'c']);
+			assert.deepStrictEqual(result, ['a', 'b', 'c']);
+		});
+	});
+
 	describe('sortByField', () => {
 		it('should sort an array of objects by the given field', () => {
 			const arr = [

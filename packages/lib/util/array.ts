@@ -56,3 +56,13 @@ export function combineComparators<T extends Comparator>(
 		return 0;
 	};
 }
+
+/**
+ * Normalizes a query parameter value to an array of strings.
+ * Handles single values, arrays, null, undefined, and empty strings.
+ *
+ */
+export function normalizeToArray(value: string | string[] | null | undefined): string[] {
+	if (!value) return [];
+	return Array.isArray(value) ? value.filter((v) => v !== undefined && v !== '') : [value];
+}

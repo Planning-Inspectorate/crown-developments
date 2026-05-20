@@ -4,7 +4,7 @@ import { buildApplicationListPage } from './list/controller.js';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
 
 /**
- * @param {PortalService} service
+ * @param {import('#service').PortalService} service
  * @returns {import('express').Router}
  */
 export function createRoutes(service) {
