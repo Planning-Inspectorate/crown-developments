@@ -16,22 +16,22 @@ export interface CategoryDefinition {
  * Categories marked with alwaysShow: true will appear in filters
  */
 export const DOCUMENT_CATEGORIES: ReadonlyArray<Readonly<CategoryDefinition>> = Object.freeze([
-	{ sharepointName: 'Application', displayName: 'Application', value: 'application', alwaysShow: true },
-	{
+	Object.freeze({ sharepointName: 'Application', displayName: 'Application', value: 'application', alwaysShow: true }),
+	Object.freeze({
 		sharepointName: 'LPA Questionnaire',
 		displayName: 'LPA questionnaire',
 		value: 'lpaQuestionnaire',
 		alwaysShow: true
-	},
-	{
+	}),
+	Object.freeze({
 		sharepointName: 'Written Representations',
 		displayName: 'Written Representations',
 		value: 'writtenRepresentations',
 		alwaysShow: false
-	},
-	{ sharepointName: 'Inquiry', displayName: 'Inquiry', value: 'inquiry', alwaysShow: false },
-	{ sharepointName: 'Hearing', displayName: 'Hearing', value: 'hearing', alwaysShow: false },
-	{ sharepointName: 'Decision', displayName: 'Decision', value: 'decision', alwaysShow: true }
+	}),
+	Object.freeze({ sharepointName: 'Inquiry', displayName: 'Inquiry', value: 'inquiry', alwaysShow: false }),
+	Object.freeze({ sharepointName: 'Hearing', displayName: 'Hearing', value: 'hearing', alwaysShow: false }),
+	Object.freeze({ sharepointName: 'Decision', displayName: 'Decision', value: 'decision', alwaysShow: true })
 ]);
 
 /**
