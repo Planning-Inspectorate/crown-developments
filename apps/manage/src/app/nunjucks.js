@@ -43,5 +43,22 @@ export function configureNunjucks() {
 	env.addGlobal('buildPageUrl', buildPageUrl);
 	env.addGlobal('buildItemsPerPageUrl', buildItemsPerPageUrl);
 
+	// Add kebab-case filter for HTML IDs
+	env.addFilter('kebabCase', (str) => {
+		return (
+			String(str)
+				.trim()
+				.toLowerCase()
+				// Replace spaces and underscores with hyphens
+				.replace(/[\s_]+/g, '-')
+				// Remove any characters that aren't alphanumeric or hyphens
+				.replace(/[^a-z0-9-]/g, '')
+				// Replace multiple consecutive hyphens with a single hyphen
+				.replace(/-+/g, '-')
+				// Remove leading/trailing hyphens
+				.replace(/^-+|-+$/g, '')
+		);
+	});
+
 	return env;
 }
