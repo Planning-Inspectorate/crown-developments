@@ -64,7 +64,7 @@
                 {% for section in summaryListData.sections %}
                     {% if section.list.rows.length %}
                         <li>
-                            <a href="#{{ section.heading | lower }}"
+                            <a href="#{{ section.heading | kebabCase }}"
                                class="govuk-link govuk-link--no-visited-state">{{ section.heading }}</a>
                         </li>
                     {% endif %}
@@ -116,7 +116,7 @@
                             title: {
                                 text: section.heading
                             },
-                            attributes: {id: section.heading | lower}
+                            attributes: {id: section.heading | kebabCase}
                         },
                         rows: section.list.rows
                     }) }}
