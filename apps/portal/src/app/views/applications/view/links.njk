@@ -1,4 +1,5 @@
 {% macro applicationLinks(links, currentUrl) %}
+    <nav aria-label="Application page navigation">
         <ul class="govuk-list application-links">
             {% for link in links %}
                 {% if link.href == currentUrl or link.href in currentUrl %}
@@ -12,4 +13,5 @@
                 {% endif %}
             {% endfor %}
         </ul>
+    </nav>
 {% endmacro %}
