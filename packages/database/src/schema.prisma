@@ -26,6 +26,8 @@ model CrownDevelopment {
   reference                String                           @unique
   createdDate              DateTime                         @default(now())
   updatedDate              DateTime?
+  /// Entra ID
+  updatedById              String?
   /// type of application, such as outline, extension
   typeId                   String
   Type                     ApplicationType                  @relation(fields: [typeId], references: [id])
@@ -146,6 +148,7 @@ model CrownDevelopment {
   applicationFeeRefundDate            DateTime?
   siteVisitDate                       DateTime?
   ApplicationUpdates                  ApplicationUpdate[]
+  Audit                               ApplicationHistory[]
   /// whether liable for a Community Infrastructure Levy (CIL)
   cilLiable                           Boolean?
   /// how much it is CIL liable for
@@ -177,6 +180,20 @@ model Address {
   Lpa              Lpa[]
   CrownDevelopment CrownDevelopment[]
   Organisation     Organisation[]
+}
+
+/// Application History represents the audit events for this app
+model ApplicationHistory {
+  id            String           @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  applicationId String           @db.UniqueIdentifier
+  Application   CrownDevelopment @relation(fields: [applicationId], references: [id])
+  action        String
+  metadata      String?          @db.NVarChar(MAX)
+  /// Entra ID
+  userId        String
+  createdAt     DateTime         @default(now())
+
+  @@index([applicationId, createdAt(sort: Desc)])
 }
 
 model Organisation {
