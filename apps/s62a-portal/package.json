@@ -14,7 +14,6 @@
   "dependencies": {
     "@pins/crowndev-database": "^0.0.0",
     "@pins/crowndev-lib": "^0.0.0",
-    "@types/nunjucks": "*",
     "body-parser": "*",
     "connect-redis": "*",
     "express": "*",
@@ -28,6 +27,7 @@
     "redis": "*"
   },
   "devDependencies": {
+    "@types/nunjucks": "*",
     "nodemon": "*",
     "sass": "*"
   },

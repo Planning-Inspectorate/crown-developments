@@ -7,7 +7,7 @@ import { buildRouter } from './router.js';
 import { configureNunjucks } from './nunjucks.js';
 import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.ts';
 import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { initSessionMiddlewareWithCsrf } from '@pins/crowndev-lib/util/session.ts';
+import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.ts';
 import { addLocalsConfiguration } from '#util/config-middleware.js';
 import { cleanEmptyQueryParams, trimEmptyQuery } from '@pins/crowndev-lib/middleware/query-middleware.js';
 import lusca from 'lusca';

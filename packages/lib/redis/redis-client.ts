@@ -1,4 +1,3 @@
-import type { IPartitionManager } from '@azure/msal-node';
 import { DistributedCachePlugin } from '@azure/msal-node';
 import { RedisStore } from 'connect-redis';
 import type { Logger } from 'pino';
@@ -68,7 +67,7 @@ export class RedisClient {
 
 	makeCachePlugin(sessionId: string): DistributedCachePlugin {
 		const partitionManager = new PartitionManager(this.clientWrapper, sessionId, this.logger, this.prefix);
-		return new DistributedCachePlugin(this.clientWrapper, partitionManager as unknown as IPartitionManager);
+		return new DistributedCachePlugin(this.clientWrapper, partitionManager);
 	}
 }
 
