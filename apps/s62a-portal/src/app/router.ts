@@ -3,7 +3,7 @@ import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitorin
 import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.ts';
 import type { IRouter } from 'express';
 import { Router as createRouter } from 'express';
-import { createRoutes as appRoutes } from './views/home/index.ts';
+import { createRoutes as appRoutes } from './views/list/index.ts';
 import { createErrorRoutes } from './views/static/error/index.ts';
 
 /**
