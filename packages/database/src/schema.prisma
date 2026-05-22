@@ -161,6 +161,7 @@ model CrownDevelopment {
   developmentPlan                     Boolean?
   /// whether this application involves a right of way
   rightOfWay                          Boolean?
+  S62AFolders                         S62AFolder[]
 }
 
 /// Address represents an address of a property or place
@@ -553,4 +554,22 @@ model RepresentationReceivedMethod {
   id             String           @id
   displayName    String?
   Representation Representation[]
+}
+
+/// Folder for S62A documents, has a parentId nullable field to allow for nesting and file
+/// structures
+model S62AFolder {
+  id                 String           @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  displayName        String
+  displayOrder       Int?
+  parentFolderId     String?          @db.UniqueIdentifier
+  isCustom           Boolean          @default(false)
+  deletedAt          DateTime?
+  ParentFolder       S62AFolder?      @relation("FolderTree", fields: [parentFolderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  ChildFolders       S62AFolder[]     @relation("FolderTree")
+  crownDevelopmentId String           @db.UniqueIdentifier
+  CrownDevelopment   CrownDevelopment @relation(fields: [crownDevelopmentId], references: [id])
+  // TODO: add Documents join, once that table exists
+
+  @@unique([crownDevelopmentId, displayName, parentFolderId, deletedAt])
 }

@@ -45,3 +45,19 @@ export function getFilenameStem(filename: string): string {
 
 	return filename.slice(0, lastDot);
 }
+
+/**
+ * Takes any string and converts it to kebab-case
+ */
+export function stringToKebab(stringToKebab: string): string {
+	if (!stringToKebab || typeof stringToKebab !== 'string') return '';
+	return stringToKebab
+		.replace(/([a-z])([A-Z])/g, '$1-$2')
+		.replace(/[\W_]+/g, '-')
+		.replace(/^-+|-+$/g, '')
+		.toLowerCase();
+}
+
+export function normaliseArrayToString(item: string[] | string): string {
+	return Array.isArray(item) ? item[0] : item;
+}

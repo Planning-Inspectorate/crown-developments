@@ -1,6 +1,6 @@
 import { Router as createRouter } from 'express';
 import { buildApplicationDocumentsPage } from './documents/controller.js';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { buildApplicationInformationPage } from './application-info/controller.js';
 import { createHaveYourSayRoutes } from './have-your-say/index.js';
 import { createWrittenRepresentationsRoutes } from './written-representations/index.js';

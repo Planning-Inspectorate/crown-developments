@@ -1,5 +1,5 @@
 import { Router as createRouter } from 'express';
-import { asyncHandler } from '../util/async-handler.js';
+import { asyncHandler } from '../util/async-handler.ts';
 import { cacheNoStoreMiddleware } from '../middleware/cache.js';
 /**
  * @param {Object} params

@@ -11,6 +11,7 @@
 {% set unpublishUrl = baseUrl + "/unpublish" %}
 {% set manageRepsUrl = baseUrl + "/manage-representations" %}
 {% set manageAppUpdatesUrl = baseUrl + "/application-updates" %}
+{% set foldersUrl = baseUrl + "/folders" %}
 
 {% block pageTitle %}
     {{ title }}
@@ -73,6 +74,11 @@
         </div>
 
         <div class="govuk-grid-column-one-third govuk-!-text-align-right">
+            {{ govukButton({
+                text: "Manage files",
+                href: foldersUrl,
+                classes: "govuk-button--secondary"
+            }) }}
             {% if sharePointLink %}
                 {{ govukButton({
                     text: "Open SharePoint Folder",

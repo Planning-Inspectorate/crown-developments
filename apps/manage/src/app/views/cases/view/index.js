@@ -1,5 +1,5 @@
 import { Router as createRouter } from 'express';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { buildSave, question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
 import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
@@ -8,6 +8,7 @@ import { createRoutes as createCasePublishRoutes } from './publish/index.js';
 import { createRoutes as createCaseUnpublishRoutes } from './unpublish/index.js';
 import { createRoutes as createRepsRoutes } from './manage-reps/index.js';
 import { createRoutes as createApplicationUpdatesRoutes } from './application-updates/index.js';
+import { createRoutes as createFolderRoutes } from './folders/index.ts';
 import { buildUpdateCase } from './update-case.js';
 import {
 	buildGetJourneyResponseFromSession,
@@ -33,6 +34,7 @@ export function createRoutes(service) {
 	const publishCase = createCasePublishRoutes(service);
 	const unpublishCase = createCaseUnpublishRoutes(service);
 	const applicationUpdates = createApplicationUpdatesRoutes(service);
+	const folderRoutes = createFolderRoutes(service);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const deleteManageListItemOnConfirmRemove = asyncHandler(buildDeleteManageListItemOnConfirmRemove(service));
 
@@ -46,6 +48,8 @@ export function createRoutes(service) {
 	if (service.isApplicationUpdatesLive) {
 		router.use('/application-updates', applicationUpdates);
 	}
+
+	router.use('/folders', folderRoutes);
 
 	// view question page
 	router.get(

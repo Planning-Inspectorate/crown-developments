@@ -99,3 +99,18 @@ $font-family: arial, helvetica, sans-serif;
 	@extend .govuk-link;
 	@extend .govuk-link--no-visited-state;
 }
+
+// Hides controls for the accordion
+.govuk-accordion.hide-controls {
+	.govuk-accordion__controls {
+		display: none;
+	}
+
+	.govuk-accordion__section-button {
+		border: none;
+	}
+
+	.govuk-table__cell {
+		border-bottom-style: none;
+	}
+}
