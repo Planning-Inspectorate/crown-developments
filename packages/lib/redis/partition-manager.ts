@@ -1,8 +1,8 @@
 import type { AccountEntity } from '@azure/msal-common';
-import type { ICacheClient } from '@azure/msal-node';
+import type { ICacheClient, IPartitionManager } from '@azure/msal-node';
 import type { BaseLogger } from 'pino';
 
-export class PartitionManager {
+export class PartitionManager implements IPartitionManager {
 	private readonly redisClient: ICacheClient;
 	private readonly sessionId: string;
 	private readonly logger: BaseLogger;
@@ -26,11 +26,11 @@ export class PartitionManager {
 		}
 	}
 
-	extractKey(accountEntity: AccountEntity): string {
+	async extractKey(accountEntity: AccountEntity): Promise<string> {
 		if (!accountEntity.homeAccountId) {
 			throw new Error('homeAccountId not found');
 		}
 
-		return accountEntity.homeAccountId;
+		return new Promise((resolve) => resolve(accountEntity.homeAccountId));
 	}
 }
