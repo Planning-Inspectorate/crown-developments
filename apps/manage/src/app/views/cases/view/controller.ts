@@ -6,7 +6,7 @@ import {
 	clearDataFromSession,
 	yesNoToBoolean
 } from '@planning-inspectorate/dynamic-forms';
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { crownDevelopmentToViewModel, type CrownDevelopmentViewModel } from './view-model.ts';
 import { getQuestions } from './questions.js';
 import { createJourney, createJourneyV2, JOURNEY_ID } from './journey.js';

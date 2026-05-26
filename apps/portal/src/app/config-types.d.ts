@@ -36,7 +36,7 @@ interface Config {
 	};
 	sharePoint: {
 		disabled: boolean; // Enable/disable sharepoint connection
-		driveId?: string; // DriveId of Crown Dev Site
+		driveId: string; // DriveId of Crown Dev Site
 		rootId?: string; // Id Root folder of Crown Dev
 	};
 }

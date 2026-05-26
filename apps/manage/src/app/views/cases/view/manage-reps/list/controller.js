@@ -2,7 +2,7 @@ import { representationsToViewModel } from './view-model.js';
 import { clearRepReviewedSession, readRepReviewedSession } from '../review/controller.js';
 import { REPRESENTATION_STATUS } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 
 /**

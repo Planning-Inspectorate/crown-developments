@@ -1,0 +1,14 @@
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk with (
+	$govuk-font-family: (
+		Arial,
+		Helvetica,
+		sans-serif
+	)
+);
+@use './components/pins-table.scss';
+@use 'packages/lib/views/header/pins-header.scss';
+@use 'packages/lib/views/footer/pins-footer.scss';
+
+.show-line-breaks {
+	white-space: pre;
+}

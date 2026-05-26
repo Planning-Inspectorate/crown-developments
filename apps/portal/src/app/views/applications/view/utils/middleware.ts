@@ -1,5 +1,5 @@
 import { fetchPublishedApplication, getApplicationStatus, APPLICATION_PUBLISH_STATUS } from '#util/applications.ts';
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import type { PortalService } from '#service';
 import type { RequestHandler } from 'express';
 

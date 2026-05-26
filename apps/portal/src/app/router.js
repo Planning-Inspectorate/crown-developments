@@ -5,7 +5,7 @@ import { buildAccessibilityStatementPage } from './views/static/accessibility-st
 import { buildTermsAndConditionsPage } from './views/static/terms-and-conditions/controller.js';
 import { buildContactUsPage } from './views/static/contact/controller.js';
 import { createErrorRoutes } from './views/static/error/index.js';
-import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.js';
+import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.ts';
 import { createRoutes as createCookieRoutes } from './views/static/cookies/index.js';
 import { buildDetailedInformationPage } from './views/static/detailed-information/controller.js';
 

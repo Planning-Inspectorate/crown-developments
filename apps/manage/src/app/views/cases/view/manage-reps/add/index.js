@@ -10,7 +10,7 @@ import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src
 import { buildSave, question, list } from '@planning-inspectorate/dynamic-forms/src/controller.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { viewAddRepresentationSuccessPage, buildSaveRepresentationController } from './save.js';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import multer from 'multer';
 import {
 	deleteDocumentsController,
