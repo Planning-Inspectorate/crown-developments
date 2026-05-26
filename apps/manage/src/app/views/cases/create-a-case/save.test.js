@@ -37,7 +37,10 @@ describe('save', () => {
 				db: dbMock(),
 				logger: mockLogger(),
 				appSharePointDrive: null,
-				notifyClient: null
+				notifyClient: null,
+				audit: {
+					record: mock.fn(() => Promise.resolve())
+				}
 			};
 		};
 
@@ -203,6 +206,39 @@ describe('save', () => {
 				role: 'write',
 				users: [{ email: answers.applicantEmail, id: '' }]
 			});
+		});
+
+		it('should record a CASE_CREATED audit event after the case is created', async () => {
+			const service = mockService();
+			const save = buildSaveController(service);
+			const answers = {
+				developmentDescription: 'Project One',
+				typeOfApplication: 'application-type-1',
+				lpaId: 'lpa-1'
+			};
+			const req = {
+				session: {
+					account: { localAccountId: 'user-123' }
+				}
+			};
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: {
+						answers
+					}
+				}
+			};
+
+			await save(req, res, mock.fn());
+
+			assert.strictEqual(service.audit.record.mock.callCount(), 1);
+
+			const auditArg = service.audit.record.mock.calls[0].arguments[0];
+			assert.strictEqual(auditArg.caseId, 'id-1');
+			assert.strictEqual(auditArg.action, 'CASE_CREATED');
+			assert.strictEqual(auditArg.userId, 'user-123');
+			assert.deepStrictEqual(auditArg.metadata, { reference: mockReference });
 		});
 
 		it('should call copyDriveItem and grant write access to the applicant when sharepoint is enabled and no agent email is provided', async () => {
@@ -1656,7 +1692,10 @@ describe('save', () => {
 				db: buildDbMock(),
 				logger: mockLogger(),
 				appSharePointDrive: null,
-				notifyClient: null
+				notifyClient: null,
+				audit: {
+					record: mock.fn(() => Promise.resolve())
+				}
 			};
 		};
 
