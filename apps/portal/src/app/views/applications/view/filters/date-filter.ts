@@ -1,30 +1,57 @@
 import { validateDate } from '@pins/crowndev-lib/validators/date-filter-validator.js';
 
-/**
- * @typedef {Object} DateFilter
- * @property {{ legend: { text: string, classes: string } }} fieldset
- * @property {string} id
- * @property {string} title
- * @property {string} idPrefix
- * @property {string} namePrefix
- * @property {{ text: string }} [hint]
- * @property {Array<{ name: string, label: string, value?: string, classes?: string }>} items
- * @property {Partial<{ day: string, month: string, year: string }>} value
- * @property {{ text: string }} [errorMessage]
- */
+export interface DateFilterItem {
+	name: string;
+	label: string;
+	value?: string;
+	classes?: string;
+}
+
+export interface DateFilterResult {
+	fieldset: {
+		legend: {
+			text: string;
+			classes: string;
+		};
+	};
+	id: string;
+	title: string;
+	idPrefix: string;
+	namePrefix: string;
+	hint?: {
+		text: string;
+	};
+	items: DateFilterItem[];
+	value: Partial<{
+		day: string;
+		month: string;
+		year: string;
+	}>;
+	errorMessage?: {
+		text: string;
+	};
+}
+
+export interface DateFilterOptions {
+	title: string;
+	id: string;
+	hint?: {
+		text: string;
+	};
+	values?: Partial<{
+		day: string;
+		month: string;
+		year: string;
+	}>;
+	compareDate?: Date;
+	compareType?: 'before' | 'after';
+}
 
 /**
- * Validates a date input
- * @param {object} options
- * @param {Partial<{ day: string, month: string, year: string }>} options.values
- * @param {string} options.title
- * @param {string} options.id
- * @param {{ text: string }} [options.hint]
- * @param {Date} [options.compareDate]
- * @param {'before' | 'after'} [options.compareType]
- * @returns {DateFilter}
+ * Validates a date input and returns a structured date filter object
  */
-export function dateFilter({ title, id, hint, values = {}, compareDate, compareType }) {
+export function dateFilter(options: DateFilterOptions): DateFilterResult {
+	const { title, id, hint, values = {}, compareDate, compareType } = options;
 	let day = values.day;
 	let month = values.month;
 	let year = values.year;

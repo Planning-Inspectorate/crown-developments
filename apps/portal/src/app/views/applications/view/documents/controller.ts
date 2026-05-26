@@ -5,6 +5,9 @@ import { publishedFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js'
 import { getDocuments } from '@pins/crowndev-lib/documents/get.js';
 import { splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { isWithdrawnOrExpired } from '#util/applications.ts';
+import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
+import { startOfDay } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 import {
 	buildUrlWithParams,
 	getPageData,
@@ -80,6 +83,42 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 			});
 		}
 
+		// Apply date published filter
+		const fromDateValues = {
+			day: req.query['publishedDateFrom-day'] as string | undefined,
+			month: req.query['publishedDateFrom-month'] as string | undefined,
+			year: req.query['publishedDateFrom-year'] as string | undefined
+		};
+		const toDateValues = {
+			day: req.query['publishedDateTo-day'] as string | undefined,
+			month: req.query['publishedDateTo-month'] as string | undefined,
+			year: req.query['publishedDateTo-year'] as string | undefined
+		};
+		const fromDate = parseDateFromParts(
+			fromDateValues.day ?? '',
+			fromDateValues.month ?? '',
+			fromDateValues.year ?? ''
+		);
+		const toDate = parseDateFromParts(toDateValues.day ?? '', toDateValues.month ?? '', toDateValues.year ?? '');
+
+		if (fromDate || toDate) {
+			allDocuments = allDocuments.filter((document) => {
+				if (!document.createdDateTime) return false;
+
+				const docDate = toZonedTime(new Date(document.createdDateTime), 'Europe/London');
+				const docDateNormalized = startOfDay(docDate);
+
+				if (fromDate && toDate) {
+					return docDateNormalized >= fromDate && docDateNormalized <= toDate;
+				} else if (fromDate) {
+					return docDateNormalized >= fromDate;
+				} else if (toDate) {
+					return docDateNormalized <= toDate;
+				}
+				return true;
+			});
+		}
+
 		const totalDocuments = allDocuments.length;
 		const { selectedItemsPerPage, pageNumber, pageSize, skipSize } = getPaginationParams(req);
 		const { totalPages, resultsStartNumber, resultsEndNumber } = getPageData(
@@ -102,7 +141,16 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 		// Build clearQueryUrl: preserve itemsPerPage, remove search and filters
 		const hasPreservedParams = queryParams.itemsPerPage !== undefined && queryParams.itemsPerPage !== '';
 		const clearQueryUrl = hasPreservedParams
-			? buildUrlWithParams(baseUrl, queryParams, { page: 1 }, ['searchCriteria', 'filterCategory'])
+			? buildUrlWithParams(baseUrl, queryParams, { page: 1 }, [
+					'searchCriteria',
+					'filterCategory',
+					'publishedDateFrom-day',
+					'publishedDateFrom-month',
+					'publishedDateFrom-year',
+					'publishedDateTo-day',
+					'publishedDateTo-month',
+					'publishedDateTo-year'
+				])
 			: baseUrl;
 
 		res.render('views/applications/view/documents/view.njk', {

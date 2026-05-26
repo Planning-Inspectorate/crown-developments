@@ -19,6 +19,7 @@ export function mapDriveItemToViewModel(driveItem) {
 		name: driveItem.name,
 		size: driveItem.size && bytesToUnit(driveItem.size, 0),
 		createdDate: formatDateForDisplay(driveItem.createdDateTime),
+		createdDateTime: driveItem.createdDateTime,
 		lastModified: formatDateForDisplay(driveItem.lastModifiedDateTime),
 		lastModifiedDateTime: driveItem.lastModifiedDateTime,
 		type: mapMimeTypeToDisplayName(driveItem.file?.mimeType),
