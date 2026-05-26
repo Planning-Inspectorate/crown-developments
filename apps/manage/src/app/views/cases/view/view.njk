@@ -97,6 +97,49 @@
                     }) }}
                 {% endif %}
             {% endfor %}
+            {{ govukSummaryList({
+                card: {
+                    title: {
+                        text: "Case audit log"
+                    },
+                    attributes: {id: "case-audit-log"}
+                },
+                rows: [
+                    {
+                        key: {
+                            text: "Last modified date"
+                        },
+                        value: {
+                            text: lastModifiedDate
+                        }
+                    },
+                    {
+                        key: {
+                            text: "Last modified by"
+                        },
+                        value: {
+                            text: lastModifiedBy
+                        }
+                    },
+                    {
+                        key: {
+                            text: "Case history"
+                        },
+                        value: {
+                            html: ""
+                        },
+                        actions: {
+                            items: [
+                                {
+                                    href: baseUrl + "/case-history",
+                                    text: "View",
+                                    visuallyHiddenText: "case history"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }) }}
         </div>
     </div>
 

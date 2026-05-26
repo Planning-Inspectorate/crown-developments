@@ -114,6 +114,9 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpda
 		const baseUrl = req.baseUrl;
 
 		const banner = await getBannerMessages(id, res, req, db);
+		const lastModified = res.locals.lastModified as { updatedDate: string | null; by: string | null } | undefined;
+		const lastModifiedDate = lastModified?.updatedDate ?? '-';
+		const lastModifiedBy = lastModified?.by ?? '-';
 		const sharePointDrive = getSharePointDrive(req.session);
 		let sharePointLink: string | undefined;
 		if (sharePointDrive) {
@@ -128,7 +131,9 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpda
 			hideButton: true,
 			hideStatus: true,
 			isApplicationUpdatesLive,
-			banner
+			banner,
+			lastModifiedDate,
+			lastModifiedBy
 		});
 	};
 }
@@ -188,7 +193,7 @@ export function clearCaseUpdatedSession(req: Request, id: string): void {
  * @param isQuestionView - whether this journey is for a question page (true) or the case details page (false).
  */
 export function buildGetJourneyMiddleware(service: ManageService, isQuestionView: boolean = false): Handler {
-	const { db, logger, getEntraClient } = service;
+	const { db, logger, getEntraClient, audit } = service;
 	const groupIds = service.entraGroupIds;
 
 	return async (req: Request, res: Response, next: NextFunction) => {
@@ -236,6 +241,7 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 			session: req.session,
 			groupIds
 		});
+		const lastModified = await audit.getLastModifiedInfo(id, groupMembers);
 		const overrides = {
 			isApplicationTypePlanningOrLbc: viewModel.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT,
 			isApplicationSubTypeLbc: viewModel.subTypeId === APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT,
@@ -270,6 +276,8 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 				res.locals.backLinkUrl = req.baseUrl;
 			}
 		}
+
+		res.locals.lastModified = lastModified;
 
 		next();
 	};

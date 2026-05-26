@@ -16,6 +16,9 @@ import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.
 describe('case details', () => {
 	const mockGetEntraClient = mock.fn(() => null);
 	const groupIds = { caseOfficer: 'id-1', inspector: 'id-2' };
+	const mockAudit = () => ({
+		getLastModifiedInfo: mock.fn(() => Promise.resolve({ updatedDate: null, by: null }))
+	});
 
 	describe('buildGetJourneyMiddleware', () => {
 		it('should throw if no id', async () => {
@@ -32,7 +35,8 @@ describe('case details', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
-				groupIds
+				groupIds,
+				audit: mockAudit()
 			});
 			await assert.rejects(() => middleware(mockReq, mockRes, next));
 			assert.strictEqual(next.mock.callCount(), 0);
@@ -51,7 +55,8 @@ describe('case details', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
-				groupIds
+				groupIds,
+				audit: mockAudit()
 			});
 			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
 			assert.strictEqual(next.mock.callCount(), 1);
@@ -70,7 +75,8 @@ describe('case details', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
-				groupIds
+				groupIds,
+				audit: mockAudit()
 			});
 			await assertRenders404Page(middleware, mockReq, true);
 		});
@@ -88,7 +94,8 @@ describe('case details', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
-				groupIds
+				groupIds,
+				audit: mockAudit()
 			});
 			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
 			assert.strictEqual(next.mock.callCount(), 1);
@@ -110,7 +117,8 @@ describe('case details', () => {
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
 				groupIds,
-				isMultipleApplicantsLive: true
+				isMultipleApplicantsLive: true,
+				audit: mockAudit()
 			});
 
 			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
@@ -134,7 +142,8 @@ describe('case details', () => {
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
 				groupIds,
-				isMultipleApplicantsLive: false
+				isMultipleApplicantsLive: false,
+				audit: mockAudit()
 			});
 
 			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
@@ -157,7 +166,8 @@ describe('case details', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
-				groupIds
+				groupIds,
+				audit: mockAudit()
 			});
 
 			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
@@ -183,7 +193,8 @@ describe('case details', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
-				groupIds
+				groupIds,
+				audit: mockAudit()
 			});
 
 			await assert.doesNotReject(() => middleware(mockReq, mockRes, next));
@@ -230,7 +241,8 @@ describe('case details', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
-				groupIds
+				groupIds,
+				audit: mockAudit()
 			});
 			await middleware(mockReq, mockRes, next);
 			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
@@ -260,7 +272,8 @@ describe('case details', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
-				groupIds
+				groupIds,
+				audit: mockAudit()
 			});
 			await middleware(mockReq, mockRes, next);
 			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
@@ -299,7 +312,8 @@ describe('case details', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
-				groupIds
+				groupIds,
+				audit: mockAudit()
 			});
 			await middleware(mockReq, mockRes, next);
 			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
@@ -334,7 +348,8 @@ describe('case details', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
-				groupIds
+				groupIds,
+				audit: mockAudit()
 			});
 			await middleware(mockReq, mockRes, next);
 			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
@@ -365,7 +380,8 @@ describe('case details', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
-				groupIds
+				groupIds,
+				audit: mockAudit()
 			});
 			await middleware(mockReq, mockRes, next);
 			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
@@ -399,7 +415,8 @@ describe('case details', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
-				groupIds
+				groupIds,
+				audit: mockAudit()
 			});
 			await middleware(mockReq, mockRes, next);
 			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
@@ -429,7 +446,8 @@ describe('case details', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
-				groupIds
+				groupIds,
+				audit: mockAudit()
 			});
 			await middleware(mockReq, mockRes, next);
 			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
@@ -442,6 +460,38 @@ describe('case details', () => {
 
 			// should also clear the session
 			assert.strictEqual(mockReq.session.cases['case-1'].errors, undefined);
+		});
+		it('should pass last modified info to the view', async () => {
+			process.env.ENVIRONMENT = 'dev';
+			const mockRes = newMockRes();
+			const mockReq = { params: { id: 'case-1' }, baseUrl: 'case-1', query: {}, session: {} };
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ id: 'case-1', reference: 'C/A/1' }))
+				}
+			};
+			const next = mock.fn();
+			const audit = {
+				getLastModifiedInfo: mock.fn(() =>
+					Promise.resolve({ updatedDate: '11 February 2026 2:31pm', by: 'Jane Smith' })
+				)
+			};
+			const middleware = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mockGetEntraClient,
+				groupIds,
+				audit
+			});
+			await middleware(mockReq, mockRes, next);
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
+			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
+
+			assert.strictEqual(audit.getLastModifiedInfo.mock.callCount(), 1);
+			assert.strictEqual(audit.getLastModifiedInfo.mock.calls[0].arguments[0], 'case-1');
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.deepStrictEqual(viewData.lastModifiedDate, '11 February 2026 2:31pm');
+			assert.strictEqual(viewData.lastModifiedBy, 'Jane Smith');
 		});
 		it('should show a sharepoint link if available', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
@@ -463,7 +513,8 @@ describe('case details', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
-				groupIds
+				groupIds,
+				audit: mockAudit()
 			});
 			await middleware(mockReq, mockRes, next);
 			const mockSharePoint = {
@@ -500,7 +551,8 @@ describe('case details', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mockGetEntraClient,
-				groupIds
+				groupIds,
+				audit: mockAudit()
 			});
 			await middleware(mockReq, mockRes, next);
 			const mockSharePoint = {
@@ -541,7 +593,8 @@ describe('case details', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mock.fn(),
-				groupIds
+				groupIds,
+				audit: mockAudit()
 			});
 			await journeyMw(mockReq, nunjucksRes, next);
 			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
@@ -571,7 +624,8 @@ describe('case details', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				getEntraClient: mock.fn(),
-				groupIds
+				groupIds,
+				audit: mockAudit()
 			});
 			await journeyMw(mockReq, nunjucksRes, next);
 			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
