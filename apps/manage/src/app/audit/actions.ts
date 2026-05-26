@@ -17,6 +17,14 @@ export const AUDIT_ACTIONS = {
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
 
 /**
+ * Type guard for action strings coming from untrusted sources (e.g. a DB row).
+ * Narrows `string` to `AuditAction` when the value is a known action key.
+ */
+export function isAuditAction(value: string): value is AuditAction {
+	return value in AUDIT_ACTIONS;
+}
+
+/**
  * Maps each action to the template shown in the "Details" column of the
  * case history table.
  *

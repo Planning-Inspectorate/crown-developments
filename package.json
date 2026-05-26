@@ -63,6 +63,7 @@
     "@faker-js/faker": "^10.4.0",
     "@microsoft/microsoft-graph-types": "^2.43.1",
     "@types/escape-html": "^1.0.4",
+    "@types/express": "^5.0.6",
     "@types/express-session": "^1.19.0",
     "@types/lusca": "^1.7.5",
     "@types/nunjucks": "^3.2.6",
