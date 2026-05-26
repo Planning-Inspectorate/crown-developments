@@ -12,6 +12,12 @@ BEGIN TRY
 
 BEGIN TRAN;
 
+-- Update existing NULLs to the default value
+UPDATE [dbo].[CrownDevelopment] SET [hasSecondaryLpa] = 0 WHERE [hasSecondaryLpa] IS NULL;
+UPDATE [dbo].[CrownDevelopment] SET [description] = '' WHERE [description] IS NULL;
+UPDATE [dbo].[CrownDevelopment] SET [expectedDateOfSubmission] = GETDATE() WHERE [expectedDateOfSubmission] IS NULL;
+UPDATE [dbo].[CrownDevelopment] SET [containsDistressingContent] = 0 WHERE [containsDistressingContent] IS NULL;
+
 -- AlterTable
 ALTER TABLE [dbo].[CrownDevelopment] ALTER COLUMN [description] NVARCHAR(2000) NOT NULL;
 ALTER TABLE [dbo].[CrownDevelopment] ALTER COLUMN [lpaId] UNIQUEIDENTIFIER NOT NULL;
