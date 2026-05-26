@@ -100,7 +100,11 @@
             {{ govukSummaryList({
                 card: {
                     title: {
+<<<<<<< HEAD
                         text: "Case audit log"
+=======
+                        text: "Application audit log"
+>>>>>>> 07ff7f55 (feat(manage): case history page and other impl)
                     },
                     attributes: {id: "case-audit-log"}
                 },
@@ -110,7 +114,11 @@
                             text: "Last modified date"
                         },
                         value: {
+<<<<<<< HEAD
                             text: lastModifiedDate
+=======
+                            text: lastModifiedDate if lastModifiedDate else "-"
+>>>>>>> 07ff7f55 (feat(manage): case history page and other impl)
                         }
                     },
                     {
@@ -118,12 +126,20 @@
                             text: "Last modified by"
                         },
                         value: {
+<<<<<<< HEAD
                             text: lastModifiedBy
+=======
+                            text: lastModifiedBy if lastModifiedBy else "-"
+>>>>>>> 07ff7f55 (feat(manage): case history page and other impl)
                         }
                     },
                     {
                         key: {
+<<<<<<< HEAD
                             text: "Case history"
+=======
+                            text: "Application history"
+>>>>>>> 07ff7f55 (feat(manage): case history page and other impl)
                         },
                         value: {
                             html: ""
@@ -133,7 +149,11 @@
                                 {
                                     href: baseUrl + "/case-history",
                                     text: "View",
+<<<<<<< HEAD
                                     visuallyHiddenText: "case history"
+=======
+                                    visuallyHiddenText: "application history"
+>>>>>>> 07ff7f55 (feat(manage): case history page and other impl)
                                 }
                             ]
                         }
