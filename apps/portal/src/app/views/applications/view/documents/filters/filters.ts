@@ -89,15 +89,18 @@ export function buildDocumentFilters(
 		}
 	};
 
+	const getStringQueryValue = (value: string | string[] | null | undefined): string | undefined =>
+		typeof value === 'string' ? value : undefined;
+
 	const fromValues = {
-		day: queryFilters['publishedDateFrom-day'] as string | undefined,
-		month: queryFilters['publishedDateFrom-month'] as string | undefined,
-		year: queryFilters['publishedDateFrom-year'] as string | undefined
+		day: getStringQueryValue(queryFilters['publishedDateFrom-day']),
+		month: getStringQueryValue(queryFilters['publishedDateFrom-month']),
+		year: getStringQueryValue(queryFilters['publishedDateFrom-year'])
 	};
 	const toValues = {
-		day: queryFilters['publishedDateTo-day'] as string | undefined,
-		month: queryFilters['publishedDateTo-month'] as string | undefined,
-		year: queryFilters['publishedDateTo-year'] as string | undefined
+		day: getStringQueryValue(queryFilters['publishedDateTo-day']),
+		month: getStringQueryValue(queryFilters['publishedDateTo-month']),
+		year: getStringQueryValue(queryFilters['publishedDateTo-year'])
 	};
 	const fromDate = parseDateFromParts(fromValues.day ?? '', fromValues.month ?? '', fromValues.year ?? '') ?? undefined;
 	const toDate = parseDateFromParts(toValues.day ?? '', toValues.month ?? '', toValues.year ?? '') ?? undefined;

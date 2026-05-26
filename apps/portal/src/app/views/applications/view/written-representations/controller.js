@@ -10,7 +10,8 @@ import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagin
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import { buildFilters, getFilterQueryItems, hasQueries, mapWithAndWithoutToBoolean } from './filters/filters.ts';
 import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
-import { endOfDay } from 'date-fns';
+import { endOfDay, startOfDay } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
 /**
  * Processes filters and error summaries for written representations.
@@ -114,16 +115,24 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 		const filterSubmittedBy = req.query?.filterSubmittedBy ? [].concat(req.query.filterSubmittedBy) : [];
 		const filterByAttachments = req.query?.filterByAttachments ? [].concat(req.query.filterByAttachments) : [];
 
-		const filterBySubmissionFromDate = parseDateFromParts(
+		const filterBySubmissionFromDateRaw = parseDateFromParts(
 			req.query?.['submittedDateFrom-day'],
 			req.query?.['submittedDateFrom-month'],
 			req.query?.['submittedDateFrom-year']
 		);
-		const filterBySubmissionToDate = parseDateFromParts(
+		const filterBySubmissionToDateRaw = parseDateFromParts(
 			req.query?.['submittedDateTo-day'],
 			req.query?.['submittedDateTo-month'],
 			req.query?.['submittedDateTo-year']
 		);
+
+		// Normalize filter dates to Europe/London timezone (consistent with application timezone)
+		const filterBySubmissionFromDate = filterBySubmissionFromDateRaw
+			? startOfDay(toZonedTime(filterBySubmissionFromDateRaw, 'Europe/London'))
+			: null;
+		const filterBySubmissionToDate = filterBySubmissionToDateRaw
+			? toZonedTime(filterBySubmissionToDateRaw, 'Europe/London')
+			: null;
 
 		// Adjust the "to" date to include the entire day (up to 23:59:59.999)
 		const filterBySubmissionToDateEndOfDay = filterBySubmissionToDate ? endOfDay(filterBySubmissionToDate) : null;

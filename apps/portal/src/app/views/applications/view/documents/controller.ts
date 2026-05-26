@@ -84,27 +84,34 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 		}
 
 		// Apply date published filter
+		const getStringQueryValue = (value: unknown): string | undefined => (typeof value === 'string' ? value : undefined);
+
 		const fromDateValues = {
-			day: req.query['publishedDateFrom-day'] as string | undefined,
-			month: req.query['publishedDateFrom-month'] as string | undefined,
-			year: req.query['publishedDateFrom-year'] as string | undefined
+			day: getStringQueryValue(req.query['publishedDateFrom-day']),
+			month: getStringQueryValue(req.query['publishedDateFrom-month']),
+			year: getStringQueryValue(req.query['publishedDateFrom-year'])
 		};
 		const toDateValues = {
-			day: req.query['publishedDateTo-day'] as string | undefined,
-			month: req.query['publishedDateTo-month'] as string | undefined,
-			year: req.query['publishedDateTo-year'] as string | undefined
+			day: getStringQueryValue(req.query['publishedDateTo-day']),
+			month: getStringQueryValue(req.query['publishedDateTo-month']),
+			year: getStringQueryValue(req.query['publishedDateTo-year'])
 		};
-		const fromDate = parseDateFromParts(
+		const fromDateRaw = parseDateFromParts(
 			fromDateValues.day ?? '',
 			fromDateValues.month ?? '',
 			fromDateValues.year ?? ''
 		);
-		const toDate = parseDateFromParts(toDateValues.day ?? '', toDateValues.month ?? '', toDateValues.year ?? '');
+		const toDateRaw = parseDateFromParts(toDateValues.day ?? '', toDateValues.month ?? '', toDateValues.year ?? '');
+
+		// Normalize filter dates to Europe/London timezone (same as document dates)
+		const fromDate = fromDateRaw ? startOfDay(toZonedTime(fromDateRaw, 'Europe/London')) : null;
+		const toDate = toDateRaw ? startOfDay(toZonedTime(toDateRaw, 'Europe/London')) : null;
 
 		if (fromDate || toDate) {
 			allDocuments = allDocuments.filter((document) => {
 				if (!document.createdDateTime) return false;
 
+				// Normalize document date to Europe/London timezone
 				const docDate = toZonedTime(new Date(document.createdDateTime), 'Europe/London');
 				const docDateNormalized = startOfDay(docDate);
 

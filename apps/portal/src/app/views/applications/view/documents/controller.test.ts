@@ -501,6 +501,65 @@ describe('controller', () => {
 				'/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/documents?itemsPerPage=50&page=1'
 			);
 		});
+
+		it('should preserve itemsPerPage in clearQueryUrl while clearing search, category filters, and date filters', async () => {
+			const mockDb = createMockDb();
+			const mockSharePoint = createMockSharePoint([
+				{
+					id: '1',
+					name: 'Doc 1',
+					file: { mimeType: 'application/pdf' },
+					listItem: { fields: { Category: 'application' } },
+					createdDateTime: '2026-01-09T10:00:00Z'
+				}
+			]);
+			const handler = buildApplicationDocumentsPage({
+				db: mockDb,
+				logger: mockLogger(),
+				sharePointDrive: mockSharePoint
+			} as any);
+			const req = createMockRequest({
+				query: {
+					searchCriteria: 'test',
+					filterCategory: 'application',
+					'publishedDateFrom-day': '1',
+					'publishedDateFrom-month': '1',
+					'publishedDateFrom-year': '2026',
+					'publishedDateTo-day': '31',
+					'publishedDateTo-month': '12',
+					'publishedDateTo-year': '2026',
+					itemsPerPage: '100',
+					page: '3'
+				},
+				baseUrl: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8'
+			});
+			const res = createMockResponse();
+
+			const next = createMockNext();
+
+			await handler(req, res, next);
+
+			const viewData = getRenderArgs(res);
+			// clearQueryUrl should preserve itemsPerPage but clear all filters (search, category, date), reset page to 1
+			const clearUrl = viewData.clearQueryUrl as string;
+			const params = new URLSearchParams(clearUrl.split('?')[1] || '');
+
+			// itemsPerPage should be preserved
+			assert.strictEqual(params.get('itemsPerPage'), '100');
+
+			// page should be reset to 1
+			assert.strictEqual(params.get('page'), '1');
+
+			// All filter parameters should be removed
+			assert.strictEqual(params.get('searchCriteria'), null);
+			assert.strictEqual(params.get('filterCategory'), null);
+			assert.strictEqual(params.get('publishedDateFrom-day'), null);
+			assert.strictEqual(params.get('publishedDateFrom-month'), null);
+			assert.strictEqual(params.get('publishedDateFrom-year'), null);
+			assert.strictEqual(params.get('publishedDateTo-day'), null);
+			assert.strictEqual(params.get('publishedDateTo-month'), null);
+			assert.strictEqual(params.get('publishedDateTo-year'), null);
+		});
 	});
 });
 
