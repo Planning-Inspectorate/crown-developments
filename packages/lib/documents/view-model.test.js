@@ -20,8 +20,9 @@ function createExpectedViewModel(overrides = {}) {
 		id: 'abc-123',
 		name: 'Document 1',
 		size: '2 KB',
-		lastModified: '13 Feb 2025',
 		createdDate: '14 Feb 2025',
+		createdDateTime: '2025-02-14T16:56:00Z',
+		lastModified: '13 Feb 2025',
 		lastModifiedDateTime: '2025-02-13T16:56:00Z',
 		type: 'PDF',
 		distressing: false,
@@ -34,14 +35,21 @@ describe('view-model', () => {
 	describe('mapDriveItemToViewModel', () => {
 		it('should map all fields', () => {
 			const driveItem = createBaseDriveItem({ createdDateTime: '2025-02-14T16:56:00Z' });
-			const expected = createExpectedViewModel({ createdDate: '14 Feb 2025' });
+			const expected = createExpectedViewModel({
+				createdDate: '14 Feb 2025',
+				createdDateTime: '2025-02-14T16:56:00Z'
+			});
 
 			assert.deepStrictEqual(mapDriveItemToViewModel(driveItem), expected);
 		});
 
 		it('should ignore size if not present', () => {
 			const driveItem = createBaseDriveItem({ size: undefined, createdDateTime: '2025-02-14T16:56:00Z' });
-			const expected = createExpectedViewModel({ size: undefined, createdDate: '14 Feb 2025' });
+			const expected = createExpectedViewModel({
+				size: undefined,
+				createdDate: '14 Feb 2025',
+				createdDateTime: '2025-02-14T16:56:00Z'
+			});
 
 			assert.deepStrictEqual(mapDriveItemToViewModel(driveItem), expected);
 		});
@@ -60,7 +68,11 @@ describe('view-model', () => {
 				createdDateTime: '2025-02-14T16:56:00Z',
 				listItem: { fields: { Distressing: 'Yes' } }
 			});
-			const expected = createExpectedViewModel({ distressing: true, createdDate: '14 Feb 2025' });
+			const expected = createExpectedViewModel({
+				distressing: true,
+				createdDate: '14 Feb 2025',
+				createdDateTime: '2025-02-14T16:56:00Z'
+			});
 
 			assert.deepStrictEqual(mapDriveItemToViewModel(driveItem), expected);
 		});
@@ -70,7 +82,10 @@ describe('view-model', () => {
 				createdDateTime: '2025-02-14T16:56:00Z',
 				listItem: { fields: { Distressing: 'No' } }
 			});
-			const expected = createExpectedViewModel({ createdDate: '14 Feb 2025' });
+			const expected = createExpectedViewModel({
+				createdDate: '14 Feb 2025',
+				createdDateTime: '2025-02-14T16:56:00Z'
+			});
 
 			assert.deepStrictEqual(mapDriveItemToViewModel(driveItem), expected);
 		});
@@ -80,7 +95,10 @@ describe('view-model', () => {
 				createdDateTime: '2025-02-14T16:56:00Z',
 				listItem: { fields: { distressing: undefined } }
 			});
-			const expected = createExpectedViewModel({ createdDate: '14 Feb 2025' });
+			const expected = createExpectedViewModel({
+				createdDate: '14 Feb 2025',
+				createdDateTime: '2025-02-14T16:56:00Z'
+			});
 
 			assert.deepStrictEqual(mapDriveItemToViewModel(driveItem), expected);
 		});
@@ -92,6 +110,7 @@ describe('view-model', () => {
 			});
 			const expected = createExpectedViewModel({
 				createdDate: '13 Feb 2025',
+				createdDateTime: '2025-02-13T16:56:00Z',
 				category: 'application'
 			});
 
@@ -105,6 +124,7 @@ describe('view-model', () => {
 			});
 			const expected = createExpectedViewModel({
 				createdDate: '13 Feb 2025',
+				createdDateTime: '2025-02-13T16:56:00Z',
 				category: 'lpaQuestionnaire'
 			});
 
@@ -118,6 +138,7 @@ describe('view-model', () => {
 			});
 			const expected = createExpectedViewModel({
 				createdDate: '13 Feb 2025',
+				createdDateTime: '2025-02-13T16:56:00Z',
 				category: 'writtenRepresentations'
 			});
 
@@ -129,7 +150,10 @@ describe('view-model', () => {
 				createdDateTime: '2025-02-13T16:56:00Z',
 				listItem: { fields: { Category: 'Unknown Category' } }
 			});
-			const expected = createExpectedViewModel({ createdDate: '13 Feb 2025' });
+			const expected = createExpectedViewModel({
+				createdDate: '13 Feb 2025',
+				createdDateTime: '2025-02-13T16:56:00Z'
+			});
 
 			assert.deepStrictEqual(mapDriveItemToViewModel(driveItem), expected);
 		});

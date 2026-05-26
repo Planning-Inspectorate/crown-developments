@@ -1,26 +1,67 @@
 import { REPRESENTATION_CATEGORY_ID, REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
-import { dateFilter } from './date-filter.js';
+import { dateFilter } from '../../filters/date-filter.ts';
 import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
+import type { PortalService } from '#service';
 
-const excludedFilterKeys = ['itemsPerPage', 'page', 'searchCriteria'];
-
-/**
- * @typedef CheckboxFilter
- * @property {string} title
- * @property {'checkboxes'} type
- * @property {string} name
- * @property {{ items: { displayName: string, text: string, value: string, checked: boolean }[] }} options
- */
+const excludedFilterKeys = ['itemsPerPage', 'page', 'searchCriteria'] as const;
 
 /**
- * Builds filter sections for representations based on database counts.
- * @param {import('#service').PortalService} service
- * @param {string} id
- * @param {{[key: string]: string | string[] }} queryFilters
- * @returns {Promise<(CheckboxFilter | DateFilter)[]>}
+ * Represents a checkbox filter section (like "Submitted by" or "Contains attachments")
  */
-export async function buildFilters({ db, logger }, id, queryFilters) {
+interface CheckboxFilter {
+	title: string;
+	type: 'checkboxes';
+	name: string;
+	options: {
+		items: Array<{
+			displayName: string;
+			text: string;
+			value: string;
+			checked: boolean;
+		}>;
+	};
+	open?: boolean;
+}
+
+/**
+ * Represents a date filter section (like "Date submitted")
+ */
+interface DateFilter {
+	title: string;
+	type: 'date-input';
+	name: string;
+	dateInputs: Array<{
+		fieldset: { legend: { text: string; classes: string } };
+		title: string;
+		id: string;
+		idPrefix: string;
+		namePrefix: string;
+		hint?: { text: string };
+		items: Array<{ name: string; label: string; value?: string; classes?: string }>;
+		value: Partial<{ day: string; month: string; year: string }>; // Partial makes all properties optional
+		errorMessage?: { text: string };
+	}>;
+	open?: boolean;
+	hasErrors?: boolean;
+}
+
+type FilterSection = CheckboxFilter | DateFilter;
+
+interface FilterQueryItem {
+	label: string;
+	id: string;
+	displayName: string;
+	queryKeys?: string[];
+}
+
+type QueryFilters = Record<string, string | string[] | undefined>;
+
+export async function buildFilters(
+	{ db, logger }: Pick<PortalService, 'db' | 'logger'>,
+	id: string,
+	queryFilters: QueryFilters
+): Promise<FilterSection[] | undefined> {
 	const interestedParties = REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES;
 	const consultees = REPRESENTATION_CATEGORY_ID.CONSULTEES;
 	try {
@@ -38,14 +79,16 @@ export async function buildFilters({ db, logger }, id, queryFilters) {
 				where: { containsAttachments: false, applicationId: id, statusId: REPRESENTATION_STATUS_ID.ACCEPTED }
 			})
 		]);
-		//normalize to array to allow for single values or arrays of values to remain open
-		const normalizeToArray = (value) => [value].flat(1).filter((value) => value !== undefined);
+
+		const normalizeToArray = (value: unknown): string[] =>
+			[value].flat(1).filter((v): v is string => typeof v === 'string' && v !== undefined);
+
 		const submittedByArray = normalizeToArray(queryFilters?.filterSubmittedBy);
 		const attachmentsArray = normalizeToArray(queryFilters?.filterByAttachments);
 
-		const submittedBySection = {
+		const submittedBySection: CheckboxFilter = {
 			title: 'Submitted by',
-			type: 'checkboxes',
+			type: 'checkboxes' as const, // ← Literal type assertion
 			name: 'filterSubmittedBy',
 			options: {
 				items: [
@@ -66,10 +109,10 @@ export async function buildFilters({ db, logger }, id, queryFilters) {
 			open: submittedByArray.some(Boolean)
 		};
 
-		const attachmentsSection = {
+		const attachmentsSection: CheckboxFilter = {
 			title: 'Contains attachments',
 			name: 'filterByAttachments',
-			type: 'checkboxes',
+			type: 'checkboxes' as const,
 			options: {
 				items: [
 					{
@@ -92,20 +135,29 @@ export async function buildFilters({ db, logger }, id, queryFilters) {
 
 		queryFilters = queryFilters || {};
 		const fromValues = {
-			day: queryFilters['submittedDateFrom-day'],
-			month: queryFilters['submittedDateFrom-month'],
-			year: queryFilters['submittedDateFrom-year']
+			day:
+				typeof queryFilters['submittedDateFrom-day'] === 'string' ? queryFilters['submittedDateFrom-day'] : undefined,
+			month:
+				typeof queryFilters['submittedDateFrom-month'] === 'string'
+					? queryFilters['submittedDateFrom-month']
+					: undefined,
+			year:
+				typeof queryFilters['submittedDateFrom-year'] === 'string' ? queryFilters['submittedDateFrom-year'] : undefined
 		};
 		const toValues = {
-			day: queryFilters['submittedDateTo-day'],
-			month: queryFilters['submittedDateTo-month'],
-			year: queryFilters['submittedDateTo-year']
+			day: typeof queryFilters['submittedDateTo-day'] === 'string' ? queryFilters['submittedDateTo-day'] : undefined,
+			month:
+				typeof queryFilters['submittedDateTo-month'] === 'string' ? queryFilters['submittedDateTo-month'] : undefined,
+			year: typeof queryFilters['submittedDateTo-year'] === 'string' ? queryFilters['submittedDateTo-year'] : undefined
 		};
-		const fromDate = parseDateFromParts(fromValues.day, fromValues.month, fromValues.year);
-		const toDate = parseDateFromParts(toValues.day, toValues.month, toValues.year);
-		const dateSubmissionsSection = {
+
+		const fromDate =
+			parseDateFromParts(fromValues.day ?? '', fromValues.month ?? '', fromValues.year ?? '') ?? undefined;
+		const toDate = parseDateFromParts(toValues.day ?? '', toValues.month ?? '', toValues.year ?? '') ?? undefined;
+
+		const dateSubmissionsSection: DateFilter = {
 			title: 'Date submitted',
-			type: 'date-input',
+			type: 'date-input' as const,
 			name: 'submittedDate',
 			dateInputs: [
 				Object.assign(
@@ -133,7 +185,8 @@ export async function buildFilters({ db, logger }, id, queryFilters) {
 			],
 			open: [fromValues, toValues].some((value) => value.day || value.month || value.year)
 		};
-		dateSubmissionsSection.hasErrors = !!dateSubmissionsSection.dateInputs.some((input) => input.errorMessage);
+
+		dateSubmissionsSection.hasErrors = dateSubmissionsSection.dateInputs.some((input) => input.errorMessage);
 
 		return [submittedBySection, attachmentsSection, dateSubmissionsSection];
 	} catch (error) {
@@ -143,42 +196,31 @@ export async function buildFilters({ db, logger }, id, queryFilters) {
 			message: 'fetching written representations',
 			logParams: { id }
 		});
+		return undefined;
 	}
 }
 
-/**
- * Determines if any meaningful query parameters are present, excluding pagination and search criteria.
- * @param {{[key: string]: string|string[]}} query
- * @returns {boolean}
- */
-export function hasQueries(query) {
+export function hasQueries(query: QueryFilters): boolean {
 	return Object.entries(query || {})
-		.filter(([key]) => !excludedFilterKeys.includes(key))
+		.filter(([key]) => !excludedFilterKeys.includes(key as (typeof excludedFilterKeys)[number]))
 		.some(([, value]) =>
 			Array.isArray(value) ? value.some((v) => v !== '' && v != null) : value !== '' && value != null
 		);
 }
 
-/**
- * @typedef { {label: string, id: string, displayName: string, queryKeys?: string[]} } FilterQueryItem
- */
+export function getFilterQueryItems(filters: FilterSection[]): FilterQueryItem[] {
+	const filterQueryItems: FilterQueryItem[] = [];
 
-/**
- * Extracts selected filter items from the filters array.
- * @param {(CheckboxFilter|DateFilter)[]} filters
- * @returns {FilterQueryItem[]}
- */
-export function getFilterQueryItems(filters) {
-	const filterQueryItems = [];
 	filters.forEach((filter) => {
-		if (filter.options?.items) {
+		if ('options' in filter && filter.options?.items) {
 			filter.options.items.forEach((item) => {
 				if (item.checked) {
 					filterQueryItems.push({ label: filter.title, id: item.value, displayName: item.displayName });
 				}
 			});
 		}
-		if (filter.dateInputs) {
+
+		if ('dateInputs' in filter && filter.dateInputs) {
 			filter.dateInputs?.forEach((dateInput) => {
 				const hasAllValues = dateInput.items?.every((item) => item.value);
 				const hasNoError = !dateInput.errorMessage;
@@ -190,7 +232,7 @@ export function getFilterQueryItems(filters) {
 					filterQueryItems.push({
 						label: dateInput.title,
 						id: dateInput.idPrefix,
-						displayName: `${day.padStart(2, 0)}/${month.padStart(2, 0)}/${year}`,
+						displayName: `${day?.padStart(2, '0')}/${month?.padStart(2, '0')}/${year}`,
 						queryKeys: [`${dateInput.idPrefix}-day`, `${dateInput.idPrefix}-month`, `${dateInput.idPrefix}-year`]
 					});
 				}
@@ -200,27 +242,15 @@ export function getFilterQueryItems(filters) {
 	return filterQueryItems;
 }
 
-/**
- * Maps an array of filter values to booleans based on specified true and false values.
- * @param {string[]} filters
- * @param {string} trueValue
- * @param {string} falseValue
- * @returns {boolean[]}
- */
-export function mapWithAndWithoutToBoolean(filters, trueValue, falseValue) {
+export function mapWithAndWithoutToBoolean(filters: string[], trueValue: string, falseValue: string): boolean[] {
 	return filters
 		.map((value) => (value === trueValue ? true : value === falseValue ? false : null))
-		.filter((value) => value !== null);
+		.filter((value): value is boolean => value !== null);
 }
 
-/**
- * Sanitises a query parameter into an array of strings.
- * @param {*} query
- * @returns {string[]|*|*[]}
- */
-export function sanitiseQueryToStringArray(query) {
+export function sanitiseQueryToStringArray(query: unknown): string[] {
 	const val = query;
-	if (Array.isArray(val)) return val.filter((v) => typeof v === 'string' && v !== '');
+	if (Array.isArray(val)) return val.filter((v): v is string => typeof v === 'string' && v !== '');
 	if (val == null || val === '') return [];
 	if (typeof val === 'string') return [val];
 	return [];

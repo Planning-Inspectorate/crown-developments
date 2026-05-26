@@ -176,6 +176,65 @@ describe('Document Filters', () => {
 			assert.ok(findCategoryItem(categorySection, 'hearing'));
 			assert.ok(findCategoryItem(categorySection, 'decision'));
 		});
+
+		it('should include date published filter section', () => {
+			const filters = buildDocumentFilters({}, defaultCounts);
+
+			// Should have 2 sections: category and date published
+			assert.strictEqual(filters.length, 2);
+
+			const dateSection = filters.find((f) => f.title === 'Date published');
+			assert.ok(dateSection);
+			assert.strictEqual(dateSection.type, 'date-input');
+			assert.strictEqual(dateSection.name, 'publishedDate');
+		});
+
+		it('should populate date filter with query values', () => {
+			const filters = buildDocumentFilters(
+				{
+					'publishedDateFrom-day': '15',
+					'publishedDateFrom-month': '3',
+					'publishedDateFrom-year': '2026',
+					'publishedDateTo-day': '20',
+					'publishedDateTo-month': '5',
+					'publishedDateTo-year': '2026'
+				},
+				defaultCounts
+			);
+
+			const dateSection = filters.find((f) => f.title === 'Date published');
+			assert.ok(dateSection && 'dateInputs' in dateSection);
+			assert.ok(Array.isArray(dateSection.dateInputs));
+
+			const fromInput = dateSection.dateInputs[0];
+			const toInput = dateSection.dateInputs[1];
+
+			assert.deepStrictEqual(fromInput.value, { day: '15', month: '3', year: '2026' });
+			assert.deepStrictEqual(toInput.value, { day: '20', month: '5', year: '2026' });
+		});
+
+		it('should mark date filter as open when date values are present', () => {
+			const filters = buildDocumentFilters(
+				{
+					'publishedDateFrom-day': '1',
+					'publishedDateFrom-month': '1',
+					'publishedDateFrom-year': '2026'
+				},
+				defaultCounts
+			);
+
+			const dateSection = filters.find((f) => f.title === 'Date published');
+			assert.ok(dateSection && 'open' in dateSection);
+			assert.strictEqual(dateSection.open, true);
+		});
+
+		it('should not mark date filter as open when no date values are present', () => {
+			const filters = buildDocumentFilters({}, defaultCounts);
+
+			const dateSection = filters.find((f) => f.title === 'Date published');
+			assert.ok(dateSection && 'open' in dateSection);
+			assert.strictEqual(dateSection.open, false);
+		});
 	});
 	describe('getFilterQueryItems', () => {
 		it('should extract checked category items', () => {

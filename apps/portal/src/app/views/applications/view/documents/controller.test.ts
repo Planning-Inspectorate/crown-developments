@@ -3,8 +3,7 @@ import { buildApplicationDocumentsPage } from './controller.ts';
 import assert from 'node:assert';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { buildUrlWithParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
-import type { Request, Response } from 'express';
-import type { PortalService } from '#service';
+import type { Request, Response, NextFunction } from 'express';
 
 interface MockDb {
 	crownDevelopment: {
@@ -72,19 +71,24 @@ function getRenderArgs(res: MockResponse): Record<string, unknown> {
 	return res.render.mock.calls[0].arguments[1] as Record<string, unknown>;
 }
 
+function createMockNext(): NextFunction {
+	return mock.fn() as unknown as NextFunction;
+}
+
 describe('controller', () => {
 	describe('buildApplicationDocumentsPage', () => {
 		it('should check for id', async () => {
-			const handler = buildApplicationDocumentsPage({} as PortalService);
-			await assert.rejects(() => handler({} as Request, {} as Response));
+			const handler = buildApplicationDocumentsPage({} as any);
+			await assert.rejects(async () => handler({} as Request, {} as Response, createMockNext()));
 		});
 
 		it('should return not found for invalid id', async () => {
-			const handler = buildApplicationDocumentsPage({} as PortalService);
+			const handler = buildApplicationDocumentsPage({} as any);
 			const req = createMockRequest({ params: { applicationId: 'abc-123' } });
 			const res = createMockResponse();
+			const next = createMockNext();
 
-			await handler(req, res);
+			await handler(req, res, next);
 
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
@@ -99,11 +103,12 @@ describe('controller', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				sharePointDrive: mockSharePoint
-			} as unknown as PortalService);
+			} as any);
 			const req = createMockRequest();
 			const res = createMockResponse();
+			const next = createMockNext();
 
-			await handler(req, res);
+			await handler(req, res, next);
 
 			assert.strictEqual(res.status.mock.callCount(), 1);
 			assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
@@ -116,17 +121,18 @@ describe('controller', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				sharePointDrive: mockSharePoint
-			} as unknown as PortalService);
+			} as any);
 			const req = createMockRequest({
 				originalUrl: 'test-baseUrl/documents?searchCriteria="test"'
 			});
 			const res = createMockResponse();
+			const next = createMockNext();
 
-			await handler(req, res);
+			await handler(req, res, next);
 
 			assert.strictEqual(mockSharePoint.getItemsByPathWithCustomMetadata.mock.callCount(), 1);
 			assert.match(
-				mockSharePoint.getItemsByPathWithCustomMetadata.mock.calls[0].arguments[0],
+				mockSharePoint.getItemsByPathWithCustomMetadata.mock.calls[0].arguments[0] as string,
 				/^CROWN-2025-0000001\/Published$/
 			);
 			assert.strictEqual(res.render.mock.callCount(), 1);
@@ -168,15 +174,16 @@ describe('controller', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				sharePointDrive: mockSharePoint
-			} as unknown as PortalService);
+			} as any);
 			const req = createMockRequest();
 			const res = createMockResponse();
+			const next = createMockNext();
 
-			await handler(req, res);
+			await handler(req, res, next);
 
 			assert.strictEqual(mockSharePoint.getItemsByPathWithCustomMetadata.mock.callCount(), 1);
 			assert.match(
-				mockSharePoint.getItemsByPathWithCustomMetadata.mock.calls[0].arguments[0],
+				mockSharePoint.getItemsByPathWithCustomMetadata.mock.calls[0].arguments[0] as string,
 				/^CROWN-2025-0000001\/Published$/
 			);
 			assert.strictEqual(res.render.mock.callCount(), 1);
@@ -208,11 +215,12 @@ describe('controller', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				sharePointDrive: mockSharePoint
-			} as unknown as PortalService);
+			} as any);
 			const req = createMockRequest();
 			const res = createMockResponse();
+			const next = createMockNext();
 
-			await handler(req, res);
+			await handler(req, res, next);
 
 			const viewData = getRenderArgs(res);
 			assert.strictEqual((viewData.documents as unknown[]).length, 2);
@@ -227,9 +235,10 @@ describe('controller', () => {
 					distressing: true,
 					category: undefined,
 					size: undefined,
+					createdDate: '',
+					createdDateTime: undefined,
 					lastModified: '',
-					lastModifiedDateTime: undefined,
-					createdDate: ''
+					lastModifiedDateTime: undefined
 				}
 			);
 			assert.deepStrictEqual(
@@ -241,9 +250,10 @@ describe('controller', () => {
 					distressing: false,
 					category: undefined,
 					size: undefined,
+					createdDate: '',
+					createdDateTime: undefined,
 					lastModified: '',
-					lastModifiedDateTime: undefined,
-					createdDate: ''
+					lastModifiedDateTime: undefined
 				}
 			);
 		});
@@ -259,14 +269,16 @@ describe('controller', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				sharePointDrive: mockSharePoint
-			} as unknown as PortalService);
+			} as any);
 			const req = createMockRequest({
 				query: { searchCriteria: 'Test' },
 				baseUrl: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8'
 			});
 			const res = createMockResponse();
 
-			await handler(req, res);
+			const next = createMockNext();
+
+			await handler(req, res, next);
 
 			const viewData = getRenderArgs(res);
 			const documents = viewData.documents as Array<{ name: string }>;
@@ -288,14 +300,16 @@ describe('controller', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				sharePointDrive: mockSharePoint
-			} as unknown as PortalService);
+			} as any);
 			const req = createMockRequest({
 				query: { searchCriteria: 'Test flood risk assessment' },
 				baseUrl: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8'
 			});
 			const res = createMockResponse();
 
-			await handler(req, res);
+			const next = createMockNext();
+
+			await handler(req, res, next);
 
 			const viewData = getRenderArgs(res);
 			const documents = viewData.documents as Array<{ name: string }>;
@@ -317,14 +331,16 @@ describe('controller', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				sharePointDrive: mockSharePoint
-			} as unknown as PortalService);
+			} as any);
 			const req = createMockRequest({
 				query: { searchCriteria: 'test statement report' },
 				baseUrl: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8'
 			});
 			const res = createMockResponse();
 
-			await handler(req, res);
+			const next = createMockNext();
+
+			await handler(req, res, next);
 
 			const viewData = getRenderArgs(res);
 			const documents = viewData.documents as Array<{ name: string }>;
@@ -345,11 +361,13 @@ describe('controller', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				sharePointDrive: mockSharePoint
-			} as unknown as PortalService);
+			} as any);
 			const req = createMockRequest();
 			const res = createMockResponse();
 
-			await handler(req, res);
+			const next = createMockNext();
+
+			await handler(req, res, next);
 
 			const viewData = getRenderArgs(res);
 			const documents = viewData.documents as Array<{ name: string }>;
@@ -370,11 +388,13 @@ describe('controller', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				sharePointDrive: mockSharePoint
-			} as unknown as PortalService);
+			} as any);
 			const req = createMockRequest({ query: { searchCriteria: '' } });
 			const res = createMockResponse();
 
-			await handler(req, res);
+			const next = createMockNext();
+
+			await handler(req, res, next);
 
 			const viewData = getRenderArgs(res);
 			const documents = viewData.documents as Array<{ name: string }>;
@@ -395,13 +415,15 @@ describe('controller', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				sharePointDrive: mockSharePoint
-			} as unknown as PortalService);
+			} as any);
 
 			for (const value of [null, undefined]) {
 				const req = createMockRequest({ query: { searchCriteria: value } });
 				const res = createMockResponse();
 
-				await handler(req, res);
+				const next = createMockNext();
+
+				await handler(req, res, next);
 
 				const viewData = getRenderArgs(res);
 				const documents = viewData.documents as Array<{ name: string }>;
@@ -424,11 +446,13 @@ describe('controller', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				sharePointDrive: mockSharePoint
-			} as unknown as PortalService);
+			} as any);
 			const req = createMockRequest({ query: { itemsPerPage: '30' } });
 			const res = createMockResponse();
 
-			await handler(req, res);
+			const next = createMockNext();
+
+			await handler(req, res, next);
 
 			const viewData = getRenderArgs(res);
 			assert.strictEqual(viewData.selectedItemsPerPage, 30);
@@ -454,7 +478,7 @@ describe('controller', () => {
 				db: mockDb,
 				logger: mockLogger(),
 				sharePointDrive: mockSharePoint
-			} as unknown as PortalService);
+			} as any);
 			const req = createMockRequest({
 				query: {
 					searchCriteria: 'test',
@@ -466,7 +490,9 @@ describe('controller', () => {
 			});
 			const res = createMockResponse();
 
-			await handler(req, res);
+			const next = createMockNext();
+
+			await handler(req, res, next);
 
 			const viewData = getRenderArgs(res);
 			// clearQueryUrl should preserve itemsPerPage but clear searchCriteria and filterCategory, reset page to 1
@@ -521,5 +547,207 @@ describe('buildUrlWithParams', () => {
 		assert.strictEqual(params.get('searchCriteria'), 'abc');
 		assert.deepStrictEqual(filterBy, ['attachments', 'submittedBy']);
 		assert.strictEqual(params.get('page'), '3');
+	});
+});
+
+describe('Date Published Filter', () => {
+	it('should filter documents by from date only', async () => {
+		const documents = [
+			{
+				id: '1',
+				name: 'doc1.pdf',
+				file: { mimeType: 'application/pdf' },
+				createdDateTime: '2026-01-09T10:00:00Z', // 9 Jan 2026
+				lastModifiedDateTime: '2026-01-09T10:00:00Z',
+				size: 1000
+			},
+			{
+				id: '2',
+				name: 'doc2.pdf',
+				file: { mimeType: 'application/pdf' },
+				createdDateTime: '2026-01-05T10:00:00Z', // 5 Jan 2026
+				lastModifiedDateTime: '2026-01-05T10:00:00Z',
+				size: 2000
+			}
+		];
+
+		const mockDb = createMockDb();
+		const mockSharePoint = createMockSharePoint(documents);
+		const handler = buildApplicationDocumentsPage({
+			db: mockDb,
+			logger: mockLogger(),
+			sharePointDrive: mockSharePoint
+		} as any);
+
+		const req = createMockRequest({
+			query: {
+				'publishedDateFrom-day': '8',
+				'publishedDateFrom-month': '1',
+				'publishedDateFrom-year': '2026'
+			}
+		});
+
+		const res = createMockResponse();
+
+		const next = createMockNext();
+
+		await handler(req, res, next);
+
+		const viewData = getRenderArgs(res);
+
+		// Should only show doc1 (9 Jan) as it's on or after 8 Jan
+		assert.strictEqual(viewData.totalDocuments, 1);
+	});
+
+	it('should filter documents by to date only', async () => {
+		const documents = [
+			{
+				id: '1',
+				name: 'doc1.pdf',
+				file: { mimeType: 'application/pdf' },
+				createdDateTime: '2026-01-09T10:00:00Z', // 9 Jan 2026
+				lastModifiedDateTime: '2026-01-09T10:00:00Z',
+				size: 1000
+			},
+			{
+				id: '2',
+				name: 'doc2.pdf',
+				file: { mimeType: 'application/pdf' },
+				createdDateTime: '2026-01-05T10:00:00Z', // 5 Jan 2026
+				lastModifiedDateTime: '2026-01-05T10:00:00Z',
+				size: 2000
+			}
+		];
+
+		const mockDb = createMockDb();
+		const mockSharePoint = createMockSharePoint(documents);
+		const handler = buildApplicationDocumentsPage({
+			db: mockDb,
+			logger: mockLogger(),
+			sharePointDrive: mockSharePoint
+		} as any);
+
+		const req = createMockRequest({
+			query: {
+				'publishedDateTo-day': '7',
+				'publishedDateTo-month': '1',
+				'publishedDateTo-year': '2026'
+			}
+		});
+
+		const res = createMockResponse();
+
+		const next = createMockNext();
+
+		await handler(req, res, next);
+
+		const viewData = getRenderArgs(res);
+
+		// Should only show doc2 (5 Jan) as it's on or before 7 Jan
+		assert.strictEqual(viewData.totalDocuments, 1);
+	});
+
+	it('should filter documents by from and to date range', async () => {
+		const documents = [
+			{
+				id: '1',
+				name: 'doc1.pdf',
+				file: { mimeType: 'application/pdf' },
+				createdDateTime: '2026-01-09T10:00:00Z', // 9 Jan 2026
+				lastModifiedDateTime: '2026-01-09T10:00:00Z',
+				size: 1000
+			},
+			{
+				id: '2',
+				name: 'doc2.pdf',
+				file: { mimeType: 'application/pdf' },
+				createdDateTime: '2026-01-05T10:00:00Z', // 5 Jan 2026
+				lastModifiedDateTime: '2026-01-05T10:00:00Z',
+				size: 2000
+			},
+			{
+				id: '3',
+				name: 'doc3.pdf',
+				file: { mimeType: 'application/pdf' },
+				createdDateTime: '2026-01-15T10:00:00Z', // 15 Jan 2026
+				lastModifiedDateTime: '2026-01-15T10:00:00Z',
+				size: 3000
+			}
+		];
+
+		const mockDb = createMockDb();
+		const mockSharePoint = createMockSharePoint(documents);
+		const handler = buildApplicationDocumentsPage({
+			db: mockDb,
+			logger: mockLogger(),
+			sharePointDrive: mockSharePoint
+		} as any);
+
+		const req = createMockRequest({
+			query: {
+				'publishedDateFrom-day': '6',
+				'publishedDateFrom-month': '1',
+				'publishedDateFrom-year': '2026',
+				'publishedDateTo-day': '10',
+				'publishedDateTo-month': '1',
+				'publishedDateTo-year': '2026'
+			}
+		});
+
+		const res = createMockResponse();
+
+		const next = createMockNext();
+
+		await handler(req, res, next);
+
+		const viewData = getRenderArgs(res);
+
+		// Should only show doc1 (9 Jan) as it's between 6 Jan and 10 Jan
+		assert.strictEqual(viewData.totalDocuments, 1);
+	});
+
+	it('should append date filter query parameters to URL', async () => {
+		const documents = [
+			{
+				id: '1',
+				name: 'doc1.pdf',
+				file: { mimeType: 'application/pdf' },
+				createdDateTime: '2026-01-09T10:00:00Z',
+				lastModifiedDateTime: '2026-01-09T10:00:00Z',
+				size: 1000
+			}
+		];
+
+		const mockDb = createMockDb();
+		const mockSharePoint = createMockSharePoint(documents);
+		const handler = buildApplicationDocumentsPage({
+			db: mockDb,
+			logger: mockLogger(),
+			sharePointDrive: mockSharePoint
+		} as any);
+
+		const req = createMockRequest({
+			originalUrl:
+				'/applications/test-id/documents?publishedDateFrom-day=9&publishedDateFrom-month=1&publishedDateFrom-year=2026',
+			query: {
+				'publishedDateFrom-day': '9',
+				'publishedDateFrom-month': '1',
+				'publishedDateFrom-year': '2026'
+			}
+		});
+
+		const res = createMockResponse();
+
+		const next = createMockNext();
+
+		await handler(req, res, next);
+
+		const viewData = getRenderArgs(res);
+
+		// Verify query params are passed through
+		assert.ok(viewData.queryParams);
+		assert.strictEqual((viewData.queryParams as Record<string, string>)['publishedDateFrom-day'], '9');
+		assert.strictEqual((viewData.queryParams as Record<string, string>)['publishedDateFrom-month'], '1');
+		assert.strictEqual((viewData.queryParams as Record<string, string>)['publishedDateFrom-year'], '2026');
 	});
 });

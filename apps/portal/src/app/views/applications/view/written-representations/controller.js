@@ -8,8 +8,9 @@ import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/s
 import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
-import { buildFilters, getFilterQueryItems, hasQueries, mapWithAndWithoutToBoolean } from './filters/filters.js';
+import { buildFilters, getFilterQueryItems, hasQueries, mapWithAndWithoutToBoolean } from './filters/filters.ts';
 import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
+import { endOfDay } from 'date-fns';
 
 /**
  * Processes filters and error summaries for written representations.
@@ -123,6 +124,10 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			req.query?.['submittedDateTo-month'],
 			req.query?.['submittedDateTo-year']
 		);
+
+		// Adjust the "to" date to include the entire day (up to 23:59:59.999)
+		const filterBySubmissionToDateEndOfDay = filterBySubmissionToDate ? endOfDay(filterBySubmissionToDate) : null;
+
 		const mappedFilterByAttachments = mapWithAndWithoutToBoolean(
 			filterByAttachments,
 			'withAttachments',
@@ -132,11 +137,11 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 		const whereFilters = {
 			...(filterSubmittedBy.length && { categoryId: { in: filterSubmittedBy } }),
 			...(mappedFilterByAttachments.length === 1 && { containsAttachments: mappedFilterByAttachments[0] }),
-			...(filterBySubmissionFromDate || filterBySubmissionToDate
+			...(filterBySubmissionFromDate || filterBySubmissionToDateEndOfDay
 				? {
 						submittedDate: {
 							...(filterBySubmissionFromDate && { gte: filterBySubmissionFromDate }),
-							...(filterBySubmissionToDate && { lte: filterBySubmissionToDate })
+							...(filterBySubmissionToDateEndOfDay && { lte: filterBySubmissionToDateEndOfDay })
 						}
 					}
 				: {})
