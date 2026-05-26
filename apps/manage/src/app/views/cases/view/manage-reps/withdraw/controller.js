@@ -8,7 +8,7 @@ import {
 	moveAttachmentsToCaseFolder
 } from '@pins/crowndev-lib/util/handle-attachments.js';
 import { clearSessionData } from '@pins/crowndev-lib/util/session.ts';
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { buildPath, representationFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
 export function buildSaveController(service) {

@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { fetchPublishedApplication, getApplicationStatus, type ApplicationPublishStatus } from '#util/applications.ts';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';

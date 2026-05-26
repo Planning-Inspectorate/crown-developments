@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
-import { notFoundHandler } from '../middleware/errors.js';
+import { notFoundHandler } from '../middleware/errors.ts';
 
 describe('custom-assert', () => {
 	describe('assertRenders404Page', () => {

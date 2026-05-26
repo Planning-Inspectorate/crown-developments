@@ -1,5 +1,5 @@
 import { Router as createRouter } from 'express';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.js';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { buildListReps } from './list/controller.js';
 import { buildGetJourneyMiddleware, viewRepresentation } from './view/controller.js';
 import { viewReviewRedirect } from './review/controller.js';

@@ -3,7 +3,7 @@ import { createRoutesAndGuards as createAuthRoutesAndGuards } from './auth/route
 import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.js';
 import { createRoutes as createCasesRoutes } from './views/cases/index.js';
 import { createErrorRoutes } from './views/static/error/index.js';
-import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.js';
+import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.ts';
 import { createNotifyRoutes } from './notify/router.js';
 
 /**
