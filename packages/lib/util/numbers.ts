@@ -1,7 +1,7 @@
 /**
- *
+ * Convert a string to a float
  */
-export function toFloat(str: string): number | null {
+export function toFloat(str: string | undefined): number | null {
 	if (str) {
 		return parseFloat(str);
 	}
@@ -9,10 +9,9 @@ export function toFloat(str: string): number | null {
 }
 
 /**
- * @param {string} [str]
- * @returns {number|null}
+ * Convert a string to an integer
  */
-export function toInt(str: string): number | null {
+export function toInt(str: string | undefined): number | null {
 	if (str) {
 		return parseInt(str);
 	}
