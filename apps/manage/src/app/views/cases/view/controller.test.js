@@ -473,11 +473,7 @@ describe('case details', () => {
 			const next = mock.fn();
 			const audit = {
 				getLastModifiedInfo: mock.fn(() =>
-<<<<<<< HEAD
 					Promise.resolve({ updatedDate: '11 February 2026 2:31pm', by: 'Jane Smith' })
-=======
-					Promise.resolve({ updatedDate: { date: '11 February 2026', time: '2:31pm' }, by: 'Jane Smith' })
->>>>>>> 07ff7f55 (feat(manage): case history page and other impl)
 				)
 			};
 			const middleware = buildGetJourneyMiddleware({
@@ -494,11 +490,7 @@ describe('case details', () => {
 			assert.strictEqual(audit.getLastModifiedInfo.mock.callCount(), 1);
 			assert.strictEqual(audit.getLastModifiedInfo.mock.calls[0].arguments[0], 'case-1');
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
-<<<<<<< HEAD
 			assert.deepStrictEqual(viewData.lastModifiedDate, '11 February 2026 2:31pm');
-=======
-			assert.deepStrictEqual(viewData.lastModifiedDate, { date: '11 February 2026', time: '2:31pm' });
->>>>>>> 07ff7f55 (feat(manage): case history page and other impl)
 			assert.strictEqual(viewData.lastModifiedBy, 'Jane Smith');
 		});
 		it('should show a sharepoint link if available', async () => {

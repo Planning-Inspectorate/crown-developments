@@ -112,20 +112,11 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpda
 		const publishDate = getJourneyAnswers(res)?.publishDate;
 		const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
 		const baseUrl = req.baseUrl;
-<<<<<<< HEAD
 
 		const banner = await getBannerMessages(id, res, req, db);
 		const lastModified = res.locals.lastModified as { updatedDate: string | null; by: string | null } | undefined;
 		const lastModifiedDate = lastModified?.updatedDate ?? '-';
 		const lastModifiedBy = lastModified?.by ?? '-';
-=======
-		const lastModified = res.locals.lastModified as { updatedDate: string | null; by: string | null } | undefined;
-		const lastModifiedDate = lastModified?.updatedDate ?? null;
-		const lastModifiedBy = lastModified?.by ?? null;
-		const successParam = req.query.success;
-		const casePublishSuccess = successParam === 'published' && casePublished;
-		const caseUnpublishSuccess = successParam === 'unpublish' && !casePublished;
->>>>>>> 07ff7f55 (feat(manage): case history page and other impl)
 		const sharePointDrive = getSharePointDrive(req.session);
 		let sharePointLink: string | undefined;
 		if (sharePointDrive) {
@@ -140,12 +131,7 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpda
 			hideButton: true,
 			hideStatus: true,
 			isApplicationUpdatesLive,
-<<<<<<< HEAD
 			banner,
-=======
-			hasLinkedCase: hasLinkedCase(crownDevelopment),
-			linkedCaseLink: await maybeGetLinkedCaseLink(db, crownDevelopment),
->>>>>>> 07ff7f55 (feat(manage): case history page and other impl)
 			lastModifiedDate,
 			lastModifiedBy
 		});

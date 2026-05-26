@@ -12,6 +12,7 @@ import {
 import { getLinkedCaseId, hasLinkedCase as hasLinkedCaseFunction } from '@pins/crowndev-lib/util/linked-case.ts';
 import { extractAgentContactFields, extractApplicantContactFields } from '../util/contact.js';
 import { getRecipientEmails } from '../view/notification.js';
+import { AUDIT_ACTIONS } from '../../../audit/index.ts';
 
 /**
  * @typedef {import('./types.d.ts').CreateCaseAnswers} CreateCaseAnswers
@@ -28,7 +29,7 @@ import { getRecipientEmails } from '../view/notification.js';
  * @returns {import('express').Handler}
  */
 export function buildSaveController(service) {
-	const { db, appSharePointDrive, logger, notifyClient } = service;
+	const { db, appSharePointDrive, logger, notifyClient, audit } = service;
 	return async (req, res) => {
 		if (!res.locals || !res.locals.journeyResponse) {
 			throw new Error('journey response required');
@@ -99,6 +100,19 @@ export function buildSaveController(service) {
 		if (!reference || !lbcReference) {
 			throw new Error('Failed to generate case reference');
 		}
+
+		if (!id) {
+			throw new Error('Failed to create case');
+		}
+
+		// Record case creation after the transaction has committed.
+		// record() is fire-and-forget, so an audit failure won't affect the created case.
+		await audit.record({
+			caseId: id,
+			action: AUDIT_ACTIONS.CASE_CREATED,
+			userId: req.session?.account?.localAccountId,
+			metadata: { reference }
+		});
 
 		let notificationData = null;
 		let lbcNotificationData = null;
