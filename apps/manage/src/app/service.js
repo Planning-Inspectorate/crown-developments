@@ -5,6 +5,7 @@ import { MapCache } from '@pins/crowndev-lib/util/map-cache.js';
 import { buildInitEntraClient } from '@pins/crowndev-lib/graph/cached-entra-client.js';
 import { initLogger } from '@pins/crowndev-lib/util/logger.ts';
 import { initGovNotify } from '@pins/crowndev-lib/govnotify/index.js';
+import { buildAuditService } from './audit/index.ts';
 import { TextAnalyticsClient } from '@azure/ai-text-analytics';
 import { DefaultAzureCredential } from '@azure/identity';
 import { DEFAULT_CATEGORIES } from '#util/azure-language-redaction.js';
@@ -28,6 +29,10 @@ export class ManageService {
 	 * @type {import('@pins/crowndev-database/src/client/client.ts').PrismaClient}
 	 */
 	dbClient;
+	/**
+	 * @type {import('./audit/index.js').AuditService}
+	 */
+	audit;
 	/**
 	 * @type {import('@pins/crowndev-lib/redis/redis-client.ts').RedisClient|null}
 	 */
@@ -61,6 +66,7 @@ export class ManageService {
 		const logger = initLogger(config);
 		this.logger = logger;
 		this.dbClient = initDatabaseClient(config, logger);
+		this.audit = buildAuditService(this.db, logger);
 		this.redisClient = initRedis(config.session, logger);
 		const graphClient = Client.initWithMiddleware({
 			authProvider: new TokenCredentialAuthenticationProvider(new DefaultAzureCredential(), {
