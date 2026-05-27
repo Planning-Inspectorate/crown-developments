@@ -1,9 +1,10 @@
+import type { S62APortalService } from '#service';
 import type { Handler } from 'express';
 
 /**
  * Add configuration values to locals.
  */
-export function addLocalsConfiguration(): Handler {
+export function addLocalsConfiguration(service: S62APortalService): Handler {
 	return (req, res, next) => {
 		const path = req.path;
 
@@ -44,6 +45,7 @@ export function addLocalsConfiguration(): Handler {
 					href: '/contact'
 				}
 			],
+			isLive: service.isLive,
 			primaryNavigationLinks: links.map((link) => ({
 				...link,
 				current: link.href === path

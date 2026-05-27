@@ -2,7 +2,11 @@ import type { BaseConfig } from '@pins/crowndev-lib/app/config-types.d.ts';
 import path from 'node:path';
 import { loadEnvFile } from 'node:process';
 
-export type Config = BaseConfig;
+export interface Config extends BaseConfig {
+	featureFlags: {
+		isLive: boolean;
+	};
+}
 
 // cache the config
 let config: Config | undefined;
@@ -30,7 +34,8 @@ export function loadConfig(): Config {
 		NODE_ENV,
 		REDIS_CONNECTION_STRING,
 		SESSION_SECRET,
-		SQL_CONNECTION_STRING
+		SQL_CONNECTION_STRING,
+		FEATURE_FLAG_S62A_PORTAL_NOT_LIVE
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -69,7 +74,11 @@ export function loadConfig(): Config {
 			secret: SESSION_SECRET
 		},
 		// the static directory to serve assets from (images, css, etc..)
-		staticDir: buildConfig.staticDir
+		staticDir: buildConfig.staticDir,
+		featureFlags: {
+			// by default with no feature flag set, the s62a portal is live
+			isLive: FEATURE_FLAG_S62A_PORTAL_NOT_LIVE !== 'true'
+		}
 	};
 
 	return config;

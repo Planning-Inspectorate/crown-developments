@@ -70,6 +70,7 @@ export function loadConfig() {
 		FEATURE_FLAG_NOTIFY_CALLBACK_NOT_LIVE,
 		FEATURE_FLAG_APPLICATION_UPDATES_NOT_LIVE,
 		FEATURE_FLAG_MULTIPLE_APPLICANTS_NOT_LIVE,
+		FEATURE_FLAG_S62A_MANAGE_NOT_LIVE,
 		BLOB_STORE_DISABLED,
 		BLOB_STORE_HOST,
 		BLOB_STORE_CONTAINER,
@@ -209,7 +210,9 @@ export function loadConfig() {
 			isRepsUploadDocsLive: FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE !== 'true',
 			isNotifyCallbackEnabled: FEATURE_FLAG_NOTIFY_CALLBACK_NOT_LIVE !== 'true',
 			isApplicationUpdatesLive: FEATURE_FLAG_APPLICATION_UPDATES_NOT_LIVE !== 'true',
-			isMultipleApplicantsLive: FEATURE_FLAG_MULTIPLE_APPLICANTS_NOT_LIVE !== 'true'
+			isMultipleApplicantsLive: FEATURE_FLAG_MULTIPLE_APPLICANTS_NOT_LIVE !== 'true',
+			// Needed so that we can develop the changes to 'Manage' without interfering with 'Crown Developments' in general.
+			isS62ALive: FEATURE_FLAG_S62A_MANAGE_NOT_LIVE !== 'true'
 		},
 		gitSha: GIT_SHA,
 		// the log level to use

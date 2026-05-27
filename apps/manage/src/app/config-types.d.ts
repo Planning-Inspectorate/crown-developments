@@ -37,6 +37,7 @@ interface Config {
 		isRepsUploadDocsLive: boolean;
 		isApplicationUpdatesLive: boolean;
 		isMultipleApplicantsLive: boolean;
+		isS62ALive: boolean;
 	};
 	gitSha?: string;
 	govNotify: NotifyConfig;
