@@ -20,8 +20,14 @@ export function buildRouter(service: S62APortalService): IRouter {
 	// see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#no-cache
 	router.use(cacheNoCacheMiddleware);
 
-	router.use('/', appRoutes(service));
-	router.use('/error', createErrorRoutes(service));
+	if (service.isLive) {
+		router.use('/', appRoutes(service));
+		router.use('/error', createErrorRoutes(service));
+	} else {
+		service.logger.info(
+			"Not registering application routes, feature flag 'FEATURE_FLAG_S62A_PORTAL_NOT_LIVE' is enabled"
+		);
+	}
 
 	return router;
 }

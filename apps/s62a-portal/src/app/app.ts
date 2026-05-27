@@ -34,7 +34,7 @@ export function createApp(service: S62APortalService): Express {
 
 	// content security policy middleware including nonce generation
 	app.use(...initContentSecurityPolicyMiddlewares(cspDirectiveDefaults));
-	app.use(addLocalsConfiguration());
+	app.use(addLocalsConfiguration(service));
 
 	const nunjucksEnvironment = configureNunjucks();
 	// Set the express view engine to nunjucks

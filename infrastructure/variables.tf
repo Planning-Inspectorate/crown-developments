@@ -38,6 +38,8 @@ variable "apps_config" {
       notify_callback_not_live     = bool
       application_updates_not_live = bool
       multiple_applicants_not_live = bool
+      s62a_portal_not_live         = bool
+      s62a_manage_not_live         = bool
     })
 
     dynamic_cache_control = object({

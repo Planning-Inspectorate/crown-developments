@@ -161,6 +161,10 @@ export class ManageService {
 		return this.#config.featureFlags?.isMultipleApplicantsLive;
 	}
 
+	get isS62ALive() {
+		return this.#config.featureFlags?.isS62ALive;
+	}
+
 	get secureSession() {
 		return this.#config.NODE_ENV === 'production';
 	}
