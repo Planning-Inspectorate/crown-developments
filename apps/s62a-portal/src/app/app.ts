@@ -31,10 +31,10 @@ export function createApp(service: S62APortalService): Express {
 		secret: service.sessionSecret
 	});
 	app.use(sessionMiddleware);
-	app.use(addLocalsConfiguration());
 
 	// content security policy middleware including nonce generation
 	app.use(...initContentSecurityPolicyMiddlewares(cspDirectiveDefaults));
+	app.use(addLocalsConfiguration());
 
 	const nunjucksEnvironment = configureNunjucks();
 	// Set the express view engine to nunjucks

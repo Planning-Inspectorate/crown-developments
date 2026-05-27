@@ -1,6 +1,6 @@
 import { Router as createRouter } from 'express';
 import { createRoutesAndGuards as createAuthRoutesAndGuards } from './auth/router.js';
-import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.js';
+import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.ts';
 import { createRoutes as createCasesRoutes } from './views/cases/index.js';
 import { createErrorRoutes } from './views/static/error/index.js';
 import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.ts';

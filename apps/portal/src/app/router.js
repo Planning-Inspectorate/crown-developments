@@ -1,5 +1,5 @@
 import { Router as createRouter } from 'express';
-import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.js';
+import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.ts';
 import { createRoutes as applicationRoutes } from './views/applications/index.js';
 import { buildAccessibilityStatementPage } from './views/static/accessibility-statement/controller.js';
 import { buildTermsAndConditionsPage } from './views/static/terms-and-conditions/controller.js';
