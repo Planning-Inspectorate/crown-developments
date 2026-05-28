@@ -3,6 +3,7 @@ import assert from 'node:assert';
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
 	getLinkedCaseId,
+	maybeGetLinkedCaseLink,
 	getLinkedCaseLinkText,
 	getSummaryWarningMessage,
 	hasLinkedCase,
@@ -127,6 +128,65 @@ describe('linked case util', () => {
 				linkedParentId: 'linked-case-id'
 			};
 			assert.strictEqual(await getLinkedCaseLinkText(mockDb, crownDevelopment), 'Listed Building Consent (LBC)');
+		});
+	});
+	describe('maybeGetLinkedCaseLink', () => {
+		it('should return undefined when linked case id is unavailable after linked case check', async () => {
+			let linkedParentReadCount = 0;
+			const crownDevelopment = {
+				get linkedParentId() {
+					linkedParentReadCount += 1;
+					return linkedParentReadCount === 1 ? 'linked-case-id' : undefined;
+				}
+			};
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn()
+				}
+			};
+
+			const result = await maybeGetLinkedCaseLink(mockDb, crownDevelopment, 'manage');
+
+			assert.strictEqual(result, undefined);
+		});
+
+		it('should return undefined for portal route when linked case is not published', async () => {
+			const tomorrow = new Date();
+			tomorrow.setDate(tomorrow.getDate() + 1);
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						publishDate: tomorrow
+					}))
+				}
+			};
+
+			const result = await maybeGetLinkedCaseLink(mockDb, { linkedParentId: 'linked-case-id' }, 'portal');
+
+			assert.strictEqual(result, undefined);
+		});
+
+		it('should return portal link html when linked case is published', async () => {
+			let findUniqueCallCount = 0;
+			const findUniqueMock = mock.fn(() => {
+				findUniqueCallCount += 1;
+				return findUniqueCallCount === 1
+					? { publishDate: new Date('2025-06-01T00:00:00.000Z') }
+					: { subTypeId: APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION };
+			});
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: findUniqueMock
+				}
+			};
+
+			const result = await maybeGetLinkedCaseLink(mockDb, { linkedParentId: 'linked-case-id' }, 'portal');
+
+			assert.strictEqual(
+				result,
+				'<a href="/applications/linked-case-id/application-information" class="govuk-link govuk-link--no-visited-state">planning permission application</a>'
+			);
 		});
 	});
 	describe('getSummaryWarningMessage', () => {

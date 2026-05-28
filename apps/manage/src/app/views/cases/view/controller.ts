@@ -14,12 +14,12 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { getEntraGroupMembers } from '#util/entra-groups.ts';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
-import { getLinkedCaseId, getLinkedCaseLinkText, hasLinkedCase } from '@pins/crowndev-lib/util/linked-case.ts';
+import { maybeGetLinkedCaseLink } from '@pins/crowndev-lib/util/linked-case.ts';
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { filteredStagesToRadioOptions } from './question-utils.js';
 import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.js';
+import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
 import type { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
-import type { Prisma } from '@pins/crowndev-database/src/client/client.js';
 import type { Response, Request, Handler, NextFunction } from 'express';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import type { ManageService } from '#service';
@@ -31,12 +31,61 @@ function getJourneyAnswers(res: Response): CrownDevelopmentViewModel | undefined
 	return res.locals.journeyResponse?.answers;
 }
 
-type CrownDevelopmentWithLinkedCase = Prisma.CrownDevelopmentGetPayload<{
-	include: {
-		ParentCrownDevelopment: { select: { id: true } };
-		ChildrenCrownDevelopment: { select: { id: true } };
-	};
-}>;
+/**
+ * Get all banner messages to display.
+ */
+async function getBannerMessages(id: string, res: Response, req: Request, db: ManageService['db']) {
+	// Don't show success or info if there is an error
+	if (res.locals.errorSummary) {
+		return null;
+	}
+
+	const bannerBuilder = new BannerBuilder();
+
+	const crownDevelopment = await db.crownDevelopment.findUnique({
+		where: { id },
+		include: {
+			ParentCrownDevelopment: { select: { id: true } },
+			ChildrenCrownDevelopment: { select: { id: true } }
+		}
+	});
+
+	const linkedCaseLink = await maybeGetLinkedCaseLink(db, crownDevelopment, 'manage');
+	if (linkedCaseLink) {
+		bannerBuilder.addLinkedCase(linkedCaseLink);
+	}
+
+	const publishDate = res.locals?.journeyResponse?.answers?.publishDate;
+	const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
+	const successParam = req.query.success;
+	const casePublishSuccess = successParam === 'published' && casePublished;
+	if (casePublishSuccess) {
+		bannerBuilder.addSuccessText('Application published');
+		return bannerBuilder.build();
+	}
+
+	const caseUnpublishSuccess = successParam === 'unpublish' && !casePublished;
+	if (caseUnpublishSuccess) {
+		bannerBuilder.addSuccessText('Application unpublished');
+		return bannerBuilder.build();
+	}
+
+	// immediately clear this so the banner only shows once
+	const caseUpdated = readCaseUpdatedSession(req, id);
+	clearCaseUpdatedSession(req, id);
+	clearAllSessionData(req, res, id);
+
+	if (caseUpdated) {
+		bannerBuilder.addSuccessText('Application has been updated.');
+
+		if (casePublished) {
+			bannerBuilder.addSuccessText('Any updates made to this case will be automatically published.');
+		}
+		return bannerBuilder.build();
+	}
+
+	return bannerBuilder.build();
+}
 
 /**
  * Controller for the case details page, which shows the case summary and the list of sections to manage.
@@ -60,65 +109,28 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpda
 		}
 		clearSessionData(req, id, 'publishErrors', 'cases');
 
-		// immediately clear this so the banner only shows once
-		const caseUpdated = readCaseUpdatedSession(req, id);
-		clearCaseUpdatedSession(req, id);
-		clearAllSessionData(req, res, id);
-
 		const publishDate = getJourneyAnswers(res)?.publishDate;
 		const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
 		const baseUrl = req.baseUrl;
-		const successParam = req.query.success;
-		const casePublishSuccess = successParam === 'published' && casePublished;
-		const caseUnpublishSuccess = successParam === 'unpublish' && !casePublished;
+
+		const banner = await getBannerMessages(id, res, req, db);
 		const sharePointDrive = getSharePointDrive(req.session);
 		let sharePointLink: string | undefined;
 		if (sharePointDrive) {
 			sharePointLink = await getSharePointFolderLink(sharePointDrive, caseReferenceToFolderName(reference));
 		}
 
-		const crownDevelopment = await db.crownDevelopment.findUnique({
-			where: { id },
-			include: {
-				ParentCrownDevelopment: { select: { id: true } },
-				ChildrenCrownDevelopment: { select: { id: true } }
-			}
-		});
-
 		await list(req, res, '', {
 			reference,
-			caseUpdated,
 			casePublished,
-			casePublishSuccess,
-			caseUnpublishSuccess,
 			baseUrl,
 			sharePointLink,
 			hideButton: true,
 			hideStatus: true,
 			isApplicationUpdatesLive,
-			hasLinkedCase: hasLinkedCase(crownDevelopment),
-			linkedCaseLink: await maybeGetLinkedCaseLink(db, crownDevelopment)
+			banner
 		});
 	};
-}
-
-/**
- * Get the linked case link HTML
- */
-async function maybeGetLinkedCaseLink(
-	db: ManageService['db'],
-	crownDevelopment: CrownDevelopmentWithLinkedCase | null | undefined
-): Promise<string | undefined> {
-	if (!hasLinkedCase(crownDevelopment)) {
-		return undefined;
-	}
-
-	const linkedCaseId = getLinkedCaseId(crownDevelopment);
-	if (!linkedCaseId) {
-		return undefined;
-	}
-
-	return `<a href="/cases/${linkedCaseId}" class="govuk-link govuk-link--no-visited-state">${await getLinkedCaseLinkText(db, crownDevelopment)} application</a>`;
 }
 
 /**
