@@ -69,3 +69,41 @@ export function getSummaryWarningMessage(res: Response): string {
 		? 'Clicking accept & submit will create a second case as part of the connected application'
 		: 'Clicking Accept & Submit will send a notification to the applicant / agent';
 }
+
+type LinkedCaseRouteType = 'manage' | 'portal';
+
+/**
+ * Get the URL for a single linked case depending on the route.
+ */
+function getLinkedCaseHref(linkedCaseId: string, routeType: LinkedCaseRouteType): string {
+	return routeType === 'portal' ? `/applications/${linkedCaseId}/application-information` : `/cases/${linkedCaseId}`;
+}
+
+/**
+ * Get the linked case link HTML.
+ */
+export async function maybeGetLinkedCaseLink(
+	db: PrismaClient,
+	crownDevelopment: CrownDevelopmentWithLinkedCase | null | undefined,
+	routeType: LinkedCaseRouteType = 'manage'
+): Promise<string | undefined> {
+	if (!hasLinkedCase(crownDevelopment)) {
+		return undefined;
+	}
+
+	const linkedCaseId = getLinkedCaseId(crownDevelopment);
+	if (!linkedCaseId) {
+		return undefined;
+	}
+
+	const isLinkedCasePublished = await linkedCaseIsPublished(db, crownDevelopment);
+
+	if (routeType === 'portal' && !isLinkedCasePublished) {
+		return undefined;
+	}
+
+	const linkText = await getLinkedCaseLinkText(db, crownDevelopment);
+	const href = getLinkedCaseHref(linkedCaseId, routeType);
+
+	return `<a href="${href}" class="govuk-link govuk-link--no-visited-state">${linkText} application</a>`;
+}
