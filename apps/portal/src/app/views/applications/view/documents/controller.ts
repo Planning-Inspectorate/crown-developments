@@ -3,6 +3,8 @@ import { combineComparators, normalizeToArray, sortByField, sortByFileName } fro
 import { loadPublishedApplicationOr404, shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import { publishedFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { getDocuments } from '@pins/crowndev-lib/documents/get.js';
+import { mapDriveItemToViewModel } from '@pins/crowndev-lib/documents/view-model.js';
+import { CATEGORY_SHAREPOINT_TO_VALUE } from '@pins/crowndev-lib/documents/categories.ts';
 import { splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { isWithdrawnOrExpired } from '#util/applications.ts';
 import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
@@ -46,7 +48,7 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 
 		logger.info({ folderPath }, 'view documents');
 
-		let allDocuments = await getDocuments({
+		const allDriveItems = await getDocuments({
 			sharePointDrive,
 			folderPath,
 			logger,
@@ -55,77 +57,76 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 			metaDataFields: ['Distressing', 'Category']
 		});
 
-		// Apply search filter
 		const searchCriteria = req.query?.searchCriteria;
 		const queries = typeof searchCriteria === 'string' ? splitStringQueries(searchCriteria) : undefined;
 
+		let filteredDriveItems = allDriveItems;
 		if (queries && queries.length > 0) {
-			allDocuments = allDocuments.filter((document) =>
-				queries.every((query) => document.name.trim().toLowerCase().includes(query.trim().toLowerCase()))
+			filteredDriveItems = filteredDriveItems.filter((driveItem) =>
+				queries.every((query) => driveItem.name?.trim().toLowerCase().includes(query.trim().toLowerCase()))
 			);
 		}
 
-		// Count documents by category (before category filter is applied)
 		const categoryCounts: CategoryCounts = createEmptyCategoryCounts();
-
-		allDocuments.forEach((document) => {
-			if (document.category && document.category in categoryCounts) {
-				categoryCounts[document.category]++;
+		filteredDriveItems.forEach((driveItem) => {
+			const fields = driveItem?.listItem?.fields as Record<string, unknown> | undefined;
+			const sharepointCategory = fields?.['Category'] as string | undefined;
+			const normalizedCategory = sharepointCategory ? CATEGORY_SHAREPOINT_TO_VALUE[sharepointCategory] : undefined;
+			if (normalizedCategory && normalizedCategory in categoryCounts) {
+				categoryCounts[normalizedCategory]++;
 			}
 		});
 
-		// Apply category filter
 		const selectedCategories = normalizeToArray(req.query?.filterCategory as string | string[] | null | undefined);
 
 		if (selectedCategories.length > 0) {
-			allDocuments = allDocuments.filter((document) => {
-				return selectedCategories.some((category) => document.category === category);
+			filteredDriveItems = filteredDriveItems.filter((driveItem) => {
+				const fields = driveItem?.listItem?.fields as Record<string, unknown> | undefined;
+				const sharepointCategory = fields?.['Category'] as string | undefined;
+				const normalizedCategory = sharepointCategory ? CATEGORY_SHAREPOINT_TO_VALUE[sharepointCategory] : undefined;
+				return normalizedCategory && selectedCategories.includes(normalizedCategory);
 			});
 		}
 
-		// Apply date published filter
 		const getStringQueryValue = (value: unknown): string | undefined => (typeof value === 'string' ? value : undefined);
 
-		const fromDateValues = {
-			day: getStringQueryValue(req.query['publishedDateFrom-day']),
-			month: getStringQueryValue(req.query['publishedDateFrom-month']),
-			year: getStringQueryValue(req.query['publishedDateFrom-year'])
-		};
-		const toDateValues = {
-			day: getStringQueryValue(req.query['publishedDateTo-day']),
-			month: getStringQueryValue(req.query['publishedDateTo-month']),
-			year: getStringQueryValue(req.query['publishedDateTo-year'])
-		};
 		const fromDateRaw = parseDateFromParts(
-			fromDateValues.day ?? '',
-			fromDateValues.month ?? '',
-			fromDateValues.year ?? ''
+			getStringQueryValue(req.query['publishedDateFrom-day']) ?? '',
+			getStringQueryValue(req.query['publishedDateFrom-month']) ?? '',
+			getStringQueryValue(req.query['publishedDateFrom-year']) ?? ''
 		);
-		const toDateRaw = parseDateFromParts(toDateValues.day ?? '', toDateValues.month ?? '', toDateValues.year ?? '');
+		const toDateRaw = parseDateFromParts(
+			getStringQueryValue(req.query['publishedDateTo-day']) ?? '',
+			getStringQueryValue(req.query['publishedDateTo-month']) ?? '',
+			getStringQueryValue(req.query['publishedDateTo-year']) ?? ''
+		);
 
-		// Normalize filter dates to Europe/London timezone (same as document dates)
 		const fromDate = fromDateRaw ? startOfDay(toZonedTime(fromDateRaw, 'Europe/London')) : null;
 		const toDate = toDateRaw ? startOfDay(toZonedTime(toDateRaw, 'Europe/London')) : null;
 
 		if (fromDate || toDate) {
-			allDocuments = allDocuments.filter((document) => {
-				if (!document.createdDateTime) return false;
+			filteredDriveItems = filteredDriveItems.filter((driveItem) => {
+				if (!driveItem.createdDateTime) return false;
 
-				// Normalize document date to Europe/London timezone
-				const docDate = toZonedTime(new Date(document.createdDateTime), 'Europe/London');
+				const docDate = toZonedTime(new Date(driveItem.createdDateTime), 'Europe/London');
 				const docDateNormalized = startOfDay(docDate);
 
 				if (fromDate && toDate) {
 					return docDateNormalized >= fromDate && docDateNormalized <= toDate;
-				} else if (fromDate) {
+				}
+				if (fromDate) {
 					return docDateNormalized >= fromDate;
-				} else if (toDate) {
+				}
+				if (toDate) {
 					return docDateNormalized <= toDate;
 				}
 				return true;
 			});
 		}
 
+		const allDocuments = filteredDriveItems
+			.map(mapDriveItemToViewModel)
+			.filter((doc): doc is NonNullable<typeof doc> => doc !== undefined);
 		const totalDocuments = allDocuments.length;
 		const { selectedItemsPerPage, pageNumber, pageSize, skipSize } = getPaginationParams(req);
 		const { totalPages, resultsStartNumber, resultsEndNumber } = getPageData(

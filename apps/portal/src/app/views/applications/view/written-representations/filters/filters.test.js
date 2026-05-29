@@ -1,17 +1,9 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
-import {
-	buildFilters,
-	hasQueries,
-	getFilterQueryItems,
-	mapWithAndWithoutToBoolean,
-	sanitiseQueryToStringArray
-} from './filters.ts';
+import { buildFilters, hasQueries, mapWithAndWithoutToBoolean } from './filters.ts';
 import { REPRESENTATION_CATEGORY_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
-import { dateFilter } from '../../filters/date-filter.ts';
-import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
 
 // Helper to create a mock db with overridable count behaviour
 function createMockDb(counts) {
@@ -71,7 +63,7 @@ describe('Filters', () => {
 			assert.strictEqual(attachments.options.items[1].checked, false);
 		});
 
-		it('should mark items as checked based on queryFilters arrays', async () => {
+		it('should mark items as checked based on queryFilters', async () => {
 			const mockDb = createMockDb({
 				interestedPartyCount: 1,
 				consulteeCount: 2,
@@ -122,110 +114,13 @@ describe('Filters', () => {
 		});
 	});
 
-	describe('hasQueries', () => {
-		it('returns false for empty object', () => {
-			assert.strictEqual(hasQueries({}), false);
-		});
-		it('returns false when only excluded keys present', () => {
+	describe('hasQueries (representation-specific)', () => {
+		it('returns false when only representation excluded keys present', () => {
 			assert.strictEqual(hasQueries({ itemsPerPage: '25', page: '2', searchCriteria: 'test' }), false);
 		});
-		it('returns false when filter arrays only contain empty values', () => {
-			assert.strictEqual(hasQueries({ filterSubmittedBy: [''] }), false);
-			assert.strictEqual(hasQueries({ filterSubmittedBy: ['', null] }), false);
-		});
-		it('returns true when at least one non-empty value exists', () => {
+		it('returns true when representation filter is present', () => {
 			assert.strictEqual(hasQueries({ filterSubmittedBy: ['party'] }), true);
 			assert.strictEqual(hasQueries({ filterByAttachments: ['withAttachments'] }), true);
-		});
-		it('returns true for mixed array values with one non-empty', () => {
-			assert.strictEqual(hasQueries({ filterSubmittedBy: ['', 'value'] }), true);
-		});
-		it('returns false for null/undefined query', () => {
-			assert.strictEqual(hasQueries(undefined), false);
-		});
-	});
-
-	describe('getFilterQueryItems', () => {
-		it('extracts checked items from filters', () => {
-			const filters = [
-				{
-					title: 'Submitted by',
-					type: 'checkboxes',
-					name: 'filterSubmittedBy',
-					options: {
-						items: [
-							{ displayName: 'Interested Party', text: 'Interested (3)', value: 'a', checked: true },
-							{ displayName: 'Consultee', text: 'Consultee (5)', value: 'b', checked: false }
-						]
-					}
-				},
-				{
-					title: 'Contains attachments',
-					type: 'checkboxes',
-					name: 'filterByAttachments',
-					options: {
-						items: [
-							{ displayName: 'Yes', text: 'Yes (7)', value: 'withAttachments', checked: true },
-							{ displayName: 'No', text: 'No (11)', value: 'withoutAttachments', checked: true }
-						]
-					}
-				},
-				{
-					title: 'Date submitted',
-					type: 'date-input',
-					name: 'submittedDate',
-					dateInputs: [
-						{
-							idPrefix: 'submittedDateFrom',
-							title: 'From',
-							items: [
-								{ name: 'day', value: '01' },
-								{ name: 'month', value: '02' },
-								{ name: 'year', value: '2025' }
-							]
-						},
-						{
-							idPrefix: 'submittedDateTo',
-							title: 'To',
-							items: [
-								{ name: 'day', value: '10' },
-								{ name: 'month', value: '02' },
-								{ name: 'year', value: '2025' }
-							]
-						}
-					]
-				}
-			];
-			const itemsMacro = getFilterQueryItems(filters);
-
-			assert.deepStrictEqual(itemsMacro, [
-				{ label: 'Submitted by', id: 'a', displayName: 'Interested Party' },
-				{ label: 'Contains attachments', id: 'withAttachments', displayName: 'Yes' },
-				{ label: 'Contains attachments', id: 'withoutAttachments', displayName: 'No' },
-				{
-					label: 'From',
-					id: 'submittedDateFrom',
-					displayName: '01/02/2025',
-					queryKeys: ['submittedDateFrom-day', 'submittedDateFrom-month', 'submittedDateFrom-year']
-				},
-				{
-					label: 'To',
-					id: 'submittedDateTo',
-					displayName: '10/02/2025',
-					queryKeys: ['submittedDateTo-day', 'submittedDateTo-month', 'submittedDateTo-year']
-				}
-			]);
-		});
-		it('returns empty array when no items checked', () => {
-			const filters = [
-				{
-					title: 'Submitted by',
-					type: 'checkboxes',
-					name: 'filterSubmittedBy',
-					options: { items: [{ displayName: 'Interested Party', text: 'Interested (0)', value: 'a', checked: false }] }
-				}
-			];
-			assert.deepStrictEqual(getFilterQueryItems(filters), []);
 		});
 	});
 
@@ -254,88 +149,6 @@ describe('Filters', () => {
 				),
 				[true, false]
 			);
-		});
-	});
-
-	describe('dateFilter range validation', () => {
-		it('should not error for valid from/to range', () => {
-			const toDate = parseDateFromParts(2, 11, 2025);
-			const result = dateFilter({
-				id: 'submittedDateFrom',
-				title: 'From',
-				values: { day: '1', month: '11', year: '2025' },
-				compareDate: toDate,
-				compareType: 'before'
-			});
-			assert.strictEqual(result.errorMessage, undefined);
-		});
-
-		it('should error if from date is after to date', () => {
-			const toDate = parseDateFromParts(2, 11, 2025);
-			const result = dateFilter({
-				id: 'submittedDateFrom',
-				title: 'From',
-				values: { day: '4', month: '11', year: '2025' },
-				compareDate: toDate,
-				compareType: 'before'
-			});
-			assert.notStrictEqual(result.errorMessage, undefined);
-			assert.match(result.errorMessage.text, /before the entered To date/);
-		});
-
-		it('should not error for same from/to date', () => {
-			const toDate = parseDateFromParts(2, 11, 2025);
-			const result = dateFilter({
-				id: 'submittedDateFrom',
-				title: 'From',
-				values: { day: '2', month: '11', year: '2025' },
-				compareDate: toDate,
-				compareType: 'before'
-			});
-			assert.strictEqual(result.errorMessage, undefined);
-		});
-
-		it('should error for incomplete date', () => {
-			const result = dateFilter({
-				id: 'submittedDateFrom',
-				title: 'From',
-				values: { day: '', month: '11', year: '2025' }
-			});
-			assert.notStrictEqual(result.errorMessage, undefined);
-			assert.match(result.errorMessage.text, /must include a day/i);
-		});
-
-		it('should error for invalid date', () => {
-			const result = dateFilter({
-				id: 'submittedDateFrom',
-				title: 'From',
-				values: { day: '31', month: '2', year: '2025' }
-			});
-			assert.notStrictEqual(result.errorMessage, undefined);
-			assert.match(result.errorMessage.text, /day must be a real day/i);
-		});
-
-		it('should error for invalid month in date', () => {
-			const result = dateFilter({
-				id: 'submittedDateFrom',
-				title: 'From',
-				values: { day: '1', month: '13', year: '2025' }
-			});
-			assert.notStrictEqual(result.errorMessage, undefined);
-			assert.match(result.errorMessage.text, /month must be a real month/i);
-		});
-
-		it('should error if to date is before from date', () => {
-			const fromDate = parseDateFromParts(4, 11, 2025);
-			const result = dateFilter({
-				id: 'submittedDateTo',
-				title: 'To',
-				values: { day: '2', month: '11', year: '2025' },
-				compareDate: fromDate,
-				compareType: 'after'
-			});
-			assert.notStrictEqual(result.errorMessage, undefined);
-			assert.match(result.errorMessage.text, /after the entered From date/);
 		});
 	});
 
@@ -380,47 +193,5 @@ describe('Filters', () => {
 			assert.strictEqual(filters[1].open, true);
 			assert.strictEqual(filters[2].open, true);
 		});
-	});
-});
-
-describe('sanitisedQuery', () => {
-	it('returns empty array for null, undefined, or empty string', () => {
-		assert.deepStrictEqual(sanitiseQueryToStringArray(null), []);
-		assert.deepStrictEqual(sanitiseQueryToStringArray(undefined), []);
-		assert.deepStrictEqual(sanitiseQueryToStringArray(''), []);
-	});
-
-	it('wraps a string in an array', () => {
-		assert.deepStrictEqual(sanitiseQueryToStringArray('foo'), ['foo']);
-	});
-
-	it('filters non-string values from arrays', () => {
-		assert.deepStrictEqual(sanitiseQueryToStringArray(['foo', '', 123, null, undefined, {}, [], 'bar']), [
-			'foo',
-			'bar'
-		]);
-	});
-
-	it('returns empty array for objects, numbers, booleans', () => {
-		assert.deepStrictEqual(sanitiseQueryToStringArray({ a: 1 }), []);
-		assert.deepStrictEqual(sanitiseQueryToStringArray(123), []);
-		assert.deepStrictEqual(sanitiseQueryToStringArray(true), []);
-		assert.deepStrictEqual(sanitiseQueryToStringArray(false), []);
-	});
-
-	it('returns empty array for function and symbol', () => {
-		assert.deepStrictEqual(
-			sanitiseQueryToStringArray(() => {}),
-			[]
-		);
-		assert.deepStrictEqual(sanitiseQueryToStringArray(Symbol('x')), []);
-	});
-
-	it('returns empty array for array of only non-strings', () => {
-		assert.deepStrictEqual(sanitiseQueryToStringArray([1, 2, null, undefined, {}, []]), []);
-	});
-
-	it('returns array of strings for array of strings', () => {
-		assert.deepStrictEqual(sanitiseQueryToStringArray(['a', 'b', 'c']), ['a', 'b', 'c']);
 	});
 });

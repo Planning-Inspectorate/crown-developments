@@ -138,17 +138,14 @@
                 button.addEventListener('click', function(e) {
                     const filterId = e.currentTarget && e.currentTarget.id;
                     const queryKeysAttr = e.currentTarget && e.currentTarget.getAttribute('data-query-keys');
-                    const extraKeys = (queryKeysAttr || '').split(',').map(k => k.trim()).filter(Boolean);
+                    const queryKeys = (queryKeysAttr || '').split(',').map(k => k.trim()).filter(Boolean);
                     const urlParams = new URLSearchParams(window.location.search);
                     const updatedParams = new URLSearchParams();
                     urlParams.forEach((value, key) => {
-                        // If date range pill, drop all related keys
-                        if (extraKeys.length && extraKeys.includes(key)) {
-                            return; // skip adding
-                        }
-                        // Otherwise, remove only the matching value
-                        if (value === filterId) {
-                            return; // skip adding
+                        // Skip if: key is in queryKeys AND (value matches filterId OR key starts with filterId-)
+                        // This handles both category filters (match by value) and date filters (match by key prefix)
+                        if (queryKeys.includes(key) && (value === filterId || key.startsWith(filterId + '-'))) {
+                            return;
                         }
                         updatedParams.append(key, value);
                     });

@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { buildDocumentFilters, createEmptyCategoryCounts, getFilterQueryItems, hasQueries } from './filters.ts';
+import { buildDocumentFilters, createEmptyCategoryCounts, hasQueries } from './filters.ts';
 import type { FilterSection } from './filters.ts';
 
 // Helper functions
@@ -236,64 +236,9 @@ describe('Document Filters', () => {
 			assert.strictEqual(dateSection.open, false);
 		});
 	});
-	describe('getFilterQueryItems', () => {
-		it('should extract checked category items', () => {
-			const filters = buildDocumentFilters(
-				{ filterCategory: ['application', 'hearing'] },
-				{
-					...createEmptyCategoryCounts(),
-					application: 5,
-					lpaQuestionnaire: 3,
-					hearing: 4,
-					decision: 6
-				}
-			);
 
-			const filterQueryItems = getFilterQueryItems(filters);
-
-			assert.strictEqual(filterQueryItems.length, 2);
-			assert.deepStrictEqual(filterQueryItems[0], {
-				label: 'Category',
-				id: 'application',
-				displayName: 'Application',
-				queryKeys: ['filterCategory']
-			});
-			assert.deepStrictEqual(filterQueryItems[1], {
-				label: 'Category',
-				id: 'hearing',
-				displayName: 'Hearing',
-				queryKeys: ['filterCategory']
-			});
-		});
-
-		it('should return empty array when no filters are selected', () => {
-			const filters = buildDocumentFilters(
-				{},
-				{
-					application: 5,
-					lpaQuestionnaire: 3,
-					writtenRepresentations: 0,
-					inquiry: 0,
-					hearing: 0,
-					decision: 6
-				}
-			);
-
-			const filterQueryItems = getFilterQueryItems(filters);
-			assert.strictEqual(filterQueryItems.length, 0);
-		});
-	});
-
-	describe('hasQueries', () => {
-		it('should return false for empty object', () => {
-			assert.strictEqual(hasQueries({}), false);
-		});
-
-		it('should return false for undefined', () => {
-			assert.strictEqual(hasQueries(undefined), false);
-		});
-
-		it('should return false when only excluded keys are present', () => {
+	describe('hasQueries (document-specific)', () => {
+		it('should return false when only document excluded keys are present', () => {
 			assert.strictEqual(hasQueries({ itemsPerPage: '25', page: '2', searchCriteria: 'test' }), false);
 		});
 
@@ -308,20 +253,8 @@ describe('Document Filters', () => {
 			);
 		});
 
-		it('should return true when filter category is present', () => {
+		it('should return true when document filter is present', () => {
 			assert.strictEqual(hasQueries({ filterCategory: 'application' }), true);
-		});
-
-		it('should return false when filter values are empty strings', () => {
-			assert.strictEqual(hasQueries({ filterCategory: '' }), false);
-		});
-
-		it('should return false when filter arrays contain only empty strings', () => {
-			assert.strictEqual(hasQueries({ filterCategory: ['', ''] }), false);
-		});
-
-		it('should return true when filter arrays contain at least one non-empty value', () => {
-			assert.strictEqual(hasQueries({ filterCategory: ['', 'application'] }), true);
 		});
 
 		it('should ignore excluded keys and check filter keys', () => {
