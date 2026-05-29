@@ -53,6 +53,7 @@
                 View our <a href="https://www.gov.uk/government/publications/planning-inspectorate-privacy-notices/customer-privacy-notice" class="govuk-link" target="_blank" rel="noreferrer">Customer Privacy Notice</a> for more information.
             </p>
             <form action="" method="post">
+                <input type="hidden" name="_csrf" value="{{ _csrf }}">
                 {{  govukRadios({
                     name: "acceptCookies",
                     fieldset: {
