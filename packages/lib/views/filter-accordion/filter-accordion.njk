@@ -30,7 +30,13 @@
                                     idPrefix: section.name + suffix,
                                     items: section.options.items,
                                     classes: "govuk-checkboxes--small",
-                                    hint: { text: section.options.hintText }
+                                    hint: { text: section.options.hintText },
+                                    fieldset: {
+                                        legend: {
+                                            text: section.title,
+                                            classes: "govuk-visually-hidden"
+                                        }
+                                    }
                                 }) }}
                             {% endif %}
                             {% if section.type == 'date-input' and section.dateInputs %}
