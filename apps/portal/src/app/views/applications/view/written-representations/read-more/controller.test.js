@@ -4,22 +4,23 @@ import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.
 import { buildWrittenRepresentationsReadMorePage } from './controller.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { getDocumentsById } from '@pins/crowndev-lib/documents/get.js';
+import { mapDriveItemToViewModel } from '@pins/crowndev-lib/documents/view-model.js';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 describe('written representations read more', () => {
 	it('should filter out invalid or null documents', async () => {
 		const mockSharePoint = {
-			getDriveItem: mock.fn(
-				(id) =>
-					id === 1 ? { id, name: 'File 1', file: { mimeType: 'application/pdf' } } : { id, name: null, file: null } // ensure mapDriveItemToViewModel returns null
+			getDriveItem: mock.fn((id) =>
+				id === 1 ? { id, name: 'File 1', file: { mimeType: 'application/pdf' } } : { id, name: null, file: null }
 			)
 		};
-		const documents = await getDocumentsById({
+		const driveItems = await getDocumentsById({
 			ids: [1, 2],
 			logger: mockLogger(),
 			folderPath: 'CROWN-2025-0000001/Published',
 			sharePointDrive: mockSharePoint
 		});
+		const documents = driveItems.map(mapDriveItemToViewModel).filter(Boolean);
 		assert.strictEqual(documents.length, 1);
 		assert.strictEqual(documents[0].name, 'File 1');
 	});

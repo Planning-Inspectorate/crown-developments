@@ -236,9 +236,7 @@ describe('controller', () => {
 					category: undefined,
 					size: undefined,
 					createdDate: '',
-					createdDateTime: undefined,
-					lastModified: '',
-					lastModifiedDateTime: undefined
+					lastModified: ''
 				}
 			);
 			assert.deepStrictEqual(
@@ -251,9 +249,7 @@ describe('controller', () => {
 					category: undefined,
 					size: undefined,
 					createdDate: '',
-					createdDateTime: undefined,
-					lastModified: '',
-					lastModifiedDateTime: undefined
+					lastModified: ''
 				}
 			);
 		});

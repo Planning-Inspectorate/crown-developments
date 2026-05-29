@@ -1,13 +1,12 @@
 import { validateDate } from '@pins/crowndev-lib/validators/date-filter-validator.js';
 
-export interface DateFilterItem {
-	name: string;
-	label: string;
-	value?: string;
-	classes?: string;
-}
-
-export interface DateFilterResult {
+type DatePartBase = { label: string; value?: string; classes?: string };
+type DateFilterItems = [
+	DatePartBase & { name: 'day' },
+	DatePartBase & { name: 'month' },
+	DatePartBase & { name: 'year' }
+];
+export interface DateFilterInput {
 	fieldset: {
 		legend: {
 			text: string;
@@ -21,7 +20,7 @@ export interface DateFilterResult {
 	hint?: {
 		text: string;
 	};
-	items: DateFilterItem[];
+	items: DateFilterItems;
 	value: Partial<{
 		day: string;
 		month: string;
@@ -50,7 +49,7 @@ export interface DateFilterOptions {
 /**
  * Validates a date input and returns a structured date filter object
  */
-export function dateFilter(options: DateFilterOptions): DateFilterResult {
+export function dateFilter(options: DateFilterOptions): DateFilterInput {
 	const { title, id, hint, values = {}, compareDate, compareType } = options;
 	let day = values.day;
 	let month = values.month;

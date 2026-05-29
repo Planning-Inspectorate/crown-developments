@@ -1,8 +1,8 @@
-import { FILE_PROPERTIES, mapDriveItemToViewModel } from './view-model.js';
+import { FILE_PROPERTIES } from './view-model.js';
 
 /**
- * Wrap the sharepoint call to catch SharePoint errors and throw a user-friendly error
- * Also map to the view model
+ * Fetch DriveItems from SharePoint.
+ * Returns raw DriveItems - use mapDriveItemToViewModel to convert to view models.
  *
  * @param {Object} opts
  * @param {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} opts.sharePointDrive
@@ -11,7 +11,7 @@ import { FILE_PROPERTIES, mapDriveItemToViewModel } from './view-model.js';
  * @param {string} opts.id
  * @param {function(a, b): number} [opts.sortFn]
  * @param {string[]} [opts.metaDataFields]
- * @returns {Promise<import('./types.js').DocumentViewModel[]>}
+ * @returns {Promise<import('@microsoft/microsoft-graph-types').DriveItem[]>}
  */
 export async function getDocuments({ sharePointDrive, folderPath, logger, id, sortFn, metaDataFields }) {
 	try {
@@ -28,7 +28,7 @@ export async function getDocuments({ sharePointDrive, folderPath, logger, id, so
 		if (sortFn) {
 			items.sort(sortFn);
 		}
-		return items.map(mapDriveItemToViewModel).filter(Boolean);
+		return items;
 	} catch (error) {
 		// don't show SharePoint errors to the user
 		logger.error({ error, id, folderPath }, 'error fetching documents from sharepoint');
@@ -37,8 +37,8 @@ export async function getDocuments({ sharePointDrive, folderPath, logger, id, so
 }
 
 /**
- * Wrap the sharepoint call to catch SharePoint errors and throw a user-friendly error
- * Also map to the view model
+ * Fetch DriveItems by IDs from SharePoint.
+ * Returns raw DriveItems - use mapDriveItemToViewModel to convert to view models.
  *
  * @param {Object} opts
  * @param {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} opts.sharePointDrive
@@ -46,7 +46,7 @@ export async function getDocuments({ sharePointDrive, folderPath, logger, id, so
  * @param {import('pino').BaseLogger} opts.logger
  * @param {string[]} opts.ids
  * @param {function(a, b): number} [opts.sortFn]
- * @returns {Promise<import('./types.js').DocumentViewModel[]>}
+ * @returns {Promise<import('@microsoft/microsoft-graph-types').DriveItem[]>}
  */
 export async function getDocumentsById({ sharePointDrive, folderPath, logger, ids, sortFn }) {
 	try {
@@ -58,7 +58,7 @@ export async function getDocumentsById({ sharePointDrive, folderPath, logger, id
 		if (sortFn) {
 			items.sort(sortFn);
 		}
-		return items.map(mapDriveItemToViewModel).filter(Boolean);
+		return items;
 	} catch (error) {
 		logger.error({ error, ids, folderPath }, 'error fetching documents from sharepoint');
 		throw new Error('There is a problem fetching documents', { cause: error });

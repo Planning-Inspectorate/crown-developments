@@ -159,19 +159,12 @@
                     const urlParams = new URLSearchParams(window.location.search);
                     const updatedParams = new URLSearchParams();
                     urlParams.forEach((value, key) => {
-                        if (queryKeys.length > 0) {
-                            // Skip if: key is in queryKeys AND (value matches filterId OR key starts with filterId-)
-                            // This handles both category filters (match by value) and date filters (match by key prefix)
-                            if (queryKeys.includes(key) && (value === filterId || key.startsWith(filterId + '-'))) {
-                                return;
-                            }
-                            updatedParams.append(key, value);
-                        } else {
-                            // Legacy: match by value for filters without queryKeys
-                            if (value !== filterId) {
-                                updatedParams.append(key, value);
-                            }
+                        // Skip if: key is in queryKeys AND (value matches filterId OR key starts with filterId-)
+                        // This handles both category filters (match by value) and date filters (match by key prefix)
+                        if (queryKeys.includes(key) && (value === filterId || key.startsWith(filterId + '-'))) {
+                            return;
                         }
+                        updatedParams.append(key, value);
                     });
 
                     // Redirect to the updated URL

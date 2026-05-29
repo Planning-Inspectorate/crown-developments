@@ -8,6 +8,7 @@ import {
 	representationAttachmentsFolderPath
 } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { getDocuments, getDocumentsById } from '@pins/crowndev-lib/documents/get.js';
+import { mapDriveItemToViewModel } from '@pins/crowndev-lib/documents/view-model.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { isValidUniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../../util/application-util.ts';
@@ -85,7 +86,8 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 			if (!isRepsUploadDocsLive) {
 				const folderPath = publishedRepresentationsAttachmentsFolderPath(reference, representationReference);
 				logger.info({ folderPath }, 'view documents');
-				documents = await getDocuments({ sharePointDrive, folderPath, logger, id });
+				const driveItems = await getDocuments({ sharePointDrive, folderPath, logger, id });
+				documents = driveItems.map(mapDriveItemToViewModel).filter(Boolean);
 			} else {
 				let documentsToFetch;
 				try {
@@ -118,12 +120,13 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 					logger.info({ documentsToFetch }, 'Fetched accepted documents for representation');
 					const folderPath = representationAttachmentsFolderPath(reference, representationReference);
 					const ids = documentsToFetch.map((doc) => doc.redactedItemId ?? doc.itemId).filter(Boolean);
-					documents = await getDocumentsById({
+					const driveItems = await getDocumentsById({
 						sharePointDrive,
 						folderPath,
 						logger,
 						ids
 					});
+					documents = driveItems.map(mapDriveItemToViewModel).filter(Boolean);
 					logger.info({ documents }, 'Fetched documents to display from SharePoint');
 				}
 			}
