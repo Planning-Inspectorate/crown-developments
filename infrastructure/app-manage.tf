@@ -98,6 +98,11 @@ module "app_manage" {
 
     # Azure Language Service
     AZURE_AI_LANGUAGE_ENDPOINT = local.text_analytics_endpoint
+
+    # blob store
+    BLOB_STORE_DISABLED  = var.apps_config.blob_store.disabled
+    BLOB_STORE_HOST      = azurerm_storage_account.crown_documents.primary_blob_endpoint
+    BLOB_STORE_CONTAINER = azurerm_storage_container.documents.name
   }
 
   providers = {

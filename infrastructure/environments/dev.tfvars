@@ -66,6 +66,10 @@ apps_config = {
   sharepoint = {
     disabled = false
   }
+
+  blob_store = {
+    disabled = true
+  }
 }
 
 auth_config_portal = {
