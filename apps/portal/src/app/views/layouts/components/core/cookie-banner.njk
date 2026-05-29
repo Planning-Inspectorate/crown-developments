@@ -35,6 +35,7 @@
     {% endset %}
 
     <form action="" method="post">
+        <input type="hidden" name="_csrf" value="{{ _csrf }}">
         {{ govukCookieBanner({
             ariaLabel: "Cookies on " + config.headerTitle,
             messages: [
