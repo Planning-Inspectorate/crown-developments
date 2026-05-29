@@ -27,7 +27,7 @@ export function loadConfig() {
 	}
 	// load configuration from .env file into process.env
 	// prettier-ignore
-	try { loadEnvFile() } catch {/* ignore errors here */}
+	try { loadEnvFile() } catch { /* ignore errors here */ }
 
 	// get values from the environment
 	const {
@@ -69,7 +69,11 @@ export function loadConfig() {
 		FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE,
 		FEATURE_FLAG_NOTIFY_CALLBACK_NOT_LIVE,
 		FEATURE_FLAG_APPLICATION_UPDATES_NOT_LIVE,
-		FEATURE_FLAG_MULTIPLE_APPLICANTS_NOT_LIVE
+		FEATURE_FLAG_MULTIPLE_APPLICANTS_NOT_LIVE,
+		BLOB_STORE_DISABLED,
+		BLOB_STORE_HOST,
+		BLOB_STORE_CONTAINER,
+		BLOB_STORE_CONNECTION_STRING
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -143,6 +147,24 @@ export function loadConfig() {
 		throw new Error('SQL_CONNECTION_STRING is required');
 	}
 
+	// Blob store is used for S62A files
+	const blobStoreDisabled = BLOB_STORE_DISABLED === 'true';
+	if (!blobStoreDisabled) {
+		const props = {
+			BLOB_STORE_HOST,
+			BLOB_STORE_CONTAINER
+		};
+		for (const [k, v] of Object.entries(props)) {
+			if (v === undefined || v === '') {
+				throw new Error(k + ' must be a non-empty string');
+			}
+		}
+
+		if (NODE_ENV === 'production' && BLOB_STORE_CONNECTION_STRING) {
+			throw new Error('BLOB_STORE_CONNECTION_STRING must only be used for local development');
+		}
+	}
+
 	config = {
 		appName: 'manage',
 		appHostname: APP_HOSTNAME,
@@ -161,6 +183,12 @@ export function loadConfig() {
 		azureLanguage: {
 			categories: AZURE_AI_LANGUAGE_CATEGORIES,
 			endpoint: AZURE_AI_LANGUAGE_ENDPOINT
+		},
+		blobStore: {
+			disabled: BLOB_STORE_DISABLED === 'true',
+			host: BLOB_STORE_HOST || '',
+			container: BLOB_STORE_CONTAINER || '',
+			connectionString: BLOB_STORE_CONNECTION_STRING || ''
 		},
 		cacheControl: {
 			maxAge: STATIC_CACHE_CONTROL_MAX_AGE || '30d'
@@ -252,7 +280,7 @@ export function loadBuildConfig() {
 export function loadEnvironmentConfig() {
 	// load configuration from .env file into process.env
 	// prettier-ignore
-	try{ loadEnvFile() } catch {/* ignore errors here */}
+	try { loadEnvFile() } catch { /* ignore errors here */ }
 
 	// get values from the environment
 	const { ENVIRONMENT } = process.env;

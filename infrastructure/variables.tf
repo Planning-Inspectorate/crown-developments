@@ -74,6 +74,10 @@ variable "apps_config" {
     sharepoint = object({
       disabled = bool
     })
+
+    blob_store = object({
+      disabled = bool
+    })
   })
 }
 
