@@ -13,6 +13,57 @@ import {
 } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { getSubmittedForId } from '@pins/crowndev-lib/util/questions.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
+import { isSafeRelativeUrl, escapeHtml } from '@pins/crowndev-lib/util/string.ts';
+
+/**
+ * @typedef {import('@pins/crowndev-lib/views/banner/banner-builder').BannerMessage} BannerMessage
+ * @typedef {{representationUpdated: boolean}} GetBannerMessagesOptions
+ */
+
+/**
+ * Get all banner messages to display.
+ *
+ * @param {import('express').Response} res
+ * @param {import('express').Request} req
+ * @param {GetBannerMessagesOptions} options
+ * @return {BannerMessage|null}
+ */
+function getBannerMessages(res, req, options) {
+	const bannerBuilder = new BannerBuilder();
+
+	if (options.representationUpdated) {
+		bannerBuilder.addSuccessText('Representation has been updated');
+	}
+
+	const documentInfoBanner = getDocumentInfoBanner(res, req.baseUrl);
+
+	if (!documentInfoBanner) {
+		return bannerBuilder.build();
+	}
+
+	if (documentInfoBanner.name === 'awaitingReview') {
+		const safeHref = escapeHtml(isSafeRelativeUrl(documentInfoBanner.href) ? documentInfoBanner.href : '#');
+		return bannerBuilder
+			.addInfoTrustedSingleLineHtml(
+				`There are attachments awaiting review.
+			<a class="govuk-notification-banner__link" href="${safeHref}">Manage attachments</a>.`
+			)
+			.build();
+	}
+
+	if (documentInfoBanner.name === 'noAttachmentsAdded') {
+		const safeHref = escapeHtml(isSafeRelativeUrl(documentInfoBanner.href) ? documentInfoBanner.href : '#');
+		return bannerBuilder
+			.addInfoTrustedSingleLineHtml(
+				`There are no attachments added.
+			<a class="govuk-notification-banner__link" href="${safeHref}">Add attachments</a>.`
+			)
+			.build();
+	}
+
+	return bannerBuilder.build();
+}
 
 /**
  * @typedef {import('express').Handler} Handler
@@ -49,6 +100,11 @@ export function validateParams(params) {
  * @param {Object<string, *>} [viewData]
  */
 export async function renderRepresentation(req, res, viewData = {}) {
+	const id = req.params.id;
+	if (!id || typeof id !== 'string') {
+		throw new Error('id param is required');
+	}
+
 	const { representationRef } = validateParams(req.params);
 
 	// Show publish case validation errors
@@ -61,14 +117,15 @@ export async function renderRepresentation(req, res, viewData = {}) {
 	const representationUpdated = readRepUpdatedSession(req, representationRef);
 	clearRepUpdatedSession(req, representationRef);
 
+	const banner = getBannerMessages(res, req, { representationUpdated });
+
 	await list(req, res, '', {
 		representationRef,
-		representationUpdated,
 		requiresReview: res.locals?.journeyResponse?.answers?.requiresReview,
-		backLinkUrl: `/cases/${req.params.id}/manage-representations`,
+		backLinkUrl: `/cases/${id}/manage-representations`,
 		currentUrl: req.originalUrl,
 		representationStatus: res.locals?.journeyResponse?.answers?.statusId,
-		documentInfoBanner: getDocumentInfoBanner(res, req.baseUrl),
+		banner,
 		...viewData
 	});
 }
@@ -183,4 +240,6 @@ function getDocumentInfoBanner(res, currentUrl) {
 			href: `${trimmedUrl}/manage/task-list`
 		};
 	}
+
+	return null;
 }

@@ -51,8 +51,7 @@ describe('controller', () => {
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.strictEqual(viewData.requiresReview, true);
 			assert.strictEqual(viewData.representationRef, 'ref-1');
-			assert.strictEqual(viewData.representationUpdated, false);
-			assert.strictEqual(viewData.documentInfoBanner, undefined);
+			assert.strictEqual(viewData.banner, null);
 		});
 		it('should render the representation with no attachments added banner', async () => {
 			const journeyResponse = new JourneyResponse('id-1', 'id-2', {
@@ -65,7 +64,7 @@ describe('controller', () => {
 			const questions = getQuestions();
 			const mockReq = {
 				params: { id: 'case-1', representationRef: 'ref-1' },
-				baseUrl: 'case-1/manage-representations'
+				baseUrl: '/case-1/manage-representations'
 			};
 			const mockRes = {
 				render: mock.fn(),
@@ -77,10 +76,13 @@ describe('controller', () => {
 			await assert.doesNotReject(() => viewRepresentation(mockReq, mockRes));
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
-			assert.deepStrictEqual(viewData.documentInfoBanner, {
-				name: 'noAttachmentsAdded',
-				href: 'case-1/manage-representations/edit/myself/attachments'
-			});
+			assert.strictEqual(viewData.banner.type, 'info');
+			assert.strictEqual(viewData.banner.text, undefined);
+			assert.match(viewData.banner.html, /There are no attachments added\./);
+			assert.match(viewData.banner.html, /Add attachments/);
+			assert.match(viewData.banner.html, /class="govuk-notification-banner__link"/);
+			assert.match(viewData.banner.html, /case-1\/manage-representations\/edit\/myself\/attachments/);
+			assert.doesNotMatch(viewData.banner.html, /govuk-list--bullet/);
 		});
 		it('should render the representation with awaiting review document banner', async () => {
 			const journeyResponse = new JourneyResponse('id-1', 'id-2', {
@@ -103,7 +105,7 @@ describe('controller', () => {
 			const questions = getQuestions();
 			const mockReq = {
 				params: { id: 'case-1', representationRef: 'ref-1' },
-				baseUrl: 'case-1/manage-representations'
+				baseUrl: '/case-1/manage-representations'
 			};
 			const mockRes = {
 				render: mock.fn(),
@@ -115,10 +117,13 @@ describe('controller', () => {
 			await assert.doesNotReject(() => viewRepresentation(mockReq, mockRes));
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
-			assert.deepStrictEqual(viewData.documentInfoBanner, {
-				name: 'awaitingReview',
-				href: 'case-1/manage-representations/manage/task-list'
-			});
+			assert.strictEqual(viewData.banner.type, 'info');
+			assert.strictEqual(viewData.banner.text, undefined);
+			assert.match(viewData.banner.html, /There are attachments awaiting review\./);
+			assert.match(viewData.banner.html, /Manage attachments/);
+			assert.match(viewData.banner.html, /class="govuk-notification-banner__link"/);
+			assert.match(viewData.banner.html, /case-1\/manage-representations\/manage\/task-list/);
+			assert.doesNotMatch(viewData.banner.html, /govuk-list--bullet/);
 		});
 		it('should read & clear rep updated session data', async () => {
 			const journeyResponse = new JourneyResponse('id-1', 'id-2', {
@@ -143,7 +148,54 @@ describe('controller', () => {
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.strictEqual(viewData.requiresReview, true);
 			assert.strictEqual(viewData.representationRef, 'ref-1');
-			assert.strictEqual(viewData.representationUpdated, true);
+			assert.deepStrictEqual(viewData.banner, { text: 'Representation has been updated', type: 'success' });
+			assert.strictEqual(mockReq.session.representations['ref-1'].representationUpdated, undefined);
+		});
+		it('should merge rep updated and awaiting review document messages into a single success banner', async () => {
+			const journeyResponse = new JourneyResponse('id-1', 'id-2', {
+				applicationReference: 'app-ref',
+				requiresReview: true,
+				statusId: 'accepted',
+				submittedForId: 'myself',
+				myselfContainsAttachments: 'yes',
+				myselfAttachments: [
+					{
+						fileName: 'test-pdf 1.pdf',
+						statusId: 'accepted'
+					},
+					{
+						fileName: 'test-pdf 2.pdf',
+						statusId: 'awaiting-review'
+					}
+				]
+			});
+			const questions = getQuestions();
+			const mockReq = {
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				baseUrl: '/case-1/manage-representations',
+				session: { representations: { 'ref-1': { representationUpdated: true } } }
+			};
+			const mockRes = {
+				render: mock.fn(),
+				locals: {
+					journeyResponse: journeyResponse,
+					journey: createJourney(questions, journeyResponse, mockReq)
+				}
+			};
+			await assert.doesNotReject(() => viewRepresentation(mockReq, mockRes));
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData.banner.type, 'success');
+			assert.strictEqual(viewData.banner.text, undefined);
+			assert.match(viewData.banner.html, /<ul class="govuk-list govuk-list--bullet">/);
+			assert.match(viewData.banner.html, /Representation has been updated/);
+			assert.match(viewData.banner.html, /There are attachments awaiting review\./);
+			assert.match(viewData.banner.html, /Manage attachments/);
+			assert.match(viewData.banner.html, /case-1\/manage-representations\/manage\/task-list/);
+			assert.ok(
+				viewData.banner.html.indexOf('Representation has been updated') <
+					viewData.banner.html.indexOf('There are attachments awaiting review.')
+			);
 			assert.strictEqual(mockReq.session.representations['ref-1'].representationUpdated, undefined);
 		});
 	});
