@@ -205,7 +205,7 @@ async function addRepresentationFolderToSharepoint(sharePointDrive, logger, appl
 /**
  * Add a rep updated flag to the session
  *
- * @param {{session?: Object<string, any>}} req
+ * @param {import('express').Request} req
  * @param {string} id
  */
 function addRepUpdatedSession(req, id) {
@@ -215,9 +215,9 @@ function addRepUpdatedSession(req, id) {
 /**
  * Read a rep updated flag from the session
  *
- * @param {{session?: Object<string, any>}} req
+ * @param {import('express').Request} req
  * @param {string} id
- * @returns {string|boolean}
+ * @returns {boolean}
  */
 export function readRepUpdatedSession(req, id) {
 	return readSessionData(req, id, 'representationUpdated', false, 'representations');
@@ -226,7 +226,7 @@ export function readRepUpdatedSession(req, id) {
 /**
  * Clear a rep updated flag from the session
  *
- * @param {{session?: Object<string, any>}} req
+ * @param {import('express').Request} req
  * @param {string} id
  */
 export function clearRepUpdatedSession(req, id) {

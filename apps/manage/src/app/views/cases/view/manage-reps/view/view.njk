@@ -15,32 +15,12 @@
 {% endblock %}
 
 {% block content %}
-    {% if representationUpdated %}
-        {{ govukNotificationBanner({
-            text: "Representation has been updated",
-            type: "success"
-        }) }}
-    {% endif %}
-
-    {% if documentInfoBanner %}
-        {% if documentInfoBanner.name === "awaitingReview" %}
-            {% set html %}
-                <p class="govuk-notification-banner__heading">
-                    There are attachments awaiting review.
-                    <a class="govuk-notification-banner__link" href="{{ documentInfoBanner.href }}">Manage attachments</a>.
-                </p>
-            {% endset %}
-        {% elseif documentInfoBanner.name === "noAttachmentsAdded" %}
-            {% set html %}
-                <p class="govuk-notification-banner__heading">
-                    There are no attachments added.
-                    <a class="govuk-notification-banner__link" href="{{ documentInfoBanner.href }}">Add attachments</a>.
-                </p>
-            {% endset %}
-        {% endif %}
-        {{ govukNotificationBanner({
-            html: html
-        }) }}
+    {% if banner %}
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full">
+                {{ govukNotificationBanner(banner) }}
+            </div>
+        </div>
     {% endif %}
 
     <div class="govuk-grid-row">
