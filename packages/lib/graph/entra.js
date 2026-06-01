@@ -5,7 +5,7 @@ const MAX_PAGES = 10; // max 5000 entries
 
 // odata reference properties and values
 export const ODATA = Object.freeze({
-	NEXT_LINK: '@odate.nextLink',
+	NEXT_LINK: '@odata.nextLink',
 	TYPE: '@odata.type',
 	GROUP_TYPE: '#microsoft.graph.group',
 	USER_TYPE: '#microsoft.graph.user'
