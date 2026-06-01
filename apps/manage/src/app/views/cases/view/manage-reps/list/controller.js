@@ -4,6 +4,48 @@ import { REPRESENTATION_STATUS } from '@pins/crowndev-database/src/seed/data-sta
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
+import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
+
+/**
+ * @typedef {import('@pins/crowndev-lib/views/banner/banner-builder').BannerMessage} BannerMessage
+ * @typedef {{caseHasDistressingContent: boolean, repsHaveDistressingContent: boolean}} GetBannerMessagesOptions
+ */
+
+/**
+ * Get all banner messages to display.
+ *
+ * @param {string} id
+ * @param {import('express').Request} req
+ * @param {GetBannerMessagesOptions} options
+ * @return {BannerMessage|null}
+ */
+function getBannerMessages(id, req, options) {
+	const bannerBuilder = new BannerBuilder();
+
+	const repReviewed = readRepReviewedSession(req, id);
+	clearRepReviewedSession(req, id);
+
+	if (!repReviewed) {
+		return bannerBuilder.build();
+	}
+
+	const hasDistressingRepsMismatch = !options.caseHasDistressingContent && options.repsHaveDistressingContent;
+
+	if (hasDistressingRepsMismatch) {
+		bannerBuilder.addInfoText(
+			`You set this representation as potentially distressing, but the application is not set as potentially distressing.`
+		);
+
+		bannerBuilder.addInfoTrustedHtml(
+			`<p class="govuk-body"><a class="govuk-notification-banner__link" href="/cases/${encodeURIComponent(id)}/details/distressing-content">Set the
+			application as potentially distressing</a>.</p>`
+		);
+	}
+
+	bannerBuilder.addSuccessText(`Representation has been ${repReviewed}`);
+
+	return bannerBuilder.build();
+}
 
 /**
  * Return a handler to show the list of representations
@@ -14,12 +56,12 @@ import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagin
 export function buildListReps({ db }) {
 	return async (req, res) => {
 		const id = req.params.id;
-		if (!id) {
+		if (!id || typeof id !== 'string') {
 			throw new Error('id param is required');
 		}
 		const queryFilters = getQueryFilters(req.query);
 
-		const cd = await db.crownDevelopment.findUnique({
+		const crownDevelopment = await db.crownDevelopment.findUnique({
 			where: { id },
 			include: {
 				Representation: {
@@ -28,8 +70,12 @@ export function buildListReps({ db }) {
 			}
 		});
 
+		if (!crownDevelopment) {
+			return notFoundHandler(req, res);
+		}
+
 		const counts = statusCounts(
-			cd.Representation,
+			crownDevelopment.Representation,
 			REPRESENTATION_STATUS.map((status) => status.id)
 		);
 
@@ -90,19 +136,16 @@ export function buildListReps({ db }) {
 			pageNumber
 		);
 
-		const repReviewed = readRepReviewedSession(req, id);
-		clearRepReviewedSession(req, id);
-
-		// to show distressing content banner on save
-		const showDistressingContentBanner = Boolean(
-			repReviewed &&
-			!cd.containsDistressingContent &&
-			cd.Representation?.some((rep) => rep.distressingContentInRepresentation === true)
-		);
+		const banner = getBannerMessages(id, req, {
+			caseHasDistressingContent: crownDevelopment.containsDistressingContent,
+			repsHaveDistressingContent: Boolean(
+				crownDevelopment.Representation?.some((rep) => rep.distressingContentInRepresentation === true)
+			)
+		});
 
 		res.render('views/cases/view/manage-reps/list/view.njk', {
 			backLink: `/cases/${req.params.id}`,
-			pageCaption: cd.reference,
+			pageCaption: crownDevelopment.reference,
 			pageTitle: 'Manage representations',
 			baseUrl: req.baseUrl,
 			currentUrl: req.originalUrl,
@@ -111,7 +154,6 @@ export function buildListReps({ db }) {
 			filters,
 			counts,
 			...representationsToViewModel(filteredRepresentations),
-			repReviewed,
 			selectedItemsPerPage,
 			totalFilteredRepresentations,
 			pageNumber,
@@ -119,8 +161,7 @@ export function buildListReps({ db }) {
 			resultsStartNumber,
 			resultsEndNumber,
 			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined,
-			showDistressingContentBanner,
-			id
+			banner
 		});
 	};
 }
