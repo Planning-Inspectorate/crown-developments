@@ -6,12 +6,12 @@ import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
 import type {
 	CrownDevelopmentViewModel,
 	CrownDevelopmentSaveModel,
-	CrownDevelopmentPayload,
 	ContactTypeValues,
 	ManageApplicantDetails,
 	ManageAgentContactDetails,
 	ManageApplicantContactDetails
 } from './view-model.ts';
+import type { CrownDevelopmentPlanningPayload } from './payload-contracts.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { ManageService } from '#service';
 
@@ -101,7 +101,7 @@ export function buildCaseUpdateWritePlan({
 	dbViewModel: CrownDevelopmentViewModel;
 	caseIds: string[];
 	scalarUpdateInput: Prisma.CrownDevelopmentUpdateInput;
-	crownDevelopments: CrownDevelopmentPayload[];
+	crownDevelopments: CrownDevelopmentPlanningPayload[];
 	sharedSiteAddressId?: string | null;
 }): CaseUpdateWritePlan {
 	const plan: CaseUpdateWritePlan = {

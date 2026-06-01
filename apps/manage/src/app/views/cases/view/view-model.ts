@@ -19,6 +19,7 @@ import type { Address } from '@planning-inspectorate/dynamic-forms';
 import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { ApplicantContact, AgentContact } from '../create-a-case/types.d.ts';
+import type { CrownDevelopmentPayload } from './payload-contracts.ts';
 
 type ProcedurePrefix = 'inquiry' | 'hearing' | 'writtenReps';
 type ProcedureId = (typeof APPLICATION_PROCEDURE_ID)[keyof typeof APPLICATION_PROCEDURE_ID];
@@ -351,34 +352,6 @@ const CONTACT_PREFIXES = ORGANISATION_ROLES_ID;
 
 type ContactTypeKeys = keyof typeof CONTACT_PREFIXES;
 export type ContactTypeValues = (typeof CONTACT_PREFIXES)[ContactTypeKeys];
-
-export type CrownDevelopmentPayload = Prisma.CrownDevelopmentGetPayload<{
-	include: {
-		ApplicantContact: { include: { Address: true } };
-		AgentContact: { include: { Address: true } };
-		Category: { include: { ParentCategory: true } };
-		Event: true;
-		Lpa: { include: { Address: true } };
-		SecondaryLpa: { include: { Address: true } };
-		SiteAddress: true;
-		ParentCrownDevelopment: { select: { reference: true } };
-		ChildrenCrownDevelopment: { select: { reference: true } };
-		Organisations: {
-			include: {
-				Organisation: {
-					include: {
-						Address: true;
-						OrganisationToContact: {
-							include: {
-								Contact: { include: { Address: true } };
-							};
-						};
-					};
-				};
-			};
-		};
-	};
-}>;
 
 /**
  * Assign a CrownDevelopment field that maps directly to the view model,

@@ -19,6 +19,7 @@ import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-dat
 import { filteredStagesToRadioOptions } from './question-utils.js';
 import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.js';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
+import { CROWN_DEVELOPMENT_VIEW_INCLUDE } from './payload-contracts.ts';
 import type { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
 import type { Response, Request, Handler, NextFunction } from 'express';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
@@ -205,31 +206,7 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 
 		const crownDevelopment = await db.crownDevelopment.findUnique({
 			where: { id },
-			include: {
-				ApplicantContact: { include: { Address: true } },
-				AgentContact: { include: { Address: true } },
-				Category: { include: { ParentCategory: true } },
-				Event: true,
-				Lpa: { include: { Address: true } },
-				SecondaryLpa: { include: { Address: true } },
-				SiteAddress: true,
-				ParentCrownDevelopment: { select: { reference: true } },
-				ChildrenCrownDevelopment: { select: { reference: true } },
-				Organisations: {
-					include: {
-						Organisation: {
-							include: {
-								Address: true,
-								OrganisationToContact: {
-									include: {
-										Contact: { include: { Address: true } }
-									}
-								}
-							}
-						}
-					}
-				}
-			}
+			include: CROWN_DEVELOPMENT_VIEW_INCLUDE
 		});
 		if (crownDevelopment === null) {
 			return notFoundHandler(req, res);
