@@ -100,6 +100,7 @@ describe('list representations', () => {
 				backLink: '/cases/id-1',
 				pageCaption: 'CROWN/2025/0000001',
 				pageTitle: 'Manage representations',
+				banner: null,
 				baseUrl: '/manage-representations',
 				currentUrl: '/manage-representations',
 				queryParams: undefined,
@@ -114,7 +115,6 @@ describe('list representations', () => {
 					{ text: 'Withdrawn (1)', value: 'withdrawn', checked: false }
 				],
 				filtersValue: undefined,
-				id: 'id-1',
 				counts: { 'awaiting-review': 1, accepted: 1, rejected: 0, withdrawn: 1 },
 				searchValue: '',
 				reps: [
@@ -143,12 +143,10 @@ describe('list representations', () => {
 						review: true
 					}
 				],
-				repReviewed: false,
 				pageNumber: 1,
 				resultsEndNumber: 3,
 				resultsStartNumber: 1,
 				selectedItemsPerPage: 25,
-				showDistressingContentBanner: false,
 				totalFilteredRepresentations: 3,
 				totalPages: 1
 			});
@@ -177,6 +175,7 @@ describe('list representations', () => {
 				backLink: '/cases/id-1',
 				pageCaption: 'CROWN/2025/0000001',
 				pageTitle: 'Manage representations',
+				banner: null,
 				baseUrl: '/manage-representations',
 				currentUrl: '/manage-representations',
 				queryParams: { filters: 'awaiting-review' },
@@ -191,7 +190,6 @@ describe('list representations', () => {
 					{ text: 'Withdrawn (1)', value: 'withdrawn', checked: false }
 				],
 				filtersValue: '&filters=awaiting-review',
-				id: 'id-1',
 				counts: { 'awaiting-review': 1, accepted: 1, rejected: 0, withdrawn: 1 },
 				searchValue: '',
 				reps: [
@@ -220,12 +218,10 @@ describe('list representations', () => {
 						review: true
 					}
 				],
-				repReviewed: false,
 				pageNumber: 1,
 				resultsEndNumber: 3,
 				resultsStartNumber: 1,
 				selectedItemsPerPage: 25,
-				showDistressingContentBanner: false,
 				totalFilteredRepresentations: 3,
 				totalPages: 1
 			});
@@ -253,6 +249,7 @@ describe('list representations', () => {
 				backLink: '/cases/id-1',
 				pageCaption: 'CROWN/2025/0000001',
 				pageTitle: 'Manage representations',
+				banner: null,
 				baseUrl: '/manage-representations',
 				currentUrl: '/manage-representations',
 				queryParams: { filters: ['awaiting-review', 'rejected', 'withdrawn', 'accepted'] },
@@ -267,7 +264,6 @@ describe('list representations', () => {
 					{ text: 'Withdrawn (1)', value: 'withdrawn', checked: true }
 				],
 				filtersValue: '&filters=awaiting-review&filters=rejected&filters=withdrawn&filters=accepted',
-				id: 'id-1',
 				counts: { 'awaiting-review': 1, accepted: 1, rejected: 0, withdrawn: 1 },
 				searchValue: '',
 				reps: [
@@ -296,12 +292,10 @@ describe('list representations', () => {
 						review: true
 					}
 				],
-				repReviewed: false,
 				pageNumber: 1,
 				resultsEndNumber: 3,
 				resultsStartNumber: 1,
 				selectedItemsPerPage: 25,
-				showDistressingContentBanner: false,
 				totalFilteredRepresentations: 3,
 				totalPages: 1
 			});
@@ -339,7 +333,7 @@ describe('list representations', () => {
 			await controller(mockReq, mockRes);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			const ctx = mockRes.render.mock.calls[0].arguments[1];
-			assert.strictEqual(ctx.showDistressingContentBanner, false);
+			assert.strictEqual(ctx.banner, null);
 		});
 		it('should show distressing content banner when saving with mismatch', async () => {
 			const representations = [
@@ -374,7 +368,11 @@ describe('list representations', () => {
 			await controller(mockReq, mockRes);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			const ctx = mockRes.render.mock.calls[0].arguments[1];
-			assert.strictEqual(ctx.showDistressingContentBanner, true);
+			assert.ok(ctx.banner);
+			assert.match(
+				ctx.banner.html,
+				/You set this representation as potentially distressing, but the application is not set as potentially distressing./
+			);
 		});
 		it('should not show distressing content banner when representation is marked distressing but case-level flag is true', async () => {
 			const representations = [
@@ -408,7 +406,8 @@ describe('list representations', () => {
 			await controller(mockReq, mockRes);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			const ctx = mockRes.render.mock.calls[0].arguments[1];
-			assert.strictEqual(ctx.showDistressingContentBanner, false);
+			assert.ok(ctx.banner);
+			assert.strictEqual(ctx.banner.html, undefined);
 		});
 		it('should not show distressing content banner when no representation is marked distressing even if case flag is false', async () => {
 			const representations = [
@@ -449,7 +448,8 @@ describe('list representations', () => {
 			await controller(mockReq, mockRes);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			const ctx = mockRes.render.mock.calls[0].arguments[1];
-			assert.strictEqual(ctx.showDistressingContentBanner, false);
+			assert.ok(ctx.banner);
+			assert.strictEqual(ctx.banner.html, undefined);
 		});
 		it('should not show distressing content banner when representations are missing from crown development record', async () => {
 			const mockDbLocal = {
@@ -474,7 +474,7 @@ describe('list representations', () => {
 			await controller(mockReq, mockRes);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			const ctx = mockRes.render.mock.calls[0].arguments[1];
-			assert.strictEqual(ctx.showDistressingContentBanner, false);
+			assert.strictEqual(ctx.banner, null);
 		});
 		it('should not treat string "yes" as distressing with the current representation check (only boolean true triggers)', async () => {
 			const representations = [
@@ -508,7 +508,7 @@ describe('list representations', () => {
 			await controller(mockReq, mockRes);
 			assert.strictEqual(mockRes.render.mock.callCount(), 1);
 			const ctx = mockRes.render.mock.calls[0].arguments[1];
-			assert.strictEqual(ctx.showDistressingContentBanner, false);
+			assert.strictEqual(ctx.banner, null);
 		});
 	});
 });
