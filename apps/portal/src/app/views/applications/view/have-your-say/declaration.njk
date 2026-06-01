@@ -27,6 +27,7 @@
       </p>
 
       <form method="post" novalidate>
+        {% if _csrf %}<input type="hidden" name="_csrf" value="{{ _csrf }}">{% endif %}
         <div class="govuk-form-group {% if errorSummary and errorSummary.length %}govuk-form-group--error{% endif %}">
           <fieldset class="govuk-fieldset" aria-describedby="{% if errorSummary and errorSummary.length %}checkbox-hint{% endif %}">
             <legend id="checkbox-hint" class="govuk-hint"> Select each statement to confirm that you agree.</legend>
