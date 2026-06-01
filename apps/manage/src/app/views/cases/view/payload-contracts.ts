@@ -26,8 +26,17 @@ export const CROWN_DEVELOPMENT_VIEW_INCLUDE = {
 	}
 } as const satisfies Prisma.CrownDevelopmentInclude;
 
+export const CROWN_DEVELOPMENT_LINKED_CASE_SELECT = {
+	linkedParentId: true,
+	ChildrenCrownDevelopment: { select: { id: true } }
+} as const satisfies Prisma.CrownDevelopmentSelect;
+
 export type CrownDevelopmentPayload = Prisma.CrownDevelopmentGetPayload<{
 	include: typeof CROWN_DEVELOPMENT_VIEW_INCLUDE;
+}>;
+
+export type CrownDevelopmentLinkedCasePayload = Prisma.CrownDevelopmentGetPayload<{
+	select: typeof CROWN_DEVELOPMENT_LINKED_CASE_SELECT;
 }>;
 
 export const CROWN_DEVELOPMENT_PLANNING_INCLUDE = {

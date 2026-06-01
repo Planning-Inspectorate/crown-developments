@@ -198,6 +198,7 @@ export interface ManageApplicantDetails {
 export interface ManageApplicantContactDetails extends ApplicantContact {
 	id: string;
 	organisationToContactRelationId: string;
+	applicantContactOrganisation: string;
 }
 
 export interface ManageAgentContactDetails extends AgentContact {

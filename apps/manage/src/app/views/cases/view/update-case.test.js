@@ -81,6 +81,181 @@ describe('case details', () => {
 			assert.strictEqual(updateArg.where?.id, 'case1');
 			assert.strictEqual(mockReq.session?.cases?.case1.updated, true);
 		});
+
+		it('should set agent status updated when agent is removed', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							hasAgent: 'yes'
+						}
+					}
+				}
+			};
+			const data = {
+				answers: {
+					hasAgent: false
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			assert.strictEqual(mockReq.session?.cases?.case1.agentStatusUpdated, true);
+		});
+
+		it('should set agent status updated when agent is added', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							hasAgent: 'no'
+						}
+					}
+				}
+			};
+			const data = {
+				answers: {
+					hasAgent: true
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			assert.strictEqual(mockReq.session?.cases?.case1.agentStatusUpdated, true);
+		});
+
+		it('should not set agent status updated when agent status does not change', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							hasAgent: 'yes'
+						}
+					}
+				}
+			};
+			const data = {
+				answers: {
+					hasAgent: true
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			assert.strictEqual(mockReq.session?.cases?.case1.agentStatusUpdated, undefined);
+		});
+
+		it('should set applicant organisation added when applicant organisation count increases', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							manageApplicantDetails: [{ id: 'org-1' }]
+						}
+					}
+				}
+			};
+			const data = {
+				answers: {
+					manageApplicantDetails: [{ id: 'org-1' }, { id: 'org-2' }]
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			assert.strictEqual(mockReq.session?.cases?.case1.applicantOrgAdded, true);
+		});
+
+		it('should not set applicant organisation added when applicant organisation count does not increase', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							manageApplicantDetails: [{ id: 'org-1' }, { id: 'org-2' }]
+						}
+					}
+				}
+			};
+			const data = {
+				answers: {
+					manageApplicantDetails: [{ id: 'org-1' }, { id: 'org-2' }]
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			assert.strictEqual(mockReq.session?.cases?.case1.applicantOrgAdded, undefined);
+		});
 		it('should update both parent case and linked child case if child linked case id is present and field not in deLinked field list', async () => {
 			const logger = mockLogger();
 			const mockDb = {

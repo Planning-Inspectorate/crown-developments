@@ -1,3 +1,5 @@
+import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
+
 // Warnings/errors should not be handled with notificationBanner
 type BannerMessageType = 'info' | 'success';
 
@@ -30,21 +32,6 @@ const priority: Record<BannerMessageType, number> = {
 	success: 1,
 	info: 0
 };
-
-const HTML_ESCAPES: Record<string, string> = {
-	'&': '&amp;',
-	'<': '&lt;',
-	'>': '&gt;',
-	'"': '&quot;',
-	"'": '&#39;'
-};
-
-/**
- * Escape a string so it can be safely rendered as HTML text.
- */
-function escapeHtml(value: string): string {
-	return value.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
-}
 
 /**
  * Builder for constructing a single banner message out of one or more informational or success messages.
