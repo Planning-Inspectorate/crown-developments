@@ -45,3 +45,18 @@ export function getFilenameStem(filename: string): string {
 
 	return filename.slice(0, lastDot);
 }
+
+const HTML_ESCAPES: Record<string, string> = {
+	'&': '&amp;',
+	'<': '&lt;',
+	'>': '&gt;',
+	'"': '&quot;',
+	"'": '&#39;'
+};
+
+/**
+ * Escape a string so it can be safely rendered as HTML text.
+ */
+export function escapeHtml(value: string): string {
+	return value.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
+}

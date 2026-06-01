@@ -13,6 +13,7 @@ import {
 } from './linked-case-updates.ts';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 
 /**
  * @param {import('#service').ManageService} service
@@ -44,6 +45,21 @@ export function buildUpdateCase(service, clearAnswer = false) {
 		const originalAnswers = res.locals?.originalAnswers || {};
 
 		await customUpdateCaseActions(service, id, toSave, fullViewModel);
+
+		if (toSave.hasAgent === false && fullViewModel.hasAgent === 'yes') {
+			addSessionData(req, id, { agentStatusUpdated: true });
+		}
+
+		if (toSave.hasAgent === true && fullViewModel.hasAgent === 'no') {
+			addSessionData(req, id, { agentStatusUpdated: true });
+		}
+
+		if (
+			toSave.manageApplicantDetails &&
+			toSave.manageApplicantDetails.length > (fullViewModel.manageApplicantDetails?.length ?? 0)
+		) {
+			addSessionData(req, id, { applicantOrgAdded: true });
+		}
 
 		try {
 			// Build a deterministic write-plan (no shared nested Organisations writes) and execute it

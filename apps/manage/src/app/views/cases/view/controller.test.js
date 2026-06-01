@@ -7,11 +7,13 @@ import {
 	readCaseUpdatedSession,
 	clearCaseUpdatedSession,
 	combineSessionAndDbData,
-	mergeArraysById
+	mergeArraysById,
+	getInvalidStateBannerHtml
 } from './controller.ts';
 import { configureNunjucks } from '../../../nunjucks.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
+import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('case details', () => {
 	const mockGetEntraClient = mock.fn(() => null);
@@ -633,6 +635,241 @@ describe('case details', () => {
 			const viewData = nunjucksRes.render.mock.calls[0].arguments[1];
 			assert.strictEqual(viewData.banner.text, 'Application unpublished');
 		});
+		it('should not set a banner when case is not found during banner lookup', async () => {
+			const mockRes = newMockRes();
+			const mockReq = {
+				params: { id: 'case-1' },
+				baseUrl: 'case-1',
+				session: {},
+				query: {}
+			};
+
+			let findUniqueCalls = 0;
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => {
+						findUniqueCalls += 1;
+						return findUniqueCalls === 1 ? { id: 'case-1', reference: 'REF/1' } : null;
+					})
+				}
+			};
+
+			const next = mock.fn();
+			const journeyMw = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mock.fn(),
+				groupIds,
+				audit: mockAudit()
+			});
+
+			await journeyMw(mockReq, mockRes, next);
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
+
+			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
+
+			assert.strictEqual(next.mock.callCount(), 1);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.ok(viewData);
+			assert.ok(!viewData.banner);
+		});
+		it('should show "You need to add" banner text when agentStatusUpdated is in session', async () => {
+			process.env.ENVIRONMENT = 'dev';
+			const mockRes = newMockRes();
+			const mockReq = {
+				params: { id: 'case-1' },
+				baseUrl: 'case-1',
+				session: { cases: { 'case-1': { agentStatusUpdated: true } } },
+				query: {}
+			};
+
+			const crownDevelopment = {
+				id: 'case-1',
+				reference: 'REF/1',
+				hasAgent: false,
+				Organisations: [
+					{
+						id: 'relation-1',
+						role: ORGANISATION_ROLES_ID.APPLICANT,
+						organisationId: 'org-1',
+						Organisation: {
+							id: 'org-1',
+							name: 'Org One',
+							OrganisationToContact: []
+						}
+					}
+				]
+			};
+
+			const mockDb = { crownDevelopment: { findUnique: mock.fn(() => crownDevelopment) } };
+			const next = mock.fn();
+			const journeyMw = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mock.fn(),
+				groupIds,
+				audit: mockAudit()
+			});
+
+			await journeyMw(mockReq, mockRes, next);
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
+			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
+
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.ok(viewData);
+			assert.match(viewData.banner.html, /You need to add/);
+			// session flag should be cleared after render
+			assert.strictEqual(mockReq.session.cases?.['case-1']?.agentStatusUpdated, undefined);
+		});
+
+		it('should show "You need to add" banner text when applicantOrgAdded is in session and hasAgent is no', async () => {
+			process.env.ENVIRONMENT = 'dev';
+			const mockRes = newMockRes();
+			const mockReq = {
+				params: { id: 'case-1' },
+				baseUrl: 'case-1',
+				session: { cases: { 'case-1': { applicantOrgAdded: true } } },
+				query: {}
+			};
+
+			const crownDevelopment = {
+				id: 'case-1',
+				reference: 'REF/1',
+				hasAgent: false,
+				Organisations: [
+					{
+						id: 'relation-1',
+						role: ORGANISATION_ROLES_ID.APPLICANT,
+						organisationId: 'org-1',
+						Organisation: {
+							id: 'org-1',
+							name: 'Org One',
+							OrganisationToContact: []
+						}
+					}
+				]
+			};
+
+			const mockDb = { crownDevelopment: { findUnique: mock.fn(() => crownDevelopment) } };
+			const next = mock.fn();
+			const journeyMw = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mock.fn(),
+				groupIds,
+				audit: mockAudit()
+			});
+
+			await journeyMw(mockReq, mockRes, next);
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
+			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
+
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.ok(viewData);
+			assert.match(viewData.banner.html, /You need to add/);
+			// session flag should be cleared after render
+			assert.strictEqual(mockReq.session.cases?.['case-1']?.applicantOrgAdded, undefined);
+		});
+
+		it('should show "This application is missing information" banner when applicantOrgAdded is in session but hasAgent is yes', async () => {
+			process.env.ENVIRONMENT = 'dev';
+			const mockRes = newMockRes();
+			const mockReq = {
+				params: { id: 'case-1' },
+				baseUrl: 'case-1',
+				session: { cases: { 'case-1': { applicantOrgAdded: true } } },
+				query: {}
+			};
+
+			const crownDevelopment = {
+				id: 'case-1',
+				reference: 'REF/1',
+				hasAgent: true,
+				Organisations: []
+			};
+
+			const mockDb = { crownDevelopment: { findUnique: mock.fn(() => crownDevelopment) } };
+			const next = mock.fn();
+			const journeyMw = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mock.fn(),
+				groupIds,
+				audit: mockAudit()
+			});
+
+			await journeyMw(mockReq, mockRes, next);
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
+			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
+
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.ok(viewData);
+			assert.match(viewData.banner.html, /This application is missing information/);
+		});
+
+		it('should set an invalid state info banner when required contact information is missing', async () => {
+			process.env.ENVIRONMENT = 'dev';
+			const mockRes = newMockRes();
+			const mockReq = {
+				params: { id: 'case-1' },
+				baseUrl: 'case-1',
+				session: {},
+				query: {}
+			};
+
+			const crownDevelopment = {
+				id: 'case-1',
+				reference: 'REF/1',
+				description: 'Case description',
+				containsDistressingContent: false,
+				typeId: 'type-1',
+				lpaId: 'lpa-1',
+				hasSecondaryLpa: false,
+				expectedDateOfSubmission: new Date('2025-01-01T00:00:00.000Z'),
+				createdDate: new Date('2025-01-01T00:00:00.000Z'),
+				hasAgent: false,
+				Organisations: [
+					{
+						id: 'relation-1',
+						role: ORGANISATION_ROLES_ID.APPLICANT,
+						organisationId: 'org-1',
+						Organisation: {
+							id: 'org-1',
+							name: 'Org One',
+							OrganisationToContact: []
+						}
+					}
+				]
+			};
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => crownDevelopment)
+				}
+			};
+
+			const next = mock.fn();
+			const journeyMw = buildGetJourneyMiddleware({
+				db: mockDb,
+				logger: mockLogger(),
+				getEntraClient: mock.fn(),
+				groupIds,
+				audit: mockAudit()
+			});
+
+			await journeyMw(mockReq, mockRes, next);
+			const viewCaseDetails = buildViewCaseDetails({ db: mockDb, getSharePointDrive: () => null });
+
+			await assert.doesNotReject(() => viewCaseDetails(mockReq, mockRes));
+
+			assert.strictEqual(next.mock.callCount(), 1);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.ok(viewData);
+			assert.match(viewData.banner.html, /This application is missing information/);
+			assert.match(viewData.banner.html, /Applicant contact for Org One/);
+		});
 	});
 	describe('helper coverage', () => {
 		it('should throw error when id param missing in validateIdFormat', () => {
@@ -810,5 +1047,85 @@ describe('case details', () => {
 				]);
 			});
 		});
+	});
+});
+describe('getInvalidStateBannerHtml', () => {
+	it('should return null when all required information is present and no agent', () => {
+		const view = {
+			manageApplicantDetails: [{ id: 'org-1', organisationName: 'Org One' }],
+			manageApplicantContactDetails: [{ applicantContactOrganisation: 'org-1' }],
+			hasAgent: 'no'
+		};
+		const result = getInvalidStateBannerHtml(view, {});
+		assert.strictEqual(result, null);
+	});
+
+	it('should return null when all required information is present and agent exists', () => {
+		const view = {
+			hasAgent: 'yes',
+			agentOrganisationName: 'Agent Org',
+			manageAgentContactDetails: [{}]
+		};
+		const result = getInvalidStateBannerHtml(view, {});
+		assert.strictEqual(result, null);
+	});
+
+	it('should return missing applicant contact for each applicant org without contact when no agent', () => {
+		const view = {
+			manageApplicantDetails: [
+				{ id: 'org-1', organisationName: 'Org One' },
+				{ id: 'org-2', organisationName: 'Org Two' }
+			],
+			manageApplicantContactDetails: [{ applicantContactOrganisation: 'org-2' }],
+			hasAgent: 'no'
+		};
+		const result = getInvalidStateBannerHtml(view, {});
+		assert.ok(result.includes('Applicant contact for Org One'));
+		assert.ok(!result.includes('Applicant contact for Org Two'));
+	});
+
+	it('should return missing agent organisation name when agent is yes and name is missing', () => {
+		const view = {
+			hasAgent: 'yes',
+			manageAgentContactDetails: [{}]
+		};
+		const result = getInvalidStateBannerHtml(view, {});
+		assert.ok(result.includes('Agent organisation name'));
+	});
+
+	it('should return missing agent contact when agent is yes and contacts are missing', () => {
+		const view = {
+			hasAgent: 'yes',
+			agentOrganisationName: 'Agent Org'
+		};
+		const result = getInvalidStateBannerHtml(view, {});
+		assert.ok(result.includes('Agent contact'));
+	});
+
+	it('should use alternate text when relatedFieldUpdated is true', () => {
+		const view = {
+			manageApplicantDetails: [{ id: 'org-1', organisationName: 'Org One' }],
+			manageApplicantContactDetails: [],
+			hasAgent: 'no'
+		};
+		const result = getInvalidStateBannerHtml(view, { relatedFieldUpdated: true });
+		assert.ok(result.startsWith('<p class="govuk-body">You need to add'));
+	});
+
+	it('should handle undefined applicant orgs and contacts gracefully', () => {
+		const view = {
+			hasAgent: 'no'
+		};
+		const result = getInvalidStateBannerHtml(view, {});
+		assert.strictEqual(result, null);
+	});
+
+	it('should handle agent is yes and both agentOrganisationName and agentContacts missing', () => {
+		const view = {
+			hasAgent: 'yes'
+		};
+		const result = getInvalidStateBannerHtml(view, {});
+		assert.ok(result.includes('Agent organisation name'));
+		assert.ok(result.includes('Agent contact'));
 	});
 });
