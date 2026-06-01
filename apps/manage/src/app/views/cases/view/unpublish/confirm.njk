@@ -37,6 +37,7 @@
             </div>
             <div class="govuk-grid-column-three-quarters">
                 <form method="post" novalidate="novalidate">
+                    <input type="hidden" name="_csrf" value="{{ _csrf }}">
                     {{ govukButton({
                         text: "Unpublish Application",
                         classes: "govuk-button--warning"}) }}
