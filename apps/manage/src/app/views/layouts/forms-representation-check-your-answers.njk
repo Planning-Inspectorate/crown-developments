@@ -53,6 +53,7 @@
 
     {% if journeyComplete %}
         <form method="POST">
+            <input type="hidden" name="_csrf" value="{{ _csrf }}">
             {{ govukButton({
                 text: "Accept and submit"
             }) }}
