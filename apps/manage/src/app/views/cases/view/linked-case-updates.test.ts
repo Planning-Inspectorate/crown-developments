@@ -645,6 +645,46 @@ describe('organisation/contact updates', () => {
 	});
 
 	describe('buildCaseUpdateWritePlan (happy paths)', () => {
+		it('should queue nested agent organisation contact deletes and link deletes when hasAgent changes from yes to no', () => {
+			const plan = buildCaseUpdateWritePlan({
+				toSave: { hasAgent: false },
+				dbViewModel: { hasAgent: 'yes' },
+				caseIds: ['case-1', 'case-2'],
+				scalarUpdateInput: { hasAgent: false },
+				crownDevelopments: [
+					{
+						id: 'case-1',
+						Organisations: [
+							{
+								id: 'rel-agent-1',
+								role: ORGANISATION_ROLES_ID.AGENT,
+								organisationId: 'agent-org-1',
+								Organisation: {
+									id: 'agent-org-1',
+									OrganisationToContact: [
+										{ id: 'join-1', contactId: 'contact-1' },
+										{ id: 'join-2', contactId: 'contact-2' }
+									]
+								}
+							}
+						]
+					}
+				]
+			});
+
+			assert.strictEqual(plan.organisationGraph.organisationUpdates.length, 0);
+			assert.deepStrictEqual(plan.organisationGraph.organisationToContactDeletes, [{ id: 'join-1' }, { id: 'join-2' }]);
+			assert.deepStrictEqual(plan.organisationGraph.agentLinkDeleteMany, [
+				{ caseIds: ['case-1', 'case-2'], roleId: ORGANISATION_ROLES_ID.AGENT, organisationId: 'agent-org-1' }
+			]);
+			assert.deepStrictEqual(plan.organisationGraph.agentContactDeleteMany, [
+				{ contactIds: ['contact-1', 'contact-2'] }
+			]);
+			assert.deepStrictEqual(plan.organisationGraph.agentOrganisationDeleteMany, [
+				{ organisationIds: ['agent-org-1'] }
+			]);
+		});
+
 		it('should include address create when creating a new agent organisation', () => {
 			const plan = buildCaseUpdateWritePlan({
 				toSave: {
@@ -1003,6 +1043,83 @@ describe('organisation/contact updates', () => {
 	});
 
 	describe('executeCaseUpdateWritePlan', () => {
+		it('should delete agent org contact joins, then case-to-org links, contacts, and organisations', async () => {
+			const plan = {
+				scalarCaseUpdates: { caseIds: ['case-1'], updateInput: { hasAgent: false } },
+				organisationGraph: {
+					organisationCreates: [],
+					organisationUpdates: [],
+					linkCreates: [],
+					contactUpdates: [],
+					newOrganisationContacts: [],
+					organisationToContactDeletes: [{ id: 'join-1' }],
+					organisationToContactCreates: [],
+					agentLinkDeleteMany: [
+						{ caseIds: ['case-1'], roleId: ORGANISATION_ROLES_ID.AGENT, organisationId: 'agent-org-1' }
+					],
+					agentContactDeleteMany: [{ contactIds: ['contact-1'] }],
+					agentOrganisationDeleteMany: [{ organisationIds: ['agent-org-1'] }]
+				}
+			};
+
+			const calls = {
+				orgToContactDelete: [],
+				linkDeleteMany: [],
+				contactDeleteMany: [],
+				organisationDeleteMany: []
+			};
+
+			const tx = {
+				organisation: {
+					create: async () => {
+						throw new Error('not expected');
+					},
+					update: async () => {
+						throw new Error('not expected');
+					},
+					deleteMany: async (args) => calls.organisationDeleteMany.push(args)
+				},
+				crownDevelopmentToOrganisation: {
+					create: async () => {
+						throw new Error('not expected');
+					},
+					deleteMany: async (args) => calls.linkDeleteMany.push(args)
+				},
+				contact: {
+					update: async () => {
+						throw new Error('not expected');
+					},
+					create: async () => {
+						throw new Error('not expected');
+					},
+					deleteMany: async (args) => calls.contactDeleteMany.push(args)
+				},
+				organisationToContact: {
+					delete: async (args) => calls.orgToContactDelete.push(args),
+					create: async () => {
+						throw new Error('not expected');
+					}
+				},
+				crownDevelopment: {
+					update: async () => ({})
+				}
+			};
+
+			await executeCaseUpdateWritePlan(plan, tx);
+
+			assert.deepStrictEqual(calls.orgToContactDelete, [{ where: { id: 'join-1' } }]);
+			assert.strictEqual(calls.linkDeleteMany.length, 1);
+			assert.deepStrictEqual(calls.linkDeleteMany[0], {
+				where: {
+					crownDevelopmentId: { in: ['case-1'] },
+					organisationId: 'agent-org-1',
+					role: ORGANISATION_ROLES_ID.AGENT
+				}
+			});
+			assert.deepStrictEqual(calls.contactDeleteMany, [{ where: { id: { in: ['contact-1'] } } }]);
+			assert.deepStrictEqual(calls.organisationDeleteMany, [{ where: { id: { in: ['agent-org-1'] } } }]);
+		});
+
 		it('should resolve created organisation placeholder ids for links and organisation contacts', async () => {
 			const plan = {
 				scalarCaseUpdates: { caseIds: ['case-1', 'case-2'], updateInput: { description: 'updated' } },

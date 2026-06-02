@@ -27,6 +27,9 @@ type CaseUpdateWritePlan = {
 		newOrganisationContacts: Array<{ organisationId: string; data: Prisma.ContactCreateInput }>;
 		organisationToContactDeletes: Array<{ id: string }>;
 		organisationToContactCreates: Array<{ organisationId: string; contactId: string }>;
+		agentLinkDeleteMany?: Array<{ caseIds: string[]; roleId: string; organisationId: string }>;
+		agentContactDeleteMany?: Array<{ contactIds: string[] }>;
+		agentOrganisationDeleteMany?: Array<{ organisationIds: string[] }>;
 	};
 };
 
@@ -413,6 +416,46 @@ export function buildCaseUpdateWritePlan({
 		}
 	}
 
+	// When hasAgent is set from yes to no, remove all agent joins, case links, contacts, and organisations.
+	if (toSave.hasAgent === false && dbViewModel.hasAgent === 'yes') {
+		const allRelationships = crownDevelopments.flatMap((crownDevelopment) => crownDevelopment?.Organisations || []);
+		const agentRelationships = allRelationships.filter(
+			(relationship) => relationship.role === ORGANISATION_ROLES_ID.AGENT && relationship.organisationId
+		);
+
+		const agentOrganisationIds = new Set<string>();
+		const agentContactIds = new Set<string>();
+		const agentJoinIdsAdded = new Set<string>();
+
+		for (const relationship of agentRelationships) {
+			agentOrganisationIds.add(relationship.organisationId);
+
+			for (const join of relationship?.Organisation?.OrganisationToContact || []) {
+				if (join.id && !agentJoinIdsAdded.has(join.id)) {
+					agentJoinIdsAdded.add(join.id);
+					plan.organisationGraph.organisationToContactDeletes.push({ id: join.id });
+				}
+				if (join.contactId) {
+					agentContactIds.add(join.contactId);
+				}
+			}
+		}
+
+		// Queue deletion of CrownDevelopmentToOrganisation links for all cases
+		plan.organisationGraph.agentLinkDeleteMany = Array.from(agentOrganisationIds).map((organisationId) => ({
+			caseIds,
+			roleId: ORGANISATION_ROLES_ID.AGENT,
+			organisationId
+		}));
+
+		if (agentContactIds.size > 0) {
+			plan.organisationGraph.agentContactDeleteMany = [{ contactIds: Array.from(agentContactIds) }];
+		}
+		if (agentOrganisationIds.size > 0) {
+			plan.organisationGraph.agentOrganisationDeleteMany = [{ organisationIds: Array.from(agentOrganisationIds) }];
+		}
+	}
+
 	return plan;
 }
 
@@ -464,6 +507,25 @@ export async function executeCaseUpdateWritePlan(plan: CaseUpdateWritePlan, tx: 
 
 	for (const del of plan.organisationGraph.organisationToContactDeletes) {
 		await tx.organisationToContact.delete({ where: { id: del.id } });
+	}
+	for (const deleteManyLinks of plan.organisationGraph.agentLinkDeleteMany || []) {
+		await tx.crownDevelopmentToOrganisation.deleteMany({
+			where: {
+				crownDevelopmentId: { in: deleteManyLinks.caseIds },
+				organisationId: resolveOrgId(deleteManyLinks.organisationId),
+				role: deleteManyLinks.roleId
+			}
+		});
+	}
+	for (const deleteManyContacts of plan.organisationGraph.agentContactDeleteMany || []) {
+		await tx.contact.deleteMany({
+			where: { id: { in: deleteManyContacts.contactIds } }
+		});
+	}
+	for (const deleteManyOrgs of plan.organisationGraph.agentOrganisationDeleteMany || []) {
+		await tx.organisation.deleteMany({
+			where: { id: { in: deleteManyOrgs.organisationIds.map(resolveOrgId) } }
+		});
 	}
 	for (const create of plan.organisationGraph.organisationToContactCreates) {
 		await tx.organisationToContact.create({

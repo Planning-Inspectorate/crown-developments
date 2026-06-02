@@ -94,7 +94,8 @@ export function buildUpdateCase(service, clearAnswer = false) {
 				}
 
 				let crownDevelopmentsForPlanning = [crownDevelopment];
-				if (hasOrganisationWriteEdits(toSave) && caseIds.length > 1) {
+				const shouldDeleteAgentData = toSave.hasAgent === false && dbViewModel.hasAgent === BOOLEAN_OPTIONS.YES;
+				if ((hasOrganisationWriteEdits(toSave) || shouldDeleteAgentData) && caseIds.length > 1) {
 					crownDevelopmentsForPlanning = await tx.crownDevelopment.findMany({
 						where: { id: { in: caseIds } },
 						include: {

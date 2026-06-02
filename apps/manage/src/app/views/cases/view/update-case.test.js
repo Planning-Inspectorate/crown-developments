@@ -1585,6 +1585,91 @@ describe('case details', () => {
 				assert.strictEqual(d.role, ORGANISATION_ROLES_ID.AGENT);
 			});
 		});
+
+		it('should delete agent contacts and organisation when hasAgent is changed from yes to no', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				organisation: {
+					create: mock.fn(() => ({ id: 'org-created' })),
+					update: mock.fn(() => ({ kind: 'organisation.update' }))
+				},
+				contact: {
+					update: mock.fn(() => ({ kind: 'contact.update' })),
+					create: mock.fn(() => ({ id: 'created-contact-id' }))
+				},
+				organisationToContact: {
+					create: mock.fn(() => ({ id: 'created-join-id' })),
+					delete: mock.fn(() => ({ id: 'deleted-join-id' }))
+				},
+				crownDevelopmentToOrganisation: {
+					create: mock.fn((args) => args),
+					deleteMany: mock.fn(() => ({ count: 2 }))
+				},
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						hasAgent: true,
+						linkedParentId: 'parent-case-1',
+						ChildrenCrownDevelopment: [],
+						Organisations: [
+							{
+								id: 'rel-agent-1',
+								role: ORGANISATION_ROLES_ID.AGENT,
+								organisationId: 'agent-org-1',
+								Organisation: {
+									id: 'agent-org-1',
+									OrganisationToContact: [{ id: 'join-1', Contact: { id: 'contact-1' } }]
+								}
+							}
+						]
+					})),
+					findMany: mock.fn(() => [
+						{
+							id: 'case-1',
+							Organisations: [
+								{
+									id: 'rel-agent-1',
+									role: ORGANISATION_ROLES_ID.AGENT,
+									organisationId: 'agent-org-1',
+									Organisation: {
+										id: 'agent-org-1',
+										OrganisationToContact: [{ id: 'join-1', Contact: { id: 'contact-1' } }]
+									}
+								}
+							]
+						},
+						{
+							id: 'parent-case-1',
+							Organisations: [
+								{
+									id: 'rel-agent-2',
+									role: ORGANISATION_ROLES_ID.AGENT,
+									organisationId: 'agent-org-1',
+									Organisation: {
+										id: 'agent-org-1',
+										OrganisationToContact: [{ id: 'join-1', Contact: { id: 'contact-1' } }]
+									}
+								}
+							]
+						}
+					]),
+					update: mock.fn(() => ({ kind: 'crownDevelopment.update' }))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+
+			const updateCase = buildUpdateCase({ db: mockDb, logger, notifyClient: {} });
+			await updateCase({
+				req: { params: { id: 'case-1' }, session: {} },
+				res: { locals: {} },
+				data: { answers: { hasAgent: false } }
+			});
+
+			assert.strictEqual(mockDb.crownDevelopment.findMany.mock.callCount(), 1);
+			assert.strictEqual(mockDb.organisation.update.mock.callCount(), 1);
+			assert.strictEqual(mockDb.crownDevelopmentToOrganisation.deleteMany.mock.callCount(), 1);
+		});
 	});
 
 	describe('multi applicant contact updates', () => {
