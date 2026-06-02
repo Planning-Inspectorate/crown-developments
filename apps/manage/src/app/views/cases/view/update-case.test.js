@@ -1,5 +1,5 @@
 import { describe, it, mock } from 'node:test';
-import { buildUpdateCase } from './update-case.js';
+import { buildUpdateCase } from './update-case.ts';
 import assert from 'node:assert';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { APPLICATION_PROCEDURE_ID, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
@@ -69,7 +69,6 @@ describe('case details', () => {
 				session: {}
 			};
 			const mockRes = { locals: {} };
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					description: 'My new application description'
@@ -278,7 +277,6 @@ describe('case details', () => {
 				session: {}
 			};
 			const mockRes = { locals: {} };
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					description: 'My new application description'
@@ -313,7 +311,6 @@ describe('case details', () => {
 				session: {}
 			};
 			const mockRes = { locals: {} };
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					description: 'My new application description'
@@ -352,7 +349,6 @@ describe('case details', () => {
 				session: {}
 			};
 			const mockRes = { locals: {} };
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					statusId: 'acceptance'
@@ -396,7 +392,6 @@ describe('case details', () => {
 				session: {}
 			};
 			const mockRes = { locals: {} };
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					manageApplicantDetails: [
@@ -459,7 +454,6 @@ describe('case details', () => {
 				session: {}
 			};
 			const mockRes = { locals: {} };
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					manageApplicantDetails: [
@@ -521,7 +515,6 @@ describe('case details', () => {
 					}
 				}
 			};
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					siteAddress: {
@@ -592,7 +585,6 @@ describe('case details', () => {
 					}
 				}
 			};
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					siteAddress: {
@@ -662,7 +654,6 @@ describe('case details', () => {
 					}
 				}
 			};
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					siteAddress: {
@@ -733,7 +724,6 @@ describe('case details', () => {
 					}
 				}
 			};
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					siteAddress: {
@@ -787,7 +777,6 @@ describe('case details', () => {
 				session: {}
 			};
 			const mockRes = { locals: {} };
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					siteAddress: {
@@ -833,7 +822,6 @@ describe('case details', () => {
 					}
 				}
 			};
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					inquiryVenue: 'some place'
@@ -887,7 +875,6 @@ describe('case details', () => {
 				}
 			};
 			const date = new Date('2025-01-02');
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					lpaQuestionnaireReceivedDate: date
@@ -955,7 +942,6 @@ describe('case details', () => {
 				}
 			};
 			const date = new Date('2025-01-02');
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					lpaQuestionnaireReceivedDate: date
@@ -1025,7 +1011,6 @@ describe('case details', () => {
 				}
 			};
 			const date = new Date('2025-01-02');
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					lpaQuestionnaireReceivedDate: date
@@ -1078,7 +1063,6 @@ describe('case details', () => {
 				}
 			};
 			const date = new Date('2025-01-02');
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					applicationReceivedDate: date
@@ -1153,7 +1137,6 @@ describe('case details', () => {
 				}
 			};
 			const date = new Date('2025-01-02');
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					applicationReceivedDate: date
@@ -1207,7 +1190,6 @@ describe('case details', () => {
 				}
 			};
 			const date = new Date('2025-01-02');
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					applicationReceivedDate: date
@@ -1260,7 +1242,6 @@ describe('case details', () => {
 				}
 			};
 			const date = new Date('2025-01-02');
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					applicationReceivedDate: date
@@ -1306,7 +1287,6 @@ describe('case details', () => {
 				}
 			};
 			const date = new Date('2025-01-02');
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					applicationReceivedDate: date
@@ -1371,7 +1351,6 @@ describe('case details', () => {
 				}
 			};
 			const date = new Date('2025-01-02');
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					applicationReceivedDate: date
@@ -1421,7 +1400,6 @@ describe('case details', () => {
 				}
 			};
 			const date = new Date('2025-01-02');
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					turnedAwayDate: date
@@ -1491,7 +1469,7 @@ describe('case details', () => {
 				}
 			};
 			const date = new Date('2025-01-02');
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+
 			const data = {
 				answers: {
 					turnedAwayDate: date
@@ -1517,7 +1495,6 @@ describe('case details', () => {
 				session: {}
 			};
 			const mockRes = { locals: {} };
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					description: 'My new application description'
@@ -1549,17 +1526,43 @@ describe('case details', () => {
 				session: {}
 			};
 			const mockRes = { locals: {} };
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
+
 			const data = {
 				answers: {
-					description: 'My new application description'
+					siteNorthing: '000123'
 				}
 			};
 			await updateCase({ req: mockReq, res: mockRes, data });
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
 			const updateArg = mockDb.crownDevelopment.update.mock.calls[0].arguments[0];
 			assert.strictEqual(updateArg.where?.id, 'case1');
-			assert.strictEqual(updateArg.data.description, null);
+			assert.strictEqual(updateArg.data.siteNorthing, null);
+		});
+		it('should delete save key if key is not clearable and clearAnswer is true', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+			const updateCase = buildUpdateCase({ db: mockDb, logger }, true);
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = { locals: {} };
+
+			const data = {
+				answers: {
+					description: 'the description'
+				}
+			};
+			await updateCase({ req: mockReq, res: mockRes, data });
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 0);
 		});
 
 		it('should throw an error if LPA Questionnaire Sent Notification fails', async () => {
@@ -1624,7 +1627,6 @@ describe('case details', () => {
 				session: {}
 			};
 			const mockRes = { locals: {} };
-			/** @type {{answers: import('./types.js').CrownDevelopmentViewModel}} */
 			const data = {
 				answers: {
 					lpaQuestionnaireSentDate: new Date('2025-01-02')

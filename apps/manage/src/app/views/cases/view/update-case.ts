@@ -1,48 +1,105 @@
-import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import {
 	sendApplicationNotOfNationalImportanceNotification,
 	sendApplicationReceivedNotification,
 	sendLpaAcknowledgeReceiptOfQuestionnaireNotification,
 	sendLpaQuestionnaireSentNotification
 } from './notification.js';
-import { editsToDatabaseUpdates, crownDevelopmentToViewModel } from './view-model.ts';
+import { CLEARABLE_SAVE_KEYS, editsToDatabaseUpdates, crownDevelopmentToViewModel } from './view-model.ts';
 import {
 	hasOrganisationWriteEdits,
 	buildCaseUpdateWritePlan,
 	executeCaseUpdateWritePlan
 } from './linked-case-updates.ts';
+import { CROWN_DEVELOPMENT_VIEW_INCLUDE, CROWN_DEVELOPMENT_PLANNING_INCLUDE } from './payload-contracts.ts';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
+import type { ManageService } from '#service';
+import { BOOLEAN_OPTIONS, type SaveDataFn } from '@planning-inspectorate/dynamic-forms';
+import type { Request, Response } from 'express';
+import type {
+	CrownDevelopmentClearableKey,
+	CrownDevelopmentViewModel,
+	CrownDevelopmentSaveModel
+} from './view-model.ts';
+import type { CrownDevelopmentPlanningPayload } from './payload-contracts.ts';
+import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
+import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+
+function typedObjectKeys<T extends object>(obj: T): Array<keyof T> {
+	return Object.keys(obj) as Array<keyof T>;
+}
+
+function typedObjectEntries<T extends object>(obj: T): Array<[keyof T, T[keyof T]]> {
+	return Object.entries(obj) as Array<[keyof T, T[keyof T]]>;
+}
+
+function setSaveAnswer<K extends keyof CrownDevelopmentSaveModel>(
+	answers: CrownDevelopmentSaveModel,
+	key: K,
+	value: CrownDevelopmentSaveModel[K]
+): void {
+	answers[key] = value;
+}
+
+function setViewModelAnswer<K extends keyof CrownDevelopmentViewModel>(
+	answers: CrownDevelopmentViewModel,
+	key: K,
+	value: CrownDevelopmentViewModel[K]
+): void {
+	answers[key] = value;
+}
+
+const CLEARABLE_SAVE_KEY_SET = new Set<CrownDevelopmentClearableKey>(CLEARABLE_SAVE_KEYS);
+
+function isClearableSaveKey(key: keyof CrownDevelopmentSaveModel): key is CrownDevelopmentClearableKey {
+	return CLEARABLE_SAVE_KEY_SET.has(key as CrownDevelopmentClearableKey);
+}
+
+type ErrorWithSummary = Error & { errorSummary: ErrorSummaryItem[] };
+
+function buildSummaryError(message: string, errorSummary: ErrorSummaryItem[]): ErrorWithSummary {
+	const error = new Error(message) as ErrorWithSummary;
+	error.errorSummary = errorSummary;
+	return error;
+}
 
 /**
- * @param {import('#service').ManageService} service
- * @param {boolean} [clearAnswer=false] - whether to clear the answer before saving
- * @returns {import('@planning-inspectorate/dynamic-forms/src/controller.js').SaveDataFn}
+ * Applies updates to a case based on the provided data.
+ *
+ * @param service - the manage service instance
+ * @param clearAnswer - whether to clear the answer before saving
  */
-export function buildUpdateCase(service, clearAnswer = false) {
-	return async ({ req, res, data }) => {
+export function buildUpdateCase(service: ManageService, clearAnswer: boolean = false): SaveDataFn {
+	return async ({ req, res, data }: { req: Request; res: Response; data: { answers?: CrownDevelopmentSaveModel } }) => {
 		const { db, logger } = service;
 		const { id } = req.params;
-		if (!id || typeof id !== 'string') {
+		if (!id) {
 			throw new Error(`invalid update case request, id param required (id:${id})`);
 		}
+		if (typeof id !== 'string') {
+			throw new Error(`invalid update case request, multiple id params given`);
+		}
+
 		logger.info({ id }, 'case update');
-		/** @type {import('./view-model').CrownDevelopmentSaveModel} */
-		const toSave = data?.answers || {};
+
+		const toSave: CrownDevelopmentSaveModel = data?.answers || {};
 		if (clearAnswer) {
 			// clear the answer if requested
-			Object.keys(toSave).forEach((key) => {
-				toSave[key] = null;
+			typedObjectKeys(toSave).forEach((key) => {
+				if (isClearableSaveKey(key)) {
+					setSaveAnswer(toSave, key, null);
+					return;
+				}
+				delete toSave[key];
 			});
 		}
 		if (Object.keys(toSave).length === 0) {
 			logger.info({ id }, 'no case updates to apply');
 			return;
 		}
-		/** @type {import('./view-model').CrownDevelopmentViewModel} */
 		const fullViewModel = res.locals?.journeyResponse?.answers || {};
-		const originalAnswers = res.locals?.originalAnswers || {};
+		const originalAnswers: Partial<CrownDevelopmentViewModel> = res.locals?.originalAnswers || {};
 
 		await customUpdateCaseActions(service, id, toSave, fullViewModel);
 
@@ -67,20 +124,7 @@ export function buildUpdateCase(service, clearAnswer = false) {
 			await db.$transaction(async (tx) => {
 				const crownDevelopment = await tx.crownDevelopment.findUnique({
 					where: { id },
-					include: {
-						ParentCrownDevelopment: { select: { id: true, siteAddressId: true } },
-						ChildrenCrownDevelopment: { select: { id: true, siteAddressId: true } },
-						Organisations: {
-							include: {
-								Organisation: {
-									include: {
-										Address: true,
-										OrganisationToContact: { include: { Contact: true } }
-									}
-								}
-							}
-						}
-					}
+					include: CROWN_DEVELOPMENT_VIEW_INCLUDE
 				});
 				if (!crownDevelopment) {
 					throw new Error('Crown Development case not found');
@@ -88,17 +132,16 @@ export function buildUpdateCase(service, clearAnswer = false) {
 
 				// Fresh DB view model gives correct relation ids (organisationRelationId / organisationToContactRelationId)
 				const dbViewModel = crownDevelopmentToViewModel(crownDevelopment);
-				/** @type {import('./view-model').CrownDevelopmentViewModel} */
-				const viewModelForUpdates = { ...dbViewModel };
-				for (const [key, value] of Object.entries(originalAnswers)) {
+				const viewModelForUpdates: CrownDevelopmentViewModel = { ...dbViewModel };
+				for (const [key, value] of typedObjectEntries(originalAnswers)) {
 					if (viewModelForUpdates[key] === undefined || viewModelForUpdates[key] === null) {
-						viewModelForUpdates[key] = value;
+						setViewModelAnswer(viewModelForUpdates, key, value);
 					}
 				}
 
 				// IMPORTANT: organisations are excluded here because organisation/contact updates are handled
 				// separately via the deterministic write plan (see buildCaseUpdateWritePlan/executeCaseUpdateWritePlan).
-				let updateInput = editsToDatabaseUpdates(toSave, viewModelForUpdates, { includeOrganisations: false });
+				const updateInput = editsToDatabaseUpdates(toSave, viewModelForUpdates, { includeOrganisations: false });
 				updateInput.updatedDate = new Date();
 
 				const caseIds = [id];
@@ -109,20 +152,12 @@ export function buildUpdateCase(service, clearAnswer = false) {
 					caseIds.push(...crownDevelopment.ChildrenCrownDevelopment.map((child) => child.id));
 				}
 
-				let crownDevelopmentsForPlanning = [crownDevelopment];
+				let crownDevelopmentsForPlanning: CrownDevelopmentPlanningPayload[] = [crownDevelopment];
 				const shouldDeleteAgentData = toSave.hasAgent === false && dbViewModel.hasAgent === BOOLEAN_OPTIONS.YES;
 				if ((hasOrganisationWriteEdits(toSave) || shouldDeleteAgentData) && caseIds.length > 1) {
 					crownDevelopmentsForPlanning = await tx.crownDevelopment.findMany({
 						where: { id: { in: caseIds } },
-						include: {
-							Organisations: {
-								include: {
-									Organisation: {
-										include: { Address: true, OrganisationToContact: { include: { Contact: true } } }
-									}
-								}
-							}
-						}
+						include: CROWN_DEVELOPMENT_PLANNING_INCLUDE
 					});
 				}
 
@@ -175,11 +210,8 @@ export function buildUpdateCase(service, clearAnswer = false) {
 
 /**
  * Add a case updated flag to the session
- *
- * @param {{session?: Object<string, any>}} req
- * @param {string} id
  */
-function addCaseUpdatedSession(req, id) {
+function addCaseUpdatedSession(req: Request, id: string) {
 	if (!req.session) {
 		throw new Error('request session required');
 	}
@@ -190,22 +222,19 @@ function addCaseUpdatedSession(req, id) {
 
 /**
  * Handle edit case updates with custom behaviour
- * @param {import('#service').ManageService} service
- * @param {string} id
- * @param {import('./view-model').CrownDevelopmentSaveModel} toSave
- * @param {import('./view-model').CrownDevelopmentViewModel} fullViewModel
  */
-export async function customUpdateCaseActions(service, id, toSave, fullViewModel) {
-	if (toSave.applicationFee !== undefined) {
-		handleApplicationFee(toSave);
-	}
-
+export async function customUpdateCaseActions(
+	service: ManageService,
+	id: string,
+	toSave: CrownDevelopmentSaveModel,
+	fullViewModel: CrownDevelopmentViewModel
+) {
 	if (
 		toSave.lpaQuestionnaireReceivedDate &&
 		fullViewModel.lpaQuestionnaireReceivedEmailSent !== BOOLEAN_OPTIONS.YES &&
 		fullViewModel.typeId !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
 	) {
-		await handleLpaQuestionnaireReceivedDateUpdate(service, id, toSave);
+		await handleLpaQuestionnaireReceivedDateUpdate(service, id, toSave, toSave.lpaQuestionnaireReceivedDate);
 	}
 
 	if (toSave.lpaQuestionnaireSentDate && fullViewModel.lpaQuestionnaireSpecialEmailSent !== BOOLEAN_OPTIONS.YES) {
@@ -213,7 +242,7 @@ export async function customUpdateCaseActions(service, id, toSave, fullViewModel
 	}
 
 	if (toSave.applicationReceivedDate) {
-		await handleApplicationReceivedDateUpdate(service, id, toSave, fullViewModel);
+		await handleApplicationReceivedDateUpdate(service, id, toSave, fullViewModel, toSave.applicationReceivedDate);
 	}
 
 	if (
@@ -225,39 +254,41 @@ export async function customUpdateCaseActions(service, id, toSave, fullViewModel
 	}
 }
 
-function handleApplicationFee(toSave) {
-	if (typeof toSave.applicationFee === 'string') {
-		toSave.applicationFee = Number(toSave.applicationFee.replace(/,/g, ''));
-	}
-}
-
 /**
- * @param {import('#service').ManageService} service
- * @param {string} id
- * @param {import('./view-model').CrownDevelopmentSaveModel} toSave
+ * Send notifications and update flags for LPA questionnaire received date updates
  */
-async function handleLpaQuestionnaireReceivedDateUpdate(service, id, toSave) {
-	await sendLpaAcknowledgeReceiptOfQuestionnaireNotification(service, id, toSave.lpaQuestionnaireReceivedDate);
+async function handleLpaQuestionnaireReceivedDateUpdate(
+	service: ManageService,
+	id: string,
+	toSave: CrownDevelopmentSaveModel,
+	receivedDate: Date
+) {
+	await sendLpaAcknowledgeReceiptOfQuestionnaireNotification(service, id, receivedDate);
 	toSave['lpaQuestionnaireReceivedEmailSent'] = true;
 }
 
 /**
- * @param {import('#service').ManageService} service
- * @param {string} id
- * @param {import('./view-model').CrownDevelopmentSaveModel} toSave
+ * Send notifications and update flags for LPA questionnaire sent date updates
  */
-async function handleLpaQuestionnaireSentDateUpdate(service, id, toSave) {
+async function handleLpaQuestionnaireSentDateUpdate(
+	service: ManageService,
+	id: string,
+	toSave: CrownDevelopmentSaveModel
+) {
 	await sendLpaQuestionnaireSentNotification(service, id);
 	toSave['lpaQuestionnaireSpecialEmailSent'] = true;
 }
 
 /**
- * @param {import('#service').ManageService} service
- * @param {string} id
- * @param {import('./view-model').CrownDevelopmentSaveModel} toSave
- * @param {import('./view-model').CrownDevelopmentViewModel} fullViewModel
+ * Handle application received date updates, including validation and notification logic
  */
-async function handleApplicationReceivedDateUpdate(service, id, toSave, fullViewModel) {
+async function handleApplicationReceivedDateUpdate(
+	service: ManageService,
+	id: string,
+	toSave: CrownDevelopmentSaveModel,
+	fullViewModel: CrownDevelopmentViewModel,
+	receivedDate: Date
+) {
 	const validations = [
 		{
 			condition: !fullViewModel.siteAddressId && !fullViewModel.siteNorthing && !fullViewModel.siteEasting,
@@ -276,7 +307,7 @@ async function handleApplicationReceivedDateUpdate(service, id, toSave, fullView
 		}
 	];
 
-	const errors = [];
+	const errors: ErrorSummaryItem[] = [];
 	validations.forEach(({ condition, message, href }) => {
 		if (condition) {
 			errors.push({ text: message, href });
@@ -284,36 +315,31 @@ async function handleApplicationReceivedDateUpdate(service, id, toSave, fullView
 	});
 
 	if (errors.length > 0) {
-		const error = new Error('Data required to set Application received date is missing');
-		error.errorSummary = errors;
-		throw error;
+		throw buildSummaryError('Data required to set Application received date is missing', errors);
 	}
 
 	if (
 		fullViewModel.applicationReceivedDateEmailSent !== BOOLEAN_OPTIONS.YES &&
 		fullViewModel.typeId !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
 	) {
-		await sendApplicationReceivedNotification(service, id, toSave.applicationReceivedDate);
+		await sendApplicationReceivedNotification(service, id, receivedDate);
 		toSave['applicationReceivedDateEmailSent'] = true;
 	}
 }
 
 /**
- * @param {import('#service').ManageService} service
- * @param {string} id
- * @param {import('./view-model').CrownDevelopmentSaveModel} toSave
+ * Handle turned away date updates, including notification logic
  */
-async function handleTurnedAwayDateUpdate(service, id, toSave) {
+async function handleTurnedAwayDateUpdate(service: ManageService, id: string, toSave: CrownDevelopmentSaveModel) {
 	await sendApplicationNotOfNationalImportanceNotification(service, id);
 	toSave['notNationallyImportantEmailSent'] = true;
 }
 
 /**
+ * Does the update input contain any fields that are not linked across linked cases?
  * Note that any scalar foreign keys also need their relation fields specifying (e.g. both statusId & Status)
- * @param {object} updateInput
- * @returns {boolean}
  */
-function updateContainsDeLinkedField(updateInput) {
+function updateContainsDeLinkedField(updateInput: Prisma.CrownDevelopmentUpdateInput): boolean {
 	const deLinkedFields = [
 		'id',
 		'expectedDateOfSubmission',

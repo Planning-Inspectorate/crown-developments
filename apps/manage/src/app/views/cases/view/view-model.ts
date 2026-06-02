@@ -3,7 +3,7 @@ import {
 	APPLICATION_STAGE_ID,
 	ORGANISATION_ROLES_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { toFloat, toInt, parseNumberStringToNumber } from '@pins/crowndev-lib/util/numbers.ts';
+import { toInt, parseNumberStringToNumber } from '@pins/crowndev-lib/util/numbers.ts';
 import { booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms';
 import { optionalWhere } from '@pins/crowndev-lib/util/database.js';
 import { addressToViewModel, viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
@@ -171,19 +171,70 @@ export interface CrownDevelopmentViewModel {
 	siteVisitDate?: Date;
 }
 
+export type CrownDevelopmentViewModelFields = keyof CrownDevelopmentViewModel;
+
+type BooleanMappedViewModelFields = {
+	[K in CrownDevelopmentViewModelFields]: NonNullable<CrownDevelopmentViewModel[K]> extends YesNo ? K : never;
+}[CrownDevelopmentViewModelFields];
+
+type DirectMappedViewModelFields = Exclude<CrownDevelopmentViewModelFields, BooleanMappedViewModelFields>;
+
+/**
+ * Fields that are included in the view model but should not be updatable when
+ * mapping edits back to the database, because they are system-generated.
+ */
+const NON_UPDATABLE_FIELDS = Object.freeze(['reference', 'updatedDate', 'SubType'] as const);
+
+/**
+ * Fields that are not optional in the database and must be included in the view model.
+ */
+const REQUIRED_FIELDS = Object.freeze([
+	'reference',
+	'description',
+	'containsDistressingContent',
+	'hasSecondaryLpa',
+	'expectedDateOfSubmission',
+	'updatedDate',
+	'hasAgent'
+] as const satisfies Readonly<CrownDevelopmentViewModelFields[]>);
+
+type SaveModelStringNumberField = (typeof INTEGER_STRING_FIELDS)[number] | DurationFieldKeys[number];
+
 /**
  * Map the view model to the answer model.
  * In the answer model:
  * - boolean fields must be true booleans (as set in dynamic-forms)
- * - number fields must be strings (as they come from the form inputs)
+ * - only multi-field question numbers are stored as strings
  * - all fields are optional and can be included in the edits object when they are edited, but do not need to be included if they are not edited
  */
-export type CrownDevelopmentSaveModel = Partial<{
+type CrownDevelopmentSaveValueMap = {
 	[K in keyof CrownDevelopmentViewModel]: NonNullable<CrownDevelopmentViewModel[K]> extends YesNo
 		? boolean | (undefined extends CrownDevelopmentViewModel[K] ? undefined : never)
-		: NonNullable<CrownDevelopmentViewModel[K]> extends number
+		: K extends SaveModelStringNumberField
 			? string | (undefined extends CrownDevelopmentViewModel[K] ? undefined : never)
 			: CrownDevelopmentViewModel[K];
+};
+
+type PrismaNullableUpdateKey = {
+	[K in keyof Prisma.CrownDevelopmentUpdateInput]-?: null extends Prisma.CrownDevelopmentUpdateInput[K] ? K : never;
+}[keyof Prisma.CrownDevelopmentUpdateInput];
+
+type NonUpdatableField = (typeof NON_UPDATABLE_FIELDS)[number];
+type RequiredField = (typeof REQUIRED_FIELDS)[number];
+
+type NullableScalarClearableKey = Exclude<
+	Extract<keyof CrownDevelopmentSaveValueMap, PrismaNullableUpdateKey>,
+	NonUpdatableField | RequiredField
+>;
+
+type RelationIdClearableKey = Extract<keyof CrownDevelopmentSaveValueMap, (typeof RELATION_ID_FIELDS)[number]>;
+
+export type CrownDevelopmentClearableKey = NullableScalarClearableKey | RelationIdClearableKey;
+
+export type CrownDevelopmentSaveModel = Partial<{
+	[K in keyof CrownDevelopmentSaveValueMap]: K extends CrownDevelopmentClearableKey
+		? CrownDevelopmentSaveValueMap[K] | null
+		: CrownDevelopmentSaveValueMap[K];
 }>;
 
 export interface ManageApplicantDetails {
@@ -215,36 +266,9 @@ export interface QuestionOverrides {
 	isQuestionView: boolean;
 }
 
-export type CrownDevelopmentViewModelFields = keyof CrownDevelopmentViewModel;
-
-type BooleanMappedViewModelFields = {
-	[K in CrownDevelopmentViewModelFields]: NonNullable<CrownDevelopmentViewModel[K]> extends YesNo ? K : never;
-}[CrownDevelopmentViewModelFields];
-
-type DirectMappedViewModelFields = Exclude<CrownDevelopmentViewModelFields, BooleanMappedViewModelFields>;
-
 type DecimalMappedViewModelFields = (typeof DECIMAL_FIELDS)[number];
 
 type NullableDirectMappedViewModelFields = Exclude<DirectMappedViewModelFields, DecimalMappedViewModelFields>;
-
-/**
- * Fields that are included in the view model but should not be updatable when
- * mapping edits back to the database, because they are system-generated.
- */
-const NON_UPDATABLE_FIELDS = Object.freeze(['reference', 'updatedDate', 'SubType'] as const);
-
-/**
- * Fields that are not optional in the database and must be included in the view model.
- */
-const REQUIRED_FIELDS = Object.freeze([
-	'reference',
-	'description',
-	'containsDistressingContent',
-	'hasSecondaryLpa',
-	'expectedDateOfSubmission',
-	'updatedDate',
-	'hasAgent'
-] as const satisfies Readonly<CrownDevelopmentViewModelFields[]>);
 
 type BooleanPayloadField = BooleanMappedViewModelFields & keyof CrownDevelopmentPayload;
 
@@ -286,11 +310,30 @@ const DECIMAL_FIELDS = Object.freeze([
 ] as const);
 
 /**
+ * Numerical duration fields that are custom mapped in viewModelToEventUpdateInput.
+ * These float fields are in the SaveModel as strings because they are in a multi-field input.
+ */
+type DurationFieldKeys = Readonly<
+	[
+		'hearingDurationPrep',
+		'hearingDurationSitting',
+		'hearingDurationReporting',
+		'inquiryDurationPrep',
+		'inquiryDurationSitting',
+		'inquiryDurationReporting'
+	]
+>;
+
+/**
+ * These integer fields are in the SaveModel as strings because they are in a multi-field input.
+ * TODO update multi-field input to allow number fields CROWN-1620
+ */
+const INTEGER_STRING_FIELDS = Object.freeze(['siteNorthing', 'siteEasting'] as const);
+
+/**
  * Fields that do not need mapping to (or from) the view model
  */
 const DIRECT_UNMAPPED_FIELDS = Object.freeze([
-	'siteNorthing',
-	'siteEasting',
 	'lpaReference',
 	'nationallyImportantConfirmationDate',
 	'healthAndSafetyIssue',
@@ -344,7 +387,18 @@ const RELATION_ID_FIELDS = Object.freeze([
 	'eventId'
 ] as const satisfies Readonly<NullableDirectMappedViewModelFields[]>);
 
-type DirectUnmappedField = (typeof DIRECT_UNMAPPED_FIELDS)[number] | (typeof RELATION_ID_FIELDS)[number];
+export const CLEARABLE_SAVE_KEYS = Object.freeze([
+	...BOOLEAN_FIELDS,
+	...DECIMAL_FIELDS,
+	...INTEGER_STRING_FIELDS,
+	...DIRECT_UNMAPPED_FIELDS,
+	...RELATION_ID_FIELDS
+] as const satisfies ReadonlyArray<CrownDevelopmentClearableKey>);
+
+type DirectUnmappedField =
+	| (typeof DIRECT_UNMAPPED_FIELDS)[number]
+	| (typeof RELATION_ID_FIELDS)[number]
+	| (typeof INTEGER_STRING_FIELDS)[number];
 
 /**
  * Field prefixes used for the contact fields in the view model
@@ -391,7 +445,7 @@ export function crownDevelopmentToViewModel(crownDevelopment: CrownDevelopmentPa
 	}
 
 	// Directly assign fields that have the same type in the database and view model
-	for (const field of [...RELATION_ID_FIELDS, ...DIRECT_UNMAPPED_FIELDS]) {
+	for (const field of [...RELATION_ID_FIELDS, ...DIRECT_UNMAPPED_FIELDS, ...INTEGER_STRING_FIELDS]) {
 		assignNullableDirectField(viewModel, crownDevelopment, field);
 	}
 
@@ -505,27 +559,34 @@ export function crownDevelopmentToViewModel(crownDevelopment: CrownDevelopmentPa
 }
 
 /**
- * Convert Decimal database fields to floats in view model.
+ * Number fields that are not stored as numbers in CrownDevelopmentSaveModel
  */
-function assignDecimalUpdates(edits: CrownDevelopmentSaveModel, updates: Prisma.CrownDevelopmentUpdateInput) {
-	for (const field of DECIMAL_FIELDS) {
-		if (Object.hasOwn(edits, field) && edits[field] !== undefined) {
-			updates[field] = toFloat(edits[field]);
-		}
-	}
-}
+type NumericCoercedField = (typeof INTEGER_STRING_FIELDS)[number] | DurationFieldKeys[number];
 
-type DirectUpdateField = keyof CrownDevelopmentSaveModel & keyof Prisma.CrownDevelopmentUpdateInput;
+type DirectUpdateField = Exclude<
+	keyof CrownDevelopmentSaveModel & keyof Prisma.CrownDevelopmentUpdateInput,
+	NumericCoercedField | NonUpdatableField
+>;
+
+type DirectUpdateFields = (typeof DIRECT_UPDATE_FIELDS)[number];
+
+type DirectUpdateEdits = Pick<CrownDevelopmentSaveModel, DirectUpdateFields>;
+
+type DirectUpdateUpdates = Pick<Prisma.CrownDevelopmentUpdateInput, DirectUpdateFields>;
 
 const DIRECT_UPDATE_FIELDS: ReadonlyArray<DirectUpdateField> = Object.freeze([
-	...REQUIRED_FIELDS,
+	...REQUIRED_FIELDS.filter(
+		(field): field is Exclude<RequiredField, NonUpdatableField> =>
+			!NON_UPDATABLE_FIELDS.includes(field as NonUpdatableField)
+	),
 	...BOOLEAN_FIELDS,
-	...DIRECT_UNMAPPED_FIELDS
+	...DIRECT_UNMAPPED_FIELDS,
+	...DECIMAL_FIELDS
 ]);
 
 function assignDirectUpdate<K extends DirectUpdateField>(
-	updates: Prisma.CrownDevelopmentUpdateInput,
-	edits: CrownDevelopmentSaveModel,
+	updates: DirectUpdateUpdates,
+	edits: DirectUpdateEdits,
 	field: K
 ) {
 	if (Object.hasOwn(edits, field)) {
@@ -561,13 +622,18 @@ export function editsToDatabaseUpdates(
 		delete crownDevelopmentUpdateInput[field];
 	});
 
-	// set number fields
+	// Coerce empty strings to null for decimal fields – Prisma cannot parse "" as Decimal
+	for (const field of DECIMAL_FIELDS) {
+		if (field in crownDevelopmentUpdateInput && crownDevelopmentUpdateInput[field] === '') {
+			crownDevelopmentUpdateInput[field] = null;
+		}
+	}
+
+	// set number-as-string fields
 	if ('siteNorthing' in edits || 'siteEasting' in edits) {
 		crownDevelopmentUpdateInput.siteNorthing = edits.siteNorthing ? toInt(edits.siteNorthing) : null;
 		crownDevelopmentUpdateInput.siteEasting = edits.siteEasting ? toInt(edits.siteEasting) : null;
 	}
-
-	assignDecimalUpdates(edits, crownDevelopmentUpdateInput);
 
 	if (edits.representationsPeriod) {
 		crownDevelopmentUpdateInput.representationsPeriodStartDate = edits.representationsPeriod.start;

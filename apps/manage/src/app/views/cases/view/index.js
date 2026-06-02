@@ -8,7 +8,7 @@ import { createRoutes as createCasePublishRoutes } from './publish/index.js';
 import { createRoutes as createCaseUnpublishRoutes } from './unpublish/index.js';
 import { createRoutes as createRepsRoutes } from './manage-reps/index.js';
 import { createRoutes as createApplicationUpdatesRoutes } from './application-updates/index.js';
-import { buildUpdateCase } from './update-case.js';
+import { buildUpdateCase } from './update-case.ts';
 import { createRoutes as createCaseHistoryRoutes } from '../case-history/index.ts';
 import {
 	buildGetJourneyResponseFromSession,
