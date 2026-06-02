@@ -661,6 +661,7 @@ describe('organisation/contact updates', () => {
 								organisationId: 'agent-org-1',
 								Organisation: {
 									id: 'agent-org-1',
+									addressId: 'agent-address-1',
 									OrganisationToContact: [
 										{ id: 'join-1', contactId: 'contact-1' },
 										{ id: 'join-2', contactId: 'contact-2' }
@@ -683,6 +684,7 @@ describe('organisation/contact updates', () => {
 			assert.deepStrictEqual(plan.organisationGraph.agentOrganisationDeleteMany, [
 				{ organisationIds: ['agent-org-1'] }
 			]);
+			assert.deepStrictEqual(plan.organisationGraph.agentAddressDeleteMany, [{ addressIds: ['agent-address-1'] }]);
 		});
 
 		it('should include address create when creating a new agent organisation', () => {
@@ -1043,7 +1045,7 @@ describe('organisation/contact updates', () => {
 	});
 
 	describe('executeCaseUpdateWritePlan', () => {
-		it('should delete agent org contact joins, then case-to-org links, contacts, and organisations', async () => {
+		it('should delete agent org contact joins, then case-to-org links, contacts, organisations, and addresses', async () => {
 			const plan = {
 				scalarCaseUpdates: { caseIds: ['case-1'], updateInput: { hasAgent: false } },
 				organisationGraph: {
@@ -1058,7 +1060,8 @@ describe('organisation/contact updates', () => {
 						{ caseIds: ['case-1'], roleId: ORGANISATION_ROLES_ID.AGENT, organisationId: 'agent-org-1' }
 					],
 					agentContactDeleteMany: [{ contactIds: ['contact-1'] }],
-					agentOrganisationDeleteMany: [{ organisationIds: ['agent-org-1'] }]
+					agentOrganisationDeleteMany: [{ organisationIds: ['agent-org-1'] }],
+					agentAddressDeleteMany: [{ addressIds: ['agent-address-1'] }]
 				}
 			};
 
@@ -1066,10 +1069,14 @@ describe('organisation/contact updates', () => {
 				orgToContactDelete: [],
 				linkDeleteMany: [],
 				contactDeleteMany: [],
-				organisationDeleteMany: []
+				organisationDeleteMany: [],
+				addressDeleteMany: []
 			};
 
 			const tx = {
+				address: {
+					deleteMany: async (args) => calls.addressDeleteMany.push(args)
+				},
 				organisation: {
 					create: async () => {
 						throw new Error('not expected');
@@ -1118,6 +1125,7 @@ describe('organisation/contact updates', () => {
 			});
 			assert.deepStrictEqual(calls.contactDeleteMany, [{ where: { id: { in: ['contact-1'] } } }]);
 			assert.deepStrictEqual(calls.organisationDeleteMany, [{ where: { id: { in: ['agent-org-1'] } } }]);
+			assert.deepStrictEqual(calls.addressDeleteMany, [{ where: { id: { in: ['agent-address-1'] } } }]);
 		});
 
 		it('should resolve created organisation placeholder ids for links and organisation contacts', async () => {
