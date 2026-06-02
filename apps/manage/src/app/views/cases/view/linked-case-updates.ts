@@ -3,6 +3,7 @@ import { optionalWhere } from '@pins/crowndev-lib/util/database.js';
 import { viewModelToAddressUpdateInput, isAddress, isSameAddress } from '@pins/crowndev-lib/util/address.ts';
 import { extractApplicantContactFields, extractAgentContactFields } from '../util/contact.js';
 import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms';
 import type {
 	CrownDevelopmentViewModel,
 	CrownDevelopmentSaveModel,
@@ -418,7 +419,7 @@ export function buildCaseUpdateWritePlan({
 	}
 
 	// When hasAgent is set from yes to no, remove all agent joins, case links, contacts, and organisations.
-	if (toSave.hasAgent === false && dbViewModel.hasAgent === 'yes') {
+	if (toSave.hasAgent === false && dbViewModel.hasAgent === BOOLEAN_OPTIONS.YES) {
 		const allRelationships = crownDevelopments.flatMap((crownDevelopment) => crownDevelopment?.Organisations || []);
 		const agentRelationships = allRelationships.filter(
 			(relationship) => relationship.role === ORGANISATION_ROLES_ID.AGENT && relationship.organisationId
@@ -529,17 +530,27 @@ export async function executeCaseUpdateWritePlan(plan: CaseUpdateWritePlan, tx: 
 	}
 	for (const deleteManyContacts of plan.organisationGraph.agentContactDeleteMany || []) {
 		await tx.contact.deleteMany({
-			where: { id: { in: deleteManyContacts.contactIds } }
+			where: { id: { in: deleteManyContacts.contactIds }, OrganisationToContact: { none: {} } }
 		});
 	}
 	for (const deleteManyOrgs of plan.organisationGraph.agentOrganisationDeleteMany || []) {
 		await tx.organisation.deleteMany({
-			where: { id: { in: deleteManyOrgs.organisationIds.map(resolveOrgId) } }
+			where: {
+				id: { in: deleteManyOrgs.organisationIds.map(resolveOrgId) },
+				CrownDevelopmentToOrganisation: { none: {} },
+				OrganisationToContact: { none: {} }
+			}
 		});
 	}
 	for (const deleteManyAddresses of plan.organisationGraph.agentAddressDeleteMany || []) {
 		await tx.address.deleteMany({
-			where: { id: { in: deleteManyAddresses.addressIds } }
+			where: {
+				id: { in: deleteManyAddresses.addressIds },
+				Organisation: { none: {} },
+				Contact: { none: {} },
+				CrownDevelopment: { none: {} },
+				Lpa: { none: {} }
+			}
 		});
 	}
 	for (const create of plan.organisationGraph.organisationToContactCreates) {
