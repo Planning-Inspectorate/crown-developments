@@ -1123,9 +1123,29 @@ describe('organisation/contact updates', () => {
 					role: ORGANISATION_ROLES_ID.AGENT
 				}
 			});
-			assert.deepStrictEqual(calls.contactDeleteMany, [{ where: { id: { in: ['contact-1'] } } }]);
-			assert.deepStrictEqual(calls.organisationDeleteMany, [{ where: { id: { in: ['agent-org-1'] } } }]);
-			assert.deepStrictEqual(calls.addressDeleteMany, [{ where: { id: { in: ['agent-address-1'] } } }]);
+			assert.deepStrictEqual(calls.contactDeleteMany, [
+				{ where: { OrganisationToContact: { none: {} }, id: { in: ['contact-1'] } } }
+			]);
+			assert.deepStrictEqual(calls.organisationDeleteMany, [
+				{
+					where: {
+						CrownDevelopmentToOrganisation: { none: {} },
+						OrganisationToContact: { none: {} },
+						id: { in: ['agent-org-1'] }
+					}
+				}
+			]);
+			assert.deepStrictEqual(calls.addressDeleteMany, [
+				{
+					where: {
+						Contact: { none: {} },
+						CrownDevelopment: { none: {} },
+						Lpa: { none: {} },
+						Organisation: { none: {} },
+						id: { in: ['agent-address-1'] }
+					}
+				}
+			]);
 		});
 
 		it('should resolve created organisation placeholder ids for links and organisation contacts', async () => {
