@@ -619,10 +619,9 @@ describe('view-model', () => {
 	describe('editsToDatabaseUpdates', () => {
 		it('should map crown development fields', () => {
 			const toSave = {
-				siteArea: '8.79',
+				siteArea: 8.79,
 				environmentalStatementReceivedDate: new Date('2025-01-17T00:00Z'),
-				description: 'A big project to build something important',
-				inquiryDurationSitting: 'Sitting: 0 days'
+				description: 'A big project to build something important'
 			};
 			const updates = editsToDatabaseUpdates(toSave, {});
 			assert.ok(updates);
@@ -632,7 +631,6 @@ describe('view-model', () => {
 		});
 		it('should not map uneditable fields', () => {
 			const toSave = {
-				siteArea: '8.79',
 				environmentalStatementReceivedDate: new Date('2025-01-17T00:00Z'),
 				description: 'A big project to build something important',
 				reference: 'CASE/1',
@@ -642,14 +640,6 @@ describe('view-model', () => {
 			assert.ok(updates);
 			assert.strictEqual(updates.reference, undefined);
 			assert.strictEqual(updates.updatedDate, undefined);
-		});
-
-		it(`should map siteArea to a number`, () => {
-			const toSave = {
-				siteArea: '0.125'
-			};
-			const result = editsToDatabaseUpdates(toSave, {});
-			assert.strictEqual(result.siteArea, 0.125);
 		});
 		it(`should map siteNorthing and siteEasting to an int`, () => {
 			const toSave = {
@@ -663,7 +653,7 @@ describe('view-model', () => {
 
 		it('should not include boolean fields if not in edits', () => {
 			const toSave = {
-				siteArea: '8.79'
+				siteArea: 8.79
 			};
 			const result = editsToDatabaseUpdates(toSave, {});
 			assert.strictEqual(result.environmentalImpactAssessment, undefined);
@@ -1141,6 +1131,37 @@ describe('view-model', () => {
 			assert.strictEqual(updates.hasSecondaryLpa, false);
 			assert.deepStrictEqual(updates.SecondaryLpa, { disconnect: true });
 			assert.strictEqual(updates.secondaryLpaId, undefined); // should be removed
+		});
+		describe('decimal field normalization', () => {
+			it('should coerce empty string decimal edits to null for Prisma update input', () => {
+				const updates = editsToDatabaseUpdates(
+					{
+						siteArea: '',
+						applicationFee: '',
+						applicationFeeRefundAmount: '',
+						cilAmount: ''
+					},
+					{}
+				);
+
+				assert.strictEqual(updates.siteArea, null);
+				assert.strictEqual(updates.applicationFee, null);
+				assert.strictEqual(updates.applicationFeeRefundAmount, null);
+				assert.strictEqual(updates.cilAmount, null);
+			});
+
+			it('should keep non-empty decimal values unchanged', () => {
+				const updates = editsToDatabaseUpdates(
+					{
+						siteArea: 12.34,
+						applicationFee: 99.99
+					},
+					{}
+				);
+
+				assert.strictEqual(updates.siteArea, 12.34);
+				assert.strictEqual(updates.applicationFee, 99.99);
+			});
 		});
 	});
 });

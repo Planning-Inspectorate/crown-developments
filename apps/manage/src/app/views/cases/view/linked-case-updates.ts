@@ -14,7 +14,6 @@ import type {
 } from './view-model.ts';
 import type { CrownDevelopmentPlanningPayload } from './payload-contracts.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import type { ManageService } from '#service';
 
 type CaseUpdateWritePlan = {
 	scalarCaseUpdates: { caseIds: string[]; updateInput: Prisma.CrownDevelopmentUpdateInput };
@@ -473,7 +472,7 @@ export function buildCaseUpdateWritePlan({
 /**
  * Execute a write plan inside a Prisma interactive transaction.
  */
-export async function executeCaseUpdateWritePlan(plan: CaseUpdateWritePlan, tx: ManageService['db']) {
+export async function executeCaseUpdateWritePlan(plan: CaseUpdateWritePlan, tx: Prisma.TransactionClient) {
 	const createdOrgIds: Map<string, string> = new Map();
 	const resolveOrgId = (id: string) => createdOrgIds.get(id) || id;
 
