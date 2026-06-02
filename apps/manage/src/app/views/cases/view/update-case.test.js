@@ -1590,13 +1590,18 @@ describe('case details', () => {
 			const logger = mockLogger();
 			const mockDb = {
 				$transaction: mock.fn(() => Promise.resolve()),
+				address: {
+					deleteMany: mock.fn(() => ({ count: 1 }))
+				},
 				organisation: {
 					create: mock.fn(() => ({ id: 'org-created' })),
-					update: mock.fn(() => ({ kind: 'organisation.update' }))
+					update: mock.fn(() => ({ kind: 'organisation.update' })),
+					deleteMany: mock.fn(() => ({ count: 1 }))
 				},
 				contact: {
 					update: mock.fn(() => ({ kind: 'contact.update' })),
-					create: mock.fn(() => ({ id: 'created-contact-id' }))
+					create: mock.fn(() => ({ id: 'created-contact-id' })),
+					deleteMany: mock.fn(() => ({ count: 1 }))
 				},
 				organisationToContact: {
 					create: mock.fn(() => ({ id: 'created-join-id' })),
@@ -1619,6 +1624,7 @@ describe('case details', () => {
 								organisationId: 'agent-org-1',
 								Organisation: {
 									id: 'agent-org-1',
+									addressId: 'agent-address-1',
 									OrganisationToContact: [{ id: 'join-1', Contact: { id: 'contact-1' } }]
 								}
 							}
@@ -1634,6 +1640,7 @@ describe('case details', () => {
 									organisationId: 'agent-org-1',
 									Organisation: {
 										id: 'agent-org-1',
+										addressId: 'agent-address-1',
 										OrganisationToContact: [{ id: 'join-1', Contact: { id: 'contact-1' } }]
 									}
 								}
@@ -1667,8 +1674,10 @@ describe('case details', () => {
 			});
 
 			assert.strictEqual(mockDb.crownDevelopment.findMany.mock.callCount(), 1);
-			assert.strictEqual(mockDb.organisation.update.mock.callCount(), 1);
 			assert.strictEqual(mockDb.crownDevelopmentToOrganisation.deleteMany.mock.callCount(), 1);
+			assert.strictEqual(mockDb.contact.deleteMany.mock.callCount(), 1);
+			assert.strictEqual(mockDb.organisation.deleteMany.mock.callCount(), 1);
+			assert.strictEqual(mockDb.address.deleteMany.mock.callCount(), 1);
 		});
 	});
 

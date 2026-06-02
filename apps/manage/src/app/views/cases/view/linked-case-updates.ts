@@ -30,6 +30,7 @@ type CaseUpdateWritePlan = {
 		agentLinkDeleteMany?: Array<{ caseIds: string[]; roleId: string; organisationId: string }>;
 		agentContactDeleteMany?: Array<{ contactIds: string[] }>;
 		agentOrganisationDeleteMany?: Array<{ organisationIds: string[] }>;
+		agentAddressDeleteMany?: Array<{ addressIds: string[] }>;
 	};
 };
 
@@ -425,18 +426,24 @@ export function buildCaseUpdateWritePlan({
 
 		const agentOrganisationIds = new Set<string>();
 		const agentContactIds = new Set<string>();
+		const agentAddressIds = new Set<string>();
 		const agentJoinIdsAdded = new Set<string>();
 
 		for (const relationship of agentRelationships) {
 			agentOrganisationIds.add(relationship.organisationId);
+			const addressId = relationship?.Organisation?.addressId ?? relationship?.Organisation?.Address?.id;
+			if (addressId) {
+				agentAddressIds.add(addressId);
+			}
 
 			for (const join of relationship?.Organisation?.OrganisationToContact || []) {
 				if (join.id && !agentJoinIdsAdded.has(join.id)) {
 					agentJoinIdsAdded.add(join.id);
 					plan.organisationGraph.organisationToContactDeletes.push({ id: join.id });
 				}
-				if (join.contactId) {
-					agentContactIds.add(join.contactId);
+				const contactId = join.contactId ?? join?.Contact?.id;
+				if (contactId) {
+					agentContactIds.add(contactId);
 				}
 			}
 		}
@@ -453,6 +460,9 @@ export function buildCaseUpdateWritePlan({
 		}
 		if (agentOrganisationIds.size > 0) {
 			plan.organisationGraph.agentOrganisationDeleteMany = [{ organisationIds: Array.from(agentOrganisationIds) }];
+		}
+		if (agentAddressIds.size > 0) {
+			plan.organisationGraph.agentAddressDeleteMany = [{ addressIds: Array.from(agentAddressIds) }];
 		}
 	}
 
@@ -525,6 +535,11 @@ export async function executeCaseUpdateWritePlan(plan: CaseUpdateWritePlan, tx: 
 	for (const deleteManyOrgs of plan.organisationGraph.agentOrganisationDeleteMany || []) {
 		await tx.organisation.deleteMany({
 			where: { id: { in: deleteManyOrgs.organisationIds.map(resolveOrgId) } }
+		});
+	}
+	for (const deleteManyAddresses of plan.organisationGraph.agentAddressDeleteMany || []) {
+		await tx.address.deleteMany({
+			where: { id: { in: deleteManyAddresses.addressIds } }
 		});
 	}
 	for (const create of plan.organisationGraph.organisationToContactCreates) {
