@@ -157,7 +157,7 @@ describe('written representations read more', () => {
 		const viewData = mockRes.render.mock.calls[0].arguments[1];
 		assert.strictEqual(viewData.pageCaption, 'CROWN/2025/0000001');
 		assert.deepStrictEqual(viewData.representationViewModel, {
-			dateRepresentationSubmitted: '15 Jan 2025',
+			dateRepresentationSubmitted: '15 January 2025',
 			representationCategory: 'General Representation',
 			representationComment: 'This is a test representation.',
 			representationCommentIsRedacted: true,
@@ -279,7 +279,7 @@ describe('written representations read more', () => {
 		const viewData = mockRes.render.mock.calls[0].arguments[1];
 		assert.strictEqual(viewData.pageCaption, 'CROWN/2025/0000001');
 		assert.deepStrictEqual(viewData.representationViewModel, {
-			dateRepresentationSubmitted: '15 Jan 2025',
+			dateRepresentationSubmitted: '15 January 2025',
 			representationCategory: 'General Representation',
 			representationComment: 'This is a test representation.',
 			representationCommentIsRedacted: true,
@@ -362,7 +362,7 @@ describe('written representations read more', () => {
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.strictEqual(viewData.pageCaption, 'CROWN/2025/0000001');
 			assert.deepStrictEqual(viewData.representationViewModel, {
-				dateRepresentationSubmitted: '15 Jan 2025',
+				dateRepresentationSubmitted: '15 January 2025',
 				representationCategory: 'General Representation',
 				representationComment: 'This is a test representation.',
 				representationCommentIsRedacted: true,
@@ -439,7 +439,7 @@ describe('written representations read more', () => {
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.strictEqual(viewData.pageCaption, 'CROWN/2025/0000001');
 			assert.deepStrictEqual(viewData.representationViewModel, {
-				dateRepresentationSubmitted: '15 Jan 2025',
+				dateRepresentationSubmitted: '15 January 2025',
 				representationCategory: 'General Representation',
 				representationComment: 'This is a test representation.',
 				representationCommentIsRedacted: true,

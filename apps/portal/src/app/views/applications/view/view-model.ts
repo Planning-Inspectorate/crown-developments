@@ -260,7 +260,7 @@ export function representationToViewModel(
 			: representationComment,
 		representationCommentIsRedacted: Boolean(representation.commentRedacted),
 		representationCategory: representation.Category?.displayName,
-		dateRepresentationSubmitted: formatDateForDisplay(representation.submittedDate),
+		dateRepresentationSubmitted: formatDateForDisplay(representation.submittedDate, { format: 'd MMMM yyyy' }),
 		hasAcceptedAttachments:
 			representation.Attachments?.some((doc) => doc.statusId === REPRESENTATION_STATUS_ID.ACCEPTED) &&
 			representation.containsAttachments,

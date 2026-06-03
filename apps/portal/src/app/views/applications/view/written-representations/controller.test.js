@@ -73,7 +73,7 @@ describe('written representations', () => {
 			assert.strictEqual(viewData.pageTitle, 'Written representations');
 			assert.strictEqual(viewData.representations.length, 1);
 			assert.deepStrictEqual(viewData.representations[0], {
-				dateRepresentationSubmitted: '15 Jan 2025',
+				dateRepresentationSubmitted: '15 January 2025',
 				representationCategory: 'General Representation',
 				representationComment: 'This is a test representation.',
 				representationCommentIsRedacted: true,
@@ -371,7 +371,7 @@ describe('written representations', () => {
 			assert.strictEqual(viewData.pageTitle, 'Written representations');
 			assert.strictEqual(viewData.representations.length, 1);
 			assert.deepStrictEqual(viewData.representations[0], {
-				dateRepresentationSubmitted: '15 Jan 2025',
+				dateRepresentationSubmitted: '15 January 2025',
 				representationCategory: 'General Representation',
 				representationComment:
 					'It began with an ordinary morning. The air smelled faintly of dew, the street empty but for leaves drifting lazily. ████████ ██████ adjusted his collar, noting his watch was three minutes late—a stubborn old thing, loyal only to its own time. Across the street, a bakery opened, the scent of bread spilling into the cool air. A woman in a green scarf carried loaves in quiet balance. The square stirred slowly; ████████ wrote in his notebook, letting the day delay his errands, wholly unhurried and s... ',
