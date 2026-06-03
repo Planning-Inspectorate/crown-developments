@@ -80,7 +80,7 @@
     "sass": "^1.99.0",
     "supertest": "^7.2.2",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.4"
+    "typescript-eslint": "^8.60.0"
   },
   "lint-staged": {
     "*.{js,ts}": [
