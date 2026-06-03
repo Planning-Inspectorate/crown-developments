@@ -68,12 +68,12 @@
                                     <input type="hidden" name="_csrf" value="{{ _csrf }}">
                                     <noscript>
                                         {{ govukButton({
-                                            text: "Remove",
+                                            html: "Remove <span class=\"govuk-visually-hidden\">" ~ file.fileName ~ "</span>",
                                             classes: "govuk-button--warning"
                                         }) }}
                                     </noscript>
                                 </form>
-                                <a href="#" role="button" class="js-remove-link govuk-link js-enabled-link" data-form-id="deleteForm{{ loop.index }}">Remove</a>
+                                <a href="#" role="button" class="js-remove-link govuk-link js-enabled-link" data-form-id="deleteForm{{ loop.index }}">Remove <span class="govuk-visually-hidden">{{ file.fileName }}</span></a>
                             </dd>
                         </div>
                     {% endfor %}
