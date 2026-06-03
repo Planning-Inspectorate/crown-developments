@@ -420,7 +420,7 @@ describe('view-model', () => {
 				representationComment: 'This is a comment',
 				representationCommentIsRedacted: false,
 				representationCategory: 'Category 1',
-				dateRepresentationSubmitted: '1 Jan 2025',
+				dateRepresentationSubmitted: '1 January 2025',
 				hasAcceptedAttachments: true,
 				distressingContent: false
 			});
@@ -444,7 +444,7 @@ describe('view-model', () => {
 				representationComment: 'This is a comment',
 				representationCommentIsRedacted: false,
 				representationCategory: 'Category 1',
-				dateRepresentationSubmitted: '1 Jan 2025',
+				dateRepresentationSubmitted: '1 January 2025',
 				hasAcceptedAttachments: false,
 				distressingContent: false
 			});
@@ -468,7 +468,7 @@ describe('view-model', () => {
 				representationComment: 'This is a comment',
 				representationCommentIsRedacted: false,
 				representationCategory: 'Category 1',
-				dateRepresentationSubmitted: '1 Jan 2025',
+				dateRepresentationSubmitted: '1 January 2025',
 				hasAcceptedAttachments: false,
 				distressingContent: false
 			});
@@ -493,7 +493,7 @@ describe('view-model', () => {
 				representationComment: 'This is a comment',
 				representationCommentIsRedacted: false,
 				representationCategory: 'Category 1',
-				dateRepresentationSubmitted: '1 Jan 2025',
+				dateRepresentationSubmitted: '1 January 2025',
 				hasAcceptedAttachments: false,
 				distressingContent: true
 			});
@@ -518,7 +518,7 @@ describe('view-model', () => {
 				representationComment: 'This is a comment',
 				representationCommentIsRedacted: false,
 				representationCategory: 'Category 1',
-				dateRepresentationSubmitted: '1 Jan 2025',
+				dateRepresentationSubmitted: '1 January 2025',
 				hasAcceptedAttachments: false,
 				distressingContent: false
 			});
