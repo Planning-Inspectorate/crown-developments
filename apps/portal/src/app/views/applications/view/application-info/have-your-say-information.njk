@@ -23,8 +23,8 @@
         <p class="govuk-body">We’ll ask for your name, email address and written representation. Your name and written representation will be published on our website.</p>
         <p class="govuk-body">The representations period will be published on this website as soon as dates are confirmed.</p>
     {% elif haveYourSayStatus === 'closedRepsPublished' %}
-        <p class="govuk-body">The representations period for this application has now ended.</p>
-        <p class="govuk-body">You can view the written representations <a class="govuk-link" href="/applications/{{ crownDevelopmentFields.id }}/written-representations">here</a>.</p>
+        <p class="govuk-body">The written representations period has ended.</p>
+        <p class="govuk-body">You can <a class="govuk-link" href="/applications/{{ crownDevelopmentFields.id }}/written-representations">view the written representations</a> for this application.</p>
     {% elif haveYourSayStatus === 'closedPublishedDateInFuture' %}{# Scenario 5 #}
         <p class="govuk-body">The representations period for this application has now ended.</p>
         <p class="govuk-body">You can view the written representations from: {{ crownDevelopmentFields.representationsPublishDate }}</p>
