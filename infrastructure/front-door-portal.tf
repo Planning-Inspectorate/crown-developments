@@ -42,6 +42,10 @@ resource "azurerm_cdn_frontdoor_custom_domain" "portal" {
 
   tls {
     certificate_type = "ManagedCertificate"
+
+    cipher_suite {
+      type = "TLS12_2023"
+    }
   }
 }
 
