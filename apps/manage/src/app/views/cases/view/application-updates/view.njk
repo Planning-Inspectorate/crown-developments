@@ -8,11 +8,12 @@
 {% import "pagination/pagination-options.njk" as paginationOptions %}
 
 {% block pageContent %}
-    {% if applicationUpdateStatus %}
-        {{ govukNotificationBanner({
-            text: applicationUpdateStatus,
-            type: "success"
-        }) }}
+    {% if banner %}
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-full">
+                {{ govukNotificationBanner(banner) }}
+            </div>
+        </div>
     {% endif %}
 
     {{  govukButton({

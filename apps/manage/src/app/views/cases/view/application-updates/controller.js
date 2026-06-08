@@ -10,6 +10,28 @@ import {
 } from './utils.js';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
+
+/**
+ * @typedef {import('@pins/crowndev-lib/views/banner/banner-builder').BannerMessage} BannerMessage
+ */
+
+/**
+ * Get all banner messages to display.
+ *
+ * @param {Object} options
+ * @param {string|false} options.applicationUpdateStatus
+ * @return {BannerMessage|null}
+ */
+function getBannerMessages({ applicationUpdateStatus }) {
+	const bannerBuilder = new BannerBuilder();
+
+	if (applicationUpdateStatus) {
+		bannerBuilder.addSuccessText(applicationUpdateStatus);
+	}
+
+	return bannerBuilder.build();
+}
 
 export function buildApplicationUpdates({ db }) {
 	return async (req, res) => {
@@ -67,6 +89,7 @@ export function buildApplicationUpdates({ db }) {
 		const applicationUpdateStatus = readAppUpdateStatus(req, id);
 		clearAppUpdateStatusSession(req, id);
 		clearAppUpdatesFromSession(req);
+		const banner = getBannerMessages({ applicationUpdateStatus });
 
 		res.render('views/cases/view/application-updates/view.njk', {
 			pageTitle: 'Manage application updates',
@@ -76,7 +99,7 @@ export function buildApplicationUpdates({ db }) {
 			currentUrl: req.originalUrl,
 			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined,
 			applicationUpdates: applicationUpdates.map(applicationUpdateToViewModel),
-			applicationUpdateStatus,
+			banner,
 			selectedItemsPerPage,
 			totalApplicationUpdates,
 			pageNumber,
