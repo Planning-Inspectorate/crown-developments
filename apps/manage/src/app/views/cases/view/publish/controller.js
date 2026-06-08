@@ -1,7 +1,6 @@
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
-import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 
 /**
  *

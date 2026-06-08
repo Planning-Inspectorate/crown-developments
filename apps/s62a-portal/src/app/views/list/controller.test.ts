@@ -2,7 +2,6 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildCaseListPage } from './controller.ts';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
-import type { S62ADevelopmentListItem } from './view-model.ts';
 import { S62APortalService } from '#service';
 import type { BaseLogger } from 'pino';
 import type { Request, Response } from 'express';
@@ -94,11 +93,11 @@ describe('case list', () => {
 		const nunjucks = {
 			render: mock.fn((view, data) => 'mocked render' + view + data)
 		};
-		/* const config = {
+		const config = {
 			crownDevContactInfo: {
 				email: 'crown.dev@planninginspectorate.gov.uk'
 			}
-		}; */
+		};
 
 		it('should render page without error', async () => {
 			const mockReq = {
@@ -150,7 +149,7 @@ describe('case list', () => {
 					]),
 					count: mock.fn(() => 2)
 				}
-			} as unknown as S62ADevelopmentListItem;
+			} as unknown;
 
 			const applicationList = buildCaseListPage({
 				db: mockDb,
@@ -209,7 +208,7 @@ describe('case list', () => {
 					resultsEndNumber: 0,
 					resultsStartNumber: 0,
 					selectedItemsPerPage: 25,
-					totalS62aDevelopments: 0,
+					totalItems: 0,
 					totalPages: 0
 				}
 			});
@@ -267,7 +266,7 @@ describe('case list', () => {
 							resultsEndNumber: expected.resultsEndNumber,
 							resultsStartNumber: expected.resultsStartNumber,
 							selectedItemsPerPage: itemsPerPage,
-							totalS62aDevelopments: totalItems,
+							totalItems: totalItems,
 							totalPages: expected.totalPages
 						}
 					});

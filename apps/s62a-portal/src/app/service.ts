@@ -5,13 +5,13 @@ import type { Config } from './config.ts';
  * This class encapsulates all the services and clients for the application
  */
 export class S62APortalService extends BaseService {
-	#config: Config;
+	private readonly localConfig: Config;
+
 	constructor(config: Config) {
 		super(config);
-		this.#config = config;
+		this.localConfig = config;
 	}
-
-	get isLive() {
-		return this.#config.featureFlags?.isLive;
+	get contactEmail() {
+		return this.localConfig.s62aDevContactInfo?.email;
 	}
 }

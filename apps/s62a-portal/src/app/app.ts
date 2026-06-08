@@ -31,7 +31,6 @@ export function createApp(service: S62APortalService): Express {
 		secret: service.sessionSecret
 	});
 	app.use(sessionMiddleware);
-	app.use(addLocalsConfiguration());
 
 	// content security policy middleware including nonce generation
 	app.use(...initContentSecurityPolicyMiddlewares(cspDirectiveDefaults));
@@ -46,9 +45,11 @@ export function createApp(service: S62APortalService): Express {
 	// static files
 	app.use(express.static(service.staticDir, service.cacheControl));
 
+	const manifestData = manifest as Record<string, string | undefined>;
+
 	// Cache busting for CSS
 	app.use((req, res, next) => {
-		res.locals.styleCss = manifest['style.css'] ?? 'style.css';
+		res.locals.styleCss = manifestData['style.css'] ?? 'style.css';
 		next();
 	});
 

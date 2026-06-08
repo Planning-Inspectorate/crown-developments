@@ -9,7 +9,7 @@ import {
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { optionalWhere } from '../../util/database.js';
+import { optionalWhere } from '../../util/database.ts';
 import { addressToViewModel, viewModelToAddressUpdateInput } from '../../util/address.ts';
 
 /**

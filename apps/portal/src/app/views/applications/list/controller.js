@@ -1,5 +1,5 @@
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 import { crownDevelopmentToViewModel } from '../view/view-model.ts';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 
@@ -51,7 +51,8 @@ export function buildApplicationListPage(service) {
 			wrapPrismaError({
 				error,
 				logger,
-				message: 'fetching crown developments'
+				message: 'fetching crown developments',
+				logParams: {}
 			});
 		}
 
