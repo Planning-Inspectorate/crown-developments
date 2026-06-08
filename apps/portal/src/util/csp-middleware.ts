@@ -1,21 +1,13 @@
-import helmet from 'helmet';
-import crypto from 'node:crypto';
+import {
+	type HelmetCspDirectives,
+	initContentSecurityPolicyMiddlewares as initSharedContentSecurityPolicyMiddlewares
+} from '@pins/crowndev-lib/middleware/csp-middleware.ts';
+import type { Handler } from 'express';
 
 /**
- * @returns {import('express').Handler[]}
+ * Initialises the Content Security Policy (CSP) middlewares for the application.
  */
-export function initContentSecurityPolicyMiddlewares() {
-	/** @type {import('express').Handler[]} */
-	const middlewares = [];
-
-	// Generate the nonce for each request
-	middlewares.push((req, res, next) => {
-		res.locals.cspNonce = crypto.randomBytes(32).toString('hex');
-		next();
-	});
-
-	middlewares.push(helmet());
-
+export function initContentSecurityPolicyMiddlewares(): Handler[] {
 	const googleAnalytics = {
 		scriptSrc: [
 			'https://*.googletagmanager.com',
@@ -34,9 +26,14 @@ export function initContentSecurityPolicyMiddlewares() {
 		connectSrc: ['https://*.google-analytics.com', 'https://*.analytics.google.com', 'https://*.googletagmanager.com']
 	};
 
-	/** @type {import('helmet').ContentSecurityPolicyOptions['directives']} */
-	const directives = {
-		scriptSrc: ["'self'", ...googleAnalytics.scriptSrc, (req, res) => `'nonce-${res.locals.cspNonce}'`],
+	const directives: HelmetCspDirectives = {
+		scriptSrc: [
+			"'self'",
+			...googleAnalytics.scriptSrc,
+			(req, res) => {
+				return `'nonce-${res.locals?.cspNonce}'`;
+			}
+		],
 		defaultSrc: ["'self'"],
 		connectSrc: ["'self'", ...googleAnalytics.connectSrc],
 		fontSrc: ["'self'"],
@@ -44,11 +41,5 @@ export function initContentSecurityPolicyMiddlewares() {
 		styleSrc: ["'self'"]
 	};
 
-	middlewares.push(
-		helmet.contentSecurityPolicy({
-			directives
-		})
-	);
-
-	return middlewares;
+	return initSharedContentSecurityPolicyMiddlewares(directives);
 }

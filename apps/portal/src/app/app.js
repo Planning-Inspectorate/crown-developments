@@ -7,7 +7,7 @@ import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-re
 import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.ts';
 import { addLocalsConfiguration } from '#util/config-middleware.js';
-import { initContentSecurityPolicyMiddlewares } from '#util/csp-middleware.js';
+import { initContentSecurityPolicyMiddlewares } from '#util/csp-middleware.ts';
 import { buildAnalyticsCookiesMiddleware } from '#util/cookies.js';
 import { cleanEmptyQueryParams, trimEmptyQuery } from '@pins/crowndev-lib/middleware/query-middleware.js';
 import lusca from 'lusca';

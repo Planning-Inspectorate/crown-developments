@@ -1,5 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
+import express from 'express';
+import supertest from 'supertest';
 import { initContentSecurityPolicyMiddlewares } from './csp-middleware.ts';
 import type { Request, Response, NextFunction } from 'express';
 
@@ -54,5 +56,29 @@ describe('csp-middleware', () => {
 				scriptSrc: ["'self'", "'unsafe-inline'"]
 			});
 		});
+	});
+
+	it('should include a non-empty nonce in the CSP header from middleware-generated res.locals.cspNonce', async () => {
+		const app = express();
+		app.use(
+			...initContentSecurityPolicyMiddlewares({
+				defaultSrc: ["'self'"],
+				scriptSrc: ["'self'", (_req, res) => `'nonce-${res.locals.cspNonce}'`]
+			})
+		);
+
+		app.get('/csp-check', (_req, res) => {
+			res.json({ cspNonce: res.locals.cspNonce });
+		});
+
+		const response = await supertest(app).get('/csp-check');
+		const cspHeader = response.headers['content-security-policy'];
+
+		assert.ok(response.body.cspNonce);
+		assert.equal(typeof response.body.cspNonce, 'string');
+		assert.match(response.body.cspNonce, /\S+/);
+		assert.ok(cspHeader);
+		assert.match(cspHeader, new RegExp(`'nonce-${response.body.cspNonce}'`));
+		assert.doesNotMatch(cspHeader, /'nonce-undefined'/);
 	});
 });
