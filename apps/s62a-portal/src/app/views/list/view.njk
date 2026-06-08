@@ -22,10 +22,10 @@
                 <div id="pagination" class="govuk-grid-column-full">
                     <p class="govuk-body govuk-clearfix">
                         Showing <strong>{{ paginationParams.resultsStartNumber }}</strong>
-                        to <strong>{{ paginationParams.resultsEndNumber if paginationParams.totalS62aDevelopments > paginationParams.resultsEndNumber else paginationParams.totalS62aDevelopments }}</strong>
-                        of <strong>{{ paginationParams.totalS62aDevelopments }}</strong> results
+                        to <strong>{{ paginationParams.resultsEndNumber if paginationParams.totalItems > paginationParams.resultsEndNumber else paginationParams.totalDevelopments }}</strong>
+                        of <strong>{{ paginationParams.totalItems }}</strong> results
                     </p>
-                    {{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalS62aDevelopments, baseUrl, queryParams) }}
+                    {{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalDevelopments, baseUrl, queryParams) }}
                     <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
                     {{ s62aDevelopmentsTable(s62aDevelopmentsViewModels) }}
@@ -48,10 +48,7 @@
     {% for s62aDevelopment in s62aDevelopmentsViewModels %}
         {% if s62aDevelopment.applicantOrganisations and s62aDevelopment.applicantOrganisations.length > 0 %}
             {% set applicantName = s62aDevelopment.applicantOrganisations | join(", ") %}
-        {% else %}
-        {# TODO(CROWN-1424): remove once migrated over to ME #}
-        {# Note - Issue still potentially valid - revisit this once S62A db schema more defined #}
-            {% set applicantName = s62aDevelopment.applicantName %}
+        {% endif %}
         {% if s62aDevelopment.applicantOrganisations and s62aDevelopment.applicantOrganisations.length > 0 %}
             {% set applicantName = s62aDevelopment.applicantOrganisations | join(", ") %}
         {% endif %}

@@ -18,7 +18,7 @@ import {
 	type CrownDevelopmentPayload,
 	type CrownDevelopmentPlanningPayload
 } from './payload-contracts.ts';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { ManageService } from '#service';

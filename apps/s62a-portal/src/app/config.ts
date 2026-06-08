@@ -2,11 +2,11 @@ import type { BaseConfig } from '@pins/crowndev-lib/app/config-types.d.ts';
 import path from 'node:path';
 import { loadEnvFile } from 'node:process';
 
-export interface Config extends BaseConfig {
-	featureFlags: {
-		isLive: boolean;
+export type Config = BaseConfig & {
+	s62aDevContactInfo?: {
+		email?: string;
 	};
-}
+};
 
 // cache the config
 let config: Config | undefined;
@@ -35,7 +35,7 @@ export function loadConfig(): Config {
 		REDIS_CONNECTION_STRING,
 		SESSION_SECRET,
 		SQL_CONNECTION_STRING,
-		FEATURE_FLAG_S62A_PORTAL_NOT_LIVE
+		S62A_DEV_CONTACT_EMAIL
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -72,6 +72,9 @@ export function loadConfig(): Config {
 			redisPrefix: 'portal:',
 			redis: REDIS_CONNECTION_STRING,
 			secret: SESSION_SECRET
+		},
+		s62aDevContactInfo: {
+			email: S62A_DEV_CONTACT_EMAIL
 		},
 		// the static directory to serve assets from (images, css, etc..)
 		staticDir: buildConfig.staticDir,

@@ -1,7 +1,7 @@
 import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { JOURNEY_ID } from './journey.js';
 import { validateParams } from '../view/controller.js';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
 	deleteRepresentationAttachmentsFolder,
