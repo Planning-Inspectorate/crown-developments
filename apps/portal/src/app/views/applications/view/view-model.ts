@@ -16,7 +16,7 @@ import {
 	shouldTruncateComment,
 	truncateComment,
 	truncatedReadMoreCommentLink
-} from '@pins/crowndev-lib/util/questions.js';
+} from '@pins/crowndev-lib/util/questions.ts';
 import {
 	getApplicationStatus,
 	isWithdrawnOrExpired,
@@ -255,9 +255,7 @@ export function representationToViewModel(
 	return {
 		representationReference: representation.reference,
 		representationTitle: representationTitle(representation),
-		representationComment: truncateCommentForView
-			? (truncateComment(representationComment) as string)
-			: representationComment,
+		representationComment: truncateCommentForView ? truncateComment(representationComment) : representationComment,
 		representationCommentIsRedacted: Boolean(representation.commentRedacted),
 		representationCategory: representation.Category?.displayName,
 		dateRepresentationSubmitted: formatDateForDisplay(representation.submittedDate, { format: 'd MMMM yyyy' }),

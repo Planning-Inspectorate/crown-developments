@@ -2,7 +2,7 @@ import { CUSTOM_COMPONENTS } from '../custom-components/index.js';
 import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
 import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
 import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
-import { referenceDataToRadioOptions } from '../../util/questions.js';
+import { referenceDataToRadioOptions } from '../../util/questions.ts';
 import { CONTACT_PREFERENCE } from '@pins/crowndev-database/src/seed/data-static.ts';
 import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
 import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';

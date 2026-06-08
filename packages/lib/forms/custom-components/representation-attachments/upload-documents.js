@@ -5,7 +5,7 @@ import { isValidUuidFormat } from '../../../util/uuid.ts';
 import { notFoundHandler } from '../../../middleware/errors.ts';
 import { sortByField } from '../../../util/array.ts';
 import { addSessionData } from '../../../util/session.ts';
-import { getSubmittedForId } from '../../../util/questions.js';
+import { getSubmittedForId } from '../../../util/questions.ts';
 import { getApplicationNameFolder } from '../../../util/handle-attachments.js';
 
 export const JOURNEY_MAP = {

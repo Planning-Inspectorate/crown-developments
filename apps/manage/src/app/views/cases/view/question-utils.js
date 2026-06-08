@@ -4,7 +4,7 @@ import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
 import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
 import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
-import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.js';
+import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.ts';
 import {
 	APPLICATION_PROCEDURE_ID,
 	APPLICATION_STAGE,
