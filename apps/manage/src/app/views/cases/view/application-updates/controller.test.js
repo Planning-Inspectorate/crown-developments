@@ -4,6 +4,50 @@ import { buildApplicationUpdates, buildConfirmationController, getSummaryHeading
 
 describe('application updates controller', () => {
 	describe('buildApplicationUpdates', () => {
+		const buildSingleUpdateDb = (applicationUpdateCount = 1) => ({
+			crownDevelopment: {
+				findUnique: mock.fn(() => ({
+					reference: 'CROWN/2025/0000001'
+				})),
+				update: mock.fn()
+			},
+			applicationUpdate: {
+				findMany: mock.fn(() => [
+					{
+						id: 'id-1',
+						details: 'an update',
+						statusId: 'draft',
+						Status: {
+							displayName: 'Draft'
+						},
+						lastEdited: new Date('2020-12-17T03:24:00.000Z')
+					}
+				]),
+				count: mock.fn(() => applicationUpdateCount)
+			}
+		});
+
+		const buildReqWithUpdateStatus = (applicationUpdateStatus = 'Your update was published') => ({
+			baseUrl: '/application-updates',
+			originalUrl: '/application-updates',
+			params: {
+				id: 'crown-dev-01'
+			},
+			session: {
+				appUpdates: {
+					id1: {
+						details: 'an update',
+						publishNow: 'no'
+					}
+				},
+				cases: {
+					'crown-dev-01': {
+						applicationUpdateStatus
+					}
+				}
+			}
+		});
+
 		it('should render application updates page', async () => {
 			const mockDb = {
 				crownDevelopment: {
@@ -93,7 +137,7 @@ describe('application updates controller', () => {
 						firstPublishedSortableValue: ''
 					}
 				],
-				applicationUpdateStatus: false,
+				banner: null,
 				selectedItemsPerPage: 25,
 				totalApplicationUpdates: 3,
 				pageNumber: 1,
@@ -103,48 +147,8 @@ describe('application updates controller', () => {
 			});
 		});
 		it('should clear session data for update status and any app updates left in flight', async () => {
-			const mockDb = {
-				crownDevelopment: {
-					findUnique: mock.fn(() => ({
-						reference: 'CROWN/2025/0000001'
-					})),
-					update: mock.fn()
-				},
-				applicationUpdate: {
-					findMany: mock.fn(() => [
-						{
-							id: 'id-1',
-							details: 'an update',
-							statusId: 'draft',
-							Status: {
-								displayName: 'Draft'
-							},
-							lastEdited: new Date('2020-12-17T03:24:00.000Z')
-						}
-					]),
-					count: mock.fn(() => 3)
-				}
-			};
-			const mockReq = {
-				baseUrl: '/application-updates',
-				originalUrl: '/application-updates',
-				params: {
-					id: 'crown-dev-01'
-				},
-				session: {
-					appUpdates: {
-						id1: {
-							details: 'an update',
-							publishNow: 'no'
-						}
-					},
-					cases: {
-						'crown-dev-01': {
-							applicationUpdateStatus: 'Your update was published'
-						}
-					}
-				}
-			};
+			const mockDb = buildSingleUpdateDb(3);
+			const mockReq = buildReqWithUpdateStatus();
 			const mockRes = {
 				render: mock.fn()
 			};
@@ -275,6 +279,25 @@ describe('application updates controller', () => {
 					'If you pasted the web address, check you copied the entire address.'
 				]
 			});
+		});
+		it('should render success banner when application update status exists and clear related session data', async () => {
+			const mockDb = buildSingleUpdateDb();
+			const mockReq = buildReqWithUpdateStatus();
+			const mockRes = {
+				render: mock.fn()
+			};
+
+			const controller = buildApplicationUpdates({ db: mockDb });
+
+			await controller(mockReq, mockRes);
+
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1].banner, {
+				type: 'success',
+				text: 'Your update was published'
+			});
+			assert.deepStrictEqual(mockReq.session.appUpdates, {});
+			assert.deepStrictEqual(mockReq.session.cases, { 'crown-dev-01': {} });
 		});
 	});
 	describe('buildConfirmationController', () => {
