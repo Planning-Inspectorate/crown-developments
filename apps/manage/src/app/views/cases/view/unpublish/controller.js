@@ -1,6 +1,5 @@
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
-import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 
 /**
  * @param {import('#service').ManageService} service

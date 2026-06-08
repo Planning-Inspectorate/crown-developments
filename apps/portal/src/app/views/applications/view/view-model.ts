@@ -22,7 +22,7 @@ import {
 	isWithdrawnOrExpired,
 	isExpired,
 	type ApplicationPublishStatus
-} from '#util/applications.ts';
+} from '@pins/crowndev-lib/util/applications.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 export type CrownDevelopmentWithRelations = Prisma.CrownDevelopmentGetPayload<{

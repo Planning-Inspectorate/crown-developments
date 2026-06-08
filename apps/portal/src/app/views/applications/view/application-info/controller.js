@@ -1,7 +1,7 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { applicationLinks, applicationUpdateToTimelineItem, crownDevelopmentToViewModel } from '../view-model.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { fetchPublishedApplication, isExpired, isWithdrawnOrExpired } from '#util/applications.ts';
+import { fetchPublishedApplication, isExpired, isWithdrawnOrExpired } from '@pins/crowndev-lib/util/applications.ts';
 import { getHaveYourSayStatus } from '../have-your-say/util.js';
 import {
 	getAboutThisApplicationSectionItems,

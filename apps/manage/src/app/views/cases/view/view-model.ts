@@ -5,7 +5,7 @@ import {
 } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { toInt, parseNumberStringToNumber } from '@pins/crowndev-lib/util/numbers.ts';
 import { booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms';
-import { optionalWhere } from '@pins/crowndev-lib/util/database.js';
+import { optionalWhere } from '@pins/crowndev-lib/util/database.ts';
 import { addressToViewModel, viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
 import {
 	buildAgentOrganisationNameUpdates,
