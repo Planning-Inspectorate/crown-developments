@@ -23,7 +23,8 @@ export function initContentSecurityPolicyMiddlewares(): Handler[] {
 			"'sha256-7zbeFC0WLiMB91PUOjhl4gr+nVFhMvuL8499Uj28yhk='",
 			"'sha256-UN0YC/M1Zsw697Rinjvc9+EQSGi5Rp94tCe93kO195E='"
 		],
-		connectSrc: ['https://*.google-analytics.com', 'https://*.analytics.google.com', 'https://*.googletagmanager.com']
+		connectSrc: ['https://*.google-analytics.com', 'https://*.analytics.google.com', 'https://*.googletagmanager.com'],
+		imgSrc: ['https://www.googletagmanager.com']
 	};
 
 	const directives: HelmetCspDirectives = {
@@ -37,7 +38,7 @@ export function initContentSecurityPolicyMiddlewares(): Handler[] {
 		defaultSrc: ["'self'"],
 		connectSrc: ["'self'", ...googleAnalytics.connectSrc],
 		fontSrc: ["'self'"],
-		imgSrc: ["'self'"],
+		imgSrc: ["'self'", ...googleAnalytics.imgSrc],
 		styleSrc: ["'self'"]
 	};
 
