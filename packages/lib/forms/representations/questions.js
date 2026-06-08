@@ -16,7 +16,7 @@ import {
 import {
 	referenceDataToRadioOptions,
 	referenceDataToRadioOptionsWithHintText
-} from '@pins/crowndev-lib/util/questions.js';
+} from '@pins/crowndev-lib/util/questions.ts';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '../custom-components/index.js';
 import {
 	ALLOWED_EXTENSIONS,

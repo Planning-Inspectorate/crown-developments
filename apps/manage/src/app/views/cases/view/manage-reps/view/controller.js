@@ -11,7 +11,7 @@ import {
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	RECEIVED_METHOD_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { getSubmittedForId } from '@pins/crowndev-lib/util/questions.js';
+import { getSubmittedForId } from '@pins/crowndev-lib/util/questions.ts';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
 import { isSafeRelativeUrl, escapeHtml } from '@pins/crowndev-lib/util/string.ts';

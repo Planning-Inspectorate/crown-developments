@@ -1,6 +1,6 @@
 import { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
 import { nl2br } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
-import { truncateComment, truncatedReadMoreCommentLink } from '../../../util/questions.js';
+import { truncateComment, truncatedReadMoreCommentLink } from '../../../util/questions.ts';
 
 /**
  * @typedef {Object} TextEntryCheckbox

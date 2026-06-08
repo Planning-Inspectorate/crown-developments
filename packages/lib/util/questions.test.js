@@ -7,7 +7,7 @@ import {
 	shouldTruncateComment,
 	truncateComment,
 	truncatedReadMoreCommentLink
-} from './questions.js';
+} from './questions.ts';
 import { REPRESENTATION_SUBMITTED_FOR_ID, WITHDRAWAL_REASON } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('questions', () => {
@@ -21,11 +21,14 @@ describe('questions', () => {
 		it('should return false if comment does not exceed 500 characters', () => {
 			assert.deepEqual(shouldTruncateComment('a short comment'), false);
 		});
-		it('should return false if comment passed is null', () => {
-			assert.deepEqual(shouldTruncateComment(null), false);
+		it('should return false for an empty string', () => {
+			assert.deepEqual(shouldTruncateComment(''), false);
 		});
-		it('should return false if comment passed is undefined', () => {
-			assert.deepEqual(shouldTruncateComment(undefined), false);
+		it('should return false for a comment of exactly 500 characters', () => {
+			assert.deepEqual(shouldTruncateComment('a'.repeat(500)), false);
+		});
+		it('should return true for a comment of exactly 501 characters', () => {
+			assert.deepEqual(shouldTruncateComment('a'.repeat(501)), true);
 		});
 	});
 	describe('truncateComment', () => {
@@ -40,6 +43,17 @@ describe('questions', () => {
 		});
 		it('should not truncate comment if it does not exceed 500 characters', () => {
 			assert.deepEqual(truncateComment('a short comment'), 'a short comment');
+		});
+		it('should return an empty string unchanged', () => {
+			assert.deepEqual(truncateComment(''), '');
+		});
+		it('should not truncate a comment of exactly 500 characters', () => {
+			const comment = 'a'.repeat(500);
+			assert.deepEqual(truncateComment(comment), comment);
+		});
+		it('should truncate a comment of exactly 501 characters to 500 chars plus ellipsis', () => {
+			const comment = 'a'.repeat(501);
+			assert.deepEqual(truncateComment(comment), `${'a'.repeat(500)}... `);
 		});
 	});
 	describe('truncatedReadMoreCommentLink', () => {
