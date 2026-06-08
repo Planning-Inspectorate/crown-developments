@@ -10,10 +10,12 @@
     {% endset %}
     {% if containsDistressingContent %}
         <div class="govuk-grid-row">
-            {{ govukNotificationBanner({
-                titleText: "Important",
-                html: html
-            }) }}
+            <div class="govuk-grid-column-full">
+                {{ govukNotificationBanner({
+                    titleText: "Important",
+                    html: html
+                }) }}
+            </div>
         </div>
     {% endif %}
 {% endmacro %}

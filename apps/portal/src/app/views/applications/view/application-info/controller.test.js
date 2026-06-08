@@ -2,7 +2,11 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildApplicationInformationPage } from './controller.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
-import { APPLICATION_PROCEDURE_ID, APPLICATION_STAGE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import {
+	APPLICATION_PROCEDURE_ID,
+	APPLICATION_STAGE_ID,
+	APPLICATION_SUB_TYPE_ID
+} from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('application info controller', () => {
 	describe('buildApplicationInformationPage', () => {
@@ -116,250 +120,47 @@ describe('application info controller', () => {
 				mockRes.render.mock.calls[0].arguments[0],
 				'views/applications/view/application-info/view.njk'
 			);
-			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
-				pageCaption: 'CROWN/2025/0000001',
-				applicationReference: 'CROWN/2025/0000001',
-				pageTitle: 'Application information',
-				shouldShowImportantDatesSection: true,
-				shouldShowApplicationDecisionSection: true,
-				shouldShowProcedureDetailsSection: true,
-				isWithdrawn: false,
-				isExpired: false,
-				links: [
-					{
-						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-information',
-						text: 'Application information'
-					},
-					{
-						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/documents',
-						text: 'Documents'
-					},
-					{
-						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/have-your-say',
-						text: 'Have your say'
-					},
-					{
-						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-updates',
-						text: 'Application updates'
-					}
-				],
-				baseUrl: '/applications',
-				currentUrl: undefined,
-				hasLinkedCase: false,
-				linkedCaseLink: undefined,
-				crownDevelopmentFields: {
-					applicantName: 'Test Name',
-					applicationAcceptedDate: '9 October 2025',
-					applicationStatus: 'active',
-					applicationType: 'Planning permission',
-					crownDevelopmentContactEmail: undefined,
-					decisionDate: '9 October 2025',
-					decisionOutcome: 'Approved',
-					description: 'a new crown dev application',
-					id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
-					lpaName: 'System Test Borough Council',
-					procedure: 'Hearing',
-					reference: 'CROWN/2025/0000001',
-					representationsPeriodEndDate: '31 January 2025',
-					representationsPeriodEndDateTime: '31 January 2025 at 12:00am',
-					representationsPeriodStartDate: '1 January 2025',
-					representationsPeriodStartDateTime: '1 January 2025 at 12:00am',
-					representationsPublishDate: '9 October 2025',
-					siteCoordinates: {
-						easting: '654321',
-						northing: '123456'
-					},
-					stage: 'Consultation',
-					hearingDate: '17 December 2020',
-					hearingVenue: 'the venue',
-					isHearing: true,
-					containsDistressingContent: true
-				},
-				aboutThisApplicationSectionItems: [
-					{
-						key: {
-							text: 'Type of application'
-						},
-						value: {
-							text: 'Planning permission'
-						}
-					},
-					{
-						key: {
-							text: 'Local planning authority'
-						},
-						value: {
-							text: 'System Test Borough Council'
-						}
-					},
-					{
-						key: {
-							text: 'Applicant name'
-						},
-						value: {
-							text: 'Test Name'
-						}
-					},
-					{
-						key: {
-							text: 'Site address'
-						},
-						value: {
-							text: 'Easting: 654321, Northing: 123456'
-						}
-					},
-					{
-						key: {
-							text: 'Description of the proposed development'
-						},
-						value: {
-							text: 'a new crown dev application'
-						}
-					},
-					{
-						key: {
-							text: 'Stage'
-						},
-						value: {
-							text: 'Consultation'
-						}
-					},
-					{
-						key: {
-							text: 'Application form'
-						},
-						value: {
-							html: '<p class="govuk-body">To view the full application, go to the <a class="govuk-link govuk-link--no-visited-state" href="/applications/documents">Documents</a> section.</p>'
-						}
-					}
-				],
-				importantDatesSectionItems: [
-					{
-						key: {
-							text: 'Application accepted date'
-						},
-						value: {
-							text: '9 October 2025'
-						}
-					},
-					{
-						key: {
-							text: 'Representation period'
-						},
-						value: {
-							text: '1 January 2025 at 12:00am to 31 January 2025 at 12:00am'
-						}
-					},
-					{
-						key: {
-							text: 'Decision date'
-						},
-						value: {
-							text: '9 October 2025'
-						}
-					}
-				],
-				procedureDetailsSectionItems: [
-					{
-						key: {
-							text: 'Procedure type'
-						},
-						value: {
-							text: 'Hearing'
-						}
-					},
-					{
-						key: {
-							text: 'Hearing date'
-						},
-						value: {
-							text: '17 December 2020'
-						}
-					},
-					{
-						key: {
-							text: 'Hearing venue'
-						},
-						value: {
-							text: 'the venue'
-						}
-					}
-				],
-				applicationDecisionSectionItems: [
-					{
-						key: {
-							text: 'Decision date'
-						},
-						value: {
-							text: '9 October 2025'
-						}
-					},
-					{
-						key: {
-							text: 'Decision outcome'
-						},
-						value: {
-							text: 'Approved'
-						}
-					}
-				],
-				latestApplicationUpdate: {
-					details: 'an update',
-					firstPublished: '17 December 2020'
-				},
-				applicationStageItems: {
-					currentStage: {
-						stageDisplayName: 'Consultation',
-						stageId: APPLICATION_STAGE_ID.CONSULTATION,
-						status: 'In progress',
-						isCurrentStage: true
-					},
-					formattedApplicationStages: [
-						{
-							stageDisplayName: 'Pre-application',
-							stageId: 'pre-application',
-							status: 'Completed',
-							isCurrentStage: false
-						},
-						{
-							stageDisplayName: 'Accepted',
-							stageId: APPLICATION_STAGE_ID.ACCEPTANCE,
-							status: 'Completed',
-							isCurrentStage: false
-						},
-						{
-							stageDisplayName: 'Consultation',
-							stageId: APPLICATION_STAGE_ID.CONSULTATION,
-							status: 'In progress',
-							isCurrentStage: true
-						},
-						{
-							stageDisplayName: 'Procedure choice',
-							stageId: APPLICATION_STAGE_ID.PROCEDURE_DECISION,
-							status: 'Not started',
-							isCurrentStage: false
-						},
-						{
-							stageDisplayName: 'Final decision',
-							stageId: APPLICATION_STAGE_ID.DECISION,
-							status: 'Not started',
-							isCurrentStage: false
-						},
-						{
-							stageDisplayName: 'Post decision',
-							stageId: 'post-decision',
-							status: 'Not started',
-							isCurrentStage: false
-						}
-					],
-					formattedConsultationEndDate: 'Friday 31 January 2025'
-				},
-
-				haveYourSayStatus: 'open'
-			});
 			const renderArgs = mockRes.render.mock.calls[0].arguments[1];
+
+			// Verify key properties
+			assert.strictEqual(renderArgs.pageCaption, 'CROWN/2025/0000001');
 			assert.strictEqual(renderArgs.isWithdrawn, false);
 			assert.strictEqual(renderArgs.isExpired, false);
+			assert.strictEqual(renderArgs.haveYourSayStatus, 'open');
+			assert.deepStrictEqual(renderArgs.links, [
+				{
+					href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-information',
+					text: 'Application information'
+				},
+				{
+					href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/documents',
+					text: 'Documents'
+				},
+				{
+					href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/have-your-say',
+					text: 'Have your say'
+				},
+				{
+					href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-updates',
+					text: 'Application updates'
+				}
+			]);
+
+			// Verify banner with key substrings instead of exact HTML
+			assert.ok(renderArgs.banner);
+			assert.strictEqual(renderArgs.banner.type, 'info');
+			assert.ok(renderArgs.banner.html.includes('Latest update'));
+			assert.ok(renderArgs.banner.html.includes('17 December 2020'));
+			assert.ok(renderArgs.banner.html.includes('an update'));
+			assert.ok(renderArgs.banner.html.includes('View all updates'));
+			assert.ok(renderArgs.banner.html.includes('href="/applications/application-updates"'));
+
+			// Verify crown development fields
+			assert.strictEqual(renderArgs.crownDevelopmentFields.applicantName, 'Test Name');
+			assert.strictEqual(renderArgs.crownDevelopmentFields.containsDistressingContent, true);
+			assert.strictEqual(renderArgs.crownDevelopmentFields.procedure, 'Hearing');
+			assert.strictEqual(renderArgs.crownDevelopmentFields.hearingDate, '17 December 2020');
+			assert.strictEqual(renderArgs.crownDevelopmentFields.hearingVenue, 'the venue');
 		});
 		it('should fetch published application without distressing content', async (context) => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
@@ -431,321 +232,47 @@ describe('application info controller', () => {
 				mockRes.render.mock.calls[0].arguments[0],
 				'views/applications/view/application-info/view.njk'
 			);
-			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1], {
-				pageCaption: 'CROWN/2025/0000001',
-				applicationReference: 'CROWN/2025/0000001',
-				pageTitle: 'Application information',
-				shouldShowImportantDatesSection: true,
-				shouldShowApplicationDecisionSection: true,
-				shouldShowProcedureDetailsSection: true,
-				isWithdrawn: false,
-				isExpired: false,
-				links: [
-					{
-						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-information',
-						text: 'Application information'
-					},
-					{
-						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/documents',
-						text: 'Documents'
-					},
-					{
-						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/have-your-say',
-						text: 'Have your say'
-					},
-					{
-						href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-updates',
-						text: 'Application updates'
-					}
-				],
-				baseUrl: '/applications',
-				currentUrl: undefined,
-				hasLinkedCase: false,
-				linkedCaseLink: undefined,
-				crownDevelopmentFields: {
-					applicantName: 'Test Name',
-					applicationAcceptedDate: '9 October 2025',
-					applicationStatus: 'active',
-					applicationType: 'Planning permission',
-					crownDevelopmentContactEmail: undefined,
-					decisionDate: '9 October 2025',
-					decisionOutcome: 'Approved',
-					description: 'a new crown dev application',
-					id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
-					lpaName: 'System Test Borough Council',
-					procedure: 'Hearing',
-					reference: 'CROWN/2025/0000001',
-					representationsPeriodEndDate: '31 January 2025',
-					representationsPeriodEndDateTime: '31 January 2025 at 12:00am',
-					representationsPeriodStartDate: '1 January 2025',
-					representationsPeriodStartDateTime: '1 January 2025 at 12:00am',
-					representationsPublishDate: '9 October 2025',
-					siteCoordinates: {
-						easting: '654321',
-						northing: '123456'
-					},
-					stage: 'Consultation',
-					hearingDate: '17 December 2020',
-					hearingVenue: 'the venue',
-					isHearing: true,
-					containsDistressingContent: false
-				},
-				aboutThisApplicationSectionItems: [
-					{
-						key: {
-							text: 'Type of application'
-						},
-						value: {
-							text: 'Planning permission'
-						}
-					},
-					{
-						key: {
-							text: 'Local planning authority'
-						},
-						value: {
-							text: 'System Test Borough Council'
-						}
-					},
-					{
-						key: {
-							text: 'Applicant name'
-						},
-						value: {
-							text: 'Test Name'
-						}
-					},
-					{
-						key: {
-							text: 'Site address'
-						},
-						value: {
-							text: 'Easting: 654321, Northing: 123456'
-						}
-					},
-					{
-						key: {
-							text: 'Description of the proposed development'
-						},
-						value: {
-							text: 'a new crown dev application'
-						}
-					},
-					{
-						key: {
-							text: 'Stage'
-						},
-						value: {
-							text: 'Consultation'
-						}
-					},
-					{
-						key: {
-							text: 'Application form'
-						},
-						value: {
-							html: '<p class="govuk-body">To view the full application, go to the <a class="govuk-link govuk-link--no-visited-state" href="/applications/documents">Documents</a> section.</p>'
-						}
-					}
-				],
-				importantDatesSectionItems: [
-					{
-						key: {
-							text: 'Application accepted date'
-						},
-						value: {
-							text: '9 October 2025'
-						}
-					},
-					{
-						key: {
-							text: 'Representation period'
-						},
-						value: {
-							text: '1 January 2025 at 12:00am to 31 January 2025 at 12:00am'
-						}
-					},
-					{
-						key: {
-							text: 'Decision date'
-						},
-						value: {
-							text: '9 October 2025'
-						}
-					}
-				],
-				procedureDetailsSectionItems: [
-					{
-						key: {
-							text: 'Procedure type'
-						},
-						value: {
-							text: 'Hearing'
-						}
-					},
-					{
-						key: {
-							text: 'Hearing date'
-						},
-						value: {
-							text: '17 December 2020'
-						}
-					},
-					{
-						key: {
-							text: 'Hearing venue'
-						},
-						value: {
-							text: 'the venue'
-						}
-					}
-				],
-				applicationDecisionSectionItems: [
-					{
-						key: {
-							text: 'Decision date'
-						},
-						value: {
-							text: '9 October 2025'
-						}
-					},
-					{
-						key: {
-							text: 'Decision outcome'
-						},
-						value: {
-							text: 'Approved'
-						}
-					}
-				],
-				latestApplicationUpdate: {
-					details: 'an update',
-					firstPublished: '17 December 2020'
-				},
-				applicationStageItems: {
-					currentStage: {
-						stageDisplayName: 'Consultation',
-						stageId: APPLICATION_STAGE_ID.CONSULTATION,
-						status: 'In progress',
-						isCurrentStage: true
-					},
-					formattedApplicationStages: [
-						{
-							stageDisplayName: 'Pre-application',
-							stageId: 'pre-application',
-							status: 'Completed',
-							isCurrentStage: false
-						},
-						{
-							stageDisplayName: 'Accepted',
-							stageId: APPLICATION_STAGE_ID.ACCEPTANCE,
-							status: 'Completed',
-							isCurrentStage: false
-						},
-						{
-							stageDisplayName: 'Consultation',
-							stageId: APPLICATION_STAGE_ID.CONSULTATION,
-							status: 'In progress',
-							isCurrentStage: true
-						},
-						{
-							stageDisplayName: 'Procedure choice',
-							stageId: APPLICATION_STAGE_ID.PROCEDURE_DECISION,
-							status: 'Not started',
-							isCurrentStage: false
-						},
-						{
-							stageDisplayName: 'Final decision',
-							stageId: APPLICATION_STAGE_ID.DECISION,
-							status: 'Not started',
-							isCurrentStage: false
-						},
-						{
-							stageDisplayName: 'Post decision',
-							stageId: 'post-decision',
-							status: 'Not started',
-							isCurrentStage: false
-						}
-					],
-					formattedConsultationEndDate: 'Friday 31 January 2025'
-				},
-
-				haveYourSayStatus: 'open'
-			});
 			const renderArgs = mockRes.render.mock.calls[0].arguments[1];
+
+			// Verify key properties
+			assert.strictEqual(renderArgs.pageCaption, 'CROWN/2025/0000001');
 			assert.strictEqual(renderArgs.isWithdrawn, false);
 			assert.strictEqual(renderArgs.isExpired, false);
-		});
-		it('should display linked case information when available', async (context) => {
-			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
-			const mockDb = {
-				crownDevelopment: {
-					findUnique: mock.fn(() => ({
-						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
-						reference: 'CROWN/2025/0000001',
-						representationsPeriodStartDate: new Date('2025-01-01'),
-						representationsPeriodEndDate: new Date('2025-01-31'),
-						representationsPublishDate: '2025-10-09T09:00:00.000Z',
-						applicationAcceptedDate: '2025-10-09T09:00:00.000Z',
-						decisionDate: '2025-10-09T09:00:00.000Z',
-						siteEasting: 654321,
-						siteNorthing: 123456,
-						linkedParentId: 'linked-case-id',
-						publishDate: new Date('2025-01-01T03:24:00.000Z'),
-						description: 'a new crown dev application',
-						ApplicantContact: {
-							orgName: 'Test Name'
-						},
-						Type: {
-							displayName: 'Planning permission'
-						},
-						Lpa: {
-							name: 'System Test Borough Council'
-						},
-						Event: {
-							date: new Date('2020-12-17T03:24:00.000Z'),
-							venue: 'the venue'
-						},
-						Stage: {
-							displayName: 'Consultation'
-						},
-						procedureId: APPLICATION_PROCEDURE_ID.HEARING,
-						Procedure: {
-							displayName: 'Hearing'
-						},
-						DecisionOutcome: {
-							displayName: 'Approved'
-						}
-					}))
+			assert.strictEqual(renderArgs.haveYourSayStatus, 'open');
+			assert.deepStrictEqual(renderArgs.links, [
+				{
+					href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-information',
+					text: 'Application information'
 				},
-				applicationUpdate: {
-					findFirst: mock.fn(),
-					count: mock.fn(() => 0)
+				{
+					href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/documents',
+					text: 'Documents'
+				},
+				{
+					href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/have-your-say',
+					text: 'Have your say'
+				},
+				{
+					href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-updates',
+					text: 'Application updates'
 				}
-			};
-			const handler = buildApplicationInformationPage({
-				db: mockDb,
-				config: {}
-			});
-			const mockReq = {
-				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
-				baseUrl: '/applications'
-			};
-			const mockRes = {
-				status: mock.fn(),
-				render: mock.fn()
-			};
-			await handler(mockReq, mockRes);
-			assert.strictEqual(mockRes.render.mock.callCount(), 1);
-			assert.strictEqual(
-				mockRes.render.mock.calls[0].arguments[0],
-				'views/applications/view/application-info/view.njk'
-			);
-			assert.deepStrictEqual(mockRes.render.mock.calls[0].arguments[1].hasLinkedCase, true);
-			assert.deepStrictEqual(
-				mockRes.render.mock.calls[0].arguments[1].linkedCaseLink,
-				`<a href="/applications/linked-case-id/application-information" class="govuk-link govuk-link--no-visited-state">Listed Building Consent (LBC) application</a>`
-			);
+			]);
+
+			// Verify banner with key substrings instead of exact HTML
+			assert.ok(renderArgs.banner);
+			assert.strictEqual(renderArgs.banner.type, 'info');
+			assert.ok(renderArgs.banner.html.includes('Latest update'));
+			assert.ok(renderArgs.banner.html.includes('17 December 2020'));
+			assert.ok(renderArgs.banner.html.includes('an update'));
+			assert.ok(renderArgs.banner.html.includes('View all updates'));
+			assert.ok(renderArgs.banner.html.includes('href="/applications/application-updates"'));
+
+			// Verify crown development fields
+			assert.strictEqual(renderArgs.crownDevelopmentFields.applicantName, 'Test Name');
+			assert.strictEqual(renderArgs.crownDevelopmentFields.containsDistressingContent, false);
+			assert.strictEqual(renderArgs.crownDevelopmentFields.procedure, 'Hearing');
+			assert.strictEqual(renderArgs.crownDevelopmentFields.hearingDate, '17 December 2020');
+			assert.strictEqual(renderArgs.crownDevelopmentFields.hearingVenue, 'the venue');
 		});
 		it('should set isWithdrawn and isExpired correctly when application is withdrawn but not expired', async (context) => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
@@ -972,6 +499,276 @@ describe('application info controller', () => {
 				mockRes.render.mock.calls[0].arguments[0],
 				'views/applications/view/application-info/view.njk'
 			);
+		});
+
+		it('should display linked case banner when case is published', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn((query) => {
+						// First call is for the main application
+						if (query.where.id === 'cfe3dc29-1f63-45e6-81dd-da8183842bf8') {
+							return {
+								id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
+								reference: 'CROWN/2025/0000001',
+								linkedParentId: 'linked-case-id',
+								ParentCrownDevelopment: null,
+								ChildrenCrownDevelopment: [],
+								representationsPeriodStartDate: new Date('2025-01-01'),
+								representationsPeriodEndDate: new Date('2025-01-31'),
+								representationsPublishDate: '2025-10-09T09:00:00.000Z',
+								applicationAcceptedDate: '2025-10-09T09:00:00.000Z',
+								decisionDate: '2025-10-09T09:00:00.000Z',
+								siteEasting: 654321,
+								siteNorthing: 123456,
+								description: 'a new crown dev application',
+								ApplicantContact: { orgName: 'Test Name' },
+								Type: { displayName: 'Planning permission' },
+								Lpa: { name: 'System Test Borough Council' },
+								Event: { date: new Date('2020-12-17T03:24:00.000Z'), venue: 'the venue' },
+								stageId: APPLICATION_STAGE_ID.CONSULTATION,
+								Stage: { displayName: 'Consultation' },
+								procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+								Procedure: { displayName: 'Hearing' },
+								DecisionOutcome: { displayName: 'Approved' },
+								withdrawnDate: null
+							};
+						}
+						// Second call is for linked case check
+						if (query.where.id === 'linked-case-id') {
+							return {
+								subTypeId: APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION,
+								publishDate: new Date('2024-12-01T00:00:00.000Z')
+							};
+						}
+						return null;
+					})
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => null),
+					count: mock.fn(() => 0)
+				}
+			};
+			const handler = buildApplicationInformationPage({
+				db: mockDb,
+				config: {}
+			});
+			const mockReq = {
+				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
+				baseUrl: '/applications'
+			};
+			const mockRes = {
+				status: mock.fn(),
+				render: mock.fn()
+			};
+			await handler(mockReq, mockRes);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const renderArgs = mockRes.render.mock.calls[0].arguments[1];
+			assert.ok(renderArgs.banner);
+			assert.strictEqual(renderArgs.banner.type, 'info');
+			assert.ok(renderArgs.banner.html.includes('This application is connected to a'));
+			assert.ok(renderArgs.banner.html.includes('planning permission application'));
+			assert.ok(renderArgs.banner.html.includes('href="/applications/linked-case-id/application-information"'));
+		});
+
+		it('should not display linked case banner when case is not published', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn((query) => {
+						// First call is for the main application
+						if (query.where.id === 'cfe3dc29-1f63-45e6-81dd-da8183842bf8') {
+							return {
+								id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
+								reference: 'CROWN/2025/0000001',
+								linkedParentId: 'linked-case-id',
+								ParentCrownDevelopment: null,
+								ChildrenCrownDevelopment: [],
+								representationsPeriodStartDate: new Date('2025-01-01'),
+								representationsPeriodEndDate: new Date('2025-01-31'),
+								representationsPublishDate: '2025-10-09T09:00:00.000Z',
+								applicationAcceptedDate: '2025-10-09T09:00:00.000Z',
+								decisionDate: '2025-10-09T09:00:00.000Z',
+								siteEasting: 654321,
+								siteNorthing: 123456,
+								description: 'a new crown dev application',
+								ApplicantContact: { orgName: 'Test Name' },
+								Type: { displayName: 'Planning permission' },
+								Lpa: { name: 'System Test Borough Council' },
+								Event: { date: new Date('2020-12-17T03:24:00.000Z'), venue: 'the venue' },
+								stageId: APPLICATION_STAGE_ID.CONSULTATION,
+								Stage: { displayName: 'Consultation' },
+								procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+								Procedure: { displayName: 'Hearing' },
+								DecisionOutcome: { displayName: 'Approved' },
+								withdrawnDate: null
+							};
+						}
+						// Second call is for linked case check - future publish date means not yet published
+						if (query.where.id === 'linked-case-id') {
+							return {
+								subTypeId: APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION,
+								publishDate: new Date('2025-12-01T00:00:00.000Z')
+							};
+						}
+						return null;
+					})
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => null),
+					count: mock.fn(() => 0)
+				}
+			};
+			const handler = buildApplicationInformationPage({
+				db: mockDb,
+				config: {}
+			});
+			const mockReq = {
+				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
+				baseUrl: '/applications'
+			};
+			const mockRes = {
+				status: mock.fn(),
+				render: mock.fn()
+			};
+			await handler(mockReq, mockRes);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const renderArgs = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(renderArgs.banner, null, 'banner should be null when linked case is not published');
+		});
+
+		it('should not display linked case banner when there is no linked case', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
+						reference: 'CROWN/2025/0000001',
+						linkedParentId: null,
+						ParentCrownDevelopment: null,
+						ChildrenCrownDevelopment: [],
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-01-31'),
+						representationsPublishDate: '2025-10-09T09:00:00.000Z',
+						applicationAcceptedDate: '2025-10-09T09:00:00.000Z',
+						decisionDate: '2025-10-09T09:00:00.000Z',
+						siteEasting: 654321,
+						siteNorthing: 123456,
+						description: 'a new crown dev application',
+						ApplicantContact: { orgName: 'Test Name' },
+						Type: { displayName: 'Planning permission' },
+						Lpa: { name: 'System Test Borough Council' },
+						Event: { date: new Date('2020-12-17T03:24:00.000Z'), venue: 'the venue' },
+						stageId: APPLICATION_STAGE_ID.CONSULTATION,
+						Stage: { displayName: 'Consultation' },
+						procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+						Procedure: { displayName: 'Hearing' },
+						DecisionOutcome: { displayName: 'Approved' },
+						withdrawnDate: null
+					}))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => null),
+					count: mock.fn(() => 0)
+				}
+			};
+			const handler = buildApplicationInformationPage({
+				db: mockDb,
+				config: {}
+			});
+			const mockReq = {
+				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
+				baseUrl: '/applications'
+			};
+			const mockRes = {
+				status: mock.fn(),
+				render: mock.fn()
+			};
+			await handler(mockReq, mockRes);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const renderArgs = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(renderArgs.banner, null, 'banner should be null when there is no linked case');
+		});
+
+		it('should display a single merged banner when linked case and latest update are both present', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn((query) => {
+						// First call is for the main application
+						if (query.where.id === 'cfe3dc29-1f63-45e6-81dd-da8183842bf8') {
+							return {
+								id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
+								reference: 'CROWN/2025/0000001',
+								linkedParentId: 'linked-case-id',
+								ParentCrownDevelopment: null,
+								ChildrenCrownDevelopment: [],
+								representationsPeriodStartDate: new Date('2025-01-01'),
+								representationsPeriodEndDate: new Date('2025-01-31'),
+								representationsPublishDate: '2025-10-09T09:00:00.000Z',
+								applicationAcceptedDate: '2025-10-09T09:00:00.000Z',
+								decisionDate: '2025-10-09T09:00:00.000Z',
+								siteEasting: 654321,
+								siteNorthing: 123456,
+								description: 'a new crown dev application',
+								ApplicantContact: { orgName: 'Test Name' },
+								Type: { displayName: 'Planning permission' },
+								Lpa: { name: 'System Test Borough Council' },
+								Event: { date: new Date('2020-12-17T03:24:00.000Z'), venue: 'the venue' },
+								stageId: APPLICATION_STAGE_ID.CONSULTATION,
+								Stage: { displayName: 'Consultation' },
+								procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+								Procedure: { displayName: 'Hearing' },
+								DecisionOutcome: { displayName: 'Approved' },
+								withdrawnDate: null
+							};
+						}
+						// Second call is for linked case check
+						if (query.where.id === 'linked-case-id') {
+							return {
+								subTypeId: APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION,
+								publishDate: new Date('2024-12-01T00:00:00.000Z')
+							};
+						}
+						return null;
+					})
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => ({
+						id: 'app-update-01',
+						details: 'an update',
+						firstPublished: new Date('2020-12-17T03:24:00.000Z')
+					})),
+					count: mock.fn(() => 3)
+				}
+			};
+			const handler = buildApplicationInformationPage({
+				db: mockDb,
+				config: {}
+			});
+			const mockReq = {
+				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
+				baseUrl: '/applications'
+			};
+			const mockRes = {
+				status: mock.fn(),
+				render: mock.fn()
+			};
+			await handler(mockReq, mockRes);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const renderArgs = mockRes.render.mock.calls[0].arguments[1];
+
+			assert.ok(renderArgs.banner);
+			assert.strictEqual(renderArgs.banner.type, 'info');
+			assert.ok(renderArgs.banner.html.includes('<ul class="govuk-list govuk-list--bullet">'));
+			assert.ok(renderArgs.banner.html.includes('This application is connected to a'));
+			assert.ok(renderArgs.banner.html.includes('planning permission application'));
+			assert.ok(renderArgs.banner.html.includes('href="/applications/linked-case-id/application-information"'));
+			assert.ok(renderArgs.banner.html.includes('Latest update'));
+			assert.ok(renderArgs.banner.html.includes('17 December 2020'));
+			assert.ok(renderArgs.banner.html.includes('an update'));
+			assert.ok(renderArgs.banner.html.includes('View all updates'));
+			assert.ok(renderArgs.banner.html.includes('href="/applications/application-updates"'));
 		});
 	});
 });

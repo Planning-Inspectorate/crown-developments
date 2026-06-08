@@ -12,13 +12,41 @@ import {
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { buildApplicationStages, getCurrentStage } from './application-stage/controller.js';
-import {
-	getLinkedCaseId,
-	getLinkedCaseLinkText,
-	hasLinkedCase,
-	linkedCaseIsPublished
-} from '@pins/crowndev-lib/util/linked-case.ts';
+import { maybeGetLinkedCaseLink } from '@pins/crowndev-lib/util/linked-case.ts';
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
+import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
+import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
+
+/**
+ * @typedef {import('@pins/crowndev-lib/views/banner/banner-builder').BannerMessage} BannerMessage
+ * @typedef {{latestApplicationUpdate: ReturnType<typeof applicationUpdateToTimelineItem>, isExpired: boolean}} GetBannerMessagesOptions
+ */
+
+/**
+ * Get all banner messages to display.
+ *
+ * @param {import('express').Request} req
+ * @param {import('#service').PortalService['db']} db
+ * @param {CrownDevelopmentWithLinkedCase} crownDevelopment - Already-fetched crown development with parent/children relationships
+ * @param {GetBannerMessagesOptions} options
+ * @return {Promise<BannerMessage|null>}
+ */
+async function getBannerMessages(req, db, crownDevelopment, options) {
+	const bannerBuilder = new BannerBuilder();
+
+	const linkedCaseLink = await maybeGetLinkedCaseLink(db, crownDevelopment, 'portal');
+	if (linkedCaseLink) {
+		bannerBuilder.addLinkedCase(linkedCaseLink);
+	}
+
+	if (!options.isExpired && options.latestApplicationUpdate) {
+		const html = `<h3 class="govuk-notification-banner__heading">Latest update &mdash; ${escapeHtml(options.latestApplicationUpdate.firstPublished)}</h3>
+			<p class="govuk-body pins-pre-line">${escapeHtml(options.latestApplicationUpdate.details)}</p>
+			<p><a class="govuk-notification-banner__link" href="${req.baseUrl}/application-updates">View all updates</a></p>`;
+		bannerBuilder.addInfoTrustedHtml(html);
+	}
+	return bannerBuilder.build();
+}
 
 /**
  * @param {import('#service').PortalService} service
@@ -121,6 +149,11 @@ export function buildApplicationInformationPage(service) {
 			applicationStatus
 		);
 
+		const banner = await getBannerMessages(req, db, crownDevelopment, {
+			latestApplicationUpdate: applicationUpdateToTimelineItem(latestApplicationUpdate),
+			isExpired: isExpired(applicationStatus)
+		});
+
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: crownDevelopmentFields.reference,
 			pageTitle: 'Application information',
@@ -128,9 +161,9 @@ export function buildApplicationInformationPage(service) {
 			isWithdrawn: isWithdrawnOrExpired(applicationStatus),
 			isExpired: isExpired(applicationStatus),
 			links,
-			baseUrl: req.baseUrl,
 			currentUrl: req.originalUrl,
 			crownDevelopmentFields,
+			banner,
 			shouldShowImportantDatesSection,
 			shouldShowProcedureDetailsSection,
 			shouldShowApplicationDecisionSection,
@@ -148,9 +181,6 @@ export function buildApplicationInformationPage(service) {
 				crownDevelopmentFields
 			),
 			haveYourSayStatus: getHaveYourSayStatus(haveYourSayPeriod, representationsPublishDate),
-			latestApplicationUpdate: applicationUpdateToTimelineItem(latestApplicationUpdate),
-			hasLinkedCase: hasLinkedCase(crownDevelopment) && (await linkedCaseIsPublished(db, crownDevelopment)),
-			linkedCaseLink: await getLinkedCaseLink(db, crownDevelopment),
 			applicationStageItems: {
 				currentStage,
 				formattedApplicationStages,
@@ -160,10 +190,4 @@ export function buildApplicationInformationPage(service) {
 			}
 		});
 	};
-}
-
-async function getLinkedCaseLink(db, crownDevelopment) {
-	if (hasLinkedCase(crownDevelopment)) {
-		return `<a href="/applications/${getLinkedCaseId(crownDevelopment)}/application-information" class="govuk-link govuk-link--no-visited-state">${await getLinkedCaseLinkText(db, crownDevelopment)} application</a>`;
-	}
 }
