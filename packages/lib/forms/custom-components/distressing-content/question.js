@@ -4,6 +4,8 @@ import BooleanQuestion from '@planning-inspectorate/dynamic-forms/src/components
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/section.js').Section} Section */
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey.js').Journey} Journey */
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question-types.js').QuestionParameters} QuestionParameters */
+/** @typedef {Omit<import('@planning-inspectorate/dynamic-forms/src/controller.js').ActionView, 'visuallyHiddenText'>} ActionLink */
+/** @typedef {QuestionParameters & { actionLink?: ActionLink }} DistressingContentQuestionProps */
 
 /**
  * Custom Boolean Question that supports actionLink override
@@ -12,10 +14,7 @@ import BooleanQuestion from '@planning-inspectorate/dynamic-forms/src/components
  */
 export default class DistressingContentQuestion extends BooleanQuestion {
 	/**
-	 * @typedef {Omit<import('@planning-inspectorate/dynamic-forms/src/controller.js').ActionView, 'visuallyHiddenText'>} ActionLink
-	 * @typedef {QuestionParameters & { actionLink?: ActionLink }} DistressingContentQuestionParameters
-	 *
-	 * @param {DistressingContentQuestionParameters} options
+	 * @param {DistressingContentQuestionProps} options
 	 */
 	constructor({ actionLink, ...params }) {
 		super(params);

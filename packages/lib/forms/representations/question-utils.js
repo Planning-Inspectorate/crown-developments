@@ -1,4 +1,4 @@
-import { CUSTOM_COMPONENTS } from '../custom-components/index.js';
+import { CUSTOM_COMPONENTS } from '../custom-components/index.ts';
 import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
 import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
 import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';

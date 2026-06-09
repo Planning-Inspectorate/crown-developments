@@ -1,7 +1,14 @@
 import { sentenceCase } from '../../../util/string.ts';
 import MonetaryInputQuestion from '../monetary-input/question.js';
 
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question} Question */
+/** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.d.ts').CommonQuestionProps} CommonQuestionProps */
+/** @typedef {Omit<CommonQuestionProps, 'type'> & { type: 'cil-amount', cilAmountInputFieldName: string, cilAmountQuestion: string, fieldToShow: string }} CILAmountQuestionProps */
+
 export default class CILAmountQuestion extends MonetaryInputQuestion {
+	/**
+	 * @param {CILAmountQuestionProps} props
+	 */
 	constructor(props) {
 		super({
 			...props,

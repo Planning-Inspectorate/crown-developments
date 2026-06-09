@@ -13,7 +13,7 @@ import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
 import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
 import CoordinatesValidator from '@planning-inspectorate/dynamic-forms/src/validator/coordinates-validator.js';
 import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
-import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.js';
+import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-components/manage-list/validator.js';
 import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.js';

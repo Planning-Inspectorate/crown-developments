@@ -30,7 +30,7 @@ import CoordinatesValidator from '@planning-inspectorate/dynamic-forms/src/valid
 import CustomDatePeriodValidator from '@pins/crowndev-lib/validators/custom-date-period-validator.js';
 import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
 import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.ts';
-import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.js';
+import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
 import DateTimeValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-time-validator.js';
 import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
