@@ -7,17 +7,11 @@ import {
 	sanitiseQueryToStringArray
 } from '@pins/crowndev-lib/filters/filter-utils.ts';
 import type { PortalService } from '#service';
-import type {
-	CheckboxFilter,
-	FilterSection,
-	FilterQueryItem,
-	QueryFilters
-} from '@pins/crowndev-lib/filters/filter-types.ts';
+import type { CheckboxFilter, FilterSection, QueryFilters } from '@pins/crowndev-lib/filters/filter-types.ts';
 
 const excludedFilterKeys = ['itemsPerPage', 'page', 'searchCriteria'] as const;
 
-export type { FilterSection, FilterQueryItem, QueryFilters };
-export { getFilterQueryItems, sanitiseQueryToStringArray };
+export { getFilterQueryItems };
 
 export async function buildFilters(
 	{ db, logger }: Pick<PortalService, 'db' | 'logger'>,
@@ -74,7 +68,7 @@ export async function buildFilters(
 		const attachmentsSection: CheckboxFilter = {
 			title: 'Contains attachments',
 			name: 'filterByAttachments',
-			type: 'checkboxes' as const,
+			type: 'checkboxes',
 			options: {
 				items: [
 					{

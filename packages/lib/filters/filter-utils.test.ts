@@ -51,7 +51,7 @@ describe('filter-utils', () => {
 			const filters: FilterSection[] = [
 				{
 					title: 'Category',
-					type: 'checkboxes' as const,
+					type: 'checkboxes',
 					name: 'filterCategory',
 					options: {
 						items: [
@@ -136,7 +136,7 @@ describe('filter-utils', () => {
 			const filters: FilterSection[] = [
 				{
 					title: 'Category',
-					type: 'checkboxes' as const,
+					type: 'checkboxes',
 					name: 'filterCategory',
 					options: {
 						items: [{ displayName: 'Application', text: 'Application (5)', value: 'app', checked: true }]
@@ -144,7 +144,7 @@ describe('filter-utils', () => {
 				},
 				{
 					title: 'Date published',
-					type: 'date-input' as const,
+					type: 'date-input',
 					name: 'publishedDate',
 					dateInputs: [
 						{
@@ -174,7 +174,7 @@ describe('filter-utils', () => {
 			const filters: FilterSection[] = [
 				{
 					title: 'Category',
-					type: 'checkboxes' as const,
+					type: 'checkboxes',
 					name: 'filterCategory',
 					options: {
 						items: [{ displayName: 'Application', text: 'Application (0)', value: 'app', checked: false }]
@@ -188,7 +188,7 @@ describe('filter-utils', () => {
 			const filters: FilterSection[] = [
 				{
 					title: 'Date published',
-					type: 'date-input' as const,
+					type: 'date-input',
 					name: 'publishedDate',
 					dateInputs: [
 						{
@@ -215,7 +215,7 @@ describe('filter-utils', () => {
 			const filters: FilterSection[] = [
 				{
 					title: 'Date published',
-					type: 'date-input' as const,
+					type: 'date-input',
 					name: 'publishedDate',
 					dateInputs: [
 						{
