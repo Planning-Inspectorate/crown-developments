@@ -1,4 +1,4 @@
-import { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
+import { Question } from '@planning-inspectorate/dynamic-forms';
 import { nl2br } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
 import { truncateComment, truncatedReadMoreCommentLink } from '../../../util/questions.ts';
 
@@ -14,16 +14,14 @@ import { truncateComment, truncatedReadMoreCommentLink } from '../../../util/que
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/section.js').Section} Section */
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey.js').Journey} Journey */
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey-types.d.ts').RouteParams} RouteParams */
+/** @typedef {QuestionParameters & { type: 'representation-comment', textEntryCheckbox?: TextEntryCheckbox, label?: string }} RepresentationCommentQuestionProps */
 
 /**
  * @class
  */
 export default class RepresentationComment extends Question {
 	/**
-	 * @param {object} options
-	 * @param {TextEntryCheckbox} [options.textEntryCheckbox]
-	 * @param {string|undefined} [options.label] if defined this show as a label for the input and the question will just be a standard h1
-	 * @param {QuestionParameters} options.params
+	 * @param {RepresentationCommentQuestionProps} options
 	 */
 	constructor({ textEntryCheckbox, label, ...params }) {
 		super({

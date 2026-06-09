@@ -14,7 +14,7 @@ import nunjucks from 'nunjucks';
  * 	isAllowedEmpty?: boolean;
  * 	confirmRemoveButtonText?: string;
  * 	removalPrompt?: string;
- * }} CustomManageListQuestionParameters
+ * }} CustomManageListQuestionProps
  */
 
 export default class CustomManageListQuestion extends ManageListQuestion {
@@ -32,7 +32,7 @@ export default class CustomManageListQuestion extends ManageListQuestion {
 	removalPrompt;
 
 	/**
-	 * @param {CustomManageListQuestionParameters} params
+	 * @param {CustomManageListQuestionProps} params
 	 */
 	constructor(params) {
 		super(params);

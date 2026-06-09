@@ -96,11 +96,7 @@ export default class CustomMultiFieldInputQuestion extends Question {
 	inputFields;
 
 	/**
-	 * @param {Object} options
-	 * @param {QuestionParameters} options.params
-	 * @param {string|undefined} [options.label] if defined this show as a label for the input and the question will just be a standard h1
-	 * @param {Record<string, string>} [options.inputAttributes] html attributes to add to the input
-	 * @param {(InputField|RadioField|HiddenField|BooleanFieldInput)[]} options.inputFields input fields (BooleanFieldInput options are optional, will be set to default Yes/No if not provided)
+	 * @param {CustomMultiFieldInputQuestionProps} options
 	 */
 	constructor({ label, inputAttributes = {}, inputFields, ...params }) {
 		super({

@@ -1,4 +1,4 @@
-import { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
+import { Question } from '@planning-inspectorate/dynamic-forms';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { JOURNEY_MAP } from './upload-documents.js';
 import nunjucks from 'nunjucks';
@@ -37,7 +37,7 @@ import nunjucks from 'nunjucks';
  * @property {string} maxFileSizeString
  * @property {boolean} showUploadWarning
  */
-/** @typedef {Omit<QuestionParameters, 'viewFolder'> & RepresentationAttachmentsConfig } RepresentationAttachmentsParameters */
+/** @typedef {Omit<QuestionParameters, 'viewFolder'> & RepresentationAttachmentsConfig } RepresentationAttachmentsQuestionProps */
 
 const REDACTED_FLAG = 'Redacted';
 
@@ -46,7 +46,7 @@ const REDACTED_FLAG = 'Redacted';
  */
 export default class RepresentationAttachments extends Question {
 	/**
-	 * @param {RepresentationAttachmentsParameters} options
+	 * @param {RepresentationAttachmentsQuestionProps} options
 	 */
 	constructor({
 		allowedFileExtensions,
@@ -212,6 +212,7 @@ export default class RepresentationAttachments extends Question {
 		];
 	}
 
+	/** @type {import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question['getAction']} */
 	getAction(sectionSegment, journey, answer) {
 		if (journey.journeyId === 'manage-representations') {
 			const statusId = journey.response?.answers?.statusId;
@@ -236,7 +237,7 @@ export default class RepresentationAttachments extends Question {
 			}
 
 			if (statusId === REPRESENTATION_STATUS_ID.REJECTED) {
-				return null;
+				return undefined;
 			}
 
 			return [
