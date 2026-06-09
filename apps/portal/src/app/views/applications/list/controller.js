@@ -93,3 +93,20 @@ export function buildApplicationListPage(service) {
 		});
 	};
 }
+
+export function buildCaseNumberRedirect(service) {
+	const { db } = service;
+	return async (req, res) => {
+		const { caseNumber } = req.params;
+
+		const crownDevelopment = await db.crownDevelopment.findFirst({
+			where: { reference: { endsWith: caseNumber } },
+			select: { id: true, publishDate: true }
+		});
+
+		if (!crownDevelopment || !crownDevelopment.publishDate || crownDevelopment.publishDate > new Date()) {
+			return notFoundHandler(req, res);
+		}
+		res.redirect(`/applications/${crownDevelopment.id}/application-information`);
+	};
+}

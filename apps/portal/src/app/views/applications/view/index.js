@@ -22,6 +22,9 @@ export function createRoutes(service) {
 	const isPublishedAndNotWithdrawnOrExpired = checkIfWithdrawnOrExpiredMiddleware(service);
 	const cachingMiddleware = buildCachingDynamicContentMiddleware(service);
 
+	router.route('/').get((req, res) => {
+		res.redirect(`applications/${req.params.applicationId}/application-information`);
+	});
 	router.get('/application-information', asyncHandler(applicationInfoController));
 	router.get('/application-updates', isPublishedAndNotExpired, asyncHandler(applicationUpdatesController));
 	router.get('/documents', isPublishedAndNotExpired, asyncHandler(applicationDocumentsPage));

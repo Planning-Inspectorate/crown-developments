@@ -8,6 +8,8 @@ import { createErrorRoutes } from './views/static/error/index.js';
 import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.ts';
 import { createRoutes as createCookieRoutes } from './views/static/cookies/index.js';
 import { buildDetailedInformationPage } from './views/static/detailed-information/controller.js';
+import { buildCaseNumberRedirect } from './views/applications/list/controller.js';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 
 /**
  * @param {import('#service').PortalService} service
@@ -28,6 +30,7 @@ export function buildRouter(service) {
 		router.route('/').get((req, res) => {
 			res.redirect('/applications');
 		});
+		router.get('/case/:caseNumber', asyncHandler(buildCaseNumberRedirect(service)));
 		router.use('/', applicationRoutes(service));
 		router.use('/accessibility-statement', buildAccessibilityStatementPage());
 		router.use('/contact', buildContactUsPage());
