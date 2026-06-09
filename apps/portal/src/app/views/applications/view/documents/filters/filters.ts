@@ -9,7 +9,6 @@ import type {
 	CheckboxItem,
 	CheckboxFilter,
 	FilterSection,
-	FilterQueryItem,
 	QueryFilters
 } from '@pins/crowndev-lib/filters/filter-types.ts';
 
@@ -19,7 +18,7 @@ export function createEmptyCategoryCounts(categories = DOCUMENT_CATEGORIES): Cat
 	return Object.fromEntries(categories.map((cat) => [cat.value, 0]));
 }
 
-export type { FilterSection, FilterQueryItem, QueryFilters };
+export type { FilterSection, QueryFilters };
 
 const excludedFilterKeys = ['itemsPerPage', 'page', 'searchCriteria', 'formType'] as const;
 

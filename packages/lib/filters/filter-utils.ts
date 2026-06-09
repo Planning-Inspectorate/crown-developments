@@ -61,8 +61,8 @@ export function buildDateFilterSection(options: BuildDateFilterOptions): DateFil
 	const fromValues = extractDateParts(queryFilters, fromPrefix);
 	const toValues = extractDateParts(queryFilters, toPrefix);
 
-	const fromDate = parseDateFromParts(fromValues.day ?? '', fromValues.month ?? '', fromValues.year ?? '') ?? undefined;
-	const toDate = parseDateFromParts(toValues.day ?? '', toValues.month ?? '', toValues.year ?? '') ?? undefined;
+	const fromDate = parseDateFromParts(fromValues.day, fromValues.month, fromValues.year) ?? undefined;
+	const toDate = parseDateFromParts(toValues.day, toValues.month, toValues.year) ?? undefined;
 
 	const dateFilterSection: DateFilter = {
 		title,

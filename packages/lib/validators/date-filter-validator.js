@@ -4,9 +4,9 @@ import { enGB } from 'date-fns/locale/en-GB';
 
 /**
  * Validate date and return an error message object if not valid.
- * @param {string} day
- * @param {string} month
- * @param {string} year
+ * @param {string | undefined | null} day
+ * @param {string | undefined | null} month
+ * @param {string | undefined | null} year
  * @param {string} title
  * @param {Date} [compareDate]
  * @param {'before' | 'after'} [compareType]
@@ -102,9 +102,9 @@ export function validateDate(day = '', month = '', year = '', title, compareDate
 
 /**
  * Parse a day/month/year into a real JS Date.
- * @param {string} day
- * @param {string} month
- * @param {string} year
+ * @param {string | undefined | null} day
+ * @param {string | undefined | null} month
+ * @param {string | undefined | null} year
  * @returns {Date | null}
  */
 export function parseDateFromParts(day, month, year) {
