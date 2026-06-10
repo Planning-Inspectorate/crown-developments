@@ -15,7 +15,7 @@ import { buildApplicationStages, getCurrentStage } from './application-stage/con
 import { maybeGetLinkedCaseLink } from '@pins/crowndev-lib/util/linked-case.ts';
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
-import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
+import { escapeHtml, isSafeRelativeUrl } from '@pins/crowndev-lib/util/string.ts';
 
 /**
  * @typedef {import('@pins/crowndev-lib/views/banner/banner-builder').BannerMessage} BannerMessage
@@ -40,9 +40,13 @@ async function getBannerMessages(req, db, crownDevelopment, options) {
 	}
 
 	if (!options.isExpired && options.latestApplicationUpdate) {
+		const updatesHref = `${req.baseUrl}/application-updates`;
+		if (!isSafeRelativeUrl(updatesHref)) {
+			throw new Error(`Unexpected unsafe URL: ${updatesHref}`);
+		}
 		const html = `<h3 class="govuk-notification-banner__heading">Latest update &mdash; ${escapeHtml(options.latestApplicationUpdate.firstPublished)}</h3>
 			<p class="govuk-body pins-pre-line">${escapeHtml(options.latestApplicationUpdate.details)}</p>
-			<p><a class="govuk-notification-banner__link" href="${req.baseUrl}/application-updates">View all updates</a></p>`;
+			<p><a class="govuk-notification-banner__link" href="${updatesHref}">View all updates</a></p>`;
 		bannerBuilder.addInfoTrustedHtml(html);
 	}
 	return bannerBuilder.build();
