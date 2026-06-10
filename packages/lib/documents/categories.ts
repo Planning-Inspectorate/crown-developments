@@ -24,7 +24,7 @@ export const DOCUMENT_CATEGORIES: ReadonlyArray<Readonly<CategoryDefinition>> = 
 		alwaysShow: true
 	}),
 	Object.freeze({
-		sharepointName: 'Written Representations',
+		sharepointName: 'Written Representation',
 		displayName: 'Written Representations',
 		value: 'writtenRepresentations',
 		alwaysShow: false
