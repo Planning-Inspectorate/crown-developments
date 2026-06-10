@@ -34,7 +34,7 @@ describe('Document Categories', () => {
 			assert.deepStrictEqual(getCategorySharePointNames(), [
 				'Application',
 				'LPA Questionnaire',
-				'Written Representations',
+				'Written Representation',
 				'Inquiry',
 				'Hearing',
 				'Decision'
@@ -66,7 +66,7 @@ describe('Document Categories', () => {
 		const mappings = [
 			{ sharepoint: 'Application', value: 'application' },
 			{ sharepoint: 'LPA Questionnaire', value: 'lpaQuestionnaire' },
-			{ sharepoint: 'Written Representations', value: 'writtenRepresentations' },
+			{ sharepoint: 'Written Representation', value: 'writtenRepresentations' },
 			{ sharepoint: 'Inquiry', value: 'inquiry' },
 			{ sharepoint: 'Hearing', value: 'hearing' },
 			{ sharepoint: 'Decision', value: 'decision' }
@@ -91,7 +91,7 @@ describe('Document Categories', () => {
 		const mappings = [
 			{ value: 'application', sharepoint: 'Application' },
 			{ value: 'lpaQuestionnaire', sharepoint: 'LPA Questionnaire' },
-			{ value: 'writtenRepresentations', sharepoint: 'Written Representations' },
+			{ value: 'writtenRepresentations', sharepoint: 'Written Representation' },
 			{ value: 'inquiry', sharepoint: 'Inquiry' },
 			{ value: 'hearing', sharepoint: 'Hearing' },
 			{ value: 'decision', sharepoint: 'Decision' }

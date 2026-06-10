@@ -122,10 +122,10 @@ describe('view-model', () => {
 			assert.deepStrictEqual(mapDriveItemToViewModel(driveItem), expected);
 		});
 
-		it('should map Written Representations category correctly', () => {
+		it('should map Written Representation category correctly', () => {
 			const driveItem = createBaseDriveItem({
 				createdDateTime: '2025-02-13T16:56:00Z',
-				listItem: { fields: { Category: 'Written Representations' } }
+				listItem: { fields: { Category: 'Written Representation' } }
 			});
 			const expected = createExpectedViewModel({
 				createdDate: '13 Feb 2025',
