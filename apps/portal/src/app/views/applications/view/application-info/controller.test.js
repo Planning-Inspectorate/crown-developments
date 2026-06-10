@@ -770,5 +770,105 @@ describe('application info controller', () => {
 			assert.ok(renderArgs.banner.html.includes('View all updates'));
 			assert.ok(renderArgs.banner.html.includes('href="/applications/application-updates"'));
 		});
+
+		it('should throw when baseUrl is not a safe relative URL', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
+						reference: 'CROWN/2025/0000001',
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-01-31'),
+						representationsPublishDate: '2025-10-09T09:00:00.000Z',
+						applicationAcceptedDate: '2025-10-09T09:00:00.000Z',
+						decisionDate: '2025-10-09T09:00:00.000Z',
+						containsDistressingContent: false,
+						siteEasting: 654321,
+						siteNorthing: 123456,
+						description: 'a new crown dev application',
+						ApplicantContact: { orgName: 'Test Name' },
+						Type: { displayName: 'Planning permission' },
+						Lpa: { name: 'System Test Borough Council' },
+						Event: { date: new Date('2020-12-17T03:24:00.000Z'), venue: 'the venue' },
+						stageId: APPLICATION_STAGE_ID.CONSULTATION,
+						Stage: { displayName: 'Consultation' },
+						procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+						Procedure: { displayName: 'Hearing' },
+						DecisionOutcome: { displayName: 'Approved' },
+						withdrawnDate: null
+					}))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => ({
+						id: 'app-update-01',
+						details: 'an update',
+						firstPublished: new Date('2020-12-17T03:24:00.000Z')
+					})),
+					count: mock.fn(() => 1)
+				}
+			};
+			const handler = buildApplicationInformationPage({ db: mockDb, config: {} });
+			const mockReq = {
+				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
+				baseUrl: '/applications/"evil'
+			};
+			await assert.rejects(() => handler(mockReq, { status: mock.fn(), render: mock.fn() }), {
+				message: 'Unexpected unsafe URL: /applications/"evil/application-updates'
+			});
+		});
+
+		it('should use the banner href URL directly without HTML-escaping', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00') });
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
+						reference: 'CROWN/2025/0000001',
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-01-31'),
+						representationsPublishDate: '2025-10-09T09:00:00.000Z',
+						applicationAcceptedDate: '2025-10-09T09:00:00.000Z',
+						decisionDate: '2025-10-09T09:00:00.000Z',
+						containsDistressingContent: false,
+						siteEasting: 654321,
+						siteNorthing: 123456,
+						description: 'a new crown dev application',
+						ApplicantContact: { orgName: 'Test Name' },
+						Type: { displayName: 'Planning permission' },
+						Lpa: { name: 'System Test Borough Council' },
+						Event: { date: new Date('2020-12-17T03:24:00.000Z'), venue: 'the venue' },
+						stageId: APPLICATION_STAGE_ID.CONSULTATION,
+						Stage: { displayName: 'Consultation' },
+						procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+						Procedure: { displayName: 'Hearing' },
+						DecisionOutcome: { displayName: 'Approved' },
+						withdrawnDate: null
+					}))
+				},
+				applicationUpdate: {
+					findFirst: mock.fn(() => ({
+						id: 'app-update-01',
+						details: 'an update',
+						firstPublished: new Date('2020-12-17T03:24:00.000Z')
+					})),
+					count: mock.fn(() => 1)
+				}
+			};
+			const handler = buildApplicationInformationPage({ db: mockDb, config: {} });
+			// A baseUrl with an ampersand passes isSafeRelativeUrl but would be incorrectly
+			// mangled to &amp; if escapeHtml were applied to the href attribute value.
+			const mockReq = {
+				params: { applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8' },
+				baseUrl: '/applications/test&path'
+			};
+			const mockRes = { status: mock.fn(), render: mock.fn() };
+			await handler(mockReq, mockRes);
+			const renderArgs = mockRes.render.mock.calls[0].arguments[1];
+			assert.ok(renderArgs.banner);
+			// href must contain the literal & — not HTML-escaped as &amp;
+			assert.ok(renderArgs.banner.html.includes('href="/applications/test&path/application-updates"'));
+			assert.ok(!renderArgs.banner.html.includes('&amp;path'));
+		});
 	});
 });
