@@ -171,14 +171,26 @@ export function multiContactQuestions({ prefix, title, organisationOptions }) {
 						fieldName: `${prefix}FirstName`,
 						validators: [
 							new RequiredValidator(`Enter a first name`),
-							new StringValidator({ maxLength: { maxLength: 250 } })
+							new StringValidator({
+								maxLength: { maxLength: 250 },
+								regex: {
+									regex: "^[A-Za-z ''-]+$",
+									regexMessage: 'First name must only include letters, spaces, hyphens and apostrophes'
+								}
+							})
 						]
 					},
 					{
 						fieldName: `${prefix}LastName`,
 						validators: [
 							new RequiredValidator(`Enter a last name`),
-							new StringValidator({ maxLength: { maxLength: 250 } })
+							new StringValidator({
+								maxLength: { maxLength: 250 },
+								regex: {
+									regex: "^[A-Za-z ''-]+$",
+									regexMessage: 'Last name must only include letters, spaces, hyphens and apostrophes'
+								}
+							})
 						]
 					},
 					{
