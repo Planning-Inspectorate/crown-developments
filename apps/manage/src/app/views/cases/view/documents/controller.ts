@@ -1,8 +1,9 @@
-import type { Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import type { ManageService } from '#service';
 import { formatBytes } from '@pins/crowndev-lib/util/upload.ts';
 import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
 import { NoUploadsError } from '@pins/crowndev-lib/middleware/errors.ts';
+import type { ValidationConfig } from '../../../../uploads/index.ts';
 
 interface DeleteDocumentBody {
 	delete: string;
@@ -91,5 +92,29 @@ export function deleteDocumentController(service: ManageService) {
 			logger.error({ error, documentId }, 'Fatal error deleting document');
 			return res.status(500).json({ error: 'Failed to delete file' });
 		}
+	};
+}
+
+export function validateUploads(service: ManageService, config: ValidationConfig) {
+	const { uploadDocuments } = service;
+	return async (req: Request, res: Response, next: NextFunction) => {
+		const { id } = req.params;
+		const files = req.files as Express.Multer.File[];
+
+		if (!id || typeof id !== 'string') throw new Error('id param required');
+
+		if (!files || files.length === 0) return res.redirect(req.baseUrl);
+
+		const validationErrors = await uploadDocuments.validateUploadBatch(id, req.sessionID, files, config);
+
+		if (validationErrors.length > 0) {
+			return res.json({
+				error: {
+					message: validationErrors.map((e) => e.text).join(', ')
+				}
+			});
+		}
+
+		next();
 	};
 }

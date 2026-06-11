@@ -85,7 +85,7 @@ export class UploadDocumentsService {
 		}));
 
 		await this.uploadToBlob(filesWithIds);
-		return await this.saveAsDraft(filesWithIds, sessionKey, crownDevelopmentId);
+		return this.saveAsDraft(filesWithIds, sessionKey, crownDevelopmentId);
 	}
 
 	/**
