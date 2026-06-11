@@ -193,10 +193,10 @@ export function representationsContactQuestions({
 
 	questions[`${prefix}CommentRedacted`] = {
 		type: COMPONENT_TYPES.TEXT_ENTRY_REDACT,
-		title: 'Redacted Comment',
-		question: 'Representation Comment',
+		title: 'Redacted representation',
+		question: 'Representation',
 		fieldName: 'comment',
-		url: 'redacted-comment',
+		url: 'redacted-representation',
 		validators: [],
 		editable: false,
 		onlyShowRedactedValueForSummary: true,

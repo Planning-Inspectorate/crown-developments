@@ -5,6 +5,7 @@ import {
 	buildReviewControllers,
 	buildViewDocument,
 	clearRepReviewedSession,
+	getTaskListURL,
 	readRepReviewedSession,
 	viewRepresentationAwaitingReview,
 	viewReviewRedirect
@@ -463,7 +464,7 @@ describe('controller', () => {
 			const { reviewRepresentationComment } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/comment',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/representation',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: {}
 			};
@@ -500,7 +501,7 @@ describe('controller', () => {
 			const { reviewRepresentationCommentDecision } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some/url/ref-1/review/comment',
+				baseUrl: 'some/url/ref-1/review/representation',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: { reviewCommentDecision: 'approved' },
 				session: {}
@@ -524,7 +525,7 @@ describe('controller', () => {
 			const { reviewRepresentationCommentDecision } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some/url/ref-1/review/task-list/comment',
+				baseUrl: 'some/url/ref-1/review/task-list/representation',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: { reviewCommentDecision: ACCEPT_AND_REDACT },
 				session: {}
@@ -535,7 +536,7 @@ describe('controller', () => {
 
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			const redirectUrl = mockRes.redirect.mock.calls[0].arguments[0];
-			assert.match(redirectUrl, /some\/url\/ref-1\/review\/task-list\/comment\/redact$/);
+			assert.match(redirectUrl, /some\/url\/ref-1\/review\/task-list\/representation\/redact$/);
 		});
 		it('should update document status if moving from rejected into non-rejected status', async () => {
 			const { reviewRepresentationCommentDecision } = buildReviewControllers({});
@@ -812,7 +813,7 @@ describe('controller', () => {
 			const { reviewRepresentationCommentDecision } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/comment',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/representation',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				body: {},
 				session: {}
@@ -1156,7 +1157,7 @@ describe('controller', () => {
 			const { acceptRedactedComment } = buildReviewControllers({ db: mockDb, logger });
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/comment',
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/representation',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				session: {
 					reviewDecisions: {
@@ -1185,7 +1186,8 @@ describe('controller', () => {
 			const { acceptRedactedComment } = buildReviewControllers({});
 
 			const mockReq = {
-				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/task-list/comment/redact/confirmation',
+				baseUrl:
+					'some-url-here/case-1/manage-representations/ref-1/review/task-list/representation/redact/confirmation',
 				params: { id: 'case-1', representationRef: 'ref-1' },
 				session: {
 					reviewDecisions: {
@@ -2509,6 +2511,51 @@ describe('controller', () => {
 				clearRepReviewedSession(mockReq, 'case-1');
 				assert.strictEqual(mockReq.session.cases['case-1'].representationReviewed, undefined);
 			});
+		});
+	});
+
+	describe('getTaskListURL', () => {
+		it('should remove urlSegment from the end of baseUrl', () => {
+			const baseUrl = 'some/url/ref-1/review/task-list/representation';
+			const result = getTaskListURL(baseUrl, '/representation');
+			assert.strictEqual(result, 'some/url/ref-1/review/task-list');
+		});
+
+		it('should handle /manage-representations in baseUrl without incorrect substring match', () => {
+			// This is the critical edge case - /representation should NOT match within /manage-representations
+			const baseUrl = 'some-url-here/case-1/manage-representations/ref-1/review/task-list/representation';
+			const result = getTaskListURL(baseUrl, '/representation');
+			assert.strictEqual(result, 'some-url-here/case-1/manage-representations/ref-1/review/task-list');
+		});
+
+		it('should handle /manage-representations without trailing /representation', () => {
+			const baseUrl = 'some-url-here/case-1/manage-representations/ref-1/review';
+			const result = getTaskListURL(baseUrl, '/review');
+			assert.strictEqual(result, 'some-url-here/case-1/manage-representations/ref-1');
+		});
+
+		it('should remove itemId from the end of baseUrl', () => {
+			const baseUrl = 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234';
+			const result = getTaskListURL(baseUrl, '/DOC1234');
+			assert.strictEqual(result, 'some-url-here/case-1/manage-representations/ref-1/review/task-list');
+		});
+
+		it('should remove distressing-content from the end of baseUrl', () => {
+			const baseUrl = 'some/url/ref-1/review/task-list/distressing-content';
+			const result = getTaskListURL(baseUrl, '/distressing-content');
+			assert.strictEqual(result, 'some/url/ref-1/review/task-list');
+		});
+
+		it('should handle deeply nested URLs correctly', () => {
+			const baseUrl = '/cases/case-1/manage-representations/ref-1/review/task-list/representation/redact/confirmation';
+			const result = getTaskListURL(baseUrl, '/representation/redact/confirmation');
+			assert.strictEqual(result, '/cases/case-1/manage-representations/ref-1/review/task-list');
+		});
+
+		it('should return baseUrl unchanged when urlSegment is not found', () => {
+			const baseUrl = 'some-url-here/case-1/manage-representations/ref-1/review/task-list';
+			const result = getTaskListURL(baseUrl, '/missing-segment');
+			assert.strictEqual(result, baseUrl);
 		});
 	});
 });
