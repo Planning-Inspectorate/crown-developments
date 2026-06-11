@@ -17,6 +17,8 @@ import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { BaseDevelopmentView } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { baseDevelopmentSelect, isInquiry, isHearing } from '@pins/crowndev-lib/util/shared-view-model.ts';
 
+import { insertWbr } from '@pins/crowndev-lib/util/string.ts';
+
 export const formatDate = (date: Date | null | undefined, options?: { format?: string }): string =>
 	formatDateForDisplay(date as Date | undefined, options);
 
@@ -158,7 +160,8 @@ export function crownDevelopmentToViewModel(
 }
 
 export interface CrownDevelopmentCaseListView extends BaseDevelopmentView {
-	applicantOrganisations: string[];
+	applicantOrganisations: string;
+	referenceLink: string;
 	withdrawnDate: string | undefined;
 }
 
@@ -178,14 +181,22 @@ export type CrownDevelopmentCaseListPayload = Prisma.CrownDevelopmentGetPayload<
  */
 export function applicationListViewFormattingFunction(crownDevelopment: CrownDevelopmentCaseListPayload) {
 	const extendedFields: Omit<CrownDevelopmentCaseListView, keyof BaseDevelopmentView | 'developmentContactEmail'> = {
-		applicantOrganisations: [],
+		applicantOrganisations: '',
+		referenceLink:
+			'<a class="govuk-link" href="/applications/' +
+			crownDevelopment.id +
+			'/application-information">' +
+			insertWbr(crownDevelopment.reference) +
+			'</a>',
 		withdrawnDate: undefined
 	};
 
 	if (crownDevelopment.Organisations && crownDevelopment.Organisations.length > 0) {
 		extendedFields.applicantOrganisations = crownDevelopment.Organisations.filter(
 			(organisation) => organisation.role === ORGANISATION_ROLES_ID.APPLICANT
-		).map((item) => item.Organisation.name);
+		)
+			.map((item) => item.Organisation.name)
+			.join(', ');
 	}
 
 	const withdrawnDateFormatted = formatDate(crownDevelopment.withdrawnDate, { format: 'd MMMM yyyy' });

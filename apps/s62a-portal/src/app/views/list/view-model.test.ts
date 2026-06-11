@@ -8,7 +8,7 @@ describe('view-model', () => {
 	describe('genericDevelopmentToViewModel', () => {
 		const input = {
 			id: 'id-1',
-			reference: 'reference-id-1',
+			reference: 'REF/2025/001',
 			Type: {
 				displayName: 'Planning permission'
 			},
@@ -79,9 +79,11 @@ describe('view-model', () => {
 			);
 			assert.deepStrictEqual(result, {
 				id: 'id-1',
-				reference: 'reference-id-1',
+				reference: 'REF/2025/001',
+				referenceLink:
+					'<a class="govuk-link" href="/applications/id-1/application-information">REF/<wbr>2025/<wbr>001</a>',
 				developmentContactEmail: 's62a.dev@planninginspectorate.gov.uk',
-				applicantOrganisations: ['Applicant organisation 1', 'Applicant organisation 2'],
+				applicantOrganisations: 'Applicant organisation 1, Applicant organisation 2',
 				description: 'A significant project',
 				stage: 'Inquiry',
 				lpaName: 'Test LPA',
@@ -127,10 +129,7 @@ describe('view-model', () => {
 				s62aViewFormattingFunction
 			) as S62ADevelopmentView;
 			assert.ok(result.applicantOrganisations);
-			assert.ok(Array.isArray(result.applicantOrganisations));
-			assert.ok(result.applicantOrganisations.length === 2);
-			assert.strictEqual(result.applicantOrganisations[0], 'Applicant organisation 1');
-			assert.strictEqual(result.applicantOrganisations[1], 'Applicant organisation 2');
+			assert.strictEqual(result.applicantOrganisations, 'Applicant organisation 1, Applicant organisation 2');
 		});
 	});
 });

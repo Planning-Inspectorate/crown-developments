@@ -1,4 +1,5 @@
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
+import { insertWbr, formatStatusTag } from '@pins/crowndev-lib/util/string.ts';
 
 /**
  * @param {import('#service').ManageService} service
@@ -51,9 +52,15 @@ export function crownDevelopmentToViewModel(crownDevelopment) {
 		id: crownDevelopment.id,
 		reference: crownDevelopment.reference,
 		lpaName: crownDevelopment.Lpa?.name,
-		status: crownDevelopment.Status?.displayName,
+		status: formatStatusTag(crownDevelopment.Status?.displayName),
 		type: crownDevelopment.Type?.displayName,
-		location: ''
+		location: '',
+		referenceLink:
+			'<a class="govuk-link" href="/cases/' +
+			crownDevelopment.id +
+			'">' +
+			insertWbr(crownDevelopment.reference) +
+			'</a>'
 	};
 	if (crownDevelopment.SiteAddress) {
 		fields.location = addressToViewModel(crownDevelopment.SiteAddress);

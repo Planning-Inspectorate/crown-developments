@@ -82,3 +82,18 @@ const HTML_ESCAPES: Record<string, string> = {
 export function escapeHtml(value: string): string {
 	return value.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
 }
+
+/**
+ * Adds word break opportunities for pathing
+ */
+export function insertWbr(str?: string): string {
+	return typeof str === 'string' ? str.replace(/\//g, '/<wbr>') : '';
+}
+
+/**
+ * Formats case table status tags
+ */
+export function formatStatusTag(displayName?: string | null): string | undefined {
+	if (!displayName) return undefined;
+	return '<span class="govuk-tag">' + escapeHtml(displayName) + '</span>';
+}

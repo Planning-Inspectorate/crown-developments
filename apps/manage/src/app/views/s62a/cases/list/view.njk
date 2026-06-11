@@ -1,11 +1,10 @@
 {% extends "views/layouts/main.njk" %}
 
-{% from "govuk/components/table/macro.njk" import govukTable %}
-{% from "govuk/components/tag/macro.njk" import govukTag %}
 {% import "pagination/pagination.njk" as pagination %}
 {% import "pagination/pagination-options.njk" as paginationOptions %}
 {% from "views/layouts/components/header.njk" import header %}
 {% from "search-bar/search-bar.njk" import searchBar %}
+{% from "tables/tables.njk" import baseCaseListTable, baseManageHeaders, baseManageColumns %}
 
 {% block pageTitle %}
     Case list - All Cases - Manage a Section 62A Development Application
@@ -51,7 +50,7 @@
                 </p>
                 {{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalItems, baseUrl, queryParams) }}
                 <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
-                {{ casesTable(s62aCasesViewModels) }}
+                {{ baseCaseListTable(s62aCasesViewModels,baseManageHeaders,baseManageColumns,true) }}
             {% endif %}
         </div>
     </div>
@@ -60,72 +59,3 @@
     {{ pagination.renderPagination(paginationParams.pageNumber, paginationParams.totalPages, baseUrl, queryParams) }}
 
 {% endblock %}
-
-{% macro casesTable(s62aCases) %}
-    {% set cases = [] %}
-
-    {% for case in s62aCases %}
-        {% set cases = (cases.push([
-            {
-                html: "<a class='govuk-link' href='/s62a/cases/" +  case.id +"'>" + case.reference + "</a>",
-                attributes: {
-                    "data-sort-value": case.reference
-                }
-            },
-            {
-                text: case.location,
-                classes: 'pins-white-space-pre-wrap'
-            },
-            {
-                text: case.lpaName
-            },
-            {
-                text: case.type
-            },
-            {
-                html: govukTag({text: case.status})
-            }
-        ]), cases) %}
-    {% endfor %}
-
-    {% set headers = [
-        {
-            text: 'Reference',
-            attributes: {
-                "aria-sort": "descending"
-            }
-        },
-        {
-            text: 'Site location',
-            attributes: {
-                "aria-sort": "none"
-            }
-        },
-        {
-            text: 'Local planning authority (LPA)',
-            attributes: {
-                "aria-sort": "none"
-            }
-        },
-        {
-          text: 'Application type',
-            attributes: {
-                "aria-sort": "none"
-            }
-        },
-        {
-            text: 'Status',
-            attributes: {
-                "aria-sort": "none"
-            }
-        }
-    ] %}
-
-    {{ govukTable({
-        attributes: {
-            "data-module": "moj-sortable-table"
-        },
-        head: headers,
-        rows: cases
-    }) }}
-{% endmacro %}

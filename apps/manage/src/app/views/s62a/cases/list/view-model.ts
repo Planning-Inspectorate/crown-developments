@@ -1,6 +1,7 @@
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { addressToViewModel } from '@pins/crowndev-lib/util/address.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { insertWbr, formatStatusTag } from '@pins/crowndev-lib/util/string.ts';
 
 export interface S62ACaseView {
 	id: string;
@@ -38,14 +39,15 @@ export function s62aToViewModel(s62aCases: S62ACasePayload) {
 		id: s62aCases.id,
 		reference: s62aCases.reference,
 		lpaName: s62aCases.Lpa?.name,
-		status: s62aCases.S62aStatus?.displayName ?? undefined,
+		status: formatStatusTag(s62aCases.S62aStatus?.displayName),
 		type: s62aCases.Type?.displayName ?? undefined,
 		applicantOrganisations:
 			s62aCases.S62aToApplicants?.filter(
 				(relation) =>
 					relation.roleId === ORGANISATION_ROLES_ID.APPLICANT && typeof relation.Organisation?.name === 'string'
 			).map((item) => item.Organisation!.name) ?? [],
-		location: ''
+		location: '',
+		referenceLink: '<a class="govuk-link" href="/cases/' + s62aCases.id + '">' + insertWbr(s62aCases.reference) + '</a>'
 	};
 	if (s62aCases.SiteAddress) {
 		const address = addressToViewModel(s62aCases.SiteAddress);
