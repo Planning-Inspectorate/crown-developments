@@ -5,41 +5,30 @@ import { Client } from '@microsoft/microsoft-graph-client';
 import { DefaultAzureCredential } from '@azure/identity';
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js';
 import { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
-import { initGovNotify } from '@pins/crowndev-lib/govnotify/index.ts';
+
+//UNCOMMENT AND FIX BEFORE COMMIT
+//import { initGovNotify } from '@pins/crowndev-lib/govnotify/index.ts';
+import { BaseService } from '@pins/crowndev-lib/app/base-service.ts';
+
+import type { Config } from './config-types.js';
+import type { Logger } from 'pino';
+import type { RedisClient } from '@pins/crowndev-lib/redis/redis-client.ts';
+import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
+import type { GovNotifyClient } from '@pins/crowndev-lib/govnotify/gov-notify-client.js';
 
 /**
  * This class encapsulates all the services and clients for the application
  */
-export class PortalService {
-	/**
-	 * @type {import('./config-types.js').Config}
-	 */
-	#config;
-	/**
-	 * @type {import('pino').Logger}
-	 */
-	logger;
-	/**
-	 * @type {import('@pins/crowndev-database/src/client/client.ts').PrismaClient}
-	 */
-	dbClient;
-	/**
-	 * @type {import('@pins/crowndev-lib/redis/redis-client.ts').RedisClient|null}
-	 */
-	redisClient;
-	/**
-	 * @type {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive}
-	 */
-	sharePointDrive;
-	/**
-	 * @type {import('@pins/crowndev-lib/govnotify/gov-notify-client.js').GovNotifyClient|null}
-	 */
-	notifyClient;
+export class PortalService extends BaseService {
+	#config: Config;
+	declare logger: Logger;
+	declare dbClient: PrismaClient;
+	declare redisClient: RedisClient | null;
+	declare sharePointDrive: SharePointDrive;
+	declare notifyClient: GovNotifyClient | null;
 
-	/**
-	 * @param {import('./config-types.js').Config} config
-	 */
-	constructor(config) {
+	constructor(config: Config) {
+		super(config);
 		this.#config = config;
 		const logger = initLogger(config);
 		this.logger = logger;
@@ -53,7 +42,9 @@ export class PortalService {
 		});
 
 		this.sharePointDrive = new SharePointDrive(graphClient, config.sharePoint.driveId);
-		this.notifyClient = initGovNotify(config.govNotify, logger);
+
+		// UNCOMMENT AND FIX BEFORE COMMIT
+		//this.notifyClient = initGovNotify(config.govNotify, logger);
 	}
 
 	get appName() {
@@ -72,11 +63,7 @@ export class PortalService {
 		return this.#config.dynamicCacheControl;
 	}
 
-	/**
-	 * Alias of dbClient
-	 *
-	 * @returns {import('@pins/crowndev-database/src/client/client.ts').PrismaClient}
-	 */
+	//Alias of dbClient
 	get db() {
 		return this.dbClient;
 	}

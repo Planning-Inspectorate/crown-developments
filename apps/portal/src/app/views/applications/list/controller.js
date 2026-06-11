@@ -73,6 +73,11 @@ export function buildApplicationListPage(service) {
 			pageNumber
 		);
 
+		//TODO - BLOCKER - Integrate with PEAS-9 view model output
+		crownDevelopmentsViewModels.forEach((development) => {
+			development.applicantName = development.applicantOrganisations?.join(', ');
+		});
+
 		/** @type {PaginationParams} */
 		const paginationParams = {
 			selectedItemsPerPage,

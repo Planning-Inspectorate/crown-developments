@@ -1,7 +1,7 @@
 {% extends "views/layouts/main.njk" %}
 
 {% block pageTitle %}
-    {{ pageTitle }} - Find a Crown Development Application
+    {{ pageTitle }} - {{ locals.config.headerTitle }}
 {% endblock %}
 
 {% block content %}
@@ -20,9 +20,13 @@
             </p>
 
             <h2 class="govuk-heading-s">Online:</h2>
-                <p class="govuk-body"><a href="https://contact-us.planninginspectorate.gov.uk/hc/en-gb/requests/new" class="govuk-link">Fill out our contact form</a></p>
+            <p class="govuk-body">
+                <a href="https://contact-us.planninginspectorate.gov.uk/hc/en-gb/requests/new" class="govuk-link">Fill out our contact form</a>
+            </p>
             <h2 class="govuk-heading-s">Telephone:</h2>
-            <p class="govuk-body"><a href="tel:03034445000" class="govuk-link">0303 444 5000</a></p>
+            <p class="govuk-body">
+                <a href="tel:03034445000" class="govuk-link">0303 444 5000</a>
+            </p>
             <p class="govuk-body">Open Monday to Friday: 9am to 4pm.</p>
             <p class="govuk-body">Closed on weekends and bank holidays.</p>
         </div>

@@ -24,7 +24,7 @@ export class BaseService {
 	}
 
 	get cacheControl() {
-		return this.#config.cacheControl;
+		return this.#config.staticCacheControl;
 	}
 
 	get db() {

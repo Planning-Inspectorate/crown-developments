@@ -2,7 +2,7 @@ import { Router as createRouter } from 'express';
 import { createRoutesAndGuards as createAuthRoutesAndGuards } from './auth/router.js';
 import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.ts';
 import { createRoutes as createCasesRoutes } from './views/cases/index.js';
-import { createErrorRoutes } from './views/static/error/index.js';
+import { createErrorRoutes } from '@pins/crowndev-lib/error/index.ts';
 import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.ts';
 import { createNotifyRoutes } from './notify/router.js';
 import { createRoutes as createS62aRoutes } from './views/s62a/index.ts';

@@ -19,7 +19,7 @@ interface Config {
 		categories: string; // CSV string
 		endpoint: string;
 	};
-	cacheControl: {
+	staticCacheControl: {
 		maxAge: string;
 	};
 	database: {

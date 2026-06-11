@@ -12,61 +12,40 @@ import { DEFAULT_CATEGORIES } from '#util/azure-language-redaction.js';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js';
-import { initBlobStore } from '@pins/crowndev-lib/blob-store/index.ts';
+
+//UNCOMMENT AND FIX BEFORE COMMIT
+//import { initBlobStore } from '@pins/crowndev-lib/blob-store/index.ts';
+import { BaseService } from '@pins/crowndev-lib/app/base-service.ts';
+
+import type { Config } from './config-types.js';
+import type { Logger } from 'pino';
+import type { Session } from 'express-session';
+import type { RedisClient } from '@pins/crowndev-lib/redis/redis-client.ts';
+import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
+import type { GovNotifyClient } from '@pins/crowndev-lib/govnotify/gov-notify-client.js';
+import type { BlobStorageClient } from '@pins/crowndev-lib/blob-store/blob-store-client.ts';
+import type { InitEntraClient } from '@pins/crowndev-lib/graph/types.js';
+import type { AuditService } from './audit/index.js';
 
 /**
  * This class encapsulates all the services and clients for the application
  */
-export class ManageService {
-	/**
-	 * @type {import('./config-types.js').Config}
-	 */
-	#config;
-	/**
-	 * @type {import('pino').Logger}
-	 */
-	logger;
-	/**
-	 * @type {import('@pins/crowndev-database/src/client/client.ts').PrismaClient}
-	 */
-	dbClient;
-	/**
-	 * @type {import('./audit/index.js').AuditService}
-	 */
-	audit;
-	/**
-	 * @type {import('@pins/crowndev-lib/redis/redis-client.ts').RedisClient|null}
-	 */
-	redisClient;
-	/**
-	 * @type {function(import('express-session').Session): SharePointDrive | null}
-	 */
-	getSharePointDrive;
-	/**
-	 * @type {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive}
-	 */
-	appSharePointDrive;
-	/**
-	 * @type {import('@pins/crowndev-lib/graph/types.js').InitEntraClient}
-	 */
-	getEntraClient;
-	/**
-	 * @type {import('@pins/crowndev-lib/govnotify/gov-notify-client.js').GovNotifyClient|null}
-	 */
-	notifyClient;
-	/**
-	 * @type {import('@azure/ai-text-analytics').TextAnalyticsClient|null}
-	 */
-	textAnalyticsClient;
-	/**
-	 * @type {import('@pins/crowndev-lib/blob-store/blob-store-client.ts').BlobStorageClient|null}
-	 */
-	blobStoreClient;
+export class ManageService extends BaseService {
+	#config: Config;
+	declare logger: Logger;
+	declare dbClient: PrismaClient;
+	declare redisClient: RedisClient | null;
+	declare sharePointDrive: SharePointDrive | null;
+	declare audit: AuditService;
+	declare textAnalyticsClient: TextAnalyticsClient | null;
+	declare blobStoreClient: BlobStorageClient | null;
+	declare getEntraClient: InitEntraClient;
+	declare getSharePointDrive: (session: Session) => SharePointDrive | null;
+	declare appSharePointDrive: SharePointDrive;
+	declare notifyClient: GovNotifyClient | null;
 
-	/**
-	 * @param {import('./config-types.js').Config} config
-	 */
-	constructor(config) {
+	constructor(config: Config) {
+		super(config);
 		this.#config = config;
 		const logger = initLogger(config);
 		this.logger = logger;
@@ -78,13 +57,15 @@ export class ManageService {
 				scopes: ['https://graph.microsoft.com/.default']
 			})
 		});
-		this.appSharePointDrive = new SharePointDrive(graphClient, config.sharePoint.driveId);
+		this.appSharePointDrive = new SharePointDrive(graphClient, config.sharePoint.driveId ?? '');
 		this.getSharePointDrive = buildInitSharePointDrive(config);
 		// share this cache between each instance of the EntraClient
 		const entraGroupCache = new MapCache(config.entra.cacheTtl);
 		this.getEntraClient = buildInitEntraClient(!config.auth.disabled, entraGroupCache);
 		this.notifyClient = initGovNotify(config.govNotify, logger);
-		this.blobStoreClient = initBlobStore(config.blobStore, logger);
+
+		//UNCOMMENT BEFORE COMMIT
+		//this.blobStoreClient = initBlobStore(config.blobStore, logger);
 
 		// set up the Azure AI Language client if configured
 		if (config.azureLanguage.endpoint) {
@@ -99,9 +80,6 @@ export class ManageService {
 		return this.#config.appName;
 	}
 
-	/**
-	 * @type {import('./config-types.js').Config['auth']}
-	 */
 	get authConfig() {
 		return this.#config.auth;
 	}
@@ -110,9 +88,6 @@ export class ManageService {
 		return this.#config.auth.disabled;
 	}
 
-	/**
-	 * @returns {string[]}
-	 */
 	get azureLanguageCategories() {
 		const categories = this.#config.azureLanguage.categories;
 		if (typeof categories === 'string') {
@@ -121,22 +96,15 @@ export class ManageService {
 		return DEFAULT_CATEGORIES;
 	}
 
-	/**
-	 * @type {import('@pins/crowndev-lib/blob-store/blob-store-client.ts').BlobStorageClient}
-	 */
 	get blobStore() {
-		return this.blobStoreClient;
+		return this.blobStoreClient as BlobStorageClient;
 	}
 
 	get cacheControl() {
-		return this.#config.cacheControl;
+		return this.#config.staticCacheControl;
 	}
 
-	/**
-	 * Alias of dbClient
-	 *
-	 * @returns {import('@pins/crowndev-database/src/client/client.ts').PrismaClient}
-	 */
+	//Alias of dbClient
 	get db() {
 		return this.dbClient;
 	}

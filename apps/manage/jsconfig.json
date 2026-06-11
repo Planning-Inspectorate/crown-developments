@@ -6,7 +6,7 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
-			"#service": ["./src/app/service.js"],
+			"#service": ["src/app/service.ts"],
 			"#util/*": ["./src/util/*"]
 		}
 	}
