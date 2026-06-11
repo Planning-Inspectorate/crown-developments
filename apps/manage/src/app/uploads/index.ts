@@ -25,11 +25,15 @@ type FileWithId = {
 };
 
 export class UploadDocumentsService {
-	constructor(
-		private readonly db: PrismaClient,
-		private readonly blobStore: BlobStorageClient | null,
-		private readonly logger: Logger
-	) {}
+	private readonly db: PrismaClient;
+	private readonly blobStore: BlobStorageClient | null;
+	private readonly logger: Logger;
+
+	constructor(db: PrismaClient, blobStore: BlobStorageClient | null, logger: Logger) {
+		this.db = db;
+		this.blobStore = blobStore;
+		this.logger = logger;
+	}
 
 	/**
 	 * Orchestrates all file validation rules against DB state and session drafts.
