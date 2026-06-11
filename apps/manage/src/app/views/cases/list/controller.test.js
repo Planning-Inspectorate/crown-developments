@@ -17,7 +17,7 @@ describe('case list', () => {
 			};
 			const result = crownDevelopmentToViewModel(input);
 			assert.strictEqual(result.lpaName, 'LPA 1');
-			assert.strictEqual(result.status, 'New');
+			assert.strictEqual(result.status, '<span class="govuk-tag">New</span>');
 			assert.strictEqual(result.type, 'Planning permission');
 		});
 		it(`should ignore relations that don't exist`, () => {
@@ -113,7 +113,10 @@ describe('case list', () => {
 			};
 			const mockDb = {
 				crownDevelopment: {
-					findMany: mock.fn(() => [{ id: 'id-1' }, { id: 'id-2' }])
+					findMany: mock.fn(() => [
+						{ id: 'id-1', reference: 'case/ref-1' },
+						{ id: 'id-2', reference: 'case/ref-2' }
+					])
 				}
 			};
 			const listCases = buildListCases({ db: mockDb, logger: mockLogger() });
@@ -133,7 +136,10 @@ describe('case list', () => {
 			};
 			const mockDb = {
 				crownDevelopment: {
-					findMany: mock.fn(() => [{ id: 'id-1' }, { id: 'id-2' }])
+					findMany: mock.fn(() => [
+						{ id: 'id-1', reference: 'case/ref-1' },
+						{ id: 'id-2', reference: 'case/ref-2' }
+					])
 				}
 			};
 			const listCases = buildListCases({ db: mockDb, logger: mockLogger() });

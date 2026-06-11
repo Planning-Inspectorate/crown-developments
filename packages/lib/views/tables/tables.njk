@@ -1,0 +1,98 @@
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
+{% macro baseCaseListTable(developments, headers, columns, isSortable) %}
+    {% set rows = [] %}
+    
+    {% for development in developments %}
+        {% set rowData = [] %}
+        
+        {% for column in columns %}
+            {% set rowData = (rowData.push({
+                html: development[column.field],
+                classes: column.classes
+            }), rowData) %}
+        {% endfor %}
+
+        {% set rows = (rows.push(rowData), rows) %}
+    {% endfor %}
+
+    {% if isSortable %}
+        {% set attributes = { "data-module": "moj-sortable-table" } %}
+    {% else %}
+        {% set attributes = {} %}
+    {% endif %}
+    
+    {{ govukTable({
+        attributes:  attributes,
+        firstCellIsHeader: true,
+        head: headers,
+        rows: rows
+    }) }}
+{% endmacro %}
+
+
+{% set basePortalHeaders = [
+    {text: "Application reference" },
+    {text: "Applicant name"},
+    {text: "Local planning authority"}
+] %}
+
+{% set basePortalColumns = [
+    {
+        field: "referenceLink"
+    },
+    {
+        field: "applicantOrganisations"
+    },
+    {
+        field: "lpaName"
+    }
+] %}
+
+{% set baseManageHeaders = [
+    {text: "Reference", 
+        attributes: {
+            "aria-sort": "descending"
+        }
+    },
+    {text: "Site location",
+        attributes: {
+            "aria-sort": "none"
+        }
+    },
+    {text: "Local planning authority (LPA)",
+        attributes: {
+                "aria-sort": "none"
+            }
+    },
+    {text: "Application type",
+        attributes: {
+            "aria-sort": "none"
+        }
+    },
+    {text: "Status",
+        attributes: {
+            "aria-sort": "none"
+        }
+    }
+] %}
+
+{% set baseManageColumns = [
+    {
+        field: "referenceLink"
+    },
+    {
+        field: "location",
+        classes: "pins-white-space-pre-wrap"
+    },
+    {
+        field: "lpaName"
+    },
+    {
+        field: "type"
+    },
+    {
+        field: "status"
+    }
+] %}

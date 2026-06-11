@@ -553,7 +553,7 @@ describe('view-model', () => {
 				withdrawnDate: null
 			};
 			const result = applicationListViewFormattingFunction(input);
-			assert.deepStrictEqual(result.applicantOrganisations, []);
+			assert.deepStrictEqual(result.applicantOrganisations, '');
 		});
 
 		it('should return empty applicantOrganisations array when Organisations is empty array', () => {
@@ -564,7 +564,7 @@ describe('view-model', () => {
 				withdrawnDate: null
 			};
 			const result = applicationListViewFormattingFunction(input);
-			assert.deepStrictEqual(result.applicantOrganisations, []);
+			assert.deepStrictEqual(result.applicantOrganisations, '');
 		});
 
 		it('should filter and map only applicant organisations', () => {
@@ -588,10 +588,8 @@ describe('view-model', () => {
 				withdrawnDate: null
 			};
 			const result = applicationListViewFormattingFunction(input);
-			assert.ok(Array.isArray(result.applicantOrganisations));
-			assert.strictEqual(result.applicantOrganisations.length, 2);
-			assert.strictEqual(result.applicantOrganisations[0], 'Applicant Organisation 1');
-			assert.strictEqual(result.applicantOrganisations[1], 'Applicant Organisation 2');
+			assert.ok(result.applicantOrganisations);
+			assert.strictEqual(result.applicantOrganisations, 'Applicant Organisation 1, Applicant Organisation 2');
 		});
 
 		it('should exclude non-applicant organisations', () => {
@@ -607,7 +605,7 @@ describe('view-model', () => {
 				withdrawnDate: null
 			};
 			const result = applicationListViewFormattingFunction(input);
-			assert.deepStrictEqual(result.applicantOrganisations, []);
+			assert.deepStrictEqual(result.applicantOrganisations, '');
 		});
 
 		it('should return undefined for withdrawnDate when not present', () => {
@@ -644,7 +642,8 @@ describe('view-model', () => {
 			};
 			const result = applicationListViewFormattingFunction(input);
 			assert.deepStrictEqual(result, {
-				applicantOrganisations: ['Test Applicant'],
+				applicantOrganisations: 'Test Applicant',
+				referenceLink: '<a class="govuk-link" href="/applications/id-1/application-information">reference-id-1</a>',
 				withdrawnDate: '20 March 2025'
 			});
 		});

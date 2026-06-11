@@ -215,7 +215,10 @@ describe('case list', () => {
 			} as unknown as Request;
 			const mockDb = {
 				s62aCase: {
-					findMany: mock.fn(() => [{ id: 'id-1' }, { id: 'id-2' }]),
+					findMany: mock.fn(() => [
+						{ id: 'id-1', reference: 'S62A/1' },
+						{ id: 'id-2', reference: 'S62A/2' }
+					]),
 					count: mock.fn(() => 2)
 				}
 			} as unknown;

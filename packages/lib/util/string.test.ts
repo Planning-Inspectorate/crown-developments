@@ -7,7 +7,9 @@ import {
 	isString,
 	getFilenameStem,
 	isSafeRelativeUrl,
-	escapeHtml
+	escapeHtml,
+	insertWbr,
+	formatStatusTag
 } from './string.ts';
 
 describe('string util', () => {
@@ -252,6 +254,31 @@ describe('string util', () => {
 
 		it('should preserve numbers and punctuation other than special HTML characters', () => {
 			assert.strictEqual(escapeHtml('Hello, world! 123 ... @#$%'), 'Hello, world! 123 ... @#$%');
+		});
+	});
+	describe('insertWbr', () => {
+		it('should replace all forward slashes with /<wbr>', () => {
+			assert.strictEqual(insertWbr('a/b'), 'a/<wbr>b');
+			assert.strictEqual(insertWbr('a///b'), 'a/<wbr>/<wbr>/<wbr>b');
+			assert.strictEqual(insertWbr('2026/0000003'), '2026/<wbr>0000003');
+		});
+		it('should handle empty strings', () => {
+			assert.strictEqual(insertWbr(''), '');
+		});
+	});
+	describe('formatStatusTag', () => {
+		it('should wrap input string in correct gov-uk tag span formatting', () => {
+			assert.strictEqual(formatStatusTag('Test'), '<span class="govuk-tag">Test</span>');
+			assert.strictEqual(formatStatusTag('New'), '<span class="govuk-tag">New</span>');
+		});
+		it('should handle null input', () => {
+			assert.strictEqual(formatStatusTag(null), undefined);
+		});
+		it('should handle undefined input', () => {
+			assert.strictEqual(formatStatusTag(undefined), undefined);
+		});
+		it('should handle empty strings', () => {
+			assert.strictEqual(formatStatusTag(''), undefined);
 		});
 	});
 });

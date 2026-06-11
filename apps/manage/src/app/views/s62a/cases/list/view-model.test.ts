@@ -8,7 +8,7 @@ describe('Case list view model', () => {
 	describe('genericDevelopmentToViewModel', () => {
 		const input = {
 			id: 'id-1',
-			reference: 'reference-id-1',
+			reference: 'REF/2025/001',
 			Type: {
 				displayName: 'Planning permission'
 			},
@@ -81,7 +81,8 @@ describe('Case list view model', () => {
 			const result = s62aToViewModel(input as unknown as S62ACasePayload) as S62ACaseView;
 			assert.deepStrictEqual(result, {
 				id: 'id-1',
-				reference: 'reference-id-1',
+				reference: 'REF/2025/001',
+				referenceLink: '<a class="govuk-link" href="/cases/id-1">REF/<wbr>2025/<wbr>001</a>',
 				lpaName: 'Test LPA',
 				status: undefined,
 				type: 'Planning permission',
