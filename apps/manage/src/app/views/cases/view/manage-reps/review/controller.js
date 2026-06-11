@@ -22,13 +22,13 @@ import { fetchRedactionSuggestions, highlightRedactionSuggestions } from '#util/
  * @typedef {Object} ReviewControllers - controllers for review representation
  * @property {Handler} reviewRepresentationSubmission - handles POST for /review/task-list
  * @property {Handler} reviewRepresentation - handles POST for /review page and redirects users to /review/task-list page if there are no errors
- * @property {Handler} representationTaskList - handles GET for /review/task-list/comment
- * @property {Handler} reviewRepresentationComment - handles GET for /review/task-list/comment
- * @property {Handler} reviewRepresentationCommentDecision - handles POST for /review/task-list/comment
- * @property {Handler} redactRepresentation - handles GET for /review/task-list/comment/redact
- * @property {Handler} redactRepresentationPost - handles POST for /review/task-list/comment/redact
- * @property {Handler} redactConfirmation - handles GET for /review/task-list/comment/redact/confirmation
- * @property {Handler} acceptRedactedComment - handles POST for /review/task-list/comment/redact/confirmation
+ * @property {Handler} representationTaskList - handles GET for /review/task-list/representation
+ * @property {Handler} reviewRepresentationComment - handles GET for /review/task-list/representation
+ * @property {Handler} reviewRepresentationCommentDecision - handles POST for /review/task-list/representation
+ * @property {Handler} redactRepresentation - handles GET for /review/task-list/representation/redact
+ * @property {Handler} redactRepresentationPost - handles POST for /review/task-list/representation/redact
+ * @property {Handler} redactConfirmation - handles GET for /review/task-list/representation/redact/confirmation
+ * @property {Handler} acceptRedactedComment - handles POST for /review/task-list/representation/redact/confirmation
  * @property {Handler} reviewDistressingContent - handles GET for /review/task-list/distressing-content
  * @property {Handler} reviewDistressingContentDecision - handles POST for /review/task-list/distressing-content
  * @property {Handler} reviewRepresentationDocument - handles GET for /review/task-list/:itemId
@@ -226,7 +226,7 @@ export function buildReviewControllers(service, journeyId) {
 				reject: REPRESENTATION_STATUS_ID.REJECTED,
 				journeyTitle: 'Manage Reps',
 				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: getTaskListURL(req.baseUrl, '/comment'),
+				backLinkUrl: getTaskListURL(req.baseUrl, '/representation'),
 				...viewData
 			});
 		},
@@ -263,7 +263,7 @@ export function buildReviewControllers(service, journeyId) {
 
 				updateRepReviewSession(req, representationRef, 'comment', { reviewDecision: reviewCommentDecision });
 				clearRepRedactedCommentSession(req, representationRef);
-				res.redirect(getTaskListURL(req.baseUrl, '/comment'));
+				res.redirect(getTaskListURL(req.baseUrl, '/representation'));
 			}
 		},
 		async redactRepresentation(req, res) {
@@ -346,7 +346,7 @@ export function buildReviewControllers(service, journeyId) {
 
 				await updateRepresentationItemsReviewStatus(req, db, logger);
 
-				res.redirect(getTaskListURL(req.baseUrl, '/comment'));
+				res.redirect(getTaskListURL(req.baseUrl, '/representation'));
 				return;
 			}
 			logger.info('saving redacted comment to session');
@@ -376,7 +376,7 @@ export function buildReviewControllers(service, journeyId) {
 			}
 
 			updateRepReviewSession(req, representationRef, 'comment', { reviewDecision: ACCEPT_AND_REDACT });
-			res.redirect(getTaskListURL(req.baseUrl, '/comment'));
+			res.redirect(getTaskListURL(req.baseUrl, '/representation'));
 		},
 
 		async reviewDistressingContent(req, res, viewData = {}) {
@@ -1096,6 +1096,15 @@ async function processUploadedFilesOnRejection(req, journeyId, representationRef
 	}
 }
 
-function getTaskListURL(baseUrl, urlSegment) {
-	return baseUrl.slice(0, baseUrl.indexOf(urlSegment));
+/**
+ * Get a parent URL by removing the last occurrence of `urlSegment` from `baseUrl`.
+ * Uses lastIndexOf to avoid substring collisions.
+ *
+ * @param {string} baseUrl
+ * @param {string} urlSegment
+ * @returns {string}
+ */
+export function getTaskListURL(baseUrl, urlSegment) {
+	const index = baseUrl.lastIndexOf(urlSegment);
+	return index === -1 ? baseUrl : baseUrl.slice(0, index);
 }

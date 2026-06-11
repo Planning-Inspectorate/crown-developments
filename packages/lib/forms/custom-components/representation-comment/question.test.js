@@ -81,7 +81,7 @@ describe('./src/dynamic-forms/components/text-entry-details/question.js', () => 
 				return 'back';
 			},
 			getCurrentQuestionUrl: () => {
-				return '/redacted-comment';
+				return '/redacted-representation';
 			},
 			response: {
 				answers: {}
@@ -96,9 +96,9 @@ describe('./src/dynamic-forms/components/text-entry-details/question.js', () => 
 			{
 				key: 'title',
 				value:
-					'It began with an ordinary morning. The air smelled faintly of dew, the street empty but for leaves drifting lazily. Johnathan Le-Smithard adjusted his collar, noting his watch was three minutes late—a stubborn old thing, loyal only to its own time. Across the street, a bakery opened, the scent of bread spilling into the cool air. A woman in a green scarf carried loaves in quiet balance. The square stirred slowly; Johnathan Le-Smithard wrote in his notebook, letting the day delay his errands, who... <a class="govuk-link govuk-link--no-visited-state" href="/redacted-comment">Read more</a>',
+					'It began with an ordinary morning. The air smelled faintly of dew, the street empty but for leaves drifting lazily. Johnathan Le-Smithard adjusted his collar, noting his watch was three minutes late—a stubborn old thing, loyal only to its own time. Across the street, a bakery opened, the scent of bread spilling into the cool air. A woman in a green scarf carried loaves in quiet balance. The square stirred slowly; Johnathan Le-Smithard wrote in his notebook, letting the day delay his errands, who... <a class="govuk-link govuk-link--no-visited-state" href="/redacted-representation">Read more</a>',
 				action: {
-					href: '/redacted-comment',
+					href: '/redacted-representation',
 					text: 'Change',
 					visuallyHiddenText: 'Question?'
 				}
@@ -117,7 +117,7 @@ describe('./src/dynamic-forms/components/text-entry-details/question.js', () => 
 				return 'back';
 			},
 			getCurrentQuestionUrl: () => {
-				return '/redacted-comment';
+				return '/redacted-representation';
 			},
 			response: {
 				answers: {}
@@ -134,7 +134,7 @@ describe('./src/dynamic-forms/components/text-entry-details/question.js', () => 
 				value:
 					'It began, as many stories do, with an ordinary morning. The air carried the faint smell of dew, and the street was empty save for a few scattered leaves drifting lazily in the wind. Jonathan Price adjusted his collar and glanced at his watch, noting with mild irritation that they were three minutes late.',
 				action: {
-					href: '/redacted-comment',
+					href: '/redacted-representation',
 					text: 'Change',
 					visuallyHiddenText: 'Question?'
 				}

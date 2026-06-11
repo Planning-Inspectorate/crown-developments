@@ -20,7 +20,7 @@ export function createRoutes(service, journeyId) {
 	router.get('/', asyncHandler(representationTaskList));
 	router.post('/', asyncHandler(reviewRepresentationSubmission));
 
-	router.use('/comment', commentRoutes);
+	router.use('/representation', commentRoutes);
 	router.use('/distressing-content', distressingContentRoutes);
 	router.use('/:itemId', attachmentRoutes);
 
