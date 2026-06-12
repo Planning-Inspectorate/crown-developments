@@ -26,3 +26,14 @@ export async function assertRenders404Page(functionToTest, mockReq, isMiddleWare
 	assert.strictEqual(mockRes.status.mock.calls[0].arguments[0], 404);
 	assert.strictEqual(mockRes.render.mock.callCount(), 1);
 }
+
+/**
+ * Assert that the actual object includes the expected subset of key-value pairs.
+ * @param {Record<string, unknown>} actual
+ * @param {Record<string, unknown>} expectedSubset
+ */
+export function assertIncludesObject(actual, expectedSubset) {
+	for (const [key, value] of Object.entries(expectedSubset)) {
+		assert.deepStrictEqual(actual[key], value);
+	}
+}
