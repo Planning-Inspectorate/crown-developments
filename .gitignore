@@ -100,3 +100,10 @@ workspace.json
 
 # generated Prisma client
 packages/database/src/client
+
+# playwright
+.env
+playwright/.auth/*.json
+playwright/downloads/
+playwright-report/
+test-results/
