@@ -29,6 +29,7 @@ export function addLocalsConfiguration({
 			appName,
 			cspNonce: res.locals.cspNonce,
 			headerTitle: 'Find a Crown development application',
+			headerUrl: '/',
 			footerLinks: [
 				{
 					text: 'Terms and conditions',
