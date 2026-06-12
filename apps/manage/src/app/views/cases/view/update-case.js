@@ -65,21 +65,28 @@ export function buildUpdateCase(service, clearAnswer = false) {
 			// Build a deterministic write-plan (no shared nested Organisations writes) and execute it
 			// inside a single interactive transaction.
 			await db.$transaction(async (tx) => {
+				// Only fetch the organisation graph when the edit needs it: organisation/contact writes,
+				// or agent removal (hasAgent -> false), which may cascade organisation/contact deletes.
+				// Scalar- and site-address-only edits skip the join entirely.
+				const includeOrganisations = hasOrganisationWriteEdits(toSave) || toSave.hasAgent === false;
+
 				const crownDevelopment = await tx.crownDevelopment.findUnique({
 					where: { id },
 					include: {
 						ParentCrownDevelopment: { select: { id: true, siteAddressId: true } },
 						ChildrenCrownDevelopment: { select: { id: true, siteAddressId: true } },
-						Organisations: {
-							include: {
-								Organisation: {
-									include: {
-										Address: true,
-										OrganisationToContact: { include: { Contact: true } }
+						...(includeOrganisations && {
+							Organisations: {
+								include: {
+									Organisation: {
+										include: {
+											Address: true,
+											OrganisationToContact: { include: { Contact: true } }
+										}
 									}
 								}
 							}
-						}
+						})
 					}
 				});
 				if (!crownDevelopment) {

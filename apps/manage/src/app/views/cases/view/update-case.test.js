@@ -362,6 +362,59 @@ describe('case details', () => {
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
 		});
 
+		it('should omit the Organisations include for a scalar-only edit', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = { params: { id: 'case1' }, session: {} };
+			const mockRes = { locals: {} };
+			const data = { answers: { description: 'New description' } };
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			const findUniqueArg = mockDb.crownDevelopment.findUnique.mock.calls[0].arguments[0];
+			assert.strictEqual(findUniqueArg.include.Organisations, undefined);
+		});
+
+		it('should include the Organisations graph when applicant organisations are edited', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				organisation: { create: mock.fn(() => ({ id: 'org-created-1' })) },
+				contact: { update: mock.fn() },
+				crownDevelopmentToOrganisation: { create: mock.fn((args) => args) },
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({
+						linkedParentId: null,
+						ChildrenCrownDevelopment: [],
+						Organisations: []
+					}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+			const updateCase = buildUpdateCase({ db: mockDb, logger });
+			const mockReq = { params: { id: 'case1' }, session: {} };
+			const mockRes = { locals: {} };
+			const data = {
+				answers: {
+					manageApplicantDetails: [{ id: 'new-org-1', organisationName: 'New Org', organisationAddress: {} }]
+				}
+			};
+
+			await updateCase({ req: mockReq, res: mockRes, data });
+
+			const findUniqueArg = mockDb.crownDevelopment.findUnique.mock.calls[0].arguments[0];
+			assert.ok(findUniqueArg.include.Organisations);
+		});
+
 		it('should create new applicant organisation once and link it to both cases when updating linked cases', async () => {
 			const logger = mockLogger();
 			const mockDb = {
