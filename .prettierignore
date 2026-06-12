@@ -4,3 +4,6 @@ package-lock.json
 README.md
 *.njk
 .env*
+playwright-report
+test-results
+playwright/downloads
