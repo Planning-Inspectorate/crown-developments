@@ -1,7 +1,8 @@
 import { describe, it } from 'node:test';
-import { GovNotifyClient } from './gov-notify-client.js';
+import { GovNotifyClient } from './gov-notify-client.ts';
 import { mockLogger } from '../testing/mock-logger.js';
 import assert from 'node:assert';
+import { AxiosError } from 'axios';
 
 describe(`gov-notify-client`, () => {
 	describe('sendEmail', () => {
@@ -36,7 +37,7 @@ describe(`gov-notify-client`, () => {
 			const logger = mockLogger();
 			const client = new GovNotifyClient(logger, 'key', {});
 			ctx.mock.method(client.notifyClient, 'sendEmail', () => {
-				const error = new Error('Notify API error');
+				const error = new AxiosError('Notify API error');
 				error.response = { data: { errors: ['Error 1', 'Error 2'] } };
 				throw error;
 			});
