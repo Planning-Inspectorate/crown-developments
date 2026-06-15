@@ -122,10 +122,17 @@ export class CasesPage {
 			const searchButton = this.locators.searchButton();
 
 			await expect(searchButton, 'Search button should be visible before clicking').toBeVisible();
+
 			await Promise.all([
-				this.page.waitForURL(/\/cases\?page=1&searchCriteria=.+/i, {
-					timeout: 15_000
-				}),
+				this.page.waitForURL(
+					(url) =>
+						url.pathname === '/cases' &&
+						url.searchParams.get('page') === '1' &&
+						!!url.searchParams.get('searchCriteria'),
+					{
+						timeout: 15_000
+					}
+				),
 				searchButton.click()
 			]);
 

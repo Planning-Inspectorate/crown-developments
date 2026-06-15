@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
-import { config as dotenvConfig } from 'dotenv';
+import { loadEnvFile } from 'node:process';
 
-dotenvConfig();
+loadEnvFile();
 
 export default defineConfig({
 	testDir: './playwright/tests',

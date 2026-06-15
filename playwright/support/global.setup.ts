@@ -1,9 +1,21 @@
+import { mkdir } from 'node:fs/promises';
+import { loadEnvFile } from 'node:process';
+
 import { chromium, type FullConfig } from '@playwright/test';
-import { config as dotenvConfig } from 'dotenv';
 
 import { LoginMicrosoftPage } from '../page-objects/login-microsoft.page.ts';
 
-dotenvConfig();
+const AUTH_STORAGE_DIRECTORY = 'playwright/.auth';
+const AUTH_STORAGE_STATE_PATH = `${AUTH_STORAGE_DIRECTORY}/admin.json`;
+const PAGE_LOAD_TIMEOUT = 30_000;
+
+function loadEnvironmentVariables(): void {
+	try {
+		loadEnvFile();
+	} catch {
+		// No .env file found. This is fine if environment variables are provided by CI.
+	}
+}
 
 function requireEnv(name: string): string {
 	const value = process.env[name];
@@ -15,7 +27,9 @@ function requireEnv(name: string): string {
 	return value;
 }
 
-async function globalSetup(config: FullConfig) {
+async function globalSetup(config: FullConfig): Promise<void> {
+	loadEnvironmentVariables();
+
 	const baseURL = config.projects[0].use.baseURL ?? process.env.BASE_URL;
 
 	if (!baseURL || typeof baseURL !== 'string') {
@@ -34,18 +48,20 @@ async function globalSetup(config: FullConfig) {
 
 		await page.goto(baseURL, {
 			waitUntil: 'domcontentloaded',
-			timeout: 30_000
+			timeout: PAGE_LOAD_TIMEOUT
 		});
 
 		await msLogin.login(email, password);
 
 		await page.locator('[href="/auth/signout"]').waitFor({
 			state: 'visible',
-			timeout: 30_000
+			timeout: PAGE_LOAD_TIMEOUT
 		});
 
+		await mkdir(AUTH_STORAGE_DIRECTORY, { recursive: true });
+
 		await context.storageState({
-			path: 'playwright/.auth/admin.json'
+			path: AUTH_STORAGE_STATE_PATH
 		});
 	} finally {
 		await browser.close();
