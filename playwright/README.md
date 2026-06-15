@@ -136,7 +136,7 @@ The `package.json` file should include these scripts:
     "test:playwright:ui": "playwright test --ui",
     "test:playwright:debug": "playwright test --debug",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format-check": "prettier --check ."
   }
 }
 ```
