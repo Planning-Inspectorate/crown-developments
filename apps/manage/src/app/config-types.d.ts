@@ -1,4 +1,4 @@
-import type { NotifyConfig } from '@pins/crowndev-lib/govnotify/types';
+import type { NotifyConfig } from '@pins/crowndev-lib/govnotify/gov-notify-client';
 
 interface Config {
 	appName: string;
