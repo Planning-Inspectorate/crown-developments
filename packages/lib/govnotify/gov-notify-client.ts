@@ -193,7 +193,7 @@ export class GovNotifyClient {
 		}
 	}
 
-	async getNotificationById(notificationId: string): Promise<unknown> {
+	async getNotificationById(notificationId: string): ReturnType<NotifyClient['getNotificationById']> {
 		try {
 			this.logger.info(`fetching notification by ID: ${notificationId}`);
 			return await this.notifyClient.getNotificationById(notificationId);
