@@ -189,5 +189,39 @@ describe('auth', () => {
 			const response = await request.get('/home').redirects(1);
 			assert.match(response.redirects[0], /\/auth\/signin/);
 		});
+
+		describe('invalid redirect attempts', () => {
+			const redirectAttempts = [
+				'//example.com',
+				'/\\\\example.com',
+				'/\\example.com',
+				'https://somewhereelse.com',
+				'/a/url/../../etc',
+				'/..',
+				'/a/..'
+			];
+			for (const redirectAttempt of redirectAttempts) {
+				it(`should return 400 for invalid redirect parameter ${redirectAttempt}`, async () => {
+					const sessionData = mockSession({});
+					const request = setupApp(sessionData);
+					const res = await request.get(`/auth/signin?redirect_to=${encodeURIComponent(redirectAttempt)}`, {
+						redirect: 'manual'
+					});
+					assert.strictEqual(res.status, 400);
+				});
+			}
+			it('should not allow multiple params', async () => {
+				const sessionData = mockSession({});
+				const request = setupApp(sessionData);
+				const res = await request.get(`/auth/signin?redirect_to=/1&redirect_to=/2`, { redirect: 'manual' });
+				assert.strictEqual(res.status, 400);
+			});
+			it('should allow relative redirects', async () => {
+				const sessionData = mockSession({});
+				const request = setupApp(sessionData);
+				const res = await request.get(`/auth/signin?redirect_to=/home`, { redirect: 'manual' });
+				assert.strictEqual(res.status, 302);
+			});
+		});
 	});
 });
