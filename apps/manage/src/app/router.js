@@ -5,6 +5,7 @@ import { createRoutes as createCasesRoutes } from './views/cases/index.js';
 import { createErrorRoutes } from './views/static/error/index.js';
 import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.ts';
 import { createNotifyRoutes } from './notify/router.js';
+import { createRoutes as createS62aRoutes } from './views/s62a/index.ts';
 
 /**
  * @param {import('#service').ManageService} service
@@ -16,6 +17,7 @@ export function buildRouter(service) {
 	const { router: authRoutes, guards: authGuards } = createAuthRoutesAndGuards(service);
 	const casesRoutes = createCasesRoutes(service);
 	const notifyRoutes = createNotifyRoutes(service);
+	const s62aRoutes = createS62aRoutes();
 
 	router.use('/', monitoringRoutes);
 	if (!service.notifyCallBackDisabled) {
@@ -43,6 +45,13 @@ export function buildRouter(service) {
 
 	router.get('/', (req, res) => res.redirect('/cases'));
 	router.use('/cases', casesRoutes);
+
+	if (service.isS62ALive) {
+		router.use('/s62a', s62aRoutes);
+	} else {
+		service.logger.warn('S62A not enabled; routes skipped');
+	}
+
 	router.use('/error', createErrorRoutes(service));
 
 	return router;

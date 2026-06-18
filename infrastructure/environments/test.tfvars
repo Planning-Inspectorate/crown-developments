@@ -31,7 +31,7 @@ apps_config = {
     application_updates_not_live = false
     multiple_applicants_not_live = false
     s62a_portal_not_live         = true
-    s62a_manage_not_live         = true
+    s62a_manage_not_live         = false
   }
 
   dynamic_cache_control = {
