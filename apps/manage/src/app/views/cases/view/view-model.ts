@@ -1,24 +1,12 @@
-import {
-	APPLICATION_PROCEDURE_ID,
-	APPLICATION_STAGE_ID,
-	ORGANISATION_ROLES_ID
-} from '@pins/crowndev-database/src/seed/data-static.ts';
-import { toInt, parseNumberStringToNumber } from '@pins/crowndev-lib/util/numbers.ts';
+import { APPLICATION_PROCEDURE_ID, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { parseNumberStringToNumber } from '@pins/crowndev-lib/util/numbers.ts';
 import { booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms';
-import { optionalWhere } from '@pins/crowndev-lib/util/database.js';
-import { addressToViewModel, viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
-import {
-	buildAgentOrganisationNameUpdates,
-	buildAgentOrganisationAddressUpdates,
-	buildApplicantOrganisationUpdates,
-	buildApplicantContactOrganisationUpdates,
-	buildAgentContactOrganisationUpdates
-} from './linked-case-updates.ts';
+import { addressToViewModel } from '@pins/crowndev-lib/util/address.ts';
 import type { Address } from '@planning-inspectorate/dynamic-forms';
 import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { ApplicantContact, AgentContact } from '../create-a-case/types.d.ts';
-import type { CrownDevelopmentPayload } from './payload-contracts.ts';
+import type { CrownDevelopmentPayload, CrownDevelopmentPayloadWithoutOrganisations } from './payload-contracts.ts';
 
 type ProcedurePrefix = 'inquiry' | 'hearing' | 'writtenReps';
 type ProcedureId = (typeof APPLICATION_PROCEDURE_ID)[keyof typeof APPLICATION_PROCEDURE_ID];
@@ -29,6 +17,9 @@ export type CrownDevelopmentViewModel = {
 	containsDistressingContent: YesNo;
 	typeId: string;
 	subTypeId?: string;
+	// ── S62A PLACEHOLDER
+	// TODO - Split this out as per PEAS-251
+	applicationClassificationId?: string;
 	lpaId: string;
 	hasSecondaryLpa: YesNo;
 	secondaryLpaId?: string;
@@ -168,7 +159,7 @@ type DirectMappedViewModelFields = Exclude<CrownDevelopmentViewModelFields, Bool
  * Fields that are included in the view model but should not be updatable when
  * mapping edits back to the database, because they are system-generated.
  */
-const NON_UPDATABLE_FIELDS = Object.freeze(['reference', 'updatedDate', 'SubType'] as const);
+export const NON_UPDATABLE_FIELDS = Object.freeze(['reference', 'updatedDate', 'SubType'] as const);
 
 /**
  * Fields that are not optional in the database and must be included in the view model.
@@ -287,7 +278,7 @@ const BOOLEAN_FIELDS = Object.freeze([
 /**
  * Fields that need standard mapping from Prisma's Decimal.js type in the database to float in the view model.
  */
-const DECIMAL_FIELDS = Object.freeze([
+export const DECIMAL_FIELDS = Object.freeze([
 	'siteArea',
 	'applicationFee',
 	'applicationFeeRefundAmount',
@@ -387,7 +378,7 @@ type DirectUnmappedField =
  */
 function assignNullableDirectField<K extends DirectUnmappedField>(
 	viewModel: CrownDevelopmentViewModel,
-	crownDevelopment: CrownDevelopmentPayload,
+	crownDevelopment: CrownDevelopmentPayload | CrownDevelopmentPayloadWithoutOrganisations,
 	field: K
 ) {
 	const value = crownDevelopment[field];
@@ -397,7 +388,9 @@ function assignNullableDirectField<K extends DirectUnmappedField>(
 /**
  * Converts a CrownDevelopment database record to the view model format used for rendering and editing cases in the UI.
  */
-export function crownDevelopmentToViewModel(crownDevelopment: CrownDevelopmentPayload): CrownDevelopmentViewModel {
+export function crownDevelopmentToViewModel(
+	crownDevelopment: CrownDevelopmentPayload | CrownDevelopmentPayloadWithoutOrganisations
+): CrownDevelopmentViewModel {
 	// Set required properties
 	const viewModel: CrownDevelopmentViewModel = {
 		reference: crownDevelopment.reference,
@@ -453,7 +446,7 @@ export function crownDevelopmentToViewModel(crownDevelopment: CrownDevelopmentPa
 			crownDevelopment.ParentCrownDevelopment?.reference ?? childrenReferences.join(', ');
 	}
 
-	if (crownDevelopment.Organisations) {
+	if ('Organisations' in crownDevelopment && crownDevelopment.Organisations) {
 		// There will be a maximum of one agent organisation linked to a case.
 		const agentOrganisationRelationship = crownDevelopment.Organisations.find(
 			(crownToOrganisation) => crownToOrganisation.role === ORGANISATION_ROLES_ID.AGENT
@@ -545,7 +538,7 @@ type DirectUpdateEdits = Pick<CrownDevelopmentSaveModel, DirectUpdateFields>;
 
 type DirectUpdateUpdates = Pick<Prisma.CrownDevelopmentUpdateInput, DirectUpdateFields>;
 
-const DIRECT_UPDATE_FIELDS: ReadonlyArray<DirectUpdateField> = Object.freeze([
+export const DIRECT_UPDATE_FIELDS: ReadonlyArray<DirectUpdateField> = Object.freeze([
 	...REQUIRED_FIELDS.filter(
 		(field): field is Exclude<RequiredField, NonUpdatableField> =>
 			!NON_UPDATABLE_FIELDS.includes(field as NonUpdatableField)
@@ -555,7 +548,7 @@ const DIRECT_UPDATE_FIELDS: ReadonlyArray<DirectUpdateField> = Object.freeze([
 	...DECIMAL_FIELDS
 ]);
 
-function assignDirectUpdate<K extends DirectUpdateField>(
+export function assignDirectUpdate<K extends DirectUpdateField>(
 	updates: DirectUpdateUpdates,
 	edits: DirectUpdateEdits,
 	field: K
@@ -565,186 +558,69 @@ function assignDirectUpdate<K extends DirectUpdateField>(
 	}
 }
 
+export interface EditsToDatabaseUpdatesOptions {
+	includeOrganisations?: boolean;
+}
+
+/**
+ * Applies one case type's own fields to the update input, in place.
+ * Implemented per case type (e.g. crownEditsToDatabaseUpdates, s62aEditsToDatabaseUpdates).
+ */
+export type ApplyCaseTypeUpdates = (
+	updateInput: Prisma.CrownDevelopmentUpdateInput,
+	edits: CrownDevelopmentSaveModel,
+	viewModel: CrownDevelopmentViewModel,
+	options: EditsToDatabaseUpdatesOptions
+) => void;
+
+/**
+ * Fields whose mapping is identical across all case types. Start small; promote a field here from a
+ * case-type updater once it is confirmed to map the same way. Because the direct assignments are
+ * idempotent, the resulting updateInput is unchanged — verify by diff, then delete it from the
+ * case-type updater.
+ */
+const SHARED_DIRECT_FIELDS = Object.freeze([
+	'description',
+	'expectedDateOfSubmission'
+] as const satisfies ReadonlyArray<DirectUpdateField>);
+
+/**
+ * Applies the fields that are shared by every case type to the update input, in place.
+ */
+function applySharedUpdates(updateInput: Prisma.CrownDevelopmentUpdateInput, edits: CrownDevelopmentSaveModel) {
+	for (const field of SHARED_DIRECT_FIELDS) {
+		assignDirectUpdate(updateInput, edits, field);
+	}
+	if ('typeId' in edits && edits.typeId) {
+		updateInput.Type = { connect: { id: edits.typeId } };
+	}
+	if ('lpaId' in edits && edits.lpaId) {
+		updateInput.Lpa = { connect: { id: edits.lpaId } };
+	}
+}
+
 /**
  * Answers/edits are received in 'view-model' form, and are mapped here to the appropriate database input.
  *
+ * Shared fields are applied centrally (applySharedUpdates); case-type-specific fields are applied by the
+ * supplied `applyCaseTypeUpdates` (e.g. crownEditsToDatabaseUpdates / s62aEditsToDatabaseUpdates).
+ *
  * @param edits - edited fields only
  * @param viewModel - full view model with all case details
+ * @param applyCaseTypeUpdates - per-case-type mapping of any non-shared fields
  * @param options
  * @param options.includeOrganisations - default true
  */
 export function editsToDatabaseUpdates(
 	edits: CrownDevelopmentSaveModel,
 	viewModel: CrownDevelopmentViewModel,
-	options: { includeOrganisations?: boolean } = {}
+	applyCaseTypeUpdates: ApplyCaseTypeUpdates,
+	options: EditsToDatabaseUpdatesOptions = {}
 ): Prisma.CrownDevelopmentUpdateInput {
-	const includeOrganisations = options?.includeOrganisations !== false;
-
-	const crownDevelopmentUpdateInput: Prisma.CrownDevelopmentUpdateInput = {};
-
-	// map all the regular fields to the update input
-	// Boolean fields do not need to be converted from YesNo here since they are already true booleans in the edits
-	for (const field of DIRECT_UPDATE_FIELDS) {
-		assignDirectUpdate(crownDevelopmentUpdateInput, edits, field);
-	}
-
-	// don't support updating these fields
-	NON_UPDATABLE_FIELDS.forEach((field) => {
-		delete crownDevelopmentUpdateInput[field];
-	});
-
-	// Coerce empty strings to null for decimal fields – Prisma cannot parse "" as Decimal
-	for (const field of DECIMAL_FIELDS) {
-		if (field in crownDevelopmentUpdateInput && crownDevelopmentUpdateInput[field] === '') {
-			crownDevelopmentUpdateInput[field] = null;
-		}
-	}
-
-	// set number-as-string fields
-	if ('siteNorthing' in edits || 'siteEasting' in edits) {
-		crownDevelopmentUpdateInput.siteNorthing = edits.siteNorthing ? toInt(edits.siteNorthing) : null;
-		crownDevelopmentUpdateInput.siteEasting = edits.siteEasting ? toInt(edits.siteEasting) : null;
-	}
-
-	if (edits.representationsPeriod) {
-		crownDevelopmentUpdateInput.representationsPeriodStartDate = edits.representationsPeriod.start;
-		crownDevelopmentUpdateInput.representationsPeriodEndDate = edits.representationsPeriod.end;
-	}
-
-	// update relations
-
-	// Required foreign key scalar fields need to be mapped to relations for a consistent return type.
-	if ('typeId' in edits && edits.typeId) {
-		crownDevelopmentUpdateInput.Type = { connect: { id: edits.typeId } };
-	}
-	if ('lpaId' in edits && edits.lpaId) {
-		crownDevelopmentUpdateInput.Lpa = { connect: { id: edits.lpaId } };
-	}
-
-	// Optional foreign key scalar fields need to be mapped to relations for a consistent return type.
-	if ('decisionOutcomeId' in edits) {
-		crownDevelopmentUpdateInput.DecisionOutcome = edits.decisionOutcomeId
-			? { connect: { id: edits.decisionOutcomeId } }
-			: { disconnect: true };
-	}
-	if ('statusId' in edits) {
-		crownDevelopmentUpdateInput.Status = edits.statusId ? { connect: { id: edits.statusId } } : { disconnect: true };
-	}
-	// stageId edited directly (may be overridden below by procedure block)
-	if ('stageId' in edits) {
-		crownDevelopmentUpdateInput.Stage = edits.stageId ? { connect: { id: edits.stageId } } : { disconnect: true };
-	}
-	if ('secondaryLpaId' in edits && edits.secondaryLpaId) {
-		crownDevelopmentUpdateInput.SecondaryLpa = { connect: { id: edits.secondaryLpaId } };
-	}
-	if (edits.subCategoryId) {
-		crownDevelopmentUpdateInput.Category = {
-			connect: { id: edits.subCategoryId }
-		};
-	}
-
-	if ('siteAddress' in edits && edits.siteAddress) {
-		const siteAddress = viewModelToAddressUpdateInput(edits.siteAddress);
-		if (siteAddress) {
-			crownDevelopmentUpdateInput.SiteAddress = {
-				upsert: {
-					where: optionalWhere(viewModel.siteAddressId),
-					create: siteAddress,
-					update: siteAddress
-				}
-			};
-		}
-	}
-
-	if (includeOrganisations) {
-		if ('manageApplicantDetails' in edits) {
-			crownDevelopmentUpdateInput.Organisations = buildApplicantOrganisationUpdates(edits, viewModel);
-		}
-
-		// Applicant contacts linked to organisations
-		if ('manageApplicantContactDetails' in edits) {
-			crownDevelopmentUpdateInput.Organisations = buildApplicantContactOrganisationUpdates(edits, viewModel);
-		}
-
-		// Agent contacts linked to organisations
-		if ('manageAgentContactDetails' in edits) {
-			crownDevelopmentUpdateInput.Organisations = buildAgentContactOrganisationUpdates(edits, viewModel);
-		}
-
-		const agentOrganisationNameUpdates = buildAgentOrganisationNameUpdates(edits, viewModel);
-		if (agentOrganisationNameUpdates) {
-			crownDevelopmentUpdateInput.Organisations = agentOrganisationNameUpdates;
-		}
-
-		const agentOrganisationAddressUpdates = buildAgentOrganisationAddressUpdates(edits, viewModel);
-		if (agentOrganisationAddressUpdates) {
-			crownDevelopmentUpdateInput.Organisations = agentOrganisationAddressUpdates;
-		}
-	}
-
-	if ('procedureId' in edits && edits.procedureId !== viewModel.procedureId) {
-		if (edits.procedureId) {
-			crownDevelopmentUpdateInput.Procedure = {
-				connect: { id: edits.procedureId }
-			};
-			if (stageIsProcedure(viewModel.stageId)) {
-				// If the current stage is a procedure, update it to match the new procedure
-				crownDevelopmentUpdateInput.Stage = {
-					connect: {
-						id:
-							edits.procedureId === APPLICATION_PROCEDURE_ID.WRITTEN_REPS
-								? APPLICATION_STAGE_ID.WRITTEN_REPRESENTATIONS
-								: edits.procedureId
-					}
-				};
-			}
-		} else {
-			// Added to handle the case where a procedure is removed (set to null)
-			crownDevelopmentUpdateInput.Procedure = {
-				disconnect: true
-			};
-			if (stageIsProcedure(viewModel.stageId)) {
-				crownDevelopmentUpdateInput.Stage = {
-					connect: { id: APPLICATION_STAGE_ID.PROCEDURE_DECISION }
-				};
-			}
-		}
-		crownDevelopmentUpdateInput.procedureNotificationDate = null;
-		if (viewModel.eventId) {
-			// delete existing event if procedure changed and there is an existing event
-			crownDevelopmentUpdateInput.Event = {
-				delete: true
-			};
-		}
-	}
-	if (hasProcedure(viewModel.procedureId)) {
-		const eventUpdates = viewModelToEventUpdateInput(edits, viewModel.procedureId);
-
-		if (eventUpdates.eventUpdateInput && Object.keys(eventUpdates.eventUpdateInput).length > 0) {
-			crownDevelopmentUpdateInput.Event = {
-				upsert: {
-					where: optionalWhere(viewModel.eventId),
-					create: eventUpdates.eventUpdateInput as Prisma.EventCreateWithoutCrownDevelopmentInput,
-					update: eventUpdates.eventUpdateInput
-				}
-			};
-		}
-		if (eventUpdates.procedureNotificationDate) {
-			crownDevelopmentUpdateInput.procedureNotificationDate = eventUpdates.procedureNotificationDate;
-		}
-	}
-
-	// If you select no for hasSecondaryLpa then it should remove the secondaryLpa answers,
-	// and if you remove the secondaryLpa then it should set hasSecondaryLpa to false
-	if (
-		('hasSecondaryLpa' in edits && edits.hasSecondaryLpa === false) ||
-		('secondaryLpaId' in edits && edits.secondaryLpaId === null)
-	) {
-		crownDevelopmentUpdateInput.hasSecondaryLpa = false;
-
-		crownDevelopmentUpdateInput.SecondaryLpa = { disconnect: true };
-	}
-	return crownDevelopmentUpdateInput;
+	const updateInput: Prisma.CrownDevelopmentUpdateInput = {};
+	applySharedUpdates(updateInput, edits);
+	applyCaseTypeUpdates(updateInput, edits, viewModel, options);
+	return updateInput;
 }
 
 /**
@@ -817,14 +693,14 @@ function addEventToViewModel(
 /**
  * Type guard to check if a given procedureId is one of the valid procedure types (inquiry, hearing, or written reps).
  */
-function hasProcedure(procedureId?: string | null): procedureId is ProcedureId {
+export function hasProcedure(procedureId?: string | null): procedureId is ProcedureId {
 	if (!procedureId) {
 		return false;
 	}
 	return isInquiry(procedureId) || isHearing(procedureId) || isWrittenReps(procedureId);
 }
 
-function stageIsProcedure(stageId?: string): stageId is ProcedureId {
+export function stageIsProcedure(stageId?: string): stageId is ProcedureId {
 	return hasProcedure(stageId);
 }
 
@@ -877,7 +753,7 @@ type EventUpdates = {
 /**
  * Maps event-related fields from the view model to an EventUpdateInput for updating the related Event record in the database, based on the procedure type.
  */
-function viewModelToEventUpdateInput(edits: CrownDevelopmentSaveModel, procedureId?: ProcedureId): EventUpdates {
+export function viewModelToEventUpdateInput(edits: CrownDevelopmentSaveModel, procedureId?: ProcedureId): EventUpdates {
 	const eventUpdateInput: Prisma.EventUpdateInput = {};
 	const updates: EventUpdates = {
 		eventUpdateInput: null,
