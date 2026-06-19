@@ -5,12 +5,19 @@ import {
 	sendLpaQuestionnaireSentNotification
 } from './notification.js';
 import { CLEARABLE_SAVE_KEYS, editsToDatabaseUpdates, crownDevelopmentToViewModel } from './view-model.ts';
+import { crownEditsToDatabaseUpdates } from './crown-edits.ts';
 import {
 	hasOrganisationWriteEdits,
 	buildCaseUpdateWritePlan,
 	executeCaseUpdateWritePlan
 } from './linked-case-updates.ts';
-import { CROWN_DEVELOPMENT_VIEW_INCLUDE, CROWN_DEVELOPMENT_PLANNING_INCLUDE } from './payload-contracts.ts';
+import {
+	CROWN_DEVELOPMENT_VIEW_INCLUDE,
+	CROWN_DEVELOPMENT_VIEW_INCLUDE_WITHOUT_ORGS,
+	CROWN_DEVELOPMENT_PLANNING_INCLUDE,
+	type CrownDevelopmentPayload,
+	type CrownDevelopmentPlanningPayload
+} from './payload-contracts.ts';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
@@ -22,7 +29,6 @@ import type {
 	CrownDevelopmentViewModel,
 	CrownDevelopmentSaveModel
 } from './view-model.ts';
-import type { CrownDevelopmentPlanningPayload } from './payload-contracts.ts';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
@@ -117,10 +123,16 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 			// Build a deterministic write-plan (no shared nested Organisations writes) and execute it
 			// inside a single interactive transaction.
 			await db.$transaction(async (tx) => {
-				const crownDevelopment = await tx.crownDevelopment.findUnique({
-					where: { id },
-					include: CROWN_DEVELOPMENT_VIEW_INCLUDE
-				});
+				// Only fetch the organisation graph when the edit needs it: organisation/contact writes,
+				// or agent removal (hasAgent -> false), which may cascade organisation/contact deletes.
+				const includeOrganisations = hasOrganisationWriteEdits(toSave) || toSave.hasAgent === false;
+				const crownDevelopment = includeOrganisations
+					? await tx.crownDevelopment.findUnique({ where: { id }, include: CROWN_DEVELOPMENT_VIEW_INCLUDE })
+					: await tx.crownDevelopment.findUnique({
+							where: { id },
+							include: CROWN_DEVELOPMENT_VIEW_INCLUDE_WITHOUT_ORGS
+						});
+
 				if (!crownDevelopment) {
 					throw new Error('Crown Development case not found');
 				}
@@ -136,7 +148,11 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 
 				// IMPORTANT: organisations are excluded here because organisation/contact updates are handled
 				// separately via the deterministic write plan (see buildCaseUpdateWritePlan/executeCaseUpdateWritePlan).
-				const updateInput = editsToDatabaseUpdates(toSave, viewModelForUpdates, { includeOrganisations: false });
+				// This is the Crown route, so the Crown case-type updater is supplied. When S62A gets its own
+				// route, it will pass s62aEditsToDatabaseUpdates instead (ideally sourced from a CaseTypeConfig).
+				const updateInput = editsToDatabaseUpdates(toSave, viewModelForUpdates, crownEditsToDatabaseUpdates, {
+					includeOrganisations: false
+				});
 				updateInput.updatedDate = new Date();
 
 				const caseIds = [id];
@@ -147,7 +163,9 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 					caseIds.push(...crownDevelopment.ChildrenCrownDevelopment.map((child) => child.id));
 				}
 
-				let crownDevelopmentsForPlanning: CrownDevelopmentPlanningPayload[] = [crownDevelopment];
+				let crownDevelopmentsForPlanning: CrownDevelopmentPlanningPayload[] =
+					'Organisations' in crownDevelopment ? [crownDevelopment as CrownDevelopmentPayload] : [];
+
 				const shouldDeleteAgentData = toSave.hasAgent === false && dbViewModel.hasAgent === BOOLEAN_OPTIONS.YES;
 				if ((hasOrganisationWriteEdits(toSave) || shouldDeleteAgentData) && caseIds.length > 1) {
 					crownDevelopmentsForPlanning = await tx.crownDevelopment.findMany({
