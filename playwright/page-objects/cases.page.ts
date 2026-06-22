@@ -1,7 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
-import { HeaderUtility } from '../page-utilities/header.utility.ts';
+import { HeaderUtility } from './header.utility.ts';
 
 type CaseTableColumn = 'Reference' | 'Site location' | 'Local planning authority (LPA)' | 'Application type' | 'Status';
 
