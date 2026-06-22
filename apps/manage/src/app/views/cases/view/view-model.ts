@@ -24,7 +24,7 @@ import type { CrownDevelopmentPayload } from './payload-contracts.ts';
 type ProcedurePrefix = 'inquiry' | 'hearing' | 'writtenReps';
 type ProcedureId = (typeof APPLICATION_PROCEDURE_ID)[keyof typeof APPLICATION_PROCEDURE_ID];
 
-export interface CrownDevelopmentViewModel {
+export type CrownDevelopmentViewModel = {
 	reference: string;
 	description: string;
 	containsDistressingContent: YesNo;
@@ -169,7 +169,7 @@ export interface CrownDevelopmentViewModel {
 	hasCostsApplications?: YesNo;
 	costsApplicationsComment?: string;
 	siteVisitDate?: Date;
-}
+};
 
 export type CrownDevelopmentViewModelFields = keyof CrownDevelopmentViewModel;
 

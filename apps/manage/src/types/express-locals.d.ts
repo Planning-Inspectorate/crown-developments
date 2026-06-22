@@ -2,7 +2,7 @@ import type { Journey } from '@planning-inspectorate/dynamic-forms';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types';
 import type { CrownDevelopmentViewModel } from '../app/views/cases/view/view-model.ts';
 
-type CrownJourneyResponse = {
+export type CrownJourneyResponse = {
 	journeyId: string;
 	referenceId: string;
 	answers: CrownDevelopmentViewModel;
