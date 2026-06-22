@@ -1,4 +1,11 @@
-import { type Question, Section, Journey, type JourneyResponse } from '@planning-inspectorate/dynamic-forms';
+import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import {
+	type Question,
+	Section,
+	Journey,
+	type JourneyResponse,
+	whenQuestionHasAnswer
+} from '@planning-inspectorate/dynamic-forms';
 
 import type { Request } from 'express';
 
@@ -11,7 +18,12 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 
 	return new Journey({
 		journeyId: JOURNEY_ID,
-		sections: [new Section('Create', 'questions').addQuestion(questions.preApplicationOrApplication)],
+		sections: [
+			new Section('Create', 'questions')
+				.addQuestion(questions.applicationStage)
+				.addQuestion(questions.applicationClassification)
+				.withCondition(whenQuestionHasAnswer(questions.applicationStage, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION))
+		],
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',
 		taskListTemplate: 'views/layouts/forms-check-your-answers.njk',

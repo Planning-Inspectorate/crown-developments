@@ -13,3 +13,19 @@ export const PRE_APPLICATION_OR_APPLICATIONS = [
 		displayName: 'Application'
 	}
 ];
+
+export const MAJOR_OR_NON_MAJOR_ID = Object.freeze({
+	MAJOR: 'major',
+	NON_MAJOR: 'non-major'
+} as const);
+
+export const MAJOR_OR_NON_MAJORS = [
+	{
+		id: MAJOR_OR_NON_MAJOR_ID.MAJOR,
+		displayName: 'Major'
+	},
+	{
+		id: MAJOR_OR_NON_MAJOR_ID.NON_MAJOR,
+		displayName: 'Non-major'
+	}
+];
