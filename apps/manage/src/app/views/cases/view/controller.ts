@@ -25,6 +25,7 @@ import type { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/d
 import type { Response, Request, Handler, NextFunction } from 'express';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import type { ManageService } from '#service';
+import type { CrownJourneyResponse } from '../../../../types/express-locals.d.ts';
 
 /**
  * Get the journey answers
@@ -312,7 +313,8 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 
 		// put these on locals for the list controller
 		res.locals.originalAnswers = { ...viewModel };
-		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', finalAnswers);
+		// We must cast to CrownJourneyResponse here as we define journeyResponse as a CrownJourneyResponse in a declaration module.
+		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', finalAnswers) as CrownJourneyResponse;
 		res.locals.journey = service.isMultipleApplicantsLive
 			? createJourneyV2(questions, res.locals.journeyResponse, req)
 			: createJourney(questions, res.locals.journeyResponse, req);

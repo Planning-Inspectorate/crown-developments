@@ -56,7 +56,7 @@ describe('s62a create a case journey', () => {
 			{
 				title: 'Create',
 				segment: 'questions',
-				questions: ['applicationStage', 'applicationClassification']
+				questions: ['applicationStage', 'applicationClassification', 'applicationType']
 			}
 		];
 

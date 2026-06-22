@@ -20,7 +20,7 @@ export function createRoutes() {
 
 	function makeGetJourneyCallback() {
 		return (req: Request, journeyResponse: JourneyResponse): Journey => {
-			const questions = getQuestions();
+			const questions = getQuestions(journeyResponse);
 			return createJourney(questions, journeyResponse, req);
 		};
 	}
