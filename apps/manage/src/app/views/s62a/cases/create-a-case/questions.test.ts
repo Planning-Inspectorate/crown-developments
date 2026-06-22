@@ -1,10 +1,14 @@
-import { describe, it } from 'node:test';
+import { describe, it, before } from 'node:test';
 import assert from 'node:assert';
 import { getQuestions } from './questions.ts';
 import type { JourneyResponse } from '@planning-inspectorate/dynamic-forms';
 import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 
 describe('s62a getQuestions', () => {
+	before(() => {
+		process.env.ENVIRONMENT = 'test';
+	});
+
 	it('should default to the "application" text if the answer is missing or unknown', () => {
 		const mockRes = {
 			answers: {}
@@ -22,7 +26,7 @@ describe('s62a getQuestions', () => {
 	it('should use the "application" text if the user explicitly selected "application"', () => {
 		const mockRes = {
 			answers: {
-				preApplicationOrApplication: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION
+				applicationStage: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION
 			}
 		} as unknown as JourneyResponse;
 
@@ -38,7 +42,7 @@ describe('s62a getQuestions', () => {
 	it('should use the "pre-application" text if the user selected "pre-application"', () => {
 		const mockRes = {
 			answers: {
-				preApplicationOrApplication: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+				applicationStage: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
 			}
 		} as unknown as JourneyResponse;
 
