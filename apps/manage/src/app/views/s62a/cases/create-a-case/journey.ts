@@ -24,6 +24,8 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.addQuestion(questions.applicationClassification)
 				.withCondition(whenQuestionHasAnswer(questions.applicationStage, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION))
 				.addQuestion(questions.applicationType)
+				.addQuestion(questions.localPlanningAuthority)
+				.addQuestion(questions.lpaContactDetails)
 		],
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',

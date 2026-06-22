@@ -5,6 +5,9 @@ import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/
  * Note: This is currently a very basic validator and does not cover all valid telephone number formats.
  */
 export default class TelephoneNumberValidator extends StringValidator {
+	/** @type {string} */
+	errorMessage;
+
 	/**
 	 * @param {Object} params
 	 * @param {string} [params.fieldName]
