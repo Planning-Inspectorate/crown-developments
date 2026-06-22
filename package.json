@@ -35,7 +35,7 @@
     "@azure/storage-blob": "^12.32.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@ministryofjustice/frontend": "^9.0.0",
-    "@planning-inspectorate/dynamic-forms": "^3.10.8",
+    "@planning-inspectorate/dynamic-forms": "^3.10.9",
     "@prisma/adapter-mssql": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "accessible-autocomplete": "^3.0.1",
