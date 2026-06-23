@@ -1,18 +1,20 @@
-@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk with (
-	$govuk-font-family: (
-		Arial,
-		Helvetica,
-		sans-serif
-	)
-);
-@use 'packages/lib/views/header/pins-header.scss';
+$font-family: Arial, Helvetica, sans-serif;
 
-@forward 'node_modules/@ministryofjustice/frontend/moj/all';
+@forward 'node_modules/@ministryofjustice/frontend/moj/all' with (
+	// don't use the GDS Transport font, this service is not on GOV.UK
+	// https://www.gov.uk/service-manual/design/making-your-service-look-like-govuk#if-your-service-isnt-on-govuk
+	// MOJ loads govuk-frontend, so we can't call `with` when we import it
+	$moj-font-family: $font-family
+);
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
+
+@use 'packages/lib/views/header/pins-header.scss';
+@use 'packages/lib/views/footer/pins-footer.scss';
+
 @use './components/application-links.scss';
 @use './components/pins-table.scss';
 @use './components/document-list.scss';
 @use './components/intro-to-service-panel';
-@use 'packages/lib/views/footer/pins-footer.scss';
 @use './components/pins-chevron-cards.scss';
 @use 'components/pins-filter-accordion';
 
