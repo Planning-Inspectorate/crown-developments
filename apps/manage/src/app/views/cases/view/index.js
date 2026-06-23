@@ -9,7 +9,7 @@ import { createRoutes as createCaseUnpublishRoutes } from './unpublish/index.js'
 import { createRoutes as createRepsRoutes } from './manage-reps/index.js';
 import { createRoutes as createApplicationUpdatesRoutes } from './application-updates/index.js';
 import { buildUpdateCase } from './update-case.ts';
-import { createRoutes as createCaseHistoryRoutes } from '../case-history/index.ts';
+import { createRoutes as createApplicationHistoryRoutes } from '../case-history/index.ts';
 import {
 	buildGetJourneyResponseFromSession,
 	saveDataToSession
@@ -36,7 +36,7 @@ export function createRoutes(service) {
 	const applicationUpdates = createApplicationUpdatesRoutes(service);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const deleteManageListItemOnConfirmRemove = asyncHandler(buildDeleteManageListItemOnConfirmRemove(service));
-	const caseHistoryRoutes = createCaseHistoryRoutes(service);
+	const applicationHistoryRoutes = createApplicationHistoryRoutes(service);
 
 	// view case details
 	router.get('/', validateIdFormat, getViewJourney, asyncHandler(viewCaseDetails));
@@ -49,8 +49,8 @@ export function createRoutes(service) {
 		router.use('/application-updates', applicationUpdates);
 	}
 
-	// View case history page, /:id/case-history
-	router.use('/case-history', caseHistoryRoutes);
+	// View application history page, /:id/application-history
+	router.use('/application-history', applicationHistoryRoutes);
 
 	// view question page
 	router.get(

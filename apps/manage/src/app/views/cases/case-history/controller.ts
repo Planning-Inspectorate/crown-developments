@@ -79,7 +79,7 @@ export function buildViewCaseHistory(service: ManageService): AsyncRequestHandle
 		const rows = createCaseHistoryViewModel(eventsWithUserNames);
 
 		return res.render('views/cases/case-history/view.njk', {
-			pageHeading: 'Case history',
+			pageHeading: 'View application history',
 			reference: caseRow.reference,
 			backLinkUrl: `/cases/${id}`,
 			backLinkText: 'Back to case details',

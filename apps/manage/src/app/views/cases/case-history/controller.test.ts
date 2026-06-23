@@ -135,7 +135,7 @@ describe('buildViewCaseHistory', () => {
 			const [viewPath, viewData] = renderArgs(res.render.mock.calls[0]);
 
 			assert.strictEqual(viewPath, 'views/cases/case-history/view.njk');
-			assert.strictEqual(viewData.pageHeading, 'Case history');
+			assert.strictEqual(viewData.pageHeading, 'View application history');
 			assert.strictEqual(viewData.reference, 'REF-001');
 			assert.strictEqual(viewData.backLinkUrl, '/cases/case-123');
 			assert.strictEqual(viewData.backLinkText, 'Back to case details');
