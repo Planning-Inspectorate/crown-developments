@@ -38,6 +38,13 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.addQuestion(questions.secondaryLocalPlanningAuthority)
 				.addQuestion(questions.secondaryLpaContactDetails)
 				.endMultiQuestionCondition('has-secondary-lpa')
+
+				.addQuestion(questions.hasAgent)
+
+				.startMultiQuestionCondition('has-agent', whenQuestionHasAnswer(questions.hasAgent, BOOLEAN_OPTIONS.YES))
+				.addQuestion(questions.agentName)
+				.addQuestion(questions.agentAddress)
+				.endMultiQuestionCondition('has-agent')
 		],
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',

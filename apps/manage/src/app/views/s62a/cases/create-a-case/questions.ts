@@ -4,7 +4,9 @@ import {
 	COMPONENT_TYPES,
 	RequiredValidator,
 	type JourneyResponse,
-	SameAnswerValidator
+	SameAnswerValidator,
+	StringValidator,
+	AddressValidator
 } from '@planning-inspectorate/dynamic-forms';
 import {
 	MAJOR_OR_NON_MAJORS,
@@ -94,7 +96,46 @@ export function getQuestions(journeyResponse: JourneyResponse) {
 			],
 			options: lpaOptions
 		},
-		secondaryLpaContactDetails: createLpaContactQuestion(true)
+		secondaryLpaContactDetails: createLpaContactQuestion(true),
+		hasAgent: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Agent?',
+			question: 'Is the applicant using an agent?',
+			fieldName: 'hasAgent',
+			url: 'has-agent',
+			validators: [new RequiredValidator('Select if the applicant is using an agent')]
+		},
+		agentName: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Agent organisation name',
+			question: 'What is the name of the agent organisation?',
+			fieldName: 'agentName',
+			url: 'add-agent-details',
+			hint: 'Enter the name of the organisation acting as the agent, for example a planning consultancy or architectural firm',
+			validators: [
+				new RequiredValidator('Enter the agent organisation name'),
+				new StringValidator({
+					maxLength: {
+						maxLength: 250,
+						maxLengthMessage: 'Agent organisation name must be 250 characters or less'
+					},
+					regex: {
+						regex: "^[A-Za-z0-9 ',’(),&-]+$",
+						regexMessage:
+							'Agent organisation name must only include letters, spaces, hyphens, apostrophes, commas and numbers'
+					}
+				})
+			]
+		},
+		agentAddress: {
+			type: COMPONENT_TYPES.ADDRESS,
+			title: 'Agent address',
+			question: 'What is the address of the agent organisation?',
+			hint: 'Optional',
+			fieldName: 'agentAddress',
+			url: 'agent-address',
+			validators: [new AddressValidator()]
+		}
 	};
 
 	return createQuestions(questions, questionClasses, {});
