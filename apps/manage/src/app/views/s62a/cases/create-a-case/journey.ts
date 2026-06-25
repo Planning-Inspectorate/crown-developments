@@ -4,7 +4,8 @@ import {
 	Section,
 	Journey,
 	type JourneyResponse,
-	whenQuestionHasAnswer
+	whenQuestionHasAnswer,
+	BOOLEAN_OPTIONS
 } from '@planning-inspectorate/dynamic-forms';
 
 import type { Request } from 'express';
@@ -21,11 +22,22 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 		sections: [
 			new Section('Create', 'questions')
 				.addQuestion(questions.applicationStage)
+
 				.addQuestion(questions.applicationClassification)
 				.withCondition(whenQuestionHasAnswer(questions.applicationStage, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION))
+
 				.addQuestion(questions.applicationType)
 				.addQuestion(questions.localPlanningAuthority)
 				.addQuestion(questions.lpaContactDetails)
+				.addQuestion(questions.hasSecondaryLpa)
+
+				.startMultiQuestionCondition(
+					'has-secondary-lpa',
+					whenQuestionHasAnswer(questions.hasSecondaryLpa, BOOLEAN_OPTIONS.YES)
+				)
+				.addQuestion(questions.secondaryLocalPlanningAuthority)
+				.addQuestion(questions.secondaryLpaContactDetails)
+				.endMultiQuestionCondition('has-secondary-lpa')
 		],
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',
