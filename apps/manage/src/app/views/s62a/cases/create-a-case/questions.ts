@@ -4,8 +4,7 @@ import {
 	COMPONENT_TYPES,
 	RequiredValidator,
 	type JourneyResponse,
-	StringValidator,
-	EmailValidator
+	SameAnswerValidator
 } from '@planning-inspectorate/dynamic-forms';
 import {
 	MAJOR_OR_NON_MAJORS,
@@ -16,41 +15,8 @@ import { APPLICATION_TYPES } from '@pins/crowndev-database/src/seed/data-static.
 import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../../config.js';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
-import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
-import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.js';
-
-const QUESTION_TEXT = {
-	[PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION]: {
-		applicationType: 'What type of application is this pre-application advice for?',
-		localPlanningAuthority: 'Which local planning authority is this pre-application advice related to?'
-	},
-	[PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION]: {
-		applicationType: 'What type of application is it?',
-		localPlanningAuthority: 'Which local planning authority is this application related to?'
-	}
-};
-
-type AppType = (typeof PRE_APPLICATION_OR_APPLICATION_ID)[keyof typeof PRE_APPLICATION_OR_APPLICATION_ID];
-
-/**
- * Checks to make sure answer is one of the two app types, for typescript
- */
-const isApplicationType = (answer: unknown): answer is AppType => {
-	return (
-		answer === PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION ||
-		answer === PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION
-	);
-};
-
-/**
- * Formats LPA list with null value first and unsorted LPAs as received
- * from file, ready for use as an options array.
- */
-const formatLpaOptions = (lpas: Prisma.LpaCreateInput[]) => {
-	const lpaOptions = [{ text: '', value: '' }, ...lpas.map((t) => ({ text: t.name, value: t.id }))];
-	return lpaOptions;
-};
+import { isApplicationType, formatLpaOptions, QUESTION_TEXT } from './questions-utils.ts';
+import { createLpaContactQuestion } from './question-factories.ts';
 
 export function getQuestions(journeyResponse: JourneyResponse) {
 	const env = loadEnvironmentConfig();
@@ -95,96 +61,40 @@ export function getQuestions(journeyResponse: JourneyResponse) {
 			question: QUESTION_TEXT[preAppOrAppPath].localPlanningAuthority,
 			fieldName: 'lpaId',
 			url: 'local-planning-authority',
-			validators: [new RequiredValidator('Enter the local planning authority')],
+			validators: [
+				new SameAnswerValidator(
+					['secondaryLpaId'],
+					'Local planning authority cannot be the same as the secondary local planning authority'
+				),
+				new RequiredValidator('Enter the local planning authority')
+			],
 			options: lpaOptions
 		},
-		lpaContactDetails: {
-			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
-			title: 'LPA',
-			question: `What are the LPA's contact details?`,
-			fieldName: 'lpaContactDetails',
-			url: 'lpa-contact-details',
-			inputFields: [
-				{
-					fieldName: 'lpaFirstName',
-					label: 'First name',
-					formatJoinString: ' '
-				},
-				{
-					fieldName: 'lpaLastName',
-					label: 'Last name'
-				},
-				{
-					fieldName: 'lpaEmailAddress',
-					label: 'Email address'
-				},
-				{
-					fieldName: 'lpaPhoneNumber',
-					label: 'Phone number'
-				}
-			],
+		lpaContactDetails: createLpaContactQuestion(false),
+		hasSecondaryLpa: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Secondary LPA?',
+			question: QUESTION_TEXT[preAppOrAppPath].hasSecondaryLpa,
+			fieldName: 'hasSecondaryLpa',
+			url: 'has-secondary-local-planning-authority',
+			validators: [new RequiredValidator('Select yes if there is a secondary local planning authority')]
+		},
+		secondaryLocalPlanningAuthority: {
+			type: COMPONENT_TYPES.SELECT,
+			title: 'Secondary LPA name',
+			question: QUESTION_TEXT[preAppOrAppPath].secondaryLocalPlanningAuthority,
+			fieldName: 'secondaryLpaId',
+			url: 'secondary-local-planning-authority',
 			validators: [
-				new MultiFieldInputValidator({
-					fields: [
-						{
-							fieldName: 'lpaFirstName',
-							validators: [
-								new RequiredValidator(`Enter LPA contact's first name`),
-								new StringValidator({
-									maxLength: {
-										maxLength: 250,
-										maxLengthMessage: 'First name must be between 1 and 250 characters'
-									},
-									regex: {
-										regex: "^[A-Za-z ''-]+$",
-										regexMessage: 'First name must only include letters, spaces, hyphens and apostrophes'
-									}
-								})
-							]
-						},
-						{
-							fieldName: 'lpaLastName',
-							validators: [
-								new RequiredValidator(`Enter LPA contact's last name`),
-								new StringValidator({
-									maxLength: {
-										maxLength: 250,
-										maxLengthMessage: 'Last name must be between 1 and 250 characters'
-									},
-									regex: {
-										regex: "^[A-Za-z ''-]+$",
-										regexMessage: 'Last name must only include letters, spaces, hyphens and apostrophes'
-									}
-								})
-							]
-						},
-						{
-							fieldName: 'lpaEmailAddress',
-							validators: [
-								new RequiredValidator(`Enter LPA contact's email address`),
-								new StringValidator({
-									maxLength: {
-										maxLength: 250,
-										maxLengthMessage: 'Email address must be between 3 and 250 characters'
-									},
-									minLength: {
-										minLength: 3,
-										minLengthMessage: 'Email address must be between 3 and 250 characters'
-									}
-								}),
-								new EmailValidator({
-									errorMessage: 'Enter an email address in the correct format, like name@example.com'
-								})
-							]
-						},
-						{
-							fieldName: 'lpaPhoneNumber',
-							validators: [new TelephoneNumberValidator()]
-						}
-					]
-				})
-			]
-		}
+				new SameAnswerValidator(
+					['lpaId'],
+					'Secondary local planning authority cannot be the same as the local planning authority'
+				),
+				new RequiredValidator('Enter the secondary local planning authority')
+			],
+			options: lpaOptions
+		},
+		secondaryLpaContactDetails: createLpaContactQuestion(true)
 	};
 
 	return createQuestions(questions, questionClasses, {});

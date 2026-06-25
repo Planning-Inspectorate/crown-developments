@@ -19,7 +19,22 @@ describe('s62a getQuestions', () => {
 		assert.strictEqual(
 			questions.applicationType.question,
 			'What type of application is it?',
-			'Did not fall back to the default application text'
+			'Did not fall back to the default application type text'
+		);
+		assert.strictEqual(
+			questions.localPlanningAuthority.question,
+			'Which local planning authority is this application related to?',
+			'Did not fall back to the default LPA text'
+		);
+		assert.strictEqual(
+			questions.hasSecondaryLpa.question,
+			'Does this application have a secondary local planning authority?',
+			'Did not fall back to the default has secondary LPA text'
+		);
+		assert.strictEqual(
+			questions.secondaryLocalPlanningAuthority.question,
+			'Which secondary local planning authority is this application related to?',
+			'Did not fall back to the default secondary LPA text'
 		);
 	});
 
@@ -35,7 +50,22 @@ describe('s62a getQuestions', () => {
 		assert.strictEqual(
 			questions.applicationType.question,
 			'What type of application is it?',
-			'Did not use the correct application text'
+			'Did not use the correct application type text'
+		);
+		assert.strictEqual(
+			questions.localPlanningAuthority.question,
+			'Which local planning authority is this application related to?',
+			'Did not use the correct LPA text for applications'
+		);
+		assert.strictEqual(
+			questions.hasSecondaryLpa.question,
+			'Does this application have a secondary local planning authority?',
+			'Did not use the correct has secondary LPA text for applications'
+		);
+		assert.strictEqual(
+			questions.secondaryLocalPlanningAuthority.question,
+			'Which secondary local planning authority is this application related to?',
+			'Did not use the correct secondary LPA text for applications'
 		);
 	});
 
@@ -51,7 +81,22 @@ describe('s62a getQuestions', () => {
 		assert.strictEqual(
 			questions.applicationType.question,
 			'What type of application is this pre-application advice for?',
-			'Did not use the correct pre-application text'
+			'Did not use the correct pre-application type text'
+		);
+		assert.strictEqual(
+			questions.localPlanningAuthority.question,
+			'Which local planning authority is this pre-application advice related to?',
+			'Did not use the correct LPA text for pre-applications'
+		);
+		assert.strictEqual(
+			questions.hasSecondaryLpa.question,
+			'Does this pre-application advice have a secondary local planning authority?',
+			'Did not use the correct has secondary LPA text for pre-applications'
+		);
+		assert.strictEqual(
+			questions.secondaryLocalPlanningAuthority.question,
+			'Which secondary local planning authority is this pre-application advice related to?',
+			'Did not use the correct secondary LPA text for pre-applications'
 		);
 	});
 });

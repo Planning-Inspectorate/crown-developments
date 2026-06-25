@@ -61,7 +61,10 @@ describe('s62a create a case journey', () => {
 					'applicationClassification',
 					'applicationType',
 					'localPlanningAuthority',
-					'lpaContactDetails'
+					'lpaContactDetails',
+					'hasSecondaryLpa',
+					'secondaryLocalPlanningAuthority',
+					'secondaryLpaContactDetails'
 				]
 			}
 		];
