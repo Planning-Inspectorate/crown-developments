@@ -7,6 +7,8 @@ import {
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.js';
 import NameValidator from '@pins/crowndev-lib/validators/name-validator.ts';
+import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
+import { camelCaseToUrlCase, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
 
 /**
  * Creates primary vs secondary LPA questions, with variations
@@ -71,4 +73,94 @@ export const createLpaContactQuestion = (isSecondary: boolean) => {
 			})
 		]
 	};
+};
+
+/**
+ * Creates the multiple contact questions for use within the manage list component
+ */
+export const multiContactQuestions = ({ prefix, title }: { prefix: string; title: string }) => {
+	const prefixUrl = camelCaseToUrlCase(prefix);
+
+	const questions = {
+		[`${prefix}ContactDetails`]: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MULTI_FIELD_INPUT,
+			title: `${sentenceCase(title)} contact`,
+			question: `What are the ${title}'s contact details?`,
+			fieldName: `${prefix}ContactDetails`,
+			url: `${prefixUrl}-contact`,
+			inputFields: [
+				{
+					type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+					fieldName: `${prefix}FirstName`,
+					label: 'First name',
+					autocomplete: 'given-name',
+					formatJoinString: ' '
+				},
+				{
+					type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+					fieldName: `${prefix}LastName`,
+					label: 'Last name',
+					autocomplete: 'family-name'
+				},
+				{
+					type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+					fieldName: `${prefix}ContactEmail`,
+					label: 'Email'
+				},
+				{
+					type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+					fieldName: `${prefix}ContactTelephoneNumber`,
+					label: 'Phone number (optional)'
+				}
+			],
+			validators: [
+				new MultiFieldInputValidator({
+					fields: [
+						{
+							fieldName: `${prefix}FirstName`,
+							validators: [
+								new RequiredValidator(`Enter the ${title}'s first name`),
+								new StringValidator({
+									maxLength: { maxLength: 250 },
+									regex: {
+										regex: "^[A-Za-z ''-]+$",
+										regexMessage: 'First name must only include letters, spaces, hyphens and apostrophes'
+									}
+								})
+							]
+						},
+						{
+							fieldName: `${prefix}LastName`,
+							validators: [
+								new RequiredValidator(`Enter the ${title}'s last name`),
+								new StringValidator({
+									maxLength: { maxLength: 250 },
+									regex: {
+										regex: "^[A-Za-z ''-]+$",
+										regexMessage: 'Last name must only include letters, spaces, hyphens and apostrophes'
+									}
+								})
+							]
+						},
+						{
+							fieldName: `${prefix}ContactEmail`,
+							validators: [
+								new RequiredValidator(`Enter the ${title}'s email address`),
+								new StringValidator({ maxLength: { maxLength: 250 } }),
+								new EmailValidator({
+									errorMessage: 'Enter an email address in the correct format, like name@example.com'
+								})
+							]
+						},
+						{
+							fieldName: `${prefix}ContactTelephoneNumber`,
+							validators: [new TelephoneNumberValidator()]
+						}
+					]
+				})
+			]
+		}
+	};
+
+	return questions;
 };
