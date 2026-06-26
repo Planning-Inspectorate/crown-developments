@@ -1,5 +1,5 @@
 import { sentenceCase } from '../../../util/string.ts';
-import MonetaryInputQuestion from '../monetary-input/question.js';
+import MonetaryInputQuestion from '../monetary-input/question.ts';
 
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question} Question */
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.d.ts').CommonQuestionProps} CommonQuestionProps */

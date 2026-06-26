@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import FeeAmountQuestion from '../fee-amount/question.js';
+import FeeAmountQuestion from '../fee-amount/question.ts';
 
 describe('FeeAmountQuestion (Configuration Check)', () => {
 	const questionProps = {
