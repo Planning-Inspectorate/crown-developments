@@ -10,7 +10,7 @@ import type { CommonQuestionProps, QuestionProps, QuestionTypes } from '@plannin
 
 type CustomComponentTypes = (typeof CUSTOM_COMPONENTS)[keyof typeof CUSTOM_COMPONENTS];
 
-type CrownCommonQuestionProps = Omit<CommonQuestionProps, 'type'> & {
+export type CrownCommonQuestionProps = Omit<CommonQuestionProps, 'type'> & {
 	type: QuestionTypes | CustomComponentTypes;
 };
 
