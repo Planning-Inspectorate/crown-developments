@@ -1,8 +1,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { createLpaContactQuestion } from './question-factories.ts';
+import { createLpaContactQuestion, multiContactQuestions } from './question-factories.ts';
 import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
+import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 
 describe('createLpaContactQuestion factory', () => {
 	it('should generate correct configuration for the primary LPA (isSecondary = false)', () => {
@@ -47,5 +48,48 @@ describe('createLpaContactQuestion factory', () => {
 
 		const validator = question.validators[0] as unknown as MultiFieldInputValidator;
 		assert.strictEqual(validator.fields[0].fieldName, 'secondaryLpaFirstName');
+	});
+});
+
+describe('multiContactQuestions factory', () => {
+	it('should generate correct configuration for an agent contact', () => {
+		const questions = multiContactQuestions({ prefix: 'agent', title: 'agent' });
+		const question = questions.agentContactDetails;
+
+		assert.ok(question, 'Should create a key based on the prefix');
+		assert.strictEqual(question.type, CUSTOM_COMPONENTS.CUSTOM_MULTI_FIELD_INPUT);
+		assert.strictEqual(question.title, 'Agent contact');
+		assert.strictEqual(question.question, "What are the agent's contact details?");
+		assert.strictEqual(question.fieldName, 'agentContactDetails');
+		assert.strictEqual(question.url, 'agent-contact');
+
+		assert.strictEqual(question.inputFields.length, 4);
+		assert.strictEqual(question.inputFields[0].fieldName, 'agentFirstName');
+		assert.strictEqual(question.inputFields[1].fieldName, 'agentLastName');
+		assert.strictEqual(question.inputFields[2].fieldName, 'agentContactEmail');
+		assert.strictEqual(question.inputFields[3].fieldName, 'agentContactTelephoneNumber');
+
+		assert.strictEqual(question.validators.length, 1);
+		assert.ok(question.validators[0] instanceof MultiFieldInputValidator, 'Should use the MultiFieldInputValidator');
+
+		const validator = question.validators[0] as unknown as MultiFieldInputValidator;
+		assert.strictEqual(validator.fields[0].fieldName, 'agentFirstName');
+	});
+
+	it('should correctly handle multi-word titles and camelCase prefixes', () => {
+		const questions = multiContactQuestions({ prefix: 'siteOwner', title: 'site owner' });
+		const question = questions.siteOwnerContactDetails;
+
+		assert.ok(question, 'Should create a key based on the prefix');
+		assert.strictEqual(question.title, 'Site owner contact');
+		assert.strictEqual(question.question, "What are the site owner's contact details?");
+		assert.strictEqual(question.fieldName, 'siteOwnerContactDetails');
+		assert.strictEqual(question.url, 'site-owner-contact');
+
+		assert.strictEqual(question.inputFields.length, 4);
+		assert.strictEqual(question.inputFields[0].fieldName, 'siteOwnerFirstName');
+
+		const validator = question.validators[0] as unknown as MultiFieldInputValidator;
+		assert.strictEqual(validator.fields[0].fieldName, 'siteOwnerFirstName');
 	});
 });

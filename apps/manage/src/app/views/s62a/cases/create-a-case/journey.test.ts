@@ -67,7 +67,8 @@ describe('s62a create a case journey', () => {
 					'secondaryLpaContactDetails',
 					'hasAgent',
 					'agentName',
-					'agentAddress'
+					'agentAddress',
+					'manageAgentContacts'
 				]
 			}
 		];

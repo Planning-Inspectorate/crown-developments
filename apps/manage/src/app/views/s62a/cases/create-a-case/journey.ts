@@ -5,7 +5,8 @@ import {
 	Journey,
 	type JourneyResponse,
 	whenQuestionHasAnswer,
-	BOOLEAN_OPTIONS
+	BOOLEAN_OPTIONS,
+	ManageListSection
 } from '@planning-inspectorate/dynamic-forms';
 
 import type { Request } from 'express';
@@ -44,6 +45,7 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.startMultiQuestionCondition('has-agent', whenQuestionHasAnswer(questions.hasAgent, BOOLEAN_OPTIONS.YES))
 				.addQuestion(questions.agentName)
 				.addQuestion(questions.agentAddress)
+				.addQuestion(questions.manageAgentContacts, new ManageListSection().addQuestion(questions.agentContactDetails))
 				.endMultiQuestionCondition('has-agent')
 		],
 		taskListUrl: 'check-your-answers',

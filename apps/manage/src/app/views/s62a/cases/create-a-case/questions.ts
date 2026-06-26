@@ -18,9 +18,10 @@ import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../../config.js';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
 import { isApplicationType, formatLpaOptions, QUESTION_TEXT } from './questions-utils.ts';
-import { createLpaContactQuestion } from './question-factories.ts';
+import { createLpaContactQuestion, multiContactQuestions } from './question-factories.ts';
+import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 
-export function getQuestions(journeyResponse: JourneyResponse) {
+export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: boolean) {
 	const env = loadEnvironmentConfig();
 	const lpas = env === ENVIRONMENT_NAME.PROD ? LOCAL_PLANNING_AUTHORITIES_PROD : LOCAL_PLANNING_AUTHORITIES_DEV;
 	const lpaOptions = formatLpaOptions(lpas);
@@ -135,8 +136,28 @@ export function getQuestions(journeyResponse: JourneyResponse) {
 			fieldName: 'agentAddress',
 			url: 'agent-address',
 			validators: [new AddressValidator()]
-		}
+		},
+		manageAgentContacts: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			title: isQuestionView ? 'Check agent contact details' : 'Agent contacts',
+			question: 'Check agent contact details',
+			url: 'check-agent-contact-details',
+			fieldName: 'manageAgentContactDetails',
+			titleSingular: 'Contact',
+			emptyListText: 'No agent contacts found',
+			showAnswersInSummary: true,
+			forceInitialAdd: true
+		},
+		...multiContactQuestions({
+			prefix: 'agent',
+			title: 'agent'
+		})
 	};
 
-	return createQuestions(questions, questionClasses, {});
+	const classes = {
+		...questionClasses,
+		...CUSTOM_COMPONENT_CLASSES
+	};
+
+	return createQuestions(questions, classes, {});
 }

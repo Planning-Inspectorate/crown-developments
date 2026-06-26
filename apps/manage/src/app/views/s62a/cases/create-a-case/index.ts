@@ -18,24 +18,29 @@ import { getQuestions } from './questions.ts';
 export function createRoutes() {
 	const router = createRouter({ mergeParams: true });
 
-	function makeGetJourneyCallback() {
+	function makeGetJourneyCallback(isQuestionView: boolean) {
 		return (req: Request, journeyResponse: JourneyResponse): Journey => {
-			const questions = getQuestions(journeyResponse);
+			const questions = getQuestions(journeyResponse, isQuestionView);
 			return createJourney(questions, journeyResponse, req);
 		};
 	}
 
-	const getQuestionJourney = buildGetJourney(makeGetJourneyCallback());
-	const getCheckJourney = buildGetJourney(makeGetJourneyCallback());
+	const getQuestionJourney = buildGetJourney(makeGetJourneyCallback(true));
+	const getCheckJourney = buildGetJourney(makeGetJourneyCallback(false));
 
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 
 	router.get('/', getJourneyResponse, getQuestionJourney, redirectToUnansweredQuestion());
 
-	router.get('/:section/:question', getJourneyResponse, getQuestionJourney, question);
+	router.get(
+		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
+		getJourneyResponse,
+		getQuestionJourney,
+		question
+	);
 
 	router.post(
-		'/:section/:question',
+		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
 		getJourneyResponse,
 		getQuestionJourney,
 		validate,
