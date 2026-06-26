@@ -5,7 +5,10 @@ import CILAmountQuestion from './cil-amount/question.js';
 import CostsApplicationsCommentQuestion from './costs-applications-comment/question.js';
 import CustomManageListQuestion from './manage-list/question.js';
 import CustomMultiFieldInputQuestion from './custom-multi-field-input/question.js';
-import DistressingContentQuestion from './distressing-content/question.js';
+import {
+	default as DistressingContentQuestion,
+	type DistressingContentQuestionProps
+} from './distressing-content/question.ts';
 import type { CommonQuestionProps, QuestionProps, QuestionTypes } from '@planning-inspectorate/dynamic-forms';
 
 type CustomComponentTypes = (typeof CUSTOM_COMPONENTS)[keyof typeof CUSTOM_COMPONENTS];
@@ -120,14 +123,6 @@ type CustomMultiFieldInputQuestionProps = CrownCommonQuestionProps & {
 		| CustomMultiFieldHiddenField
 		| CustomMultiFieldBooleanFieldInput
 	)[];
-};
-
-type DistressingContentQuestionProps = CrownCommonQuestionProps & {
-	type: typeof CUSTOM_COMPONENTS.DISTRESSING_CONTENT;
-	actionLink?: {
-		href: string;
-		text: string;
-	};
 };
 
 export type CrownQuestionProps =
