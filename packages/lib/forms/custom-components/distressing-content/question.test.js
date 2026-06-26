@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import DistressingContentQuestion from './question.js';
+import DistressingContentQuestion from './question.ts';
 
 describe('DistressingContentQuestion', () => {
 	describe('constructor', () => {
