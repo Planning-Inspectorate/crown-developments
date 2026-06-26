@@ -1,57 +1,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { contactQuestions, dateQuestion, eventQuestions, filteredStagesToRadioOptions } from './question-utils.js';
+import { dateQuestion, eventQuestions, filteredStagesToRadioOptions } from './question-utils.js';
 import { APPLICATION_PROCEDURE_ID, APPLICATION_STAGE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('question-utils', () => {
-	describe('contactQuestions', () => {
-		const prefix = 'myField';
-		const prefixHyphens = 'my-field';
-		const title = 'My Field';
-		it('should create two questions with prefix in question keys', () => {
-			const questions = contactQuestions({ prefix, title, addressRequired: true });
-
-			assert.strictEqual(Object.keys(questions).length, 2);
-			for (const key of Object.keys(questions)) {
-				assert.ok(key.startsWith(prefix));
-			}
-		});
-		it('should use title OR question for question and title fields', () => {
-			const titleLower = title.toLowerCase();
-			const questions = contactQuestions({ prefix, title, addressRequired: true });
-			for (const question of Object.values(questions)) {
-				assert.ok(question.title.toLowerCase().startsWith(titleLower));
-				if (question.question) {
-					assert.ok(question.question.toLowerCase().includes(titleLower));
-				}
-			}
-		});
-		it('should use hyphenated prefix for urls', () => {
-			const questions = contactQuestions({ prefix, title, addressRequired: true });
-			for (const question of Object.values(questions)) {
-				assert.ok(question.url.startsWith(prefixHyphens));
-			}
-		});
-		describe('contact phone number regex validations', () => {
-			// Hard coded regex taken from ./question-utils.js
-			const regex = new RegExp(/^\+?\d+$/);
-
-			it('should allow valid phone numbers', () => {
-				assert.ok(regex.test('1234567890'), 'Should match digits only');
-				assert.ok(regex.test('+1234567890'), 'Should match leading plus followed by digits');
-				assert.ok(regex.test('1'), 'Should match a single digit');
-			});
-
-			it('should reject invalid phone numbers', () => {
-				assert.strictEqual(regex.test('+'), false, 'Should reject only plus sign');
-				assert.strictEqual(regex.test('+123A'), false, 'Should reject letters');
-				assert.strictEqual(regex.test('123 456'), false, 'Should reject spaces');
-				assert.strictEqual(regex.test('123-456'), false, 'Should reject hyphens');
-				assert.strictEqual(regex.test('123.456'), false, 'Should reject decimal point');
-				assert.strictEqual(regex.test(''), false, 'Should reject empty string');
-			});
-		});
-	});
 	describe('dateQuestion', () => {
 		it('should create a date question based on a field name only', () => {
 			const question = dateQuestion({ fieldName: 'myDateField' });
@@ -99,30 +51,12 @@ describe('question-utils', () => {
 	});
 	describe('eventQuestions', () => {
 		const prefix = 'myField';
-		const prefixHyphens = 'my-field';
-		const title = 'My Field';
 		it('should create nine questions with prefix in question keys', () => {
 			const questions = eventQuestions(prefix);
 
 			assert.strictEqual(Object.keys(questions).length, 10);
 			for (const key of Object.keys(questions)) {
 				assert.ok(key.startsWith(prefix));
-			}
-		});
-		it('should use title for question and title fields', () => {
-			const questions = contactQuestions({ prefix, title, addressRequired: true });
-			const titleLower = title.toLowerCase();
-			for (const question of Object.values(questions)) {
-				assert.ok(question.title.toLowerCase().startsWith(titleLower));
-				if (question.question) {
-					assert.ok(question.question.toLowerCase().includes(titleLower));
-				}
-			}
-		});
-		it('should use hyphenated prefix for urls', () => {
-			const questions = contactQuestions({ prefix, title, addressRequired: true });
-			for (const question of Object.values(questions)) {
-				assert.ok(question.url.startsWith(prefixHyphens));
 			}
 		});
 	});

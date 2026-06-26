@@ -10,7 +10,6 @@ import { addressToViewModel, viewModelToAddressUpdateInput } from '@pins/crownde
 import {
 	buildAgentOrganisationNameUpdates,
 	buildAgentOrganisationAddressUpdates,
-	viewModelToNestedContactUpdate,
 	buildApplicantOrganisationUpdates,
 	buildApplicantContactOrganisationUpdates,
 	buildAgentContactOrganisationUpdates
@@ -73,20 +72,6 @@ export type CrownDevelopmentViewModel = {
 	manageAgentContactDetails?: ManageAgentContactDetails[];
 	manageApplicantDetails?: ManageApplicantDetails[];
 	manageApplicantContactDetails?: ManageApplicantContactDetails[];
-	// TODO Remove in CROWN-1509
-	applicantContactId?: string;
-	applicantContactName?: string;
-	applicantContactAddress?: Address;
-	applicantContactAddressId?: string;
-	applicantContactEmail?: string;
-	applicantContactTelephoneNumber?: string;
-	// TODO Remove in CROWN-1509
-	agentContactId?: string;
-	agentContactName?: string;
-	agentContactAddress?: Address;
-	agentContactAddressId?: string;
-	agentContactEmail?: string;
-	agentContactTelephoneNumber?: string;
 
 	applicationReceivedDate?: Date;
 	applicationReceivedDateEmailSent?: YesNo;
@@ -380,10 +365,6 @@ const RELATION_ID_FIELDS = Object.freeze([
 	'stageId',
 	'statusId',
 	'siteAddressId',
-	// TODO Remove in CROWN-1509
-	'applicantContactId',
-	// TODO Remove in CROWN-1509
-	'agentContactId',
 	'eventId'
 ] as const satisfies Readonly<NullableDirectMappedViewModelFields[]>);
 
@@ -399,14 +380,6 @@ type DirectUnmappedField =
 	| (typeof DIRECT_UNMAPPED_FIELDS)[number]
 	| (typeof RELATION_ID_FIELDS)[number]
 	| (typeof INTEGER_STRING_FIELDS)[number];
-
-/**
- * Field prefixes used for the contact fields in the view model
- */
-const CONTACT_PREFIXES = ORGANISATION_ROLES_ID;
-
-type ContactTypeKeys = keyof typeof CONTACT_PREFIXES;
-export type ContactTypeValues = (typeof CONTACT_PREFIXES)[ContactTypeKeys];
 
 /**
  * Assign a CrownDevelopment field that maps directly to the view model,
@@ -545,8 +518,6 @@ export function crownDevelopmentToViewModel(crownDevelopment: CrownDevelopmentPa
 		addLpaDetailsToViewModel(viewModel, crownDevelopment.SecondaryLpa, 'secondaryLpa');
 	}
 
-	addContactToViewModel(viewModel, crownDevelopment.ApplicantContact, 'applicant');
-	addContactToViewModel(viewModel, crownDevelopment.AgentContact, 'agent');
 	if (hasProcedure(crownDevelopment.procedureId)) {
 		addEventToViewModel(
 			viewModel,
@@ -666,19 +637,6 @@ export function editsToDatabaseUpdates(
 	if ('secondaryLpaId' in edits && edits.secondaryLpaId) {
 		crownDevelopmentUpdateInput.SecondaryLpa = { connect: { id: edits.secondaryLpaId } };
 	}
-	// TODO Remove in CROWN-1509
-	if ('applicantContactId' in edits) {
-		crownDevelopmentUpdateInput.ApplicantContact = edits.applicantContactId
-			? { connect: { id: edits.applicantContactId } }
-			: { disconnect: true };
-	}
-	// TODO Remove in CROWN-1509
-	if ('agentContactId' in edits) {
-		crownDevelopmentUpdateInput.AgentContact = edits.agentContactId
-			? { connect: { id: edits.agentContactId } }
-			: { disconnect: true };
-	}
-
 	if (edits.subCategoryId) {
 		crownDevelopmentUpdateInput.Category = {
 			connect: { id: edits.subCategoryId }
@@ -696,17 +654,6 @@ export function editsToDatabaseUpdates(
 				}
 			};
 		}
-	}
-
-	// TODO Remove in CROWN-1509
-	const applicantContactUpdates = viewModelToNestedContactUpdate(edits, CONTACT_PREFIXES.APPLICANT, viewModel);
-	if (applicantContactUpdates) {
-		crownDevelopmentUpdateInput.ApplicantContact = applicantContactUpdates;
-	}
-	// TODO Remove in CROWN-1509
-	const agentContactUpdates = viewModelToNestedContactUpdate(edits, CONTACT_PREFIXES.AGENT, viewModel);
-	if (agentContactUpdates) {
-		crownDevelopmentUpdateInput.AgentContact = agentContactUpdates;
 	}
 
 	if (includeOrganisations) {
@@ -798,26 +745,6 @@ export function editsToDatabaseUpdates(
 		crownDevelopmentUpdateInput.SecondaryLpa = { disconnect: true };
 	}
 	return crownDevelopmentUpdateInput;
-}
-
-/**
- * Populates contact and address fields in the view model for either the applicant or agent contact.
- * TODO remove CROWN-1509
- */
-function addContactToViewModel(
-	viewModel: CrownDevelopmentViewModel,
-	contact: Prisma.ContactGetPayload<{ include: { Address: true } }> | null,
-	prefix: ContactTypeValues
-) {
-	if (contact) {
-		viewModel[`${prefix}ContactName`] = contact.orgName ?? undefined;
-		viewModel[`${prefix}ContactTelephoneNumber`] = contact.telephoneNumber ?? undefined;
-		viewModel[`${prefix}ContactEmail`] = contact.email ?? undefined;
-		if (contact.Address) {
-			viewModel[`${prefix}ContactAddress`] = addressToViewModel(contact.Address);
-			viewModel[`${prefix}ContactAddressId`] = contact.addressId ?? undefined;
-		}
-	}
 }
 
 /**

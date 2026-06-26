@@ -1,8 +1,6 @@
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 export const CROWN_DEVELOPMENT_VIEW_INCLUDE = {
-	ApplicantContact: { include: { Address: true } },
-	AgentContact: { include: { Address: true } },
 	Category: { include: { ParentCategory: true } },
 	Event: true,
 	Lpa: { include: { Address: true } },

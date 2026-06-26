@@ -6,7 +6,6 @@ import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 /**
  * @typedef {import('@pins/crowndev-database/src/client/client.ts').Prisma.CrownDevelopmentGetPayload<{
- * 	include: { ApplicantContact: { include: { Address: true } }, AgentContact: { include: { Address: true } }, Event: true, LpaContact: { include: { Address: true } } }}>} CrownDevelopment
  * @typedef {import('./view-model').CrownDevelopmentSaveModel} CrownDevelopmentSaveModel
  */
 
@@ -120,70 +119,6 @@ describe('view-model', () => {
 			};
 			const result = crownDevelopmentToViewModel(input);
 			assert.strictEqual(result.applicantContactName, undefined);
-			assert.strictEqual(result.agentContactName, undefined);
-		});
-		it('should map applicant if present', () => {
-			const input = {
-				id: 'id-1',
-				referenceId: 'reference-id-1',
-				applicantContactId: 'c-1',
-				ApplicantContact: { id: 'c-1', orgName: 'contact', email: 'contact@example.com' }
-			};
-			const result = crownDevelopmentToViewModel(input);
-			assert.strictEqual(result.applicantContactId, 'c-1');
-			assert.strictEqual(result.applicantContactName, 'contact');
-			assert.strictEqual(result.applicantContactEmail, 'contact@example.com');
-			assert.strictEqual(result.agentContactName, undefined);
-		});
-		it('should map contacts if they exist', () => {
-			const input = {
-				id: 'id-1',
-				referenceId: 'reference-id-1',
-				applicantContactId: 'c-1',
-				ApplicantContact: { id: 'c-1', orgName: 'contact', email: 'contact@example.com' },
-				agentContactId: 'c-3',
-				AgentContact: { id: 'c-3', orgName: 'Agent', email: 'agent@example.com' }
-			};
-			const result = crownDevelopmentToViewModel(input);
-			assert.strictEqual(result.applicantContactId, 'c-1');
-			assert.strictEqual(result.applicantContactName, 'contact');
-			assert.strictEqual(result.applicantContactEmail, 'contact@example.com');
-			assert.strictEqual(result.agentContactId, 'c-3');
-			assert.strictEqual(result.agentContactName, 'Agent');
-			assert.strictEqual(result.agentContactEmail, 'agent@example.com');
-		});
-		it('should map contact address if they exist', () => {
-			const input = {
-				id: 'id-1',
-				referenceId: 'reference-id-1',
-				applicantContactId: 'c-1',
-				ApplicantContact: {
-					id: 'c-1',
-					orgName: 'contact',
-					email: 'contact@example.com',
-					addressId: 'address-id-1',
-					Address: {
-						line1: 'Some Street',
-						line2: 'Some Village',
-						townCity: 'Some Place',
-						postcode: 'Some PostCode'
-					}
-				}
-			};
-			const result = crownDevelopmentToViewModel(input);
-			assert.strictEqual(result.lpaContactName, undefined);
-			assert.strictEqual(result.applicantContactId, 'c-1');
-			assert.strictEqual(result.applicantContactName, 'contact');
-			assert.strictEqual(result.applicantContactEmail, 'contact@example.com');
-			assert.deepStrictEqual(result.applicantContactAddress, {
-				id: undefined,
-				addressLine1: 'Some Street',
-				addressLine2: 'Some Village',
-				townCity: 'Some Place',
-				county: '',
-				postcode: 'Some PostCode'
-			});
-			assert.strictEqual(result.applicantContactAddressId, 'address-id-1');
 			assert.strictEqual(result.agentContactName, undefined);
 		});
 
@@ -737,63 +672,6 @@ describe('view-model', () => {
 			assert.strictEqual(upsert.where?.id, 'address-1');
 			assert.strictEqual(upsert.create?.postcode, 'NEW PSCD');
 			assert.strictEqual(upsert.update?.postcode, 'NEW PSCD');
-		});
-		it('should map contact relation create', () => {
-			const toSave = {
-				applicantContactName: 'Applicant One',
-				applicantContactEmail: 'applicant@example.com',
-				agentContactName: 'Agent One',
-				agentContactEmail: 'agent@example.com',
-				agentContactTelephoneNumber: '0123456789'
-			};
-			const updates = editsToDatabaseUpdates(toSave, {});
-			assert.ok(updates);
-			assert.strictEqual(updates.ApplicantContact?.create?.orgName, 'Applicant One');
-			assert.strictEqual(updates.ApplicantContact?.create?.email, 'applicant@example.com');
-			assert.strictEqual(updates.AgentContact?.create?.orgName, 'Agent One');
-			assert.strictEqual(updates.AgentContact?.create?.email, 'agent@example.com');
-			assert.strictEqual(updates.AgentContact?.create?.telephoneNumber, '0123456789');
-		});
-		it('should map contact relation update', () => {
-			const toSave = {
-				applicantContactName: 'Applicant One',
-				applicantContactEmail: 'applicant@example.com'
-			};
-			const viewModel = {
-				applicantContactId: 'contact-id-1'
-			};
-			const updates = editsToDatabaseUpdates(toSave, viewModel);
-			assert.ok(updates);
-			assert.strictEqual(updates.ApplicantContact?.update?.orgName, 'Applicant One');
-			assert.strictEqual(updates.ApplicantContact?.update?.email, 'applicant@example.com');
-		});
-		it('should map contact relation update with address upsert', () => {
-			const toSave = {
-				applicantContactName: 'Applicant One',
-				applicantContactEmail: 'applicant@example.com',
-				applicantContactAddress: {
-					addressLine1: 'Street',
-					addressLine2: '',
-					townCity: 'City',
-					county: '',
-					postcode: 'PSC01D'
-				}
-			};
-			const viewModel = {
-				applicantContactId: 'contact-id-1',
-				applicantContactAddressId: 'address-id-1'
-			};
-			const updates = editsToDatabaseUpdates(toSave, viewModel);
-			assert.ok(updates);
-			assert.strictEqual(updates.ApplicantContact?.update?.orgName, 'Applicant One');
-			assert.strictEqual(updates.ApplicantContact?.update?.email, 'applicant@example.com');
-			assert.strictEqual(updates.ApplicantContact?.update?.Address?.upsert?.where?.id, 'address-id-1');
-			assert.strictEqual(updates.ApplicantContact?.update?.Address?.upsert?.create?.line1, 'Street');
-			assert.strictEqual(updates.ApplicantContact?.update?.Address?.upsert?.update?.line1, 'Street');
-			assert.strictEqual(updates.ApplicantContact?.update?.Address?.upsert?.create?.townCity, 'City');
-			assert.strictEqual(updates.ApplicantContact?.update?.Address?.upsert?.update?.townCity, 'City');
-			assert.strictEqual(updates.ApplicantContact?.update?.Address?.upsert?.create?.postcode, 'PSC01D');
-			assert.strictEqual(updates.ApplicantContact?.update?.Address?.upsert?.update?.postcode, 'PSC01D');
 		});
 
 		it('should not map event if no edits', () => {

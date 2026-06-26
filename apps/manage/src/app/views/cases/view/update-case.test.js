@@ -1033,20 +1033,34 @@ describe('case details', () => {
 						applicationFee: new Prisma.Decimal('1100'),
 						SiteAddress: { line1: '4 the street', line2: 'town', postcode: 'wc1w 1bw' },
 						Lpa: { email: 'test@email.com' },
-						ApplicantContact: { email: 'test@email.com' }
+						Organisations: [
+							{
+								organisationId: 'org-1',
+								role: 'applicant',
+								Organisation: {
+									id: 'org-1',
+									OrganisationToContact: [
+										{
+											Contact: { id: 'c1', email: 'test@email.com', firstName: 'Test', lastName: 'User' }
+										}
+									]
+								}
+							}
+						]
 					})),
 					update: mock.fn()
 				}
 			};
 			makeTransactionInteractive(mockDb);
 			const mockNotifyClient = {
-				sendApplicationReceivedNotification: mock.fn()
+				sendApplicationReceivedNotificationToMany: mock.fn()
 			};
 			const updateCase = buildUpdateCase({
 				db: mockDb,
 				logger,
 				notifyClient: mockNotifyClient
 			});
+
 			const mockReq = {
 				params: { id: 'case1' },
 				session: {}
@@ -1078,9 +1092,9 @@ describe('case details', () => {
 			assert.strictEqual(updateArg.data?.applicationReceivedDate, date);
 			assert.strictEqual(updateArg.data?.applicationReceivedDateEmailSent, true);
 
-			assert.strictEqual(mockNotifyClient.sendApplicationReceivedNotification.mock.callCount(), 1);
-			assert.deepStrictEqual(mockNotifyClient.sendApplicationReceivedNotification.mock.calls[0].arguments, [
-				'test@email.com',
+			assert.strictEqual(mockNotifyClient.sendApplicationReceivedNotificationToMany.mock.callCount(), 1);
+			assert.deepStrictEqual(mockNotifyClient.sendApplicationReceivedNotificationToMany.mock.calls[0].arguments, [
+				['test@email.com'],
 				{
 					reference: 'CROWN/2025/0000001',
 					applicationDescription: 'a big project',
@@ -1104,16 +1118,27 @@ describe('case details', () => {
 						siteEasting: '654321',
 						hasApplicationFee: false,
 						Lpa: { email: 'test@email.com' },
-						ApplicantContact: { email: 'test@email.com' },
-						agentContactId: 'agent-id',
-						AgentContact: { email: 'agent@email.com' }
+						Organisations: [
+							{
+								organisationId: 'org-1',
+								role: 'applicant',
+								Organisation: {
+									id: 'org-1',
+									OrganisationToContact: [
+										{
+											Contact: { id: 'c1', email: 'test@email.com', firstName: 'Test', lastName: 'User' }
+										}
+									]
+								}
+							}
+						]
 					})),
 					update: mock.fn()
 				}
 			};
 			makeTransactionInteractive(mockDb);
 			const mockNotifyClient = {
-				sendApplicationReceivedNotification: mock.fn()
+				sendApplicationReceivedNotificationToMany: mock.fn()
 			};
 			const updateCase = buildUpdateCase({
 				db: mockDb,
@@ -1152,9 +1177,9 @@ describe('case details', () => {
 			assert.strictEqual(updateArg.data?.applicationReceivedDate, date);
 			assert.strictEqual(updateArg.data?.applicationReceivedDateEmailSent, true);
 
-			assert.strictEqual(mockNotifyClient.sendApplicationReceivedNotification.mock.callCount(), 1);
-			assert.deepStrictEqual(mockNotifyClient.sendApplicationReceivedNotification.mock.calls[0].arguments, [
-				'agent@email.com',
+			assert.strictEqual(mockNotifyClient.sendApplicationReceivedNotificationToMany.mock.callCount(), 1);
+			assert.deepStrictEqual(mockNotifyClient.sendApplicationReceivedNotificationToMany.mock.calls[0].arguments, [
+				['test@email.com'],
 				{
 					reference: 'CROWN/2025/0000001',
 					applicationDescription: 'a big project',
@@ -1318,8 +1343,7 @@ describe('case details', () => {
 						siteNorthing: '123456',
 						siteEasting: '654321',
 						hasApplicationFee: false,
-						Lpa: { email: 'test@email.com' },
-						ApplicantContact: { email: 'test@email.com' }
+						Lpa: { email: 'test@email.com' }
 					})),
 					update: mock.fn()
 				}
@@ -1370,16 +1394,28 @@ describe('case details', () => {
 						description: 'a big project',
 						siteNorthing: '123456',
 						siteEasting: '654321',
-						ApplicantContact: { email: 'test@email.com' },
-						agentContactId: 'agent-id',
-						AgentContact: { email: 'agent@email.com' }
+						hasAgent: 'yes', // Important: indicates there's an agent
+						Organisations: [
+							{
+								organisationId: 'org-1',
+								role: 'agent',
+								Organisation: {
+									id: 'org-1',
+									OrganisationToContact: [
+										{
+											Contact: { id: 'c1', email: 'agent@email.com', firstName: 'Agent', lastName: 'User' }
+										}
+									]
+								}
+							}
+						]
 					})),
 					update: mock.fn()
 				}
 			};
 			makeTransactionInteractive(mockDb);
 			const mockNotifyClient = {
-				sendApplicationNotOfNationalImportanceNotification: mock.fn()
+				sendApplicationNotOfNationalImportanceNotificationToMany: mock.fn()
 			};
 			const updateCase = buildUpdateCase({
 				db: mockDb,
@@ -1415,11 +1451,11 @@ describe('case details', () => {
 			assert.strictEqual(updateArg.data?.turnedAwayDate, date);
 			assert.strictEqual(updateArg.data?.notNationallyImportantEmailSent, true);
 
-			assert.strictEqual(mockNotifyClient.sendApplicationNotOfNationalImportanceNotification.mock.callCount(), 1);
+			assert.strictEqual(mockNotifyClient.sendApplicationNotOfNationalImportanceNotificationToMany.mock.callCount(), 1);
 			assert.deepStrictEqual(
-				mockNotifyClient.sendApplicationNotOfNationalImportanceNotification.mock.calls[0].arguments,
+				mockNotifyClient.sendApplicationNotOfNationalImportanceNotificationToMany.mock.calls[0].arguments,
 				[
-					'agent@email.com',
+					['agent@email.com'],
 					{
 						reference: 'CROWN/2025/0000001',
 						applicationDescription: 'a big project',
@@ -1438,8 +1474,7 @@ describe('case details', () => {
 						reference: 'CROWN/2025/0000001',
 						description: 'a big project',
 						siteNorthing: '123456',
-						siteEasting: '654321',
-						ApplicantContact: { email: 'test@email.com' }
+						siteEasting: '654321'
 					})),
 					update: mock.fn()
 				}

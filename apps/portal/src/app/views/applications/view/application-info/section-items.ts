@@ -8,22 +8,9 @@ export type SectionItem = {
  * Maps applicant names to a format suitable for display in the About this application section, handling both single and multiple organisations.
  */
 const formattedOrganisationName = (crownDevelopmentFields: CrownDevelopmentView): SectionItem => {
-	// handle historic applicant names prior to multiple entities
-	// TODO: CROWN-1424 Remove once ME work is complete and all applications have been migrated to support multiple entities
-	if (!crownDevelopmentFields.applicantOrganisations) {
-		return {
-			key: {
-				text: 'Applicant name'
-			},
-			value: {
-				text: crownDevelopmentFields.applicantName ?? ''
-			}
-		};
-	}
-
 	return {
 		key: {
-			text: crownDevelopmentFields.applicantOrganisations?.length > 1 ? 'Applicant names' : 'Applicant name'
+			text: crownDevelopmentFields.applicantOrganisations.length > 1 ? 'Applicant names' : 'Applicant name'
 		},
 		value: {
 			html: crownDevelopmentFields.applicantOrganisations

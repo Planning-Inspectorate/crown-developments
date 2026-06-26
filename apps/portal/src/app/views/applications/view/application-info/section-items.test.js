@@ -12,7 +12,7 @@ describe('section-items.ts', () => {
 		it('should return all section items with northing/easting', async () => {
 			const baseUrl = '/applications';
 			const crownDevelopmentFields = {
-				applicantName: 'Test Name',
+				applicantOrganisations: ['Test Name'],
 				siteCoordinates: {
 					easting: 654321,
 					northing: 123456
@@ -44,7 +44,7 @@ describe('section-items.ts', () => {
 						text: 'Applicant name'
 					},
 					value: {
-						text: 'Test Name'
+						html: '<p class="govuk-body">Test Name</p>'
 					}
 				},
 				{
@@ -84,7 +84,7 @@ describe('section-items.ts', () => {
 		it('should return all section items with site address', async () => {
 			const baseUrl = '/applications';
 			const crownDevelopmentFields = {
-				applicantName: 'Test Name',
+				applicantOrganisations: ['Test Name'],
 				siteAddress: '1 The street, the town, the county. W1 1BW.',
 				lpaName: 'System Test Borough Council',
 				description: 'a new crown dev application',
@@ -113,7 +113,7 @@ describe('section-items.ts', () => {
 						text: 'Applicant name'
 					},
 					value: {
-						text: 'Test Name'
+						html: '<p class="govuk-body">Test Name</p>'
 					}
 				},
 				{
@@ -153,7 +153,7 @@ describe('section-items.ts', () => {
 		it('should return section items without stage if stage is not populated', async () => {
 			const baseUrl = '/applications';
 			const crownDevelopmentFields = {
-				applicantName: 'Test Name',
+				applicantOrganisations: ['Test Name'],
 				siteAddress: '1 The street, the town, the county. W1 1BW.',
 				lpaName: 'System Test Borough Council',
 				description: 'a new crown dev application',
@@ -181,7 +181,7 @@ describe('section-items.ts', () => {
 						text: 'Applicant name'
 					},
 					value: {
-						text: 'Test Name'
+						html: '<p class="govuk-body">Test Name</p>'
 					}
 				},
 				{
@@ -215,7 +215,7 @@ describe('section-items.ts', () => {
 			const crownDevelopmentFields = {
 				lpaName: 'Primary LPA',
 				SecondaryLpa: { name: 'Secondary LPA' },
-				applicantName: 'Test Name',
+				applicantOrganisations: ['Test Name'],
 				siteAddress: '1 The street, the town, the county. W1 1BW.',
 				description: 'desc',
 				applicationType: 'Planning permission'
@@ -230,7 +230,7 @@ describe('section-items.ts', () => {
 			const baseUrl = '/applications';
 			const crownDevelopmentFields = {
 				lpaName: 'Primary LPA',
-				applicantName: 'Test Name',
+				applicantOrganisations: ['Test Name'],
 				siteAddress: '1 The street, the town, the county. W1 1BW.',
 				description: 'desc',
 				applicationType: 'Planning permission'
@@ -246,7 +246,7 @@ describe('section-items.ts', () => {
 			const crownDevelopmentFields = {
 				lpaName: 'Primary LPA',
 				SecondaryLpa: {}, // present but not completed
-				applicantName: 'Test Name',
+				applicantOrganisations: ['Test Name'],
 				siteAddress: '1 The street, the town, the county. W1 1BW.',
 				description: 'desc',
 				applicationType: 'Planning permission'
@@ -271,7 +271,8 @@ describe('section-items.ts', () => {
 		it('should not include withdrawn info if withdrawnDate is undefined', () => {
 			const fields = {
 				id: 'id-1',
-				reference: 'reference-id-1'
+				reference: 'reference-id-1',
+				applicantOrganisations: []
 			};
 			const items = getAboutThisApplicationSectionItems('/applications/id-1', fields);
 			const withdrawnDate = items.some(
@@ -279,39 +280,13 @@ describe('section-items.ts', () => {
 			);
 			assert.ok(!withdrawnDate);
 		});
-		// TODO(CROWN-1424): remove once fully migrated to multiple entities
-		it('should use applicantName (pre-manage list) if applicantOrganisations is missing', async () => {
-			const mockCrownDevelopmentFields = {
-				id: 'id-1',
-				applicantName: 'An amazing applicant name'
-			};
-			const items = getAboutThisApplicationSectionItems('/applications/id-1', mockCrownDevelopmentFields);
-			const applicantItem = items.find((item) => item.key.text === 'Applicant name');
-			assert.ok(applicantItem);
-			assert.strictEqual(applicantItem.value.text, 'An amazing applicant name');
-		});
-		//To here
-		it('should use applicantOrganisations if both applicantOrganisations and applicantName exist', async () => {
-			const mockCrownDevelopmentFields = {
-				id: 'id-1',
-				applicantName: 'An amazing applicant name',
-				applicantOrganisations: ['An even better applicant name']
-			};
-			const items = getAboutThisApplicationSectionItems('/applications/id-1', mockCrownDevelopmentFields);
-			const applicantItem = items.find((item) => item.key.text === 'Applicant name');
-			assert.ok(applicantItem);
-			assert.strictEqual(applicantItem.value.html, '<p class="govuk-body">An even better applicant name</p>');
-		});
 		it('should display Applicant Names as the title if there are more than one applicantOrganisations', async () => {
 			const mockCrownDevelopmentFields = {
 				id: 'id-1',
-				applicantName: 'An amazing applicant name',
 				applicantOrganisations: ['An even better applicant name', 'A tribute to the greatest applicant name']
 			};
 			const items = getAboutThisApplicationSectionItems('/applications/id-1', mockCrownDevelopmentFields);
-			const applicantItem = items.find((item) => item.key.text === 'Applicant name');
 			const applicantsItem = items.find((item) => item.key.text === 'Applicant names');
-			assert.ok(!applicantItem); //Applicant name should no longer exist
 			assert.ok(applicantsItem);
 			assert.strictEqual(
 				applicantsItem.value.html,

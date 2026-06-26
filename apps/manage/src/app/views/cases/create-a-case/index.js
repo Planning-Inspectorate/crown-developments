@@ -9,7 +9,7 @@ import {
 	saveDataToSession,
 	buildGetJourneyResponseFromSession
 } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
-import { JOURNEY_ID, createJourney, createJourneyV2 } from './journey.js';
+import { JOURNEY_ID, createJourney } from './journey.js';
 import { getQuestions } from './questions.js';
 import { buildSaveController, buildSuccessController } from './save.js';
 import { getSummaryWarningMessage } from '@pins/crowndev-lib/util/linked-case.ts';
@@ -31,9 +31,7 @@ export function createRoutes(service) {
 			/** @type {import('@planning-inspectorate/dynamic-forms/src/journey/journey.js').JourneyResponse} */ journeyResponse
 		) => {
 			const questions = getQuestions(journeyResponse, isQuestionView);
-			return service.isMultipleApplicantsLive
-				? createJourneyV2(questions, journeyResponse, req)
-				: createJourney(questions, journeyResponse, req);
+			return createJourney(questions, journeyResponse, req);
 		};
 	}
 

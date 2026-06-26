@@ -67,9 +67,6 @@ const createMockCases = (count) => {
 		cases.push({
 			id: `id-${i}`,
 			reference: `CROWN/${i}`,
-			ApplicantContact: {
-				orgName: `Applicant ${i}`
-			},
 			Lpa: {
 				name: 'Test Council'
 			},
@@ -105,9 +102,6 @@ describe('case list', () => {
 						{
 							id: 'id-1',
 							reference: 'CROWN/1',
-							ApplicantContact: {
-								orgName: 'John Smith'
-							},
 							Lpa: {
 								name: 'System Test Borough Council'
 							},
@@ -121,9 +115,6 @@ describe('case list', () => {
 						{
 							id: 'id-2',
 							reference: 'CROWN/2',
-							ApplicantContact: {
-								orgName: 'Dave James'
-							},
 							Lpa: {
 								name: 'System Test Borough Council'
 							},

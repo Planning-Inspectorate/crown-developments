@@ -4,7 +4,6 @@ import {
 	hasOrganisationWriteEdits,
 	buildCaseUpdateWritePlan,
 	executeCaseUpdateWritePlan,
-	viewModelToNestedContactUpdate,
 	buildAgentOrganisationNameUpdates,
 	buildAgentOrganisationAddressUpdates,
 	buildAgentContactOrganisationUpdates,
@@ -21,75 +20,6 @@ describe('organisation/contact updates', () => {
 
 		it('should return true when an organisation/contact key is present even if its value is undefined', () => {
 			assert.strictEqual(hasOrganisationWriteEdits({ agentOrganisationAddress: undefined }), true);
-		});
-	});
-
-	describe('viewModelToNestedContactUpdate', () => {
-		it('should return null when no fields for the contact prefix are present in the edits payload', () => {
-			const result = viewModelToNestedContactUpdate({}, 'applicant', {});
-			assert.strictEqual(result, null);
-		});
-
-		it('should build a create input when the contact does not exist', () => {
-			const edits = {
-				applicantContactName: 'Applicant One',
-				applicantContactEmail: 'applicant@example.com',
-				applicantContactTelephoneNumber: '0123',
-				applicantContactAddress: {
-					addressLine1: 'Street',
-					addressLine2: '',
-					townCity: 'City',
-					county: '',
-					postcode: 'PC1 1AA'
-				}
-			};
-			const result = viewModelToNestedContactUpdate(edits, 'applicant', {});
-			assert.deepStrictEqual(result?.create?.orgName, 'Applicant One');
-			assert.deepStrictEqual(result?.create?.email, 'applicant@example.com');
-			assert.deepStrictEqual(result?.create?.telephoneNumber, '0123');
-			assert.deepStrictEqual(result?.create?.Address?.create?.line1, 'Street');
-		});
-
-		it('should build an update input with address upsert when the contact exists and address id is present', () => {
-			const edits = {
-				applicantContactName: 'Applicant One',
-				applicantContactEmail: 'applicant@example.com',
-				applicantContactAddress: {
-					addressLine1: 'Street',
-					addressLine2: '',
-					townCity: 'City',
-					county: '',
-					postcode: 'PC1 1AA'
-				}
-			};
-			const viewModel = {
-				applicantContactId: 'contact-id-1',
-				applicantContactAddressId: 'address-id-1'
-			};
-			const result = viewModelToNestedContactUpdate(edits, 'applicant', viewModel);
-			assert.strictEqual(result?.update?.orgName, 'Applicant One');
-			assert.strictEqual(result?.update?.email, 'applicant@example.com');
-			assert.strictEqual(result?.update?.Address?.upsert?.where?.id, 'address-id-1');
-			assert.strictEqual(result?.update?.Address?.upsert?.create?.line1, 'Street');
-			assert.strictEqual(result?.update?.Address?.upsert?.update?.line1, 'Street');
-		});
-
-		it('should build an update input with address upsert and undefined where when no address id is present', () => {
-			const edits = {
-				applicantContactAddress: {
-					addressLine1: 'Street',
-					addressLine2: '',
-					townCity: 'City',
-					county: '',
-					postcode: 'PC1 1AA'
-				}
-			};
-			const viewModel = {
-				applicantContactId: 'contact-id-1'
-			};
-			const result = viewModelToNestedContactUpdate(edits, 'applicant', viewModel);
-			assert.strictEqual(result?.update?.Address?.upsert?.where, undefined);
-			assert.strictEqual(result?.update?.Address?.upsert?.create?.postcode, 'PC1 1AA');
 		});
 	});
 

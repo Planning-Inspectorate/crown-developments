@@ -66,9 +66,14 @@ describe('application info controller', () => {
 						siteEasting: 654321,
 						siteNorthing: 123456,
 						description: 'a new crown dev application',
-						ApplicantContact: {
-							orgName: 'Test Name'
-						},
+						Organisations: [
+							{
+								role: 'applicant',
+								Organisation: {
+									name: 'Test Name'
+								}
+							}
+						],
 						Type: {
 							displayName: 'Planning permission'
 						},
@@ -156,7 +161,7 @@ describe('application info controller', () => {
 			assert.ok(renderArgs.banner.html.includes('href="/applications/application-updates"'));
 
 			// Verify crown development fields
-			assert.strictEqual(renderArgs.crownDevelopmentFields.applicantName, 'Test Name');
+			assert.deepStrictEqual(renderArgs.crownDevelopmentFields.applicantOrganisations, ['Test Name']);
 			assert.strictEqual(renderArgs.crownDevelopmentFields.containsDistressingContent, true);
 			assert.strictEqual(renderArgs.crownDevelopmentFields.procedure, 'Hearing');
 			assert.strictEqual(renderArgs.crownDevelopmentFields.hearingDate, '17 December 2020');
@@ -178,9 +183,14 @@ describe('application info controller', () => {
 						siteEasting: 654321,
 						siteNorthing: 123456,
 						description: 'a new crown dev application',
-						ApplicantContact: {
-							orgName: 'Test Name'
-						},
+						Organisations: [
+							{
+								role: 'applicant',
+								Organisation: {
+									name: 'Test Name'
+								}
+							}
+						],
 						Type: {
 							displayName: 'Planning permission'
 						},
@@ -268,7 +278,7 @@ describe('application info controller', () => {
 			assert.ok(renderArgs.banner.html.includes('href="/applications/application-updates"'));
 
 			// Verify crown development fields
-			assert.strictEqual(renderArgs.crownDevelopmentFields.applicantName, 'Test Name');
+			assert.deepStrictEqual(renderArgs.crownDevelopmentFields.applicantOrganisations, ['Test Name']);
 			assert.strictEqual(renderArgs.crownDevelopmentFields.containsDistressingContent, false);
 			assert.strictEqual(renderArgs.crownDevelopmentFields.procedure, 'Hearing');
 			assert.strictEqual(renderArgs.crownDevelopmentFields.hearingDate, '17 December 2020');
@@ -289,9 +299,7 @@ describe('application info controller', () => {
 						siteEasting: 654321,
 						siteNorthing: 123456,
 						description: 'a new crown dev application',
-						ApplicantContact: {
-							orgName: 'Test Name'
-						},
+
 						Type: {
 							displayName: 'Planning permission'
 						},
@@ -363,9 +371,7 @@ describe('application info controller', () => {
 						siteEasting: 654321,
 						siteNorthing: 123456,
 						description: 'a new crown dev application',
-						ApplicantContact: {
-							orgName: 'Test Name'
-						},
+
 						Type: {
 							displayName: 'Planning permission'
 						},
@@ -442,9 +448,7 @@ describe('application info controller', () => {
 						siteEasting: 654321,
 						siteNorthing: 123456,
 						description: 'a new crown dev application',
-						ApplicantContact: {
-							orgName: 'Test Name'
-						},
+
 						Type: {
 							displayName: 'Planning permission'
 						},
@@ -522,7 +526,6 @@ describe('application info controller', () => {
 								siteEasting: 654321,
 								siteNorthing: 123456,
 								description: 'a new crown dev application',
-								ApplicantContact: { orgName: 'Test Name' },
 								Type: { displayName: 'Planning permission' },
 								Lpa: { name: 'System Test Borough Council' },
 								Event: { date: new Date('2020-12-17T03:24:00.000Z'), venue: 'the venue' },
@@ -592,7 +595,6 @@ describe('application info controller', () => {
 								siteEasting: 654321,
 								siteNorthing: 123456,
 								description: 'a new crown dev application',
-								ApplicantContact: { orgName: 'Test Name' },
 								Type: { displayName: 'Planning permission' },
 								Lpa: { name: 'System Test Borough Council' },
 								Event: { date: new Date('2020-12-17T03:24:00.000Z'), venue: 'the venue' },
@@ -655,7 +657,6 @@ describe('application info controller', () => {
 						siteEasting: 654321,
 						siteNorthing: 123456,
 						description: 'a new crown dev application',
-						ApplicantContact: { orgName: 'Test Name' },
 						Type: { displayName: 'Planning permission' },
 						Lpa: { name: 'System Test Borough Council' },
 						Event: { date: new Date('2020-12-17T03:24:00.000Z'), venue: 'the venue' },
@@ -711,7 +712,6 @@ describe('application info controller', () => {
 								siteEasting: 654321,
 								siteNorthing: 123456,
 								description: 'a new crown dev application',
-								ApplicantContact: { orgName: 'Test Name' },
 								Type: { displayName: 'Planning permission' },
 								Lpa: { name: 'System Test Borough Council' },
 								Event: { date: new Date('2020-12-17T03:24:00.000Z'), venue: 'the venue' },
@@ -787,7 +787,6 @@ describe('application info controller', () => {
 						siteEasting: 654321,
 						siteNorthing: 123456,
 						description: 'a new crown dev application',
-						ApplicantContact: { orgName: 'Test Name' },
 						Type: { displayName: 'Planning permission' },
 						Lpa: { name: 'System Test Borough Council' },
 						Event: { date: new Date('2020-12-17T03:24:00.000Z'), venue: 'the venue' },
@@ -834,7 +833,6 @@ describe('application info controller', () => {
 						siteEasting: 654321,
 						siteNorthing: 123456,
 						description: 'a new crown dev application',
-						ApplicantContact: { orgName: 'Test Name' },
 						Type: { displayName: 'Planning permission' },
 						Lpa: { name: 'System Test Borough Council' },
 						Event: { date: new Date('2020-12-17T03:24:00.000Z'), venue: 'the venue' },

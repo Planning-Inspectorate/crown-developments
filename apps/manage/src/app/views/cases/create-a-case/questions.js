@@ -8,7 +8,7 @@ import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import { APPLICATION_TYPES, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
-import { contactQuestions, multiContactQuestions } from './question-utils.js';
+import { multiContactQuestions } from './question-utils.js';
 import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
 import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
 import CoordinatesValidator from '@planning-inspectorate/dynamic-forms/src/validator/coordinates-validator.js';
@@ -75,11 +75,7 @@ export function getQuestions(journeyResponse, isQuestionView = false) {
 			],
 			options: lpaOptions
 		},
-		...contactQuestions({
-			prefix: 'applicant',
-			title: 'Applicant',
-			addressRequired: false
-		}),
+
 		manageApplicants: {
 			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
 			title: isQuestionView ? 'Check applicant details' : 'Applicants',
@@ -205,11 +201,6 @@ export function getQuestions(journeyResponse, isQuestionView = false) {
 			url: 'has-agent',
 			validators: [new RequiredValidator('Select if the applicant is using an agent')]
 		},
-		...contactQuestions({
-			prefix: 'agent',
-			title: 'Agent',
-			addressRequired: false
-		}),
 		siteAddress: {
 			type: COMPONENT_TYPES.ADDRESS,
 			title: `Site address`,

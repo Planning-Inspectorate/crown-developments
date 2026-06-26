@@ -316,9 +316,8 @@ describe('association resolution and payload formatting', () => {
 			representation: { findUnique: mock.fn() },
 			crownDevelopment: {
 				findUnique: mock.fn(async () => ({
-					ApplicantContact: { email: 'applicant@example.com' },
-					AgentContact: { email: 'agent@example.com' },
-					Lpa: { id: 5, email: 'lpa@example.com' }
+					Lpa: { id: 5, email: 'lpa@example.com' },
+					Organisations: []
 				}))
 			}
 		};
@@ -352,10 +351,21 @@ describe('association resolution and payload formatting', () => {
 			representation: { findUnique: mock.fn() },
 			crownDevelopment: {
 				findUnique: mock.fn(async () => ({
-					ApplicantContact: { email: 'applicant@example.com' },
-					AgentContact: { email: 'agent@example.com' },
 					Lpa: { id: 5, email: 'lpa@example.com' },
-					applicantContactId: 101
+					Organisations: [
+						{
+							Organisation: {
+								OrganisationToContact: [
+									{
+										Contact: {
+											id: 101,
+											email: 'applicant@example.com'
+										}
+									}
+								]
+							}
+						}
+					]
 				}))
 			}
 		};
@@ -389,10 +399,21 @@ describe('association resolution and payload formatting', () => {
 			representation: { findUnique: mock.fn() },
 			crownDevelopment: {
 				findUnique: mock.fn(async () => ({
-					ApplicantContact: { email: 'applicant@example.com' },
-					AgentContact: { email: 'agent@example.com' },
 					Lpa: { id: 5, email: 'lpa@example.com' },
-					agentContactId: 202
+					Organisations: [
+						{
+							Organisation: {
+								OrganisationToContact: [
+									{
+										Contact: {
+											id: 202,
+											email: 'agent@example.com'
+										}
+									}
+								]
+							}
+						}
+					]
 				}))
 			}
 		};
@@ -504,5 +525,99 @@ describe('association resolution and payload formatting', () => {
 			`Unknown reference source for notificationId: notif-rep-2`
 		);
 		assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+	});
+	test('application: links correct contact when multiple organisations exist', async () => {
+		const notifyClient = {
+			getNotificationById: mock.fn(async () => ({
+				data: {
+					id: 'notif-multi-org',
+					reference: 'CROWN/2024/1234567',
+					created_at: '2024-01-01',
+					completed_at: '2024-01-02',
+					status: 1,
+					template: { id: 'tmpl', version: 2 },
+					body: 'body',
+					email_address: 'second@example.com'
+				}
+			}))
+		};
+		const db = {
+			notifyEmail: { create: mock.fn(async () => undefined) },
+			representation: { findUnique: mock.fn() },
+			crownDevelopment: {
+				findUnique: mock.fn(async () => ({
+					Lpa: { id: 5, email: 'lpa@example.com' },
+					Organisations: [
+						{
+							Organisation: {
+								OrganisationToContact: [
+									{
+										Contact: {
+											id: 101,
+											email: 'first@example.com'
+										}
+									}
+								]
+							}
+						},
+						{
+							Organisation: {
+								OrganisationToContact: [
+									{
+										Contact: {
+											id: 202,
+											email: 'second@example.com'
+										}
+									}
+								]
+							}
+						}
+					]
+				}))
+			}
+		};
+		service = { logger, notifyClient, db };
+		req.body = { id: 'notif-multi-org' };
+		const handler = buildNotifyCallbackController(service);
+		await handler(req, res);
+
+		assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+		const createArg = db.notifyEmail.create.mock.calls[0].arguments[0];
+		assert.deepStrictEqual(createArg.data.Contact, { connect: { id: 202 } });
+	});
+	test('application: falls back to email when Organisations is empty', async () => {
+		const notifyClient = {
+			getNotificationById: mock.fn(async () => ({
+				data: {
+					id: 'notif-empty-orgs',
+					reference: 'CROWN/2024/1234567',
+					created_at: '2024-01-01',
+					completed_at: '2024-01-02',
+					status: 1,
+					template: { id: 'tmpl', version: 2 },
+					body: 'body',
+					email_address: 'unknown@example.com'
+				}
+			}))
+		};
+		const db = {
+			notifyEmail: { create: mock.fn(async () => undefined) },
+			representation: { findUnique: mock.fn() },
+			crownDevelopment: {
+				findUnique: mock.fn(async () => ({
+					Lpa: { id: 5, email: 'lpa@example.com' },
+					Organisations: []
+				}))
+			}
+		};
+		service = { logger, notifyClient, db };
+		req.body = { id: 'notif-empty-orgs' };
+		const handler = buildNotifyCallbackController(service);
+		await handler(req, res);
+
+		assert.strictEqual(res.status.mock.calls[0].arguments[0], 200);
+		const createArg = db.notifyEmail.create.mock.calls[0].arguments[0];
+		assert.strictEqual(createArg.data.email, 'unknown@example.com');
+		assert.strictEqual(createArg.data.Contact, undefined);
 	});
 });

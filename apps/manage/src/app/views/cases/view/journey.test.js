@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { createJourney, createJourneyV2, JOURNEY_ID } from './journey.js';
+import { createJourney, JOURNEY_ID } from './journey.js';
 import { getQuestions } from './questions.js';
 import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
@@ -11,23 +11,13 @@ describe('case details journey', () => {
 		assert.throws(() => createJourney({}, {}, { params: { id: 'id-1' }, baseUrl: '/some/path' }));
 	});
 	const mockReq = { params: { id: 'project-1' }, baseUrl: '/cases/project-1' };
-	it('all questions should be defined', () => {
+
+	it('all questions should be defined for journey', () => {
 		process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 		const questions = getQuestions();
 		const answers = {};
 		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
 		const journey = createJourney(questions, response, mockReq);
-		const sections = journey.sections;
-
-		const questionsDefined = sections.every((s) => s.questions.every((q) => q !== undefined));
-		assert.strictEqual(questionsDefined, true);
-	});
-	it('all questions should be defined for v2', () => {
-		process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
-		const questions = getQuestions();
-		const answers = {};
-		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
-		const journey = createJourneyV2(questions, response, mockReq);
 		const sections = journey.sections;
 
 		const questionsDefined = sections.every((s) => s.questions.every((q) => q !== undefined));

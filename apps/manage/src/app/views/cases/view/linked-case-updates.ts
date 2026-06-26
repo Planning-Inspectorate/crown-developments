@@ -7,7 +7,6 @@ import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms';
 import type {
 	CrownDevelopmentViewModel,
 	CrownDevelopmentSaveModel,
-	ContactTypeValues,
 	ManageApplicantDetails,
 	ManageAgentContactDetails,
 	ManageApplicantContactDetails
@@ -573,60 +572,6 @@ export async function executeCaseUpdateWritePlan(plan: CaseUpdateWritePlan, tx: 
 
 		await tx.crownDevelopment.update({ where: { id: caseId }, data: updateData });
 	}
-}
-
-/**
- * Build nested updates for applicant/agent contact creates/updates, returning null if no contact-related fields are being edited.
- */
-export function viewModelToNestedContactUpdate(
-	edits: CrownDevelopmentSaveModel,
-	prefix: ContactTypeValues,
-	viewModel: CrownDevelopmentViewModel
-): Prisma.ContactUpdateOneWithoutCrownDevelopmentApplicantNestedInput | null {
-	const createInput: Prisma.ContactCreateInput = {};
-
-	if (`${prefix}ContactName` in edits) {
-		createInput.orgName = edits[`${prefix}ContactName`];
-	}
-	if (`${prefix}ContactTelephoneNumber` in edits) {
-		createInput.telephoneNumber = edits[`${prefix}ContactTelephoneNumber`];
-	}
-	if (`${prefix}ContactEmail` in edits) {
-		createInput.email = edits[`${prefix}ContactEmail`];
-	}
-	const addressKey = `${prefix}ContactAddress` as const;
-	if (addressKey in edits && isAddress(edits[addressKey])) {
-		createInput.Address = {
-			create: viewModelToAddressUpdateInput(edits[addressKey])
-		};
-	}
-	if (Object.keys(createInput).length === 0) {
-		return null;
-	}
-	const contactExists = Boolean(viewModel[`${prefix}ContactId`]);
-
-	if (!contactExists) {
-		return {
-			create: createInput
-		};
-	}
-
-	const updateInput: Prisma.ContactUpdateInput = {
-		...createInput
-	};
-	if (updateInput.Address?.create) {
-		const addressId = viewModel[`${prefix}ContactAddressId`];
-		updateInput.Address = {
-			upsert: {
-				where: optionalWhere(addressId),
-				create: updateInput.Address.create,
-				update: updateInput.Address.create
-			}
-		};
-	}
-	return {
-		update: updateInput
-	};
 }
 
 /**

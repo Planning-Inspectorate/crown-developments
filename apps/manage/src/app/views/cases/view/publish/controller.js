@@ -50,8 +50,6 @@ export function buildGetValidatedCaseMiddleware(service) {
 		const crownDevelopment = await db.crownDevelopment.findUnique({
 			where: { id },
 			include: {
-				ApplicantContact: { include: { Address: true } },
-				AgentContact: { include: { Address: true } },
 				Lpa: { include: { Address: true } },
 				SiteAddress: true
 			}
@@ -84,14 +82,6 @@ export function buildGetValidatedCaseMiddleware(service) {
 				pageLink: `/cases/${id}#overview`
 			}
 		];
-
-		if (!service.isMultipleApplicantsLive) {
-			answers.push({
-				value: crownDevelopment.ApplicantContact?.orgName,
-				errorMessage: 'Enter Applicant Organisation Contact Name',
-				pageLink: `/cases/${id}/overview/applicant-contact`
-			});
-		}
 
 		const errors = [];
 		for (const answer of answers) {
