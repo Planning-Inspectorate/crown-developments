@@ -1,5 +1,5 @@
 import RepresentationComment from './representation-comment/question.js';
-import FeeAmountQuestion from './fee-amount/question.js';
+import { default as FeeAmountQuestion, type FeeAmountQuestionProps } from './fee-amount/question.ts';
 import RepresentationAttachments from './representation-attachments/question.js';
 import CILAmountQuestion from './cil-amount/question.js';
 import CostsApplicationsCommentQuestion from './costs-applications-comment/question.js';
@@ -40,12 +40,6 @@ type RepresentationCommentQuestionProps = CrownCommonQuestionProps & {
 		errorMessage?: string;
 	};
 	label?: string;
-};
-
-type FeeAmountQuestionProps = CrownCommonQuestionProps & {
-	type: typeof CUSTOM_COMPONENTS.FEE_AMOUNT;
-	feeAmountInputFieldName: string;
-	feeAmountQuestion: string;
 };
 
 type CILAmountQuestionProps = CrownCommonQuestionProps & {
