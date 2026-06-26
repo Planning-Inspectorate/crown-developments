@@ -59,29 +59,21 @@ export async function sendApplicationReceivedNotification(service, id, applicati
 	const { notifyClient, logger, crownDevelopment, crownDevelopmentFields } = notificationContext;
 
 	try {
-		service.isMultipleApplicantsLive
-			? await notifyClient.sendApplicationReceivedNotificationToMany(
-					getRecipientEmails(crownDevelopmentFields),
-					{
-						reference: crownDevelopmentFields.reference ?? '',
-						applicationDescription: crownDevelopmentFields.description ?? '',
-						siteAddress: formatSiteLocation(crownDevelopment),
-						applicationReceivedDate: formatDateForDisplay(applicationReceivedDate),
-						fee: crownDevelopmentFields.applicationFee?.toFixed(2) || ''
-					},
-					crownDevelopmentFields.hasApplicationFee === BOOLEAN_OPTIONS.YES
-				)
-			: await notifyClient.sendApplicationReceivedNotification(
-					getRecipientEmail(crownDevelopmentFields),
-					{
-						reference: crownDevelopmentFields.reference ?? '',
-						applicationDescription: crownDevelopmentFields.description ?? '',
-						siteAddress: formatSiteLocation(crownDevelopment),
-						applicationReceivedDate: formatDateForDisplay(applicationReceivedDate),
-						fee: crownDevelopmentFields.applicationFee?.toFixed(2) || ''
-					},
-					crownDevelopmentFields.hasApplicationFee === BOOLEAN_OPTIONS.YES
-				);
+		const recipientEmails = getRecipientEmails(crownDevelopmentFields);
+		if (recipientEmails.length === 0) {
+			throw new Error('No recipient email addresses found for case, cannot send notification email');
+		}
+		await notifyClient.sendApplicationReceivedNotificationToMany(
+			recipientEmails,
+			{
+				reference: crownDevelopmentFields.reference ?? '',
+				applicationDescription: crownDevelopmentFields.description ?? '',
+				siteAddress: formatSiteLocation(crownDevelopment),
+				applicationReceivedDate: formatDateForDisplay(applicationReceivedDate),
+				fee: crownDevelopmentFields.applicationFee?.toFixed(2) || ''
+			},
+			crownDevelopmentFields.hasApplicationFee === BOOLEAN_OPTIONS.YES
+		);
 	} catch (error) {
 		logger.error(
 			{ error, reference: crownDevelopmentFields.reference },
@@ -102,23 +94,16 @@ export async function sendApplicationNotOfNationalImportanceNotification(service
 	const { notifyClient, logger, crownDevelopment, crownDevelopmentFields } = notificationContext;
 
 	try {
-		service.isMultipleApplicantsLive
-			? await notifyClient.sendApplicationNotOfNationalImportanceNotificationToMany(
-					getRecipientEmails(crownDevelopmentFields),
-					{
-						reference: crownDevelopmentFields.reference ?? '',
-						applicationDescription: crownDevelopmentFields.description ?? '',
-						siteAddress: formatSiteLocation(crownDevelopment)
-					}
-				)
-			: await notifyClient.sendApplicationNotOfNationalImportanceNotification(
-					getRecipientEmail(crownDevelopmentFields),
-					{
-						reference: crownDevelopmentFields.reference ?? '',
-						applicationDescription: crownDevelopmentFields.description ?? '',
-						siteAddress: formatSiteLocation(crownDevelopment)
-					}
-				);
+		const recipientEmails = getRecipientEmails(crownDevelopmentFields);
+		if (recipientEmails.length === 0) {
+			throw new Error('No recipient email addresses found for case, cannot send notification email');
+		}
+
+		await notifyClient.sendApplicationNotOfNationalImportanceNotificationToMany(recipientEmails, {
+			reference: crownDevelopmentFields.reference ?? '',
+			applicationDescription: crownDevelopmentFields.description ?? '',
+			siteAddress: formatSiteLocation(crownDevelopment)
+		});
 	} catch (error) {
 		logger.error(
 			{ error, reference: crownDevelopmentFields.reference },
@@ -220,8 +205,6 @@ async function getCrownDevelopmentData(db, id) {
 			SiteAddress: true,
 			Lpa: true,
 			SecondaryLpa: true,
-			ApplicantContact: true,
-			AgentContact: true,
 			Organisations: {
 				include: {
 					Organisation: {
@@ -238,16 +221,6 @@ async function getCrownDevelopmentData(db, id) {
 	const crownDevelopmentFields = crownDevelopmentToViewModel(crownDevelopment);
 
 	return { crownDevelopment, crownDevelopmentFields };
-}
-
-/**
- * @param {import('./types.js').CrownDevelopmentViewModel} crownDevelopmentFields
- * @returns {string} recipient email address
- */
-function getRecipientEmail(crownDevelopmentFields) {
-	return crownDevelopmentFields.agentContactId
-		? crownDevelopmentFields.agentContactEmail
-		: crownDevelopmentFields.applicantContactEmail;
 }
 
 /**

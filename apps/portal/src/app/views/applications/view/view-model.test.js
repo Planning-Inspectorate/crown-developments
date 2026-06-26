@@ -18,9 +18,14 @@ describe('view-model', () => {
 				Type: {
 					displayName: 'Planning permission'
 				},
-				ApplicantContact: {
-					orgName: 'Applicant Name'
-				},
+				Organisations: [
+					{
+						role: 'applicant',
+						Organisation: {
+							name: 'Applicant Name'
+						}
+					}
+				],
 				Lpa: {
 					name: 'Test LPA'
 				},
@@ -60,7 +65,7 @@ describe('view-model', () => {
 			assert.deepStrictEqual(result, {
 				id: 'id-1',
 				reference: 'reference-id-1',
-				applicantName: 'Applicant Name',
+				applicantOrganisations: ['Applicant Name'],
 				applicationStatus: 'active',
 				applicationType: 'Planning permission',
 				crownDevelopmentContactEmail: 'crown.dev@planninginspectorate.gov.uk',
@@ -113,7 +118,7 @@ describe('view-model', () => {
 			const result = crownDevelopmentToViewModel(input, 'crown.dev@planninginspectorate.gov.uk');
 			assert.strictEqual(result.applicationType, undefined);
 			assert.strictEqual(result.lpaName, undefined);
-			assert.strictEqual(result.applicantName, undefined);
+			assert.deepStrictEqual(result.applicantOrganisations, []);
 		});
 		it(`should not map crownDevelopmentContactEmail field if config not present`, () => {
 			const input = {

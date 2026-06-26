@@ -29,7 +29,6 @@ export type CrownDevelopmentWithRelations = Prisma.CrownDevelopmentGetPayload<{
 	include: {
 		Type: true;
 		SubType: true;
-		ApplicantContact: true;
 		Lpa: true;
 		SecondaryLpa: true;
 		Stage: true;
@@ -57,8 +56,7 @@ export type CrownDevelopmentView = {
 	reference: string;
 	applicationType?: string;
 	applicationSubType?: string;
-	applicantName?: string; //TODO: CROWN-1509 Remove once multiple entities is switched over.
-	applicantOrganisations?: string[]; //TODO: CROWN-1509 No longer nullable once switched over
+	applicantOrganisations: string[];
 	lpaName?: string;
 	SecondaryLpa?: { id: string; name: string };
 	description?: string;
@@ -108,7 +106,10 @@ export function crownDevelopmentToViewModel(
 		id: crownDevelopment.id,
 		reference: crownDevelopment.reference,
 		applicationType: crownDevelopment.Type?.displayName,
-		applicantName: crownDevelopment.ApplicantContact?.orgName, //TODO: CROWN-1509 Remove once multiple entities is switched over.
+		applicantOrganisations:
+			crownDevelopment.Organisations?.filter(
+				(organisation) => organisation.role === ORGANISATION_ROLES_ID.APPLICANT
+			).map((item) => item.Organisation.name) || [],
 		lpaName: crownDevelopment.Lpa?.name,
 		description: crownDevelopment.description,
 		stage: crownDevelopment.Stage?.displayName,
@@ -142,13 +143,6 @@ export function crownDevelopmentToViewModel(
 
 	if (crownDevelopment.SecondaryLpa && crownDevelopment.SecondaryLpa.name) {
 		fields.SecondaryLpa = crownDevelopment.SecondaryLpa;
-	}
-
-	// TODO: CROWN-1509 - Move to default fields once multiple entities is switched over.
-	if (crownDevelopment.Organisations && crownDevelopment.Organisations.length > 0) {
-		fields.applicantOrganisations = crownDevelopment.Organisations.filter(
-			(organisation) => organisation.role === ORGANISATION_ROLES_ID.APPLICANT
-		).map((item) => item.Organisation.name);
 	}
 
 	if (isInquiry(crownDevelopment.procedureId)) {

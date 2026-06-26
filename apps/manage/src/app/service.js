@@ -157,10 +157,6 @@ export class ManageService {
 		return this.#config.featureFlags?.isApplicationUpdatesLive;
 	}
 
-	get isMultipleApplicantsLive() {
-		return this.#config.featureFlags?.isMultipleApplicantsLive;
-	}
-
 	get isS62ALive() {
 		return this.#config.featureFlags?.isS62ALive;
 	}

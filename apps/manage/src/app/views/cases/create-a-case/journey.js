@@ -26,61 +26,6 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.hasSecondaryLpa)
 				.addQuestion(questions.secondaryLocalPlanningAuthority)
 				.withCondition(whenQuestionHasAnswer(questions.hasSecondaryLpa, BOOLEAN_OPTIONS.YES))
-				.addQuestion(questions.applicantName)
-				.addQuestion(questions.applicantAddress)
-				.addQuestion(questions.hasAgent)
-				.addQuestion(questions.agentName)
-				.withCondition(whenQuestionHasAnswer(questions.hasAgent, BOOLEAN_OPTIONS.YES))
-				.addQuestion(questions.agentAddress)
-				.withCondition(whenQuestionHasAnswer(questions.hasAgent, BOOLEAN_OPTIONS.YES))
-				.addQuestion(questions.agentEmail)
-				.withCondition(whenQuestionHasAnswer(questions.hasAgent, BOOLEAN_OPTIONS.YES))
-				.addQuestion(questions.agentTelephoneNumber)
-				.withCondition(whenQuestionHasAnswer(questions.hasAgent, BOOLEAN_OPTIONS.YES))
-				.addQuestion(questions.applicantEmail)
-				.withRequiredCondition(
-					whenQuestionHasAnswer(questions.hasAgent, BOOLEAN_OPTIONS.NO),
-					'Enter Applicant email address'
-				)
-				.addQuestion(questions.applicantTelephoneNumber)
-				.addQuestion(questions.siteAddress)
-				.addQuestion(questions.siteCoordinates)
-				.addQuestion(questions.siteArea)
-				.addQuestion(questions.developmentDescription)
-				.addQuestion(questions.containsDistressingContent)
-				.addQuestion(questions.expectedDateOfSubmission)
-		],
-		taskListUrl: 'check-your-answers',
-		journeyTemplate: 'views/layouts/forms-question.njk',
-		taskListTemplate: 'views/layouts/forms-check-your-answers.njk',
-		journeyTitle: 'Create a case',
-		returnToListing: false,
-		makeBaseUrl: () => req.baseUrl,
-		initialBackLink: '/cases',
-		response
-	});
-}
-
-/**
- * @param {{[questionType: string]: import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question}} questions
- * @param {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} response
- * @param {import('express').Request} req
- * @returns {Journey}
- */
-export function createJourneyV2(questions, response, req) {
-	if (!req.baseUrl.endsWith('/' + JOURNEY_ID)) {
-		throw new Error(`not a valid request for the ${JOURNEY_ID} journey`);
-	}
-
-	return new Journey({
-		journeyId: JOURNEY_ID,
-		sections: [
-			new Section('Section 1', 'questions')
-				.addQuestion(questions.typeOfApplication)
-				.addQuestion(questions.localPlanningAuthority)
-				.addQuestion(questions.hasSecondaryLpa)
-				.addQuestion(questions.secondaryLocalPlanningAuthority)
-				.withCondition(whenQuestionHasAnswer(questions.hasSecondaryLpa, BOOLEAN_OPTIONS.YES))
 				.addQuestion(questions.hasAgent)
 				.startMultiQuestionCondition('has-agent', whenQuestionHasAnswer(questions.hasAgent, BOOLEAN_OPTIONS.YES))
 				.addQuestion(questions.addAgentOrganisationName)

@@ -1,4 +1,3 @@
-import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
 import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
 import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
@@ -13,92 +12,6 @@ import {
 import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-validator.js';
 import { camelCaseToUrlCase, camelCaseToSentenceCase, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
-
-/**
- *
- * @param {Object} opts
- * @param {string} opts.prefix
- * @param {string} opts.title
- * @param {boolean} opts.addressRequired
- * @returns {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>}
- */
-export function contactQuestions({ prefix, title, addressRequired }) {
-	const prefixUrl = camelCaseToUrlCase(prefix);
-	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
-	const questions = {};
-
-	questions[`${prefix}Contact`] = {
-		type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
-		title: `${title} contact`,
-		question: `What are the ${title.toLowerCase()} contact details?`,
-		fieldName: prefix,
-		url: `${prefixUrl}-contact`,
-		inputFields: [
-			{
-				fieldName: `${prefix}ContactName`,
-				label: 'Organisation name'
-			},
-			{
-				fieldName: `${prefix}ContactEmail`,
-				label: 'Email'
-			},
-			{
-				fieldName: `${prefix}ContactTelephoneNumber`,
-				label: 'Telephone number'
-			}
-		],
-		validators: [
-			new MultiFieldInputValidator({
-				fields: [
-					{
-						fieldName: `${prefix}ContactName`,
-						required: false,
-						maxLength: {
-							maxLength: 250,
-							maxLengthMessage: `${title} organisation name must be 250 characters or less`
-						},
-						regex: {
-							regex: "^[A-Za-z0-9 ',’(),&-]+$",
-							regexMessage: `${title} organisation must only include letters, spaces, hyphens, apostrophes, commas, brackets, ampersands or numbers`
-						}
-					},
-					{
-						fieldName: `${prefix}ContactEmail`,
-						required: false,
-						maxLength: {
-							maxLength: 50,
-							maxLengthMessage: `${title} email must be 50 characters or less`
-						}
-					},
-					{
-						fieldName: `${prefix}ContactTelephoneNumber`,
-						required: false,
-						maxLength: {
-							maxLength: 15,
-							maxLengthMessage: `${title} telephone number must be 15 characters or less`
-						},
-						regex: {
-							regex: '^\\+?\\d+$',
-							regexMessage: 'Enter a valid telephone number'
-						}
-					}
-				]
-			})
-		]
-	};
-
-	questions[`${prefix}ContactAddress`] = {
-		type: COMPONENT_TYPES.ADDRESS,
-		title: `${title} address`,
-		question: `What is the ${title.toLowerCase()} address?`,
-		hint: addressRequired ? '' : 'Optional',
-		fieldName: `${prefix}ContactAddress`,
-		url: `${prefixUrl}-contact-address`,
-		validators: [new AddressValidator()]
-	};
-
-	return questions;
-}
 
 /**
  * @param {Object} opts

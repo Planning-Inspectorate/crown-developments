@@ -9,7 +9,7 @@ import {
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { crownDevelopmentToViewModel, type CrownDevelopmentViewModel } from './view-model.ts';
 import { getQuestions } from './questions.js';
-import { createJourney, createJourneyV2, JOURNEY_ID } from './journey.js';
+import { createJourney, JOURNEY_ID } from './journey.js';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { getEntraGroupMembers } from '#util/entra-groups.ts';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
@@ -315,9 +315,7 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		res.locals.originalAnswers = { ...viewModel };
 		// We must cast to CrownJourneyResponse here as we define journeyResponse as a CrownJourneyResponse in a declaration module.
 		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', finalAnswers) as CrownJourneyResponse;
-		res.locals.journey = service.isMultipleApplicantsLive
-			? createJourneyV2(questions, res.locals.journeyResponse, req)
-			: createJourney(questions, res.locals.journeyResponse, req);
+		res.locals.journey = createJourney(questions, res.locals.journeyResponse, req);
 
 		// set a back link to the case details page when viewing a section/question not within a manage list question
 		// e.g. /cases/:id/:section/:question and not /cases/:id/:section/:question/:manageListAction/:manageListItemId/:manageListQuestion

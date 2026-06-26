@@ -96,18 +96,43 @@ async function resolveNotificationAssociations({ db, logger, reference, emailAdd
 		case NOTIFICATION_SOURCE.APPLICATION: {
 			const app = await db.crownDevelopment.findUnique({
 				where: { reference },
-				include: { ApplicantContact: true, AgentContact: true, Lpa: true }
+				include: {
+					Lpa: true,
+					Organisations: {
+						include: {
+							Organisation: {
+								include: {
+									OrganisationToContact: {
+										include: {
+											Contact: true
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 			});
+
 			if (app && app.Lpa?.email === emailAddress) {
 				logger.info(`Successfully linked ${notificationId} to contact`);
 				return { Lpa: { connect: { id: app.Lpa.id } } };
 			}
-			if (app && app.ApplicantContact?.email === emailAddress) {
-				contactId = app.applicantContactId;
+
+			// Find contact through organisations
+			if (app) {
+				for (const org of app.Organisations ?? []) {
+					for (const orgContact of org.Organisation?.OrganisationToContact ?? []) {
+						const contact = orgContact.Contact;
+						if (contact?.email === emailAddress) {
+							contactId = contact.id;
+							break;
+						}
+					}
+					if (contactId) break;
+				}
 			}
-			if (app && app.AgentContact?.email === emailAddress) {
-				contactId = app.agentContactId;
-			}
+
 			break;
 		}
 		default:

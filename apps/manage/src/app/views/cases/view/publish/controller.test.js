@@ -43,8 +43,6 @@ describe('publish case', () => {
 			assert.deepStrictEqual(mockDb.crownDevelopment.findUnique.mock.calls[0].arguments[0], {
 				where: { id: 'case-1' },
 				include: {
-					ApplicantContact: { include: { Address: true } },
-					AgentContact: { include: { Address: true } },
 					Lpa: { include: { Address: true } },
 					SiteAddress: true
 				}
@@ -66,8 +64,6 @@ describe('publish case', () => {
 					findUnique: mock.fn(() =>
 						Promise.resolve({
 							id: 'id-1',
-							ApplicantContact: { Address: {} },
-							AgentContact: { Address: {} },
 							Lpa: { Address: {} }
 						})
 					)
@@ -81,7 +77,7 @@ describe('publish case', () => {
 			};
 			const next = mock.fn();
 			await middleware(req, res, next);
-			assert.strictEqual(req.session.cases['id-1'].publishErrors.length, 5);
+			assert.strictEqual(req.session.cases['id-1'].publishErrors.length, 4);
 			assert.strictEqual(res.redirect.mock.calls.length, 1);
 			assert.strictEqual(res.redirect.mock.calls[0].arguments[0], '/cases/id-1');
 		});
@@ -90,8 +86,6 @@ describe('publish case', () => {
 				crownDevelopment: {
 					findUnique: mock.fn(() => ({
 						id: 'id-1',
-						ApplicantContact: { orgName: 'applicant-1', Address: {} },
-						AgentContact: { Address: {} },
 						description: 'description-1',
 						typeId: 'type-1',
 						Lpa: { id: 'lpa-1', Address: {} },
@@ -106,38 +100,6 @@ describe('publish case', () => {
 			await middleware(req, res, next);
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.ok(!req.session.cases || !req.session.cases['id-1'] || !req.session.cases['id-1'].reference);
-		});
-		it('should not require applicant organisation contact name when multiple applicants feature is live', async () => {
-			const db = {
-				crownDevelopment: {
-					findUnique: mock.fn(() =>
-						Promise.resolve({
-							id: 'id-1',
-							ApplicantContact: { Address: {} },
-							AgentContact: { Address: {} },
-							Lpa: { Address: {} }
-						})
-					)
-				}
-			};
-			const middleware = buildGetValidatedCaseMiddleware({
-				db,
-				logger: mockLogger(),
-				isMultipleApplicantsLive: true
-			});
-			const req = { params: { id: 'id-1' }, session: {} };
-			const res = {
-				locals: {},
-				redirect: mock.fn()
-			};
-			const next = mock.fn();
-
-			await middleware(req, res, next);
-
-			// Same missing fields as the default test, but applicant org contact name is not required when feature flag is on.
-			assert.strictEqual(req.session.cases['id-1'].publishErrors.length, 4);
-			assert.strictEqual(res.redirect.mock.calls.length, 1);
-			assert.strictEqual(res.redirect.mock.calls[0].arguments[0], '/cases/id-1');
 		});
 	});
 	describe('publishCase', () => {
