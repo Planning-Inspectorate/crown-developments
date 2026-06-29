@@ -29,3 +29,19 @@ export const MAJOR_OR_NON_MAJORS = [
 		displayName: 'Non-major'
 	}
 ];
+
+export const APPLICANT_TYPE_ID = Object.freeze({
+	ORGANISATION: 'organisation',
+	INDIVIDUAL: 'individual'
+} as const);
+
+export const APPLICANT_TYPES = [
+	{
+		id: APPLICANT_TYPE_ID.ORGANISATION,
+		displayName: 'Organisation'
+	},
+	{
+		id: APPLICANT_TYPE_ID.INDIVIDUAL,
+		displayName: 'Individual'
+	}
+];

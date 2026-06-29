@@ -9,6 +9,7 @@ import {
 	AddressValidator
 } from '@planning-inspectorate/dynamic-forms';
 import {
+	APPLICANT_TYPES,
 	MAJOR_OR_NON_MAJORS,
 	PRE_APPLICATION_OR_APPLICATIONS,
 	PRE_APPLICATION_OR_APPLICATION_ID
@@ -151,7 +152,44 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 		...multiContactQuestions({
 			prefix: 'agent',
 			title: 'agent'
-		})
+		}),
+		applicantType: {
+			type: COMPONENT_TYPES.RADIO,
+			title: 'Applicant type',
+			question: 'Is the applicant an organisation or an individual?',
+			url: 'applicant-type',
+			fieldName: 'applicantType',
+			validators: [new RequiredValidator('Select whether the applicant is an organisation or an individual')],
+			options: APPLICANT_TYPES.map((t) => ({ text: t.displayName, value: t.id }))
+		},
+		manageApplicantOrganisations: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			title: isQuestionView ? 'Check applicant organisation details' : 'Applicant organisations',
+			question: 'Check applicant organisation details',
+			url: 'check-applicant-details',
+			fieldName: 'manageApplicantOrganisations',
+			titleSingular: 'Applicant organisation',
+			emptyListText: 'No applicants found',
+			showAnswersInSummary: true,
+			forceInitialAdd: true,
+			maximumAnswers: 5
+		},
+		applicantOrganisationName: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Applicant organisation name',
+			question: 'What is the name of the applicant organisation?',
+			url: 'applicant-organisation-name',
+			fieldName: 'organisationName',
+			validators: [new RequiredValidator('Enter the name of the applicant organisation')]
+		},
+		applicantOrganisationAddress: {
+			type: COMPONENT_TYPES.ADDRESS,
+			title: 'Applicant address',
+			question: 'What is the address of the applicant organisation?',
+			url: 'applicant-organisation-address',
+			fieldName: 'organisationAddress',
+			validators: [new AddressValidator()]
+		}
 	};
 
 	const classes = {
