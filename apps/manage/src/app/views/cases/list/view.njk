@@ -4,10 +4,66 @@
 {% from "govuk/components/table/macro.njk" import govukTable %}
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "search-bar/search-bar.njk" import searchBar %}
+{% from "tables/tables.njk" import genericCaseListTable %}
 
 {% block pageTitle %}
     Case list - All Cases - Manage a Crown Development Application
 {% endblock %}
+
+{% set headers = [
+    {text: "Reference", 
+        attributes: {
+            "aria-sort": "descending"
+        }
+    },
+    {text: "Site location",
+        attributes: {
+            "aria-sort": "none"
+        }
+    },
+    {text: "Local planning authority (LPA)",
+        attributes: {
+                "aria-sort": "none"
+            }
+    },
+    {text: "Application type",
+        attributes: {
+            "aria-sort": "none"
+        }
+    },
+    {text: "Status",
+        attributes: {
+            "aria-sort": "none"
+        }
+    }
+] %}
+
+{% set columns = [
+    {
+        type: "link",
+        field: "reference",
+        hrefPrefix: "/cases/",
+        hrefSuffix: ""
+    },
+    {
+        field: "location"
+    },
+    {
+        field: "lpaName"
+    },
+    {
+        field: "type"
+    },
+    {
+        type: "tag",
+        field: "status"
+    }
+] %}
+
+{% set tableAttributes = 
+    { "data-module": "moj-sortable-table" 
+    }
+ %}
 
 {% block pageContent %}
 
@@ -50,75 +106,8 @@
         <p class="govuk-body">No results were found.</p>
         <p class="govuk-body"><a href="/cases" class="govuk-link govuk-link--no-visited-state">Clear search</a> to view all cases.</p>
     {% else %}
-        {{ casesTable(crownDevelopments) }}
+        {{ genericCaseListTable(crownDevelopments,headers,columns,tableAttributes) }}
     {% endif %}
 {% endblock %}
 
-{% macro casesTable(developments) %}
-    {% set developments = [] %}
 
-    {% for development in crownDevelopments %}
-        {% set developments = (developments.push([
-            {
-                html: "<a class='govuk-link' href='/cases/" +  development.id +"'>" + development.reference + "</a>",
-                attributes: {
-                    "data-sort-value": development.reference
-                }
-            },
-            {
-                text: development.location,
-                classes: 'pins-white-space-pre-wrap'
-            },
-            {
-                text: development.lpaName
-            },
-            {
-                text: development.type
-            },
-            {
-                html: govukTag({text: development.status})
-            }
-        ]), developments) %}
-    {% endfor %}
-
-    {% set headers = [
-        {
-            text: 'Reference',
-            attributes: {
-            "aria-sort": "descending"
-            }
-        },
-        {
-            text: 'Site location',
-            attributes: {
-            "aria-sort": "none"
-            }
-        },
-        {
-            text: 'Local planning authority (LPA)',
-            attributes: {
-            "aria-sort": "none"
-            }
-        },
-        {
-          text: 'Application type',
-            attributes: {
-            "aria-sort": "none"
-            }
-        },
-        {
-            text: 'Status',
-            attributes: {
-            "aria-sort": "none"
-            }
-        }
-    ] %}
-
-    {{ govukTable({
-        attributes: {
-            "data-module": "moj-sortable-table"
-        },
-        head: headers,
-        rows: developments
-    }) }}
-{% endmacro %}

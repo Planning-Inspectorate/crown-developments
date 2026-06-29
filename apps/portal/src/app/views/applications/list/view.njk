@@ -3,6 +3,7 @@
 {% from "govuk/components/table/macro.njk" import govukTable %}
 {% import "pagination/pagination.njk" as pagination %}
 {% import "pagination/pagination-options.njk" as paginationOptions %}
+{% from "tables/tables.njk" import genericCaseListTable %}
 
 {% block pageHeading %}{% endblock %}
 
@@ -13,15 +14,32 @@
     {{ super() }}
 {% endblock %}
 
-{% macro insertWbr(inputString) %}
-    {{ inputString | replace("/", "/<wbr>") | safe }}
-{% endmacro %}
+{# Define inputs #}
+{% set headers = [
+    {text: "Application reference" },
+    {text: "Applicant name"},
+    {text: "Local planning authority"}
+] %}
 
+{% set columns = [
+    {
+        type: "link",
+        field: "reference",
+        hrefPrefix: "/applications/",
+        hrefSuffix: "/applications-information"
+    },
+    {
+        field: "applicantName"
+    },
+    {
+        field: "lpaName"
+    }
+] %}
 
 {% block pageContent %}
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-full">
-            <h2 class="govuk-heading-l">
+            <hlass2 c="govuk-heading-l">
                 {{ pageTitle }}
             </h2>
             <div id="pagination" class="govuk-body">
@@ -33,7 +51,7 @@
                 {{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalCrownDevelopments, baseUrl, queryParams) }}
                 <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
-                {{ crownDevelopmentsTable(crownDevelopmentsViewModels) }}
+                {{ genericCaseListTable(crownDevelopmentsViewModels,headers,columns)}} 
             </div>
 
             {# if pageNumber and totalPages values are both 1 then pagination options not shown #}
@@ -41,43 +59,3 @@
         </div>
     </div>
 {% endblock %}
-
-{% macro crownDevelopmentsTable(crownDevelopments) %}
-    {% set crownDevelopmentRows = [] %}
-    {% for crownDevelopment in crownDevelopmentsViewModels %}
-        {% if crownDevelopment.applicantOrganisations and crownDevelopment.applicantOrganisations.length > 0 %}
-            {% set applicantName = crownDevelopment.applicantOrganisations | join(", ") %}
-        {% else %}
-{#            TODO(CROWN-1424): remove once migrated over to ME #}
-            {% set applicantName = crownDevelopment.applicantName %}
-        {% endif %}
-        {% set crownDevelopmentRows = (crownDevelopmentRows.push([
-            {
-                html: "<a class='govuk-link' href='/applications/" +  crownDevelopment.id + "/application-information'>" + insertWbr(crownDevelopment.reference) + "</a>"
-            },
-            {
-                text: applicantName
-            },
-            {
-                text: crownDevelopment.lpaName
-            }
-        ]), crownDevelopmentRows) %}
-    {% endfor %}
-
-    {{ govukTable({
-        captionClasses: "govuk-table__caption--m",
-        firstCellIsHeader: true,
-        head: [
-            {
-                text: "Application reference"
-            },
-            {
-                text: "Applicant name"
-            },
-            {
-                text: "Local planning authority"
-            }
-        ],
-        rows: crownDevelopmentRows
-    }) }}
-{% endmacro %}

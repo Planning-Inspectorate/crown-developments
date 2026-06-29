@@ -3,7 +3,7 @@ export interface DatabaseConfig {
 }
 
 export interface BaseConfig {
-	cacheControl: {
+	staticCacheControl: {
 		maxAge: string;
 	};
 	database: DatabaseConfig;

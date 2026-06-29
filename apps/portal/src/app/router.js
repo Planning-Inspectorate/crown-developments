@@ -4,7 +4,7 @@ import { createRoutes as applicationRoutes } from './views/applications/index.js
 import { buildAccessibilityStatementPage } from './views/static/accessibility-statement/controller.js';
 import { buildTermsAndConditionsPage } from './views/static/terms-and-conditions/controller.js';
 import { buildContactUsPage } from './views/static/contact/controller.js';
-import { createErrorRoutes } from './views/static/error/index.js';
+import { createErrorRoutes } from '@pins/crowndev-lib/error/index.ts';
 import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.ts';
 import { createRoutes as createCookieRoutes } from './views/static/cookies/index.js';
 import { buildDetailedInformationPage } from './views/static/detailed-information/controller.js';

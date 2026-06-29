@@ -1,12 +1,12 @@
 {
 	"extends": "../../jsconfig.json",
-	"include": ["**/*.js"],
+	"include": ["**/*.js", "**/*.d.ts"],
 	"exclude": ["src/server/static", "scripts", "coverage"],
 	"files": [],
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
-			"#service": ["./src/app/service.js"],
+			"#service": ["src/app/service.ts"],
 			"#util/*": ["./src/util/*"]
 		}
 	}

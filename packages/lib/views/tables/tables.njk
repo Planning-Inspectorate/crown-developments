@@ -1,0 +1,51 @@
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
+{% macro insertWbr(inputString) %}
+    {{ inputString | replace("/", "/<wbr>") | safe }}
+{% endmacro %}
+
+{% macro genericCaseListTable(developments, headers, columns, attributes = {}) %}
+    {% set rows = [] %}
+    
+    {% for development in developments %}
+
+        {% set rowData = [] %}
+        
+        {% for column in columns %}
+            {% if column.type == "link" %}
+                {% set rowData = (rowData.push({
+                    html: "<a class='govuk-link' href='" +
+                        column.hrefPrefix +
+                        development.id +
+                        column.hrefSuffix +
+                        "'>" +
+                        development[column.field] +
+                        "</a>"
+                }), rowData) %}
+            
+            {% elif column.type == "tag" %}
+                {% set rowData = (rowData.push({
+                        html: govukTag({
+                            text: development[column.field]
+                        })
+                }), rowData) %}
+
+            {% else %}
+                {% set rowData = (rowData.push({
+                    text: development[column.field]
+                }), rowData) %}
+            
+            {% endif %}
+
+        {% endfor %}
+
+        {% set rows = (rows.push(rowData), rows) %}
+    {% endfor %}
+
+    {{ govukTable({
+        attributes: attributes,
+        head: headers,
+        rows: rows
+    }) }}
+{% endmacro %}

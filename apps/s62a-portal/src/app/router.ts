@@ -4,7 +4,7 @@ import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.ts';
 import type { IRouter } from 'express';
 import { Router as createRouter } from 'express';
 import { createRoutes as appRoutes } from './views/home/index.ts';
-import { createErrorRoutes } from './views/static/error/index.ts';
+import { createErrorRoutes } from '@pins/crowndev-lib/error/index.ts';
 
 /**
  * Main app router
