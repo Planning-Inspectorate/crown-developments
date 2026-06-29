@@ -5,6 +5,7 @@ import {
 	sendLpaQuestionnaireSentNotification
 } from './notification.js';
 import { CLEARABLE_SAVE_KEYS, editsToDatabaseUpdates, crownDevelopmentToViewModel } from './view-model.ts';
+import { crownEditsToDatabaseUpdates } from './crown-edits.ts';
 import {
 	hasOrganisationWriteEdits,
 	buildCaseUpdateWritePlan,
@@ -122,9 +123,18 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 			// Build a deterministic write-plan (no shared nested Organisations writes) and execute it
 			// inside a single interactive transaction.
 			await db.$transaction(async (tx) => {
+				// Only fetch the organisation graph when the edit needs it: organisation/contact writes,
+				// or agent removal (hasAgent -> false), which may cascade organisation/contact deletes.
+				const includeOrganisations = hasOrganisationWriteEdits(toSave) || toSave.hasAgent === false;
+				const include = (
+					includeOrganisations
+						? CROWN_DEVELOPMENT_VIEW_INCLUDE
+						: { ...CROWN_DEVELOPMENT_VIEW_INCLUDE, Organisations: undefined }
+				) as typeof CROWN_DEVELOPMENT_VIEW_INCLUDE;
+
 				const crownDevelopment = await tx.crownDevelopment.findUnique({
 					where: { id },
-					include: CROWN_DEVELOPMENT_VIEW_INCLUDE
+					include
 				});
 				if (!crownDevelopment) {
 					throw new Error('Crown Development case not found');
@@ -141,7 +151,11 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 
 				// IMPORTANT: organisations are excluded here because organisation/contact updates are handled
 				// separately via the deterministic write plan (see buildCaseUpdateWritePlan/executeCaseUpdateWritePlan).
-				const updateInput = editsToDatabaseUpdates(toSave, viewModelForUpdates, { includeOrganisations: false });
+				// This is the Crown route, so the Crown case-type updater is supplied. When S62A gets its own
+				// route, it will pass s62aEditsToDatabaseUpdates instead (ideally sourced from a CaseTypeConfig).
+				const updateInput = editsToDatabaseUpdates(toSave, viewModelForUpdates, crownEditsToDatabaseUpdates, {
+					includeOrganisations: false
+				});
 				updateInput.updatedDate = new Date();
 
 				const caseIds = [id];
