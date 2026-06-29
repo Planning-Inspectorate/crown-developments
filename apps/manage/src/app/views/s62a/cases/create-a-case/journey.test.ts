@@ -68,7 +68,9 @@ describe('s62a create a case journey', () => {
 					'hasAgent',
 					'agentName',
 					'agentAddress',
-					'manageAgentContacts'
+					'manageAgentContacts',
+					'applicantType',
+					'manageApplicantOrganisations'
 				]
 			}
 		];

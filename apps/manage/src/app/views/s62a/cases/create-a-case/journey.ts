@@ -1,4 +1,7 @@
-import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import {
+	APPLICANT_TYPE_ID,
+	PRE_APPLICATION_OR_APPLICATION_ID
+} from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import {
 	type Question,
 	Section,
@@ -47,6 +50,20 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.addQuestion(questions.agentAddress)
 				.addQuestion(questions.manageAgentContacts, new ManageListSection().addQuestion(questions.agentContactDetails))
 				.endMultiQuestionCondition('has-agent')
+
+				.addQuestion(questions.applicantType)
+
+				.startMultiQuestionCondition(
+					'is-organisation',
+					whenQuestionHasAnswer(questions.applicantType, APPLICANT_TYPE_ID.ORGANISATION)
+				)
+				.addQuestion(
+					questions.manageApplicantOrganisations,
+					new ManageListSection()
+						.addQuestion(questions.applicantOrganisationName)
+						.addQuestion(questions.applicantOrganisationAddress)
+				)
+				.endMultiQuestionCondition('is-organisation')
 		],
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',
