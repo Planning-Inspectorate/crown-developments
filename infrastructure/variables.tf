@@ -208,7 +208,8 @@ variable "waf_rate_limits" {
 variable "web_domains" {
   description = "Settings for the web app"
   type = object({
-    manage = string,
-    portal = string
+    manage      = string,
+    s62a_portal = string,
+    portal      = string
   })
 }

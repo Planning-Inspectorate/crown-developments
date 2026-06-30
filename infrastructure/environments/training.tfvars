@@ -137,7 +137,7 @@ vnet_config = {
   secondary_subnet_address_space      = "10.20.25.0/24"
 }
 
-web_domains = { portal = "crown-training.planninginspectorate.gov.uk", manage = "crown-manage-training.planninginspectorate.gov.uk" }
+web_domains = { portal = "crown-training.planninginspectorate.gov.uk", s62a_portal = "s62a-training.planninginspectorate.gov.uk", manage = "crown-manage-training.planninginspectorate.gov.uk" }
 
 waf_rate_limits = {
   enabled             = true

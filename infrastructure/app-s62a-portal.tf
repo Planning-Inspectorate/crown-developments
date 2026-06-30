@@ -1,4 +1,4 @@
-module "app_manage" {
+module "app_s62a_portal" {
   #checkov:skip=CKV_TF_1: Use of commit hash are not required for our Terraform modules
   source = "github.com/Planning-Inspectorate/infrastructure-modules.git//modules/node-app-service?ref=1.54"
 
@@ -6,24 +6,24 @@ module "app_manage" {
   location            = module.primary_region.location
 
   # naming
-  app_name        = "manage"
+  app_name        = "s62a-portal"
   resource_suffix = var.environment
   service_name    = local.service_name
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? local.resource_tags["linux_web_app_manage"] : {}
+    var.environment == "prod" ? local.resource_tags["linux_web_app_s62a_portal"] : {}
   )
 
   # service plan & scaling
   app_service_plan_id                  = azurerm_service_plan.apps.id
   app_service_plan_resource_group_name = azurerm_resource_group.primary.name
-  worker_count                         = 1 # don't need to scale this app
+  worker_count                         = var.apps_config.app_service_plan.worker_count # match the app service plan
 
   # container
   container_registry_name = var.tooling_config.container_registry_name
   container_registry_rg   = var.tooling_config.container_registry_rg
-  image_name              = "crown/manage"
+  image_name              = "crown/s62a-portal"
 
   # networking
   app_service_private_dns_zone_id = data.azurerm_private_dns_zone.app_service.id
@@ -42,26 +42,26 @@ module "app_manage" {
   health_check_path                 = "/health"
   health_check_eviction_time_in_min = var.health_check_eviction_time_in_min
 
+  #Easy Auth setting
+  auth_config = {
+    # Using same credentials as the main portal app
+    auth_enabled           = var.auth_config_portal.auth_enabled
+    require_authentication = var.auth_config_portal.auth_enabled
+    auth_client_id         = var.auth_config_portal.auth_client_id
+    #checkov:skip=CKV_SECRET_6: "Secret is securely stored in Key Vault"
+    auth_provider_secret = "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
+    auth_tenant_endpoint = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0"
+    allowed_applications = var.auth_config_portal.application_id
+    allowed_audiences    = "https://${var.web_domains.s62a_portal}/.auth/login/aad/callback"
+    excluded_paths       = []
+  }
+
   app_settings = {
     APPLICATIONINSIGHTS_CONNECTION_STRING      = local.key_vault_refs["app-insights-connection-string"]
     ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
+    APP_HOSTNAME                               = var.web_domains.s62a_portal
     NODE_ENV                                   = var.apps_config.node_environment
     ENVIRONMENT                                = var.environment
-
-    APP_HOSTNAME                  = var.web_domains.manage
-    PORTAL_HOSTNAME               = "https://${var.web_domains.portal}"
-    AZURE_CLIENT_ID               = var.apps_config.auth.client_id
-    AZURE_CLIENT_SECRET           = local.key_vault_refs["crown-client-secret"]
-    AUTH_GROUP_APPLICATION_ACCESS = var.apps_config.auth.group_application_access
-    AZURE_TENANT_ID               = data.azurerm_client_config.current.tenant_id
-    ENTRA_GROUP_ID_CASE_OFFICERS  = var.apps_config.entra.group_ids.case_officers
-    ENTRA_GROUP_ID_INSPECTORS     = var.apps_config.entra.group_ids.inspectors
-
-    #Sharepoint
-    SHAREPOINT_DISABLED         = var.apps_config.sharepoint.disabled
-    SHAREPOINT_DRIVE_ID         = local.key_vault_refs["crown-sharepoint-drive-id"]
-    SHAREPOINT_ROOT_ID          = local.key_vault_refs["crown-sharepoint-root-id"]
-    SHAREPOINT_CASE_TEMPLATE_ID = local.key_vault_refs["crown-sharepoint-template-folder-id"]
 
     # logging
     LOG_LEVEL = var.apps_config.logging.level
@@ -71,7 +71,13 @@ module "app_manage" {
 
     # sessions
     REDIS_CONNECTION_STRING = local.key_vault_refs["redis-connection-string"]
-    SESSION_SECRET          = local.key_vault_refs["session-secret-manage"]
+    SESSION_SECRET          = local.key_vault_refs["session-secret-s62a-portal"]
+
+    # retries
+    RETRY_MAX_ATTEMPTS = "3"
+    # got default retry codes
+    # https://github.com/sindresorhus/got/blob/main/documentation/7-retry.md
+    RETRY_STATUS_CODES = "408,413,429,500,502,503,504,521,522,524"
 
     #Auth
     MICROSOFT_PROVIDER_AUTHENTICATION_SECRET = local.key_vault_refs["microsoft-provider-authentication-secret"]
@@ -80,23 +86,25 @@ module "app_manage" {
     # gov notify
     GOV_NOTIFY_DISABLED                        = var.apps_config.gov_notify.disabled
     GOV_NOTIFY_API_KEY                         = local.key_vault_refs["crown-gov-notify-api-key"]
-    GOV_NOTIFY_WEBHOOK_TOKEN                   = local.key_vault_refs["crown-gov-notify-webhook-token"]
     GOV_NOTIFY_TEST_TEMPLATE_ID                = var.apps_config.gov_notify.templates.test_template_id
     GOV_NOTIFY_PRE_ACK_TEMPLATE_ID             = var.apps_config.gov_notify.templates.pre_ack_template_id
     GOV_NOTIFY_ACK_REP_TEMPLATE_ID             = var.apps_config.gov_notify.templates.ack_rep_template_id
-    GOV_NOTIFY_LPA_QNR_TEMPLATE_ID             = var.apps_config.gov_notify.templates.lpa_qnr_template_id
     GOV_NOTIFY_APP_REC_WITH_FEE_TEMPLATE_ID    = var.apps_config.gov_notify.templates.app_rec_with_fee_template_id
     GOV_NOTIFY_APP_REC_WITHOUT_FEE_TEMPLATE_ID = var.apps_config.gov_notify.templates.app_rec_without_fee_template_id
     GOV_NOTIFY_APP_NOT_NAT_IMP_TEMPLATE_ID     = var.apps_config.gov_notify.templates.app_not_nat_imp_template_id
-    GOV_NOTIFY_LPA_QUEST_SENT_TEMPLATE_ID      = var.apps_config.gov_notify.templates.lpa_quest_sent_template_id
+
+    CROWN_DEV_CONTACT_EMAIL = var.apps_config.contact_email
 
     #feature flags
-    FEATURE_FLAG_S62A_MANAGE_NOT_LIVE = var.apps_config.feature_flags.s62a_manage_not_live
-    FEATURE_FLAG_CASE_NOTES_NOT_LIVE  = var.apps_config.feature_flags.case_notes_not_live
-    FEATURE_FLAG_AUDIT_NOT_LIVE       = var.apps_config.feature_flags.audit_not_live
+    FEATURE_FLAG_S62A_PORTAL_NOT_LIVE      = var.apps_config.feature_flags.s62a_portal_not_live
+    FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE = var.apps_config.feature_flags.upload_docs_not_live # this flag needs to be unique to s62a
 
-    # Azure Language Service
-    AZURE_AI_LANGUAGE_ENDPOINT = local.text_analytics_endpoint
+    # Cache Controls
+    DYNAMIC_CACHE_CONTROL_ENABLED = var.apps_config.dynamic_cache_control.enabled
+    DYNAMIC_CACHE_CONTROL_MAX_AGE = var.apps_config.dynamic_cache_control.max_age
+
+    # Google Analytics
+    GOOGLE_ANALYTICS_ID = var.apps_config.google_analytics_id
 
     # blob store
     BLOB_STORE_DISABLED  = var.apps_config.blob_store.disabled
@@ -111,30 +119,30 @@ module "app_manage" {
 }
 
 ## RBAC for secrets
-resource "azurerm_role_assignment" "app_manage_secrets_user" {
+resource "azurerm_role_assignment" "app_s62a_portal_secrets_user" {
   scope                = azurerm_key_vault.main.id
   role_definition_name = "Key Vault Secrets User"
-  principal_id         = module.app_manage.principal_id
+  principal_id         = module.app_s62a_portal.principal_id
 }
 
 ## RBAC for secrets (staging slot)
-resource "azurerm_role_assignment" "app_manage_staging_secrets_user" {
+resource "azurerm_role_assignment" "app_s62a_portal_staging_secrets_user" {
   scope                = azurerm_key_vault.main.id
   role_definition_name = "Key Vault Secrets User"
-  principal_id         = module.app_manage.staging_principal_id
+  principal_id         = module.app_s62a_portal.staging_principal_id
 }
 
 ## sessions
-resource "random_password" "manage_session_secret" {
+resource "random_password" "s62a_portal_session_secret" {
   length  = 32
   special = true
 }
 
-resource "azurerm_key_vault_secret" "manage_session_secret" {
+resource "azurerm_key_vault_secret" "s62a_portal_session_secret" {
   #checkov:skip=CKV_AZURE_41: TODO: Secret rotation
   key_vault_id = azurerm_key_vault.main.id
-  name         = "${local.service_name}-manage-session-secret"
-  value        = random_password.manage_session_secret.result
+  name         = "${local.service_name}-s62a-portal-session-secret"
+  value        = random_password.s62a_portal_session_secret.result
   content_type = "session-secret"
 
   depends_on = [
@@ -144,6 +152,6 @@ resource "azurerm_key_vault_secret" "manage_session_secret" {
 
   tags = merge(
     local.tags,
-    var.environment == "prod" ? local.resource_tags["key_vault_secret_manage_session_secret"] : {}
+    var.environment == "prod" ? local.resource_tags["key_vault_secret_s62a_portal_session_secret"] : {}
   )
 }
