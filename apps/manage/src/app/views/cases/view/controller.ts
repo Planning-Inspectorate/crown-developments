@@ -7,7 +7,8 @@ import {
 	yesNoToBoolean
 } from '@planning-inspectorate/dynamic-forms';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { crownDevelopmentToViewModel, mapNotes, type CrownDevelopmentViewModel } from './view-model.ts';
+import { crownDevelopmentToViewModel, type CrownDevelopmentViewModel } from './view-model.ts';
+import { mapNotes } from '@pins/crowndev-lib/case-notes/controller.ts';
 import { getQuestions } from './questions.ts';
 import { createJourney, JOURNEY_ID } from './journey.ts';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
@@ -306,7 +307,8 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 			groupIds
 		});
 		if (service.isCaseNotesLive) {
-			const mappedNotes = mapNotes(crownDevelopment.Notes ?? [], groupMembers, id);
+			const readMoreHref = `/cases/${id}/application-notes`;
+			const mappedNotes = mapNotes(crownDevelopment.Notes ?? [], groupMembers, readMoreHref);
 			res.locals.caseNotes = mappedNotes.caseNotes;
 			res.locals.allCaseNotesCount = crownDevelopment._count?.Notes ?? 0;
 		}

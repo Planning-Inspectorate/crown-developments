@@ -2693,11 +2693,9 @@ describe('audit recording', () => {
 			}),
 			crownDevelopment: {
 				update: mock.fn(async (args) => {
-					console.log('crownDevelopment.update called with:', JSON.stringify(args, null, 2));
 					return Promise.resolve({ id: 'case-1' });
 				}),
 				findUnique: mock.fn(async (args) => {
-					console.log('crownDevelopment.findUnique called with:', JSON.stringify(args, null, 2));
 					return {
 						id: 'case-1',
 						reference: 'APP-2024-001',

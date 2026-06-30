@@ -2,7 +2,7 @@
 {%- from "govuk/components/character-count/macro.njk" import govukCharacterCount -%}
 
 {%- macro caseNotes(params) -%}
-	<form method="POST" novalidate="novalidate" action="{{ params.currentUrl }}">
+	<form method="POST" novalidate="novalidate" action="{{ params.currentUrl }}/application-notes">
 		{# Macros don't inherit template locals, so _csrf must be passed in via params #}
 		<input type="hidden" name="_csrf" value="{{ params._csrf }}">
 		<div class="govuk-grid-row">
@@ -17,9 +17,9 @@
 			</div>
 		</div>
 		{{ govukButton({
-			text: params.buttonText,
+			text: "Add case note",
 			type: "submit",
-			classes: params.buttonFormat,
+			classes: "govuk-button--secondary govuk-!-margin-bottom-1",
 			preventDoubleClick: true
 		}) }}
 	</form>

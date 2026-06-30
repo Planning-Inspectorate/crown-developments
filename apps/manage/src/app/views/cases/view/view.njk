@@ -58,11 +58,13 @@
 				{{ govukDetails({
 					summaryText: allCaseNotesCount + ' case notes',
 					html: caseNotes({
-						currentUrl: baseUrl,
+						currentUrl: baseUrl + "/application-notes",
 						notes: notes,
 						max: 4,
 						totalNotes: allCaseNotesCount,
-						_csrf: _csrf
+						_csrf: _csrf,
+						buttonText: "Add case note",
+						buttonFormat: "govuk-button--secondary govuk-!-margin-bottom-1"
 					})
 				}) }}
 			{% endif %}

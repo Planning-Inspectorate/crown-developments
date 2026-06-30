@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { crownDevelopmentToViewModel as crownDevelopmentToViewModelStrict, mapNotes } from './view-model.ts';
+import { crownDevelopmentToViewModel as crownDevelopmentToViewModelStrict } from './view-model.ts';
+import { mapNotes } from '@pins/crowndev-lib/case-notes/controller.ts';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { CrownDevelopmentPayload } from './payload-contracts.ts';
@@ -604,7 +605,7 @@ describe('view-model', () => {
 		function callMapNotes(
 			notes: Record<string, unknown>[],
 			groupMembers: unknown,
-			caseId = 'case-1'
+			caseId = ''
 		): ReturnType<typeof mapNotes> {
 			return mapNotes(
 				notes as unknown as Parameters<typeof mapNotes>[0],
@@ -612,7 +613,6 @@ describe('view-model', () => {
 				caseId
 			);
 		}
-
 		const emptyGroupMembers = { caseOfficers: [], inspectors: [] };
 
 		it('should resolve author display name from group members, falling back to the raw id then Unknown', () => {
@@ -658,19 +658,23 @@ describe('view-model', () => {
 			const longComment = 'a'.repeat(CASE_NOTE_MAX_LENGTH + 1);
 			const notes = [{ comment: longComment, createdAt: new Date('2025-05-01T00:00:00Z'), userId: 'u1' }];
 
-			const result = callMapNotes(notes, emptyGroupMembers, 'ABCDE-1234');
+			const caseRowId = '3299ed0f-1b40-446d-9089-c1b02e2f9835';
+			const readMoreUrl = `/cases/${caseRowId}/application-notes`;
+			const result = callMapNotes(notes, emptyGroupMembers, readMoreUrl);
 			const output = result.caseNotes[0].truncatedCommentText;
 
 			assert.strictEqual(output.startsWith('a'.repeat(CASE_NOTE_MAX_LENGTH)), true);
 			assert.strictEqual(output.includes('Read more'), true);
-			assert.strictEqual(output.includes('href="/cases/ABCDE-1234/application-notes"'), true);
+			assert.strictEqual(output.includes('href="/cases/3299ed0f-1b40-446d-9089-c1b02e2f9835/application-notes"'), true);
 		});
 
 		it('should escape HTML before truncating and still append the read-more link', () => {
 			const longComment = '<script>alert(1)</script>' + 'a'.repeat(CASE_NOTE_MAX_LENGTH);
 			const notes = [{ comment: longComment, createdAt: new Date('2025-05-01T00:00:00Z'), userId: 'u1' }];
 
-			const result = callMapNotes(notes, emptyGroupMembers, 'ABCDE-1234');
+			const caseRowId = '3299ed0f-1b40-446d-9089-c1b02e2f9835';
+			const readMoreUrl = `/cases/${caseRowId}/application-notes`;
+			const result = callMapNotes(notes, emptyGroupMembers, readMoreUrl);
 			const output = result.caseNotes[0].truncatedCommentText;
 
 			assert.strictEqual(output.includes('&lt;script&gt;'), true);
