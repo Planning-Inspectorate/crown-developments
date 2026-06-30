@@ -1,4 +1,4 @@
-import { addAppUpdateStatus, validateParams } from '../utils.js';
+import { addAppUpdateStatus, validateParams } from '../utils.ts';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 export function buildUnpublishUpdateController({ db, logger }) {

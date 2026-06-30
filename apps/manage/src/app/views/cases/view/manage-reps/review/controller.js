@@ -1,7 +1,12 @@
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { ACCEPT_AND_REDACT } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { renderRepresentation, validateParams } from '../view/controller.js';
-import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
+import {
+	addSessionData,
+	clearSessionData,
+	isUnsafeObjectKey,
+	readSessionData
+} from '@pins/crowndev-lib/util/session.ts';
 import { createRedactJourney } from './journey.js';
 import { JOURNEY_ID } from '../view/journey.js';
 import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
@@ -662,7 +667,11 @@ function initialiseRepresentationReviewSession(req, representationRef, represent
 		: false;
 
 	if (!req.session.reviewDecisions || commentAttachmentLengthHasChanged) {
-		for (const key in newReviewData) {
+		for (const [key] of Object.entries(newReviewData)) {
+			if (isUnsafeObjectKey(key)) {
+				delete newReviewData[key];
+				continue;
+			}
 			if (key === 'comment') {
 				newReviewData[key] = existingReviewData[key] || {
 					...getReviewDecision(representation?.statusId, representation?.commentRedacted),
@@ -778,6 +787,10 @@ export function clearRepReviewedSession(req, id) {
  * @param {Object<string, any>} updates - Fields to merge into the item (e.g. { reviewDecision, commentRedacted })
  */
 function updateRepReviewSession(req, representationRef, itemId, updates) {
+	if (isUnsafeObjectKey(itemId) || isUnsafeObjectKey(representationRef)) {
+		throw new Error('Unsafe object key detected');
+	}
+
 	const currentItemData = req.session?.reviewDecisions?.[representationRef] || {};
 
 	const newItemData = {
@@ -900,7 +913,7 @@ function getReviewTaskStatus(status) {
 
 function updateDocumentStatusSession(req, logger, representationRef, isRejected) {
 	Object.entries(req.session?.reviewDecisions?.[representationRef])
-		.filter(([key]) => key !== 'comment')
+		.filter(([key]) => key !== 'comment' && !isUnsafeObjectKey(key)) // only uses status from comment to determine status of document
 		.forEach(([, value]) => {
 			value.reviewDecision = isRejected ? REPRESENTATION_STATUS_ID.REJECTED : REPRESENTATION_STATUS_ID.AWAITING_REVIEW;
 		});
@@ -1041,6 +1054,9 @@ function getReviewStatus(reviewDecision) {
 }
 
 export function safeDeleteUploadedFilesSession(req, representationRef, itemId) {
+	if (isUnsafeObjectKey(itemId) || isUnsafeObjectKey(representationRef)) {
+		throw new Error('Unsafe object key detected');
+	}
 	if (req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles) {
 		req.session.files[representationRef][itemId].uploadedFiles = [];
 	} else {

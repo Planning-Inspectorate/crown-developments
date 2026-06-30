@@ -6,7 +6,11 @@ type SessionFieldData = Record<string, Record<string, unknown>>;
 type SessionRecord = Record<string, SessionFieldData>;
 
 const UNSAFE_OBJECT_KEYS = new Set(['__proto__', 'prototype', 'constructor', 'proto']);
-function isUnsafeObjectKey(key: string): boolean {
+
+/**
+ * Checks a key for unsafe object keys such as proto, __proto__, etc
+ */
+export function isUnsafeObjectKey(key: string): boolean {
 	return UNSAFE_OBJECT_KEYS.has(key);
 }
 
