@@ -3,10 +3,11 @@ import assert from 'node:assert';
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import { buildAuditService } from './service.ts';
 import type { AuditEntry } from './types.ts';
-import type { EntraGroupMembers } from '../../util/entra-groups.ts';
-import type { GroupMember } from '@pins/crowndev-lib/graph/types.js';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import type { EntraGroupMembers } from '../util/entra-groups.ts';
+import type { GroupMember } from '../graph/types.js';
+import { mockLogger } from '../testing/mock-logger.js';
 import type { Logger } from 'pino';
+import { CASE_DATA_MODEL } from '../util/types.ts';
 
 // mockLogger() returns a logger whose methods are node:test mock fns.
 // This exposes the `.mock` surface the assertions rely on, without `any`.
@@ -23,7 +24,7 @@ type MockLogger = {
 const firstArg = <T>(call: { arguments: unknown[] }): T => call.arguments[0] as T;
 
 describe('Audit Service', () => {
-	const createMockDb = () => ({
+	const createMockCrownDb = () => ({
 		applicationHistory: {
 			create: mock.fn<(...args: unknown[]) => Promise<unknown>>(),
 			createMany: mock.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -47,15 +48,39 @@ describe('Audit Service', () => {
 			return Promise.all(arg as Promise<unknown>[]);
 		})
 	});
+	const createMockS62ADb = () => ({
+		applicationHistory: {
+			create: mock.fn<(...args: unknown[]) => Promise<unknown>>(),
+			createMany: mock.fn<(...args: unknown[]) => Promise<unknown>>(),
+			findMany: mock.fn<(...args: unknown[]) => Promise<unknown>>(),
+			findFirst: mock.fn<(...args: unknown[]) => Promise<unknown>>(),
+			count: mock.fn<(...args: unknown[]) => Promise<unknown>>()
+		},
+		s62aCase: {
+			create: mock.fn<(...args: unknown[]) => Promise<unknown>>(),
+			findMany: mock.fn<(...args: unknown[]) => Promise<unknown>>(),
+			findFirst: mock.fn<(...args: unknown[]) => Promise<unknown>>(),
+			count: mock.fn<(...args: unknown[]) => Promise<unknown>>(),
+			findUnique: mock.fn<(...args: unknown[]) => Promise<unknown>>(),
+			update: mock.fn<(...args: unknown[]) => Promise<unknown>>()
+		},
+		$transaction: mock.fn(async (arg: unknown) => {
+			// record() passes an array of promises; recordMany() passes a callback
+			if (typeof arg === 'function') {
+				return arg(mockDbForTx);
+			}
+			return Promise.all(arg as Promise<unknown>[]);
+		})
+	});
 
 	// The interactive transaction callback in recordMany receives a tx client.
 	// For these unit tests it can be the same mock surface as the top-level db.
-	let mockDbForTx: ReturnType<typeof createMockDb>;
+	let mockDbForTx: ReturnType<typeof createMockCrownDb | typeof createMockS62ADb>;
 
 	// Build the service from a mock DB. The mock only implements the handful of
 	// delegates the service touches, so route through `unknown` to the real type
 	// rather than leaking `any` through the suite.
-	const buildService = (mockDb: ReturnType<typeof createMockDb>) => {
+	const buildService = (mockDb: ReturnType<typeof createMockCrownDb | typeof createMockS62ADb>) => {
 		mockDbForTx = mockDb;
 		const logger = mockLogger() as unknown as MockLogger;
 		const service = buildAuditService(mockDb as unknown as PrismaClient, logger as unknown as Logger);
@@ -67,7 +92,7 @@ describe('Audit Service', () => {
 
 	describe('record', () => {
 		it('should create an audit event with correct data', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			mockDb.applicationHistory.create.mock.mockImplementationOnce(() => Promise.resolve({ id: 'event-1' }));
 			mockDb.crownDevelopment.update.mock.mockImplementationOnce(() => Promise.resolve({ id: 'case-123' }));
 
@@ -80,30 +105,59 @@ describe('Audit Service', () => {
 				metadata: { caseName: 'Test Case' }
 			};
 
-			await service.record(entry);
+			await service.record(entry, CASE_DATA_MODEL.CROWN);
 
 			const { data } = firstArg<{
-				data: { Application: unknown; action: string; userId: string; metadata: string };
+				data: { CrownDevelopment: unknown; action: string; userId: string; metadata: string };
 			}>(mockDb.applicationHistory.create.mock.calls[0]);
 
-			assert.deepStrictEqual(data.Application, { connect: { id: 'case-123' } });
+			assert.deepStrictEqual(data.CrownDevelopment, { connect: { id: 'case-123' } });
 			assert.strictEqual(data.action, 'CASE_CREATED');
 			assert.strictEqual(data.userId, 'user-456');
 			assert.strictEqual(data.metadata, JSON.stringify({ caseName: 'Test Case' }));
 		});
 
+		it('should create an audit event with correct data for other data models', async () => {
+			const mockDb = createMockS62ADb();
+			mockDb.applicationHistory.create.mock.mockImplementationOnce(() => Promise.resolve({ id: 'event-1' }));
+			mockDb.s62aCase.update.mock.mockImplementationOnce(() => Promise.resolve({ id: 'case-123' }));
+
+			const { service } = buildService(mockDb);
+
+			const entry: AuditEntry = {
+				caseId: 's62a-case-123',
+				action: 'CASE_CREATED',
+				userId: 's62a-user-456',
+				metadata: { caseName: 'S62A Test Case' }
+			};
+
+			await service.record(entry, CASE_DATA_MODEL.S62A);
+
+			const { data } = firstArg<{
+				data: { S62aCase: unknown; action: string; userId: string; metadata: string };
+			}>(mockDb.applicationHistory.create.mock.calls[0]);
+
+			assert.deepStrictEqual(data.S62aCase, { connect: { id: 's62a-case-123' } });
+			assert.strictEqual(data.action, 'CASE_CREATED');
+			assert.strictEqual(data.userId, 's62a-user-456');
+			assert.strictEqual(data.metadata, JSON.stringify({ caseName: 'S62A Test Case' }));
+		});
+
 		it('should update the case updatedDate and updatedById', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			mockDb.applicationHistory.create.mock.mockImplementationOnce(() => Promise.resolve({ id: 'event-1' }));
 			mockDb.crownDevelopment.update.mock.mockImplementationOnce(() => Promise.resolve({ id: 'case-123' }));
 
 			const { service } = buildService(mockDb);
 
-			await service.record({
-				caseId: 'case-123',
-				action: 'CASE_CREATED',
-				userId: 'user-456'
-			});
+			await service.record(
+				{
+					caseId: 'case-123',
+					action: 'CASE_CREATED',
+					userId: 'user-456'
+				},
+				CASE_DATA_MODEL.CROWN
+			);
 
 			const update = firstArg<{
 				where: { id: string };
@@ -116,24 +170,27 @@ describe('Audit Service', () => {
 		});
 
 		it('should handle metadata being undefined', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			mockDb.applicationHistory.create.mock.mockImplementationOnce(() => Promise.resolve({ id: 'event-1' }));
 			mockDb.crownDevelopment.update.mock.mockImplementationOnce(() => Promise.resolve({ id: 'case-123' }));
 
 			const { service } = buildService(mockDb);
 
-			await service.record({
-				caseId: 'case-123',
-				action: 'CASE_CREATED',
-				userId: 'user-456'
-			});
+			await service.record(
+				{
+					caseId: 'case-123',
+					action: 'CASE_CREATED',
+					userId: 'user-456'
+				},
+				CASE_DATA_MODEL.CROWN
+			);
 
 			const { data } = firstArg<{ data: { metadata: string } }>(mockDb.applicationHistory.create.mock.calls[0]);
 			assert.strictEqual(data.metadata, '{}');
 		});
 
 		it('should log error but not throw when database fails', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			const dbError = new Error('Database connection failed');
 			mockDb.applicationHistory.create.mock.mockImplementationOnce(() => Promise.reject(dbError));
 
@@ -141,11 +198,14 @@ describe('Audit Service', () => {
 
 			// Should not throw
 			await assert.doesNotReject(() =>
-				service.record({
-					caseId: 'case-123',
-					action: 'CASE_CREATED',
-					userId: 'user-456'
-				})
+				service.record(
+					{
+						caseId: 'case-123',
+						action: 'CASE_CREATED',
+						userId: 'user-456'
+					},
+					CASE_DATA_MODEL.CROWN
+				)
 			);
 
 			assert.strictEqual(logger.error.mock.callCount(), 1);
@@ -159,17 +219,17 @@ describe('Audit Service', () => {
 
 	describe('recordMany', () => {
 		it('should return early for an empty array without touching the db', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			const { service } = buildService(mockDb);
 
-			await service.recordMany([]);
+			await service.recordMany([], CASE_DATA_MODEL.CROWN);
 
 			assert.strictEqual(mockDb.applicationHistory.createMany.mock.callCount(), 0);
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 0);
 		});
 
 		it('should create many history rows and update the case once', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			mockDb.applicationHistory.createMany.mock.mockImplementationOnce(() => Promise.resolve({ count: 2 }));
 			mockDb.crownDevelopment.update.mock.mockImplementationOnce(() => Promise.resolve({ id: 'case-123' }));
 
@@ -180,7 +240,7 @@ describe('Audit Service', () => {
 				{ caseId: 'case-123', action: 'CASE_CREATED', userId: 'user-456', metadata: { caseName: 'def' } }
 			];
 
-			await service.recordMany(entries);
+			await service.recordMany(entries, CASE_DATA_MODEL.CROWN);
 
 			const { data: rows } = firstArg<{ data: Array<{ userId: string; metadata: string }> }>(
 				mockDb.applicationHistory.createMany.mock.calls[0]
@@ -194,15 +254,41 @@ describe('Audit Service', () => {
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
 		});
 
+		it('should create many history rows and update the case once for other data models', async () => {
+			const mockDb = createMockS62ADb();
+			mockDb.applicationHistory.createMany.mock.mockImplementationOnce(() => Promise.resolve({ count: 2 }));
+			mockDb.s62aCase.update.mock.mockImplementationOnce(() => Promise.resolve({ id: 's62a-case-123' }));
+
+			const { service } = buildService(mockDb);
+
+			const entries: AuditEntry[] = [
+				{ caseId: 's62a-case-123', action: 'CASE_CREATED', userId: 's62a-user-456', metadata: { caseName: 'abc' } },
+				{ caseId: 's62a-case-123', action: 'CASE_CREATED', userId: 's62a-user-456', metadata: { caseName: 'def' } }
+			];
+
+			await service.recordMany(entries, CASE_DATA_MODEL.S62A);
+
+			const { data: rows } = firstArg<{ data: Array<{ userId: string; metadata: string }> }>(
+				mockDb.applicationHistory.createMany.mock.calls[0]
+			);
+			assert.strictEqual(rows.length, 2);
+			assert.strictEqual(rows[0].userId, 's62a-user-456');
+			assert.strictEqual(rows[0].metadata, JSON.stringify({ caseName: 'abc' }));
+
+			const update = firstArg<{ data: { updatedById: string } }>(mockDb.s62aCase.update.mock.calls[0]);
+			assert.strictEqual(update.data.updatedById, 's62a-user-456');
+			assert.strictEqual(mockDb.s62aCase.update.mock.callCount(), 1);
+		});
+
 		it('should log error but not throw when the transaction fails', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			const dbError = new Error('Transaction failed');
 			mockDb.applicationHistory.createMany.mock.mockImplementationOnce(() => Promise.reject(dbError));
 
 			const { service, logger } = buildService(mockDb);
 
 			await assert.doesNotReject(() =>
-				service.recordMany([{ caseId: 'case-123', action: 'CASE_CREATED', userId: 'user-456' }])
+				service.recordMany([{ caseId: 'case-123', action: 'CASE_CREATED', userId: 'user-456' }], CASE_DATA_MODEL.CROWN)
 			);
 
 			assert.strictEqual(logger.error.mock.callCount(), 1);
@@ -214,7 +300,7 @@ describe('Audit Service', () => {
 
 	describe('getAllForCase', () => {
 		it('should retrieve and parse audit events', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			mockDb.applicationHistory.findMany.mock.mockImplementationOnce(() =>
 				Promise.resolve([
 					{
@@ -238,7 +324,39 @@ describe('Audit Service', () => {
 
 			const { service } = buildService(mockDb);
 
-			const events = await service.getAllForCase('case-123');
+			const events = await service.getAllForCase('case-123', CASE_DATA_MODEL.CROWN);
+
+			assert.strictEqual(events.length, 2);
+			assert.deepStrictEqual(events[0].metadata, { caseName: 'Test' });
+			assert.strictEqual(events[0].userId, 'user-1');
+			assert.strictEqual(events[1].metadata, null);
+		});
+		it('should retrieve and parse audit events for other dataModels', async () => {
+			const mockDb = createMockCrownDb();
+			mockDb.applicationHistory.findMany.mock.mockImplementationOnce(() =>
+				Promise.resolve([
+					{
+						id: 'event-1',
+						caseId: 'case-123',
+						action: 'CASE_CREATED',
+						metadata: '{"caseName":"Test"}',
+						userId: 'user-1',
+						createdAt: new Date('2025-01-01')
+					},
+					{
+						id: 'event-2',
+						caseId: 'case-123',
+						action: 'CASE_UPDATED',
+						metadata: null,
+						userId: 'user-2',
+						createdAt: new Date('2025-01-02')
+					}
+				])
+			);
+
+			const { service } = buildService(mockDb);
+
+			const events = await service.getAllForCase('case-123', CASE_DATA_MODEL.S62A);
 
 			assert.strictEqual(events.length, 2);
 			assert.deepStrictEqual(events[0].metadata, { caseName: 'Test' });
@@ -247,12 +365,12 @@ describe('Audit Service', () => {
 		});
 
 		it('should use default pagination options', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			mockDb.applicationHistory.findMany.mock.mockImplementationOnce(() => Promise.resolve([]));
 
 			const { service } = buildService(mockDb);
 
-			await service.getAllForCase('case-123');
+			await service.getAllForCase('case-123', CASE_DATA_MODEL.CROWN);
 
 			const args = firstArg<{ skip: number; take: number }>(mockDb.applicationHistory.findMany.mock.calls[0]);
 			assert.strictEqual(args.skip, 0);
@@ -260,12 +378,12 @@ describe('Audit Service', () => {
 		});
 
 		it('should accept custom pagination options', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			mockDb.applicationHistory.findMany.mock.mockImplementationOnce(() => Promise.resolve([]));
 
 			const { service } = buildService(mockDb);
 
-			await service.getAllForCase('case-123', { skip: 10, take: 20 });
+			await service.getAllForCase('case-123', CASE_DATA_MODEL.CROWN, { skip: 10, take: 20 });
 
 			const args = firstArg<{ skip: number; take: number }>(mockDb.applicationHistory.findMany.mock.calls[0]);
 			assert.strictEqual(args.skip, 10);
@@ -273,13 +391,13 @@ describe('Audit Service', () => {
 		});
 
 		it('should return empty array and log error on failure', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			const dbError = new Error('Query failed');
 			mockDb.applicationHistory.findMany.mock.mockImplementationOnce(() => Promise.reject(dbError));
 
 			const { service, logger } = buildService(mockDb);
 
-			const events = await service.getAllForCase('case-123');
+			const events = await service.getAllForCase('case-123', CASE_DATA_MODEL.CROWN);
 
 			assert.deepStrictEqual(events, []);
 			assert.strictEqual(logger.error.mock.callCount(), 1);
@@ -291,25 +409,25 @@ describe('Audit Service', () => {
 
 	describe('countForCase', () => {
 		it('should return the count of audit events', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			mockDb.applicationHistory.count.mock.mockImplementationOnce(() => Promise.resolve(42));
 
 			const { service } = buildService(mockDb);
 
-			const count = await service.countForCase('case-123');
+			const count = await service.countForCase('case-123', CASE_DATA_MODEL.CROWN);
 
 			assert.strictEqual(count, 42);
 			assert.strictEqual(mockDb.applicationHistory.count.mock.callCount(), 1);
 		});
 
 		it('should return 0 and log error on failure', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			const dbError = new Error('Count failed');
 			mockDb.applicationHistory.count.mock.mockImplementationOnce(() => Promise.reject(dbError));
 
 			const { service, logger } = buildService(mockDb);
 
-			const count = await service.countForCase('case-123');
+			const count = await service.countForCase('case-123', CASE_DATA_MODEL.CROWN);
 
 			assert.strictEqual(count, 0);
 			assert.strictEqual(logger.error.mock.callCount(), 1);
@@ -318,7 +436,7 @@ describe('Audit Service', () => {
 
 	describe('getLastModifiedInfo', () => {
 		it('should return formatted date and user display name', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			mockDb.crownDevelopment.findUnique.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					updatedDate: new Date('2025-01-15T14:30:00Z'),
@@ -333,14 +451,34 @@ describe('Audit Service', () => {
 				inspectors: []
 			};
 
-			const info = await service.getLastModifiedInfo('case-123', groupMembers);
+			const info = await service.getLastModifiedInfo('case-123', groupMembers, CASE_DATA_MODEL.CROWN);
 
 			assert.strictEqual(info.updatedDate, '15 January 2025 2:30pm');
 			assert.strictEqual(info.by, 'John Smith');
 		});
+		it('should work across multiple data model inputs', async () => {
+			const mockDbS62A = createMockS62ADb();
+			mockDbS62A.s62aCase.findUnique.mock.mockImplementationOnce(() =>
+				Promise.resolve({
+					updatedDate: new Date('2025-01-15T14:30:00Z'),
+					updatedById: 's62a-user-123'
+				})
+			);
 
+			let { service } = buildService(mockDbS62A);
+
+			const groupMembersS62A: EntraGroupMembers = {
+				caseOfficers: [member('s62a-user-123', 'Johnny Smithy'), member('s62a-user-456', 'Janet Doet')],
+				inspectors: []
+			};
+
+			const infoS62A = await service.getLastModifiedInfo('case-123', groupMembersS62A, CASE_DATA_MODEL.S62A);
+
+			assert.strictEqual(infoS62A.updatedDate, '15 January 2025 2:30pm');
+			assert.strictEqual(infoS62A.by, 'Johnny Smithy');
+		});
 		it('should find a user in the inspectors group too', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			mockDb.crownDevelopment.findUnique.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					updatedDate: new Date('2025-01-15T14:30:00Z'),
@@ -355,13 +493,13 @@ describe('Audit Service', () => {
 				inspectors: [member('user-456', 'Jane Doe')]
 			};
 
-			const info = await service.getLastModifiedInfo('case-123', groupMembers);
+			const info = await service.getLastModifiedInfo('case-123', groupMembers, CASE_DATA_MODEL.CROWN);
 
 			assert.strictEqual(info.by, 'Jane Doe');
 		});
 
 		it('should return the Entra ID in plain text if user not found in group members', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			mockDb.crownDevelopment.findUnique.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					updatedDate: new Date('2025-01-15T14:30:00Z'),
@@ -376,20 +514,20 @@ describe('Audit Service', () => {
 				inspectors: []
 			};
 
-			const info = await service.getLastModifiedInfo('case-123', groupMembers);
+			const info = await service.getLastModifiedInfo('case-123', groupMembers, CASE_DATA_MODEL.CROWN);
 
 			assert.strictEqual(info.by, 'user-999');
 		});
 
 		it('should return null values and log error if case row does not exist', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			mockDb.crownDevelopment.findUnique.mock.mockImplementationOnce(() => Promise.resolve(null));
 
 			const { service, logger } = buildService(mockDb);
 
 			const groupMembers: EntraGroupMembers = { caseOfficers: [], inspectors: [] };
 
-			const info = await service.getLastModifiedInfo('case-123', groupMembers);
+			const info = await service.getLastModifiedInfo('case-123', groupMembers, CASE_DATA_MODEL.CROWN);
 
 			assert.strictEqual(info.updatedDate, null);
 			assert.strictEqual(info.by, null);
@@ -397,7 +535,7 @@ describe('Audit Service', () => {
 		});
 
 		it('should handle a case with null date / user fields gracefully', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			mockDb.crownDevelopment.findUnique.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					updatedDate: null,
@@ -409,14 +547,14 @@ describe('Audit Service', () => {
 
 			const groupMembers: EntraGroupMembers = { caseOfficers: [], inspectors: [] };
 
-			const info = await service.getLastModifiedInfo('case-123', groupMembers);
+			const info = await service.getLastModifiedInfo('case-123', groupMembers, CASE_DATA_MODEL.CROWN);
 
 			assert.strictEqual(info.updatedDate, null);
 			assert.strictEqual(info.by, 'Unknown');
 		});
 
 		it('should return null values and log error on database failure', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			const dbError = new Error('Query failed');
 			mockDb.crownDevelopment.findUnique.mock.mockImplementationOnce(() => Promise.reject(dbError));
 
@@ -424,7 +562,7 @@ describe('Audit Service', () => {
 
 			const groupMembers: EntraGroupMembers = { caseOfficers: [], inspectors: [] };
 
-			const info = await service.getLastModifiedInfo('case-123', groupMembers);
+			const info = await service.getLastModifiedInfo('case-123', groupMembers, CASE_DATA_MODEL.CROWN);
 
 			assert.strictEqual(info.updatedDate, null);
 			assert.strictEqual(info.by, null);
@@ -432,7 +570,7 @@ describe('Audit Service', () => {
 		});
 
 		it('should find a user when inspectors is empty but caseOfficers has them', async () => {
-			const mockDb = createMockDb();
+			const mockDb = createMockCrownDb();
 			mockDb.crownDevelopment.findUnique.mock.mockImplementationOnce(() =>
 				Promise.resolve({
 					updatedDate: new Date('2025-01-15T14:30:00Z'),
@@ -447,7 +585,7 @@ describe('Audit Service', () => {
 				inspectors: []
 			};
 
-			const info = await service.getLastModifiedInfo('case-123', groupMembers);
+			const info = await service.getLastModifiedInfo('case-123', groupMembers, CASE_DATA_MODEL.CROWN);
 
 			assert.strictEqual(info.by, 'John Smith');
 		});

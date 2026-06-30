@@ -6,6 +6,8 @@ import {
 } from './notification.js';
 import { CLEARABLE_SAVE_KEYS, editsToDatabaseUpdates, crownDevelopmentToViewModel } from './view-model.ts';
 import { crownEditsToDatabaseUpdates } from './crown-edits.ts';
+import { FIELD_DISPLAY_NAMES } from './questions.ts';
+import { loadEnvironmentConfig, ENVIRONMENT_NAME } from '../../../config.js';
 import {
 	hasOrganisationWriteEdits,
 	buildCaseUpdateWritePlan,
@@ -32,10 +34,11 @@ import type {
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
-import { type AuditService, type AuditEntry } from '../../../audit/index.ts';
-import { resolveFieldValues, getFieldDisplayName } from '../../../audit/resolvers/index.ts';
+import { type AuditService, type AuditEntry } from '@pins/crowndev-lib/audit/index.ts';
+import { resolveFieldValues, getFieldDisplayName } from '@pins/crowndev-lib/audit/resolvers/index.ts';
 import type { Logger } from 'pino';
-import { resolveAuditAction } from '../../../audit/actions.ts';
+import { resolveAuditAction } from '@pins/crowndev-lib/audit/actions.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 function typedObjectKeys<T extends object>(obj: T): Array<keyof T> {
 	return Object.keys(obj) as Array<keyof T>;
@@ -485,6 +488,14 @@ async function recordAuditEntries(
 	try {
 		const allAuditEntries: AuditEntry[] = [];
 
+		let envConfig: string;
+		try {
+			envConfig = loadEnvironmentConfig();
+		} catch (e) {
+			logger.warn({ caseId, error: e }, 'Failed to load environment config for audit resolution');
+			envConfig = '';
+		}
+
 		// ── Scalar fields ────────────────────────────────────────────────
 		for (const fieldName of updatedFieldNames) {
 			// Only audit fields in the auditable set
@@ -492,7 +503,10 @@ async function recordAuditEntries(
 				continue;
 			}
 
-			const { oldValue, newValue } = resolveFieldValues(fieldName, previousValues, answersSnapshot[fieldName]);
+			const { oldValue, newValue } = resolveFieldValues(fieldName, previousValues, answersSnapshot[fieldName], {
+				environmentConfig: envConfig,
+				environmentName: ENVIRONMENT_NAME
+			});
 
 			if (oldValue === newValue) {
 				continue;
@@ -505,14 +519,14 @@ async function recordAuditEntries(
 				action,
 				userId: auditUserId,
 				metadata: {
-					fieldName: getFieldDisplayName(fieldName),
+					fieldName: getFieldDisplayName(fieldName, FIELD_DISPLAY_NAMES),
 					oldValue,
 					newValue
 				}
 			});
 		}
 
-		await audit.recordMany(allAuditEntries);
+		await audit.recordMany(allAuditEntries, CASE_DATA_MODEL.CROWN);
 	} catch (error: unknown) {
 		// Audit failures should never block the user's operation.
 		// The case data has already been saved successfully above.

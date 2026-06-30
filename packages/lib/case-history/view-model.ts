@@ -1,6 +1,6 @@
-import { formatDateTime } from '@pins/crowndev-lib/util/audit-formatters.ts';
-import { AUDIT_ACTIONS, isAuditAction, resolveTemplate } from '../../../audit/actions.ts';
-import type { AuditEvent } from '../../../audit/types.ts';
+import { formatDateTime } from '../util/audit-formatters.ts';
+import { AUDIT_ACTIONS, isAuditAction, resolveTemplate } from '../audit/actions.ts';
+import type { AuditEvent } from '../audit/types.ts';
 
 export interface CaseHistoryRow {
 	/** Formatted date+time, e.g. "11 February 2026 2:31pm" */

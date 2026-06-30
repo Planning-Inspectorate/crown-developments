@@ -9,7 +9,7 @@ import { createRoutes as createCaseUnpublishRoutes } from './unpublish/index.js'
 import { createRoutes as createRepsRoutes } from './manage-reps/index.js';
 import { createRoutes as createApplicationUpdatesRoutes } from './application-updates/index.js';
 import { buildUpdateCase } from './update-case.ts';
-import { createRoutes as createApplicationHistoryRoutes } from '../case-history/index.ts';
+import { createRoutes as createApplicationHistoryRoutes } from '@pins/crowndev-lib/case-history/index.ts';
 import { createRoutes as createApplicationNotesRoutes } from '../case-notes/index.ts';
 import {
 	buildGetJourneyResponseFromSession,
@@ -17,6 +17,7 @@ import {
 } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { JOURNEY_ID } from './journey.ts';
 import { buildDeleteManageListItemOnConfirmRemove, addSuccessBannerFromMessage } from './delete.js';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 /**
  * @param {import('#service').ManageService} service
@@ -37,7 +38,7 @@ export function createRoutes(service) {
 	const applicationUpdates = createApplicationUpdatesRoutes(service);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const deleteManageListItemOnConfirmRemove = asyncHandler(buildDeleteManageListItemOnConfirmRemove(service));
-	const applicationHistoryRoutes = createApplicationHistoryRoutes(service);
+	const applicationHistoryRoutes = createApplicationHistoryRoutes(service, CASE_DATA_MODEL.CROWN);
 	const applicationNotesRoutes = createApplicationNotesRoutes(service);
 
 	// view case details

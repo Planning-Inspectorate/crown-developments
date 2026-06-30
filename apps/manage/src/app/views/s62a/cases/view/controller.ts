@@ -13,7 +13,7 @@ import { S62A_VIEW_SELECT_INCLUDE } from './constants.ts';
 import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
 import type { NextFunction, Request, Response } from 'express';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
-import { getEntraGroupMembers } from '#util/entra-groups.ts';
+import { getEntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
 
 export function buildViewCaseDetails(): AsyncRequestHandler {
 	return async (req, res) => {

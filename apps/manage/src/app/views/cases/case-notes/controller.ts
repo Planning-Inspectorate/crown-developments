@@ -4,10 +4,11 @@ import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.
 import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import type { Logger } from 'pino';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { getEntraGroupMembers } from '#util/entra-groups.ts';
-import { AUDIT_ACTIONS } from '../../../audit/index.ts';
+import { getEntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
+import { AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/index.ts';
 import { mapNotes } from '../view/view-model.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 export function buildCreateCaseNote(service: ManageService): AsyncRequestHandler {
 	const { db, logger, audit } = service;
@@ -32,14 +33,17 @@ export function buildCreateCaseNote(service: ManageService): AsyncRequestHandler
 		await createCaseNote(id, comment, userId, db, logger);
 
 		if (service.isAuditLive !== false) {
-			await audit.record({
-				caseId: id,
-				action: AUDIT_ACTIONS.CASE_NOTE_ADDED,
-				userId,
-				metadata: {
-					caseNote: comment
-				}
-			});
+			await audit.record(
+				{
+					caseId: id,
+					action: AUDIT_ACTIONS.CASE_NOTE_ADDED,
+					userId,
+					metadata: {
+						caseNote: comment
+					}
+				},
+				CASE_DATA_MODEL.CROWN
+			);
 		}
 
 		logger.info({ id }, 'application note created');
