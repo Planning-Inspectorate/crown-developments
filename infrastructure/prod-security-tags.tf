@@ -37,6 +37,18 @@ locals {
     }
 
     # ========================================
+    # app-s62a-portal.tf
+    # ========================================
+    key_vault_secret_s62a_portal_session_secret = {
+      CriticalityRating = "Level 1"
+      PersonalData      = "No"
+    }
+    linux_web_app_s62a_portal = {
+      CriticalityRating = "Level 1"
+      PersonalData      = "Yes"
+    }
+
+    # ========================================
     # app-service-plan.tf
     # ========================================
     service_plan_apps = {
@@ -136,6 +148,14 @@ locals {
     # front-door-portal.tf
     # ========================================
     cdn_frontdoor_firewall_policy_portal = {
+      CriticalityRating = "Level 1"
+      PersonalData      = "No"
+    }
+
+    # ========================================
+    # front-door-s62a-portal.tf
+    # ========================================
+    cdn_frontdoor_firewall_policy_s62a_portal = {
       CriticalityRating = "Level 1"
       PersonalData      = "No"
     }
