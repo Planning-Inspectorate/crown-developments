@@ -996,7 +996,7 @@ describe('S62aCaseUpdateMapper', () => {
 			assert.strictEqual(result.Reader, undefined);
 		});
 
-		it('replaces the inspector rows wholesale, connecting or creating each User', () => {
+		it('replaces the inspector rows wholesale, updating existing ones and deleting others', () => {
 			const answers: UpdateCaseAnswers = {
 				manageCaseTeamInspectors: [
 					{
@@ -1011,17 +1011,25 @@ describe('S62aCaseUpdateMapper', () => {
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
 
 			assert.deepStrictEqual(result.Inspectors, {
-				deleteMany: {},
-				create: [
+				deleteMany: {
+					id: { notIn: ['inspector-row-1', 'inspector-row-2'] }
+				},
+				update: [
 					{
-						User: { connectOrCreate: { where: { idpUserId: 'entra-1' }, create: { idpUserId: 'entra-1' } } },
-						assignedDate: allocated,
-						appointedDate: allocated
+						where: { id: 'inspector-row-1' },
+						data: {
+							User: { connectOrCreate: { where: { idpUserId: 'entra-1' }, create: { idpUserId: 'entra-1' } } },
+							assignedDate: allocated,
+							appointedDate: allocated
+						}
 					},
 					{
-						User: { connectOrCreate: { where: { idpUserId: 'entra-2' }, create: { idpUserId: 'entra-2' } } },
-						assignedDate: null,
-						appointedDate: null
+						where: { id: 'inspector-row-2' },
+						data: {
+							User: { connectOrCreate: { where: { idpUserId: 'entra-2' }, create: { idpUserId: 'entra-2' } } },
+							assignedDate: null,
+							appointedDate: null
+						}
 					}
 				]
 			});
@@ -1031,14 +1039,14 @@ describe('S62aCaseUpdateMapper', () => {
 			const answers: UpdateCaseAnswers = { manageCaseTeamInspectors: [] };
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
 
-			assert.deepStrictEqual(result.Inspectors, { deleteMany: {}, create: [] });
+			assert.deepStrictEqual(result.Inspectors, { deleteMany: {} });
 		});
 
 		it('clears every inspector row when the list is null', () => {
 			const answers: UpdateCaseAnswers = { manageCaseTeamInspectors: null };
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
 
-			assert.deepStrictEqual(result.Inspectors, { deleteMany: {}, create: [] });
+			assert.deepStrictEqual(result.Inspectors, { deleteMany: {} });
 		});
 
 		it('does not touch the inspector rows when the list is absent from the payload', () => {
@@ -1054,10 +1062,14 @@ describe('S62aCaseUpdateMapper', () => {
 					{ id: 'inspector-row-2', inspectorAssignedDate: allocated }
 				]
 			};
+
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
 
-			// a row with a date but no user cannot be created — the FK is required
-			assert.strictEqual((result.Inspectors as any).create.length, 1);
+			assert.strictEqual(result.Inspectors?.update?.length, 1);
+			assert.strictEqual(result.Inspectors?.create, undefined);
+			assert.deepStrictEqual(result.Inspectors?.deleteMany, {
+				id: { notIn: ['inspector-row-1'] }
+			});
 		});
 
 		it('converts an ISO date string into a Date', () => {
@@ -1068,9 +1080,55 @@ describe('S62aCaseUpdateMapper', () => {
 			} as unknown as UpdateCaseAnswers;
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
 
-			const created = (result.Inspectors as any).create[0];
-			assert.ok(created.assignedDate instanceof Date);
-			assert.deepStrictEqual(created.assignedDate, allocated);
+			const updated = result.Inspectors?.update?.[0];
+
+			assert.ok(updated);
+			assert.ok(updated.data.assignedDate instanceof Date);
+			assert.deepStrictEqual(updated.data.assignedDate, allocated);
+		});
+
+		it('creates a new inspector row when no row id is present', () => {
+			const answers: UpdateCaseAnswers = {
+				manageCaseTeamInspectors: [
+					{
+						inspectorId: 'entra-new',
+						inspectorAssignedDate: '2026-07-01T09:00:00Z',
+						inspectorAppointedDate: '2026-07-01T09:00:00Z'
+					}
+				]
+			};
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.Inspectors, {
+				deleteMany: {},
+				create: [
+					{
+						User: {
+							connectOrCreate: {
+								where: { idpUserId: 'entra-new' },
+								create: { idpUserId: 'entra-new' }
+							}
+						},
+						assignedDate: new Date('2026-07-01T09:00:00Z'),
+						appointedDate: new Date('2026-07-01T09:00:00Z')
+					}
+				]
+			});
+		});
+
+		it('handles simultaneous creation and update of inspectors', () => {
+			const answers: UpdateCaseAnswers = {
+				manageCaseTeamInspectors: [{ id: 'inspector-row-1', inspectorId: 'entra-1' }, { inspectorId: 'entra-2' }]
+			};
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual(result.Inspectors?.update?.length, 1);
+			assert.strictEqual(result.Inspectors?.create?.length, 1);
+			assert.deepStrictEqual(result.Inspectors?.deleteMany, {
+				id: { notIn: ['inspector-row-1'] }
+			});
 		});
 	});
 
@@ -1362,7 +1420,7 @@ describe('S62aCaseUpdateMapper', () => {
 			assert.strictEqual(result.isWasteManagementDevelopment, null);
 		});
 
-		it('replaces the waste type rows wholesale, collapsing the conditional amounts', () => {
+		it('updates existing waste type rows and deletes rows omitted from the payload', () => {
 			const answers = {
 				manageWasteTypes: [
 					{
@@ -1379,14 +1437,19 @@ describe('S62aCaseUpdateMapper', () => {
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
 
 			assert.deepStrictEqual(result.WasteTypes, {
-				deleteMany: {},
-				create: [
+				deleteMany: {
+					id: { notIn: ['row-1'] }
+				},
+				update: [
 					{
-						WasteType: { connect: { id: WASTE_TYPE_ID.INERT_LANDFILL } },
-						voidCapacity: new Prisma.Decimal(34),
-						VoidCapacityUnit: { connect: { id: WASTE_UNIT_ID.CUBIC_METRES } },
-						maxAnnualThroughput: new Prisma.Decimal(55),
-						MaxAnnualThroughputUnit: { connect: { id: WASTE_UNIT_ID.TONNES } }
+						where: { id: 'row-1' },
+						data: {
+							WasteType: { connect: { id: WASTE_TYPE_ID.INERT_LANDFILL } },
+							voidCapacity: new Prisma.Decimal(34),
+							VoidCapacityUnit: { connect: { id: WASTE_UNIT_ID.CUBIC_METRES } },
+							maxAnnualThroughput: new Prisma.Decimal(55),
+							MaxAnnualThroughputUnit: { connect: { id: WASTE_UNIT_ID.TONNES } }
+						}
 					}
 				]
 			});
@@ -1407,9 +1470,10 @@ describe('S62aCaseUpdateMapper', () => {
 			} as unknown as UpdateCaseAnswers;
 
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
-			const [created] = (result.WasteTypes as any).create;
+			const updated = result.WasteTypes?.update?.[0];
 
-			assert.deepStrictEqual(created.voidCapacity, new Prisma.Decimal(12));
+			assert.ok(updated);
+			assert.deepStrictEqual(updated.data.voidCapacity, new Prisma.Decimal(12));
 		});
 
 		it('writes a null amount when the selected unit has no value', () => {
@@ -1425,11 +1489,12 @@ describe('S62aCaseUpdateMapper', () => {
 			} as unknown as UpdateCaseAnswers;
 
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
-			const [created] = (result.WasteTypes as any).create;
+			const updated = result.WasteTypes?.update?.[0];
 
-			assert.strictEqual(created.maxAnnualThroughput, null);
-			assert.strictEqual(created.voidCapacity, null);
-			assert.strictEqual(created.VoidCapacityUnit, undefined);
+			assert.ok(updated);
+			assert.strictEqual(updated.data.maxAnnualThroughput, null);
+			assert.strictEqual(updated.data.voidCapacity, null);
+			assert.deepStrictEqual(updated.data.VoidCapacityUnit, { disconnect: true });
 		});
 
 		it('skips rows with no waste type selected', () => {
@@ -1442,27 +1507,75 @@ describe('S62aCaseUpdateMapper', () => {
 
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
 
-			assert.strictEqual((result.WasteTypes as any).create.length, 1);
+			assert.strictEqual(result.WasteTypes?.update?.length, 1);
+			assert.strictEqual(result.WasteTypes?.create, undefined);
+			assert.deepStrictEqual(result.WasteTypes?.deleteMany, {
+				id: { notIn: ['row-1'] }
+			});
 		});
 
 		it('clears every waste type row when the list is empty', () => {
 			const answers = { manageWasteTypes: [] } as unknown as UpdateCaseAnswers;
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
 
-			assert.deepStrictEqual(result.WasteTypes, { deleteMany: {}, create: [] });
+			assert.deepStrictEqual(result.WasteTypes, { deleteMany: {} });
 		});
 
 		it('clears every waste type row when the list is null', () => {
 			const answers = { manageWasteTypes: null } as unknown as UpdateCaseAnswers;
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
 
-			assert.deepStrictEqual(result.WasteTypes, { deleteMany: {}, create: [] });
+			assert.deepStrictEqual(result.WasteTypes, { deleteMany: {} });
 		});
 
 		it('does not touch the waste type rows when the list is absent from the payload', () => {
 			const result = new S62aCaseUpdateMapper({ likelyIssues: 'Traffic' }).generateUpdateInput();
 
 			assert.strictEqual(result.WasteTypes, undefined);
+		});
+
+		it('creates a new waste type row when no row id is present', () => {
+			const answers = {
+				manageWasteTypes: [
+					{
+						wasteTypeId: WASTE_TYPE_ID.HAZARDOUS,
+						maxAnnualThroughputUnitId: WASTE_UNIT_ID.TONNES,
+						[`maxAnnualThroughputUnitId_${WASTE_UNIT_ID.TONNES}`]: '100'
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.WasteTypes, {
+				deleteMany: {},
+				create: [
+					{
+						WasteType: { connect: { id: WASTE_TYPE_ID.HAZARDOUS } },
+						voidCapacity: null,
+						VoidCapacityUnit: undefined,
+						maxAnnualThroughput: new Prisma.Decimal(100),
+						MaxAnnualThroughputUnit: { connect: { id: WASTE_UNIT_ID.TONNES } }
+					}
+				]
+			});
+		});
+
+		it('handles simultaneous creation and update of waste types', () => {
+			const answers = {
+				manageWasteTypes: [
+					{ id: 'row-1', wasteTypeId: WASTE_TYPE_ID.MUNICIPAL },
+					{ wasteTypeId: WASTE_TYPE_ID.INERT_LANDFILL }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual(result.WasteTypes?.update?.length, 1);
+			assert.strictEqual(result.WasteTypes?.create?.length, 1);
+			assert.deepStrictEqual(result.WasteTypes?.deleteMany, {
+				id: { notIn: ['row-1'] }
+			});
 		});
 	});
 
@@ -1554,8 +1667,11 @@ describe('S62aCaseUpdateMapper', () => {
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
 			const { update } = (result.S62aResidential as any).upsert;
 
-			assert.deepStrictEqual(update.Housing.deleteMany, [{ housingTypeId: HOUSING_TYPE_ID.PROPOSED }]);
-			assert.strictEqual(update.Housing.create.length, 1);
+			assert.deepStrictEqual(update.Housing.deleteMany, {
+				housingTypeId: { in: [HOUSING_TYPE_ID.PROPOSED] },
+				id: { notIn: ['row-1'] }
+			});
+			assert.strictEqual(update.Housing.update.length, 1);
 		});
 
 		it('does not delete anything on create, as there is nothing to replace', () => {
@@ -1572,8 +1688,11 @@ describe('S62aCaseUpdateMapper', () => {
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
 
 			assert.deepStrictEqual((result.S62aResidential as any).upsert.update.Housing, {
-				deleteMany: [{ housingTypeId: HOUSING_TYPE_ID.PROPOSED }],
-				create: []
+				deleteMany: {
+					housingTypeId: {
+						in: ['proposed']
+					}
+				}
 			});
 		});
 
@@ -1619,7 +1738,14 @@ describe('S62aCaseUpdateMapper', () => {
 
 			const { update } = (new S62aCaseUpdateMapper(answers).generateUpdateInput().S62aResidential as any).upsert;
 
-			assert.deepStrictEqual(update.Housing.deleteMany, [{ housingTypeId: HOUSING_TYPE_ID.EXISTING }]);
+			assert.deepStrictEqual(update.Housing.deleteMany, {
+				housingTypeId: {
+					in: ['existing']
+				},
+				id: {
+					notIn: ['row-1']
+				}
+			});
 		});
 
 		it('deletes and recreates both sides when both are in the payload', () => {
@@ -1634,13 +1760,19 @@ describe('S62aCaseUpdateMapper', () => {
 
 			const { update } = (new S62aCaseUpdateMapper(answers).generateUpdateInput().S62aResidential as any).upsert;
 
-			assert.deepStrictEqual(update.Housing.deleteMany, [
-				{ housingTypeId: HOUSING_TYPE_ID.EXISTING },
-				{ housingTypeId: HOUSING_TYPE_ID.PROPOSED }
-			]);
-			assert.strictEqual(update.Housing.create.length, 2);
-			assert.deepStrictEqual(update.Housing.create[0].HousingType, { connect: { id: HOUSING_TYPE_ID.EXISTING } });
-			assert.deepStrictEqual(update.Housing.create[1].HousingType, { connect: { id: HOUSING_TYPE_ID.PROPOSED } });
+			assert.deepStrictEqual(update.Housing.deleteMany, {
+				housingTypeId: {
+					in: ['existing', 'proposed']
+				},
+				id: {
+					notIn: ['row-1', 'row-2']
+				}
+			});
+
+			// Because the payload items have IDs, they go into `update`, not `create`.
+			assert.strictEqual(update.Housing.update.length, 2);
+			assert.deepStrictEqual(update.Housing.update[0].data.HousingType, { connect: { id: HOUSING_TYPE_ID.EXISTING } });
+			assert.deepStrictEqual(update.Housing.update[1].data.HousingType, { connect: { id: HOUSING_TYPE_ID.PROPOSED } });
 		});
 
 		it('leaves the other side alone when only one list is in the payload', () => {
@@ -1648,8 +1780,154 @@ describe('S62aCaseUpdateMapper', () => {
 
 			const { update } = (new S62aCaseUpdateMapper(answers).generateUpdateInput().S62aResidential as any).upsert;
 
-			assert.strictEqual(update.Housing.deleteMany.length, 1);
-			assert.deepStrictEqual(update.Housing.deleteMany[0], { housingTypeId: HOUSING_TYPE_ID.EXISTING });
+			// deleteMany is now an object, so we drop the .length check and assert the shape directly
+			assert.deepStrictEqual(update.Housing.deleteMany, {
+				housingTypeId: {
+					in: [HOUSING_TYPE_ID.EXISTING]
+				}
+			});
+		});
+		it('populates create in the update branch when adding a new housing row without an id', () => {
+			const answers = {
+				manageProposedHousing: [
+					{ id: 'row-1', occupancyTypeId: OCCUPANCY_TYPE_ID.MARKET_HOUSING, unitTypeId: UNIT_TYPE_ID.HOUSES },
+					{ occupancyTypeId: OCCUPANCY_TYPE_ID.STARTER_HOMES, unitTypeId: UNIT_TYPE_ID.FLATS }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const { update } = (result.S62aResidential as any).upsert;
+
+			assert.strictEqual(update.Housing.update.length, 1, '1 existing row updated');
+			assert.strictEqual(update.Housing.create.length, 1, '1 new row created');
+			assert.deepStrictEqual(update.Housing.create[0].OccupancyType, {
+				connect: { id: OCCUPANCY_TYPE_ID.STARTER_HOMES }
+			});
+		});
+	});
+
+	describe('Vehicle Parking Tab', () => {
+		it('does not touch vehicle parking rows when absent from payload', () => {
+			const result = new S62aCaseUpdateMapper({ likelyIssues: 'Traffic' }).generateUpdateInput();
+
+			assert.strictEqual(result.VehicleParking, undefined);
+		});
+
+		it('clears every vehicle parking row when the list is empty or null', () => {
+			const resultEmpty = new S62aCaseUpdateMapper({ vehicleParking: [] }).generateUpdateInput();
+			const resultNull = new S62aCaseUpdateMapper({
+				vehicleParking: null
+			} as unknown as UpdateCaseAnswers).generateUpdateInput();
+
+			assert.deepStrictEqual(resultEmpty.VehicleParking, { deleteMany: {} });
+			assert.deepStrictEqual(resultNull.VehicleParking, { deleteMany: {} });
+		});
+
+		it('updates existing vehicle parking rows and scopes deleteMany', () => {
+			const answers = {
+				vehicleParking: [
+					{
+						id: 'row-1',
+						vehicleType: 'CARS',
+						existingSpaces: '10',
+						proposedSpaces: '20',
+						otherVehicleType: ''
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.VehicleParking, {
+				deleteMany: {
+					id: { notIn: ['row-1'] }
+				},
+				update: [
+					{
+						where: { id: 'row-1' },
+						data: {
+							vehicleType: 'CARS',
+							otherVehicleType: null,
+							existingSpaces: 10,
+							proposedSpaces: 20
+						}
+					}
+				]
+			});
+		});
+
+		it('creates new vehicle parking rows when row id is missing', () => {
+			const answers = {
+				vehicleParking: [
+					{
+						vehicleType: 'CYCLES',
+						existingSpaces: '5',
+						proposedSpaces: '15'
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.VehicleParking, {
+				deleteMany: {},
+				create: [
+					{
+						VehicleType: { connect: { id: 'CYCLES' } },
+						otherVehicleType: undefined,
+						existingSpaces: 5,
+						proposedSpaces: 15
+					}
+				]
+			});
+		});
+
+		it('handles simultaneous creation and update of vehicle parking entries', () => {
+			const answers = {
+				vehicleParking: [
+					{ id: 'row-1', vehicleType: 'CARS', existingSpaces: '10', proposedSpaces: '10' },
+					{ vehicleType: 'LIGHT_GOODS', existingSpaces: '0', proposedSpaces: '2' }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual(result.VehicleParking?.update?.length, 1);
+			assert.strictEqual(result.VehicleParking?.create?.length, 1);
+			assert.deepStrictEqual(result.VehicleParking?.deleteMany, {
+				id: { notIn: ['row-1'] }
+			});
+		});
+
+		it('prefers nested vehicleType_otherVehicleType and trims whitespace', () => {
+			const answers = {
+				vehicleParking: [
+					{
+						vehicleType: 'OTHER',
+						vehicleType_otherVehicleType: '  Electric Scooters  ',
+						otherVehicleType: 'Fallback Scooters',
+						existingSpaces: '0',
+						proposedSpaces: '5'
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual(result.VehicleParking?.create?.[0]?.otherVehicleType, 'Electric Scooters');
+		});
+
+		it('skips items with neither vehicleType nor otherVehicleType', () => {
+			const answers = {
+				vehicleParking: [{ id: 'row-1', vehicleType: 'CARS' }, { id: 'row-2', existingSpaces: '5' }, null]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual(result.VehicleParking?.update?.length, 1);
+			assert.deepStrictEqual(result.VehicleParking?.deleteMany, {
+				id: { notIn: ['row-1'] }
+			});
 		});
 	});
 });
