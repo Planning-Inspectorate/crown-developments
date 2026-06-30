@@ -58,17 +58,30 @@ function formatDateField(date: Date): DateField {
 	};
 }
 
+type GenerateRandomStringOptions = {
+	includeSpecialCharacter?: boolean;
+	requiredSpecialWords?: string[];
+};
+
 /**
- * Generates realistic text for validation testing:
- * - mostly real words
- * - occasionally inserts safe special-character words
- * - always returns the exact requested length
+ * Generates realistic text for validation testing.
+ *
+ * By default this only uses safe words, which keeps general tests stable.
+ * Use `includeSpecialCharacter` to include one random safe special-character word.
+ * Use `requiredSpecialWords` to guarantee specific words are included.
+ *
+ * The returned string:
+ * - always matches the requested length
+ * - never starts with a space
  * - never ends with a space
+ * - only includes special-character words when explicitly requested
  */
-export function generateRandomString(length: number): string {
+export function generateRandomString(length: number, options: GenerateRandomStringOptions = {}): string {
 	if (length <= 0) {
 		return '';
 	}
+
+	const { includeSpecialCharacter = false, requiredSpecialWords = [] } = options;
 
 	const words = [
 		'planning',
@@ -116,22 +129,40 @@ export function generateRandomString(length: number): string {
 		'approval:',
 		'review,',
 		'rights-way',
-		'notice250',
+		'notice-250',
 		'stage-final'
 	];
 
 	const separators = [' ', ' ', ' ', '. '];
 	const alphabet = 'abcdefghijklmnopqrstuvwxyz';
 
-	let result = '';
+	const requiredWords = [...requiredSpecialWords];
+
+	if (includeSpecialCharacter && requiredWords.length === 0) {
+		requiredWords.push(randomItem(specialWords));
+	}
+
+	const requiredText = requiredWords.join(' ');
+
+	if (requiredText.length > length) {
+		throw new Error(
+			`generateRandomString() cannot include required words '${requiredText}' because they are longer than ${length}`
+		);
+	}
+
+	let result = requiredText;
 
 	while (result.length < length) {
-		const word = Math.random() < 0.1 ? randomItem(specialWords) : randomItem(words);
+		const word = randomItem(words);
 		const separator = result.length === 0 ? '' : randomItem(separators);
 		const chunk = `${separator}${word}`;
 		const remainingLength = length - result.length;
 
 		result += chunk.slice(0, remainingLength);
+	}
+
+	if (/^\s/.test(result)) {
+		result = `${randomItem(alphabet.split(''))}${result.slice(1)}`;
 	}
 
 	if (/\s$/.test(result)) {
@@ -321,56 +352,4 @@ export function generateEmail(): string {
 	const email = `${localPart}@${domain}`;
 
 	return email.slice(0, 250);
-}
-
-/**
- * Generates a varied linked or related case reference.
- */
-export function generateCaseReference(type: 'related' | 'linked'): string {
-	const prefixes =
-		type === 'related'
-			? ['REL', 'related', 'RELATED', 'case', 'app', 'plan']
-			: ['LNK', 'linked', 'LINKED', 'case', 'ref', 'way'];
-
-	const caseTypes = [
-		'WAY',
-		'way',
-		'CPO',
-		'cpo',
-		'ROW',
-		'row',
-		'COM',
-		'com',
-		'DRO',
-		'dro',
-		'APP',
-		'app',
-		'ENF',
-		'enf',
-		'PLAN',
-		'plan'
-	];
-
-	const separators = ['/', '-', '_', '.', ''];
-
-	const currentYear = new Date().getFullYear();
-	const year = String(randomInteger(currentYear - 5, currentYear + 5));
-
-	const suffixLength = randomInteger(3, 8);
-	const suffix = randomInteger(10 ** (suffixLength - 1), 10 ** suffixLength - 1);
-
-	const prefix = randomItem(prefixes);
-	const caseType = randomItem(caseTypes);
-	const separator = randomItem(separators);
-	const randomNumber = randomInteger(1000, 9999);
-
-	const formats = [
-		`${caseType}${separator}${year}${separator}${suffix}`,
-		`${prefix}${separator}${caseType}${separator}${randomNumber}`,
-		`${caseType}${separator}${prefix}${separator}${year}${separator}${suffix}`,
-		`${prefix}${separator}${caseType}${separator}${year}${separator}${suffix}`,
-		`${caseType}${separator}${prefix}${separator}${randomNumber}`
-	];
-
-	return randomItem(formats);
 }

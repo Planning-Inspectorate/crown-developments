@@ -28,33 +28,37 @@ type AddressErrorConfig = {
 	inputId: AddressFieldKey;
 };
 
+const ADDRESS_FIELD_MAX_CHARACTERS = 250;
+const POSTCODE_MIN_CHARACTERS = 5;
+const POSTCODE_MAX_CHARACTERS = 8;
+
 const addressErrorMap: Record<AddressErrorType, AddressErrorConfig> = {
 	line1TooLong: {
-		message: 'Address line 1 must be 250 characters or less',
+		message: `Address line 1 must be ${ADDRESS_FIELD_MAX_CHARACTERS} characters or less`,
 		inlineId: 'address-line-1-error',
 		inputId: 'address-line-1'
 	},
 
 	line2TooLong: {
-		message: 'Address line 2 must be 250 characters or less',
+		message: `Address line 2 must be ${ADDRESS_FIELD_MAX_CHARACTERS} characters or less`,
 		inlineId: 'address-line-2-error',
 		inputId: 'address-line-2'
 	},
 
 	townTooLong: {
-		message: 'Town or city must be 250 characters or less',
+		message: `Town or city must be ${ADDRESS_FIELD_MAX_CHARACTERS} characters or less`,
 		inlineId: 'address-town-error',
 		inputId: 'address-town'
 	},
 
 	countyTooLong: {
-		message: 'County must be 250 characters or less',
+		message: `County must be ${ADDRESS_FIELD_MAX_CHARACTERS} characters or less`,
 		inlineId: 'address-county-error',
 		inputId: 'address-county'
 	},
 
 	postcodeLength: {
-		message: 'Postcode must be between 5 and 8 characters',
+		message: `Postcode must be between ${POSTCODE_MIN_CHARACTERS} and ${POSTCODE_MAX_CHARACTERS} characters`,
 		inlineId: 'address-postcode-error',
 		inputId: 'address-postcode'
 	},

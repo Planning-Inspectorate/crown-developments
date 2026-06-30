@@ -8,7 +8,7 @@ import {
 	type DateField
 } from '../page-utilities/generate.utility.ts';
 
-type DateString = 'day' | 'month' | 'year';
+type DatePart = 'day' | 'month' | 'year';
 
 export type DateErrorState =
 	| 'allEmpty'
@@ -23,127 +23,159 @@ export type DateErrorState =
 	| 'invalidYear';
 
 type DateErrorExpectation = {
-	summary: Array<{ field: DateString; message: string }>;
+	summary: Array<{ field: DatePart; message: string }>;
 	inline?: string;
 };
 
-const dateErrorMap: Record<DateErrorState, DateErrorExpectation> = {
-	allEmpty: {
-		summary: [
-			{
-				field: 'month',
-				message: 'Received date of submission month must be between 1 and 12'
-			},
-			{
-				field: 'year',
-				message: 'Received date of submission year must include 4 numbers'
-			},
-			{
-				field: 'day',
-				message: 'Received date of submission day must be a real day'
-			}
-		],
-		inline: 'Enter Received date of submission'
-	},
-
-	dayOnly: {
-		summary: [
-			{
-				field: 'month',
-				message: 'Received date of submission must include a month and year'
-			}
-		],
-		inline: 'Received date of submission must include a month and year'
-	},
-
-	monthOnly: {
-		summary: [
-			{
-				field: 'day',
-				message: 'Received date of submission must include a day and year'
-			}
-		],
-		inline: 'Received date of submission must include a day and year'
-	},
-
-	yearOnly: {
-		summary: [
-			{
-				field: 'day',
-				message: 'Received date of submission must include a day and month'
-			}
-		],
-		inline: 'Received date of submission must include a day and month'
-	},
-
-	dayMonthOnly: {
-		summary: [
-			{
-				field: 'year',
-				message: 'Received date of submission must include a year'
-			}
-		],
-		inline: 'Received date of submission must include a year'
-	},
-
-	dayYearOnly: {
-		summary: [
-			{
-				field: 'month',
-				message: 'Received date of submission must include a month'
-			}
-		],
-		inline: 'Received date of submission must include a month'
-	},
-
-	monthYearOnly: {
-		summary: [
-			{
-				field: 'day',
-				message: 'Received date of submission must include a day'
-			}
-		],
-		inline: 'Received date of submission must include a day'
-	},
-
-	invalidDay: {
-		summary: [
-			{
-				field: 'day',
-				message: 'Received date of submission day must be a real day'
-			}
-		],
-		inline: 'Received date of submission day must be a real day'
-	},
-
-	invalidMonth: {
-		summary: [
-			{
-				field: 'month',
-				message: 'Received date of submission month must be between 1 and 12'
-			}
-		],
-		inline: 'Received date of submission month must be between 1 and 12'
-	},
-
-	invalidYear: {
-		summary: [
-			{
-				field: 'year',
-				message: 'Received date of submission year must include 4 numbers'
-			}
-		],
-		inline: 'Received date of submission year must include 4 numbers'
-	}
+type DateUtilityOptions = {
+	fieldPrefix?: string;
+	dateName?: string;
 };
+
+function createDateErrorMap(dateName: string): Record<DateErrorState, DateErrorExpectation> {
+	return {
+		allEmpty: {
+			summary: [
+				{
+					field: 'month',
+					message: `${dateName} month must be between 1 and 12`
+				},
+				{
+					field: 'year',
+					message: `${dateName} year must include 4 numbers`
+				},
+				{
+					field: 'day',
+					message: `${dateName} day must be a real day`
+				}
+			],
+			inline: `Enter ${dateName}`
+		},
+
+		dayOnly: {
+			summary: [
+				{
+					field: 'month',
+					message: `${dateName} must include a month and year`
+				}
+			],
+			inline: `${dateName} must include a month and year`
+		},
+
+		monthOnly: {
+			summary: [
+				{
+					field: 'day',
+					message: `${dateName} must include a day and year`
+				}
+			],
+			inline: `${dateName} must include a day and year`
+		},
+
+		yearOnly: {
+			summary: [
+				{
+					field: 'day',
+					message: `${dateName} must include a day and month`
+				}
+			],
+			inline: `${dateName} must include a day and month`
+		},
+
+		dayMonthOnly: {
+			summary: [
+				{
+					field: 'year',
+					message: `${dateName} must include a year`
+				}
+			],
+			inline: `${dateName} must include a year`
+		},
+
+		dayYearOnly: {
+			summary: [
+				{
+					field: 'month',
+					message: `${dateName} must include a month`
+				}
+			],
+			inline: `${dateName} must include a month`
+		},
+
+		monthYearOnly: {
+			summary: [
+				{
+					field: 'day',
+					message: `${dateName} must include a day`
+				}
+			],
+			inline: `${dateName} must include a day`
+		},
+
+		invalidDay: {
+			summary: [
+				{
+					field: 'day',
+					message: `${dateName} day must be a real day`
+				}
+			],
+			inline: `${dateName} day must be a real day`
+		},
+
+		invalidMonth: {
+			summary: [
+				{
+					field: 'month',
+					message: `${dateName} month must be between 1 and 12`
+				}
+			],
+			inline: `${dateName} month must be between 1 and 12`
+		},
+
+		invalidYear: {
+			summary: [
+				{
+					field: 'year',
+					message: `${dateName} year must include 4 numbers`
+				}
+			],
+			inline: `${dateName} year must include 4 numbers`
+		}
+	};
+}
 
 export class DateUtility {
 	private readonly page: Page;
 	private readonly commonComponent: CommonComponent;
+	private readonly fieldPrefix: string;
+	private readonly dateName: string;
 
-	constructor(page: Page) {
+	constructor(page: Page, options: DateUtilityOptions = {}) {
 		this.page = page;
 		this.commonComponent = new CommonComponent(page);
+		this.fieldPrefix = options.fieldPrefix ?? 'receivedDate';
+		this.dateName = options.dateName ?? 'Received date of submission';
+	}
+
+	/**
+	 * Enters day, month, and year values into the configured date fields.
+	 */
+	private async fillDateFields(date: DateField): Promise<void> {
+		const dayField = this.page.locator(`#${this.fieldPrefix}_day`);
+		const monthField = this.page.locator(`#${this.fieldPrefix}_month`);
+		const yearField = this.page.locator(`#${this.fieldPrefix}_year`);
+
+		await expect(dayField, 'Day field should be visible before entering a value').toBeVisible();
+		await dayField.fill(date.day);
+		await expect(dayField).toHaveValue(date.day);
+
+		await expect(monthField, 'Month field should be visible before entering a value').toBeVisible();
+		await monthField.fill(date.month);
+		await expect(monthField).toHaveValue(date.month);
+
+		await expect(yearField, 'Year field should be visible before entering a value').toBeVisible();
+		await yearField.fill(date.year);
+		await expect(yearField).toHaveValue(date.year);
 	}
 
 	public readonly actions = {
@@ -153,21 +185,7 @@ export class DateUtility {
 		enterDate: async (date?: DateField): Promise<DateField> => {
 			const valueToUse = date ?? generateRandomDate();
 
-			const dayField = this.page.locator('#receivedDate_day');
-			const monthField = this.page.locator('#receivedDate_month');
-			const yearField = this.page.locator('#receivedDate_year');
-
-			await expect(dayField, 'Day field should be visible before entering a value').toBeVisible();
-			await dayField.fill(valueToUse.day);
-			await expect(dayField).toHaveValue(valueToUse.day);
-
-			await expect(monthField, 'Month field should be visible before entering a value').toBeVisible();
-			await monthField.fill(valueToUse.month);
-			await expect(monthField).toHaveValue(valueToUse.month);
-
-			await expect(yearField, 'Year field should be visible before entering a value').toBeVisible();
-			await yearField.fill(valueToUse.year);
-			await expect(yearField).toHaveValue(valueToUse.year);
+			await this.fillDateFields(valueToUse);
 
 			return valueToUse;
 		},
@@ -183,21 +201,7 @@ export class DateUtility {
 		): Promise<DateField> => {
 			const valueToUse = generateRandomDateByDayOffset(referenceDate, minimumDays, direction, maximumDays);
 
-			const dayField = this.page.locator('#receivedDate_day');
-			const monthField = this.page.locator('#receivedDate_month');
-			const yearField = this.page.locator('#receivedDate_year');
-
-			await expect(dayField, 'Day field should be visible before entering a value').toBeVisible();
-			await dayField.fill(valueToUse.day);
-			await expect(dayField).toHaveValue(valueToUse.day);
-
-			await expect(monthField, 'Month field should be visible before entering a value').toBeVisible();
-			await monthField.fill(valueToUse.month);
-			await expect(monthField).toHaveValue(valueToUse.month);
-
-			await expect(yearField, 'Year field should be visible before entering a value').toBeVisible();
-			await yearField.fill(valueToUse.year);
-			await expect(yearField).toHaveValue(valueToUse.year);
+			await this.fillDateFields(valueToUse);
 
 			return valueToUse;
 		}
@@ -205,11 +209,11 @@ export class DateUtility {
 
 	public readonly assertions = {
 		/**
-		 * Verifies the expected received date validation state.
-		 * Checks summary errors and the inline date error when expected.
+		 * Verifies the expected date validation state.
+		 * Uses the configured date name and field prefix for this page.
 		 */
 		hasDateErrorState: async (state: DateErrorState) => {
-			const expected = dateErrorMap[state];
+			const expected = createDateErrorMap(this.dateName)[state];
 
 			await expect(
 				this.page.locator('.govuk-error-summary__list li'),
@@ -218,14 +222,14 @@ export class DateUtility {
 
 			for (const item of expected.summary) {
 				await this.commonComponent.assertions.verifyErrorSummary(item.message, {
-					href: `#receivedDate_${item.field}`
+					href: `#${this.fieldPrefix}_${item.field}`
 				});
 			}
 
 			if (expected.inline !== undefined) {
-				const inlineError = this.page.locator('#receivedDate-error');
+				const inlineError = this.page.locator(`#${this.fieldPrefix}-error`);
 
-				await expect(inlineError, 'Received date inline error should be visible').toBeVisible();
+				await expect(inlineError, `${this.dateName} inline error should be visible`).toBeVisible();
 				await expect(inlineError).toContainText(expected.inline);
 			}
 
@@ -233,12 +237,12 @@ export class DateUtility {
 		},
 
 		/**
-		 * Verifies the received date fields contain the expected values.
+		 * Verifies the configured date fields contain the expected values.
 		 */
 		hasDateValue: async (date: DateField) => {
-			await expect(this.page.locator('#receivedDate_day')).toHaveValue(date.day);
-			await expect(this.page.locator('#receivedDate_month')).toHaveValue(date.month);
-			await expect(this.page.locator('#receivedDate_year')).toHaveValue(date.year);
+			await expect(this.page.locator(`#${this.fieldPrefix}_day`)).toHaveValue(date.day);
+			await expect(this.page.locator(`#${this.fieldPrefix}_month`)).toHaveValue(date.month);
+			await expect(this.page.locator(`#${this.fieldPrefix}_year`)).toHaveValue(date.year);
 
 			return this.assertions;
 		}
