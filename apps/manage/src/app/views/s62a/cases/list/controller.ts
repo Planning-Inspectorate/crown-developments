@@ -2,6 +2,7 @@ import type { ManageService } from '#service';
 import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 import { createPaginationParams, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
+import { normaliseSearchQuery, splitStringQueries, createWhereClause } from '@pins/crowndev-lib/util/search-queries.js';
 
 import { s62aToViewModel, s62aCaseSelect } from './view-model.ts';
 import type { S62ACaseView, S62ACasePayload } from './view-model.ts';
@@ -11,12 +12,19 @@ export function buildCaseListPage(service: ManageService): AsyncRequestHandler {
 	return async (req, res) => {
 		const { pageSize, skipSize } = getPaginationParams(req);
 
+		const rawSearchCriteria = req.query?.searchCriteria;
+		const searchCriteriaParam = normaliseSearchQuery(rawSearchCriteria);
+		const searchCriteria = createWhereClause(splitStringQueries(searchCriteriaParam), [
+			{ fields: ['reference'], searchType: 'contains' }
+		]);
+
 		let s62aCases: S62ACasePayload[] = [];
 		let totalItems: number = 0;
 
 		try {
 			[s62aCases, totalItems] = await Promise.all([
 				db.s62aCase.findMany({
+					where: searchCriteria,
 					select: s62aCaseSelect,
 					orderBy: {
 						reference: 'desc'

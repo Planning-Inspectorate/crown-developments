@@ -5,6 +5,7 @@ import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import type { ManageService } from '#service';
 import type { BaseLogger } from 'pino';
 import type { Request, Response } from 'express';
+import { configureNunjucks } from '../../../../nunjucks.js';
 
 const PAGINATION_TEST_CASES = [
 	{
@@ -144,8 +145,7 @@ describe('case list', () => {
 
 			const applicationList = buildCaseListPage({
 				db: mockDb,
-				logger: mockLogger() as unknown as BaseLogger,
-				s62aDevContactInfo: { email: 's62a.dev@gov.uk' }
+				logger: mockLogger() as unknown as BaseLogger
 			} as unknown) as any;
 
 			await assert.doesNotReject(() => applicationList(mockReq, mockRes));
@@ -156,7 +156,7 @@ describe('case list', () => {
 			assert.strictEqual(mockResData.render.mock.calls[0].arguments[1].pageTitle, 'Manage Section 62A applications');
 			assert.strictEqual(mockResData.render.mock.calls[0].arguments[1].s62aCasesViewModels.length, 2);
 		});
-		it('should render page without error when no crown dev cases returned', async () => {
+		it('should render page without error when no Section 62a dev cases returned', async () => {
 			const mockReq = {
 				params: {
 					id: 'some-id'
@@ -204,64 +204,87 @@ describe('case list', () => {
 				}
 			});
 		});
-		describe('Pagination permutations', () => {
-			PAGINATION_TEST_CASES.forEach(({ name, totalItems, itemsPerPage, requestedPage, expected }) => {
-				it(name, async () => {
-					const mockRes = {
-						render: mock.fn((view, data) => nunjucks.render(view, data))
-					} as any;
+		it('should call db with search criteria', async () => {
+			const nunjucks = configureNunjucks();
+			// mock response that calls nunjucks to render a result
+			const mockRes = {
+				render: mock.fn((view, data) => nunjucks.render(view, data))
+			} as unknown as Response;
+			const mockReq = {
+				query: { searchCriteria: 'case/ref' }
+			} as unknown as Request;
+			const mockDb = {
+				s62aCase: {
+					findMany: mock.fn(() => [{ id: 'id-1' }, { id: 'id-2' }]),
+					count: mock.fn(() => 2)
+				}
+			} as unknown;
+			const listCases = buildCaseListPage({ db: mockDb, logger: mockLogger() });
+			await assert.doesNotReject(() => listCases(mockReq, mockRes));
+			assert.strictEqual(mockDb.s62aCase.findMany.mock.callCount(), 1);
+			assert.deepStrictEqual(mockDb.s62aCase.findMany.mock.calls[0].arguments[0].where, {
+				AND: [{ OR: [{ reference: { contains: 'case/ref' } }] }]
+			});
+		});
+	});
+	describe('Pagination permutations', () => {
+		const nunjucks = configureNunjucks();
+		PAGINATION_TEST_CASES.forEach(({ name, totalItems, itemsPerPage, requestedPage, expected }) => {
+			it(name, async () => {
+				const mockRes = {
+					render: mock.fn((view, data) => nunjucks.render(view, data))
+				} as any;
 
-					const mockReq = {
-						query: {
-							itemsPerPage: itemsPerPage,
-							page: requestedPage
-						},
-						params: {
-							id: 'some-id'
-						}
-					} as unknown as Request;
+				const mockReq = {
+					query: {
+						itemsPerPage: itemsPerPage,
+						page: requestedPage
+					},
+					params: {
+						id: 'some-id'
+					}
+				} as unknown as Request;
 
-					const mockDb = {
-						s62aCase: {
-							findMany: mock.fn(() => createMockCases(expected.resultsEndNumber - expected.resultsStartNumber + 1)),
-							count: mock.fn(() => totalItems)
-						}
-					} as unknown;
+				const mockDb = {
+					s62aCase: {
+						findMany: mock.fn(() => createMockCases(expected.resultsEndNumber - expected.resultsStartNumber + 1)),
+						count: mock.fn(() => totalItems)
+					}
+				} as unknown;
 
-					const service = {
-						db: mockDb,
-						logger: mockLogger() as unknown as BaseLogger,
-						s62aDevContactInfo: { email: 's62a.dev@gov.uk' }
-					} as unknown as ManageService;
+				const service = {
+					db: mockDb,
+					logger: mockLogger() as unknown as BaseLogger,
+					s62aDevContactInfo: { email: 's62a.dev@gov.uk' }
+				} as unknown as ManageService;
 
-					const applicationList = buildCaseListPage(service);
-					await assert.doesNotReject(() => applicationList(mockReq, mockRes));
+				const applicationList = buildCaseListPage(service);
+				await assert.doesNotReject(() => applicationList(mockReq, mockRes));
 
-					assert.strictEqual(mockRes.render.mock.callCount(), 1);
+				assert.strictEqual(mockRes.render.mock.callCount(), 1);
 
-					const onlyRelevantKeys = {
-						...mockRes.render.mock.calls[0].arguments[1]
-					};
-					delete onlyRelevantKeys.s62aCasesViewModels;
+				const onlyRelevantKeys = {
+					...mockRes.render.mock.calls[0].arguments[1]
+				};
+				delete onlyRelevantKeys.s62aCasesViewModels;
 
-					assert.deepStrictEqual(onlyRelevantKeys, {
-						pageTitle: 'Manage Section 62A applications',
-						baseUrl: '/s62a/cases',
-						currentUrl: undefined,
-						containerClasses: 'pins-container-wide',
-						queryParams: {
-							itemsPerPage: itemsPerPage,
-							page: requestedPage
-						},
-						paginationParams: {
-							pageNumber: requestedPage,
-							resultsEndNumber: expected.resultsEndNumber,
-							resultsStartNumber: expected.resultsStartNumber,
-							selectedItemsPerPage: itemsPerPage,
-							totalItems: totalItems,
-							totalPages: expected.totalPages
-						}
-					});
+				assert.deepStrictEqual(onlyRelevantKeys, {
+					pageTitle: 'Manage Section 62A applications',
+					baseUrl: '/s62a/cases',
+					currentUrl: undefined,
+					containerClasses: 'pins-container-wide',
+					queryParams: {
+						itemsPerPage: itemsPerPage,
+						page: requestedPage
+					},
+					paginationParams: {
+						pageNumber: requestedPage,
+						resultsEndNumber: expected.resultsEndNumber,
+						resultsStartNumber: expected.resultsStartNumber,
+						selectedItemsPerPage: itemsPerPage,
+						totalItems: totalItems,
+						totalPages: expected.totalPages
+					}
 				});
 			});
 		});

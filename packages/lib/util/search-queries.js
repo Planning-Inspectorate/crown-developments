@@ -13,6 +13,17 @@ export function splitStringQueries(query) {
 }
 
 /**
+ * Normalise a query input into a string or undefined
+ * @param {string | QueryString.ParsedQs | (string | QueryString.ParsedQs)[] | undefined} query - Query string, array of strings, or parsed query object
+ * @returns {string | undefined} - Normalised string, or undefined
+ */
+export const normaliseSearchQuery = (query) => {
+	const normalisedString = Array.isArray(query) ? query[0] : query;
+
+	return typeof normalisedString === 'string' ? normalisedString : undefined;
+};
+
+/**
  * @typedef {Object} SearchOption
  * @property {string} [parent] - The parent field to search in (optional), used for nested queries.
  * @property {string[]} fields - The fields to search in.

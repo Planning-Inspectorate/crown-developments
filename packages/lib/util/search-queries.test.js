@@ -1,6 +1,35 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { splitStringQueries, createWhereClause } from './search-queries.js';
+import { splitStringQueries, createWhereClause, normaliseSearchQuery } from './search-queries.js';
+
+describe('normaliseSearchQuery', () => {
+	it('returns string when input is string', () => {
+		assert.equal(normaliseSearchQuery('0000123'), '0000123');
+	});
+
+	it('returns undefined when input is undefined', () => {
+		assert.equal(normaliseSearchQuery(undefined), undefined);
+	});
+
+	it('returns undefined for non-specified input types', () => {
+		assert.equal(normaliseSearchQuery(123), undefined);
+		assert.equal(normaliseSearchQuery(true), undefined);
+		assert.equal(normaliseSearchQuery(null), undefined);
+	});
+
+	it('returns undefined when input is an empty array', () => {
+		assert.equal(normaliseSearchQuery([]), undefined);
+	});
+
+	it('returns undefined when input is a ParsedQs', () => {
+		const parsedQsObject = { key: 'value' };
+		assert.equal(normaliseSearchQuery(parsedQsObject), undefined);
+	});
+
+	it('returns first item of input if it is an array of strings', () => {
+		assert.equal(normaliseSearchQuery(['first', 'second']), 'first');
+	});
+});
 
 describe('getStringQueries', () => {
 	it('should split comma-separated values', () => {
