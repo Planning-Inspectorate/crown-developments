@@ -143,8 +143,9 @@ export const VIEW_TAB_ID = Object.freeze({
 	EVENT: 'event',
 	OUTCOME: 'outcome',
 	EIA: 'eia',
-	PRE_APPLICATION: 'pre-application',
-	WASTE: 'waste'
+	PRESS: 'press-notice',
+	WASTE: 'waste',
+	PRE_APPLICATION: 'pre-application'
 } as const);
 
 /**
@@ -195,13 +196,18 @@ export const VIEW_TABS = [
 		displayName: 'Fee'
 	},
 	{
-		id: VIEW_TAB_ID.PRE_APPLICATION,
-		displayName: 'Pre-application'
+		id: VIEW_TAB_ID.PRESS,
+		displayName: 'Press notice',
+		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
 	},
 	{
 		id: VIEW_TAB_ID.WASTE,
 		displayName: 'Waste',
 		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+	},
+	{
+		id: VIEW_TAB_ID.PRE_APPLICATION,
+		displayName: 'Pre-application'
 	}
 ];
 

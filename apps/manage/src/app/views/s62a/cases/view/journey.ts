@@ -296,16 +296,12 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.addQuestion(questions.eiaScreeningOutcome)
 				.addQuestion(questions.environmentalStatementReceivedDate)
 				.endMultiQuestionCondition('eia-screening-yes'),
-			new Section('', 'pre-application')
-				.withSectionCondition(() => currentTab === VIEW_TAB_ID.PRE_APPLICATION)
-				.startMultiQuestionCondition('pre-app-is-application-1', isApplicationCase)
-				.addQuestion(questions.preApplicationAdvice)
-				.addQuestion(questions.preApplicationReceivedDate)
-				.endMultiQuestionCondition('pre-app-is-application-1')
-				.addQuestion(questions.preApplicationAdviceIssuedDate)
-				.withCondition(showAdviceIssuedDate)
-				.addQuestion(questions.preApplicationReference)
-				.withCondition(isApplicationAdviceGiven),
+
+			new Section('', 'press-notice')
+				.withSectionCondition(() => currentTab === VIEW_TAB_ID.PRESS && isApplicationCase(response))
+				.addQuestion(questions.pressNoticeCost)
+				.addQuestion(questions.pressNoticePlaced)
+				.addQuestion(questions.pressNoticeReference),
 			new Section('', 'waste')
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.WASTE && isApplicationCase(response))
 				.addQuestion(questions.wasteActivitiesDescription)
@@ -317,7 +313,17 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 						.addQuestion(questions.voidCapacity)
 						.withCondition(needsVoidCapacity)
 						.addQuestion(questions.maxAnnualThroughput)
-				)
+				),
+			new Section('', 'pre-application')
+				.withSectionCondition(() => currentTab === VIEW_TAB_ID.PRE_APPLICATION)
+				.startMultiQuestionCondition('pre-app-is-application-1', isApplicationCase)
+				.addQuestion(questions.preApplicationAdvice)
+				.addQuestion(questions.preApplicationReceivedDate)
+				.endMultiQuestionCondition('pre-app-is-application-1')
+				.addQuestion(questions.preApplicationAdviceIssuedDate)
+				.withCondition(showAdviceIssuedDate)
+				.addQuestion(questions.preApplicationReference)
+				.withCondition(isApplicationAdviceGiven)
 		],
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',

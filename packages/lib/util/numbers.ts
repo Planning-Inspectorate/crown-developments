@@ -1,3 +1,5 @@
+import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+
 /**
  * Convert a string to a float
  */
@@ -52,4 +54,25 @@ export function formatFee(fee: number | string): string {
 	const num = Number(String(fee).replace(/,/g, ''));
 	if (isNaN(num)) return String(fee);
 	return num.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/**
+ *  Converts unknown inputs into Prisma.Decimal values
+ *  If inputs can't be converted, then returns null
+ */
+export function toDecimalOrNull(value: unknown): Prisma.Decimal | null {
+	if (value === null || value === undefined || value === '') {
+		return null;
+	}
+
+	if (typeof value === 'number' && Number.isFinite(value)) {
+		return new Prisma.Decimal(value);
+	}
+
+	if (typeof value === 'string' && value.trim() !== '') {
+		const parsed = Number(value);
+		return Number.isFinite(parsed) ? new Prisma.Decimal(parsed) : null;
+	}
+
+	return null;
 }
