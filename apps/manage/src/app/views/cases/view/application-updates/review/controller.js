@@ -6,7 +6,7 @@ import {
 	clearAppUpdatesFromSession,
 	getApplicationUpdateSessionData,
 	validateParams
-} from '../utils.js';
+} from '../utils.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 

@@ -215,9 +215,7 @@ function addCaseUpdatedSession(req: Request, id: string) {
 	if (!req.session) {
 		throw new Error('request session required');
 	}
-	const cases = req.session.cases || (req.session.cases = {});
-	const caseProps = cases[id] || (cases[id] = {});
-	caseProps.updated = true;
+	addSessionData(req, id, { updated: true });
 }
 
 /**

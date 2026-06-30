@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { clearAppUpdatesFromSession, getApplicationUpdateSessionData, validateParams } from './utils.js';
+import { clearAppUpdatesFromSession, getApplicationUpdateSessionData, validateParams } from './utils.ts';
 
 describe('utils.js', () => {
 	describe('validateParams', () => {

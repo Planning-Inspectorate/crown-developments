@@ -1,4 +1,4 @@
-import { addAppUpdateStatus, validateParams } from '../utils.js';
+import { addAppUpdateStatus, validateParams } from '../utils.ts';
 
 export function buildDeleteUpdateController({ db, logger }) {
 	return async (req, res) => {

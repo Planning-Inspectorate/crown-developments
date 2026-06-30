@@ -7,7 +7,7 @@ import {
 	clearAppUpdateStatusSession,
 	readAppUpdateStatus,
 	validateParams
-} from './utils.js';
+} from './utils.ts';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';

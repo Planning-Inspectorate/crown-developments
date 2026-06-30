@@ -1,6 +1,6 @@
 import { expressValidationErrorsToGovUkErrorList } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
 import { buildUpdateDetailsPage, updateAppUpdatesSession } from './controller.js';
-import { validateParams } from '../utils.js';
+import { validateParams } from '../utils.ts';
 
 export function buildValidateAppUpdateDetailsMiddleware({ db }) {
 	return async (req, res, next) => {

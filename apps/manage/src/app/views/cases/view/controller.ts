@@ -12,7 +12,7 @@ import { getQuestions } from './questions.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { getEntraGroupMembers } from '#util/entra-groups.ts';
-import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
+import { isUnsafeObjectKey, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { maybeGetLinkedCaseLink } from '@pins/crowndev-lib/util/linked-case.ts';
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
@@ -248,9 +248,10 @@ export function validateIdFormat(req: Request, res: Response, next: NextFunction
  * Read a case updated flag from the session
  */
 export function readCaseUpdatedSession(req: Request, id: string): boolean {
-	if (!req.session) {
+	if (!req.session || isUnsafeObjectKey(id)) {
 		return false;
 	}
+
 	const caseProps = (req.session?.cases && req.session.cases[id]) || {};
 	return Boolean(caseProps.updated);
 }
@@ -262,6 +263,11 @@ export function clearCaseUpdatedSession(req: Request, id: string): void {
 	if (!req.session) {
 		return; // no need to error here
 	}
+
+	if (isUnsafeObjectKey(id)) {
+		throw new Error('Unsafe object key detected');
+	}
+
 	const caseProps = (req.session?.cases && req.session.cases[id]) || {};
 	delete caseProps.updated;
 }
