@@ -551,11 +551,6 @@ export class S62aCaseUpdateMapper {
 
 	/**
 	 * Maps the Waste tab.
-	 *
-	 * TODO: PEAS-399 - the waste type list is replaced wholesale on every save,
-	 * so a minor edit deletes and recreates every row. Should be a diff instead
-	 * (match by id, update/create/delete only what changed) before case history
-	 * lands, or the history will show mass deletes and inserts for small changes.
 	 */
 	private mapWaste(input: Prisma.S62aCaseUpdateInput): void {
 		const ans = this.answers;
@@ -575,19 +570,50 @@ export class S62aCaseUpdateMapper {
 
 		const items = ans.manageWasteTypes ?? [];
 
-		input.WasteTypes = {
-			deleteMany: {},
-			create: items
-				.filter((item) => item.wasteTypeId)
-				.map((item) => ({
-					WasteType: { connect: { id: item.wasteTypeId! } },
-					voidCapacity: this.selectedConditionalAmount(item, 'voidCapacityUnitId'),
+		const createOperations: Prisma.S62aCaseWasteTypeCreateWithoutS62aCaseInput[] = [];
+		const updateOperations: Prisma.S62aCaseWasteTypeUpdateWithWhereUniqueWithoutS62aCaseInput[] = [];
+
+		const keepIds: string[] = [];
+
+		for (const item of items) {
+			if (!item.wasteTypeId) continue;
+
+			const voidCapacity = this.selectedConditionalAmount(item, 'voidCapacityUnitId');
+			const maxAnnualThroughput = this.selectedConditionalAmount(item, 'maxAnnualThroughputUnitId');
+
+			if (item.id) {
+				keepIds.push(item.id);
+				updateOperations.push({
+					where: { id: item.id },
+					data: {
+						WasteType: { connect: { id: item.wasteTypeId } },
+						voidCapacity,
+						VoidCapacityUnit: item.voidCapacityUnitId
+							? { connect: { id: item.voidCapacityUnitId } }
+							: { disconnect: true },
+						maxAnnualThroughput,
+						MaxAnnualThroughputUnit: item.maxAnnualThroughputUnitId
+							? { connect: { id: item.maxAnnualThroughputUnitId } }
+							: { disconnect: true }
+					}
+				});
+			} else {
+				createOperations.push({
+					WasteType: { connect: { id: item.wasteTypeId } },
+					voidCapacity,
 					VoidCapacityUnit: item.voidCapacityUnitId ? { connect: { id: item.voidCapacityUnitId } } : undefined,
-					maxAnnualThroughput: this.selectedConditionalAmount(item, 'maxAnnualThroughputUnitId'),
+					maxAnnualThroughput,
 					MaxAnnualThroughputUnit: item.maxAnnualThroughputUnitId
 						? { connect: { id: item.maxAnnualThroughputUnitId } }
 						: undefined
-				}))
+				});
+			}
+		}
+
+		input.WasteTypes = {
+			deleteMany: keepIds.length > 0 ? { id: { notIn: keepIds } } : {},
+			...(createOperations.length > 0 && { create: createOperations }),
+			...(updateOperations.length > 0 && { update: updateOperations })
 		};
 	}
 
@@ -621,18 +647,49 @@ export class S62aCaseUpdateMapper {
 		const update: Prisma.S62aResidentialUpdateWithoutS62aCaseInput = { ...booleans };
 
 		if (providedSides.length > 0) {
-			const rows = providedSides.flatMap(({ housingTypeId, items }) => this.mapHousingRows(items ?? [], housingTypeId));
+			const createOperations: Prisma.S62aResidentialHousingCreateWithoutS62aResidentialInput[] = [];
+			const updateOperations: Prisma.S62aResidentialHousingUpdateWithWhereUniqueWithoutS62aResidentialInput[] = [];
+			const keepIds: string[] = [];
+			const managedHousingTypeIds: string[] = [];
 
-			create.Housing = { create: rows };
-			/**
-			 * TODO: PEAS-399 - see the note on mapWaste. The housing rows are replaced
-			 * wholesale on every save, so editing one bedroom count deletes and recreates
-			 * every row on that side. Should be a diff (match by id, change only what
-			 * changed) before case history lands.
-			 */
+			// We also need an array to catch EVERYTHING for the parent `create` upsert branch
+			const allMappedRows: Prisma.S62aResidentialHousingCreateWithoutS62aResidentialInput[] = [];
+
+			for (const { housingTypeId, items } of providedSides) {
+				managedHousingTypeIds.push(housingTypeId);
+
+				const safeItems = items ?? [];
+				const mappedRows = this.mapHousingRows(safeItems, housingTypeId);
+
+				// Add to our master list for the parent create branch
+				allMappedRows.push(...mappedRows);
+
+				safeItems.forEach((item, index) => {
+					const mappedData = mappedRows[index];
+
+					if (item.id) {
+						keepIds.push(item.id);
+						updateOperations.push({
+							where: { id: item.id },
+							data: mappedData
+						});
+					} else {
+						createOperations.push(mappedData);
+					}
+				});
+			}
+
+			create.Housing = {
+				create: allMappedRows
+			};
+
 			update.Housing = {
-				deleteMany: providedSides.map(({ housingTypeId }) => ({ housingTypeId })),
-				create: rows
+				deleteMany: {
+					housingTypeId: { in: managedHousingTypeIds },
+					...(keepIds.length > 0 && { id: { notIn: keepIds } })
+				},
+				...(createOperations.length > 0 && { create: createOperations }),
+				...(updateOperations.length > 0 && { update: updateOperations })
 			};
 		}
 
@@ -1111,9 +1168,6 @@ export class S62aCaseUpdateMapper {
 	 * Replaces the inspector rows wholesale. Prisma runs deleteMany before
 	 * create, so re-adding the same user in one save does not trip the
 	 * (s62aCaseId, userId) unique constraint.
-	 *
-	 * TODO: PEAS-399 - see the note on mapWaste. Should be a diff rather than a
-	 * full replace.
 	 */
 	private mapCaseTeamInspectors(input: Prisma.S62aCaseUpdateInput): void {
 		// Deliberately didn't use hasAnswer() as it returns false for an empty array, so
@@ -1122,20 +1176,51 @@ export class S62aCaseUpdateMapper {
 
 		const items = this.answers.manageCaseTeamInspectors ?? [];
 
-		input.Inspectors = {
-			deleteMany: {},
-			create: items
-				.filter((item) => item.inspectorId)
-				.map((item) => ({
+		const createOperations: Prisma.S62aCaseInspectorCreateWithoutS62aCaseInput[] = [];
+		const updateOperations: Prisma.S62aCaseInspectorUpdateWithWhereUniqueWithoutS62aCaseInput[] = [];
+		const keepIds: string[] = [];
+
+		for (const item of items) {
+			if (!item.inspectorId) {
+				continue;
+			}
+
+			const assignedDate = item.inspectorAssignedDate ? new Date(item.inspectorAssignedDate) : null;
+			const appointedDate = item.inspectorAppointedDate ? new Date(item.inspectorAppointedDate) : null;
+
+			if (item.id) {
+				keepIds.push(item.id);
+				updateOperations.push({
+					where: { id: item.id },
+					data: {
+						User: {
+							connectOrCreate: {
+								where: { idpUserId: item.inspectorId },
+								create: { idpUserId: item.inspectorId }
+							}
+						},
+						assignedDate,
+						appointedDate
+					}
+				});
+			} else {
+				createOperations.push({
 					User: {
 						connectOrCreate: {
-							where: { idpUserId: item.inspectorId! },
-							create: { idpUserId: item.inspectorId! }
+							where: { idpUserId: item.inspectorId },
+							create: { idpUserId: item.inspectorId }
 						}
 					},
-					assignedDate: item.inspectorAssignedDate ? new Date(item.inspectorAssignedDate) : null,
-					appointedDate: item.inspectorAppointedDate ? new Date(item.inspectorAppointedDate) : null
-				}))
+					assignedDate,
+					appointedDate
+				});
+			}
+		}
+
+		input.Inspectors = {
+			deleteMany: keepIds.length > 0 ? { id: { notIn: keepIds } } : {},
+			...(createOperations.length > 0 && { create: createOperations }),
+			...(updateOperations.length > 0 && { update: updateOperations })
 		};
 	}
 	/*
@@ -1162,26 +1247,52 @@ export class S62aCaseUpdateMapper {
 
 		const items: VehicleParkingItem[] = this.answers.vehicleParking ?? [];
 
-		input.VehicleParking = {
-			deleteMany: {},
-			create: items
-				.filter((item): item is VehicleParkingItem => Boolean(item && (item.vehicleType || item.otherVehicleType)))
-				.map((item) => {
-					const rawOther = typeof item.otherVehicleType === 'string' ? item.otherVehicleType.trim() : '';
+		const createOperations: Prisma.S62aVehicleParkingCreateWithoutS62aCaseInput[] = [];
+		const updateOperations: Prisma.S62aVehicleParkingUpdateWithWhereUniqueWithoutS62aCaseInput[] = [];
+		const keepIds: string[] = [];
 
-					const rawNestedOther =
-						typeof item.vehicleType_otherVehicleType === 'string' ? item.vehicleType_otherVehicleType.trim() : '';
+		for (const item of items) {
+			if (!item || (!item.vehicleType && !item.otherVehicleType)) {
+				continue;
+			}
 
-					const usableOtherType: string = rawNestedOther || rawOther;
-					const hasOtherText = usableOtherType.length > 0;
+			const rawOther = typeof item.otherVehicleType === 'string' ? item.otherVehicleType.trim() : '';
+			const rawNestedOther =
+				typeof item.vehicleType_otherVehicleType === 'string' ? item.vehicleType_otherVehicleType.trim() : '';
 
-					return {
+			const usableOtherType: string = rawNestedOther || rawOther;
+			const hasOtherText = usableOtherType.length > 0;
+
+			const existingSpaces = toIntOrNull(item.existingSpaces);
+			const proposedSpaces = toIntOrNull(item.proposedSpaces);
+
+			if (item.id) {
+				keepIds.push(item.id);
+				updateOperations.push({
+					where: { id: item.id },
+					data: {
 						vehicleType: item.vehicleType,
-						otherVehicleType: hasOtherText ? usableOtherType : undefined,
-						existingSpaces: toIntOrNull(item.existingSpaces),
-						proposedSpaces: toIntOrNull(item.proposedSpaces)
-					};
-				})
+						otherVehicleType: hasOtherText ? usableOtherType : null,
+						existingSpaces,
+						proposedSpaces
+					}
+				});
+			} else {
+				createOperations.push({
+					VehicleType: {
+						connect: { id: item.vehicleType }
+					},
+					otherVehicleType: hasOtherText ? usableOtherType : undefined,
+					existingSpaces,
+					proposedSpaces
+				});
+			}
+		}
+
+		input.VehicleParking = {
+			deleteMany: keepIds.length > 0 ? { id: { notIn: keepIds } } : {},
+			...(createOperations.length > 0 && { create: createOperations }),
+			...(updateOperations.length > 0 && { update: updateOperations })
 		};
 	}
 
