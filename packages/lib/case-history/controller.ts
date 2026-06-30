@@ -7,7 +7,6 @@ import { getPaginationParams, createPaginationParams } from '../views/pagination
 import { getStringParam } from '../util/params.ts';
 import { getBaseUrl } from '../util/uuid.ts';
 
-import type { BaseConfig } from '../app/config-types.d.ts';
 import type { AuditService } from '../audit/index.js';
 import type { InitEntraClient } from '../graph/types.js';
 import type { Logger } from 'pino';
@@ -17,7 +16,6 @@ import { CASE_MODELS, type CaseDataModel } from '../util/types.ts';
 
 export interface CaseHistoryService {
 	db: PrismaClient;
-	config: BaseConfig;
 	logger: Logger;
 	audit: AuditService;
 	getEntraClient: InitEntraClient;
