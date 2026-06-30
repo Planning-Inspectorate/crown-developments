@@ -1,4 +1,13 @@
 {% extends "./main.njk" %}
+{% from "header/pins-header.njk" import pinsHeader %}
+
+{% block header %}
+	{% if isS62A %}	
+		{{ pinsHeader({ isExternal: false }, config) }}
+	{% else %}
+		{{ super() }}
+	{% endif %}
+{% endblock %}
 
 {% block pageContent %}
 	{% for message in messages %}

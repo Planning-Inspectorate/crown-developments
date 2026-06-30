@@ -10,6 +10,8 @@ $font-family: arial, helvetica, sans-serif;
 @use './header';
 @use './sub-navigation';
 
+@use 'packages/lib/views/header/pins-header.scss';
+
 // set font-family for any autocomplete menu items
 .autocomplete__menu {
 	font-family: $font-family;

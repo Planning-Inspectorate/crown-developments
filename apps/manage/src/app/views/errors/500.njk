@@ -1,4 +1,13 @@
 {% extends "views/layouts/main.njk" %}
+{% from "header/pins-header.njk" import pinsHeader %}
+
+{% block header %}
+	{% if isS62A %}	
+		{{ pinsHeader({ isExternal: false }, config) }}
+	{% else %}
+		{{ super() }}
+	{% endif %}
+{% endblock %}
 
 {% set pageTitle = titleCopy if titleCopy else 'Sorry, there is a problem with the service' %}
 

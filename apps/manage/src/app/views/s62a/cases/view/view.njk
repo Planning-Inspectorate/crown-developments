@@ -1,11 +1,16 @@
 {% extends "views/layouts/main.njk" %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "views/layouts/components/s62a-header.njk" import s62aHeader %}
 
 {% set title = reference + " - " + journeyTitle + " - Manage a S62A Case" %}
 
 {% block pageTitle %}
     {{ title }}
+{% endblock %}
+
+{% block header %}
+	{{ s62aHeader('Manage Section 62A applications', baseUrl, "/s62a/cases/create-a-case/pre-application-or-application" ) }}
 {% endblock %}
 
 {% block content %}

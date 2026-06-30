@@ -7,6 +7,8 @@ import type { BaseLogger } from 'pino';
 import type { Request, Response } from 'express';
 import { configureNunjucks } from '../../../../nunjucks.js';
 
+const nunjucksEnv = configureNunjucks();
+
 const PAGINATION_TEST_CASES = [
 	{
 		name: 'should generate 1 page for 25 total items requested from page 1',
