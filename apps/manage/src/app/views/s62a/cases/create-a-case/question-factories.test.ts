@@ -4,6 +4,7 @@ import { createLpaContactQuestion, multiContactQuestions } from './question-fact
 import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
+import { HIDDEN_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 
 describe('createLpaContactQuestion factory', () => {
 	it('should generate correct configuration for the primary LPA (isSecondary = false)', () => {
@@ -53,7 +54,7 @@ describe('createLpaContactQuestion factory', () => {
 
 describe('multiContactQuestions factory', () => {
 	it('should generate correct configuration for an agent contact', () => {
-		const questions = multiContactQuestions({ prefix: 'agent', title: 'agent' });
+		const questions = multiContactQuestions({ prefix: 'agent', title: 'agent', organisationOptions: null });
 		const question = questions.agentContactDetails;
 
 		assert.ok(question, 'Should create a key based on the prefix');
@@ -73,11 +74,12 @@ describe('multiContactQuestions factory', () => {
 		assert.ok(question.validators[0] instanceof MultiFieldInputValidator, 'Should use the MultiFieldInputValidator');
 
 		const validator = question.validators[0] as unknown as MultiFieldInputValidator;
+		assert.strictEqual(validator.fields.length, 4);
 		assert.strictEqual(validator.fields[0].fieldName, 'agentFirstName');
 	});
 
 	it('should correctly handle multi-word titles and camelCase prefixes', () => {
-		const questions = multiContactQuestions({ prefix: 'siteOwner', title: 'site owner' });
+		const questions = multiContactQuestions({ prefix: 'siteOwner', title: 'site owner', organisationOptions: null });
 		const question = questions.siteOwnerContactDetails;
 
 		assert.ok(question, 'Should create a key based on the prefix');
@@ -90,6 +92,41 @@ describe('multiContactQuestions factory', () => {
 		assert.strictEqual(question.inputFields[0].fieldName, 'siteOwnerFirstName');
 
 		const validator = question.validators[0] as unknown as MultiFieldInputValidator;
+		assert.strictEqual(validator.fields.length, 4);
 		assert.strictEqual(validator.fields[0].fieldName, 'siteOwnerFirstName');
+	});
+
+	it('should add a hidden field and no extra validator when a single organisation option is provided', () => {
+		const organisationOptions = [{ text: 'Acme Corp', value: 'org-1' }];
+		const questions = multiContactQuestions({ prefix: 'applicant', title: 'applicant', organisationOptions });
+		const question = questions.applicantContactDetails;
+
+		assert.strictEqual(question.inputFields.length, 5);
+		assert.strictEqual(question.inputFields[4].type, HIDDEN_TYPE);
+		assert.strictEqual(question.inputFields[4].fieldName, 'applicantContactOrganisation');
+		assert.strictEqual(question.inputFields[4].value, 'org-1');
+
+		const validator = question.validators[0] as unknown as MultiFieldInputValidator;
+		assert.strictEqual(validator.fields.length, 4);
+	});
+
+	it('should add a radio field and an extra validator when multiple organisation options are provided', () => {
+		const organisationOptions = [
+			{ text: 'Acme Corp', value: 'org-1' },
+			{ text: 'Stark Industries', value: 'org-2' }
+		];
+		const questions = multiContactQuestions({ prefix: 'applicant', title: 'applicant', organisationOptions });
+		const question = questions.applicantContactDetails;
+
+		assert.strictEqual(question.inputFields.length, 5);
+		assert.strictEqual(question.inputFields[4].type, COMPONENT_TYPES.RADIO);
+		assert.strictEqual(question.inputFields[4].fieldName, 'applicantContactOrganisation');
+		assert.deepStrictEqual(question.inputFields[4].options, organisationOptions);
+		assert.strictEqual(question.inputFields[4].legend, 'Which organisation is this contact for?');
+
+		const validator = question.validators[0] as unknown as MultiFieldInputValidator;
+		assert.strictEqual(validator.fields.length, 5);
+		assert.strictEqual(validator.fields[4].fieldName, 'applicantContactOrganisation');
+		assert.strictEqual(validator.fields[4].validators?.length, 1);
 	});
 });
