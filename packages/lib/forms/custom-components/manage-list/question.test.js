@@ -31,12 +31,12 @@ describe('ManageApplicantsQuestion', () => {
 		assert.strictEqual(question.fieldName, FIELDNAME);
 		assert.strictEqual(question.viewFolder, 'custom-components/manage-list');
 		assert.strictEqual(question.isManageListQuestion, true);
-		assert.strictEqual(question.forceInitialAdd, false);
+		assert.strictEqual(question.emptyStateAddStyle, 'link');
 	});
 
-	it('should accept forceInitialAdd parameter on creation', () => {
-		const question = newQuestion({ forceInitialAdd: true });
-		assert.strictEqual(question.forceInitialAdd, true);
+	it('should accept emptyStateAddStyle parameter on creation', () => {
+		const question = newQuestion({ emptyStateAddStyle: 'prominent' });
+		assert.strictEqual(question.emptyStateAddStyle, 'prominent');
 	});
 
 	it('should populate addAnotherLink & firstQuestionUrl', (context) => {
@@ -79,16 +79,22 @@ describe('ManageApplicantsQuestion', () => {
 	};
 
 	describe('addCustomDataToViewModel', () => {
-		it('should pass forceInitialAdd as false by default to the view model', (context) => {
+		it('should pass emptyStateAddStyle `link` as false by default to the view model', (context) => {
 			const { question, journey } = questionWithManageQuestions(context, {}, 0);
 			const viewModel = question.prepQuestionForRendering({}, journey);
-			assert.strictEqual(viewModel?.forceInitialAdd, false);
+			assert.strictEqual(viewModel?.emptyStateAddStyle, 'link');
 		});
 
-		it('should pass forceInitialAdd as true to the view model when configured', (context) => {
-			const { question, journey } = questionWithManageQuestions(context, { forceInitialAdd: true }, 0);
+		it('should pass emptyStateAddStyle as `prominent` to the view model when configured', (context) => {
+			const { question, journey } = questionWithManageQuestions(context, { emptyStateAddStyle: 'prominent' }, 0);
 			const viewModel = question.prepQuestionForRendering({}, journey);
-			assert.strictEqual(viewModel?.forceInitialAdd, true);
+			assert.strictEqual(viewModel?.emptyStateAddStyle, 'prominent');
+		});
+
+		it('should pass emptyStateAddStyle as `force` to the view model when configured', (context) => {
+			const { question, journey } = questionWithManageQuestions(context, { emptyStateAddStyle: 'force' }, 0);
+			const viewModel = question.prepQuestionForRendering({}, journey);
+			assert.strictEqual(viewModel?.emptyStateAddStyle, 'force');
 		});
 
 		it('should set default remove button text and removal prompt using lowercased titleSingular', (context) => {

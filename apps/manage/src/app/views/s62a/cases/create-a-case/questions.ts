@@ -6,10 +6,12 @@ import {
 	type JourneyResponse,
 	SameAnswerValidator,
 	StringValidator,
-	AddressValidator
+	AddressValidator,
+	BOOLEAN_OPTIONS
 } from '@planning-inspectorate/dynamic-forms';
 import {
 	APPLICANT_TYPES,
+	APPLICANT_TYPE_ID,
 	MAJOR_OR_NON_MAJORS,
 	PRE_APPLICATION_OR_APPLICATIONS,
 	PRE_APPLICATION_OR_APPLICATION_ID
@@ -18,9 +20,21 @@ import { APPLICATION_TYPES } from '@pins/crowndev-database/src/seed/data-static.
 import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../../config.js';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
-import { isApplicationType, formatLpaOptions, QUESTION_TEXT } from './questions-utils.ts';
+import {
+	isApplicationType,
+	formatLpaOptions,
+	QUESTION_TEXT,
+	getApplicantContactsValidator
+} from './questions-utils.ts';
 import { createLpaContactQuestion, multiContactQuestions } from './question-factories.ts';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
+import { getApplicantOrganisationOptions } from '../../../../views/cases/util/applicant-organisation-options.js';
+
+type ApplicantOrg = {
+	id: string;
+	organisationName: string;
+	organisationAddress?: Record<string, unknown>;
+};
 
 export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: boolean) {
 	const env = loadEnvironmentConfig();
@@ -30,6 +44,16 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 	const preAppOrAppPath = isApplicationType(journeyResponse.answers.applicationStage)
 		? journeyResponse.answers.applicationStage
 		: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
+
+	const hasAgent = journeyResponse?.answers?.hasAgent === BOOLEAN_OPTIONS.YES;
+	const isIndividual = journeyResponse?.answers?.applicantType === APPLICANT_TYPE_ID.INDIVIDUAL;
+
+	const manageApplicantOrganisations = !isIndividual
+		? (journeyResponse?.answers?.manageApplicantOrganisations as ApplicantOrg[])
+		: [];
+	const applicantOrganisationOptions = getApplicantOrganisationOptions(manageApplicantOrganisations);
+
+	const applicantContactsValidator = getApplicantContactsValidator(hasAgent, isIndividual);
 
 	const questions = {
 		applicationStage: {
@@ -147,11 +171,12 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 			titleSingular: 'Contact',
 			emptyListText: 'No agent contacts found',
 			showAnswersInSummary: true,
-			forceInitialAdd: true
+			emptyStateAddStyle: 'force'
 		},
 		...multiContactQuestions({
 			prefix: 'agent',
-			title: 'agent'
+			title: 'agent',
+			organisationOptions: null
 		}),
 		applicantType: {
 			type: COMPONENT_TYPES.RADIO,
@@ -171,8 +196,8 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 			titleSingular: 'Applicant organisation',
 			emptyListText: 'No applicants found',
 			showAnswersInSummary: true,
-			forceInitialAdd: true,
-			maximumAnswers: 5
+			emptyStateAddStyle: 'force',
+			maximumAnswers: 10
 		},
 		applicantOrganisationName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
@@ -189,7 +214,27 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 			url: 'applicant-organisation-address',
 			fieldName: 'organisationAddress',
 			validators: [new AddressValidator()]
-		}
+		},
+		manageApplicantContactDetails: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			title: isQuestionView ? `Check applicant contact details${hasAgent ? ' (optional)' : ''}` : 'Applicant contacts',
+			question: 'Check applicant contact details',
+			url: 'check-applicant-contact-details',
+			fieldName: 'manageApplicantContactDetails',
+			titleSingular: 'Applicant contact',
+			emptyListText: 'No applicant contacts found',
+			showAnswersInSummary: true,
+			emptyStateAddStyle: hasAgent ? 'prominent' : 'force',
+			maximumAnswers: 10,
+			isAllowedEmpty: !!hasAgent,
+			validators: applicantContactsValidator,
+			hint: hasAgent ? 'You can skip adding applicant contact details if you have an agent.' : null
+		},
+		...multiContactQuestions({
+			prefix: 'applicant',
+			title: 'applicant',
+			organisationOptions: applicantOrganisationOptions.length ? applicantOrganisationOptions : null
+		})
 	};
 
 	const classes = {

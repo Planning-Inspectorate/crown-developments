@@ -8,10 +8,17 @@
             <form action="" method="post" novalidate>
                 {% if _csrf %}<input type="hidden" name="_csrf" value="{{ _csrf }}">{% endif %}
 
-                <h1 class="govuk-heading-l">{{ question.pageTitle }}</h1>
+                <h1 class="govuk-heading-l {{ 'govuk-!-margin-bottom-2' if hintText }}">{{ question.pageTitle }}</h1>
+
+                {% if hintText %}
+                    <div class="govuk-hint govuk-!-margin-bottom-7">
+                        {{ hintText }}
+                    </div>
+                {% endif %}
                 
                 {% set hasNoItems = question.valueSummary.length < 1 %}
-                {% set showForcedInitialAdd = hasNoItems and forceInitialAdd %}
+                {% set isForceStyle = hasNoItems and emptyStateAddStyle === 'force' %}
+                {% set isProminentStyle = hasNoItems and emptyStateAddStyle === 'prominent' %}
 
                 {% if hasNoItems %}
                     <p class="govuk-body">{{ emptyListText }}</p>
@@ -53,12 +60,27 @@
                     {% endfor %}
                 </dl>
 
-                {% if showForcedInitialAdd %}
+                {% if isForceStyle %}
                     {{ govukButton({
                         text: "Add details",
                         href: util.trimTrailingSlash(originalUrl) + "/" + question.addAnotherLink,
                         attributes: { "data-cy":"button-add-details" }
                     }) }}
+                {% elif isProminentStyle %}
+                    <div class="govuk-button-group">
+                        {{ govukButton({
+                            text: "Add details",
+                            classes: "govuk-button--secondary",
+                            href: util.trimTrailingSlash(originalUrl) + "/" + question.addAnotherLink,
+                            attributes: { "data-cy": "button-add-details-secondary" }
+                        }) }}
+
+                        {{ govukButton({
+                            text: continueButtonText,
+                            type: "submit",
+                            attributes: { "data-cy": "button-save-and-continue"}
+                        }) }}
+                    </div>
                 {% else %}
                     {% if not hideAddButton %}
                         <p class="govuk-body">

@@ -14,7 +14,7 @@ import nunjucks from 'nunjucks';
  * 	isAllowedEmpty?: boolean;
  * 	confirmRemoveButtonText?: string;
  * 	removalPrompt?: string;
- * 	forceInitialAdd?: boolean;
+ *  emptyStateAddStyle?: 'force' | 'prominent' | 'link'
  * }} CustomManageListQuestionProps
  */
 
@@ -31,8 +31,14 @@ export default class CustomManageListQuestion extends ManageListQuestion {
 	confirmRemoveButtonText;
 	/** @type {string} */
 	removalPrompt;
-	/** @type {boolean} */
-	forceInitialAdd;
+	/**
+	 * Determines the visual style of the add button when the state is empty.
+	 * 'link': the default, a green Continue button + 'Add' link above it.
+	 * 'prominent': two buttons, one grey 'Add' button and a green 'Continue' button.
+	 * 'force': one button, only a green 'Add' button forcing user to add an item.
+	 * @type {'force' | 'prominent' | 'link'}
+	 */
+	emptyStateAddStyle;
 
 	/**
 	 * @param {CustomManageListQuestionProps} params
@@ -44,7 +50,8 @@ export default class CustomManageListQuestion extends ManageListQuestion {
 		this.maximumAnswers = params.maximumAnswers ?? null;
 		this.emptyListText = params.emptyListText || 'No items have been added yet.';
 		this.isAllowedEmpty = params.isAllowedEmpty ?? false;
-		this.forceInitialAdd = params.forceInitialAdd ?? false;
+		this.emptyStateAddStyle = params.emptyStateAddStyle || 'link';
+		this.hintText = params.hint;
 		this.confirmRemoveButtonText = params.confirmRemoveButtonText || `Remove ${params.titleSingular.toLowerCase()}`;
 		this.removalPrompt =
 			params.removalPrompt || `Are you sure you want to remove this ${params.titleSingular.toLowerCase()}?`;
@@ -62,7 +69,8 @@ export default class CustomManageListQuestion extends ManageListQuestion {
 		viewModel.emptyListText = this.emptyListText;
 		viewModel.hideAddButton = this.maximumAnswers && viewModel.question.value.length >= this.maximumAnswers;
 		viewModel.removalPrompt = this.removalPrompt;
-		viewModel.forceInitialAdd = this.forceInitialAdd;
+		viewModel.emptyStateAddStyle = this.emptyStateAddStyle;
+		viewModel.hintText = this.hintText;
 	}
 
 	/**

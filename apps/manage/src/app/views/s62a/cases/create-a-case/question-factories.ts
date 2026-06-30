@@ -9,6 +9,7 @@ import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-nu
 import NameValidator from '@pins/crowndev-lib/validators/name-validator.ts';
 import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import { camelCaseToUrlCase, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
+import { HIDDEN_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 
 /**
  * Creates primary vs secondary LPA questions, with variations
@@ -76,10 +77,30 @@ export const createLpaContactQuestion = (isSecondary: boolean) => {
 };
 
 /**
- * Creates the multiple contact questions for use within the manage list component
+ * Creates the multiple contact questions for use within the manage list component.
+ *
+ * Although appears similar the multiContactQuestion() function used in Crown,
+ * it is purposefully kept separate, as there are already differences appearing in
+ * validation, copy, and other functionality that means maintaining an abstraction
+ * could become difficult if they start to divert any more.
  */
-export const multiContactQuestions = ({ prefix, title }: { prefix: string; title: string }) => {
+export const multiContactQuestions = ({
+	prefix,
+	title,
+	organisationOptions
+}: {
+	prefix: string;
+	title: string;
+	organisationOptions: Array<{ text: string; value: string }> | null;
+}) => {
 	const prefixUrl = camelCaseToUrlCase(prefix);
+	const isNullOption = organisationOptions === null;
+	const isSingleOption = Array.isArray(organisationOptions) && organisationOptions.length === 1;
+
+	const formatOrganisationFunction = (value: string): string => {
+		const option = organisationOptions && organisationOptions.find((opt) => opt.value === value);
+		return option ? option.text : value;
+	};
 
 	const questions = {
 		[`${prefix}ContactDetails`]: {
@@ -111,7 +132,28 @@ export const multiContactQuestions = ({ prefix, title }: { prefix: string; title
 					type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 					fieldName: `${prefix}ContactTelephoneNumber`,
 					label: 'Phone number (optional)'
-				}
+				},
+				// Organisation: hidden single value if exactly one option, else radio
+				...(isNullOption
+					? []
+					: isSingleOption
+						? [
+								{
+									type: HIDDEN_TYPE,
+									fieldName: `${prefix}ContactOrganisation`,
+									value: organisationOptions[0].value,
+									formatTextFunction: formatOrganisationFunction
+								}
+							]
+						: [
+								{
+									type: COMPONENT_TYPES.RADIO,
+									fieldName: `${prefix}ContactOrganisation`,
+									legend: 'Which organisation is this contact for?',
+									options: organisationOptions,
+									formatTextFunction: formatOrganisationFunction
+								}
+							])
 			],
 			validators: [
 				new MultiFieldInputValidator({
@@ -155,7 +197,15 @@ export const multiContactQuestions = ({ prefix, title }: { prefix: string; title
 						{
 							fieldName: `${prefix}ContactTelephoneNumber`,
 							validators: [new TelephoneNumberValidator()]
-						}
+						},
+						...(isNullOption || isSingleOption
+							? []
+							: [
+									{
+										fieldName: `${prefix}ContactOrganisation`,
+										validators: [new RequiredValidator(`Select an organisation for this contact`)]
+									}
+								])
 					]
 				})
 			]

@@ -1,5 +1,6 @@
 import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+import CrossQuestionValidator from '@pins/crowndev-lib/validators/cross-question-validator.js';
 
 export const QUESTION_TEXT = {
 	[PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION]: {
@@ -36,4 +37,51 @@ export const isApplicationType = (answer: unknown): answer is AppType => {
 export const formatLpaOptions = (lpas: Prisma.LpaCreateInput[]) => {
 	const lpaOptions = [{ text: '', value: '' }, ...lpas.map((t) => ({ text: t.name, value: t.id }))];
 	return lpaOptions;
+};
+
+export interface ApplicantContact {
+	applicantContactOrganisation?: string;
+}
+
+export interface ApplicantOrganisation {
+	id?: string;
+	organisationName?: string;
+}
+
+/**
+ * Returns the applicant contacts validator array for use in manage applicant contacts questions.
+ *
+ * If they have an agent, or if they are an individual rather than an org, then we don't
+ * want any validation.
+ */
+export const getApplicantContactsValidator = (hasAgentAnswer: boolean, isIndividual: boolean) => {
+	return hasAgentAnswer || isIndividual
+		? []
+		: [
+				new CrossQuestionValidator({
+					dependencyFieldName: 'manageApplicantOrganisations',
+					validationFunction: (contacts: ApplicantContact[], applicants: ApplicantOrganisation[]) => {
+						if (!Array.isArray(contacts) || !Array.isArray(applicants)) return true;
+
+						const contactOrgIds = contacts.map((contact) => contact.applicantContactOrganisation);
+						const applicantOrgIds = applicants.map((org) => org.id);
+
+						const allContactsHaveValidOrg = contactOrgIds.every((orgId) => applicantOrgIds.includes(orgId));
+						if (!allContactsHaveValidOrg) {
+							throw new Error('All applicant contacts must be associated with an applicant organisation');
+						}
+
+						applicants.forEach((organisation) => {
+							const hasMatchingContact = contacts.some(
+								(contact) => contact.applicantContactOrganisation === organisation.id
+							);
+							if (!hasMatchingContact) {
+								throw new Error(`You must add a contact for ${organisation.organisationName || 'this organisation'}`);
+							}
+						});
+
+						return true;
+					}
+				})
+			];
 };

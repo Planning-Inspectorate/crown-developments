@@ -64,6 +64,11 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 						.addQuestion(questions.applicantOrganisationAddress)
 				)
 				.endMultiQuestionCondition('is-organisation')
+
+				.addQuestion(
+					questions.manageApplicantContactDetails,
+					new ManageListSection().addQuestion(questions.applicantContactDetails)
+				)
 		],
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',
