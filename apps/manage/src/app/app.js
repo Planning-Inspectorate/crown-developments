@@ -68,6 +68,12 @@ export function getApp(service) {
 		}
 	});
 
+	// S62A header variable, to trigger header on S62A pages
+	app.use((req, res, next) => {
+		res.locals.isS62A = req.path.includes('/s62a/');
+		next();
+	});
+
 	app.use(addLocalsConfiguration(service));
 
 	// Generate the nonce for each request
