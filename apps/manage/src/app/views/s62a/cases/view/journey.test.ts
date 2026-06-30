@@ -204,6 +204,16 @@ describe('s62a case details journey', () => {
 			},
 			{
 				title: '',
+				segment: 'press-notice',
+				questions: ['pressNoticeCost', 'pressNoticePlaced', 'pressNoticeReference']
+			},
+			{
+				title: '',
+				segment: 'waste',
+				questions: ['wasteActivitiesDescription', 'wasteManagementDevelopment', 'manageWasteTypes']
+			},
+			{
+				title: '',
 				segment: 'pre-application',
 				questions: [
 					'preApplicationAdvice',
@@ -211,11 +221,6 @@ describe('s62a case details journey', () => {
 					'preApplicationAdviceIssuedDate',
 					'preApplicationReference'
 				]
-			},
-			{
-				title: '',
-				segment: 'waste',
-				questions: ['wasteActivitiesDescription', 'wasteManagementDevelopment', 'manageWasteTypes']
 			}
 		];
 

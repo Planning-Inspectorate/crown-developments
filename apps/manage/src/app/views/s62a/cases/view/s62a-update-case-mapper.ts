@@ -31,6 +31,7 @@ import {
 import { addBusinessDays } from 'date-fns';
 import { optionalWhere } from '@pins/crowndev-lib/util/database.ts';
 import { slugify, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
+import { toDecimalOrNull } from '@pins/crowndev-lib/util/numbers.ts';
 
 const DATE_FIELDS_SET = new Set<string>(S62A_DATE_FIELDS);
 const FEE_BOOLEAN_SET = new Set<string>(FEE_BOOLEAN_FIELDS);
@@ -179,6 +180,11 @@ export interface UpdateCaseAnswers {
 	wasteActivitiesDescription?: string;
 	isWasteManagementDevelopment?: YesNo;
 	manageWasteTypes?: WasteTypeItem[] | null;
+
+	//Press Notice tab
+	pressNoticeCost?: number | null;
+	pressNoticeReference?: string | null;
+	pressNoticePlaced?: string | null;
 }
 
 /**
@@ -214,6 +220,7 @@ export class S62aCaseUpdateMapper {
 		this.mapCaseTeam(input);
 		this.mapEvent(input);
 		this.mapWaste(input);
+		this.mapPressNotice(input);
 
 		return input;
 	}
@@ -1040,6 +1047,24 @@ export class S62aCaseUpdateMapper {
 					allocatedDate: item.inspectorAllocatedDate ? new Date(item.inspectorAllocatedDate) : null
 				}))
 		};
+	}
+	/*
+	 * Maps the Press Notice tab scalar fields.
+	 */
+	private mapPressNotice(input: Prisma.S62aCaseUpdateInput): void {
+		const ans = this.answers;
+
+		if (this.hasAnswer('pressNoticeCost')) {
+			input.pressNoticeCost = toDecimalOrNull(ans.pressNoticeCost);
+		}
+
+		if (this.hasAnswer('pressNoticePlaced')) {
+			input.pressNoticePlaced = typeof ans.pressNoticePlaced === 'string' ? ans.pressNoticePlaced : null;
+		}
+
+		if (this.hasAnswer('pressNoticeReference')) {
+			input.pressNoticeReference = typeof ans.pressNoticeReference === 'string' ? ans.pressNoticeReference : null;
+		}
 	}
 
 	private isDateField(key: string): key is (typeof S62A_DATE_FIELDS)[number] {
