@@ -34,11 +34,11 @@ variable "apps_config" {
 
     feature_flags = object({
       portal_not_live              = bool
+      s62a_portal_not_live         = bool
       upload_docs_not_live         = bool
       notify_callback_not_live     = bool
       application_updates_not_live = bool
       multiple_applicants_not_live = bool
-      s62a_portal_not_live         = bool
       s62a_manage_not_live         = bool
     })
 
@@ -210,7 +210,8 @@ variable "waf_rate_limits" {
 variable "web_domains" {
   description = "Settings for the web app"
   type = object({
-    manage = string,
-    portal = string
+    manage      = string,
+    s62a_portal = string,
+    portal      = string
   })
 }

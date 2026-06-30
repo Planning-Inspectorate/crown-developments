@@ -26,11 +26,11 @@ apps_config = {
 
   feature_flags = {
     portal_not_live              = false
+    s62a_portal_not_live         = false
     upload_docs_not_live         = false
     notify_callback_not_live     = false
     application_updates_not_live = false
     multiple_applicants_not_live = true
-    s62a_portal_not_live         = true
     s62a_manage_not_live         = false
   }
 
@@ -135,7 +135,7 @@ vnet_config = {
   secondary_subnet_address_space      = "10.20.17.0/24"
 }
 
-web_domains = { portal = "crown-dev.planninginspectorate.gov.uk", manage = "crown-manage-dev.planninginspectorate.gov.uk" }
+web_domains = { portal = "crown-dev.planninginspectorate.gov.uk", s62a_portal = "s62a-dev.planninginspectorate.gov.uk", manage = "crown-manage-dev.planninginspectorate.gov.uk" }
 
 waf_rate_limits = {
   enabled             = true

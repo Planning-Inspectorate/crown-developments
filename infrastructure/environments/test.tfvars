@@ -30,7 +30,7 @@ apps_config = {
     notify_callback_not_live     = false
     application_updates_not_live = false
     multiple_applicants_not_live = false
-    s62a_portal_not_live         = true
+    s62a_portal_not_live         = false
     s62a_manage_not_live         = false
   }
 
@@ -135,7 +135,7 @@ vnet_config = {
   secondary_subnet_address_space      = "10.20.21.0/24"
 }
 
-web_domains = { portal = "crown-test.planninginspectorate.gov.uk", manage = "crown-manage-test.planninginspectorate.gov.uk" }
+web_domains = { portal = "crown-test.planninginspectorate.gov.uk", s62a_portal = "s62a-test.planninginspectorate.gov.uk", manage = "crown-manage-test.planninginspectorate.gov.uk" }
 
 waf_rate_limits = {
   enabled             = true
