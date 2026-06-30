@@ -1,6 +1,7 @@
 import type { NotifyConfig } from '@pins/crowndev-lib/govnotify/gov-notify-client';
+import type { BaseConfig } from '@pins/crowndev-lib/app/config-types.d.ts';
 
-interface Config {
+interface Config extends BaseConfig {
 	appName: string;
 	appHostname: string;
 	auth: {

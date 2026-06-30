@@ -78,6 +78,16 @@ describe('S62A Controller Middleware', () => {
 						}
 					}
 				},
+				audit: {
+					record: async () => {},
+					recordMany: async () => {},
+					getAllForCase: async () => [],
+					countForCase: async () => 0,
+					getLastModifiedInfo: async () => ({
+						updatedDate: null,
+						by: null
+					})
+				},
 				logger: {
 					info: () => {},
 					error: () => {},

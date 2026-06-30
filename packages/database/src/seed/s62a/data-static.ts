@@ -148,7 +148,8 @@ export const VIEW_TAB_ID = Object.freeze({
 	VEHICLE: 'vehicle-parking',
 	WASTE: 'waste',
 	PRE_APPLICATION: 'pre-application',
-	CASE_NOTES: 'case-notes'
+	CASE_NOTES: 'case-notes',
+	CASE_AUDIT: 'case-audit'
 } as const);
 
 /**
@@ -225,6 +226,10 @@ export const VIEW_TABS = [
 	{
 		id: VIEW_TAB_ID.CASE_NOTES,
 		displayName: 'Case notes'
+	},
+	{
+		id: VIEW_TAB_ID.CASE_AUDIT,
+		displayName: 'Case audit log'
 	}
 ];
 

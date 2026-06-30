@@ -15,13 +15,14 @@ import { initBlobStore } from '@pins/crowndev-lib/blob-store/index.ts';
 import { EntraClient } from '@pins/crowndev-lib/graph/entra.js';
 import { ZipArchive } from 'archiver';
 import { buildAuditService } from '@pins/crowndev-lib/audit/index.ts';
+import { BaseService } from '@pins/crowndev-lib/app/base-service.ts';
 
 /**
  * This class encapsulates all the services and clients for the application
  */
-export class ManageService {
+export class ManageService extends BaseService {
 	/**
-	 * @type {import('./config-types.js').Config}
+	 * @type {import('./config-types.d.ts').Config}
 	 */
 	#config;
 	/**
@@ -77,6 +78,7 @@ export class ManageService {
 	 * @param {import('./config-types.js').Config} config
 	 */
 	constructor(config) {
+		super(config);
 		this.#config = config;
 		const logger = initLogger(config);
 		this.logger = logger;
