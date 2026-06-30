@@ -17,6 +17,7 @@ import { buildDeleteS62aManageListItemOnConfirmRemove } from './delete.ts';
 import { createRoutes as createCaseFoldersRoutes } from './folders/index.ts';
 import { createRoutes as createRepsRoutes } from './manage-reps/index.ts';
 import { createRoutes as createApplicationNotesRoutes } from '@pins/crowndev-lib/case-notes/index.ts';
+import { createRoutes as createApplicationHistoryRoutes } from '@pins/crowndev-lib/case-history/index.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 export function createRoutes(service: ManageService) {
@@ -35,6 +36,7 @@ export function createRoutes(service: ManageService) {
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const deleteManageListItemOnConfirmRemove = asyncHandler(buildDeleteS62aManageListItemOnConfirmRemove(service));
 	const applicationNotesRoutes = createApplicationNotesRoutes(service, CASE_DATA_MODEL.S62A);
+	const applicationHistoryRoutes = createApplicationHistoryRoutes(service, CASE_DATA_MODEL.S62A);
 
 	router.get('/', (req, res) => {
 		res.redirect(`${req.baseUrl}/${VIEW_TAB_ID.OVERVIEW}`);
@@ -44,6 +46,8 @@ export function createRoutes(service: ManageService) {
 		// Load case note routes
 		router.use('/case-notes', applicationNotesRoutes);
 	}
+	// View application history page, /:id/application-history
+	router.use('/case-audit/application-history', applicationHistoryRoutes);
 
 	// View case folders, /:id/case-folders
 	router.use('/case-folders', caseFoldersRoutes);

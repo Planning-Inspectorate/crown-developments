@@ -9,6 +9,7 @@ describe('buildS62aUpdateCase', () => {
 	let mockDbSelectCalls: any[];
 	let mockDbUpdateCalls: any[];
 	let mockLoggerInfoCalls: any[];
+	let mockLoggerWarnCalls: Array<{ msg: string; [key: string]: unknown }> = [];
 	let mockService: ManageService;
 	let mockReq: Partial<Request>;
 	let mockRes: Partial<Response>;
@@ -17,6 +18,7 @@ describe('buildS62aUpdateCase', () => {
 		mockDbUpdateCalls = [];
 		mockDbSelectCalls = [];
 		mockLoggerInfoCalls = [];
+		mockLoggerWarnCalls = [];
 
 		mockService = {
 			db: {
@@ -32,8 +34,13 @@ describe('buildS62aUpdateCase', () => {
 				}
 			},
 			logger: {
-				info: (meta: unknown, msg: string) => mockLoggerInfoCalls.push({ meta, msg }),
-				error: () => {}
+				info: (obj: unknown, msg?: string) => {
+					mockLoggerInfoCalls.push(typeof obj === 'string' ? { msg: obj } : { ...(obj as object), msg });
+				},
+				error: () => {},
+				warn: (obj: unknown, msg?: string) => {
+					mockLoggerWarnCalls.push(typeof obj === 'string' ? { msg: obj } : { ...(obj as object), msg });
+				}
 			}
 		} as unknown as ManageService;
 

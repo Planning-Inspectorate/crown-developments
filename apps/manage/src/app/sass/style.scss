@@ -14,6 +14,7 @@
 // Shared components from lib
 @use 'packages/lib/views/styles/components/pins-upload-bar';
 @use 'packages/lib/views/styles/components/pins-case-notes-table';
+@use 'packages/lib/views/styles/components/pins-case-history-table';
 
 // Shared helpers from lib
 @use 'packages/lib/views/styles/helpers/typography';
@@ -33,4 +34,3 @@
 @use './components/pins-search-filter';
 @use './components/pins-sub-navigation';
 @use './components/pins-tag';
-@use 'components/pins-case-history-table';
