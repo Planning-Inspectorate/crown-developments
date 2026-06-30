@@ -77,7 +77,7 @@ import MultiConditionalNumericValidator from '@pins/crowndev-lib/forms/custom-co
 import UniqueListFieldValidator from '@pins/crowndev-lib/validators/unique-list-field-validator.ts';
 import { toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
 import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
-import type { EntraGroupMembers } from '#util/entra-groups.ts';
+import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
 import type { CardFormatContext } from '@pins/crowndev-lib/forms/custom-components/manage-list/card/question.ts';
 
 interface QuestionOverrides {

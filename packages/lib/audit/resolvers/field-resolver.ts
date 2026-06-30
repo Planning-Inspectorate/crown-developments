@@ -1,6 +1,5 @@
-import { formatAddress, formatBoolean, formatValue, formatYesNo } from '@pins/crowndev-lib/util/audit-formatters.ts';
-import { camelCaseToSentenceCase } from '@pins/crowndev-lib/util/string.ts';
-import { FIELD_DISPLAY_NAMES } from '../../views/cases/view/questions.ts';
+import { formatAddress, formatBoolean, formatValue, formatYesNo } from '../../util/audit-formatters.ts';
+import { camelCaseToSentenceCase } from '../../util/string.ts';
 import {
 	APPLICATION_TYPES,
 	APPLICATION_STATUS,
@@ -11,10 +10,11 @@ import {
 } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
-import { loadEnvironmentConfig, ENVIRONMENT_NAME } from '../../config.js';
 
 interface ResolverContext {
 	userDisplayNameMap?: Map<string, string>;
+	environmentConfig?: string;
+	environmentName?: Record<string, string>;
 }
 
 /**
@@ -61,11 +61,14 @@ function createCategoryDisplayNameMap(categories: ReadonlyArray<CategoryWithPare
  * Creates a lookup map from id to name for LPA data.
  * Handles both dev and prod environments.
  */
-function createLpaDisplayNameMap(): Map<string, string> {
+function createLpaDisplayNameMap(
+	environmentConfig: string,
+	environmentName: Record<string, string>
+): Map<string, string> {
 	let lpas;
 	try {
-		const env = loadEnvironmentConfig();
-		lpas = env === ENVIRONMENT_NAME.PROD ? LOCAL_PLANNING_AUTHORITIES_PROD : LOCAL_PLANNING_AUTHORITIES_DEV;
+		const env = environmentConfig;
+		lpas = env === environmentName.PROD ? LOCAL_PLANNING_AUTHORITIES_PROD : LOCAL_PLANNING_AUTHORITIES_DEV;
 	} catch {
 		lpas = LOCAL_PLANNING_AUTHORITIES_DEV;
 	}
@@ -83,14 +86,13 @@ const APPLICATION_STAGE_DISPLAY_NAMES = createDisplayNameMap(APPLICATION_STAGE);
 const APPLICATION_PROCEDURE_DISPLAY_NAMES = createDisplayNameMap(APPLICATION_PROCEDURE);
 const APPLICATION_DECISION_OUTCOME_DISPLAY_NAMES = createDisplayNameMap(APPLICATION_DECISION_OUTCOME);
 const CATEGORY_DISPLAY_NAMES = createCategoryDisplayNameMap(CATEGORIES);
-const LPA_DISPLAY_NAMES = createLpaDisplayNameMap();
 
 /**
  * Returns a human-readable display name for a field.
- * Uses the FIELD_DISPLAY_NAMES lookup, falling back to sentence case conversion.
+ * Uses the FIELD_DISPLAY_NAMES lookup, created for each service and inputted into the 'fields' input, falling back to sentence case conversion.
  */
-export function getFieldDisplayName(fieldName: string): string {
-	return FIELD_DISPLAY_NAMES[fieldName] ?? camelCaseToSentenceCase(fieldName);
+export function getFieldDisplayName(fieldName: string, fields: Record<string, string>): string {
+	return fields[fieldName] ?? camelCaseToSentenceCase(fieldName);
 }
 
 /**
@@ -139,11 +141,17 @@ function booleanResolver(fieldName: string): FieldResolver {
  * Creates a resolver for ID fields that map to display names via a lookup table.
  * Falls back to '[Unknown value]' if no display name is found.
  */
-function createLookupResolver(fieldName: string, displayNameMap: Map<string, string>): FieldResolver {
+function createLookupResolver(
+	fieldName: string,
+	displayNameMapOrFactory: Map<string, string> | ((context?: ResolverContext) => Map<string, string>)
+): FieldResolver {
 	return {
-		resolve(previousCase, newAnswer) {
+		resolve(previousCase, newAnswer, context) {
 			const oldId = previousCase[fieldName] as string | null | undefined;
 			const newId = newAnswer as string | null | undefined;
+
+			const displayNameMap =
+				typeof displayNameMapOrFactory === 'function' ? displayNameMapOrFactory(context) : displayNameMapOrFactory;
 
 			const oldValue = oldId ? (displayNameMap.get(oldId) ?? '[Unknown value]') : '-';
 			const newValue = newId ? (displayNameMap.get(newId) ?? '[Unknown value]') : '-';
@@ -216,10 +224,14 @@ const FIELD_RESOLVERS: Record<string, FieldResolver> = {
 	subCategoryId: createLookupResolver('subCategoryId', CATEGORY_DISPLAY_NAMES),
 
 	/** Local planning authority */
-	lpaId: createLookupResolver('lpaId', LPA_DISPLAY_NAMES),
+	lpaId: createLookupResolver('lpaId', (ctx) =>
+		createLpaDisplayNameMap(ctx?.environmentConfig ?? '', ctx?.environmentName ?? {})
+	),
 
 	/** Secondary local planning authority */
-	secondaryLpaId: createLookupResolver('secondaryLpaId', LPA_DISPLAY_NAMES),
+	secondaryLpaId: createLookupResolver('secondaryLpaId', (ctx) =>
+		createLpaDisplayNameMap(ctx?.environmentConfig ?? '', ctx?.environmentName ?? {})
+	),
 
 	// ── Boolean fields ────────────────────────────────────────────────────
 	// Previous values are 'yes'/'no' strings from the view model; new values are true booleans from the save model.

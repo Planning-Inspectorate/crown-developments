@@ -44,7 +44,7 @@ import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-component
 import { multiContactQuestions } from '../util/question-utils.ts';
 import { getApplicantContactsValidator } from '@pins/crowndev-lib/validators/applicant-contacts-validator.ts';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
-import type { EntraGroupMembers } from '#util/entra-groups.ts';
+import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
 
 interface QuestionOverrides {
 	isApplicationTypePlanningOrLbc: boolean;

@@ -1,8 +1,9 @@
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import type { Logger } from 'pino';
 import { parseMetadata, type AuditEntry, type AuditEvent, type AuditQueryOptions } from './types.ts';
-import type { EntraGroupMembers } from '../../util/entra-groups.ts';
-import { formatDateTime } from '@pins/crowndev-lib/util/audit-formatters.ts';
+import { CASE_MODELS, type CaseDataModel } from '../util/types.ts';
+import type { EntraGroupMembers } from '../util/entra-groups.ts';
+import { formatDateTime } from '../util/audit-formatters.ts';
 
 /**
  * Builds the audit service used to record and retrieve case history events.
@@ -19,32 +20,35 @@ export function buildAuditService(db: PrismaClient, logger: Logger) {
 		 * Safe to call without awaiting if the caller doesn't need
 		 * confirmation, but awaiting is fine too
 		 */
-		async record(entry: AuditEntry): Promise<void> {
+		async record(entry: AuditEntry, dataModel: CaseDataModel): Promise<void> {
+			const model = CASE_MODELS[dataModel];
+			if (!model) throw new Error(`Unsupported data model: ${String(dataModel)}`);
+
 			try {
 				if (!entry.userId) {
 					throw new Error('Cannot record audit event without a userId');
 				}
 
-				await db.$transaction([
-					db.applicationHistory.create({
+				await db.$transaction(async (tx) => {
+					await tx.applicationHistory.create({
 						data: {
-							Application: {
+							[model.relation]: {
 								connect: { id: entry.caseId }
 							},
 							action: entry.action,
 							metadata: JSON.stringify(entry.metadata ?? {}),
-							userId: entry.userId
+							userId: entry.userId as string
 						}
-					}),
-					// updatedDate / updatedById stored as their own columns on CrownDevelopment
-					db.crownDevelopment.update({
+					});
+
+					await model.delegate(tx as PrismaClient).update({
 						where: { id: entry.caseId },
 						data: {
 							updatedDate: new Date(),
 							updatedById: entry.userId
 						}
-					})
-				]);
+					});
+				});
 			} catch (error) {
 				logger.error(
 					{
@@ -61,15 +65,17 @@ export function buildAuditService(db: PrismaClient, logger: Logger) {
 		 * Persist multiple audit entries in a single transaction.
 		 *
 		 * This avoids deadlocks that occur when many concurrent transactions
-		 * each try to update the same CrownDevelopment row (e.g. bulk file
+		 * each try to update the same database model row (e.g. bulk file
 		 * moves with up to 100 files, or case updates that produce many
 		 * field-level audit entries).
 		 *
 		 * All caseHistory rows are created individually, then a single
-		 * crownDevelopment.update sets updatedDate/updatedById once at the end.
+		 * databaseModel.update sets updatedDate/updatedById once at the end.
 		 */
-		async recordMany(entries: AuditEntry[]): Promise<void> {
+		async recordMany(entries: AuditEntry[], dataModel: CaseDataModel): Promise<void> {
 			if (entries.length === 0) return;
+			const model = CASE_MODELS[dataModel];
+			if (!model) throw new Error(`Unsupported data model: ${String(dataModel)}`);
 
 			try {
 				const caseId = entries[0].caseId;
@@ -80,23 +86,21 @@ export function buildAuditService(db: PrismaClient, logger: Logger) {
 					throw new Error(`Cannot record audit events: entry for case ${missingUser.caseId} has no userId`);
 				}
 
-				await db.$transaction([
-					db.applicationHistory.createMany({
+				await db.$transaction(async (tx) => {
+					await tx.applicationHistory.createMany({
 						data: entries.map((entry) => ({
-							applicationId: entry.caseId,
+							[model.fk]: entry.caseId,
 							action: entry.action,
 							metadata: JSON.stringify(entry.metadata ?? {}),
 							userId: entry.userId as string
 						}))
-					}),
-					db.crownDevelopment.update({
+					});
+
+					await model.delegate(tx as PrismaClient).update({
 						where: { id: caseId },
-						data: {
-							updatedDate: new Date(),
-							updatedById: userId
-						}
-					})
-				]);
+						data: { updatedDate: new Date(), updatedById: userId }
+					});
+				});
 			} catch (error) {
 				logger.error(
 					{
@@ -112,12 +116,14 @@ export function buildAuditService(db: PrismaClient, logger: Logger) {
 		/**
 		 * Retrieve audit events for a case, newest first.
 		 */
-		async getAllForCase(caseId: string, options?: AuditQueryOptions): Promise<AuditEvent[]> {
+		async getAllForCase(caseId: string, dataModel: CaseDataModel, options?: AuditQueryOptions): Promise<AuditEvent[]> {
 			const { skip = 0, take = 50 } = options ?? {};
+			const model = CASE_MODELS[dataModel];
+			if (!model) throw new Error(`Unsupported data model: ${String(dataModel)}`);
 
 			try {
 				const events = await db.applicationHistory.findMany({
-					where: { applicationId: caseId },
+					where: { [model.fk]: caseId },
 					orderBy: { createdAt: 'desc' },
 					skip,
 					take
@@ -146,10 +152,13 @@ export function buildAuditService(db: PrismaClient, logger: Logger) {
 		/**
 		 * Count total audit events for a case.
 		 */
-		async countForCase(caseId: string): Promise<number> {
+		async countForCase(caseId: string, dataModel: CaseDataModel): Promise<number> {
+			const model = CASE_MODELS[dataModel];
+			if (!model) throw new Error(`Unsupported data model: ${String(dataModel)}`);
+
 			try {
 				return await db.applicationHistory.count({
-					where: { applicationId: caseId }
+					where: { [model.fk]: caseId }
 				});
 			} catch (error) {
 				logger.error(
@@ -170,13 +179,17 @@ export function buildAuditService(db: PrismaClient, logger: Logger) {
 		 */
 		async getLastModifiedInfo(
 			caseId: string,
-			groupMembers: EntraGroupMembers
+			groupMembers: EntraGroupMembers,
+			dataModel: CaseDataModel
 		): Promise<{
 			updatedDate: string | null;
 			by: string | null;
 		}> {
+			const model = CASE_MODELS[dataModel];
+			if (!model) throw new Error(`Unsupported data model: ${String(dataModel)}`);
+
 			try {
-				const caseRow = await db.crownDevelopment.findUnique({
+				const caseRow = await model.delegate(db).findUnique({
 					where: { id: caseId },
 					select: {
 						updatedDate: true,

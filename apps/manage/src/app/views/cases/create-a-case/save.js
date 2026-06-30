@@ -15,8 +15,9 @@ import {
 } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { getLinkedCaseId, hasLinkedCase as hasLinkedCaseFunction } from '@pins/crowndev-lib/util/linked-case.ts';
 import { extractAgentContactFields, extractApplicantContactFields } from '../util/contact.js';
-import { AUDIT_ACTIONS } from '../../../audit/index.ts';
+import { AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/index.ts';
 import { retryGrantPermissions } from '#util/sharepoint.js';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 /**
  * @typedef {import('./types.d.ts').CreateCaseAnswers} CreateCaseAnswers
@@ -111,12 +112,15 @@ export function buildSaveController(service) {
 		// Record case creation after the transaction has committed.
 		// record() is fire-and-forget, so an audit failure won't affect the created case.
 		if (service.isAuditLive !== false) {
-			await audit.record({
-				caseId: id,
-				action: AUDIT_ACTIONS.CASE_CREATED,
-				userId: req.session?.account?.localAccountId,
-				metadata: { reference }
-			});
+			await audit.record(
+				{
+					caseId: id,
+					action: AUDIT_ACTIONS.CASE_CREATED,
+					userId: req.session?.account?.localAccountId,
+					metadata: { reference }
+				},
+				CASE_DATA_MODEL.CROWN
+			);
 		}
 
 		let notificationData = null;

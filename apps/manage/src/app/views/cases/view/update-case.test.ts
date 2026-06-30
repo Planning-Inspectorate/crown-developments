@@ -1,4 +1,4 @@
-import { describe, it, mock } from 'node:test';
+import { before, describe, it, mock } from 'node:test';
 import { buildUpdateCase } from './update-case.ts';
 import assert from 'node:assert';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
@@ -6,7 +6,7 @@ import { asReq, asRes } from '@pins/crowndev-lib/testing/mock-express.ts';
 import { APPLICATION_PROCEDURE_ID, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
-import { AUDIT_ACTIONS } from '../../../audit/index.ts';
+import { AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/index.ts';
 
 /**
  * buildUpdateCase now uses an interactive transaction: db.$transaction(async (tx) => { ... }).
@@ -2547,19 +2547,60 @@ describe('case details', () => {
 });
 
 describe('audit recording', () => {
+	before(() => {
+		process.env.NODE_ENV = 'test';
+		process.env.ENVIRONMENT_NAME = 'test';
+	});
+
 	const createMockAudit = () => ({
 		recordMany: mock.fn(() => Promise.resolve())
 	});
 
 	const buildDbForAudit = (existingCaseData = {}) => {
 		const mockDb = {
-			$transaction: mock.fn(() => Promise.resolve()),
+			$transaction: mock.fn(async (arg) => {
+				if (typeof arg === 'function') {
+					try {
+						const result = await arg(mockDb);
+						return result;
+					} catch (e) {
+						console.error('❌ Transaction callback error:', e);
+						throw e;
+					}
+				}
+				if (Array.isArray(arg)) {
+					return Promise.all(arg);
+				}
+				return undefined;
+			}),
 			crownDevelopment: {
-				update: mock.fn(),
-				findUnique: mock.fn(() => ({
-					id: 'case-1',
-					...existingCaseData
-				}))
+				update: mock.fn(async (args) => {
+					console.log('crownDevelopment.update called with:', JSON.stringify(args, null, 2));
+					return Promise.resolve({ id: 'case-1' });
+				}),
+				findUnique: mock.fn(async (args) => {
+					console.log('crownDevelopment.findUnique called with:', JSON.stringify(args, null, 2));
+					return {
+						id: 'case-1',
+						reference: 'APP-2024-001',
+						description: null,
+						containsDistressingContent: false,
+						typeId: 'type-1',
+						lpaId: 'lpa-1',
+						hasSecondaryLpa: false,
+						expectedDateOfSubmission: new Date('2024-01-01'),
+						createdDate: new Date('2024-01-01'),
+						updatedDate: new Date('2024-01-01'),
+						hasAgent: false,
+						SiteAddress: null,
+						Category: null,
+						ParentCrownDevelopment: null,
+						ChildrenCrownDevelopment: [],
+						linkedParentId: null,
+						Organisations: [],
+						...existingCaseData
+					};
+				})
 			}
 		};
 		makeTransactionInteractive(mockDb);

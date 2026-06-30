@@ -295,6 +295,11 @@ model S62aCase {
 
   /// Vehicle parking entries added via the manage list in the UI
   VehicleParking S62aVehicleParking[]
+
+  /// Entra ID
+  updatedById String?
+
+  Audit ApplicationHistory[]
 }
 
 model S62aVehicleParkingCategory {
@@ -753,16 +758,24 @@ model Address {
 
 /// Application History represents the audit events for this app
 model ApplicationHistory {
-  id            String           @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
-  applicationId String           @db.UniqueIdentifier
-  Application   CrownDevelopment @relation(fields: [applicationId], references: [id])
-  action        String
-  metadata      String?          @db.NVarChar(MAX)
-  /// Entra ID
-  userId        String
-  createdAt     DateTime         @default(now())
+  id String @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
 
-  @@index([applicationId, createdAt(sort: Desc)])
+  // CrownDevelopment Relation
+  crownDevelopmentId String?           @db.UniqueIdentifier
+  CrownDevelopment   CrownDevelopment? @relation(fields: [crownDevelopmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  // S62ACases Relation
+  s62aId   String?   @db.UniqueIdentifier
+  S62aCase S62aCase? @relation(fields: [s62aId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  action    String
+  metadata  String?  @db.NVarChar(MAX)
+  /// Entra ID
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@index([crownDevelopmentId, createdAt(sort: Desc)])
+  @@index([s62aId, createdAt(sort: Desc)])
 }
 
 /// ApplicationNote represents the case notes for the app

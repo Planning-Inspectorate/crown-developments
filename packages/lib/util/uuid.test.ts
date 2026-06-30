@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { isValidUuidFormat } from './uuid.ts';
+import { isValidUuidFormat, getBaseUrl } from './uuid.ts';
 import assert from 'node:assert';
 
 describe('uuid', () => {
@@ -18,5 +18,19 @@ describe('uuid', () => {
 				assert.strictEqual(isValidUuidFormat(test.str), test.valid);
 			});
 		}
+	});
+	describe('getBaseUrl', () => {
+		it('should output the correct pre-case id string for crown cases', () => {
+			assert.strictEqual(
+				getBaseUrl('/cases/b8bd6c55-8225-4634-8b8c-b5bd3abfedb4/case-audit/application-history'),
+				'/cases/'
+			);
+		});
+		it('should output the correct pre-case id string for S62A cases', () => {
+			assert.strictEqual(
+				getBaseUrl('/s62a/cases/b8bd6c55-8225-4634-8b8c-b5bd3abfedb4/case-audit/application-history'),
+				'/s62a/cases/'
+			);
+		});
 	});
 });

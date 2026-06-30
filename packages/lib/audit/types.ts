@@ -32,7 +32,8 @@ export interface AuditEntry {
  */
 export interface AuditEvent {
 	id: string;
-	applicationId: string;
+	crownDevelopmentId?: string | null;
+	s62aId?: string | null;
 	action: string;
 	metadata: Record<string, unknown> | null;
 	/** Entra ID of the user who performed the action */

@@ -7,7 +7,7 @@ import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { ApplicantContact, AgentContact } from '../create-a-case/types.d.ts';
 import type { CrownDevelopmentPayload, CrownDevelopmentPayloadWithoutOrganisations } from './payload-contracts.ts';
-import type { EntraGroupMembers } from '#util/entra-groups.ts';
+import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
 import escape from 'escape-html';
 import {
 	CASE_NOTE_MAX_LENGTH,

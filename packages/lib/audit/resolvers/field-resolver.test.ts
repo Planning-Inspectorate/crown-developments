@@ -9,16 +9,21 @@ describe('Field Resolver', () => {
 	});
 
 	describe('getFieldDisplayName', () => {
+		const FIELD_DISPLAY_NAMES: Record<string, string> = {
+			siteArea: 'Site area (ha)',
+			lpaReference: 'LPA reference'
+		};
+
 		it('should return display name from FIELD_DISPLAY_NAMES for known fields', async () => {
 			const { getFieldDisplayName } = await import('./field-resolver.ts');
-			assert.strictEqual(getFieldDisplayName('siteArea'), 'Site area (ha)');
-			assert.strictEqual(getFieldDisplayName('lpaReference'), 'LPA reference');
+			assert.strictEqual(getFieldDisplayName('siteArea', FIELD_DISPLAY_NAMES), 'Site area (ha)');
+			assert.strictEqual(getFieldDisplayName('lpaReference', FIELD_DISPLAY_NAMES), 'LPA reference');
 		});
 
 		it('should fall back to sentence case for unknown fields', async () => {
 			const { getFieldDisplayName } = await import('./field-resolver.ts');
-			assert.strictEqual(getFieldDisplayName('unknownFieldName'), 'Unknown field name');
-			assert.strictEqual(getFieldDisplayName('someOtherField'), 'Some other field');
+			assert.strictEqual(getFieldDisplayName('unknownFieldName', FIELD_DISPLAY_NAMES), 'Unknown field name');
+			assert.strictEqual(getFieldDisplayName('someOtherField', FIELD_DISPLAY_NAMES), 'Some other field');
 		});
 	});
 

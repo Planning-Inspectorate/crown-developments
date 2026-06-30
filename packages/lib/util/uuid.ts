@@ -11,3 +11,13 @@ export function isValidUuidFormat(str: unknown): str is string {
 	// case-insensitive
 	return Boolean(str.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));
 }
+
+/**
+ * Takes a url and seperates the pre-case number section
+ */
+export function getBaseUrl(url: string): string | null {
+	const uuidRegex = /^(.*\/)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+	const match = url.match(uuidRegex);
+
+	return match ? match[1] : null;
+}

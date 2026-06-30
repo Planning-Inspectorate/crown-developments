@@ -11,7 +11,7 @@ import { crownDevelopmentToViewModel, mapNotes, type CrownDevelopmentViewModel }
 import { getQuestions } from './questions.ts';
 import { createJourney, JOURNEY_ID } from './journey.ts';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
-import { getEntraGroupMembers } from '#util/entra-groups.ts';
+import { getEntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
 import { isUnsafeObjectKey, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { maybeGetLinkedCaseLink } from '@pins/crowndev-lib/util/linked-case.ts';
@@ -28,6 +28,7 @@ import type { ManageService } from '#service';
 import type { CrownJourneyResponse } from '../../../../types/express-locals.ts';
 import { getOptionalStringParams, getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 /**
  * Get the journey answers
@@ -309,7 +310,8 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 			res.locals.caseNotes = mappedNotes.caseNotes;
 			res.locals.allCaseNotesCount = crownDevelopment._count?.Notes ?? 0;
 		}
-		const lastModified = await audit.getLastModifiedInfo(id, groupMembers);
+
+		const lastModified = await audit.getLastModifiedInfo(id, groupMembers, CASE_DATA_MODEL.CROWN);
 		const overrides = {
 			isApplicationTypePlanningOrLbc: viewModel.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT,
 			isApplicationSubTypeLbc: viewModel.subTypeId === APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT,
