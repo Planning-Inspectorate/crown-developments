@@ -1,6 +1,7 @@
 import type { Journey } from '@planning-inspectorate/dynamic-forms';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
-import type { CrownDevelopmentViewModel, mapNotes } from '../app/views/cases/view/view-model.ts';
+import type { CrownDevelopmentViewModel } from '../app/views/cases/view/view-model.ts';
+import type { mapNotes } from '@pins/crowndev-lib/case-notes/controller.ts';
 
 export type CrownJourneyResponse = {
 	journeyId: string;

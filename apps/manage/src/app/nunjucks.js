@@ -25,12 +25,23 @@ export function configureNunjucks() {
 	const customViewsRoot = path.resolve(require.resolve('@pins/crowndev-lib'), '..', 'views');
 	// path to packages/lib/case-history folder with custom view
 	const caseHistoryRoot = path.resolve(require.resolve('@pins/crowndev-lib'), '..', 'case-history');
+	// path to packages/lib/case-notes folder with custom view
+	const caseNotesRoot = path.resolve(require.resolve('@pins/crowndev-lib'), '..', 'case-notes');
 	const appDir = path.join(config.srcDir, 'app');
 
 	// configure nunjucks
 	const env = nunjucks.configure(
 		// ensure nunjucks templates can use govuk-frontend components, and templates we've defined in `web/src/app`
-		[dynamicFormsRoot, govukFrontendRoot, mojFrontendRoot, customFormsRoot, customViewsRoot, caseHistoryRoot, appDir],
+		[
+			dynamicFormsRoot,
+			govukFrontendRoot,
+			mojFrontendRoot,
+			customFormsRoot,
+			customViewsRoot,
+			caseHistoryRoot,
+			caseNotesRoot,
+			appDir
+		],
 		{
 			// output with dangerous characters are escaped automatically
 			autoescape: true,

@@ -10,7 +10,7 @@ import { createRoutes as createRepsRoutes } from './manage-reps/index.js';
 import { createRoutes as createApplicationUpdatesRoutes } from './application-updates/index.js';
 import { buildUpdateCase } from './update-case.ts';
 import { createRoutes as createApplicationHistoryRoutes } from '@pins/crowndev-lib/case-history/index.ts';
-import { createRoutes as createApplicationNotesRoutes } from '../case-notes/index.ts';
+import { createRoutes as createApplicationNotesRoutes } from '@pins/crowndev-lib/case-notes/index.ts';
 import {
 	buildGetJourneyResponseFromSession,
 	saveDataToSession
@@ -39,7 +39,7 @@ export function createRoutes(service) {
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const deleteManageListItemOnConfirmRemove = asyncHandler(buildDeleteManageListItemOnConfirmRemove(service));
 	const applicationHistoryRoutes = createApplicationHistoryRoutes(service, CASE_DATA_MODEL.CROWN);
-	const applicationNotesRoutes = createApplicationNotesRoutes(service);
+	const applicationNotesRoutes = createApplicationNotesRoutes(service, CASE_DATA_MODEL.CROWN);
 
 	// view case details
 	router.get('/', validateIdFormat, getViewJourney, asyncHandler(viewCaseDetails));
