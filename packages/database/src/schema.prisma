@@ -301,6 +301,7 @@ model S62aCase {
   updatedById String?
 
   Audit ApplicationHistory[]
+  Notes ApplicationNote[]
 }
 
 model S62aVehicleParkingCategory {
@@ -797,15 +798,22 @@ model ApplicationHistory {
 
 /// ApplicationNote represents the case notes for the app
 model ApplicationNote {
-  id            String           @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
-  comment       String           @db.NVarChar(500)
-  createdAt     DateTime         @default(now())
+  id        String   @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  comment   String   @db.NVarChar(500)
+  createdAt DateTime @default(now())
   /// Entra ID of the author.
-  userId        String
-  applicationId String           @db.UniqueIdentifier
-  Application   CrownDevelopment @relation(fields: [applicationId], references: [id])
+  userId    String
 
-  @@index([applicationId])
+  // CrownDevelopment Relation
+  crownDevelopmentId String?           @db.UniqueIdentifier
+  CrownDevelopment   CrownDevelopment? @relation(fields: [crownDevelopmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  // S62ACases Relation
+  s62aId   String?   @db.UniqueIdentifier
+  S62aCase S62aCase? @relation(fields: [s62aId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([crownDevelopmentId, createdAt(sort: Desc)])
+  @@index([s62aId, createdAt(sort: Desc)])
 }
 
 model Organisation {

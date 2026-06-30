@@ -147,7 +147,9 @@ export const VIEW_TAB_ID = Object.freeze({
 	RESIDENTIAL: 'residential',
 	VEHICLE: 'vehicle-parking',
 	WASTE: 'waste',
-	PRE_APPLICATION: 'pre-application'
+	PRE_APPLICATION: 'pre-application',
+	CASE_AUDIT: 'case-audit',
+	CASE_NOTES: 'case-notes'
 } as const);
 
 /**
@@ -220,6 +222,19 @@ export const VIEW_TABS = [
 	{
 		id: VIEW_TAB_ID.PRE_APPLICATION,
 		displayName: 'Pre-application'
+	},
+	{
+		id: VIEW_TAB_ID.RESIDENTIAL,
+		displayName: 'Residential',
+		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+	},
+	{
+		id: VIEW_TAB_ID.CASE_AUDIT,
+		displayName: 'Case audit log'
+	},
+	{
+		id: VIEW_TAB_ID.CASE_NOTES,
+		displayName: 'Case notes'
 	}
 ];
 
