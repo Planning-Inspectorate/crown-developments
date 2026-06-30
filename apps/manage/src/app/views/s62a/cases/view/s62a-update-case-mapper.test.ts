@@ -878,6 +878,74 @@ describe('S62aCaseUpdateMapper', () => {
 		});
 	});
 
+	describe('Press Notice Tab', () => {
+		it('maps valid press notice fields (number, string, null) to the update input', () => {
+			const answers = {
+				pressNoticeCost: 1500,
+				pressNoticePlaced: 'Newspaper',
+				pressNoticeReference: 'PN-12345'
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.ok(result.pressNoticeCost instanceof Prisma.Decimal);
+			assert.strictEqual(result.pressNoticeCost?.toNumber(), 1500);
+			assert.strictEqual(result.pressNoticePlaced, 'Newspaper');
+			assert.strictEqual(result.pressNoticeReference, 'PN-12345');
+		});
+
+		it('maps pressNoticeCost correctly when supplied as a string', () => {
+			const answers = {
+				pressNoticeCost: '500.50'
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.ok(result.pressNoticeCost instanceof Prisma.Decimal);
+			assert.strictEqual(result.pressNoticeCost.toNumber(), 500.5);
+		});
+
+		it('clears press notice fields to null when values are cleared or invalid', () => {
+			const answers = {
+				pressNoticeCost: null,
+				pressNoticePlaced: null,
+				pressNoticeReference: null
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual(result.pressNoticeCost, null);
+			assert.strictEqual(result.pressNoticePlaced, null);
+			assert.strictEqual(result.pressNoticeReference, null);
+		});
+
+		it('normalises unexpected press notice values to null without throwing', () => {
+			const answers = {
+				pressNoticeCost: true,
+				pressNoticePlaced: 24601,
+				pressNoticeReference: { invalid: 'object' }
+			} as unknown as UpdateCaseAnswers;
+
+			let result: ReturnType<S62aCaseUpdateMapper['generateUpdateInput']> | undefined;
+
+			assert.doesNotThrow(() => {
+				result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			});
+
+			assert.strictEqual(result?.pressNoticeCost, null);
+			assert.strictEqual(result?.pressNoticePlaced, null);
+			assert.strictEqual(result?.pressNoticeReference, null);
+		});
+
+		it('does not emit press notice fields when they are not in the payload', () => {
+			const result = new S62aCaseUpdateMapper({ likelyIssues: 'Traffic' }).generateUpdateInput();
+
+			assert.strictEqual(result.pressNoticeCost, undefined);
+			assert.strictEqual(result.pressNoticePlaced, undefined);
+			assert.strictEqual(result.pressNoticeReference, undefined);
+		});
+	});
+
 	describe('Case Team Tab', () => {
 		const allocated = new Date('2026-07-01T09:00:00Z');
 

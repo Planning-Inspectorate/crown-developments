@@ -797,6 +797,95 @@ export function getQuestions(
 			url: '',
 			editable: false
 		},
+		pressNoticeCost: {
+			type: COMPONENT_TYPES.MULTI_FIELD_INPUT, // TODO: PEAS-390 Change from multi-field to single-line once it supports prefixes
+			title: 'Press notice cost',
+			question: 'What is the cost of the press notice?',
+			fieldName: 'pressNoticeCost',
+			url: 'cost',
+			hint: 'For example, £1000.00',
+			inputFields: [
+				{
+					fieldName: 'pressNoticeCost',
+					prefix: { text: '£' },
+					formatPrefix: '£'
+				}
+			],
+			validators: [
+				new RequiredValidator('Enter the cost of the press notice'),
+				new StringValidator({
+					regex: {
+						regex: '^(?!(?:.*\\d){9,})\\d+(?:\\.\\d{1,2})?$',
+						regexMessage: 'Cost of press notice must be 8 digits or less'
+					}
+				}),
+				new StringValidator({
+					regex: {
+						regex: '^[0-9]+(\\.[0-9]{1,2})?$',
+						regexMessage: 'Cost of press notice should include numbers only'
+					}
+				})
+			],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'cost/remove'
+					}
+				]
+			}
+		},
+		pressNoticePlaced: {
+			type: COMPONENT_TYPES.TEXT_ENTRY,
+			title: 'Press notice placed',
+			question: 'Where has the press notice been placed?',
+			fieldName: 'pressNoticePlaced',
+			url: 'placed',
+			validators: [
+				new RequiredValidator('Enter where the press notice has been placed'),
+				new StringValidator({
+					maxLength: {
+						maxLength: 250,
+						maxLengthMessage: 'Where the press notice has been placed must be 250 characters or less'
+					}
+				})
+			],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'placed/remove'
+					}
+				]
+			}
+		},
+		pressNoticeReference: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Press notice reference',
+			question: 'What is the reference of the press notice?',
+			fieldName: 'pressNoticeReference',
+			url: 'reference',
+			validators: [
+				new RequiredValidator('Enter press notice reference'),
+				new StringValidator({
+					maxLength: {
+						maxLength: 250,
+						maxLengthMessage: 'Press notice reference must be 250 characters or less'
+					}
+				})
+			],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'reference/remove'
+					}
+				]
+			}
+		},
 		pressNoticeDate: {
 			type: COMPONENT_TYPES.DATE,
 			title: 'Press notice date',
