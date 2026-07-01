@@ -16,19 +16,19 @@ Then run each application with `npm run dev`.
 
 ## Dev Setup
 
-To get started, ensure you Node v22 (`nvm install 22`) installed. Then run:
+To get started, ensure you install Node v24 (`nvm install 24`) from root. Then run:
 
 `npm ci`
 
-to install all dependencies (the repo is setup with workspaces, this will install dependencies for all apps and packages).
+to install all dependencies (the repo is set up with workspaces, this will install dependencies for all apps and packages).
 
 ### Environment settings
 
-The applications require configuation to run, and these are set via environment variables. These can be set using run configurations, or using a `.env` file. There is a `.env.example` file to get started with in each app directory.
+The applications require configuration to run, and these are set via environment variables. These can be set using run configurations, or using a `.env` file. There is a `.env.example` file to get started with in each app directory.
 
 ### Database Setup
 
-A SQL Server database server is required for the applications to run. This will start automatically with docker compose. However it is required to migrate and seed the database which can be done from scripts in the database package.
+A SQL Server database server is required for the applications to run. This will start automatically with docker compose. However, it is required to migrate and seed the database which can be done from scripts in the database package.
 
 First, make sure you have a `.env` file in `./packages/database` (you can copy the `.env.example`) and it has `SQL_CONNECTION_STRING` and `SQL_CONNECTION_STRING_ADMIN` environment variables defined with details pointing to your local database server (`mssql` Docker container). These values will/can be the same for local development (admin is used for migrations, the other one for the seeding).
 
@@ -83,7 +83,7 @@ To run the apps for development, using `npm run dev` in each application directo
 
 ## Linting
 
-This repository uses commitlint, eslint, and prettier. This are run with git hooks and also on the CI pipeline. They can also be run directly (from root):
+This repository uses commit-lint, eslint, and prettier. These are run with git hooks and also on the CI pipeline. They can also be run directly (from root):
 
 * `npm run commitlint`
 * `npm run format` - to format all files
