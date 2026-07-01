@@ -162,7 +162,7 @@ describe('application updates controller', () => {
 		});
 		it('should throw error if id param not present', async () => {
 			const controller = buildApplicationUpdates({});
-			await assert.rejects(() => controller({}, {}), { message: 'id param required' });
+			await assert.rejects(() => controller({}, {}), /must be a single string value/);
 		});
 		it('should return 404 page if crown development not present in db', async () => {
 			const mockDb = {

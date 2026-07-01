@@ -25,6 +25,7 @@ import type {
 import type { CrownDevelopmentPlanningPayload } from './payload-contracts.ts';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 function typedObjectKeys<T extends object>(obj: T): Array<keyof T> {
 	return Object.keys(obj) as Array<keyof T>;
@@ -73,13 +74,7 @@ function buildSummaryError(message: string, errorSummary: ErrorSummaryItem[]): E
 export function buildUpdateCase(service: ManageService, clearAnswer: boolean = false): SaveDataFn {
 	return async ({ req, res, data }: { req: Request; res: Response; data: { answers?: CrownDevelopmentSaveModel } }) => {
 		const { db, logger } = service;
-		const { id } = req.params;
-		if (!id) {
-			throw new Error(`invalid update case request, id param required (id:${id})`);
-		}
-		if (typeof id !== 'string') {
-			throw new Error(`invalid update case request, multiple id params given`);
-		}
+		const id = getStringParam(req.params, 'id');
 
 		logger.info({ id }, 'case update');
 

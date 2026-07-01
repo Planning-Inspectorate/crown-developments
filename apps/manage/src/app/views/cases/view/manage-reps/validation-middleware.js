@@ -7,6 +7,7 @@ import { buildReviewControllers } from './review/controller.js';
 import { fetchDocumentsInFolderPath } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-documents.js';
 import { representationAttachmentsFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { validateParams } from './view/controller.js';
+import { getStringParam, getStringParams } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  * Validate a representation before it can be accepted, rejected or redacted
@@ -16,15 +17,8 @@ import { validateParams } from './view/controller.js';
 export function buildValidateRepresentationMiddleware(services) {
 	return async (req, res, next) => {
 		const { db, logger } = services;
-		const representationRef = req.params.representationRef;
-		const id = req.params.id;
+		const { id, representationRef } = getStringParams(req.params, ['id', 'representationRef']);
 
-		if (!id) {
-			throw new Error(`id param required`);
-		}
-		if (!representationRef) {
-			throw new Error(`representationRef param required`);
-		}
 		logger.info({ representationReference: representationRef }, 'validate representation');
 		const representation = await db.representation.findUnique({
 			where: { reference: representationRef },
@@ -238,11 +232,7 @@ export function buildValidateRedactedFileMiddleware(services) {
 	return async (req, res, next) => {
 		const { db, getSharePointDrive } = services;
 		const { id, representationRef } = validateParams(req.params);
-		const itemId = req.params.itemId;
-
-		if (!itemId) {
-			throw new Error('itemId param required');
-		}
+		const itemId = getStringParam(req.params, 'itemId');
 
 		const crownDevelopment = await db.crownDevelopment.findUnique({
 			where: { id },

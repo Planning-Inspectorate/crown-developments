@@ -11,6 +11,7 @@ import {
 	CheckboxValidator,
 	normaliseCheckboxValues
 } from '@pins/crowndev-lib/forms/custom-components/checkbox-validation/checkbox-validation.js';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  * Builds Have Your Say landing page.
@@ -61,10 +62,7 @@ export function startHaveYourSayJourney(service) {
  */
 export function getIsRepresentationWindowOpen(db) {
 	return async function (req, res, next) {
-		const id = req.params.applicationId;
-		if (!id) {
-			throw new Error('id param required');
-		}
+		const id = getStringParam(req.params, 'applicationId');
 
 		const crownDevelopment = await fetchPublishedApplication({
 			id,
@@ -102,10 +100,8 @@ export function getIsRepresentationWindowOpen(db) {
  * @param {import('express').Response} res
  */
 export async function viewHaveYourSayDeclarationPage(req, res) {
-	const id = req.params?.applicationId;
-	if (!id) {
-		throw new Error('id param required');
-	}
+	const id = getStringParam(req.params, 'applicationId');
+
 	if (!isValidUuidFormat(id)) {
 		return notFoundHandler(req, res);
 	}
@@ -179,7 +175,9 @@ export async function declarationValidator(req, res, next) {
 }
 
 export const addRepresentationErrors = (req, res, next) => {
-	const id = req.params.applicationId || req.params.id;
+	const idKey = 'applicationId' in req.params ? 'applicationId' : 'id';
+	const id = getStringParam(req.params, idKey);
+
 	const errors = readSessionData(req, id, 'representationError', [], 'cases');
 	if (errors.length > 0) {
 		res.locals = res.locals || {};

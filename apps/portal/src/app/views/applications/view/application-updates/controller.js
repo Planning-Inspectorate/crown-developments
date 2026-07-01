@@ -4,6 +4,7 @@ import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { fetchPublishedApplication, getApplicationStatus, isWithdrawnOrExpired } from '#util/applications.ts';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  * Render application updates page
@@ -13,10 +14,7 @@ import { fetchPublishedApplication, getApplicationStatus, isWithdrawnOrExpired }
  */
 export function buildApplicationUpdatesPage({ db }) {
 	return async (req, res) => {
-		const id = req.params.applicationId;
-		if (!id) {
-			throw new Error('id param required');
-		}
+		const id = getStringParam(req.params, 'applicationId');
 		if (!isValidUuidFormat(id)) {
 			return notFoundHandler(req, res);
 		}

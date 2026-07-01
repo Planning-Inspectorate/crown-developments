@@ -12,7 +12,7 @@ describe('documents-util', () => {
 			await assert.rejects(
 				() => handler({}, {}),
 				(err) => {
-					assert.strictEqual(err.message, 'documentId param is required');
+					assert.strictEqual(err.message, 'documentId must be a single string value');
 					return true;
 				}
 			);
@@ -25,7 +25,7 @@ describe('documents-util', () => {
 			await assert.rejects(
 				() => handler(req, {}),
 				(err) => {
-					assert.strictEqual(err.message, 'id param required');
+					assert.strictEqual(err.message, 'applicationId must be a single string value');
 					return true;
 				}
 			);

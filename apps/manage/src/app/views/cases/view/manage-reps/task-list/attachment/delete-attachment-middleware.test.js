@@ -7,25 +7,28 @@ describe('buildDeleteRepresentationRedactedDocumentMiddleware', () => {
 		const mockReq = { params: {} };
 		const deleteRepresentationRedactedDocumentMiddleware =
 			buildDeleteRepresentationRedactedDocumentMiddleware('manage-reps-manage');
-		await assert.rejects(() => deleteRepresentationRedactedDocumentMiddleware(mockReq, {}, mock.fn()), {
-			message: 'representationRef param not found'
-		});
+		await assert.rejects(
+			() => deleteRepresentationRedactedDocumentMiddleware(mockReq, {}, mock.fn()),
+			/must be a single string value/
+		);
 	});
 	it('should throw an error if itemId not in req.params', async () => {
 		const mockReq = { params: { representationRef: 'ref-1' } };
 		const deleteRepresentationRedactedDocumentMiddleware =
 			buildDeleteRepresentationRedactedDocumentMiddleware('manage-reps-manage');
-		await assert.rejects(() => deleteRepresentationRedactedDocumentMiddleware(mockReq, {}, mock.fn()), {
-			message: 'itemId param not found'
-		});
+		await assert.rejects(
+			() => deleteRepresentationRedactedDocumentMiddleware(mockReq, {}, mock.fn()),
+			/must be a single string value/
+		);
 	});
 	it('should throw an error if documentId not in req.params', async () => {
 		const mockReq = { params: { representationRef: 'ref-1', itemId: '123' } };
 		const deleteRepresentationRedactedDocumentMiddleware =
 			buildDeleteRepresentationRedactedDocumentMiddleware('manage-reps-manage');
-		await assert.rejects(() => deleteRepresentationRedactedDocumentMiddleware(mockReq, {}, mock.fn()), {
-			message: 'documentId param not found'
-		});
+		await assert.rejects(
+			() => deleteRepresentationRedactedDocumentMiddleware(mockReq, {}, mock.fn()),
+			/must be a single string value/
+		);
 	});
 	it('should call next if is not manage reps manage journey', async () => {
 		const mockNext = mock.fn();

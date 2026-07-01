@@ -22,12 +22,12 @@ describe('controller', () => {
 		it('should throw if no id', async () => {
 			const mockReq = { params: {} };
 			const mockRes = { locals: {} };
-			await assert.rejects(() => viewRepresentation(mockReq, mockRes), { message: 'id param required' });
+			await assert.rejects(() => viewRepresentation(mockReq, mockRes), /must be a single string value/);
 		});
 		it('should throw if no rep ref', async () => {
 			const mockReq = { params: { id: 'case-1' } };
 			const mockRes = { locals: {} };
-			await assert.rejects(() => viewRepresentation(mockReq, mockRes), { message: 'representationRef param required' });
+			await assert.rejects(() => viewRepresentation(mockReq, mockRes), /must be a single string value/);
 		});
 		it('should render the representation', async () => {
 			const journeyResponse = new JourneyResponse('id-1', 'id-2', {
@@ -213,7 +213,7 @@ describe('controller', () => {
 				db: mockDb,
 				logger: mockLogger()
 			});
-			await assert.rejects(() => middleware(mockReq, mockRes, next), { message: 'id param required' });
+			await assert.rejects(() => middleware(mockReq, mockRes, next), /must be a single string value/);
 			assert.strictEqual(next.mock.callCount(), 0);
 		});
 		it('should throw if no rep ref', async () => {
@@ -229,7 +229,7 @@ describe('controller', () => {
 				db: mockDb,
 				logger: mockLogger()
 			});
-			await assert.rejects(() => middleware(mockReq, mockRes, next), { message: 'representationRef param required' });
+			await assert.rejects(() => middleware(mockReq, mockRes, next), /must be a single string value/);
 			assert.strictEqual(next.mock.callCount(), 0);
 		});
 		it('should call next without error and populate locals', async () => {
@@ -340,11 +340,11 @@ describe('controller', () => {
 	describe('validateParams', () => {
 		it('should throw if no id', () => {
 			const params = {};
-			assert.throws(() => validateParams(params), { message: 'id param required' });
+			assert.throws(() => validateParams(params), /must be a single string value/);
 		});
 		it('should throw if no rep ref', () => {
 			const params = { id: 'case-1' };
-			assert.throws(() => validateParams(params), { message: 'representationRef param required' });
+			assert.throws(() => validateParams(params), /must be a single string value/);
 		});
 		it('should return id and repRef', () => {
 			const params = { id: 'case-1', representationRef: 'ref-1' };

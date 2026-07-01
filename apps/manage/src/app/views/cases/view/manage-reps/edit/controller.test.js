@@ -19,9 +19,7 @@ describe('controller', () => {
 			const updateRep = buildUpdateRepresentation({ db: mockDb, logger });
 			const mockReq = { params: { id: 'case-1' } };
 			const mockRes = { locals: {} };
-			await assert.rejects(() => updateRep({ req: mockReq, res: mockRes, data: {} }), {
-				message: 'representationRef param required'
-			});
+			await assert.rejects(() => updateRep({ req: mockReq, res: mockRes, data: {} }), /must be a single string value/);
 		});
 		it('should do nothing if no edits', async () => {
 			const mockDb = {

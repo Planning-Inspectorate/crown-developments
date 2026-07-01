@@ -13,7 +13,7 @@ describe('written representations', () => {
 	describe('viewAddRepresentationSuccessPage', () => {
 		it('should throw error if id is missing', async () => {
 			const mockReq = { params: {}, session: {} };
-			await assert.rejects(() => viewAddRepresentationSuccessPage(mockReq, {}), { message: 'id param required' });
+			await assert.rejects(() => viewAddRepresentationSuccessPage(mockReq, {}), /must be a single string value/);
 		});
 		it('should return not found for invalid id', async () => {
 			const mockReq = { params: { id: 'abc-123' } };
@@ -81,9 +81,10 @@ describe('written representations', () => {
 		it('should throw error if id is missing', async () => {
 			const mockReq = { params: {} };
 			const saveRepresentationController = buildSaveRepresentationController({});
-			await assert.rejects(() => saveRepresentationController(mockReq, { locals: { journeyResponse: {} } }), {
-				message: 'id param required'
-			});
+			await assert.rejects(
+				() => saveRepresentationController(mockReq, { locals: { journeyResponse: {} } }),
+				/must be a single string value/
+			);
 		});
 		it('should should 404 for invalid id', async () => {
 			const mockReq = { params: { id: 'abc-123' } };
@@ -387,9 +388,10 @@ describe('written representations', () => {
 		it('should throw error if id is missing', async () => {
 			const mockReq = { params: {} };
 			const mockRes = {};
-			await assert.rejects(() => getApplicationReference({ id: null, db: {} }, mockReq, mockRes), {
-				message: 'id param required'
-			});
+			await assert.rejects(
+				() => getApplicationReference({ id: null, db: {} }, mockReq, mockRes),
+				/must be a single string value/
+			);
 		});
 		it('should return not found for invalid id', async () => {
 			const mockReq = { params: { id: 'abc-123' } };

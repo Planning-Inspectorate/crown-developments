@@ -14,6 +14,7 @@ import {
 	moveAttachmentsToCaseFolder
 } from '@pins/crowndev-lib/util/handle-attachments.js';
 import { loadPublishedApplicationOr404 } from '../../../util/application-util.ts';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  * @param {import('#service').PortalService} service
@@ -134,10 +135,8 @@ export async function populateNotificationData(id, service, answers, reference) 
  * @returns {import('express').Handler}
  */
 export async function viewHaveYourSaySuccessPage(req, res) {
-	const id = req.params.applicationId;
-	if (!id) {
-		throw new Error('id param required');
-	}
+	const id = getStringParam(req.params, 'applicationId');
+
 	if (!isValidUuidFormat(id)) {
 		return notFoundHandler(req, res);
 	}

@@ -193,7 +193,7 @@ describe('application-updates controller', () => {
 			};
 
 			const handler = buildApplicationUpdatesPage({});
-			await assert.rejects(() => handler(mockReq, {}), { message: 'id param required' });
+			await assert.rejects(() => handler(mockReq, {}), /must be a single string value/);
 		});
 		it('should render not found if id is not a valid uuid', async () => {
 			const mockReq = {

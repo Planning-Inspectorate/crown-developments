@@ -5,6 +5,7 @@ import { fetchPublishedApplication, getApplicationStatus, type ApplicationPublis
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 export type HaveYourSayPeriod = {
 	start: Date | null;
@@ -89,10 +90,8 @@ export async function loadPublishedApplicationOr404(
 	res: Response,
 	db: PrismaClient
 ): Promise<PublishedApplicationViewModel | undefined> {
-	const id = req.params?.applicationId;
-	if (!id) {
-		throw new Error('id param required');
-	}
+	const id = getStringParam(req.params, 'applicationId');
+
 	if (!isValidUuidFormat(id)) {
 		notFoundHandler(req, res);
 		return;

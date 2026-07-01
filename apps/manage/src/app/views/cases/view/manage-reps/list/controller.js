@@ -5,6 +5,7 @@ import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/s
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  * @typedef {import('@pins/crowndev-lib/views/banner/banner-builder').BannerMessage} BannerMessage
@@ -55,10 +56,8 @@ function getBannerMessages(id, req, options) {
  */
 export function buildListReps({ db }) {
 	return async (req, res) => {
-		const id = req.params.id;
-		if (!id || typeof id !== 'string') {
-			throw new Error('id param is required');
-		}
+		const id = getStringParam(req.params, 'id');
+
 		const queryFilters = getQueryFilters(req.query);
 
 		const crownDevelopment = await db.crownDevelopment.findUnique({

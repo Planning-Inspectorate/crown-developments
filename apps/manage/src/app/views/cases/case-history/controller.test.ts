@@ -83,14 +83,9 @@ describe('buildViewCaseHistory', () => {
 			const req = mockReq({ params: {} });
 			const res = mockRes();
 
-			await assert.rejects(
-				async () => {
-					await buildViewCaseHistory(buildService())(req, runService(res), () => {});
-				},
-				{
-					message: 'id param required'
-				}
-			);
+			await assert.rejects(async () => {
+				await buildViewCaseHistory(buildService())(req, runService(res), () => {});
+			}, /must be a single string value/);
 		});
 	});
 

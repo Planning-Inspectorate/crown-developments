@@ -18,6 +18,7 @@ import { forwardStreamContents, getDriveItemDownloadUrl } from '@pins/crowndev-l
 import { ALLOWED_MIME_TYPES } from '@pins/crowndev-lib/forms/representations/question-utils.js';
 import { representationAttachmentsFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { fetchRedactionSuggestions, highlightRedactionSuggestions } from '#util/azure-language-redaction.js';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  * @typedef {import('express').Handler} Handler
@@ -435,10 +436,7 @@ export function buildReviewControllers(service, journeyId) {
 		},
 		async reviewRepresentationDocument(req, res, viewData = {}) {
 			const { representationRef } = validateParams(req.params);
-			const itemId = req.params.itemId;
-			if (!itemId) {
-				throw new Error('itemId param required');
-			}
+			const itemId = getStringParam(req.params, 'itemId');
 
 			const document = await db.representationDocument.findFirst({
 				where: { itemId: itemId },
@@ -464,10 +462,7 @@ export function buildReviewControllers(service, journeyId) {
 		},
 		async reviewDocumentDecision(req, res) {
 			const { representationRef } = validateParams(req.params);
-			const itemId = req.params.itemId;
-			if (!itemId) {
-				throw new Error('itemId param required');
-			}
+			const itemId = getStringParam(req.params, 'itemId');
 
 			const { reviewDocumentDecision } = req.body;
 			if (!reviewDocumentDecision) {
@@ -506,10 +501,7 @@ export function buildReviewControllers(service, journeyId) {
 		},
 		async redactRepresentationDocument(req, res, viewData = {}) {
 			const { representationRef } = validateParams(req.params);
-			const itemId = req.params.itemId;
-			if (!itemId) {
-				throw new Error('itemId param required');
-			}
+			const itemId = getStringParam(req.params, 'itemId');
 
 			let { errors, errorSummary } = req.session || {};
 			if (errors || errorSummary) {
@@ -552,10 +544,7 @@ export function buildReviewControllers(service, journeyId) {
 		},
 		async redactRepresentationDocumentPost(req, res) {
 			const { representationRef } = validateParams(req.params);
-			const itemId = req.params.itemId;
-			if (!itemId) {
-				throw new Error('itemId param required');
-			}
+			const itemId = getStringParam(req.params, 'itemId');
 
 			const [redactedFile] = getRedactedFile(req, representationRef, itemId);
 
@@ -620,10 +609,7 @@ export function buildViewDocument(service, fetchImpl) {
 	const { logger, getSharePointDrive } = service;
 	return async (req, res) => {
 		const sharePointDrive = getSharePointDrive(req.session);
-		const itemId = req.params.itemId;
-		if (!itemId) {
-			throw new Error('itemId param required');
-		}
+		const itemId = getStringParam(req.params, 'itemId');
 
 		// to facilitate download of redacted file
 		const documentId = req.params.documentId;

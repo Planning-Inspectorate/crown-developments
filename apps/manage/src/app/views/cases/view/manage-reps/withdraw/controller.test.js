@@ -176,9 +176,7 @@ describe('withdraw rep controller', () => {
 
 			const saveController = buildSaveController(mockService);
 
-			await assert.rejects(() => saveController(mockReq, mockRes), {
-				message: 'id param required'
-			});
+			await assert.rejects(() => saveController(mockReq, mockRes), /must be a single string value/);
 		});
 		it('should throw if no representationRef param', async () => {
 			const mockService = {
@@ -198,9 +196,7 @@ describe('withdraw rep controller', () => {
 
 			const saveController = buildSaveController(mockService);
 
-			await assert.rejects(() => saveController(mockReq, mockRes), {
-				message: 'representationRef param required'
-			});
+			await assert.rejects(() => saveController(mockReq, mockRes), /must be a single string value/);
 		});
 		it('should throw if no journey response', async () => {
 			const mockService = {
@@ -335,17 +331,13 @@ describe('withdraw rep controller', () => {
 			const mockReq = { params: {} };
 			const mockRes = { locals: {} };
 
-			assert.throws(() => successController(mockReq, mockRes), {
-				message: 'id param required'
-			});
+			assert.throws(() => successController(mockReq, mockRes), /must be a single string value/);
 		});
 		it('should throw if no representationRef', () => {
 			const mockReq = { params: { id: 'case-1' } };
 			const mockRes = { locals: {} };
 
-			assert.throws(() => successController(mockReq, mockRes), {
-				message: 'representationRef param required'
-			});
+			assert.throws(() => successController(mockReq, mockRes), /must be a single string value/);
 		});
 	});
 });

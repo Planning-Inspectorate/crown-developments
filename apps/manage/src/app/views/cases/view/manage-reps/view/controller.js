@@ -15,6 +15,7 @@ import { getSubmittedForId } from '@pins/crowndev-lib/util/questions.ts';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
 import { isSafeRelativeUrl, escapeHtml } from '@pins/crowndev-lib/util/string.ts';
+import { getStringParam, getStringParams } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  * @typedef {import('@pins/crowndev-lib/views/banner/banner-builder').BannerMessage} BannerMessage
@@ -83,14 +84,8 @@ export async function viewRepresentation(req, res) {
  * @returns {{id: string, representationRef: string}}
  */
 export function validateParams(params) {
-	const id = params.id;
-	if (!id) {
-		throw new Error('id param required');
-	}
-	const representationRef = params.representationRef;
-	if (!representationRef) {
-		throw new Error('representationRef param required');
-	}
+	const { id, representationRef } = getStringParams(params, ['id', 'representationRef']);
+
 	return { id, representationRef };
 }
 
@@ -100,10 +95,7 @@ export function validateParams(params) {
  * @param {Object<string, *>} [viewData]
  */
 export async function renderRepresentation(req, res, viewData = {}) {
-	const id = req.params.id;
-	if (!id || typeof id !== 'string') {
-		throw new Error('id param is required');
-	}
+	const id = getStringParam(req.params, 'id');
 
 	const { representationRef } = validateParams(req.params);
 

@@ -10,6 +10,7 @@ import {
 import { deleteRepresentationAttachmentsFolder, moveAttachmentsToCaseFolder } from '../../util/handle-attachments.js';
 import { getSubmittedForId } from '../../util/questions.ts';
 import { getAnswers } from '../../util/answers.js';
+import { getStringParam } from '../../util/params.ts';
 
 /**
  * Save representation to the database
@@ -43,7 +44,9 @@ export async function saveRepresentation(
 ) {
 	const { db, logger, appName } = service;
 
-	const id = req.params.id || req.params.applicationId;
+	const idKey = 'id' in req.params ? 'id' : 'applicationId';
+	const id = getStringParam(req.params, idKey);
+
 	const sessionReqParam = req.params.applicationId ? 'applicationId' : 'id';
 	const answers = getAnswers(res);
 	const journey = res.locals.journey;

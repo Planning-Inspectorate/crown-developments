@@ -12,6 +12,7 @@ import {
 	APPLICATION_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { ManageListSection } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-section.js';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 export const JOURNEY_ID = 'case-details';
 
 /** @typedef {import('@planning-inspectorate/dynamic-forms').JourneyResponse} JourneyResponse */
@@ -24,10 +25,8 @@ export const JOURNEY_ID = 'case-details';
  * @returns {Journey}
  */
 export function createJourney(questions, response, req) {
-	if (!req.params.id || Array.isArray(req.params.id)) {
-		throw new Error(`not a valid request for the ${JOURNEY_ID} journey (no id param)`);
-	}
-	if (!req.baseUrl?.includes(req.params.id)) {
+	const id = getStringParam(req.params, 'id');
+	if (!req.baseUrl?.includes(id)) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey (invalid baseUrl)`);
 	}
 	/** @param {JourneyResponse} response */

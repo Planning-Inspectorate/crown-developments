@@ -2,6 +2,7 @@ import { Question } from '@planning-inspectorate/dynamic-forms';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { JOURNEY_MAP } from './upload-documents.js';
 import nunjucks from 'nunjucks';
+import { getStringParam } from '../../../util/params.ts';
 
 /**
  * @typedef {Object} TextEntryCheckbox
@@ -254,7 +255,9 @@ export default class RepresentationAttachments extends Question {
 
 	async getDataToSave(req, journeyResponse) {
 		let responseToSave = { answers: {} };
-		const applicationId = req.params.representationRef || req.params.id || req.params.applicationId;
+		const idKey = 'representationRef' in req.params ? 'representationRef' : 'id' in req.params ? 'id' : 'applicationId';
+		const applicationId = getStringParam(req.params, idKey);
+
 		const submittedForId = journeyResponse.answers?.submittedForId;
 		const fileKey = this.getFileGroupKey(submittedForId);
 

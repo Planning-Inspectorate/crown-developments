@@ -178,7 +178,7 @@ describe('case details', () => {
 			const mockRes = { locals: { journeyResponse: { answers: { reference: 'C/A/1' } } } };
 			const viewCaseDetails = buildViewCaseDetails({ getSharePointDrive: () => null });
 
-			await assert.rejects(() => viewCaseDetails(mockReq, mockRes), /id param required/);
+			await assert.rejects(() => viewCaseDetails(mockReq, mockRes), /must be a single string value/);
 		});
 		it('should render without error, with case reference', async () => {
 			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
@@ -826,7 +826,7 @@ describe('case details', () => {
 		it('should throw error when id param missing in validateIdFormat', () => {
 			const req = { params: {} };
 			const res = {};
-			assert.throws(() => validateIdFormat(req, res, () => {}), /id param required/);
+			assert.throws(() => validateIdFormat(req, res, () => {}), /id must be a single string value/);
 		});
 
 		it('should call notFoundHandler for invalid uuid in validateIdFormat', () => {

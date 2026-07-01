@@ -711,7 +711,7 @@ describe('written representations', () => {
 				}
 			};
 			const writtenRepresentationsPage = buildWrittenRepresentationsListPage({ mockDb });
-			assert.rejects(() => writtenRepresentationsPage(mockReq, {}), { message: 'id param required' });
+			assert.rejects(() => writtenRepresentationsPage(mockReq, {}), /must be a single string value/);
 		});
 
 		it('should return not found for invalid id', async () => {
