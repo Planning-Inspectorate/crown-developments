@@ -102,6 +102,8 @@
                                 name="{{ inputField.fieldName }}"
                                 value="{{ inputField.value | default('') }}"
                             >
+                        {% elseif inputField.type == 'separator' %}
+                            <p class="govuk-body">{{ inputField.value }}</p>
                         {% endif %}
                     {% endfor %}
                 {% endcall %}

@@ -7,7 +7,9 @@ import {
 	SameAnswerValidator,
 	StringValidator,
 	AddressValidator,
-	BOOLEAN_OPTIONS
+	BOOLEAN_OPTIONS,
+	CoordinatesValidator,
+	NumericValidator
 } from '@planning-inspectorate/dynamic-forms';
 import {
 	APPLICANT_TYPES,
@@ -29,6 +31,9 @@ import {
 import { createLpaContactQuestion, multiContactQuestions } from './question-factories.ts';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import { getApplicantOrganisationOptions } from '../../../../views/cases/util/applicant-organisation-options.js';
+import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
+import CrossQuestionValidator from '@pins/crowndev-lib/validators/cross-question-validator.js';
+import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 
 type ApplicantOrg = {
 	id: string;
@@ -234,7 +239,131 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 			prefix: 'applicant',
 			title: 'applicant',
 			organisationOptions: applicantOrganisationOptions.length ? applicantOrganisationOptions : null
-		})
+		}),
+		siteAddress: {
+			type: COMPONENT_TYPES.ADDRESS,
+			title: 'Site address',
+			question: 'What is the site address?',
+			hint: 'Optional',
+			fieldName: 'siteAddress',
+			url: 'site-address',
+			validators: [new AddressValidator()]
+		},
+		siteCoordinates: {
+			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
+			title: 'Site coordinates',
+			question: 'What are the coordinates of the site?',
+			hint: 'Optional',
+			fieldName: 'siteCoordinates',
+			url: 'site-coordinates',
+			inputFields: [
+				{
+					fieldName: 'siteEasting',
+					label: 'Easting',
+					formatPrefix: 'Easting: '
+				},
+				{
+					fieldName: 'siteNorthing',
+					label: 'Northing',
+					formatPrefix: 'Northing: '
+				}
+			],
+			validators: [
+				new CoordinatesValidator(
+					{ title: 'Northing', fieldName: 'siteNorthing' },
+					{ title: 'Easting', fieldName: 'siteEasting' }
+				)
+			]
+		},
+		siteArea: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MULTI_FIELD_INPUT,
+			title: 'Site area',
+			question: 'What is the area of the site?',
+			hint: 'You can enter the site area in either hectares or square metres. Use numbers, for example 10.4 or 5.',
+			fieldName: 'siteArea',
+			url: 'site-area',
+			inputFields: [
+				{
+					fieldName: 'siteAreaHectares',
+					type: 'single-line-input',
+					label: 'Site area in hectares (optional)',
+					classes: 'govuk-input--width-5',
+					suffix: { text: 'ha' },
+					formatPrefix: 'Hectares: '
+				},
+				{
+					type: SEPARATOR_TYPE,
+					value: 'or'
+				},
+				{
+					fieldName: 'siteAreaSquareMetres',
+					type: 'single-line-input',
+					label: 'Site area in square metres (optional)',
+					classes: 'govuk-input--width-5',
+					suffix: { text: 'm²' },
+					formatPrefix: 'Square metres: '
+				}
+			],
+			validators: [
+				new MultiFieldInputValidator({
+					fields: [
+						{
+							fieldName: 'siteAreaHectares',
+							validators: [
+								new CrossQuestionValidator({
+									dependencyFieldName: 'siteAreaSquareMetres',
+									useBodyValues: true,
+									validationFunction: (ha: string, sqm: string) => {
+										if (ha?.trim() && sqm?.trim()) {
+											throw new Error('Enter the site area in either hectares or square metres, not both');
+										}
+										return true;
+									}
+								}),
+								new NumericValidator({
+									regex: /^$|^\d+(\.\d+)?$/,
+									regexMessage: 'Site area in hectares must only contain numbers'
+								}),
+								new NumericValidator({
+									regex: /^$|^(?!0+(\.0+)?$).+$/,
+									regexMessage: 'Site area in hectares must be greater than 0'
+								})
+							]
+						},
+						{
+							fieldName: 'siteAreaSquareMetres',
+							validators: [
+								new NumericValidator({
+									regex: /^$|^\d+(\.\d+)?$/,
+									regexMessage: 'Site area in square metres must only contain numbers'
+								}),
+								new NumericValidator({
+									regex: /^$|^(?!0+(\.0+)?$).+$/,
+									regexMessage: 'Site area in square metres must be greater than 0'
+								})
+							]
+						}
+					]
+				})
+			]
+		},
+		developmentDescription: {
+			type: COMPONENT_TYPES.TEXT_ENTRY,
+			title: 'Development description',
+			question: 'What is the description of the development?',
+			hint: QUESTION_TEXT[preAppOrAppPath].developmentDescription,
+			fieldName: 'developmentDescription',
+			url: 'development-description',
+			validators: [
+				new RequiredValidator('Enter a description of the development'),
+				new StringValidator({
+					maxLength: {
+						maxLength: 1000,
+						maxLengthMessage: 'Description of the development must be 1000 characters or less'
+					}
+				})
+			]
+		}
 	};
 
 	const classes = {

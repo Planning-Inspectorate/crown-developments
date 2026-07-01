@@ -69,6 +69,10 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 					questions.manageApplicantContactDetails,
 					new ManageListSection().addQuestion(questions.applicantContactDetails)
 				)
+				.addQuestion(questions.siteAddress)
+				.addQuestion(questions.siteCoordinates)
+				.addQuestion(questions.siteArea)
+				.addQuestion(questions.developmentDescription)
 		],
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',

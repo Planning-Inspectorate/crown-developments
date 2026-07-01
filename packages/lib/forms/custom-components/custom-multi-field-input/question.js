@@ -72,6 +72,7 @@ import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
  *   hint?: string,
  *   options: Array<{ text: string, value: string }>,
  * }} BooleanField
+ */
 
 /**
  * @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.d.ts').CommonQuestionProps} CommonQuestionProps
@@ -85,6 +86,9 @@ import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
 
 /** @type {'hidden'} */
 export const HIDDEN_TYPE = 'hidden';
+
+/** @type {'separator'} */
+export const SEPARATOR_TYPE = 'separator';
 
 /**
  * @class
@@ -131,7 +135,7 @@ export default class CustomMultiFieldInputQuestion extends Question {
 	 */
 	answerForViewModel(answers) {
 		return this.inputFields.map((inputField) => {
-			if (inputField.type === 'hidden') {
+			if (inputField.type === HIDDEN_TYPE || inputField.type === SEPARATOR_TYPE) {
 				return inputField;
 			}
 
