@@ -26,7 +26,8 @@ const buildQuestion = (overrides = {}) => {
 					{ text: 'Phone', value: 'phone' }
 				]
 			},
-			{ type: 'hidden', fieldName: 'hiddenMeta', value: 'abc123' }
+			{ type: 'hidden', fieldName: 'hiddenMeta', value: 'abc123' },
+			{ type: 'separator', value: 'or' }
 		],
 		...overrides
 	});
@@ -52,7 +53,7 @@ describe('CustomMultiFieldInputQuestion', () => {
 		);
 	});
 
-	it('should return values for input fields and preserve hidden fields', () => {
+	it('should return values for input fields and preserve hidden & separator fields', () => {
 		const question = buildQuestion();
 		const answers = {
 			firstName: 'Alice',
@@ -74,7 +75,8 @@ describe('CustomMultiFieldInputQuestion', () => {
 				],
 				value: 'email'
 			},
-			{ type: 'hidden', fieldName: 'hiddenMeta', value: 'abc123' }
+			{ type: 'hidden', fieldName: 'hiddenMeta', value: 'abc123' },
+			{ type: 'separator', value: 'or' }
 		]);
 	});
 

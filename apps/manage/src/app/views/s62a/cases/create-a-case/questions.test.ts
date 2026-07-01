@@ -14,7 +14,7 @@ describe('s62a getQuestions', () => {
 			answers: {}
 		} as unknown as JourneyResponse;
 
-		const questions = getQuestions(mockRes);
+		const questions = getQuestions(mockRes, true);
 
 		assert.strictEqual(
 			questions.applicationType.question,
@@ -45,7 +45,7 @@ describe('s62a getQuestions', () => {
 			}
 		} as unknown as JourneyResponse;
 
-		const questions = getQuestions(mockRes);
+		const questions = getQuestions(mockRes, true);
 
 		assert.strictEqual(
 			questions.applicationType.question,
@@ -67,6 +67,11 @@ describe('s62a getQuestions', () => {
 			'Which secondary local planning authority is this application related to?',
 			'Did not use the correct secondary LPA text for applications'
 		);
+		assert.strictEqual(
+			questions.developmentDescription.hint,
+			'This will be published on the website.',
+			'Did not use the correct hint text for development description for applications'
+		);
 	});
 
 	it('should use the "pre-application" text if the user selected "pre-application"', () => {
@@ -76,7 +81,7 @@ describe('s62a getQuestions', () => {
 			}
 		} as unknown as JourneyResponse;
 
-		const questions = getQuestions(mockRes);
+		const questions = getQuestions(mockRes, true);
 
 		assert.strictEqual(
 			questions.applicationType.question,
@@ -97,6 +102,11 @@ describe('s62a getQuestions', () => {
 			questions.secondaryLocalPlanningAuthority.question,
 			'Which secondary local planning authority is this pre-application advice related to?',
 			'Did not use the correct secondary LPA text for pre-applications'
+		);
+		assert.strictEqual(
+			questions.developmentDescription.hint,
+			null,
+			'Did not use the correct hint text for development description for pre-applications'
 		);
 	});
 });

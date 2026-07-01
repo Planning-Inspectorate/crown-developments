@@ -71,7 +71,11 @@ describe('s62a create a case journey', () => {
 					'manageAgentContacts',
 					'applicantType',
 					'manageApplicantOrganisations',
-					'manageApplicantContactDetails'
+					'manageApplicantContactDetails',
+					'siteAddress',
+					'siteCoordinates',
+					'siteArea',
+					'developmentDescription'
 				]
 			}
 		];

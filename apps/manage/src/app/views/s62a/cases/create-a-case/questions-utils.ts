@@ -8,13 +8,15 @@ export const QUESTION_TEXT = {
 		localPlanningAuthority: 'Which local planning authority is this pre-application advice related to?',
 		hasSecondaryLpa: 'Does this pre-application advice have a secondary local planning authority?',
 		secondaryLocalPlanningAuthority:
-			'Which secondary local planning authority is this pre-application advice related to?'
+			'Which secondary local planning authority is this pre-application advice related to?',
+		developmentDescription: null
 	},
 	[PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION]: {
 		applicationType: 'What type of application is it?',
 		localPlanningAuthority: 'Which local planning authority is this application related to?',
 		hasSecondaryLpa: 'Does this application have a secondary local planning authority?',
-		secondaryLocalPlanningAuthority: 'Which secondary local planning authority is this application related to?'
+		secondaryLocalPlanningAuthority: 'Which secondary local planning authority is this application related to?',
+		developmentDescription: 'This will be published on the website.'
 	}
 };
 
