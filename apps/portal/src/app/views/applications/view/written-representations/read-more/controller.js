@@ -12,6 +12,7 @@ import { mapDriveItemToViewModel } from '@pins/crowndev-lib/documents/view-model
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { isValidUniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../../util/application-util.ts';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  * Render written representation read more page
@@ -21,10 +22,7 @@ import { shouldDisplayApplicationUpdatesLink } from '../../../../util/applicatio
  */
 export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePointDrive, isRepsUploadDocsLive }) {
 	return async (req, res) => {
-		const id = req.params.applicationId;
-		if (!id) {
-			throw new Error('id param required');
-		}
+		const id = getStringParam(req.params, 'applicationId');
 		if (!isValidUuidFormat(id)) {
 			return notFoundHandler(req, res);
 		}

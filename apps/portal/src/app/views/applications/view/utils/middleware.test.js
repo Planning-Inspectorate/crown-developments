@@ -97,7 +97,7 @@ describe('checkIfExpiredMiddleware', () => {
 
 		await assert.rejects(async () => {
 			await middleware(mockReq, mockRes, mockNext);
-		}, /id param required/);
+		}, /must be a single string value/);
 	});
 });
 
@@ -225,6 +225,6 @@ describe('checkIfWithdrawnOrExpiredMiddleware', () => {
 
 		await assert.rejects(async () => {
 			await middleware(mockReq, mockRes, mockNext);
-		}, /id param required/);
+		}, /must be a single string value/);
 	});
 });

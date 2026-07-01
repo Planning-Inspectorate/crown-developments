@@ -15,7 +15,7 @@ describe('application info controller', () => {
 				params: {}
 			};
 			const handler = buildApplicationInformationPage({});
-			await assert.rejects(() => handler(mockReq, {}), { message: 'id param required' });
+			await assert.rejects(() => handler(mockReq, {}), /must be a single string value/);
 		});
 
 		it('should return not found for invalid id', async () => {

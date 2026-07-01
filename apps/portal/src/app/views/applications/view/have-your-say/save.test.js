@@ -16,7 +16,7 @@ describe('have your say', () => {
 				}
 			};
 			const saveHaveYourSayController = buildSaveHaveYourSayController({ db: mockDb, logger: {} });
-			assert.rejects(() => saveHaveYourSayController(mockReq, {}), { message: 'id param required' });
+			assert.rejects(() => saveHaveYourSayController(mockReq, {}), /must be a single string value/);
 		});
 		it('should return not found for invalid id', async () => {
 			const mockReq = { params: { applicationId: 'abc-123' } };
@@ -549,7 +549,7 @@ describe('have your say', () => {
 	describe('viewHaveYourSaySuccessPage', () => {
 		it('should throw error if id is missing', async () => {
 			const mockReq = { params: {} };
-			await assert.rejects(() => viewHaveYourSaySuccessPage(mockReq, {}), { message: 'id param required' });
+			await assert.rejects(() => viewHaveYourSaySuccessPage(mockReq, {}), /must be a single string value/);
 		});
 		it('should return not found for invalid id', async () => {
 			const mockReq = { params: { applicationId: 'abc-123' } };

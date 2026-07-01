@@ -5,17 +5,14 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 import { getEntraGroupMembers } from '#util/entra-groups.ts';
 import { createCaseHistoryViewModel } from './view-model.ts';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 export function buildViewCaseHistory(service: ManageService): AsyncRequestHandler {
 	const { db, audit, logger, getEntraClient } = service;
 	const groupIds = service.entraGroupIds;
 
 	return async (req, res) => {
-		const { id } = req.params;
-
-		if (!id || typeof id !== 'string') {
-			throw new Error('id param required');
-		}
+		const id = getStringParam(req.params, 'id');
 
 		let caseRow;
 		try {

@@ -1,5 +1,6 @@
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  * @param {import('#service').ManageService} service
@@ -8,10 +9,7 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
 export function buildSubmitUnpublishCase({ db, logger }) {
 	return async (req, res) => {
 		/** @type {string} */
-		const id = req.params.id;
-		if (!id) {
-			throw new Error('id param required');
-		}
+		const id = getStringParam(req.params, 'id');
 		logger.info({ id }, 'unpublish case');
 		const crownDevelopment = await db.crownDevelopment.findUnique({ where: { id } });
 		if (!crownDevelopment) {

@@ -615,7 +615,7 @@ describe('validate-representation-middleware', () => {
 			};
 			const logger = mockLogger();
 			const validatedRepresentation = buildValidateRepresentationMiddleware({ db: mockDb, logger });
-			await assert.rejects(() => validatedRepresentation(mockReq, mockRes, mockNext), { message: 'id param required' });
+			await assert.rejects(() => validatedRepresentation(mockReq, mockRes, mockNext), /must be a single string value/);
 		});
 		it('should throw when representationRef is not in params', async () => {
 			const mockReq = {
@@ -643,9 +643,7 @@ describe('validate-representation-middleware', () => {
 			};
 			const logger = mockLogger();
 			const validatedRepresentation = buildValidateRepresentationMiddleware({ db: mockDb, logger });
-			await assert.rejects(() => validatedRepresentation(mockReq, mockRes, mockNext), {
-				message: 'representationRef param required'
-			});
+			await assert.rejects(() => validatedRepresentation(mockReq, mockRes, mockNext), /must be a single string value/);
 		});
 		it('redirect to a 404 page if the representation is not found', async () => {
 			const mockReq = {

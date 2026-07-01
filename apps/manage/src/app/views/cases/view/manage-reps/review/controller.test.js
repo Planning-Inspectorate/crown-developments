@@ -23,14 +23,12 @@ describe('controller', () => {
 		it('should throw if no id', async () => {
 			const mockReq = { params: {} };
 			const mockRes = { locals: {} };
-			await assert.rejects(() => viewRepresentationAwaitingReview(mockReq, mockRes), { message: 'id param required' });
+			await assert.rejects(() => viewRepresentationAwaitingReview(mockReq, mockRes), /must be a single string value/);
 		});
 		it('should throw if no rep ref', async () => {
 			const mockReq = { params: { id: 'case-1' } };
 			const mockRes = { locals: {} };
-			await assert.rejects(() => viewRepresentationAwaitingReview(mockReq, mockRes), {
-				message: 'representationRef param required'
-			});
+			await assert.rejects(() => viewRepresentationAwaitingReview(mockReq, mockRes), /must be a single string value/);
 		});
 		it('should render the representation', async () => {
 			const journeyResponse = new JourneyResponse('id-1', 'id-2', {
@@ -1322,9 +1320,10 @@ describe('controller', () => {
 
 			const viewDocument = buildViewDocument({ getSharePointDrive: () => mockSharePoint });
 
-			await assert.rejects(() => viewDocument({ params: { id: 'case-1', representationRef: 'ref-1' } }, {}), {
-				message: 'itemId param required'
-			});
+			await assert.rejects(
+				() => viewDocument({ params: { id: 'case-1', representationRef: 'ref-1' } }, {}),
+				/must be a single string value/
+			);
 		});
 	});
 
@@ -1963,9 +1962,7 @@ describe('controller', () => {
 			const { redactRepresentationDocumentPost } = buildReviewControllers({});
 			await assert.rejects(
 				() => redactRepresentationDocumentPost({ params: { id: 'case-1', representationRef: 'ref-1' } }, {}),
-				{
-					message: 'itemId param required'
-				}
+				/must be a single string value/
 			);
 		});
 	});

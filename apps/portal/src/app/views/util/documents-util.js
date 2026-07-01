@@ -1,5 +1,6 @@
 import { loadPublishedApplicationOr404 } from './application-util.ts';
 import { forwardStreamContents, getDriveItemDownloadUrl } from '@pins/crowndev-lib/documents/utils.js';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  * Render a document
@@ -10,10 +11,7 @@ import { forwardStreamContents, getDriveItemDownloadUrl } from '@pins/crowndev-l
 export function buildDocumentView(service, fetchImpl) {
 	const { db, logger, sharePointDrive } = service;
 	return async (req, res) => {
-		const documentId = req.params?.documentId;
-		if (!documentId) {
-			throw new Error('documentId param is required');
-		}
+		const documentId = getStringParam(req.params, 'documentId');
 
 		const crownDevelopment = await loadPublishedApplicationOr404(req, res, db);
 		if (!crownDevelopment) {

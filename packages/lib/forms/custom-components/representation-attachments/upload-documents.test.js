@@ -565,7 +565,7 @@ describe('upload-documents.js', () => {
 				await controller(req, {});
 				assert.fail('Expected upload error to be thrown');
 			} catch (err) {
-				assert.strictEqual(err.message, 'id param required');
+				assert.strictEqual(err.message, 'applicationId must be a single string value');
 			}
 		});
 		it('should throw error if application id is not valid uuid', async () => {

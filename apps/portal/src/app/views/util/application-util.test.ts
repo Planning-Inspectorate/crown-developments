@@ -121,9 +121,10 @@ describe('application-util', () => {
 					})
 				}
 			};
-			await assert.rejects(() => loadPublishedApplicationOr404(mockReq, mockRes, mockDb), {
-				message: 'id param required'
-			});
+			await assert.rejects(
+				() => loadPublishedApplicationOr404(mockReq, mockRes, mockDb),
+				/must be a single string value/
+			);
 		});
 	});
 	describe('shouldDisplayApplicationUpdatesLink', () => {

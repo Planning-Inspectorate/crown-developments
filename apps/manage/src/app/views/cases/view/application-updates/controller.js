@@ -11,6 +11,7 @@ import {
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  * @typedef {import('@pins/crowndev-lib/views/banner/banner-builder').BannerMessage} BannerMessage
@@ -35,10 +36,7 @@ function getBannerMessages({ applicationUpdateStatus }) {
 
 export function buildApplicationUpdates({ db }) {
 	return async (req, res) => {
-		const id = req.params?.id;
-		if (!id) {
-			throw new Error('id param required');
-		}
+		const id = getStringParam(req.params, 'id');
 
 		const crownDevelopment = await db.crownDevelopment.findUnique({
 			where: { id },

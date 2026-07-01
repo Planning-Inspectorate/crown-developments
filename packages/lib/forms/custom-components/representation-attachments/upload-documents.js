@@ -7,6 +7,7 @@ import { sortByField } from '../../../util/array.ts';
 import { addSessionData } from '../../../util/session.ts';
 import { getSubmittedForId } from '../../../util/questions.ts';
 import { getApplicationNameFolder } from '../../../util/handle-attachments.js';
+import { getStringParam } from '../../../util/params.ts';
 
 export const JOURNEY_MAP = {
 	myself: 'myself',
@@ -32,10 +33,9 @@ export function uploadDocumentsController(
 	maxNumberOfFilesErrorMsg = `You can only upload up to ${maxNumberOfFiles} files at a time`
 ) {
 	return async (req, res) => {
-		const applicationId = req.params.id || req.params.applicationId;
-		if (!applicationId) {
-			throw new Error('id param required');
-		}
+		const idKey = 'id' in req.params ? 'id' : 'applicationId';
+		const applicationId = getStringParam(req.params, idKey);
+
 		if (!isValidUuidFormat(applicationId)) {
 			return notFoundHandler(req, res);
 		}
@@ -152,8 +152,9 @@ export function uploadDocumentsController(
 export function deleteDocumentsController({ logger, appName, sharePointDrive, getSharePointDrive }, journeyId) {
 	return async (req, res) => {
 		const drive = sharePointDrive ? sharePointDrive : getSharePointDrive(req.session);
-		const applicationId = req.params.id || req.params.applicationId;
-		const itemId = req.params.documentId;
+		const idKey = 'id' in req.params ? 'id' : 'applicationId';
+		const applicationId = getStringParam(req.params, idKey);
+		const itemId = getStringParam(req.params, 'documentId');
 
 		try {
 			await drive.deleteDocumentById(itemId);

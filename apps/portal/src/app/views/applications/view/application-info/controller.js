@@ -16,6 +16,7 @@ import { maybeGetLinkedCaseLink } from '@pins/crowndev-lib/util/linked-case.ts';
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
 import { escapeHtml, isSafeRelativeUrl } from '@pins/crowndev-lib/util/string.ts';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  * @typedef {import('@pins/crowndev-lib/views/banner/banner-builder').BannerMessage} BannerMessage
@@ -59,10 +60,8 @@ async function getBannerMessages(req, db, crownDevelopment, options) {
 export function buildApplicationInformationPage(service) {
 	const { db } = service;
 	return async (req, res) => {
-		const id = req.params.applicationId;
-		if (!id) {
-			throw new Error('id param required');
-		}
+		const id = getStringParam(req.params, 'applicationId');
+
 		if (!isValidUuidFormat(id)) {
 			return notFoundHandler(req, res);
 		}

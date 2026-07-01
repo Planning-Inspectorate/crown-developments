@@ -2,6 +2,7 @@ import { getAnswers } from '@pins/crowndev-lib/util/answers.js';
 import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { JOURNEY_ID } from '../journey.js';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { addAppUpdateStatus } from '../utils.ts';
 
 export function buildCreateController() {
@@ -12,10 +13,7 @@ export function buildCreateController() {
 
 export function buildSaveController({ db, logger }) {
 	return async (req, res) => {
-		const id = req.params?.id;
-		if (!id) {
-			throw new Error('id param required');
-		}
+		const id = getStringParam(req.params, 'id');
 
 		const answers = getAnswers(res);
 

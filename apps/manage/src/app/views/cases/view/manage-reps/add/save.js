@@ -8,6 +8,7 @@ import {
 	deleteRepresentationAttachmentsFolder,
 	moveAttachmentsToCaseFolder
 } from '@pins/crowndev-lib/util/handle-attachments.js';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  * Render add representation success page
@@ -15,10 +16,8 @@ import {
  * @returns {import('express').Handler}
  */
 export async function viewAddRepresentationSuccessPage(req, res) {
-	const id = req.params.id;
-	if (!id) {
-		throw new Error('id param required');
-	}
+	const id = getStringParam(req.params, 'id');
+
 	if (!isValidUuidFormat(id)) {
 		return notFoundHandler(req, res);
 	}
@@ -86,16 +85,15 @@ export function buildSaveRepresentationController(
 }
 
 export async function getApplicationReference(db, req, res) {
-	const id = req.params.id || req.params.applicationId;
-	if (!id) {
-		throw new Error('id param required');
-	}
+	const idKey = 'id' in req.params ? 'id' : 'applicationId';
+	const id = getStringParam(req.params, idKey);
+
 	if (!isValidUuidFormat(id)) {
 		return notFoundHandler(req, res);
 	}
 	const crownDevelopment = await db.crownDevelopment.findUnique({
 		where: {
-			id: req.params.id
+			id
 		},
 		select: {
 			reference: true

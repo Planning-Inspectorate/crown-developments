@@ -12,6 +12,7 @@ import { buildFilters, getFilterQueryItems, hasQueries, mapWithAndWithoutToBoole
 import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
 import { endOfDay, startOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  * Processes filters and error summaries for written representations.
@@ -82,10 +83,7 @@ function mapErrorSummary(filters, formType) {
  */
 export function buildWrittenRepresentationsListPage({ db, logger }) {
 	return async (req, res) => {
-		const id = req.params.applicationId;
-		if (!id) {
-			throw new Error('id param required');
-		}
+		const id = getStringParam(req.params, 'applicationId');
 		if (!isValidUuidFormat(id)) {
 			return notFoundHandler(req, res);
 		}

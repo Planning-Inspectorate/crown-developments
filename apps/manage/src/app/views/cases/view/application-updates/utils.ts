@@ -5,17 +5,10 @@ import {
 	readSessionData
 } from '@pins/crowndev-lib/util/session.ts';
 import type { Request } from 'express';
+import { getStringParams } from '@pins/crowndev-lib/util/params.ts';
 
 export function validateParams(params: Record<string, string>) {
-	const id = params.id;
-	if (!id) {
-		throw new Error('id param required');
-	}
-
-	const applicationUpdateId = params.updateId;
-	if (!applicationUpdateId) {
-		throw new Error('application update id param required');
-	}
+	const { id, updateId: applicationUpdateId } = getStringParams(params, ['id', 'updateId']);
 
 	return { id, applicationUpdateId };
 }

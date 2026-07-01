@@ -2,6 +2,7 @@ import { fetchPublishedApplication, getApplicationStatus, APPLICATION_PUBLISH_ST
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import type { PortalService } from '#service';
 import type { RequestHandler } from 'express';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  * Creates middleware that returns not-found if the application's status matches any of the given blocked statuses.
@@ -13,10 +14,8 @@ function checkStatusMiddleware(
 ): RequestHandler {
 	const { db } = service;
 	return async (req, res, next) => {
-		const id = req.params.applicationId;
-		if (!id || typeof id !== 'string') {
-			throw new Error('id param required');
-		}
+		const id = getStringParam(req.params, 'applicationId');
+
 		const crownDevelopment = await fetchPublishedApplicationFn({
 			db,
 			id

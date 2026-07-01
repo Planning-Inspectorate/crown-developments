@@ -11,10 +11,10 @@ describe('utils.js', () => {
 			});
 		});
 		it('should return error if id param not present', async () => {
-			assert.throws(() => validateParams({}), { message: 'id param required' });
+			assert.throws(() => validateParams({}), /must be a single string value/);
 		});
 		it('should return error if updateId param not present', async () => {
-			assert.throws(() => validateParams({ id: 'id-01' }), { message: 'application update id param required' });
+			assert.throws(() => validateParams({ id: 'id-01' }), /must be a single string value/);
 		});
 	});
 	describe('getApplicationUpdateSessionData', () => {

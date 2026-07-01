@@ -21,7 +21,7 @@ describe('publish case', () => {
 			};
 			const next = mock.fn();
 			const middleware = buildGetValidatedCaseMiddleware({ db: mockDb, logger: mockLogger() });
-			await assert.rejects(() => middleware(mockReq, mockRes, next), { message: 'id param required' });
+			await assert.rejects(() => middleware(mockReq, mockRes, next), /must be a single string value/);
 			assert.strictEqual(next.mock.callCount(), 0);
 		});
 		it('should call db.crownDevelopment.findUnique with the correct id', async () => {
@@ -116,7 +116,7 @@ describe('publish case', () => {
 			};
 			const publishCaseFn = buildPublishCase({ db: mockDb, logger: mockLogger() });
 
-			await assert.rejects(() => publishCaseFn(mockReq, mockRes), { message: 'id param required' });
+			await assert.rejects(() => publishCaseFn(mockReq, mockRes), /must be a single string value/);
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 0);
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 0);
 		});

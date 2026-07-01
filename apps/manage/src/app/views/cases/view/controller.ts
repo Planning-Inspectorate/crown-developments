@@ -26,6 +26,7 @@ import type { Response, Request, Handler, NextFunction } from 'express';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import type { ManageService } from '#service';
 import type { CrownJourneyResponse } from '../../../../types/express-locals.d.ts';
+import { getOptionalStringParams, getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  * Get the journey answers
@@ -177,10 +178,7 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpda
 			throw new Error('Reference not found in journey answers');
 		}
 
-		const id = req.params.id;
-		if (!id || typeof id !== 'string') {
-			throw new Error('id param required');
-		}
+		const id = getStringParam(req.params, 'id');
 
 		// Show publish case validation errors
 		const errors = readSessionData<ErrorSummaryItem[]>(req, id, 'publishErrors', [], 'cases');
@@ -234,10 +232,8 @@ async function getSharePointFolderLink(sharePointDrive: SharePointDrive, path: s
  * Validate the format of the id parameter
  */
 export function validateIdFormat(req: Request, res: Response, next: NextFunction) {
-	const id = req.params.id;
-	if (!id) {
-		throw new Error('id param required');
-	}
+	const id = getStringParam(req.params, 'id');
+
 	if (!isValidUuidFormat(id)) {
 		return notFoundHandler(req, res);
 	}
@@ -283,10 +279,9 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 	const groupIds = service.entraGroupIds;
 
 	return async (req: Request, res: Response, next: NextFunction) => {
-		const { id, section, manageListQuestion } = req.params;
-		if (!id || typeof id !== 'string') {
-			throw new Error('id param required');
-		}
+		const id = getStringParam(req.params, 'id');
+		const { section, manageListQuestion } = getOptionalStringParams(req.params, ['section', 'manageListQuestion']);
+
 		logger.info({ id }, 'view case');
 
 		const crownDevelopment = await db.crownDevelopment.findUnique({

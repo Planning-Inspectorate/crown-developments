@@ -16,7 +16,7 @@ describe('Have Your Say controller', () => {
 			const mockReq = { params: {} };
 			const mockDb = { crownDevelopment: { findUnique: mock.fn() } };
 			const haveYourSayPage = buildHaveYourSayPage({ db: mockDb, config: {} });
-			assert.rejects(() => haveYourSayPage(mockReq, {}), { message: 'id param required' });
+			assert.rejects(() => haveYourSayPage(mockReq, {}), /must be a single string value/);
 		});
 		it('should return not found for invalid id', async () => {
 			const mockReq = {
@@ -104,7 +104,7 @@ describe('Have Your Say controller', () => {
 				}
 			};
 			const isRepresentationWindowOpen = getIsRepresentationWindowOpen(mockDb);
-			assert.rejects(() => isRepresentationWindowOpen(mockReq, {}, mockNext), { message: 'id param required' });
+			assert.rejects(() => isRepresentationWindowOpen(mockReq, {}, mockNext), /must be a single string value/);
 		});
 		it('should 404 if the application is not found', async () => {
 			const mockReq = { params: { applicationId: '123' } };
@@ -321,7 +321,7 @@ describe('Have Your Say controller', () => {
 	describe('viewHaveYourSayDeclarationPage', () => {
 		it('should throw error if id is missing', async () => {
 			const mockReq = { params: {} };
-			await assert.rejects(() => viewHaveYourSayDeclarationPage(mockReq, {}), { message: 'id param required' });
+			await assert.rejects(() => viewHaveYourSayDeclarationPage(mockReq, {}), /must be a single string value/);
 		});
 
 		it('should return not found for invalid id', async () => {

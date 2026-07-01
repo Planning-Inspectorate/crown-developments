@@ -1,3 +1,5 @@
+import { getOptionalStringParam } from '../../../util/params.ts';
+
 /** @typedef {Record<string, { uploadedFiles: Array<Object> }>} FileGroup */
 /** @typedef {Record<string, FileGroup>} Files */
 /** @typedef {Array<{ text: string, href: string }>} ErrorSummary */
@@ -19,11 +21,15 @@
  * @param {import('express').NextFunction} next
  */
 export async function uploadDocumentQuestion(req, res, next) {
+	const idKey = 'representationRef' in req.params ? 'representationRef' : 'id' in req.params ? 'id' : 'applicationId';
+	const id = getOptionalStringParam(req.params, idKey);
+
 	const uploadDocumentQuestionUrls = ['select-attachments', 'attachments', 'upload-request'];
 	if (uploadDocumentQuestionUrls.includes(req.params.question)) {
 		const { journey } = res.locals;
+		const sectionParam = getOptionalStringParam(req.params, 'section');
 
-		const section = journey.getSection(req.params.section);
+		const section = journey.getSection(sectionParam);
 		const question = journey.getQuestionByParams(req.params);
 
 		if (!question || !section) {
@@ -40,7 +46,7 @@ export async function uploadDocumentQuestion(req, res, next) {
 					section,
 					journey,
 					customViewData: {
-						id: req.params.representationRef || req.params.id || req.params.applicationId,
+						id,
 						currentUrl: req.originalUrl,
 						files: req.session?.files
 					}

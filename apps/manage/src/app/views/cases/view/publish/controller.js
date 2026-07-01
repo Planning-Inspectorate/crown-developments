@@ -1,6 +1,7 @@
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  *
@@ -9,11 +10,8 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
  */
 export function buildPublishCase({ db, logger }) {
 	return async (req, res) => {
-		const id = req.params.id;
+		const id = getStringParam(req.params, 'id');
 
-		if (!id) {
-			throw new Error('id param required');
-		}
 		try {
 			await db.crownDevelopment.update({
 				where: { id },
@@ -41,10 +39,8 @@ export function buildPublishCase({ db, logger }) {
 export function buildGetValidatedCaseMiddleware(service) {
 	const { db, logger } = service;
 	return async (req, res, next) => {
-		const id = req.params.id;
-		if (!id) {
-			throw new Error('id param required');
-		}
+		const id = getStringParam(req.params, 'id');
+
 		logger.info({ id }, 'publish case');
 
 		const crownDevelopment = await db.crownDevelopment.findUnique({
