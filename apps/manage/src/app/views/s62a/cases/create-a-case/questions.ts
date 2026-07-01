@@ -9,7 +9,9 @@ import {
 	AddressValidator,
 	BOOLEAN_OPTIONS,
 	CoordinatesValidator,
-	NumericValidator
+	NumericValidator,
+	DateValidator,
+	CrossQuestionValidator
 } from '@planning-inspectorate/dynamic-forms';
 import {
 	APPLICANT_TYPES,
@@ -32,7 +34,6 @@ import { createLpaContactQuestion, multiContactQuestions } from './question-fact
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import { getApplicantOrganisationOptions } from '../../../../views/cases/util/applicant-organisation-options.js';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
-import CrossQuestionValidator from '@pins/crowndev-lib/validators/cross-question-validator.js';
 import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 
 type ApplicantOrg = {
@@ -233,7 +234,7 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 			maximumAnswers: 10,
 			isAllowedEmpty: !!hasAgent,
 			validators: applicantContactsValidator,
-			hint: hasAgent ? 'You can skip adding applicant contact details if you have an agent.' : null
+			hint: hasAgent ? 'You can skip adding applicant contact details if you have an agent.' : undefined
 		},
 		...multiContactQuestions({
 			prefix: 'applicant',
@@ -313,8 +314,8 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 								new CrossQuestionValidator({
 									dependencyFieldName: 'siteAreaSquareMetres',
 									useBodyValues: true,
-									validationFunction: (ha: string, sqm: string) => {
-										if (ha?.trim() && sqm?.trim()) {
+									validationFunction: (ha, sqm) => {
+										if (typeof ha === 'string' && ha?.trim() && typeof sqm === 'string' && sqm?.trim()) {
 											throw new Error('Enter the site area in either hectares or square metres, not both');
 										}
 										return true;
@@ -363,6 +364,24 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 					}
 				})
 			]
+		},
+		notificationSubmittedDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Date notification submitted',
+			question: 'When was the notification of intent submitted? (optional)',
+			hint: 'For example, 27 3 2007',
+			fieldName: 'notificationSubmittedDate',
+			url: 'date-notification-of-intent-submitted',
+			validators: [new DateValidator('notification of intent date', { optional: true })]
+		},
+		expectedSubmissionDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Expected submission date',
+			question: QUESTION_TEXT[preAppOrAppPath].expectedSubmissionDate,
+			hint: 'For example, 27 3 2007',
+			fieldName: 'expectedSubmissionDate',
+			url: 'expected-submission-date-application',
+			validators: [new DateValidator('expected submission date')]
 		}
 	};
 

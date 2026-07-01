@@ -1,4 +1,4 @@
-import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
+import { StringValidator } from '@planning-inspectorate/dynamic-forms';
 
 /**
  * Validator for telephone number input fields.
