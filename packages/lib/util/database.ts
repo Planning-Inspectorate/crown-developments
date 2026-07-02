@@ -2,8 +2,7 @@ import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { Logger } from 'pino';
 
 /**
- * @param {string} [id]
- * @returns {undefined|{id: string}}
+ * Returns a where clause object if an ID is provided, otherwise undefined.
  */
 export function optionalWhere(id: string | undefined) {
 	if (id) {
@@ -21,11 +20,6 @@ type WrapPrismaErrorArgs = {
 
 /**
  * Wrap common Prisma errors so they aren't shown to the user
- * @param {Object} opts
- * @param {Error|*} opts.error
- * @param {import('pino').Logger} opts.logger
- * @param {string} opts.message
- * @param {Object<string, *>} opts.logParams
  */
 export function wrapPrismaError({ error, logger, message, logParams = {} }: WrapPrismaErrorArgs) {
 	// don't show Prisma errors to the user

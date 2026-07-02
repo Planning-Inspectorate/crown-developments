@@ -1,6 +1,6 @@
 import { APPLICATION_PROCEDURE_ID, APPLICATION_STAGE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { toInt } from '@pins/crowndev-lib/util/numbers.ts';
-import { optionalWhere } from '@pins/crowndev-lib/util/database.js';
+import { optionalWhere } from '@pins/crowndev-lib/util/database.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
 import {
 	buildAgentOrganisationNameUpdates,

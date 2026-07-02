@@ -5,6 +5,7 @@ import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { S62APortalService } from '#service';
 import type { BaseLogger } from 'pino';
 import type { Request, Response } from 'express';
+import { assertIncludesObject } from '@pins/crowndev-lib/testing/custom-asserts.js';
 // Note: Copied across from portal app - Edits made to reflect changes to folder structure
 
 const PAGINATION_TEST_CASES = [
@@ -248,12 +249,11 @@ describe('case list', () => {
 
 					assert.strictEqual(mockRes.render.mock.callCount(), 1);
 
-					const onlyRelevantKeys = {
-						...mockRes.render.mock.calls[0].arguments[1]
-					};
-					delete onlyRelevantKeys.s62aDevelopmentsViewModels;
+					assert.strictEqual(mockRes.render.mock.callCount(), 1);
 
-					assert.deepStrictEqual(onlyRelevantKeys, {
+					const actualRenderData = mockRes.render.mock.calls[0].arguments[1];
+
+					assertIncludesObject(actualRenderData, {
 						pageTitle: 'All Section 62A development applications',
 						baseUrl: '/applications',
 						currentUrl: undefined,

@@ -1,12 +1,12 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import {
-	applicationLinks,
 	applicationUpdateToTimelineItem,
 	crownDevelopmentToViewModel,
 	representationTitle,
 	representationToViewModel
 } from './view-model.ts';
+import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('view-model', () => {

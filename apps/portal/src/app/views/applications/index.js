@@ -1,6 +1,6 @@
 import { Router as createRouter } from 'express';
 import { createRoutes as createViewRoutes } from './view/index.js';
-import { buildApplicationListPage } from './list/controller.js';
+import { buildApplicationListPage } from './list/controller.ts';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 
 /**

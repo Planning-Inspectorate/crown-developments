@@ -1,4 +1,4 @@
-import { applicationLinks } from '../view-model.ts';
+import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { combineComparators, normalizeToArray, sortByField, sortByFileName } from '@pins/crowndev-lib/util/array.ts';
 import { loadPublishedApplicationOr404, shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import { publishedFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
