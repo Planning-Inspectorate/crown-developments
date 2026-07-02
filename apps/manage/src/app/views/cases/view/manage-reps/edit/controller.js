@@ -1,5 +1,5 @@
 import { editsToDatabaseUpdates } from '@pins/crowndev-lib/forms/representations/view-model.js';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 import { validateParams } from '../view/controller.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
 import {

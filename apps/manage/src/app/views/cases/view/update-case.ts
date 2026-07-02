@@ -11,7 +11,7 @@ import {
 	executeCaseUpdateWritePlan
 } from './linked-case-updates.ts';
 import { CROWN_DEVELOPMENT_VIEW_INCLUDE, CROWN_DEVELOPMENT_PLANNING_INCLUDE } from './payload-contracts.ts';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { ManageService } from '#service';

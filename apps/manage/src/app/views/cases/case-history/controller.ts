@@ -1,7 +1,7 @@
 import type { ManageService } from '#service';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.js';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 import { getEntraGroupMembers } from '#util/entra-groups.ts';
 import { createCaseHistoryViewModel } from './view-model.ts';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';

@@ -1,7 +1,7 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { applicationLinks } from '../view-model.ts';
-import { fetchPublishedApplication } from '#util/applications.ts';
+import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
+import { fetchPublishedApplication } from '@pins/crowndev-lib/util/applications.ts';
 import { nowIsWithinRange } from '@planning-inspectorate/dynamic-forms';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { loadPublishedApplicationOr404, shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';

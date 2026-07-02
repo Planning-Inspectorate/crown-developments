@@ -1,4 +1,4 @@
-import { applicationLinks } from '../view-model.ts';
+import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { combineComparators, normalizeToArray, sortByField, sortByFileName } from '@pins/crowndev-lib/util/array.ts';
 import { loadPublishedApplicationOr404, shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import { publishedFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
@@ -6,7 +6,7 @@ import { getDocuments } from '@pins/crowndev-lib/documents/get.js';
 import { mapDriveItemToViewModel } from '@pins/crowndev-lib/documents/view-model.js';
 import { CATEGORY_SHAREPOINT_TO_VALUE } from '@pins/crowndev-lib/documents/categories.ts';
 import { splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
-import { isWithdrawnOrExpired } from '#util/applications.ts';
+import { isWithdrawnOrExpired } from '@pins/crowndev-lib/util/applications.ts';
 import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
 import { startOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';

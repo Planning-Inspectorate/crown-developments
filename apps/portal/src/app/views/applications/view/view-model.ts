@@ -1,11 +1,5 @@
+import { formatDateForDisplay, addressToViewModel } from '@planning-inspectorate/dynamic-forms';
 import {
-	formatDateForDisplay,
-	isNowAfterStartDate,
-	nowIsWithinRange,
-	addressToViewModel
-} from '@planning-inspectorate/dynamic-forms';
-import {
-	APPLICATION_PROCEDURE_ID,
 	ORGANISATION_ROLES_ID,
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
@@ -17,40 +11,15 @@ import {
 	truncateComment,
 	truncatedReadMoreCommentLink
 } from '@pins/crowndev-lib/util/questions.ts';
-import {
-	getApplicationStatus,
-	isWithdrawnOrExpired,
-	isExpired,
-	type ApplicationPublishStatus
-} from '#util/applications.ts';
+import { getApplicationStatus, type ApplicationPublishStatus } from '@pins/crowndev-lib/util/applications.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
-export type CrownDevelopmentWithRelations = Prisma.CrownDevelopmentGetPayload<{
-	include: {
-		Type: true;
-		SubType: true;
-		Lpa: true;
-		SecondaryLpa: true;
-		Stage: true;
-		Procedure: true;
-		DecisionOutcome: true;
-		Event: true;
-		SiteAddress: true;
-		Organisations: { include: { Organisation: true } };
-	};
-}>;
-type ApplicationLink = {
-	href: string;
-	text: string;
-};
-type RepresentationWithContacts = Prisma.RepresentationGetPayload<
-	Prisma.RepresentationDefaultArgs & {
-		include: {
-			SubmittedByContact: true;
-			RepresentedContact: true;
-		};
-	}
->;
+import type { BaseDevelopmentView } from '@pins/crowndev-lib/util/shared-view-model.ts';
+import { baseDevelopmentSelect, isInquiry, isHearing } from '@pins/crowndev-lib/util/shared-view-model.ts';
+
+export const formatDate = (date: Date | null | undefined, options?: { format?: string }): string =>
+	formatDateForDisplay(date as Date | undefined, options);
+
 export type CrownDevelopmentView = {
 	id: string;
 	reference: string;
@@ -91,12 +60,9 @@ type RepresentationView = {
 	representationCommentIsRedacted: boolean;
 	representationCategory?: string | null;
 	dateRepresentationSubmitted: string;
-	hasAcceptedAttachments: boolean | null;
+	hasAcceptedAttachments: boolean | undefined;
 	distressingContent: boolean;
 };
-
-const formatDate = (date: Date | null | undefined, options?: { format?: string }): string =>
-	formatDateForDisplay(date as Date | undefined, options);
 
 export function crownDevelopmentToViewModel(
 	crownDevelopment: CrownDevelopmentWithRelations,
@@ -181,71 +147,82 @@ export function crownDevelopmentToViewModel(
 	return fields;
 }
 
-function isInquiry(procedureId: string | null): boolean {
-	return procedureId === APPLICATION_PROCEDURE_ID.INQUIRY;
+export interface CrownDevelopmentCaseListView extends BaseDevelopmentView {
+	applicantOrganisations: string[] | undefined;
+	withdrawnDate: string | undefined;
 }
 
-function isHearing(procedureId: string | null): boolean {
-	return procedureId === APPLICATION_PROCEDURE_ID.HEARING;
-}
+export const crownDevelopmentSelect = {
+	...baseDevelopmentSelect,
+	withdrawnDate: true
+} satisfies Prisma.CrownDevelopmentSelect;
+
+export type CrownDevelopmentCaseListPayload = Prisma.CrownDevelopmentGetPayload<{
+	select: typeof crownDevelopmentSelect;
+}>;
 
 /**
- * Build the application navigation links for the various application view pages.
+ * Crown Dev list view model formatter, formatting extended fields from Crown Development View
+ *
+ * @param crownDevelopment - The main db query input
  */
-export function applicationLinks(
-	id: string,
-	haveYourSayPeriod: { start: Date | null; end: Date | null },
-	representationsPublishDate: Date | null,
-	displayApplicationUpdates: boolean,
-	applicationStatus: ApplicationPublishStatus | undefined = undefined
-): ApplicationLink[] {
-	const links = [
-		{
-			href: `/applications/${id}/application-information`,
-			text: 'Application information'
-		}
-	];
+export function applicationListViewFormattingFunction(crownDevelopment: CrownDevelopmentCaseListPayload) {
+	const extendedFields: Omit<CrownDevelopmentCaseListView, keyof BaseDevelopmentView | 'developmentContactEmail'> = {
+		applicantOrganisations: undefined,
+		withdrawnDate: undefined
+	};
 
-	if (isExpired(applicationStatus)) {
-		return links;
+	if (crownDevelopment.Organisations && crownDevelopment.Organisations.length > 0) {
+		extendedFields.applicantOrganisations = crownDevelopment.Organisations.filter(
+			(organisation) => organisation.role === ORGANISATION_ROLES_ID.APPLICANT
+		).map((item) => item.Organisation.name);
 	}
 
-	links.push({
-		href: `/applications/${id}/documents`,
-		text: 'Documents'
-	});
-	if (
-		!isWithdrawnOrExpired(applicationStatus) &&
-		haveYourSayPeriod?.start &&
-		haveYourSayPeriod?.end &&
-		nowIsWithinRange(haveYourSayPeriod?.start, haveYourSayPeriod?.end)
-	) {
-		links.push({
-			href: `/applications/${id}/have-your-say`,
-			text: 'Have your say'
-		});
-	}
-	if (displayApplicationUpdates) {
-		links.push({
-			href: `/applications/${id}/application-updates`,
-			text: 'Application updates'
-		});
-	}
-	if (representationsPublishDate && isNowAfterStartDate(representationsPublishDate)) {
-		links.push({
-			href: `/applications/${id}/written-representations`,
-			text: 'Written representations'
-		});
+	const withdrawnDateFormatted = formatDate(crownDevelopment.withdrawnDate, { format: 'd MMMM yyyy' });
+	if (withdrawnDateFormatted) {
+		extendedFields.withdrawnDate = withdrawnDateFormatted;
 	}
 
-	return links;
+	return extendedFields;
 }
 
+export type CrownDevelopmentWithRelations = Prisma.CrownDevelopmentGetPayload<{
+	include: {
+		Type: true;
+		SubType: true;
+		ApplicantContact: true;
+		Lpa: true;
+		SecondaryLpa: true;
+		Stage: true;
+		Procedure: true;
+		DecisionOutcome: true;
+		Event: true;
+		SiteAddress: true;
+		Organisations: { include: { Organisation: true } };
+	};
+}>;
+
+type RepresentationWithContactsForView = {
+	reference: string;
+	submittedForId: string;
+	SubmittedByContact?: RepresentationContact | null;
+	RepresentedContact?: RepresentationContact | null;
+	representedTypeId?: string | null;
+	submittedByAgentOrgName?: string | null;
+	comment?: string | null;
+	commentRedacted?: string | null;
+	Category?: { displayName?: string | null } | null;
+	submittedDate: string | Date | undefined;
+	containsAttachments?: boolean;
+	Attachments?: Array<{ statusId: string }>;
+	distressingContentInRepresentation?: boolean | null;
+};
+
 export function representationToViewModel(
-	representation: RepresentationWithContacts,
+	representation: RepresentationWithContactsForView,
 	truncateCommentForView: boolean = false
 ): RepresentationView {
-	const representationComment = representation.commentRedacted || representation.comment;
+	const representationComment = representation.commentRedacted || representation.comment || '';
 	return {
 		representationReference: representation.reference,
 		representationTitle: representationTitle(representation),
@@ -264,8 +241,22 @@ export function representationToViewModel(
 	};
 }
 
-export function representationTitle(representation: RepresentationWithContacts): string | undefined {
-	const getDisplayName = (contact: Prisma.ContactGetPayload<Prisma.ContactDefaultArgs> | null): string =>
+type RepresentationContact = {
+	firstName?: string | null;
+	lastName?: string | null;
+	orgName?: string | null;
+};
+
+type RepresentationTitlePayload = {
+	submittedForId: string;
+	SubmittedByContact?: RepresentationContact | null;
+	RepresentedContact?: RepresentationContact | null;
+	representedTypeId?: string | null;
+	submittedByAgentOrgName?: string | null;
+};
+
+export function representationTitle(representation: RepresentationTitlePayload): string | undefined {
+	const getDisplayName = (contact?: RepresentationContact | null): string =>
 		contact?.orgName ?? nameToViewModel(contact?.firstName ?? undefined, contact?.lastName ?? undefined) ?? '';
 
 	const getOnBehalfTitle = (agent: string | null, organisation: string | null, represented: string | null): string =>
@@ -284,16 +275,14 @@ export function representationTitle(representation: RepresentationWithContacts):
 
 		return representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION
 			? `${agentName} on behalf of ${representedName}`
-			: getOnBehalfTitle(agentName, submittedByAgentOrgName, representedName);
+			: getOnBehalfTitle(agentName, submittedByAgentOrgName ?? null, representedName);
 	}
 }
 
 export function applicationUpdateToTimelineItem(
-	applicationUpdate: Prisma.ApplicationUpdateGetPayload<object>
+	applicationUpdate: { details: string; firstPublished: Date | null } | null
 ): { details: string; firstPublished: string } | undefined {
-	if (!applicationUpdate) {
-		return;
-	}
+	if (!applicationUpdate) return;
 	return {
 		details: applicationUpdate.details,
 		firstPublished: formatDate(applicationUpdate.firstPublished, { format: 'd MMMM yyyy' })

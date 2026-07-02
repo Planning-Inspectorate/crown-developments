@@ -73,6 +73,7 @@
     "@playwright/test": "^1.61.1",
     "@types/escape-html": "^1.0.4",
     "@types/express": "^5.0.6",
+    "@types/lusca": "^1.7.5",
     "@types/express-session": "^1.19.0",
     "@types/lusca": "^1.7.5",
     "@types/nunjucks": "^3.2.6",
