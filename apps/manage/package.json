@@ -40,7 +40,8 @@
   "devDependencies": {
     "nodemon": "*",
     "sass": "*",
-    "supertest": "*"
+    "supertest": "*",
+    "@types/multer": "*"
   },
   "imports": {
     "#service": "./src/app/service.js",

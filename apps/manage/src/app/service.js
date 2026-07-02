@@ -13,6 +13,7 @@ import { Client } from '@microsoft/microsoft-graph-client';
 import { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js';
 import { initBlobStore } from '@pins/crowndev-lib/blob-store/index.ts';
+import { UploadDocumentsService } from './uploads/index.ts';
 
 /**
  * This class encapsulates all the services and clients for the application
@@ -85,6 +86,7 @@ export class ManageService {
 		this.getEntraClient = buildInitEntraClient(!config.auth.disabled, entraGroupCache);
 		this.notifyClient = initGovNotify(config.govNotify, logger);
 		this.blobStoreClient = initBlobStore(config.blobStore, logger);
+		this.uploadDocumentsService = new UploadDocumentsService(this.db, this.blobStore, logger);
 
 		// set up the Azure AI Language client if configured
 		if (config.azureLanguage.endpoint) {
@@ -139,6 +141,13 @@ export class ManageService {
 	 */
 	get db() {
 		return this.dbClient;
+	}
+
+	/**
+	 * @type {import('./uploads/index.ts').UploadDocumentsService}
+	 */
+	get uploadDocuments() {
+		return this.uploadDocumentsService;
 	}
 
 	get entraGroupIds() {

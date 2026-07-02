@@ -157,6 +157,8 @@ model CrownDevelopment {
   developmentPlan                     Boolean?
   /// whether this application involves a right of way
   rightOfWay                          Boolean?
+  Documents                           Document[]
+  DraftDocuments                      DraftDocument[]
 }
 
 /// Address represents an address of a property or place
@@ -558,4 +560,32 @@ model RepresentationReceivedMethod {
   id             String           @id
   displayName    String?
   Representation Representation[]
+}
+
+model Document {
+  id                 String           @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  fileName           String
+  uploadedDate       DateTime         @default(now())
+  size               BigInt           @default(0)
+  blobName           String
+  mimeType           String           @default("application/octet-stream")
+  deletedAt          DateTime?
+  crownDevelopmentId String           @db.UniqueIdentifier
+  CrownDevelopment   CrownDevelopment @relation(fields: [crownDevelopmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// Indicates a document that has been uploaded
+/// to blob but has not yet been committed as a 
+/// real document in the DB.
+model DraftDocument {
+  id                 String           @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  sessionKey         String
+  crownDevelopmentId String           @db.UniqueIdentifier
+  CrownDevelopment   CrownDevelopment @relation(fields: [crownDevelopmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  fileName           String
+  blobName           String
+  size               BigInt
+  mimeType           String           @default("application/octet-stream")
+
+  @@index([sessionKey, crownDevelopmentId])
 }
