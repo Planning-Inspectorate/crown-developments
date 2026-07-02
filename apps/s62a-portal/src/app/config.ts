@@ -1,12 +1,6 @@
-import type { BaseConfig } from '@pins/crowndev-lib/app/config-types.d.ts';
+import type { Config } from './config-types.d.ts';
 import path from 'node:path';
 import { loadEnvFile } from 'node:process';
-
-export type Config = BaseConfig & {
-	s62aDevContactInfo?: {
-		email?: string;
-	};
-};
 
 // cache the config
 let config: Config | undefined;
@@ -35,7 +29,8 @@ export function loadConfig(): Config {
 		REDIS_CONNECTION_STRING,
 		SESSION_SECRET,
 		SQL_CONNECTION_STRING,
-		S62A_DEV_CONTACT_EMAIL
+		S62A_DEV_CONTACT_EMAIL,
+		FEATURE_FLAG_S62A_PORTAL_NOT_LIVE
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();

@@ -1,22 +1,23 @@
+import type { BaseConfig } from '@pins/crowndev-lib/app/config-types.d.ts';
 import type { NotifyConfig } from '@pins/crowndev-lib/govnotify/types';
 
-interface Config {
-	appName: string;
-	appHostname: string;
-	staticCacheControl: {
+export interface Config extends BaseConfig {
+	appName?: string;
+	appHostname?: string;
+	cacheControl: {
 		maxAge: string;
 	};
-	dynamicCacheControl: {
+	dynamicCacheControl?: {
 		enabled: boolean;
 		maxAge: string;
 	};
 	database: {
-		connectionString: string;
+		connectionString: string | undefined;
 	};
 	featureFlags: {
 		isLive: boolean;
-		isRepsUploadDocsLive: boolean;
-		isApplicationUpdatesLive: boolean;
+		//isRepsUploadDocsLive: boolean;
+		//isApplicationUpdatesLive: boolean;
 	};
 	gitSha?: string;
 	googleAnalyticsId?: string;
@@ -30,8 +31,8 @@ interface Config {
 		secret: string;
 	};
 	staticDir: string;
-	govNotify: NotifyConfig;
+	govNotify?: NotifyConfig;
 	s62aDevContactInfo: {
-		email: string;
+		email: string | undefined;
 	};
 }

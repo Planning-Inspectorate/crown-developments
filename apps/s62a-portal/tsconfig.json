@@ -1,17 +1,12 @@
 {
 	"extends": "../../tsconfig.json",
 	"exclude": ["src/.static"],
-	"include": [
-		"src/**/*.ts",
-		"src/**/*.d.ts",
-		"src/app/views/list/controller.test.ts",
-		"../../packages/lib/testing/portals-controller.test.ts"
-	],
+	"include": ["src/**/*.ts", "src/**/*.d.ts"],
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
-			"#service": ["apps/s62a-portal/src/app/service.ts"],
-			"#util/*": ["apps/s62a-portal/src/util/*"]
+			"#service": ["./src/app/service.ts"],
+			"#util/*": ["./src/util/*"]
 		}
 	}
 }

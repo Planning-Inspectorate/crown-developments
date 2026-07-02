@@ -23,43 +23,51 @@ export function isHearing(procedureId: string | null): boolean {
 	return procedureId === APPLICATION_PROCEDURE_ID.HEARING;
 }
 
-export type GenericDevelopmentView = {
+export type BaseDevelopmentView = {
 	id: string;
 	reference: string;
+	developmentContactEmail: string | undefined;
 	description: string | null;
+	lpaName: string | undefined;
+	stage: string;
 };
 
-// Note - Still using placeholder CrownDev database Prisma call
-export type MinimumDevelopmentRequirements = Prisma.CrownDevelopmentGetPayload<{
-	select: {
-		id: true;
-		reference: true;
-		description: true;
-	};
+export const baseDevelopmentSelect = {
+	id: true,
+	reference: true,
+	Lpa: { select: { name: true } },
+	description: true,
+	Stage: { select: { displayName: true } },
+	Type: { select: { displayName: true } },
+	Organisations: { include: { Organisation: { select: { name: true } } } }
+} satisfies Prisma.CrownDevelopmentSelect;
+
+export type BaseDevelopmentPayload = Prisma.CrownDevelopmentGetPayload<{
+	select: typeof baseDevelopmentSelect;
 }>;
 
 /**
  * Higher Order Function to take database queries and prepare them for display as view models
- * @constructor
- * @param {MinimumDevelopmentRequirements} genericDevelopment - The main db query input
- * @param {string} contactEmail - The contact email associated with the app service
- * @param {function} developmentFormattingFunction - Function required to modify the db query input for use in the view model
+ *
+ * @param developmentData - The main db query input
+ * @param contactEmail - The contact email associated with the app service
+ * @param developmentFormattingFunction - Function required to modify the db query input for use in the view model
  */
-export function mapDevelopmentToViewModel<T extends MinimumDevelopmentRequirements>(
-	genericDevelopment: T,
+export function mapDevelopmentToViewModel<T extends BaseDevelopmentPayload, E extends Record<string, unknown>>(
+	developmentData: T,
 	contactEmail: string | undefined,
-	developmentFormattingFunction: (
-		input: T
-	) => Omit<GenericDevelopmentView, 'id' | 'reference' | 'description' | 'developmentContactEmail'>
-): GenericDevelopmentView {
+	developmentFormattingFunction: (input: T) => E
+): BaseDevelopmentView & E {
 	const fields = {
-		id: genericDevelopment.id,
-		reference: genericDevelopment.reference,
-		description: genericDevelopment.description,
-		developmentContactEmail: contactEmail
+		id: developmentData.id,
+		reference: developmentData.reference,
+		description: developmentData.description,
+		developmentContactEmail: contactEmail,
+		lpaName: developmentData.Lpa?.name ?? '',
+		stage: developmentData.Stage?.displayName ?? ''
 	};
-	const extendedFields = developmentFormattingFunction(genericDevelopment);
-	return { ...fields, ...extendedFields };
+	const extendedFields = developmentFormattingFunction(developmentData);
+	return { ...extendedFields, ...fields };
 }
 
 /**

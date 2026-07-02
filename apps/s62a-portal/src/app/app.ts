@@ -45,11 +45,9 @@ export function createApp(service: S62APortalService): Express {
 	// static files
 	app.use(express.static(service.staticDir, service.cacheControl));
 
-	const manifestData = manifest as Record<string, string | undefined>;
-
 	// Cache busting for CSS
 	app.use((req, res, next) => {
-		res.locals.styleCss = manifestData['style.css'] ?? 'style.css';
+		res.locals.styleCss = manifest['style.css'] ?? 'style.css';
 		next();
 	});
 
