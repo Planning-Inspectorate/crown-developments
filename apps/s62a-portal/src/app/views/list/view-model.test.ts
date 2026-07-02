@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { s62aViewFormattingFunction } from './view-model.ts';
 import { mapDevelopmentToViewModel } from '@pins/crowndev-lib/util/shared-view-model.ts';
-import type { S62ADevelopmentListItem, S62ADevelopmentView } from './view-model.ts';
+import type { S62ADevelopmentPayload, S62ADevelopmentView } from './view-model.ts';
 
 describe('view-model', () => {
 	describe('genericDevelopmentToViewModel', () => {
@@ -73,7 +73,7 @@ describe('view-model', () => {
 
 		it(`should map development view model`, () => {
 			const result = mapDevelopmentToViewModel(
-				input as unknown as S62ADevelopmentListItem,
+				input as unknown as S62ADevelopmentPayload,
 				's62a.dev@planninginspectorate.gov.uk',
 				s62aViewFormattingFunction
 			);
@@ -85,7 +85,8 @@ describe('view-model', () => {
 				description: 'A significant project',
 				stage: 'Inquiry',
 				lpaName: 'Test LPA',
-				SecondaryLpa: { name: 'Test SecondaryLPA' }
+				withdrawnDate: null,
+				secondaryLpa: 'Test SecondaryLPA'
 			});
 		});
 
@@ -93,17 +94,17 @@ describe('view-model', () => {
 			const input = {
 				id: 'id-1',
 				reference: 'reference-id-1',
-				description: 'A significant project'
+				description: 'A significant project',
+				applicantOrganisations: ['Applicant organisation 1', 'Applicant organisation 2']
 			};
 			const result = mapDevelopmentToViewModel(
-				input as unknown as S62ADevelopmentListItem,
+				input as unknown as S62ADevelopmentPayload,
 				's62a.dev@planninginspectorate.gov.uk',
 				s62aViewFormattingFunction
 			) as S62ADevelopmentView;
 			assert.strictEqual(result.stage, undefined);
-			assert.strictEqual(result.applicantOrganisations, undefined);
 			assert.strictEqual(result.lpaName, undefined);
-			assert.strictEqual(result.SecondaryLpa, undefined);
+			assert.strictEqual(result.secondaryLpa, undefined);
 		});
 		it(`should not map developmentContactEmail field if config not present`, () => {
 			const input = {
@@ -112,7 +113,7 @@ describe('view-model', () => {
 				description: 'A significant project'
 			};
 			const result = mapDevelopmentToViewModel(
-				input as unknown as S62ADevelopmentListItem,
+				input as unknown as S62ADevelopmentPayload,
 				undefined,
 				s62aViewFormattingFunction
 			) as S62ADevelopmentView;
@@ -121,7 +122,7 @@ describe('view-model', () => {
 
 		it('should map applicantOrganisations if present', () => {
 			const result = mapDevelopmentToViewModel(
-				input as unknown as S62ADevelopmentListItem,
+				input as unknown as S62ADevelopmentPayload,
 				's62a.dev@planninginspectorate.gov.uk',
 				s62aViewFormattingFunction
 			) as S62ADevelopmentView;

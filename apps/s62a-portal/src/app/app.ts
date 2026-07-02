@@ -13,6 +13,8 @@ import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.ts';
 import manifest from '../.static/manifest.json' with { type: 'json' };
 import { addLocalsConfiguration } from '../util/config-middleware.ts';
 
+const manifestEntries = manifest as Record<string, string>;
+
 export function createApp(service: S62APortalService): Express {
 	// create an express app, and configure it for our usage
 	const app = express();
@@ -45,11 +47,10 @@ export function createApp(service: S62APortalService): Express {
 	// static files
 	app.use(express.static(service.staticDir, service.cacheControl));
 
-	const manifestData = manifest as Record<string, string | undefined>;
-
 	// Cache busting for CSS
 	app.use((req, res, next) => {
-		res.locals.styleCss = manifestData['style.css'] ?? 'style.css';
+		//TODO - investigate manifest type issues on PR pipeline
+		res.locals.styleCss = manifestEntries['style.css'] ?? 'style.css';
 		next();
 	});
 

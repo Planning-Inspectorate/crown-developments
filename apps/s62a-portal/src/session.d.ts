@@ -7,6 +7,5 @@ declare module 'express-session' {
 	// using [declaration merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html)
 	interface SessionData {
 		visits?: number;
-		[key: string]: unknown;
 	}
 }

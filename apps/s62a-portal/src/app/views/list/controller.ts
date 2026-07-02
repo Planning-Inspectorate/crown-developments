@@ -4,9 +4,11 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
 import { mapDevelopmentToViewModel } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { s62aViewFormattingFunction } from './view-model.ts';
-import type { S62ADevelopmentListItem, S62ADevelopmentView } from './view-model.ts';
+import type { S62ADevelopmentView } from './view-model.ts';
 import type { PaginationParams } from '@pins/crowndev-lib/views/pagination/pagination.js';
 
+import { s62aDevelopmentSelect } from './view-model.ts';
+import type { S62ADevelopmentPayload } from './view-model.ts';
 /**
  * Example home page controller
  */
@@ -18,25 +20,16 @@ export function buildCaseListPage(service: S62APortalService): AsyncRequestHandl
 
 		const { selectedItemsPerPage, pageNumber, pageSize, skipSize } = getPaginationParams(req);
 
-		let s62aDevelopments: S62ADevelopmentListItem[] = [];
+		let s62aDevelopments: S62ADevelopmentPayload[] = [];
 		let totalS62aDevelopments: number = 0;
 
 		try {
 			[s62aDevelopments, totalS62aDevelopments] = await Promise.all([
-				//TODO - Replace CrownDev DB as placeholder in future development
+				//TODO - Replace CrownDev DB placeholder in future development
 				db.crownDevelopment.findMany({
 					where: { publishDate: { lte: now } },
 					select: {
-						id: true,
-						reference: true,
-						description: true,
-						withdrawnDate: true,
-						ApplicantContact: { select: { orgName: true, firstName: true, lastName: true } },
-						Lpa: { select: { name: true } },
-						SecondaryLpa: { select: { id: true, name: true } },
-						Stage: { select: { displayName: true } },
-						Type: { select: { displayName: true } },
-						Organisations: { include: { Organisation: { select: { name: true } } } }
+						...s62aDevelopmentSelect
 					},
 					orderBy: {
 						reference: 'desc'
@@ -44,7 +37,7 @@ export function buildCaseListPage(service: S62APortalService): AsyncRequestHandl
 					skip: skipSize,
 					take: pageSize
 				}),
-				//TODO - Replace CrownDev DB as placeholder in future development
+				//TODO - Replace CrownDev DB placeholder in future development
 				db.crownDevelopment.count({
 					where: { publishDate: { lte: now } }
 				})
@@ -59,13 +52,8 @@ export function buildCaseListPage(service: S62APortalService): AsyncRequestHandl
 
 		logger.info(`S62A development list page: ${s62aDevelopments.length} case(s) fetched`);
 
-		const s62aDevelopmentsViewModels = s62aDevelopments.map(
-			(s62aDevelopment) =>
-				mapDevelopmentToViewModel(
-					s62aDevelopment,
-					service.contactEmail,
-					s62aViewFormattingFunction
-				) as S62ADevelopmentView
+		const s62aDevelopmentsViewModels: S62ADevelopmentView[] = s62aDevelopments.map((s62aDevelopment) =>
+			mapDevelopmentToViewModel(s62aDevelopment, service.contactEmail, s62aViewFormattingFunction)
 		);
 
 		const { totalPages, resultsStartNumber, resultsEndNumber } = getPageData(

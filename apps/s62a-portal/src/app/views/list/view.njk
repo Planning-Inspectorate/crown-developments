@@ -12,30 +12,25 @@
 
 {% block pageContent %}
     <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full">
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-full">
-                    <h2 class="govuk-heading-l">
-                        {{ pageTitle }}
-                    </h2>
-                </div>
-                <div id="pagination" class="govuk-grid-column-full">
-                    <p class="govuk-body govuk-clearfix">
-                        Showing <strong>{{ paginationParams.resultsStartNumber }}</strong>
-                        to <strong>{{ paginationParams.resultsEndNumber if paginationParams.totalItems > paginationParams.resultsEndNumber else paginationParams.totalDevelopments }}</strong>
-                        of <strong>{{ paginationParams.totalItems }}</strong> results
-                    </p>
-                    {{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalDevelopments, baseUrl, queryParams) }}
-                    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
-
-                    {{ s62aDevelopmentsTable(s62aDevelopmentsViewModels) }}
-                </div>
-
+            <div class="govuk-grid-column-full">
+                <h2 class="govuk-heading-l">
+                    {{ pageTitle }}
+                </h2>
+                    <div id="pagination">
+                        <p class="govuk-body govuk-clearfix">
+                            Showing <strong>{{ paginationParams.resultsStartNumber }}</strong>
+                             to <strong>{{ paginationParams.resultsEndNumber if paginationParams.totalItems > paginationParams.resultsEndNumber else paginationParams.totalItems}}</strong>
+                            of <strong>{{ paginationParams.totalItems }}</strong> results
+                        </p>
+                        {{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalItems, baseUrl, queryParams) }}
+                        <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+    
+                        {{ s62aDevelopmentsTable(s62aDevelopmentsViewModels) }}
+                    </div>
+    
                 {# if pageNumber and totalPages values are both 1 then pagination options not shown #}
                 {{ pagination.renderPagination(paginationParams.pageNumber, paginationParams.totalPages, baseUrl, queryParams) }}
-                
-            </div>
-        </div>
+        </div>            
     </div>
 {% endblock %}
 
@@ -45,10 +40,7 @@
 
 {% macro s62aDevelopmentsTable(s62aDevelopments) %}
     {% set s62aDevelopmentRows = [] %}
-    {% for s62aDevelopment in s62aDevelopmentsViewModels %}
-        {% if s62aDevelopment.applicantOrganisations and s62aDevelopment.applicantOrganisations.length > 0 %}
-            {% set applicantName = s62aDevelopment.applicantOrganisations | join(", ") %}
-        {% endif %}
+    {% for s62aDevelopment in s62aDevelopments %}
         {% if s62aDevelopment.applicantOrganisations and s62aDevelopment.applicantOrganisations.length > 0 %}
             {% set applicantName = s62aDevelopment.applicantOrganisations | join(", ") %}
         {% endif %}
