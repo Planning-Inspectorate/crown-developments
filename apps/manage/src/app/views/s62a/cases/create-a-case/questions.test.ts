@@ -72,6 +72,11 @@ describe('s62a getQuestions', () => {
 			'This will be published on the website.',
 			'Did not use the correct hint text for development description for applications'
 		);
+		assert.strictEqual(
+			questions.expectedSubmissionDate.question,
+			'When is the application expected to be submitted?',
+			'Did not use the correct expected submission question for applications'
+		);
 	});
 
 	it('should use the "pre-application" text if the user selected "pre-application"', () => {
@@ -107,6 +112,11 @@ describe('s62a getQuestions', () => {
 			questions.developmentDescription.hint,
 			null,
 			'Did not use the correct hint text for development description for pre-applications'
+		);
+		assert.strictEqual(
+			questions.expectedSubmissionDate.question,
+			'When is the pre-application advice expected to be submitted?',
+			'Did not use the correct expected submission question for pre-applications'
 		);
 	});
 });

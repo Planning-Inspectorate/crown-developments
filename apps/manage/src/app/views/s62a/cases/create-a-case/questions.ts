@@ -9,7 +9,8 @@ import {
 	AddressValidator,
 	BOOLEAN_OPTIONS,
 	CoordinatesValidator,
-	NumericValidator
+	NumericValidator,
+	DateValidator
 } from '@planning-inspectorate/dynamic-forms';
 import {
 	APPLICANT_TYPES,
@@ -363,6 +364,24 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 					}
 				})
 			]
+		},
+		notificationSubmittedDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Date notification submitted',
+			question: 'When was the notification of intent submitted? (optional)',
+			hint: 'For example, 27 3 2007',
+			fieldName: 'notificationSubmittedDate',
+			url: 'date-notification-of-intent-submitted',
+			validators: [new DateValidator('notification of intent date', { allowEmpty: true })]
+		},
+		expectedSubmissionDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Expected submission date',
+			question: QUESTION_TEXT[preAppOrAppPath].expectedSubmissionDate,
+			hint: 'For example, 27 3 2007',
+			fieldName: 'expectedSubmissionDate',
+			url: 'expected-submission-date-application',
+			validators: [new DateValidator('expected submission date')]
 		}
 	};
 

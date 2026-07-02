@@ -73,6 +73,8 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.addQuestion(questions.siteCoordinates)
 				.addQuestion(questions.siteArea)
 				.addQuestion(questions.developmentDescription)
+				.addQuestion(questions.notificationSubmittedDate)
+				.addQuestion(questions.expectedSubmissionDate)
 		],
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',
