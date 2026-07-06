@@ -7,7 +7,7 @@ import { initLogger } from '@pins/crowndev-lib/util/logger.ts';
 import { initGovNotify } from '@pins/crowndev-lib/govnotify/index.ts';
 import { buildAuditService } from './audit/index.ts';
 import { TextAnalyticsClient } from '@azure/ai-text-analytics';
-import { DefaultAzureCredential } from '@azure/identity';
+import { DefaultAzureCredential, ManagedIdentityCredential } from '@azure/identity';
 import { DEFAULT_CATEGORIES } from '#util/azure-language-redaction.js';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
@@ -88,7 +88,10 @@ export class ManageService {
 
 		// set up the Azure AI Language client if configured
 		if (config.azureLanguage.endpoint) {
-			this.textAnalyticsClient = new TextAnalyticsClient(config.azureLanguage.endpoint, new DefaultAzureCredential());
+			this.textAnalyticsClient = new TextAnalyticsClient(
+				config.azureLanguage.endpoint,
+				new ManagedIdentityCredential()
+			);
 		} else {
 			this.textAnalyticsClient = null;
 			logger.info('Azure AI Language client not configured, skipping initialization');
