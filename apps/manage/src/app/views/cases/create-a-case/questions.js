@@ -17,7 +17,7 @@ import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/
 import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-components/manage-list/validator.js';
 import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.js';
-import { getApplicantContactsValidator } from '../util/applicant-contacts-validator.js';
+import { getApplicantContactsValidator } from '@pins/crowndev-lib/validators/applicant-contacts-validator.ts';
 
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response').JourneyResponse} JourneyResponse */
 

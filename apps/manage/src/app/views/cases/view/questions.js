@@ -3,7 +3,7 @@ import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/
 import NumericValidator from '@planning-inspectorate/dynamic-forms/src/validator/numeric-validator.js';
 import { createQuestions } from '@planning-inspectorate/dynamic-forms/src/questions/create-questions.js';
 import { questionClasses } from '@planning-inspectorate/dynamic-forms/src/questions/questions.js';
-import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
+import { CrossQuestionValidator, COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import {
 	APPLICATION_DECISION_OUTCOME,
 	APPLICATION_PROCEDURE,
@@ -36,8 +36,7 @@ import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/valida
 import CostsApplicationsCommentValidator from '@pins/crowndev-lib/forms/custom-components/costs-applications-comment/costs-applications-comment-validator.js';
 import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-components/manage-list/validator.js';
 import { multiContactQuestions } from '../create-a-case/question-utils.js';
-import { getApplicantContactsValidator } from '../util/applicant-contacts-validator.js';
-import CrossQuestionValidator from '@pins/crowndev-lib/validators/cross-question-validator.js';
+import { getApplicantContactsValidator } from '@pins/crowndev-lib/validators/applicant-contacts-validator.ts';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 
 /**
