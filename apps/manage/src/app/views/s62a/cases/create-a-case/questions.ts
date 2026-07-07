@@ -96,11 +96,11 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 			fieldName: 'lpaId',
 			url: 'local-planning-authority',
 			validators: [
+				new RequiredValidator('Enter the local planning authority'),
 				new SameAnswerValidator(
 					['secondaryLpaId'],
 					'Local planning authority cannot be the same as the secondary local planning authority'
-				),
-				new RequiredValidator('Enter the local planning authority')
+				)
 			],
 			options: lpaOptions
 		},
@@ -120,11 +120,11 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 			fieldName: 'secondaryLpaId',
 			url: 'secondary-local-planning-authority',
 			validators: [
+				new RequiredValidator('Enter the secondary local planning authority'),
 				new SameAnswerValidator(
 					['lpaId'],
 					'Secondary local planning authority cannot be the same as the local planning authority'
-				),
-				new RequiredValidator('Enter the secondary local planning authority')
+				)
 			],
 			options: lpaOptions
 		},
