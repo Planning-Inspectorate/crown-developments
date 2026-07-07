@@ -15,7 +15,7 @@ import {
 import { JOURNEY_ID, createJourney } from './journey.ts';
 import { getQuestions } from './questions.ts';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import { buildSaveController } from './save.ts';
+import { buildSaveController, buildSuccessController } from './save.ts';
 import type { ManageService } from '#service';
 
 export function createRoutes(service: ManageService) {
@@ -34,6 +34,8 @@ export function createRoutes(service: ManageService) {
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 
 	const saveController = buildSaveController(service);
+
+	const successController = buildSuccessController();
 
 	router.get('/', getJourneyResponse, getQuestionJourney, redirectToUnansweredQuestion());
 
@@ -58,6 +60,8 @@ export function createRoutes(service: ManageService) {
 	);
 
 	router.post('/check-your-answers', getJourneyResponse, getCheckJourney, asyncHandler(saveController));
+
+	router.get('/success', asyncHandler(successController));
 
 	return router;
 }

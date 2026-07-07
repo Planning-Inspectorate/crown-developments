@@ -5,6 +5,7 @@ import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.
 import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import { S62aCaseMapper, type CreateCaseAnswers, type CreateInputOptions } from './s62a-case-mapper.ts';
 import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import type { RequestHandler } from 'express';
 
 type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
 
@@ -119,4 +120,30 @@ export async function generateS62aReference(
 	const isPreApp = applicationPhaseId === PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION;
 
 	return isPreApp ? `S62A/PRE/${year}/${nextId}` : `S62A/${year}/${nextId}`;
+}
+
+/**
+ * Controller that populates the success page allowing user to see their new
+ * case reference and go to its new details page.
+ */
+export function buildSuccessController(): RequestHandler {
+	return (req, res) => {
+		const data = req.session?.forms && req.session?.forms[JOURNEY_ID];
+
+		if (!data || typeof data !== 'object' || !('id' in data) || !('reference' in data)) {
+			throw new Error('invalid create case session');
+		}
+
+		if (!data.id || typeof data.id !== 'string' || !data.reference || typeof data.reference !== 'string') {
+			throw new Error('Case ID or reference missing');
+		}
+
+		clearDataFromSession({ req, journeyId: JOURNEY_ID });
+
+		res.render('views/s62a/cases/create-a-case/success.njk', {
+			reference: data.reference,
+			caseListUrl: '/s62a/cases',
+			caseDetailsUrl: `/s62a/cases/${data.id}`
+		});
+	};
 }
