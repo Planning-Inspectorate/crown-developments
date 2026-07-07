@@ -19,3 +19,29 @@
         </div>
     </div>
 {% endmacro %}
+
+{% macro successWithNextSteps(reference, caseListUrl, caseDetailsUrl) %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            {{ govukPanel({
+                titleText: "Case created",
+                html: "Case reference number<br><strong>" + reference + "</strong>"
+            }) }}
+
+            <h2 class="govuk-heading-m">What happens next</h2>
+
+            <p class="govuk-body">
+                You can now manage this application in your case list. Its status is <strong>New</strong>.
+            </p>
+
+            <ul class="govuk-list govuk-list--bullet">
+                <li>
+                    <a href="{{ caseListUrl }}" class="govuk-link">Return to your case list</a>
+                </li>
+                <li>
+                    <a href="{{ caseDetailsUrl }}" class="govuk-link">View the details for this case</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+{% endmacro %}

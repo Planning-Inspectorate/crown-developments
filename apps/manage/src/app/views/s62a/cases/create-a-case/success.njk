@@ -1,0 +1,6 @@
+{% extends "views/layouts/main.njk" %}
+{% from "success/success.njk" import successWithNextSteps %}
+
+{% block pageContent %}
+	{{ successWithNextSteps(reference, caseListUrl, caseDetailsUrl) }}
+{% endblock %}
