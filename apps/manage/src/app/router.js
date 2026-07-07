@@ -17,7 +17,7 @@ export function buildRouter(service) {
 	const { router: authRoutes, guards: authGuards } = createAuthRoutesAndGuards(service);
 	const casesRoutes = createCasesRoutes(service);
 	const notifyRoutes = createNotifyRoutes(service);
-	const s62aRoutes = createS62aRoutes();
+	const s62aRoutes = createS62aRoutes(service);
 
 	router.use('/', monitoringRoutes);
 	if (!service.notifyCallBackDisabled) {

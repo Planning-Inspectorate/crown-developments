@@ -11,7 +11,7 @@ describe('createLpaContactQuestion factory', () => {
 		const question = createLpaContactQuestion(false);
 
 		assert.strictEqual(question.type, COMPONENT_TYPES.MULTI_FIELD_INPUT);
-		assert.strictEqual(question.title, 'LPA');
+		assert.strictEqual(question.title, 'LPA contact');
 		assert.strictEqual(question.question, "What are the LPA's contact details?");
 		assert.strictEqual(question.fieldName, 'lpaContactDetails');
 		assert.strictEqual(question.url, 'lpa-contact-details');
@@ -33,7 +33,7 @@ describe('createLpaContactQuestion factory', () => {
 		const question = createLpaContactQuestion(true);
 
 		assert.strictEqual(question.type, COMPONENT_TYPES.MULTI_FIELD_INPUT);
-		assert.strictEqual(question.title, 'Secondary LPA name');
+		assert.strictEqual(question.title, 'Secondary LPA contact');
 		assert.strictEqual(question.question, "What are the secondary LPA's contact details?");
 		assert.strictEqual(question.fieldName, 'secondaryLpaContactDetails');
 		assert.strictEqual(question.url, 'secondary-lpa-contact-details');

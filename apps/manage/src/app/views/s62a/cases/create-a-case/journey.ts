@@ -25,10 +25,10 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 		journeyId: JOURNEY_ID,
 		sections: [
 			new Section('Create', 'questions')
-				.addQuestion(questions.applicationStage)
+				.addQuestion(questions.applicationPhase)
 
 				.addQuestion(questions.applicationClassification)
-				.withCondition(whenQuestionHasAnswer(questions.applicationStage, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION))
+				.withCondition(whenQuestionHasAnswer(questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION))
 
 				.addQuestion(questions.applicationType)
 				.addQuestion(questions.localPlanningAuthority)

@@ -1,4 +1,10 @@
 import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
+import {
+	MAJOR_OR_NON_MAJORS,
+	PRE_APPLICATION_OR_APPLICATIONS,
+	S62A_STATUSES,
+	SITE_AREA_UNITS
+} from './s62a/data-static.ts';
 
 export const APPLICATION_DECISION_OUTCOME: Prisma.ApplicationDecisionOutcomeCreateInput[] = [
 	{
@@ -589,6 +595,26 @@ type UpsertReferenceDataArgs =
 	| {
 			delegate: Prisma.CategoryDelegate;
 			input: Prisma.CategoryCreateInput;
+	  }
+	| {
+			delegate: Prisma.S62aApplicationPhaseDelegate;
+			input: Prisma.S62aApplicationPhaseCreateInput;
+	  }
+	| {
+			delegate: Prisma.S62aClassificationDelegate;
+			input: Prisma.S62aClassificationCreateInput;
+	  }
+	| {
+			delegate: Prisma.SiteAreaUnitDelegate;
+			input: Prisma.SiteAreaUnitCreateInput;
+	  }
+	| {
+			delegate: Prisma.S62aToApplicantRoleDelegate;
+			input: Prisma.S62aToApplicantRoleCreateInput;
+	  }
+	| {
+			delegate: Prisma.S62aStatusDelegate;
+			input: Prisma.S62aStatusCreateInput;
 	  };
 
 async function upsertReferenceData({ delegate, input }: UpsertReferenceDataArgs): Promise<void> {
@@ -601,6 +627,11 @@ async function upsertReferenceData({ delegate, input }: UpsertReferenceDataArgs)
 }
 
 export async function seedStaticData(dbClient: PrismaClient) {
+	await seedCrownStaticData(dbClient);
+	await seedS62aStaticData(dbClient);
+}
+
+export async function seedCrownStaticData(dbClient: PrismaClient) {
 	await Promise.all(
 		APPLICATION_DECISION_OUTCOME.map((input) =>
 			upsertReferenceData({ delegate: dbClient.applicationDecisionOutcome, input })
@@ -674,5 +705,26 @@ export async function seedStaticData(dbClient: PrismaClient) {
 	await Promise.all(categories.map((input) => upsertReferenceData({ delegate: dbClient.category, input })));
 	await Promise.all(subCategories.map((input) => upsertReferenceData({ delegate: dbClient.category, input })));
 
-	console.log('static data seed complete');
+	console.log('Crown static data seed complete');
+}
+
+export async function seedS62aStaticData(dbClient: PrismaClient) {
+	await Promise.all(
+		PRE_APPLICATION_OR_APPLICATIONS.map((input) =>
+			upsertReferenceData({ delegate: dbClient.s62aApplicationPhase, input })
+		)
+	);
+
+	await Promise.all(
+		MAJOR_OR_NON_MAJORS.map((input) => upsertReferenceData({ delegate: dbClient.s62aClassification, input }))
+	);
+
+	await Promise.all(SITE_AREA_UNITS.map((input) => upsertReferenceData({ delegate: dbClient.siteAreaUnit, input })));
+
+	await Promise.all(
+		ORGANISATION_ROLES.map((input) => upsertReferenceData({ delegate: dbClient.s62aToApplicantRole, input }))
+	);
+
+	await Promise.all(S62A_STATUSES.map((input) => upsertReferenceData({ delegate: dbClient.s62aStatus, input })));
+	console.log('S62A static data seed complete');
 }

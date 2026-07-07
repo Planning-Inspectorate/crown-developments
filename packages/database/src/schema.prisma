@@ -159,6 +159,115 @@ model CrownDevelopment {
   rightOfWay                          Boolean?
 }
 
+/// The main case model for S62A cases, contains the core data fields.
+/// But others will be in reference tables.
+model S62aCase {
+  id          String    @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  reference   String    @unique
+  createdDate DateTime  @default(now())
+  updatedDate DateTime?
+  description String    @db.NVarChar(2000)
+
+  /// Main fields to do with case definitions (e.g. type and status)
+  typeId             String
+  Type               ApplicationType       @relation(fields: [typeId], references: [id])
+  classificationId   String?
+  Classification     S62aClassification?   @relation(fields: [classificationId], references: [id])
+  applicationPhaseId String?
+  ApplicationPhase   S62aApplicationPhase? @relation(fields: [applicationPhaseId], references: [id])
+  s62aStatusId       String?
+  S62aStatus         S62aStatus?           @relation(fields: [s62aStatusId], references: [id])
+
+  hasAgent Boolean @default(false)
+
+  /// Fields to do with personas linked to case (e.g. LPA, applicant etc.)
+  lpaId                 String            @db.UniqueIdentifier
+  Lpa                   Lpa               @relation("PrimaryLpa", fields: [lpaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  lpaContactId          String?           @db.UniqueIdentifier
+  LpaContact            Contact?          @relation("PrimaryLpaContact", fields: [lpaContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  hasSecondaryLpa       Boolean           @default(false)
+  secondaryLpaId        String?           @db.UniqueIdentifier
+  SecondaryLpa          Lpa?              @relation("SecondaryLpa", fields: [secondaryLpaId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  secondaryLpaContactId String?           @db.UniqueIdentifier
+  SecondaryLpaContact   Contact?          @relation("SecondaryLpaContact", fields: [secondaryLpaContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  S62aToApplicants      S62aToApplicant[]
+
+  /// Site area fields
+  siteAddressId          String?       @db.UniqueIdentifier
+  SiteAddress            Address?      @relation(fields: [siteAddressId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  siteEasting            Int?
+  siteNorthing           Int?
+  siteAreaInHectares     Decimal?
+  siteAreaOriginalUnitId String?
+  SiteAreaOriginalUnit   SiteAreaUnit? @relation(fields: [siteAreaOriginalUnitId], references: [id])
+
+  /// Core dates
+  notificationSubmittedDate DateTime?
+  expectedSubmissionDate    DateTime
+}
+
+model S62aStatus {
+  /// unique machine-readable name, not generated, e.g. "new"
+  id          String     @id
+  displayName String?
+  S62aCases   S62aCase[]
+}
+
+/// Site areas can be submitted in 2 different units, although we store in hectares
+/// we need to know the unit so we can convert it back for the frontend
+model SiteAreaUnit {
+  /// unique machine-readable name, not generated, e.g. "hectares"
+  id          String     @id
+  displayName String?
+  S62aCases   S62aCase[]
+}
+
+/// The key distinction between the two case types
+model S62aApplicationPhase {
+  /// unique machine-readable name, not generated, e.g. "pre-application"
+  id          String     @id
+  displayName String?
+  S62aCases   S62aCase[]
+}
+
+/// The classification of the case, only needed for applications
+model S62aClassification {
+  /// unique machine-readable name, not generated, e.g. "major"
+  id          String     @id
+  displayName String?
+  S62aCases   S62aCase[]
+}
+
+/// Represents the role the applicant has for the case
+model S62aToApplicantRole {
+  /// unique machine-readable name, not generated, e.g. "applicant" / "agent"
+  id              String            @id
+  displayName     String?
+  S62aToApplicant S62aToApplicant[]
+}
+
+/// Represents the relationship between S62A applications and their Applicants (Organisation OR Contact)
+/// Follows the "Exclusive Arc" architecture where this is a join table from S62A to Organisation or S62A to Contacts directly
+model S62aToApplicant {
+  id String @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+
+  s62aId String   @db.UniqueIdentifier
+  S62A   S62aCase @relation(fields: [s62aId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  organisationId String?       @db.UniqueIdentifier
+  Organisation   Organisation? @relation(fields: [organisationId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  contactId String?  @db.UniqueIdentifier
+  Contact   Contact? @relation(fields: [contactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  roleId String
+  Role   S62aToApplicantRole @relation(fields: [roleId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  @@index([s62aId])
+  @@index([organisationId])
+  @@index([contactId])
+}
+
 /// Address represents an address of a property or place
 model Address {
   /// internal identifier
@@ -172,6 +281,7 @@ model Address {
   Lpa              Lpa[]
   CrownDevelopment CrownDevelopment[]
   Organisation     Organisation[]
+  s62Acases        S62aCase[]
 }
 
 /// Application History represents the audit events for this app
@@ -199,6 +309,7 @@ model Organisation {
   CrownDevelopmentToOrganisation CrownDevelopmentToOrganisation[]
   /// Relationships between Organisations and Contacts
   OrganisationToContact          OrganisationToContact[]
+  S62aToApplicants               S62aToApplicant[]
 }
 
 /// CrownDevelopmentToOrganisation represents the relationship between CrownDevelopments and Organisations
@@ -240,6 +351,9 @@ model Contact {
   NotifyEmail                      NotifyEmail[]
   /// Relationships between Organisations and Contacts
   OrganisationToContact            OrganisationToContact[]
+  S62aToApplicants                 S62aToApplicant[]
+  PrimaryS62aCases                 S62aCase[]              @relation("PrimaryLpaContact")
+  SecondaryS62aCases               S62aCase[]              @relation("SecondaryLpaContact")
 }
 
 /// OrganisationToContact represents the relationship between Organisations and Contacts
@@ -274,6 +388,8 @@ model Lpa {
   CrownDevelopment          CrownDevelopment[] @relation("PrimaryLpa")
   SecondaryCrownDevelopment CrownDevelopment[] @relation("SecondaryLpa")
   NotifyEmail               NotifyEmail[]
+  S62aCases                 S62aCase[]         @relation("PrimaryLpa")
+  SecondaryS62aCases        S62aCase[]         @relation("SecondaryLpa")
 }
 
 /// Event represents an event in relation to an application, such as a hearing or an inquiry
@@ -394,6 +510,7 @@ model ApplicationType {
   id               String             @id
   displayName      String?
   CrownDevelopment CrownDevelopment[]
+  S62aCases        S62aCase[]
 }
 
 /// ApplicationSubType represents subtypes of applications we recieve

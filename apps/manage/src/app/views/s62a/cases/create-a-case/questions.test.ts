@@ -41,7 +41,7 @@ describe('s62a getQuestions', () => {
 	it('should use the "application" text if the user explicitly selected "application"', () => {
 		const mockRes = {
 			answers: {
-				applicationStage: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION
+				applicationPhase: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION
 			}
 		} as unknown as JourneyResponse;
 
@@ -82,7 +82,7 @@ describe('s62a getQuestions', () => {
 	it('should use the "pre-application" text if the user selected "pre-application"', () => {
 		const mockRes = {
 			answers: {
-				applicationStage: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+				applicationPhase: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
 			}
 		} as unknown as JourneyResponse;
 
