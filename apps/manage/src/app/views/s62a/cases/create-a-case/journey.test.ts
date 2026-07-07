@@ -57,7 +57,7 @@ describe('s62a create a case journey', () => {
 				title: 'Create',
 				segment: 'questions',
 				questions: [
-					'applicationStage',
+					'applicationPhase',
 					'applicationClassification',
 					'applicationType',
 					'localPlanningAuthority',

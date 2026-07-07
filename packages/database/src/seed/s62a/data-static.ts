@@ -45,3 +45,37 @@ export const APPLICANT_TYPES = [
 		displayName: 'Individual'
 	}
 ];
+
+export const SITE_AREA_UNIT_ID = Object.freeze({
+	HECTARES: 'hectares',
+	METRES_SQUARED: 'metres-squared'
+} as const);
+
+export const SITE_AREA_UNITS = [
+	{
+		id: SITE_AREA_UNIT_ID.HECTARES,
+		displayName: 'Hectares'
+	},
+	{
+		id: SITE_AREA_UNIT_ID.METRES_SQUARED,
+		displayName: 'Metres squared'
+	}
+];
+
+/**
+ * NB. statuses are separate to crown as they are
+ * going to be different.
+ *
+ * TODO: once full list of statuses confirmed,
+ * update the list.
+ */
+export const S62A_STATUS_ID = Object.freeze({
+	NEW: 'new'
+} as const);
+
+export const S62A_STATUSES = [
+	{
+		id: S62A_STATUS_ID.NEW,
+		displayName: 'New'
+	}
+];

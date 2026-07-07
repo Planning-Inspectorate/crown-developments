@@ -14,8 +14,11 @@ import {
 } from '@planning-inspectorate/dynamic-forms';
 import { JOURNEY_ID, createJourney } from './journey.ts';
 import { getQuestions } from './questions.ts';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { buildSaveController } from './save.ts';
+import type { ManageService } from '#service';
 
-export function createRoutes() {
+export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });
 
 	function makeGetJourneyCallback(isQuestionView: boolean) {
@@ -29,6 +32,8 @@ export function createRoutes() {
 	const getCheckJourney = buildGetJourney(makeGetJourneyCallback(false));
 
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
+
+	const saveController = buildSaveController(service);
 
 	router.get('/', getJourneyResponse, getQuestionJourney, redirectToUnansweredQuestion());
 
@@ -48,7 +53,11 @@ export function createRoutes() {
 		buildSave(saveDataToSession)
 	);
 
-	router.get('/check-your-answers', getJourneyResponse, getCheckJourney, (req, res) => list(req, res, '', {}));
+	router.get('/check-your-answers', getJourneyResponse, getCheckJourney, (req, res) =>
+		list(req, res, '', { summaryWarningMessage: 'This will send a notification to the applicant or agent' })
+	);
+
+	router.post('/check-your-answers', getJourneyResponse, getCheckJourney, asyncHandler(saveController));
 
 	return router;
 }

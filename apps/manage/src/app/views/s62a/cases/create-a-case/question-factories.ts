@@ -18,7 +18,7 @@ import { HIDDEN_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-m
 export const createLpaContactQuestion = (isSecondary: boolean) => {
 	const prefix = isSecondary ? 'secondaryLpa' : 'lpa';
 	const labelPrefix = isSecondary ? 'secondary LPA' : 'LPA';
-	const title = isSecondary ? 'Secondary LPA name' : 'LPA';
+	const title = `${isSecondary ? 'Secondary ' : ''}LPA contact`;
 
 	return {
 		type: COMPONENT_TYPES.MULTI_FIELD_INPUT,

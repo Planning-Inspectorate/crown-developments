@@ -47,8 +47,8 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 	const lpas = env === ENVIRONMENT_NAME.PROD ? LOCAL_PLANNING_AUTHORITIES_PROD : LOCAL_PLANNING_AUTHORITIES_DEV;
 	const lpaOptions = formatLpaOptions(lpas);
 
-	const preAppOrAppPath = isApplicationType(journeyResponse.answers.applicationStage)
-		? journeyResponse.answers.applicationStage
+	const preAppOrAppPath = isApplicationType(journeyResponse.answers.applicationPhase)
+		? journeyResponse.answers.applicationPhase
 		: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
 
 	const hasAgent = journeyResponse?.answers?.hasAgent === BOOLEAN_OPTIONS.YES;
@@ -62,11 +62,11 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 	const applicantContactsValidator = getApplicantContactsValidator(hasAgent, isIndividual);
 
 	const questions = {
-		applicationStage: {
+		applicationPhase: {
 			type: COMPONENT_TYPES.RADIO,
-			title: 'Application stage',
+			title: 'Application phase',
 			question: 'Is this a pre-application or an application?',
-			fieldName: 'applicationStage',
+			fieldName: 'applicationPhase',
 			url: 'pre-application-or-application',
 			validators: [new RequiredValidator('Select whether this is a pre-application or an application')],
 			options: PRE_APPLICATION_OR_APPLICATIONS.map((t) => ({ text: t.displayName, value: t.id }))
@@ -91,7 +91,7 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 		},
 		localPlanningAuthority: {
 			type: COMPONENT_TYPES.SELECT,
-			title: 'LPA',
+			title: 'LPA name',
 			question: QUESTION_TEXT[preAppOrAppPath].localPlanningAuthority,
 			fieldName: 'lpaId',
 			url: 'local-planning-authority',
