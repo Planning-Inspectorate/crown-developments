@@ -30,7 +30,7 @@ export const createLpaContactQuestion = (isSecondary: boolean) => {
 			{ fieldName: `${prefix}FirstName`, label: 'First name', formatJoinString: ' ' },
 			{ fieldName: `${prefix}LastName`, label: 'Last name' },
 			{ fieldName: `${prefix}EmailAddress`, label: 'Email address' },
-			{ fieldName: `${prefix}PhoneNumber`, label: 'Phone number' }
+			{ fieldName: `${prefix}PhoneNumber`, label: 'Phone number (optional)' }
 		],
 		validators: [
 			new MultiFieldInputValidator({
