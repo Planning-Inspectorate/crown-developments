@@ -79,3 +79,22 @@ export const S62A_STATUSES = [
 		displayName: 'New'
 	}
 ];
+
+export const VIEW_TAB_ID = Object.freeze({
+	OVERVIEW: 'overview',
+	DETAILS: 'details'
+} as const);
+
+/**
+ * The sub-tabs shown on the case details view
+ */
+export const VIEW_TABS = [
+	{
+		id: VIEW_TAB_ID.OVERVIEW,
+		displayName: 'Overview'
+	},
+	{
+		id: VIEW_TAB_ID.DETAILS,
+		displayName: 'Details'
+	}
+];

@@ -1,0 +1,18 @@
+@use 'packages/lib/views/brand/pins-colors.scss' as brand;
+
+// Used on the S62A case details page, unlike standard has a green
+// background and a bold highlight.
+.pins-sub-navigation {
+	.moj-sub-navigation__item--active {
+		.moj-sub-navigation__link {
+			font-weight: bold;
+			text-decoration: none;
+		}
+	}
+
+	.moj-sub-navigation__link[aria-current='page'] {
+		&::before {
+			background-color: brand.$pins-green-200;
+		}
+	}
+}
