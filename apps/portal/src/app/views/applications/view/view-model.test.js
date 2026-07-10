@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import {
+	applicationListViewFormattingFunction,
 	applicationUpdateToTimelineItem,
 	crownDevelopmentToViewModel,
 	representationTitle,
@@ -541,6 +542,110 @@ describe('view-model', () => {
 			assert.deepStrictEqual(response, {
 				details: 'an update',
 				firstPublished: '1 January 2025'
+			});
+		});
+	});
+	describe('applicationListViewFormattingFunction', () => {
+		it('should return empty applicantOrganisations array when no organisations present', () => {
+			const input = {
+				id: 'id-1',
+				reference: 'reference-id-1',
+				withdrawnDate: null
+			};
+			const result = applicationListViewFormattingFunction(input);
+			assert.deepStrictEqual(result.applicantOrganisations, []);
+		});
+
+		it('should return empty applicantOrganisations array when Organisations is empty array', () => {
+			const input = {
+				id: 'id-1',
+				reference: 'reference-id-1',
+				Organisations: [],
+				withdrawnDate: null
+			};
+			const result = applicationListViewFormattingFunction(input);
+			assert.deepStrictEqual(result.applicantOrganisations, []);
+		});
+
+		it('should filter and map only applicant organisations', () => {
+			const input = {
+				id: 'id-1',
+				reference: 'reference-id-1',
+				Organisations: [
+					{
+						role: 'applicant',
+						Organisation: { name: 'Applicant Organisation 1' }
+					},
+					{
+						role: 'applicant',
+						Organisation: { name: 'Applicant Organisation 2' }
+					},
+					{
+						role: 'agent',
+						Organisation: { name: 'Agent Organisation' }
+					}
+				],
+				withdrawnDate: null
+			};
+			const result = applicationListViewFormattingFunction(input);
+			assert.ok(Array.isArray(result.applicantOrganisations));
+			assert.strictEqual(result.applicantOrganisations.length, 2);
+			assert.strictEqual(result.applicantOrganisations[0], 'Applicant Organisation 1');
+			assert.strictEqual(result.applicantOrganisations[1], 'Applicant Organisation 2');
+		});
+
+		it('should exclude non-applicant organisations', () => {
+			const input = {
+				id: 'id-1',
+				reference: 'reference-id-1',
+				Organisations: [
+					{
+						role: 'agent',
+						Organisation: { name: 'Agent Organisation' }
+					}
+				],
+				withdrawnDate: null
+			};
+			const result = applicationListViewFormattingFunction(input);
+			assert.deepStrictEqual(result.applicantOrganisations, []);
+		});
+
+		it('should return undefined for withdrawnDate when not present', () => {
+			const input = {
+				id: 'id-1',
+				reference: 'reference-id-1',
+				withdrawnDate: null
+			};
+			const result = applicationListViewFormattingFunction(input);
+			assert.strictEqual(result.withdrawnDate, undefined);
+		});
+
+		it('should format withdrawnDate when present', () => {
+			const input = {
+				id: 'id-1',
+				reference: 'reference-id-1',
+				withdrawnDate: new Date('2025-06-15T00:00:00.000Z')
+			};
+			const result = applicationListViewFormattingFunction(input);
+			assert.strictEqual(result.withdrawnDate, '15 June 2025');
+		});
+
+		it('should return both applicantOrganisations and formatted withdrawnDate', () => {
+			const input = {
+				id: 'id-1',
+				reference: 'reference-id-1',
+				Organisations: [
+					{
+						role: 'applicant',
+						Organisation: { name: 'Test Applicant' }
+					}
+				],
+				withdrawnDate: new Date('2025-03-20T00:00:00.000Z')
+			};
+			const result = applicationListViewFormattingFunction(input);
+			assert.deepStrictEqual(result, {
+				applicantOrganisations: ['Test Applicant'],
+				withdrawnDate: '20 March 2025'
 			});
 		});
 	});

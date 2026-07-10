@@ -158,7 +158,7 @@ export function crownDevelopmentToViewModel(
 }
 
 export interface CrownDevelopmentCaseListView extends BaseDevelopmentView {
-	applicantOrganisations: string[] | undefined;
+	applicantOrganisations: string[];
 	withdrawnDate: string | undefined;
 }
 
@@ -178,7 +178,7 @@ export type CrownDevelopmentCaseListPayload = Prisma.CrownDevelopmentGetPayload<
  */
 export function applicationListViewFormattingFunction(crownDevelopment: CrownDevelopmentCaseListPayload) {
 	const extendedFields: Omit<CrownDevelopmentCaseListView, keyof BaseDevelopmentView | 'developmentContactEmail'> = {
-		applicantOrganisations: undefined,
+		applicantOrganisations: [],
 		withdrawnDate: undefined
 	};
 
