@@ -5,13 +5,12 @@ import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { APPLICATION_PROCEDURE_ID, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { AUDIT_ACTIONS } from '../../../audit/index.ts';
 
 /**
  * buildUpdateCase now uses an interactive transaction: db.$transaction(async (tx) => { ... }).
  * Most tests use a plain mocked db object as the tx client, so we make $transaction invoke
  * the callback with that same object.
- *
- * @param {any} mockDb
  */
 function makeTransactionInteractive(mockDb) {
 	mockDb.$transaction.mock.mockImplementation(async (arg) => {
@@ -2536,5 +2535,302 @@ describe('case details', () => {
 
 			assert.strictEqual(db.contact.update.mock.callCount(), 0);
 		});
+	});
+});
+
+describe('audit recording', () => {
+	const createMockAudit = () => ({
+		recordMany: mock.fn(() => Promise.resolve())
+	});
+
+	const buildDbForAudit = (existingCaseData = {}) => {
+		const mockDb = {
+			$transaction: mock.fn(() => Promise.resolve()),
+			crownDevelopment: {
+				update: mock.fn(),
+				findUnique: mock.fn(() => ({
+					id: 'case-1',
+					...existingCaseData
+				}))
+			}
+		};
+		makeTransactionInteractive(mockDb);
+		return mockDb;
+	};
+
+	it('should record audit entry with FIELD_SET action when setting a field from null', async () => {
+		const logger = mockLogger();
+		const mockAudit = createMockAudit();
+		const mockDb = buildDbForAudit({ siteArea: null });
+
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const mockReq = {
+			params: { id: 'case-1' },
+			session: { account: { localAccountId: 'user-123' } }
+		};
+		const mockRes = { locals: {} };
+		const data = {
+			answers: {
+				siteArea: 10.5
+			}
+		};
+
+		await updateCase({ req: mockReq, res: mockRes, data });
+
+		assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+		const entries = mockAudit.recordMany.mock.calls[0].arguments[0];
+		assert.strictEqual(entries.length, 1);
+		assert.strictEqual(entries[0].caseId, 'case-1');
+		assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_SET);
+		assert.strictEqual(entries[0].userId, 'user-123');
+		assert.strictEqual(entries[0].metadata.fieldName, 'Site area (ha)');
+		assert.strictEqual(entries[0].metadata.oldValue, '-');
+		assert.strictEqual(entries[0].metadata.newValue, '10.5');
+	});
+
+	it('should record audit entry with FIELD_CLEARED action when clearing a field to null', async () => {
+		const logger = mockLogger();
+		const mockAudit = createMockAudit();
+		const mockDb = buildDbForAudit({ lpaReference: 'ABC/123' });
+
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit }, true);
+		const mockReq = {
+			params: { id: 'case-1' },
+			session: { account: { localAccountId: 'user-456' } }
+		};
+		const mockRes = { locals: {} };
+		const data = {
+			answers: {
+				lpaReference: 'ABC/123' // Will be cleared to null because clearAnswer=true
+			}
+		};
+
+		await updateCase({ req: mockReq, res: mockRes, data });
+
+		assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+		const entries = mockAudit.recordMany.mock.calls[0].arguments[0];
+		assert.strictEqual(entries.length, 1);
+		assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_CLEARED);
+		assert.strictEqual(entries[0].metadata.fieldName, 'LPA reference');
+		assert.strictEqual(entries[0].metadata.oldValue, 'ABC/123');
+		assert.strictEqual(entries[0].metadata.newValue, '-');
+	});
+
+	it('should record audit entry with FIELD_UPDATED action when changing a field value', async () => {
+		const logger = mockLogger();
+		const mockAudit = createMockAudit();
+		const mockDb = buildDbForAudit({ lpaReference: 'OLD/REF' });
+
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const mockReq = {
+			params: { id: 'case-1' },
+			session: { account: { localAccountId: 'user-789' } }
+		};
+		const mockRes = { locals: {} };
+		const data = {
+			answers: {
+				lpaReference: 'NEW/REF'
+			}
+		};
+
+		await updateCase({ req: mockReq, res: mockRes, data });
+
+		assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+		const entries = mockAudit.recordMany.mock.calls[0].arguments[0];
+		assert.strictEqual(entries.length, 1);
+		assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_UPDATED);
+		assert.strictEqual(entries[0].metadata.fieldName, 'LPA reference');
+		assert.strictEqual(entries[0].metadata.oldValue, 'OLD/REF');
+		assert.strictEqual(entries[0].metadata.newValue, 'NEW/REF');
+	});
+
+	it('should not record audit entry when field value has not changed', async () => {
+		const logger = mockLogger();
+		const mockAudit = createMockAudit();
+		const mockDb = buildDbForAudit({ lpaReference: 'ABC/123' });
+
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const mockReq = {
+			params: { id: 'case-1' },
+			session: { account: { localAccountId: 'user-123' } }
+		};
+		const mockRes = { locals: {} };
+		const data = {
+			answers: {
+				lpaReference: 'ABC/123' // Same value as existing
+			}
+		};
+
+		await updateCase({ req: mockReq, res: mockRes, data });
+
+		assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+		const entries = mockAudit.recordMany.mock.calls[0].arguments[0];
+		assert.strictEqual(entries.length, 0);
+	});
+
+	it('should not block user operation when audit recording fails', async () => {
+		const logger = mockLogger();
+		const mockAudit = {
+			recordMany: mock.fn(() => Promise.reject(new Error('Audit service unavailable')))
+		};
+		const mockDb = buildDbForAudit({ siteArea: null });
+
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const mockReq = {
+			params: { id: 'case-1' },
+			session: { account: { localAccountId: 'user-123' } }
+		};
+		const mockRes = { locals: {} };
+		const data = {
+			answers: {
+				siteArea: 10.5
+			}
+		};
+
+		// Should not throw
+		await assert.doesNotReject(() => updateCase({ req: mockReq, res: mockRes, data }));
+
+		// Verify the case was still updated
+		assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+
+		// Verify error was logged
+		assert.strictEqual(logger.error.mock.callCount(), 1);
+		const errorCall = logger.error.mock.calls[0];
+		assert.strictEqual(errorCall.arguments[0].caseId, 'case-1');
+		assert.strictEqual(errorCall.arguments[1], 'Failed to record audit events');
+	});
+
+	it('should not call audit when database transaction fails', async () => {
+		const logger = mockLogger();
+		const mockAudit = createMockAudit();
+		const mockDb = {
+			$transaction: mock.fn(() => Promise.reject(new Error('Database error'))),
+			crownDevelopment: {
+				update: mock.fn(),
+				findUnique: mock.fn(() => ({ id: 'case-1', siteArea: null }))
+			}
+		};
+
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const mockReq = {
+			params: { id: 'case-1' },
+			session: { account: { localAccountId: 'user-123' } }
+		};
+		const mockRes = { locals: {} };
+		const data = {
+			answers: {
+				siteArea: 10.5
+			}
+		};
+
+		await assert.rejects(() => updateCase({ req: mockReq, res: mockRes, data }));
+
+		// Verify audit was NOT called because the update failed
+		assert.strictEqual(mockAudit.recordMany.mock.callCount(), 0);
+	});
+
+	it('should handle undefined userId in audit entries', async () => {
+		const logger = mockLogger();
+		const mockAudit = createMockAudit();
+		const mockDb = buildDbForAudit({ siteArea: null });
+
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const mockReq = {
+			params: { id: 'case-1' },
+			session: {} // No account/localAccountId
+		};
+		const mockRes = { locals: {} };
+		const data = {
+			answers: {
+				siteArea: 10.5
+			}
+		};
+
+		await updateCase({ req: mockReq, res: mockRes, data });
+
+		assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+		const entries = mockAudit.recordMany.mock.calls[0].arguments[0];
+		assert.strictEqual(entries[0].userId, undefined);
+	});
+
+	it('should record audit entry for hearingVenue field', async () => {
+		const logger = mockLogger();
+		const mockAudit = createMockAudit();
+		const mockDb = buildDbForAudit({ hearingVenue: null });
+
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const mockReq = {
+			params: { id: 'case-1' },
+			session: { account: { localAccountId: 'user-123' } }
+		};
+		const mockRes = {
+			locals: {
+				originalAnswers: {
+					eventId: 'event-1',
+					procedureId: 'hearing'
+				}
+			}
+		};
+		const data = {
+			answers: {
+				hearingVenue: 'Bristol Hearing Centre'
+			}
+		};
+
+		await updateCase({ req: mockReq, res: mockRes, data });
+
+		assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+		const entries = mockAudit.recordMany.mock.calls[0].arguments[0];
+		assert.strictEqual(entries.length, 1);
+		assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_SET);
+		assert.strictEqual(entries[0].metadata.fieldName, 'Hearing venue');
+		assert.strictEqual(entries[0].metadata.newValue, 'Bristol Hearing Centre');
+	});
+
+	it('should record audit entry for agentOrganisationName field', async () => {
+		const logger = mockLogger();
+		const mockAudit = createMockAudit();
+		const mockDb = {
+			$transaction: mock.fn(() => Promise.resolve()),
+			organisation: {
+				create: mock.fn(() => ({ id: 'new-agent-org-1' })),
+				update: mock.fn(() => ({ kind: 'organisation.update' }))
+			},
+			crownDevelopmentToOrganisation: {
+				create: mock.fn((args) => args)
+			},
+			crownDevelopment: {
+				update: mock.fn(() => ({})),
+				findUnique: mock.fn(() => ({
+					id: 'case-1',
+					linkedParentId: null,
+					ChildrenCrownDevelopment: [],
+					Organisations: []
+				})),
+				findMany: mock.fn(() => Promise.resolve([{ id: 'case-1', Organisations: [] }]))
+			}
+		};
+		makeTransactionInteractive(mockDb);
+
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const mockReq = {
+			params: { id: 'case-1' },
+			session: { account: { localAccountId: 'user-123' } }
+		};
+		const mockRes = { locals: {} };
+		const data = {
+			answers: {
+				agentOrganisationName: 'New Agent Org Ltd'
+			}
+		};
+
+		await updateCase({ req: mockReq, res: mockRes, data });
+
+		assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+		const entries = mockAudit.recordMany.mock.calls[0].arguments[0];
+		assert.strictEqual(entries.length, 1);
+		assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_SET);
+		assert.strictEqual(entries[0].metadata.fieldName, 'Agent organisation name');
+		assert.strictEqual(entries[0].metadata.newValue, 'New Agent Org Ltd');
 	});
 });

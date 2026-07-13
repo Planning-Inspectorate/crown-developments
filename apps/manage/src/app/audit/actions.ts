@@ -11,7 +11,12 @@
 
 export const AUDIT_ACTIONS = {
 	// Case
-	CASE_CREATED: 'CASE_CREATED'
+	CASE_CREATED: 'CASE_CREATED',
+
+	// Standard fields
+	FIELD_SET: 'FIELD_SET',
+	FIELD_UPDATED: 'FIELD_UPDATED',
+	FIELD_CLEARED: 'FIELD_CLEARED'
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
@@ -36,7 +41,12 @@ export function isAuditAction(value: string): value is AuditAction {
  */
 export const AUDIT_TEMPLATES: Record<AuditAction, string> = {
 	// Case
-	[AUDIT_ACTIONS.CASE_CREATED]: '{reference} was created'
+	[AUDIT_ACTIONS.CASE_CREATED]: '{reference} was created',
+
+	// Standard fields
+	[AUDIT_ACTIONS.FIELD_SET]: '{fieldName} was set to {newValue}',
+	[AUDIT_ACTIONS.FIELD_UPDATED]: '{fieldName} was updated from {oldValue} to {newValue}',
+	[AUDIT_ACTIONS.FIELD_CLEARED]: '{fieldName} ({oldValue}) was removed'
 };
 
 /**
