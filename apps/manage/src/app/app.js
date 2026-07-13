@@ -47,8 +47,24 @@ export function getApp(service) {
 			// Multer multipart/form-data needs to be handled before Lusca CSRF check
 			// upload-documents is the POST API the file-upload component in our journeys, which uses Multer
 			next();
+		} else if (req.path.endsWith('/notify/callback') && req.method === 'POST') {
+			// Callback from notify doesn't contain a csrf, as it is a 3rd party api
+			next();
 		} else {
-			csrfMiddleware(req, res, next);
+			csrfMiddleware(req, res, (err) => {
+				if (err) {
+					service.logger.error(
+						{
+							method: req.method,
+							path: req.path,
+							contentType: req.headers['content-type'],
+							hasSession: !!req.session
+						},
+						'CSRF token validation failed'
+					);
+				}
+				next(err);
+			});
 		}
 	});
 
