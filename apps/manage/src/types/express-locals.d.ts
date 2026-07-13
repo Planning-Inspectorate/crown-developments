@@ -1,6 +1,6 @@
 import type { Journey } from '@planning-inspectorate/dynamic-forms';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types';
-import type { CrownDevelopmentViewModel } from '../app/views/cases/view/view-model.ts';
+import type { CrownDevelopmentViewModel, mapNotes } from '../app/views/cases/view/view-model.ts';
 
 export type CrownJourneyResponse = {
 	journeyId: string;
@@ -22,6 +22,8 @@ declare global {
 			config?: Record<string, unknown>;
 			cspNonce?: string;
 			styleCss?: string;
+			caseNotes?: ReturnType<typeof mapNotes>['caseNotes'];
+			allCaseNotesCount?: number;
 		}
 	}
 }

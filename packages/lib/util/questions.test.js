@@ -10,6 +10,7 @@ import {
 	truncatedReadMoreCommentLink
 } from './questions.ts';
 import { REPRESENTATION_SUBMITTED_FOR_ID, WITHDRAWAL_REASON } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { TRUNCATED_MAX_LENGTH } from '@planning-inspectorate/dynamic-forms';
 
 describe('questions', () => {
 	describe('shouldTruncateComment', () => {
@@ -17,19 +18,19 @@ describe('questions', () => {
 			const comment =
 				'It began with an ordinary morning. The air smelled faintly of dew, the street empty but for leaves drifting lazily. Johnathan Le-Smithard adjusted his collar, noting his watch was three minutes late—a stubborn old thing, loyal only to its own time. Across the street, a bakery opened, the scent of bread spilling into the cool air. A woman in a green scarf carried loaves in quiet balance. The square stirred slowly; Johnathan Le-Smithard wrote in his notebook, letting the day delay his errands, wholly unhurried and serene.';
 
-			assert.deepEqual(shouldTruncateComment(comment), true);
+			assert.deepEqual(shouldTruncateComment(comment, TRUNCATED_MAX_LENGTH), true);
 		});
 		it('should return false if comment does not exceed 500 characters', () => {
-			assert.deepEqual(shouldTruncateComment('a short comment'), false);
+			assert.deepEqual(shouldTruncateComment('a short comment', TRUNCATED_MAX_LENGTH), false);
 		});
 		it('should return false for an empty string', () => {
-			assert.deepEqual(shouldTruncateComment(''), false);
+			assert.deepEqual(shouldTruncateComment('', TRUNCATED_MAX_LENGTH), false);
 		});
 		it('should return false for a comment of exactly 500 characters', () => {
-			assert.deepEqual(shouldTruncateComment('a'.repeat(500)), false);
+			assert.deepEqual(shouldTruncateComment('a'.repeat(500), TRUNCATED_MAX_LENGTH), false);
 		});
 		it('should return true for a comment of exactly 501 characters', () => {
-			assert.deepEqual(shouldTruncateComment('a'.repeat(501)), true);
+			assert.deepEqual(shouldTruncateComment('a'.repeat(501), TRUNCATED_MAX_LENGTH), true);
 		});
 	});
 	describe('truncateComment', () => {
@@ -38,23 +39,23 @@ describe('questions', () => {
 				'It began with an ordinary morning. The air smelled faintly of dew, the street empty but for leaves drifting lazily. Johnathan Le-Smithard adjusted his collar, noting his watch was three minutes late—a stubborn old thing, loyal only to its own time. Across the street, a bakery opened, the scent of bread spilling into the cool air. A woman in a green scarf carried loaves in quiet balance. The square stirred slowly; Johnathan Le-Smithard wrote in his notebook, letting the day delay his errands, wholly unhurried and serene.';
 
 			assert.deepEqual(
-				truncateComment(comment),
+				truncateComment(comment, TRUNCATED_MAX_LENGTH),
 				'It began with an ordinary morning. The air smelled faintly of dew, the street empty but for leaves drifting lazily. Johnathan Le-Smithard adjusted his collar, noting his watch was three minutes late—a stubborn old thing, loyal only to its own time. Across the street, a bakery opened, the scent of bread spilling into the cool air. A woman in a green scarf carried loaves in quiet balance. The square stirred slowly; Johnathan Le-Smithard wrote in his notebook, letting the day delay his errands, who... '
 			);
 		});
 		it('should not truncate comment if it does not exceed 500 characters', () => {
-			assert.deepEqual(truncateComment('a short comment'), 'a short comment');
+			assert.deepEqual(truncateComment('a short comment', TRUNCATED_MAX_LENGTH), 'a short comment');
 		});
 		it('should return an empty string unchanged', () => {
-			assert.deepEqual(truncateComment(''), '');
+			assert.deepEqual(truncateComment('', TRUNCATED_MAX_LENGTH), '');
 		});
 		it('should not truncate a comment of exactly 500 characters', () => {
 			const comment = 'a'.repeat(500);
-			assert.deepEqual(truncateComment(comment), comment);
+			assert.deepEqual(truncateComment(comment, TRUNCATED_MAX_LENGTH), comment);
 		});
 		it('should truncate a comment of exactly 501 characters to 500 chars plus ellipsis', () => {
 			const comment = 'a'.repeat(501);
-			assert.deepEqual(truncateComment(comment), `${'a'.repeat(500)}... `);
+			assert.deepEqual(truncateComment(comment, TRUNCATED_MAX_LENGTH), `${'a'.repeat(500)}... `);
 		});
 	});
 	describe('truncatedReadMoreCommentLink', () => {

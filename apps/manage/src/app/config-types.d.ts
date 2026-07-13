@@ -35,6 +35,7 @@ interface Config {
 	};
 	featureFlags: {
 		isS62ALive: boolean;
+		isCaseNotesLive: boolean;
 	};
 	gitSha?: string;
 	govNotify: NotifyConfig;

@@ -156,6 +156,10 @@ export class ManageService {
 		return this.#config.featureFlags?.isS62ALive;
 	}
 
+	get isCaseNotesLive() {
+		return this.#config.featureFlags?.isCaseNotesLive;
+	}
+
 	get secureSession() {
 		return this.#config.NODE_ENV === 'production';
 	}

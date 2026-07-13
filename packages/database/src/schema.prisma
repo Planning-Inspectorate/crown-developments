@@ -141,6 +141,7 @@ model CrownDevelopment {
   siteVisitDate                       DateTime?
   ApplicationUpdates                  ApplicationUpdate[]
   Audit                               ApplicationHistory[]
+  Notes                               ApplicationNote[]
   /// whether liable for a Community Infrastructure Levy (CIL)
   cilLiable                           Boolean?
   /// how much it is CIL liable for
@@ -318,6 +319,19 @@ model ApplicationHistory {
   createdAt     DateTime         @default(now())
 
   @@index([applicationId, createdAt(sort: Desc)])
+}
+
+/// ApplicationNote represents the case notes for the app
+model ApplicationNote {
+  id            String           @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  comment       String           @db.NVarChar(500)
+  createdAt     DateTime         @default(now())
+  /// Entra ID of the author.
+  userId        String
+  applicationId String           @db.UniqueIdentifier
+  Application   CrownDevelopment @relation(fields: [applicationId], references: [id])
+
+  @@index([applicationId])
 }
 
 model Organisation {

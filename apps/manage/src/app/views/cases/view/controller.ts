@@ -7,7 +7,7 @@ import {
 	yesNoToBoolean
 } from '@planning-inspectorate/dynamic-forms';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { crownDevelopmentToViewModel, type CrownDevelopmentViewModel } from './view-model.ts';
+import { crownDevelopmentToViewModel, mapNotes, type CrownDevelopmentViewModel } from './view-model.ts';
 import { getQuestions } from './questions.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
@@ -171,7 +171,7 @@ async function getBannerMessages(id: string, res: Response, req: Request, db: Ma
 /**
  * Controller for the case details page, which shows the case summary and the list of sections to manage.
  */
-export function buildViewCaseDetails({ db, getSharePointDrive }: ManageService): Handler {
+export function buildViewCaseDetails({ db, getSharePointDrive, isCaseNotesLive }: ManageService): Handler {
 	return async (req, res) => {
 		const reference = getJourneyAnswers(res)?.reference;
 		if (!reference) {
@@ -192,6 +192,8 @@ export function buildViewCaseDetails({ db, getSharePointDrive }: ManageService):
 		const baseUrl = req.baseUrl;
 
 		const banner = await getBannerMessages(id, res, req, db);
+		const notes = res.locals.caseNotes ?? [];
+		const allCaseNotesCount = res.locals.allCaseNotesCount ?? 0;
 		const lastModified = res.locals.lastModified as { updatedDate: string | null; by: string | null } | undefined;
 		const lastModifiedDate = lastModified?.updatedDate ?? '-';
 		const lastModifiedBy = lastModified?.by ?? '-';
@@ -208,7 +210,10 @@ export function buildViewCaseDetails({ db, getSharePointDrive }: ManageService):
 			sharePointLink,
 			hideButton: true,
 			hideStatus: true,
+			isCaseNotesLive,
 			banner,
+			notes,
+			allCaseNotesCount,
 			lastModifiedDate,
 			lastModifiedBy
 		});
@@ -297,6 +302,11 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 			session: req.session,
 			groupIds
 		});
+		if (service.isCaseNotesLive) {
+			const mappedNotes = mapNotes(crownDevelopment.Notes ?? [], groupMembers, id);
+			res.locals.caseNotes = mappedNotes.caseNotes;
+			res.locals.allCaseNotesCount = crownDevelopment._count?.Notes ?? 0;
+		}
 		const lastModified = await audit.getLastModifiedInfo(id, groupMembers);
 		const overrides = {
 			isApplicationTypePlanningOrLbc: viewModel.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT,

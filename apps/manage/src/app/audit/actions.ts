@@ -16,7 +16,10 @@ export const AUDIT_ACTIONS = {
 	// Standard fields
 	FIELD_SET: 'FIELD_SET',
 	FIELD_UPDATED: 'FIELD_UPDATED',
-	FIELD_CLEARED: 'FIELD_CLEARED'
+	FIELD_CLEARED: 'FIELD_CLEARED',
+
+	// Case notes
+	CASE_NOTE_ADDED: 'CASE_NOTE_ADDED'
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
@@ -46,7 +49,10 @@ export const AUDIT_TEMPLATES: Record<AuditAction, string> = {
 	// Standard fields
 	[AUDIT_ACTIONS.FIELD_SET]: '{fieldName} was set to {newValue}',
 	[AUDIT_ACTIONS.FIELD_UPDATED]: '{fieldName} was updated from {oldValue} to {newValue}',
-	[AUDIT_ACTIONS.FIELD_CLEARED]: '{fieldName} ({oldValue}) was removed'
+	[AUDIT_ACTIONS.FIELD_CLEARED]: '{fieldName} ({oldValue}) was removed',
+
+	// Case notes
+	[AUDIT_ACTIONS.CASE_NOTE_ADDED]: 'Case note added:\n{caseNote}'
 };
 
 /**

@@ -3,7 +3,7 @@ import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@p
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
 import type { Option } from '@planning-inspectorate/dynamic-forms';
 
-const MAX_LENGTH = 500;
+export const CASE_NOTE_MAX_LENGTH = 100;
 
 type Reference = {
 	id: string;
@@ -54,16 +54,16 @@ export function getSubmittedForId(answers: Record<string, unknown>): string {
 /**
  * Checks if a comment should be truncated based on its length.
  */
-export function shouldTruncateComment(comment: string): boolean {
-	return comment.length > MAX_LENGTH;
+export function shouldTruncateComment(comment: string, maxLength: number): boolean {
+	return comment.length > maxLength;
 }
 
 /**
  * Truncates a comment if it exceeds the maximum length and appends an ellipsis.
  */
-export function truncateComment(comment: string): string {
-	if (shouldTruncateComment(comment)) {
-		const truncated = comment.substring(0, MAX_LENGTH);
+export function truncateComment(comment: string, maxLength: number): string {
+	if (shouldTruncateComment(comment, maxLength)) {
+		const truncated = comment.substring(0, maxLength);
 		return `${truncated}... `;
 	}
 	return comment;
