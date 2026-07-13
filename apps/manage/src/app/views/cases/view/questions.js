@@ -974,3 +974,14 @@ export function getQuestions(
 	};
 	return createQuestions(questions, classes, {}, textOverrides);
 }
+
+/**
+ * Human-readable display names for fields, derived from question definitions.
+ * Uses fieldName as the key and title as the value.
+ * @type {Record<string, string>}
+ */
+export const FIELD_DISPLAY_NAMES = Object.fromEntries(
+	Object.values(getQuestions())
+		.filter((q) => q?.fieldName && q?.title)
+		.map((q) => [q.fieldName, q.title])
+);

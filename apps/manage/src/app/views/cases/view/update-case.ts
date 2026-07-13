@@ -32,6 +32,9 @@ import type {
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { AUDIT_ACTIONS, type AuditService, type AuditEntry, type AuditAction } from '../../../audit/index.ts';
+import { resolveFieldValues, getFieldDisplayName } from '../../../audit/resolvers/index.ts';
+import type { Logger } from 'pino';
 
 function typedObjectKeys<T extends object>(obj: T): Array<keyof T> {
 	return Object.keys(obj) as Array<keyof T>;
@@ -63,6 +66,18 @@ function isClearableSaveKey(key: keyof CrownDevelopmentSaveModel): key is CrownD
 	return CLEARABLE_SAVE_KEY_SET.has(key as CrownDevelopmentClearableKey);
 }
 
+/**
+ * Scalar fields that should be audited when updated.
+ * Only these fields will produce audit entries in recordAuditEntries.
+ */
+const AUDITABLE_SCALAR_FIELDS = new Set([
+	'siteArea',
+	'lpaReference',
+	'agentOrganisationName',
+	'hearingVenue',
+	'inquiryVenue'
+]);
+
 type ErrorWithSummary = Error & { errorSummary: ErrorSummaryItem[] };
 
 function buildSummaryError(message: string, errorSummary: ErrorSummaryItem[]): ErrorWithSummary {
@@ -79,8 +94,9 @@ function buildSummaryError(message: string, errorSummary: ErrorSummaryItem[]): E
  */
 export function buildUpdateCase(service: ManageService, clearAnswer: boolean = false): SaveDataFn {
 	return async ({ req, res, data }: { req: Request; res: Response; data: { answers?: CrownDevelopmentSaveModel } }) => {
-		const { db, logger } = service;
+		const { db, logger, audit } = service;
 		const id = getStringParam(req.params, 'id');
+		const userId = req.session?.account?.localAccountId;
 
 		logger.info({ id }, 'case update');
 
@@ -99,6 +115,11 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 			logger.info({ id }, 'no case updates to apply');
 			return;
 		}
+
+		// Capture the field names and snapshot of answers for audit
+		const updatedFieldNames = Object.keys(toSave);
+		const answersSnapshot = { ...toSave };
+
 		const fullViewModel = res.locals?.journeyResponse?.answers || {};
 		const originalAnswers: Partial<CrownDevelopmentViewModel> = res.locals?.originalAnswers || {};
 
@@ -118,6 +139,10 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 		) {
 			addSessionData(req, id, { applicantOrgAdded: true });
 		}
+
+		// Capture previous values for auditable fields before the update
+		const previousValues: Record<string, unknown> = {};
+		let updateSucceeded = false;
 
 		try {
 			// Build a deterministic write-plan (no shared nested Organisations writes) and execute it
@@ -139,6 +164,14 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 
 				// Fresh DB view model gives correct relation ids (organisationRelationId / organisationToContactRelationId)
 				const dbViewModel = crownDevelopmentToViewModel(crownDevelopment);
+
+				// Capture previous values for auditable fields before making changes
+				for (const fieldName of updatedFieldNames) {
+					if (AUDITABLE_SCALAR_FIELDS.has(fieldName)) {
+						previousValues[fieldName] = dbViewModel[fieldName as keyof CrownDevelopmentViewModel];
+					}
+				}
+
 				const viewModelForUpdates: CrownDevelopmentViewModel = { ...dbViewModel };
 				for (const [key, value] of typedObjectEntries(originalAnswers)) {
 					if (viewModelForUpdates[key] === undefined || viewModelForUpdates[key] === null) {
@@ -205,6 +238,7 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 				});
 				await executeCaseUpdateWritePlan(plan, tx);
 			});
+			updateSucceeded = true;
 		} catch (error) {
 			wrapPrismaError({
 				error,
@@ -212,6 +246,10 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 				message: 'updating case',
 				logParams: { id }
 			});
+		}
+
+		if (updateSucceeded) {
+			await recordAuditEntries(audit, id, userId, previousValues, answersSnapshot, updatedFieldNames, logger);
 		}
 
 		// show a banner to the user on success
@@ -374,4 +412,69 @@ function updateContainsDeLinkedField(updateInput: Prisma.CrownDevelopmentUpdateI
 		'applicationFee'
 	];
 	return Object.keys(updateInput).some((key) => deLinkedFields.includes(key));
+}
+
+/**
+ * Records all audit entries for a case update.
+ *
+ * Handles two categories of fields:
+ *   1. Scalar fields — compared individually via resolveFieldValues
+ *   2. TODO CROWN-1641 List fields — diffed via entity-specific resolvers (contacts, inspectors, etc.)
+ *
+ * Wrapped in try/catch so audit failures never block the user's operation —
+ * the case data has already been saved by the time this runs.
+ */
+async function recordAuditEntries(
+	audit: AuditService,
+	caseId: string,
+	userId: string | undefined,
+	previousValues: Record<string, unknown>,
+	answersSnapshot: Record<string, unknown>,
+	updatedFieldNames: string[],
+	logger: Logger
+): Promise<void> {
+	try {
+		const allAuditEntries: AuditEntry[] = [];
+
+		// ── Scalar fields ────────────────────────────────────────────────
+		for (const fieldName of updatedFieldNames) {
+			// Only audit fields in the auditable set
+			if (!AUDITABLE_SCALAR_FIELDS.has(fieldName)) {
+				continue;
+			}
+
+			const { oldValue, newValue } = resolveFieldValues(fieldName, previousValues, answersSnapshot[fieldName]);
+
+			if (oldValue === newValue) {
+				continue;
+			}
+
+			let action: AuditAction;
+
+			if (oldValue === '-') {
+				action = AUDIT_ACTIONS.FIELD_SET;
+			} else if (newValue === '-') {
+				action = AUDIT_ACTIONS.FIELD_CLEARED;
+			} else {
+				action = AUDIT_ACTIONS.FIELD_UPDATED;
+			}
+
+			allAuditEntries.push({
+				caseId,
+				action,
+				userId,
+				metadata: {
+					fieldName: getFieldDisplayName(fieldName),
+					oldValue,
+					newValue
+				}
+			});
+		}
+
+		await audit.recordMany(allAuditEntries);
+	} catch (error: unknown) {
+		// Audit failures should never block the user's operation.
+		// The case data has already been saved successfully above.
+		logger.error({ error, caseId }, 'Failed to record audit events');
+	}
 }

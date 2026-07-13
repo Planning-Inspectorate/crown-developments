@@ -42,4 +42,49 @@ describe('resolveTemplate', () => {
 		const result = resolveTemplate(AUDIT_ACTIONS.CASE_CREATED, { reference: 'DRT/PER/00015', extra: 'ignored' });
 		assert.strictEqual(result, 'DRT/PER/00015 was created');
 	});
+
+	describe('FIELD_SET action', () => {
+		it('should resolve FIELD_SET template with fieldName and newValue', () => {
+			const result = resolveTemplate(AUDIT_ACTIONS.FIELD_SET, {
+				fieldName: 'Site area (ha)',
+				newValue: '12.5'
+			});
+			assert.strictEqual(result, 'Site area (ha) was set to 12.5');
+		});
+	});
+
+	describe('FIELD_CLEARED action', () => {
+		it('should resolve FIELD_CLEARED template with fieldName and oldValue', () => {
+			const result = resolveTemplate(AUDIT_ACTIONS.FIELD_CLEARED, {
+				fieldName: 'LPA reference',
+				oldValue: 'ABC/123'
+			});
+			assert.strictEqual(result, 'LPA reference (ABC/123) was removed');
+		});
+	});
+
+	describe('FIELD_UPDATED action', () => {
+		it('should resolve FIELD_UPDATED template with all placeholders', () => {
+			const result = resolveTemplate(AUDIT_ACTIONS.FIELD_UPDATED, {
+				fieldName: 'Hearing venue',
+				oldValue: 'Town Hall',
+				newValue: 'City Hall'
+			});
+			assert.strictEqual(result, 'Hearing venue was updated from Town Hall to City Hall');
+		});
+	});
+});
+
+describe('AUDIT_ACTIONS', () => {
+	it('should have FIELD_SET action', () => {
+		assert.strictEqual(AUDIT_ACTIONS.FIELD_SET, 'FIELD_SET');
+	});
+
+	it('should have FIELD_CLEARED action', () => {
+		assert.strictEqual(AUDIT_ACTIONS.FIELD_CLEARED, 'FIELD_CLEARED');
+	});
+
+	it('should have FIELD_UPDATED action', () => {
+		assert.strictEqual(AUDIT_ACTIONS.FIELD_UPDATED, 'FIELD_UPDATED');
+	});
 });
