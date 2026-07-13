@@ -10,6 +10,7 @@ import { createRoutes as createRepsRoutes } from './manage-reps/index.js';
 import { createRoutes as createApplicationUpdatesRoutes } from './application-updates/index.js';
 import { buildUpdateCase } from './update-case.ts';
 import { createRoutes as createApplicationHistoryRoutes } from '../case-history/index.ts';
+import { createRoutes as createApplicationNotesRoutes } from '../case-notes/index.ts';
 import {
 	buildGetJourneyResponseFromSession,
 	saveDataToSession
@@ -37,6 +38,7 @@ export function createRoutes(service) {
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const deleteManageListItemOnConfirmRemove = asyncHandler(buildDeleteManageListItemOnConfirmRemove(service));
 	const applicationHistoryRoutes = createApplicationHistoryRoutes(service);
+	const applicationNotesRoutes = createApplicationNotesRoutes(service);
 
 	// view case details
 	router.get('/', validateIdFormat, getViewJourney, asyncHandler(viewCaseDetails));
@@ -47,6 +49,11 @@ export function createRoutes(service) {
 
 	// View application history page, /:id/application-history
 	router.use('/application-history', applicationHistoryRoutes);
+
+	if (service.isCaseNotesLive) {
+		// Load case note routes
+		router.use('/application-notes', applicationNotesRoutes);
+	}
 
 	// view question page
 	router.get(

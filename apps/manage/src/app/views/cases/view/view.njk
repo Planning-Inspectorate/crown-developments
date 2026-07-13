@@ -5,6 +5,8 @@
 {% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "views/layouts/components/case-notes.njk" import caseNotes %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
 
 {% set title = reference + " - " + journeyTitle + " - Manage a Crown Development Application" %}
 {% set publishUrl = baseUrl + "/publish" %}
@@ -48,6 +50,20 @@
                     <a href="#case-audit-log" class="govuk-link govuk-link--no-visited-state">Case audit log</a>
                 </li>
             </ul>
+
+            {% if isCaseNotesLive %}
+                <p class="govuk-body govuk-!-font-weight-bold">Case notes actions</p>
+                {{ govukDetails({
+                    summaryText: allCaseNotesCount + ' case notes',
+                    html: caseNotes({
+                        currentUrl: baseUrl,
+                        notes: notes,
+                        max: 4,
+                        totalNotes: allCaseNotesCount,
+                        _csrf: _csrf
+                    })
+                }) }}
+            {% endif %}
         </div>
 
         <div class="govuk-grid-column-one-third govuk-!-text-align-right">

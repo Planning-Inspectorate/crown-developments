@@ -1,12 +1,20 @@
 import { APPLICATION_PROCEDURE_ID, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { parseNumberStringToNumber } from '@pins/crowndev-lib/util/numbers.ts';
-import { booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms';
+import { booleanToYesNoValue, formatDateForDisplay, nl2br } from '@planning-inspectorate/dynamic-forms';
 import { addressToViewModel } from '@pins/crowndev-lib/util/address.ts';
 import type { Address } from '@planning-inspectorate/dynamic-forms';
 import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { ApplicantContact, AgentContact } from '../create-a-case/types.d.ts';
 import type { CrownDevelopmentPayload, CrownDevelopmentPayloadWithoutOrganisations } from './payload-contracts.ts';
+import type { EntraGroupMembers } from '#util/entra-groups.ts';
+import escape from 'escape-html';
+import {
+	CASE_NOTE_MAX_LENGTH,
+	shouldTruncateComment,
+	truncateComment,
+	truncatedReadMoreCommentLink
+} from '@pins/crowndev-lib/util/questions.ts';
 
 type ProcedurePrefix = 'inquiry' | 'hearing' | 'writtenReps';
 type ProcedureId = (typeof APPLICATION_PROCEDURE_ID)[keyof typeof APPLICATION_PROCEDURE_ID];
@@ -622,6 +630,41 @@ export function editsToDatabaseUpdates(
 	applyCaseTypeUpdates(updateInput, edits, viewModel, options);
 	return updateInput;
 }
+
+/** Notes as queried for mapping — no relations; author is a plain Entra ID string. */
+type NoteForMapping = Pick<Prisma.ApplicationNoteGetPayload<object>, 'comment' | 'createdAt' | 'userId'>;
+
+/**
+ * Maps raw application notes into the shape consumed by the case notes views.
+ *
+ * Author names are resolved from the Entra group members (case officers +
+ * inspectors), mirroring how CROWN resolves `updatedById` for last-modified-by.
+ * Falls back to the raw Entra ID, then 'Unknown'.
+ */
+export const mapNotes = (unmappedNotes: NoteForMapping[], groupMembers: EntraGroupMembers, caseId: string) => {
+	// Sort newest first (defensive — queries already order by createdAt desc).
+	const notes = [...unmappedNotes].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+	const members = [...groupMembers.caseOfficers, ...groupMembers.inspectors];
+	const readMoreHref = `/cases/${caseId}/application-notes`;
+
+	return {
+		caseNotes: notes.map((note) => {
+			const user = members.find((member) => member.id === note.userId);
+
+			return {
+				date: formatDateForDisplay(note.createdAt, { format: 'd MMMM yyyy' }),
+				dayOfWeek: formatDateForDisplay(note.createdAt, { format: 'EEEE' }),
+				time: formatDateForDisplay(note.createdAt, { format: 'h:mmaaa' }),
+				commentText: nl2br(escape(note.comment)),
+				truncatedCommentText:
+					nl2br(escape(truncateComment(note.comment, CASE_NOTE_MAX_LENGTH))) +
+					(shouldTruncateComment(note.comment, CASE_NOTE_MAX_LENGTH) ? truncatedReadMoreCommentLink(readMoreHref) : ''),
+				userName: user?.displayName || note.userId || 'Unknown'
+			};
+		})
+	};
+};
 
 /**
  * Populates LPA or secondary LPA contact and address fields in the view model using a prefix.

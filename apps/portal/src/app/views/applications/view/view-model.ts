@@ -1,4 +1,4 @@
-import { formatDateForDisplay, addressToViewModel } from '@planning-inspectorate/dynamic-forms';
+import { formatDateForDisplay, addressToViewModel, TRUNCATED_MAX_LENGTH } from '@planning-inspectorate/dynamic-forms';
 import {
 	ORGANISATION_ROLES_ID,
 	REPRESENTATION_STATUS_ID,
@@ -220,7 +220,9 @@ export function representationToViewModel(
 	return {
 		representationReference: representation.reference,
 		representationTitle: representationTitle(representation),
-		representationComment: truncateCommentForView ? truncateComment(representationComment) : representationComment,
+		representationComment: truncateCommentForView
+			? truncateComment(representationComment, TRUNCATED_MAX_LENGTH)
+			: representationComment,
 		representationCommentIsRedacted: Boolean(representation.commentRedacted),
 		representationCategory: representation.Category?.displayName,
 		dateRepresentationSubmitted: formatDateForDisplay(representation.submittedDate, { format: 'd MMMM yyyy' }),
@@ -229,7 +231,7 @@ export function representationToViewModel(
 			representation.containsAttachments,
 		distressingContent: representation.distressingContentInRepresentation || false,
 		...(truncateCommentForView &&
-			shouldTruncateComment(representationComment) && {
+			shouldTruncateComment(representationComment, TRUNCATED_MAX_LENGTH) && {
 				truncatedReadMoreLink: truncatedReadMoreCommentLink(`written-representations/${representation.reference}`)
 			})
 	};

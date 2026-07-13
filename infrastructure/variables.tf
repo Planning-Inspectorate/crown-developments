@@ -36,6 +36,7 @@ variable "apps_config" {
       portal_not_live      = bool
       s62a_portal_not_live = bool
       s62a_manage_not_live = bool
+      case_notes_not_live  = bool
     })
 
     dynamic_cache_control = object({

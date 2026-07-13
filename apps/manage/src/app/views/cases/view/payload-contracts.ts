@@ -21,6 +21,13 @@ export const CROWN_DEVELOPMENT_VIEW_INCLUDE = {
 				}
 			}
 		}
+	},
+	Notes: {
+		take: 4,
+		orderBy: { createdAt: 'desc' }
+	},
+	_count: {
+		select: { Notes: true }
 	}
 } as const satisfies Prisma.CrownDevelopmentInclude;
 

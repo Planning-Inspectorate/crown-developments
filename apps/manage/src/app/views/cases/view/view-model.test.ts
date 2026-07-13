@@ -1,9 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { crownDevelopmentToViewModel as crownDevelopmentToViewModelStrict } from './view-model.ts';
+import { crownDevelopmentToViewModel as crownDevelopmentToViewModelStrict, mapNotes } from './view-model.ts';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { CrownDevelopmentPayload } from './payload-contracts.ts';
+import { CASE_NOTE_MAX_LENGTH } from '@pins/crowndev-lib/util/questions.ts';
 
 /**
  * Fixtures are deliberately partial DB records, and some assertions read keys that aren't on the
@@ -597,6 +598,84 @@ describe('view-model', () => {
 			assert.strictEqual(result.secondaryLpaEmail, undefined);
 			assert.strictEqual(result.secondaryLpaTelephoneNumber, undefined);
 			assert.strictEqual(result.secondaryLpaAddress, undefined);
+		});
+	});
+	describe('mapNotes', () => {
+		function callMapNotes(
+			notes: Record<string, unknown>[],
+			groupMembers: unknown,
+			caseId = 'case-1'
+		): ReturnType<typeof mapNotes> {
+			return mapNotes(
+				notes as unknown as Parameters<typeof mapNotes>[0],
+				groupMembers as Parameters<typeof mapNotes>[1],
+				caseId
+			);
+		}
+
+		const emptyGroupMembers = { caseOfficers: [], inspectors: [] };
+
+		it('should resolve author display name from group members, falling back to the raw id then Unknown', () => {
+			const notes = [
+				{ comment: 'first note', createdAt: new Date('2025-03-03T09:00:00Z'), userId: 'entra-officer' },
+				{ comment: 'second note', createdAt: new Date('2025-03-02T09:00:00Z'), userId: 'not-in-any-group' }
+			];
+			const groupMembers = {
+				caseOfficers: [{ id: 'entra-officer', displayName: 'Olive Officer' }],
+				inspectors: [{ id: 'entra-inspector', displayName: 'Ian Inspector' }]
+			};
+
+			const result = callMapNotes(notes, groupMembers);
+
+			assert.strictEqual(result.caseNotes[0].userName, 'Olive Officer');
+			assert.strictEqual(result.caseNotes[1].userName, 'not-in-any-group');
+		});
+
+		it('should escape HTML in comments before converting newlines, and sort newest first', () => {
+			const notes = [
+				{ comment: 'older', createdAt: new Date('2025-01-01T00:00:00Z'), userId: 'u1' },
+				{ comment: '<script>alert(1)</script>\nsecond line', createdAt: new Date('2025-05-01T00:00:00Z'), userId: 'u1' }
+			];
+
+			const result = callMapNotes(notes, emptyGroupMembers);
+
+			assert.strictEqual(result.caseNotes[0].commentText.startsWith('&lt;script&gt;'), true);
+			assert.strictEqual(result.caseNotes[0].commentText.includes('<script>'), false);
+			assert.strictEqual(result.caseNotes[0].commentText.includes('<br'), true);
+			assert.strictEqual(result.caseNotes[1].commentText, 'older');
+		});
+
+		it('should not add a read-more link when the comment is within the limit', () => {
+			const notes = [{ comment: 'a short note', createdAt: new Date('2025-05-01T00:00:00Z'), userId: 'u1' }];
+
+			const result = callMapNotes(notes, emptyGroupMembers);
+
+			assert.strictEqual(result.caseNotes[0].truncatedCommentText, 'a short note');
+			assert.strictEqual(result.caseNotes[0].truncatedCommentText.includes('Read more'), false);
+		});
+
+		it('should truncate and append a read-more link for an over-length comment', () => {
+			const longComment = 'a'.repeat(CASE_NOTE_MAX_LENGTH + 1);
+			const notes = [{ comment: longComment, createdAt: new Date('2025-05-01T00:00:00Z'), userId: 'u1' }];
+
+			const result = callMapNotes(notes, emptyGroupMembers, 'ABCDE-1234');
+			const output = result.caseNotes[0].truncatedCommentText;
+
+			assert.strictEqual(output.startsWith('a'.repeat(CASE_NOTE_MAX_LENGTH)), true);
+			assert.strictEqual(output.includes('Read more'), true);
+			assert.strictEqual(output.includes('href="/cases/ABCDE-1234/application-notes"'), true);
+		});
+
+		it('should escape HTML before truncating and still append the read-more link', () => {
+			const longComment = '<script>alert(1)</script>' + 'a'.repeat(CASE_NOTE_MAX_LENGTH);
+			const notes = [{ comment: longComment, createdAt: new Date('2025-05-01T00:00:00Z'), userId: 'u1' }];
+
+			const result = callMapNotes(notes, emptyGroupMembers, 'ABCDE-1234');
+			const output = result.caseNotes[0].truncatedCommentText;
+
+			assert.strictEqual(output.includes('&lt;script&gt;'), true);
+			assert.strictEqual(output.includes('<script>'), false);
+			assert.strictEqual(output.includes('Read more'), true);
 		});
 	});
 });

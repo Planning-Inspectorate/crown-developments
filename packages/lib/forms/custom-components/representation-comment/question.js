@@ -1,4 +1,4 @@
-import { Question } from '@planning-inspectorate/dynamic-forms';
+import { Question, TRUNCATED_MAX_LENGTH } from '@planning-inspectorate/dynamic-forms';
 import { nl2br } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
 import { truncateComment, truncatedReadMoreCommentLink } from '../../../util/questions.ts';
 
@@ -58,7 +58,7 @@ export default class RepresentationComment extends Question {
 
 		let displayText = String(answer || '');
 		if (displayText.length > MAX_LENGTH) {
-			displayText = `${truncateComment(displayText)}${truncatedReadMoreCommentLink(action?.href)}`;
+			displayText = `${truncateComment(displayText, TRUNCATED_MAX_LENGTH)}${truncatedReadMoreCommentLink(action?.href)}`;
 		}
 
 		return [
