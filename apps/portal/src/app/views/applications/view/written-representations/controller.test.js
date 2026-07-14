@@ -82,12 +82,12 @@ describe('written representations', () => {
 				hasAcceptedAttachments: true,
 				distressingContent: false
 			});
-			assert.strictEqual(viewData.selectedItemsPerPage, 25);
-			assert.strictEqual(viewData.totalRepresentations, 1);
-			assert.strictEqual(viewData.pageNumber, 1);
-			assert.strictEqual(viewData.totalPages, 1);
-			assert.strictEqual(viewData.resultsStartNumber, 1);
-			assert.strictEqual(viewData.resultsEndNumber, 1);
+			assert.strictEqual(viewData.paginationParams.selectedItemsPerPage, 25);
+			assert.strictEqual(viewData.paginationParams.totalItems, 1);
+			assert.strictEqual(viewData.paginationParams.pageNumber, 1);
+			assert.strictEqual(viewData.paginationParams.totalPages, 1);
+			assert.strictEqual(viewData.paginationParams.resultsStartNumber, 1);
+			assert.strictEqual(viewData.paginationParams.resultsEndNumber, 1);
 		});
 		it('should show representation-level distressing tag when a representation has distressingContentInRepresentation true', async (context) => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
@@ -383,12 +383,12 @@ describe('written representations', () => {
 				truncatedReadMoreLink:
 					'<a class="govuk-link govuk-link--no-visited-state" href="written-representations/4SNR8-ZS27T">Read more</a>'
 			});
-			assert.strictEqual(viewData.selectedItemsPerPage, 25);
-			assert.strictEqual(viewData.totalRepresentations, 1);
-			assert.strictEqual(viewData.pageNumber, 1);
-			assert.strictEqual(viewData.totalPages, 1);
-			assert.strictEqual(viewData.resultsStartNumber, 1);
-			assert.strictEqual(viewData.resultsEndNumber, 1);
+			assert.strictEqual(viewData.paginationParams.selectedItemsPerPage, 25);
+			assert.strictEqual(viewData.paginationParams.totalItems, 1);
+			assert.strictEqual(viewData.paginationParams.pageNumber, 1);
+			assert.strictEqual(viewData.paginationParams.totalPages, 1);
+			assert.strictEqual(viewData.paginationParams.resultsStartNumber, 1);
+			assert.strictEqual(viewData.paginationParams.resultsEndNumber, 1);
 		});
 		it('should render the view with values provided in url query parameters', async (context) => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
@@ -433,8 +433,8 @@ describe('written representations', () => {
 
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 
-			assert.strictEqual(viewData.selectedItemsPerPage, 100);
-			assert.strictEqual(viewData.pageNumber, 4);
+			assert.strictEqual(viewData.paginationParams.selectedItemsPerPage, 100);
+			assert.strictEqual(viewData.paginationParams.pageNumber, 4);
 		});
 
 		it('should render the view with values for pagination based on url params', async (context) => {
@@ -480,9 +480,9 @@ describe('written representations', () => {
 
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 
-			assert.strictEqual(viewData.totalPages, 5);
-			assert.strictEqual(viewData.resultsStartNumber, 151);
-			assert.strictEqual(viewData.resultsEndNumber, 200);
+			assert.strictEqual(viewData.paginationParams.totalPages, 5);
+			assert.strictEqual(viewData.paginationParams.resultsStartNumber, 151);
+			assert.strictEqual(viewData.paginationParams.resultsEndNumber, 200);
 		});
 
 		it('should render the view with values for pagination when total representations less than 25', async (context) => {
@@ -524,9 +524,9 @@ describe('written representations', () => {
 
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 
-			assert.strictEqual(viewData.totalPages, 1);
-			assert.strictEqual(viewData.resultsStartNumber, 1);
-			assert.strictEqual(viewData.resultsEndNumber, 17);
+			assert.strictEqual(viewData.paginationParams.totalPages, 1);
+			assert.strictEqual(viewData.paginationParams.resultsStartNumber, 1);
+			assert.strictEqual(viewData.paginationParams.resultsEndNumber, 17);
 		});
 
 		it('should wrap prisma errors if error on findMany query', async (context) => {

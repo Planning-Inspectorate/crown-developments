@@ -12,9 +12,9 @@ import { startOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import {
 	buildUrlWithParams,
-	getPageData,
+	createPaginationParams,
 	getPaginationParams
-} from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
+} from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import {
 	buildDocumentFilters,
 	createEmptyCategoryCounts,
@@ -128,28 +128,24 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 			.map(mapDriveItemToViewModel)
 			.filter((doc): doc is NonNullable<typeof doc> => doc !== undefined);
 		const totalDocuments = allDocuments.length;
-		const { selectedItemsPerPage, pageNumber, pageSize, skipSize } = getPaginationParams(req);
-		const { totalPages, resultsStartNumber, resultsEndNumber } = getPageData(
-			totalDocuments,
-			selectedItemsPerPage,
-			pageSize,
-			pageNumber
-		);
+		const { pageSize, skipSize } = getPaginationParams(req);
 
+		const paginationParams = createPaginationParams(req, totalDocuments);
 		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
 
 		const isWithdrawn = isWithdrawnOrExpired(applicationStatus);
 
-		const queryParams = (req.query || {}) as QueryFilters;
-		const filters: FilterSection[] = buildDocumentFilters(queryParams, categoryCounts);
+		const queryParams = req.query;
+		const filterQueryParams = (req.query || {}) as QueryFilters;
+		const filters: FilterSection[] = buildDocumentFilters(filterQueryParams, categoryCounts);
 		const filterQueryItems = getFilterQueryItems(filters);
 
 		const baseUrl = `${req.baseUrl}/documents`;
 
 		// Build clearQueryUrl: preserve itemsPerPage, remove search and filters
-		const hasPreservedParams = queryParams.itemsPerPage !== undefined && queryParams.itemsPerPage !== '';
+		const hasPreservedParams = filterQueryParams.itemsPerPage !== undefined && filterQueryParams.itemsPerPage !== '';
 		const clearQueryUrl = hasPreservedParams
-			? buildUrlWithParams(baseUrl, queryParams, { page: 1 }, [
+			? buildUrlWithParams(baseUrl, queryParams, { page: '1' }, [
 					'searchCriteria',
 					'filterCategory',
 					'publishedDateFrom-day',
@@ -179,15 +175,10 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined,
 			clearQueryUrl,
 			documents: allDocuments.slice(skipSize, skipSize + pageSize),
-			selectedItemsPerPage,
-			totalDocuments,
-			pageNumber,
-			totalPages,
-			resultsStartNumber,
-			resultsEndNumber,
+			paginationParams,
 			searchValue: typeof req.query?.searchCriteria === 'string' ? req.query.searchCriteria : '',
 			filters,
-			hasQueries: hasQueries(queryParams),
+			hasQueries: hasQueries(filterQueryParams),
 			filterQueries: filterQueryItems,
 			containsDistressingContent: crownDevelopment.containsDistressingContent ?? false
 		});

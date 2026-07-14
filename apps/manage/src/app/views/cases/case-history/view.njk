@@ -25,11 +25,11 @@
                 {% else %}
                     <p class="govuk-body govuk-clearfix">
                         <span class="govuk-body" data-cy="pagination-results-text">
-                            Showing <strong>{{ paginationParams.resultsStartNumber }}</strong> to <strong>{{ paginationParams.resultsEndNumber if paginationParams.totalCount > paginationParams.resultsEndNumber else paginationParams.totalCount }}</strong>
-                            of <strong>{{ paginationParams.totalCount }}</strong> results
+                            Showing <strong>{{ paginationParams.resultsStartNumber }}</strong> to <strong>{{ paginationParams.resultsEndNumber if paginationParams.totalItems > paginationParams.resultsEndNumber else paginationParams.totalItems }}</strong>
+                            of <strong>{{ paginationParams.totalItems }}</strong> results
                         </span>
                         <span class="pins-pagination-options">
-                            {{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalCount, baseUrl, queryParams) }}
+                            {{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalItems, baseUrl, queryParams) }}
                         </span>
                     </p>
 

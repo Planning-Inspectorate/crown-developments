@@ -138,17 +138,20 @@ describe('application updates controller', () => {
 					}
 				],
 				banner: null,
-				selectedItemsPerPage: 25,
-				totalApplicationUpdates: 3,
-				pageNumber: 1,
-				totalPages: 1,
-				resultsStartNumber: 1,
-				resultsEndNumber: 3
+				paginationParams: {
+					selectedItemsPerPage: 25,
+					totalItems: 3,
+					pageNumber: 1,
+					totalPages: 1,
+					resultsStartNumber: 1,
+					resultsEndNumber: 3
+				}
 			});
 		});
 		it('should clear session data for update status and any app updates left in flight', async () => {
 			const mockDb = buildSingleUpdateDb(3);
 			const mockReq = buildReqWithUpdateStatus();
+
 			const mockRes = {
 				render: mock.fn()
 			};

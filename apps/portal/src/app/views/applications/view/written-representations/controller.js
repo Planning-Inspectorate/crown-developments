@@ -7,7 +7,7 @@ import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms';
-import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
+import { createPaginationParams, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import { buildFilters, getFilterQueryItems, hasQueries, mapWithAndWithoutToBoolean } from './filters/filters.ts';
 import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
@@ -161,7 +161,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			{ fields: ['comment'], constraints: [{ commentRedacted: { equals: null } }] }
 		]);
 
-		const { selectedItemsPerPage, pageNumber, pageSize, skipSize } = getPaginationParams(req);
+		const { pageSize, skipSize } = getPaginationParams(req);
 
 		let representations, totalRepresentations;
 		try {
@@ -215,12 +215,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			return notFoundHandler(req, res);
 		}
 
-		const { totalPages, resultsStartNumber, resultsEndNumber } = getPageData(
-			totalRepresentations,
-			selectedItemsPerPage,
-			pageSize,
-			pageNumber
-		);
+		const paginationParams = createPaginationParams(req, totalRepresentations);
 
 		const haveYourSayPeriod = {
 			start: new Date(crownDevelopment.representationsPeriodStartDate),
@@ -261,12 +256,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			currentUrl: req.originalUrl,
 			queryParams: req.query,
 			clearQueryUrl: req.baseUrl,
-			selectedItemsPerPage,
-			totalRepresentations,
-			pageNumber,
-			totalPages,
-			resultsStartNumber,
-			resultsEndNumber,
+			paginationParams,
 			searchValue: req.query?.searchCriteria || '',
 			filters,
 			mobileFilters,

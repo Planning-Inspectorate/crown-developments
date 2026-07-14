@@ -1,6 +1,6 @@
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
-import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
+import { getPaginationParams, createPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { getAnswers } from '@pins/crowndev-lib/util/answers.js';
 import {
 	clearAppUpdatesFromSession,
@@ -47,7 +47,7 @@ export function buildApplicationUpdates({ db }) {
 			return notFoundHandler(req, res);
 		}
 
-		const { selectedItemsPerPage, pageNumber, pageSize, skipSize } = getPaginationParams(req);
+		const { pageSize, skipSize } = getPaginationParams(req);
 
 		const [applicationUpdates, totalApplicationUpdates] = await Promise.all([
 			db.applicationUpdate.findMany({
@@ -77,12 +77,7 @@ export function buildApplicationUpdates({ db }) {
 			return notFoundHandler(req, res);
 		}
 
-		const { totalPages, resultsStartNumber, resultsEndNumber } = getPageData(
-			totalApplicationUpdates,
-			selectedItemsPerPage,
-			pageSize,
-			pageNumber
-		);
+		const paginationParams = createPaginationParams(req, totalApplicationUpdates);
 
 		const applicationUpdateStatus = readAppUpdateStatus(req, id);
 		clearAppUpdateStatusSession(req, id);
@@ -98,12 +93,7 @@ export function buildApplicationUpdates({ db }) {
 			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined,
 			applicationUpdates: applicationUpdates.map(applicationUpdateToViewModel),
 			banner,
-			selectedItemsPerPage,
-			totalApplicationUpdates,
-			pageNumber,
-			totalPages,
-			resultsStartNumber,
-			resultsEndNumber
+			paginationParams
 		});
 	};
 }

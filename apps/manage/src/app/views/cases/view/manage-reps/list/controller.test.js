@@ -143,12 +143,14 @@ describe('list representations', () => {
 						review: true
 					}
 				],
-				pageNumber: 1,
-				resultsEndNumber: 3,
-				resultsStartNumber: 1,
-				selectedItemsPerPage: 25,
-				totalFilteredRepresentations: 3,
-				totalPages: 1
+				paginationParams: {
+					pageNumber: 1,
+					resultsEndNumber: 3,
+					resultsStartNumber: 1,
+					selectedItemsPerPage: 25,
+					totalItems: 3,
+					totalPages: 1
+				}
 			});
 		});
 
@@ -218,12 +220,14 @@ describe('list representations', () => {
 						review: true
 					}
 				],
-				pageNumber: 1,
-				resultsEndNumber: 3,
-				resultsStartNumber: 1,
-				selectedItemsPerPage: 25,
-				totalFilteredRepresentations: 3,
-				totalPages: 1
+				paginationParams: {
+					pageNumber: 1,
+					resultsEndNumber: 3,
+					resultsStartNumber: 1,
+					selectedItemsPerPage: 25,
+					totalItems: 3,
+					totalPages: 1
+				}
 			});
 		});
 		it('should render page with multiple filter query params provided', async () => {
@@ -292,12 +296,14 @@ describe('list representations', () => {
 						review: true
 					}
 				],
-				pageNumber: 1,
-				resultsEndNumber: 3,
-				resultsStartNumber: 1,
-				selectedItemsPerPage: 25,
-				totalFilteredRepresentations: 3,
-				totalPages: 1
+				paginationParams: {
+					pageNumber: 1,
+					resultsEndNumber: 3,
+					resultsStartNumber: 1,
+					selectedItemsPerPage: 25,
+					totalItems: 3,
+					totalPages: 1
+				}
 			});
 		});
 		it('should not show distressing content banner when not saving (no repReviewed session)', async () => {

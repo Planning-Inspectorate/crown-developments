@@ -2,8 +2,9 @@ import { describe, it, mock } from 'node:test';
 import { buildApplicationDocumentsPage } from './controller.ts';
 import assert from 'node:assert';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
-import { buildUrlWithParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
+import { buildUrlWithParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import type { Request, Response, NextFunction } from 'express';
+import type { PaginationContext } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 
 interface MockDb {
 	crownDevelopment: {
@@ -67,8 +68,21 @@ function createMockResponse(): MockResponse & Response {
 	} as unknown as MockResponse & Response;
 }
 
-function getRenderArgs(res: MockResponse): Record<string, unknown> {
-	return res.render.mock.calls[0].arguments[1] as Record<string, unknown>;
+type RenderArgs = {
+	paginationParams: {
+		selectedItemsPerPage: number;
+		totalItems: number;
+		pageNumber: number;
+		totalPages: number;
+		resultsStartNumber: number;
+		resultsEndNumber: number;
+		paginationParams: PaginationContext;
+	};
+
+	[key: string]: unknown;
+};
+function getRenderArgs(res: MockResponse): RenderArgs {
+	return res.render.mock.calls[0].arguments[1] as RenderArgs;
 }
 
 function createMockNext(): NextFunction {
@@ -148,12 +162,12 @@ describe('controller', () => {
 			assert.strictEqual(renderArgs.currentUrl, 'test-baseUrl/documents?searchCriteria="test"');
 			// No query params, so clearQueryUrl should be just the base URL
 			assert.strictEqual(renderArgs.clearQueryUrl, 'test-baseUrl/documents');
-			assert.strictEqual(renderArgs.selectedItemsPerPage, 25);
-			assert.strictEqual(renderArgs.totalDocuments, 0);
-			assert.strictEqual(renderArgs.pageNumber, 1);
-			assert.strictEqual(renderArgs.totalPages, 0);
-			assert.strictEqual(renderArgs.resultsStartNumber, 0);
-			assert.strictEqual(renderArgs.resultsEndNumber, 0);
+			assert.strictEqual(renderArgs.paginationParams.selectedItemsPerPage, 25);
+			assert.strictEqual(renderArgs.paginationParams.totalItems, 0);
+			assert.strictEqual(renderArgs.paginationParams.pageNumber, 1);
+			assert.strictEqual(renderArgs.paginationParams.totalPages, 0);
+			assert.strictEqual(renderArgs.paginationParams.resultsStartNumber, 0);
+			assert.strictEqual(renderArgs.paginationParams.resultsEndNumber, 0);
 			assert.strictEqual(renderArgs.searchValue, '');
 			assert.strictEqual(renderArgs.queryParams, undefined);
 			assert.ok(Array.isArray(renderArgs.links));
@@ -451,13 +465,51 @@ describe('controller', () => {
 			await handler(req, res, next);
 
 			const viewData = getRenderArgs(res);
-			assert.strictEqual(viewData.selectedItemsPerPage, 30);
+			assert.strictEqual(viewData.paginationParams.selectedItemsPerPage, 100);
 			assert.strictEqual((viewData.documents as unknown[]).length, 3);
-			assert.strictEqual(viewData.pageNumber, 1);
-			assert.strictEqual(viewData.totalPages, 1);
-			assert.strictEqual(viewData.resultsStartNumber, 1);
-			assert.strictEqual(viewData.resultsEndNumber, 3);
+			assert.strictEqual(viewData.paginationParams.pageNumber, 1);
+			assert.strictEqual(viewData.paginationParams.totalPages, 1);
+			assert.strictEqual(viewData.paginationParams.resultsStartNumber, 1);
+			assert.strictEqual(viewData.paginationParams.resultsEndNumber, 3);
 			assert.strictEqual(viewData.searchValue, '');
+		});
+
+		it('should align query slice and range when invalid itemsPerPage is normalized to 100 on page 2', async () => {
+			const mockDb = createMockDb();
+			const docs = Array.from({ length: 225 }, (_, i) => ({
+				id: String(i + 1),
+				name: `Doc ${String(i + 1).padStart(3, '0')}`,
+				file: { mimeType: 'application/pdf' }
+			}));
+
+			const mockSharePoint = createMockSharePoint(docs);
+
+			const handler = buildApplicationDocumentsPage({
+				db: mockDb,
+				logger: mockLogger(),
+				sharePointDrive: mockSharePoint
+			} as any);
+
+			const req = createMockRequest({
+				query: { itemsPerPage: '30', page: '2' } // invalid -> should normalize to 100
+			});
+			const res = createMockResponse();
+			const next = createMockNext();
+
+			await handler(req, res, next);
+
+			const viewData = getRenderArgs(res);
+			const renderedDocs = viewData.documents as Array<{ name: string }>;
+
+			assert.strictEqual(viewData.paginationParams.selectedItemsPerPage, 100);
+			assert.strictEqual(viewData.paginationParams.pageNumber, 2);
+			assert.strictEqual(viewData.paginationParams.totalPages, 3);
+			assert.strictEqual(viewData.paginationParams.resultsStartNumber, 101);
+			assert.strictEqual(viewData.paginationParams.resultsEndNumber, 200);
+
+			assert.strictEqual(renderedDocs.length, 100);
+			assert.strictEqual(renderedDocs[0].name, 'Doc 101');
+			assert.strictEqual(renderedDocs[99].name, 'Doc 200');
 		});
 
 		it('should preserve itemsPerPage in clearQueryUrl while clearing search and filters', async () => {
@@ -564,7 +616,7 @@ describe('buildUrlWithParams', () => {
 		const url = buildUrlWithParams('/applications/123/documents', {
 			searchCriteria: 'foo',
 			filterBy: ['attachments', 'submittedBy'],
-			page: 2
+			page: '2'
 		});
 		const params = new URLSearchParams(url.split('?')[1]);
 		assert.strictEqual(params.get('searchCriteria'), 'foo');
@@ -576,7 +628,7 @@ describe('buildUrlWithParams', () => {
 	it('should remove searchCriteria when cleared', () => {
 		const url = buildUrlWithParams(
 			'/applications/123/documents',
-			{ searchCriteria: 'foo', filterBy: 'attachments', page: 1 },
+			{ searchCriteria: 'foo', filterBy: 'attachments', page: '1' },
 			{ searchCriteria: undefined }
 		);
 		const params = new URLSearchParams(url.split('?')[1]);
@@ -595,7 +647,7 @@ describe('buildUrlWithParams', () => {
 		const url = buildUrlWithParams('/applications/123/documents', {
 			searchCriteria: 'abc',
 			filterBy: ['attachments', 'submittedBy'],
-			page: 3
+			page: '3'
 		});
 		const params = new URLSearchParams(url.split('?')[1]);
 		const filterBy = params.getAll('filterBy');
@@ -651,7 +703,7 @@ describe('Date Published Filter', () => {
 		const viewData = getRenderArgs(res);
 
 		// Should only show doc1 (9 Jan) as it's on or after 8 Jan
-		assert.strictEqual(viewData.totalDocuments, 1);
+		assert.strictEqual(viewData.paginationParams.totalItems, 1);
 	});
 
 	it('should filter documents by to date only', async () => {
@@ -699,7 +751,7 @@ describe('Date Published Filter', () => {
 		const viewData = getRenderArgs(res);
 
 		// Should only show doc2 (5 Jan) as it's on or before 7 Jan
-		assert.strictEqual(viewData.totalDocuments, 1);
+		assert.strictEqual(viewData.paginationParams.totalItems, 1);
 	});
 
 	it('should filter documents by from and to date range', async () => {
@@ -758,7 +810,7 @@ describe('Date Published Filter', () => {
 		const viewData = getRenderArgs(res);
 
 		// Should only show doc1 (9 Jan) as it's between 6 Jan and 10 Jan
-		assert.strictEqual(viewData.totalDocuments, 1);
+		assert.strictEqual(viewData.paginationParams.totalItems, 1);
 	});
 
 	it('should append date filter query parameters to URL', async () => {

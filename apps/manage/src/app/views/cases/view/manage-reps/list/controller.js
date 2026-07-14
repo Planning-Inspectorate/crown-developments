@@ -3,7 +3,7 @@ import { clearRepReviewedSession, readRepReviewedSession } from '../review/contr
 import { REPRESENTATION_STATUS } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
+import { getPaginationParams, createPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
@@ -86,7 +86,7 @@ export function buildListReps({ db }) {
 			checked: queryFilters?.includes(status.id) || false
 		}));
 
-		const { selectedItemsPerPage, pageNumber, pageSize, skipSize } = getPaginationParams(req);
+		const { pageSize, skipSize } = getPaginationParams(req);
 
 		const searchCriteria = createWhereClause(splitStringQueries(req.query?.searchCriteria), [
 			{ fields: ['reference'] },
@@ -128,12 +128,7 @@ export function buildListReps({ db }) {
 			return notFoundHandler(req, res);
 		}
 
-		const { totalPages, resultsStartNumber, resultsEndNumber } = getPageData(
-			totalFilteredRepresentations,
-			selectedItemsPerPage,
-			pageSize,
-			pageNumber
-		);
+		const paginationParams = createPaginationParams(req, totalFilteredRepresentations);
 
 		const banner = getBannerMessages(id, req, {
 			caseHasDistressingContent: crownDevelopment.containsDistressingContent,
@@ -153,12 +148,7 @@ export function buildListReps({ db }) {
 			filters,
 			counts,
 			...representationsToViewModel(filteredRepresentations),
-			selectedItemsPerPage,
-			totalFilteredRepresentations,
-			pageNumber,
-			totalPages,
-			resultsStartNumber,
-			resultsEndNumber,
+			paginationParams,
 			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined,
 			banner
 		});

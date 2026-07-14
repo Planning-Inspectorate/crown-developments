@@ -4,7 +4,7 @@ import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 import { getEntraGroupMembers } from '#util/entra-groups.ts';
 import { createCaseHistoryViewModel } from './view-model.ts';
-import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.js';
+import { getPaginationParams, createPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 export function buildViewCaseHistory(service: ManageService): AsyncRequestHandler {
@@ -35,28 +35,14 @@ export function buildViewCaseHistory(service: ManageService): AsyncRequestHandle
 			return notFoundHandler(req, res);
 		}
 
-		const { selectedItemsPerPage, pageNumber, pageSize, skipSize } = getPaginationParams(req);
+		const { pageSize, skipSize } = getPaginationParams(req);
 
 		const [events, totalCount] = await Promise.all([
 			audit.getAllForCase(id, { take: pageSize, skip: skipSize }),
 			audit.countForCase(id)
 		]);
 
-		const { totalPages, resultsStartNumber, resultsEndNumber } = getPageData(
-			totalCount || 0,
-			selectedItemsPerPage,
-			pageSize,
-			pageNumber
-		);
-
-		const paginationParams = {
-			selectedItemsPerPage,
-			pageNumber,
-			totalPages,
-			resultsStartNumber,
-			resultsEndNumber,
-			totalCount
-		};
+		const paginationParams = createPaginationParams(req, totalCount);
 
 		const groupMembers = await getEntraGroupMembers({
 			logger,
