@@ -4,9 +4,15 @@
 	@extend .govuk-list, .govuk-\!-margin-0;
 
 	li {
-		@extend .govuk-\!-margin-0, .govuk-\!-padding-top-2, .govuk-\!-padding-bottom-5;
+		@extend .govuk-\!-margin-0, .govuk-\!-padding-bottom-5;
+		padding-top: govuk.govuk-spacing(2);
 
 		border-top: 1px solid govuk.govuk-functional-colour('border');
+
+		&:first-child {
+			border-top: 0;
+			padding-top: 0;
+		}
 	}
 
 	&__meta-data {

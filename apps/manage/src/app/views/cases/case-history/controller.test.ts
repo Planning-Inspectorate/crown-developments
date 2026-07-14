@@ -262,7 +262,7 @@ describe('buildViewCaseHistory', () => {
 			const pagination = viewData.paginationParams as {
 				pageNumber: number;
 				selectedItemsPerPage: number;
-				totalCount: number;
+				totalItems: number;
 				totalPages: number;
 				resultsStartNumber: number;
 				resultsEndNumber: number;
@@ -271,7 +271,7 @@ describe('buildViewCaseHistory', () => {
 			assert.ok(pagination);
 			assert.strictEqual(pagination.pageNumber, 2);
 			assert.strictEqual(pagination.selectedItemsPerPage, 25);
-			assert.strictEqual(pagination.totalCount, 45);
+			assert.strictEqual(pagination.totalItems, 45);
 			assert.strictEqual(pagination.totalPages, 2);
 			assert.strictEqual(pagination.resultsStartNumber, 26);
 			assert.strictEqual(pagination.resultsEndNumber, 45);
@@ -290,11 +290,11 @@ describe('buildViewCaseHistory', () => {
 
 			const auditArgs = mockAudit.getAllForCase.mock.calls[0].arguments as [string, { skip: number }];
 			const [, viewData] = renderArgs(res.render.mock.calls[0]);
-			const pagination = viewData.paginationParams as { pageNumber: number; totalCount: number };
+			const pagination = viewData.paginationParams as { pageNumber: number; totalItems: number };
 
 			assert.strictEqual(auditArgs[1].skip, 0);
 			assert.strictEqual(pagination.pageNumber, 1);
-			assert.strictEqual(pagination.totalCount, 5);
+			assert.strictEqual(pagination.totalItems, 5);
 		});
 	});
 });

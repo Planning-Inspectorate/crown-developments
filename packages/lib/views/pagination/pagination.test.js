@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import { createRequire } from 'node:module';
 import path from 'path';
 import nunjucks from 'nunjucks';
-import { buildPageUrl, buildItemsPerPageUrl } from './pagination-utils.js';
+import { buildPageUrl, buildItemsPerPageUrl } from './pagination-utils.ts';
 import { fileURLToPath } from 'url';
 
 describe('pagination macro', () => {
