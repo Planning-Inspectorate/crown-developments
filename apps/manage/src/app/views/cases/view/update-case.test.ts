@@ -2737,7 +2737,7 @@ describe('audit recording', () => {
 		assert.strictEqual(mockAudit.recordMany.mock.callCount(), 0);
 	});
 
-	it('should handle undefined userId in audit entries', async () => {
+	it('should skip audit and log warning when userId is undefined', async () => {
 		const logger = mockLogger();
 		const mockAudit = createMockAudit();
 		const mockDb = buildDbForAudit({ siteArea: null });
@@ -2756,9 +2756,12 @@ describe('audit recording', () => {
 
 		await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
 
-		assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
-		const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
-		assert.strictEqual(entries[0].userId, undefined);
+		assert.strictEqual(mockAudit.recordMany.mock.callCount(), 0);
+
+		assert.strictEqual((logger as any).warn.mock.callCount(), 1);
+		const warnCall = (logger as any).warn.mock.calls[0];
+		assert.strictEqual(warnCall.arguments[0].caseId, 'case-1');
+		assert.strictEqual(warnCall.arguments[1], 'Skipping audit: no userId available');
 	});
 
 	it('should record audit entry for hearingVenue field', async () => {
