@@ -1,33 +1,72 @@
 # Audit Resolvers
 
-This directory is for **resolvers** that translate raw database and form data into human-readable audit entries.
+This directory contains **resolvers** that translate raw database and form data into human-readable audit trail entries.
 
-> **Status: not yet implemented.** This directory is currently empty. The audit
-> system today records only simple, self-describing events (e.g. `CASE_CREATED`)
-> whose metadata is supplied directly at the call site. Resolvers will be added
-> when the audit trail is extended to cover field-level and list changes. This
-> README describes the intended pattern for that work — it does not describe code
-> that exists yet.
+## Why resolvers exist
 
-## Why resolvers will exist
+When a user saves a form, all we get is raw data — database IDs, field keys, and values. But the audit trail needs to show things like _"Inspector was updated from Alice to Bob"_, not _"inspectorId was updated from f62dd2d8-c46c-454c-9542-3e6ac8db156a to 7c4709fd-4f4e-40dc-b2b8-ffb5e9dd443d"_.
 
-When a user saves a form, the raw data is database IDs, field keys, and values. An audit trail should read _"Status was updated from New to Accepted"_, not _"statusId was updated from new to accepted"_. A resolver knows how to translate one type of field from raw data into something a person can read.
+Each resolver knows how to translate one type of field from raw data into something a person can read.
 
-## Intended pattern
+## Field resolvers (`field-resolver.ts`)
 
-### Field resolvers (scalar fields)
+Handle scalar fields on the `CrownDevelopment` model. They take the old DB value and the new form value, and return display-friendly `{ oldValue, newValue }` strings.
 
-For simple scalar fields on the `CrownDevelopment` model (status, procedure, case officer, etc.), a field resolver would take the old DB value and the new form value and return display-friendly `{ oldValue, newValue }` strings. Fields without a specific resolver would fall through to a default that stringifies the raw value.
+### Key functions
 
-### List resolvers (one-to-many relationships)
+- **`resolveFieldValues(fieldName, previousCase, newAnswer)`** — looks up a field-specific resolver or falls back to the default resolver which stringifies raw values
+- **`getFieldDisplayName(fieldName)`** — returns a human-readable display name using `FIELD_DISPLAY_NAMES` from `questions.js`, falling back to sentence case conversion
 
-For one-to-many relationships, a list resolver would compare the old and new lists, determine what was added, removed, or changed, and produce the appropriate audit entries for each difference. Each entity type would get its own resolver.
+### Adding a new field resolver
 
-## When you add resolver support for a new field or entity
+To add special handling for a field (e.g. it needs formatting, or the form value differs from the DB column), add an entry to the `FIELD_RESOLVERS` map in `field-resolver.ts`. Fields not in the map fall through to the default resolver.
 
-1. **Add audit action(s)** in `audit/actions.ts` (e.g. `MY_ENTITY_ADDED`, `MY_ENTITY_UPDATED`, `MY_ENTITY_DELETED`).
-2. **Add matching templates** in `AUDIT_TEMPLATES` in the same file.
-3. **Create the resolver here** — a field resolver for a scalar field, or a new list resolver for a new entity type.
-4. **Wire it into the relevant save/update controller** so the resolver runs after the database write and the resulting entries are passed to `audit.recordMany()`.
+Currently registered resolvers:
 
-Update this README's status note once the first resolver lands.
+| Field | Description |
+|-------|-------------|
+| `siteAddress` | Formats address object into comma-separated string |
+
+### Auditable fields
+
+Not all fields are yet audited — only those listed in `AUDITABLE_SCALAR_FIELDS` in `update-case.ts`:
+
+- `siteArea`
+- `lpaReference`
+- `agentOrganisationName`
+- `hearingVenue`
+- `inquiryVenue`
+
+## List resolvers
+
+> **Not yet implemented** (see CROWN-1641). This section describes the intended pattern for when list resolvers are added.
+
+List resolvers will handle one-to-many relationships (contacts, inspectors, etc.). They will compare the old list to the new list, determine what was added, removed, or changed, and produce the right audit entries for each difference.
+
+## Adding audit support for a new field
+
+When you add a new field to the case model:
+
+1. **Add it to `AUDITABLE_SCALAR_FIELDS`** in `update-case.ts`
+2. **Optionally add a field-specific resolver** in `FIELD_RESOLVERS` if the field needs special formatting
+3. **Ensure the field has a display name** via a question definition (which populates `FIELD_DISPLAY_NAMES`)
+
+For new audit actions beyond field updates:
+
+1. **Add an audit action** in `audit/actions.ts` (e.g. `MY_ENTITY_ADDED`)
+2. **Add a template** in `AUDIT_TEMPLATES` in the same file
+
+## Shared formatters
+
+Common formatting functions live in `packages/lib/util/audit-formatters.ts` and are shared across all resolvers:
+
+| Function | Description |
+|----------|-------------|
+| `formatAddress` | Formats address object into comma-separated string |
+| `formatDate` | Formats date for display (optionally with time) |
+| `formatDateTime` | Formats date with time |
+| `formatValue` | Formats scalar values; returns `-` for null/undefined |
+| `formatNumber` | Formats numeric values |
+| `formatBoolean` | Formats boolean to Yes/No |
+| `formatYesNo` | Normalises 'yes'/'no' form strings to 'Yes'/'No' |
+| `formatMonetaryValue` | Formats value as GBP currency |
