@@ -1,6 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+import { SITE_AREA_UNIT_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
 import { S62aCaseUpdateMapper, type UpdateCaseAnswers } from './s62a-update-case-mapper.ts';
+import type { Address } from '@planning-inspectorate/dynamic-forms';
 
 describe('S62aCaseUpdateMapper', () => {
 	describe('Empty and Undefined Payloads', () => {
@@ -10,74 +14,176 @@ describe('S62aCaseUpdateMapper', () => {
 
 			const result = mapper.generateUpdateInput();
 
-			assert.deepStrictEqual(result, {}, 'Should return a completely empty object');
+			assert.deepStrictEqual(result, {});
 		});
 
 		it('ignores explicitly undefined fields', () => {
 			const answers: UpdateCaseAnswers = {
 				developmentDescription: undefined,
-				s62aStatusId: undefined
+				s62aStatusId: undefined,
+				siteNorthing: undefined
 			};
 			const mapper = new S62aCaseUpdateMapper(answers);
 
 			const result = mapper.generateUpdateInput();
 
-			assert.deepStrictEqual(result, {}, 'Should not map fields that are undefined');
+			assert.deepStrictEqual(result, {});
 		});
 	});
 
 	describe('Scalar Mapping', () => {
-		it('maps developmentDescription when provided', () => {
+		it('maps scalar fields when provided', () => {
+			const date = new Date('2026-07-14T12:00:00Z');
 			const answers: UpdateCaseAnswers = {
-				developmentDescription: 'This is an updated description'
+				developmentDescription: 'Updated description',
+				likelyIssues: 'Traffic',
+				expectedSubmissionDate: date,
+				hasSecondaryLpa: 'yes'
 			};
 			const mapper = new S62aCaseUpdateMapper(answers);
 
 			const result = mapper.generateUpdateInput();
 
-			assert.strictEqual(result.description, 'This is an updated description');
-			assert.strictEqual(result.S62aStatus, undefined, 'Should not map unprovided lookup fields');
+			assert.strictEqual(result.description, 'Updated description');
+			assert.strictEqual(result.likelyIssues, 'Traffic');
+			assert.strictEqual(result.expectedSubmissionDate, date);
+			assert.strictEqual(result.hasSecondaryLpa, true);
 		});
 
-		it('allows clearing the developmentDescription with an empty string', () => {
+		it('allows clearing fields like description and likelyIssues with empty strings', () => {
 			const answers: UpdateCaseAnswers = {
-				developmentDescription: ''
+				developmentDescription: '',
+				likelyIssues: ''
 			};
 			const mapper = new S62aCaseUpdateMapper(answers);
 
 			const result = mapper.generateUpdateInput();
 
 			assert.strictEqual(result.description, '');
+			assert.strictEqual(result.likelyIssues, null);
+		});
+	});
+
+	describe('Location and Site Area Mapping', () => {
+		it('maps site northing and easting, allowing 0 as a valid value', () => {
+			const answers: UpdateCaseAnswers = {
+				siteNorthing: 0,
+				siteEasting: 12345
+			};
+			const mapper = new S62aCaseUpdateMapper(answers);
+
+			const result = mapper.generateUpdateInput();
+
+			assert.strictEqual(result.siteNorthing, 0);
+			assert.strictEqual(result.siteEasting, 12345);
+		});
+
+		it('clears site northing and easting when falsy (but not 0) is passed', () => {
+			const answers = {
+				siteNorthing: '',
+				siteEasting: null
+			} as unknown as UpdateCaseAnswers;
+			const mapper = new S62aCaseUpdateMapper(answers);
+
+			const result = mapper.generateUpdateInput();
+
+			assert.strictEqual(result.siteNorthing, null);
+			assert.strictEqual(result.siteEasting, null);
+		});
+
+		it('maps site area in square metres and connects the unit', () => {
+			const answers: UpdateCaseAnswers = {
+				siteAreaSquareMetres: 2500
+			};
+			const mapper = new S62aCaseUpdateMapper(answers);
+
+			const result = mapper.generateUpdateInput();
+
+			assert.strictEqual(result.siteAreaInSquareMetres, 2500);
+			assert.deepStrictEqual(result.SiteAreaOriginalUnit, { connect: { id: SITE_AREA_UNIT_ID.METRES_SQUARED } });
+		});
+
+		it('maps site area in hectares, converting to square metres via Decimal, and connects the unit', () => {
+			const answers: UpdateCaseAnswers = {
+				siteAreaHectares: 2.5
+			};
+			const mapper = new S62aCaseUpdateMapper(answers);
+
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.siteAreaInSquareMetres, new Prisma.Decimal(2.5).times(10000));
+			assert.deepStrictEqual(result.SiteAreaOriginalUnit, { connect: { id: SITE_AREA_UNIT_ID.HECTARES } });
+		});
+
+		it('disconnects the site area unit and nulls the value if area fields are explicitly cleared', () => {
+			const answers = {
+				siteAreaSquareMetres: '',
+				siteAreaHectares: ''
+			} as unknown as UpdateCaseAnswers;
+			const mapper = new S62aCaseUpdateMapper(answers);
+
+			const result = mapper.generateUpdateInput();
+
+			assert.strictEqual(result.siteAreaInSquareMetres, null);
+			assert.deepStrictEqual(result.SiteAreaOriginalUnit, { disconnect: true });
 		});
 	});
 
 	describe('Lookup Mapping', () => {
-		it('maps s62aStatusId into a Prisma connect object', () => {
+		it('maps required lookup fields into Prisma connect objects', () => {
 			const answers: UpdateCaseAnswers = {
-				s62aStatusId: 'valid-status-id'
+				s62aStatusId: 'status-123',
+				typeId: 'type-456'
 			};
 			const mapper = new S62aCaseUpdateMapper(answers);
 
 			const result = mapper.generateUpdateInput();
 
-			assert.deepStrictEqual(result.S62aStatus, { connect: { id: 'valid-status-id' } });
-			assert.strictEqual(result.description, undefined, 'Should not map unprovided scalar fields');
+			assert.deepStrictEqual(result.S62aStatus, { connect: { id: 'status-123' } });
+			assert.deepStrictEqual(result.Type, { connect: { id: 'type-456' } });
+			assert.strictEqual(result.Lpa, undefined);
+		});
+
+		it('connects optional lookup fields when a value is provided', () => {
+			const answers: UpdateCaseAnswers = {
+				applicationPhaseId: 'phase-1'
+			};
+			const mapper = new S62aCaseUpdateMapper(answers);
+
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.ApplicationPhase, { connect: { id: 'phase-1' } });
+		});
+
+		it('disconnects optional lookup fields when an empty string or null is provided', () => {
+			const answers: UpdateCaseAnswers = {
+				applicationPhaseId: '',
+				classificationId: null
+			};
+			const mapper = new S62aCaseUpdateMapper(answers);
+
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.ApplicationPhase, { disconnect: true });
+			assert.deepStrictEqual(result.Classification, { disconnect: true });
 		});
 	});
 
-	describe('Combined Mapping', () => {
-		it('maps multiple fields correctly simultaneously', () => {
+	describe('Address Mapping', () => {
+		it('maps siteAddress using the external view model formatter', () => {
 			const answers: UpdateCaseAnswers = {
-				developmentDescription: 'A newly updated case',
-				s62aStatusId: 'status-123'
+				siteAddress: { addressLine1: '10 Downing Street', postcode: 'SW1A 2AA' } as Address
 			};
+			const expectedAddressData = viewModelToAddressUpdateInput(answers.siteAddress as Address);
 			const mapper = new S62aCaseUpdateMapper(answers);
 
 			const result = mapper.generateUpdateInput();
 
-			assert.deepStrictEqual(result, {
-				description: 'A newly updated case',
-				S62aStatus: { connect: { id: 'status-123' } }
+			assert.deepStrictEqual(result.SiteAddress, {
+				upsert: {
+					create: expectedAddressData,
+					update: expectedAddressData
+				}
 			});
 		});
 	});

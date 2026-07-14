@@ -1,9 +1,11 @@
 import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import {
+	INSPECTOR_BANDS,
 	MAJOR_OR_NON_MAJORS,
 	PRE_APPLICATION_OR_APPLICATIONS,
 	S62A_STATUSES,
-	SITE_AREA_UNITS
+	SITE_AREA_UNITS,
+	SPECIALISMS
 } from './s62a/data-static.ts';
 
 export const APPLICATION_DECISION_OUTCOME: Prisma.ApplicationDecisionOutcomeCreateInput[] = [
@@ -615,6 +617,14 @@ type UpsertReferenceDataArgs =
 	| {
 			delegate: Prisma.S62aStatusDelegate;
 			input: Prisma.S62aStatusCreateInput;
+	  }
+	| {
+			delegate: Prisma.SpecialismDelegate;
+			input: Prisma.SpecialismCreateInput;
+	  }
+	| {
+			delegate: Prisma.InspectorBandDelegate;
+			input: Prisma.InspectorBandCreateInput;
 	  };
 
 async function upsertReferenceData({ delegate, input }: UpsertReferenceDataArgs): Promise<void> {
@@ -724,6 +734,10 @@ export async function seedS62aStaticData(dbClient: PrismaClient) {
 	await Promise.all(
 		ORGANISATION_ROLES.map((input) => upsertReferenceData({ delegate: dbClient.s62aToApplicantRole, input }))
 	);
+
+	await Promise.all(SPECIALISMS.map((input) => upsertReferenceData({ delegate: dbClient.specialism, input })));
+
+	await Promise.all(INSPECTOR_BANDS.map((input) => upsertReferenceData({ delegate: dbClient.inspectorBand, input })));
 
 	await Promise.all(S62A_STATUSES.map((input) => upsertReferenceData({ delegate: dbClient.s62aStatus, input })));
 	console.log('S62A static data seed complete');

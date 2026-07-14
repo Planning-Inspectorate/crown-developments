@@ -1,29 +1,18 @@
-import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { CrossQuestionValidator } from '@planning-inspectorate/dynamic-forms';
 import { applicantContactsValidationFn } from '@pins/crowndev-lib/validators/applicant-contacts-validator.ts';
-
-export const QUESTION_TEXT = {
-	[PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION]: {
-		applicationType: 'What type of application is this pre-application advice for?',
-		localPlanningAuthority: 'Which local planning authority is this pre-application advice related to?',
-		hasSecondaryLpa: 'Does this pre-application advice have a secondary local planning authority?',
-		secondaryLocalPlanningAuthority:
-			'Which secondary local planning authority is this pre-application advice related to?',
-		developmentDescription: undefined,
-		expectedSubmissionDate: 'When is the pre-application advice expected to be submitted?'
-	},
-	[PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION]: {
-		applicationType: 'What type of application is it?',
-		localPlanningAuthority: 'Which local planning authority is this application related to?',
-		hasSecondaryLpa: 'Does this application have a secondary local planning authority?',
-		secondaryLocalPlanningAuthority: 'Which secondary local planning authority is this application related to?',
-		developmentDescription: 'This will be published on the website.',
-		expectedSubmissionDate: 'When is the application expected to be submitted?'
-	}
-};
+import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 
 export type AppType = (typeof PRE_APPLICATION_OR_APPLICATION_ID)[keyof typeof PRE_APPLICATION_OR_APPLICATION_ID];
+
+export interface ApplicantContact {
+	applicantContactOrganisation?: string;
+}
+
+export interface ApplicantOrganisation {
+	id?: string;
+	organisationName?: string;
+}
 
 /**
  * Checks to make sure answer is one of the two app types, for typescript

@@ -98,3 +98,80 @@ export const VIEW_TABS = [
 		displayName: 'Details'
 	}
 ];
+
+export const SPECIALISM_ID = Object.freeze({
+	ARCHITECTURE_DESIGN: 'architecture-design',
+	GYPSY_AND_TRAVELLER: 'gypsy-and-traveller',
+	HISTORIC_HERITAGE: 'historic-heritage',
+	MINERALS: 'minerals',
+	RENEWABLE_ENERGY_WIND_FARMS: 'renewable-energy-wind-farms',
+	SHOPPING: 'shopping',
+	TREE_PRESERVATION_ORDER: 'tree-preservation-order',
+	TRANSPORT: 'transport',
+	WASTE: 'waste',
+	WATER: 'water'
+} as const);
+
+export const SPECIALISMS = [
+	{
+		id: SPECIALISM_ID.ARCHITECTURE_DESIGN,
+		displayName: 'Architecture design'
+	},
+	{
+		id: SPECIALISM_ID.GYPSY_AND_TRAVELLER,
+		displayName: 'Gypsy and traveller'
+	},
+	{
+		id: SPECIALISM_ID.HISTORIC_HERITAGE,
+		displayName: 'Historic heritage'
+	},
+	{
+		id: SPECIALISM_ID.MINERALS,
+		displayName: 'Minerals'
+	},
+	{
+		id: SPECIALISM_ID.RENEWABLE_ENERGY_WIND_FARMS,
+		displayName: 'Renewable energy/ wind farms'
+	},
+	{
+		id: SPECIALISM_ID.SHOPPING,
+		displayName: 'Shopping'
+	},
+	{
+		id: SPECIALISM_ID.TREE_PRESERVATION_ORDER,
+		displayName: 'Tree preservation order'
+	},
+	{
+		id: SPECIALISM_ID.TRANSPORT,
+		displayName: 'Transport'
+	},
+	{
+		id: SPECIALISM_ID.WASTE,
+		displayName: 'Waste'
+	},
+	{
+		id: SPECIALISM_ID.WATER,
+		displayName: 'Water'
+	}
+];
+
+export const INSPECTOR_BAND_ID = {
+	BAND_1: 'band-1',
+	BAND_2: 'band-2',
+	BAND_3: 'band-3'
+};
+
+export const INSPECTOR_BANDS = [
+	{
+		id: INSPECTOR_BAND_ID.BAND_1,
+		displayName: '1'
+	},
+	{
+		id: INSPECTOR_BAND_ID.BAND_2,
+		displayName: '2'
+	},
+	{
+		id: INSPECTOR_BAND_ID.BAND_3,
+		displayName: '3'
+	}
+];

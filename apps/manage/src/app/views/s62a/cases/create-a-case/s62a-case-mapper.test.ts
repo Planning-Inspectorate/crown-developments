@@ -172,29 +172,29 @@ describe('S62aCaseMapper', () => {
 	});
 
 	describe('Site Area Conversion', () => {
-		it('maps site area from square metres to hectares using Prisma.Decimal', () => {
+		it('maps site area from hectares to sqm using Prisma.Decimal', () => {
 			const answers: CreateCaseAnswers = {
 				...baseAnswers,
-				siteAreaSquareMetres: '50000'
+				siteAreaHectares: '50000'
 			};
 			const mapper = new S62aCaseMapper(answers, reference);
 			const result = mapper.generateCreateInput();
 
 			// Using toString() because Prisma.Decimal is a complex object
-			assert.strictEqual(result.siteAreaInHectares?.toString(), '5');
-			assert.deepStrictEqual(result.SiteAreaOriginalUnit, { connect: { id: SITE_AREA_UNIT_ID.METRES_SQUARED } });
+			assert.strictEqual(result.siteAreaInSquareMetres?.toString(), '500000000');
+			assert.deepStrictEqual(result.SiteAreaOriginalUnit, { connect: { id: SITE_AREA_UNIT_ID.HECTARES } });
 		});
 
-		it('maps site area using hectares directly using Prisma.Decimal', () => {
+		it('maps site area using sqm directly using Prisma.Decimal', () => {
 			const answers: CreateCaseAnswers = {
 				...baseAnswers,
-				siteAreaHectares: '12.5'
+				siteAreaSquareMetres: '12.5'
 			};
 			const mapper = new S62aCaseMapper(answers, reference);
 			const result = mapper.generateCreateInput();
 
-			assert.strictEqual(result.siteAreaInHectares?.toString(), '12.5');
-			assert.deepStrictEqual(result.SiteAreaOriginalUnit, { connect: { id: SITE_AREA_UNIT_ID.HECTARES } });
+			assert.strictEqual(result.siteAreaInSquareMetres?.toString(), '12.5');
+			assert.deepStrictEqual(result.SiteAreaOriginalUnit, { connect: { id: SITE_AREA_UNIT_ID.METRES_SQUARED } });
 		});
 	});
 

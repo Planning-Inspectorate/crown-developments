@@ -201,10 +201,10 @@ export class S62aCaseMapper {
 		}
 
 		if (this.answers.siteAreaHectares) {
-			input.siteAreaInHectares = new Prisma.Decimal(this.answers.siteAreaHectares);
+			input.siteAreaInSquareMetres = new Prisma.Decimal(this.answers.siteAreaHectares).times(10000);
 			input.SiteAreaOriginalUnit = { connect: { id: SITE_AREA_UNIT_ID.HECTARES } };
 		} else if (this.answers.siteAreaSquareMetres) {
-			input.siteAreaInHectares = new Prisma.Decimal(this.answers.siteAreaSquareMetres).dividedBy(10000);
+			input.siteAreaInSquareMetres = new Prisma.Decimal(this.answers.siteAreaSquareMetres);
 			input.SiteAreaOriginalUnit = { connect: { id: SITE_AREA_UNIT_ID.METRES_SQUARED } };
 		}
 	}

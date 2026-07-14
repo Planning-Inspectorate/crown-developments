@@ -32,8 +32,9 @@ describe('buildS62aUpdateCase', () => {
 		} as unknown as ManageService;
 
 		mockReq = {
-			params: { id: 'case-123' }
-		};
+			params: { id: 'case-123' },
+			session: {}
+		} as unknown as Request;
 
 		mockRes = {};
 	});

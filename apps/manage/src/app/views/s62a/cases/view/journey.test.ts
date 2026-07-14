@@ -64,7 +64,25 @@ describe('s62a case details journey', () => {
 			{
 				title: '',
 				segment: 'overview',
-				questions: ['developmentDescription']
+				questions: [
+					'reference',
+					'developmentDescription',
+					'likelyIssues',
+					'applicationType',
+					'applicationSubType',
+					'applicationClassification',
+					'applicationPhase',
+					'specialism',
+					'inspectorBand',
+					'localPlanningAuthority',
+					'hasSecondaryLpa',
+					'secondaryLocalPlanningAuthority',
+					'siteAddress',
+					'siteCoordinates',
+					'siteVisibility',
+					'siteArea',
+					'expectedSubmissionDate'
+				]
 			},
 			{
 				title: '',
