@@ -1,6 +1,6 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { buildViewCaseDetails, buildGetJourneyMiddleware } from './controller.ts';
+import { buildGetJourneyMiddleware } from './controller.ts';
 import type { ManageService } from '../../../../service.js';
 import type { Request, Response } from 'express';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
@@ -31,6 +31,7 @@ describe('S62A Controller Middleware', () => {
 					error: () => {}
 				}
 			} as unknown as ManageService;
+			process.env.ENVIRONMENT = 'dev';
 		});
 
 		it('populates res.locals and calls next() on success', async () => {

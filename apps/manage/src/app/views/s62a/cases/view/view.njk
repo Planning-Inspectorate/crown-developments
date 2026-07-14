@@ -1,5 +1,6 @@
 {% extends "views/layouts/main.njk" %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 
 {% set title = reference + " - " + journeyTitle + " - Manage a S62A Case" %}
 
@@ -8,6 +9,13 @@
 {% endblock %}
 
 {% block content %}
+    {% if banner %}
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+                {{ govukNotificationBanner(banner) }}
+            </div>
+        </div>
+    {% endif %}
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
             <h1 class="govuk-heading-l">

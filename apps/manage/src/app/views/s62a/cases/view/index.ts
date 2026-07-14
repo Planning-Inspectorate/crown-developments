@@ -21,6 +21,8 @@ export function createRoutes(service: ManageService) {
 	const getQuestionJourney = asyncHandler(buildGetJourneyMiddleware(service));
 	const updateCaseFn = buildS62aUpdateCase(service);
 	const updateCase = buildSave(updateCaseFn, true);
+	const clearAndUpdateCaseFn = buildS62aUpdateCase(service, true);
+	const clearAndUpdateCase = buildSave(clearAndUpdateCaseFn, true);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 
 	router.get('/', (req, res) => {
@@ -42,6 +44,8 @@ export function createRoutes(service: ManageService) {
 		validationErrorHandler,
 		asyncHandler(updateCase)
 	);
+
+	tabRouter.post('/:section/:question/remove', getJourney, asyncHandler(clearAndUpdateCase));
 
 	router.use('/:tab', tabRouter);
 

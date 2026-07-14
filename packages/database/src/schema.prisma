@@ -162,21 +162,26 @@ model CrownDevelopment {
 /// The main case model for S62A cases, contains the core data fields.
 /// But others will be in reference tables.
 model S62aCase {
-  id          String    @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
-  reference   String    @unique
-  createdDate DateTime  @default(now())
-  updatedDate DateTime?
-  description String    @db.NVarChar(2000)
+  id           String    @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  reference    String    @unique
+  createdDate  DateTime  @default(now())
+  updatedDate  DateTime?
+  description  String    @db.NVarChar(2000)
+  likelyIssues String?   @db.NVarChar(1000)
 
   /// Main fields to do with case definitions (e.g. type and status)
   typeId             String
   Type               ApplicationType       @relation(fields: [typeId], references: [id])
+  subTypeId          String?
+  SubType            ApplicationSubType?   @relation(fields: [subTypeId], references: [id])
   classificationId   String?
   Classification     S62aClassification?   @relation(fields: [classificationId], references: [id])
   applicationPhaseId String?
   ApplicationPhase   S62aApplicationPhase? @relation(fields: [applicationPhaseId], references: [id])
   s62aStatusId       String?
   S62aStatus         S62aStatus?           @relation(fields: [s62aStatusId], references: [id])
+  specialismId       String?
+  Specialism         Specialism?           @relation(fields: [specialismId], references: [id])
 
   hasAgent Boolean @default(false)
 
@@ -191,19 +196,36 @@ model S62aCase {
   secondaryLpaContactId String?           @db.UniqueIdentifier
   SecondaryLpaContact   Contact?          @relation("SecondaryLpaContact", fields: [secondaryLpaContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   S62aToApplicants      S62aToApplicant[]
+  inspectorBandId       String?
+  InspectorBand         InspectorBand?    @relation(fields: [inspectorBandId], references: [id])
 
   /// Site area fields
-  siteAddressId          String?       @db.UniqueIdentifier
-  SiteAddress            Address?      @relation(fields: [siteAddressId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-  siteEasting            Int?
-  siteNorthing           Int?
-  siteAreaInHectares     Decimal?
-  siteAreaOriginalUnitId String?
-  SiteAreaOriginalUnit   SiteAreaUnit? @relation(fields: [siteAreaOriginalUnitId], references: [id])
+  siteAddressId               String?       @db.UniqueIdentifier
+  SiteAddress                 Address?      @relation(fields: [siteAddressId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  siteEasting                 Int?
+  siteNorthing                Int?
+  siteAreaInSquareMetres      Decimal?
+  siteAreaOriginalUnitId      String?
+  SiteAreaOriginalUnit        SiteAreaUnit? @relation(fields: [siteAreaOriginalUnitId], references: [id])
+  siteIsVisibleFromPublicLand Boolean?
 
   /// Core dates
   notificationSubmittedDate DateTime?
   expectedSubmissionDate    DateTime
+}
+
+model InspectorBand {
+  /// unique machine-readable name, not generated, e.g. "band-1"
+  id          String     @id
+  displayName String?
+  S62aCases   S62aCase[]
+}
+
+model Specialism {
+  /// unique machine-readable name, not generated, e.g. "waste"
+  id          String     @id
+  displayName String?
+  S62aCases   S62aCase[]
 }
 
 model S62aStatus {
@@ -519,6 +541,7 @@ model ApplicationSubType {
   id               String             @id
   displayName      String?
   CrownDevelopment CrownDevelopment[]
+  s62Acases        S62aCase[]
 }
 
 /// ApplicationStatus represents the status an application can be in

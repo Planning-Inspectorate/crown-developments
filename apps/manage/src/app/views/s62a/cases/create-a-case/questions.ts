@@ -24,17 +24,13 @@ import { APPLICATION_TYPES } from '@pins/crowndev-database/src/seed/data-static.
 import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../../config.js';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
-import {
-	isApplicationType,
-	formatLpaOptions,
-	QUESTION_TEXT,
-	getApplicantContactsValidator
-} from './questions-utils.ts';
+import { CREATE_A_CASE_QUESTION_TEXT } from './constants.ts';
 import { createLpaContactQuestion, multiContactQuestions } from './question-factories.ts';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import { getApplicantOrganisationOptions } from '../../../../views/cases/util/applicant-organisation-options.js';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
+import { formatLpaOptions, getApplicantContactsValidator, isApplicationType } from '../util/questions.ts';
 
 type ApplicantOrg = {
 	id: string;
@@ -83,7 +79,7 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 		applicationType: {
 			type: COMPONENT_TYPES.RADIO,
 			title: 'Application type',
-			question: QUESTION_TEXT[preAppOrAppPath].applicationType,
+			question: CREATE_A_CASE_QUESTION_TEXT[preAppOrAppPath].applicationType,
 			fieldName: 'applicationType',
 			url: 'application-type',
 			validators: [new RequiredValidator('Select the type of application')],
@@ -92,7 +88,7 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 		localPlanningAuthority: {
 			type: COMPONENT_TYPES.SELECT,
 			title: 'LPA name',
-			question: QUESTION_TEXT[preAppOrAppPath].localPlanningAuthority,
+			question: CREATE_A_CASE_QUESTION_TEXT[preAppOrAppPath].localPlanningAuthority,
 			fieldName: 'lpaId',
 			url: 'local-planning-authority',
 			validators: [
@@ -108,7 +104,7 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 		hasSecondaryLpa: {
 			type: COMPONENT_TYPES.BOOLEAN,
 			title: 'Secondary LPA?',
-			question: QUESTION_TEXT[preAppOrAppPath].hasSecondaryLpa,
+			question: CREATE_A_CASE_QUESTION_TEXT[preAppOrAppPath].hasSecondaryLpa,
 			fieldName: 'hasSecondaryLpa',
 			url: 'has-secondary-local-planning-authority',
 			validators: [new RequiredValidator('Select yes if there is a secondary local planning authority')]
@@ -116,7 +112,7 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 		secondaryLocalPlanningAuthority: {
 			type: COMPONENT_TYPES.SELECT,
 			title: 'Secondary LPA name',
-			question: QUESTION_TEXT[preAppOrAppPath].secondaryLocalPlanningAuthority,
+			question: CREATE_A_CASE_QUESTION_TEXT[preAppOrAppPath].secondaryLocalPlanningAuthority,
 			fieldName: 'secondaryLpaId',
 			url: 'secondary-local-planning-authority',
 			validators: [
@@ -352,7 +348,7 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 			type: COMPONENT_TYPES.TEXT_ENTRY,
 			title: 'Development description',
 			question: 'What is the description of the development?',
-			hint: QUESTION_TEXT[preAppOrAppPath].developmentDescription,
+			hint: CREATE_A_CASE_QUESTION_TEXT[preAppOrAppPath].developmentDescription,
 			fieldName: 'developmentDescription',
 			url: 'development-description',
 			validators: [
@@ -377,7 +373,7 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 		expectedSubmissionDate: {
 			type: COMPONENT_TYPES.DATE,
 			title: 'Expected submission date',
-			question: QUESTION_TEXT[preAppOrAppPath].expectedSubmissionDate,
+			question: CREATE_A_CASE_QUESTION_TEXT[preAppOrAppPath].expectedSubmissionDate,
 			hint: 'For example, 27 3 2007',
 			fieldName: 'expectedSubmissionDate',
 			url: 'expected-submission-date-application',

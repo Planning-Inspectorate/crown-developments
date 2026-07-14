@@ -10,6 +10,7 @@ import {
 	type DistressingContentQuestionProps
 } from './distressing-content/question.ts';
 import type { CommonQuestionProps, QuestionProps, QuestionTypes } from '@planning-inspectorate/dynamic-forms';
+import HiddenRadioQuestion from './radio-with-hidden-options/question.ts';
 
 type CustomComponentTypes = (typeof CUSTOM_COMPONENTS)[keyof typeof CUSTOM_COMPONENTS];
 
@@ -138,7 +139,8 @@ export const CUSTOM_COMPONENTS = Object.freeze({
 	COSTS_APPLICATIONS: 'costs-applications',
 	CUSTOM_MANAGE_LIST: 'manage-list',
 	CUSTOM_MULTI_FIELD_INPUT: 'custom-multi-field-input',
-	DISTRESSING_CONTENT: 'distressing-content'
+	DISTRESSING_CONTENT: 'distressing-content',
+	RADIO_WITH_HIDDEN_OPTIONS: 'radio-with-hidden-options'
 } as const);
 
 export const CUSTOM_COMPONENT_CLASSES = Object.freeze({
@@ -149,5 +151,6 @@ export const CUSTOM_COMPONENT_CLASSES = Object.freeze({
 	[CUSTOM_COMPONENTS.COSTS_APPLICATIONS]: CostsApplicationsCommentQuestion,
 	[CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST]: CustomManageListQuestion,
 	[CUSTOM_COMPONENTS.CUSTOM_MULTI_FIELD_INPUT]: CustomMultiFieldInputQuestion,
-	[CUSTOM_COMPONENTS.DISTRESSING_CONTENT]: DistressingContentQuestion
+	[CUSTOM_COMPONENTS.DISTRESSING_CONTENT]: DistressingContentQuestion,
+	[CUSTOM_COMPONENTS.RADIO_WITH_HIDDEN_OPTIONS]: HiddenRadioQuestion
 } as const);
