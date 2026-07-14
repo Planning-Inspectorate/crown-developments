@@ -433,6 +433,13 @@ async function recordAuditEntries(
 	updatedFieldNames: string[],
 	logger: Logger
 ): Promise<void> {
+	// Bail out early if userId is missing — audit.recordMany requires a userId for every entry
+	// and will throw/log when missing. This avoids noisy error logs and wasted work.
+	if (!userId) {
+		logger.warn({ caseId, updatedFieldNames }, 'Skipping audit: no userId available');
+		return;
+	}
+
 	try {
 		const allAuditEntries: AuditEntry[] = [];
 
