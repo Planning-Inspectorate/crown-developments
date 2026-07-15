@@ -131,7 +131,7 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 			question: 'Is the applicant using an agent?',
 			fieldName: 'hasAgent',
 			url: 'has-agent',
-			validators: [new RequiredValidator('Select if the applicant is using an agent')]
+			validators: [new RequiredValidator('Select yes if the applicant is using an agent')]
 		},
 		agentName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
