@@ -177,7 +177,8 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 			titleSingular: 'Contact',
 			emptyListText: 'No agent contacts found',
 			showAnswersInSummary: true,
-			emptyStateAddStyle: 'force'
+			emptyStateAddStyle: 'force',
+			maximumAnswers: 10
 		},
 		...multiContactQuestions({
 			prefix: 'agent',
