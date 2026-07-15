@@ -1,6 +1,7 @@
 import session from 'express-session';
 import type { RedisClient } from '../redis/redis-client.ts';
-import type { Request } from 'express';
+import type { Request, RequestHandler } from 'express';
+import type { ApplicantContact } from '../validators/applicant-contacts-validator.ts';
 
 type SessionFieldData = Record<string, Record<string, unknown>>;
 type SessionRecord = Record<string, SessionFieldData>;
@@ -117,4 +118,48 @@ export function clearSessionData(
 	}
 	const fieldProps = (session[sessionField] && session[sessionField][id]) || {};
 	delete fieldProps[fieldOrFields];
+}
+
+/**
+ * When removing an applicant organisation, also remove any applicant contacts linked to it.
+ */
+export function removeApplicantContactsWhenOrganisationRemoved(journeyId: string): RequestHandler {
+	return (req, res, next) => {
+		try {
+			const { question, manageListAction, manageListItemId, manageListQuestion } = req.params;
+
+			if (
+				question !== 'check-applicant-details' ||
+				manageListAction !== 'remove' ||
+				manageListQuestion !== 'confirm' ||
+				typeof manageListItemId !== 'string' ||
+				!manageListItemId
+			) {
+				next();
+				return;
+			}
+
+			// Cast session to handle custom dynamic forms structure without breaking TS
+			const session = req.session;
+			const answers = session?.forms?.[journeyId];
+
+			if (!answers || typeof answers !== 'object') {
+				next();
+				return;
+			}
+
+			const key = 'manageApplicantContactDetails';
+			const existing = answers[key];
+
+			if (Array.isArray(existing)) {
+				answers[key] = existing.filter(
+					(contact: ApplicantContact) => contact?.applicantContactOrganisation !== manageListItemId
+				);
+			}
+
+			next();
+		} catch (e) {
+			next(e);
+		}
+	};
 }

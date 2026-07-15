@@ -17,6 +17,7 @@ import { getQuestions } from './questions.ts';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { buildSaveController, buildSuccessController } from './save.ts';
 import type { ManageService } from '#service';
+import { removeApplicantContactsWhenOrganisationRemoved } from '@pins/crowndev-lib/util/session.ts';
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });
@@ -52,6 +53,7 @@ export function createRoutes(service: ManageService) {
 		getQuestionJourney,
 		validate,
 		validationErrorHandler,
+		removeApplicantContactsWhenOrganisationRemoved(JOURNEY_ID),
 		buildSave(saveDataToSession)
 	);
 
