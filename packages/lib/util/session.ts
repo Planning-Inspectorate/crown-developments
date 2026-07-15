@@ -139,7 +139,6 @@ export function removeApplicantContactsWhenOrganisationRemoved(journeyId: string
 				return;
 			}
 
-			// Cast session to handle custom dynamic forms structure without breaking TS
 			const session = req.session;
 			const answers = session?.forms?.[journeyId];
 
