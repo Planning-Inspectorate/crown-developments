@@ -28,14 +28,16 @@ export function applicantContactsValidationFn(contacts: unknown, applicants: unk
 	if (!allContactsHaveValidOrg) {
 		throw new Error('All applicant contacts must be associated with an applicant organisation');
 	}
-	typedApplicants.forEach((organisation) => {
-		const hasMatchingContact = typedContacts.some(
-			(contact) => contact.applicantContactOrganisation === organisation.id
-		);
-		if (!hasMatchingContact) {
-			throw new Error(`You must add a contact for ${organisation.organisationName || 'this organisation'}`);
-		}
-	});
+
+	const missingOrgs = typedApplicants.filter(
+		(organisation) => !typedContacts.some((contact) => contact.applicantContactOrganisation === organisation.id)
+	);
+
+	if (missingOrgs.length > 0) {
+		const orgNames = missingOrgs.map((org) => org.organisationName || 'this organisation').join(', ');
+		throw new Error(`You must add a contact for ${orgNames}`);
+	}
+
 	return true;
 }
 
