@@ -163,7 +163,6 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 			type: COMPONENT_TYPES.ADDRESS,
 			title: 'Agent address',
 			question: 'What is the address of the agent organisation?',
-			hint: 'Optional',
 			fieldName: 'agentAddress',
 			url: 'agent-address',
 			validators: [new AddressValidator()]
@@ -245,7 +244,6 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 			type: COMPONENT_TYPES.ADDRESS,
 			title: 'Site address',
 			question: 'What is the site address?',
-			hint: 'Optional',
 			fieldName: 'siteAddress',
 			url: 'site-address',
 			validators: [new AddressValidator()]
