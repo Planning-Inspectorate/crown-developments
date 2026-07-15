@@ -13,7 +13,7 @@ import { JOURNEY_ID, createJourney } from './journey.js';
 import { getQuestions } from './questions.js';
 import { buildSaveController, buildSuccessController } from './save.js';
 import { getSummaryWarningMessage } from '@pins/crowndev-lib/util/linked-case.ts';
-import { removeApplicantContactsWhenOrganisationRemoved } from './session.js';
+import { removeApplicantContactsWhenOrganisationRemoved } from '@pins/crowndev-lib/util/session.ts';
 
 /**
  * @param {import('#service').ManageService} service
@@ -57,7 +57,7 @@ export function createRoutes(service) {
 		getQuestionJourney,
 		validate,
 		validationErrorHandler,
-		removeApplicantContactsWhenOrganisationRemoved(),
+		removeApplicantContactsWhenOrganisationRemoved(JOURNEY_ID),
 		buildSave(saveDataToSession)
 	);
 
