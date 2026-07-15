@@ -11,10 +11,7 @@ export type SiteCoordinates = {
 };
 
 export type SiteCoordinatesError =
-	| 'eastingMustContainSixDigits'
-	| 'eastingMustBeNumber'
-	| 'northingMustContainSixDigits'
-	| 'northingMustBeNumber';
+	'eastingMustContainSixDigits' | 'eastingMustBeNumber' | 'northingMustContainSixDigits' | 'northingMustBeNumber';
 
 type SiteCoordinatesField = 'siteEasting' | 'siteNorthing';
 

@@ -15,14 +15,7 @@ export type ErrorSummaryOptions = VerifyOptions & {
 };
 
 export type ActionButtonOption =
-	| 'back'
-	| 'addDetails'
-	| 'addAnother'
-	| 'saveAndContinue'
-	| 'continue'
-	| 'cancel'
-	| 'save'
-	| 'removeAndSave';
+	'back' | 'addDetails' | 'addAnother' | 'saveAndContinue' | 'continue' | 'cancel' | 'save' | 'removeAndSave';
 
 export class CommonComponent {
 	private readonly page: Page;

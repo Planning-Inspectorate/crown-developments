@@ -5,8 +5,7 @@ type BannerMessageType = 'info' | 'success';
 
 // A message must have exactly one of `text` or `html`.
 export type BannerMessage =
-	| { type: BannerMessageType; text: string; html?: never }
-	| { type: BannerMessageType; html: string; text?: never };
+	{ type: BannerMessageType; text: string; html?: never } | { type: BannerMessageType; html: string; text?: never };
 
 type InternalHtmlMessage = {
 	kind: 'html';
