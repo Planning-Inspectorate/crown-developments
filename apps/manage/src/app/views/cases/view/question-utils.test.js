@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { dateQuestion, eventQuestions, filteredStagesToRadioOptions } from './question-utils.js';
+import { dateQuestion, eventQuestions, getFilteredStages } from './question-utils.ts';
 import { APPLICATION_PROCEDURE_ID, APPLICATION_STAGE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('question-utils', () => {
@@ -139,7 +139,7 @@ describe('question-utils', () => {
 	});
 	describe('filteredStagesToRadioOptions', () => {
 		it('should return correct stages for procedureId is null', () => {
-			const result = filteredStagesToRadioOptions(null);
+			const result = getFilteredStages(null);
 			const expected = [
 				{ id: APPLICATION_STAGE_ID.ACCEPTANCE, displayName: 'Accepted' },
 				{ id: APPLICATION_STAGE_ID.CONSULTATION, displayName: 'Consultation' },
@@ -150,7 +150,7 @@ describe('question-utils', () => {
 		});
 
 		it('should return correct stages for procedureId is written-reps', () => {
-			const result = filteredStagesToRadioOptions(APPLICATION_PROCEDURE_ID.WRITTEN_REPS);
+			const result = getFilteredStages(APPLICATION_PROCEDURE_ID.WRITTEN_REPS);
 			const expected = [
 				{ id: APPLICATION_STAGE_ID.ACCEPTANCE, displayName: 'Accepted' },
 				{ id: APPLICATION_STAGE_ID.CONSULTATION, displayName: 'Consultation' },
@@ -162,7 +162,7 @@ describe('question-utils', () => {
 		});
 
 		it('should return correct stages for procedureId is hearing', () => {
-			const result = filteredStagesToRadioOptions(APPLICATION_PROCEDURE_ID.HEARING);
+			const result = getFilteredStages(APPLICATION_PROCEDURE_ID.HEARING);
 			const expected = [
 				{ id: APPLICATION_STAGE_ID.ACCEPTANCE, displayName: 'Accepted' },
 				{ id: APPLICATION_STAGE_ID.CONSULTATION, displayName: 'Consultation' },
@@ -174,7 +174,7 @@ describe('question-utils', () => {
 		});
 
 		it('should return correct stages for procedureId is inquiry', () => {
-			const result = filteredStagesToRadioOptions(APPLICATION_PROCEDURE_ID.INQUIRY);
+			const result = getFilteredStages(APPLICATION_PROCEDURE_ID.INQUIRY);
 			const expected = [
 				{ id: APPLICATION_STAGE_ID.ACCEPTANCE, displayName: 'Accepted' },
 				{ id: APPLICATION_STAGE_ID.CONSULTATION, displayName: 'Consultation' },
