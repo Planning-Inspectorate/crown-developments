@@ -1,30 +1,27 @@
-import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
-import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
-import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
-import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
-import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
+import {
+	DateValidator,
+	MultiFieldInputValidator,
+	RequiredValidator,
+	StringValidator,
+	COMPONENT_TYPES
+} from '@planning-inspectorate/dynamic-forms';
 import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.ts';
 import {
 	APPLICATION_PROCEDURE_ID,
 	APPLICATION_STAGE,
 	APPLICATION_STAGE_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
-import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-validator.js';
+import { CUSTOM_COMPONENTS, type CILAmountQuestionProps } from '@pins/crowndev-lib/forms/custom-components/index.ts';
+import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-validator.ts';
 import { camelCaseToUrlCase, camelCaseToSentenceCase, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
+import type { QuestionProps, Option } from '@planning-inspectorate/dynamic-forms';
+import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 /**
- * @param {Object} opts
- * @param {string} opts.fieldName
- * @param {string} [opts.title] This should be uncapitalised (unless it's a proper noun)
- * @param {string} [opts.hint]
- * @param {boolean} [opts.editable]
- * @param {string} [opts.question]
- * @param {Object<string, any>} [opts.viewData]
- * @param {string} [opts.question]
- * @param {string|null} [opts.emptyErrorMessage]
- * @param {string|null} [opts.validationTitle] This should be uncapitalised (unless it's a proper noun). Only required if specified differently to title in validation messages.
- * @returns {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps}
+ * Generate a standard date question
+ *
+ * title should be uncapitalised (unless it's a proper noun)
+ * validationTitle should be uncapitalised (unless it's a proper noun). Only required if specified differently to title in validation messages.
  */
 export function dateQuestion({
 	fieldName,
@@ -35,7 +32,16 @@ export function dateQuestion({
 	question,
 	emptyErrorMessage = null,
 	validationTitle = null
-}) {
+}: {
+	fieldName: string;
+	title?: string;
+	hint?: string;
+	editable?: boolean;
+	viewData?: Record<string, unknown>; // more specific?
+	question?: string;
+	emptyErrorMessage?: string | null;
+	validationTitle?: string | null;
+}): QuestionProps {
 	// remove capitalisation for fallback title, since used in fallback question
 	const fallbackTitle = camelCaseToSentenceCase(fieldName).toLowerCase();
 	if (!title) {
@@ -62,10 +68,9 @@ export function dateQuestion({
 }
 
 /**
- * @param {string} prefix
- * @returns {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>}
+ * Generate a standard set of event questions
  */
-export function eventQuestions(prefix) {
+export function eventQuestions(prefix: string): Record<string, QuestionProps> {
 	const title = sentenceCase(prefix);
 	return {
 		[`${prefix}Date`]: dateQuestion({
@@ -193,16 +198,22 @@ export function eventQuestions(prefix) {
 }
 
 /**
- * @param {import('@pins/crowndev-database').Prisma.CategoryCreateInput[]} categories
- * @returns {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').Option[]}
+ * Convert subcategory data to radio options
  */
-export function subCategoriesToRadioOptions(categories) {
-	const parents = categories.filter((c) => !c.ParentCategory);
-	const parentIdToName = Object.fromEntries(parents.map((p) => [p.id, p.displayName]));
+export function subCategoriesToRadioOptions(categories: readonly Prisma.CategoryCreateInput[]): Option[] {
+	const parents = categories.filter((c) => !('ParentCategory' in c));
+	const parentIdToName = Object.fromEntries(parents.map((p) => [p.id, p.displayName ?? '']));
 	const subCategories = categories
-		.filter((c) => c.ParentCategory)
+		.filter(
+			(
+				c
+			): c is Prisma.CategoryCreateInput & {
+				ParentCategory: NonNullable<Prisma.CategoryCreateInput['ParentCategory']>;
+			} => 'ParentCategory' in c && c.ParentCategory !== undefined
+		)
 		.map((c) => {
-			const parentName = parentIdToName[c.ParentCategory.connect.id];
+			const parentId = c.ParentCategory.connect?.id;
+			const parentName = parentId ? parentIdToName[parentId] : '';
 			return {
 				displayName: `${parentName}\n ` + c.displayName,
 				id: c.id
@@ -211,8 +222,13 @@ export function subCategoriesToRadioOptions(categories) {
 	return referenceDataToRadioOptions(subCategories);
 }
 
-export function filteredStagesToRadioOptions(procedureId) {
-	const stageIds = [
+export type Reference = {
+	id: string;
+	displayName: string;
+};
+
+export function getFilteredStages(procedureId?: string): Reference[] {
+	const stageIds: (typeof APPLICATION_STAGE_ID)[keyof typeof APPLICATION_STAGE_ID][] = [
 		APPLICATION_STAGE_ID.ACCEPTANCE,
 		APPLICATION_STAGE_ID.CONSULTATION,
 		APPLICATION_STAGE_ID.PROCEDURE_DECISION
@@ -223,8 +239,10 @@ export function filteredStagesToRadioOptions(procedureId) {
 				? APPLICATION_STAGE_ID.WRITTEN_REPRESENTATIONS
 				: procedureId;
 		const procedure = APPLICATION_STAGE.find((procedure) => procedure.id === mappedProcedureId);
-		const procedureStage = APPLICATION_STAGE.find((stage) => stage.displayName === procedure.displayName).id;
-		stageIds.push(procedureStage);
+		const procedureStage = APPLICATION_STAGE.find((stage) => stage.displayName === procedure?.displayName)?.id;
+		if (procedureStage) {
+			stageIds.push(procedureStage);
+		}
 	}
 	stageIds.push(APPLICATION_STAGE_ID.DECISION);
 	return APPLICATION_STAGE.filter((stage) => stageIds.includes(stage.id)).map((s) => ({
@@ -241,4 +259,4 @@ export const CIL_DATA = {
 	cilAmountInputFieldName: 'cilAmount',
 	cilAmountQuestion: 'What is the CIL amount?',
 	validators: [new CILAmountValidator()]
-};
+} as const satisfies Omit<CILAmountQuestionProps, 'fieldToShow' | 'title'>;

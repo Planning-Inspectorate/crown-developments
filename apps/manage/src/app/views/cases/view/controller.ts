@@ -8,7 +8,7 @@ import {
 } from '@planning-inspectorate/dynamic-forms';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { crownDevelopmentToViewModel, type CrownDevelopmentViewModel } from './view-model.ts';
-import { getQuestions } from './questions.js';
+import { getQuestions } from './questions.ts';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { getEntraGroupMembers } from '#util/entra-groups.ts';
@@ -16,7 +16,7 @@ import { isUnsafeObjectKey, clearSessionData, readSessionData } from '@pins/crow
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { maybeGetLinkedCaseLink } from '@pins/crowndev-lib/util/linked-case.ts';
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { filteredStagesToRadioOptions } from './question-utils.js';
+import { getFilteredStages } from './question-utils.ts';
 import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.js';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
 import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
@@ -302,9 +302,10 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		const overrides = {
 			isApplicationTypePlanningOrLbc: viewModel.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT,
 			isApplicationSubTypeLbc: viewModel.subTypeId === APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT,
-			filteredStageOptions: filteredStagesToRadioOptions(viewModel.procedureId),
+			filteredStageOptions: getFilteredStages(viewModel.procedureId),
 			applicantOrganisationOptions: getApplicantOrganisationOptions(viewModel.manageApplicantDetails || []),
 			hasAgentAnswer: yesNoToBoolean(viewModel.hasAgent),
+			hasApplicationFee: yesNoToBoolean(viewModel.hasApplicationFee),
 			isQuestionView: isQuestionView
 		};
 

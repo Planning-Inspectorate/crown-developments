@@ -233,15 +233,6 @@ export interface ManageAgentContactDetails extends AgentContact {
 	organisationToContactRelationId: string;
 }
 
-export interface QuestionOverrides {
-	isApplicationTypePlanningOrLbc: boolean;
-	isApplicationSubTypeLbc: boolean;
-	filteredStageOptions?: Array<{ id: string; displayName: string }>;
-	applicantOrganisationOptions?: Array<{ text: string; value: string }>;
-	hasAgentAnswer: boolean;
-	isQuestionView: boolean;
-}
-
 type DecimalMappedViewModelFields = (typeof DECIMAL_FIELDS)[number];
 
 type NullableDirectMappedViewModelFields = Exclude<DirectMappedViewModelFields, DecimalMappedViewModelFields>;

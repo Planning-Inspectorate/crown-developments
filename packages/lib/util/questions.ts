@@ -15,7 +15,7 @@ type ReferenceWithHint = Reference & { hintText: string };
 /**
  * Converts an array of reference data into radio options for a form.
  */
-export function referenceDataToRadioOptions(reference: Reference[], addNullOption: boolean = false): Option[] {
+export function referenceDataToRadioOptions(reference: readonly Reference[], addNullOption: boolean = false): Option[] {
 	const options = reference.map((t) => ({ text: t.displayName, value: t.id }));
 	if (addNullOption) {
 		options.unshift({ text: '', value: '' });
@@ -27,7 +27,7 @@ export function referenceDataToRadioOptions(reference: Reference[], addNullOptio
  * Converts an array of reference data with hint text into radio options for a form, including hint text for each option.
  */
 export function referenceDataToRadioOptionsWithHintText(
-	reference: ReferenceWithHint[],
+	reference: readonly ReferenceWithHint[],
 	addNullOption: boolean = false
 ): Option[] {
 	const options = reference.map((t) => ({

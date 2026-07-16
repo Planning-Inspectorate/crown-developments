@@ -1,6 +1,6 @@
 import { formatAddress, formatValue } from '@pins/crowndev-lib/util/audit-formatters.ts';
 import { camelCaseToSentenceCase } from '@pins/crowndev-lib/util/string.ts';
-import { FIELD_DISPLAY_NAMES } from '../../views/cases/view/questions.js';
+import { FIELD_DISPLAY_NAMES } from '../../views/cases/view/questions.ts';
 
 interface ResolverContext {
 	userDisplayNameMap?: Map<string, string>;

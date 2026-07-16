@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
-import { getQuestions } from '../questions.js';
+import { getQuestions } from '../questions.ts';
 
 describe('application updates journey', () => {
 	it('should error if used with the wrong router structure', () => {
