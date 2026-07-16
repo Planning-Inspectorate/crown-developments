@@ -44,7 +44,7 @@ type RepresentationCommentQuestionProps = CrownCommonQuestionProps & {
 	label?: string;
 };
 
-type CILAmountQuestionProps = CrownCommonQuestionProps & {
+export type CILAmountQuestionProps = CrownCommonQuestionProps & {
 	type: typeof CUSTOM_COMPONENTS.CIL_AMOUNT;
 	cilAmountInputFieldName: string;
 	cilAmountQuestion: string;

@@ -1,6 +1,6 @@
 import { formatAddress, formatBoolean, formatValue, formatYesNo } from '@pins/crowndev-lib/util/audit-formatters.ts';
 import { camelCaseToSentenceCase } from '@pins/crowndev-lib/util/string.ts';
-import { FIELD_DISPLAY_NAMES } from '../../views/cases/view/questions.js';
+import { FIELD_DISPLAY_NAMES } from '../../views/cases/view/questions.ts';
 import {
 	APPLICATION_TYPES,
 	APPLICATION_STATUS,
