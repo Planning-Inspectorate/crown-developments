@@ -1,6 +1,7 @@
-import { describe, it } from 'node:test';
+import { describe, it, afterEach } from 'node:test';
 import assert from 'node:assert';
 import {
+	getLpaOptions,
 	getSubmittedForId,
 	referenceDataToRadioOptions,
 	referenceDataToRadioOptionsWithHintText,
@@ -202,6 +203,77 @@ describe('questions', () => {
 					value: 'personal-reasons'
 				}
 			]);
+		});
+	});
+	describe('getLpaOptions', () => {
+		const originalEnv = process.env.ENVIRONMENT;
+
+		afterEach(() => {
+			// Restore original environment after each test
+			if (originalEnv === undefined) {
+				delete process.env.ENVIRONMENT;
+			} else {
+				process.env.ENVIRONMENT = originalEnv;
+			}
+		});
+
+		it('should return an array of options', () => {
+			const options = getLpaOptions();
+			assert.ok(Array.isArray(options));
+			assert.ok(options.length > 0);
+		});
+
+		it('should have an empty first option', () => {
+			const options = getLpaOptions();
+			assert.deepStrictEqual(options[0], { text: '', value: '' });
+		});
+
+		it('should have text and value properties for all options', () => {
+			const options = getLpaOptions();
+			for (const option of options) {
+				assert.ok(typeof option.text === 'string', 'text should be a string');
+				assert.ok(typeof option.value === 'string', 'value should be a string');
+			}
+		});
+
+		it('should be sorted alphabetically by text (excluding empty first option)', () => {
+			const options = getLpaOptions();
+			const nonEmptyOptions = options.slice(1);
+			for (let i = 1; i < nonEmptyOptions.length; i++) {
+				const prev = nonEmptyOptions[i - 1].text;
+				const curr = nonEmptyOptions[i].text;
+				assert.ok(prev.localeCompare(curr) <= 0, `Options should be sorted: "${prev}" should come before "${curr}"`);
+			}
+		});
+
+		it('should use DEV data when ENVIRONMENT is not set', () => {
+			delete process.env.ENVIRONMENT;
+			const options = getLpaOptions();
+			// DEV data has fewer LPAs than prod, just verify we get options
+			assert.ok(options.length > 1, 'Should have LPA options');
+			assert.match(options[1].text, /Test/, 'Should have test LPA option');
+		});
+
+		it('should use DEV data when ENVIRONMENT is "dev"', () => {
+			process.env.ENVIRONMENT = 'dev';
+			const options = getLpaOptions();
+			assert.ok(options.length > 1, 'Should have LPA options');
+			assert.match(options[1].text, /Test/, 'Should have test LPA option');
+		});
+
+		it('should not throw when ENVIRONMENT is "prod"', () => {
+			process.env.ENVIRONMENT = 'prod';
+			// Just verify the function doesn't throw and returns valid structure
+			// PROD data is not available in test environment due to JSON import
+			assert.doesNotThrow(() => {
+				const options = getLpaOptions();
+				assert.ok(Array.isArray(options), 'Should return an array');
+				assert.deepStrictEqual(options[0], { text: '', value: '' }, 'Should have empty first option');
+				assert.ok(
+					options.length === 1,
+					'Prod data not yet available in test environment, should return only empty option'
+				);
+			});
 		});
 	});
 });

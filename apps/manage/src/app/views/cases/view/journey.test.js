@@ -13,7 +13,6 @@ describe('case details journey', () => {
 	const mockReq = { params: { id: 'project-1' }, baseUrl: '/cases/project-1' };
 
 	it('all questions should be defined for journey', () => {
-		process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 		const questions = getQuestions();
 		const answers = {};
 		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
@@ -37,7 +36,6 @@ describe('case details journey', () => {
 		shouldDisplayHearing,
 		shouldDisplayWrittenReps
 	) => {
-		process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 		const questions = getQuestions();
 		const answers = {
 			procedureId

@@ -6,10 +6,7 @@ import { createQuestions } from '@planning-inspectorate/dynamic-forms/src/questi
 import { questionClasses } from '@planning-inspectorate/dynamic-forms/src/questions/questions.js';
 import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import { APPLICATION_TYPES, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
-import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
 import { multiContactQuestions } from './question-utils.js';
-import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
 import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
 import CoordinatesValidator from '@planning-inspectorate/dynamic-forms/src/validator/coordinates-validator.js';
 import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
@@ -18,6 +15,7 @@ import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-component
 import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.js';
 import { getApplicantContactsValidator } from '@pins/crowndev-lib/validators/applicant-contacts-validator.ts';
+import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
 
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response').JourneyResponse} JourneyResponse */
 
@@ -28,17 +26,6 @@ import { getApplicantContactsValidator } from '@pins/crowndev-lib/validators/app
  * @returns
  */
 export function getQuestions(journeyResponse, isQuestionView = false) {
-	const env = loadEnvironmentConfig();
-
-	// this is to avoid a database read when the data is static - but it does vary by environment
-	// the options here should match the dev/prod seed scripts
-	const LPAs = env === ENVIRONMENT_NAME.PROD ? LOCAL_PLANNING_AUTHORITIES_PROD : LOCAL_PLANNING_AUTHORITIES_DEV;
-	const lpaOptions = [
-		{ text: '', value: '' }, // ensure there is a 'null' option so the first LPA isn't selected by default
-		...LPAs.map((t) => ({ text: t.name, value: t.id }))
-		// todo: sort LPA list?
-	];
-
 	// derive applicant organisation radio options from manageApplicants answers held in the journey response
 	const manageApplicantDetails = journeyResponse?.answers?.manageApplicantDetails;
 	const applicantOrganisationOptions = getApplicantOrganisationOptions(
@@ -73,7 +60,7 @@ export function getQuestions(journeyResponse, isQuestionView = false) {
 				),
 				new RequiredValidator('Select the local planning authority')
 			],
-			options: lpaOptions
+			options: getLpaOptions()
 		},
 
 		manageApplicants: {
@@ -191,7 +178,7 @@ export function getQuestions(journeyResponse, isQuestionView = false) {
 				),
 				new RequiredValidator('Select the secondary local planning authority')
 			],
-			options: lpaOptions
+			options: getLpaOptions()
 		},
 		hasAgent: {
 			type: COMPONENT_TYPES.BOOLEAN,

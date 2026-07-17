@@ -1,12 +1,7 @@
-import { describe, it, before } from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert';
 
 describe('FIELD_DISPLAY_NAMES', () => {
-	// Set environment before importing modules that depend on it
-	before(() => {
-		process.env.ENVIRONMENT = 'test';
-	});
-
 	it('should be an object', async () => {
 		const { FIELD_DISPLAY_NAMES } = await import('./questions.js');
 		assert.ok(typeof FIELD_DISPLAY_NAMES === 'object');
