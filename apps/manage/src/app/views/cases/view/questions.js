@@ -14,21 +14,12 @@ import {
 	CATEGORIES,
 	ORGANISATION_ROLES_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
-import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
-import {
-	dateQuestion,
-	eventQuestions,
-	lpaListToRadioOptions,
-	subCategoriesToRadioOptions,
-	CIL_DATA
-} from './question-utils.js';
-import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../config.js';
+import { dateQuestion, eventQuestions, subCategoriesToRadioOptions, CIL_DATA } from './question-utils.js';
 import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
 import CoordinatesValidator from '@planning-inspectorate/dynamic-forms/src/validator/coordinates-validator.js';
 import CustomDatePeriodValidator from '@pins/crowndev-lib/validators/custom-date-period-validator.js';
 import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
-import { referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.ts';
+import { getLpaOptions, referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.ts';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
 import DateTimeValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-time-validator.js';
@@ -53,11 +44,6 @@ export function getQuestions(
 		isQuestionView: false
 	}
 ) {
-	const env = loadEnvironmentConfig();
-
-	// this is to avoid a database read when the data is static - but it does vary by environment
-	// the options here should match the dev/prod seed scripts
-	const LPAs = env === ENVIRONMENT_NAME.PROD ? LOCAL_PLANNING_AUTHORITIES_PROD : LOCAL_PLANNING_AUTHORITIES_DEV;
 	const applicantContactsValidator = getApplicantContactsValidator(overrides.hasAgentAnswer);
 
 	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
@@ -130,7 +116,7 @@ export function getQuestions(
 				),
 				new RequiredValidator('Select the local planning authority')
 			],
-			options: lpaListToRadioOptions(LPAs)
+			options: getLpaOptions()
 		},
 		hasSecondaryLpa: {
 			type: COMPONENT_TYPES.BOOLEAN,
@@ -153,7 +139,7 @@ export function getQuestions(
 				),
 				new RequiredValidator('Select the secondary local planning authority')
 			],
-			options: lpaListToRadioOptions(LPAs),
+			options: getLpaOptions(),
 			viewData: {
 				extraActionButtons: [
 					{

@@ -21,16 +21,14 @@ import {
 	PRE_APPLICATION_OR_APPLICATION_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { APPLICATION_TYPES } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../../config.js';
-import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
-import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
+import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
 import { CREATE_A_CASE_QUESTION_TEXT } from './constants.ts';
 import { createLpaContactQuestion, multiContactQuestions } from './question-factories.ts';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import { getApplicantOrganisationOptions } from '../../../../views/cases/util/applicant-organisation-options.js';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
-import { formatLpaOptions, getApplicantContactsValidator, isApplicationType } from '../util/questions.ts';
+import { getApplicantContactsValidator, isApplicationType } from '../util/questions.ts';
 
 type ApplicantOrg = {
 	id: string;
@@ -39,10 +37,6 @@ type ApplicantOrg = {
 };
 
 export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: boolean) {
-	const env = loadEnvironmentConfig();
-	const lpas = env === ENVIRONMENT_NAME.PROD ? LOCAL_PLANNING_AUTHORITIES_PROD : LOCAL_PLANNING_AUTHORITIES_DEV;
-	const lpaOptions = formatLpaOptions(lpas);
-
 	const preAppOrAppPath = isApplicationType(journeyResponse.answers.applicationPhase)
 		? journeyResponse.answers.applicationPhase
 		: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
@@ -98,7 +92,7 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 					'Local planning authority cannot be the same as the secondary local planning authority'
 				)
 			],
-			options: lpaOptions
+			options: getLpaOptions()
 		},
 		lpaContactDetails: createLpaContactQuestion(false),
 		hasSecondaryLpa: {
@@ -122,7 +116,7 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 					'Secondary local planning authority cannot be the same as the local planning authority'
 				)
 			],
-			options: lpaOptions
+			options: getLpaOptions()
 		},
 		secondaryLpaContactDetails: createLpaContactQuestion(true),
 		hasAgent: {

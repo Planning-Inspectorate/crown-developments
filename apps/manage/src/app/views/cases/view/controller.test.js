@@ -24,7 +24,6 @@ describe('case details', () => {
 
 	describe('buildGetJourneyMiddleware', () => {
 		it('should throw if no id', async () => {
-			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const mockReq = { params: {} };
 			const mockRes = { locals: {} };
 			const mockDb = {
@@ -44,7 +43,6 @@ describe('case details', () => {
 			assert.strictEqual(next.mock.callCount(), 0);
 		});
 		it('should call next without error and populate locals', async () => {
-			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const mockReq = { params: { id: 'case-1' }, baseUrl: 'case-1' };
 			const mockRes = { locals: {} };
 			const mockDb = {
@@ -66,7 +64,6 @@ describe('case details', () => {
 			assert.ok(mockRes.locals.journeyResponse);
 		});
 		it('should render 404 if not found', async () => {
-			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const mockReq = { params: { id: 'case-1' }, baseUrl: 'case-1', session: {} };
 			const mockDb = {
 				crownDevelopment: {
@@ -83,7 +80,6 @@ describe('case details', () => {
 			await assertRenders404Page(middleware, mockReq, true);
 		});
 		it('should add a back link if on an edit page', async () => {
-			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const mockReq = { params: { id: 'case-1' }, baseUrl: '/case-1', originalUrl: '/case-1/edit' };
 			const mockRes = { locals: {} };
 			const mockDb = {
@@ -106,7 +102,6 @@ describe('case details', () => {
 		});
 
 		it('should set backLinkUrl to baseUrl when section is present and manageListQuestion is not present', async () => {
-			process.env.ENVIRONMENT = 'dev';
 			const mockReq = { params: { id: 'case-1', section: 'details' }, baseUrl: '/cases/case-1' };
 			const mockRes = { locals: {} };
 			const mockDb = {
@@ -129,7 +124,6 @@ describe('case details', () => {
 			assert.strictEqual(mockRes.locals.backLinkUrl, '/cases/case-1');
 		});
 		it('should not set backLinkUrl from section branch when manageListQuestion is present', async () => {
-			process.env.ENVIRONMENT = 'dev';
 			const mockReq = {
 				params: { id: 'case-1', section: 'details', manageListQuestion: 'manageListQuestion' },
 				baseUrl: '/cases/case-1',
@@ -181,7 +175,6 @@ describe('case details', () => {
 			await assert.rejects(() => viewCaseDetails(mockReq, mockRes), /must be a single string value/);
 		});
 		it('should render without error, with case reference', async () => {
-			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const mockRes = newMockRes();
 			const mockReq = { params: { id: 'case-1' }, baseUrl: 'case-1', query: {} };
 			const mockDb = {
@@ -207,7 +200,6 @@ describe('case details', () => {
 			assert.strictEqual(viewData.reference, 'C/A/1');
 		});
 		it('should include case updated banner if present in session', async () => {
-			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
@@ -242,7 +234,6 @@ describe('case details', () => {
 		});
 		it('should display a publish button if publishDate is defined and not in the future', async (context) => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
-			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
@@ -278,7 +269,6 @@ describe('case details', () => {
 			assert.strictEqual(viewData.casePublished, true);
 		});
 		it('should include case updated banner with published message if case is published', async () => {
-			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
@@ -315,7 +305,6 @@ describe('case details', () => {
 			assert.match(viewData.banner.html, /Any updates made to this case will be automatically published./);
 		});
 		it('should display an unpublish button if publishDate is not defined', async () => {
-			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
@@ -347,7 +336,6 @@ describe('case details', () => {
 		});
 		it('should display an unpublish button if publishDate is in the future', async (context) => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
-			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
@@ -381,7 +369,6 @@ describe('case details', () => {
 			assert.strictEqual(viewData.casePublished, false);
 		});
 		it('should display error messages in errorSummary', async () => {
-			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
@@ -415,7 +402,6 @@ describe('case details', () => {
 			assert.strictEqual(mockReq.session.cases['case-1'].errors, undefined);
 		});
 		it('should pass last modified info to the view', async () => {
-			process.env.ENVIRONMENT = 'dev';
 			const mockRes = newMockRes();
 			const mockReq = { params: { id: 'case-1' }, baseUrl: 'case-1', query: {}, session: {} };
 			const mockDb = {
@@ -447,7 +433,6 @@ describe('case details', () => {
 			assert.strictEqual(viewData.lastModifiedBy, 'Jane Smith');
 		});
 		it('should show a sharepoint link if available', async () => {
-			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
@@ -482,7 +467,6 @@ describe('case details', () => {
 			assert.strictEqual(viewData.sharePointLink, 'https://example.com');
 		});
 		it('should set linked case banner appropriately when there is case linked', async () => {
-			process.env.ENVIRONMENT = 'dev'; // used by get questions for loading LPAs
 			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
@@ -626,7 +610,6 @@ describe('case details', () => {
 			assert.ok(!viewData.banner);
 		});
 		it('should show "You need to add" banner text when agentStatusUpdated is in session', async () => {
-			process.env.ENVIRONMENT = 'dev';
 			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
@@ -675,7 +658,6 @@ describe('case details', () => {
 		});
 
 		it('should show "You need to add" banner text when applicantOrgAdded is in session and hasAgent is no', async () => {
-			process.env.ENVIRONMENT = 'dev';
 			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
@@ -724,7 +706,6 @@ describe('case details', () => {
 		});
 
 		it('should show "This application is missing information" banner when applicantOrgAdded is in session but hasAgent is yes', async () => {
-			process.env.ENVIRONMENT = 'dev';
 			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },
@@ -760,7 +741,6 @@ describe('case details', () => {
 		});
 
 		it('should set an invalid state info banner when required contact information is missing', async () => {
-			process.env.ENVIRONMENT = 'dev';
 			const mockRes = newMockRes();
 			const mockReq = {
 				params: { id: 'case-1' },

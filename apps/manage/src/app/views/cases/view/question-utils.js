@@ -211,18 +211,6 @@ export function subCategoriesToRadioOptions(categories) {
 	return referenceDataToRadioOptions(subCategories);
 }
 
-/**
- * @param {{id: string, name: string}[]} lpaList
- * @returns {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').Option[]}
- */
-export function lpaListToRadioOptions(lpaList) {
-	return [
-		{ text: '', value: '' }, // ensure there is a 'null' option so the first LPA isn't selected by default
-		// todo: sort LPA list?
-		...lpaList.map((t) => ({ text: t.name, value: t.id }))
-	];
-}
-
 export function filteredStagesToRadioOptions(procedureId) {
 	const stageIds = [
 		APPLICATION_STAGE_ID.ACCEPTANCE,
