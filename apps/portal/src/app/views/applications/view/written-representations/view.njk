@@ -11,7 +11,7 @@
 {% from "distressing-content/distressing-content-banner.njk" import distressingContentBanner %}
 
 {% block pageHeading %}{% endblock %}
-
+{% block error_summary %}{% endblock %}
 {% block pageContent %}
 	<div class="govuk-grid-row">
 		<div class="govuk-grid-column-one-third">
@@ -37,6 +37,12 @@
 		</div>
 
 		<div class="govuk-grid-column-two-thirds">
+			{% if errorSummary %}
+				{{ govukErrorSummary({
+					titleText: "There is a problem",
+					errorList: errorSummary
+				}) }}
+			{% endif %}
 			{{ distressingContentBanner(containsDistressingContent) }}
 			<div class="govuk-grid-row">
 				<div class="govuk-grid-column-full">
