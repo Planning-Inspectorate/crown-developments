@@ -26,13 +26,11 @@ import {
 } from '@planning-inspectorate/dynamic-forms';
 import type { S62aCaseViewModel } from './view-model.ts';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
-import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../../../config.js';
-import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
-import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
 import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import { CASE_DETAILS_QUESTION_TEXT } from './constants.ts';
-import { formatLpaOptions, isApplicationType } from '../util/questions.ts';
+import { isApplicationType } from '../util/questions.ts';
+import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
 
 export function getQuestions(answers: S62aCaseViewModel) {
 	const isLbcCase = answers?.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
@@ -46,10 +44,6 @@ export function getQuestions(answers: S62aCaseViewModel) {
 	const preAppOrAppPath = isApplicationType(answers.applicationPhaseId)
 		? answers.applicationPhaseId
 		: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
-
-	const env = loadEnvironmentConfig();
-	const lpas = env === ENVIRONMENT_NAME.PROD ? LOCAL_PLANNING_AUTHORITIES_PROD : LOCAL_PLANNING_AUTHORITIES_DEV;
-	const lpaOptions = formatLpaOptions(lpas);
 
 	const questions = {
 		reference: {
@@ -181,7 +175,7 @@ export function getQuestions(answers: S62aCaseViewModel) {
 					'Local planning authority cannot be the same as the secondary local planning authority'
 				)
 			],
-			options: lpaOptions
+			options: getLpaOptions()
 		},
 		hasSecondaryLpa: {
 			type: COMPONENT_TYPES.BOOLEAN,
@@ -204,7 +198,7 @@ export function getQuestions(answers: S62aCaseViewModel) {
 					'Secondary local planning authority cannot be the same as the local planning authority'
 				)
 			],
-			options: lpaOptions
+			options: getLpaOptions()
 		},
 		siteAddress: {
 			type: COMPONENT_TYPES.ADDRESS,
