@@ -5,7 +5,6 @@ loadEnvFile();
 
 export default defineConfig({
 	testDir: './playwright/tests',
-	globalSetup: './playwright/support/global.setup.ts',
 
 	timeout: 30_000,
 
@@ -21,7 +20,6 @@ export default defineConfig({
 
 	use: {
 		baseURL: process.env.BASE_URL || 'http://localhost:3000',
-		storageState: 'playwright/.auth/admin.json',
 		trace: 'on-first-retry',
 		screenshot: 'only-on-failure',
 		video: 'retain-on-failure',

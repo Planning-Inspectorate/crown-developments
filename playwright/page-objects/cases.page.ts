@@ -1,7 +1,10 @@
 import type { Locator, Page } from '@playwright/test';
-import { expect } from '@playwright/test';
 
-import { HeaderUtility } from './header.utility.ts';
+import { expect } from '@playwright/test';
+import { PAGE_TIMEOUTS } from '../support/test-timeouts.ts';
+import { HeaderUtility } from '../page-utilities/header.utility.ts';
+
+const DEFAULT_TIMEOUT = PAGE_TIMEOUTS.pages.cases;
 
 type CaseTableColumn = 'Reference' | 'Site location' | 'Local planning authority (LPA)' | 'Application type' | 'Status';
 
@@ -42,7 +45,7 @@ export class CasesPage {
 		isPageDisplayed: async () => {
 			try {
 				await this.page.waitForURL(/\/cases(?:\?.*)?$/i, {
-					timeout: 30_000
+					timeout: DEFAULT_TIMEOUT
 				});
 			} catch {
 				throw new Error('Test failed: Cases page did not load within 30 seconds');
