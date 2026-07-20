@@ -1,9 +1,10 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 
+import { PAGE_TIMEOUTS } from '../support/test-timeouts.ts';
 import { CommonComponent } from './common.component.ts';
 import { runPageValidation, type PageValidation } from '../page-utilities/page-validation.utility.ts';
 
-const DEFAULT_TIMEOUT = 12_000;
+const DEFAULT_TIMEOUT = PAGE_TIMEOUTS.components.checkAnswers;
 
 export type CheckYourAnswersAction = 'Change' | 'Answer';
 export type CheckYourAnswersRowRule = 'mandatory' | 'optional';
@@ -23,7 +24,11 @@ type ValidateCheckYourAnswersRowsOptions = {
 	optionalKeys?: readonly string[];
 };
 
-export class CheckAnswersPage {
+type CheckAnswersRowLookupOptions = {
+	actionHrefContains?: string;
+};
+
+export class CheckAnswersComponent {
 	private readonly page: Page;
 	private readonly commonComponent: CommonComponent;
 
@@ -44,12 +49,13 @@ export class CheckAnswersPage {
 	/**
 	 * Finds a GOV.UK summary list row by its key text.
 	 *
-	 * This is used to find rows on the Check your answers page without
-	 * relying on fixed row order.
+	 * When actionHrefContains is supplied, this also checks the row action href.
+	 * This is useful when multiple rows share the same key, for example `LPA`.
 	 */
-	private async getSummaryRowByKey(keyText: string): Promise<Locator> {
+	private async getSummaryRowByKey(keyText: string, options: CheckAnswersRowLookupOptions = {}): Promise<Locator> {
 		const rows = this.page.locator('.govuk-summary-list__row');
 		const rowCount = await rows.count();
+		const matchingRows: Locator[] = [];
 
 		for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
 			const row = rows.nth(rowIndex);
@@ -61,12 +67,42 @@ export class CheckAnswersPage {
 
 			const actualKeyText = this.normaliseText(await key.innerText());
 
-			if (actualKeyText === keyText) {
-				return row;
+			if (actualKeyText !== keyText) {
+				continue;
 			}
+
+			if (options.actionHrefContains) {
+				const actionLink = row.locator('.govuk-summary-list__actions a.govuk-link').first();
+
+				if ((await actionLink.count()) === 0) {
+					continue;
+				}
+
+				const href = await actionLink.getAttribute('href');
+
+				if (!href?.includes(options.actionHrefContains)) {
+					continue;
+				}
+			}
+
+			matchingRows.push(row);
 		}
 
-		throw new Error(`Check your answers row '${keyText}' was not found`);
+		if (matchingRows.length === 0) {
+			const hrefMessage = options.actionHrefContains
+				? ` with action href containing '${options.actionHrefContains}'`
+				: '';
+
+			throw new Error(`Check your answers row '${keyText}'${hrefMessage} was not found`);
+		}
+
+		if (matchingRows.length > 1 && options.actionHrefContains) {
+			throw new Error(
+				`Multiple Check your answers rows '${keyText}' were found with action href containing '${options.actionHrefContains}'`
+			);
+		}
+
+		return matchingRows[0];
 	}
 
 	public readonly actions = {
@@ -77,8 +113,12 @@ export class CheckAnswersPage {
 		 * Optionally verifies that the action text matches the expected
 		 * action before clicking.
 		 */
-		clickCheckYourAnswersAction: async (keyText: string, expectedAction?: CheckYourAnswersAction) => {
-			const row = await this.getSummaryRowByKey(keyText);
+		clickCheckYourAnswersAction: async (
+			keyText: string,
+			expectedAction?: CheckYourAnswersAction,
+			options: CheckAnswersRowLookupOptions = {}
+		) => {
+			const row = await this.getSummaryRowByKey(keyText, options);
 			const actionLink = row.locator('.govuk-summary-list__actions a.govuk-link').first();
 
 			await expect(actionLink, `Action link for '${keyText}' should be visible`).toBeVisible();
@@ -117,21 +157,17 @@ export class CheckAnswersPage {
 			await runPageValidation(
 				pageValidation,
 				async () => {
-					await this.commonComponent.assertions.verifyPageLoaded(expectedTitle, {
-						timeout
-					});
-
-					await this.commonComponent.assertions.verifyPageTitle(expectedTitle, {
-						timeout
-					});
-				},
-				async () => {
 					if (expectedUrlContains) {
 						await this.commonComponent.assertions.verifyPageURL(expectedUrlContains, {
 							timeout
 						});
 					}
 
+					await this.commonComponent.assertions.verifyPageTitle(expectedTitle, {
+						timeout
+					});
+				},
+				async () => {
 					await expect(
 						this.page.locator('dl.govuk-summary-list'),
 						'Check your answers summary list should be visible'
@@ -247,7 +283,17 @@ export class CheckAnswersPage {
 			return this.assertions;
 		},
 
-		hasRowValues: async (keyText: string, expectedValues: string | string[]) => {
+		/**
+		 * Verifies that a Check your answers row contains one or more
+		 * expected values.
+		 *
+		 * Empty expected values are ignored.
+		 */
+		hasRowValues: async (
+			keyText: string,
+			expectedValues: string | string[],
+			options: CheckAnswersRowLookupOptions = {}
+		) => {
 			const values = (Array.isArray(expectedValues) ? expectedValues : [expectedValues]).filter(
 				(value): value is string => Boolean(value?.trim())
 			);
@@ -256,7 +302,7 @@ export class CheckAnswersPage {
 				return this.assertions;
 			}
 
-			const row = await this.getSummaryRowByKey(keyText);
+			const row = await this.getSummaryRowByKey(keyText, options);
 			const value = row.locator('.govuk-summary-list__value').first();
 
 			await expect(value, `Value for '${keyText}' should exist`).toBeAttached();
@@ -271,9 +317,12 @@ export class CheckAnswersPage {
 					[
 						'Check Your Answers validation failed',
 						`Row: '${keyText}'`,
+						options.actionHrefContains ? `Action href contains: '${options.actionHrefContains}'` : '',
 						`Expected value: '${trimmedExpectedValue}'`,
 						`Actual value: '${actualText}'`
-					].join('\n')
+					]
+						.filter(Boolean)
+						.join('\n')
 				).toContain(trimmedExpectedValue);
 			}
 
@@ -281,13 +330,14 @@ export class CheckAnswersPage {
 		},
 
 		/**
-		 * Verifies that a Check your answers row contains one or more
-		 * expected values.
-		 *
-		 * Empty expected values are ignored.
+		 * Verifies a Check your answers row has the expected action.
 		 */
-		hasRowAction: async (keyText: string, expectedAction: CheckYourAnswersAction) => {
-			const row = await this.getSummaryRowByKey(keyText);
+		hasRowAction: async (
+			keyText: string,
+			expectedAction: CheckYourAnswersAction,
+			options: CheckAnswersRowLookupOptions = {}
+		) => {
+			const row = await this.getSummaryRowByKey(keyText, options);
 			const actionLink = row.locator('.govuk-summary-list__actions a.govuk-link').first();
 
 			await expect(actionLink, `Action link for '${keyText}' should be visible`).toBeVisible();

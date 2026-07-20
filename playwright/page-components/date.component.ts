@@ -212,7 +212,7 @@ export class DateUtility {
 		 * Verifies the expected date validation state.
 		 * Uses the configured date name and field prefix for this page.
 		 */
-		hasDateErrorState: async (state: DateErrorState) => {
+		isErrorDisplayed: async (state: DateErrorState) => {
 			const expected = createDateErrorMap(this.dateName)[state];
 
 			await expect(

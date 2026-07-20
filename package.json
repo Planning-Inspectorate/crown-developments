@@ -29,7 +29,11 @@
     "test:playwright": "playwright test",
     "test:playwright:headed": "playwright test --headed",
     "test:playwright:ui": "playwright test --ui",
-    "test:playwright:debug": "playwright test --debug"
+    "test:playwright:debug": "playwright test --debug",
+    "test:playwright:smoke": "cross-env JOURNEY_TAGS=smoke playwright test",
+    "test:playwright:smoke:headed": "cross-env JOURNEY_TAGS=smoke playwright test --headed",
+    "test:playwright:regression": "cross-env JOURNEY_TAGS=regression playwright test",
+    "test:playwright:regression:headed": "cross-env JOURNEY_TAGS=regression playwright test --headed"
   },
   "dependencies": {
     "@azure/ai-text-analytics": "^5.1.0",

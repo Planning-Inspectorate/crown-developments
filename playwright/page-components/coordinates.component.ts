@@ -54,7 +54,7 @@ const siteCoordinatesErrorMap: Record<SiteCoordinatesError, SiteCoordinatesError
 	}
 };
 
-export class SiteCoordinatesPage {
+export class CoordinatesComponent {
 	private readonly page: Page;
 	private readonly commonComponent: CommonComponent;
 
@@ -113,21 +113,16 @@ export class SiteCoordinatesPage {
 			await runPageValidation(
 				pageValidation,
 				async () => {
-					await this.commonComponent.assertions.verifyPageLoaded(expectedTitle, {
-						timeout
-					});
-
-					await this.commonComponent.assertions.verifyPageTitle(expectedTitle, {
-						timeout
-					});
-				},
-				async () => {
 					if (expectedUrlContains) {
 						await this.commonComponent.assertions.verifyPageURL(expectedUrlContains, {
 							timeout
 						});
 					}
-
+					await this.commonComponent.assertions.verifyPageTitle(expectedTitle, {
+						timeout
+					});
+				},
+				async () => {
 					await expect(
 						this.page.locator('#multi-field-hint', {
 							hasText: 'Optional'

@@ -1,9 +1,10 @@
 import { expect, type Page } from '@playwright/test';
 
+import { PAGE_TIMEOUTS } from '../support/test-timeouts.ts';
 import { CommonComponent } from './common.component.ts';
 import { runPageValidation, type PageValidation } from '../page-utilities/page-validation.utility.ts';
 
-const DEFAULT_TIMEOUT = 12_000;
+const DEFAULT_TIMEOUT = PAGE_TIMEOUTS.components.checkDetails;
 const DETAIL_ROW_SELECTOR =
 	'tbody.govuk-table__body tr.govuk-table__row, dl.govuk-summary-list .govuk-summary-list__row';
 
@@ -27,7 +28,7 @@ type RowActionOptions = {
 	allowSingleRowWithoutRemove?: boolean;
 };
 
-export class CheckDetailsPage {
+export class CheckDetailsComponent {
 	private readonly page: Page;
 	private readonly commonComponent: CommonComponent;
 
@@ -116,9 +117,11 @@ export class CheckDetailsPage {
 			await runPageValidation(
 				pageValidation,
 				async () => {
-					await this.commonComponent.assertions.verifyPageLoaded(expectedTitleParts.join(' '), {
-						timeout
-					});
+					if (expectedUrlContains) {
+						await this.commonComponent.assertions.verifyPageURL(expectedUrlContains, {
+							timeout
+						});
+					}
 
 					for (const titlePart of expectedTitleParts) {
 						await this.commonComponent.assertions.verifyPageTitle(titlePart, {
@@ -127,12 +130,6 @@ export class CheckDetailsPage {
 					}
 				},
 				async () => {
-					if (expectedUrlContains) {
-						await this.commonComponent.assertions.verifyPageURL(expectedUrlContains, {
-							timeout
-						});
-					}
-
 					if (state === 'withoutDetails') {
 						await expect(
 							this.page.locator('p.govuk-body', {
