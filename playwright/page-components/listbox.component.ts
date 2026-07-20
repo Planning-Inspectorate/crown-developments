@@ -1,6 +1,10 @@
+import { randomInt } from 'node:crypto';
+
 import { expect, type Page } from '@playwright/test';
 
 const LISTBOX_OPTIONS_TIMEOUT = 60_000;
+
+export type DropListOptionSelection = ['autoRandom'] | ['specific', string];
 
 export class ListboxComponent {
 	private readonly page: Page;
@@ -25,8 +29,7 @@ export class ListboxComponent {
 		 * Opens the listbox and verifies a specific option is visible.
 		 */
 		hasOption: async (optionText: string) => {
-			await this.actions.openOptions();
-
+			await this.actions.openOptions(optionText);
 			await expect(
 				this.page.getByRole('option', {
 					name: optionText,
@@ -50,7 +53,6 @@ export class ListboxComponent {
 			await expect(input, `Listbox input '${this.inputId}' should be visible`).toBeVisible();
 			await input.click();
 			await input.fill(searchText);
-
 			await expect(this.page.locator(`#${this.inputId}__listbox`)).toBeVisible({
 				timeout: LISTBOX_OPTIONS_TIMEOUT
 			});
@@ -59,11 +61,31 @@ export class ListboxComponent {
 		},
 
 		/**
-		 * Opens the listbox and selects a random available option.
-		 * Returns the selected option text.
+		 * Selects a listbox option.
+		 * Use 'specific' with an exact option string, or 'autoRandom'
+		 * to select a random available option.
 		 */
-		selectRandomOption: async (searchText = ' '): Promise<string> => {
-			await this.actions.openOptions(searchText);
+		selectDropListOption: async (...selection: DropListOptionSelection): Promise<string> => {
+			const selectionType = selection[0];
+
+			if (selectionType === 'specific') {
+				const optionText = selection[1];
+
+				await this.actions.openOptions(optionText);
+
+				const option = this.page.getByRole('option', {
+					name: optionText,
+					exact: true
+				});
+
+				await expect(option, `Listbox option '${optionText}' should be visible before selecting`).toBeVisible();
+				await option.click();
+				await expect(this.page.locator(`input#${this.inputId}[role="combobox"]`)).toHaveValue(optionText);
+
+				return optionText;
+			}
+
+			await this.actions.openOptions(' ');
 
 			const options = this.page.locator(`[id^="${this.inputId}__option--"]`);
 			const count = await options.count();
@@ -72,7 +94,7 @@ export class ListboxComponent {
 				throw new Error(`Test failed: No listbox options were found for '${this.inputId}'`);
 			}
 
-			const randomIndex = Math.floor(Math.random() * count);
+			const randomIndex = randomInt(count);
 			const option = options.nth(randomIndex);
 			const selectedValue = (await option.innerText()).trim();
 
@@ -80,25 +102,6 @@ export class ListboxComponent {
 			await expect(this.page.locator(`input#${this.inputId}[role="combobox"]`)).toHaveValue(selectedValue);
 
 			return selectedValue;
-		},
-
-		/**
-		 * Searches for and selects an exact listbox option.
-		 * Returns the selected option text.
-		 */
-		selectOption: async (optionText: string): Promise<string> => {
-			await this.actions.openOptions(optionText);
-
-			const option = this.page.getByRole('option', {
-				name: optionText,
-				exact: true
-			});
-
-			await expect(option, `Listbox option '${optionText}' should be visible before selecting`).toBeVisible();
-			await option.click();
-			await expect(this.page.locator(`input#${this.inputId}[role="combobox"]`)).toHaveValue(optionText);
-
-			return optionText;
 		},
 
 		/**
