@@ -1,16 +1,18 @@
 import type { Page } from '@playwright/test';
 
-const MICROSOFT_LOGIN_FIELD_TIMEOUT = 30_000;
+import { PAGE_TIMEOUTS } from '../support/test-timeouts.ts';
+
+const MICROSOFT_LOGIN_FIELD_TIMEOUT = PAGE_TIMEOUTS.microsoft;
 
 export class LoginMicrosoftPage {
-	private readonly page: Page;
+	private readonly loginPage: Page;
 
-	constructor(page: Page) {
-		this.page = page;
+	constructor(loginPage: Page) {
+		this.loginPage = loginPage;
 	}
 
 	async clickSubmitButton(): Promise<void> {
-		const button = this.page.locator('#idSIButton9');
+		const button = this.loginPage.locator('#idSIButton9');
 
 		await button.waitFor({
 			state: 'visible',
@@ -21,7 +23,7 @@ export class LoginMicrosoftPage {
 	}
 
 	async enterEmail(email: string): Promise<void> {
-		const emailField = this.page.locator('input[name="loginfmt"]');
+		const emailField = this.loginPage.locator('input[name="loginfmt"]');
 
 		await emailField.waitFor({
 			state: 'visible',
@@ -32,7 +34,7 @@ export class LoginMicrosoftPage {
 	}
 
 	async enterPassword(password: string): Promise<void> {
-		const passwordField = this.page.locator('input[name="passwd"]');
+		const passwordField = this.loginPage.locator('input[name="passwd"]');
 
 		await passwordField.waitFor({
 			state: 'visible',
