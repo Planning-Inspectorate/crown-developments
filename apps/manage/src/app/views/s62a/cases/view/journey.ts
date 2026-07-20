@@ -9,7 +9,7 @@ import {
 } from '@planning-inspectorate/dynamic-forms';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import type { Request } from 'express';
-import { VIEW_TAB_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import { PRE_APPLICATION_OR_APPLICATION_ID, VIEW_TAB_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 export const JOURNEY_ID = 's62a-case-details';
@@ -55,7 +55,57 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.addQuestion(questions.expectedSubmissionDate),
 			new Section('', 'details')
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.DETAILS)
-				.addQuestion(questions.applicationStatus)
+				.addQuestion(questions.applicationStatus),
+
+			new Section('', 'dates')
+				.withSectionCondition(() => currentTab === VIEW_TAB_ID.DATES)
+				/**
+				 * Both pre-app and app questions
+				 */
+				.addQuestion(questions.notificationReceivedDate)
+				.addQuestion(questions.applicationReceivedDate)
+
+				/**
+				 * App questions
+				 */
+				.startMultiQuestionCondition(
+					'is-application',
+					whenQuestionHasAnswer(questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION)
+				)
+				.addQuestion(questions.applicationAcknowledgedDate)
+				.addQuestion(questions.furtherInformationRequestedDate)
+				.addQuestion(questions.dateAgreedForAdditionalInformation)
+				.addQuestion(questions.applicationValidDate)
+				.addQuestion(questions.validLettersSentDate)
+				.addQuestion(questions.lpaQuestionnaireSentDate)
+				.addQuestion(questions.lpaQuestionnaireReceivedDate)
+				.addQuestion(questions.targetPublishDate)
+				.addQuestion(questions.publishDate)
+				.addQuestion(questions.pressNoticeDate)
+				.addQuestion(questions.neighboursNotifiedByLpaDate)
+				.addQuestion(questions.lpaInterestedPartiesDeadlineDate)
+				.addQuestion(questions.siteNoticeByLpaDate)
+				.addQuestion(questions.interestedPartiesPressNoticeDeadlineDate)
+				.addQuestion(questions.mineralApplicationsDate)
+				.addQuestion(questions.interimFindingsDate)
+				.addQuestion(questions.reconsultationDetailsDate)
+				.addQuestion(questions.s106SubmittedDate)
+				.addQuestion(questions.targetDecisionDate)
+				.addQuestion(questions.extendedTargetDecisionDate)
+				.addQuestion(questions.recoveredDate)
+				.endMultiQuestionCondition('is-application')
+
+				/**
+				 * Both pre-app and app question
+				 */
+				.addQuestion(questions.withdrawnDate)
+
+				/**
+				 * Final app question, which must appear after the one above so
+				 * cannot be in same section
+				 */
+				.addQuestion(questions.turnedAwayDate)
+				.withCondition(whenQuestionHasAnswer(questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION))
 		],
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',

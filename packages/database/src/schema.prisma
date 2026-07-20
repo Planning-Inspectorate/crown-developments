@@ -212,6 +212,42 @@ model S62aCase {
   /// Core dates
   notificationSubmittedDate DateTime?
   expectedSubmissionDate    DateTime
+
+  /// Other dates
+  S62aDates S62aDates?
+}
+
+model S62aDates {
+  id         String   @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  s62aCaseId String   @unique @db.UniqueIdentifier
+  S62aCase   S62aCase @relation(fields: [s62aCaseId], references: [id])
+
+  notificationReceivedDate                 DateTime?
+  applicationReceivedDate                  DateTime?
+  applicationAcknowledgedDate              DateTime?
+  furtherInformationRequestedDate          DateTime?
+  agreedForAdditionalInformationDate       DateTime?
+  applicationValidDate                     DateTime?
+  validLettersSentDate                     DateTime?
+  lpaQuestionnaireSentDate                 DateTime?
+  lpaQuestionnaireReceivedDate             DateTime?
+  targetPublishDate                        DateTime?
+  publishDate                              DateTime?
+  pressNoticeDate                          DateTime?
+  neighboursNotifiedByLpaDate              DateTime?
+  lpaInterestedPartiesDeadlineDate         DateTime?
+  siteNoticeByLpaDate                      DateTime?
+  interestedPartiesPressNoticeDeadlineDate DateTime?
+  mineralApplicationsDate                  DateTime?
+  interimFindingsDate                      DateTime?
+  reconsultationDetailsSentDate            DateTime?
+  reconsultationDetailsDeadlineDate        DateTime?
+  s106SubmittedDate                        DateTime?
+  targetDecisionDate                       DateTime?
+  extendedTargetDecisionDate               DateTime?
+  recoveredDate                            DateTime?
+  withdrawnDate                            DateTime?
+  turnedAwayDate                           DateTime?
 }
 
 model InspectorBand {

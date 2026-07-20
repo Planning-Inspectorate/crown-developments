@@ -88,6 +88,37 @@ describe('s62a case details journey', () => {
 				title: '',
 				segment: 'details',
 				questions: ['applicationStatus']
+			},
+			{
+				title: '',
+				segment: 'dates',
+				questions: [
+					'notificationReceivedDate',
+					'applicationReceivedDate',
+					'applicationAcknowledgedDate',
+					'furtherInformationRequestedDate',
+					'dateAgreedForAdditionalInformation',
+					'applicationValidDate',
+					'validLettersSentDate',
+					'lpaQuestionnaireSentDate',
+					'lpaQuestionnaireReceivedDate',
+					'targetPublishDate',
+					'publishDate',
+					'pressNoticeDate',
+					'neighboursNotifiedByLpaDate',
+					'lpaInterestedPartiesDeadlineDate',
+					'siteNoticeByLpaDate',
+					'interestedPartiesPressNoticeDeadlineDate',
+					'mineralApplicationsDate',
+					'interimFindingsDate',
+					'reconsultationDetailsDate',
+					's106SubmittedDate',
+					'targetDecisionDate',
+					'extendedTargetDecisionDate',
+					'recoveredDate',
+					'withdrawnDate',
+					'turnedAwayDate'
+				]
 			}
 		];
 
