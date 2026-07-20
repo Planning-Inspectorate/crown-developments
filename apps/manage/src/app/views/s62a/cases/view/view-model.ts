@@ -4,10 +4,38 @@ import { addressToViewModel } from '@pins/crowndev-lib/util/address.ts';
 import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
 import { type Address, booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms';
 
+export const S62A_DATE_FIELDS = Object.freeze([
+	'notificationReceivedDate',
+	'applicationReceivedDate',
+	'applicationAcknowledgedDate',
+	'furtherInformationRequestedDate',
+	'agreedForAdditionalInformationDate',
+	'applicationValidDate',
+	'validLettersSentDate',
+	'lpaQuestionnaireSentDate',
+	'lpaQuestionnaireReceivedDate',
+	'targetPublishDate',
+	'publishDate',
+	'pressNoticeDate',
+	'neighboursNotifiedByLpaDate',
+	'lpaInterestedPartiesDeadlineDate',
+	'siteNoticeByLpaDate',
+	'interestedPartiesPressNoticeDeadlineDate',
+	'mineralApplicationsDate',
+	'interimFindingsDate',
+	's106SubmittedDate',
+	'targetDecisionDate',
+	'extendedTargetDecisionDate',
+	'recoveredDate',
+	'withdrawnDate',
+	'turnedAwayDate'
+] as const);
+
 export type S62aCaseDbModel = Prisma.S62aCaseGetPayload<{
 	include: {
 		S62aStatus: true;
 		SiteAddress: true;
+		S62aDates: true;
 	};
 }>;
 
@@ -31,8 +59,37 @@ export interface S62aCaseViewModel {
 	specialismId?: string | null;
 	inspectorBandId?: string | null;
 	subTypeId?: string | null;
-	siteIsVisibleFromPublicLand?: YesNo; // Now optional
+	siteIsVisibleFromPublicLand?: YesNo;
 	likelyIssues?: string | null;
+
+	notificationReceivedDate?: Date;
+	applicationReceivedDate?: Date;
+	applicationAcknowledgedDate?: Date;
+	furtherInformationRequestedDate?: Date;
+	agreedForAdditionalInformationDate?: Date;
+	applicationValidDate?: Date;
+	validLettersSentDate?: Date;
+	lpaQuestionnaireSentDate?: Date;
+	lpaQuestionnaireReceivedDate?: Date;
+	targetPublishDate?: Date;
+	publishDate?: Date;
+	pressNoticeDate?: Date;
+	neighboursNotifiedByLpaDate?: Date;
+	lpaInterestedPartiesDeadlineDate?: Date;
+	siteNoticeByLpaDate?: Date;
+	interestedPartiesPressNoticeDeadlineDate?: Date;
+	mineralApplicationsDate?: Date;
+	interimFindingsDate?: Date;
+	s106SubmittedDate?: Date;
+	targetDecisionDate?: Date;
+	extendedTargetDecisionDate?: Date;
+	recoveredDate?: Date;
+	withdrawnDate?: Date;
+	turnedAwayDate?: Date;
+	reconsultationDetailsDate?: {
+		start?: Date;
+		end?: Date;
+	};
 }
 
 /**
@@ -116,6 +173,26 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 
 	if (dbCase.SiteAddress) {
 		viewModel.siteAddress = addressToViewModel(dbCase.SiteAddress);
+	}
+
+	if (dbCase.S62aDates) {
+		for (const field of S62A_DATE_FIELDS) {
+			const dateValue = dbCase.S62aDates[field];
+			if (dateValue) {
+				viewModel[field] = dateValue;
+			}
+		}
+
+		if (dbCase.S62aDates.reconsultationDetailsSentDate || dbCase.S62aDates.reconsultationDetailsDeadlineDate) {
+			viewModel.reconsultationDetailsDate = {};
+
+			if (dbCase.S62aDates.reconsultationDetailsSentDate) {
+				viewModel.reconsultationDetailsDate.start = dbCase.S62aDates.reconsultationDetailsSentDate;
+			}
+			if (dbCase.S62aDates.reconsultationDetailsDeadlineDate) {
+				viewModel.reconsultationDetailsDate.end = dbCase.S62aDates.reconsultationDetailsDeadlineDate;
+			}
+		}
 	}
 
 	return viewModel;

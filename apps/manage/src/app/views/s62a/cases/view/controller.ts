@@ -45,7 +45,8 @@ export function buildGetJourneyMiddleware(service: ManageService): AsyncRequestH
 		const s62aCase = await db.s62aCase.findUnique({
 			include: {
 				S62aStatus: true,
-				SiteAddress: true
+				SiteAddress: true,
+				S62aDates: true
 			},
 			where: { id }
 		});

@@ -740,5 +740,6 @@ export async function seedS62aStaticData(dbClient: PrismaClient) {
 	await Promise.all(INSPECTOR_BANDS.map((input) => upsertReferenceData({ delegate: dbClient.inspectorBand, input })));
 
 	await Promise.all(S62A_STATUSES.map((input) => upsertReferenceData({ delegate: dbClient.s62aStatus, input })));
+
 	console.log('S62A static data seed complete');
 }

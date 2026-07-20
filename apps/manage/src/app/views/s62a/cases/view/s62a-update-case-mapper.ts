@@ -3,6 +3,10 @@ import { SITE_AREA_UNIT_ID } from '@pins/crowndev-database/src/seed/s62a/data-st
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
 import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
 import { type Address, yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
+import { S62A_DATE_FIELDS } from './view-model.ts';
+import { addBusinessDays } from 'date-fns';
+
+const DATE_FIELDS_SET = new Set<string>(S62A_DATE_FIELDS);
 
 export interface UpdateCaseAnswers {
 	s62aStatusId?: string;
@@ -24,6 +28,34 @@ export interface UpdateCaseAnswers {
 	siteIsVisibleFromPublicLand?: YesNo;
 	siteAddress?: Address;
 	likelyIssues?: string;
+
+	notificationReceivedDate?: Date | null;
+	applicationReceivedDate?: Date | null;
+	applicationAcknowledgedDate?: Date | null;
+	furtherInformationRequestedDate?: Date | null;
+	agreedForAdditionalInformationDate?: Date | null;
+	applicationValidDate?: Date | null;
+	validLettersSentDate?: Date | null;
+	lpaQuestionnaireSentDate?: Date | null;
+	lpaQuestionnaireReceivedDate?: Date | null;
+	targetPublishDate?: Date | null;
+	publishDate?: Date | null;
+	pressNoticeDate?: Date | null;
+	neighboursNotifiedByLpaDate?: Date | null;
+	lpaInterestedPartiesDeadlineDate?: Date | null;
+	siteNoticeByLpaDate?: Date | null;
+	interestedPartiesPressNoticeDeadlineDate?: Date | null;
+	mineralApplicationsDate?: Date | null;
+	interimFindingsDate?: Date | null;
+	reconsultationDetailsSentDate?: Date | null;
+	reconsultationDetailsDeadlineDate?: Date | null;
+	s106SubmittedDate?: Date | null;
+	targetDecisionDate?: Date | null;
+	extendedTargetDecisionDate?: Date | null;
+	recoveredDate?: Date | null;
+	withdrawnDate?: Date | null;
+	turnedAwayDate?: Date | null;
+	reconsultationDetailsDate?: { start: Date | null; end: Date | null };
 }
 
 export class S62aCaseUpdateMapper {
@@ -42,6 +74,7 @@ export class S62aCaseUpdateMapper {
 		this.mapScalars(input);
 		this.mapLookups(input);
 		this.mapAddress(input);
+		this.mapDates(input);
 
 		return input;
 	}
@@ -154,6 +187,50 @@ export class S62aCaseUpdateMapper {
 			const addressData = viewModelToAddressUpdateInput(this.answers.siteAddress!);
 			input.SiteAddress = { upsert: { create: addressData, update: addressData } };
 		}
+	}
+
+	/**
+	 * Creates the dates on the Dates reference table
+	 */
+	private mapDates(input: Prisma.S62aCaseUpdateInput): void {
+		const datesToUpdate: Prisma.S62aDatesUpdateWithoutS62aCaseInput & Prisma.S62aDatesCreateWithoutS62aCaseInput = {};
+		let hasDateUpdates = false;
+
+		for (const [key, value] of Object.entries(this.answers)) {
+			if (this.isDateField(key)) {
+				datesToUpdate[key] = (value as Date | undefined) || null;
+				hasDateUpdates = true;
+			}
+		}
+
+		if (this.hasAnswer('applicationValidDate')) {
+			const validDate = this.answers.applicationValidDate;
+			datesToUpdate.targetPublishDate = validDate ? addBusinessDays(validDate, 5) : null;
+			hasDateUpdates = true;
+		}
+
+		if (this.hasAnswer('reconsultationDetailsDate')) {
+			const reconsultationDetails = this.answers.reconsultationDetailsDate;
+			datesToUpdate.reconsultationDetailsSentDate = reconsultationDetails?.start ? reconsultationDetails.start : null;
+			datesToUpdate.reconsultationDetailsDeadlineDate = reconsultationDetails?.end ? reconsultationDetails.end : null;
+			hasDateUpdates = true;
+		}
+
+		if (hasDateUpdates) {
+			input.S62aDates = {
+				upsert: {
+					create: datesToUpdate,
+					update: datesToUpdate
+				}
+			};
+		}
+	}
+
+	/**
+	 * Checks the set for a date key
+	 */
+	private isDateField(key: string): key is (typeof S62A_DATE_FIELDS)[number] {
+		return DATE_FIELDS_SET.has(key);
 	}
 
 	/**

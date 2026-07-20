@@ -136,4 +136,103 @@ describe('s62aCaseToViewModel', () => {
 		assert.strictEqual(result.siteAreaHectares, 4.56);
 		assert.strictEqual(result.siteAreaSquareMetres, undefined);
 	});
+
+	describe('Dates Mapping', () => {
+		it('maps standard date fields from S62aDates to the root of the view model', () => {
+			const mockDbCase = {
+				id: 'case-date-1',
+				reference: 'S62A/2026/0005',
+				expectedSubmissionDate: mockDate,
+				S62aDates: {
+					applicationReceivedDate: mockDate,
+					targetPublishDate: mockDate,
+					s106SubmittedDate: mockDate
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.applicationReceivedDate, mockDate);
+			assert.strictEqual(result.targetPublishDate, mockDate);
+			assert.strictEqual(result.s106SubmittedDate, mockDate);
+		});
+
+		it('combines reconsultation details dates into a single object', () => {
+			const startDate = new Date('2026-07-20T10:00:00Z');
+			const endDate = new Date('2026-08-20T10:00:00Z');
+
+			const mockDbCase = {
+				id: 'case-date-2',
+				reference: 'S62A/2026/0006',
+				expectedSubmissionDate: mockDate,
+				S62aDates: {
+					reconsultationDetailsSentDate: startDate,
+					reconsultationDetailsDeadlineDate: endDate
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.deepStrictEqual(result.reconsultationDetailsDate, {
+				start: startDate,
+				end: endDate
+			});
+		});
+
+		it('handles partial reconsultation details dates (start only)', () => {
+			const startDate = new Date('2026-07-20T10:00:00Z');
+
+			const mockDbCase = {
+				id: 'case-date-3',
+				reference: 'S62A/2026/0007',
+				expectedSubmissionDate: mockDate,
+				S62aDates: {
+					reconsultationDetailsSentDate: startDate,
+					reconsultationDetailsDeadlineDate: null
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.deepStrictEqual(result.reconsultationDetailsDate, {
+				start: startDate
+			});
+		});
+
+		it('handles partial reconsultation details dates (end only)', () => {
+			const endDate = new Date('2026-08-20T10:00:00Z');
+
+			const mockDbCase = {
+				id: 'case-date-4',
+				reference: 'S62A/2026/0008',
+				expectedSubmissionDate: mockDate,
+				S62aDates: {
+					reconsultationDetailsSentDate: null,
+					reconsultationDetailsDeadlineDate: endDate
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.deepStrictEqual(result.reconsultationDetailsDate, {
+				end: endDate
+			});
+		});
+
+		it('does not create reconsultationDetailsDate object if neither date is present', () => {
+			const mockDbCase = {
+				id: 'case-date-5',
+				reference: 'S62A/2026/0009',
+				expectedSubmissionDate: mockDate,
+				S62aDates: {
+					reconsultationDetailsSentDate: null,
+					reconsultationDetailsDeadlineDate: null
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.reconsultationDetailsDate, undefined);
+		});
+	});
 });

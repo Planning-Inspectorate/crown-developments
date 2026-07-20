@@ -31,6 +31,7 @@ import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-
 import { CASE_DETAILS_QUESTION_TEXT } from './constants.ts';
 import { isApplicationType } from '../util/questions.ts';
 import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
+import CustomDatePeriodValidator from '@pins/crowndev-lib/validators/custom-date-period-validator.js';
 
 export function getQuestions(answers: S62aCaseViewModel) {
 	const isLbcCase = answers?.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
@@ -331,6 +332,491 @@ export function getQuestions(answers: S62aCaseViewModel) {
 			url: 'application-status',
 			validators: [new RequiredValidator('Select the status for this application')],
 			options: S62A_STATUSES.map((t) => ({ text: t.displayName, value: t.id }))
+		},
+		notificationReceivedDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Notification received date',
+			question: 'When was the notification of intent submitted?',
+			fieldName: 'notificationReceivedDate',
+			url: 'notification-received',
+			validators: [new DateValidator('notification received date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'notification-received/remove'
+					}
+				]
+			}
+		},
+		applicationReceivedDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: CASE_DETAILS_QUESTION_TEXT[preAppOrAppPath].applicationReceivedDateTitle,
+			question: CASE_DETAILS_QUESTION_TEXT[preAppOrAppPath].applicationReceivedDateQuestion,
+			fieldName: 'applicationReceivedDate',
+			url: 'application-received',
+			validators: [new DateValidator('application received date')],
+			hint: 'You must first add the application fee and the site address or site coordinates.',
+			viewData: {
+				warningMessage: 'Adding a date will send a notification to the applicant / agent.',
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'application-received/remove'
+					}
+				]
+			}
+		},
+		applicationAcknowledgedDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Application acknowledged',
+			question: 'When was the application acknowledgement letter sent to the applicant/agent?',
+			fieldName: 'applicationAcknowledgedDate',
+			url: 'application-acknowledged',
+			validators: [new DateValidator('application acknowledged date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'application-acknowledged/remove'
+					}
+				]
+			}
+		},
+		furtherInformationRequestedDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Further information requested',
+			question: 'When was the invalid letter sent requesting further information for application?',
+			fieldName: 'furtherInformationRequestedDate',
+			url: 'further-information-requested',
+			validators: [
+				new DateValidator('further information requested date'),
+				new CrossQuestionValidator({
+					dependencyFieldName: 'agreedForAdditionalInformationDate',
+					useBodyValuesForCurrent: true,
+					validationFunction: (infoRequestedDate, additionalInfoDate) => {
+						if (
+							(typeof infoRequestedDate !== 'string' && !(infoRequestedDate instanceof Date)) ||
+							(typeof additionalInfoDate !== 'string' && !(additionalInfoDate instanceof Date))
+						) {
+							return true;
+						}
+
+						if (new Date(infoRequestedDate).getTime() <= new Date(additionalInfoDate).getTime()) {
+							throw new Error(
+								'Further information requested date must be after Date agreed for additional information'
+							);
+						}
+
+						return true;
+					}
+				})
+			],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'further-information-requested/remove'
+					}
+				]
+			}
+		},
+		dateAgreedForAdditionalInformation: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Date agreed for additional information',
+			question: 'When is the agreed deadline for submission of additional documents?',
+			fieldName: 'agreedForAdditionalInformationDate',
+			url: 'date-agreed-additional-information',
+			validators: [
+				new DateValidator('date agreed for additional information'),
+				new CrossQuestionValidator({
+					dependencyFieldName: 'furtherInformationRequestedDate',
+					useBodyValuesForCurrent: true,
+					validationFunction: (additionalInfoDate, infoRequestedDate) => {
+						if (
+							(typeof infoRequestedDate !== 'string' && !(infoRequestedDate instanceof Date)) ||
+							(typeof additionalInfoDate !== 'string' && !(additionalInfoDate instanceof Date))
+						) {
+							return true;
+						}
+
+						if (new Date(infoRequestedDate).getTime() <= new Date(additionalInfoDate).getTime()) {
+							throw new Error(
+								'Date agreed for additional information must be before Further information requested date'
+							);
+						}
+
+						return true;
+					}
+				})
+			],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'date-agreed-additional-information/remove'
+					}
+				]
+			}
+		},
+		applicationValidDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Application valid date',
+			question: 'When was the application confirmed as valid?',
+			fieldName: 'applicationValidDate',
+			url: 'application-valid',
+			validators: [new DateValidator('application valid date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'application-valid/remove'
+					}
+				]
+			}
+		},
+		validLettersSentDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Valid letters sent',
+			question: 'When were the valid letters sent to the local planning authority?',
+			fieldName: 'validLettersSentDate',
+			url: 'valid-letters-sent',
+			validators: [new DateValidator('valid letters sent date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'valid-letters-sent/remove'
+					}
+				]
+			}
+		},
+		lpaQuestionnaireSentDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'LPA questionnaire sent date',
+			question: 'When was the local planning authority questionnaire sent?',
+			fieldName: 'lpaQuestionnaireSentDate',
+			url: 'lpa-questionnaire-sent',
+			validators: [
+				new DateValidator('LPA questionnaire sent date'),
+				new CrossQuestionValidator({
+					dependencyFieldName: 'lpaQuestionnaireReceivedDate',
+					useBodyValuesForCurrent: true,
+					validationFunction: (sentDate, receivedDate) => {
+						if (
+							(typeof sentDate !== 'string' && !(sentDate instanceof Date)) ||
+							(typeof receivedDate !== 'string' && !(receivedDate instanceof Date))
+						) {
+							return true;
+						}
+
+						if (new Date(sentDate).getTime() >= new Date(receivedDate).getTime()) {
+							throw new Error('LPA questionnaire sent date must be before LPA questionnaire received date');
+						}
+
+						return true;
+					}
+				})
+			],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'lpa-questionnaire-sent/remove'
+					}
+				]
+			}
+		},
+		lpaQuestionnaireReceivedDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'LPA questionnaire received date',
+			question: 'When was the local planning authority questionnaire received?',
+			fieldName: 'lpaQuestionnaireReceivedDate',
+			url: 'lpa-questionnaire-received',
+			validators: [
+				new DateValidator('LPA questionnaire received date'),
+				new CrossQuestionValidator({
+					dependencyFieldName: 'lpaQuestionnaireSentDate',
+					useBodyValuesForCurrent: true,
+					validationFunction: (receivedDate, sentDate) => {
+						if (
+							(typeof sentDate !== 'string' && !(sentDate instanceof Date)) ||
+							(typeof receivedDate !== 'string' && !(receivedDate instanceof Date))
+						) {
+							return true;
+						}
+
+						if (new Date(sentDate).getTime() >= new Date(receivedDate).getTime()) {
+							throw new Error('LPA questionnaire received date must be after LPA questionnaire sent date');
+						}
+
+						return true;
+					}
+				})
+			],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'lpa-questionnaire-received/remove'
+					}
+				]
+			}
+		},
+		targetPublishDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Target publish date',
+			question: 'not editable',
+			fieldName: 'targetPublishDate',
+			url: '',
+			editable: false
+		},
+		publishDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Publish date',
+			question: 'not editable',
+			fieldName: 'publishDate',
+			url: '',
+			editable: false
+		},
+		pressNoticeDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Press notice date',
+			question: 'When was the press notice published?',
+			fieldName: 'pressNoticeDate',
+			url: 'press-notice-date',
+			validators: [new DateValidator('press notice date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'press-notice-date/remove'
+					}
+				]
+			}
+		},
+		neighboursNotifiedByLpaDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Neighbours notified by LPA date',
+			question: 'When were the neighbours notified by local planning authority?',
+			fieldName: 'neighboursNotifiedByLpaDate',
+			url: 'neighbours-notified',
+			validators: [new DateValidator('neighbours notified by LPA date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'neighbours-notified/remove'
+					}
+				]
+			}
+		},
+		lpaInterestedPartiesDeadlineDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'LPA interested parties deadline',
+			question: 'When is the deadline date the council have provided to interested parties for consultations?',
+			fieldName: 'lpaInterestedPartiesDeadlineDate',
+			url: 'lpa-interested-parties-deadline',
+			validators: [new DateValidator('LPA interested parties deadline')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'lpa-interested-parties-deadline/remove'
+					}
+				]
+			}
+		},
+		siteNoticeByLpaDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Site notice by LPA date',
+			question: 'When was the site notice erected by the local planning authority?',
+			fieldName: 'siteNoticeByLpaDate',
+			url: 'site-notice-by-lpa',
+			validators: [new DateValidator('site notice by LPA date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'site-notice-by-lpa/remove'
+					}
+				]
+			}
+		},
+		interestedPartiesPressNoticeDeadlineDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Interested parties press notice deadline',
+			question: 'When is the Planning Inspectorate interested parties press notice deadline?',
+			fieldName: 'interestedPartiesPressNoticeDeadlineDate',
+			url: 'interested-parties-press-notice-deadline',
+			validators: [new DateValidator('interested parties press notice deadline')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'interested-parties-press-notice-deadline/remove'
+					}
+				]
+			}
+		},
+		mineralApplicationsDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Mineral applications',
+			question: 'When was the notification of mineral application received?',
+			fieldName: 'mineralApplicationsDate',
+			url: 'mineral-applications',
+			validators: [new DateValidator('mineral applications date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'mineral-applications/remove'
+					}
+				]
+			}
+		},
+		interimFindingsDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Interim findings date',
+			question: 'When was the interim findings letter sent out?',
+			fieldName: 'interimFindingsDate',
+			url: 'interim-findings',
+			validators: [new DateValidator('interim findings date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'interim-findings/remove'
+					}
+				]
+			}
+		},
+		reconsultationDetailsDate: {
+			type: COMPONENT_TYPES.DATE_PERIOD,
+			title: 'Reconsultation details',
+			question: 'What are the updated reconsultation details?',
+			fieldName: 'reconsultationDetailsDate',
+			url: 'reconsultation-details',
+			validators: [
+				new CustomDatePeriodValidator(
+					'reconsultation details',
+					{ ensureFuture: false, ensurePast: false },
+					{ ensureFuture: true, ensurePast: false },
+					true
+				)
+			],
+			labels: { start: 'Sent', end: 'Deadline' },
+			endTime: { hour: 0, minute: 0 },
+			dateFormat: 'd MMMM yyyy'
+		},
+		s106SubmittedDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'S106 submitted date',
+			question: 'When was the S106 submitted?',
+			fieldName: 's106SubmittedDate',
+			url: 's106-submitted',
+			validators: [new DateValidator('S106 submitted date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 's106-submitted/remove'
+					}
+				]
+			}
+		},
+		targetDecisionDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Target decision date',
+			question: 'not editable',
+			fieldName: 'targetDecisionDate',
+			url: '',
+			editable: false
+		},
+		extendedTargetDecisionDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Extended target decision date',
+			question: 'When is the extended target decision date?',
+			fieldName: 'extendedTargetDecisionDate',
+			url: 'extended-target-decision-date',
+			validators: [new DateValidator('extended target decision date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'extended-target-decision-date/remove'
+					}
+				]
+			}
+		},
+		recoveredDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Recovered date',
+			question: 'When was the recovered date?',
+			fieldName: 'recoveredDate',
+			url: 'recovered-date',
+			validators: [new DateValidator('recovered date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'recovered-date/remove'
+					}
+				]
+			}
+		},
+		withdrawnDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Withdrawn date',
+			question: 'When was the application withdrawn?',
+			fieldName: 'withdrawnDate',
+			url: 'withdrawn-date',
+			validators: [new DateValidator('withdrawn date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'withdrawn-date/remove'
+					}
+				]
+			}
+		},
+		turnedAwayDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Turned away date',
+			question: 'When was the application turned away?',
+			fieldName: 'turnedAwayDate',
+			url: 'turned-away-date',
+			validators: [new DateValidator('turned away date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'turned-away-date/remove'
+					}
+				]
+			}
 		}
 	};
 

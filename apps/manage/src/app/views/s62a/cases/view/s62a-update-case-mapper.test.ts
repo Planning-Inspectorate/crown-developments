@@ -5,6 +5,7 @@ import { SITE_AREA_UNIT_ID } from '@pins/crowndev-database/src/seed/s62a/data-st
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
 import { S62aCaseUpdateMapper, type UpdateCaseAnswers } from './s62a-update-case-mapper.ts';
 import type { Address } from '@planning-inspectorate/dynamic-forms';
+import { addBusinessDays } from 'date-fns';
 
 describe('S62aCaseUpdateMapper', () => {
 	describe('Empty and Undefined Payloads', () => {
@@ -185,6 +186,82 @@ describe('S62aCaseUpdateMapper', () => {
 					update: expectedAddressData
 				}
 			});
+		});
+	});
+
+	describe('Dates Mapping', () => {
+		it('does not generate S62aDates update if no date answers are provided', () => {
+			const mapper = new S62aCaseUpdateMapper({});
+			const result = mapper.generateUpdateInput();
+
+			assert.strictEqual(result.S62aDates, undefined);
+		});
+
+		it('maps basic date fields correctly', () => {
+			const date = new Date('2026-07-20T10:00:00Z');
+			const answers: UpdateCaseAnswers = {
+				notificationReceivedDate: date,
+				publishDate: date
+			};
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aDates, {
+				upsert: {
+					create: { notificationReceivedDate: date, publishDate: date },
+					update: { notificationReceivedDate: date, publishDate: date }
+				}
+			});
+		});
+
+		it('calculates targetPublishDate as 5 business days after applicationValidDate', () => {
+			const validDate = new Date('2026-07-01T10:00:00Z');
+			const expectedTargetDate = addBusinessDays(validDate, 5);
+
+			const answers: UpdateCaseAnswers = {
+				applicationValidDate: validDate
+			};
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aDates, {
+				upsert: {
+					create: { applicationValidDate: validDate, targetPublishDate: expectedTargetDate },
+					update: { applicationValidDate: validDate, targetPublishDate: expectedTargetDate }
+				}
+			});
+		});
+
+		it('nullifies targetPublishDate if applicationValidDate is explicitly cleared', () => {
+			const answers: UpdateCaseAnswers = {
+				applicationValidDate: null
+			};
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aDates, {
+				upsert: {
+					create: { applicationValidDate: null, targetPublishDate: null },
+					update: { applicationValidDate: null, targetPublishDate: null }
+				}
+			});
+		});
+
+		it('does not overwrite targetPublishDate if applicationValidDate is not in the payload', () => {
+			const date = new Date('2026-07-20T10:00:00Z');
+			const answers: UpdateCaseAnswers = {
+				publishDate: date
+			};
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aDates, {
+				upsert: {
+					create: { publishDate: date },
+					update: { publishDate: date }
+				}
+			});
+			assert.strictEqual((result.S62aDates?.upsert.create as any).targetPublishDate, undefined);
 		});
 	});
 });
