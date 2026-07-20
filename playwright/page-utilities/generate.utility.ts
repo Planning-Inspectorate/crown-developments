@@ -1,4 +1,5 @@
 import { fakerEN_GB as faker } from '@faker-js/faker';
+import { randomInt } from 'node:crypto';
 
 export type DateField = {
 	day: string;
@@ -16,8 +17,212 @@ export type UkAddress = {
 	postcode: string;
 };
 
+export type NameCharacterSet = 'simple' | 'special' | 'mixed';
+export type PhoneNumberCharacterSet = 'simple' | 'mixed';
+
+type GenerateNameOptions = {
+	characterSet?: NameCharacterSet;
+};
+
+type GenerateRandomStringOptions = {
+	includeSpecialCharacter?: boolean;
+	requiredSpecialWords?: string[];
+};
+
+type GenerateEmailOptions = {
+	firstName?: string;
+	lastName?: string;
+	characterSet?: NameCharacterSet;
+	allowEmpty?: boolean;
+};
+
+type GeneratePhoneNumberOptions = {
+	allowEmpty?: boolean;
+	characterSet?: PhoneNumberCharacterSet;
+};
+
+const SIMPLE_FIRST_NAMES = [
+	'Sarah',
+	'James',
+	'Emily',
+	'Michael',
+	'Charlotte',
+	'Oscar',
+	'Daniel',
+	'Olivia',
+	'Edward',
+	'Thomas',
+	'Sophie',
+	'Grace',
+	'Harry',
+	'George',
+	'Amelia',
+	'Isla',
+	'Jack',
+	'Henry',
+	'Freya',
+	'Noah',
+	'Ella',
+	'Ruby',
+	'Leo',
+	'Arthur',
+	'Lily',
+	'Mia',
+	'Jacob',
+	'Samuel',
+	'Jessica',
+	'Lucy'
+] as const;
+
+const SPECIAL_FIRST_NAMES = [
+	'José',
+	'Chloé',
+	'Zoë',
+	'Renée',
+	'André',
+	'Björk',
+	'François',
+	'Łukasz',
+	'Søren',
+	'İbrahim',
+	'Álvaro',
+	'Noémie',
+	'Maëlle',
+	'Jürgen',
+	'Siobhán',
+	'Niamh',
+	'Óscar',
+	'Björn',
+	'Åsa',
+	'Inês',
+	'João',
+	'Yūki',
+	'Temitọpe',
+	'Anne-Marie',
+	'Lily-Rose',
+	'Mary Jane',
+	'Jean-Luc',
+	'Billy-Joe',
+	'Rose Anne',
+	'Mae-Louise',
+	'John Paul',
+	'María-José',
+	'Anna-Lena',
+	'Oluwaseun-Ade',
+	'D’Arcy',
+	"D'Arcy",
+	'O’Shea',
+	"O'Shea",
+	'Tara-Louise',
+	'Ella May',
+	'Ana María'
+] as const;
+
+const SIMPLE_LAST_NAMES = [
+	'Thomas',
+	'Taylor',
+	'Roberts',
+	'Evans',
+	'Walker',
+	'Johnson',
+	'Turner',
+	'Parker',
+	'Phillips',
+	'Edwards',
+	'Smith',
+	'Jones',
+	'Williams',
+	'Brown',
+	'Davies',
+	'Wilson',
+	'Clarke',
+	'Hall',
+	'Green',
+	'Baker',
+	'Wood',
+	'Cooper',
+	'Hill',
+	'Ward',
+	'Morris',
+	'Moore',
+	'King',
+	'Allen',
+	'Scott',
+	'Young'
+] as const;
+
+const SPECIAL_LAST_NAMES = [
+	'García',
+	'Fernández',
+	'Muñoz',
+	'Grønning',
+	'Åström',
+	'Dvořák',
+	'Kovačić',
+	'Łukaszewicz',
+	'Brontë',
+	'López',
+	'François',
+	'Björnsdóttir',
+	'O’Connor',
+	"O'Connor",
+	'O’Neill',
+	"O'Neill",
+	'O’Brien',
+	"O'Brien",
+	'O’Donnell',
+	"O'Donnell",
+	'D’Arcy',
+	"D'Arcy",
+	'D’Angelo',
+	"D'Angelo",
+	'McCarthy',
+	'MacDonald-Smith',
+	'Ó Briain',
+	'Kowalski',
+	'Nowicka',
+	'Novák',
+	'Horváth',
+	'Németh',
+	'Öztürk',
+	'Yılmaz',
+	'Çelik',
+	'de la Cruz',
+	'Van der Merwe',
+	'van den Berg',
+	'Gonçalves',
+	'Rodríguez',
+	'Sánchez',
+	'Martínez',
+	'Nguyễn',
+	'Wójcik',
+	'Król',
+	'Adébáyọ̀',
+	'Saint-Clair',
+	'Smith-Jones',
+	'Taylor Brown',
+	'Parker-James',
+	'Lee Wong',
+	'Evans-Pritchard',
+	'Jones Davies',
+	'García Márquez',
+	'da Silva',
+	'de Souza',
+	'Al-Fayed',
+	'Al Saud',
+	'bin Zayed'
+] as const;
+
+const ALL_FIRST_NAMES = [...SIMPLE_FIRST_NAMES, ...SPECIAL_FIRST_NAMES] as const;
+const ALL_LAST_NAMES = [...SIMPLE_LAST_NAMES, ...SPECIAL_LAST_NAMES] as const;
+
+const EMAIL_PREFIXES = ['test', 'info', 'contact', 'admin', 'hello', 'support', 'enquiries'] as const;
+const EMAIL_COMPANIES = ['solirius', 'test-company', 'planning-inspectorate', 'local-authority'] as const;
+const EMAIL_TOP_LEVEL_DOMAINS = ['.com', '.co.uk', '.org', '.net', '.gov.uk'] as const;
+const EMAIL_SEPARATORS = ['.', '_', '-', ''] as const;
+
 function randomInteger(minimum: number, maximum: number): number {
-	return Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+	return randomInt(minimum, maximum + 1);
 }
 
 function randomItem<T>(items: readonly T[]): T {
@@ -26,6 +231,30 @@ function randomItem<T>(items: readonly T[]): T {
 	}
 
 	return items[randomInteger(0, items.length - 1)];
+}
+
+function getFirstNamePool(characterSet: NameCharacterSet): readonly string[] {
+	if (characterSet === 'special') {
+		return SPECIAL_FIRST_NAMES;
+	}
+
+	if (characterSet === 'mixed') {
+		return ALL_FIRST_NAMES;
+	}
+
+	return SIMPLE_FIRST_NAMES;
+}
+
+function getLastNamePool(characterSet: NameCharacterSet): readonly string[] {
+	if (characterSet === 'special') {
+		return SPECIAL_LAST_NAMES;
+	}
+
+	if (characterSet === 'mixed') {
+		return ALL_LAST_NAMES;
+	}
+
+	return SIMPLE_LAST_NAMES;
 }
 
 function parseDateField(date: DateField): Date {
@@ -58,10 +287,16 @@ function formatDateField(date: Date): DateField {
 	};
 }
 
-type GenerateRandomStringOptions = {
-	includeSpecialCharacter?: boolean;
-	requiredSpecialWords?: string[];
-};
+function normaliseEmailPart(value: string): string {
+	const normalisedValue = value
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.replace(/[^a-zA-Z0-9]+/g, '.')
+		.replace(/^\.+|\.+$/g, '')
+		.toLowerCase();
+
+	return normalisedValue || 'test';
+}
 
 /**
  * Generates realistic text for validation testing.
@@ -177,6 +412,172 @@ export function generateRandomString(length: number, options: GenerateRandomStri
 }
 
 /**
+ * Generates a random first name.
+ *
+ * Defaults to a simple name with no special characters.
+ * Use characterSet: 'special' for accents, hyphens, apostrophes, and spaces.
+ * Use characterSet: 'mixed' for either simple or special names.
+ */
+export function generateRandomFirstName(options: GenerateNameOptions = {}): string {
+	const { characterSet = 'simple' } = options;
+
+	return randomItem(getFirstNamePool(characterSet));
+}
+
+/**
+ * Generates a random last name.
+ *
+ * Defaults to a simple name with no special characters.
+ * Use characterSet: 'special' for accents, hyphens, apostrophes, and spaces.
+ * Use characterSet: 'mixed' for either simple or special names.
+ */
+export function generateRandomLastName(options: GenerateNameOptions = {}): string {
+	const { characterSet = 'simple' } = options;
+
+	return randomItem(getLastNamePool(characterSet));
+}
+
+/**
+ * Generates a varied email address.
+ *
+ * By default this may return an empty string.
+ * Use allowEmpty: false for required email fields.
+ *
+ * First and last name can be supplied so the email matches
+ * generated contact details.
+ */
+export function generateEmail(options: GenerateEmailOptions = {}): string {
+	const { characterSet = 'mixed', allowEmpty = true } = options;
+
+	if (allowEmpty && randomInteger(0, 6) === 0) {
+		return '';
+	}
+
+	const firstName = options.firstName ?? generateRandomFirstName({ characterSet });
+	const lastName = options.lastName ?? generateRandomLastName({ characterSet });
+
+	const emailFirstName = normaliseEmailPart(firstName);
+	const emailLastName = normaliseEmailPart(lastName);
+	const separator = randomItem(EMAIL_SEPARATORS);
+	const number = randomInteger(1, 9999);
+
+	const localPartGenerators = [
+		() => `${emailFirstName}.${emailLastName}`,
+		() => `${emailFirstName}_${emailLastName}`,
+		() => `${emailFirstName}-${emailLastName}`,
+		() => `${emailFirstName}${separator}${emailLastName}${number}`,
+		() => `${emailFirstName.charAt(0)}${emailLastName}`,
+		() => `${emailFirstName}${number}`,
+		() => randomItem(EMAIL_PREFIXES),
+		() => `${randomItem(EMAIL_PREFIXES)}-${randomItem(EMAIL_COMPANIES)}`
+	];
+
+	const domainGenerators = [
+		() => `example${randomItem(EMAIL_TOP_LEVEL_DOMAINS)}`,
+		() => `${randomItem(EMAIL_COMPANIES)}${randomItem(EMAIL_TOP_LEVEL_DOMAINS)}`,
+		() => 'planning-inspectorate.gov.uk',
+		() => 'local-authority.gov.uk'
+	];
+
+	const localPart = randomItem(localPartGenerators)();
+	const domain = randomItem(domainGenerators)();
+	const email = `${localPart}@${domain}`;
+
+	return email.slice(0, 250);
+}
+
+/**
+ * Generates a valid email address.
+ *
+ * This always returns a non-empty value and is useful for required
+ * email address fields.
+ *
+ * First and last name can be supplied so the email matches
+ * generated contact details.
+ */
+export function generateRandomEmailAddress(
+	firstName = generateRandomFirstName(),
+	lastName = generateRandomLastName()
+): string {
+	return generateEmail({
+		firstName,
+		lastName,
+		allowEmpty: false
+	});
+}
+
+/**
+ * Generates a varied phone number.
+ *
+ * By default this may return an empty string.
+ * Use allowEmpty: false for required telephone fields.
+ *
+ * Use characterSet: 'simple' for digits only.
+ * Use characterSet: 'mixed' for +, brackets, spaces, and area codes.
+ */
+export function generatePhoneNumber(options: GeneratePhoneNumberOptions = {}): string {
+	const { allowEmpty = true, characterSet = 'mixed' } = options;
+
+	if (allowEmpty && randomInteger(0, 3) === 0) {
+		return '';
+	}
+
+	const generateDigits = (length: number): string => {
+		let value = '';
+
+		for (let index = 0; index < length; index++) {
+			value += randomInteger(0, 9);
+		}
+
+		return value;
+	};
+
+	if (characterSet === 'simple') {
+		return generateDigits(randomInteger(6, 9));
+	}
+
+	const format = randomItem(['number', 'prefix', 'areaCode', 'prefixAreaCode'] as const);
+
+	if (format === 'number') {
+		return generateDigits(randomInteger(6, 9));
+	}
+
+	if (format === 'prefix') {
+		return `+${generateDigits(randomInteger(6, 9))}`;
+	}
+
+	const areaCodeLength = randomItem([2, 3] as const);
+	const areaCode = generateDigits(areaCodeLength);
+
+	const maximumMainDigitsLength =
+		format === 'prefixAreaCode' ? 14 - 1 - 1 - areaCodeLength - 1 - 1 : 14 - 1 - areaCodeLength - 1 - 1;
+
+	const mainDigitsLength = randomInteger(6, maximumMainDigitsLength);
+	const mainDigits = generateDigits(mainDigitsLength);
+
+	if (format === 'areaCode') {
+		return `(${areaCode}) ${mainDigits}`;
+	}
+
+	return `+(${areaCode}) ${mainDigits}`;
+}
+
+/**
+ * Generates a valid telephone number.
+ *
+ * This always returns a non-empty value and is useful for required
+ * telephone number fields.
+ *
+ * Defaults to a simple digits-only telephone number.
+ */
+export function generateRandomTelephoneNumber(characterSet: PhoneNumberCharacterSet = 'simple'): string {
+	return generatePhoneNumber({
+		allowEmpty: false,
+		characterSet
+	});
+}
+
+/**
  * Generates a random valid date within 60 years before or after
  * the current year.
  */
@@ -254,102 +655,8 @@ export function generateUkAddress(): UkAddress {
 				probability: 0.6
 			}) ?? '',
 		postcode:
-			faker.helpers.maybe(() => faker.location.zipCode().toUpperCase(), {
+			faker.helpers.maybe(() => faker.location.zipCode('??# #??').toUpperCase(), {
 				probability: 0.7
 			}) ?? ''
 	};
-}
-
-/**
- * Generates a random phone number:
- * - may return an empty string
- * - plain number
- * - number with a + prefix
- * - number with an area code
- * - number with both a + prefix and area code
- * - maximum total length of 14 characters
- */
-export function generatePhoneNumber(): string {
-	if (randomInteger(0, 3) === 0) {
-		return '';
-	}
-
-	const generateDigits = (length: number): string => {
-		return Array.from({ length }, () => randomInteger(0, 9)).join('');
-	};
-
-	const format = randomItem(['number', 'prefix', 'areaCode', 'prefixAreaCode'] as const);
-
-	if (format === 'number') {
-		return generateDigits(randomInteger(6, 9));
-	}
-
-	if (format === 'prefix') {
-		return `+${generateDigits(randomInteger(6, 9))}`;
-	}
-
-	const areaCodeLength = randomItem([2, 3] as const);
-	const areaCode = generateDigits(areaCodeLength);
-
-	const fixedCharactersLength =
-		format === 'prefixAreaCode'
-			? 4 // +, (, ), and space
-			: 3; // (, ), and space
-
-	const maximumMainDigitsLength = 14 - fixedCharactersLength - areaCodeLength;
-	const mainDigitsLength = randomInteger(6, maximumMainDigitsLength);
-	const mainDigits = generateDigits(mainDigitsLength);
-
-	if (format === 'areaCode') {
-		return `(${areaCode}) ${mainDigits}`;
-	}
-
-	return `+(${areaCode}) ${mainDigits}`;
-}
-
-/**
- * Generates a varied email address:
- * - may return an empty string
- * - uses different local-part patterns
- * - uses personal, organisation and government-style domains
- */
-export function generateEmail(): string {
-	if (randomInteger(0, 6) === 0) {
-		return '';
-	}
-
-	const firstNames = ['john', 'sarah', 'alex', 'emma', 'chris', 'olivia', 'daniel', 'michael', 'laura'];
-
-	const lastNames = ['smith', 'connor', 'brown', 'taylor', 'wilson', 'clarke', 'evans', 'walker'];
-
-	const prefixes = ['test', 'info', 'contact', 'admin', 'hello', 'support', 'enquiries'];
-	const companies = ['solirius', 'test-company', 'planning-inspectorate', 'local-authority'];
-	const topLevelDomains = ['.com', '.co.uk', '.org', '.net', '.gov.uk'];
-	const separators = ['.', '_', '-', ''];
-	const firstName = randomItem(firstNames);
-	const lastName = randomItem(lastNames);
-	const separator = randomItem(separators);
-	const number = randomInteger(1, 9999);
-
-	const localPartGenerators = [
-		() => `${firstName}.${lastName}`,
-		() => `${firstName}${separator}${lastName}${number}`,
-		() => randomItem(prefixes),
-		() => `${firstName.charAt(0)}${lastName}`,
-		() => `${firstName}${number}`,
-		() => `${randomItem(prefixes)}-${randomItem(companies)}`
-	];
-
-	const domainGenerators = [
-		() => `example${randomItem(topLevelDomains)}`,
-		() => `${randomItem(companies)}${randomItem(topLevelDomains)}`,
-		() => 'planning-inspectorate.gov.uk',
-		() => 'local-authority.gov.uk'
-	];
-
-	const localPart = randomItem(localPartGenerators)();
-	const domain = randomItem(domainGenerators)();
-	const email = `${localPart}@${domain}`;
-
-	return email.slice(0, 250);
 }

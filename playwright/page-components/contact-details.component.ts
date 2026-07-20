@@ -1,6 +1,12 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 
 import { CommonComponent } from './common.component.ts';
+import {
+	generateRandomEmailAddress,
+	generateRandomFirstName,
+	generateRandomLastName,
+	generateRandomTelephoneNumber
+} from '../page-utilities/generate.utility.ts';
 import { runPageValidation, type PageValidation } from '../page-utilities/page-validation.utility.ts';
 
 const DEFAULT_TIMEOUT = 12_000;
@@ -19,10 +25,13 @@ export type ContactDetailsError =
 	| 'lastNameRequired'
 	| 'lastNameInvalidCharacters'
 	| 'lastNameTooLong'
+	| 'emailRequired'
 	| 'emailInvalid'
 	| 'emailTooLong'
 	| 'telephoneNumberInvalid'
 	| 'telephoneNumberTooLong';
+
+export type ContactDetailsErrorMessages = Partial<Record<ContactDetailsError, string>>;
 
 export type ContactDetailsFieldIds = {
 	firstName: string;
@@ -51,59 +60,64 @@ type ContactDetailsPageOptions = {
 	timeout?: number;
 };
 
-const defaultContactDetailsFieldIds: ContactDetailsFieldIds = {
+type ContactDetailsErrorOptions = {
+	timeout?: number;
+};
+
+const DEFAULT_REQUIRED_ERRORS = [
+	'firstNameRequired',
+	'lastNameRequired',
+	'emailRequired'
+] as const satisfies readonly ContactDetailsError[];
+
+const DEFAULT_CONTACT_DETAILS_FIELD_IDS: ContactDetailsFieldIds = {
 	firstName: 'applicantFirstName',
 	lastName: 'applicantLastName',
 	email: 'applicantContactEmail',
 	telephoneNumber: 'applicantContactTelephoneNumber'
 };
 
-const contactDetailsErrorMap: Record<ContactDetailsError, ContactDetailsErrorExpectation> = {
+const CONTACT_DETAILS_ERROR_MAP: Record<ContactDetailsError, ContactDetailsErrorExpectation> = {
 	firstNameRequired: {
 		message: 'Enter a first name',
 		fieldKey: 'firstName'
 	},
-
 	firstNameInvalidCharacters: {
 		message: 'First name must only include letters, spaces, hyphens and apostrophes',
 		fieldKey: 'firstName'
 	},
-
 	firstNameTooLong: {
-		message: 'Input too long - Please enter no more than 250 characters',
+		message: 'First name must be between 1 and 250 characters',
 		fieldKey: 'firstName'
 	},
-
 	lastNameRequired: {
 		message: 'Enter a last name',
 		fieldKey: 'lastName'
 	},
-
 	lastNameInvalidCharacters: {
 		message: 'Last name must only include letters, spaces, hyphens and apostrophes',
 		fieldKey: 'lastName'
 	},
-
 	lastNameTooLong: {
-		message: 'Input too long - Please enter no more than 250 characters',
+		message: 'Last name must be between 1 and 250 characters',
 		fieldKey: 'lastName'
 	},
-
+	emailRequired: {
+		message: 'Enter an email address',
+		fieldKey: 'email'
+	},
 	emailInvalid: {
 		message: 'Enter an email address in the correct format, like name@example.com',
 		fieldKey: 'email'
 	},
-
 	emailTooLong: {
 		message: 'Input too long - Please enter no more than 50 characters',
 		fieldKey: 'email'
 	},
-
 	telephoneNumberInvalid: {
 		message: 'Enter a valid phone number',
 		fieldKey: 'telephoneNumber'
 	},
-
 	telephoneNumberTooLong: {
 		message: 'Phone number must be 15 characters or less',
 		fieldKey: 'telephoneNumber'
@@ -114,20 +128,42 @@ export class ContactDetailsComponent {
 	private readonly page: Page;
 	private readonly commonComponent: CommonComponent;
 	private readonly fieldIds: ContactDetailsFieldIds;
+	private readonly errorMessages: ContactDetailsErrorMessages;
 
-	constructor(page: Page, fieldIds: ContactDetailsFieldIds = defaultContactDetailsFieldIds) {
+	constructor(
+		page: Page,
+		fieldIds: ContactDetailsFieldIds = DEFAULT_CONTACT_DETAILS_FIELD_IDS,
+		errorMessages: ContactDetailsErrorMessages = {}
+	) {
 		this.page = page;
 		this.commonComponent = new CommonComponent(page);
 		this.fieldIds = fieldIds;
+		this.errorMessages = errorMessages;
 	}
 
 	/**
-	 * Fills a contact details field and verifies the value.
+	 * Fills a contact details field and verifies its value.
 	 */
 	private async fillField(field: Locator, value: string, fieldName: string): Promise<void> {
 		await expect(field, `${fieldName} field should be visible`).toBeVisible();
 		await field.fill(value);
 		await expect(field, `${fieldName} field should contain '${value}'`).toHaveValue(value);
+	}
+
+	/**
+	 * Generates valid contact details.
+	 * Supplied values override the generated defaults.
+	 */
+	private generateContactDetails(overrides: Partial<ContactDetails> = {}): ContactDetails {
+		const firstName = overrides.firstName ?? generateRandomFirstName();
+		const lastName = overrides.lastName ?? generateRandomLastName();
+
+		return {
+			firstName,
+			lastName,
+			email: overrides.email ?? generateRandomEmailAddress(firstName, lastName),
+			telephoneNumber: overrides.telephoneNumber ?? generateRandomTelephoneNumber()
+		};
 	}
 
 	public readonly actions = {
@@ -156,7 +192,19 @@ export class ContactDetailsComponent {
 		},
 
 		/**
-		 * Enters the first name only.
+		 * Enters generated contact details.
+		 * Supplied values override the generated defaults.
+		 */
+		enterGeneratedContactDetails: async (contactDetails: Partial<ContactDetails> = {}): Promise<ContactDetails> => {
+			const generatedContactDetails = this.generateContactDetails(contactDetails);
+
+			await this.actions.enterContactDetails(generatedContactDetails);
+
+			return generatedContactDetails;
+		},
+
+		/**
+		 * Enters the first name.
 		 */
 		enterFirstName: async (firstName: string) => {
 			await this.fillField(this.page.locator(`#${this.fieldIds.firstName}`), firstName, 'First name');
@@ -165,7 +213,7 @@ export class ContactDetailsComponent {
 		},
 
 		/**
-		 * Enters the last name only.
+		 * Enters the last name.
 		 */
 		enterLastName: async (lastName: string) => {
 			await this.fillField(this.page.locator(`#${this.fieldIds.lastName}`), lastName, 'Last name');
@@ -174,7 +222,7 @@ export class ContactDetailsComponent {
 		},
 
 		/**
-		 * Enters the email address only.
+		 * Enters the email address.
 		 */
 		enterEmail: async (email: string) => {
 			await this.fillField(this.page.locator(`#${this.fieldIds.email}`), email, 'Email');
@@ -183,10 +231,22 @@ export class ContactDetailsComponent {
 		},
 
 		/**
-		 * Enters the telephone number only.
+		 * Enters the telephone number.
 		 */
 		enterTelephoneNumber: async (telephoneNumber: string) => {
 			await this.fillField(this.page.locator(`#${this.fieldIds.telephoneNumber}`), telephoneNumber, 'Telephone number');
+
+			return this.actions;
+		},
+
+		/**
+		 * Clears all contact detail fields.
+		 */
+		clearContactDetails: async () => {
+			await this.page.locator(`#${this.fieldIds.firstName}`).clear();
+			await this.page.locator(`#${this.fieldIds.lastName}`).clear();
+			await this.page.locator(`#${this.fieldIds.email}`).clear();
+			await this.page.locator(`#${this.fieldIds.telephoneNumber}`).clear();
 
 			return this.actions;
 		}
@@ -194,8 +254,8 @@ export class ContactDetailsComponent {
 
 	public readonly assertions = {
 		/**
-		 * Verifies the contact details page is displayed.
-		 * Full validation also checks URL, fields, labels, and continue button.
+		 * Verifies a contact details page is displayed.
+		 * Full validation also checks the configured fields and continue button.
 		 */
 		isPageDisplayed: async (options: ContactDetailsPageOptions = {}) => {
 			const {
@@ -216,7 +276,7 @@ export class ContactDetailsComponent {
 					},
 					{
 						fieldId: this.fieldIds.telephoneNumber,
-						label: 'Phone number (optional)'
+						label: 'Phone number'
 					}
 				],
 				pageValidation = 'fullValidation',
@@ -226,21 +286,17 @@ export class ContactDetailsComponent {
 			await runPageValidation(
 				pageValidation,
 				async () => {
-					await this.commonComponent.assertions.verifyPageLoaded(expectedTitle, {
-						timeout
-					});
-
-					await this.commonComponent.assertions.verifyPageTitle(expectedTitle, {
-						timeout
-					});
-				},
-				async () => {
 					if (expectedUrlContains) {
 						await this.commonComponent.assertions.verifyPageURL(expectedUrlContains, {
 							timeout
 						});
 					}
 
+					await this.commonComponent.assertions.verifyPageTitle(expectedTitle, {
+						timeout
+					});
+				},
+				async () => {
 					for (const field of expectedFields) {
 						await expect(
 							this.page.locator(`label[for="${field.fieldId}"]`, {
@@ -256,18 +312,13 @@ export class ContactDetailsComponent {
 						await expect(input, `Input '${field.fieldId}' should be visible`).toBeVisible({
 							timeout
 						});
-
 						await expect(input).toHaveAttribute('name', field.fieldId);
 						await expect(input).toHaveAttribute('type', 'text');
 					}
 
-					const continueButton = this.page.locator('[data-cy="button-save-and-continue"]');
-
-					await expect(continueButton, 'Continue button should be visible').toBeVisible({
+					await this.commonComponent.assertions.checkActionExists('continue', {
 						timeout
 					});
-
-					await expect(continueButton).toHaveAttribute('type', 'submit');
 				}
 			);
 
@@ -275,31 +326,59 @@ export class ContactDetailsComponent {
 		},
 
 		/**
-		 * Verifies contact details validation errors.
+		 * Verifies one or more contact detail validation errors.
+		 *
+		 * When no errors are supplied, the required first name,
+		 * last name and email errors are checked.
 		 */
-		hasContactDetailsErrors: async (errors: ContactDetailsError | ContactDetailsError[]) => {
-			const errorsToCheck = Array.isArray(errors) ? errors : [errors];
+		isErrorDisplayed: async (
+			errors: ContactDetailsError | readonly ContactDetailsError[] = DEFAULT_REQUIRED_ERRORS,
+			options: ContactDetailsErrorOptions = {}
+		) => {
+			const timeout = options.timeout ?? DEFAULT_TIMEOUT;
+			const errorsToCheck: ContactDetailsError[] = typeof errors === 'string' ? [errors] : [...errors];
 			const uniqueErrors = [...new Set(errorsToCheck)];
 
 			await expect(
 				this.page.locator('.govuk-error-summary__list li'),
 				`Error summary should contain exactly ${uniqueErrors.length} error(s)`
-			).toHaveCount(uniqueErrors.length);
+			).toHaveCount(uniqueErrors.length, {
+				timeout
+			});
 
-			for (const error of uniqueErrors) {
-				const expected = contactDetailsErrorMap[error];
-				const fieldId = this.fieldIds[expected.fieldKey];
+			for (const errorType of uniqueErrors) {
+				const errorConfig = CONTACT_DETAILS_ERROR_MAP[errorType];
+				const message = this.errorMessages[errorType] ?? errorConfig.message;
+				const fieldId = this.fieldIds[errorConfig.fieldKey];
 				const inlineErrorId = `${fieldId}-error`;
 
-				await this.commonComponent.assertions.verifyErrorSummary(expected.message, {
+				await this.commonComponent.assertions.verifyErrorSummary(message, {
 					href: `#${fieldId}`,
-					inlineId: inlineErrorId
+					inlineId: inlineErrorId,
+					timeout
 				});
 
 				const field = this.page.locator(`#${fieldId}`);
+				const inlineError = this.page.locator(`#${inlineErrorId}`);
+				const formGroup = this.page.locator('.govuk-form-group', {
+					has: field
+				});
 
-				await expect(field, `Field '${fieldId}' should have an error class`).toHaveClass(/govuk-input--error/);
-				await expect(field).toHaveAttribute('aria-describedby', inlineErrorId);
+				await expect(formGroup, `Form group for '${fieldId}' should have the error class`).toHaveClass(
+					/govuk-form-group--error/,
+					{
+						timeout
+					}
+				);
+				await expect(inlineError, `Inline error for '${fieldId}' should contain '${message}'`).toContainText(message, {
+					timeout
+				});
+				await expect(field, `Field '${fieldId}' should have the error class`).toHaveClass(/govuk-input--error/, {
+					timeout
+				});
+				await expect(field).toHaveAttribute('aria-describedby', new RegExp(`(^|\\s)${inlineErrorId}(\\s|$)`), {
+					timeout
+				});
 			}
 
 			return this.assertions;
