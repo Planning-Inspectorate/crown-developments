@@ -3,14 +3,14 @@ import { addRepresentationSection } from '@pins/crowndev-lib/forms/representatio
 
 export const JOURNEY_ID = 'add-representation';
 
-export function createJourney(questions, response, req, isRepsUploadDocsLive) {
+export function createJourney(questions, response, req) {
 	if (!req.baseUrl.endsWith('/' + JOURNEY_ID)) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey`);
 	}
 
 	return new Journey({
 		journeyId: JOURNEY_ID,
-		sections: addRepresentationSection(questions, isRepsUploadDocsLive),
+		sections: addRepresentationSection(questions),
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',
 		taskListTemplate: 'views/layouts/forms-representation-check-your-answers.njk',

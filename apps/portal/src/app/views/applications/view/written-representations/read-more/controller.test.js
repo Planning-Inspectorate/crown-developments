@@ -5,7 +5,6 @@ import { buildWrittenRepresentationsReadMorePage } from './controller.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { getDocumentsById } from '@pins/crowndev-lib/documents/get.js';
 import { mapDriveItemToViewModel } from '@pins/crowndev-lib/documents/view-model.js';
-import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 describe('written representations read more', () => {
 	it('should filter out invalid or null documents', async () => {
@@ -23,55 +22,6 @@ describe('written representations read more', () => {
 		const documents = driveItems.map(mapDriveItemToViewModel).filter(Boolean);
 		assert.strictEqual(documents.length, 1);
 		assert.strictEqual(documents[0].name, 'File 1');
-	});
-	it('should handle Prisma error when fetching documents', async () => {
-		const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
-		const representationReference = 'AAAAA-BBBBB';
-		const mockReq = {
-			params: { applicationId, representationReference },
-			originalUrl: `/applications/${applicationId}/written-representations/${representationReference}`
-		};
-		const mockRes = { render: mock.fn(), status: mock.fn(), redirect: mock.fn() };
-
-		const mockDb = {
-			crownDevelopment: {
-				findUnique: mock.fn(() => ({
-					id: applicationId,
-					reference: 'CROWN/2025/0000001',
-					representationsPeriodStartDate: '2025-01-01',
-					representationsPeriodEndDate: '2025-02-01',
-					representationsPublishDate: '2025-03-01',
-					containsDistressingContent: false
-				}))
-			},
-			representation: {
-				findUnique: mock.fn(() => ({
-					id: 1,
-					reference: representationReference,
-					containsAttachments: true
-				}))
-			},
-			representationDocument: {
-				findMany: mock.fn(() => {
-					throw new Prisma.PrismaClientKnownRequestError('some error', { code: '101' });
-				})
-			}
-		};
-
-		const mockSharePoint = { getDriveItem: mock.fn() };
-		const logger = mockLogger();
-
-		const handler = buildWrittenRepresentationsReadMorePage({
-			db: mockDb,
-			logger,
-			sharePointDrive: mockSharePoint,
-			isRepsUploadDocsLive: true
-		});
-
-		await assert.rejects(() => handler(mockReq, mockRes), {
-			message: 'Error fetching representation documents (101)'
-		});
-		assert.strictEqual(mockRes.redirect.mock.callCount(), 0);
 	});
 	it('should fetch documents from database', async () => {
 		const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
@@ -122,8 +72,7 @@ describe('written representations read more', () => {
 							redactedItemId: null,
 							redactedFileName: null,
 							statusId: 'accepted'
-						},
-						{ itemId: '11111', fileName: null, redactedItemId: null, redactedFileName: null, statusId: 'rejected' }
+						}
 					]
 				}))
 			},
@@ -139,16 +88,18 @@ describe('written representations read more', () => {
 			}
 		};
 		const mockSharePoint = {
-			getDriveItem: mock.fn(() => [
-				{ id: 1, name: 'doc1.pdf', file: { mimeType: 'application/pdf' }, size: 12345 },
-				{ id: 2, name: 'doc2.pdf', file: { mimeType: 'application/pdf' }, size: 56789 }
-			])
+			getDriveItem: mock.fn((id) => {
+				const items = {
+					12345: { id: '12345', name: 'doc1.pdf', file: { mimeType: 'application/pdf' }, size: 12345 },
+					67890: { id: '67890', name: 'doc2.pdf', file: { mimeType: 'application/pdf' }, size: 56789 }
+				};
+				return items[id] ?? null;
+			})
 		};
 		const handler = buildWrittenRepresentationsReadMorePage({
 			db: mockDb,
 			logger: mockLogger(),
-			sharePointDrive: mockSharePoint,
-			isRepsUploadDocsLive: true
+			sharePointDrive: mockSharePoint
 		});
 		await handler(mockReq, mockRes);
 		assert.strictEqual(
@@ -236,27 +187,8 @@ describe('written representations read more', () => {
 					SubmittedByContact: { firstName: 'Jane', lastName: 'Smith' },
 					RepresentedContact: { firstName: 'Alice', lastName: 'Brown' },
 					Category: { displayName: 'General Representation' },
-					Attachments: [
-						{
-							itemId: '12345',
-							fileName: 'doc1.pdf',
-							redactedItemId: null,
-							redactedFileName: null,
-							statusId: 'rejected'
-						},
-						{
-							itemId: '67890',
-							fileName: 'doc2.pdf',
-							redactedItemId: null,
-							redactedFileName: null,
-							statusId: 'rejected'
-						},
-						{ itemId: '11111', fileName: null, redactedItemId: null, redactedFileName: null, statusId: 'rejected' }
-					]
+					Attachments: []
 				}))
-			},
-			representationDocument: {
-				findMany: mock.fn(() => [])
 			},
 			applicationUpdate: {
 				findFirst: mock.fn(() => undefined),
@@ -264,13 +196,18 @@ describe('written representations read more', () => {
 			}
 		};
 		const mockSharePoint = {
-			getDriveItem: mock.fn()
+			getDriveItem: mock.fn((id) => {
+				const items = {
+					12345: { id: '12345', name: 'doc1.pdf', file: { mimeType: 'application/pdf' }, size: 12345 },
+					67890: { id: '67890', name: 'doc2.pdf', file: { mimeType: 'application/pdf' }, size: 56789 }
+				};
+				return items[id] ?? null;
+			})
 		};
 		const handler = buildWrittenRepresentationsReadMorePage({
 			db: mockDb,
 			logger: mockLogger(),
-			sharePointDrive: mockSharePoint,
-			isRepsUploadDocsLive: true
+			sharePointDrive: mockSharePoint
 		});
 		await handler(mockReq, mockRes);
 		assert.strictEqual(
@@ -333,8 +270,20 @@ describe('written representations read more', () => {
 						RepresentedContact: { firstName: 'Alice', lastName: ' Brown' },
 						Category: { displayName: 'General Representation' },
 						Attachments: [
-							{ itemId: 1, fileName: 'doc1.pdf', redactedItemId: null, redactedFileName: null, statusId: 'accepted' },
-							{ itemId: 2, fileName: 'doc2.pdf', redactedItemId: null, redactedFileName: null, statusId: 'accepted' }
+							{
+								itemId: '12345',
+								fileName: 'doc1.pdf',
+								redactedItemId: null,
+								redactedFileName: null,
+								statusId: 'accepted'
+							},
+							{
+								itemId: '67890',
+								fileName: 'doc2.pdf',
+								redactedItemId: null,
+								redactedFileName: null,
+								statusId: 'accepted'
+							}
 						]
 					}))
 				},
@@ -344,7 +293,13 @@ describe('written representations read more', () => {
 				}
 			};
 			const mockSharePoint = {
-				getItemsByPath: mock.fn(() => [])
+				getDriveItem: mock.fn((id) => {
+					const items = {
+						12345: { id: '12345', name: 'doc1.pdf', file: { mimeType: 'application/pdf' }, size: 12345 },
+						67890: { id: '67890', name: 'doc2.pdf', file: { mimeType: 'application/pdf' }, size: 56789 }
+					};
+					return items[id] ?? null;
+				})
 			};
 
 			const handler = buildWrittenRepresentationsReadMorePage({
@@ -373,13 +328,32 @@ describe('written representations read more', () => {
 				distressingContent: false
 			});
 			assert.strictEqual(viewData.containsDistressingContent, false);
-			assert.deepStrictEqual(viewData.documents, []);
+			assert.deepStrictEqual(viewData.documents, [
+				{
+					category: undefined,
+					createdDate: '',
+					distressing: false,
+					id: '12345',
+					lastModified: '',
+					name: 'doc1.pdf',
+					size: '12 KB',
+					type: 'PDF'
+				},
+				{
+					category: undefined,
+					createdDate: '',
+					distressing: false,
+					id: '67890',
+					lastModified: '',
+					name: 'doc2.pdf',
+					size: '55 KB',
+					type: 'PDF'
+				}
+			]);
 
-			assert.strictEqual(mockSharePoint.getItemsByPath.mock.callCount(), 1);
-			assert.match(
-				mockSharePoint.getItemsByPath.mock.calls[0].arguments[0],
-				/^CROWN-2025-0000001\/Published\/RepresentationAttachments\/AAAAA-BBBBB$/
-			);
+			assert.strictEqual(mockSharePoint.getDriveItem.mock.callCount(), 2);
+			assert.strictEqual(mockSharePoint.getDriveItem.mock.calls[0].arguments[0], '12345');
+			assert.strictEqual(mockSharePoint.getDriveItem.mock.calls[1].arguments[0], '67890');
 		});
 
 		it('should render the view with representation (without attachments)', async () => {

@@ -106,7 +106,8 @@ describe('have-your-say journey', () => {
 			myselfFirstName: 'Test Name',
 			myselfLastName: 'Surname',
 			myselfEmail: 'test@email.com',
-			myselfComment: 'some comments'
+			myselfComment: 'some comments',
+			myselfContainsAttachments: BOOLEAN_OPTIONS.NO
 		};
 
 		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
@@ -142,7 +143,8 @@ describe('have-your-say journey', () => {
 			submitterEmail: 'test@email.com',
 			representedFirstName: 'Represented Person',
 			representedLastName: 'Rep surname',
-			submitterComment: 'some comments'
+			submitterComment: 'some comments',
+			submitterContainsAttachments: BOOLEAN_OPTIONS.NO
 		};
 
 		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
@@ -161,7 +163,8 @@ describe('have-your-say journey', () => {
 			isAgent: BOOLEAN_OPTIONS.YES,
 			agentOrgName: 'Org Name',
 			submitterEmail: 'test@email.com',
-			submitterComment: 'some comments'
+			submitterComment: 'some comments',
+			submitterContainsAttachments: BOOLEAN_OPTIONS.NO
 		};
 
 		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
@@ -180,7 +183,8 @@ describe('have-your-say journey', () => {
 			submitterEmail: 'test@email.com',
 			orgName: 'Org Name',
 			orgRoleName: 'Boss',
-			submitterComment: 'some comments'
+			submitterComment: 'some comments',
+			submitterContainsAttachments: BOOLEAN_OPTIONS.NO
 		};
 
 		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
@@ -218,7 +222,8 @@ describe('have-your-say journey', () => {
 			agentOrgName: 'Test Org',
 			submitterEmail: 'test@email.com',
 			representedOrgName: 'Test Org Representing',
-			submitterComment: 'some comments'
+			submitterComment: 'some comments',
+			submitterContainsAttachments: BOOLEAN_OPTIONS.NO
 		};
 
 		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
@@ -250,8 +255,7 @@ describe('have-your-say journey', () => {
 		const questions = getQuestions({ textOverrides: { appName: 'portal' } });
 
 		const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
-		const isRepsUploadDocsLive = true;
-		const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` }, isRepsUploadDocsLive);
+		const journey = createJourney(questions, response, { baseUrl: `/some/path/${JOURNEY_ID}` });
 		const sections = journey.sections;
 
 		assert.strictEqual(sections.length, 3);

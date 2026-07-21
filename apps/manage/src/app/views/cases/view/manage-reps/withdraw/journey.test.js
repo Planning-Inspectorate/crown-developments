@@ -15,8 +15,7 @@ describe('withdraw-representation journey', () => {
 		};
 		const response = {};
 		const req = { baseUrl: `/some/path/${JOURNEY_ID}` };
-		const isRepsUploadDocsLive = true;
-		const journey = createJourney(questions, response, req, isRepsUploadDocsLive);
+		const journey = createJourney(questions, response, req);
 		assert.strictEqual(journey.journeyId, JOURNEY_ID);
 		assert.strictEqual(journey.sections.length, 1);
 		const section = journey.sections[0];

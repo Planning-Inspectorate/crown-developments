@@ -18,11 +18,10 @@ import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/compon
 
 /**
  * @param {Questions} questions
- * @param {boolean} isRepsUploadDocsLive
  * @param {boolean} isViewJourney
  * @returns {Section[]}
  */
-export function haveYourSayManageSections(questions, isRepsUploadDocsLive, isViewJourney) {
+export function haveYourSayManageSections(questions, isViewJourney) {
 	/** @param {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} response */
 	const distressingContentCondition = (response) =>
 		isViewJourney && !questionHasAnswer(response, questions.status, REPRESENTATION_STATUS_ID.REJECTED);
@@ -38,8 +37,8 @@ export function haveYourSayManageSections(questions, isRepsUploadDocsLive, isVie
 			.addQuestion(questions.status)
 			.withCondition(() => isViewJourney),
 		new Section('Representation', 'start').addQuestion(questions.submittedFor),
-		addRepMyselfSection(questions, isRepsUploadDocsLive, isViewJourney),
-		addRepAgentSection(questions, isRepsUploadDocsLive, isViewJourney),
+		addRepMyselfSection(questions, isViewJourney),
+		addRepAgentSection(questions, isViewJourney),
 		new Section('Distressing Content', 'distressing-content')
 			.withSectionCondition(distressingContentCondition)
 			.addQuestion(questions.distressingContentInRepresentation),
@@ -54,22 +53,20 @@ export function haveYourSayManageSections(questions, isRepsUploadDocsLive, isVie
 
 /**
  * @param {Questions} questions
- * @param {boolean} isRepsUploadDocsLive
  * @returns {Section[]}
  */
-export function haveYourSaySections(questions, isRepsUploadDocsLive) {
+export function haveYourSaySections(questions) {
 	return [
 		new Section('Representation', 'start').addQuestion(questions.submittedFor),
-		myselfSection(questions, isRepsUploadDocsLive),
-		agentSection(questions, isRepsUploadDocsLive)
+		myselfSection(questions),
+		agentSection(questions)
 	];
 }
 /**
  * @param {Questions} questions
- * @param {boolean} isRepsUploadDocsLive
  * @returns {Section[]}
  */
-export function addRepresentationSection(questions, isRepsUploadDocsLive) {
+export function addRepresentationSection(questions) {
 	return [
 		new Section('Representation', 'start')
 			.addQuestion(questions.submittedDate)
@@ -77,24 +74,22 @@ export function addRepresentationSection(questions, isRepsUploadDocsLive) {
 			.addQuestion(questions.submissionMethodReason)
 			.addQuestion(questions.category)
 			.addQuestion(questions.submittedFor),
-		addRepMyselfSection(questions, isRepsUploadDocsLive, false),
-		addRepAgentSection(questions, isRepsUploadDocsLive, false)
+		addRepMyselfSection(questions, false),
+		addRepAgentSection(questions, false)
 	];
 }
 
 /**
  * @param {Questions} questions
- * @param {boolean} isRepsUploadDocsLive
  * @returns {Section}
  */
-function myselfSection(questions, isRepsUploadDocsLive) {
+function myselfSection(questions) {
 	return new Section('Myself', 'myself')
 		.withSectionCondition(whenQuestionHasAnswer(questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF))
 		.addQuestion(questions.myselfFullName)
 		.addQuestion(questions.myselfEmail)
 		.addQuestion(questions.myselfTellUsAboutApplication)
 		.addQuestion(questions.myselfHasAttachments)
-		.withCondition(() => isRepsUploadDocsLive === true)
 		.addQuestion(questions.myselfSelectAttachments)
 		.withCondition(whenQuestionHasAnswer(questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES));
 }
@@ -103,11 +98,10 @@ function myselfSection(questions, isRepsUploadDocsLive) {
  * Myself section for the add representation journey (contains more questions that the default section)
  *
  * @param {Questions} questions
- * @param {boolean} isRepsUploadDocsLive
  * @param {boolean} isViewJourney
  * @returns {Section}
  */
-function addRepMyselfSection(questions, isRepsUploadDocsLive, isViewJourney) {
+function addRepMyselfSection(questions, isViewJourney) {
 	return new Section('Myself', 'myself')
 		.withSectionCondition(whenQuestionHasAnswer(questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF))
 		.addQuestion(questions.myselfFullName)
@@ -121,7 +115,6 @@ function addRepMyselfSection(questions, isRepsUploadDocsLive, isViewJourney) {
 		.addQuestion(questions.myselfCommentRedacted)
 		.withCondition(() => isViewJourney)
 		.addQuestion(questions.myselfHasAttachments)
-		.withCondition(() => isRepsUploadDocsLive === true)
 		.addQuestion(questions.myselfSelectAttachments)
 		.withCondition(whenQuestionHasAnswer(questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES))
 		.addQuestion(questions.myselfRedactedAttachments)
@@ -137,10 +130,9 @@ function addRepMyselfSection(questions, isRepsUploadDocsLive, isViewJourney) {
 
 /**
  * @param {Questions} questions
- * @param {boolean} isRepsUploadDocsLive
  * @returns {Section}
  */
-function agentSection(questions, isRepsUploadDocsLive) {
+function agentSection(questions) {
 	const isRepresentationPerson = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON);
 	const isOrgWorkFor = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.ORGANISATION);
 	const isOrgNotWorkFor = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR);
@@ -169,7 +161,6 @@ function agentSection(questions, isRepsUploadDocsLive) {
 		.endMultiQuestionCondition('representation-person')
 		.addQuestion(questions.submitterTellUsAboutApplication)
 		.addQuestion(questions.submitterHasAttachments)
-		.withCondition(() => isRepsUploadDocsLive === true)
 		.addQuestion(questions.submitterSelectAttachments)
 		.withCondition(whenQuestionHasAnswer(questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES))
 		.addQuestion(questions.submitterRedactedAttachments)
@@ -185,11 +176,10 @@ function agentSection(questions, isRepsUploadDocsLive) {
 
 /**
  * @param {Questions} questions
- * @param {boolean} isRepsUploadDocsLive
  * @param {boolean} isViewJourney
  * @returns {Section}
  */
-function addRepAgentSection(questions, isRepsUploadDocsLive, isViewJourney) {
+function addRepAgentSection(questions, isViewJourney) {
 	const isRepresentationPerson = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON);
 	const isOrgWorkFor = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.ORGANISATION);
 	const isOrgNotWorkFor = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR);
@@ -225,7 +215,6 @@ function addRepAgentSection(questions, isRepsUploadDocsLive, isViewJourney) {
 		.addQuestion(questions.submitterCommentRedacted)
 		.withCondition(() => isViewJourney)
 		.addQuestion(questions.submitterHasAttachments)
-		.withCondition(() => isRepsUploadDocsLive === true)
 		.addQuestion(questions.submitterSelectAttachments)
 		.withCondition(whenQuestionHasAnswer(questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES));
 }

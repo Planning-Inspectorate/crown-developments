@@ -91,11 +91,7 @@ module "app_manage" {
     GOV_NOTIFY_LPA_QUEST_SENT_TEMPLATE_ID      = var.apps_config.gov_notify.templates.lpa_quest_sent_template_id
 
     #feature flags
-    FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE    = var.apps_config.feature_flags.upload_docs_not_live
-    FEATURE_FLAG_NOTIFY_CALLBACK_NOT_LIVE     = var.apps_config.feature_flags.notify_callback_not_live
-    FEATURE_FLAG_APPLICATION_UPDATES_NOT_LIVE = var.apps_config.feature_flags.application_updates_not_live
-    FEATURE_FLAG_MULTIPLE_APPLICANTS_NOT_LIVE = var.apps_config.feature_flags.multiple_applicants_not_live
-    FEATURE_FLAG_S62A_MANAGE_NOT_LIVE         = var.apps_config.feature_flags.s62a_manage_not_live
+    FEATURE_FLAG_S62A_MANAGE_NOT_LIVE = var.apps_config.feature_flags.s62a_manage_not_live
 
     # Azure Language Service
     AZURE_AI_LANGUAGE_ENDPOINT = local.text_analytics_endpoint

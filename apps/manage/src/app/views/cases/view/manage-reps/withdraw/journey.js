@@ -3,7 +3,7 @@ import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journe
 
 export const JOURNEY_ID = 'withdraw-representation';
 
-export function createJourney(questions, response, req, isRepsUploadDocsLive) {
+export function createJourney(questions, response, req) {
 	if (!req.baseUrl.endsWith('/' + JOURNEY_ID)) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey`);
 	}
@@ -15,7 +15,6 @@ export function createJourney(questions, response, req, isRepsUploadDocsLive) {
 				.addQuestion(questions.withdrawalRequestDate)
 				.addQuestion(questions.withdrawalReason)
 				.addQuestion(questions.withdrawalRequests)
-				.withCondition(() => isRepsUploadDocsLive === true)
 		],
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',

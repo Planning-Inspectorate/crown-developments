@@ -64,13 +64,11 @@
                 href: manageRepsUrl,
                 classes: "govuk-button--secondary"
             }) }}
-            {% if isApplicationUpdatesLive %}
-                {{ govukButton({
-                    text: "Manage application updates",
-                    href: manageAppUpdatesUrl,
-                    classes: "govuk-button--secondary"
-                }) }}
-            {% endif %}
+            {{ govukButton({
+                text: "Manage application updates",
+                href: manageAppUpdatesUrl,
+                classes: "govuk-button--secondary"
+            }) }}
             {% if casePublished %}
                 {{ govukButton({
                     text: "Unpublish Application",

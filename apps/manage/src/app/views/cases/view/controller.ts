@@ -171,7 +171,7 @@ async function getBannerMessages(id: string, res: Response, req: Request, db: Ma
 /**
  * Controller for the case details page, which shows the case summary and the list of sections to manage.
  */
-export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpdatesLive }: ManageService): Handler {
+export function buildViewCaseDetails({ db, getSharePointDrive }: ManageService): Handler {
 	return async (req, res) => {
 		const reference = getJourneyAnswers(res)?.reference;
 		if (!reference) {
@@ -208,7 +208,6 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isApplicationUpda
 			sharePointLink,
 			hideButton: true,
 			hideStatus: true,
-			isApplicationUpdatesLive,
 			banner,
 			lastModifiedDate,
 			lastModifiedBy

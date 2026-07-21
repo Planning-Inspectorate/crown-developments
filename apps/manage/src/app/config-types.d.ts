@@ -34,8 +34,6 @@ interface Config {
 		};
 	};
 	featureFlags: {
-		isRepsUploadDocsLive: boolean;
-		isApplicationUpdatesLive: boolean;
 		isS62ALive: boolean;
 	};
 	gitSha?: string;

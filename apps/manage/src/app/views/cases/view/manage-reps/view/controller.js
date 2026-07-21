@@ -128,7 +128,7 @@ export async function renderRepresentation(req, res, viewData = {}) {
  * @param {import('#service').ManageService} service
  * @returns {import('express').Handler}
  */
-export function buildGetJourneyMiddleware({ db, logger, isRepsUploadDocsLive }) {
+export function buildGetJourneyMiddleware({ db, logger }) {
 	return async (req, res, next) => {
 		const { id, representationRef } = validateParams(req.params);
 		logger.info({ id, representationRef }, 'fetching representation');
@@ -188,7 +188,7 @@ export function buildGetJourneyMiddleware({ db, logger, isRepsUploadDocsLive }) 
 		// put these on locals for the list controller
 		res.locals.originalAnswers = { ...answers };
 		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', answers);
-		res.locals.journey = createJourney(questions, res.locals.journeyResponse, req, isRepsUploadDocsLive);
+		res.locals.journey = createJourney(questions, res.locals.journeyResponse, req);
 
 		if (req.originalUrl !== req.baseUrl) {
 			// back link goes to details page

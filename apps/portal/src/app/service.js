@@ -89,14 +89,6 @@ export class PortalService {
 		return this.#config.featureFlags?.isLive;
 	}
 
-	get isRepsUploadDocsLive() {
-		return this.#config.featureFlags?.isRepsUploadDocsLive;
-	}
-
-	get isApplicationUpdatesLive() {
-		return this.#config.featureFlags?.isApplicationUpdatesLive;
-	}
-
 	get gitSha() {
 		return this.#config.gitSha;
 	}
