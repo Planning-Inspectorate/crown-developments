@@ -24,6 +24,7 @@ import {
 	type FilterSection,
 	type QueryFilters
 } from './filters/filters.ts';
+import { mapDateFilterErrorSummary } from '../utils/filter-error-summary.ts';
 import type { PortalService } from '#service';
 import type { RequestHandler } from 'express';
 
@@ -138,6 +139,12 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 		const queryParams = req.query;
 		const filterQueryParams = (req.query || {}) as QueryFilters;
 		const filters: FilterSection[] = buildDocumentFilters(filterQueryParams, categoryCounts);
+		const errorSummaryArray = mapDateFilterErrorSummary({
+			filters,
+			formType: 'desktop',
+			sectionTitle: 'Date published'
+		});
+		const errorSummary = errorSummaryArray.length > 0 ? errorSummaryArray : null;
 		const filterQueryItems = getFilterQueryItems(filters);
 
 		const baseUrl = `${req.baseUrl}/documents`;
@@ -180,7 +187,8 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 			filters,
 			hasQueries: hasQueries(filterQueryParams),
 			filterQueries: filterQueryItems,
-			containsDistressingContent: crownDevelopment.containsDistressingContent ?? false
+			containsDistressingContent: crownDevelopment.containsDistressingContent ?? false,
+			errorSummary
 		});
 	};
 }

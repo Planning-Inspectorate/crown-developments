@@ -1,6 +1,7 @@
 {% extends "views/layouts/main.njk" %}
 
 {% from "views/applications/view/links.njk" import applicationLinks %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% import "pagination/pagination.njk" as pagination %}
 {% import "pagination/pagination-options.njk" as paginationOptions %}
 {% from "search-bar/search-bar.njk" import searchBar %}
@@ -9,7 +10,7 @@
 {% from "distressing-content/distressing-content-banner.njk" import distressingContentBanner %}
 
 {% block pageHeading %}{% endblock %}
-
+{% block error_summary %}{% endblock %}
 {% block pageContent %}
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-one-third">
@@ -25,6 +26,16 @@
         </div>
 
         <div class="govuk-grid-column-two-thirds">
+            {% if errorSummary %}
+                <div class="govuk-grid-row">
+                    <div class="govuk-grid-column-full">
+                        {{ govukErrorSummary({
+                            titleText: "There is a problem",
+                            errorList: errorSummary
+                        }) }}
+                    </div>
+                </div>
+            {% endif %}
             {{ distressingContentBanner(containsDistressingContent) }}
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-full">
