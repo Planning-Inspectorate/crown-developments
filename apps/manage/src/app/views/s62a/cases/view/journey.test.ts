@@ -119,6 +119,21 @@ describe('s62a case details journey', () => {
 					'withdrawnDate',
 					'turnedAwayDate'
 				]
+			},
+			{
+				title: '',
+				segment: 'fee',
+				questions: [
+					'hasPreApplicationFee',
+					'chargingScheduleSentDate',
+					'customerNumber',
+					'invoiceDate',
+					'preApplicationFeeReceivedDate',
+					'hasApplicationFee',
+					'applicationFeeReceivedDate',
+					'eligibleForFeeRefund',
+					'applicationFeeRefundDate'
+				]
 			}
 		];
 

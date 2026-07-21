@@ -32,6 +32,7 @@ import { CASE_DETAILS_QUESTION_TEXT } from './constants.ts';
 import { isApplicationType } from '../util/questions.ts';
 import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
 import CustomDatePeriodValidator from '@pins/crowndev-lib/validators/custom-date-period-validator.js';
+import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
 
 export function getQuestions(answers: S62aCaseViewModel) {
 	const isLbcCase = answers?.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
@@ -814,6 +815,138 @@ export function getQuestions(answers: S62aCaseViewModel) {
 						text: 'Remove and save',
 						type: 'submit',
 						formaction: 'turned-away-date/remove'
+					}
+				]
+			}
+		},
+		hasPreApplicationFee: {
+			type: CUSTOM_COMPONENTS.FEE_AMOUNT,
+			title: 'Pre-application fee',
+			question: 'Is there a pre-application fee?',
+			fieldName: 'hasPreApplicationFee',
+			url: 'pre-application-fee',
+			feeAmountInputFieldName: 'preApplicationFee',
+			feeAmountQuestion: 'For example, £1000.00',
+			validators: [new FeeAmountValidator()]
+		},
+		chargingScheduleSentDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Charging schedule sent',
+			question: 'When was the charging schedule sent to applicant?',
+			fieldName: 'chargingScheduleSentDate',
+			url: 'charging-schedule-sent',
+			validators: [new DateValidator('charging schedule sent date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'charging-schedule-sent/remove'
+					}
+				]
+			}
+		},
+		customerNumber: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Customer number',
+			question: 'What is the customer number?',
+			fieldName: 'customerNumber',
+			url: 'customer-number',
+			validators: [
+				new NumericValidator({
+					regex: /^$|^\d+(\.\d+)?$/,
+					regexMessage: 'Customer number must only contain numbers'
+				}),
+				new NumericValidator({
+					regex: /^$|^\d{6}$/,
+					regexMessage: 'Customer number must contain 6 digits'
+				})
+			]
+		},
+		invoiceDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Invoice date',
+			question: 'When was the pre-application invoice sent to the applicant?',
+			fieldName: 'invoiceDate',
+			url: 'invoice-date',
+			validators: [new DateValidator('invoice date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'invoice-date/remove'
+					}
+				]
+			}
+		},
+		preApplicationFeeReceivedDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Pre-application fee received date',
+			question: 'When was the pre-application fee received?',
+			fieldName: 'preApplicationFeeReceivedDate',
+			url: 'pre-application-fee-received-date',
+			validators: [new DateValidator('pre-application fee received date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'pre-application-fee-received-date/remove'
+					}
+				]
+			}
+		},
+		hasApplicationFee: {
+			type: CUSTOM_COMPONENTS.FEE_AMOUNT,
+			title: 'Fee amount',
+			question: 'Does the application have a fee?',
+			fieldName: 'hasApplicationFee',
+			url: 'fee-amount',
+			feeAmountInputFieldName: 'applicationFee',
+			feeAmountQuestion: 'For example, £1000.00',
+			validators: [new FeeAmountValidator()]
+		},
+		applicationFeeReceivedDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Fee received date',
+			question: 'When was the application fee received?',
+			fieldName: 'applicationFeeReceivedDate',
+			url: 'fee-received-date',
+			validators: [new DateValidator('fee received date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'fee-received-date/remove'
+					}
+				]
+			}
+		},
+		eligibleForFeeRefund: {
+			type: CUSTOM_COMPONENTS.FEE_AMOUNT,
+			title: 'Fee refund',
+			question: 'Is the applicant eligible for a refund?',
+			fieldName: 'eligibleForFeeRefund',
+			url: 'refund-amount',
+			feeAmountInputFieldName: 'applicationFeeRefundAmount',
+			feeAmountQuestion: 'For example, £1000.00',
+			validators: [new FeeAmountValidator()]
+		},
+		applicationFeeRefundDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Fee refund paid date',
+			question: 'When was the refund paid?',
+			fieldName: 'applicationFeeRefundDate',
+			url: 'fee-refund-paid-date',
+			validators: [new DateValidator('fee refund paid date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'fee-refund-paid-date/remove'
 					}
 				]
 			}

@@ -105,7 +105,46 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				 * cannot be in same section
 				 */
 				.addQuestion(questions.turnedAwayDate)
-				.withCondition(whenQuestionHasAnswer(questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION))
+				.withCondition(
+					whenQuestionHasAnswer(questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION)
+				),
+
+			new Section('', 'fee')
+				.withSectionCondition(() => currentTab === VIEW_TAB_ID.FEE)
+
+				/**
+				 * Pre-application questions
+				 */
+				.startMultiQuestionCondition(
+					'is-pre-application',
+					whenQuestionHasAnswer(questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION)
+				)
+				.addQuestion(questions.hasPreApplicationFee)
+				.addQuestion(questions.chargingScheduleSentDate)
+				.addQuestion(questions.customerNumber)
+				.addQuestion(questions.invoiceDate)
+
+				.addQuestion(questions.preApplicationFeeReceivedDate)
+				.withCondition(whenQuestionHasAnswer(questions.hasPreApplicationFee, BOOLEAN_OPTIONS.YES))
+				.endMultiQuestionCondition('is-pre-application')
+
+				/**
+				 * Application questions
+				 */
+				.startMultiQuestionCondition(
+					'is-application',
+					whenQuestionHasAnswer(questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION)
+				)
+				.addQuestion(questions.hasApplicationFee)
+
+				.addQuestion(questions.applicationFeeReceivedDate)
+				.withCondition(whenQuestionHasAnswer(questions.hasApplicationFee, BOOLEAN_OPTIONS.YES))
+
+				.addQuestion(questions.eligibleForFeeRefund)
+
+				.addQuestion(questions.applicationFeeRefundDate)
+				.withCondition(whenQuestionHasAnswer(questions.eligibleForFeeRefund, BOOLEAN_OPTIONS.YES))
+				.endMultiQuestionCondition('is-application')
 		],
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',

@@ -46,7 +46,8 @@ export function buildGetJourneyMiddleware(service: ManageService): AsyncRequestH
 			include: {
 				S62aStatus: true,
 				SiteAddress: true,
-				S62aDates: true
+				S62aDates: true,
+				S62aFees: true
 			},
 			where: { id }
 		});
