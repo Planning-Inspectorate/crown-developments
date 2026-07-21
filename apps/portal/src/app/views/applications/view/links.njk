@@ -1,17 +1,17 @@
 {% macro applicationLinks(links, currentUrl) %}
-    <nav aria-label="Application page navigation">
-        <ul class="govuk-list application-links">
-            {% for link in links %}
-                {% if link.href == currentUrl or link.href in currentUrl %}
-                    <li class="application-links__active">
-                        <strong>{{ link.text }}</strong>
-                    </li>
-                {% else %}
-                    <li>
-                        <a class="govuk-link" href="{{ link.href }}">{{ link.text }}</a>
-                    </li>
-                {% endif %}
-            {% endfor %}
-        </ul>
-    </nav>
+	<nav aria-label="Application page navigation">
+		<ul class="govuk-list application-links">
+			{% for link in links %}
+				{% if link.href == currentUrl or link.href in currentUrl %}
+					<li class="application-links__active">
+						<strong>{{ link.text }}</strong>
+					</li>
+				{% else %}
+					<li>
+						<a class="govuk-link" href="{{ link.href }}">{{ link.text }}</a>
+					</li>
+				{% endif %}
+			{% endfor %}
+		</ul>
+	</nav>
 {% endmacro %}

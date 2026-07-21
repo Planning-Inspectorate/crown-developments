@@ -6,52 +6,54 @@
 {% from "tables/tables.njk" import baseCaseListTable, baseManageHeaders, baseManageColumns %}
 
 {% block pageTitle %}
-    Case list - All Cases - Manage a Crown Development Application
+	Case list - All Cases - Manage a Crown Development Application
 {% endblock %}
 
 {% block pageContent %}
 
-    <div class="govuk-grid-row row-inline">
-        <div class="govuk-grid-column-two-thirds pins-dashboard-box">
-            <form id="search-bar-form" method="GET" action="{{ buildUrlWithParams(baseUrl, queryParams, { page: 1 }) }}">
-                {{ searchBar({
-                    input: {
-                        label: {
-                            text: "Search cases"
-                        },
-                        hint: {
-                            text: "To find a specific case, search by reference."
-                        },
-                        classes: "govuk-input govuk-input--width-30"
-                    },
-                    button: {
-                        text: "Search",
-                        classes: "govuk-button"
-                    }
-                }, searchValue) }}
-            </form>
-        </div>
-        <div class="govuk-grid-column-one-third pins-dashboard-box">
-                <div class="govuk-form-group">
-                    <h1 class="govuk-label-wrapper">
-                        <label class="govuk-label govuk-label--l" for="create-case-link">
-                            Create new case
-                        </label>
-                    </h1>
-                    <h2>
-                        <a href="/cases/create-a-case" id="create-case-link" class="govuk-link govuk-link--no-visited-state">Create a case</a>
-                    </h2>
+	<div class="govuk-grid-row row-inline">
+		<div class="govuk-grid-column-two-thirds pins-dashboard-box">
+			<form id="search-bar-form" method="GET" action="{{ buildUrlWithParams(baseUrl, queryParams, { page: 1 }) }}">
+				{{ searchBar({
+					input: {
+						label: {
+							text: "Search cases"
+						},
+						hint: {
+							text: "To find a specific case, search by reference."
+						},
+						classes: "govuk-input govuk-input--width-30"
+					},
+					button: {
+						text: "Search",
+						classes: "govuk-button"
+					}
+				}, searchValue) }}
+			</form>
+		</div>
+		<div class="govuk-grid-column-one-third pins-dashboard-box">
+			<div class="govuk-form-group">
+				<h1 class="govuk-label-wrapper">
+					<label class="govuk-label govuk-label--l" for="create-case-link">
+						Create new case
+					</label>
+				</h1>
+				<h2>
+					<a href="/cases/create-a-case" id="create-case-link" class="govuk-link govuk-link--no-visited-state">Create a
+						case</a>
+				</h2>
 
-            </div>
-        </div>
-    </div>
+			</div>
+		</div>
+	</div>
 
-    {% if crownDevelopments|length == 0 %}
-        <p class="govuk-body">No results were found.</p>
-        <p class="govuk-body"><a href="/cases" class="govuk-link govuk-link--no-visited-state">Clear search</a> to view all cases.</p>
-    {% else %}
-        {{ baseCaseListTable(crownDevelopments,baseManageHeaders,baseManageColumns,true) }}
-    {% endif %}
+	{% if crownDevelopments|length == 0 %}
+		<p class="govuk-body">No results were found.</p>
+		<p class="govuk-body"><a href="/cases" class="govuk-link govuk-link--no-visited-state">Clear search</a> to view all
+			cases.</p>
+	{% else %}
+		{{ baseCaseListTable(crownDevelopments,baseManageHeaders,baseManageColumns,true) }}
+	{% endif %}
 {% endblock %}
 
 

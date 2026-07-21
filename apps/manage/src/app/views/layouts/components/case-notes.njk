@@ -13,7 +13,7 @@
 					maxlength: params.characterLimit if params.characterLimit else 500,
 					rows: 5,
 					value: params.sessionComment
-				})}}
+				}) }}
 			</div>
 		</div>
 		{{ govukButton({
@@ -21,7 +21,7 @@
 			type: "submit",
 			classes: "govuk-button--secondary govuk-!-margin-bottom-1",
 			preventDoubleClick: true
-		})}}
+		}) }}
 	</form>
 	<div>
 		<hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
@@ -39,7 +39,8 @@
 	</div>
 	{% if (params.totalNotes > params.max) %}
 		<p class="govuk-body govuk-!-text-align-centre">
-			<a class="govuk-link govuk-link--no-visited-state" href="{{ params.currentUrl }}/application-notes" data-cy="show-all-notes-link">
+			<a class="govuk-link govuk-link--no-visited-state" href="{{ params.currentUrl }}/application-notes"
+				 data-cy="show-all-notes-link">
 				Show all notes
 			</a>
 		</p>

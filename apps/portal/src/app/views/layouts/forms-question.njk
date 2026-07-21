@@ -1,14 +1,14 @@
 {% extends "views/layouts/main.njk" %}
 
 {% if not title %}
-  {% set title %}
-    {{ question.pageTitle | default('GOV.UK') }} – {{ config.haveYourSayServiceName }}
-  {% endset %}
+	{% set title %}
+		{{ question.pageTitle | default('GOV.UK') }} – {{ config.haveYourSayServiceName }}
+	{% endset %}
 {% endif %}
 
 {% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
 
 {# show question content within content, overrides main content #}
 {% block content %}
-    {% block dynQuestionContent %}{% endblock %}
+	{% block dynQuestionContent %}{% endblock %}
 {% endblock %}

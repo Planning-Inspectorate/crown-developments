@@ -7,93 +7,93 @@
 {% set title = reference + " - Application history" %}
 
 {% block pageTitle %}
-    {{ title }}
+	{{ title }}
 {% endblock %}
 
 {% block content %}
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full">
-            <h2 class="govuk-caption-l" data-cy="page-caption">
-                {{ reference }}
-            </h2>
-            <h1 class="govuk-heading-l" data-cy="page-heading">
-                {{ pageHeading }}
-            </h1>
-            <div id="pagination" class="govuk-body">
-                {% if rows | length == 0 %}
-                    <p class="govuk-body" data-cy="no-history-message">There is no application history to display</p>
-                {% else %}
-                    <p class="govuk-body govuk-clearfix">
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-full">
+			<h2 class="govuk-caption-l" data-cy="page-caption">
+				{{ reference }}
+			</h2>
+			<h1 class="govuk-heading-l" data-cy="page-heading">
+				{{ pageHeading }}
+			</h1>
+			<div id="pagination" class="govuk-body">
+				{% if rows | length == 0 %}
+					<p class="govuk-body" data-cy="no-history-message">There is no application history to display</p>
+				{% else %}
+					<p class="govuk-body govuk-clearfix">
                         <span class="govuk-body" data-cy="pagination-results-text">
                             Showing <strong>{{ paginationParams.resultsStartNumber }}</strong> to <strong>{{ paginationParams.resultsEndNumber if paginationParams.totalItems > paginationParams.resultsEndNumber else paginationParams.totalItems }}</strong>
                             of <strong>{{ paginationParams.totalItems }}</strong> results
                         </span>
-                        <span class="pins-pagination-options">
+						<span class="pins-pagination-options">
                             {{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalItems, baseUrl, queryParams) }}
                         </span>
-                    </p>
+					</p>
 
-                    {% set tableRows = [] %}
-                    {% for row in rows %}
-                        {% set detailsHtml %}
-                            {{ row.details }}
-                            {% if row.files and row.files | length > 0 %}
-                                {% set filesListHtml %}
-                                    <ul class="govuk-list govuk-list--bullet">
-                                        {% for file in row.files %}
-                                            <li>{{ file }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                {% endset %}
+					{% set tableRows = [] %}
+					{% for row in rows %}
+						{% set detailsHtml %}
+							{{ row.details }}
+							{% if row.files and row.files | length > 0 %}
+								{% set filesListHtml %}
+									<ul class="govuk-list govuk-list--bullet">
+										{% for file in row.files %}
+											<li>{{ file }}</li>
+										{% endfor %}
+									</ul>
+								{% endset %}
 
-                                {{ govukAccordion({
-                                    id: "files-accordion-" + loop.index0,
-                                    classes: "hide-controls govuk-!-margin-top-2 pins-clean-accordion",
-                                    hideAllSections: true,
-                                    showSectionText: "Show files",
-                                    hideSectionText: "Hide files",
-                                    items: [
-                                        {
-                                            content: {
-                                                html: filesListHtml
-                                            }
-                                        }
-                                    ]
-                                }) }}
-                            {% endif %}
-                        {% endset %}
+								{{ govukAccordion({
+									id: "files-accordion-" + loop.index0,
+									classes: "hide-controls govuk-!-margin-top-2 pins-clean-accordion",
+									hideAllSections: true,
+									showSectionText: "Show files",
+									hideSectionText: "Hide files",
+									items: [
+										{
+											content: {
+											html: filesListHtml
+										}
+										}
+									]
+								}) }}
+							{% endif %}
+						{% endset %}
 
-                        {% set tableRows = (tableRows.push([
-                            {
-                                html: row.dateTimeFormatted,
-                                attributes: { "data-cy": "history-date-" + loop.index0 }
-                            },
-                            {
-                                html: detailsHtml,
-                                attributes: { "data-cy": "history-details-" + loop.index0 }
-                            },
-                            {
-                                text: row.user,
-                                attributes: { "data-cy": "history-user-" + loop.index0 }
-                            }
-                        ]), tableRows) %}
-                    {% endfor %}
+						{% set tableRows = (tableRows.push([
+							{
+								html: row.dateTimeFormatted,
+								attributes: { "data-cy": "history-date-" + loop.index0 }
+							},
+							{
+								html: detailsHtml,
+								attributes: { "data-cy": "history-details-" + loop.index0 }
+							},
+							{
+								text: row.user,
+								attributes: { "data-cy": "history-user-" + loop.index0 }
+							}
+						]), tableRows) %}
+					{% endfor %}
 
-                    {{ govukTable({
-                        attributes: {
-                            "data-cy": "case-history-table"
-                        },
-                        head: [
-                            { text: "Date and time" },
-                            { text: "Details" },
-                            { text: "User" }
-                        ],
-                        rows: tableRows
-                    }) }}
+					{{ govukTable({
+						attributes: {
+							"data-cy": "case-history-table"
+						},
+						head: [
+							{ text: "Date and time" },
+							{ text: "Details" },
+							{ text: "User" }
+						],
+						rows: tableRows
+					}) }}
 
-                    {{ pagination.renderPagination(paginationParams.pageNumber, paginationParams.totalPages, baseUrl, queryParams) }}
-                {% endif %}
-            </div>
-        </div>
-    </div>
+					{{ pagination.renderPagination(paginationParams.pageNumber, paginationParams.totalPages, baseUrl, queryParams) }}
+				{% endif %}
+			</div>
+		</div>
+	</div>
 {% endblock %}
