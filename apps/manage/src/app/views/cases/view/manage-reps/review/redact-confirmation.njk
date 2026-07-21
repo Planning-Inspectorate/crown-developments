@@ -6,54 +6,54 @@
 {% set title = "Confirm redaction - " + journeyTitle + " - GOV.UK" %}
 
 {% block pageTitle %}
-    {{ title }}
+	{{ title }}
 {% endblock %}
 
 {% block content %}
 
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full">
-            <h1 class="govuk-heading-l">
-                <span class="govuk-caption-xl">{{ reference }}</span>
-                Check details and redact representation
-            </h1>
-        </div>
-    </div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-full">
+			<h1 class="govuk-heading-l">
+				<span class="govuk-caption-xl">{{ reference }}</span>
+				Check details and redact representation
+			</h1>
+		</div>
+	</div>
 
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full">
-            {{ govukSummaryList({
-                rows: [
-                    {
-                        key: {text: 'Original representation'},
-                        value: {html:"<span class='pins-white-space-pre-line'>" + originalComment + "</span>"}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-full">
+			{{ govukSummaryList({
+				rows: [
+					{
+						key: {text: 'Original representation'},
+						value: {html:"<span class='pins-white-space-pre-line'>" + originalComment + "</span>"}
 
-                    },
-                    {
-                        key: {text: 'Redacted representation'},
-                        value: {html:"<span class='pins-white-space-pre-line'>" + commentRedacted + "</span>"},
-                        actions: {
-                        items: [
-                            {
-                                href: backLinkUrl,
-                                text: "Change",
-                                visuallyHiddenText: "redact"
-                            }
-                        ]
-                    }
-                    }
-                ]
-            }) }}
-        </div>
-    </div>
+					},
+					{
+						key: {text: 'Redacted representation'},
+						value: {html:"<span class='pins-white-space-pre-line'>" + commentRedacted + "</span>"},
+						actions: {
+						items: [
+							{
+								href: backLinkUrl,
+								text: "Change",
+								visuallyHiddenText: "redact"
+							}
+						]
+					}
+					}
+				]
+			}) }}
+		</div>
+	</div>
 
-    <form method="POST">
-        <input type="hidden" name="_csrf" value="{{ _csrf }}">
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-full">
-                {{  govukButton({ text: 'Accept and continue' }) }}
-            </div>
-        </div>
-    </form>
+	<form method="POST">
+		<input type="hidden" name="_csrf" value="{{ _csrf }}">
+		<div class="govuk-grid-row">
+			<div class="govuk-grid-column-full">
+				{{ govukButton({ text: 'Accept and continue' }) }}
+			</div>
+		</div>
+	</form>
 
 {% endblock %}

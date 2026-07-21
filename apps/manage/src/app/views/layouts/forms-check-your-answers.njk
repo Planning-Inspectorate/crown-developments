@@ -1,31 +1,31 @@
 {% extends "views/layouts/main.njk" %}
 {% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
 
-{% block pageTitle %}{{"Check your Answers - " + journeyTitle + " - Manage a Crown Development Application" }}{% endblock %}
+{% block pageTitle %}{{ "Check your Answers - " + journeyTitle + " - Manage a Crown Development Application" }}{% endblock %}
 
 {% block content %}
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
-            <h1 class="govuk-heading-l">
-                Check your answers
-            </h1>
-        </div>
-    </div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-full govuk-!-margin-bottom-3">
+			<h1 class="govuk-heading-l">
+				Check your answers
+			</h1>
+		</div>
+	</div>
 
-    {% if summaryListData.sections.length > 1%}
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-three-quarters-from-desktop">
-                <p class="govuk-body govuk-!-font-weight-bold">Submissions incomplete</p>
-                <p class="govuk-!-margin-bottom-7">You have completed {{ summaryListData.completedSectionCount }}
-                    of {{ summaryListData.sections.length + 1 }} sections.</p>
-            </div>
-        </div>
-    {% endif %}
-    {% block dynTaskList %}{% endblock %}
+	{% if summaryListData.sections.length > 1 %}
+		<div class="govuk-grid-row">
+			<div class="govuk-grid-column-three-quarters-from-desktop">
+				<p class="govuk-body govuk-!-font-weight-bold">Submissions incomplete</p>
+				<p class="govuk-!-margin-bottom-7">You have completed {{ summaryListData.completedSectionCount }}
+					of {{ summaryListData.sections.length + 1 }} sections.</p>
+			</div>
+		</div>
+	{% endif %}
+	{% block dynTaskList %}{% endblock %}
 {% endblock %}
 
 {% if summaryWarningMessage %}
-    {% set beforeSubmitButton = govukWarningText({
-        text: summaryWarningMessage
-    }) %}
+	{% set beforeSubmitButton = govukWarningText({
+		text: summaryWarningMessage
+	}) %}
 {% endif %}

@@ -6,73 +6,73 @@
 
 {% set titlePrefix = "View" %}
 {% if requiresReview %}
-    {% set titlePrefix = "Review" %}
+	{% set titlePrefix = "Review" %}
 {% endif %}
 {% set title = journeyTitle + " - Manage a Crown Development Application" %}
 
 {% block pageTitle %}
-    {{ title }}
+	{{ title }}
 {% endblock %}
 
 {% block content %}
-    {% if banner %}
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-full">
-                {{ govukNotificationBanner(banner) }}
-            </div>
-        </div>
-    {% endif %}
+	{% if banner %}
+		<div class="govuk-grid-row">
+			<div class="govuk-grid-column-full">
+				{{ govukNotificationBanner(banner) }}
+			</div>
+		</div>
+	{% endif %}
 
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full">
-            <h1 class="govuk-heading-l">
-                <span class="govuk-caption-xl">{{ representationRef }}</span>
-                {% if requiresReview %}
-                    Review representation
-                {% else %}
-                    View representation
-                {% endif %}
-            </h1>
-        </div>
-    </div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-full">
+			<h1 class="govuk-heading-l">
+				<span class="govuk-caption-xl">{{ representationRef }}</span>
+				{% if requiresReview %}
+					Review representation
+				{% else %}
+					View representation
+				{% endif %}
+			</h1>
+		</div>
+	</div>
 
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full">
-            {# combine all section rows into one list #}
-            {% set rows = [] %}
-            {% for section in summaryListData.sections %}
-                {% if section.list.rows.length %}
-                    {% set rows = rows.concat(section.list.rows) %}
-                {% endif %}
-            {% endfor %}
-            {{ govukSummaryList({
-                rows: rows
-            }) }}
-        </div>
-    </div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-full">
+			{# combine all section rows into one list #}
+			{% set rows = [] %}
+			{% for section in summaryListData.sections %}
+				{% if section.list.rows.length %}
+					{% set rows = rows.concat(section.list.rows) %}
+				{% endif %}
+			{% endfor %}
+			{{ govukSummaryList({
+				rows: rows
+			}) }}
+		</div>
+	</div>
 
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full">
-            {% set linkText = "Withdraw representation" %}
-            {% set linkUrl = "/withdraw-representation" %}
-            {% if representationStatus == 'withdrawn' %}
-                {% set linkText = "Reinstate representation" %}
-                {% set linkUrl = "/reinstate-representation-confirmation" %}
-            {% endif %}
-            <p class="govuk-body">
-                <a class="govuk-link govuk-link--no-visited-state" href={{ currentUrl }}{{ linkUrl }}>{{ linkText }}</a>
-            </p>
-        </div>
-    </div>
-    {% if requiresReview %}
-        <form method="POST">
-            <input type="hidden" name="_csrf" value="{{ _csrf }}">
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-full">
-                    {{  govukButton({ text: 'Continue' }) }}
-                </div>
-            </div>
-        </form>
-    {% endif %}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-full">
+			{% set linkText = "Withdraw representation" %}
+			{% set linkUrl = "/withdraw-representation" %}
+			{% if representationStatus == 'withdrawn' %}
+				{% set linkText = "Reinstate representation" %}
+				{% set linkUrl = "/reinstate-representation-confirmation" %}
+			{% endif %}
+			<p class="govuk-body">
+				<a class="govuk-link govuk-link--no-visited-state" href={{ currentUrl }}{{ linkUrl }}>{{ linkText }}</a>
+			</p>
+		</div>
+	</div>
+	{% if requiresReview %}
+		<form method="POST">
+			<input type="hidden" name="_csrf" value="{{ _csrf }}">
+			<div class="govuk-grid-row">
+				<div class="govuk-grid-column-full">
+					{{ govukButton({ text: 'Continue' }) }}
+				</div>
+			</div>
+		</form>
+	{% endif %}
 
 {% endblock %}

@@ -1,47 +1,47 @@
 {% from "govuk/components/panel/macro.njk" import govukPanel %}
 
 {% macro success(title, bodyText, successBackLinkUrl, successBackLinkText, hasLinkedCase, successBackLinkLinkedCaseUrl, successBackLinkLinkedCaseText) %}
-    {{ govukPanel({
-        titleText: title,
-        html: bodyText
-    }) }}
+	{{ govukPanel({
+		titleText: title,
+		html: bodyText
+	}) }}
 
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            <p class="govuk-body">
-                <a href="{{ successBackLinkUrl }}" class="govuk-link">{{ successBackLinkText }}</a>
-            </p>
-            {% if hasLinkedCase %}
-                <p class="govuk-body">
-                    <a href="{{ successBackLinkLinkedCaseUrl }}" class="govuk-link">{{ successBackLinkLinkedCaseText }}</a>
-                </p>
-            {% endif %}
-        </div>
-    </div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			<p class="govuk-body">
+				<a href="{{ successBackLinkUrl }}" class="govuk-link">{{ successBackLinkText }}</a>
+			</p>
+			{% if hasLinkedCase %}
+				<p class="govuk-body">
+					<a href="{{ successBackLinkLinkedCaseUrl }}" class="govuk-link">{{ successBackLinkLinkedCaseText }}</a>
+				</p>
+			{% endif %}
+		</div>
+	</div>
 {% endmacro %}
 
 {% macro successWithNextSteps(reference, caseListUrl, caseDetailsUrl) %}
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            {{ govukPanel({
-                titleText: "Case created",
-                html: "Case reference number<br><strong>" + reference + "</strong>"
-            }) }}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			{{ govukPanel({
+				titleText: "Case created",
+				html: "Case reference number<br><strong>" + reference + "</strong>"
+			}) }}
 
-            <h2 class="govuk-heading-m">What happens next</h2>
+			<h2 class="govuk-heading-m">What happens next</h2>
 
-            <p class="govuk-body">
-                You can now manage this application in your case list. Its status is <strong>New</strong>.
-            </p>
+			<p class="govuk-body">
+				You can now manage this application in your case list. Its status is <strong>New</strong>.
+			</p>
 
-            <ul class="govuk-list govuk-list--bullet">
-                <li>
-                    <a href="{{ caseListUrl }}" class="govuk-link">Return to your case list</a>
-                </li>
-                <li>
-                    <a href="{{ caseDetailsUrl }}" class="govuk-link">View the details for this case</a>
-                </li>
-            </ul>
-        </div>
-    </div>
+			<ul class="govuk-list govuk-list--bullet">
+				<li>
+					<a href="{{ caseListUrl }}" class="govuk-link">Return to your case list</a>
+				</li>
+				<li>
+					<a href="{{ caseDetailsUrl }}" class="govuk-link">View the details for this case</a>
+				</li>
+			</ul>
+		</div>
+	</div>
 {% endmacro %}

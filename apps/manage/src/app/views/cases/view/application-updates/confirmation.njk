@@ -4,22 +4,22 @@
 {% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 
 {% block pageContent %}
-    {{ govukInsetText({
-        text: updateDetails
-    }) }}
-    <div class="govuk-button-group">
-        <form method="POST">
-            <input type="hidden" name="_csrf" value="{{ _csrf }}">
-            {{ govukButton({
-                text: submitButtonText
-            }) }}
-            {% if applicationUpdateIsDraft %}
-                {{ govukButton({
-                    text: "Cancel",
-                    href: cancelButtonUrl,
-                    classes: "govuk-button--secondary"
-                }) }}
-            {% endif %}
-        </form>
-    </div>
+	{{ govukInsetText({
+		text: updateDetails
+	}) }}
+	<div class="govuk-button-group">
+		<form method="POST">
+			<input type="hidden" name="_csrf" value="{{ _csrf }}">
+			{{ govukButton({
+				text: submitButtonText
+			}) }}
+			{% if applicationUpdateIsDraft %}
+				{{ govukButton({
+					text: "Cancel",
+					href: cancelButtonUrl,
+					classes: "govuk-button--secondary"
+				}) }}
+			{% endif %}
+		</form>
+	</div>
 {% endblock %}
