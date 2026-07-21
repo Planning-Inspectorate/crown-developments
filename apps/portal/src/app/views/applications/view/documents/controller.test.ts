@@ -857,4 +857,82 @@ describe('Date Published Filter', () => {
 		assert.strictEqual((viewData.queryParams as Record<string, string>)['publishedDateFrom-month'], '1');
 		assert.strictEqual((viewData.queryParams as Record<string, string>)['publishedDateFrom-year'], '2026');
 	});
+
+	it('should build error summary when incomplete date published from date', async () => {
+		const documents = [
+			{
+				id: '1',
+				name: 'doc.pdf',
+				file: { mimeType: 'application/pdf' },
+				createdDateTime: '2025-02-05T10:00:00Z',
+				lastModifiedDateTime: '2025-02-05T10:00:00Z',
+				size: 1000
+			}
+		];
+
+		const mockDb = createMockDb();
+		const mockSharePoint = createMockSharePoint(documents);
+		const handler = buildApplicationDocumentsPage({
+			db: mockDb,
+			logger: mockLogger(),
+			sharePointDrive: mockSharePoint
+		} as any);
+
+		const req = createMockRequest({
+			query: {
+				'publishedDateFrom-day': '',
+				'publishedDateFrom-month': '02',
+				'publishedDateFrom-year': '2025'
+			}
+		});
+
+		const res = createMockResponse();
+
+		await handler(req, res, createMockNext());
+
+		const viewData = getRenderArgs(res);
+		assert.ok(Array.isArray(viewData.errorSummary));
+		const errorSummary = viewData.errorSummary as Array<{ text: string; href: string }>;
+		assert.strictEqual(errorSummary.length, 1);
+		assert.strictEqual(errorSummary[0].href, '#publishedDateFrom-day');
+	});
+
+	it('should build error summary when invalid date published to date', async () => {
+		const documents = [
+			{
+				id: '1',
+				name: 'doc.pdf',
+				file: { mimeType: 'application/pdf' },
+				createdDateTime: '2025-02-05T10:00:00Z',
+				lastModifiedDateTime: '2025-02-05T10:00:00Z',
+				size: 1000
+			}
+		];
+
+		const mockDb = createMockDb();
+		const mockSharePoint = createMockSharePoint(documents);
+		const handler = buildApplicationDocumentsPage({
+			db: mockDb,
+			logger: mockLogger(),
+			sharePointDrive: mockSharePoint
+		} as any);
+
+		const req = createMockRequest({
+			query: {
+				'publishedDateTo-day': '32',
+				'publishedDateTo-month': '13',
+				'publishedDateTo-year': '20256'
+			}
+		});
+
+		const res = createMockResponse();
+
+		await handler(req, res, createMockNext());
+
+		const viewData = getRenderArgs(res);
+		assert.ok(Array.isArray(viewData.errorSummary));
+		const errorSummary = viewData.errorSummary as Array<{ text: string; href: string }>;
+		assert.strictEqual(errorSummary.length, 1);
+		assert.strictEqual(errorSummary[0].href, '#publishedDateTo-day');
+	});
 });

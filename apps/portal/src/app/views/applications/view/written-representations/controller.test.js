@@ -865,6 +865,46 @@ describe('written representations', () => {
 			assert.match(viewData.dateErrors[0].href, /submittedDateFrom-day/, 'error href should point to From day input');
 		});
 
+		it('should build error summary when invalid submitted date to date', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
+
+			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
+			const mockReq = {
+				params: { applicationId },
+				query: {
+					'submittedDateTo-day': '32',
+					'submittedDateTo-month': '13',
+					'submittedDateTo-year': '20256'
+				},
+				originalUrl: `/applications/${applicationId}/written-representations`
+			};
+			const mockRes = { render: mock.fn(), status: mock.fn() };
+
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: applicationId,
+						reference: 'CROWN/2025/0000001',
+						representationsPeriodStartDate: new Date('2025-01-01'),
+						representationsPeriodEndDate: new Date('2025-02-01'),
+						representationsPublishDate: new Date('2025-03-01'),
+						applicationStatus: 'active'
+					}))
+				},
+				representation: { findMany: mock.fn(() => []), count: mock.fn(() => 0) },
+				applicationUpdate: { findFirst: mock.fn(() => undefined), count: mock.fn(() => 0) }
+			};
+
+			const handler = buildWrittenRepresentationsListPage({ db: mockDb });
+			await handler(mockReq, mockRes);
+
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.ok(Array.isArray(viewData.dateErrors));
+			const errorSummary = viewData.dateErrors;
+			assert.strictEqual(errorSummary.length, 1);
+			assert.strictEqual(errorSummary[0].href, '#submittedDateTo-day');
+		});
+
 		it('should not apply submittedDate filter when all From parts are empty', async (context) => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';

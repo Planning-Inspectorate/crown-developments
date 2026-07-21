@@ -14,6 +14,7 @@ import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-va
 import { endOfDay, startOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { mapDateFilterErrorSummary } from '../utils/filter-error-summary.ts';
 
 /**
  * Processes filters and error summaries for written representations.
@@ -30,7 +31,11 @@ function getFiltersAndErrors({ db, logger }, id, query) {
 	return Promise.resolve(filters).then((filters) => {
 		const filterQueryItems = getFilterQueryItems(filters);
 		const formType = getFormType(query);
-		const errorSummary = mapErrorSummary(filters, formType);
+		const errorSummary = mapDateFilterErrorSummary({
+			filters,
+			formType,
+			sectionTitle: 'Date submitted'
+		});
 		const dateErrors = errorSummary
 			.filter((e) => e.href && e.href.startsWith('#submittedDate'))
 			.map((e) => ({ text: e.text, href: e.href }));
@@ -52,28 +57,6 @@ function getFiltersAndErrors({ db, logger }, id, query) {
  */
 function getFormType(query) {
 	return query?.formType === 'mobile' ? 'mobile' : 'desktop';
-}
-
-/**
- * Maps error summary from filters.
- * @param {any[]} filters
- * @param {'desktop'|'mobile'} formType
- * @returns {Array<{ text: string, href: string }>}
- */
-function mapErrorSummary(filters, formType) {
-	const errorSummary = [];
-	(filters || []).forEach((section) => {
-		if (section?.title === 'Date submitted' && Array.isArray(section.dateInputs)) {
-			section.dateInputs.forEach((dateInput) => {
-				const errText = dateInput?.errorMessage?.text;
-				if (errText) {
-					const prefix = formType === 'mobile' ? `${dateInput.idPrefix}-mobile` : dateInput.idPrefix;
-					errorSummary.push({ text: errText, href: `#${prefix}-day` });
-				}
-			});
-		}
-	});
-	return errorSummary;
 }
 
 /**
