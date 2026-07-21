@@ -13,11 +13,7 @@ const createMockDecimal = (value: number) => ({
 });
 
 describe('s62aCaseToViewModel', () => {
-	it('maps a full database record to the view model correctly', () => {
-		const startDate = new Date('2026-07-20T10:00:00Z');
-		const endDate = new Date('2026-08-20T10:00:00Z');
-		const publishDate = new Date('2026-08-20T10:00:00Z');
-
+	it('maps and renames core fields from the database record', () => {
 		const mockDbCase = {
 			id: 'case-123',
 			reference: 'S62A/2026/0001',
@@ -35,42 +31,34 @@ describe('s62aCaseToViewModel', () => {
 			likelyIssues: 'Traffic and noise',
 			siteNorthing: 123456,
 			siteEasting: 654321,
-			applicationPhaseId: 'phase-1',
-			representationsPeriodStartDate: startDate,
-			representationsPeriodEndDate: endDate,
-			representationsPublishDate: publishDate
+			applicationPhaseId: 'phase-1'
 		} as unknown as S62aCaseDbModel;
 
 		const result = s62aCaseToViewModel(mockDbCase);
 
-		assert.deepStrictEqual(result, {
-			id: 'case-123',
-			reference: 'S62A/2026/0001',
-			developmentDescription: 'A massive new development',
-			typeId: 'type-123',
-			lpaId: 'lpa-123',
-			hasSecondaryLpa: 'no',
-			expectedSubmissionDate: mockDate,
-			siteIsVisibleFromPublicLand: 'yes',
-			s62aStatusId: 'status-new',
-			applicationPhaseId: 'phase-1',
-			classificationId: undefined,
-			secondaryLpaId: undefined,
-			specialismId: undefined,
-			inspectorBandId: undefined,
-			subTypeId: undefined,
-			likelyIssues: 'Traffic and noise',
-			siteNorthing: 123456,
-			siteEasting: 654321,
-			representationsPeriod: {
-				start: startDate,
-				end: endDate
-			},
-			representationsPublishDate: publishDate
-		});
+		// passed through unchanged
+		assert.strictEqual(result.id, 'case-123');
+		assert.strictEqual(result.reference, 'S62A/2026/0001');
+		assert.strictEqual(result.typeId, 'type-123');
+		assert.strictEqual(result.lpaId, 'lpa-123');
+		assert.strictEqual(result.expectedSubmissionDate, mockDate);
+
+		// renamed field
+		assert.strictEqual(result.developmentDescription, 'A massive new development');
+
+		// booleans become YesNo strings
+		assert.strictEqual(result.hasSecondaryLpa, 'no');
+		assert.strictEqual(result.siteIsVisibleFromPublicLand, 'yes');
+
+		// relation ids and other direct fields
+		assert.strictEqual(result.s62aStatusId, 'status-new');
+		assert.strictEqual(result.applicationPhaseId, 'phase-1');
+		assert.strictEqual(result.likelyIssues, 'Traffic and noise');
+		assert.strictEqual(result.siteNorthing, 123456);
+		assert.strictEqual(result.siteEasting, 654321);
 	});
 
-	it('maps dynamic relation and optional boolean fields as undefined when they are null in the database', () => {
+	it('maps null database values to undefined in the view model', () => {
 		const mockDbCase = {
 			id: 'case-456',
 			reference: 'S62A/2026/0002',
@@ -85,34 +73,72 @@ describe('s62aCaseToViewModel', () => {
 			likelyIssues: null,
 			siteNorthing: null,
 			siteIsVisibleFromPublicLand: null,
-			representationsPeriodStartDate: null,
-			representationsPeriodEndDate: null,
 			representationsPublishDate: null
 		} as unknown as S62aCaseDbModel;
 
 		const result = s62aCaseToViewModel(mockDbCase);
 
-		assert.deepStrictEqual(result, {
-			id: 'case-456',
-			reference: 'S62A/2026/0002',
-			developmentDescription: 'Another development',
-			typeId: 'type-456',
-			lpaId: null,
-			hasSecondaryLpa: 'yes',
+		// relation ids
+		assert.strictEqual(result.s62aStatusId, undefined);
+		assert.strictEqual(result.applicationPhaseId, undefined);
+		assert.strictEqual(result.classificationId, undefined);
+
+		// direct and integer fields
+		assert.strictEqual(result.likelyIssues, undefined);
+		assert.strictEqual(result.siteNorthing, undefined);
+		assert.strictEqual(result.representationsPublishDate, undefined);
+
+		// optional booleans
+		assert.strictEqual(result.siteIsVisibleFromPublicLand, undefined);
+
+		// lpaId is assigned directly rather than via the nullable field loop,
+		// so a null is preserved rather than converted to undefined
+		assert.strictEqual(result.lpaId, null);
+
+		// fields absent from the record are simply absent
+		assert.strictEqual(result.siteEasting, undefined);
+	});
+
+	it('combines representations period start and end into a single object', () => {
+		const startDate = new Date('2026-07-20T10:00:00Z');
+		const endDate = new Date('2026-08-20T10:00:00Z');
+
+		const mockDbCase = {
+			id: 'case-reps-1',
+			reference: 'S62A/2026/0015',
+			description: 'Representations case',
+			typeId: 'type-1',
+			lpaId: 'lpa-1',
+			hasSecondaryLpa: false,
 			expectedSubmissionDate: mockDate,
-			siteIsVisibleFromPublicLand: undefined,
-			s62aStatusId: undefined,
-			applicationPhaseId: undefined,
-			classificationId: undefined,
-			secondaryLpaId: undefined,
-			specialismId: undefined,
-			inspectorBandId: undefined,
-			subTypeId: undefined,
-			likelyIssues: undefined,
-			siteNorthing: undefined,
-			siteEasting: undefined,
-			representationsPublishDate: undefined
+			representationsPeriodStartDate: startDate,
+			representationsPeriodEndDate: endDate
+		} as unknown as S62aCaseDbModel;
+
+		const result = s62aCaseToViewModel(mockDbCase);
+
+		assert.deepStrictEqual(result.representationsPeriod, {
+			start: startDate,
+			end: endDate
 		});
+	});
+
+	it('does not create representationsPeriod object if neither date is present', () => {
+		const mockDbCase = {
+			id: 'case-reps-2',
+			reference: 'S62A/2026/0016',
+			description: 'Representations case',
+			typeId: 'type-1',
+			lpaId: 'lpa-1',
+			hasSecondaryLpa: false,
+			expectedSubmissionDate: mockDate,
+			representationsPeriodStartDate: null,
+			representationsPeriodEndDate: null
+		} as unknown as S62aCaseDbModel;
+
+		const result = s62aCaseToViewModel(mockDbCase);
+
+		assert.strictEqual(result.representationsPeriod, undefined);
 	});
 
 	it('calculates site area correctly when the unit is square metres', () => {
@@ -338,6 +364,120 @@ describe('s62aCaseToViewModel', () => {
 			const result = s62aCaseToViewModel(mockDbCase);
 
 			assert.strictEqual(result.customerNumber, '123456');
+		});
+	});
+
+	describe('Details Tab Mapping', () => {
+		it('maps relation id, string, boolean and CIL fields when present', () => {
+			const mockDbCase = {
+				id: 'case-det-1',
+				reference: 'S62A/2026/0010',
+				description: 'Details case',
+				typeId: 'type-1',
+				lpaId: 'lpa-1',
+				hasSecondaryLpa: false,
+				expectedSubmissionDate: mockDate,
+				stageId: 'validation',
+				categoryId: 'major-minerals',
+				procedureId: 'hearing',
+				lpaReference: 'LPA/123',
+				listedBuildingReference: 'LBC/456',
+				healthAndSafetyIssue: 'Asbestos present',
+				isGreenBelt: true,
+				cilLiable: false,
+				bngExempt: true,
+				cilAmount: createMockDecimal(1500.5)
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.stageId, 'validation');
+			assert.strictEqual(result.categoryId, 'major-minerals');
+			assert.strictEqual(result.procedureId, 'hearing');
+			assert.strictEqual(result.lpaReference, 'LPA/123');
+			assert.strictEqual(result.listedBuildingReference, 'LBC/456');
+			assert.strictEqual(result.healthAndSafetyIssue, 'Asbestos present');
+			assert.strictEqual(result.isGreenBelt, 'yes');
+			assert.strictEqual(result.cilLiable, 'no');
+			assert.strictEqual(result.bngExempt, 'yes');
+			assert.strictEqual(result.cilAmount, 1500.5);
+		});
+
+		it('maps boolean "No" (false) distinctly from unanswered (null)', () => {
+			const mockDbCase = {
+				id: 'case-det-2',
+				reference: 'S62A/2026/0011',
+				description: 'Boolean case',
+				typeId: 'type-1',
+				lpaId: 'lpa-1',
+				hasSecondaryLpa: false,
+				expectedSubmissionDate: mockDate,
+				isGreenBelt: false,
+				cilLiable: null,
+				bngExempt: null
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.isGreenBelt, 'no');
+			assert.strictEqual(result.cilLiable, undefined);
+			assert.strictEqual(result.bngExempt, undefined);
+		});
+
+		it('leaves Details fields undefined when null in the database', () => {
+			const mockDbCase = {
+				id: 'case-det-3',
+				reference: 'S62A/2026/0012',
+				description: 'Empty details case',
+				typeId: 'type-1',
+				lpaId: 'lpa-1',
+				hasSecondaryLpa: false,
+				expectedSubmissionDate: mockDate,
+				stageId: null,
+				categoryId: null,
+				procedureId: null,
+				lpaReference: null,
+				listedBuildingReference: null,
+				healthAndSafetyIssue: null,
+				isGreenBelt: null,
+				cilLiable: null,
+				bngExempt: null,
+				cilAmount: null
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.stageId, undefined);
+			assert.strictEqual(result.categoryId, undefined);
+			assert.strictEqual(result.procedureId, undefined);
+			assert.strictEqual(result.lpaReference, undefined);
+			assert.strictEqual(result.listedBuildingReference, undefined);
+			assert.strictEqual(result.healthAndSafetyIssue, undefined);
+			assert.strictEqual(result.isGreenBelt, undefined);
+			assert.strictEqual(result.cilLiable, undefined);
+			assert.strictEqual(result.bngExempt, undefined);
+			assert.strictEqual(result.cilAmount, undefined);
+		});
+
+		it('passes updatedDate and createdDate through as raw Dates', () => {
+			const created = new Date('2026-07-22T12:45:00Z');
+			const updated = new Date('2026-07-22T12:46:00Z');
+			const mockDbCase = {
+				id: 'case-det-4',
+				reference: 'S62A/2026/0013',
+				description: 'Date passthrough case',
+				typeId: 'type-1',
+				lpaId: 'lpa-1',
+				hasSecondaryLpa: false,
+				expectedSubmissionDate: mockDate,
+				createdDate: created,
+				updatedDate: updated
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.createdDate, created);
+			assert.strictEqual(result.updatedDate, updated);
 		});
 	});
 });

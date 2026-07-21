@@ -25,6 +25,18 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 	const isPlanningOrLbcCase = (response: JourneyResponse) =>
 		questionHasAnswer(response, questions.applicationType, APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT);
 
+	const isApplicationCase = (response: JourneyResponse) =>
+		questionHasAnswer(response, questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION);
+
+	const isPreApplicationCase = (response: JourneyResponse) =>
+		questionHasAnswer(response, questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION);
+
+	const isApplicationLbcCase = (response: JourneyResponse) =>
+		isApplicationCase(response) && isPlanningOrLbcCase(response);
+
+	const isApplicationCilLiableCase = (response: JourneyResponse) =>
+		isApplicationCase(response) && questionHasAnswer(response, questions.cilLiable, BOOLEAN_OPTIONS.YES);
+
 	return new Journey({
 		journeyId: JOURNEY_ID,
 		sections: [
@@ -55,8 +67,27 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.addQuestion(questions.expectedSubmissionDate),
 			new Section('', 'details')
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.DETAILS)
-				.addQuestion(questions.applicationStatus),
-
+				.addQuestion(questions.lastUpdated)
+				.addQuestion(questions.createdDate)
+				.startMultiQuestionCondition('details-is-application-1', isApplicationCase)
+				.addQuestion(questions.category)
+				.addQuestion(questions.procedure)
+				.endMultiQuestionCondition('details-is-application-1')
+				.addQuestion(questions.applicationStatus)
+				.startMultiQuestionCondition('details-is-application-2', isApplicationCase)
+				.addQuestion(questions.stage)
+				.addQuestion(questions.lpaReference)
+				.endMultiQuestionCondition('details-is-application-2')
+				.addQuestion(questions.listedBuildingReference)
+				.withCondition(isApplicationLbcCase)
+				.addQuestion(questions.greenBelt)
+				.addQuestion(questions.healthAndSafetyIssues)
+				.addQuestion(questions.cilLiable)
+				.withCondition(isApplicationCase)
+				.addQuestion(questions.cilAmount)
+				.withCondition(isApplicationCilLiableCase)
+				.addQuestion(questions.bngExempt)
+				.withCondition(isApplicationCase),
 			new Section('', 'dates')
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.DATES)
 				/**
@@ -68,10 +99,7 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				/**
 				 * App questions
 				 */
-				.startMultiQuestionCondition(
-					'is-application',
-					whenQuestionHasAnswer(questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION)
-				)
+				.startMultiQuestionCondition('is-application', isApplicationCase)
 				.addQuestion(questions.applicationAcknowledgedDate)
 				.addQuestion(questions.furtherInformationRequestedDate)
 				.addQuestion(questions.agreedForAdditionalInformationDate)
@@ -105,15 +133,12 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				 * cannot be in same section
 				 */
 				.addQuestion(questions.turnedAwayDate)
-				.withCondition(
-					whenQuestionHasAnswer(questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION)
-				),
+				.withCondition(isApplicationCase),
 			new Section('', 'representations')
 				.withSectionCondition(
 					() =>
-						currentTab === VIEW_TAB_ID.REPRESENTATIONS &&
 						// The tab should be hidden anyway, but if the user manually navigates here, this ensures that we do not show the questions accidentally
-						questionHasAnswer(response, questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION)
+						currentTab === VIEW_TAB_ID.REPRESENTATIONS && isApplicationCase(response)
 				)
 				.addQuestion(questions.representationsPeriod)
 				.addQuestion(questions.representationsPublishDate),
@@ -123,10 +148,7 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				/**
 				 * Pre-application questions
 				 */
-				.startMultiQuestionCondition(
-					'is-pre-application',
-					whenQuestionHasAnswer(questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION)
-				)
+				.startMultiQuestionCondition('is-pre-application', isPreApplicationCase)
 				.addQuestion(questions.hasPreApplicationFee)
 				.addQuestion(questions.chargingScheduleSentDate)
 				.addQuestion(questions.customerNumber)
@@ -139,10 +161,7 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				/**
 				 * Application questions
 				 */
-				.startMultiQuestionCondition(
-					'is-application',
-					whenQuestionHasAnswer(questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION)
-				)
+				.startMultiQuestionCondition('is-application', isApplicationCase)
 				.addQuestion(questions.hasApplicationFee)
 
 				.addQuestion(questions.applicationFeeReceivedDate)

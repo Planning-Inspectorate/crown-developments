@@ -5,7 +5,9 @@ import {
 	PRE_APPLICATION_OR_APPLICATIONS,
 	S62A_STATUSES,
 	SITE_AREA_UNITS,
-	SPECIALISMS
+	SPECIALISMS,
+	S62A_STAGES,
+	S62A_CATEGORIES
 } from './s62a/data-static.ts';
 
 export const APPLICATION_DECISION_OUTCOME: Prisma.ApplicationDecisionOutcomeCreateInput[] = [
@@ -625,6 +627,14 @@ type UpsertReferenceDataArgs =
 	| {
 			delegate: Prisma.InspectorBandDelegate;
 			input: Prisma.InspectorBandCreateInput;
+	  }
+	| {
+			delegate: Prisma.S62aStageDelegate;
+			input: Prisma.S62aStageCreateInput;
+	  }
+	| {
+			delegate: Prisma.S62aCategoryDelegate;
+			input: Prisma.S62aCategoryCreateInput;
 	  };
 
 async function upsertReferenceData({ delegate, input }: UpsertReferenceDataArgs): Promise<void> {
@@ -741,5 +751,8 @@ export async function seedS62aStaticData(dbClient: PrismaClient) {
 
 	await Promise.all(S62A_STATUSES.map((input) => upsertReferenceData({ delegate: dbClient.s62aStatus, input })));
 
+	await Promise.all(S62A_STAGES.map((input) => upsertReferenceData({ delegate: dbClient.s62aStage, input })));
+
+	await Promise.all(S62A_CATEGORIES.map((input) => upsertReferenceData({ delegate: dbClient.s62aCategory, input })));
 	console.log('S62A static data seed complete');
 }

@@ -183,6 +183,14 @@ model S62aCase {
   S62aStatus         S62aStatus?           @relation(fields: [s62aStatusId], references: [id])
   specialismId       String?
   Specialism         Specialism?           @relation(fields: [specialismId], references: [id])
+  stageId            String?
+  Stage              S62aStage?            @relation(fields: [stageId], references: [id])
+  categoryId         String?
+  Category           S62aCategory?         @relation(fields: [categoryId], references: [id])
+  /// Procedure reuses the shared ApplicationProcedure table; S62A only permits
+  /// Hearing and Written representations — enforced in the question options, not the DB.
+  procedureId        String?
+  Procedure          ApplicationProcedure? @relation(fields: [procedureId], references: [id])
 
   hasAgent Boolean @default(false)
 
@@ -223,6 +231,18 @@ model S62aCase {
   representationsPeriodEndDate   DateTime?
 
   S62aFees S62aFees?
+
+  /// Planning detail fields (Details tab)
+  lpaReference            String?
+  listedBuildingReference String?
+  isGreenBelt             Boolean?
+  healthAndSafetyIssue    String?  @db.NVarChar(2000)
+  /// whether liable for a Community Infrastructure Levy (CIL)
+  cilLiable               Boolean?
+  /// how much it is CIL liable for
+  cilAmount               Decimal? @db.Decimal(12, 2)
+  /// whether exempt from biodiversity net gain (BNG)
+  bngExempt               Boolean?
 }
 
 model S62aFees {
@@ -321,6 +341,22 @@ model S62aApplicationPhase {
 /// The classification of the case, only needed for applications
 model S62aClassification {
   /// unique machine-readable name, not generated, e.g. "major"
+  id          String     @id
+  displayName String?
+  S62aCases   S62aCase[]
+}
+
+/// Application stage for S62A cases
+model S62aStage {
+  /// unique machine-readable name, not generated, e.g. "validation"
+  id          String     @id
+  displayName String?
+  S62aCases   S62aCase[]
+}
+
+/// Application category for S62A cases
+model S62aCategory {
+  /// unique machine-readable name, not generated, e.g. "major-minerals"
   id          String     @id
   displayName String?
   S62aCases   S62aCase[]
@@ -645,6 +681,7 @@ model ApplicationProcedure {
   id               String             @id
   displayName      String?
   CrownDevelopment CrownDevelopment[]
+  S62aCases        S62aCase[]
 }
 
 /// Category represents a hierarchy of categories that may apply to an application
