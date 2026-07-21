@@ -7,8 +7,8 @@
 
 {% block head %}
 	{# setup the header tags, to link to the styles #}
-	<link rel="stylesheet" href="/{{ styleCss }}"/>
-	<link rel="stylesheet" href="/index.css"/>
+	<link rel="stylesheet" href="/{{ styleCss }}" />
+	<link rel="stylesheet" href="/index.css" />
 	<meta name="referrer" content="origin">
 
 	{% if config.googleAnalyticsId %}
@@ -17,23 +17,26 @@
 		{% endif %}
 		<script>
 			window.dataLayer = window.dataLayer || [];
-			function gtag(){dataLayer.push(arguments);}
+
+			function gtag() {
+				dataLayer.push(arguments);
+			}
 
 			{% if analyticsCookiesEnabled %}
-				gtag('consent', 'default', {
-					'ad_storage': 'denied',
-					'ad_user_data': 'denied',
-					'ad_personalization': 'denied',
-					'analytics_storage': 'granted'
-				});
+			gtag('consent', 'default', {
+				'ad_storage': 'denied',
+				'ad_user_data': 'denied',
+				'ad_personalization': 'denied',
+				'analytics_storage': 'granted'
+			});
 			{% else %}
-				// default - no consent
-				gtag('consent', 'default', {
-					'ad_storage': 'denied',
-					'ad_user_data': 'denied',
-					'ad_personalization': 'denied',
-					'analytics_storage': 'denied'
-				});
+			// default - no consent
+			gtag('consent', 'default', {
+				'ad_storage': 'denied',
+				'ad_user_data': 'denied',
+				'ad_personalization': 'denied',
+				'analytics_storage': 'denied'
+			});
 			{% endif %}
 
 			gtag('js', new Date());
@@ -70,24 +73,22 @@
 			{{ govukBackLink({ text: backLinkText, href: backLinkUrl }) }}
 		{% elseif backLinkUrl %}
 			{{ govukBackLink({ href: backLinkUrl }) }}
-        {% elseif backLink %} {# used by the dynamic forms #}
+		{% elseif backLink %} {# used by the dynamic forms #}
 			{{ govukBackLink({ href: backLink }) }}
-        {% endif %}
+		{% endif %}
 	{% endblock %}
 	{% block error_summary %}
-        {% if errorSummary %}
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-two-thirds">
-                    {{
-                    govukErrorSummary({
-                        titleText: "There is a problem",
-                        errorList: errorSummary
-                    })
-                }}
-                </div>
-            </div>
-        {% endif %}
-    {% endblock %}
+		{% if errorSummary %}
+			<div class="govuk-grid-row">
+				<div class="govuk-grid-column-two-thirds">
+					{{ govukErrorSummary({
+						titleText: "There is a problem",
+						errorList: errorSummary
+					}) }}
+				</div>
+			</div>
+		{% endif %}
+	{% endblock %}
 {% endblock %}
 
 {% block bodyStart %}
@@ -95,30 +96,32 @@
 {% endblock %}
 
 {% block content %}
-    {% block pageHeading %}
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-full">
-                <h1 class="govuk-heading-xl">
-                    {% if pageCaption %}
-                        <span class="govuk-caption-xl">{{ pageCaption }}</span>
-                    {% endif %}
-                    {{ pageHeading or pageTitle }}
-                </h1>
-            </div>
-        </div>
-    {% endblock %}
-    {% block pageContent %}{% endblock %}
+	{% block pageHeading %}
+		<div class="govuk-grid-row">
+			<div class="govuk-grid-column-full">
+				<h1 class="govuk-heading-xl">
+					{% if pageCaption %}
+						<span class="govuk-caption-xl">{{ pageCaption }}</span>
+					{% endif %}
+					{{ pageHeading or pageTitle }}
+				</h1>
+			</div>
+		</div>
+	{% endblock %}
+	{% block pageContent %}{% endblock %}
 {% endblock %}
 
 {% block footer %}
 	{{ pinsFooter(config.footerLinks) }}
 
-	<script type="module" {% if cspNonce %}nonce={{ cspNonce }}{% endif %} src="/assets/js/govuk-frontend.min.js"></script>
+	<script type="module"
+	        {% if cspNonce %}nonce={{ cspNonce }}{% endif %} src="/assets/js/govuk-frontend.min.js"></script>
 	<script type="module" {% if cspNonce %}nonce={{ cspNonce }}{% endif %} src="/assets/js/moj-frontend.min.js"></script>
 	<script type="module" {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-		import { initAll as govUkInitAll } from '/assets/js/govuk-frontend.min.js'
-		import { initAll as mojInitAll } from '/assets/js/moj-frontend.min.js'
-		govUkInitAll()
-		mojInitAll()
+		import { initAll as govUkInitAll } from '/assets/js/govuk-frontend.min.js';
+		import { initAll as mojInitAll } from '/assets/js/moj-frontend.min.js';
+
+		govUkInitAll();
+		mojInitAll();
 	</script>
 {% endblock %}

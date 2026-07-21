@@ -7,85 +7,101 @@
 {% block pageHeading %}{% endblock %}
 
 {% block pageTitle %}
-    {{ config.haveYourSayServiceName }}
+	{{ config.haveYourSayServiceName }}
 {% endblock %}
 
 {% block pageContent %}
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-one-third">
-            {{ applicationLinks(links, currentUrl) }}
-        </div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-one-third">
+			{{ applicationLinks(links, currentUrl) }}
+		</div>
 
-        <div class="govuk-grid-column-two-thirds">
-            {{ distressingContentBanner(containsDistressingContent) }}
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-full">
-                    <h1 class="govuk-heading-l">
-                        {% if pageCaption %}
-                            <span class="govuk-caption-xl">{{ pageCaption }}</span>
-                        {% endif %}
-                        {{ pageTitle }}
-                    </h1>
-                </div>
-            </div>
-            <p class="govuk-body">Use this service to submit a written representation with your views on the proposed development. A written representation includes your comment and any supporting documents.</p>
-            <p class="govuk-body">You can:</p>
-            <ul class="govuk-list govuk-list--bullet">
-                <li>make a comment as an individual, organisation or agent</li>
-                <li>upload supporting documents (optional)</li>
-            </ul>
-            <p class="govuk-body">Your comment and any supporting documents will be:</p>
-            <ul class="govuk-list govuk-list--bullet">
-                <li>published on this website along with your name, and the name of your organisation where applicable</li>
-                <li>considered by the Planning Inspectors before a decision is made on the application</li>
-            </ul>
-            <p class="govuk-body">You must submit your written representation by 11:59pm on {{ representationsPeriodEndDateFormatted }}.</p>
+		<div class="govuk-grid-column-two-thirds">
+			{{ distressingContentBanner(containsDistressingContent) }}
+			<div class="govuk-grid-row">
+				<div class="govuk-grid-column-full">
+					<h1 class="govuk-heading-l">
+						{% if pageCaption %}
+							<span class="govuk-caption-xl">{{ pageCaption }}</span>
+						{% endif %}
+						{{ pageTitle }}
+					</h1>
+				</div>
+			</div>
+			<p class="govuk-body">Use this service to submit a written representation with your views on the proposed
+				development. A written representation includes your comment and any supporting documents.</p>
+			<p class="govuk-body">You can:</p>
+			<ul class="govuk-list govuk-list--bullet">
+				<li>make a comment as an individual, organisation or agent</li>
+				<li>upload supporting documents (optional)</li>
+			</ul>
+			<p class="govuk-body">Your comment and any supporting documents will be:</p>
+			<ul class="govuk-list govuk-list--bullet">
+				<li>published on this website along with your name, and the name of your organisation where applicable</li>
+				<li>considered by the Planning Inspectors before a decision is made on the application</li>
+			</ul>
+			<p class="govuk-body">You must submit your written representation by 11:59pm
+				on {{ representationsPeriodEndDateFormatted }}.</p>
 
-            {{ govukButton({
-                text: "Start now",
-                type: "button",
-                href: "have-your-say/start",
-                isStartButton: true
-            }) }}
+			{{ govukButton({
+				text: "Start now",
+				type: "button",
+				href: "have-your-say/start",
+				isStartButton: true
+			}) }}
 
-            {% set dataPrivacyText %}
-                <p>At the Planning Inspectorate, we value your privacy. This statement outlines how we process your personal data.</p>
-                <p>When you submit a written representation on a non-urgent Crown development application, we’ll ask for your name and email address.</p>
-                <p>Your name and written representation will be published on the <a class="govuk-link govuk-link--no-visited-state" href="/applications">Find a Crown development application service</a>. We will only use your email address to communicate with you about your submission and will not use your data for any other, unrelated purpose.</p>
-                <p>We’ll process all of your data in line with our legal obligation under The Town and Country Planning (Crown Development Applications) (Procedure and Written Representations) Order 2025.</p>
-                <p>You can read full details of how we process your data in our <a class="govuk-link govuk-link--no-visited-state" href="https://www.gov.uk/government/publications/planning-inspectorate-privacy-notices/customer-privacy-notice">GOV.UK privacy notice</a>.</p>
-                <p>You have the right to access and correct your data. To do this, contact the Planning Inspectorate Senior Data Protection Manager at <a class="govuk-link govuk-link--no-visited-state" href="mailto:dataprotection@planninginspectorate.gov.uk">dataprotection@planninginspectorate.gov.uk</a>.</p>
+			{% set dataPrivacyText %}
+				<p>At the Planning Inspectorate, we value your privacy. This statement outlines how we process your personal
+					data.</p>
+				<p>When you submit a written representation on a non-urgent Crown development application, we’ll ask for your
+					name and email address.</p>
+				<p>Your name and written representation will be published on the <a
+						class="govuk-link govuk-link--no-visited-state" href="/applications">Find a Crown development application
+						service</a>. We will only use your email address to communicate with you about your submission and will not
+					use your data for any other, unrelated purpose.</p>
+				<p>We’ll process all of your data in line with our legal obligation under The Town and Country Planning (Crown
+					Development Applications) (Procedure and Written Representations) Order 2025.</p>
+				<p>You can read full details of how we process your data in our <a
+						class="govuk-link govuk-link--no-visited-state"
+						href="https://www.gov.uk/government/publications/planning-inspectorate-privacy-notices/customer-privacy-notice">GOV.UK
+						privacy notice</a>.</p>
+				<p>You have the right to access and correct your data. To do this, contact the Planning Inspectorate Senior Data
+					Protection Manager at <a class="govuk-link govuk-link--no-visited-state"
+					                         href="mailto:dataprotection@planninginspectorate.gov.uk">dataprotection@planninginspectorate.gov.uk</a>.
+				</p>
 
-            {% endset %}
+			{% endset %}
 
-            {{ govukDetails({
-                summaryText: "How we process your data ",
-                text: dataPrivacyText | safe
-            }) }}
+			{{ govukDetails({
+				summaryText: "How we process your data ",
+				text: dataPrivacyText | safe
+			}) }}
 
-            <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+			<hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
 
-            <h2 class="govuk-heading-m">Before you start</h2>
-            <p class="govuk-body">We'll ask for your:</p>
+			<h2 class="govuk-heading-m">Before you start</h2>
+			<p class="govuk-body">We'll ask for your:</p>
 
-            <ul class="govuk-list govuk-list--bullet">
-              <li>name</li>
-              <li>email address</li>
-              <li>comment on the proposed development</li>
-                <li>supporting documents (optional)</li>
-            </ul>
+			<ul class="govuk-list govuk-list--bullet">
+				<li>name</li>
+				<li>email address</li>
+				<li>comment on the proposed development</li>
+				<li>supporting documents (optional)</li>
+			</ul>
 
-            <h3 class="govuk-heading-s">If you're commenting for an organisation you work or volunteer for, we'll also ask for:</h3>
-            <ul class="govuk-list govuk-list--bullet">
-              <li>the name of the charity or organisation you work for</li>
-              <li>your job title or volunteer role</li>
-            </ul>
+			<h3 class="govuk-heading-s">If you're commenting for an organisation you work or volunteer for, we'll also ask
+				for:</h3>
+			<ul class="govuk-list govuk-list--bullet">
+				<li>the name of the charity or organisation you work for</li>
+				<li>your job title or volunteer role</li>
+			</ul>
 
-            <h3 class="govuk-heading-s">If you're commenting on behalf of another person or organisation, we'll also ask for:</h3>
-            <ul class="govuk-list govuk-list--bullet">
-              <li>the name of the charity or organisation you work for</li>
-              <li>the name of the person or organisation you are representing</li>
-            </ul>
-        </div>
-    </div>
+			<h3 class="govuk-heading-s">If you're commenting on behalf of another person or organisation, we'll also ask
+				for:</h3>
+			<ul class="govuk-list govuk-list--bullet">
+				<li>the name of the charity or organisation you work for</li>
+				<li>the name of the person or organisation you are representing</li>
+			</ul>
+		</div>
+	</div>
 {% endblock %}

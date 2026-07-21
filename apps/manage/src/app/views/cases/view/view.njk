@@ -13,139 +13,139 @@
 {% set manageAppUpdatesUrl = baseUrl + "/application-updates" %}
 
 {% block pageTitle %}
-    {{ title }}
+	{{ title }}
 {% endblock %}
 
 {% block content %}
-    {% if banner %}
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-two-thirds">
-                {{ govukNotificationBanner(banner) }}
-            </div>
-        </div>
-    {% endif %}
+	{% if banner %}
+		<div class="govuk-grid-row">
+			<div class="govuk-grid-column-two-thirds">
+				{{ govukNotificationBanner(banner) }}
+			</div>
+		</div>
+	{% endif %}
 
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
-            <h1 class="govuk-heading-l">
-                {{ reference }}
-            </h1>
-        </div>
-    </div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-full govuk-!-margin-bottom-3">
+			<h1 class="govuk-heading-l">
+				{{ reference }}
+			</h1>
+		</div>
+	</div>
 
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            <ul class="govuk-list">
-                {% for section in summaryListData.sections %}
-                    {% if section.list.rows.length %}
-                        <li>
-                            <a href="#{{ section.heading | kebabCase }}"
-                               class="govuk-link govuk-link--no-visited-state">{{ section.heading }}</a>
-                        </li>
-                    {% endif %}
-                {% endfor %}
-                <li>
-                    <a href="#case-audit-log" class="govuk-link govuk-link--no-visited-state">Case audit log</a>
-                </li>
-            </ul>
-        </div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			<ul class="govuk-list">
+				{% for section in summaryListData.sections %}
+					{% if section.list.rows.length %}
+						<li>
+							<a href="#{{ section.heading | kebabCase }}"
+							   class="govuk-link govuk-link--no-visited-state">{{ section.heading }}</a>
+						</li>
+					{% endif %}
+				{% endfor %}
+				<li>
+					<a href="#case-audit-log" class="govuk-link govuk-link--no-visited-state">Case audit log</a>
+				</li>
+			</ul>
+		</div>
 
-        <div class="govuk-grid-column-one-third govuk-!-text-align-right">
-            {% if sharePointLink %}
-                {{ govukButton({
-                    text: "Open SharePoint Folder",
-                    href: sharePointLink,
-                    classes: "govuk-button--secondary",
-                    attributes: {target: "_blank"}
-                }) }}
-            {% endif %}
-            {{ govukButton({
-                text: "Manage representations",
-                href: manageRepsUrl,
-                classes: "govuk-button--secondary"
-            }) }}
-            {% if isApplicationUpdatesLive %}
-                {{ govukButton({
-                    text: "Manage application updates",
-                    href: manageAppUpdatesUrl,
-                    classes: "govuk-button--secondary"
-                }) }}
-            {% endif %}
-            {% if casePublished %}
-                {{ govukButton({
-                    text: "Unpublish Application",
-                    href: unpublishUrl,
-                    classes: "govuk-button--warning"
-                }) }}
+		<div class="govuk-grid-column-one-third govuk-!-text-align-right">
+			{% if sharePointLink %}
+				{{ govukButton({
+					text: "Open SharePoint Folder",
+					href: sharePointLink,
+					classes: "govuk-button--secondary",
+					attributes: {target: "_blank"}
+				}) }}
+			{% endif %}
+			{{ govukButton({
+				text: "Manage representations",
+				href: manageRepsUrl,
+				classes: "govuk-button--secondary"
+			}) }}
+			{% if isApplicationUpdatesLive %}
+				{{ govukButton({
+					text: "Manage application updates",
+					href: manageAppUpdatesUrl,
+					classes: "govuk-button--secondary"
+				}) }}
+			{% endif %}
+			{% if casePublished %}
+				{{ govukButton({
+					text: "Unpublish Application",
+					href: unpublishUrl,
+					classes: "govuk-button--warning"
+				}) }}
 
-            {% else %}
-                {{ govukButton({
-                    text: "Publish Application",
-                    href: publishUrl,
-                    classes: "govuk-button--primary"
-                }) }}
-            {% endif %}
-        </div>
-        <div class="govuk-grid-column-full">
-            {% for section in summaryListData.sections %}
-                {% if section.list.rows.length %}
-                    {{ govukSummaryList({
-                        card: {
-                            title: {
-                                text: section.heading
-                            },
-                            attributes: {id: section.heading | kebabCase}
-                        },
-                        rows: section.list.rows
-                    }) }}
-                {% endif %}
-            {% endfor %}
-            {{ govukSummaryList({
-                card: {
-                    title: {
-                        text: "Case audit log"
-                    },
-                    attributes: {id: "case-audit-log"}
-                },
-                rows: [
-                    {
-                        key: {
-                            text: "Last modified date"
-                        },
-                        value: {
-                            text: lastModifiedDate
-                        }
-                    },
-                    {
-                        key: {
-                            text: "Last modified by"
-                        },
-                        value: {
-                            text: lastModifiedBy
-                        }
-                    },
-                    {
-                        key: {
-                            text: "Application history"
-                        },
-                        value: {
-                            html: ""
-                        },
-                        actions: {
-                            items: [
-                                {
-                                    href: baseUrl + "/application-history",
-                                    text: "View",
-                                    visuallyHiddenText: "application history"
-                                }
-                            ]
-                        }
-                    }
-                ]
-            }) }}
-        </div>
-    </div>
+			{% else %}
+				{{ govukButton({
+					text: "Publish Application",
+					href: publishUrl,
+					classes: "govuk-button--primary"
+				}) }}
+			{% endif %}
+		</div>
+		<div class="govuk-grid-column-full">
+			{% for section in summaryListData.sections %}
+				{% if section.list.rows.length %}
+					{{ govukSummaryList({
+						card: {
+							title: {
+								text: section.heading
+							},
+							attributes: {id: section.heading | kebabCase}
+						},
+						rows: section.list.rows
+					}) }}
+				{% endif %}
+			{% endfor %}
+			{{ govukSummaryList({
+				card: {
+					title: {
+						text: "Case audit log"
+					},
+					attributes: {id: "case-audit-log"}
+				},
+				rows: [
+					{
+						key: {
+						text: "Last modified date"
+					},
+						value: {
+						text: lastModifiedDate
+					}
+					},
+					{
+						key: {
+						text: "Last modified by"
+					},
+						value: {
+						text: lastModifiedBy
+					}
+					},
+					{
+						key: {
+						text: "Application history"
+					},
+						value: {
+						html: ""
+					},
+						actions: {
+						items: [
+							{
+								href: baseUrl + "/application-history",
+								text: "View",
+								visuallyHiddenText: "application history"
+							}
+						]
+					}
+					}
+				]
+			}) }}
+		</div>
+	</div>
 
-    {% block afterTaskList %}
-    {% endblock %}
+	{% block afterTaskList %}
+	{% endblock %}
 {% endblock %}

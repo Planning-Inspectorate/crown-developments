@@ -7,42 +7,49 @@
 
 {% block pageHeading %}{% endblock %}
 {% block pageContent %}
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            {{ govukPanel({
-                titleText: title,
-                html: bodyText
-            }) }}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			{{ govukPanel({
+				titleText: title,
+				html: bodyText
+			}) }}
 
-            <p class="govuk-body">We’ve received your written representation.</p>
-            <p class="govuk-body">We’ve sent your reference number by email and will contact you if we need more information about your comment or supporting documents.</p>
+			<p class="govuk-body">We’ve received your written representation.</p>
+			<p class="govuk-body">We’ve sent your reference number by email and will contact you if we need more information
+				about your comment or supporting documents.</p>
 
-            <h2 class="govuk-heading-m">What happens next</h2>
-            <p class="govuk-body">At the end of this representations period, we’ll update the website with the procedure that the application will follow.</p>
-            <p class="govuk-body">The Planning Inspectors will decide on one of the following procedures:</p>
+			<h2 class="govuk-heading-m">What happens next</h2>
+			<p class="govuk-body">At the end of this representations period, we’ll update the website with the procedure that
+				the application will follow.</p>
+			<p class="govuk-body">The Planning Inspectors will decide on one of the following procedures:</p>
 
-            <h3 class="govuk-heading-s">Written representations</h3>
-            <p class="govuk-body">If this procedure is chosen, Planning Inspectors will make their decision based on written submissions only.</p>
+			<h3 class="govuk-heading-s">Written representations</h3>
+			<p class="govuk-body">If this procedure is chosen, Planning Inspectors will make their decision based on written
+				submissions only.</p>
 
-            <h3 class="govuk-heading-s">Hearing</h3>
-            <p class="govuk-body">If you’ve requested in your comment to attend the hearing, we’ll contact you with details of the hearing date and location.</p>
+			<h3 class="govuk-heading-s">Hearing</h3>
+			<p class="govuk-body">If you’ve requested in your comment to attend the hearing, we’ll contact you with details of
+				the hearing date and location.</p>
 
-            <h3 class="govuk-heading-s">Inquiry</h3>
-            <p class="govuk-body">If this procedure is chosen, we’ll contact you with details of the inquiry date and location.</p>
-            {% if not config.isRepsUploadDocsLive %}
-                <h2 class="govuk-heading-m">Providing more information</h2>
-                <p class="govuk-body">If you wish to include documents or photographs as part of your comments, you must send them to <a href="mailto:{{ config.contactEmail }}" class="govuk-link">{{ config.contactEmail }}</a> and include your name, representation reference number and application reference number in the subject line.</p>
-            {% endif %}
-            {{ govukInsetText({
-                html: '<p class="govuk-body">Help us improve this service by <a class="govuk-link" href="' + config.serviceFeedbackUrl + '">sharing your feedback</a>.</p>'
-            }) }}
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-two-thirds">
-                    <p class="govuk-body">
-                        <a href="{{ successBackLinkUrl }}" class="govuk-link">{{ successBackLinkText }}</a>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
+			<h3 class="govuk-heading-s">Inquiry</h3>
+			<p class="govuk-body">If this procedure is chosen, we’ll contact you with details of the inquiry date and
+				location.</p>
+			{% if not config.isRepsUploadDocsLive %}
+				<h2 class="govuk-heading-m">Providing more information</h2>
+				<p class="govuk-body">If you wish to include documents or photographs as part of your comments, you must send
+					them to <a href="mailto:{{ config.contactEmail }}" class="govuk-link">{{ config.contactEmail }}</a> and
+					include your name, representation reference number and application reference number in the subject line.</p>
+			{% endif %}
+			{{ govukInsetText({
+				html: '<p class="govuk-body">Help us improve this service by <a class="govuk-link" href="' + config.serviceFeedbackUrl + '">sharing your feedback</a>.</p>'
+			}) }}
+			<div class="govuk-grid-row">
+				<div class="govuk-grid-column-two-thirds">
+					<p class="govuk-body">
+						<a href="{{ successBackLinkUrl }}" class="govuk-link">{{ successBackLinkText }}</a>
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
 {% endblock %}

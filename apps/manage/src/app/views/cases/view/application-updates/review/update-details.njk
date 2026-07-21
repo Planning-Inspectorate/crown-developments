@@ -5,48 +5,49 @@
 {% from "govuk/components/textarea/macro.njk" import govukTextarea %}
 
 {% block pageContent %}
-    {% macro getUpdateDetailsLabel(applicationUpdateStatus, publishedStatus) %}
-        <h1 class="govuk-label-wrapper">
-            <label class="govuk-label govuk-label--l" for="more-detail">
-                Update details
-            </label>
-        </h1>
+	{% macro getUpdateDetailsLabel(applicationUpdateStatus, publishedStatus) %}
+		<h1 class="govuk-label-wrapper">
+			<label class="govuk-label govuk-label--l" for="more-detail">
+				Update details
+			</label>
+		</h1>
 
-        {% if applicationUpdateStatus == "published" %}
-            <div class="govuk-warning-text">
-                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                <strong class="govuk-warning-text__text">
-                    <span class="govuk-visually-hidden">Warning</span>
-                    You should only change minor parts of the update such as typos. For major changes, you should create a new update.
-                </strong>
-            </div>
-        {% endif %}
-    {% endmacro %}
+		{% if applicationUpdateStatus == "published" %}
+			<div class="govuk-warning-text">
+				<span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+				<strong class="govuk-warning-text__text">
+					<span class="govuk-visually-hidden">Warning</span>
+					You should only change minor parts of the update such as typos. For major changes, you should create a new
+					update.
+				</strong>
+			</div>
+		{% endif %}
+	{% endmacro %}
 
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            <form action="" method="post" novalidate>
-                <input type="hidden" name="_csrf" value="{{ _csrf }}">
-                {{ govukTextarea({
-                    name: "details",
-                    id: "update-details",
-                    label: {
-                        html: getUpdateDetailsLabel(applicationUpdateStatus)
-                    },
-                    value: details,
-                    hint: {
-                        text: "The recommended length is 1000 characters"
-                    },
-                    errorMessage: errors["details"] and {
-                        text: errors["details"].msg
-                    }
-                }) }}
-                {{ govukButton({
-                    text: "Continue",
-                    type: "submit",
-                    attributes: { "data-cy":"button-save-and-continue"}
-                }) }}
-            </form>
-        </div>
-    </div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			<form action="" method="post" novalidate>
+				<input type="hidden" name="_csrf" value="{{ _csrf }}">
+				{{ govukTextarea({
+					name: "details",
+					id: "update-details",
+					label: {
+						html: getUpdateDetailsLabel(applicationUpdateStatus)
+					},
+					value: details,
+					hint: {
+						text: "The recommended length is 1000 characters"
+					},
+					errorMessage: errors["details"] and {
+						text: errors["details"].msg
+					}
+				}) }}
+				{{ govukButton({
+					text: "Continue",
+					type: "submit",
+					attributes: { "data-cy":"button-save-and-continue"}
+				}) }}
+			</form>
+		</div>
+	</div>
 {% endblock %}

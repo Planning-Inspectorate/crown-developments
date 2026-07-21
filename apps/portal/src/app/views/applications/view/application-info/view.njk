@@ -10,121 +10,128 @@
 {% import "views/applications/view/application-info/application-stage/application-stage.njk" as applicationStage %}
 
 {% macro formatWithdrawnText(isExpired) %}
-        {% if isExpired %}
-            <p class="govuk-body">This application was <strong>withdrawn</strong> on {{ crownDevelopmentFields.withdrawnDate }}.</p>
-            <p class="govuk-body">Information about this application is no longer available.</p>
-            <p class="govuk-body"><a class="govuk-link" href="/">Back to homepage</a>.</p>
-        {% else %}
-            <h3 class="govuk-heading-m">Application stage</h3>
-            <p class="govuk-body">This application was <strong>withdrawn</strong> on {{ crownDevelopmentFields.withdrawnDate }}.</p>
-            <p class="govuk-body">The details and documents for this application will be available for 1 year from the date of withdrawal.</p>
-            <p class="govuk-body">Get more <a class="govuk-link" href="https://www.gov.uk/guidance/crown-development-applications">information about Crown development applications</a>.</p>
-        {% endif %}
+	{% if isExpired %}
+		<p class="govuk-body">This application was <strong>withdrawn</strong> on {{ crownDevelopmentFields.withdrawnDate }}.
+		</p>
+		<p class="govuk-body">Information about this application is no longer available.</p>
+		<p class="govuk-body"><a class="govuk-link" href="/">Back to homepage</a>.</p>
+	{% else %}
+		<h3 class="govuk-heading-m">Application stage</h3>
+		<p class="govuk-body">This application was <strong>withdrawn</strong> on {{ crownDevelopmentFields.withdrawnDate }}.
+		</p>
+		<p class="govuk-body">The details and documents for this application will be available for 1 year from the date of
+			withdrawal.</p>
+		<p class="govuk-body">Get more <a class="govuk-link"
+		                                  href="https://www.gov.uk/guidance/crown-development-applications">information
+				about Crown development applications</a>.</p>
+	{% endif %}
 {% endmacro %}
 
 {% block pageHeading %}{% endblock %}
 
 {% block pageContent %}
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-one-third">
-            {{ applicationLinks(links, currentUrl) }}
-        </div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-one-third">
+			{{ applicationLinks(links, currentUrl) }}
+		</div>
 
-        <div class="govuk-grid-column-two-thirds">
+		<div class="govuk-grid-column-two-thirds">
 
-            {{ distressingContentBanner(crownDevelopmentFields.containsDistressingContent) }}
+			{{ distressingContentBanner(crownDevelopmentFields.containsDistressingContent) }}
 
-            {% if banner %}
-                <div class="govuk-grid-row">
-                    <div class="govuk-grid-column-full">
-                        {{ govukNotificationBanner(banner) }}
-                    </div>
-                </div>
-            {% endif %}
+			{% if banner %}
+				<div class="govuk-grid-row">
+					<div class="govuk-grid-column-full">
+						{{ govukNotificationBanner(banner) }}
+					</div>
+				</div>
+			{% endif %}
 
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-full">
-                    <h1 class="govuk-heading-xl">
-                        {% if pageCaption %}
-                            <span class="govuk-caption-xl">{{ pageCaption }}</span>
-                        {% endif %}
-                        {{ pageHeading or pageTitle }}
-                    </h1>
-                </div>
-            </div>
-            {% if not isExpired %}
-            <div>
-                <h2 class="govuk-heading-m">About this application</h2>
-                {{ govukSummaryList({
-                    rows: aboutThisApplicationSectionItems
-                }) }}
+			<div class="govuk-grid-row">
+				<div class="govuk-grid-column-full">
+					<h1 class="govuk-heading-xl">
+						{% if pageCaption %}
+							<span class="govuk-caption-xl">{{ pageCaption }}</span>
+						{% endif %}
+						{{ pageHeading or pageTitle }}
+					</h1>
+				</div>
+			</div>
+			{% if not isExpired %}
+				<div>
+					<h2 class="govuk-heading-m">About this application</h2>
+					{{ govukSummaryList({
+						rows: aboutThisApplicationSectionItems
+					}) }}
 
-                {% if shouldShowImportantDatesSection %}
-                    <h2 class="govuk-heading-m">Important dates</h2>
-                    {{ govukSummaryList({
-                        rows: importantDatesSectionItems
-                    }) }}
-                {% endif %}
+					{% if shouldShowImportantDatesSection %}
+						<h2 class="govuk-heading-m">Important dates</h2>
+						{{ govukSummaryList({
+							rows: importantDatesSectionItems
+						}) }}
+					{% endif %}
 
-                {% if shouldShowProcedureDetailsSection %}
-                    <h2 class="govuk-heading-m">Procedure details</h2>
-                    {{ govukSummaryList({
-                        rows: procedureDetailsSectionItems
-                    }) }}
-                {% endif %}
+					{% if shouldShowProcedureDetailsSection %}
+						<h2 class="govuk-heading-m">Procedure details</h2>
+						{{ govukSummaryList({
+							rows: procedureDetailsSectionItems
+						}) }}
+					{% endif %}
 
-                {% if shouldShowApplicationDecisionSection %}
-                    <h2 class="govuk-heading-m">Application decision</h2>
-                    {{ govukSummaryList({
-                        rows: applicationDecisionSectionItems
-                    }) }}
-                {% endif %}
-            </div>
+					{% if shouldShowApplicationDecisionSection %}
+						<h2 class="govuk-heading-m">Application decision</h2>
+						{{ govukSummaryList({
+							rows: applicationDecisionSectionItems
+						}) }}
+					{% endif %}
+				</div>
 
-                {% if not isWithdrawn and not isExpired %}
-            {{ renderHaveYourSayInformation(haveYourSayStatus, crownDevelopmentFields) }}
-            <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
-                {% endif %}
-                {% if isWithdrawn %}
-                    {{ formatWithdrawnText(isExpired) }}
-                {% else %}
-                        {{ applicationStage.renderApplicationStage(applicationStageItems.currentStage, applicationStageItems.formattedApplicationStages, applicationStageItems.formattedConsultationEndDate, crownDevelopmentFields) }}
-                {% endif %}
-            <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
-            <div>
-                <h2 class="govuk-heading-m">Give us feedback</h2>
-                <p class="govuk-body">Help us improve this service by
-                    <a class="govuk-link" href="{{ config.serviceFeedbackUrl }}">sharing your feedback</a>.
-                </p>
-                <p class="govuk-body">You can also sign up to
-                    <a class="govuk-link" href="{{ config.serviceEOIUrl }}">take part in user research</a>.
-                </p>
-            </div>
-            <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
-            <div>
-                <h2 id="procedure" class="govuk-heading-m">Contact Us</h2>
-                <h3 class="govuk-heading-s">Telephone</h3>
-                <p class="govuk-body">If you have a representation reference number, have it with you when you call.</p>
-                <p class="govuk-body">Telephone: 0303 444 5000</p>
-                <p class="govuk-body">
-                    Open Monday to Friday: 9am to 4pm.
-                    <br>
-                    Closed on weekends and bank holidays.
-                </p>
+				{% if not isWithdrawn and not isExpired %}
+					{{ renderHaveYourSayInformation(haveYourSayStatus, crownDevelopmentFields) }}
+					<hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+				{% endif %}
+				{% if isWithdrawn %}
+					{{ formatWithdrawnText(isExpired) }}
+				{% else %}
+					{{ applicationStage.renderApplicationStage(applicationStageItems.currentStage, applicationStageItems.formattedApplicationStages, applicationStageItems.formattedConsultationEndDate, crownDevelopmentFields) }}
+				{% endif %}
+				<hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+				<div>
+					<h2 class="govuk-heading-m">Give us feedback</h2>
+					<p class="govuk-body">Help us improve this service by
+						<a class="govuk-link" href="{{ config.serviceFeedbackUrl }}">sharing your feedback</a>.
+					</p>
+					<p class="govuk-body">You can also sign up to
+						<a class="govuk-link" href="{{ config.serviceEOIUrl }}">take part in user research</a>.
+					</p>
+				</div>
+				<hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+				<div>
+					<h2 id="procedure" class="govuk-heading-m">Contact Us</h2>
+					<h3 class="govuk-heading-s">Telephone</h3>
+					<p class="govuk-body">If you have a representation reference number, have it with you when you call.</p>
+					<p class="govuk-body">Telephone: 0303 444 5000</p>
+					<p class="govuk-body">
+						Open Monday to Friday: 9am to 4pm.
+						<br>
+						Closed on weekends and bank holidays.
+					</p>
 
-                <h3 class="govuk-heading-s">Email</h3>
-                <p class="govuk-body">
-                    <a class="govuk-link" href="mailto:{{ crownDevelopmentFields.crownDevelopmentContactEmail }}">{{ crownDevelopmentFields.crownDevelopmentContactEmail }}</a>
-                </p>
-                <p class="govuk-body">When writing an email, quote the application reference in the subject line.</p>
-                <p class="govuk-body">We aim to respond within 10 working days.</p>
+					<h3 class="govuk-heading-s">Email</h3>
+					<p class="govuk-body">
+						<a class="govuk-link"
+						   href="mailto:{{ crownDevelopmentFields.crownDevelopmentContactEmail }}">{{ crownDevelopmentFields.crownDevelopmentContactEmail }}</a>
+					</p>
+					<p class="govuk-body">When writing an email, quote the application reference in the subject line.</p>
+					<p class="govuk-body">We aim to respond within 10 working days.</p>
 
-                <h3 class="govuk-heading-s">Alternative formats</h3>
-                <p class="govuk-body">Call or email to ask for project documents in alternative formats such as PDF, large print, easy read, audio recording or braille.</p>
-            </div>
-            {% else %}
-                {{ formatWithdrawnText(isExpired) }}
-            {% endif %}
-        </div>
-    </div>
+					<h3 class="govuk-heading-s">Alternative formats</h3>
+					<p class="govuk-body">Call or email to ask for project documents in alternative formats such as PDF, large
+						print, easy read, audio recording or braille.</p>
+				</div>
+			{% else %}
+				{{ formatWithdrawnText(isExpired) }}
+			{% endif %}
+		</div>
+	</div>
 {% endblock %}

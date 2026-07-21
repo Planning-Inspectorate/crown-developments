@@ -6,79 +6,79 @@
 
 {% set title = "Review representation - " + journeyTitle + " - GOV.UK" %}
 {% block pageTitle %}
-    {{ title }}
+	{{ title }}
 {% endblock %}
 
 {% block content %}
 
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full">
-            <h1 class="govuk-heading-l">
-                <span class="govuk-caption-xl">{{ reference }}</span>
-                Review attachment
-            </h1>
-        </div>
-    </div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-full">
+			<h1 class="govuk-heading-l">
+				<span class="govuk-caption-xl">{{ reference }}</span>
+				Review attachment
+			</h1>
+		</div>
+	</div>
 
-    <form method="POST">
-        <input type="hidden" name="_csrf" value="{{ _csrf }}">
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-full">
-                {{ govukSummaryList({
-                    rows: [
-                        {
-                            key: {
-                                text: "Reference"
-                            },
-                            value: {
-                                text: reference
-                            }
-                        },
-                        {
-                            key: {
-                                text: "Original attachment"
-                            },
-                            value: {
-                                html: '<a href="'+ currentUrl +'/view" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noreferrer">' + fileName + '</a>'
-                            }
-                        }
-                    ]
-                }) }}
+	<form method="POST">
+		<input type="hidden" name="_csrf" value="{{ _csrf }}">
+		<div class="govuk-grid-row">
+			<div class="govuk-grid-column-full">
+				{{ govukSummaryList({
+					rows: [
+						{
+							key: {
+							text: "Reference"
+						},
+							value: {
+							text: reference
+						}
+						},
+						{
+							key: {
+							text: "Original attachment"
+						},
+							value: {
+							html: '<a href="'+ currentUrl +'/view" class="govuk-link govuk-link--no-visited-state" target="_blank" rel="noreferrer">' + fileName + '</a>'
+						}
+						}
+					]
+				}) }}
 
-                {{  govukRadios({
-                    name: 'reviewDocumentDecision',
-                    value: documentStatus,
-                    fieldset: {
-                        legend: {
-                            text: 'Review decision',
-                            isPageHeading: false,
-                            classes: 'govuk-fieldset__legend--m'
-                        }
-                    },
-                    items: [
-                        {
-                            value: accept,
-                            text: "Accept"
-                        },
-                        {
-                            value: acceptAndRedact,
-                            text: "Accept and redact"
-                        },
-                        {
-                            value: reject,
-                            text: "Reject"
-                        }
-                    ],
-                    errorMessage: errors.reviewDocumentDecision and {
-                        text: errors.reviewDocumentDecision.msg
-                    }
-                }) }}
-            </div>
-        </div>
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-full">
-                {{  govukButton({ text: 'Continue' }) }}
-            </div>
-        </div>
-    </form>
+				{{ govukRadios({
+					name: 'reviewDocumentDecision',
+					value: documentStatus,
+					fieldset: {
+						legend: {
+							text: 'Review decision',
+							isPageHeading: false,
+							classes: 'govuk-fieldset__legend--m'
+						}
+					},
+					items: [
+						{
+							value: accept,
+							text: "Accept"
+						},
+						{
+							value: acceptAndRedact,
+							text: "Accept and redact"
+						},
+						{
+							value: reject,
+							text: "Reject"
+						}
+					],
+					errorMessage: errors.reviewDocumentDecision and {
+						text: errors.reviewDocumentDecision.msg
+					}
+				}) }}
+			</div>
+		</div>
+		<div class="govuk-grid-row">
+			<div class="govuk-grid-column-full">
+				{{ govukButton({ text: 'Continue' }) }}
+			</div>
+		</div>
+	</form>
 {% endblock %}

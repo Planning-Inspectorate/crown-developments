@@ -8,47 +8,48 @@
 {% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
 
 {% block pageHeading %}
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full">
-            <h1 class="govuk-heading-l">
-                {{ pageTitle }}
-            </h1>
-        </div>
-    </div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-full">
+			<h1 class="govuk-heading-l">
+				{{ pageTitle }}
+			</h1>
+		</div>
+	</div>
 {% endblock %}
 {% block pageContent %}
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
 
-      <p class="govuk-body">
-        By submitting this form, you are making a written representation on a Crown
-        development application. Your comment will be considered by the Planning Inspectors
-        before they make a decision on the application.
-      </p>
+			<p class="govuk-body">
+				By submitting this form, you are making a written representation on a Crown
+				development application. Your comment will be considered by the Planning Inspectors
+				before they make a decision on the application.
+			</p>
 
-      <form method="post" novalidate>
-        {% if _csrf %}<input type="hidden" name="_csrf" value="{{ _csrf }}">{% endif %}
-        <div class="govuk-form-group {% if errorSummary and errorSummary.length %}govuk-form-group--error{% endif %}">
-          <fieldset class="govuk-fieldset" aria-describedby="{% if errorSummary and errorSummary.length %}checkbox-hint{% endif %}">
-            <legend id="checkbox-hint" class="govuk-hint"> Select each statement to confirm that you agree.</legend>
-            <div class="govuk-checkboxes" data-module="govuk-checkboxes">
-                {{ govukCheckboxes({
-                    idPrefix: declarationCheckbox.idPrefix,
-                    name: declarationCheckbox.name,
-                    items: declarationCheckbox.items
-                }) }}
-            </div>
-          </fieldset>
-            <br>
-        </div>
-        <div class="govuk-grid-column-two-thirds">
-          {{ govukButton({
-            text: "Accept and submit",
-            type: "submit",
-            preventDoubleClick: true
-          }) }}
-        </div>
-      </form>
-    </div>
-  </div>
+			<form method="post" novalidate>
+				{% if _csrf %}<input type="hidden" name="_csrf" value="{{ _csrf }}">{% endif %}
+				<div class="govuk-form-group {% if errorSummary and errorSummary.length %}govuk-form-group--error{% endif %}">
+					<fieldset class="govuk-fieldset"
+					          aria-describedby="{% if errorSummary and errorSummary.length %}checkbox-hint{% endif %}">
+						<legend id="checkbox-hint" class="govuk-hint"> Select each statement to confirm that you agree.</legend>
+						<div class="govuk-checkboxes" data-module="govuk-checkboxes">
+							{{ govukCheckboxes({
+								idPrefix: declarationCheckbox.idPrefix,
+								name: declarationCheckbox.name,
+								items: declarationCheckbox.items
+							}) }}
+						</div>
+					</fieldset>
+					<br>
+				</div>
+				<div class="govuk-grid-column-two-thirds">
+					{{ govukButton({
+						text: "Accept and submit",
+						type: "submit",
+						preventDoubleClick: true
+					}) }}
+				</div>
+			</form>
+		</div>
+	</div>
 {% endblock %}

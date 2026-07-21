@@ -10,74 +10,74 @@
 {% import "custom-components/representation-information/index.njk" as representationInformation %}
 
 {% block before_content %}
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            {% if errorSummary %}
-                {{ govukErrorSummary({
-                    titleText: "There is a problem",
-                    errorList: errorSummary,
-                    attributes: {"data-cy": "error-wrapper"}
-                }) }}
-            {% endif %}
-        </div>
-    </div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			{% if errorSummary %}
+				{{ govukErrorSummary({
+					titleText: "There is a problem",
+					errorList: errorSummary,
+					attributes: {"data-cy": "error-wrapper"}
+				}) }}
+			{% endif %}
+		</div>
+	</div>
 
-    {{ super() }}
+	{{ super() }}
 {% endblock before_content %}
 
 {% block content %}
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            <form action="" method="post" novalidate>
-                <input type="hidden" name="_csrf" value="{{ _csrf }}">
-                <h1 class="govuk-heading-l">
-                    {{ question.question }}
-                </h1>
-                {% if config.appName == 'portal' %}
-                    <p class="govuk-body">Your comment can support, object or provide general feedback on the proposed
-                        development.</p>
-                    <p class="govuk-body">Make sure you include:</p>
-                    <ul class="govuk-list govuk-list--bullet">
-                        <li>how the proposed development may affect you and/or your business and community</li>
-                        <li>relevant detail to support your views</li>
-                    </ul>
-                    <p class="govuk-body">You should focus on planning-related matters. These can include, but are not
-                        limited to, the environment, local economy, transport links, access to services and quality of
-                        life factors such as noise, lighting and general living conditions.</p>
-                    <p class="govuk-body">If you want to add any supporting documents to your comment, you can do this
-                        on the next page.</p>
-                    <p class="govuk-body">Your comment will be published on this website along with your name, and the
-                        name of your organisation where applicable.</p>
-                    {{ govukInsetText({
-                        text: "Do not include in your comment any personal information that could identify you or another person."
-                    }) }}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			<form action="" method="post" novalidate>
+				<input type="hidden" name="_csrf" value="{{ _csrf }}">
+				<h1 class="govuk-heading-l">
+					{{ question.question }}
+				</h1>
+				{% if config.appName == 'portal' %}
+					<p class="govuk-body">Your comment can support, object or provide general feedback on the proposed
+						development.</p>
+					<p class="govuk-body">Make sure you include:</p>
+					<ul class="govuk-list govuk-list--bullet">
+						<li>how the proposed development may affect you and/or your business and community</li>
+						<li>relevant detail to support your views</li>
+					</ul>
+					<p class="govuk-body">You should focus on planning-related matters. These can include, but are not
+						limited to, the environment, local economy, transport links, access to services and quality of
+						life factors such as noise, lighting and general living conditions.</p>
+					<p class="govuk-body">If you want to add any supporting documents to your comment, you can do this
+						on the next page.</p>
+					<p class="govuk-body">Your comment will be published on this website along with your name, and the
+						name of your organisation where applicable.</p>
+					{{ govukInsetText({
+						text: "Do not include in your comment any personal information that could identify you or another person."
+					}) }}
 
-                {% endif %}
-                {{ govukTextarea({
-                    label: {
-                        text: question.label,
-                        classes: "govuk-!-font-weight-bold"
-                    },
-                    id: question.fieldName,
-                    name: question.fieldName,
-                    value: question.value,
-                    hint: { text: question.hint },
-                    errorMessage: errors[question.fieldName] and {
-                        text: errors[question.fieldName].msg
-                    },
-                    classes: question.inputClasses
-                }) }}
+				{% endif %}
+				{{ govukTextarea({
+					label: {
+						text: question.label,
+						classes: "govuk-!-font-weight-bold"
+					},
+					id: question.fieldName,
+					name: question.fieldName,
+					value: question.value,
+					hint: { text: question.hint },
+					errorMessage: errors[question.fieldName] and {
+						text: errors[question.fieldName].msg
+					},
+					classes: question.inputClasses
+				}) }}
 
-                {% if config.appName == 'portal' %}
-                    {{ representationInformation.renderRepresentationInformation("Guidance on what not to include") }}
-                {% endif %}
+				{% if config.appName == 'portal' %}
+					{{ representationInformation.renderRepresentationInformation("Guidance on what not to include") }}
+				{% endif %}
 
-                {{ govukButton({
-                    text: continueButtonText,
-                    type: "submit",
-                    attributes: { "data-cy":"button-save-and-continue"}
-                }) }}
-            </form>
-        </div>
-    </div>
+				{{ govukButton({
+					text: continueButtonText,
+					type: "submit",
+					attributes: { "data-cy":"button-save-and-continue"}
+				}) }}
+			</form>
+		</div>
+	</div>
 {% endblock %}

@@ -9,171 +9,175 @@
 {% import "custom-components/representation-information/index.njk" as representationInformation %}
 
 {% block before_content %}
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            {% if errorSummary %}
-                {{ govukErrorSummary({
-                    titleText: "There is a problem",
-                    errorList: errorSummary,
-                    attributes: {"data-cy": "error-wrapper"}
-                }) }}
-            {% endif %}
-        </div>
-    </div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			{% if errorSummary %}
+				{{ govukErrorSummary({
+					titleText: "There is a problem",
+					errorList: errorSummary,
+					attributes: {"data-cy": "error-wrapper"}
+				}) }}
+			{% endif %}
+		</div>
+	</div>
 {% endblock before_content %}
 
 {% block content %}
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            <input type="hidden" name="_csrf" value="{{ _csrf }}">
-            <h1 class="govuk-heading-l">
-                {{ question.question }}
-            </h1>
-            {% if question.showUploadWarning %}
-                <p class="govuk-body">Use this page to upload your supporting documents. These will be published on the
-                    website along with your name and comment.</p>
-                {{ govukInsetText({
-                    text: "Do not include in your supporting documents any personal information that could identify you or another person."
-                }) }}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			<input type="hidden" name="_csrf" value="{{ _csrf }}">
+			<h1 class="govuk-heading-l">
+				{{ question.question }}
+			</h1>
+			{% if question.showUploadWarning %}
+				<p class="govuk-body">Use this page to upload your supporting documents. These will be published on the
+					website along with your name and comment.</p>
+				{{ govukInsetText({
+					text: "Do not include in your supporting documents any personal information that could identify you or another person."
+				}) }}
 
-            {% endif %}
-            <p class="govuk-body">
-                You can upload the following file types:
-                <br>
-                {% set upperExtensions = [] %}
-                {% for ext in question.allowedFileExtensions %}
-                    {% set _ = upperExtensions.push(ext | upper) %}
-                {% endfor %}
-                {{ upperExtensions | join(", ") }}
-            </p>
-            <p class="govuk-body">Note that:</p>
-            <ul class="govuk-list govuk-list--bullet">
-                <li>files must not be compressed (ZIP files will not be accepted)</li>
-                <li>each file must be under {{ question.maxFileSizeString }}</li>
-                <li>only 3 files can be uploaded at a time</li>
-                <li>total upload size must be under 1GB</li>
-            </ul>
+			{% endif %}
+			<p class="govuk-body">
+				You can upload the following file types:
+				<br>
+				{% set upperExtensions = [] %}
+				{% for ext in question.allowedFileExtensions %}
+					{% set _ = upperExtensions.push(ext | upper) %}
+				{% endfor %}
+				{{ upperExtensions | join(", ") }}
+			</p>
+			<p class="govuk-body">Note that:</p>
+			<ul class="govuk-list govuk-list--bullet">
+				<li>files must not be compressed (ZIP files will not be accepted)</li>
+				<li>each file must be under {{ question.maxFileSizeString }}</li>
+				<li>only 3 files can be uploaded at a time</li>
+				<li>total upload size must be under 1GB</li>
+			</ul>
 
-            <p class="govuk-body govuk-!-font-weight-bold">Upload attachments</p>
+			<p class="govuk-body govuk-!-font-weight-bold">Upload attachments</p>
 
-            {% if uploadedFiles and uploadedFiles | length > 0 %}
-                <dl class="govuk-summary-list">
-                    {% for file in uploadedFiles %}
-                        <div class="govuk-summary-list__row">
-                            <dt class="govuk-summary-list__value">
-                                {{ file.fileName }}
-                            </dt>
-                            <dd class="govuk-summary-list__actions">
-                                <form id="deleteForm{{ loop.index }}" action="{{ currentUrl }}/delete-document/{{ file.itemId }}" method="POST">
-                                    <input type="hidden" name="_csrf" value="{{ _csrf }}">
-                                    <noscript>
-                                        {{ govukButton({
-                                            html: "Remove <span class=\"govuk-visually-hidden\">" ~ file.fileName ~ "</span>",
-                                            classes: "govuk-button--warning"
-                                        }) }}
-                                    </noscript>
-                                </form>
-                                <a href="#" role="button" class="js-remove-link govuk-link js-enabled-link" data-form-id="deleteForm{{ loop.index }}">Remove <span class="govuk-visually-hidden">{{ file.fileName }}</span></a>
-                            </dd>
-                        </div>
-                    {% endfor %}
-                </dl>
-            {% endif %}
+			{% if uploadedFiles and uploadedFiles | length > 0 %}
+				<dl class="govuk-summary-list">
+					{% for file in uploadedFiles %}
+						<div class="govuk-summary-list__row">
+							<dt class="govuk-summary-list__value">
+								{{ file.fileName }}
+							</dt>
+							<dd class="govuk-summary-list__actions">
+								<form id="deleteForm{{ loop.index }}" action="{{ currentUrl }}/delete-document/{{ file.itemId }}"
+								      method="POST">
+									<input type="hidden" name="_csrf" value="{{ _csrf }}">
+									<noscript>
+										{{ govukButton({
+											html: "Remove <span class=\"govuk-visually-hidden\">" ~ file.fileName ~ "</span>",
+											classes: "govuk-button--warning"
+										}) }}
+									</noscript>
+								</form>
+								<a href="#" role="button" class="js-remove-link govuk-link js-enabled-link"
+								   data-form-id="deleteForm{{ loop.index }}">Remove <span
+										class="govuk-visually-hidden">{{ file.fileName }}</span></a>
+							</dd>
+						</div>
+					{% endfor %}
+				</dl>
+			{% endif %}
 
-            {% set uploadForm = "upload-form" %}
+			{% set uploadForm = "upload-form" %}
 
-            <form id={{ uploadForm }} method="post" enctype="multipart/form-data" action="{{ currentUrl }}/upload-documents">
-                <input type="hidden" name="_csrf" value="{{ _csrf }}">
-                <div id="uploadingBar" class="govuk-notification-banner govuk-notification-banner--info uploading-bar--hidden" aria-live="polite" aria-hidden="true" role="region">
-                    <div class="govuk-notification-banner__content">
-                        <strong>Uploading...</strong>
-                    </div>
-                </div>
-                {{ govukFileUpload({
-                    id: question.fieldName,
-                    name: "files[]",
-                    label: {
-                        text: "Upload attachments",
-                        classes: "govuk-visually-hidden"
-                    },
-                    javascript: true,
-                    multiple: true,
-                    chooseFilesButtonText: "Select attachments",
-                    dropInstructionText: "or drag and drop attachments here",
-                    attributes: {
-                        accept: question.allowedMimeTypes | join(", ")
-                    },
-                    errorMessage: errors[uploadForm] and {
-                        text: errors[uploadForm].msg
-                    } or errors[question.fieldName] and {
-                        text: errors[question.fieldName].msg
-                    }
-                }) }}
-                <noscript>
-                    {{ govukButton({
-                        text: "Upload"
-                    }) }}
-                </noscript>
-            </form>
+			<form id={{ uploadForm }} method="post" enctype="multipart/form-data" action="{{ currentUrl }}/upload-documents">
+				<input type="hidden" name="_csrf" value="{{ _csrf }}">
+				<div id="uploadingBar" class="govuk-notification-banner govuk-notification-banner--info uploading-bar--hidden"
+				     aria-live="polite" aria-hidden="true" role="region">
+					<div class="govuk-notification-banner__content">
+						<strong>Uploading...</strong>
+					</div>
+				</div>
+				{{ govukFileUpload({
+					id: question.fieldName,
+					name: "files[]",
+					label: {
+						text: "Upload attachments",
+						classes: "govuk-visually-hidden"
+					},
+					javascript: true,
+					multiple: true,
+					chooseFilesButtonText: "Select attachments",
+					dropInstructionText: "or drag and drop attachments here",
+					attributes: {
+						accept: question.allowedMimeTypes | join(", ")
+					},
+					errorMessage: errors[uploadForm] and {
+						text: errors[uploadForm].msg
+					} or errors[question.fieldName] and {
+						text: errors[question.fieldName].msg
+					}
+				}) }}
+				<noscript>
+					{{ govukButton({
+						text: "Upload"
+					}) }}
+				</noscript>
+			</form>
 
-            {% if question.showUploadWarning %}
-                {{ representationInformation.renderRepresentationInformation("Guidance on what not to include") }}
-            {% endif %}
+			{% if question.showUploadWarning %}
+				{{ representationInformation.renderRepresentationInformation("Guidance on what not to include") }}
+			{% endif %}
 
 
-            <form action="" method="post" novalidate>
-                <input type="hidden" name="_csrf" value="{{ _csrf }}">
-                <input type="hidden" name="{{ question.fieldName }}" value='{{ uploadedFilesEncoded | safe }}'>
-                {{ govukButton({
-                    text: continueButtonText,
-                    type: "submit",
-                    attributes: { "data-cy":"button-save-and-continue"}
-                }) }}
-            </form>
+			<form action="" method="post" novalidate>
+				<input type="hidden" name="_csrf" value="{{ _csrf }}">
+				<input type="hidden" name="{{ question.fieldName }}" value='{{ uploadedFilesEncoded | safe }}'>
+				{{ govukButton({
+					text: continueButtonText,
+					type: "submit",
+					attributes: { "data-cy":"button-save-and-continue"}
+				}) }}
+			</form>
 
-            <script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-                document.addEventListener('DOMContentLoaded', function () {
-                    document.querySelectorAll('.js-remove-link').forEach(function (link) {
-                        link.addEventListener('click', function (event) {
-                            event.preventDefault();
-                            const formId = link.getAttribute('data-form-id');
-                            const form = document.getElementById(formId);
-                            if (form) form.submit();
-                        });
-                    });
-                });
+			<script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
+				document.addEventListener('DOMContentLoaded', function() {
+					document.querySelectorAll('.js-remove-link').forEach(function(link) {
+						link.addEventListener('click', function(event) {
+							event.preventDefault();
+							const formId = link.getAttribute('data-form-id');
+							const form = document.getElementById(formId);
+							if (form) form.submit();
+						});
+					});
+				});
 
-                document.addEventListener('DOMContentLoaded', function () {
-                    const fileInput = document.querySelector('#{{ question.fieldName }}-input');
-                    const form = document.querySelector('#upload-form');
-                    const uploadingBar = document.getElementById('uploadingBar');
+				document.addEventListener('DOMContentLoaded', function() {
+					const fileInput = document.querySelector('#{{ question.fieldName }}-input');
+					const form = document.querySelector('#upload-form');
+					const uploadingBar = document.getElementById('uploadingBar');
 
-                    if (fileInput && form && uploadingBar) {
-                        fileInput.addEventListener('change', function () {
-                            const files = fileInput.files;
-                            if (files.length === 0) return;
-                            uploadingBar.classList.remove('uploading-bar--hidden');
-                            uploadingBar.classList.add('uploading-bar--visible');
-                            uploadingBar.setAttribute('aria-hidden', 'false');
-                            form.submit();
-                        });
-                    }
-                });
+					if (fileInput && form && uploadingBar) {
+						fileInput.addEventListener('change', function() {
+							const files = fileInput.files;
+							if (files.length === 0) return;
+							uploadingBar.classList.remove('uploading-bar--hidden');
+							uploadingBar.classList.add('uploading-bar--visible');
+							uploadingBar.setAttribute('aria-hidden', 'false');
+							form.submit();
+						});
+					}
+				});
 
-                window.addEventListener("DOMContentLoaded", () => {
-                    const links = document.querySelectorAll(".js-enabled-link");
-                    links.forEach(link => {
-                        link.style.display = "inline";
-                    });
-                    // Hide the loading bar on page load
-                    const uploadingBar = document.getElementById('uploadingBar');
-                    if (uploadingBar) {
-                        uploadingBar.classList.remove('uploading-bar--visible');
-                        uploadingBar.classList.add('uploading-bar--hidden');
-                        uploadingBar.setAttribute('aria-hidden', 'true');
-                    }
-                });
-            </script>
-        </div>
-    </div>
+				window.addEventListener('DOMContentLoaded', () => {
+					const links = document.querySelectorAll('.js-enabled-link');
+					links.forEach(link => {
+						link.style.display = 'inline';
+					});
+					// Hide the loading bar on page load
+					const uploadingBar = document.getElementById('uploadingBar');
+					if (uploadingBar) {
+						uploadingBar.classList.remove('uploading-bar--visible');
+						uploadingBar.classList.add('uploading-bar--hidden');
+						uploadingBar.setAttribute('aria-hidden', 'true');
+					}
+				});
+			</script>
+		</div>
+	</div>
 {% endblock %}

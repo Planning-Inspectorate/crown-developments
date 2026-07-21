@@ -1,40 +1,40 @@
 {% macro toggleList(answers) %}
-    <div data-behaviour="toggle-list">
-        <ul class="govuk-list govuk-list--bullet">
-            {% for question in (answers.slice(0,2)) %}
-                {{ listItem(question) }}
-            {% endfor %}
-        </ul>
-        {% if answers.length > 2 %}
-            {#  Graceful degradation: JS will show toggle and hide extra list on load #}
-            <button class="pins-button-link" hidden data-toggle>Show {{ answers.length - 2 }} more</button>
-            <ul class="govuk-list govuk-list--bullet govuk-!-padding-top-4" data-show-more>
-                {% for question in (answers.slice(2)) %}
-                    {{ listItem(question) }}
-                {% endfor %}
-            </ul>
-        {% endif %}
-    </div>
+	<div data-behaviour="toggle-list">
+		<ul class="govuk-list govuk-list--bullet">
+			{% for question in (answers.slice(0,2)) %}
+				{{ listItem(question) }}
+			{% endfor %}
+		</ul>
+		{% if answers.length > 2 %}
+			{#  Graceful degradation: JS will show toggle and hide extra list on load #}
+			<button class="pins-button-link" hidden data-toggle>Show {{ answers.length - 2 }} more</button>
+			<ul class="govuk-list govuk-list--bullet govuk-!-padding-top-4" data-show-more>
+				{% for question in (answers.slice(2)) %}
+					{{ listItem(question) }}
+				{% endfor %}
+			</ul>
+		{% endif %}
+	</div>
 {% endmacro %}
 
 {% macro standardList(answers) %}
-    <ul class="govuk-list {% if answers.length > 1 %}govuk-list--bullet{% endif %}">
-        {% for question in answers %}
-            {{ listItem(question) }}
-        {% endfor %}
-    </ul>
+	<ul class="govuk-list {% if answers.length > 1 %}govuk-list--bullet{% endif %}">
+		{% for question in answers %}
+			{{ listItem(question) }}
+		{% endfor %}
+	</ul>
 {% endmacro %}
 
 {% macro listItem(question) %}
-    <li>
-        {% for value in question %}
-            {{ value.answer | safe }}{% if not loop.last %}<br>{% endif %}
-        {% endfor %}
-    </li>
+	<li>
+		{% for value in question %}
+			{{ value.answer | safe }}{% if not loop.last %}<br>{% endif %}
+		{% endfor %}
+	</li>
 {% endmacro %}
 
 {% if answers.length > 2 %}
-    {{ toggleList(answers) }}
+	{{ toggleList(answers) }}
 {% else %}
-    {{ standardList(answers) }}
+	{{ standardList(answers) }}
 {% endif %}

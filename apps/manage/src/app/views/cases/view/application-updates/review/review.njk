@@ -4,28 +4,28 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 
 {% block pageContent %}
-    {{ govukSummaryList({
-        rows: summaryItems
-    }) }}
-    <div class="govuk-button-group">
-        <form method="POST">
-            <input type="hidden" name="_csrf" value="{{ _csrf }}">
-            {% if applicationUpdateStatus == "published" %}
-                {{ govukButton({
-                    text: "Unpublish update",
-                    href: unpublishButtonUrl,
-                    classes: "govuk-button--warning"
-                }) }}
-            {% elif applicationUpdateStatus == "draft" %}
-                    {{ govukButton({
-                        text: "Save"
-                    }) }}
-                {{ govukButton({
-                    text: "Delete",
-                    href: deleteButtonUrl,
-                    classes: "govuk-button--warning"
-                }) }}
-            {% endif %}
-        </form>
-    </div>
+	{{ govukSummaryList({
+		rows: summaryItems
+	}) }}
+	<div class="govuk-button-group">
+		<form method="POST">
+			<input type="hidden" name="_csrf" value="{{ _csrf }}">
+			{% if applicationUpdateStatus == "published" %}
+				{{ govukButton({
+					text: "Unpublish update",
+					href: unpublishButtonUrl,
+					classes: "govuk-button--warning"
+				}) }}
+				{% elif applicationUpdateStatus == "draft" %}
+				{{ govukButton({
+					text: "Save"
+				}) }}
+				{{ govukButton({
+					text: "Delete",
+					href: deleteButtonUrl,
+					classes: "govuk-button--warning"
+				}) }}
+			{% endif %}
+		</form>
+	</div>
 {% endblock %}
