@@ -31,11 +31,31 @@ export const S62A_DATE_FIELDS = Object.freeze([
 	'turnedAwayDate'
 ] as const);
 
+export const FEE_BOOLEAN_FIELDS = Object.freeze([
+	'hasPreApplicationFee',
+	'hasApplicationFee',
+	'eligibleForFeeRefund'
+] as const);
+export const FEE_NUMBER_FIELDS = Object.freeze([
+	'preApplicationFee',
+	'applicationFee',
+	'applicationFeeRefundAmount'
+] as const);
+export const FEE_STRING_FIELDS = Object.freeze(['customerNumber'] as const);
+export const FEE_DATE_FIELDS = Object.freeze([
+	'chargingScheduleSentDate',
+	'invoiceDate',
+	'preApplicationFeeReceivedDate',
+	'applicationFeeReceivedDate',
+	'applicationFeeRefundDate'
+] as const);
+
 export type S62aCaseDbModel = Prisma.S62aCaseGetPayload<{
 	include: {
 		S62aStatus: true;
 		SiteAddress: true;
 		S62aDates: true;
+		S62aFees: true;
 	};
 }>;
 
@@ -90,6 +110,21 @@ export interface S62aCaseViewModel {
 		start?: Date;
 		end?: Date;
 	};
+
+	hasPreApplicationFee?: YesNo;
+	preApplicationFee?: number;
+	chargingScheduleSentDate?: Date;
+	invoiceDate?: Date;
+	preApplicationFeeReceivedDate?: Date;
+	customerNumber?: string;
+
+	hasApplicationFee?: YesNo;
+	applicationFee?: number;
+	applicationFeeReceivedDate?: Date;
+
+	eligibleForFeeRefund?: YesNo;
+	applicationFeeRefundAmount?: number;
+	applicationFeeRefundDate?: Date;
 }
 
 /**
@@ -191,6 +226,36 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 			}
 			if (dbCase.S62aDates.reconsultationDetailsDeadlineDate) {
 				viewModel.reconsultationDetailsDate.end = dbCase.S62aDates.reconsultationDetailsDeadlineDate;
+			}
+		}
+	}
+
+	if (dbCase.S62aFees) {
+		for (const field of FEE_BOOLEAN_FIELDS) {
+			const val = dbCase.S62aFees[field];
+			if (typeof val === 'boolean') {
+				viewModel[field] = booleanToYesNoValue(val);
+			}
+		}
+
+		for (const field of FEE_NUMBER_FIELDS) {
+			const val = dbCase.S62aFees[field];
+			if (val) {
+				viewModel[field] = val.toNumber();
+			}
+		}
+
+		for (const field of FEE_DATE_FIELDS) {
+			const val = dbCase.S62aFees[field];
+			if (val) {
+				viewModel[field] = val;
+			}
+		}
+
+		for (const field of FEE_STRING_FIELDS) {
+			const val = dbCase.S62aFees[field];
+			if (val) {
+				viewModel[field] = val;
 			}
 		}
 	}

@@ -83,7 +83,8 @@ export const S62A_STATUSES = [
 export const VIEW_TAB_ID = Object.freeze({
 	OVERVIEW: 'overview',
 	DETAILS: 'details',
-	DATES: 'dates'
+	DATES: 'dates',
+	FEE: 'fee'
 } as const);
 
 /**
@@ -101,6 +102,10 @@ export const VIEW_TABS = [
 	{
 		id: VIEW_TAB_ID.DATES,
 		displayName: 'Dates'
+	},
+	{
+		id: VIEW_TAB_ID.FEE,
+		displayName: 'Fee'
 	}
 ];
 

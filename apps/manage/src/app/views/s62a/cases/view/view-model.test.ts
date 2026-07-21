@@ -235,4 +235,93 @@ describe('s62aCaseToViewModel', () => {
 			assert.strictEqual(result.reconsultationDetailsDate, undefined);
 		});
 	});
+
+	describe('Fees Mapping', () => {
+		it('does not map fee fields if S62aFees is missing', () => {
+			const mockDbCase = {
+				id: 'case-fee-1',
+				reference: 'S62A/2026/0010',
+				expectedSubmissionDate: mockDate
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.hasPreApplicationFee, undefined);
+			assert.strictEqual(result.preApplicationFee, undefined);
+			assert.strictEqual(result.customerNumber, undefined);
+		});
+
+		it('maps fee boolean fields to YesNo string values', () => {
+			const mockDbCase = {
+				id: 'case-fee-2',
+				reference: 'S62A/2026/0011',
+				expectedSubmissionDate: mockDate,
+				S62aFees: {
+					hasPreApplicationFee: true,
+					hasApplicationFee: false,
+					eligibleForFeeRefund: null
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.hasPreApplicationFee, 'yes');
+			assert.strictEqual(result.hasApplicationFee, 'no');
+			assert.strictEqual(result.eligibleForFeeRefund, undefined);
+		});
+
+		it('maps fee decimal fields to standard numbers', () => {
+			const mockDbCase = {
+				id: 'case-fee-3',
+				reference: 'S62A/2026/0012',
+				expectedSubmissionDate: mockDate,
+				S62aFees: {
+					preApplicationFee: createMockDecimal(1500.5),
+					applicationFee: createMockDecimal(0),
+					applicationFeeRefundAmount: null
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.preApplicationFee, 1500.5);
+			assert.strictEqual(result.applicationFee, 0);
+			assert.strictEqual(result.applicationFeeRefundAmount, undefined);
+		});
+
+		it('maps fee date fields correctly', () => {
+			const date = new Date('2026-08-01T10:00:00Z');
+			const mockDbCase = {
+				id: 'case-fee-4',
+				reference: 'S62A/2026/0013',
+				expectedSubmissionDate: mockDate,
+				S62aFees: {
+					invoiceDate: date,
+					applicationFeeReceivedDate: date,
+					chargingScheduleSentDate: null
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.invoiceDate, date);
+			assert.strictEqual(result.applicationFeeReceivedDate, date);
+			assert.strictEqual(result.chargingScheduleSentDate, undefined);
+		});
+
+		it('maps fee string fields correctly', () => {
+			const mockDbCase = {
+				id: 'case-fee-5',
+				reference: 'S62A/2026/0014',
+				expectedSubmissionDate: mockDate,
+				S62aFees: {
+					customerNumber: '123456'
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.customerNumber, '123456');
+		});
+	});
 });

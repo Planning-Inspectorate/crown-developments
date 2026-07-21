@@ -263,5 +263,122 @@ describe('S62aCaseUpdateMapper', () => {
 			});
 			assert.strictEqual((result.S62aDates?.upsert.create as any).targetPublishDate, undefined);
 		});
+
+		it('maps reconsultationDetailsDate to individual start and end dates', () => {
+			const startDate = new Date('2026-07-20T10:00:00Z');
+			const endDate = new Date('2026-08-20T10:00:00Z');
+
+			const answers: UpdateCaseAnswers = {
+				reconsultationDetailsDate: { start: startDate, end: endDate }
+			};
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aDates, {
+				upsert: {
+					create: { reconsultationDetailsSentDate: startDate, reconsultationDetailsDeadlineDate: endDate },
+					update: { reconsultationDetailsSentDate: startDate, reconsultationDetailsDeadlineDate: endDate }
+				}
+			});
+		});
+
+		it('maps partial reconsultationDetailsDate correctly', () => {
+			const startDate = new Date('2026-07-20T10:00:00Z');
+
+			const answers: UpdateCaseAnswers = {
+				reconsultationDetailsDate: { start: startDate, end: null }
+			};
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aDates, {
+				upsert: {
+					create: { reconsultationDetailsSentDate: startDate, reconsultationDetailsDeadlineDate: null },
+					update: { reconsultationDetailsSentDate: startDate, reconsultationDetailsDeadlineDate: null }
+				}
+			});
+		});
+	});
+
+	describe('Fees Mapping', () => {
+		it('does not generate S62aFees update if no fee answers are provided', () => {
+			const mapper = new S62aCaseUpdateMapper({});
+			const result = mapper.generateUpdateInput();
+
+			assert.strictEqual(result.S62aFees, undefined);
+		});
+
+		it('maps fee boolean fields to true boolean values', () => {
+			const answers: UpdateCaseAnswers = {
+				hasPreApplicationFee: 'yes',
+				hasApplicationFee: true,
+				eligibleForFeeRefund: 'no'
+			};
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aFees, {
+				upsert: {
+					create: {
+						hasPreApplicationFee: true,
+						hasApplicationFee: true,
+						eligibleForFeeRefund: false
+					},
+					update: {
+						hasPreApplicationFee: true,
+						hasApplicationFee: true,
+						eligibleForFeeRefund: false
+					}
+				}
+			});
+		});
+
+		it('maps fee string/number fields correctly, allowing zero but converting empty strings to null', () => {
+			const answers: UpdateCaseAnswers = {
+				preApplicationFee: '1500.50',
+				applicationFee: 0,
+				applicationFeeRefundAmount: ''
+			};
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aFees, {
+				upsert: {
+					create: {
+						preApplicationFee: 1500.5,
+						applicationFee: 0,
+						applicationFeeRefundAmount: null
+					},
+					update: {
+						preApplicationFee: 1500.5,
+						applicationFee: 0,
+						applicationFeeRefundAmount: null
+					}
+				}
+			});
+		});
+
+		it('maps fee date fields correctly', () => {
+			const date = new Date('2026-08-01T10:00:00Z');
+			const answers: UpdateCaseAnswers = {
+				invoiceDate: date,
+				applicationFeeReceivedDate: date
+			};
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aFees, {
+				upsert: {
+					create: {
+						invoiceDate: date,
+						applicationFeeReceivedDate: date
+					},
+					update: {
+						invoiceDate: date,
+						applicationFeeReceivedDate: date
+					}
+				}
+			});
+		});
 	});
 });

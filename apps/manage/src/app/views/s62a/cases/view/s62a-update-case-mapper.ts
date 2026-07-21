@@ -3,10 +3,21 @@ import { SITE_AREA_UNIT_ID } from '@pins/crowndev-database/src/seed/s62a/data-st
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
 import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
 import { type Address, yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
-import { S62A_DATE_FIELDS } from './view-model.ts';
+import {
+	S62A_DATE_FIELDS,
+	FEE_BOOLEAN_FIELDS,
+	FEE_NUMBER_FIELDS,
+	FEE_DATE_FIELDS,
+	FEE_STRING_FIELDS
+} from './view-model.ts';
 import { addBusinessDays } from 'date-fns';
 
 const DATE_FIELDS_SET = new Set<string>(S62A_DATE_FIELDS);
+
+const FEE_BOOLEAN_SET = new Set<string>(FEE_BOOLEAN_FIELDS);
+const FEE_NUMBER_SET = new Set<string>(FEE_NUMBER_FIELDS);
+const FEE_DATE_SET = new Set<string>(FEE_DATE_FIELDS);
+const FEE_STRING_SET = new Set<string>(FEE_STRING_FIELDS);
 
 export interface UpdateCaseAnswers {
 	s62aStatusId?: string;
@@ -56,8 +67,29 @@ export interface UpdateCaseAnswers {
 	withdrawnDate?: Date | null;
 	turnedAwayDate?: Date | null;
 	reconsultationDetailsDate?: { start: Date | null; end: Date | null };
+
+	hasPreApplicationFee?: boolean | YesNo | null;
+	preApplicationFee?: string | number | null;
+	chargingScheduleSentDate?: Date | null;
+	invoiceDate?: Date | null;
+	preApplicationFeeReceivedDate?: Date | null;
+
+	hasApplicationFee?: boolean | YesNo | null;
+	applicationFee?: string | number | null;
+	applicationFeeReceivedDate?: Date | null;
+
+	eligibleForFeeRefund?: boolean | YesNo | null;
+	applicationFeeRefundAmount?: string | number | null;
+	applicationFeeRefundDate?: Date | null;
 }
 
+/**
+ * Class that handles mapping an update request into the correct
+ * form for a DB interaction.
+ *
+ * TODO: break down monolith into sub classes if and when we start to
+ * have too many input field reference tables.
+ */
 export class S62aCaseUpdateMapper {
 	private answers: UpdateCaseAnswers;
 
@@ -75,6 +107,7 @@ export class S62aCaseUpdateMapper {
 		this.mapLookups(input);
 		this.mapAddress(input);
 		this.mapDates(input);
+		this.mapFees(input);
 
 		return input;
 	}
@@ -227,15 +260,58 @@ export class S62aCaseUpdateMapper {
 	}
 
 	/**
-	 * Checks the set for a date key
+	 * Creates the data on the Fees reference table
 	 */
+	private mapFees(input: Prisma.S62aCaseUpdateInput): void {
+		const feesToUpdate: Prisma.S62aFeesUpdateWithoutS62aCaseInput & Prisma.S62aFeesCreateWithoutS62aCaseInput = {};
+		let hasFeeUpdates = false;
+
+		for (const [key, value] of Object.entries(this.answers)) {
+			if (this.isFeeBooleanField(key)) {
+				feesToUpdate[key] = yesNoToBoolean(value);
+				hasFeeUpdates = true;
+			} else if (this.isFeeNumberField(key)) {
+				feesToUpdate[key] = value === null || value === '' ? null : Number(value);
+				hasFeeUpdates = true;
+			} else if (this.isFeeDateField(key)) {
+				feesToUpdate[key] = (value as Date) || null;
+				hasFeeUpdates = true;
+			} else if (this.isFeeStringField(key)) {
+				feesToUpdate[key] = (value as string) || null;
+				hasFeeUpdates = true;
+			}
+		}
+
+		if (hasFeeUpdates) {
+			input.S62aFees = {
+				upsert: {
+					create: feesToUpdate,
+					update: feesToUpdate
+				}
+			};
+		}
+	}
+
 	private isDateField(key: string): key is (typeof S62A_DATE_FIELDS)[number] {
 		return DATE_FIELDS_SET.has(key);
 	}
 
-	/**
-	 * Checks if we have received "something" from the input (even if that's null or '')
-	 */
+	private isFeeBooleanField(key: string): key is (typeof FEE_BOOLEAN_FIELDS)[number] {
+		return FEE_BOOLEAN_SET.has(key);
+	}
+
+	private isFeeNumberField(key: string): key is (typeof FEE_NUMBER_FIELDS)[number] {
+		return FEE_NUMBER_SET.has(key);
+	}
+
+	private isFeeDateField(key: string): key is (typeof FEE_DATE_FIELDS)[number] {
+		return FEE_DATE_SET.has(key);
+	}
+
+	private isFeeStringField(key: string): key is (typeof FEE_DATE_FIELDS)[number] {
+		return FEE_STRING_SET.has(key);
+	}
+
 	private hasAnswer(key: keyof UpdateCaseAnswers): boolean {
 		return this.answers[key] !== undefined;
 	}

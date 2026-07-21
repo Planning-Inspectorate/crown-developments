@@ -216,6 +216,30 @@ model S62aCase {
 
   /// Other dates
   S62aDates S62aDates?
+
+  S62aFees S62aFees?
+}
+
+model S62aFees {
+  id         String   @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  s62aCaseId String   @unique @db.UniqueIdentifier
+  S62aCase   S62aCase @relation(fields: [s62aCaseId], references: [id])
+
+  /// Pre-application Fees
+  hasPreApplicationFee          Boolean?
+  preApplicationFee             Decimal?
+  customerNumber                String?
+  chargingScheduleSentDate      DateTime?
+  invoiceDate                   DateTime?
+  preApplicationFeeReceivedDate DateTime?
+
+  /// Application Fees
+  hasApplicationFee          Boolean?
+  applicationFee             Decimal?
+  applicationFeeReceivedDate DateTime?
+  eligibleForFeeRefund       Boolean?
+  applicationFeeRefundAmount Decimal?
+  applicationFeeRefundDate   DateTime?
 }
 
 model S62aDates {
