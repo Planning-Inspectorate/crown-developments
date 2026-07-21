@@ -6,8 +6,8 @@
 
 {% block head %}
 	{# setup the header tags, to link to the styles #}
-	<link rel="stylesheet" href="/{{ styleCss }}"/>
-	<link rel="stylesheet" href="/index.css"/>
+	<link rel="stylesheet" href="/{{ styleCss }}" />
+	<link rel="stylesheet" href="/index.css" />
 {% endblock %}
 
 {% block pageTitle %}
@@ -39,12 +39,10 @@
 		{% if errorSummary %}
 			<div class="govuk-grid-row">
 				<div class="govuk-grid-column-two-thirds">
-					{{
-					govukErrorSummary({
+					{{ govukErrorSummary({
 						titleText: "There is a problem",
 						errorList: errorSummary
-					})
-					}}
+					}) }}
 				</div>
 			</div>
 		{% endif %}
@@ -52,19 +50,19 @@
 {% endblock %}
 
 {% block content %}
-    {% block pageHeading %}
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-full">
-                <h1 class="govuk-heading-xl">
-                    {% if pageCaption %}
-                        <span class="govuk-caption-xl">{{ pageCaption }}</span>
-                    {% endif %}
-                    {{ pageHeading or pageTitle }}
-                </h1>
-            </div>
-        </div>
-    {% endblock %}
-    {% block pageContent %}{% endblock %}
+	{% block pageHeading %}
+		<div class="govuk-grid-row">
+			<div class="govuk-grid-column-full">
+				<h1 class="govuk-heading-xl">
+					{% if pageCaption %}
+						<span class="govuk-caption-xl">{{ pageCaption }}</span>
+					{% endif %}
+					{{ pageHeading or pageTitle }}
+				</h1>
+			</div>
+		</div>
+	{% endblock %}
+	{% block pageContent %}{% endblock %}
 {% endblock %}
 
 {% block footer %}
@@ -78,16 +76,18 @@
 		</div>
 	</footer>
 
-	<script type="module" {% if cspNonce %}nonce={{ cspNonce }}{% endif %} src="/assets/js/govuk-frontend.min.js"></script>
+	<script type="module"
+	        {% if cspNonce %}nonce={{ cspNonce }}{% endif %} src="/assets/js/govuk-frontend.min.js"></script>
 	<script type="module" {% if cspNonce %}nonce={{ cspNonce }}{% endif %} src="/assets/js/moj-frontend.min.js"></script>
 	<script type="module" {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-		import { initAll as govUkInitAll } from '/assets/js/govuk-frontend.min.js'
-		import { initAll as mojInitAll } from '/assets/js/moj-frontend.min.js'
-		govUkInitAll()
-		mojInitAll()
+		import { initAll as govUkInitAll } from '/assets/js/govuk-frontend.min.js';
+		import { initAll as mojInitAll } from '/assets/js/moj-frontend.min.js';
+
+		govUkInitAll();
+		mojInitAll();
 	</script>
 	<script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-		document.addEventListener("DOMContentLoaded", function() {
+		document.addEventListener('DOMContentLoaded', function() {
 			const toggleLists = document.querySelectorAll('[data-behaviour="toggle-list"]');
 			toggleLists.forEach(toggleList => {
 				const toggle = toggleList.querySelector('[data-toggle]');
@@ -105,8 +105,8 @@
 					expanded = !expanded;
 					hiddenList.hidden = !expanded;
 					toggle.textContent = expanded
-							? 'Hide'
-							: 'Show ' + hiddenCount + ' more';
+						? 'Hide'
+						: 'Show ' + hiddenCount + ' more';
 				});
 			});
 		});

@@ -5,54 +5,56 @@
 {% set title = reference + " - " + journeyTitle + " - Manage a S62A Case" %}
 
 {% block pageTitle %}
-    {{ title }}
+	{{ title }}
 {% endblock %}
 
 {% block content %}
-    {% if banner %}
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-two-thirds">
-                {{ govukNotificationBanner(banner) }}
-            </div>
-        </div>
-    {% endif %}
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            <h1 class="govuk-heading-l">
-                {{ reference }}
-            </h1>
-        </div>
-    </div>
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full">
-            <nav class="moj-sub-navigation pins-sub-navigation" aria-label="Sub navigation">
-                <ul class="moj-sub-navigation__list">
-                    {% for tab in viewTabs %}
-                        <li class="moj-sub-navigation__item {% if currentTab == tab.id %}moj-sub-navigation__item--active{% endif %}">
-                            <a class="moj-sub-navigation__link" {% if currentTab == tab.id %}aria-current="page"{% endif %} href="{{ cleanUrl }}/{{ tab.id }}">
-                                {{ tab.displayName }}
-                            </a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </nav>
-        </div>
-    </div>
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full">
-            {% for section in summaryListData.sections %}
-                {% if section.list.rows.length %}
-                    {% if section.heading %}
-                        <h2 class="govuk-heading-m" id="{{ section.heading | lower | replace(' ', '-') }}">
-                            {{ section.heading }}
-                        </h2>
-                    {% endif %}
-                    
-                    {{ govukSummaryList({
-                        rows: section.list.rows
-                    }) }} 
-                {% endif %}
-            {% endfor %}
-        </div>
-    </div>
+	{% if banner %}
+		<div class="govuk-grid-row">
+			<div class="govuk-grid-column-two-thirds">
+				{{ govukNotificationBanner(banner) }}
+			</div>
+		</div>
+	{% endif %}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			<h1 class="govuk-heading-l">
+				{{ reference }}
+			</h1>
+		</div>
+	</div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-full">
+			<nav class="moj-sub-navigation pins-sub-navigation" aria-label="Sub navigation">
+				<ul class="moj-sub-navigation__list">
+					{% for tab in viewTabs %}
+						<li
+							class="moj-sub-navigation__item {% if currentTab == tab.id %}moj-sub-navigation__item--active{% endif %}">
+							<a class="moj-sub-navigation__link" {% if currentTab == tab.id %}aria-current="page"{% endif %}
+							   href="{{ cleanUrl }}/{{ tab.id }}">
+								{{ tab.displayName }}
+							</a>
+						</li>
+					{% endfor %}
+				</ul>
+			</nav>
+		</div>
+	</div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-full">
+			{% for section in summaryListData.sections %}
+				{% if section.list.rows.length %}
+					{% if section.heading %}
+						<h2 class="govuk-heading-m" id="{{ section.heading | lower | replace(' ', '-') }}">
+							{{ section.heading }}
+						</h2>
+					{% endif %}
+
+					{{ govukSummaryList({
+						rows: section.list.rows
+					}) }}
+				{% endif %}
+			{% endfor %}
+		</div>
+	</div>
 {% endblock %}

@@ -4,30 +4,30 @@
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 
 {% if not title %}
-  {% set title %}
-    {{ question.pageTitle | default('GOV.UK') }} - {{ journeyTitle }} - Manage a Crown Development Application
-  {% endset %}
+	{% set title %}
+		{{ question.pageTitle | default('GOV.UK') }} - {{ journeyTitle }} - Manage a Crown Development Application
+	{% endset %}
 {% endif %}
 
 {% block pageTitle %}{{ "Error: " + title if errors else title }}{% endblock %}
 
 {# show question content within content, overrides main content #}
 {% block content %}
-    {% if notificationBannerSuccess %}
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-two-thirds">
-                {{ govukNotificationBanner({
-                    type: "success",
-                    text: notificationBannerSuccess
-                }) }}
-            </div>
-        </div>
-    {% endif %}
-    {% block dynQuestionContent %}{% endblock %}
+	{% if notificationBannerSuccess %}
+		<div class="govuk-grid-row">
+			<div class="govuk-grid-column-two-thirds">
+				{{ govukNotificationBanner({
+					type: "success",
+					text: notificationBannerSuccess
+				}) }}
+			</div>
+		</div>
+	{% endif %}
+	{% block dynQuestionContent %}{% endblock %}
 {% endblock %}
 
 {% if warningMessage %}
-  {% set beforeSubmitButton = govukWarningText({
-    text: warningMessage
-  }) %}
+	{% set beforeSubmitButton = govukWarningText({
+		text: warningMessage
+	}) %}
 {% endif %}

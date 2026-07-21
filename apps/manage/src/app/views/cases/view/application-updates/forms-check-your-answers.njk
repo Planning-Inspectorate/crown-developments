@@ -5,44 +5,44 @@
 {% block pageTitle %}{{ "Review Draft Update - " + journeyTitle + " - Manage a Crown Development Application" }}{% endblock %}
 
 {% block content %}
-    {% block beforeTaskList %}
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
-                <h1 class="govuk-heading-l">
-                    {{ pageHeading }}
-                </h1>
-            </div>
-        </div>
-    {% endblock %}
+	{% block beforeTaskList %}
+		<div class="govuk-grid-row">
+			<div class="govuk-grid-column-full govuk-!-margin-bottom-3">
+				<h1 class="govuk-heading-l">
+					{{ pageHeading }}
+				</h1>
+			</div>
+		</div>
+	{% endblock %}
 
-    {% set summaryRows = [] %}
-    {% for section in summaryListData.sections %}
-        {% for row in section.list.rows %}
-            {% set summaryRows = (summaryRows.push(row), summaryRows) %}
-        {% endfor %}
-    {% endfor %}
-    {% set obj = { "rows": summaryRows } %}
+	{% set summaryRows = [] %}
+	{% for section in summaryListData.sections %}
+		{% for row in section.list.rows %}
+			{% set summaryRows = (summaryRows.push(row), summaryRows) %}
+		{% endfor %}
+	{% endfor %}
+	{% set obj = { "rows": summaryRows } %}
 
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-full">
-            {{ govukSummaryList(obj) }}
-        </div>
-    </div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-full">
+			{{ govukSummaryList(obj) }}
+		</div>
+	</div>
 
-    {% if journeyComplete %}
-        <form method="POST">
-            <input type="hidden" name="_csrf" value="{{ _csrf }}">
-            {{ govukButton({
-                text: "Save"
-            }) }}
-        </form>
+	{% if journeyComplete %}
+		<form method="POST">
+			<input type="hidden" name="_csrf" value="{{ _csrf }}">
+			{{ govukButton({
+				text: "Save"
+			}) }}
+		</form>
 
-    {% else %}
-        <strong class="govuk-tag govuk-tag--grey">
-            Cannot submit yet
-        </strong>
-    {% endif %}
+	{% else %}
+		<strong class="govuk-tag govuk-tag--grey">
+			Cannot submit yet
+		</strong>
+	{% endif %}
 
-    {% block afterTaskList %}
-    {% endblock %}
+	{% block afterTaskList %}
+	{% endblock %}
 {% endblock %}

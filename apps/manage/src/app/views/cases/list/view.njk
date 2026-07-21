@@ -6,119 +6,121 @@
 {% from "search-bar/search-bar.njk" import searchBar %}
 
 {% block pageTitle %}
-    Case list - All Cases - Manage a Crown Development Application
+	Case list - All Cases - Manage a Crown Development Application
 {% endblock %}
 
 {% block pageContent %}
 
-    <div class="govuk-grid-row row-inline">
-        <div class="govuk-grid-column-two-thirds pins-dashboard-box">
-            <form id="search-bar-form" method="GET" action="{{ buildUrlWithParams(baseUrl, queryParams, { page: 1 }) }}">
-                {{ searchBar({
-                    input: {
-                        label: {
-                            text: "Search cases"
-                        },
-                        hint: {
-                            text: "To find a specific case, search by reference."
-                        },
-                        classes: "govuk-input govuk-input--width-30"
-                    },
-                    button: {
-                        text: "Search",
-                        classes: "govuk-button"
-                    }
-                }, searchValue) }}
-            </form>
-        </div>
-        <div class="govuk-grid-column-one-third pins-dashboard-box">
-                <div class="govuk-form-group">
-                    <h1 class="govuk-label-wrapper">
-                        <label class="govuk-label govuk-label--l" for="create-case-link">
-                            Create new case
-                        </label>
-                    </h1>
-                    <h2>
-                        <a href="/cases/create-a-case" id="create-case-link" class="govuk-link govuk-link--no-visited-state">Create a case</a>
-                    </h2>
+	<div class="govuk-grid-row row-inline">
+		<div class="govuk-grid-column-two-thirds pins-dashboard-box">
+			<form id="search-bar-form" method="GET" action="{{ buildUrlWithParams(baseUrl, queryParams, { page: 1 }) }}">
+				{{ searchBar({
+					input: {
+						label: {
+							text: "Search cases"
+						},
+						hint: {
+							text: "To find a specific case, search by reference."
+						},
+						classes: "govuk-input govuk-input--width-30"
+					},
+					button: {
+						text: "Search",
+						classes: "govuk-button"
+					}
+				}, searchValue) }}
+			</form>
+		</div>
+		<div class="govuk-grid-column-one-third pins-dashboard-box">
+			<div class="govuk-form-group">
+				<h1 class="govuk-label-wrapper">
+					<label class="govuk-label govuk-label--l" for="create-case-link">
+						Create new case
+					</label>
+				</h1>
+				<h2>
+					<a href="/cases/create-a-case" id="create-case-link" class="govuk-link govuk-link--no-visited-state">Create a
+						case</a>
+				</h2>
 
-            </div>
-        </div>
-    </div>
+			</div>
+		</div>
+	</div>
 
-    {% if crownDevelopments|length == 0 %}
-        <p class="govuk-body">No results were found.</p>
-        <p class="govuk-body"><a href="/cases" class="govuk-link govuk-link--no-visited-state">Clear search</a> to view all cases.</p>
-    {% else %}
-        {{ casesTable(crownDevelopments) }}
-    {% endif %}
+	{% if crownDevelopments|length == 0 %}
+		<p class="govuk-body">No results were found.</p>
+		<p class="govuk-body"><a href="/cases" class="govuk-link govuk-link--no-visited-state">Clear search</a> to view all
+			cases.</p>
+	{% else %}
+		{{ casesTable(crownDevelopments) }}
+	{% endif %}
 {% endblock %}
 
 {% macro casesTable(developments) %}
-    {% set developments = [] %}
+	{% set developments = [] %}
 
-    {% for development in crownDevelopments %}
-        {% set developments = (developments.push([
-            {
-                html: "<a class='govuk-link' href='/cases/" +  development.id +"'>" + development.reference + "</a>",
-                attributes: {
-                    "data-sort-value": development.reference
-                }
-            },
-            {
-                text: development.location,
-                classes: 'pins-white-space-pre-wrap'
-            },
-            {
-                text: development.lpaName
-            },
-            {
-                text: development.type
-            },
-            {
-                html: govukTag({text: development.status})
-            }
-        ]), developments) %}
-    {% endfor %}
+	{% for development in crownDevelopments %}
+		{% set developments = (developments.push([
+			{
+				html: "<a class='govuk-link' href='/cases/" +  development.id +"'>" + development.reference + "</a>",
+				attributes: {
+				"data-sort-value": development.reference
+			}
+			},
+			{
+				text: development.location,
+				classes: 'pins-white-space-pre-wrap'
+			},
+			{
+				text: development.lpaName
+			},
+			{
+				text: development.type
+			},
+			{
+				html: govukTag({text: development.status})
+			}
+		]), developments) %}
+	{% endfor %}
 
-    {% set headers = [
-        {
-            text: 'Reference',
-            attributes: {
-            "aria-sort": "descending"
-            }
-        },
-        {
-            text: 'Site location',
-            attributes: {
-            "aria-sort": "none"
-            }
-        },
-        {
-            text: 'Local planning authority (LPA)',
-            attributes: {
-            "aria-sort": "none"
-            }
-        },
-        {
-          text: 'Application type',
-            attributes: {
-            "aria-sort": "none"
-            }
-        },
-        {
-            text: 'Status',
-            attributes: {
-            "aria-sort": "none"
-            }
-        }
-    ] %}
+	{% set headers = [
+		{
+			text: 'Reference',
+			attributes: {
+			"aria-sort": "descending"
+		}
+		},
+		{
+			text: 'Site location',
+			attributes: {
+			"aria-sort": "none"
+		}
+		},
+		{
+			text: 'Local planning authority (LPA)',
+			attributes: {
+			"aria-sort": "none"
+		}
+		},
+		{
+			text: 'Application type',
+			attributes: {
+			"aria-sort": "none"
+		}
+		},
+		{
+			text: 'Status',
+			attributes: {
+			"aria-sort": "none"
+		}
+		}
+	] %}
 
-    {{ govukTable({
-        attributes: {
-            "data-module": "moj-sortable-table"
-        },
-        head: headers,
-        rows: developments
-    }) }}
+	{{ govukTable({
+		attributes: {
+			"data-module": "moj-sortable-table"
+		},
+		head: headers,
+		rows: developments
+	}) }}
 {% endmacro %}

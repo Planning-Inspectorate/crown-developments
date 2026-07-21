@@ -1,35 +1,47 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
 {% macro renderHaveYourSayInformation(haveYourSayStatus, crownDevelopmentFields) %}
-    <h2 id="procedure" class="govuk-heading-m">Have your say</h2>
-    {% if haveYourSayStatus === 'open' %}
-        <p class="govuk-body">Use this service to submit a written representation with your views on this Crown development application. A written representation includes your comment and any supporting documents. Written representations will be considered by the Planning Inspectors before a decision is made on an application.</p>
-        <p class="govuk-body">Your name and written representation will be published on this website.</p>
-        <p class="govuk-body">The representations period is open from:</p>
-        <p class="govuk-body">{{ crownDevelopmentFields.representationsPeriodStartDateTime }} to {{ crownDevelopmentFields.representationsPeriodEndDateTime }}</p>
-        <br>
-        {{ govukButton({
-            text: "Have your say",
-            type: "button",
-            classes: "govuk-button--start",
-            href: "have-your-say"
-        }) }}
-    {% elif haveYourSayStatus === 'notOpenDatesSet' %}
-        <p class="govuk-body">You can use this service to submit a written representation for this Crown Development application during the representations period:</p>
-        <p class="govuk-body">{{ crownDevelopmentFields.representationsPeriodStartDateTime }} to {{ crownDevelopmentFields.representationsPeriodEndDateTime }}.</p>
-        <p class="govuk-body">We’ll ask for your name, email address and written representation. Your name and written representation will be published on our website.</p>
-    {% elif haveYourSayStatus === 'notOpenDatesNotSet' %}
-        <p class="govuk-body">You can use this service to submit a written representation on this Crown Development application when the representations period starts.</p>
-        <p class="govuk-body">We’ll ask for your name, email address and written representation. Your name and written representation will be published on our website.</p>
-        <p class="govuk-body">The representations period will be published on this website as soon as dates are confirmed.</p>
-    {% elif haveYourSayStatus === 'closedRepsPublished' %}
-        <p class="govuk-body">The written representations period has ended.</p>
-        <p class="govuk-body">You can <a class="govuk-link" href="/applications/{{ crownDevelopmentFields.id }}/written-representations">view the written representations</a> for this application.</p>
-    {% elif haveYourSayStatus === 'closedPublishedDateInFuture' %}{# Scenario 5 #}
-        <p class="govuk-body">The representations period for this application has now ended.</p>
-        <p class="govuk-body">You can view the written representations from: {{ crownDevelopmentFields.representationsPublishDate }}</p>
-    {% elif haveYourSayStatus === 'closedRepsPublishedDateNotSet' %}
-        <p class="govuk-body">The representations period for this application has now ended.</p>
-        <p class="govuk-body">We’ll update the website with written representations as soon as these are available.</p>
-    {% endif %}
+	<h2 id="procedure" class="govuk-heading-m">Have your say</h2>
+	{% if haveYourSayStatus === 'open' %}
+		<p class="govuk-body">Use this service to submit a written representation with your views on this Crown development
+			application. A written representation includes your comment and any supporting documents. Written representations
+			will be considered by the Planning Inspectors before a decision is made on an application.</p>
+		<p class="govuk-body">Your name and written representation will be published on this website.</p>
+		<p class="govuk-body">The representations period is open from:</p>
+		<p class="govuk-body">{{ crownDevelopmentFields.representationsPeriodStartDateTime }}
+			to {{ crownDevelopmentFields.representationsPeriodEndDateTime }}</p>
+		<br>
+		{{ govukButton({
+			text: "Have your say",
+			type: "button",
+			classes: "govuk-button--start",
+			href: "have-your-say"
+		}) }}
+		{% elif haveYourSayStatus === 'notOpenDatesSet' %}
+		<p class="govuk-body">You can use this service to submit a written representation for this Crown Development
+			application during the representations period:</p>
+		<p class="govuk-body">{{ crownDevelopmentFields.representationsPeriodStartDateTime }}
+			to {{ crownDevelopmentFields.representationsPeriodEndDateTime }}.</p>
+		<p class="govuk-body">We’ll ask for your name, email address and written representation. Your name and written
+			representation will be published on our website.</p>
+		{% elif haveYourSayStatus === 'notOpenDatesNotSet' %}
+		<p class="govuk-body">You can use this service to submit a written representation on this Crown Development
+			application when the representations period starts.</p>
+		<p class="govuk-body">We’ll ask for your name, email address and written representation. Your name and written
+			representation will be published on our website.</p>
+		<p class="govuk-body">The representations period will be published on this website as soon as dates are
+			confirmed.</p>
+		{% elif haveYourSayStatus === 'closedRepsPublished' %}
+		<p class="govuk-body">The written representations period has ended.</p>
+		<p class="govuk-body">You can <a class="govuk-link"
+		                                 href="/applications/{{ crownDevelopmentFields.id }}/written-representations">view
+				the written representations</a> for this application.</p>
+		{% elif haveYourSayStatus === 'closedPublishedDateInFuture' %}{# Scenario 5 #}
+		<p class="govuk-body">The representations period for this application has now ended.</p>
+		<p class="govuk-body">You can view the written representations
+			from: {{ crownDevelopmentFields.representationsPublishDate }}</p>
+		{% elif haveYourSayStatus === 'closedRepsPublishedDateNotSet' %}
+		<p class="govuk-body">The representations period for this application has now ended.</p>
+		<p class="govuk-body">We’ll update the website with written representations as soon as these are available.</p>
+	{% endif %}
 {% endmacro %}

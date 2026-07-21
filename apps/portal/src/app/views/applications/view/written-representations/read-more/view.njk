@@ -10,65 +10,68 @@
 {% block containerStart %}{% endblock %}
 
 {% block pageContent %}
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-one-third">
-        {{ applicationLinks(links, currentUrl) }}
-    </div>
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-one-third">
+			{{ applicationLinks(links, currentUrl) }}
+		</div>
 
-    <div class="govuk-grid-column-two-thirds">
-        {% block backLink %}
-            {{ govukBackLink({ text: backLinkText, href: backLinkUrl }) }}
-        {% endblock %}
-        {{ distressingContentBanner(containsDistressingContent) }}
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-full">
-                <h2 class="govuk-heading-l">
-                    {% if pageCaption %}
-                        <span class="govuk-caption-xl">{{ pageCaption }}</span>
-                    {% endif %}
-                    {{ representationViewModel.representationTitle }}
-                </h2>
-                {% if representationViewModel.distressingContent %}
-                    <div class="govuk-!-padding-bottom-3">
-                        {{ govukTag({ text: "Content warning", classes: "govuk-tag--red" }) }}
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-        {{ govukSummaryList({
-            rows: [
-                {
-                    key: {
-                        text: "Date submitted"
-                    },
-                    value: {
-                        text: representationViewModel.dateRepresentationSubmitted
-                    }
-                },
-                {
-                    key: {
-                        text: "Submitted by"
-                    },
-                    value: {
-                        text: representationViewModel.representationCategory
-                    }
-                }
-            ]
-        }) }}
-        <p class="govuk-body pins-pre-line pins-overflow-break-word">{{ representationViewModel.representationComment }}</p>
+		<div class="govuk-grid-column-two-thirds">
+			{% block backLink %}
+				{{ govukBackLink({ text: backLinkText, href: backLinkUrl }) }}
+			{% endblock %}
+			{{ distressingContentBanner(containsDistressingContent) }}
+			<div class="govuk-grid-row">
+				<div class="govuk-grid-column-full">
+					<h2 class="govuk-heading-l">
+						{% if pageCaption %}
+							<span class="govuk-caption-xl">{{ pageCaption }}</span>
+						{% endif %}
+						{{ representationViewModel.representationTitle }}
+					</h2>
+					{% if representationViewModel.distressingContent %}
+						<div class="govuk-!-padding-bottom-3">
+							{{ govukTag({ text: "Content warning", classes: "govuk-tag--red" }) }}
+						</div>
+					{% endif %}
+				</div>
+			</div>
+			{{ govukSummaryList({
+				rows: [
+					{
+						key: {
+						text: "Date submitted"
+					},
+						value: {
+						text: representationViewModel.dateRepresentationSubmitted
+					}
+					},
+					{
+						key: {
+						text: "Submitted by"
+					},
+						value: {
+						text: representationViewModel.representationCategory
+					}
+					}
+				]
+			}) }}
+			<p
+				class="govuk-body pins-pre-line pins-overflow-break-word">{{ representationViewModel.representationComment }}</p>
 
-        {% if representationViewModel.hasAcceptedAttachments %}
-            <h2 class="govuk-heading-m">Attachment(s)</h2>
-            <ul class="govuk-list document-list">
-                {% for document in documents %}
-                    <li>
-                        <a class="govuk-link" href="{{ currentUrl }}/{{ representationViewModel.representationReference }}/{{ document.id }}" target="_blank" rel="noreferrer">
-                            ({{ document.type }}, {{ document.size }}) (opens in new window)
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    </div>
-</div>
+			{% if representationViewModel.hasAcceptedAttachments %}
+				<h2 class="govuk-heading-m">Attachment(s)</h2>
+				<ul class="govuk-list document-list">
+					{% for document in documents %}
+						<li>
+							<a class="govuk-link"
+							   href="{{ currentUrl }}/{{ representationViewModel.representationReference }}/{{ document.id }}"
+							   target="_blank" rel="noreferrer">
+								({{ document.type }}, {{ document.size }}) (opens in new window)
+							</a>
+						</li>
+					{% endfor %}
+				</ul>
+			{% endif %}
+		</div>
+	</div>
 {% endblock %}
