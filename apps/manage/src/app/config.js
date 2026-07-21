@@ -66,9 +66,6 @@ export function loadConfig() {
 		GOV_NOTIFY_APP_REC_WITHOUT_FEE_TEMPLATE_ID,
 		GOV_NOTIFY_APP_NOT_NAT_IMP_TEMPLATE_ID,
 		GOV_NOTIFY_LPA_QUEST_SENT_TEMPLATE_ID,
-		FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE,
-		FEATURE_FLAG_NOTIFY_CALLBACK_NOT_LIVE,
-		FEATURE_FLAG_APPLICATION_UPDATES_NOT_LIVE,
 		FEATURE_FLAG_S62A_MANAGE_NOT_LIVE,
 		BLOB_STORE_DISABLED,
 		BLOB_STORE_HOST,
@@ -205,10 +202,6 @@ export function loadConfig() {
 			}
 		},
 		featureFlags: {
-			// by default with no feature flag set, reps upload docs is live
-			isRepsUploadDocsLive: FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE !== 'true',
-			isNotifyCallbackEnabled: FEATURE_FLAG_NOTIFY_CALLBACK_NOT_LIVE !== 'true',
-			isApplicationUpdatesLive: FEATURE_FLAG_APPLICATION_UPDATES_NOT_LIVE !== 'true',
 			// Needed so that we can develop the changes to 'Manage' without interfering with 'Crown Developments' in general.
 			isS62ALive: FEATURE_FLAG_S62A_MANAGE_NOT_LIVE !== 'true'
 		},

@@ -9,10 +9,9 @@ export const JOURNEY_ID = 'manage-representations';
  * @param {Object<string, *>} questions
  * @param {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} response
  * @param {import('express').Request} req
- * @param {boolean} isRepsUploadDocsLive
  * @returns {Journey}
  */
-export function createJourney(questions, response, req, isRepsUploadDocsLive) {
+export function createJourney(questions, response, req) {
 	if (!req.baseUrl.includes('/' + JOURNEY_ID)) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey`);
 	}
@@ -21,7 +20,7 @@ export function createJourney(questions, response, req, isRepsUploadDocsLive) {
 
 	return new Journey({
 		journeyId: JOURNEY_ID,
-		sections: haveYourSayManageSections(questions, isRepsUploadDocsLive, isViewJourney),
+		sections: haveYourSayManageSections(questions, isViewJourney),
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',
 		taskListTemplate: 'views/cases/view/manage-reps/view/view.njk',

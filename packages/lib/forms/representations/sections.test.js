@@ -21,7 +21,7 @@ describe('have-your-say', () => {
 			const createJourney = (questions, response, req) => {
 				return new Journey({
 					journeyId: JOURNEY_ID,
-					sections: haveYourSayManageSections(questions, true, true),
+					sections: haveYourSayManageSections(questions, true),
 					makeBaseUrl: () => req.baseUrl,
 					journeyTemplate: 'template.njk',
 					taskListTemplate: 'template-2.njk',
@@ -46,7 +46,7 @@ describe('have-your-say', () => {
 			const createJourney = (questions, response, req) => {
 				return new Journey({
 					journeyId: JOURNEY_ID,
-					sections: haveYourSayManageSections(questions, true, false),
+					sections: haveYourSayManageSections(questions, false),
 					makeBaseUrl: () => req.baseUrl,
 					journeyTemplate: 'template.njk',
 					taskListTemplate: 'template-2.njk',
@@ -73,7 +73,7 @@ describe('have-your-say', () => {
 			const createJourney = (questions, response, req) => {
 				return new Journey({
 					journeyId: JOURNEY_ID,
-					sections: haveYourSayManageSections(questions, true, true),
+					sections: haveYourSayManageSections(questions, true),
 					makeBaseUrl: () => req.baseUrl,
 					journeyTemplate: 'template.njk',
 					taskListTemplate: 'template-2.njk',
@@ -108,7 +108,7 @@ describe('have-your-say', () => {
 				const createJourney = (questions, response, req) => {
 					return new Journey({
 						journeyId: JOURNEY_ID,
-						sections: haveYourSayManageSections(questions, true, true),
+						sections: haveYourSayManageSections(questions, true),
 						makeBaseUrl: () => req.baseUrl,
 						journeyTemplate: 'template.njk',
 						taskListTemplate: 'template-2.njk',
@@ -144,7 +144,7 @@ describe('have-your-say', () => {
 			const createJourney = (questions, response, req) => {
 				return new Journey({
 					journeyId: JOURNEY_ID,
-					sections: haveYourSayManageSections(questions, true, false),
+					sections: haveYourSayManageSections(questions, false),
 					makeBaseUrl: () => req.baseUrl,
 					journeyTemplate: 'template.njk',
 					taskListTemplate: 'template-2.njk',
@@ -159,7 +159,7 @@ describe('have-your-say', () => {
 			});
 			const sections = journey.sections;
 
-			// Verify distressing content section exists and its condition evaluates to true
+			// Verify distressing content section exists and its condition evaluates to false
 			const distressingContentSection = sections.find((s) => s.segment === 'distressing-content');
 
 			assert.ok(distressingContentSection, 'Section should exist');
@@ -174,10 +174,10 @@ describe('have-your-say', () => {
 	});
 	describe('have-your-say section', () => {
 		const JOURNEY_ID = 'have-your-say-1';
-		const createJourney = (questions, response, req, isRepsUploadDocsLive = true) => {
+		const createJourney = (questions, response, req) => {
 			return new Journey({
 				journeyId: JOURNEY_ID,
-				sections: haveYourSaySections(questions, isRepsUploadDocsLive),
+				sections: haveYourSaySections(questions),
 				makeBaseUrl: () => req.baseUrl,
 				journeyTemplate: 'template.njk',
 				taskListTemplate: 'template-2.njk',
@@ -366,7 +366,7 @@ describe('have-your-say', () => {
 			assert.strictEqual(journey.isComplete(), true);
 		});
 
-		it('isComplete should false true if on behalf of org work for journey incomplete', () => {
+		it('isComplete should return false if on behalf of org work for journey incomplete', () => {
 			const questions = getQuestions();
 			const answers = {
 				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
@@ -495,7 +495,8 @@ describe('have-your-say', () => {
 				'myselfContactPreference',
 				'myselfFullName',
 				'myselfComment',
-				'myselfHearingPreference'
+				'myselfHearingPreference',
+				'myselfContainsAttachments'
 			];
 			it('should include all default questions', () => {
 				const answers = defaultAnswers();
@@ -529,7 +530,8 @@ describe('have-your-say', () => {
 					myselfContactPreference: 'email',
 					myselfEmail: 'test@test.com',
 					myselfComment: 'some comments',
-					myselfHearingPreference: BOOLEAN_OPTIONS.YES
+					myselfHearingPreference: BOOLEAN_OPTIONS.YES,
+					myselfContainsAttachments: BOOLEAN_OPTIONS.NO
 				};
 
 				const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
@@ -569,7 +571,8 @@ describe('have-your-say', () => {
 					'representedFullName',
 					'submitterComment',
 					'submitterContactPreference',
-					'submitterHearingPreference'
+					'submitterHearingPreference',
+					'submitterContainsAttachments'
 				];
 				it('should include all default questions', () => {
 					const answers = defaultAnswers();
@@ -623,7 +626,8 @@ describe('have-your-say', () => {
 						representedFirstName: 'Represented Person',
 						representedLastName: 'Represented Surname',
 						submitterComment: 'some comments',
-						submitterHearingPreference: BOOLEAN_OPTIONS.YES
+						submitterHearingPreference: BOOLEAN_OPTIONS.YES,
+						submitterContainsAttachments: BOOLEAN_OPTIONS.NO
 					};
 
 					const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
@@ -666,6 +670,7 @@ describe('have-your-say', () => {
 					'submitterComment',
 					'submitterContactPreference',
 					'submitterHearingPreference',
+					'submitterContainsAttachments',
 					'representedOrgName'
 				];
 				it('should include all default questions', () => {
@@ -719,7 +724,8 @@ describe('have-your-say', () => {
 						},
 						representedOrgName: 'Org Name Representing',
 						submitterComment: 'some comments',
-						submitterHearingPreference: BOOLEAN_OPTIONS.YES
+						submitterHearingPreference: BOOLEAN_OPTIONS.YES,
+						submitterContainsAttachments: BOOLEAN_OPTIONS.NO
 					};
 
 					const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);
@@ -765,7 +771,8 @@ describe('have-your-say', () => {
 					'submitterContactPreference',
 					'submitterHearingPreference',
 					'orgName',
-					'orgRoleName'
+					'orgRoleName',
+					'submitterContainsAttachments'
 				];
 				it('should include all default questions', () => {
 					const answers = defaultAnswers();
@@ -800,7 +807,8 @@ describe('have-your-say', () => {
 						orgName: 'some org',
 						orgRoleName: 'some job',
 						submitterComment: 'some comments',
-						submitterHearingPreference: BOOLEAN_OPTIONS.YES
+						submitterHearingPreference: BOOLEAN_OPTIONS.YES,
+						submitterContainsAttachments: BOOLEAN_OPTIONS.NO
 					};
 
 					const response = new JourneyResponse(JOURNEY_ID, 'sess-id', answers);

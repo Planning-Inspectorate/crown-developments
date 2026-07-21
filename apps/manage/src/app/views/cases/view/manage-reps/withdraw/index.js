@@ -36,9 +36,7 @@ export function createRoutes(service, viewOrReview) {
 	const questions = getQuestions({
 		textOverrides: { appName: service.appName }
 	});
-	const getJourney = buildGetJourney((req, journeyResponse) =>
-		createJourney(questions, journeyResponse, req, service.isRepsUploadDocsLive)
-	);
+	const getJourney = buildGetJourney((req, journeyResponse) => createJourney(questions, journeyResponse, req));
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID, 'representationRef');
 	const saveDataToSession = buildSaveDataToSession({ reqParam: 'representationRef' });
 

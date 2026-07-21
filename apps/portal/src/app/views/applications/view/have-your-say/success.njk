@@ -29,10 +29,6 @@
 
             <h3 class="govuk-heading-s">Inquiry</h3>
             <p class="govuk-body">If this procedure is chosen, we’ll contact you with details of the inquiry date and location.</p>
-            {% if not config.isRepsUploadDocsLive %}
-                <h2 class="govuk-heading-m">Providing more information</h2>
-                <p class="govuk-body">If you wish to include documents or photographs as part of your comments, you must send them to <a href="mailto:{{ config.contactEmail }}" class="govuk-link">{{ config.contactEmail }}</a> and include your name, representation reference number and application reference number in the subject line.</p>
-            {% endif %}
             {{ govukInsetText({
                 html: '<p class="govuk-body">Help us improve this service by <a class="govuk-link" href="' + config.serviceFeedbackUrl + '">sharing your feedback</a>.</p>'
             }) }}

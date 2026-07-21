@@ -4,13 +4,9 @@ import { fetchPublishedApplication, getApplicationStatus } from '@pins/crowndev-
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { representationToViewModel } from '../../view-model.ts';
 import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
-import {
-	publishedRepresentationsAttachmentsFolderPath,
-	representationAttachmentsFolderPath
-} from '@pins/crowndev-lib/util/sharepoint-path.js';
-import { getDocuments, getDocumentsById } from '@pins/crowndev-lib/documents/get.js';
+import { representationAttachmentsFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { getDocumentsById } from '@pins/crowndev-lib/documents/get.js';
 import { mapDriveItemToViewModel } from '@pins/crowndev-lib/documents/view-model.js';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 import { isValidUniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../../util/application-util.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
@@ -21,7 +17,7 @@ import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
  * @param {import('#service').PortalService} service
  * @returns {import('express').RequestHandler}
  */
-export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePointDrive, isRepsUploadDocsLive }) {
+export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePointDrive }) {
 	return async (req, res) => {
 		const id = getStringParam(req.params, 'applicationId');
 		if (!isValidUuidFormat(id)) {
@@ -72,7 +68,16 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 				SubmittedByContact: { select: { firstName: true, lastName: true } },
 				RepresentedContact: { select: { orgName: true, firstName: true, lastName: true } },
 				Category: { select: { displayName: true } },
-				Attachments: { select: { statusId: true } }
+				Attachments: {
+					where: { statusId: REPRESENTATION_STATUS_ID.ACCEPTED },
+					select: {
+						itemId: true,
+						fileName: true,
+						redactedItemId: true,
+						redactedFileName: true,
+						statusId: true
+					}
+				}
 			}
 		});
 
@@ -82,52 +87,19 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 
 		let documents;
 		if (representation.containsAttachments === true) {
-			if (!isRepsUploadDocsLive) {
-				const folderPath = publishedRepresentationsAttachmentsFolderPath(reference, representationReference);
-				logger.info({ folderPath }, 'view documents');
-				const driveItems = await getDocuments({ sharePointDrive, folderPath, logger, id });
-				documents = driveItems.map(mapDriveItemToViewModel).filter(Boolean);
-			} else {
-				let documentsToFetch;
-				try {
-					documentsToFetch = await db.representationDocument.findMany({
-						where: {
-							representationId: representation.id,
-							statusId: REPRESENTATION_STATUS_ID.ACCEPTED
-						},
-						select: {
-							itemId: true,
-							fileName: true,
-							redactedItemId: true,
-							redactedFileName: true
-						}
-					});
-				} catch (error) {
-					logger.error({ error }, 'Error fetching documents from database');
-					wrapPrismaError({
-						error,
-						logger,
-						message: 'fetching representation documents',
-						logParams: { id }
-					});
-				}
+			const documentsToFetch = representation.Attachments;
 
-				if (!Array.isArray(documentsToFetch) || documentsToFetch.length === 0) {
-					logger.warn('No documents found for the representation, but representation contains attachments');
-					documents = [];
-				} else {
-					logger.info({ documentsToFetch }, 'Fetched accepted documents for representation');
-					const folderPath = representationAttachmentsFolderPath(reference, representationReference);
-					const ids = documentsToFetch.map((doc) => doc.redactedItemId ?? doc.itemId).filter(Boolean);
-					const driveItems = await getDocumentsById({
-						sharePointDrive,
-						folderPath,
-						logger,
-						ids
-					});
-					documents = driveItems.map(mapDriveItemToViewModel).filter(Boolean);
-					logger.info({ documents }, 'Fetched documents to display from SharePoint');
-				}
+			if (documentsToFetch.length === 0) {
+				logger.warn(
+					{ representationReference, caseReference: reference, representationId: representation.id },
+					'No documents found for the representation, but representation contains attachments'
+				);
+				documents = [];
+			} else {
+				const folderPath = representationAttachmentsFolderPath(reference, representationReference);
+				const ids = documentsToFetch.map((doc) => doc.redactedItemId ?? doc.itemId).filter(Boolean);
+				const driveItems = await getDocumentsById({ sharePointDrive, folderPath, logger, ids });
+				documents = driveItems.map(mapDriveItemToViewModel).filter(Boolean);
 			}
 		}
 

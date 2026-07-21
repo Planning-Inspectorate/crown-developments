@@ -46,9 +46,7 @@ export function createHaveYourSayRoutes(service) {
 	const questions = getQuestions({
 		textOverrides: { appName: service.appName }
 	});
-	const getJourney = buildGetJourney((req, journeyResponse) =>
-		createJourney(questions, journeyResponse, req, service.isRepsUploadDocsLive)
-	);
+	const getJourney = buildGetJourney((req, journeyResponse) => createJourney(questions, journeyResponse, req));
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID, applicationIdParam);
 	const viewHaveYourSayPage = buildHaveYourSayPage(service);
 	const redirectToHaveYourSayJourney = startHaveYourSayJourney(service);

@@ -33,13 +33,9 @@ variable "apps_config" {
     })
 
     feature_flags = object({
-      portal_not_live              = bool
-      upload_docs_not_live         = bool
-      notify_callback_not_live     = bool
-      application_updates_not_live = bool
-      multiple_applicants_not_live = bool
-      s62a_portal_not_live         = bool
-      s62a_manage_not_live         = bool
+      portal_not_live      = bool
+      s62a_portal_not_live = bool
+      s62a_manage_not_live = bool
     })
 
     dynamic_cache_control = object({

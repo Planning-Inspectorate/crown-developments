@@ -152,14 +152,6 @@ export class ManageService {
 		return this.#config.gitSha;
 	}
 
-	get isRepsUploadDocsLive() {
-		return this.#config.featureFlags?.isRepsUploadDocsLive;
-	}
-
-	get isApplicationUpdatesLive() {
-		return this.#config.featureFlags?.isApplicationUpdatesLive;
-	}
-
 	get isS62ALive() {
 		return this.#config.featureFlags?.isS62ALive;
 	}

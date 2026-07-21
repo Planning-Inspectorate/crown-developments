@@ -103,10 +103,7 @@ module "app_portal" {
     SHAREPOINT_DRIVE_ID = local.key_vault_refs["crown-sharepoint-drive-id"]
 
     #feature flags
-    FEATURE_FLAG_PORTAL_NOT_LIVE              = var.apps_config.feature_flags.portal_not_live
-    FEATURE_FLAG_UPLOAD_DOCS_REPS_NOT_LIVE    = var.apps_config.feature_flags.upload_docs_not_live
-    FEATURE_FLAG_APPLICATION_UPDATES_NOT_LIVE = var.apps_config.feature_flags.application_updates_not_live
-    FEATURE_FLAG_MULTIPLE_APPLICANTS_NOT_LIVE = var.apps_config.feature_flags.multiple_applicants_not_live
+    FEATURE_FLAG_PORTAL_NOT_LIVE = var.apps_config.feature_flags.portal_not_live
 
     # Cache Controls
     DYNAMIC_CACHE_CONTROL_ENABLED = var.apps_config.dynamic_cache_control.enabled

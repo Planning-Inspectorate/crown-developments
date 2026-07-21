@@ -42,12 +42,8 @@ export function createRoutes(service) {
 	router.get('/', validateIdFormat, getViewJourney, asyncHandler(viewCaseDetails));
 	router.use('/publish', publishCase);
 	router.use('/unpublish', unpublishCase);
-
 	router.use('/manage-representations', repsRoutes);
-
-	if (service.isApplicationUpdatesLive) {
-		router.use('/application-updates', applicationUpdates);
-	}
+	router.use('/application-updates', applicationUpdates);
 
 	// View application history page, /:id/application-history
 	router.use('/application-history', applicationHistoryRoutes);

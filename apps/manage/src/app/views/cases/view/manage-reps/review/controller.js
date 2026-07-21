@@ -181,6 +181,14 @@ export function buildReviewControllers(service, journeyId) {
 				repItemsReviewStatus?.distressingContentInRepresentation?.reviewDecision
 			);
 			const representationAttachments = representation?.containsAttachments ? representation?.Attachments || [] : [];
+
+			if (representation?.containsAttachments && representationAttachments.length === 0) {
+				logger.warn(
+					{ representationRef, representationId: representation.id },
+					'No documents found for the representation, but representation contains attachments'
+				);
+			}
+
 			const documents = representationAttachments.map((attachment) => {
 				return {
 					title: {
