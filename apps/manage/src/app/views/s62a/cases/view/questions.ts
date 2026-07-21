@@ -1,4 +1,6 @@
 import {
+	APPLICATION_PROCEDURE,
+	APPLICATION_PROCEDURE_ID,
 	APPLICATION_SUB_TYPES,
 	APPLICATION_TYPE_ID,
 	APPLICATION_TYPES
@@ -8,7 +10,10 @@ import {
 	MAJOR_OR_NON_MAJORS,
 	PRE_APPLICATION_OR_APPLICATION_ID,
 	PRE_APPLICATION_OR_APPLICATIONS,
-	S62A_STATUSES,
+	S62A_APPLICATION_STATUSES,
+	S62A_CATEGORIES,
+	S62A_PRE_APPLICATION_STATUSES,
+	S62A_STAGES,
 	SPECIALISMS
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import {
@@ -33,6 +38,8 @@ import { isApplicationType } from '../util/questions.ts';
 import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
 import CustomDatePeriodValidator from '@pins/crowndev-lib/validators/custom-date-period-validator.js';
 import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
+import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-validator.js';
+import CILAmountLengthValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-length-validator.ts';
 
 export function getQuestions(answers: S62aCaseViewModel) {
 	const isLbcCase = answers?.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
@@ -46,6 +53,23 @@ export function getQuestions(answers: S62aCaseViewModel) {
 	const preAppOrAppPath = isApplicationType(answers.applicationPhaseId)
 		? answers.applicationPhaseId
 		: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
+
+	const isPreApp = preAppOrAppPath === PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION;
+	const statusOptions = isPreApp ? S62A_PRE_APPLICATION_STATUSES : S62A_APPLICATION_STATUSES;
+
+	// S62A only permits Hearing and Written representations
+	const S62A_PROCEDURE_IDS: string[] = [APPLICATION_PROCEDURE_ID.HEARING, APPLICATION_PROCEDURE_ID.WRITTEN_REPS];
+	const s62aProcedures = APPLICATION_PROCEDURE.filter((p) => S62A_PROCEDURE_IDS.includes(p.id));
+
+	const CIL_DATA = {
+		type: CUSTOM_COMPONENTS.CIL_AMOUNT,
+		question: 'Is the application liable for the Community Infrastructure Levy (CIL)?',
+		fieldName: 'cilLiable',
+		url: 'cil-liable',
+		cilAmountInputFieldName: 'cilAmount',
+		cilAmountQuestion: 'What is the Community Infrastructure Levy (CIL) amount?',
+		validators: [new CILAmountValidator(), new CILAmountLengthValidator()]
+	};
 
 	const questions = {
 		reference: {
@@ -328,11 +352,154 @@ export function getQuestions(answers: S62aCaseViewModel) {
 		applicationStatus: {
 			type: COMPONENT_TYPES.RADIO,
 			title: 'Status',
-			question: 'Which is the application status?',
+			question: isPreApp ? 'Which is the pre-application status?' : 'Which is the application status?',
 			fieldName: 's62aStatusId',
 			url: 'application-status',
-			validators: [new RequiredValidator('Select the status for this application')],
-			options: S62A_STATUSES.map((t) => ({ text: t.displayName, value: t.id }))
+			validators: [
+				new RequiredValidator(isPreApp ? 'Select the pre-application status' : 'Select the application status')
+			],
+			options: statusOptions.map((t) => ({ text: t.displayName, value: t.id }))
+		},
+		stage: {
+			type: COMPONENT_TYPES.RADIO,
+			title: 'Stage',
+			question: 'Which is the application stage?',
+			fieldName: 'stageId',
+			url: 'stage',
+			validators: [new RequiredValidator('Select the application stage')],
+			options: S62A_STAGES.map((t) => ({ text: t.displayName, value: t.id })),
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'stage/remove' }]
+			}
+		},
+		category: {
+			type: COMPONENT_TYPES.RADIO,
+			title: 'Category',
+			question: 'Which category does the application sit under?',
+			fieldName: 'categoryId',
+			url: 'category',
+			validators: [new RequiredValidator('Select the application category')],
+			options: S62A_CATEGORIES.map((t) => ({ text: t.displayName, value: t.id }))
+		},
+		procedure: {
+			type: COMPONENT_TYPES.RADIO,
+			title: 'Procedure',
+			question: 'Which application procedure applies?',
+			fieldName: 'procedureId',
+			url: 'procedure',
+			validators: [new RequiredValidator('Select the application procedure')],
+			options: s62aProcedures.map((t) => ({ text: t.displayName, value: t.id }))
+		},
+		lpaReference: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'LPA reference',
+			question: 'What is the LPA reference for this application?',
+			fieldName: 'lpaReference',
+			url: 'lpa-reference',
+			validators: [
+				new RequiredValidator('Enter the local planning authority reference'),
+				new StringValidator({
+					maxLength: {
+						maxLength: 250,
+						maxLengthMessage: 'Local planning authority reference must be 250 characters or less'
+					}
+				})
+			],
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'lpa-reference/remove' }]
+			}
+		},
+		listedBuildingReference: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Listed building reference',
+			question: 'What is the listed building reference?',
+			fieldName: 'listedBuildingReference',
+			url: 'listed-building-reference',
+			validators: [
+				new RequiredValidator('Enter the listed building reference'),
+				new StringValidator({
+					maxLength: {
+						maxLength: 250,
+						maxLengthMessage: 'Listed building reference must be 250 characters or less'
+					}
+				})
+			],
+			viewData: {
+				extraActionButtons: [
+					{ text: 'Remove and save', type: 'submit', formaction: 'listed-building-reference/remove' }
+				]
+			}
+		},
+		greenBelt: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Green belt',
+			question: 'Is the proposed development in green belt land?',
+			fieldName: 'isGreenBelt',
+			url: 'green-belt',
+			validators: [new RequiredValidator('Select yes if the application is in green belt land')],
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'green-belt/remove' }]
+			}
+		},
+		healthAndSafetyIssues: {
+			type: COMPONENT_TYPES.TEXT_ENTRY,
+			title: 'Health and safety issues',
+			question: 'What are the health and safety issues for the site?',
+			fieldName: 'healthAndSafetyIssue',
+			url: 'health-and-safety-issues',
+			validators: [
+				new RequiredValidator('Enter the health and safety issues'),
+				new StringValidator({
+					maxLength: {
+						maxLength: 2000,
+						maxLengthMessage: 'Health and safety issues must be 2000 characters or less'
+					}
+				})
+			],
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'health-and-safety-issues/remove' }]
+			}
+		},
+		cilLiable: {
+			...CIL_DATA,
+			title: 'CIL liable',
+			fieldToShow: 'cilLiable'
+		},
+		cilAmount: {
+			...CIL_DATA,
+			title: 'CIL amount',
+			fieldToShow: 'cilAmount'
+		},
+		bngExempt: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'BNG exempt',
+			question: 'Is the application exempt from biodiversity net gain (BNG)?',
+			fieldName: 'bngExempt',
+			url: 'bng-exempt',
+			validators: [new RequiredValidator('Select yes if the application is exempt from biodiversity net gain (BNG)')],
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'bng-exempt/remove' }]
+			}
+		},
+		lastUpdated: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Last updated',
+			question: 'not editable',
+			fieldName: 'updatedDate',
+			url: '',
+			validators: [],
+			editable: false,
+			dateFormat: 'h:mmaaa, d MMMM yyyy'
+		},
+		createdDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Created date',
+			question: 'not editable',
+			fieldName: 'createdDate',
+			url: '',
+			validators: [],
+			editable: false,
+			dateFormat: 'h:mmaaa, d MMMM yyyy'
 		},
 		notificationReceivedDate: {
 			type: COMPONENT_TYPES.DATE,

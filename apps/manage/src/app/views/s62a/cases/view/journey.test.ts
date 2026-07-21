@@ -87,7 +87,21 @@ describe('s62a case details journey', () => {
 			{
 				title: '',
 				segment: 'details',
-				questions: ['applicationStatus']
+				questions: [
+					'lastUpdated',
+					'createdDate',
+					'category',
+					'procedure',
+					'applicationStatus',
+					'stage',
+					'lpaReference',
+					'listedBuildingReference',
+					'greenBelt',
+					'healthAndSafetyIssues',
+					'cilLiable',
+					'cilAmount',
+					'bngExempt'
+				]
 			},
 			{
 				title: '',

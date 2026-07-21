@@ -130,12 +130,26 @@ export interface S62aCaseViewModel {
 	eligibleForFeeRefund?: YesNo;
 	applicationFeeRefundAmount?: number;
 	applicationFeeRefundDate?: Date;
+
+	// Details tab
+	stageId?: string | null;
+	categoryId?: string | null;
+	procedureId?: string | null;
+	lpaReference?: string | null;
+	listedBuildingReference?: string | null;
+	healthAndSafetyIssue?: string | null;
+	isGreenBelt?: YesNo;
+	cilLiable?: YesNo;
+	bngExempt?: YesNo;
+	cilAmount?: number | null;
+	updatedDate?: Date;
+	createdDate?: Date;
 }
 
 /**
  * Optional boolean fields that need converting to YesNo | undefined
  */
-const BOOLEAN_FIELDS = Object.freeze(['siteIsVisibleFromPublicLand'] as const);
+const BOOLEAN_FIELDS = Object.freeze(['siteIsVisibleFromPublicLand', 'isGreenBelt', 'cilLiable', 'bngExempt'] as const);
 
 /**
  * These integer fields are in the SaveModel as strings because they are in a multi-field input.
@@ -146,7 +160,18 @@ const INTEGER_STRING_FIELDS = Object.freeze(['siteNorthing', 'siteEasting'] as c
 /**
  * Fields that do not need mapping to (or from) the view model
  */
-const DIRECT_UNMAPPED_FIELDS = Object.freeze(['likelyIssues', 'representationsPublishDate'] as const);
+const DIRECT_UNMAPPED_FIELDS = Object.freeze([
+	'likelyIssues',
+	'representationsPublishDate',
+	'lpaReference',
+	'listedBuildingReference',
+	'healthAndSafetyIssue'
+] as const);
+
+/**
+ * Audit date fields that map directly (read-only on the Details tab)
+ */
+const DATE_FIELDS = Object.freeze(['updatedDate', 'createdDate'] as const);
 
 /**
  * Fields that represent foreign key relations in the database and are included in the view model
@@ -159,14 +184,18 @@ const RELATION_ID_FIELDS = Object.freeze([
 	'secondaryLpaId',
 	'specialismId',
 	'inspectorBandId',
-	'subTypeId'
+	'subTypeId',
+	'stageId',
+	'categoryId',
+	'procedureId'
 ] as const);
 
 // Create a union type of all valid dynamic fields
 type DirectUnmappedField =
 	| (typeof DIRECT_UNMAPPED_FIELDS)[number]
 	| (typeof RELATION_ID_FIELDS)[number]
-	| (typeof INTEGER_STRING_FIELDS)[number];
+	| (typeof INTEGER_STRING_FIELDS)[number]
+	| (typeof DATE_FIELDS)[number];
 
 /**
  * Assign an S62aCase field that maps directly to the view model,
@@ -199,7 +228,7 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 		viewModel[field] = typeof dbCase[field] === 'boolean' ? booleanToYesNoValue(dbCase[field]) : undefined;
 	}
 
-	for (const field of [...RELATION_ID_FIELDS, ...DIRECT_UNMAPPED_FIELDS, ...INTEGER_STRING_FIELDS]) {
+	for (const field of [...RELATION_ID_FIELDS, ...DIRECT_UNMAPPED_FIELDS, ...INTEGER_STRING_FIELDS, ...DATE_FIELDS]) {
 		assignNullableDirectField(viewModel, dbCase, field);
 	}
 
@@ -220,6 +249,10 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 		} else {
 			viewModel.siteAreaHectares = Number(dbCase.siteAreaInSquareMetres.dividedBy(10000).toFixed(4));
 		}
+	}
+
+	if (dbCase.cilAmount) {
+		viewModel.cilAmount = dbCase.cilAmount.toNumber();
 	}
 
 	if (dbCase.SiteAddress) {

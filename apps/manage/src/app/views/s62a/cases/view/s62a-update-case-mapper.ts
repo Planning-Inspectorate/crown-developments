@@ -83,6 +83,17 @@ export interface UpdateCaseAnswers {
 	eligibleForFeeRefund?: boolean | YesNo | null;
 	applicationFeeRefundAmount?: string | number | null;
 	applicationFeeRefundDate?: Date | null;
+	// Details tab
+	stageId?: string | null;
+	categoryId?: string | null;
+	procedureId?: string | null;
+	lpaReference?: string;
+	listedBuildingReference?: string;
+	healthAndSafetyIssue?: string;
+	isGreenBelt?: YesNo;
+	cilLiable?: YesNo;
+	bngExempt?: YesNo;
+	cilAmount?: number;
 }
 
 /**
@@ -148,6 +159,7 @@ export class S62aCaseUpdateMapper {
 		}
 
 		this.mapLocationScalars(input);
+		this.mapDetailsScalars(input);
 	}
 
 	/**
@@ -157,9 +169,8 @@ export class S62aCaseUpdateMapper {
 		const ans = this.answers;
 
 		if (this.hasAnswer('siteIsVisibleFromPublicLand')) {
-			input.siteIsVisibleFromPublicLand = ans.siteIsVisibleFromPublicLand
-				? yesNoToBoolean(ans.siteIsVisibleFromPublicLand)
-				: null;
+			input.siteIsVisibleFromPublicLand =
+				typeof ans.siteIsVisibleFromPublicLand === 'boolean' ? yesNoToBoolean(ans.siteIsVisibleFromPublicLand) : null;
 		}
 
 		if (this.hasAnswer('siteNorthing')) {
@@ -181,6 +192,41 @@ export class S62aCaseUpdateMapper {
 				input.siteAreaInSquareMetres = null;
 				input.SiteAreaOriginalUnit = { disconnect: true };
 			}
+		}
+	}
+
+	/**
+	 * Maps the Details tab scalar fields (references, H&S, green belt, CIL, BNG)
+	 */
+	private mapDetailsScalars(input: Prisma.S62aCaseUpdateInput): void {
+		const ans = this.answers;
+
+		if (this.hasAnswer('lpaReference')) {
+			input.lpaReference = ans.lpaReference || null;
+		}
+
+		if (this.hasAnswer('listedBuildingReference')) {
+			input.listedBuildingReference = ans.listedBuildingReference || null;
+		}
+
+		if (this.hasAnswer('healthAndSafetyIssue')) {
+			input.healthAndSafetyIssue = ans.healthAndSafetyIssue || null;
+		}
+
+		if (this.hasAnswer('isGreenBelt')) {
+			input.isGreenBelt = typeof ans.isGreenBelt === 'boolean' ? yesNoToBoolean(ans.isGreenBelt) : null;
+		}
+
+		if (this.hasAnswer('cilLiable')) {
+			input.cilLiable = typeof ans.cilLiable === 'boolean' ? yesNoToBoolean(ans.cilLiable) : null;
+		}
+
+		if (this.hasAnswer('bngExempt')) {
+			input.bngExempt = typeof ans.bngExempt === 'boolean' ? yesNoToBoolean(ans.bngExempt) : null;
+		}
+
+		if (this.hasAnswer('cilAmount')) {
+			input.cilAmount = ans.cilAmount || ans.cilAmount === 0 ? new Prisma.Decimal(ans.cilAmount) : null;
 		}
 	}
 
@@ -221,6 +267,18 @@ export class S62aCaseUpdateMapper {
 
 		if (this.hasAnswer('subTypeId')) {
 			input.SubType = ans.subTypeId ? { connect: { id: ans.subTypeId } } : { disconnect: true };
+		}
+
+		if (this.hasAnswer('stageId')) {
+			input.Stage = ans.stageId ? { connect: { id: ans.stageId } } : { disconnect: true };
+		}
+
+		if (this.hasAnswer('categoryId')) {
+			input.Category = ans.categoryId ? { connect: { id: ans.categoryId } } : { disconnect: true };
+		}
+
+		if (this.hasAnswer('procedureId')) {
+			input.Procedure = ans.procedureId ? { connect: { id: ans.procedureId } } : { disconnect: true };
 		}
 	}
 
