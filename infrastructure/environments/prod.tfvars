@@ -125,7 +125,7 @@ text_analytics_config = {
   deploy = true
 }
 
-web_domains = { portal = "find-crown-development.planninginspectorate.gov.uk", manage = "crown-developments-manage.planninginspectorate.gov.uk" }
+web_domains = { portal = "find-crown-development.planninginspectorate.gov.uk", s62a_portal = "find-section-62a.planninginspectorate.gov.uk", manage = "crown-developments-manage.planninginspectorate.gov.uk" }
 
 vnet_config = {
   address_space                       = "10.20.12.0/22"

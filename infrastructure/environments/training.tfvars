@@ -29,7 +29,7 @@ apps_config = {
     upload_docs_not_live         = false
     notify_callback_not_live     = false
     application_updates_not_live = false
-    multiple_applicants_not_live = true
+    multiple_applicants_not_live = false
     s62a_portal_not_live         = true
     s62a_manage_not_live         = true
   }
@@ -139,7 +139,7 @@ vnet_config = {
   secondary_subnet_address_space      = "10.20.25.0/24"
 }
 
-web_domains = { portal = "crown-training.planninginspectorate.gov.uk", manage = "crown-manage-training.planninginspectorate.gov.uk" }
+web_domains = { portal = "crown-training.planninginspectorate.gov.uk", s62a_portal = "s62a-training.planninginspectorate.gov.uk", manage = "crown-manage-training.planninginspectorate.gov.uk" }
 
 waf_rate_limits = {
   enabled             = true
