@@ -308,7 +308,7 @@ export class S62aCaseUpdateMapper {
 		return FEE_DATE_SET.has(key);
 	}
 
-	private isFeeStringField(key: string): key is (typeof FEE_DATE_FIELDS)[number] {
+	private isFeeStringField(key: string): key is (typeof FEE_STRING_FIELDS)[number] {
 		return FEE_STRING_SET.has(key);
 	}
 
