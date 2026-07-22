@@ -74,7 +74,7 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				)
 				.addQuestion(questions.applicationAcknowledgedDate)
 				.addQuestion(questions.furtherInformationRequestedDate)
-				.addQuestion(questions.dateAgreedForAdditionalInformation)
+				.addQuestion(questions.agreedForAdditionalInformationDate)
 				.addQuestion(questions.applicationValidDate)
 				.addQuestion(questions.validLettersSentDate)
 				.addQuestion(questions.lpaQuestionnaireSentDate)

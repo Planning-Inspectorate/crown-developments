@@ -97,7 +97,7 @@ describe('s62a case details journey', () => {
 					'applicationReceivedDate',
 					'applicationAcknowledgedDate',
 					'furtherInformationRequestedDate',
-					'dateAgreedForAdditionalInformation',
+					'agreedForAdditionalInformationDate',
 					'applicationValidDate',
 					'validLettersSentDate',
 					'lpaQuestionnaireSentDate',
