@@ -122,6 +122,11 @@ describe('s62a case details journey', () => {
 			},
 			{
 				title: '',
+				segment: 'representations',
+				questions: ['representationsPeriod', 'representationsPublishDate']
+			},
+			{
+				title: '',
 				segment: 'fee',
 				questions: [
 					'hasPreApplicationFee',

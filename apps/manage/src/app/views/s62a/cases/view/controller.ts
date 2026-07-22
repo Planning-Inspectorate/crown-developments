@@ -15,8 +15,12 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 	return async (req, res) => {
 		const id = getStringParam(req.params, 'id');
 		const reference = getStringParam(res?.locals?.journeyResponse?.answers, 'reference');
+		const applicationPhase = getStringParam(res?.locals?.journeyResponse?.answers, 'applicationPhaseId');
 		const banner = getBannerMessages(id, res, req);
 		const baseUrl = req.baseUrl;
+
+		// Some tabs are hidden for the different phases
+		const viewTabsToShow = VIEW_TABS.filter((tab) => tab.hide !== applicationPhase);
 
 		await list(req, res, '', {
 			caseId: id,
@@ -26,7 +30,7 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 			backLinkText: 'Back to all applications',
 			currentUrl: req.originalUrl,
 			currentTab: req.params.tab || VIEW_TAB_ID.OVERVIEW,
-			viewTabs: VIEW_TABS,
+			viewTabs: viewTabsToShow,
 			// URL without the /:tab slug, needed for routing uses in FE.
 			cleanUrl: `/s62a/cases/${id}`,
 			banner

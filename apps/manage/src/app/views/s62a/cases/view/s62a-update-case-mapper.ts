@@ -39,6 +39,8 @@ export interface UpdateCaseAnswers {
 	siteIsVisibleFromPublicLand?: YesNo;
 	siteAddress?: Address;
 	likelyIssues?: string;
+	representationsPeriod?: { start: Date | null; end: Date | null };
+	representationsPublishDate?: Date | null;
 
 	notificationReceivedDate?: Date | null;
 	applicationReceivedDate?: Date | null;
@@ -133,6 +135,16 @@ export class S62aCaseUpdateMapper {
 
 		if (this.hasAnswer('hasSecondaryLpa')) {
 			input.hasSecondaryLpa = yesNoToBoolean(ans.hasSecondaryLpa);
+		}
+
+		if (this.hasAnswer('representationsPeriod')) {
+			const representationsPeriod = this.answers.representationsPeriod;
+			input.representationsPeriodStartDate = representationsPeriod?.start ? representationsPeriod.start : null;
+			input.representationsPeriodEndDate = representationsPeriod?.end ? representationsPeriod.end : null;
+		}
+
+		if (this.hasAnswer('representationsPublishDate')) {
+			input.representationsPublishDate = ans.representationsPublishDate;
 		}
 
 		this.mapLocationScalars(input);

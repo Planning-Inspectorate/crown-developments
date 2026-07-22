@@ -950,6 +950,49 @@ export function getQuestions(answers: S62aCaseViewModel) {
 					}
 				]
 			}
+		},
+		representationsPeriod: {
+			type: COMPONENT_TYPES.DATE_PERIOD,
+			title: 'Representations period',
+			question: 'What is the representations period?',
+			fieldName: 'representationsPeriod',
+			url: 'representations-period',
+			validators: [
+				new CustomDatePeriodValidator(
+					'representations period',
+					{ ensureFuture: false, ensurePast: false },
+					{ ensureFuture: true, ensurePast: false },
+					true
+				)
+			],
+			labels: { start: 'Start date', end: 'End date' },
+			endTime: { hour: 23, minute: 59 },
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'representations-period/remove'
+					}
+				]
+			}
+		},
+		representationsPublishDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Representations publish date',
+			question: 'When were or will written representations be published?',
+			fieldName: 'representationsPublishDate',
+			url: 'publish-date',
+			validators: [new DateValidator('representations publish date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'publish-date/remove'
+					}
+				]
+			}
 		}
 	};
 

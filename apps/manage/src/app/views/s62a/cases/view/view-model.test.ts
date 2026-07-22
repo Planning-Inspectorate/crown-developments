@@ -14,6 +14,10 @@ const createMockDecimal = (value: number) => ({
 
 describe('s62aCaseToViewModel', () => {
 	it('maps a full database record to the view model correctly', () => {
+		const startDate = new Date('2026-07-20T10:00:00Z');
+		const endDate = new Date('2026-08-20T10:00:00Z');
+		const publishDate = new Date('2026-08-20T10:00:00Z');
+
 		const mockDbCase = {
 			id: 'case-123',
 			reference: 'S62A/2026/0001',
@@ -31,7 +35,10 @@ describe('s62aCaseToViewModel', () => {
 			likelyIssues: 'Traffic and noise',
 			siteNorthing: 123456,
 			siteEasting: 654321,
-			applicationPhaseId: 'phase-1'
+			applicationPhaseId: 'phase-1',
+			representationsPeriodStartDate: startDate,
+			representationsPeriodEndDate: endDate,
+			representationsPublishDate: publishDate
 		} as unknown as S62aCaseDbModel;
 
 		const result = s62aCaseToViewModel(mockDbCase);
@@ -54,7 +61,12 @@ describe('s62aCaseToViewModel', () => {
 			subTypeId: undefined,
 			likelyIssues: 'Traffic and noise',
 			siteNorthing: 123456,
-			siteEasting: 654321
+			siteEasting: 654321,
+			representationsPeriod: {
+				start: startDate,
+				end: endDate
+			},
+			representationsPublishDate: publishDate
 		});
 	});
 
@@ -72,7 +84,10 @@ describe('s62aCaseToViewModel', () => {
 			classificationId: null,
 			likelyIssues: null,
 			siteNorthing: null,
-			siteIsVisibleFromPublicLand: null
+			siteIsVisibleFromPublicLand: null,
+			representationsPeriodStartDate: null,
+			representationsPeriodEndDate: null,
+			representationsPublishDate: null
 		} as unknown as S62aCaseDbModel;
 
 		const result = s62aCaseToViewModel(mockDbCase);
@@ -95,7 +110,8 @@ describe('s62aCaseToViewModel', () => {
 			subTypeId: undefined,
 			likelyIssues: undefined,
 			siteNorthing: undefined,
-			siteEasting: undefined
+			siteEasting: undefined,
+			representationsPublishDate: undefined
 		});
 	});
 
