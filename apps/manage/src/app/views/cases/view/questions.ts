@@ -1,9 +1,19 @@
-import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
-import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
-import NumericValidator from '@planning-inspectorate/dynamic-forms/src/validator/numeric-validator.js';
-import { createQuestions } from '@planning-inspectorate/dynamic-forms/src/questions/create-questions.js';
-import { questionClasses } from '@planning-inspectorate/dynamic-forms/src/questions/questions.js';
-import { CrossQuestionValidator, COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
+import {
+	AddressValidator,
+	CoordinatesValidator,
+	DateValidator,
+	DateTimeValidator,
+	RequiredValidator,
+	SameAnswerValidator,
+	StringValidator,
+	NumericValidator,
+	createQuestions,
+	questionClasses,
+	CrossQuestionValidator,
+	COMPONENT_TYPES,
+	type Option,
+	type Question
+} from '@planning-inspectorate/dynamic-forms';
 import {
 	APPLICATION_DECISION_OUTCOME,
 	APPLICATION_PROCEDURE,
@@ -14,40 +24,54 @@ import {
 	CATEGORIES,
 	ORGANISATION_ROLES_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { dateQuestion, eventQuestions, subCategoriesToRadioOptions, CIL_DATA } from './question-utils.js';
-import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
-import CoordinatesValidator from '@planning-inspectorate/dynamic-forms/src/validator/coordinates-validator.js';
+import {
+	dateQuestion,
+	eventQuestions,
+	subCategoriesToRadioOptions,
+	CIL_DATA,
+	type Reference
+} from './question-utils.ts';
 import CustomDatePeriodValidator from '@pins/crowndev-lib/validators/custom-date-period-validator.js';
-import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
 import { getLpaOptions, referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.ts';
-import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
+import {
+	type CrownQuestionProps,
+	CUSTOM_COMPONENT_CLASSES,
+	CUSTOM_COMPONENTS
+} from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
-import DateTimeValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-time-validator.js';
-import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
 import CostsApplicationsCommentValidator from '@pins/crowndev-lib/forms/custom-components/costs-applications-comment/costs-applications-comment-validator.js';
 import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-components/manage-list/validator.js';
 import { multiContactQuestions } from '../create-a-case/question-utils.js';
 import { getApplicantContactsValidator } from '@pins/crowndev-lib/validators/applicant-contacts-validator.ts';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
+import type { EntraGroupMembers } from '#util/entra-groups.ts';
+
+interface QuestionOverrides {
+	isApplicationTypePlanningOrLbc: boolean;
+	isApplicationSubTypeLbc: boolean;
+	filteredStageOptions?: Reference[];
+	applicantOrganisationOptions?: Option[];
+	hasAgentAnswer: boolean;
+	hasApplicationFee: boolean;
+	isQuestionView: boolean;
+}
 
 /**
- * @param {import('#util/entra-groups').EntraGroupMembers} [groupMembers]
- * @param {import('./types').QuestionOverrides} overrides
- * @returns {{[p: string]: *}}
+ * Get questions for view case
  */
 export function getQuestions(
-	groupMembers = { caseOfficers: [], inspectors: [] },
-	overrides = {
+	groupMembers: EntraGroupMembers = { caseOfficers: [], inspectors: [] },
+	overrides: QuestionOverrides = {
 		isApplicationTypePlanningOrLbc: false,
 		isApplicationSubTypeLbc: false,
 		hasAgentAnswer: false,
+		hasApplicationFee: false,
 		isQuestionView: false
 	}
-) {
+): Record<string, Question> {
 	const applicantContactsValidator = getApplicantContactsValidator(overrides.hasAgentAnswer);
 
-	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
-	const questions = {
+	const questions: Record<string, CrownQuestionProps> = {
 		reference: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 			title: 'Application reference',
@@ -964,9 +988,8 @@ export function getQuestions(
 /**
  * Human-readable display names for fields, derived from question definitions.
  * Uses fieldName as the key and title as the value.
- * @type {Record<string, string>}
  */
-export const FIELD_DISPLAY_NAMES = Object.fromEntries(
+export const FIELD_DISPLAY_NAMES: Record<string, string> = Object.fromEntries(
 	Object.values(getQuestions())
 		.filter((q) => q?.fieldName && q?.title)
 		.map((q) => [q.fieldName, q.title])
