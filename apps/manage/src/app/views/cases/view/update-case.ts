@@ -71,11 +71,22 @@ function isClearableSaveKey(key: keyof CrownDevelopmentSaveModel): key is CrownD
  * Only these fields will produce audit entries in recordAuditEntries.
  */
 const AUDITABLE_SCALAR_FIELDS = new Set([
+	// Directly editable scalar fields
 	'siteArea',
 	'lpaReference',
 	'agentOrganisationName',
 	'hearingVenue',
-	'inquiryVenue'
+	'inquiryVenue',
+
+	// Reference table fields (IDs that map to display names)
+	'typeId',
+	'lpaId',
+	'secondaryLpaId',
+	'decisionOutcomeId',
+	'subCategoryId',
+	'procedureId',
+	'statusId',
+	'stageId'
 ]);
 
 type ErrorWithSummary = Error & { errorSummary: ErrorSummaryItem[] };
