@@ -425,7 +425,7 @@ export function getQuestions(answers: S62aCaseViewModel) {
 				]
 			}
 		},
-		dateAgreedForAdditionalInformation: {
+		agreedForAdditionalInformationDate: {
 			type: COMPONENT_TYPES.DATE,
 			title: 'Date agreed for additional information',
 			question: 'When is the agreed deadline for submission of additional documents?',
