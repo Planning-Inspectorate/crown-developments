@@ -1,5 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 
+type RadioLabelMatchType = 'exact' | 'contains';
+
 export class RadioGroupComponent {
 	private readonly page: Page;
 	private readonly radioName: string;
@@ -38,9 +40,11 @@ export class RadioGroupComponent {
 	}
 
 	/**
-	 * Finds one radio input by exact label text.
+	 * Finds one radio input by exact or partial label text.
+	 *
+	 * Fails if no option is found or if multiple options match.
 	 */
-	private async getInputByExactLabel(optionText: string): Promise<Locator> {
+	private async getInputByLabel(optionText: string, matchType: RadioLabelMatchType = 'exact'): Promise<Locator> {
 		const inputs = this.locators.radioInputs();
 		const count = await inputs.count();
 		const matches: Locator[] = [];
@@ -48,49 +52,40 @@ export class RadioGroupComponent {
 		for (let index = 0; index < count; index++) {
 			const input = inputs.nth(index);
 			const labelText = await this.getRadioLabelText(input);
+			const isMatch = matchType === 'exact' ? labelText === optionText : labelText.includes(optionText);
 
-			if (labelText === optionText) {
+			if (isMatch) {
 				matches.push(input);
 			}
 		}
 
 		if (matches.length === 0) {
-			throw new Error(`Test failed: No radio option '${optionText}' was found for radio group '${this.radioName}'`);
+			throw new Error(
+				`Test failed: No radio option ${matchType === 'exact' ? 'matching' : 'containing'} '${optionText}' was found for radio group '${this.radioName}'`
+			);
 		}
 
 		if (matches.length > 1) {
 			throw new Error(
-				`Test failed: ${matches.length} radio options matching '${optionText}' were found for radio group '${this.radioName}'`
+				`Test failed: ${matches.length} radio options ${matchType === 'exact' ? 'matching' : 'containing'} '${optionText}' were found for radio group '${this.radioName}'. Use more specific text.`
 			);
 		}
 
-		return matches[0];
-	}
+		const matchedInput = matches[0];
 
-	/**
-	 * Finds radio inputs by partial label text.
-	 */
-	private async getInputsByContainingLabel(text: string): Promise<Locator[]> {
-		const inputs = this.locators.radioInputs();
-		const count = await inputs.count();
-		const matches: Locator[] = [];
-
-		for (let index = 0; index < count; index++) {
-			const input = inputs.nth(index);
-			const labelText = await this.getRadioLabelText(input);
-
-			if (labelText.includes(text)) {
-				matches.push(input);
-			}
+		if (!matchedInput) {
+			throw new Error(
+				`Test failed: Unable to resolve radio option '${optionText}' for radio group '${this.radioName}'`
+			);
 		}
 
-		return matches;
+		return matchedInput;
 	}
 
 	public readonly assertions = {
 		/**
 		 * Verifies the radio group contains exactly the expected options.
-		 * Matches options by exact label text.
+		 * Matches options by exact label text, without requiring a specific order.
 		 */
 		hasOptions: async (expectedOptions: string[]) => {
 			const inputs = this.locators.radioInputs();
@@ -112,7 +107,7 @@ export class RadioGroupComponent {
 		 * Finds the option by exact label text within the radio group.
 		 */
 		isOptionSelected: async (option: string) => {
-			const input = await this.getInputByExactLabel(option);
+			const input = await this.getInputByLabel(option, 'exact');
 
 			await expect(input, `Radio option '${option}' should be selected`).toBeChecked();
 
@@ -125,7 +120,7 @@ export class RadioGroupComponent {
 		 * Selects a radio option by exact label text.
 		 */
 		selectOption: async (optionText: string) => {
-			const input = await this.getInputByExactLabel(optionText);
+			const input = await this.getInputByLabel(optionText, 'exact');
 
 			await expect(input, `Radio option '${optionText}' should be enabled`).toBeEnabled();
 			await input.check();
@@ -138,22 +133,10 @@ export class RadioGroupComponent {
 		 * Fails if no option is found or if multiple options match.
 		 */
 		selectOptionContaining: async (text: string) => {
-			const matches = await this.getInputsByContainingLabel(text);
+			const input = await this.getInputByLabel(text, 'contains');
 
-			if (matches.length === 0) {
-				throw new Error(
-					`Test failed: No radio option containing '${text}' was found for radio group '${this.radioName}'`
-				);
-			}
-
-			if (matches.length > 1) {
-				throw new Error(
-					`Test failed: ${matches.length} radio options containing '${text}' were found for radio group '${this.radioName}'. Use more specific text.`
-				);
-			}
-
-			await expect(matches[0], `Radio option containing '${text}' should be enabled`).toBeEnabled();
-			await matches[0].check();
+			await expect(input, `Radio option containing '${text}' should be enabled`).toBeEnabled();
+			await input.check();
 
 			return this.actions;
 		}

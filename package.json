@@ -80,6 +80,7 @@
     "@types/express-session": "^1.19.0",
     "@types/lusca": "^1.7.5",
     "@types/nunjucks": "^3.2.6",
+    "cross-env": "^10.1.0",
     "eslint": "^10.6.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-check-file": "^3.3.1",

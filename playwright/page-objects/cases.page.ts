@@ -48,7 +48,7 @@ export class CasesPage {
 					timeout: DEFAULT_TIMEOUT
 				});
 			} catch {
-				throw new Error('Test failed: Cases page did not load within 30 seconds');
+				throw new Error('Test failed: Cases page did not load in time');
 			}
 
 			await this.headerUtility.assertions.isHeaderDisplayed();

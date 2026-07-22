@@ -17,8 +17,7 @@ import { type CreateCaseJourney } from '../types/create-case-journey.type.ts';
 import { type PageValidation } from './page-validation.utility.ts';
 
 export type CreateCaseJourneyName =
-	| (typeof preApplicationCreateCaseJourneys)[number]['name']
-	| (typeof applicationCreateCaseJourneys)[number]['name'];
+	(typeof preApplicationCreateCaseJourneys)[number]['name'] | (typeof applicationCreateCaseJourneys)[number]['name'];
 
 export type CreateCaseCapturedAnswers = {
 	journeyName: string;
@@ -180,7 +179,7 @@ export class CreateCaseUtility {
 		// Which local planning authority is this pre-application advice related to?
 		await this.pageManager.whichPlanningAuthority.assertions.isPageDisplayed({
 			variant: journey.variant,
-			WhichPlanningAuthorityType: 'primary',
+			whichPlanningAuthorityType: 'primary',
 			pageValidation
 		});
 
@@ -230,7 +229,7 @@ export class CreateCaseUtility {
 			// Which secondary local planning authority is this pre-application advice related to?
 			await this.pageManager.whichPlanningAuthority.assertions.isPageDisplayed({
 				variant: journey.variant,
-				WhichPlanningAuthorityType: 'secondary',
+				whichPlanningAuthorityType: 'secondary',
 				pageValidation
 			});
 
@@ -242,7 +241,7 @@ export class CreateCaseUtility {
 			await this.pageManager.whichPlanningAuthority.assertions.hasPlanningAuthorityValue(
 				answers.secondaryLocalPlanningAuthority,
 				{
-					WhichPlanningAuthorityType: 'secondary'
+					whichPlanningAuthorityType: 'secondary'
 				}
 			);
 

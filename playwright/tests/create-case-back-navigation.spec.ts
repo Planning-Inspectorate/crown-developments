@@ -109,13 +109,13 @@ test.describe(
 				await pageManager.common.actions.clickActionButton('back');
 				await pageManager.whichPlanningAuthority.assertions.isPageDisplayed({
 					variant: BACK_NAVIGATION_JOURNEY.variant,
-					WhichPlanningAuthorityType: 'secondary',
+					whichPlanningAuthorityType: 'secondary',
 					pageValidation: 'basicValidation'
 				});
 				await pageManager.whichPlanningAuthority.assertions.hasPlanningAuthorityValue(
 					answers.secondaryLocalPlanningAuthority,
 					{
-						WhichPlanningAuthorityType: 'secondary'
+						whichPlanningAuthorityType: 'secondary'
 					}
 				);
 			});
@@ -144,7 +144,7 @@ test.describe(
 				await pageManager.common.actions.clickActionButton('back');
 				await pageManager.whichPlanningAuthority.assertions.isPageDisplayed({
 					variant: BACK_NAVIGATION_JOURNEY.variant,
-					WhichPlanningAuthorityType: 'primary',
+					whichPlanningAuthorityType: 'primary',
 					pageValidation: 'basicValidation'
 				});
 				await pageManager.whichPlanningAuthority.assertions.hasPlanningAuthorityValue(answers.localPlanningAuthority);

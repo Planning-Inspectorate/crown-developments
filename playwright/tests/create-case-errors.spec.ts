@@ -130,6 +130,7 @@ async function validateLpaContactDetailsErrors(
 
 	await test.step('Enter valid generated contact details', async () => {
 		const validContactDetails = await contactDetails.actions.enterGeneratedContactDetails();
+
 		await contactDetails.assertions.hasContactDetailsValues(validContactDetails);
 		await pageManager.common.actions.clickActionButton('continue');
 	});
@@ -188,12 +189,12 @@ test.describe('S62A > Create case validation errors', { tag: '@regression' }, ()
 		await test.step('Primary planning authority required error', async () => {
 			await pageManager.whichPlanningAuthority.assertions.isPageDisplayed({
 				variant: VALIDATION_JOURNEY.variant,
-				WhichPlanningAuthorityType: 'primary',
+				whichPlanningAuthorityType: 'primary',
 				pageValidation: 'basicValidation'
 			});
 			await pageManager.common.actions.clickActionButton('continue');
 			await pageManager.whichPlanningAuthority.assertions.isErrorDisplayed({
-				WhichPlanningAuthorityType: 'primary'
+				whichPlanningAuthorityType: 'primary'
 			});
 
 			primaryPlanningAuthority = await selectRandomPlanningAuthority(page, pageManager, 'lpaId');
@@ -229,21 +230,23 @@ test.describe('S62A > Create case validation errors', { tag: '@regression' }, ()
 		await test.step('Secondary planning authority required error', async () => {
 			await pageManager.whichPlanningAuthority.assertions.isPageDisplayed({
 				variant: VALIDATION_JOURNEY.variant,
-				WhichPlanningAuthorityType: 'secondary',
+				whichPlanningAuthorityType: 'secondary',
 				pageValidation: 'basicValidation'
 			});
 			await pageManager.common.actions.clickActionButton('continue');
 			await pageManager.whichPlanningAuthority.assertions.isErrorDisplayed({
-				WhichPlanningAuthorityType: 'secondary'
+				whichPlanningAuthorityType: 'secondary'
 			});
+
 			const secondaryPlanningAuthority = await selectRandomPlanningAuthority(
 				page,
 				pageManager,
 				'secondaryLpaId',
 				primaryPlanningAuthority
 			);
+
 			await pageManager.whichPlanningAuthority.assertions.hasPlanningAuthorityValue(secondaryPlanningAuthority, {
-				WhichPlanningAuthorityType: 'secondary'
+				whichPlanningAuthorityType: 'secondary'
 			});
 			expect(secondaryPlanningAuthority).not.toBe(primaryPlanningAuthority);
 			await pageManager.common.actions.clickActionButton('continue');
@@ -273,6 +276,7 @@ test.describe('S62A > Create case validation errors', { tag: '@regression' }, ()
 			const organisationNameInvalidCharacters = generateRandomString(20, {
 				requiredSpecialWords: ['@']
 			});
+
 			await pageManager.agentOrganisationName.assertions.isPageDisplayed({
 				pageValidation: 'basicValidation'
 			});
@@ -284,7 +288,9 @@ test.describe('S62A > Create case validation errors', { tag: '@regression' }, ()
 			await pageManager.agentOrganisationName.actions.enterAgentOrganisationName(organisationNameInvalidCharacters);
 			await pageManager.common.actions.clickActionButton('continue');
 			await pageManager.agentOrganisationName.assertions.isErrorDisplayed('invalidCharacters');
+
 			const validOrganisationName = await pageManager.agentOrganisationName.actions.enterAgentOrganisationName();
+
 			await pageManager.agentOrganisationName.assertions.hasAgentOrganisationNameValue(validOrganisationName);
 			await pageManager.common.actions.clickActionButton('continue');
 		});
@@ -330,7 +336,9 @@ test.describe('S62A > Create case validation errors', { tag: '@regression' }, ()
 			await addressComponent.actions.enterAddress({
 				town: ''
 			});
+
 			const address = await addressComponent.actions.enterAddress();
+
 			await addressComponent.assertions.hasAddressValues(address);
 			await pageManager.common.actions.clickActionButton('continue');
 		});
