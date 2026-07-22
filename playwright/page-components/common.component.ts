@@ -13,15 +13,8 @@ export type ErrorSummaryOptions = VerifyOptions & {
 	inlineId?: string;
 };
 
-export type ActionButtonOption =
-	| 'back'
-	| 'addDetails'
-	| 'addAnother'
-	| 'saveAndContinue'
-	| 'continue'
-	| 'cancel'
-	| 'save'
-	| 'removeAndSave';
+export type ActionOption =
+	'back' | 'addDetails' | 'addAnother' | 'saveAndContinue' | 'continue' | 'cancel' | 'save' | 'removeAndSave';
 
 export class CommonComponent {
 	private readonly page: Page;

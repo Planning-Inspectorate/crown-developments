@@ -11,15 +11,6 @@ export type UkAddress = {
 	postcode: string;
 };
 
-type AddressFieldKey = 'address-line-1' | 'address-line-2' | 'address-town' | 'address-county' | 'address-postcode';
-
-type AddressErrorType =
-	| 'line1TooLong'
-	| 'line2TooLong'
-	| 'townTooLong'
-	| 'countyTooLong'
-	| 'postcodeLength'
-	| 'invalidPostcodeFormat';
 export type AddressFieldIds = {
 	line1: string;
 	line2: string;
@@ -45,12 +36,7 @@ export type AddressInlineErrorIds = {
 };
 
 export type AddressErrorType =
-	| 'line1TooLong'
-	| 'line2TooLong'
-	| 'townTooLong'
-	| 'countyTooLong'
-	| 'postcodeLength'
-	| 'invalidPostcodeFormat';
+	'line1TooLong' | 'line2TooLong' | 'townTooLong' | 'countyTooLong' | 'postcodeLength' | 'invalidPostcodeFormat';
 
 type AddressFieldKey = keyof AddressFieldIds;
 

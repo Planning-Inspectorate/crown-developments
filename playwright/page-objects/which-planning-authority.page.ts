@@ -13,15 +13,15 @@ export type WhichPlanningAuthorityType = 'primary' | 'secondary';
 
 type WhichPlanningAuthorityPageOptions = PageDisplayOptions & {
 	variant?: ApplicationVariant;
-	WhichPlanningAuthorityType?: WhichPlanningAuthorityType;
+	whichPlanningAuthorityType?: WhichPlanningAuthorityType;
 };
 
 type WhichPlanningAuthorityErrorOptions = {
-	WhichPlanningAuthorityType?: WhichPlanningAuthorityType;
+	whichPlanningAuthorityType?: WhichPlanningAuthorityType;
 };
 
 type WhichPlanningAuthorityValueOptions = {
-	WhichPlanningAuthorityType?: WhichPlanningAuthorityType;
+	whichPlanningAuthorityType?: WhichPlanningAuthorityType;
 };
 
 export class WhichPlanningAuthorityPage {
@@ -66,12 +66,12 @@ export class WhichPlanningAuthorityPage {
 		isPageDisplayed: async (options: WhichPlanningAuthorityPageOptions = {}) => {
 			const {
 				variant = 'preApplication',
-				WhichPlanningAuthorityType = 'primary',
+				whichPlanningAuthorityType = 'primary',
 				pageValidation = 'fullValidation',
 				timeout = DEFAULT_TIMEOUT
 			} = options;
 
-			const pageConfig = this.getPageConfig(WhichPlanningAuthorityType, variant);
+			const pageConfig = this.getPageConfig(whichPlanningAuthorityType, variant);
 
 			await runPageValidation(
 				pageValidation,
@@ -115,8 +115,8 @@ export class WhichPlanningAuthorityPage {
 		},
 
 		hasPlanningAuthorityValue: async (expectedValue: string, options: WhichPlanningAuthorityValueOptions = {}) => {
-			const { WhichPlanningAuthorityType = 'primary' } = options;
-			const pageConfig = this.getPageConfig(WhichPlanningAuthorityType, 'preApplication');
+			const { whichPlanningAuthorityType = 'primary' } = options;
+			const pageConfig = this.getPageConfig(whichPlanningAuthorityType, 'preApplication');
 
 			await pageConfig.listbox.assertions.hasValue(expectedValue);
 
@@ -124,8 +124,8 @@ export class WhichPlanningAuthorityPage {
 		},
 
 		isErrorDisplayed: async (options: WhichPlanningAuthorityErrorOptions = {}) => {
-			const { WhichPlanningAuthorityType = 'primary' } = options;
-			const pageConfig = this.getPageConfig(WhichPlanningAuthorityType, 'preApplication');
+			const { whichPlanningAuthorityType = 'primary' } = options;
+			const pageConfig = this.getPageConfig(whichPlanningAuthorityType, 'preApplication');
 
 			await this.commonComponent.assertions.verifyErrorSummary(pageConfig.error, {
 				href: pageConfig.errorHref,
