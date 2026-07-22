@@ -108,7 +108,15 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.withCondition(
 					whenQuestionHasAnswer(questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION)
 				),
-
+			new Section('', 'representations')
+				.withSectionCondition(
+					() =>
+						currentTab === VIEW_TAB_ID.REPRESENTATIONS &&
+						// The tab should be hidden anyway, but if the user manually navigates here, this ensures that we do not show the questions accidentally
+						questionHasAnswer(response, questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION)
+				)
+				.addQuestion(questions.representationsPeriod)
+				.addQuestion(questions.representationsPublishDate),
 			new Section('', 'fee')
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.FEE)
 

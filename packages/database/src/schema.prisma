@@ -217,6 +217,11 @@ model S62aCase {
   /// Other dates
   S62aDates S62aDates?
 
+  /// Representations period key dates
+  representationsPublishDate     DateTime?
+  representationsPeriodStartDate DateTime?
+  representationsPeriodEndDate   DateTime?
+
   S62aFees S62aFees?
 }
 

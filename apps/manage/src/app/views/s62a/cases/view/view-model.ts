@@ -81,6 +81,11 @@ export interface S62aCaseViewModel {
 	subTypeId?: string | null;
 	siteIsVisibleFromPublicLand?: YesNo;
 	likelyIssues?: string | null;
+	representationsPeriod?: {
+		start?: Date;
+		end?: Date;
+	};
+	representationsPublishDate?: Date;
 
 	notificationReceivedDate?: Date;
 	applicationReceivedDate?: Date;
@@ -141,7 +146,7 @@ const INTEGER_STRING_FIELDS = Object.freeze(['siteNorthing', 'siteEasting'] as c
 /**
  * Fields that do not need mapping to (or from) the view model
  */
-const DIRECT_UNMAPPED_FIELDS = Object.freeze(['likelyIssues'] as const);
+const DIRECT_UNMAPPED_FIELDS = Object.freeze(['likelyIssues', 'representationsPublishDate'] as const);
 
 /**
  * Fields that represent foreign key relations in the database and are included in the view model
@@ -196,6 +201,17 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 
 	for (const field of [...RELATION_ID_FIELDS, ...DIRECT_UNMAPPED_FIELDS, ...INTEGER_STRING_FIELDS]) {
 		assignNullableDirectField(viewModel, dbCase, field);
+	}
+
+	if (dbCase.representationsPeriodStartDate || dbCase.representationsPeriodEndDate) {
+		viewModel.representationsPeriod = {};
+
+		if (dbCase.representationsPeriodStartDate) {
+			viewModel.representationsPeriod.start = dbCase.representationsPeriodStartDate;
+		}
+		if (dbCase.representationsPeriodEndDate) {
+			viewModel.representationsPeriod.end = dbCase.representationsPeriodEndDate;
+		}
 	}
 
 	if (dbCase.siteAreaInSquareMetres) {

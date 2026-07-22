@@ -35,11 +35,20 @@ describe('S62aCaseUpdateMapper', () => {
 	describe('Scalar Mapping', () => {
 		it('maps scalar fields when provided', () => {
 			const date = new Date('2026-07-14T12:00:00Z');
+			const repStartDate = new Date('2026-08-01T10:00:00Z');
+			const repEndDate = new Date('2026-08-02T10:00:00Z');
+			const publishDate = new Date('2026-08-01T10:00:00Z');
+
 			const answers: UpdateCaseAnswers = {
 				developmentDescription: 'Updated description',
 				likelyIssues: 'Traffic',
 				expectedSubmissionDate: date,
-				hasSecondaryLpa: 'yes'
+				hasSecondaryLpa: 'yes',
+				representationsPeriod: {
+					start: repStartDate,
+					end: repEndDate
+				},
+				representationsPublishDate: publishDate
 			};
 			const mapper = new S62aCaseUpdateMapper(answers);
 
@@ -49,6 +58,9 @@ describe('S62aCaseUpdateMapper', () => {
 			assert.strictEqual(result.likelyIssues, 'Traffic');
 			assert.strictEqual(result.expectedSubmissionDate, date);
 			assert.strictEqual(result.hasSecondaryLpa, true);
+			assert.strictEqual(result.representationsPeriodStartDate, repStartDate);
+			assert.strictEqual(result.representationsPeriodEndDate, repEndDate);
+			assert.strictEqual(result.representationsPublishDate, publishDate);
 		});
 
 		it('allows clearing fields like description and likelyIssues with empty strings', () => {
