@@ -137,7 +137,8 @@ export const VIEW_TAB_ID = Object.freeze({
 	DETAILS: 'details',
 	DATES: 'dates',
 	FEE: 'fee',
-	REPRESENTATIONS: 'representations'
+	REPRESENTATIONS: 'representations',
+	CONTACTS: 'contacts'
 } as const);
 
 /**
@@ -151,6 +152,10 @@ export const VIEW_TABS = [
 	{
 		id: VIEW_TAB_ID.DETAILS,
 		displayName: 'Details'
+	},
+	{
+		id: VIEW_TAB_ID.CONTACTS,
+		displayName: 'Contacts'
 	},
 	{
 		id: VIEW_TAB_ID.DATES,
