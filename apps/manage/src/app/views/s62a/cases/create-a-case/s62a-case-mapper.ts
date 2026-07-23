@@ -135,7 +135,9 @@ export class S62aCaseMapper {
 				: undefined,
 			expectedSubmissionDate: new Date(this.answers.expectedSubmissionDate),
 
-			S62aStatus: { connect: { id: S62A_STATUS_ID.NEW } }
+			S62aStatus: { connect: { id: S62A_STATUS_ID.NEW } },
+
+			ApplicantType: { connect: { id: this.answers.applicantType } }
 		};
 
 		this.mapLookups(input);

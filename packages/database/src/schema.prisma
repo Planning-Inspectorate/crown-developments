@@ -191,6 +191,8 @@ model S62aCase {
   /// Hearing and Written representations — enforced in the question options, not the DB.
   procedureId        String?
   Procedure          ApplicationProcedure? @relation(fields: [procedureId], references: [id])
+  applicantTypeId    String?
+  ApplicantType      S62aApplicantType?    @relation(fields: [applicantTypeId], references: [id])
 
   hasAgent Boolean @default(false)
 
@@ -243,6 +245,13 @@ model S62aCase {
   cilAmount               Decimal? @db.Decimal(12, 2)
   /// whether exempt from biodiversity net gain (BNG)
   bngExempt               Boolean?
+}
+
+model S62aApplicantType {
+  /// unique machine-readable name, not generated, e.g. "organisation"
+  id          String     @id
+  displayName String?
+  S62aCases   S62aCase[]
 }
 
 model S62aFees {
