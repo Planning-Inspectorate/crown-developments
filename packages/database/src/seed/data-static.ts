@@ -1,5 +1,6 @@
 import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import {
+	APPLICANT_TYPES,
 	INSPECTOR_BANDS,
 	MAJOR_OR_NON_MAJORS,
 	PRE_APPLICATION_OR_APPLICATIONS,
@@ -625,6 +626,10 @@ type UpsertReferenceDataArgs =
 	| {
 			delegate: Prisma.InspectorBandDelegate;
 			input: Prisma.InspectorBandCreateInput;
+	  }
+	| {
+			delegate: Prisma.S62aApplicantTypeDelegate;
+			input: Prisma.S62aApplicantTypeCreateInput;
 	  };
 
 async function upsertReferenceData({ delegate, input }: UpsertReferenceDataArgs): Promise<void> {
@@ -740,6 +745,10 @@ export async function seedS62aStaticData(dbClient: PrismaClient) {
 	await Promise.all(INSPECTOR_BANDS.map((input) => upsertReferenceData({ delegate: dbClient.inspectorBand, input })));
 
 	await Promise.all(S62A_STATUSES.map((input) => upsertReferenceData({ delegate: dbClient.s62aStatus, input })));
+
+	await Promise.all(
+		APPLICANT_TYPES.map((input) => upsertReferenceData({ delegate: dbClient.s62aApplicantType, input }))
+	);
 
 	console.log('S62A static data seed complete');
 }
