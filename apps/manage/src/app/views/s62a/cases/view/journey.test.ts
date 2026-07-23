@@ -91,6 +91,23 @@ describe('s62a case details journey', () => {
 			},
 			{
 				title: '',
+				segment: 'contacts',
+				questions: [
+					'applicantType',
+					'manageApplicantOrganisations',
+					'manageApplicantContactDetails',
+					'hasAgent',
+					'agentName',
+					'agentAddress',
+					'manageAgentContacts',
+					'lpaContactDetails',
+					'lpaAddress',
+					'secondaryLpaContactDetails',
+					'secondaryLpaAddress'
+				]
+			},
+			{
+				title: '',
 				segment: 'dates',
 				questions: [
 					'notificationReceivedDate',

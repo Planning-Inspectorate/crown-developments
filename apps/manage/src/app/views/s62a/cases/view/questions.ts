@@ -15,6 +15,7 @@ import {
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import {
 	AddressValidator,
+	BOOLEAN_OPTIONS,
 	COMPONENT_TYPES,
 	CoordinatesValidator,
 	createQuestions,
@@ -57,10 +58,16 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 		? answers.applicationPhaseId
 		: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
 
+	// TODO: Make sure to remove these error expectations.
+	// @ts-expect-error - the view model update is coming in next PR
 	const isIndividual = answers?.applicantType === APPLICANT_TYPE_ID.INDIVIDUAL;
-
+	// @ts-expect-error - the view model update is coming in next PR
 	const manageApplicantOrganisations = !isIndividual ? (answers?.manageApplicantOrganisations as ApplicantOrg[]) : [];
 	const applicantOrganisationOptions = getApplicantOrganisationOptions(manageApplicantOrganisations);
+	// @ts-expect-error - the view model update is coming in next PR
+	const hasAgent = answers?.hasAgent === BOOLEAN_OPTIONS.YES;
+
+	const applicantContactsValidator = getApplicantContactsValidator(hasAgent, isIndividual);
 
 	const questions = {
 		reference: {
@@ -1057,7 +1064,7 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 			showAnswersInSummary: true,
 			maximumAnswers: 10,
 			emptyStateAddStyle: 'prominent',
-			validators: getApplicantContactsValidator
+			validators: applicantContactsValidator
 		},
 		...multiContactQuestions({
 			prefix: 'applicant',
