@@ -4,15 +4,15 @@
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 {% import "pagination/pagination.njk" as pagination %}
 {% import "pagination/pagination-options.njk" as paginationOptions %}
-{% from "views/layouts/components/header.njk" import header %}
 {% from "search-bar/search-bar.njk" import searchBar %}
+{% from "header/pins-header.njk" import pinsHeader %}
 
 {% block pageTitle %}
     Case list - All Cases - Manage a Section 62A Development Application
 {% endblock %}
 
 {% block header %}
-	{{ header('Manage a Section 62A Application', baseUrl ) }}
+    {{ pinsHeader({ isExternal: false }, config) }}
 {% endblock %}
 
 {% block pageContent %}

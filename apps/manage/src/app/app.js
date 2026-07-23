@@ -106,6 +106,12 @@ export function getApp(service) {
 	// static files
 	app.use(express.static(service.staticDir, service.cacheControl));
 
+	// S62A header variable, to trigger header on S62A pages
+	app.use((req, res, next) => {
+		res.locals.isS62A = req.path.includes('/s62a/');
+		next();
+	});
+
 	const router = buildRouter(service);
 	// register the router, which will define any subpaths
 	// any paths not defined will return 404 by default

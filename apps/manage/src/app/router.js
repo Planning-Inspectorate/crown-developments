@@ -32,6 +32,7 @@ export function buildRouter(service) {
 	if (!service.authDisabled) {
 		service.logger.info('registering auth routes');
 		router.use('/auth', authRoutes);
+		router.use('/s62a/auth', authRoutes);
 
 		// all subsequent routes require auth
 
