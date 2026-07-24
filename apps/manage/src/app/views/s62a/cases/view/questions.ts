@@ -4,6 +4,8 @@ import {
 	APPLICATION_TYPES
 } from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
+	APPLICANT_TYPE_ID,
+	APPLICANT_TYPES,
 	INSPECTOR_BANDS,
 	MAJOR_OR_NON_MAJORS,
 	PRE_APPLICATION_OR_APPLICATION_ID,
@@ -13,6 +15,7 @@ import {
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import {
 	AddressValidator,
+	BOOLEAN_OPTIONS,
 	COMPONENT_TYPES,
 	CoordinatesValidator,
 	createQuestions,
@@ -29,12 +32,20 @@ import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/
 import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import { CASE_DETAILS_QUESTION_TEXT } from './constants.ts';
-import { isApplicationType } from '../util/questions.ts';
+import { getApplicantContactsValidator, isApplicationType } from '../util/questions.ts';
 import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
 import CustomDatePeriodValidator from '@pins/crowndev-lib/validators/custom-date-period-validator.js';
 import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
+import { multiContactQuestions, createLpaContactQuestion } from '../util/question-factories.ts';
+import { getApplicantOrganisationOptions } from '../../../../views/cases/util/applicant-organisation-options.js';
 
-export function getQuestions(answers: S62aCaseViewModel) {
+type ApplicantOrg = {
+	id: string;
+	organisationName: string;
+	organisationAddress?: Record<string, unknown>;
+};
+
+export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolean) {
 	const isLbcCase = answers?.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
 	const applicationTypesNotLBC = APPLICATION_TYPES.filter(
 		(type) => type.id !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
@@ -46,6 +57,17 @@ export function getQuestions(answers: S62aCaseViewModel) {
 	const preAppOrAppPath = isApplicationType(answers.applicationPhaseId)
 		? answers.applicationPhaseId
 		: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
+
+	// TODO: Make sure to remove these error expectations.
+	// @ts-expect-error - the view model update is coming in next PR
+	const isIndividual = answers?.applicantType === APPLICANT_TYPE_ID.INDIVIDUAL;
+	// @ts-expect-error - the view model update is coming in next PR
+	const manageApplicantOrganisations = !isIndividual ? (answers?.manageApplicantOrganisations as ApplicantOrg[]) : [];
+	const applicantOrganisationOptions = getApplicantOrganisationOptions(manageApplicantOrganisations);
+	// @ts-expect-error - the view model update is coming in next PR
+	const hasAgent = answers?.hasAgent === BOOLEAN_OPTIONS.YES;
+
+	const applicantContactsValidator = getApplicantContactsValidator(hasAgent, isIndividual);
 
 	const questions = {
 		reference: {
@@ -993,6 +1015,136 @@ export function getQuestions(answers: S62aCaseViewModel) {
 					}
 				]
 			}
+		},
+		applicantType: {
+			type: COMPONENT_TYPES.RADIO,
+			title: 'Applicant type',
+			question: 'Is the applicant an organisation or an individual?',
+			url: 'applicant-type',
+			fieldName: 'applicantType',
+			validators: [new RequiredValidator('Select whether the applicant is an organisation or an individual')],
+			options: APPLICANT_TYPES.map((t) => ({ text: t.displayName, value: t.id }))
+		},
+		manageApplicantOrganisations: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			title: isQuestionView ? 'Check applicant organisation details' : 'Applicant organisations',
+			question: 'Check applicant organisation details',
+			url: 'check-applicant-details',
+			fieldName: 'manageApplicantOrganisations',
+			titleSingular: 'Applicant organisation',
+			emptyListText: 'No applicants found',
+			showAnswersInSummary: true,
+			emptyStateAddStyle: 'prominent',
+			maximumAnswers: 10
+		},
+		applicantOrganisationName: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Applicant organisation name',
+			question: 'What is the name of the applicant organisation?',
+			url: 'applicant-organisation-name',
+			fieldName: 'organisationName',
+			validators: [new RequiredValidator('Enter the name of the applicant organisation')]
+		},
+		applicantOrganisationAddress: {
+			type: COMPONENT_TYPES.ADDRESS,
+			title: 'Applicant address',
+			question: 'What is the address of the applicant organisation?',
+			url: 'applicant-organisation-address',
+			fieldName: 'organisationAddress',
+			validators: [new AddressValidator()]
+		},
+		manageApplicantContactDetails: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			title: isQuestionView ? 'Check applicant contact details' : 'Applicant contacts',
+			question: 'Check applicant contact details',
+			url: 'check-applicant-contact-details',
+			fieldName: 'manageApplicantContactDetails',
+			titleSingular: 'Applicant contact',
+			emptyListText: 'No applicant contacts found',
+			showAnswersInSummary: true,
+			maximumAnswers: 10,
+			emptyStateAddStyle: 'prominent',
+			validators: applicantContactsValidator
+		},
+		...multiContactQuestions({
+			prefix: 'applicant',
+			title: 'applicant',
+			organisationOptions: applicantOrganisationOptions.length ? applicantOrganisationOptions : null
+		}),
+		hasAgent: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Agent?',
+			question: 'Is the applicant using an agent?',
+			fieldName: 'hasAgent',
+			url: 'has-agent',
+			validators: [new RequiredValidator('Select yes if the applicant is using an agent')]
+		},
+		agentName: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Agent organisation name',
+			question: 'What is the name of the agent organisation?',
+			fieldName: 'agentName',
+			url: 'add-agent-details',
+			hint: 'Enter the name of the organisation acting as the agent, for example a planning consultancy or architectural firm',
+			validators: [
+				new RequiredValidator('Enter the agent organisation name'),
+				new StringValidator({
+					maxLength: {
+						maxLength: 250,
+						maxLengthMessage: 'Agent organisation name must be 250 characters or less'
+					},
+					regex: {
+						regex: "^[A-Za-z0-9 ',’(),&-]+$",
+						regexMessage:
+							'Agent organisation name must only include letters, spaces, hyphens, apostrophes, commas and numbers'
+					}
+				})
+			]
+		},
+		agentAddress: {
+			type: COMPONENT_TYPES.ADDRESS,
+			title: 'Agent address',
+			question: 'What is the address of the agent organisation?',
+			fieldName: 'agentAddress',
+			url: 'agent-address',
+			validators: [new AddressValidator()]
+		},
+		manageAgentContacts: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			title: isQuestionView ? 'Check agent contact details' : 'Agent contacts',
+			question: 'Check agent contact details',
+			url: 'check-agent-contact-details',
+			fieldName: 'manageAgentContactDetails',
+			titleSingular: 'Contact',
+			emptyListText: 'No agent contacts found',
+			showAnswersInSummary: true,
+			emptyStateAddStyle: 'prominent',
+			maximumAnswers: 10
+		},
+		...multiContactQuestions({
+			prefix: 'agent',
+			title: 'agent',
+			organisationOptions: null
+		}),
+		lpaContactDetails: createLpaContactQuestion(false),
+		lpaAddress: {
+			type: COMPONENT_TYPES.ADDRESS,
+			title: 'LPA address',
+			question: 'What is the address of the LPA?',
+			fieldName: 'lpaAddress',
+			url: 'lpa-address',
+			validators: [new AddressValidator()],
+			editable: false
+		},
+		secondaryLpaContactDetails: createLpaContactQuestion(true),
+		secondaryLpaAddress: {
+			type: COMPONENT_TYPES.ADDRESS,
+			title: 'Secondary LPA address',
+			question: 'What is the address of the Secondary LPA?',
+			fieldName: 'secondaryLpaAddress',
+			url: 'secondary-lpa-address',
+			validators: [new AddressValidator()],
+			editable: false
 		}
 	};
 

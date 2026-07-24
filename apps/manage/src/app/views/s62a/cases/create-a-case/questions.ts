@@ -23,7 +23,7 @@ import {
 import { APPLICATION_TYPES } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
 import { CREATE_A_CASE_QUESTION_TEXT } from './constants.ts';
-import { createLpaContactQuestion, multiContactQuestions } from './question-factories.ts';
+import { createLpaContactQuestion, multiContactQuestions } from '../util/question-factories.ts';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import { getApplicantOrganisationOptions } from '../../../../views/cases/util/applicant-organisation-options.js';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';

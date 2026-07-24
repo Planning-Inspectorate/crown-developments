@@ -5,11 +5,16 @@ import {
 	type JourneyResponse,
 	questionHasAnswer,
 	whenQuestionHasAnswer,
-	BOOLEAN_OPTIONS
+	BOOLEAN_OPTIONS,
+	ManageListSection
 } from '@planning-inspectorate/dynamic-forms';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import type { Request } from 'express';
-import { PRE_APPLICATION_OR_APPLICATION_ID, VIEW_TAB_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import {
+	APPLICANT_TYPE_ID,
+	PRE_APPLICATION_OR_APPLICATION_ID,
+	VIEW_TAB_ID
+} from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 export const JOURNEY_ID = 's62a-case-details';
@@ -57,6 +62,45 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.DETAILS)
 				.addQuestion(questions.applicationStatus),
 
+			new Section('', 'contacts')
+				.withSectionCondition(() => currentTab === VIEW_TAB_ID.CONTACTS)
+
+				.addQuestion(questions.applicantType)
+
+				.startMultiQuestionCondition(
+					'is-organisation',
+					whenQuestionHasAnswer(questions.applicantType, APPLICANT_TYPE_ID.ORGANISATION)
+				)
+				.addQuestion(
+					questions.manageApplicantOrganisations,
+					new ManageListSection()
+						.addQuestion(questions.applicantOrganisationName)
+						.addQuestion(questions.applicantOrganisationAddress)
+				)
+				.endMultiQuestionCondition('is-organisation')
+
+				.addQuestion(
+					questions.manageApplicantContactDetails,
+					new ManageListSection().addQuestion(questions.applicantContactDetails)
+				)
+
+				.addQuestion(questions.hasAgent)
+				.startMultiQuestionCondition('has-agent', whenQuestionHasAnswer(questions.hasAgent, BOOLEAN_OPTIONS.YES))
+				.addQuestion(questions.agentName)
+				.addQuestion(questions.agentAddress)
+				.addQuestion(questions.manageAgentContacts, new ManageListSection().addQuestion(questions.agentContactDetails))
+				.endMultiQuestionCondition('has-agent')
+
+				.addQuestion(questions.lpaContactDetails)
+				.addQuestion(questions.lpaAddress)
+
+				.startMultiQuestionCondition(
+					'has-secondary-lpa',
+					whenQuestionHasAnswer(questions.hasSecondaryLpa, BOOLEAN_OPTIONS.YES)
+				)
+				.addQuestion(questions.secondaryLpaContactDetails)
+				.addQuestion(questions.secondaryLpaAddress)
+				.endMultiQuestionCondition('has-secondary-lpa'),
 			new Section('', 'dates')
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.DATES)
 				/**

@@ -183,6 +183,8 @@ model S62aCase {
   S62aStatus         S62aStatus?           @relation(fields: [s62aStatusId], references: [id])
   specialismId       String?
   Specialism         Specialism?           @relation(fields: [specialismId], references: [id])
+  applicantTypeId    String?
+  ApplicantType      S62aApplicantType?    @relation(fields: [applicantTypeId], references: [id])
 
   hasAgent Boolean @default(false)
 
@@ -223,6 +225,13 @@ model S62aCase {
   representationsPeriodEndDate   DateTime?
 
   S62aFees S62aFees?
+}
+
+model S62aApplicantType {
+  /// unique machine-readable name, not generated, e.g. "organisation"
+  id          String     @id
+  displayName String?
+  S62aCases   S62aCase[]
 }
 
 model S62aFees {
