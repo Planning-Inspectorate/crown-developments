@@ -6,6 +6,7 @@ import type { SaveParams } from '@planning-inspectorate/dynamic-forms';
 import type { ManageService } from '../../../../service.js';
 
 describe('buildS62aUpdateCase', () => {
+	let mockDbSelectCalls: any[];
 	let mockDbUpdateCalls: any[];
 	let mockLoggerInfoCalls: any[];
 	let mockService: ManageService;
@@ -14,11 +15,16 @@ describe('buildS62aUpdateCase', () => {
 
 	beforeEach(() => {
 		mockDbUpdateCalls = [];
+		mockDbSelectCalls = [];
 		mockLoggerInfoCalls = [];
 
 		mockService = {
 			db: {
 				s62aCase: {
+					findUnique: async (args: unknown) => {
+						mockDbSelectCalls.push(args);
+						return { id: 'case-123' };
+					},
 					update: async (args: unknown) => {
 						mockDbUpdateCalls.push(args);
 						return { id: 'case-123' };
