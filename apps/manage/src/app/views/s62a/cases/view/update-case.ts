@@ -5,13 +5,16 @@ import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 import { S62aCaseUpdateMapper, type UpdateCaseAnswers } from './s62a-update-case-mapper.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
+import { s62aCaseToViewModel } from './view-model.ts';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
+import { S62A_VIEW_SELECT_INCLUDE } from './constants.ts';
 
 /**
  * Save handler for S62A Case updates.
  * Takes the raw form answers, maps them to Prisma format, and updates the database.
  */
 export function buildS62aUpdateCase(service: ManageService, clearAnswer = false): SaveDataFn {
-	return async ({ req, data }: { req: Request; res: Response; data: { answers?: UpdateCaseAnswers } }) => {
+	return async ({ req, res, data }: { req: Request; res: Response; data: { answers?: UpdateCaseAnswers } }) => {
 		const { db, logger } = service;
 		const id = getStringParam(req.params, 'id');
 
@@ -32,7 +35,18 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 		}
 
 		try {
-			const mapper = new S62aCaseUpdateMapper(answers);
+			const s62aCase = await db.s62aCase.findUnique({
+				include: S62A_VIEW_SELECT_INCLUDE,
+				where: { id }
+			});
+
+			if (s62aCase === null) {
+				return notFoundHandler(req, res);
+			}
+
+			const viewModel = s62aCaseToViewModel(s62aCase);
+
+			const mapper = new S62aCaseUpdateMapper(answers, viewModel);
 			const updateInput = mapper.generateUpdateInput();
 
 			if (Object.keys(updateInput).length === 0) {

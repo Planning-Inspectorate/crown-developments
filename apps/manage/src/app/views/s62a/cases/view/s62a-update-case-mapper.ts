@@ -1,5 +1,6 @@
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import { SITE_AREA_UNIT_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { APPLICANT_TYPE_ID, SITE_AREA_UNIT_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
 import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
 import { type Address, yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
@@ -8,12 +9,18 @@ import {
 	FEE_BOOLEAN_FIELDS,
 	FEE_NUMBER_FIELDS,
 	FEE_DATE_FIELDS,
-	FEE_STRING_FIELDS
+	FEE_STRING_FIELDS,
+	type S62aCaseViewModel
 } from './view-model.ts';
+import {
+	type AgentContactAnswer,
+	type ApplicantOrganisationAnswer,
+	type ApplicantContactAnswer
+} from '../util/party-types.ts';
 import { addBusinessDays } from 'date-fns';
+import { optionalWhere } from '@pins/crowndev-lib/util/database.ts';
 
 const DATE_FIELDS_SET = new Set<string>(S62A_DATE_FIELDS);
-
 const FEE_BOOLEAN_SET = new Set<string>(FEE_BOOLEAN_FIELDS);
 const FEE_NUMBER_SET = new Set<string>(FEE_NUMBER_FIELDS);
 const FEE_DATE_SET = new Set<string>(FEE_DATE_FIELDS);
@@ -83,6 +90,25 @@ export interface UpdateCaseAnswers {
 	eligibleForFeeRefund?: boolean | YesNo | null;
 	applicationFeeRefundAmount?: string | number | null;
 	applicationFeeRefundDate?: Date | null;
+
+	lpaFirstName?: string;
+	lpaLastName?: string;
+	lpaEmailAddress?: string;
+	lpaPhoneNumber?: string;
+
+	secondaryLpaFirstName?: string;
+	secondaryLpaLastName?: string;
+	secondaryLpaEmailAddress?: string;
+	secondaryLpaPhoneNumber?: string;
+
+	hasAgent?: YesNo;
+	agentName?: string;
+	agentAddress?: Address;
+	manageAgentContactDetails?: AgentContactAnswer[];
+
+	applicantType?: 'organisation' | 'individual';
+	manageApplicantOrganisations?: ApplicantOrganisationAnswer[];
+	manageApplicantContactDetails?: ApplicantContactAnswer[];
 }
 
 /**
@@ -94,9 +120,11 @@ export interface UpdateCaseAnswers {
  */
 export class S62aCaseUpdateMapper {
 	private answers: UpdateCaseAnswers;
+	private existingCase?: S62aCaseViewModel;
 
-	constructor(answers: UpdateCaseAnswers) {
+	constructor(answers: UpdateCaseAnswers, existingCase?: S62aCaseViewModel) {
 		this.answers = answers;
+		this.existingCase = existingCase;
 	}
 
 	/**
@@ -110,6 +138,8 @@ export class S62aCaseUpdateMapper {
 		this.mapAddress(input);
 		this.mapDates(input);
 		this.mapFees(input);
+		this.mapLpaContacts(input);
+		this.mapApplicantsAndAgents(input);
 
 		return input;
 	}
@@ -145,6 +175,10 @@ export class S62aCaseUpdateMapper {
 
 		if (this.hasAnswer('representationsPublishDate')) {
 			input.representationsPublishDate = ans.representationsPublishDate;
+		}
+
+		if (this.hasAnswer('hasAgent')) {
+			input.hasAgent = yesNoToBoolean(ans.hasAgent);
 		}
 
 		this.mapLocationScalars(input);
@@ -196,6 +230,8 @@ export class S62aCaseUpdateMapper {
 		if (ans.typeId) input.Type = { connect: { id: ans.typeId } };
 
 		if (ans.lpaId) input.Lpa = { connect: { id: ans.lpaId } };
+
+		if (ans.applicantType) input.ApplicantType = { connect: { id: ans.applicantType } };
 
 		if (this.hasAnswer('applicationPhaseId')) {
 			input.ApplicationPhase = ans.applicationPhaseId
@@ -304,6 +340,338 @@ export class S62aCaseUpdateMapper {
 		}
 	}
 
+	/**
+	 * Handles all the LPA contact fields for both primary
+	 * and secondary LPAs.
+	 */
+	private mapLpaContacts(input: Prisma.S62aCaseUpdateInput): void {
+		const hasLpaContactFields =
+			this.hasAnswer('lpaFirstName') ||
+			this.hasAnswer('lpaLastName') ||
+			this.hasAnswer('lpaEmailAddress') ||
+			this.hasAnswer('lpaPhoneNumber');
+
+		if (hasLpaContactFields) {
+			const lpaContactData = {
+				firstName: this.answers.lpaFirstName || null,
+				lastName: this.answers.lpaLastName || null,
+				email: this.answers.lpaEmailAddress || null,
+				telephoneNumber: this.answers.lpaPhoneNumber || null
+			};
+			input.LpaContact = {
+				upsert: { create: lpaContactData, update: lpaContactData }
+			};
+		}
+
+		const hasSecLpaContactFields =
+			this.hasAnswer('secondaryLpaFirstName') ||
+			this.hasAnswer('secondaryLpaLastName') ||
+			this.hasAnswer('secondaryLpaEmailAddress') ||
+			this.hasAnswer('secondaryLpaPhoneNumber');
+
+		if (hasSecLpaContactFields) {
+			const secLpaContactData = {
+				firstName: this.answers.secondaryLpaFirstName || null,
+				lastName: this.answers.secondaryLpaLastName || null,
+				email: this.answers.secondaryLpaEmailAddress || null,
+				telephoneNumber: this.answers.secondaryLpaPhoneNumber || null
+			};
+			input.SecondaryLpaContact = {
+				upsert: { create: secLpaContactData, update: secLpaContactData }
+			};
+		}
+	}
+
+	/**
+	 * Handles the manage list items for applicants and agent contacts, and their organisations,
+	 * making sure to handle upserting old fields and creating new ones, including addresses.
+	 */
+	private mapApplicantsAndAgents(input: Prisma.S62aCaseUpdateInput): void {
+		const updateOperations: Prisma.S62aToApplicantUpdateWithWhereUniqueWithoutS62AInput[] = [];
+		const createOperations: Prisma.S62aToApplicantCreateWithoutS62AInput[] = [];
+
+		this.mapAgentOrganisation(updateOperations, createOperations);
+		this.mapAgentContacts(updateOperations);
+		this.mapApplicantOrganisations(updateOperations, createOperations);
+		this.mapApplicantContacts(updateOperations, createOperations);
+
+		if (updateOperations.length > 0 || createOperations.length > 0) {
+			input.S62aToApplicants = {};
+			if (updateOperations.length > 0) input.S62aToApplicants.update = updateOperations;
+			if (createOperations.length > 0) input.S62aToApplicants.create = createOperations;
+		}
+	}
+
+	private mapAgentOrganisation(
+		updateOperations: Prisma.S62aToApplicantUpdateWithWhereUniqueWithoutS62AInput[],
+		createOperations: Prisma.S62aToApplicantCreateWithoutS62AInput[]
+	): void {
+		if (!this.hasAnswer('agentName') && !this.hasAnswer('agentAddress')) return;
+
+		const agentRelId = this.existingCase?.agentRelationId;
+
+		if (agentRelId) {
+			const addressData = this.answers.agentAddress ? this.toAddressInput(this.answers.agentAddress) : null;
+			updateOperations.push({
+				where: { id: agentRelId },
+				data: {
+					Organisation: {
+						update: {
+							name: this.answers.agentName !== undefined ? this.answers.agentName : undefined,
+							Address: addressData
+								? {
+										upsert: {
+											where: optionalWhere(this.existingCase?.agentOrganisationAddressId),
+											create: addressData,
+											update: addressData
+										}
+									}
+								: undefined
+						}
+					}
+				}
+			});
+		} else if (this.answers.agentName) {
+			createOperations.push({
+				Role: { connect: { id: ORGANISATION_ROLES_ID.AGENT } },
+				Organisation: {
+					create: {
+						name: this.answers.agentName,
+						Address: this.answers.agentAddress ? { create: this.toAddressInput(this.answers.agentAddress) } : undefined
+					}
+				}
+			});
+		}
+	}
+
+	private mapAgentContacts(updateOperations: Prisma.S62aToApplicantUpdateWithWhereUniqueWithoutS62AInput[]): void {
+		if (!this.answers.manageAgentContactDetails) return;
+
+		const agentRelId = this.existingCase?.agentRelationId;
+		if (!agentRelId) return;
+
+		for (const contact of this.answers.manageAgentContactDetails) {
+			if (contact.organisationToContactRelationId) {
+				updateOperations.push({
+					where: { id: agentRelId },
+					data: {
+						Organisation: {
+							update: {
+								OrganisationToContact: {
+									update: {
+										where: { id: contact.organisationToContactRelationId },
+										data: { Contact: { update: this.extractAgentContactFields(contact) } }
+									}
+								}
+							}
+						}
+					}
+				});
+			} else {
+				updateOperations.push({
+					where: { id: agentRelId },
+					data: {
+						Organisation: {
+							update: {
+								OrganisationToContact: {
+									create: [{ Contact: { create: this.extractAgentContactFields(contact) } }]
+								}
+							}
+						}
+					}
+				});
+			}
+		}
+	}
+
+	private mapApplicantOrganisations(
+		updateOperations: Prisma.S62aToApplicantUpdateWithWhereUniqueWithoutS62AInput[],
+		createOperations: Prisma.S62aToApplicantCreateWithoutS62AInput[]
+	): void {
+		if (!this.answers.manageApplicantOrganisations) return;
+
+		for (const org of this.answers.manageApplicantOrganisations) {
+			if (org.organisationRelationId) {
+				const addressData = org.organisationAddress ? this.toAddressInput(org.organisationAddress) : null;
+				updateOperations.push({
+					where: { id: org.organisationRelationId },
+					data: {
+						Organisation: {
+							update: {
+								name: org.organisationName,
+								Address: addressData
+									? {
+											upsert: {
+												where: optionalWhere(org.organisationAddressId),
+												create: addressData,
+												update: addressData
+											}
+										}
+									: undefined
+							}
+						}
+					}
+				});
+			} else {
+				createOperations.push({
+					Role: { connect: { id: ORGANISATION_ROLES_ID.APPLICANT } },
+					Organisation: {
+						create: {
+							name: org.organisationName,
+							Address: org.organisationAddress ? { create: this.toAddressInput(org.organisationAddress) } : undefined
+						}
+					}
+				});
+			}
+		}
+	}
+
+	private mapApplicantContacts(
+		updateOperations: Prisma.S62aToApplicantUpdateWithWhereUniqueWithoutS62AInput[],
+		createOperations: Prisma.S62aToApplicantCreateWithoutS62AInput[]
+	): void {
+		if (!this.answers.manageApplicantContactDetails) return;
+
+		if (this.existingCase?.applicantType === APPLICANT_TYPE_ID.ORGANISATION) {
+			this.mapApplicantOrganisationContacts(updateOperations);
+		} else if (this.existingCase?.applicantType === APPLICANT_TYPE_ID.INDIVIDUAL) {
+			this.mapApplicantIndividualContacts(updateOperations, createOperations);
+		}
+	}
+
+	private mapApplicantOrganisationContacts(
+		updateOperations: Prisma.S62aToApplicantUpdateWithWhereUniqueWithoutS62AInput[]
+	): void {
+		const orgIdToRelId = new Map<string, string>();
+		this.existingCase?.manageApplicantOrganisations?.forEach((org) => {
+			if (org.id && org.organisationRelationId) orgIdToRelId.set(org.id, org.organisationRelationId);
+		});
+
+		for (const contact of this.answers.manageApplicantContactDetails!) {
+			if (!contact.applicantContactOrganisation) continue;
+
+			const targetRelId = orgIdToRelId.get(contact.applicantContactOrganisation);
+			if (!targetRelId) continue;
+
+			if (!contact.organisationToContactRelationId) {
+				updateOperations.push({
+					where: { id: targetRelId },
+					data: {
+						Organisation: {
+							update: {
+								OrganisationToContact: {
+									create: [{ Contact: { create: this.extractApplicantContactFields(contact) } }]
+								}
+							}
+						}
+					}
+				});
+			} else {
+				const existing = this.existingCase?.manageApplicantContactDetails?.find(
+					(c) => c.organisationToContactRelationId === contact.organisationToContactRelationId
+				);
+
+				if (existing && existing.applicantContactOrganisation !== contact.applicantContactOrganisation) {
+					const sourceRelId = existing.applicantContactOrganisation
+						? orgIdToRelId.get(existing.applicantContactOrganisation)
+						: undefined;
+
+					if (sourceRelId && existing.id) {
+						updateOperations.push({
+							where: { id: sourceRelId },
+							data: {
+								Organisation: {
+									update: {
+										OrganisationToContact: {
+											deleteMany: [{ id: contact.organisationToContactRelationId }]
+										}
+									}
+								}
+							}
+						});
+						updateOperations.push({
+							where: { id: targetRelId },
+							data: {
+								Organisation: {
+									update: {
+										OrganisationToContact: {
+											create: [{ Contact: { connect: { id: existing.id } } }]
+										}
+									}
+								}
+							}
+						});
+					}
+				} else {
+					updateOperations.push({
+						where: { id: targetRelId },
+						data: {
+							Organisation: {
+								update: {
+									OrganisationToContact: {
+										update: {
+											where: { id: contact.organisationToContactRelationId },
+											data: { Contact: { update: this.extractApplicantContactFields(contact) } }
+										}
+									}
+								}
+							}
+						}
+					});
+				}
+			}
+		}
+	}
+
+	private mapApplicantIndividualContacts(
+		updateOperations: Prisma.S62aToApplicantUpdateWithWhereUniqueWithoutS62AInput[],
+		createOperations: Prisma.S62aToApplicantCreateWithoutS62AInput[]
+	): void {
+		for (const contact of this.answers.manageApplicantContactDetails!) {
+			if (contact.applicantRelationId) {
+				updateOperations.push({
+					where: { id: contact.applicantRelationId },
+					data: {
+						Contact: { update: this.extractApplicantContactFields(contact) }
+					}
+				});
+			} else {
+				createOperations.push({
+					Role: { connect: { id: ORGANISATION_ROLES_ID.APPLICANT } },
+					Contact: { create: this.extractApplicantContactFields(contact) }
+				});
+			}
+		}
+	}
+
+	private extractApplicantContactFields(contact: ApplicantContactAnswer): Prisma.ContactCreateInput {
+		return {
+			firstName: contact.applicantFirstName || null,
+			lastName: contact.applicantLastName || null,
+			email: contact.applicantContactEmail || null,
+			telephoneNumber: contact.applicantContactTelephoneNumber || null
+		};
+	}
+
+	private extractAgentContactFields(contact: AgentContactAnswer): Prisma.ContactCreateInput {
+		return {
+			firstName: contact.agentFirstName || null,
+			lastName: contact.agentLastName || null,
+			email: contact.agentContactEmail || null,
+			telephoneNumber: contact.agentContactTelephoneNumber || null
+		};
+	}
+
+	private toAddressInput(address: Address) {
+		return {
+			line1: address.addressLine1,
+			line2: address.addressLine2,
+			townCity: address.townCity,
+			county: address.county,
+			postcode: address.postcode
+		};
+	}
+
 	private isDateField(key: string): key is (typeof S62A_DATE_FIELDS)[number] {
 		return DATE_FIELDS_SET.has(key);
 	}
@@ -325,6 +693,10 @@ export class S62aCaseUpdateMapper {
 	}
 
 	private hasAnswer(key: keyof UpdateCaseAnswers): boolean {
-		return this.answers[key] !== undefined;
+		const value = this.answers[key];
+		if (Array.isArray(value)) {
+			return value.length > 0;
+		}
+		return value !== undefined;
 	}
 }

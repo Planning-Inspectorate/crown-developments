@@ -1,11 +1,13 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import { SITE_AREA_UNIT_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import { SITE_AREA_UNIT_ID, APPLICANT_TYPE_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
 import { S62aCaseUpdateMapper, type UpdateCaseAnswers } from './s62a-update-case-mapper.ts';
 import type { Address } from '@planning-inspectorate/dynamic-forms';
 import { addBusinessDays } from 'date-fns';
+import type { S62aCaseViewModel } from './view-model.ts';
 
 describe('S62aCaseUpdateMapper', () => {
 	describe('Empty and Undefined Payloads', () => {
@@ -391,6 +393,198 @@ describe('S62aCaseUpdateMapper', () => {
 					}
 				}
 			});
+		});
+	});
+
+	describe('LPA Contact Mapping', () => {
+		it('generates upserts for LPA and Secondary LPA contacts when provided', () => {
+			const answers: UpdateCaseAnswers = {
+				lpaFirstName: 'John',
+				lpaLastName: 'Doe',
+				secondaryLpaEmailAddress: 'jane@council.gov.uk'
+			};
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.LpaContact, {
+				upsert: {
+					create: { firstName: 'John', lastName: 'Doe', email: null, telephoneNumber: null },
+					update: { firstName: 'John', lastName: 'Doe', email: null, telephoneNumber: null }
+				}
+			});
+
+			assert.deepStrictEqual(result.SecondaryLpaContact, {
+				upsert: {
+					create: { firstName: null, lastName: null, email: 'jane@council.gov.uk', telephoneNumber: null },
+					update: { firstName: null, lastName: null, email: 'jane@council.gov.uk', telephoneNumber: null }
+				}
+			});
+		});
+	});
+
+	describe('Parties (Agents and Applicants) Mapping', () => {
+		it('creates a new agent if no relation exists in existingCase', () => {
+			const answers: UpdateCaseAnswers = {
+				agentName: 'New Agent Corp',
+				agentAddress: { addressLine1: '1 Agent Lane' } as Address
+			};
+			const mapper = new S62aCaseUpdateMapper(answers, {} as S62aCaseViewModel);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aToApplicants?.create, [
+				{
+					Role: { connect: { id: ORGANISATION_ROLES_ID.AGENT } },
+					Organisation: {
+						create: {
+							name: 'New Agent Corp',
+							Address: {
+								create: {
+									line1: '1 Agent Lane',
+									line2: undefined,
+									townCity: undefined,
+									county: undefined,
+									postcode: undefined
+								}
+							}
+						}
+					}
+				}
+			]);
+		});
+
+		it('updates an existing agent using the relation ID from existingCase', () => {
+			const answers: UpdateCaseAnswers = { agentName: 'Updated Agent Corp' };
+			const existingCase = {
+				agentRelationId: 'agent-rel-1',
+				agentOrganisationAddressId: 'addr-1'
+			} as S62aCaseViewModel;
+
+			const mapper = new S62aCaseUpdateMapper(answers, existingCase);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aToApplicants?.update, [
+				{
+					where: { id: 'agent-rel-1' },
+					data: {
+						Organisation: {
+							update: {
+								name: 'Updated Agent Corp',
+								Address: undefined
+							}
+						}
+					}
+				}
+			]);
+		});
+
+		it('creates new applicant organisations and updates existing ones', () => {
+			const answers: UpdateCaseAnswers = {
+				manageApplicantOrganisations: [
+					{ id: 'org-new', organisationName: 'New Org' },
+					{ id: 'org-1', organisationRelationId: 'rel-org-1', organisationName: 'Updated Org' }
+				]
+			};
+			const mapper = new S62aCaseUpdateMapper(answers, {} as S62aCaseViewModel);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aToApplicants?.create, [
+				{
+					Role: { connect: { id: ORGANISATION_ROLES_ID.APPLICANT } },
+					Organisation: {
+						create: {
+							name: 'New Org',
+							Address: undefined
+						}
+					}
+				}
+			]);
+
+			assert.deepStrictEqual(result.S62aToApplicants?.update, [
+				{
+					where: { id: 'rel-org-1' },
+					data: {
+						Organisation: {
+							update: {
+								name: 'Updated Org',
+								Address: undefined
+							}
+						}
+					}
+				}
+			]);
+		});
+
+		it('handles applicant contacts moving between organisations', () => {
+			const existingCase = {
+				applicantType: APPLICANT_TYPE_ID.ORGANISATION,
+				manageApplicantOrganisations: [
+					{ id: 'org-A', organisationRelationId: 'rel-org-A' },
+					{ id: 'org-B', organisationRelationId: 'rel-org-B' }
+				],
+				manageApplicantContactDetails: [
+					{ id: 'contact-1', organisationToContactRelationId: 'otc-1', applicantContactOrganisation: 'org-A' }
+				]
+			} as unknown as S62aCaseViewModel;
+
+			// Contact 1 moves from org-A to org-B
+			const answers: UpdateCaseAnswers = {
+				manageApplicantContactDetails: [
+					{
+						id: 'contact-1',
+						organisationToContactRelationId: 'otc-1',
+						applicantContactOrganisation: 'org-B',
+						applicantFirstName: 'Moved'
+					}
+				]
+			};
+
+			const mapper = new S62aCaseUpdateMapper(answers, existingCase);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aToApplicants?.update, [
+				{
+					where: { id: 'rel-org-A' },
+					data: { Organisation: { update: { OrganisationToContact: { deleteMany: [{ id: 'otc-1' }] } } } }
+				},
+				{
+					where: { id: 'rel-org-B' },
+					data: {
+						Organisation: {
+							update: { OrganisationToContact: { create: [{ Contact: { connect: { id: 'contact-1' } } }] } }
+						}
+					}
+				}
+			]);
+		});
+
+		it('updates applicant contacts directly connected to the case (Individual Applicant)', () => {
+			const answers: UpdateCaseAnswers = {
+				applicantType: 'individual',
+				manageApplicantContactDetails: [
+					{ applicantRelationId: 'rel-ind-1', applicantFirstName: 'Bob' },
+					{ applicantFirstName: 'New Bob' }
+				]
+			};
+			const existingCase = { applicantType: APPLICANT_TYPE_ID.INDIVIDUAL } as S62aCaseViewModel;
+
+			const mapper = new S62aCaseUpdateMapper(answers, existingCase);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aToApplicants?.update, [
+				{
+					where: { id: 'rel-ind-1' },
+					data: {
+						Contact: { update: { firstName: 'Bob', lastName: null, email: null, telephoneNumber: null } }
+					}
+				}
+			]);
+
+			assert.deepStrictEqual(result.S62aToApplicants?.create, [
+				{
+					Role: { connect: { id: ORGANISATION_ROLES_ID.APPLICANT } },
+					Contact: { create: { firstName: 'New Bob', lastName: null, email: null, telephoneNumber: null } }
+				}
+			]);
 		});
 	});
 });

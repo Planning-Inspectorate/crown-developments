@@ -1,8 +1,11 @@
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import { SITE_AREA_UNIT_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { APPLICANT_TYPE_ID, SITE_AREA_UNIT_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { addressToViewModel } from '@pins/crowndev-lib/util/address.ts';
 import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
 import { type Address, booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms';
+import type { AgentContactAnswer, ApplicantContactAnswer, ApplicantOrganisationAnswer } from '../util/party-types.ts';
+import type { S62A_VIEW_SELECT_INCLUDE } from './constants.ts';
 
 export const S62A_DATE_FIELDS = Object.freeze([
 	'notificationReceivedDate',
@@ -51,12 +54,7 @@ export const FEE_DATE_FIELDS = Object.freeze([
 ] as const);
 
 export type S62aCaseDbModel = Prisma.S62aCaseGetPayload<{
-	include: {
-		S62aStatus: true;
-		SiteAddress: true;
-		S62aDates: true;
-		S62aFees: true;
-	};
+	include: typeof S62A_VIEW_SELECT_INCLUDE;
 }>;
 
 export interface S62aCaseViewModel {
@@ -86,6 +84,7 @@ export interface S62aCaseViewModel {
 		end?: Date;
 	};
 	representationsPublishDate?: Date;
+	applicantType?: string | null;
 
 	notificationReceivedDate?: Date;
 	applicationReceivedDate?: Date;
@@ -130,12 +129,35 @@ export interface S62aCaseViewModel {
 	eligibleForFeeRefund?: YesNo;
 	applicationFeeRefundAmount?: number;
 	applicationFeeRefundDate?: Date;
+
+	lpaFirstName?: string;
+	lpaLastName?: string;
+	lpaEmailAddress?: string;
+	lpaPhoneNumber?: string;
+	lpaAddress?: Address;
+
+	secondaryLpaFirstName?: string;
+	secondaryLpaLastName?: string;
+	secondaryLpaEmailAddress?: string;
+	secondaryLpaPhoneNumber?: string;
+	secondaryLpaAddress?: Address;
+
+	hasAgent?: YesNo;
+	agentName?: string;
+	agentAddress?: Address;
+	agentRelationId?: string;
+	agentOrganisationId?: string;
+	agentOrganisationAddressId?: string;
+	manageAgentContactDetails?: AgentContactAnswer[];
+
+	manageApplicantOrganisations?: ApplicantOrganisationAnswer[];
+	manageApplicantContactDetails?: ApplicantContactAnswer[];
 }
 
 /**
  * Optional boolean fields that need converting to YesNo | undefined
  */
-const BOOLEAN_FIELDS = Object.freeze(['siteIsVisibleFromPublicLand'] as const);
+const BOOLEAN_FIELDS = Object.freeze(['siteIsVisibleFromPublicLand', 'hasAgent'] as const);
 
 /**
  * These integer fields are in the SaveModel as strings because they are in a multi-field input.
@@ -192,7 +214,8 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 		typeId: dbCase.typeId,
 		lpaId: dbCase.lpaId,
 		hasSecondaryLpa: booleanToYesNoValue(dbCase.hasSecondaryLpa),
-		expectedSubmissionDate: dbCase.expectedSubmissionDate
+		expectedSubmissionDate: dbCase.expectedSubmissionDate,
+		applicantType: dbCase.applicantTypeId
 	};
 
 	for (const field of BOOLEAN_FIELDS) {
@@ -272,6 +295,110 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 			const val = dbCase.S62aFees[field];
 			if (val) {
 				viewModel[field] = val;
+			}
+		}
+	}
+
+	if (dbCase.Lpa) {
+		viewModel.lpaAddress = addressToViewModel(dbCase.Lpa.Address);
+	}
+
+	if (dbCase.SecondaryLpa) {
+		viewModel.secondaryLpaAddress = addressToViewModel(dbCase.SecondaryLpa.Address);
+	}
+
+	if (dbCase.LpaContact) {
+		viewModel.lpaFirstName = dbCase.LpaContact.firstName || undefined;
+		viewModel.lpaLastName = dbCase.LpaContact.lastName || undefined;
+		viewModel.lpaEmailAddress = dbCase.LpaContact.email || undefined;
+		viewModel.lpaPhoneNumber = dbCase.LpaContact.telephoneNumber || undefined;
+	}
+
+	if (dbCase.SecondaryLpaContact) {
+		viewModel.secondaryLpaFirstName = dbCase.SecondaryLpaContact.firstName || undefined;
+		viewModel.secondaryLpaLastName = dbCase.SecondaryLpaContact.lastName || undefined;
+		viewModel.secondaryLpaEmailAddress = dbCase.SecondaryLpaContact.email || undefined;
+		viewModel.secondaryLpaPhoneNumber = dbCase.SecondaryLpaContact.telephoneNumber || undefined;
+	}
+
+	if (dbCase.S62aToApplicants && dbCase.S62aToApplicants.length > 0) {
+		const agentRecords = dbCase.S62aToApplicants.filter((x) => x.roleId === ORGANISATION_ROLES_ID.AGENT);
+		const applicantRecords = dbCase.S62aToApplicants.filter((x) => x.roleId === ORGANISATION_ROLES_ID.APPLICANT);
+
+		if (agentRecords.length > 0) {
+			const agentRecord = agentRecords[0];
+			viewModel.agentRelationId = agentRecord.id;
+
+			const agentOrg = agentRecord.Organisation;
+			if (agentOrg) {
+				viewModel.agentOrganisationId = agentOrg.id;
+				viewModel.agentName = agentOrg.name;
+
+				if (agentOrg.Address) {
+					viewModel.agentOrganisationAddressId = agentOrg.addressId ?? agentOrg.Address.id;
+					viewModel.agentAddress = addressToViewModel(agentOrg.Address);
+				}
+
+				if (agentOrg.OrganisationToContact && agentOrg.OrganisationToContact.length > 0) {
+					viewModel.manageAgentContactDetails = agentOrg.OrganisationToContact.map((otc) => ({
+						id: otc.Contact.id,
+						organisationToContactRelationId: otc.id,
+						agentFirstName: otc.Contact.firstName || undefined,
+						agentLastName: otc.Contact.lastName || undefined,
+						agentContactEmail: otc.Contact.email || undefined,
+						agentContactTelephoneNumber: otc.Contact.telephoneNumber || undefined
+					}));
+				}
+			}
+		}
+
+		if (applicantRecords.length > 0) {
+			const isOrganisation = dbCase.applicantTypeId === APPLICANT_TYPE_ID.ORGANISATION;
+
+			if (isOrganisation) {
+				viewModel.manageApplicantOrganisations = [];
+				viewModel.manageApplicantContactDetails = [];
+
+				for (const app of applicantRecords) {
+					if (app.Organisation) {
+						viewModel.manageApplicantOrganisations.push({
+							id: app.Organisation.id,
+							organisationRelationId: app.id,
+							organisationName: app.Organisation.name,
+							organisationAddressId: app.Organisation.addressId ?? app.Organisation.Address?.id,
+							organisationAddress: app.Organisation.Address ? addressToViewModel(app.Organisation.Address) : undefined
+						});
+
+						if (app.Organisation.OrganisationToContact) {
+							for (const otc of app.Organisation.OrganisationToContact) {
+								viewModel.manageApplicantContactDetails.push({
+									id: otc.Contact.id,
+									organisationToContactRelationId: otc.id,
+									applicantFirstName: otc.Contact.firstName || undefined,
+									applicantLastName: otc.Contact.lastName || undefined,
+									applicantContactEmail: otc.Contact.email || undefined,
+									applicantContactTelephoneNumber: otc.Contact.telephoneNumber || undefined,
+									applicantContactOrganisation: app.Organisation.id
+								});
+							}
+						}
+					}
+				}
+			} else {
+				viewModel.manageApplicantContactDetails = [];
+
+				for (const app of applicantRecords) {
+					if (app.Contact) {
+						viewModel.manageApplicantContactDetails.push({
+							id: app.Contact.id,
+							applicantRelationId: app.id,
+							applicantFirstName: app.Contact.firstName || undefined,
+							applicantLastName: app.Contact.lastName || undefined,
+							applicantContactEmail: app.Contact.email || undefined,
+							applicantContactTelephoneNumber: app.Contact.telephoneNumber || undefined
+						});
+					}
+				}
 			}
 		}
 	}
