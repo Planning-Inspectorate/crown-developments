@@ -58,13 +58,9 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 		? answers.applicationPhaseId
 		: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
 
-	// TODO: Make sure to remove these error expectations.
-	// @ts-expect-error - the view model update is coming in next PR
 	const isIndividual = answers?.applicantType === APPLICANT_TYPE_ID.INDIVIDUAL;
-	// @ts-expect-error - the view model update is coming in next PR
 	const manageApplicantOrganisations = !isIndividual ? (answers?.manageApplicantOrganisations as ApplicantOrg[]) : [];
 	const applicantOrganisationOptions = getApplicantOrganisationOptions(manageApplicantOrganisations);
-	// @ts-expect-error - the view model update is coming in next PR
 	const hasAgent = answers?.hasAgent === BOOLEAN_OPTIONS.YES;
 
 	const applicantContactsValidator = getApplicantContactsValidator(hasAgent, isIndividual);
@@ -1035,7 +1031,9 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 			emptyListText: 'No applicants found',
 			showAnswersInSummary: true,
 			emptyStateAddStyle: 'prominent',
-			maximumAnswers: 10
+			maximumAnswers: 10,
+			removalPrompt:
+				'Removing this organisation will also remove any linked contacts. You will not be able to undo this.'
 		},
 		applicantOrganisationName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
