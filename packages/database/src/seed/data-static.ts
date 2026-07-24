@@ -8,7 +8,7 @@ import {
 	SPECIALISMS
 } from './s62a/data-static.ts';
 
-export const APPLICATION_DECISION_OUTCOME: Prisma.ApplicationDecisionOutcomeCreateInput[] = [
+export const APPLICATION_DECISION_OUTCOME = [
 	{
 		id: 'approved',
 		displayName: 'Approved'
@@ -25,7 +25,7 @@ export const APPLICATION_DECISION_OUTCOME: Prisma.ApplicationDecisionOutcomeCrea
 		id: 'withdrawn',
 		displayName: 'Withdrawn'
 	}
-];
+] as const satisfies readonly Prisma.ApplicationDecisionOutcomeCreateInput[];
 
 export const APPLICATION_TYPE_ID = Object.freeze({
 	PLANNING_PERMISSION: 'planning-permission',
@@ -35,7 +35,7 @@ export const APPLICATION_TYPE_ID = Object.freeze({
 	PLANNING_AND_LISTED_BUILDING_CONSENT: 'planning-permission-and-listed-building-consent'
 } as const);
 
-export const APPLICATION_TYPES: Prisma.ApplicationTypeCreateInput[] = [
+export const APPLICATION_TYPES = [
 	{
 		id: APPLICATION_TYPE_ID.PLANNING_PERMISSION,
 		displayName: 'Planning permission'
@@ -57,14 +57,14 @@ export const APPLICATION_TYPES: Prisma.ApplicationTypeCreateInput[] = [
 		displayName:
 			'Planning permission and listed building consent (LBC) for alterations, extension or demolition of a listed building'
 	}
-];
+] as const satisfies readonly Prisma.ApplicationTypeCreateInput[];
 
 export const APPLICATION_SUB_TYPE_ID = Object.freeze({
 	PLANNING_PERMISSION: 'planning-permission',
 	LISTED_BUILDING_CONSENT: 'listed-building-consent'
 } as const);
 
-export const APPLICATION_SUB_TYPES: Prisma.ApplicationSubTypeCreateInput[] = [
+export const APPLICATION_SUB_TYPES = [
 	{
 		id: APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION,
 		displayName: 'Planning permission'
@@ -73,13 +73,13 @@ export const APPLICATION_SUB_TYPES: Prisma.ApplicationSubTypeCreateInput[] = [
 		id: APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT,
 		displayName: 'Listed building consent (LBC)'
 	}
-];
+] as const satisfies readonly Prisma.ApplicationSubTypeCreateInput[];
 export const ORGANISATION_ROLES_ID = Object.freeze({
 	APPLICANT: 'applicant',
 	AGENT: 'agent'
 } as const);
 
-export const ORGANISATION_ROLES: Prisma.CrownDevelopmentToOrganisationRoleCreateInput[] = [
+export const ORGANISATION_ROLES = [
 	{
 		id: ORGANISATION_ROLES_ID.APPLICANT,
 		displayName: 'Applicant'
@@ -88,7 +88,7 @@ export const ORGANISATION_ROLES: Prisma.CrownDevelopmentToOrganisationRoleCreate
 		id: ORGANISATION_ROLES_ID.AGENT,
 		displayName: 'Agent'
 	}
-];
+] as const satisfies readonly Prisma.CrownDevelopmentToOrganisationRoleCreateInput[];
 
 export const APPLICATION_STATUS_ID = Object.freeze({
 	NEW: 'new',
@@ -107,7 +107,7 @@ export const APPLICATION_STATUS_ID = Object.freeze({
 	CLOSED_OPEN_IN_ERROR: 'closed-open-in-error'
 } as const);
 
-export const APPLICATION_STATUS: Prisma.ApplicationStatusCreateInput[] = [
+export const APPLICATION_STATUS = [
 	{
 		id: APPLICATION_STATUS_ID.NEW,
 		displayName: 'New'
@@ -165,7 +165,7 @@ export const APPLICATION_STATUS: Prisma.ApplicationStatusCreateInput[] = [
 		id: APPLICATION_STATUS_ID.CLOSED_OPEN_IN_ERROR,
 		displayName: 'Closed - opened in error'
 	}
-];
+] as const satisfies readonly Prisma.ApplicationStatusCreateInput[];
 
 export const APPLICATION_STAGE_ID = Object.freeze({
 	ACCEPTANCE: 'acceptance',
@@ -177,7 +177,7 @@ export const APPLICATION_STAGE_ID = Object.freeze({
 	DECISION: 'decision'
 } as const);
 
-export const APPLICATION_STAGE: Prisma.ApplicationStageCreateInput[] = [
+export const APPLICATION_STAGE = [
 	{
 		id: APPLICATION_STAGE_ID.ACCEPTANCE,
 		// called complete to match the terminology in the draft order
@@ -207,7 +207,7 @@ export const APPLICATION_STAGE: Prisma.ApplicationStageCreateInput[] = [
 		id: APPLICATION_STAGE_ID.DECISION,
 		displayName: 'Final decision'
 	}
-];
+] as const satisfies readonly Prisma.ApplicationStageCreateInput[];
 
 export const APPLICATION_PROCEDURE_ID = Object.freeze({
 	WRITTEN_REPS: 'written-reps',
@@ -215,7 +215,7 @@ export const APPLICATION_PROCEDURE_ID = Object.freeze({
 	INQUIRY: 'inquiry'
 } as const);
 
-export const APPLICATION_PROCEDURE: Prisma.ApplicationProcedureCreateInput[] = [
+export const APPLICATION_PROCEDURE = [
 	{
 		id: APPLICATION_PROCEDURE_ID.WRITTEN_REPS,
 		displayName: 'Written representations'
@@ -228,7 +228,7 @@ export const APPLICATION_PROCEDURE: Prisma.ApplicationProcedureCreateInput[] = [
 		id: APPLICATION_PROCEDURE_ID.INQUIRY,
 		displayName: 'Inquiry'
 	}
-];
+] as const satisfies readonly Prisma.ApplicationProcedureCreateInput[];
 
 export const APPLICATION_UPDATE_STATUS_ID = Object.freeze({
 	DRAFT: 'draft',
@@ -236,7 +236,7 @@ export const APPLICATION_UPDATE_STATUS_ID = Object.freeze({
 	UNPUBLISHED: 'unpublished'
 } as const);
 
-export const APPLICATION_UPDATE_STATUS: Prisma.ApplicationUpdateStatusCreateInput[] = [
+export const APPLICATION_UPDATE_STATUS = [
 	{
 		id: APPLICATION_UPDATE_STATUS_ID.DRAFT,
 		displayName: 'Draft'
@@ -249,7 +249,7 @@ export const APPLICATION_UPDATE_STATUS: Prisma.ApplicationUpdateStatusCreateInpu
 		id: APPLICATION_UPDATE_STATUS_ID.UNPUBLISHED,
 		displayName: 'Unpublished'
 	}
-];
+] as const satisfies readonly Prisma.ApplicationUpdateStatusCreateInput[];
 
 export const NOTIFY_STATUS_ID = Object.freeze({
 	SENDING: 'sending',
@@ -259,7 +259,7 @@ export const NOTIFY_STATUS_ID = Object.freeze({
 	TECHNICAL_FAILURE: 'technical-failure'
 } as const);
 
-export const NOTIFY_STATUS: Prisma.NotifyStatusCreateInput[] = [
+export const NOTIFY_STATUS = [
 	{
 		id: NOTIFY_STATUS_ID.SENDING,
 		displayName: 'Sending'
@@ -280,7 +280,7 @@ export const NOTIFY_STATUS: Prisma.NotifyStatusCreateInput[] = [
 		id: NOTIFY_STATUS_ID.TECHNICAL_FAILURE,
 		displayName: 'Technical failure'
 	}
-];
+] as const satisfies readonly Prisma.NotifyStatusCreateInput[];
 
 export const NOTIFICATION_SOURCE = Object.freeze({
 	REPRESENTATION: 'representation',
@@ -295,20 +295,20 @@ export const RECEIVED_METHOD_ID = Object.freeze({
 	IN_PERSON: 'in-person'
 } as const);
 
-export const RECEIVED_METHOD: Prisma.RepresentationReceivedMethodCreateInput[] = [
+export const RECEIVED_METHOD = [
 	{ id: RECEIVED_METHOD_ID.ONLINE, displayName: 'Online' },
 	{ id: RECEIVED_METHOD_ID.PHONE, displayName: 'Phone' },
 	{ id: RECEIVED_METHOD_ID.EMAIL, displayName: 'Email' },
 	{ id: RECEIVED_METHOD_ID.POST, displayName: 'Post' },
 	{ id: RECEIVED_METHOD_ID.IN_PERSON, displayName: 'In person' }
-];
+] as const satisfies readonly Prisma.RepresentationReceivedMethodCreateInput[];
 
 export const REPRESENTATION_CATEGORY_ID = Object.freeze({
 	CONSULTEES: 'consultees',
 	INTERESTED_PARTIES: 'interested-parties'
 } as const);
 
-export const REPRESENTATION_CATEGORY: Prisma.RepresentationCategoryCreateInput[] = [
+export const REPRESENTATION_CATEGORY = [
 	{
 		id: 'consultees',
 		displayName: 'Consultees'
@@ -317,14 +317,14 @@ export const REPRESENTATION_CATEGORY: Prisma.RepresentationCategoryCreateInput[]
 		id: 'interested-parties',
 		displayName: 'Interested party'
 	}
-];
+] as const satisfies readonly Prisma.RepresentationCategoryCreateInput[];
 
 export const CONTACT_PREFERENCE_ID = Object.freeze({
 	EMAIL: 'email',
 	POST: 'post'
 } as const);
 
-export const CONTACT_PREFERENCE: Prisma.ContactPreferenceCreateInput[] = [
+export const CONTACT_PREFERENCE = [
 	{
 		id: CONTACT_PREFERENCE_ID.EMAIL,
 		displayName: 'Email'
@@ -333,14 +333,14 @@ export const CONTACT_PREFERENCE: Prisma.ContactPreferenceCreateInput[] = [
 		id: CONTACT_PREFERENCE_ID.POST,
 		displayName: 'Post'
 	}
-];
+] as const satisfies readonly Prisma.ContactPreferenceCreateInput[];
 
 export const REPRESENTATION_SUBMITTED_FOR_ID = Object.freeze({
 	MYSELF: 'myself',
 	ON_BEHALF_OF: 'on-behalf-of'
 } as const);
 
-export const REPRESENTATION_SUBMITTED_FOR: Prisma.RepresentationSubmittedForCreateInput[] = [
+export const REPRESENTATION_SUBMITTED_FOR = [
 	{
 		id: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
 		displayName: 'Myself'
@@ -349,7 +349,7 @@ export const REPRESENTATION_SUBMITTED_FOR: Prisma.RepresentationSubmittedForCrea
 		id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 		displayName: 'On behalf of another person or an organisation'
 	}
-];
+] as const satisfies readonly Prisma.RepresentationSubmittedForCreateInput[];
 
 export const REPRESENTATION_STATUS_ID = Object.freeze({
 	AWAITING_REVIEW: 'awaiting-review',
@@ -358,7 +358,7 @@ export const REPRESENTATION_STATUS_ID = Object.freeze({
 	WITHDRAWN: 'withdrawn'
 } as const);
 
-export const REPRESENTATION_STATUS: Prisma.RepresentationStatusCreateInput[] = [
+export const REPRESENTATION_STATUS = [
 	{
 		id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW,
 		displayName: 'Awaiting review'
@@ -375,7 +375,7 @@ export const REPRESENTATION_STATUS: Prisma.RepresentationStatusCreateInput[] = [
 		id: REPRESENTATION_STATUS_ID.WITHDRAWN,
 		displayName: 'Withdrawn'
 	}
-];
+] as const satisfies readonly Prisma.RepresentationStatusCreateInput[];
 
 export const REPRESENTED_TYPE_ID = Object.freeze({
 	PERSON: 'person',
@@ -383,7 +383,7 @@ export const REPRESENTED_TYPE_ID = Object.freeze({
 	ORG_NOT_WORK_FOR: 'household'
 } as const);
 
-export const REPRESENTED_TYPE: Prisma.RepresentedTypeCreateInput[] = [
+export const REPRESENTED_TYPE = [
 	{
 		id: REPRESENTED_TYPE_ID.PERSON,
 		displayName: 'A person'
@@ -396,7 +396,7 @@ export const REPRESENTED_TYPE: Prisma.RepresentedTypeCreateInput[] = [
 		id: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
 		displayName: 'An organisation or charity I do not work or volunteer for'
 	}
-];
+] as const satisfies readonly Prisma.RepresentedTypeCreateInput[];
 
 export const WITHDRAWAL_REASON_ID = Object.freeze({
 	CHANGE_OF_OPINION: 'change-of-opinion',
@@ -405,7 +405,7 @@ export const WITHDRAWAL_REASON_ID = Object.freeze({
 	PERSONAL_REASONS: 'personal-reasons'
 } as const);
 
-export const WITHDRAWAL_REASON: Prisma.WithdrawalReasonCreateInput[] = [
+export const WITHDRAWAL_REASON = [
 	{
 		id: WITHDRAWAL_REASON_ID.CHANGE_OF_OPINION,
 		displayName: 'Change of opinion',
@@ -426,7 +426,7 @@ export const WITHDRAWAL_REASON: Prisma.WithdrawalReasonCreateInput[] = [
 		displayName: 'Personal Reasons',
 		hintText: 'Such as privacy or a change in circumstances'
 	}
-];
+] as const satisfies readonly Prisma.WithdrawalReasonCreateInput[];
 
 // this only works if the main categories are created first
 const majorParentConnection: NonNullable<Prisma.CategoryCreateInput['ParentCategory']> = {
@@ -436,7 +436,7 @@ const nonMajorParentConnection: NonNullable<Prisma.CategoryCreateInput['ParentCa
 	connect: { id: 'non-major' }
 };
 
-export const CATEGORIES: Prisma.CategoryCreateInput[] = [
+export const CATEGORIES = [
 	{
 		id: 'major',
 		displayName: 'Major Development'
@@ -527,7 +527,7 @@ export const CATEGORIES: Prisma.CategoryCreateInput[] = [
 		displayName: 'Listed building consent to demolish',
 		ParentCategory: nonMajorParentConnection
 	}
-];
+] as const satisfies readonly Prisma.CategoryCreateInput[];
 
 type UpsertReferenceDataArgs =
 	| {
@@ -709,8 +709,8 @@ export async function seedCrownStaticData(dbClient: PrismaClient) {
 		)
 	);
 
-	const categories = CATEGORIES.filter((c) => !c.ParentCategory);
-	const subCategories = CATEGORIES.filter((c) => c.ParentCategory);
+	const categories = CATEGORIES.filter((c) => !('ParentCategory' in c));
+	const subCategories = CATEGORIES.filter((c) => 'ParentCategory' in c);
 	// order is important here - parent categories first
 	await Promise.all(categories.map((input) => upsertReferenceData({ delegate: dbClient.category, input })));
 	await Promise.all(subCategories.map((input) => upsertReferenceData({ delegate: dbClient.category, input })));
