@@ -79,6 +79,7 @@
     "@types/express": "^5.0.6",
     "@types/express-session": "^1.19.0",
     "@types/lusca": "^1.7.5",
+    "@types/multer": "^2.1.0",
     "@types/nunjucks": "^3.2.6",
     "cross-env": "^10.1.0",
     "eslint": "^10.6.0",
