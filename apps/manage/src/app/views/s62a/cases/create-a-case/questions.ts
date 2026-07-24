@@ -193,7 +193,9 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 			emptyListText: 'No applicants found',
 			showAnswersInSummary: true,
 			emptyStateAddStyle: 'force',
-			maximumAnswers: 10
+			maximumAnswers: 10,
+			removalPrompt:
+				'Removing this organisation will also remove any linked contacts. You will not be able to undo this.'
 		},
 		applicantOrganisationName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,

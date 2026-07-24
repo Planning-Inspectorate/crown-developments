@@ -6,38 +6,8 @@ import {
 	SITE_AREA_UNIT_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
-import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
-
-export interface AddressAnswers {
-	addressLine1?: string;
-	addressLine2?: string;
-	townCity?: string;
-	county?: string;
-	postcode?: string;
-}
-
-export interface ApplicantOrganisationAnswer {
-	id?: string;
-	organisationName: string;
-	organisationAddress?: AddressAnswers;
-}
-
-export interface ApplicantContactAnswer {
-	id?: string;
-	applicantFirstName?: string;
-	applicantLastName?: string;
-	applicantContactEmail?: string;
-	applicantContactTelephoneNumber?: string;
-	applicantContactOrganisation?: string;
-}
-
-export interface AgentContactAnswer {
-	id?: string;
-	agentFirstName?: string;
-	agentLastName?: string;
-	agentContactEmail?: string;
-	agentContactTelephoneNumber?: string;
-}
+import { type Address, yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
+import type { AgentContactAnswer, ApplicantContactAnswer, ApplicantOrganisationAnswer } from '../util/party-types.ts';
 
 export interface CreateCaseAnswers {
 	// LPA Details
@@ -56,7 +26,7 @@ export interface CreateCaseAnswers {
 	// Agent
 	hasAgent: YesNo;
 	agentName?: string;
-	agentAddress?: AddressAnswers;
+	agentAddress?: Address;
 	manageAgentContactDetails?: AgentContactAnswer[];
 
 	// Applicant
@@ -68,7 +38,7 @@ export interface CreateCaseAnswers {
 	applicationType: string;
 	applicationClassification?: string;
 	applicationPhase?: string;
-	siteAddress?: AddressAnswers;
+	siteAddress?: Address;
 	siteEasting?: string;
 	siteNorthing?: string;
 	siteAreaHectares?: string;
@@ -370,7 +340,7 @@ export class S62aCaseMapper {
 		};
 	}
 
-	private toAddressInput(address: AddressAnswers) {
+	private toAddressInput(address: Address) {
 		return {
 			line1: address.addressLine1,
 			line2: address.addressLine2,
