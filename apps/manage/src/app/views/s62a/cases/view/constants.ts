@@ -19,3 +19,57 @@ export const CASE_DETAILS_QUESTION_TEXT = {
 		applicationReceivedDateQuestion: 'When was the application received?'
 	}
 };
+
+/**
+ * The consistent select query that is used when generating
+ * the view model for the case details page.
+ */
+export const S62A_VIEW_SELECT_INCLUDE = {
+	Lpa: {
+		include: {
+			Address: true
+		}
+	},
+	SecondaryLpa: {
+		include: {
+			Address: true
+		}
+	},
+	S62aStatus: true,
+	SiteAddress: true,
+	S62aDates: true,
+	S62aFees: true,
+	S62aToApplicants: {
+		include: {
+			Organisation: {
+				include: {
+					OrganisationToContact: {
+						include: {
+							Contact: {
+								include: {
+									Address: true
+								}
+							}
+						}
+					},
+					Address: true
+				}
+			},
+			Contact: {
+				include: {
+					Address: true
+				}
+			}
+		}
+	},
+	LpaContact: {
+		include: {
+			Address: true
+		}
+	},
+	SecondaryLpaContact: {
+		include: {
+			Address: true
+		}
+	}
+};

@@ -1,15 +1,17 @@
 import type { ManageService } from '#service';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import { JourneyResponse, list } from '@planning-inspectorate/dynamic-forms';
+import { clearDataFromSession, JourneyResponse, list } from '@planning-inspectorate/dynamic-forms';
 import { createJourney, JOURNEY_ID } from './journey.ts';
 import { getQuestions } from './questions.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { VIEW_TAB_ID, VIEW_TABS } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
-import { s62aCaseToViewModel } from './view-model.ts';
+import { s62aCaseToViewModel, type S62aCaseViewModel } from './view-model.ts';
 import { isUnsafeObjectKey } from '@pins/crowndev-lib/util/session.ts';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
 import type { Request, Response } from 'express';
+import { S62A_VIEW_SELECT_INCLUDE } from './constants.ts';
+import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
 
 export function buildViewCaseDetails(): AsyncRequestHandler {
 	return async (req, res) => {
@@ -18,6 +20,9 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 		const applicationPhase = getStringParam(res?.locals?.journeyResponse?.answers, 'applicationPhaseId');
 		const banner = getBannerMessages(id, res, req);
 		const baseUrl = req.baseUrl;
+
+		// We clear the journey session on list page load to avoid ghost data.
+		clearDataFromSession({ req, journeyId: JOURNEY_ID });
 
 		// Some tabs are hidden for the different phases
 		const viewTabsToShow = VIEW_TABS.filter((tab) => tab.hide !== applicationPhase);
@@ -38,7 +43,7 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 	};
 }
 
-export function buildGetJourneyMiddleware(service: ManageService): AsyncRequestHandler {
+export function buildGetJourneyMiddleware(service: ManageService, isQuestionView: boolean): AsyncRequestHandler {
 	const { db, logger } = service;
 
 	return async (req, res, next) => {
@@ -47,12 +52,7 @@ export function buildGetJourneyMiddleware(service: ManageService): AsyncRequestH
 		logger.info({ id }, 'view S62A case');
 
 		const s62aCase = await db.s62aCase.findUnique({
-			include: {
-				S62aStatus: true,
-				SiteAddress: true,
-				S62aDates: true,
-				S62aFees: true
-			},
+			include: S62A_VIEW_SELECT_INCLUDE,
 			where: { id }
 		});
 
@@ -61,13 +61,16 @@ export function buildGetJourneyMiddleware(service: ManageService): AsyncRequestH
 		}
 
 		const answers = s62aCaseToViewModel(s62aCase);
+		const sessionAnswers = getJourneyAnswers(res);
 
-		const questions = getQuestions(answers);
+		const finalAnswers = combineSessionAndDbData(answers, sessionAnswers);
+
+		const questions = getQuestions(answers, isQuestionView);
 
 		// @ts-expect-error - we haven't defined the view model on the locals object
 		res.locals.originalAnswers = { ...answers };
 		// @ts-expect-error - we haven't defined the view model on the locals object
-		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', answers);
+		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', finalAnswers);
 		res.locals.journey = createJourney(questions, res.locals.journeyResponse, req);
 
 		res.locals.backLinkUrl = req.baseUrl;
@@ -123,4 +126,11 @@ export function clearCaseUpdatedSession(req: Request, id: string): void {
 
 	const caseProps = (req.session?.cases && req.session.cases[id]) || {};
 	delete caseProps.updated;
+}
+
+/**
+ * Get the journey answers
+ */
+function getJourneyAnswers(res: Response): S62aCaseViewModel | undefined {
+	return res.locals.journeyResponse?.answers as unknown as S62aCaseViewModel;
 }
