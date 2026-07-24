@@ -27,6 +27,7 @@ import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import type { ManageService } from '#service';
 import type { CrownJourneyResponse } from '../../../../types/express-locals.d.ts';
 import { getOptionalStringParams, getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
 
 /**
  * Get the journey answers
@@ -319,7 +320,9 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 
 		const questions = getQuestions(groupMembers, overrides);
 
-		const finalAnswers = combineSessionAndDbData(res, viewModel);
+		const sessionAnswers = getJourneyAnswers(res);
+
+		const finalAnswers = combineSessionAndDbData(viewModel, sessionAnswers);
 
 		// put these on locals for the list controller
 		res.locals.originalAnswers = { ...viewModel };
@@ -346,94 +349,6 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 
 		next();
 	};
-}
-
-/**
- * Combine session answers with DB answers
- *
- * Session answers take precedence unless they are undefined or null.
- * For array answers (e.g. manage list questions), the arrays are merged
- * such that items with matching IDs are merged together to preserve
- * any unchanged data from the DB.
- */
-export function combineSessionAndDbData(res: Response, answers: CrownDevelopmentViewModel): CrownDevelopmentViewModel {
-	const finalAnswers = { ...answers };
-	const sessionAnswers = getJourneyAnswers(res);
-	if (!sessionAnswers || Object.keys(sessionAnswers).length === 0) return finalAnswers;
-
-	(Object.keys(sessionAnswers) as Array<keyof CrownDevelopmentViewModel>).forEach((key) => {
-		setAnswer(finalAnswers, key, mergeAnswerValue(answers[key], sessionAnswers[key]));
-	});
-
-	return finalAnswers;
-}
-
-/**
- * Helper to set an answer value with the correct type
- */
-function setAnswer<K extends keyof CrownDevelopmentViewModel>(
-	answers: CrownDevelopmentViewModel,
-	key: K,
-	value: CrownDevelopmentViewModel[K]
-): void {
-	answers[key] = value;
-}
-
-/**
- * Helper to determine if an answer is an array of objects that can be merged by ID
- */
-function isMergeableAnswerArray(value: unknown): value is Array<{ id?: PropertyKey | null } & object> {
-	return (
-		Array.isArray(value) &&
-		value.every(
-			(item) =>
-				item !== null &&
-				typeof item === 'object' &&
-				!Array.isArray(item) &&
-				Object.prototype.hasOwnProperty.call(item, 'id')
-		)
-	);
-}
-
-/**
- * Helper to merge a DB answer value with a session answer value
- */
-function mergeAnswerValue<K extends keyof CrownDevelopmentViewModel>(
-	dbValue: CrownDevelopmentViewModel[K],
-	sessionValue: CrownDevelopmentViewModel[K]
-): CrownDevelopmentViewModel[K] {
-	if (sessionValue === undefined || sessionValue === null) {
-		return dbValue;
-	}
-
-	if (isMergeableAnswerArray(dbValue) && isMergeableAnswerArray(sessionValue)) {
-		return mergeArraysById(dbValue, sessionValue) as CrownDevelopmentViewModel[K];
-	}
-
-	return sessionValue;
-}
-
-/**
- * Helper to merge two arrays of objects
- *
- * If a session item has an ID that matches a DB item, it is merged with it to overwrite the different keys.
- * If no match is found, it is appended as a new item.
- */
-export function mergeArraysById<T extends { id?: PropertyKey | null }>(dbArray: T[], sessionArray: T[]): T[] {
-	const merged = [...dbArray];
-
-	sessionArray.forEach((sessionItem) => {
-		const existingIndex = merged.findIndex((dbItem) => dbItem.id && sessionItem.id && dbItem.id === sessionItem.id);
-
-		if (existingIndex !== -1) {
-			// If not found (-1) spread the two items together such that the new session data overwrites the key
-			merged[existingIndex] = { ...merged[existingIndex], ...sessionItem };
-		} else {
-			merged.push(sessionItem);
-		}
-	});
-
-	return merged;
 }
 
 /**
