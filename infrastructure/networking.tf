@@ -37,6 +37,31 @@ resource "azurerm_subnet" "main" {
   private_endpoint_network_policies = "Enabled"
 }
 
+resource "azurerm_private_endpoint" "state_file" {
+  name                = "${local.org}-pe-${local.service_name}-st-${var.environment}"
+  resource_group_name = var.tooling_config.network_rg
+  location            = module.primary_region.location
+  subnet_id           = azurerm_subnet.main.id
+
+  private_dns_zone_group {
+    name                 = "storageprivatednszone"
+    private_dns_zone_ids = [data.azurerm_private_dns_zone.storage.id]
+  }
+
+  private_service_connection {
+    name                           = "privateendpointconnection"
+    private_connection_resource_id = data.azurerm_storage_account.state_file.id
+    subresource_names              = ["blob"]
+    is_manual_connection           = false
+  }
+
+  depends_on = [
+    azurerm_private_dns_zone_virtual_network_link.storage
+  ]
+
+  tags = local.tags
+}
+
 ## peer to tooling VNET for DevOps agents
 resource "azurerm_virtual_network_peering" "crown_to_tooling" {
   name                      = "${local.org}-peer-${local.service_name}-to-tooling-${var.environment}"
