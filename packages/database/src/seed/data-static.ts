@@ -1,6 +1,7 @@
 import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import {
 	APPLICANT_TYPES,
+	CONTACT_ROLES,
 	INSPECTOR_BANDS,
 	MAJOR_OR_NON_MAJORS,
 	PRE_APPLICATION_OR_APPLICATIONS,
@@ -747,7 +748,7 @@ export async function seedS62aStaticData(dbClient: PrismaClient) {
 	await Promise.all(SITE_AREA_UNITS.map((input) => upsertReferenceData({ delegate: dbClient.siteAreaUnit, input })));
 
 	await Promise.all(
-		ORGANISATION_ROLES.map((input) => upsertReferenceData({ delegate: dbClient.s62aToApplicantRole, input }))
+		CONTACT_ROLES.map((input) => upsertReferenceData({ delegate: dbClient.s62aToApplicantRole, input }))
 	);
 
 	await Promise.all(SPECIALISMS.map((input) => upsertReferenceData({ delegate: dbClient.specialism, input })));

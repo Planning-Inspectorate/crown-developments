@@ -40,3 +40,17 @@ export interface CanonicalParty {
 export interface CasePartiesModel {
 	parties: CanonicalParty[];
 }
+
+export interface AdditionalContactAnswer {
+	id?: string;
+	additionalContactRelationId?: string;
+	additionalContactType?: string;
+	otherContactType?: string;
+	additionalContactType_otherContactType?: string;
+	firstName?: string;
+	lastName?: string;
+	organisationName?: string;
+	emailAddress?: string;
+	phoneNumber?: string;
+	additionalContactAddress?: Address;
+}

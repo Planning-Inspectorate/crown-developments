@@ -117,7 +117,8 @@ describe('s62a case details journey', () => {
 					'lpaContactDetails',
 					'lpaAddress',
 					'secondaryLpaContactDetails',
-					'secondaryLpaAddress'
+					'secondaryLpaAddress',
+					'manageAdditionalContacts'
 				]
 			},
 			{

@@ -60,7 +60,8 @@ export const S62A_VIEW_SELECT_INCLUDE = {
 				include: {
 					Address: true
 				}
-			}
+			},
+			Role: true
 		}
 	},
 	LpaContact: {

@@ -132,7 +132,16 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				)
 				.addQuestion(questions.secondaryLpaContactDetails)
 				.addQuestion(questions.secondaryLpaAddress)
-				.endMultiQuestionCondition('has-secondary-lpa'),
+				.endMultiQuestionCondition('has-secondary-lpa')
+
+				.addQuestion(
+					questions.manageAdditionalContacts,
+					new ManageListSection()
+						.addQuestion(questions.additionalContactType)
+						.addQuestion(questions.additionalContactName)
+						.addQuestion(questions.additionalContactAddress)
+						.addQuestion(questions.additionalContactDetails)
+				),
 			new Section('', 'dates')
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.DATES)
 				/**

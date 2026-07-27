@@ -1,6 +1,10 @@
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { APPLICANT_TYPE_ID, SITE_AREA_UNIT_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import {
+	APPLICANT_TYPE_ID,
+	SITE_AREA_UNIT_ID,
+	CONTACT_ROLES_ID,
+	CONTACT_ROLES
+} from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
 import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
 import { type Address, yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
@@ -15,10 +19,12 @@ import {
 import {
 	type AgentContactAnswer,
 	type ApplicantOrganisationAnswer,
-	type ApplicantContactAnswer
+	type ApplicantContactAnswer,
+	type AdditionalContactAnswer
 } from '../util/party-types.ts';
 import { addBusinessDays } from 'date-fns';
 import { optionalWhere } from '@pins/crowndev-lib/util/database.ts';
+import { slugify, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
 
 const DATE_FIELDS_SET = new Set<string>(S62A_DATE_FIELDS);
 const FEE_BOOLEAN_SET = new Set<string>(FEE_BOOLEAN_FIELDS);
@@ -120,6 +126,8 @@ export interface UpdateCaseAnswers {
 	applicantType?: 'organisation' | 'individual';
 	manageApplicantOrganisations?: ApplicantOrganisationAnswer[];
 	manageApplicantContactDetails?: ApplicantContactAnswer[];
+
+	manageAdditionalContacts?: AdditionalContactAnswer[];
 }
 
 /**
@@ -452,6 +460,7 @@ export class S62aCaseUpdateMapper {
 		this.mapAgentContacts(updateOperations);
 		this.mapApplicantOrganisations(updateOperations, createOperations);
 		this.mapApplicantContacts(updateOperations, createOperations);
+		this.mapAdditionalContacts(updateOperations, createOperations);
 
 		if (updateOperations.length > 0 || createOperations.length > 0) {
 			input.S62aToApplicants = {};
@@ -491,7 +500,7 @@ export class S62aCaseUpdateMapper {
 			});
 		} else if (this.answers.agentName) {
 			createOperations.push({
-				Role: { connect: { id: ORGANISATION_ROLES_ID.AGENT } },
+				Role: { connect: { id: CONTACT_ROLES_ID.AGENT } },
 				Organisation: {
 					create: {
 						name: this.answers.agentName,
@@ -572,7 +581,7 @@ export class S62aCaseUpdateMapper {
 				});
 			} else {
 				createOperations.push({
-					Role: { connect: { id: ORGANISATION_ROLES_ID.APPLICANT } },
+					Role: { connect: { id: CONTACT_ROLES_ID.APPLICANT } },
 					Organisation: {
 						create: {
 							name: org.organisationName,
@@ -695,8 +704,74 @@ export class S62aCaseUpdateMapper {
 				});
 			} else {
 				createOperations.push({
-					Role: { connect: { id: ORGANISATION_ROLES_ID.APPLICANT } },
+					Role: { connect: { id: CONTACT_ROLES_ID.APPLICANT } },
 					Contact: { create: this.extractApplicantContactFields(contact) }
+				});
+			}
+		}
+	}
+
+	/**
+	 * Handles the additional contacts field
+	 */
+	private mapAdditionalContacts(
+		updateOperations: Prisma.S62aToApplicantUpdateWithWhereUniqueWithoutS62AInput[],
+		createOperations: Prisma.S62aToApplicantCreateWithoutS62AInput[]
+	): void {
+		if (!this.answers.manageAdditionalContacts) return;
+
+		for (const contact of this.answers.manageAdditionalContacts) {
+			let roleId: string = CONTACT_ROLES_ID.INTERESTED_PARTY;
+			let roleDisplayName = CONTACT_ROLES.find((role) => role.id === roleId)?.displayName || 'Interested party';
+
+			if (contact.additionalContactType === 'other' && contact.additionalContactType_otherContactType) {
+				roleId = slugify(contact.additionalContactType_otherContactType);
+				roleDisplayName = sentenceCase(contact.additionalContactType_otherContactType);
+			} else if (contact.additionalContactType) {
+				roleId = contact.additionalContactType;
+			}
+
+			const addressData = contact.additionalContactAddress
+				? this.toAddressInput(contact.additionalContactAddress)
+				: null;
+
+			const contactData = {
+				firstName: contact.firstName || null,
+				lastName: contact.lastName || null,
+				orgName: contact.organisationName || null,
+				email: contact.emailAddress || null,
+				telephoneNumber: contact.phoneNumber || null,
+				...(addressData && { Address: { create: addressData } })
+			};
+
+			const dataToUpdateOrCreate = {
+				Role: {
+					connectOrCreate: {
+						where: { id: roleId },
+						create: {
+							id: roleId,
+							displayName: roleDisplayName
+						}
+					}
+				}
+			};
+
+			if (contact.additionalContactRelationId) {
+				updateOperations.push({
+					where: { id: contact.additionalContactRelationId },
+					data: {
+						...dataToUpdateOrCreate,
+						Contact: {
+							update: contactData
+						}
+					}
+				});
+			} else {
+				createOperations.push({
+					...dataToUpdateOrCreate,
+					Contact: {
+						create: contactData
+					}
 				});
 			}
 		}

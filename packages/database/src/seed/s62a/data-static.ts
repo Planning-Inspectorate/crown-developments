@@ -370,3 +370,24 @@ export const S62A_CATEGORIES = [
 		displayName: 'Non-Major Development Listed building consent to demolish'
 	}
 ];
+
+export const CONTACT_ROLES_ID = Object.freeze({
+	APPLICANT: 'applicant',
+	AGENT: 'agent',
+	INTERESTED_PARTY: 'interested-party'
+} as const);
+
+export const CONTACT_ROLES = [
+	{
+		id: CONTACT_ROLES_ID.APPLICANT,
+		displayName: 'Applicant'
+	},
+	{
+		id: CONTACT_ROLES_ID.AGENT,
+		displayName: 'Agent'
+	},
+	{
+		id: CONTACT_ROLES_ID.INTERESTED_PARTY,
+		displayName: 'Interested party'
+	}
+];

@@ -706,4 +706,80 @@ describe('S62aCaseUpdateMapper', () => {
 			]);
 		});
 	});
+
+	describe('Additional Contacts Mapping', () => {
+		it('creates new additional contacts, defaulting to interested_party and mapping orgName properly', () => {
+			const answers: UpdateCaseAnswers = {
+				manageAdditionalContacts: [
+					{
+						firstName: 'Jane',
+						lastName: 'Smith',
+						organisationName: 'Community Org',
+						additionalContactType: 'interested_party'
+					},
+					{
+						firstName: 'Bob',
+						additionalContactType: 'other',
+						additionalContactType_otherContactType: 'Local MP'
+					}
+				]
+			};
+
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			const createOps = result.S62aToApplicants?.create as Prisma.S62aToApplicantCreateWithoutS62AInput[];
+			assert.strictEqual(createOps.length, 2);
+
+			assert.deepStrictEqual(createOps[0].Role?.connectOrCreate, {
+				where: { id: 'interested_party' },
+				create: { id: 'interested_party', displayName: 'Interested party' }
+			});
+			assert.deepStrictEqual(createOps[0].Contact?.create, {
+				firstName: 'Jane',
+				lastName: 'Smith',
+				orgName: 'Community Org',
+				email: null,
+				telephoneNumber: null
+			});
+
+			assert.deepStrictEqual(createOps[1].Role?.connectOrCreate, {
+				where: { id: 'local-mp' },
+				create: { id: 'local-mp', displayName: 'Local MP' }
+			});
+			assert.deepStrictEqual(createOps[1].Contact?.create, {
+				firstName: 'Bob',
+				lastName: null,
+				orgName: null,
+				email: null,
+				telephoneNumber: null
+			});
+		});
+
+		it('updates existing additional contacts via their relation ID', () => {
+			const answers: UpdateCaseAnswers = {
+				manageAdditionalContacts: [
+					{
+						additionalContactRelationId: 'rel-add-1',
+						firstName: 'Updated John',
+						additionalContactType: 'statutory_consultee'
+					}
+				]
+			};
+
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			const updateOps = result.S62aToApplicants
+				?.update as Prisma.S62aToApplicantUpdateWithWhereUniqueWithoutS62AInput[];
+			assert.strictEqual(updateOps.length, 1);
+
+			assert.strictEqual(updateOps[0].where.id, 'rel-add-1');
+			assert.deepStrictEqual(updateOps[0].data.Role?.connectOrCreate, {
+				where: { id: 'statutory_consultee' },
+				create: { id: 'statutory_consultee', displayName: 'Interested party' }
+			});
+			assert.strictEqual((updateOps[0].data.Contact?.update as any).firstName, 'Updated John');
+		});
+	});
 });

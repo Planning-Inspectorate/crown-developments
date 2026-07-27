@@ -131,4 +131,29 @@ export class S62aManageListDeleter {
 			);
 		}
 	}
+
+	/**
+	 * Handles the deletion of additional contacts. Simpler than applicant/agent contacts
+	 * because additional contacts are directly linked to the case without an intermediate Organisation.
+	 */
+	public async deleteAdditionalContact(id: string, manageListItemId: string): Promise<void> {
+		await this.db.s62aToApplicant.deleteMany({
+			where: {
+				s62aId: id,
+				contactId: manageListItemId,
+				roleId: {
+					notIn: [ORGANISATION_ROLES_ID.APPLICANT, ORGANISATION_ROLES_ID.AGENT]
+				}
+			}
+		});
+
+		try {
+			await this.db.contact.delete({ where: { id: manageListItemId } });
+		} catch (error) {
+			this.logger.warn(
+				{ id, manageListItemId, err: error },
+				'Unable to delete Additional Contact record (may still be referenced)'
+			);
+		}
+	}
 }
