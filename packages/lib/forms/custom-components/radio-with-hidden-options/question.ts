@@ -24,10 +24,11 @@ export default class HiddenRadioQuestion extends RadioQuestion {
 	hiddenOptions: Option[];
 
 	constructor(params: HiddenRadioQuestionProps) {
-		super({
+		const superParams = {
 			...params,
 			viewFolder: !params.viewFolder ? 'radio' : params.viewFolder
-		});
+		};
+		super(superParams);
 		this.hiddenOptions = params.hiddenOptions;
 	}
 
