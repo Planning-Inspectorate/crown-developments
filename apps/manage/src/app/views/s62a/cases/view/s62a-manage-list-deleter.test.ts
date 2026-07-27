@@ -31,6 +31,13 @@ describe('S62aManageListDeleter', () => {
 				delete: mock.fn(async () => {}),
 				deleteMany: mock.fn(async () => {})
 			},
+			s62aCaseInspector: {
+				deleteMany: mock.fn(async () => {})
+			},
+			user: {
+				delete: mock.fn(async () => {}),
+				deleteMany: mock.fn(async () => {})
+			},
 			$transaction: mock.fn(async (ops: any[]) => Promise.all(ops))
 		};
 
@@ -219,6 +226,31 @@ describe('S62aManageListDeleter', () => {
 				mockLogger.warn.mock.calls[0].arguments[1],
 				'Unable to delete Additional Contact record (may still be referenced)'
 			);
+		});
+	});
+
+	describe('deleteCaseTeamInspector', () => {
+		it('deletes the join row scoped to the case', async () => {
+			await deleter.deleteCaseTeamInspector('case-1', 'inspector-row-1');
+
+			assert.strictEqual(mockDb.s62aCaseInspector.deleteMany.mock.callCount(), 1);
+			assert.deepStrictEqual(mockDb.s62aCaseInspector.deleteMany.mock.calls[0].arguments[0], {
+				where: { id: 'inspector-row-1', s62aCaseId: 'case-1' }
+			});
+		});
+
+		it('leaves the User record alone, as it is shared across cases', async () => {
+			await deleter.deleteCaseTeamInspector('case-1', 'inspector-row-1');
+
+			assert.strictEqual(mockDb.user.delete.mock.callCount(), 0);
+			assert.strictEqual(mockDb.user.deleteMany.mock.callCount(), 0);
+		});
+
+		it('does not touch the applicant/agent join table', async () => {
+			await deleter.deleteCaseTeamInspector('case-1', 'inspector-row-1');
+
+			assert.strictEqual(mockDb.s62aToApplicant.deleteMany.mock.callCount(), 0);
+			assert.strictEqual(mockDb.contact.delete.mock.callCount(), 0);
 		});
 	});
 });

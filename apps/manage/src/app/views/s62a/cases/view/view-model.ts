@@ -63,6 +63,20 @@ export const FEE_DATE_FIELDS = Object.freeze([
 	'applicationFeeRefundDate'
 ] as const);
 
+export const CASE_TEAM_USER_RELATIONS = Object.freeze([
+	{ field: 'assessorInspectorId', relation: 'AssessorInspector' },
+	{ field: 'caseOfficerId', relation: 'CaseOfficer' },
+	{ field: 'planningOfficerId', relation: 'PlanningOfficer' },
+	{ field: 'readerId', relation: 'Reader' }
+] as const);
+
+export interface CaseTeamInspectorItem {
+	id: string;
+	/// Entra ID of the inspector
+	inspectorId?: string;
+	inspectorAllocatedDate?: Date;
+}
+
 export type S62aCaseDbModel = Prisma.S62aCaseGetPayload<{
 	include: typeof S62A_VIEW_SELECT_INCLUDE;
 }>;
@@ -183,6 +197,13 @@ export interface S62aCaseViewModel {
 	eiaScreening?: YesNo;
 	eiaScreeningOutcome?: YesNo;
 	environmentalStatementReceivedDate?: Date;
+
+	// Case Team tab
+	assessorInspectorId?: string | null;
+	caseOfficerId?: string | null;
+	planningOfficerId?: string | null;
+	readerId?: string | null;
+	manageCaseTeamInspectors?: CaseTeamInspectorItem[];
 }
 
 /**
@@ -491,6 +512,16 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 			}
 		}
 	}
+
+	for (const { field, relation } of CASE_TEAM_USER_RELATIONS) {
+		viewModel[field] = dbCase[relation]?.idpUserId ?? undefined;
+	}
+
+	viewModel.manageCaseTeamInspectors = (dbCase.Inspectors ?? []).map((inspector) => ({
+		id: inspector.id,
+		inspectorId: inspector.User.idpUserId ?? undefined,
+		inspectorAllocatedDate: inspector.allocatedDate ?? undefined
+	}));
 
 	return viewModel;
 }

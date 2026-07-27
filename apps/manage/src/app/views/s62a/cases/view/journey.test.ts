@@ -159,6 +159,11 @@ describe('s62a case details journey', () => {
 			},
 			{
 				title: '',
+				segment: 'case-team',
+				questions: ['manageCaseTeamInspectors', 'caseOfficer', 'assessorInspector', 'planningOfficer', 'reader']
+			},
+			{
+				title: '',
 				segment: 'fee',
 				questions: [
 					'hasPreApplicationFee',

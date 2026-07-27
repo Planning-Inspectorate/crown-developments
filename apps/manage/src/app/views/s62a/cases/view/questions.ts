@@ -41,7 +41,7 @@ import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custo
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import { CASE_DETAILS_QUESTION_TEXT } from './constants.ts';
 import { getApplicantContactsValidator, isApplicationType } from '../util/questions.ts';
-import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
+import { getLpaOptions, referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.ts';
 import CustomDatePeriodValidator from '@pins/crowndev-lib/validators/custom-date-period-validator.js';
 import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
 import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-validator.js';
@@ -49,6 +49,7 @@ import CILAmountLengthValidator from '@pins/crowndev-lib/forms/custom-components
 import { multiContactQuestions, createLpaContactQuestion } from '../util/question-factories.ts';
 import { getApplicantOrganisationOptions } from '../../../../views/cases/util/applicant-organisation-options.js';
 import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.ts';
+import type { EntraGroupMembers } from '#util/entra-groups.ts';
 
 type ApplicantOrg = {
 	id: string;
@@ -56,7 +57,16 @@ type ApplicantOrg = {
 	organisationAddress?: Record<string, unknown>;
 };
 
-export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolean) {
+export function getQuestions(
+	answers: S62aCaseViewModel,
+	{
+		isQuestionView,
+		groupMembers
+	}: {
+		isQuestionView?: boolean;
+		groupMembers: EntraGroupMembers;
+	}
+) {
 	const isLbcCase = answers?.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
 	const applicationTypesNotLBC = APPLICATION_TYPES.filter(
 		(type) => type.id !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
@@ -1237,6 +1247,87 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 						formaction: 'environmental-statement-received-date/remove'
 					}
 				]
+			}
+		},
+		manageCaseTeamInspectors: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			title: isQuestionView ? 'Check appointed person/inspector details' : 'Appointed persons/inspectors',
+			question: 'Check inspectors assigned to this case',
+			url: 'check-case-team-inspectors',
+			fieldName: 'manageCaseTeamInspectors',
+			titleSingular: 'Inspector',
+			emptyListText: 'No inspectors assigned',
+			showAnswersInSummary: true,
+			emptyStateAddStyle: 'prominent',
+			// Pre-applications are limited to a single inspector; applications may have many.
+			maximumAnswers: isPreApp ? 1 : 10,
+			isAllowedEmpty: true,
+			validators: []
+		},
+		inspectorId: {
+			type: COMPONENT_TYPES.SELECT,
+			title: 'Inspector',
+			question: 'Which inspector is assigned to this case?',
+			fieldName: 'inspectorId',
+			url: 'inspector',
+			validators: [new RequiredValidator('Select an inspector')],
+			options: referenceDataToRadioOptions(groupMembers.inspectors, true)
+		},
+		inspectorAllocatedDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Date allocated',
+			question: 'What date was this inspector allocated?',
+			hint: 'For example, 27 3 2007',
+			fieldName: 'inspectorAllocatedDate',
+			url: 'inspector-allocated-date',
+			validators: [new DateValidator('inspector allocated date')]
+		},
+		caseOfficer: {
+			type: COMPONENT_TYPES.SELECT,
+			title: 'Case officer',
+			question: 'Which case officer is assigned to this case?',
+			fieldName: 'caseOfficerId',
+			url: 'case-officer',
+			validators: [new RequiredValidator('Select a case officer')],
+			options: referenceDataToRadioOptions(groupMembers.caseOfficers, true),
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'case-officer/remove' }]
+			}
+		},
+		assessorInspector: {
+			type: COMPONENT_TYPES.SELECT,
+			title: 'Assessor inspector',
+			question: 'Which assessor inspector is assigned to this case?',
+			fieldName: 'assessorInspectorId',
+			url: 'assessor-inspector',
+			validators: [new RequiredValidator('Select an assessor inspector')],
+			options: referenceDataToRadioOptions(groupMembers.inspectors, true),
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'assessor-inspector/remove' }]
+			}
+		},
+		planningOfficer: {
+			type: COMPONENT_TYPES.SELECT,
+			title: 'Planning officer',
+			question: 'Which planning officer is assigned to this case?',
+			fieldName: 'planningOfficerId',
+			url: 'planning-officer',
+			validators: [new RequiredValidator('Select a planning officer')],
+			options: referenceDataToRadioOptions(groupMembers.inspectors, true),
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'planning-officer/remove' }]
+			}
+		},
+		reader: {
+			type: COMPONENT_TYPES.SELECT,
+			title: 'Reader',
+			question: 'Who is the reader for this decision?',
+			fieldName: 'readerId',
+			url: 'reader',
+			validators: [new RequiredValidator('Select a reader')],
+			options: referenceDataToRadioOptions(groupMembers.inspectors, true),
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'reader/remove' }]
 			}
 		},
 		applicantType: {

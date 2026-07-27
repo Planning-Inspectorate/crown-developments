@@ -18,6 +18,7 @@ describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 	let appContactSpy: Mock<Function>;
 	let agentContactSpy: Mock<Function>;
 	let additionalContactSpy: Mock<Function>;
+	let inspectorSpy: Mock<Function>;
 
 	beforeEach(() => {
 		req = { params: {} };
@@ -39,6 +40,7 @@ describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 		appContactSpy = mock.method(S62aManageListDeleter.prototype, 'deleteApplicantContactDetails', async () => {});
 		agentContactSpy = mock.method(S62aManageListDeleter.prototype, 'deleteAgentContactDetails', async () => {});
 		additionalContactSpy = mock.method(S62aManageListDeleter.prototype, 'deleteAdditionalContact', async () => {});
+		inspectorSpy = mock.method(S62aManageListDeleter.prototype, 'deleteCaseTeamInspector', async () => {});
 	});
 
 	afterEach(() => {
@@ -121,6 +123,23 @@ describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 
 			assert.strictEqual(appContactSpy.mock.callCount(), 1);
 			assert.deepStrictEqual(appContactSpy.mock.calls[0].arguments, ['case-1', 'contact-1']);
+			assert.strictEqual(next.mock.callCount(), 1);
+		});
+
+		it('routes "check-case-team-inspectors" to deleteCaseTeamInspector', async () => {
+			req.params = {
+				manageListAction: 'remove',
+				manageListQuestion: 'confirm',
+				manageListItemId: 'inspector-row-1',
+				id: 'case-1',
+				question: 'check-case-team-inspectors'
+			};
+
+			const middleware = buildDeleteS62aManageListItemOnConfirmRemove(mockService);
+			await middleware(req as Request, res as Response, next as unknown as NextFunction);
+
+			assert.strictEqual(inspectorSpy.mock.callCount(), 1);
+			assert.deepStrictEqual(inspectorSpy.mock.calls[0].arguments, ['case-1', 'inspector-row-1']);
 			assert.strictEqual(next.mock.callCount(), 1);
 		});
 

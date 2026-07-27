@@ -28,8 +28,11 @@ describe('S62A Controller Middleware', () => {
 				},
 				logger: {
 					info: () => {},
-					error: () => {}
-				}
+					error: () => {},
+					warn: () => {}
+				},
+				getEntraClient: () => null,
+				entraGroupIds: { caseOfficers: 'group-1', inspectors: 'group-2' }
 			} as unknown as ManageService;
 			process.env.ENVIRONMENT = 'dev';
 		});

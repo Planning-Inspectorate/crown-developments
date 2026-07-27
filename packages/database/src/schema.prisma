@@ -250,6 +250,19 @@ model S62aCase {
   /// whether exempt from biodiversity net gain (BNG)
   bngExempt               Boolean?
 
+  /// Case Team fields
+  Inspectors          S62aCaseInspector[]
+  /// Inspector assigned to help with a specialist issue
+  assessorInspectorId String?             @db.UniqueIdentifier
+  AssessorInspector   User?               @relation("s62aAssessorInspector", fields: [assessorInspectorId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  caseOfficerId       String?             @db.UniqueIdentifier
+  CaseOfficer         User?               @relation("s62aCaseOfficer", fields: [caseOfficerId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  planningOfficerId   String?             @db.UniqueIdentifier
+  PlanningOfficer     User?               @relation("s62aPlanningOfficer", fields: [planningOfficerId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  /// Inspector responsible for reading/reviewing the decision before it is sent out
+  readerId            String?             @db.UniqueIdentifier
+  Reader              User?               @relation("s62aReader", fields: [readerId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
   Folders Folder[]
 }
 
@@ -376,6 +389,37 @@ model S62aCategory {
   id          String     @id
   displayName String?
   S62aCases   S62aCase[]
+}
+
+/// A person who can be assigned to an S62A case.
+/// CrownDevelopment still stores raw Entra IDs — migrating it is out of scope.
+model User {
+  id        String  @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  /// Identity provider Id, currently Entra Id
+  idpUserId String? @unique
+  /// Id from the legacy system, where no idpUserId could be found during migration
+  legacyId  String?
+
+  S62aCaseOfficer       S62aCase[]          @relation("s62aCaseOfficer")
+  S62aPlanningOfficer   S62aCase[]          @relation("s62aPlanningOfficer")
+  S62aAssessorInspector S62aCase[]          @relation("s62aAssessorInspector")
+  S62aReader            S62aCase[]          @relation("s62aReader")
+  S62aInspectors        S62aCaseInspector[]
+}
+
+/// Inspectors assigned to an S62A case. Applications may have many;
+/// pre-applications are limited to one — enforced in the journey, not the DB.
+model S62aCaseInspector {
+  id            String    @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  s62aCaseId    String    @db.UniqueIdentifier
+  S62aCase      S62aCase  @relation(fields: [s62aCaseId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  userId        String    @db.UniqueIdentifier
+  User          User      @relation(fields: [userId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  allocatedDate DateTime?
+
+  @@unique([s62aCaseId, userId])
+  @@index([s62aCaseId])
+  @@index([userId])
 }
 
 /// Represents the role the applicant has for the case

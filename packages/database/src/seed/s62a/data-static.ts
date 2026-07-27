@@ -136,6 +136,7 @@ export const VIEW_TAB_ID = Object.freeze({
 	OVERVIEW: 'overview',
 	DETAILS: 'details',
 	DATES: 'dates',
+	CASE_TEAM: 'case-team',
 	FEE: 'fee',
 	REPRESENTATIONS: 'representations',
 	CONTACTS: 'contacts',
@@ -166,6 +167,10 @@ export const VIEW_TABS = [
 		id: VIEW_TAB_ID.REPRESENTATIONS,
 		displayName: 'Representations',
 		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+	},
+	{
+		id: VIEW_TAB_ID.CASE_TEAM,
+		displayName: 'Case team'
 	},
 	{
 		id: VIEW_TAB_ID.FEE,

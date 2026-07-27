@@ -196,6 +196,18 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				)
 				.addQuestion(questions.representationsPeriod)
 				.addQuestion(questions.representationsPublishDate),
+			new Section('', 'case-team')
+				.withSectionCondition(() => currentTab === VIEW_TAB_ID.CASE_TEAM)
+				.addQuestion(
+					questions.manageCaseTeamInspectors,
+					new ManageListSection().addQuestion(questions.inspectorId).addQuestion(questions.inspectorAllocatedDate)
+				)
+				.addQuestion(questions.caseOfficer)
+				.addQuestion(questions.assessorInspector)
+				.startMultiQuestionCondition('is-application', isApplicationCase)
+				.addQuestion(questions.planningOfficer)
+				.addQuestion(questions.reader)
+				.endMultiQuestionCondition('is-application'),
 			new Section('', 'fee')
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.FEE)
 
