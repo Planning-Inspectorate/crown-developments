@@ -5,7 +5,7 @@ import {
 	EmailValidator
 } from '@planning-inspectorate/dynamic-forms';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
-import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.js';
+import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.ts';
 import NameValidator from '@pins/crowndev-lib/validators/name-validator.ts';
 import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import { camelCaseToUrlCase, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
@@ -18,6 +18,7 @@ import { HIDDEN_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-m
 export const createLpaContactQuestion = (isSecondary: boolean) => {
 	const prefix = isSecondary ? 'secondaryLpa' : 'lpa';
 	const labelPrefix = isSecondary ? 'secondary LPA' : 'LPA';
+	const questionText = `${isSecondary ? 'secondary ' : ''}local planning authority`;
 	const title = `${isSecondary ? 'Secondary ' : ''}LPA contact`;
 
 	return {
@@ -38,7 +39,7 @@ export const createLpaContactQuestion = (isSecondary: boolean) => {
 					{
 						fieldName: `${prefix}FirstName`,
 						validators: [
-							new RequiredValidator(`Enter ${labelPrefix} contact's first name`),
+							new RequiredValidator(`Enter first name of the ${questionText} contact`),
 							new NameValidator({
 								label: 'First name'
 							})
@@ -47,7 +48,7 @@ export const createLpaContactQuestion = (isSecondary: boolean) => {
 					{
 						fieldName: `${prefix}LastName`,
 						validators: [
-							new RequiredValidator(`Enter ${labelPrefix} contact's last name`),
+							new RequiredValidator(`Enter last name of the ${questionText} contact`),
 							new NameValidator({
 								label: 'Last name'
 							})
@@ -56,10 +57,12 @@ export const createLpaContactQuestion = (isSecondary: boolean) => {
 					{
 						fieldName: `${prefix}EmailAddress`,
 						validators: [
-							new RequiredValidator(`Enter ${labelPrefix} contact's email address`),
+							new RequiredValidator(`Enter email address of the ${questionText} contact`),
 							new StringValidator({
-								maxLength: { maxLength: 250, maxLengthMessage: 'Email address must be between 3 and 250 characters' },
-								minLength: { minLength: 3, minLengthMessage: 'Email address must be between 3 and 250 characters' }
+								maxLength: {
+									maxLength: 250,
+									maxLengthMessage: `Email of the ${questionText} contact must be 250 characters or less`
+								}
 							}),
 							new EmailValidator({
 								errorMessage: 'Enter an email address in the correct format, like name@example.com'
@@ -68,7 +71,14 @@ export const createLpaContactQuestion = (isSecondary: boolean) => {
 					},
 					{
 						fieldName: `${prefix}PhoneNumber`,
-						validators: [new TelephoneNumberValidator()]
+						validators: [
+							new TelephoneNumberValidator({
+								maxLengthParams: {
+									maxLength: 15,
+									maxLengthMessage: `Telephone number of the ${questionText} contact must be 15 characters or less`
+								}
+							})
+						]
 					}
 				]
 			})
