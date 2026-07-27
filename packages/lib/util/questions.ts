@@ -5,7 +5,7 @@ import type { Option } from '@planning-inspectorate/dynamic-forms';
 
 export const CASE_NOTE_MAX_LENGTH = 100;
 
-type Reference = {
+export type Reference = {
 	id: string;
 	displayName: string;
 };

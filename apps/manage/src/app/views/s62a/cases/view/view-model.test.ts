@@ -863,4 +863,117 @@ describe('s62aCaseToViewModel', () => {
 			assert.strictEqual(s62aCaseToViewModel(withoutDates).environmentalStatementReceivedDate, undefined);
 		});
 	});
+
+	describe('Case Team Mapping', () => {
+		const allocated1 = new Date('2026-07-01T09:00:00Z');
+		const allocated2 = new Date('2026-07-02T09:00:00Z');
+
+		it('maps inspectors from the join rows, surfacing the Entra ID', () => {
+			const mockDbCase = {
+				id: 'case-team-1',
+				reference: 'S62A/2026/0023',
+				expectedSubmissionDate: mockDate,
+				Inspectors: [
+					{
+						id: 'inspector-row-1',
+						allocatedDate: allocated1,
+						User: { id: 'user-guid-1', idpUserId: 'entra-1' }
+					},
+					{
+						id: 'inspector-row-2',
+						allocatedDate: allocated2,
+						User: { id: 'user-guid-2', idpUserId: 'entra-2' }
+					}
+				]
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			// the item id is the join row, not the User — the manage list uses it for remove links
+			assert.deepStrictEqual(result.manageCaseTeamInspectors, [
+				{ id: 'inspector-row-1', inspectorId: 'entra-1', inspectorAllocatedDate: allocated1 },
+				{ id: 'inspector-row-2', inspectorId: 'entra-2', inspectorAllocatedDate: allocated2 }
+			]);
+		});
+
+		it('maps an inspector with no allocated date', () => {
+			const mockDbCase = {
+				id: 'case-team-2',
+				reference: 'S62A/2026/0024',
+				expectedSubmissionDate: mockDate,
+				Inspectors: [{ id: 'inspector-row-1', allocatedDate: null, User: { idpUserId: 'entra-1' } }]
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.deepStrictEqual(result.manageCaseTeamInspectors, [
+				{ id: 'inspector-row-1', inspectorId: 'entra-1', inspectorAllocatedDate: undefined }
+			]);
+		});
+
+		it('returns an empty array when no inspectors are assigned', () => {
+			const mockDbCase = {
+				id: 'case-team-3',
+				reference: 'S62A/2026/0025',
+				expectedSubmissionDate: mockDate,
+				Inspectors: []
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			// an empty array rather than undefined, so the question renders its
+			// empty list text instead of appearing unanswered
+			assert.deepStrictEqual(result.manageCaseTeamInspectors, []);
+		});
+
+		it('returns an empty array when the relation is absent from the record', () => {
+			const mockDbCase = {
+				id: 'case-team-4',
+				reference: 'S62A/2026/0026',
+				expectedSubmissionDate: mockDate
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.deepStrictEqual(result.manageCaseTeamInspectors, []);
+		});
+
+		it('maps the four single-user roles to their Entra IDs', () => {
+			const mockDbCase = {
+				id: 'case-team-5',
+				reference: 'S62A/2026/0027',
+				expectedSubmissionDate: mockDate,
+				CaseOfficer: { id: 'user-guid-1', idpUserId: 'entra-officer' },
+				AssessorInspector: { id: 'user-guid-2', idpUserId: 'entra-assessor' },
+				PlanningOfficer: { id: 'user-guid-3', idpUserId: 'entra-planning' },
+				Reader: { id: 'user-guid-4', idpUserId: 'entra-reader' }
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			// the view model exposes Entra IDs, never the internal User GUID,
+			// so the select options (built from Entra group members) match
+			assert.strictEqual(result.caseOfficerId, 'entra-officer');
+			assert.strictEqual(result.assessorInspectorId, 'entra-assessor');
+			assert.strictEqual(result.planningOfficerId, 'entra-planning');
+			assert.strictEqual(result.readerId, 'entra-reader');
+		});
+
+		it('leaves the roles undefined when the relations are null or absent', () => {
+			const mockDbCase = {
+				id: 'case-team-6',
+				reference: 'S62A/2026/0028',
+				expectedSubmissionDate: mockDate,
+				CaseOfficer: null,
+				AssessorInspector: null
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.caseOfficerId, undefined);
+			assert.strictEqual(result.assessorInspectorId, undefined);
+			assert.strictEqual(result.planningOfficerId, undefined);
+			assert.strictEqual(result.readerId, undefined);
+		});
+	});
 });

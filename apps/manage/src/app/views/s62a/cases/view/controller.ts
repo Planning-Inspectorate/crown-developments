@@ -13,6 +13,7 @@ import { S62A_VIEW_SELECT_INCLUDE } from './constants.ts';
 import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
 import type { NextFunction, Request, Response } from 'express';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
+import { getEntraGroupMembers } from '#util/entra-groups.ts';
 
 export function buildViewCaseDetails(): AsyncRequestHandler {
 	return async (req, res) => {
@@ -46,7 +47,8 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 }
 
 export function buildGetJourneyMiddleware(service: ManageService, isQuestionView: boolean): AsyncRequestHandler {
-	const { db, logger } = service;
+	const { db, logger, getEntraClient } = service;
+	const groupIds = service.entraGroupIds;
 
 	return async (req, res, next) => {
 		const id = getStringParam(req.params, 'id');
@@ -63,12 +65,19 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 			return notFoundHandler(req, res);
 		}
 
+		const groupMembers = await getEntraGroupMembers({
+			logger,
+			initClient: getEntraClient,
+			session: req.session,
+			groupIds
+		});
+
 		const answers = s62aCaseToViewModel(s62aCase);
 		const sessionAnswers = getJourneyAnswers(res);
 
 		const finalAnswers = combineSessionAndDbData(answers, sessionAnswers);
 
-		const questions = getQuestions(answers, isQuestionView);
+		const questions = getQuestions(answers, { isQuestionView, groupMembers });
 
 		// @ts-expect-error - we haven't defined the view model on the locals object
 		res.locals.originalAnswers = { ...answers };

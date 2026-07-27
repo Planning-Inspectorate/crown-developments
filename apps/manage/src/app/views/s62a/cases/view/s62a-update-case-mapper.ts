@@ -14,6 +14,8 @@ import {
 	FEE_NUMBER_FIELDS,
 	FEE_DATE_FIELDS,
 	FEE_STRING_FIELDS,
+	CASE_TEAM_USER_RELATIONS,
+	type CaseTeamInspectorItem,
 	type S62aCaseViewModel
 } from './view-model.ts';
 import {
@@ -133,6 +135,13 @@ export interface UpdateCaseAnswers {
 	eiaScreening?: boolean | YesNo | null;
 	eiaScreeningOutcome?: boolean | YesNo | null;
 	environmentalStatementReceivedDate?: Date | null;
+
+	// Case Team tab
+	assessorInspectorId?: string | null;
+	caseOfficerId?: string | null;
+	planningOfficerId?: string | null;
+	readerId?: string | null;
+	manageCaseTeamInspectors?: CaseTeamInspectorItem[] | null;
 }
 
 /**
@@ -165,6 +174,7 @@ export class S62aCaseUpdateMapper {
 		this.mapLpaContacts(input);
 		this.mapApplicantsAndAgents(input);
 		this.mapEiaScalars(input);
+		this.mapCaseTeam(input);
 
 		return input;
 	}
@@ -826,6 +836,55 @@ export class S62aCaseUpdateMapper {
 			input.eiaScreeningOutcome =
 				typeof ans.eiaScreeningOutcome === 'boolean' ? yesNoToBoolean(ans.eiaScreeningOutcome) : null;
 		}
+	}
+
+	/**
+	 * Maps the Case Team tab.
+	 *
+	 * Answers carry Entra IDs -the DB stores User relations, so each role is
+	 * connectOrCreate'd on idpUserId.
+	 */
+	private mapCaseTeam(input: Prisma.S62aCaseUpdateInput): void {
+		const ans = this.answers;
+
+		for (const { field, relation } of CASE_TEAM_USER_RELATIONS) {
+			if (!this.hasAnswer(field)) continue;
+
+			const idpUserId = ans[field];
+			input[relation] = idpUserId
+				? { connectOrCreate: { where: { idpUserId }, create: { idpUserId } } }
+				: { disconnect: true };
+		}
+
+		this.mapCaseTeamInspectors(input);
+	}
+
+	/**
+	 * Replaces the inspector rows wholesale. Prisma runs deleteMany before
+	 * create, so re-adding the same user in one save does not trip the
+	 * (s62aCaseId, userId) unique constraint.
+	 */
+	private mapCaseTeamInspectors(input: Prisma.S62aCaseUpdateInput): void {
+		// Deliberately didn't use hasAnswer() as it returns false for an empty array, so
+		// removing the last inspector would be skipped and the row would survive.
+		if (this.answers.manageCaseTeamInspectors === undefined) return;
+
+		const items = this.answers.manageCaseTeamInspectors ?? [];
+
+		input.Inspectors = {
+			deleteMany: {},
+			create: items
+				.filter((item) => item.inspectorId)
+				.map((item) => ({
+					User: {
+						connectOrCreate: {
+							where: { idpUserId: item.inspectorId! },
+							create: { idpUserId: item.inspectorId! }
+						}
+					},
+					allocatedDate: item.inspectorAllocatedDate ? new Date(item.inspectorAllocatedDate) : null
+				}))
+		};
 	}
 
 	private isDateField(key: string): key is (typeof S62A_DATE_FIELDS)[number] {

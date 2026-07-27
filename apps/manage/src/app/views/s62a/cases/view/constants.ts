@@ -73,5 +73,13 @@ export const S62A_VIEW_SELECT_INCLUDE = {
 		include: {
 			Address: true
 		}
-	}
+	},
+	Inspectors: {
+		include: { User: true },
+		orderBy: { allocatedDate: 'asc' }
+	},
+	AssessorInspector: true,
+	CaseOfficer: true,
+	PlanningOfficer: true,
+	Reader: true
 } as const satisfies Prisma.S62aCaseInclude;

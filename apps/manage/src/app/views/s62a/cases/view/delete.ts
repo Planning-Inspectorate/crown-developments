@@ -7,7 +7,8 @@ export const questionConfig: Record<string, { fieldName: string; successMessage:
 	'check-agent-contact-details': { fieldName: 'manageAgentContactDetails', successMessage: 'Contact removed' },
 	'check-applicant-contact-details': { fieldName: 'manageApplicantContactDetails', successMessage: 'Contact removed' },
 	'check-applicant-details': { fieldName: 'manageApplicantOrganisations', successMessage: 'Organisation removed' },
-	'check-additional-contact-details': { fieldName: 'manageAdditionalContacts', successMessage: 'Contact removed' }
+	'check-additional-contact-details': { fieldName: 'manageAdditionalContacts', successMessage: 'Contact removed' },
+	'check-case-team-inspectors': { fieldName: 'manageCaseTeamInspectors', successMessage: 'Inspector removed' }
 };
 
 /**
@@ -51,6 +52,9 @@ export function buildDeleteS62aManageListItemOnConfirmRemove(service: ManageServ
 					break;
 				case 'manageAdditionalContacts':
 					await deleter.deleteAdditionalContact(id, manageListItemId);
+					break;
+				case 'manageCaseTeamInspectors':
+					await deleter.deleteCaseTeamInspector(id, manageListItemId);
 					break;
 				default:
 					service.logger.warn(

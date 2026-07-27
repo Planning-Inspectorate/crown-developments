@@ -156,4 +156,13 @@ export class S62aManageListDeleter {
 			);
 		}
 	}
+
+	/**
+	 * Deletes a single inspector assignment.
+	 */
+	public async deleteCaseTeamInspector(id: string, manageListItemId: string): Promise<void> {
+		await this.db.s62aCaseInspector.deleteMany({
+			where: { id: manageListItemId, s62aCaseId: id }
+		});
+	}
 }

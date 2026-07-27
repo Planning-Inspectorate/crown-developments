@@ -845,4 +845,120 @@ describe('S62aCaseUpdateMapper', () => {
 			});
 		});
 	});
+
+	describe('Case Team Tab', () => {
+		const allocated = new Date('2026-07-01T09:00:00Z');
+
+		it('connects or creates a User for each role from the Entra ID', () => {
+			const answers: UpdateCaseAnswers = {
+				caseOfficerId: 'entra-officer',
+				assessorInspectorId: 'entra-assessor',
+				planningOfficerId: 'entra-planning',
+				readerId: 'entra-reader'
+			};
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.CaseOfficer, {
+				connectOrCreate: { where: { idpUserId: 'entra-officer' }, create: { idpUserId: 'entra-officer' } }
+			});
+			assert.deepStrictEqual(result.AssessorInspector, {
+				connectOrCreate: { where: { idpUserId: 'entra-assessor' }, create: { idpUserId: 'entra-assessor' } }
+			});
+			assert.deepStrictEqual(result.PlanningOfficer, {
+				connectOrCreate: { where: { idpUserId: 'entra-planning' }, create: { idpUserId: 'entra-planning' } }
+			});
+			assert.deepStrictEqual(result.Reader, {
+				connectOrCreate: { where: { idpUserId: 'entra-reader' }, create: { idpUserId: 'entra-reader' } }
+			});
+		});
+
+		it('disconnects a role when cleared with null or an empty string', () => {
+			const answers: UpdateCaseAnswers = {
+				caseOfficerId: null,
+				readerId: ''
+			};
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.CaseOfficer, { disconnect: true });
+			assert.deepStrictEqual(result.Reader, { disconnect: true });
+		});
+
+		it('does not touch roles that are absent from the payload', () => {
+			const result = new S62aCaseUpdateMapper({ caseOfficerId: 'entra-officer' }).generateUpdateInput();
+
+			assert.strictEqual(result.AssessorInspector, undefined);
+			assert.strictEqual(result.PlanningOfficer, undefined);
+			assert.strictEqual(result.Reader, undefined);
+		});
+
+		it('replaces the inspector rows wholesale, connecting or creating each User', () => {
+			const answers: UpdateCaseAnswers = {
+				manageCaseTeamInspectors: [
+					{ id: 'inspector-row-1', inspectorId: 'entra-1', inspectorAllocatedDate: allocated },
+					{ id: 'inspector-row-2', inspectorId: 'entra-2' }
+				]
+			};
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.Inspectors, {
+				deleteMany: {},
+				create: [
+					{
+						User: { connectOrCreate: { where: { idpUserId: 'entra-1' }, create: { idpUserId: 'entra-1' } } },
+						allocatedDate: allocated
+					},
+					{
+						User: { connectOrCreate: { where: { idpUserId: 'entra-2' }, create: { idpUserId: 'entra-2' } } },
+						allocatedDate: null
+					}
+				]
+			});
+		});
+
+		it('clears every inspector row when the list is empty', () => {
+			const answers: UpdateCaseAnswers = { manageCaseTeamInspectors: [] };
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.Inspectors, { deleteMany: {}, create: [] });
+		});
+
+		it('clears every inspector row when the list is null', () => {
+			const answers: UpdateCaseAnswers = { manageCaseTeamInspectors: null };
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.Inspectors, { deleteMany: {}, create: [] });
+		});
+
+		it('does not touch the inspector rows when the list is absent from the payload', () => {
+			const result = new S62aCaseUpdateMapper({ likelyIssues: 'Traffic' }).generateUpdateInput();
+
+			assert.strictEqual(result.Inspectors, undefined);
+		});
+
+		it('skips list items with no inspector selected', () => {
+			const answers: UpdateCaseAnswers = {
+				manageCaseTeamInspectors: [
+					{ id: 'inspector-row-1', inspectorId: 'entra-1' },
+					{ id: 'inspector-row-2', inspectorAllocatedDate: allocated }
+				]
+			};
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			// a row with a date but no user cannot be created — the FK is required
+			assert.strictEqual((result.Inspectors as any).create.length, 1);
+		});
+
+		it('converts an ISO date string into a Date', () => {
+			const answers = {
+				manageCaseTeamInspectors: [
+					{ id: 'inspector-row-1', inspectorId: 'entra-1', inspectorAllocatedDate: '2026-07-01T09:00:00Z' }
+				]
+			} as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			const created = (result.Inspectors as any).create[0];
+			assert.ok(created.allocatedDate instanceof Date);
+			assert.deepStrictEqual(created.allocatedDate, allocated);
+		});
+	});
 });
