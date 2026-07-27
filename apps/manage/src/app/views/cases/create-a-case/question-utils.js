@@ -3,7 +3,7 @@ import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/
 import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import { camelCaseToUrlCase, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
-import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.js';
+import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.ts';
 import EmailValidator from '@planning-inspectorate/dynamic-forms/src/validator/email-validator.js';
 import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import { HIDDEN_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
