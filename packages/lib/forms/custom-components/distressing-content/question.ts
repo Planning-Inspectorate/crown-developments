@@ -1,11 +1,13 @@
 import { BooleanQuestion } from '@planning-inspectorate/dynamic-forms';
-import type { Journey, ActionView } from '@planning-inspectorate/dynamic-forms';
-import type { CrownCommonQuestionProps, CUSTOM_COMPONENTS } from '../index.ts';
+import type { Journey, ActionView, BooleanQuestionParams } from '@planning-inspectorate/dynamic-forms';
+import type { CUSTOM_COMPONENTS } from '../index.ts';
 
 type ActionLink = Omit<ActionView, 'visuallyHiddenText'>;
 
-export type DistressingContentQuestionProps = CrownCommonQuestionProps & {
+export type DistressingContentQuestionProps = DistressingContentQuestionParams & {
 	type: typeof CUSTOM_COMPONENTS.DISTRESSING_CONTENT;
+};
+export type DistressingContentQuestionParams = BooleanQuestionParams & {
 	actionLink?: ActionLink;
 };
 
@@ -14,7 +16,7 @@ export type DistressingContentQuestionProps = CrownCommonQuestionProps & {
  * This allows the question to show a "Manage" link instead of "Edit" when configured
  */
 export default class DistressingContentQuestion extends BooleanQuestion {
-	constructor({ actionLink, ...params }: DistressingContentQuestionProps) {
+	constructor({ actionLink, ...params }: DistressingContentQuestionParams) {
 		super(params);
 		this.actionLink = actionLink;
 	}
