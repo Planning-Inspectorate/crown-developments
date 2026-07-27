@@ -35,11 +35,12 @@ describe('S62A Controller Middleware', () => {
 		});
 
 		it('populates res.locals and calls next() on success', async () => {
-			const handler = buildGetJourneyMiddleware(mockService);
+			const handler = buildGetJourneyMiddleware(mockService, false);
 
 			const req = {
 				params: { id: 'case-123', tab: 'overview' },
-				baseUrl: '/s62a/cases/case-123/overview'
+				baseUrl: '/s62a/cases/case-123/overview',
+				originalUrl: '/s62a/cases/case-123/overview/edit'
 			} as unknown as Request;
 
 			const res = { locals: {} } as unknown as Response;

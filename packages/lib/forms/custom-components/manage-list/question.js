@@ -46,7 +46,9 @@ export default class CustomManageListQuestion extends ManageListQuestion {
 	constructor(params) {
 		super(params);
 		this.viewFolder = 'custom-components/manage-list';
-		this.#showAnswersInSummary = true;
+		// This was originally hard-coded to 'true' so I have done a fallback of true in case
+		// any questions were relying on this hard-coded default.
+		this.#showAnswersInSummary = params.showAnswersInSummary ?? true;
 		this.maximumAnswers = params.maximumAnswers ?? null;
 		this.emptyListText = params.emptyListText || 'No items have been added yet.';
 		this.isAllowedEmpty = params.isAllowedEmpty ?? false;

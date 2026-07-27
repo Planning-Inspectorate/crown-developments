@@ -185,4 +185,40 @@ describe('S62aManageListDeleter', () => {
 			);
 		});
 	});
+
+	describe('deleteAdditionalContact', () => {
+		it('deletes the link (excluding applicant/agent roles) and attempts to delete the contact', async () => {
+			await deleter.deleteAdditionalContact('case-1', 'contact-1');
+
+			assert.strictEqual(mockDb.s62aToApplicant.deleteMany.mock.callCount(), 1);
+			assert.deepStrictEqual(mockDb.s62aToApplicant.deleteMany.mock.calls[0].arguments[0], {
+				where: {
+					s62aId: 'case-1',
+					contactId: 'contact-1',
+					roleId: {
+						notIn: [ORGANISATION_ROLES_ID.APPLICANT, ORGANISATION_ROLES_ID.AGENT]
+					}
+				}
+			});
+
+			assert.strictEqual(mockDb.contact.delete.mock.callCount(), 1);
+			assert.deepStrictEqual(mockDb.contact.delete.mock.calls[0].arguments[0], {
+				where: { id: 'contact-1' }
+			});
+		});
+
+		it('logs a warning if additional contact deletion fails', async () => {
+			mockDb.contact.delete = mock.fn(() => Promise.reject(new Error('Constraint')));
+
+			await deleter.deleteAdditionalContact('case-1', 'contact-1');
+
+			assert.strictEqual(mockDb.contact.delete.mock.callCount(), 1);
+
+			assert.strictEqual(mockLogger.warn.mock.callCount(), 1);
+			assert.strictEqual(
+				mockLogger.warn.mock.calls[0].arguments[1],
+				'Unable to delete Additional Contact record (may still be referenced)'
+			);
+		});
+	});
 });

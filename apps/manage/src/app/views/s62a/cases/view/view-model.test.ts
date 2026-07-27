@@ -1,7 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { SITE_AREA_UNIT_ID, APPLICANT_TYPE_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
-import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import {
+	SITE_AREA_UNIT_ID,
+	APPLICANT_TYPE_ID,
+	CONTACT_ROLES_ID
+} from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { s62aCaseToViewModel, type S62aCaseDbModel } from './view-model.ts';
 
 const mockDate = new Date('2026-07-14T12:00:00Z');
@@ -548,7 +551,7 @@ describe('s62aCaseToViewModel', () => {
 				S62aToApplicants: [
 					{
 						id: 'rel-agent-1',
-						roleId: ORGANISATION_ROLES_ID.AGENT,
+						roleId: CONTACT_ROLES_ID.AGENT,
 						Organisation: {
 							id: 'org-agent-1',
 							name: 'Agent Corp',
@@ -601,7 +604,7 @@ describe('s62aCaseToViewModel', () => {
 				S62aToApplicants: [
 					{
 						id: 'rel-app-org-1',
-						roleId: ORGANISATION_ROLES_ID.APPLICANT,
+						roleId: CONTACT_ROLES_ID.APPLICANT,
 						Organisation: {
 							id: 'org-app-1',
 							name: 'Applicant Corp',
@@ -659,7 +662,7 @@ describe('s62aCaseToViewModel', () => {
 				S62aToApplicants: [
 					{
 						id: 'rel-app-ind-1',
-						roleId: ORGANISATION_ROLES_ID.APPLICANT,
+						roleId: CONTACT_ROLES_ID.APPLICANT,
 						Contact: { id: 'contact-ind-1', firstName: 'Individual', lastName: 'Applicant' }
 					}
 				]
@@ -676,6 +679,95 @@ describe('s62aCaseToViewModel', () => {
 					applicantLastName: 'Applicant',
 					applicantContactEmail: undefined,
 					applicantContactTelephoneNumber: undefined
+				}
+			]);
+		});
+	});
+
+	describe('Additional Contacts Mapping', () => {
+		it('maps standard additional contacts (e.g. interested_party) correctly, handling orgName to organisationName mapping', () => {
+			const mockDbCase = {
+				id: 'case-add-1',
+				reference: 'S62A/2026/0019',
+				expectedSubmissionDate: mockDate,
+				S62aToApplicants: [
+					{
+						id: 'rel-add-1',
+						roleId: CONTACT_ROLES_ID.INTERESTED_PARTY,
+						Role: { displayName: 'Interested party' },
+						Contact: {
+							id: 'contact-add-1',
+							firstName: 'Jane',
+							lastName: 'Smith',
+							orgName: 'Community Group',
+							email: 'jane@example.com',
+							telephoneNumber: '0123456789',
+							Address: { id: 'addr-add-1', line1: '10 High St', townCity: 'Test Town' }
+						}
+					}
+				]
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.deepStrictEqual(result.manageAdditionalContacts, [
+				{
+					id: 'contact-add-1',
+					additionalContactRelationId: 'rel-add-1',
+					additionalContactType: CONTACT_ROLES_ID.INTERESTED_PARTY,
+					otherContactType: undefined,
+					additionalContactType_otherContactType: undefined,
+					firstName: 'Jane',
+					lastName: 'Smith',
+					organisationName: 'Community Group',
+					emailAddress: 'jane@example.com',
+					phoneNumber: '0123456789',
+					additionalContactAddress: {
+						id: 'addr-add-1',
+						addressLine1: '10 High St',
+						addressLine2: '',
+						townCity: 'Test Town',
+						county: '',
+						postcode: ''
+					}
+				}
+			]);
+		});
+
+		it('maps custom "other" additional contacts correctly, separating the role ID into the conditional text fields', () => {
+			const mockDbCase = {
+				id: 'case-add-2',
+				reference: 'S62A/2026/0020',
+				expectedSubmissionDate: mockDate,
+				S62aToApplicants: [
+					{
+						id: 'rel-add-2',
+						roleId: 'local-mp',
+						Role: { displayName: 'Local MP' },
+						Contact: {
+							id: 'contact-add-2',
+							firstName: 'Bob',
+							lastName: 'Builder'
+						}
+					}
+				]
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.deepStrictEqual(result.manageAdditionalContacts, [
+				{
+					id: 'contact-add-2',
+					additionalContactRelationId: 'rel-add-2',
+					additionalContactType: 'other',
+					otherContactType: 'Local MP',
+					additionalContactType_otherContactType: 'Local MP',
+					firstName: 'Bob',
+					lastName: 'Builder',
+					organisationName: undefined,
+					emailAddress: undefined,
+					phoneNumber: undefined,
+					additionalContactAddress: undefined
 				}
 			]);
 		});

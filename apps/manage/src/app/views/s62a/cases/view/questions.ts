@@ -8,6 +8,8 @@ import {
 import {
 	APPLICANT_TYPE_ID,
 	APPLICANT_TYPES,
+	CONTACT_ROLES,
+	CONTACT_ROLES_ID,
 	INSPECTOR_BANDS,
 	MAJOR_OR_NON_MAJORS,
 	PRE_APPLICATION_OR_APPLICATION_ID,
@@ -22,6 +24,7 @@ import {
 	AddressValidator,
 	BOOLEAN_OPTIONS,
 	COMPONENT_TYPES,
+	ConditionalRequiredValidator,
 	CoordinatesValidator,
 	createQuestions,
 	CrossQuestionValidator,
@@ -45,6 +48,7 @@ import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-a
 import CILAmountLengthValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-length-validator.ts';
 import { multiContactQuestions, createLpaContactQuestion } from '../util/question-factories.ts';
 import { getApplicantOrganisationOptions } from '../../../../views/cases/util/applicant-organisation-options.js';
+import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.js';
 
 type ApplicantOrg = {
 	id: string;
@@ -1310,6 +1314,168 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 			url: 'secondary-lpa-address',
 			validators: [new AddressValidator()],
 			editable: false
+		},
+		manageAdditionalContacts: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			title: isQuestionView ? 'Check additional contact details' : 'Additional contact(s)',
+			question: 'Check additional contact details',
+			url: 'check-additional-contact-details',
+			fieldName: 'manageAdditionalContacts',
+			titleSingular: 'Additional contact',
+			emptyListText: 'No additional contacts found',
+			showAnswersInSummary: false,
+			emptyStateAddStyle: 'prominent'
+		},
+		additionalContactType: {
+			type: CUSTOM_COMPONENTS.CONDITIONAL_RADIO,
+			title: 'Contact type',
+			question: 'What is the contact type?',
+			fieldName: 'additionalContactType',
+			url: 'additional-contact-type',
+			conditionalTriggerValue: 'other',
+			conditionalDbFieldName: 'otherContactType',
+			options: [
+				...CONTACT_ROLES.filter((i) => i.id === CONTACT_ROLES_ID.INTERESTED_PARTY).map((t) => ({
+					text: t.displayName,
+					value: t.id
+				})),
+				{
+					text: 'Other',
+					value: 'other',
+					conditional: {
+						type: 'text',
+						fieldName: 'otherContactType',
+						label: 'Other contact type'
+					}
+				}
+			],
+			validators: [
+				new RequiredValidator('Select the contact type'),
+				new ConditionalRequiredValidator('Other contact type must be between 1 and 30 characters')
+			]
+		},
+		additionalContactName: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MULTI_FIELD_INPUT,
+			title: 'Contact name',
+			question: 'Who is the contact?',
+			fieldName: 'additionalContactName',
+			url: 'additional-contact-name',
+			inputFields: [
+				{
+					fieldName: 'firstName',
+					label: 'First name',
+					formatJoinString: ' ',
+					type: 'single-line-input'
+				},
+				{
+					fieldName: 'lastName',
+					label: 'Last name',
+					type: 'single-line-input'
+				},
+				{
+					fieldName: 'organisationName',
+					label: 'Organisation name',
+					type: 'single-line-input'
+				}
+			],
+			validators: [
+				new MultiFieldInputValidator({
+					fields: [
+						{
+							fieldName: 'firstName',
+							validators: [
+								new RequiredValidator('First name must be between 1 and 250 characters'),
+								new StringValidator({
+									maxLength: {
+										maxLength: 250,
+										maxLengthMessage: 'First name must be between 1 and 250 characters'
+									},
+									regex: {
+										regex: "^[A-Za-z0-9\\s\\-']+$",
+										regexMessage: 'First name must only include letters, spaces, hyphens, apostrophes or numbers'
+									}
+								})
+							]
+						},
+						{
+							fieldName: 'lastName',
+							validators: [
+								new RequiredValidator('Last name must be between 1 and 250 characters'),
+								new StringValidator({
+									maxLength: {
+										maxLength: 250,
+										maxLengthMessage: 'Last name must be between 1 and 250 characters'
+									},
+									regex: {
+										regex: "^[A-Za-z0-9\\s\\-']+$",
+										regexMessage: 'Last name must only include letters, spaces, hyphens, apostrophes or numbers'
+									}
+								})
+							]
+						},
+						{
+							fieldName: 'organisationName',
+							validators: [
+								new StringValidator({
+									maxLength: {
+										maxLength: 250,
+										maxLengthMessage: 'Organisation name must be 250 characters or less'
+									}
+								})
+							]
+						}
+					]
+				})
+			]
+		},
+		additionalContactAddress: {
+			type: COMPONENT_TYPES.ADDRESS,
+			title: 'Contact address details',
+			question: 'Contact address details (optional)',
+			fieldName: 'additionalContactAddress',
+			url: 'additional-contact-address',
+			validators: [new AddressValidator()]
+		},
+		additionalContactDetails: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MULTI_FIELD_INPUT,
+			title: 'Contact details',
+			question: 'What are the contact details? (optional)',
+			fieldName: 'additionalContactDetails',
+			url: 'additional-contact-details',
+			inputFields: [
+				{
+					fieldName: 'emailAddress',
+					label: 'Email address',
+					type: 'single-line-input'
+				},
+				{
+					fieldName: 'phoneNumber',
+					label: 'Phone number',
+					type: 'single-line-input'
+				}
+			],
+			validators: [
+				new MultiFieldInputValidator({
+					fields: [
+						{
+							fieldName: 'emailAddress',
+							validators: [
+								new RequiredValidator('Enter email address of the contact'),
+								new StringValidator({
+									maxLength: {
+										maxLength: 250,
+										maxLengthMessage: 'Contact email must be 250 characters or less'
+									}
+								})
+							]
+						},
+						{
+							fieldName: 'phoneNumber',
+							validators: [new TelephoneNumberValidator()]
+						}
+					]
+				})
+			]
 		}
 	};
 

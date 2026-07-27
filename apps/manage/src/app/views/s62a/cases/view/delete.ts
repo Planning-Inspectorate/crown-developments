@@ -6,7 +6,8 @@ import { getOptionalStringParams } from '@pins/crowndev-lib/util/params.ts';
 export const questionConfig: Record<string, { fieldName: string; successMessage: string }> = {
 	'check-agent-contact-details': { fieldName: 'manageAgentContactDetails', successMessage: 'Contact removed' },
 	'check-applicant-contact-details': { fieldName: 'manageApplicantContactDetails', successMessage: 'Contact removed' },
-	'check-applicant-details': { fieldName: 'manageApplicantOrganisations', successMessage: 'Organisation removed' }
+	'check-applicant-details': { fieldName: 'manageApplicantOrganisations', successMessage: 'Organisation removed' },
+	'check-additional-contact-details': { fieldName: 'manageAdditionalContacts', successMessage: 'Contact removed' }
 };
 
 /**
@@ -47,6 +48,9 @@ export function buildDeleteS62aManageListItemOnConfirmRemove(service: ManageServ
 					break;
 				case 'manageAgentContactDetails':
 					await deleter.deleteAgentContactDetails(id, manageListItemId);
+					break;
+				case 'manageAdditionalContacts':
+					await deleter.deleteAdditionalContact(id, manageListItemId);
 					break;
 				default:
 					service.logger.warn(

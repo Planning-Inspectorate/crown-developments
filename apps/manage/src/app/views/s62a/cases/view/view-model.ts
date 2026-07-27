@@ -1,10 +1,19 @@
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { APPLICANT_TYPE_ID, SITE_AREA_UNIT_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import {
+	APPLICANT_TYPE_ID,
+	CONTACT_ROLES_ID,
+	SITE_AREA_UNIT_ID
+} from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { addressToViewModel } from '@pins/crowndev-lib/util/address.ts';
 import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
 import { type Address, booleanToYesNoValue } from '@planning-inspectorate/dynamic-forms';
-import type { AgentContactAnswer, ApplicantContactAnswer, ApplicantOrganisationAnswer } from '../util/party-types.ts';
+import type {
+	AdditionalContactAnswer,
+	AgentContactAnswer,
+	ApplicantContactAnswer,
+	ApplicantOrganisationAnswer
+} from '../util/party-types.ts';
 import type { S62A_VIEW_SELECT_INCLUDE } from './constants.ts';
 
 export const S62A_DATE_FIELDS = Object.freeze([
@@ -166,6 +175,8 @@ export interface S62aCaseViewModel {
 
 	manageApplicantOrganisations?: ApplicantOrganisationAnswer[];
 	manageApplicantContactDetails?: ApplicantContactAnswer[];
+
+	manageAdditionalContacts?: AdditionalContactAnswer[];
 }
 
 /**
@@ -364,6 +375,11 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 		const agentRecords = dbCase.S62aToApplicants.filter((x) => x.roleId === ORGANISATION_ROLES_ID.AGENT);
 		const applicantRecords = dbCase.S62aToApplicants.filter((x) => x.roleId === ORGANISATION_ROLES_ID.APPLICANT);
 
+		// Anything that is not agent or applicant must be "additional" for s62a
+		const additionalContactRecords = dbCase.S62aToApplicants.filter(
+			(join) => join.roleId !== ORGANISATION_ROLES_ID.AGENT && join.roleId !== ORGANISATION_ROLES_ID.APPLICANT
+		);
+
 		if (agentRecords.length > 0) {
 			const agentRecord = agentRecords[0];
 			viewModel.agentRelationId = agentRecord.id;
@@ -437,6 +453,32 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 							applicantContactTelephoneNumber: app.Contact.telephoneNumber || undefined
 						});
 					}
+				}
+			}
+		}
+
+		if (additionalContactRecords.length > 0) {
+			viewModel.manageAdditionalContacts = [];
+
+			for (const ac of additionalContactRecords) {
+				const isOtherType = ac.roleId !== CONTACT_ROLES_ID.INTERESTED_PARTY;
+				const typeValue = isOtherType ? 'other' : ac.roleId;
+				const otherTypeValue = isOtherType ? ac.Role.displayName : undefined;
+
+				if (ac.Contact) {
+					viewModel.manageAdditionalContacts.push({
+						id: ac.Contact.id,
+						additionalContactRelationId: ac.id,
+						additionalContactType: typeValue,
+						otherContactType: otherTypeValue || undefined,
+						additionalContactType_otherContactType: otherTypeValue || undefined,
+						firstName: ac.Contact.firstName || undefined,
+						lastName: ac.Contact.lastName || undefined,
+						organisationName: ac.Contact.orgName || undefined,
+						emailAddress: ac.Contact.email || undefined,
+						phoneNumber: ac.Contact.telephoneNumber || undefined,
+						additionalContactAddress: ac.Contact.Address ? addressToViewModel(ac.Contact.Address) : undefined
+					});
 				}
 			}
 		}

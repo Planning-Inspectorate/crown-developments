@@ -4,7 +4,7 @@ import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.
 import { clearDataFromSession, JourneyResponse, list } from '@planning-inspectorate/dynamic-forms';
 import { createJourney, JOURNEY_ID } from './journey.ts';
 import { getQuestions } from './questions.ts';
-import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { getOptionalStringParams, getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { VIEW_TAB_ID, VIEW_TABS } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { s62aCaseToViewModel, type S62aCaseViewModel } from './view-model.ts';
 import { isUnsafeObjectKey } from '@pins/crowndev-lib/util/session.ts';
@@ -48,6 +48,7 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 
 	return async (req, res, next) => {
 		const id = getStringParam(req.params, 'id');
+		const { section, manageListQuestion } = getOptionalStringParams(req.params, ['section', 'manageListQuestion']);
 
 		logger.info({ id }, 'view S62A case');
 
@@ -73,7 +74,18 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', finalAnswers);
 		res.locals.journey = createJourney(questions, res.locals.journeyResponse, req);
 
-		res.locals.backLinkUrl = req.baseUrl;
+		// set a back link to the case details page when viewing a section/question not within a manage list question
+		if (section && !manageListQuestion) {
+			res.locals.backLinkUrl = req.baseUrl;
+		}
+
+		// set a back link to the case details page when on an edit page
+		if (!res.locals.backLinkUrl) {
+			const originalUrl = typeof req.originalUrl === 'string' ? req.originalUrl : '';
+			if (/\/edit\/?$/.test(originalUrl)) {
+				res.locals.backLinkUrl = req.baseUrl;
+			}
+		}
 
 		if (next) next();
 	};
