@@ -47,7 +47,8 @@ export function s62aToViewModel(s62aCases: S62ACasePayload) {
 					relation.roleId === ORGANISATION_ROLES_ID.APPLICANT && typeof relation.Organisation?.name === 'string'
 			).map((item) => item.Organisation!.name) ?? [],
 		location: '',
-		referenceLink: '<a class="govuk-link" href="/cases/' + s62aCases.id + '">' + insertWbr(s62aCases.reference) + '</a>'
+		referenceLink:
+			'<a class="govuk-link" href="/s62a/cases/' + s62aCases.id + '">' + insertWbr(s62aCases.reference) + '</a>'
 	};
 	if (s62aCases.SiteAddress) {
 		const address = addressToViewModel(s62aCases.SiteAddress);

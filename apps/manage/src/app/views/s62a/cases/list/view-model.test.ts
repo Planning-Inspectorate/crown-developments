@@ -82,7 +82,7 @@ describe('Case list view model', () => {
 			assert.deepStrictEqual(result, {
 				id: 'id-1',
 				reference: 'REF/2025/001',
-				referenceLink: '<a class="govuk-link" href="/cases/id-1">REF/<wbr>2025/<wbr>001</a>',
+				referenceLink: '<a class="govuk-link" href="/s62a/cases/id-1">REF/<wbr>2025/<wbr>001</a>',
 				lpaName: 'Test LPA',
 				status: undefined,
 				type: 'Planning permission',

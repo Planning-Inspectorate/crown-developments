@@ -190,8 +190,8 @@ describe('case list', () => {
 			assert.deepStrictEqual(mockResData.render.mock.calls[0].arguments[1], {
 				pageTitle: 'Manage Section 62A applications',
 				s62aCasesViewModels: [],
+				searchValue: '',
 				baseUrl: '/s62a/cases',
-				containerClasses: 'pins-container-wide',
 				currentUrl: undefined,
 				queryParams: undefined,
 				paginationParams: {
@@ -274,8 +274,8 @@ describe('case list', () => {
 				assert.deepStrictEqual(onlyRelevantKeys, {
 					pageTitle: 'Manage Section 62A applications',
 					baseUrl: '/s62a/cases',
+					searchValue: '',
 					currentUrl: undefined,
-					containerClasses: 'pins-container-wide',
 					queryParams: {
 						itemsPerPage: itemsPerPage,
 						page: requestedPage

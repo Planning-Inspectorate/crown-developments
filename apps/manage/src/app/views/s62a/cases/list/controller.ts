@@ -52,10 +52,10 @@ export function buildCaseListPage(service: ManageService): AsyncRequestHandler {
 		return res.render('./views/s62a/cases/list/view.njk', {
 			pageTitle: 'Manage Section 62A applications',
 			s62aCasesViewModels,
-			containerClasses: 'pins-container-wide',
 			currentUrl: req.originalUrl,
 			paginationParams,
 			baseUrl: '/s62a/cases',
+			searchValue: req.query?.searchCriteria || '',
 			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined
 		});
 	};
