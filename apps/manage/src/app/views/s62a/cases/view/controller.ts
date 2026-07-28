@@ -39,7 +39,8 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 			viewTabs: viewTabsToShow,
 			// URL without the /:tab slug, needed for routing uses in FE.
 			cleanUrl: `/s62a/cases/${id}`,
-			banner
+			banner,
+			foldersUrl: `/s62a/cases/${id}/case-folders`
 		});
 	};
 }
