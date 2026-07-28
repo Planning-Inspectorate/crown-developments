@@ -478,12 +478,12 @@ export class S62aCaseUpdateMapper {
 							name: this.answers.agentName !== undefined ? this.answers.agentName : undefined,
 							Address: addressData
 								? {
-									upsert: {
-										where: optionalWhere(this.existingCase?.agentOrganisationAddressId),
-										create: addressData,
-										update: addressData
+										upsert: {
+											where: optionalWhere(this.existingCase?.agentOrganisationAddressId),
+											create: addressData,
+											update: addressData
+										}
 									}
-								}
 								: undefined
 						}
 					}
@@ -559,12 +559,12 @@ export class S62aCaseUpdateMapper {
 								name: org.organisationName,
 								Address: addressData
 									? {
-										upsert: {
-											where: optionalWhere(org.organisationAddressId),
-											create: addressData,
-											update: addressData
+											upsert: {
+												where: optionalWhere(org.organisationAddressId),
+												create: addressData,
+												update: addressData
+											}
 										}
-									}
 									: undefined
 							}
 						}
