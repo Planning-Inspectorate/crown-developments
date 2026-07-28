@@ -481,4 +481,203 @@ describe('s62aCaseToViewModel', () => {
 			assert.strictEqual(result.updatedDate, updated);
 		});
 	});
+
+	describe('LPA and Contact Mapping', () => {
+		it('maps LPA and Secondary LPA addresses and contacts correctly', () => {
+			const mockDbCase = {
+				id: 'case-lpa-1',
+				reference: 'S62A/2026/0015',
+				expectedSubmissionDate: mockDate,
+				Lpa: {
+					Address: { line1: '1 LPA Street', townCity: 'Town', postcode: 'AB1 2CD' }
+				},
+				SecondaryLpa: {
+					Address: { line1: '2 Secondary St', townCity: 'City', postcode: 'EF3 4GH' }
+				},
+				LpaContact: {
+					firstName: 'John',
+					lastName: 'Doe',
+					email: 'john@lpa.gov.uk',
+					telephoneNumber: '0123456789'
+				},
+				SecondaryLpaContact: {
+					firstName: 'Jane',
+					lastName: 'Smith',
+					email: 'jane@lpa.gov.uk',
+					telephoneNumber: '0987654321'
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.deepStrictEqual(result.lpaAddress, {
+				id: undefined,
+				addressLine1: '1 LPA Street',
+				addressLine2: '',
+				townCity: 'Town',
+				county: '',
+				postcode: 'AB1 2CD'
+			});
+			assert.deepStrictEqual(result.secondaryLpaAddress, {
+				id: undefined,
+				addressLine1: '2 Secondary St',
+				addressLine2: '',
+				townCity: 'City',
+				county: '',
+				postcode: 'EF3 4GH'
+			});
+
+			assert.strictEqual(result.lpaFirstName, 'John');
+			assert.strictEqual(result.lpaLastName, 'Doe');
+			assert.strictEqual(result.lpaEmailAddress, 'john@lpa.gov.uk');
+			assert.strictEqual(result.lpaPhoneNumber, '0123456789');
+
+			assert.strictEqual(result.secondaryLpaFirstName, 'Jane');
+			assert.strictEqual(result.secondaryLpaLastName, 'Smith');
+			assert.strictEqual(result.secondaryLpaEmailAddress, 'jane@lpa.gov.uk');
+			assert.strictEqual(result.secondaryLpaPhoneNumber, '0987654321');
+		});
+	});
+
+	describe('Parties (Agents and Applicants) Mapping', () => {
+		it('maps Agent details including nested contacts correctly', () => {
+			const mockDbCase = {
+				id: 'case-parties-1',
+				reference: 'S62A/2026/0016',
+				expectedSubmissionDate: mockDate,
+				S62aToApplicants: [
+					{
+						id: 'rel-agent-1',
+						roleId: ORGANISATION_ROLES_ID.AGENT,
+						Organisation: {
+							id: 'org-agent-1',
+							name: 'Agent Corp',
+							addressId: 'addr-agent-1',
+							Address: { id: 'addr-agent-1', line1: 'Agent Line 1' },
+							OrganisationToContact: [
+								{
+									id: 'otc-agent-1',
+									Contact: { id: 'contact-agent-1', firstName: 'Agent', lastName: 'Smith' }
+								}
+							]
+						}
+					}
+				]
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.agentRelationId, 'rel-agent-1');
+			assert.strictEqual(result.agentOrganisationId, 'org-agent-1');
+			assert.strictEqual(result.agentName, 'Agent Corp');
+			assert.strictEqual(result.agentOrganisationAddressId, 'addr-agent-1');
+			assert.deepStrictEqual(result.agentAddress, {
+				id: 'addr-agent-1',
+				addressLine1: 'Agent Line 1',
+				addressLine2: '',
+				townCity: '',
+				county: '',
+				postcode: ''
+			});
+
+			assert.deepStrictEqual(result.manageAgentContactDetails, [
+				{
+					id: 'contact-agent-1',
+					organisationToContactRelationId: 'otc-agent-1',
+					agentFirstName: 'Agent',
+					agentLastName: 'Smith',
+					agentContactEmail: undefined,
+					agentContactTelephoneNumber: undefined
+				}
+			]);
+		});
+
+		it('maps Applicant details correctly when applicant is an ORGANISATION', () => {
+			const mockDbCase = {
+				id: 'case-parties-2',
+				reference: 'S62A/2026/0017',
+				expectedSubmissionDate: mockDate,
+				applicantTypeId: APPLICANT_TYPE_ID.ORGANISATION,
+				S62aToApplicants: [
+					{
+						id: 'rel-app-org-1',
+						roleId: ORGANISATION_ROLES_ID.APPLICANT,
+						Organisation: {
+							id: 'org-app-1',
+							name: 'Applicant Corp',
+							addressId: 'addr-app-1',
+							Address: { id: 'addr-app-1', line1: 'App Line 1' },
+							OrganisationToContact: [
+								{
+									id: 'otc-app-1',
+									Contact: { id: 'contact-app-1', firstName: 'App', lastName: 'User', email: 'app@corp.com' }
+								}
+							]
+						}
+					}
+				]
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.deepStrictEqual(result.manageApplicantOrganisations, [
+				{
+					id: 'org-app-1',
+					organisationRelationId: 'rel-app-org-1',
+					organisationName: 'Applicant Corp',
+					organisationAddressId: 'addr-app-1',
+					organisationAddress: {
+						id: 'addr-app-1',
+						addressLine1: 'App Line 1',
+						addressLine2: '',
+						townCity: '',
+						county: '',
+						postcode: ''
+					}
+				}
+			]);
+
+			assert.deepStrictEqual(result.manageApplicantContactDetails, [
+				{
+					id: 'contact-app-1',
+					organisationToContactRelationId: 'otc-app-1',
+					applicantFirstName: 'App',
+					applicantLastName: 'User',
+					applicantContactEmail: 'app@corp.com',
+					applicantContactTelephoneNumber: undefined,
+					applicantContactOrganisation: 'org-app-1'
+				}
+			]);
+		});
+
+		it('maps Applicant details correctly when applicant is an INDIVIDUAL', () => {
+			const mockDbCase = {
+				id: 'case-parties-3',
+				reference: 'S62A/2026/0018',
+				expectedSubmissionDate: mockDate,
+				applicantTypeId: APPLICANT_TYPE_ID.INDIVIDUAL,
+				S62aToApplicants: [
+					{
+						id: 'rel-app-ind-1',
+						roleId: ORGANISATION_ROLES_ID.APPLICANT,
+						Contact: { id: 'contact-ind-1', firstName: 'Individual', lastName: 'Applicant' }
+					}
+				]
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.deepStrictEqual(result.manageApplicantOrganisations, undefined);
+			assert.deepStrictEqual(result.manageApplicantContactDetails, [
+				{
+					id: 'contact-ind-1',
+					applicantRelationId: 'rel-app-ind-1',
+					applicantFirstName: 'Individual',
+					applicantLastName: 'Applicant',
+					applicantContactEmail: undefined,
+					applicantContactTelephoneNumber: undefined
+				}
+			]);
+		});
+	});
 });
