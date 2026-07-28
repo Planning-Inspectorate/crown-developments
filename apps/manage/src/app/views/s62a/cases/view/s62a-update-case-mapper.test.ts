@@ -513,7 +513,7 @@ describe('S62aCaseUpdateMapper', () => {
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
 
 			assert.strictEqual(result.cilAmount, null);
-		})
+		});
 	});
 	describe('LPA Contact Mapping', () => {
 		it('generates upserts for LPA and Secondary LPA contacts when provided', () => {

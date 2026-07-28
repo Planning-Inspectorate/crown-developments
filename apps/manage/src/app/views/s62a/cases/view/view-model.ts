@@ -171,7 +171,13 @@ export interface S62aCaseViewModel {
 /**
  * Optional boolean fields that need converting to YesNo | undefined
  */
-const BOOLEAN_FIELDS = Object.freeze(['siteIsVisibleFromPublicLand', 'isGreenBelt', 'cilLiable', 'bngExempt', 'hasAgent'] as const);
+const BOOLEAN_FIELDS = Object.freeze([
+	'siteIsVisibleFromPublicLand',
+	'isGreenBelt',
+	'cilLiable',
+	'bngExempt',
+	'hasAgent'
+] as const);
 
 /**
  * These integer fields are in the SaveModel as strings because they are in a multi-field input.
