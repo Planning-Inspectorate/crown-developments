@@ -96,7 +96,7 @@ export function insertWbr(str?: string): string {
 export function formatStatusTag(displayName?: string | null): string | undefined {
 	if (!displayName) return undefined;
 	return '<span class="govuk-tag">' + escapeHtml(displayName) + '</span>';
-};
+}
 
 /**
  * Converts any free-text string into a URL-safe slug.
