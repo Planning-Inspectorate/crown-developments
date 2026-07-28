@@ -48,7 +48,7 @@ import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-a
 import CILAmountLengthValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-length-validator.ts';
 import { multiContactQuestions, createLpaContactQuestion } from '../util/question-factories.ts';
 import { getApplicantOrganisationOptions } from '../../../../views/cases/util/applicant-organisation-options.js';
-import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.js';
+import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.ts';
 
 type ApplicantOrg = {
 	id: string;

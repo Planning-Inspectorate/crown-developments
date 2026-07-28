@@ -11,7 +11,7 @@ describe('ConditionalRadioQuestion', () => {
 		url: 'contact-type',
 		options: [
 			{ text: 'Agent', value: 'agent' },
-			{ text: 'Interested party', value: 'interested_party' },
+			{ text: 'Interested party', value: 'interested-party' },
 			{ text: 'Other', value: 'other' }
 		],
 		conditionalTriggerValue: 'other',
