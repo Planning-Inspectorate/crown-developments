@@ -249,6 +249,8 @@ model S62aCase {
   cilAmount               Decimal? @db.Decimal(12, 2)
   /// whether exempt from biodiversity net gain (BNG)
   bngExempt               Boolean?
+
+  Folders Folder[]
 }
 
 model S62aApplicantType {
@@ -404,6 +406,23 @@ model S62aToApplicant {
   @@index([s62aId])
   @@index([organisationId])
   @@index([contactId])
+}
+
+/// Folder model
+/// Contains folders created for each case that will contain documents.
+model Folder {
+  id             String    @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  displayName    String
+  displayOrder   Int?
+  parentFolderId String?   @db.UniqueIdentifier
+  s62aCaseId     String?   @db.UniqueIdentifier
+  isCustom       Boolean   @default(false)
+  deletedAt      DateTime?
+  S62aCase       S62aCase? @relation(fields: [s62aCaseId], references: [id])
+  ParentFolder   Folder?   @relation("FolderTree", fields: [parentFolderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  ChildFolders   Folder[]  @relation("FolderTree")
+
+  @@unique([s62aCaseId, displayName, parentFolderId, deletedAt])
 }
 
 /// Address represents an address of a property or place

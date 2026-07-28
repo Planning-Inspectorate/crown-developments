@@ -9,9 +9,10 @@ import { VIEW_TAB_ID, VIEW_TABS } from '@pins/crowndev-database/src/seed/s62a/da
 import { s62aCaseToViewModel, type S62aCaseViewModel } from './view-model.ts';
 import { isUnsafeObjectKey } from '@pins/crowndev-lib/util/session.ts';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
-import type { Request, Response } from 'express';
 import { S62A_VIEW_SELECT_INCLUDE } from './constants.ts';
 import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
+import type { NextFunction, Request, Response } from 'express';
+import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 
 export function buildViewCaseDetails(): AsyncRequestHandler {
 	return async (req, res) => {
@@ -145,4 +146,16 @@ export function clearCaseUpdatedSession(req: Request, id: string): void {
  */
 function getJourneyAnswers(res: Response): S62aCaseViewModel | undefined {
 	return res.locals.journeyResponse?.answers as unknown as S62aCaseViewModel;
+}
+
+/**
+ * Validate the format of the id parameter
+ */
+export function validateIdFormat(req: Request, res: Response, next: NextFunction) {
+	const id = getStringParam(req.params, 'id');
+
+	if (!isValidUuidFormat(id)) {
+		return notFoundHandler(req, res);
+	}
+	next();
 }

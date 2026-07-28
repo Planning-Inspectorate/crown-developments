@@ -1,0 +1,38 @@
+{% extends "views/layouts/main.njk" %}
+
+{% set title = pageHeading + " - Manage S62A Case Folders" %}
+
+{% block pageTitle %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
+            <h1 class="govuk-heading-l" data-cy="page-heading">
+                {{ pageHeading }}
+            </h1>
+
+            <hr class="govuk-section-break govuk-section-break--s govuk-section-break--visible">
+        </div>
+    </div>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            {% if folders|length == 0 %}
+                <p class="govuk-body" data-cy="no-folders-message">There are no folders in this case</p>
+            {% else %}
+                <ul class="govuk-list govuk-list--spaced pins-link-menu" data-cy="folder-list">
+                    {% for folder in folders %}
+                        <li>
+                            <a class="govuk-link govuk-!-font-weight-bold govuk-!-font-size-19" 
+                            href="{{ currentUrl }}/{{ folder.id }}/{{ folder.encodedDisplayName }}" 
+                            data-cy="folder-link-{{ folder.id }}">
+                                {{ folder.displayName }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
