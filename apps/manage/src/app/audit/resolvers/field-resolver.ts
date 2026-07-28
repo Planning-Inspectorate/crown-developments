@@ -1,4 +1,4 @@
-import { formatAddress, formatValue } from '@pins/crowndev-lib/util/audit-formatters.ts';
+import { formatAddress, formatBoolean, formatValue, formatYesNo } from '@pins/crowndev-lib/util/audit-formatters.ts';
 import { camelCaseToSentenceCase } from '@pins/crowndev-lib/util/string.ts';
 import { FIELD_DISPLAY_NAMES } from '../../views/cases/view/questions.js';
 import {
@@ -121,6 +121,21 @@ function defaultResolver(fieldName: string): FieldResolver {
 }
 
 /**
+ * Resolver for boolean fields.
+ * Previous values from the DB view model are 'yes'/'no' strings; new values from the save model are true booleans.
+ */
+function booleanResolver(fieldName: string): FieldResolver {
+	return {
+		resolve(previousCase, newAnswer) {
+			return {
+				oldValue: formatYesNo(previousCase[fieldName] as string | null | undefined),
+				newValue: formatBoolean(newAnswer as boolean | null | undefined)
+			};
+		}
+	};
+}
+
+/**
  * Creates a resolver for ID fields that map to display names via a lookup table.
  * Falls back to '[Unknown value]' if no display name is found.
  */
@@ -190,7 +205,31 @@ const FIELD_RESOLVERS: Record<string, FieldResolver> = {
 	lpaId: createLookupResolver('lpaId', LPA_DISPLAY_NAMES),
 
 	/** Secondary local planning authority */
-	secondaryLpaId: createLookupResolver('secondaryLpaId', LPA_DISPLAY_NAMES)
+	secondaryLpaId: createLookupResolver('secondaryLpaId', LPA_DISPLAY_NAMES),
+
+	// ── Boolean fields ────────────────────────────────────────────────────
+	// Previous values are 'yes'/'no' strings from the view model; new values are true booleans from the save model.
+
+	hasSecondaryLpa: booleanResolver('hasSecondaryLpa'),
+	containsDistressingContent: booleanResolver('containsDistressingContent'),
+	hasAgent: booleanResolver('hasAgent'),
+	nationallyImportant: booleanResolver('nationallyImportant'),
+	isGreenBelt: booleanResolver('isGreenBelt'),
+	siteIsVisibleFromPublicLand: booleanResolver('siteIsVisibleFromPublicLand'),
+	environmentalImpactAssessment: booleanResolver('environmentalImpactAssessment'),
+	developmentPlan: booleanResolver('developmentPlan'),
+	rightOfWay: booleanResolver('rightOfWay'),
+	eiaScreening: booleanResolver('eiaScreening'),
+	eiaScreeningOutcome: booleanResolver('eiaScreeningOutcome'),
+	hasApplicationFee: booleanResolver('hasApplicationFee'),
+	eligibleForFeeRefund: booleanResolver('eligibleForFeeRefund'),
+	cilLiable: booleanResolver('cilLiable'),
+	bngExempt: booleanResolver('bngExempt'),
+	hasCostsApplications: booleanResolver('hasCostsApplications'),
+	applicationReceivedDateEmailSent: booleanResolver('applicationReceivedDateEmailSent'),
+	lpaQuestionnaireSpecialEmailSent: booleanResolver('lpaQuestionnaireSpecialEmailSent'),
+	lpaQuestionnaireReceivedEmailSent: booleanResolver('lpaQuestionnaireReceivedEmailSent'),
+	notNationallyImportantEmailSent: booleanResolver('notNationallyImportantEmailSent')
 };
 
 /**
