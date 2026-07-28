@@ -14,7 +14,7 @@ export function addLocalsConfiguration({ appName }) {
 			},
 			{
 				text: 'Create new case',
-				href: '/s62a/cases/create-a-case/pre-application-or-application'
+				href: '/s62a/cases/create-a-case/questions/pre-application-or-application'
 			},
 			{
 				text: 'Sign out',

@@ -34,6 +34,7 @@ header.govuk-header.pins-header {
 .pins-navigation {
 	&.govuk-service-navigation {
 		border-bottom: 1px solid govuk.govuk-colour('black', $variant: 'tint-80');
+		background: brand.$pins-grey-100;
 	}
 
 	.govuk-service-navigation__item--active {
