@@ -9,10 +9,49 @@ import {
 	isSafeRelativeUrl,
 	escapeHtml,
 	insertWbr,
-	formatStatusTag
+	formatStatusTag,
+	stringToKebab
 } from './string.ts';
 
 describe('string util', () => {
+	describe('stringToKebab', () => {
+		it('should convert camelCase to kebab-case', () => {
+			assert.strictEqual(stringToKebab('camelCaseString'), 'camel-case-string');
+		});
+
+		it('should convert PascalCase to kebab-case', () => {
+			assert.strictEqual(stringToKebab('PascalCaseString'), 'pascal-case-string');
+		});
+
+		it('should replace spaces with hyphens', () => {
+			assert.strictEqual(stringToKebab('String with spaces'), 'string-with-spaces');
+		});
+
+		it('should replace underscores with hyphens', () => {
+			assert.strictEqual(stringToKebab('string_with_underscores'), 'string-with-underscores');
+		});
+
+		it('should replace special characters with hyphens', () => {
+			assert.strictEqual(stringToKebab('string@with!special#chars'), 'string-with-special-chars');
+		});
+
+		it('should collapse multiple consecutive separators into a single hyphen', () => {
+			assert.strictEqual(stringToKebab('string   with ___ multiple -- separators'), 'string-with-multiple-separators');
+		});
+
+		it('should trim leading and trailing separators', () => {
+			assert.strictEqual(stringToKebab(' _-leading and trailing-_ '), 'leading-and-trailing');
+		});
+
+		it('should leave an already kebab-case string unchanged', () => {
+			assert.strictEqual(stringToKebab('already-kebab-case'), 'already-kebab-case');
+		});
+
+		it('should return an empty string when given an empty string', () => {
+			assert.strictEqual(stringToKebab(''), '');
+		});
+	});
+
 	describe('camelCaseToUrlCase', () => {
 		it('converts camelCase to kebab-case', () => {
 			assert.strictEqual(camelCaseToUrlCase('fromCamelCase'), 'from-camel-case');

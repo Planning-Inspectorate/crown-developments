@@ -6,6 +6,7 @@ import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/cl
 import { S62aCaseMapper, type CreateCaseAnswers, type CreateInputOptions } from './s62a-case-mapper.ts';
 import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import type { RequestHandler } from 'express';
+import { createFolders, findFolders, FOLDERS_MAP } from '../util/folders.ts';
 
 type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
 
@@ -32,6 +33,21 @@ export function buildSaveController(service: ManageService): AsyncRequestHandler
 				logger.info({ reference: caseRef }, 'creating a new s62a case');
 				const created = await $tx.s62aCase.create({ data: input });
 				logger.info({ reference: caseRef }, 'created a new s62a case');
+
+				const phase = answers?.applicationPhase;
+
+				const isPhasePopulated =
+					phase === PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION ||
+					phase === PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
+
+				if (isPhasePopulated) {
+					logger.info({ reference: caseRef }, 'creating folders for s62a case');
+
+					const foldersToCreate = findFolders(phase, FOLDERS_MAP);
+					await createFolders(foldersToCreate, created.id, $tx);
+
+					logger.info({ reference: caseRef }, 'created folders for s62a case');
+				}
 
 				return created;
 			}

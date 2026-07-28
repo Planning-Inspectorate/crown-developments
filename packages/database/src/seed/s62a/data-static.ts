@@ -391,3 +391,140 @@ export const CONTACT_ROLES = [
 		displayName: 'Interested party'
 	}
 ];
+
+/**
+ * Folders that are auto-populated into the DB on case creation for
+ * pre-app cases.
+ */
+export const PRE_APPLICATION_FOLDERS = [
+	{
+		displayName: 'Pre-Application',
+		displayOrder: 100,
+		ChildFolders: {
+			create: [
+				{
+					displayName: "Applicant's Documents",
+					displayOrder: 100
+				},
+				{
+					displayName: 'LPA Documents',
+					displayOrder: 200
+				},
+				{
+					displayName: 'Other',
+					displayOrder: 300
+				},
+				{
+					displayName: 'PINS Documents',
+					displayOrder: 400
+				},
+				{
+					displayName: 'Policy',
+					displayOrder: 500
+				}
+			]
+		}
+	}
+];
+
+/**
+ * Folders that are autopopulated into the DB for app folders.
+ */
+export const APPLICATION_FOLDERS = [
+	{
+		displayName: 'The Planning Application',
+		displayOrder: 100,
+		ChildFolders: {
+			create: [
+				{
+					displayName: 'Application documents (originals)',
+					displayOrder: 100
+				},
+				{
+					displayName: 'Application documents (redacted)',
+					displayOrder: 200
+				}
+			]
+		}
+	},
+	{
+		displayName: 'Working documents',
+		displayOrder: 200,
+		ChildFolders: {
+			create: [
+				{
+					displayName: 'File Notes and Correspondence',
+					displayOrder: 100
+				},
+				{
+					displayName: 'EIA',
+					displayOrder: 200
+				},
+				{
+					displayName: 'Fees',
+					displayOrder: 300
+				},
+				{
+					displayName: 'Hearings',
+					displayOrder: 400
+				},
+				{
+					displayName: 'Decisions or Recommendations',
+					displayOrder: 500
+				},
+				{
+					displayName: 'Representations',
+					displayOrder: 600,
+					ChildFolders: {
+						create: [
+							{
+								displayName: 'Original versions',
+								displayOrder: 100,
+								ChildFolders: {
+									create: [
+										{
+											displayName: 'Consultees',
+											displayOrder: 100
+										},
+										{
+											displayName: 'Interested Parties',
+											displayOrder: 200
+										},
+										{
+											displayName: 'LPA Questionnaire',
+											displayOrder: 300
+										}
+									]
+								}
+							},
+							{
+								displayName: 'Redacted versions',
+								displayOrder: 200,
+								ChildFolders: {
+									create: [
+										{
+											displayName: 'Consultees',
+											displayOrder: 100
+										},
+										{
+											displayName: 'Interested Parties',
+											displayOrder: 200
+										},
+										{
+											displayName: 'LPA Questionnaire',
+											displayOrder: 300
+										}
+									]
+								}
+							}
+						]
+					}
+				},
+				{
+					displayName: 'Internal Correspondence',
+					displayOrder: 700
+				}
+			]
+		}
+	}
+];
