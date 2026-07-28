@@ -40,7 +40,8 @@ export const S62A_DATE_FIELDS = Object.freeze([
 	'extendedTargetDecisionDate',
 	'recoveredDate',
 	'withdrawnDate',
-	'turnedAwayDate'
+	'turnedAwayDate',
+	'environmentalStatementReceivedDate'
 ] as const);
 
 export const FEE_BOOLEAN_FIELDS = Object.freeze([
@@ -177,6 +178,11 @@ export interface S62aCaseViewModel {
 	manageApplicantContactDetails?: ApplicantContactAnswer[];
 
 	manageAdditionalContacts?: AdditionalContactAnswer[];
+
+	// EIA tab
+	eiaScreening?: YesNo;
+	eiaScreeningOutcome?: YesNo;
+	environmentalStatementReceivedDate?: Date;
 }
 
 /**
@@ -187,7 +193,9 @@ const BOOLEAN_FIELDS = Object.freeze([
 	'isGreenBelt',
 	'cilLiable',
 	'bngExempt',
-	'hasAgent'
+	'hasAgent',
+	'eiaScreening',
+	'eiaScreeningOutcome'
 ] as const);
 
 /**

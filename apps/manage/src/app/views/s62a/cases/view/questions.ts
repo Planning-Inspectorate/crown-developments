@@ -1183,6 +1183,62 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 				]
 			}
 		},
+		eiaScreening: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'EIA screening',
+			question: 'Has an Environmental Impact Assessment screening been undertaken by Planning Casework Unit?',
+			fieldName: 'eiaScreening',
+			url: 'screening',
+			validators: [
+				new RequiredValidator(
+					'Select yes if an Environmental Impact Assessment has been undertaken by Planning Casework Unit'
+				)
+			],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'screening/remove'
+					}
+				]
+			}
+		},
+		eiaScreeningOutcome: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'EIA screening outcome',
+			question: 'What is the Environmental Impact Screening outcome?',
+			fieldName: 'eiaScreeningOutcome',
+			url: 'screening-outcome',
+			validators: [new RequiredValidator('Select yes if an Environmental Impact Assessment is required')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'screening-outcome/remove'
+					}
+				]
+			}
+		},
+		environmentalStatementReceivedDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Date environment statement was received',
+			question: 'What date did the Planning Inspectorate receive the Environmental Statement (ES)?',
+			hint: 'For example, 27 3 2007',
+			fieldName: 'environmentalStatementReceivedDate',
+			url: 'environmental-statement-received-date',
+			validators: [new DateValidator('environmental statement received date')],
+			viewData: {
+				extraActionButtons: [
+					{
+						text: 'Remove and save',
+						type: 'submit',
+						formaction: 'environmental-statement-received-date/remove'
+					}
+				]
+			}
+		},
 		applicantType: {
 			type: COMPONENT_TYPES.RADIO,
 			title: 'Applicant type',

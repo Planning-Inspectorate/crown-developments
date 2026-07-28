@@ -138,7 +138,8 @@ export const VIEW_TAB_ID = Object.freeze({
 	DATES: 'dates',
 	FEE: 'fee',
 	REPRESENTATIONS: 'representations',
-	CONTACTS: 'contacts'
+	CONTACTS: 'contacts',
+	EIA: 'eia'
 } as const);
 
 /**
@@ -169,6 +170,11 @@ export const VIEW_TABS = [
 	{
 		id: VIEW_TAB_ID.FEE,
 		displayName: 'Fee'
+	},
+	{
+		id: VIEW_TAB_ID.EIA,
+		displayName: 'EIA',
+		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
 	}
 ];
 

@@ -782,4 +782,67 @@ describe('S62aCaseUpdateMapper', () => {
 			assert.strictEqual((updateOps[0].data.Contact?.update as any).firstName, 'Updated John');
 		});
 	});
+
+	describe('EIA Tab', () => {
+		it('maps EIA booleans to true/false', () => {
+			const answers = {
+				eiaScreening: true,
+				eiaScreeningOutcome: false
+			} as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual(result.eiaScreening, true);
+			assert.strictEqual(result.eiaScreeningOutcome, false);
+		});
+
+		it('clears EIA booleans to null when the value is null (remove and save)', () => {
+			const answers = {
+				eiaScreening: null,
+				eiaScreeningOutcome: null
+			} as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual(result.eiaScreening, null);
+			assert.strictEqual(result.eiaScreeningOutcome, null);
+		});
+
+		it('does not emit EIA fields when they are not in the payload', () => {
+			const result = new S62aCaseUpdateMapper({ likelyIssues: 'Traffic' }).generateUpdateInput();
+
+			assert.strictEqual(result.eiaScreening, undefined);
+			assert.strictEqual(result.eiaScreeningOutcome, undefined);
+		});
+
+		it('does not generate an S62aDates update for EIA booleans alone', () => {
+			const answers = { eiaScreening: true } as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual(result.S62aDates, undefined);
+		});
+
+		it('maps environmentalStatementReceivedDate into the S62aDates upsert', () => {
+			const esDate = new Date('2026-09-01T09:00:00Z');
+			const answers: UpdateCaseAnswers = { environmentalStatementReceivedDate: esDate };
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aDates, {
+				upsert: {
+					create: { environmentalStatementReceivedDate: esDate },
+					update: { environmentalStatementReceivedDate: esDate }
+				}
+			});
+		});
+
+		it('nullifies environmentalStatementReceivedDate when cleared', () => {
+			const answers: UpdateCaseAnswers = { environmentalStatementReceivedDate: null };
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aDates, {
+				upsert: {
+					create: { environmentalStatementReceivedDate: null },
+					update: { environmentalStatementReceivedDate: null }
+				}
+			});
+		});
+	});
 });
