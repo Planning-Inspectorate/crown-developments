@@ -213,5 +213,78 @@ describe('Field Resolver', () => {
 				assert.strictEqual(newValue, '-');
 			});
 		});
+
+		describe('boolean field resolvers', () => {
+			it('should format previous yes/no string and new boolean value for hasAgent', () => {
+				const previousCase = { hasAgent: 'yes' };
+				const newAnswer = false;
+
+				const { oldValue, newValue } = resolveFieldValues('hasAgent', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, 'Yes');
+				assert.strictEqual(newValue, 'No');
+			});
+
+			it('should format previous no string and new true boolean', () => {
+				const previousCase = { nationallyImportant: 'no' };
+				const newAnswer = true;
+
+				const { oldValue, newValue } = resolveFieldValues('nationallyImportant', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, 'No');
+				assert.strictEqual(newValue, 'Yes');
+			});
+
+			it('should return "-" for null previous boolean value', () => {
+				const previousCase = { isGreenBelt: null };
+				const newAnswer = true;
+
+				const { oldValue, newValue } = resolveFieldValues('isGreenBelt', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, '-');
+				assert.strictEqual(newValue, 'Yes');
+			});
+
+			it('should return "-" for null new boolean value', () => {
+				const previousCase = { cilLiable: 'yes' };
+				const newAnswer = null;
+
+				const { oldValue, newValue } = resolveFieldValues('cilLiable', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, 'Yes');
+				assert.strictEqual(newValue, '-');
+			});
+
+			it('should handle all registered boolean fields without falling back to default resolver', () => {
+				const booleanFields = [
+					'hasSecondaryLpa',
+					'containsDistressingContent',
+					'hasAgent',
+					'nationallyImportant',
+					'isGreenBelt',
+					'siteIsVisibleFromPublicLand',
+					'environmentalImpactAssessment',
+					'developmentPlan',
+					'rightOfWay',
+					'eiaScreening',
+					'eiaScreeningOutcome',
+					'hasApplicationFee',
+					'eligibleForFeeRefund',
+					'cilLiable',
+					'bngExempt',
+					'hasCostsApplications',
+					'applicationReceivedDateEmailSent',
+					'lpaQuestionnaireSpecialEmailSent',
+					'lpaQuestionnaireReceivedEmailSent',
+					'notNationallyImportantEmailSent'
+				];
+
+				for (const fieldName of booleanFields) {
+					const { oldValue, newValue } = resolveFieldValues(fieldName, { [fieldName]: 'yes' }, true);
+					assert.strictEqual(oldValue, 'Yes', `${fieldName}: expected oldValue 'Yes'`);
+					assert.strictEqual(newValue, 'Yes', `${fieldName}: expected newValue 'Yes'`);
+				}
+			});
+		});
 	});
 });

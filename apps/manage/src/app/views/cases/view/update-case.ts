@@ -75,6 +75,7 @@ const AUDITABLE_SCALAR_FIELDS = new Set([
 	'siteArea',
 	'lpaReference',
 	'agentOrganisationName',
+	'healthAndSafetyIssue',
 	'hearingVenue',
 	'inquiryVenue',
 
@@ -86,7 +87,25 @@ const AUDITABLE_SCALAR_FIELDS = new Set([
 	'subCategoryId',
 	'procedureId',
 	'statusId',
-	'stageId'
+	'stageId',
+
+	// Boolean fields
+	'hasSecondaryLpa',
+	'containsDistressingContent',
+	'hasAgent',
+	'nationallyImportant',
+	'isGreenBelt',
+	'siteIsVisibleFromPublicLand',
+	'environmentalImpactAssessment',
+	'developmentPlan',
+	'rightOfWay',
+	'eiaScreening',
+	'eiaScreeningOutcome',
+	'hasApplicationFee',
+	'eligibleForFeeRefund',
+	'cilLiable',
+	'bngExempt',
+	'hasCostsApplications'
 ]);
 
 type ErrorWithSummary = Error & { errorSummary: ErrorSummaryItem[] };
