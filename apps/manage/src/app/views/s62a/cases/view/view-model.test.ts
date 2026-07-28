@@ -685,7 +685,7 @@ describe('s62aCaseToViewModel', () => {
 	});
 
 	describe('Additional Contacts Mapping', () => {
-		it('maps standard additional contacts (e.g. interested_party) correctly, handling orgName to organisationName mapping', () => {
+		it('maps standard additional contacts (e.g. interested-party) correctly, handling orgName to organisationName mapping', () => {
 			const mockDbCase = {
 				id: 'case-add-1',
 				reference: 'S62A/2026/0019',

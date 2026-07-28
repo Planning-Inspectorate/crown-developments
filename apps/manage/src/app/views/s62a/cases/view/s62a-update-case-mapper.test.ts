@@ -708,14 +708,14 @@ describe('S62aCaseUpdateMapper', () => {
 	});
 
 	describe('Additional Contacts Mapping', () => {
-		it('creates new additional contacts, defaulting to interested_party and mapping orgName properly', () => {
+		it('creates new additional contacts, defaulting to interested-party and mapping orgName properly', () => {
 			const answers: UpdateCaseAnswers = {
 				manageAdditionalContacts: [
 					{
 						firstName: 'Jane',
 						lastName: 'Smith',
 						organisationName: 'Community Org',
-						additionalContactType: 'interested_party'
+						additionalContactType: 'interested-party'
 					},
 					{
 						firstName: 'Bob',
@@ -732,8 +732,8 @@ describe('S62aCaseUpdateMapper', () => {
 			assert.strictEqual(createOps.length, 2);
 
 			assert.deepStrictEqual(createOps[0].Role?.connectOrCreate, {
-				where: { id: 'interested_party' },
-				create: { id: 'interested_party', displayName: 'Interested party' }
+				where: { id: 'interested-party' },
+				create: { id: 'interested-party', displayName: 'Interested party' }
 			});
 			assert.deepStrictEqual(createOps[0].Contact?.create, {
 				firstName: 'Jane',
