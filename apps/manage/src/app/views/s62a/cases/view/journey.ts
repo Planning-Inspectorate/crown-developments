@@ -225,7 +225,17 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 
 				.addQuestion(questions.applicationFeeRefundDate)
 				.withCondition(whenQuestionHasAnswer(questions.eligibleForFeeRefund, BOOLEAN_OPTIONS.YES))
-				.endMultiQuestionCondition('is-application')
+				.endMultiQuestionCondition('is-application'),
+			new Section('', 'eia')
+				.withSectionCondition(() => currentTab === VIEW_TAB_ID.EIA && isApplicationCase(response))
+				.addQuestion(questions.eiaScreening)
+				.startMultiQuestionCondition(
+					'eia-screening-yes',
+					whenQuestionHasAnswer(questions.eiaScreening, BOOLEAN_OPTIONS.YES)
+				)
+				.addQuestion(questions.eiaScreeningOutcome)
+				.addQuestion(questions.environmentalStatementReceivedDate)
+				.endMultiQuestionCondition('eia-screening-yes')
 		],
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',

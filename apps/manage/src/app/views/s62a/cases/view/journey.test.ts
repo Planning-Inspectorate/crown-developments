@@ -171,6 +171,11 @@ describe('s62a case details journey', () => {
 					'eligibleForFeeRefund',
 					'applicationFeeRefundDate'
 				]
+			},
+			{
+				title: '',
+				segment: 'eia',
+				questions: ['eiaScreening', 'eiaScreeningOutcome', 'environmentalStatementReceivedDate']
 			}
 		];
 

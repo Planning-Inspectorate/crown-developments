@@ -772,4 +772,95 @@ describe('s62aCaseToViewModel', () => {
 			]);
 		});
 	});
+
+	describe('EIA Mapping', () => {
+		it('maps EIA screening booleans to YesNo string values', () => {
+			const mockDbCase = {
+				id: 'case-eia-1',
+				reference: 'S62A/2026/0017',
+				description: 'EIA case',
+				typeId: 'type-1',
+				lpaId: 'lpa-1',
+				hasSecondaryLpa: false,
+				expectedSubmissionDate: mockDate,
+				eiaScreening: true,
+				eiaScreeningOutcome: false
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.eiaScreening, 'yes');
+			assert.strictEqual(result.eiaScreeningOutcome, 'no');
+		});
+
+		it('maps EIA boolean "No" (false) distinctly from unanswered (null)', () => {
+			const mockDbCase = {
+				id: 'case-eia-2',
+				reference: 'S62A/2026/0018',
+				description: 'EIA case',
+				typeId: 'type-1',
+				lpaId: 'lpa-1',
+				hasSecondaryLpa: false,
+				expectedSubmissionDate: mockDate,
+				eiaScreening: false,
+				eiaScreeningOutcome: null
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.eiaScreening, 'no');
+			assert.strictEqual(result.eiaScreeningOutcome, undefined);
+		});
+
+		it('leaves EIA booleans undefined when absent from the record', () => {
+			const mockDbCase = {
+				id: 'case-eia-3',
+				reference: 'S62A/2026/0019',
+				description: 'EIA case',
+				typeId: 'type-1',
+				lpaId: 'lpa-1',
+				hasSecondaryLpa: false,
+				expectedSubmissionDate: mockDate
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.eiaScreening, undefined);
+			assert.strictEqual(result.eiaScreeningOutcome, undefined);
+		});
+
+		it('maps environmentalStatementReceivedDate from S62aDates to the root of the view model', () => {
+			const esDate = new Date('2026-09-01T09:00:00Z');
+			const mockDbCase = {
+				id: 'case-eia-4',
+				reference: 'S62A/2026/0020',
+				expectedSubmissionDate: mockDate,
+				S62aDates: {
+					environmentalStatementReceivedDate: esDate
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.environmentalStatementReceivedDate, esDate);
+		});
+
+		it('leaves environmentalStatementReceivedDate undefined when null or when S62aDates is missing', () => {
+			const withNullDate = {
+				id: 'case-eia-5',
+				reference: 'S62A/2026/0021',
+				expectedSubmissionDate: mockDate,
+				S62aDates: { environmentalStatementReceivedDate: null }
+			} as unknown as S62aCaseDbModel;
+
+			const withoutDates = {
+				id: 'case-eia-6',
+				reference: 'S62A/2026/0022',
+				expectedSubmissionDate: mockDate
+			} as unknown as S62aCaseDbModel;
+
+			assert.strictEqual(s62aCaseToViewModel(withNullDate).environmentalStatementReceivedDate, undefined);
+			assert.strictEqual(s62aCaseToViewModel(withoutDates).environmentalStatementReceivedDate, undefined);
+		});
+	});
 });

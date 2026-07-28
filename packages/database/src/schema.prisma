@@ -210,6 +210,10 @@ model S62aCase {
   inspectorBandId       String?
   InspectorBand         InspectorBand?    @relation(fields: [inspectorBandId], references: [id])
 
+  // EIA fields
+  eiaScreening        Boolean?
+  eiaScreeningOutcome Boolean?
+
   /// Site area fields
   siteAddressId               String?       @db.UniqueIdentifier
   SiteAddress                 Address?      @relation(fields: [siteAddressId], references: [id], onUpdate: NoAction, onDelete: NoAction)
@@ -307,6 +311,7 @@ model S62aDates {
   recoveredDate                            DateTime?
   withdrawnDate                            DateTime?
   turnedAwayDate                           DateTime?
+  environmentalStatementReceivedDate       DateTime?
 }
 
 model InspectorBand {

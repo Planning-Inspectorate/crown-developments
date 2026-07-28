@@ -128,6 +128,11 @@ export interface UpdateCaseAnswers {
 	manageApplicantContactDetails?: ApplicantContactAnswer[];
 
 	manageAdditionalContacts?: AdditionalContactAnswer[];
+
+	// EIA tab
+	eiaScreening?: boolean | YesNo | null;
+	eiaScreeningOutcome?: boolean | YesNo | null;
+	environmentalStatementReceivedDate?: Date | null;
 }
 
 /**
@@ -159,6 +164,7 @@ export class S62aCaseUpdateMapper {
 		this.mapFees(input);
 		this.mapLpaContacts(input);
 		this.mapApplicantsAndAgents(input);
+		this.mapEiaScalars(input);
 
 		return input;
 	}
@@ -803,6 +809,23 @@ export class S62aCaseUpdateMapper {
 			county: address.county,
 			postcode: address.postcode
 		};
+	}
+
+	/*
+	 * Maps the EIA tab scalar fields.
+	 * environmentalStatementReceivedDate is handled by mapDates via S62A_DATE_FIELDS.
+	 */
+	private mapEiaScalars(input: Prisma.S62aCaseUpdateInput): void {
+		const ans = this.answers;
+
+		if (this.hasAnswer('eiaScreening')) {
+			input.eiaScreening = typeof ans.eiaScreening === 'boolean' ? yesNoToBoolean(ans.eiaScreening) : null;
+		}
+
+		if (this.hasAnswer('eiaScreeningOutcome')) {
+			input.eiaScreeningOutcome =
+				typeof ans.eiaScreeningOutcome === 'boolean' ? yesNoToBoolean(ans.eiaScreeningOutcome) : null;
+		}
 	}
 
 	private isDateField(key: string): key is (typeof S62A_DATE_FIELDS)[number] {
