@@ -534,113 +534,113 @@ export const CATEGORIES = [
 
 type UpsertReferenceDataArgs =
 	| {
-		delegate: Prisma.ApplicationDecisionOutcomeDelegate;
-		input: Prisma.ApplicationDecisionOutcomeCreateInput;
-	}
+			delegate: Prisma.ApplicationDecisionOutcomeDelegate;
+			input: Prisma.ApplicationDecisionOutcomeCreateInput;
+	  }
 	| {
-		delegate: Prisma.ApplicationTypeDelegate;
-		input: Prisma.ApplicationTypeCreateInput;
-	}
+			delegate: Prisma.ApplicationTypeDelegate;
+			input: Prisma.ApplicationTypeCreateInput;
+	  }
 	| {
-		delegate: Prisma.ApplicationSubTypeDelegate;
-		input: Prisma.ApplicationSubTypeCreateInput;
-	}
+			delegate: Prisma.ApplicationSubTypeDelegate;
+			input: Prisma.ApplicationSubTypeCreateInput;
+	  }
 	| {
-		delegate: Prisma.ApplicationStageDelegate;
-		input: Prisma.ApplicationStageCreateInput;
-	}
+			delegate: Prisma.ApplicationStageDelegate;
+			input: Prisma.ApplicationStageCreateInput;
+	  }
 	| {
-		delegate: Prisma.ApplicationStatusDelegate;
-		input: Prisma.ApplicationStatusCreateInput;
-	}
+			delegate: Prisma.ApplicationStatusDelegate;
+			input: Prisma.ApplicationStatusCreateInput;
+	  }
 	| {
-		delegate: Prisma.ApplicationProcedureDelegate;
-		input: Prisma.ApplicationProcedureCreateInput;
-	}
+			delegate: Prisma.ApplicationProcedureDelegate;
+			input: Prisma.ApplicationProcedureCreateInput;
+	  }
 	| {
-		delegate: Prisma.ApplicationUpdateStatusDelegate;
-		input: Prisma.ApplicationUpdateStatusCreateInput;
-	}
+			delegate: Prisma.ApplicationUpdateStatusDelegate;
+			input: Prisma.ApplicationUpdateStatusCreateInput;
+	  }
 	| {
-		delegate: Prisma.RepresentationReceivedMethodDelegate;
-		input: Prisma.RepresentationReceivedMethodCreateInput;
-	}
+			delegate: Prisma.RepresentationReceivedMethodDelegate;
+			input: Prisma.RepresentationReceivedMethodCreateInput;
+	  }
 	| {
-		delegate: Prisma.RepresentationCategoryDelegate;
-		input: Prisma.RepresentationCategoryCreateInput;
-	}
+			delegate: Prisma.RepresentationCategoryDelegate;
+			input: Prisma.RepresentationCategoryCreateInput;
+	  }
 	| {
-		delegate: Prisma.RepresentationSubmittedForDelegate;
-		input: Prisma.RepresentationSubmittedForCreateInput;
-	}
+			delegate: Prisma.RepresentationSubmittedForDelegate;
+			input: Prisma.RepresentationSubmittedForCreateInput;
+	  }
 	| {
-		delegate: Prisma.RepresentationStatusDelegate;
-		input: Prisma.RepresentationStatusCreateInput;
-	}
+			delegate: Prisma.RepresentationStatusDelegate;
+			input: Prisma.RepresentationStatusCreateInput;
+	  }
 	| {
-		delegate: Prisma.RepresentedTypeDelegate;
-		input: Prisma.RepresentedTypeCreateInput;
-	}
+			delegate: Prisma.RepresentedTypeDelegate;
+			input: Prisma.RepresentedTypeCreateInput;
+	  }
 	| {
-		delegate: Prisma.ContactPreferenceDelegate;
-		input: Prisma.ContactPreferenceCreateInput;
-	}
+			delegate: Prisma.ContactPreferenceDelegate;
+			input: Prisma.ContactPreferenceCreateInput;
+	  }
 	| {
-		delegate: Prisma.NotifyStatusDelegate;
-		input: Prisma.NotifyStatusCreateInput;
-	}
+			delegate: Prisma.NotifyStatusDelegate;
+			input: Prisma.NotifyStatusCreateInput;
+	  }
 	| {
-		delegate: Prisma.WithdrawalReasonDelegate;
-		input: Prisma.WithdrawalReasonCreateInput;
-	}
+			delegate: Prisma.WithdrawalReasonDelegate;
+			input: Prisma.WithdrawalReasonCreateInput;
+	  }
 	| {
-		delegate: Prisma.CrownDevelopmentToOrganisationRoleDelegate;
-		input: Prisma.CrownDevelopmentToOrganisationRoleCreateInput;
-	}
+			delegate: Prisma.CrownDevelopmentToOrganisationRoleDelegate;
+			input: Prisma.CrownDevelopmentToOrganisationRoleCreateInput;
+	  }
 	| {
-		delegate: Prisma.CategoryDelegate;
-		input: Prisma.CategoryCreateInput;
-	}
+			delegate: Prisma.CategoryDelegate;
+			input: Prisma.CategoryCreateInput;
+	  }
 	| {
-		delegate: Prisma.S62aApplicationPhaseDelegate;
-		input: Prisma.S62aApplicationPhaseCreateInput;
-	}
+			delegate: Prisma.S62aApplicationPhaseDelegate;
+			input: Prisma.S62aApplicationPhaseCreateInput;
+	  }
 	| {
-		delegate: Prisma.S62aClassificationDelegate;
-		input: Prisma.S62aClassificationCreateInput;
-	}
+			delegate: Prisma.S62aClassificationDelegate;
+			input: Prisma.S62aClassificationCreateInput;
+	  }
 	| {
-		delegate: Prisma.SiteAreaUnitDelegate;
-		input: Prisma.SiteAreaUnitCreateInput;
-	}
+			delegate: Prisma.SiteAreaUnitDelegate;
+			input: Prisma.SiteAreaUnitCreateInput;
+	  }
 	| {
-		delegate: Prisma.S62aToApplicantRoleDelegate;
-		input: Prisma.S62aToApplicantRoleCreateInput;
-	}
+			delegate: Prisma.S62aToApplicantRoleDelegate;
+			input: Prisma.S62aToApplicantRoleCreateInput;
+	  }
 	| {
-		delegate: Prisma.S62aStatusDelegate;
-		input: Prisma.S62aStatusCreateInput;
-	}
+			delegate: Prisma.S62aStatusDelegate;
+			input: Prisma.S62aStatusCreateInput;
+	  }
 	| {
-		delegate: Prisma.SpecialismDelegate;
-		input: Prisma.SpecialismCreateInput;
-	}
+			delegate: Prisma.SpecialismDelegate;
+			input: Prisma.SpecialismCreateInput;
+	  }
 	| {
-		delegate: Prisma.InspectorBandDelegate;
-		input: Prisma.InspectorBandCreateInput;
-	}
+			delegate: Prisma.InspectorBandDelegate;
+			input: Prisma.InspectorBandCreateInput;
+	  }
 	| {
-		delegate: Prisma.S62aStageDelegate;
-		input: Prisma.S62aStageCreateInput;
-	}
+			delegate: Prisma.S62aStageDelegate;
+			input: Prisma.S62aStageCreateInput;
+	  }
 	| {
-		delegate: Prisma.S62aCategoryDelegate;
-		input: Prisma.S62aCategoryCreateInput;
-	}
+			delegate: Prisma.S62aCategoryDelegate;
+			input: Prisma.S62aCategoryCreateInput;
+	  }
 	| {
-		delegate: Prisma.S62aApplicantTypeDelegate;
-		input: Prisma.S62aApplicantTypeCreateInput;
-	};
+			delegate: Prisma.S62aApplicantTypeDelegate;
+			input: Prisma.S62aApplicantTypeCreateInput;
+	  };
 
 async function upsertReferenceData({ delegate, input }: UpsertReferenceDataArgs): Promise<void> {
 	const { upsert } = delegate as unknown as { upsert: (args: unknown) => Promise<unknown> };
