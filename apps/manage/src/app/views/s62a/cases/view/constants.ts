@@ -1,3 +1,4 @@
+import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 
 /**
@@ -72,4 +73,4 @@ export const S62A_VIEW_SELECT_INCLUDE = {
 			Address: true
 		}
 	}
-};
+} as const satisfies Prisma.S62aCaseInclude;
