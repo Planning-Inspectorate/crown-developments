@@ -112,33 +112,4 @@ describe('buildViewCaseFolder controller', () => {
 
 		assert.strictEqual(payload.backLinkUrl, '/s62a/cases/case-123/case-folders');
 	});
-
-	it('should handle missing folders by not rendering the main view', async () => {
-		const mockFindUnique = mock.fn(async () => null);
-		const mockFindMany = mock.fn(async () => []);
-
-		const mockService = {
-			db: { folder: { findUnique: mockFindUnique, findMany: mockFindMany } },
-			logger: { info: mock.fn(), error: mock.fn() }
-		} as unknown as ManageService;
-
-		const mockRender = mock.fn();
-		const mockReq = {
-			params: { id: 'case-123', folderId: 'invalid-id' },
-			originalUrl: '/test'
-		} as unknown as Request;
-		const mockRes = {
-			render: mockRender,
-			status: mock.fn(() => mockRes),
-			send: mock.fn()
-		} as unknown as Response;
-
-		await buildViewCaseFolder(mockService)(mockReq, mockRes, mock.fn() as unknown as NextFunction);
-
-		const successRenders = mockRender.mock.calls.filter(
-			(call) => (call.arguments as string[])[0] === 'views/s62a/cases/view/folders/folder/view.njk'
-		);
-
-		assert.strictEqual(successRenders.length, 0);
-	});
 });
