@@ -9,6 +9,7 @@ $font-family: arial, helvetica, sans-serif;
 @use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
 @use './header';
 @use './sub-navigation';
+@use './accordion';
 
 @use 'packages/lib/views/header/pins-header.scss';
 

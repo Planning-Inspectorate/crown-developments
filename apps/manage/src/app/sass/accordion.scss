@@ -1,0 +1,14 @@
+// Used to have an accordion with no parent controller above it
+.govuk-accordion.hide-controls {
+	.govuk-accordion__controls {
+		display: none;
+	}
+
+	.govuk-accordion__section-button {
+		border: none;
+	}
+
+	.govuk-table__cell {
+		border-bottom-style: none;
+	}
+}
