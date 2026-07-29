@@ -1,0 +1,69 @@
+{% extends "views/layouts/main.njk" %}
+{% from "govuk/components/accordion/macro.njk" import govukAccordion %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+
+{% set title = reference + " - Case Folder" %}
+
+{% block pageTitle %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
+            <h2 class="govuk-caption-l" data-cy="case-reference">
+                {{ reference }}
+            </h2>
+            <h1 class="govuk-heading-l" data-cy="folder-name-heading">
+                {{ folderName }} folder
+            </h1>
+        </div>
+    </div>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            {% if subFolders|length !== 0 %}
+                {% set subFoldersHtml %}
+                    <div class="pins-link-menu">
+                        {% for folder in subFolders %}
+                            <a class="govuk-link govuk-heading-s" href="{{ baseFoldersUrl }}/{{ folder.id }}/{{ folder.encodedDisplayName }}" data-cy="subfolder-link-{{ folder.id }}">
+                                {{ folder.displayName }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% endset %}
+
+                {{ govukAccordion({
+                    id: "sub-folders-accordion",
+                    classes: "hide-controls",
+                    hideAllSections: true,
+                    showSectionText: "Show subfolders list",
+                    hideSectionText: "Hide subfolders list",
+                    items: [
+                        {
+                            content: {
+                                html: subFoldersHtml
+                            }
+                        }
+                    ],
+                    attributes: { "data-cy": "subfolders-accordion" }
+                }) }}
+            {% endif %}
+        </div>
+    </div>
+    <div class="govuk-grid-row">        
+        <div class="case-folder-table-column govuk-grid-column-full">
+            <div id="pagination" class="govuk-body">
+                <p class="govuk-body govuk-!-font-weight-bold">File actions</p>
+                    <div class="govuk-button-group govuk-!-margin-bottom-4">
+                        {{ govukButton({
+                            text: "Upload files",
+                            href: currentPath + "/upload",
+                            classes: "govuk-button--secondary",
+                            attributes: { "data-cy": "upload-files-btn" }
+                        }) }}
+                    </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
