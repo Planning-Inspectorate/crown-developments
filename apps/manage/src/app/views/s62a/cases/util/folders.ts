@@ -28,10 +28,7 @@ export function addCaseIdToFolders(folders: Folder[], caseId: string) {
 
 		if (folder.ChildFolders?.create) {
 			folderWithId.ChildFolders = {
-				create: folder.ChildFolders.create.map((child) => ({
-					...child,
-					s62aCaseId: caseId
-				}))
+				create: addCaseIdToFolders(folder.ChildFolders.create, caseId)
 			};
 		}
 
