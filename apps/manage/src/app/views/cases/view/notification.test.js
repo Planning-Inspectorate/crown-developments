@@ -20,6 +20,16 @@ const DEFAULT_CROWN_DEVELOPMENT = {
 };
 
 describe('notification', () => {
+	const appEntraMock = () => {
+		return {
+			addUsersAsGuests: mock.fn((emails) => {
+				return emails.map((email) => ({
+					userPrincipalName: email,
+					inviteRedeemUrl: `https://invite.url/${email}`
+				}));
+			})
+		};
+	};
 	describe('sendLpaAcknowledgeReceiptOfQuestionnaireNotification', () => {
 		it('should successfully dispatch notification', async () => {
 			const logger = mockLogger();
@@ -915,7 +925,7 @@ describe('notification', () => {
 
 			const sharePointDrive = {
 				getItemsByPath: async () => [{ name: 'LPA', id: 'lpa-folder-id' }],
-				fetchUserInviteLink: async () => ({ link: { webUrl: 'https://sharepoint.example/link' } }),
+				fetchUserInviteLink: async () => 'https://sharepoint.example/link',
 				addItemPermissions: async () => {}
 			};
 
@@ -924,13 +934,14 @@ describe('notification', () => {
 				logger,
 				notifyClient: mockNotifyClient,
 				portalBaseUrl: 'https://test.com',
-				appSharePointDrive: sharePointDrive
+				appSharePointDrive: sharePointDrive,
+				appEntraClient: appEntraMock()
 			};
 
 			await sendLpaQuestionnaireSentNotification(service, 'case-1');
 
 			assert.strictEqual(notifyCalls.length, 2);
-			assert.strictEqual(notifyCalls[0].personalisation.sharePointLink, 'https://sharepoint.example/link');
+			assert.strictEqual(notifyCalls[0].personalisation.sharePointLink, 'https://invite.url/lpa1@example.com');
 		});
 
 		it('should send lpa questionnaire for EIA special (EIA=yes, developmentPlan=no, rightOfWay=yes)', async () => {
@@ -1094,7 +1105,7 @@ describe('notification', () => {
 			const sharePointDrive = {
 				getItemsByPath: async () => [{ name: 'LPA', id: 'folder-id' }],
 				addItemPermissions: async () => {},
-				fetchUserInviteLink: async () => ({ link: { webUrl: 'https://sharepoint.example/link' } })
+				fetchUserInviteLink: async () => 'https://sharepoint.example/link'
 			};
 
 			const service = {
@@ -1102,10 +1113,65 @@ describe('notification', () => {
 				logger,
 				notifyClient: mockNotifyClient,
 				portalBaseUrl: 'https://test.com',
-				appSharePointDrive: sharePointDrive
+				appSharePointDrive: sharePointDrive,
+				appEntraClient: appEntraMock()
 			};
 
 			await assert.rejects(() => sendLpaQuestionnaireSentNotification(service, 'case-1'), /Notify failure/);
+		});
+		it('should fallback to SharePoint link when LPA user already exists', async () => {
+			const logger = mockLogger();
+			const mockDb = {
+				crownDevelopment: {
+					findUnique: () => ({
+						id: 'case-1',
+						reference: 'CROWN/2025/0000001',
+						applicationDescription: 'a big project',
+						applicationAcceptedDate: new Date('2025-01-01'),
+						lpaQuestionnaireReceivedDate: new Date('2025-01-02'),
+						representationsPeriod: { end: new Date('2025-01-15') },
+						Lpa: { email: 'existinglpa@example.com' },
+						environmentalImpactAssessment: BOOLEAN_OPTIONS.NO,
+						developmentPlan: BOOLEAN_OPTIONS.YES,
+						Organisations: []
+					})
+				}
+			};
+
+			const notifyCalls = [];
+			const mockNotifyClient = {
+				sendLpaQuestionnaireNotification: async (email, personalisation) => {
+					notifyCalls.push({ email, personalisation });
+				}
+			};
+
+			const sharePointDrive = {
+				getItemsByPath: async () => [{ name: 'LPA', id: 'lpa-folder-id' }],
+				fetchUserInviteLink: async () => 'https://sharepoint.example/existing-user-link',
+				addItemPermissions: async () => {}
+			};
+
+			const appEntraClient = {
+				addUsersAsGuests: async (emails) =>
+					emails.map(() => ({ userPrincipalName: 'existing#EXT#', inviteRedeemUrl: null }))
+			};
+
+			const service = {
+				db: mockDb,
+				logger,
+				notifyClient: mockNotifyClient,
+				portalBaseUrl: 'https://test.com',
+				appSharePointDrive: sharePointDrive,
+				appEntraClient: appEntraClient
+			};
+
+			await sendLpaQuestionnaireSentNotification(service, 'case-1');
+
+			assert.strictEqual(notifyCalls.length, 1);
+			assert.strictEqual(
+				notifyCalls[0].personalisation.sharePointLink,
+				'https://sharepoint.example/existing-user-link'
+			);
 		});
 	});
 

@@ -50,6 +50,53 @@ export class EntraClient {
 		return members;
 	}
 
+	async checkUserExistsByEmail(email) {
+		const sanitizedEmail = email.replace(/'/g, "''");
+		const existingUser = await this.#client
+			.api('/users')
+			.filter(`mail eq '${sanitizedEmail}'`)
+			.select(['id', 'mail'])
+			.get();
+		return existingUser.value.length > 0;
+	}
+
+	/**
+	 * Checks and adds a user as a guest B2B Entra user
+	 * @param {string[]} emails - The email addresses to invite
+	 * @param {string} redirectUrl - where to redirect the user on authentication
+	 * @param {Object} opts - Optional parameters
+	 * @param {boolean} opts.sendInvitation - Optional: send an email invitation (defaults to false)
+	 * @param {boolean} opts.resetRedemption - Optional: requires the user to reauthenticate (defaults to false)
+	 * @returns {Promise<{email: string, inviteRedeemUrl: string | null}[]>} The email of the guest user and the redeemUrl if a user was created
+	 */
+	async addUsersAsGuests(emails, redirectUrl, { sendInvitation = false, resetRedemption = false } = {}) {
+		const results = [];
+		for (const email of emails) {
+			// Check if user already exists as guest
+			const existingUser = await this.checkUserExistsByEmail(email);
+
+			if (existingUser) {
+				results.push({ email, inviteRedeemUrl: null });
+				continue;
+			}
+
+			// Invite as B2B guest
+			const invitationResponse = await this.#client.api('/invitations').post({
+				invitedUserEmailAddress: email,
+				inviteRedirectUrl: redirectUrl,
+				sendInvitation,
+				resetRedemption
+			});
+
+			results.push({
+				email: invitationResponse.invitedUserEmailAddress,
+				inviteRedeemUrl: invitationResponse.inviteRedeemUrl
+			});
+		}
+
+		return results;
+	}
+
 	/**
 	 * Get a skip token out of an '@odata.nextLink' value
 	 *

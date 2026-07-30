@@ -59,10 +59,13 @@ describe(`gov-notify-client`, () => {
 				acknowledgePreNotification: 'template-id-1'
 			});
 			ctx.mock.method(client, 'sendEmail', () => {});
-			await client.sendAcknowledgePreNotification('email', {
-				reference: 'reference',
-				sharePointLink: 'link'
-			});
+			await client.sendAcknowledgePreNotification(
+				{ email: 'email', link: 'link' },
+				{
+					reference: 'reference',
+					isLbcCase: false
+				}
+			);
 			assert.strictEqual(client.sendEmail.mock.callCount(), 1);
 			const args = client.sendEmail.mock.calls[0].arguments;
 			assert.deepStrictEqual(args, [
@@ -84,11 +87,13 @@ describe(`gov-notify-client`, () => {
 				acknowledgePreNotification: 'template-id-1'
 			});
 			ctx.mock.method(client, 'sendEmail', () => {});
-			await client.sendAcknowledgePreNotification('email', {
-				reference: 'reference',
-				sharePointLink: 'link',
-				isLbcCase: true
-			});
+			await client.sendAcknowledgePreNotification(
+				{ email: 'email', link: 'link' },
+				{
+					reference: 'reference',
+					isLbcCase: true
+				}
+			);
 			assert.strictEqual(client.sendEmail.mock.callCount(), 1);
 			const args = client.sendEmail.mock.calls[0].arguments;
 			assert.deepStrictEqual(args, [
@@ -486,16 +491,22 @@ describe(`gov-notify-client`, () => {
 			const logger = mockLogger();
 			const client = new GovNotifyClient(logger, 'key', {});
 			ctx.mock.method(client, 'sendAcknowledgePreNotification', (address) => {
-				if (address === 'b@b.com') return Promise.reject(new Error('fail'));
+				if (address.email === 'b@b.com') return Promise.reject(new Error('fail'));
 				return Promise.resolve();
 			});
 
 			await assert.rejects(
 				async () => {
-					await client.sendAcknowledgePreNotificationToMany(['a@a.com', 'b@b.com'], {
-						reference: 'ref',
-						sharePointLink: 'link'
-					});
+					await client.sendAcknowledgePreNotificationToMany(
+						[
+							{ email: 'a@a.com', link: 'linka' },
+							{ email: 'b@b.com', link: 'linkb' }
+						],
+						{
+							reference: 'ref',
+							sharePointLink: 'link'
+						}
+					);
 				},
 				{
 					message: 'Failed to send acknowledge pre-notification to one or more email addresses.'

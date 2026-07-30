@@ -105,30 +105,27 @@ export async function getSharePointReceivedPathId(sharePointDrive, { caseRootNam
 }
 
 /**
- * Grant access to the case "Received" folder and return invite link webUrl for LPA
  *
  * @param {SharePointDrive} sharePointDrive
- * @param {import('@pins/crowndev-database').Prisma.CrownDevelopmentGetPayload<{include: {Lpa: true, SecondaryLpa: true}}>} crownDevelopment
- * @param {string} caseRootName
- * @returns {Promise<string|null>}
+ * @param {Object} options
+ * @param {string} options.caseRootName
+ * @param {'Applicant' | 'LPA' } [options.user] Requires type = Received
+ * @returns {Promise<string>}
  */
-export async function grantLpaSharePointAccess(sharePointDrive, crownDevelopment, caseRootName) {
-	const lpaReceivedFolderId = await getSharePointReceivedPathId(sharePointDrive, {
-		caseRootName,
-		user: 'LPA'
-	});
-
-	const lpaEmails = [crownDevelopment?.Lpa?.email, crownDevelopment?.SecondaryLpa?.email].filter(Boolean);
-	if (lpaEmails.length === 0) {
-		throw new Error('No LPA emails provided');
+export async function getSharePointReceivedPathLink(sharePointDrive, { caseRootName, user }) {
+	if (!user) {
+		throw new Error('Invalid path');
 	}
-	if (lpaEmails.length) {
-		const users = lpaEmails.map((email) => ({ email, id: '' }));
-		await sharePointDrive.addItemPermissions(lpaReceivedFolderId, { role: 'write', users });
+	const folderPath = buildPath(caseRootName, APPLICATION_FOLDERS.RECEIVED);
+	const receivedFolders = await sharePointDrive.getItemsByPath(folderPath, []);
+
+	const userFolder = receivedFolders.find((folder) => folder.name === user);
+
+	if (!userFolder || !userFolder.id) {
+		throw new Error(`Folder not found in this path: ${folderPath}`);
 	}
 
-	const inviteLink = await sharePointDrive.fetchUserInviteLink(lpaReceivedFolderId);
-	return inviteLink?.link?.webUrl || inviteLink?.webUrl || null;
+	return userFolder.webUrl;
 }
 
 /**

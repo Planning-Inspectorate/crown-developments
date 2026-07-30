@@ -230,17 +230,25 @@ export class SharePointDrive {
 	}
 
 	/**
+	 * @typedef { code: string, message: string } ErrorDetail
+	 */
+
+	/**
 	 *
 	 * @param {string} itemId Id of the folder to share
 	 * @param {Object} options
+	 * @param {boolean} [options.allowPartialSuccess] Specifies if you allow partial success (will return reports of which users were not successfully granted permissions and why). Defaults to false
 	 * @param {boolean} [options.requireSignIn] Specifies whether the recipient of the invitation is required to sign in to view the shared item. Defaults to true
 	 * @param {boolean} [options.sendInvitation] 	If true, a sharing link is sent to the recipient. Otherwise, a permission is granted directly without sending a notification. Defaults to false
 	 * @param { Role } options.role
 	 * @param { Array<{ id: string, email: string }>} options.users
 	 * @param {string} [options.message] Message that accompanies the Invitation if sent (defaults to '')
-	 * @returns {Promise<void>}
+	 * @returns {Promise<void | Array<{ email: string, error: ErrorDetail }>>}
 	 */
-	async addItemPermissions(itemId, { requireSignIn = true, sendInvitation = false, role, users, message = '' }) {
+	async addItemPermissions(
+		itemId,
+		{ allowPartialSuccess = false, requireSignIn = true, sendInvitation = false, role, users, message = '' }
+	) {
 		const urlBuilder = new UrlBuilder('')
 			.addPathSegment('drives')
 			.addPathSegment(this.driveId)
@@ -256,27 +264,52 @@ export class SharePointDrive {
 			throw new Error('No permission provided or permission provided is invalid');
 		}
 
-		const recipients = users.map((user) => {
-			return {
-				email: user.email
+		if (!allowPartialSuccess) {
+			// Original behaviour: single batch call, throws on any failure
+			const recipients = users.map((user) => ({ email: user.email }));
+			const permission = {
+				recipients,
+				message,
+				requireSignIn,
+				sendInvitation,
+				roles: [role]
 			};
-		});
+			await this.client.api(urlBuilder.toString()).post(permission);
+			return;
+		}
 
-		const permission = {
-			recipients,
-			message,
-			requireSignIn,
-			sendInvitation,
-			roles: [role]
-		};
+		// Partial success mode: invite each user individually, collect failures
+		/** @type {Array<{email: string, error: object}>} */
+		const failures = [];
 
-		await this.client.api(urlBuilder.toString()).post(permission);
+		for (const user of users) {
+			try {
+				const permission = {
+					recipients: [{ email: user.email }],
+					message,
+					requireSignIn,
+					sendInvitation,
+					roles: [role]
+				};
+				await this.client.api(urlBuilder.toString()).post(permission);
+			} catch (error) {
+				failures.push({
+					email: user.email,
+					error: {
+						code: error?.code || error?.statusCode?.toString() || 'unknown',
+						message: error?.message || 'Unknown error'
+					}
+				});
+			}
+		}
+
+		return failures;
 	}
 
 	/**
 	 *
 	 * @param {string} itemId Id of the folder to share
-	 * @returns {Promise<import('@microsoft/microsoft-graph-types').Permission>}
+	 * @returns {Promise<string>} the invite link url
 	 */
 	async fetchUserInviteLink(itemId) {
 		const urlBuilder = new UrlBuilder('')
@@ -291,7 +324,10 @@ export class SharePointDrive {
 			scope: 'users'
 		};
 
-		return await this.client.api(urlBuilder.toString()).post(request);
+		const response = await this.client.api(urlBuilder.toString()).post(request);
+		const webUrl = response?.link?.webUrl || response?.webUrl;
+		if (!webUrl) throw new Error('SharePoint invite link missing from createLink response');
+		return webUrl;
 	}
 
 	/**

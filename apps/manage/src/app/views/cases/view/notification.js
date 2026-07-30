@@ -6,7 +6,8 @@ import {
 } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { addressToViewModel } from '@planning-inspectorate/dynamic-forms/src/lib/address-utils.js';
 import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
-import { caseReferenceToFolderName, grantLpaSharePointAccess } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { grantLpaSharePointAccess } from '#util/sharepoint.js';
 
 /**
  * @typedef {import('@pins/crowndev-lib/util/types').YesNo} YesNo
@@ -127,16 +128,12 @@ export async function sendLpaQuestionnaireSentNotification(service, id) {
 		const isStandard = crownDevelopmentFields.developmentPlan === BOOLEAN_OPTIONS.YES && !isEIA;
 		const sharePointDrive = service.appSharePointDrive;
 
-		let sharePointLink = null;
+		/** @type {Array<{ email: string, link: string }>} */
+		let inviteLinks = [];
 		if (sharePointDrive) {
 			try {
 				const folderName = caseReferenceToFolderName(crownDevelopmentFields.reference);
-				const inviteLink = await grantLpaSharePointAccess(sharePointDrive, crownDevelopment, folderName);
-				if (inviteLink) {
-					sharePointLink = inviteLink;
-				} else {
-					logger.warn({ reference: crownDevelopmentFields.reference }, 'SharePoint invite link for LPA was empty');
-				}
+				inviteLinks = await grantLpaSharePointAccess(service, crownDevelopment, folderName);
 			} catch (spError) {
 				logger.warn(
 					{ error: spError, reference: crownDevelopmentFields.reference },
@@ -145,13 +142,14 @@ export async function sendLpaQuestionnaireSentNotification(service, id) {
 			}
 		}
 
-		const personalisation = {
+		const lpaRecipientEmails = [crownDevelopment?.Lpa?.email, crownDevelopment?.SecondaryLpa?.email].filter(Boolean);
+
+		const basePersonalisation = {
 			reference: crownDevelopmentFields.reference,
 			lpaName: crownDevelopment?.Lpa?.name,
 			applicationDescription: crownDevelopmentFields.description,
 			siteAddress: formatSiteLocation(crownDevelopment),
 			dateAccepted: formatDateForDisplay(crownDevelopmentFields.applicationAcceptedDate),
-			sharePointLink,
 			lpaQuestionnaireReceivedDate: formatDateForDisplay(crownDevelopmentFields.lpaQuestionnaireReceivedDate),
 			frontOfficeLink: `${service.portalBaseUrl}/applications`,
 			notEIA: !isEIA,
@@ -161,10 +159,15 @@ export async function sendLpaQuestionnaireSentNotification(service, id) {
 			representationEndDate: formatDateForDisplay(crownDevelopmentFields.representationsPeriod?.end || '')
 		};
 
-		const lpaRecipientEmails = [crownDevelopment?.Lpa?.email, crownDevelopment?.SecondaryLpa?.email].filter(Boolean);
-		const notifyRequests = lpaRecipientEmails.map((email) =>
-			notifyClient.sendLpaQuestionnaireNotification(email, personalisation)
-		);
+		/** @type {Promise<void>[]} */
+		const notifyRequests = lpaRecipientEmails.map((email) => {
+			const userLink = inviteLinks.find((l) => l.email === email);
+			return notifyClient.sendLpaQuestionnaireNotification(email, {
+				...basePersonalisation,
+				sharePointLink: userLink?.link ?? ''
+			});
+		});
+
 		await Promise.all(notifyRequests);
 	} catch (error) {
 		logger.error(
