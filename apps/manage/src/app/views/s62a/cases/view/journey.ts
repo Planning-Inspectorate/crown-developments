@@ -12,6 +12,7 @@ import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import type { Request } from 'express';
 import {
 	APPLICANT_TYPE_ID,
+	PRE_APPLICATION_ADVICE_ID,
 	PRE_APPLICATION_OR_APPLICATION_ID,
 	VIEW_TAB_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
@@ -41,6 +42,14 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 
 	const isApplicationCilLiableCase = (response: JourneyResponse) =>
 		isApplicationCase(response) && questionHasAnswer(response, questions.cilLiable, BOOLEAN_OPTIONS.YES);
+
+	const isApplicationAdviceGiven = (response: JourneyResponse) =>
+		isApplicationCase(response) &&
+		(questionHasAnswer(response, questions.preApplicationAdvice, PRE_APPLICATION_ADVICE_ID.PINS) ||
+			questionHasAnswer(response, questions.preApplicationAdvice, PRE_APPLICATION_ADVICE_ID.COUNCIL));
+
+	const showAdviceIssuedDate = (response: JourneyResponse) =>
+		isPreApplicationCase(response) || isApplicationAdviceGiven(response);
 
 	return new Journey({
 		journeyId: JOURNEY_ID,
@@ -247,7 +256,17 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				)
 				.addQuestion(questions.eiaScreeningOutcome)
 				.addQuestion(questions.environmentalStatementReceivedDate)
-				.endMultiQuestionCondition('eia-screening-yes')
+				.endMultiQuestionCondition('eia-screening-yes'),
+			new Section('', 'pre-application')
+				.withSectionCondition(() => currentTab === VIEW_TAB_ID.PRE_APPLICATION)
+				.startMultiQuestionCondition('pre-app-is-application-1', isApplicationCase)
+				.addQuestion(questions.preApplicationAdvice)
+				.addQuestion(questions.preApplicationReceivedDate)
+				.endMultiQuestionCondition('pre-app-is-application-1')
+				.addQuestion(questions.preApplicationAdviceIssuedDate)
+				.withCondition(showAdviceIssuedDate)
+				.addQuestion(questions.preApplicationReference)
+				.withCondition(isApplicationAdviceGiven)
 		],
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',

@@ -142,6 +142,12 @@ export interface UpdateCaseAnswers {
 	planningOfficerId?: string | null;
 	readerId?: string | null;
 	manageCaseTeamInspectors?: CaseTeamInspectorItem[] | null;
+
+	// Pre-Application tab
+	preApplicationAdviceId?: string | null;
+	preApplicationReference?: string;
+	preApplicationReceivedDate?: Date | null;
+	preApplicationAdviceIssuedDate?: Date | null;
 }
 
 /**
@@ -286,6 +292,10 @@ export class S62aCaseUpdateMapper {
 		if (this.hasAnswer('cilAmount')) {
 			input.cilAmount = ans.cilAmount || ans.cilAmount === 0 ? new Prisma.Decimal(ans.cilAmount) : null;
 		}
+
+		if (this.hasAnswer('preApplicationReference')) {
+			input.preApplicationReference = ans.preApplicationReference || null;
+		}
 	}
 
 	/**
@@ -339,6 +349,12 @@ export class S62aCaseUpdateMapper {
 
 		if (this.hasAnswer('procedureId')) {
 			input.Procedure = ans.procedureId ? { connect: { id: ans.procedureId } } : { disconnect: true };
+		}
+
+		if (this.hasAnswer('preApplicationAdviceId')) {
+			input.PreApplicationAdvice = ans.preApplicationAdviceId
+				? { connect: { id: ans.preApplicationAdviceId } }
+				: { disconnect: true };
 		}
 	}
 

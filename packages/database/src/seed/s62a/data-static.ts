@@ -140,7 +140,8 @@ export const VIEW_TAB_ID = Object.freeze({
 	FEE: 'fee',
 	REPRESENTATIONS: 'representations',
 	CONTACTS: 'contacts',
-	EIA: 'eia'
+	EIA: 'eia',
+	PRE_APPLICATION: 'pre-application'
 } as const);
 
 /**
@@ -180,6 +181,10 @@ export const VIEW_TABS = [
 		id: VIEW_TAB_ID.EIA,
 		displayName: 'EIA',
 		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+	},
+	{
+		id: VIEW_TAB_ID.PRE_APPLICATION,
+		displayName: 'Pre-application'
 	}
 ];
 
@@ -538,4 +543,16 @@ export const APPLICATION_FOLDERS = [
 			]
 		}
 	}
+];
+
+export const PRE_APPLICATION_ADVICE_ID = Object.freeze({
+	PINS: 'pins',
+	COUNCIL: 'council',
+	NO: 'no'
+} as const);
+
+export const PRE_APPLICATION_ADVICE = [
+	{ id: PRE_APPLICATION_ADVICE_ID.PINS, displayName: 'Yes - PINS' },
+	{ id: PRE_APPLICATION_ADVICE_ID.COUNCIL, displayName: 'Yes - Council' },
+	{ id: PRE_APPLICATION_ADVICE_ID.NO, displayName: 'No' }
 ];

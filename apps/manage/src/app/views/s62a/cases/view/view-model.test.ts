@@ -3,7 +3,8 @@ import assert from 'node:assert';
 import {
 	SITE_AREA_UNIT_ID,
 	APPLICANT_TYPE_ID,
-	CONTACT_ROLES_ID
+	CONTACT_ROLES_ID,
+	PRE_APPLICATION_ADVICE_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { s62aCaseToViewModel, type S62aCaseDbModel } from './view-model.ts';
 
@@ -974,6 +975,74 @@ describe('s62aCaseToViewModel', () => {
 			assert.strictEqual(result.assessorInspectorId, undefined);
 			assert.strictEqual(result.planningOfficerId, undefined);
 			assert.strictEqual(result.readerId, undefined);
+		});
+	});
+
+	describe('Pre-Application Mapping', () => {
+		const receivedDate = new Date('2026-05-01T09:00:00Z');
+		const issuedDate = new Date('2026-06-01T09:00:00Z');
+
+		it('maps the advice lookup id, reference and both dates', () => {
+			const mockDbCase = {
+				id: 'case-preapp-1',
+				reference: 'S62A/2026/0029',
+				description: 'Pre-app case',
+				typeId: 'type-1',
+				lpaId: 'lpa-1',
+				hasSecondaryLpa: false,
+				expectedSubmissionDate: mockDate,
+				preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.PINS,
+				preApplicationReference: 'PREAPP/123',
+				S62aDates: {
+					preApplicationReceivedDate: receivedDate,
+					preApplicationAdviceIssuedDate: issuedDate
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.preApplicationAdviceId, PRE_APPLICATION_ADVICE_ID.PINS);
+			assert.strictEqual(result.preApplicationReference, 'PREAPP/123');
+			assert.strictEqual(result.preApplicationReceivedDate, receivedDate);
+			assert.strictEqual(result.preApplicationAdviceIssuedDate, issuedDate);
+		});
+
+		it('maps the "No" advice option distinctly from unanswered', () => {
+			const withNo = {
+				id: 'case-preapp-2',
+				reference: 'S62A/2026/0030',
+				expectedSubmissionDate: mockDate,
+				preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.NO
+			} as unknown as S62aCaseDbModel;
+
+			const withNull = {
+				id: 'case-preapp-3',
+				reference: 'S62A/2026/0031',
+				expectedSubmissionDate: mockDate,
+				preApplicationAdviceId: null
+			} as unknown as S62aCaseDbModel;
+
+			assert.strictEqual(s62aCaseToViewModel(withNo).preApplicationAdviceId, PRE_APPLICATION_ADVICE_ID.NO);
+			assert.strictEqual(s62aCaseToViewModel(withNull).preApplicationAdviceId, undefined);
+		});
+
+		it('leaves the reference and dates undefined when null or absent', () => {
+			const mockDbCase = {
+				id: 'case-preapp-4',
+				reference: 'S62A/2026/0032',
+				expectedSubmissionDate: mockDate,
+				preApplicationReference: null,
+				S62aDates: {
+					preApplicationReceivedDate: null,
+					preApplicationAdviceIssuedDate: null
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.preApplicationReference, undefined);
+			assert.strictEqual(result.preApplicationReceivedDate, undefined);
+			assert.strictEqual(result.preApplicationAdviceIssuedDate, undefined);
 		});
 	});
 });

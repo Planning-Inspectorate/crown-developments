@@ -12,6 +12,7 @@ import {
 	CONTACT_ROLES_ID,
 	INSPECTOR_BANDS,
 	MAJOR_OR_NON_MAJORS,
+	PRE_APPLICATION_ADVICE,
 	PRE_APPLICATION_OR_APPLICATION_ID,
 	PRE_APPLICATION_OR_APPLICATIONS,
 	S62A_APPLICATION_STATUSES,
@@ -1638,6 +1639,61 @@ export function getQuestions(
 					]
 				})
 			]
+		},
+		preApplicationAdvice: {
+			type: COMPONENT_TYPES.RADIO,
+			title: 'Pre-application advice',
+			question: 'Has pre-application advice been requested for this case?',
+			fieldName: 'preApplicationAdviceId',
+			url: 'advice',
+			validators: [new RequiredValidator('Select if pre-application advice has been requested')],
+			options: PRE_APPLICATION_ADVICE.map((t) => ({ text: t.displayName, value: t.id })),
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'advice/remove' }]
+			}
+		},
+		preApplicationReceivedDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Pre-application received date',
+			question: 'When was the pre-application received?',
+			hint: 'For example, 27 3 2007',
+			fieldName: 'preApplicationReceivedDate',
+			url: 'received-date',
+			validators: [new DateValidator('pre-application received date')],
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'received-date/remove' }]
+			}
+		},
+		preApplicationAdviceIssuedDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Pre-application advice issued date',
+			question: 'When was the pre-application advice issued?',
+			hint: 'For example, 27 3 2007',
+			fieldName: 'preApplicationAdviceIssuedDate',
+			url: 'advice-issued-date',
+			validators: [new DateValidator('pre-application advice issued date')],
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'advice-issued-date/remove' }]
+			}
+		},
+		preApplicationReference: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Pre-application reference',
+			question: 'What is the pre-application reference?',
+			fieldName: 'preApplicationReference',
+			url: 'reference',
+			validators: [
+				new RequiredValidator('Enter the pre-application reference'),
+				new StringValidator({
+					maxLength: {
+						maxLength: 250,
+						maxLengthMessage: 'Pre-application reference must be 250 characters or less'
+					}
+				})
+			],
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'reference/remove' }]
+			}
 		}
 	};
 
