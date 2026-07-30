@@ -81,7 +81,7 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 		},
 		localPlanningAuthority: {
 			type: COMPONENT_TYPES.SELECT,
-			title: 'LPA name',
+			title: 'Local planning authority name',
 			question: CREATE_A_CASE_QUESTION_TEXT[preAppOrAppPath].localPlanningAuthority,
 			fieldName: 'lpaId',
 			url: 'local-planning-authority',
@@ -97,7 +97,7 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 		lpaContactDetails: createLpaContactQuestion(false),
 		hasSecondaryLpa: {
 			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'Secondary LPA?',
+			title: 'Secondary local planning authority?',
 			question: CREATE_A_CASE_QUESTION_TEXT[preAppOrAppPath].hasSecondaryLpa,
 			fieldName: 'hasSecondaryLpa',
 			url: 'has-secondary-local-planning-authority',
@@ -105,7 +105,7 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 		},
 		secondaryLocalPlanningAuthority: {
 			type: COMPONENT_TYPES.SELECT,
-			title: 'Secondary LPA name',
+			title: 'Secondary local planning authority name',
 			question: CREATE_A_CASE_QUESTION_TEXT[preAppOrAppPath].secondaryLocalPlanningAuthority,
 			fieldName: 'secondaryLpaId',
 			url: 'secondary-local-planning-authority',

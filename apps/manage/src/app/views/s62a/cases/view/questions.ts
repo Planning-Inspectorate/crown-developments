@@ -29,6 +29,7 @@ import {
 	createQuestions,
 	CrossQuestionValidator,
 	DateValidator,
+	EmailValidator,
 	NumericValidator,
 	questionClasses,
 	RequiredValidator,
@@ -212,7 +213,7 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 		},
 		localPlanningAuthority: {
 			type: COMPONENT_TYPES.SELECT,
-			title: 'LPA name',
+			title: 'Local planning authority name',
 			question: 'Which local planning authority is this application related to?',
 			fieldName: 'lpaId',
 			url: 'local-planning-authority',
@@ -227,7 +228,7 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 		},
 		hasSecondaryLpa: {
 			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'Has secondary LPA',
+			title: 'Has secondary local planning authority',
 			question: 'Is there a secondary local planning authority for this application?',
 			fieldName: 'hasSecondaryLpa',
 			url: 'has-secondary-local-planning-authority',
@@ -235,7 +236,7 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 		},
 		secondaryLocalPlanningAuthority: {
 			type: COMPONENT_TYPES.SELECT,
-			title: 'Secondary LPA name',
+			title: 'Secondary local planning authority name',
 			question: 'Which secondary local planning authority is this application related to?',
 			fieldName: 'secondaryLpaId',
 			url: 'secondary-local-planning-authority',
@@ -414,8 +415,8 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 		},
 		lpaReference: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-			title: 'LPA reference',
-			question: 'What is the LPA reference for this application?',
+			title: 'Local planning authority reference',
+			question: 'What is the local planning authority reference for this application?',
 			fieldName: 'lpaReference',
 			url: 'lpa-reference',
 			validators: [
@@ -595,9 +596,9 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 							return true;
 						}
 
-						if (new Date(infoRequestedDate).getTime() <= new Date(additionalInfoDate).getTime()) {
+						if (new Date(infoRequestedDate).getTime() >= new Date(additionalInfoDate).getTime()) {
 							throw new Error(
-								'Further information requested date must be after Date agreed for additional information'
+								'Further information requested date must be before Date agreed for additional information'
 							);
 						}
 
@@ -634,9 +635,9 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 							return true;
 						}
 
-						if (new Date(infoRequestedDate).getTime() <= new Date(additionalInfoDate).getTime()) {
+						if (new Date(infoRequestedDate).getTime() >= new Date(additionalInfoDate).getTime()) {
 							throw new Error(
-								'Date agreed for additional information must be before Further information requested date'
+								'Date agreed for additional information must be after Further information requested date'
 							);
 						}
 
@@ -690,12 +691,12 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 		},
 		lpaQuestionnaireSentDate: {
 			type: COMPONENT_TYPES.DATE,
-			title: 'LPA questionnaire sent date',
+			title: 'Local planning authority questionnaire sent date',
 			question: 'When was the local planning authority questionnaire sent?',
 			fieldName: 'lpaQuestionnaireSentDate',
 			url: 'lpa-questionnaire-sent',
 			validators: [
-				new DateValidator('LPA questionnaire sent date'),
+				new DateValidator('local planning authority questionnaire sent date'),
 				new CrossQuestionValidator({
 					dependencyFieldName: 'lpaQuestionnaireReceivedDate',
 					useBodyValuesForCurrent: true,
@@ -708,7 +709,9 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 						}
 
 						if (new Date(sentDate).getTime() >= new Date(receivedDate).getTime()) {
-							throw new Error('LPA questionnaire sent date must be before LPA questionnaire received date');
+							throw new Error(
+								'Local planning authority questionnaire sent date must be before local planning authority questionnaire received date'
+							);
 						}
 
 						return true;
@@ -727,12 +730,12 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 		},
 		lpaQuestionnaireReceivedDate: {
 			type: COMPONENT_TYPES.DATE,
-			title: 'LPA questionnaire received date',
+			title: 'Local planning authority questionnaire received date',
 			question: 'When was the local planning authority questionnaire received?',
 			fieldName: 'lpaQuestionnaireReceivedDate',
 			url: 'lpa-questionnaire-received',
 			validators: [
-				new DateValidator('LPA questionnaire received date'),
+				new DateValidator('local planning authority questionnaire received date'),
 				new CrossQuestionValidator({
 					dependencyFieldName: 'lpaQuestionnaireSentDate',
 					useBodyValuesForCurrent: true,
@@ -745,7 +748,9 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 						}
 
 						if (new Date(sentDate).getTime() >= new Date(receivedDate).getTime()) {
-							throw new Error('LPA questionnaire received date must be after LPA questionnaire sent date');
+							throw new Error(
+								'Local planning authority questionnaire received date must be after local planning authority questionnaire sent date'
+							);
 						}
 
 						return true;
@@ -797,11 +802,11 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 		},
 		neighboursNotifiedByLpaDate: {
 			type: COMPONENT_TYPES.DATE,
-			title: 'Neighbours notified by LPA date',
+			title: 'Neighbours notified by local planning authority date',
 			question: 'When were the neighbours notified by local planning authority?',
 			fieldName: 'neighboursNotifiedByLpaDate',
 			url: 'neighbours-notified',
-			validators: [new DateValidator('neighbours notified by LPA date')],
+			validators: [new DateValidator('neighbours notified by local planning authority date')],
 			viewData: {
 				extraActionButtons: [
 					{
@@ -814,11 +819,11 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 		},
 		lpaInterestedPartiesDeadlineDate: {
 			type: COMPONENT_TYPES.DATE,
-			title: 'LPA interested parties deadline',
+			title: 'Local planning authority interested parties deadline',
 			question: 'When is the deadline date the council have provided to interested parties for consultations?',
 			fieldName: 'lpaInterestedPartiesDeadlineDate',
 			url: 'lpa-interested-parties-deadline',
-			validators: [new DateValidator('LPA interested parties deadline')],
+			validators: [new DateValidator('local planning authority interested parties deadline')],
 			viewData: {
 				extraActionButtons: [
 					{
@@ -831,11 +836,11 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 		},
 		siteNoticeByLpaDate: {
 			type: COMPONENT_TYPES.DATE,
-			title: 'Site notice by LPA date',
+			title: 'Site notice by local planning authority date',
 			question: 'When was the site notice erected by the local planning authority?',
 			fieldName: 'siteNoticeByLpaDate',
 			url: 'site-notice-by-lpa',
-			validators: [new DateValidator('site notice by LPA date')],
+			validators: [new DateValidator('site notice by local planning authority date')],
 			viewData: {
 				extraActionButtons: [
 					{
@@ -1354,8 +1359,8 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 		lpaContactDetails: createLpaContactQuestion(false),
 		lpaAddress: {
 			type: COMPONENT_TYPES.ADDRESS,
-			title: 'LPA address',
-			question: 'What is the address of the LPA?',
+			title: 'Local planning authority address',
+			question: 'What is the address of the local planning authority?',
 			fieldName: 'lpaAddress',
 			url: 'lpa-address',
 			validators: [new AddressValidator()],
@@ -1364,8 +1369,8 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 		secondaryLpaContactDetails: createLpaContactQuestion(true),
 		secondaryLpaAddress: {
 			type: COMPONENT_TYPES.ADDRESS,
-			title: 'Secondary LPA address',
-			question: 'What is the address of the Secondary LPA?',
+			title: 'Secondary local planning authority address',
+			question: 'What is the address of the Secondary local planning authority?',
 			fieldName: 'secondaryLpaAddress',
 			url: 'secondary-lpa-address',
 			validators: [new AddressValidator()],
@@ -1495,7 +1500,7 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 		additionalContactDetails: {
 			type: CUSTOM_COMPONENTS.CUSTOM_MULTI_FIELD_INPUT,
 			title: 'Contact details',
-			question: 'What are the contact details? (optional)',
+			question: 'What are the contact details?',
 			fieldName: 'additionalContactDetails',
 			url: 'additional-contact-details',
 			inputFields: [
@@ -1506,7 +1511,7 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 				},
 				{
 					fieldName: 'phoneNumber',
-					label: 'Phone number',
+					label: 'Phone number (optional)',
 					type: 'single-line-input'
 				}
 			],
@@ -1522,12 +1527,22 @@ export function getQuestions(answers: S62aCaseViewModel, isQuestionView?: boolea
 										maxLength: 250,
 										maxLengthMessage: 'Contact email must be 250 characters or less'
 									}
+								}),
+								new EmailValidator({
+									errorMessage: 'Enter an email address in the correct format, like name@example.com'
 								})
 							]
 						},
 						{
 							fieldName: 'phoneNumber',
-							validators: [new TelephoneNumberValidator()]
+							validators: [
+								new TelephoneNumberValidator({
+									maxLengthParams: {
+										maxLength: 15,
+										maxLengthMessage: `Telephone number of the contact must be 15 characters or less`
+									}
+								})
+							]
 						}
 					]
 				})
