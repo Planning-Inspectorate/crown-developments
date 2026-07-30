@@ -107,12 +107,14 @@ export function buildSaveController(service) {
 
 		// Record case creation after the transaction has committed.
 		// record() is fire-and-forget, so an audit failure won't affect the created case.
-		await audit.record({
-			caseId: id,
-			action: AUDIT_ACTIONS.CASE_CREATED,
-			userId: req.session?.account?.localAccountId,
-			metadata: { reference }
-		});
+		if (service.isAuditLive !== false) {
+			await audit.record({
+				caseId: id,
+				action: AUDIT_ACTIONS.CASE_CREATED,
+				userId: req.session?.account?.localAccountId,
+				metadata: { reference }
+			});
+		}
 
 		let notificationData = null;
 		let lbcNotificationData = null;

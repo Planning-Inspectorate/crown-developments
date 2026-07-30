@@ -278,7 +278,7 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 			});
 		}
 
-		if (updateSucceeded) {
+		if (updateSucceeded && service.isAuditLive !== false) {
 			await recordAuditEntries(audit, id, userId, previousValues, answersSnapshot, updatedFieldNames, logger);
 		}
 

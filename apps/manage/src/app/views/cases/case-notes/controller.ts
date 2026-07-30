@@ -31,14 +31,16 @@ export function buildCreateCaseNote(service: ManageService): AsyncRequestHandler
 
 		await createCaseNote(id, comment, userId, db, logger);
 
-		await audit.record({
-			caseId: id,
-			action: AUDIT_ACTIONS.CASE_NOTE_ADDED,
-			userId,
-			metadata: {
-				caseNote: comment
-			}
-		});
+		if (service.isAuditLive !== false) {
+			await audit.record({
+				caseId: id,
+				action: AUDIT_ACTIONS.CASE_NOTE_ADDED,
+				userId,
+				metadata: {
+					caseNote: comment
+				}
+			});
+		}
 
 		logger.info({ id }, 'application note created');
 

@@ -33,9 +33,16 @@ interface Config {
 			inspectors: string;
 		};
 	};
+	blobStore: {
+		disabled: boolean;
+		host: string;
+		container: string;
+		connectionString: string;
+	};
 	featureFlags: {
 		isS62ALive: boolean;
 		isCaseNotesLive: boolean;
+		isAuditLive: boolean;
 	};
 	gitSha?: string;
 	govNotify: NotifyConfig;
