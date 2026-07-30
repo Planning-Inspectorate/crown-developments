@@ -263,6 +263,11 @@ model S62aCase {
   readerId            String?             @db.UniqueIdentifier
   Reader              User?               @relation("s62aReader", fields: [readerId], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
+  // Pre app details (pre app tab)
+  preApplicationAdviceId  String?
+  PreApplicationAdvice    S62aPreApplicationAdvice? @relation(fields: [preApplicationAdviceId], references: [id])
+  preApplicationReference String?
+
   Folders Folder[]
 }
 
@@ -327,6 +332,8 @@ model S62aDates {
   withdrawnDate                            DateTime?
   turnedAwayDate                           DateTime?
   environmentalStatementReceivedDate       DateTime?
+  preApplicationReceivedDate               DateTime?
+  preApplicationAdviceIssuedDate           DateTime?
 }
 
 model InspectorBand {
@@ -386,6 +393,14 @@ model S62aStage {
 /// Application category for S62A cases
 model S62aCategory {
   /// unique machine-readable name, not generated, e.g. "major-minerals"
+  id          String     @id
+  displayName String?
+  S62aCases   S62aCase[]
+}
+
+/// Whether pre-application advice was requested, and from whom
+model S62aPreApplicationAdvice {
+  /// unique machine-readable name, not generated, e.g. "pins"
   id          String     @id
   displayName String?
   S62aCases   S62aCase[]

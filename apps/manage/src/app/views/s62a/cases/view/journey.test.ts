@@ -181,6 +181,16 @@ describe('s62a case details journey', () => {
 				title: '',
 				segment: 'eia',
 				questions: ['eiaScreening', 'eiaScreeningOutcome', 'environmentalStatementReceivedDate']
+			},
+			{
+				title: '',
+				segment: 'pre-application',
+				questions: [
+					'preApplicationAdvice',
+					'preApplicationReceivedDate',
+					'preApplicationAdviceIssuedDate',
+					'preApplicationReference'
+				]
 			}
 		];
 

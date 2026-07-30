@@ -1,7 +1,11 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import { SITE_AREA_UNIT_ID, APPLICANT_TYPE_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import {
+	SITE_AREA_UNIT_ID,
+	APPLICANT_TYPE_ID,
+	PRE_APPLICATION_ADVICE_ID
+} from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
 import { S62aCaseUpdateMapper, type UpdateCaseAnswers } from './s62a-update-case-mapper.ts';
@@ -959,6 +963,96 @@ describe('S62aCaseUpdateMapper', () => {
 			const created = (result.Inspectors as any).create[0];
 			assert.ok(created.allocatedDate instanceof Date);
 			assert.deepStrictEqual(created.allocatedDate, allocated);
+		});
+	});
+
+	describe('Pre-Application Tab', () => {
+		const receivedDate = new Date('2026-05-01T09:00:00Z');
+		const issuedDate = new Date('2026-06-01T09:00:00Z');
+
+		it('connects the advice lookup when an id is provided', () => {
+			const answers: UpdateCaseAnswers = { preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.COUNCIL };
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.PreApplicationAdvice, {
+				connect: { id: PRE_APPLICATION_ADVICE_ID.COUNCIL }
+			});
+		});
+
+		it('connects the "No" option rather than treating it as cleared', () => {
+			const answers: UpdateCaseAnswers = { preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.NO };
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.PreApplicationAdvice, {
+				connect: { id: PRE_APPLICATION_ADVICE_ID.NO }
+			});
+		});
+
+		it('disconnects the advice lookup when cleared with null or an empty string', () => {
+			assert.deepStrictEqual(
+				new S62aCaseUpdateMapper({ preApplicationAdviceId: null }).generateUpdateInput().PreApplicationAdvice,
+				{ disconnect: true }
+			);
+			assert.deepStrictEqual(
+				new S62aCaseUpdateMapper({ preApplicationAdviceId: '' }).generateUpdateInput().PreApplicationAdvice,
+				{ disconnect: true }
+			);
+		});
+
+		it('maps the reference, clearing to null when empty', () => {
+			assert.strictEqual(
+				new S62aCaseUpdateMapper({ preApplicationReference: 'PREAPP/123' }).generateUpdateInput()
+					.preApplicationReference,
+				'PREAPP/123'
+			);
+			assert.strictEqual(
+				new S62aCaseUpdateMapper({ preApplicationReference: '' }).generateUpdateInput().preApplicationReference,
+				null
+			);
+		});
+
+		it('maps both dates into the S62aDates upsert', () => {
+			const answers: UpdateCaseAnswers = {
+				preApplicationReceivedDate: receivedDate,
+				preApplicationAdviceIssuedDate: issuedDate
+			};
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aDates, {
+				upsert: {
+					create: {
+						preApplicationReceivedDate: receivedDate,
+						preApplicationAdviceIssuedDate: issuedDate
+					},
+					update: {
+						preApplicationReceivedDate: receivedDate,
+						preApplicationAdviceIssuedDate: issuedDate
+					}
+				}
+			});
+		});
+
+		it('nullifies the dates when cleared', () => {
+			const answers: UpdateCaseAnswers = {
+				preApplicationReceivedDate: null,
+				preApplicationAdviceIssuedDate: null
+			};
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aDates, {
+				upsert: {
+					create: { preApplicationReceivedDate: null, preApplicationAdviceIssuedDate: null },
+					update: { preApplicationReceivedDate: null, preApplicationAdviceIssuedDate: null }
+				}
+			});
+		});
+
+		it('does not emit pre-application fields when absent from the payload', () => {
+			const result = new S62aCaseUpdateMapper({ likelyIssues: 'Traffic' }).generateUpdateInput();
+
+			assert.strictEqual(result.PreApplicationAdvice, undefined);
+			assert.strictEqual(result.preApplicationReference, undefined);
+			assert.strictEqual(result.S62aDates, undefined);
 		});
 	});
 });

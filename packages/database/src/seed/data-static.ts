@@ -9,7 +9,8 @@ import {
 	SITE_AREA_UNITS,
 	SPECIALISMS,
 	S62A_STAGES,
-	S62A_CATEGORIES
+	S62A_CATEGORIES,
+	PRE_APPLICATION_ADVICE
 } from './s62a/data-static.ts';
 
 export const APPLICATION_DECISION_OUTCOME = [
@@ -641,6 +642,10 @@ type UpsertReferenceDataArgs =
 	| {
 			delegate: Prisma.S62aApplicantTypeDelegate;
 			input: Prisma.S62aApplicantTypeCreateInput;
+	  }
+	| {
+			delegate: Prisma.S62aPreApplicationAdviceDelegate;
+			input: Prisma.S62aPreApplicationAdviceCreateInput;
 	  };
 
 async function upsertReferenceData({ delegate, input }: UpsertReferenceDataArgs): Promise<void> {
@@ -723,6 +728,10 @@ export async function seedCrownStaticData(dbClient: PrismaClient) {
 		ORGANISATION_ROLES.map((input) =>
 			upsertReferenceData({ delegate: dbClient.crownDevelopmentToOrganisationRole, input })
 		)
+	);
+
+	await Promise.all(
+		PRE_APPLICATION_ADVICE.map((input) => upsertReferenceData({ delegate: dbClient.s62aPreApplicationAdvice, input }))
 	);
 
 	const categories = CATEGORIES.filter((c) => !('ParentCategory' in c));
