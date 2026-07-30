@@ -33,7 +33,7 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 			caseId: id,
 			reference,
 			baseUrl,
-			backLinkUrl: res.locals.backLinkUrl || '/s62a/cases',
+			backLinkUrl: '/s62a/cases',
 			backLinkText: 'Back to all applications',
 			currentUrl: req.originalUrl,
 			currentTab: req.params.tab || VIEW_TAB_ID.OVERVIEW,

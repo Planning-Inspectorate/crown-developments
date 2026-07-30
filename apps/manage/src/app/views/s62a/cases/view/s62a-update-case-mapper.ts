@@ -343,12 +343,19 @@ export class S62aCaseUpdateMapper {
 	}
 
 	/**
-	 * Handles the semi-unique case of addresses being an object with unpopulated / populated keys
+	 * Handles the semi-unique case of addresses being an object with unpopulated / populated keys.
+	 * Decouples the relation if the submitted address is null.
 	 */
 	private mapAddress(input: Prisma.S62aCaseUpdateInput): void {
 		if (this.hasAnswer('siteAddress')) {
-			const addressData = viewModelToAddressUpdateInput(this.answers.siteAddress!);
-			input.SiteAddress = { upsert: { create: addressData, update: addressData } };
+			const rawAddress = this.answers.siteAddress;
+
+			if (rawAddress) {
+				const addressData = viewModelToAddressUpdateInput(rawAddress);
+				input.SiteAddress = { upsert: { create: addressData, update: addressData } };
+			} else {
+				input.SiteAddress = { disconnect: true };
+			}
 		}
 	}
 
