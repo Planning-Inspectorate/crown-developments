@@ -19,7 +19,7 @@ export const createLpaContactQuestion = (isSecondary: boolean) => {
 	const prefix = isSecondary ? 'secondaryLpa' : 'lpa';
 	const labelPrefix = isSecondary ? 'secondary local planning authority' : 'local planning authority';
 	const questionText = `${isSecondary ? 'secondary ' : ''}local planning authority`;
-	const title = `${isSecondary ? 'Secondary ' : ''}local planning authority contact`;
+	const title = `${isSecondary ? 'Secondary local ' : 'Local '}planning authority contact`;
 
 	return {
 		type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
