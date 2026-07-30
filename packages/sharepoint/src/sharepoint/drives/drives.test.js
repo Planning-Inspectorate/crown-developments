@@ -678,6 +678,7 @@ describe('drives', () => {
 			const client = mockClient();
 			const itemId = 'testItem';
 			driveId = 'testDriveId';
+			client.post = mock.fn(async () => ({ link: { webUrl: 'a-link' } }));
 			sharePointDrive = new SharePointDrive(client, driveId);
 
 			const expectedPostArgument = {
@@ -685,7 +686,7 @@ describe('drives', () => {
 				scope: 'users'
 			};
 
-			await sharePointDrive.fetchUserInviteLink(itemId);
+			const response = await sharePointDrive.fetchUserInviteLink(itemId);
 
 			assert.strictEqual(client.api.mock.callCount(), 1);
 			assert.strictEqual(
@@ -699,6 +700,7 @@ describe('drives', () => {
 					.toString()
 			);
 			assert.deepStrictEqual(client.post.mock.calls[0].arguments[0], expectedPostArgument);
+			assert.strictEqual(response, 'a-link');
 		});
 	});
 	describe('createLargeDocumentUploadSession', () => {

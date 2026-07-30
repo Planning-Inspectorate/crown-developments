@@ -4,10 +4,10 @@ import {
 	buildPath,
 	caseReferenceToFolderName,
 	getSharePointReceivedPathId,
+	getSharePointReceivedPathLink,
 	representationFolderPath
 } from './sharepoint-path.js';
 import assert from 'node:assert';
-import { grantLpaSharePointAccess } from './sharepoint-path.js';
 
 describe('sharepoint-path', () => {
 	describe('caseReferenceToFolderName', () => {
@@ -66,6 +66,55 @@ describe('sharepoint-path', () => {
 			);
 		});
 	});
+	describe('getSharePointReceivedPathLink', () => {
+		it('should return the folder url when user folder is found', async () => {
+			const mockSharePointDrive = {
+				getItemsByPath: async () => [
+					{ name: 'LPA', id: '123', webUrl: 'https://sharepoint.example/lpa' },
+					{ name: 'Applicant', id: '456', webUrl: 'https://sharepoint.example/applicant' }
+				]
+			};
+
+			const result = await getSharePointReceivedPathLink(mockSharePointDrive, {
+				caseRootName: 'caseRoot',
+				user: 'Applicant'
+			});
+			assert.strictEqual(result, 'https://sharepoint.example/applicant');
+		});
+
+		it('should throw an error when user is not provided', async () => {
+			const mockSharePointDrive = {
+				getItemsByPath: async () => []
+			};
+
+			await assert.rejects(
+				getSharePointReceivedPathLink(mockSharePointDrive, { caseRootName: 'caseRoot', user: '' }),
+				new Error('Invalid path')
+			);
+		});
+
+		it('should throw an error when user folder is not found', async () => {
+			const mockSharePointDrive = {
+				getItemsByPath: async () => [{ name: 'Applicant', id: '123' }]
+			};
+
+			await assert.rejects(
+				getSharePointReceivedPathLink(mockSharePointDrive, { caseRootName: 'caseRoot', user: 'LPA' }),
+				new Error('Folder not found in this path: caseRoot/Received')
+			);
+		});
+
+		it('should throw an error when receivedFolders is empty', async () => {
+			const mockSharePointDrive = {
+				getItemsByPath: async () => []
+			};
+
+			await assert.rejects(
+				getSharePointReceivedPathLink(mockSharePointDrive, { caseRootName: 'caseRoot', user: 'Applicant' }),
+				new Error('Folder not found in this path: caseRoot/Received')
+			);
+		});
+	});
 	describe('buildPath', () => {
 		it('should build path with provided parameters', () => {
 			const caseReferenceFolderName = 'CROWN-2025-0100001';
@@ -78,68 +127,6 @@ describe('sharepoint-path', () => {
 			const caseReference = 'CROWN-2025-0100001';
 			const actual = representationFolderPath(caseReference);
 			assert.strictEqual(actual, 'CROWN-2025-0100001/System/Representations');
-		});
-	});
-	describe('grantLpaSharePointAccess', () => {
-		it('should return link when LPA emails exist and sharepoint operations succeed', async () => {
-			const mockSharePointDrive = {
-				getItemsByPath: async () => [{ name: 'LPA', id: 'folder-id' }],
-				addItemPermissions: async () => {},
-				fetchUserInviteLink: async () => ({ link: { webUrl: 'https://sharepoint.example/link' } })
-			};
-			const crownDevelopment = {
-				Lpa: { email: 'lpa@example.com' },
-				SecondaryLpa: { email: 'secondarylpa@example.com' }
-			};
-
-			const result = await grantLpaSharePointAccess(mockSharePointDrive, crownDevelopment, 'caseRoot');
-			assert.strictEqual(result, 'https://sharepoint.example/link');
-		});
-		it('should error when no LPA emails are provided', async () => {
-			const mockSharePointDrive = {
-				getItemsByPath: async () => [{ name: 'LPA', id: 'folder-id' }],
-				addItemPermissions: async () => {},
-				fetchUserInviteLink: async () => ({ link: { webUrl: 'https://sharepoint.example/link' } })
-			};
-
-			const crownDevelopment = {};
-
-			await assert.rejects(
-				grantLpaSharePointAccess(mockSharePointDrive, crownDevelopment, 'caseRoot'),
-				new Error('No LPA emails provided')
-			);
-		});
-
-		it('should throw an error when SharePoint folder for LPA is not found', async () => {
-			const mockSharePointDrive = {
-				getItemsByPath: async () => [],
-				addItemPermissions: async () => {},
-				fetchUserInviteLink: async () => ({ link: { webUrl: 'https://sharepoint.example/link' } })
-			};
-
-			const crownDevelopment = {
-				Lpa: { email: 'lpa1@example.com' }
-			};
-
-			await assert.rejects(
-				grantLpaSharePointAccess(mockSharePointDrive, crownDevelopment, 'caseRoot'),
-				new Error('Folder not found in this path: caseRoot/Received')
-			);
-		});
-
-		it('should return null when fetchUserInviteLink returns null', async () => {
-			const mockSharePointDrive = {
-				getItemsByPath: async () => [{ name: 'LPA', id: 'folder-id' }],
-				addItemPermissions: async () => {},
-				fetchUserInviteLink: async () => null
-			};
-
-			const crownDevelopment = {
-				Lpa: { email: 'lpa1@example.com' }
-			};
-
-			const result = await grantLpaSharePointAccess(mockSharePointDrive, crownDevelopment, 'caseRoot');
-			assert.strictEqual(result, null);
 		});
 	});
 });

@@ -35,6 +35,11 @@ type CommonNotificationPersonalisation = {
 	siteAddress: string;
 };
 
+export type InvitationPersonalisation = {
+	email: string;
+	link: string;
+};
+
 type SendAcknowledgementOfRepresentationPersonalisation = CommonNotificationPersonalisation & {
 	addressee: string;
 	submittedDate: string;
@@ -68,22 +73,30 @@ export class GovNotifyClient {
 	}
 
 	async sendAcknowledgePreNotification(
-		email: string,
-		{ reference, sharePointLink, isLbcCase = false }: { reference: string; sharePointLink: string; isLbcCase?: boolean }
+		invitationPersonalisation: InvitationPersonalisation,
+		{ reference, isLbcCase = false }: { reference: string; isLbcCase?: boolean }
 	): Promise<void> {
-		await this.sendEmail(this.templateIds.acknowledgePreNotification, email, {
-			personalisation: { reference, sharePointLink, isLbcCase: isLbcCase ? 'yes' : 'no' },
+		await this.sendEmail(this.templateIds.acknowledgePreNotification, invitationPersonalisation.email, {
+			personalisation: {
+				reference,
+				sharePointLink: invitationPersonalisation.link,
+				isLbcCase: isLbcCase ? 'yes' : 'no'
+			},
 			reference: reference
 		});
 	}
 
 	async sendAcknowledgePreNotificationToMany(
-		emailAddresses: string[],
-		{ reference, sharePointLink, isLbcCase = false }: { reference: string; sharePointLink: string; isLbcCase?: boolean }
+		invitationPersonalisation: InvitationPersonalisation[],
+		{ reference, isLbcCase = false }: { reference: string; isLbcCase?: boolean }
 	): Promise<void> {
 		return this.sendToMany(
-			emailAddresses,
-			(address) => this.sendAcknowledgePreNotification(address, { reference, sharePointLink, isLbcCase }),
+			invitationPersonalisation.map((p) => p.email),
+			(address) =>
+				this.sendAcknowledgePreNotification(
+					invitationPersonalisation.find((p) => p.email === address) as InvitationPersonalisation,
+					{ reference, isLbcCase }
+				),
 			'Failed to send acknowledge pre-notification to one or more email addresses.'
 		);
 	}
@@ -145,7 +158,7 @@ export class GovNotifyClient {
 
 	async sendLpaQuestionnaireNotification(
 		email: string,
-		personalisation: CommonNotificationPersonalisation
+		personalisation: CommonNotificationPersonalisation & { sharePointLink: string }
 	): Promise<void> {
 		await this.sendEmail(this.templateIds.lpaQuestionnaireSentNotification, email, {
 			personalisation: personalisation,

@@ -5,9 +5,9 @@ import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { toCreateInput } from './save.js';
 
 describe('save', () => {
-	//I need to mock copyDriveItem which is a method of getSharepointDrive
 	const today = new Date();
 	const mockReference = `CROWN/${today.getFullYear()}/0000001`;
+
 	describe('buildSaveController', () => {
 		const dbMock = () => {
 			return {
@@ -30,13 +30,23 @@ describe('save', () => {
 				}
 			};
 		};
-
+		const appEntraMock = () => {
+			return {
+				addUsersAsGuests: mock.fn((emails) =>
+					emails.map((email) => ({
+						email,
+						inviteRedeemUrl: null // existing user — no retry needed
+					}))
+				)
+			};
+		};
 		const mockService = () => {
 			return {
 				sharePointCaseTemplateId: '789',
 				db: dbMock(),
 				logger: mockLogger(),
 				appSharePointDrive: null,
+				appEntraClient: appEntraMock(),
 				notifyClient: null,
 				audit: {
 					record: mock.fn(() => Promise.resolve())
@@ -61,7 +71,6 @@ describe('save', () => {
 				)
 			);
 		});
-
 		it('should call create with a valid payload and skip sharepoint when sharepoint is disabled', async () => {
 			const service = mockService();
 			const db = service.db;
@@ -99,7 +108,6 @@ describe('save', () => {
 			assert.strictEqual(service.logger.warn.mock.callCount(), 2);
 			// todo: integration test to run Prisma's validation?
 		});
-
 		it('should call create with a valid payload', async () => {
 			const service = mockService();
 			const { db } = service;
@@ -135,14 +143,13 @@ describe('save', () => {
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
 			// todo: integration test to run Prisma's validation?
 		});
-
 		it('should create linked case and sharepoint folder when case is Planning and LBC', async () => {
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
 				getItemsByPath: mock.fn(() => {
 					return [
-						{ id: 'id1', name: 'Applicant' },
-						{ id: 'id2', name: 'LPA' }
+						{ id: 'id1', name: 'Applicant', webUrl: 'https://sharepoint.com/applicant' },
+						{ id: 'id2', name: 'LPA', webUrl: 'https://sharepoint.com/lpa' }
 					];
 				}),
 				getDriveItemByPath: mock.fn(() => {
@@ -151,16 +158,11 @@ describe('save', () => {
 					};
 				}),
 				addItemPermissions: mock.fn(),
-				fetchUserInviteLink: mock.fn(() => {
-					return {
-						link: {
-							webUrl: 'https://sharepoint.com/:f:/s/site/random_id'
-						}
-					};
-				})
+				fetchUserInviteLink: mock.fn(() => 'https://sharepoint.com/:f:/s/site/random_id')
 			};
 			const service = mockService();
 			service.appSharePointDrive = sharepointDrive;
+			service.appEntraClient = appEntraMock();
 			const { db } = service;
 			const save = buildSaveController(service);
 			const answers = {
@@ -206,20 +208,7 @@ describe('save', () => {
 			});
 			assert.deepStrictEqual(linkedCaseData.SubType, { connect: { id: 'listed-building-consent' } });
 			assert.deepStrictEqual(linkedCaseData.ParentCrownDevelopment, { connect: { id: 'id-1' } });
-
-			assert.strictEqual(sharepointDrive.copyDriveItem.mock.callCount(), 2);
-			assert.strictEqual(sharepointDrive.getItemsByPath.mock.callCount(), 2);
-			assert.strictEqual(sharepointDrive.addItemPermissions.mock.callCount(), 2);
-			assert.deepStrictEqual(sharepointDrive.addItemPermissions.mock.calls[0].arguments[1], {
-				role: 'write',
-				users: [{ email: 'applicant@test.com', id: '' }]
-			});
-			assert.deepStrictEqual(sharepointDrive.addItemPermissions.mock.calls[1].arguments[1], {
-				role: 'write',
-				users: [{ email: 'applicant@test.com', id: '' }]
-			});
 		});
-
 		it('should record a CASE_CREATED audit event after the case is created', async () => {
 			const service = mockService();
 			const save = buildSaveController(service);
@@ -252,7 +241,6 @@ describe('save', () => {
 			assert.strictEqual(auditArg.userId, 'user-123');
 			assert.deepStrictEqual(auditArg.metadata, { reference: mockReference });
 		});
-
 		it('should call copyDriveItem and grant write access to the applicant when sharepoint is enabled and no agent email is provided', async () => {
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
@@ -270,13 +258,7 @@ describe('save', () => {
 					};
 				}),
 				addItemPermissions: mock.fn(),
-				fetchUserInviteLink: mock.fn(() => {
-					return {
-						link: {
-							webUrl: 'https://sharepoint.com/:f:/s/site/random_id'
-						}
-					};
-				})
+				fetchUserInviteLink: mock.fn(() => 'https://sharepoint.com/:f:/s/site/random_id')
 			};
 			const service = mockService();
 			service.appSharePointDrive = sharepointDrive;
@@ -314,7 +296,7 @@ describe('save', () => {
 
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
 			assert.strictEqual(sharepointDrive.copyDriveItem.mock.callCount(), 1);
-			assert.strictEqual(sharepointDrive.getItemsByPath.mock.callCount(), 1);
+			assert.strictEqual(sharepointDrive.getItemsByPath.mock.callCount(), 2);
 			assert.strictEqual(sharepointDrive.addItemPermissions.mock.callCount(), 1);
 			assert.deepStrictEqual(sharepointDrive.addItemPermissions.mock.calls[0].arguments[1], {
 				role: 'write',
@@ -338,13 +320,7 @@ describe('save', () => {
 					};
 				}),
 				addItemPermissions: mock.fn(),
-				fetchUserInviteLink: mock.fn(() => {
-					return {
-						link: {
-							webUrl: 'https://sharepoint.com/:f:/s/site/random_id'
-						}
-					};
-				})
+				fetchUserInviteLink: mock.fn(() => 'https://sharepoint.com/:f:/s/site/random_id')
 			};
 			const service = mockService();
 			service.appSharePointDrive = sharepointDrive;
@@ -391,7 +367,7 @@ describe('save', () => {
 
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
 			assert.strictEqual(sharepointDrive.copyDriveItem.mock.callCount(), 1);
-			assert.strictEqual(sharepointDrive.getItemsByPath.mock.callCount(), 1);
+			assert.strictEqual(sharepointDrive.getItemsByPath.mock.callCount(), 2);
 			assert.strictEqual(sharepointDrive.addItemPermissions.mock.callCount(), 1);
 			assert.deepStrictEqual(sharepointDrive.addItemPermissions.mock.calls[0].arguments[1], {
 				role: 'write',
@@ -416,13 +392,7 @@ describe('save', () => {
 					};
 				}),
 				addItemPermissions: mock.fn(),
-				fetchUserInviteLink: mock.fn(() => {
-					return {
-						link: {
-							webUrl: 'https://sharepoint.com/:f:/s/site/random_id'
-						}
-					};
-				})
+				fetchUserInviteLink: mock.fn(() => 'https://sharepoint.com/:f:/s/site/random_id')
 			};
 			const notifyClient = {
 				sendAcknowledgePreNotificationToMany: mock.fn()
@@ -477,10 +447,9 @@ describe('save', () => {
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
 			assert.strictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.callCount(), 1);
 			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.calls[0].arguments, [
-				['applicantEmail@mail.com'],
+				[{ email: 'applicantEmail@mail.com', link: 'https://sharepoint.com/:f:/s/site/random_id' }],
 				{
 					reference: mockReference,
-					sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id',
 					isLbcCase: false
 				}
 			]);
@@ -500,13 +469,7 @@ describe('save', () => {
 					};
 				}),
 				addItemPermissions: mock.fn(),
-				fetchUserInviteLink: mock.fn(() => {
-					return {
-						link: {
-							webUrl: 'https://sharepoint.com/:f:/s/site/random_id'
-						}
-					};
-				})
+				fetchUserInviteLink: mock.fn(() => 'https://sharepoint.com/:f:/s/site/random_id')
 			};
 			const notifyClient = {
 				sendAcknowledgePreNotificationToMany: mock.fn()
@@ -561,10 +524,9 @@ describe('save', () => {
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
 			assert.strictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.callCount(), 1);
 			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.calls[0].arguments, [
-				['agentEmail@mail.com'], // Only agent email
+				[{ email: 'agentEmail@mail.com', link: 'https://sharepoint.com/:f:/s/site/random_id' }], // Only agent email
 				{
 					reference: mockReference,
-					sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id',
 					isLbcCase: false
 				}
 			]);
@@ -587,12 +549,10 @@ describe('save', () => {
 				fetchUserInviteLink: mock.fn()
 			};
 			// Provide sequential implementations: first Planning, then LBC
-			sharepointDrive.fetchUserInviteLink.mock.mockImplementationOnce(() => ({
-				link: { webUrl: 'https://sharepoint.com/:f:/s/site/planning_link' }
-			}));
-			sharepointDrive.fetchUserInviteLink.mock.mockImplementation(() => ({
-				link: { webUrl: 'https://sharepoint.com/:f:/s/site/lbc_link' }
-			}));
+			sharepointDrive.fetchUserInviteLink.mock.mockImplementationOnce(
+				() => 'https://sharepoint.com/:f:/s/site/planning_link'
+			);
+			sharepointDrive.fetchUserInviteLink.mock.mockImplementation(() => 'https://sharepoint.com/:f:/s/site/lbc_link');
 			const notifyClient = {
 				sendAcknowledgePreNotificationToMany: mock.fn()
 			};
@@ -646,18 +606,16 @@ describe('save', () => {
 			assert.strictEqual(res.redirect.mock.callCount(), 1);
 			assert.strictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.callCount(), 2);
 			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.calls[0].arguments, [
-				['applicantEmail@mail.com'],
+				[{ email: 'applicantEmail@mail.com', link: 'https://sharepoint.com/:f:/s/site/planning_link' }],
 				{
 					reference: mockReference,
-					sharePointLink: 'https://sharepoint.com/:f:/s/site/planning_link',
 					isLbcCase: false
 				}
 			]);
 			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.calls[1].arguments, [
-				['applicantEmail@mail.com'],
+				[{ email: 'applicantEmail@mail.com', link: 'https://sharepoint.com/:f:/s/site/lbc_link' }],
 				{
 					reference: `${mockReference}/LBC`,
-					sharePointLink: 'https://sharepoint.com/:f:/s/site/lbc_link',
 					isLbcCase: true
 				}
 			]);
@@ -702,7 +660,6 @@ describe('save', () => {
 				{ message: 'answers should be an object' }
 			);
 		});
-
 		it('should throw when sharepoint is enabled but template ID is not configured', async () => {
 			const service = mockService();
 			service.appSharePointDrive = { copyDriveItem: mock.fn() };
@@ -727,7 +684,6 @@ describe('save', () => {
 					'SharePoint case template ID is not configured. Please set the sharePointCaseTemplateId environment variable.'
 			});
 		});
-
 		it('should send email to many recipients when multiple applicants is live', async () => {
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
@@ -736,9 +692,7 @@ describe('save', () => {
 					{ id: 'id2', name: 'LPA' }
 				]),
 				addItemPermissions: mock.fn(),
-				fetchUserInviteLink: mock.fn(() => ({
-					link: { webUrl: 'https://sharepoint.com/:f:/s/site/random_id' }
-				}))
+				fetchUserInviteLink: mock.fn(() => 'https://sharepoint.com/:f:/s/site/random_id')
 			};
 
 			const notifyClient = {
@@ -799,16 +753,17 @@ describe('save', () => {
 
 			assert.strictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.callCount(), 1);
 			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.calls[0].arguments, [
-				['alex@example.com', 'sam@example.com'],
+				[
+					{ email: 'alex@example.com', link: 'https://sharepoint.com/:f:/s/site/random_id' },
+					{ email: 'sam@example.com', link: 'https://sharepoint.com/:f:/s/site/random_id' }
+				],
 				{
 					reference: mockReference,
-					sharePointLink: 'https://sharepoint.com/:f:/s/site/random_id',
 					isLbcCase: false
 				}
 			]);
 			assert.strictEqual(notifyClient.sendAcknowledgePreNotification.mock.callCount(), 0);
 		});
-
 		it('should grant write access to applicant and agent contacts when multiple applicants is live', async () => {
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
@@ -817,9 +772,7 @@ describe('save', () => {
 					{ id: 'id2', name: 'LPA' }
 				]),
 				addItemPermissions: mock.fn(),
-				fetchUserInviteLink: mock.fn(() => ({
-					link: { webUrl: 'https://sharepoint.com/:f:/s/site/random_id' }
-				}))
+				fetchUserInviteLink: mock.fn(() => 'https://sharepoint.com/:f:/s/site/random_id')
 			};
 
 			const service = mockService();
@@ -874,7 +827,6 @@ describe('save', () => {
 				]
 			});
 		});
-
 		it('should only grant write access for contacts with an email when multiple applicants is live', async () => {
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
@@ -883,9 +835,7 @@ describe('save', () => {
 					{ id: 'id2', name: 'LPA' }
 				]),
 				addItemPermissions: mock.fn(),
-				fetchUserInviteLink: mock.fn(() => ({
-					link: { webUrl: 'https://sharepoint.com/:f:/s/site/random_id' }
-				}))
+				fetchUserInviteLink: mock.fn(() => 'https://sharepoint.com/:f:/s/site/random_id')
 			};
 
 			const service = mockService();
@@ -944,7 +894,6 @@ describe('save', () => {
 				users: [{ email: 'sam@example.com', id: '' }]
 			});
 		});
-
 		it('should throw when SharePoint invite link is missing in multiple applicants flow', async () => {
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
@@ -985,7 +934,91 @@ describe('save', () => {
 
 			await assert.rejects(() => save({}, res), { message: 'Failed to get SharePoint invite link' });
 		});
+		it('should use redeemUrl for new users and SharePoint link for existing users', async (ctx) => {
+			ctx.mock.timers.enable({ apis: ['setTimeout', 'setImmediate'] });
+			const sharepointDrive = {
+				copyDriveItem: mock.fn(),
+				getItemsByPath: mock.fn(() => [
+					{ id: 'id1', name: 'Applicant' },
+					{ id: 'id2', name: 'LPA' }
+				]),
+				getDriveItemByPath: mock.fn(() => ({
+					webUrl: 'www.test-sharepoint.com/folder'
+				})),
+				addItemPermissions: mock.fn(),
+				fetchUserInviteLink: mock.fn(() => 'https://sharepoint.com/:f:/s/site/fallback_link')
+			};
 
+			const notifyClient = {
+				sendAcknowledgePreNotificationToMany: mock.fn()
+			};
+
+			const service = mockService();
+			service.appSharePointDrive = sharepointDrive;
+			service.notifyClient = notifyClient;
+			service.appEntraClient = {
+				addUsersAsGuests: mock.fn((emails) =>
+					emails.map((email, i) => ({
+						userPrincipalName: email,
+						// First user is new (has redeemUrl), second user already exists
+						inviteRedeemUrl: i === 0 ? `https://invite.url/${email}` : null
+					}))
+				)
+			};
+
+			const save = buildSaveController(service);
+
+			const answers = {
+				developmentDescription: 'Project One',
+				typeOfApplication: 'application-type-1',
+				lpaId: 'lpa-1',
+				hasAgent: false,
+				manageApplicantDetails: [{ id: 'org-1', organisationName: 'Test Org' }],
+				manageApplicantContactDetails: [
+					{
+						applicantContactEmail: 'new-user@mail.com',
+						applicantFirstName: 'New',
+						applicantLastName: 'User',
+						applicantContactOrganisation: 'org-1'
+					},
+					{
+						applicantContactEmail: 'existing-user@mail.com',
+						applicantFirstName: 'Existing',
+						applicantLastName: 'User',
+						applicantContactOrganisation: 'org-1'
+					}
+				]
+			};
+
+			const res = {
+				redirect: mock.fn(),
+				locals: {
+					journeyResponse: { answers }
+				}
+			};
+
+			await save({}, res, mock.fn());
+			// Background retry hasn't fired yet, only exising users will have been granted access to SharePoint
+			assert.strictEqual(sharepointDrive.addItemPermissions.mock.callCount(), 1);
+
+			ctx.mock.timers.tick(20000); // Wait for the async email sending to complete
+			// Allow microtasks/promises to flush
+			await Promise.resolve();
+
+			// Background retry has now fired, all users have been granted access to SharePoint
+			assert.strictEqual(sharepointDrive.addItemPermissions.mock.callCount(), 2);
+			assert.strictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.callCount(), 1);
+			assert.deepStrictEqual(notifyClient.sendAcknowledgePreNotificationToMany.mock.calls[0].arguments, [
+				[
+					{ email: 'new-user@mail.com', link: 'https://invite.url/new-user@mail.com' },
+					{ email: 'existing-user@mail.com', link: 'https://sharepoint.com/:f:/s/site/fallback_link' }
+				],
+				{
+					reference: mockReference,
+					isLbcCase: false
+				}
+			]);
+		});
 		it('should call sendAcknowledgePreNotificationToMany for planning and LBC and also send LBC acknowledgement', async () => {
 			const sharepointDrive = {
 				copyDriveItem: mock.fn(),
@@ -1007,7 +1040,7 @@ describe('save', () => {
 						? 'https://sharepoint.com/:f:/s/site/planning_link'
 						: 'https://sharepoint.com/:f:/s/site/lbc_link';
 
-				return { link: { webUrl } };
+				return webUrl;
 			});
 
 			const notifyClient = {
@@ -1057,10 +1090,9 @@ describe('save', () => {
 					(args) =>
 						JSON.stringify(args) ===
 						JSON.stringify([
-							['alex@example.com'],
+							[{ email: 'alex@example.com', link: 'https://sharepoint.com/:f:/s/site/planning_link' }],
 							{
 								reference: mockReference,
-								sharePointLink: 'https://sharepoint.com/:f:/s/site/planning_link',
 								isLbcCase: false
 							}
 						])
@@ -1073,10 +1105,9 @@ describe('save', () => {
 					(args) =>
 						JSON.stringify(args) ===
 						JSON.stringify([
-							['alex@example.com'],
+							[{ email: 'alex@example.com', link: 'https://sharepoint.com/:f:/s/site/lbc_link' }],
 							{
 								reference: `${mockReference}/LBC`,
-								sharePointLink: 'https://sharepoint.com/:f:/s/site/lbc_link',
 								isLbcCase: true
 							}
 						])
@@ -1155,7 +1186,6 @@ describe('save', () => {
 			assert.ok(orgCreateArgs.data.OrganisationToContact);
 			assert.ok(Array.isArray(orgCreateArgs.data.OrganisationToContact.create));
 		});
-
 		it('should connect both linked cases to the same shared organisations when case is Planning and LBC', async () => {
 			const service = mockService();
 			const { db } = service;
@@ -1228,7 +1258,6 @@ describe('save', () => {
 				'org-db-id-2'
 			]);
 		});
-
 		it('should not create cases if shared organisation creation fails for linked case flow', async () => {
 			const service = mockService();
 			const { db } = service;

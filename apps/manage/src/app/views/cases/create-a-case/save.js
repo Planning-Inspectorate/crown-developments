@@ -2,7 +2,11 @@ import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/l
 import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { JOURNEY_ID } from './journey.js';
 import { toFloat } from '@pins/crowndev-lib/util/numbers.ts';
-import { caseReferenceToFolderName, getSharePointReceivedPathId } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import {
+	caseReferenceToFolderName,
+	getSharePointReceivedPathId,
+	getSharePointReceivedPathLink
+} from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import {
 	APPLICATION_SUB_TYPE_ID,
@@ -11,16 +15,17 @@ import {
 } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { getLinkedCaseId, hasLinkedCase as hasLinkedCaseFunction } from '@pins/crowndev-lib/util/linked-case.ts';
 import { extractAgentContactFields, extractApplicantContactFields } from '../util/contact.js';
-import { getRecipientEmails } from '../view/notification.js';
 import { AUDIT_ACTIONS } from '../../../audit/index.ts';
+import { retryGrantPermissions } from '#util/sharepoint.js';
 
 /**
  * @typedef {import('./types.d.ts').CreateCaseAnswers} CreateCaseAnswers
  * @typedef {import('@pins/crowndev-database').Prisma.CrownDevelopmentCreateInput} CrownDevelopmentCreateInput
  * @typedef {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} SharePointDrive
- * @typedef {import('@pins/crowndev-lib/govnotify/gov-notify-client.js').GovNotifyClient} GovNotifyClient
- * @typedef {{ kind: 'many', recipientEmails: string[], sharePointLink: string }} NotificationDataMany
- * @typedef {{ kind: 'one', recipientEmail: string, sharePointLink: string }} NotificationDataOne
+ * @typedef {import('@pins/crowndev-lib/govnotify/gov-notify-client.ts').GovNotifyClient} GovNotifyClient
+ * @typedef {import('@pins/crowndev-lib/govnotify/gov-notify-client.ts').InvitationPersonalisation} InvitationPersonalisation
+ * @typedef {{ kind: 'many', invitationPersonalisation: InvitationPersonalisation[] }} NotificationDataMany
+ * @typedef {{ kind: 'one', invitationPersonalisation: InvitationPersonalisation }} NotificationDataOne
  * @typedef {NotificationDataMany | NotificationDataOne} NotificationData
  */
 
@@ -124,9 +129,9 @@ export function buildSaveController(service) {
 				'SharePoint not enabled, to use SharePoint functionality setup SharePoint environment variables. See README'
 			);
 		} else {
-			notificationData = await getNotificationData(service, appSharePointDrive, reference, answers);
+			notificationData = await getNotificationData(service, reference, answers);
 			if (isPlanningAndLbcCase) {
-				lbcNotificationData = await getNotificationData(service, appSharePointDrive, lbcReference, answers);
+				lbcNotificationData = await getNotificationData(service, lbcReference, answers);
 			}
 		}
 		// todo: redirect to check-your-answers on failure?
@@ -545,18 +550,23 @@ function idFromReference(reference = '') {
 /**
  * Grant Sharepoint access to all relevant users for a case, including multiple applicants if applicable.
  *
- * @param {SharePointDrive} sharePointDrive
+ * @param {import('#service').ManageService} service
  * @param {import('./types.d.ts').CreateCaseAnswers} answers
  * @param {string} folderName
- * @returns {Promise<import('@microsoft/microsoft-graph-types').Permission>}
+ * @returns {Promise<Array<{ email: string, link: string }>>}
  */
-async function grantUsersAccess(sharePointDrive, answers, folderName) {
-	const applicantReceivedFolderId = await getSharePointReceivedPathId(sharePointDrive, {
+async function grantUsersAccess(service, answers, folderName) {
+	const { appSharePointDrive, appEntraClient, logger } = service;
+	const applicantReceivedFolderId = await getSharePointReceivedPathId(appSharePointDrive, {
 		caseRootName: folderName,
 		user: 'Applicant'
 	});
 
-	/** @type {Array<{ email: string, id: string }>} */
+	const applicantReceivedFolderUrl = await getSharePointReceivedPathLink(appSharePointDrive, {
+		caseRootName: folderName,
+		user: 'Applicant'
+	});
+
 	const users = [];
 
 	if (hasAnswers(answers, 'manageApplicantContactDetails')) {
@@ -575,39 +585,61 @@ async function grantUsersAccess(sharePointDrive, answers, folderName) {
 		});
 	}
 
-	await sharePointDrive.addItemPermissions(applicantReceivedFolderId, { role: 'write', users: users });
-	// todo: Add LPA permissions too.
+	const emails = users.map((u) => u.email);
+	const guestResults = await appEntraClient.addUsersAsGuests(emails, applicantReceivedFolderUrl);
 
-	return sharePointDrive.fetchUserInviteLink(applicantReceivedFolderId);
+	// Existing users — grant immediately (will succeed)
+	const existingUsers = users.filter((_, i) => !guestResults[i].inviteRedeemUrl);
+	if (existingUsers.length > 0) {
+		await appSharePointDrive.addItemPermissions(applicantReceivedFolderId, {
+			role: 'write',
+			users: existingUsers
+		});
+	}
+
+	// New users — fire-and-forget with delay
+	const newUsers = users.filter((_, i) => guestResults[i].inviteRedeemUrl);
+	if (newUsers.length > 0) {
+		void retryGrantPermissions(appSharePointDrive, applicantReceivedFolderId, newUsers, logger);
+	}
+
+	const existingUserInviteLink = await appSharePointDrive.fetchUserInviteLink(applicantReceivedFolderId);
+	if (!existingUserInviteLink) {
+		throw new Error('Failed to get SharePoint invite link');
+	}
+
+	return emails.map((email, i) => ({
+		email,
+		link: guestResults[i].inviteRedeemUrl || existingUserInviteLink
+	}));
 }
 
 /**
  * Copy the SharePoint case template, grant access to all relevant users, validate the invite link
  * and return notification data for multiple recipients.
  *
- * @param {SharePointDrive} sharePointDrive
- * @param {string} caseTemplateId
+ * @param {import('#service').ManageService} service
  * @param {string} folderName
  * @param {import('./types.d.ts').CreateCaseAnswers} answers
  * @returns {Promise<NotificationDataMany>}
  */
-async function createCaseSharePointActions(sharePointDrive, caseTemplateId, folderName, answers) {
+async function createCaseSharePointActions(service, folderName, answers) {
+	const { sharePointCaseTemplateId, appSharePointDrive } = service;
 	// Copy template folder structure and rename to %folderName%
-	await sharePointDrive.copyDriveItem({
-		copyItemId: caseTemplateId,
+	await appSharePointDrive.copyDriveItem({
+		copyItemId: sharePointCaseTemplateId,
 		newItemName: folderName
 	});
 	// Grant write access to applicant and agent as required
-	const inviteLink = await grantUsersAccess(sharePointDrive, answers, folderName);
+	const inviteLinks = await grantUsersAccess(service, answers, folderName);
 
-	if (!inviteLink || !inviteLink.link || !inviteLink.link.webUrl) {
+	if (!inviteLinks || inviteLinks.length === 0) {
 		throw new Error('Failed to get SharePoint invite link');
 	}
 
 	return {
 		kind: 'many',
-		recipientEmails: getRecipientEmails(answers),
-		sharePointLink: inviteLink.link.webUrl
+		invitationPersonalisation: inviteLinks
 	};
 }
 
@@ -635,16 +667,15 @@ async function sendAcknowledgementPreNotification(
 	try {
 		switch (notificationData.kind) {
 			case 'many':
-				await notifyClient.sendAcknowledgePreNotificationToMany(notificationData.recipientEmails, {
+				await notifyClient.sendAcknowledgePreNotificationToMany(notificationData.invitationPersonalisation, {
 					reference: reference,
-					sharePointLink: notificationData.sharePointLink,
 					isLbcCase
 				});
 				break;
+			// TODO: Do we need this? Where does kind = 'one'
 			case 'one':
-				await notifyClient.sendAcknowledgePreNotification(notificationData.recipientEmail, {
+				await notifyClient.sendAcknowledgePreNotification(notificationData.invitationPersonalisation, {
 					reference: reference,
-					sharePointLink: notificationData.sharePointLink,
 					isLbcCase
 				});
 				break;
@@ -659,22 +690,16 @@ async function sendAcknowledgementPreNotification(
  * Get the data needed to send a notification email, including generating the SharePoint folder and invite link.
  *
  * @param {import('#service').ManageService} service
- * @param {SharePointDrive} appSharePointDrive
  * @param {string} reference
  * @param {import('./types.d.ts').CreateCaseAnswers} answers
- * @returns {Promise<NotificationData>}
+ * @returns {Promise<NotificationDataMany>}
  */
-async function getNotificationData(service, appSharePointDrive, reference, answers) {
+async function getNotificationData(service, reference, answers) {
 	if (!service.sharePointCaseTemplateId) {
 		throw new Error(
 			'SharePoint case template ID is not configured. Please set the sharePointCaseTemplateId environment variable.'
 		);
 	}
 
-	return await createCaseSharePointActions(
-		appSharePointDrive,
-		service.sharePointCaseTemplateId,
-		caseReferenceToFolderName(reference),
-		answers
-	);
+	return await createCaseSharePointActions(service, caseReferenceToFolderName(reference), answers);
 }

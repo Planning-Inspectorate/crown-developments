@@ -119,4 +119,75 @@ describe('EntraClient', () => {
 			});
 		}
 	});
+	describe('addUsersAsGuests', () => {
+		const mockClient = () => {
+			return {
+				api() {
+					return this;
+				},
+				filter() {
+					return this;
+				},
+				select() {
+					return this;
+				},
+				get: mock.fn(() => ({ value: [] })),
+				post: mock.fn(() => ({ value: [] }))
+			};
+		};
+		it('should skip existing users and not return an inviteRedeemUrl for them', async () => {
+			const client = mockClient();
+			client.get.mock.mockImplementation(() => {
+				return {
+					value: [{ id: '123', email: 'user.one@mail.com' }]
+				};
+			});
+			const entra = new EntraClient(client);
+			const results = await entra.addUsersAsGuests(['user.one@mail.com'], 'http://www.test.com');
+			assert.strictEqual(client.get.mock.callCount(), 1);
+			assert.strictEqual(results.length, 1);
+			assert.strictEqual(results[0].email, 'user.one@mail.com');
+			assert.strictEqual(results[0].inviteRedeemUrl, null);
+		});
+		it('should invite users that do not exist in Entra and return an inviteRedeemUrl for them', async () => {
+			const client = mockClient();
+			// client.get.mock.mockImplementation(() => ({
+			// 	value: [{ id: '123', email: 'user.one@mail.com' }]
+			// }))
+			client.post.mock.mockImplementation(() => {
+				return {
+					inviteRedeemUrl: 'http://www.test.com/redeem',
+					invitedUserEmailAddress: 'user.one@mail.com'
+				};
+			});
+			const entra = new EntraClient(client);
+			const results = await entra.addUsersAsGuests(['user.one@mail.com'], 'http://www.test.com');
+			assert.strictEqual(client.get.mock.callCount(), 1);
+			assert.strictEqual(results.length, 1);
+			assert.strictEqual(results[0].email, 'user.one@mail.com');
+			assert.strictEqual(results[0].inviteRedeemUrl, 'http://www.test.com/redeem');
+		});
+		it('should be able to handle an array of mixed existing and non existing users', async () => {
+			const client = mockClient();
+			client.get.mock.mockImplementationOnce(() => {
+				return {
+					value: [{ id: '123', email: 'user.one@mail.com' }]
+				};
+			});
+			client.post.mock.mockImplementation(() => {
+				return {
+					inviteRedeemUrl: 'http://www.test.com/redeem',
+					invitedUserEmailAddress: 'user.two@mail.com'
+				};
+			});
+			const entra = new EntraClient(client);
+			const results = await entra.addUsersAsGuests(['user.one@mail.com', 'user.two@mail.com'], 'http://www.test.com');
+			assert.strictEqual(client.get.mock.callCount(), 2);
+			assert.strictEqual(results.length, 2);
+			assert.strictEqual(results[0].email, 'user.one@mail.com');
+			assert.strictEqual(results[0].inviteRedeemUrl, null);
+			assert.strictEqual(results[1].email, 'user.two@mail.com');
+			assert.strictEqual(results[1].inviteRedeemUrl, 'http://www.test.com/redeem');
+		});
+	});
 });
