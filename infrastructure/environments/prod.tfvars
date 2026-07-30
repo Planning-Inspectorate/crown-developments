@@ -28,6 +28,7 @@ apps_config = {
     s62a_portal_not_live = true
     s62a_manage_not_live = true
     case_notes_not_live  = true
+    audit_not_live       = true
   }
 
   dynamic_cache_control = {

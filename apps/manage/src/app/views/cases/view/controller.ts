@@ -172,7 +172,7 @@ async function getBannerMessages(id: string, res: Response, req: Request, db: Ma
 /**
  * Controller for the case details page, which shows the case summary and the list of sections to manage.
  */
-export function buildViewCaseDetails({ db, getSharePointDrive, isCaseNotesLive }: ManageService): Handler {
+export function buildViewCaseDetails({ db, getSharePointDrive, isCaseNotesLive, isAuditLive }: ManageService): Handler {
 	return async (req, res) => {
 		const reference = getJourneyAnswers(res)?.reference;
 		if (!reference) {
@@ -212,6 +212,7 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isCaseNotesLive }
 			hideButton: true,
 			hideStatus: true,
 			isCaseNotesLive,
+			isAuditLive,
 			banner,
 			notes,
 			allCaseNotesCount,

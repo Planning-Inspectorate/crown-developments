@@ -46,9 +46,11 @@
 						</li>
 					{% endif %}
 				{% endfor %}
-				<li>
-					<a href="#case-audit-log" class="govuk-link govuk-link--no-visited-state">Case audit log</a>
-				</li>
+				{% if isAuditLive %}
+					<li>
+						<a href="#case-audit-log" class="govuk-link govuk-link--no-visited-state">Case audit log</a>
+					</li>
+				{% endif %}
 			</ul>
 
 			{% if isCaseNotesLive %}
@@ -114,6 +116,7 @@
 					}) }}
 				{% endif %}
 			{% endfor %}
+			{% if isAuditLive %}
 			{{ govukSummaryList({
 				card: {
 					title: {
@@ -157,6 +160,7 @@
 					}
 				]
 			}) }}
+			{% endif %}
 		</div>
 	</div>
 

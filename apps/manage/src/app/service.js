@@ -160,6 +160,10 @@ export class ManageService {
 		return this.#config.featureFlags?.isCaseNotesLive;
 	}
 
+	get isAuditLive() {
+		return this.#config.featureFlags?.isAuditLive;
+	}
+
 	get secureSession() {
 		return this.#config.NODE_ENV === 'production';
 	}
