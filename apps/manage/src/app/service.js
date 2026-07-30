@@ -19,7 +19,7 @@ import { initBlobStore } from '@pins/crowndev-lib/blob-store/index.ts';
  */
 export class ManageService {
 	/**
-	 * @type {import('./config-types.js').Config}
+	 * @type {import('./config.ts').Config}
 	 */
 	#config;
 	/**
@@ -64,7 +64,7 @@ export class ManageService {
 	blobStoreClient;
 
 	/**
-	 * @param {import('./config-types.js').Config} config
+	 * @param {import('./config.ts').Config} config
 	 */
 	constructor(config) {
 		this.#config = config;
@@ -102,9 +102,6 @@ export class ManageService {
 		return this.#config.appName;
 	}
 
-	/**
-	 * @type {import('./config-types.js').Config['auth']}
-	 */
 	get authConfig() {
 		return this.#config.auth;
 	}

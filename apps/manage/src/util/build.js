@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { loadBuildConfig } from '../app/config.js';
+import { loadBuildConfig } from '../app/config.ts';
 import { runBuild } from '@pins/crowndev-lib/util/build.ts';
 
 /**
