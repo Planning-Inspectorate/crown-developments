@@ -28,7 +28,7 @@
                             Showing <strong>{{ paginationParams.resultsStartNumber }}</strong> to <strong>{{ paginationParams.resultsEndNumber if paginationParams.totalItems > paginationParams.resultsEndNumber else paginationParams.totalItems }}</strong>
                             of <strong>{{ paginationParams.totalItems }}</strong> results
                         </span>
-						<span class="pins-pagination-options">
+						<span class="pins-float-right">
                             {{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalItems, baseUrl, queryParams) }}
                         </span>
 					</p>
@@ -48,7 +48,7 @@
 
 								{{ govukAccordion({
 									id: "files-accordion-" + loop.index0,
-									classes: "hide-controls govuk-!-margin-top-2 pins-clean-accordion",
+									classes: "pins-accordion--hide-controls govuk-!-margin-top-2",
 									hideAllSections: true,
 									showSectionText: "Show files",
 									hideSectionText: "Hide files",

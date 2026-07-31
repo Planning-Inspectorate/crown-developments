@@ -1,6 +1,7 @@
 @use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
 @use 'sass:map';
 
+// stylelint-disable -- TODO migrate to new header styles in lib CROWN-1510
 /// pins colours
 $pins-colours-grey-100: govuk.govuk-colour('black', $variant: 'tint-95');
 $pins-colours-blue-500: govuk.govuk-colour('blue');
@@ -8,7 +9,7 @@ $pins-colours-green-200: #13a19b;
 $pins-colours-teal-100: #10847e;
 
 .pins-width-container {
-	@include govuk.govuk-width-container();
+	@include govuk.govuk-width-container;
 }
 
 .pins-header__navigation--align-right {
@@ -18,13 +19,13 @@ $pins-colours-teal-100: #10847e;
 }
 
 .pins-header-service-name {
-	text-align: left;
 	margin-bottom: 5px;
+	text-align: left;
 }
 
 nav.govuk-header__navigation.pins-header-navigation {
-	text-align: left;
 	padding: 0;
+	text-align: left;
 
 	.govuk-header__navigation-list {
 		.govuk-header__navigation-item {
@@ -43,22 +44,24 @@ nav.govuk-header__navigation.pins-header-navigation {
 // TODO remove in CROWN-1510
 .pins-header-navigation {
 	.govuk-header__navigation-list {
-		margin: 0;
 		padding: 0;
+		margin: 0;
 		list-style: none;
+
 		.govuk-header__navigation-item {
 			padding: govuk.govuk-spacing(2) 0;
 
 			@media #{govuk.govuk-from-breakpoint(desktop)} {
 				display: inline-block;
-				margin-right: govuk.govuk-spacing(3);
 				padding: govuk.govuk-spacing(1) 0;
+				margin-right: govuk.govuk-spacing(3);
 				border: 0;
 			}
 
 			a {
 				@include govuk.govuk-font-size($size: 16);
 				@include govuk.govuk-typography-weight-regular;
+
 				white-space: nowrap;
 			}
 		}
@@ -79,6 +82,7 @@ nav.govuk-header__navigation.pins-header-navigation {
 			}
 		}
 	}
+
 	.govuk-header__link {
 		@include govuk.govuk-link-style-inverse;
 
@@ -98,48 +102,49 @@ nav.govuk-header__navigation.pins-header-navigation {
 		}
 	}
 }
+
 // End section to remove in CROWN-1510
 
 #pins-header {
-	background: govuk.govuk-colour('white');
-	color: govuk.govuk-colour('black');
 	display: inline-block;
 	width: 100%;
 	padding: 1rem 0;
-	border-bottom: 0.5rem solid $pins-colours-green-200;
 	margin-bottom: 1rem;
+	color: govuk.govuk-colour('black');
+	background: govuk.govuk-colour('white');
+	border-bottom: 0.5rem solid $pins-colours-green-200;
 
 	.pins-row {
-		width: 100%;
 		display: flex;
+		width: 100%;
 	}
 
 	.pins-column {
 		&--left {
-			height: 5.5rem;
-			border-left: 2px solid $pins-colours-green-200;
-			padding-left: 7px;
 			width: 25%;
+			height: 5.5rem;
+			padding-left: 7px;
+			border-left: 2px solid $pins-colours-green-200;
 
 			span {
-				font-size: 1.125rem;
 				display: table-caption;
+				font-size: 1.125rem;
 				line-height: 1.25;
 			}
 		}
 
 		&--central {
-			font-weight: 700;
-			font-size: 1.5rem;
-			text-align: center;
 			margin-top: 10px;
+			font-size: 1.5rem;
+			font-weight: 700;
+			text-align: center;
 		}
 
 		&--right {
-			width: 40%;
 			display: flex;
 			align-items: center;
 			justify-content: flex-end;
+			width: 40%;
 
 			> a {
 				margin-left: 3rem;
@@ -150,16 +155,16 @@ nav.govuk-header__navigation.pins-header-navigation {
 
 .pins-header__logo {
 	display: inline-block;
-	height: 32px;
 	width: 39px;
+	height: 32px;
 }
 
 .pins-header__logo-crown {
 	display: inherit;
-	background-image: url('/govuk-crest-black.svg');
-	background-size: 100% 100%;
 	width: inherit;
 	height: inherit;
-	background-position: center center;
+	background-image: url('/govuk-crest-black.svg');
 	background-repeat: no-repeat;
+	background-position: center center;
+	background-size: 100% 100%;
 }

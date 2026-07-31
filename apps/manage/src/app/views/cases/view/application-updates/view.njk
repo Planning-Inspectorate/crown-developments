@@ -29,7 +29,7 @@
                         Showing <strong>{{ paginationParams.resultsStartNumber }}</strong> to <strong>{{ paginationParams.resultsEndNumber if paginationParams.totalItems > paginationParams.resultsEndNumber else paginationParams.totalItems }}</strong>
                         of <strong>{{ paginationParams.totalItems }}</strong> results
                     </span>
-					<span class="pins-pagination-options">
+					<span class="pins-float-right">
                         {{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalItems, baseUrl, queryParams) }}
                     </span>
 				</p>

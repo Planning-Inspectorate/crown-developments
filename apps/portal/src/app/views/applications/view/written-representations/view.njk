@@ -16,8 +16,8 @@
 	<div class="govuk-grid-row">
 		<div class="govuk-grid-column-one-third">
 			{{ applicationLinks(links, currentUrl) }}
-			<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible pins-sidebar-alignment">
-			<div class="desktop-default">
+			<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible pins-application-links__section-break">
+			<div class="pins-visible-from-tablet">
 				<form id="search-filter-form" method="GET">
 					<input type="hidden" name="searchCriteria" value="{{ searchValue }}">
 					<input type="hidden" name="itemsPerPage" value="{{ paginationParams.selectedItemsPerPage }}">
@@ -94,7 +94,7 @@
 						}, searchValue) }}
 					</form>
 					{# only show on mobile #}
-					<div class="mobile-default">
+					<div class="pins-visible-until-tablet">
 						<form id="search-filter-form-mobile" method="GET">
 							<input type="hidden" name="formType" value="mobile">
 							<input type="hidden" name="searchCriteria" value="{{ searchValue }}">

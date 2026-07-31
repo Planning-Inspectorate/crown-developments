@@ -19,9 +19,9 @@
 {% endmacro %}
 
 {% macro stageItem(stage) %}
-	<div class="pins-application-stage-summary-row">
-		<details class="govuk-details pins-details-summary" {% if stage.isCurrentStage %} open="open"{% endif %}>
-			<summary class="govuk-details__summary pins-application-stage-summary-content">
+	<div class="pins-application-stage-summary__row">
+		<details class="govuk-details pins-application-stage-summary__details" {% if stage.isCurrentStage %} open="open"{% endif %}>
+			<summary class="govuk-details__summary pins-application-stage-summary__content">
 				<div class="govuk-details__summary-text">
 					<span>{{ stage.stageDisplayName }}</span>
 				</div>

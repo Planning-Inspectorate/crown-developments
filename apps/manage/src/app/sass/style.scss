@@ -1,108 +1,34 @@
-$font-family: arial, helvetica, sans-serif;
+@use 'packages/lib/views/styles/brand/pins-fonts' as brand-fonts;
 
 @forward 'node_modules/@ministryofjustice/frontend/moj/all' with (
 	// don't use the GDS Transport font, this service is not on GOV.UK
 	// https://www.gov.uk/service-manual/design/making-your-service-look-like-govuk#if-your-service-isnt-on-govuk
 	// MOJ loads govuk-frontend, so we can't call `with` when we import it
-	$moj-font-family: $font-family
+	$moj-font-family: brand-fonts.$font-family
 );
 @use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
-@use './header';
-@use './sub-navigation';
-@use './accordion';
-@use './multi-file-upload';
-@use './documents-table';
 
-@use 'packages/lib/views/header/pins-header.scss';
+// Shared page layout from lib
+@use 'packages/lib/views/header/pins-header';
 
-// set font-family for any autocomplete menu items
-.autocomplete__menu {
-	font-family: $font-family;
-}
+// Shared components from lib
+@use 'packages/lib/views/styles/components/pins-upload-bar';
 
-@media (min-width: 1440px) {
-	.pins-container-wide {
-		max-width: 1280px;
-	}
-}
+// Shared helpers from lib
+@use 'packages/lib/views/styles/helpers/typography';
+@use 'packages/lib/views/styles/helpers/layout';
 
-.pins-white-space-pre-wrap {
-	white-space: pre-wrap;
-}
-.pins-white-space-pre-line {
-	white-space: pre-line;
-}
+// App-level helpers
+@use './helpers/layout' as manage-layout;
 
-.status-tag-width {
-	max-width: 250px !important;
-}
-
-.pins-select--width-4 {
-	min-width: 4.5em !important;
-	max-width: 4.5em !important;
-}
-
-.filter-container {
-	background-color: govuk.govuk-colour('black', $variant: 'tint-95');
-}
-
-.filter-box {
-	.govuk-checkboxes {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-	}
-}
-
-.row-inline {
-	display: flex;
-	gap: 8px;
-}
-
-.pins-dashboard-box {
-	padding: govuk.govuk-spacing(5) govuk.govuk-spacing(5) 1px;
-	margin-bottom: govuk.govuk-spacing(7);
-	box-shadow:
-		0 2px 0 govuk.govuk-colour('black', $variant: 'tint-80'),
-		inset 2px 0 0 govuk.govuk-colour('black', $variant: 'tint-80'),
-		inset -2px 0 0 govuk.govuk-colour('black', $variant: 'tint-80'),
-		inset 0 4px 0 govuk.govuk-colour('blue');
-
-	&--title {
-		margin-bottom: govuk.govuk-spacing(4);
-	}
-
-	&--form {
-		position: relative;
-	}
-
-	&--btn {
-		margin-top: govuk.govuk-spacing(2);
-		margin-bottom: 2px;
-	}
-}
-
-.pins-pagination-options {
-	float: right;
-}
-.uploading-bar--hidden {
-	display: none;
-	margin-bottom: 1em;
-}
-.uploading-bar--visible {
-	display: block;
-	margin-bottom: 1em;
-}
-
-%pins-button-reset {
-	font-size: 1em;
-	background: none;
-	border: none;
-	padding: 0;
-	cursor: pointer;
-}
-
-.pins-button-link {
-	@extend %pins-button-reset;
-	@extend .govuk-link;
-	@extend .govuk-link--no-visited-state;
-}
+// App-level components
+@use './to-migrate/header';
+@use './overrides/autocomplete';
+@use './components/pins-accordion';
+@use './components/pins-button-link';
+@use './components/pins-dashboard-box';
+@use './components/pins-documents-table';
+@use './components/pins-multi-file-upload';
+@use './components/pins-search-filter';
+@use './components/pins-sub-navigation';
+@use './components/pins-tag';

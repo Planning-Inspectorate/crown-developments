@@ -1,9 +1,9 @@
 {% macro applicationLinks(links, currentUrl) %}
 	<nav aria-label="Application page navigation">
-		<ul class="govuk-list application-links">
+		<ul class="govuk-list pins-application-links">
 			{% for link in links %}
 				{% if link.href == currentUrl or link.href in currentUrl %}
-					<li class="application-links__active">
+					<li class="pins-application-links--active">
 						<strong>{{ link.text }}</strong>
 					</li>
 				{% else %}

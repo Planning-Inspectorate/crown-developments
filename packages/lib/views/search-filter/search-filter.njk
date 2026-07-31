@@ -1,22 +1,20 @@
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
 
 {% macro searchFilters(filters) %}
-	<div class="filter-container govuk-!-padding-4 govuk-!-margin-bottom-4">
+	<div class="pins-search-filter govuk-!-padding-4 govuk-!-margin-bottom-4">
 		<div class="govuk-form-group">
-			<div class="filter-box">
-				{{ govukCheckboxes({
-					name: "filters",
-					classes: "govuk-checkboxes--small",
-					fieldset: {
-						legend: {
-							text: "Filter",
-							isPageHeading: false,
-							classes: "govuk-fieldset__legend--m"
-						}
-					},
-					items: filters
-				}) }}
-			</div>
+			{{ govukCheckboxes({
+				name: "filters",
+				classes: "govuk-checkboxes--small",
+				fieldset: {
+					legend: {
+						text: "Filter",
+						isPageHeading: false,
+						classes: "govuk-fieldset__legend--m"
+					}
+				},
+				items: filters
+			}) }}
 		</div>
 		<button class="govuk-button" id="toggleButton" data-module="govuk-button">
 			Apply filters

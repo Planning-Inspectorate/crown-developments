@@ -1,0 +1,26 @@
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
+
+.pins-document-list {
+	margin: 0;
+
+	> li {
+		@include govuk.govuk-responsive-padding(2, 'top');
+		@include govuk.govuk-responsive-padding(5, 'bottom');
+
+		margin: 0;
+		border-top: 1px solid govuk.govuk-functional-colour('border');
+
+		&:first-child {
+			padding-top: 0;
+			border-top: 0;
+		}
+	}
+}
+
+.pins-document-list__meta-data {
+	@include govuk.govuk-responsive-margin(1, 'top');
+
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	color: govuk.govuk-functional-colour('secondary-text');
+}

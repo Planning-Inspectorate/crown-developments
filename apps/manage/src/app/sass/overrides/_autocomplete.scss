@@ -1,0 +1,7 @@
+@use 'packages/lib/views/styles/brand/pins-fonts' as brand-fonts;
+
+// set font-family for any autocomplete menu items
+// stylelint-disable-next-line selector-class-pattern -- externally-defined component
+.autocomplete__menu {
+	font-family: brand-fonts.$font-family;
+}

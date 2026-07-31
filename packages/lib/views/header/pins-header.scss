@@ -1,4 +1,4 @@
-@use '../brand/pins-colors' as brand;
+@use '../styles/brand/pins-colors' as brand;
 @use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
 
 header.govuk-header.pins-header {
@@ -7,25 +7,25 @@ header.govuk-header.pins-header {
 	background: brand.$pins-grey-100;
 	border-bottom: 0.5rem solid brand.$pins-green-200;
 
-	&.pins-header__external {
-		color: govuk.govuk-colour('white');
-		background-color: brand.$pins-mhclg-green;
-		font-family: govuk.$govuk-font-family;
+	svg {
+		height: 40px;
 
-		& svg {
-			fill: govuk.govuk-colour('white');
-
-			& rect {
-				fill: govuk.govuk-colour('white');
-			}
+		rect {
+			fill: brand.$pins-mhclg-green;
 		}
 	}
 
-	& svg {
-		height: 40px;
+	&.pins-header__external {
+		font-family: govuk.$govuk-font-family;
+		color: govuk.govuk-colour('white');
+		background-color: brand.$pins-mhclg-green;
 
-		& rect {
-			fill: brand.$pins-mhclg-green;
+		svg {
+			fill: govuk.govuk-colour('white');
+
+			rect {
+				fill: govuk.govuk-colour('white');
+			}
 		}
 	}
 }
@@ -33,8 +33,8 @@ header.govuk-header.pins-header {
 // Override GOV.UK default service navigation
 .pins-navigation {
 	&.govuk-service-navigation {
-		border-bottom: 1px solid govuk.govuk-colour('black', $variant: 'tint-80');
 		background: brand.$pins-grey-100;
+		border-bottom: 1px solid govuk.govuk-colour('black', $variant: 'tint-80');
 	}
 
 	.govuk-service-navigation__item--active {

@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block pageContent %}
-	<div class="govuk-grid-row row-inline">
+	<div class="govuk-grid-row pins-grid-row--inline">
 		<div class="govuk-grid-column-two-thirds pins-dashboard-box">
 			<form id="search-bar-form" method="GET" action="{{ buildUrlWithParams(baseUrl, queryParams, { page: 1 }) }}">
 				{{ searchBar({
@@ -31,7 +31,7 @@
 			</form>
 		</div>
 	</div>
-	<div class="govuk-grid-row row-inline">
+	<div class="govuk-grid-row pins-grid-row--inline">
 		<div id="pagination" class="govuk-body">
 			{% if s62aCasesViewModels|length == 0 %}
 				<p class="govuk-body">No results were found.</p>

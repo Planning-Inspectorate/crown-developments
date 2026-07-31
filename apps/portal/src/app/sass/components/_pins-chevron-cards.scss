@@ -2,14 +2,14 @@
 
 .pins-chevron-card {
 	&__wrapper {
-		border-top: 1px solid govuk.govuk-colour('black', $variant: 'tint-80');
 		padding: 15px 0;
 		margin-bottom: 20px;
+		border-top: 1px solid govuk.govuk-colour('black', $variant: 'tint-80');
 	}
 
 	&__heading {
-		margin-bottom: 10px;
 		position: relative;
+		margin-bottom: 10px;
 	}
 
 	&__link {
@@ -17,25 +17,24 @@
 	}
 
 	&__link::after {
-		content: '';
 		position: absolute;
-		border-style: solid;
-		border-width: 0.2rem 0.2rem 0 0;
-		height: 0.45rem;
-		width: 0.45rem;
 		top: 50%;
 		right: 0;
-		transform: translateY(-50%) rotate(45deg);
+		width: 0.45rem;
+		height: 0.45rem;
 		color: govuk.govuk-colour('blue');
-	}
-	&__link::before {
 		content: '';
-		position: absolute;
-		top: 0;
-		right: 0;
-		bottom: 0;
-		left: 0;
+		border-style: solid;
+		border-width: 0.2rem 0.2rem 0 0;
+		transform: translateY(-50%) rotate(45deg);
 	}
+
+	&__link::before {
+		position: absolute;
+		inset: 0;
+		content: '';
+	}
+
 	&__description {
 		margin: 0.25rem 1.25rem 0 0;
 	}

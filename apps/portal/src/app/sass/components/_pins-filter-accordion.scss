@@ -1,5 +1,7 @@
 @use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
 
+// stylelint-disable -- TODO CROWN-1695 simplify styles and fix linting errors (use MPESC as reference)
+
 %govuk-link-reset {
 	@extend .govuk-link;
 	@extend .govuk-link--no-visited-state;
@@ -10,17 +12,19 @@
 
 	&__title {
 		@extend .govuk-heading-m;
+
 		display: block;
 	}
 
 	&__show-hide-all-filters-button {
 		@extend %govuk-link-reset;
 		@include govuk.govuk-responsive-margin(4, 'bottom');
+
+		padding: 0;
 		font-size: 1em;
+		cursor: pointer;
 		background: none;
 		border: none;
-		padding: 0;
-		cursor: pointer;
 
 		&:focus {
 			@include govuk.govuk-focused-text;
@@ -28,13 +32,13 @@
 	}
 
 	&__section {
-		border-bottom: 1px solid govuk.govuk-colour('black', $variant: 'tint-80');
 		padding: 1rem 0 0 0.9375rem;
+		border-bottom: 1px solid govuk.govuk-colour('black', $variant: 'tint-80');
 	}
 
 	&__section:last-child {
-		border-bottom: none;
 		padding-bottom: 1.5rem;
+		border-bottom: none;
 	}
 
 	.govuk-form-group {
@@ -44,11 +48,12 @@
 	&__section-summary {
 		@extend .govuk-heading-s;
 		@extend %govuk-link-reset;
+
 		display: flex;
-		font-weight: normal !important;
-		align-items: center;
 		gap: 0.5rem;
+		align-items: center;
 		width: 100%;
+		font-weight: normal !important;
 		color: govuk.govuk-colour('blue');
 		text-decoration: none;
 		cursor: pointer;
@@ -59,16 +64,16 @@
 		}
 
 		&::before {
-			content: '';
 			display: block;
 			flex: 0 0 1em;
 			width: 1em;
 			height: 1em;
+			margin: 0;
+			line-height: 0;
+			vertical-align: middle;
+			content: '';
 			background: govuk.govuk-colour('black');
 			clip-path: polygon(6.38% 22.63%, 49.5% 65.75%, 92.63% 22.63%, 100% 30%, 50% 80%, 0% 30%);
-			margin: 0;
-			vertical-align: middle;
-			line-height: 0;
 			transform-origin: center;
 		}
 	}
@@ -79,18 +84,18 @@
 }
 
 .filter-selected-tag {
+	padding: 4px 12px;
 	margin: 0;
 	background: govuk.govuk-colour('black', $variant: 'tint-95');
 	border: solid 1px govuk.govuk-colour('black', $variant: 'tint-80');
-	padding: 4px 12px;
 
 	&__remove-button {
-		background: none;
-		border: none;
 		padding: 0;
 		margin-right: 8px;
 		font-size: 1em;
 		line-height: 1;
 		cursor: pointer;
+		background: none;
+		border: none;
 	}
 }
