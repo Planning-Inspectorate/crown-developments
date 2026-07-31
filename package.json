@@ -20,9 +20,13 @@
     "db-generate": "npm run generate --workspace @pins/crowndev-database",
     "db-seed": "npm run seed --workspace @pins/crowndev-database",
     "db-seed-prod": "npm run seed:prod --workspace @pins/crowndev-database",
-    "format": "prettier --write .",
+    "format": "npm run format:prettier && npm run format:css",
+    "format:prettier": "prettier --write .",
+    "format:css": "stylelint \"**/*.{css,scss}\" --fix",
     "format-check": "prettier --check .",
-    "lint": "npx eslint .",
+    "lint": "npm run lint:ts && npm run lint:css",
+    "lint:ts": "npx eslint .",
+    "lint:css": "stylelint \"**/*.{css,scss}\"",
     "prepare": "node .husky/install.mjs",
     "test": "node --test",
     "test-coverage": "node --test --experimental-test-coverage",
@@ -93,6 +97,12 @@
     "prettier-plugin-prisma": "^5.0.0",
     "prisma": "^7.9.1",
     "sass": "^1.102.0",
+    "stylelint": "^17.14.1",
+    "stylelint-config-prettier-scss": "^1.0.0",
+    "stylelint-config-recess-order": "^7.7.0",
+    "stylelint-config-standard-scss": "^17.0.0",
+    "stylelint-order": "^8.1.1",
+    "stylelint-scss": "^7.2.0",
     "supertest": "^7.2.2",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.63.0"
@@ -100,6 +110,9 @@
   "lint-staged": {
     "*.{js,ts}": [
       "eslint --fix"
+    ],
+    "*.{css,scss}": [
+      "stylelint --fix"
     ],
     "*.{js,ts,json,md,prisma,yml,yaml,scss}": [
       "prettier --write"
