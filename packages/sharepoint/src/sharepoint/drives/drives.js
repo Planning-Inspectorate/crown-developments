@@ -230,7 +230,7 @@ export class SharePointDrive {
 	}
 
 	/**
-	 * @typedef { code: string, message: string } ErrorDetail
+	 * @typedef { {code: string, message: string} } ErrorDetail
 	 */
 
 	/**

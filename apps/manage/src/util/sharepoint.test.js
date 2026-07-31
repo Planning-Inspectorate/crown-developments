@@ -4,7 +4,7 @@ import { grantLpaSharePointAccess, retryGrantPermissions } from './sharepoint.js
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 
 describe('retryGrantPermissions', () => {
-	it('should succeed on first retry attempt', async (ctx) => {
+	it('should grant permissions and log success when first attempt succeeds', async (ctx) => {
 		ctx.mock.timers.enable({ apis: ['setTimeout'] });
 
 		const logger = mockLogger();
@@ -20,7 +20,7 @@ describe('retryGrantPermissions', () => {
 		assert.strictEqual(sharePointDrive.addItemPermissions.mock.callCount(), 1);
 		assert.strictEqual(logger.info.mock.callCount(), 1);
 	});
-	it('should retry on failure and succeed on second attempt', async (ctx) => {
+	it('should retry on failure and grant permissions and log success when second attempt succeeds', async (ctx) => {
 		ctx.mock.timers.enable({ apis: ['setTimeout', 'setImmediate'] });
 
 		const logger = mockLogger();

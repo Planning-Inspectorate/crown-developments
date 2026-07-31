@@ -151,9 +151,6 @@ describe('EntraClient', () => {
 		});
 		it('should invite users that do not exist in Entra and return an inviteRedeemUrl for them', async () => {
 			const client = mockClient();
-			// client.get.mock.mockImplementation(() => ({
-			// 	value: [{ id: '123', email: 'user.one@mail.com' }]
-			// }))
 			client.post.mock.mockImplementation(() => {
 				return {
 					inviteRedeemUrl: 'http://www.test.com/redeem',

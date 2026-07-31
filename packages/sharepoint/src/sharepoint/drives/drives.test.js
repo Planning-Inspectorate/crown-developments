@@ -416,6 +416,82 @@ describe('drives', () => {
 				assert.strictEqual(client.api.mock.callCount(), 0);
 			}
 		});
+		test('should return empty failures array when all invitations succeed with allowPartialSuccess', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+			const users = [
+				{ email: 'user1@gmail.com', id: '1' },
+				{ email: 'user2@gmail.com', id: '2' }
+			];
+
+			const result = await sharePointDrive.addItemPermissions(itemId, {
+				allowPartialSuccess: true,
+				role: 'write',
+				users
+			});
+
+			// Each user gets their own API call
+			assert.strictEqual(client.api.mock.callCount(), 2);
+			assert.strictEqual(client.post.mock.callCount(), 2);
+			assert.deepStrictEqual(result, []);
+		});
+
+		test('should return failures for users that fail when allowPartialSuccess is true', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+			const users = [
+				{ email: 'good@gmail.com', id: '1' },
+				{ email: 'bad@gmail.com', id: '2' }
+			];
+
+			let callCount = 0;
+			client.post = mock.fn(async () => {
+				callCount++;
+				if (callCount === 2) {
+					const err = new Error('User not found');
+					err.statusCode = 404;
+					err.code = 'Request_ResourceNotFound';
+					throw err;
+				}
+			});
+
+			const result = await sharePointDrive.addItemPermissions(itemId, {
+				allowPartialSuccess: true,
+				role: 'write',
+				users
+			});
+
+			assert.strictEqual(result.length, 1);
+			assert.strictEqual(result[0].email, 'bad@gmail.com');
+			assert.strictEqual(result[0].error.code, 'Request_ResourceNotFound');
+			assert.strictEqual(result[0].error.message, 'User not found');
+		});
+
+		test('should not throw when all users fail and allowPartialSuccess is true', async () => {
+			const client = mockClient();
+			const itemId = 'testItem';
+			driveId = 'testDriveId';
+			sharePointDrive = new SharePointDrive(client, driveId);
+			const users = [{ email: 'bad@gmail.com', id: '1' }];
+
+			client.post = mock.fn(async () => {
+				throw new Error('Something went wrong');
+			});
+
+			const result = await sharePointDrive.addItemPermissions(itemId, {
+				allowPartialSuccess: true,
+				role: 'write',
+				users
+			});
+
+			assert.strictEqual(result.length, 1);
+			assert.strictEqual(result[0].email, 'bad@gmail.com');
+			assert.strictEqual(result[0].error.code, 'unknown');
+		});
 	});
 	describe('updateItemPermission', () => {
 		test('should update an item permission', async () => {

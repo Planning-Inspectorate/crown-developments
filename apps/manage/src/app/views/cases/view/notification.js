@@ -168,6 +168,13 @@ export async function sendLpaQuestionnaireSentNotification(service, id) {
 			});
 		});
 
+		if (inviteLinks.some((link) => !link)) {
+			logger.warn(
+				{ reference: crownDevelopmentFields.reference },
+				'Some invite links are missing for LPA questionnaire sent notification'
+			);
+		}
+
 		await Promise.all(notifyRequests);
 	} catch (error) {
 		logger.error(
