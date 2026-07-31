@@ -268,7 +268,9 @@ model S62aCase {
   PreApplicationAdvice    S62aPreApplicationAdvice? @relation(fields: [preApplicationAdviceId], references: [id])
   preApplicationReference String?
 
-  Folders Folder[]
+  Folders        Folder[]
+  Documents      Document[]
+  DraftDocuments DraftDocument[]
 }
 
 model S62aApplicantType {
@@ -470,18 +472,52 @@ model S62aToApplicant {
 /// Folder model
 /// Contains folders created for each case that will contain documents.
 model Folder {
-  id             String    @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  id             String          @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
   displayName    String
   displayOrder   Int?
-  parentFolderId String?   @db.UniqueIdentifier
-  s62aCaseId     String?   @db.UniqueIdentifier
-  isCustom       Boolean   @default(false)
+  parentFolderId String?         @db.UniqueIdentifier
+  s62aCaseId     String?         @db.UniqueIdentifier
+  isCustom       Boolean         @default(false)
   deletedAt      DateTime?
-  S62aCase       S62aCase? @relation(fields: [s62aCaseId], references: [id])
-  ParentFolder   Folder?   @relation("FolderTree", fields: [parentFolderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  ChildFolders   Folder[]  @relation("FolderTree")
+  S62aCase       S62aCase?       @relation(fields: [s62aCaseId], references: [id])
+  ParentFolder   Folder?         @relation("FolderTree", fields: [parentFolderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  ChildFolders   Folder[]        @relation("FolderTree")
+  Documents      Document[]
+  DraftDocuments DraftDocument[]
 
   @@unique([s62aCaseId, displayName, parentFolderId, deletedAt])
+}
+
+model Document {
+  id           String    @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  fileName     String
+  uploadedDate DateTime  @default(now())
+  size         BigInt    @default(0)
+  blobName     String
+  mimeType     String    @default("application/octet-stream")
+  deletedAt    DateTime?
+  s62aCaseId   String    @db.UniqueIdentifier
+  S62aCase     S62aCase  @relation(fields: [s62aCaseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  folderId     String    @db.UniqueIdentifier
+  Folder       Folder    @relation(fields: [folderId], references: [id], onDelete: Cascade)
+}
+
+/// Indicates a document that has been uploaded
+/// to blob but has not yet been committed as a 
+/// real document in the DB.
+model DraftDocument {
+  id         String   @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  sessionKey String
+  s62aCaseId String   @db.UniqueIdentifier
+  S62aCase   S62aCase @relation(fields: [s62aCaseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  folderId   String   @db.UniqueIdentifier
+  Folder     Folder   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  fileName   String
+  blobName   String
+  size       BigInt
+  mimeType   String   @default("application/octet-stream")
+
+  @@index([sessionKey, s62aCaseId])
 }
 
 /// Address represents an address of a property or place
