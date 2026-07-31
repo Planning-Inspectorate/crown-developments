@@ -10,8 +10,8 @@
 	.moj-multi-file-upload__col-name {
 		flex: 0 0 65%;
 		min-width: 0;
-		word-break: break-word;
 		padding-right: govuk.govuk-spacing(3);
+		overflow-wrap: break-word;
 	}
 
 	.moj-multi-file-upload__col-status {
@@ -27,13 +27,14 @@
 	.moj-multi-file-upload__col-actions {
 		flex: 0 0 auto;
 		padding-right: 0;
-		text-align: right;
 		margin-bottom: govuk.govuk-spacing(1);
+		text-align: right;
 	}
 
 	.moj-multi-file-upload__col-actions:empty {
 		display: none;
 	}
+
 	.moj-multi-file-upload--enhanced {
 		.moj-multi-file-upload__dropzone {
 			outline: 2px dashed govuk.govuk-colour('black', $variant: 'tint-50');

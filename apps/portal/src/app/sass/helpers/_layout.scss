@@ -1,0 +1,15 @@
+.pins-visible-from-tablet {
+	display: none;
+
+	@media (width > 768px) {
+		display: block;
+	}
+}
+
+.pins-visible-until-tablet {
+	display: block;
+
+	@media (width > 768px) {
+		display: none;
+	}
+}

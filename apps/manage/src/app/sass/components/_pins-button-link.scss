@@ -1,0 +1,16 @@
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
+
+%pins-button-reset {
+	padding: 0;
+	font-size: 1em;
+	cursor: pointer;
+	background: none;
+	border: none;
+}
+
+.pins-button-link {
+	@extend %pins-button-reset;
+	@include govuk.govuk-link-common;
+	@include govuk.govuk-link-style-default;
+	@include govuk.govuk-link-style-no-visited-state;
+}

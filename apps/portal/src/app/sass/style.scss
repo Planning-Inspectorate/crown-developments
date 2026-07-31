@@ -1,80 +1,32 @@
-$font-family: Arial, Helvetica, sans-serif;
+@use 'packages/lib/views/styles/brand/pins-fonts' as brand-fonts;
 
 @forward 'node_modules/@ministryofjustice/frontend/moj/all' with (
 	// don't use the GDS Transport font, this service is not on GOV.UK
 	// https://www.gov.uk/service-manual/design/making-your-service-look-like-govuk#if-your-service-isnt-on-govuk
 	// MOJ loads govuk-frontend, so we can't call `with` when we import it
-	$moj-font-family: $font-family
+	$moj-font-family: brand-fonts.$font-family
 );
 @use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
 
-@use 'packages/lib/views/header/pins-header.scss';
-@use 'packages/lib/views/footer/pins-footer.scss';
+// Shared page layout from lib
+@use 'packages/lib/views/header/pins-header';
+@use 'packages/lib/views/footer/pins-footer';
 
-@use './components/application-links.scss';
-@use './components/pins-table.scss';
-@use './components/document-list.scss';
-@use './components/intro-to-service-panel';
-@use './components/pins-chevron-cards.scss';
+// Shared helpers from lib
+@use 'packages/lib/views/styles/helpers/typography';
+@use 'packages/lib/views/styles/helpers/layout';
+
+// Shared components from lib
+@use 'packages/lib/views/styles/components/pins-upload-bar';
+
+// App-level helpers
+@use 'helpers/layout' as portal-layout;
+
+// App-level components
+@use 'components/pins-application-links';
+@use 'components/pins-application-stage-summary';
+@use 'components/pins-table';
+@use 'components/pins-document-list';
+@use 'components/pins-info';
+@use 'components/pins-chevron-cards';
 @use 'components/pins-filter-accordion';
-
-.row-inline {
-	display: flex;
-	gap: 8px;
-}
-
-.pins-pre-wrap {
-	white-space: pre-wrap;
-}
-.pins-pre-line {
-	white-space: pre-line;
-}
-.pins-overflow-break-word {
-	overflow-wrap: break-word;
-}
-.uploading-bar--hidden {
-	display: none;
-	margin-bottom: 1em;
-}
-.uploading-bar--visible {
-	display: block;
-	margin-bottom: 1em;
-}
-.pins-details-summary {
-	margin: 10px 0 10px 0;
-}
-.pins-application-stage-summary-content {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	width: calc(100% - 25px); // account for default padding
-}
-.pins-application-stage-summary-row {
-	display: block;
-	width: 100%;
-	border-bottom: 1px solid govuk.govuk-colour('black', $variant: 'tint-80');
-}
-.pins-application-stage-summary-row:last-child {
-	border-bottom: none;
-}
-
-.pins-sidebar-alignment {
-	margin-left: calc(-0.7em);
-}
-
-.mobile-default {
-	display: none;
-}
-
-.desktop-default {
-	display: block;
-}
-
-@media (max-width: 768px) {
-	.mobile-default {
-		display: block;
-	}
-	.desktop-default {
-		display: none;
-	}
-}

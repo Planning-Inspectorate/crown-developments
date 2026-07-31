@@ -11,7 +11,7 @@
 
 {% block pageContent %}
 
-	<div class="govuk-grid-row row-inline">
+	<div class="govuk-grid-row pins-grid-row--inline">
 		<div class="govuk-grid-column-two-thirds pins-dashboard-box">
 			<form id="search-bar-form" method="GET" action="{{ buildUrlWithParams(baseUrl, queryParams, { page: 1 }) }}">
 				{{ searchBar({

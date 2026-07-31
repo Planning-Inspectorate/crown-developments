@@ -1,0 +1,26 @@
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
+
+// stylelint-disable-next-line color-no-hex -- TODO CROWN-1704 confirm background colour as this is not in brand
+$unconfirmed-bg-colour: #00847f;
+
+.pins-info {
+	box-sizing: border-box;
+	width: 100%;
+	color: govuk.govuk-colour('white');
+	background-color: $unconfirmed-bg-colour;
+	border-bottom: none;
+
+	// Hack to make background colour full-width
+	box-shadow: 0 0 0 100vmax $unconfirmed-bg-colour;
+	clip-path: inset(0 -100vmax);
+}
+
+.pins-info__heading {
+	margin: 0;
+	color: govuk.govuk-colour('white');
+}
+
+.pins-info__body {
+	margin-top: 20px;
+	color: govuk.govuk-colour('white');
+}

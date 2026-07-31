@@ -62,7 +62,7 @@
 									}) }}
 								</noscript>
 							</form>
-							<a href="#" role="button" class="js-remove-link govuk-link js-enabled-link"
+							<a href="#" role="button" class="js-remove-link govuk-link pins-js-enabled-link"
 								 data-form-id="removeRedactedForm">Remove<span class="govuk-visually-hidden"> redacted attachment</span></a>
 						{% endif %}
 					</dd>
@@ -150,7 +150,7 @@
 		});
 
 		window.addEventListener('DOMContentLoaded', () => {
-			const links = document.querySelectorAll('.js-enabled-link');
+			const links = document.querySelectorAll('.pins-js-enabled-link');
 			links.forEach(link => {
 				link.style.display = 'inline';
 			});

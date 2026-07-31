@@ -1,0 +1,10 @@
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
+
+.pins-search-filter {
+	background-color: govuk.govuk-colour('black', $variant: 'tint-95');
+
+	.govuk-checkboxes {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+	}
+}

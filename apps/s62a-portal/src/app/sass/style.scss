@@ -1,14 +1,11 @@
-@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk with (
-	$govuk-font-family: (
-		Arial,
-		Helvetica,
-		sans-serif
-	)
-);
-@use './components/pins-table.scss';
-@use 'packages/lib/views/header/pins-header.scss';
-@use 'packages/lib/views/footer/pins-footer.scss';
+@use 'packages/lib/views/styles/brand/pins-fonts' as brand-fonts;
 
-.show-line-breaks {
-	white-space: pre;
-}
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk with (
+	$govuk-font-family: brand-fonts.$font-family
+);
+
+@use 'packages/lib/views/header/pins-header';
+@use 'packages/lib/views/footer/pins-footer';
+
+@use './components/pins-table';
+@use './util/util';

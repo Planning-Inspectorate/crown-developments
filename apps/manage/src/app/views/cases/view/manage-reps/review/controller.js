@@ -875,12 +875,12 @@ function getReviewTaskStatus(status) {
 		case REPRESENTATION_STATUS_ID.ACCEPTED:
 			return {
 				text: 'Accepted',
-				classes: 'govuk-tag--green status-tag-width'
+				classes: 'govuk-tag--green pins-tag--unbound'
 			};
 		case ACCEPT_AND_REDACT:
 			return {
 				text: 'Accepted and redacted',
-				classes: 'govuk-tag--green status-tag-width'
+				classes: 'govuk-tag--green pins-tag--unbound'
 			};
 		case REPRESENTATION_STATUS_ID.REJECTED:
 			return {

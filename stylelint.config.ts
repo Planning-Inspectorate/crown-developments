@@ -7,11 +7,11 @@ export default {
 		'selector-max-compound-selectors': 3,
 		// prevent use of ID selectors as they are too high specificity
 		'selector-max-id': [0, { message: 'ID selectors not allowed as they are too specific' }],
-		// All classes should be BEM and begin with `govuk-` or `pins-` so it's clear where they're defined
+		// All classes should be BEM and begin with `pins-` or package prefix so it's clear where they're defined
 		'selector-class-pattern': [
 			'^(govuk-|pins-|moj-)[a-z0-9]+(?:-[a-z0-9]+)*(?:__(?:[a-z0-9]+(?:-[a-z0-9]+)*))?(?:--(?:[a-z0-9]+(?:-[a-z0-9]+)*))?$',
 			{
-				message: 'Selector should have pins- prefix and use lowercase BEM syntax'
+				message: 'Selector should have pins- or package prefix and use lowercase BEM syntax'
 			}
 		],
 		// We should always use either

@@ -74,7 +74,7 @@
 										}) }}
 									</noscript>
 								</form>
-								<a href="#" role="button" class="js-remove-link govuk-link js-enabled-link"
+								<a href="#" role="button" class="js-remove-link govuk-link pins-js-enabled-link"
 									 data-form-id="deleteForm{{ loop.index }}">Remove <span
 										class="govuk-visually-hidden">{{ file.fileName }}</span></a>
 							</dd>
@@ -87,7 +87,7 @@
 
 			<form id={{ uploadForm }} method="post" enctype="multipart/form-data" action="{{ currentUrl }}/upload-documents">
 				<input type="hidden" name="_csrf" value="{{ _csrf }}">
-				<div id="uploadingBar" class="govuk-notification-banner govuk-notification-banner--info uploading-bar--hidden"
+				<div id="uploadingBar" class="govuk-notification-banner govuk-notification-banner--info pins-upload-bar--hidden"
 						 aria-live="polite" aria-hidden="true" role="region">
 					<div class="govuk-notification-banner__content">
 						<strong>Uploading...</strong>
@@ -156,8 +156,8 @@
 						fileInput.addEventListener('change', function() {
 							const files = fileInput.files;
 							if (files.length === 0) return;
-							uploadingBar.classList.remove('uploading-bar--hidden');
-							uploadingBar.classList.add('uploading-bar--visible');
+							uploadingBar.classList.remove('pins-upload-bar--hidden');
+							uploadingBar.classList.add('pins-upload-bar--visible');
 							uploadingBar.setAttribute('aria-hidden', 'false');
 							form.submit();
 						});
@@ -165,15 +165,15 @@
 				});
 
 				window.addEventListener('DOMContentLoaded', () => {
-					const links = document.querySelectorAll('.js-enabled-link');
+					const links = document.querySelectorAll('.pins-js-enabled-link');
 					links.forEach(link => {
 						link.style.display = 'inline';
 					});
 					// Hide the loading bar on page load
 					const uploadingBar = document.getElementById('uploadingBar');
 					if (uploadingBar) {
-						uploadingBar.classList.remove('uploading-bar--visible');
-						uploadingBar.classList.add('uploading-bar--hidden');
+						uploadingBar.classList.remove('pins-upload-bar--visible');
+						uploadingBar.classList.add('pins-upload-bar--hidden');
 						uploadingBar.setAttribute('aria-hidden', 'true');
 					}
 				});
