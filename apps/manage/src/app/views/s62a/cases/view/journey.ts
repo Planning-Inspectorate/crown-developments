@@ -12,6 +12,7 @@ import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import type { Request } from 'express';
 import {
 	APPLICANT_TYPE_ID,
+	OUTCOME_TYPE_ID,
 	PRE_APPLICATION_ADVICE_ID,
 	PRE_APPLICATION_OR_APPLICATION_ID,
 	VIEW_TAB_ID
@@ -247,6 +248,20 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.addQuestion(questions.applicationFeeRefundDate)
 				.withCondition(whenQuestionHasAnswer(questions.eligibleForFeeRefund, BOOLEAN_OPTIONS.YES))
 				.endMultiQuestionCondition('is-application'),
+			new Section('', 'outcome')
+				.withSectionCondition(() => currentTab === VIEW_TAB_ID.OUTCOME && isApplicationCase(response))
+				.addQuestion(questions.outcomeType)
+
+				.startMultiQuestionCondition(
+					'is-decision',
+					whenQuestionHasAnswer(questions.outcomeType, OUTCOME_TYPE_ID.DECISION)
+				)
+				.addQuestion(questions.decisionOutcome)
+				.addQuestion(questions.decisionDate)
+				.endMultiQuestionCondition('is-decision')
+
+				.addQuestion(questions.recoveredReportSentDate)
+				.withCondition(whenQuestionHasAnswer(questions.outcomeType, OUTCOME_TYPE_ID.RECOMMENDATION)),
 			new Section('', 'eia')
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.EIA && isApplicationCase(response))
 				.addQuestion(questions.eiaScreening)

@@ -4,7 +4,9 @@ import {
 	SITE_AREA_UNIT_ID,
 	APPLICANT_TYPE_ID,
 	CONTACT_ROLES_ID,
-	PRE_APPLICATION_ADVICE_ID
+	PRE_APPLICATION_ADVICE_ID,
+	OUTCOME_TYPE_ID,
+	DECISION_OUTCOME_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { s62aCaseToViewModel, type S62aCaseDbModel } from './view-model.ts';
 
@@ -1043,6 +1045,102 @@ describe('s62aCaseToViewModel', () => {
 			assert.strictEqual(result.preApplicationReference, undefined);
 			assert.strictEqual(result.preApplicationReceivedDate, undefined);
 			assert.strictEqual(result.preApplicationAdviceIssuedDate, undefined);
+		});
+	});
+
+	describe('Outcome Mapping', () => {
+		const decisionDate = new Date('2026-10-01T09:00:00Z');
+		const recoveredReportSentDate = new Date('2026-10-15T09:00:00Z');
+
+		it('maps both lookup ids and both dates', () => {
+			const mockDbCase = {
+				id: 'case-outcome-1',
+				reference: 'S62A/2026/0033',
+				description: 'Outcome case',
+				typeId: 'type-1',
+				lpaId: 'lpa-1',
+				hasSecondaryLpa: false,
+				expectedSubmissionDate: mockDate,
+				outcomeTypeId: OUTCOME_TYPE_ID.DECISION,
+				decisionOutcomeId: DECISION_OUTCOME_ID.GRANTED_WITH_CONDITIONS,
+				S62aDates: {
+					decisionDate,
+					recoveredReportSentDate
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.outcomeTypeId, OUTCOME_TYPE_ID.DECISION);
+			assert.strictEqual(result.decisionOutcomeId, DECISION_OUTCOME_ID.GRANTED_WITH_CONDITIONS);
+			assert.strictEqual(result.decisionDate, decisionDate);
+			assert.strictEqual(result.recoveredReportSentDate, recoveredReportSentDate);
+		});
+
+		it('maps a recommendation outcome with its recovered report date', () => {
+			const mockDbCase = {
+				id: 'case-outcome-2',
+				reference: 'S62A/2026/0034',
+				expectedSubmissionDate: mockDate,
+				outcomeTypeId: OUTCOME_TYPE_ID.RECOMMENDATION,
+				decisionOutcomeId: null,
+				S62aDates: { recoveredReportSentDate }
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.outcomeTypeId, OUTCOME_TYPE_ID.RECOMMENDATION);
+			assert.strictEqual(result.decisionOutcomeId, undefined);
+			assert.strictEqual(result.recoveredReportSentDate, recoveredReportSentDate);
+		});
+
+		it('maps the "Refused" outcome, which must not be confused with an unanswered field', () => {
+			const withRefused = {
+				id: 'case-outcome-3',
+				reference: 'S62A/2026/0035',
+				expectedSubmissionDate: mockDate,
+				decisionOutcomeId: DECISION_OUTCOME_ID.REFUSED
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(withRefused);
+
+			assert.strictEqual(result.decisionOutcomeId, DECISION_OUTCOME_ID.REFUSED);
+		});
+
+		it('leaves the lookups and dates undefined when null or absent', () => {
+			const mockDbCase = {
+				id: 'case-outcome-4',
+				reference: 'S62A/2026/0036',
+				expectedSubmissionDate: mockDate,
+				outcomeTypeId: null,
+				decisionOutcomeId: null,
+				S62aDates: {
+					decisionDate: null,
+					recoveredReportSentDate: null
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.outcomeTypeId, undefined);
+			assert.strictEqual(result.decisionOutcomeId, undefined);
+			assert.strictEqual(result.decisionDate, undefined);
+			assert.strictEqual(result.recoveredReportSentDate, undefined);
+		});
+
+		it('does not confuse recoveredReportSentDate with the existing recoveredDate', () => {
+			const recoveredDate = new Date('2026-09-01T09:00:00Z');
+			const mockDbCase = {
+				id: 'case-outcome-5',
+				reference: 'S62A/2026/0037',
+				expectedSubmissionDate: mockDate,
+				S62aDates: { recoveredDate, recoveredReportSentDate }
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.recoveredDate, recoveredDate);
+			assert.strictEqual(result.recoveredReportSentDate, recoveredReportSentDate);
 		});
 	});
 });

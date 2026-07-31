@@ -43,7 +43,9 @@ export const S62A_DATE_FIELDS = Object.freeze([
 	'turnedAwayDate',
 	'environmentalStatementReceivedDate',
 	'preApplicationReceivedDate',
-	'preApplicationAdviceIssuedDate'
+	'preApplicationAdviceIssuedDate',
+	'decisionDate',
+	'recoveredReportSentDate'
 ] as const);
 
 export const FEE_BOOLEAN_FIELDS = Object.freeze([
@@ -212,6 +214,12 @@ export interface S62aCaseViewModel {
 	preApplicationReference?: string | null;
 	preApplicationReceivedDate?: Date;
 	preApplicationAdviceIssuedDate?: Date;
+
+	// Outcome tab
+	outcomeTypeId?: string | null;
+	decisionOutcomeId?: string | null;
+	decisionDate?: Date;
+	recoveredReportSentDate?: Date;
 }
 
 /**
@@ -265,7 +273,9 @@ const RELATION_ID_FIELDS = Object.freeze([
 	'stageId',
 	'categoryId',
 	'procedureId',
-	'preApplicationAdviceId'
+	'preApplicationAdviceId',
+	'outcomeTypeId',
+	'decisionOutcomeId'
 ] as const);
 
 // Create a union type of all valid dynamic fields

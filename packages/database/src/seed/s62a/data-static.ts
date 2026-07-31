@@ -140,6 +140,7 @@ export const VIEW_TAB_ID = Object.freeze({
 	FEE: 'fee',
 	REPRESENTATIONS: 'representations',
 	CONTACTS: 'contacts',
+	OUTCOME: 'outcome',
 	EIA: 'eia',
 	PRE_APPLICATION: 'pre-application'
 } as const);
@@ -176,6 +177,11 @@ export const VIEW_TABS = [
 	{
 		id: VIEW_TAB_ID.FEE,
 		displayName: 'Fee'
+	},
+	{
+		id: VIEW_TAB_ID.OUTCOME,
+		displayName: 'Outcome',
+		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
 	},
 	{
 		id: VIEW_TAB_ID.EIA,
@@ -555,4 +561,24 @@ export const PRE_APPLICATION_ADVICE = [
 	{ id: PRE_APPLICATION_ADVICE_ID.PINS, displayName: 'Yes - PINS' },
 	{ id: PRE_APPLICATION_ADVICE_ID.COUNCIL, displayName: 'Yes - Council' },
 	{ id: PRE_APPLICATION_ADVICE_ID.NO, displayName: 'No' }
+];
+
+export const OUTCOME_TYPE_ID = Object.freeze({
+	DECISION: 'decision',
+	RECOMMENDATION: 'recommendation'
+} as const);
+
+export const OUTCOME_TYPES = [
+	{ id: OUTCOME_TYPE_ID.DECISION, displayName: 'Decision' },
+	{ id: OUTCOME_TYPE_ID.RECOMMENDATION, displayName: 'Recommendation' }
+];
+
+export const DECISION_OUTCOME_ID = Object.freeze({
+	GRANTED_WITH_CONDITIONS: 'granted-with-conditions',
+	REFUSED: 'refused'
+} as const);
+
+export const DECISION_OUTCOMES = [
+	{ id: DECISION_OUTCOME_ID.GRANTED_WITH_CONDITIONS, displayName: 'Granted with conditions' },
+	{ id: DECISION_OUTCOME_ID.REFUSED, displayName: 'Refused' }
 ];

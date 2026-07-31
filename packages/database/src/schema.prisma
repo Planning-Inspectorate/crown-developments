@@ -268,6 +268,12 @@ model S62aCase {
   PreApplicationAdvice    S62aPreApplicationAdvice? @relation(fields: [preApplicationAdviceId], references: [id])
   preApplicationReference String?
 
+  // Outcome details
+  outcomeTypeId     String?
+  OutcomeType       S62aOutcomeType?     @relation(fields: [outcomeTypeId], references: [id])
+  decisionOutcomeId String?
+  DecisionOutcome   S62aDecisionOutcome? @relation(fields: [decisionOutcomeId], references: [id])
+
   Folders Folder[]
 }
 
@@ -334,6 +340,8 @@ model S62aDates {
   environmentalStatementReceivedDate       DateTime?
   preApplicationReceivedDate               DateTime?
   preApplicationAdviceIssuedDate           DateTime?
+  decisionDate                             DateTime?
+  recoveredReportSentDate                  DateTime?
 }
 
 model InspectorBand {
@@ -393,6 +401,22 @@ model S62aStage {
 /// Application category for S62A cases
 model S62aCategory {
   /// unique machine-readable name, not generated, e.g. "major-minerals"
+  id          String     @id
+  displayName String?
+  S62aCases   S62aCase[]
+}
+
+/// Whether the case was determined by decision or recommendation
+model S62aOutcomeType {
+  /// unique machine-readable name, not generated, e.g. "decision"
+  id          String     @id
+  displayName String?
+  S62aCases   S62aCase[]
+}
+
+/// The decision made, where the outcome type is a decision
+model S62aDecisionOutcome {
+  /// unique machine-readable name, not generated, e.g. "granted-with-conditions"
   id          String     @id
   displayName String?
   S62aCases   S62aCase[]

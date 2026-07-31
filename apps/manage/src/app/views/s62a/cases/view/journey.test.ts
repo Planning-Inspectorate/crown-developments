@@ -179,6 +179,11 @@ describe('s62a case details journey', () => {
 			},
 			{
 				title: '',
+				segment: 'outcome',
+				questions: ['outcomeType', 'decisionOutcome', 'decisionDate', 'recoveredReportSentDate']
+			},
+			{
+				title: '',
 				segment: 'eia',
 				questions: ['eiaScreening', 'eiaScreeningOutcome', 'environmentalStatementReceivedDate']
 			},
