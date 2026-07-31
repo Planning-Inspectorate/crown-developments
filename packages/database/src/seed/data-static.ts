@@ -10,7 +10,9 @@ import {
 	SPECIALISMS,
 	S62A_STAGES,
 	S62A_CATEGORIES,
-	PRE_APPLICATION_ADVICE
+	PRE_APPLICATION_ADVICE,
+	OUTCOME_TYPES,
+	DECISION_OUTCOMES
 } from './s62a/data-static.ts';
 
 export const APPLICATION_DECISION_OUTCOME = [
@@ -646,6 +648,14 @@ type UpsertReferenceDataArgs =
 	| {
 			delegate: Prisma.S62aPreApplicationAdviceDelegate;
 			input: Prisma.S62aPreApplicationAdviceCreateInput;
+	  }
+	| {
+			delegate: Prisma.S62aOutcomeTypeDelegate;
+			input: Prisma.S62aOutcomeTypeCreateInput;
+	  }
+	| {
+			delegate: Prisma.S62aDecisionOutcomeDelegate;
+			input: Prisma.S62aDecisionOutcomeCreateInput;
 	  };
 
 async function upsertReferenceData({ delegate, input }: UpsertReferenceDataArgs): Promise<void> {
@@ -732,6 +742,12 @@ export async function seedCrownStaticData(dbClient: PrismaClient) {
 
 	await Promise.all(
 		PRE_APPLICATION_ADVICE.map((input) => upsertReferenceData({ delegate: dbClient.s62aPreApplicationAdvice, input }))
+	);
+
+	await Promise.all(OUTCOME_TYPES.map((input) => upsertReferenceData({ delegate: dbClient.s62aOutcomeType, input })));
+
+	await Promise.all(
+		DECISION_OUTCOMES.map((input) => upsertReferenceData({ delegate: dbClient.s62aDecisionOutcome, input }))
 	);
 
 	const categories = CATEGORIES.filter((c) => !('ParentCategory' in c));

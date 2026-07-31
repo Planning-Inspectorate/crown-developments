@@ -4,7 +4,9 @@ import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import {
 	SITE_AREA_UNIT_ID,
 	APPLICANT_TYPE_ID,
-	PRE_APPLICATION_ADVICE_ID
+	PRE_APPLICATION_ADVICE_ID,
+	OUTCOME_TYPE_ID,
+	DECISION_OUTCOME_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
@@ -1052,6 +1054,85 @@ describe('S62aCaseUpdateMapper', () => {
 
 			assert.strictEqual(result.PreApplicationAdvice, undefined);
 			assert.strictEqual(result.preApplicationReference, undefined);
+			assert.strictEqual(result.S62aDates, undefined);
+		});
+	});
+
+	describe('Outcome Tab', () => {
+		const decisionDate = new Date('2026-10-01T09:00:00Z');
+		const recoveredReportSentDate = new Date('2026-10-15T09:00:00Z');
+
+		it('connects both lookups when ids are provided', () => {
+			const answers: UpdateCaseAnswers = {
+				outcomeTypeId: OUTCOME_TYPE_ID.DECISION,
+				decisionOutcomeId: DECISION_OUTCOME_ID.GRANTED_WITH_CONDITIONS
+			};
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.OutcomeType, { connect: { id: OUTCOME_TYPE_ID.DECISION } });
+			assert.deepStrictEqual(result.DecisionOutcome, {
+				connect: { id: DECISION_OUTCOME_ID.GRANTED_WITH_CONDITIONS }
+			});
+		});
+
+		it('connects the "Refused" outcome rather than treating it as cleared', () => {
+			const answers: UpdateCaseAnswers = { decisionOutcomeId: DECISION_OUTCOME_ID.REFUSED };
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.DecisionOutcome, { connect: { id: DECISION_OUTCOME_ID.REFUSED } });
+		});
+
+		it('disconnects the lookups when cleared with null or an empty string', () => {
+			assert.deepStrictEqual(new S62aCaseUpdateMapper({ outcomeTypeId: null }).generateUpdateInput().OutcomeType, {
+				disconnect: true
+			});
+			assert.deepStrictEqual(
+				new S62aCaseUpdateMapper({ decisionOutcomeId: '' }).generateUpdateInput().DecisionOutcome,
+				{ disconnect: true }
+			);
+		});
+
+		it('maps both dates into the S62aDates upsert', () => {
+			const answers: UpdateCaseAnswers = { decisionDate, recoveredReportSentDate };
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aDates, {
+				upsert: {
+					create: { decisionDate, recoveredReportSentDate },
+					update: { decisionDate, recoveredReportSentDate }
+				}
+			});
+		});
+
+		it('nullifies the dates when cleared', () => {
+			const answers: UpdateCaseAnswers = { decisionDate: null, recoveredReportSentDate: null };
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aDates, {
+				upsert: {
+					create: { decisionDate: null, recoveredReportSentDate: null },
+					update: { decisionDate: null, recoveredReportSentDate: null }
+				}
+			});
+		});
+
+		it('does not touch recoveredDate when only recoveredReportSentDate is provided', () => {
+			const result = new S62aCaseUpdateMapper({ recoveredReportSentDate }).generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aDates, {
+				upsert: {
+					create: { recoveredReportSentDate },
+					update: { recoveredReportSentDate }
+				}
+			});
+			assert.strictEqual((result.S62aDates?.upsert.create as any).recoveredDate, undefined);
+		});
+
+		it('does not emit outcome fields when absent from the payload', () => {
+			const result = new S62aCaseUpdateMapper({ likelyIssues: 'Traffic' }).generateUpdateInput();
+
+			assert.strictEqual(result.OutcomeType, undefined);
+			assert.strictEqual(result.DecisionOutcome, undefined);
 			assert.strictEqual(result.S62aDates, undefined);
 		});
 	});

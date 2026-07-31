@@ -10,8 +10,10 @@ import {
 	APPLICANT_TYPES,
 	CONTACT_ROLES,
 	CONTACT_ROLES_ID,
+	DECISION_OUTCOMES,
 	INSPECTOR_BANDS,
 	MAJOR_OR_NON_MAJORS,
+	OUTCOME_TYPES,
 	PRE_APPLICATION_ADVICE,
 	PRE_APPLICATION_OR_APPLICATION_ID,
 	PRE_APPLICATION_OR_APPLICATIONS,
@@ -1693,6 +1695,56 @@ export function getQuestions(
 			],
 			viewData: {
 				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'reference/remove' }]
+			}
+		},
+		outcomeType: {
+			type: COMPONENT_TYPES.RADIO,
+			title: 'Outcome type',
+			question: 'Was the outcome of the case a decision or a recommendation?',
+			fieldName: 'outcomeTypeId',
+			url: 'outcome-type',
+			validators: [new RequiredValidator('Select the outcome type')],
+			options: OUTCOME_TYPES.map((t) => ({ text: t.displayName, value: t.id })),
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'outcome-type/remove' }]
+			}
+		},
+		decisionOutcome: {
+			type: COMPONENT_TYPES.RADIO,
+			title: 'Decision outcome',
+			question: 'Which decision was made?',
+			fieldName: 'decisionOutcomeId',
+			url: 'decision-outcome',
+			validators: [new RequiredValidator('Select the decision outcome')],
+			options: DECISION_OUTCOMES.map((t) => ({ text: t.displayName, value: t.id })),
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'decision-outcome/remove' }]
+			}
+		},
+		decisionDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Decision date',
+			question: 'What date was the decision made?',
+			hint: 'For example, 27 3 2007',
+			fieldName: 'decisionDate',
+			url: 'decision-date',
+			validators: [new DateValidator('decision date')],
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'decision-date/remove' }]
+			}
+		},
+		recoveredReportSentDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Recovered report sent date',
+			question: 'What is the recovered report sent date?',
+			hint: 'For example, 27 3 2007',
+			fieldName: 'recoveredReportSentDate',
+			url: 'recovered-report-sent-date',
+			validators: [new DateValidator('recovered report sent date')],
+			viewData: {
+				extraActionButtons: [
+					{ text: 'Remove and save', type: 'submit', formaction: 'recovered-report-sent-date/remove' }
+				]
 			}
 		}
 	};

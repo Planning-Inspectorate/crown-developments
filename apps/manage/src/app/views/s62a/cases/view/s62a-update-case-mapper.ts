@@ -148,6 +148,12 @@ export interface UpdateCaseAnswers {
 	preApplicationReference?: string;
 	preApplicationReceivedDate?: Date | null;
 	preApplicationAdviceIssuedDate?: Date | null;
+
+	// Outcome tab
+	outcomeTypeId?: string | null;
+	decisionOutcomeId?: string | null;
+	decisionDate?: Date | null;
+	recoveredReportSentDate?: Date | null;
 }
 
 /**
@@ -355,6 +361,14 @@ export class S62aCaseUpdateMapper {
 			input.PreApplicationAdvice = ans.preApplicationAdviceId
 				? { connect: { id: ans.preApplicationAdviceId } }
 				: { disconnect: true };
+		}
+
+		if (this.hasAnswer('outcomeTypeId')) {
+			input.OutcomeType = ans.outcomeTypeId ? { connect: { id: ans.outcomeTypeId } } : { disconnect: true };
+		}
+
+		if (this.hasAnswer('decisionOutcomeId')) {
+			input.DecisionOutcome = ans.decisionOutcomeId ? { connect: { id: ans.decisionOutcomeId } } : { disconnect: true };
 		}
 	}
 
