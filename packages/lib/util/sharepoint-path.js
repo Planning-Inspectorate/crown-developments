@@ -105,7 +105,7 @@ export async function getSharePointReceivedPathId(sharePointDrive, { caseRootNam
 }
 
 /**
- *
+ * Creates the URL to the received folder for the given case reference and user type
  * @param {SharePointDrive} sharePointDrive
  * @param {Object} options
  * @param {string} options.caseRootName

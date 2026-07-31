@@ -24,9 +24,7 @@ import { retryGrantPermissions } from '#util/sharepoint.js';
  * @typedef {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} SharePointDrive
  * @typedef {import('@pins/crowndev-lib/govnotify/gov-notify-client.ts').GovNotifyClient} GovNotifyClient
  * @typedef {import('@pins/crowndev-lib/govnotify/gov-notify-client.ts').InvitationPersonalisation} InvitationPersonalisation
- * @typedef {{ kind: 'many', invitationPersonalisation: InvitationPersonalisation[] }} NotificationDataMany
- * @typedef {{ kind: 'one', invitationPersonalisation: InvitationPersonalisation }} NotificationDataOne
- * @typedef {NotificationDataMany | NotificationDataOne} NotificationData
+ * @typedef {{ invitationPersonalisation: InvitationPersonalisation[] }} NotificationData
  */
 
 /**
@@ -621,7 +619,7 @@ async function grantUsersAccess(service, answers, folderName) {
  * @param {import('#service').ManageService} service
  * @param {string} folderName
  * @param {import('./types.d.ts').CreateCaseAnswers} answers
- * @returns {Promise<NotificationDataMany>}
+ * @returns {Promise<NotificationData>}
  */
 async function createCaseSharePointActions(service, folderName, answers) {
 	const { sharePointCaseTemplateId, appSharePointDrive } = service;
@@ -638,7 +636,6 @@ async function createCaseSharePointActions(service, folderName, answers) {
 	}
 
 	return {
-		kind: 'many',
 		invitationPersonalisation: inviteLinks
 	};
 }
@@ -665,21 +662,10 @@ async function sendAcknowledgementPreNotification(
 	}
 
 	try {
-		switch (notificationData.kind) {
-			case 'many':
-				await notifyClient.sendAcknowledgePreNotificationToMany(notificationData.invitationPersonalisation, {
-					reference: reference,
-					isLbcCase
-				});
-				break;
-			// TODO: Do we need this? Where does kind = 'one'
-			case 'one':
-				await notifyClient.sendAcknowledgePreNotification(notificationData.invitationPersonalisation, {
-					reference: reference,
-					isLbcCase
-				});
-				break;
-		}
+		await notifyClient.sendAcknowledgePreNotificationToMany(notificationData.invitationPersonalisation, {
+			reference: reference,
+			isLbcCase
+		});
 	} catch (error) {
 		logger.error({ error, reference }, `error dispatching Acknowledgement of pre-notification email notification`);
 		throw new Error('Error encountered during email notification dispatch', { cause: error });
@@ -692,7 +678,7 @@ async function sendAcknowledgementPreNotification(
  * @param {import('#service').ManageService} service
  * @param {string} reference
  * @param {import('./types.d.ts').CreateCaseAnswers} answers
- * @returns {Promise<NotificationDataMany>}
+ * @returns {Promise<NotificationData>}
  */
 async function getNotificationData(service, reference, answers) {
 	if (!service.sharePointCaseTemplateId) {
