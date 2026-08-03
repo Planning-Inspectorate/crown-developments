@@ -1,0 +1,289 @@
+<!--
+    A file upload component that is identical to the MOJ multi file upload, but simply swaps the upload drop zone position with the uploaded files section.
+    For accessibility reasons, we do this instead of using CSS to avoid the page jumping around.
+-->
+{% macro customMojFileUpload(params) %}
+<div class="moj-multi-file-upload {{- " " + params.classes if params.classes}}" data-module="moj-multi-file-upload" {%- for attribute, value in params.attributes %} {{ attribute }}="{{ value }}"{% endfor %}>
+  
+  <div class="moj-multi-file-upload__upload">
+    {{ params.uploadHtml | safe }}
+  </div>
+
+  <div class="moj-multi-file__uploaded-files {% if params.uploadedFiles.items.length == 0 %}moj-hidden{% endif%}">
+    <h2 class="govuk-heading-m">{{ params.uploadedFiles.heading.html | safe if params.uploadedFiles.heading.html else params.uploadedFiles.heading.text }}</h2>
+    <div class="govuk-summary-list moj-multi-file-upload__list">
+      {% if params.uploadedFiles.items and params.uploadedFiles.items.length > 0 %}
+        {% for item in params.uploadedFiles.items %}
+          <div class="govuk-summary-list__row moj-multi-file-upload__row">
+            <div class="govuk-summary-list__value moj-multi-file-upload__message">
+              {{ item.message.html | safe if item.message.html else item.message.text }}
+            </div>
+            <div class="govuk-summary-list__actions moj-multi-file-upload__actions">
+              <button type="submit" name="delete" class="moj-multi-file-upload__delete govuk-button govuk-button--secondary govuk-!-margin-bottom-0" value="{{ item.fileName }}">
+                {{ item.deleteButton.text }} <span class="govuk-visually-hidden">{{ item.originalFileName }}</span>
+              </button>
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endmacro %}
+
+<!--
+    Script for handling the MOJ file upload component. Seems quite long but as above is functionally
+    the same with slight changes in UI, and a new CSRF feature that is awaiting review and merge on
+    the real component.
+-->
+{% macro customMojFileUploadScript(params) %}
+<script type="module" {% if params.cspNonce %}nonce="{{ params.cspNonce }}"{% endif %}>
+    import { MultiFileUpload } from '/assets/js/moj-frontend.min.js';
+
+    const mojFormContainer = document.querySelector('#upload-form-container');
+    const mainSubmitForm = document.querySelector('#main-submit-form');
+    const multiFileUpload = document.querySelector('[data-module="moj-multi-file-upload"]');
+    const csrfInput = document.querySelector('input[name="_csrf"]');
+
+    class CustomMojFileUpload extends MultiFileUpload {
+        
+        constructor(root, config) {
+            super(root, config);
+            this.formatExistingRows();
+        }
+
+        formatBytes(bytes) {
+            if (bytes === 0) return '0B';
+
+            const KIB = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+
+            const unitIndex = Math.floor(Math.log(bytes) / Math.log(KIB));
+            const value = Math.round(bytes / Math.pow(KIB, unitIndex));
+
+            return `${value}${sizes[unitIndex]}`;
+        }
+
+        formatExistingRows() {
+            const rows = this.$feedbackContainer.querySelectorAll('.moj-multi-file-upload__row');
+            
+            rows.forEach(row => {
+                const messageCol = row.querySelector('.moj-multi-file-upload__message');
+                const fileText = messageCol ? messageCol.textContent.replace('Uploaded', '').trim() : 'Unknown file';
+                
+                const oldDeleteBtn = row.querySelector('.moj-multi-file-upload__delete');
+                const fileValue = oldDeleteBtn ? oldDeleteBtn.value : '';
+
+                row.classList.add('moj-multi-file-upload__row--flex');
+                
+                row.innerHTML = `
+                    <div class="govuk-summary-list__value moj-multi-file-upload__col-name">
+                        ${fileText}
+                    </div>
+                    <div class="govuk-summary-list__value moj-multi-file-upload__message moj-multi-file-upload__col-status">
+                        <strong class="govuk-tag govuk-tag--green">Uploaded</strong>
+                    </div>
+                    <div class="govuk-summary-list__actions moj-multi-file-upload__actions moj-multi-file-upload__col-actions">
+                        <button type="button" name="delete" value="${fileValue}" class="moj-multi-file-upload__delete pins-button-link">
+                            Remove <span class="govuk-visually-hidden">${fileText}</span>
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        getFileRow(file) {
+            const row = document.createElement('div');
+            row.classList.add('govuk-summary-list__row', 'moj-multi-file-upload__row', 'moj-multi-file-upload__row--flex');
+            
+            const cleverSize = this.formatBytes(file.size);
+
+            row.innerHTML = `
+                <div class="govuk-summary-list__value moj-multi-file-upload__col-name">
+                    ${file.name} (${cleverSize})
+                </div>
+                <div class="govuk-summary-list__value moj-multi-file-upload__message moj-multi-file-upload__col-status">
+                    Uploading: <span class="moj-multi-file-upload__progress">0%</span>
+                </div>
+                <div class="govuk-summary-list__actions moj-multi-file-upload__actions moj-multi-file-upload__col-actions"></div>
+            `;
+            
+            return row;
+        }
+
+        getSuccessHtml() {
+            return `<strong class="govuk-tag govuk-tag--green">Uploaded</strong>`;
+        }
+
+        getErrorHtml(error) {
+            return `<span class="govuk-error-message govuk-!-margin-0">${error.message}</span>`;
+        }
+
+        getDeleteButton(file) {
+            const button = document.createElement('button');
+            button.setAttribute('type', 'button');
+            button.setAttribute('name', 'delete');
+            button.setAttribute('value', file.filename);
+            
+            button.classList.add('moj-multi-file-upload__delete', 'pins-button-link');
+            button.innerHTML = `Remove <span class="govuk-visually-hidden">${file.originalname}</span>`;
+            
+            return button;
+        }
+
+        uploadFile(file) {
+            if (this.config.hooks && this.config.hooks.entryHook) {
+                this.config.hooks.entryHook(this, file);
+            }
+
+            const $item = this.getFileRow(file);
+            const $message = $item.querySelector('.moj-multi-file-upload__message');
+            const $actions = $item.querySelector('.moj-multi-file-upload__actions');
+            const $progress = $item.querySelector('.moj-multi-file-upload__progress');
+
+            const formData = new FormData();
+            formData.append('documents', file);
+
+            const list = this.$feedbackContainer.querySelector('.moj-multi-file-upload__list');
+            if (list) list.append($item);
+
+            const xhr = new XMLHttpRequest();
+
+            const onError = () => {
+                const response = xhr.response;
+                const errorMessage = (response && response.error && response.error.message) 
+                    ? response.error.message 
+                    : (xhr.statusText || 'Upload failed');
+                const error = new Error(errorMessage);
+
+                if ($message) $message.innerHTML = this.getErrorHtml(error);
+                if (this.$status) this.$status.textContent = error.message;
+
+                if (this.config.hooks && this.config.hooks.errorHook) {
+                    this.config.hooks.errorHook(this, file, xhr, xhr.statusText, error);
+                }
+            };
+
+            const onLoad = () => {
+                const response = xhr.response;
+
+                if (xhr.status < 200 || xhr.status >= 300 || !response || !response.success || !response.file) {
+                    return onError();
+                }
+
+                if ($message) $message.innerHTML = this.getSuccessHtml();
+                if (this.$status) this.$status.textContent = response.success.messageText;
+                if ($actions) $actions.append(this.getDeleteButton(response.file));
+
+                if (this.config.hooks && this.config.hooks.exitHook) {
+                    this.config.hooks.exitHook(this, file, xhr, xhr.statusText);
+                }
+            };
+
+            xhr.addEventListener('load', onLoad);
+            xhr.addEventListener('error', onError);
+
+            xhr.upload.addEventListener('progress', (event) => {
+                if (!event.lengthComputable || !$progress) return;
+                const percentComplete = Math.round((event.loaded / event.total) * 100);
+                $progress.textContent = ` ${percentComplete}%`;
+            });
+
+            xhr.open('POST', this.config.uploadUrl);
+
+            if (this.config.csrfToken && this.config.csrfHeaderName) {
+                xhr.setRequestHeader(this.config.csrfHeaderName, this.config.csrfToken);
+            }
+
+            xhr.responseType = 'json';
+            xhr.send(formData);
+        }
+
+        onFileDeleteClick(event) {
+            const $button = event.target;
+            if (!$button) return;
+
+            const deleteBtn = $button.closest('.moj-multi-file-upload__delete');
+            if (!deleteBtn) return;
+
+            event.preventDefault();
+
+            const xhr = new XMLHttpRequest();
+
+            xhr.addEventListener('load', () => {
+                if (xhr.status < 200 || xhr.status >= 300) return;
+
+                const $rows = Array.from(
+                    this.$feedbackContainer.querySelectorAll('.moj-multi-file-upload__row')
+                );
+
+                if ($rows.length === 1) {
+                    this.$feedbackContainer.classList.add('moj-hidden');
+                }
+
+                const $rowDelete = $rows.find(($row) => $row.contains(deleteBtn));
+                if ($rowDelete) $rowDelete.remove();
+
+                if (this.config.hooks && this.config.hooks.deleteHook) {
+                    this.config.hooks.deleteHook(this, undefined, xhr, xhr.statusText);
+                }
+            });
+
+            xhr.open('POST', this.config.deleteUrl);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            if (this.config.csrfToken && this.config.csrfHeaderName) {
+                xhr.setRequestHeader(this.config.csrfHeaderName, this.config.csrfToken);
+            }
+
+            xhr.responseType = 'json';
+            xhr.send(
+                JSON.stringify({
+                    [deleteBtn.name]: deleteBtn.value
+                })
+            );
+        }
+    }
+
+    function showUploadError() {
+        const existingError = document.querySelector('.govuk-error-summary');
+        if (existingError) existingError.remove();
+
+        const errorSummaryHtml = `
+            <div class="govuk-error-summary govuk-grid-column-two-thirds" aria-labelledby="error-summary-title" role="alert" tabindex="-1" data-module="govuk-error-summary">
+                <h2 class="govuk-error-summary__title" id="error-summary-title">There is a problem</h2>
+                <div class="govuk-error-summary__body">
+                    <ul class="govuk-list govuk-error-summary__list">
+                        <li><a href="#upload-form">Wait for all files to finish uploading</a></li>
+                    </ul>
+                </div>
+            </div>
+        `;
+
+        const mainContent = document.querySelector('main') || mainSubmitForm;
+        mainContent.insertAdjacentHTML('afterbegin', errorSummaryHtml);
+        const newErrorSummary = document.querySelector('.govuk-error-summary');
+        if (newErrorSummary) newErrorSummary.focus();
+    }
+
+    if (mainSubmitForm) {
+        mainSubmitForm.addEventListener('submit', function (event) {
+            const activeUploads = document.querySelectorAll('.moj-multi-file-upload__progress');
+            if (activeUploads.length > 0) {
+                event.preventDefault();
+                showUploadError(); 
+            }
+        });
+    }
+
+    if (multiFileUpload && mojFormContainer) {
+        new CustomMojFileUpload(multiFileUpload, {
+            uploadUrl: mojFormContainer.dataset.uploadUrl,
+            deleteUrl: mojFormContainer.dataset.deleteUrl,
+            csrfToken: csrfInput ? csrfInput.value : undefined,
+            csrfHeaderName: 'x-csrf-token'
+        });
+    }
+</script>
+{% endmacro %}
