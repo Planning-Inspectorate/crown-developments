@@ -6,7 +6,8 @@ import {
 	CONTACT_ROLES_ID,
 	PRE_APPLICATION_ADVICE_ID,
 	OUTCOME_TYPE_ID,
-	DECISION_OUTCOME_ID
+	DECISION_OUTCOME_ID,
+	SITE_VISIT_TYPE_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { s62aCaseToViewModel, type S62aCaseDbModel } from './view-model.ts';
 
@@ -1141,6 +1142,128 @@ describe('s62aCaseToViewModel', () => {
 
 			assert.strictEqual(result.recoveredDate, recoveredDate);
 			assert.strictEqual(result.recoveredReportSentDate, recoveredReportSentDate);
+		});
+	});
+
+	describe('Event Mapping', () => {
+		const procedureNotificationDate = new Date('2026-08-01T09:00:00Z');
+		const hearingDate = new Date('2026-09-01T09:00:00Z');
+		const notificationDate = new Date('2026-08-15T09:00:00Z');
+		const additionalMeetingDate = new Date('2026-09-10T09:00:00Z');
+		const issuesReportingPublishedDate = new Date('2026-08-20T09:00:00Z');
+		const siteVisitDate = new Date('2026-09-05T09:00:00Z');
+
+		it('does not map event fields if S62aEvent is missing', () => {
+			const mockDbCase = {
+				id: 'case-event-1',
+				reference: 'S62A/2026/0038',
+				expectedSubmissionDate: mockDate
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.hearingDate, undefined);
+			assert.strictEqual(result.venue, undefined);
+			assert.strictEqual(result.prepDuration, undefined);
+			assert.strictEqual(result.siteVisitDate, undefined);
+		});
+
+		it('maps every event date field to the root of the view model', () => {
+			const mockDbCase = {
+				id: 'case-event-2',
+				reference: 'S62A/2026/0039',
+				expectedSubmissionDate: mockDate,
+				S62aEvent: {
+					procedureNotificationDate,
+					hearingDate,
+					notificationDate,
+					additionalMeetingDate,
+					issuesReportingPublishedDate,
+					siteVisitDate
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.procedureNotificationDate, procedureNotificationDate);
+			assert.strictEqual(result.hearingDate, hearingDate);
+			assert.strictEqual(result.notificationDate, notificationDate);
+			assert.strictEqual(result.additionalMeetingDate, additionalMeetingDate);
+			assert.strictEqual(result.issuesReportingPublishedDate, issuesReportingPublishedDate);
+			assert.strictEqual(result.siteVisitDate, siteVisitDate);
+		});
+
+		it('converts the three duration decimals to plain numbers', () => {
+			const mockDbCase = {
+				id: 'case-event-3',
+				reference: 'S62A/2026/0040',
+				expectedSubmissionDate: mockDate,
+				S62aEvent: {
+					prepDuration: createMockDecimal(2),
+					sittingDuration: createMockDecimal(3.5),
+					reportingDuration: createMockDecimal(1)
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.prepDuration, 2);
+			assert.strictEqual(result.sittingDuration, 3.5);
+			assert.strictEqual(result.reportingDuration, 1);
+		});
+
+		it('maps the venue and site visit type', () => {
+			const mockDbCase = {
+				id: 'case-event-4',
+				reference: 'S62A/2026/0041',
+				expectedSubmissionDate: mockDate,
+				S62aEvent: {
+					venue: 'Council Chamber, Town Hall',
+					siteVisitTypeId: SITE_VISIT_TYPE_ID.ACCESS_REQUIRED
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.venue, 'Council Chamber, Town Hall');
+			assert.strictEqual(result.siteVisitTypeId, SITE_VISIT_TYPE_ID.ACCESS_REQUIRED);
+		});
+
+		it('leaves event fields undefined when null on the record', () => {
+			const mockDbCase = {
+				id: 'case-event-5',
+				reference: 'S62A/2026/0042',
+				expectedSubmissionDate: mockDate,
+				S62aEvent: {
+					hearingDate: null,
+					venue: null,
+					prepDuration: null,
+					siteVisitTypeId: null
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.hearingDate, undefined);
+			assert.strictEqual(result.venue, undefined);
+			assert.strictEqual(result.prepDuration, undefined);
+			assert.strictEqual(result.siteVisitTypeId, undefined);
+		});
+
+		it('does not confuse the event notificationDate with notificationReceivedDate on S62aDates', () => {
+			const notificationReceivedDate = new Date('2026-07-01T09:00:00Z');
+			const mockDbCase = {
+				id: 'case-event-6',
+				reference: 'S62A/2026/0043',
+				expectedSubmissionDate: mockDate,
+				S62aDates: { notificationReceivedDate },
+				S62aEvent: { notificationDate }
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.notificationReceivedDate, notificationReceivedDate);
+			assert.strictEqual(result.notificationDate, notificationDate);
 		});
 	});
 });

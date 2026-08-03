@@ -6,7 +6,8 @@ import {
 	APPLICANT_TYPE_ID,
 	PRE_APPLICATION_ADVICE_ID,
 	OUTCOME_TYPE_ID,
-	DECISION_OUTCOME_ID
+	DECISION_OUTCOME_ID,
+	SITE_VISIT_TYPE_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
@@ -1158,6 +1159,91 @@ describe('S62aCaseUpdateMapper', () => {
 
 			assert.strictEqual(result.OutcomeType, undefined);
 			assert.strictEqual(result.DecisionOutcome, undefined);
+			assert.strictEqual(result.S62aDates, undefined);
+		});
+	});
+
+	describe('Event Tab', () => {
+		const hearingDate = new Date('2026-09-01T09:00:00Z');
+		const siteVisitDate = new Date('2026-09-05T09:00:00Z');
+
+		it('does not generate an S62aEvent update if no event answers are provided', () => {
+			const result = new S62aCaseUpdateMapper({}).generateUpdateInput();
+
+			assert.strictEqual(result.S62aEvent, undefined);
+		});
+
+		it('maps event dates into the S62aEvent upsert', () => {
+			const answers: UpdateCaseAnswers = { hearingDate, siteVisitDate };
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aEvent, {
+				upsert: {
+					create: { hearingDate, siteVisitDate },
+					update: { hearingDate, siteVisitDate }
+				}
+			});
+		});
+
+		it('converts the durations to Decimals, allowing string input from the multi-field form', () => {
+			const answers = {
+				prepDuration: '2',
+				sittingDuration: 3.5,
+				reportingDuration: 0
+			} as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			const created = (result.S62aEvent as any).upsert.create;
+			assert.deepStrictEqual(created.prepDuration, new Prisma.Decimal(2));
+			assert.deepStrictEqual(created.sittingDuration, new Prisma.Decimal(3.5));
+			assert.deepStrictEqual(created.reportingDuration, new Prisma.Decimal(0));
+		});
+
+		it('nullifies a duration cleared to an empty string', () => {
+			const answers = { prepDuration: '' } as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual((result.S62aEvent as any).upsert.create.prepDuration, null);
+		});
+
+		it('maps the venue, clearing to null when empty', () => {
+			assert.strictEqual(
+				(new S62aCaseUpdateMapper({ venue: 'Town Hall' }).generateUpdateInput().S62aEvent as any).upsert.create.venue,
+				'Town Hall'
+			);
+			assert.strictEqual(
+				(new S62aCaseUpdateMapper({ venue: '' }).generateUpdateInput().S62aEvent as any).upsert.create.venue,
+				null
+			);
+		});
+
+		it('connects the site visit type lookup when an id is provided', () => {
+			const answers: UpdateCaseAnswers = { siteVisitTypeId: SITE_VISIT_TYPE_ID.UNACCOMPANIED };
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual((result.S62aEvent as any).upsert.create.SiteVisitType, {
+				connect: { id: SITE_VISIT_TYPE_ID.UNACCOMPANIED }
+			});
+		});
+
+		it('disconnects the site visit type when cleared', () => {
+			const answers: UpdateCaseAnswers = { siteVisitTypeId: null };
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual((result.S62aEvent as any).upsert.update.SiteVisitType, { disconnect: true });
+		});
+
+		it('does not write the site visit type as a scalar column', () => {
+			const answers: UpdateCaseAnswers = { siteVisitTypeId: SITE_VISIT_TYPE_ID.ACCESS_REQUIRED };
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual((result.S62aEvent as any).upsert.create.siteVisitTypeId, undefined);
+		});
+
+		it('does not put event fields on the case itself', () => {
+			const result = new S62aCaseUpdateMapper({ hearingDate }).generateUpdateInput();
+
+			assert.strictEqual((result as any).hearingDate, undefined);
 			assert.strictEqual(result.S62aDates, undefined);
 		});
 	});

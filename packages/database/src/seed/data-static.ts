@@ -12,7 +12,8 @@ import {
 	S62A_CATEGORIES,
 	PRE_APPLICATION_ADVICE,
 	OUTCOME_TYPES,
-	DECISION_OUTCOMES
+	DECISION_OUTCOMES,
+	SITE_VISIT_TYPES
 } from './s62a/data-static.ts';
 
 export const APPLICATION_DECISION_OUTCOME = [
@@ -656,6 +657,10 @@ type UpsertReferenceDataArgs =
 	| {
 			delegate: Prisma.S62aDecisionOutcomeDelegate;
 			input: Prisma.S62aDecisionOutcomeCreateInput;
+	  }
+	| {
+			delegate: Prisma.S62aSiteVisitTypeDelegate;
+			input: Prisma.S62aSiteVisitTypeCreateInput;
 	  };
 
 async function upsertReferenceData({ delegate, input }: UpsertReferenceDataArgs): Promise<void> {
@@ -740,16 +745,6 @@ export async function seedCrownStaticData(dbClient: PrismaClient) {
 		)
 	);
 
-	await Promise.all(
-		PRE_APPLICATION_ADVICE.map((input) => upsertReferenceData({ delegate: dbClient.s62aPreApplicationAdvice, input }))
-	);
-
-	await Promise.all(OUTCOME_TYPES.map((input) => upsertReferenceData({ delegate: dbClient.s62aOutcomeType, input })));
-
-	await Promise.all(
-		DECISION_OUTCOMES.map((input) => upsertReferenceData({ delegate: dbClient.s62aDecisionOutcome, input }))
-	);
-
 	const categories = CATEGORIES.filter((c) => !('ParentCategory' in c));
 	const subCategories = CATEGORIES.filter((c) => 'ParentCategory' in c);
 	// order is important here - parent categories first
@@ -788,6 +783,20 @@ export async function seedS62aStaticData(dbClient: PrismaClient) {
 
 	await Promise.all(
 		APPLICANT_TYPES.map((input) => upsertReferenceData({ delegate: dbClient.s62aApplicantType, input }))
+	);
+
+	await Promise.all(
+		PRE_APPLICATION_ADVICE.map((input) => upsertReferenceData({ delegate: dbClient.s62aPreApplicationAdvice, input }))
+	);
+
+	await Promise.all(OUTCOME_TYPES.map((input) => upsertReferenceData({ delegate: dbClient.s62aOutcomeType, input })));
+
+	await Promise.all(
+		DECISION_OUTCOMES.map((input) => upsertReferenceData({ delegate: dbClient.s62aDecisionOutcome, input }))
+	);
+
+	await Promise.all(
+		SITE_VISIT_TYPES.map((input) => upsertReferenceData({ delegate: dbClient.s62aSiteVisitType, input }))
 	);
 
 	console.log('S62A static data seed complete');

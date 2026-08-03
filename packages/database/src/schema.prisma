@@ -274,6 +274,8 @@ model S62aCase {
   decisionOutcomeId String?
   DecisionOutcome   S62aDecisionOutcome? @relation(fields: [decisionOutcomeId], references: [id])
 
+  S62aEvent S62aEvent?
+
   Folders        Folder[]
   Documents      Document[]
   DraftDocuments DraftDocument[]
@@ -344,6 +346,36 @@ model S62aDates {
   preApplicationAdviceIssuedDate           DateTime?
   decisionDate                             DateTime?
   recoveredReportSentDate                  DateTime?
+}
+
+/// Event details for an S62A case (hearing and site visit)
+model S62aEvent {
+  id         String   @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  s62aCaseId String   @unique @db.UniqueIdentifier
+  S62aCase   S62aCase @relation(fields: [s62aCaseId], references: [id])
+
+  procedureNotificationDate    DateTime?
+  hearingDate                  DateTime?
+  prepDuration                 Decimal?  @db.Decimal(6, 2)
+  sittingDuration              Decimal?  @db.Decimal(6, 2)
+  reportingDuration            Decimal?  @db.Decimal(6, 2)
+  venue                        String?   @db.NVarChar(250)
+  notificationDate             DateTime?
+  additionalMeetingDate        DateTime?
+  issuesReportingPublishedDate DateTime?
+
+  /// Site visit — shown for both pre-applications and applications
+  siteVisitDate   DateTime?
+  siteVisitTypeId String?
+  SiteVisitType   S62aSiteVisitType? @relation(fields: [siteVisitTypeId], references: [id])
+}
+
+/// The type of site visit taking place
+model S62aSiteVisitType {
+  /// unique machine-readable name, not generated, e.g. "access-required"
+  id          String      @id
+  displayName String?
+  S62aEvents  S62aEvent[]
 }
 
 model InspectorBand {
