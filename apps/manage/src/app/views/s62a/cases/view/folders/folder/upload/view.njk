@@ -1,0 +1,218 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/file-upload/macro.njk" import govukFileUpload %}
+{%- from "moj/components/multi-file-upload/macro.njk" import mojMultiFileUpload -%}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% set title = pageHeading + " - Case Folder" %}
+
+{% block pageTitle %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
+            <h1 class="govuk-heading-l">
+                Upload files in {{ folder.displayName }} folder
+            </h1>
+        </div>
+    </div>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <p class="govuk-body">Each file must be:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>BMP, DBF, DOC, DOCX, DOTX, GIF, HTML, JPEG, JPG, M4V, MOV, MP3, MP4, MPEG, MSG, ODS, ODT, PDF, PNG, PPT, PPTX, PRJ, PUB, RTF, SHP, SHX, TIF, TIFF, TXT, XLS, XLSM, XLSX</li>
+                <li>smaller than 250MB</li>
+            </ul>
+            <p class="govuk-body">The total combined size of your uploaded files must be smaller than 1GB.</p>
+            <p class="govuk-body">The file name can only include:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>Letters, numbers, hyphens, underscores, brackets, ampersand and single apostrophes</li>
+            </ul>
+
+            {% set uploadForm = "upload-form" %}
+
+            <form 
+                id="upload-form-container" 
+                action="{{ currentUrl }}" 
+                method="post" 
+                enctype="multipart/form-data" 
+                data-upload-url="{{ currentUrl }}/documents" 
+                data-delete-url="{{ currentUrl }}/documents/delete"
+            >
+                {% set uploadHtml %}
+                    {{ govukFileUpload({
+                        id: uploadForm,
+                        name: uploadForm,
+                        classes: "moj-multi-file-upload__input",
+                        attributes: { multiple: "" },
+                        errorMessage: errorMessage
+                    }) }}
+
+                    {{ govukButton({
+                        text: "Upload file",
+                        classes: "govuk-button--secondary moj-multi-file-upload__button"
+                    }) }}
+                {% endset %}
+
+                <div class="pins-multi-file-upload">
+                    {{ mojMultiFileUpload({
+                        uploadedFiles: {
+                            heading: { text: "Files selected" },
+                            items: uploadedFiles
+                        },
+                        uploadHtml: uploadHtml
+                    }) }}
+                </div>
+            </form>
+            <form id="main-submit-form" action="{{ currentUrl }}/commit" method="post">
+                <input type="hidden" name="_csrf" value="{{ _csrf }}">
+                {{ govukButton({
+                    text: "Upload"
+                }) }}
+            </form>
+
+            <script type="module" {% if cspNonce %}nonce="{{ cspNonce }}"{% endif %}>
+                import { MultiFileUpload } from '/assets/js/moj-frontend.min.js';
+
+                const $mojFormContainer = document.querySelector('#upload-form-container');
+                const $mainSubmitForm = document.querySelector('#main-submit-form');
+                const $multiFileUpload = document.querySelector('[data-module="moj-multi-file-upload"]');
+
+                class CustomRowFileUpload extends MultiFileUpload {
+                    
+                    constructor($root, config) {
+                        super($root, config);
+                        this.formatExistingRows();
+                    }
+
+                    formatBytes(bytes) {
+                        if (bytes === 0) return '0B';
+
+                        const KIB = 1024;
+                        const sizes = ['B', 'KB', 'MB', 'GB'];
+
+                        const unitIndex = Math.floor(Math.log(bytes) / Math.log(KIB));
+                        const value = Math.round(bytes / Math.pow(KIB, unitIndex));
+
+                        return `${value}${sizes[unitIndex]}`;
+                    }
+
+                    formatExistingRows() {
+                        const $rows = this.$feedbackContainer.querySelectorAll('.moj-multi-file-upload__row');
+                        
+                        $rows.forEach($row => {
+                            const $messageCol = $row.querySelector('.moj-multi-file-upload__message');
+                            const fileText = $messageCol ? $messageCol.textContent.replace('Uploaded', '').trim() : 'Unknown file';
+                            
+                            const $oldDeleteBtn = $row.querySelector('.moj-multi-file-upload__delete');
+                            const fileValue = $oldDeleteBtn ? $oldDeleteBtn.value : '';
+
+                            $row.classList.add('moj-multi-file-upload__row--flex');
+                            
+                            $row.innerHTML = `
+                                <div class="govuk-summary-list__value moj-multi-file-upload__col-name">
+                                    ${fileText}
+                                </div>
+                                <div class="govuk-summary-list__value moj-multi-file-upload__message moj-multi-file-upload__col-status">
+                                    <strong class="govuk-tag govuk-tag--green">Uploaded</strong>
+                                </div>
+                                <div class="govuk-summary-list__actions moj-multi-file-upload__actions moj-multi-file-upload__col-actions">
+                                    <button type="button" name="delete" value="${fileValue}" class="moj-multi-file-upload__delete pins-button-link">
+                                        Remove <span class="govuk-visually-hidden">${fileText}</span>
+                                    </button>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    getFileRow(file) {
+                        const $row = document.createElement('div');
+                        $row.classList.add('govuk-summary-list__row', 'moj-multi-file-upload__row', 'moj-multi-file-upload__row--flex');
+                        
+                        const cleverSize = this.formatBytes(file.size);
+
+                        $row.innerHTML = `
+                            <div class="govuk-summary-list__value moj-multi-file-upload__col-name">
+                                ${file.name} (${cleverSize})
+                            </div>
+                            <div class="govuk-summary-list__value moj-multi-file-upload__message moj-multi-file-upload__col-status">
+                                Uploading: <span class="moj-multi-file-upload__progress">0%</span>
+                            </div>
+                            <div class="govuk-summary-list__actions moj-multi-file-upload__actions moj-multi-file-upload__col-actions"></div>
+                        `;
+                        
+                        return $row;
+                    }
+
+                    getSuccessHtml(success) {
+                        return `<strong class="govuk-tag govuk-tag--green">Uploaded</strong>`;
+                    }
+
+                    getErrorHtml(error) {
+                        return `<span class="govuk-error-message govuk-!-margin-0">${error.message}</span>`;
+                    }
+
+                    getDeleteButton(file) {
+                        const $button = document.createElement('button');
+                        $button.setAttribute('type', 'button');
+                        $button.setAttribute('name', 'delete');
+                        $button.setAttribute('value', file.filename);
+                        
+                        $button.classList.add('moj-multi-file-upload__delete', 'pins-button-link');
+                        $button.innerHTML = `Remove <span class="govuk-visually-hidden">${file.originalname}</span>`;
+                        
+                        return $button;
+                    }
+                }
+
+                function showUploadError() {
+                    const existingError = document.querySelector('.govuk-error-summary');
+                    if (existingError) existingError.remove();
+
+                    const errorSummaryHtml = `
+                        <div class="govuk-error-summary govuk-grid-column-two-thirds" aria-labelledby="error-summary-title" role="alert" tabindex="-1" data-module="govuk-error-summary">
+                            <h2 class="govuk-error-summary__title" id="error-summary-title">There is a problem</h2>
+                            <div class="govuk-error-summary__body">
+                                <ul class="govuk-list govuk-error-summary__list">
+                                    <li><a href="#upload-form">Wait for all files to finish uploading</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+
+                    const mainContent = document.querySelector('main') || $mainSubmitForm;
+                    mainContent.insertAdjacentHTML('afterbegin', errorSummaryHtml);
+                    const newErrorSummary = document.querySelector('.govuk-error-summary');
+                    if (newErrorSummary) newErrorSummary.focus();
+                }
+
+                if ($mainSubmitForm) {
+                    $mainSubmitForm.addEventListener('submit', function (event) {
+                        const activeUploads = document.querySelectorAll('.moj-multi-file-upload__progress');
+                        if (activeUploads.length > 0) {
+                            event.preventDefault();
+                            showUploadError(); 
+                        }
+                    });
+                }
+
+                const csrfToken = document.querySelector('input[name="_csrf"]').value;
+                const originalXhrOpen = XMLHttpRequest.prototype.open;
+                XMLHttpRequest.prototype.open = function() {
+                    originalXhrOpen.apply(this, arguments);
+                    this.setRequestHeader('x-csrf-token', csrfToken);
+                };
+
+                if ($multiFileUpload && $mojFormContainer) {
+                    new CustomRowFileUpload($multiFileUpload, {
+                        uploadUrl: $mojFormContainer.dataset.uploadUrl,
+                        deleteUrl: $mojFormContainer.dataset.deleteUrl
+                    });
+                }
+            </script>
+        </div>
+    </div>
+{% endblock %}
