@@ -16,7 +16,10 @@ import {
 	FEE_STRING_FIELDS,
 	CASE_TEAM_USER_RELATIONS,
 	type CaseTeamInspectorItem,
-	type S62aCaseViewModel
+	type S62aCaseViewModel,
+	EVENT_DATE_FIELDS,
+	EVENT_NUMBER_FIELDS,
+	EVENT_STRING_FIELDS
 } from './view-model.ts';
 import {
 	type AgentContactAnswer,
@@ -33,6 +36,9 @@ const FEE_BOOLEAN_SET = new Set<string>(FEE_BOOLEAN_FIELDS);
 const FEE_NUMBER_SET = new Set<string>(FEE_NUMBER_FIELDS);
 const FEE_DATE_SET = new Set<string>(FEE_DATE_FIELDS);
 const FEE_STRING_SET = new Set<string>(FEE_STRING_FIELDS);
+const EVENT_DATE_SET = new Set<string>(EVENT_DATE_FIELDS);
+const EVENT_NUMBER_SET = new Set<string>(EVENT_NUMBER_FIELDS);
+const EVENT_STRING_SET = new Set<string>(EVENT_STRING_FIELDS);
 
 export interface UpdateCaseAnswers {
 	s62aStatusId?: string;
@@ -154,6 +160,19 @@ export interface UpdateCaseAnswers {
 	decisionOutcomeId?: string | null;
 	decisionDate?: Date | null;
 	recoveredReportSentDate?: Date | null;
+
+	// Event tab
+	procedureNotificationDate?: Date | null;
+	hearingDate?: Date | null;
+	prepDuration?: string | null;
+	sittingDuration?: string | null;
+	reportingDuration?: string | null;
+	venue?: string;
+	notificationDate?: Date | null;
+	additionalMeetingDate?: Date | null;
+	issuesReportingPublishedDate?: Date | null;
+	siteVisitDate?: Date | null;
+	siteVisitTypeId?: string | null;
 }
 
 /**
@@ -187,6 +206,7 @@ export class S62aCaseUpdateMapper {
 		this.mapApplicantsAndAgents(input);
 		this.mapEiaScalars(input);
 		this.mapCaseTeam(input);
+		this.mapEvent(input);
 
 		return input;
 	}
@@ -454,6 +474,44 @@ export class S62aCaseUpdateMapper {
 				upsert: {
 					create: feesToUpdate,
 					update: feesToUpdate
+				}
+			};
+		}
+	}
+
+	/**
+	 * Creates the data on the Event reference table
+	 */
+	private mapEvent(input: Prisma.S62aCaseUpdateInput): void {
+		const eventToUpdate: Prisma.S62aEventUpdateWithoutS62aCaseInput & Prisma.S62aEventCreateWithoutS62aCaseInput = {};
+		let hasEventUpdates = false;
+
+		for (const [key, value] of Object.entries(this.answers)) {
+			if (this.isEventDateField(key)) {
+				eventToUpdate[key] = (value as Date) || null;
+				hasEventUpdates = true;
+			} else if (this.isEventNumberField(key)) {
+				eventToUpdate[key] = value === null || value === '' ? null : new Prisma.Decimal(value as string | number);
+				hasEventUpdates = true;
+			} else if (this.isEventStringField(key)) {
+				eventToUpdate[key] = (value as string) || null;
+				hasEventUpdates = true;
+			}
+		}
+
+		// Handled outside the loop: on write this is a relation, not a scalar column
+		if (this.hasAnswer('siteVisitTypeId')) {
+			eventToUpdate.SiteVisitType = this.answers.siteVisitTypeId
+				? { connect: { id: this.answers.siteVisitTypeId } }
+				: { disconnect: true };
+			hasEventUpdates = true;
+		}
+
+		if (hasEventUpdates) {
+			input.S62aEvent = {
+				upsert: {
+					create: eventToUpdate,
+					update: eventToUpdate
 				}
 			};
 		}
@@ -950,6 +1008,18 @@ export class S62aCaseUpdateMapper {
 
 	private isFeeStringField(key: string): key is (typeof FEE_STRING_FIELDS)[number] {
 		return FEE_STRING_SET.has(key);
+	}
+
+	private isEventDateField(key: string): key is (typeof EVENT_DATE_FIELDS)[number] {
+		return EVENT_DATE_SET.has(key);
+	}
+
+	private isEventNumberField(key: string): key is (typeof EVENT_NUMBER_FIELDS)[number] {
+		return EVENT_NUMBER_SET.has(key);
+	}
+
+	private isEventStringField(key: string): key is (typeof EVENT_STRING_FIELDS)[number] {
+		return EVENT_STRING_SET.has(key);
 	}
 
 	private hasAnswer(key: keyof UpdateCaseAnswers): boolean {

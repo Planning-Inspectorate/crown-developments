@@ -21,6 +21,7 @@ import {
 	S62A_CATEGORIES,
 	S62A_PRE_APPLICATION_STATUSES,
 	S62A_STAGES,
+	SITE_VISIT_TYPES,
 	SPECIALISMS
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import {
@@ -1746,6 +1747,143 @@ export function getQuestions(
 					{ text: 'Remove and save', type: 'submit', formaction: 'recovered-report-sent-date/remove' }
 				]
 			}
+		},
+		noticeOfProcedureDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Notice of procedure date',
+			question: 'When is the notice of procedure date?',
+			hint: 'For example, 27 3 2007',
+			fieldName: 'procedureNotificationDate',
+			url: 'notice-of-procedure-date',
+			validators: [new DateValidator('notice of procedure date')]
+		},
+		hearingDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Hearing date',
+			question: 'When is the hearing date?',
+			hint: 'For example, 27 3 2007',
+			fieldName: 'hearingDate',
+			url: 'hearing-date',
+			validators: [new DateValidator('hearing date')],
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'hearing-date/remove' }]
+			}
+		},
+		hearingDuration: {
+			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
+			title: 'Hearing duration',
+			question: 'What is the hearing duration?',
+			fieldName: 'hearingDuration',
+			url: 'hearing-duration',
+			inputFields: [
+				{
+					fieldName: 'prepDuration',
+					label: 'Prep',
+					classes: 'govuk-input--width-5',
+					formatPrefix: 'Prep: ',
+					formatJoinString: ' days\r\n',
+					inputmode: 'numeric',
+					pattern: '[0-9]*',
+					suffix: { text: 'days' }
+				},
+				{
+					fieldName: 'sittingDuration',
+					label: 'Sitting',
+					classes: 'govuk-input--width-5',
+					formatPrefix: 'Sitting: ',
+					formatJoinString: ' days\r\n',
+					inputmode: 'numeric',
+					pattern: '[0-9]*',
+					suffix: { text: 'days' }
+				},
+				{
+					fieldName: 'reportingDuration',
+					label: 'Reporting',
+					classes: 'govuk-input--width-5',
+					formatPrefix: 'Reporting: ',
+					formatJoinString: ' days',
+					inputmode: 'numeric',
+					pattern: '[0-9]*',
+					suffix: { text: 'days' }
+				}
+			],
+			validators: [
+				new MultiFieldInputValidator({
+					fields: ['prepDuration', 'sittingDuration', 'reportingDuration'].map((fieldName) => ({
+						fieldName,
+						validators: [
+							new NumericValidator({
+								regex: /^$|^\d+(\.\d+)?$/,
+								regexMessage: 'Hearing duration must only contain numbers'
+							})
+						]
+					}))
+				})
+			],
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'hearing-duration/remove' }]
+			}
+		},
+		hearingVenue: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Hearing venue',
+			question: 'What is the venue of the hearing?',
+			fieldName: 'venue',
+			url: 'hearing-venue',
+			validators: [
+				new RequiredValidator('Enter the hearing venue'),
+				new StringValidator({
+					maxLength: { maxLength: 250, maxLengthMessage: 'Hearing venue must be 250 characters or less' }
+				})
+			]
+		},
+		hearingNotificationDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Hearing notification date',
+			question: 'When is the hearing notification date?',
+			hint: 'For example, 27 3 2007',
+			fieldName: 'notificationDate',
+			url: 'hearing-notification-date',
+			validators: [new DateValidator('hearing notification date')]
+		},
+		additionalMeeting: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Additional meetings required',
+			question: 'What date was an additional meeting held?',
+			hint: 'For example, 27 3 2007',
+			fieldName: 'additionalMeetingDate',
+			url: 'additional-meeting',
+			validators: [new DateValidator('additional meeting date')],
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'additional-meeting/remove' }]
+			}
+		},
+		hearingIssuesReportPublishedDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Hearing issues report published date',
+			question: 'When was the hearing issues report published?',
+			hint: 'For example, 27 3 2007',
+			fieldName: 'issuesReportingPublishedDate',
+			url: 'hearing-issues-report-published-date',
+			validators: [new DateValidator('hearing issues report published date')]
+		},
+		siteVisit: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Site visit',
+			question: 'When is the site visit?',
+			hint: 'For example, 27 3 2007',
+			fieldName: 'siteVisitDate',
+			url: 'site-visit',
+			validators: [new DateValidator('site visit date')]
+		},
+		siteVisitType: {
+			type: COMPONENT_TYPES.RADIO,
+			title: 'Site visit type',
+			question: 'Which type of site visit is taking place?',
+			fieldName: 'siteVisitTypeId',
+			url: 'site-visit-type',
+			validators: [new RequiredValidator('Select the type of site visit')],
+			options: SITE_VISIT_TYPES.map((t) => ({ text: t.displayName, value: t.id }))
 		}
 	};
 

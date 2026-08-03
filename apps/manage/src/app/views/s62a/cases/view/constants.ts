@@ -40,6 +40,7 @@ export const S62A_VIEW_SELECT_INCLUDE = {
 	SiteAddress: true,
 	S62aDates: true,
 	S62aFees: true,
+	S62aEvent: true,
 	S62aToApplicants: {
 		include: {
 			Organisation: {

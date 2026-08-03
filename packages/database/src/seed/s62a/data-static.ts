@@ -140,6 +140,7 @@ export const VIEW_TAB_ID = Object.freeze({
 	FEE: 'fee',
 	REPRESENTATIONS: 'representations',
 	CONTACTS: 'contacts',
+	EVENT: 'event',
 	OUTCOME: 'outcome',
 	EIA: 'eia',
 	PRE_APPLICATION: 'pre-application'
@@ -175,8 +176,8 @@ export const VIEW_TABS = [
 		displayName: 'Case team'
 	},
 	{
-		id: VIEW_TAB_ID.FEE,
-		displayName: 'Fee'
+		id: VIEW_TAB_ID.EVENT,
+		displayName: 'Event'
 	},
 	{
 		id: VIEW_TAB_ID.OUTCOME,
@@ -187,6 +188,10 @@ export const VIEW_TABS = [
 		id: VIEW_TAB_ID.EIA,
 		displayName: 'EIA',
 		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+	},
+	{
+		id: VIEW_TAB_ID.FEE,
+		displayName: 'Fee'
 	},
 	{
 		id: VIEW_TAB_ID.PRE_APPLICATION,
@@ -581,4 +586,14 @@ export const DECISION_OUTCOME_ID = Object.freeze({
 export const DECISION_OUTCOMES = [
 	{ id: DECISION_OUTCOME_ID.GRANTED_WITH_CONDITIONS, displayName: 'Granted with conditions' },
 	{ id: DECISION_OUTCOME_ID.REFUSED, displayName: 'Refused' }
+];
+
+export const SITE_VISIT_TYPE_ID = Object.freeze({
+	ACCESS_REQUIRED: 'access-required',
+	UNACCOMPANIED: 'unaccompanied'
+} as const);
+
+export const SITE_VISIT_TYPES = [
+	{ id: SITE_VISIT_TYPE_ID.ACCESS_REQUIRED, displayName: 'Access required site visit (ARSV)' },
+	{ id: SITE_VISIT_TYPE_ID.UNACCOMPANIED, displayName: 'Unaccompanied site visit (USV)' }
 ];

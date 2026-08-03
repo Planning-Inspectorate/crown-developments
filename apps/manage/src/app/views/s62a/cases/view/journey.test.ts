@@ -179,6 +179,21 @@ describe('s62a case details journey', () => {
 			},
 			{
 				title: '',
+				segment: 'event',
+				questions: [
+					'noticeOfProcedureDate',
+					'siteVisit',
+					'siteVisitType',
+					'hearingDate',
+					'hearingDuration',
+					'hearingVenue',
+					'hearingNotificationDate',
+					'additionalMeeting',
+					'hearingIssuesReportPublishedDate'
+				]
+			},
+			{
+				title: '',
 				segment: 'outcome',
 				questions: ['outcomeType', 'decisionOutcome', 'decisionDate', 'recoveredReportSentDate']
 			},

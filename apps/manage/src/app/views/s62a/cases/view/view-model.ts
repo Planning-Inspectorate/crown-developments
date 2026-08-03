@@ -74,6 +74,19 @@ export const CASE_TEAM_USER_RELATIONS = Object.freeze([
 	{ field: 'readerId', relation: 'Reader' }
 ] as const);
 
+export const EVENT_DATE_FIELDS = Object.freeze([
+	'procedureNotificationDate',
+	'hearingDate',
+	'notificationDate',
+	'additionalMeetingDate',
+	'issuesReportingPublishedDate',
+	'siteVisitDate'
+] as const);
+
+export const EVENT_NUMBER_FIELDS = Object.freeze(['prepDuration', 'sittingDuration', 'reportingDuration'] as const);
+
+export const EVENT_STRING_FIELDS = Object.freeze(['venue'] as const);
+
 export interface CaseTeamInspectorItem {
 	id: string;
 	/// Entra ID of the inspector
@@ -220,6 +233,19 @@ export interface S62aCaseViewModel {
 	decisionOutcomeId?: string | null;
 	decisionDate?: Date;
 	recoveredReportSentDate?: Date;
+
+	// Event tab
+	procedureNotificationDate?: Date;
+	hearingDate?: Date;
+	prepDuration?: number;
+	sittingDuration?: number;
+	reportingDuration?: number;
+	venue?: string;
+	notificationDate?: Date;
+	additionalMeetingDate?: Date;
+	issuesReportingPublishedDate?: Date;
+	siteVisitDate?: Date;
+	siteVisitTypeId?: string;
 }
 
 /**
@@ -395,6 +421,33 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 			if (val) {
 				viewModel[field] = val;
 			}
+		}
+	}
+
+	if (dbCase.S62aEvent) {
+		for (const field of EVENT_DATE_FIELDS) {
+			const val = dbCase.S62aEvent[field];
+			if (val) {
+				viewModel[field] = val;
+			}
+		}
+
+		for (const field of EVENT_NUMBER_FIELDS) {
+			const val = dbCase.S62aEvent[field];
+			if (val) {
+				viewModel[field] = val.toNumber();
+			}
+		}
+
+		for (const field of EVENT_STRING_FIELDS) {
+			const val = dbCase.S62aEvent[field];
+			if (val) {
+				viewModel[field] = val;
+			}
+		}
+
+		if (dbCase.S62aEvent.siteVisitTypeId) {
+			viewModel.siteVisitTypeId = dbCase.S62aEvent.siteVisitTypeId;
 		}
 	}
 

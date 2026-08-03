@@ -248,6 +248,24 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.addQuestion(questions.applicationFeeRefundDate)
 				.withCondition(whenQuestionHasAnswer(questions.eligibleForFeeRefund, BOOLEAN_OPTIONS.YES))
 				.endMultiQuestionCondition('is-application'),
+			new Section('', 'event')
+				.withSectionCondition(() => currentTab === VIEW_TAB_ID.EVENT)
+
+				.startMultiQuestionCondition('event-is-application-1', isApplicationCase)
+				.addQuestion(questions.noticeOfProcedureDate)
+				.endMultiQuestionCondition('event-is-application-1')
+
+				.addQuestion(questions.siteVisit)
+				.addQuestion(questions.siteVisitType)
+
+				.startMultiQuestionCondition('event-is-application-2', isApplicationCase)
+				.addQuestion(questions.hearingDate)
+				.addQuestion(questions.hearingDuration)
+				.addQuestion(questions.hearingVenue)
+				.addQuestion(questions.hearingNotificationDate)
+				.addQuestion(questions.additionalMeeting)
+				.addQuestion(questions.hearingIssuesReportPublishedDate)
+				.endMultiQuestionCondition('event-is-application-2'),
 			new Section('', 'outcome')
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.OUTCOME && isApplicationCase(response))
 				.addQuestion(questions.outcomeType)
