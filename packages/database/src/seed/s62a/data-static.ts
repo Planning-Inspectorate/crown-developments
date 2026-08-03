@@ -143,7 +143,8 @@ export const VIEW_TAB_ID = Object.freeze({
 	EVENT: 'event',
 	OUTCOME: 'outcome',
 	EIA: 'eia',
-	PRE_APPLICATION: 'pre-application'
+	PRE_APPLICATION: 'pre-application',
+	WASTE: 'waste'
 } as const);
 
 /**
@@ -196,6 +197,11 @@ export const VIEW_TABS = [
 	{
 		id: VIEW_TAB_ID.PRE_APPLICATION,
 		displayName: 'Pre-application'
+	},
+	{
+		id: VIEW_TAB_ID.WASTE,
+		displayName: 'Waste',
+		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
 	}
 ];
 
@@ -596,4 +602,97 @@ export const SITE_VISIT_TYPE_ID = Object.freeze({
 export const SITE_VISIT_TYPES = [
 	{ id: SITE_VISIT_TYPE_ID.ACCESS_REQUIRED, displayName: 'Access required site visit (ARSV)' },
 	{ id: SITE_VISIT_TYPE_ID.UNACCOMPANIED, displayName: 'Unaccompanied site visit (USV)' }
+];
+
+export const WASTE_UNIT_ID = Object.freeze({
+	CUBIC_METRES: 'cubic-metres',
+	TONNES: 'tonnes',
+	LITRES: 'litres'
+} as const);
+
+export const WASTE_UNITS = [
+	{ id: WASTE_UNIT_ID.CUBIC_METRES, displayName: 'Cubic metres' },
+	{ id: WASTE_UNIT_ID.TONNES, displayName: 'Tonnes for solid waste' },
+	{ id: WASTE_UNIT_ID.LITRES, displayName: 'Litres for liquid waste' }
+];
+
+export const WASTE_TYPE_ID = Object.freeze({
+	INERT_LANDFILL: 'inert-landfill',
+	NON_HAZARDOUS_LANDFILL: 'non-hazardous-landfill',
+	HAZARDOUS_LANDFILL: 'hazardous-landfill',
+	ENERGY_FROM_WASTE_INCINERATION: 'energy-from-waste-incineration',
+	OTHER_INCINERATION: 'other-incineration',
+	LANDFILL_GAS_GENERATION_PLANT: 'landfill-gas-generation-plant',
+	PYROLYSIS_GASIFICATION: 'pyrolysis-gasification',
+	METAL_RECYCLING_SITE: 'metal-recycling-site',
+	TRANSFER_STATIONS: 'transfer-stations',
+	MATERIAL_RECOVERY_RECYCLING: 'material-recovery-recycling-facilities',
+	HOUSEHOLD_CIVIC_AMENITY_SITES: 'household-civic-amenity-sites',
+	OPEN_WINDROW_COMPOSTING: 'open-windrow-composting',
+	IN_VESSEL_COMPOSTING: 'in-vessel-composting',
+	ANAEROBIC_DIGESTION: 'anaerobic-digestion',
+	COMBINED_MBT: 'combined-mbt',
+	SEWAGE_TREATMENT_WORKS: 'sewage-treatment-works',
+	OTHER_TREATMENT: 'other-treatment',
+	RECYCLING_FACILITIES_CDE: 'recycling-facilities-cde',
+	STORAGE_OF_WASTE: 'storage-of-waste',
+	OTHER_WASTE_MANAGEMENT: 'other-waste-management',
+	OTHER_DEVELOPMENTS: 'other-developments',
+	MUNICIPAL: 'municipal',
+	CONSTRUCTION_DEMOLITION_EXCAVATION: 'construction-demolition-excavation',
+	COMMERCIAL_AND_INDUSTRIAL: 'commercial-and-industrial',
+	HAZARDOUS: 'hazardous'
+} as const);
+
+export const WASTE_TYPES = [
+	{ id: WASTE_TYPE_ID.INERT_LANDFILL, displayName: 'Inert landfill' },
+	{ id: WASTE_TYPE_ID.NON_HAZARDOUS_LANDFILL, displayName: 'Non-hazardous landfill' },
+	{ id: WASTE_TYPE_ID.HAZARDOUS_LANDFILL, displayName: 'Hazardous landfill' },
+	{ id: WASTE_TYPE_ID.ENERGY_FROM_WASTE_INCINERATION, displayName: 'Energy from waste incineration' },
+	{ id: WASTE_TYPE_ID.OTHER_INCINERATION, displayName: 'Other incineration' },
+	{ id: WASTE_TYPE_ID.LANDFILL_GAS_GENERATION_PLANT, displayName: 'Landfill gas generation plant' },
+	{ id: WASTE_TYPE_ID.PYROLYSIS_GASIFICATION, displayName: 'Pyrolysis/gasification' },
+	{ id: WASTE_TYPE_ID.METAL_RECYCLING_SITE, displayName: 'Metal recycling site' },
+	{ id: WASTE_TYPE_ID.TRANSFER_STATIONS, displayName: 'Transfer stations' },
+	{
+		id: WASTE_TYPE_ID.MATERIAL_RECOVERY_RECYCLING,
+		displayName: 'Material recovery/recycling facilities (MRFs)'
+	},
+	{ id: WASTE_TYPE_ID.HOUSEHOLD_CIVIC_AMENITY_SITES, displayName: 'Household civic amenity sites' },
+	{ id: WASTE_TYPE_ID.OPEN_WINDROW_COMPOSTING, displayName: 'Open windrow composting' },
+	{ id: WASTE_TYPE_ID.IN_VESSEL_COMPOSTING, displayName: 'In-vessel composting' },
+	{ id: WASTE_TYPE_ID.ANAEROBIC_DIGESTION, displayName: 'Anaerobic digestion' },
+	{
+		id: WASTE_TYPE_ID.COMBINED_MBT,
+		displayName: 'Any combined mechanical, biological and/ or thermal treatment (MBT)'
+	},
+	{ id: WASTE_TYPE_ID.SEWAGE_TREATMENT_WORKS, displayName: 'Sewage treatment works' },
+	{ id: WASTE_TYPE_ID.OTHER_TREATMENT, displayName: 'Other treatment' },
+	{
+		id: WASTE_TYPE_ID.RECYCLING_FACILITIES_CDE,
+		displayName: 'Recycling facilities construction, demolition and excavation waste'
+	},
+	{ id: WASTE_TYPE_ID.STORAGE_OF_WASTE, displayName: 'Storage of waste' },
+	{ id: WASTE_TYPE_ID.OTHER_WASTE_MANAGEMENT, displayName: 'Other waste management' },
+	{ id: WASTE_TYPE_ID.OTHER_DEVELOPMENTS, displayName: 'Other developments' },
+	{ id: WASTE_TYPE_ID.MUNICIPAL, displayName: 'Municipal' },
+	{
+		id: WASTE_TYPE_ID.CONSTRUCTION_DEMOLITION_EXCAVATION,
+		displayName: 'Construction, demolition and excavation'
+	},
+	{ id: WASTE_TYPE_ID.COMMERCIAL_AND_INDUSTRIAL, displayName: 'Commercial and industrial' },
+	{ id: WASTE_TYPE_ID.HAZARDOUS, displayName: 'Hazardous' }
+];
+
+/**
+ * Waste types that skip the 'Total capacity of the void' question and go
+ * straight to maximum annual throughput.
+ *
+ * Any new waste type that should also skip that question must be added here.
+ */
+export const WASTE_TYPES_WITHOUT_VOID_CAPACITY: string[] = [
+	WASTE_TYPE_ID.MUNICIPAL,
+	WASTE_TYPE_ID.CONSTRUCTION_DEMOLITION_EXCAVATION,
+	WASTE_TYPE_ID.COMMERCIAL_AND_INDUSTRIAL,
+	WASTE_TYPE_ID.HAZARDOUS
 ];

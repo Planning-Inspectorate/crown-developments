@@ -7,7 +7,9 @@ import {
 	PRE_APPLICATION_ADVICE_ID,
 	OUTCOME_TYPE_ID,
 	DECISION_OUTCOME_ID,
-	SITE_VISIT_TYPE_ID
+	SITE_VISIT_TYPE_ID,
+	WASTE_TYPE_ID,
+	WASTE_UNIT_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { s62aCaseToViewModel, type S62aCaseDbModel } from './view-model.ts';
 
@@ -1264,6 +1266,120 @@ describe('s62aCaseToViewModel', () => {
 
 			assert.strictEqual(result.notificationReceivedDate, notificationReceivedDate);
 			assert.strictEqual(result.notificationDate, notificationDate);
+		});
+	});
+
+	describe('Waste Mapping', () => {
+		it('maps the description and the boolean', () => {
+			const mockDbCase = {
+				id: 'case-waste-1',
+				reference: 'S62A/2026/0044',
+				expectedSubmissionDate: mockDate,
+				wasteActivitiesDescription: 'Sorting and baling',
+				isWasteManagementDevelopment: true
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.wasteActivitiesDescription, 'Sorting and baling');
+			assert.strictEqual(result.isWasteManagementDevelopment, 'yes');
+		});
+
+		it('maps "No" distinctly from unanswered', () => {
+			const withNo = {
+				id: 'case-waste-2',
+				reference: 'S62A/2026/0045',
+				expectedSubmissionDate: mockDate,
+				isWasteManagementDevelopment: false
+			} as unknown as S62aCaseDbModel;
+
+			const withNull = {
+				id: 'case-waste-3',
+				reference: 'S62A/2026/0046',
+				expectedSubmissionDate: mockDate,
+				isWasteManagementDevelopment: null
+			} as unknown as S62aCaseDbModel;
+
+			assert.strictEqual(s62aCaseToViewModel(withNo).isWasteManagementDevelopment, 'no');
+			assert.strictEqual(s62aCaseToViewModel(withNull).isWasteManagementDevelopment, undefined);
+		});
+
+		it('maps waste types, converting the decimals and expanding the conditional keys', () => {
+			const mockDbCase = {
+				id: 'case-waste-4',
+				reference: 'S62A/2026/0047',
+				expectedSubmissionDate: mockDate,
+				WasteTypes: [
+					{
+						id: 'row-1',
+						wasteTypeId: WASTE_TYPE_ID.INERT_LANDFILL,
+						voidCapacity: createMockDecimal(34),
+						voidCapacityUnitId: WASTE_UNIT_ID.CUBIC_METRES,
+						maxAnnualThroughput: createMockDecimal(55),
+						maxAnnualThroughputUnitId: WASTE_UNIT_ID.TONNES
+					}
+				]
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.deepStrictEqual(result.manageWasteTypes, [
+				{
+					id: 'row-1',
+					wasteTypeId: WASTE_TYPE_ID.INERT_LANDFILL,
+					voidCapacity: 34,
+					voidCapacityUnitId: WASTE_UNIT_ID.CUBIC_METRES,
+					maxAnnualThroughput: 55,
+					maxAnnualThroughputUnitId: WASTE_UNIT_ID.TONNES,
+					// the conditional radio reads the amount from this key, so the
+					// right input pre-fills on edit and the table can find the value
+					[`voidCapacityUnitId_${WASTE_UNIT_ID.CUBIC_METRES}`]: '34',
+					[`maxAnnualThroughputUnitId_${WASTE_UNIT_ID.TONNES}`]: '55'
+				}
+			]);
+		});
+
+		it('omits the conditional keys when there is no amount', () => {
+			const mockDbCase = {
+				id: 'case-waste-5',
+				reference: 'S62A/2026/0048',
+				expectedSubmissionDate: mockDate,
+				WasteTypes: [
+					{
+						id: 'row-1',
+						wasteTypeId: WASTE_TYPE_ID.MUNICIPAL,
+						voidCapacity: null,
+						voidCapacityUnitId: null,
+						maxAnnualThroughput: createMockDecimal(43),
+						maxAnnualThroughputUnitId: WASTE_UNIT_ID.LITRES
+					}
+				]
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+			const [item] = result.manageWasteTypes!;
+
+			assert.strictEqual(item.voidCapacity, undefined);
+			assert.strictEqual(item.voidCapacityUnitId, undefined);
+			assert.strictEqual(item[`maxAnnualThroughputUnitId_${WASTE_UNIT_ID.LITRES}`], '43');
+		});
+
+		it('returns an empty array when there are no waste types', () => {
+			const withEmpty = {
+				id: 'case-waste-6',
+				reference: 'S62A/2026/0049',
+				expectedSubmissionDate: mockDate,
+				WasteTypes: []
+			} as unknown as S62aCaseDbModel;
+
+			const withNone = {
+				id: 'case-waste-7',
+				reference: 'S62A/2026/0050',
+				expectedSubmissionDate: mockDate
+			} as unknown as S62aCaseDbModel;
+
+			assert.deepStrictEqual(s62aCaseToViewModel(withEmpty).manageWasteTypes, []);
+			assert.deepStrictEqual(s62aCaseToViewModel(withNone).manageWasteTypes, []);
 		});
 	});
 });

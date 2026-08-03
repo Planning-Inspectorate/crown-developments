@@ -1,0 +1,32 @@
+{% macro listItem(item) %}
+	<li>
+		{% for value in item %}
+			{% if value.answer %}
+				{{ value.answer | safe }}{% if not loop.last %}<br>{% endif %}
+			{% endif %}
+		{% endfor %}
+	</li>
+{% endmacro %}
+
+{% if answers.length > limit %}
+	<div data-behaviour="toggle-list">
+		<ul class="govuk-list govuk-list--bullet">
+			{% for item in answers.slice(0, limit) %}
+				{{ listItem(item) }}
+			{% endfor %}
+		</ul>
+		{# Graceful degradation: JS unhides the toggle and hides the extra list on load #}
+		<button class="pins-button-link" hidden data-toggle>Show {{ answers.length - limit }} more</button>
+		<ul class="govuk-list govuk-list--bullet govuk-!-padding-top-4" data-show-more>
+			{% for item in answers.slice(limit) %}
+				{{ listItem(item) }}
+			{% endfor %}
+		</ul>
+	</div>
+{% else %}
+	<ul class="govuk-list {% if answers.length > 1 %}govuk-list--bullet{% endif %}">
+		{% for item in answers %}
+			{{ listItem(item) }}
+		{% endfor %}
+	</ul>
+{% endif %}

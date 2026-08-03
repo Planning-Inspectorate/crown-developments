@@ -15,7 +15,8 @@ import {
 	OUTCOME_TYPE_ID,
 	PRE_APPLICATION_ADVICE_ID,
 	PRE_APPLICATION_OR_APPLICATION_ID,
-	VIEW_TAB_ID
+	VIEW_TAB_ID,
+	WASTE_TYPES_WITHOUT_VOID_CAPACITY
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
@@ -51,6 +52,11 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 
 	const showAdviceIssuedDate = (response: JourneyResponse) =>
 		isPreApplicationCase(response) || isApplicationAdviceGiven(response);
+
+	const needsVoidCapacity = (response: JourneyResponse) => {
+		const wasteTypeId = response.answers?.wasteTypeId as string | undefined;
+		return !!wasteTypeId && !WASTE_TYPES_WITHOUT_VOID_CAPACITY.includes(wasteTypeId);
+	};
 
 	return new Journey({
 		journeyId: JOURNEY_ID,
@@ -299,7 +305,19 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.addQuestion(questions.preApplicationAdviceIssuedDate)
 				.withCondition(showAdviceIssuedDate)
 				.addQuestion(questions.preApplicationReference)
-				.withCondition(isApplicationAdviceGiven)
+				.withCondition(isApplicationAdviceGiven),
+			new Section('', 'waste')
+				.withSectionCondition(() => currentTab === VIEW_TAB_ID.WASTE && isApplicationCase(response))
+				.addQuestion(questions.wasteActivitiesDescription)
+				.addQuestion(questions.wasteManagementDevelopment)
+				.addQuestion(
+					questions.manageWasteTypes,
+					new ManageListSection()
+						.addQuestion(questions.wasteType)
+						.addQuestion(questions.voidCapacity)
+						.withCondition(needsVoidCapacity)
+						.addQuestion(questions.maxAnnualThroughput)
+				)
 		],
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',

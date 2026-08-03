@@ -19,7 +19,8 @@ import {
 	type S62aCaseViewModel,
 	EVENT_DATE_FIELDS,
 	EVENT_NUMBER_FIELDS,
-	EVENT_STRING_FIELDS
+	EVENT_STRING_FIELDS,
+	type WasteTypeItem
 } from './view-model.ts';
 import {
 	type AgentContactAnswer,
@@ -173,6 +174,11 @@ export interface UpdateCaseAnswers {
 	issuesReportingPublishedDate?: Date | null;
 	siteVisitDate?: Date | null;
 	siteVisitTypeId?: string | null;
+
+	// Waste tab
+	wasteActivitiesDescription?: string;
+	isWasteManagementDevelopment?: YesNo;
+	manageWasteTypes?: WasteTypeItem[] | null;
 }
 
 /**
@@ -207,6 +213,7 @@ export class S62aCaseUpdateMapper {
 		this.mapEiaScalars(input);
 		this.mapCaseTeam(input);
 		this.mapEvent(input);
+		this.mapWaste(input);
 
 		return input;
 	}
@@ -515,6 +522,48 @@ export class S62aCaseUpdateMapper {
 				}
 			};
 		}
+	}
+
+	/**
+	 * Maps the Waste tab.
+	 *
+	 * TODO: PEAS-399 — the waste type list is replaced wholesale on every save,
+	 * so a minor edit deletes and recreates every row. Should be a diff instead
+	 * (match by id, update/create/delete only what changed) before case history
+	 * lands, or the history will show mass deletes and inserts for small changes.
+	 */
+	private mapWaste(input: Prisma.S62aCaseUpdateInput): void {
+		const ans = this.answers;
+
+		if (this.hasAnswer('wasteActivitiesDescription')) {
+			input.wasteActivitiesDescription = ans.wasteActivitiesDescription || null;
+		}
+
+		if (this.hasAnswer('isWasteManagementDevelopment')) {
+			input.isWasteManagementDevelopment =
+				typeof ans.isWasteManagementDevelopment === 'boolean' ? yesNoToBoolean(ans.isWasteManagementDevelopment) : null;
+		}
+
+		// Deliberately not hasAnswer(): it returns false for an empty array, so
+		// removing the last waste type would be skipped and the row would survive.
+		if (ans.manageWasteTypes === undefined) return;
+
+		const items = ans.manageWasteTypes ?? [];
+
+		input.WasteTypes = {
+			deleteMany: {},
+			create: items
+				.filter((item) => item.wasteTypeId)
+				.map((item) => ({
+					WasteType: { connect: { id: item.wasteTypeId! } },
+					voidCapacity: this.selectedConditionalAmount(item, 'voidCapacityUnitId'),
+					VoidCapacityUnit: item.voidCapacityUnitId ? { connect: { id: item.voidCapacityUnitId } } : undefined,
+					maxAnnualThroughput: this.selectedConditionalAmount(item, 'maxAnnualThroughputUnitId'),
+					MaxAnnualThroughputUnit: item.maxAnnualThroughputUnitId
+						? { connect: { id: item.maxAnnualThroughputUnitId } }
+						: undefined
+				}))
+		};
 	}
 
 	/**
@@ -966,6 +1015,9 @@ export class S62aCaseUpdateMapper {
 	 * Replaces the inspector rows wholesale. Prisma runs deleteMany before
 	 * create, so re-adding the same user in one save does not trip the
 	 * (s62aCaseId, userId) unique constraint.
+	 *
+	 * TODO: PEAS-399 — see the note on mapWaste. Should be a diff rather than a
+	 * full replace.
 	 */
 	private mapCaseTeamInspectors(input: Prisma.S62aCaseUpdateInput): void {
 		// Deliberately didn't use hasAnswer() as it returns false for an empty array, so
@@ -1028,5 +1080,22 @@ export class S62aCaseUpdateMapper {
 			return value.length > 0;
 		}
 		return value !== undefined;
+	}
+
+	/**
+	 * The conditional radio posts one input per unit option. Pull the amount
+	 * belonging to the selected unit and discard the rest.
+	 */
+	private selectedConditionalAmount(
+		item: WasteTypeItem,
+		unitFieldName: 'voidCapacityUnitId' | 'maxAnnualThroughputUnitId'
+	): Prisma.Decimal | null {
+		const unitId = item[unitFieldName];
+		if (!unitId) return null;
+
+		const raw = item[`${unitFieldName}_${unitId}`];
+		if (raw === undefined || raw === null || raw === '') return null;
+
+		return new Prisma.Decimal(raw as string | number);
 	}
 }

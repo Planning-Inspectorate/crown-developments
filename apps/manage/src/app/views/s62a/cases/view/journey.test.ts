@@ -211,6 +211,11 @@ describe('s62a case details journey', () => {
 					'preApplicationAdviceIssuedDate',
 					'preApplicationReference'
 				]
+			},
+			{
+				title: '',
+				segment: 'waste',
+				questions: ['wasteActivitiesDescription', 'wasteManagementDevelopment', 'manageWasteTypes']
 			}
 		];
 

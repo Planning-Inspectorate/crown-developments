@@ -38,6 +38,17 @@ describe('S62aManageListDeleter', () => {
 				delete: mock.fn(async () => {}),
 				deleteMany: mock.fn(async () => {})
 			},
+			s62aCaseWasteType: {
+				deleteMany: mock.fn(async () => {})
+			},
+			s62aWasteType: {
+				delete: mock.fn(async () => {}),
+				deleteMany: mock.fn(async () => {})
+			},
+			s62aWasteUnit: {
+				delete: mock.fn(async () => {}),
+				deleteMany: mock.fn(async () => {})
+			},
 			$transaction: mock.fn(async (ops: any[]) => Promise.all(ops))
 		};
 
@@ -251,6 +262,31 @@ describe('S62aManageListDeleter', () => {
 
 			assert.strictEqual(mockDb.s62aToApplicant.deleteMany.mock.callCount(), 0);
 			assert.strictEqual(mockDb.contact.delete.mock.callCount(), 0);
+		});
+	});
+
+	describe('deleteWasteType', () => {
+		it('deletes the join row scoped to the case', async () => {
+			await deleter.deleteWasteType('case-1', 'waste-row-1');
+
+			assert.strictEqual(mockDb.s62aCaseWasteType.deleteMany.mock.callCount(), 1);
+			assert.deepStrictEqual(mockDb.s62aCaseWasteType.deleteMany.mock.calls[0].arguments[0], {
+				where: { id: 'waste-row-1', s62aCaseId: 'case-1' }
+			});
+		});
+
+		it('leaves the waste type and unit lookups alone, as they are reference data', async () => {
+			await deleter.deleteWasteType('case-1', 'waste-row-1');
+
+			assert.strictEqual(mockDb.s62aWasteType?.delete?.mock.callCount() ?? 0, 0);
+			assert.strictEqual(mockDb.s62aWasteUnit?.delete?.mock.callCount() ?? 0, 0);
+		});
+
+		it('does not touch the inspector or applicant join tables', async () => {
+			await deleter.deleteWasteType('case-1', 'waste-row-1');
+
+			assert.strictEqual(mockDb.s62aCaseInspector.deleteMany.mock.callCount(), 0);
+			assert.strictEqual(mockDb.s62aToApplicant.deleteMany.mock.callCount(), 0);
 		});
 	});
 });

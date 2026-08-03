@@ -22,7 +22,10 @@ import {
 	S62A_PRE_APPLICATION_STATUSES,
 	S62A_STAGES,
 	SITE_VISIT_TYPES,
-	SPECIALISMS
+	SPECIALISMS,
+	WASTE_TYPES,
+	WASTE_UNIT_ID,
+	WASTE_UNITS
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import {
 	AddressValidator,
@@ -54,6 +57,8 @@ import CILAmountLengthValidator from '@pins/crowndev-lib/forms/custom-components
 import { multiContactQuestions, createLpaContactQuestion } from '../util/question-factories.ts';
 import { getApplicantOrganisationOptions } from '../../../../views/cases/util/applicant-organisation-options.js';
 import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.ts';
+import MultiConditionalNumericValidator from '@pins/crowndev-lib/forms/custom-components/multi-conditional-radio/multi-conditional-numeric-validator.ts';
+import UniqueListFieldValidator from '@pins/crowndev-lib/validators/unique-list-field-validator.ts';
 import type { EntraGroupMembers } from '#util/entra-groups.ts';
 
 type ApplicantOrg = {
@@ -107,6 +112,8 @@ export function getQuestions(
 	const hasAgent = answers?.hasAgent === BOOLEAN_OPTIONS.YES;
 
 	const applicantContactsValidator = getApplicantContactsValidator(hasAgent, isIndividual);
+
+	const throughputUnits = WASTE_UNITS.filter((u) => u.id !== WASTE_UNIT_ID.CUBIC_METRES);
 
 	const questions = {
 		reference: {
@@ -1884,6 +1891,155 @@ export function getQuestions(
 			url: 'site-visit-type',
 			validators: [new RequiredValidator('Select the type of site visit')],
 			options: SITE_VISIT_TYPES.map((t) => ({ text: t.displayName, value: t.id }))
+		},
+		wasteActivitiesDescription: {
+			type: COMPONENT_TYPES.TEXT_ENTRY,
+			title: 'Description of the activities and processes',
+			question: 'Provide a description of the activities and processes which would be carried out on the site',
+			fieldName: 'wasteActivitiesDescription',
+			url: 'activities',
+			validators: [
+				new RequiredValidator(
+					'Enter description of the activities and processes which would be carried out on the site'
+				),
+				new StringValidator({
+					maxLength: {
+						maxLength: 1000,
+						maxLengthMessage: 'Description of activities and processes must be 1000 characters or less'
+					}
+				})
+			],
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'activities/remove' }]
+			}
+		},
+		wasteManagementDevelopment: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Waste management development',
+			question: 'Is the proposal a waste management development?',
+			fieldName: 'isWasteManagementDevelopment',
+			url: 'waste-management-development',
+			validators: [new RequiredValidator('Select yes if the proposal is a waste management development')],
+			viewData: {
+				extraActionButtons: [
+					{ text: 'Remove and save', type: 'submit', formaction: 'waste-management-development/remove' }
+				]
+			}
+		},
+		manageWasteTypes: {
+			type: CUSTOM_COMPONENTS.DEFINED_COLUMNS_TABLE,
+			title: isQuestionView ? 'Check types of waste details' : 'Type of waste',
+			question: 'Check types of waste details',
+			url: 'check-waste-types',
+			fieldName: 'manageWasteTypes',
+			titleSingular: 'Waste type',
+			emptyName: 'waste type',
+			emptyNamePlural: 'waste types',
+			showAnswersInSummary: true,
+			summaryLimit: 3,
+			hideCancel: true,
+			columns: [
+				{
+					header: 'Type',
+					fieldName: 'wasteTypeId'
+				},
+				{
+					header: 'Capacity',
+					fieldName: 'voidCapacityUnitId',
+					sortType: 'number'
+				},
+				{
+					header: 'Throughput',
+					fieldName: 'maxAnnualThroughputUnitId',
+					sortType: 'number'
+				}
+			]
+		},
+		wasteType: {
+			// TODO: Retire MultiConditionalRadioQuestion once RadioQuestion
+			// supports summary labels, unit suffixes and bolding directly.
+			type: CUSTOM_COMPONENTS.MULTI_CONDITIONAL_RADIO,
+			title: 'Type of waste',
+			question: 'Which types of waste are applicable to this development?',
+			fieldName: 'wasteTypeId',
+			url: 'waste-types',
+			boldSummaryValue: true,
+			validators: [
+				new RequiredValidator('Select type of waste'),
+				new UniqueListFieldValidator({
+					listFieldName: 'manageWasteTypes',
+					displayNameFor: (id) => WASTE_TYPES.find((t) => t.id === id)?.displayName ?? 'this waste type',
+					buildErrorMessage: (name) =>
+						`You have already added ${name}. Select a different waste type or change the existing entry`
+				})
+			],
+			options: WASTE_TYPES.map((t) => ({ text: t.displayName, value: t.id }))
+		},
+		voidCapacity: {
+			// TODO: Retire MultiConditionalRadioQuestion once RadioQuestion
+			// supports summary labels, unit suffixes and bolding directly.
+			type: CUSTOM_COMPONENTS.MULTI_CONDITIONAL_RADIO,
+			title: 'Total capacity of void',
+			question: 'What is the total capacity of the void?',
+			hint: 'This includes engineering surcharge and making no allowance for cover or restoration material in cubic metres. For solid waste use tonnes or litres for liquid waste.',
+			fieldName: 'voidCapacityUnitId',
+			url: 'total-void-capacity',
+			summaryLabel: 'Capacity',
+			summarySuffixes: {
+				[WASTE_UNIT_ID.CUBIC_METRES]: 'm³',
+				[WASTE_UNIT_ID.TONNES]: 't',
+				[WASTE_UNIT_ID.LITRES]: 'l'
+			},
+			options: WASTE_UNITS.map((unit) => ({
+				text: unit.displayName,
+				value: unit.id,
+				conditional: {
+					type: 'text',
+					fieldName: unit.id,
+					label: unit.displayName,
+					classes: 'govuk-input--width-10',
+					inputmode: 'numeric'
+				}
+			})),
+			validators: [
+				new RequiredValidator('Select the unit of measurement'),
+				new ConditionalRequiredValidator('Enter the total capacity of the void'),
+				new MultiConditionalNumericValidator({
+					regexMessage: 'Total capacity of the void must be a number'
+				})
+			]
+		},
+		maxAnnualThroughput: {
+			// TODO: Retire MultiConditionalRadioQuestion once RadioQuestion
+			// supports summary labels, unit suffixes and bolding directly.
+			type: CUSTOM_COMPONENTS.MULTI_CONDITIONAL_RADIO,
+			title: 'Maximum annual throughput',
+			question: 'What is the maximum annual operational throughput in tonnes (or litres if liquid waste)?',
+			fieldName: 'maxAnnualThroughputUnitId',
+			url: 'max-annual-throughput',
+			summaryLabel: 'Throughput',
+			summarySuffixes: {
+				[WASTE_UNIT_ID.TONNES]: 't',
+				[WASTE_UNIT_ID.LITRES]: 'l'
+			},
+			options: throughputUnits.map((unit) => ({
+				text: unit.displayName,
+				value: unit.id,
+				conditional: {
+					type: 'text',
+					fieldName: unit.id,
+					label: unit.displayName,
+					classes: 'govuk-input--width-10',
+					inputmode: 'numeric'
+				}
+			})),
+			validators: [
+				new RequiredValidator('Select the unit of measurement'),
+				new ConditionalRequiredValidator('Enter the maximum annual operational throughput'),
+				new MultiConditionalNumericValidator({
+					regexMessage: 'Maximum annual operational throughput must be a number'
+				})
+			]
 		}
 	};
 
