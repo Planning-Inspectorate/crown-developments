@@ -12,6 +12,11 @@ import {
 import type { CommonQuestionProps, QuestionProps, QuestionTypes } from '@planning-inspectorate/dynamic-forms';
 import HiddenRadioQuestion from './radio-with-hidden-options/question.ts';
 import ConditionalRadioQuestion from './conditional-radio/question.ts';
+import MultiConditionalRadioQuestion from './multi-conditional-radio/question.ts';
+import TableManageListQuestion from './manage-list/table/question.ts';
+import DefinedColumnsTableQuestion, {
+	type TableColumn
+} from './manage-list/table/defined-columns-list-table/question.ts';
 
 type CustomComponentTypes = (typeof CUSTOM_COMPONENTS)[keyof typeof CUSTOM_COMPONENTS];
 
@@ -121,6 +126,26 @@ type CustomMultiFieldInputQuestionProps = CrownCommonQuestionProps & {
 	)[];
 };
 
+type TableManageListQuestionProps = CrownCommonQuestionProps & {
+	type: typeof CUSTOM_COMPONENTS.MANAGE_LIST_TABLE;
+	titleSingular: string;
+	showAnswersInSummary?: boolean;
+	summaryLimit?: number;
+	hideRemoveOnLastItem?: boolean;
+	removalPrompt?: string;
+	emptyName?: string;
+	emptyNamePlural?: string;
+	hideCancel?: boolean;
+	hideBackLink?: boolean;
+	hideButtonsEmpty?: boolean;
+	warningText?: string;
+};
+
+type DefinedColumnsTableQuestionProps = Omit<TableManageListQuestionProps, 'type'> & {
+	type: typeof CUSTOM_COMPONENTS.DEFINED_COLUMNS_TABLE;
+	columns: TableColumn[];
+};
+
 export type CrownQuestionProps =
 	| QuestionProps
 	| RepresentationAttachmentsQuestionProps
@@ -130,7 +155,9 @@ export type CrownQuestionProps =
 	| CostsApplicationsCommentQuestionProps
 	| CustomManageListQuestionProps
 	| CustomMultiFieldInputQuestionProps
-	| DistressingContentQuestionProps;
+	| DistressingContentQuestionProps
+	| TableManageListQuestionProps
+	| DefinedColumnsTableQuestionProps;
 
 export const CUSTOM_COMPONENTS = Object.freeze({
 	REPRESENTATION_ATTACHMENTS: 'representation-attachments',
@@ -142,7 +169,10 @@ export const CUSTOM_COMPONENTS = Object.freeze({
 	CUSTOM_MULTI_FIELD_INPUT: 'custom-multi-field-input',
 	DISTRESSING_CONTENT: 'distressing-content',
 	RADIO_WITH_HIDDEN_OPTIONS: 'radio-with-hidden-options',
-	CONDITIONAL_RADIO: 'conditional-radio'
+	CONDITIONAL_RADIO: 'conditional-radio',
+	MULTI_CONDITIONAL_RADIO: 'multi-conditional-radio',
+	MANAGE_LIST_TABLE: 'manage-list-table',
+	DEFINED_COLUMNS_TABLE: 'defined-columns-table'
 } as const);
 
 export const CUSTOM_COMPONENT_CLASSES = Object.freeze({
@@ -155,5 +185,8 @@ export const CUSTOM_COMPONENT_CLASSES = Object.freeze({
 	[CUSTOM_COMPONENTS.CUSTOM_MULTI_FIELD_INPUT]: CustomMultiFieldInputQuestion,
 	[CUSTOM_COMPONENTS.DISTRESSING_CONTENT]: DistressingContentQuestion,
 	[CUSTOM_COMPONENTS.RADIO_WITH_HIDDEN_OPTIONS]: HiddenRadioQuestion,
-	[CUSTOM_COMPONENTS.CONDITIONAL_RADIO]: ConditionalRadioQuestion
+	[CUSTOM_COMPONENTS.CONDITIONAL_RADIO]: ConditionalRadioQuestion,
+	[CUSTOM_COMPONENTS.MULTI_CONDITIONAL_RADIO]: MultiConditionalRadioQuestion,
+	[CUSTOM_COMPONENTS.MANAGE_LIST_TABLE]: TableManageListQuestion,
+	[CUSTOM_COMPONENTS.DEFINED_COLUMNS_TABLE]: DefinedColumnsTableQuestion
 } as const);

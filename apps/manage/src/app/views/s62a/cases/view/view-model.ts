@@ -98,6 +98,17 @@ export type S62aCaseDbModel = Prisma.S62aCaseGetPayload<{
 	include: typeof S62A_VIEW_SELECT_INCLUDE;
 }>;
 
+export interface WasteTypeItem {
+	id: string;
+	wasteTypeId?: string;
+	voidCapacity?: number;
+	voidCapacityUnitId?: string;
+	maxAnnualThroughput?: number;
+	maxAnnualThroughputUnitId?: string;
+	/// Conditional radio amounts, keyed as `<unitFieldName>_<unitId>`
+	[key: string]: unknown;
+}
+
 export interface S62aCaseViewModel {
 	id: string;
 	reference: string;
@@ -246,6 +257,11 @@ export interface S62aCaseViewModel {
 	issuesReportingPublishedDate?: Date;
 	siteVisitDate?: Date;
 	siteVisitTypeId?: string;
+
+	// Waste tab
+	wasteActivitiesDescription?: string | null;
+	isWasteManagementDevelopment?: YesNo;
+	manageWasteTypes?: WasteTypeItem[];
 }
 
 /**
@@ -258,7 +274,8 @@ const BOOLEAN_FIELDS = Object.freeze([
 	'bngExempt',
 	'hasAgent',
 	'eiaScreening',
-	'eiaScreeningOutcome'
+	'eiaScreeningOutcome',
+	'isWasteManagementDevelopment'
 ] as const);
 
 /**
@@ -276,7 +293,8 @@ const DIRECT_UNMAPPED_FIELDS = Object.freeze([
 	'lpaReference',
 	'listedBuildingReference',
 	'healthAndSafetyIssue',
-	'preApplicationReference'
+	'preApplicationReference',
+	'wasteActivitiesDescription'
 ] as const);
 
 /**
@@ -594,6 +612,23 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 		id: inspector.id,
 		inspectorId: inspector.User.idpUserId ?? undefined,
 		inspectorAllocatedDate: inspector.allocatedDate ?? undefined
+	}));
+
+	viewModel.manageWasteTypes = (dbCase.WasteTypes ?? []).map((wt) => ({
+		id: wt.id,
+		wasteTypeId: wt.wasteTypeId,
+		voidCapacity: wt.voidCapacity?.toNumber(),
+		voidCapacityUnitId: wt.voidCapacityUnitId ?? undefined,
+		maxAnnualThroughput: wt.maxAnnualThroughput?.toNumber(),
+		maxAnnualThroughputUnitId: wt.maxAnnualThroughputUnitId ?? undefined,
+		// The conditional radio stores each unit's amount under its own key, so the
+		// right input pre-fills on edit and the summary can find the value.
+		...(wt.voidCapacityUnitId && wt.voidCapacity
+			? { [`voidCapacityUnitId_${wt.voidCapacityUnitId}`]: String(wt.voidCapacity.toNumber()) }
+			: {}),
+		...(wt.maxAnnualThroughputUnitId && wt.maxAnnualThroughput
+			? { [`maxAnnualThroughputUnitId_${wt.maxAnnualThroughputUnitId}`]: String(wt.maxAnnualThroughput.toNumber()) }
+			: {})
 	}));
 
 	return viewModel;

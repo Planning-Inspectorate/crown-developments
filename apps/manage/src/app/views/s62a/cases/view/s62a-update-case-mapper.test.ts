@@ -7,7 +7,9 @@ import {
 	PRE_APPLICATION_ADVICE_ID,
 	OUTCOME_TYPE_ID,
 	DECISION_OUTCOME_ID,
-	SITE_VISIT_TYPE_ID
+	SITE_VISIT_TYPE_ID,
+	WASTE_TYPE_ID,
+	WASTE_UNIT_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
@@ -1245,6 +1247,144 @@ describe('S62aCaseUpdateMapper', () => {
 
 			assert.strictEqual((result as any).hearingDate, undefined);
 			assert.strictEqual(result.S62aDates, undefined);
+		});
+	});
+
+	describe('Waste Tab', () => {
+		it('maps the description, clearing to null when empty', () => {
+			assert.strictEqual(
+				new S62aCaseUpdateMapper({ wasteActivitiesDescription: 'Sorting and baling' }).generateUpdateInput()
+					.wasteActivitiesDescription,
+				'Sorting and baling'
+			);
+			assert.strictEqual(
+				new S62aCaseUpdateMapper({ wasteActivitiesDescription: '' }).generateUpdateInput().wasteActivitiesDescription,
+				null
+			);
+		});
+
+		it('maps the waste management boolean', () => {
+			const answers = { isWasteManagementDevelopment: true } as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual(result.isWasteManagementDevelopment, true);
+		});
+
+		it('maps a false boolean rather than treating it as cleared', () => {
+			const answers = { isWasteManagementDevelopment: false } as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual(result.isWasteManagementDevelopment, false);
+		});
+
+		it('nullifies the boolean when cleared', () => {
+			const answers = { isWasteManagementDevelopment: null } as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual(result.isWasteManagementDevelopment, null);
+		});
+
+		it('replaces the waste type rows wholesale, collapsing the conditional amounts', () => {
+			const answers = {
+				manageWasteTypes: [
+					{
+						id: 'row-1',
+						wasteTypeId: WASTE_TYPE_ID.INERT_LANDFILL,
+						voidCapacityUnitId: WASTE_UNIT_ID.CUBIC_METRES,
+						[`voidCapacityUnitId_${WASTE_UNIT_ID.CUBIC_METRES}`]: '34',
+						maxAnnualThroughputUnitId: WASTE_UNIT_ID.TONNES,
+						[`maxAnnualThroughputUnitId_${WASTE_UNIT_ID.TONNES}`]: '55'
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.WasteTypes, {
+				deleteMany: {},
+				create: [
+					{
+						WasteType: { connect: { id: WASTE_TYPE_ID.INERT_LANDFILL } },
+						voidCapacity: new Prisma.Decimal(34),
+						VoidCapacityUnit: { connect: { id: WASTE_UNIT_ID.CUBIC_METRES } },
+						maxAnnualThroughput: new Prisma.Decimal(55),
+						MaxAnnualThroughputUnit: { connect: { id: WASTE_UNIT_ID.TONNES } }
+					}
+				]
+			});
+		});
+
+		it('ignores the amounts for units that were not selected', () => {
+			const answers = {
+				manageWasteTypes: [
+					{
+						id: 'row-1',
+						wasteTypeId: WASTE_TYPE_ID.INERT_LANDFILL,
+						voidCapacityUnitId: WASTE_UNIT_ID.TONNES,
+						// the hidden reveals still submit their inputs, so both arrive
+						[`voidCapacityUnitId_${WASTE_UNIT_ID.CUBIC_METRES}`]: '999',
+						[`voidCapacityUnitId_${WASTE_UNIT_ID.TONNES}`]: '12'
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const [created] = (result.WasteTypes as any).create;
+
+			assert.deepStrictEqual(created.voidCapacity, new Prisma.Decimal(12));
+		});
+
+		it('writes a null amount when the selected unit has no value', () => {
+			const answers = {
+				manageWasteTypes: [
+					{
+						id: 'row-1',
+						wasteTypeId: WASTE_TYPE_ID.MUNICIPAL,
+						maxAnnualThroughputUnitId: WASTE_UNIT_ID.LITRES,
+						[`maxAnnualThroughputUnitId_${WASTE_UNIT_ID.LITRES}`]: ''
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const [created] = (result.WasteTypes as any).create;
+
+			assert.strictEqual(created.maxAnnualThroughput, null);
+			assert.strictEqual(created.voidCapacity, null);
+			assert.strictEqual(created.VoidCapacityUnit, undefined);
+		});
+
+		it('skips rows with no waste type selected', () => {
+			const answers = {
+				manageWasteTypes: [
+					{ id: 'row-1', wasteTypeId: WASTE_TYPE_ID.INERT_LANDFILL },
+					{ id: 'row-2', voidCapacityUnitId: WASTE_UNIT_ID.TONNES }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual((result.WasteTypes as any).create.length, 1);
+		});
+
+		it('clears every waste type row when the list is empty', () => {
+			const answers = { manageWasteTypes: [] } as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.WasteTypes, { deleteMany: {}, create: [] });
+		});
+
+		it('clears every waste type row when the list is null', () => {
+			const answers = { manageWasteTypes: null } as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.WasteTypes, { deleteMany: {}, create: [] });
+		});
+
+		it('does not touch the waste type rows when the list is absent from the payload', () => {
+			const result = new S62aCaseUpdateMapper({ likelyIssues: 'Traffic' }).generateUpdateInput();
+
+			assert.strictEqual(result.WasteTypes, undefined);
 		});
 	});
 });

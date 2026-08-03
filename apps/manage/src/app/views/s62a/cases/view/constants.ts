@@ -79,6 +79,9 @@ export const S62A_VIEW_SELECT_INCLUDE = {
 		include: { User: true },
 		orderBy: { allocatedDate: 'asc' }
 	},
+	WasteTypes: {
+		include: { WasteType: true, VoidCapacityUnit: true, MaxAnnualThroughputUnit: true }
+	},
 	AssessorInspector: true,
 	CaseOfficer: true,
 	PlanningOfficer: true,

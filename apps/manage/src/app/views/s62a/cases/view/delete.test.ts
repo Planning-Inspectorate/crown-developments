@@ -1,6 +1,6 @@
 import { describe, it, mock, beforeEach, afterEach, type Mock } from 'node:test';
 import assert from 'node:assert';
-import { buildDeleteS62aManageListItemOnConfirmRemove } from './delete.ts';
+import { buildDeleteS62aManageListItemOnConfirmRemove, questionConfig } from './delete.ts';
 import { S62aManageListDeleter } from './s62a-manage-list-deleter.ts';
 import type { Request, Response, NextFunction } from 'express';
 import type { ManageService } from '../../../../service.js';
@@ -19,6 +19,7 @@ describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 	let agentContactSpy: Mock<Function>;
 	let additionalContactSpy: Mock<Function>;
 	let inspectorSpy: Mock<Function>;
+	let wasteTypeSpy: Mock<Function>;
 
 	beforeEach(() => {
 		req = { params: {} };
@@ -41,6 +42,7 @@ describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 		agentContactSpy = mock.method(S62aManageListDeleter.prototype, 'deleteAgentContactDetails', async () => {});
 		additionalContactSpy = mock.method(S62aManageListDeleter.prototype, 'deleteAdditionalContact', async () => {});
 		inspectorSpy = mock.method(S62aManageListDeleter.prototype, 'deleteCaseTeamInspector', async () => {});
+		wasteTypeSpy = mock.method(S62aManageListDeleter.prototype, 'deleteWasteType', async () => {});
 	});
 
 	afterEach(() => {
@@ -175,6 +177,65 @@ describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 			assert.strictEqual(additionalContactSpy.mock.callCount(), 1);
 			assert.deepStrictEqual(additionalContactSpy.mock.calls[0].arguments, ['case-1', 'additional-1']);
 			assert.strictEqual(next.mock.callCount(), 1);
+		});
+
+		it('routes "check-case-team-inspectors" to deleteCaseTeamInspector', async () => {
+			req.params = {
+				manageListAction: 'remove',
+				manageListQuestion: 'confirm',
+				manageListItemId: 'inspector-row-1',
+				id: 'case-1',
+				question: 'check-case-team-inspectors'
+			};
+
+			const middleware = buildDeleteS62aManageListItemOnConfirmRemove(mockService);
+			await middleware(req as Request, res as Response, next as unknown as NextFunction);
+
+			assert.strictEqual(inspectorSpy.mock.callCount(), 1);
+			assert.deepStrictEqual(inspectorSpy.mock.calls[0].arguments, ['case-1', 'inspector-row-1']);
+			assert.strictEqual(next.mock.callCount(), 1);
+		});
+
+		it('routes "check-waste-types" to deleteWasteType', async () => {
+			req.params = {
+				manageListAction: 'remove',
+				manageListQuestion: 'confirm',
+				manageListItemId: 'waste-row-1',
+				id: 'case-1',
+				question: 'check-waste-types'
+			};
+
+			const middleware = buildDeleteS62aManageListItemOnConfirmRemove(mockService);
+			await middleware(req as Request, res as Response, next as unknown as NextFunction);
+
+			assert.strictEqual(wasteTypeSpy.mock.callCount(), 1);
+			assert.deepStrictEqual(wasteTypeSpy.mock.calls[0].arguments, ['case-1', 'waste-row-1']);
+			assert.strictEqual(next.mock.callCount(), 1);
+		});
+	});
+
+	describe('questionConfig', () => {
+		it('has a delete handler for every configured question', async () => {
+			const middleware = buildDeleteS62aManageListItemOnConfirmRemove(mockService);
+
+			for (const question of Object.keys(questionConfig)) {
+				const localNext = mock.fn();
+				await middleware(
+					{
+						params: {
+							manageListAction: 'remove',
+							manageListQuestion: 'confirm',
+							manageListItemId: 'item-1',
+							id: 'case-1',
+							question
+						}
+					} as unknown as Request,
+					res as Response,
+					localNext as unknown as NextFunction
+				);
+
+				assert.strictEqual(localNext.mock.calls[0].arguments.length, 0, `${question} has no delete handler`);
+			}
 		});
 	});
 

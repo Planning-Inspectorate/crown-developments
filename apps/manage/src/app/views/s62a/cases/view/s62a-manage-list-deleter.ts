@@ -165,4 +165,14 @@ export class S62aManageListDeleter {
 			where: { id: manageListItemId, s62aCaseId: id }
 		});
 	}
+
+	/**
+	 * Deletes a single waste type entry. The waste type and unit lookups are
+	 * reference data and must survive.
+	 */
+	public async deleteWasteType(id: string, manageListItemId: string): Promise<void> {
+		await this.db.s62aCaseWasteType.deleteMany({
+			where: { id: manageListItemId, s62aCaseId: id }
+		});
+	}
 }

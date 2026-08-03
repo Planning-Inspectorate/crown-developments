@@ -274,6 +274,11 @@ model S62aCase {
   decisionOutcomeId String?
   DecisionOutcome   S62aDecisionOutcome? @relation(fields: [decisionOutcomeId], references: [id])
 
+  // Waste details
+  wasteActivitiesDescription   String?             @db.NVarChar(1000)
+  isWasteManagementDevelopment Boolean?
+  WasteTypes                   S62aCaseWasteType[]
+
   S62aEvent S62aEvent?
 
   Folders        Folder[]
@@ -368,6 +373,45 @@ model S62aEvent {
   siteVisitDate   DateTime?
   siteVisitTypeId String?
   SiteVisitType   S62aSiteVisitType? @relation(fields: [siteVisitTypeId], references: [id])
+}
+
+/// A waste type applicable to an S62A development, with its capacity and throughput
+model S62aCaseWasteType {
+  id         String   @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  s62aCaseId String   @db.UniqueIdentifier
+  S62aCase   S62aCase @relation(fields: [s62aCaseId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  wasteTypeId String
+  WasteType   S62aWasteType @relation(fields: [wasteTypeId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  voidCapacity       Decimal?       @db.Decimal(18, 2)
+  voidCapacityUnitId String?
+  VoidCapacityUnit   S62aWasteUnit? @relation("voidCapacityUnit", fields: [voidCapacityUnitId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  maxAnnualThroughput       Decimal?       @db.Decimal(18, 2)
+  maxAnnualThroughputUnitId String?
+  MaxAnnualThroughputUnit   S62aWasteUnit? @relation("throughputUnit", fields: [maxAnnualThroughputUnitId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  @@unique([s62aCaseId, wasteTypeId])
+  @@index([s62aCaseId])
+  @@index([wasteTypeId])
+}
+
+/// The types of waste applicable to a development
+model S62aWasteType {
+  /// unique machine-readable name, not generated, e.g. "inert-landfill"
+  id             String              @id
+  displayName    String?
+  CaseWasteTypes S62aCaseWasteType[]
+}
+
+/// Units of measurement for waste capacity and throughput
+model S62aWasteUnit {
+  /// unique machine-readable name, not generated, e.g. "cubic-metres"
+  id                 String              @id
+  displayName        String?
+  VoidCapacityUsages S62aCaseWasteType[] @relation("voidCapacityUnit")
+  ThroughputUsages   S62aCaseWasteType[] @relation("throughputUnit")
 }
 
 /// The type of site visit taking place
