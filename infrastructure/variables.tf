@@ -38,6 +38,7 @@ variable "apps_config" {
       s62a_manage_not_live = bool
       case_notes_not_live  = bool
       audit_not_live       = bool
+      upload_docs_not_live = bool
     })
 
     dynamic_cache_control = object({
