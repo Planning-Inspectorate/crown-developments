@@ -43,7 +43,7 @@ export class FileValidator {
 		const declaredExt = path.extname(decodedName).slice(1).toLowerCase();
 
 		if (['html', 'prj', 'gis', 'dbf', 'shp', 'shx'].includes(declaredExt)) {
-			return this.validateSpecialFormats(file, decodedName, declaredExt);
+			return this.validateSpecialFormats(file, declaredExt);
 		}
 
 		const fileTypeResult = await fileTypeFromBuffer(buffer);
@@ -54,7 +54,7 @@ export class FileValidator {
 			}
 			return [
 				{
-					text: `${decodedName}: Could not determine file type from signature`,
+					text: `Could not determine file type from signature`,
 					href: '#upload-form'
 				}
 			];
@@ -79,41 +79,41 @@ export class FileValidator {
 		const { size, mimetype } = file;
 
 		if (typeof size !== 'number' || size <= 0) {
-			errors.push({ text: `${decodedName}: The attachment is empty`, href: '#upload-form' });
+			errors.push({ text: `The attachment is empty`, href: '#upload-form' });
 			return errors;
 		}
 
 		if (size > config.maxFileSize) {
 			errors.push({
-				text: `${decodedName}: The attachment must be smaller than ${formatBytes(config.maxFileSize)}`,
+				text: `The attachment must be smaller than ${formatBytes(config.maxFileSize)}`,
 				href: '#upload-form'
 			});
 		}
 
 		if (decodedName.length > config.maxFileNameLength) {
 			errors.push({
-				text: `${decodedName}: The attachment name exceeds the ${config.maxFileNameLength} character limit`,
+				text: `The attachment name exceeds the ${config.maxFileNameLength} character limit`,
 				href: '#upload-form'
 			});
 		}
 
 		if (!config.fileNameRegex.test(decodedName)) {
 			errors.push({
-				text: `${decodedName}: Filename contains special characters. Please remove these and try again.`,
+				text: `Filename contains special characters. Please remove these and try again.`,
 				href: '#upload-form'
 			});
 		}
 
 		if (existingNameSet.has(decodedName)) {
 			errors.push({
-				text: `${decodedName}: A file with this name already exists in the folder`,
+				text: `A file with this name already exists in the folder`,
 				href: '#upload-form'
 			});
 		}
 
 		if (!config.allowedMimeTypes.includes(mimetype)) {
 			errors.push({
-				text: `${decodedName}: The attachment must be ${config.allowedExtensionsText}`,
+				text: `The attachment must be ${config.allowedExtensionsText}`,
 				href: '#upload-form'
 			});
 		}
@@ -124,7 +124,7 @@ export class FileValidator {
 	/**
 	 * Checks more unique file types to make sure there isn't any spoofing occurring.
 	 */
-	private validateSpecialFormats(file: Express.Multer.File, decodedName: string, ext: string): ValidationError[] {
+	private validateSpecialFormats(file: Express.Multer.File, ext: string): ValidationError[] {
 		const { buffer } = file;
 		const text = buffer.toString('utf8', 0, 200).trim();
 		const header = buffer.subarray(0, 8).toString('hex').toUpperCase();
@@ -134,29 +134,29 @@ export class FileValidator {
 		switch (ext) {
 			case 'html':
 				if (!text.toLowerCase().includes('<html') && !text.toLowerCase().includes('<!doctype html')) {
-					errors.push({ text: `${decodedName}: The attachment is not a valid .html file`, href: '#upload-form' });
+					errors.push({ text: `The attachment is not a valid .html file`, href: '#upload-form' });
 				}
 				break;
 			case 'prj':
 				if (!(text.startsWith('PROJCS[') || text.startsWith('GEOGCS['))) {
-					errors.push({ text: `${decodedName}: The attachment is not a valid .prj file`, href: '#upload-form' });
+					errors.push({ text: `The attachment is not a valid .prj file`, href: '#upload-form' });
 				}
 				break;
 			case 'gis':
 				if (!/coordinate|longitude|latitude/i.test(text)) {
-					errors.push({ text: `${decodedName}: The attachment is not a valid .gis file`, href: '#upload-form' });
+					errors.push({ text: `The attachment is not a valid .gis file`, href: '#upload-form' });
 				}
 				break;
 			case 'dbf':
 				if (!['03', '83', '8B', '8E'].includes(header.slice(0, 2))) {
-					errors.push({ text: `${decodedName}: The attachment is not a valid .dbf file`, href: '#upload-form' });
+					errors.push({ text: `The attachment is not a valid .dbf file`, href: '#upload-form' });
 				}
 				break;
 			case 'shp':
 			case 'shx':
 				if (!header.startsWith('0000270A')) {
 					errors.push({
-						text: `${decodedName}: The attachment is not a valid .shp or .shx file`,
+						text: `The attachment is not a valid .shp or .shx file`,
 						href: '#upload-form'
 					});
 				}
@@ -180,7 +180,7 @@ export class FileValidator {
 		const errors: ValidationError[] = [];
 
 		if (ext === 'zip' || mime === 'application/zip') {
-			return [{ text: `${decodedName}: The attachment must not be a zip file`, href: '#upload-form' }];
+			return [{ text: `The attachment must not be a zip file`, href: '#upload-form' }];
 		}
 
 		const isAllowedMime = new Set([...config.allowedMimeTypes, 'application/x-cfb']).has(mime);
@@ -189,7 +189,7 @@ export class FileValidator {
 		if (!isAllowedMime || !isAllowedExt) {
 			const declaredExt = mimetype.split('/')[1] || 'unknown';
 			errors.push({
-				text: `${decodedName}: File signature mismatch: declared as .${declaredExt} (${mimetype}) but detected as .${ext} (${mime})`,
+				text: `File signature mismatch: declared as .${declaredExt} (${mimetype}) but detected as .${ext} (${mime})`,
 				href: '#upload-form'
 			});
 		}
@@ -210,7 +210,7 @@ export class FileValidator {
 		const errors: ValidationError[] = [];
 
 		if ((ext === 'cfb' || mime === 'application/x-cfb') && this.isDocOrXlsEncrypted(buffer)) {
-			errors.push({ text: `${decodedName}: File must not be password protected`, href: '#upload-form' });
+			errors.push({ text: `File must not be password protected`, href: '#upload-form' });
 		}
 
 		return errors;
