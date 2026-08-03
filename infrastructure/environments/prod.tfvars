@@ -29,6 +29,7 @@ apps_config = {
     s62a_manage_not_live = true
     case_notes_not_live  = true
     audit_not_live       = true
+    upload_docs_not_live = true
   }
 
   dynamic_cache_control = {
@@ -123,7 +124,7 @@ text_analytics_config = {
   deploy = true
 }
 
-web_domains = { portal = "find-crown-development.planninginspectorate.gov.uk", s62a_portal = "find-section-62a.planninginspectorate.gov.uk", manage = "crown-developments-manage.planninginspectorate.gov.uk" }
+web_domains = { portal = "find-crown-development.planninginspectorate.gov.uk", s62a_portal = "find-s62a-application.planninginspectorate.gov.uk", manage = "crown-developments-manage.planninginspectorate.gov.uk" }
 
 vnet_config = {
   address_space                       = "10.20.12.0/22"
