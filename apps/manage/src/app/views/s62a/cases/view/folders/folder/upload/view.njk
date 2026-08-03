@@ -1,0 +1,83 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/file-upload/macro.njk" import govukFileUpload %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "custom-moj-file-upload/custom-moj-file-upload.njk" import customMojFileUpload %}
+{% from "custom-moj-file-upload/custom-moj-file-upload.njk" import customMojFileUploadScript %}
+
+{% set title = pageHeading + " - Case Folder" %}
+
+{% block pageTitle %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
+            <h1 class="govuk-heading-l">
+                Upload files in {{ folder.displayName }} folder
+            </h1>
+        </div>
+    </div>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <p class="govuk-body">Each file must be:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>BMP, DBF, DOC, DOCX, DOTX, GIF, HTML, JPEG, JPG, M4V, MOV, MP3, MP4, MPEG, MSG, ODS, ODT, PDF, PNG, PPT, PPTX, PRJ, PUB, RTF, SHP, SHX, TIF, TIFF, TXT, XLS, XLSM, XLSX</li>
+                <li>smaller than 250MB</li>
+            </ul>
+            <p class="govuk-body">The total combined size of your uploaded files must be smaller than 1GB.</p>
+            <p class="govuk-body">The file name can only include:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>Letters, numbers, hyphens, underscores, brackets, ampersand and single apostrophes</li>
+            </ul>
+
+            {% set uploadForm = "upload-form" %}
+
+            <form 
+                id="upload-form-container" 
+                action="{{ currentUrl }}" 
+                method="post" 
+                enctype="multipart/form-data" 
+                data-upload-url="{{ currentUrl }}/documents" 
+                data-delete-url="{{ currentUrl }}/documents/delete"
+            >
+                {% set uploadHtml %}
+                    {{ govukFileUpload({
+                        id: uploadForm,
+                        name: uploadForm,
+                        classes: "moj-multi-file-upload__input",
+                        attributes: { multiple: "" },
+                        errorMessage: errorMessage
+                    }) }}
+
+                    {{ govukButton({
+                        text: "Upload file",
+                        classes: "govuk-button--secondary moj-multi-file-upload__button"
+                    }) }}
+                {% endset %}
+
+                <div class="pins-multi-file-upload">
+                    {{ customMojFileUpload({
+                        uploadedFiles: {
+                            heading: { text: "Files selected" },
+                            items: uploadedFiles
+                        },
+                        uploadHtml: uploadHtml
+                    }) }}
+                </div>
+            </form>
+            <form id="main-submit-form" action="{{ currentUrl }}/commit" method="post">
+                <input type="hidden" name="_csrf" value="{{ _csrf }}">
+                {{ govukButton({
+                    text: "Upload"
+                }) }}
+            </form>
+
+        {{ customMojFileUploadScript({
+            cspNonce: cspNonce 
+        }) }}
+        </div>
+    </div>
+{% endblock %}

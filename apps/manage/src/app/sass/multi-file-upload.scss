@@ -1,0 +1,42 @@
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
+
+.pins-multi-file-upload {
+	.moj-multi-file-upload__row--flex {
+		display: flex;
+		align-items: center;
+		width: 100%;
+	}
+
+	.moj-multi-file-upload__col-name {
+		flex: 0 0 65%;
+		min-width: 0;
+		word-break: break-word;
+		padding-right: govuk.govuk-spacing(3);
+	}
+
+	.moj-multi-file-upload__col-status {
+		flex: 1 1 auto;
+		min-width: 0;
+		padding-right: govuk.govuk-spacing(3);
+
+		.govuk-error-message {
+			margin-bottom: 0;
+		}
+	}
+
+	.moj-multi-file-upload__col-actions {
+		flex: 0 0 auto;
+		padding-right: 0;
+		text-align: right;
+		margin-bottom: govuk.govuk-spacing(1);
+	}
+
+	.moj-multi-file-upload__col-actions:empty {
+		display: none;
+	}
+	.moj-multi-file-upload--enhanced {
+		.moj-multi-file-upload__dropzone {
+			outline: 2px dashed govuk.govuk-colour('black', $variant: 'tint-50');
+		}
+	}
+}
