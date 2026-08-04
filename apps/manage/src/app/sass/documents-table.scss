@@ -1,0 +1,6 @@
+// Table header for documents table need to be centred for checkbox alignment
+.govuk-table.pins-documents-table {
+	.govuk-table__header {
+		vertical-align: middle;
+	}
+}
