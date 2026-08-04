@@ -602,6 +602,31 @@ describe('S62aCaseUpdateMapper', () => {
 			]);
 		});
 
+		it('disconnects the agent address if it is explicitly provided as null (cleared by user)', () => {
+			const answers = { agentAddress: null };
+			const existingCase = {
+				agentRelationId: 'agent-rel-1',
+				agentOrganisationAddressId: 'addr-1'
+			} as unknown as S62aCaseViewModel;
+
+			const mapper = new S62aCaseUpdateMapper(answers as unknown as UpdateCaseAnswers, existingCase);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aToApplicants?.update, [
+				{
+					where: { id: 'agent-rel-1' },
+					data: {
+						Organisation: {
+							update: {
+								name: undefined,
+								Address: { disconnect: true }
+							}
+						}
+					}
+				}
+			]);
+		});
+
 		it('creates new applicant organisations and updates existing ones', () => {
 			const answers: UpdateCaseAnswers = {
 				manageApplicantOrganisations: [

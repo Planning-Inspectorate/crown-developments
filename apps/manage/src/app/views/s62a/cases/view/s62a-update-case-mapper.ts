@@ -531,22 +531,30 @@ export class S62aCaseUpdateMapper {
 		const agentRelId = this.existingCase?.agentRelationId;
 
 		if (agentRelId) {
-			const addressData = this.answers.agentAddress ? this.toAddressInput(this.answers.agentAddress) : null;
+			let addressPayload;
+
+			if (this.hasAnswer('agentAddress')) {
+				if (this.answers.agentAddress) {
+					const addressData = this.toAddressInput(this.answers.agentAddress);
+					addressPayload = {
+						upsert: {
+							where: optionalWhere(this.existingCase?.agentOrganisationAddressId),
+							create: addressData,
+							update: addressData
+						}
+					};
+				} else {
+					addressPayload = { disconnect: true };
+				}
+			}
+
 			updateOperations.push({
 				where: { id: agentRelId },
 				data: {
 					Organisation: {
 						update: {
 							name: this.answers.agentName !== undefined ? this.answers.agentName : undefined,
-							Address: addressData
-								? {
-										upsert: {
-											where: optionalWhere(this.existingCase?.agentOrganisationAddressId),
-											create: addressData,
-											update: addressData
-										}
-									}
-								: undefined
+							Address: addressPayload
 						}
 					}
 				}
