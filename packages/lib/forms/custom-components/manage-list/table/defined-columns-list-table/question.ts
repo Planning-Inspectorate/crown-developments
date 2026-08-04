@@ -23,6 +23,8 @@ export interface TableColumn {
 	) => string;
 	/** Defaults to sorting on the rendered cell content */
 	sortType?: 'date' | 'string' | 'number';
+	/** Hides values from summary list if toggled */
+	hideInSummary?: boolean;
 }
 
 export type DefinedColumnsTableParams = TableManageListQuestionParameters &
@@ -122,14 +124,16 @@ export default class DefinedColumnsTableQuestion extends TableManageListQuestion
 			return [];
 		}
 
-		return this.columns.map((col) => {
-			const linkedQuestion = this.getQuestionByFieldName(col.fieldName);
+		return this.columns
+			.filter((col) => !col.hideInSummary)
+			.map((col) => {
+				const linkedQuestion = this.getQuestionByFieldName(col.fieldName);
 
-			return {
-				question: col.header,
-				answer: this.getFormattedColumnValue(col, answer, linkedQuestion) || '-'
-			};
-		});
+				return {
+					question: col.header,
+					answer: this.getFormattedColumnValue(col, answer, linkedQuestion) || '-'
+				};
+			});
 	}
 
 	/**

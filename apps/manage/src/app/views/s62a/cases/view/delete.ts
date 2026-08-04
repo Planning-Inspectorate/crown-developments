@@ -9,7 +9,8 @@ export const questionConfig: Record<string, { fieldName: string; successMessage:
 	'check-applicant-details': { fieldName: 'manageApplicantOrganisations', successMessage: 'Organisation removed' },
 	'check-additional-contact-details': { fieldName: 'manageAdditionalContacts', successMessage: 'Contact removed' },
 	'check-case-team-inspectors': { fieldName: 'manageCaseTeamInspectors', successMessage: 'Inspector removed' },
-	'check-waste-types': { fieldName: 'manageWasteTypes', successMessage: 'Waste type removed' }
+	'check-waste-types': { fieldName: 'manageWasteTypes', successMessage: 'Waste type removed' },
+	'vehicle-parking': { fieldName: 'vehicleParking', successMessage: 'Vehicle parking removed' }
 };
 
 /**
@@ -53,6 +54,9 @@ export function buildDeleteS62aManageListItemOnConfirmRemove(service: ManageServ
 					break;
 				case 'manageAdditionalContacts':
 					await deleter.deleteAdditionalContact(id, manageListItemId);
+					break;
+				case 'vehicleParking':
+					await deleter.deleteVehicleParking(id, manageListItemId);
 					break;
 				case 'manageCaseTeamInspectors':
 					await deleter.deleteCaseTeamInspector(id, manageListItemId);

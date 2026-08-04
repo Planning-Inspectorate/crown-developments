@@ -34,6 +34,9 @@ describe('S62aManageListDeleter', () => {
 			s62aCaseInspector: {
 				deleteMany: mock.fn(async () => {})
 			},
+			s62aVehicleParking: {
+				deleteMany: mock.fn(async () => {})
+			},
 			user: {
 				delete: mock.fn(async () => {}),
 				deleteMany: mock.fn(async () => {})
@@ -236,6 +239,30 @@ describe('S62aManageListDeleter', () => {
 			assert.strictEqual(
 				mockLogger.warn.mock.calls[0].arguments[1],
 				'Unable to delete Additional Contact record (may still be referenced)'
+			);
+		});
+	});
+
+	describe('deleteVehicleParking', () => {
+		it('deletes the vehicle parking row for the case', async () => {
+			await deleter.deleteVehicleParking('case-1', 'vehicle-parking-1');
+
+			assert.strictEqual(mockDb.s62aVehicleParking.deleteMany.mock.callCount(), 1);
+			assert.deepStrictEqual(mockDb.s62aVehicleParking.deleteMany.mock.calls[0].arguments[0], {
+				where: { id: 'vehicle-parking-1', s62aCaseId: 'case-1' }
+			});
+		});
+
+		it('logs a warning if delete fails', async () => {
+			const error = new Error('Foreign key constraint');
+			mockDb.s62aVehicleParking.deleteMany = mock.fn(() => Promise.reject(error));
+
+			await deleter.deleteVehicleParking('case-1', 'vehicle-parking-1');
+
+			assert.strictEqual(mockLogger.warn.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockLogger.warn.mock.calls[0].arguments[1],
+				'Unable to delete vehicle parking record (may still be referenced)'
 			);
 		});
 	});

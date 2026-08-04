@@ -158,6 +158,22 @@ export class S62aManageListDeleter {
 	}
 
 	/**
+	 * Deletes a vehicle parking entry for the case.
+	 */
+	public async deleteVehicleParking(id: string, manageListItemId: string): Promise<void> {
+		try {
+			await this.db.s62aVehicleParking.deleteMany({
+				where: { id: manageListItemId, s62aCaseId: id }
+			});
+		} catch (error) {
+			this.logger.warn(
+				{ id, manageListItemId, err: error },
+				'Unable to delete vehicle parking record (may still be referenced)'
+			);
+		}
+	}
+
+	/**
 	 * Deletes a single inspector assignment.
 	 */
 	public async deleteCaseTeamInspector(id: string, manageListItemId: string): Promise<void> {

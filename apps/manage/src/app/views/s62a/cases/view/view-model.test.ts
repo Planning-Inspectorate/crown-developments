@@ -69,6 +69,41 @@ describe('s62aCaseToViewModel', () => {
 		assert.strictEqual(result.siteEasting, 654321);
 	});
 
+	it('maps vehicle parking rows', () => {
+		const mockDbCase = {
+			id: 'case-vehicle-parking',
+			reference: 'S62A/2026/0007',
+			description: 'Vehicle parking case',
+			typeId: 'type-1',
+			lpaId: 'lpa-1',
+			hasSecondaryLpa: false,
+			expectedSubmissionDate: mockDate,
+			VehicleParking: [
+				{ id: 'parking-1', vehicleType: 'cars', existingSpaces: 5, proposedSpaces: 4 },
+				{ id: 'parking-2', vehicleType: 'bikes', existingSpaces: 2, proposedSpaces: 6 }
+			]
+		} as unknown as S62aCaseDbModel;
+
+		const result = s62aCaseToViewModel(mockDbCase);
+
+		assert.deepStrictEqual(result.vehicleParking?.[0], {
+			id: 'parking-1',
+			vehicleParkingRelationId: 'parking-1',
+			vehicleType: 'cars',
+			otherVehicleType: undefined,
+			existingSpaces: 5,
+			proposedSpaces: 4
+		});
+		assert.deepStrictEqual(result.vehicleParking?.[1], {
+			id: 'parking-2',
+			vehicleParkingRelationId: 'parking-2',
+			vehicleType: 'bikes',
+			otherVehicleType: undefined,
+			existingSpaces: 2,
+			proposedSpaces: 6
+		});
+	});
+
 	it('maps null database values to undefined in the view model', () => {
 		const mockDbCase = {
 			id: 'case-456',

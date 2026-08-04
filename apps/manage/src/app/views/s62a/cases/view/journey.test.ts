@@ -209,6 +209,11 @@ describe('s62a case details journey', () => {
 			},
 			{
 				title: '',
+				segment: 'vehicle-parking',
+				questions: ['vehicleParking']
+			},
+			{
+				title: '',
 				segment: 'waste',
 				questions: ['wasteActivitiesDescription', 'wasteManagementDevelopment', 'manageWasteTypes']
 			},

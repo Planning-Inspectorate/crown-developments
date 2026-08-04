@@ -83,6 +83,9 @@ export const S62A_VIEW_SELECT_INCLUDE = {
 	WasteTypes: {
 		include: { WasteType: true, VoidCapacityUnit: true, MaxAnnualThroughputUnit: true }
 	},
+	VehicleParking: {
+		orderBy: { id: 'asc' }
+	},
 	AssessorInspector: true,
 	CaseOfficer: true,
 	PlanningOfficer: true,

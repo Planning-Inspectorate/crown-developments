@@ -144,6 +144,7 @@ export const VIEW_TAB_ID = Object.freeze({
 	OUTCOME: 'outcome',
 	EIA: 'eia',
 	PRESS: 'press-notice',
+	VEHICLE: 'vehicle-parking',
 	WASTE: 'waste',
 	PRE_APPLICATION: 'pre-application',
 	RESIDENTIAL: 'residential'
@@ -199,6 +200,11 @@ export const VIEW_TABS = [
 	{
 		id: VIEW_TAB_ID.PRESS,
 		displayName: 'Press notice',
+		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+	},
+	{
+		id: VIEW_TAB_ID.VEHICLE,
+		displayName: 'Vehicle parking',
 		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
 	},
 	{
@@ -775,3 +781,42 @@ export const UNIT_TYPES_BY_OCCUPANCY: Record<string, string[]> = {
 		UNIT_TYPE_ID.OTHER
 	]
 };
+export const VEHICLE_PARKING_CATEGORY_ID = Object.freeze({
+	CARS: 'cars',
+	LIGHT_GOODS_VEHICLES_OR_PUBLIC_CARRIER_VEHICLES: 'light_goods_vehicles_or_public_carrier_vehicles',
+	MOTORCYCLES: 'motorcycles',
+	DISABILITY_SPACES: 'disability_spaces',
+	CYCLE_SPACES: 'cycle_spaces',
+	OTHER: 'other'
+} as const);
+
+export const VEHICLE_PARKING_CATEGORIES = [
+	{
+		id: VEHICLE_PARKING_CATEGORY_ID.CARS,
+		displayName: 'Cars'
+	},
+	{
+		id: VEHICLE_PARKING_CATEGORY_ID.LIGHT_GOODS_VEHICLES_OR_PUBLIC_CARRIER_VEHICLES,
+		displayName: 'Light goods vehicles / public carrier vehicles'
+	},
+	{
+		id: VEHICLE_PARKING_CATEGORY_ID.MOTORCYCLES,
+		displayName: 'Motorcycles'
+	},
+	{
+		id: VEHICLE_PARKING_CATEGORY_ID.DISABILITY_SPACES,
+		displayName: 'Disability spaces'
+	},
+	{
+		id: VEHICLE_PARKING_CATEGORY_ID.CYCLE_SPACES,
+		displayName: 'Cycle spaces'
+	},
+	{
+		id: VEHICLE_PARKING_CATEGORY_ID.OTHER,
+		displayName: 'Other'
+	}
+];
+
+export const VEHICLE_PARKING_CATEGORY_MAP = new Map<string, string>(
+	VEHICLE_PARKING_CATEGORIES.map((cat) => [cat.id, cat.displayName])
+);

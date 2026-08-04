@@ -291,6 +291,30 @@ model S62aCase {
   Folders        Folder[]
   Documents      Document[]
   DraftDocuments DraftDocument[]
+
+  /// Vehicle parking entries added via the manage list in the UI
+  VehicleParking S62aVehicleParking[]
+}
+
+model S62aVehicleParkingCategory {
+  id             String               @id @db.NVarChar(50)
+  displayName    String               @db.NVarChar(100)
+  VehicleParking S62aVehicleParking[]
+}
+
+/// Vehicle parking entries for S62A cases (manage-list)
+model S62aVehicleParking {
+  id         String   @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  s62aCaseId String   @db.UniqueIdentifier
+  S62aCase   S62aCase @relation(fields: [s62aCaseId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  vehicleType      String                     @db.NVarChar(50)
+  VehicleType      S62aVehicleParkingCategory @relation(fields: [vehicleType], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  otherVehicleType String?                    @db.NVarChar(50)
+  existingSpaces   Int?
+  proposedSpaces   Int?
+
+  @@index([s62aCaseId])
 }
 
 model S62aApplicantType {

@@ -116,6 +116,16 @@ export interface WasteTypeItem {
 	[key: string]: unknown;
 }
 
+export interface VehicleParkingItem {
+	id: string;
+	vehicleType: string;
+	vehicleParkingRelationId?: string;
+	otherVehicleType?: string | undefined;
+	existingSpaces?: number | null;
+	proposedSpaces?: number | null;
+	vehicleType_otherVehicleType?: string;
+}
+
 export interface S62aCaseViewModel {
 	id: string;
 	reference: string;
@@ -282,6 +292,9 @@ export interface S62aCaseViewModel {
 	manageExistingHousing?: unknown[];
 	manageProposedHousing?: unknown[];
 	totalNetGainOrLossOfUnits?: string;
+
+	//Vehicle Parking tab
+	vehicleParking?: VehicleParkingItem[];
 }
 
 /**
@@ -638,6 +651,17 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 			}
 		}
 	}
+
+	viewModel.vehicleParking = (dbCase.VehicleParking ?? []).map((vp) => {
+		return {
+			id: vp.id,
+			vehicleParkingRelationId: vp.id,
+			vehicleType: vp.vehicleType,
+			otherVehicleType: vp.otherVehicleType || undefined,
+			existingSpaces: vp.existingSpaces ?? undefined,
+			proposedSpaces: vp.proposedSpaces ?? undefined
+		};
+	});
 
 	for (const { field, relation } of CASE_TEAM_USER_RELATIONS) {
 		viewModel[field] = dbCase[relation]?.idpUserId ?? undefined;

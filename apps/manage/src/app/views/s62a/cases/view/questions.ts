@@ -17,6 +17,8 @@ import {
 	PRE_APPLICATION_ADVICE,
 	PRE_APPLICATION_OR_APPLICATION_ID,
 	PRE_APPLICATION_OR_APPLICATIONS,
+	VEHICLE_PARKING_CATEGORIES,
+	VEHICLE_PARKING_CATEGORY_MAP,
 	S62A_APPLICATION_STATUSES,
 	S62A_CATEGORIES,
 	S62A_PRE_APPLICATION_STATUSES,
@@ -47,6 +49,8 @@ import type { S62aCaseViewModel } from './view-model.ts';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
+import { UniqueMultipleListFieldValidator } from '@pins/crowndev-lib/validators/unique-multiple-list-field-validator.ts';
+import { ConditionalLengthValidator } from '@pins/crowndev-lib/validators/conditional-length-validator.ts';
 import { CASE_DETAILS_QUESTION_TEXT } from './constants.ts';
 import { getApplicantContactsValidator, isApplicationType } from '../util/questions.ts';
 import { getLpaOptions, referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.ts';
@@ -59,6 +63,8 @@ import { getApplicantOrganisationOptions } from '../../../../views/cases/util/ap
 import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.ts';
 import MultiConditionalNumericValidator from '@pins/crowndev-lib/forms/custom-components/multi-conditional-radio/multi-conditional-numeric-validator.ts';
 import UniqueListFieldValidator from '@pins/crowndev-lib/validators/unique-list-field-validator.ts';
+import { toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
+import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
 import type { EntraGroupMembers } from '#util/entra-groups.ts';
 
 type ApplicantOrg = {
@@ -66,6 +72,10 @@ type ApplicantOrg = {
 	organisationName: string;
 	organisationAddress?: Record<string, unknown>;
 };
+
+interface QuestionOverrides {
+	isQuestionView?: boolean;
+}
 
 export function getQuestions(
 	answers: S62aCaseViewModel,
@@ -75,6 +85,9 @@ export function getQuestions(
 	}: {
 		isQuestionView?: boolean;
 		groupMembers: EntraGroupMembers;
+	},
+	overrides: QuestionOverrides = {
+		isQuestionView: false
 	}
 ) {
 	const isLbcCase = answers?.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
@@ -1336,6 +1349,158 @@ export function getQuestions(
 				]
 			}
 		},
+		vehicleParking: {
+			type: CUSTOM_COMPONENTS.DEFINED_COLUMNS_TABLE,
+			title: overrides.isQuestionView ? 'Check vehicle parking details' : 'Vehicle Parking',
+			question: 'Check vehicle parking details',
+			url: 'vehicle-parking',
+			fieldName: 'vehicleParking',
+			titleSingular: 'vehicle parking',
+			emptyListText: 'Add one or more vehicle parking details. No vehicle parking details have been added.',
+			showAnswersInSummary: true,
+			maximumAnswers: 10,
+			hideCancel: true,
+			columns: [
+				{
+					header: 'Type of vehicle',
+					fieldName: 'vehicleType',
+					format: (_rawValue: unknown, item: Record<string, unknown>) => {
+						const vehicleType = typeof item?.vehicleType === 'string' ? item.vehicleType : undefined;
+
+						const otherVehicleType = typeof item?.otherVehicleType === 'string' ? item.otherVehicleType.trim() : '';
+						const nestedOtherVehicleType =
+							typeof item?.vehicleType_otherVehicleType === 'string' ? item.vehicleType_otherVehicleType.trim() : '';
+
+						const usableOtherType = nestedOtherVehicleType || otherVehicleType;
+						const safeOtherType = escapeHtml(usableOtherType);
+
+						const categoryName =
+							(vehicleType ? VEHICLE_PARKING_CATEGORY_MAP.get(vehicleType) : undefined) ?? vehicleType;
+
+						if (!categoryName) return '-';
+
+						const displayedText = safeOtherType.length > 0 ? `${categoryName}: ${safeOtherType}` : categoryName;
+
+						return `<strong>${displayedText}</strong>`;
+					}
+				},
+				{
+					header: 'Existing spaces',
+					fieldName: 'existingSpaces'
+				},
+				{
+					header: 'Proposed spaces',
+					fieldName: 'proposedSpaces'
+				},
+				{
+					header: 'Differences in spaces',
+					fieldName: 'differenceInSpaces',
+					sortType: 'number',
+					hideInSummary: true,
+					format: (_rawValue: unknown, item: Record<string, null>) => {
+						const existing = toIntOrNull(item.existingSpaces);
+						const proposed = toIntOrNull(item.proposedSpaces);
+
+						if (existing === null || proposed === null) {
+							return '-';
+						}
+
+						return String(proposed - existing);
+					}
+				}
+			]
+		},
+		vehicleParkingType: {
+			type: CUSTOM_COMPONENTS.MULTI_CONDITIONAL_RADIO,
+			title: 'Type of Vehicle',
+			question: 'What is the type of vehicle for the proposed on-site parking spaces?',
+			fieldName: 'vehicleType',
+			url: 'vehicle-type',
+			boldSummaryValue: true,
+			conditionalTriggerValue: 'other',
+			conditionalDbFieldName: 'otherVehicleType',
+			summaryLabel: 'Vehicle Type',
+			options: VEHICLE_PARKING_CATEGORIES.map((t) => ({
+				text: t.displayName,
+				value: t.id,
+				...(t.id === 'other' && {
+					conditional: {
+						type: 'text',
+						fieldName: 'otherVehicleType',
+						label: 'Other vehicle type'
+					}
+				})
+			})),
+			validators: [
+				new RequiredValidator('Select the type of vehicle for the proposed onsite parking spaces'),
+				new UniqueMultipleListFieldValidator({
+					listFieldName: 'vehicleParking',
+					secondaryFieldNames: ['otherVehicleType', 'vehicleType_otherVehicleType'],
+					buildErrorMessage: (name) =>
+						`You have already added ${name}. Select a different vehicle type or change the existing entry`
+				}),
+				new ConditionalRequiredValidator("Enter the 'Other' type of vehicle"),
+				new ConditionalLengthValidator({
+					min: 1,
+					max: 50,
+					errorMessage: "The 'Other' vehicle type must be 50 characters or less"
+				})
+			]
+		},
+		vehicleParkingExistingSpaces: {
+			type: CUSTOM_COMPONENTS.CUSTOM_NUMBER_INPUT,
+			title: 'Total existing spaces',
+			question: 'What is the total number of existing spaces for this vehicle type?',
+			fieldName: 'existingSpaces',
+			url: 'existing-spaces',
+			suffix: 'spaces',
+			summaryLabel: 'Existing spaces',
+			summarySuffixes: {
+				['existingSpaces']: 'Existing spaces'
+			},
+			validators: [
+				new RequiredValidator('Enter the total number of existing spaces for this vehicle type'),
+				new NumericValidator({
+					regex: /^(?!-\d*(?:\.\d+)?$).*/,
+					regexMessage: 'The total number of existing spaces must be 0 or more'
+				}),
+				new NumericValidator({
+					regex: /^(?!\d*\.\d+).*$/,
+					regexMessage: 'The total number of existing spaces must be a whole number'
+				}),
+				new NumericValidator({
+					regex: /^\d+$/,
+					regexMessage: 'The total number of existing spaces must be a number'
+				})
+			]
+		},
+		vehicleParkingProposedSpaces: {
+			type: CUSTOM_COMPONENTS.CUSTOM_NUMBER_INPUT,
+			title: 'Total proposed spaces',
+			question: 'What is the total number of proposed spaces for this vehicle type?',
+			fieldName: 'proposedSpaces',
+			url: 'proposed-spaces',
+			suffix: 'spaces',
+			summaryLabel: 'Proposed spaces',
+			summarySuffixes: {
+				['proposedSpaces']: 'Proposed spaces'
+			},
+			validators: [
+				new RequiredValidator('Enter the total number of proposed spaces for this vehicle type'),
+				new NumericValidator({
+					regex: /^(?!-\d*(?:\.\d+)?$).*/,
+					regexMessage: 'The total number of proposed spaces must be 0 or more'
+				}),
+				new NumericValidator({
+					regex: /^(?!\d*\.\d+).*$/,
+					regexMessage: 'The total number of proposed spaces must be a whole number'
+				}),
+				new NumericValidator({
+					regex: /^\d+$/,
+					regexMessage: 'The total number of proposed spaces must be a number'
+				})
+			]
+		},
 		environmentalStatementReceivedDate: {
 			type: COMPONENT_TYPES.DATE,
 			title: 'Date environment statement was received',
@@ -1612,7 +1777,11 @@ export function getQuestions(
 			],
 			validators: [
 				new RequiredValidator('Select the contact type'),
-				new ConditionalRequiredValidator('Other contact type must be between 1 and 30 characters')
+				new ConditionalLengthValidator({
+					min: 1,
+					max: 30,
+					errorMessage: 'Other contact type must be between 1 and 30 characters'
+				})
 			]
 		},
 		additionalContactName: {

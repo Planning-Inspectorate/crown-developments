@@ -21,7 +21,8 @@ import {
 	EVENT_NUMBER_FIELDS,
 	EVENT_STRING_FIELDS,
 	type WasteTypeItem,
-	RESIDENTIAL_BOOLEAN_FIELDS
+	RESIDENTIAL_BOOLEAN_FIELDS,
+	type VehicleParkingItem
 } from './view-model.ts';
 import {
 	type AgentContactAnswer,
@@ -32,7 +33,7 @@ import {
 import { addBusinessDays } from 'date-fns';
 import { optionalWhere } from '@pins/crowndev-lib/util/database.ts';
 import { slugify, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
-import { toDecimalOrNull } from '@pins/crowndev-lib/util/numbers.ts';
+import { toDecimalOrNull, toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
 
 const DATE_FIELDS_SET = new Set<string>(S62A_DATE_FIELDS);
 const FEE_BOOLEAN_SET = new Set<string>(FEE_BOOLEAN_FIELDS);
@@ -153,6 +154,9 @@ export interface UpdateCaseAnswers {
 	readerId?: string | null;
 	manageCaseTeamInspectors?: CaseTeamInspectorItem[] | null;
 
+	// Vehicle Parking manage-list
+	vehicleParking?: VehicleParkingItem[];
+
 	// Pre-Application tab
 	preApplicationAdviceId?: string | null;
 	preApplicationReference?: string;
@@ -229,6 +233,7 @@ export class S62aCaseUpdateMapper {
 		this.mapWaste(input);
 		this.mapPressNotice(input);
 		this.mapResidential(input);
+		this.mapVehicleParking(input);
 
 		return input;
 	}
@@ -1099,6 +1104,34 @@ export class S62aCaseUpdateMapper {
 		if (this.hasAnswer('pressNoticeReference')) {
 			input.pressNoticeReference = typeof ans.pressNoticeReference === 'string' ? ans.pressNoticeReference : null;
 		}
+	}
+
+	private mapVehicleParking(input: Prisma.S62aCaseUpdateInput): void {
+		if (this.answers.vehicleParking === undefined) return;
+
+		const items: VehicleParkingItem[] = this.answers.vehicleParking ?? [];
+
+		input.VehicleParking = {
+			deleteMany: {},
+			create: items
+				.filter((item): item is VehicleParkingItem => Boolean(item && (item.vehicleType || item.otherVehicleType)))
+				.map((item) => {
+					const rawOther = typeof item.otherVehicleType === 'string' ? item.otherVehicleType.trim() : '';
+
+					const rawNestedOther =
+						typeof item.vehicleType_otherVehicleType === 'string' ? item.vehicleType_otherVehicleType.trim() : '';
+
+					const usableOtherType: string = rawNestedOther || rawOther;
+					const hasOtherText = usableOtherType.length > 0;
+
+					return {
+						vehicleType: item.vehicleType,
+						otherVehicleType: hasOtherText ? usableOtherType : undefined,
+						existingSpaces: toIntOrNull(item.existingSpaces),
+						proposedSpaces: toIntOrNull(item.proposedSpaces)
+					};
+				})
+		};
 	}
 
 	private isDateField(key: string): key is (typeof S62A_DATE_FIELDS)[number] {

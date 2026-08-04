@@ -307,6 +307,15 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.addQuestion(questions.pressNoticeCost)
 				.addQuestion(questions.pressNoticePlaced)
 				.addQuestion(questions.pressNoticeReference),
+			new Section('', 'vehicle-parking')
+				.withSectionCondition(() => currentTab === VIEW_TAB_ID.VEHICLE && isApplicationCase(response))
+				.addQuestion(
+					questions.vehicleParking,
+					new ManageListSection()
+						.addQuestion(questions.vehicleParkingType)
+						.addQuestion(questions.vehicleParkingExistingSpaces)
+						.addQuestion(questions.vehicleParkingProposedSpaces)
+				),
 			new Section('', 'waste')
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.WASTE && isApplicationCase(response))
 				.addQuestion(questions.wasteActivitiesDescription)
