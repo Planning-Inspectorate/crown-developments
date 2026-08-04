@@ -9,7 +9,7 @@ import type { Request } from 'express';
 import type { TableHeadCell, TableManageListQuestionParameters, TableRowCell } from './types.ts';
 
 type TableQuestionViewData = {
-	value?: Record<string, unknown>[];
+	value?: Record<string, unknown> | Record<string, unknown>[];
 	firstQuestionUrl?: string;
 	tableHead?: TableHeadCell[];
 	tableRows?: TableRowCell[][];
@@ -103,7 +103,6 @@ export default class TableManageListQuestion extends ManageListQuestion {
 
 		this.addButtonText(viewModel);
 
-		// viewModel.question is typed `any` upstream
 		const question = viewModel.question as TableQuestionViewData;
 
 		question.tableHead = this.createHeaders();
@@ -130,9 +129,21 @@ export default class TableManageListQuestion extends ManageListQuestion {
 	 */
 	private createRows(viewModel: QuestionViewModel): TableRowCell[][] {
 		const question = viewModel.question as TableQuestionViewData;
-		const answers = question.value ?? [];
+		const answers = this.normaliseAnswers(question.value);
 
 		return answers.map((item) => this.createRow(viewModel, item));
+	}
+
+	private normaliseAnswers(value: TableQuestionViewData['value']): Record<string, unknown>[] {
+		if (Array.isArray(value)) {
+			return value;
+		}
+
+		if (value && typeof value === 'object') {
+			return [value];
+		}
+
+		return [];
 	}
 
 	/**
@@ -215,9 +226,9 @@ export default class TableManageListQuestion extends ManageListQuestion {
 		const changeUrl = `${originalUrlTrimmed}/edit/${itemId}/${question.firstQuestionUrl}`;
 		const removeUrl = `${originalUrlTrimmed}/remove/${itemId}/confirm`;
 
-		const items = question.value;
+		const items = this.normaliseAnswers(question.value);
 		const removeHtml =
-			items?.length === 1 && this.hideRemoveOnLastItem
+			items.length === 1 && this.hideRemoveOnLastItem
 				? ''
 				: `
 					<li class="govuk-summary-list__actions-list-item">

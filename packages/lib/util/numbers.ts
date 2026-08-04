@@ -19,6 +19,16 @@ export function toInt(str: string | undefined): number | null {
 	}
 	return null;
 }
+/**
+ * Converts a value to an integer or null if not convertable
+ * Supports strings and numbers
+ * Truncates floats
+ */
+export function toIntOrNull(inputVal: string | number | null | undefined): number | null {
+	if (inputVal === undefined || inputVal === null || inputVal === '') return null;
+	const numberOut = Number(inputVal);
+	return Number.isNaN(numberOut) ? null : Math.trunc(numberOut);
+}
 
 const K_UNIT = 1024;
 const SIZES = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];

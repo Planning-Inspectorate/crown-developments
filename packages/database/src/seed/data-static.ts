@@ -18,7 +18,8 @@ import {
 	WASTE_TYPES,
 	HOUSING_TYPES,
 	OCCUPANCY_TYPES,
-	UNIT_TYPES
+	UNIT_TYPES,
+	VEHICLE_PARKING_CATEGORIES
 } from './s62a/data-static.ts';
 
 export const APPLICATION_DECISION_OUTCOME = [
@@ -686,7 +687,8 @@ type UpsertReferenceDataArgs =
 	| {
 			delegate: Prisma.S62aUnitTypeDelegate;
 			input: Prisma.S62aUnitTypeCreateInput;
-	  };
+	  }
+	| { delegate: Prisma.S62aVehicleParkingCategoryDelegate; input: Prisma.S62aVehicleParkingCategoryCreateInput };
 
 async function upsertReferenceData({ delegate, input }: UpsertReferenceDataArgs): Promise<void> {
 	const { upsert } = delegate as unknown as { upsert: (args: unknown) => Promise<unknown> };
@@ -834,6 +836,12 @@ export async function seedS62aStaticData(dbClient: PrismaClient) {
 	);
 
 	await Promise.all(UNIT_TYPES.map((input) => upsertReferenceData({ delegate: dbClient.s62aUnitType, input })));
+
+	await Promise.all(
+		VEHICLE_PARKING_CATEGORIES.map((input) =>
+			upsertReferenceData({ delegate: dbClient.s62aVehicleParkingCategory, input })
+		)
+	);
 
 	console.log('S62A static data seed complete');
 }

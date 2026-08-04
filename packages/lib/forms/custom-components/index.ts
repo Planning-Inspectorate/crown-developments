@@ -13,6 +13,7 @@ import type { CommonQuestionProps, QuestionProps, QuestionTypes } from '@plannin
 import HiddenRadioQuestion from './radio-with-hidden-options/question.ts';
 import ConditionalRadioQuestion from './conditional-radio/question.ts';
 import MultiConditionalRadioQuestion from './multi-conditional-radio/question.ts';
+import CustomNumberInputQuestion from './custom-number-input/question.ts';
 import TableManageListQuestion from './manage-list/table/question.ts';
 import DefinedColumnsTableQuestion, {
 	type TableColumn
@@ -172,7 +173,8 @@ export const CUSTOM_COMPONENTS = Object.freeze({
 	CONDITIONAL_RADIO: 'conditional-radio',
 	MULTI_CONDITIONAL_RADIO: 'multi-conditional-radio',
 	MANAGE_LIST_TABLE: 'manage-list-table',
-	DEFINED_COLUMNS_TABLE: 'defined-columns-table'
+	DEFINED_COLUMNS_TABLE: 'defined-columns-table',
+	CUSTOM_NUMBER_INPUT: 'custom-number-input'
 } as const);
 
 export const CUSTOM_COMPONENT_CLASSES = Object.freeze({
@@ -188,5 +190,6 @@ export const CUSTOM_COMPONENT_CLASSES = Object.freeze({
 	[CUSTOM_COMPONENTS.CONDITIONAL_RADIO]: ConditionalRadioQuestion,
 	[CUSTOM_COMPONENTS.MULTI_CONDITIONAL_RADIO]: MultiConditionalRadioQuestion,
 	[CUSTOM_COMPONENTS.MANAGE_LIST_TABLE]: TableManageListQuestion,
-	[CUSTOM_COMPONENTS.DEFINED_COLUMNS_TABLE]: DefinedColumnsTableQuestion
+	[CUSTOM_COMPONENTS.DEFINED_COLUMNS_TABLE]: DefinedColumnsTableQuestion,
+	[CUSTOM_COMPONENTS.CUSTOM_NUMBER_INPUT]: CustomNumberInputQuestion
 } as const);

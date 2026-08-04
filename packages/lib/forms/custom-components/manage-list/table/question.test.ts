@@ -58,6 +58,21 @@ describe('TableManageListQuestion', () => {
 		});
 	});
 
+	describe('createRows()', () => {
+		it('should support a single item object in question.value', () => {
+			tableQuestion.section!.questions.forEach((q) => {
+				q.formatAnswerForSummary = () => [{ value: 'Mock Answer' }] as unknown;
+			});
+
+			mockViewModel.question.value = { id: 'uuid-1', name: 'John Doe', dob: '1990-01-01' } as unknown;
+
+			const rows = (tableQuestion as any).createRows(mockViewModel);
+
+			assert.strictEqual(rows.length, 1);
+			assert.strictEqual(rows[0].length, 3);
+		});
+	});
+
 	describe('createHeaders()', () => {
 		it('should generate headers with aria-sort and an Actions column', () => {
 			const headers = tableQuestion.createHeaders();
