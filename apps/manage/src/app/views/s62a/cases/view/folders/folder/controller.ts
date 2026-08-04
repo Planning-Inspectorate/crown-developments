@@ -6,15 +6,27 @@ import { getStringParams } from '@pins/crowndev-lib/util/params.ts';
 import { createFoldersViewModel } from '../view-model.ts';
 import { stringToKebab } from '@pins/crowndev-lib/util/string.ts';
 import { buildBreadcrumbItems, getFolderPath } from '../../../util/folders.ts';
+import { createPaginationParams, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
+import { PREVIEW_MIME_TYPES } from './upload/upload-utils.ts';
+import { createDocumentsViewModel } from './view-model.ts';
 
 export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler {
 	const { db, logger } = service;
 	return async (req, res) => {
 		const { id, folderId } = getStringParams(req.params, ['id', 'folderId']);
 
-		let caseRow, currentFolder, subFolders, parentFolder, allFolders;
+		const { pageSize, skipSize } = getPaginationParams(req);
+
+		let caseRow,
+			currentFolder,
+			subFolders,
+			parentFolder,
+			allFolders,
+			totalDocCount = 0,
+			paginatedDocs;
+
 		try {
-			const [folderData, allFoldersData] = await Promise.all([
+			const [folderData, allFoldersData, paginatedDocuments, totalDocumentCount] = await Promise.all([
 				db.folder.findUnique({
 					where: { id: folderId },
 					include: {
@@ -30,6 +42,26 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 						displayName: true,
 						parentFolderId: true
 					}
+				}),
+				db.document.findMany({
+					where: {
+						s62aCaseId: id,
+						folderId: folderId,
+						deletedAt: null
+					},
+					skip: skipSize,
+					take: pageSize,
+					include: {
+						Folder: true
+					},
+					orderBy: { uploadedDate: 'desc' }
+				}),
+				db.document.count({
+					where: {
+						s62aCaseId: id,
+						folderId: folderId,
+						deletedAt: null
+					}
 				})
 			]);
 
@@ -42,6 +74,8 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 			subFolders = ChildFolders;
 			parentFolder = ParentFolder;
 			allFolders = allFoldersData;
+			totalDocCount = totalDocumentCount || 0;
+			paginatedDocs = paginatedDocuments;
 		} catch (error) {
 			wrapPrismaError({
 				error,
@@ -51,9 +85,13 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 			});
 		}
 
-		if (!caseRow || !currentFolder) {
+		if (!caseRow || !currentFolder || !paginatedDocs) {
 			return notFoundHandler(req, res);
 		}
+
+		const paginationParams = createPaginationParams(req, totalDocCount);
+
+		const documentsViewModel = paginatedDocs ? createDocumentsViewModel(paginatedDocs, PREVIEW_MIME_TYPES) : [];
 
 		const folderPath = getFolderPath(allFolders || [], folderId);
 		const breadcrumbItems = buildBreadcrumbItems(id, folderPath);
@@ -71,7 +109,10 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 			subFolders: subFoldersViewModel,
 			currentUrl: req.originalUrl,
 			currentPath: req.originalUrl.split('?')[0],
-			breadcrumbItems
+			breadcrumbItems,
+			paginationParams,
+			documents: documentsViewModel,
+			baseUrl: req.baseUrl
 		});
 	};
 }

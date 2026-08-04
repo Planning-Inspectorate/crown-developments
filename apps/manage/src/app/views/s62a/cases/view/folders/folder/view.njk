@@ -2,6 +2,9 @@
 {% from "govuk/components/accordion/macro.njk" import govukAccordion %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+{% from "tables/tables.njk" import documentsTable %}
+{% import "pagination/pagination.njk" as pagination %}
+{% import "pagination/pagination-options.njk" as paginationOptions %}
 
 {% set title = reference + " - Case Folder" %}
 
@@ -37,8 +40,8 @@
                     id: "sub-folders-accordion",
                     classes: "hide-controls",
                     hideAllSections: true,
-                    showSectionText: "Show subfolders list",
-                    hideSectionText: "Hide subfolders list",
+                    showSectionText: "Show subfolders",
+                    hideSectionText: "Hide subfolders",
                     items: [
                         {
                             content: {
@@ -51,19 +54,95 @@
             {% endif %}
         </div>
     </div>
-    <div class="govuk-grid-row">        
-        <div class="case-folder-table-column govuk-grid-column-full">
-            <div id="pagination" class="govuk-body">
-                <p class="govuk-body govuk-!-font-weight-bold">File actions</p>
-                    <div class="govuk-button-group govuk-!-margin-bottom-4">
-                        {{ govukButton({
-                            text: "Upload files",
-                            href: currentPath + "/upload",
-                            classes: "govuk-button--secondary",
-                            attributes: { "data-cy": "upload-files-btn" }
-                        }) }}
-                    </div>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            <h2 class="govuk-heading-m">File actions</h2>
+
+            {% if documents|length !== 0 %}
+                <div id="pagination-top" class="govuk-body govuk-!-margin-bottom-2">
+                    <p class="govuk-body govuk-clearfix">
+                        This folder contains {{ paginationParams.totalItems }} files.
+                        Showing <strong>{{ paginationParams.resultsStartNumber }}</strong>
+                        to
+                        <strong>{{ paginationParams.resultsEndNumber if paginationParams.totalItems > paginationParams.resultsEndNumber else paginationParams.totalItems }}</strong>
+                        of <strong>{{ paginationParams.totalItems }}</strong> files.
+                    </p>
+
+                    {{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalItems, baseUrl, queryParams) }}
+                </div>
+            {% endif %}
+
+            <div class="govuk-button-group govuk-!-margin-top-4">
+                {{ govukButton({
+                    text: "Upload files",
+                    href: currentPath + "/upload",
+                    classes: "govuk-button--secondary",
+                    attributes: { "data-cy": "upload-files-btn" }
+                }) }}
+                {{ govukButton({
+                    text: "Download selected",
+                    href: currentPath,
+                    classes: "govuk-button--secondary",
+                    attributes: { "data-cy": "download-files-btn" }
+                }) }}
+                {{ govukButton({
+                    text: "Delete selected",
+                    href: currentPath,
+                    classes: "govuk-button--secondary",
+                    attributes: { "data-cy": "delete-files-btn" }
+                }) }}
             </div>
+
+            {% if documents|length !== 0 %}
+                <!-- Polite aria so that screen readers will gently let the user know when this number changes -->
+                <p id="selection-count-container" class="govuk-body govuk-!-display-none govuk-!-margin-bottom-4" aria-live="polite">
+                    <span id="selection-count-number">0</span> file(s) on this page selected
+                </p>
+
+                {{ documentsTable(documents, true) }}
+
+                {{ pagination.renderPagination(paginationParams.pageNumber, paginationParams.totalPages, baseUrl, queryParams) }}
+            {% endif %}
+
         </div>
     </div>
+
+    <script type="module" {% if cspNonce %}nonce="{{ cspNonce }}"{% endif %}>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectAll = document.getElementById('checkboxes-all');
+            const checkboxes = document.querySelectorAll('input[name="selectedFiles"]');
+            const countContainer = document.getElementById('selection-count-container');
+            const countNumber = document.getElementById('selection-count-number');
+
+            if (countContainer && checkboxes.length > 0) {
+                countContainer.classList.remove('govuk-!-display-none');
+            }
+
+            function updateCount() {
+                const selectedCount = document.querySelectorAll('input[name="selectedFiles"]:checked').length;
+                if (countNumber) {
+                    countNumber.textContent = selectedCount;
+                }
+            }
+
+            updateCount();
+
+            if (selectAll) {
+                selectAll.addEventListener('change', function(e) {
+                    checkboxes.forEach(function(cb) {
+                        cb.checked = e.target.checked;
+                    });
+                    updateCount();
+                });
+
+                checkboxes.forEach(function(cb) {
+                    cb.addEventListener('change', function() {
+                        const allChecked = Array.from(checkboxes).every(c => c.checked);
+                        selectAll.checked = allChecked;
+                        updateCount();
+                    });
+                });
+            }
+        });
+    </script>
 {% endblock %}
