@@ -87,4 +87,17 @@ describe('AUDIT_ACTIONS', () => {
 	it('should have FIELD_UPDATED action', () => {
 		assert.strictEqual(AUDIT_ACTIONS.FIELD_UPDATED, 'FIELD_UPDATED');
 	});
+
+	it('should have FIELD_UPDATED_LONG action', () => {
+		assert.strictEqual(AUDIT_ACTIONS.FIELD_UPDATED_LONG, 'FIELD_UPDATED_LONG');
+	});
+
+	describe('FIELD_UPDATED_LONG action', () => {
+		it('should resolve FIELD_UPDATED_LONG template with fieldName', () => {
+			const result = resolveTemplate(AUDIT_ACTIONS.FIELD_UPDATED_LONG, {
+				fieldName: 'Development description'
+			});
+			assert.strictEqual(result, 'Development description was updated');
+		});
+	});
 });

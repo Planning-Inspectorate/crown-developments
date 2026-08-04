@@ -242,6 +242,12 @@ const FIELD_RESOLVERS: Record<string, FieldResolver> = {
 	lpaQuestionnaireReceivedEmailSent: booleanResolver('lpaQuestionnaireReceivedEmailSent'),
 	notNationallyImportantEmailSent: booleanResolver('notNationallyImportantEmailSent'),
 
+	// ── Long string fields ────────────────────────────────────────────────
+	// These fields store long text fields such as 250 characters plus
+
+	description: defaultResolver('description'),
+	costsApplicationsComment: defaultResolver('costsApplicationsComment'),
+
 	// ── Monetary fields ────────────────────────────────────────────────────────
 	// Values need to be formatted with currency '£' as a prefix
 
@@ -267,4 +273,4 @@ export function resolveFieldValues(
 ): { oldValue: string; newValue: string } {
 	const resolver = FIELD_RESOLVERS[fieldName] ?? defaultResolver(fieldName);
 	return resolver.resolve(previousCase, newAnswer, context);
-}
+};

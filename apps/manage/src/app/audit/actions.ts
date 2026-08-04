@@ -17,6 +17,7 @@ export const AUDIT_ACTIONS = {
 	FIELD_SET: 'FIELD_SET',
 	FIELD_UPDATED: 'FIELD_UPDATED',
 	FIELD_CLEARED: 'FIELD_CLEARED',
+	FIELD_UPDATED_LONG: 'FIELD_UPDATED_LONG',
 
 	// Case notes
 	CASE_NOTE_ADDED: 'CASE_NOTE_ADDED'
@@ -50,6 +51,7 @@ export const AUDIT_TEMPLATES: Record<AuditAction, string> = {
 	[AUDIT_ACTIONS.FIELD_SET]: '{fieldName} was set to {newValue}',
 	[AUDIT_ACTIONS.FIELD_UPDATED]: '{fieldName} was updated from {oldValue} to {newValue}',
 	[AUDIT_ACTIONS.FIELD_CLEARED]: '{fieldName} ({oldValue}) was removed',
+	[AUDIT_ACTIONS.FIELD_UPDATED_LONG]: '{fieldName} was updated',
 
 	// Case notes
 	[AUDIT_ACTIONS.CASE_NOTE_ADDED]: 'Case note added:\n{caseNote}'

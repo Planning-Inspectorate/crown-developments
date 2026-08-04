@@ -1,0 +1,25 @@
+.pins-case-history-table {
+	table-layout: fixed;
+	width: 100%;
+
+	.govuk-table__header,
+	.govuk-table__cell {
+		vertical-align: top;
+		overflow-wrap: anywhere;
+	}
+
+	.govuk-table__header:nth-child(1),
+	.govuk-table__cell:nth-child(1) {
+		width: 22%;
+	}
+
+	.govuk-table__header:nth-child(2),
+	.govuk-table__cell:nth-child(2) {
+		width: 58%;
+	}
+
+	.govuk-table__header:nth-child(3),
+	.govuk-table__cell:nth-child(3) {
+		width: 20%;
+	}
+}

@@ -339,4 +339,55 @@ describe('Field Resolver', () => {
 			});
 		});
 	});
+	describe('long string field resolvers', () => {
+		it('should format previous and new long string values for description', () => {
+			const previousCase = { description: 'Old description text' };
+			const newAnswer = 'New description text';
+
+			const { oldValue, newValue } = resolveFieldValues('description', previousCase, newAnswer);
+
+			assert.strictEqual(oldValue, 'Old description text');
+			assert.strictEqual(newValue, 'New description text');
+		});
+
+		it('should format previous and new long string values for healthAndSafetyIssue', () => {
+			const previousCase = { healthAndSafetyIssue: 'No' };
+			const newAnswer = 'Yes';
+
+			const { oldValue, newValue } = resolveFieldValues('healthAndSafetyIssue', previousCase, newAnswer);
+
+			assert.strictEqual(oldValue, 'No');
+			assert.strictEqual(newValue, 'Yes');
+		});
+
+		it('should return "-" for null previous long string value', () => {
+			const previousCase = { description: null };
+			const newAnswer = 'New description text';
+
+			const { oldValue, newValue } = resolveFieldValues('description', previousCase, newAnswer);
+
+			assert.strictEqual(oldValue, '-');
+			assert.strictEqual(newValue, 'New description text');
+		});
+
+		it('should return "-" for null new long string value', () => {
+			const previousCase = { description: 'Old description text' };
+			const newAnswer = null;
+
+			const { oldValue, newValue } = resolveFieldValues('description', previousCase, newAnswer);
+
+			assert.strictEqual(oldValue, 'Old description text');
+			assert.strictEqual(newValue, '-');
+		});
+
+		it('should handle all registered long string fields without falling back to default resolver', () => {
+			const longStringFields = ['description', 'healthAndSafetyIssue'];
+
+			for (const fieldName of longStringFields) {
+				const { oldValue, newValue } = resolveFieldValues(fieldName, { [fieldName]: 'Old value' }, 'New value');
+				assert.strictEqual(oldValue, 'Old value', `${fieldName}: expected oldValue 'Old value'`);
+				assert.strictEqual(newValue, 'New value', `${fieldName}: expected newValue 'New value'`);
+			}
+		});
+	});
 });

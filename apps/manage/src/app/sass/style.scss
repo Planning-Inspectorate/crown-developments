@@ -14,6 +14,7 @@ $font-family: arial, helvetica, sans-serif;
 @use './documents-table';
 
 @use 'packages/lib/views/header/pins-header.scss';
+@use '../views/cases/case-history/components/case-history-table';
 
 // set font-family for any autocomplete menu items
 .autocomplete__menu {

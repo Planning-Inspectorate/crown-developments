@@ -72,6 +72,7 @@ function isClearableSaveKey(key: keyof CrownDevelopmentSaveModel): key is CrownD
  */
 const AUDITABLE_SCALAR_FIELDS = new Set([
 	// Directly editable scalar fields
+	'description',
 	'siteArea',
 	'lpaReference',
 	'agentOrganisationName',
@@ -474,7 +475,6 @@ async function recordAuditEntries(
 		logger.warn({ caseId, updatedFieldNames }, 'Skipping audit: no userId available');
 		return;
 	}
-
 	try {
 		const allAuditEntries: AuditEntry[] = [];
 
@@ -499,6 +499,11 @@ async function recordAuditEntries(
 				action = AUDIT_ACTIONS.FIELD_CLEARED;
 			} else {
 				action = AUDIT_ACTIONS.FIELD_UPDATED;
+			}
+
+			const LONG_AUDIT_FIELDS = new Set(['description', 'healthAndSafetyIssue']);
+			if (action === AUDIT_ACTIONS.FIELD_UPDATED && LONG_AUDIT_FIELDS.has(fieldName)) {
+				action = AUDIT_ACTIONS.FIELD_UPDATED_LONG;
 			}
 
 			allAuditEntries.push({
