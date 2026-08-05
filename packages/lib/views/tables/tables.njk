@@ -19,6 +19,7 @@
 				classes: column.classes,
 				attributes: cellAttributes
 			}), rowData) %}
+			
 		{% endfor %}
 
 		{% set rows = (rows.push(rowData), rows) %}
@@ -47,7 +48,8 @@
 
 {% set basePortalColumns = [
 	{
-		field: "referenceLink"
+		field: "referenceLink",
+		sortField: "reference"
 	},
 	{
 		field: "applicantOrganisations"

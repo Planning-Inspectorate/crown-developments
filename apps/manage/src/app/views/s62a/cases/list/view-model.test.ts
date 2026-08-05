@@ -8,7 +8,8 @@ describe('Case list view model', () => {
 	describe('genericDevelopmentToViewModel', () => {
 		const input = {
 			id: 'id-1',
-			reference: 'REF/2025/001',
+			reference: 'REF/2025/000001',
+			createdDate: '2025-10-11T23:00:00.000Z',
 			Type: {
 				displayName: 'Planning permission'
 			},
@@ -81,13 +82,15 @@ describe('Case list view model', () => {
 			const result = s62aToViewModel(input as unknown as S62ACasePayload) as S62ACaseView;
 			assert.deepStrictEqual(result, {
 				id: 'id-1',
-				reference: 'REF/2025/001',
-				referenceLink: '<a class="govuk-link" href="/s62a/cases/id-1">REF/<wbr>2025/<wbr>001</a>',
+				createdDate: '2025-10-11T23:00:00.000Z',
+				reference: 'REF/2025/000001',
+				referenceLink: '<a class="govuk-link" href="/s62a/cases/id-1">REF/<wbr>2025/<wbr>000001</a>',
 				lpaName: 'Test LPA',
 				status: undefined,
 				type: 'Planning permission',
 				applicantOrganisations: ['Applicant organisation 1', 'Applicant organisation 2'],
-				location: 'Site Street, Site Town, Site ONE'
+				location: 'Site Street, Site Town, Site ONE',
+				sortByReferenceThenDate: '000001-2025-10-11T23:00:00.000Z'
 			});
 		});
 		it('should map applicantOrganisations if present', () => {

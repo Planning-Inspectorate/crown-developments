@@ -3,7 +3,7 @@
 {% import "pagination/pagination.njk" as pagination %}
 {% import "pagination/pagination-options.njk" as paginationOptions %}
 {% from "search-bar/search-bar.njk" import searchBar %}
-{% from "tables/tables.njk" import baseCaseListTable, baseManageHeaders, baseManageColumns %}
+{% from "tables/tables.njk" import baseCaseListTable, baseManageHeaders %}
 
 {% block pageTitle %}
 	Case list - All Cases - Manage a Section 62A Development Application
@@ -46,7 +46,7 @@
 				</p>
 				{{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalItems, baseUrl, queryParams) }}
 				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
-				{{ baseCaseListTable(s62aCasesViewModels,baseManageHeaders,baseManageColumns,true) }}
+				{{ baseCaseListTable(s62aCasesViewModels,baseManageHeaders,s62aManageColumns,true) }}
 			{% endif %}
 		</div>
 	</div>
@@ -55,3 +55,23 @@
 	{{ pagination.renderPagination(paginationParams.pageNumber, paginationParams.totalPages, baseUrl, queryParams) }}
 
 {% endblock %}
+
+{% set s62aManageColumns = [
+	{
+		field: "referenceLink",
+		sortField: "sortByReferenceThenDate"
+	},
+	{
+		field: "location",
+		classes: "pins-white-space-pre-wrap"
+	},
+	{
+		field: "lpaName"
+	},
+	{
+		field: "type"
+	},
+	{
+		field: "status"
+	}
+] %}
