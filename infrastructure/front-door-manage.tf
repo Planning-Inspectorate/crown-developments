@@ -162,6 +162,42 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
     }
 
     override {
+      rule_group_name = "PROTOCOL-ENFORCEMENT"
+      rule {
+        action  = "AnomalyScoring"
+        rule_id = "920240"
+        enabled = true
+
+        exclusion {
+          # 920240 - Protocol Violation: URL Encoding Abuse Attack Attempt
+          # PostParamValue:_csrf","matchVariableValue":"..."}]
+          match_variable = "RequestBodyPostArgNames"
+          operator       = "Equals"
+          selector       = "_csrf"
+        }
+      }
+    }
+
+    override {
+      rule_group_name = "XSS"
+      rule {
+        action  = "AnomalyScoring"
+        rule_id = "941370"
+        enabled = true
+
+        exclusion {
+          # 941370 - XSS Attack: JavaScript global variable found
+          # PostParamValue:submitterComment","matchVariableValue":"...to object to..."}]
+          match_variable = "RequestBodyPostArgNames"
+          operator       = "Equals"
+          selector       = "submitterComment"
+        }
+      }
+    }
+
+
+
+    override {
       rule_group_name = "SQLI"
       rule {
         action  = "Log"
