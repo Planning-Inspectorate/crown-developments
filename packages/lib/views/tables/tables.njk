@@ -8,9 +8,16 @@
 		{% set rowData = [] %}
 
 		{% for column in columns %}
+			{# Check if a sortField is specified for this column #}
+			{% set cellAttributes = {} %}
+			{% if column.sortField and development[column.sortField] %}
+				{% set cellAttributes = { "data-sort-value": development[column.sortField] } %}
+			{% endif %}
+
 			{% set rowData = (rowData.push({
 				html: development[column.field],
-				classes: column.classes
+				classes: column.classes,
+				attributes: cellAttributes
 			}), rowData) %}
 		{% endfor %}
 
@@ -80,7 +87,8 @@
 
 {% set baseManageColumns = [
 	{
-		field: "referenceLink"
+		field: "referenceLink",
+		sortField: "reference"
 	},
 	{
 		field: "location",
