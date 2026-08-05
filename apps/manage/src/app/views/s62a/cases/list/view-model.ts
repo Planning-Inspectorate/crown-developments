@@ -5,6 +5,7 @@ import { insertWbr, formatStatusTag } from '@pins/crowndev-lib/util/string.ts';
 
 export interface S62ACaseView {
 	id: string;
+	createdDate: Date;
 	reference: string;
 	lpaName: string | undefined;
 	applicationType?: string;
@@ -18,6 +19,7 @@ export interface S62ACaseView {
 
 export const s62aCaseSelect = {
 	id: true,
+	createdDate: true,
 	reference: true,
 	Lpa: { select: { name: true } },
 	description: true,
@@ -34,9 +36,27 @@ export type S62ACasePayload = Prisma.S62aCaseGetPayload<{
 	select: typeof s62aCaseSelect;
 }>;
 
+function getSortByReferenceThenDate(s62aCases: S62ACasePayload): string | undefined {
+	if (!s62aCases?.reference) return undefined;
+
+	const parts = s62aCases.reference.split('/');
+	const refVal = parts.length >= 3 ? parts.slice(-1).join('/') : s62aCases.reference;
+
+	let refTime = '';
+	if (s62aCases.createdDate) {
+		const dateObj = new Date(s62aCases.createdDate);
+		if (!isNaN(dateObj.getTime())) {
+			refTime = dateObj.toISOString();
+		}
+	}
+
+	return refTime ? `${refVal}-${refTime}` : refVal;
+}
+
 export function s62aToViewModel(s62aCases: S62ACasePayload) {
 	const fields = {
 		id: s62aCases.id,
+		createdDate: s62aCases.createdDate,
 		reference: s62aCases.reference,
 		lpaName: s62aCases.Lpa?.name,
 		status: formatStatusTag(s62aCases.S62aStatus?.displayName),
@@ -48,7 +68,8 @@ export function s62aToViewModel(s62aCases: S62ACasePayload) {
 			).map((item) => item.Organisation!.name) ?? [],
 		location: '',
 		referenceLink:
-			'<a class="govuk-link" href="/s62a/cases/' + s62aCases.id + '">' + insertWbr(s62aCases.reference) + '</a>'
+			'<a class="govuk-link" href="/s62a/cases/' + s62aCases.id + '">' + insertWbr(s62aCases.reference) + '</a>',
+		sortByReferenceThenDate: getSortByReferenceThenDate(s62aCases) ?? s62aCases.reference ?? ''
 	};
 	if (s62aCases.SiteAddress) {
 		const address = addressToViewModel(s62aCases.SiteAddress);
