@@ -49,6 +49,8 @@ export function buildCaseListPage(service: ManageService): AsyncRequestHandler {
 
 		const paginationParams = createPaginationParams(req, totalItems);
 
+		console.log(s62aCasesViewModels);
+
 		return res.render('./views/s62a/cases/list/view.njk', {
 			pageTitle: 'Manage Section 62A applications',
 			s62aCasesViewModels,
