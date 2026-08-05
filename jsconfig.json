@@ -5,7 +5,7 @@
 		"allowSyntheticDefaultImports": true,
 		"checkJs": true,
 		"esModuleInterop": true,
-		"moduleResolution": "node",
+		"moduleResolution": "nodenext",
 		"target": "esnext",
 		"module": "es2022",
 		"strict": true

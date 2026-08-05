@@ -25,7 +25,7 @@ import type { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/d
 import type { Response, Request, Handler, NextFunction } from 'express';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import type { ManageService } from '#service';
-import type { CrownJourneyResponse } from '../../../../types/express-locals.d.ts';
+import type { CrownJourneyResponse } from '../../../../types/express-locals.ts';
 import { getOptionalStringParams, getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
 
