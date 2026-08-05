@@ -9,7 +9,7 @@ export function addLocalsConfiguration({ appName }) {
 
 		const s62aLinks = [
 			{
-				text: 'Home',
+				text: 'All cases',
 				href: '/s62a/cases'
 			},
 			{
