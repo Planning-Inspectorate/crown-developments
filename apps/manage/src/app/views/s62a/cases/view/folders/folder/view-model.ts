@@ -46,7 +46,7 @@ export function createDocumentsViewModel(
 		const docId = doc.id;
 
 		const downloadHref = `/s62a/cases/${caseId}/case-folders/${folderId}/${folderDisplayName}/download/${docId}`;
-		const deleteHref = `/`; // TODO PEAS-293: update to real delete link in next ticket
+		const deleteHref = `/s62a/cases/${caseId}/case-folders/${folderId}/${folderDisplayName}/delete/${docId}`;
 
 		return {
 			id: docId,
