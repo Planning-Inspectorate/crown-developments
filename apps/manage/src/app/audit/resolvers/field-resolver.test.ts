@@ -286,5 +286,57 @@ describe('Field Resolver', () => {
 				}
 			});
 		});
+
+		describe('monetary field resolvers', () => {
+			it('should format previous number and new number to a monetary strings', () => {
+				const previousCase = { applicationFee: 1.23 };
+				const newAnswer = 1000.0;
+
+				const { oldValue, newValue } = resolveFieldValues('applicationFee', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, '£1.23');
+				assert.strictEqual(newValue, '£1000.00');
+			});
+
+			it('should format integers', () => {
+				const previousCase = { applicationFee: 1 };
+				const newAnswer = 1000;
+
+				const { oldValue, newValue } = resolveFieldValues('applicationFee', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, '£1.00');
+				assert.strictEqual(newValue, '£1000.00');
+			});
+
+			it('should return "-" for null previous monetary value', () => {
+				const previousCase = { applicationFee: null };
+				const newAnswer = 1000.0;
+
+				const { oldValue, newValue } = resolveFieldValues('applicationFee', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, '-');
+				assert.strictEqual(newValue, '£1000.00');
+			});
+
+			it('should return "-" for null new monetary value', () => {
+				const previousCase = { applicationFee: 1000.0 };
+				const newAnswer = null;
+
+				const { oldValue, newValue } = resolveFieldValues('applicationFee', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, '£1000.00');
+				assert.strictEqual(newValue, '-');
+			});
+
+			it('should handle all registered monetary fields without falling back to default resolver', () => {
+				const monetaryFields = ['cilAmount', 'applicationFee', 'applicationFeeRefundAmount'];
+
+				for (const fieldName of monetaryFields) {
+					const { oldValue, newValue } = resolveFieldValues(fieldName, { [fieldName]: 1000 }, 2000);
+					assert.strictEqual(oldValue, '£1000.00', `${fieldName}: expected oldValue '£1000.00'`);
+					assert.strictEqual(newValue, '£2000.00', `${fieldName}: expected newValue '£2000.00'`);
+				}
+			});
+		});
 	});
 });
