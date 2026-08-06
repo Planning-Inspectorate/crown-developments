@@ -4,11 +4,13 @@ import { buildViewCaseFolder } from './controller.ts';
 import { validateIdFormat } from '../../controller.ts';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { createRoutes as createUploadRoutes } from './upload/index.ts';
+import { createRoutes as createDownloadRoutes } from './download/index.ts';
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });
 
 	const uploadRoutes = createUploadRoutes(service);
+	const downloadRoutes = createDownloadRoutes(service);
 
 	const viewCaseFolder = buildViewCaseFolder(service);
 
@@ -17,6 +19,9 @@ export function createRoutes(service: ManageService) {
 
 	// Mounts the upload routes
 	router.use('/upload', uploadRoutes);
+
+	// Mounts the download routes
+	router.use('/download', downloadRoutes);
 
 	return router;
 }

@@ -1,6 +1,7 @@
 import { promisify } from 'node:util';
 import { randomUUID } from 'node:crypto';
 import * as authSession from './session.service.js';
+import { isValidRedirectUri } from '@pins/crowndev-lib/util/uri.ts';
 
 /**
  * Phase 1 – Navigate to external MSAL signin url
@@ -44,32 +45,6 @@ export function buildStartMsalAuthentication(authService) {
 		// against MSAL using their PINS account.
 		response.redirect(await authService.getAuthCodeUrl({ nonce }, request.session.id));
 	};
-}
-
-/**
- * Verify that a given URI is valid for the auth redirect
- * This should only allow relative paths.
- * @param {string} uri
- * @returns {boolean}
- */
-function isValidRedirectUri(uri) {
-	if (typeof uri !== 'string') {
-		return false;
-	}
-	// Only allow relative paths starting with /
-	if (!uri.startsWith('/')) {
-		return false;
-	}
-	// Only allow same-origin absolute-path references (RFC 3986); block protocol-relative URLs and backslashes
-	if (uri.startsWith('//') || uri.includes('\\')) {
-		return false;
-	}
-	const pathParts = uri.split('/');
-	// prevent any path traversal
-	if (pathParts.some((part) => part === '..' || part === '.')) {
-		return false;
-	}
-	return true;
 }
 
 /**
