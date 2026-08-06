@@ -57,6 +57,8 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 		const wasteTypeId = response.answers?.wasteTypeId as string | undefined;
 		return !!wasteTypeId && !WASTE_TYPES_WITHOUT_VOID_CAPACITY.includes(wasteTypeId);
 	};
+	const unitsChangeIsYes = (r: JourneyResponse) =>
+		questionHasAnswer(r, questions.residentialUnitsChange, BOOLEAN_OPTIONS.YES);
 
 	return new Journey({
 		journeyId: JOURNEY_ID,
@@ -326,7 +328,28 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.addQuestion(questions.preApplicationAdviceIssuedDate)
 				.withCondition(showAdviceIssuedDate)
 				.addQuestion(questions.preApplicationReference)
-				.withCondition(isApplicationAdviceGiven)
+				.withCondition(isApplicationAdviceGiven),
+			new Section('', 'residential')
+				.withSectionCondition(() => currentTab === VIEW_TAB_ID.RESIDENTIAL && isApplicationCase(response))
+				.addQuestion(questions.residentialUnitsChange)
+				.addQuestion(questions.totalNetGainOrLossOfUnits)
+				.withCondition(unitsChangeIsYes),
+
+			new Section('Existing residential', 'existing')
+				.withSectionCondition(
+					() => currentTab === VIEW_TAB_ID.RESIDENTIAL && isApplicationCase(response) && unitsChangeIsYes(response)
+				)
+				.addQuestion(questions.hasExistingHousing)
+				.addQuestion(questions.manageExistingHousing)
+				.withCondition(whenQuestionHasAnswer(questions.hasExistingHousing, BOOLEAN_OPTIONS.YES)),
+
+			new Section('Proposed residential', 'proposed')
+				.withSectionCondition(
+					() => currentTab === VIEW_TAB_ID.RESIDENTIAL && isApplicationCase(response) && unitsChangeIsYes(response)
+				)
+				.addQuestion(questions.hasProposedHousing)
+				.addQuestion(questions.manageProposedHousing)
+				.withCondition(whenQuestionHasAnswer(questions.hasProposedHousing, BOOLEAN_OPTIONS.YES))
 		],
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',

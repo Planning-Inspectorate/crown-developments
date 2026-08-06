@@ -1464,4 +1464,70 @@ describe('s62aCaseToViewModel', () => {
 			assert.deepStrictEqual(s62aCaseToViewModel(withNone).manageWasteTypes, []);
 		});
 	});
+
+	describe('Residential Mapping', () => {
+		it('maps the three booleans to YesNo values', () => {
+			const mockDbCase = {
+				id: 'case-res-1',
+				reference: 'S62A/2026/0051',
+				expectedSubmissionDate: mockDate,
+				S62aResidential: {
+					hasResidentialUnitsChange: true,
+					hasExistingHousing: false,
+					hasProposedHousing: true
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.hasResidentialUnitsChange, 'yes');
+			assert.strictEqual(result.hasExistingHousing, 'no');
+			assert.strictEqual(result.hasProposedHousing, 'yes');
+		});
+
+		it('leaves the booleans undefined when null', () => {
+			const mockDbCase = {
+				id: 'case-res-2',
+				reference: 'S62A/2026/0052',
+				expectedSubmissionDate: mockDate,
+				S62aResidential: {
+					hasResidentialUnitsChange: null,
+					hasExistingHousing: null,
+					hasProposedHousing: null
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.hasResidentialUnitsChange, undefined);
+			assert.strictEqual(result.hasExistingHousing, undefined);
+			assert.strictEqual(result.hasProposedHousing, undefined);
+		});
+
+		it('does not map residential fields if S62aResidential is missing', () => {
+			const mockDbCase = {
+				id: 'case-res-3',
+				reference: 'S62A/2026/0053',
+				expectedSubmissionDate: mockDate
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.hasResidentialUnitsChange, undefined);
+		});
+
+		it('leaves the housing placeholders unset so their rows show an Add link', () => {
+			const mockDbCase = {
+				id: 'case-res-4',
+				reference: 'S62A/2026/0054',
+				expectedSubmissionDate: mockDate,
+				S62aResidential: { hasResidentialUnitsChange: true }
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.manageExistingHousing, undefined);
+			assert.strictEqual(result.manageProposedHousing, undefined);
+		});
+	});
 });

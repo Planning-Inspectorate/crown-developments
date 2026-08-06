@@ -286,6 +286,8 @@ model S62aCase {
 
   S62aEvent S62aEvent?
 
+  S62aResidential S62aResidential?
+
   Folders        Folder[]
   Documents      Document[]
   DraftDocuments DraftDocument[]
@@ -417,6 +419,71 @@ model S62aWasteUnit {
   displayName        String?
   VoidCapacityUsages S62aCaseWasteType[] @relation("voidCapacityUnit")
   ThroughputUsages   S62aCaseWasteType[] @relation("throughputUnit")
+}
+
+/// Residential details for an S62A case
+model S62aResidential {
+  id         String   @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  s62aCaseId String   @unique @db.UniqueIdentifier
+  S62aCase   S62aCase @relation(fields: [s62aCaseId], references: [id])
+
+  hasResidentialUnitsChange Boolean?
+  hasExistingHousing        Boolean?
+  hasProposedHousing        Boolean?
+
+  Housing S62aResidentialHousing[]
+}
+
+/// One occupancy and unit type combination, with its breakdown by number of
+/// bedrooms. Used for both existing and proposed housing.
+model S62aResidentialHousing {
+  id                String          @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  s62aResidentialId String          @db.UniqueIdentifier
+  S62aResidential   S62aResidential @relation(fields: [s62aResidentialId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  /// 'existing' or 'proposed'
+  housingTypeId String
+  HousingType   S62aHousingType @relation(fields: [housingTypeId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  occupancyTypeId String
+  OccupancyType   S62aOccupancyType @relation(fields: [occupancyTypeId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  unitTypeId String
+  UnitType   S62aUnitType @relation(fields: [unitTypeId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  /// Units per bedroom band. Nullable so "not answered" differs from zero.
+  bedroomsUnknown  Int?
+  bedroomsOne      Int?
+  bedroomsTwo      Int?
+  bedroomsThree    Int?
+  bedroomsFourPlus Int?
+
+  @@unique([s62aResidentialId, housingTypeId, occupancyTypeId, unitTypeId])
+  @@index([s62aResidentialId])
+}
+
+/// Whether a housing entry is existing or proposed
+model S62aHousingType {
+  id          String                   @id
+  displayName String?
+  Housing     S62aResidentialHousing[]
+}
+
+/// Occupancy types for residential housing
+model S62aOccupancyType {
+  id          String                   @id
+  displayName String?
+  /// Controls display order on the tab and the grouping of cards
+  order       Int
+  Housing     S62aResidentialHousing[]
+}
+
+/// Unit types for residential housing
+model S62aUnitType {
+  id          String                   @id
+  displayName String?
+  order       Int
+  Housing     S62aResidentialHousing[]
 }
 
 /// The type of site visit taking place

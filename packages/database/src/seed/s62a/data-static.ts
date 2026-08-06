@@ -145,7 +145,8 @@ export const VIEW_TAB_ID = Object.freeze({
 	EIA: 'eia',
 	PRESS: 'press-notice',
 	WASTE: 'waste',
-	PRE_APPLICATION: 'pre-application'
+	PRE_APPLICATION: 'pre-application',
+	RESIDENTIAL: 'residential'
 } as const);
 
 /**
@@ -208,6 +209,11 @@ export const VIEW_TABS = [
 	{
 		id: VIEW_TAB_ID.PRE_APPLICATION,
 		displayName: 'Pre-application'
+	},
+	{
+		id: VIEW_TAB_ID.RESIDENTIAL,
+		displayName: 'Residential',
+		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
 	}
 ];
 
@@ -702,3 +708,70 @@ export const WASTE_TYPES_WITHOUT_VOID_CAPACITY: string[] = [
 	WASTE_TYPE_ID.COMMERCIAL_AND_INDUSTRIAL,
 	WASTE_TYPE_ID.HAZARDOUS
 ];
+
+export const HOUSING_TYPE_ID = Object.freeze({
+	EXISTING: 'existing',
+	PROPOSED: 'proposed'
+} as const);
+
+export const HOUSING_TYPES = [
+	{ id: HOUSING_TYPE_ID.EXISTING, displayName: 'Existing' },
+	{ id: HOUSING_TYPE_ID.PROPOSED, displayName: 'Proposed' }
+];
+
+export const OCCUPANCY_TYPE_ID = Object.freeze({
+	MARKET_HOUSING: 'market-housing',
+	SOCIAL_AFFORDABLE_INTERMEDIATE_RENT: 'social-affordable-intermediate-rent',
+	AFFORDABLE_HOME_OWNERSHIP: 'affordable-home-ownership',
+	STARTER_HOMES: 'starter-homes',
+	SELF_BUILD_AND_CUSTOM_BUILD: 'self-build-and-custom-build'
+} as const);
+
+export const OCCUPANCY_TYPES = [
+	{ id: OCCUPANCY_TYPE_ID.MARKET_HOUSING, displayName: 'Market housing', order: 1 },
+	{
+		id: OCCUPANCY_TYPE_ID.SOCIAL_AFFORDABLE_INTERMEDIATE_RENT,
+		displayName: 'Social, affordable or intermediate rent',
+		order: 2
+	},
+	{ id: OCCUPANCY_TYPE_ID.AFFORDABLE_HOME_OWNERSHIP, displayName: 'Affordable home ownership', order: 3 },
+	{ id: OCCUPANCY_TYPE_ID.STARTER_HOMES, displayName: 'Starter homes', order: 4 },
+	{ id: OCCUPANCY_TYPE_ID.SELF_BUILD_AND_CUSTOM_BUILD, displayName: 'Self-build and custom build', order: 5 }
+];
+
+export const UNIT_TYPE_ID = Object.freeze({
+	HOUSES: 'houses',
+	FLATS_MAISONETTES: 'flats-maisonettes',
+	SHELTERED_HOUSING: 'sheltered-housing',
+	BEDSIT_STUDIO: 'bedsit-studio',
+	CLUSTER_FLATS: 'cluster-flats',
+	OTHER: 'other'
+} as const);
+
+export const UNIT_TYPES = [
+	{ id: UNIT_TYPE_ID.HOUSES, displayName: 'Houses', order: 1 },
+	{ id: UNIT_TYPE_ID.FLATS_MAISONETTES, displayName: 'Flats/maisonettes', order: 2 },
+	{ id: UNIT_TYPE_ID.SHELTERED_HOUSING, displayName: 'Sheltered housing', order: 3 },
+	{ id: UNIT_TYPE_ID.BEDSIT_STUDIO, displayName: 'Bedsit/studio', order: 4 },
+	{ id: UNIT_TYPE_ID.CLUSTER_FLATS, displayName: 'Cluster flats', order: 5 },
+	{ id: UNIT_TYPE_ID.OTHER, displayName: 'Other', order: 6 }
+];
+
+/**
+ * Starter homes and self-build have a reduced set of unit types.
+ * Any occupancy not listed here gets the full set.
+ */
+export const UNIT_TYPES_BY_OCCUPANCY: Record<string, string[]> = {
+	[OCCUPANCY_TYPE_ID.STARTER_HOMES]: [
+		UNIT_TYPE_ID.HOUSES,
+		UNIT_TYPE_ID.FLATS_MAISONETTES,
+		UNIT_TYPE_ID.BEDSIT_STUDIO,
+		UNIT_TYPE_ID.OTHER
+	],
+	[OCCUPANCY_TYPE_ID.SELF_BUILD_AND_CUSTOM_BUILD]: [
+		UNIT_TYPE_ID.HOUSES,
+		UNIT_TYPE_ID.FLATS_MAISONETTES,
+		UNIT_TYPE_ID.BEDSIT_STUDIO,
+		UNIT_TYPE_ID.OTHER
+	]
+};
