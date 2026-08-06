@@ -10,6 +10,7 @@ import { createPaginationParams, getPaginationParams } from '@pins/crowndev-lib/
 import { PREVIEW_MIME_TYPES } from './upload/upload-utils.ts';
 import { createDocumentsViewModel } from './view-model.ts';
 import { popSessionData } from '@pins/crowndev-lib/util/session.ts';
+import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
 
 export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler {
 	const { db, logger } = service;
@@ -91,6 +92,9 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 		}
 
 		const errorSummary = popSessionData(req, id, 'filesErrors', false, 'folder');
+		const filesDeleted = popSessionData(req, id, 'filesDeleted', false, 'folder');
+
+		const banner = getBannerMessages(filesDeleted, errorSummary);
 
 		const paginationParams = createPaginationParams(req, totalDocCount);
 
@@ -117,7 +121,26 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 			documents: documentsViewModel,
 			baseUrl: req.baseUrl,
 			errorSummary,
-			caseId: id
+			caseId: id,
+			banner
 		});
 	};
+}
+
+/**
+ * Builds out the various banners we will need on the case details page
+ */
+function getBannerMessages(filesDeleted: number | boolean | undefined, errorSummary?: { text: string }[] | boolean) {
+	if (errorSummary) {
+		return null;
+	}
+
+	const bannerBuilder = new BannerBuilder();
+
+	if (typeof filesDeleted === 'number') {
+		bannerBuilder.addSuccessText(`${filesDeleted} selected file${filesDeleted === 1 ? '' : 's'} deleted`);
+		return bannerBuilder.build();
+	}
+
+	return bannerBuilder.build();
 }
