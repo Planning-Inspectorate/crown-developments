@@ -14,6 +14,7 @@ import { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js';
 import { initBlobStore } from '@pins/crowndev-lib/blob-store/index.ts';
 import { EntraClient } from '@pins/crowndev-lib/graph/entra.js';
+import { ZipArchive } from 'archiver';
 
 /**
  * This class encapsulates all the services and clients for the application
@@ -67,6 +68,10 @@ export class ManageService {
 	 * @type {import('@pins/crowndev-lib/blob-store/blob-store-client.ts').BlobStorageClient|null}
 	 */
 	blobStoreClient;
+	/**
+	 * @type {(options?: import('archiver').ArchiverOptions) => import('archiver').Archiver}
+	 */
+	createZipArchive;
 
 	/**
 	 * @param {import('./config-types.js').Config} config
@@ -91,6 +96,7 @@ export class ManageService {
 		this.notifyClient = initGovNotify(config.govNotify, logger);
 		this.blobStoreClient = initBlobStore(config.blobStore, logger);
 		this.appEntraClient = new EntraClient(graphClient);
+		this.createZipArchive = (options) => new ZipArchive(options);
 
 		// set up the Azure AI Language client if configured
 		if (config.azureLanguage.endpoint) {

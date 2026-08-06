@@ -40,11 +40,16 @@ export function createDocumentsViewModel(
 		const dateObj = new Date(doc.uploadedDate);
 		const sizeNum = Number(doc.size);
 
-		const downloadHref = `/`; // TODO PEAS-58: update to real download link in next ticket
+		const caseId = doc.s62aCaseId;
+		const folderId = doc.folderId;
+		const folderDisplayName = stringToKebab(doc.Folder.displayName);
+		const docId = doc.id;
+
+		const downloadHref = `/s62a/cases/${caseId}/case-folders/${folderId}/${folderDisplayName}/download/${docId}`;
 		const deleteHref = `/`; // TODO PEAS-293: update to real delete link in next ticket
 
 		return {
-			id: doc.id,
+			id: docId,
 			fileName: doc.fileName,
 			fileType: getFileExtension(doc.fileName),
 			size: formatBytes(sizeNum),
@@ -53,21 +58,21 @@ export function createDocumentsViewModel(
 			dateSort: dateObj.getTime(),
 			downloadHref,
 			isPreview: previewMimeTypes.includes(doc.mimeType),
-			caseId: doc.s62aCaseId,
+			caseId: caseId,
 			folder: {
-				id: doc.Folder.id,
-				displayName: stringToKebab(doc.Folder.displayName)
+				id: folderId,
+				displayName: folderDisplayName
 			},
 			actions: [
 				{
 					text: 'Delete',
 					href: deleteHref,
-					attributes: { 'data-cy': `delete-file-${doc.id}` }
+					attributes: { 'data-cy': `delete-file-${docId}` }
 				},
 				{
 					text: 'Download',
 					href: downloadHref,
-					attributes: { 'data-cy': `download-file-${doc.id}` }
+					attributes: { 'data-cy': `download-file-${docId}` }
 				}
 			]
 		};

@@ -2,13 +2,15 @@ import type { ManageService } from '#service';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
-import { getStringParams } from '@pins/crowndev-lib/util/params.ts';
+import { getStringParam, getStringParams } from '@pins/crowndev-lib/util/params.ts';
 import { createFoldersViewModel } from '../view-model.ts';
 import { stringToKebab } from '@pins/crowndev-lib/util/string.ts';
 import { buildBreadcrumbItems, getFolderPath } from '../../../util/folders.ts';
 import { createPaginationParams, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { PREVIEW_MIME_TYPES } from './upload/upload-utils.ts';
 import { createDocumentsViewModel } from './view-model.ts';
+import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
+import type { Request } from 'express';
 
 export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler {
 	const { db, logger } = service;
@@ -89,6 +91,8 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 			return notFoundHandler(req, res);
 		}
 
+		const [errorSummary] = readAndClearSessionData(req);
+
 		const paginationParams = createPaginationParams(req, totalDocCount);
 
 		const documentsViewModel = paginatedDocs ? createDocumentsViewModel(paginatedDocs, PREVIEW_MIME_TYPES) : [];
@@ -112,7 +116,21 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 			breadcrumbItems,
 			paginationParams,
 			documents: documentsViewModel,
-			baseUrl: req.baseUrl
+			baseUrl: req.baseUrl,
+			errorSummary,
+			caseId: id
 		});
 	};
+}
+
+/**
+ * Reads session data and clears it to avoid it being displayed > once.
+ */
+function readAndClearSessionData(req: Request) {
+	const id = getStringParam(req.params, 'id');
+
+	const errorSummary = readSessionData(req, id, 'filesErrors', false, 'folder');
+	clearSessionData(req, id, 'filesErrors', 'folder');
+
+	return [errorSummary];
 }
