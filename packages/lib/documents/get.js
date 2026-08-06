@@ -9,7 +9,7 @@ import { FILE_PROPERTIES } from './view-model.js';
  * @param {string} opts.folderPath
  * @param {import('pino').BaseLogger} opts.logger
  * @param {string} opts.id
- * @param {function(a, b): number} [opts.sortFn]
+ * @param {((a: any, b: any) => number)} [opts.sortFn]
  * @param {string[]} [opts.metaDataFields]
  * @returns {Promise<import('@microsoft/microsoft-graph-types').DriveItem[]>}
  */
