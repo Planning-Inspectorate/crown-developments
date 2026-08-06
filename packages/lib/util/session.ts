@@ -162,3 +162,18 @@ export function removeApplicantContactsWhenOrganisationRemoved(journeyId: string
 		}
 	};
 }
+
+/**
+ * Reads a value from the session and immediately clears it.
+ */
+export function popSessionData<T>(
+	req: Request,
+	id: string,
+	key: string,
+	defaultValue: T,
+	namespace: string = 'cases'
+): T | false {
+	const data = readSessionData(req, id, key, defaultValue, namespace);
+	clearSessionData(req, id, key, namespace);
+	return data;
+}

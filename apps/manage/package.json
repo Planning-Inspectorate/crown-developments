@@ -23,6 +23,7 @@
     "@pins/crowndev-sharepoint": "^0.0.0",
     "@planning-inspectorate/dynamic-forms": "*",
     "accessible-autocomplete": "*",
+    "archiver": "*",
     "body-parser": "*",
     "cfb": "*",
     "connect-redis": "*",

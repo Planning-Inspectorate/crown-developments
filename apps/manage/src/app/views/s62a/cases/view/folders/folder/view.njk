@@ -71,38 +71,45 @@
                     {{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalItems, baseUrl, queryParams) }}
                 </div>
             {% endif %}
+            <form method="POST">
+                {% if _csrf %}<input type="hidden" name="_csrf" value="{{ _csrf }}">{% endif %}
+                <input type="hidden" name="returnUrl" value="{{ currentPath }}">
+                <input type="hidden" name="caseId" value="{{ caseId }}">
 
-            <div class="govuk-button-group govuk-!-margin-top-4">
-                {{ govukButton({
-                    text: "Upload files",
-                    href: currentPath + "/upload",
-                    classes: "govuk-button--secondary",
-                    attributes: { "data-cy": "upload-files-btn" }
-                }) }}
-                {{ govukButton({
-                    text: "Download selected",
-                    href: currentPath,
-                    classes: "govuk-button--secondary",
-                    attributes: { "data-cy": "download-files-btn" }
-                }) }}
-                {{ govukButton({
-                    text: "Delete selected",
-                    href: currentPath,
-                    classes: "govuk-button--secondary",
-                    attributes: { "data-cy": "delete-files-btn" }
-                }) }}
-            </div>
+                <div class="govuk-button-group govuk-!-margin-top-4">
+                    {{ govukButton({
+                        text: "Upload files",
+                        href: currentPath + "/upload",
+                        classes: "govuk-button--secondary",
+                        attributes: { "data-cy": "upload-files-btn" }
+                    }) }}
+                    {{ govukButton({
+                        text: "Download selected",
+                        classes: "govuk-button--secondary",
+                        attributes: {
+                            "data-cy": "download-files-btn",
+                            "formaction": currentPath + "/download/documents"
+                        }
+                    }) }}
+                    {{ govukButton({
+                        text: "Delete selected",
+                        href: currentPath,
+                        classes: "govuk-button--secondary",
+                        attributes: { "data-cy": "delete-files-btn" }
+                    }) }}
+                </div>
 
-            {% if documents|length !== 0 %}
-                <!-- Polite aria so that screen readers will gently let the user know when this number changes -->
-                <p id="selection-count-container" class="govuk-body govuk-!-display-none govuk-!-margin-bottom-4" aria-live="polite">
-                    <span id="selection-count-number">0</span> file(s) on this page selected
-                </p>
+                {% if documents|length !== 0 %}
+                    <!-- Polite aria so that screen readers will gently let the user know when this number changes -->
+                    <p id="selection-count-container" class="govuk-body govuk-!-display-none govuk-!-margin-bottom-4" aria-live="polite">
+                        <span id="selection-count-number">0</span> file(s) on this page selected
+                    </p>
 
-                {{ documentsTable(documents, true) }}
+                    {{ documentsTable(documents, true) }}
 
-                {{ pagination.renderPagination(paginationParams.pageNumber, paginationParams.totalPages, baseUrl, queryParams) }}
-            {% endif %}
+                    {{ pagination.renderPagination(paginationParams.pageNumber, paginationParams.totalPages, baseUrl, queryParams) }}
+                {% endif %}
+            </form>
 
         </div>
     </div>
