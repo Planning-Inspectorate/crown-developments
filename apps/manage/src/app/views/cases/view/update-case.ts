@@ -105,7 +105,12 @@ const AUDITABLE_SCALAR_FIELDS = new Set([
 	'eligibleForFeeRefund',
 	'cilLiable',
 	'bngExempt',
-	'hasCostsApplications'
+	'hasCostsApplications',
+
+	// Monetary fields
+	'cilAmount',
+	'applicationFee',
+	'applicationFeeRefundAmount'
 ]);
 
 type ErrorWithSummary = Error & { errorSummary: ErrorSummaryItem[] };

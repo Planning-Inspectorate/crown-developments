@@ -153,6 +153,17 @@ function createLookupResolver(fieldName: string, displayNameMap: Map<string, str
 	};
 }
 
+function monetaryResolver(fieldName: string): FieldResolver {
+	return {
+		resolve(previousCase, newAnswer) {
+			return {
+				oldValue: previousCase[fieldName] ? `£${(previousCase[fieldName] as number).toFixed(2)}` : '-',
+				newValue: newAnswer ? `£${(newAnswer as number).toFixed(2)}` : '-'
+			};
+		}
+	};
+}
+
 /**
  * Registry of field-specific resolvers.
  *
@@ -229,7 +240,17 @@ const FIELD_RESOLVERS: Record<string, FieldResolver> = {
 	applicationReceivedDateEmailSent: booleanResolver('applicationReceivedDateEmailSent'),
 	lpaQuestionnaireSpecialEmailSent: booleanResolver('lpaQuestionnaireSpecialEmailSent'),
 	lpaQuestionnaireReceivedEmailSent: booleanResolver('lpaQuestionnaireReceivedEmailSent'),
-	notNationallyImportantEmailSent: booleanResolver('notNationallyImportantEmailSent')
+	notNationallyImportantEmailSent: booleanResolver('notNationallyImportantEmailSent'),
+
+	// ── Monetary fields ────────────────────────────────────────────────────────
+	// Values need to be formatted with currency '£' as a prefix
+
+	/** Community Infrastructure Levy (CIL) amount */
+	cilAmount: monetaryResolver('cilAmount'),
+	/** Application fee amount */
+	applicationFee: monetaryResolver('applicationFee'),
+	/** Application fee refund amount */
+	applicationFeeRefundAmount: monetaryResolver('applicationFeeRefundAmount')
 };
 
 /**
