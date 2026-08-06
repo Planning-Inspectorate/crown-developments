@@ -1462,4 +1462,35 @@ describe('S62aCaseUpdateMapper', () => {
 			assert.strictEqual(result.WasteTypes, undefined);
 		});
 	});
+
+	describe('Residential Tab', () => {
+		it('maps the booleans into the S62aResidential upsert', () => {
+			const answers = {
+				hasResidentialUnitsChange: true,
+				hasExistingHousing: false
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aResidential, {
+				upsert: {
+					create: { hasResidentialUnitsChange: true, hasExistingHousing: false },
+					update: { hasResidentialUnitsChange: true, hasExistingHousing: false }
+				}
+			});
+		});
+
+		it('nullifies a boolean when cleared', () => {
+			const answers = { hasProposedHousing: null } as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual((result.S62aResidential as any).upsert.create.hasProposedHousing, null);
+		});
+
+		it('does not generate an S62aResidential update when no residential answers are provided', () => {
+			const result = new S62aCaseUpdateMapper({ likelyIssues: 'Traffic' }).generateUpdateInput();
+
+			assert.strictEqual(result.S62aResidential, undefined);
+		});
+	});
 });

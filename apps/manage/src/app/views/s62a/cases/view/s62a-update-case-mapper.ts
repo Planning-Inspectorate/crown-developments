@@ -20,7 +20,8 @@ import {
 	EVENT_DATE_FIELDS,
 	EVENT_NUMBER_FIELDS,
 	EVENT_STRING_FIELDS,
-	type WasteTypeItem
+	type WasteTypeItem,
+	RESIDENTIAL_BOOLEAN_FIELDS
 } from './view-model.ts';
 import {
 	type AgentContactAnswer,
@@ -41,6 +42,7 @@ const FEE_STRING_SET = new Set<string>(FEE_STRING_FIELDS);
 const EVENT_DATE_SET = new Set<string>(EVENT_DATE_FIELDS);
 const EVENT_NUMBER_SET = new Set<string>(EVENT_NUMBER_FIELDS);
 const EVENT_STRING_SET = new Set<string>(EVENT_STRING_FIELDS);
+const RESIDENTIAL_BOOLEAN_SET = new Set<string>(RESIDENTIAL_BOOLEAN_FIELDS);
 
 export interface UpdateCaseAnswers {
 	s62aStatusId?: string;
@@ -185,6 +187,11 @@ export interface UpdateCaseAnswers {
 	pressNoticeCost?: number | null;
 	pressNoticeReference?: string | null;
 	pressNoticePlaced?: string | null;
+
+	// Residential tab
+	hasResidentialUnitsChange?: boolean | null;
+	hasExistingHousing?: boolean | null;
+	hasProposedHousing?: boolean | null;
 }
 
 /**
@@ -221,6 +228,7 @@ export class S62aCaseUpdateMapper {
 		this.mapEvent(input);
 		this.mapWaste(input);
 		this.mapPressNotice(input);
+		this.mapResidential(input);
 
 		return input;
 	}
@@ -571,6 +579,31 @@ export class S62aCaseUpdateMapper {
 						: undefined
 				}))
 		};
+	}
+
+	/**
+	 * Creates the data on the Residential reference table
+	 */
+	private mapResidential(input: Prisma.S62aCaseUpdateInput): void {
+		const residentialToUpdate: Prisma.S62aResidentialUpdateWithoutS62aCaseInput &
+			Prisma.S62aResidentialCreateWithoutS62aCaseInput = {};
+		let hasResidentialUpdates = false;
+
+		for (const [key, value] of Object.entries(this.answers)) {
+			if (this.isResidentialBooleanField(key)) {
+				residentialToUpdate[key] = typeof value === 'boolean' ? yesNoToBoolean(value) : null;
+				hasResidentialUpdates = true;
+			}
+		}
+
+		if (hasResidentialUpdates) {
+			input.S62aResidential = {
+				upsert: {
+					create: residentialToUpdate,
+					update: residentialToUpdate
+				}
+			};
+		}
 	}
 
 	/**
@@ -1098,6 +1131,10 @@ export class S62aCaseUpdateMapper {
 
 	private isEventStringField(key: string): key is (typeof EVENT_STRING_FIELDS)[number] {
 		return EVENT_STRING_SET.has(key);
+	}
+
+	private isResidentialBooleanField(key: string): key is (typeof RESIDENTIAL_BOOLEAN_FIELDS)[number] {
+		return RESIDENTIAL_BOOLEAN_SET.has(key);
 	}
 
 	private hasAnswer(key: keyof UpdateCaseAnswers): boolean {

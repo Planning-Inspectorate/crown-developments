@@ -15,7 +15,10 @@ import {
 	DECISION_OUTCOMES,
 	SITE_VISIT_TYPES,
 	WASTE_UNITS,
-	WASTE_TYPES
+	WASTE_TYPES,
+	HOUSING_TYPES,
+	OCCUPANCY_TYPES,
+	UNIT_TYPES
 } from './s62a/data-static.ts';
 
 export const APPLICATION_DECISION_OUTCOME = [
@@ -671,6 +674,18 @@ type UpsertReferenceDataArgs =
 	| {
 			delegate: Prisma.S62aWasteUnitDelegate;
 			input: Prisma.S62aWasteUnitCreateInput;
+	  }
+	| {
+			delegate: Prisma.S62aHousingTypeDelegate;
+			input: Prisma.S62aHousingTypeCreateInput;
+	  }
+	| {
+			delegate: Prisma.S62aOccupancyTypeDelegate;
+			input: Prisma.S62aOccupancyTypeCreateInput;
+	  }
+	| {
+			delegate: Prisma.S62aUnitTypeDelegate;
+			input: Prisma.S62aUnitTypeCreateInput;
 	  };
 
 async function upsertReferenceData({ delegate, input }: UpsertReferenceDataArgs): Promise<void> {
@@ -812,6 +827,13 @@ export async function seedS62aStaticData(dbClient: PrismaClient) {
 	await Promise.all(WASTE_UNITS.map((input) => upsertReferenceData({ delegate: dbClient.s62aWasteUnit, input })));
 
 	await Promise.all(WASTE_TYPES.map((input) => upsertReferenceData({ delegate: dbClient.s62aWasteType, input })));
+	await Promise.all(HOUSING_TYPES.map((input) => upsertReferenceData({ delegate: dbClient.s62aHousingType, input })));
+
+	await Promise.all(
+		OCCUPANCY_TYPES.map((input) => upsertReferenceData({ delegate: dbClient.s62aOccupancyType, input }))
+	);
+
+	await Promise.all(UNIT_TYPES.map((input) => upsertReferenceData({ delegate: dbClient.s62aUnitType, input })));
 
 	console.log('S62A static data seed complete');
 }

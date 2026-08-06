@@ -221,6 +221,21 @@ describe('s62a case details journey', () => {
 					'preApplicationAdviceIssuedDate',
 					'preApplicationReference'
 				]
+			},
+			{
+				title: '',
+				segment: 'residential',
+				questions: ['residentialUnitsChange', 'totalNetGainOrLossOfUnits']
+			},
+			{
+				title: 'Existing residential',
+				segment: 'existing',
+				questions: ['hasExistingHousing', 'manageExistingHousing']
+			},
+			{
+				title: 'Proposed residential',
+				segment: 'proposed',
+				questions: ['hasProposedHousing', 'manageProposedHousing']
 			}
 		];
 
