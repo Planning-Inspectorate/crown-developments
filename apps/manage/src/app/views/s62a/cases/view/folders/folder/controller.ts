@@ -9,6 +9,7 @@ import { buildBreadcrumbItems, getFolderPath } from '../../../util/folders.ts';
 import { createPaginationParams, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { PREVIEW_MIME_TYPES } from './upload/upload-utils.ts';
 import { createDocumentsViewModel } from './view-model.ts';
+import { popSessionData } from '@pins/crowndev-lib/util/session.ts';
 
 export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler {
 	const { db, logger } = service;
@@ -89,6 +90,8 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 			return notFoundHandler(req, res);
 		}
 
+		const errorSummary = popSessionData(req, id, 'filesErrors', false, 'folder');
+
 		const paginationParams = createPaginationParams(req, totalDocCount);
 
 		const documentsViewModel = paginatedDocs ? createDocumentsViewModel(paginatedDocs, PREVIEW_MIME_TYPES) : [];
@@ -112,7 +115,9 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 			breadcrumbItems,
 			paginationParams,
 			documents: documentsViewModel,
-			baseUrl: req.baseUrl
+			baseUrl: req.baseUrl,
+			errorSummary,
+			caseId: id
 		});
 	};
 }
