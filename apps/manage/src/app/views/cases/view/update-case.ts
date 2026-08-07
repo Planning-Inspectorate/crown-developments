@@ -470,9 +470,9 @@ async function recordAuditEntries(
 ): Promise<void> {
 	// Bail out early if userId is missing — audit.recordMany requires a userId for every entry
 	// and will throw/log when missing. This avoids noisy error logs and wasted work.
+	const auditUserId = userId || 'Unknown-user';
 	if (!userId) {
-		logger.warn({ caseId, updatedFieldNames }, 'Skipping audit: no userId available');
-		return;
+		logger.warn({ caseId, updatedFieldNames }, 'Recording audit with unknown-user: no userId available');
 	}
 
 	try {
@@ -504,7 +504,7 @@ async function recordAuditEntries(
 			allAuditEntries.push({
 				caseId,
 				action,
-				userId,
+				userId: auditUserId,
 				metadata: {
 					fieldName: getFieldDisplayName(fieldName),
 					oldValue,
