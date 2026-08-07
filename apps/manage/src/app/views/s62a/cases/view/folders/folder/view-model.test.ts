@@ -52,7 +52,10 @@ describe('createDocumentsViewModel', () => {
 
 		assert.strictEqual(vm.actions.length, 2);
 		assert.strictEqual(vm.actions[0].text, 'Delete');
-		assert.strictEqual(vm.actions[0].href, '/');
+		assert.strictEqual(
+			vm.actions[0].href,
+			'/s62a/cases/case-123/case-folders/folder-1/planning-documents/delete/doc-123'
+		);
 		assert.strictEqual(vm.actions[0].attributes?.['data-cy'], 'delete-file-doc-123');
 		assert.strictEqual(vm.actions[1].text, 'Download');
 		assert.strictEqual(

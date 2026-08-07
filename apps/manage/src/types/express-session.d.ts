@@ -44,6 +44,9 @@ declare module 'express-session' {
 		forms?: Record<string, FormSessionData>;
 		bannerMessage?: Record<CaseId, Record<BannerMessageKey, boolean>>;
 
+		// S62A session store types
+		deleteFilesIds?: string[];
+
 		// Common error/session transient state
 		errors?: unknown;
 		errorSummary?: unknown;

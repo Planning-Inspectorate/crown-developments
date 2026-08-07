@@ -11,6 +11,7 @@ import { PREVIEW_MIME_TYPES } from './upload/upload-utils.ts';
 import { createDocumentsViewModel } from './view-model.ts';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { Request } from 'express';
+import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
 
 export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler {
 	const { db, logger } = service;
@@ -91,7 +92,9 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 			return notFoundHandler(req, res);
 		}
 
-		const [errorSummary] = readAndClearSessionData(req);
+		const [errorSummary, filesDeleted] = readAndClearSessionData(req);
+
+		const banner = getBannerMessages(filesDeleted, errorSummary);
 
 		const paginationParams = createPaginationParams(req, totalDocCount);
 
@@ -118,7 +121,8 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 			documents: documentsViewModel,
 			baseUrl: req.baseUrl,
 			errorSummary,
-			caseId: id
+			caseId: id,
+			banner
 		});
 	};
 }
@@ -132,5 +136,26 @@ function readAndClearSessionData(req: Request) {
 	const errorSummary = readSessionData(req, id, 'filesErrors', false, 'folder');
 	clearSessionData(req, id, 'filesErrors', 'folder');
 
-	return [errorSummary];
+	const filesDeleted = readSessionData(req, id, 'filesDeleted', false, 'folder');
+	clearSessionData(req, id, 'filesDeleted', 'folder');
+
+	return [errorSummary, filesDeleted];
+}
+
+/**
+ * Builds out the various banners we will need on the case details page
+ */
+function getBannerMessages(filesDeleted: number | boolean | undefined, errorSummary?: { text: string }[] | boolean) {
+	if (errorSummary) {
+		return null;
+	}
+
+	const bannerBuilder = new BannerBuilder();
+
+	if (typeof filesDeleted === 'number') {
+		bannerBuilder.addSuccessText(`${filesDeleted} selected file${filesDeleted === 1 ? '' : 's'} deleted`);
+		return bannerBuilder.build();
+	}
+
+	return bannerBuilder.build();
 }

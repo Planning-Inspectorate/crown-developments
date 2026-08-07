@@ -1,0 +1,73 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+
+{% block pageTitle %}
+    Document - Delete Documents
+{% endblock %}
+
+{% block pageContent %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+
+            <form method="post" novalidate>
+                <input type="hidden" name="_csrf" value="{{ _csrf }}">
+                <input type="hidden" name="returnUrl" value="{{ returnUrl }}">
+
+                {{ deleteTable(documents) }}
+
+                {{ govukWarningText({
+                    text: "This action cannot be undone.",
+                    iconFallbackText: "Warning"
+                }) }}
+
+                {{ govukButton({
+                    text: "Delete files",
+                    classes: "govuk-button--warning",
+                    attributes: {
+                        formaction: deleteUrl
+                    }
+                }) }}
+
+            </form>
+
+        </div>
+
+        <div class="govuk-grid-column-two-thirds">
+            <a class="govuk-link" href="{{ backLinkUrl }}">
+                Cancel and return to folder
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% macro deleteTable(docRows) %}
+    {% set docs = [] %}
+    {% set multipleFiles = docRows | length > 1 %}
+
+    {% for doc in docRows %}
+        {% set docs = (docs.push([
+            {
+                text: doc.fileName
+            }
+        ]), docs) %}
+    {% endfor %}
+
+    {% set headers = [
+        {
+            text: 'File name',
+            classes: "govuk-!-width-three-quarters"
+        }
+    ] %}
+
+    {{ govukTable({
+        attributes: {
+            "data-module": "moj-sortable-table"
+        },
+        head: headers,
+        rows: docs
+    }) }}
+{% endmacro %}

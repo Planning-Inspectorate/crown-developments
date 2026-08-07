@@ -5,6 +5,7 @@
 {% from "tables/tables.njk" import documentsTable %}
 {% import "pagination/pagination.njk" as pagination %}
 {% import "pagination/pagination-options.njk" as paginationOptions %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 
 {% set title = reference + " - Case Folder" %}
 
@@ -13,11 +14,18 @@
 {% endblock %}
 
 {% block content %}
+	{% if banner %}
+		<div class="govuk-grid-row">
+			<div class="govuk-grid-column-two-thirds">
+				{{ govukNotificationBanner(banner) }}
+			</div>
+		</div>
+	{% endif %}
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
-            <h2 class="govuk-caption-l" data-cy="case-reference">
+            <span class="govuk-caption-l" data-cy="case-reference">
                 {{ reference }}
-            </h2>
+            </span>
             <h1 class="govuk-heading-l" data-cy="folder-name-heading">
                 {{ folderName }} folder
             </h1>
@@ -28,11 +36,15 @@
             {% if subFolders|length !== 0 %}
                 {% set subFoldersHtml %}
                     <div class="pins-link-menu">
-                        {% for folder in subFolders %}
-                            <a class="govuk-link govuk-heading-s" href="{{ baseFoldersUrl }}/{{ folder.id }}/{{ folder.encodedDisplayName }}" data-cy="subfolder-link-{{ folder.id }}">
-                                {{ folder.displayName }}
-                            </a>
-                        {% endfor %}
+                        <ul class="govuk-list">
+                            {% for folder in subFolders %}
+                                <li>
+                                    <a class="govuk-link govuk-heading-s" href="{{ baseFoldersUrl }}/{{ folder.id }}/{{ folder.encodedDisplayName }}" data-cy="subfolder-link-{{ folder.id }}">
+                                        {{ folder.displayName }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 {% endset %}
 
@@ -83,20 +95,24 @@
                         classes: "govuk-button--secondary",
                         attributes: { "data-cy": "upload-files-btn" }
                     }) }}
-                    {{ govukButton({
-                        text: "Download selected",
-                        classes: "govuk-button--secondary",
-                        attributes: {
-                            "data-cy": "download-files-btn",
-                            "formaction": currentPath + "/download/documents"
-                        }
-                    }) }}
-                    {{ govukButton({
-                        text: "Delete selected",
-                        href: currentPath,
-                        classes: "govuk-button--secondary",
-                        attributes: { "data-cy": "delete-files-btn" }
-                    }) }}
+                    {% if documents|length !== 0 %}
+                        {{ govukButton({
+                            text: "Download selected",
+                            classes: "govuk-button--secondary",
+                            attributes: {
+                                "data-cy": "download-files-btn",
+                                "formaction": currentPath + "/download/documents"
+                            }
+                        }) }}
+                        {{ govukButton({
+                            text: "Delete selected",
+                            classes: "govuk-button--secondary",
+                            attributes: {
+                                "data-cy": "delete-files-btn",
+                                "formaction": currentPath + "/delete/documents/confirmation"
+                            }
+                        }) }}
+                    {% endif %}
                 </div>
 
                 {% if documents|length !== 0 %}
