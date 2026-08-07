@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { bytesToUnit, formatFee, parseNumberStringToNumber, toFloat, toInt } from './numbers.ts';
+import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+import { bytesToUnit, formatFee, parseNumberStringToNumber, toFloat, toInt, toDecimalOrNull } from './numbers.ts';
 
 describe('numbers', () => {
 	describe('bytesToUnit', () => {
@@ -112,6 +113,43 @@ describe('numbers', () => {
 		it('should return empty string for null or undefined', () => {
 			assert.strictEqual(formatFee(null), '');
 			assert.strictEqual(formatFee(undefined), '');
+		});
+	});
+	describe('toDecimalOrNull', () => {
+		it('should return null for null, undefined, empty, or whitespace-only strings', () => {
+			assert.strictEqual(toDecimalOrNull(null), null);
+			assert.strictEqual(toDecimalOrNull(undefined), null);
+			assert.strictEqual(toDecimalOrNull(''), null);
+			assert.strictEqual(toDecimalOrNull('   '), null);
+		});
+
+		it('should convert valid numbers into Prisma.Decimal', () => {
+			assert.deepStrictEqual(toDecimalOrNull(100), new Prisma.Decimal(100));
+			assert.deepStrictEqual(toDecimalOrNull(0), new Prisma.Decimal(0));
+			assert.deepStrictEqual(toDecimalOrNull(123456.78), new Prisma.Decimal(123456.78));
+			assert.deepStrictEqual(toDecimalOrNull(-45.67), new Prisma.Decimal(-45.67));
+		});
+
+		it('should convert valid numeric strings into Prisma.Decimal', () => {
+			assert.deepStrictEqual(toDecimalOrNull('100'), new Prisma.Decimal(100));
+			assert.deepStrictEqual(toDecimalOrNull(' 45.67 '), new Prisma.Decimal(45.67));
+			assert.deepStrictEqual(toDecimalOrNull('-12.3'), new Prisma.Decimal(-12.3));
+		});
+
+		it('should return null for non-finite numbers', () => {
+			assert.strictEqual(toDecimalOrNull(NaN), null);
+		});
+
+		it('should return null for non-numeric strings', () => {
+			assert.strictEqual(toDecimalOrNull('abc'), null);
+			assert.strictEqual(toDecimalOrNull('100px'), null);
+		});
+
+		it('should return null for unsupported types', () => {
+			assert.strictEqual(toDecimalOrNull(true), null);
+			assert.strictEqual(toDecimalOrNull(false), null);
+			assert.strictEqual(toDecimalOrNull({}), null);
+			assert.strictEqual(toDecimalOrNull([]), null);
 		});
 	});
 });

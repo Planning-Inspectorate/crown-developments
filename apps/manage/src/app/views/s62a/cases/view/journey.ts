@@ -299,7 +299,12 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.addQuestion(questions.preApplicationAdviceIssuedDate)
 				.withCondition(showAdviceIssuedDate)
 				.addQuestion(questions.preApplicationReference)
-				.withCondition(isApplicationAdviceGiven)
+				.withCondition(isApplicationAdviceGiven),
+			new Section('', 'press-notice')
+				.withSectionCondition(() => currentTab === VIEW_TAB_ID.PRESS && isApplicationCase(response))
+				.addQuestion(questions.pressNoticeCost)
+				.addQuestion(questions.pressNoticePlaced)
+				.addQuestion(questions.pressNoticeReference)
 		],
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',

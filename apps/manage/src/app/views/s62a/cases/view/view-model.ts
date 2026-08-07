@@ -246,6 +246,11 @@ export interface S62aCaseViewModel {
 	issuesReportingPublishedDate?: Date;
 	siteVisitDate?: Date;
 	siteVisitTypeId?: string;
+
+	//Press Notice tab
+	pressNoticeCost?: number | null;
+	pressNoticeReference?: string;
+	pressNoticePlaced?: string;
 }
 
 /**
@@ -276,7 +281,9 @@ const DIRECT_UNMAPPED_FIELDS = Object.freeze([
 	'lpaReference',
 	'listedBuildingReference',
 	'healthAndSafetyIssue',
-	'preApplicationReference'
+	'preApplicationReference',
+	'pressNoticeReference',
+	'pressNoticePlaced'
 ] as const);
 
 /**
@@ -471,6 +478,10 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 		viewModel.secondaryLpaLastName = dbCase.SecondaryLpaContact.lastName || undefined;
 		viewModel.secondaryLpaEmailAddress = dbCase.SecondaryLpaContact.email || undefined;
 		viewModel.secondaryLpaPhoneNumber = dbCase.SecondaryLpaContact.telephoneNumber || undefined;
+	}
+
+	if (dbCase.pressNoticeCost) {
+		viewModel.pressNoticeCost = dbCase.pressNoticeCost.toNumber();
 	}
 
 	if (dbCase.S62aToApplicants && dbCase.S62aToApplicants.length > 0) {

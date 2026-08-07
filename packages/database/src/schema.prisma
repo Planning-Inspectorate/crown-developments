@@ -214,6 +214,11 @@ model S62aCase {
   eiaScreening        Boolean?
   eiaScreeningOutcome Boolean?
 
+  // Press Notice Fields
+  pressNoticeCost      Decimal? @db.Decimal(12, 2)
+  pressNoticePlaced    String?  @db.NVarChar(250)
+  pressNoticeReference String?  @db.NVarChar(250)
+
   /// Site area fields
   siteAddressId               String?       @db.UniqueIdentifier
   SiteAddress                 Address?      @relation(fields: [siteAddressId], references: [id], onUpdate: NoAction, onDelete: NoAction)
