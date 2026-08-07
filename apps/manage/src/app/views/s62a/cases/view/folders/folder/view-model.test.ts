@@ -13,6 +13,7 @@ describe('createDocumentsViewModel', () => {
 			mimeType: 'application/pdf',
 			uploadedDate: new Date('2024-05-10T10:00:00Z'),
 			s62aCaseId: 'case-123',
+			folderId: 'folder-1',
 			Folder: {
 				id: 'folder-1',
 				displayName: 'Planning Documents'
@@ -39,11 +40,14 @@ describe('createDocumentsViewModel', () => {
 		assert.strictEqual(vm.sizeSort, 1048576);
 		assert.strictEqual(vm.date, '10 May 2024');
 		assert.strictEqual(vm.dateSort, new Date('2024-05-10T10:00:00Z').getTime());
-		assert.strictEqual(vm.downloadHref, '/');
+		assert.strictEqual(
+			vm.downloadHref,
+			'/s62a/cases/case-123/case-folders/folder-1/planning-documents/download/doc-123'
+		);
 		assert.strictEqual(vm.caseId, 'case-123');
 		assert.strictEqual(vm.folder.id, 'folder-1');
 
-		assert.strictEqual(typeof vm.folder.displayName, 'string');
+		assert.strictEqual(vm.folder.displayName, 'planning-documents');
 		assert.strictEqual(typeof vm.size, 'string');
 
 		assert.strictEqual(vm.actions.length, 2);
@@ -51,7 +55,10 @@ describe('createDocumentsViewModel', () => {
 		assert.strictEqual(vm.actions[0].href, '/');
 		assert.strictEqual(vm.actions[0].attributes?.['data-cy'], 'delete-file-doc-123');
 		assert.strictEqual(vm.actions[1].text, 'Download');
-		assert.strictEqual(vm.actions[1].href, '/');
+		assert.strictEqual(
+			vm.actions[1].href,
+			'/s62a/cases/case-123/case-folders/folder-1/planning-documents/download/doc-123'
+		);
 		assert.strictEqual(vm.actions[1].attributes?.['data-cy'], 'download-file-doc-123');
 	});
 

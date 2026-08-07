@@ -4,7 +4,8 @@ import {
 	addSessionData,
 	readSessionData,
 	clearSessionData,
-	removeApplicantContactsWhenOrganisationRemoved
+	removeApplicantContactsWhenOrganisationRemoved,
+	popSessionData
 } from './session.ts';
 import type { Request, Response } from 'express';
 
@@ -313,5 +314,59 @@ describe('create-a-case - remove applicant contacts when organisation removed', 
 		assert.strictEqual(next.mock.callCount(), 1);
 		const [err] = next.mock.calls[0].arguments;
 		assert.ok(err instanceof Error);
+	});
+});
+
+describe('popSessionData', () => {
+	it('should return the stored value and remove it from the session', () => {
+		const sessionData: MockSession = {
+			cases: { 'case-1': { flashMessage: 'success', other: 'keep-me' } }
+		};
+		const req = makeReq(sessionData);
+
+		const result = popSessionData(req, 'case-1', 'flashMessage', false);
+
+		assert.strictEqual(result, 'success');
+		assert.strictEqual('flashMessage' in sessionData['cases']['case-1'], false);
+		assert.strictEqual(sessionData['cases']['case-1']['other'], 'keep-me');
+	});
+
+	it('should return the default value if the field does not exist', () => {
+		const sessionData: MockSession = { cases: { 'case-1': {} } };
+		const req = makeReq(sessionData);
+
+		const result = popSessionData(req, 'case-1', 'missing', 'defaultVal');
+
+		assert.strictEqual(result, 'defaultVal');
+	});
+
+	it('should return the default value if the id does not exist', () => {
+		const sessionData: MockSession = { cases: {} };
+		const req = makeReq(sessionData);
+
+		const result = popSessionData(req, 'case-1', 'missing', 'defaultVal');
+
+		assert.strictEqual(result, 'defaultVal');
+	});
+
+	it('should return the default value when session is missing and not throw', () => {
+		const req = { session: null } as unknown as Request;
+
+		const result = popSessionData(req, 'case-1', 'updated', false);
+
+		assert.strictEqual(result, false);
+	});
+
+	it('should use a custom sessionField when provided', () => {
+		const sessionData: MockSession = {
+			custom: { 'item-1': { foo: 'bar', keep: 'this' } }
+		};
+		const req = makeReq(sessionData);
+
+		const result = popSessionData(req, 'item-1', 'foo', null, 'custom');
+
+		assert.strictEqual(result, 'bar');
+		assert.strictEqual('foo' in sessionData['custom']['item-1'], false);
+		assert.strictEqual(sessionData['custom']['item-1']['keep'], 'this');
 	});
 });
