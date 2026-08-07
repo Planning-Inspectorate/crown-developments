@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveTemplate, AUDIT_ACTIONS } from './actions.ts';
+import { resolveTemplate, AUDIT_ACTIONS, AUDIT_TEMPLATES } from './actions.ts';
 
 describe('resolveTemplate', () => {
 	it('should return template as-is when no metadata is provided', () => {
@@ -73,6 +73,20 @@ describe('resolveTemplate', () => {
 			assert.strictEqual(result, 'Hearing venue was updated from Town Hall to City Hall');
 		});
 	});
+
+	describe('FIELD_UPDATED_LONG action', () => {
+		it('should resolve FIELD_UPDATED_LONG template with fieldName', () => {
+			const result = resolveTemplate(AUDIT_ACTIONS.FIELD_UPDATED_LONG, {
+				fieldName: 'Development description'
+			});
+			assert.strictEqual(result, 'Development description was updated');
+		});
+
+		it('should leave fieldName placeholder when metadata is missing', () => {
+			const result = resolveTemplate(AUDIT_ACTIONS.FIELD_UPDATED_LONG);
+			assert.strictEqual(result, '{fieldName} was updated');
+		});
+	});
 });
 
 describe('AUDIT_ACTIONS', () => {
@@ -91,13 +105,10 @@ describe('AUDIT_ACTIONS', () => {
 	it('should have FIELD_UPDATED_LONG action', () => {
 		assert.strictEqual(AUDIT_ACTIONS.FIELD_UPDATED_LONG, 'FIELD_UPDATED_LONG');
 	});
+});
 
-	describe('FIELD_UPDATED_LONG action', () => {
-		it('should resolve FIELD_UPDATED_LONG template with fieldName', () => {
-			const result = resolveTemplate(AUDIT_ACTIONS.FIELD_UPDATED_LONG, {
-				fieldName: 'Development description'
-			});
-			assert.strictEqual(result, 'Development description was updated');
-		});
+describe('AUDIT_TEMPLATES', () => {
+	it('should include FIELD_UPDATED_LONG template', () => {
+		assert.strictEqual(AUDIT_TEMPLATES[AUDIT_ACTIONS.FIELD_UPDATED_LONG], '{fieldName} was updated');
 	});
 });

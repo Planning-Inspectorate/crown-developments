@@ -2844,4 +2844,146 @@ describe('audit recording', () => {
 		assert.strictEqual(entries[0].metadata.fieldName, 'Agent organisation name');
 		assert.strictEqual(entries[0].metadata.newValue, 'New Agent Org Ltd');
 	});
+
+	it('should record audit entry with FIELD_UPDATED_LONG action when description is set from null', async () => {
+		const logger = mockLogger();
+		const mockAudit = createMockAudit();
+		const mockDb = buildDbForAudit({ description: null });
+
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const mockReq = {
+			params: { id: 'case-1' },
+			session: { account: { localAccountId: 'user-123' } }
+		};
+		const mockRes = { locals: {} };
+		const data = {
+			answers: {
+				description: 'A new development description'
+			}
+		};
+
+		await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+		assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+		const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+		assert.strictEqual(entries.length, 1);
+		assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_UPDATED_LONG);
+		assert.strictEqual(entries[0].metadata.fieldName, 'Development description');
+		assert.strictEqual(entries[0].metadata.oldValue, '-');
+		assert.strictEqual(entries[0].metadata.newValue, 'A new development description');
+		assert.strictEqual(entries[0].metadata.isLong, true);
+	});
+
+	it('should record audit entry with FIELD_UPDATED_LONG action when description is changed', async () => {
+		const logger = mockLogger();
+		const mockAudit = createMockAudit();
+		const mockDb = buildDbForAudit({ description: 'Old description text' });
+
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const mockReq = {
+			params: { id: 'case-1' },
+			session: { account: { localAccountId: 'user-123' } }
+		};
+		const mockRes = { locals: {} };
+		const data = {
+			answers: {
+				description: 'Updated description text'
+			}
+		};
+
+		await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+		assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+		const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+		assert.strictEqual(entries.length, 1);
+		assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_UPDATED_LONG);
+		assert.strictEqual(entries[0].metadata.fieldName, 'Development description');
+		assert.strictEqual(entries[0].metadata.oldValue, 'Old description text');
+		assert.strictEqual(entries[0].metadata.newValue, 'Updated description text');
+		assert.strictEqual(entries[0].metadata.isLong, true);
+	});
+
+	it('should record audit entry with FIELD_UPDATED_LONG action when costsApplicationsComment is set from null', async () => {
+		const logger = mockLogger();
+		const mockAudit = createMockAudit();
+		const mockDb = buildDbForAudit({ costsApplicationsComment: null });
+
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const mockReq = {
+			params: { id: 'case-1' },
+			session: { account: { localAccountId: 'user-123' } }
+		};
+		const mockRes = { locals: {} };
+		const data = {
+			answers: {
+				costsApplicationsComment: 'Party A is claiming costs against Party B'
+			}
+		};
+
+		await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+		assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+		const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+		assert.strictEqual(entries.length, 1);
+		assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_UPDATED_LONG);
+		assert.strictEqual(entries[0].metadata.fieldName, 'Costs applications comment');
+		assert.strictEqual(entries[0].metadata.oldValue, '-');
+		assert.strictEqual(entries[0].metadata.newValue, 'Party A is claiming costs against Party B');
+		assert.strictEqual(entries[0].metadata.isLong, true);
+	});
+
+	it('should record audit entry with FIELD_UPDATED_LONG action when costsApplicationsComment is changed', async () => {
+		const logger = mockLogger();
+		const mockAudit = createMockAudit();
+		const mockDb = buildDbForAudit({ costsApplicationsComment: 'Original comment' });
+
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const mockReq = {
+			params: { id: 'case-1' },
+			session: { account: { localAccountId: 'user-123' } }
+		};
+		const mockRes = { locals: {} };
+		const data = {
+			answers: {
+				costsApplicationsComment: 'Updated comment text'
+			}
+		};
+
+		await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+		assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+		const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+		assert.strictEqual(entries.length, 1);
+		assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_UPDATED_LONG);
+		assert.strictEqual(entries[0].metadata.fieldName, 'Costs applications comment');
+		assert.strictEqual(entries[0].metadata.oldValue, 'Original comment');
+		assert.strictEqual(entries[0].metadata.newValue, 'Updated comment text');
+		assert.strictEqual(entries[0].metadata.isLong, true);
+	});
+
+	it('should NOT use FIELD_UPDATED_LONG for a non-long field like lpaReference', async () => {
+		const logger = mockLogger();
+		const mockAudit = createMockAudit();
+		const mockDb = buildDbForAudit({ lpaReference: 'OLD/REF' });
+
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const mockReq = {
+			params: { id: 'case-1' },
+			session: { account: { localAccountId: 'user-123' } }
+		};
+		const mockRes = { locals: {} };
+		const data = {
+			answers: {
+				lpaReference: 'NEW/REF'
+			}
+		};
+
+		await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+		assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+		const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+		assert.strictEqual(entries.length, 1);
+		assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_UPDATED);
+		assert.strictEqual(entries[0].metadata.isLong, undefined);
+	});
 });

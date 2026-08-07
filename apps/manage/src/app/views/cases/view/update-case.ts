@@ -107,12 +107,15 @@ const AUDITABLE_SCALAR_FIELDS = new Set([
 	'cilLiable',
 	'bngExempt',
 	'hasCostsApplications',
-
+	'costsApplicationsComment',
 	// Monetary fields
 	'cilAmount',
 	'applicationFee',
 	'applicationFeeRefundAmount'
 ]);
+
+/** * Long-text fields that render with expandable old/new value details * instead of inline audit text. */
+const LONG_AUDIT_FIELDS = new Set(['description', 'costsApplicationsComment']);
 
 type ErrorWithSummary = Error & { errorSummary: ErrorSummaryItem[] };
 
@@ -490,22 +493,17 @@ async function recordAuditEntries(
 			if (oldValue === newValue) {
 				continue;
 			}
-
+			const isLongField = LONG_AUDIT_FIELDS.has(fieldName);
 			let action: AuditAction;
-
-			if (oldValue === '-') {
+			if (isLongField) {
+				action = AUDIT_ACTIONS.FIELD_UPDATED_LONG;
+			} else if (oldValue === '-') {
 				action = AUDIT_ACTIONS.FIELD_SET;
 			} else if (newValue === '-') {
 				action = AUDIT_ACTIONS.FIELD_CLEARED;
 			} else {
 				action = AUDIT_ACTIONS.FIELD_UPDATED;
 			}
-
-			const LONG_AUDIT_FIELDS = new Set(['description', 'healthAndSafetyIssue']);
-			if (action === AUDIT_ACTIONS.FIELD_UPDATED && LONG_AUDIT_FIELDS.has(fieldName)) {
-				action = AUDIT_ACTIONS.FIELD_UPDATED_LONG;
-			}
-
 			allAuditEntries.push({
 				caseId,
 				action,
@@ -513,7 +511,8 @@ async function recordAuditEntries(
 				metadata: {
 					fieldName: getFieldDisplayName(fieldName),
 					oldValue,
-					newValue
+					newValue,
+					...(LONG_AUDIT_FIELDS.has(fieldName) ? { isLong: true } : {})
 				}
 			});
 		}

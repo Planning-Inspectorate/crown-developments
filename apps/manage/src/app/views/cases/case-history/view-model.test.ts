@@ -122,13 +122,14 @@ describe('createCaseHistoryViewModel', () => {
 		assert.strictEqual(Object.keys(result[0]).length, 3);
 	});
 
-	it('should include longField oldValue and newValue when both are provided', () => {
+	it('should include longField when metadata.isLong is true', () => {
 		const events = [
 			event({
 				action: 'FIELD_UPDATED_LONG',
 				metadata: {
+					isLong: true,
 					fieldName: 'Development description',
-					oldValue: 'Previous application description',
+					oldValue: 'Old application description',
 					newValue: 'New application description'
 				}
 			})
@@ -138,13 +139,14 @@ describe('createCaseHistoryViewModel', () => {
 
 		assert.strictEqual(result.length, 1);
 		assert.strictEqual(result[0].details, 'Development description was updated');
-		assert.deepStrictEqual(result[0].longField, {
-			oldValue: 'Previous application description',
+		assert.deepStrictEqual((result[0] as Record<string, unknown>).longField, {
+			fieldName: 'Development description',
+			oldValue: 'Old application description',
 			newValue: 'New application description'
 		});
 	});
 
-	it('should include both oldValue and newValue for long-field updates', () => {
+	it('should not include longField when metadata.isLong is not true', () => {
 		const events = [
 			event({
 				action: 'FIELD_UPDATED_LONG',
@@ -152,82 +154,66 @@ describe('createCaseHistoryViewModel', () => {
 					fieldName: 'Development description',
 					oldValue: 'Old application description',
 					newValue: 'New application description'
-				},
-				userName: 'Jane Smith'
-			})
-		];
-
-		const result = createCaseHistoryViewModel(events);
-
-		assert.strictEqual(result[0].details, 'Development description was updated');
-		assert.deepStrictEqual(result[0].longField, {
-			oldValue: 'Old application description',
-			newValue: 'New application description'
-		});
-	});
-
-	it('should include only newValue content when oldValue is empty', () => {
-		const events = [
-			event({
-				action: 'FIELD_UPDATED_LONG',
-				metadata: {
-					fieldName: 'Development description',
-					newValue: 'Brand new application description'
-				},
-				userName: 'Jane Smith'
-			})
-		];
-
-		const result = createCaseHistoryViewModel(events);
-
-		assert.strictEqual(result[0].details, 'Development description was updated');
-		assert.deepStrictEqual(result[0].longField, {
-			oldValue: '-',
-			newValue: 'Brand new application description'
-		});
-	});
-
-	it('should include longField data and long-field details message for description updates', () => {
-		const events = [
-			event({
-				id: 'evt-long-1',
-				action: 'FIELD_UPDATED_LONG',
-				metadata: {
-					fieldName: 'Development description',
-					oldValue: 'Old description text',
-					newValue: 'New description text'
-				},
-				userName: 'Jane Smith'
+				}
 			})
 		];
 
 		const result = createCaseHistoryViewModel(events);
 
 		assert.strictEqual(result.length, 1);
-		assert.strictEqual(result[0].details, 'Development description was updated');
-		assert.deepStrictEqual(result[0].longField, {
-			oldValue: 'Old description text',
-			newValue: 'New description text'
-		});
+		assert.strictEqual((result[0] as Record<string, unknown>).longField, undefined);
 	});
 
-	it('should not include longField for non-long fields', () => {
+	it('should normalise non-string longField values to empty strings', () => {
 		const events = [
 			event({
-				id: 'evt-short-1',
 				action: 'FIELD_UPDATED_LONG',
 				metadata: {
-					fieldName: 'reference',
-					oldValue: 'REF-001',
-					newValue: 'REF-002'
-				},
-				userName: 'Jane Smith'
+					isLong: true,
+					fieldName: 'Costs applications comment',
+					oldValue: null,
+					newValue: 123
+				}
 			})
 		];
 
 		const result = createCaseHistoryViewModel(events);
 
+		assert.deepStrictEqual((result[0] as Record<string, unknown>).longField, {
+			fieldName: 'Costs applications comment',
+			oldValue: '',
+			newValue: ''
+		});
+	});
+
+	it('should set empty fieldName in longField when metadata.fieldName is missing', () => {
+		const events = [
+			event({
+				action: 'FIELD_UPDATED_LONG',
+				metadata: {
+					isLong: true,
+					oldValue: 'Before',
+					newValue: 'After'
+				}
+			})
+		];
+
+		const result = createCaseHistoryViewModel(events);
+
+		assert.deepStrictEqual((result[0] as Record<string, unknown>).longField, {
+			fieldName: '',
+			oldValue: 'Before',
+			newValue: 'After'
+		});
+	});
+
+	it('should keep standard shape for non-long rows', () => {
+		const events = [event({ action: 'CASE_CREATED', metadata: { reference: 'REF-123' } })];
+
+		const result = createCaseHistoryViewModel(events);
+
 		assert.strictEqual(result.length, 1);
-		assert.strictEqual(result[0].longField, undefined);
+		assert.strictEqual(result[0].details, 'REF-123 was created');
+		assert.strictEqual(Object.keys(result[0]).length, 3);
 	});
 });

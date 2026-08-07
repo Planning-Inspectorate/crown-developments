@@ -41,13 +41,13 @@
 								{{ row.details }}
 								{% if row.longField.oldValue %}
 									{{ govukDetails({
-										summaryText: "previous application answer",
+										summaryText: ["Previous ", row.longField.fieldName] | join,
 										html: row.longField.oldValue | escape | replace("\n", "<br>") | safe
 									}) }}
 								{% endif %}
 								{% if row.longField.newValue %}
 									{{ govukDetails({
-										summaryText: "new application answer",
+										summaryText: ["New ", row.longField.fieldName] | join,
 										html: row.longField.newValue | escape | replace("\n", "<br>") | safe
 									}) }}
 								{% endif %}

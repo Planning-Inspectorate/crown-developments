@@ -273,4 +273,4 @@ export function resolveFieldValues(
 ): { oldValue: string; newValue: string } {
 	const resolver = FIELD_RESOLVERS[fieldName] ?? defaultResolver(fieldName);
 	return resolver.resolve(previousCase, newAnswer, context);
-};
+}
