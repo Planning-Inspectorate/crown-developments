@@ -1884,6 +1884,69 @@ export function getQuestions(
 			url: 'site-visit-type',
 			validators: [new RequiredValidator('Select the type of site visit')],
 			options: SITE_VISIT_TYPES.map((t) => ({ text: t.displayName, value: t.id }))
+		},
+		residentialUnitsChange: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Residential units change',
+			question: 'Does the proposal include the gain, loss or change of use of residential units?',
+			fieldName: 'hasResidentialUnitsChange',
+			url: 'units-change',
+			validators: [
+				new RequiredValidator('Select yes if the proposal includes gain, loss or change of use of residential units')
+			],
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'units-change/remove' }]
+			}
+		},
+		hasExistingHousing: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Has existing',
+			question: 'Does the proposal include existing housing?',
+			fieldName: 'hasExistingHousing',
+			url: 'has-existing',
+			validators: [new RequiredValidator('Select yes if the proposal includes existing housing')],
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'has-existing/remove' }]
+			}
+		},
+		hasProposedHousing: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Has proposed',
+			question: 'Does the proposal include proposed housing?',
+			fieldName: 'hasProposedHousing',
+			url: 'has-proposed',
+			validators: [new RequiredValidator('Select yes if the proposal includes proposed housing')],
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'has-proposed/remove' }]
+			}
+		},
+		// TODO: PEAS-XXX replaces this with the existing housing add-to-list.
+		// A read-only placeholder for now so the row appears on the tab.
+		manageExistingHousing: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Existing housing',
+			question: 'Existing housing',
+			fieldName: 'manageExistingHousing',
+			url: 'housing',
+			editable: false
+		},
+		// TODO: PEAS-XXX replaces this with the proposed housing add-to-list.
+		manageProposedHousing: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Proposed housing',
+			question: 'Proposed housing',
+			fieldName: 'manageProposedHousing',
+			url: 'housing',
+			editable: false
+		},
+		totalNetGainOrLossOfUnits: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Total net gain or loss of residential units',
+			question: 'Total net gain or loss of residential units',
+			fieldName: 'totalNetGainOrLossOfUnits',
+			url: 'total-net-gain-or-loss',
+			// Derived from the housing entries in PEAS-XXX. Read-only, so no validators.
+			editable: false
 		}
 	};
 

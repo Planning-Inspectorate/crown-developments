@@ -83,6 +83,12 @@ export const EVENT_DATE_FIELDS = Object.freeze([
 	'siteVisitDate'
 ] as const);
 
+export const RESIDENTIAL_BOOLEAN_FIELDS = Object.freeze([
+	'hasResidentialUnitsChange',
+	'hasExistingHousing',
+	'hasProposedHousing'
+] as const);
+
 export const EVENT_NUMBER_FIELDS = Object.freeze(['prepDuration', 'sittingDuration', 'reportingDuration'] as const);
 
 export const EVENT_STRING_FIELDS = Object.freeze(['venue'] as const);
@@ -246,6 +252,14 @@ export interface S62aCaseViewModel {
 	issuesReportingPublishedDate?: Date;
 	siteVisitDate?: Date;
 	siteVisitTypeId?: string;
+
+	// Residential tab
+	hasResidentialUnitsChange?: YesNo;
+	hasExistingHousing?: YesNo;
+	hasProposedHousing?: YesNo;
+	manageExistingHousing?: unknown[];
+	manageProposedHousing?: unknown[];
+	totalNetGainOrLossOfUnits?: string;
 }
 
 /**
@@ -451,6 +465,15 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 		}
 	}
 
+	if (dbCase.S62aResidential) {
+		for (const field of RESIDENTIAL_BOOLEAN_FIELDS) {
+			const val = dbCase.S62aResidential[field];
+			if (val !== null && val !== undefined) {
+				viewModel[field] = booleanToYesNoValue(val);
+			}
+		}
+	}
+
 	if (dbCase.Lpa) {
 		viewModel.lpaAddress = addressToViewModel(dbCase.Lpa.Address);
 	}
@@ -595,6 +618,9 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 		inspectorId: inspector.User.idpUserId ?? undefined,
 		inspectorAllocatedDate: inspector.allocatedDate ?? undefined
 	}));
+
+	viewModel.manageExistingHousing = [];
+	viewModel.manageProposedHousing = [];
 
 	return viewModel;
 }
