@@ -15,17 +15,30 @@ export interface CaseHistoryRow {
 	user: string;
 }
 
-/**
- * Transforms raw audit events into rows ready for the case history table.
- */
+/** * Transforms raw audit events into rows ready for the case history table. */
 export function createCaseHistoryViewModel(events: Array<AuditEvent & { userName: string }>): CaseHistoryRow[] {
 	return events.map((event) => {
+		const { action, metadata, createdAt, userName } = event;
+		const dateTimeFormatted = formatDateTime(new Date(createdAt));
+
+		if (!isAuditAction(action)) {
+			return { dateTimeFormatted, details: `Unknown action: ${action}`, user: userName };
+		}
+
+		const details = resolveTemplate(action, metadata ?? undefined);
+		const isLong = metadata?.isLong === true;
+
 		return {
-			dateTimeFormatted: formatDateTime(new Date(event.createdAt)),
-			details: isAuditAction(event.action)
-				? resolveTemplate(event.action, event.metadata ?? undefined)
-				: `Unknown action: ${event.action}`,
-			user: event.userName
+			dateTimeFormatted,
+			details,
+			user: userName,
+			...(isLong && {
+				longField: {
+					fieldName: typeof metadata?.fieldName === 'string' ? metadata.fieldName : '',
+					oldValue: typeof metadata?.oldValue === 'string' ? metadata.oldValue : '',
+					newValue: typeof metadata?.newValue === 'string' ? metadata.newValue : ''
+				}
+			})
 		};
 	});
 }
