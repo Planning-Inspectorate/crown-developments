@@ -216,7 +216,10 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.CASE_TEAM)
 				.addQuestion(
 					questions.manageCaseTeamInspectors,
-					new ManageListSection().addQuestion(questions.inspectorId).addQuestion(questions.inspectorAllocatedDate)
+					new ManageListSection()
+						.addQuestion(questions.inspectorId)
+						.addQuestion(questions.inspectorAssignedDate)
+						.addQuestion(questions.inspectorAppointedDate)
 				)
 				.addQuestion(questions.caseOfficer)
 				.addQuestion(questions.assessorInspector)

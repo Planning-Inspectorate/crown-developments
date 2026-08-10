@@ -1272,31 +1272,40 @@ export function getQuestions(
 			url: 'check-case-team-inspectors',
 			fieldName: 'manageCaseTeamInspectors',
 			titleSingular: 'Inspector',
-			emptyListText: 'No inspectors assigned',
+			emptyListText: 'Add one or more appointed person/inspector details. No details have been added.',
 			showAnswersInSummary: true,
-			emptyStateAddStyle: 'prominent',
+			emptyStateAddStyle: 'force',
 			// Pre-applications are limited to a single inspector; applications may have many.
 			maximumAnswers: isPreApp ? 1 : 10,
-			isAllowedEmpty: true,
+			isAllowedEmpty: false,
 			validators: []
 		},
 		inspectorId: {
 			type: COMPONENT_TYPES.SELECT,
 			title: 'Inspector',
-			question: 'Which inspector is assigned to this case?',
+			question: 'Which appointed person/inspector is assigned to this case?',
 			fieldName: 'inspectorId',
 			url: 'inspector',
 			validators: [new RequiredValidator('Select an inspector')],
 			options: referenceDataToRadioOptions(groupMembers.inspectors, true)
 		},
-		inspectorAllocatedDate: {
+		inspectorAssignedDate: {
 			type: COMPONENT_TYPES.DATE,
-			title: 'Date allocated',
-			question: 'What date was this inspector allocated?',
+			title: 'Date assigned',
+			question: 'What date was this appointed person/inspector assigned?',
 			hint: 'For example, 27 3 2007',
-			fieldName: 'inspectorAllocatedDate',
-			url: 'inspector-allocated-date',
-			validators: [new DateValidator('inspector allocated date')]
+			fieldName: 'inspectorAssignedDate',
+			url: 'inspector-assigned-date',
+			validators: [new DateValidator('inspector assigned date')]
+		},
+		inspectorAppointedDate: {
+			type: COMPONENT_TYPES.DATE,
+			title: 'Date appointed',
+			question: 'What date was this appointed person/inspector appointed?',
+			hint: 'For example, 27 3 2007',
+			fieldName: 'inspectorAppointedDate',
+			url: 'inspector-appointed-date',
+			validators: [new DateValidator('inspector appointed date')]
 		},
 		caseOfficer: {
 			type: COMPONENT_TYPES.SELECT,

@@ -928,7 +928,12 @@ describe('S62aCaseUpdateMapper', () => {
 		it('replaces the inspector rows wholesale, connecting or creating each User', () => {
 			const answers: UpdateCaseAnswers = {
 				manageCaseTeamInspectors: [
-					{ id: 'inspector-row-1', inspectorId: 'entra-1', inspectorAllocatedDate: allocated },
+					{
+						id: 'inspector-row-1',
+						inspectorId: 'entra-1',
+						inspectorAssignedDate: allocated,
+						inspectorAppointedDate: allocated
+					},
 					{ id: 'inspector-row-2', inspectorId: 'entra-2' }
 				]
 			};
@@ -939,11 +944,13 @@ describe('S62aCaseUpdateMapper', () => {
 				create: [
 					{
 						User: { connectOrCreate: { where: { idpUserId: 'entra-1' }, create: { idpUserId: 'entra-1' } } },
-						allocatedDate: allocated
+						assignedDate: allocated,
+						appointedDate: allocated
 					},
 					{
 						User: { connectOrCreate: { where: { idpUserId: 'entra-2' }, create: { idpUserId: 'entra-2' } } },
-						allocatedDate: null
+						assignedDate: null,
+						appointedDate: null
 					}
 				]
 			});
@@ -973,7 +980,7 @@ describe('S62aCaseUpdateMapper', () => {
 			const answers: UpdateCaseAnswers = {
 				manageCaseTeamInspectors: [
 					{ id: 'inspector-row-1', inspectorId: 'entra-1' },
-					{ id: 'inspector-row-2', inspectorAllocatedDate: allocated }
+					{ id: 'inspector-row-2', inspectorAssignedDate: allocated }
 				]
 			};
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
@@ -985,14 +992,14 @@ describe('S62aCaseUpdateMapper', () => {
 		it('converts an ISO date string into a Date', () => {
 			const answers = {
 				manageCaseTeamInspectors: [
-					{ id: 'inspector-row-1', inspectorId: 'entra-1', inspectorAllocatedDate: '2026-07-01T09:00:00Z' }
+					{ id: 'inspector-row-1', inspectorId: 'entra-1', inspectorAssignedDate: '2026-07-01T09:00:00Z' }
 				]
 			} as unknown as UpdateCaseAnswers;
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
 
 			const created = (result.Inspectors as any).create[0];
-			assert.ok(created.allocatedDate instanceof Date);
-			assert.deepStrictEqual(created.allocatedDate, allocated);
+			assert.ok(created.assignedDate instanceof Date);
+			assert.deepStrictEqual(created.assignedDate, allocated);
 		});
 	});
 
