@@ -100,7 +100,7 @@ export class DocumentDeleter {
 			this.service.logger.error({ error, documentIds }, 'Failed to delete documents');
 			const deleteUrl = req.originalUrl.split('/confirmation')[0];
 
-			return res.render('views/cases/case-folders/case-folder/delete-file/confirmation.njk', {
+			return res.render('views/s62a/cases/view/folders/folder/delete/confirmation.njk', {
 				pageHeading: this.getDeleteHeading(documentIds.length),
 				backLinkUrl: safeReturnUrl,
 				returnUrl: safeReturnUrl,
