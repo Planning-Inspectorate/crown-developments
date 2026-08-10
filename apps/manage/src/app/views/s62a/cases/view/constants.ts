@@ -77,7 +77,7 @@ export const S62A_VIEW_SELECT_INCLUDE = {
 	},
 	Inspectors: {
 		include: { User: true },
-		orderBy: { allocatedDate: 'asc' }
+		orderBy: { assignedDate: 'asc' }
 	},
 	WasteTypes: {
 		include: { WasteType: true, VoidCapacityUnit: true, MaxAnnualThroughputUnit: true }

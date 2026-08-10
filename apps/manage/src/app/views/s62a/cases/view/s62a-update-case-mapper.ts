@@ -1044,7 +1044,8 @@ export class S62aCaseUpdateMapper {
 							create: { idpUserId: item.inspectorId! }
 						}
 					},
-					allocatedDate: item.inspectorAllocatedDate ? new Date(item.inspectorAllocatedDate) : null
+					assignedDate: item.inspectorAssignedDate ? new Date(item.inspectorAssignedDate) : null,
+					appointedDate: item.inspectorAppointedDate ? new Date(item.inspectorAppointedDate) : null
 				}))
 		};
 	}

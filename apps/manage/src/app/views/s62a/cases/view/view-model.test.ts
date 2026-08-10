@@ -938,6 +938,8 @@ describe('s62aCaseToViewModel', () => {
 	describe('Case Team Mapping', () => {
 		const allocated1 = new Date('2026-07-01T09:00:00Z');
 		const allocated2 = new Date('2026-07-02T09:00:00Z');
+		const appointed1 = new Date('2026-07-01T09:00:00Z');
+		const appointed2 = new Date('2026-07-02T09:00:00Z');
 
 		it('maps inspectors from the join rows, surfacing the Entra ID', () => {
 			const mockDbCase = {
@@ -947,12 +949,14 @@ describe('s62aCaseToViewModel', () => {
 				Inspectors: [
 					{
 						id: 'inspector-row-1',
-						allocatedDate: allocated1,
+						assignedDate: allocated1,
+						appointedDate: appointed1,
 						User: { id: 'user-guid-1', idpUserId: 'entra-1' }
 					},
 					{
 						id: 'inspector-row-2',
-						allocatedDate: allocated2,
+						assignedDate: allocated2,
+						appointedDate: appointed2,
 						User: { id: 'user-guid-2', idpUserId: 'entra-2' }
 					}
 				]
@@ -962,27 +966,42 @@ describe('s62aCaseToViewModel', () => {
 
 			// the item id is the join row, not the User — the manage list uses it for remove links
 			assert.deepStrictEqual(result.manageCaseTeamInspectors, [
-				{ id: 'inspector-row-1', inspectorId: 'entra-1', inspectorAllocatedDate: allocated1 },
-				{ id: 'inspector-row-2', inspectorId: 'entra-2', inspectorAllocatedDate: allocated2 }
+				{
+					id: 'inspector-row-1',
+					inspectorId: 'entra-1',
+					inspectorAssignedDate: allocated1,
+					inspectorAppointedDate: appointed1
+				},
+				{
+					id: 'inspector-row-2',
+					inspectorId: 'entra-2',
+					inspectorAssignedDate: allocated2,
+					inspectorAppointedDate: appointed2
+				}
 			]);
 		});
 
-		it('maps an inspector with no allocated date', () => {
+		it('maps an inspector with no assigned date', () => {
 			const mockDbCase = {
 				id: 'case-team-2',
 				reference: 'S62A/2026/0024',
 				expectedSubmissionDate: mockDate,
-				Inspectors: [{ id: 'inspector-row-1', allocatedDate: null, User: { idpUserId: 'entra-1' } }]
+				Inspectors: [{ id: 'inspector-row-1', assignedDate: null, User: { idpUserId: 'entra-1' } }]
 			} as unknown as S62aCaseDbModel;
 
 			const result = s62aCaseToViewModel(mockDbCase);
 
 			assert.deepStrictEqual(result.manageCaseTeamInspectors, [
-				{ id: 'inspector-row-1', inspectorId: 'entra-1', inspectorAllocatedDate: undefined }
+				{
+					id: 'inspector-row-1',
+					inspectorId: 'entra-1',
+					inspectorAssignedDate: undefined,
+					inspectorAppointedDate: undefined
+				}
 			]);
 		});
 
-		it('returns an empty array when no inspectors are assigned', () => {
+		it('returns an undefined when no inspectors are assigned', () => {
 			const mockDbCase = {
 				id: 'case-team-3',
 				reference: 'S62A/2026/0025',
@@ -992,12 +1011,10 @@ describe('s62aCaseToViewModel', () => {
 
 			const result = s62aCaseToViewModel(mockDbCase);
 
-			// an empty array rather than undefined, so the question renders its
-			// empty list text instead of appearing unanswered
-			assert.deepStrictEqual(result.manageCaseTeamInspectors, []);
+			assert.deepStrictEqual(result.manageCaseTeamInspectors, undefined);
 		});
 
-		it('returns an empty array when the relation is absent from the record', () => {
+		it('returns an undefined when the relation is absent from the record', () => {
 			const mockDbCase = {
 				id: 'case-team-4',
 				reference: 'S62A/2026/0026',
@@ -1006,7 +1023,7 @@ describe('s62aCaseToViewModel', () => {
 
 			const result = s62aCaseToViewModel(mockDbCase);
 
-			assert.deepStrictEqual(result.manageCaseTeamInspectors, []);
+			assert.deepStrictEqual(result.manageCaseTeamInspectors, undefined);
 		});
 
 		it('maps the four single-user roles to their Entra IDs', () => {

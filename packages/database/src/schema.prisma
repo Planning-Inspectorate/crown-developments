@@ -537,7 +537,8 @@ model S62aCaseInspector {
   S62aCase      S62aCase  @relation(fields: [s62aCaseId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   userId        String    @db.UniqueIdentifier
   User          User      @relation(fields: [userId], references: [id], onUpdate: NoAction, onDelete: NoAction)
-  allocatedDate DateTime?
+  assignedDate  DateTime?
+  appointedDate DateTime?
 
   @@unique([s62aCaseId, userId])
   @@index([s62aCaseId])

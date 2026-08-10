@@ -91,7 +91,8 @@ export interface CaseTeamInspectorItem {
 	id: string;
 	/// Entra ID of the inspector
 	inspectorId?: string;
-	inspectorAllocatedDate?: Date;
+	inspectorAssignedDate?: Date;
+	inspectorAppointedDate?: Date;
 }
 
 export type S62aCaseDbModel = Prisma.S62aCaseGetPayload<{
@@ -619,11 +620,14 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 		viewModel[field] = dbCase[relation]?.idpUserId ?? undefined;
 	}
 
-	viewModel.manageCaseTeamInspectors = (dbCase.Inspectors ?? []).map((inspector) => ({
-		id: inspector.id,
-		inspectorId: inspector.User.idpUserId ?? undefined,
-		inspectorAllocatedDate: inspector.allocatedDate ?? undefined
-	}));
+	if (dbCase.Inspectors && dbCase.Inspectors.length > 0) {
+		viewModel.manageCaseTeamInspectors = (dbCase.Inspectors ?? []).map((inspector) => ({
+			id: inspector.id,
+			inspectorId: inspector.User.idpUserId ?? undefined,
+			inspectorAssignedDate: inspector.assignedDate ?? undefined,
+			inspectorAppointedDate: inspector.appointedDate ?? undefined
+		}));
+	}
 
 	viewModel.manageWasteTypes = (dbCase.WasteTypes ?? []).map((wt) => ({
 		id: wt.id,
