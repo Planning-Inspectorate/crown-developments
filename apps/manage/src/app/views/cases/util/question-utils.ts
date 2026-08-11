@@ -1,41 +1,40 @@
-import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
-import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
-import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
+import {
+	EmailValidator,
+	RequiredValidator,
+	StringValidator,
+	COMPONENT_TYPES
+} from '@planning-inspectorate/dynamic-forms';
 import { camelCaseToUrlCase, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.ts';
-import EmailValidator from '@planning-inspectorate/dynamic-forms/src/validator/email-validator.js';
-import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
+import {
+	CUSTOM_COMPONENTS,
+	type CustomMultiFieldInputQuestionProps
+} from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import { HIDDEN_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 
 /**
- * @typedef {import('@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js').CustomMultiFieldInputQuestionProps} CustomMultiFieldInputQuestionProps
- * @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps} QuestionProps
- */
-
-/**
  *
- * @param {Object} opts
- * @param {string} opts.prefix
- * @param {string} opts.title This should be uncapitalised (unless it's a proper noun)
- * @param {Array<{text: string, value: string}>|null} opts.organisationOptions
- * @returns {Record<string, CustomMultiFieldInputQuestionProps>}
  */
-export function multiContactQuestions({ prefix, title, organisationOptions }) {
+export function multiContactQuestions<TPrefix extends string>({
+	prefix,
+	title,
+	organisationOptions
+}: {
+	prefix: TPrefix;
+	title: string;
+	organisationOptions: Array<{ text: string; value: string }> | null;
+}): Record<`${TPrefix}ContactDetails`, CustomMultiFieldInputQuestionProps> {
 	const prefixUrl = camelCaseToUrlCase(prefix);
 	const isNullOption = organisationOptions === null;
 	const isSingleOption = Array.isArray(organisationOptions) && organisationOptions.length === 1;
-	/**
-	 * @param {string} value
-	 * @returns {string}
-	 */
-	const formatOrganisationFunction = (value) => {
+
+	const formatOrganisationFunction = (value: string): string => {
 		const option = organisationOptions && organisationOptions.find((opt) => opt.value === value);
 		return option ? option.text : value;
 	};
 
-	/** @type {Record<string, CustomMultiFieldInputQuestionProps>} */
-	const questions = {};
+	const questions = {} as Record<`${TPrefix}ContactDetails`, CustomMultiFieldInputQuestionProps>;
 	questions[`${prefix}ContactDetails`] = {
 		type: CUSTOM_COMPONENTS.CUSTOM_MULTI_FIELD_INPUT,
 		title: `${sentenceCase(title)} contact`,
