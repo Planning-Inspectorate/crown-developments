@@ -2,7 +2,7 @@ import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-sta
 import { optionalWhere } from '@pins/crowndev-lib/util/database.ts';
 import { viewModelToAddressUpdateInput, isAddress, isSameAddress } from '@pins/crowndev-lib/util/address.ts';
 import { extractApplicantContactFields, extractAgentContactFields } from '../util/contact.js';
-import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
+import { isDefined } from '@pins/crowndev-lib/util/boolean.ts';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms';
 import type {
 	CrownDevelopmentViewModel,

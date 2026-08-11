@@ -5,7 +5,7 @@ import {
 	yesNoToBoolean
 } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { addressToViewModel } from '@planning-inspectorate/dynamic-forms/src/lib/address-utils.js';
-import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
+import { isDefined } from '@pins/crowndev-lib/util/boolean.ts';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { grantLpaSharePointAccess } from '#util/sharepoint.js';
 
