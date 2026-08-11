@@ -25,7 +25,7 @@ import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
 import { CREATE_A_CASE_QUESTION_TEXT } from './constants.ts';
 import { createLpaContactQuestion, multiContactQuestions } from '../util/question-factories.ts';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
-import { getApplicantOrganisationOptions } from '../../../../views/cases/util/applicant-organisation-options.js';
+import { getApplicantOrganisationOptions } from '../../../../views/cases/util/applicant-organisation-options.ts';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 import { getApplicantContactsValidator, isApplicationType } from '../util/questions.ts';

@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { getApplicantOrganisationOptions } from './applicant-organisation-options.js';
+import { getApplicantOrganisationOptions } from './applicant-organisation-options.ts';
 
 describe('getApplicantOrganisationOptions', () => {
 	it('returns empty array if input is not an array', () => {
