@@ -1,18 +1,23 @@
-import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
-import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
-import { whenQuestionHasAnswer } from '@planning-inspectorate/dynamic-forms/src/components/utils/question-has-answer.js';
-import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
-import { ManageListSection } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-section.js';
+import {
+	Section,
+	Journey,
+	whenQuestionHasAnswer,
+	BOOLEAN_OPTIONS,
+	ManageListSection
+} from '@planning-inspectorate/dynamic-forms';
+import type { Question, JourneyResponse } from '@planning-inspectorate/dynamic-forms';
+import type { Request } from 'express';
 
 export const JOURNEY_ID = 'create-a-case';
 
 /**
- * @param {{[questionType: string]: import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question}} questions
- * @param {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} response
- * @param {import('express').Request} req
- * @returns {Journey}
+ * Create a new Journey instance for the "create a case" process.
  */
-export function createJourney(questions, response, req) {
+export function createJourney(
+	questions: { [questionType: string]: Question },
+	response: JourneyResponse,
+	req: Request
+): Journey {
 	if (!req.baseUrl.endsWith('/' + JOURNEY_ID)) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey`);
 	}
