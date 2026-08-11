@@ -16,7 +16,7 @@ import { APPLICATION_TYPES, ORGANISATION_ROLES_ID } from '@pins/crowndev-databas
 import { multiContactQuestions } from '../util/question-utils.ts';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-components/manage-list/validator.js';
-import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.js';
+import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.ts';
 import { getApplicantContactsValidator } from '@pins/crowndev-lib/validators/applicant-contacts-validator.ts';
 import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
 

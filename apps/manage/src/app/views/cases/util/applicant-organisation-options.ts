@@ -3,10 +3,12 @@ import { isDefined } from '@pins/crowndev-lib/util/boolean.js';
 
 /**
  * Returns applicant organisation options for use in select/radio controls.
- * @param {Array<{id?: string, organisationName?: string}>} organisations
- * @returns {Array<{text: string, value: string}>}
+ *
+ * @param organisations - the list of applicant organisations
  */
-export function getApplicantOrganisationOptions(organisations) {
+export function getApplicantOrganisationOptions(
+	organisations: { id?: string; organisationName?: string }[]
+): { text: string; value: string }[] {
 	if (!Array.isArray(organisations) || organisations.length === 0) return [];
 	return organisations
 		.map((answer) => {

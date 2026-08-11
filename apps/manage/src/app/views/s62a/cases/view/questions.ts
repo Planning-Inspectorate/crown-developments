@@ -59,7 +59,7 @@ import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-a
 import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-validator.ts';
 import CILAmountLengthValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-length-validator.ts';
 import { multiContactQuestions, createLpaContactQuestion } from '../util/question-factories.ts';
-import { getApplicantOrganisationOptions } from '../../../../views/cases/util/applicant-organisation-options.js';
+import { getApplicantOrganisationOptions } from '../../../cases/util/applicant-organisation-options.ts';
 import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.ts';
 import MultiConditionalNumericValidator from '@pins/crowndev-lib/forms/custom-components/multi-conditional-radio/multi-conditional-numeric-validator.ts';
 import UniqueListFieldValidator from '@pins/crowndev-lib/validators/unique-list-field-validator.ts';

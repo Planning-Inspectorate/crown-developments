@@ -17,7 +17,7 @@ import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-pa
 import { maybeGetLinkedCaseLink } from '@pins/crowndev-lib/util/linked-case.ts';
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { getFilteredStages } from './question-utils.ts';
-import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.js';
+import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.ts';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
 import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
 import { CROWN_DEVELOPMENT_LINKED_CASE_SELECT, CROWN_DEVELOPMENT_VIEW_INCLUDE } from './payload-contracts.ts';
