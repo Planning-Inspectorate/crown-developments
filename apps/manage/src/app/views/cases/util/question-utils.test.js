@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { multiContactQuestions } from './question-utils.js';
+import { multiContactQuestions } from './question-utils.ts';
 
 describe('question-utils', () => {
 	describe('multiContactQuestions', () => {

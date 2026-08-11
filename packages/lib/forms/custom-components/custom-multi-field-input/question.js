@@ -21,7 +21,7 @@ import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
  * @property {string} fieldName
  * @property {string} [formatJoinString] optional property, used by formatAnswerForSummary (e.g. task list display), effective default to line break
  * @property {string} [formatPrefix] optional property, used by formatAnswerForSummary (e.g. task list display), to prefix answer
- * @property {function} [formatTextFunction] optional property, used to format the answer for display and value in question
+ * @property {(value: string) => string} [formatTextFunction] optional property, used to format the answer for display and value in question
  */
 
 /**
@@ -76,12 +76,7 @@ import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
 
 /**
  * @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question-props.d.ts').CommonQuestionProps} CommonQuestionProps
- * @typedef {Omit<CommonQuestionProps, 'type'> & {
- *   type: 'custom-multi-field-input';
- *   label?: string;
- *   inputAttributes?: Record<string, string>;
- *   inputFields: (InputField|RadioField|HiddenField|BooleanFieldInput)[];
- * }} CustomMultiFieldInputQuestionProps
+ * @typedef {import('../index.ts').CustomMultiFieldInputQuestionProps} CustomMultiFieldInputQuestionProps
  */
 
 /** @type {'hidden'} */

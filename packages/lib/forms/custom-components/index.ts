@@ -88,7 +88,7 @@ type CustomMultiFieldBaseField = {
 	formatTextFunction?: (value: string) => string;
 };
 
-type CustomMultiFieldInputField = CustomMultiFieldBaseField & {
+export type CustomMultiFieldInputField = CustomMultiFieldBaseField & {
 	type: 'single-line-input';
 	label: string;
 	attributes?: Record<string, string>;
@@ -97,26 +97,26 @@ type CustomMultiFieldInputField = CustomMultiFieldBaseField & {
 	prefix?: CustomMultiFieldInputAffix;
 };
 
-type CustomMultiFieldRadioField = CustomMultiFieldBaseField & {
+export type CustomMultiFieldRadioField = CustomMultiFieldBaseField & {
 	type: 'radio';
 	label?: string;
 	legend?: string;
 	options: Array<{ text: string; value: string; attributes?: Record<string, string> }>;
 };
 
-type CustomMultiFieldHiddenField = CustomMultiFieldBaseField & {
+export type CustomMultiFieldHiddenField = CustomMultiFieldBaseField & {
 	type: 'hidden';
 	value: string;
 };
 
-type CustomMultiFieldBooleanFieldInput = CustomMultiFieldBaseField & {
+export type CustomMultiFieldBooleanFieldInput = CustomMultiFieldBaseField & {
 	type: 'boolean';
 	question: string;
 	hint?: string;
 	options?: Array<{ text: string; value: string }>;
 };
 
-type CustomMultiFieldInputQuestionProps = CrownCommonQuestionProps & {
+export type CustomMultiFieldInputQuestionProps = CrownCommonQuestionProps & {
 	type: typeof CUSTOM_COMPONENTS.CUSTOM_MULTI_FIELD_INPUT;
 	label?: string;
 	inputAttributes?: Record<string, string>;
