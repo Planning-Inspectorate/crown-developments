@@ -9,8 +9,8 @@ import {
 	saveDataToSession,
 	buildGetJourneyResponseFromSession
 } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
-import { JOURNEY_ID, createJourney } from './journey.js';
-import { getQuestions } from './questions.js';
+import { JOURNEY_ID, createJourney } from './journey.ts';
+import { getQuestions } from './questions.ts';
 import { buildSaveController, buildSuccessController } from './save.js';
 import { getSummaryWarningMessage } from '@pins/crowndev-lib/util/linked-case.ts';
 import { removeApplicantContactsWhenOrganisationRemoved } from '@pins/crowndev-lib/util/session.ts';

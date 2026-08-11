@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { createJourney, JOURNEY_ID } from './journey.js';
-import { getQuestions } from './questions.js';
+import { createJourney, JOURNEY_ID } from './journey.ts';
+import { getQuestions } from './questions.ts';
 import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 

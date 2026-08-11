@@ -1,31 +1,32 @@
-import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
-import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
-import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
-import NumericValidator from '@planning-inspectorate/dynamic-forms/src/validator/numeric-validator.js';
-import { createQuestions } from '@planning-inspectorate/dynamic-forms/src/questions/create-questions.js';
-import { questionClasses } from '@planning-inspectorate/dynamic-forms/src/questions/questions.js';
-import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
+import {
+	AddressValidator,
+	CoordinatesValidator,
+	RequiredValidator,
+	DateValidator,
+	StringValidator,
+	SameAnswerValidator,
+	NumericValidator,
+	createQuestions,
+	questionClasses,
+	COMPONENT_TYPES,
+	yesNoToBoolean
+} from '@planning-inspectorate/dynamic-forms';
+import type { CrownJourneyResponse } from '../../../../types/express-locals.ts';
 import { APPLICATION_TYPES, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { multiContactQuestions } from './question-utils.js';
-import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
-import CoordinatesValidator from '@planning-inspectorate/dynamic-forms/src/validator/coordinates-validator.js';
-import SameAnswerValidator from '@planning-inspectorate/dynamic-forms/src/validator/same-answer-validator.js';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-components/manage-list/validator.js';
-import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.js';
 import { getApplicantContactsValidator } from '@pins/crowndev-lib/validators/applicant-contacts-validator.ts';
 import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
 
-/** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response').JourneyResponse} JourneyResponse */
-
 /**
+ * Generate the questions for the create a case journey based on the provided journey response.
  *
- * @param {JourneyResponse} journeyResponse
- * @param {boolean} isQuestionView - whether this is for a single question view
- * @returns
+ * @param journeyResponse - the journey response object containing the answers to the questions
+ * @param isQuestionView - whether this is for a single question view
  */
-export function getQuestions(journeyResponse, isQuestionView = false) {
+export function getQuestions(journeyResponse: CrownJourneyResponse, isQuestionView = false) {
 	// derive applicant organisation radio options from manageApplicants answers held in the journey response
 	const manageApplicantDetails = journeyResponse?.answers?.manageApplicantDetails;
 	const applicantOrganisationOptions = getApplicantOrganisationOptions(
@@ -36,7 +37,6 @@ export function getQuestions(journeyResponse, isQuestionView = false) {
 	const hasAgentAnswer = yesNoToBoolean(journeyResponse?.answers?.hasAgent);
 	const applicantContactsValidator = getApplicantContactsValidator(hasAgentAnswer);
 
-	/** @type {Record<string, import('@planning-inspectorate/dynamic-forms/src/questions/question-props.js').QuestionProps>} */
 	const questions = {
 		typeOfApplication: {
 			type: COMPONENT_TYPES.RADIO,
@@ -274,5 +274,6 @@ export function getQuestions(journeyResponse, isQuestionView = false) {
 		...questionClasses,
 		...CUSTOM_COMPONENT_CLASSES
 	};
-	return createQuestions(questions, classes, journeyResponse || {});
+
+	return createQuestions(questions, classes, {});
 }

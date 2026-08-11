@@ -1,6 +1,6 @@
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
-import { JOURNEY_ID } from './journey.js';
+import { JOURNEY_ID } from './journey.ts';
 import { toFloat } from '@pins/crowndev-lib/util/numbers.ts';
 import {
 	caseReferenceToFolderName,
