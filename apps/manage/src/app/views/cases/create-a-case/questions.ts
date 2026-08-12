@@ -62,7 +62,78 @@ export function getQuestions(journeyResponse: CrownJourneyResponse, isQuestionVi
 			],
 			options: getLpaOptions()
 		},
-
+		hasSecondaryLpa: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Has secondary LPA',
+			question: 'Is there a secondary local planning authority for this application?',
+			fieldName: 'hasSecondaryLpa',
+			url: 'has-secondary-local-planning-authority',
+			validators: [new RequiredValidator('Select if the applicant is using a secondary local planning authority')]
+		},
+		secondaryLocalPlanningAuthority: {
+			type: COMPONENT_TYPES.SELECT,
+			title: 'Secondary LPA',
+			question: 'Select the secondary local planning authority for this application',
+			fieldName: 'secondaryLpaId',
+			url: 'secondary-local-planning-authority',
+			validators: [
+				new SameAnswerValidator(
+					['lpaId'],
+					'Secondary local planning authority cannot be the same as the local planning authority'
+				),
+				new RequiredValidator('Select the secondary local planning authority')
+			],
+			options: getLpaOptions()
+		},
+		hasAgent: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Has agent',
+			question: 'Is the applicant using an agent?',
+			fieldName: 'hasAgent',
+			url: 'has-agent',
+			validators: [new RequiredValidator('Select if the applicant is using an agent')]
+		},
+		addAgentOrganisationName: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Agent organisation name',
+			question: 'What is the name of the agent organisation?',
+			url: 'add-agent-details',
+			fieldName: 'agentOrganisationName',
+			validators: [new RequiredValidator('Enter the agent organisation name')]
+		},
+		addAgentAddress: {
+			type: COMPONENT_TYPES.ADDRESS,
+			title: 'Agent address',
+			question: 'What is the address of the agent organisation?',
+			url: 'agent-address',
+			fieldName: 'agentOrganisationAddress',
+			validators: [new AddressValidator()]
+		},
+		manageAgentContacts: {
+			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			title: isQuestionView ? 'Check agent contact details' : 'Agent contacts',
+			question: 'Check agent contact details',
+			url: 'check-agent-contact-details',
+			fieldName: 'manageAgentContactDetails',
+			titleSingular: 'Contact',
+			emptyListText: 'No agent contacts found',
+			showAnswersInSummary: true,
+			maximumAnswers: 10,
+			isAllowedEmpty: false,
+			validators: [
+				new CustomManageListValidator({
+					minimumAnswers: 1,
+					errorMessages: {
+						minimumAnswers: `At least one contact is required`
+					}
+				})
+			]
+		},
+		...multiContactQuestions({
+			prefix: ORGANISATION_ROLES_ID.AGENT,
+			title: ORGANISATION_ROLES_ID.AGENT,
+			organisationOptions: null
+		}),
 		manageApplicants: {
 			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
 			title: isQuestionView ? 'Check applicant details' : 'Applicants',
@@ -116,78 +187,6 @@ export function getQuestions(journeyResponse: CrownJourneyResponse, isQuestionVi
 			title: ORGANISATION_ROLES_ID.APPLICANT,
 			organisationOptions: applicantOrganisationOptions // populated from session-managed journey response
 		}),
-		addAgentOrganisationName: {
-			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-			title: 'Agent organisation name',
-			question: 'What is the name of the agent organisation?',
-			url: 'add-agent-details',
-			fieldName: 'agentOrganisationName',
-			validators: [new RequiredValidator('Enter the agent organisation name')]
-		},
-		addAgentAddress: {
-			type: COMPONENT_TYPES.ADDRESS,
-			title: 'Agent address',
-			question: 'What is the address of the agent organisation?',
-			url: 'agent-address',
-			fieldName: 'agentOrganisationAddress',
-			validators: [new AddressValidator()]
-		},
-		manageAgentContacts: {
-			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
-			title: isQuestionView ? 'Check agent contact details' : 'Agent contacts',
-			question: 'Check agent contact details',
-			url: 'check-agent-contact-details',
-			fieldName: 'manageAgentContactDetails',
-			titleSingular: 'Contact',
-			emptyListText: 'No agent contacts found',
-			showAnswersInSummary: true,
-			maximumAnswers: 10,
-			isAllowedEmpty: false,
-			validators: [
-				new CustomManageListValidator({
-					minimumAnswers: 1,
-					errorMessages: {
-						minimumAnswers: `At least one contact is required`
-					}
-				})
-			]
-		},
-		...multiContactQuestions({
-			prefix: ORGANISATION_ROLES_ID.AGENT,
-			title: ORGANISATION_ROLES_ID.AGENT,
-			organisationOptions: null
-		}),
-		hasSecondaryLpa: {
-			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'Has secondary LPA',
-			question: 'Is there a secondary local planning authority for this application?',
-			fieldName: 'hasSecondaryLpa',
-			url: 'has-secondary-local-planning-authority',
-			validators: [new RequiredValidator('Select if the applicant is using a secondary local planning authority')]
-		},
-		secondaryLocalPlanningAuthority: {
-			type: COMPONENT_TYPES.SELECT,
-			title: 'Secondary LPA',
-			question: 'Select the secondary local planning authority for this application',
-			fieldName: 'secondaryLpaId',
-			url: 'secondary-local-planning-authority',
-			validators: [
-				new SameAnswerValidator(
-					['lpaId'],
-					'Secondary local planning authority cannot be the same as the local planning authority'
-				),
-				new RequiredValidator('Select the secondary local planning authority')
-			],
-			options: getLpaOptions()
-		},
-		hasAgent: {
-			type: COMPONENT_TYPES.BOOLEAN,
-			title: 'Has agent',
-			question: 'Is the applicant using an agent?',
-			fieldName: 'hasAgent',
-			url: 'has-agent',
-			validators: [new RequiredValidator('Select if the applicant is using an agent')]
-		},
 		siteAddress: {
 			type: COMPONENT_TYPES.ADDRESS,
 			title: `Site address`,
