@@ -21,6 +21,7 @@ describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 	let vehicleParkingSpy: Mock<Function>;
 	let inspectorSpy: Mock<Function>;
 	let wasteTypeSpy: Mock<Function>;
+	let housingSpy: Mock<Function>;
 
 	beforeEach(() => {
 		req = { params: {} };
@@ -45,6 +46,7 @@ describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 		vehicleParkingSpy = mock.method(S62aManageListDeleter.prototype, 'deleteVehicleParking', async () => {});
 		inspectorSpy = mock.method(S62aManageListDeleter.prototype, 'deleteCaseTeamInspector', async () => {});
 		wasteTypeSpy = mock.method(S62aManageListDeleter.prototype, 'deleteWasteType', async () => {});
+		housingSpy = mock.method(S62aManageListDeleter.prototype, 'deleteResidentialHousing', async () => {});
 	});
 
 	afterEach(() => {
@@ -230,13 +232,67 @@ describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 			assert.deepStrictEqual(wasteTypeSpy.mock.calls[0].arguments, ['case-1', 'waste-row-1']);
 			assert.strictEqual(next.mock.callCount(), 1);
 		});
+
+		it('routes "proposed/housing" to deleteResidentialHousing', async () => {
+			req.params = {
+				manageListAction: 'remove',
+				manageListQuestion: 'confirm',
+				manageListItemId: 'housing-row-1',
+				id: 'case-1',
+				section: 'proposed',
+				question: 'housing'
+			};
+
+			const middleware = buildDeleteS62aManageListItemOnConfirmRemove(mockService);
+			await middleware(req as Request, res as Response, next as unknown as NextFunction);
+
+			assert.strictEqual(housingSpy.mock.callCount(), 1);
+			assert.deepStrictEqual(housingSpy.mock.calls[0].arguments, ['case-1', 'housing-row-1']);
+			assert.strictEqual(next.mock.callCount(), 1);
+		});
+
+		it('routes "existing/housing" to deleteResidentialHousing', async () => {
+			req.params = {
+				manageListAction: 'remove',
+				manageListQuestion: 'confirm',
+				manageListItemId: 'housing-row-2',
+				id: 'case-1',
+				section: 'existing',
+				question: 'housing'
+			};
+
+			const middleware = buildDeleteS62aManageListItemOnConfirmRemove(mockService);
+			await middleware(req as Request, res as Response, next as unknown as NextFunction);
+
+			assert.strictEqual(housingSpy.mock.callCount(), 1);
+			assert.deepStrictEqual(housingSpy.mock.calls[0].arguments, ['case-1', 'housing-row-2']);
+		});
+
+		it('ignores the section when the question url alone is configured', async () => {
+			req.params = {
+				manageListAction: 'remove',
+				manageListQuestion: 'confirm',
+				manageListItemId: 'waste-row-1',
+				id: 'case-1',
+				section: 'waste',
+				question: 'check-waste-types'
+			};
+
+			const middleware = buildDeleteS62aManageListItemOnConfirmRemove(mockService);
+			await middleware(req as Request, res as Response, next as unknown as NextFunction);
+
+			assert.strictEqual(wasteTypeSpy.mock.callCount(), 1);
+		});
 	});
 
 	describe('questionConfig', () => {
 		it('has a delete handler for every configured question', async () => {
 			const middleware = buildDeleteS62aManageListItemOnConfirmRemove(mockService);
 
-			for (const question of Object.keys(questionConfig)) {
+			for (const configKey of Object.keys(questionConfig)) {
+				// Composite keys are "<section>/<question>"; the rest are the url alone.
+				const [section, question] = configKey.includes('/') ? configKey.split('/') : [undefined, configKey];
+
 				const localNext = mock.fn();
 				await middleware(
 					{
@@ -245,6 +301,7 @@ describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 							manageListQuestion: 'confirm',
 							manageListItemId: 'item-1',
 							id: 'case-1',
+							section,
 							question
 						}
 					} as unknown as Request,
@@ -252,7 +309,7 @@ describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 					localNext as unknown as NextFunction
 				);
 
-				assert.strictEqual(localNext.mock.calls[0].arguments.length, 0, `${question} has no delete handler`);
+				assert.strictEqual(localNext.mock.calls[0].arguments.length, 0, `${configKey} has no delete handler`);
 			}
 		});
 	});

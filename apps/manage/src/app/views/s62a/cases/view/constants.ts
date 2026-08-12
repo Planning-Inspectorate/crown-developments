@@ -41,7 +41,18 @@ export const S62A_VIEW_SELECT_INCLUDE = {
 	S62aDates: true,
 	S62aFees: true,
 	S62aEvent: true,
-	S62aResidential: true,
+	S62aResidential: {
+		include: {
+			Housing: {
+				include: {
+					HousingType: true,
+					OccupancyType: true,
+					UnitType: true
+				},
+				orderBy: [{ OccupancyType: { order: 'asc' } }, { UnitType: { order: 'asc' } }]
+			}
+		}
+	},
 	S62aToApplicants: {
 		include: {
 			Organisation: {

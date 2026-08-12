@@ -13,6 +13,7 @@ import {
 	DECISION_OUTCOMES,
 	INSPECTOR_BANDS,
 	MAJOR_OR_NON_MAJORS,
+	OCCUPANCY_TYPES,
 	OUTCOME_TYPES,
 	PRE_APPLICATION_ADVICE,
 	PRE_APPLICATION_OR_APPLICATION_ID,
@@ -25,6 +26,8 @@ import {
 	S62A_STAGES,
 	SITE_VISIT_TYPES,
 	SPECIALISMS,
+	UNIT_TYPES,
+	UNIT_TYPES_BY_OCCUPANCY,
 	WASTE_TYPES,
 	WASTE_UNIT_ID,
 	WASTE_UNITS
@@ -45,12 +48,18 @@ import {
 	SameAnswerValidator,
 	StringValidator
 } from '@planning-inspectorate/dynamic-forms';
-import type { S62aCaseViewModel } from './view-model.ts';
+import {
+	BEDROOM_BANDS,
+	HOUSING_BEDROOM_FIELDS,
+	type ResidentialHousingItem,
+	type S62aCaseViewModel
+} from './view-model.ts';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import { UniqueMultipleListFieldValidator } from '@pins/crowndev-lib/validators/unique-multiple-list-field-validator.ts';
 import { ConditionalLengthValidator } from '@pins/crowndev-lib/validators/conditional-length-validator.ts';
+import RequiredGroupValidator from '@pins/crowndev-lib/validators/required-group-validator.ts';
 import { CASE_DETAILS_QUESTION_TEXT } from './constants.ts';
 import { getApplicantContactsValidator, isApplicationType } from '../util/questions.ts';
 import { getLpaOptions, referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.ts';
@@ -66,6 +75,18 @@ import UniqueListFieldValidator from '@pins/crowndev-lib/validators/unique-list-
 import { toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
 import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
 import type { EntraGroupMembers } from '#util/entra-groups.ts';
+import type { CardFormatContext } from '@pins/crowndev-lib/forms/custom-components/manage-list/card/question.ts';
+
+interface QuestionOverrides {
+	isQuestionView?: boolean;
+	groupMembers: EntraGroupMembers;
+	manageListItemId?: string | null;
+	/**
+	 * Passed separately because getQuestions otherwise receives DB-only answers,
+	 * and a new entry's occupancy exists only in session until Save and continue.
+	 */
+	proposedHousing?: ResidentialHousingItem[];
+}
 
 type ApplicantOrg = {
 	id: string;
@@ -73,22 +94,27 @@ type ApplicantOrg = {
 	organisationAddress?: Record<string, unknown>;
 };
 
-interface QuestionOverrides {
-	isQuestionView?: boolean;
+const BEDROOM_INPUT_FIELDS = BEDROOM_BANDS.map(({ fieldName, label }, index) => ({
+	fieldName,
+	label,
+	classes: 'govuk-input--width-5',
+	inputmode: 'numeric',
+	pattern: '[0-9]*',
+	suffix: { text: 'units' },
+	formatPrefix: `${label}: `,
+	formatJoinString: index === BEDROOM_BANDS.length - 1 ? '' : ', '
+}));
+
+function sumBedroomBands(item: Record<string, unknown>): number {
+	return HOUSING_BEDROOM_FIELDS.reduce((total, fieldName) => {
+		const value = Number(item[fieldName]);
+		return total + (Number.isFinite(value) ? value : 0);
+	}, 0);
 }
 
 export function getQuestions(
 	answers: S62aCaseViewModel,
-	{
-		isQuestionView,
-		groupMembers
-	}: {
-		isQuestionView?: boolean;
-		groupMembers: EntraGroupMembers;
-	},
-	overrides: QuestionOverrides = {
-		isQuestionView: false
-	}
+	{ isQuestionView, groupMembers, manageListItemId, proposedHousing }: QuestionOverrides
 ) {
 	const isLbcCase = answers?.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
 	const applicationTypesNotLBC = APPLICATION_TYPES.filter(
@@ -1351,7 +1377,7 @@ export function getQuestions(
 		},
 		vehicleParking: {
 			type: CUSTOM_COMPONENTS.DEFINED_COLUMNS_TABLE,
-			title: overrides.isQuestionView ? 'Check vehicle parking details' : 'Vehicle Parking',
+			title: isQuestionView ? 'Check vehicle parking details' : 'Vehicle Parking',
 			question: 'Check vehicle parking details',
 			url: 'vehicle-parking',
 			fieldName: 'vehicleParking',
@@ -2332,6 +2358,14 @@ export function getQuestions(
 				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'has-existing/remove' }]
 			}
 		},
+		manageExistingHousing: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Existing housing',
+			question: 'Existing housing',
+			fieldName: 'manageExistingHousing',
+			url: 'housing',
+			editable: false
+		},
 		hasProposedHousing: {
 			type: COMPONENT_TYPES.BOOLEAN,
 			title: 'Has proposed',
@@ -2343,22 +2377,70 @@ export function getQuestions(
 				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'has-proposed/remove' }]
 			}
 		},
-		// TODO: PEAS-298 replaces this with the existing housing add-to-list.
-		// A read-only placeholder for now so the row appears on the tab.
-		manageExistingHousing: {
-			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-			title: 'Existing housing',
-			question: 'Existing housing',
-			fieldName: 'manageExistingHousing',
-			url: 'housing'
-		},
-		// TODO: PEAS-237 replaces this with the proposed housing add-to-list.
 		manageProposedHousing: {
-			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-			title: 'Proposed housing',
-			question: 'Proposed housing',
+			type: CUSTOM_COMPONENTS.CARD_MANAGE_LIST,
+			title: isQuestionView ? 'Check proposed housing details' : 'Proposed housing',
+			question: 'Check proposed housing details',
 			fieldName: 'manageProposedHousing',
-			url: 'housing'
+			url: 'housing',
+			titleSingular: 'proposed housing entry',
+			emptyName: 'proposed house',
+			emptyNamePlural: 'proposed houses',
+			cardTitle: (_: Record<string, unknown>, { getFormatted }: CardFormatContext) =>
+				[getFormatted('occupancyTypeId'), getFormatted('unitTypeId')].filter(Boolean).join(' - '),
+			rows: [
+				{ label: 'Total number of units', format: (item: Record<string, unknown>) => String(sumBedroomBands(item)) },
+				...BEDROOM_BANDS.map((band) => ({
+					label: 'cardLabel' in band ? band.cardLabel : band.label,
+					fieldName: band.fieldName
+				}))
+			]
+		},
+		proposedOccupancyType: {
+			type: COMPONENT_TYPES.RADIO,
+			title: 'Occupancy type',
+			question: 'Which is the type of occupancy for proposed housing?',
+			fieldName: 'occupancyTypeId',
+			url: 'occupancy',
+			validators: [new RequiredValidator('Select the type of occupancy for proposed housing')],
+			options: OCCUPANCY_TYPES.map((type) => ({ text: type.displayName, value: type.id })),
+			viewData: { continueButtonText: 'Continue' }
+		},
+		proposedUnitType: {
+			type: COMPONENT_TYPES.RADIO,
+			title: 'Unit type',
+			question: 'Which is the type of unit for proposed housing?',
+			fieldName: 'unitTypeId',
+			url: 'unit-type',
+			validators: [new RequiredValidator('Select the type of unit for proposed housing')],
+			options: getUnitTypeOptions(proposedHousing ?? [], manageListItemId),
+			viewData: { continueButtonText: 'Continue' }
+		},
+		proposedBedrooms: {
+			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
+			title: 'Bedrooms',
+			question: 'How many units per number of bedrooms are there for proposed housing?',
+			fieldName: 'proposedBedrooms',
+			url: 'bedrooms',
+			inputFields: BEDROOM_INPUT_FIELDS,
+			validators: [
+				new RequiredGroupValidator({
+					fieldNames: HOUSING_BEDROOM_FIELDS,
+					errorMessage: 'Enter the number of units for at least one bedroom category'
+				}),
+				new MultiFieldInputValidator({
+					fields: HOUSING_BEDROOM_FIELDS.map((fieldName) => ({
+						fieldName,
+						validators: [
+							new NumericValidator({
+								regex: /^$|^\d+$/,
+								regexMessage: 'The number of units must be a whole number'
+							})
+						]
+					}))
+				})
+			],
+			viewData: { continueButtonText: 'Continue' }
 		},
 		totalNetGainOrLossOfUnits: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
@@ -2366,7 +2448,6 @@ export function getQuestions(
 			question: 'Total net gain or loss of residential units',
 			fieldName: 'totalNetGainOrLossOfUnits',
 			url: 'total-net-gain-or-loss',
-			// Derived from the housing entries in PEAS-XXX. Read-only, so no validators.
 			editable: false
 		}
 	};
@@ -2384,4 +2465,18 @@ export function getQuestions(
 	};
 
 	return createQuestions(questions, classes, {}, textOverrides);
+}
+
+/**
+ * Starter homes and self-build offer a reduced set of unit types
+ */
+function getUnitTypeOptions(items: ResidentialHousingItem[], manageListItemId?: string | null) {
+	const occupancyTypeId = manageListItemId
+		? items.find((item) => item.id === manageListItemId)?.occupancyTypeId
+		: undefined;
+
+	const allowed = occupancyTypeId ? UNIT_TYPES_BY_OCCUPANCY[occupancyTypeId] : undefined;
+	const unitTypes = allowed ? UNIT_TYPES.filter((type) => allowed.includes(type.id)) : UNIT_TYPES;
+
+	return unitTypes.map((type) => ({ text: type.displayName, value: type.id }));
 }

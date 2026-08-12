@@ -357,7 +357,13 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 					() => currentTab === VIEW_TAB_ID.RESIDENTIAL && isApplicationCase(response) && unitsChangeIsYes(response)
 				)
 				.addQuestion(questions.hasProposedHousing)
-				.addQuestion(questions.manageProposedHousing)
+				.addQuestion(
+					questions.manageProposedHousing,
+					new ManageListSection()
+						.addQuestion(questions.proposedOccupancyType)
+						.addQuestion(questions.proposedUnitType)
+						.addQuestion(questions.proposedBedrooms)
+				)
 				.withCondition(whenQuestionHasAnswer(questions.hasProposedHousing, BOOLEAN_OPTIONS.YES))
 		],
 		taskListUrl: '',
