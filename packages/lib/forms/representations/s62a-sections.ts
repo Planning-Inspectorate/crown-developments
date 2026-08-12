@@ -1,4 +1,5 @@
-import { type Question, Section } from '@planning-inspectorate/dynamic-forms';
+import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { BOOLEAN_OPTIONS, type Question, Section, whenQuestionHasAnswer } from '@planning-inspectorate/dynamic-forms';
 
 /**
  * Module for the S62A representation sections.
@@ -25,6 +26,32 @@ export function addRepresentationSection(questions: Record<string, Question>): S
 			.addQuestion(questions.submittedReceivedMethod)
 			.addQuestion(questions.submissionMethodReason)
 			.addQuestion(questions.category)
-			.addQuestion(questions.submittedFor)
+			.addQuestion(questions.submittedFor),
+		addRepMyselfSection(questions)
 	];
+}
+
+/**
+ * Creates the Myself section sub-section, when users are submitting
+ * on behalf of themself
+ */
+function addRepMyselfSection(questions: Record<string, Question>) {
+	return new Section('Myself', 'myself')
+		.withSectionCondition(whenQuestionHasAnswer(questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF))
+		.addQuestion(questions.myselfFullName)
+
+		.addQuestion(questions.myselfContactPreference)
+
+		.addQuestion(questions.myselfEmail)
+		.withCondition(whenQuestionHasAnswer(questions.myselfContactPreference, 'email'))
+
+		.addQuestion(questions.myselfAddress)
+		.withCondition(whenQuestionHasAnswer(questions.myselfContactPreference, 'post'))
+
+		.addQuestion(questions.myselfTellUsAboutApplication)
+		.addQuestion(questions.myselfHearingPreference)
+
+		.addQuestion(questions.myselfHasAttachments)
+		.addQuestion(questions.myselfSelectAttachments) // TODO: PEAS-401 this is going to be replaced with a new upload question
+		.withCondition(whenQuestionHasAnswer(questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES));
 }
