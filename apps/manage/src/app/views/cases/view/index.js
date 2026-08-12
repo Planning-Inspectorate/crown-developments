@@ -15,7 +15,7 @@ import {
 	buildGetJourneyResponseFromSession,
 	saveDataToSession
 } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
-import { JOURNEY_ID } from './journey.js';
+import { JOURNEY_ID } from './journey.ts';
 import { buildDeleteManageListItemOnConfirmRemove, addSuccessBannerFromMessage } from './delete.js';
 
 /**
