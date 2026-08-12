@@ -363,8 +363,8 @@ export const getQuestions = ({
 			validators: [
 				new StringValidator({
 					maxLength: {
-						maxLength: 50,
-						maxLengthMessage: 'Reason must be 50 characters or less'
+						maxLength: 250,
+						maxLengthMessage: 'Reason must be 250 characters or less'
 					}
 				})
 			]

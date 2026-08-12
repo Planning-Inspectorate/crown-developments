@@ -61,6 +61,16 @@
 					}) }}
 				{% endif %}
 			{% endfor %}
+
+			{% if currentTab == 'representations' %}
+				<h2 class="govuk-heading-m" id="manage-representations">
+					Manage representations
+				</h2>
+				<p class="govuk-body">
+					<a href="{{ cleanUrl }}/manage-representations/add-representation/start" class="govuk-link govuk-link--no-visited-state">Add
+						new representation</a>
+				</p>
+			{% endif %}
 		</div>
 	</div>
 {% endblock %}

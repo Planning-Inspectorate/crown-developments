@@ -15,11 +15,13 @@ import { JOURNEY_ID } from './journey.ts';
 import { buildS62aUpdateCase } from './update-case.ts';
 import { buildDeleteS62aManageListItemOnConfirmRemove } from './delete.ts';
 import { createRoutes as createCaseFoldersRoutes } from './folders/index.ts';
+import { createRoutes as createRepsRoutes } from './manage-reps/index.ts';
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });
 
 	const caseFoldersRoutes = createCaseFoldersRoutes(service);
+	const repsRoutes = createRepsRoutes(service);
 
 	const getJourney = asyncHandler(buildGetJourneyMiddleware(service, false));
 	const viewCaseDetails = buildViewCaseDetails();
@@ -37,6 +39,9 @@ export function createRoutes(service: ManageService) {
 
 	// View case folders, /:id/case-folders
 	router.use('/case-folders', caseFoldersRoutes);
+
+	// Mounts the representations router
+	router.use('/manage-representations', repsRoutes);
 
 	// We mount a subrouter here so the baseUrl is correct for dynamic forms.
 	// Because it's tightly coupled with this parent, keeping in same module.
