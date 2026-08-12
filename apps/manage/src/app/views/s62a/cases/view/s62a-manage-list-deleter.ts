@@ -191,4 +191,14 @@ export class S62aManageListDeleter {
 			where: { id: manageListItemId, s62aCaseId: id }
 		});
 	}
+
+	/**
+	 * Removes a housing entry. Scoped through the parent so a crafted URL can't
+	 * delete another case's row.
+	 */
+	public async deleteResidentialHousing(s62aCaseId: string, id: string): Promise<void> {
+		await this.db.s62aResidentialHousing.deleteMany({
+			where: { id, S62aResidential: { s62aCaseId } }
+		});
+	}
 }

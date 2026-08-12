@@ -3,7 +3,8 @@ import {
 	APPLICANT_TYPE_ID,
 	SITE_AREA_UNIT_ID,
 	CONTACT_ROLES_ID,
-	CONTACT_ROLES
+	CONTACT_ROLES,
+	HOUSING_TYPE_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
 import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
@@ -22,7 +23,9 @@ import {
 	EVENT_STRING_FIELDS,
 	type WasteTypeItem,
 	RESIDENTIAL_BOOLEAN_FIELDS,
-	type VehicleParkingItem
+	type VehicleParkingItem,
+	type ResidentialHousingItem,
+	HOUSING_BEDROOM_FIELDS
 } from './view-model.ts';
 import {
 	type AgentContactAnswer,
@@ -196,6 +199,7 @@ export interface UpdateCaseAnswers {
 	hasResidentialUnitsChange?: boolean | null;
 	hasExistingHousing?: boolean | null;
 	hasProposedHousing?: boolean | null;
+	manageProposedHousing?: ResidentialHousingItem[];
 }
 
 /**
@@ -547,7 +551,7 @@ export class S62aCaseUpdateMapper {
 	/**
 	 * Maps the Waste tab.
 	 *
-	 * TODO: PEAS-399 — the waste type list is replaced wholesale on every save,
+	 * TODO: PEAS-399 - the waste type list is replaced wholesale on every save,
 	 * so a minor edit deletes and recreates every row. Should be a diff instead
 	 * (match by id, update/create/delete only what changed) before case history
 	 * lands, or the history will show mass deletes and inserts for small changes.
@@ -590,25 +594,66 @@ export class S62aCaseUpdateMapper {
 	 * Creates the data on the Residential reference table
 	 */
 	private mapResidential(input: Prisma.S62aCaseUpdateInput): void {
-		const residentialToUpdate: Prisma.S62aResidentialUpdateWithoutS62aCaseInput &
+		const booleans: Prisma.S62aResidentialUpdateWithoutS62aCaseInput &
 			Prisma.S62aResidentialCreateWithoutS62aCaseInput = {};
 		let hasResidentialUpdates = false;
 
 		for (const [key, value] of Object.entries(this.answers)) {
 			if (this.isResidentialBooleanField(key)) {
-				residentialToUpdate[key] = typeof value === 'boolean' ? yesNoToBoolean(value) : null;
+				booleans[key] = typeof value === 'boolean' ? yesNoToBoolean(value) : null;
 				hasResidentialUpdates = true;
 			}
 		}
 
-		if (hasResidentialUpdates) {
-			input.S62aResidential = {
-				upsert: {
-					create: residentialToUpdate,
-					update: residentialToUpdate
-				}
+		const proposedProvided = this.answers.manageProposedHousing !== undefined;
+
+		if (!hasResidentialUpdates && !proposedProvided) {
+			return;
+		}
+
+		const create: Prisma.S62aResidentialCreateWithoutS62aCaseInput = { ...booleans };
+		const update: Prisma.S62aResidentialUpdateWithoutS62aCaseInput = { ...booleans };
+
+		if (proposedProvided) {
+			const rows = this.mapHousingRows(this.answers.manageProposedHousing ?? [], HOUSING_TYPE_ID.PROPOSED);
+
+			create.Housing = { create: rows };
+			/**
+			 * TODO: PEAS-399 - see the note on mapWaste. The housing rows are replaced
+			 * wholesale on every save, so editing one bedroom count deletes and recreates
+			 * every row on that side. Should be a diff (match by id, change only what
+			 * changed) before case history lands.
+			 */
+			update.Housing = {
+				deleteMany: { housingTypeId: HOUSING_TYPE_ID.PROPOSED },
+				create: rows
 			};
 		}
+
+		input.S62aResidential = { upsert: { create, update } };
+	}
+
+	/**
+	 * Turns the manage list items into nested creates.
+	 */
+	private mapHousingRows(
+		items: ResidentialHousingItem[],
+		housingTypeId: string
+	): Prisma.S62aResidentialHousingCreateWithoutS62aResidentialInput[] {
+		return items.map((item) => {
+			const row: Prisma.S62aResidentialHousingCreateWithoutS62aResidentialInput = {
+				HousingType: { connect: { id: housingTypeId } },
+				OccupancyType: { connect: { id: item.occupancyTypeId } },
+				UnitType: { connect: { id: item.unitTypeId } }
+			};
+
+			for (const field of HOUSING_BEDROOM_FIELDS) {
+				const value = item[field];
+				row[field] = value === undefined || value === null || value === '' ? null : Number(value);
+			}
+
+			return row;
+		});
 	}
 
 	/**
@@ -1061,7 +1106,7 @@ export class S62aCaseUpdateMapper {
 	 * create, so re-adding the same user in one save does not trip the
 	 * (s62aCaseId, userId) unique constraint.
 	 *
-	 * TODO: PEAS-399 — see the note on mapWaste. Should be a diff rather than a
+	 * TODO: PEAS-399 - see the note on mapWaste. Should be a diff rather than a
 	 * full replace.
 	 */
 	private mapCaseTeamInspectors(input: Prisma.S62aCaseUpdateInput): void {

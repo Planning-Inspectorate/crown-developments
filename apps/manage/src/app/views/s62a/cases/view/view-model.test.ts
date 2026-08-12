@@ -9,7 +9,10 @@ import {
 	DECISION_OUTCOME_ID,
 	SITE_VISIT_TYPE_ID,
 	WASTE_TYPE_ID,
-	WASTE_UNIT_ID
+	WASTE_UNIT_ID,
+	HOUSING_TYPE_ID,
+	OCCUPANCY_TYPE_ID,
+	UNIT_TYPE_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { s62aCaseToViewModel, type S62aCaseDbModel } from './view-model.ts';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
@@ -1551,17 +1554,122 @@ describe('s62aCaseToViewModel', () => {
 			assert.strictEqual(result.hasResidentialUnitsChange, undefined);
 		});
 
-		it('leaves the housing placeholders unset so their rows show an Add link', () => {
+		it('returns empty arrays when the residential record exists but has no entries', () => {
 			const mockDbCase = {
 				id: 'case-res-4',
 				reference: 'S62A/2026/0054',
 				expectedSubmissionDate: mockDate,
-				S62aResidential: { hasResidentialUnitsChange: true }
+				S62aResidential: { hasResidentialUnitsChange: true, Housing: [] }
 			} as unknown as S62aCaseDbModel;
 
 			const result = s62aCaseToViewModel(mockDbCase);
 
-			assert.strictEqual(result.manageExistingHousing, undefined);
+			assert.deepStrictEqual(result.manageExistingHousing, []);
+			assert.deepStrictEqual(result.manageProposedHousing, []);
+		});
+
+		it('splits the housing rows by side', () => {
+			const mockDbCase = {
+				id: 'case-res-5',
+				reference: 'S62A/2026/0055',
+				expectedSubmissionDate: mockDate,
+				S62aResidential: {
+					Housing: [
+						{
+							id: 'row-1',
+							housingTypeId: HOUSING_TYPE_ID.PROPOSED,
+							occupancyTypeId: OCCUPANCY_TYPE_ID.MARKET_HOUSING,
+							unitTypeId: UNIT_TYPE_ID.HOUSES
+						},
+						{
+							id: 'row-2',
+							housingTypeId: HOUSING_TYPE_ID.EXISTING,
+							occupancyTypeId: OCCUPANCY_TYPE_ID.STARTER_HOMES,
+							unitTypeId: UNIT_TYPE_ID.FLATS_MAISONETTES
+						}
+					]
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.manageProposedHousing?.length, 1);
+			assert.strictEqual(result.manageProposedHousing?.[0].id, 'row-1');
+			assert.strictEqual(result.manageExistingHousing?.length, 1);
+			assert.strictEqual(result.manageExistingHousing?.[0].id, 'row-2');
+		});
+
+		it('maps the occupancy and unit type ids for the card title and edit pages', () => {
+			const mockDbCase = {
+				id: 'case-res-6',
+				reference: 'S62A/2026/0056',
+				expectedSubmissionDate: mockDate,
+				S62aResidential: {
+					Housing: [
+						{
+							id: 'row-1',
+							housingTypeId: HOUSING_TYPE_ID.PROPOSED,
+							occupancyTypeId: OCCUPANCY_TYPE_ID.MARKET_HOUSING,
+							unitTypeId: UNIT_TYPE_ID.HOUSES,
+							bedroomsUnknown: 0,
+							bedroomsOne: 4,
+							bedroomsTwo: 6,
+							bedroomsThree: 1,
+							bedroomsFourPlus: 2
+						}
+					]
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.deepStrictEqual(result.manageProposedHousing?.[0], {
+				id: 'row-1',
+				occupancyTypeId: OCCUPANCY_TYPE_ID.MARKET_HOUSING,
+				unitTypeId: UNIT_TYPE_ID.HOUSES,
+				// strings, because the multi-field input round-trips strings
+				bedroomsUnknown: '0',
+				bedroomsOne: '4',
+				bedroomsTwo: '6',
+				bedroomsThree: '1',
+				bedroomsFourPlus: '2'
+			});
+		});
+
+		it('keeps a zero band distinct from an unanswered one', () => {
+			const mockDbCase = {
+				id: 'case-res-7',
+				reference: 'S62A/2026/0057',
+				expectedSubmissionDate: mockDate,
+				S62aResidential: {
+					Housing: [
+						{
+							id: 'row-1',
+							housingTypeId: HOUSING_TYPE_ID.PROPOSED,
+							occupancyTypeId: OCCUPANCY_TYPE_ID.MARKET_HOUSING,
+							unitTypeId: UNIT_TYPE_ID.HOUSES,
+							bedroomsUnknown: 0,
+							bedroomsOne: null
+						}
+					]
+				}
+			} as unknown as S62aCaseDbModel;
+
+			const [item] = s62aCaseToViewModel(mockDbCase).manageProposedHousing!;
+
+			assert.strictEqual(item.bedroomsUnknown, '0', 'zero units recorded');
+			assert.strictEqual(item.bedroomsOne, '', 'band never answered');
+		});
+
+		it('leaves the housing arrays unset when there is no residential record', () => {
+			const mockDbCase = {
+				id: 'case-res-8',
+				reference: 'S62A/2026/0058',
+				expectedSubmissionDate: mockDate
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
 			assert.strictEqual(result.manageProposedHousing, undefined);
 		});
 	});

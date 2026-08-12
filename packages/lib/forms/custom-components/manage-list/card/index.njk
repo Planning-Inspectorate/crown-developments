@@ -1,0 +1,84 @@
+{% extends layoutTemplate %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block backLink %}
+	{% if not hideBackLink %}
+		{{ super() }}
+	{% endif %}
+{% endblock %}
+
+{% block dynQuestionContent %}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-full">
+			<form action="" method="post" novalidate>
+				{% if _csrf %}<input type="hidden" name="_csrf" value="{{ _csrf }}">{% endif %}
+
+				{% set hasData = question.cards | length > 0 %}
+				{% set itemName = emptyName or (titleSingular | lower) %}
+				{% set itemNamePlural = emptyNamePlural or (itemName + "s") %}
+				{% set urlBase = util.trimTrailingSlash(originalUrl) %}
+
+				<h1 class="govuk-heading-l">{{ question.question }}</h1>
+
+				{% if hasData %}
+					{% for card in question.cards %}
+						{% set rows = [] %}
+						{% for row in card.rows %}
+							{% set _ = rows.push({
+								key: { text: row.label },
+								value: { text: row.value }
+							}) %}
+						{% endfor %}
+
+						{{ govukSummaryList({
+							card: {
+								title: { text: card.title },
+								actions: { items: [
+									{
+										href: urlBase + "/edit/" + card.id + "/" + question.firstQuestionUrl,
+										text: "Change",
+										visuallyHiddenText: card.title
+									},
+									{
+										href: urlBase + "/remove/" + card.id + "/confirm",
+										text: "Remove",
+										visuallyHiddenText: card.title
+									}
+								] }
+							},
+							rows: rows
+						}) }}
+					{% endfor %}
+				{% else %}
+					<p class="govuk-body">Add one or more {{ itemNamePlural }}. No {{ itemName }} details have been added.</p>
+				{% endif %}
+
+				{{ govukButton({
+					text: addMoreButtonText,
+					href: urlBase + "/" + question.addAnotherLink,
+					classes: "" if not hasData else "govuk-button--secondary",
+					attributes: { "data-cy": "button-add-details" }
+				}) }}
+
+				<div class="govuk-button-group">
+					{{ govukButton({
+						text: continueButtonText,
+						type: "submit",
+						attributes: { "data-cy": "button-save-and-continue" }
+					}) }}
+
+					{% if not hideCancel %}
+						{{ govukButton({
+							text: cancelButtonText,
+							href: backLinkUrl,
+							classes: "govuk-button--secondary",
+							attributes: { "data-cy": "button-cancel" }
+						}) }}
+					{% endif %}
+				</div>
+			</form>
+		</div>
+	</div>
+{% endblock %}

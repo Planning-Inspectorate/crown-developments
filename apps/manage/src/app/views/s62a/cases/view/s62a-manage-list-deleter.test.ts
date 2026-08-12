@@ -52,6 +52,21 @@ describe('S62aManageListDeleter', () => {
 				delete: mock.fn(async () => {}),
 				deleteMany: mock.fn(async () => {})
 			},
+			s62aResidentialHousing: {
+				deleteMany: mock.fn(async () => {})
+			},
+			s62aResidential: {
+				delete: mock.fn(async () => {}),
+				deleteMany: mock.fn(async () => {})
+			},
+			s62aOccupancyType: {
+				delete: mock.fn(async () => {}),
+				deleteMany: mock.fn(async () => {})
+			},
+			s62aUnitType: {
+				delete: mock.fn(async () => {}),
+				deleteMany: mock.fn(async () => {})
+			},
 			$transaction: mock.fn(async (ops: any[]) => Promise.all(ops))
 		};
 
@@ -312,6 +327,40 @@ describe('S62aManageListDeleter', () => {
 		it('does not touch the inspector or applicant join tables', async () => {
 			await deleter.deleteWasteType('case-1', 'waste-row-1');
 
+			assert.strictEqual(mockDb.s62aCaseInspector.deleteMany.mock.callCount(), 0);
+			assert.strictEqual(mockDb.s62aToApplicant.deleteMany.mock.callCount(), 0);
+		});
+	});
+
+	describe('deleteResidentialHousing', () => {
+		it('deletes the entry scoped to the case through its parent', async () => {
+			await deleter.deleteResidentialHousing('case-1', 'housing-row-1');
+
+			assert.strictEqual(mockDb.s62aResidentialHousing.deleteMany.mock.callCount(), 1);
+			// Scoped via S62aResidential so a crafted URL cannot delete another case's row
+			assert.deepStrictEqual(mockDb.s62aResidentialHousing.deleteMany.mock.calls[0].arguments[0], {
+				where: { id: 'housing-row-1', S62aResidential: { s62aCaseId: 'case-1' } }
+			});
+		});
+
+		it('leaves the parent residential record alone, as it holds the tab booleans', async () => {
+			await deleter.deleteResidentialHousing('case-1', 'housing-row-1');
+
+			assert.strictEqual(mockDb.s62aResidential.delete.mock.callCount(), 0);
+			assert.strictEqual(mockDb.s62aResidential.deleteMany.mock.callCount(), 0);
+		});
+
+		it('leaves the occupancy and unit type lookups alone, as they are reference data', async () => {
+			await deleter.deleteResidentialHousing('case-1', 'housing-row-1');
+
+			assert.strictEqual(mockDb.s62aOccupancyType.delete.mock.callCount(), 0);
+			assert.strictEqual(mockDb.s62aUnitType.delete.mock.callCount(), 0);
+		});
+
+		it('does not touch the waste, inspector or applicant join tables', async () => {
+			await deleter.deleteResidentialHousing('case-1', 'housing-row-1');
+
+			assert.strictEqual(mockDb.s62aCaseWasteType.deleteMany.mock.callCount(), 0);
 			assert.strictEqual(mockDb.s62aCaseInspector.deleteMany.mock.callCount(), 0);
 			assert.strictEqual(mockDb.s62aToApplicant.deleteMany.mock.callCount(), 0);
 		});

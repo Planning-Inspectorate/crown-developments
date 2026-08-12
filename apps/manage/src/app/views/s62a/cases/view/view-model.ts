@@ -3,6 +3,7 @@ import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-sta
 import {
 	APPLICANT_TYPE_ID,
 	CONTACT_ROLES_ID,
+	HOUSING_TYPE_ID,
 	SITE_AREA_UNIT_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { addressToViewModel } from '@pins/crowndev-lib/util/address.ts';
@@ -89,6 +90,30 @@ export const RESIDENTIAL_BOOLEAN_FIELDS = Object.freeze([
 	'hasProposedHousing'
 ] as const);
 
+export const BEDROOM_BANDS = [
+	{ fieldName: 'bedroomsUnknown', label: 'Unknown number of bedrooms', cardLabel: 'Unknown no. of bedrooms' },
+	{ fieldName: 'bedroomsOne', label: '1 bedroom' },
+	{ fieldName: 'bedroomsTwo', label: '2 bedrooms' },
+	{ fieldName: 'bedroomsThree', label: '3 bedrooms' },
+	{ fieldName: 'bedroomsFourPlus', label: '4+ bedrooms' }
+] as const satisfies readonly { fieldName: string; label: string; cardLabel?: string }[];
+
+/**
+ * The bedroom bands on a housing entry, in display order.
+ */
+export const HOUSING_BEDROOM_FIELDS = BEDROOM_BANDS.map((band) => band.fieldName);
+
+export interface ResidentialHousingItem {
+	id: string;
+	occupancyTypeId: string;
+	unitTypeId: string;
+	bedroomsUnknown: string;
+	bedroomsOne: string;
+	bedroomsTwo: string;
+	bedroomsThree: string;
+	bedroomsFourPlus: string;
+}
+
 export const EVENT_NUMBER_FIELDS = Object.freeze(['prepDuration', 'sittingDuration', 'reportingDuration'] as const);
 
 export const EVENT_STRING_FIELDS = Object.freeze(['venue'] as const);
@@ -104,6 +129,8 @@ export interface CaseTeamInspectorItem {
 export type S62aCaseDbModel = Prisma.S62aCaseGetPayload<{
 	include: typeof S62A_VIEW_SELECT_INCLUDE;
 }>;
+
+export type S62aResidentialHousingDbModel = NonNullable<S62aCaseDbModel['S62aResidential']>['Housing'][number];
 
 export interface WasteTypeItem {
 	id: string;
@@ -289,8 +316,8 @@ export interface S62aCaseViewModel {
 	hasResidentialUnitsChange?: YesNo;
 	hasExistingHousing?: YesNo;
 	hasProposedHousing?: YesNo;
-	manageExistingHousing?: unknown[];
-	manageProposedHousing?: unknown[];
+	manageExistingHousing?: ResidentialHousingItem[];
+	manageProposedHousing?: ResidentialHousingItem[];
 	totalNetGainOrLossOfUnits?: string;
 
 	//Vehicle Parking tab
@@ -511,6 +538,10 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 				viewModel[field] = booleanToYesNoValue(val);
 			}
 		}
+
+		const housing = dbCase.S62aResidential.Housing ?? [];
+		viewModel.manageExistingHousing = housingToViewModel(housing, HOUSING_TYPE_ID.EXISTING);
+		viewModel.manageProposedHousing = housingToViewModel(housing, HOUSING_TYPE_ID.PROPOSED);
 	}
 
 	if (dbCase.Lpa) {
@@ -694,4 +725,29 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 	}));
 
 	return viewModel;
+}
+
+/**
+ * Maps the housing rows for one side of the tab.
+ *
+ * An empty band is distinct from a zero - '' means the band was never answered,
+ * '0' means no units of that size.
+ */
+function housingToViewModel(rows: S62aResidentialHousingDbModel[], housingTypeId: string): ResidentialHousingItem[] {
+	return rows
+		.filter((row) => row.housingTypeId === housingTypeId)
+		.map((row) => {
+			const item = {
+				id: row.id,
+				occupancyTypeId: row.occupancyTypeId,
+				unitTypeId: row.unitTypeId
+			} as ResidentialHousingItem;
+
+			for (const field of HOUSING_BEDROOM_FIELDS) {
+				const value = row[field];
+				item[field] = value === null || value === undefined ? '' : String(value);
+			}
+
+			return item;
+		});
 }

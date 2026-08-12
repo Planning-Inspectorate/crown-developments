@@ -9,7 +9,10 @@ import {
 	DECISION_OUTCOME_ID,
 	SITE_VISIT_TYPE_ID,
 	WASTE_TYPE_ID,
-	WASTE_UNIT_ID
+	WASTE_UNIT_ID,
+	OCCUPANCY_TYPE_ID,
+	UNIT_TYPE_ID,
+	HOUSING_TYPE_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
@@ -1491,6 +1494,108 @@ describe('S62aCaseUpdateMapper', () => {
 			const result = new S62aCaseUpdateMapper({ likelyIssues: 'Traffic' }).generateUpdateInput();
 
 			assert.strictEqual(result.S62aResidential, undefined);
+		});
+
+		it('maps the housing entries into nested creates, connecting the lookups', () => {
+			const answers = {
+				manageProposedHousing: [
+					{
+						id: 'row-1',
+						occupancyTypeId: OCCUPANCY_TYPE_ID.MARKET_HOUSING,
+						unitTypeId: UNIT_TYPE_ID.HOUSES,
+						bedroomsUnknown: '0',
+						bedroomsOne: '4',
+						bedroomsTwo: '6',
+						bedroomsThree: '',
+						bedroomsFourPlus: '2'
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const [created] = (result.S62aResidential as any).upsert.create.Housing.create;
+
+			assert.deepStrictEqual(created.HousingType, { connect: { id: HOUSING_TYPE_ID.PROPOSED } });
+			assert.deepStrictEqual(created.OccupancyType, { connect: { id: OCCUPANCY_TYPE_ID.MARKET_HOUSING } });
+			assert.deepStrictEqual(created.UnitType, { connect: { id: UNIT_TYPE_ID.HOUSES } });
+
+			// Bands arrive as strings from the multi-field input
+			assert.strictEqual(created.bedroomsOne, 4);
+			assert.strictEqual(created.bedroomsFourPlus, 2);
+		});
+
+		it('keeps a zero band distinct from an unanswered one', () => {
+			const answers = {
+				manageProposedHousing: [
+					{
+						id: 'row-1',
+						occupancyTypeId: OCCUPANCY_TYPE_ID.MARKET_HOUSING,
+						unitTypeId: UNIT_TYPE_ID.HOUSES,
+						bedroomsUnknown: '0',
+						bedroomsOne: ''
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const [created] = (result.S62aResidential as any).upsert.create.Housing.create;
+
+			assert.strictEqual(created.bedroomsUnknown, 0, 'zero units recorded');
+			assert.strictEqual(created.bedroomsOne, null, 'band never answered');
+		});
+
+		it('scopes the delete to proposed so saving does not wipe the existing entries', () => {
+			const answers = {
+				manageProposedHousing: [
+					{ id: 'row-1', occupancyTypeId: OCCUPANCY_TYPE_ID.STARTER_HOMES, unitTypeId: UNIT_TYPE_ID.HOUSES }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const { update } = (result.S62aResidential as any).upsert;
+
+			assert.deepStrictEqual(update.Housing.deleteMany, { housingTypeId: HOUSING_TYPE_ID.PROPOSED });
+			assert.strictEqual(update.Housing.create.length, 1);
+		});
+
+		it('does not delete anything on create, as there is nothing to replace', () => {
+			const answers = { manageProposedHousing: [] } as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			const { create } = (result.S62aResidential as any).upsert;
+			assert.deepStrictEqual(create.Housing, { create: [] });
+			assert.strictEqual(create.Housing.deleteMany, undefined);
+		});
+
+		it('clears every housing row when the list is empty', () => {
+			const answers = { manageProposedHousing: [] } as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			// Not hasAnswer(), which is false for [] — removing the last entry must persist
+			assert.deepStrictEqual((result.S62aResidential as any).upsert.update.Housing, {
+				deleteMany: { housingTypeId: HOUSING_TYPE_ID.PROPOSED },
+				create: []
+			});
+		});
+
+		it('does not touch the housing rows when the list is absent from the payload', () => {
+			const answers = { hasProposedHousing: true } as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual((result.S62aResidential as any).upsert.create.Housing, undefined);
+			assert.strictEqual((result.S62aResidential as any).upsert.update.Housing, undefined);
+		});
+
+		it('maps housing entries even when no booleans are in the payload', () => {
+			const answers = {
+				manageProposedHousing: [
+					{ id: 'row-1', occupancyTypeId: OCCUPANCY_TYPE_ID.MARKET_HOUSING, unitTypeId: UNIT_TYPE_ID.HOUSES }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.ok(result.S62aResidential, 'the upsert must still be generated');
 		});
 	});
 });

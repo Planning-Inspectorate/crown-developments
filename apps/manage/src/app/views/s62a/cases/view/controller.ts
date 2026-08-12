@@ -52,7 +52,11 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 
 	return async (req, res, next) => {
 		const id = getStringParam(req.params, 'id');
-		const { section, manageListQuestion } = getOptionalStringParams(req.params, ['section', 'manageListQuestion']);
+		const { section, manageListQuestion, manageListItemId } = getOptionalStringParams(req.params, [
+			'section',
+			'manageListQuestion',
+			'manageListItemId'
+		]);
 
 		logger.info({ id }, 'view S62A case');
 
@@ -77,7 +81,12 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 
 		const finalAnswers = combineSessionAndDbData(answers, sessionAnswers);
 
-		const questions = getQuestions(answers, { isQuestionView, groupMembers });
+		const questions = getQuestions(answers, {
+			isQuestionView,
+			groupMembers,
+			manageListItemId,
+			proposedHousing: finalAnswers.manageProposedHousing
+		});
 
 		// @ts-expect-error - we haven't defined the view model on the locals object
 		res.locals.originalAnswers = { ...answers };
