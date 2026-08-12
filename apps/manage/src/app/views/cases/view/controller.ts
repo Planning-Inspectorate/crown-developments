@@ -9,7 +9,7 @@ import {
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { crownDevelopmentToViewModel, mapNotes, type CrownDevelopmentViewModel } from './view-model.ts';
 import { getQuestions } from './questions.ts';
-import { createJourney, JOURNEY_ID } from './journey.js';
+import { createJourney, JOURNEY_ID } from './journey.ts';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { getEntraGroupMembers } from '#util/entra-groups.ts';
 import { isUnsafeObjectKey, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';

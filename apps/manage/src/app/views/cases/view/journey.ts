@@ -1,6 +1,7 @@
 import {
 	Journey,
 	Section,
+	ManageListSection,
 	questionHasAnswer,
 	whenQuestionHasAnswer,
 	questionHasNonEmptyStringAnswer,
@@ -11,31 +12,30 @@ import {
 	APPLICATION_SUB_TYPE_ID,
 	APPLICATION_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { ManageListSection } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-section.js';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import type { Question, JourneyResponse } from '@planning-inspectorate/dynamic-forms';
+import type { Request } from 'express';
+
 export const JOURNEY_ID = 'case-details';
 
-/** @typedef {import('@planning-inspectorate/dynamic-forms').JourneyResponse} JourneyResponse */
-/** @typedef {import('@planning-inspectorate/dynamic-forms').Question} Question */
-
 /**
- * @param {{[questionType: string]: Question}} questions
- * @param {JourneyResponse} response
- * @param {import('express').Request} req
- * @returns {Journey}
+ * Create journey for viewing and editing a single case.
  */
-export function createJourney(questions, response, req) {
+export function createJourney(
+	questions: { [questionType: string]: Question },
+	response: JourneyResponse,
+	req: Request
+): Journey {
 	const id = getStringParam(req.params, 'id');
 	if (!req.baseUrl?.includes(id)) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey (invalid baseUrl)`);
 	}
-	/** @param {JourneyResponse} response */
-	const hasSecondaryLpa = (response) => yesNoToBoolean(response.answers?.hasSecondaryLpa);
+
+	const hasSecondaryLpa = (response: JourneyResponse) => yesNoToBoolean(response.answers?.hasSecondaryLpa);
 	const isWrittenReps = whenQuestionHasAnswer(questions.procedure, APPLICATION_PROCEDURE_ID.WRITTEN_REPS);
 	const isInquiry = whenQuestionHasAnswer(questions.procedure, APPLICATION_PROCEDURE_ID.INQUIRY);
 	const isHearing = whenQuestionHasAnswer(questions.procedure, APPLICATION_PROCEDURE_ID.HEARING);
-	/** @param {JourneyResponse} response */
-	const isPlanningOrLbcCase = (response) =>
+	const isPlanningOrLbcCase = (response: JourneyResponse) =>
 		questionHasAnswer(
 			response,
 			questions.typeOfApplication,
@@ -43,18 +43,13 @@ export function createJourney(questions, response, req) {
 		) &&
 		(questionHasAnswer(response, questions.subTypeOfApplication, APPLICATION_SUB_TYPE_ID.PLANNING_PERMISSION) ||
 			questionHasAnswer(response, questions.subTypeOfApplication, APPLICATION_SUB_TYPE_ID.LISTED_BUILDING_CONSENT));
-	/** @param {JourneyResponse} response */
-	const iscilLiable = (response) => yesNoToBoolean(response.answers?.cilLiable);
-	/** @param {JourneyResponse} response */
-	const hasApplicationFee = (response) => yesNoToBoolean(response.answers?.hasApplicationFee);
-	/** @param {JourneyResponse} response */
-	const feeReceived = (response) => questionHasNonNullAnswer(response, questions.applicationFeeReceivedDate);
-	/** @param {JourneyResponse} response */
-	const eligibleForRefund = (response) => yesNoToBoolean(response.answers?.eligibleForFeeRefund);
-	/** @param {JourneyResponse} response */
-	const hasAgent = (response) => yesNoToBoolean(response.answers?.hasAgent);
-	/** @param {JourneyResponse} response */
-	const hasAgentOrganisationName = (response) =>
+	const isCilLiable = (response: JourneyResponse) => yesNoToBoolean(response.answers?.cilLiable);
+	const hasApplicationFee = (response: JourneyResponse) => yesNoToBoolean(response.answers?.hasApplicationFee);
+	const hasFeeReceived = (response: JourneyResponse) =>
+		questionHasNonNullAnswer(response, questions.applicationFeeReceivedDate);
+	const isEligibleForRefund = (response: JourneyResponse) => yesNoToBoolean(response.answers?.eligibleForFeeRefund);
+	const hasAgent = (response: JourneyResponse) => yesNoToBoolean(response.answers?.hasAgent);
+	const hasAgentOrganisationName = (response: JourneyResponse) =>
 		questionHasNonEmptyStringAnswer(response, questions.addAgentOrganisationName);
 
 	return new Journey({
@@ -93,7 +88,7 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.healthAndSafetyIssue)
 				.addQuestion(questions.cilLiable)
 				.addQuestion(questions.cilAmount)
-				.withCondition(iscilLiable)
+				.withCondition(isCilLiable)
 				.addQuestion(questions.bngExempt)
 				.addQuestion(questions.hasCostsApplications)
 				.addQuestion(questions.applicationCategory),
@@ -193,9 +188,9 @@ export function createJourney(questions, response, req) {
 				.addQuestion(questions.applicationFeeReceivedDate)
 				.withCondition(hasApplicationFee)
 				.addQuestion(questions.eligibleForFeeRefund)
-				.withCondition(feeReceived)
+				.withCondition(hasFeeReceived)
 				.addQuestion(questions.applicationFeeRefundDate)
-				.withCondition(eligibleForRefund)
+				.withCondition(isEligibleForRefund)
 		],
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',
@@ -208,10 +203,9 @@ export function createJourney(questions, response, req) {
 }
 
 /**
- * @param {JourneyResponse} response
- * @param {Question} question
+ * Checks if a question has a non-null answer in the given response.
  */
-export const questionHasNonNullAnswer = (response, question) => {
+export const questionHasNonNullAnswer = (response: JourneyResponse, question: Question): boolean => {
 	if (!response.answers) return false;
 	if (!question || !question.fieldName) return false;
 	const answerField = response.answers[question.fieldName];
