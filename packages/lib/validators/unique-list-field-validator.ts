@@ -5,10 +5,12 @@ import type { Question } from '@planning-inspectorate/dynamic-forms/src/question
 export interface UniqueListFieldValidatorParams {
 	/** The manage list question's fieldName, e.g. 'manageWasteTypes' */
 	listFieldName: string;
-	/** Builds the error message from the duplicate's display name */
-	buildErrorMessage: (displayName: string) => string;
+	/** Builds the error message from the duplicate's display name and the entry it clashed with */
+	buildErrorMessage: (displayName: string, matchedItem: Record<string, unknown>) => string;
 	/** Resolves a stored value to something readable */
 	displayNameFor?: (value: string) => string;
+	/** Extra item fields that must also match for a duplicate, read from the item being edited */
+	alsoMatchOn?: string[];
 }
 
 /**
@@ -19,14 +21,16 @@ export interface UniqueListFieldValidatorParams {
  */
 export default class UniqueListFieldValidator extends BaseValidator {
 	private listFieldName: string;
-	private buildErrorMessage: (displayName: string) => string;
+	private buildErrorMessage: (displayName: string, matchedItem: Record<string, unknown>) => string;
 	private displayNameFor: (value: string) => string;
+	private alsoMatchOn: string[];
 
-	constructor({ listFieldName, buildErrorMessage, displayNameFor }: UniqueListFieldValidatorParams) {
+	constructor({ listFieldName, buildErrorMessage, displayNameFor, alsoMatchOn }: UniqueListFieldValidatorParams) {
 		super();
 		this.listFieldName = listFieldName;
 		this.buildErrorMessage = buildErrorMessage;
 		this.displayNameFor = displayNameFor ?? ((value) => value);
+		this.alsoMatchOn = alsoMatchOn ?? [];
 	}
 
 	validate(questionObj: Question) {
@@ -46,11 +50,23 @@ export default class UniqueListFieldValidator extends BaseValidator {
 
 			// The item being added or edited is already in the list, so skip it
 			const currentItemId = typedReq.params?.manageListItemId;
+			const currentItem = items.find((item) => item.id === currentItemId) ?? {};
 
-			const isDuplicate = items.some((item) => item.id !== currentItemId && item[questionObj.fieldName] === value);
+			// find, not some — the message may need to name the entry that was clashed with
+			const matchedItem = items.find((item) => {
+				if (item.id === currentItemId) {
+					return false;
+				}
 
-			if (isDuplicate) {
-				throw new Error(this.buildErrorMessage(this.displayNameFor(value)));
+				if (item[questionObj.fieldName] !== value) {
+					return false;
+				}
+
+				return this.alsoMatchOn.every((fieldName) => item[fieldName] === currentItem[fieldName]);
+			});
+
+			if (matchedItem) {
+				throw new Error(this.buildErrorMessage(this.displayNameFor(value), matchedItem));
 			}
 
 			return true;
