@@ -200,6 +200,7 @@ export interface UpdateCaseAnswers {
 	hasExistingHousing?: boolean | null;
 	hasProposedHousing?: boolean | null;
 	manageProposedHousing?: ResidentialHousingItem[];
+	manageExistingHousing?: ResidentialHousingItem[];
 }
 
 /**
@@ -605,17 +606,22 @@ export class S62aCaseUpdateMapper {
 			}
 		}
 
-		const proposedProvided = this.answers.manageProposedHousing !== undefined;
+		// Not hasAnswer() — that returns false for [], so removing the last entry
+		// would silently fail to persist.
+		const providedSides = [
+			{ housingTypeId: HOUSING_TYPE_ID.EXISTING, items: this.answers.manageExistingHousing },
+			{ housingTypeId: HOUSING_TYPE_ID.PROPOSED, items: this.answers.manageProposedHousing }
+		].filter((side) => side.items !== undefined);
 
-		if (!hasResidentialUpdates && !proposedProvided) {
+		if (!hasResidentialUpdates && providedSides.length === 0) {
 			return;
 		}
 
 		const create: Prisma.S62aResidentialCreateWithoutS62aCaseInput = { ...booleans };
 		const update: Prisma.S62aResidentialUpdateWithoutS62aCaseInput = { ...booleans };
 
-		if (proposedProvided) {
-			const rows = this.mapHousingRows(this.answers.manageProposedHousing ?? [], HOUSING_TYPE_ID.PROPOSED);
+		if (providedSides.length > 0) {
+			const rows = providedSides.flatMap(({ housingTypeId, items }) => this.mapHousingRows(items ?? [], housingTypeId));
 
 			create.Housing = { create: rows };
 			/**
@@ -625,7 +631,7 @@ export class S62aCaseUpdateMapper {
 			 * changed) before case history lands.
 			 */
 			update.Housing = {
-				deleteMany: { housingTypeId: HOUSING_TYPE_ID.PROPOSED },
+				deleteMany: providedSides.map(({ housingTypeId }) => ({ housingTypeId })),
 				create: rows
 			};
 		}

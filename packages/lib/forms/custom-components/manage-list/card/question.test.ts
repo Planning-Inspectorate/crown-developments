@@ -330,6 +330,55 @@ describe('CardManageListQuestion', () => {
 
 			assert.deepStrictEqual((viewModel.question as { cards: Card[] }).cards, []);
 		});
+
+		it('sorts the cards when a comparator is configured', () => {
+			const question = buildQuestion({
+				sortItems: (a: Record<string, unknown>, b: Record<string, unknown>) => Number(a.order) - Number(b.order)
+			});
+			const viewModel = buildViewModel([
+				{ id: 'uuid-1', order: 3 },
+				{ id: 'uuid-2', order: 1 },
+				{ id: 'uuid-3', order: 2 }
+			]);
+
+			question.addCustomDataToViewModel(viewModel);
+
+			const cards = (viewModel.question as { cards: Card[] }).cards;
+			assert.deepStrictEqual(
+				cards.map((card) => card.id),
+				['uuid-2', 'uuid-3', 'uuid-1']
+			);
+		});
+
+		it('leaves the underlying answers array untouched, as that is what gets saved', () => {
+			const question = buildQuestion({
+				sortItems: (a: Record<string, unknown>, b: Record<string, unknown>) => Number(a.order) - Number(b.order)
+			});
+			const items = [
+				{ id: 'uuid-1', order: 3 },
+				{ id: 'uuid-2', order: 1 }
+			];
+			const viewModel = buildViewModel(items);
+
+			question.addCustomDataToViewModel(viewModel);
+
+			assert.deepStrictEqual(
+				items.map((item) => item.id),
+				['uuid-1', 'uuid-2']
+			);
+		});
+
+		it('keeps insertion order when no comparator is configured', () => {
+			const viewModel = buildViewModel([{ id: 'uuid-2' }, { id: 'uuid-1' }]);
+
+			cardQuestion.addCustomDataToViewModel(viewModel);
+
+			const cards = (viewModel.question as { cards: Card[] }).cards;
+			assert.deepStrictEqual(
+				cards.map((card) => card.id),
+				['uuid-2', 'uuid-1']
+			);
+		});
 	});
 
 	describe('formatAnswerForSummary()', () => {

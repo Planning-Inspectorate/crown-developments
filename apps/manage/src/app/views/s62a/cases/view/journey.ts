@@ -344,15 +344,19 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.addQuestion(questions.residentialUnitsChange)
 				.addQuestion(questions.totalNetGainOrLossOfUnits)
 				.withCondition(unitsChangeIsYes),
-
 			new Section('Existing residential', 'existing')
 				.withSectionCondition(
 					() => currentTab === VIEW_TAB_ID.RESIDENTIAL && isApplicationCase(response) && unitsChangeIsYes(response)
 				)
 				.addQuestion(questions.hasExistingHousing)
-				.addQuestion(questions.manageExistingHousing)
+				.addQuestion(
+					questions.manageExistingHousing,
+					new ManageListSection()
+						.addQuestion(questions.existingOccupancyType)
+						.addQuestion(questions.existingUnitType)
+						.addQuestion(questions.existingBedrooms)
+				)
 				.withCondition(whenQuestionHasAnswer(questions.hasExistingHousing, BOOLEAN_OPTIONS.YES)),
-
 			new Section('Proposed residential', 'proposed')
 				.withSectionCondition(
 					() => currentTab === VIEW_TAB_ID.RESIDENTIAL && isApplicationCase(response) && unitsChangeIsYes(response)

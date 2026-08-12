@@ -85,7 +85,8 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 			isQuestionView,
 			groupMembers,
 			manageListItemId,
-			proposedHousing: finalAnswers.manageProposedHousing
+			proposedHousing: finalAnswers.manageProposedHousing,
+			existingHousing: finalAnswers.manageExistingHousing
 		});
 
 		// @ts-expect-error - we haven't defined the view model on the locals object

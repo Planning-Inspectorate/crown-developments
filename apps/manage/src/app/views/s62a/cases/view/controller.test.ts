@@ -4,7 +4,11 @@ import { buildGetJourneyMiddleware } from './controller.ts';
 import type { ManageService } from '../../../../service.js';
 import type { Request, Response } from 'express';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import { OCCUPANCY_TYPE_ID, UNIT_TYPES_BY_OCCUPANCY } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import {
+	OCCUPANCY_TYPE_ID,
+	UNIT_TYPES,
+	UNIT_TYPES_BY_OCCUPANCY
+} from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { Journey, Question } from '@planning-inspectorate/dynamic-forms';
 
 type HousingInclude = {
@@ -13,23 +17,24 @@ type HousingInclude = {
 };
 
 /** Finds a question by fieldName, including inside manage list sections. */
-function findQuestion(journey: Journey, fieldName: string) {
-	for (const section of journey.sections) {
-		for (const question of section.questions) {
-			if (question.fieldName === fieldName) {
-				return question;
-			}
+function findQuestion(journey: Journey, segment: string, fieldName: string) {
+	const section = journey.sections.find((s) => s.segment === segment);
+	if (!section) throw new Error(`section ${segment} not found`);
 
-			const nested = question.section?.questions ?? [];
-			const match = nested.find((q: Question) => q.fieldName === fieldName);
+	for (const question of section.questions) {
+		if (question.fieldName === fieldName) {
+			return question;
+		}
 
-			if (match) {
-				return match;
-			}
+		const nested = question.section?.questions ?? [];
+		const match = nested.find((q: Question) => q.fieldName === fieldName);
+
+		if (match) {
+			return match;
 		}
 	}
 
-	throw new Error(`question ${fieldName} not found`);
+	throw new Error(`question ${fieldName} not found in ${segment}`);
 }
 
 describe('S62A Controller Middleware', () => {
@@ -114,18 +119,46 @@ describe('S62A Controller Middleware', () => {
 
 			assert.ok(housing.include.OccupancyType, 'occupancy lookup needed for the card title');
 			assert.ok(housing.include.UnitType, 'unit type lookup needed for the card title');
-		});
-
-		it('should order the housing entries so the cards group by occupancy', async () => {
-			const housing = await getHousingInclude();
-
 			assert.deepStrictEqual(housing.orderBy, [{ OccupancyType: { order: 'asc' } }, { UnitType: { order: 'asc' } }]);
 		});
 
-		it('should pass session housing to getQuestions so unit type options branch on an unsaved occupancy', async () => {
+		it('passes session housing to getQuestions for the existing side too', async () => {
 			const handler = buildGetJourneyMiddleware(mockService, true);
 
-			const itemId = 'housing-1';
+			const itemId = 'housing-existing-1';
+
+			const req = {
+				params: {
+					id: 'case-123',
+					tab: 'residential',
+					section: 'existing',
+					question: 'unit-type',
+					manageListAction: 'add',
+					manageListItemId: itemId
+				},
+				baseUrl: '/s62a/cases/case-123/residential'
+			} as unknown as Request;
+
+			const res = {
+				locals: {
+					journeyResponse: {
+						answers: {
+							manageExistingHousing: [{ id: itemId, occupancyTypeId: OCCUPANCY_TYPE_ID.SELF_BUILD_AND_CUSTOM_BUILD }]
+						}
+					}
+				}
+			} as unknown as Response;
+
+			await handler(req, res, () => {});
+
+			const question = findQuestion(res.locals.journey as Journey, 'existing', 'unitTypeId');
+			const values = question.options.map((option: { value: string }) => option.value);
+
+			assert.deepStrictEqual(values, UNIT_TYPES_BY_OCCUPANCY[OCCUPANCY_TYPE_ID.SELF_BUILD_AND_CUSTOM_BUILD]);
+		});
+
+		it('does not narrow the other side when only one side has a session entry', async () => {
+			const handler = buildGetJourneyMiddleware(mockService, true);
 
 			const req = {
 				params: {
@@ -134,18 +167,16 @@ describe('S62A Controller Middleware', () => {
 					section: 'proposed',
 					question: 'unit-type',
 					manageListAction: 'add',
-					manageListItemId: itemId
+					manageListItemId: 'housing-1'
 				},
 				baseUrl: '/s62a/cases/case-123/residential'
 			} as unknown as Request;
 
-			// The entry exists only in session until Save and continue, so if
-			// getQuestions is given DB-only answers the filter finds nothing.
 			const res = {
 				locals: {
 					journeyResponse: {
 						answers: {
-							manageProposedHousing: [{ id: itemId, occupancyTypeId: OCCUPANCY_TYPE_ID.STARTER_HOMES }]
+							manageProposedHousing: [{ id: 'housing-1', occupancyTypeId: OCCUPANCY_TYPE_ID.STARTER_HOMES }]
 						}
 					}
 				}
@@ -153,10 +184,9 @@ describe('S62A Controller Middleware', () => {
 
 			await handler(req, res, () => {});
 
-			const question = findQuestion(res.locals.journey as Journey, 'unitTypeId');
-			const values = question.options.map((option: { value: string }) => option.value);
+			const existing = findQuestion(res.locals.journey as Journey, 'existing', 'unitTypeId');
 
-			assert.deepStrictEqual(values, UNIT_TYPES_BY_OCCUPANCY[OCCUPANCY_TYPE_ID.STARTER_HOMES]);
+			assert.strictEqual(existing.options.length, UNIT_TYPES.length);
 		});
 	});
 });

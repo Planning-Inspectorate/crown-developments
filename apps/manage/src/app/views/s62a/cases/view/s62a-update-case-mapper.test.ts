@@ -1554,7 +1554,7 @@ describe('S62aCaseUpdateMapper', () => {
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
 			const { update } = (result.S62aResidential as any).upsert;
 
-			assert.deepStrictEqual(update.Housing.deleteMany, { housingTypeId: HOUSING_TYPE_ID.PROPOSED });
+			assert.deepStrictEqual(update.Housing.deleteMany, [{ housingTypeId: HOUSING_TYPE_ID.PROPOSED }]);
 			assert.strictEqual(update.Housing.create.length, 1);
 		});
 
@@ -1571,9 +1571,8 @@ describe('S62aCaseUpdateMapper', () => {
 			const answers = { manageProposedHousing: [] } as unknown as UpdateCaseAnswers;
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
 
-			// Not hasAnswer(), which is false for [] — removing the last entry must persist
 			assert.deepStrictEqual((result.S62aResidential as any).upsert.update.Housing, {
-				deleteMany: { housingTypeId: HOUSING_TYPE_ID.PROPOSED },
+				deleteMany: [{ housingTypeId: HOUSING_TYPE_ID.PROPOSED }],
 				create: []
 			});
 		});
@@ -1596,6 +1595,61 @@ describe('S62aCaseUpdateMapper', () => {
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
 
 			assert.ok(result.S62aResidential, 'the upsert must still be generated');
+		});
+
+		it('maps the existing housing entries with the existing housing type', () => {
+			const answers = {
+				manageExistingHousing: [
+					{ id: 'row-1', occupancyTypeId: OCCUPANCY_TYPE_ID.MARKET_HOUSING, unitTypeId: UNIT_TYPE_ID.HOUSES }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const [created] = (result.S62aResidential as any).upsert.create.Housing.create;
+
+			assert.deepStrictEqual(created.HousingType, { connect: { id: HOUSING_TYPE_ID.EXISTING } });
+		});
+
+		it('scopes the delete to existing so saving does not wipe the proposed entries', () => {
+			const answers = {
+				manageExistingHousing: [
+					{ id: 'row-1', occupancyTypeId: OCCUPANCY_TYPE_ID.STARTER_HOMES, unitTypeId: UNIT_TYPE_ID.HOUSES }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const { update } = (new S62aCaseUpdateMapper(answers).generateUpdateInput().S62aResidential as any).upsert;
+
+			assert.deepStrictEqual(update.Housing.deleteMany, [{ housingTypeId: HOUSING_TYPE_ID.EXISTING }]);
+		});
+
+		it('deletes and recreates both sides when both are in the payload', () => {
+			const answers = {
+				manageExistingHousing: [
+					{ id: 'row-1', occupancyTypeId: OCCUPANCY_TYPE_ID.MARKET_HOUSING, unitTypeId: UNIT_TYPE_ID.HOUSES }
+				],
+				manageProposedHousing: [
+					{ id: 'row-2', occupancyTypeId: OCCUPANCY_TYPE_ID.STARTER_HOMES, unitTypeId: UNIT_TYPE_ID.HOUSES }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const { update } = (new S62aCaseUpdateMapper(answers).generateUpdateInput().S62aResidential as any).upsert;
+
+			assert.deepStrictEqual(update.Housing.deleteMany, [
+				{ housingTypeId: HOUSING_TYPE_ID.EXISTING },
+				{ housingTypeId: HOUSING_TYPE_ID.PROPOSED }
+			]);
+			assert.strictEqual(update.Housing.create.length, 2);
+			assert.deepStrictEqual(update.Housing.create[0].HousingType, { connect: { id: HOUSING_TYPE_ID.EXISTING } });
+			assert.deepStrictEqual(update.Housing.create[1].HousingType, { connect: { id: HOUSING_TYPE_ID.PROPOSED } });
+		});
+
+		it('leaves the other side alone when only one list is in the payload', () => {
+			const answers = { manageExistingHousing: [] } as unknown as UpdateCaseAnswers;
+
+			const { update } = (new S62aCaseUpdateMapper(answers).generateUpdateInput().S62aResidential as any).upsert;
+
+			assert.strictEqual(update.Housing.deleteMany.length, 1);
+			assert.deepStrictEqual(update.Housing.deleteMany[0], { housingTypeId: HOUSING_TYPE_ID.EXISTING });
 		});
 	});
 });

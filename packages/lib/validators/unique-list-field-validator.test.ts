@@ -162,3 +162,143 @@ describe('UniqueListFieldValidator', () => {
 		assert.strictEqual(result.array()[0].msg, 'Already added inert-landfill');
 	});
 });
+
+describe('alsoMatchOn', () => {
+	const unitTypeQuestion = { fieldName: 'unitTypeId' } as unknown as Question;
+
+	const buildCombinationValidator = () =>
+		new UniqueListFieldValidator({
+			listFieldName: 'manageProposedHousing',
+			alsoMatchOn: ['occupancyTypeId'],
+			buildErrorMessage: (name, matchedItem) =>
+				`You have already added ${String(matchedItem.occupancyTypeId)} - ${name}`
+		});
+
+	const buildHousingReq = (items: Record<string, unknown>[], body: Record<string, unknown>, params = {}) => ({
+		body,
+		params,
+		res: { locals: { journeyResponse: { answers: { manageProposedHousing: items } } } }
+	});
+
+	const runCombination = async (req: unknown) => {
+		await buildCombinationValidator()
+			.validate(unitTypeQuestion)
+			.run(req as never);
+		return validationResult(req as never);
+	};
+
+	it('fails when both the value and the extra field match another item', async () => {
+		const req = buildHousingReq(
+			[
+				{ id: 'row-1', occupancyTypeId: 'market-housing', unitTypeId: 'houses' },
+				{ id: 'row-2', occupancyTypeId: 'market-housing' }
+			],
+			{ unitTypeId: 'houses' },
+			{ manageListItemId: 'row-2' }
+		);
+
+		const result = await runCombination(req);
+
+		assert.strictEqual(result.isEmpty(), false);
+		assert.strictEqual(result.array()[0].msg, 'You have already added market-housing - houses');
+	});
+
+	it('passes when the value matches but the extra field does not', async () => {
+		const req = buildHousingReq(
+			[
+				{ id: 'row-1', occupancyTypeId: 'market-housing', unitTypeId: 'houses' },
+				{ id: 'row-2', occupancyTypeId: 'starter-homes' }
+			],
+			{ unitTypeId: 'houses' },
+			{ manageListItemId: 'row-2' }
+		);
+
+		const result = await runCombination(req);
+
+		assert.strictEqual(result.isEmpty(), true);
+	});
+
+	it('passes when the extra field matches but the value does not', async () => {
+		const req = buildHousingReq(
+			[
+				{ id: 'row-1', occupancyTypeId: 'market-housing', unitTypeId: 'houses' },
+				{ id: 'row-2', occupancyTypeId: 'market-housing' }
+			],
+			{ unitTypeId: 'flats-maisonettes' },
+			{ manageListItemId: 'row-2' }
+		);
+
+		const result = await runCombination(req);
+
+		assert.strictEqual(result.isEmpty(), true);
+	});
+
+	it('passes when editing an item and leaving its own combination unchanged', async () => {
+		const req = buildHousingReq(
+			[
+				{ id: 'row-1', occupancyTypeId: 'market-housing', unitTypeId: 'houses' },
+				{ id: 'row-2', occupancyTypeId: 'starter-homes', unitTypeId: 'houses' }
+			],
+			{ unitTypeId: 'houses' },
+			{ manageListItemId: 'row-1' }
+		);
+
+		const result = await runCombination(req);
+
+		assert.strictEqual(result.isEmpty(), true);
+	});
+
+	it('does not flag a clash when the item being edited has no occupancy yet', async () => {
+		const req = buildHousingReq(
+			[{ id: 'row-1', occupancyTypeId: 'market-housing', unitTypeId: 'houses' }, { id: 'row-2' }],
+			{ unitTypeId: 'houses' },
+			{ manageListItemId: 'row-2' }
+		);
+
+		const result = await runCombination(req);
+
+		assert.strictEqual(result.isEmpty(), true);
+	});
+
+	it('builds the message from the item clashed with, not the item being edited', async () => {
+		const validator = new UniqueListFieldValidator({
+			listFieldName: 'manageProposedHousing',
+			alsoMatchOn: ['occupancyTypeId'],
+			buildErrorMessage: (name, matchedItem) => `${name} clashes with ${String(matchedItem.id)}`
+		});
+
+		const req = buildHousingReq(
+			[
+				{ id: 'row-1', occupancyTypeId: 'market-housing', unitTypeId: 'houses' },
+				{ id: 'row-2', occupancyTypeId: 'market-housing' }
+			],
+			{ unitTypeId: 'houses' },
+			{ manageListItemId: 'row-2' }
+		);
+
+		await validator.validate(unitTypeQuestion).run(req as never);
+
+		assert.strictEqual(validationResult(req as never).array()[0].msg, 'houses clashes with row-1');
+	});
+
+	it('lets a caller that does not need the matched item ignore it', async () => {
+		const validator = new UniqueListFieldValidator({
+			listFieldName: 'manageProposedHousing',
+			alsoMatchOn: ['occupancyTypeId'],
+			buildErrorMessage: (name) => `Already added ${name}`
+		});
+
+		const req = buildHousingReq(
+			[
+				{ id: 'row-1', occupancyTypeId: 'market-housing', unitTypeId: 'houses' },
+				{ id: 'row-2', occupancyTypeId: 'market-housing' }
+			],
+			{ unitTypeId: 'houses' },
+			{ manageListItemId: 'row-2' }
+		);
+
+		await validator.validate(unitTypeQuestion).run(req as never);
+
+		assert.strictEqual(validationResult(req as never).array()[0].msg, 'Already added houses');
+	});
+});
