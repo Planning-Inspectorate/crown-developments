@@ -1,38 +1,38 @@
 import { Router as createRouter } from 'express';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import { buildGetJourney } from '@planning-inspectorate/dynamic-forms/src/middleware/build-get-journey.js';
-import { list, question, buildSave } from '@planning-inspectorate/dynamic-forms/src/controller.js';
-import { redirectToUnansweredQuestion } from '@planning-inspectorate/dynamic-forms/src/middleware/redirect-to-unanswered-question.js';
-import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
-import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
 import {
+	buildGetJourney,
+	list,
+	question,
+	buildSave,
+	redirectToUnansweredQuestion,
+	validate,
+	validationErrorHandler,
 	saveDataToSession,
-	buildGetJourneyResponseFromSession
-} from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
+	buildGetJourneyResponseFromSession,
+	type Journey
+} from '@planning-inspectorate/dynamic-forms';
 import { JOURNEY_ID, createJourney } from './journey.ts';
 import { getQuestions } from './questions.ts';
 import { buildSaveController, buildSuccessController } from './save.js';
 import { getSummaryWarningMessage } from '@pins/crowndev-lib/util/linked-case.ts';
 import { removeApplicantContactsWhenOrganisationRemoved } from '@pins/crowndev-lib/util/session.ts';
+import { withTypedAnswers } from '@pins/crowndev-lib/util/journey-types.ts';
+import type { CrownDevelopmentViewModel } from '../view/view-model.ts';
+import type { ManageService } from '#service';
+import type { Router } from 'express';
 
 /**
- * @param {import('#service').ManageService} service
- * @returns {import('express').Router}
+ *
  */
-export function createRoutes(service) {
+export function createRoutes(service: ManageService): Router {
 	const router = createRouter({ mergeParams: true });
 
-	/**
-	 * @param {boolean} isQuestionView
-	 */
-	function makeGetJourneyCallback(isQuestionView) {
-		return (
-			/** @type {import('express').Request} */ req,
-			/** @type {import('@planning-inspectorate/dynamic-forms/src/journey/journey.js').JourneyResponse} */ journeyResponse
-		) => {
+	function makeGetJourneyCallback(isQuestionView: boolean) {
+		return withTypedAnswers<CrownDevelopmentViewModel, Journey>((req, journeyResponse) => {
 			const questions = getQuestions(journeyResponse, isQuestionView);
 			return createJourney(questions, journeyResponse, req);
-		};
+		});
 	}
 
 	const getQuestionJourney = buildGetJourney(makeGetJourneyCallback(true));
