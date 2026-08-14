@@ -2847,4 +2847,208 @@ describe('audit recording', () => {
 		assert.strictEqual(entries[0].metadata.fieldName, 'Agent organisation name');
 		assert.strictEqual(entries[0].metadata.newValue, 'New Agent Org Ltd');
 	});
+
+	describe('recordAuditEntries - long text fields', () => {
+		describe('description', () => {
+			it('should record FIELD_SET_LONG when description is set from null', async () => {
+				const logger = mockLogger();
+				const mockAudit = createMockAudit();
+				const mockDb = buildDbForAudit({ description: null });
+
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+				const mockReq = {
+					params: { id: 'case-1' },
+					session: { account: { localAccountId: 'user-123' } }
+				};
+				const mockRes = { locals: {} };
+				const data = {
+					answers: {
+						description: 'A new development description'
+					}
+				};
+
+				await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+				assert.strictEqual(entries.length, 1);
+				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_SET_LONG);
+				assert.strictEqual(entries[0].metadata.fieldName, 'Development description');
+				assert.strictEqual(entries[0].metadata.oldValue, '-');
+				assert.strictEqual(entries[0].metadata.newValue, 'A new development description');
+			});
+
+			it('should record FIELD_UPDATED_LONG when description is changed', async () => {
+				const logger = mockLogger();
+				const mockAudit = createMockAudit();
+				const mockDb = buildDbForAudit({ description: 'Old description text' });
+
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+				const mockReq = {
+					params: { id: 'case-1' },
+					session: { account: { localAccountId: 'user-123' } }
+				};
+				const mockRes = { locals: {} };
+				const data = {
+					answers: {
+						description: 'Updated description text'
+					}
+				};
+
+				await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+				assert.strictEqual(entries.length, 1);
+				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_UPDATED_LONG);
+				assert.strictEqual(entries[0].metadata.fieldName, 'Development description');
+				assert.strictEqual(entries[0].metadata.oldValue, 'Old description text');
+				assert.strictEqual(entries[0].metadata.newValue, 'Updated description text');
+			});
+
+			it('should record FIELD_CLEARED_LONG when description is removed', async () => {
+				const logger = mockLogger();
+				const mockAudit = createMockAudit();
+				const mockDb = buildDbForAudit({ description: 'Old description text' });
+
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+				const mockReq = {
+					params: { id: 'case-1' },
+					session: { account: { localAccountId: 'user-123' } }
+				};
+				const mockRes = { locals: {} };
+				const data = {
+					answers: {
+						description: null
+					}
+				};
+
+				await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+				assert.strictEqual(entries.length, 1);
+				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_CLEARED_LONG);
+				assert.strictEqual(entries[0].metadata.fieldName, 'Development description');
+				assert.strictEqual(entries[0].metadata.oldValue, 'Old description text');
+				assert.strictEqual(entries[0].metadata.newValue, '-');
+			});
+		});
+
+		describe('costsApplicationsComment', () => {
+			it('should record FIELD_SET_LONG when costsApplicationsComment is set from empty', async () => {
+				const logger = mockLogger();
+				const mockAudit = createMockAudit();
+				const mockDb = buildDbForAudit({ costsApplicationsComment: null });
+
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+				const mockReq = {
+					params: { id: 'case-1' },
+					session: { account: { localAccountId: 'user-123' } }
+				};
+				const mockRes = { locals: {} };
+				const data = {
+					answers: {
+						costsApplicationsComment: 'Updated comment text'
+					}
+				};
+
+				await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+				assert.strictEqual(entries.length, 1);
+				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_SET_LONG);
+				assert.strictEqual(entries[0].metadata.fieldName, 'Costs applications comment');
+				assert.strictEqual(entries[0].metadata.oldValue, '-');
+				assert.strictEqual(entries[0].metadata.newValue, 'Updated comment text');
+			});
+
+			it('should record FIELD_UPDATED_LONG when costsApplicationsComment is changed', async () => {
+				const logger = mockLogger();
+				const mockAudit = createMockAudit();
+				const mockDb = buildDbForAudit({ costsApplicationsComment: 'Original comment' });
+
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+				const mockReq = {
+					params: { id: 'case-1' },
+					session: { account: { localAccountId: 'user-123' } }
+				};
+				const mockRes = { locals: {} };
+				const data = {
+					answers: {
+						costsApplicationsComment: 'Updated comment text'
+					}
+				};
+
+				await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+				assert.strictEqual(entries.length, 1);
+				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_UPDATED_LONG);
+				assert.strictEqual(entries[0].metadata.fieldName, 'Costs applications comment');
+				assert.strictEqual(entries[0].metadata.oldValue, 'Original comment');
+				assert.strictEqual(entries[0].metadata.newValue, 'Updated comment text');
+			});
+
+			it('should record FIELD_CLEARED_LONG when costsApplicationsComment is cleared', async () => {
+				const logger = mockLogger();
+				const mockAudit = createMockAudit();
+				const mockDb = buildDbForAudit({ costsApplicationsComment: 'Some costs comment', hasCostsApplications: true });
+
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+				const mockReq = {
+					params: { id: 'case-1' },
+					session: { account: { localAccountId: 'user-123' } }
+				};
+				const mockRes = { locals: {} };
+				const data = {
+					answers: {
+						hasCostsApplications: false,
+						costsApplicationsComment: null
+					}
+				};
+
+				await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+
+				// Has costs applications also audits, so select only the comment entry.
+				const commentEntry = entries.find((e: any) => e.metadata.fieldName === 'Costs applications comment');
+				assert.ok(commentEntry, 'expected an audit entry for costsApplicationsComment');
+				assert.strictEqual(commentEntry.action, AUDIT_ACTIONS.FIELD_CLEARED_LONG);
+				assert.strictEqual(commentEntry.metadata.oldValue, 'Some costs comment');
+				assert.strictEqual(commentEntry.metadata.newValue, '-');
+			});
+		});
+
+		describe('non-long field guard', () => {
+			it('should use FIELD_UPDATED (not FIELD_UPDATED_LONG) for lpaReference', async () => {
+				const logger = mockLogger();
+				const mockAudit = createMockAudit();
+				const mockDb = buildDbForAudit({ lpaReference: 'OLD/REF' });
+
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+				const mockReq = {
+					params: { id: 'case-1' },
+					session: { account: { localAccountId: 'user-123' } }
+				};
+				const mockRes = { locals: {} };
+				const data = {
+					answers: {
+						lpaReference: 'NEW/REF'
+					}
+				};
+
+				await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+				assert.strictEqual(entries.length, 1);
+				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_UPDATED);
+			});
+		});
+	});
 });
