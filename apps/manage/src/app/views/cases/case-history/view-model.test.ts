@@ -80,7 +80,6 @@ describe('createCaseHistoryViewModel', () => {
 
 		const result = createCaseHistoryViewModel(events);
 
-		// The details string should be resolved from the template using metadata
 		assert.strictEqual(result[0].details, 'DRT/PER/00015 was created');
 	});
 
@@ -89,7 +88,6 @@ describe('createCaseHistoryViewModel', () => {
 
 		const result = createCaseHistoryViewModel(events);
 
-		assert.ok(typeof result[0].details === 'string');
 		// With no metadata, the placeholder is left intact
 		assert.strictEqual(result[0].details, '{reference} was created');
 	});
@@ -110,15 +108,222 @@ describe('createCaseHistoryViewModel', () => {
 		assert.strictEqual(result[2].user, 'Third');
 	});
 
-	it('should return objects matching CaseHistoryRow interface', () => {
-		const events = [event()];
+	it('should keep standard shape for non-long rows', () => {
+		const events = [event({ action: 'CASE_CREATED', metadata: { reference: 'REF-123' } })];
+
+		const result = createCaseHistoryViewModel(events);
+
+		assert.strictEqual(result[0].details, 'REF-123 was created');
+		assert.strictEqual(result[0].action, 'CASE_CREATED');
+		assert.strictEqual(result[0].longDetails, undefined);
+	});
+
+	it('should build longDetails for updated long fields', () => {
+		const events = [
+			event({
+				action: 'FIELD_UPDATED_LONG',
+				metadata: {
+					fieldName: 'Description',
+					oldValue: 'Old description',
+					newValue: 'New description'
+				}
+			})
+		];
 
 		const result = createCaseHistoryViewModel(events);
 
 		assert.strictEqual(result.length, 1);
-		assert.ok('dateTimeFormatted' in result[0]);
-		assert.ok('details' in result[0]);
-		assert.ok('user' in result[0]);
-		assert.strictEqual(Object.keys(result[0]).length, 3);
+		assert.strictEqual(result[0].action, 'FIELD_UPDATED_LONG');
+		assert.strictEqual(result[0].details, 'Description was updated');
+		assert.strictEqual(result[0].longDetails?.length, 2);
+		assert.deepStrictEqual(result[0].longDetails?.[0], {
+			label: 'Previous Description',
+			value: 'Old description'
+		});
+		assert.deepStrictEqual(result[0].longDetails?.[1], {
+			label: 'New Description',
+			value: 'New description'
+		});
+	});
+	it('should build longDetails for set long fields using newValue', () => {
+		const events = [
+			event({
+				action: 'FIELD_SET_LONG',
+				metadata: {
+					fieldName: 'Description',
+					newValue: 'A newly set long description'
+				}
+			})
+		];
+
+		const result = createCaseHistoryViewModel(events);
+
+		assert.strictEqual(result.length, 1);
+		assert.strictEqual(result[0].action, 'FIELD_SET_LONG');
+		assert.strictEqual(result[0].details, 'Description was set to');
+		assert.strictEqual(result[0].longDetails?.length, 1);
+		assert.deepStrictEqual(result[0].longDetails?.[0], {
+			label: 'Show full details',
+			value: 'A newly set long description'
+		});
+	});
+	it('should build longDetails for cleared long fields using oldValue', () => {
+		const events = [
+			event({
+				action: 'FIELD_CLEARED_LONG',
+				metadata: {
+					fieldName: 'Description',
+					oldValue: 'A long value that was removed'
+				}
+			})
+		];
+
+		const result = createCaseHistoryViewModel(events);
+
+		assert.strictEqual(result.length, 1);
+		assert.strictEqual(result[0].action, 'FIELD_CLEARED_LONG');
+		assert.strictEqual(result[0].details, 'Description was removed');
+		assert.strictEqual(result[0].longDetails?.length, 1);
+		assert.deepStrictEqual(result[0].longDetails?.[0], {
+			label: 'Show full details',
+			value: 'A long value that was removed'
+		});
+	});
+	it('should omit longDetails when long values are missing', () => {
+		const events = [
+			event({
+				action: 'FIELD_SET_LONG',
+				metadata: {
+					fieldName: 'Description'
+				}
+			})
+		];
+
+		const result = createCaseHistoryViewModel(events);
+
+		assert.strictEqual(result.length, 1);
+		assert.strictEqual(result[0].details, 'Description was set to');
+		assert.strictEqual(result[0].longDetails, undefined);
+	});
+	it('should filter out empty values in updated long fields', () => {
+		const events = [
+			event({
+				action: 'FIELD_UPDATED_LONG',
+				metadata: {
+					fieldName: 'Description',
+					oldValue: 'Old value',
+					newValue: ''
+				}
+			})
+		];
+
+		const result = createCaseHistoryViewModel(events);
+
+		// Only the old value should be present
+		assert.strictEqual(result[0].longDetails?.length, 1);
+		assert.strictEqual(result[0].longDetails?.[0]?.label, 'Previous Description');
+	});
+
+	it('should return empty longDetails when both old and new values are empty', () => {
+		const events = [
+			event({
+				action: 'FIELD_UPDATED_LONG',
+				metadata: {
+					fieldName: 'Description',
+					oldValue: '',
+					newValue: ''
+				}
+			})
+		];
+
+		const result = createCaseHistoryViewModel(events);
+
+		// Both filtered out, so array is empty
+		assert.strictEqual(result[0].longDetails?.length, 0);
+	});
+
+	it('should preserve multiline values with newlines', () => {
+		const events = [
+			event({
+				action: 'FIELD_SET_LONG',
+				metadata: {
+					fieldName: 'Description',
+					newValue: 'Line 1\nLine 2\nLine 3'
+				}
+			})
+		];
+
+		const result = createCaseHistoryViewModel(events);
+
+		// Value should keep the newlines intact (template will convert to <br>)
+		assert.strictEqual(result[0].longDetails?.[0]?.value, 'Line 1\nLine 2\nLine 3');
+	});
+
+	it('should gracefully handle non-string metadata values', () => {
+		const events = [
+			event({
+				action: 'FIELD_SET_LONG',
+				metadata: {
+					fieldName: 'Description',
+					newValue: 12345 // Number instead of string
+				}
+			})
+		];
+
+		const result = createCaseHistoryViewModel(events);
+
+		// Should fall back to empty string, no longDetails
+		assert.strictEqual(result[0].longDetails, undefined);
+	});
+
+	it('should handle missing fieldName gracefully', () => {
+		const events = [
+			event({
+				action: 'FIELD_UPDATED_LONG',
+				metadata: {
+					oldValue: 'Old value',
+					newValue: 'New value'
+					// fieldName missing
+				}
+			})
+		];
+
+		const result = createCaseHistoryViewModel(events);
+
+		// Labels should still be readable without crashing
+		assert.strictEqual(result[0].longDetails?.[0]?.label, 'Previous ');
+		assert.strictEqual(result[0].longDetails?.[1]?.label, 'New ');
+	});
+
+	it('should not create longDetails for set long if metadata value is not a string', () => {
+		const events = [
+			event({
+				action: 'FIELD_SET_LONG',
+				metadata: {
+					fieldName: 'Description',
+					newValue: { some: 'object' }
+				}
+			})
+		];
+
+		const result = createCaseHistoryViewModel(events);
+
+		assert.strictEqual(result[0].longDetails, undefined);
+	});
+
+	it('should not create longDetails for cleared long if oldValue is null', () => {
+		const events = [
+			event({
+				action: 'FIELD_CLEARED_LONG',
+				metadata: {
+					fieldName: 'Description',
+					oldValue: null
+				}
+			})
+		];
+
+		const result = createCaseHistoryViewModel(events);
+
+		assert.strictEqual(result[0].longDetails, undefined);
 	});
 });

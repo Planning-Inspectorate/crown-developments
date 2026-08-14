@@ -1,0 +1,33 @@
+// adjusts the case history table to fit the content of the cells and not overflow the page
+
+// these stop the details from moving when expanded and keep the table width fixed to 100%
+.pins-case-history-table {
+	width: 100%;
+	table-layout: fixed;
+
+	.govuk-table__header,
+	.govuk-table__cell {
+		vertical-align: top;
+		overflow-wrap: anywhere;
+	}
+
+	// first column date and time
+	.govuk-table__header:nth-child(1),
+	.govuk-table__cell:nth-child(1) {
+		width: 20%;
+	}
+
+	// second column case history details
+
+	.govuk-table__header:nth-child(2),
+	.govuk-table__cell:nth-child(2) {
+		width: 60%;
+	}
+
+	// third column case history user
+
+	.govuk-table__header:nth-child(3),
+	.govuk-table__cell:nth-child(3) {
+		width: 20%;
+	}
+}
