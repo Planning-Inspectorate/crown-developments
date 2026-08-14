@@ -1,0 +1,82 @@
+{% extends layoutTemplate %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "custom-moj-file-upload/custom-moj-file-upload.njk" import customMojFileUpload, customMojFileUploadScript %}
+{% from "govuk/components/file-upload/macro.njk" import govukFileUpload %}
+
+{% block content %}
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        
+        {% if errorSummary %}
+            {{ govukErrorSummary({
+                titleText: "There is a problem",
+                errorList: errorSummary
+            }) }}
+        {% endif %}
+
+        <h1 class="govuk-heading-l">{{ question.question }}</h1>
+
+        {% if question.preUploadHtml %}
+            {% include question.preUploadHtml ignore missing %}
+        {% endif %}
+
+        {% set uploadForm = question.fieldName %}
+        
+        <form 
+            id="upload-form-container" 
+            action="{{ currentUrl }}" 
+            method="post" 
+            enctype="multipart/form-data" 
+            data-upload-url="{{ question.dataUploadUrl }}" 
+            data-delete-url="{{ question.dataDeleteUrl }}"
+        >
+            <input type="hidden" name="_csrf" value="{{ _csrf }}">
+            
+            {% set uploadHtml %}
+                {{ govukFileUpload({
+                    id: uploadForm,
+                    name: "documents",
+                    classes: "moj-multi-file-upload__input",
+                    attributes: { multiple: "" },
+                    errorMessage: errors[uploadForm] and { text: errors[uploadForm].msg }
+                }) }}
+
+                {{ govukButton({
+                    text: "Upload file",
+                    classes: "govuk-button--secondary moj-multi-file-upload__button"
+                }) }}
+            {% endset %}
+
+            <div class="pins-multi-file-upload">
+                {{ customMojFileUpload({
+                    uploadedFiles: {
+                        heading: { text: "Files added" },
+                        items: question.uploadedFiles
+                    },
+                    uploadHtml: uploadHtml
+                }) }}
+            </div>
+        </form>
+
+        
+        {% if question.postUploadHtml %}
+            {% include question.postUploadHtml ignore missing %}
+        {% endif %}
+
+        <form id="main-submit-form" action="{{ currentUrl }}" method="post">
+            <input type="hidden" name="_csrf" value="{{ _csrf }}">
+            {{ govukButton({
+                text: "Save and continue",
+                attributes: { "data-cy":"button-save-and-continue"}
+            }) }}
+        </form>
+
+        {{ customMojFileUploadScript({
+            cspNonce: cspNonce 
+        }) }}
+
+    </div>
+</div>
+{% endblock %}
