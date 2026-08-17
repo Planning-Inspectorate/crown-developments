@@ -2,11 +2,11 @@ import type { NextFunction, Request, Response } from 'express';
 import type { ManageService } from '#service';
 import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
 import type { DocumentsUploader } from './document-uploader.ts';
-import { formatBytes } from '../upload-utils.ts';
 import { getStringParam, getStringParams } from '@pins/crowndev-lib/util/params.ts';
 import { NoUploadsError } from '@pins/crowndev-lib/middleware/errors.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
-import type { ValidationConfig } from './file-validator.ts';
+import type { ValidationConfig } from '@pins/crowndev-lib/validators/file-validator.ts';
+import { formatBytes } from '@pins/crowndev-lib/util/file.ts';
 
 /**
  * Controller for uploading a new document to Azure Blob.

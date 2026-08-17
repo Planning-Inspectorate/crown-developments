@@ -717,6 +717,23 @@ model DraftDocument {
   @@index([sessionKey, s62aCaseId])
 }
 
+/// A "pending" document connected with a representation (in Blob)
+/// Will be commited into a proper document on full save.
+model DraftBlobRepresentationDocument {
+  id               String               @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  sessionKey       String
+  fileName         String
+  blobName         String
+  size             BigInt
+  mimeType         String               @default("application/octet-stream")
+  redactedBlobName String?
+  redactedFileName String?
+  statusId         String
+  Status           RepresentationStatus @relation(fields: [statusId], references: [id])
+
+  @@index([sessionKey])
+}
+
 /// Address represents an address of a property or place
 model Address {
   /// internal identifier
@@ -1047,10 +1064,11 @@ model RepresentationSubmittedFor {
 /// RepresentationStatus represents the status of representation e.g. accepted/rejected
 model RepresentationStatus {
   /// unique machine-readable name, not generated, e.g. "accepted"
-  id                     String                   @id
-  displayName            String?
-  Representation         Representation[]
-  RepresentationDocument RepresentationDocument[]
+  id                               String                            @id
+  displayName                      String?
+  Representation                   Representation[]
+  RepresentationDocument           RepresentationDocument[]
+  DraftBlobRepresentationDocuments DraftBlobRepresentationDocument[]
 }
 
 /// RepresentedType represents the type of representation when acting as an agent i.e. whether person/org/group

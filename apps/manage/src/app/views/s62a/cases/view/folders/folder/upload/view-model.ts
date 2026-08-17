@@ -1,5 +1,5 @@
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import { formatBytes } from './upload-utils.ts';
+import { formatBytes } from '@pins/crowndev-lib/util/file.ts';
 
 /**
  * This model mimics the structure that is automatically created by the MoJ
