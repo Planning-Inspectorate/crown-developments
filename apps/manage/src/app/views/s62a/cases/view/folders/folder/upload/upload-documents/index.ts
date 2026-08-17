@@ -18,7 +18,7 @@ import {
 	TOTAL_UPLOAD_LIMIT
 } from '../upload-utils.ts';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import { FileValidator } from './file-validator.ts';
+import { FileValidator } from '@pins/crowndev-lib/validators/file-validator.ts';
 
 export function createRoutes(service: ManageService) {
 	const { db, blobStore, logger } = service;

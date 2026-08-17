@@ -1,32 +1,10 @@
-import { Readable } from 'stream';
 import { randomUUID } from 'crypto';
-import type { PrismaClient, Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import type { BlobStorageClient } from '@pins/crowndev-lib/blob-store/blob-store-client.ts';
-import type { Logger } from 'pino';
+import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
-import { formatBytes } from '../upload-utils.ts';
-import type { FileValidator, ValidationConfig, ValidationError } from './file-validator.ts';
-import 'multer';
+import type { ValidationConfig, ValidationError } from '@pins/crowndev-lib/validators/file-validator.ts';
+import { BaseDocumentsUploader, type FileWithId } from '@pins/crowndev-lib/util/base-document-uploader.ts';
 
-type FileWithId = {
-	file: Express.Multer.File;
-	originalName: string;
-	blobName: string;
-};
-
-export class DocumentsUploader {
-	private readonly db: PrismaClient;
-	private readonly blobStore: BlobStorageClient | null;
-	private readonly logger: Logger;
-	private readonly fileValidator: FileValidator;
-
-	constructor(db: PrismaClient, blobStore: BlobStorageClient | null, logger: Logger, fileValidator: FileValidator) {
-		this.db = db;
-		this.blobStore = blobStore;
-		this.logger = logger;
-		this.fileValidator = fileValidator;
-	}
-
+export class DocumentsUploader extends BaseDocumentsUploader {
 	/**
 	 * Orchestrates all file validation rules against DB state and session drafts.
 	 */
@@ -37,75 +15,12 @@ export class DocumentsUploader {
 		config: ValidationConfig,
 		existingNameSet: Set<string> = new Set()
 	): Promise<ValidationError[]> {
-		const allErrors: ValidationError[] = [];
-
-		const validationErrors = (
-			await Promise.all(files.map((file) => this.fileValidator.validateSingleFile(file, config, existingNameSet)))
-		).flat();
-
-		allErrors.push(...validationErrors);
-
-		const [hasDuplicatesInDraft, isOverLimit] = await Promise.all([
-			this.checkForDuplicateFilesInDraft(sessionKey, files, s62aCaseId),
-			this.checkTotalSizeLimit(sessionKey, s62aCaseId, files, config.totalUploadLimit)
-		]);
-
-		if (hasDuplicatesInDraft) {
-			allErrors.push({
-				text: 'A file with this name has already been uploaded',
-				href: '#upload-form'
-			});
-		}
-
-		if (isOverLimit) {
-			allErrors.push({
-				text: `Total file size of all attachments must not exceed ${formatBytes(config.totalUploadLimit)}`,
-				href: '#upload-form'
-			});
-		}
-
-		return allErrors;
-	}
-
-	/**
-	 * Checks that the entire upload session hasn't gone over the maximum limit
-	 */
-	private async checkTotalSizeLimit(
-		sessionKey: string,
-		s62aCaseId: string,
-		newFiles: Express.Multer.File[],
-		totalUploadLimit: number
-	): Promise<boolean> {
 		const existingDrafts = await this.db.draftDocument.findMany({
 			where: { sessionKey, s62aCaseId },
-			select: { size: true }
+			select: { size: true, fileName: true }
 		});
 
-		const currentTotalSize = existingDrafts.reduce((acc, draft) => acc + Number(draft.size), 0);
-		const newFilesSize = newFiles.reduce((acc, file) => acc + file.size, 0);
-
-		return currentTotalSize + newFilesSize > totalUploadLimit;
-	}
-
-	/**
-	 * Checks for duplicates in draft to make sure there aren't 2+ with the same name
-	 */
-	private async checkForDuplicateFilesInDraft(
-		sessionKey: string,
-		files: Express.Multer.File[],
-		s62aCaseId: string
-	): Promise<boolean> {
-		const existingDrafts = await this.db.draftDocument.findMany({
-			where: { sessionKey, s62aCaseId },
-			select: { fileName: true }
-		});
-
-		const existingNames = new Set(existingDrafts.map((d) => d.fileName));
-
-		return files.some((newFile) => {
-			const newName = Buffer.from(newFile.originalname, 'latin1').toString('utf8');
-			return existingNames.has(newName);
-		});
+		return this.validateUploads(files, config, existingDrafts, existingNameSet);
 	}
 
 	/**
@@ -123,8 +38,22 @@ export class DocumentsUploader {
 			blobName: `${s62aCaseId}/${randomUUID()}`
 		}));
 
-		await this.uploadToBlob(filesWithIds);
-		return this.saveAsDraft(filesWithIds, sessionKey, s62aCaseId, folderId);
+		await this.uploadToBlobStore(filesWithIds);
+
+		const operations = filesWithIds.map((file) =>
+			this.db.draftDocument.create({
+				data: {
+					sessionKey,
+					s62aCaseId,
+					fileName: file.originalName,
+					blobName: file.blobName,
+					size: BigInt(file.file.size),
+					mimeType: file.file.mimetype,
+					folderId
+				}
+			})
+		);
+		return await this.db.$transaction(operations);
 	}
 
 	/**
@@ -187,52 +116,10 @@ export class DocumentsUploader {
 			return;
 		}
 
-		await this.db.draftDocument.delete({
-			where: { id: documentId }
-		});
+		await this.db.draftDocument.delete({ where: { id: documentId } });
 
 		if (draft.blobName) {
-			try {
-				const response = await this.blobStore?.deleteBlobIfExists(draft.blobName);
-				if (response?.succeeded) {
-					this.logger.info({ blobName: draft.blobName }, 'Successfully deleted blob');
-				}
-			} catch (error) {
-				this.logger.error({ error, blobName: draft.blobName }, 'Failed to delete blob');
-			}
+			await this.deleteBlobIfExists(draft.blobName);
 		}
-	}
-
-	private async uploadToBlob(filesWithIds: FileWithId[]): Promise<void> {
-		for (const item of filesWithIds) {
-			try {
-				await this.blobStore?.uploadStream(Readable.from(item.file.buffer), item.file.mimetype, item.blobName);
-			} catch (error) {
-				this.logger.error({ error }, `Error uploading file: ${item.blobName}`);
-				throw new Error('Failed to upload file', { cause: error });
-			}
-		}
-	}
-
-	private async saveAsDraft(
-		filesWithIds: FileWithId[],
-		sessionKey: string,
-		s62aCaseId: string,
-		folderId: string
-	): Promise<Prisma.DraftDocumentModel[]> {
-		const operations = filesWithIds.map((file) =>
-			this.db.draftDocument.create({
-				data: {
-					sessionKey,
-					s62aCaseId,
-					fileName: file.originalName,
-					blobName: file.blobName,
-					size: BigInt(file.file.size),
-					mimeType: file.file.mimetype,
-					folderId
-				}
-			})
-		);
-		return await this.db.$transaction(operations);
 	}
 }

@@ -2,8 +2,8 @@ import path from 'path';
 import * as CFB from 'cfb';
 import { fileTypeFromBuffer } from 'file-type';
 import type { Logger } from 'pino';
-import { formatBytes } from '../upload-utils.ts';
 import 'multer';
+import { formatBytes } from '@pins/crowndev-lib/util/file.ts';
 
 export interface ValidationConfig {
 	allowedExtensions: string[];
