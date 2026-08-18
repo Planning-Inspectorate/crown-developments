@@ -1,0 +1,25 @@
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+
+{% if question.showUploadWarning %}
+    <p class="govuk-body">Use this page to upload your supporting documents. These will be published on the
+        website along with your name and comment.</p>
+    {{ govukInsetText({
+        text: "Do not include in your supporting documents any personal information that could identify you or another person."
+    }) }}
+{% endif %}
+
+<p class="govuk-body">
+    You can upload the following file types:
+    <br>
+    {% set upperExtensions = [] %}
+    {% for ext in question.allowedFileExtensions %}
+        {% set _ = upperExtensions.push(ext | upper) %}
+    {% endfor %}
+    {{ upperExtensions | join(", ") }}
+</p>
+<p class="govuk-body">Note that:</p>
+<ul class="govuk-list govuk-list--bullet">
+    <li>files must not be compressed (ZIP files will not be accepted)</li>
+    <li>each file must be under {{ question.maxFileSizeString }}</li>
+    <li>total upload size must be under 1GB</li>
+</ul>

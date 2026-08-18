@@ -118,7 +118,7 @@ describe('s62a-sections', () => {
 				'Address should NOT display when preference is missing'
 			);
 
-			const attachmentsQuestion = getMyselfQuestion(questions.myselfSelectAttachments.fieldName);
+			const attachmentsQuestion = getMyselfQuestion(questions.myselfSelectBlobAttachments.fieldName);
 			const hasAttachmentsResponse = new JourneyResponse(JOURNEY_ID, 'session-id', {
 				[questions.submittedFor.fieldName]: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
 				[questions.myselfHasAttachments.fieldName]: BOOLEAN_OPTIONS.YES
