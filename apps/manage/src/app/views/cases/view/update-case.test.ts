@@ -2850,7 +2850,7 @@ describe('audit recording', () => {
 
 	describe('recordAuditEntries - long text fields', () => {
 		describe('description', () => {
-			it('should record FIELD_SET_LONG when description is set from null', async () => {
+			it('should record LONG_FIELD_SET when description is set from null', async () => {
 				const logger = mockLogger();
 				const mockAudit = createMockAudit();
 				const mockDb = buildDbForAudit({ description: null });
@@ -2872,13 +2872,13 @@ describe('audit recording', () => {
 				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
 				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
 				assert.strictEqual(entries.length, 1);
-				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_SET_LONG);
+				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.LONG_FIELD_SET);
 				assert.strictEqual(entries[0].metadata.fieldName, 'Development description');
 				assert.strictEqual(entries[0].metadata.oldValue, '-');
 				assert.strictEqual(entries[0].metadata.newValue, 'A new development description');
 			});
 
-			it('should record FIELD_UPDATED_LONG when description is changed', async () => {
+			it('should record LONG_FIELD_UPDATED when description is changed', async () => {
 				const logger = mockLogger();
 				const mockAudit = createMockAudit();
 				const mockDb = buildDbForAudit({ description: 'Old description text' });
@@ -2900,13 +2900,13 @@ describe('audit recording', () => {
 				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
 				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
 				assert.strictEqual(entries.length, 1);
-				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_UPDATED_LONG);
+				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.LONG_FIELD_UPDATED);
 				assert.strictEqual(entries[0].metadata.fieldName, 'Development description');
 				assert.strictEqual(entries[0].metadata.oldValue, 'Old description text');
 				assert.strictEqual(entries[0].metadata.newValue, 'Updated description text');
 			});
 
-			it('should record FIELD_CLEARED_LONG when description is removed', async () => {
+			it('should record LONG_FIELD_CLEARED when description is removed', async () => {
 				const logger = mockLogger();
 				const mockAudit = createMockAudit();
 				const mockDb = buildDbForAudit({ description: 'Old description text' });
@@ -2928,7 +2928,7 @@ describe('audit recording', () => {
 				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
 				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
 				assert.strictEqual(entries.length, 1);
-				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_CLEARED_LONG);
+				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.LONG_FIELD_CLEARED);
 				assert.strictEqual(entries[0].metadata.fieldName, 'Development description');
 				assert.strictEqual(entries[0].metadata.oldValue, 'Old description text');
 				assert.strictEqual(entries[0].metadata.newValue, '-');
@@ -2936,7 +2936,7 @@ describe('audit recording', () => {
 		});
 
 		describe('costsApplicationsComment', () => {
-			it('should record FIELD_SET_LONG when costsApplicationsComment is set from empty', async () => {
+			it('should record LONG_FIELD_SET when costsApplicationsComment is set from empty', async () => {
 				const logger = mockLogger();
 				const mockAudit = createMockAudit();
 				const mockDb = buildDbForAudit({ costsApplicationsComment: null });
@@ -2958,13 +2958,13 @@ describe('audit recording', () => {
 				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
 				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
 				assert.strictEqual(entries.length, 1);
-				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_SET_LONG);
+				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.LONG_FIELD_SET);
 				assert.strictEqual(entries[0].metadata.fieldName, 'Costs applications comment');
 				assert.strictEqual(entries[0].metadata.oldValue, '-');
 				assert.strictEqual(entries[0].metadata.newValue, 'Updated comment text');
 			});
 
-			it('should record FIELD_UPDATED_LONG when costsApplicationsComment is changed', async () => {
+			it('should record LONG_FIELD_UPDATED when costsApplicationsComment is changed', async () => {
 				const logger = mockLogger();
 				const mockAudit = createMockAudit();
 				const mockDb = buildDbForAudit({ costsApplicationsComment: 'Original comment' });
@@ -2986,13 +2986,13 @@ describe('audit recording', () => {
 				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
 				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
 				assert.strictEqual(entries.length, 1);
-				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_UPDATED_LONG);
+				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.LONG_FIELD_UPDATED);
 				assert.strictEqual(entries[0].metadata.fieldName, 'Costs applications comment');
 				assert.strictEqual(entries[0].metadata.oldValue, 'Original comment');
 				assert.strictEqual(entries[0].metadata.newValue, 'Updated comment text');
 			});
 
-			it('should record FIELD_CLEARED_LONG when costsApplicationsComment is cleared', async () => {
+			it('should record LONG_FIELD_CLEARED when costsApplicationsComment is cleared', async () => {
 				const logger = mockLogger();
 				const mockAudit = createMockAudit();
 				const mockDb = buildDbForAudit({ costsApplicationsComment: 'Some costs comment', hasCostsApplications: true });
@@ -3018,14 +3018,14 @@ describe('audit recording', () => {
 				// Has costs applications also audits, so select only the comment entry.
 				const commentEntry = entries.find((e: any) => e.metadata.fieldName === 'Costs applications comment');
 				assert.ok(commentEntry, 'expected an audit entry for costsApplicationsComment');
-				assert.strictEqual(commentEntry.action, AUDIT_ACTIONS.FIELD_CLEARED_LONG);
+				assert.strictEqual(commentEntry.action, AUDIT_ACTIONS.LONG_FIELD_CLEARED);
 				assert.strictEqual(commentEntry.metadata.oldValue, 'Some costs comment');
 				assert.strictEqual(commentEntry.metadata.newValue, '-');
 			});
 		});
 
 		describe('non-long field guard', () => {
-			it('should use FIELD_UPDATED (not FIELD_UPDATED_LONG) for lpaReference', async () => {
+			it('should use FIELD_UPDATED (not LONG_FIELD_UPDATED) for lpaReference', async () => {
 				const logger = mockLogger();
 				const mockAudit = createMockAudit();
 				const mockDb = buildDbForAudit({ lpaReference: 'OLD/REF' });

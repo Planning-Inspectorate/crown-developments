@@ -83,29 +83,6 @@
 
 					{{ pagination.renderPagination(paginationParams.pageNumber, paginationParams.totalPages, baseUrl, queryParams) }}
 				{% endif %}
-				{% block scripts %}
-					{{ super() }}
-					<script {% if cspNonce %}nonce="{{ cspNonce }}"{% endif %}>
-						document.querySelectorAll('details.govuk-details').forEach(function(el) {
-							const textEl =
-								el.querySelector('.govuk-details__summary-text') ||
-								el.querySelector('.govuk-details__summary');
-							if (!textEl) return;
-
-							const original = textEl.textContent.trim();
-							if (original !== 'Show full details' && original !== 'Hide full details') {
-								return;
-							}
-
-							const update = function() {
-								textEl.textContent = el.open ? 'Hide full details' : 'Show full details';
-							};
-
-							update();
-							el.addEventListener('toggle', update);
-						});
-					</script>
-				{% endblock %}
 			</div>
 		</div>
 	</div>

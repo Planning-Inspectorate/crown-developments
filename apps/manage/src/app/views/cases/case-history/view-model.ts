@@ -32,45 +32,31 @@ export function createCaseHistoryViewModel(events: Array<AuditEvent & { userName
 
 		const details = resolveTemplate(action, metadata ?? undefined);
 		const fieldName = typeof metadata?.fieldName === 'string' ? metadata.fieldName : '';
+		if (
+			action === AUDIT_ACTIONS.LONG_FIELD_SET ||
+			action === AUDIT_ACTIONS.LONG_FIELD_UPDATED ||
+			action === AUDIT_ACTIONS.LONG_FIELD_CLEARED
+		) {
+			const oldValue = typeof metadata?.oldValue === 'string' ? metadata.oldValue : '';
+			const newValue = typeof metadata?.newValue === 'string' ? metadata.newValue : '';
 
-		if (action === AUDIT_ACTIONS.FIELD_UPDATED_LONG) {
+			const longDetails = [
+				{
+					label: `Previous ${fieldName}`,
+					value: action === AUDIT_ACTIONS.LONG_FIELD_SET ? '' : oldValue
+				},
+				{
+					label: `New ${fieldName}`,
+					value: action === AUDIT_ACTIONS.LONG_FIELD_CLEARED ? '' : newValue
+				}
+			].filter((detail) => detail.value);
+
 			return {
 				dateTimeFormatted,
 				details,
 				user: userName,
 				action,
-				longDetails: [
-					{
-						label: `Previous ${fieldName}`,
-						value: typeof metadata?.oldValue === 'string' ? metadata.oldValue : ''
-					},
-					{
-						label: `New ${fieldName}`,
-						value: typeof metadata?.newValue === 'string' ? metadata.newValue : ''
-					}
-				].filter((detail) => detail.value)
-			};
-		}
-
-		if (action === AUDIT_ACTIONS.FIELD_SET_LONG || action === AUDIT_ACTIONS.FIELD_CLEARED_LONG) {
-			const rawValue = action === AUDIT_ACTIONS.FIELD_SET_LONG ? metadata?.newValue : metadata?.oldValue;
-			const value = typeof rawValue === 'string' ? rawValue : '';
-
-			const summary = action === AUDIT_ACTIONS.FIELD_SET_LONG ? `${fieldName} was set to` : `${fieldName} was removed`;
-
-			return {
-				dateTimeFormatted,
-				details: summary,
-				user: userName,
-				action,
-				longDetails: value
-					? [
-							{
-								label: 'Show full details',
-								value
-							}
-						]
-					: undefined
+				longDetails: longDetails.length > 0 ? longDetails : undefined
 			};
 		}
 
