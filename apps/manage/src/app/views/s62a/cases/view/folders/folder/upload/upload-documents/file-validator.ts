@@ -43,6 +43,17 @@ export class FileValidator {
 
 		const declaredExt = path.extname(decodedName).slice(1).toLowerCase();
 
+		// Fail fast. No point checking buffers, special formats and sigantures if the basic ext
+		// is not in our allowed list.
+		if (!config.allowedExtensions.includes(declaredExt)) {
+			return [
+				{
+					text: `The attachment must be ${config.allowedExtensionsText}`,
+					href: '#upload-form'
+				}
+			];
+		}
+
 		if (['html', 'prj', 'gis', 'dbf', 'shp', 'shx'].includes(declaredExt)) {
 			return this.validateSpecialFormats(file, declaredExt);
 		}
@@ -61,7 +72,7 @@ export class FileValidator {
 			];
 		}
 
-		const spoofingErrors = this.validateFileSignature(file, decodedName, fileTypeResult, config);
+		const spoofingErrors = this.validateFileSignature(decodedName, fileTypeResult, config);
 		if (spoofingErrors.length > 0) return spoofingErrors;
 
 		return this.validateEncryption(file, decodedName, fileTypeResult);
@@ -168,29 +179,45 @@ export class FileValidator {
 	}
 
 	/**
-	 * Checks the file signatures match, again to stop fake files tricking the system
+	 * Checks the file signatures match, again to stop fake files tricking the system.
+	 *
+	 * Checks defined extension first, to fail fast. And then tries more complex checks.
 	 */
 	private validateFileSignature(
-		file: Express.Multer.File,
 		decodedName: string,
 		fileTypeResult: { ext: string; mime: string },
 		config: ValidationConfig
 	): ValidationError[] {
-		const { mimetype } = file;
-		const { ext, mime } = fileTypeResult;
+		const { ext: detectedExt, mime: detectedMime } = fileTypeResult;
 		const errors: ValidationError[] = [];
 
-		if (ext === 'zip' || mime === 'application/zip') {
+		const actualExt = path.extname(decodedName).slice(1).toLowerCase();
+
+		if (detectedExt === 'zip' || detectedMime === 'application/zip') {
 			return [{ text: `The attachment must not be a zip file`, href: '#upload-form' }];
 		}
 
-		const isAllowedMime = new Set([...config.allowedMimeTypes, 'application/x-cfb']).has(mime);
-		const isAllowedExt = new Set([...config.allowedExtensions, 'cfb']).has(ext);
+		if (detectedExt === 'cfb' || detectedMime === 'application/x-cfb') {
+			const allowedCfbExtensions = ['doc', 'xls', 'ppt', 'msg', 'pub', 'dotx'];
+
+			if (allowedCfbExtensions.includes(actualExt)) {
+				return [];
+			} else {
+				return [
+					{
+						text: `File content does not match the .${actualExt} extension`,
+						href: '#upload-form'
+					}
+				];
+			}
+		}
+
+		const isAllowedMime = config.allowedMimeTypes.includes(detectedMime);
+		const isAllowedExt = config.allowedExtensions.includes(detectedExt);
 
 		if (!isAllowedMime || !isAllowedExt) {
-			const declaredExt = mimetype.split('/')[1] || 'unknown';
 			errors.push({
-				text: `File signature mismatch: declared as .${declaredExt} (${mimetype}) but detected as .${ext} (${mime})`,
+				text: `File signature mismatch: declared as .${actualExt} but detected as .${detectedExt} (${detectedMime})`,
 				href: '#upload-form'
 			});
 		}

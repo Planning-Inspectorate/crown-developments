@@ -14,7 +14,6 @@ import {
 	ALLOWED_MIME_TYPES,
 	FILE_NAME_MAX_LENGTH,
 	FILE_NAMES_REGEX,
-	MAX_FILE_NUMBER,
 	MAX_FILE_SIZE,
 	TOTAL_UPLOAD_LIMIT
 } from '../upload-utils.ts';
@@ -48,7 +47,7 @@ export function createRoutes(service: ManageService) {
 	const deleteDocument = deleteDocumentController(service, documentsUploader);
 	const createDocument = createDocumentsController(service, documentsUploader);
 
-	const handleUploads = multer({ limits: { fileSize: MAX_FILE_SIZE, files: MAX_FILE_NUMBER } });
+	const handleUploads = multer();
 
 	// Uploads files
 	router.post('/documents', handleUploads.array('documents'), validateRequest, uploadDocument);

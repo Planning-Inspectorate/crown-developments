@@ -118,12 +118,12 @@ describe('FileValidator', () => {
 
 			const validResult = await validator.validateSingleFile(
 				validHtml,
-				{ ...defaultConfig, allowedMimeTypes: ['text/html'] },
+				{ ...defaultConfig, allowedMimeTypes: ['text/html'], allowedExtensions: ['html'] },
 				new Set()
 			);
 			const invalidResult = await validator.validateSingleFile(
 				invalidHtml,
-				{ ...defaultConfig, allowedMimeTypes: ['text/html'] },
+				{ ...defaultConfig, allowedMimeTypes: ['text/html'], allowedExtensions: ['html'] },
 				new Set()
 			);
 
@@ -136,7 +136,11 @@ describe('FileValidator', () => {
 			const validShpBuffer = Buffer.from([0x00, 0x00, 0x27, 0x0a, 0x00, 0x00, 0x00, 0x00]);
 			const validShp = createMockFile('map.shp', 500, 'application/octet-stream', validShpBuffer);
 
-			const config = { ...defaultConfig, allowedMimeTypes: ['application/octet-stream'] };
+			const config = {
+				...defaultConfig,
+				allowedMimeTypes: ['application/octet-stream'],
+				allowedExtensions: ['shp']
+			};
 			const result = await validator.validateSingleFile(validShp, config, new Set());
 
 			assert.deepStrictEqual(result, []);
@@ -151,7 +155,11 @@ describe('FileValidator', () => {
 				Buffer.from('No location data here')
 			);
 
-			const config = { ...defaultConfig, allowedMimeTypes: ['application/octet-stream'] };
+			const config = {
+				...defaultConfig,
+				allowedMimeTypes: ['application/octet-stream'],
+				allowedExtensions: ['gis']
+			};
 			const result = await validator.validateSingleFile(invalidGis, config, new Set());
 
 			assert.strictEqual(result[0]?.text, 'The attachment is not a valid .gis file');
@@ -179,7 +187,11 @@ describe('FileValidator', () => {
 			const { validator } = setupValidator();
 			const file = createMockFile('archive.zip', 500, 'application/zip', MAGIC_BUFFERS.ZIP);
 
-			const config = { ...defaultConfig, allowedMimeTypes: ['application/zip'] };
+			const config = {
+				...defaultConfig,
+				allowedMimeTypes: ['application/zip'],
+				allowedExtensions: ['zip']
+			};
 			const result = await validator.validateSingleFile(file, config, new Set());
 
 			assert.strictEqual(result[0]?.text, 'The attachment must not be a zip file');
