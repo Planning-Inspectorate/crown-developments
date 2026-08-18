@@ -1,4 +1,4 @@
-import { DefaultAzureCredential } from '@azure/identity';
+import { ManagedIdentityCredential } from '@azure/identity';
 import { BlobServiceClient } from '@azure/storage-blob';
 import type {
 	BlockBlobClient,
@@ -37,7 +37,7 @@ export class BlobStorageClient {
 		if (connectionString) {
 			this.blobServiceClient = ClientClass.fromConnectionString(connectionString);
 		} else {
-			this.blobServiceClient = new ClientClass(this.host, new DefaultAzureCredential(), commonOptions);
+			this.blobServiceClient = new ClientClass(this.host, new ManagedIdentityCredential(), commonOptions);
 		}
 	}
 
