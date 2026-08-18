@@ -69,7 +69,7 @@ apps_config = {
   }
 
   blob_store = {
-    disabled = true
+    disabled = false
   }
 }
 
