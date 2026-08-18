@@ -72,48 +72,47 @@ describe('standard field templates', () => {
 });
 
 describe('long-text field templates', () => {
-	it('should resolve FIELD_SET_LONG template with fieldName and newValue', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.FIELD_SET_LONG, {
+	it('should resolve LONG_FIELD_SET template with fieldName and newValue', () => {
+		const result = resolveTemplate(AUDIT_ACTIONS.LONG_FIELD_SET, {
 			fieldName: 'Development description',
 			newValue: 'New long text value'
 		});
-		assert.strictEqual(result, 'Development description was set to New long text value');
+		assert.strictEqual(result, 'Development description was set');
 	});
 
-	it('should resolve FIELD_UPDATED_LONG template with fieldName', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.FIELD_UPDATED_LONG, {
+	it('should resolve LONG_FIELD_UPDATED template with fieldName', () => {
+		const result = resolveTemplate(AUDIT_ACTIONS.LONG_FIELD_UPDATED, {
 			fieldName: 'Development description'
 		});
 		assert.strictEqual(result, 'Development description was updated');
 	});
 
-	it('should resolve FIELD_CLEARED_LONG template with fieldName and oldValue', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.FIELD_CLEARED_LONG, {
-			fieldName: 'Development description',
-			oldValue: 'Removed long text'
+	it('should resolve LONG_FIELD_CLEARED template with fieldName', () => {
+		const result = resolveTemplate(AUDIT_ACTIONS.LONG_FIELD_CLEARED, {
+			fieldName: 'Development description'
 		});
-		assert.strictEqual(result, 'Development description Removed long text was removed');
+		assert.strictEqual(result, 'Development description was removed');
 	});
 
-	it('should leave fieldName placeholder when metadata is missing for FIELD_UPDATED_LONG', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.FIELD_UPDATED_LONG);
+	it('should leave fieldName placeholder when metadata is missing for LONG_FIELD_UPDATED', () => {
+		const result = resolveTemplate(AUDIT_ACTIONS.LONG_FIELD_UPDATED);
 		assert.strictEqual(result, '{fieldName} was updated');
 	});
 });
 
 describe('AUDIT_ACTIONS', () => {
 	it('should have long action constants', () => {
-		assert.strictEqual(AUDIT_ACTIONS.FIELD_SET_LONG, 'FIELD_SET_LONG');
-		assert.strictEqual(AUDIT_ACTIONS.FIELD_UPDATED_LONG, 'FIELD_UPDATED_LONG');
-		assert.strictEqual(AUDIT_ACTIONS.FIELD_CLEARED_LONG, 'FIELD_CLEARED_LONG');
+		assert.strictEqual(AUDIT_ACTIONS.LONG_FIELD_SET, 'LONG_FIELD_SET');
+		assert.strictEqual(AUDIT_ACTIONS.LONG_FIELD_UPDATED, 'LONG_FIELD_UPDATED');
+		assert.strictEqual(AUDIT_ACTIONS.LONG_FIELD_CLEARED, 'LONG_FIELD_CLEARED');
 	});
 });
 
 describe('AUDIT_TEMPLATES', () => {
 	it('should include long-text templates', () => {
-		assert.strictEqual(AUDIT_TEMPLATES[AUDIT_ACTIONS.FIELD_SET_LONG], '{fieldName} was set to {newValue}');
-		assert.strictEqual(AUDIT_TEMPLATES[AUDIT_ACTIONS.FIELD_UPDATED_LONG], '{fieldName} was updated');
-		assert.strictEqual(AUDIT_TEMPLATES[AUDIT_ACTIONS.FIELD_CLEARED_LONG], '{fieldName} {oldValue} was removed');
+		assert.strictEqual(AUDIT_TEMPLATES[AUDIT_ACTIONS.LONG_FIELD_SET], '{fieldName} was set');
+		assert.strictEqual(AUDIT_TEMPLATES[AUDIT_ACTIONS.LONG_FIELD_UPDATED], '{fieldName} was updated');
+		assert.strictEqual(AUDIT_TEMPLATES[AUDIT_ACTIONS.LONG_FIELD_CLEARED], '{fieldName} was removed');
 	});
 });
 
@@ -137,20 +136,20 @@ describe('resolveAuditAction', () => {
 	});
 
 	describe('long-text fields (isLongField true)', () => {
-		it('should return FIELD_CLEARED_LONG when newValue is "-"', () => {
-			assert.strictEqual(resolveAuditAction('Some text', '-', true), AUDIT_ACTIONS.FIELD_CLEARED_LONG);
+		it('should return LONG_FIELD_CLEARED when newValue is "-"', () => {
+			assert.strictEqual(resolveAuditAction('Some text', '-', true), AUDIT_ACTIONS.LONG_FIELD_CLEARED);
 		});
 
-		it('should return FIELD_SET_LONG when oldValue is "-"', () => {
-			assert.strictEqual(resolveAuditAction('-', 'Some text', true), AUDIT_ACTIONS.FIELD_SET_LONG);
+		it('should return LONG_FIELD_SET when oldValue is "-"', () => {
+			assert.strictEqual(resolveAuditAction('-', 'Some text', true), AUDIT_ACTIONS.LONG_FIELD_SET);
 		});
 
-		it('should return FIELD_UPDATED_LONG when both values exist', () => {
-			assert.strictEqual(resolveAuditAction('Old text', 'New text', true), AUDIT_ACTIONS.FIELD_UPDATED_LONG);
+		it('should return LONG_FIELD_UPDATED when both values exist', () => {
+			assert.strictEqual(resolveAuditAction('Old text', 'New text', true), AUDIT_ACTIONS.LONG_FIELD_UPDATED);
 		});
 
-		it('should prefer FIELD_CLEARED_LONG when both values are "-"', () => {
-			assert.strictEqual(resolveAuditAction('-', '-', true), AUDIT_ACTIONS.FIELD_CLEARED_LONG);
+		it('should prefer LONG_FIELD_CLEARED when both values are "-"', () => {
+			assert.strictEqual(resolveAuditAction('-', '-', true), AUDIT_ACTIONS.LONG_FIELD_CLEARED);
 		});
 	});
 });

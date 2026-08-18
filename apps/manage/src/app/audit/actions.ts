@@ -18,10 +18,10 @@ export const AUDIT_ACTIONS = {
 	FIELD_UPDATED: 'FIELD_UPDATED',
 	FIELD_CLEARED: 'FIELD_CLEARED',
 
-	// long-text fileds
-	FIELD_SET_LONG: 'FIELD_SET_LONG',
-	FIELD_UPDATED_LONG: 'FIELD_UPDATED_LONG',
-	FIELD_CLEARED_LONG: 'FIELD_CLEARED_LONG',
+	// long-text fields
+	LONG_FIELD_SET: 'LONG_FIELD_SET',
+	LONG_FIELD_UPDATED: 'LONG_FIELD_UPDATED',
+	LONG_FIELD_CLEARED: 'LONG_FIELD_CLEARED',
 
 	// Case notes
 	CASE_NOTE_ADDED: 'CASE_NOTE_ADDED'
@@ -57,9 +57,9 @@ export const AUDIT_TEMPLATES: Record<AuditAction, string> = {
 	[AUDIT_ACTIONS.FIELD_CLEARED]: '{fieldName} ({oldValue}) was removed',
 
 	//long-text-fields
-	[AUDIT_ACTIONS.FIELD_SET_LONG]: '{fieldName} was set to {newValue}',
-	[AUDIT_ACTIONS.FIELD_UPDATED_LONG]: '{fieldName} was updated',
-	[AUDIT_ACTIONS.FIELD_CLEARED_LONG]: '{fieldName} {oldValue} was removed',
+	[AUDIT_ACTIONS.LONG_FIELD_SET]: '{fieldName} was set',
+	[AUDIT_ACTIONS.LONG_FIELD_UPDATED]: '{fieldName} was updated',
+	[AUDIT_ACTIONS.LONG_FIELD_CLEARED]: '{fieldName} was removed',
 
 	// Case notes
 	[AUDIT_ACTIONS.CASE_NOTE_ADDED]: 'Case note added:\n{caseNote}'
@@ -102,9 +102,9 @@ export function resolveTemplate(action: AuditAction, metadata?: Record<string, u
  */
 export function resolveAuditAction(oldValue: string, newValue: string, isLongField: boolean = false): AuditAction {
 	if (isLongField) {
-		if (newValue === '-') return AUDIT_ACTIONS.FIELD_CLEARED_LONG;
-		if (oldValue === '-') return AUDIT_ACTIONS.FIELD_SET_LONG;
-		return AUDIT_ACTIONS.FIELD_UPDATED_LONG;
+		if (newValue === '-') return AUDIT_ACTIONS.LONG_FIELD_CLEARED;
+		if (oldValue === '-') return AUDIT_ACTIONS.LONG_FIELD_SET;
+		return AUDIT_ACTIONS.LONG_FIELD_UPDATED;
 	}
 
 	if (newValue === '-') return AUDIT_ACTIONS.FIELD_CLEARED;
