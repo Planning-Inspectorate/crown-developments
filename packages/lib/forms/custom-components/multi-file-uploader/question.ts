@@ -11,11 +11,14 @@ import nunjucks from 'nunjucks';
 import { readSessionData } from '../../../util/session.ts';
 import { getStringParams } from '../../../util/params.ts';
 import type { MultiFileUploaderQuestionProps } from '../index.ts';
+import { formatBytes } from '../../../util/file.ts';
+import { escapeHtml } from '../../../util/string.ts';
 
 export interface DraftFile {
 	id: string;
 	fileName: string;
-	itemId?: string;
+	itemId: string;
+	size: number;
 }
 
 export interface FileUploadViewData {
@@ -117,10 +120,6 @@ export default class MultiFileUploadQuestion extends Question {
 			draftFiles = sessionFiles[id]?.[question]?.uploadedFiles || [];
 		}
 
-		if (draftFiles.length === 0) {
-			draftFiles = (journey.response.answers[this.fieldName] as DraftFile[]) || [];
-		}
-
 		const currentUrl = journey.getCurrentQuestionUrl(section.segment, this.fieldName);
 
 		viewModel.question.uploadedFiles = this.mapDraftFilesToMojFormat(draftFiles);
@@ -198,11 +197,9 @@ export default class MultiFileUploadQuestion extends Question {
 	private mapDraftFilesToMojFormat(draftFiles: DraftFile[]): UploadedFile[] {
 		return draftFiles.map((file) => ({
 			originalFileName: file.fileName,
-			fileName: file.fileName,
+			fileName: file.itemId,
 			message: {
-				html: `<span class="moj-multi-file-upload__success">
-                            <a href="/document/${file.id}">${file.fileName}</a>
-                       </span>`
+				html: `<span class="moj-multi-file-upload__filename">${escapeHtml(file.fileName)} (${formatBytes(file.size)})</span>`
 			},
 			deleteButton: {
 				text: 'Delete'

@@ -52,6 +52,6 @@ function addRepMyselfSection(questions: Record<string, Question>) {
 		.addQuestion(questions.myselfHearingPreference)
 
 		.addQuestion(questions.myselfHasAttachments)
-		.addQuestion(questions.myselfSelectAttachments) // TODO: PEAS-401 this is going to be replaced with a new upload question
+		.addQuestion(questions.myselfSelectBlobAttachments)
 		.withCondition(whenQuestionHasAnswer(questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES));
 }

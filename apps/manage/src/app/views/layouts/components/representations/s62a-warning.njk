@@ -1,0 +1,5 @@
+{% import "custom-components/representation-information/index.njk" as representationInformation %}
+
+{% if question.showUploadWarning %}
+    {{ representationInformation.renderRepresentationInformation("Guidance on what not to include") }}
+{% endif %}

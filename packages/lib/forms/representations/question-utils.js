@@ -7,8 +7,13 @@ import { CONTACT_PREFERENCE } from '@pins/crowndev-database/src/seed/data-static
 import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
 import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
 import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/validator/document-upload-validator.js';
+import AjaxDocumentUploadValidator from '@pins/crowndev-lib/forms/custom-components/ajax-document-upload-validator/ajax-document-uploader-validator.ts';
+import { formatExtensions } from '../../util/file.ts';
 
 export const ALLOWED_EXTENSIONS = ['pdf', 'png', 'jpg', 'jpeg', 'tif', 'tiff', 'doc', 'docx', 'xls', 'xlsx'];
+
+export const ALLOWED_EXTENSIONS_TEXT = formatExtensions(ALLOWED_EXTENSIONS);
+
 export const ALLOWED_MIME_TYPES = [
 	'application/pdf',
 	'image/png',
@@ -21,6 +26,9 @@ export const ALLOWED_MIME_TYPES = [
 ];
 export const MAX_FILE_SIZE = 20 * 1024 * 1024;
 export const MAX_FILE_NUMBER = 10;
+export const FILE_NAMES_REGEX = /^(?!.*'')[a-zA-Z0-9.\-_ ()&']+$/;
+export const TOTAL_UPLOAD_LIMIT = 1073741824; // 1GB
+export const FILE_NAME_MAX_LENGTH = 255;
 
 /**
  *
@@ -241,6 +249,24 @@ export function representationsContactQuestions({
 		url: 'redacted-attachments',
 		showUploadWarning: true,
 		validators: []
+	};
+
+	questions[`${prefix}SelectBlobAttachments`] = {
+		type: CUSTOM_COMPONENTS.MULTI_FILE_UPLOADER,
+		title: 'Attachments',
+		question: 'Upload attachments',
+		fieldName: `${prefix}BlobAttachments`,
+		url: 'attachments',
+		allowedFileExtensions: ALLOWED_EXTENSIONS,
+		allowedMimeTypes: ALLOWED_MIME_TYPES,
+		maxFileSizeValue: MAX_FILE_SIZE,
+		maxFileSizeString: '20MB',
+		validators: [new AjaxDocumentUploadValidator(`${prefix}BlobAttachments`)],
+		dataUploadUrl: '/upload',
+		dataDeleteUrl: '/delete',
+		preUploadHtml: 'views/layouts/components/representations/s62a-upload-criteria.njk',
+		postUploadHtml: 'views/layouts/components/representations/s62a-warning.njk',
+		showUploadWarning: true
 	};
 
 	return questions;

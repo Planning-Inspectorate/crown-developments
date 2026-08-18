@@ -79,11 +79,22 @@ describe('MultiFileUploadQuestion', () => {
 			assert.strictEqual(result.question.preUploadHtml, '<p>Read before uploading</p>');
 		});
 
-		it('should format view model correctly with draft files', () => {
-			mockJourney.response.answers[question.fieldName] = [
-				{ id: 'file-123', fileName: 'test-doc.pdf' },
-				{ id: 'file-456', fileName: 'image.png' }
-			];
+		it('should format view model correctly with actual draft files', () => {
+			const mockCustomViewData = {
+				files: {
+					'appeal-123': {
+						multi_upload_field: {
+							uploadedFiles: [
+								{
+									fileName: 'test-document.pdf',
+									itemId: 'mock-uuid-123',
+									size: 1024
+								}
+							]
+						}
+					}
+				}
+			};
 
 			const result = question.toViewModel({
 				params: {
@@ -91,16 +102,22 @@ describe('MultiFileUploadQuestion', () => {
 					question: 'multi_upload_field'
 				},
 				section: mockSection,
-				journey: mockJourney
+				journey: mockJourney,
+				customViewData: mockCustomViewData
 			});
 
-			const uploadedFiles = result.question.uploadedFiles as any[];
+			assert.strictEqual(result.question.uploadedFiles.length, 1);
 
-			assert.strictEqual(uploadedFiles.length, 2);
-			assert.strictEqual(uploadedFiles[0].originalFileName, 'test-doc.pdf');
-			assert.strictEqual(uploadedFiles[0].deleteButton.text, 'Delete');
-			assert.match(uploadedFiles[0].message.html, /test-doc\.pdf/);
-			assert.match(uploadedFiles[0].message.html, /\/document\/file-123/);
+			const uploadedFile = result.question.uploadedFiles[0];
+
+			assert.strictEqual(uploadedFile.originalFileName, 'test-document.pdf');
+			assert.strictEqual(uploadedFile.fileName, 'mock-uuid-123');
+			assert.strictEqual(uploadedFile.deleteButton.text, 'Delete');
+
+			assert.strictEqual(
+				uploadedFile.message.html,
+				'<span class="moj-multi-file-upload__filename">test-document.pdf (1KB)</span>'
+			);
 		});
 	});
 
