@@ -163,12 +163,13 @@ model CrownDevelopment {
 /// The main case model for S62A cases, contains the core data fields.
 /// But others will be in reference tables.
 model S62aCase {
-  id           String    @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
-  reference    String    @unique
-  createdDate  DateTime  @default(now())
-  updatedDate  DateTime?
-  description  String    @db.NVarChar(2000)
-  likelyIssues String?   @db.NVarChar(1000)
+  id                  String    @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  reference           String    @unique
+  historicalReference String?   @db.NVarChar(50)
+  createdDate         DateTime  @default(now())
+  updatedDate         DateTime?
+  description         String    @db.NVarChar(2000)
+  likelyIssues        String?   @db.NVarChar(1000)
 
   /// Main fields to do with case definitions (e.g. type and status)
   typeId             String
@@ -676,7 +677,7 @@ model Document {
 }
 
 /// Indicates a document that has been uploaded
-/// to blob but has not yet been committed as a 
+/// to blob but has not yet been committed as a
 /// real document in the DB.
 model DraftDocument {
   id         String   @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
