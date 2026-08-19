@@ -1,5 +1,13 @@
-import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { BOOLEAN_OPTIONS, type Question, Section, whenQuestionHasAnswer } from '@planning-inspectorate/dynamic-forms';
+import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import {
+	BOOLEAN_OPTIONS,
+	type JourneyResponse,
+	ManageListSection,
+	type Question,
+	questionHasAnswer,
+	Section,
+	whenQuestionHasAnswer
+} from '@planning-inspectorate/dynamic-forms';
 
 /**
  * Module for the S62A representation sections.
@@ -27,7 +35,8 @@ export function addRepresentationSection(questions: Record<string, Question>): S
 			.addQuestion(questions.submissionMethodReason)
 			.addQuestion(questions.category)
 			.addQuestion(questions.submittedFor),
-		addRepMyselfSection(questions)
+		addRepMyselfSection(questions),
+		addRepAgentSection(questions)
 	];
 }
 
@@ -54,4 +63,59 @@ function addRepMyselfSection(questions: Record<string, Question>) {
 		.addQuestion(questions.myselfHasAttachments)
 		.addQuestion(questions.myselfSelectBlobAttachments)
 		.withCondition(whenQuestionHasAnswer(questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES));
+}
+
+/**
+ * Adds the agent section, which incorporates the 4 journeys (person, org I work for, org I do not work for, or group of people)
+ */
+function addRepAgentSection(questions: Record<string, Question>) {
+	const isRepresentationPerson = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON);
+	const isOrgWorkFor = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.ORGANISATION);
+	const isOrgNotWorkFor = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR);
+
+	const isRepresentationGroup = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.GROUP);
+
+	const isAgentRoute = (response: JourneyResponse) =>
+		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON) ||
+		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR) ||
+		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.GROUP);
+
+	return new Section('Agent', 'agent')
+		.withSectionCondition(whenQuestionHasAnswer(questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF))
+		.addQuestion(questions.whoRepresenting)
+
+		.startMultiQuestionCondition('agent-route', isAgentRoute)
+		.addQuestion(questions.isAgent)
+		.addQuestion(questions.agentOrgName)
+		.withCondition(whenQuestionHasAnswer(questions.isAgent, BOOLEAN_OPTIONS.YES))
+		.endMultiQuestionCondition('agent-route')
+
+		.addQuestion(questions.submitterFullName)
+		.addQuestion(questions.submitterContactPreference)
+		.addQuestion(questions.submitterEmail)
+		.withCondition(whenQuestionHasAnswer(questions.submitterContactPreference, 'email'))
+		.addQuestion(questions.submitterAddress)
+		.withCondition(whenQuestionHasAnswer(questions.submitterContactPreference, 'post'))
+
+		.startMultiQuestionCondition('org-work-for', isOrgWorkFor)
+		.addQuestion(questions.orgName)
+		.addQuestion(questions.orgRoleName)
+		.endMultiQuestionCondition('org-work-for')
+
+		.startMultiQuestionCondition('representation-person', isRepresentationPerson)
+		.addQuestion(questions.representedFullName)
+		.endMultiQuestionCondition('representation-person')
+
+		.addQuestion(questions.representedOrgName)
+		.withCondition(isOrgNotWorkFor)
+
+		.startMultiQuestionCondition('representation-group', isRepresentationGroup)
+		.addQuestion(questions.manageGroupDetails, new ManageListSection().addQuestion(questions.groupRepresentedFullName))
+		.endMultiQuestionCondition('representation-group')
+
+		.addQuestion(questions.submitterTellUsAboutApplication)
+		.addQuestion(questions.submitterHearingPreference)
+		.addQuestion(questions.submitterHasAttachments)
+		.addQuestion(questions.submitterSelectBlobAttachments)
+		.withCondition(whenQuestionHasAnswer(questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES));
 }

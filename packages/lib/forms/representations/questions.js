@@ -11,6 +11,7 @@ import {
 	REPRESENTATION_STATUS,
 	REPRESENTATION_SUBMITTED_FOR,
 	REPRESENTED_TYPE,
+	REPRESENTED_TYPE_ID,
 	WITHDRAWAL_REASON
 } from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
@@ -27,6 +28,7 @@ import {
 import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
 import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
 import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/validator/document-upload-validator.js';
+import CustomManageListValidator from '../custom-components/manage-list/validator.js';
 
 export const ACCEPT_AND_REDACT = 'accept-and-redact';
 
@@ -55,6 +57,7 @@ export const ACCEPT_AND_REDACT = 'accept-and-redact';
 /**
  * @typedef {object} TextOverrides
  * @property {'portal'|'manage'|string} [appName]
+ * @property {string} [groupRepresentedFullNameEditQuestion]
  */
 /**
  * @typedef {object} GetQuestionsOptions
@@ -64,6 +67,7 @@ export const ACCEPT_AND_REDACT = 'accept-and-redact';
  * @property {EditActionOverrides} [editActionOverrides]
  * @property {boolean} [isPortal]
  * @property {boolean} [isManage]
+ * @property {boolean} [isS62a]
  */
 /**
  * Generate question properties for representation contact details and representation details questions.
@@ -76,7 +80,8 @@ export const getQuestions = ({
 	actionOverrides = {},
 	editActionOverrides = {},
 	isPortal = false,
-	isManage = false
+	isManage = false,
+	isS62a = false
 } = {}) => {
 	const actionLinkOverride = {
 		text: 'Manage',
@@ -95,6 +100,19 @@ export const getQuestions = ({
 		}
 		return base;
 	})();
+
+	// Crown does not show the "Group" option, S62A does.
+	const representedTypes = isS62a
+		? REPRESENTED_TYPE
+		: REPRESENTED_TYPE.filter(
+				(type) =>
+					type.id === REPRESENTED_TYPE_ID.PERSON ||
+					type.id === REPRESENTED_TYPE_ID.ORGANISATION ||
+					type.id === REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR
+			);
+
+	const groupRepresentedFullNameQuestion =
+		textOverrides?.groupRepresentedFullNameEditQuestion || 'What is the name of the person you are representing?';
 
 	const isPortalQuestion = textOverrides.appName === 'portal';
 	/**	 @type {(portalValue: string, manageValue: string) => string}	 */
@@ -168,7 +186,7 @@ export const getQuestions = ({
 			fieldName: 'representedTypeId',
 			url: 'who-representing',
 			validators: [new RequiredValidator('Select who you are representing')],
-			options: referenceDataToRadioOptions(REPRESENTED_TYPE)
+			options: referenceDataToRadioOptions(representedTypes)
 		},
 		representedFullName: {
 			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
@@ -444,6 +462,107 @@ export const getQuestions = ({
 			validators: [],
 			actionLink: actionOverrides.distressingContentInRepresentationShowManageAction ? actionLinkOverride : undefined,
 			editable: actionOverrides.distressingContentInRepresentationShowManageAction
+		},
+		groupName: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Your group name',
+			question: 'Group name (optional)',
+			hint: "For example, a resident's association or a local community group.",
+			fieldName: 'groupName',
+			url: 'group-name',
+			validators: [
+				new StringValidator({
+					maxLength: {
+						maxLength: 50,
+						maxLengthMessage: 'Group name must be 50 characters or less'
+					}
+				})
+			]
+		},
+		manageGroupDetails: {
+			type: CUSTOM_COMPONENTS.MANAGE_LIST_TABLE,
+			title: 'Check group name details',
+			question: 'Check group name details',
+			url: 'check-group-name-details',
+			fieldName: 'manageGroupDetails',
+			titleSingular: 'Person',
+			showAnswersInSummary: true,
+			maximumAnswers: 10,
+			isAllowedEmpty: false,
+			viewData: {
+				hideButtonsEmpty: true,
+				hideCancel: true,
+				continueOnly: true,
+				emptyListText: 'No people have been added to this group yet.'
+			},
+			validators: [
+				new CustomManageListValidator({
+					minimumAnswers: 1,
+					errorMessages: {
+						minimumAnswers: `At least one person is required`
+					}
+				})
+			]
+		},
+		groupRepresentedFullName: {
+			type: COMPONENT_TYPES.MULTI_FIELD_INPUT,
+			title: 'Name',
+			question: groupRepresentedFullNameQuestion,
+			fieldName: 'groupRepresentedFullName',
+			url: 'group-name-person-representing',
+			inputFields: [
+				{
+					fieldName: 'groupRepresentedFirstName',
+					label: 'First Name',
+					autocomplete: 'given-name',
+					formatJoinString: ' '
+				},
+				{
+					fieldName: 'groupRepresentedLastName',
+					label: 'Last Name',
+					autocomplete: 'family-name'
+				}
+			],
+			validators: [
+				new MultiFieldInputValidator({
+					fields: [
+						{
+							fieldName: 'groupRepresentedFirstName',
+							required: true,
+							errorMessage: 'First name must be between 1 and 250 characters',
+							minLength: {
+								minLength: 1,
+								minLengthMessage: 'First name must be between 1 and 250 characters'
+							},
+							maxLength: {
+								maxLength: 250,
+								maxLengthMessage: `First name must be between 1 and 250 characters`
+							},
+							regex: {
+								regex: "^[A-Za-z0-9 '’-]*$",
+								regexMessage: 'First name must only include letters, spaces, hyphens, apostrophes or numbers'
+							}
+						},
+						{
+							fieldName: 'groupRepresentedLastName',
+							required: true,
+							errorMessage: 'Last name must be between 1 and 250 characters',
+							minLength: {
+								minLength: 1,
+								minLengthMessage: 'Last name must be between 1 and 250 characters'
+							},
+							maxLength: {
+								maxLength: 250,
+								maxLengthMessage: `Last name must be between 1 and 250 characters`
+							},
+							regex: {
+								regex: "^[A-Za-z0-9 '’-]*$",
+								regexMessage: 'Last name must only include letters, spaces, hyphens, apostrophes or numbers'
+							}
+						}
+					]
+				})
+			]
 		}
 	};
 
