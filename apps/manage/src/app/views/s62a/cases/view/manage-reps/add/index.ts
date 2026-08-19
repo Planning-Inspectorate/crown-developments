@@ -35,15 +35,28 @@ import {
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
 import { RepresentationDocumentDownloader } from './representation-document-downloader.ts';
+import { getOptionalStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { MANAGE_LIST_ACTIONS } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-actions.js';
 
 export function createRoutes(service: ManageService) {
 	const { db, blobStore, logger } = service;
 	const router = createRouter({ mergeParams: true });
 
-	const questions = getQuestions({
-		textOverrides: { appName: service.appName }
+	const getJourney = buildGetJourney((req, journeyResponse) => {
+		const isManageListEdit = getOptionalStringParam(req.params, 'manageListAction') === MANAGE_LIST_ACTIONS.EDIT;
+		const questions = getQuestions({
+			textOverrides: {
+				appName: service.appName,
+				groupRepresentedFullNameEditQuestion: isManageListEdit
+					? "Change the person's name"
+					: 'What is the name of the person you are representing?'
+			},
+			isS62a: true
+		});
+
+		return createJourney(questions, journeyResponse, req);
 	});
-	const getJourney = buildGetJourney((req, journeyResponse) => createJourney(questions, journeyResponse, req));
+
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID, 'id');
 	const saveDataToSession = buildSaveDataToSession({ reqParam: 'id' });
 
@@ -87,10 +100,16 @@ export function createRoutes(service: ManageService) {
 	// Downloading a document within the journey in CYA
 	router.get('/document/:documentId', asyncHandler(downloadDocument));
 
-	router.get('/:section/:question', getJourneyResponse, getJourney, uploadDocumentQuestion, question);
+	router.get(
+		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
+		getJourneyResponse,
+		getJourney,
+		uploadDocumentQuestion,
+		question
+	);
 
 	router.post(
-		'/:section/:question',
+		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
 		getJourneyResponse,
 		getJourney,
 		validate,

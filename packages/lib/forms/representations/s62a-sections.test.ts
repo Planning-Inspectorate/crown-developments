@@ -13,7 +13,7 @@ describe('s62a-sections', () => {
 			const questions = getQuestions();
 			const sections = addRepresentationSection(questions);
 
-			assert.strictEqual(sections.length, 2);
+			assert.strictEqual(sections.length, 3);
 
 			const representationSection = sections[0];
 			assert.strictEqual(representationSection.name, 'Representation');
@@ -62,7 +62,7 @@ describe('s62a-sections', () => {
 
 			const sections = journey.sections;
 
-			assert.strictEqual(sections.length, 2);
+			assert.strictEqual(sections.length, 3);
 			sections.forEach((section) =>
 				section.questions.forEach((q: Question | undefined) => {
 					assert.ok(q !== undefined, 'Question should be defined');

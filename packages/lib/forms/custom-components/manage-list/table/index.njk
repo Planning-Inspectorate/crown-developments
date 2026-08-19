@@ -39,7 +39,13 @@
 						rows: question.tableRows
 					}) }}
 				{% else %}
-					<p class="govuk-body">Add one or more {{ itemNamePlural }}. No {{ itemName }} details have been added.</p>
+					<p class="govuk-body">
+						{% if emptyListText %}
+							{{ emptyListText }}
+						{% else %}
+							Add one or more {{ itemNamePlural }}. No {{ itemName }} details have been added.
+						{% endif %}
+					</p>
 				{% endif %}
 
 				{{ govukButton({
