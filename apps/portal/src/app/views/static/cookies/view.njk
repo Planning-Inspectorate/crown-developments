@@ -3,11 +3,13 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
 
 {% block pageTitle %}
 	{% set suffix = serviceName | default(config.headerTitle) %}
 	{{ pageTitle }} - {{ suffix }}
 {% endblock %}
+{% block pageHeading %}{% endblock %}
 
 {% block pageContent %}
 	{% if cookiePreferenceSet %}
@@ -24,50 +26,152 @@
 
 	<div class="govuk-grid-row">
 		<div class="govuk-grid-column-two-thirds">
+			<h1 class="govuk-heading-xl" data-cy="page-heading">
+				Cookies on the Find a Crown Development Application service
+			</h1>
 			<p class="govuk-body">
-				Cookies are files saved on your phone, tablet or computer when you visit a website.
-				We use strictly necessary cookies to enable essential parts of this website, and optional cookies to store
-				information about how you use the Find a Crown development application service, such as the pages you visit.
-			</p>
-			<h2 class="govuk-heading-m">Cookie settings</h2>
-			<p class="govuk-body">We use different types of cookies.</p>
-			<p class="govuk-body">
-				You can choose which cookies you're happy for us to use and how the data is shared with the Planning
-				Inspectorate.
-			</p>
-			<h2 class="govuk-heading-m">Strictly necessary cookies</h2>
-			<p class="govuk-body">
-				We use strictly necessary cookies, also known as essential cookies, to help you use the Find a Crown development
-				application service.
-				Strictly necessary cookies do not collect any form of personally identifiable data or track your browsing
-				habits.
+				Cookies are small files saved on your phone, tablet or computer when you visit a website.
 			</p>
 			<p class="govuk-body">
-				Strictly necessary cookies do things such as:
+				We use cookies to make this site work and collect information about how you use our service.
 			</p>
-			<ul class="govuk-list govuk-list--bullet">
-				<li>remember your progress through the service</li>
-				<li>remember you have seen the cookies message</li>
-			</ul>
-			<h2 class="govuk-heading-m">Cookies used to improve the Find a Crown development application service</h2>
-			<h3 class="govuk-heading-s">Analytics</h3>
+			<h2 class="govuk-heading-m">Essential cookies</h2>
+			<p class="govuk-body">Essential cookies keep your information secure while you use this service. We do not need to ask permission to use them.</p>
+
+			{{ govukTable({
+				caption: "Essential cookies we use",
+				captionClasses: "govuk-table__caption--s",
+				attributes: {
+					"data-cy": "essential-cookies-we-use-table"
+				},
+				classes: "govuk-table--small-text-until-tablet",
+
+				head: [
+					{
+						text: "Name"
+					},
+					{
+						text: "Purpose"
+					},
+					{
+						text: "Expires"
+					}
+				],
+				rows: [
+					[
+						{
+							text: "__cf_bm"
+						},
+						{
+							text: "Helps us detect and mitigate malicious bot traffic"
+						},
+						{
+							text: "30 minutes"
+						}
+					],
+					[
+						{
+							text: "ASLBSA"
+						},
+						{
+							text: "Keeps you on the same server, so your user experience stays consistent"
+						},
+						{
+							text: "When you close your browser"
+						}
+					],
+					[
+						{
+							text: "ASLBSACORS"
+						},
+						{
+							text: "Keeps you on the same server, so your user experience stays consistent"
+						},
+						{
+							text: "When you close your browser"
+						}
+					],
+					[
+						{
+							text: "CrownDevAnalyticsEnabled"
+						},
+						{
+							text: "Helps us remember your cookie policy preferences"
+						},
+						{
+							text: "1 year"
+						}
+					],
+					[
+						{
+							text: "connect.sid"
+						},
+						{
+							text: "Allocates you a session ID"
+						},
+						{
+							text: "24 hours"
+						}
+					]
+				]
+			}) }}
+
+			<h2 class="govuk-heading-m">Analytics cookies</h2>
+
 			<p class="govuk-body">
-				We use Google Analytics to measure how you use the Find a Crown development application service so we can
-				improve it based on user needs.
-				These cookies provide information such as the pages you visit, how many people use our website, and what country
-				you access our website from.
-				We do not allow Google to use or share the data about how you use this site.
-				View our <a
-					href="https://www.gov.uk/government/publications/planning-inspectorate-privacy-notices/customer-privacy-notice"
-					class="govuk-link" target="_blank" rel="noreferrer">Customer Privacy Notice</a> for more information.
+				We use analytics cookies to measure how you use Find a Crown development application so we can improve it based on user needs. We do not allow
+				analytics providers to use or share the data about how you use this services. View the <a href="https://www.gov.uk/government/publications/planning-inspectorate-privacy-notices/customer-privacy-notice" class="govuk-link">Planning Inspectorate Customer Privacy Notice</a> for more information.
 			</p>
+
+			{{ govukTable({
+				attributes: {
+					"data-cy": "analytics-cookies-we-use-table"
+				},
+				classes: "govuk-table--small-text-until-tablet",
+				head: [
+					{
+						text: "Name"
+					},
+					{
+						text: "Purpose"
+					},
+					{
+						text: "Expires"
+					}
+				],
+				rows: [
+					[
+						{
+							text: "_ga"
+						},
+						{
+							text: "Helps us count how many people visit our website by tracking if you've visited before"
+						},
+						{
+							text: "2 years"
+						}
+					],
+					[
+						{
+							text: "_ga_HP9Q7SY3N8"
+						},
+						{
+							text: "Helps us understand how you use the website by measuring visits and traffic patterns"
+						},
+						{
+							text: "2 years"
+						}
+					]
+				]
+			}) }}
+			<h2 class="govuk-heading-m">Change your cookie settings</h2>
 			<form action="" method="post">
 				<input type="hidden" name="_csrf" value="{{ _csrf }}">
 				{{ govukRadios({
 					name: "acceptCookies",
 					fieldset: {
 						legend: {
-							text: "Do you want to accept analytics cookies? By selecting ‘yes’, you agree to the Planning Inspectorate using your data to help improve the Find a Crown development application service.",
+							text: "Do you want to accept analytics cookies?",
 							isPageHeading: false,
 							classes: "govuk-fieldset__legend--s"
 						}
