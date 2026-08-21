@@ -289,9 +289,10 @@ model S62aCase {
 
   S62aResidential S62aResidential?
 
-  Folders        Folder[]
-  Documents      Document[]
-  DraftDocuments DraftDocument[]
+  Folders             Folder[]
+  Documents           Document[]
+  DraftDocuments      DraftDocument[]
+  S62aRepresentations S62aRepresentation[]
 
   /// Vehicle parking entries added via the manage list in the UI
   VehicleParking S62aVehicleParking[]
@@ -723,6 +724,22 @@ model DraftDocument {
   @@index([sessionKey, s62aCaseId])
 }
 
+model BlobRepresentationDocument {
+  id               String               @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  fileName         String
+  uploadedDate     DateTime             @default(now())
+  blobName         String
+  size             BigInt
+  mimeType         String               @default("application/octet-stream")
+  redactedBlobName String?
+  redactedFileName String?
+  statusId         String
+  Status           RepresentationStatus @relation(fields: [statusId], references: [id])
+
+  s62aRepresentationId String             @db.UniqueIdentifier
+  S62aRepresentation   S62aRepresentation @relation(fields: [s62aRepresentationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
 /// A "pending" document connected with a representation (in Blob)
 /// Will be commited into a proper document on full save.
 model DraftBlobRepresentationDocument {
@@ -834,19 +851,21 @@ model Contact {
   ContactPreference   ContactPreference? @relation(fields: [contactPreferenceId], references: [id])
 
   /// Used for written-representation on behalf of an organisation
-  orgName                          String?
-  jobTitleOrRole                   String?
+  orgName                               String?
+  jobTitleOrRole                        String?
   /// Used for written-representation contact preference 'post'
-  addressId                        String?                 @db.UniqueIdentifier
-  Address                          Address?                @relation(fields: [addressId], references: [id])
-  RepresentationSubmittedByContact Representation[]        @relation("RepresentationSubmittedByContact")
-  Representation                   Representation[]        @relation("RepresentedContact")
-  NotifyEmail                      NotifyEmail[]
+  addressId                             String?                 @db.UniqueIdentifier
+  Address                               Address?                @relation(fields: [addressId], references: [id])
+  RepresentationSubmittedByContact      Representation[]        @relation("RepresentationSubmittedByContact")
+  Representation                        Representation[]        @relation("RepresentedContact")
+  NotifyEmail                           NotifyEmail[]
   /// Relationships between Organisations and Contacts
-  OrganisationToContact            OrganisationToContact[]
-  S62aToApplicants                 S62aToApplicant[]
-  PrimaryS62aCases                 S62aCase[]              @relation("PrimaryLpaContact")
-  SecondaryS62aCases               S62aCase[]              @relation("SecondaryLpaContact")
+  OrganisationToContact                 OrganisationToContact[]
+  S62aToApplicants                      S62aToApplicant[]
+  PrimaryS62aCases                      S62aCase[]              @relation("PrimaryLpaContact")
+  SecondaryS62aCases                    S62aCase[]              @relation("SecondaryLpaContact")
+  S62aRepresentationsSubmittedByContact S62aRepresentation[]    @relation("S62aRepresentationSubmittedByContact")
+  S62aRepresentations                   S62aRepresentation[]    @relation("S62aRepresentedContacts")
 }
 
 /// OrganisationToContact represents the relationship between Organisations and Contacts
@@ -957,6 +976,49 @@ model Representation {
   preWithdrawalStatusId String?
 }
 
+model S62aRepresentation {
+  /// internal identifier
+  id            String                @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  reference     String                @unique
+  /// the application this representation relates to
+  applicationId String                @db.UniqueIdentifier
+  Application   S62aCase              @relation(fields: [applicationId], references: [id])
+  statusId      String
+  Status        RepresentationStatus? @relation(fields: [statusId], references: [id])
+
+  // common fields
+  submittedForId            String
+  SubmittedFor              RepresentationSubmittedFor?   @relation(fields: [submittedForId], references: [id])
+  submittedByContactId      String?                       @db.UniqueIdentifier
+  SubmittedByContact        Contact?                      @relation("S62aRepresentationSubmittedByContact", fields: [submittedByContactId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  submittedByAgent          Boolean?
+  submittedByAgentOrgName   String?
+  submittedDate             DateTime
+  submittedReceivedMethodId String?
+  SubmittedReceivedMethod   RepresentationReceivedMethod? @relation(fields: [submittedReceivedMethodId], references: [id])
+  submissionMethodReason    String?                       @db.NVarChar(50)
+
+  comment         String  @db.NVarChar(MAX)
+  commentRedacted String? @db.NVarChar(MAX)
+
+  // submitting as agent/on behalf of fields
+  // can be a person/org/group
+  representedTypeId    String?
+  RepresentedType      RepresentedType? @relation(fields: [representedTypeId], references: [id])
+  /// Implicit join table as because of groups we can have 1+ contacts
+  RepresentedContacts  Contact[]        @relation("S62aRepresentedContacts")
+  /// For when a representation is for a group of people
+  representedGroupName String?
+
+  // internal fields
+  categoryId     String?
+  Category       RepresentationCategory? @relation(fields: [categoryId], references: [id])
+  wantsToBeHeard Boolean?
+
+  containsAttachments Boolean?                     @default(false)
+  Attachments         BlobRepresentationDocument[]
+}
+
 // Document attached to a representation, such as evidence or a letter
 model RepresentationDocument {
   // internal identifier
@@ -1062,17 +1124,19 @@ model ContactPreference {
 /// RepresentationCategory represents the options for categories such as 'stat con','member of the public', etc..
 model RepresentationCategory {
   /// unique machine-readable name, not generated, e.g. "public"
-  id             String           @id
-  displayName    String?
-  Representation Representation[]
+  id                  String               @id
+  displayName         String?
+  Representation      Representation[]
+  S62aRepresentations S62aRepresentation[]
 }
 
 /// RepresentationSubmittedFor represents the options for who a representation has been made for
 model RepresentationSubmittedFor {
   /// unique machine-readable name, not generated, e.g. "myself"
-  id             String           @id
-  displayName    String?
-  Representation Representation[]
+  id                  String               @id
+  displayName         String?
+  Representation      Representation[]
+  S62aRepresentations S62aRepresentation[]
 }
 
 /// RepresentationStatus represents the status of representation e.g. accepted/rejected
@@ -1083,14 +1147,17 @@ model RepresentationStatus {
   Representation                   Representation[]
   RepresentationDocument           RepresentationDocument[]
   DraftBlobRepresentationDocuments DraftBlobRepresentationDocument[]
+  BlobRepresentationDocuments      BlobRepresentationDocument[]
+  S62aRepresentations              S62aRepresentation[]
 }
 
 /// RepresentedType represents the type of representation when acting as an agent i.e. whether person/org/group
 model RepresentedType {
   /// unique machine-readable name, not generated, e.g. "person"
-  id             String           @id
-  displayName    String?
-  Representation Representation[]
+  id                  String               @id
+  displayName         String?
+  Representation      Representation[]
+  S62aRepresentations S62aRepresentation[]
 }
 
 model WithdrawalReason {
@@ -1168,7 +1235,8 @@ model CrownDevelopmentToOrganisationRole {
 
 /// RepresentationReceivedMethod represents the method by which a representation was received
 model RepresentationReceivedMethod {
-  id             String           @id
-  displayName    String?
-  Representation Representation[]
+  id                  String               @id
+  displayName         String?
+  Representation      Representation[]
+  S62aRepresentations S62aRepresentation[]
 }

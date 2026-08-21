@@ -110,6 +110,7 @@ function addRepAgentSection(questions: Record<string, Question>) {
 		.withCondition(isOrgNotWorkFor)
 
 		.startMultiQuestionCondition('representation-group', isRepresentationGroup)
+		.addQuestion(questions.groupName)
 		.addQuestion(questions.manageGroupDetails, new ManageListSection().addQuestion(questions.groupRepresentedFullName))
 		.endMultiQuestionCondition('representation-group')
 

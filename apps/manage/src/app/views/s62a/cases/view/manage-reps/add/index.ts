@@ -37,6 +37,7 @@ import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-componen
 import { RepresentationDocumentDownloader } from './representation-document-downloader.ts';
 import { getOptionalStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { MANAGE_LIST_ACTIONS } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-actions.js';
+import { buildSaveRepresentationController, viewAddRepresentationSuccessPage } from './save.ts';
 
 export function createRoutes(service: ManageService) {
 	const { db, blobStore, logger } = service;
@@ -89,6 +90,8 @@ export function createRoutes(service: ManageService) {
 
 	const handleUploads = multer();
 
+	const saveController = buildSaveRepresentationController(service);
+
 	router.get('/start', resetSessionMiddleware, (req, res) => {
 		res.redirect(req.baseUrl + '/start/representation-date');
 	});
@@ -118,6 +121,9 @@ export function createRoutes(service: ManageService) {
 	);
 
 	router.get('/check-your-answers', getJourneyResponse, getJourney, (req, res) => list(req, res, '', {}));
+	router.post('/check-your-answers', getJourneyResponse, getJourney, asyncHandler(saveController));
+
+	router.get('/success', viewAddRepresentationSuccessPage);
 
 	return router;
 }
