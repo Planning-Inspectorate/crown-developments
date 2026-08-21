@@ -291,6 +291,32 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 		answers.representedTypeId === REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR;
 	const prefix = answers.submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF ? 'myself' : 'submitter';
 
+	const createInput = getBaseRepresentationCreateInput(answers, reference, applicationId, prefix);
+
+	if (isRepresentation) {
+		createInput.RepresentedType = { connect: { id: answers.representedTypeId } };
+		createInput.RepresentedContact = { create: {} };
+		if (representedIsAnOrganisation) {
+			createInput.RepresentedContact.create.orgName = answers.representedOrgName ?? answers.orgName;
+		} else {
+			createInput.RepresentedContact.create.firstName = answers.representedFirstName;
+			createInput.RepresentedContact.create.lastName = answers.representedLastName;
+		}
+	}
+
+	return createInput;
+}
+
+/**
+ * Base create input, shared across Crown & S62A
+ *
+ * @param {HaveYourSayManageModelFields} answers
+ * @param {string} reference
+ * @param {string} applicationId
+ * @param {string} prefix
+ * @returns {import('@pins/crowndev-database').Prisma.RepresentationCreateInput}
+ */
+function getBaseRepresentationCreateInput(answers, reference, applicationId, prefix) {
 	const createInput = {
 		reference,
 		Application: { connect: { id: applicationId } },
@@ -364,14 +390,56 @@ export function viewModelToRepresentationCreateInput(answers, reference, applica
 	if (answers.representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION) {
 		createInput.SubmittedByContact.create.jobTitleOrRole = answers.orgRoleName;
 	}
+
+	return createInput;
+}
+
+/**
+ * View model function for S62A representations, differs to Crown
+ * by having a fourth option of submitting for a group of people.
+ *
+ * @param {HaveYourSayManageModelFields} answers
+ * @param {string} reference
+ * @param {string} applicationId
+ * @returns {import('@pins/crowndev-database').Prisma.RepresentationCreateInput}
+ */
+export function viewModelToS62aRepresentationCreateInput(answers, reference, applicationId) {
+	const isRepresentation =
+		answers.representedTypeId === REPRESENTED_TYPE_ID.PERSON ||
+		answers.representedTypeId === REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR ||
+		answers.representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION ||
+		answers.representedTypeId === REPRESENTED_TYPE_ID.GROUP;
+
+	const representedIsAnOrganisation =
+		answers.representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION ||
+		answers.representedTypeId === REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR;
+
+	const prefix = answers.submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF ? 'myself' : 'submitter';
+
+	const createInput = getBaseRepresentationCreateInput(answers, reference, applicationId, prefix);
+
 	if (isRepresentation) {
 		createInput.RepresentedType = { connect: { id: answers.representedTypeId } };
-		createInput.RepresentedContact = { create: {} };
-		if (representedIsAnOrganisation) {
-			createInput.RepresentedContact.create.orgName = answers.representedOrgName ?? answers.orgName;
+
+		if (answers.representedTypeId === REPRESENTED_TYPE_ID.GROUP) {
+			const members = answers.manageGroupDetails || [];
+
+			createInput.RepresentedContacts = {
+				create: members.map((member) => ({
+					firstName: member.groupRepresentedFirstName,
+					lastName: member.groupRepresentedLastName
+				}))
+			};
+
+			createInput.representedGroupName = answers.groupName || undefined;
 		} else {
-			createInput.RepresentedContact.create.firstName = answers.representedFirstName;
-			createInput.RepresentedContact.create.lastName = answers.representedLastName;
+			createInput.RepresentedContacts = { create: [{}] };
+			if (representedIsAnOrganisation) {
+				createInput.RepresentedContacts.create[0].orgName = answers.representedOrgName ?? answers.orgName;
+			} else {
+				createInput.RepresentedContacts.create[0].firstName = answers.representedFirstName;
+				createInput.RepresentedContacts.create[0].lastName = answers.representedLastName;
+			}
 		}
 	}
 

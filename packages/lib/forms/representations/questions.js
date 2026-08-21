@@ -481,7 +481,7 @@ export const getQuestions = ({
 		},
 		manageGroupDetails: {
 			type: CUSTOM_COMPONENTS.MANAGE_LIST_TABLE,
-			title: 'Check group name details',
+			title: 'Names in the group',
 			question: 'Check group name details',
 			url: 'check-group-name-details',
 			fieldName: 'manageGroupDetails',

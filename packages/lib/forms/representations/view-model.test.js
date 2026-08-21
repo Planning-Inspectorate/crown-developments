@@ -2,7 +2,8 @@ import { describe, it } from 'node:test';
 import {
 	editsToDatabaseUpdates,
 	representationToManageViewModel,
-	viewModelToRepresentationCreateInput
+	viewModelToRepresentationCreateInput,
+	viewModelToS62aRepresentationCreateInput
 } from './view-model.js';
 import assert from 'node:assert';
 import {
@@ -1678,6 +1679,220 @@ describe('view-model', () => {
 				const viewModel = representationToManageViewModel(representation, applicationReference);
 				assert.strictEqual(viewModel.submittedReceivedMethodId, RECEIVED_METHOD_ID.ONLINE);
 			});
+		});
+	});
+	describe('viewModelToS62aRepresentationCreateInput', () => {
+		it('should map myself journey answers to Prisma Input (S62A)', (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T00:00:00Z') });
+			const id = 'id-1';
+			const reference = 'ref';
+			const now = new Date();
+			const mockAnswers = {
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+				myselfFirstName: 'firstName',
+				myselfLastName: 'lastName',
+				myselfEmail: 'myemail@email.com',
+				myselfComment: 'my comments',
+				myselfContainsAttachments: 'no'
+			};
+			const representationCreateInput = viewModelToS62aRepresentationCreateInput(mockAnswers, reference, id);
+
+			assert.deepStrictEqual(representationCreateInput, {
+				reference: 'ref',
+				Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+				Application: { connect: { id: 'id-1' } },
+				Category: { connect: { id: 'interested-parties' } },
+				SubmittedReceivedMethod: { connect: { id: 'online' } },
+				submittedDate: now,
+				submittedByAgent: false,
+				SubmittedByContact: {
+					create: {
+						firstName: 'firstName',
+						lastName: 'lastName',
+						email: 'myemail@email.com',
+						ContactPreference: { connect: { id: 'email' } }
+					}
+				},
+				SubmittedFor: { connect: { id: 'myself' } },
+				comment: 'my comments',
+				containsAttachments: false
+			});
+		});
+
+		it('should map on behalf of a person to Prisma Input using RepresentedContacts array (S62A)', (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T00:00:00Z') });
+			const id = 'id-1';
+			const reference = 'ref';
+			const now = new Date();
+			const mockAnswers = {
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
+				submitterFirstName: 'agentFirst',
+				submitterLastName: 'agentLast',
+				submitterEmail: 'agent@email.com',
+				isAgent: true,
+				agentOrgName: 'agent org',
+				submitterComment: 'agent comments',
+				representedFirstName: 'repFirst',
+				representedLastName: 'repLast',
+				submitterContainsAttachments: 'no'
+			};
+
+			const representationCreateInput = viewModelToS62aRepresentationCreateInput(mockAnswers, reference, id);
+
+			assert.deepStrictEqual(representationCreateInput, {
+				reference: 'ref',
+				Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+				Application: { connect: { id: 'id-1' } },
+				Category: { connect: { id: 'interested-parties' } },
+				SubmittedReceivedMethod: { connect: { id: 'online' } },
+				submittedDate: now,
+				submittedByAgent: true,
+				submittedByAgentOrgName: 'agent org',
+				SubmittedByContact: {
+					create: {
+						firstName: 'agentFirst',
+						lastName: 'agentLast',
+						email: 'agent@email.com',
+						ContactPreference: { connect: { id: 'email' } }
+					}
+				},
+				SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
+				comment: 'agent comments',
+				containsAttachments: false,
+				RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.PERSON } },
+				RepresentedContacts: {
+					create: [
+						{
+							firstName: 'repFirst',
+							lastName: 'repLast'
+						}
+					]
+				}
+			});
+		});
+
+		it('should map on behalf of an organisation to Prisma Input using RepresentedContacts array (S62A)', (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T00:00:00Z') });
+			const id = 'id-1';
+			const reference = 'ref';
+			const now = new Date();
+			const mockAnswers = {
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+				representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
+				isAgent: 'no',
+				submitterFirstName: 'firstName',
+				submitterLastName: 'lastName',
+				submitterEmail: 'myemail@email.com',
+				submitterComment: 'my comments',
+				representedOrgName: 'rep org',
+				orgRoleName: 'my role at org',
+				submitterContainsAttachments: 'no'
+			};
+			const representationCreateInput = viewModelToS62aRepresentationCreateInput(mockAnswers, reference, id);
+
+			assert.deepStrictEqual(representationCreateInput, {
+				reference: 'ref',
+				Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+				Application: { connect: { id: 'id-1' } },
+				Category: { connect: { id: 'interested-parties' } },
+				SubmittedReceivedMethod: { connect: { id: 'online' } },
+				submittedDate: now,
+				submittedByAgent: false,
+				SubmittedByContact: {
+					create: {
+						firstName: 'firstName',
+						lastName: 'lastName',
+						email: 'myemail@email.com',
+						jobTitleOrRole: 'my role at org',
+						ContactPreference: { connect: { id: 'email' } }
+					}
+				},
+				SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
+				comment: 'my comments',
+				containsAttachments: false,
+				RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.ORGANISATION } },
+				RepresentedContacts: {
+					create: [
+						{
+							orgName: 'rep org'
+						}
+					]
+				}
+			});
+		});
+
+		it('should map on behalf of a GROUP to Prisma Input creating multiple RepresentedContacts (S62A exclusive)', (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T00:00:00Z') });
+			const id = 'id-1';
+			const reference = 'ref';
+			const now = new Date();
+			const mockAnswers = {
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+				representedTypeId: REPRESENTED_TYPE_ID.GROUP,
+				groupName: 'Local Residents Association',
+				manageGroupDetails: [
+					{ groupRepresentedFirstName: 'John', groupRepresentedLastName: 'Doe' },
+					{ groupRepresentedFirstName: 'Jane', groupRepresentedLastName: 'Smith' }
+				],
+				submitterFirstName: 'AgentFirst',
+				submitterLastName: 'AgentLast',
+				submitterEmail: 'agent@email.com',
+				submitterComment: 'Group comments',
+				submitterContainsAttachments: 'yes'
+			};
+
+			const representationCreateInput = viewModelToS62aRepresentationCreateInput(mockAnswers, reference, id);
+
+			assert.deepStrictEqual(representationCreateInput, {
+				reference: 'ref',
+				Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
+				Application: { connect: { id: 'id-1' } },
+				Category: { connect: { id: 'interested-parties' } },
+				SubmittedReceivedMethod: { connect: { id: 'online' } },
+				submittedDate: now,
+				submittedByAgent: false,
+				SubmittedByContact: {
+					create: {
+						firstName: 'AgentFirst',
+						lastName: 'AgentLast',
+						email: 'agent@email.com',
+						ContactPreference: { connect: { id: 'email' } }
+					}
+				},
+				SubmittedFor: { connect: { id: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF } },
+				comment: 'Group comments',
+				containsAttachments: true,
+				RepresentedType: { connect: { id: REPRESENTED_TYPE_ID.GROUP } },
+				representedGroupName: 'Local Residents Association',
+				RepresentedContacts: {
+					create: [
+						{ firstName: 'John', lastName: 'Doe' },
+						{ firstName: 'Jane', lastName: 'Smith' }
+					]
+				}
+			});
+		});
+
+		it('should handle a GROUP submission with empty or missing manageGroupDetails (S62A exclusive)', (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T00:00:00Z') });
+			const id = 'id-1';
+			const reference = 'ref';
+
+			const mockAnswers = {
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+				representedTypeId: REPRESENTED_TYPE_ID.GROUP,
+				groupName: 'Empty Group',
+				submitterFirstName: 'AgentFirst',
+				submitterLastName: 'AgentLast'
+			};
+
+			const representationCreateInput = viewModelToS62aRepresentationCreateInput(mockAnswers, reference, id);
+
+			assert.deepStrictEqual(representationCreateInput.RepresentedContacts, {
+				create: []
+			});
+			assert.strictEqual(representationCreateInput.representedGroupName, 'Empty Group');
 		});
 	});
 });

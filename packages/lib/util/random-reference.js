@@ -8,11 +8,23 @@ import crypto from 'node:crypto';
  * @param {() => string} [generateReference] - this is for testing
  * @returns {Promise<string>}
  */
-export async function uniqueReference(db, generateReference = generateNewReference) {
+export async function uniqueReference(db, generateReference = generateNewReference, model = 'crown') {
 	const MAX_TRIES = 10;
 	for (let i = 0; i < MAX_TRIES; i++) {
 		const reference = generateReference();
-		const count = await db.representation.count({ where: { reference } });
+		let count;
+
+		switch (model) {
+			case 'crown':
+				count = await crownQuery(db, reference);
+				break;
+			case 's62a':
+				count = await s62aQuery(db, reference);
+				break;
+			default:
+				break;
+		}
+
 		if (count === 0) {
 			return reference;
 		}
@@ -33,4 +45,12 @@ export function isValidUniqueReference(reference) {
 	// Check if the reference is in the format AAAAA-BBBBB
 	const regex = /^[A-F0-9]{5}-[A-F0-9]{5}$/;
 	return regex.test(reference);
+}
+
+function crownQuery(db, reference) {
+	return db.representation.count({ where: { reference } });
+}
+
+function s62aQuery(db, reference) {
+	return db.s62aRepresentation.count({ where: { reference } });
 }
