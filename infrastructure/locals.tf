@@ -25,12 +25,14 @@ locals {
     {
       "app-insights-connection-string" = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.app_insights_connection_string.versionless_id})",
       "redis-connection-string"        = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.redis_web_connection_string.versionless_id})",
-      "session-secret-portal"          = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.session_secret.versionless_id})",
-      "session-secret-s62a-portal"     = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.s62a_portal_session_secret.versionless_id})",
-      "session-secret-manage"          = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.manage_session_secret.versionless_id})",
+      "s62a-portal-session-secrets"    = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.s62a_portal_session_secrets.versionless_id})",
+      "portal-session-secrets"         = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.portal_session_secrets.versionless_id})",
+      "manage-session-secrets"         = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.manage_session_secrets.versionless_id})",
       "sql-app-connection-string"      = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.sql_app_connection_string.versionless_id})"
     }
   )
+
+  session_secret_a_is_newer = time_rotating.session_secret_a.unix > time_rotating.session_secret_b.unix
 
   tags = merge(
     var.tags,

@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { loadEnvFile } from 'node:process';
 import type { BaseConfig } from '@pins/crowndev-lib/app/config-types.d.ts';
+import { parseSessionSecrets } from '@pins/crowndev-lib/util/session.ts';
 
 export interface Config extends BaseConfig {
 	cacheControl: {
@@ -20,7 +21,7 @@ export interface Config extends BaseConfig {
 	session: {
 		redisPrefix: string;
 		redis?: string;
-		secret: string;
+		secret: string[];
 	};
 	staticDir: string;
 	s62aDevContactInfo: {
@@ -53,7 +54,7 @@ export function loadConfig(): Config {
 		PORT,
 		NODE_ENV,
 		REDIS_CONNECTION_STRING,
-		SESSION_SECRET,
+		SESSION_SECRETS,
 		SQL_CONNECTION_STRING,
 		S62A_DEV_CONTACT_EMAIL,
 		FEATURE_FLAG_S62A_PORTAL_NOT_LIVE
@@ -61,9 +62,7 @@ export function loadConfig(): Config {
 
 	const buildConfig = loadBuildConfig();
 
-	if (!SESSION_SECRET) {
-		throw new Error('SESSION_SECRET is required');
-	}
+	const secrets: string[] = parseSessionSecrets(SESSION_SECRETS);
 
 	let httpPort = 8081;
 	if (PORT) {
@@ -92,7 +91,7 @@ export function loadConfig(): Config {
 		session: {
 			redisPrefix: 'portal:',
 			redis: REDIS_CONNECTION_STRING,
-			secret: SESSION_SECRET
+			secret: secrets
 		},
 		s62aDevContactInfo: {
 			email: S62A_DEV_CONTACT_EMAIL

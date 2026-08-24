@@ -11,6 +11,14 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "> 4"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "0.13.1"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "3.8.1"
+    }
   }
   required_version = ">= 1.11.0, < 1.16.0"
 }

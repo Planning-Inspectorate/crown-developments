@@ -25,7 +25,7 @@ interface Config {
 	session: {
 		redisPrefix: string;
 		redis?: string;
-		secret: string;
+		secret: string[];
 	};
 	staticDir: string;
 	govNotify: NotifyConfig;

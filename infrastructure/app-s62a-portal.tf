@@ -71,7 +71,7 @@ module "app_s62a_portal" {
 
     # sessions
     REDIS_CONNECTION_STRING = local.key_vault_refs["redis-connection-string"]
-    SESSION_SECRET          = local.key_vault_refs["session-secret-s62a-portal"]
+    SESSION_SECRETS         = local.key_vault_refs["s62a-portal-session-secrets"]
 
     # retries
     RETRY_MAX_ATTEMPTS = "3"
@@ -127,17 +127,41 @@ resource "azurerm_role_assignment" "app_s62a_portal_staging_secrets_user" {
 }
 
 ## sessions
-resource "random_password" "s62a_portal_session_secret" {
+# Two random passwords, one for each rotator, to be rotated by the rotators
+resource "random_password" "s62a_portal_session_secret_a" {
   length  = 32
   special = true
+  keepers = {
+    rotation = time_rotating.session_secret_a.id
+  }
 }
 
-resource "azurerm_key_vault_secret" "s62a_portal_session_secret" {
-  #checkov:skip=CKV_AZURE_41: TODO: Secret rotation
+resource "random_password" "s62a_portal_session_secret_b" {
+  length  = 32
+  special = true
+  keepers = {
+    rotation = time_rotating.session_secret_b.id
+  }
+}
+
+resource "azurerm_key_vault_secret" "s62a_portal_session_secrets" {
   key_vault_id = azurerm_key_vault.main.id
   name         = "${local.service_name}-s62a-portal-session-secret"
-  value        = random_password.s62a_portal_session_secret.result
+  value = jsonencode(
+    local.session_secret_a_is_newer ? [
+      random_password.s62a_portal_session_secret_a.result,
+      random_password.s62a_portal_session_secret_b.result
+      ] : [
+      random_password.s62a_portal_session_secret_b.result,
+      random_password.s62a_portal_session_secret_a.result
+    ]
+  )
   content_type = "session-secret"
+  expiration_date = (
+    local.session_secret_a_is_newer
+    ? time_rotating.session_secret_b.rotation_rfc3339
+    : time_rotating.session_secret_a.rotation_rfc3339
+  )
 
   depends_on = [
     azurerm_private_endpoint.keyvault,

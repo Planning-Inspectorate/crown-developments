@@ -54,7 +54,7 @@ interface Config {
 	session: {
 		redisPrefix: string;
 		redis?: string;
-		secret: string;
+		secret: string[]; // Express session can take an array, it assigns the first value but allows any in the array
 	};
 	sharePoint: {
 		disabled: boolean; // Enable/disable sharepoint connection

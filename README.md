@@ -26,6 +26,7 @@ to install all dependencies (the repo is set up with workspaces, this will insta
 
 The applications require configuration to run, and these are set via environment variables. These can be set using run configurations, or using a `.env` file. There is a `.env.example` file to get started with in each app directory.
 
+SESSION_SECRETS is a JSON array of strings, e.g. "['secret1', 'secret2']".
 ### Database Setup
 
 A SQL Server database server is required for the applications to run. This will start automatically with docker compose. However, it is required to migrate and seed the database which can be done from scripts in the database package.
