@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import { buildFilters, hasQueries, mapWithAndWithoutToBoolean } from './filters.ts';
 import { REPRESENTATION_CATEGORY_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
 
 // Helper to create a mock db with overridable count behaviour
 function createMockDb(counts) {

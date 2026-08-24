@@ -1,7 +1,7 @@
 import { buildNotifyCallbackTokenValidator } from './notify-callback.js';
 import { test, describe, beforeEach } from 'node:test';
 import assert from 'assert';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
 
 describe('buildNotifyCallbackTokenValidator', () => {
 	let logger;

@@ -2,7 +2,7 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildListCases, crownDevelopmentToViewModel } from './controller.js';
 import { configureNunjucks } from '../../../nunjucks.js';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
 
 describe('case list', () => {
 	describe('crownDevelopmentToViewModel', () => {

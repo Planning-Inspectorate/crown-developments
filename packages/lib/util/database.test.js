@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import { optionalWhere, wrapPrismaError } from './database.ts';
 import assert from 'node:assert';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import { mockLogger } from '../testing/mock-logger.js';
+import { mockLogger } from '../testing/mock-logger.ts';
 
 describe('database', () => {
 	describe('optionalWhere', () => {

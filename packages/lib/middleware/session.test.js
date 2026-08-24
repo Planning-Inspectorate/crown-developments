@@ -1,7 +1,7 @@
 import { test, describe, mock } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { buildResetSessionMiddleware } from './session.js';
-import { mockLogger } from '../testing/mock-logger.js';
+import { mockLogger } from '../testing/mock-logger.ts';
 
 describe('reset-session', () => {
 	describe('buildResetSessionMiddleware', () => {

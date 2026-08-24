@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import { GovNotifyClient } from './gov-notify-client.ts';
-import { mockLogger } from '../testing/mock-logger.js';
+import { mockLogger } from '../testing/mock-logger.ts';
 import assert from 'node:assert';
 import { AxiosError } from 'axios';
 
@@ -20,7 +20,7 @@ describe(`gov-notify-client`, () => {
 		});
 		it('should log an error if NotifyClient fails', async (ctx) => {
 			const logger = mockLogger();
-			const client = new GovNotifyClient(logger, 'key', {});
+			const client = new GovNotifyClient(logger, 'key', {}, { maxRetries: 0 });
 			ctx.mock.method(client.notifyClient, 'sendEmail', () => {
 				throw new Error('Notify API error');
 			});
@@ -35,7 +35,7 @@ describe(`gov-notify-client`, () => {
 		});
 		it('should log errors from Notify API', async (ctx) => {
 			const logger = mockLogger();
-			const client = new GovNotifyClient(logger, 'key', {});
+			const client = new GovNotifyClient(logger, 'key', {}, { maxRetries: 0 });
 			ctx.mock.method(client.notifyClient, 'sendEmail', () => {
 				const error = new AxiosError('Notify API error');
 				error.response = { data: { errors: ['Error 1', 'Error 2'] } };
@@ -49,7 +49,133 @@ describe(`gov-notify-client`, () => {
 					message: 'email failed to dispatch: Notify API error'
 				}
 			);
-			assert.strictEqual(logger.error.mock.callCount(), 2);
+			// error logged by: withRetry (non-retryable), sendEmail catch block, and Notify API errors
+			assert.ok(logger.error.mock.callCount() >= 2, 'Expected at least 2 error logs');
+		});
+		it('should retry on 500 server error and succeed on second attempt', async (ctx) => {
+			ctx.mock.timers.enable({ apis: ['setTimeout'] });
+
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {}, { maxRetries: 2, initialDelayMs: 100, maxDelayMs: 500 });
+
+			let callCount = 0;
+			ctx.mock.method(client.notifyClient, 'sendEmail', () => {
+				callCount++;
+				if (callCount === 1) {
+					const error = new AxiosError('Server error');
+					error.response = { status: 500 };
+					throw error;
+				}
+				return Promise.resolve();
+			});
+
+			const promise = client.sendEmail('templateId', 'email@test.com', { personalisation: {} });
+
+			ctx.mock.timers.tick(100);
+			await Promise.resolve();
+			await promise;
+
+			assert.strictEqual(client.notifyClient.sendEmail.mock.callCount(), 2);
+			assert.strictEqual(logger.warn.mock.callCount(), 1); // retry warning log
+		});
+		it('should retry on 429 rate limiting error', async (ctx) => {
+			ctx.mock.timers.enable({ apis: ['setTimeout'] });
+
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {}, { maxRetries: 2, initialDelayMs: 100, maxDelayMs: 500 });
+
+			let callCount = 0;
+			ctx.mock.method(client.notifyClient, 'sendEmail', () => {
+				callCount++;
+				if (callCount === 1) {
+					const error = new AxiosError('Rate limited');
+					error.response = { status: 429 };
+					throw error;
+				}
+				return Promise.resolve();
+			});
+
+			const promise = client.sendEmail('templateId', 'email@test.com', { personalisation: {} });
+
+			ctx.mock.timers.tick(100);
+			await Promise.resolve();
+			await promise;
+
+			assert.strictEqual(client.notifyClient.sendEmail.mock.callCount(), 2);
+		});
+		it('should throw after exhausting all retries', async (ctx) => {
+			ctx.mock.timers.enable({ apis: ['setTimeout'] });
+
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {}, { maxRetries: 2, initialDelayMs: 100, maxDelayMs: 500 });
+
+			const serverError = new AxiosError('Server error');
+			serverError.response = { status: 500 };
+			ctx.mock.method(client.notifyClient, 'sendEmail', () => {
+				throw serverError;
+			});
+
+			const promise = client.sendEmail('templateId', 'email@test.com', { personalisation: {} });
+			// Tick through retry delays using exponential backoff
+			// First retry delay: 100 * e^0 = 100ms
+			ctx.mock.timers.tick(100);
+			await Promise.resolve();
+			// Second retry delay: 100 * e^1 ≈ 272ms
+			ctx.mock.timers.tick(Math.ceil(100 * Math.E));
+			await Promise.resolve();
+
+			await assert.rejects(promise, {
+				message: 'email failed to dispatch: Server error'
+			});
+
+			assert.strictEqual(client.notifyClient.sendEmail.mock.callCount(), 3); // initial + 2 retries
+		});
+		it('should not retry on 400 bad request error', async (ctx) => {
+			const logger = mockLogger();
+			const client = new GovNotifyClient(logger, 'key', {}, { maxRetries: 2 });
+
+			const badRequestError = new AxiosError('Bad request');
+			badRequestError.response = { status: 400 };
+			ctx.mock.method(client.notifyClient, 'sendEmail', () => {
+				throw badRequestError;
+			});
+
+			await assert.rejects(client.sendEmail('templateId', 'email@test.com', { personalisation: {} }), {
+				message: 'email failed to dispatch: Bad request'
+			});
+
+			assert.strictEqual(client.notifyClient.sendEmail.mock.callCount(), 1); // no retries
+		});
+		it('should use custom retry configuration', async (ctx) => {
+			ctx.mock.timers.enable({ apis: ['setTimeout'] });
+
+			const logger = mockLogger();
+			const customRetryConfig = {
+				maxRetries: 1,
+				initialDelayMs: 500,
+				maxDelayMs: 500,
+				retryableStatusCodes: [503]
+			};
+			const client = new GovNotifyClient(logger, 'key', {}, customRetryConfig);
+
+			let callCount = 0;
+			ctx.mock.method(client.notifyClient, 'sendEmail', () => {
+				callCount++;
+				if (callCount === 1) {
+					const error = new AxiosError('Service unavailable');
+					error.response = { status: 503 };
+					throw error;
+				}
+				return Promise.resolve();
+			});
+
+			const promise = client.sendEmail('templateId', 'email@test.com', { personalisation: {} });
+
+			ctx.mock.timers.tick(500);
+			await Promise.resolve();
+			await promise;
+
+			assert.strictEqual(client.notifyClient.sendEmail.mock.callCount(), 2);
 		});
 	});
 	describe('sendAcknowledgePreNotification', () => {

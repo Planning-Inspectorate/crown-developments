@@ -14,7 +14,7 @@ import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journe
 import { ACCEPT_AND_REDACT, getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { createJourney } from '../view/journey.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
 import { ReadableStream } from 'node:stream/web';
 

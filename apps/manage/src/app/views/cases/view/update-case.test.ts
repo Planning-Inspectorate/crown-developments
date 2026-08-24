@@ -1,7 +1,7 @@
 import { before, describe, it, mock } from 'node:test';
 import { buildUpdateCase } from './update-case.ts';
 import assert from 'node:assert';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
 import { asReq, asRes } from '@pins/crowndev-lib/testing/mock-express.ts';
 import { APPLICATION_PROCEDURE_ID, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
@@ -49,8 +49,8 @@ describe('case details', () => {
 			const data = {};
 			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 0);
-			assert.strictEqual((logger.info as any).mock.callCount(), 2);
-			const args = (logger.info as any).mock.calls[1].arguments[1];
+			assert.strictEqual(logger.info.mock.callCount(), 2);
+			const args = logger.info.mock.calls[1].arguments[1];
 			assert.strictEqual(args, 'no case updates to apply');
 		});
 		it('should call db update and add to session', async () => {
@@ -2743,8 +2743,8 @@ describe('audit recording', () => {
 		assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
 
 		// Verify error was logged
-		assert.strictEqual((logger.error as any).mock.callCount(), 1);
-		const errorCall = (logger.error as any).mock.calls[0];
+		assert.strictEqual(logger.error.mock.callCount(), 1);
+		const errorCall = logger.error.mock.calls[0];
 		assert.strictEqual(errorCall.arguments[0].caseId, 'case-1');
 		assert.strictEqual(errorCall.arguments[1], 'Failed to record audit events');
 	});

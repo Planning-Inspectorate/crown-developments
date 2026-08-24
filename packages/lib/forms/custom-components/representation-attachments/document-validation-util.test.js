@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { fileAlreadyExistsInFolder, isDocOrXlsEncrypted, validateUploadedFile } from './document-validation-util.js';
-import { mockLogger } from '../../../testing/mock-logger.js';
+import { mockLogger } from '../../../testing/mock-logger.ts';
 import * as CFB from 'cfb';
 import { ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '../../representations/question-utils.js';
 import { createMinimalZipBuffer } from './zip-file-util.js';

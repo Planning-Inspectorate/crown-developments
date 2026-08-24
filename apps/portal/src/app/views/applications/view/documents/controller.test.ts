@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import { buildApplicationDocumentsPage } from './controller.ts';
 import assert from 'node:assert';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
 import { buildUrlWithParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import type { Request, Response, NextFunction } from 'express';
 import type { PaginationContext } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
