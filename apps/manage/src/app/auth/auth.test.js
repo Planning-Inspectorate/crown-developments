@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import supertest from 'supertest';
 import express from 'express';
 import { createRoutesAndGuards } from './router.js';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
 
 describe('auth', () => {
 	describe('authentication', () => {

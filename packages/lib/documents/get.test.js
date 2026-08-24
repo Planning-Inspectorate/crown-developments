@@ -1,5 +1,5 @@
 import { describe, it, mock } from 'node:test';
-import { mockLogger } from '../testing/mock-logger.js';
+import { mockLogger } from '../testing/mock-logger.ts';
 import assert from 'node:assert';
 import { getDocuments, getDocumentsById } from './get.js';
 

@@ -9,7 +9,7 @@ import {
 	getInvalidStateBannerHtml
 } from './controller.ts';
 import { configureNunjucks } from '../../../nunjucks.js';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 

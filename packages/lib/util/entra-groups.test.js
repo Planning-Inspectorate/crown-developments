@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import { getEntraGroupMembers } from './entra-groups.ts';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
 import assert from 'node:assert';
 
 describe('entra-groups', () => {

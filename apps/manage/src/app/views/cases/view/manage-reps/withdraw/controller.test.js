@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildSaveController, successController } from './controller.js';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 describe('withdraw rep controller', () => {

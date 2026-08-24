@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import { buildDeleteUpdateController } from './controller.js';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
 import assert from 'node:assert';
 
 describe('application updates delete controller', () => {
