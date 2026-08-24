@@ -10,5 +10,5 @@ export function initGovNotify(config: NotifyConfig, logger: Logger) {
 		return null;
 	}
 
-	return new GovNotifyClient(logger, config.apiKey, config.templateIds);
+	return new GovNotifyClient(logger, config.apiKey, config.templateIds, config.retryConfig);
 }

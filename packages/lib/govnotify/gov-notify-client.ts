@@ -2,6 +2,7 @@ import { NotifyClient } from 'notifications-node-client';
 import { formatFee } from '../util/numbers.ts';
 import type { Logger } from 'pino';
 import { isAxiosError } from 'axios';
+import { withRetry, type RetryConfig, DEFAULT_RETRY_CONFIG } from '../util/retry.ts';
 
 interface GovNotifyOptions {
 	personalisation: {
@@ -27,6 +28,7 @@ export interface NotifyConfig {
 	apiKey: string;
 	webHookToken: string;
 	templateIds: TemplateIds;
+	retryConfig?: Partial<RetryConfig>;
 }
 
 type CommonNotificationPersonalisation = {
@@ -65,11 +67,13 @@ export class GovNotifyClient {
 	private readonly templateIds: TemplateIds;
 	private readonly logger: Logger;
 	private readonly notifyClient: NotifyClient;
+	private readonly retryConfig: RetryConfig;
 
-	constructor(logger: Logger, govNotifyApiKey: string, templateIds: TemplateIds) {
+	constructor(logger: Logger, govNotifyApiKey: string, templateIds: TemplateIds, retryConfig?: Partial<RetryConfig>) {
 		this.logger = logger;
 		this.notifyClient = new NotifyClient(govNotifyApiKey);
 		this.templateIds = templateIds;
+		this.retryConfig = { ...DEFAULT_RETRY_CONFIG, ...retryConfig };
 	}
 
 	async sendAcknowledgePreNotification(
@@ -188,12 +192,17 @@ export class GovNotifyClient {
 	}
 
 	async sendEmail(templateId: string, emailAddress: string, options: GovNotifyOptions): Promise<void> {
+		this.logger.info({ templateId, emailAddress }, 'dispatching email template');
+
 		try {
-			this.logger.info(`dispatching email template: ${templateId}`);
-			await this.notifyClient.sendEmail(templateId, emailAddress, options);
+			await withRetry(
+				() => this.notifyClient.sendEmail(templateId, emailAddress, options),
+				this.retryConfig,
+				this.logger
+			);
 		} catch (error) {
 			// log the original error
-			this.logger.error({ error, templateId }, 'failed to dispatch email');
+			this.logger.error({ error, templateId, emailAddress }, 'failed to dispatch email after retries');
 
 			// log the errors received from Notify API, this should be an AxiosError
 			if (isAxiosError<NotifyErrorData>(error) && error.response?.data?.errors) {
@@ -234,7 +243,6 @@ export class GovNotifyClient {
 		results.forEach((result, index) => {
 			if (result.status === 'rejected') {
 				atLeastOneFailed = true;
-				// TODO retry mechanism CROWN-582
 				const address = emailAddresses[index];
 				this.logger.error({ error: result.reason, emailAddress: address }, errorMessage);
 			}
