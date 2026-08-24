@@ -24,7 +24,7 @@ export function initSessionMiddleware({
 	secret
 }: {
 	redis: RedisClient | null;
-	secret: string;
+	secret: string[];
 	secure: boolean;
 }) {
 	const store: session.Store = redis ? redis.store : new session.MemoryStore();
@@ -176,4 +176,36 @@ export function popSessionData<T>(
 	const data = readSessionData(req, id, key, defaultValue, namespace);
 	clearSessionData(req, id, key, namespace);
 	return data;
+}
+
+export function parseSessionSecrets(raw: string | undefined): string[] {
+	if (!raw) {
+		throw new Error('SESSION_SECRETS is not set');
+	}
+	let parsed: unknown;
+	try {
+		parsed = JSON.parse(raw);
+	} catch {
+		throw new Error('SESSION_SECRETS is not valid JSON');
+	}
+	if (!Array.isArray(parsed)) {
+		throw new Error('SESSION_SECRETS must be a JSON array of strings');
+	}
+
+	const secrets: string[] = parsed.map((s, index) => {
+		if (typeof s !== 'string') {
+			throw new Error(`SESSION_SECRETS[${index}] is not a string`);
+		}
+		const trimmed = s.trim();
+		if (trimmed.length === 0) {
+			throw new Error(`SESSION_SECRETS[${index}] is an empty string`);
+		}
+		return trimmed;
+	});
+
+	if (secrets.length === 0) {
+		throw new Error('SESSION_SECRETS must contain at least one secret');
+	}
+
+	return secrets;
 }

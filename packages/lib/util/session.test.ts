@@ -5,7 +5,8 @@ import {
 	readSessionData,
 	clearSessionData,
 	removeApplicantContactsWhenOrganisationRemoved,
-	popSessionData
+	popSessionData,
+	parseSessionSecrets
 } from './session.ts';
 import type { Request, Response } from 'express';
 
@@ -368,5 +369,40 @@ describe('popSessionData', () => {
 		assert.strictEqual(result, 'bar');
 		assert.strictEqual('foo' in sessionData['custom']['item-1'], false);
 		assert.strictEqual(sessionData['custom']['item-1']['keep'], 'this');
+	});
+});
+
+describe('parseSessionSecrets', () => {
+	it('should parse a JSON array into an array of secrets', () => {
+		const raw = JSON.stringify(['secret1', 'secret2']);
+		assert.deepStrictEqual(parseSessionSecrets(raw), ['secret1', 'secret2']);
+	});
+	it('should throw an error if the input is not valid JSON', () => {
+		const raw = 'not-json';
+		assert.throws(() => parseSessionSecrets(raw), /SESSION_SECRETS is not valid JSON/);
+	});
+	it('should throw an error if the input is not an array', () => {
+		const raw = JSON.stringify({ secret: 'value' });
+		assert.throws(() => parseSessionSecrets(raw), /SESSION_SECRETS must be a JSON array of strings/);
+	});
+	it('should throw an error if any element in the array is not a string', () => {
+		const raw = JSON.stringify(['secret1', 123]);
+		assert.throws(() => parseSessionSecrets(raw), /SESSION_SECRETS\[1\] is not a string/);
+	});
+	it('should throw an error if any element in the array is an empty string', () => {
+		const raw = JSON.stringify(['secret1', '']);
+		assert.throws(() => parseSessionSecrets(raw), /SESSION_SECRETS\[1\] is an empty string/);
+	});
+	it('should throw an error if a trimmed string is empty', () => {
+		const raw = JSON.stringify(['secret1', '   ']);
+		assert.throws(() => parseSessionSecrets(raw), /SESSION_SECRETS\[1\] is an empty string/);
+	});
+	it('should throw an error if the array is empty', () => {
+		const raw = JSON.stringify([]);
+		assert.throws(() => parseSessionSecrets(raw), /SESSION_SECRETS must contain at least one secret/);
+	});
+	it('should throw an error if the input is undefined', () => {
+		const raw = undefined;
+		assert.throws(() => parseSessionSecrets(raw), /SESSION_SECRETS is not set/);
 	});
 });

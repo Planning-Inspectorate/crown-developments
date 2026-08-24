@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'url';
 import { loadEnvFile } from 'node:process';
+import { parseSessionSecrets } from '@pins/crowndev-lib/util/session.ts';
 
 /**
  * The environment names
@@ -49,7 +50,7 @@ export function loadConfig() {
 		PORT,
 		NODE_ENV,
 		REDIS_CONNECTION_STRING,
-		SESSION_SECRET,
+		SESSION_SECRETS,
 		SQL_CONNECTION_STRING,
 		SHAREPOINT_DISABLED,
 		SHAREPOINT_DRIVE_ID,
@@ -77,9 +78,9 @@ export function loadConfig() {
 
 	const buildConfig = loadBuildConfig();
 
-	if (!SESSION_SECRET) {
-		throw new Error('SESSION_SECRET is required');
-	}
+	// Express-session can take an array of secrets to use
+	// It assigns [0] but considers any valid
+	const secrets = parseSessionSecrets(SESSION_SECRETS);
 
 	let httpPort = 8090;
 	if (PORT) {
@@ -220,7 +221,7 @@ export function loadConfig() {
 		session: {
 			redisPrefix: 'manage:',
 			redis: REDIS_CONNECTION_STRING,
-			secret: SESSION_SECRET
+			secret: secrets
 		},
 		sharePoint: {
 			disabled: sharePointDisabled,

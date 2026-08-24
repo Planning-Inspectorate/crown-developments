@@ -17,7 +17,7 @@ describe('pagination macro', () => {
 	let nunjucks;
 
 	beforeEach(() => {
-		process.env.SESSION_SECRET = 'dummy_value';
+		process.env.SESSION_SECRETS = "['dummy_value', 'dummy_value_2']";
 		process.env.GOV_NOTIFY_DISABLED = 'true';
 		process.env.SHAREPOINT_DISABLED = 'true';
 

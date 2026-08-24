@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'url';
 import { loadEnvFile } from 'node:process';
+import { parseSessionSecrets } from '@pins/crowndev-lib/util/session.ts';
 
 // cache the config
 /** @type {undefined|import('./config-types.js').Config} */
@@ -36,7 +37,7 @@ export function loadConfig() {
 		PORT,
 		NODE_ENV,
 		REDIS_CONNECTION_STRING,
-		SESSION_SECRET,
+		SESSION_SECRETS,
 		SHAREPOINT_DISABLED,
 		SHAREPOINT_DRIVE_ID,
 		SQL_CONNECTION_STRING,
@@ -50,9 +51,7 @@ export function loadConfig() {
 
 	const buildConfig = loadBuildConfig();
 
-	if (!SESSION_SECRET) {
-		throw new Error('SESSION_SECRET is required');
-	}
+	const secrets = parseSessionSecrets(SESSION_SECRETS);
 
 	let httpPort = 8080;
 	if (PORT) {
@@ -122,7 +121,7 @@ export function loadConfig() {
 		session: {
 			redisPrefix: 'portal:',
 			redis: REDIS_CONNECTION_STRING,
-			secret: SESSION_SECRET
+			secret: secrets
 		},
 		// the static directory to serve assets from (images, css, etc..)
 		staticDir: buildConfig.staticDir,
