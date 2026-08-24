@@ -79,6 +79,7 @@
     "@eslint/js": "^10.0.1",
     "@faker-js/faker": "^10.5.0",
     "@microsoft/microsoft-graph-types": "^2.43.1",
+    "@planning-inspectorate/coding-standards": "^1.1.1",
     "@playwright/test": "^1.62.1",
     "@types/archiver": "^8.0.0",
     "@types/escape-html": "^1.0.4",
