@@ -69,8 +69,9 @@ import UniqueListFieldValidator from '@pins/crowndev-lib/validators/unique-list-
 import { toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
 import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
 import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
-import { housingQuestions } from '../util/housing-questions.ts';
 import RequiredGroupValidator from '@pins/crowndev-lib/validators/required-group-validator.ts';
+import { housingQuestions, residentialTotalQuestions } from '../util/housing-questions.ts';
+import type { ResidentialTotals } from '../util/residential-totals.ts';
 
 interface QuestionOverrides {
 	isQuestionView?: boolean;
@@ -82,6 +83,7 @@ interface QuestionOverrides {
 	 */
 	proposedHousing?: ResidentialHousingItem[];
 	existingHousing?: ResidentialHousingItem[];
+	residentialTotals?: ResidentialTotals;
 }
 
 type ApplicantOrg = {
@@ -92,7 +94,14 @@ type ApplicantOrg = {
 
 export function getQuestions(
 	answers: S62aCaseViewModel,
-	{ isQuestionView, groupMembers, manageListItemId, proposedHousing, existingHousing }: QuestionOverrides
+	{
+		isQuestionView,
+		groupMembers,
+		manageListItemId,
+		proposedHousing,
+		existingHousing,
+		residentialTotals
+	}: QuestionOverrides
 ) {
 	const isLbcCase = answers?.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
 	const applicationTypesNotLBC = APPLICATION_TYPES.filter(
@@ -2413,6 +2422,8 @@ export function getQuestions(
 		proposedOccupancyType: proposed.occupancyType,
 		proposedUnitType: proposed.unitType,
 		proposedBedrooms: proposed.bedrooms,
+		...(residentialTotals ? residentialTotalQuestions('existing', residentialTotals.existing) : {}),
+		...(residentialTotals ? residentialTotalQuestions('proposed', residentialTotals.proposed) : {}),
 		hasProposedHousing: {
 			type: COMPONENT_TYPES.BOOLEAN,
 			title: 'Has proposed',

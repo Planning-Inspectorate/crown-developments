@@ -19,6 +19,7 @@ import {
 	WASTE_TYPES_WITHOUT_VOID_CAPACITY
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { type HOUSING_SIDES, totalUnitsFieldName } from '../util/residential-totals.ts';
 
 export const JOURNEY_ID = 's62a-case-details';
 
@@ -59,6 +60,25 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 	};
 	const unitsChangeIsYes = (r: JourneyResponse) =>
 		questionHasAnswer(r, questions.residentialUnitsChange, BOOLEAN_OPTIONS.YES);
+
+	const totalRows = (side: (typeof HOUSING_SIDES)[number]): Question[] => {
+		const sideFieldName = totalUnitsFieldName(side);
+
+		return Object.keys(questions)
+			.filter((key) => key === sideFieldName || key.startsWith(`${sideFieldName}_`))
+			.map((key) => questions[key]);
+	};
+
+	/**
+	 * Appends the calculated rows to a section.
+	 */
+	const withTotalRows = (section: Section, side: (typeof HOUSING_SIDES)[number]): Section =>
+		totalRows(side).reduce((s, question) => s.addQuestion(question).withCondition(hasHousingEntries(side)), section);
+
+	const hasHousingEntries = (side: (typeof HOUSING_SIDES)[number]) => (r: JourneyResponse) => {
+		const items = r.answers?.[side === 'existing' ? 'manageExistingHousing' : 'manageProposedHousing'];
+		return Array.isArray(items) && items.length > 0;
+	};
 
 	return new Journey({
 		journeyId: JOURNEY_ID,
@@ -344,32 +364,38 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.addQuestion(questions.residentialUnitsChange)
 				.addQuestion(questions.totalNetGainOrLossOfUnits)
 				.withCondition(unitsChangeIsYes),
-			new Section('Existing residential', 'existing')
-				.withSectionCondition(
-					() => currentTab === VIEW_TAB_ID.RESIDENTIAL && isApplicationCase(response) && unitsChangeIsYes(response)
-				)
-				.addQuestion(questions.hasExistingHousing)
-				.addQuestion(
-					questions.manageExistingHousing,
-					new ManageListSection()
-						.addQuestion(questions.existingOccupancyType)
-						.addQuestion(questions.existingUnitType)
-						.addQuestion(questions.existingBedrooms)
-				)
-				.withCondition(whenQuestionHasAnswer(questions.hasExistingHousing, BOOLEAN_OPTIONS.YES)),
-			new Section('Proposed residential', 'proposed')
-				.withSectionCondition(
-					() => currentTab === VIEW_TAB_ID.RESIDENTIAL && isApplicationCase(response) && unitsChangeIsYes(response)
-				)
-				.addQuestion(questions.hasProposedHousing)
-				.addQuestion(
-					questions.manageProposedHousing,
-					new ManageListSection()
-						.addQuestion(questions.proposedOccupancyType)
-						.addQuestion(questions.proposedUnitType)
-						.addQuestion(questions.proposedBedrooms)
-				)
-				.withCondition(whenQuestionHasAnswer(questions.hasProposedHousing, BOOLEAN_OPTIONS.YES))
+			withTotalRows(
+				new Section('Existing residential', 'existing')
+					.withSectionCondition(
+						() => currentTab === VIEW_TAB_ID.RESIDENTIAL && isApplicationCase(response) && unitsChangeIsYes(response)
+					)
+					.addQuestion(questions.hasExistingHousing)
+					.addQuestion(
+						questions.manageExistingHousing,
+						new ManageListSection()
+							.addQuestion(questions.existingOccupancyType)
+							.addQuestion(questions.existingUnitType)
+							.addQuestion(questions.existingBedrooms)
+					)
+					.withCondition(whenQuestionHasAnswer(questions.hasExistingHousing, BOOLEAN_OPTIONS.YES)),
+				'existing'
+			),
+			withTotalRows(
+				new Section('Proposed residential', 'proposed')
+					.withSectionCondition(
+						() => currentTab === VIEW_TAB_ID.RESIDENTIAL && isApplicationCase(response) && unitsChangeIsYes(response)
+					)
+					.addQuestion(questions.hasProposedHousing)
+					.addQuestion(
+						questions.manageProposedHousing,
+						new ManageListSection()
+							.addQuestion(questions.proposedOccupancyType)
+							.addQuestion(questions.proposedUnitType)
+							.addQuestion(questions.proposedBedrooms)
+					)
+					.withCondition(whenQuestionHasAnswer(questions.hasProposedHousing, BOOLEAN_OPTIONS.YES)),
+				'proposed'
+			)
 		],
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',

@@ -318,6 +318,12 @@ export interface S62aCaseViewModel {
 	hasProposedHousing?: YesNo;
 	manageExistingHousing?: ResidentialHousingItem[];
 	manageProposedHousing?: ResidentialHousingItem[];
+
+	/**
+	 * Derived on render and merged onto the answers, never stored or saved.
+	 */
+	totalExistingUnits?: string;
+	totalProposedUnits?: string;
 	totalNetGainOrLossOfUnits?: string;
 
 	//Vehicle Parking tab

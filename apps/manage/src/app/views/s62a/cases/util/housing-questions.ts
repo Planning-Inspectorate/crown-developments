@@ -10,8 +10,15 @@ import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-
 import RequiredGroupValidator from '@pins/crowndev-lib/validators/required-group-validator.ts';
 import UniqueListFieldValidator from '@pins/crowndev-lib/validators/unique-list-field-validator.ts';
 import { BEDROOM_BANDS, HOUSING_BEDROOM_FIELDS, type ResidentialHousingItem } from '../view/view-model.ts';
+import {
+	occupancyTotalFieldName,
+	sumBedroomBands,
+	totalUnitsFieldName,
+	type HousingSide,
+	type ResidentialSideTotals
+} from './residential-totals.ts';
 
-export type HousingSide = 'existing' | 'proposed';
+export type { HousingSide };
 
 const BEDROOM_INPUT_FIELDS = BEDROOM_BANDS.map(({ fieldName, label }, index) => ({
 	fieldName,
@@ -26,14 +33,6 @@ const BEDROOM_INPUT_FIELDS = BEDROOM_BANDS.map(({ fieldName, label }, index) => 
 
 const OCCUPANCY_ORDER = new Map<string, number>(OCCUPANCY_TYPES.map((type) => [type.id, type.order]));
 const UNIT_TYPE_ORDER = new Map<string, number>(UNIT_TYPES.map((type) => [type.id, type.order]));
-
-/** The per-card total, summed from the bedroom bands. Never stored. */
-export function sumBedroomBands(item: Record<string, unknown>): number {
-	return HOUSING_BEDROOM_FIELDS.reduce((total, fieldName) => {
-		const value = Number(item[fieldName]);
-		return total + (Number.isFinite(value) ? value : 0);
-	}, 0);
-}
 
 /** Resolves a lookup id to its display name for error messages. */
 function lookupDisplayName(list: { id: string; displayName: string }[], id: unknown): string {
@@ -56,6 +55,11 @@ function compareOrder(a?: number, b?: number): number {
 /** Looks up a display order, tolerating a lookup id that isn't answered yet. */
 function orderOf(orders: Map<string, number>, id: unknown): number | undefined {
 	return typeof id === 'string' ? orders.get(id) : undefined;
+}
+
+/** Lowercases the leading capital of a display name so a label reads as one sentence. */
+function lowerFirst(text: string): string {
+	return text.charAt(0).toLowerCase() + text.slice(1);
 }
 
 /**
@@ -186,5 +190,48 @@ export function housingQuestions({ side, items, manageListItemId, isQuestionView
 			],
 			viewData: { continueButtonText: 'Continue' }
 		}
+	};
+}
+
+/** A calculated row - shown on the tab, never navigable, never saved. */
+function derivedRow(fieldName: string, title: string, url: string) {
+	return {
+		type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+		title,
+		question: title,
+		fieldName,
+		url,
+		editable: false
+	};
+}
+
+/**
+ * The derived rows for one side: the side total, then one row per occupancy
+ * present. An occupancy with no entries produces no question, so no empty rows
+ * reach the tab.
+ */
+export function residentialTotalQuestions(side: HousingSide, totals: ResidentialSideTotals) {
+	if (totals.occupancies.length === 0) {
+		return {};
+	}
+
+	const sideFieldName = totalUnitsFieldName(side);
+
+	const occupancyRows = totals.occupancies.map((occupancy) => {
+		const fieldName = occupancyTotalFieldName(side, occupancy.occupancyTypeId);
+
+		return [
+			fieldName,
+			derivedRow(
+				fieldName,
+				`Total ${lowerFirst(occupancy.displayName)} units`,
+				`total-${side}-units-${occupancy.occupancyTypeId}`
+			)
+		] as const;
+	});
+
+	return {
+		[sideFieldName]: derivedRow(sideFieldName, `Total ${side} residential units`, `total-${side}-units`),
+		...Object.fromEntries(occupancyRows)
 	};
 }
