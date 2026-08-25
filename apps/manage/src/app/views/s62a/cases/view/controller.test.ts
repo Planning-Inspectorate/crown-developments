@@ -188,5 +188,151 @@ describe('S62A Controller Middleware', () => {
 
 			assert.strictEqual(existing.options.length, UNIT_TYPES.length);
 		});
+
+		describe('residential totals', () => {
+			/** Builds a residential tab request with the given session answers. */
+			const residentialRequest = (answers: Record<string, unknown>) => ({
+				req: {
+					params: { id: 'case-123', tab: 'residential' },
+					baseUrl: '/s62a/cases/case-123/residential'
+				} as unknown as Request,
+				res: { locals: { journeyResponse: { answers } } } as unknown as Response
+			});
+
+			/** The field names of every question in a section, in render order. */
+			const sectionFieldNames = (journey: Journey, segment: string) => {
+				const section = journey.sections.find((s) => s.segment === segment);
+				if (!section) throw new Error(`section ${segment} not found`);
+				return section.questions.map((question: Question) => question.fieldName);
+			};
+
+			const housingEntry = (overrides: Record<string, unknown> = {}) => ({
+				id: 'housing-1',
+				occupancyTypeId: OCCUPANCY_TYPE_ID.MARKET_HOUSING,
+				unitTypeId: UNIT_TYPES[0].id,
+				bedroomsUnknown: '',
+				bedroomsOne: '4',
+				bedroomsTwo: '',
+				bedroomsThree: '',
+				bedroomsFourPlus: '',
+				...overrides
+			});
+
+			/** Runs the middleware and hands back the populated locals. */
+			const render = async (answers: Record<string, unknown>) => {
+				const handler = buildGetJourneyMiddleware(mockService, false);
+				const { req, res } = residentialRequest(answers);
+
+				await handler(req, res, () => {});
+
+				return {
+					journey: res.locals.journey as Journey,
+					answers: res.locals.journeyResponse.answers as unknown as Record<string, string>
+				};
+			};
+
+			describe('rows', () => {
+				it('builds no total rows for a side with no entries', async () => {
+					const { journey } = await render({ hasResidentialUnitsChange: 'yes' });
+
+					assert.deepStrictEqual(sectionFieldNames(journey, 'existing'), [
+						'hasExistingHousing',
+						'manageExistingHousing'
+					]);
+				});
+
+				it('builds the side total and one row per occupancy present', async () => {
+					const { journey } = await render({
+						hasResidentialUnitsChange: 'yes',
+						hasExistingHousing: 'yes',
+						manageExistingHousing: [
+							housingEntry(),
+							housingEntry({ id: 'housing-2', occupancyTypeId: OCCUPANCY_TYPE_ID.STARTER_HOMES, bedroomsOne: '2' })
+						]
+					});
+
+					assert.deepStrictEqual(sectionFieldNames(journey, 'existing'), [
+						'hasExistingHousing',
+						'manageExistingHousing',
+						'totalExistingUnits',
+						`totalExistingUnits_${OCCUPANCY_TYPE_ID.MARKET_HOUSING}`,
+						`totalExistingUnits_${OCCUPANCY_TYPE_ID.STARTER_HOMES}`
+					]);
+				});
+
+				it('keeps each side to its own rows', async () => {
+					const { journey } = await render({
+						hasResidentialUnitsChange: 'yes',
+						hasExistingHousing: 'yes',
+						manageExistingHousing: [housingEntry()]
+					});
+
+					const proposed = sectionFieldNames(journey, 'proposed');
+
+					assert.ok(!proposed.some((name: string) => name.startsWith('totalProposedUnits')));
+					assert.ok(!proposed.some((name: string) => name.startsWith('totalExistingUnits')));
+				});
+
+				it('builds rows on both sides when both have entries', async () => {
+					const { journey } = await render({
+						hasResidentialUnitsChange: 'yes',
+						hasExistingHousing: 'yes',
+						manageExistingHousing: [housingEntry()],
+						hasProposedHousing: 'yes',
+						manageProposedHousing: [housingEntry({ id: 'housing-2', bedroomsOne: '10' })]
+					});
+
+					assert.ok(sectionFieldNames(journey, 'existing').includes('totalExistingUnits'));
+					assert.ok(sectionFieldNames(journey, 'proposed').includes('totalProposedUnits'));
+				});
+			});
+
+			describe('merged figures', () => {
+				it('merges the calculated figures onto the answers, so the rows resolve them', async () => {
+					const { answers } = await render({
+						hasResidentialUnitsChange: 'yes',
+						hasExistingHousing: 'yes',
+						manageExistingHousing: [housingEntry()],
+						hasProposedHousing: 'no'
+					});
+
+					assert.strictEqual(answers.totalExistingUnits, '4');
+					assert.strictEqual(answers[`totalExistingUnits_${OCCUPANCY_TYPE_ID.MARKET_HOUSING}`], '4');
+					assert.strictEqual(answers.totalProposedUnits, '0');
+					assert.strictEqual(answers.totalNetGainOrLossOfUnits, '-4');
+				});
+
+				it('counts a session entry that has not been saved yet', async () => {
+					const { answers } = await render({
+						hasResidentialUnitsChange: 'yes',
+						hasExistingHousing: 'yes',
+						manageExistingHousing: [housingEntry({ bedroomsOne: '9' })]
+					});
+
+					assert.strictEqual(answers.totalExistingUnits, '9');
+				});
+
+				it('leaves the net unset while one side is outstanding', async () => {
+					const { answers } = await render({
+						hasResidentialUnitsChange: 'yes',
+						hasExistingHousing: 'yes',
+						manageExistingHousing: [housingEntry()]
+					});
+
+					assert.strictEqual(answers.totalNetGainOrLossOfUnits, undefined);
+				});
+
+				it('merges no figures when the main gate is not Yes', async () => {
+					const { answers } = await render({
+						hasResidentialUnitsChange: 'no',
+						hasExistingHousing: 'yes',
+						manageExistingHousing: [housingEntry()]
+					});
+
+					assert.strictEqual(answers.totalExistingUnits, undefined);
+					assert.strictEqual(answers.totalNetGainOrLossOfUnits, undefined);
+				});
+			});
+		});
 	});
 });

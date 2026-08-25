@@ -10,39 +10,13 @@ import {
 	compareHousingItems,
 	getUnitTypeOptions,
 	housingQuestions,
-	sumBedroomBands,
-	type HousingSide
+	type HousingSide,
+	residentialTotalQuestions
 } from './housing-questions.ts';
 import type { ResidentialHousingItem } from '../view/view-model.ts';
 
 const item = (overrides: Partial<ResidentialHousingItem> = {}) =>
 	({ id: 'row-1', ...overrides }) as ResidentialHousingItem;
-
-describe('sumBedroomBands', () => {
-	it('sums every band', () => {
-		const total = sumBedroomBands({
-			bedroomsUnknown: '1',
-			bedroomsOne: '2',
-			bedroomsTwo: '3',
-			bedroomsThree: '4',
-			bedroomsFourPlus: '5'
-		});
-
-		assert.strictEqual(total, 15);
-	});
-
-	it('treats blank and missing bands as zero', () => {
-		assert.strictEqual(sumBedroomBands({ bedroomsUnknown: '', bedroomsOne: '4' }), 4);
-	});
-
-	it('ignores values that are not numbers', () => {
-		assert.strictEqual(sumBedroomBands({ bedroomsUnknown: 'abc', bedroomsOne: '4' }), 4);
-	});
-
-	it('returns zero for an entry with no bands answered', () => {
-		assert.strictEqual(sumBedroomBands({}), 0);
-	});
-});
 
 describe('getUnitTypeOptions', () => {
 	it('returns every unit type when no item is being edited', () => {
@@ -184,5 +158,89 @@ describe('housingQuestions', () => {
 
 		assert.strictEqual(onTab.manageHousing.title, 'Existing housing');
 		assert.strictEqual(onQuestion.manageHousing.title, 'Check existing housing details');
+	});
+});
+
+describe('residentialTotalQuestions', () => {
+	const occupancy = (occupancyTypeId: string, displayName: string, total: number) => ({
+		occupancyTypeId,
+		displayName,
+		total
+	});
+
+	const known = (occupancies: ReturnType<typeof occupancy>[] = []) => ({
+		state: 'known' as const,
+		total: occupancies.reduce((sum, o) => sum + o.total, 0),
+		occupancies
+	});
+
+	const marketHousing = occupancy(OCCUPANCY_TYPE_ID.MARKET_HOUSING, 'Market housing', 4);
+	const starterHomes = occupancy(OCCUPANCY_TYPE_ID.STARTER_HOMES, 'Starter homes', 2);
+
+	it('builds no rows at all when the side has no occupancies', () => {
+		assert.deepStrictEqual(residentialTotalQuestions('existing', known()), {});
+	});
+
+	it('returns the side total first, then one question per occupancy', () => {
+		const questions = residentialTotalQuestions('existing', known([marketHousing, starterHomes]));
+
+		assert.deepStrictEqual(Object.keys(questions), [
+			'totalExistingUnits',
+			`totalExistingUnits_${OCCUPANCY_TYPE_ID.MARKET_HOUSING}`,
+			`totalExistingUnits_${OCCUPANCY_TYPE_ID.STARTER_HOMES}`
+		]);
+	});
+
+	it('names the side total row for the side', () => {
+		assert.strictEqual(
+			residentialTotalQuestions('existing', known([marketHousing])).totalExistingUnits.title,
+			'Total existing residential units'
+		);
+		assert.strictEqual(
+			residentialTotalQuestions('proposed', known([marketHousing])).totalProposedUnits.title,
+			'Total proposed residential units'
+		);
+	});
+
+	it('lowercases a display name so the label reads as one sentence', () => {
+		const questions = residentialTotalQuestions('existing', known([marketHousing]));
+
+		assert.strictEqual(
+			questions[`totalExistingUnits_${OCCUPANCY_TYPE_ID.MARKET_HOUSING}`].title,
+			'Total market housing units'
+		);
+	});
+
+	it('keys each question by the field name it reads, so the merged answer resolves', () => {
+		const questions = residentialTotalQuestions('proposed', known([starterHomes]));
+
+		for (const [key, question] of Object.entries(questions)) {
+			assert.strictEqual(question.fieldName, key);
+		}
+	});
+
+	it('makes every row read-only, since these are calculated and never saved', () => {
+		const questions = residentialTotalQuestions('existing', known([marketHousing]));
+
+		for (const question of Object.values(questions)) {
+			assert.strictEqual(question.editable, false);
+		}
+	});
+
+	it('gives each row a distinct url, so two occupancy rows cannot collide', () => {
+		const questions = residentialTotalQuestions('existing', known([marketHousing, starterHomes]));
+
+		const urls = Object.values(questions).map((question) => question.url);
+
+		assert.strictEqual(new Set(urls).size, urls.length);
+	});
+
+	it('does not carry the totals themselves, which arrive as merged answers', () => {
+		const questions = residentialTotalQuestions('existing', known([marketHousing]));
+
+		for (const question of Object.values(questions)) {
+			assert.ok(!('value' in question));
+			assert.ok(!('answer' in question));
+		}
 	});
 });

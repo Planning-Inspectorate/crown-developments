@@ -274,3 +274,72 @@ describe('s62a case details journey', () => {
 		});
 	});
 });
+
+describe('residential total rows', () => {
+	const mockReq = {
+		params: { id: 'case-123', tab: 'residential' },
+		baseUrl: '/s62a/cases/case-123/residential'
+	} as unknown as Request;
+
+	/** Every question the residential sections reference, plus any derived rows. */
+	const questionsWith = (...derived: string[]) =>
+		new Proxy(Object.fromEntries(derived.map((name) => [name, { fieldName: name }])), {
+			get: (target, prop: string) => target[prop] ?? { fieldName: prop }
+		}) as unknown as Record<string, Question>;
+
+	const sectionQuestions = (journey: ReturnType<typeof createJourney>, segment: string) => {
+		const section = journey.sections.find((s) => s.segment === segment);
+		if (!section) throw new Error(`section ${segment} not found`);
+		return section.questions.map((question) => question.fieldName);
+	};
+
+	const response = { answers: {} } as unknown as JourneyResponse;
+
+	it('adds no rows when the questions object has none', () => {
+		const journey = createJourney(questionsWith(), response, mockReq);
+
+		assert.deepStrictEqual(sectionQuestions(journey, 'existing'), ['hasExistingHousing', 'manageExistingHousing']);
+	});
+
+	it('appends the side total and its occupancy rows, in the order they were defined', () => {
+		const journey = createJourney(
+			questionsWith('totalExistingUnits', 'totalExistingUnits_market-housing', 'totalExistingUnits_starter-homes'),
+			response,
+			mockReq
+		);
+
+		assert.deepStrictEqual(sectionQuestions(journey, 'existing'), [
+			'hasExistingHousing',
+			'manageExistingHousing',
+			'totalExistingUnits',
+			'totalExistingUnits_market-housing',
+			'totalExistingUnits_starter-homes'
+		]);
+	});
+
+	it('matches rows to their own side by field name prefix', () => {
+		const journey = createJourney(
+			questionsWith('totalExistingUnits', 'totalProposedUnits', 'totalProposedUnits_market-housing'),
+			response,
+			mockReq
+		);
+
+		assert.deepStrictEqual(sectionQuestions(journey, 'existing'), [
+			'hasExistingHousing',
+			'manageExistingHousing',
+			'totalExistingUnits'
+		]);
+		assert.deepStrictEqual(sectionQuestions(journey, 'proposed'), [
+			'hasProposedHousing',
+			'manageProposedHousing',
+			'totalProposedUnits',
+			'totalProposedUnits_market-housing'
+		]);
+	});
+
+	it('does not hide the net row, which stays calculable when a side is No', () => {
+		const journey = createJourney(questionsWith('totalExistingUnits'), response, mockReq);
+
+		assert.ok(sectionQuestions(journey, 'residential').includes('totalNetGainOrLossOfUnits'));
+	});
+});

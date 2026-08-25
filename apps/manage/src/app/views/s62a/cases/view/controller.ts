@@ -1,7 +1,7 @@
 import type { ManageService } from '#service';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import { clearDataFromSession, JourneyResponse, list } from '@planning-inspectorate/dynamic-forms';
+import { BOOLEAN_OPTIONS, clearDataFromSession, JourneyResponse, list } from '@planning-inspectorate/dynamic-forms';
 import { createJourney, JOURNEY_ID } from './journey.ts';
 import { getQuestions } from './questions.ts';
 import { getOptionalStringParams, getStringParam } from '@pins/crowndev-lib/util/params.ts';
@@ -14,6 +14,7 @@ import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
 import type { NextFunction, Request, Response } from 'express';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { getEntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
+import { getResidentialPrompt, getResidentialTotals, residentialTotalAnswers } from '../util/residential-totals.ts';
 
 export function buildViewCaseDetails(): AsyncRequestHandler {
 	return async (req, res) => {
@@ -81,12 +82,18 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 
 		const finalAnswers = combineSessionAndDbData(answers, sessionAnswers);
 
+		// Derived after the merge so an entry added this session is counted, and
+		// so a stale session copy of a total cannot win over the current figure.
+		const residentialTotals = getResidentialTotals(finalAnswers);
+		Object.assign(finalAnswers, residentialTotalAnswers(finalAnswers, residentialTotals));
+
 		const questions = getQuestions(answers, {
 			isQuestionView,
 			groupMembers,
 			manageListItemId,
 			proposedHousing: finalAnswers.manageProposedHousing,
-			existingHousing: finalAnswers.manageExistingHousing
+			existingHousing: finalAnswers.manageExistingHousing,
+			residentialTotals
 		});
 
 		// @ts-expect-error - we haven't defined the view model on the locals object
@@ -127,10 +134,45 @@ function getBannerMessages(id: string, res: Response, req: Request) {
 
 	if (caseUpdated) {
 		bannerBuilder.addSuccessText('Case has been updated.');
-		return bannerBuilder.build();
 	}
 
+	addResidentialPromptMessage(bannerBuilder, res, req, id);
+
 	return bannerBuilder.build();
+}
+
+/**
+ * Prompts for whichever residential side is still outstanding, when the other
+ * side is known and so the net total is only one answer away.
+ */
+function addResidentialPromptMessage(builder: BannerBuilder, res: Response, req: Request, id: string): void {
+	if (req.params.tab !== VIEW_TAB_ID.RESIDENTIAL) {
+		return;
+	}
+
+	const answers = getJourneyAnswers(res);
+	if (!answers) {
+		return;
+	}
+
+	const side = getResidentialPrompt(getResidentialTotals(answers));
+	if (!side) {
+		return;
+	}
+
+	// Skip the gating boolean when it's already answered - in that state the
+	// side is outstanding because it has no entries, not because the question
+	// is unanswered, so send the user straight to the add-to-list.
+	const gateAnswered =
+		(side === 'existing' ? answers.hasExistingHousing : answers.hasProposedHousing) === BOOLEAN_OPTIONS.YES;
+
+	const href = gateAnswered
+		? `/s62a/cases/${id}/residential/${side}/housing`
+		: `/s62a/cases/${id}/residential/${side}/has-${side}`;
+
+	// id is a validated uuid and side is a literal, so the anchor is trusted.
+	const link = `<a class="govuk-link" href="${href}">Add ${side} housing</a>`;
+	builder.addInfoTrustedSingleLineHtml(`${link} to calculate Total net gain or loss of residential units`);
 }
 
 /**
