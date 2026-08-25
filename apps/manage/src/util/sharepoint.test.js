@@ -1,9 +1,37 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { grantLpaSharePointAccess, retryGrantPermissions } from './sharepoint.js';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import { grantLpaSharePointAccess, retryGrantPermissions, SHAREPOINT_RETRY_CONFIG } from './sharepoint.js';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
+
+/**
+ * Runs all mock timers repeatedly until the given promise settles.
+ * This handles sleep-first async patterns where new timers are scheduled
+ * during microtask execution after each timer fires.
+ *
+ * @param {import('node:test').TestContext} ctx
+ * @param {Promise} promise
+ * @param {number} [maxIterations=10] - Safety limit to prevent infinite loops
+ */
+async function runAllTimersUntilSettled(ctx, promise, maxIterations = 10) {
+	let settled = false;
+	promise.finally(() => {
+		settled = true;
+	});
+
+	for (let i = 0; i < maxIterations && !settled; i++) {
+		ctx.mock.timers.runAll();
+		await Promise.resolve(); // flush microtasks so new timers get scheduled
+	}
+}
 
 describe('retryGrantPermissions', () => {
+	// Test config with small values for fast tests
+	const TEST_RETRY_CONFIG = {
+		maxRetries: 3,
+		initialDelayMs: 10,
+		maxDelayMs: 100
+	};
+
 	it('should grant permissions and log success when first attempt succeeds', async (ctx) => {
 		ctx.mock.timers.enable({ apis: ['setTimeout'] });
 
@@ -12,9 +40,15 @@ describe('retryGrantPermissions', () => {
 			addItemPermissions: mock.fn(() => [])
 		};
 
-		const promise = retryGrantPermissions(sharePointDrive, 'folder-id', [{ email: 'new@test.com', id: '' }], logger);
+		const promise = retryGrantPermissions(
+			sharePointDrive,
+			'folder-id',
+			[{ email: 'new@test.com', id: '' }],
+			logger,
+			TEST_RETRY_CONFIG
+		);
 
-		await ctx.mock.timers.tick(20000);
+		await runAllTimersUntilSettled(ctx, promise);
 		await promise;
 
 		assert.strictEqual(sharePointDrive.addItemPermissions.mock.callCount(), 1);
@@ -35,13 +69,15 @@ describe('retryGrantPermissions', () => {
 			})
 		};
 
-		const promise = retryGrantPermissions(sharePointDrive, 'folder-id', [{ email: 'new@test.com', id: '' }], logger);
+		const promise = retryGrantPermissions(
+			sharePointDrive,
+			'folder-id',
+			[{ email: 'new@test.com', id: '' }],
+			logger,
+			TEST_RETRY_CONFIG
+		);
 
-		// First retry at 20s — fails
-		await ctx.mock.timers.tick(20000);
-		await Promise.resolve();
-		// Second retry at 40s (exponential backoff) — succeeds
-		await ctx.mock.timers.tick(40000);
+		await runAllTimersUntilSettled(ctx, promise);
 		await promise;
 
 		assert.strictEqual(sharePointDrive.addItemPermissions.mock.callCount(), 2);
@@ -62,17 +98,11 @@ describe('retryGrantPermissions', () => {
 			sharePointDrive,
 			'folder-id',
 			[{ email: 'stubborn@test.com', id: '' }],
-			logger
+			logger,
+			TEST_RETRY_CONFIG
 		);
 
-		// Tick through all 3 retries: 20s + 40s + 80s = 140s
-		await ctx.mock.timers.tick(20000); // attempt 1
-		await Promise.resolve();
-		await ctx.mock.timers.tick(40000); // attempt 2
-		await Promise.resolve();
-		await ctx.mock.timers.tick(80000); // attempt 3
-		await Promise.resolve();
-
+		await runAllTimersUntilSettled(ctx, promise);
 		await promise;
 
 		assert.strictEqual(sharePointDrive.addItemPermissions.mock.callCount(), 3);
@@ -102,13 +132,11 @@ describe('retryGrantPermissions', () => {
 				{ email: 'user-a@test.com', id: '' },
 				{ email: 'user-b@test.com', id: '' }
 			],
-			logger
+			logger,
+			TEST_RETRY_CONFIG
 		);
 
-		await ctx.mock.timers.tick(20000);
-		await Promise.resolve();
-		await ctx.mock.timers.tick(40000);
-		await Promise.resolve();
+		await runAllTimersUntilSettled(ctx, promise);
 		await promise;
 
 		assert.strictEqual(sharePointDrive.addItemPermissions.mock.callCount(), 2);
@@ -127,10 +155,15 @@ describe('retryGrantPermissions', () => {
 			})
 		};
 
-		const promise = retryGrantPermissions(sharePointDrive, 'folder-id', [{ email: 'user@test.com', id: '' }], logger);
+		const promise = retryGrantPermissions(
+			sharePointDrive,
+			'folder-id',
+			[{ email: 'user@test.com', id: '' }],
+			logger,
+			TEST_RETRY_CONFIG
+		);
 
-		await ctx.mock.timers.tick(20000);
-		await Promise.resolve();
+		await runAllTimersUntilSettled(ctx, promise);
 		await promise;
 
 		assert.strictEqual(logger.error.mock.callCount(), 1);
@@ -262,5 +295,14 @@ describe('grantLpaSharePointAccess', () => {
 			grantLpaSharePointAccess(mockService, crownDevelopment, 'caseRoot'),
 			new Error('Failed to get SharePoint invite link')
 		);
+	});
+
+	describe('SHAREPOINT_RETRY_CONFIG', () => {
+		it('should have correct config values', () => {
+			assert.strictEqual(SHAREPOINT_RETRY_CONFIG.maxRetries, 3);
+			assert.strictEqual(SHAREPOINT_RETRY_CONFIG.initialDelayMs, 20000);
+			assert.strictEqual(SHAREPOINT_RETRY_CONFIG.maxDelayMs, 300000);
+			assert.deepStrictEqual(SHAREPOINT_RETRY_CONFIG.retryableStatusCodes, [403, 429, 500, 502, 503, 504]);
+		});
 	});
 });
