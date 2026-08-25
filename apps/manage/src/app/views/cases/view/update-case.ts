@@ -4,6 +4,7 @@ import {
 	sendLpaAcknowledgeReceiptOfQuestionnaireNotification,
 	sendLpaQuestionnaireSentNotification
 } from './notification.js';
+import { fireAndForget } from '@pins/crowndev-lib/util/retry.ts';
 import { CLEARABLE_SAVE_KEYS, editsToDatabaseUpdates, crownDevelopmentToViewModel } from './view-model.ts';
 import { crownEditsToDatabaseUpdates } from './crown-edits.ts';
 import { FIELD_DISPLAY_NAMES } from './questions.ts';
@@ -32,13 +33,42 @@ import type {
 	CrownDevelopmentSaveModel
 } from './view-model.ts';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
-import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { type AuditService, type AuditEntry } from '@pins/crowndev-lib/audit/index.ts';
 import { resolveFieldValues, getFieldDisplayName } from '@pins/crowndev-lib/audit/resolvers/index.ts';
 import type { Logger } from 'pino';
 import { resolveAuditAction } from '@pins/crowndev-lib/audit/actions.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+
+/**
+ * Send a notification in the background and update the emailSent flag only on success.
+ * This is fire-and-forget - errors are logged but don't block the request.
+ */
+function sendNotificationAndUpdateFlag(
+	notificationPromise: Promise<void>,
+	db: PrismaClient,
+	caseId: string,
+	flagField:
+		| 'applicationReceivedDateEmailSent'
+		| 'lpaQuestionnaireReceivedEmailSent'
+		| 'lpaQuestionnaireSpecialEmailSent'
+		| 'notNationallyImportantEmailSent',
+	logger: Logger,
+	operationName: string
+): void {
+	const operation = (async () => {
+		await notificationPromise;
+		// Only update the flag if notification succeeded
+		await db.crownDevelopment.update({
+			where: { id: caseId },
+			data: { [flagField]: true }
+		});
+		logger.info({ caseId, flagField, operation: operationName }, 'Notification sent and flag updated successfully');
+	})();
+
+	fireAndForget(operation, logger, { operation: operationName, caseId });
+}
 
 function typedObjectKeys<T extends object>(obj: T): Array<keyof T> {
 	return Object.keys(obj) as Array<keyof T>;
@@ -169,7 +199,7 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 		const fullViewModel = res.locals?.journeyResponse?.answers || {};
 		const originalAnswers: Partial<CrownDevelopmentViewModel> = res.locals?.originalAnswers || {};
 
-		await customUpdateCaseActions(service, id, toSave, fullViewModel);
+		customUpdateCaseActions(service, id, toSave, fullViewModel);
 
 		if (toSave.hasAgent === false && fullViewModel.hasAgent === 'yes') {
 			addSessionData(req, id, { agentStatusUpdated: true });
@@ -318,7 +348,7 @@ function addCaseUpdatedSession(req: Request, id: string) {
 /**
  * Handle edit case updates with custom behaviour
  */
-export async function customUpdateCaseActions(
+export function customUpdateCaseActions(
 	service: ManageService,
 	id: string,
 	toSave: CrownDevelopmentSaveModel,
@@ -329,15 +359,15 @@ export async function customUpdateCaseActions(
 		fullViewModel.lpaQuestionnaireReceivedEmailSent !== BOOLEAN_OPTIONS.YES &&
 		fullViewModel.typeId !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
 	) {
-		await handleLpaQuestionnaireReceivedDateUpdate(service, id, toSave, toSave.lpaQuestionnaireReceivedDate);
+		handleLpaQuestionnaireReceivedDateUpdate(service, id, toSave.lpaQuestionnaireReceivedDate);
 	}
 
 	if (toSave.lpaQuestionnaireSentDate && fullViewModel.lpaQuestionnaireSpecialEmailSent !== BOOLEAN_OPTIONS.YES) {
-		await handleLpaQuestionnaireSentDateUpdate(service, id, toSave);
+		handleLpaQuestionnaireSentDateUpdate(service, id);
 	}
 
 	if (toSave.applicationReceivedDate) {
-		await handleApplicationReceivedDateUpdate(service, id, toSave, fullViewModel, toSave.applicationReceivedDate);
+		handleApplicationReceivedDateUpdate(service, id, fullViewModel, toSave.applicationReceivedDate);
 	}
 
 	if (
@@ -345,42 +375,44 @@ export async function customUpdateCaseActions(
 		fullViewModel.notNationallyImportantEmailSent !== BOOLEAN_OPTIONS.YES &&
 		fullViewModel.typeId !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
 	) {
-		await handleTurnedAwayDateUpdate(service, id, toSave);
+		handleTurnedAwayDateUpdate(service, id);
 	}
 }
 
 /**
  * Send notifications and update flags for LPA questionnaire received date updates
  */
-async function handleLpaQuestionnaireReceivedDateUpdate(
-	service: ManageService,
-	id: string,
-	toSave: CrownDevelopmentSaveModel,
-	receivedDate: Date
-) {
-	await sendLpaAcknowledgeReceiptOfQuestionnaireNotification(service, id, receivedDate);
-	toSave['lpaQuestionnaireReceivedEmailSent'] = true;
+function handleLpaQuestionnaireReceivedDateUpdate(service: ManageService, id: string, receivedDate: Date) {
+	sendNotificationAndUpdateFlag(
+		sendLpaAcknowledgeReceiptOfQuestionnaireNotification(service, id, receivedDate),
+		service.db,
+		id,
+		'lpaQuestionnaireReceivedEmailSent',
+		service.logger,
+		'sendLpaAcknowledgeReceiptOfQuestionnaireNotification'
+	);
 }
 
 /**
  * Send notifications and update flags for LPA questionnaire sent date updates
  */
-async function handleLpaQuestionnaireSentDateUpdate(
-	service: ManageService,
-	id: string,
-	toSave: CrownDevelopmentSaveModel
-) {
-	await sendLpaQuestionnaireSentNotification(service, id);
-	toSave['lpaQuestionnaireSpecialEmailSent'] = true;
+function handleLpaQuestionnaireSentDateUpdate(service: ManageService, id: string) {
+	sendNotificationAndUpdateFlag(
+		sendLpaQuestionnaireSentNotification(service, id),
+		service.db,
+		id,
+		'lpaQuestionnaireSpecialEmailSent',
+		service.logger,
+		'sendLpaQuestionnaireSentNotification'
+	);
 }
 
 /**
  * Handle application received date updates, including validation and notification logic
  */
-async function handleApplicationReceivedDateUpdate(
+function handleApplicationReceivedDateUpdate(
 	service: ManageService,
 	id: string,
-	toSave: CrownDevelopmentSaveModel,
 	fullViewModel: CrownDevelopmentViewModel,
 	receivedDate: Date
 ) {
@@ -417,17 +449,29 @@ async function handleApplicationReceivedDateUpdate(
 		fullViewModel.applicationReceivedDateEmailSent !== BOOLEAN_OPTIONS.YES &&
 		fullViewModel.typeId !== APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
 	) {
-		await sendApplicationReceivedNotification(service, id, receivedDate);
-		toSave['applicationReceivedDateEmailSent'] = true;
+		sendNotificationAndUpdateFlag(
+			sendApplicationReceivedNotification(service, id, receivedDate),
+			service.db,
+			id,
+			'applicationReceivedDateEmailSent',
+			service.logger,
+			'sendApplicationReceivedNotification'
+		);
 	}
 }
 
 /**
  * Handle turned away date updates, including notification logic
  */
-async function handleTurnedAwayDateUpdate(service: ManageService, id: string, toSave: CrownDevelopmentSaveModel) {
-	await sendApplicationNotOfNationalImportanceNotification(service, id);
-	toSave['notNationallyImportantEmailSent'] = true;
+function handleTurnedAwayDateUpdate(service: ManageService, id: string) {
+	sendNotificationAndUpdateFlag(
+		sendApplicationNotOfNationalImportanceNotification(service, id),
+		service.db,
+		id,
+		'notNationallyImportantEmailSent',
+		service.logger,
+		'sendApplicationNotOfNationalImportanceNotification'
+	);
 }
 
 /**

@@ -25,6 +25,14 @@ function makeTransactionInteractive(mockDb: any) {
 	});
 }
 
+/**
+ * Flush microtask queue to allow fire-and-forget operations to complete.
+ * Use this after awaiting updateCase when testing notification side effects.
+ */
+async function flushMicrotasks() {
+	await new Promise((resolve) => setImmediate(resolve));
+}
+
 describe('case details', () => {
 	describe('buildUpdateCase', () => {
 		it('should throw if no id', async () => {
@@ -882,13 +890,22 @@ describe('case details', () => {
 			};
 
 			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
-			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+			await flushMicrotasks(); // Allow fire-and-forget notification to complete
+
+			// 2 updates: main case update + background flag update after notification succeeds
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 2);
 			assert.strictEqual((mockReq.session as any)?.cases?.case1.updated, true);
 
-			const updateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
-			assert.strictEqual(updateArg.where?.id, 'case1');
-			assert.strictEqual(updateArg.data?.lpaQuestionnaireReceivedDate, date);
-			assert.strictEqual(updateArg.data?.lpaQuestionnaireReceivedEmailSent, true);
+			// Main update should have the date but NOT the flag (flag is set after notification succeeds)
+			const mainUpdateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
+			assert.strictEqual(mainUpdateArg.where?.id, 'case1');
+			assert.strictEqual(mainUpdateArg.data?.lpaQuestionnaireReceivedDate, date);
+			assert.strictEqual(mainUpdateArg.data?.lpaQuestionnaireReceivedEmailSent, undefined);
+
+			// Background flag update
+			const flagUpdateArg = (mockDb.crownDevelopment.update.mock.calls[1] as any).arguments[0];
+			assert.strictEqual(flagUpdateArg.where?.id, 'case1');
+			assert.strictEqual(flagUpdateArg.data?.lpaQuestionnaireReceivedEmailSent, true);
 
 			assert.strictEqual(mockNotifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire.mock.callCount(), 1);
 			assert.deepStrictEqual(mockNotifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire.mock.calls[0].arguments, [
@@ -949,13 +966,22 @@ describe('case details', () => {
 			};
 
 			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
-			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+			await flushMicrotasks(); // Allow fire-and-forget notification to complete
+
+			// 2 updates: main case update + background flag update after notification succeeds
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 2);
 			assert.strictEqual((mockReq.session as any)?.cases?.case1.updated, true);
 
-			const updateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
-			assert.strictEqual(updateArg.where?.id, 'case1');
-			assert.strictEqual(updateArg.data?.lpaQuestionnaireReceivedDate, date);
-			assert.strictEqual(updateArg.data?.lpaQuestionnaireReceivedEmailSent, true);
+			// Main update should have the date but NOT the flag
+			const mainUpdateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
+			assert.strictEqual(mainUpdateArg.where?.id, 'case1');
+			assert.strictEqual(mainUpdateArg.data?.lpaQuestionnaireReceivedDate, date);
+			assert.strictEqual(mainUpdateArg.data?.lpaQuestionnaireReceivedEmailSent, undefined);
+
+			// Background flag update
+			const flagUpdateArg = (mockDb.crownDevelopment.update.mock.calls[1] as any).arguments[0];
+			assert.strictEqual(flagUpdateArg.where?.id, 'case1');
+			assert.strictEqual(flagUpdateArg.data?.lpaQuestionnaireReceivedEmailSent, true);
 
 			assert.strictEqual(mockNotifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire.mock.callCount(), 1);
 			assert.deepStrictEqual(mockNotifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire.mock.calls[0].arguments, [
@@ -969,7 +995,7 @@ describe('case details', () => {
 				}
 			]);
 		});
-		it('should throw error if lpa notification dispatch fails', async () => {
+		it('should log error if lpa notification dispatch fails', async () => {
 			const logger = mockLogger();
 			const mockDb = {
 				$transaction: mock.fn(() => Promise.resolve()),
@@ -1017,7 +1043,15 @@ describe('case details', () => {
 				}
 			};
 
-			await assert.rejects(() => updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any));
+			// Should not throw - errors are logged in background
+			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+			await flushMicrotasks();
+
+			// Verify the database update still happened
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+
+			// Verify error was logged (multiple logs expected: from notification.js and fireAndForget)
+			assert.ok(logger.error.mock.callCount() >= 1, 'Expected at least one error log');
 		});
 		it('should dispatch Application Received Date Notification with fee', async () => {
 			const logger = mockLogger();
@@ -1084,13 +1118,22 @@ describe('case details', () => {
 			};
 
 			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
-			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+			await flushMicrotasks(); // Allow fire-and-forget notification to complete
+
+			// 2 updates: main case update + background flag update after notification succeeds
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 2);
 			assert.strictEqual((mockReq.session as any)?.cases?.case1.updated, true);
 
-			const updateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
-			assert.strictEqual(updateArg.where?.id, 'case1');
-			assert.strictEqual(updateArg.data?.applicationReceivedDate, date);
-			assert.strictEqual(updateArg.data?.applicationReceivedDateEmailSent, true);
+			// Main update should have the date but NOT the flag
+			const mainUpdateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
+			assert.strictEqual(mainUpdateArg.where?.id, 'case1');
+			assert.strictEqual(mainUpdateArg.data?.applicationReceivedDate, date);
+			assert.strictEqual(mainUpdateArg.data?.applicationReceivedDateEmailSent, undefined);
+
+			// Background flag update
+			const flagUpdateArg = (mockDb.crownDevelopment.update.mock.calls[1] as any).arguments[0];
+			assert.strictEqual(flagUpdateArg.where?.id, 'case1');
+			assert.strictEqual(flagUpdateArg.data?.applicationReceivedDateEmailSent, true);
 
 			assert.strictEqual(mockNotifyClient.sendApplicationReceivedNotificationToMany.mock.callCount(), 1);
 			assert.deepStrictEqual(mockNotifyClient.sendApplicationReceivedNotificationToMany.mock.calls[0].arguments, [
@@ -1169,13 +1212,22 @@ describe('case details', () => {
 			};
 
 			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
-			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+			await flushMicrotasks(); // Allow fire-and-forget notification to complete
+
+			// 2 updates: main case update + background flag update after notification succeeds
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 2);
 			assert.strictEqual((mockReq.session as any)?.cases?.case1.updated, true);
 
-			const updateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
-			assert.strictEqual(updateArg.where?.id, 'case1');
-			assert.strictEqual(updateArg.data?.applicationReceivedDate, date);
-			assert.strictEqual(updateArg.data?.applicationReceivedDateEmailSent, true);
+			// Main update should have the date but NOT the flag
+			const mainUpdateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
+			assert.strictEqual(mainUpdateArg.where?.id, 'case1');
+			assert.strictEqual(mainUpdateArg.data?.applicationReceivedDate, date);
+			assert.strictEqual(mainUpdateArg.data?.applicationReceivedDateEmailSent, undefined);
+
+			// Background flag update
+			const flagUpdateArg = (mockDb.crownDevelopment.update.mock.calls[1] as any).arguments[0];
+			assert.strictEqual(flagUpdateArg.where?.id, 'case1');
+			assert.strictEqual(flagUpdateArg.data?.applicationReceivedDateEmailSent, true);
 
 			assert.strictEqual(mockNotifyClient.sendApplicationReceivedNotificationToMany.mock.callCount(), 1);
 			assert.deepStrictEqual(mockNotifyClient.sendApplicationReceivedNotificationToMany.mock.calls[0].arguments, [
@@ -1331,7 +1383,7 @@ describe('case details', () => {
 				}
 			);
 		});
-		it('should throw error if Application Received Date Notification fails', async () => {
+		it('should log error if Application Received Date Notification fails', async () => {
 			const logger = mockLogger();
 			const mockDb = {
 				$transaction: mock.fn(() => Promise.resolve()),
@@ -1348,8 +1400,9 @@ describe('case details', () => {
 					update: mock.fn()
 				}
 			};
+			makeTransactionInteractive(mockDb);
 			const mockNotifyClient = {
-				sendApplicationReceivedNotification: mock.fn(() => {
+				sendApplicationReceivedNotificationToMany: mock.fn(() => {
 					throw new Error('Exception error');
 				})
 			};
@@ -1381,7 +1434,15 @@ describe('case details', () => {
 				}
 			};
 
-			await assert.rejects(() => updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any));
+			// Should not throw - errors are logged in background
+			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+			await flushMicrotasks();
+
+			// Verify the database update still happened
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+
+			// Verify error was logged (multiple logs expected)
+			assert.ok(logger.error.mock.callCount() >= 1, 'Expected at least one error log');
 		});
 		it('should dispatch Application not of national importance Notification', async () => {
 			const logger = mockLogger();
@@ -1443,13 +1504,22 @@ describe('case details', () => {
 			};
 
 			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
-			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+			await flushMicrotasks(); // Allow fire-and-forget notification to complete
+
+			// 2 updates: main case update + background flag update after notification succeeds
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 2);
 			assert.strictEqual((mockReq.session as any)?.cases?.case1.updated, true);
 
-			const updateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
-			assert.strictEqual(updateArg.where?.id, 'case1');
-			assert.strictEqual(updateArg.data?.turnedAwayDate, date);
-			assert.strictEqual(updateArg.data?.notNationallyImportantEmailSent, true);
+			// Main update should have the date but NOT the flag
+			const mainUpdateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
+			assert.strictEqual(mainUpdateArg.where?.id, 'case1');
+			assert.strictEqual(mainUpdateArg.data?.turnedAwayDate, date);
+			assert.strictEqual(mainUpdateArg.data?.notNationallyImportantEmailSent, undefined);
+
+			// Background flag update
+			const flagUpdateArg = (mockDb.crownDevelopment.update.mock.calls[1] as any).arguments[0];
+			assert.strictEqual(flagUpdateArg.where?.id, 'case1');
+			assert.strictEqual(flagUpdateArg.data?.notNationallyImportantEmailSent, true);
 
 			assert.strictEqual(mockNotifyClient.sendApplicationNotOfNationalImportanceNotificationToMany.mock.callCount(), 1);
 			assert.deepStrictEqual(
@@ -1464,7 +1534,7 @@ describe('case details', () => {
 				]
 			);
 		});
-		it('should throw error if Application not of national importance Notification fails', async () => {
+		it('should log error if Application not of national importance Notification fails', async () => {
 			const logger = mockLogger();
 			const mockDb = {
 				$transaction: mock.fn(() => Promise.resolve()),
@@ -1481,7 +1551,7 @@ describe('case details', () => {
 			};
 			makeTransactionInteractive(mockDb);
 			const mockNotifyClient = {
-				sendApplicationNotOfNationalImportanceNotification: mock.fn(() => {
+				sendApplicationNotOfNationalImportanceNotificationToMany: mock.fn(() => {
 					throw new Error('Exception error');
 				})
 			};
@@ -1511,7 +1581,15 @@ describe('case details', () => {
 				}
 			};
 
-			await assert.rejects(() => updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any));
+			// Should not throw - errors are logged in background
+			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+			await flushMicrotasks();
+
+			// Verify the database update still happened
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+
+			// Verify error was logged (multiple logs expected)
+			assert.ok(logger.error.mock.callCount() >= 1, 'Expected at least one error log');
 		});
 		it('should not throw Prisma errors', async () => {
 			const logger = mockLogger();
@@ -1600,17 +1678,31 @@ describe('case details', () => {
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 0);
 		});
 
-		it('should throw an error if LPA Questionnaire Sent Notification fails', async () => {
+		it('should log error if LPA Questionnaire Sent Notification fails', async () => {
 			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({
+						id: 'case-1',
+						reference: 'CROWN/2025/0000001',
+						description: 'a big project',
+						Lpa: { email: 'test@email.com' }
+					})),
+					update: mock.fn()
+				}
+			};
+			makeTransactionInteractive(mockDb);
 			const mockNotifyClient = {
-				sendLpaQuestionnaireSentNotification: mock.fn(() => {
+				sendLpaQuestionnaireNotification: mock.fn(() => {
 					throw new Error('Notification error');
 				})
 			};
 			const updateCase = buildUpdateCase({
-				db: {},
+				db: mockDb,
 				logger,
-				notifyClient: mockNotifyClient
+				notifyClient: mockNotifyClient,
+				portalBaseUrl: 'https://test.com'
 			});
 			const mockReq = {
 				params: { id: 'case1' },
@@ -1631,8 +1723,18 @@ describe('case details', () => {
 				}
 			};
 
-			await assert.rejects(() => updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any));
-			assert.strictEqual((data.answers as Record<string, unknown>).lpaQuestionnaireSpecialEmailSent, undefined);
+			// Should not throw - errors are logged in background
+			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+			await flushMicrotasks();
+
+			// Verify the database update still happened (only main update - flag NOT set since notification failed)
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+			const updateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
+			// Flag should NOT be in main update - it's only set after successful notification
+			assert.strictEqual(updateArg.data?.lpaQuestionnaireSpecialEmailSent, undefined);
+
+			// Verify error was logged (multiple logs expected)
+			assert.ok(logger.error.mock.callCount() >= 1, 'Expected at least one error log');
 		});
 		it('should send LPA Questionnaire Sent Notification and update', async () => {
 			const logger = mockLogger();
@@ -1669,9 +1771,20 @@ describe('case details', () => {
 			};
 
 			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+			await flushMicrotasks(); // Allow fire-and-forget notification to complete
 
+			// 2 updates: main case update + background flag update after notification succeeds
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 2);
 			assert.strictEqual(mockNotifyClient.sendLpaQuestionnaireNotification.mock.callCount(), 1);
-			assert.strictEqual((data.answers as Record<string, unknown>).lpaQuestionnaireSpecialEmailSent, true);
+
+			// Main update should NOT have the flag
+			const mainUpdateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
+			assert.strictEqual(mainUpdateArg.data?.lpaQuestionnaireSpecialEmailSent, undefined);
+
+			// Background flag update should have the flag
+			const flagUpdateArg = (mockDb.crownDevelopment.update.mock.calls[1] as any).arguments[0];
+			assert.strictEqual(flagUpdateArg.where?.id, 'case1');
+			assert.strictEqual(flagUpdateArg.data?.lpaQuestionnaireSpecialEmailSent, true);
 		});
 
 		it('should update shared agent organisation once and link it to both cases when updating linked cases', async () => {
@@ -1683,7 +1796,9 @@ describe('case details', () => {
 					update: mock.fn(() => ({ kind: 'organisation.update' }))
 				},
 				contact: {
-					update: mock.fn()
+					update: mock.fn(() => ({ kind: 'contact.update' })),
+					create: mock.fn(() => ({ id: 'created-contact-id' })),
+					deleteMany: mock.fn(() => ({ count: 1 }))
 				},
 				crownDevelopmentToOrganisation: {
 					create: mock.fn((args) => args)
@@ -1755,7 +1870,9 @@ describe('case details', () => {
 					update: mock.fn(() => ({ kind: 'organisation.update' }))
 				},
 				contact: {
-					update: mock.fn()
+					update: mock.fn(() => ({ kind: 'contact.update' })),
+					create: mock.fn(() => ({ id: 'created-contact-id' })),
+					deleteMany: mock.fn(() => ({ count: 1 }))
 				},
 				crownDevelopmentToOrganisation: {
 					create: mock.fn((args) => args)
@@ -2241,7 +2358,8 @@ describe('case details', () => {
 				},
 				contact: {
 					update: mock.fn(() => ({ kind: 'contact.update' })),
-					create: mock.fn(() => ({ id: 'created-contact-id' }))
+					create: mock.fn(() => ({ id: 'created-contact-id' })),
+					deleteMany: mock.fn(() => ({ count: 1 }))
 				},
 				organisationToContact: {
 					create: mock.fn(() => ({ id: 'created-join-id' })),
