@@ -46,7 +46,7 @@
     "@azure/storage-blob": "^12.33.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@ministryofjustice/frontend": "^9.0.0",
-    "@planning-inspectorate/dynamic-forms": "^3.15.6",
+    "@planning-inspectorate/dynamic-forms": "^3.18.0",
     "@prisma/adapter-mssql": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "accessible-autocomplete": "^3.0.1",
@@ -74,10 +74,10 @@
     "redis": "^6.2.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.2.1",
+    "@commitlint/cli": "^21.2.2",
     "@commitlint/config-conventional": "^21.0.2",
     "@eslint/js": "^10.0.1",
-    "@faker-js/faker": "^10.5.0",
+    "@faker-js/faker": "^10.6.0",
     "@microsoft/microsoft-graph-types": "^2.43.1",
     "@planning-inspectorate/coding-standards": "^1.1.1",
     "@playwright/test": "^1.62.1",
@@ -88,11 +88,12 @@
     "@types/lusca": "^1.7.5",
     "@types/multer": "^2.2.0",
     "@types/nunjucks": "^3.2.6",
+    "@typescript/native": "npm:typescript@^7.0.2",
     "cross-env": "^10.1.0",
-    "eslint": "^10.8.0",
+    "eslint": "^10.8.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-check-file": "^3.3.2",
-    "globals": "^17.9.0",
+    "globals": "^17.11.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.3.0",
     "nodemon": "^3.1.14",
@@ -102,13 +103,13 @@
     "sass": "^1.102.0",
     "stylelint": "^17.14.1",
     "stylelint-config-prettier-scss": "^1.0.0",
-    "stylelint-config-recess-order": "^7.7.0",
+    "stylelint-config-recess-order": "^7.8.0",
     "stylelint-config-standard-scss": "^17.0.0",
     "stylelint-order": "^8.1.1",
     "stylelint-scss": "^7.2.0",
     "supertest": "^7.2.2",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.63.0"
+    "typescript": "npm:@typescript/typescript6@^6.0.3",
+    "typescript-eslint": "^8.67.0"
   },
   "lint-staged": {
     "*.{js,ts}": [
