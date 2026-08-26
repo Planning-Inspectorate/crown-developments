@@ -2108,6 +2108,10 @@ export function getQuestions(
 				}
 			],
 			validators: [
+				new RequiredGroupValidator({
+					fieldNames: ['prepDuration', 'sittingDuration', 'reportingDuration'],
+					errorMessage: 'Enter the hearing duration'
+				}),
 				new MultiFieldInputValidator({
 					fields: ['prepDuration', 'sittingDuration', 'reportingDuration'].map((fieldName) => ({
 						fieldName,
@@ -2115,6 +2119,10 @@ export function getQuestions(
 							new NumericValidator({
 								regex: /^$|^\d+(\.\d+)?$/,
 								regexMessage: 'Hearing duration must only contain numbers'
+							}),
+							new NumericValidator({
+								regex: /^\d{1,4}(\.\d{1,2})?$/,
+								regexMessage: 'Hearing duration must be 9999 or fewer days'
 							})
 						]
 					}))
