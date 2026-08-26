@@ -1,9 +1,9 @@
-import { DateQuestion, ManageListQuestion } from '@planning-inspectorate/dynamic-forms';
+import { type ActionView, DateQuestion, ManageListQuestion } from '@planning-inspectorate/dynamic-forms';
 import type { CommonQuestionParams } from '@planning-inspectorate/dynamic-forms';
 import type { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
 import type { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import type { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
-import type { Question, QuestionViewModel } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
+import type { Question, QuestionViewModel } from '@planning-inspectorate/dynamic-forms';
 import nunjucks from 'nunjucks';
 import type { Request } from 'express';
 import type { TableHeadCell, TableManageListQuestionParameters, TableRowCell } from './types.ts';
@@ -163,7 +163,7 @@ export default class TableManageListQuestion extends ManageListQuestion {
 	 * Creates the sortable table headers based on the questions asked
 	 */
 	createHeaders(): TableHeadCell[] {
-		const questions = (this.section?.questions ?? []) as Question[];
+		const questions = this.section?.questions ?? [];
 
 		const headers: TableHeadCell[] = questions.map((question) => {
 			// viewData is typed `any` upstream
@@ -216,7 +216,7 @@ export default class TableManageListQuestion extends ManageListQuestion {
 	 */
 	generateActionsHtml(viewModel: QuestionViewModel, item: Record<string, unknown>): string {
 		const question = viewModel.question as TableQuestionViewData;
-		const util = viewModel.util as { trimTrailingSlash: (url: string) => string };
+		const util = viewModel.util;
 		const originalUrl = viewModel.originalUrl as string;
 
 		const originalUrlTrimmed = util.trimTrailingSlash(originalUrl);
@@ -341,15 +341,12 @@ export default class TableManageListQuestion extends ManageListQuestion {
 	/**
 	 * For an empty list, defer to the parent with null so the correct
 	 * "not started" text and add link are shown.
-	 *
-	 * TODO: PEAS-400 - should return ActionView | ActionView[] | undefined, but
-	 * that type does not resolve from the shipped declarations.
 	 */
-	getAction(sectionSegment: string, journey: Journey, answer: unknown): unknown {
+	getAction(sectionSegment: string, journey: Journey, answer: unknown): ActionView | ActionView[] | undefined {
 		if (Array.isArray(answer) && !answer.length) {
-			return super.getAction(sectionSegment, journey, null) as unknown;
+			return super.getAction(sectionSegment, journey, null);
 		}
 
-		return super.getAction(sectionSegment, journey, answer) as unknown;
+		return super.getAction(sectionSegment, journey, answer);
 	}
 }

@@ -1,15 +1,17 @@
 import { getFilenameStem, isString } from './string.ts';
 
-export type Comparator = Record<string, string | number>;
-
+export type Comparable = string | number;
 /**
  * Returns a sort function to sort an array of objects by a given field.
  */
-export function sortByField<T extends Comparator>(field: keyof T, reverse?: boolean): (a: T, b: T) => number {
+export function sortByField<T, K extends keyof T = keyof T>(field: K, reverse?: boolean): (a: T, b: T) => number {
 	return (a: T, b: T): number => {
-		const aValue = a[field];
-		const bValue = b[field];
+		const aValue = a[field] as Comparable | null | undefined;
+		const bValue = b[field] as Comparable | null | undefined;
 
+		if (aValue === bValue) return 0;
+		if (aValue === undefined || aValue === null) return 1;
+		if (bValue === undefined || bValue === null) return -1;
 		if (aValue > bValue) return reverse ? -1 : 1;
 		if (aValue < bValue) return reverse ? 1 : -1;
 
@@ -21,8 +23,8 @@ export function sortByField<T extends Comparator>(field: keyof T, reverse?: bool
  * Returns a sort function to sort an array of objects by the filename stem of a given field.
  * If the field value is not a string, it will be treated as undefined and sorted accordingly.
  */
-export function sortByFileName<T extends Comparator>(
-	filenameField: keyof T,
+export function sortByFileName<T, K extends keyof T = keyof T>(
+	filenameField: K,
 	reverse?: boolean
 ): (a: T, b: T) => number {
 	return (a: T, b: T): number => {
@@ -43,9 +45,7 @@ export function sortByFileName<T extends Comparator>(
  * The combined comparator will apply each comparator in order until a non-zero result is found, which will be returned.
  * If all comparators return zero, the combined comparator will return zero.
  */
-export function combineComparators<T extends Comparator>(
-	comparators: ((a: T, b: T) => number)[]
-): (a: T, b: T) => number {
+export function combineComparators<T>(comparators: ((a: T, b: T) => number)[]): (a: T, b: T) => number {
 	return (a: T, b: T): number => {
 		for (const comparator of comparators) {
 			const result = comparator(a, b);

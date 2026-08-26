@@ -27,6 +27,7 @@ import {
 import { mapDateFilterErrorSummary } from '../utils/filter-error-summary.ts';
 import type { PortalService } from '#service';
 import type { RequestHandler } from 'express';
+import type { DriveItem } from '@microsoft/microsoft-graph-types';
 
 /**
  * Builds the application documents page controller.
@@ -54,7 +55,10 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 			folderPath,
 			logger,
 			id,
-			sortFn: combineComparators([sortByField('createdDateTime', true), sortByFileName('name')]),
+			sortFn: combineComparators<DriveItem>([
+				sortByField<DriveItem>('createdDateTime', true),
+				sortByFileName<DriveItem>('name')
+			]),
 			metaDataFields: ['Distressing', 'Category']
 		});
 

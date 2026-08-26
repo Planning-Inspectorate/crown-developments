@@ -4,7 +4,8 @@ import {
 	type RouteParams,
 	type Section,
 	type QuestionViewModel,
-	type JourneyResponse
+	type JourneyResponse,
+	type BaseQuestionViewData
 } from '@planning-inspectorate/dynamic-forms';
 import type { Request } from 'express';
 import nunjucks from 'nunjucks';
@@ -34,7 +35,20 @@ export interface UploadedFile {
 	deleteButton: { text: string };
 }
 
-export interface FileUploadViewModel extends QuestionViewModel {
+export interface FileUploadQuestionViewData extends BaseQuestionViewData {
+	uploadedFiles?: UploadedFile[];
+	dataUploadUrl?: string;
+	dataDeleteUrl?: string;
+	allowedFileExtensions?: string[];
+	allowedMimeTypes?: string[];
+	maxFileSizeValue?: number;
+	maxFileSizeString?: string;
+	preUploadHtml?: string;
+	postUploadHtml?: string;
+	showUploadWarning?: boolean;
+}
+
+export interface FileUploadViewModel extends QuestionViewModel<FileUploadQuestionViewData> {
 	uploadedFiles?: UploadedFile[];
 	uploadedFilesEncoded?: string;
 	dataUploadUrl?: string;
@@ -43,7 +57,6 @@ export interface FileUploadViewModel extends QuestionViewModel {
 	allowedMimeTypes: string[];
 	maxFileSizeValue: number;
 	maxFileSizeString: string;
-	question: Record<string, unknown>;
 	customViewData?: Record<string, unknown>;
 }
 

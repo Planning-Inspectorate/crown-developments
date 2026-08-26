@@ -14,7 +14,7 @@ import {
 import { CUSTOM_COMPONENTS, type CILAmountQuestionProps } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-validator.ts';
 import { camelCaseToUrlCase, camelCaseToSentenceCase, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
-import type { QuestionProps, Option } from '@planning-inspectorate/dynamic-forms';
+import type { QuestionProps, SelectableOption } from '@planning-inspectorate/dynamic-forms';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 /**
@@ -207,7 +207,7 @@ type CategoryWithParent = Prisma.CategoryCreateInput & {
 /**
  * Convert subcategory data to radio options
  */
-export function subCategoriesToRadioOptions(categories: readonly Prisma.CategoryCreateInput[]): Option[] {
+export function subCategoriesToRadioOptions(categories: readonly Prisma.CategoryCreateInput[]): SelectableOption[] {
 	const parents = categories.filter((c) => !('ParentCategory' in c));
 	const parentIdToName = Object.fromEntries(parents.map((p) => [p.id, p.displayName ?? '']));
 	const subCategories = categories

@@ -11,7 +11,7 @@ import {
 	questionClasses,
 	CrossQuestionValidator,
 	COMPONENT_TYPES,
-	type Option,
+	type SelectableOption,
 	type Question
 } from '@planning-inspectorate/dynamic-forms';
 import {
@@ -50,7 +50,7 @@ interface QuestionOverrides {
 	isApplicationTypePlanningOrLbc: boolean;
 	isApplicationSubTypeLbc: boolean;
 	filteredStageOptions?: Reference[];
-	applicantOrganisationOptions?: Option[];
+	applicantOrganisationOptions?: SelectableOption[];
 	hasAgentAnswer: boolean;
 	hasApplicationFee: boolean;
 	isQuestionView: boolean;

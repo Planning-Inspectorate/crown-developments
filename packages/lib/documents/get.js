@@ -1,4 +1,5 @@
 import { FILE_PROPERTIES } from './view-model.js';
+/** * @typedef {import('@microsoft/microsoft-graph-types').DriveItem} DriveItem */
 
 /**
  * Fetch DriveItems from SharePoint.
@@ -9,9 +10,9 @@ import { FILE_PROPERTIES } from './view-model.js';
  * @param {string} opts.folderPath
  * @param {import('pino').BaseLogger} opts.logger
  * @param {string} opts.id
- * @param {function(a, b): number} [opts.sortFn]
+ * @param {(a: DriveItem, b: DriveItem) => number} [opts.sortFn]
  * @param {string[]} [opts.metaDataFields]
- * @returns {Promise<import('@microsoft/microsoft-graph-types').DriveItem[]>}
+ * @returns {Promise<DriveItem[]>}
  */
 export async function getDocuments({ sharePointDrive, folderPath, logger, id, sortFn, metaDataFields }) {
 	try {
@@ -45,8 +46,8 @@ export async function getDocuments({ sharePointDrive, folderPath, logger, id, so
  * @param {string} opts.folderPath
  * @param {import('pino').BaseLogger} opts.logger
  * @param {string[]} opts.ids
- * @param {function(a, b): number} [opts.sortFn]
- * @returns {Promise<import('@microsoft/microsoft-graph-types').DriveItem[]>}
+ * @param {(a: DriveItem, b: DriveItem) => number} [opts.sortFn]
+ * @returns {Promise<DriveItem[]>}
  */
 export async function getDocumentsById({ sharePointDrive, folderPath, logger, ids, sortFn }) {
 	try {
