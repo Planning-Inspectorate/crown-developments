@@ -61,36 +61,36 @@ describe('Hidden Radio Question', () => {
 		});
 	});
 
-	describe('formatAnswerForSummary', () => {
+	describe('formatAnswer', () => {
 		it('should return the Option Text for an ACTIVE option', () => {
-			const result = question.formatAnswerForSummary('segment', mockJourney, 'active');
+			const result = question.formatAnswer('active');
 
-			assert.strictEqual(result[0].value, 'Active Option');
-			assert.strictEqual(result[0].key, 'Hidden Radio Check');
+			assert.strictEqual(result, 'Active Option');
 		});
 
 		it('should return the Option Text for a HIDDEN option', () => {
-			const result = question.formatAnswerForSummary('segment', mockJourney, 'hidden');
+			const result = question.formatAnswer('hidden');
 
-			assert.strictEqual(result[0].value, 'Hidden Option');
+			assert.strictEqual(result, 'Hidden Option');
 		});
 
 		it('should format conditional answers for a HIDDEN option correctly', () => {
 			const answerObj = {
 				value: 'hidden_cond',
-				conditional: 'It is too old'
+				conditional: { hidden_cond: 'It is too old' }
 			};
 
-			const result = question.formatAnswerForSummary('segment', mockJourney, answerObj);
+			const result = question.formatAnswer(answerObj);
 
 			const expectedText = ['Hidden Conditional', 'Reason: It is too old'].join('<br>');
-			assert.strictEqual(result[0].value, expectedText);
+			assert.strictEqual(result, expectedText);
 		});
 
+		// TODO: PEAS-473 Review this
 		it('should show blank if no value found', () => {
-			const result = question.formatAnswerForSummary('segment', mockJourney, 'unknown_value');
+			const result = question.formatAnswer('unknown_value');
 
-			assert.strictEqual(result[0].value, '');
+			assert.strictEqual(result, '');
 		});
 	});
 });

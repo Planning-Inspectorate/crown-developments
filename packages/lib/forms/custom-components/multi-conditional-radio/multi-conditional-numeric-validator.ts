@@ -1,6 +1,6 @@
 import { body, type ValidationChain } from 'express-validator';
 import BaseValidator from '@planning-inspectorate/dynamic-forms/src/validator/base-validator.js';
-import type { OptionsQuestion, Option } from '@planning-inspectorate/dynamic-forms';
+import type { OptionsQuestion, SelectableOption } from '@planning-inspectorate/dynamic-forms';
 
 export type MultiConditionalNumericValidatorParams = {
 	/** Pattern the revealed value must match. Defaults to a positive number. */
@@ -45,7 +45,7 @@ export class MultiConditionalNumericValidator extends BaseValidator {
 		}, []);
 	}
 
-	private getConditionalFieldName(questionObj: OptionsQuestion, option: Option): string {
+	private getConditionalFieldName(questionObj: OptionsQuestion, option: SelectableOption): string {
 		return `${questionObj.fieldName}_${option.conditional!.fieldName}`;
 	}
 

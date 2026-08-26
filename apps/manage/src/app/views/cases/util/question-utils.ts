@@ -12,6 +12,7 @@ import {
 	type CustomMultiFieldInputQuestionProps
 } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import { HIDDEN_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
+import type { SelectableOption } from '@planning-inspectorate/dynamic-forms';
 
 /**
  *
@@ -23,7 +24,7 @@ export function multiContactQuestions<TPrefix extends string>({
 }: {
 	prefix: TPrefix;
 	title: string;
-	organisationOptions: Array<{ text: string; value: string }> | null;
+	organisationOptions: SelectableOption[] | null;
 }): Record<`${TPrefix}ContactDetails`, CustomMultiFieldInputQuestionProps> {
 	const prefixUrl = camelCaseToUrlCase(prefix);
 	const isNullOption = organisationOptions === null;

@@ -1,7 +1,7 @@
 import { DateQuestion } from '@planning-inspectorate/dynamic-forms';
 import type { CommonQuestionParams } from '@planning-inspectorate/dynamic-forms';
 import type { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
-import type { Question, QuestionViewModel } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
+import type { Question, QuestionViewModel } from '@planning-inspectorate/dynamic-forms';
 import TableManageListQuestion from '../question.ts';
 import type { TableHeadCell, TableManageListQuestionParameters, TableRowCell } from '../types.ts';
 
@@ -194,7 +194,7 @@ export default class DefinedColumnsTableQuestion extends TableManageListQuestion
 	}
 
 	private getQuestionByFieldName(fieldName: string): Question | undefined {
-		const questions = (this.section?.questions ?? []) as Question[];
+		const questions = this.section?.questions ?? [];
 		return questions.find((q) => q.fieldName === fieldName);
 	}
 }

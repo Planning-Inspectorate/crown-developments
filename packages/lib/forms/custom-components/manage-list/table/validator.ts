@@ -41,7 +41,7 @@ export default class ManageListItemsCompleteValidator extends BaseValidator {
 				return true;
 			}
 
-			const questions = (questionObj.section?.questions ?? []) as Question[];
+			const questions = questionObj.section?.questions ?? [];
 			const allErrors = this.getValidationErrors(listItems, questions);
 
 			if (allErrors.length > 0) {

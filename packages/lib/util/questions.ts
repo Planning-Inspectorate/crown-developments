@@ -1,7 +1,7 @@
 import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
-import type { Option } from '@planning-inspectorate/dynamic-forms';
+import type { SelectableOption } from '@planning-inspectorate/dynamic-forms';
 
 export const CASE_NOTE_MAX_LENGTH = 100;
 
@@ -15,7 +15,10 @@ type ReferenceWithHint = Reference & { hintText: string };
 /**
  * Converts an array of reference data into radio options for a form.
  */
-export function referenceDataToRadioOptions(reference: readonly Reference[], addNullOption: boolean = false): Option[] {
+export function referenceDataToRadioOptions(
+	reference: readonly Reference[],
+	addNullOption: boolean = false
+): SelectableOption[] {
 	const options = reference.map((t) => ({ text: t.displayName, value: t.id }));
 	if (addNullOption) {
 		options.unshift({ text: '', value: '' });
@@ -29,7 +32,7 @@ export function referenceDataToRadioOptions(reference: readonly Reference[], add
 export function referenceDataToRadioOptionsWithHintText(
 	reference: readonly ReferenceWithHint[],
 	addNullOption: boolean = false
-): Option[] {
+): SelectableOption[] {
 	const options = reference.map((t) => ({
 		text: t.displayName,
 		value: t.id,
@@ -89,7 +92,7 @@ const ENVIRONMENT_NAME = {
  * Falls back to DEV data if environment is not set or not 'prod'.
  * @returns Array of LPA options with empty first option, sorted alphabetically
  */
-export function getLpaOptions(): Option[] {
+export function getLpaOptions(): SelectableOption[] {
 	let LPAs: typeof LOCAL_PLANNING_AUTHORITIES_DEV;
 	try {
 		const env = process.env.ENVIRONMENT;
