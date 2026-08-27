@@ -1,7 +1,15 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import { bytesToUnit, formatFee, parseNumberStringToNumber, toFloat, toInt, toDecimalOrNull } from './numbers.ts';
+import {
+	bytesToUnit,
+	formatFee,
+	parseNumberStringToNumber,
+	toFloat,
+	toInt,
+	toDecimalOrNull,
+	roundForDisplay
+} from './numbers.ts';
 
 describe('numbers', () => {
 	describe('bytesToUnit', () => {
@@ -114,6 +122,40 @@ describe('numbers', () => {
 			assert.strictEqual(formatFee(null), '');
 			assert.strictEqual(formatFee(undefined), '');
 		});
+	});
+	describe('roundForDisplay', () => {
+		const tests = [
+			// rounds to 2dp
+			{ input: '34.567', expected: '34.57' },
+			{ input: '34.564', expected: '34.56' },
+			{ input: '34.565', expected: '34.57' },
+			{ input: 0.005, expected: '0.01' },
+			// no padding of trailing zeros
+			{ input: '34.5', expected: '34.5' },
+			{ input: '34.50', expected: '34.5' },
+			{ input: '34', expected: '34' },
+			{ input: '34.00', expected: '34' },
+			// already at or below 2dp
+			{ input: '34.57', expected: '34.57' },
+			{ input: 0, expected: '0' },
+			// numbers as well as strings
+			{ input: 34.567, expected: '34.57' },
+			// negatives
+			{ input: '-34.567', expected: '-34.57' },
+			// non-numeric passes through untouched
+			{ input: 'abc', expected: 'abc' },
+			{ input: '', expected: '' },
+			{ input: null, expected: 'null' },
+			{ input: undefined, expected: 'undefined' },
+			{ input: NaN, expected: 'NaN' },
+			{ input: Infinity, expected: 'Infinity' }
+		];
+		for (const { input, expected } of tests) {
+			it(`should convert "${input}" to "${expected}"`, () => {
+				const got = roundForDisplay(input);
+				assert.strictEqual(got, expected);
+			});
+		}
 	});
 	describe('toDecimalOrNull', () => {
 		it('should return null for null, undefined, empty, or whitespace-only strings', () => {

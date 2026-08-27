@@ -169,6 +169,45 @@ describe('./lib/forms/custom-components/monetary-input/monetary-input-validator.
 		assert.strictEqual(Object.keys(errors).length, 1);
 		assert.strictEqual(errors.applicationFee_amount.msg, 'Conditional Message!');
 	});
+	it('should return an error message if fee amount has more than 12 digits before the decimal point', async () => {
+		const req = {
+			body: {
+				applicationFee: 'yes',
+				applicationFee_amount: '1234567890123.00'
+			}
+		};
+
+		const errors = await _validationMappedErrors(req, question);
+
+		assert.strictEqual(Object.keys(errors).length, 1);
+		assert.strictEqual(errors.applicationFee_amount.msg, 'Application fee must be 12 digits or less');
+	});
+
+	it('should not return an error message for exactly 12 digits before the decimal point', async () => {
+		const req = {
+			body: {
+				applicationFee: 'yes',
+				applicationFee_amount: '999999999999.99'
+			}
+		};
+
+		const errors = await _validationMappedErrors(req, question);
+
+		assert.strictEqual(Object.keys(errors).length, 0);
+	});
+
+	it('should not return an error message for exactly 12 digits with no decimal places', async () => {
+		const req = {
+			body: {
+				applicationFee: 'yes',
+				applicationFee_amount: '999999999999'
+			}
+		};
+
+		const errors = await _validationMappedErrors(req, question);
+
+		assert.strictEqual(Object.keys(errors).length, 0);
+	});
 
 	const _validationMappedErrors = async (req, question) => {
 		const monetaryInputValidator = new TestMonetaryValidator();

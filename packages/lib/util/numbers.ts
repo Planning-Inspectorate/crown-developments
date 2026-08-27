@@ -67,6 +67,29 @@ export function formatFee(fee: number | string): string {
 }
 
 /**
+ * Returns a display value rounded to 2 decimal places without adding trailing zeros
+ * or mutating the original value
+ *
+ * Note this is display only: the stored answer keeps its original precision
+ * until it reaches the database.
+ *
+ * Non-numeric values pass through untouched so nothing is silently swallowed.
+ */
+export function roundForDisplay(value: unknown): string {
+	const asString = String(value);
+
+	// Number('') and Number('   ') are both 0, so guard before parsing
+	if (asString.trim() === '') return asString;
+
+	const parsed = Number(asString);
+
+	if (!Number.isFinite(parsed)) return asString;
+
+	// Avoids toFixed padding 34.5 into 34.50
+	return String(Math.round(parsed * 100) / 100);
+}
+
+/**
  *  Converts unknown inputs into Prisma.Decimal values
  *  If inputs can't be converted, then returns null
  */

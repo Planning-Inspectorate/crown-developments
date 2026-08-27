@@ -1,6 +1,7 @@
 import { RadioQuestion } from '@planning-inspectorate/dynamic-forms';
 import type { Question, OptionsQuestionParameters } from '@planning-inspectorate/dynamic-forms';
 import { escapeHtml } from '../../../util/string.ts';
+import { roundForDisplay } from '../../../util/numbers.ts';
 
 export type MultiConditionalRadioQuestionProps = OptionsQuestionParameters & {
 	/** Prefix for the summary value, e.g. "Capacity". Defaults to the selected option's text. */
@@ -9,6 +10,8 @@ export type MultiConditionalRadioQuestionProps = OptionsQuestionParameters & {
 	summarySuffixes?: Record<string, string>;
 	/** Wraps the summary value in <strong>, e.g. where it heads a manage-list item */
 	boldSummaryValue?: boolean;
+	/** Rounds the revealed value to 2dp for display. Numeric conditionals only. */
+	roundDecimals?: boolean;
 };
 
 /**
@@ -22,17 +25,25 @@ export default class MultiConditionalRadioQuestion extends RadioQuestion {
 	summaryLabel?: string;
 	summarySuffixes?: Record<string, string>;
 	boldSummaryValue: boolean;
+	roundDecimals: boolean;
 	/**
 	 * Set by the caller while building table cells, where the column header
 	 * already names the value and emphasis would be arbitrary.
 	 */
 	plainFormatting = false;
 
-	constructor({ summaryLabel, summarySuffixes, boldSummaryValue, ...params }: MultiConditionalRadioQuestionProps) {
+	constructor({
+		summaryLabel,
+		summarySuffixes,
+		boldSummaryValue,
+		roundDecimals,
+		...params
+	}: MultiConditionalRadioQuestionProps) {
 		super(params);
 		this.summaryLabel = summaryLabel;
 		this.summarySuffixes = summarySuffixes;
 		this.boldSummaryValue = boldSummaryValue ?? false;
+		this.roundDecimals = roundDecimals ?? false;
 	}
 
 	/**
@@ -57,10 +68,11 @@ export default class MultiConditionalRadioQuestion extends RadioQuestion {
 				string | undefined;
 
 			if (conditionalValue) {
+				const displayed = this.roundDecimals ? roundForDisplay(conditionalValue) : conditionalValue;
 				const suffix = this.summarySuffixes?.[answer as string] ?? '';
 				const label = this.plainFormatting ? null : (this.summaryLabel ?? selectedOption.text);
 
-				displayValue = label ? `${label}: ${conditionalValue}${suffix}` : `${conditionalValue}${suffix}`;
+				displayValue = label ? `${label}: ${displayed}${suffix}` : `${displayed}${suffix}`;
 			}
 		}
 
