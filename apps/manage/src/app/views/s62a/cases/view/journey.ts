@@ -327,7 +327,8 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 						.addQuestion(questions.voidCapacity)
 						.withCondition(needsVoidCapacity)
 						.addQuestion(questions.maxAnnualThroughput)
-				),
+				)
+				.withCondition(whenQuestionHasAnswer(questions.wasteManagementDevelopment, BOOLEAN_OPTIONS.YES)),
 			new Section('', 'pre-application')
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.PRE_APPLICATION)
 				.startMultiQuestionCondition('pre-app-is-application-1', isApplicationCase)

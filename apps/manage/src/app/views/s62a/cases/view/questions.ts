@@ -30,7 +30,8 @@ import {
 	UNIT_TYPES_BY_OCCUPANCY,
 	WASTE_TYPES,
 	WASTE_UNIT_ID,
-	WASTE_UNITS
+	WASTE_UNITS,
+	WASTE_TYPES_WITHOUT_VOID_CAPACITY
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import {
 	AddressValidator,
@@ -42,7 +43,9 @@ import {
 	CrossQuestionValidator,
 	DateValidator,
 	EmailValidator,
+	type Journey,
 	NumericValidator,
+	type Question,
 	questionClasses,
 	RequiredValidator,
 	SameAnswerValidator,
@@ -153,6 +156,12 @@ export function getQuestions(
 	const applicantContactsValidator = getApplicantContactsValidator(hasAgent, isIndividual);
 
 	const throughputUnits = WASTE_UNITS.filter((u) => u.id !== WASTE_UNIT_ID.CUBIC_METRES);
+
+	const WASTE_UNIT_SUFFIXES: Record<string, string> = {
+		[WASTE_UNIT_ID.CUBIC_METRES]: 'm³',
+		[WASTE_UNIT_ID.TONNES]: 't',
+		[WASTE_UNIT_ID.LITRES]: 'l'
+	};
 
 	const questions = {
 		reference: {
@@ -403,6 +412,10 @@ export function getQuestions(
 								new NumericValidator({
 									regex: /^$|^(?!0+(\.0+)?$).+$/,
 									regexMessage: 'Site area in hectares must be greater than 0'
+								}),
+								new NumericValidator({
+									regex: /^$|^\d{1,12}(\.\d+)?$/,
+									regexMessage: 'Site area in hectares must be 12 digits or less'
 								})
 							]
 						},
@@ -416,6 +429,10 @@ export function getQuestions(
 								new NumericValidator({
 									regex: /^$|^(?!0+(\.0+)?$).+$/,
 									regexMessage: 'Site area in square metres must be greater than 0'
+								}),
+								new NumericValidator({
+									regex: /^$|^\d{1,12}(\.\d+)?$/,
+									regexMessage: 'Site area in square metres must be 12 digits or less'
 								})
 							]
 						}
@@ -2239,7 +2256,34 @@ export function getQuestions(
 				{
 					header: 'Capacity',
 					fieldName: 'voidCapacityUnitId',
-					sortType: 'number'
+					sortType: 'number',
+					format: (
+						rawValue: unknown,
+						item: Record<string, unknown>,
+						{
+							getQuestion,
+							mockJourney
+						}: { getQuestion: (fieldName: string) => Question | undefined; mockJourney: Journey }
+					) => {
+						const wasteTypeId = typeof item.wasteTypeId === 'string' ? item.wasteTypeId : undefined;
+
+						// The void capacity question is skipped for these waste types, so
+						// the absence of a value is "N/A" rather than "-".
+						if (wasteTypeId && WASTE_TYPES_WITHOUT_VOID_CAPACITY.includes(wasteTypeId)) {
+							return 'N/A';
+						}
+
+						const question = getQuestion('voidCapacityUnitId');
+						if (!question) return '-';
+
+						return (
+							question
+								.formatAnswerForSummary('', mockJourney, rawValue)
+								.map((a) => (typeof a.value === 'string' ? a.value : ''))
+								.filter(Boolean)
+								.join(', ') || '-'
+						);
+					}
 				},
 				{
 					header: 'Throughput',
@@ -2274,15 +2318,12 @@ export function getQuestions(
 			type: CUSTOM_COMPONENTS.MULTI_CONDITIONAL_RADIO,
 			title: 'Total capacity of void',
 			question: 'What is the total capacity of the void?',
-			hint: 'This includes engineering surcharge and making no allowance for cover or restoration material in cubic metres. For solid waste use tonnes or litres for liquid waste.',
+			hint: 'This includes engineering surcharge and making no allowance for cover or restoration material in cubic metres. For solid waste use tonnes or litres for liquid waste. e.g. 100.25',
 			fieldName: 'voidCapacityUnitId',
 			url: 'total-void-capacity',
 			summaryLabel: 'Capacity',
-			summarySuffixes: {
-				[WASTE_UNIT_ID.CUBIC_METRES]: 'm³',
-				[WASTE_UNIT_ID.TONNES]: 't',
-				[WASTE_UNIT_ID.LITRES]: 'l'
-			},
+			summarySuffixes: WASTE_UNIT_SUFFIXES,
+			roundDecimals: true,
 			options: WASTE_UNITS.map((unit) => ({
 				text: unit.displayName,
 				value: unit.id,
@@ -2290,8 +2331,9 @@ export function getQuestions(
 					type: 'text',
 					fieldName: unit.id,
 					label: unit.displayName,
-					classes: 'govuk-input--width-10',
-					inputmode: 'numeric'
+					inputClasses: 'govuk-input--width-10',
+					inputmode: 'numeric',
+					suffix: { text: WASTE_UNIT_SUFFIXES[unit.id] }
 				}
 			})),
 			validators: [
@@ -2299,6 +2341,10 @@ export function getQuestions(
 				new ConditionalRequiredValidator('Enter the total capacity of the void'),
 				new MultiConditionalNumericValidator({
 					regexMessage: 'Total capacity of the void must be a number'
+				}),
+				new MultiConditionalNumericValidator({
+					regex: /^\d{1,12}(\.\d+)?$/,
+					regexMessage: 'Total capacity of the void must be 12 digits or less'
 				})
 			]
 		},
@@ -2308,13 +2354,12 @@ export function getQuestions(
 			type: CUSTOM_COMPONENTS.MULTI_CONDITIONAL_RADIO,
 			title: 'Maximum annual throughput',
 			question: 'What is the maximum annual operational throughput in tonnes (or litres if liquid waste)?',
+			hint: 'e.g. 10.25',
 			fieldName: 'maxAnnualThroughputUnitId',
 			url: 'max-annual-throughput',
 			summaryLabel: 'Throughput',
-			summarySuffixes: {
-				[WASTE_UNIT_ID.TONNES]: 't',
-				[WASTE_UNIT_ID.LITRES]: 'l'
-			},
+			summarySuffixes: WASTE_UNIT_SUFFIXES,
+			roundDecimals: true,
 			options: throughputUnits.map((unit) => ({
 				text: unit.displayName,
 				value: unit.id,
@@ -2322,8 +2367,9 @@ export function getQuestions(
 					type: 'text',
 					fieldName: unit.id,
 					label: unit.displayName,
-					classes: 'govuk-input--width-10',
-					inputmode: 'numeric'
+					inputClasses: 'govuk-input--width-10',
+					inputmode: 'numeric',
+					suffix: { text: WASTE_UNIT_SUFFIXES[unit.id] }
 				}
 			})),
 			validators: [
@@ -2331,6 +2377,10 @@ export function getQuestions(
 				new ConditionalRequiredValidator('Enter the maximum annual operational throughput'),
 				new MultiConditionalNumericValidator({
 					regexMessage: 'Maximum annual operational throughput must be a number'
+				}),
+				new MultiConditionalNumericValidator({
+					regex: /^\d{1,12}(\.\d+)?$/,
+					regexMessage: 'Maximum annual operational throughput must be 12 digits or less'
 				})
 			]
 		},

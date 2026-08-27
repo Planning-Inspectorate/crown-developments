@@ -50,6 +50,9 @@ export default class MonetaryInputValidator extends BaseValidator {
 					if (!/^\d+(\.\d{1,2})?$/.test(value)) {
 						throw new Error(`${fieldTitle} must be to the nearest pence`);
 					}
+					if (!/^\d{1,12}(\.\d+)?$/.test(value)) {
+						throw new Error(`${fieldTitle} must be 12 digits or less`);
+					}
 					const num = Number(value);
 					if (num === 0) {
 						throw new Error(`${fieldTitle} must be more than £0`);
