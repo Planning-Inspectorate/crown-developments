@@ -76,9 +76,9 @@ describe('Field Resolver', () => {
 		});
 
 		describe('composite values', () => {
-			it('should use siteAddress resolver for address fields', async () => {
+			it('should use address resolver for address fields', async () => {
 				const previousCase = {
-					SiteAddress: {
+					siteAddress: {
 						line1: '123 Old Street',
 						townCity: 'London',
 						postcode: 'SW1A 1AA'
@@ -97,7 +97,7 @@ describe('Field Resolver', () => {
 			});
 
 			it('should return "-" for null address', async () => {
-				const previousCase = { SiteAddress: null };
+				const previousCase = { siteAddress: null };
 				const newAnswer = null;
 
 				const { oldValue, newValue } = resolveFieldValues('siteAddress', previousCase, newAnswer);
@@ -336,6 +336,65 @@ describe('Field Resolver', () => {
 					assert.strictEqual(oldValue, '£1000.00', `${fieldName}: expected oldValue '£1000.00'`);
 					assert.strictEqual(newValue, '£2000.00', `${fieldName}: expected newValue '£2000.00'`);
 				}
+			});
+		});
+		describe('address field resolvers', () => {
+			it('should use address resolver for siteAddress', async () => {
+				const previousCase = {
+					siteAddress: {
+						line1: '123 Old Street',
+						line2: 'Flat 1',
+						townCity: 'London',
+						county: 'Greater London',
+						postcode: 'SW1A 1AA'
+					}
+				};
+				const newAnswer = {
+					addressLine1: '456 New Road',
+					addressLine2: 'Unit 9',
+					townCity: 'Manchester',
+					county: 'Greater Manchester',
+					postcode: 'M1 1AA'
+				};
+
+				const { oldValue, newValue } = resolveFieldValues('siteAddress', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, '123 Old Street, Flat 1, London, Greater London, SW1A 1AA');
+				assert.strictEqual(newValue, '456 New Road, Unit 9, Manchester, Greater Manchester, M1 1AA');
+			});
+
+			it('should use address resolver for agentOrganisationAddress', async () => {
+				const previousCase = {
+					agentOrganisationAddress: {
+						addressLine1: '1 Agency House',
+						addressLine2: 'Business Park',
+						townCity: 'Bristol',
+						county: 'Somerset',
+						postcode: 'BS1 4DJ'
+					}
+				};
+				const newAnswer = {
+					line1: '2 Agency House',
+					line2: 'Business Park',
+					townCity: 'Bristol',
+					county: 'Somerset',
+					postcode: 'BS1 4DJ'
+				};
+
+				const { oldValue, newValue } = resolveFieldValues('agentOrganisationAddress', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, '1 Agency House, Business Park, Bristol, Somerset, BS1 4DJ');
+				assert.strictEqual(newValue, '2 Agency House, Business Park, Bristol, Somerset, BS1 4DJ');
+			});
+
+			it('should return "-" for null previous and null new agentOrganisationAddress', async () => {
+				const previousCase = { agentOrganisationAddress: null };
+				const newAnswer = null;
+
+				const { oldValue, newValue } = resolveFieldValues('agentOrganisationAddress', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, '-');
+				assert.strictEqual(newValue, '-');
 			});
 		});
 	});

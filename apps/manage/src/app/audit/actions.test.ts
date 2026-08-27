@@ -67,7 +67,7 @@ describe('standard field templates', () => {
 			oldValue: 'Town Hall',
 			newValue: 'City Hall'
 		});
-		assert.strictEqual(result, 'Hearing venue was updated from Town Hall to City Hall');
+		assert.strictEqual(result, 'Hearing venue was updated from "Town Hall" to "City Hall"');
 	});
 });
 
