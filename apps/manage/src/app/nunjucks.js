@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import nunjucks from 'nunjucks';
-import { loadBuildConfig } from './config.js';
+import { loadBuildConfig } from './config.ts';
 import {
 	buildUrlWithParams,
 	buildPageUrl,

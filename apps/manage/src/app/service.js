@@ -21,7 +21,7 @@ import { buildAuditService } from '@pins/crowndev-lib/audit/index.ts';
  */
 export class ManageService {
 	/**
-	 * @type {import('./config-types.js').Config}
+	 * @type {import('./config.ts').Config}
 	 */
 	#config;
 	/**
@@ -74,7 +74,7 @@ export class ManageService {
 	createZipArchive;
 
 	/**
-	 * @param {import('./config-types.js').Config} config
+	 * @param {import('./config.ts').Config} config
 	 */
 	constructor(config) {
 		this.#config = config;
@@ -88,7 +88,9 @@ export class ManageService {
 				scopes: ['https://graph.microsoft.com/.default']
 			})
 		});
-		this.appSharePointDrive = new SharePointDrive(graphClient, config.sharePoint.driveId);
+		this.appSharePointDrive = config.sharePoint.disabled
+			? null
+			: new SharePointDrive(graphClient, config.sharePoint.driveId);
 		this.getSharePointDrive = buildInitSharePointDrive(config);
 		// share this cache between each instance of the EntraClient
 		const entraGroupCache = new MapCache(config.entra.cacheTtl);
@@ -99,14 +101,14 @@ export class ManageService {
 		this.createZipArchive = (options) => new ZipArchive(options);
 
 		// set up the Azure AI Language client if configured
-		if (config.azureLanguage.endpoint) {
+		if (!config.azureLanguage.disabled) {
 			this.textAnalyticsClient = new TextAnalyticsClient(
 				config.azureLanguage.endpoint,
 				new ManagedIdentityCredential()
 			);
 		} else {
 			this.textAnalyticsClient = null;
-			logger.info('Azure AI Language client not configured, skipping initialization');
+			logger.info('Azure AI Language disabled by feature flag, skipping initialization');
 		}
 	}
 
@@ -114,9 +116,6 @@ export class ManageService {
 		return this.#config.appName;
 	}
 
-	/**
-	 * @type {import('./config-types.js').Config['auth']}
-	 */
 	get authConfig() {
 		return this.#config.auth;
 	}
@@ -137,7 +136,7 @@ export class ManageService {
 	}
 
 	/**
-	 * @type {import('@pins/crowndev-lib/blob-store/blob-store-client.ts').BlobStorageClient}
+	 * @type {import('@pins/crowndev-lib/blob-store/blob-store-client.ts').BlobStorageClient | null}
 	 */
 	get blobStore() {
 		return this.blobStoreClient;
@@ -174,6 +173,10 @@ export class ManageService {
 
 	get isAuditLive() {
 		return this.#config.featureFlags?.isAuditLive;
+	}
+
+	get isAiAzureLanguageLive() {
+		return this.#config.featureFlags?.isAiAzureLanguageLive;
 	}
 
 	get secureSession() {

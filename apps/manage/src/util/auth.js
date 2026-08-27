@@ -3,7 +3,7 @@ import { LogLevel } from '@azure/msal-node';
 /**
  *
  * @param {Object} opts
- * @param {import('../app/config-types').Config['auth']} opts.config
+ * @param {import('../app/config.ts').AuthConfig} opts.config
  * @param {import('pino').Logger} opts.logger
  * @returns {import('@azure/msal-node').Configuration}
  */

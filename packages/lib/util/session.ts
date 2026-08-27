@@ -178,6 +178,15 @@ export function popSessionData<T>(
 	return data;
 }
 
+/**
+ * Parses the SESSION_SECRETS environment variable, which should be a JSON array of strings.
+ *
+ * - Express-session requires at least one secret to be set, and this function ensures that the secrets are valid.
+ * - Express-session will use the first secret to sign the session ID cookie, and will use the rest to verify the signature of incoming cookies.
+ * @param raw Raw JSON string from the SESSION_SECRETS environment variable.
+ * @returns An array of secrets.
+ * @throws If the raw string is not set, not valid JSON, not an array, or contains non-string or empty string elements.
+ */
 export function parseSessionSecrets(raw: string | undefined): string[] {
 	if (!raw) {
 		throw new Error('SESSION_SECRETS is not set');

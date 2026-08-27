@@ -6,7 +6,7 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 20000;
 /**
  *
- * @param {import('../app/config-types.js').Config} config
+ * @param {import('../app/config.ts').Config} config
  * @returns {function(import('express-session').Session): SharePointDrive | null}
  */
 export function buildInitSharePointDrive(config) {

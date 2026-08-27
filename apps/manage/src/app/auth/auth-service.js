@@ -12,7 +12,7 @@ const scopes = [
 ];
 
 export class AuthService {
-	/** @type {import('../config-types.js').Config['auth']} */
+	/** @type {import('../config.ts').AuthConfig} */
 	#config;
 	#logger;
 	#redisClient;
@@ -22,7 +22,7 @@ export class AuthService {
 	/**
 	 *
 	 * @param {Object} opts
-	 * @param {import('../config-types.js').Config['auth']} opts.config
+	 * @param {import('../config.ts').AuthConfig} opts.config
 	 * @param {import('pino').Logger} opts.logger
 	 * @param {import('@pins/crowndev-lib/redis/redis-client').RedisClient|null} [opts.redisClient]
 	 */
