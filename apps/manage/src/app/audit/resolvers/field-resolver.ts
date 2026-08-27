@@ -165,6 +165,25 @@ function monetaryResolver(fieldName: string): FieldResolver {
 }
 
 /**
+ * Site address — the form submits an address object, the DB stores it
+ * as a relation. Formats both as a comma-separated address string.
+ */
+
+function addressResolver(previousCaseFieldName: string): FieldResolver {
+	return {
+		resolve(previousCase, newAnswer) {
+			const oldAddress = previousCase[previousCaseFieldName] as Record<string, unknown> | null;
+			const newAddress = newAnswer as Record<string, unknown> | null;
+
+			return {
+				oldValue: formatAddress(oldAddress),
+				newValue: formatAddress(newAddress)
+			};
+		}
+	};
+}
+
+/**
  * Registry of field-specific resolvers.
  *
  * Add an entry here whenever a field needs special handling — e.g. the
@@ -175,22 +194,6 @@ function monetaryResolver(fieldName: string): FieldResolver {
  * simply stringifies the raw values.
  */
 const FIELD_RESOLVERS: Record<string, FieldResolver> = {
-	/**
-	 * Site address — the form submits an address object, the DB stores it
-	 * as a relation. Formats both as a comma-separated address string.
-	 */
-	siteAddress: {
-		resolve(previousCase, newAnswer) {
-			const oldAddress = previousCase.SiteAddress as Record<string, unknown> | null;
-			const newAddress = newAnswer as Record<string, unknown> | null;
-
-			return {
-				oldValue: formatAddress(oldAddress),
-				newValue: formatAddress(newAddress)
-			};
-		}
-	},
-
 	// ── Reference table ID fields ────────────────────────────────────────
 	// These fields store IDs that map to display names in static reference data.
 
@@ -247,6 +250,11 @@ const FIELD_RESOLVERS: Record<string, FieldResolver> = {
 
 	description: defaultResolver('description'),
 	costsApplicationsComment: defaultResolver('costsApplicationsComment'),
+
+	// ── Address fields ─────────────────────────────────────────────────────
+
+	siteAddress: addressResolver('siteAddress'),
+	agentOrganisationAddress: addressResolver('agentOrganisationAddress'),
 
 	// ── Monetary fields ────────────────────────────────────────────────────────
 	// Values need to be formatted with currency '£' as a prefix

@@ -53,7 +53,7 @@ export const AUDIT_TEMPLATES: Record<AuditAction, string> = {
 
 	// Standard fields
 	[AUDIT_ACTIONS.FIELD_SET]: '{fieldName} was set to {newValue}',
-	[AUDIT_ACTIONS.FIELD_UPDATED]: '{fieldName} was updated from {oldValue} to {newValue}',
+	[AUDIT_ACTIONS.FIELD_UPDATED]: '{fieldName} was updated from "{oldValue}" to "{newValue}"',
 	[AUDIT_ACTIONS.FIELD_CLEARED]: '{fieldName} ({oldValue}) was removed',
 
 	//long-text-fields

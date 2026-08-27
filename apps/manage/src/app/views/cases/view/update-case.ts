@@ -112,7 +112,10 @@ const AUDITABLE_SCALAR_FIELDS = new Set([
 	// Monetary fields
 	'cilAmount',
 	'applicationFee',
-	'applicationFeeRefundAmount'
+	'applicationFeeRefundAmount',
+	//address fields
+	'siteAddress',
+	'agentOrganisationAddress'
 ]);
 
 /** * Long-text fields that render with expandable old/new value details * instead of inline audit text. */
