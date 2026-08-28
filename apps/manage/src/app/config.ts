@@ -28,7 +28,7 @@ export interface AuthConfig {
 	signoutUrl: string;
 }
 export interface AzureLanguageConfig {
-	disabled: boolean;
+	enabled: boolean;
 	categories: string; // CSV string
 	endpoint: string;
 }
@@ -198,7 +198,7 @@ export function loadConfig(): Config {
 		AZURE_AI_LANGUAGE_ENDPOINT
 	});
 	const azureLanguageConfig: AzureLanguageConfig = {
-		disabled: azureLanguageDisabled,
+		enabled: !azureLanguageDisabled,
 		categories: azureLanguageVars.AZURE_AI_LANGUAGE_CATEGORIES,
 		endpoint: azureLanguageVars.AZURE_AI_LANGUAGE_ENDPOINT
 	};

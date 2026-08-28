@@ -101,7 +101,7 @@ export class ManageService {
 		this.createZipArchive = (options) => new ZipArchive(options);
 
 		// set up the Azure AI Language client if configured
-		if (!config.azureLanguage.disabled) {
+		if (config.azureLanguage.enabled) {
 			this.textAnalyticsClient = new TextAnalyticsClient(
 				config.azureLanguage.endpoint,
 				new ManagedIdentityCredential()

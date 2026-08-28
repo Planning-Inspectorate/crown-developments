@@ -318,7 +318,7 @@ export function buildReviewControllers(service, journeyId) {
 				commentOriginal: comment
 			});
 
-			const journey = createRedactJourney(response, req);
+			const journey = createRedactJourney(response, req, { showSuggestionsUi: isAiAzureLanguageLive });
 			const section = journey.sections[0];
 			const question = section.questions[0];
 			const validationErrors = question.checkForValidationErrors(req, section, journey);
@@ -336,7 +336,6 @@ export function buildReviewControllers(service, journeyId) {
 				journey,
 				customViewData: {
 					reference: representationRef,
-					showSuggestionsUi: isAiAzureLanguageLive,
 					redactionSuggestions
 				}
 			});

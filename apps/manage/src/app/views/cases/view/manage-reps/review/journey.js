@@ -9,7 +9,7 @@ import { generateJourneyTitle } from '../manage-reps-utils.js';
  * @param {import('express').Request} req
  * @returns {Journey}
  */
-export function createRedactJourney(response, req) {
+export function createRedactJourney(response, req, options = {}) {
 	if (!req.baseUrl.includes('/' + JOURNEY_ID + '/')) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey`);
 	}
@@ -24,7 +24,7 @@ export function createRedactJourney(response, req) {
 					question: 'Redact representation',
 					title: 'Redact representation',
 					summaryText: 'Original representation',
-					showSuggestionsUi: true
+					showSuggestionsUi: options.showSuggestionsUi
 				})
 			)
 		],
