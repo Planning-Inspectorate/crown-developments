@@ -52,6 +52,7 @@ export function addLocalsConfiguration({ isLive, contactEmail, googleAnalyticsId
 			}),
 			haveYourSayServiceName: 'Have your say on a Crown development application',
 			isLive,
+			inBeta: true,
 			contactEmail,
 			googleAnalyticsId,
 			googleAnalyticsCookieDomain: appHostname,
