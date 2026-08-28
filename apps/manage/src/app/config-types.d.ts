@@ -43,6 +43,7 @@ interface Config {
 		isS62ALive: boolean;
 		isCaseNotesLive: boolean;
 		isAuditLive: boolean;
+		isRetryLive: boolean;
 	};
 	gitSha?: string;
 	govNotify: NotifyConfig;

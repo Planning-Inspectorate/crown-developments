@@ -31,6 +31,7 @@ apps_config = {
     case_notes_not_live  = false
     audit_not_live       = false
     upload_docs_not_live = false
+    retry_not_live       = false
   }
 
   dynamic_cache_control = {

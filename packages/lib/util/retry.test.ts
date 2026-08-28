@@ -192,12 +192,59 @@ describe('retry utility', () => {
 		});
 	});
 
+	describe('withRetry - enabled flag', () => {
+		it('should attempt only once and throw immediately when enabled is false, even for a retryable error', async () => {
+			const logger = mockLogger();
+			const error = new AxiosError('Server error');
+			error.response = { status: 500 } as AxiosError['response'];
+			const fn = mock.fn(() => Promise.reject(error));
+
+			await assert.rejects(withRetry(fn, { enabled: false, maxRetries: 3, initialDelayMs: 1, maxDelayMs: 5 }, logger), {
+				message: 'Server error'
+			});
+
+			assert.strictEqual(fn.mock.callCount(), 1);
+			assert.strictEqual(logger.warn.mock.callCount(), 0);
+			assert.strictEqual(logger.error.mock.callCount(), 0);
+		});
+
+		it('should return the result on success when enabled is false', async () => {
+			const logger = mockLogger();
+			const fn = mock.fn(() => Promise.resolve('success'));
+
+			const result = await withRetry(fn, { enabled: false }, logger);
+
+			assert.strictEqual(result, 'success');
+			assert.strictEqual(fn.mock.callCount(), 1);
+		});
+
+		it('should retry as normal when enabled is true (default)', async () => {
+			const logger = mockLogger();
+			let callCount = 0;
+			const fn = mock.fn(() => {
+				callCount++;
+				if (callCount === 1) {
+					const error = new AxiosError('Server error');
+					error.response = { status: 500 } as AxiosError['response'];
+					return Promise.reject(error);
+				}
+				return Promise.resolve('success after retry');
+			});
+
+			const result = await withRetry(fn, { enabled: true, initialDelayMs: 1, maxDelayMs: 5 }, logger);
+
+			assert.strictEqual(result, 'success after retry');
+			assert.strictEqual(fn.mock.callCount(), 2);
+		});
+	});
+
 	describe('DEFAULT_RETRY_CONFIG', () => {
 		it('should have correct default values', () => {
 			assert.strictEqual(DEFAULT_RETRY_CONFIG.maxRetries, 5);
 			assert.strictEqual(DEFAULT_RETRY_CONFIG.initialDelayMs, 10000);
 			assert.strictEqual(DEFAULT_RETRY_CONFIG.maxDelayMs, 300000);
 			assert.deepStrictEqual(DEFAULT_RETRY_CONFIG.retryableStatusCodes, [429, 500, 502, 503, 504]);
+			assert.strictEqual(DEFAULT_RETRY_CONFIG.enabled, true);
 		});
 	});
 });
