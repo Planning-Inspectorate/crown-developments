@@ -15,6 +15,7 @@ interface Config {
 	};
 	featureFlags: {
 		isLive: boolean;
+		isRetryLive: boolean;
 	};
 	gitSha?: string;
 	googleAnalyticsId?: string;

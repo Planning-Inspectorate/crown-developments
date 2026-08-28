@@ -39,6 +39,7 @@ variable "apps_config" {
       case_notes_not_live  = bool
       audit_not_live       = bool
       upload_docs_not_live = bool
+      retry_not_live       = bool
     })
 
     dynamic_cache_control = object({

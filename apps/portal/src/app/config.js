@@ -31,6 +31,7 @@ export function loadConfig() {
 		DYNAMIC_CACHE_CONTROL_ENABLED,
 		DYNAMIC_CACHE_CONTROL_MAX_AGE,
 		FEATURE_FLAG_PORTAL_NOT_LIVE,
+		FEATURE_FLAG_RETRY_NOT_LIVE,
 		GIT_SHA,
 		GOOGLE_ANALYTICS_ID,
 		LOG_LEVEL,
@@ -63,6 +64,7 @@ export function loadConfig() {
 	}
 
 	const govNotifyDisabled = GOV_NOTIFY_DISABLED === 'true';
+	const isRetryLive = FEATURE_FLAG_RETRY_NOT_LIVE !== 'true';
 	if (!govNotifyDisabled) {
 		const props = {
 			GOV_NOTIFY_API_KEY,
@@ -107,7 +109,8 @@ export function loadConfig() {
 		},
 		featureFlags: {
 			// by default with no feature flag set, the portal is live
-			isLive: FEATURE_FLAG_PORTAL_NOT_LIVE !== 'true'
+			isLive: FEATURE_FLAG_PORTAL_NOT_LIVE !== 'true',
+			isRetryLive
 		},
 		gitSha: GIT_SHA,
 		googleAnalyticsId: GOOGLE_ANALYTICS_ID,
@@ -132,6 +135,9 @@ export function loadConfig() {
 				test: GOV_NOTIFY_TEST_TEMPLATE_ID,
 				acknowledgePreNotification: GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
 				acknowledgementOfRepresentation: GOV_NOTIFY_ACK_REP_TEMPLATE_ID
+			},
+			retryConfig: {
+				enabled: isRetryLive
 			}
 		},
 		crownDevContactInfo: {

@@ -13,6 +13,8 @@ export interface RetryConfig {
 	maxDelayMs: number;
 	/** HTTP status codes that should trigger a retry (default: [429, 500, 502, 503, 504]) */
 	retryableStatusCodes: number[];
+	/** Whether retry behaviour is enabled (default: true). When false, the operation is attempted once and any error is thrown immediately. */
+	enabled: boolean;
 }
 
 /**
@@ -22,7 +24,8 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
 	maxRetries: 5,
 	initialDelayMs: 1000 * 10,
 	maxDelayMs: 1000 * 60 * 5,
-	retryableStatusCodes: [429, 500, 502, 503, 504]
+	retryableStatusCodes: [429, 500, 502, 503, 504],
+	enabled: true
 };
 
 /**
@@ -103,7 +106,12 @@ export async function withRetry<T>(
 	logger: Logger
 ): Promise<T> {
 	const config: RetryConfig = { ...DEFAULT_RETRY_CONFIG, ...options };
-	const { maxRetries, initialDelayMs, maxDelayMs, retryableStatusCodes } = config;
+	const { maxRetries, initialDelayMs, maxDelayMs, retryableStatusCodes, enabled } = config;
+
+	// Retry disabled via feature flag/config: attempt once and surface any error immediately
+	if (!enabled) {
+		return fn();
+	}
 
 	let lastError: Error | undefined;
 

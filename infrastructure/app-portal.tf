@@ -104,6 +104,7 @@ module "app_portal" {
 
     #feature flags
     FEATURE_FLAG_PORTAL_NOT_LIVE = var.apps_config.feature_flags.portal_not_live
+    FEATURE_FLAG_RETRY_NOT_LIVE  = var.apps_config.feature_flags.retry_not_live
 
     # Cache Controls
     DYNAMIC_CACHE_CONTROL_ENABLED = var.apps_config.dynamic_cache_control.enabled
