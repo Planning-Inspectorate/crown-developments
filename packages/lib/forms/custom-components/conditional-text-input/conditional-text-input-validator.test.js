@@ -1,6 +1,6 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
 import { validationResult } from 'express-validator';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import ConditionalTextInputValidator from './conditional-text-input-validator.js';
 
 class TestConditionalTextInputValidator extends ConditionalTextInputValidator {

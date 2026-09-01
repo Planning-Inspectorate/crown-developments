@@ -1,8 +1,8 @@
-import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
-import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
+import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import { createQuestions } from '@planning-inspectorate/dynamic-forms/src/questions/create-questions.js';
 import { questionClasses } from '@planning-inspectorate/dynamic-forms/src/questions/questions.js';
-import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
+import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
+import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
 
 /**
  * @returns {{[p: string]: *}}

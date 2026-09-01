@@ -1,6 +1,6 @@
 // apps/manage/src/app/views/cases/create-a-case/questions.test.js
-import { describe, it, before } from 'node:test';
 import assert from 'node:assert';
+import { before, describe, it } from 'node:test';
 import { getQuestions } from './questions.ts';
 
 describe('create-a-case questions', () => {

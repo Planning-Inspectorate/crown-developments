@@ -1,20 +1,20 @@
-import { APPLICATION_PROCEDURE_ID, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { parseNumberStringToNumber } from '@pins/crowndev-lib/util/numbers.ts';
-import { booleanToYesNoValue, formatDateForDisplay, nl2br } from '@planning-inspectorate/dynamic-forms';
-import { addressToViewModel } from '@pins/crowndev-lib/util/address.ts';
-import type { Address } from '@planning-inspectorate/dynamic-forms';
-import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
-import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import type { ApplicantContact, AgentContact } from '../create-a-case/types.d.ts';
-import type { CrownDevelopmentPayload, CrownDevelopmentPayloadWithoutOrganisations } from './payload-contracts.ts';
 import type { EntraGroupMembers } from '#util/entra-groups.ts';
-import escape from 'escape-html';
+import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+import { APPLICATION_PROCEDURE_ID, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { addressToViewModel } from '@pins/crowndev-lib/util/address.ts';
+import { parseNumberStringToNumber } from '@pins/crowndev-lib/util/numbers.ts';
 import {
 	CASE_NOTE_MAX_LENGTH,
 	shouldTruncateComment,
 	truncateComment,
 	truncatedReadMoreCommentLink
 } from '@pins/crowndev-lib/util/questions.ts';
+import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
+import type { Address } from '@planning-inspectorate/dynamic-forms';
+import { booleanToYesNoValue, formatDateForDisplay, nl2br } from '@planning-inspectorate/dynamic-forms';
+import escape from 'escape-html';
+import type { AgentContact, ApplicantContact } from '../create-a-case/types.d.ts';
+import type { CrownDevelopmentPayload, CrownDevelopmentPayloadWithoutOrganisations } from './payload-contracts.ts';
 
 type ProcedurePrefix = 'inquiry' | 'hearing' | 'writtenReps';
 type ProcedureId = (typeof APPLICATION_PROCEDURE_ID)[keyof typeof APPLICATION_PROCEDURE_ID];

@@ -1,12 +1,12 @@
-import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms';
-import { JOURNEY_ID } from './journey.ts';
 import type { ManageService } from '#service';
-import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
-import { S62aCaseMapper, type CreateCaseAnswers, type CreateInputOptions } from './s62a-case-mapper.ts';
 import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms';
 import type { RequestHandler } from 'express';
 import { createFolders, findFolders, FOLDERS_MAP } from '../util/folders.ts';
+import { JOURNEY_ID } from './journey.ts';
+import { S62aCaseMapper, type CreateCaseAnswers, type CreateInputOptions } from './s62a-case-mapper.ts';
 
 type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
 

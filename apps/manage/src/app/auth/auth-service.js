@@ -1,6 +1,6 @@
-import * as authSession from './session.service.js';
-import { ConfidentialClientApplication } from '@azure/msal-node';
 import { buildMsalConfig } from '#util/auth.js';
+import { ConfidentialClientApplication } from '@azure/msal-node';
+import * as authSession from './session.service.js';
 
 /** @typedef {import('@azure/msal-node').AccountInfo} AccountInfo */
 

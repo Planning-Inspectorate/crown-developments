@@ -1,16 +1,16 @@
 import {
-	booleanToYesNoValue,
-	yesNoToBoolean
-} from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
-import {
 	CONTACT_PREFERENCE_ID,
 	RECEIVED_METHOD_ID,
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { optionalWhere } from '../../util/database.ts';
+import {
+	booleanToYesNoValue,
+	yesNoToBoolean
+} from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import { addressToViewModel, viewModelToAddressUpdateInput } from '../../util/address.ts';
+import { optionalWhere } from '../../util/database.ts';
 
 /**
  * Representation fields that do not need mapping to a (or from) the view model

@@ -1,6 +1,6 @@
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+import type { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
 import type { Logger } from 'pino';
-import type { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 /**
  * A catch-all error handler to use as express middleware
  */

@@ -1,42 +1,42 @@
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import {
 	APPLICANT_TYPE_ID,
-	SITE_AREA_UNIT_ID,
-	CONTACT_ROLES_ID,
 	CONTACT_ROLES,
-	HOUSING_TYPE_ID
+	CONTACT_ROLES_ID,
+	HOUSING_TYPE_ID,
+	SITE_AREA_UNIT_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
+import { optionalWhere } from '@pins/crowndev-lib/util/database.ts';
+import { toDecimalOrNull, toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
+import { sentenceCase, slugify } from '@pins/crowndev-lib/util/string.ts';
 import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
 import { type Address, yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
+import { addBusinessDays } from 'date-fns';
 import {
-	S62A_DATE_FIELDS,
-	FEE_BOOLEAN_FIELDS,
-	FEE_NUMBER_FIELDS,
-	FEE_DATE_FIELDS,
-	FEE_STRING_FIELDS,
+	type AdditionalContactAnswer,
+	type AgentContactAnswer,
+	type ApplicantContactAnswer,
+	type ApplicantOrganisationAnswer
+} from '../util/party-types.ts';
+import {
 	CASE_TEAM_USER_RELATIONS,
 	type CaseTeamInspectorItem,
-	type S62aCaseViewModel,
 	EVENT_DATE_FIELDS,
 	EVENT_NUMBER_FIELDS,
 	EVENT_STRING_FIELDS,
-	type WasteTypeItem,
+	FEE_BOOLEAN_FIELDS,
+	FEE_DATE_FIELDS,
+	FEE_NUMBER_FIELDS,
+	FEE_STRING_FIELDS,
+	HOUSING_BEDROOM_FIELDS,
 	RESIDENTIAL_BOOLEAN_FIELDS,
-	type VehicleParkingItem,
 	type ResidentialHousingItem,
-	HOUSING_BEDROOM_FIELDS
+	S62A_DATE_FIELDS,
+	type S62aCaseViewModel,
+	type VehicleParkingItem,
+	type WasteTypeItem
 } from './view-model.ts';
-import {
-	type AgentContactAnswer,
-	type ApplicantOrganisationAnswer,
-	type ApplicantContactAnswer,
-	type AdditionalContactAnswer
-} from '../util/party-types.ts';
-import { addBusinessDays } from 'date-fns';
-import { optionalWhere } from '@pins/crowndev-lib/util/database.ts';
-import { slugify, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
-import { toDecimalOrNull, toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
 
 const DATE_FIELDS_SET = new Set<string>(S62A_DATE_FIELDS);
 const FEE_BOOLEAN_SET = new Set<string>(FEE_BOOLEAN_FIELDS);

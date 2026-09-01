@@ -1,17 +1,17 @@
-import { formatAddress, formatBoolean, formatValue, formatYesNo } from '@pins/crowndev-lib/util/audit-formatters.ts';
-import { camelCaseToSentenceCase } from '@pins/crowndev-lib/util/string.ts';
-import { FIELD_DISPLAY_NAMES } from '../../views/cases/view/questions.ts';
-import {
-	APPLICATION_TYPES,
-	APPLICATION_STATUS,
-	APPLICATION_STAGE,
-	APPLICATION_PROCEDURE,
-	APPLICATION_DECISION_OUTCOME,
-	CATEGORIES
-} from '@pins/crowndev-database/src/seed/data-static.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
-import { loadEnvironmentConfig, ENVIRONMENT_NAME } from '../../config.js';
+import {
+	APPLICATION_DECISION_OUTCOME,
+	APPLICATION_PROCEDURE,
+	APPLICATION_STAGE,
+	APPLICATION_STATUS,
+	APPLICATION_TYPES,
+	CATEGORIES
+} from '@pins/crowndev-database/src/seed/data-static.ts';
+import { formatAddress, formatBoolean, formatValue, formatYesNo } from '@pins/crowndev-lib/util/audit-formatters.ts';
+import { camelCaseToSentenceCase } from '@pins/crowndev-lib/util/string.ts';
+import { ENVIRONMENT_NAME, loadEnvironmentConfig } from '../../config.js';
+import { FIELD_DISPLAY_NAMES } from '../../views/cases/view/questions.ts';
 
 interface ResolverContext {
 	userDisplayNameMap?: Map<string, string>;

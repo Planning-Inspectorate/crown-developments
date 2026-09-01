@@ -1,33 +1,33 @@
+import type { ManageService } from '#service';
+import { getEntraGroupMembers } from '#util/entra-groups.ts';
+import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
+import { maybeGetLinkedCaseLink } from '@pins/crowndev-lib/util/linked-case.ts';
+import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
+import { getOptionalStringParams, getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { clearSessionData, isUnsafeObjectKey, readSessionData } from '@pins/crowndev-lib/util/session.ts';
+import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
+import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
+import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
+import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
+import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
+import type { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
 import {
-	list,
-	JourneyResponse,
+	clearDataFromSession,
 	dateIsBeforeToday,
 	dateIsToday,
-	clearDataFromSession,
+	JourneyResponse,
+	list,
 	yesNoToBoolean
 } from '@planning-inspectorate/dynamic-forms';
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { crownDevelopmentToViewModel, mapNotes, type CrownDevelopmentViewModel } from './view-model.ts';
-import { getQuestions } from './questions.ts';
-import { createJourney, JOURNEY_ID } from './journey.ts';
-import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
-import { getEntraGroupMembers } from '#util/entra-groups.ts';
-import { isUnsafeObjectKey, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
-import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
-import { maybeGetLinkedCaseLink } from '@pins/crowndev-lib/util/linked-case.ts';
-import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { getFilteredStages } from './question-utils.ts';
-import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.ts';
-import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
-import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
-import { CROWN_DEVELOPMENT_LINKED_CASE_SELECT, CROWN_DEVELOPMENT_VIEW_INCLUDE } from './payload-contracts.ts';
-import type { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
-import type { Response, Request, Handler, NextFunction } from 'express';
-import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
-import type { ManageService } from '#service';
+import type { Handler, NextFunction, Request, Response } from 'express';
 import type { CrownJourneyResponse } from '../../../../types/express-locals.ts';
-import { getOptionalStringParams, getStringParam } from '@pins/crowndev-lib/util/params.ts';
-import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
+import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.ts';
+import { createJourney, JOURNEY_ID } from './journey.ts';
+import { CROWN_DEVELOPMENT_LINKED_CASE_SELECT, CROWN_DEVELOPMENT_VIEW_INCLUDE } from './payload-contracts.ts';
+import { getFilteredStages } from './question-utils.ts';
+import { getQuestions } from './questions.ts';
+import { crownDevelopmentToViewModel, mapNotes, type CrownDevelopmentViewModel } from './view-model.ts';
 
 /**
  * Get the journey answers

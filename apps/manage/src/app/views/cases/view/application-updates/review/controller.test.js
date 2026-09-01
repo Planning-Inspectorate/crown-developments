@@ -1,5 +1,6 @@
-import { describe, it, mock } from 'node:test';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
 import {
 	buildPublishNowPage,
 	buildReviewController,
@@ -8,7 +9,6 @@ import {
 	buildSubmitUpdateDetails,
 	buildUpdateDetailsPage
 } from './controller.js';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 
 describe('application updates review controller', () => {
 	describe('buildReviewController', () => {

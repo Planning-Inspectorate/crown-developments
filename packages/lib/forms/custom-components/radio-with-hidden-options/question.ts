@@ -1,7 +1,7 @@
 import type { SelectableOption } from '@planning-inspectorate/dynamic-forms';
 import { RadioQuestion } from '@planning-inspectorate/dynamic-forms';
-import type { CrownCommonQuestionProps } from '../index.ts';
 import escape from 'escape-html';
+import type { CrownCommonQuestionProps } from '../index.ts';
 
 export type HiddenRadioQuestionProps = CrownCommonQuestionProps & {
 	options: SelectableOption[];

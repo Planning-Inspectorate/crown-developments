@@ -1,7 +1,7 @@
-import { describe, it, mock, beforeEach } from 'node:test';
-import assert from 'node:assert';
-import { RepresentationDocumentDownloader } from './representation-document-downloader.ts';
 import type { ManageService } from '#service';
+import assert from 'node:assert';
+import { beforeEach, describe, it, mock } from 'node:test';
+import { RepresentationDocumentDownloader } from './representation-document-downloader.ts';
 
 describe('RepresentationDocumentDownloader', () => {
 	let mockService: any;

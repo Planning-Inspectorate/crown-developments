@@ -1,11 +1,11 @@
 import type { ManageService } from '#service';
 import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
+import { createWhereClause, normaliseSearchQuery, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { createPaginationParams, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
-import { normaliseSearchQuery, splitStringQueries, createWhereClause } from '@pins/crowndev-lib/util/search-queries.js';
 
-import { s62aToViewModel, s62aCaseSelect } from './view-model.ts';
-import type { S62ACaseView, S62ACasePayload } from './view-model.ts';
+import type { S62ACasePayload, S62ACaseView } from './view-model.ts';
+import { s62aCaseSelect, s62aToViewModel } from './view-model.ts';
 
 export function buildCaseListPage(service: ManageService): AsyncRequestHandler {
 	const { db, logger } = service;

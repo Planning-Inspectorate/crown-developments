@@ -1,3 +1,4 @@
+import { getStringParams } from '@pins/crowndev-lib/util/params.ts';
 import {
 	addSessionData,
 	clearSessionData,
@@ -5,7 +6,6 @@ import {
 	readSessionData
 } from '@pins/crowndev-lib/util/session.ts';
 import type { Request } from 'express';
-import { getStringParams } from '@pins/crowndev-lib/util/params.ts';
 
 export function validateParams(params: Record<string, string>) {
 	const { id, updateId: applicationUpdateId } = getStringParams(params, ['id', 'updateId']);

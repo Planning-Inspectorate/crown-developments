@@ -1,5 +1,5 @@
-import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
 import { buildAccessibilityStatementPage } from './controller.js';
 
 describe('Accessibility page controller', () => {

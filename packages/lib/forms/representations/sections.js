@@ -1,16 +1,16 @@
-import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
-import {
-	questionArrayMeetsCondition,
-	questionHasAnswer,
-	questionHasNonEmptyStringAnswer,
-	whenQuestionHasAnswer
-} from '@planning-inspectorate/dynamic-forms/src/components/utils/question-has-answer.js';
 import {
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import {
+	questionArrayMeetsCondition,
+	questionHasAnswer,
+	questionHasNonEmptyStringAnswer,
+	whenQuestionHasAnswer
+} from '@planning-inspectorate/dynamic-forms/src/components/utils/question-has-answer.js';
+import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
 
 /**
  * @typedef {Object<string, import('@pins/dynamic-forms/src/questions/question.js').Question>} Questions

@@ -1,25 +1,25 @@
-import RepresentationComment from './representation-comment/question.js';
-import { default as FeeAmountQuestion, type FeeAmountQuestionProps } from './fee-amount/question.ts';
-import RepresentationAttachments from './representation-attachments/question.js';
+import type { CommonQuestionProps, QuestionProps, QuestionTypes } from '@planning-inspectorate/dynamic-forms';
 import CILAmountQuestion from './cil-amount/question.js';
+import ConditionalRadioQuestion from './conditional-radio/question.ts';
 import CostsApplicationsCommentQuestion from './costs-applications-comment/question.js';
-import CustomManageListQuestion from './manage-list/question.js';
 import CustomMultiFieldInputQuestion from './custom-multi-field-input/question.js';
+import CustomNumberInputQuestion from './custom-number-input/question.ts';
 import {
 	default as DistressingContentQuestion,
 	type DistressingContentQuestionProps
 } from './distressing-content/question.ts';
-import type { CommonQuestionProps, QuestionProps, QuestionTypes } from '@planning-inspectorate/dynamic-forms';
-import HiddenRadioQuestion from './radio-with-hidden-options/question.ts';
-import ConditionalRadioQuestion from './conditional-radio/question.ts';
-import MultiConditionalRadioQuestion from './multi-conditional-radio/question.ts';
-import CustomNumberInputQuestion from './custom-number-input/question.ts';
-import TableManageListQuestion from './manage-list/table/question.ts';
+import { default as FeeAmountQuestion, type FeeAmountQuestionProps } from './fee-amount/question.ts';
+import CardManageListQuestion, { type CardManageListQuestionParams } from './manage-list/card/question.ts';
+import CustomManageListQuestion from './manage-list/question.js';
 import DefinedColumnsTableQuestion, {
 	type TableColumn
 } from './manage-list/table/defined-columns-list-table/question.ts';
+import TableManageListQuestion from './manage-list/table/question.ts';
+import MultiConditionalRadioQuestion from './multi-conditional-radio/question.ts';
 import MultiFileUploadQuestion from './multi-file-uploader/question.ts';
-import CardManageListQuestion, { type CardManageListQuestionParams } from './manage-list/card/question.ts';
+import HiddenRadioQuestion from './radio-with-hidden-options/question.ts';
+import RepresentationAttachments from './representation-attachments/question.js';
+import RepresentationComment from './representation-comment/question.js';
 
 type CustomComponentTypes = (typeof CUSTOM_COMPONENTS)[keyof typeof CUSTOM_COMPONENTS];
 

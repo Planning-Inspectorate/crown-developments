@@ -1,7 +1,7 @@
+import type { OptionsQuestionParameters, Question } from '@planning-inspectorate/dynamic-forms';
 import { RadioQuestion } from '@planning-inspectorate/dynamic-forms';
-import type { Question, OptionsQuestionParameters } from '@planning-inspectorate/dynamic-forms';
-import { escapeHtml } from '../../../util/string.ts';
 import { roundForDisplay } from '../../../util/numbers.ts';
+import { escapeHtml } from '../../../util/string.ts';
 
 export type MultiConditionalRadioQuestionProps = OptionsQuestionParameters & {
 	/** Prefix for the summary value, e.g. "Capacity". Defaults to the selected option's text. */

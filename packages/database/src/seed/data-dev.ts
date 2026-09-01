@@ -1,4 +1,6 @@
-import { APPLICATION_TYPE_ID, APPLICATION_STATUS_ID } from './data-static.ts';
+import type { PrismaClient } from '../client/client.ts';
+import { LOCAL_PLANNING_AUTHORITIES } from './data-lpa-dev.ts';
+import { APPLICATION_STATUS_ID, APPLICATION_TYPE_ID } from './data-static.ts';
 import {
 	applicationUpdates,
 	generateWrittenRepresentation,
@@ -11,8 +13,6 @@ import {
 	repsContacts,
 	repsOnBehalfOfOrgContacts
 } from './representations-data-dev.ts';
-import { LOCAL_PLANNING_AUTHORITIES } from './data-lpa-dev.ts';
-import type { PrismaClient } from '../client/client.ts';
 
 export async function seedDev(dbClient: PrismaClient) {
 	// ensure there is a case to link representations to

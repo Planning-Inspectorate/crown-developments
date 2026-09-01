@@ -1,6 +1,6 @@
+import assert from 'node:assert';
 import { describe, it, mock } from 'node:test';
 import { buildInitEntraClient, CachedEntraClient } from './cached-entra-client.js';
-import assert from 'node:assert';
 
 describe('cached-entra-client', () => {
 	describe('buildInitEntraClient', () => {

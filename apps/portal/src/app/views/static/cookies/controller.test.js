@@ -1,5 +1,5 @@
-import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
 import { buildCookiesPage, buildCookiesSaveController } from './controller.js';
 
 describe('cookies', () => {

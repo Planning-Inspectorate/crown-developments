@@ -1,11 +1,11 @@
-import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
+import { mockLogger } from '../testing/mock-logger.js';
 import {
 	deleteRepresentationAttachmentsFolder,
 	getRepresentationFolder,
 	moveAttachmentsToCaseFolder
 } from './handle-attachments.js';
-import { mockLogger } from '../testing/mock-logger.js';
 
 describe('handleAttachments', () => {
 	describe('getRepresentationFolder', () => {

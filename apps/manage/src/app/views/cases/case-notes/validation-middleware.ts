@@ -1,8 +1,7 @@
-import type { Handler } from 'express';
-import type { Request } from 'express';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
+import type { Handler, Request } from 'express';
 
 const MAX_COMMENT_LENGTH = 500;
 

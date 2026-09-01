@@ -1,9 +1,9 @@
-import { describe, it, mock, beforeEach } from 'node:test';
-import assert from 'node:assert';
-import { DocumentDeleter, type DeleteRequestBody } from './document-deleter.ts';
 import type { ManageService } from '#service';
 import type { Request, Response } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
+import assert from 'node:assert';
+import { beforeEach, describe, it, mock } from 'node:test';
+import { DocumentDeleter, type DeleteRequestBody } from './document-deleter.ts';
 
 type MockService = {
 	db: {

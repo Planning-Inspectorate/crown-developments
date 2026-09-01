@@ -1,11 +1,11 @@
-import { describe, it, beforeEach } from 'node:test';
-import assert from 'node:assert';
-import { buildGetJourneyMiddleware } from './controller.ts';
-import type { ManageService } from '../../../../service.js';
-import type { Request, Response } from 'express';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { OCCUPANCY_TYPE_ID, UNIT_TYPES_BY_OCCUPANCY } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { Journey, Question } from '@planning-inspectorate/dynamic-forms';
+import type { Request, Response } from 'express';
+import assert from 'node:assert';
+import { beforeEach, describe, it } from 'node:test';
+import type { ManageService } from '../../../../service.js';
+import { buildGetJourneyMiddleware } from './controller.ts';
 
 type HousingInclude = {
 	include: { HousingType: boolean; OccupancyType: boolean; UnitType: boolean };

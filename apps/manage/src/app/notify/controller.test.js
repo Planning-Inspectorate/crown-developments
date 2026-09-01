@@ -1,8 +1,8 @@
-import assert from 'node:assert';
-import { test, describe, beforeEach, mock } from 'node:test';
-import { buildNotifyCallbackController, findMissingReference, getNotificationSource } from './controller.js';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { NOTIFICATION_SOURCE } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import assert from 'node:assert';
+import { beforeEach, describe, mock, test } from 'node:test';
+import { buildNotifyCallbackController, findMissingReference, getNotificationSource } from './controller.js';
 
 describe('findMissingReference', () => {
 	test('should extract representation reference', () => {

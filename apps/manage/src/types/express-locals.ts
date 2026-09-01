@@ -1,5 +1,5 @@
-import type { Journey } from '@planning-inspectorate/dynamic-forms';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
+import type { Journey } from '@planning-inspectorate/dynamic-forms';
 import type { CrownDevelopmentViewModel, mapNotes } from '../app/views/cases/view/view-model.ts';
 
 export type CrownJourneyResponse = {

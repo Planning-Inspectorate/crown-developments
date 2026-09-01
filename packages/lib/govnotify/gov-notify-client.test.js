@@ -1,8 +1,8 @@
-import { describe, it } from 'node:test';
-import { GovNotifyClient } from './gov-notify-client.ts';
-import { mockLogger } from '../testing/mock-logger.js';
-import assert from 'node:assert';
 import { AxiosError } from 'axios';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import { mockLogger } from '../testing/mock-logger.js';
+import { GovNotifyClient } from './gov-notify-client.ts';
 
 describe(`gov-notify-client`, () => {
 	describe('sendEmail', () => {

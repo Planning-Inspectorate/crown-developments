@@ -1,8 +1,8 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { editsToDatabaseUpdates } from './view-model.ts';
+import { describe, it } from 'node:test';
 import { s62aEditsToDatabaseUpdates } from './s62a-edits.ts';
 import type { CrownDevelopmentSaveModel, CrownDevelopmentViewModel } from './view-model.ts';
+import { editsToDatabaseUpdates } from './view-model.ts';
 
 // These tests don't depend on any view-model fields, so an empty fixture is a correct cast to
 // satisfy the parameter type without spelling out unused required fields.

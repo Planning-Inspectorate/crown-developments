@@ -1,7 +1,7 @@
-import { describe, it, mock } from 'node:test';
-import assert from 'node:assert';
-import { grantLpaSharePointAccess, retryGrantPermissions } from './sharepoint.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
+import { grantLpaSharePointAccess, retryGrantPermissions } from './sharepoint.js';
 
 describe('retryGrantPermissions', () => {
 	it('should grant permissions and log success when first attempt succeeds', async (ctx) => {

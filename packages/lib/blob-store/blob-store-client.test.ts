@@ -1,9 +1,9 @@
-import { describe, it, mock, beforeEach, afterEach } from 'node:test';
+import { BlobServiceClient } from '@azure/storage-blob';
 import assert from 'node:assert';
 import { Readable } from 'node:stream';
-import { BlobStorageClient } from './blob-store-client.ts';
-import { BlobServiceClient } from '@azure/storage-blob';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import type { Logger } from 'pino';
+import { BlobStorageClient } from './blob-store-client.ts';
 
 describe('BlobStorageClient', () => {
 	let mockLogger: Logger;

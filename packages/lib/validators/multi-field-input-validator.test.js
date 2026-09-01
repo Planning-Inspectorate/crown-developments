@@ -1,5 +1,5 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import MultiFieldInputValidator from './multi-field-input-validator.js';
 
 describe('MultiFieldInputValidator', () => {

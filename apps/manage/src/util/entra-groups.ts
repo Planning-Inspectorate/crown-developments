@@ -1,4 +1,4 @@
-import type { GroupMember, AuthSession, InitEntraClient } from '@pins/crowndev-lib/graph/types.js';
+import type { AuthSession, GroupMember, InitEntraClient } from '@pins/crowndev-lib/graph/types.js';
 import type { BaseLogger } from 'pino';
 
 type EntraGroupIds = {

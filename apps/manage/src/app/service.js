@@ -1,20 +1,20 @@
-import { initDatabaseClient } from '@pins/crowndev-database';
-import { initRedis } from '@pins/crowndev-lib/redis/index.ts';
+import { DEFAULT_CATEGORIES } from '#util/azure-language-redaction.js';
 import { buildInitSharePointDrive } from '#util/sharepoint.js';
-import { MapCache } from '@pins/crowndev-lib/util/map-cache.js';
-import { buildInitEntraClient } from '@pins/crowndev-lib/graph/cached-entra-client.js';
-import { initLogger } from '@pins/crowndev-lib/util/logger.ts';
-import { initGovNotify } from '@pins/crowndev-lib/govnotify/index.ts';
-import { buildAuditService } from './audit/index.ts';
 import { TextAnalyticsClient } from '@azure/ai-text-analytics';
 import { DefaultAzureCredential, ManagedIdentityCredential } from '@azure/identity';
-import { DEFAULT_CATEGORIES } from '#util/azure-language-redaction.js';
 import { Client } from '@microsoft/microsoft-graph-client';
-import { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js';
+import { initDatabaseClient } from '@pins/crowndev-database';
 import { initBlobStore } from '@pins/crowndev-lib/blob-store/index.ts';
+import { initGovNotify } from '@pins/crowndev-lib/govnotify/index.ts';
+import { buildInitEntraClient } from '@pins/crowndev-lib/graph/cached-entra-client.js';
 import { EntraClient } from '@pins/crowndev-lib/graph/entra.js';
+import { initRedis } from '@pins/crowndev-lib/redis/index.ts';
+import { initLogger } from '@pins/crowndev-lib/util/logger.ts';
+import { MapCache } from '@pins/crowndev-lib/util/map-cache.js';
+import { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
 import { ZipArchive } from 'archiver';
+import { buildAuditService } from './audit/index.ts';
 
 /**
  * This class encapsulates all the services and clients for the application

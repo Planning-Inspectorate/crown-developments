@@ -1,6 +1,6 @@
+import assert from 'node:assert';
 import { describe, it, mock } from 'node:test';
 import { buildListReps } from './controller.js';
-import assert from 'node:assert';
 
 describe('list representations', () => {
 	describe('buildListReps', () => {

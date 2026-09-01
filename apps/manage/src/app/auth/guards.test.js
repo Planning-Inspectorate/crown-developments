@@ -1,6 +1,6 @@
-import { describe, it, mock } from 'node:test';
-import assert from 'node:assert';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
 import { buildAssertGroupAccess, buildAssertIsAuthenticated } from './guards.js';
 
 const mockRes = () => {

@@ -1,8 +1,8 @@
-import { body } from 'express-validator';
 import { readSessionData } from '@pins/crowndev-lib/util/session.ts';
 import BaseValidator from '@planning-inspectorate/dynamic-forms/src/validator/base-validator.js';
-import { getStringParams } from '../../../util/params.ts';
 import type { Request } from 'express';
+import { body } from 'express-validator';
+import { getStringParams } from '../../../util/params.ts';
 
 /**
  * Checks session for any uploaded files, needed because we cannot check the body

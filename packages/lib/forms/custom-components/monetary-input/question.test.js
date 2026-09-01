@@ -1,7 +1,7 @@
-import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import MonetaryInputQuestion from '../monetary-input/question.ts';
+import { describe, it, mock } from 'node:test';
 import nunjucks from 'nunjucks';
+import MonetaryInputQuestion from '../monetary-input/question.ts';
 
 class TestMonetaryInputQuestion extends MonetaryInputQuestion {
 	constructor(props) {

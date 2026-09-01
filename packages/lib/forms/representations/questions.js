@@ -1,9 +1,3 @@
-import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
-import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
-import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
-import { createQuestions } from '@planning-inspectorate/dynamic-forms/src/questions/create-questions.js';
-import { questionClasses } from '@planning-inspectorate/dynamic-forms/src/questions/questions.js';
-import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import {
 	RECEIVED_METHOD,
 	RECEIVED_METHOD_ID,
@@ -18,17 +12,23 @@ import {
 	referenceDataToRadioOptions,
 	referenceDataToRadioOptionsWithHintText
 } from '@pins/crowndev-lib/util/questions.ts';
+import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
+import { createQuestions } from '@planning-inspectorate/dynamic-forms/src/questions/create-questions.js';
+import { questionClasses } from '@planning-inspectorate/dynamic-forms/src/questions/questions.js';
+import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
+import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
+import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/validator/document-upload-validator.js';
+import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
+import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
+import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '../custom-components/index.ts';
+import CustomManageListValidator from '../custom-components/manage-list/validator.js';
 import {
 	ALLOWED_EXTENSIONS,
 	ALLOWED_MIME_TYPES,
 	MAX_FILE_SIZE,
 	representationsContactQuestions
 } from './question-utils.js';
-import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
-import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
-import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/validator/document-upload-validator.js';
-import CustomManageListValidator from '../custom-components/manage-list/validator.js';
 
 export const ACCEPT_AND_REDACT = 'accept-and-redact';
 

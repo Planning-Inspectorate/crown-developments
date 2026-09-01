@@ -1,8 +1,8 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-import { createJourney, JOURNEY_ID } from './journey.ts';
-import type { Question, JourneyResponse } from '@planning-inspectorate/dynamic-forms';
+import type { JourneyResponse, Question } from '@planning-inspectorate/dynamic-forms';
 import type { Request } from 'express';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import { createJourney, JOURNEY_ID } from './journey.ts';
 
 describe('s62a create a case journey', () => {
 	it('should error if used with the wrong router structure', () => {

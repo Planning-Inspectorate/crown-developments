@@ -1,5 +1,5 @@
-import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
 import { buildValidateAppUpdateDetailsMiddleware } from './validation-middleware.js';
 
 describe('application updates review validation middleware', () => {

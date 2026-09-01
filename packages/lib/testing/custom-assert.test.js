@@ -1,6 +1,6 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
 import { assertIncludesObject, assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import { notFoundHandler } from '../middleware/errors.ts';
 
 describe('custom-assert', () => {

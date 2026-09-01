@@ -1,5 +1,3 @@
-import { it, describe, mock } from 'node:test';
-import assert from 'node:assert';
 import {
 	buildAnalyticsCookiesMiddleware,
 	COOKIE_NAME_ANALYTICS_ENABLED,
@@ -7,6 +5,8 @@ import {
 	removeAnalyticsCookies,
 	setAnalyticsCookiesPreference
 } from '#util/cookies.js';
+import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
 
 describe('cookies', () => {
 	describe('parseCookies', () => {

@@ -1,6 +1,6 @@
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import BaseValidator from '@planning-inspectorate/dynamic-forms/src/validator/base-validator.js';
 import { body } from 'express-validator';
-import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 export default class ConditionalTextInputValidator extends BaseValidator {
 	constructor() {

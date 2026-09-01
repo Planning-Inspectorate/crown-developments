@@ -1,15 +1,15 @@
-import { describe, it, mock } from 'node:test';
+import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
 import {
 	addCaseIdToFolders,
+	buildBreadcrumbItems,
 	createFolders,
 	findFolders,
-	buildBreadcrumbItems,
 	FOLDERS_MAP,
 	getFolderPath
 } from './folders.ts';
-import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 
 describe('Folder creation utils', () => {
 	describe('findFolders', () => {

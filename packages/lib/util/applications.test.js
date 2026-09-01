@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { describe, it } from 'node:test';
-import { getApplicationStatus, APPLICATION_PUBLISH_STATUS, fetchPublishedApplication } from './applications.ts';
+import { APPLICATION_PUBLISH_STATUS, fetchPublishedApplication, getApplicationStatus } from './applications.ts';
 
 describe('getApplicationStatus', () => {
 	const now = new Date('2025-12-22T00:00:00.000Z');

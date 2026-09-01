@@ -1,12 +1,12 @@
-import {
-	fetchPublishedApplication,
-	getApplicationStatus,
-	APPLICATION_PUBLISH_STATUS
-} from '@pins/crowndev-lib/util/applications.ts';
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import type { PortalService } from '#service';
-import type { RequestHandler } from 'express';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
+import {
+	APPLICATION_PUBLISH_STATUS,
+	fetchPublishedApplication,
+	getApplicationStatus
+} from '@pins/crowndev-lib/util/applications.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import type { RequestHandler } from 'express';
 
 /**
  * Creates middleware that returns not-found if the application's status matches any of the given blocked statuses.

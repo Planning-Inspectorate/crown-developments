@@ -1,17 +1,17 @@
-import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
-import { fetchPublishedApplication } from '@pins/crowndev-lib/util/applications.ts';
-import { nowIsWithinRange } from '@planning-inspectorate/dynamic-forms';
-import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
-import { loadPublishedApplicationOr404, shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import {
 	buildRequiredCheckboxGroup,
-	declarationItems,
 	CheckboxValidator,
+	declarationItems,
 	normaliseCheckboxValues
 } from '@pins/crowndev-lib/forms/custom-components/checkbox-validation/checkbox-validation.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
+import { fetchPublishedApplication } from '@pins/crowndev-lib/util/applications.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
+import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
+import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
+import { nowIsWithinRange } from '@planning-inspectorate/dynamic-forms';
+import { loadPublishedApplicationOr404, shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 
 /**
  * Builds Have Your Say landing page.

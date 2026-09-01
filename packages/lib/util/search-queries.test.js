@@ -1,6 +1,6 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { splitStringQueries, createWhereClause, normaliseSearchQuery } from './search-queries.js';
+import { describe, it } from 'node:test';
+import { createWhereClause, normaliseSearchQuery, splitStringQueries } from './search-queries.js';
 
 describe('normaliseSearchQuery', () => {
 	it('returns string when input is string', () => {

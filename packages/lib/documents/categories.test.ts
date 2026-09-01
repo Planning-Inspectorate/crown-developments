@@ -1,6 +1,6 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { DOCUMENT_CATEGORIES, CATEGORY_SHAREPOINT_TO_VALUE, CATEGORY_VALUE_TO_SHAREPOINT } from './categories.ts';
+import { describe, it } from 'node:test';
+import { CATEGORY_SHAREPOINT_TO_VALUE, CATEGORY_VALUE_TO_SHAREPOINT, DOCUMENT_CATEGORIES } from './categories.ts';
 
 // Helper to get category values
 function getCategoryValues() {

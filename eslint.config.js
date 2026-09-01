@@ -1,6 +1,6 @@
+import { eslintConfig } from '@planning-inspectorate/coding-standards';
 import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
-import { eslintConfig } from '@planning-inspectorate/coding-standards';
 
 export default defineConfig([
 	...eslintConfig,

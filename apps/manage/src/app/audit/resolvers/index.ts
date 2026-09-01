@@ -1,1 +1,1 @@
-export { resolveFieldValues, getFieldDisplayName } from './field-resolver.ts';
+export { getFieldDisplayName, resolveFieldValues } from './field-resolver.ts';

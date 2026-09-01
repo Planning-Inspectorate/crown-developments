@@ -1,11 +1,11 @@
 import { faker } from '@faker-js/faker';
+import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import {
 	APPLICATION_UPDATE_STATUS_ID,
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
 } from './data-static.ts';
-import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 
 export const representationContactAddresses: Prisma.AddressCreateInput[] = [
 	{

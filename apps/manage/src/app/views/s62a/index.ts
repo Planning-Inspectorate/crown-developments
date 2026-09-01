@@ -1,6 +1,6 @@
+import type { ManageService } from '#service';
 import { Router as createRouter } from 'express';
 import { createRoutes as createS62aCasesRoutes } from './cases/index.ts';
-import type { ManageService } from '#service';
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });

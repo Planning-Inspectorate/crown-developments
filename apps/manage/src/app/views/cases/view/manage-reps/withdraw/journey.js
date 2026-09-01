@@ -1,5 +1,5 @@
-import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
 import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
+import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
 
 export const JOURNEY_ID = 'withdraw-representation';
 

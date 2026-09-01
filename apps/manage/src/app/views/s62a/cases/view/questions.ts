@@ -1,3 +1,4 @@
+import type { EntraGroupMembers } from '#util/entra-groups.ts';
 import {
 	APPLICATION_PROCEDURE,
 	APPLICATION_PROCEDURE_ID,
@@ -18,8 +19,6 @@ import {
 	PRE_APPLICATION_ADVICE,
 	PRE_APPLICATION_OR_APPLICATION_ID,
 	PRE_APPLICATION_OR_APPLICATIONS,
-	VEHICLE_PARKING_CATEGORIES,
-	VEHICLE_PARKING_CATEGORY_MAP,
 	S62A_APPLICATION_STATUSES,
 	S62A_CATEGORIES,
 	S62A_PRE_APPLICATION_STATUSES,
@@ -28,11 +27,30 @@ import {
 	SPECIALISMS,
 	UNIT_TYPES,
 	UNIT_TYPES_BY_OCCUPANCY,
+	VEHICLE_PARKING_CATEGORIES,
+	VEHICLE_PARKING_CATEGORY_MAP,
 	WASTE_TYPES,
+	WASTE_TYPES_WITHOUT_VOID_CAPACITY,
 	WASTE_UNIT_ID,
-	WASTE_UNITS,
-	WASTE_TYPES_WITHOUT_VOID_CAPACITY
+	WASTE_UNITS
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import CILAmountLengthValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-length-validator.ts';
+import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-validator.ts';
+import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
+import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
+import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
+import type { CardFormatContext } from '@pins/crowndev-lib/forms/custom-components/manage-list/card/question.ts';
+import MultiConditionalNumericValidator from '@pins/crowndev-lib/forms/custom-components/multi-conditional-radio/multi-conditional-numeric-validator.ts';
+import { toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
+import { getLpaOptions, referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.ts';
+import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
+import { ConditionalLengthValidator } from '@pins/crowndev-lib/validators/conditional-length-validator.ts';
+import CustomDatePeriodValidator from '@pins/crowndev-lib/validators/custom-date-period-validator.js';
+import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
+import RequiredGroupValidator from '@pins/crowndev-lib/validators/required-group-validator.ts';
+import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.ts';
+import UniqueListFieldValidator from '@pins/crowndev-lib/validators/unique-list-field-validator.ts';
+import { UniqueMultipleListFieldValidator } from '@pins/crowndev-lib/validators/unique-multiple-list-field-validator.ts';
 import {
 	AddressValidator,
 	BOOLEAN_OPTIONS,
@@ -51,34 +69,16 @@ import {
 	SameAnswerValidator,
 	StringValidator
 } from '@planning-inspectorate/dynamic-forms';
+import { getApplicantOrganisationOptions } from '../../../cases/util/applicant-organisation-options.ts';
+import { createLpaContactQuestion, multiContactQuestions } from '../util/question-factories.ts';
+import { getApplicantContactsValidator, isApplicationType } from '../util/questions.ts';
+import { CASE_DETAILS_QUESTION_TEXT } from './constants.ts';
 import {
 	BEDROOM_BANDS,
 	HOUSING_BEDROOM_FIELDS,
 	type ResidentialHousingItem,
 	type S62aCaseViewModel
 } from './view-model.ts';
-import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
-import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
-import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
-import { UniqueMultipleListFieldValidator } from '@pins/crowndev-lib/validators/unique-multiple-list-field-validator.ts';
-import { ConditionalLengthValidator } from '@pins/crowndev-lib/validators/conditional-length-validator.ts';
-import RequiredGroupValidator from '@pins/crowndev-lib/validators/required-group-validator.ts';
-import { CASE_DETAILS_QUESTION_TEXT } from './constants.ts';
-import { getApplicantContactsValidator, isApplicationType } from '../util/questions.ts';
-import { getLpaOptions, referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.ts';
-import CustomDatePeriodValidator from '@pins/crowndev-lib/validators/custom-date-period-validator.js';
-import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
-import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-validator.ts';
-import CILAmountLengthValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-length-validator.ts';
-import { multiContactQuestions, createLpaContactQuestion } from '../util/question-factories.ts';
-import { getApplicantOrganisationOptions } from '../../../cases/util/applicant-organisation-options.ts';
-import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.ts';
-import MultiConditionalNumericValidator from '@pins/crowndev-lib/forms/custom-components/multi-conditional-radio/multi-conditional-numeric-validator.ts';
-import UniqueListFieldValidator from '@pins/crowndev-lib/validators/unique-list-field-validator.ts';
-import { toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
-import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
-import type { EntraGroupMembers } from '#util/entra-groups.ts';
-import type { CardFormatContext } from '@pins/crowndev-lib/forms/custom-components/manage-list/card/question.ts';
 
 interface QuestionOverrides {
 	isQuestionView?: boolean;

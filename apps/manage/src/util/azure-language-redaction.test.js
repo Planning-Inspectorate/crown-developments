@@ -1,14 +1,14 @@
-import { describe, it, mock } from 'node:test';
-import assert from 'node:assert';
 import {
+	arrayToArrays,
 	combineResults,
+	DEFAULT_CATEGORIES,
 	fetchRedactionSuggestions,
 	highlightRedactionSuggestions,
-	arrayToArrays,
-	stringToChunks,
-	DEFAULT_CATEGORIES
+	stringToChunks
 } from '#util/azure-language-redaction.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
 
 describe('azure-language-redaction', () => {
 	describe('fetchRedactionSuggestions', () => {

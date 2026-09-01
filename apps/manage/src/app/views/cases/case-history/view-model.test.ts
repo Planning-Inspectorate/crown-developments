@@ -1,7 +1,7 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { createCaseHistoryViewModel } from './view-model.ts';
+import { describe, it } from 'node:test';
 import type { AuditEvent } from '../../../audit/types.ts';
+import { createCaseHistoryViewModel } from './view-model.ts';
 
 describe('createCaseHistoryViewModel', () => {
 	const event = (overrides: Partial<AuditEvent & { userName: string }> = {}): AuditEvent & { userName: string } => ({

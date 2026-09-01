@@ -1,6 +1,6 @@
+import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import { combineComparators, normalizeToArray, sortByField, sortByFileName } from './array.ts';
-import assert from 'node:assert';
 
 describe('array', () => {
 	describe('normalizeToArray', () => {

@@ -1,13 +1,13 @@
-import { describe, it, mock } from 'node:test';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
-import assert from 'node:assert';
-import { buildUpdateRepresentation } from './controller.js';
+import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import {
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
-import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
+import { buildUpdateRepresentation } from './controller.js';
 
 describe('controller', () => {
 	describe('buildUpdateRepresentation', () => {

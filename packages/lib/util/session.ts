@@ -1,6 +1,6 @@
+import type { Request, RequestHandler } from 'express';
 import session from 'express-session';
 import type { RedisClient } from '../redis/redis-client.ts';
-import type { Request, RequestHandler } from 'express';
 import type { ApplicantContact } from '../validators/applicant-contacts-validator.ts';
 
 type SessionFieldData = Record<string, Record<string, unknown>>;

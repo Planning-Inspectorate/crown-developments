@@ -1,8 +1,8 @@
-import { describe, it, beforeEach } from 'node:test';
-import assert from 'node:assert';
 import type { Request, RequestHandler } from 'express';
-import { AjaxDocumentUploadValidator } from './ajax-document-uploader-validator.ts';
 import { validationResult } from 'express-validator';
+import assert from 'node:assert';
+import { beforeEach, describe, it } from 'node:test';
+import { AjaxDocumentUploadValidator } from './ajax-document-uploader-validator.ts';
 
 describe('AjaxDocumentUploadValidator', () => {
 	let req: Partial<Request>;

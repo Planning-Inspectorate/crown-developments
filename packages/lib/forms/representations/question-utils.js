@@ -1,14 +1,14 @@
-import { CUSTOM_COMPONENTS } from '../custom-components/index.ts';
+import { CONTACT_PREFERENCE } from '@pins/crowndev-database/src/seed/data-static.ts';
+import AjaxDocumentUploadValidator from '@pins/crowndev-lib/forms/custom-components/ajax-document-upload-validator/ajax-document-uploader-validator.ts';
+import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
+import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
+import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/validator/document-upload-validator.js';
+import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
 import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
 import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
-import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
-import { referenceDataToRadioOptions } from '../../util/questions.ts';
-import { CONTACT_PREFERENCE } from '@pins/crowndev-database/src/seed/data-static.ts';
-import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
-import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
-import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/validator/document-upload-validator.js';
-import AjaxDocumentUploadValidator from '@pins/crowndev-lib/forms/custom-components/ajax-document-upload-validator/ajax-document-uploader-validator.ts';
 import { formatExtensions } from '../../util/file.ts';
+import { referenceDataToRadioOptions } from '../../util/questions.ts';
+import { CUSTOM_COMPONENTS } from '../custom-components/index.ts';
 
 export const ALLOWED_EXTENSIONS = ['pdf', 'png', 'jpg', 'jpeg', 'tif', 'tiff', 'doc', 'docx', 'xls', 'xlsx'];
 

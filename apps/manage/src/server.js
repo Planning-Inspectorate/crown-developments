@@ -1,6 +1,6 @@
+import { ManageService } from '#service';
 import { getApp } from './app/app.js';
 import { loadConfig } from './app/config.js';
-import { ManageService } from '#service';
 
 const config = loadConfig();
 const service = new ManageService(config);

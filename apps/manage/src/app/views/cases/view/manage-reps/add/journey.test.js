@@ -1,8 +1,8 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-import { createJourney, JOURNEY_ID } from './journey.js';
 import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import { createJourney, JOURNEY_ID } from './journey.js';
 
 describe('add-representation journey', () => {
 	it('should error if the used with the wrong parameters', () => {

@@ -1,22 +1,22 @@
-import { Router as createRouter } from 'express';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { buildSave, question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
-import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
-import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
-import { buildGetJourneyMiddleware, buildViewCaseDetails, validateIdFormat } from './controller.ts';
-import { createRoutes as createCasePublishRoutes } from './publish/index.js';
-import { createRoutes as createCaseUnpublishRoutes } from './unpublish/index.js';
-import { createRoutes as createRepsRoutes } from './manage-reps/index.js';
-import { createRoutes as createApplicationUpdatesRoutes } from './application-updates/index.js';
-import { buildUpdateCase } from './update-case.ts';
-import { createRoutes as createApplicationHistoryRoutes } from '../case-history/index.ts';
-import { createRoutes as createApplicationNotesRoutes } from '../case-notes/index.ts';
 import {
 	buildGetJourneyResponseFromSession,
 	saveDataToSession
 } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
+import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
+import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
+import { Router as createRouter } from 'express';
+import { createRoutes as createApplicationHistoryRoutes } from '../case-history/index.ts';
+import { createRoutes as createApplicationNotesRoutes } from '../case-notes/index.ts';
+import { createRoutes as createApplicationUpdatesRoutes } from './application-updates/index.js';
+import { buildGetJourneyMiddleware, buildViewCaseDetails, validateIdFormat } from './controller.ts';
+import { addSuccessBannerFromMessage, buildDeleteManageListItemOnConfirmRemove } from './delete.js';
 import { JOURNEY_ID } from './journey.ts';
-import { buildDeleteManageListItemOnConfirmRemove, addSuccessBannerFromMessage } from './delete.js';
+import { createRoutes as createRepsRoutes } from './manage-reps/index.js';
+import { createRoutes as createCasePublishRoutes } from './publish/index.js';
+import { createRoutes as createCaseUnpublishRoutes } from './unpublish/index.js';
+import { buildUpdateCase } from './update-case.ts';
 
 /**
  * @param {import('#service').ManageService} service

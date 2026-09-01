@@ -1,8 +1,8 @@
-import { Router as createRouter } from 'express';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { Router as createRouter } from 'express';
+import { AuthService, clearAuthenticationData, registerAuthLocals } from './auth-service.js';
 import { buildCompleteMsalAuthentication, buildHandleSignout, buildStartMsalAuthentication } from './controller.js';
 import { assertIsUnauthenticated, buildAssertGroupAccess, buildAssertIsAuthenticated } from './guards.js';
-import { AuthService, clearAuthenticationData, registerAuthLocals } from './auth-service.js';
 
 /**
  * @param {import('#service').ManageService} service

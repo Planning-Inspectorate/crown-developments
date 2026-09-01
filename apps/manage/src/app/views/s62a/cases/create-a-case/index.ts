@@ -1,23 +1,23 @@
-import { Router as createRouter, type Request } from 'express';
+import type { ManageService } from '#service';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { removeApplicantContactsWhenOrganisationRemoved } from '@pins/crowndev-lib/util/session.ts';
 import {
-	question,
+	buildGetJourney,
+	buildGetJourneyResponseFromSession,
 	buildSave,
+	list,
+	question,
 	redirectToUnansweredQuestion,
+	saveDataToSession,
 	validate,
 	validationErrorHandler,
-	saveDataToSession,
-	buildGetJourneyResponseFromSession,
-	buildGetJourney,
-	type JourneyResponse,
 	type Journey,
-	list
+	type JourneyResponse
 } from '@planning-inspectorate/dynamic-forms';
+import { Router as createRouter, type Request } from 'express';
 import { JOURNEY_ID, createJourney } from './journey.ts';
 import { getQuestions } from './questions.ts';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { buildSaveController, buildSuccessController } from './save.ts';
-import type { ManageService } from '#service';
-import { removeApplicantContactsWhenOrganisationRemoved } from '@pins/crowndev-lib/util/session.ts';
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });

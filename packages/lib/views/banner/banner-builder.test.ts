@@ -1,5 +1,5 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import { BannerBuilder } from './banner-builder.ts';
 
 describe('BannerBuilder', () => {

@@ -1,8 +1,8 @@
-import { describe, it, mock, beforeEach } from 'node:test';
-import assert from 'node:assert/strict';
-import type { Request, Response } from 'express';
-import { buildViewCaseHistory } from './controller.ts';
 import type { ManageService } from '#service';
+import type { Request, Response } from 'express';
+import assert from 'node:assert/strict';
+import { beforeEach, describe, it, mock } from 'node:test';
+import { buildViewCaseHistory } from './controller.ts';
 
 describe('buildViewCaseHistory', () => {
 	const mockLogger = {

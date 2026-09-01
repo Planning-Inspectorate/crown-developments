@@ -1,7 +1,7 @@
-import type { Request, Response, NextFunction, RequestHandler } from 'express';
 import type { ManageService } from '#service';
-import { S62aManageListDeleter } from './s62a-manage-list-deleter.ts';
 import { getOptionalStringParams } from '@pins/crowndev-lib/util/params.ts';
+import type { NextFunction, Request, RequestHandler, Response } from 'express';
+import { S62aManageListDeleter } from './s62a-manage-list-deleter.ts';
 
 export const questionConfig: Record<string, { fieldName: string; successMessage: string }> = {
 	'check-agent-contact-details': { fieldName: 'manageAgentContactDetails', successMessage: 'Contact removed' },

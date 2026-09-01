@@ -1,8 +1,8 @@
-import { Question } from '@planning-inspectorate/dynamic-forms';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { JOURNEY_MAP } from './upload-documents.js';
+import { Question } from '@planning-inspectorate/dynamic-forms';
 import nunjucks from 'nunjucks';
 import { getStringParam } from '../../../util/params.ts';
+import { JOURNEY_MAP } from './upload-documents.js';
 
 /**
  * @typedef {Object} TextEntryCheckbox

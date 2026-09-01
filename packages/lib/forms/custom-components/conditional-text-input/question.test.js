@@ -1,7 +1,7 @@
-import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import ConditionalTextInputQuestion from './question.js';
+import { describe, it, mock } from 'node:test';
 import nunjucks from 'nunjucks';
+import ConditionalTextInputQuestion from './question.js';
 
 class TestConditionalTextInputQuestion extends ConditionalTextInputQuestion {
 	constructor(props) {

@@ -1,9 +1,9 @@
-import path from 'path';
+import { formatBytes } from '@pins/crowndev-lib/util/file.ts';
 import * as CFB from 'cfb';
 import { fileTypeFromBuffer } from 'file-type';
-import type { Logger } from 'pino';
 import 'multer';
-import { formatBytes } from '@pins/crowndev-lib/util/file.ts';
+import path from 'path';
+import type { Logger } from 'pino';
 
 export interface ValidationConfig {
 	allowedExtensions: string[];

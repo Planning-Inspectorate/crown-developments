@@ -1,5 +1,5 @@
-import MonetaryInputQuestion from '../monetary-input/question.ts';
 import type { CrownCommonQuestionProps, CUSTOM_COMPONENTS } from '../index.ts';
+import MonetaryInputQuestion from '../monetary-input/question.ts';
 
 export type FeeAmountQuestionProps = CrownCommonQuestionProps & {
 	type: typeof CUSTOM_COMPONENTS.FEE_AMOUNT;

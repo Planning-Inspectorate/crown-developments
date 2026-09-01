@@ -1,8 +1,8 @@
 import { expect, type Page } from '@playwright/test';
 
+import { runPageValidation, type PageValidation } from '../page-utilities/page-validation.utility.ts';
 import { PAGE_TIMEOUTS } from '../support/test-timeouts.ts';
 import { CommonComponent } from './common.component.ts';
-import { runPageValidation, type PageValidation } from '../page-utilities/page-validation.utility.ts';
 
 const DEFAULT_TIMEOUT = PAGE_TIMEOUTS.components.checkDetails;
 const DETAIL_ROW_SELECTOR =

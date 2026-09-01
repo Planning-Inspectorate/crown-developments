@@ -1,9 +1,9 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-import { fileAlreadyExistsInFolder, isDocOrXlsEncrypted, validateUploadedFile } from './document-validation-util.js';
-import { mockLogger } from '../../../testing/mock-logger.js';
 import * as CFB from 'cfb';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import { mockLogger } from '../../../testing/mock-logger.js';
 import { ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '../../representations/question-utils.js';
+import { fileAlreadyExistsInFolder, isDocOrXlsEncrypted, validateUploadedFile } from './document-validation-util.js';
 import { createMinimalZipBuffer } from './zip-file-util.js';
 
 describe('./lib/forms/custom-components/representation-attachments/document-validation-util.js', () => {

@@ -1,13 +1,8 @@
+import type { ManageService } from '#service';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { FileValidator } from '@pins/crowndev-lib/validators/file-validator.ts';
 import { Router as createRouter } from 'express';
 import multer from 'multer';
-import { DocumentsUploader } from './document-uploader.ts';
-import {
-	createDocumentsController,
-	deleteDocumentController,
-	uploadDocumentsController,
-	validateUploads
-} from './controller.ts';
-import type { ManageService } from '#service';
 import {
 	ALLOWED_EXTENSIONS,
 	ALLOWED_EXTENSIONS_TEXT,
@@ -17,8 +12,13 @@ import {
 	MAX_FILE_SIZE,
 	TOTAL_UPLOAD_LIMIT
 } from '../upload-utils.ts';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import { FileValidator } from '@pins/crowndev-lib/validators/file-validator.ts';
+import {
+	createDocumentsController,
+	deleteDocumentController,
+	uploadDocumentsController,
+	validateUploads
+} from './controller.ts';
+import { DocumentsUploader } from './document-uploader.ts';
 
 export function createRoutes(service: ManageService) {
 	const { db, blobStore, logger } = service;

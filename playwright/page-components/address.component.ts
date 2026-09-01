@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 
-import { CommonComponent } from './common.component.ts';
 import { generateUkAddress } from '../page-utilities/generate.utility.ts';
+import { CommonComponent } from './common.component.ts';
 
 export type UkAddress = {
 	line1: string;

@@ -1,18 +1,18 @@
-import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { optionalWhere } from '@pins/crowndev-lib/util/database.ts';
-import { viewModelToAddressUpdateInput, isAddress, isSameAddress } from '@pins/crowndev-lib/util/address.ts';
-import { extractApplicantContactFields, extractAgentContactFields } from '../util/contact.js';
-import { isDefined } from '@pins/crowndev-lib/util/boolean.ts';
-import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms';
-import type {
-	CrownDevelopmentViewModel,
-	CrownDevelopmentSaveModel,
-	ManageApplicantDetails,
-	ManageAgentContactDetails,
-	ManageApplicantContactDetails
-} from './view-model.ts';
-import type { CrownDevelopmentPlanningPayload } from './payload-contracts.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { isAddress, isSameAddress, viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
+import { isDefined } from '@pins/crowndev-lib/util/boolean.ts';
+import { optionalWhere } from '@pins/crowndev-lib/util/database.ts';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms';
+import { extractAgentContactFields, extractApplicantContactFields } from '../util/contact.js';
+import type { CrownDevelopmentPlanningPayload } from './payload-contracts.ts';
+import type {
+	CrownDevelopmentSaveModel,
+	CrownDevelopmentViewModel,
+	ManageAgentContactDetails,
+	ManageApplicantContactDetails,
+	ManageApplicantDetails
+} from './view-model.ts';
 
 type CaseUpdateWritePlan = {
 	scalarCaseUpdates: { caseIds: string[]; updateInput: Prisma.CrownDevelopmentUpdateInput };

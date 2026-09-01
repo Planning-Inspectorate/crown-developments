@@ -1,6 +1,6 @@
-import { describe, it, mock } from 'node:test';
+import type { NextFunction, Request, Response } from 'express';
 import assert from 'node:assert';
-import type { Request, Response, NextFunction } from 'express';
+import { describe, it, mock } from 'node:test';
 import { buildValidateCaseNotesMiddleware } from './validation-middleware.ts';
 
 function makeReq(overrides: Partial<Request>): Request {

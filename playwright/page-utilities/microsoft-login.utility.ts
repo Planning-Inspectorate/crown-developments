@@ -1,5 +1,5 @@
-import { loadEnvFile } from 'node:process';
 import { type Page } from '@playwright/test';
+import { loadEnvFile } from 'node:process';
 import { CasesPage } from '../page-objects/cases.page.ts';
 import { LoginMicrosoftPage } from '../page-objects/microsoft-login.page.ts';
 

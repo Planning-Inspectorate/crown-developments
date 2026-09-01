@@ -1,17 +1,17 @@
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { editsToDatabaseUpdates } from '@pins/crowndev-lib/forms/representations/view-model.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
-import { validateParams } from '../view/controller.js';
+import {
+	deleteRepresentationAttachmentsFolder,
+	moveAttachmentsToCaseFolder
+} from '@pins/crowndev-lib/util/handle-attachments.js';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
 import {
 	publishedRepresentationsAttachmentsRootFolderPath,
 	representationFolderPath
 } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
-import {
-	deleteRepresentationAttachmentsFolder,
-	moveAttachmentsToCaseFolder
-} from '@pins/crowndev-lib/util/handle-attachments.js';
-import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { validateParams } from '../view/controller.js';
 import { getRepresentationWithdrawalRequestsFolder } from '../withdraw/controller.js';
 
 /**

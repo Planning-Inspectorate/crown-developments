@@ -1,14 +1,14 @@
-import { describe, it, mock } from 'node:test';
+import type { Request, Response } from 'express';
 import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
 import {
 	addSessionData,
-	readSessionData,
 	clearSessionData,
-	removeApplicantContactsWhenOrganisationRemoved,
+	parseSessionSecrets,
 	popSessionData,
-	parseSessionSecrets
+	readSessionData,
+	removeApplicantContactsWhenOrganisationRemoved
 } from './session.ts';
-import type { Request, Response } from 'express';
 
 type MockSession = Record<string, Record<string, Record<string, unknown>>>;
 

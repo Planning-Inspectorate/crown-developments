@@ -1,13 +1,13 @@
-import { describe, it, mock } from 'node:test';
-import assert from 'node:assert';
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
 import {
 	getLinkedCaseId,
-	maybeGetLinkedCaseLink,
 	getLinkedCaseLinkText,
 	getSummaryWarningMessage,
 	hasLinkedCase,
-	linkedCaseIsPublished
+	linkedCaseIsPublished,
+	maybeGetLinkedCaseLink
 } from './linked-case.ts';
 
 describe('linked case util', () => {

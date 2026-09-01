@@ -1,8 +1,8 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-import { validationResult } from 'express-validator';
-import MultiConditionalNumericValidator from './multi-conditional-numeric-validator.ts';
 import type { OptionsQuestion } from '@planning-inspectorate/dynamic-forms';
+import { validationResult } from 'express-validator';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import MultiConditionalNumericValidator from './multi-conditional-numeric-validator.ts';
 
 describe('MultiConditionalNumericValidator', () => {
 	const questionObj = {

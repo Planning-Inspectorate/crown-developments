@@ -1,15 +1,15 @@
 import { expect, type Page } from '@playwright/test';
 
+import { CommonComponent } from '../page-components/common.component.ts';
 import {
 	ContactDetailsComponent,
 	type ContactDetailsError,
 	type ContactDetailsErrorMessages,
 	type ContactDetailsFieldIds
 } from '../page-components/contact-details.component.ts';
-import { PAGE_TIMEOUTS } from '../support/test-timeouts.ts';
-import { CommonComponent } from '../page-components/common.component.ts';
-import { runPageValidation } from '../page-utilities/page-validation.utility.ts';
 import { LPA_CONTACT_DETAILS } from '../page-strings/create-case.strings.ts';
+import { runPageValidation } from '../page-utilities/page-validation.utility.ts';
+import { PAGE_TIMEOUTS } from '../support/test-timeouts.ts';
 import { type PageDisplayOptions } from '../types/page-options.type.ts';
 
 const DEFAULT_TIMEOUT = PAGE_TIMEOUTS.pages.lpaContactDetail;

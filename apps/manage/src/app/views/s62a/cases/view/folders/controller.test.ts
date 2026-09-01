@@ -1,9 +1,9 @@
-import { describe, it, mock, beforeEach } from 'node:test';
-import assert from 'node:assert/strict';
-import { buildViewCaseFolders } from './controller.ts';
-import type { Logger } from 'pino';
 import type { Request, Response } from 'express';
+import assert from 'node:assert/strict';
+import { beforeEach, describe, it, mock } from 'node:test';
+import type { Logger } from 'pino';
 import type { ManageService } from '../../../../../service.js';
+import { buildViewCaseFolders } from './controller.ts';
 
 describe('buildViewCaseFolders', () => {
 	const mockLogger = {

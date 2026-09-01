@@ -1,24 +1,24 @@
+import { APPLICATION_TYPES, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
+import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-components/manage-list/validator.js';
+import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
+import { getApplicantContactsValidator } from '@pins/crowndev-lib/validators/applicant-contacts-validator.ts';
 import {
 	AddressValidator,
-	CoordinatesValidator,
-	RequiredValidator,
-	DateValidator,
-	StringValidator,
-	SameAnswerValidator,
-	NumericValidator,
-	createQuestions,
-	questionClasses,
 	COMPONENT_TYPES,
+	CoordinatesValidator,
+	createQuestions,
+	DateValidator,
+	NumericValidator,
+	questionClasses,
+	RequiredValidator,
+	SameAnswerValidator,
+	StringValidator,
 	yesNoToBoolean
 } from '@planning-inspectorate/dynamic-forms';
 import type { CrownJourneyResponse } from '../../../../types/express-locals.ts';
-import { APPLICATION_TYPES, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { multiContactQuestions } from '../util/question-utils.ts';
-import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
-import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-components/manage-list/validator.js';
 import { getApplicantOrganisationOptions } from '../util/applicant-organisation-options.ts';
-import { getApplicantContactsValidator } from '@pins/crowndev-lib/validators/applicant-contacts-validator.ts';
-import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
+import { multiContactQuestions } from '../util/question-utils.ts';
 
 /**
  * Generate the questions for the create a case journey based on the provided journey response.

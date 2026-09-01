@@ -1,7 +1,7 @@
-import { NotifyClient } from 'notifications-node-client';
-import { formatFee } from '../util/numbers.ts';
-import type { Logger } from 'pino';
 import { isAxiosError } from 'axios';
+import { NotifyClient } from 'notifications-node-client';
+import type { Logger } from 'pino';
+import { formatFee } from '../util/numbers.ts';
 
 interface GovNotifyOptions {
 	personalisation: {

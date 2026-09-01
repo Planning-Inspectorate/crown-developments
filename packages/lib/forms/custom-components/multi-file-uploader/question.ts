@@ -1,19 +1,19 @@
 import {
+	type BaseQuestionViewData,
 	type Journey,
-	Question,
-	type RouteParams,
-	type Section,
-	type QuestionViewModel,
 	type JourneyResponse,
-	type BaseQuestionViewData
+	Question,
+	type QuestionViewModel,
+	type RouteParams,
+	type Section
 } from '@planning-inspectorate/dynamic-forms';
 import type { Request } from 'express';
 import nunjucks from 'nunjucks';
-import { readSessionData } from '../../../util/session.ts';
-import { getStringParams } from '../../../util/params.ts';
-import type { MultiFileUploaderQuestionProps } from '../index.ts';
 import { formatBytes } from '../../../util/file.ts';
+import { getStringParams } from '../../../util/params.ts';
+import { readSessionData } from '../../../util/session.ts';
 import { escapeHtml } from '../../../util/string.ts';
+import type { MultiFileUploaderQuestionProps } from '../index.ts';
 
 export interface DraftFile {
 	id: string;

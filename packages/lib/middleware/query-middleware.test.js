@@ -1,6 +1,6 @@
-import { cleanEmptyQueryParams, trimEmptyQuery } from './query-middleware.js';
 import assert from 'node:assert';
-import { describe, it, beforeEach } from 'node:test';
+import { beforeEach, describe, it } from 'node:test';
+import { cleanEmptyQueryParams, trimEmptyQuery } from './query-middleware.js';
 
 describe('query-middleware', () => {
 	let req;

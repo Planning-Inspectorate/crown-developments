@@ -1,18 +1,4 @@
-import { Router as createRouter } from 'express';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import { buildListReps } from './list/controller.js';
-import { buildGetJourneyMiddleware, viewRepresentation } from './view/controller.js';
-import { viewReviewRedirect } from './review/controller.js';
-import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
-import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
-import { question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
-import { buildUpdateRepresentation } from './edit/controller.js';
-import { createRoutes as createAddRoutes } from './add/index.js';
-import { createRoutes as createReviewRoutes } from './review/index.js';
-import { createRoutes as createTaskListRoutes } from './task-list/index.js';
-import { createRoutes as createWithdrawRoutes } from './withdraw/index.js';
 import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
-import multer from 'multer';
 import {
 	deleteDocumentsController,
 	uploadDocumentsController
@@ -23,13 +9,27 @@ import {
 	MAX_FILE_NUMBER,
 	MAX_FILE_SIZE
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
+import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
+import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
+import { Router as createRouter } from 'express';
+import lusca from 'lusca';
+import multer from 'multer';
+import { createRoutes as createAddRoutes } from './add/index.js';
+import { buildUpdateRepresentation } from './edit/controller.js';
+import { buildSave } from './edit/save.js';
+import { buildListReps } from './list/controller.js';
 import {
 	buildReinstateRepresentationController,
 	reinstateRepConfirmation,
 	successController
 } from './reinstate/controller.js';
-import { buildSave } from './edit/save.js';
-import lusca from 'lusca';
+import { viewReviewRedirect } from './review/controller.js';
+import { createRoutes as createReviewRoutes } from './review/index.js';
+import { createRoutes as createTaskListRoutes } from './task-list/index.js';
+import { buildGetJourneyMiddleware, viewRepresentation } from './view/controller.js';
+import { createRoutes as createWithdrawRoutes } from './withdraw/index.js';
 
 /**
  * @param {import('#service').ManageService} service

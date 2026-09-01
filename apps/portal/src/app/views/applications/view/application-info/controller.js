@@ -1,23 +1,23 @@
-import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
-import { applicationUpdateToTimelineItem, crownDevelopmentToViewModel } from '../view-model.ts';
-import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
+import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { fetchPublishedApplication, isExpired, isWithdrawnOrExpired } from '@pins/crowndev-lib/util/applications.ts';
+import { maybeGetLinkedCaseLink } from '@pins/crowndev-lib/util/linked-case.ts';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
+import { escapeHtml, isSafeRelativeUrl } from '@pins/crowndev-lib/util/string.ts';
+import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
+import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
+import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
+import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 import { getHaveYourSayStatus } from '../have-your-say/util.js';
+import { applicationUpdateToTimelineItem, crownDevelopmentToViewModel } from '../view-model.ts';
+import { buildApplicationStages, getCurrentStage } from './application-stage/controller.js';
 import {
 	getAboutThisApplicationSectionItems,
 	getApplicationDecisionSectionItems,
 	getImportantDatesSectionItems,
 	getProcedureDetailsSectionItems
 } from './section-items.ts';
-import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
-import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { buildApplicationStages, getCurrentStage } from './application-stage/controller.js';
-import { maybeGetLinkedCaseLink } from '@pins/crowndev-lib/util/linked-case.ts';
-import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
-import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
-import { escapeHtml, isSafeRelativeUrl } from '@pins/crowndev-lib/util/string.ts';
-import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
  * @typedef {import('@pins/crowndev-lib/views/banner/banner-builder').BannerMessage} BannerMessage

@@ -1,3 +1,4 @@
+import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import {
 	APPLICATION_FOLDERS,
@@ -7,7 +8,6 @@ import {
 	getSharePointReceivedPathLink,
 	representationFolderPath
 } from './sharepoint-path.js';
-import assert from 'node:assert';
 
 describe('sharepoint-path', () => {
 	describe('caseReferenceToFolderName', () => {

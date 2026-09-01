@@ -1,11 +1,11 @@
 import type { ManageService } from '#service';
+import { getEntraGroupMembers } from '#util/entra-groups.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
-import { getEntraGroupMembers } from '#util/entra-groups.ts';
-import { createCaseHistoryViewModel } from './view-model.ts';
-import { getPaginationParams, createPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { createPaginationParams, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
+import { createCaseHistoryViewModel } from './view-model.ts';
 
 export function buildViewCaseHistory(service: ManageService): AsyncRequestHandler {
 	const { db, audit, logger, getEntraClient } = service;

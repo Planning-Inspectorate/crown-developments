@@ -1,12 +1,12 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import {
-	buildUrlWithParams,
-	buildPageUrl,
 	buildItemsPerPageUrl,
-	getPaginationParams,
+	buildPageUrl,
+	buildUrlWithParams,
+	createPaginationParams,
 	getPageData,
-	createPaginationParams
+	getPaginationParams
 } from './pagination-utils.ts';
 
 const base = '/applications/123/documents';

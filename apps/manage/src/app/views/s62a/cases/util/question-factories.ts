@@ -1,15 +1,15 @@
-import {
-	COMPONENT_TYPES,
-	RequiredValidator,
-	StringValidator,
-	EmailValidator
-} from '@planning-inspectorate/dynamic-forms';
-import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
-import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.ts';
-import NameValidator from '@pins/crowndev-lib/validators/name-validator.ts';
+import { HIDDEN_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import { camelCaseToUrlCase, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
-import { HIDDEN_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
+import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
+import NameValidator from '@pins/crowndev-lib/validators/name-validator.ts';
+import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.ts';
+import {
+	COMPONENT_TYPES,
+	EmailValidator,
+	RequiredValidator,
+	StringValidator
+} from '@planning-inspectorate/dynamic-forms';
 
 /**
  * Creates primary vs secondary LPA questions, with variations

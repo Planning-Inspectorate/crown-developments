@@ -1,10 +1,10 @@
-import { afterEach, beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert';
 import { createRequire } from 'node:module';
-import path from 'path';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 import nunjucks from 'nunjucks';
-import { buildPageUrl, buildItemsPerPageUrl } from './pagination-utils.ts';
+import path from 'path';
 import { fileURLToPath } from 'url';
+import { buildItemsPerPageUrl, buildPageUrl } from './pagination-utils.ts';
 
 describe('pagination macro', () => {
 	const wrapperTemplate = `

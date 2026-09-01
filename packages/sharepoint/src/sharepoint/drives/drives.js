@@ -1,5 +1,5 @@
-import { UrlBuilder } from '../../util/url-builder/url-builder.js';
 import { sanitiseFileName } from '../../util/file-utils/file-utils.js';
+import { UrlBuilder } from '../../util/url-builder/url-builder.js';
 
 /** @typedef {import('../../fixtures/sharepoint.js').getDriveItemsByPathData} DriveItemByPathResponse */
 /** @typedef {Array<import('../../fixtures/sharepoint.js').ListItemPermission>} ListItemPermissionsResponse */

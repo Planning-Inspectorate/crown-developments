@@ -1,8 +1,8 @@
-import { describe, it, before } from 'node:test';
-import assert from 'node:assert';
-import { getQuestions } from './questions.ts';
-import type { JourneyResponse } from '@planning-inspectorate/dynamic-forms';
 import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import type { JourneyResponse } from '@planning-inspectorate/dynamic-forms';
+import assert from 'node:assert';
+import { before, describe, it } from 'node:test';
+import { getQuestions } from './questions.ts';
 
 describe('s62a getQuestions', () => {
 	before(() => {

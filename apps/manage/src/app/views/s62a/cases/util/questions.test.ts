@@ -1,11 +1,11 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-import { isApplicationType, getApplicantContactsValidator } from './questions.ts';
 import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import type {
 	ApplicantContact,
 	ApplicantOrganisation
 } from '@pins/crowndev-lib/validators/applicant-contacts-validator.ts';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import { getApplicantContactsValidator, isApplicationType } from './questions.ts';
 
 describe('questions.utils', () => {
 	describe('isApplicationType', () => {

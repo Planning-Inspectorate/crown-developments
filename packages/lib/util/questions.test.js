@@ -1,5 +1,7 @@
-import { describe, it, afterEach } from 'node:test';
+import { REPRESENTATION_SUBMITTED_FOR_ID, WITHDRAWAL_REASON } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { TRUNCATED_MAX_LENGTH } from '@planning-inspectorate/dynamic-forms';
 import assert from 'node:assert';
+import { afterEach, describe, it } from 'node:test';
 import {
 	getLpaOptions,
 	getSubmittedForId,
@@ -9,8 +11,6 @@ import {
 	truncateComment,
 	truncatedReadMoreCommentLink
 } from './questions.ts';
-import { REPRESENTATION_SUBMITTED_FOR_ID, WITHDRAWAL_REASON } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { TRUNCATED_MAX_LENGTH } from '@planning-inspectorate/dynamic-forms';
 
 describe('questions', () => {
 	describe('shouldTruncateComment', () => {

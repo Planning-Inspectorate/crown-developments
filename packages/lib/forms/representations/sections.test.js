@@ -1,14 +1,14 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
-import { getQuestions } from './questions.js';
 import {
+	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
-	REPRESENTED_TYPE_ID,
-	REPRESENTATION_STATUS_ID
+	REPRESENTED_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import { getQuestions } from './questions.js';
 import { addRepresentationSection, haveYourSayManageSections, haveYourSaySections } from './sections.js';
 
 describe('have-your-say', () => {

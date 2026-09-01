@@ -1,6 +1,6 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
 import { validationResult } from 'express-validator';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import MonetaryInputValidator from './monetary-input-validator.js';
 
 class TestMonetaryValidator extends MonetaryInputValidator {

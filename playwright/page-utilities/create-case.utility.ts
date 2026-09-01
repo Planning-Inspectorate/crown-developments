@@ -1,5 +1,5 @@
-import { randomInt } from 'node:crypto';
 import { type Page } from '@playwright/test';
+import { randomInt } from 'node:crypto';
 
 import { applicationCreateCaseJourneys } from '../fixtures/application-journeys.ts';
 import { preApplicationCreateCaseJourneys } from '../fixtures/pre-application-journeys.ts';

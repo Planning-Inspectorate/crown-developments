@@ -1,7 +1,7 @@
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import { addressToViewModel } from '@pins/crowndev-lib/util/address.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { insertWbr, formatStatusTag } from '@pins/crowndev-lib/util/string.ts';
+import { addressToViewModel } from '@pins/crowndev-lib/util/address.ts';
+import { formatStatusTag, insertWbr } from '@pins/crowndev-lib/util/string.ts';
 
 export interface S62ACaseView {
 	id: string;

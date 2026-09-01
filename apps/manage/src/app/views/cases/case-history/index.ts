@@ -1,8 +1,8 @@
-import { Router as createRouter } from 'express';
+import type { ManageService } from '#service';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { Router as createRouter } from 'express';
 import { validateIdFormat } from '../view/controller.ts';
 import { buildViewCaseHistory } from './controller.ts';
-import type { ManageService } from '#service';
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });

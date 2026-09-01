@@ -1,7 +1,7 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { buildDocumentFilters, createEmptyCategoryCounts, hasQueries } from './filters.ts';
+import { describe, it } from 'node:test';
 import type { FilterSection } from './filters.ts';
+import { buildDocumentFilters, createEmptyCategoryCounts, hasQueries } from './filters.ts';
 
 // Helper functions
 const defaultCounts = {

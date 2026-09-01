@@ -1,8 +1,8 @@
+import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { getAnswers } from '@pins/crowndev-lib/util/answers.js';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { JOURNEY_ID } from '../journey.js';
-import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { addAppUpdateStatus } from '../utils.ts';
 
 export function buildCreateController() {

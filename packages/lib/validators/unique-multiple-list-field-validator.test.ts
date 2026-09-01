@@ -1,7 +1,7 @@
-import { describe, it, beforeEach } from 'node:test';
-import assert from 'node:assert';
-import { UniqueMultipleListFieldValidator } from './unique-multiple-list-field-validator.ts';
 import type { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
+import assert from 'node:assert';
+import { beforeEach, describe, it } from 'node:test';
+import { UniqueMultipleListFieldValidator } from './unique-multiple-list-field-validator.ts';
 
 interface VehicleParkingItem {
 	id: string;

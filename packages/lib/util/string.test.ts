@@ -1,15 +1,15 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import {
-	camelCaseToUrlCase,
 	camelCaseToSentenceCase,
-	sentenceCase,
-	isString,
-	getFilenameStem,
-	isSafeRelativeUrl,
+	camelCaseToUrlCase,
 	escapeHtml,
-	insertWbr,
 	formatStatusTag,
+	getFilenameStem,
+	insertWbr,
+	isSafeRelativeUrl,
+	isString,
+	sentenceCase,
 	stringToKebab
 } from './string.ts';
 

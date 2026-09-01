@@ -1,5 +1,5 @@
+import type { ActionView, BooleanQuestionParams, Journey } from '@planning-inspectorate/dynamic-forms';
 import { BooleanQuestion } from '@planning-inspectorate/dynamic-forms';
-import type { Journey, ActionView, BooleanQuestionParams } from '@planning-inspectorate/dynamic-forms';
 import type { CUSTOM_COMPONENTS } from '../index.ts';
 
 type ActionLink = Omit<ActionView, 'visuallyHiddenText'>;

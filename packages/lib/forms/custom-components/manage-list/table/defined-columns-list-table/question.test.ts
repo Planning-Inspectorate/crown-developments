@@ -1,8 +1,8 @@
-import { describe, it, beforeEach } from 'node:test';
-import assert from 'node:assert';
-import DefinedColumnsTableQuestion, { type TableColumn } from './question.ts';
 import DateQuestion from '@planning-inspectorate/dynamic-forms/src/components/date/question.js';
 import type { Question, QuestionViewModel } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
+import assert from 'node:assert';
+import { beforeEach, describe, it } from 'node:test';
+import DefinedColumnsTableQuestion, { type TableColumn } from './question.ts';
 
 /**
  * formatItemAnswers is protected, so reach it through a narrow cast rather than

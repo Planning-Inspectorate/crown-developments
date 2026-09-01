@@ -1,17 +1,17 @@
+import {
+	RECEIVED_METHOD_ID,
+	REPRESENTATION_STATUS_ID,
+	REPRESENTATION_SUBMITTED_FOR_ID,
+	REPRESENTED_TYPE_ID
+} from '@pins/crowndev-database/src/seed/data-static.ts';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import {
 	editsToDatabaseUpdates,
 	representationToManageViewModel,
 	viewModelToRepresentationCreateInput
 } from './view-model.js';
-import assert from 'node:assert';
-import {
-	REPRESENTATION_STATUS_ID,
-	REPRESENTATION_SUBMITTED_FOR_ID,
-	REPRESENTED_TYPE_ID,
-	RECEIVED_METHOD_ID
-} from '@pins/crowndev-database/src/seed/data-static.ts';
-import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 /**
  * @typedef {import('./types.js').HaveYourSayManageModel} HaveYourSayManageModel

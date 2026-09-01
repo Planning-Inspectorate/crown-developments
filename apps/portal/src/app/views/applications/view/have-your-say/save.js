@@ -1,20 +1,20 @@
-import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { crownDevelopmentToViewModel } from '../view-model.ts';
-import { fetchPublishedApplication } from '@pins/crowndev-lib/util/applications.ts';
-import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
-import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
-import { uniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
-import { JOURNEY_ID } from './journey.js';
 import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { saveRepresentation } from '@pins/crowndev-lib/forms/representations/save.js';
-import { nameToViewModel } from '@pins/crowndev-lib/util/name.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
+import { fetchPublishedApplication } from '@pins/crowndev-lib/util/applications.ts';
 import {
 	deleteRepresentationAttachmentsFolder,
 	moveAttachmentsToCaseFolder
 } from '@pins/crowndev-lib/util/handle-attachments.js';
-import { loadPublishedApplicationOr404 } from '../../../util/application-util.ts';
+import { nameToViewModel } from '@pins/crowndev-lib/util/name.js';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { uniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
+import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
+import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
+import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
+import { loadPublishedApplicationOr404 } from '../../../util/application-util.ts';
+import { crownDevelopmentToViewModel } from '../view-model.ts';
+import { JOURNEY_ID } from './journey.js';
 
 /**
  * @param {import('#service').PortalService} service

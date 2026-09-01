@@ -1,8 +1,8 @@
-import { describe, it, mock, beforeEach } from 'node:test';
-import assert from 'node:assert';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { S62aManageListDeleter } from './s62a-manage-list-deleter.ts';
+import assert from 'node:assert';
+import { beforeEach, describe, it, mock } from 'node:test';
 import type { ManageService } from '../../../../service.js';
+import { S62aManageListDeleter } from './s62a-manage-list-deleter.ts';
 
 describe('S62aManageListDeleter', () => {
 	let mockDb: any;

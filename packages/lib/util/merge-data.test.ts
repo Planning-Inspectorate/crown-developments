@@ -1,5 +1,5 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import { combineSessionAndDbData, mergeArraysById } from './merge-data.ts';
 
 describe('Merging Data Util', () => {

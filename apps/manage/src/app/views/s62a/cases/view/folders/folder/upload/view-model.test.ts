@@ -1,7 +1,7 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-import { createUploadedFilesViewModel } from './view-model.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import { createUploadedFilesViewModel } from './view-model.ts';
 
 describe('createUploadedFilesViewModel', () => {
 	it('returns an empty array when no files are provided', () => {

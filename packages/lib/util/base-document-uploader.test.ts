@@ -1,11 +1,11 @@
-import { describe, it, mock } from 'node:test';
-import assert from 'node:assert';
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import type { BlobStorageClient } from '@pins/crowndev-lib/blob-store/blob-store-client.ts';
+import 'multer';
+import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
 import type { Logger } from 'pino';
 import type { FileValidator, ValidationConfig } from '../validators/file-validator.ts';
 import { BaseDocumentsUploader, type FileWithId } from './base-document-uploader.ts';
-import 'multer';
 
 const createMockFile = (name: string, size: number): Express.Multer.File =>
 	({ originalname: name, size, buffer: Buffer.from('mock-data'), mimetype: 'application/pdf' }) as Express.Multer.File;

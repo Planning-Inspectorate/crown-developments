@@ -1,6 +1,6 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveTemplate, resolveAuditAction, AUDIT_ACTIONS, AUDIT_TEMPLATES } from './actions.ts';
+import { describe, it } from 'node:test';
+import { AUDIT_ACTIONS, AUDIT_TEMPLATES, resolveAuditAction, resolveTemplate } from './actions.ts';
 
 describe('resolveTemplate', () => {
 	it('should return template as-is when no metadata is provided', () => {

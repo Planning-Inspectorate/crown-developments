@@ -1,6 +1,6 @@
-import { describe, it, mock } from 'node:test';
-import assert from 'node:assert';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
 import { buildUnpublishUpdateController } from './controller.js';
 
 describe('application updates unpublish controller', () => {

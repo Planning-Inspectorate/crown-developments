@@ -1,25 +1,25 @@
+import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { APPLICATION_PROCEDURE_ID, APPLICATION_STAGE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { toInt } from '@pins/crowndev-lib/util/numbers.ts';
-import { optionalWhere } from '@pins/crowndev-lib/util/database.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
+import { optionalWhere } from '@pins/crowndev-lib/util/database.ts';
+import { toInt } from '@pins/crowndev-lib/util/numbers.ts';
 import {
-	buildAgentOrganisationNameUpdates,
+	buildAgentContactOrganisationUpdates,
 	buildAgentOrganisationAddressUpdates,
-	buildApplicantOrganisationUpdates,
+	buildAgentOrganisationNameUpdates,
 	buildApplicantContactOrganisationUpdates,
-	buildAgentContactOrganisationUpdates
+	buildApplicantOrganisationUpdates
 } from './linked-case-updates.ts';
+import type { ApplyCaseTypeUpdates } from './view-model.ts';
 import {
 	assignDirectUpdate,
 	DECIMAL_FIELDS,
 	DIRECT_UPDATE_FIELDS,
-	NON_UPDATABLE_FIELDS,
 	hasProcedure,
+	NON_UPDATABLE_FIELDS,
 	stageIsProcedure,
 	viewModelToEventUpdateInput
 } from './view-model.ts';
-import type { ApplyCaseTypeUpdates } from './view-model.ts';
-import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 /**
  * Crown-specific mapping of edits to a CrownDevelopment update input.

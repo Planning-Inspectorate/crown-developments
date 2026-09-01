@@ -1,38 +1,38 @@
-import { Router as createRouter } from 'express';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import { buildGetJourney } from '@planning-inspectorate/dynamic-forms/src/middleware/build-get-journey.js';
-import { buildSave, list, question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
-import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
-import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
-import {
-	buildGetJourneyResponseFromSession,
-	buildSaveDataToSession
-} from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
-import { createJourney, JOURNEY_ID } from './journey.js';
-import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
-import {
-	addRepresentationErrors,
-	buildHaveYourSayPage,
-	getIsRepresentationWindowOpen,
-	declarationValidator,
-	startHaveYourSayJourney,
-	viewHaveYourSayDeclarationPage
-} from './controller.js';
-import { buildSaveHaveYourSayController, viewHaveYourSaySuccessPage } from './save.js';
+import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
 import {
 	deleteDocumentsController,
 	uploadDocumentsController
 } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-documents.js';
-import multer from 'multer';
 import {
 	ALLOWED_EXTENSIONS,
 	ALLOWED_MIME_TYPES,
 	MAX_FILE_NUMBER,
 	MAX_FILE_SIZE
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
-import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
+import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/session.js';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { buildSave, list, question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
+import {
+	buildGetJourneyResponseFromSession,
+	buildSaveDataToSession
+} from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
+import { buildGetJourney } from '@planning-inspectorate/dynamic-forms/src/middleware/build-get-journey.js';
+import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
+import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
+import { Router as createRouter } from 'express';
 import lusca from 'lusca';
+import multer from 'multer';
+import {
+	addRepresentationErrors,
+	buildHaveYourSayPage,
+	declarationValidator,
+	getIsRepresentationWindowOpen,
+	startHaveYourSayJourney,
+	viewHaveYourSayDeclarationPage
+} from './controller.js';
+import { createJourney, JOURNEY_ID } from './journey.js';
+import { buildSaveHaveYourSayController, viewHaveYourSaySuccessPage } from './save.js';
 
 const applicationIdParam = 'applicationId';
 

@@ -1,8 +1,8 @@
 import type { Locator, Page } from '@playwright/test';
 
 import { expect } from '@playwright/test';
-import { PAGE_TIMEOUTS } from '../support/test-timeouts.ts';
 import { HeaderUtility } from '../page-utilities/header.utility.ts';
+import { PAGE_TIMEOUTS } from '../support/test-timeouts.ts';
 
 const DEFAULT_TIMEOUT = PAGE_TIMEOUTS.pages.cases;
 

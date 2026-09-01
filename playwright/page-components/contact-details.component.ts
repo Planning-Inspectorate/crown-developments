@@ -1,6 +1,5 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 
-import { CommonComponent } from './common.component.ts';
 import {
 	generateRandomEmailAddress,
 	generateRandomFirstName,
@@ -8,6 +7,7 @@ import {
 	generateRandomTelephoneNumber
 } from '../page-utilities/generate.utility.ts';
 import { runPageValidation, type PageValidation } from '../page-utilities/page-validation.utility.ts';
+import { CommonComponent } from './common.component.ts';
 
 const DEFAULT_TIMEOUT = 12_000;
 

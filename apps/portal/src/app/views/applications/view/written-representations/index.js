@@ -1,9 +1,9 @@
-import { Router as createRouter } from 'express';
-import { buildWrittenRepresentationsListPage } from './controller.js';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import { buildWrittenRepresentationsReadMorePage } from './read-more/controller.js';
-import { buildDocumentView } from '../../../util/documents-util.js';
+import { Router as createRouter } from 'express';
 import { buildCachingDynamicContentMiddleware } from '../../../util/caching-middleware.js';
+import { buildDocumentView } from '../../../util/documents-util.js';
+import { buildWrittenRepresentationsListPage } from './controller.js';
+import { buildWrittenRepresentationsReadMorePage } from './read-more/controller.js';
 
 /**
  * @param {import('#service').PortalService} service

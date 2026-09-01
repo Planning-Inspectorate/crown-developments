@@ -1,5 +1,5 @@
-import 'express-session';
 import type { AccountInfo } from '@azure/msal-node';
+import 'express-session';
 import type { questionConfig } from '../app/views/cases/view/delete.js';
 
 type CaseId = string;

@@ -1,4 +1,6 @@
 import type { ManageService } from '#service';
+import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
+import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/session.js';
 import {
 	buildGetJourney,
 	buildGetJourneyResponseFromSession,
@@ -11,18 +13,8 @@ import {
 } from '@planning-inspectorate/dynamic-forms';
 import { Router as createRouter } from 'express';
 import { createJourney, JOURNEY_ID } from './journey.ts';
-import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
-import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/session.js';
 
-import multer from 'multer';
-import { RepresentationDocumentsUploader } from './representation-document-uploader.ts';
-import {
-	uploadRepresentationDocumentsController,
-	deleteDocumentController,
-	validateUploads,
-	buildDownloadDocument
-} from './controller.ts';
-import { FileValidator } from '@pins/crowndev-lib/validators/file-validator.ts';
+import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
 import {
 	ALLOWED_EXTENSIONS,
 	ALLOWED_EXTENSIONS_TEXT,
@@ -33,10 +25,18 @@ import {
 	TOTAL_UPLOAD_LIMIT
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
-import { RepresentationDocumentDownloader } from './representation-document-downloader.ts';
 import { getOptionalStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { FileValidator } from '@pins/crowndev-lib/validators/file-validator.ts';
 import { MANAGE_LIST_ACTIONS } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-actions.js';
+import multer from 'multer';
+import {
+	buildDownloadDocument,
+	deleteDocumentController,
+	uploadRepresentationDocumentsController,
+	validateUploads
+} from './controller.ts';
+import { RepresentationDocumentDownloader } from './representation-document-downloader.ts';
+import { RepresentationDocumentsUploader } from './representation-document-uploader.ts';
 
 export function createRoutes(service: ManageService) {
 	const { db, blobStore, logger } = service;

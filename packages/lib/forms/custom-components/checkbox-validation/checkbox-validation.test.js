@@ -1,6 +1,6 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { buildRequiredCheckboxGroup, declarationItems, CheckboxValidator } from './checkbox-validation.js';
+import { describe, it } from 'node:test';
+import { buildRequiredCheckboxGroup, CheckboxValidator, declarationItems } from './checkbox-validation.js';
 
 describe('checkbox-validation', () => {
 	it('should display error messages for all items when none are checked', () => {

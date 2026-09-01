@@ -1,5 +1,5 @@
-import PROD_LPAS from './data-lpa-prod-list.json' with { type: 'json' };
 import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
+import PROD_LPAS from './data-lpa-prod-list.json' with { type: 'json' };
 
 export const LOCAL_PLANNING_AUTHORITIES: Prisma.LpaCreateInput[] = PROD_LPAS;
 

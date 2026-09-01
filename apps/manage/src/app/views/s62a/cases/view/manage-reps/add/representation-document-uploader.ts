@@ -1,8 +1,8 @@
-import { randomUUID } from 'crypto';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import type { ValidationConfig, ValidationError } from '@pins/crowndev-lib/validators/file-validator.ts';
 import { BaseDocumentsUploader, type FileWithId } from '@pins/crowndev-lib/util/base-document-uploader.ts';
+import type { ValidationConfig, ValidationError } from '@pins/crowndev-lib/validators/file-validator.ts';
+import { randomUUID } from 'crypto';
 
 /**
  * Class for uploading documents associated with a representation.

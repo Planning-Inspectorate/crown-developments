@@ -1,8 +1,8 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-import { s62aToViewModel } from './view-model.ts';
-import type { S62ACasePayload, S62ACaseView } from './view-model.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import type { S62ACasePayload, S62ACaseView } from './view-model.ts';
+import { s62aToViewModel } from './view-model.ts';
 
 describe('Case list view model', () => {
 	describe('genericDevelopmentToViewModel', () => {

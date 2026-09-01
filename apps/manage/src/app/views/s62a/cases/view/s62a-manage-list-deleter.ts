@@ -1,5 +1,5 @@
-import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import type { ManageService } from '#service';
+import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 /**
  * Class that handles the deleting of complicated contacts / organisation joins.

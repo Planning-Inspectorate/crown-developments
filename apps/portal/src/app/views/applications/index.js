@@ -1,7 +1,7 @@
-import { Router as createRouter } from 'express';
-import { createRoutes as createViewRoutes } from './view/index.js';
-import { buildApplicationListPage } from './list/controller.ts';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { Router as createRouter } from 'express';
+import { buildApplicationListPage } from './list/controller.ts';
+import { createRoutes as createViewRoutes } from './view/index.js';
 
 /**
  * @param {import('#service').PortalService} service

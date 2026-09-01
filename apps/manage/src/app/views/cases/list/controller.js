@@ -1,5 +1,5 @@
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
-import { insertWbr, formatStatusTag } from '@pins/crowndev-lib/util/string.ts';
+import { formatStatusTag, insertWbr } from '@pins/crowndev-lib/util/string.ts';
 
 /**
  * @param {import('#service').ManageService} service

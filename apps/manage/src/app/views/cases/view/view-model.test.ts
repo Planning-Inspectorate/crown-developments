@@ -1,10 +1,10 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-import { crownDevelopmentToViewModel as crownDevelopmentToViewModelStrict, mapNotes } from './view-model.ts';
-import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import type { CrownDevelopmentPayload } from './payload-contracts.ts';
+import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { CASE_NOTE_MAX_LENGTH } from '@pins/crowndev-lib/util/questions.ts';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import type { CrownDevelopmentPayload } from './payload-contracts.ts';
+import { crownDevelopmentToViewModel as crownDevelopmentToViewModelStrict, mapNotes } from './view-model.ts';
 
 /**
  * Fixtures are deliberately partial DB records, and some assertions read keys that aren't on the

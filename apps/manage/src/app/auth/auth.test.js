@@ -1,9 +1,9 @@
-import { describe, it, mock } from 'node:test';
-import assert from 'node:assert';
-import supertest from 'supertest';
-import express from 'express';
-import { createRoutesAndGuards } from './router.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import express from 'express';
+import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
+import supertest from 'supertest';
+import { createRoutesAndGuards } from './router.js';
 
 describe('auth', () => {
 	describe('authentication', () => {

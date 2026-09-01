@@ -1,12 +1,12 @@
-import { describe, it, mock, type Mock } from 'node:test';
-import assert from 'node:assert';
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
-import { buildAuditService } from './service.ts';
-import type { AuditEntry } from './types.ts';
-import type { EntraGroupMembers } from '../../util/entra-groups.ts';
 import type { GroupMember } from '@pins/crowndev-lib/graph/types.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import assert from 'node:assert';
+import { describe, it, mock, type Mock } from 'node:test';
 import type { Logger } from 'pino';
+import type { EntraGroupMembers } from '../../util/entra-groups.ts';
+import { buildAuditService } from './service.ts';
+import type { AuditEntry } from './types.ts';
 
 // mockLogger() returns a logger whose methods are node:test mock fns.
 // This exposes the `.mock` surface the assertions rely on, without `any`.

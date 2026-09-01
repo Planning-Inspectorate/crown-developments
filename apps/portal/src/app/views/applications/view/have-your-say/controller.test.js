@@ -1,14 +1,14 @@
-import { describe, it, mock } from 'node:test';
-import assert from 'node:assert';
-import {
-	buildHaveYourSayPage,
-	getIsRepresentationWindowOpen,
-	viewHaveYourSayDeclarationPage,
-	startHaveYourSayJourney,
-	addRepresentationErrors,
-	declarationValidator
-} from './controller.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
+import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
+import {
+	addRepresentationErrors,
+	buildHaveYourSayPage,
+	declarationValidator,
+	getIsRepresentationWindowOpen,
+	startHaveYourSayJourney,
+	viewHaveYourSayDeclarationPage
+} from './controller.js';
 
 describe('Have Your Say controller', () => {
 	describe('buildHaveYourSayPage', () => {

@@ -1,6 +1,6 @@
+import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import type { BaseDevelopmentView } from '@pins/crowndev-lib/util/shared-view-model.ts';
-import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { baseDevelopmentSelect } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { insertWbr } from '@pins/crowndev-lib/util/string.ts';
 

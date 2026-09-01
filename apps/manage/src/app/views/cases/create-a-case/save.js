@@ -1,6 +1,10 @@
-import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
-import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
-import { JOURNEY_ID } from './journey.ts';
+import { retryGrantPermissions } from '#util/sharepoint.js';
+import {
+	APPLICATION_SUB_TYPE_ID,
+	APPLICATION_TYPE_ID,
+	ORGANISATION_ROLES_ID
+} from '@pins/crowndev-database/src/seed/data-static.ts';
+import { getLinkedCaseId, hasLinkedCase as hasLinkedCaseFunction } from '@pins/crowndev-lib/util/linked-case.ts';
 import { toFloat } from '@pins/crowndev-lib/util/numbers.ts';
 import {
 	caseReferenceToFolderName,
@@ -8,15 +12,11 @@ import {
 	getSharePointReceivedPathLink
 } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
-import {
-	APPLICATION_SUB_TYPE_ID,
-	APPLICATION_TYPE_ID,
-	ORGANISATION_ROLES_ID
-} from '@pins/crowndev-database/src/seed/data-static.ts';
-import { getLinkedCaseId, hasLinkedCase as hasLinkedCaseFunction } from '@pins/crowndev-lib/util/linked-case.ts';
-import { extractAgentContactFields, extractApplicantContactFields } from '../util/contact.js';
+import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
+import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { AUDIT_ACTIONS } from '../../../audit/index.ts';
-import { retryGrantPermissions } from '#util/sharepoint.js';
+import { extractAgentContactFields, extractApplicantContactFields } from '../util/contact.js';
+import { JOURNEY_ID } from './journey.ts';
 
 /**
  * @typedef {import('./types.d.ts').CreateCaseAnswers} CreateCaseAnswers

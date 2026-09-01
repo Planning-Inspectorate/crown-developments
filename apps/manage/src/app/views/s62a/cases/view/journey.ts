@@ -1,15 +1,4 @@
-import {
-	Journey,
-	type Question,
-	Section,
-	type JourneyResponse,
-	questionHasAnswer,
-	whenQuestionHasAnswer,
-	BOOLEAN_OPTIONS,
-	ManageListSection
-} from '@planning-inspectorate/dynamic-forms';
-import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
-import type { Request } from 'express';
+import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
 	APPLICANT_TYPE_ID,
 	OUTCOME_TYPE_ID,
@@ -18,7 +7,18 @@ import {
 	VIEW_TAB_ID,
 	WASTE_TYPES_WITHOUT_VOID_CAPACITY
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
-import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import {
+	BOOLEAN_OPTIONS,
+	Journey,
+	type JourneyResponse,
+	ManageListSection,
+	type Question,
+	questionHasAnswer,
+	Section,
+	whenQuestionHasAnswer
+} from '@planning-inspectorate/dynamic-forms';
+import type { Request } from 'express';
 
 export const JOURNEY_ID = 's62a-case-details';
 

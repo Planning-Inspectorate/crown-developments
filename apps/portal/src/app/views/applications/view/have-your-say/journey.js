@@ -1,5 +1,5 @@
-import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
 import { haveYourSaySections } from '@pins/crowndev-lib/forms/representations/sections.js';
+import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
 
 export const JOURNEY_ID = 'have-your-say';
 

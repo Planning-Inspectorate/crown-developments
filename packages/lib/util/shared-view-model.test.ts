@@ -1,8 +1,8 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-import { formatDate, isInquiry, isHearing, applicationLinks, mapDevelopmentToViewModel } from './shared-view-model.ts';
-import type { BaseDevelopmentView, BaseDevelopmentPayload } from './shared-view-model.ts';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import type { BaseDevelopmentPayload, BaseDevelopmentView } from './shared-view-model.ts';
+import { applicationLinks, formatDate, isHearing, isInquiry, mapDevelopmentToViewModel } from './shared-view-model.ts';
 
 describe('Application Utilities', () => {
 	describe('formatDate', () => {

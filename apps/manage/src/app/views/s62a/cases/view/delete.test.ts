@@ -1,9 +1,9 @@
-import { describe, it, mock, beforeEach, afterEach, type Mock } from 'node:test';
+import type { NextFunction, Request, Response } from 'express';
 import assert from 'node:assert';
+import { afterEach, beforeEach, describe, it, mock, type Mock } from 'node:test';
+import type { ManageService } from '../../../../service.js';
 import { buildDeleteS62aManageListItemOnConfirmRemove, questionConfig } from './delete.ts';
 import { S62aManageListDeleter } from './s62a-manage-list-deleter.ts';
-import type { Request, Response, NextFunction } from 'express';
-import type { ManageService } from '../../../../service.js';
 
 describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 	let req: Partial<Request>;

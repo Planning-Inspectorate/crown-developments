@@ -1,21 +1,21 @@
-import { formatDateForDisplay, addressToViewModel, TRUNCATED_MAX_LENGTH } from '@planning-inspectorate/dynamic-forms';
+import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import {
 	ORGANISATION_ROLES_ID,
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { getApplicationStatus, type ApplicationPublishStatus } from '@pins/crowndev-lib/util/applications.ts';
 import { nameToViewModel } from '@pins/crowndev-lib/util/name.js';
 import {
 	shouldTruncateComment,
 	truncateComment,
 	truncatedReadMoreCommentLink
 } from '@pins/crowndev-lib/util/questions.ts';
-import { getApplicationStatus, type ApplicationPublishStatus } from '@pins/crowndev-lib/util/applications.ts';
-import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+import { addressToViewModel, formatDateForDisplay, TRUNCATED_MAX_LENGTH } from '@planning-inspectorate/dynamic-forms';
 
 import type { BaseDevelopmentView } from '@pins/crowndev-lib/util/shared-view-model.ts';
-import { baseDevelopmentSelect, isInquiry, isHearing } from '@pins/crowndev-lib/util/shared-view-model.ts';
+import { baseDevelopmentSelect, isHearing, isInquiry } from '@pins/crowndev-lib/util/shared-view-model.ts';
 
 import { insertWbr } from '@pins/crowndev-lib/util/string.ts';
 

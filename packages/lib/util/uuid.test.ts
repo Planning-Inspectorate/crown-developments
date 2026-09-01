@@ -1,6 +1,6 @@
+import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import { isValidUuidFormat } from './uuid.ts';
-import assert from 'node:assert';
 
 describe('uuid', () => {
 	describe('isValidUuidFormat', () => {

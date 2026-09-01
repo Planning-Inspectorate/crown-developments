@@ -1,13 +1,13 @@
-import { describe, it, mock } from 'node:test';
-import assert from 'node:assert/strict';
-import { buildValidateRedactedFileMiddleware, buildValidateRepresentationMiddleware } from './validation-middleware.js';
 import {
 	REPRESENTATION_CATEGORY_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import assert from 'node:assert/strict';
+import { describe, it, mock } from 'node:test';
+import { buildValidateRedactedFileMiddleware, buildValidateRepresentationMiddleware } from './validation-middleware.js';
 
 describe('validate-representation-middleware', () => {
 	describe('Myself', () => {

@@ -1,6 +1,6 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
 import { validationResult } from 'express-validator';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import CustomManageListValidator from './validator.js';
 
 describe('Validator for manage-list custom component', () => {

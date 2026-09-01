@@ -1,5 +1,5 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import { FIELD_DISPLAY_NAMES } from './questions.ts';
 
 describe('FIELD_DISPLAY_NAMES', () => {

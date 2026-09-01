@@ -1,6 +1,6 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { extractApplicantContactFields, extractAgentContactFields } from './contact.js';
+import { describe, it } from 'node:test';
+import { extractAgentContactFields, extractApplicantContactFields } from './contact.js';
 
 describe('extractApplicantContactFields', () => {
 	it('should return trimmed contact fields when provided', () => {

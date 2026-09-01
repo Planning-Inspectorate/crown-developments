@@ -1,7 +1,7 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-import ConditionalRadioQuestion, { type ConditionalRadioQuestionProps } from './question.ts';
 import type { Journey } from '@planning-inspectorate/dynamic-forms';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import ConditionalRadioQuestion, { type ConditionalRadioQuestionProps } from './question.ts';
 
 describe('ConditionalRadioQuestion', () => {
 	const questionProps: ConditionalRadioQuestionProps = {

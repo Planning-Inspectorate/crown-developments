@@ -1,6 +1,6 @@
-import { validateParams } from '../view/controller.js';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
+import { validateParams } from '../view/controller.js';
 
 export function reinstateRepConfirmation(req, res) {
 	const { id, representationRef } = validateParams(req.params);

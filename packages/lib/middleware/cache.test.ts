@@ -1,7 +1,7 @@
-import { describe, it, mock } from 'node:test';
-import { cacheNoStoreMiddleware, cacheNoCacheMiddleware } from './cache.ts';
-import type { Request, Response, NextFunction } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
+import { cacheNoCacheMiddleware, cacheNoStoreMiddleware } from './cache.ts';
 
 describe('cache middleware', () => {
 	describe('cacheNoStoreMiddleware', () => {

@@ -1,7 +1,7 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
 import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { BOOLEAN_OPTIONS, JourneyResponse, Journey, type Question } from '@planning-inspectorate/dynamic-forms';
+import { BOOLEAN_OPTIONS, Journey, JourneyResponse, type Question } from '@planning-inspectorate/dynamic-forms';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import { getQuestions } from './questions.js';
 import { addRepresentationSection } from './s62a-sections.ts';
 

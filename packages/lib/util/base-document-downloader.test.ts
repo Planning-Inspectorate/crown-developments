@@ -1,9 +1,9 @@
-import { describe, it, mock, beforeEach } from 'node:test';
+import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import assert from 'node:assert';
 import { EventEmitter } from 'node:events';
 import { Readable } from 'node:stream';
+import { beforeEach, describe, it, mock } from 'node:test';
 import { BaseDocumentDownloader, type BaseDocumentInfo } from './base-document-downloader.ts';
-import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 
 interface TestDoc extends BaseDocumentInfo {
 	reference: string;

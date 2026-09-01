@@ -1,9 +1,9 @@
-import { randomInt } from 'node:crypto';
 import { expect, test, type Page } from '@playwright/test';
+import { randomInt } from 'node:crypto';
 
-import { generateRandomString } from '../page-utilities/generate.utility.ts';
 import { type ContactDetailsComponent } from '../page-components/contact-details.component.ts';
 import { PageManager } from '../page-objects/page-manager.index.ts';
+import { generateRandomString } from '../page-utilities/generate.utility.ts';
 import { msLogin } from '../page-utilities/microsoft-login.utility.ts';
 
 type PlanningAuthorityInputId = 'lpaId' | 'secondaryLpaId';

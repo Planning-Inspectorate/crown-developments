@@ -1,7 +1,7 @@
 import { expect, type Page } from '@playwright/test';
 
-import { CommonComponent } from './common.component.ts';
 import { runPageValidation, type PageValidation } from '../page-utilities/page-validation.utility.ts';
+import { CommonComponent } from './common.component.ts';
 
 const DEFAULT_TIMEOUT = 12_000;
 

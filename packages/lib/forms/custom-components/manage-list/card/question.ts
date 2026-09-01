@@ -1,7 +1,7 @@
-import TableManageListQuestion from '../table/question.ts';
 import type { CommonQuestionParams, Journey, QuestionViewModel } from '@planning-inspectorate/dynamic-forms';
-import type { TableManageListQuestionParameters } from '../table/types.ts';
 import type { Response } from 'express';
+import TableManageListQuestion from '../table/question.ts';
+import type { TableManageListQuestionParameters } from '../table/types.ts';
 
 export interface CardFormatContext {
 	getFormatted: (fieldName: string) => string;

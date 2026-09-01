@@ -1,5 +1,5 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import { clearAppUpdatesFromSession, getApplicationUpdateSessionData, validateParams } from './utils.ts';
 
 describe('utils.js', () => {

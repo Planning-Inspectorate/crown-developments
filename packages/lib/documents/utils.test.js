@@ -1,9 +1,9 @@
-import { describe, it, mock } from 'node:test';
-import { forwardStreamContents, getDriveItemDownloadUrl } from './utils.js';
-import { mockLogger } from '../testing/mock-logger.js';
-import { ReadableStream } from 'node:stream/web';
 import assert from 'node:assert';
 import EventEmitter from 'node:events';
+import { ReadableStream } from 'node:stream/web';
+import { describe, it, mock } from 'node:test';
+import { mockLogger } from '../testing/mock-logger.js';
+import { forwardStreamContents, getDriveItemDownloadUrl } from './utils.js';
 
 describe('utils', () => {
 	describe('getDriveItemDownloadUrl', () => {

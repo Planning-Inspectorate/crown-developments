@@ -1,16 +1,16 @@
+import { addLocalsConfiguration } from '#util/config-middleware.js';
+import { buildAnalyticsCookiesMiddleware } from '#util/cookies.js';
+import { initContentSecurityPolicyMiddlewares } from '#util/csp-middleware.ts';
+import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
+import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.ts';
+import { cleanEmptyQueryParams, trimEmptyQuery } from '@pins/crowndev-lib/middleware/query-middleware.js';
+import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.ts';
 import bodyParser from 'body-parser';
 import express from 'express';
-import manifest from '../.static/manifest.json' with { type: 'json' };
-import { buildRouter } from './router.js';
-import { configureNunjucks } from './nunjucks.js';
-import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.ts';
-import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.ts';
-import { addLocalsConfiguration } from '#util/config-middleware.js';
-import { initContentSecurityPolicyMiddlewares } from '#util/csp-middleware.ts';
-import { buildAnalyticsCookiesMiddleware } from '#util/cookies.js';
-import { cleanEmptyQueryParams, trimEmptyQuery } from '@pins/crowndev-lib/middleware/query-middleware.js';
 import lusca from 'lusca';
+import manifest from '../.static/manifest.json' with { type: 'json' };
+import { configureNunjucks } from './nunjucks.js';
+import { buildRouter } from './router.js';
 
 /**
  * @param {import('#service').PortalService} service

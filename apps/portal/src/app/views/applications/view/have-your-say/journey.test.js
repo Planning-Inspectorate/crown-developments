@@ -1,10 +1,10 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-import { createJourney, JOURNEY_ID } from './journey.js';
-import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
-import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import { createJourney, JOURNEY_ID } from './journey.js';
 
 describe('have-your-say journey', () => {
 	it('should error if used with the wrong router structure', () => {

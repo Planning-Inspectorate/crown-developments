@@ -1,8 +1,8 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-import { s62aViewFormattingFunction } from './view-model.ts';
 import { mapDevelopmentToViewModel } from '@pins/crowndev-lib/util/shared-view-model.ts';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import type { S62ADevelopmentPayload, S62ADevelopmentView } from './view-model.ts';
+import { s62aViewFormattingFunction } from './view-model.ts';
 
 describe('view-model', () => {
 	describe('genericDevelopmentToViewModel', () => {

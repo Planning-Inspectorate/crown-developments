@@ -1,5 +1,5 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import { sanitiseFileName } from './file-utils.js';
 
 describe('file-utils.js', () => {

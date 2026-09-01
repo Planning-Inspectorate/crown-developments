@@ -1,7 +1,7 @@
+import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
+import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import { createJourney } from './journey.js';
-import assert from 'node:assert';
-import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 
 describe('journey', () => {
 	it('should set base url as /edit', () => {

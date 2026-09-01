@@ -1,7 +1,7 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-import { validationResult } from 'express-validator';
 import type { Request } from 'express';
+import { validationResult } from 'express-validator';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import CILAmountLengthValidator from './cil-amount-length-validator.ts';
 
 const MESSAGE = 'Community Infrastructure Levy amount must be 10 numbers or less.';

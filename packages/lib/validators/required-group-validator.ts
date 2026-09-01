@@ -1,6 +1,6 @@
 import BaseValidator from '@planning-inspectorate/dynamic-forms/src/validator/base-validator.js';
-import { body } from 'express-validator';
 import type { ValidationChain } from 'express-validator';
+import { body } from 'express-validator';
 
 export interface RequiredGroupValidatorParams {
 	/** The fields to check. At least one must be non-empty. */

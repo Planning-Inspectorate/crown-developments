@@ -1,12 +1,12 @@
+import {
+	buildItemsPerPageUrl,
+	buildPageUrl,
+	buildUrlWithParams
+} from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import nunjucks from 'nunjucks';
 import { loadBuildConfig } from './config.js';
-import {
-	buildUrlWithParams,
-	buildPageUrl,
-	buildItemsPerPageUrl
-} from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 
 export function configureNunjucks() {
 	const config = loadBuildConfig();

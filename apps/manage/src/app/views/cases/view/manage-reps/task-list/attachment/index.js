@@ -1,8 +1,3 @@
-import { Router as createRouter } from 'express';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import { buildReviewControllers, buildViewDocument } from '../../review/controller.js';
-import { buildValidateRedactedFileMiddleware } from '../../validation-middleware.js';
-import multer from 'multer';
 import {
 	deleteDocumentsController,
 	uploadDocumentsController
@@ -13,8 +8,13 @@ import {
 	MAX_FILE_NUMBER,
 	MAX_FILE_SIZE
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
-import { buildDeleteRepresentationRedactedDocumentMiddleware } from './delete-attachment-middleware.js';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { Router as createRouter } from 'express';
 import lusca from 'lusca';
+import multer from 'multer';
+import { buildReviewControllers, buildViewDocument } from '../../review/controller.js';
+import { buildValidateRedactedFileMiddleware } from '../../validation-middleware.js';
+import { buildDeleteRepresentationRedactedDocumentMiddleware } from './delete-attachment-middleware.js';
 
 export function createRoutes(service, journeyId) {
 	const router = createRouter({ mergeParams: true });

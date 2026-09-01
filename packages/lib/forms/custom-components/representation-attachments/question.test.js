@@ -1,10 +1,10 @@
-import { describe, it, mock } from 'node:test';
-import assert from 'node:assert';
-import { CUSTOM_COMPONENTS } from '../index.ts';
 import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/validator/document-upload-validator.js';
-import RepresentationAttachments from './question.js';
-import { ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '../../representations/question-utils.js';
+import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
 import nunjucks from 'nunjucks';
+import { ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '../../representations/question-utils.js';
+import { CUSTOM_COMPONENTS } from '../index.ts';
+import RepresentationAttachments from './question.js';
 
 describe('./lib/forms/custom-components/representation-attachments/question.js', () => {
 	const question = new RepresentationAttachments({

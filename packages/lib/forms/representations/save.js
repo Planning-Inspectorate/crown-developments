@@ -1,16 +1,16 @@
-import { addSessionData, clearSessionData } from '../../util/session.ts';
-import { viewModelToRepresentationCreateInput } from './view-model.js';
-import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
-import { wrapPrismaError } from '../../util/database.ts';
-import { uniqueReference } from '../../util/random-reference.js';
 import {
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { deleteRepresentationAttachmentsFolder, moveAttachmentsToCaseFolder } from '../../util/handle-attachments.js';
-import { getSubmittedForId } from '../../util/questions.ts';
+import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { getAnswers } from '../../util/answers.js';
+import { wrapPrismaError } from '../../util/database.ts';
+import { deleteRepresentationAttachmentsFolder, moveAttachmentsToCaseFolder } from '../../util/handle-attachments.js';
 import { getStringParam } from '../../util/params.ts';
+import { getSubmittedForId } from '../../util/questions.ts';
+import { uniqueReference } from '../../util/random-reference.js';
+import { addSessionData, clearSessionData } from '../../util/session.ts';
+import { viewModelToRepresentationCreateInput } from './view-model.js';
 
 /**
  * Save representation to the database

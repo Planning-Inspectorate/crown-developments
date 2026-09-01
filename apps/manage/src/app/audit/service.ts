@@ -1,8 +1,8 @@
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
-import type { Logger } from 'pino';
-import { parseMetadata, type AuditEntry, type AuditEvent, type AuditQueryOptions } from './types.ts';
-import type { EntraGroupMembers } from '../../util/entra-groups.ts';
 import { formatDateTime } from '@pins/crowndev-lib/util/audit-formatters.ts';
+import type { Logger } from 'pino';
+import type { EntraGroupMembers } from '../../util/entra-groups.ts';
+import { parseMetadata, type AuditEntry, type AuditEvent, type AuditQueryOptions } from './types.ts';
 
 /**
  * Builds the audit service used to record and retrieve case history events.

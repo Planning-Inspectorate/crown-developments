@@ -1,18 +1,4 @@
-import {
-	createQuestions,
-	questionClasses,
-	COMPONENT_TYPES,
-	RequiredValidator,
-	type JourneyResponse,
-	SameAnswerValidator,
-	StringValidator,
-	AddressValidator,
-	BOOLEAN_OPTIONS,
-	CoordinatesValidator,
-	NumericValidator,
-	DateValidator,
-	CrossQuestionValidator
-} from '@planning-inspectorate/dynamic-forms';
+import { APPLICATION_TYPES } from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
 	APPLICANT_TYPES,
 	APPLICANT_TYPE_ID,
@@ -20,15 +6,29 @@ import {
 	PRE_APPLICATION_OR_APPLICATIONS,
 	PRE_APPLICATION_OR_APPLICATION_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
-import { APPLICATION_TYPES } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
-import { CREATE_A_CASE_QUESTION_TEXT } from './constants.ts';
-import { createLpaContactQuestion, multiContactQuestions } from '../util/question-factories.ts';
-import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
-import { getApplicantOrganisationOptions } from '../../../../views/cases/util/applicant-organisation-options.ts';
-import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
+import { CUSTOM_COMPONENTS, CUSTOM_COMPONENT_CLASSES } from '@pins/crowndev-lib/forms/custom-components/index.ts';
+import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
+import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
+import {
+	AddressValidator,
+	BOOLEAN_OPTIONS,
+	COMPONENT_TYPES,
+	CoordinatesValidator,
+	CrossQuestionValidator,
+	DateValidator,
+	NumericValidator,
+	RequiredValidator,
+	SameAnswerValidator,
+	StringValidator,
+	createQuestions,
+	questionClasses,
+	type JourneyResponse
+} from '@planning-inspectorate/dynamic-forms';
+import { getApplicantOrganisationOptions } from '../../../../views/cases/util/applicant-organisation-options.ts';
+import { createLpaContactQuestion, multiContactQuestions } from '../util/question-factories.ts';
 import { getApplicantContactsValidator, isApplicationType } from '../util/questions.ts';
+import { CREATE_A_CASE_QUESTION_TEXT } from './constants.ts';
 
 type ApplicantOrg = {
 	id: string;

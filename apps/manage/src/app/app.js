@@ -1,16 +1,16 @@
+import { addLocalsConfiguration } from '#util/config-middleware.js';
+import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
+import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.ts';
+import { cleanEmptyQueryParams, trimEmptyQuery } from '@pins/crowndev-lib/middleware/query-middleware.js';
+import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.ts';
 import bodyParser from 'body-parser';
-import manifest from '../.static/manifest.json' with { type: 'json' };
-import crypto from 'node:crypto';
 import express from 'express';
 import helmet from 'helmet';
-import { buildRouter } from './router.js';
-import { configureNunjucks } from './nunjucks.js';
-import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.ts';
-import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.ts';
-import { addLocalsConfiguration } from '#util/config-middleware.js';
-import { cleanEmptyQueryParams, trimEmptyQuery } from '@pins/crowndev-lib/middleware/query-middleware.js';
 import lusca from 'lusca';
+import crypto from 'node:crypto';
+import manifest from '../.static/manifest.json' with { type: 'json' };
+import { configureNunjucks } from './nunjucks.js';
+import { buildRouter } from './router.js';
 
 /**
  * @param {import('#service').ManageService} service

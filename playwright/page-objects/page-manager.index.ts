@@ -17,8 +17,8 @@ import { ApplicationClassificationPage } from './application-classification.page
 import { ApplicationStagePage } from './application-stage.page.ts';
 import { ApplicationTypePage } from './application-type.page.ts';
 import { CasesPage } from './cases.page.ts';
-import { LoginMicrosoftPage } from './microsoft-login.page.ts';
 import { LPAContactDetailsPage } from './lpa-contact-detail.page.ts';
+import { LoginMicrosoftPage } from './microsoft-login.page.ts';
 import { SecondaryLocalPlanningAuthorityPage } from './secondary-planning-authority.page.ts';
 import { WhichPlanningAuthorityPage } from './which-planning-authority.page.ts';
 

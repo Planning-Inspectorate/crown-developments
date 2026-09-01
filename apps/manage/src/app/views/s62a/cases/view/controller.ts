@@ -1,19 +1,19 @@
 import type { ManageService } from '#service';
+import { getEntraGroupMembers } from '#util/entra-groups.ts';
+import { VIEW_TAB_ID, VIEW_TABS } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
+import { getOptionalStringParams, getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { isUnsafeObjectKey } from '@pins/crowndev-lib/util/session.ts';
+import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
+import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
 import { clearDataFromSession, JourneyResponse, list } from '@planning-inspectorate/dynamic-forms';
+import type { NextFunction, Request, Response } from 'express';
+import { S62A_VIEW_SELECT_INCLUDE } from './constants.ts';
 import { createJourney, JOURNEY_ID } from './journey.ts';
 import { getQuestions } from './questions.ts';
-import { getOptionalStringParams, getStringParam } from '@pins/crowndev-lib/util/params.ts';
-import { VIEW_TAB_ID, VIEW_TABS } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { s62aCaseToViewModel, type S62aCaseViewModel } from './view-model.ts';
-import { isUnsafeObjectKey } from '@pins/crowndev-lib/util/session.ts';
-import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
-import { S62A_VIEW_SELECT_INCLUDE } from './constants.ts';
-import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
-import type { NextFunction, Request, Response } from 'express';
-import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
-import { getEntraGroupMembers } from '#util/entra-groups.ts';
 
 export function buildViewCaseDetails(): AsyncRequestHandler {
 	return async (req, res) => {

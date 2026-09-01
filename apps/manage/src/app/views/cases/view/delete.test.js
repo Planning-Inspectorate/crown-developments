@@ -1,7 +1,7 @@
-import { describe, it, mock } from 'node:test';
-import assert from 'node:assert';
-import { addSuccessBannerFromMessage, buildDeleteManageListItemOnConfirmRemove } from './delete.js';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
+import { addSuccessBannerFromMessage, buildDeleteManageListItemOnConfirmRemove } from './delete.js';
 
 describe('buildDeleteManageListItemOnConfirmRemove', () => {
 	it('should call next without deleting when not on remove confirm step', async () => {

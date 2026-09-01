@@ -1,11 +1,10 @@
+import type { CommonQuestionParams, Question, QuestionViewModel } from '@planning-inspectorate/dynamic-forms';
 import { type ActionView, DateQuestion, ManageListQuestion } from '@planning-inspectorate/dynamic-forms';
-import type { CommonQuestionParams } from '@planning-inspectorate/dynamic-forms';
-import type { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
 import type { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
+import type { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
 import type { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
-import type { Question, QuestionViewModel } from '@planning-inspectorate/dynamic-forms';
-import nunjucks from 'nunjucks';
 import type { Request } from 'express';
+import nunjucks from 'nunjucks';
 import type { TableHeadCell, TableManageListQuestionParameters, TableRowCell } from './types.ts';
 
 type TableQuestionViewData = {

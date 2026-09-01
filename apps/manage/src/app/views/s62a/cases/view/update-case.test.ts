@@ -1,9 +1,9 @@
-import { describe, it, beforeEach } from 'node:test';
-import assert from 'node:assert';
-import { buildS62aUpdateCase } from './update-case.ts';
-import type { Request, Response } from 'express';
 import type { SaveParams } from '@planning-inspectorate/dynamic-forms';
+import type { Request, Response } from 'express';
+import assert from 'node:assert';
+import { beforeEach, describe, it } from 'node:test';
 import type { ManageService } from '../../../../service.js';
+import { buildS62aUpdateCase } from './update-case.ts';
 
 describe('buildS62aUpdateCase', () => {
 	let mockDbSelectCalls: any[];

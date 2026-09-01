@@ -1,11 +1,11 @@
+import type { JourneyResponse, Question } from '@planning-inspectorate/dynamic-forms';
 import {
-	Section,
-	Journey,
-	whenQuestionHasAnswer,
 	BOOLEAN_OPTIONS,
-	ManageListSection
+	Journey,
+	ManageListSection,
+	Section,
+	whenQuestionHasAnswer
 } from '@planning-inspectorate/dynamic-forms';
-import type { Question, JourneyResponse } from '@planning-inspectorate/dynamic-forms';
 import type { Request } from 'express';
 
 export const JOURNEY_ID = 'create-a-case';

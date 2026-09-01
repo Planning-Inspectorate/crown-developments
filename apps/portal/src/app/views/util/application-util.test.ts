@@ -1,5 +1,5 @@
-import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
 import { loadPublishedApplicationOr404, shouldDisplayApplicationUpdatesLink } from './application-util.ts';
 
 describe('application-util', () => {

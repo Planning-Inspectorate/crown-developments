@@ -1,6 +1,6 @@
-import { CrossQuestionValidator } from '@planning-inspectorate/dynamic-forms';
-import { applicantContactsValidationFn } from '@pins/crowndev-lib/validators/applicant-contacts-validator.ts';
 import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import { applicantContactsValidationFn } from '@pins/crowndev-lib/validators/applicant-contacts-validator.ts';
+import { CrossQuestionValidator } from '@planning-inspectorate/dynamic-forms';
 
 export type AppType = (typeof PRE_APPLICATION_OR_APPLICATION_ID)[keyof typeof PRE_APPLICATION_OR_APPLICATION_ID];
 

@@ -1,5 +1,5 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import { getHaveYourSayStatus, HAVE_YOUR_SAY_STATUS } from './util.js';
 
 describe('getHaveYourSayStatus', () => {

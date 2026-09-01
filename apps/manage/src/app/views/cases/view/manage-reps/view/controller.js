@@ -1,21 +1,21 @@
-import { list } from '@planning-inspectorate/dynamic-forms/src/controller.js';
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
-import { createJourney, JOURNEY_ID } from './journey.js';
-import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
-import { representationToManageViewModel } from '@pins/crowndev-lib/forms/representations/view-model.js';
-import { clearRepUpdatedSession, readRepUpdatedSession } from '../edit/controller.js';
-import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
 import {
+	RECEIVED_METHOD_ID,
 	REPRESENTATION_STATUS_ID,
-	REPRESENTATION_SUBMITTED_FOR_ID,
-	RECEIVED_METHOD_ID
+	REPRESENTATION_SUBMITTED_FOR_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { getSubmittedForId } from '@pins/crowndev-lib/util/questions.ts';
-import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
-import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
-import { isSafeRelativeUrl, escapeHtml } from '@pins/crowndev-lib/util/string.ts';
+import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
+import { representationToManageViewModel } from '@pins/crowndev-lib/forms/representations/view-model.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { getStringParam, getStringParams } from '@pins/crowndev-lib/util/params.ts';
+import { getSubmittedForId } from '@pins/crowndev-lib/util/questions.ts';
+import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
+import { escapeHtml, isSafeRelativeUrl } from '@pins/crowndev-lib/util/string.ts';
+import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { list } from '@planning-inspectorate/dynamic-forms/src/controller.js';
+import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
+import { clearRepUpdatedSession, readRepUpdatedSession } from '../edit/controller.js';
+import { createJourney, JOURNEY_ID } from './journey.js';
 
 /**
  * @typedef {import('@pins/crowndev-lib/views/banner/banner-builder').BannerMessage} BannerMessage

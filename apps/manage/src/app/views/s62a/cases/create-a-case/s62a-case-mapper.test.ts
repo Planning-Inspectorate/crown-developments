@@ -1,13 +1,13 @@
-import { describe, it, beforeEach } from 'node:test';
-import assert from 'node:assert';
-import { S62aCaseMapper, type CreateCaseAnswers } from './s62a-case-mapper.ts';
+import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
 	APPLICANT_TYPE_ID,
 	S62A_STATUS_ID,
 	SITE_AREA_UNIT_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
-import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+import assert from 'node:assert';
+import { beforeEach, describe, it } from 'node:test';
+import { S62aCaseMapper, type CreateCaseAnswers } from './s62a-case-mapper.ts';
 
 describe('S62aCaseMapper', () => {
 	const reference = 'S62A/2026/0000001';

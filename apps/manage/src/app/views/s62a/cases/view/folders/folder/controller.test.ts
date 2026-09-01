@@ -1,8 +1,8 @@
-import { describe, it, mock } from 'node:test';
+import type { NextFunction, Request, Response } from 'express';
 import assert from 'node:assert';
-import { buildViewCaseFolder } from './controller.ts';
+import { describe, it, mock } from 'node:test';
 import type { ManageService } from '../../../../../../service.js';
-import type { Request, Response, NextFunction } from 'express';
+import { buildViewCaseFolder } from './controller.ts';
 
 type TemplatePayload = {
 	reference: string;

@@ -1,17 +1,4 @@
-import { Router as createRouter } from 'express';
-import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
-import { buildGetJourney } from '@planning-inspectorate/dynamic-forms/src/middleware/build-get-journey.js';
-import {
-	buildGetJourneyResponseFromSession,
-	buildSaveDataToSession
-} from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
-import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
-import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
-import { buildSave, question, list } from '@planning-inspectorate/dynamic-forms/src/controller.js';
-import { createJourney, JOURNEY_ID } from './journey.js';
-import { viewAddRepresentationSuccessPage, buildSaveRepresentationController } from './save.js';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import multer from 'multer';
+import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
 import {
 	deleteDocumentsController,
 	uploadDocumentsController
@@ -22,9 +9,22 @@ import {
 	MAX_FILE_NUMBER,
 	MAX_FILE_SIZE
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
-import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
+import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/session.js';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { buildSave, list, question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
+import {
+	buildGetJourneyResponseFromSession,
+	buildSaveDataToSession
+} from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
+import { buildGetJourney } from '@planning-inspectorate/dynamic-forms/src/middleware/build-get-journey.js';
+import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
+import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
+import { Router as createRouter } from 'express';
 import lusca from 'lusca';
+import multer from 'multer';
+import { createJourney, JOURNEY_ID } from './journey.js';
+import { buildSaveRepresentationController, viewAddRepresentationSuccessPage } from './save.js';
 
 /**
  * @param {import('#service').ManageService} service

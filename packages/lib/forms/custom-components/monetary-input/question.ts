@@ -1,15 +1,15 @@
-import { BOOLEAN_OPTIONS, OptionsQuestion } from '@planning-inspectorate/dynamic-forms';
-import { formatFee } from '../../../util/numbers.ts';
 import type {
-	Question,
-	QuestionViewModel,
-	QuestionParameters,
-	Section,
 	Journey,
 	JourneyResponse,
-	RouteParams
+	Question,
+	QuestionParameters,
+	QuestionViewModel,
+	RouteParams,
+	Section
 } from '@planning-inspectorate/dynamic-forms';
+import { BOOLEAN_OPTIONS, OptionsQuestion } from '@planning-inspectorate/dynamic-forms';
 import type { Request } from 'express';
+import { formatFee } from '../../../util/numbers.ts';
 
 export type MonetaryInputQuestionProps = Omit<QuestionParameters, 'viewFolder'> & {
 	conditionalAmountFieldName: string;

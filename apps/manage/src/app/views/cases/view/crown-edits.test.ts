@@ -1,9 +1,9 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-import { editsToDatabaseUpdates as editsToDatabaseUpdatesForCaseType } from './view-model.ts';
-import { crownEditsToDatabaseUpdates } from './crown-edits.ts';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import { crownEditsToDatabaseUpdates } from './crown-edits.ts';
 import type { CrownDevelopmentSaveModel, CrownDevelopmentViewModel } from './view-model.ts';
+import { editsToDatabaseUpdates as editsToDatabaseUpdatesForCaseType } from './view-model.ts';
 
 /**
  * These tests exercise the Crown mapping via the orchestrator with the Crown case-type updater.

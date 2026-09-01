@@ -1,10 +1,10 @@
-import { randomInt } from 'node:crypto';
 import { expect, type Page } from '@playwright/test';
+import { randomInt } from 'node:crypto';
 
-import { PAGE_TIMEOUTS } from '../support/test-timeouts.ts';
 import { CommonComponent } from '../page-components/common.component.ts';
-import { runPageValidation } from '../page-utilities/page-validation.utility.ts';
 import { AGENT_ORGANISATION_NAME } from '../page-strings/create-case.strings.ts';
+import { runPageValidation } from '../page-utilities/page-validation.utility.ts';
+import { PAGE_TIMEOUTS } from '../support/test-timeouts.ts';
 import { type PageDisplayOptions } from '../types/page-options.type.ts';
 
 const DEFAULT_TIMEOUT = PAGE_TIMEOUTS.pages.agentOrganisationName;

@@ -1,5 +1,5 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import { addressToViewModel, isAddress, isSameAddress, viewModelToAddressUpdateInput } from './address.ts';
 
 describe('addressToViewModel', () => {

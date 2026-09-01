@@ -3,13 +3,13 @@ import {
 	PRE_APPLICATION_OR_APPLICATION_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import {
-	type Question,
-	Section,
+	BOOLEAN_OPTIONS,
 	Journey,
 	type JourneyResponse,
-	whenQuestionHasAnswer,
-	BOOLEAN_OPTIONS,
-	ManageListSection
+	ManageListSection,
+	type Question,
+	Section,
+	whenQuestionHasAnswer
 } from '@planning-inspectorate/dynamic-forms';
 
 import type { Request } from 'express';

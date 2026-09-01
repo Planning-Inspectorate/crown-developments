@@ -1,10 +1,10 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
-import { createLpaContactQuestion, multiContactQuestions } from './question-factories.ts';
-import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
-import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
-import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import { HIDDEN_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
+import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
+import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
+import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import { createLpaContactQuestion, multiContactQuestions } from './question-factories.ts';
 
 describe('createLpaContactQuestion factory', () => {
 	it('should generate correct configuration for the primary LPA (isSecondary = false)', () => {

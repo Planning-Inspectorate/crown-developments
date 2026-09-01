@@ -1,5 +1,5 @@
-import { sentenceCase } from '@pins/crowndev-lib/util/string.ts';
 import { isDefined } from '@pins/crowndev-lib/util/boolean.ts';
+import { sentenceCase } from '@pins/crowndev-lib/util/string.ts';
 
 /**
  * Returns applicant organisation options for use in select/radio controls.

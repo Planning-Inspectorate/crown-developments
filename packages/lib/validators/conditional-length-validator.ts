@@ -1,6 +1,6 @@
-import { body } from 'express-validator';
-import type { ValidationChain } from 'express-validator';
 import BaseValidator from '@planning-inspectorate/dynamic-forms/src/validator/base-validator.js';
+import type { ValidationChain } from 'express-validator';
+import { body } from 'express-validator';
 
 interface OptionConditional {
 	fieldName: string;

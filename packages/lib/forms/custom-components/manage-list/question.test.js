@@ -1,10 +1,10 @@
-import { describe, it, mock } from 'node:test';
-import assert from 'node:assert';
-import CustomManageListQuestion from './question.js';
+import { ManageListSection } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-section.js';
 import { mockJourney } from '@planning-inspectorate/dynamic-forms/test/mock/journey.js';
 import { mockRandomUUID } from '@planning-inspectorate/dynamic-forms/test/mock/uuid.js';
-import { ManageListSection } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-section.js';
+import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
 import nunjucks from 'nunjucks';
+import CustomManageListQuestion from './question.js';
 
 describe('ManageApplicantsQuestion', () => {
 	const TITLE = 'Applicants';

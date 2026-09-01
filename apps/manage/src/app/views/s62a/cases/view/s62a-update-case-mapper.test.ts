@@ -1,24 +1,24 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import {
-	SITE_AREA_UNIT_ID,
-	APPLICANT_TYPE_ID,
-	PRE_APPLICATION_ADVICE_ID,
-	OUTCOME_TYPE_ID,
-	DECISION_OUTCOME_ID,
-	SITE_VISIT_TYPE_ID,
-	WASTE_TYPE_ID,
-	WASTE_UNIT_ID,
-	OCCUPANCY_TYPE_ID,
-	UNIT_TYPE_ID,
-	HOUSING_TYPE_ID
-} from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import {
+	APPLICANT_TYPE_ID,
+	DECISION_OUTCOME_ID,
+	HOUSING_TYPE_ID,
+	OCCUPANCY_TYPE_ID,
+	OUTCOME_TYPE_ID,
+	PRE_APPLICATION_ADVICE_ID,
+	SITE_AREA_UNIT_ID,
+	SITE_VISIT_TYPE_ID,
+	UNIT_TYPE_ID,
+	WASTE_TYPE_ID,
+	WASTE_UNIT_ID
+} from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
-import { S62aCaseUpdateMapper, type UpdateCaseAnswers } from './s62a-update-case-mapper.ts';
 import type { Address } from '@planning-inspectorate/dynamic-forms';
 import { addBusinessDays } from 'date-fns';
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import { S62aCaseUpdateMapper, type UpdateCaseAnswers } from './s62a-update-case-mapper.ts';
 import type { S62aCaseViewModel } from './view-model.ts';
 
 describe('S62aCaseUpdateMapper', () => {

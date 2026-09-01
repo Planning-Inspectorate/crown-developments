@@ -1,6 +1,6 @@
+import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import { MapCache } from './map-cache.js';
-import assert from 'node:assert';
 
 describe('MapCache', () => {
 	it('should add entries with the current date', (ctx) => {

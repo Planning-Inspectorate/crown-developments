@@ -1,24 +1,24 @@
+import { fetchRedactionSuggestions, highlightRedactionSuggestions } from '#util/azure-language-redaction.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { forwardStreamContents, getDriveItemDownloadUrl } from '@pins/crowndev-lib/documents/utils.js';
+import { ALLOWED_MIME_TYPES } from '@pins/crowndev-lib/forms/representations/question-utils.js';
 import { ACCEPT_AND_REDACT } from '@pins/crowndev-lib/forms/representations/questions.js';
-import { renderRepresentation, validateParams } from '../view/controller.js';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import {
 	addSessionData,
 	clearSessionData,
 	isUnsafeObjectKey,
 	readSessionData
 } from '@pins/crowndev-lib/util/session.ts';
-import { createRedactJourney } from './journey.js';
-import { JOURNEY_ID } from '../view/journey.js';
-import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
-import { REDACT_CHARACTER } from '@planning-inspectorate/dynamic-forms/src/components/text-entry-redact/question.js';
-import { expressValidationErrorsToGovUkErrorList } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { forwardStreamContents, getDriveItemDownloadUrl } from '@pins/crowndev-lib/documents/utils.js';
-import { ALLOWED_MIME_TYPES } from '@pins/crowndev-lib/forms/representations/question-utils.js';
 import { representationAttachmentsFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
-import { fetchRedactionSuggestions, highlightRedactionSuggestions } from '#util/azure-language-redaction.js';
-import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { REDACT_CHARACTER } from '@planning-inspectorate/dynamic-forms/src/components/text-entry-redact/question.js';
+import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
+import { expressValidationErrorsToGovUkErrorList } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
+import { renderRepresentation, validateParams } from '../view/controller.js';
+import { JOURNEY_ID } from '../view/journey.js';
+import { createRedactJourney } from './journey.js';
 
 /**
  * @typedef {import('express').Handler} Handler

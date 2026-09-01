@@ -1,5 +1,7 @@
-import { describe, it } from 'node:test';
+import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import {
 	applicationListViewFormattingFunction,
 	applicationUpdateToTimelineItem,
@@ -7,8 +9,6 @@ import {
 	representationTitle,
 	representationToViewModel
 } from './view-model.ts';
-import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
-import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('view-model', () => {
 	describe('crownDevelopmentToViewModel', () => {

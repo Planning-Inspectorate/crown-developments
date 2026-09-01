@@ -1,6 +1,13 @@
-import { describe, it, mock } from 'node:test';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { ACCEPT_AND_REDACT, getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
+import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
+import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import assert from 'node:assert';
 import EventEmitter from 'node:events';
+import { ReadableStream } from 'node:stream/web';
+import { describe, it, mock } from 'node:test';
+import { createJourney } from '../view/journey.js';
 import {
 	buildReviewControllers,
 	buildViewDocument,
@@ -10,13 +17,6 @@ import {
 	viewRepresentationAwaitingReview,
 	viewReviewRedirect
 } from './controller.js';
-import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
-import { ACCEPT_AND_REDACT, getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
-import { createJourney } from '../view/journey.js';
-import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
-import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
-import { ReadableStream } from 'node:stream/web';
 
 describe('controller', () => {
 	describe('viewRepresentationAwaitingReview', () => {

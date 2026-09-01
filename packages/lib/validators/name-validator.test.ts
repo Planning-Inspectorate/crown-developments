@@ -1,5 +1,5 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import NameValidator from './name-validator.ts';
 
 async function getValidationErrors(value: string, question: { fieldName: string }, label: string) {

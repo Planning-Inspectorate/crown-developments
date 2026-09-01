@@ -1,9 +1,9 @@
-import { describe, it, mock } from 'node:test';
-import assert from 'node:assert/strict';
+import type { NextFunction, Request, Response } from 'express';
 import express from 'express';
+import assert from 'node:assert/strict';
+import { describe, it, mock } from 'node:test';
 import supertest from 'supertest';
 import { initContentSecurityPolicyMiddlewares } from './csp-middleware.ts';
-import type { Request, Response, NextFunction } from 'express';
 
 describe('csp-middleware', () => {
 	function createMockReqRes() {

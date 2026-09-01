@@ -1,11 +1,11 @@
+import { DefaultAzureCredential } from '@azure/identity';
+import { Client } from '@microsoft/microsoft-graph-client';
+import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js';
 import { initDatabaseClient } from '@pins/crowndev-database';
+import { initGovNotify } from '@pins/crowndev-lib/govnotify/index.ts';
 import { initRedis } from '@pins/crowndev-lib/redis/index.ts';
 import { initLogger } from '@pins/crowndev-lib/util/logger.ts';
-import { Client } from '@microsoft/microsoft-graph-client';
-import { DefaultAzureCredential } from '@azure/identity';
-import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js';
 import { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
-import { initGovNotify } from '@pins/crowndev-lib/govnotify/index.ts';
 
 /**
  * This class encapsulates all the services and clients for the application

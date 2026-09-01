@@ -1,8 +1,6 @@
 import type { ManageService } from '#service';
-import { Router as createRouter } from 'express';
-import { buildGetJourneyMiddleware, buildViewCaseDetails } from './controller.ts';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { VIEW_TAB_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import {
 	buildGetJourneyResponseFromSession,
 	buildSave,
@@ -11,11 +9,13 @@ import {
 	validate,
 	validationErrorHandler
 } from '@planning-inspectorate/dynamic-forms';
-import { JOURNEY_ID } from './journey.ts';
-import { buildS62aUpdateCase } from './update-case.ts';
+import { Router as createRouter } from 'express';
+import { buildGetJourneyMiddleware, buildViewCaseDetails } from './controller.ts';
 import { buildDeleteS62aManageListItemOnConfirmRemove } from './delete.ts';
 import { createRoutes as createCaseFoldersRoutes } from './folders/index.ts';
+import { JOURNEY_ID } from './journey.ts';
 import { createRoutes as createRepsRoutes } from './manage-reps/index.ts';
+import { buildS62aUpdateCase } from './update-case.ts';
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });

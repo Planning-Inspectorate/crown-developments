@@ -1,16 +1,16 @@
-import { describe, it } from 'node:test';
+import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import {
-	hasOrganisationWriteEdits,
+	buildAgentContactOrganisationUpdates,
+	buildAgentOrganisationAddressUpdates,
+	buildAgentOrganisationNameUpdates,
+	buildApplicantContactOrganisationUpdates,
+	buildApplicantOrganisationUpdates,
 	buildCaseUpdateWritePlan,
 	executeCaseUpdateWritePlan,
-	buildAgentOrganisationNameUpdates,
-	buildAgentOrganisationAddressUpdates,
-	buildAgentContactOrganisationUpdates,
-	buildApplicantOrganisationUpdates,
-	buildApplicantContactOrganisationUpdates
+	hasOrganisationWriteEdits
 } from './linked-case-updates.ts';
-import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('organisation/contact updates', () => {
 	describe('hasOrganisationWriteEdits', () => {

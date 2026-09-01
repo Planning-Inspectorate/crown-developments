@@ -1,5 +1,5 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import { FILE_NAMES_REGEX } from './upload-utils.ts';
 
 describe('upload-utils', () => {

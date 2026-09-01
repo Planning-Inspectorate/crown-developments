@@ -1,14 +1,9 @@
-import { describe, it, beforeEach, mock, afterEach } from 'node:test';
-import assert from 'node:assert';
-import MultiFileUploadQuestion from './question.ts';
-import {
-	type Journey,
-	type JourneyResponse,
-	type Section,
-	type RouteParams
-} from '@planning-inspectorate/dynamic-forms';
+import { type Journey, type JourneyResponse, type Section } from '@planning-inspectorate/dynamic-forms';
 import type { Request } from 'express';
+import assert from 'node:assert';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import nunjucks from 'nunjucks';
+import MultiFileUploadQuestion from './question.ts';
 
 let mockJourney: Journey;
 let mockSection: Section;

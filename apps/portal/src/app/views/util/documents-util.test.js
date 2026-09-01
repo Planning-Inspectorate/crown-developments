@@ -1,8 +1,8 @@
-import { describe, it, mock } from 'node:test';
-import assert from 'node:assert';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
-import { ReadableStream } from 'node:stream/web';
+import assert from 'node:assert';
 import EventEmitter from 'node:events';
+import { ReadableStream } from 'node:stream/web';
+import { describe, it, mock } from 'node:test';
 import { buildDocumentView } from './documents-util.js';
 
 describe('documents-util', () => {

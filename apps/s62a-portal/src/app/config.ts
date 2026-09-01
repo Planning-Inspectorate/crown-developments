@@ -1,7 +1,7 @@
-import path from 'node:path';
-import { loadEnvFile } from 'node:process';
 import type { BaseConfig } from '@pins/crowndev-lib/app/config-types.d.ts';
 import { parseSessionSecrets } from '@pins/crowndev-lib/util/session.ts';
+import path from 'node:path';
+import { loadEnvFile } from 'node:process';
 
 export interface Config extends BaseConfig {
 	cacheControl: {

@@ -1,19 +1,4 @@
-import {
-	AddressValidator,
-	CoordinatesValidator,
-	DateValidator,
-	DateTimeValidator,
-	RequiredValidator,
-	SameAnswerValidator,
-	StringValidator,
-	NumericValidator,
-	createQuestions,
-	questionClasses,
-	CrossQuestionValidator,
-	COMPONENT_TYPES,
-	type SelectableOption,
-	type Question
-} from '@planning-inspectorate/dynamic-forms';
+import type { EntraGroupMembers } from '#util/entra-groups.ts';
 import {
 	APPLICATION_DECISION_OUTCOME,
 	APPLICATION_PROCEDURE,
@@ -24,27 +9,42 @@ import {
 	CATEGORIES,
 	ORGANISATION_ROLES_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
-import {
-	dateQuestion,
-	eventQuestions,
-	subCategoriesToRadioOptions,
-	CIL_DATA,
-	type Reference
-} from './question-utils.ts';
-import CustomDatePeriodValidator from '@pins/crowndev-lib/validators/custom-date-period-validator.js';
-import { getLpaOptions, referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.ts';
+import CostsApplicationsCommentValidator from '@pins/crowndev-lib/forms/custom-components/costs-applications-comment/costs-applications-comment-validator.js';
+import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
 import {
 	type CrownQuestionProps,
 	CUSTOM_COMPONENT_CLASSES,
 	CUSTOM_COMPONENTS
 } from '@pins/crowndev-lib/forms/custom-components/index.ts';
-import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
-import CostsApplicationsCommentValidator from '@pins/crowndev-lib/forms/custom-components/costs-applications-comment/costs-applications-comment-validator.js';
 import CustomManageListValidator from '@pins/crowndev-lib/forms/custom-components/manage-list/validator.js';
-import { multiContactQuestions } from '../util/question-utils.ts';
+import { getLpaOptions, referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.ts';
 import { getApplicantContactsValidator } from '@pins/crowndev-lib/validators/applicant-contacts-validator.ts';
+import CustomDatePeriodValidator from '@pins/crowndev-lib/validators/custom-date-period-validator.js';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
-import type { EntraGroupMembers } from '#util/entra-groups.ts';
+import {
+	AddressValidator,
+	COMPONENT_TYPES,
+	CoordinatesValidator,
+	createQuestions,
+	CrossQuestionValidator,
+	DateTimeValidator,
+	DateValidator,
+	NumericValidator,
+	type Question,
+	questionClasses,
+	RequiredValidator,
+	SameAnswerValidator,
+	type SelectableOption,
+	StringValidator
+} from '@planning-inspectorate/dynamic-forms';
+import { multiContactQuestions } from '../util/question-utils.ts';
+import {
+	CIL_DATA,
+	dateQuestion,
+	eventQuestions,
+	type Reference,
+	subCategoriesToRadioOptions
+} from './question-utils.ts';
 
 interface QuestionOverrides {
 	isApplicationTypePlanningOrLbc: boolean;

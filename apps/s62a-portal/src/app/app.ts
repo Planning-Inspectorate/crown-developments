@@ -1,8 +1,4 @@
 import type { S62APortalService } from '#service';
-import { configureNunjucks } from './nunjucks.ts';
-import { buildRouter } from './router.ts';
-import bodyParser from 'body-parser';
-import express, { type Express } from 'express';
 import {
 	type HelmetCspDirectives,
 	initContentSecurityPolicyMiddlewares
@@ -10,8 +6,12 @@ import {
 import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.ts';
 import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.ts';
+import bodyParser from 'body-parser';
+import express, { type Express } from 'express';
 import manifest from '../.static/manifest.json' with { type: 'json' };
 import { addLocalsConfiguration } from '../util/config-middleware.ts';
+import { configureNunjucks } from './nunjucks.ts';
+import { buildRouter } from './router.ts';
 
 const manifestEntries = manifest as Record<string, string>;
 

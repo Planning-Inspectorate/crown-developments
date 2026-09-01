@@ -1,16 +1,16 @@
 import { DOCUMENT_CATEGORIES } from '@pins/crowndev-lib/documents/categories.ts';
-import { normalizeToArray } from '@pins/crowndev-lib/util/array.ts';
+import type {
+	CheckboxFilter,
+	CheckboxItem,
+	FilterSection,
+	QueryFilters
+} from '@pins/crowndev-lib/filters/filter-types.ts';
 import {
 	buildDateFilterSection,
 	getFilterQueryItems,
 	hasQueries as hasQueriesUtil
 } from '@pins/crowndev-lib/filters/filter-utils.ts';
-import type {
-	CheckboxItem,
-	CheckboxFilter,
-	FilterSection,
-	QueryFilters
-} from '@pins/crowndev-lib/filters/filter-types.ts';
+import { normalizeToArray } from '@pins/crowndev-lib/util/array.ts';
 
 export type CategoryCounts = Record<string, number>;
 

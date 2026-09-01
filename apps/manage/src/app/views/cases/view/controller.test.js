@@ -1,17 +1,17 @@
-import { describe, it, mock } from 'node:test';
+import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
+import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
 import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
+import { configureNunjucks } from '../../../nunjucks.js';
 import {
 	buildGetJourneyMiddleware,
 	buildViewCaseDetails,
-	validateIdFormat,
-	readCaseUpdatedSession,
 	clearCaseUpdatedSession,
-	getInvalidStateBannerHtml
+	getInvalidStateBannerHtml,
+	readCaseUpdatedSession,
+	validateIdFormat
 } from './controller.ts';
-import { configureNunjucks } from '../../../nunjucks.js';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.js';
-import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
-import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('case details', () => {
 	const mockGetEntraClient = mock.fn(() => null);

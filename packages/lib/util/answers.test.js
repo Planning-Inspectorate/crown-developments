@@ -1,6 +1,6 @@
+import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import { getAnswers } from './answers.js';
-import assert from 'node:assert';
 
 describe('getAnswers', () => {
 	it('returns a view model with correct properties when address is provided', () => {

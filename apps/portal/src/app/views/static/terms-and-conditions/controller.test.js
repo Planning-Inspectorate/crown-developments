@@ -1,5 +1,5 @@
-import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
+import { describe, it, mock } from 'node:test';
 import { buildTermsAndConditionsPage } from './controller.js';
 
 describe('Terms and Conditions page controller', () => {

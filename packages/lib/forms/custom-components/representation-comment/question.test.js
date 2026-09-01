@@ -1,5 +1,5 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { describe, it } from 'node:test';
 import TextEntryDetailsQuestion from './question.js';
 
 describe('./src/dynamic-forms/components/text-entry-details/question.js', () => {

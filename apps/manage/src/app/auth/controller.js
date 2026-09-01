@@ -1,7 +1,7 @@
-import { promisify } from 'node:util';
-import { randomUUID } from 'node:crypto';
-import * as authSession from './session.service.js';
 import { isValidRedirectUri } from '@pins/crowndev-lib/util/uri.ts';
+import { randomUUID } from 'node:crypto';
+import { promisify } from 'node:util';
+import * as authSession from './session.service.js';
 
 /**
  * Phase 1 – Navigate to external MSAL signin url

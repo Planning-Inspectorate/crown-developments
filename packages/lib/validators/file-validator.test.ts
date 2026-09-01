@@ -1,8 +1,8 @@
-import { describe, it, mock } from 'node:test';
+import 'multer';
 import assert from 'node:assert';
 import { Readable } from 'node:stream';
+import { describe, it, mock } from 'node:test';
 import { FileValidator, type ValidationConfig } from './file-validator.ts';
-import 'multer';
 
 const createMockFile = (
 	name: string,

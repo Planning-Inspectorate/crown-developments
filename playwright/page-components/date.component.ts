@@ -1,12 +1,12 @@
 import { expect, type Page } from '@playwright/test';
 
-import { CommonComponent } from './common.component.ts';
 import {
 	generateRandomDate,
 	generateRandomDateByDayOffset,
 	type DateDirection,
 	type DateField
 } from '../page-utilities/generate.utility.ts';
+import { CommonComponent } from './common.component.ts';
 
 type DatePart = 'day' | 'month' | 'year';
 

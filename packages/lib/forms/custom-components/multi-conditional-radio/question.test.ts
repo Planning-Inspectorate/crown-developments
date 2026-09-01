@@ -1,7 +1,7 @@
-import { describe, it, beforeEach } from 'node:test';
-import assert from 'node:assert';
-import MultiConditionalRadioQuestion, { type MultiConditionalRadioQuestionProps } from './question.ts';
 import { JourneyResponse, type Journey } from '@planning-inspectorate/dynamic-forms';
+import assert from 'node:assert';
+import { beforeEach, describe, it } from 'node:test';
+import MultiConditionalRadioQuestion, { type MultiConditionalRadioQuestionProps } from './question.ts';
 
 let mockJourney: Journey;
 let question: MultiConditionalRadioQuestion;

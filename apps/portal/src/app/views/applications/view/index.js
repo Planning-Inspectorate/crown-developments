@@ -1,14 +1,14 @@
-import { Router as createRouter } from 'express';
-import { buildApplicationDocumentsPage } from './documents/controller.ts';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import { buildApplicationInformationPage } from './application-info/controller.js';
-import { createHaveYourSayRoutes } from './have-your-say/index.js';
-import { createWrittenRepresentationsRoutes } from './written-representations/index.js';
-import { buildDocumentView } from '../../util/documents-util.js';
+import { Router as createRouter } from 'express';
 import { buildDetailedInformationPage } from '../../static/detailed-information/controller.js';
-import { buildApplicationUpdatesPage } from './application-updates/controller.js';
-import { checkIfExpiredMiddleware, checkIfWithdrawnOrExpiredMiddleware } from './utils/middleware.ts';
 import { buildCachingDynamicContentMiddleware } from '../../util/caching-middleware.js';
+import { buildDocumentView } from '../../util/documents-util.js';
+import { buildApplicationInformationPage } from './application-info/controller.js';
+import { buildApplicationUpdatesPage } from './application-updates/controller.js';
+import { buildApplicationDocumentsPage } from './documents/controller.ts';
+import { createHaveYourSayRoutes } from './have-your-say/index.js';
+import { checkIfExpiredMiddleware, checkIfWithdrawnOrExpiredMiddleware } from './utils/middleware.ts';
+import { createWrittenRepresentationsRoutes } from './written-representations/index.js';
 
 export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });

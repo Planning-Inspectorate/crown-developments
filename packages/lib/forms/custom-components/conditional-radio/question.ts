@@ -1,5 +1,5 @@
+import type { OptionsQuestionParameters, Question } from '@planning-inspectorate/dynamic-forms';
 import { RadioQuestion } from '@planning-inspectorate/dynamic-forms';
-import type { Question, OptionsQuestionParameters } from '@planning-inspectorate/dynamic-forms';
 
 export type ConditionalRadioQuestionProps = OptionsQuestionParameters & {
 	conditionalTriggerValue: string;

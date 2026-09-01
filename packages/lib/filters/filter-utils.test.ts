@@ -1,7 +1,7 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { sanitiseQueryToStringArray, getFilterQueryItems, hasQueries } from './filter-utils.ts';
+import { describe, it } from 'node:test';
 import type { FilterSection } from './filter-types.ts';
+import { getFilterQueryItems, hasQueries, sanitiseQueryToStringArray } from './filter-utils.ts';
 
 describe('filter-utils', () => {
 	describe('sanitiseQueryToStringArray', () => {

@@ -1,5 +1,5 @@
-import { type ContactDetails } from '../page-components/contact-details.component.ts';
 import { type UkAddress } from '../page-components/address.component.ts';
+import { type ContactDetails } from '../page-components/contact-details.component.ts';
 import { type ApplicantUsingAgentOption } from '../page-objects/applicant-using-agent.page.ts';
 import { type ApplicationClassificationOption } from '../page-objects/application-classification.page.ts';
 import { type ApplicationTypeOption } from '../page-objects/application-type.page.ts';

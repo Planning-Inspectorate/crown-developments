@@ -1,19 +1,19 @@
 import {
-	Journey,
-	Section,
-	ManageListSection,
-	questionHasAnswer,
-	whenQuestionHasAnswer,
-	questionHasNonEmptyStringAnswer,
-	yesNoToBoolean
-} from '@planning-inspectorate/dynamic-forms';
-import {
 	APPLICATION_PROCEDURE_ID,
 	APPLICATION_SUB_TYPE_ID,
 	APPLICATION_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
-import type { Question, JourneyResponse } from '@planning-inspectorate/dynamic-forms';
+import type { JourneyResponse, Question } from '@planning-inspectorate/dynamic-forms';
+import {
+	Journey,
+	ManageListSection,
+	questionHasAnswer,
+	questionHasNonEmptyStringAnswer,
+	Section,
+	whenQuestionHasAnswer,
+	yesNoToBoolean
+} from '@planning-inspectorate/dynamic-forms';
 import type { Request } from 'express';
 
 export const JOURNEY_ID = 'case-details';
