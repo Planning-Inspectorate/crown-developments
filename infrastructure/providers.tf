@@ -17,7 +17,7 @@ terraform {
     }
     random = {
       source  = "hashicorp/random"
-      version = "3.8.1"
+      version = "3.9.0"
     }
   }
   required_version = ">= 1.11.0, < 1.16.0"
