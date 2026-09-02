@@ -1,6 +1,6 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { buildGetJourneyMiddleware } from './controller.ts';
+import { buildGetJourneyMiddleware, residentialPromptMessage } from './controller.ts';
 import type { ManageService } from '../../../../service.js';
 import type { Request, Response } from 'express';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
@@ -9,7 +9,9 @@ import {
 	UNIT_TYPES,
 	UNIT_TYPES_BY_OCCUPANCY
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
-import { Journey, Question } from '@planning-inspectorate/dynamic-forms';
+import { BOOLEAN_OPTIONS, Journey, Question } from '@planning-inspectorate/dynamic-forms';
+import type { ResidentialHousingItem } from './view-model.ts';
+import type { ResidentialAnswers } from '../util/residential-totals.ts';
 
 type HousingInclude = {
 	include: { HousingType: boolean; OccupancyType: boolean; UnitType: boolean };
@@ -332,6 +334,118 @@ describe('S62A Controller Middleware', () => {
 					assert.strictEqual(answers.totalExistingUnits, undefined);
 					assert.strictEqual(answers.totalNetGainOrLossOfUnits, undefined);
 				});
+			});
+		});
+	});
+
+	describe('residentialPromptMessage', () => {
+		const id = 'a4f3e2d1-0000-4000-8000-000000000000';
+		const residentialUrl = `/s62a/cases/${id}/residential`;
+
+		/** A saved housing entry with four units on it. */
+		const housingEntry = (overrides: Partial<ResidentialHousingItem> = {}): ResidentialHousingItem => ({
+			id: 'housing-1',
+			occupancyTypeId: OCCUPANCY_TYPE_ID.MARKET_HOUSING,
+			unitTypeId: UNIT_TYPES[0].id,
+			bedroomsUnknown: '',
+			bedroomsOne: '4',
+			bedroomsTwo: '',
+			bedroomsThree: '',
+			bedroomsFourPlus: '',
+			...overrides
+		});
+
+		/** The prompt for a set of answers, with the main gate open. */
+		const promptFor = (overrides: Partial<ResidentialAnswers> = {}) =>
+			residentialPromptMessage({ hasResidentialUnitsChange: BOOLEAN_OPTIONS.YES, ...overrides }, id);
+
+		/** The prompt, failing the test if there wasn't one. */
+		const requirePrompt = (overrides: Partial<ResidentialAnswers> = {}) => {
+			const prompt = promptFor(overrides);
+			assert.ok(prompt, 'expected a prompt');
+			return prompt;
+		};
+
+		describe('when there is nothing to prompt for', () => {
+			it('returns null before the user has started', () => {
+				assert.strictEqual(promptFor(), null);
+			});
+
+			it('returns null when both sides are known', () => {
+				assert.strictEqual(
+					promptFor({ hasExistingHousing: BOOLEAN_OPTIONS.NO, hasProposedHousing: BOOLEAN_OPTIONS.NO }),
+					null
+				);
+			});
+
+			it('returns null when both sides have entries', () => {
+				assert.strictEqual(
+					promptFor({
+						hasExistingHousing: BOOLEAN_OPTIONS.YES,
+						manageExistingHousing: [housingEntry()],
+						hasProposedHousing: BOOLEAN_OPTIONS.YES,
+						manageProposedHousing: [housingEntry({ id: 'housing-2' })]
+					}),
+					null
+				);
+			});
+		});
+
+		describe('which side it prompts for', () => {
+			it('prompts for proposed when existing is answered No', () => {
+				assert.match(promptFor({ hasExistingHousing: BOOLEAN_OPTIONS.NO }) ?? '', /Add proposed housing/);
+			});
+
+			it('prompts for proposed when existing has entries', () => {
+				const prompt = requirePrompt({
+					hasExistingHousing: BOOLEAN_OPTIONS.YES,
+					manageExistingHousing: [housingEntry()]
+				});
+				assert.match(prompt, /Add proposed housing/);
+			});
+
+			it('prompts for existing when proposed is the known side', () => {
+				const prompt = requirePrompt({ hasProposedHousing: BOOLEAN_OPTIONS.NO });
+				assert.match(prompt, /Add existing housing/);
+				assert.ok(prompt.includes(`${residentialUrl}/existing/`));
+			});
+		});
+
+		describe('where it links to', () => {
+			it('links to the gating question when the outstanding side has not been asked', () => {
+				const prompt = requirePrompt({ hasExistingHousing: BOOLEAN_OPTIONS.NO });
+				assert.ok(prompt.includes(`href="${residentialUrl}/proposed/has-proposed"`));
+			});
+
+			it('skips the gating question and links to the add-to-list once the gate is Yes', () => {
+				const prompt = requirePrompt({
+					hasExistingHousing: BOOLEAN_OPTIONS.NO,
+					hasProposedHousing: BOOLEAN_OPTIONS.YES,
+					manageProposedHousing: []
+				});
+				assert.ok(prompt.includes(`href="${residentialUrl}/proposed/housing"`));
+			});
+
+			it('names the gating question after the side it belongs to', () => {
+				const prompt = requirePrompt({ hasProposedHousing: BOOLEAN_OPTIONS.NO });
+				assert.ok(prompt.includes(`href="${residentialUrl}/existing/has-existing"`));
+			});
+		});
+
+		describe('the message itself', () => {
+			it('is a govuk link', () => {
+				const prompt = requirePrompt({ hasExistingHousing: BOOLEAN_OPTIONS.NO });
+				assert.ok(prompt.includes('class="govuk-link"'));
+			});
+
+			it('says what answering will produce', () => {
+				const prompt = requirePrompt({ hasExistingHousing: BOOLEAN_OPTIONS.NO });
+				assert.ok(prompt.endsWith('to calculate Total net gain or loss of residential units'));
+			});
+
+			it('carries the case id, so the link is scoped to this case', () => {
+				const prompt = requirePrompt({ hasExistingHousing: BOOLEAN_OPTIONS.NO });
+				assert.ok(prompt.includes(`/s62a/cases/${id}/`));
 			});
 		});
 	});

@@ -10,7 +10,8 @@ import {
 	escapeHtml,
 	insertWbr,
 	formatStatusTag,
-	stringToKebab
+	stringToKebab,
+	lowerFirst
 } from './string.ts';
 
 describe('string util', () => {
@@ -318,6 +319,23 @@ describe('string util', () => {
 		});
 		it('should handle empty strings', () => {
 			assert.strictEqual(formatStatusTag(''), undefined);
+		});
+	});
+	describe('lowerFirst', () => {
+		it('lowercases the leading character', () => {
+			assert.strictEqual(lowerFirst('Market housing'), 'market housing');
+		});
+		it('leaves the rest of the string alone', () => {
+			assert.strictEqual(
+				lowerFirst('Social, affordable or intermediate rent'),
+				'social, affordable or intermediate rent'
+			);
+		});
+		it('leaves an already-lowercase string alone', () => {
+			assert.strictEqual(lowerFirst('market housing'), 'market housing');
+		});
+		it('handles an empty string', () => {
+			assert.strictEqual(lowerFirst(''), '');
 		});
 	});
 });

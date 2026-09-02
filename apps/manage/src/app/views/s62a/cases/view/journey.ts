@@ -70,7 +70,10 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 	};
 
 	/**
-	 * Appends the calculated rows to a section.
+	 * Appends a side's calculated rows to its section, matching them by the side's
+	 * field-name prefix. They're conditional on the side having entries as well as
+	 * being generated only when it does, since the section is built once per request
+	 * but its conditions are evaluated per render.
 	 */
 	const withTotalRows = (section: Section, side: (typeof HOUSING_SIDES)[number]): Section =>
 		totalRows(side).reduce((s, question) => s.addQuestion(question).withCondition(hasHousingEntries(side)), section);
@@ -362,8 +365,14 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 			new Section('', 'residential')
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.RESIDENTIAL && isApplicationCase(response))
 				.addQuestion(questions.residentialUnitsChange)
+				// Calculated, not stored - but there's always exactly one of it, so it's
+				// declared like any other question. The per-side rows below aren't.
 				.addQuestion(questions.totalNetGainOrLossOfUnits)
 				.withCondition(unitsChangeIsYes),
+			// withTotalRows appends the side's calculated rows, which aren't listed here:
+			// there's a total for the side plus one per occupancy present on the case, so
+			// residentialTotalQuestions builds them per request and withTotalRows picks up
+			// whichever exist by field-name prefix.
 			withTotalRows(
 				new Section('Existing residential', 'existing')
 					.withSectionCondition(

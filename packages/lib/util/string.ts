@@ -84,6 +84,18 @@ export function escapeHtml(value: string): string {
 }
 
 /**
+ * Lowercases the leading character so a display name reads mid-sentence, e.g.
+ * 'Market housing' in 'Total market housing units'.
+ *
+ * Only safe for source strings that are sentence case throughout. A name
+ * containing a proper noun ('London Affordable Rent') will be mangled, so
+ * anything using this needs display names that are known to be sentence case.
+ */
+export function lowerFirst(text: string): string {
+	return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
+/**
  * Adds word break opportunities for pathing
  */
 export function insertWbr(str?: string): string {
