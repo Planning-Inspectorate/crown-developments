@@ -5,7 +5,7 @@ import { buildAuditService } from './service.ts';
 import type { AuditEntry } from './types.ts';
 import type { EntraGroupMembers } from '../util/entra-groups.ts';
 import type { GroupMember } from '../graph/types.js';
-import { mockLogger } from '../testing/mock-logger.js';
+import { mockLogger } from '../testing/mock-logger.ts';
 import type { Logger } from 'pino';
 import { CASE_DATA_MODEL } from '../util/types.ts';
 
