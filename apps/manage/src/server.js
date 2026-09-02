@@ -1,5 +1,5 @@
 import { getApp } from './app/app.js';
-import { loadConfig } from './app/config.js';
+import { loadConfig } from './app/config.ts';
 import { ManageService } from '#service';
 
 const config = loadConfig();

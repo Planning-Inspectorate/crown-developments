@@ -64,7 +64,7 @@ export async function viewRepresentationAwaitingReview(req, res) {
  * @returns {ReviewControllers}
  */
 export function buildReviewControllers(service, journeyId) {
-	const { db, logger, getSharePointDrive, textAnalyticsClient } = service;
+	const { db, logger, getSharePointDrive, textAnalyticsClient, isAiAzureLanguageLive } = service;
 	/** @type {ReviewControllers} */
 	const controllers = {
 		async reviewRepresentationSubmission(req, res) {
@@ -289,13 +289,10 @@ export function buildReviewControllers(service, journeyId) {
 
 			// normalise new lines before processing to ensure suggestion offsets align on the front-end
 			const comment = representation.comment?.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-
-			const result = await fetchRedactionSuggestions(
-				comment,
-				textAnalyticsClient,
-				service.azureLanguageCategories,
-				logger
-			);
+			let result = null;
+			if (isAiAzureLanguageLive) {
+				result = await fetchRedactionSuggestions(comment, textAnalyticsClient, service.azureLanguageCategories, logger);
+			}
 
 			// session data takes precedence
 			let commentRedacted = readRepRedactedCommentSession(req, representationRef);
@@ -312,14 +309,16 @@ export function buildReviewControllers(service, journeyId) {
 				redactionSuggestion.accepted =
 					noUserChanges || commentRedacted.charAt(redactionSuggestion.offset) === REDACT_CHARACTER;
 			}
-
+			const highlightedComment = redactionSuggestions.length
+				? highlightRedactionSuggestions(comment, redactionSuggestions)
+				: comment;
 			const response = new JourneyResponse(JOURNEY_ID, 'ref-1', {
-				comment: highlightRedactionSuggestions(comment, redactionSuggestions),
+				comment: highlightedComment,
 				commentRedacted,
 				commentOriginal: comment
 			});
 
-			const journey = new createRedactJourney(response, req);
+			const journey = createRedactJourney(response, req, { showSuggestionsUi: isAiAzureLanguageLive });
 			const section = journey.sections[0];
 			const question = section.questions[0];
 			const validationErrors = question.checkForValidationErrors(req, section, journey);

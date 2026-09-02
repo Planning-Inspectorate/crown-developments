@@ -921,7 +921,8 @@ describe('controller', () => {
 			const { redactRepresentation } = buildReviewControllers({
 				db: mockDb,
 				logger,
-				textAnalyticsClient: mockTextAnalyticsClient
+				textAnalyticsClient: mockTextAnalyticsClient,
+				isAiAzureLanguageLive: true
 			});
 
 			const mockReq = {
@@ -964,7 +965,8 @@ describe('controller', () => {
 			const { redactRepresentation } = buildReviewControllers({
 				db: mockDb,
 				logger,
-				textAnalyticsClient: mockTextAnalyticsClient
+				textAnalyticsClient: mockTextAnalyticsClient,
+				isAiAzureLanguageLive: true
 			});
 
 			const mockReq = {
@@ -988,6 +990,37 @@ describe('controller', () => {
 				viewData?.question?.valueOriginal,
 				'Some comment to redact here\nWith multiple lines.\nAnother part.\nThis has a bad newline'
 			);
+		});
+		it('should not show redaction suggestions if AI is disabled', async () => {
+			const mockDb = {
+				representation: {
+					findUnique: mock.fn(() => ({ comment: 'Some comment to redact here' }))
+				}
+			};
+			const logger = mockLogger();
+			const mockTextAnalyticsClient = {
+				recognizePiiEntities: mock.fn()
+			};
+			const { redactRepresentation } = buildReviewControllers({
+				db: mockDb,
+				logger,
+				textAnalyticsClient: mockTextAnalyticsClient,
+				isAiAzureLanguageLive: false
+			});
+
+			const mockReq = {
+				baseUrl: 'some-url-here/case-1/manage-representations/ref-1/review/redact',
+				params: { id: 'case-1', representationRef: 'ref-1' },
+				body: {},
+				session: {}
+			};
+			const mockRes = { render: mock.fn() };
+			await redactRepresentation(mockReq, mockRes);
+			assert.strictEqual(mockDb.representation.findUnique.mock.callCount(), 1);
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			assert.strictEqual(mockTextAnalyticsClient.recognizePiiEntities.mock.callCount(), 0);
+			const viewData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(viewData?.showSuggestionsUi, false);
 		});
 	});
 
