@@ -146,7 +146,7 @@ resource "random_password" "s62a_portal_session_secret_b" {
 
 resource "azurerm_key_vault_secret" "s62a_portal_session_secrets" {
   key_vault_id = azurerm_key_vault.main.id
-  name         = "${local.service_name}-s62a-portal-session-secret"
+  name         = "${local.service_name}-s62a-portal-session-secrets"
   value = jsonencode(
     local.session_secret_a_is_newer ? [
       random_password.s62a_portal_session_secret_a.result,
