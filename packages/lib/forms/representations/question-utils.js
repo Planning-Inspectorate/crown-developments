@@ -254,7 +254,7 @@ export function representationsContactQuestions({
 	questions[`${prefix}SelectBlobAttachments`] = {
 		type: CUSTOM_COMPONENTS.MULTI_FILE_UPLOADER,
 		title: 'Attachments',
-		question: 'Upload attachments',
+		question: 'Upload supporting attachments',
 		fieldName: `${prefix}BlobAttachments`,
 		url: 'attachments',
 		allowedFileExtensions: ALLOWED_EXTENSIONS,
@@ -265,7 +265,7 @@ export function representationsContactQuestions({
 		dataUploadUrl: '/upload',
 		dataDeleteUrl: '/delete',
 		preUploadHtml: 'views/layouts/components/representations/s62a-upload-criteria.njk',
-		postUploadHtml: 'views/layouts/components/representations/s62a-warning.njk',
+		filesAddedText: 'Attachments added',
 		showUploadWarning: true
 	};
 
