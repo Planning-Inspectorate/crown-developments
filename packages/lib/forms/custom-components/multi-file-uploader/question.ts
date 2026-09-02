@@ -46,6 +46,7 @@ export interface FileUploadQuestionViewData extends BaseQuestionViewData {
 	preUploadHtml?: string;
 	postUploadHtml?: string;
 	showUploadWarning?: boolean;
+	filesAddedText?: string;
 }
 
 export interface FileUploadViewModel extends QuestionViewModel<FileUploadQuestionViewData> {
@@ -90,6 +91,7 @@ export default class MultiFileUploadQuestion extends Question {
 	public readonly preUploadHtml?: string;
 	public readonly postUploadHtml?: string;
 	public readonly showUploadWarning?: boolean;
+	public readonly filesAddedText?: string;
 
 	constructor(options: MultiFileUploaderQuestionProps) {
 		super({
@@ -109,6 +111,7 @@ export default class MultiFileUploadQuestion extends Question {
 		this.preUploadHtml = options.preUploadHtml;
 		this.postUploadHtml = options.postUploadHtml;
 		this.showUploadWarning = options.showUploadWarning;
+		this.filesAddedText = options.filesAddedText;
 	}
 
 	/**
@@ -145,6 +148,7 @@ export default class MultiFileUploadQuestion extends Question {
 		viewModel.question.preUploadHtml = this.preUploadHtml;
 		viewModel.question.postUploadHtml = this.postUploadHtml;
 		viewModel.question.showUploadWarning = this.showUploadWarning;
+		viewModel.question.filesAddedText = this.filesAddedText;
 
 		return viewModel;
 	}

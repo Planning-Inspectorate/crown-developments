@@ -198,7 +198,7 @@ export class FileValidator {
 		}
 
 		if (detectedExt === 'cfb' || detectedMime === 'application/x-cfb') {
-			const allowedCfbExtensions = ['doc', 'xls', 'ppt', 'msg', 'pub', 'dotx'];
+			const allowedCfbExtensions = ['doc', 'xls', 'ppt', 'msg', 'pub', 'dotx', 'docx', 'xlsx', 'pptx'];
 
 			if (allowedCfbExtensions.includes(actualExt)) {
 				return [];
@@ -237,8 +237,20 @@ export class FileValidator {
 		const { ext, mime } = fileTypeResult;
 		const errors: ValidationError[] = [];
 
-		if ((ext === 'cfb' || mime === 'application/x-cfb') && this.isDocOrXlsEncrypted(buffer)) {
-			errors.push({ text: `File must not be password protected`, href: '#upload-form' });
+		if (ext === 'cfb' || mime === 'application/x-cfb') {
+			const isEncrypted = this.isDocOrXlsEncrypted(buffer);
+
+			if (isEncrypted) {
+				errors.push({ text: `File must not be password protected`, href: '#upload-form' });
+			} else {
+				const actualExt = path.extname(decodedName).slice(1).toLowerCase();
+				if (['docx', 'xlsx', 'pptx'].includes(actualExt)) {
+					errors.push({
+						text: `File signature mismatch: declared as .${actualExt} but detected as .${ext} (${mime})`,
+						href: '#upload-form'
+					});
+				}
+			}
 		}
 
 		return errors;
