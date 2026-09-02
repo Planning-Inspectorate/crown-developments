@@ -144,10 +144,10 @@ export const VIEW_TAB_ID = Object.freeze({
 	OUTCOME: 'outcome',
 	EIA: 'eia',
 	PRESS: 'press-notice',
+	RESIDENTIAL: 'residential',
 	VEHICLE: 'vehicle-parking',
 	WASTE: 'waste',
-	PRE_APPLICATION: 'pre-application',
-	RESIDENTIAL: 'residential'
+	PRE_APPLICATION: 'pre-application'
 } as const);
 
 /**
@@ -203,6 +203,11 @@ export const VIEW_TABS = [
 		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
 	},
 	{
+		id: VIEW_TAB_ID.RESIDENTIAL,
+		displayName: 'Residential',
+		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+	},
+	{
 		id: VIEW_TAB_ID.VEHICLE,
 		displayName: 'Vehicle parking',
 		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
@@ -215,11 +220,6 @@ export const VIEW_TABS = [
 	{
 		id: VIEW_TAB_ID.PRE_APPLICATION,
 		displayName: 'Pre-application'
-	},
-	{
-		id: VIEW_TAB_ID.RESIDENTIAL,
-		displayName: 'Residential',
-		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
 	}
 ];
 

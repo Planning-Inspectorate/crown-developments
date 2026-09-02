@@ -14,7 +14,12 @@ import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
 import type { NextFunction, Request, Response } from 'express';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { getEntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
-import { getResidentialPrompt, getResidentialTotals, residentialTotalAnswers } from '../util/residential-totals.ts';
+import {
+	getResidentialPrompt,
+	getResidentialTotals,
+	type ResidentialAnswers,
+	residentialTotalAnswers
+} from '../util/residential-totals.ts';
 
 export function buildViewCaseDetails(): AsyncRequestHandler {
 	return async (req, res) => {
@@ -136,28 +141,27 @@ function getBannerMessages(id: string, res: Response, req: Request) {
 		bannerBuilder.addSuccessText('Case has been updated.');
 	}
 
-	addResidentialPromptMessage(bannerBuilder, res, req, id);
+	if (req.params.tab === VIEW_TAB_ID.RESIDENTIAL) {
+		const answers = getJourneyAnswers(res);
+		const prompt = answers && residentialPromptMessage(answers, id);
+
+		if (prompt) {
+			bannerBuilder.addInfoTrustedSingleLineHtml(prompt);
+		}
+	}
 
 	return bannerBuilder.build();
 }
 
 /**
- * Prompts for whichever residential side is still outstanding, when the other
- * side is known and so the net total is only one answer away.
+ * The prompt for whichever residential side is still outstanding, when the
+ * other side is known and so the net total is only one answer away. Null when
+ * there's nothing to prompt for.
  */
-function addResidentialPromptMessage(builder: BannerBuilder, res: Response, req: Request, id: string): void {
-	if (req.params.tab !== VIEW_TAB_ID.RESIDENTIAL) {
-		return;
-	}
-
-	const answers = getJourneyAnswers(res);
-	if (!answers) {
-		return;
-	}
-
+export function residentialPromptMessage(answers: ResidentialAnswers, id: string): string | null {
 	const side = getResidentialPrompt(getResidentialTotals(answers));
 	if (!side) {
-		return;
+		return null;
 	}
 
 	// Skip the gating boolean when it's already answered - in that state the
@@ -166,13 +170,11 @@ function addResidentialPromptMessage(builder: BannerBuilder, res: Response, req:
 	const gateAnswered =
 		(side === 'existing' ? answers.hasExistingHousing : answers.hasProposedHousing) === BOOLEAN_OPTIONS.YES;
 
-	const href = gateAnswered
-		? `/s62a/cases/${id}/residential/${side}/housing`
-		: `/s62a/cases/${id}/residential/${side}/has-${side}`;
+	const sideUrl = `/s62a/cases/${id}/residential/${side}`;
+	const href = gateAnswered ? `${sideUrl}/housing` : `${sideUrl}/has-${side}`;
 
 	// id is a validated uuid and side is a literal, so the anchor is trusted.
-	const link = `<a class="govuk-link" href="${href}">Add ${side} housing</a>`;
-	builder.addInfoTrustedSingleLineHtml(`${link} to calculate Total net gain or loss of residential units`);
+	return `<a class="govuk-link" href="${href}">Add ${side} housing</a> to calculate Total net gain or loss of residential units`;
 }
 
 /**

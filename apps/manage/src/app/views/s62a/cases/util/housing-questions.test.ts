@@ -10,10 +10,10 @@ import {
 	compareHousingItems,
 	getUnitTypeOptions,
 	housingQuestions,
-	type HousingSide,
 	residentialTotalQuestions
 } from './housing-questions.ts';
 import type { ResidentialHousingItem } from '../view/view-model.ts';
+import type { HousingSide } from './residential-totals.ts';
 
 const item = (overrides: Partial<ResidentialHousingItem> = {}) =>
 	({ id: 'row-1', ...overrides }) as ResidentialHousingItem;

@@ -17,8 +17,7 @@ import {
 	type HousingSide,
 	type ResidentialSideTotals
 } from './residential-totals.ts';
-
-export type { HousingSide };
+import { lowerFirst } from '@pins/crowndev-lib/util/string.ts';
 
 const BEDROOM_INPUT_FIELDS = BEDROOM_BANDS.map(({ fieldName, label }, index) => ({
 	fieldName,
@@ -55,11 +54,6 @@ function compareOrder(a?: number, b?: number): number {
 /** Looks up a display order, tolerating a lookup id that isn't answered yet. */
 function orderOf(orders: Map<string, number>, id: unknown): number | undefined {
 	return typeof id === 'string' ? orders.get(id) : undefined;
-}
-
-/** Lowercases the leading capital of a display name so a label reads as one sentence. */
-function lowerFirst(text: string): string {
-	return text.charAt(0).toLowerCase() + text.slice(1);
 }
 
 /**
