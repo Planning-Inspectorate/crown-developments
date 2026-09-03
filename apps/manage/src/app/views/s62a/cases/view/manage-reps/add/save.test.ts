@@ -79,7 +79,7 @@ describe('Add Representation Controllers', () => {
 			assert.strictEqual(mockRedirect.mock.calls.length, 1);
 			assert.strictEqual(
 				mockRedirect.mock.calls[0].arguments[0],
-				`s62a/cases/${VALID_UUID}/manage-representations/add-representation/check-your-answers`
+				`/s62a/cases/${VALID_UUID}/manage-representations/add-representation/check-your-answers`
 			);
 
 			console.log('minkus', req.session);

@@ -401,7 +401,7 @@ function getBaseRepresentationCreateInput(answers, reference, applicationId, pre
  * @param {HaveYourSayManageModelFields} answers
  * @param {string} reference
  * @param {string} applicationId
- * @returns {import('@pins/crowndev-database').Prisma.RepresentationCreateInput}
+ * @returns {import('@pins/crowndev-database/src/client/client.ts').Prisma.S62aRepresentationCreateInput}
  */
 export function viewModelToS62aRepresentationCreateInput(answers, reference, applicationId) {
 	const isRepresentation =
