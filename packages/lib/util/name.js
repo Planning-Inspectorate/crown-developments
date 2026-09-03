@@ -1,6 +1,6 @@
 /**
- * @param {string|undefined} firstName
- * @param {string|undefined} lastName
+ * @param {string|undefined|null} firstName
+ * @param {string|undefined|null} lastName
  * @returns {string|undefined}
  */
 export function nameToViewModel(firstName, lastName) {

@@ -9,6 +9,7 @@ import {
 	RECEIVED_METHOD_ID,
 	REPRESENTATION_CATEGORY,
 	REPRESENTATION_STATUS,
+	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR,
 	REPRESENTED_TYPE,
 	REPRESENTED_TYPE_ID,
@@ -111,6 +112,17 @@ export const getQuestions = ({
 					type.id === REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR
 			);
 
+	// Crown does not show the "Attend a hearing" option, S62A does.
+	const representationStatus = isS62a
+		? REPRESENTATION_STATUS
+		: REPRESENTATION_STATUS.filter(
+				(status) =>
+					status.id === REPRESENTATION_STATUS_ID.ACCEPTED ||
+					status.id === REPRESENTATION_STATUS_ID.REJECTED ||
+					status.id === REPRESENTATION_STATUS_ID.WITHDRAWN ||
+					status.id === REPRESENTATION_STATUS_ID.AWAITING_REVIEW
+			);
+
 	const groupRepresentedFullNameQuestion =
 		textOverrides?.groupRepresentedFullNameEditQuestion || 'What is the name of the person you are representing?';
 
@@ -151,7 +163,7 @@ export const getQuestions = ({
 			fieldName: 'statusId',
 			url: 'status',
 			validators: [new RequiredValidator()],
-			options: referenceDataToRadioOptions(REPRESENTATION_STATUS),
+			options: referenceDataToRadioOptions(representationStatus),
 			actionLink: actionOverrides.statusShouldShowManageAction ? actionLinkOverride : undefined,
 			editable: actionOverrides.statusShouldShowManageAction
 		},
@@ -163,7 +175,7 @@ export const getQuestions = ({
 			url: 'review-decision',
 			validators: [new RequiredValidator('Select the review decision')],
 			options: [
-				...referenceDataToRadioOptions(REPRESENTATION_STATUS),
+				...referenceDataToRadioOptions(representationStatus),
 				{
 					text: 'Accept and redact',
 					value: ACCEPT_AND_REDACT

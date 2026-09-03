@@ -369,7 +369,8 @@ export const REPRESENTATION_STATUS_ID = Object.freeze({
 	AWAITING_REVIEW: 'awaiting-review',
 	ACCEPTED: 'accepted',
 	REJECTED: 'rejected',
-	WITHDRAWN: 'withdrawn'
+	WITHDRAWN: 'withdrawn',
+	ATTEND_HEARING: 'attend-hearing'
 } as const);
 
 export const REPRESENTATION_STATUS = [
@@ -388,6 +389,10 @@ export const REPRESENTATION_STATUS = [
 	{
 		id: REPRESENTATION_STATUS_ID.WITHDRAWN,
 		displayName: 'Withdrawn'
+	},
+	{
+		id: REPRESENTATION_STATUS_ID.ATTEND_HEARING,
+		displayName: 'Attend a hearing'
 	}
 ] as const satisfies readonly Prisma.RepresentationStatusCreateInput[];
 
