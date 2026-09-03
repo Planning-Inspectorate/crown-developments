@@ -1,4 +1,4 @@
-import { formatAddress, formatBoolean, formatValue, formatYesNo } from '../../util/audit-formatters.ts';
+import { formatAddress, formatBoolean, formatValue, formatDateTime, formatYesNo } from '../../util/audit-formatters.ts';
 import { camelCaseToSentenceCase } from '../../util/string.ts';
 import {
 	APPLICATION_TYPES,
@@ -192,6 +192,41 @@ function addressResolver(previousCaseFieldName: string): FieldResolver {
 }
 
 /**
+ * Date with start and end date in question
+ */
+function dateRangeResolver(fieldName: string): FieldResolver {
+	return {
+		resolve(previousCase, newAnswer) {
+			const oldPeriod = previousCase[fieldName] as {
+				start: Date | string | null;
+				end: Date | string | null;
+			} | null;
+			const newPeriod = newAnswer as { start: string | null; end: string | null } | null;
+
+			const oldDisplay = oldPeriod ? `${formatValue(oldPeriod.start)} - ${formatValue(oldPeriod.end)}` : '-';
+
+			const newDisplay = newPeriod ? `${formatValue(newPeriod.start)} - ${formatValue(newPeriod.end)}` : '-';
+
+			return { oldValue: oldDisplay, newValue: newDisplay };
+		}
+	};
+}
+
+/**
+ * Date-time field resolver (e.g. site visit).
+ * Uses audit date-time formatter so time is included when present.
+ */
+function dateAndTimeResolver(fieldName: string): FieldResolver {
+	return {
+		resolve(previousCase, newAnswer) {
+			const oldValue = formatDateTime(previousCase[fieldName] as Date | string | null | undefined);
+			const newValue = formatDateTime(newAnswer as Date | string | null | undefined);
+			return { oldValue, newValue };
+		}
+	};
+}
+
+/**
  * Registry of field-specific resolvers.
  *
  * Add an entry here whenever a field needs special handling — e.g. the
@@ -276,7 +311,11 @@ const FIELD_RESOLVERS: Record<string, FieldResolver> = {
 	/** Application fee amount */
 	applicationFee: monetaryResolver('applicationFee'),
 	/** Application fee refund amount */
-	applicationFeeRefundAmount: monetaryResolver('applicationFeeRefundAmount')
+	applicationFeeRefundAmount: monetaryResolver('applicationFeeRefundAmount'),
+
+	// ── Date fields ─────────────────────────────
+	representationsPeriod: dateRangeResolver('representationsPeriod'),
+	siteVisitDate: dateAndTimeResolver('siteVisitDate')
 };
 
 /**

@@ -3209,5 +3209,61 @@ describe('audit recording', () => {
 				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_UPDATED);
 			});
 		});
+		describe('date field and formatting', () => {
+			it('should record FIELD_SET when applicationAcceptedDate is SET format new value', async () => {
+				const logger = mockLogger();
+				const mockAudit = createMockAudit();
+				const mockDb = buildDbForAudit({ applicationAcceptedDate: null });
+
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+				const mockReq = {
+					params: { id: 'case-1' },
+					session: { account: { localAccountId: 'user-123' } }
+				};
+				const mockRes = { locals: {} };
+				const data = {
+					answers: {
+						applicationAcceptedDate: new Date('2026-08-01T00:00:00.000Z')
+					}
+				};
+
+				await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+				assert.strictEqual(entries.length, 1);
+				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_SET);
+				assert.strictEqual(entries[0].metadata.fieldName, 'Application accepted date');
+				assert.strictEqual(entries[0].metadata.oldValue, '-');
+				assert.strictEqual(entries[0].metadata.newValue, '1 August 2026');
+			});
+			it('should record FIELD_UPDATED when applicationAcceptedDate is updated and format date values', async () => {
+				const logger = mockLogger();
+				const mockAudit = createMockAudit();
+				const mockDb = buildDbForAudit({ applicationAcceptedDate: new Date('2026-07-15T00:00:00.000Z') });
+
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+				const mockReq = {
+					params: { id: 'case-1' },
+					session: { account: { localAccountId: 'user-123' } }
+				};
+				const mockRes = { locals: {} };
+				const data = {
+					answers: {
+						applicationAcceptedDate: new Date('2026-08-01T00:00:00.000Z')
+					}
+				};
+
+				await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+				assert.strictEqual(entries.length, 1);
+				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_UPDATED);
+				assert.strictEqual(entries[0].metadata.fieldName, 'Application accepted date');
+				assert.strictEqual(entries[0].metadata.oldValue, '15 July 2026');
+				assert.strictEqual(entries[0].metadata.newValue, '1 August 2026');
+			});
+		});
 	});
 });
