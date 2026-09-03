@@ -4,6 +4,7 @@ import { fileTypeFromBuffer } from 'file-type';
 import type { Logger } from 'pino';
 import 'multer';
 import { formatBytes } from '@pins/crowndev-lib/util/file.ts';
+import { PDFDocument } from 'pdf-lib';
 
 export interface ValidationConfig {
 	allowedExtensions: string[];
@@ -75,7 +76,7 @@ export class FileValidator {
 		const spoofingErrors = this.validateFileSignature(decodedName, fileTypeResult, config);
 		if (spoofingErrors.length > 0) return spoofingErrors;
 
-		return this.validateEncryption(file, decodedName, fileTypeResult);
+		return await this.validateEncryption(file, decodedName, fileTypeResult);
 	}
 
 	/**
@@ -228,14 +229,18 @@ export class FileValidator {
 	/**
 	 * Blocks against password protected files
 	 */
-	private validateEncryption(
+	private async validateEncryption(
 		file: Express.Multer.File,
 		decodedName: string,
 		fileTypeResult: { ext: string; mime: string }
-	): ValidationError[] {
+	): Promise<ValidationError[]> {
 		const { buffer } = file;
 		const { ext, mime } = fileTypeResult;
 		const errors: ValidationError[] = [];
+
+		if ((ext === 'pdf' || mime === 'application/pdf') && (await this.isPdfPasswordProtected(buffer))) {
+			errors.push({ text: `File must not be password protected`, href: '#upload-form' });
+		}
 
 		if (ext === 'cfb' || mime === 'application/x-cfb') {
 			const isEncrypted = this.isDocOrXlsEncrypted(buffer);
@@ -254,6 +259,16 @@ export class FileValidator {
 		}
 
 		return errors;
+	}
+
+	private async isPdfPasswordProtected(buffer: Buffer): Promise<boolean> {
+		try {
+			await PDFDocument.load(buffer);
+			return false;
+		} catch (err) {
+			this.logger.warn({ err }, `PDF document is password protected`);
+			return true;
+		}
 	}
 
 	private isDocOrXlsEncrypted(buffer: Buffer): boolean {
