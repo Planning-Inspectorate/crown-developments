@@ -30,7 +30,7 @@ export function viewAddRepresentationSuccessPage(req: Request, res: Response): v
 			}
 		];
 		addSessionData(req, id, { representationError: { text: error } });
-		res.redirect(`s62a/cases/${id}/manage-representations/add-representation/check-your-answers`);
+		res.redirect(`/s62a/cases/${id}/manage-representations/add-representation/check-your-answers`);
 		return;
 	}
 
@@ -39,7 +39,7 @@ export function viewAddRepresentationSuccessPage(req: Request, res: Response): v
 	res.render('views/s62a/cases/view/manage-reps/add/success.njk', {
 		title: 'Representation added',
 		bodyText: `Representation reference <br><strong>${representationReference}</strong>`,
-		successBackLinkUrl: `s62a/cases/${id}`,
+		successBackLinkUrl: `/s62a/cases/${id}`,
 		successBackLinkText: 'Go back to overview'
 	});
 }

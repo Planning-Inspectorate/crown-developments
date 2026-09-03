@@ -60,7 +60,7 @@ export async function saveS62aRepresentation(
 	let representationReference = '';
 	const submittedForId = getSubmittedForId(answers);
 	const prefix = submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF ? 'myself' : 'submitter';
-	const representationAttachments = answers[`${prefix}BlobAttachments`];
+	const representationAttachments = answers[`${prefix}BlobAttachments`] as { itemId: string }[];
 	const hasAttachments = answers[`${prefix}ContainsAttachments`] === BOOLEAN_OPTIONS.YES;
 
 	if (
@@ -76,19 +76,17 @@ export async function saveS62aRepresentation(
 			logger.info({ representationReference }, 'adding a new representation');
 
 			const representationResponse = await $tx.s62aRepresentation.create({
-				data: viewModelToS62aRepresentationCreateInput(
-					answers,
-					representationReference,
-					id
-				) as Prisma.S62aRepresentationCreateInput
+				data: viewModelToS62aRepresentationCreateInput(answers, representationReference, id)
 			});
 
 			if (hasAttachments) {
 				logger.info({ representationReference }, 'committing draft representation attachments');
 
+				const repAttachmentIds = representationAttachments.map((rep) => rep.itemId);
+
 				const drafts = await $tx.draftBlobRepresentationDocument.findMany({
 					where: {
-						sessionKey: req.sessionID
+						id: { in: repAttachmentIds }
 					}
 				});
 
@@ -110,7 +108,7 @@ export async function saveS62aRepresentation(
 
 					await $tx.draftBlobRepresentationDocument.deleteMany({
 						where: {
-							sessionKey: req.sessionID
+							id: { in: repAttachmentIds }
 						}
 					});
 
