@@ -94,13 +94,11 @@ export default class ManageListItemsCompleteValidator extends BaseValidator {
 	 * it is called with a JourneyResponse at runtime. Cast so the call typechecks.
 	 */
 	private shouldDisplayQuestion(question: Question, answers: Record<string, unknown>): boolean {
-		const shouldDisplay = question.shouldDisplay as ((response: JourneyResponse) => boolean) | undefined;
-
-		if (!shouldDisplay) {
+		if (!question.shouldDisplay) {
 			return true;
 		}
 
-		return shouldDisplay.call(question, { answers } as unknown as JourneyResponse);
+		return question.shouldDisplay.call(question, { answers } as unknown as JourneyResponse);
 	}
 
 	/**
