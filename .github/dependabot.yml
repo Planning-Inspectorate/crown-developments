@@ -24,6 +24,11 @@ updates:
         patterns:
           - '*'
         dependency-type: 'development'
+    ignore:
+      # TS 7.0 is not yet supported by typescript-eslint and causes build errors, so ignore it for now
+      # TODO: CROWN-1718: Remove this ignore once typescript-eslint supports it
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
   - package-ecosystem: 'terraform'
     directory: '/infrastructure' # Location of package manifests
     schedule:
