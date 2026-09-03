@@ -136,36 +136,123 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "portal" {
     }
   }
 
+  #############################################################################
+  # MANAGED RULES - Microsoft Default Rule Set 2.2
+  #############################################################################
   managed_rule {
     type    = "Microsoft_DefaultRuleSet"
-    version = "2.1"
+    version = "2.2"
     action  = "Block"
 
+    #--------------------------------------------------------------------------
+    # General (200xxx)
+    #--------------------------------------------------------------------------
     override {
-      rule_group_name = "PROTOCOL-ATTACK"
+      rule_group_name = "General"
+      # General: Failed to parse request body (5PL1)
       rule {
         action  = "Log"
-        rule_id = "921110"
+        rule_id = "200002"
         enabled = true
       }
-      exclusion {
-        match_variable = "RequestBodyPostArgNames"
-        operator       = "Equals"
-        selector       = "files"
-      }
-      exclusion {
-        match_variable = "RequestBodyPostArgNames"
-        operator       = "Equals"
-        selector       = "_csrf"
+      # General: Multipart request body failed strict validation (5PL1)
+      rule {
+        action  = "Log"
+        rule_id = "200003"
+        enabled = true
       }
     }
 
+    #--------------------------------------------------------------------------
+    # PROTOCOL-ENFORCEMENT (920xxx)
+    #--------------------------------------------------------------------------
+    override {
+      rule_group_name = "PROTOCOL-ENFORCEMENT"
+      # Protocol Violation: URL Encoding Abuse Attack Attempt
+      rule {
+        action  = "AnomalyScoring"
+        rule_id = "920240"
+        enabled = true
+        exclusion {
+          match_variable = "RequestBodyPostArgNames"
+          operator       = "Equals"
+          selector       = "_csrf"
+          # False positive: PostParamValue:_csrf","matchVariableValue":"..."}]
+        }
+      }
+    }
+
+    #--------------------------------------------------------------------------
+    # PROTOCOL-ATTACK (921xxx)
+    #--------------------------------------------------------------------------
+    override {
+      rule_group_name = "PROTOCOL-ATTACK"
+      # HTTP Request Smuggling Attack (5PL1)
+      rule {
+        action  = "AnomalyScoring"
+        rule_id = "921110"
+        enabled = true
+        exclusion {
+          match_variable = "RequestBodyPostArgNames"
+          operator       = "Equals"
+          selector       = "files"
+        }
+        exclusion {
+          match_variable = "RequestBodyPostArgNames"
+          operator       = "Equals"
+          selector       = "_csrf"
+        }
+      }
+    }
+
+    #--------------------------------------------------------------------------
+    # XSS - Cross-site scripting (941xxx)
+    #--------------------------------------------------------------------------
+    override {
+      rule_group_name = "XSS"
+      # JavaScript global variable found (5PL1)
+      rule {
+        action  = "AnomalyScoring"
+        rule_id = "941370"
+        enabled = true
+        exclusion {
+          match_variable = "RequestBodyPostArgNames"
+          operator       = "Equals"
+          selector       = "myselfComment"
+          # PostParamValue:myselfComment","matchVariableValue":"...to object to..."}]
+        }
+        exclusion {
+          match_variable = "RequestBodyPostArgNames"
+          operator       = "Equals"
+          selector       = "submitterComment"
+          # PostParamValue:submitterComment","matchVariableValue":"...to object to..."}]
+        }
+      }
+    }
+
+    #--------------------------------------------------------------------------
+    # SQLI - SQL Injection (942xxx)
+    #--------------------------------------------------------------------------
     override {
       rule_group_name = "SQLI"
+      # SQL Operator Detected
+      rule {
+        action  = "Log"
+        enabled = true
+        rule_id = "942120"
+      }
+      # SQL Injection Attack
       rule {
         action  = "Log"
         rule_id = "942390"
         enabled = true
+      }
+
+      # Group-level exclusions (alphabetical by selector)
+      exclusion {
+        match_variable = "RequestBodyPostArgNames"
+        operator       = "Equals"
+        selector       = "_csrf"
       }
       exclusion {
         match_variable = "RequestBodyPostArgNames"
@@ -177,18 +264,11 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "portal" {
         operator       = "Equals"
         selector       = "submitterComment"
       }
-      exclusion {
-        match_variable = "RequestBodyPostArgNames"
-        operator       = "Equals"
-        selector       = "_csrf"
-      }
-      exclusion {
-        match_variable = "RequestBodyPostArgNames"
-        operator       = "Equals"
-        selector       = "healthAndSafetyIssue"
-      }
     }
 
+    #--------------------------------------------------------------------------
+    # MS Threat Intel SQLI (99031xxx)
+    #--------------------------------------------------------------------------
     override {
       rule_group_name = "MS-ThreatIntel-SQLI"
       rule {
@@ -196,6 +276,12 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "portal" {
         rule_id = "99031003"
         enabled = true
       }
+      # Group-level exclusions (alphabetical by selector)
+      exclusion {
+        match_variable = "RequestBodyPostArgNames"
+        operator       = "Equals"
+        selector       = "_csrf"
+      }
       exclusion {
         match_variable = "RequestBodyPostArgNames"
         operator       = "Equals"
@@ -205,30 +291,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "portal" {
         match_variable = "RequestBodyPostArgNames"
         operator       = "Equals"
         selector       = "submitterComment"
-      }
-      exclusion {
-        match_variable = "RequestBodyPostArgNames"
-        operator       = "Equals"
-        selector       = "_csrf"
-      }
-      exclusion {
-        match_variable = "RequestBodyPostArgNames"
-        operator       = "Equals"
-        selector       = "healthAndSafetyIssue"
-      }
-    }
-
-    override {
-      rule_group_name = "General"
-      rule {
-        action  = "Log"
-        rule_id = "200002"
-        enabled = true
-      }
-      rule {
-        action  = "Log"
-        rule_id = "200003"
-        enabled = true
       }
     }
   }

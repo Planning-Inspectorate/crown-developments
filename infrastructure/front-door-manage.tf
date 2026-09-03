@@ -137,12 +137,11 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
   }
 
   #############################################################################
-  # MANAGED RULES - Microsoft Default Rule Set
+  # MANAGED RULES - Microsoft Default Rule Set 2.2
   #############################################################################
-
   managed_rule {
     type    = "Microsoft_DefaultRuleSet"
-    version = "2.1"
+    version = "2.2"
     action  = "Block"
 
     #--------------------------------------------------------------------------
@@ -190,7 +189,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
       rule_group_name = "PROTOCOL-ATTACK"
       # HTTP Request Smuggling Attack (5PL1)
       rule {
-        action  = "Log"
+        action  = "AnomalyScoring"
         rule_id = "921110"
         enabled = true
         exclusion {
@@ -216,12 +215,22 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
         action  = "AnomalyScoring"
         rule_id = "941370"
         enabled = true
-
         exclusion {
           match_variable = "RequestBodyPostArgNames"
           operator       = "Equals"
           selector       = "submitterComment"
           # PostParamValue:submitterComment","matchVariableValue":"...to object to..."}]
+        }
+      }
+      # XSS Attack Detected via libinjection (5PL1)
+      rule {
+        action  = "AnomalyScoring"
+        rule_id = "941100"
+        enabled = true
+        exclusion {
+          match_variable = "RequestCookieNames"
+          operator       = "Equals"
+          selector       = "AppServiceAuthSession"
         }
       }
     }
