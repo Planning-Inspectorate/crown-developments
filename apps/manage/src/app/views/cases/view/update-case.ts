@@ -148,7 +148,30 @@ const AUDITABLE_SCALAR_FIELDS = new Set([
 	'applicationFeeRefundAmount',
 	//address fields
 	'siteAddress',
-	'agentOrganisationAddress'
+	'agentOrganisationAddress',
+	//date fields
+	'applicationReceivedDate',
+	'applicationAcceptedDate',
+	'lpaQuestionnaireSentDate',
+	'lpaQuestionnaireReceivedDate',
+	'publishDate',
+	'pressNoticeDate',
+	'neighboursNotifiedByLpaDate',
+	'siteNoticeByLpaDate',
+	'targetDecisionDate',
+	'extendedTargetDecisionDate',
+	'recoveredDate',
+	'recoveredReportSentDate',
+	'siteVisitDate',
+	'withdrawnDate',
+	'originalDecisionDate',
+	'turnedAwayDate',
+	'expectedSubmissionDate',
+	'decisionDate',
+	'nationallyImportantConfirmationDate',
+	'representationsPeriod',
+	'representationsPublishDate',
+	'environmentalStatementReceivedDate'
 ]);
 
 /** * Long-text fields that render with expandable old/new value details * instead of inline audit text. */

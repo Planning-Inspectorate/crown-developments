@@ -402,5 +402,96 @@ describe('Field Resolver', () => {
 				assert.strictEqual(newValue, '-');
 			});
 		});
+		describe('date range field resolvers', () => {
+			it('should set newValues when previous case is null', async () => {
+				const previousCase = { representationsPeriod: null };
+				const newAnswer = {
+					start: new Date('2026-01-01T00:00:00Z'),
+					end: new Date('2026-01-15T00:00:00Z')
+				};
+
+				const { oldValue, newValue } = resolveFieldValues('representationsPeriod', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, '-');
+				assert.strictEqual(newValue, '1 January 2026 - 15 January 2026');
+			});
+			it('should format previous and new date range values', async () => {
+				const previousCase = {
+					representationsPeriod: {
+						start: new Date('2026-01-01T00:00:00Z'),
+						end: new Date('2026-01-15T00:00:00Z')
+					}
+				};
+				const newAnswer = {
+					start: new Date('2026-02-01T00:00:00Z'),
+					end: new Date('2026-02-15T00:00:00Z')
+				};
+
+				const { oldValue, newValue } = resolveFieldValues('representationsPeriod', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, '1 January 2026 - 15 January 2026');
+				assert.strictEqual(newValue, '1 February 2026 - 15 February 2026');
+			});
+			it('should display start and end if only one updated in new answer', async () => {
+				const previousCase = {
+					representationsPeriod: {
+						start: new Date('2026-01-01T00:00:00Z'),
+						end: new Date('2026-01-15T00:00:00Z')
+					}
+				};
+				const newAnswer = {
+					start: new Date('2026-02-01T00:00:00Z'),
+					end: new Date('2026-01-15T00:00:00Z') // unchanged
+				};
+				const { oldValue, newValue } = resolveFieldValues('representationsPeriod', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, '1 January 2026 - 15 January 2026');
+				assert.strictEqual(newValue, '1 February 2026 - 15 January 2026');
+			});
+		});
+		describe('date and time field resolvers', () => {
+			it('should set newValues when previous case is null', async () => {
+				const previousCase = { siteVisitDate: null };
+				const newAnswer = new Date('2026-01-01T14:30:00Z');
+
+				const { oldValue, newValue } = resolveFieldValues('siteVisitDate', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, '-');
+				assert.strictEqual(newValue, '1 January 2026 2:30pm');
+			});
+			it('should format previous and new date and time values', async () => {
+				const previousCase = {
+					siteVisitDate: new Date('2026-01-01T14:30:00Z')
+				};
+				const newAnswer = new Date('2026-02-01T09:15:00Z');
+
+				const { oldValue, newValue } = resolveFieldValues('siteVisitDate', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, '1 January 2026 2:30pm');
+				assert.strictEqual(newValue, '1 February 2026 9:15am');
+			});
+			it('should display both date and time if only time updated in new answer', async () => {
+				const previousCase = {
+					siteVisitDate: new Date('2026-01-01T14:30:00Z')
+				};
+				const newAnswer = new Date('2026-01-01T16:45:00Z'); // same date, different time
+
+				const { oldValue, newValue } = resolveFieldValues('siteVisitDate', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, '1 January 2026 2:30pm');
+				assert.strictEqual(newValue, '1 January 2026 4:45pm');
+			});
+			it('should display both date and time if only date updated in new answer', async () => {
+				const previousCase = {
+					siteVisitDate: new Date('2026-01-01T14:30:00Z')
+				};
+				const newAnswer = new Date('2026-02-01T14:30:00Z'); // same time, different date
+
+				const { oldValue, newValue } = resolveFieldValues('siteVisitDate', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, '1 January 2026 2:30pm');
+				assert.strictEqual(newValue, '1 February 2026 2:30pm');
+			});
+		});
 	});
 });
