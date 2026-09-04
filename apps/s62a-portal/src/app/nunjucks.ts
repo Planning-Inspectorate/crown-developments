@@ -2,6 +2,11 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import nunjucks, { type Environment } from 'nunjucks';
 import { loadBuildConfig } from './config.ts';
+import {
+	buildItemsPerPageUrl,
+	buildPageUrl,
+	buildUrlWithParams
+} from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 
 /**
  * Configure nunjucks with govuk and app folders for loading views
@@ -38,6 +43,9 @@ export function configureNunjucks(): Environment {
 	);
 
 	// Add nunjucks globals here
+	env.addGlobal('buildItemsPerPageUrl', buildItemsPerPageUrl);
+	env.addGlobal('buildUrlWithParams', buildUrlWithParams);
+	env.addGlobal('buildPageUrl', buildPageUrl);
 
 	return env;
 }
