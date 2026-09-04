@@ -71,6 +71,46 @@
 						new representation</a>
 				</p>
 			{% endif %}
+
+			{% if currentTab == 'case-audit' %}
+				{{ govukSummaryList({
+					rows: [
+						{
+							key: {
+							text: "Created date"
+						},
+							value: {
+							text: createdDate
+						}
+						},
+						{
+							key: {
+							text: "Last updated"
+						},
+							value: {
+							text: lastModifiedDate
+						}
+						},
+						{
+							key: {
+							text: "Application history"
+						},
+							value: {
+							html: ""
+						},
+							actions: {
+							items: [
+								{
+									href: baseUrl + "/application-history",
+									text: "View",
+									visuallyHiddenText: "application history"
+								}
+							]
+						}
+						}
+					]
+				}) }}
+			{% endif %}
 		</div>
 	</div>
 {% endblock %}
