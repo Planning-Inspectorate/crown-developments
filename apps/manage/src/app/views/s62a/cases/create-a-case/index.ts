@@ -1,4 +1,4 @@
-import { Router as createRouter, type Request } from 'express';
+import { Router as createRouter } from 'express';
 import {
 	question,
 	buildSave,
@@ -8,7 +8,6 @@ import {
 	saveDataToSession,
 	buildGetJourneyResponseFromSession,
 	buildGetJourney,
-	type JourneyResponse,
 	type Journey,
 	list
 } from '@planning-inspectorate/dynamic-forms';
@@ -16,6 +15,8 @@ import { JOURNEY_ID, createJourney } from './journey.ts';
 import { getQuestions } from './questions.ts';
 import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { buildSaveController, buildSuccessController } from './save.ts';
+import { withTypedAnswers } from '@pins/crowndev-lib/util/journey-types.ts';
+import type { CreateCaseAnswers } from './s62a-case-mapper.ts';
 import type { ManageService } from '#service';
 import { removeApplicantContactsWhenOrganisationRemoved } from '@pins/crowndev-lib/util/session.ts';
 
@@ -23,10 +24,10 @@ export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });
 
 	function makeGetJourneyCallback(isQuestionView: boolean) {
-		return (req: Request, journeyResponse: JourneyResponse): Journey => {
+		return withTypedAnswers<CreateCaseAnswers, Journey>((req, journeyResponse) => {
 			const questions = getQuestions(journeyResponse, isQuestionView);
 			return createJourney(questions, journeyResponse, req);
-		};
+		});
 	}
 
 	const getQuestionJourney = buildGetJourney(makeGetJourneyCallback(true));

@@ -6,17 +6,21 @@ import {
 	type Question,
 	Section,
 	Journey,
-	type JourneyResponse,
 	whenQuestionHasAnswer,
 	BOOLEAN_OPTIONS,
 	ManageListSection
 } from '@planning-inspectorate/dynamic-forms';
-
+import type { TypedJourneyResponse } from '@pins/crowndev-lib/util/journey-types.ts';
 import type { Request } from 'express';
+import type { CreateCaseAnswers } from './s62a-case-mapper.ts';
 
 export const JOURNEY_ID = 's62a-create-a-case';
 
-export function createJourney(questions: Record<string, Question>, response: JourneyResponse, req: Request) {
+export function createJourney(
+	questions: Record<string, Question>,
+	response: TypedJourneyResponse<CreateCaseAnswers>,
+	req: Request
+) {
 	if (!req.baseUrl.endsWith('/create-a-case')) {
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey`);
 	}
@@ -83,6 +87,8 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 		returnToListing: false,
 		makeBaseUrl: () => req.baseUrl,
 		initialBackLink: '/s62a/cases',
+		// TODO DF-46 add generic journey types to dynamic-forms
+		// @ts-expect-error -- dynamic-forms' Journey class is not generic, but we know that the answers are of type CreateCaseAnswers
 		response
 	});
 }
