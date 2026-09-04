@@ -60,9 +60,9 @@ export function removeAnalyticsCookies(req, res, domain) {
 	const cookies = parseCookies(req);
 	const gaCookieNames = Object.keys(cookies).filter((cookieName) => cookieName.startsWith('_ga'));
 	for (const cookieName of gaCookieNames) {
-		res.clearCookie(cookieName);
+		res.clearCookie(cookieName, { path: '/' });
 		// GA cookies are set on ".domain"
-		res.clearCookie(cookieName, { domain: '.' + domain });
+		res.clearCookie(cookieName, { domain: '.' + domain, path: '/' });
 	}
 }
 
