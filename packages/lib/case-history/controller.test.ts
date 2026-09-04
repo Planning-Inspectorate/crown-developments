@@ -61,6 +61,7 @@ describe('buildViewCaseHistory', () => {
 			},
 			audit: mockAudit,
 			logger: mockLogger,
+			auditLogDataModels: ['crownDevelopment', 's62aCase'], // Must be an array of strings
 			getEntraClient: () => ({
 				listAllGroupMembers: async () => [
 					{ id: 'user-1', displayName: 'Jane Smith' },

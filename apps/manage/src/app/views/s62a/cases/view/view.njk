@@ -2,6 +2,9 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% import "pagination/pagination.njk" as pagination %}
+{% import "pagination/pagination-options.njk" as paginationOptions %}
+{% from "tables/tables.njk" import caseNotesTable %}
 
 {% set title = reference + " - " + journeyTitle + " - Manage a S62A Case" %}
 
@@ -70,6 +73,73 @@
 					<a href="{{ cleanUrl }}/manage-representations/add-representation/start" class="govuk-link govuk-link--no-visited-state">Add
 						new representation</a>
 				</p>
+			{% endif %}
+
+			{% if currentTab == 'case-audit' %}
+				{{ govukSummaryList({
+					rows: [
+						{
+							key: {
+							text: "Created date"
+						},
+							value: {
+							text: createdDate
+						}
+						},
+						{
+							key: {
+							text: "Last updated"
+						},
+							value: {
+							text: lastModifiedDate
+						}
+						},
+						{
+							key: {
+							text: "Application history"
+						},
+							value: {
+							html: ""
+						},
+							actions: {
+							items: [
+								{
+									href: baseUrl + "/application-history",
+									text: "View",
+									visuallyHiddenText: "application history"
+								}
+							]
+						}
+						}
+					]
+				}) }}
+			{% endif %}
+			{% if currentTab == 'case-notes' %}
+				<div class="govuk-grid-row">
+					<div class="govuk-grid-column-full">
+						<h1 class="govuk-heading-l" data-cy="page-heading">
+							{{ 'Case notes' }}
+						</h1>
+					<p class="govuk-body">
+						<a href="{{ cleanUrl }}/case-notes/add-case-note" class="govuk-link govuk-link--no-visited-state">Add case note</a>
+					</p>				
+						<div id="pagination">
+							<p class="govuk-body govuk-clearfix">
+								Showing <strong>{{ caseNotePaginationParams.resultsStartNumber }}</strong>
+								to
+								<strong>{{ caseNotePaginationParams.resultsEndNumber if caseNotePaginationParams.totalItems > caseNotePaginationParams.resultsEndNumber else caseNotePaginationParams.totalItems }}</strong>
+								of <strong>{{ caseNotePaginationParams.totalItems }}</strong> results
+							</p>
+							{{ paginationOptions.renderPagination(caseNotePaginationParams.selectedItemsPerPage, caseNotePaginationParams.totalItems, baseUrl, queryParams) }}
+							<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+							{{ caseNotesTable(caseNoteData,displayRef) }}
+						</div>
+
+						{# if pageNumber and totalPages values are both 1 then pagination options not shown #}
+						{{ pagination.renderPagination(caseNotePaginationParams.pageNumber, caseNotePaginationParams.totalPages, baseUrl, queryParams) }}
+					</div>
+				</div>
 			{% endif %}
 		</div>
 	</div>

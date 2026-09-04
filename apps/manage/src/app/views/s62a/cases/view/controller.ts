@@ -20,6 +20,8 @@ import {
 	type ResidentialAnswers,
 	residentialTotalAnswers
 } from '../util/residential-totals.ts';
+import { formatDateTime } from '@pins/crowndev-lib/util/audit-formatters.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 export function buildViewCaseDetails(): AsyncRequestHandler {
 	return async (req, res) => {
@@ -28,6 +30,9 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 		const applicationPhase = getStringParam(res?.locals?.journeyResponse?.answers, 'applicationPhaseId');
 		const banner = getBannerMessages(id, res, req);
 		const baseUrl = req.baseUrl;
+		const lastModified = res.locals.lastModified as { updatedDate: string | null; by: string | null } | undefined;
+		const lastModifiedDate = lastModified?.updatedDate ?? '-';
+		const createdDate = res.locals.createdDate;
 
 		// We clear the journey session on list page load to avoid ghost data.
 		clearDataFromSession({ req, journeyId: JOURNEY_ID });
@@ -47,13 +52,15 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 			// URL without the /:tab slug, needed for routing uses in FE.
 			cleanUrl: `/s62a/cases/${id}`,
 			banner,
-			foldersUrl: `/s62a/cases/${id}/case-folders`
+			foldersUrl: `/s62a/cases/${id}/case-folders`,
+			lastModifiedDate,
+			createdDate
 		});
 	};
 }
 
 export function buildGetJourneyMiddleware(service: ManageService, isQuestionView: boolean): AsyncRequestHandler {
-	const { db, logger, getEntraClient } = service;
+	const { db, logger, getEntraClient, audit } = service;
 	const groupIds = service.entraGroupIds;
 
 	return async (req, res, next) => {
@@ -92,6 +99,9 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		const residentialTotals = getResidentialTotals(finalAnswers);
 		Object.assign(finalAnswers, residentialTotalAnswers(finalAnswers, residentialTotals));
 
+		const lastModified = await audit.getLastModifiedInfo(id, groupMembers, CASE_DATA_MODEL.S62A);
+		const createdDate = formatDateTime(s62aCase.createdDate);
+
 		const questions = getQuestions(answers, {
 			isQuestionView,
 			groupMembers,
@@ -101,6 +111,17 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 			residentialTotals
 		});
 
+		type QuestionBase = { fieldName?: string; title?: string };
+
+		const fieldDisplayNames: Record<string, string> = Object.fromEntries(
+			(Object.values(questions) as QuestionBase[])
+				.filter((q): q is QuestionBase & { fieldName: string; title: string } => Boolean(q?.fieldName && q?.title))
+				.map((q) => [q.fieldName, q.title])
+		);
+
+		res.locals.fieldDisplayNames = fieldDisplayNames;
+		res.locals.createdDate = createdDate;
+
 		// @ts-expect-error - we haven't defined the view model on the locals object
 		res.locals.originalAnswers = { ...answers };
 		// @ts-expect-error - we haven't defined the view model on the locals object
@@ -109,6 +130,7 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 
 		// set a back link to the case details page when viewing a section/question not within a manage list question
 		if (section && !manageListQuestion) {
+			console.log('controller trigger activated');
 			res.locals.backLinkUrl = req.baseUrl;
 		}
 
@@ -119,6 +141,8 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 				res.locals.backLinkUrl = req.baseUrl;
 			}
 		}
+
+		res.locals.lastModified = lastModified;
 
 		if (next) next();
 	};

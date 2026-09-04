@@ -264,8 +264,6 @@ describe('Application Utilities', () => {
 
 			const result = mapDevelopmentToViewModel(mockDevelopment, email, mockFormatter);
 
-			console.log(result);
-
 			assert.deepStrictEqual(result, expected);
 		});
 		it('should protect base fields from being overwritten by the formatting function', () => {
