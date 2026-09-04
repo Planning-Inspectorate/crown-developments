@@ -133,7 +133,8 @@ describe('cookies', () => {
 			const req = { headers: { cookie: '_ga=GA1.2.1234567890.1234567890' } };
 			const res = { cookie: mock.fn(), clearCookie: mock.fn() };
 			setAnalyticsCookiesPreference(req, res, false, false, 'example.com');
-			assert.strictEqual(res.clearCookie.mock.callCount(), 3);
+			// Two clearCookie calls: one for the cookie itself, and one for the cookie with the domain set to ".example.com"
+			assert.strictEqual(res.clearCookie.mock.callCount(), 2);
 		});
 	});
 
@@ -142,13 +143,13 @@ describe('cookies', () => {
 			const req = { headers: { cookie: '_ga=GA1.2.1234567890.1234567890' } };
 			const res = { clearCookie: mock.fn() };
 			removeAnalyticsCookies(req, res, 'example.com');
-			assert.strictEqual(res.clearCookie.mock.callCount(), 3);
+			assert.strictEqual(res.clearCookie.mock.callCount(), 2);
 			assert.strictEqual(res.clearCookie.mock.calls[0].arguments[0], '_ga');
 			assert.strictEqual(res.clearCookie.mock.calls[1].arguments[0], '_ga');
+			assert.strictEqual(res.clearCookie.mock.calls[0].arguments[1].domain, undefined);
+			assert.strictEqual(res.clearCookie.mock.calls[0].arguments[1].path, '/');
 			assert.strictEqual(res.clearCookie.mock.calls[1].arguments[1].domain, '.example.com');
-			assert.strictEqual(res.clearCookie.mock.calls[1].arguments[1].secure, false);
-			assert.strictEqual(res.clearCookie.mock.calls[2].arguments[1].domain, '.example.com');
-			assert.strictEqual(res.clearCookie.mock.calls[2].arguments[1].secure, true);
+			assert.strictEqual(res.clearCookie.mock.calls[1].arguments[1].path, '/');
 		});
 		it('should not clear any other cookies', () => {
 			const req = { headers: { cookie: 'name=value; name2=value2' } };

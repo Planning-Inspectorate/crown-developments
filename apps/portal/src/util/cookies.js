@@ -40,7 +40,9 @@ export function setAnalyticsCookiesPreference(req, res, enabled, secureSession, 
 	res.cookie(COOKIE_NAME_ANALYTICS_ENABLED, enabled ? 'true' : 'false', {
 		encode: String,
 		maxAge: ONE_YEAR_MS,
-		secure: secureSession
+		secure: secureSession,
+		sameSite: 'lax',
+		httpOnly: true
 	});
 
 	if (!enabled) {
@@ -58,10 +60,9 @@ export function removeAnalyticsCookies(req, res, domain) {
 	const cookies = parseCookies(req);
 	const gaCookieNames = Object.keys(cookies).filter((cookieName) => cookieName.startsWith('_ga'));
 	for (const cookieName of gaCookieNames) {
-		res.clearCookie(cookieName);
+		res.clearCookie(cookieName, { path: '/' });
 		// GA cookies are set on ".domain"
-		res.clearCookie(cookieName, { domain: '.' + domain, secure: false });
-		res.clearCookie(cookieName, { domain: '.' + domain, secure: true });
+		res.clearCookie(cookieName, { domain: '.' + domain, path: '/' });
 	}
 }
 

@@ -11,10 +11,8 @@
 	<link rel="stylesheet" href="/index.css" />
 	<meta name="referrer" content="origin">
 
-	{% if config.googleAnalyticsId %}
-		{% if analyticsCookiesEnabled %}
-			<script async src="https://www.googletagmanager.com/gtag/js?id={{ config.googleAnalyticsId }}" {% if cspNonce %}nonce="{{ cspNonce }}"{% endif %}></script>
-		{% endif %}
+	{% if config.googleAnalyticsId and analyticsCookiesEnabled %}
+		<script async src="https://www.googletagmanager.com/gtag/js?id={{ config.googleAnalyticsId }}" {% if cspNonce %}nonce="{{ cspNonce }}"{% endif %}></script>
 		<script {% if cspNonce %}nonce="{{ cspNonce }}"{% endif %}>
 			window.dataLayer = window.dataLayer || [];
 
@@ -22,27 +20,27 @@
 				dataLayer.push(arguments);
 			}
 
-			{% if analyticsCookiesEnabled %}
+			{#
+				Default consent state is set to denied for all storage types.
+				This means that no cookies will be set until the user has given consent.
+				Technically consent has been given already, but we need to set the default state for DPIA/audit purposes.
+				Resulting in default state being denied, and then updated as the user has given consent for analytics storage.
+			#}
 			gtag('consent', 'default', {
-				'ad_storage': 'denied',
-				'ad_user_data': 'denied',
-				'ad_personalization': 'denied',
-				'analytics_storage': 'granted'
+				ad_storage: 'denied',
+				ad_user_data: 'denied',
+				ad_personalization: 'denied',
+				analytics_storage: 'denied'
 			});
-			{% else %}
-			// default - no consent
-			gtag('consent', 'default', {
-				'ad_storage': 'denied',
-				'ad_user_data': 'denied',
-				'ad_personalization': 'denied',
-				'analytics_storage': 'denied'
+
+			gtag('consent', 'update', {
+				analytics_storage: 'granted'
 			});
-			{% endif %}
 
 			gtag('js', new Date());
 
 			gtag('config', '{{ config.googleAnalyticsId }}', {
-				'cookie_domain': '{{ config.googleAnalyticsCookieDomain }}'
+				cookie_domain: '{{ config.googleAnalyticsCookieDomain }}'
 			});
 		</script>
 	{% endif %}
