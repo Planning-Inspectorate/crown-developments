@@ -49,21 +49,21 @@ describe('view-model', () => {
 			},
 			containsDistressingContent: true,
 			withdrawnDate: null,
-			Organisations: [
+			S62aToApplicants: [
 				{
-					role: 'applicant',
+					roleId: 'applicant',
 					Organisation: {
 						name: 'Applicant organisation 1'
 					}
 				},
 				{
-					role: 'applicant',
+					roleId: 'applicant',
 					Organisation: {
 						name: 'Applicant organisation 2'
 					}
 				},
 				{
-					role: 'agent',
+					roleId: 'agent',
 					Organisation: {
 						name: 'Agent organisation'
 					}
@@ -87,7 +87,6 @@ describe('view-model', () => {
 				description: 'A significant project',
 				stage: 'Inquiry',
 				lpaName: 'Test LPA',
-				withdrawnDate: null,
 				secondaryLpa: 'Test SecondaryLPA'
 			});
 		});
