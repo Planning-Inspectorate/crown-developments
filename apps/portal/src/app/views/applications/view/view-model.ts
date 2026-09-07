@@ -15,7 +15,7 @@ import { getApplicationStatus, type ApplicationPublishStatus } from '@pins/crown
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 import type { BaseDevelopmentView } from '@pins/crowndev-lib/util/shared-view-model.ts';
-import { baseDevelopmentSelect, isInquiry, isHearing } from '@pins/crowndev-lib/util/shared-view-model.ts';
+import { baseCrownDevelopmentSelect, isInquiry, isHearing } from '@pins/crowndev-lib/util/shared-view-model.ts';
 
 import { insertWbr } from '@pins/crowndev-lib/util/string.ts';
 
@@ -166,8 +166,18 @@ export interface CrownDevelopmentCaseListView extends BaseDevelopmentView {
 }
 
 export const crownDevelopmentSelect = {
-	...baseDevelopmentSelect,
-	withdrawnDate: true
+	...baseCrownDevelopmentSelect,
+	withdrawnDate: true,
+	Organisations: {
+		select: {
+			role: true,
+			Organisation: {
+				select: {
+					name: true
+				}
+			}
+		}
+	}
 } satisfies Prisma.CrownDevelopmentSelect;
 
 export type CrownDevelopmentCaseListPayload = Prisma.CrownDevelopmentGetPayload<{
