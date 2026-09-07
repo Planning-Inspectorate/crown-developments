@@ -36,6 +36,12 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 ]);
 
 /**
+ * Unified mapper for both S62A and Crown Development representations.
+ * Handles schema differences dynamically (e.g., RepresentedContact vs RepresentedContacts).
+ *
+ * Because this is a DB -> view model function, there isn't harm in combining the functions
+ * as unneeded parameters will simply be ignored. This is different to anything destructive (saving)
+ *
  * @param {import('@pins/crowndev-database').Prisma.RepresentationGetPayload<{include: {SubmittedByContact: true, RepresentedContact: true}}>} representation
  * @param {string} [applicationReference]
  * @returns {import('./types.js').HaveYourSayManageModel}
@@ -66,6 +72,7 @@ export function representationToManageViewModel(representation, applicationRefer
 		model.myselfHearingPreference = mapFieldValue(representation.wantsToBeHeard);
 		model.myselfContainsAttachments = mapFieldValue(representation.containsAttachments);
 		model.myselfAttachments = representation.Attachments;
+		model.myselfBlobAttachments = representation.Attachments;
 		model.myselfRedactedAttachments = mapRedactedAttachments(representation.Attachments);
 	} else if (representation.submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF) {
 		model.representedTypeId = representation.representedTypeId;
@@ -78,20 +85,33 @@ export function representationToManageViewModel(representation, applicationRefer
 		model.submitterHearingPreference = mapFieldValue(representation.wantsToBeHeard);
 		model.submitterContainsAttachments = mapFieldValue(representation.containsAttachments);
 		model.submitterAttachments = representation.Attachments;
+		model.submitterBlobAttachments = representation.Attachments;
 		model.submitterRedactedAttachments = mapRedactedAttachments(representation.Attachments);
 
+		const primaryRepresentedContact = representation.RepresentedContact || representation.RepresentedContacts?.[0];
+
 		if (representation.representedTypeId === REPRESENTED_TYPE_ID.PERSON) {
-			model.representedFirstName = representation.RepresentedContact?.firstName;
-			model.representedLastName = representation.RepresentedContact?.lastName;
+			model.representedFirstName = primaryRepresentedContact?.firstName;
+			model.representedLastName = primaryRepresentedContact?.lastName;
 			model.isAgent = mapFieldValue(representation.submittedByAgent);
 			model.agentOrgName = representation.submittedByAgentOrgName;
 		} else if (representation.representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION) {
-			model.orgName = representation.RepresentedContact?.orgName;
+			model.orgName = primaryRepresentedContact?.orgName;
 			model.orgRoleName = representation.SubmittedByContact?.jobTitleOrRole;
 		} else if (representation.representedTypeId === REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR) {
 			model.isAgent = mapFieldValue(representation.submittedByAgent);
 			model.agentOrgName = representation.submittedByAgentOrgName;
-			model.representedOrgName = representation.RepresentedContact?.orgName;
+			model.representedOrgName = primaryRepresentedContact?.orgName;
+		} else if (representation.representedTypeId === REPRESENTED_TYPE_ID.GROUP) {
+			model.groupName = representation.representedGroupName;
+
+			const groupContacts =
+				representation.RepresentedContacts ||
+				(representation.RepresentedContact ? [representation.RepresentedContact] : []);
+			model.manageGroupDetails = groupContacts.map((member) => ({
+				groupRepresentedFirstName: member.firstName,
+				groupRepresentedLastName: member.lastName
+			}));
 		}
 	}
 
@@ -99,6 +119,9 @@ export function representationToManageViewModel(representation, applicationRefer
 
 	return model;
 }
+
+// Optional: Export an alias so you don't have to rewrite imports in existing S62A files immediately
+export const s62aRepresentationToManageViewModel = representationToManageViewModel;
 
 function mapRedactedAttachments(attachments) {
 	if (Array.isArray(attachments) && attachments.length > 0) {
@@ -113,29 +136,20 @@ function mapRedactedAttachments(attachments) {
 }
 
 /**
- * Answers/edits are received in 'view-model' form, and are mapped here to the appropriate database input.
- *
- * @param {import('./types.js').HaveYourSayManageModel} edits - edited fields only
- * @param {import('./types.js').HaveYourSayManageModel} viewModel - full view model with all case details
- * @returns {import('@pins/crowndev-database').Prisma.RepresentationUpdateInput}
+ * Extracts raw update payloads from the edits object.
+ * This is schema-agnostic and non-destructive.
  */
-export function editsToDatabaseUpdates(edits, viewModel) {
-	/** @type {import('@pins/crowndev-database').Prisma.RepresentationUpdateInput} */
-	const representationUpdateInput = {};
-	// map all the regular fields to the update input
+export function extractEditPayloads(edits) {
+	const primitiveUpdates = {};
+	const submittedByContactUpdate = {};
+	const representedContactUpdate = {};
+	let addressUpdate = {};
+
 	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
-		if (Object.hasOwn(edits, field)) {
-			representationUpdateInput[field] = edits[field];
+		if (Object.hasOwn(edits, field) && field !== 'reference') {
+			primitiveUpdates[field] = edits[field];
 		}
 	}
-	// don't support updating these fields
-	delete representationUpdateInput.reference;
-	/** @type {import('@pins/crowndev-database').Prisma.ContactCreateWithoutRepresentationSubmittedByContactInput} */
-	const submittedByContactUpdate = {};
-	/** @type {import('@pins/crowndev-database').Prisma.ContactCreateWithoutRepresentationSubmittedByContactInput} */
-	const representedContactUpdate = {};
-	/** @type {import('@pins/crowndev-database').Prisma.AddressCreateWithoutContactInput} */
-	let addressUpdate = {};
 
 	// myself fields
 	if ('myselfFirstName' in edits) {
@@ -154,18 +168,18 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		submittedByContactUpdate.email = edits.myselfEmail;
 	}
 	if ('myselfComment' in edits) {
-		representationUpdateInput.comment = edits.myselfComment;
+		primitiveUpdates.comment = edits.myselfComment;
 	}
 	if ('myselfContainsAttachments' in edits) {
-		representationUpdateInput.containsAttachments = yesNoToBoolean(edits.myselfContainsAttachments);
+		primitiveUpdates.containsAttachments = yesNoToBoolean(edits.myselfContainsAttachments);
 	}
 	if ('myselfHearingPreference' in edits) {
-		representationUpdateInput.wantsToBeHeard = yesNoToBoolean(edits.myselfHearingPreference);
+		primitiveUpdates.wantsToBeHeard = yesNoToBoolean(edits.myselfHearingPreference);
 	}
 
 	// common on behalf of fields
 	if ('representedTypeId' in edits) {
-		representationUpdateInput.representedTypeId = edits.representedTypeId;
+		primitiveUpdates.representedTypeId = edits.representedTypeId;
 	}
 	if ('submitterFirstName' in edits) {
 		submittedByContactUpdate.firstName = edits.submitterFirstName;
@@ -183,13 +197,13 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		submittedByContactUpdate.email = edits.submitterEmail;
 	}
 	if ('submitterComment' in edits) {
-		representationUpdateInput.comment = edits.submitterComment;
+		primitiveUpdates.comment = edits.submitterComment;
 	}
 	if ('submitterContainsAttachments' in edits) {
-		representationUpdateInput.containsAttachments = yesNoToBoolean(edits.submitterContainsAttachments);
+		primitiveUpdates.containsAttachments = yesNoToBoolean(edits.submitterContainsAttachments);
 	}
 	if ('submitterHearingPreference' in edits) {
-		representationUpdateInput.wantsToBeHeard = yesNoToBoolean(edits.submitterHearingPreference);
+		primitiveUpdates.wantsToBeHeard = yesNoToBoolean(edits.submitterHearingPreference);
 	}
 
 	// on behalf of org fields
@@ -208,10 +222,10 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 		representedContactUpdate.lastName = edits.representedLastName;
 	}
 	if ('isAgent' in edits) {
-		representationUpdateInput.submittedByAgent = yesNoToBoolean(edits.isAgent);
+		primitiveUpdates.submittedByAgent = yesNoToBoolean(edits.isAgent);
 	}
 	if ('agentOrgName' in edits) {
-		representationUpdateInput.submittedByAgentOrgName = edits.agentOrgName;
+		primitiveUpdates.submittedByAgentOrgName = edits.agentOrgName;
 	}
 	// on behalf of org not work for fields
 	if ('representedOrgName' in edits) {
@@ -220,9 +234,7 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 
 	// distressing content field
 	if ('distressingContentInRepresentation' in edits) {
-		representationUpdateInput.distressingContentInRepresentation = yesNoToBoolean(
-			edits.distressingContentInRepresentation
-		);
+		primitiveUpdates.distressingContentInRepresentation = yesNoToBoolean(edits.distressingContentInRepresentation);
 	}
 
 	if (Object.keys(addressUpdate).length > 0) {
@@ -230,37 +242,19 @@ export function editsToDatabaseUpdates(edits, viewModel) {
 			create: addressUpdate
 		};
 	}
-	if (Object.keys(submittedByContactUpdate).length > 0) {
-		if (!viewModel.submittedByContactId) {
-			representationUpdateInput.SubmittedByContact = {
-				create: submittedByContactUpdate
-			};
-		} else {
-			if (submittedByContactUpdate.Address) {
-				const addressId = viewModel.submittedByAddressId;
-				submittedByContactUpdate.Address = {
-					upsert: {
-						where: optionalWhere(addressId),
-						create: addressUpdate,
-						update: addressUpdate
-					}
-				};
-			}
-			representationUpdateInput.SubmittedByContact = {
-				update: submittedByContactUpdate
-			};
-		}
+
+	if ('groupName' in edits) {
+		primitiveUpdates.representedGroupName = edits.groupName;
 	}
-	if (Object.keys(representedContactUpdate).length > 0) {
-		representationUpdateInput.RepresentedContact = {
-			upsert: {
-				where: optionalWhere(viewModel.representedContactId),
-				create: representedContactUpdate,
-				update: representedContactUpdate
-			}
-		};
-	}
-	return representationUpdateInput;
+
+	// TODO - manage list for group people.
+
+	return {
+		primitiveUpdates,
+		submittedByContactUpdate,
+		representedContactUpdate,
+		addressUpdate
+	};
 }
 
 /**
@@ -444,4 +438,88 @@ export function viewModelToS62aRepresentationCreateInput(answers, reference, app
 	}
 
 	return createInput;
+}
+
+/**
+ * @param {import('./types.js').HaveYourSayManageModel} edits
+ * @param {import('./types.js').HaveYourSayManageModel} viewModel
+ * @returns {import('@pins/crowndev-database/src/client/client.ts').Prisma.S62aRepresentationUpdateInput}
+ */
+export function s62aEditsToDatabaseUpdates(edits, viewModel) {
+	const payloads = extractEditPayloads(edits);
+
+	/** @type {import('@pins/crowndev-database/src/client/client.ts').Prisma.S62aRepresentationUpdateInput} */
+	const updateInput = { ...payloads.primitiveUpdates };
+
+	if (Object.keys(payloads.submittedByContactUpdate).length > 0) {
+		if (!viewModel.submittedByContactId) {
+			updateInput.SubmittedByContact = { create: payloads.submittedByContactUpdate };
+		} else {
+			if (payloads.submittedByContactUpdate.Address) {
+				payloads.submittedByContactUpdate.Address = {
+					upsert: {
+						where: optionalWhere(viewModel.submittedByAddressId),
+						create: payloads.addressUpdate,
+						update: payloads.addressUpdate
+					}
+				};
+			}
+			updateInput.SubmittedByContact = { update: payloads.submittedByContactUpdate };
+		}
+	}
+
+	if (Object.keys(payloads.representedContactUpdate).length > 0) {
+		updateInput.RepresentedContacts = {
+			upsert: [
+				{
+					where: optionalWhere(viewModel.representedContactId),
+					create: payloads.representedContactUpdate,
+					update: payloads.representedContactUpdate
+				}
+			]
+		};
+	}
+
+	return updateInput;
+}
+
+/**
+ * @param {import('./types.js').HaveYourSayManageModel} edits
+ * @param {import('./types.js').HaveYourSayManageModel} viewModel
+ * @returns {import('@pins/crowndev-database').Prisma.RepresentationUpdateInput}
+ */
+export function editsToDatabaseUpdates(edits, viewModel) {
+	const payloads = extractEditPayloads(edits);
+
+	/** @type {import('@pins/crowndev-database').Prisma.RepresentationUpdateInput} */
+	const updateInput = { ...payloads.primitiveUpdates };
+
+	if (Object.keys(payloads.submittedByContactUpdate).length > 0) {
+		if (!viewModel.submittedByContactId) {
+			updateInput.SubmittedByContact = { create: payloads.submittedByContactUpdate };
+		} else {
+			if (payloads.submittedByContactUpdate.Address) {
+				payloads.submittedByContactUpdate.Address = {
+					upsert: {
+						where: optionalWhere(viewModel.submittedByAddressId),
+						create: payloads.addressUpdate,
+						update: payloads.addressUpdate
+					}
+				};
+			}
+			updateInput.SubmittedByContact = { update: payloads.submittedByContactUpdate };
+		}
+	}
+
+	if (Object.keys(payloads.representedContactUpdate).length > 0) {
+		updateInput.RepresentedContact = {
+			upsert: {
+				where: optionalWhere(viewModel.representedContactId),
+				create: payloads.representedContactUpdate,
+				update: payloads.representedContactUpdate
+			}
+		};
+	}
+
+	return updateInput;
 }
