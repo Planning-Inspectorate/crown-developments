@@ -3,7 +3,7 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 import { getPaginationParams, createPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { mapDevelopmentToViewModel } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { applicationListViewFormattingFunction } from '../view/view-model.ts';
-import type { CrownDevelopmentCaseListView } from '../view/view-model.ts';
+import type { ExtendedCaseListFields } from '../view/view-model.ts';
 
 import { crownDevelopmentSelect } from '../view/view-model.ts';
 import type { CrownDevelopmentCaseListPayload } from '../view/view-model.ts';
@@ -48,7 +48,7 @@ export function buildApplicationListPage(service: PortalService): AsyncRequestHa
 
 		logger.info(`Crown development list page: ${crownDevelopments.length} case(s) fetched`);
 
-		const crownDevelopmentsViewModels: CrownDevelopmentCaseListView[] = crownDevelopments.map((crownDevelopment) =>
+		const crownDevelopmentsViewModels: ExtendedCaseListFields[] = crownDevelopments.map((crownDevelopment) =>
 			mapDevelopmentToViewModel(crownDevelopment, service.contactEmail, applicationListViewFormattingFunction)
 		);
 

@@ -15,7 +15,12 @@ import { getApplicationStatus, type ApplicationPublishStatus } from '@pins/crown
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 import type { BaseDevelopmentView } from '@pins/crowndev-lib/util/shared-view-model.ts';
-import { baseDevelopmentSelect, isInquiry, isHearing } from '@pins/crowndev-lib/util/shared-view-model.ts';
+import {
+	baseCrownDevelopmentSelect,
+	isInquiry,
+	isHearing,
+	type ValidatedDbPayload
+} from '@pins/crowndev-lib/util/shared-view-model.ts';
 
 import { insertWbr } from '@pins/crowndev-lib/util/string.ts';
 
@@ -159,52 +164,58 @@ export function crownDevelopmentToViewModel(
 	return fields;
 }
 
-export interface CrownDevelopmentCaseListView extends BaseDevelopmentView {
+export type ExtendedCaseListFields = {
 	applicantOrganisations: string;
 	referenceLink: string;
 	withdrawnDate: string | undefined;
-}
+};
+
+export type CrownDevelopmentCaseListView = BaseDevelopmentView & ExtendedCaseListFields;
 
 export const crownDevelopmentSelect = {
-	...baseDevelopmentSelect,
-	withdrawnDate: true
+	...baseCrownDevelopmentSelect,
+	withdrawnDate: true,
+	Organisations: {
+		select: {
+			role: true,
+			Organisation: {
+				select: {
+					name: true
+				}
+			}
+		}
+	}
 } satisfies Prisma.CrownDevelopmentSelect;
 
-export type CrownDevelopmentCaseListPayload = Prisma.CrownDevelopmentGetPayload<{
-	select: typeof crownDevelopmentSelect;
-}>;
+export type CrownDevelopmentCaseListPayload = ValidatedDbPayload<
+	Prisma.CrownDevelopmentGetPayload<{ select: typeof crownDevelopmentSelect }>
+>;
 
 /**
  * Crown Dev list view model formatter, formatting extended fields from Crown Development View
  *
  * @param crownDevelopment - The main db query input
  */
-export function applicationListViewFormattingFunction(crownDevelopment: CrownDevelopmentCaseListPayload) {
-	const extendedFields: Omit<CrownDevelopmentCaseListView, keyof BaseDevelopmentView | 'developmentContactEmail'> = {
-		applicantOrganisations: '',
-		referenceLink:
-			'<a class="govuk-link" href="/applications/' +
-			crownDevelopment.id +
-			'/application-information">' +
-			insertWbr(crownDevelopment.reference) +
-			'</a>',
-		withdrawnDate: undefined
-	};
+export function applicationListViewFormattingFunction(
+	crownDevelopment: CrownDevelopmentCaseListPayload
+): ExtendedCaseListFields {
+	let applicantOrganisations = '';
 
-	if (crownDevelopment.Organisations && crownDevelopment.Organisations.length > 0) {
-		extendedFields.applicantOrganisations = crownDevelopment.Organisations.filter(
-			(organisation) => organisation.role === ORGANISATION_ROLES_ID.APPLICANT
+	if (crownDevelopment.Organisations?.length) {
+		applicantOrganisations = crownDevelopment.Organisations.filter(
+			(org) => org.role === ORGANISATION_ROLES_ID.APPLICANT
 		)
-			.map((item) => item.Organisation.name)
+			.flatMap((item) => (item.Organisation?.name ? [item.Organisation.name] : []))
 			.join(', ');
 	}
 
 	const withdrawnDateFormatted = formatDate(crownDevelopment.withdrawnDate, { format: 'd MMMM yyyy' });
-	if (withdrawnDateFormatted) {
-		extendedFields.withdrawnDate = withdrawnDateFormatted;
-	}
 
-	return extendedFields;
+	return {
+		applicantOrganisations,
+		referenceLink: `<a class="govuk-link" href="/applications/${crownDevelopment.id}/application-information">${insertWbr(crownDevelopment.reference)}</a>`,
+		withdrawnDate: withdrawnDateFormatted || undefined
+	};
 }
 
 export type CrownDevelopmentWithRelations = Prisma.CrownDevelopmentGetPayload<{

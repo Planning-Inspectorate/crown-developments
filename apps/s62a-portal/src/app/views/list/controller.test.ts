@@ -113,11 +113,11 @@ describe('case list', () => {
 			const mockRes = mockResData as unknown as Response;
 
 			const mockDb = {
-				crownDevelopment: {
+				s62aCase: {
 					findMany: mock.fn(() => [
 						{
 							id: 'id-1',
-							reference: 'CROWN/1',
+							reference: 'S62A/1',
 							ApplicantContact: {
 								orgName: 'John Smith'
 							},
@@ -129,11 +129,19 @@ describe('case list', () => {
 							},
 							Type: {
 								displayName: 'Planning permission'
-							}
+							},
+							S62aToApplicants: [
+								{
+									roleId: 'applicant',
+									Organisation: {
+										name: 'Applicant organisation 1'
+									}
+								}
+							]
 						},
 						{
 							id: 'id-2',
-							reference: 'CROWN/2',
+							reference: 'S62A/2',
 							ApplicantContact: {
 								orgName: 'Dave James'
 							},
@@ -145,7 +153,15 @@ describe('case list', () => {
 							},
 							Type: {
 								displayName: 'Outline planning permission with some matters reserved'
-							}
+							},
+							S62aToApplicants: [
+								{
+									roleId: 'applicant',
+									Organisation: {
+										name: 'Applicant organisation 2'
+									}
+								}
+							]
 						}
 					]),
 					count: mock.fn(() => 2)
@@ -180,7 +196,7 @@ describe('case list', () => {
 			const mockRes = mockResData as unknown as Response;
 
 			const mockDb = {
-				crownDevelopment: {
+				s62aCase: {
 					findMany: mock.fn(() => []),
 					count: mock.fn(() => 0)
 				}
@@ -233,7 +249,7 @@ describe('case list', () => {
 					} as unknown as Request;
 
 					const mockDb = {
-						crownDevelopment: {
+						s62aCase: {
 							findMany: mock.fn(() => createMockCases(expected.resultsEndNumber - expected.resultsStartNumber + 1)),
 							count: mock.fn(() => totalItems)
 						}

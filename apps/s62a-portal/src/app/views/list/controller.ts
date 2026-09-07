@@ -25,9 +25,8 @@ export function buildCaseListPage(service: S62APortalService): AsyncRequestHandl
 
 		try {
 			[s62aDevelopments, totalS62aDevelopments] = await Promise.all([
-				//TODO - Replace CrownDev DB placeholder in future development
-				db.crownDevelopment.findMany({
-					where: { publishDate: { lte: now } },
+				db.s62aCase.findMany({
+					where: { S62aDates: { publishDate: { lte: now } } },
 					select: {
 						...s62aDevelopmentSelect
 					},
@@ -37,9 +36,8 @@ export function buildCaseListPage(service: S62APortalService): AsyncRequestHandl
 					skip: skipSize,
 					take: pageSize
 				}),
-				//TODO - Replace CrownDev DB placeholder in future development
-				db.crownDevelopment.count({
-					where: { publishDate: { lte: now } }
+				db.s62aCase.count({
+					where: { S62aDates: { publishDate: { lte: now } } }
 				})
 			]);
 		} catch (error) {

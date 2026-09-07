@@ -23,6 +23,15 @@ export function isHearing(procedureId: string | null): boolean {
 	return procedureId === APPLICATION_PROCEDURE_ID.HEARING;
 }
 
+export interface BaseDevelopmentDbRecord {
+	id: string;
+	reference: string;
+	description: string | null;
+	Lpa?: { name?: string | null } | null;
+	Stage?: { displayName?: string | null } | null;
+	SecondaryLpa?: { name?: string | null } | null;
+}
+
 export type BaseDevelopmentView = {
 	id: string;
 	reference: string;
@@ -33,20 +42,31 @@ export type BaseDevelopmentView = {
 	secondaryLpa: string | undefined;
 };
 
-export const baseDevelopmentSelect = {
+export type ValidatedDbPayload<T extends BaseDevelopmentDbRecord> = T;
+
+export const baseCrownDevelopmentSelect = {
 	id: true,
 	reference: true,
-	Lpa: { select: { name: true } },
 	description: true,
+	Lpa: { select: { name: true } },
 	Stage: { select: { displayName: true } },
-	Type: { select: { displayName: true } },
-	Organisations: { include: { Organisation: { select: { name: true } } } },
-	SecondaryLpa: true
+	SecondaryLpa: { select: { name: true } }
 } satisfies Prisma.CrownDevelopmentSelect;
 
-export type BaseDevelopmentPayload = Prisma.CrownDevelopmentGetPayload<{
-	select: typeof baseDevelopmentSelect;
-}>;
+export type BaseCrownDevelopmentPayload = ValidatedDbPayload<
+	Prisma.CrownDevelopmentGetPayload<{ select: typeof baseCrownDevelopmentSelect }>
+>;
+
+export const baseS62ACaseSelect = {
+	id: true,
+	reference: true,
+	description: true,
+	Lpa: { select: { name: true } },
+	Stage: { select: { displayName: true } },
+	SecondaryLpa: { select: { name: true } }
+} satisfies Prisma.S62aCaseSelect;
+
+export type BaseS62ACasePayload = ValidatedDbPayload<Prisma.S62aCaseGetPayload<{ select: typeof baseS62ACaseSelect }>>;
 
 /**
  * Higher Order Function to take database queries and prepare them for display as view models
@@ -55,10 +75,13 @@ export type BaseDevelopmentPayload = Prisma.CrownDevelopmentGetPayload<{
  * @param contactEmail - The contact email associated with the app service
  * @param developmentFormattingFunction - Function required to modify the db query input for use in the view model
  */
-export function mapDevelopmentToViewModel<T extends BaseDevelopmentPayload, E extends Record<string, unknown>>(
+export function mapDevelopmentToViewModel<
+	T extends BaseDevelopmentDbRecord,
+	E extends Record<string, unknown> = Record<string, never>
+>(
 	developmentData: T,
 	contactEmail: string | undefined,
-	developmentFormattingFunction: (input: T) => E
+	developmentFormattingFunction?: (input: T) => E
 ): BaseDevelopmentView & E {
 	const fields = {
 		id: developmentData.id,
@@ -69,7 +92,9 @@ export function mapDevelopmentToViewModel<T extends BaseDevelopmentPayload, E ex
 		stage: developmentData.Stage?.displayName ?? undefined,
 		secondaryLpa: developmentData.SecondaryLpa?.name ?? undefined
 	};
-	const extendedFields = developmentFormattingFunction(developmentData);
+
+	const extendedFields = developmentFormattingFunction ? developmentFormattingFunction(developmentData) : ({} as E);
+
 	return { ...extendedFields, ...fields };
 }
 
