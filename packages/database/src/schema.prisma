@@ -1025,6 +1025,8 @@ model S62aRepresentation {
 
   containsAttachments Boolean?                     @default(false)
   Attachments         BlobRepresentationDocument[]
+
+  distressingContentInRepresentation Boolean?
 }
 
 // Document attached to a representation, such as evidence or a letter
