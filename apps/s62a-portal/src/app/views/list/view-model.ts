@@ -7,6 +7,8 @@ import { insertWbr } from '@pins/crowndev-lib/util/string.ts';
 export interface S62ADevelopmentExtendedView extends BaseDevelopmentView {
 	applicantOrganisations: string;
 	referenceLink: string;
+	lpaFormatted: string | undefined;
+	location: string | undefined;
 }
 
 export const s62aDevelopmentSelect = {
@@ -20,7 +22,10 @@ export const s62aDevelopmentSelect = {
 				}
 			}
 		}
-	}
+	},
+	SiteAddress: true,
+	siteEasting: true,
+	siteNorthing: true
 } satisfies Prisma.S62aCaseSelect;
 
 export type S62ADevelopmentPayload = ValidatedDbPayload<
@@ -36,6 +41,8 @@ type ExtendedS62AFields = Omit<S62ADevelopmentExtendedView, keyof BaseDevelopmen
  */
 export function s62aViewFormattingFunction(s62aDevelopment: S62ADevelopmentPayload): ExtendedS62AFields {
 	let applicantOrganisations = '';
+	let location = undefined;
+	let lpaFormatted = undefined;
 
 	if (s62aDevelopment.S62aToApplicants?.length) {
 		applicantOrganisations = s62aDevelopment.S62aToApplicants.filter(
@@ -45,8 +52,23 @@ export function s62aViewFormattingFunction(s62aDevelopment: S62ADevelopmentPaylo
 			.join(', ');
 	}
 
+	if (s62aDevelopment.SecondaryLpa) {
+		lpaFormatted = `${s62aDevelopment.Lpa?.name}<br>${s62aDevelopment.SecondaryLpa.name}`;
+	} else if (s62aDevelopment.Lpa?.name) {
+		lpaFormatted = s62aDevelopment.Lpa.name;
+	}
+
+	if (s62aDevelopment.SiteAddress?.postcode) {
+		location = s62aDevelopment.SiteAddress.postcode;
+	} else if (s62aDevelopment.siteEasting || s62aDevelopment.siteNorthing) {
+		location = `Easting: ${s62aDevelopment.siteEasting?.toString().padStart(6, '0') || '-'}\n`;
+		location += `Northing: ${s62aDevelopment.siteNorthing?.toString().padStart(6, '0') || '-'}`;
+	}
+
 	return {
 		applicantOrganisations,
-		referenceLink: `<a class="govuk-link" href="/applications/${s62aDevelopment.id}/application-information">${insertWbr(s62aDevelopment.reference)}</a>`
+		referenceLink: `<a class="govuk-link" href="/applications/${s62aDevelopment.id}/application-information">${insertWbr(s62aDevelopment.reference)}</a>`,
+		location,
+		lpaFormatted
 	};
 }

@@ -45,8 +45,70 @@ describe('view-model', () => {
 			SiteAddress: {
 				line1: 'Site Street',
 				townCity: 'Site Town',
-				postcode: 'Site ONE'
+				postcode: 'SW1A 2AA'
 			},
+			containsDistressingContent: true,
+			withdrawnDate: null,
+			S62aToApplicants: [
+				{
+					roleId: 'applicant',
+					Organisation: {
+						name: 'Applicant organisation 1'
+					}
+				},
+				{
+					roleId: 'applicant',
+					Organisation: {
+						name: 'Applicant organisation 2'
+					}
+				},
+				{
+					roleId: 'agent',
+					Organisation: {
+						name: 'Agent organisation'
+					}
+				}
+			]
+		};
+		const input2 = {
+			id: 'id-1',
+			reference: 'REF/2025/001',
+			Type: {
+				displayName: 'Planning permission'
+			},
+			ApplicantContact: {
+				orgName: 'Applicant Name'
+			},
+			Lpa: {
+				name: 'Test LPA'
+			},
+			SecondaryLpa: {
+				name: 'Test SecondaryLPA'
+			},
+			Stage: {
+				displayName: 'Inquiry'
+			},
+			Procedure: {
+				displayName: 'Inquiry'
+			},
+			Event: {
+				date: '2025-04-01T23:00:00.000Z',
+				venue: 'City hall',
+				statementsDate: '2025-04-30T23:00:00.000Z',
+				proofsOfEvidenceDate: '2025-10-09T23:00:00.000Z'
+			},
+			applicationAcceptedDate: '2025-10-09T23:00:00.000Z',
+			representationsPeriodStartDate: '2025-10-09T23:00:00.000Z',
+			representationsPeriodEndDate: '2025-10-09T23:00:00.000Z',
+			representationsPublishDate: '2025-10-09T09:00:00.000Z',
+			decisionDate: '2025-10-09T23:00:00.000Z',
+			DecisionOutcome: {
+				displayName: 'Approved'
+			},
+			description: 'A significant project',
+			SiteAddress: null,
+			siteEasting: 123456,
+			siteNorthing: 654321,
 			containsDistressingContent: true,
 			withdrawnDate: null,
 			S62aToApplicants: [
@@ -83,9 +145,33 @@ describe('view-model', () => {
 				referenceLink:
 					'<a class="govuk-link" href="/applications/id-1/application-information">REF/<wbr>2025/<wbr>001</a>',
 				developmentContactEmail: 's62a.dev@planninginspectorate.gov.uk',
+				location: 'SW1A 2AA',
 				applicantOrganisations: 'Applicant organisation 1, Applicant organisation 2',
 				description: 'A significant project',
 				stage: 'Inquiry',
+				lpaFormatted: 'Test LPA<br>Test SecondaryLPA',
+				lpaName: 'Test LPA',
+				secondaryLpa: 'Test SecondaryLPA'
+			});
+		});
+
+		it(`should map development view model with northing and easting`, () => {
+			const result = mapDevelopmentToViewModel(
+				input2 as unknown as S62ADevelopmentPayload,
+				's62a.dev@planninginspectorate.gov.uk',
+				s62aViewFormattingFunction
+			);
+			assert.deepStrictEqual(result, {
+				id: 'id-1',
+				reference: 'REF/2025/001',
+				referenceLink:
+					'<a class="govuk-link" href="/applications/id-1/application-information">REF/<wbr>2025/<wbr>001</a>',
+				developmentContactEmail: 's62a.dev@planninginspectorate.gov.uk',
+				location: 'Easting: 123456\nNorthing: 654321',
+				applicantOrganisations: 'Applicant organisation 1, Applicant organisation 2',
+				description: 'A significant project',
+				stage: 'Inquiry',
+				lpaFormatted: 'Test LPA<br>Test SecondaryLPA',
 				lpaName: 'Test LPA',
 				secondaryLpa: 'Test SecondaryLPA'
 			});
@@ -104,7 +190,7 @@ describe('view-model', () => {
 				s62aViewFormattingFunction
 			) as S62ADevelopmentView;
 			assert.strictEqual(result.stage, undefined);
-			assert.strictEqual(result.lpaName, undefined);
+			assert.strictEqual(result.lpaFormatted, undefined);
 			assert.strictEqual(result.secondaryLpa, undefined);
 		});
 		it(`should not map developmentContactEmail field if config not present`, () => {

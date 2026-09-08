@@ -1,0 +1,24 @@
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
+@use 'packages/lib/views/styles/brand/pins-colors.scss' as brand;
+
+.pins-info {
+	box-sizing: border-box;
+	width: 100%;
+	color: govuk.govuk-colour('white');
+	background-color: brand.$pins-mhclg-green;
+	border-bottom: none;
+
+	// Hack to make background colour full-width
+	box-shadow: 0 0 0 100vmax brand.$pins-mhclg-green;
+	clip-path: inset(0 -100vmax);
+}
+
+.pins-info__heading {
+	margin: 0;
+	color: govuk.govuk-colour('white');
+}
+
+.pins-info__body {
+	margin-top: 20px;
+	color: govuk.govuk-colour('white');
+}

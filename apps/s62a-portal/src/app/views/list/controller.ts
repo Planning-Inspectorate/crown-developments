@@ -71,7 +71,7 @@ export function buildCaseListPage(service: S62APortalService): AsyncRequestHandl
 		};
 
 		return res.render('./views/list/view.njk', {
-			pageTitle: 'All Section 62A development applications',
+			pageTitle: 'All applications',
 			s62aDevelopmentsViewModels,
 			currentUrl: req.originalUrl,
 			paginationParams,
