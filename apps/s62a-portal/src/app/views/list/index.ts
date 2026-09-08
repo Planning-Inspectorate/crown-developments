@@ -9,7 +9,7 @@ export function createRoutes(service: S62APortalService): IRouter {
 	const router = createRouter({ mergeParams: true });
 
 	const homePageController = buildCaseListPage(service);
-	router.get('/', asyncHandler(homePageController));
+	router.get('/applications', asyncHandler(homePageController));
 
 	return router;
 }

@@ -7,12 +7,41 @@
 
 {% block pageHeading %}{% endblock %}
 
+{% set s62aPortalHeaders = basePortalHeaders.concat([{ text: "Site location" }]) %}
+
+{% set s62aPortalColumns = [
+	{
+		field: "referenceLink",
+		sortField: "reference"
+	},
+	{
+		field: "applicantOrganisations"
+	},
+	{
+		field: "lpaFormatted",
+		classes: "pins-white-space-pre-wrap"
+	},
+	{
+		field: "location" 
+	}
+] %}
+
+{% block containerStart %}
+	<div class="govuk-width-container">
+		{% include "views/layouts/components/core/intro-to-service.njk" %}
+	</div>
+	{{ super() }}
+{% endblock %}
+
 {% block pageContent %}
 	<div class="govuk-grid-row">
 		<div class="govuk-grid-column-full">
 			<h2 class="govuk-heading-l">
 				{{ pageTitle }}
 			</h2>
+			<p class="govuk-body">
+				This is a list of all applications. To find a specific application, use the filter or search by applicant, local authority, reference or location.
+			</p>
 			<div id="pagination">
 				<p class="govuk-body govuk-clearfix">
 					Showing <strong>{{ paginationParams.resultsStartNumber }}</strong>
@@ -23,7 +52,7 @@
 				{{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalItems, baseUrl, queryParams) }}
 				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
-				{{ baseCaseListTable(s62aDevelopmentsViewModels,basePortalHeaders,basePortalColumns) }}
+				{{ baseCaseListTable(s62aDevelopmentsViewModels,s62aPortalHeaders,s62aPortalColumns) }}
 			</div>
 
 			{# if pageNumber and totalPages values are both 1 then pagination options not shown #}

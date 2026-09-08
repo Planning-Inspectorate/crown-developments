@@ -178,10 +178,7 @@ describe('case list', () => {
 			assert.strictEqual(mockResData.render.mock.callCount(), 1);
 			assert.strictEqual(mockResData.render.mock.calls[0].arguments.length, 2);
 			assert.strictEqual(mockResData.render.mock.calls[0].arguments[0], './views/list/view.njk');
-			assert.strictEqual(
-				mockResData.render.mock.calls[0].arguments[1].pageTitle,
-				'All Section 62A development applications'
-			);
+			assert.strictEqual(mockResData.render.mock.calls[0].arguments[1].pageTitle, 'All applications');
 			assert.strictEqual(mockResData.render.mock.calls[0].arguments[1].s62aDevelopmentsViewModels.length, 2);
 		});
 		it('should render page without error when no crown dev cases returned', async () => {
@@ -215,7 +212,7 @@ describe('case list', () => {
 			assert.strictEqual(mockResData.render.mock.calls[0].arguments.length, 2);
 			assert.strictEqual(mockResData.render.mock.calls[0].arguments[0], './views/list/view.njk');
 			assert.deepStrictEqual(mockResData.render.mock.calls[0].arguments[1], {
-				pageTitle: 'All Section 62A development applications',
+				pageTitle: 'All applications',
 				s62aDevelopmentsViewModels: [],
 				baseUrl: '/applications',
 				currentUrl: undefined,
@@ -270,7 +267,7 @@ describe('case list', () => {
 					const actualRenderData = mockRes.render.mock.calls[0].arguments[1];
 
 					assertIncludesObject(actualRenderData, {
-						pageTitle: 'All Section 62A development applications',
+						pageTitle: 'All applications',
 						baseUrl: '/applications',
 						currentUrl: undefined,
 						queryParams: {
