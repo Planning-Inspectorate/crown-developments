@@ -59,6 +59,10 @@ export const ACCEPT_AND_REDACT = 'accept-and-redact';
  * @typedef {object} TextOverrides
  * @property {'portal'|'manage'|string} [appName]
  * @property {string} [groupRepresentedFullNameEditQuestion]
+ * @property {string} [notStartedText]
+ * @property {string} [continueButtonText]
+ * @property {string} [changeActionText]
+ * @property {string} [answerActionText]
  */
 /**
  * @typedef {object} GetQuestionsOptions
