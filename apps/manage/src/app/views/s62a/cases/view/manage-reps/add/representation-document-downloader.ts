@@ -34,7 +34,6 @@ export class RepresentationDocumentDownloader extends BaseDocumentDownloader<Dra
 				message: 'fetching representation documents',
 				logParams: { documentIds }
 			});
-			return undefined;
 		}
 	}
 
