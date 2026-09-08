@@ -37,10 +37,7 @@ export function buildUpdateRepresentation(service: ManageService): SaveDataFn {
 			(toSave.myselfBlobAttachments && toSave.myselfBlobAttachments.length > 0) ||
 			(toSave.submitterBlobAttachments && toSave.submitterBlobAttachments.length > 0);
 
-		// TODO - handle docs.
 		if (hasAttachments) {
-			// const attachmentsToSave = toSave.myselfBlobAttachments ?? toSave.submitterBlobAttachments ?? [];
-
 			try {
 				await db.$transaction(async ($tx) => {
 					const representation = await $tx.s62aRepresentation.findUnique({
@@ -53,14 +50,50 @@ export function buildUpdateRepresentation(service: ManageService): SaveDataFn {
 						return notFoundHandler(req, res);
 					}
 
-					// await $tx.blobRepresentationDocument.createMany({
-					//     data: attachmentsToSave.map((attachment) => ({
-					//         representationId: representation.id,
-					//         fileName: attachment.fileName,
-					//         itemId: attachment.itemId,
-					//         statusId: REPRESENTATION_STATUS_ID.AWAITING_REVIEW
-					//     }))
-					// });
+					const representationAttachments =
+						(toSave.myselfBlobAttachments?.length ?? 0) > 0
+							? toSave.myselfBlobAttachments!
+							: toSave.submitterBlobAttachments!;
+
+					logger.info({ representationRef }, 'committing draft representation attachments');
+
+					const repAttachmentIds = representationAttachments.map((rep: { itemId: string }) => rep.itemId);
+
+					const drafts = await $tx.draftBlobRepresentationDocument.findMany({
+						where: {
+							id: { in: repAttachmentIds }
+						}
+					});
+
+					if (drafts.length > 0) {
+						const realDocumentsData = drafts.map((draft) => ({
+							fileName: draft.fileName,
+							blobName: draft.blobName,
+							size: draft.size,
+							mimeType: draft.mimeType,
+							redactedBlobName: draft.redactedBlobName,
+							redactedFileName: draft.redactedFileName,
+							statusId: draft.statusId,
+							s62aRepresentationId: representation.id
+						}));
+
+						await $tx.blobRepresentationDocument.createMany({
+							data: realDocumentsData
+						});
+
+						await $tx.draftBlobRepresentationDocument.deleteMany({
+							where: {
+								id: { in: repAttachmentIds }
+							}
+						});
+
+						logger.info(
+							{ representationRef, count: drafts.length },
+							'added representation attachments and cleaned up drafts'
+						);
+					} else {
+						logger.info({ representationRef }, 'no drafts found to commit despite hasAttachments flag');
+					}
 				});
 			} catch (err) {
 				wrapPrismaError({
@@ -88,8 +121,7 @@ export function buildUpdateRepresentation(service: ManageService): SaveDataFn {
 				logParams: { id, representationRef }
 			});
 		}
-
-		clearSessionData(req, representationRef, req.params.section, 'files');
+		clearSessionData(req, id, req.params.question, 'files');
 		addSessionData(req, id, { representationUpdated: true }, 'representations');
 	};
 }

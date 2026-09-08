@@ -10,6 +10,7 @@ import { JourneyResponse, list } from '@planning-inspectorate/dynamic-forms';
 import { getBannerMessages } from '@pins/crowndev-lib/forms/representations/banner-utils.ts';
 import { buildRepresentationQuestions } from '@pins/crowndev-lib/forms/representations/form-utils.ts';
 import { createJourney, JOURNEY_ID } from './journey.ts';
+import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
 
 /**
  * Builds middleware to fetch case and representation data, and initializes the dynamic forms Journey.
@@ -45,6 +46,10 @@ export function buildGetJourneyMiddleware(service: ManageService): AsyncRequestH
 		}
 
 		const answers = s62aRepresentationToManageViewModel(representation, s62aCase.reference);
+		const sessionAnswers = res.locals.journeyResponse?.answers;
+
+		const finalAnswers = combineSessionAndDbData(answers, sessionAnswers);
+
 		const taskListUrl = req.baseUrl + '/manage/task-list';
 
 		const questions = buildRepresentationQuestions(answers, taskListUrl, true);
@@ -52,7 +57,7 @@ export function buildGetJourneyMiddleware(service: ManageService): AsyncRequestH
 		// @ts-expect-error - mismatch in dynamic-forms journey typing vs strict local types
 		res.locals.originalAnswers = { ...answers };
 		// @ts-expect-error - mismatch in dynamic-forms journey typing
-		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', answers);
+		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', finalAnswers);
 		res.locals.journey = createJourney(questions, res.locals.journeyResponse, req);
 
 		if (req.originalUrl !== req.baseUrl) {

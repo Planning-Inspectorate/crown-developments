@@ -103,8 +103,9 @@ export function representationToManageViewModel(representation, applicationRefer
 			model.agentOrgName = representation.submittedByAgentOrgName;
 			model.representedOrgName = primaryRepresentedContact?.orgName;
 		} else if (representation.representedTypeId === REPRESENTED_TYPE_ID.GROUP) {
+			model.isAgent = mapFieldValue(representation.submittedByAgent);
+			model.agentOrgName = representation.submittedByAgentOrgName;
 			model.groupName = representation.representedGroupName;
-
 			const groupContacts =
 				representation.RepresentedContacts ||
 				(representation.RepresentedContact ? [representation.RepresentedContact] : []);
@@ -120,7 +121,6 @@ export function representationToManageViewModel(representation, applicationRefer
 	return model;
 }
 
-// Optional: Export an alias so you don't have to rewrite imports in existing S62A files immediately
 export const s62aRepresentationToManageViewModel = representationToManageViewModel;
 
 function mapRedactedAttachments(attachments) {
@@ -144,6 +144,7 @@ export function extractEditPayloads(edits) {
 	const submittedByContactUpdate = {};
 	const representedContactUpdate = {};
 	let addressUpdate = {};
+	let groupMembersUpdate = null;
 
 	for (const field of UNMAPPED_VIEW_MODEL_FIELDS) {
 		if (Object.hasOwn(edits, field) && field !== 'reference') {
@@ -247,13 +248,20 @@ export function extractEditPayloads(edits) {
 		primitiveUpdates.representedGroupName = edits.groupName;
 	}
 
-	// TODO - manage list for group people.
+	if ('manageGroupDetails' in edits) {
+		groupMembersUpdate = (edits.manageGroupDetails || []).map((member) => ({
+			id: member.id, // Assuming your UI/ViewModel passes the ID for existing rows
+			firstName: member.groupRepresentedFirstName,
+			lastName: member.groupRepresentedLastName
+		}));
+	}
 
 	return {
 		primitiveUpdates,
 		submittedByContactUpdate,
 		representedContactUpdate,
-		addressUpdate
+		addressUpdate,
+		groupMembersUpdate
 	};
 }
 
@@ -468,7 +476,40 @@ export function s62aEditsToDatabaseUpdates(edits, viewModel) {
 		}
 	}
 
-	if (Object.keys(payloads.representedContactUpdate).length > 0) {
+	if (payloads.groupMembersUpdate) {
+		const upsertOperations = [];
+		const createOperations = [];
+		const existingIdsToKeep = [];
+
+		for (const member of payloads.groupMembersUpdate) {
+			const memberData = {
+				firstName: member.firstName || member.groupRepresentedFirstName,
+				lastName: member.lastName || member.groupRepresentedLastName
+			};
+
+			if (member.id) {
+				existingIdsToKeep.push(member.id);
+				upsertOperations.push({
+					where: { id: member.id },
+					create: memberData,
+					update: memberData
+				});
+			} else {
+				createOperations.push(memberData);
+			}
+		}
+
+		updateInput.RepresentedContacts = {};
+
+		if (existingIdsToKeep.length > 0) {
+			updateInput.RepresentedContacts.deleteMany = { id: { notIn: existingIdsToKeep } };
+		} else if (payloads.groupMembersUpdate.length === 0) {
+			updateInput.RepresentedContacts.deleteMany = {};
+		}
+
+		if (upsertOperations.length > 0) updateInput.RepresentedContacts.upsert = upsertOperations;
+		if (createOperations.length > 0) updateInput.RepresentedContacts.create = createOperations;
+	} else if (Object.keys(payloads.representedContactUpdate).length > 0) {
 		updateInput.RepresentedContacts = {
 			upsert: [
 				{
