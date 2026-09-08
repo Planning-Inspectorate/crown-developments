@@ -141,6 +141,7 @@ describe('view-model', () => {
 				myselfContactPreference: 'post',
 				myselfContainsAttachments: 'yes',
 				myselfAttachments: undefined,
+				myselfBlobAttachments: undefined,
 				myselfRedactedAttachments: [],
 				requiresReview: false,
 				submittedByContactId: 'sub-id-1',
@@ -252,6 +253,22 @@ describe('view-model', () => {
 						redactedFileName: 'redacted-file2.pdf'
 					}
 				],
+				myselfBlobAttachments: [
+					{
+						itemId: 'file-1',
+						fileName: 'file1.pdf',
+						size: 12345,
+						redactedItemId: 'redacted-file-1',
+						redactedFileName: 'redacted-file1.pdf'
+					},
+					{
+						itemId: 'file-2',
+						fileName: 'file2.pdf',
+						size: 67890,
+						redactedItemId: 'redacted-file-2',
+						redactedFileName: 'redacted-file2.pdf'
+					}
+				],
 				myselfRedactedAttachments: [{ fileName: 'redacted-file1.pdf' }, { fileName: 'redacted-file2.pdf' }],
 				withdrawalRequestDate: undefined,
 				withdrawalReasonId: undefined,
@@ -302,6 +319,7 @@ describe('view-model', () => {
 				submitterComment: 'my comments',
 				submitterContainsAttachments: 'yes',
 				submitterAttachments: undefined,
+				submitterBlobAttachments: undefined,
 				submitterRedactedAttachments: [],
 				requiresReview: false,
 				submittedByContactId: 'sub-id-1',
@@ -366,6 +384,7 @@ describe('view-model', () => {
 				submitterComment: 'my comments',
 				submitterContainsAttachments: 'no',
 				submitterAttachments: undefined,
+				submitterBlobAttachments: undefined,
 				submitterRedactedAttachments: [],
 				representedFirstName: 'represented firstName',
 				representedLastName: 'represented lastName',
@@ -473,6 +492,22 @@ describe('view-model', () => {
 						redactedFileName: 'redacted-file2.pdf'
 					}
 				],
+				submitterBlobAttachments: [
+					{
+						itemId: 'file-1',
+						fileName: 'file1.pdf',
+						size: 12345,
+						redactedItemId: 'redacted-file-1',
+						redactedFileName: 'redacted-file1.pdf'
+					},
+					{
+						itemId: 'file-2',
+						fileName: 'file2.pdf',
+						size: 67890,
+						redactedItemId: 'redacted-file-2',
+						redactedFileName: 'redacted-file2.pdf'
+					}
+				],
 				submitterRedactedAttachments: [{ fileName: 'redacted-file1.pdf' }, { fileName: 'redacted-file2.pdf' }],
 				representedFirstName: 'represented firstName',
 				representedLastName: 'represented lastName',
@@ -531,6 +566,7 @@ describe('view-model', () => {
 				submitterComment: 'my comments',
 				submitterContainsAttachments: 'no',
 				submitterAttachments: undefined,
+				submitterBlobAttachments: undefined,
 				submitterRedactedAttachments: [],
 				orgName: 'the orgs name',
 				orgRoleName: 'my role',
@@ -597,6 +633,7 @@ describe('view-model', () => {
 				submitterComment: 'my comments',
 				submitterContainsAttachments: 'no',
 				submitterAttachments: undefined,
+				submitterBlobAttachments: undefined,
 				submitterRedactedAttachments: [],
 				isAgent: 'yes',
 				agentOrgName: 'agent org',

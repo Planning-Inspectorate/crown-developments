@@ -28,7 +28,7 @@ describe('s62a-sections', () => {
 			const myselfSection = sections[1];
 			assert.strictEqual(myselfSection.name, 'Myself');
 			assert.strictEqual(myselfSection.segment, 'myself');
-			assert.strictEqual(myselfSection.questions.length, 8);
+			assert.strictEqual(myselfSection.questions.length, 9);
 
 			myselfSection.questions.forEach((q: Question | undefined) => {
 				assert.ok(q !== undefined, 'Question in Myself section should be defined');
