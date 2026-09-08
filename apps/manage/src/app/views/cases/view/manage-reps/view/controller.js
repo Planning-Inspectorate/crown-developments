@@ -1,70 +1,13 @@
 import { list } from '@planning-inspectorate/dynamic-forms/src/controller.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { createJourney, JOURNEY_ID } from './journey.js';
 import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import { representationToManageViewModel } from '@pins/crowndev-lib/forms/representations/view-model.js';
 import { clearRepUpdatedSession, readRepUpdatedSession } from '../edit/controller.js';
 import { clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
-import {
-	REPRESENTATION_STATUS_ID,
-	REPRESENTATION_SUBMITTED_FOR_ID,
-	RECEIVED_METHOD_ID
-} from '@pins/crowndev-database/src/seed/data-static.ts';
-import { getSubmittedForId } from '@pins/crowndev-lib/util/questions.ts';
-import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
-import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
-import { isSafeRelativeUrl, escapeHtml } from '@pins/crowndev-lib/util/string.ts';
 import { getStringParam, getStringParams } from '@pins/crowndev-lib/util/params.ts';
-
-/**
- * @typedef {import('@pins/crowndev-lib/views/banner/banner-builder').BannerMessage} BannerMessage
- * @typedef {{representationUpdated: boolean}} GetBannerMessagesOptions
- */
-
-/**
- * Get all banner messages to display.
- *
- * @param {import('express').Response} res
- * @param {import('express').Request} req
- * @param {GetBannerMessagesOptions} options
- * @return {BannerMessage|null}
- */
-function getBannerMessages(res, req, options) {
-	const bannerBuilder = new BannerBuilder();
-
-	if (options.representationUpdated) {
-		bannerBuilder.addSuccessText('Representation has been updated');
-	}
-
-	const documentInfoBanner = getDocumentInfoBanner(res, req.baseUrl);
-
-	if (!documentInfoBanner) {
-		return bannerBuilder.build();
-	}
-
-	if (documentInfoBanner.name === 'awaitingReview') {
-		const safeHref = escapeHtml(isSafeRelativeUrl(documentInfoBanner.href) ? documentInfoBanner.href : '#');
-		return bannerBuilder
-			.addInfoTrustedSingleLineHtml(
-				`There are attachments awaiting review.
-			<a class="govuk-notification-banner__link" href="${safeHref}">Manage attachments</a>.`
-			)
-			.build();
-	}
-
-	if (documentInfoBanner.name === 'noAttachmentsAdded') {
-		const safeHref = escapeHtml(isSafeRelativeUrl(documentInfoBanner.href) ? documentInfoBanner.href : '#');
-		return bannerBuilder
-			.addInfoTrustedSingleLineHtml(
-				`There are no attachments added.
-			<a class="govuk-notification-banner__link" href="${safeHref}">Add attachments</a>.`
-			)
-			.build();
-	}
-
-	return bannerBuilder.build();
-}
+import { getBannerMessages } from '@pins/crowndev-lib/forms/representations/banner-utils.ts';
+import { buildRepresentationQuestions } from '@pins/crowndev-lib/forms/representations/form-utils.ts';
 
 /**
  * @typedef {import('express').Handler} Handler
@@ -161,30 +104,10 @@ export function buildGetJourneyMiddleware({ db, logger }) {
 			return notFoundHandler(req, res);
 		}
 		const answers = representationToManageViewModel(representation, crownDevelopment.reference);
-		const questions = getQuestions({
-			methodOverrides: {
-				initialValues: {
-					submittedReceivedMethodId: answers?.submittedReceivedMethodId
-				}
-			},
-			textOverrides: {
-				notStartedText: '-',
-				continueButtonText: 'Save',
-				changeActionText: 'Edit',
-				answerActionText: 'Edit'
-			},
-			actionOverrides: {
-				statusShouldShowManageAction: answers?.statusId !== REPRESENTATION_STATUS_ID.WITHDRAWN,
-				redactedCommentShowManageAction: answers?.statusId === REPRESENTATION_STATUS_ID.ACCEPTED,
-				canEditAttachmentsUploaded: answers?.statusId !== REPRESENTATION_STATUS_ID.REJECTED,
-				distressingContentInRepresentationShowManageAction: answers?.statusId !== REPRESENTATION_STATUS_ID.REJECTED,
-				taskListUrl: req.baseUrl + '/manage/task-list'
-			},
-			editActionOverrides: {
-				submittedReceivedMethodShouldShowEditAction:
-					answers?.submittedReceivedMethodId != null && answers?.submittedReceivedMethodId !== RECEIVED_METHOD_ID.ONLINE
-			}
-		});
+
+		const taskListUrl = req.baseUrl + '/manage/task-list';
+		const questions = buildRepresentationQuestions(answers, taskListUrl, false);
+
 		// put these on locals for the list controller
 		res.locals.originalAnswers = { ...answers };
 		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', answers);
@@ -198,40 +121,4 @@ export function buildGetJourneyMiddleware({ db, logger }) {
 
 		next();
 	};
-}
-
-function getDocumentInfoBanner(res, currentUrl) {
-	const journey = res.locals.journey;
-	const answers = journey.response?.answers || {};
-
-	const submittedForId = getSubmittedForId(answers);
-	const prefix = submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF ? 'myself' : 'submitter';
-	const status = answers['statusId'];
-	const containsAttachments = answers[`${prefix}ContainsAttachments`];
-	const attachments = answers[`${prefix}Attachments`] || [];
-	const someAttachmentsAwaitingReview = attachments?.some(
-		(attachment) => attachment.statusId === REPRESENTATION_STATUS_ID.AWAITING_REVIEW
-	);
-	const trimmedUrl = currentUrl?.replace(/\/review$/, '');
-
-	if (containsAttachments === BOOLEAN_OPTIONS.YES && attachments.length === 0) {
-		const urlSection = submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF ? 'myself' : 'agent';
-		return {
-			name: 'noAttachmentsAdded',
-			href: `${trimmedUrl}/edit/${urlSection}/attachments`
-		};
-	}
-
-	const shouldShowAwaitingReviewBanner =
-		status !== REPRESENTATION_STATUS_ID.AWAITING_REVIEW &&
-		containsAttachments === BOOLEAN_OPTIONS.YES &&
-		someAttachmentsAwaitingReview;
-	if (shouldShowAwaitingReviewBanner) {
-		return {
-			name: 'awaitingReview',
-			href: `${trimmedUrl}/manage/task-list`
-		};
-	}
-
-	return null;
 }
