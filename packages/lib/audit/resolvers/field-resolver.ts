@@ -10,11 +10,13 @@ import {
 } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
+import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
 
 interface ResolverContext {
 	userDisplayNameMap?: Map<string, string>;
 	environmentConfig?: string;
 	environmentName?: Record<string, string>;
+	entraGroupMembers?: EntraGroupMembers;
 }
 
 /**
@@ -192,6 +194,26 @@ function addressResolver(previousCaseFieldName: string): FieldResolver {
 }
 
 /**
+ * Resolver for Entra user ID fields (inspectors, case officers, planning officers).
+ * Uses a pre-built userDisplayNameMap from context.
+ * Falls back to '-' if the user is not found.
+ */
+function entraUserResolver(fieldName: string): FieldResolver {
+	return {
+		resolve(previousCase, newAnswer, context) {
+			const nameMap = context?.userDisplayNameMap;
+			const oldId = previousCase[fieldName] as string | null | undefined;
+			const newId = newAnswer as string | null | undefined;
+
+			return {
+				oldValue: oldId == null ? '-' : (nameMap?.get(oldId) ?? oldId),
+				newValue: newId == null ? '-' : (nameMap?.get(newId) ?? newId)
+			};
+		}
+	};
+}
+
+/**
  * Registry of field-specific resolvers.
  *
  * Add an entry here whenever a field needs special handling — e.g. the
@@ -276,7 +298,16 @@ const FIELD_RESOLVERS: Record<string, FieldResolver> = {
 	/** Application fee amount */
 	applicationFee: monetaryResolver('applicationFee'),
 	/** Application fee refund amount */
-	applicationFeeRefundAmount: monetaryResolver('applicationFeeRefundAmount')
+	applicationFeeRefundAmount: monetaryResolver('applicationFeeRefundAmount'),
+
+	// ── Entra fields ─────────────────────────────────────────────────────
+
+	inspector1Id: entraUserResolver('inspector1Id'),
+	inspector2Id: entraUserResolver('inspector2Id'),
+	inspector3Id: entraUserResolver('inspector3Id'),
+	assessorInspectorId: entraUserResolver('assessorInspectorId'),
+	caseOfficerId: entraUserResolver('caseOfficerId'),
+	planningOfficerId: entraUserResolver('planningOfficerId')
 };
 
 /**

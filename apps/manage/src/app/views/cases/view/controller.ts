@@ -306,6 +306,8 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 			session: req.session,
 			groupIds
 		});
+		res.locals.groupMembers = groupMembers;
+
 		if (service.isCaseNotesLive) {
 			const readMoreHref = `/cases/${id}/application-notes`;
 			const mappedNotes = mapNotes(crownDevelopment.Notes ?? [], groupMembers, readMoreHref);

@@ -1,5 +1,5 @@
 import { before, describe, it, mock } from 'node:test';
-import { buildUpdateCase } from './update-case.ts';
+import { buildUpdateCase, isEntraGroupMembers } from './update-case.ts';
 import assert from 'node:assert';
 import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
 import { asReq, asRes } from '@pins/crowndev-lib/testing/mock-express.ts';
@@ -2728,7 +2728,7 @@ describe('audit recording', () => {
 		const mockAudit = createMockAudit();
 		const mockDb = buildDbForAudit({ siteArea: null });
 
-		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
 		const mockReq = {
 			params: { id: 'case-1' },
 			session: { account: { localAccountId: 'user-123' } }
@@ -2758,7 +2758,7 @@ describe('audit recording', () => {
 		const mockAudit = createMockAudit();
 		const mockDb = buildDbForAudit({ lpaReference: 'ABC/123' });
 
-		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit }, true);
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true }, true);
 		const mockReq = {
 			params: { id: 'case-1' },
 			session: { account: { localAccountId: 'user-456' } }
@@ -2786,7 +2786,7 @@ describe('audit recording', () => {
 		const mockAudit = createMockAudit();
 		const mockDb = buildDbForAudit({ lpaReference: 'OLD/REF' });
 
-		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
 		const mockReq = {
 			params: { id: 'case-1' },
 			session: { account: { localAccountId: 'user-789' } }
@@ -2814,7 +2814,7 @@ describe('audit recording', () => {
 		const mockAudit = createMockAudit();
 		const mockDb = buildDbForAudit({ lpaReference: 'ABC/123' });
 
-		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
 		const mockReq = {
 			params: { id: 'case-1' },
 			session: { account: { localAccountId: 'user-123' } }
@@ -2840,7 +2840,7 @@ describe('audit recording', () => {
 		};
 		const mockDb = buildDbForAudit({ siteArea: null });
 
-		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
 		const mockReq = {
 			params: { id: 'case-1' },
 			session: { account: { localAccountId: 'user-123' } }
@@ -2899,7 +2899,7 @@ describe('audit recording', () => {
 		const mockAudit = createMockAudit();
 		const mockDb = buildDbForAudit({ siteArea: null });
 
-		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
 		const mockReq = {
 			params: { id: 'case-1' },
 			session: { account: { localAccountId: '' } }
@@ -2929,7 +2929,7 @@ describe('audit recording', () => {
 		const mockAudit = createMockAudit();
 		const mockDb = buildDbForAudit({ hearingVenue: null });
 
-		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
 		const mockReq = {
 			params: { id: 'case-1' },
 			session: { account: { localAccountId: 'user-123' } }
@@ -2983,7 +2983,7 @@ describe('audit recording', () => {
 		};
 		makeTransactionInteractive(mockDb);
 
-		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
 		const mockReq = {
 			params: { id: 'case-1' },
 			session: { account: { localAccountId: 'user-123' } }
@@ -3012,7 +3012,7 @@ describe('audit recording', () => {
 				const mockAudit = createMockAudit();
 				const mockDb = buildDbForAudit({ description: null });
 
-				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
 				const mockReq = {
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
@@ -3040,7 +3040,7 @@ describe('audit recording', () => {
 				const mockAudit = createMockAudit();
 				const mockDb = buildDbForAudit({ description: 'Old description text' });
 
-				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
 				const mockReq = {
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
@@ -3068,7 +3068,7 @@ describe('audit recording', () => {
 				const mockAudit = createMockAudit();
 				const mockDb = buildDbForAudit({ description: 'Old description text' });
 
-				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
 				const mockReq = {
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
@@ -3098,7 +3098,7 @@ describe('audit recording', () => {
 				const mockAudit = createMockAudit();
 				const mockDb = buildDbForAudit({ costsApplicationsComment: null });
 
-				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
 				const mockReq = {
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
@@ -3126,7 +3126,7 @@ describe('audit recording', () => {
 				const mockAudit = createMockAudit();
 				const mockDb = buildDbForAudit({ costsApplicationsComment: 'Original comment' });
 
-				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
 				const mockReq = {
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
@@ -3154,7 +3154,7 @@ describe('audit recording', () => {
 				const mockAudit = createMockAudit();
 				const mockDb = buildDbForAudit({ costsApplicationsComment: 'Some costs comment', hasCostsApplications: true });
 
-				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
 				const mockReq = {
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
@@ -3187,7 +3187,7 @@ describe('audit recording', () => {
 				const mockAudit = createMockAudit();
 				const mockDb = buildDbForAudit({ lpaReference: 'OLD/REF' });
 
-				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
 				const mockReq = {
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
@@ -3205,6 +3205,28 @@ describe('audit recording', () => {
 				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
 				assert.strictEqual(entries.length, 1);
 				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_UPDATED);
+			});
+		});
+		describe('Entra group members guard', () => {
+			it('should accept objects with caseOfficers and inspectors arrays', () => {
+				assert.strictEqual(isEntraGroupMembers({ caseOfficers: [], inspectors: [] }), true);
+				assert.strictEqual(
+					isEntraGroupMembers({
+						caseOfficers: [{ id: '123', displayName: 'Sam Smith' }],
+						inspectors: [{ id: '456', displayName: 'Ivy Jones' }]
+					}),
+					true
+				);
+			});
+
+			it('should reject invalid returns in isEntraGroupMembers', () => {
+				assert.strictEqual(isEntraGroupMembers(null), false);
+				assert.strictEqual(isEntraGroupMembers(undefined), false);
+				assert.strictEqual(isEntraGroupMembers('x'), false);
+				assert.strictEqual(isEntraGroupMembers({ caseOfficers: [] }), false);
+				assert.strictEqual(isEntraGroupMembers({ inspectors: [] }), false);
+				assert.strictEqual(isEntraGroupMembers({ caseOfficers: {}, inspectors: [] }), false);
+				assert.strictEqual(isEntraGroupMembers({ caseOfficers: [], inspectors: 'nope' }), false);
 			});
 		});
 	});

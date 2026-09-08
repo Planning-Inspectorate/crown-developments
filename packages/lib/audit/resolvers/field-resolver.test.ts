@@ -402,5 +402,65 @@ describe('Field Resolver', () => {
 				assert.strictEqual(newValue, '-');
 			});
 		});
+		describe('entra group member resolvers', () => {
+			it('should set caseOfficerId newValue if no previous oldValue exists and userDisplayNameMap is provided', async () => {
+				const previousCase = {};
+				const newAnswer = 'user-123';
+
+				const userDisplayNameMap = new Map<string, string>([['user-123', 'Alice Smith']]);
+
+				const { oldValue, newValue } = resolveFieldValues('caseOfficerId', previousCase, newAnswer, {
+					userDisplayNameMap
+				});
+
+				assert.strictEqual(oldValue, '-');
+				assert.strictEqual(newValue, 'Alice Smith');
+			});
+			it('should update case officer ID and display name using userDisplayNameMap', async () => {
+				const previousCase = { caseOfficerId: 'user-123' };
+				const newAnswer = 'user-456';
+
+				const userDisplayNameMap = new Map<string, string>([
+					['user-123', 'Alice Smith'],
+					['user-456', 'Bob Johnson']
+				]);
+
+				const { oldValue, newValue } = resolveFieldValues('caseOfficerId', previousCase, newAnswer, {
+					userDisplayNameMap
+				});
+
+				assert.strictEqual(oldValue, 'Alice Smith');
+				assert.strictEqual(newValue, 'Bob Johnson');
+			});
+			it('should set inspector1Id newValue if no previous oldValue exists and userDisplayNameMap is provided', async () => {
+				const previousCase = {};
+				const newAnswer = 'user-123';
+
+				const userDisplayNameMap = new Map<string, string>([['user-123', 'Alice Smith']]);
+
+				const { oldValue, newValue } = resolveFieldValues('inspector1Id', previousCase, newAnswer, {
+					userDisplayNameMap
+				});
+
+				assert.strictEqual(oldValue, '-');
+				assert.strictEqual(newValue, 'Alice Smith');
+			});
+			it('should update inspector ID and display name using userDisplayNameMap', async () => {
+				const previousCase = { inspector1Id: 'user-789' };
+				const newAnswer = 'user-101';
+
+				const userDisplayNameMap = new Map<string, string>([
+					['user-789', 'Charlie Brown'],
+					['user-101', 'Diana Prince']
+				]);
+
+				const { oldValue, newValue } = resolveFieldValues('inspector1Id', previousCase, newAnswer, {
+					userDisplayNameMap
+				});
+
+				assert.strictEqual(oldValue, 'Charlie Brown');
+				assert.strictEqual(newValue, 'Diana Prince');
+			});
+		});
 	});
 });

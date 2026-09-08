@@ -40,6 +40,7 @@ import { resolveFieldValues, getFieldDisplayName } from '@pins/crowndev-lib/audi
 import type { Logger } from 'pino';
 import { resolveAuditAction } from '@pins/crowndev-lib/audit/actions.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
 
 /**
  * Send a notification in the background and update the emailSent flag only on success.
@@ -100,6 +101,23 @@ function isClearableSaveKey(key: keyof CrownDevelopmentSaveModel): key is CrownD
 	return CLEARABLE_SAVE_KEY_SET.has(key as CrownDevelopmentClearableKey);
 }
 
+function isEntraMember(value: unknown): value is { id: string; displayName: string } {
+	if (!value || typeof value !== 'object') return false;
+
+	const member = value as { id?: unknown; displayName?: unknown };
+	return typeof member.id === 'string' && member.id.length > 0 && typeof member.displayName === 'string';
+}
+
+export function isEntraGroupMembers(value: unknown): value is EntraGroupMembers {
+	if (!value || typeof value !== 'object') return false;
+
+	const entraGroup = value as { caseOfficers?: unknown; inspectors?: unknown };
+	if (!Array.isArray(entraGroup.caseOfficers) || !Array.isArray(entraGroup.inspectors)) {
+		return false;
+	}
+
+	return entraGroup.caseOfficers.every(isEntraMember) && entraGroup.inspectors.every(isEntraMember);
+}
 /**
  * Scalar fields that should be audited when updated.
  * Only these fields will produce audit entries in recordAuditEntries.
@@ -123,7 +141,12 @@ const AUDITABLE_SCALAR_FIELDS = new Set([
 	'procedureId',
 	'statusId',
 	'stageId',
-
+	'inspector1Id',
+	'inspector2Id',
+	'inspector3Id',
+	'assessorInspectorId',
+	'caseOfficerId',
+	'planningOfficerId',
 	// Boolean fields
 	'hasSecondaryLpa',
 	'containsDistressingContent',
@@ -325,7 +348,7 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 		}
 
 		if (updateSucceeded && service.isAuditLive !== false) {
-			await recordAuditEntries(audit, id, userId, previousValues, answersSnapshot, updatedFieldNames, logger);
+			await recordAuditEntries(audit, id, userId, previousValues, answersSnapshot, updatedFieldNames, logger, res);
 		}
 
 		// show a banner to the user on success
@@ -521,7 +544,8 @@ async function recordAuditEntries(
 	previousValues: Record<string, unknown>,
 	answersSnapshot: Record<string, unknown>,
 	updatedFieldNames: string[],
-	logger: Logger
+	logger: Logger,
+	res: Response
 ): Promise<void> {
 	// Bail out early if userId is missing — audit.recordMany requires a userId for every entry
 	// and will throw/log when missing. This avoids noisy error logs and wasted work.
@@ -540,6 +564,21 @@ async function recordAuditEntries(
 			envConfig = '';
 		}
 
+		// ── Entra group fields ────────────────────────────────────────────────
+		// check if groupmember with unique id's and convert to display name for audit entries
+		const rawGroupMembers: unknown = res.locals?.groupMembers;
+		const groupMembers = isEntraGroupMembers(rawGroupMembers) ? rawGroupMembers : undefined;
+
+		const userDisplayNameMap = new Map<string, string>();
+		if (groupMembers) {
+			groupMembers.caseOfficers.forEach((member) => {
+				userDisplayNameMap.set(member.id, member.displayName);
+			});
+			groupMembers.inspectors.forEach((member) => {
+				userDisplayNameMap.set(member.id, member.displayName);
+			});
+		}
+
 		// ── Scalar fields ────────────────────────────────────────────────
 		for (const fieldName of updatedFieldNames) {
 			// Only audit fields in the auditable set
@@ -549,7 +588,8 @@ async function recordAuditEntries(
 
 			const { oldValue, newValue } = resolveFieldValues(fieldName, previousValues, answersSnapshot[fieldName], {
 				environmentConfig: envConfig,
-				environmentName: ENVIRONMENT_NAME
+				environmentName: ENVIRONMENT_NAME,
+				userDisplayNameMap
 			});
 
 			if (oldValue === newValue) {
