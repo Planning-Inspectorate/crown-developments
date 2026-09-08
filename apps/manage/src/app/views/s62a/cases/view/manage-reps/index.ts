@@ -22,6 +22,7 @@ import multer from 'multer';
 import { FileValidator } from '@pins/crowndev-lib/validators/file-validator.ts';
 import { RepresentationDocumentsUploader } from './add/representation-document-uploader.ts';
 import {
+	buildDownloadDocument,
 	deleteDocumentController,
 	uploadRepresentationDocumentsController,
 	validateUploads
@@ -35,6 +36,7 @@ import {
 	MAX_FILE_SIZE,
 	TOTAL_UPLOAD_LIMIT
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
+import { ManageRepresentationDocumentDownloader } from './manage-reps-document-downloader.ts';
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });
@@ -52,6 +54,7 @@ export function createRoutes(service: ManageService) {
 
 	const fileValidator = new FileValidator(logger);
 	const documentsUploader = new RepresentationDocumentsUploader(db, blobStore, logger, fileValidator);
+	const downloader = new ManageRepresentationDocumentDownloader(service);
 
 	const validateRequest = asyncHandler(
 		validateUploads(
@@ -70,6 +73,7 @@ export function createRoutes(service: ManageService) {
 
 	const uploadDocument = uploadRepresentationDocumentsController(documentsUploader, service);
 	const deleteDocument = deleteDocumentController(service, documentsUploader);
+	const downloadDocument = buildDownloadDocument(service, downloader);
 
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 
@@ -83,6 +87,7 @@ export function createRoutes(service: ManageService) {
 
 	repsRouter.post('/edit/:section/:question/upload', handleUploads.array('documents'), validateRequest, uploadDocument);
 	repsRouter.post('/edit/:section/:question/delete', deleteDocument);
+	repsRouter.get('/edit/document/:documentId', asyncHandler(downloadDocument));
 
 	repsRouter.get(
 		'/edit/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
