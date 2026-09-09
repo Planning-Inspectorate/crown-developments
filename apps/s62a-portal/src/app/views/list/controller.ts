@@ -4,7 +4,7 @@ import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { mapDevelopmentToViewModel } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { s62aViewFormattingFunction } from './view-model.ts';
-import type { S62ADevelopmentView } from './view-model.ts';
+import type { S62ADevelopmentExtendedView } from './view-model.ts';
 import type { PaginationParams } from '@pins/crowndev-lib/views/pagination/pagination.js';
 
 import { s62aDevelopmentSelect } from './view-model.ts';
@@ -50,7 +50,7 @@ export function buildCaseListPage(service: S62APortalService): AsyncRequestHandl
 
 		logger.info(`S62A development list page: ${s62aDevelopments.length} case(s) fetched`);
 
-		const s62aDevelopmentsViewModels: S62ADevelopmentView[] = s62aDevelopments.map((s62aDevelopment) =>
+		const s62aDevelopmentsViewModels: S62ADevelopmentExtendedView[] = s62aDevelopments.map((s62aDevelopment) =>
 			mapDevelopmentToViewModel(s62aDevelopment, service.contactEmail, s62aViewFormattingFunction)
 		);
 

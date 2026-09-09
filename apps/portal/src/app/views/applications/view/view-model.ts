@@ -164,13 +164,11 @@ export function crownDevelopmentToViewModel(
 	return fields;
 }
 
-export type ExtendedCaseListFields = {
+export interface CrownDevelopmentExtendedView extends BaseDevelopmentView {
 	applicantOrganisations: string;
 	referenceLink: string;
 	withdrawnDate: string | undefined;
-};
-
-export type CrownDevelopmentCaseListView = BaseDevelopmentView & ExtendedCaseListFields;
+}
 
 export const crownDevelopmentSelect = {
 	...baseCrownDevelopmentSelect,
@@ -191,6 +189,8 @@ export type CrownDevelopmentCaseListPayload = ValidatedDbPayload<
 	Prisma.CrownDevelopmentGetPayload<{ select: typeof crownDevelopmentSelect }>
 >;
 
+type ExtendedCrownFields = Omit<CrownDevelopmentExtendedView, keyof BaseDevelopmentView>;
+
 /**
  * Crown Dev list view model formatter, formatting extended fields from Crown Development View
  *
@@ -198,7 +198,7 @@ export type CrownDevelopmentCaseListPayload = ValidatedDbPayload<
  */
 export function applicationListViewFormattingFunction(
 	crownDevelopment: CrownDevelopmentCaseListPayload
-): ExtendedCaseListFields {
+): ExtendedCrownFields {
 	let applicantOrganisations = '';
 
 	if (crownDevelopment.Organisations?.length) {
