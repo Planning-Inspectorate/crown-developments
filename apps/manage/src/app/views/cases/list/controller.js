@@ -26,7 +26,7 @@ export function buildListCases(service) {
 				Type: { select: { displayName: true } }
 			},
 			orderBy: {
-				createdDate: 'desc'
+				reference: 'desc'
 			},
 			take: 1000 // upper limit until pagination/search is implemented
 		});

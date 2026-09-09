@@ -149,5 +149,38 @@ describe('case list', () => {
 				AND: [{ OR: [{ reference: { contains: 'case/ref' } }] }]
 			});
 		});
+		it('should request and display cases in reference descending order', async () => {
+			const nunjucks = configureNunjucks();
+			const mockRes = {
+				render: mock.fn((view, data) => nunjucks.render(view, data))
+			};
+
+			const mockRows = [
+				{ id: 'id-2', reference: 'CROWN/2025/0000002' },
+				{ id: 'id-1', reference: 'CROWN/2025/0000001' }
+			];
+
+			const mockDb = {
+				crownDevelopment: {
+					findMany: mock.fn(() => mockRows)
+				}
+			};
+
+			const listCases = buildListCases({ db: mockDb, logger: mockLogger() });
+
+			await assert.doesNotReject(() => listCases({}, mockRes));
+
+			// 1) Asks DB for descending reference order
+			assert.strictEqual(mockDb.crownDevelopment.findMany.mock.callCount(), 1);
+			assert.deepStrictEqual(mockDb.crownDevelopment.findMany.mock.calls[0].arguments[0].orderBy, {
+				reference: 'desc'
+			});
+
+			// 2) Passes rows to the view in the same order
+			assert.strictEqual(mockRes.render.mock.callCount(), 1);
+			const renderData = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(renderData.crownDevelopments[0].reference, 'CROWN/2025/0000002');
+			assert.strictEqual(renderData.crownDevelopments[1].reference, 'CROWN/2025/0000001');
+		});
 	});
 });
