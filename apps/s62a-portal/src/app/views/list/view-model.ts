@@ -4,7 +4,7 @@ import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { baseS62ACaseSelect, type ValidatedDbPayload } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { insertWbr } from '@pins/crowndev-lib/util/string.ts';
 
-export interface S62ADevelopmentView extends BaseDevelopmentView {
+export interface S62ADevelopmentExtendedView extends BaseDevelopmentView {
 	applicantOrganisations: string;
 	referenceLink: string;
 }
@@ -27,7 +27,7 @@ export type S62ADevelopmentPayload = ValidatedDbPayload<
 	Prisma.S62aCaseGetPayload<{ select: typeof s62aDevelopmentSelect }>
 >;
 
-type ExtendedS62AFields = Omit<S62ADevelopmentView, keyof BaseDevelopmentView>;
+type ExtendedS62AFields = Omit<S62ADevelopmentExtendedView, keyof BaseDevelopmentView>;
 
 /**
  * S62A view model formatter, formatting extended fields from S62A Development View

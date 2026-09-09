@@ -589,9 +589,9 @@ describe('view-model', () => {
 			};
 			const result = applicationListViewFormattingFunction(input);
 			assert.ok(result.applicantOrganisations);
-			// Updated with space after comma:
 			assert.strictEqual(result.applicantOrganisations, 'Applicant Organisation 1, Applicant Organisation 2');
 		});
+
 		it('should exclude non-applicant organisations', () => {
 			const input = {
 				id: 'id-1',
