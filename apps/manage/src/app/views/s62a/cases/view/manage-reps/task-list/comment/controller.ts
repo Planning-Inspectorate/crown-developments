@@ -99,7 +99,11 @@ export function buildReviewRepresentationCommentDecision(
 		if (!reviewCommentDecision) {
 			const validationErrors = {
 				reviewCommentDecision: {
-					msg: 'Select the review decision'
+					type: 'field' as const,
+					msg: 'Select the review decision',
+					path: 'reviewCommentDecision',
+					location: 'body' as const,
+					value: reviewCommentDecision
 				}
 			};
 
