@@ -1,10 +1,15 @@
-import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import {
+	REPRESENTATION_STATUS_ID,
+	REPRESENTATION_SUBMITTED_FOR_ID,
+	REPRESENTED_TYPE_ID
+} from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
 	BOOLEAN_OPTIONS,
 	type JourneyResponse,
 	ManageListSection,
 	type Question,
 	questionHasAnswer,
+	questionHasNonEmptyStringAnswer,
 	Section,
 	whenQuestionHasAnswer
 } from '@planning-inspectorate/dynamic-forms';
@@ -35,8 +40,8 @@ export function addRepresentationSection(questions: Record<string, Question>): S
 			.addQuestion(questions.submissionMethodReason)
 			.addQuestion(questions.category)
 			.addQuestion(questions.submittedFor),
-		addRepMyselfSection(questions),
-		addRepAgentSection(questions)
+		addRepMyselfSection(questions, false),
+		addRepAgentSection(questions, false)
 	];
 }
 
@@ -44,7 +49,7 @@ export function addRepresentationSection(questions: Record<string, Question>): S
  * Creates the Myself section sub-section, when users are submitting
  * on behalf of themself
  */
-function addRepMyselfSection(questions: Record<string, Question>) {
+function addRepMyselfSection(questions: Record<string, Question>, isViewJourney: boolean) {
 	return new Section('Myself', 'myself')
 		.withSectionCondition(whenQuestionHasAnswer(questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF))
 		.addQuestion(questions.myselfFullName)
@@ -60,6 +65,9 @@ function addRepMyselfSection(questions: Record<string, Question>) {
 		.addQuestion(questions.myselfTellUsAboutApplication)
 		.addQuestion(questions.myselfHearingPreference)
 
+		.addQuestion(questions.myselfCommentRedacted)
+		.withCondition(() => isViewJourney)
+
 		.addQuestion(questions.myselfHasAttachments)
 		.addQuestion(questions.myselfSelectBlobAttachments)
 		.withCondition(whenQuestionHasAnswer(questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES));
@@ -68,7 +76,7 @@ function addRepMyselfSection(questions: Record<string, Question>) {
 /**
  * Adds the agent section, which incorporates the 4 journeys (person, org I work for, org I do not work for, or group of people)
  */
-function addRepAgentSection(questions: Record<string, Question>) {
+function addRepAgentSection(questions: Record<string, Question>, isViewJourney: boolean) {
 	const isRepresentationPerson = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON);
 	const isOrgWorkFor = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.ORGANISATION);
 	const isOrgNotWorkFor = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR);
@@ -116,7 +124,32 @@ function addRepAgentSection(questions: Record<string, Question>) {
 
 		.addQuestion(questions.submitterTellUsAboutApplication)
 		.addQuestion(questions.submitterHearingPreference)
+		.addQuestion(questions.submitterCommentRedacted)
+		.withCondition(() => isViewJourney)
 		.addQuestion(questions.submitterHasAttachments)
 		.addQuestion(questions.submitterSelectBlobAttachments)
 		.withCondition(whenQuestionHasAnswer(questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES));
+}
+
+export function haveYourSayManageSections(questions: Record<string, Question>, isViewJourney: boolean) {
+	return [
+		new Section('Details', 'details')
+			.addQuestion(questions.reference)
+			.addQuestion(questions.submittedDate)
+			.addQuestion(questions.submittedReceivedMethod)
+			.addQuestion(questions.submissionMethodReason)
+			.withCondition((response) => questionHasNonEmptyStringAnswer(response, questions.submissionMethodReason))
+			.addQuestion(questions.category)
+			.addQuestion(questions.status)
+			.withCondition(() => isViewJourney),
+		new Section('Representation', 'start').addQuestion(questions.submittedFor),
+		addRepMyselfSection(questions, isViewJourney),
+		addRepAgentSection(questions, isViewJourney),
+		new Section('Withdrawal', 'withdraw')
+			.withSectionCondition(whenQuestionHasAnswer(questions.status, REPRESENTATION_STATUS_ID.WITHDRAWN))
+			.addQuestion(questions.withdrawalRequestDate)
+			.addQuestion(questions.withdrawalReason)
+			.addQuestion(questions.withdrawalRequests)
+			.addQuestion(questions.dateWithdrawn)
+	];
 }

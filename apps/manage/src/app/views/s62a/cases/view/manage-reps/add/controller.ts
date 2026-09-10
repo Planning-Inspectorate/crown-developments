@@ -9,6 +9,7 @@ import { formatBytes } from '@pins/crowndev-lib/util/file.ts';
 import type { ParamsDictionary } from 'express-serve-static-core';
 import type { RepresentationDocumentDownloader } from './representation-document-downloader.ts';
 import type { DownloadRequestBody } from '@pins/crowndev-lib/util/base-document-downloader.ts';
+import type { ManageRepresentationDocumentDownloader } from '../manage-reps-document-downloader.ts';
 
 /**
  * Controller for uploading a new representation document to Azure Blob.
@@ -116,7 +117,10 @@ export function deleteDocumentController(service: ManageService, documentUploade
 	};
 }
 
-export function buildDownloadDocument(service: ManageService, downloader: RepresentationDocumentDownloader) {
+export function buildDownloadDocument(
+	service: ManageService,
+	downloader: RepresentationDocumentDownloader | ManageRepresentationDocumentDownloader
+) {
 	return async (req: Request<ParamsDictionary, unknown, DownloadRequestBody>, res: Response) => {
 		try {
 			await downloader.processDownload(req, res);

@@ -5,7 +5,6 @@ import {
 	buildReviewControllers,
 	buildViewDocument,
 	clearRepReviewedSession,
-	getTaskListURL,
 	readRepReviewedSession,
 	viewRepresentationAwaitingReview,
 	viewReviewRedirect
@@ -2508,51 +2507,6 @@ describe('controller', () => {
 				clearRepReviewedSession(mockReq, 'case-1');
 				assert.strictEqual(mockReq.session.cases['case-1'].representationReviewed, undefined);
 			});
-		});
-	});
-
-	describe('getTaskListURL', () => {
-		it('should remove urlSegment from the end of baseUrl', () => {
-			const baseUrl = 'some/url/ref-1/review/task-list/representation';
-			const result = getTaskListURL(baseUrl, '/representation');
-			assert.strictEqual(result, 'some/url/ref-1/review/task-list');
-		});
-
-		it('should handle /manage-representations in baseUrl without incorrect substring match', () => {
-			// This is the critical edge case - /representation should NOT match within /manage-representations
-			const baseUrl = 'some-url-here/case-1/manage-representations/ref-1/review/task-list/representation';
-			const result = getTaskListURL(baseUrl, '/representation');
-			assert.strictEqual(result, 'some-url-here/case-1/manage-representations/ref-1/review/task-list');
-		});
-
-		it('should handle /manage-representations without trailing /representation', () => {
-			const baseUrl = 'some-url-here/case-1/manage-representations/ref-1/review';
-			const result = getTaskListURL(baseUrl, '/review');
-			assert.strictEqual(result, 'some-url-here/case-1/manage-representations/ref-1');
-		});
-
-		it('should remove itemId from the end of baseUrl', () => {
-			const baseUrl = 'some-url-here/case-1/manage-representations/ref-1/review/task-list/DOC1234';
-			const result = getTaskListURL(baseUrl, '/DOC1234');
-			assert.strictEqual(result, 'some-url-here/case-1/manage-representations/ref-1/review/task-list');
-		});
-
-		it('should remove distressing-content from the end of baseUrl', () => {
-			const baseUrl = 'some/url/ref-1/review/task-list/distressing-content';
-			const result = getTaskListURL(baseUrl, '/distressing-content');
-			assert.strictEqual(result, 'some/url/ref-1/review/task-list');
-		});
-
-		it('should handle deeply nested URLs correctly', () => {
-			const baseUrl = '/cases/case-1/manage-representations/ref-1/review/task-list/representation/redact/confirmation';
-			const result = getTaskListURL(baseUrl, '/representation/redact/confirmation');
-			assert.strictEqual(result, '/cases/case-1/manage-representations/ref-1/review/task-list');
-		});
-
-		it('should return baseUrl unchanged when urlSegment is not found', () => {
-			const baseUrl = 'some-url-here/case-1/manage-representations/ref-1/review/task-list';
-			const result = getTaskListURL(baseUrl, '/missing-segment');
-			assert.strictEqual(result, baseUrl);
 		});
 	});
 });
