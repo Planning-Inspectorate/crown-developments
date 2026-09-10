@@ -71,7 +71,7 @@ describe('buildRepresentationTaskList', () => {
 
 			const renderCalls = (res.render as unknown as ReturnType<typeof mock.fn>).mock.calls;
 			if (renderCalls.length > 0) {
-				assert.notStrictEqual(renderCalls[0].arguments[0], 'views/cases/view/manage-reps/task-list/task-list.njk');
+				assert.notStrictEqual(renderCalls[0].arguments[0], 'views/s62a/cases/view/manage-reps/task-list/task-list.njk');
 			}
 		});
 	});
@@ -195,7 +195,6 @@ describe('buildRepresentationTaskList', () => {
 						id: 'rep-1',
 						reference: 'REP-001',
 						statusId: REPRESENTATION_STATUS_ID.AWAITING_REVIEW,
-						distressingContentInRepresentation: false,
 						commentRedacted: false,
 						containsAttachments: true,
 						Attachments: [
@@ -221,7 +220,6 @@ describe('buildRepresentationTaskList', () => {
 			assert.ok(session.reviewDecisions);
 			const reviewSession = session.reviewDecisions['REP-001'] as Record<string, unknown>;
 			assert.ok(reviewSession.comment);
-			assert.ok(reviewSession.distressingContentInRepresentation);
 			assert.ok(reviewSession['blob-123']);
 		});
 	});

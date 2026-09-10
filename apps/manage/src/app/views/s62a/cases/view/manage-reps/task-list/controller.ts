@@ -5,7 +5,6 @@ import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import type { Request } from 'express';
 import {
-	getDistressingContentReviewDecision,
 	getReviewDecision,
 	getReviewTaskStatus,
 	getTaskListBackLinkUrl,
@@ -16,7 +15,7 @@ import {
 } from '@pins/crowndev-lib/forms/representations/task-list-utils.ts';
 import { addSessionData, clearSessionData, isUnsafeObjectKey } from '@pins/crowndev-lib/util/session.ts';
 
-const MANAGE_REPS_MANAGE_JOURNEY_ID = 's62a-manage-reps-manage-journey';
+export const MANAGE_REPS_MANAGE_JOURNEY_ID = 's62a-manage-reps-manage-journey';
 
 export function buildRepresentationTaskList(service: ManageService, journeyId: string): AsyncRequestHandler {
 	const { db, logger } = service;
@@ -50,9 +49,6 @@ export function buildRepresentationTaskList(service: ManageService, journeyId: s
 
 		const commentStatusTag = getReviewTaskStatus(repItemsReviewStatus?.comment?.reviewDecision);
 		const isCommentRejected = repItemsReviewStatus?.comment?.reviewDecision === REPRESENTATION_STATUS_ID.REJECTED;
-		const distressingContentStatusTag = getReviewTaskStatus(
-			repItemsReviewStatus?.distressingContentInRepresentation?.reviewDecision
-		);
 
 		const representationAttachments = representation.containsAttachments ? representation.Attachments || [] : [];
 
@@ -77,14 +73,12 @@ export function buildRepresentationTaskList(service: ManageService, journeyId: s
 
 		const taskStatusList = [
 			repItemsReviewStatus?.comment?.reviewDecision,
-			...(isCommentRejected ? [] : [repItemsReviewStatus?.distressingContentInRepresentation?.reviewDecision]),
 			...representationAttachments.map((attachment) => repItemsReviewStatus?.[attachment.blobName]?.reviewDecision)
 		];
 
-		return res.render('views/cases/view/manage-reps/task-list/task-list.njk', {
+		return res.render('views/s62a/cases/view/manage-reps/task-list/task-list.njk', {
 			reference: representationRef,
 			commentStatusTag,
-			distressingContentStatusTag,
 			isCommentRejected,
 			documents: representation.containsAttachments ? documents : [],
 			reviewComplete: isReviewComplete(taskStatusList),
@@ -135,10 +129,7 @@ function initialiseRepresentationReviewSession(
 
 	const newReviewData: ReviewDecisions = {
 		comment: {},
-		...attachmentEntries,
-		distressingContentInRepresentation: {
-			reviewDecision: getDistressingContentReviewDecision(representation.distressingContentInRepresentation)
-		}
+		...attachmentEntries
 	};
 
 	const commentAttachmentLengthHasChanged = req.session?.reviewDecisions
@@ -157,9 +148,6 @@ function initialiseRepresentationReviewSession(
 					...getReviewDecision(representation.statusId, representation.commentRedacted ?? false),
 					commentRedacted: representation.commentRedacted
 				};
-			} else if (key === 'distressingContentInRepresentation') {
-				newReviewData.distressingContentInRepresentation =
-					existingReviewData.distressingContentInRepresentation || newReviewData.distressingContentInRepresentation;
 			} else {
 				const attachment = representation.Attachments?.find((a) => a.blobName === key);
 				const attachmentStatusId = attachment?.statusId;

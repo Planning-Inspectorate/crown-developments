@@ -7,25 +7,31 @@ import {
 	isUnsafeObjectKey,
 	readSessionData
 } from '@pins/crowndev-lib/util/session.ts';
-import { createRedactJourney } from './journey.js';
 import { JOURNEY_ID } from '../view/journey.js';
-import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
-import { REDACT_CHARACTER } from '@planning-inspectorate/dynamic-forms/src/components/text-entry-redact/question.js';
 import { expressValidationErrorsToGovUkErrorList } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { forwardStreamContents, getDriveItemDownloadUrl } from '@pins/crowndev-lib/documents/utils.js';
 import { ALLOWED_MIME_TYPES } from '@pins/crowndev-lib/forms/representations/question-utils.js';
 import { representationAttachmentsFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
-import { fetchRedactionSuggestions, highlightRedactionSuggestions } from '#util/azure-language-redaction.js';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import {
+	buildSharedRedactRepresentationPost,
 	getDistressingContentReviewDecision,
 	getReviewDecision,
 	getReviewTaskStatus,
 	getTaskListBackLinkUrl,
 	isReviewComplete,
-	readRepReviewStatusSession
+	readRepReviewStatusSession,
+	redactConfirmationHandler,
+	processAndRenderRedaction,
+	getTaskListURL,
+	updateDocumentStatusSession,
+	getReviewStatus,
+	readRepRedactedCommentSession,
+	updateRepReviewSession,
+	readRepCommentReviewStatusSession,
+	clearRepRedactedCommentSession
 } from '@pins/crowndev-lib/forms/representations/task-list-utils.ts';
 import { viewReviewRedirect } from '@pins/crowndev-lib/forms/representations/review-utils.ts';
 
@@ -281,7 +287,7 @@ export function buildReviewControllers(service, journeyId) {
 				const wasRejected = commentStatusBeforeUpdate === REPRESENTATION_STATUS_ID.REJECTED;
 
 				if (isRejected || (wasRejected && !isRejected)) {
-					updateDocumentStatusSession(req, logger, representationRef, isRejected);
+					updateDocumentStatusSession(req, representationRef, isRejected);
 				}
 				if (isRejected) {
 					await handleDocumentsOnRejectedRepresentation(req, journeyId, getSharePointDrive, db, logger);
@@ -299,106 +305,26 @@ export function buildReviewControllers(service, journeyId) {
 				select: { comment: true, commentRedacted: true }
 			});
 
-			// normalise new lines before processing to ensure suggestion offsets align on the front-end
-			const comment = representation.comment?.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+			if (!representation) return notFoundHandler(req, res);
 
-			const result = await fetchRedactionSuggestions(
-				comment,
+			return processAndRenderRedaction(req, res, {
+				representationRef,
+				comment: representation.comment || '',
+				dbRedactedComment: representation.commentRedacted,
 				textAnalyticsClient,
-				service.azureLanguageCategories,
-				logger
-			);
-
-			// session data takes precedence
-			let commentRedacted = readRepRedactedCommentSession(req, representationRef);
-			if (!commentRedacted) {
-				commentRedacted = representation.redactedComment || comment;
-			}
-			const redactionSuggestions = result?.entities || [];
-			const noUserChanges = comment === commentRedacted;
-			if (noUserChanges) {
-				// 'accept' all suggestions if there haven't been any changes made by the user
-				commentRedacted = result?.redactedText || comment;
-			}
-			for (const redactionSuggestion of redactionSuggestions) {
-				redactionSuggestion.accepted =
-					noUserChanges || commentRedacted.charAt(redactionSuggestion.offset) === REDACT_CHARACTER;
-			}
-
-			const response = new JourneyResponse(JOURNEY_ID, 'ref-1', {
-				comment: highlightRedactionSuggestions(comment, redactionSuggestions),
-				commentRedacted,
-				commentOriginal: comment
-			});
-
-			const journey = new createRedactJourney(response, req);
-			const section = journey.sections[0];
-			const question = section.questions[0];
-			const validationErrors = question.checkForValidationErrors(req, section, journey);
-			if (validationErrors) {
-				validationErrors.reference = representationRef;
-				question.renderAction(res, validationErrors);
-				return;
-			}
-			const viewModel = question.toViewModel({
-				params: {
-					section: section.segment,
-					question: question.fieldName
-				},
-				section,
-				journey,
-				customViewData: {
-					reference: representationRef,
-					redactionSuggestions
-				}
-			});
-			question.renderAction(res, viewModel);
-		},
-		async redactRepresentationPost(req, res) {
-			const { representationRef } = validateParams(req.params);
-			const { comment } = req.body;
-			updateRepReviewSession(req, representationRef, 'comment', { commentRedacted: comment });
-			if (!comment || !comment.includes(REDACT_CHARACTER)) {
-				const commentStatusBeforeUpdate = readRepCommentReviewStatusSession(req, representationRef);
-
-				if (commentStatusBeforeUpdate === REPRESENTATION_STATUS_ID.REJECTED) {
-					updateDocumentStatusSession(req, logger, representationRef, false);
-				}
-
-				updateRepReviewSession(req, representationRef, 'comment', {
-					reviewDecision: REPRESENTATION_STATUS_ID.ACCEPTED
-				});
-				clearRepRedactedCommentSession(req, representationRef);
-
-				await updateRepresentationItemsReviewStatus(req, db, logger);
-
-				res.redirect(getTaskListURL(req.baseUrl, '/representation'));
-				return;
-			}
-			logger.info('saving redacted comment to session');
-			res.redirect(req.baseUrl + '/redact/confirmation');
-		},
-		async redactConfirmation(req, res) {
-			const { representationRef } = validateParams(req.params);
-			const commentRedacted = readRepRedactedCommentSession(req, representationRef);
-			const answers = res.locals.journeyResponse.answers;
-			const originalComment = answers.myselfComment || answers.submitterComment;
-
-			return res.render('views/cases/view/manage-reps/review/redact-confirmation.njk', {
-				originalComment,
-				commentRedacted,
-				reference: representationRef,
-				journeyTitle: 'Manage Reps',
-				layoutTemplate: 'views/layouts/forms-question.njk',
-				backLinkUrl: req.baseUrl + '/redact'
+				azureLanguageCategories: service.azureLanguageCategories,
+				logger,
+				journeyId: JOURNEY_ID
 			});
 		},
+		redactRepresentationPost: buildSharedRedactRepresentationPost(db, logger, updateRepresentationItemsReviewStatus),
+		redactConfirmation: redactConfirmationHandler,
 		async acceptRedactedComment(req, res) {
 			const { representationRef } = validateParams(req.params);
 
 			const commentStatusBeforeUpdate = readRepCommentReviewStatusSession(req, representationRef);
 			if (commentStatusBeforeUpdate === REPRESENTATION_STATUS_ID.REJECTED) {
-				updateDocumentStatusSession(req, logger, representationRef, false);
+				updateDocumentStatusSession(req, representationRef, false);
 			}
 
 			updateRepReviewSession(req, representationRef, 'comment', { reviewDecision: ACCEPT_AND_REDACT });
@@ -724,54 +650,6 @@ export function clearRepReviewedSession(req, id) {
 }
 
 /**
- * Add or update review decision data for a representation item in the session
- *
- * @param {{session?: Object<string, any>}} req
- * @param {string} representationRef
- * @param {string} itemId
- * @param {Object<string, any>} updates - Fields to merge into the item (e.g. { reviewDecision, commentRedacted })
- */
-function updateRepReviewSession(req, representationRef, itemId, updates) {
-	if (isUnsafeObjectKey(itemId) || isUnsafeObjectKey(representationRef)) {
-		throw new Error('Unsafe object key detected');
-	}
-
-	const currentItemData = req.session?.reviewDecisions?.[representationRef] || {};
-
-	const newItemData = {
-		...currentItemData,
-		[itemId]: {
-			...currentItemData[itemId],
-			...updates
-		}
-	};
-
-	addSessionData(req, representationRef, newItemData, 'reviewDecisions');
-}
-
-/**
- * Read review decision for comment for given representationRef
- *
- * @param {{session?: Object<string, any>}} req
- * @param {string} representationRef
- * @returns {string|undefined}
- */
-function readRepCommentReviewStatusSession(req, representationRef) {
-	return req.session?.reviewDecisions?.[representationRef]?.comment?.reviewDecision;
-}
-
-/**
- * Read redacted comment for given representationRef
- *
- * @param {{session?: Object<string, any>}} req
- * @param {string} representationRef
- * @returns {string|undefined}
- */
-function readRepRedactedCommentSession(req, representationRef) {
-	return req.session?.reviewDecisions?.[representationRef]?.comment?.commentRedacted;
-}
-
-/**
  * Read document item review decision for given representationRef
  *
  * @param {{session?: Object<string, any>}} req
@@ -792,24 +670,6 @@ function readRepDocumentReviewStatusSession(req, representationRef, itemId) {
  */
 function readRepDistressingContentReviewStatusSession(req, representationRef) {
 	return req.session?.reviewDecisions?.[representationRef]?.distressingContentInRepresentation?.reviewDecision;
-}
-
-/**
- * Clear redacted comment from session for given representationRef
- *
- * @param {{session?: Object<string, any>}} req
- * @param {string} representationRef
- */
-function clearRepRedactedCommentSession(req, representationRef) {
-	delete req.session?.reviewDecisions?.[representationRef]?.comment?.commentRedacted;
-}
-
-function updateDocumentStatusSession(req, logger, representationRef, isRejected) {
-	Object.entries(req.session?.reviewDecisions?.[representationRef])
-		.filter(([key]) => key !== 'comment' && !isUnsafeObjectKey(key)) // only uses status from comment to determine status of document
-		.forEach(([, value]) => {
-			value.reviewDecision = isRejected ? REPRESENTATION_STATUS_ID.REJECTED : REPRESENTATION_STATUS_ID.AWAITING_REVIEW;
-		});
 }
 
 function getRedactedFile(req, representationRef, itemId) {
@@ -924,10 +784,6 @@ function getStatusDisplayName(reviewDecision) {
 	return statusDisplayMap.get(reviewDecision) ?? '';
 }
 
-function getReviewStatus(reviewDecision) {
-	return reviewDecision === ACCEPT_AND_REDACT ? REPRESENTATION_STATUS_ID.ACCEPTED : reviewDecision;
-}
-
 export function safeDeleteUploadedFilesSession(req, representationRef, itemId) {
 	if (isUnsafeObjectKey(itemId) || isUnsafeObjectKey(representationRef)) {
 		throw new Error('Unsafe object key detected');
@@ -985,17 +841,4 @@ async function processUploadedFilesOnRejection(req, journeyId, representationRef
 		const sharePointDrive = getSharePointDrive(req.session);
 		await Promise.all(fileIds.map((itemId) => deleteDocumentFromSharePointById(req, sharePointDrive, logger, itemId)));
 	}
-}
-
-/**
- * Get a parent URL by removing the last occurrence of `urlSegment` from `baseUrl`.
- * Uses lastIndexOf to avoid substring collisions.
- *
- * @param {string} baseUrl
- * @param {string} urlSegment
- * @returns {string}
- */
-export function getTaskListURL(baseUrl, urlSegment) {
-	const index = baseUrl.lastIndexOf(urlSegment);
-	return index === -1 ? baseUrl : baseUrl.slice(0, index);
 }
