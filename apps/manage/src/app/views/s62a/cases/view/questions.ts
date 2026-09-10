@@ -147,6 +147,12 @@ export function getQuestions(
 		[WASTE_UNIT_ID.LITRES]: 'l'
 	};
 
+	const HEARING_DURATION_FIELDS: { fieldName: string; label: string }[] = [
+		{ fieldName: 'prepDuration', label: 'Prep' },
+		{ fieldName: 'sittingDuration', label: 'Sitting' },
+		{ fieldName: 'reportingDuration', label: 'Reporting' }
+	];
+
 	const existing = housingQuestions({
 		side: 'existing',
 		items: existingHousing ?? [],
@@ -2124,20 +2130,24 @@ export function getQuestions(
 			],
 			validators: [
 				new RequiredGroupValidator({
-					fieldNames: ['prepDuration', 'sittingDuration', 'reportingDuration'],
-					errorMessage: 'Enter the hearing duration'
+					fieldNames: HEARING_DURATION_FIELDS.map(({ fieldName }) => fieldName),
+					errorMessage: 'Enter a prep, sitting or reporting duration'
 				}),
 				new MultiFieldInputValidator({
-					fields: ['prepDuration', 'sittingDuration', 'reportingDuration'].map((fieldName) => ({
+					fields: HEARING_DURATION_FIELDS.map(({ fieldName, label }) => ({
 						fieldName,
 						validators: [
 							new NumericValidator({
 								regex: /^$|^\d+(\.\d+)?$/,
-								regexMessage: 'Hearing duration must only contain numbers'
+								regexMessage: `${label} duration must be a number`
 							}),
 							new NumericValidator({
-								regex: /^\d{1,4}(\.\d{1,2})?$/,
-								regexMessage: 'Hearing duration must be 9999 or fewer days'
+								regex: /^$|^\d{1,4}(\.\d+)?$/,
+								regexMessage: `${label} duration must be 9999 days or less`
+							}),
+							new NumericValidator({
+								regex: /^$|^\d+(\.\d{1,2})?$/,
+								regexMessage: `${label} duration must have 2 decimal places or less`
 							})
 						]
 					}))
