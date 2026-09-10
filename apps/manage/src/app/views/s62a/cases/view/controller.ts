@@ -22,6 +22,7 @@ import {
 } from '../util/residential-totals.ts';
 import { formatDateTime } from '@pins/crowndev-lib/util/audit-formatters.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import { getNonResidentialTotals, nonResidentialTotalAnswers } from '../util/non-residential-totals.ts';
 
 export function buildViewCaseDetails(): AsyncRequestHandler {
 	return async (req, res) => {
@@ -99,6 +100,7 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		// so a stale session copy of a total cannot win over the current figure.
 		const residentialTotals = getResidentialTotals(finalAnswers);
 		Object.assign(finalAnswers, residentialTotalAnswers(finalAnswers, residentialTotals));
+		Object.assign(finalAnswers, nonResidentialTotalAnswers(finalAnswers, getNonResidentialTotals(finalAnswers)));
 
 		const currentTab = getStringParam(req.params, 'tab');
 		if (currentTab === VIEW_TAB_ID.CASE_AUDIT) {
