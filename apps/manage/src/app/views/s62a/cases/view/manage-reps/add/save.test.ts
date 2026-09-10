@@ -82,8 +82,6 @@ describe('Add Representation Controllers', () => {
 				`/s62a/cases/${VALID_UUID}/manage-representations/add-representation/check-your-answers`
 			);
 
-			console.log('minkus', req.session);
-
 			const sessionData = req.session.cases[VALID_UUID]?.representationError;
 			assert.ok(sessionData !== undefined, 'Expected session data to be populated with an error');
 		});

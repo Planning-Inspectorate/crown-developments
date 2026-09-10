@@ -19,6 +19,18 @@ import { ALLOWED_MIME_TYPES } from '@pins/crowndev-lib/forms/representations/que
 import { representationAttachmentsFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { fetchRedactionSuggestions, highlightRedactionSuggestions } from '#util/azure-language-redaction.js';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import {
+	getDistressingContentReviewDecision,
+	getReviewDecision,
+	getReviewTaskStatus,
+	getTaskListBackLinkUrl,
+	isReviewComplete,
+	readRepReviewStatusSession
+} from '@pins/crowndev-lib/forms/representations/task-list-utils.ts';
+import { viewReviewRedirect } from '@pins/crowndev-lib/forms/representations/review-utils.ts';
+
+// Immediate export to make sure importers do not break.
+export { viewReviewRedirect };
 
 /**
  * @typedef {import('express').Handler} Handler
@@ -579,35 +591,6 @@ export function buildReviewControllers(service, journeyId) {
 }
 
 /**
- * Redirect between /view and /review based on requiresReview status
- * @type {import('express').Handler}
- */
-export function viewReviewRedirect(req, res, next) {
-	const originalUrl = req.originalUrl;
-	if (!originalUrl.startsWith('/')) {
-		// if the URL does not start with / then do not process it
-		next();
-		return undefined;
-	}
-	const requiresReview = res.locals?.journeyResponse?.answers?.requiresReview;
-	if (originalUrl.endsWith('/view')) {
-		if (requiresReview) {
-			res.redirect(originalUrl.replace('/view', '/review'));
-			return undefined;
-		}
-	} else if (originalUrl.endsWith('/review')) {
-		if (!requiresReview) {
-			res.redirect(originalUrl.replace('/review', '/view'));
-			return undefined;
-		}
-	} else if (originalUrl.endsWith('/edit')) {
-		res.redirect(originalUrl.replace('/edit', '/view'));
-		return undefined;
-	}
-	next();
-}
-
-/**
  * Render a document
  * @param {import('#service').ManageService} service
  * @param {global.fetch} [fetchImpl] - for testing
@@ -626,11 +609,6 @@ export function buildViewDocument(service, fetchImpl) {
 		const downloadUrl = await getDriveItemDownloadUrl(sharePointDrive, itemToDownloadId, logger);
 		await forwardStreamContents(downloadUrl, req, res, logger, itemToDownloadId, fetchImpl);
 	};
-}
-
-function getTaskListBackLinkUrl(req) {
-	const trimmedUrl = req.baseUrl.split('/').slice(0, -2).join('/');
-	return req.baseUrl.endsWith('/review/task-list') ? `${trimmedUrl}/review` : `${trimmedUrl}/view`;
 }
 
 /**
@@ -713,33 +691,6 @@ function initialiseEmptySessionFiles(req, representationRef, representation) {
 	addSessionData(req, representationRef, { ...attachmentEntries }, 'files');
 }
 
-function getReviewDecision(statusId, isRedacted) {
-	switch (statusId) {
-		case REPRESENTATION_STATUS_ID.ACCEPTED:
-			return {
-				reviewDecision: isRedacted ? ACCEPT_AND_REDACT : REPRESENTATION_STATUS_ID.ACCEPTED
-			};
-		case REPRESENTATION_STATUS_ID.REJECTED:
-			return { reviewDecision: REPRESENTATION_STATUS_ID.REJECTED };
-		default:
-			return { reviewDecision: '' };
-	}
-}
-
-/**
- * Get review decision for distressing content based on representation value
- * @param {boolean} distressingContentInRepresentation
- * @returns {string}
- */
-function getDistressingContentReviewDecision(distressingContentInRepresentation) {
-	if (distressingContentInRepresentation === true) {
-		return CONTENT_WARNING;
-	}
-	if (distressingContentInRepresentation === false) {
-		return NO_CONTENT_WARNING;
-	}
-	return '';
-}
 /**
  * Add a rep reviewed flag to the session
  *
@@ -853,58 +804,6 @@ function clearRepRedactedCommentSession(req, representationRef) {
 	delete req.session?.reviewDecisions?.[representationRef]?.comment?.commentRedacted;
 }
 
-/**
- * Read review status' for given representationRef
- *
- * @param {{session?: Object<string, any>}} req
- * @param {string} representationRef
- * @returns {object}
- */
-function readRepReviewStatusSession(req, representationRef) {
-	return req.session?.reviewDecisions?.[representationRef] || {};
-}
-
-/**
- * Generate govUk tag information based on review task status
- *
- * @param {string} status
- * @returns {{text: (string), classes: string}|{text: string, classes: string}}
- */
-function getReviewTaskStatus(status) {
-	switch (status) {
-		case REPRESENTATION_STATUS_ID.ACCEPTED:
-			return {
-				text: 'Accepted',
-				classes: 'govuk-tag--green pins-tag--unbound'
-			};
-		case ACCEPT_AND_REDACT:
-			return {
-				text: 'Accepted and redacted',
-				classes: 'govuk-tag--green pins-tag--unbound'
-			};
-		case REPRESENTATION_STATUS_ID.REJECTED:
-			return {
-				text: 'Rejected',
-				classes: 'govuk-tag--red'
-			};
-		case CONTENT_WARNING:
-			return {
-				text: 'Content warning',
-				classes: 'govuk-tag--red'
-			};
-		case NO_CONTENT_WARNING:
-			return {
-				text: 'Not distressing',
-				classes: 'govuk-tag--green'
-			};
-		default:
-			return {
-				text: 'Incomplete',
-				classes: 'govuk-tag--blue'
-			};
-	}
-}
-
 function updateDocumentStatusSession(req, logger, representationRef, isRejected) {
 	Object.entries(req.session?.reviewDecisions?.[representationRef])
 		.filter(([key]) => key !== 'comment' && !isUnsafeObjectKey(key)) // only uses status from comment to determine status of document
@@ -1007,24 +906,6 @@ async function updateRepresentationItemsReviewStatus(req, db, logger) {
 			logParams: { id, representationRef }
 		});
 	}
-}
-
-/**
- * Determine whether a review can be submitted
- *
- * @param {Array.<string>} taskStatusList
- * @returns {boolean}
- */
-function isReviewComplete(taskStatusList) {
-	const validStatuses = new Set([
-		REPRESENTATION_STATUS_ID.ACCEPTED,
-		ACCEPT_AND_REDACT,
-		REPRESENTATION_STATUS_ID.REJECTED,
-		CONTENT_WARNING,
-		NO_CONTENT_WARNING
-	]);
-
-	return taskStatusList.every((status) => validStatuses.has(status));
 }
 
 /**
