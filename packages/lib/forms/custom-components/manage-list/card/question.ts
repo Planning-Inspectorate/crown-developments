@@ -13,6 +13,12 @@ export interface CardRow {
 	fieldName?: string;
 	/** Takes priority over fieldName, so a row can combine or compute values. */
 	format?: (item: Record<string, unknown>, params: CardFormatContext) => string;
+	/**
+	 * Whether this row applies to this item. Omit and the row always shows, so an
+	 * unanswered field still renders a dash. Use it where entries in one list take
+	 * different branches and a row is meaningless rather than merely unanswered.
+	 */
+	showIf?: (item: Record<string, unknown>) => boolean;
 }
 
 export type CardManageListQuestionParams = TableManageListQuestionParameters &
@@ -23,11 +29,14 @@ export type CardManageListQuestionParams = TableManageListQuestionParameters &
 		rows?: CardRow[];
 		/** Orders the rendered cards. The saved answers array is left untouched. */
 		sortItems?: (a: Record<string, unknown>, b: Record<string, unknown>) => number;
+		/** Bolds the row labels */
+		boldRowLabels?: boolean;
 	};
 
 interface CardViewData {
 	value?: Record<string, unknown>[];
 	firstQuestionUrl?: string;
+	boldRowLabels?: boolean;
 	cards?: { id: string; title: string; rows: { label: string; value: string }[] }[];
 }
 
@@ -38,6 +47,7 @@ export default class CardManageListQuestion extends TableManageListQuestion {
 	cardTitle?: (item: Record<string, unknown>, params: CardFormatContext) => string;
 	rows: CardRow[];
 	sortItems?: (a: Record<string, unknown>, b: Record<string, unknown>) => number;
+	boldRowLabels: boolean;
 
 	constructor(params: CardManageListQuestionParams) {
 		super(params);
@@ -45,6 +55,7 @@ export default class CardManageListQuestion extends TableManageListQuestion {
 		this.rows = params.rows ?? [];
 		this.sortItems = params.sortItems;
 		this.viewFolder = 'custom-components/manage-list/card';
+		this.boldRowLabels = params.boldRowLabels ?? true;
 	}
 
 	override addCustomDataToViewModel(viewModel: QuestionViewModel): void {
@@ -61,6 +72,8 @@ export default class CardManageListQuestion extends TableManageListQuestion {
 				: `${this.viewData?.titleSingular ?? 'Item'} ${index + 1}`,
 			rows: this.buildRows(item)
 		}));
+
+		question.boldRowLabels = this.boldRowLabels;
 	}
 
 	/**
@@ -105,17 +118,19 @@ export default class CardManageListQuestion extends TableManageListQuestion {
 
 		const context = this.formatContext(item);
 
-		return this.rows.map((row) => {
-			if (row.format) {
-				return { label: row.label, value: row.format(item, context) || '-' };
-			}
+		return this.rows
+			.filter((row) => (row.showIf ? row.showIf(item) : true))
+			.map((row) => {
+				if (row.format) {
+					return { label: row.label, value: row.format(item, context) || '-' };
+				}
 
-			if (row.fieldName === undefined) {
-				return { label: row.label, value: '-' };
-			}
+				if (row.fieldName === undefined) {
+					return { label: row.label, value: '-' };
+				}
 
-			return { label: row.label, value: context.getFormatted(row.fieldName) || '-' };
-		});
+				return { label: row.label, value: context.getFormatted(row.fieldName) || '-' };
+			});
 	}
 
 	private formatContext(item: Record<string, unknown>): CardFormatContext {

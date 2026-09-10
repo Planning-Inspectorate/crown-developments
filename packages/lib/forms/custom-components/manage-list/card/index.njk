@@ -27,7 +27,10 @@
 						{% set rows = [] %}
 						{% for row in card.rows %}
 							{% set _ = rows.push({
-								key: { text: row.label },
+								key: {
+									text: row.label,
+									classes: "" if question.boldRowLabels else "govuk-!-font-weight-regular"
+								},
 								value: { text: row.value }
 							}) %}
 						{% endfor %}
@@ -52,7 +55,7 @@
 						}) }}
 					{% endfor %}
 				{% else %}
-					<p class="govuk-body">Add one or more {{ itemNamePlural }}. No {{ itemName }} details have been added.</p>
+					<p class="govuk-body">{{ emptyListText if emptyListText else "Add one or more " + itemNamePlural + ". No " + itemName + " details have been added." }}</p>
 				{% endif %}
 
 				{{ govukButton({

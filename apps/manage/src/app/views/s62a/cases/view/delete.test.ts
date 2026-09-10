@@ -22,6 +22,7 @@ describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 	let inspectorSpy: Mock<Function>;
 	let wasteTypeSpy: Mock<Function>;
 	let housingSpy: Mock<Function>;
+	let floorspaceSpy: Mock<Function>;
 
 	beforeEach(() => {
 		req = { params: {} };
@@ -47,6 +48,7 @@ describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 		inspectorSpy = mock.method(S62aManageListDeleter.prototype, 'deleteCaseTeamInspector', async () => {});
 		wasteTypeSpy = mock.method(S62aManageListDeleter.prototype, 'deleteWasteType', async () => {});
 		housingSpy = mock.method(S62aManageListDeleter.prototype, 'deleteResidentialHousing', async () => {});
+		floorspaceSpy = mock.method(S62aManageListDeleter.prototype, 'deleteNonResidentialFloorspace', async () => {});
 	});
 
 	afterEach(() => {
@@ -266,6 +268,40 @@ describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 
 			assert.strictEqual(housingSpy.mock.callCount(), 1);
 			assert.deepStrictEqual(housingSpy.mock.calls[0].arguments, ['case-1', 'housing-row-2']);
+		});
+
+		it('routes "floorspace" to deleteNonResidentialFloorspace', async () => {
+			req.params = {
+				manageListAction: 'remove',
+				manageListQuestion: 'confirm',
+				manageListItemId: 'floorspace-row-1',
+				id: 'case-1',
+				section: 'non-residential',
+				question: 'floorspace'
+			};
+
+			const middleware = buildDeleteS62aManageListItemOnConfirmRemove(mockService);
+			await middleware(req as Request, res as Response, next as unknown as NextFunction);
+
+			assert.strictEqual(floorspaceSpy.mock.callCount(), 1);
+			assert.deepStrictEqual(floorspaceSpy.mock.calls[0].arguments, ['case-1', 'floorspace-row-1']);
+			assert.strictEqual(next.mock.callCount(), 1);
+		});
+
+		it('does not route a floorspace removal to the housing deleter', async () => {
+			req.params = {
+				manageListAction: 'remove',
+				manageListQuestion: 'confirm',
+				manageListItemId: 'floorspace-row-1',
+				id: 'case-1',
+				section: 'non-residential',
+				question: 'floorspace'
+			};
+
+			const middleware = buildDeleteS62aManageListItemOnConfirmRemove(mockService);
+			await middleware(req as Request, res as Response, next as unknown as NextFunction);
+
+			assert.strictEqual(housingSpy.mock.callCount(), 0);
 		});
 
 		it('ignores the section when the question url alone is configured', async () => {

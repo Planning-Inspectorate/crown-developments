@@ -19,7 +19,10 @@ import {
 	HOUSING_TYPES,
 	OCCUPANCY_TYPES,
 	UNIT_TYPES,
-	VEHICLE_PARKING_CATEGORIES
+	VEHICLE_PARKING_CATEGORIES,
+	FLOORSPACE_SETS,
+	USE_CLASSES,
+	USE_CLASS_SUBTYPES
 } from './s62a/data-static.ts';
 
 export const APPLICATION_DECISION_OUTCOME = [
@@ -698,7 +701,22 @@ type UpsertReferenceDataArgs =
 			delegate: Prisma.S62aUnitTypeDelegate;
 			input: Prisma.S62aUnitTypeCreateInput;
 	  }
-	| { delegate: Prisma.S62aVehicleParkingCategoryDelegate; input: Prisma.S62aVehicleParkingCategoryCreateInput };
+	| {
+			delegate: Prisma.S62aVehicleParkingCategoryDelegate;
+			input: Prisma.S62aVehicleParkingCategoryCreateInput;
+	  }
+	| {
+			delegate: Prisma.S62aFloorspaceSetDelegate;
+			input: Prisma.S62aFloorspaceSetCreateInput;
+	  }
+	| {
+			delegate: Prisma.S62aUseClassDelegate;
+			input: Prisma.S62aUseClassCreateInput;
+	  }
+	| {
+			delegate: Prisma.S62aUseClassSubtypeDelegate;
+			input: Prisma.S62aUseClassSubtypeCreateInput;
+	  };
 
 async function upsertReferenceData({ delegate, input }: UpsertReferenceDataArgs): Promise<void> {
 	const { upsert } = delegate as unknown as { upsert: (args: unknown) => Promise<unknown> };
@@ -850,6 +868,21 @@ export async function seedS62aStaticData(dbClient: PrismaClient) {
 	await Promise.all(
 		VEHICLE_PARKING_CATEGORIES.map((input) =>
 			upsertReferenceData({ delegate: dbClient.s62aVehicleParkingCategory, input })
+		)
+	);
+
+	await Promise.all(
+		FLOORSPACE_SETS.map((input) => upsertReferenceData({ delegate: dbClient.s62aFloorspaceSet, input }))
+	);
+
+	await Promise.all(USE_CLASSES.map((input) => upsertReferenceData({ delegate: dbClient.s62aUseClass, input })));
+
+	await Promise.all(
+		USE_CLASS_SUBTYPES.map(({ useClassId, ...subtype }) =>
+			upsertReferenceData({
+				delegate: dbClient.s62aUseClassSubtype,
+				input: { ...subtype, UseClass: { connect: { id: useClassId } } }
+			})
 		)
 	);
 

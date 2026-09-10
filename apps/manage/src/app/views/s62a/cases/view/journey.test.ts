@@ -241,6 +241,18 @@ describe('s62a case details journey', () => {
 				title: 'Proposed residential',
 				segment: 'proposed',
 				questions: ['hasProposedHousing', 'manageProposedHousing']
+			},
+			{
+				title: '',
+				segment: 'non-residential',
+				questions: [
+					'nonResidentialFloorspaceChange',
+					'totalExistingInternalFloorspace',
+					'totalGrossInternalFloorspaceLost',
+					'totalGrossInternalFloorspaceProposed',
+					'totalNetAdditionalGrossInternalFloorspace',
+					'manageNonResidentialFloorspace'
+				]
 			}
 		];
 

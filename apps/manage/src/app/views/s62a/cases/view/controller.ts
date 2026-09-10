@@ -112,6 +112,7 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 			manageListItemId,
 			proposedHousing: finalAnswers.manageProposedHousing,
 			existingHousing: finalAnswers.manageExistingHousing,
+			nonResidentialFloorspace: finalAnswers.manageNonResidentialFloorspace,
 			residentialTotals
 		});
 

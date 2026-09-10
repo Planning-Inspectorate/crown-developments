@@ -153,6 +153,53 @@ export interface VehicleParkingItem {
 	vehicleType_otherVehicleType?: string;
 }
 
+export const NON_RESIDENTIAL_BOOLEAN_FIELDS = Object.freeze(['hasNonResidentialFloorspaceChange'] as const);
+
+/** The four columns on an area row, in page order. */
+export const AREA_FIELDS = Object.freeze([
+	'existingGross',
+	'grossLost',
+	'grossProposed',
+	'netAdditionalGross'
+] as const);
+
+export const ROOMS_FIELDS = Object.freeze(['roomsLost', 'roomsProposed', 'netAdditionalRooms'] as const);
+
+/** The four labels every floorspace page shares. */
+export const FLOORSPACE_LABELS = Object.freeze([
+	'Existing gross internal floorspace',
+	'Gross internal floorspace to be lost by change of use or demolition',
+	'Total gross internal floorspace proposed (including change of use)',
+	'Net additional gross internal floorspace following development'
+] as const);
+
+export const ROOMS_LABELS = Object.freeze([
+	'Existing rooms to be lost by change of use or demolition',
+	'Total rooms proposed (including change of use)',
+	'Net additional rooms'
+] as const);
+
+/**
+ * The child area rows are flattened onto the item as `<set>_<field>`, since the
+ * manage list works on a flat record and MULTI_FIELD_INPUT round-trips strings.
+ */
+export function areaFieldName(setId: string, field: string): string {
+	return `${setId}_${field}`;
+}
+
+export function areaFieldNames(setId: string): string[] {
+	return AREA_FIELDS.map((field) => areaFieldName(setId, field));
+}
+
+export interface NonResidentialFloorspaceItem {
+	id: string;
+	useClassId?: string;
+	useClassSubtypeId?: string | null;
+	otherTypeOfUse?: string | null;
+	hasRoomsChange?: YesNo;
+	[field: string]: unknown;
+}
+
 export interface S62aCaseViewModel {
 	id: string;
 	reference: string;
@@ -318,6 +365,14 @@ export interface S62aCaseViewModel {
 	hasProposedHousing?: YesNo;
 	manageExistingHousing?: ResidentialHousingItem[];
 	manageProposedHousing?: ResidentialHousingItem[];
+
+	// Non-residential tab
+	hasNonResidentialFloorspaceChange?: YesNo;
+	manageNonResidentialFloorspace?: NonResidentialFloorspaceItem[];
+	totalExistingInternalFloorspace?: string;
+	totalGrossInternalFloorspaceLost?: string;
+	totalGrossInternalFloorspaceProposed?: string;
+	totalNetAdditionalGrossInternalFloorspace?: string;
 
 	/**
 	 * Derived on render and merged onto the answers, never stored or saved.
@@ -548,6 +603,38 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 		const housing = dbCase.S62aResidential.Housing ?? [];
 		viewModel.manageExistingHousing = housingToViewModel(housing, HOUSING_TYPE_ID.EXISTING);
 		viewModel.manageProposedHousing = housingToViewModel(housing, HOUSING_TYPE_ID.PROPOSED);
+	}
+
+	if (dbCase.S62aNonResidential) {
+		for (const field of NON_RESIDENTIAL_BOOLEAN_FIELDS) {
+			const val = dbCase.S62aNonResidential[field];
+			if (val !== null && val !== undefined) {
+				viewModel[field] = booleanToYesNoValue(val);
+			}
+		}
+
+		viewModel.manageNonResidentialFloorspace = (dbCase.S62aNonResidential.Floorspace ?? []).map((entry) => {
+			const item: NonResidentialFloorspaceItem = {
+				id: entry.id,
+				useClassId: entry.useClassId,
+				useClassSubtypeId: entry.useClassSubtypeId,
+				otherTypeOfUse: entry.otherTypeOfUse,
+				hasRoomsChange: entry.hasRoomsChange === null ? undefined : booleanToYesNoValue(entry.hasRoomsChange)
+			};
+
+			for (const field of ROOMS_FIELDS) {
+				item[field] = entry[field] === null ? '' : String(entry[field]);
+			}
+
+			// Flattened so the card and the multi-field inputs see one record
+			for (const area of entry.Areas ?? []) {
+				for (const field of AREA_FIELDS) {
+					item[areaFieldName(area.floorspaceSetId, field)] = area[field] === null ? '' : String(area[field]);
+				}
+			}
+
+			return item;
+		});
 	}
 
 	if (dbCase.Lpa) {

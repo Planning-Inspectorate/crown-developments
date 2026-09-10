@@ -145,6 +145,7 @@ export const VIEW_TAB_ID = Object.freeze({
 	EIA: 'eia',
 	PRESS: 'press-notice',
 	RESIDENTIAL: 'residential',
+	NON_RESIDENTIAL: 'non-residential',
 	VEHICLE: 'vehicle-parking',
 	WASTE: 'waste',
 	PRE_APPLICATION: 'pre-application',
@@ -207,6 +208,11 @@ export const VIEW_TABS = [
 	{
 		id: VIEW_TAB_ID.RESIDENTIAL,
 		displayName: 'Residential',
+		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+	},
+	{
+		id: VIEW_TAB_ID.NON_RESIDENTIAL,
+		displayName: 'Non-residential',
 		hide: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
 	},
 	{
@@ -830,3 +836,192 @@ export const VEHICLE_PARKING_CATEGORIES = [
 export const VEHICLE_PARKING_CATEGORY_MAP = new Map<string, string>(
 	VEHICLE_PARKING_CATEGORIES.map((cat) => [cat.id, cat.displayName])
 );
+
+export const FLOORSPACE_SET_ID = Object.freeze({
+	STANDARD: 'standard',
+	SHOP: 'shop',
+	NET_TRADEABLE: 'net-tradeable'
+} as const);
+
+export const FLOORSPACE_SETS = [
+	{ id: FLOORSPACE_SET_ID.STANDARD, displayName: 'Floorspace', order: 1 },
+	{ id: FLOORSPACE_SET_ID.SHOP, displayName: 'Shop floorspace', order: 2 },
+	{ id: FLOORSPACE_SET_ID.NET_TRADEABLE, displayName: 'Net tradeable area', order: 3 }
+];
+
+export const USE_CLASS_ID = Object.freeze({
+	B2: 'b2-general-industrial',
+	B8: 'b8-storage-and-distribution',
+	C1: 'c1-hotels',
+	C2: 'c2-residential-institutions',
+	C2A: 'c2a-secure-residential-institutions',
+	E: 'e-commercial-business-and-service',
+	F1: 'f1-learning-and-non-residential-institutions',
+	F2: 'f2-local-community',
+	OTHER: 'other'
+} as const);
+
+export const USE_CLASSES = [
+	{ id: USE_CLASS_ID.B2, displayName: 'B2 - General industrial', order: 1 },
+	{ id: USE_CLASS_ID.B8, displayName: 'B8 - Storage and distribution', order: 2 },
+	{ id: USE_CLASS_ID.C1, displayName: 'C1 - Hotels', order: 3 },
+	{ id: USE_CLASS_ID.C2, displayName: 'C2 - Residential institutions', order: 4 },
+	{ id: USE_CLASS_ID.C2A, displayName: 'C2A - Secure residential institutions', order: 5 },
+	{ id: USE_CLASS_ID.E, displayName: 'E - Commercial, business and service', order: 6 },
+	{ id: USE_CLASS_ID.F1, displayName: 'F1 - Learning and non-residential institutions', order: 7 },
+	{ id: USE_CLASS_ID.F2, displayName: 'F2 - Local community', order: 8 },
+	{ id: USE_CLASS_ID.OTHER, displayName: 'Other', order: 9 }
+];
+
+export const USE_CLASS_SUBTYPE_ID = Object.freeze({
+	E_RETAIL: 'e-retail',
+	E_FOOD_AND_DRINK: 'e-food-and-drink',
+	E_FINANCIAL_SERVICES: 'e-financial-services',
+	E_PROFESSIONAL_SERVICES: 'e-professional-services',
+	E_OTHER_SERVICE: 'e-other-service',
+	E_INDOOR_SPORTS: 'e-indoor-sports',
+	E_MEDICAL_OR_HEALTH: 'e-medical-or-health',
+	E_CRECHE: 'e-creche',
+	E_OFFICE: 'e-office',
+	E_RESEARCH_AND_DEVELOPMENT: 'e-research-and-development',
+	E_INDUSTRIAL_PROCESS: 'e-industrial-process',
+	F1_EDUCATION: 'f1-education',
+	F1_DISPLAY_WORKS_OF_ART: 'f1-display-works-of-art',
+	F1_MUSEUM: 'f1-museum',
+	F1_PUBLIC_LIBRARY: 'f1-public-library',
+	F1_PUBLIC_HALL: 'f1-public-hall',
+	F1_PUBLIC_WORSHIP: 'f1-public-worship',
+	F1_LAW_COURT: 'f1-law-court',
+	F2_ESSENTIAL_GOODS_SHOP: 'f2-essential-goods-shop',
+	F2_COMMUNITY_HALL: 'f2-community-hall',
+	F2_OUTDOOR_SPORT: 'f2-outdoor-sport',
+	F2_SWIMMING_POOL_OR_RINK: 'f2-swimming-pool-or-rink'
+} as const);
+
+export const USE_CLASS_SUBTYPES = [
+	{
+		id: USE_CLASS_SUBTYPE_ID.E_RETAIL,
+		displayName: '(a) Retail (other than hot food)',
+		order: 1,
+		useClassId: USE_CLASS_ID.E
+	},
+	{
+		id: USE_CLASS_SUBTYPE_ID.E_FOOD_AND_DRINK,
+		displayName: '(b) Sale of food and drink',
+		order: 2,
+		useClassId: USE_CLASS_ID.E
+	},
+	{
+		id: USE_CLASS_SUBTYPE_ID.E_FINANCIAL_SERVICES,
+		displayName: '(c)(i) Financial services',
+		order: 3,
+		useClassId: USE_CLASS_ID.E
+	},
+	{
+		id: USE_CLASS_SUBTYPE_ID.E_PROFESSIONAL_SERVICES,
+		displayName: '(c)(ii) Professional services (other than health or medical)',
+		order: 4,
+		useClassId: USE_CLASS_ID.E
+	},
+	{
+		id: USE_CLASS_SUBTYPE_ID.E_OTHER_SERVICE,
+		displayName: '(c)(iii) Any other service',
+		order: 5,
+		useClassId: USE_CLASS_ID.E
+	},
+	{
+		id: USE_CLASS_SUBTYPE_ID.E_INDOOR_SPORTS,
+		displayName: '(d) Indoor sports, recreation or fitness',
+		order: 6,
+		useClassId: USE_CLASS_ID.E
+	},
+	{
+		id: USE_CLASS_SUBTYPE_ID.E_MEDICAL_OR_HEALTH,
+		displayName: '(e) Medical or health services',
+		order: 7,
+		useClassId: USE_CLASS_ID.E
+	},
+	{ id: USE_CLASS_SUBTYPE_ID.E_CRECHE, displayName: '(f) Creche, day nursery', order: 8, useClassId: USE_CLASS_ID.E },
+	{ id: USE_CLASS_SUBTYPE_ID.E_OFFICE, displayName: '(g)(i) Office', order: 9, useClassId: USE_CLASS_ID.E },
+	{
+		id: USE_CLASS_SUBTYPE_ID.E_RESEARCH_AND_DEVELOPMENT,
+		displayName: '(g)(ii) Research and development of products or processes',
+		order: 10,
+		useClassId: USE_CLASS_ID.E
+	},
+	{
+		id: USE_CLASS_SUBTYPE_ID.E_INDUSTRIAL_PROCESS,
+		displayName: '(g)(iii) Any industrial process (that can be carried out within a residential area)',
+		order: 11,
+		useClassId: USE_CLASS_ID.E
+	},
+
+	{ id: USE_CLASS_SUBTYPE_ID.F1_EDUCATION, displayName: '(a) Education', order: 1, useClassId: USE_CLASS_ID.F1 },
+	{
+		id: USE_CLASS_SUBTYPE_ID.F1_DISPLAY_WORKS_OF_ART,
+		displayName: '(b) Display works of art',
+		order: 2,
+		useClassId: USE_CLASS_ID.F1
+	},
+	{ id: USE_CLASS_SUBTYPE_ID.F1_MUSEUM, displayName: '(c) Museum', order: 3, useClassId: USE_CLASS_ID.F1 },
+	{
+		id: USE_CLASS_SUBTYPE_ID.F1_PUBLIC_LIBRARY,
+		displayName: '(d) Public library',
+		order: 4,
+		useClassId: USE_CLASS_ID.F1
+	},
+	{
+		id: USE_CLASS_SUBTYPE_ID.F1_PUBLIC_HALL,
+		displayName: '(e) Public hall or exhibition hall',
+		order: 5,
+		useClassId: USE_CLASS_ID.F1
+	},
+	{
+		id: USE_CLASS_SUBTYPE_ID.F1_PUBLIC_WORSHIP,
+		displayName: '(f) Public worship or religious instruction',
+		order: 6,
+		useClassId: USE_CLASS_ID.F1
+	},
+	{ id: USE_CLASS_SUBTYPE_ID.F1_LAW_COURT, displayName: '(g) Law court', order: 7, useClassId: USE_CLASS_ID.F1 },
+
+	{
+		id: USE_CLASS_SUBTYPE_ID.F2_ESSENTIAL_GOODS_SHOP,
+		displayName:
+			'(a) Shop selling essential goods (premises not over 280 m² and no other such facility within 1000m radius)',
+		order: 1,
+		useClassId: USE_CLASS_ID.F2
+	},
+	{
+		id: USE_CLASS_SUBTYPE_ID.F2_COMMUNITY_HALL,
+		displayName: '(b) Hall or meeting place for local community (principal use)',
+		order: 2,
+		useClassId: USE_CLASS_ID.F2
+	},
+	{
+		id: USE_CLASS_SUBTYPE_ID.F2_OUTDOOR_SPORT,
+		displayName: '(c) Outdoor sport or recreation',
+		order: 3,
+		useClassId: USE_CLASS_ID.F2
+	},
+	{
+		id: USE_CLASS_SUBTYPE_ID.F2_SWIMMING_POOL_OR_RINK,
+		displayName: '(d) Indoor or outdoor swimming pool or skating rink',
+		order: 4,
+		useClassId: USE_CLASS_ID.F2
+	}
+];
+
+/** Use classes that present a subtype page, and the url segment each uses. */
+export const SUBTYPE_PAGE_BY_USE_CLASS: Record<string, string> = {
+	[USE_CLASS_ID.E]: 'commercial',
+	[USE_CLASS_ID.F1]: 'learning',
+	[USE_CLASS_ID.F2]: 'community'
+};
+
+/** Use classes that ask whether rooms have been lost or gained. */
+export const USE_CLASSES_WITH_ROOMS: string[] = [
+	USE_CLASS_ID.C1,
+	USE_CLASS_ID.C2,
+	USE_CLASS_ID.C2A,
+	USE_CLASS_ID.OTHER
+];

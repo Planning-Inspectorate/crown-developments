@@ -87,6 +87,14 @@ describe('CardManageListQuestion', () => {
 			assert.deepStrictEqual(cardQuestion.rows, []);
 			assert.strictEqual(cardQuestion.cardTitle, undefined);
 		});
+
+		it('bolds the row labels by default, as the Design System does', () => {
+			assert.strictEqual(cardQuestion.boldRowLabels, true);
+		});
+
+		it('takes a flag to unbold them', () => {
+			assert.strictEqual(buildQuestion({ boldRowLabels: false }).boldRowLabels, false);
+		});
 	});
 
 	describe('addCustomDataToViewModel()', () => {
@@ -378,6 +386,80 @@ describe('CardManageListQuestion', () => {
 				cards.map((card) => card.id),
 				['uuid-2', 'uuid-1']
 			);
+		});
+
+		it('omits a row that does not apply to this item', () => {
+			const question = buildQuestion({
+				rows: [
+					{ label: 'Always', fieldName: 'a' },
+					{ label: 'Only sometimes', fieldName: 'b', showIf: (item: Record<string, unknown>) => Boolean(item.b) }
+				]
+			});
+			const viewModel = buildViewModel([{ id: 'uuid-1', a: '1' }]);
+
+			question.addCustomDataToViewModel(viewModel);
+
+			const [card] = (viewModel.question as { cards: Card[] }).cards;
+			assert.deepStrictEqual(
+				card.rows.map((row) => row.label),
+				['Always']
+			);
+		});
+
+		it('keeps a row whose showIf passes', () => {
+			const question = buildQuestion({
+				rows: [{ label: 'Only sometimes', fieldName: 'b', showIf: (item: Record<string, unknown>) => Boolean(item.b) }]
+			});
+			const viewModel = buildViewModel([{ id: 'uuid-1', b: '2' }]);
+
+			question.addCustomDataToViewModel(viewModel);
+
+			const [card] = (viewModel.question as { cards: Card[] }).cards;
+			assert.deepStrictEqual(card.rows, [{ label: 'Only sometimes', value: '2' }]);
+		});
+
+		it('keeps an empty row that has no showIf, so unanswered still shows a dash', () => {
+			const question = buildQuestion({ rows: [{ label: 'Unanswered', fieldName: 'missing' }] });
+			const viewModel = buildViewModel([{ id: 'uuid-1' }]);
+
+			question.addCustomDataToViewModel(viewModel);
+
+			const [card] = (viewModel.question as { cards: Card[] }).cards;
+			assert.deepStrictEqual(card.rows, [{ label: 'Unanswered', value: '-' }]);
+		});
+
+		it('decides per item, so entries on different branches show different rows', () => {
+			const question = buildQuestion({
+				rows: [
+					{ label: 'Standard', fieldName: 'standard', showIf: (item: Record<string, unknown>) => !item.retail },
+					{ label: 'Retail', fieldName: 'shop', showIf: (item: Record<string, unknown>) => Boolean(item.retail) }
+				]
+			});
+			const viewModel = buildViewModel([
+				{ id: 'uuid-1', standard: '100' },
+				{ id: 'uuid-2', retail: true, shop: '300' }
+			]);
+
+			question.addCustomDataToViewModel(viewModel);
+
+			const cards = (viewModel.question as { cards: Card[] }).cards;
+			assert.deepStrictEqual(
+				cards[0].rows.map((row) => row.label),
+				['Standard']
+			);
+			assert.deepStrictEqual(
+				cards[1].rows.map((row) => row.label),
+				['Retail']
+			);
+		});
+
+		it('surfaces the bold flag to the template, which reads it off the question', () => {
+			const question = buildQuestion({ boldRowLabels: false });
+			const viewModel = buildViewModel([{ id: 'uuid-1' }]);
+
+			question.addCustomDataToViewModel(viewModel);
+
+			assert.strictEqual((viewModel.question as { boldRowLabels: boolean }).boldRowLabels, false);
 		});
 	});
 

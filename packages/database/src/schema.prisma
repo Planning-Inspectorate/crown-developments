@@ -287,7 +287,8 @@ model S62aCase {
 
   S62aEvent S62aEvent?
 
-  S62aResidential S62aResidential?
+  S62aResidential    S62aResidential?
+  S62aNonResidential S62aNonResidential?
 
   Folders             Folder[]
   Documents           Document[]
@@ -464,6 +465,104 @@ model S62aResidential {
   hasProposedHousing        Boolean?
 
   Housing S62aResidentialHousing[]
+}
+
+/// Non-residential floorspace details for an S62A case
+model S62aNonResidential {
+  id         String   @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  s62aCaseId String   @unique @db.UniqueIdentifier
+  S62aCase   S62aCase @relation(fields: [s62aCaseId], references: [id])
+
+  /// Gates the four derived total rows and the Type of use row on the tab
+  hasNonResidentialFloorspaceChange Boolean?
+
+  Floorspace S62aNonResidentialFloorspace[]
+}
+
+/// One type of use. The floorspace figures live on the child rows: retail
+/// carries a shop set and a net tradeable area set, everything else carries a
+/// single standard set.
+model S62aNonResidentialFloorspace {
+  id                   String             @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  s62aNonResidentialId String             @db.UniqueIdentifier
+  S62aNonResidential   S62aNonResidential @relation(fields: [s62aNonResidentialId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  useClassId String
+  UseClass   S62aUseClass @relation(fields: [useClassId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  /// Only set for E, F1 and F2
+  useClassSubtypeId String?
+  UseClassSubtype   S62aUseClassSubtype? @relation(fields: [useClassSubtypeId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  /// Only set when the use class is 'other'.
+  otherTypeOfUse String? @db.NVarChar(250)
+
+  /// Rooms are counts rather than areas, so they stay on the entry.
+  /// Asked for C1, C2, C2A and Other.
+  hasRoomsChange     Boolean?
+  roomsLost          Int?
+  roomsProposed      Int?
+  netAdditionalRooms Int?
+
+  Areas S62aNonResidentialFloorspaceArea[]
+
+  @@index([s62aNonResidentialId])
+}
+
+/// One set of the four gross internal floorspace figures, in square metres.
+/// Which sets an entry has is determined by its branch.
+model S62aNonResidentialFloorspaceArea {
+  id                    String                       @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  s62aFloorspaceEntryId String                       @db.UniqueIdentifier
+  FloorspaceEntry       S62aNonResidentialFloorspace @relation(fields: [s62aFloorspaceEntryId], references: [id], onUpdate: NoAction, onDelete: Cascade)
+
+  /// 'standard', 'shop' or 'net-tradeable'
+  floorspaceSetId String
+  FloorspaceSet   S62aFloorspaceSet @relation(fields: [floorspaceSetId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  /// Nullable so "not answered" differs from zero
+  existingGross      Int?
+  grossLost          Int?
+  grossProposed      Int?
+  netAdditionalGross Int?
+
+  @@unique([s62aFloorspaceEntryId, floorspaceSetId])
+  @@index([s62aFloorspaceEntryId])
+}
+
+/// Which set of floorspace figures a row holds
+model S62aFloorspaceSet {
+  id          String  @id
+  displayName String?
+  /// Controls the order the sets render in on a card
+  order       Int
+
+  Areas S62aNonResidentialFloorspaceArea[]
+}
+
+/// Use class or type of use for non-residential floorspace
+model S62aUseClass {
+  id          String  @id
+  displayName String?
+  /// Controls display order on the question page and the grouping of cards
+  order       Int
+
+  Subtypes   S62aUseClassSubtype[]
+  Floorspace S62aNonResidentialFloorspace[]
+}
+
+/// Subtype of a use class. Only E, F1 and F2 have any.
+model S62aUseClassSubtype {
+  id          String  @id
+  displayName String?
+  order       Int
+
+  useClassId String
+  UseClass   S62aUseClass @relation(fields: [useClassId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  Floorspace S62aNonResidentialFloorspace[]
+
+  @@index([useClassId])
 }
 
 /// One occupancy and unit type combination, with its breakdown by number of

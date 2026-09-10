@@ -67,6 +67,28 @@ describe('S62aManageListDeleter', () => {
 				delete: mock.fn(async () => {}),
 				deleteMany: mock.fn(async () => {})
 			},
+			s62aNonResidentialFloorspace: {
+				deleteMany: mock.fn(async () => {})
+			},
+			s62aNonResidentialFloorspaceArea: {
+				deleteMany: mock.fn(async () => {})
+			},
+			s62aNonResidential: {
+				delete: mock.fn(async () => {}),
+				deleteMany: mock.fn(async () => {})
+			},
+			s62aUseClass: {
+				delete: mock.fn(async () => {}),
+				deleteMany: mock.fn(async () => {})
+			},
+			s62aUseClassSubtype: {
+				delete: mock.fn(async () => {}),
+				deleteMany: mock.fn(async () => {})
+			},
+			s62aFloorspaceSet: {
+				delete: mock.fn(async () => {}),
+				deleteMany: mock.fn(async () => {})
+			},
 			$transaction: mock.fn(async (ops: any[]) => Promise.all(ops))
 		};
 
@@ -360,6 +382,70 @@ describe('S62aManageListDeleter', () => {
 		it('does not touch the waste, inspector or applicant join tables', async () => {
 			await deleter.deleteResidentialHousing('case-1', 'housing-row-1');
 
+			assert.strictEqual(mockDb.s62aCaseWasteType.deleteMany.mock.callCount(), 0);
+			assert.strictEqual(mockDb.s62aCaseInspector.deleteMany.mock.callCount(), 0);
+			assert.strictEqual(mockDb.s62aToApplicant.deleteMany.mock.callCount(), 0);
+		});
+	});
+	describe('deleteNonResidentialFloorspace', () => {
+		it('deletes the entry scoped to the case through its parent', async () => {
+			await deleter.deleteNonResidentialFloorspace('case-1', 'floorspace-row-1');
+
+			assert.strictEqual(mockDb.s62aNonResidentialFloorspace.deleteMany.mock.callCount(), 1);
+			assert.deepStrictEqual(mockDb.s62aNonResidentialFloorspace.deleteMany.mock.calls[0].arguments[0], {
+				where: { id: 'floorspace-row-1', S62aNonResidential: { s62aCaseId: 'case-1' } }
+			});
+		});
+
+		it('deletes the area rows, scoped through the entry and the case', async () => {
+			await deleter.deleteNonResidentialFloorspace('case-1', 'floorspace-row-1');
+
+			assert.strictEqual(mockDb.s62aNonResidentialFloorspaceArea.deleteMany.mock.callCount(), 1);
+			assert.deepStrictEqual(mockDb.s62aNonResidentialFloorspaceArea.deleteMany.mock.calls[0].arguments[0], {
+				where: { FloorspaceEntry: { id: 'floorspace-row-1', S62aNonResidential: { s62aCaseId: 'case-1' } } }
+			});
+		});
+
+		it('runs both deletes in one transaction, so a failure leaves neither half done', async () => {
+			await deleter.deleteNonResidentialFloorspace('case-1', 'floorspace-row-1');
+
+			assert.strictEqual(mockDb.$transaction.mock.callCount(), 1);
+			assert.strictEqual(mockDb.$transaction.mock.calls[0].arguments[0].length, 2);
+		});
+
+		it('deletes the area rows before the entry, as the foreign key is NoAction', async () => {
+			const order: string[] = [];
+			mockDb.s62aNonResidentialFloorspaceArea.deleteMany = mock.fn(async () => {
+				order.push('areas');
+			});
+			mockDb.s62aNonResidentialFloorspace.deleteMany = mock.fn(async () => {
+				order.push('entry');
+			});
+
+			await deleter.deleteNonResidentialFloorspace('case-1', 'floorspace-row-1');
+
+			assert.deepStrictEqual(order, ['areas', 'entry']);
+		});
+
+		it('leaves the parent non-residential record alone, as it holds the tab boolean', async () => {
+			await deleter.deleteNonResidentialFloorspace('case-1', 'floorspace-row-1');
+
+			assert.strictEqual(mockDb.s62aNonResidential.delete.mock.callCount(), 0);
+			assert.strictEqual(mockDb.s62aNonResidential.deleteMany.mock.callCount(), 0);
+		});
+
+		it('leaves the use class, subtype and set lookups alone, as they are reference data', async () => {
+			await deleter.deleteNonResidentialFloorspace('case-1', 'floorspace-row-1');
+
+			assert.strictEqual(mockDb.s62aUseClass.delete.mock.callCount(), 0);
+			assert.strictEqual(mockDb.s62aUseClassSubtype.delete.mock.callCount(), 0);
+			assert.strictEqual(mockDb.s62aFloorspaceSet.delete.mock.callCount(), 0);
+		});
+
+		it('does not touch the housing, waste, inspector or applicant tables', async () => {
+			await deleter.deleteNonResidentialFloorspace('case-1', 'floorspace-row-1');
+
+			assert.strictEqual(mockDb.s62aResidentialHousing.deleteMany.mock.callCount(), 0);
 			assert.strictEqual(mockDb.s62aCaseWasteType.deleteMany.mock.callCount(), 0);
 			assert.strictEqual(mockDb.s62aCaseInspector.deleteMany.mock.callCount(), 0);
 			assert.strictEqual(mockDb.s62aToApplicant.deleteMany.mock.callCount(), 0);

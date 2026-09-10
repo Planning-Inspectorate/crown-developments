@@ -12,14 +12,31 @@ import {
 	WASTE_UNIT_ID,
 	OCCUPANCY_TYPE_ID,
 	UNIT_TYPE_ID,
-	HOUSING_TYPE_ID
+	HOUSING_TYPE_ID,
+	FLOORSPACE_SET_ID,
+	USE_CLASS_ID,
+	USE_CLASS_SUBTYPE_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
 import { S62aCaseUpdateMapper, type UpdateCaseAnswers } from './s62a-update-case-mapper.ts';
-import type { Address } from '@planning-inspectorate/dynamic-forms';
+import { BOOLEAN_OPTIONS, type Address } from '@planning-inspectorate/dynamic-forms';
 import { addBusinessDays } from 'date-fns';
 import type { S62aCaseViewModel } from './view-model.ts';
+
+type PersistedList =
+	| 'manageWasteTypes'
+	| 'manageCaseTeamInspectors'
+	| 'vehicleParking'
+	| 'manageExistingHousing'
+	| 'manageProposedHousing';
+
+/** A case as loaded from the database, holding only the given manage-list row ids. */
+function persistedCase(lists: Partial<Record<PersistedList, string[]>>): S62aCaseViewModel {
+	return Object.fromEntries(
+		Object.entries(lists).map(([key, ids]) => [key, ids.map((id) => ({ id }))])
+	) as unknown as S62aCaseViewModel;
+}
 
 describe('S62aCaseUpdateMapper', () => {
 	describe('Empty and Undefined Payloads', () => {
@@ -1928,6 +1945,408 @@ describe('S62aCaseUpdateMapper', () => {
 			assert.deepStrictEqual(result.VehicleParking?.deleteMany, {
 				id: { notIn: ['row-1'] }
 			});
+		});
+	});
+
+	describe('Non-residential Tab', () => {
+		/** The area rows created for the first entry. */
+		const areasFor = (answers: UpdateCaseAnswers) => {
+			const [created] = (new S62aCaseUpdateMapper(answers).generateUpdateInput().S62aNonResidential as any).upsert
+				.create.Floorspace.create;
+			return created.Areas?.create ?? [];
+		};
+
+		/** The set ids of the area rows created for the first entry. */
+		const areaSetIds = (answers: UpdateCaseAnswers): string[] =>
+			areasFor(answers).map((area: any) => area.FloorspaceSet.connect.id);
+
+		/** The update branch of the upsert, for a case holding the given saved rows. */
+		const updateFor = (answers: UpdateCaseAnswers, savedIds: string[] = []) =>
+			(
+				new S62aCaseUpdateMapper(
+					answers,
+					persistedCase({ manageNonResidentialFloorspace: savedIds })
+				).generateUpdateInput().S62aNonResidential as any
+			).upsert.update;
+
+		it('maps the boolean into the S62aNonResidential upsert', () => {
+			const answers = { hasNonResidentialFloorspaceChange: true } as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(result.S62aNonResidential, {
+				upsert: {
+					create: { hasNonResidentialFloorspaceChange: true },
+					update: { hasNonResidentialFloorspaceChange: true }
+				}
+			});
+		});
+
+		it('maps a false boolean rather than treating it as cleared', () => {
+			const answers = { hasNonResidentialFloorspaceChange: false } as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual((result.S62aNonResidential as any).upsert.create.hasNonResidentialFloorspaceChange, false);
+		});
+
+		it('nullifies the boolean when cleared', () => {
+			const answers = { hasNonResidentialFloorspaceChange: null } as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual((result.S62aNonResidential as any).upsert.create.hasNonResidentialFloorspaceChange, null);
+		});
+
+		it('does not generate an S62aNonResidential update when no non-residential answers are provided', () => {
+			const result = new S62aCaseUpdateMapper({ likelyIssues: 'Traffic' }).generateUpdateInput();
+
+			assert.strictEqual(result.S62aNonResidential, undefined);
+		});
+
+		it('does not touch the residential upsert', () => {
+			const answers = { hasNonResidentialFloorspaceChange: true } as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual(result.S62aResidential, undefined);
+		});
+
+		it('connects the use class lookup', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [{ id: 'row-1', useClassId: USE_CLASS_ID.B2 }]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const [created] = (result.S62aNonResidential as any).upsert.create.Floorspace.create;
+
+			assert.deepStrictEqual(created.UseClass, { connect: { id: USE_CLASS_ID.B2 } });
+		});
+
+		it('connects the subtype only when one was answered', () => {
+			const withSubtype = {
+				manageNonResidentialFloorspace: [
+					{ id: 'row-1', useClassId: USE_CLASS_ID.E, useClassSubtypeId: USE_CLASS_SUBTYPE_ID.E_OFFICE }
+				]
+			} as unknown as UpdateCaseAnswers;
+			const withoutSubtype = {
+				manageNonResidentialFloorspace: [{ id: 'row-1', useClassId: USE_CLASS_ID.B2 }]
+			} as unknown as UpdateCaseAnswers;
+
+			const [withRow] = (new S62aCaseUpdateMapper(withSubtype).generateUpdateInput().S62aNonResidential as any).upsert
+				.create.Floorspace.create;
+			const [withoutRow] = (new S62aCaseUpdateMapper(withoutSubtype).generateUpdateInput().S62aNonResidential as any)
+				.upsert.create.Floorspace.create;
+
+			assert.deepStrictEqual(withRow.UseClassSubtype, { connect: { id: USE_CLASS_SUBTYPE_ID.E_OFFICE } });
+			assert.strictEqual(withoutRow.UseClassSubtype, undefined);
+		});
+
+		it('keeps the free text only on an Other entry', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [
+					{ id: 'row-1', useClassId: USE_CLASS_ID.OTHER, otherTypeOfUse: 'Petrol station' },
+					{ id: 'row-2', useClassId: USE_CLASS_ID.B2, otherTypeOfUse: 'Left over from a previous answer' }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const [other, b2] = (new S62aCaseUpdateMapper(answers).generateUpdateInput().S62aNonResidential as any).upsert
+				.create.Floorspace.create;
+
+			assert.strictEqual(other.otherTypeOfUse, 'Petrol station');
+			assert.strictEqual(b2.otherTypeOfUse, null, 'a stale free text must not survive a use class change');
+		});
+
+		it('maps the rooms gate from its YesNo answer', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [
+					{ id: 'row-1', useClassId: USE_CLASS_ID.C1, hasRoomsChange: BOOLEAN_OPTIONS.YES },
+					{ id: 'row-2', useClassId: USE_CLASS_ID.C2, hasRoomsChange: BOOLEAN_OPTIONS.NO },
+					{ id: 'row-3', useClassId: USE_CLASS_ID.C2A }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const [yes, no, unanswered] = (new S62aCaseUpdateMapper(answers).generateUpdateInput().S62aNonResidential as any)
+				.upsert.create.Floorspace.create;
+
+			assert.strictEqual(yes.hasRoomsChange, true);
+			assert.strictEqual(no.hasRoomsChange, false);
+			assert.strictEqual(unanswered.hasRoomsChange, null);
+		});
+
+		it('maps the rooms figures, which arrive as strings from the multi-field input', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [
+					{
+						id: 'row-1',
+						useClassId: USE_CLASS_ID.C1,
+						roomsLost: '4',
+						roomsProposed: '0',
+						netAdditionalRooms: ''
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const [created] = (new S62aCaseUpdateMapper(answers).generateUpdateInput().S62aNonResidential as any).upsert
+				.create.Floorspace.create;
+
+			assert.strictEqual(created.roomsLost, 4);
+			assert.strictEqual(created.roomsProposed, 0, 'zero rooms recorded');
+			assert.strictEqual(created.netAdditionalRooms, null, 'never answered');
+		});
+
+		it('creates one area row for a standard entry', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [
+					{
+						id: 'row-1',
+						useClassId: USE_CLASS_ID.B2,
+						[`${FLOORSPACE_SET_ID.STANDARD}_existingGross`]: '100',
+						[`${FLOORSPACE_SET_ID.STANDARD}_grossLost`]: '20'
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			assert.deepStrictEqual(areaSetIds(answers), [FLOORSPACE_SET_ID.STANDARD]);
+		});
+
+		it('maps the four figures onto the area row', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [
+					{
+						id: 'row-1',
+						useClassId: USE_CLASS_ID.B2,
+						[`${FLOORSPACE_SET_ID.STANDARD}_existingGross`]: '100',
+						[`${FLOORSPACE_SET_ID.STANDARD}_grossLost`]: '0',
+						[`${FLOORSPACE_SET_ID.STANDARD}_grossProposed`]: '250',
+						[`${FLOORSPACE_SET_ID.STANDARD}_netAdditionalGross`]: ''
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const [area] = areasFor(answers);
+
+			assert.strictEqual(area.existingGross, 100);
+			assert.strictEqual(area.grossLost, 0, 'zero square metres recorded');
+			assert.strictEqual(area.grossProposed, 250);
+			assert.strictEqual(area.netAdditionalGross, null, 'never answered');
+		});
+
+		it('creates both retail area rows and no standard row', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [
+					{
+						id: 'row-1',
+						useClassId: USE_CLASS_ID.E,
+						useClassSubtypeId: USE_CLASS_SUBTYPE_ID.E_RETAIL,
+						[`${FLOORSPACE_SET_ID.SHOP}_existingGross`]: '300',
+						[`${FLOORSPACE_SET_ID.NET_TRADEABLE}_existingGross`]: '200'
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			assert.deepStrictEqual(areaSetIds(answers), [FLOORSPACE_SET_ID.SHOP, FLOORSPACE_SET_ID.NET_TRADEABLE]);
+		});
+
+		it('creates no area rows when every figure is blank', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [
+					{
+						id: 'row-1',
+						useClassId: USE_CLASS_ID.B2,
+						[`${FLOORSPACE_SET_ID.STANDARD}_existingGross`]: '',
+						[`${FLOORSPACE_SET_ID.STANDARD}_grossLost`]: ''
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const [created] = (new S62aCaseUpdateMapper(answers).generateUpdateInput().S62aNonResidential as any).upsert
+				.create.Floorspace.create;
+
+			assert.strictEqual(created.Areas, undefined, 'an entry with no figures carries no area rows');
+		});
+
+		it('creates an area row for a set with a single zero, since zero is an answer', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [
+					{
+						id: 'row-1',
+						useClassId: USE_CLASS_ID.B2,
+						[`${FLOORSPACE_SET_ID.STANDARD}_existingGross`]: '0'
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			assert.deepStrictEqual(areaSetIds(answers), [FLOORSPACE_SET_ID.STANDARD]);
+		});
+
+		it('drops a part-built entry with no use class, as the relation is required', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [{ id: 'row-1', useClassId: USE_CLASS_ID.B2 }, { id: 'row-2' }]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual((result.S62aNonResidential as any).upsert.create.Floorspace.create.length, 1);
+		});
+
+		it('updates a persisted entry rather than recreating it', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [{ id: 'row-1', useClassId: USE_CLASS_ID.B2 }]
+			} as unknown as UpdateCaseAnswers;
+
+			const update = updateFor(answers, ['row-1']);
+
+			assert.strictEqual(update.Floorspace.update.length, 1);
+			assert.strictEqual(update.Floorspace.update[0].where.id, 'row-1');
+			assert.strictEqual(update.Floorspace.create, undefined);
+		});
+
+		it('deletes the entries no longer in the list', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [{ id: 'row-1', useClassId: USE_CLASS_ID.B2 }]
+			} as unknown as UpdateCaseAnswers;
+
+			const update = updateFor(answers, ['row-1', 'row-2']);
+
+			assert.deepStrictEqual(update.Floorspace.deleteMany, { id: { notIn: ['row-1'] } });
+		});
+
+		it('creates an entry whose id came from dynamic-forms, not the database', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [
+					{ id: 'row-1', useClassId: USE_CLASS_ID.B2 },
+					{ id: 'unsaved-uuid', useClassId: USE_CLASS_ID.C1 }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const update = updateFor(answers, ['row-1']);
+
+			assert.strictEqual(update.Floorspace.update.length, 1);
+			assert.strictEqual(update.Floorspace.update[0].where.id, 'row-1');
+			assert.strictEqual(update.Floorspace.create.length, 1);
+			assert.deepStrictEqual(update.Floorspace.create[0].UseClass, { connect: { id: USE_CLASS_ID.C1 } });
+			assert.deepStrictEqual(update.Floorspace.deleteMany, { id: { notIn: ['row-1'] } });
+		});
+
+		it('upserts the area rows of an updated entry, matching on the set rather than replacing them', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [
+					{
+						id: 'row-1',
+						useClassId: USE_CLASS_ID.B2,
+						[`${FLOORSPACE_SET_ID.STANDARD}_existingGross`]: '250'
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const { data } = updateFor(answers, ['row-1']).Floorspace.update[0];
+
+			assert.strictEqual(data.Areas.upsert.length, 1);
+			assert.strictEqual(data.Areas.upsert[0].update.existingGross, 250);
+			assert.strictEqual(data.Areas.upsert[0].create.existingGross, 250);
+		});
+
+		it('targets an area row by its entry and set, which is the compound unique', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [
+					{
+						id: 'row-1',
+						useClassId: USE_CLASS_ID.B2,
+						[`${FLOORSPACE_SET_ID.STANDARD}_existingGross`]: '250'
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const { data } = updateFor(answers, ['row-1']).Floorspace.update[0];
+
+			assert.deepStrictEqual(data.Areas.upsert[0].where, {
+				s62aFloorspaceEntryId_floorspaceSetId: {
+					s62aFloorspaceEntryId: 'row-1',
+					floorspaceSetId: FLOORSPACE_SET_ID.STANDARD
+				}
+			});
+		});
+
+		it('deletes the sets an entry no longer has, so a retail entry changed to standard loses its shop rows', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [
+					{
+						id: 'row-1',
+						useClassId: USE_CLASS_ID.B2,
+						[`${FLOORSPACE_SET_ID.STANDARD}_existingGross`]: '250'
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const { data } = updateFor(answers, ['row-1']).Floorspace.update[0];
+
+			assert.deepStrictEqual(data.Areas.deleteMany, {
+				floorspaceSetId: { notIn: [FLOORSPACE_SET_ID.STANDARD] }
+			});
+		});
+
+		it('clears every area row of an entry whose figures were all removed', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [{ id: 'row-1', useClassId: USE_CLASS_ID.B2 }]
+			} as unknown as UpdateCaseAnswers;
+
+			const { data } = updateFor(answers, ['row-1']).Floorspace.update[0];
+
+			// No sets survive, so nothing is excluded from the delete
+			assert.deepStrictEqual(data.Areas, { deleteMany: { floorspaceSetId: { notIn: [] } } });
+		});
+
+		it('disconnects the subtype when an entry changes to a use class that has none', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [{ id: 'row-1', useClassId: USE_CLASS_ID.B2 }]
+			} as unknown as UpdateCaseAnswers;
+
+			const { data } = updateFor(answers, ['row-1']).Floorspace.update[0];
+
+			// A full replace hid this; with a diff the old subtype would otherwise survive
+			assert.deepStrictEqual(data.UseClassSubtype, { disconnect: true });
+		});
+
+		it('connects the subtype on an updated entry that has one', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [
+					{ id: 'row-1', useClassId: USE_CLASS_ID.E, useClassSubtypeId: USE_CLASS_SUBTYPE_ID.E_OFFICE }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const { data } = updateFor(answers, ['row-1']).Floorspace.update[0];
+
+			assert.deepStrictEqual(data.UseClassSubtype, { connect: { id: USE_CLASS_SUBTYPE_ID.E_OFFICE } });
+		});
+
+		it('does not delete anything on create, as there is nothing to replace', () => {
+			const answers = { manageNonResidentialFloorspace: [] } as unknown as UpdateCaseAnswers;
+			const { create } = (new S62aCaseUpdateMapper(answers).generateUpdateInput().S62aNonResidential as any).upsert;
+
+			assert.deepStrictEqual(create.Floorspace, { create: [] });
+			assert.strictEqual(create.Floorspace.deleteMany, undefined);
+		});
+
+		it('clears every floorspace row when the list is empty', () => {
+			const answers = { manageNonResidentialFloorspace: [] } as unknown as UpdateCaseAnswers;
+
+			// Not hasAnswer(), which is false for [] — removing the last entry must persist
+			assert.deepStrictEqual(updateFor(answers, ['row-1']).Floorspace, { deleteMany: {} });
+		});
+
+		it('does not touch the floorspace rows when the list is absent from the payload', () => {
+			const answers = { hasNonResidentialFloorspaceChange: true } as unknown as UpdateCaseAnswers;
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.strictEqual((result.S62aNonResidential as any).upsert.create.Floorspace, undefined);
+			assert.strictEqual((result.S62aNonResidential as any).upsert.update.Floorspace, undefined);
+		});
+
+		it('maps floorspace entries even when the boolean is not in the payload', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [{ id: 'row-1', useClassId: USE_CLASS_ID.B2 }]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.ok(result.S62aNonResidential, 'the upsert must still be generated');
 		});
 	});
 });

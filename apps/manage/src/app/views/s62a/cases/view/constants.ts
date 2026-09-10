@@ -53,6 +53,21 @@ export const S62A_VIEW_SELECT_INCLUDE = {
 			}
 		}
 	},
+	S62aNonResidential: {
+		include: {
+			Floorspace: {
+				include: {
+					UseClass: true,
+					UseClassSubtype: true,
+					Areas: {
+						include: { FloorspaceSet: true },
+						orderBy: { FloorspaceSet: { order: 'asc' } }
+					}
+				},
+				orderBy: [{ UseClass: { order: 'asc' } }, { UseClassSubtype: { order: 'asc' } }]
+			}
+		}
+	},
 	S62aToApplicants: {
 		include: {
 			Organisation: {

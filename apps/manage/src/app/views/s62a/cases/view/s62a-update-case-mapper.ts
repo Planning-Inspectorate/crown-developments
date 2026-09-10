@@ -4,11 +4,13 @@ import {
 	SITE_AREA_UNIT_ID,
 	CONTACT_ROLES_ID,
 	CONTACT_ROLES,
-	HOUSING_TYPE_ID
+	HOUSING_TYPE_ID,
+	FLOORSPACE_SET_ID,
+	USE_CLASS_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
 import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
-import { type Address, yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
+import { type Address, BOOLEAN_OPTIONS, yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
 import {
 	S62A_DATE_FIELDS,
 	FEE_BOOLEAN_FIELDS,
@@ -25,7 +27,12 @@ import {
 	RESIDENTIAL_BOOLEAN_FIELDS,
 	type VehicleParkingItem,
 	type ResidentialHousingItem,
-	HOUSING_BEDROOM_FIELDS
+	HOUSING_BEDROOM_FIELDS,
+	type NonResidentialFloorspaceItem,
+	AREA_FIELDS,
+	ROOMS_FIELDS,
+	NON_RESIDENTIAL_BOOLEAN_FIELDS,
+	areaFieldName
 } from './view-model.ts';
 import {
 	type AgentContactAnswer,
@@ -47,6 +54,7 @@ const EVENT_DATE_SET = new Set<string>(EVENT_DATE_FIELDS);
 const EVENT_NUMBER_SET = new Set<string>(EVENT_NUMBER_FIELDS);
 const EVENT_STRING_SET = new Set<string>(EVENT_STRING_FIELDS);
 const RESIDENTIAL_BOOLEAN_SET = new Set<string>(RESIDENTIAL_BOOLEAN_FIELDS);
+const NON_RESIDENTIAL_BOOLEAN_SET = new Set<string>(NON_RESIDENTIAL_BOOLEAN_FIELDS);
 
 export interface UpdateCaseAnswers {
 	s62aStatusId?: string;
@@ -201,6 +209,10 @@ export interface UpdateCaseAnswers {
 	hasProposedHousing?: boolean | null;
 	manageProposedHousing?: ResidentialHousingItem[];
 	manageExistingHousing?: ResidentialHousingItem[];
+
+	// Non-residential tab
+	hasNonResidentialFloorspaceChange?: boolean | null;
+	manageNonResidentialFloorspace?: NonResidentialFloorspaceItem[];
 }
 
 /**
@@ -217,6 +229,15 @@ export class S62aCaseUpdateMapper {
 	constructor(answers: UpdateCaseAnswers, existingCase?: S62aCaseViewModel) {
 		this.answers = answers;
 		this.existingCase = existingCase;
+	}
+
+	/**
+	 * Ids of rows that exist in the database. Manage-list items get an id from
+	 * dynamic-forms when they're added, so `item.id` alone doesn't mean the row
+	 * has been saved.
+	 */
+	private persistedIds(items: readonly { id?: string | null }[] | null | undefined): Set<string> {
+		return new Set((items ?? []).map((item) => item.id).filter((id): id is string => Boolean(id)));
 	}
 
 	/**
@@ -238,6 +259,7 @@ export class S62aCaseUpdateMapper {
 		this.mapWaste(input);
 		this.mapPressNotice(input);
 		this.mapResidential(input);
+		this.mapNonResidential(input);
 		this.mapVehicleParking(input);
 
 		return input;
@@ -694,6 +716,198 @@ export class S62aCaseUpdateMapper {
 		}
 
 		input.S62aResidential = { upsert: { create, update } };
+	}
+
+	/**
+	 * Diffs the floorspace rows against the case as loaded: entries still in the
+	 * list are updated, new ones created, and the rest deleted. A surviving
+	 * entry's area rows are matched on their set rather than replaced, so an
+	 * untouched set is left alone.
+	 */
+	private mapNonResidential(input: Prisma.S62aCaseUpdateInput): void {
+		const booleans: Prisma.S62aNonResidentialUpdateWithoutS62aCaseInput &
+			Prisma.S62aNonResidentialCreateWithoutS62aCaseInput = {};
+		let hasNonResidentialUpdates = false;
+
+		for (const [key, value] of Object.entries(this.answers)) {
+			if (this.isNonResidentialBooleanField(key)) {
+				booleans[key] = typeof value === 'boolean' ? value : null;
+				hasNonResidentialUpdates = true;
+			}
+		}
+
+		// Not hasAnswer() — that returns false for [], so removing the last entry
+		// would silently fail to persist.
+		const entries = this.answers.manageNonResidentialFloorspace;
+
+		if (!hasNonResidentialUpdates && entries === undefined) {
+			return;
+		}
+
+		const create: Prisma.S62aNonResidentialCreateWithoutS62aCaseInput = { ...booleans };
+		const update: Prisma.S62aNonResidentialUpdateWithoutS62aCaseInput = { ...booleans };
+
+		if (entries !== undefined) {
+			const persistedIds = this.persistedIds(this.existingCase?.manageNonResidentialFloorspace);
+
+			const createOperations: Prisma.S62aNonResidentialFloorspaceCreateWithoutS62aNonResidentialInput[] = [];
+			const updateOperations: Prisma.S62aNonResidentialFloorspaceUpdateWithWhereUniqueWithoutS62aNonResidentialInput[] =
+				[];
+			const keepIds: string[] = [];
+
+			// Everything, for the parent create branch
+			const allMappedRows: Prisma.S62aNonResidentialFloorspaceCreateWithoutS62aNonResidentialInput[] = [];
+
+			for (const entry of entries) {
+				if (!entry.useClassId) {
+					// Part-built: the use class relation is required
+					continue;
+				}
+
+				allMappedRows.push(this.mapFloorspaceRow(entry));
+
+				// New items already carry an id from dynamic-forms, so only treat
+				// the item as existing if that id was loaded from the database.
+				if (entry.id && persistedIds.has(entry.id)) {
+					keepIds.push(entry.id);
+					updateOperations.push({
+						where: { id: entry.id },
+						// Built from the entry rather than the create shape, as the
+						// area upserts need the entry id for their compound where.
+						data: this.toFloorspaceUpdate(entry, entry.id)
+					});
+				} else {
+					createOperations.push(this.mapFloorspaceRow(entry));
+				}
+			}
+
+			create.Floorspace = { create: allMappedRows };
+
+			update.Floorspace = {
+				deleteMany: keepIds.length > 0 ? { id: { notIn: keepIds } } : {},
+				...(createOperations.length > 0 && { create: createOperations }),
+				...(updateOperations.length > 0 && { update: updateOperations })
+			};
+		}
+
+		input.S62aNonResidential = { upsert: { create, update } };
+	}
+
+	/**
+	 * A persisted entry as an update. The subtype is disconnected rather than
+	 * left alone when absent, so changing an entry from E to B2 clears the
+	 * subtype it no longer has.
+	 *
+	 * Area rows are matched on (entry, set) through the compound unique, so an
+	 * untouched set is updated in place rather than dropped and recreated. Sets
+	 * no longer present are deleted, which is how a retail entry changed to a
+	 * standard one loses its shop and net tradeable rows.
+	 */
+	private toFloorspaceUpdate(
+		entry: NonResidentialFloorspaceItem,
+		id: string
+	): Prisma.S62aNonResidentialFloorspaceUpdateWithoutS62aNonResidentialInput {
+		const values = entry as Record<string, string | number | null | undefined>;
+		const areas = this.mapFloorspaceAreaRows(values);
+
+		const data: Prisma.S62aNonResidentialFloorspaceUpdateWithoutS62aNonResidentialInput = {
+			UseClass: { connect: { id: entry.useClassId! } },
+			UseClassSubtype: entry.useClassSubtypeId ? { connect: { id: entry.useClassSubtypeId } } : { disconnect: true },
+			otherTypeOfUse: entry.useClassId === USE_CLASS_ID.OTHER ? (entry.otherTypeOfUse ?? null) : null,
+			hasRoomsChange: entry.hasRoomsChange === undefined ? null : entry.hasRoomsChange === BOOLEAN_OPTIONS.YES
+		};
+
+		for (const field of ROOMS_FIELDS) {
+			data[field] = toIntOrNull(values[field]);
+		}
+
+		data.Areas = {
+			deleteMany: { floorspaceSetId: { notIn: areas.map(({ floorspaceSetId }) => floorspaceSetId) } },
+			...(areas.length > 0 && {
+				upsert: areas.map(({ floorspaceSetId, row }) => ({
+					where: {
+						s62aFloorspaceEntryId_floorspaceSetId: {
+							s62aFloorspaceEntryId: id,
+							floorspaceSetId
+						}
+					},
+					create: row,
+					update: row
+				}))
+			})
+		};
+
+		return data;
+	}
+
+	/**
+	 * One manage list item as a nested create.
+	 */
+	private mapFloorspaceRow(
+		entry: NonResidentialFloorspaceItem
+	): Prisma.S62aNonResidentialFloorspaceCreateWithoutS62aNonResidentialInput {
+		// One cast where the index signature's unknown enters, then typed values
+		const values = entry as Record<string, string | number | null | undefined>;
+
+		const row: Prisma.S62aNonResidentialFloorspaceCreateWithoutS62aNonResidentialInput = {
+			UseClass: { connect: { id: entry.useClassId! } },
+			otherTypeOfUse: entry.useClassId === USE_CLASS_ID.OTHER ? (entry.otherTypeOfUse ?? null) : null,
+			hasRoomsChange: entry.hasRoomsChange === undefined ? null : entry.hasRoomsChange === BOOLEAN_OPTIONS.YES
+		};
+
+		if (entry.useClassSubtypeId) {
+			row.UseClassSubtype = { connect: { id: entry.useClassSubtypeId } };
+		}
+
+		for (const field of ROOMS_FIELDS) {
+			row[field] = toIntOrNull(values[field]);
+		}
+
+		const areas = this.mapFloorspaceAreaRows(values);
+		if (areas.length > 0) {
+			row.Areas = { create: areas.map(({ row: area }) => area) };
+		}
+
+		return row;
+	}
+
+	/**
+	 * One area row per set that has a figure on it, so a standard entry doesn't
+	 * carry two empty retail rows. The set id is returned alongside the row, as
+	 * the update path needs it for the compound where.
+	 */
+	private mapFloorspaceAreaRows(
+		values: Record<string, string | number | null | undefined>
+	): { floorspaceSetId: string; row: Prisma.S62aNonResidentialFloorspaceAreaCreateWithoutFloorspaceEntryInput }[] {
+		const rows: {
+			floorspaceSetId: string;
+			row: Prisma.S62aNonResidentialFloorspaceAreaCreateWithoutFloorspaceEntryInput;
+		}[] = [];
+
+		for (const floorspaceSetId of Object.values(FLOORSPACE_SET_ID)) {
+			const row: Prisma.S62aNonResidentialFloorspaceAreaCreateWithoutFloorspaceEntryInput = {
+				FloorspaceSet: { connect: { id: floorspaceSetId } }
+			};
+			let hasFigure = false;
+
+			for (const field of AREA_FIELDS) {
+				const value = toIntOrNull(values[areaFieldName(floorspaceSetId, field)]);
+				row[field] = value;
+				if (value !== null) {
+					hasFigure = true;
+				}
+			}
+
+			if (hasFigure) {
+				rows.push({ floorspaceSetId, row });
+			}
+		}
+
+		return rows;
+	}
+
+	private isNonResidentialBooleanField(key: string): key is (typeof NON_RESIDENTIAL_BOOLEAN_FIELDS)[number] {
+		return NON_RESIDENTIAL_BOOLEAN_SET.has(key);
 	}
 
 	/**
