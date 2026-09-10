@@ -201,4 +201,19 @@ export class S62aManageListDeleter {
 			where: { id, S62aResidential: { s62aCaseId } }
 		});
 	}
+
+	/**
+	 * Removes a floorspace entry and its area rows. Scoped through the parent so
+	 * a crafted URL can't delete another case's row.
+	 */
+	public async deleteNonResidentialFloorspace(s62aCaseId: string, id: string): Promise<void> {
+		await this.db.$transaction([
+			this.db.s62aNonResidentialFloorspaceArea.deleteMany({
+				where: { FloorspaceEntry: { id, S62aNonResidential: { s62aCaseId } } }
+			}),
+			this.db.s62aNonResidentialFloorspace.deleteMany({
+				where: { id, S62aNonResidential: { s62aCaseId } }
+			})
+		]);
+	}
 }

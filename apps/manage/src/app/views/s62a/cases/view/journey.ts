@@ -15,11 +15,13 @@ import {
 	OUTCOME_TYPE_ID,
 	PRE_APPLICATION_ADVICE_ID,
 	PRE_APPLICATION_OR_APPLICATION_ID,
+	USE_CLASS_ID,
 	VIEW_TAB_ID,
 	WASTE_TYPES_WITHOUT_VOID_CAPACITY
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { type HOUSING_SIDES, totalUnitsFieldName } from '../util/residential-totals.ts';
+import { hasRoomsBranch, isRetail } from '../util/floorspace-questions.ts';
 
 export const JOURNEY_ID = 's62a-case-details';
 
@@ -68,6 +70,23 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 			.filter((key) => key === sideFieldName || key.startsWith(`${sideFieldName}_`))
 			.map((key) => questions[key]);
 	};
+
+	const floorspaceChangeIsYes = (r: JourneyResponse) =>
+		questionHasAnswer(r, questions.nonResidentialFloorspaceChange, BOOLEAN_OPTIONS.YES);
+
+	/**
+	 * The branch questions read the entry's answers from the response root, not
+	 * from the list: the manage list hoists the item being edited, and on save the
+	 * submitted value is on the response before the redirect is worked out, while
+	 * the list itself is still the pre-save copy. Same reason as needsVoidCapacity.
+	 */
+	const currentUseClassId = (r: JourneyResponse) => r.answers?.useClassId as string | undefined;
+	const currentSubtypeId = (r: JourneyResponse) => r.answers?.useClassSubtypeId as string | undefined;
+
+	const isUseClass = (useClassId: string) => (r: JourneyResponse) => currentUseClassId(r) === useClassId;
+	const isRetailEntry = (r: JourneyResponse) => isRetail(currentSubtypeId(r));
+	const showsRoomsBranch = (r: JourneyResponse) => hasRoomsBranch(currentUseClassId(r));
+	const roomsChangeIsYes = (r: JourneyResponse) => r.answers?.hasRoomsChange === BOOLEAN_OPTIONS.YES;
 
 	/**
 	 * Appends a side's calculated rows to its section, matching them by the side's
@@ -404,7 +423,41 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 					)
 					.withCondition(whenQuestionHasAnswer(questions.hasProposedHousing, BOOLEAN_OPTIONS.YES)),
 				'proposed'
-			)
+			),
+			new Section('', 'non-residential')
+				.withSectionCondition(() => currentTab === VIEW_TAB_ID.NON_RESIDENTIAL && isApplicationCase(response))
+				.addQuestion(questions.nonResidentialFloorspaceChange)
+				.addQuestion(questions.totalExistingInternalFloorspace)
+				.withCondition(floorspaceChangeIsYes)
+				.addQuestion(questions.totalGrossInternalFloorspaceLost)
+				.withCondition(floorspaceChangeIsYes)
+				.addQuestion(questions.totalGrossInternalFloorspaceProposed)
+				.withCondition(floorspaceChangeIsYes)
+				.addQuestion(questions.totalNetAdditionalGrossInternalFloorspace)
+				.withCondition(floorspaceChangeIsYes)
+				.addQuestion(
+					questions.manageNonResidentialFloorspace,
+					new ManageListSection()
+						.addQuestion(questions.floorspaceUseClass)
+						// One page per use class that has subtypes; at most one is reachable
+						.addQuestion(questions.floorspaceSubtypeCommercial)
+						.withCondition(isUseClass(USE_CLASS_ID.E))
+						.addQuestion(questions.floorspaceSubtypeLearning)
+						.withCondition(isUseClass(USE_CLASS_ID.F1))
+						.addQuestion(questions.floorspaceSubtypeCommunity)
+						.withCondition(isUseClass(USE_CLASS_ID.F2))
+						.addQuestion(questions.floorspaceDetails)
+						.withCondition((r: JourneyResponse) => !isRetailEntry(r))
+						.addQuestion(questions.shopFloorspace)
+						.withCondition(isRetailEntry)
+						.addQuestion(questions.netTradeableArea)
+						.withCondition(isRetailEntry)
+						.addQuestion(questions.floorspaceRoomsChange)
+						.withCondition(showsRoomsBranch)
+						.addQuestion(questions.floorspaceRooms)
+						.withCondition((r: JourneyResponse) => showsRoomsBranch(r) && roomsChangeIsYes(r))
+				)
+				.withCondition(floorspaceChangeIsYes)
 		],
 		taskListUrl: '',
 		journeyTemplate: 'views/layouts/forms-question.njk',

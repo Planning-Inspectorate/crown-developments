@@ -12,9 +12,12 @@ import {
 	WASTE_UNIT_ID,
 	HOUSING_TYPE_ID,
 	OCCUPANCY_TYPE_ID,
-	UNIT_TYPE_ID
+	UNIT_TYPE_ID,
+	FLOORSPACE_SET_ID,
+	USE_CLASS_ID,
+	USE_CLASS_SUBTYPE_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
-import { s62aCaseToViewModel, type S62aCaseDbModel } from './view-model.ts';
+import { areaFieldName, s62aCaseToViewModel, type S62aCaseDbModel } from './view-model.ts';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 const mockDate = new Date('2026-07-14T12:00:00Z');
@@ -1670,6 +1673,219 @@ describe('s62aCaseToViewModel', () => {
 
 			const result = s62aCaseToViewModel(mockDbCase);
 
+			assert.strictEqual(result.manageProposedHousing, undefined);
+		});
+	});
+
+	describe('Non-residential Mapping', () => {
+		/** A floorspace entry as the DB returns it, with no areas unless given. */
+		const entry = (overrides: Record<string, unknown> = {}) => ({
+			id: 'entry-1',
+			useClassId: USE_CLASS_ID.B2,
+			useClassSubtypeId: null,
+			otherTypeOfUse: null,
+			hasRoomsChange: null,
+			roomsLost: null,
+			roomsProposed: null,
+			netAdditionalRooms: null,
+			Areas: [],
+			...overrides
+		});
+
+		/** An area row for one set, with the four figures defaulting to null. */
+		const area = (floorspaceSetId: string, figures: Record<string, number | null> = {}) => ({
+			id: `area-${floorspaceSetId}`,
+			floorspaceSetId,
+			existingGross: null,
+			grossLost: null,
+			grossProposed: null,
+			netAdditionalGross: null,
+			...figures
+		});
+
+		/** A case carrying the given floorspace entries. */
+		const caseWith = (Floorspace: Record<string, unknown>[], booleans: Record<string, unknown> = {}) =>
+			({
+				id: 'case-nonres',
+				reference: 'S62A/2026/0060',
+				expectedSubmissionDate: mockDate,
+				S62aNonResidential: { hasNonResidentialFloorspaceChange: true, ...booleans, Floorspace }
+			}) as unknown as S62aCaseDbModel;
+
+		it('maps the boolean to a YesNo value', () => {
+			const mockDbCase = {
+				id: 'case-nonres-1',
+				reference: 'S62A/2026/0061',
+				expectedSubmissionDate: mockDate,
+				S62aNonResidential: { hasNonResidentialFloorspaceChange: true }
+			} as unknown as S62aCaseDbModel;
+
+			assert.strictEqual(s62aCaseToViewModel(mockDbCase).hasNonResidentialFloorspaceChange, 'yes');
+		});
+
+		it('maps "No" distinctly from unanswered', () => {
+			const withNo = {
+				id: 'case-nonres-2',
+				reference: 'S62A/2026/0062',
+				expectedSubmissionDate: mockDate,
+				S62aNonResidential: { hasNonResidentialFloorspaceChange: false }
+			} as unknown as S62aCaseDbModel;
+
+			const withNull = {
+				id: 'case-nonres-3',
+				reference: 'S62A/2026/0063',
+				expectedSubmissionDate: mockDate,
+				S62aNonResidential: { hasNonResidentialFloorspaceChange: null }
+			} as unknown as S62aCaseDbModel;
+
+			assert.strictEqual(s62aCaseToViewModel(withNo).hasNonResidentialFloorspaceChange, 'no');
+			assert.strictEqual(s62aCaseToViewModel(withNull).hasNonResidentialFloorspaceChange, undefined);
+		});
+
+		it('does not map non-residential fields if S62aNonResidential is missing', () => {
+			const mockDbCase = {
+				id: 'case-nonres-4',
+				reference: 'S62A/2026/0064',
+				expectedSubmissionDate: mockDate
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.hasNonResidentialFloorspaceChange, undefined);
+			assert.strictEqual(result.manageNonResidentialFloorspace, undefined);
+		});
+
+		it('returns an empty array when the record exists but has no entries', () => {
+			assert.deepStrictEqual(s62aCaseToViewModel(caseWith([])).manageNonResidentialFloorspace, []);
+		});
+
+		it('maps the use class and subtype ids for the card title and edit pages', () => {
+			const result = s62aCaseToViewModel(
+				caseWith([
+					entry({
+						useClassId: USE_CLASS_ID.E,
+						useClassSubtypeId: USE_CLASS_SUBTYPE_ID.E_OFFICE
+					})
+				])
+			);
+
+			const [item] = result.manageNonResidentialFloorspace!;
+			assert.strictEqual(item.useClassId, USE_CLASS_ID.E);
+			assert.strictEqual(item.useClassSubtypeId, USE_CLASS_SUBTYPE_ID.E_OFFICE);
+		});
+
+		it('maps the free text for an Other entry, which titles its card', () => {
+			const result = s62aCaseToViewModel(
+				caseWith([entry({ useClassId: USE_CLASS_ID.OTHER, otherTypeOfUse: 'Petrol station' })])
+			);
+
+			assert.strictEqual(result.manageNonResidentialFloorspace?.[0].otherTypeOfUse, 'Petrol station');
+		});
+
+		it('maps the rooms gate to a YesNo value, leaving it unset when unanswered', () => {
+			const answered = s62aCaseToViewModel(caseWith([entry({ hasRoomsChange: false })]));
+			const unanswered = s62aCaseToViewModel(caseWith([entry({ hasRoomsChange: null })]));
+
+			assert.strictEqual(answered.manageNonResidentialFloorspace?.[0].hasRoomsChange, 'no');
+			assert.strictEqual(unanswered.manageNonResidentialFloorspace?.[0].hasRoomsChange, undefined);
+		});
+
+		it('maps the rooms figures to strings, as the multi-field input round-trips strings', () => {
+			const result = s62aCaseToViewModel(
+				caseWith([entry({ roomsLost: 4, roomsProposed: 0, netAdditionalRooms: null })])
+			);
+
+			const [item] = result.manageNonResidentialFloorspace!;
+			assert.strictEqual(item.roomsLost, '4');
+			assert.strictEqual(item.roomsProposed, '0', 'zero rooms recorded');
+			assert.strictEqual(item.netAdditionalRooms, '', 'never answered');
+		});
+
+		it('flattens an area row onto the item, keyed by set and field', () => {
+			const result = s62aCaseToViewModel(
+				caseWith([
+					entry({
+						Areas: [
+							area(FLOORSPACE_SET_ID.STANDARD, {
+								existingGross: 100,
+								grossLost: 0,
+								grossProposed: 250,
+								netAdditionalGross: null
+							})
+						]
+					})
+				])
+			);
+
+			const [item] = result.manageNonResidentialFloorspace!;
+			assert.strictEqual(item[areaFieldName(FLOORSPACE_SET_ID.STANDARD, 'existingGross')], '100');
+			assert.strictEqual(item[areaFieldName(FLOORSPACE_SET_ID.STANDARD, 'grossLost')], '0', 'zero recorded');
+			assert.strictEqual(item[areaFieldName(FLOORSPACE_SET_ID.STANDARD, 'grossProposed')], '250');
+			assert.strictEqual(item[areaFieldName(FLOORSPACE_SET_ID.STANDARD, 'netAdditionalGross')], '', 'never answered');
+		});
+
+		it('flattens both retail sets onto one item, keeping them apart', () => {
+			const result = s62aCaseToViewModel(
+				caseWith([
+					entry({
+						useClassId: USE_CLASS_ID.E,
+						useClassSubtypeId: USE_CLASS_SUBTYPE_ID.E_RETAIL,
+						Areas: [
+							area(FLOORSPACE_SET_ID.SHOP, { existingGross: 300 }),
+							area(FLOORSPACE_SET_ID.NET_TRADEABLE, { existingGross: 200 })
+						]
+					})
+				])
+			);
+
+			const [item] = result.manageNonResidentialFloorspace!;
+			assert.strictEqual(item[areaFieldName(FLOORSPACE_SET_ID.SHOP, 'existingGross')], '300');
+			assert.strictEqual(item[areaFieldName(FLOORSPACE_SET_ID.NET_TRADEABLE, 'existingGross')], '200');
+		});
+
+		it('leaves the keys for a set with no area row absent, so its card rows stay empty', () => {
+			const result = s62aCaseToViewModel(
+				caseWith([entry({ Areas: [area(FLOORSPACE_SET_ID.STANDARD, { existingGross: 100 })] })])
+			);
+
+			const [item] = result.manageNonResidentialFloorspace!;
+			assert.strictEqual(item[areaFieldName(FLOORSPACE_SET_ID.SHOP, 'existingGross')], undefined);
+			assert.strictEqual(item[areaFieldName(FLOORSPACE_SET_ID.NET_TRADEABLE, 'existingGross')], undefined);
+		});
+
+		it('keeps each entry separate when a case has several', () => {
+			const result = s62aCaseToViewModel(
+				caseWith([
+					entry({ id: 'entry-1', useClassId: USE_CLASS_ID.B2 }),
+					entry({ id: 'entry-2', useClassId: USE_CLASS_ID.C1 })
+				])
+			);
+
+			assert.deepStrictEqual(
+				result.manageNonResidentialFloorspace?.map((item) => item.id),
+				['entry-1', 'entry-2']
+			);
+		});
+
+		it('carries the entry id, which the manage list uses for its change and remove links', () => {
+			const result = s62aCaseToViewModel(caseWith([entry({ id: 'entry-abc' })]));
+
+			assert.strictEqual(result.manageNonResidentialFloorspace?.[0].id, 'entry-abc');
+		});
+
+		it('leaves the derived totals unset, as they are calculated later', () => {
+			const result = s62aCaseToViewModel(caseWith([entry()]));
+
+			assert.strictEqual(result.totalExistingInternalFloorspace, undefined);
+			assert.strictEqual(result.totalGrossInternalFloorspaceLost, undefined);
+			assert.strictEqual(result.totalGrossInternalFloorspaceProposed, undefined);
+			assert.strictEqual(result.totalNetAdditionalGrossInternalFloorspace, undefined);
+		});
+
+		it('does not touch the residential arrays', () => {
+			const result = s62aCaseToViewModel(caseWith([entry()]));
+
+			assert.strictEqual(result.manageExistingHousing, undefined);
 			assert.strictEqual(result.manageProposedHousing, undefined);
 		});
 	});

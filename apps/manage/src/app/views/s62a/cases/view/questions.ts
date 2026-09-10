@@ -50,7 +50,11 @@ import {
 } from '@planning-inspectorate/dynamic-forms';
 import { UniqueMultipleListFieldValidator } from '@pins/crowndev-lib/validators/unique-multiple-list-field-validator.ts';
 import { ConditionalLengthValidator } from '@pins/crowndev-lib/validators/conditional-length-validator.ts';
-import { type ResidentialHousingItem, type S62aCaseViewModel } from './view-model.ts';
+import {
+	type NonResidentialFloorspaceItem,
+	type ResidentialHousingItem,
+	type S62aCaseViewModel
+} from './view-model.ts';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
@@ -71,6 +75,7 @@ import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
 import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
 import RequiredGroupValidator from '@pins/crowndev-lib/validators/required-group-validator.ts';
 import { housingQuestions, residentialTotalQuestions } from '../util/housing-questions.ts';
+import { floorspaceQuestions } from '../util/floorspace-questions.ts';
 import type { ResidentialTotals } from '../util/residential-totals.ts';
 
 interface QuestionOverrides {
@@ -83,6 +88,7 @@ interface QuestionOverrides {
 	 */
 	proposedHousing?: ResidentialHousingItem[];
 	existingHousing?: ResidentialHousingItem[];
+	nonResidentialFloorspace?: NonResidentialFloorspaceItem[];
 	residentialTotals?: ResidentialTotals;
 }
 
@@ -160,6 +166,8 @@ export function getQuestions(
 		manageListItemId,
 		isQuestionView
 	});
+
+	const floorspace = floorspaceQuestions(isQuestionView);
 
 	const questions = {
 		reference: {
@@ -2442,7 +2450,65 @@ export function getQuestions(
 			fieldName: 'totalNetGainOrLossOfUnits',
 			url: 'total-net-gain-or-loss',
 			editable: false
-		}
+		},
+		// Non-residential tab
+		nonResidentialFloorspaceChange: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Non-residential floorspace change',
+			question: 'Does the proposal involve loss or gain of non-residential floorspace?',
+			fieldName: 'hasNonResidentialFloorspaceChange',
+			url: 'floorspace-change',
+			validators: [
+				new RequiredValidator('Select yes if the proposal involves loss or gain of non-residential floorspace')
+			],
+			viewData: {
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'floorspace-change/remove' }]
+			}
+		},
+		// Summed across the entries in the totals ticket. Read-only here so the
+		// rows appear showing a dash, per Scenario 3.
+		totalExistingInternalFloorspace: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Total existing internal floorspace',
+			question: 'Existing gross internal floorspace',
+			fieldName: 'totalExistingInternalFloorspace',
+			url: 'total-existing-internal-floorspace',
+			editable: false
+		},
+		totalGrossInternalFloorspaceLost: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Total gross internal floorspace lost',
+			question: 'Total gross internal floorspace lost',
+			fieldName: 'totalGrossInternalFloorspaceLost',
+			url: 'total-gross-internal-floorspace-lost',
+			editable: false
+		},
+		totalGrossInternalFloorspaceProposed: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Total gross internal floorspace proposed',
+			question: 'Total gross internal floorspace proposed',
+			fieldName: 'totalGrossInternalFloorspaceProposed',
+			url: 'total-gross-internal-floorspace-proposed',
+			editable: false
+		},
+		totalNetAdditionalGrossInternalFloorspace: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Total net additional gross internal floorspace following development',
+			question: 'Total net additional gross internal floorspace following development',
+			fieldName: 'totalNetAdditionalGrossInternalFloorspace',
+			url: 'total-net-additional-gross-internal-floorspace',
+			editable: false
+		},
+		manageNonResidentialFloorspace: floorspace.manageFloorspace,
+		floorspaceUseClass: floorspace.useClass,
+		floorspaceSubtypeCommercial: floorspace.subtypeCommercial,
+		floorspaceSubtypeLearning: floorspace.subtypeLearning,
+		floorspaceSubtypeCommunity: floorspace.subtypeCommunity,
+		floorspaceDetails: floorspace.floorspaceDetails,
+		shopFloorspace: floorspace.shopFloorspace,
+		netTradeableArea: floorspace.netTradeableArea,
+		floorspaceRoomsChange: floorspace.roomsChange,
+		floorspaceRooms: floorspace.rooms
 	};
 
 	const textOverrides = {

@@ -14,7 +14,8 @@ export const questionConfig: Record<string, { fieldName: string; successMessage:
 	// Existing and proposed housing both use the question url 'housing', so these
 	// are keyed by section and url together.
 	'existing/housing': { fieldName: 'manageExistingHousing', successMessage: 'Existing housing entry removed' },
-	'proposed/housing': { fieldName: 'manageProposedHousing', successMessage: 'Proposed housing entry removed' }
+	'proposed/housing': { fieldName: 'manageProposedHousing', successMessage: 'Proposed housing entry removed' },
+	floorspace: { fieldName: 'manageNonResidentialFloorspace', successMessage: 'Type of use removed' }
 };
 
 /**
@@ -74,6 +75,9 @@ export function buildDeleteS62aManageListItemOnConfirmRemove(service: ManageServ
 				case 'manageExistingHousing':
 				case 'manageProposedHousing':
 					await deleter.deleteResidentialHousing(id, manageListItemId);
+					break;
+				case 'manageNonResidentialFloorspace':
+					await deleter.deleteNonResidentialFloorspace(id, manageListItemId);
 					break;
 				default:
 					service.logger.warn(
