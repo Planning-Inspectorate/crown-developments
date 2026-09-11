@@ -40,9 +40,7 @@ import {
 	CrossQuestionValidator,
 	DateValidator,
 	EmailValidator,
-	type Journey,
 	NumericValidator,
-	type Question,
 	questionClasses,
 	RequiredValidator,
 	SameAnswerValidator,
@@ -72,6 +70,7 @@ import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts'
 import RequiredGroupValidator from '@pins/crowndev-lib/validators/required-group-validator.ts';
 import { housingQuestions, residentialTotalQuestions } from '../util/housing-questions.ts';
 import type { ResidentialTotals } from '../util/residential-totals.ts';
+import type { ColumnFormatContext } from '@pins/crowndev-lib/forms/custom-components/manage-list/table/defined-columns-list-table/question.ts';
 
 interface QuestionOverrides {
 	isQuestionView?: boolean;
@@ -2263,14 +2262,7 @@ export function getQuestions(
 					header: 'Capacity',
 					fieldName: 'voidCapacityUnitId',
 					sortType: 'number',
-					format: (
-						rawValue: unknown,
-						item: Record<string, unknown>,
-						{
-							getQuestion,
-							mockJourney
-						}: { getQuestion: (fieldName: string) => Question | undefined; mockJourney: Journey }
-					) => {
+					format: (_rawValue: unknown, item: Record<string, unknown>, { formatDefault }: ColumnFormatContext) => {
 						const wasteTypeId = typeof item.wasteTypeId === 'string' ? item.wasteTypeId : undefined;
 
 						// The void capacity question is skipped for these waste types, so
@@ -2279,16 +2271,7 @@ export function getQuestions(
 							return 'N/A';
 						}
 
-						const question = getQuestion('voidCapacityUnitId');
-						if (!question) return '-';
-
-						return (
-							question
-								.formatAnswerForSummary('', mockJourney, rawValue)
-								.map((a) => (typeof a.value === 'string' ? a.value : ''))
-								.filter(Boolean)
-								.join(', ') || '-'
-						);
+						return formatDefault() || '-';
 					}
 				},
 				{
@@ -2386,7 +2369,7 @@ export function getQuestions(
 				}),
 				new MultiConditionalNumericValidator({
 					regex: /^\d{1,12}(\.\d+)?$/,
-					regexMessage: 'Maximum annual operational throughput must be 12 digits or less'
+					regexMessage: 'Maximum annual operational throughput must be less than 12 characters'
 				})
 			]
 		},
