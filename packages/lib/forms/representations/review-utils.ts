@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import { isSafeRelativeUrl } from '../../util/string.ts';
 
 /**
  * Handles the redirecting between /view and /review, as two heavily intertwined
@@ -7,13 +8,13 @@ import type { NextFunction, Request, Response } from 'express';
 export function viewReviewRedirect(req: Request, res: Response, next: NextFunction) {
 	const originalUrl = req.originalUrl;
 
-	if (!originalUrl.startsWith('/')) {
-		// if the URL does not start with / then do not process it
+	// If the URL is not a safe relative redirect then don't process
+	if (!isSafeRelativeUrl(originalUrl)) {
 		next();
 		return undefined;
 	}
 
-	const answers: Record<string, unknown> | undefined = res.locals?.journeyResponse?.answers || {};
+	const answers: Record<string, unknown> = res.locals?.journeyResponse?.answers || {};
 	const requiresReview = answers?.requiresReview;
 
 	if (originalUrl.endsWith('/view')) {
