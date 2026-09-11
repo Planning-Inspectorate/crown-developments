@@ -5,22 +5,27 @@ import type { Question, QuestionViewModel } from '@planning-inspectorate/dynamic
 import TableManageListQuestion from '../question.ts';
 import type { TableHeadCell, TableManageListQuestionParameters, TableRowCell } from '../types.ts';
 
+export interface ColumnFormatContext {
+	getQuestion: (fieldName: string) => Question | undefined;
+	mockJourney: Journey;
+	/**
+	 * The cell as it would render without a custom format: the linked
+	 * question's formatter, then the raw value. Honours the caller's mode,
+	 * so it's plain in the table and labelled in the tab summary.
+	 */
+	formatDefault: () => string;
+}
+
 export interface TableColumn {
 	header: string;
 	/** The item field this column reads. Also used to find the matching sub-question. */
 	fieldName: string;
 	/**
 	 * Builds the cell content. Takes priority over the sub-question's own
-	 * formatter, so a column can combine several fields.
+	 * formatter, so a column can combine several fields. Call
+	 * `formatDefault()` to fall back to the standard rendering.
 	 */
-	format?: (
-		value: unknown,
-		rowData: Record<string, unknown>,
-		params: {
-			getQuestion: (fieldName: string) => Question | undefined;
-			mockJourney: Journey;
-		}
-	) => string;
+	format?: (value: unknown, rowData: Record<string, unknown>, params: ColumnFormatContext) => string;
 	/** Defaults to sorting on the rendered cell content */
 	sortType?: 'date' | 'string' | 'number';
 	/** Hides values from summary list if toggled */
@@ -148,14 +153,30 @@ export default class DefinedColumnsTableQuestion extends TableManageListQuestion
 	): string {
 		const rawValue = item[col.fieldName];
 		const mockJourney = this.buildMockJourney(item);
+		const formatDefault = () => this.formatDefaultValue(rawValue, item, mockJourney, linkedQuestion, plain);
 
 		if (col.format) {
 			return col.format(rawValue, item, {
 				mockJourney,
-				getQuestion: (fieldName: string) => this.getQuestionByFieldName(fieldName)
+				getQuestion: (fieldName: string) => this.getQuestionByFieldName(fieldName),
+				formatDefault
 			});
 		}
 
+		return formatDefault();
+	}
+
+	/**
+	 * Formats a cell without a custom column formatter: the linked question's
+	 * formatter if there is one, otherwise the raw value.
+	 */
+	private formatDefaultValue(
+		rawValue: unknown,
+		item: Record<string, unknown>,
+		mockJourney: Journey,
+		linkedQuestion: Question | undefined,
+		plain: boolean
+	): string {
 		if (linkedQuestion) {
 			if (!this.shouldDisplayQuestion(linkedQuestion, item)) {
 				return '-';
