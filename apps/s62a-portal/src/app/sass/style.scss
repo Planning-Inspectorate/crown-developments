@@ -7,7 +7,9 @@
 @use 'packages/lib/views/header/pins-header';
 @use 'packages/lib/views/footer/pins-footer';
 
+// Shared components from lib
+@use 'packages/lib/views/styles/components/pins-info';
+
 // App level components
 @use './components/pins-table';
-@use 'components/pins-info';
 @use './util/util';
