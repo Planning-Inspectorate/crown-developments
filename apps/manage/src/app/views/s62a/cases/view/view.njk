@@ -77,7 +77,7 @@
 					<a href="{{ cleanUrl }}/manage-representations" class="govuk-link govuk-link--no-visited-state">Manage representations</a>
 				</p>
 			{% endif %}
-			{% if currentTab == 'case-notes' %}
+			{% if currentTab == viewTabIds.CASE_NOTES %}
 				<div class="govuk-grid-row">
 					<div class="govuk-grid-column-full">
 						<h1 class="govuk-heading-l" data-cy="page-heading">
@@ -105,7 +105,7 @@
 				</div>
 			{% endif %}
 
-			{% if currentTab == 'case-audit' %}
+			{% if currentTab == viewTabIds.CASE_AUDIT %}
 				{{ govukSummaryList({
 					rows: [
 						{

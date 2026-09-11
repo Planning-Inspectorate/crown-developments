@@ -49,6 +49,7 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 			currentUrl: req.originalUrl,
 			currentTab: req.params.tab || VIEW_TAB_ID.OVERVIEW,
 			viewTabs: viewTabsToShow,
+			viewTabIds: VIEW_TAB_ID,
 			// URL without the /:tab slug, needed for routing uses in FE.
 			cleanUrl: `/s62a/cases/${id}`,
 			banner,
@@ -99,7 +100,10 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		const residentialTotals = getResidentialTotals(finalAnswers);
 		Object.assign(finalAnswers, residentialTotalAnswers(finalAnswers, residentialTotals));
 
-		const lastModified = await audit.getLastModifiedInfo(id, groupMembers, CASE_DATA_MODEL.S62A);
+		const currentTab = getStringParam(req.params, 'tab');
+		if (currentTab === VIEW_TAB_ID.CASE_AUDIT) {
+			res.locals.lastModified = await audit.getLastModifiedInfo(id, groupMembers, CASE_DATA_MODEL.S62A);
+		}
 		const createdDate = formatDateTime(s62aCase.createdDate);
 
 		const questions = getQuestions(answers, {
@@ -140,8 +144,6 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 				res.locals.backLinkUrl = req.baseUrl;
 			}
 		}
-
-		res.locals.lastModified = lastModified;
 
 		if (next) next();
 	};
