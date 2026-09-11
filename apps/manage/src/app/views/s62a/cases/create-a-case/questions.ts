@@ -3,7 +3,6 @@ import {
 	questionClasses,
 	COMPONENT_TYPES,
 	RequiredValidator,
-	type JourneyResponse,
 	SameAnswerValidator,
 	StringValidator,
 	AddressValidator,
@@ -29,6 +28,8 @@ import { getApplicantOrganisationOptions } from '../../../../views/cases/util/ap
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 import { getApplicantContactsValidator, isApplicationType } from '../util/questions.ts';
+import type { TypedJourneyResponse } from '@pins/crowndev-lib/util/journey-types.ts';
+import type { CreateCaseAnswers } from './s62a-case-mapper.ts';
 
 type ApplicantOrg = {
 	id: string;
@@ -36,7 +37,7 @@ type ApplicantOrg = {
 	organisationAddress?: Record<string, unknown>;
 };
 
-export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: boolean) {
+export function getQuestions(journeyResponse: TypedJourneyResponse<CreateCaseAnswers>, isQuestionView: boolean) {
 	const preAppOrAppPath = isApplicationType(journeyResponse.answers.applicationPhase)
 		? journeyResponse.answers.applicationPhase
 		: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
