@@ -66,6 +66,7 @@ describe('s62a case details journey', () => {
 				segment: 'overview',
 				questions: [
 					'reference',
+					'historicalReference',
 					'developmentDescription',
 					'likelyIssues',
 					'applicationType',
