@@ -681,5 +681,44 @@ describe('view-model', () => {
 			assert.strictEqual(output.includes('<script>'), false);
 			assert.strictEqual(output.includes('Read more'), true);
 		});
+		it('should format siteVisitDate as a 12-hour display string', () => {
+			const input = {
+				reference: 'REF-1',
+				description: 'Test case',
+				containsDistressingContent: false,
+				typeId: 'type-1',
+				lpaId: 'lpa-1',
+				hasSecondaryLpa: false,
+				expectedDateOfSubmission: new Date('2026-03-01T00:00:00.000Z'),
+				updatedDate: new Date('2026-03-01T00:00:00.000Z'),
+				createdDate: new Date('2026-03-01T00:00:00.000Z'),
+				hasAgent: false,
+				siteVisitDate: new Date('2026-03-05T13:30:00.000Z')
+			};
+
+			const result = crownDevelopmentToViewModel(input);
+
+			assert.deepStrictEqual(result.siteVisitDate, new Date('2026-03-05T13:30:00.000Z'));
+			assert.strictEqual(result.siteVisitDateFormatted, '5 March 2026 at 1:30pm');
+		});
+
+		it('should not set siteVisitDateFormatted when siteVisitDate is missing', () => {
+			const input = {
+				reference: 'REF-1',
+				description: 'Test case',
+				containsDistressingContent: false,
+				typeId: 'type-1',
+				lpaId: 'lpa-1',
+				hasSecondaryLpa: false,
+				expectedDateOfSubmission: new Date('2026-03-01T00:00:00.000Z'),
+				updatedDate: new Date('2026-03-01T00:00:00.000Z'),
+				createdDate: new Date('2026-03-01T00:00:00.000Z'),
+				hasAgent: false
+			};
+
+			const result = crownDevelopmentToViewModel(input);
+
+			assert.strictEqual(result.siteVisitDateFormatted, undefined);
+		});
 	});
 });
