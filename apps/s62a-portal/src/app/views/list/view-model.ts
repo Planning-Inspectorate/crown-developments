@@ -41,8 +41,8 @@ type ExtendedS62AFields = Omit<S62ADevelopmentExtendedView, keyof BaseDevelopmen
  */
 export function s62aViewFormattingFunction(s62aDevelopment: S62ADevelopmentPayload): ExtendedS62AFields {
 	let applicantOrganisations = '';
-	let location = undefined;
-	let lpaFormatted = undefined;
+	let location;
+	let lpaFormatted;
 
 	if (s62aDevelopment.S62aToApplicants?.length) {
 		applicantOrganisations = s62aDevelopment.S62aToApplicants.filter(

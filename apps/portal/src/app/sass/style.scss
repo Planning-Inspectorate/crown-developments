@@ -18,6 +18,7 @@
 
 // Shared components from lib
 @use 'packages/lib/views/styles/components/pins-upload-bar';
+@use 'packages/lib/views/styles/components/pins-info';
 
 // App-level helpers
 @use 'helpers/layout' as portal-layout;
@@ -27,6 +28,5 @@
 @use 'components/pins-application-stage-summary';
 @use 'components/pins-table';
 @use 'components/pins-document-list';
-@use 'components/pins-info';
 @use 'components/pins-chevron-cards';
 @use 'components/pins-filter-accordion';
