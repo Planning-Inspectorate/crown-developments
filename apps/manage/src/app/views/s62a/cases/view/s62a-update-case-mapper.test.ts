@@ -1013,7 +1013,7 @@ describe('S62aCaseUpdateMapper', () => {
 			assert.strictEqual(result.Reader, undefined);
 		});
 
-		it('replaces the inspector rows wholesale, updating existing ones and deleting others', () => {
+		it('updates persisted inspector rows and deletes the rest', () => {
 			const answers: UpdateCaseAnswers = {
 				manageCaseTeamInspectors: [
 					{
@@ -1025,7 +1025,10 @@ describe('S62aCaseUpdateMapper', () => {
 					{ id: 'inspector-row-2', inspectorId: 'entra-2' }
 				]
 			};
-			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ manageCaseTeamInspectors: ['inspector-row-1', 'inspector-row-2'] })
+			).generateUpdateInput();
 
 			assert.deepStrictEqual(result.Inspectors, {
 				deleteMany: {
@@ -1080,7 +1083,10 @@ describe('S62aCaseUpdateMapper', () => {
 				]
 			};
 
-			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ manageCaseTeamInspectors: ['inspector-row-1', 'inspector-row-2'] })
+			).generateUpdateInput();
 
 			assert.strictEqual(result.Inspectors?.update?.length, 1);
 			assert.strictEqual(result.Inspectors?.create, undefined);
@@ -1095,7 +1101,10 @@ describe('S62aCaseUpdateMapper', () => {
 					{ id: 'inspector-row-1', inspectorId: 'entra-1', inspectorAssignedDate: '2026-07-01T09:00:00Z' }
 				]
 			} as unknown as UpdateCaseAnswers;
-			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ manageCaseTeamInspectors: ['inspector-row-1'] })
+			).generateUpdateInput();
 
 			const updated = result.Inspectors?.update?.[0];
 
@@ -1139,9 +1148,33 @@ describe('S62aCaseUpdateMapper', () => {
 				manageCaseTeamInspectors: [{ id: 'inspector-row-1', inspectorId: 'entra-1' }, { inspectorId: 'entra-2' }]
 			};
 
-			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ manageCaseTeamInspectors: ['inspector-row-1'] })
+			).generateUpdateInput();
 
 			assert.strictEqual(result.Inspectors?.update?.length, 1);
+			assert.strictEqual(result.Inspectors?.create?.length, 1);
+			assert.deepStrictEqual(result.Inspectors?.deleteMany, {
+				id: { notIn: ['inspector-row-1'] }
+			});
+		});
+
+		it('creates a row for a new inspector whose id came from dynamic-forms, not the database', () => {
+			const answers: UpdateCaseAnswers = {
+				manageCaseTeamInspectors: [
+					{ id: 'inspector-row-1', inspectorId: 'entra-1' },
+					{ id: 'unsaved-uuid', inspectorId: 'entra-2' }
+				]
+			};
+
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ manageCaseTeamInspectors: ['inspector-row-1'] })
+			).generateUpdateInput();
+
+			assert.strictEqual(result.Inspectors?.update?.length, 1);
+			assert.strictEqual(result.Inspectors?.update?.[0].where.id, 'inspector-row-1');
 			assert.strictEqual(result.Inspectors?.create?.length, 1);
 			assert.deepStrictEqual(result.Inspectors?.deleteMany, {
 				id: { notIn: ['inspector-row-1'] }
@@ -1451,7 +1484,10 @@ describe('S62aCaseUpdateMapper', () => {
 				]
 			} as unknown as UpdateCaseAnswers;
 
-			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ manageWasteTypes: ['row-1'] })
+			).generateUpdateInput();
 
 			assert.deepStrictEqual(result.WasteTypes, {
 				deleteMany: {
@@ -1486,7 +1522,10 @@ describe('S62aCaseUpdateMapper', () => {
 				]
 			} as unknown as UpdateCaseAnswers;
 
-			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ manageWasteTypes: ['row-1'] })
+			).generateUpdateInput();
 			const updated = result.WasteTypes?.update?.[0];
 
 			assert.ok(updated);
@@ -1505,7 +1544,10 @@ describe('S62aCaseUpdateMapper', () => {
 				]
 			} as unknown as UpdateCaseAnswers;
 
-			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ manageWasteTypes: ['row-1'] })
+			).generateUpdateInput();
 			const updated = result.WasteTypes?.update?.[0];
 
 			assert.ok(updated);
@@ -1522,7 +1564,10 @@ describe('S62aCaseUpdateMapper', () => {
 				]
 			} as unknown as UpdateCaseAnswers;
 
-			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ manageWasteTypes: ['row-1', 'row-2'] })
+			).generateUpdateInput();
 
 			assert.strictEqual(result.WasteTypes?.update?.length, 1);
 			assert.strictEqual(result.WasteTypes?.create, undefined);
@@ -1586,10 +1631,37 @@ describe('S62aCaseUpdateMapper', () => {
 				]
 			} as unknown as UpdateCaseAnswers;
 
-			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ manageWasteTypes: ['row-1'] })
+			).generateUpdateInput();
 
 			assert.strictEqual(result.WasteTypes?.update?.length, 1);
 			assert.strictEqual(result.WasteTypes?.create?.length, 1);
+			assert.deepStrictEqual(result.WasteTypes?.deleteMany, {
+				id: { notIn: ['row-1'] }
+			});
+		});
+
+		it('creates a row for a new waste type whose id came from dynamic-forms, not the database', () => {
+			const answers = {
+				manageWasteTypes: [
+					{ id: 'row-1', wasteTypeId: WASTE_TYPE_ID.MUNICIPAL },
+					{ id: 'unsaved-uuid', wasteTypeId: WASTE_TYPE_ID.INERT_LANDFILL }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ manageWasteTypes: ['row-1'] })
+			).generateUpdateInput();
+
+			assert.strictEqual(result.WasteTypes?.update?.length, 1);
+			assert.strictEqual(result.WasteTypes?.update?.[0].where.id, 'row-1');
+			assert.strictEqual(result.WasteTypes?.create?.length, 1);
+			assert.deepStrictEqual(result.WasteTypes?.create?.[0].WasteType, {
+				connect: { id: WASTE_TYPE_ID.INERT_LANDFILL }
+			});
 			assert.deepStrictEqual(result.WasteTypes?.deleteMany, {
 				id: { notIn: ['row-1'] }
 			});
@@ -1681,7 +1753,10 @@ describe('S62aCaseUpdateMapper', () => {
 				]
 			} as unknown as UpdateCaseAnswers;
 
-			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ manageProposedHousing: ['row-1'] })
+			).generateUpdateInput();
 			const { update } = (result.S62aResidential as any).upsert;
 
 			assert.deepStrictEqual(update.Housing.deleteMany, {
@@ -1753,7 +1828,10 @@ describe('S62aCaseUpdateMapper', () => {
 				]
 			} as unknown as UpdateCaseAnswers;
 
-			const { update } = (new S62aCaseUpdateMapper(answers).generateUpdateInput().S62aResidential as any).upsert;
+			const { update } = (
+				new S62aCaseUpdateMapper(answers, persistedCase({ manageExistingHousing: ['row-1'] })).generateUpdateInput()
+					.S62aResidential as any
+			).upsert;
 
 			assert.deepStrictEqual(update.Housing.deleteMany, {
 				housingTypeId: {
@@ -1765,7 +1843,7 @@ describe('S62aCaseUpdateMapper', () => {
 			});
 		});
 
-		it('deletes and recreates both sides when both are in the payload', () => {
+		it('scopes the delete to both sides when both are in the payload', () => {
 			const answers = {
 				manageExistingHousing: [
 					{ id: 'row-1', occupancyTypeId: OCCUPANCY_TYPE_ID.MARKET_HOUSING, unitTypeId: UNIT_TYPE_ID.HOUSES }
@@ -1775,7 +1853,12 @@ describe('S62aCaseUpdateMapper', () => {
 				]
 			} as unknown as UpdateCaseAnswers;
 
-			const { update } = (new S62aCaseUpdateMapper(answers).generateUpdateInput().S62aResidential as any).upsert;
+			const { update } = (
+				new S62aCaseUpdateMapper(
+					answers,
+					persistedCase({ manageExistingHousing: ['row-1'], manageProposedHousing: ['row-2'] })
+				).generateUpdateInput().S62aResidential as any
+			).upsert;
 
 			assert.deepStrictEqual(update.Housing.deleteMany, {
 				housingTypeId: {
@@ -1786,7 +1869,7 @@ describe('S62aCaseUpdateMapper', () => {
 				}
 			});
 
-			// Because the payload items have IDs, they go into `update`, not `create`.
+			// Both ids were loaded from the database, so they go into `update`, not `create`.
 			assert.strictEqual(update.Housing.update.length, 2);
 			assert.deepStrictEqual(update.Housing.update[0].data.HousingType, { connect: { id: HOUSING_TYPE_ID.EXISTING } });
 			assert.deepStrictEqual(update.Housing.update[1].data.HousingType, { connect: { id: HOUSING_TYPE_ID.PROPOSED } });
@@ -1797,13 +1880,13 @@ describe('S62aCaseUpdateMapper', () => {
 
 			const { update } = (new S62aCaseUpdateMapper(answers).generateUpdateInput().S62aResidential as any).upsert;
 
-			// deleteMany is now an object, so we drop the .length check and assert the shape directly
 			assert.deepStrictEqual(update.Housing.deleteMany, {
 				housingTypeId: {
 					in: [HOUSING_TYPE_ID.EXISTING]
 				}
 			});
 		});
+
 		it('populates create in the update branch when adding a new housing row without an id', () => {
 			const answers = {
 				manageProposedHousing: [
@@ -1812,13 +1895,42 @@ describe('S62aCaseUpdateMapper', () => {
 				]
 			} as unknown as UpdateCaseAnswers;
 
-			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ manageProposedHousing: ['row-1'] })
+			).generateUpdateInput();
 			const { update } = (result.S62aResidential as any).upsert;
 
 			assert.strictEqual(update.Housing.update.length, 1, '1 existing row updated');
 			assert.strictEqual(update.Housing.create.length, 1, '1 new row created');
 			assert.deepStrictEqual(update.Housing.create[0].OccupancyType, {
 				connect: { id: OCCUPANCY_TYPE_ID.STARTER_HOMES }
+			});
+		});
+
+		it('creates a row for a new housing entry whose id came from dynamic-forms, not the database', () => {
+			const answers = {
+				manageProposedHousing: [
+					{ id: 'row-1', occupancyTypeId: OCCUPANCY_TYPE_ID.MARKET_HOUSING, unitTypeId: UNIT_TYPE_ID.HOUSES },
+					{ id: 'unsaved-uuid', occupancyTypeId: OCCUPANCY_TYPE_ID.STARTER_HOMES, unitTypeId: UNIT_TYPE_ID.FLATS }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ manageProposedHousing: ['row-1'] })
+			).generateUpdateInput();
+			const { update } = (result.S62aResidential as any).upsert;
+
+			assert.strictEqual(update.Housing.update.length, 1);
+			assert.strictEqual(update.Housing.update[0].where.id, 'row-1');
+			assert.strictEqual(update.Housing.create.length, 1);
+			assert.deepStrictEqual(update.Housing.create[0].OccupancyType, {
+				connect: { id: OCCUPANCY_TYPE_ID.STARTER_HOMES }
+			});
+			assert.deepStrictEqual(update.Housing.deleteMany, {
+				housingTypeId: { in: [HOUSING_TYPE_ID.PROPOSED] },
+				id: { notIn: ['row-1'] }
 			});
 		});
 	});
@@ -1853,7 +1965,10 @@ describe('S62aCaseUpdateMapper', () => {
 				]
 			} as unknown as UpdateCaseAnswers;
 
-			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ vehicleParking: ['row-1'] })
+			).generateUpdateInput();
 
 			assert.deepStrictEqual(result.VehicleParking, {
 				deleteMany: {
@@ -1907,7 +2022,10 @@ describe('S62aCaseUpdateMapper', () => {
 				]
 			} as unknown as UpdateCaseAnswers;
 
-			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ vehicleParking: ['row-1'] })
+			).generateUpdateInput();
 
 			assert.strictEqual(result.VehicleParking?.update?.length, 1);
 			assert.strictEqual(result.VehicleParking?.create?.length, 1);
@@ -1939,9 +2057,36 @@ describe('S62aCaseUpdateMapper', () => {
 				vehicleParking: [{ id: 'row-1', vehicleType: 'CARS' }, { id: 'row-2', existingSpaces: '5' }, null]
 			} as unknown as UpdateCaseAnswers;
 
-			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ vehicleParking: ['row-1', 'row-2'] })
+			).generateUpdateInput();
 
 			assert.strictEqual(result.VehicleParking?.update?.length, 1);
+			assert.deepStrictEqual(result.VehicleParking?.deleteMany, {
+				id: { notIn: ['row-1'] }
+			});
+		});
+
+		it('creates a row for a new entry whose id came from dynamic-forms, not the database', () => {
+			const answers = {
+				vehicleParking: [
+					{ id: 'row-1', vehicleType: 'CARS', existingSpaces: '10', proposedSpaces: '10' },
+					{ id: 'unsaved-uuid', vehicleType: 'CYCLES', existingSpaces: '0', proposedSpaces: '4' }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const result = new S62aCaseUpdateMapper(
+				answers,
+				persistedCase({ vehicleParking: ['row-1'] })
+			).generateUpdateInput();
+
+			assert.strictEqual(result.VehicleParking?.update?.length, 1);
+			assert.strictEqual(result.VehicleParking?.update?.[0].where.id, 'row-1');
+			assert.strictEqual(result.VehicleParking?.create?.length, 1);
+			assert.deepStrictEqual(result.VehicleParking?.create?.[0].VehicleType, {
+				connect: { id: 'CYCLES' }
+			});
 			assert.deepStrictEqual(result.VehicleParking?.deleteMany, {
 				id: { notIn: ['row-1'] }
 			});
