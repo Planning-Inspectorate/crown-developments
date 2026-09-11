@@ -220,6 +220,15 @@ export class S62aCaseUpdateMapper {
 	}
 
 	/**
+	 * Ids of rows that exist in the database. Manage-list items get an id from
+	 * dynamic-forms when they're added, so `item.id` alone doesn't mean the row
+	 * has been saved.
+	 */
+	private persistedIds(items: readonly { id?: string | null }[] | null | undefined): Set<string> {
+		return new Set((items ?? []).map((item) => item.id).filter((id): id is string => Boolean(id)));
+	}
+
+	/**
 	 * Transforms the partial update payload into a Prisma Update Input.
 	 */
 	public generateUpdateInput(): Prisma.S62aCaseUpdateInput {
@@ -569,6 +578,7 @@ export class S62aCaseUpdateMapper {
 		if (ans.manageWasteTypes === undefined) return;
 
 		const items = ans.manageWasteTypes ?? [];
+		const persistedIds = this.persistedIds(this.existingCase?.manageWasteTypes);
 
 		const createOperations: Prisma.S62aCaseWasteTypeCreateWithoutS62aCaseInput[] = [];
 		const updateOperations: Prisma.S62aCaseWasteTypeUpdateWithWhereUniqueWithoutS62aCaseInput[] = [];
@@ -581,7 +591,9 @@ export class S62aCaseUpdateMapper {
 			const voidCapacity = this.selectedConditionalAmount(item, 'voidCapacityUnitId');
 			const maxAnnualThroughput = this.selectedConditionalAmount(item, 'maxAnnualThroughputUnitId');
 
-			if (item.id) {
+			// New items already carry an id from dynamic-forms, so only treat
+			// the item as existing if that id was loaded from the database.
+			if (item.id && persistedIds.has(item.id)) {
 				keepIds.push(item.id);
 				updateOperations.push({
 					where: { id: item.id },
@@ -652,6 +664,14 @@ export class S62aCaseUpdateMapper {
 			const keepIds: string[] = [];
 			const managedHousingTypeIds: string[] = [];
 
+			// Both sides live in one table, so one set covers them. Checking
+			// against both also stops an id from one side being treated as new
+			// if it's ever submitted under the other.
+			const persistedIds = this.persistedIds([
+				...(this.existingCase?.manageExistingHousing ?? []),
+				...(this.existingCase?.manageProposedHousing ?? [])
+			]);
+
 			// We also need an array to catch EVERYTHING for the parent `create` upsert branch
 			const allMappedRows: Prisma.S62aResidentialHousingCreateWithoutS62aResidentialInput[] = [];
 
@@ -667,7 +687,9 @@ export class S62aCaseUpdateMapper {
 				safeItems.forEach((item, index) => {
 					const mappedData = mappedRows[index];
 
-					if (item.id) {
+					// New items already carry an id from dynamic-forms, so only treat
+					// the item as existing if that id was loaded from the database.
+					if (item.id && persistedIds.has(item.id)) {
 						keepIds.push(item.id);
 						updateOperations.push({
 							where: { id: item.id },
@@ -1165,9 +1187,10 @@ export class S62aCaseUpdateMapper {
 	}
 
 	/**
-	 * Replaces the inspector rows wholesale. Prisma runs deleteMany before
-	 * create, so re-adding the same user in one save does not trip the
-	 * (s62aCaseId, userId) unique constraint.
+	 * Diffs the inspector rows against the case as loaded: rows still in the
+	 * list are updated, new ones created, and the rest deleted. Prisma runs
+	 * deleteMany before create, so removing and re-adding the same user in one
+	 * save does not trip the (s62aCaseId, userId) unique constraint.
 	 */
 	private mapCaseTeamInspectors(input: Prisma.S62aCaseUpdateInput): void {
 		// Deliberately didn't use hasAnswer() as it returns false for an empty array, so
@@ -1175,6 +1198,7 @@ export class S62aCaseUpdateMapper {
 		if (this.answers.manageCaseTeamInspectors === undefined) return;
 
 		const items = this.answers.manageCaseTeamInspectors ?? [];
+		const persistedIds = this.persistedIds(this.existingCase?.manageCaseTeamInspectors);
 
 		const createOperations: Prisma.S62aCaseInspectorCreateWithoutS62aCaseInput[] = [];
 		const updateOperations: Prisma.S62aCaseInspectorUpdateWithWhereUniqueWithoutS62aCaseInput[] = [];
@@ -1188,7 +1212,9 @@ export class S62aCaseUpdateMapper {
 			const assignedDate = item.inspectorAssignedDate ? new Date(item.inspectorAssignedDate) : null;
 			const appointedDate = item.inspectorAppointedDate ? new Date(item.inspectorAppointedDate) : null;
 
-			if (item.id) {
+			// New items already carry an id from dynamic-forms, so only treat
+			// the item as existing if that id was loaded from the database.
+			if (item.id && persistedIds.has(item.id)) {
 				keepIds.push(item.id);
 				updateOperations.push({
 					where: { id: item.id },
@@ -1246,6 +1272,7 @@ export class S62aCaseUpdateMapper {
 		if (this.answers.vehicleParking === undefined) return;
 
 		const items: VehicleParkingItem[] = this.answers.vehicleParking ?? [];
+		const persistedIds = this.persistedIds(this.existingCase?.vehicleParking);
 
 		const createOperations: Prisma.S62aVehicleParkingCreateWithoutS62aCaseInput[] = [];
 		const updateOperations: Prisma.S62aVehicleParkingUpdateWithWhereUniqueWithoutS62aCaseInput[] = [];
@@ -1266,7 +1293,9 @@ export class S62aCaseUpdateMapper {
 			const existingSpaces = toIntOrNull(item.existingSpaces);
 			const proposedSpaces = toIntOrNull(item.proposedSpaces);
 
-			if (item.id) {
+			// New items already carry an id from dynamic-forms, so only treat
+			// the item as existing if that id was loaded from the database.
+			if (item.id && persistedIds.has(item.id)) {
 				keepIds.push(item.id);
 				updateOperations.push({
 					where: { id: item.id },
