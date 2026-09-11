@@ -107,14 +107,22 @@
 		<div class="govuk-grid-column-full">
 			{% for section in summaryListData.sections %}
 				{% if section.list.rows.length %}
+					{% set rows = [] %}
+					{% for row in section.list.rows %}
+						{% if row.key.text == "Site visit" and siteVisitDateFormatted %}
+							{% set rows = (rows.push({ key: row.key, value: { text: siteVisitDateFormatted }, actions: row.actions }), rows) %}
+						{% else %}
+							{% set rows = (rows.push(row), rows) %}
+						{% endif %}
+					{% endfor %}
 					{{ govukSummaryList({
 						card: {
-							title: {
+							title:{
 								text: section.heading
 							},
 							attributes: {id: section.heading | kebabCase}
 						},
-						rows: section.list.rows
+						rows: rows
 					}) }}
 				{% endif %}
 			{% endfor %}

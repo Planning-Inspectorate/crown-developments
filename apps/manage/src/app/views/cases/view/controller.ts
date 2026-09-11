@@ -193,6 +193,7 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isCaseNotesLive, 
 		const publishDate = getJourneyAnswers(res)?.publishDate;
 		const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
 		const baseUrl = req.baseUrl;
+		const siteVisitDateFormatted = getJourneyAnswers(res)?.siteVisitDateFormatted;
 
 		const banner = await getBannerMessages(id, res, req, db);
 		const notes = res.locals.caseNotes ?? [];
@@ -219,7 +220,8 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isCaseNotesLive, 
 			notes,
 			allCaseNotesCount,
 			lastModifiedDate,
-			lastModifiedBy
+			lastModifiedBy,
+			siteVisitDateFormatted
 		});
 	};
 }

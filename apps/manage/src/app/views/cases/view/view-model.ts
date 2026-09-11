@@ -7,6 +7,7 @@ import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { ApplicantContact, AgentContact } from '../create-a-case/types.d.ts';
 import type { CrownDevelopmentPayload, CrownDevelopmentPayloadWithoutOrganisations } from './payload-contracts.ts';
+import { formatDate } from '@pins/crowndev-lib/util/shared-view-model.ts';
 
 type ProcedurePrefix = 'inquiry' | 'hearing' | 'writtenReps';
 type ProcedureId = (typeof APPLICATION_PROCEDURE_ID)[keyof typeof APPLICATION_PROCEDURE_ID];
@@ -145,6 +146,7 @@ export type CrownDevelopmentViewModel = {
 	hasCostsApplications?: YesNo;
 	costsApplicationsComment?: string;
 	siteVisitDate?: Date;
+	siteVisitDateFormatted?: string;
 };
 
 export type CrownDevelopmentViewModelFields = keyof CrownDevelopmentViewModel;
@@ -404,6 +406,12 @@ export function crownDevelopmentToViewModel(
 	// Directly assign fields that have the same type in the database and view model
 	for (const field of [...RELATION_ID_FIELDS, ...DIRECT_UNMAPPED_FIELDS, ...INTEGER_STRING_FIELDS]) {
 		assignNullableDirectField(viewModel, crownDevelopment, field);
+	}
+
+	if (crownDevelopment.siteVisitDate instanceof Date) {
+		viewModel.siteVisitDateFormatted = formatDate(crownDevelopment.siteVisitDate, {
+			format: "d MMMM yyyy 'at' h:mmaaa"
+		});
 	}
 
 	if (crownDevelopment.representationsPeriodStartDate || crownDevelopment.representationsPeriodEndDate) {
