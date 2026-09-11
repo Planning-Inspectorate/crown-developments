@@ -346,6 +346,96 @@ describe('S62A Controller Middleware', () => {
 				});
 			});
 		});
+
+		describe('non-residential totals', () => {
+			/** Runs the middleware for the non-residential tab and returns the merged answers. */
+			const render = async (answers: Record<string, unknown>) => {
+				const handler = buildGetJourneyMiddleware(mockService, false);
+
+				const req = {
+					params: { id: 'case-123', tab: 'non-residential' },
+					baseUrl: '/s62a/cases/case-123/non-residential'
+				} as unknown as Request;
+
+				const res = { locals: { journeyResponse: { answers } } } as unknown as Response;
+
+				await handler(req, res, () => {});
+
+				return res.locals.journeyResponse.answers as unknown as Record<string, string>;
+			};
+
+			/** A standard floorspace entry. The set prefix is spelt out, so a change
+			 * to the flattening convention shows up here rather than moving with it. */
+			const floorspaceEntry = (figures: Record<string, string>, id = 'entry-1') => ({
+				id,
+				useClassId: 'b2-general-industrial',
+				...Object.fromEntries(Object.entries(figures).map(([field, value]) => [`standard_${field}`, value]))
+			});
+
+			it('merges the calculated totals onto the answers, so the rows resolve them', async () => {
+				const answers = await render({
+					hasNonResidentialFloorspaceChange: 'yes',
+					manageNonResidentialFloorspace: [
+						floorspaceEntry({ existingGross: '100', grossLost: '20', grossProposed: '250', netAdditionalGross: '130' })
+					]
+				});
+
+				assert.strictEqual(answers.totalExistingInternalFloorspace, '100 m²');
+				assert.strictEqual(answers.totalGrossInternalFloorspaceLost, '20 m²');
+				assert.strictEqual(answers.totalGrossInternalFloorspaceProposed, '250 m²');
+				assert.strictEqual(answers.totalNetAdditionalGrossInternalFloorspace, '130 m²');
+			});
+
+			it('sums across several entries', async () => {
+				const answers = await render({
+					hasNonResidentialFloorspaceChange: 'yes',
+					manageNonResidentialFloorspace: [
+						floorspaceEntry({ existingGross: '100' }),
+						floorspaceEntry({ existingGross: '234' }, 'entry-2')
+					]
+				});
+
+				assert.strictEqual(answers.totalExistingInternalFloorspace, '334 m²');
+			});
+
+			it('counts a session entry that has not been saved yet', async () => {
+				const answers = await render({
+					hasNonResidentialFloorspaceChange: 'yes',
+					manageNonResidentialFloorspace: [floorspaceEntry({ existingGross: '75' })]
+				});
+
+				assert.strictEqual(answers.totalExistingInternalFloorspace, '75 m²');
+			});
+
+			it('leaves the totals unset when no entries exist, so the rows show a dash', async () => {
+				const answers = await render({
+					hasNonResidentialFloorspaceChange: 'yes',
+					manageNonResidentialFloorspace: []
+				});
+
+				assert.strictEqual(answers.totalExistingInternalFloorspace, undefined);
+				assert.strictEqual(answers.totalNetAdditionalGrossInternalFloorspace, undefined);
+			});
+
+			it('merges no figures when the gate is not Yes', async () => {
+				const answers = await render({
+					hasNonResidentialFloorspaceChange: 'no',
+					manageNonResidentialFloorspace: [floorspaceEntry({ existingGross: '100' })]
+				});
+
+				assert.strictEqual(answers.totalExistingInternalFloorspace, undefined);
+			});
+
+			it('does not merge the residential totals onto a non-residential case', async () => {
+				const answers = await render({
+					hasNonResidentialFloorspaceChange: 'yes',
+					manageNonResidentialFloorspace: [floorspaceEntry({ existingGross: '100' })]
+				});
+
+				assert.strictEqual(answers.totalExistingUnits, undefined);
+				assert.strictEqual(answers.totalNetGainOrLossOfUnits, undefined);
+			});
+		});
 	});
 
 	describe('residentialPromptMessage', () => {
