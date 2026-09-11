@@ -156,6 +156,7 @@ export interface VehicleParkingItem {
 export interface S62aCaseViewModel {
 	id: string;
 	reference: string;
+	historicalReference: string | null;
 	developmentDescription: string;
 	s62aStatusId?: string;
 	typeId: string;
@@ -417,6 +418,7 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 	const viewModel: S62aCaseViewModel = {
 		id: dbCase.id,
 		reference: dbCase.reference,
+		historicalReference: dbCase.historicalReference,
 		developmentDescription: dbCase.description,
 		typeId: dbCase.typeId,
 		lpaId: dbCase.lpaId,

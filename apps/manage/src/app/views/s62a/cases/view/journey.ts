@@ -89,6 +89,7 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 			new Section('', 'overview')
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.OVERVIEW)
 				.addQuestion(questions.reference)
+				.addQuestion(questions.historicalReference)
 				.addQuestion(questions.developmentDescription)
 				.addQuestion(questions.likelyIssues)
 				.addQuestion(questions.applicationType)

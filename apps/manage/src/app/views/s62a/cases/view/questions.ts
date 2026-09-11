@@ -177,6 +177,15 @@ export function getQuestions(
 			validators: [],
 			editable: false
 		},
+		historicalReference: {
+			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+			title: 'Historical reference',
+			question: 'not editable',
+			fieldName: 'historicalReference',
+			url: '',
+			validators: [],
+			editable: false
+		},
 		developmentDescription: {
 			type: COMPONENT_TYPES.TEXT_ENTRY,
 			title: 'Development description',
