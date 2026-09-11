@@ -56,64 +56,57 @@ resource "azurerm_virtual_network_peering" "tooling_to_crown" {
 
 # Virtual Network Links to Private DNS Zones in the Tooling subscription
 resource "azurerm_private_dns_zone_virtual_network_link" "app_config" {
-  name                  = "${local.org}-vnetlink-app-config-${local.resource_suffix}"
-  resource_group_name   = var.tooling_config.network_rg
-  private_dns_zone_name = data.azurerm_private_dns_zone.app_config.name
-  virtual_network_id    = azurerm_virtual_network.main.id
+  name                = "${local.org}-vnetlink-app-config-${local.resource_suffix}"
+  private_dns_zone_id = data.azurerm_private_dns_zone.app_config.id
+  virtual_network_id  = azurerm_virtual_network.main.id
 
   provider = azurerm.tooling
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "app_service" {
-  name                  = "${local.org}-vnetlink-app-service-${local.resource_suffix}"
-  resource_group_name   = var.tooling_config.network_rg
-  private_dns_zone_name = data.azurerm_private_dns_zone.app_service.name
-  virtual_network_id    = azurerm_virtual_network.main.id
+  name                = "${local.org}-vnetlink-app-service-${local.resource_suffix}"
+  private_dns_zone_id = data.azurerm_private_dns_zone.app_service.id
+  virtual_network_id  = azurerm_virtual_network.main.id
 
   provider = azurerm.tooling
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "cognitive" {
-  name                  = "${local.org}-vnetlink-cognitive-${local.resource_suffix}"
-  resource_group_name   = var.tooling_config.network_rg
-  private_dns_zone_name = data.azurerm_private_dns_zone.cognitive.name
-  virtual_network_id    = azurerm_virtual_network.main.id
+  name                = "${local.org}-vnetlink-cognitive-${local.resource_suffix}"
+  private_dns_zone_id = data.azurerm_private_dns_zone.cognitive.id
+  virtual_network_id  = azurerm_virtual_network.main.id
 
   provider = azurerm.tooling
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "database" {
-  name                  = "${local.org}-vnetlink-db-${local.resource_suffix}"
-  resource_group_name   = var.tooling_config.network_rg
-  private_dns_zone_name = data.azurerm_private_dns_zone.database.name
-  virtual_network_id    = azurerm_virtual_network.main.id
+  name                = "${local.org}-vnetlink-db-${local.resource_suffix}"
+  private_dns_zone_id = data.azurerm_private_dns_zone.database.id
+  virtual_network_id  = azurerm_virtual_network.main.id
 
   provider = azurerm.tooling
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "redis_cache" {
-  name                  = "${local.org}-vnetlink-redis-cache-${local.resource_suffix}"
-  resource_group_name   = var.tooling_config.network_rg
-  private_dns_zone_name = data.azurerm_private_dns_zone.redis_cache.name
-  virtual_network_id    = azurerm_virtual_network.main.id
+  name                = "${local.org}-vnetlink-redis-cache-${local.resource_suffix}"
+  private_dns_zone_id = data.azurerm_private_dns_zone.redis_cache.id
+  virtual_network_id  = azurerm_virtual_network.main.id
 
   provider = azurerm.tooling
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "keyvault" {
-  name                  = "${local.org}-vnetlink-keyvault-${local.resource_suffix}"
-  resource_group_name   = var.tooling_config.network_rg
-  private_dns_zone_name = data.azurerm_private_dns_zone.keyvault.name
-  virtual_network_id    = azurerm_virtual_network.main.id
+  name                = "${local.org}-vnetlink-keyvault-${local.resource_suffix}"
+  private_dns_zone_id = data.azurerm_private_dns_zone.keyvault.id
+  virtual_network_id  = azurerm_virtual_network.main.id
 
   provider = azurerm.tooling
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
-  name                  = "${local.org}-vnetlink-storage-${local.resource_suffix}"
-  resource_group_name   = var.tooling_config.network_rg
-  private_dns_zone_name = data.azurerm_private_dns_zone.storage.name
-  virtual_network_id    = azurerm_virtual_network.main.id
+  name                = "${local.org}-vnetlink-storage-${local.resource_suffix}"
+  private_dns_zone_id = data.azurerm_private_dns_zone.storage.id
+  virtual_network_id  = azurerm_virtual_network.main.id
 
   provider = azurerm.tooling
 }
