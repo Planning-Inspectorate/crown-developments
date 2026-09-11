@@ -16,7 +16,10 @@ import { loadEnvironmentConfig, ENVIRONMENT_NAME } from '../../../../config.js';
 import type { S62aCaseViewModel } from './view-model.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
-/** * Long-text fields that render with expandable old/new value details * instead of inline audit text. */
+/**
+ * Long-text fields that render with expandable old/new value details
+ * instead of inline audit text.
+ * */
 const LONG_AUDIT_FIELDS = new Set(['description', 'costsApplicationsComment']);
 
 /**
