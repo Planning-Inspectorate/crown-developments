@@ -1,7 +1,14 @@
-import type { ManageService } from '#service';
+//import type { ManageService } from '#service';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
-import { BOOLEAN_OPTIONS, clearDataFromSession, JourneyResponse, list } from '@planning-inspectorate/dynamic-forms';
+import {
+	BOOLEAN_OPTIONS,
+	dateIsBeforeToday,
+	dateIsToday,
+	clearDataFromSession,
+	JourneyResponse,
+	list
+} from '@planning-inspectorate/dynamic-forms';
 import { createJourney, JOURNEY_ID } from './journey.ts';
 import { getQuestions } from './questions.ts';
 import { getOptionalStringParams, getStringParam } from '@pins/crowndev-lib/util/params.ts';
@@ -12,7 +19,7 @@ import {
 	VIEW_TABS
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { s62aCaseToViewModel, type S62aCaseViewModel } from './view-model.ts';
-import { isUnsafeObjectKey } from '@pins/crowndev-lib/util/session.ts';
+import { isUnsafeObjectKey, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
 import { S62A_VIEW_SELECT_INCLUDE } from './constants.ts';
 import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
@@ -26,7 +33,7 @@ import {
 	residentialTotalAnswers
 } from '../util/residential-totals.ts';
 import { formatDateTime } from '@pins/crowndev-lib/util/audit-formatters.ts';
-import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import { CASE_DATA_MODEL, type ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import { getNonResidentialTotals, nonResidentialTotalAnswers } from '../util/non-residential-totals.ts';
 import { getPreApplicationCaseOptions, showPreApplicationTab } from '../util/pre-application.ts';
 
@@ -41,6 +48,15 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 		const lastModified = res.locals.lastModified as { updatedDate: string | null; by: string | null } | undefined;
 		const lastModifiedDate = lastModified?.updatedDate ?? '-';
 		const createdDate = res.locals.createdDate;
+		const publishDate = getJourneyAnswers(res)?.publishDate;
+		const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
+
+		// Show publish case validation errors
+		const errors = readSessionData<ErrorSummaryItem[]>(req, id, 'publishErrors', [], 'cases');
+		if (errors && errors.length > 0) {
+			res.locals.errorSummary = errors;
+		}
+		clearSessionData(req, id, 'publishErrors', 'cases');
 
 		// We clear the journey session on list page load to avoid ghost data.
 		clearDataFromSession({ req, journeyId: JOURNEY_ID });
@@ -56,6 +72,7 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 		await list(req, res, '', {
 			caseId: id,
 			reference,
+			casePublished,
 			baseUrl,
 			backLinkUrl: '/s62a/cases',
 			backLinkText: 'Back to all cases',
@@ -73,7 +90,7 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 	};
 }
 
-export function buildGetJourneyMiddleware(service: ManageService, isQuestionView: boolean): AsyncRequestHandler {
+export function buildGetJourneyMiddleware(service: CaseService, isQuestionView: boolean): AsyncRequestHandler {
 	const { db, logger, getEntraClient, audit } = service;
 	const groupIds = service.entraGroupIds;
 
@@ -185,7 +202,13 @@ function getBannerMessages(id: string, res: Response, req: Request) {
 
 	clearCaseUpdatedSession(req, id);
 
-	if (caseUpdated) {
+	const publishDate = getJourneyAnswers(res)?.publishDate;
+	const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
+
+	if (caseUpdated && casePublished) {
+		bannerBuilder.addSuccessText('Application has been updated.');
+		bannerBuilder.addSuccessText('Any updates made to this case will be automatically published.');
+	} else if (caseUpdated) {
 		bannerBuilder.addSuccessText('Case has been updated.');
 	}
 
@@ -196,6 +219,20 @@ function getBannerMessages(id: string, res: Response, req: Request) {
 		if (prompt) {
 			bannerBuilder.addInfoTrustedSingleLineHtml(prompt);
 		}
+	}
+
+	const successParam = req.query.success;
+	const casePublishSuccess = successParam === 'published' && casePublished;
+
+	if (casePublishSuccess) {
+		bannerBuilder.addSuccessText('Application published');
+		return bannerBuilder.build();
+	}
+
+	const caseUnpublishSuccess = successParam === 'unpublish' && !casePublished;
+	if (caseUnpublishSuccess) {
+		bannerBuilder.addSuccessText('Application unpublished');
+		return bannerBuilder.build();
 	}
 
 	return bannerBuilder.build();
