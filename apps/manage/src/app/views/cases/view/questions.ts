@@ -577,6 +577,7 @@ export function getQuestions(
 			question: 'When is the site visit?',
 			fieldName: 'siteVisitDate',
 			url: 'site-visit',
+			timeFormat: 'h:mmaaa',
 			validators: [
 				new DateTimeValidator(
 					'Site visit',
