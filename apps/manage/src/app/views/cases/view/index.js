@@ -4,8 +4,8 @@ import { buildSave, question } from '@planning-inspectorate/dynamic-forms/src/co
 import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
 import { buildGetJourneyMiddleware, buildViewCaseDetails, validateIdFormat } from './controller.ts';
-import { createRoutes as createCasePublishRoutes } from './publish/index.js';
-import { createRoutes as createCaseUnpublishRoutes } from './unpublish/index.js';
+import { createRoutes as createCasePublishRoutes } from '@pins/crowndev-lib/publish/index.ts';
+import { createRoutes as createCaseUnpublishRoutes } from '@pins/crowndev-lib/unpublish/index.ts';
 import { createRoutes as createRepsRoutes } from './manage-reps/index.js';
 import { createRoutes as createApplicationUpdatesRoutes } from './application-updates/index.js';
 import { buildUpdateCase } from './update-case.ts';
@@ -18,6 +18,13 @@ import {
 import { JOURNEY_ID } from './journey.ts';
 import { buildDeleteManageListItemOnConfirmRemove, addSuccessBannerFromMessage } from './delete.js';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import {
+	publishCrownCase,
+	fetchCrownPublishCase,
+	unpublishCrownCase,
+	fetchCrownUnpublishCase,
+	answerValidation
+} from './publish.ts';
 
 /**
  * @param {import('#service').ManageService} service
@@ -33,8 +40,14 @@ export function createRoutes(service) {
 	const clearAndUpdateCaseFn = buildUpdateCase(service, true);
 	const clearAndUpdateCase = buildSave(clearAndUpdateCaseFn, true);
 	const updateCase = buildSave(updateCaseFn, true);
-	const publishCase = createCasePublishRoutes(service);
-	const unpublishCase = createCaseUnpublishRoutes(service);
+	const publishCase = createCasePublishRoutes(
+		service,
+		buildGetJourneyMiddleware,
+		publishCrownCase,
+		fetchCrownPublishCase,
+		answerValidation
+	);
+	const unpublishCase = createCaseUnpublishRoutes(service, unpublishCrownCase, fetchCrownUnpublishCase);
 	const applicationUpdates = createApplicationUpdatesRoutes(service);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const deleteManageListItemOnConfirmRemove = asyncHandler(buildDeleteManageListItemOnConfirmRemove(service));

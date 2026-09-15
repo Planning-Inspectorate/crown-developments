@@ -7,6 +7,8 @@
 {% from "tables/tables.njk" import caseNotesTable %}
 
 {% set title = reference + " - " + journeyTitle + " - Manage a S62A Case" %}
+{% set publishUrl = baseUrl + "/publish" %}
+{% set unpublishUrl = baseUrl + "/unpublish" %}
 
 {% block pageTitle %}
 	{{ title }}
@@ -30,6 +32,20 @@
 				href: foldersUrl,
 				classes: "govuk-button--secondary"
 			}) }}
+			{% if casePublished %}
+				{{ govukButton({
+					text: "Unpublish Application",
+					href: unpublishUrl,
+					classes: "govuk-button--warning"
+				}) }}
+
+			{% else %}
+				{{ govukButton({
+					text: "Publish Application",
+					href: publishUrl,
+					classes: "govuk-button--primary"
+				}) }}
+			{% endif %}
 		</div>
 	</div>
 	<div class="govuk-grid-row">
