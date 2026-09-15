@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { ACCEPT_AND_REDACT } from '@pins/crowndev-lib/forms/representations/questions.js';
 import {
@@ -19,7 +19,10 @@ import {
 	readRepRedactedCommentSession,
 	readRepCommentReviewStatusSession,
 	getReviewStatus,
-	redactConfirmationHandler
+	redactConfirmationHandler,
+	readRepDocumentReviewStatusSession,
+	getRedactedFile,
+	safeDeleteUploadedFilesSession
 } from './task-list-utils.ts';
 
 describe('task-list-utils', () => {
@@ -170,7 +173,6 @@ describe('task-list-utils', () => {
 		});
 
 		it('should handle /manage-representations in baseUrl without incorrect substring match', () => {
-			// This is the critical edge case - /representation should NOT match within /manage-representations
 			const baseUrl = 'some-url-here/case-1/manage-representations/ref-1/review/task-list/representation';
 			const result = getTaskListURL(baseUrl, '/representation');
 			assert.strictEqual(result, 'some-url-here/case-1/manage-representations/ref-1/review/task-list');
@@ -250,7 +252,6 @@ describe('task-list-utils', () => {
 	});
 
 	describe('updateRepReviewSession', () => {
-		// Note: Assumes `isUnsafeObjectKey('__proto__')` returns true from your util
 		it('should throw an error if an unsafe object key is used', () => {
 			const req = { session: {} } as unknown as Request;
 			assert.throws(() => {
@@ -387,6 +388,86 @@ describe('task-list-utils', () => {
 			assert.strictEqual(renderedOptions.commentRedacted, 'redacted [REDACT]');
 			assert.strictEqual(renderedOptions.reference, 'REP-123');
 			assert.strictEqual(renderedOptions.backLinkUrl, '/cases/1/reps/REP-123/redact');
+		});
+	});
+
+	describe('readRepDocumentReviewStatusSession', () => {
+		it('should return the review decision for a specific document item', () => {
+			const req = {
+				session: {
+					reviewDecisions: {
+						'REP-1': {
+							'DOC-1': { reviewDecision: REPRESENTATION_STATUS_ID.ACCEPTED }
+						}
+					}
+				}
+			} as unknown as Request;
+
+			assert.strictEqual(readRepDocumentReviewStatusSession(req, 'REP-1', 'DOC-1'), REPRESENTATION_STATUS_ID.ACCEPTED);
+		});
+
+		it('should return undefined if the session or item path does not exist', () => {
+			const req = { session: {} } as unknown as Request;
+			assert.strictEqual(readRepDocumentReviewStatusSession(req, 'REP-1', 'DOC-1'), undefined);
+		});
+	});
+
+	describe('getRedactedFile', () => {
+		it('should return the uploaded files array for a specific item', () => {
+			const mockFiles = [{ itemId: 'blob-1', fileName: 'test.pdf' }];
+			const req = {
+				session: {
+					files: {
+						'REP-1': {
+							'DOC-1': { uploadedFiles: mockFiles }
+						}
+					}
+				}
+			} as unknown as Request;
+
+			assert.deepStrictEqual(getRedactedFile(req, 'REP-1', 'DOC-1'), mockFiles);
+		});
+
+		it('should return an empty array if the uploaded files path does not exist', () => {
+			const req = { session: {} } as unknown as Request;
+			assert.deepStrictEqual(getRedactedFile(req, 'REP-1', 'DOC-1'), []);
+		});
+	});
+
+	describe('safeDeleteUploadedFilesSession', () => {
+		it('should throw an error if representationRef is an unsafe key', () => {
+			const req = { session: {} } as unknown as Request;
+			assert.throws(() => safeDeleteUploadedFilesSession(req, '__proto__', 'DOC-1'), /Unsafe object key detected/);
+		});
+
+		it('should throw an error if itemId is an unsafe key', () => {
+			const req = { session: {} } as unknown as Request;
+			assert.throws(() => safeDeleteUploadedFilesSession(req, 'REP-1', '__proto__'), /Unsafe object key detected/);
+		});
+
+		it('should safely empty the uploadedFiles array if it exists', () => {
+			const req = {
+				session: {
+					files: {
+						'REP-1': {
+							'DOC-1': { uploadedFiles: [{ itemId: 'blob-1', fileName: 'test.pdf' }] }
+						}
+					}
+				}
+			} as unknown as Request;
+
+			safeDeleteUploadedFilesSession(req, 'REP-1', 'DOC-1');
+
+			const updatedSession = req.session as any;
+			assert.deepStrictEqual(updatedSession.files['REP-1']['DOC-1'].uploadedFiles, []);
+		});
+
+		it('should throw an error if the specified files path does not exist in the session', () => {
+			const req = { session: {} } as unknown as Request;
+			assert.throws(
+				() => safeDeleteUploadedFilesSession(req, 'REP-1', 'DOC-1'),
+				/Invalid key provided to delete uploadedFiles from session data/
+			);
 		});
 	});
 });

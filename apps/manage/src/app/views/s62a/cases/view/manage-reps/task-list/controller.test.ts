@@ -162,7 +162,7 @@ describe('buildRepresentationTaskList', () => {
 						Attachments: [
 							{
 								fileName: 'test-doc.pdf',
-								blobName: 'blob-123',
+								id: '12345678',
 								statusId: REPRESENTATION_STATUS_ID.AWAITING_REVIEW
 							}
 						]
@@ -179,7 +179,7 @@ describe('buildRepresentationTaskList', () => {
 
 			assert.strictEqual(documents.length, 1);
 			assert.strictEqual(documents[0].title.text, 'test-doc.pdf');
-			assert.strictEqual(documents[0].href, '/cases/123/reps/REP-001/blob-123');
+			assert.strictEqual(documents[0].href, '/cases/123/reps/REP-001/12345678');
 		});
 	});
 
@@ -200,7 +200,7 @@ describe('buildRepresentationTaskList', () => {
 						Attachments: [
 							{
 								fileName: 'test-doc.pdf',
-								blobName: 'blob-123',
+								id: 'blob-123',
 								redactedBlobName: 'redacted-blob',
 								redactedFileName: 'redacted-file.pdf',
 								statusId: REPRESENTATION_STATUS_ID.AWAITING_REVIEW
