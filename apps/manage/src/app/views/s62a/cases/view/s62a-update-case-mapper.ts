@@ -931,6 +931,12 @@ export class S62aCaseUpdateMapper {
 		housingTypeId: string
 	): Prisma.S62aResidentialHousingCreateWithoutS62aResidentialInput[] {
 		return items.map((item) => {
+			if (!item.occupancyTypeId || !item.unitTypeId) {
+				throw new Error(
+					`Cannot save ${housingTypeId} housing entry ${item.id}: occupancy type and unit type are required`
+				);
+			}
+
 			const row: Prisma.S62aResidentialHousingCreateWithoutS62aResidentialInput = {
 				HousingType: { connect: { id: housingTypeId } },
 				OccupancyType: { connect: { id: item.occupancyTypeId } },

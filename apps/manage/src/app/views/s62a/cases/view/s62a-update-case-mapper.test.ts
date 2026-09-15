@@ -1726,6 +1726,20 @@ describe('S62aCaseUpdateMapper', () => {
 			assert.strictEqual(created.bedroomsFourPlus, 2);
 		});
 
+		it('refuses to save an entry missing a lookup, rather than dropping it', () => {
+			const answers = {
+				manageProposedHousing: [
+					{ id: 'row-1', occupancyTypeId: OCCUPANCY_TYPE_ID.MARKET_HOUSING, unitTypeId: UNIT_TYPE_ID.HOUSES },
+					{ id: 'row-2', occupancyTypeId: OCCUPANCY_TYPE_ID.STARTER_HOMES }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			assert.throws(
+				() => new S62aCaseUpdateMapper(answers).generateUpdateInput(),
+				/occupancy type and unit type are required/
+			);
+		});
+
 		it('keeps a zero band distinct from an unanswered one', () => {
 			const answers = {
 				manageProposedHousing: [
@@ -1891,7 +1905,7 @@ describe('S62aCaseUpdateMapper', () => {
 			const answers = {
 				manageProposedHousing: [
 					{ id: 'row-1', occupancyTypeId: OCCUPANCY_TYPE_ID.MARKET_HOUSING, unitTypeId: UNIT_TYPE_ID.HOUSES },
-					{ occupancyTypeId: OCCUPANCY_TYPE_ID.STARTER_HOMES, unitTypeId: UNIT_TYPE_ID.FLATS }
+					{ occupancyTypeId: OCCUPANCY_TYPE_ID.STARTER_HOMES, unitTypeId: UNIT_TYPE_ID.FLATS_MAISONETTES }
 				]
 			} as unknown as UpdateCaseAnswers;
 
@@ -1912,7 +1926,11 @@ describe('S62aCaseUpdateMapper', () => {
 			const answers = {
 				manageProposedHousing: [
 					{ id: 'row-1', occupancyTypeId: OCCUPANCY_TYPE_ID.MARKET_HOUSING, unitTypeId: UNIT_TYPE_ID.HOUSES },
-					{ id: 'unsaved-uuid', occupancyTypeId: OCCUPANCY_TYPE_ID.STARTER_HOMES, unitTypeId: UNIT_TYPE_ID.FLATS }
+					{
+						id: 'unsaved-uuid',
+						occupancyTypeId: OCCUPANCY_TYPE_ID.STARTER_HOMES,
+						unitTypeId: UNIT_TYPE_ID.FLATS_MAISONETTES
+					}
 				]
 			} as unknown as UpdateCaseAnswers;
 
