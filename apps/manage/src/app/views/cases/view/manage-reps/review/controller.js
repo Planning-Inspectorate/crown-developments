@@ -31,7 +31,9 @@ import {
 	readRepRedactedCommentSession,
 	updateRepReviewSession,
 	readRepCommentReviewStatusSession,
-	clearRepRedactedCommentSession
+	clearRepRedactedCommentSession,
+	readRepDocumentReviewStatusSession,
+	safeDeleteUploadedFilesSession
 } from '@pins/crowndev-lib/forms/representations/task-list-utils.ts';
 import { viewReviewRedirect } from '@pins/crowndev-lib/forms/representations/review-utils.ts';
 
@@ -650,18 +652,6 @@ export function clearRepReviewedSession(req, id) {
 }
 
 /**
- * Read document item review decision for given representationRef
- *
- * @param {{session?: Object<string, any>}} req
- * @param {string} representationRef
- * @param {string} itemId
- * @returns {string|undefined}
- */
-function readRepDocumentReviewStatusSession(req, representationRef, itemId) {
-	return req.session?.reviewDecisions?.[representationRef]?.[itemId]?.reviewDecision;
-}
-
-/**
  * Read distressing content review decision for given representationRef
  *
  * @param {{session?: Object<string, any>}} req
@@ -782,17 +772,6 @@ function getStatusDisplayName(reviewDecision) {
 	]);
 
 	return statusDisplayMap.get(reviewDecision) ?? '';
-}
-
-export function safeDeleteUploadedFilesSession(req, representationRef, itemId) {
-	if (isUnsafeObjectKey(itemId) || isUnsafeObjectKey(representationRef)) {
-		throw new Error('Unsafe object key detected');
-	}
-	if (req.session?.files?.[representationRef]?.[itemId]?.uploadedFiles) {
-		req.session.files[representationRef][itemId].uploadedFiles = [];
-	} else {
-		throw new Error('Invalid key provided to delete uploadedFiles from session data');
-	}
 }
 
 async function deleteDocumentFromSharePointById(req, sharePointDrive, logger, itemId) {

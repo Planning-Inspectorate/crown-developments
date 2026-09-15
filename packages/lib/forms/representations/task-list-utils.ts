@@ -14,6 +14,24 @@ import {
 } from '../../../../apps/manage/src/util/azure-language-redaction.js';
 import { createRedactJourney } from './redact-journey.ts';
 
+interface ReviewDecisionItem {
+	reviewDecision?: string;
+}
+
+interface UploadedFile {
+	itemId: string;
+	fileName: string;
+}
+
+export interface FileItem {
+	uploadedFiles?: UploadedFile[];
+}
+
+export interface CustomSessionData {
+	reviewDecisions?: Record<string, Record<string, ReviewDecisionItem>>;
+	files?: Record<string, Record<string, FileItem>>;
+}
+
 export const CONTENT_WARNING = 'content-warning';
 export const NO_CONTENT_WARNING = 'no-content-warning';
 
@@ -52,9 +70,9 @@ type UpdateReviewStatusFn = (req: Request, db: PrismaClient, logger: Logger) => 
 
 type ReviewDecisionsMap = {
 	[key: string]: {
-		comment?: {
-			commentRedacted?: string;
+		[key: string]: {
 			reviewDecision?: string;
+			commentRedacted?: string;
 		};
 	};
 };
@@ -216,6 +234,41 @@ export function readRepCommentReviewStatusSession(req: Request, representationRe
 
 export function getReviewStatus(reviewDecision: string | undefined): string | undefined {
 	return reviewDecision === ACCEPT_AND_REDACT ? REPRESENTATION_STATUS_ID.ACCEPTED : reviewDecision;
+}
+
+/**
+ * Read document item review decision for given representationRef
+ */
+export function readRepDocumentReviewStatusSession(
+	req: Request,
+	representationRef: string,
+	itemId: string
+): string | undefined {
+	const decisions = req.session?.reviewDecisions as ReviewDecisionsMap | undefined;
+	return decisions?.[representationRef]?.[itemId]?.reviewDecision;
+}
+
+/**
+ * Grabs redacted file from session based on itemId (sharepoint item id in crown, sql id in s62a)
+ */
+export function getRedactedFile(req: Request, representationRef: string, itemId: string) {
+	const session = req.session as CustomSessionData | undefined;
+	const files = session?.files ?? {};
+	return files?.[representationRef]?.[itemId]?.uploadedFiles || [];
+}
+
+export function safeDeleteUploadedFilesSession(req: Request, representationRef: string, itemId: string) {
+	if (isUnsafeObjectKey(itemId) || isUnsafeObjectKey(representationRef)) {
+		throw new Error('Unsafe object key detected');
+	}
+
+	const session = req.session as CustomSessionData | undefined;
+
+	if (session?.files?.[representationRef]?.[itemId]?.uploadedFiles) {
+		session.files[representationRef][itemId].uploadedFiles = [];
+	} else {
+		throw new Error('Invalid key provided to delete uploadedFiles from session data');
+	}
 }
 
 /**

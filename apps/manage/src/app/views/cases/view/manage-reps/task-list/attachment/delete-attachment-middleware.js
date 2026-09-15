@@ -1,4 +1,4 @@
-import { safeDeleteUploadedFilesSession } from '../../review/controller.js';
+import { safeDeleteUploadedFilesSession } from '@pins/crowndev-lib/forms/representations/task-list-utils.ts';
 import { getStringParams } from '@pins/crowndev-lib/util/params.ts';
 
 export function buildDeleteRepresentationRedactedDocumentMiddleware(journeyId) {

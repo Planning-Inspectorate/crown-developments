@@ -13,7 +13,9 @@ import {
 	type ReviewCommentRequestBody,
 	updateDocumentStatusSession,
 	updateRepReviewSession,
-	processAndRenderRedaction
+	processAndRenderRedaction,
+	type CustomSessionData,
+	type FileItem
 } from '@pins/crowndev-lib/forms/representations/task-list-utils.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
@@ -26,24 +28,6 @@ import { JOURNEY_ID } from '../../view/journey.ts';
 import { MANAGE_REPS_MANAGE_JOURNEY_ID } from '../controller.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { BlobStorageClient } from '@pins/crowndev-lib/blob-store/blob-store-client.ts';
-
-interface ReviewDecisionItem {
-	reviewDecision?: string;
-}
-
-interface UploadedFile {
-	blobName: string;
-	fileName: string;
-}
-
-interface FileItem {
-	uploadedFiles?: UploadedFile[];
-}
-
-interface CustomSessionData {
-	reviewDecisions?: Record<string, Record<string, ReviewDecisionItem>>;
-	files?: Record<string, Record<string, FileItem>>;
-}
 
 /**
  * Renders the review comment page for an S62A representation.
@@ -157,12 +141,12 @@ async function handleDocumentsOnRejectedRepresentation(
 	const sessionFiles = req.session?.files?.[representationRef] || {};
 	const allUploadedFileIds = Object.values(sessionFiles)
 		.flatMap((entry: FileItem) => entry.uploadedFiles || [])
-		.map((attachment) => attachment.blobName)
+		.map((attachment) => attachment.itemId)
 		.filter(Boolean);
 
 	if (allUploadedFileIds.length === 0) return;
 
-	await processUploadedFilesOnRejection(req, journeyId, representationRef, allUploadedFileIds, logger, blobStore);
+	await processUploadedFilesOnRejection(req, journeyId, representationRef, allUploadedFileIds, logger, blobStore, db);
 
 	const representation = await db.s62aRepresentation.findUnique({
 		where: { reference: representationRef },
@@ -177,7 +161,7 @@ async function handleDocumentsOnRejectedRepresentation(
 }
 
 /**
- * Sets up documents that have been rejected to either be deleted immediately if in a review/view journey
+ * Sets up documents that have been rejected to either be deleted immediately if in a review/view journey (from db then blob)
  * or queue them for deletion further down the line if in the manage journey.
  */
 async function processUploadedFilesOnRejection(
@@ -186,13 +170,21 @@ async function processUploadedFilesOnRejection(
 	representationRef: string,
 	fileIds: string[],
 	logger: Logger,
-	blobStore: BlobStorageClient | null
+	blobStore: BlobStorageClient | null,
+	db: ManageService['db']
 ) {
 	if (journeyId === MANAGE_REPS_MANAGE_JOURNEY_ID) {
 		req.session.itemsToBeDeleted = req.session.itemsToBeDeleted || {};
 		const existingItems = req.session.itemsToBeDeleted?.[representationRef] || [];
 		req.session.itemsToBeDeleted[representationRef] = [...new Set([...existingItems, ...fileIds])];
 	} else if (blobStore) {
+		await db.draftBlobRepresentationDocument.deleteMany({
+			where: {
+				sessionKey: req.sessionID,
+				blobName: { in: fileIds }
+			}
+		});
+
 		await Promise.all(fileIds.map((itemId) => blobStore?.deleteBlobIfExists(itemId)));
 	} else {
 		logger.warn('blobStore is null; unable to delete rejected files.');
@@ -208,7 +200,7 @@ function initialiseEmptySessionFiles(
 	representation: Prisma.S62aRepresentationGetPayload<{ include: { Attachments: true } }>
 ) {
 	const attachmentEntries = Object.fromEntries(
-		representation?.Attachments.map(({ blobName }) => [blobName, { uploadedFiles: [] }])
+		representation?.Attachments.map(({ id }) => [id, { uploadedFiles: [] }])
 	);
 
 	addSessionData(req, representationRef, { ...attachmentEntries }, 'files');
@@ -318,7 +310,7 @@ export async function updateRepresentationItemsReviewStatus(req: Request, db: Ma
 				const [redactedFile] = files[key]?.uploadedFiles || [];
 
 				if (redactedFile) {
-					repDocUpdate.redactedBlobName = redactedFile.blobName;
+					repDocUpdate.redactedBlobName = redactedFile.itemId;
 					repDocUpdate.redactedFileName = redactedFile.fileName;
 				} else if (value.reviewDecision !== ACCEPT_AND_REDACT) {
 					repDocUpdate.redactedBlobName = null;
