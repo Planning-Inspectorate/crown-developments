@@ -66,16 +66,16 @@ export function buildRepresentationTaskList(service: ManageService, journeyId: s
 				title: {
 					text: attachment.fileName
 				},
-				href: !isCommentRejected ? `${req.originalUrl}/${attachment.blobName}` : '',
+				href: !isCommentRejected ? `${req.originalUrl}/${attachment.id}` : '',
 				status: {
-					tag: getReviewTaskStatus(repItemsReviewStatus?.[attachment.blobName]?.reviewDecision)
+					tag: getReviewTaskStatus(repItemsReviewStatus?.[attachment.id]?.reviewDecision)
 				}
 			};
 		});
 
 		const taskStatusList = [
 			repItemsReviewStatus?.comment?.reviewDecision,
-			...representationAttachments.map((attachment) => repItemsReviewStatus?.[attachment.blobName]?.reviewDecision)
+			...representationAttachments.map((attachment) => repItemsReviewStatus?.[attachment.id]?.reviewDecision)
 		];
 
 		return res.render('views/s62a/cases/view/manage-reps/task-list/task-list.njk', {
@@ -100,8 +100,8 @@ function initialiseSessionFilesFromRepresentation(
 	const existingFilesData = req.session?.files?.[representationRef] || {};
 
 	const attachmentEntries = Object.fromEntries(
-		(representation.Attachments || []).map(({ blobName, redactedBlobName, redactedFileName }) => [
-			blobName,
+		(representation.Attachments || []).map(({ id, redactedBlobName, redactedFileName }) => [
+			id,
 			{
 				uploadedFiles:
 					redactedBlobName && redactedFileName ? [{ blobName: redactedBlobName, fileName: redactedFileName }] : []
@@ -126,7 +126,7 @@ function initialiseRepresentationReviewSession(
 
 	const attachmentEntries =
 		representation.containsAttachments && representation.Attachments
-			? Object.fromEntries(representation.Attachments.map(({ blobName }) => [blobName, undefined]))
+			? Object.fromEntries(representation.Attachments.map(({ id }) => [id, undefined]))
 			: {};
 
 	const newReviewData: ReviewDecisions = {
@@ -151,7 +151,7 @@ function initialiseRepresentationReviewSession(
 					commentRedacted: representation.commentRedacted
 				};
 			} else {
-				const attachment = representation.Attachments?.find((a) => a.blobName === key);
+				const attachment = representation.Attachments?.find((a) => a.id === key);
 				const attachmentStatusId = attachment?.statusId;
 				const attachmentIsRedacted = Boolean(attachment?.redactedBlobName && attachment?.redactedFileName);
 				newReviewData[key] = existingReviewData[key] || getReviewDecision(attachmentStatusId, attachmentIsRedacted);

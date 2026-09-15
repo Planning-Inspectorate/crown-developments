@@ -836,8 +836,9 @@ model BlobRepresentationDocument {
   statusId         String
   Status           RepresentationStatus @relation(fields: [statusId], references: [id])
 
-  s62aRepresentationId String             @db.UniqueIdentifier
-  S62aRepresentation   S62aRepresentation @relation(fields: [s62aRepresentationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  s62aRepresentationId             String                            @db.UniqueIdentifier
+  S62aRepresentation               S62aRepresentation                @relation(fields: [s62aRepresentationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  DraftBlobRepresentationDocuments DraftBlobRepresentationDocument[]
 }
 
 /// A "pending" document connected with a representation (in Blob)
@@ -853,6 +854,11 @@ model DraftBlobRepresentationDocument {
   redactedFileName String?
   statusId         String
   Status           RepresentationStatus @relation(fields: [statusId], references: [id])
+
+  /// Some drafts (e.g. redacted files) will be pointing to a real document already and will not have their own committed row.
+  /// We need this target id to be able to find the correct item
+  targetDocumentId String?                     @db.UniqueIdentifier
+  TargetDocument   BlobRepresentationDocument? @relation(fields: [targetDocumentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([sessionKey])
 }
