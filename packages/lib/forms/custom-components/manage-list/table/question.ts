@@ -305,6 +305,14 @@ export default class TableManageListQuestion extends ManageListQuestion {
 	}
 
 	/**
+	 * The sub-questions that apply to one row, honouring per-row conditions.
+	 * Used by the completeness validator, which cannot reach shouldDisplayQuestion.
+	 */
+	public visibleQuestionsForItem(item: Record<string, unknown>): Question[] {
+		return (this.section?.questions ?? []).filter((q: Question) => this.shouldDisplayQuestion(q, item));
+	}
+
+	/**
 	 * The base class declares shouldDisplay as taking no arguments, but it is
 	 * called with a JourneyResponse at runtime. Cast so the call typechecks.
 	 */

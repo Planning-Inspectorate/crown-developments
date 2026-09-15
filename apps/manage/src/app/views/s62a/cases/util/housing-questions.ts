@@ -9,6 +9,7 @@ import type { CardFormatContext } from '@pins/crowndev-lib/forms/custom-componen
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import RequiredGroupValidator from '@pins/crowndev-lib/validators/required-group-validator.ts';
 import UniqueListFieldValidator from '@pins/crowndev-lib/validators/unique-list-field-validator.ts';
+import ManageListItemsCompleteValidator from '@pins/crowndev-lib/validators/manage-list-items-complete-validator.ts';
 import { BEDROOM_BANDS, HOUSING_BEDROOM_FIELDS, type ResidentialHousingItem } from '../view/view-model.ts';
 import {
 	occupancyTotalFieldName,
@@ -117,9 +118,20 @@ export function housingQuestions({ side, items, manageListItemId, isQuestionView
 			titleSingular: `${label} entry`,
 			emptyName: `${side} house`,
 			emptyNamePlural: `${side} houses`,
+			viewData: {
+				emptyListText: `Add one or more ${side} houses. No ${side} house details have been added.`
+			},
 			cardTitle: (_item: Record<string, unknown>, { getFormatted }: CardFormatContext) =>
 				[getFormatted('occupancyTypeId'), getFormatted('unitTypeId')].filter(Boolean).join(' - '),
 			sortItems: compareHousingItems,
+			validators: [
+				new ManageListItemsCompleteValidator({
+					describeItem: (item) =>
+						[lookupDisplayName(OCCUPANCY_TYPES, item.occupancyTypeId), lookupDisplayName(UNIT_TYPES, item.unitTypeId)]
+							.filter(Boolean)
+							.join(' - ') || 'Incomplete entry'
+				})
+			],
 			rows: [
 				{ label: 'Total number of units', format: (item: Record<string, unknown>) => String(sumBedroomBands(item)) },
 				...BEDROOM_BANDS.map((band) => ({

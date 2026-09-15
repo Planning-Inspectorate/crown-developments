@@ -14,6 +14,7 @@ import {
 } from './housing-questions.ts';
 import type { ResidentialHousingItem } from '../view/view-model.ts';
 import type { HousingSide } from './residential-totals.ts';
+import ManageListItemsCompleteValidator from '@pins/crowndev-lib/validators/manage-list-items-complete-validator.ts';
 
 const item = (overrides: Partial<ResidentialHousingItem> = {}) =>
 	({ id: 'row-1', ...overrides }) as ResidentialHousingItem;
@@ -158,6 +159,21 @@ describe('housingQuestions', () => {
 
 		assert.strictEqual(onTab.manageHousing.title, 'Existing housing');
 		assert.strictEqual(onQuestion.manageHousing.title, 'Check existing housing details');
+	});
+
+	it('words the empty state for the side, not from the singular title', () => {
+		assert.strictEqual(
+			build('existing').manageHousing.viewData.emptyListText,
+			'Add one or more existing houses. No existing house details have been added.'
+		);
+		assert.strictEqual(
+			build('proposed').manageHousing.viewData.emptyListText,
+			'Add one or more proposed houses. No proposed house details have been added.'
+		);
+	});
+
+	it('guards the list against incomplete entries', () => {
+		assert.ok(build('existing').manageHousing.validators.some((v) => v instanceof ManageListItemsCompleteValidator));
 	});
 });
 

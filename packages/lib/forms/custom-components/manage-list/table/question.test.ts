@@ -131,6 +131,25 @@ describe('TableManageListQuestion', () => {
 		});
 	});
 
+	describe('visibleQuestionsForItem()', () => {
+		it('returns every question when none declares shouldDisplay', () => {
+			assert.strictEqual(tableQuestion.visibleQuestionsForItem({}).length, 2);
+		});
+
+		it("filters by the item's own answers, not the journey's", () => {
+			tableQuestion.section!.questions[1].shouldDisplay = ((r: any) => r.answers.name === 'John Doe') as never;
+
+			assert.deepStrictEqual(
+				tableQuestion.visibleQuestionsForItem({ name: 'John Doe' }).map((q) => q.fieldName),
+				['name', 'dob']
+			);
+			assert.deepStrictEqual(
+				tableQuestion.visibleQuestionsForItem({ name: 'Jane Doe' }).map((q) => q.fieldName),
+				['name']
+			);
+		});
+	});
+
 	describe('generateActionsHtml()', () => {
 		it('should generate correct edit and remove links with the originalUrl by default', () => {
 			const item = { id: 'item-123' };

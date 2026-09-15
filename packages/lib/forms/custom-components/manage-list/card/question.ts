@@ -37,7 +37,13 @@ interface CardViewData {
 	value?: Record<string, unknown>[];
 	firstQuestionUrl?: string;
 	boldRowLabels?: boolean;
-	cards?: { id: string; title: string; rows: { label: string; value: string }[] }[];
+	cards?: {
+		id: string;
+		title: string;
+		/** Set when this row failed the completeness check, so the card can show it. */
+		errorMessage?: string;
+		rows: { label: string; value: string }[];
+	}[];
 }
 
 /**
@@ -65,13 +71,23 @@ export default class CardManageListQuestion extends TableManageListQuestion {
 		const items = question.value ?? [];
 		const ordered = this.sortItems ? items.slice().sort(this.sortItems) : items;
 
-		question.cards = ordered.map((item, index) => ({
-			id: typeof item.id === 'string' ? item.id : '',
-			title: this.cardTitle
-				? this.cardTitle(item, this.formatContext(item))
-				: `${this.viewData?.titleSingular ?? 'Item'} ${index + 1}`,
-			rows: this.buildRows(item)
-		}));
+		// Errors are keyed by item id, since the completeness validator targets each
+		// row by id rather than by the list field name.
+		const errors = (viewModel.errors ?? {}) as Record<string, { msg?: unknown } | undefined>;
+
+		question.cards = ordered.map((item, index) => {
+			const id = typeof item.id === 'string' ? item.id : '';
+			const msg = errors[id]?.msg;
+
+			return {
+				id,
+				errorMessage: typeof msg === 'string' ? msg : undefined,
+				title: this.cardTitle
+					? this.cardTitle(item, this.formatContext(item))
+					: `${this.viewData?.titleSingular ?? 'Item'} ${index + 1}`,
+				rows: this.buildRows(item)
+			};
+		});
 
 		question.boldRowLabels = this.boldRowLabels;
 	}

@@ -35,24 +35,32 @@
 							}) %}
 						{% endfor %}
 
-						{{ govukSummaryList({
-							card: {
-								title: { text: card.title },
-								actions: { items: [
-									{
-										href: urlBase + "/edit/" + card.id + "/" + question.firstQuestionUrl,
-										text: "Change",
-										visuallyHiddenText: card.title
-									},
-									{
-										href: urlBase + "/remove/" + card.id + "/confirm",
-										text: "Remove",
-										visuallyHiddenText: card.title
-									}
-								] }
-							},
-							rows: rows
-						}) }}
+						<div id="{{ card.id }}" tabindex="-1"
+							class="govuk-!-margin-bottom-6 {{ 'govuk-form-group--error govuk-!-padding-left-4' if card.errorMessage }}">
+							{% if card.errorMessage %}
+								<p class="govuk-error-message">
+									<span class="govuk-visually-hidden">Error:</span> {{ card.errorMessage }}
+								</p>
+							{% endif %}
+							{{ govukSummaryList({
+								card: {
+									title: { text: card.title },
+									actions: { items: [
+										{
+											href: urlBase + "/edit/" + card.id + "/" + question.firstQuestionUrl,
+											text: "Change",
+											visuallyHiddenText: card.title
+										},
+										{
+											href: urlBase + "/remove/" + card.id + "/confirm",
+											text: "Remove",
+											visuallyHiddenText: card.title
+										}
+									] }
+								},
+								rows: rows
+							}) }}
+						</div>
 					{% endfor %}
 				{% else %}
 					<p class="govuk-body">{{ emptyListText if emptyListText else "Add one or more " + itemNamePlural + ". No " + itemName + " details have been added." }}</p>
