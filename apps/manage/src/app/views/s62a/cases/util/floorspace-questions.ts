@@ -25,6 +25,7 @@ import {
 	ROOMS_LABELS
 } from '../view/view-model.ts';
 import { ConditionalLengthValidator } from '@pins/crowndev-lib/validators/conditional-length-validator.ts';
+import ManageListItemsCompleteValidator from '@pins/crowndev-lib/validators/manage-list-items-complete-validator.ts';
 
 const WHOLE_NUMBER = /^$|^\d+$/;
 const FLOORSPACE_ERROR = 'The floorspace must be a whole number of square metres';
@@ -145,6 +146,14 @@ export function floorspaceQuestions(isQuestionView: boolean | undefined) {
 					? item.otherTypeOfUse
 					: getFormatted('useClassId'),
 			sortItems: compareFloorspaceItems,
+			validators: [
+				new ManageListItemsCompleteValidator({
+					describeItem: (item) =>
+						item.useClassId === USE_CLASS_ID.OTHER && typeof item.otherTypeOfUse === 'string' && item.otherTypeOfUse
+							? item.otherTypeOfUse
+							: (USE_CLASSES.find((useClass) => useClass.id === item.useClassId)?.displayName ?? 'Incomplete entry')
+				})
+			],
 			viewData: {
 				emptyListText:
 					'Add one or more types of use for the non residential floorspace. No type of use details have been added.'

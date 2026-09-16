@@ -8,7 +8,9 @@ import type { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/j
 import RequiredGroupValidator from './required-group-validator.ts';
 
 /** A validator that expresses "this answer is required", as opposed to a format or uniqueness rule. */
-type RequiredLike = { validate: (question: Question, response: JourneyResponse) => ValidationChain };
+type RequiredLike = {
+	validate: (question: Question, response: JourneyResponse) => ValidationChain | ValidationChain[];
+};
 
 export interface ManageListItemsCompleteValidatorParams {
 	/**
@@ -18,7 +20,7 @@ export interface ManageListItemsCompleteValidatorParams {
 	 */
 	isCompletenessValidator?: (validator: unknown) => boolean;
 	/** Names the offending row in the error. Defaults to the row's position. */
-	describeItem?: (item: Record<string, unknown>, index: number) => string;
+	describeItem?: (item: Record<string, unknown>, index: number, question: Question) => string;
 }
 
 /** Carries a question's own required rules, so error wording stays in one place. */
@@ -41,7 +43,7 @@ const DEFAULT_COMPLETENESS_VALIDATORS = (validator: unknown): boolean =>
  */
 export default class ManageListItemsCompleteValidator extends BaseValidator {
 	private isCompletenessValidator: (validator: unknown) => boolean;
-	private describeItem?: (item: Record<string, unknown>, index: number) => string;
+	private describeItem?: (item: Record<string, unknown>, index: number, question: Question) => string;
 
 	constructor({ isCompletenessValidator, describeItem }: ManageListItemsCompleteValidatorParams = {}) {
 		super();
@@ -68,21 +70,27 @@ export default class ManageListItemsCompleteValidator extends BaseValidator {
 				return true;
 			}
 
-			const message = await this.firstFailure(questionObj, item);
+			const found = await this.failures(questionObj, item);
 
-			if (message) {
-				throw new Error(`${this.nameFor(item, index)}: ${message}`);
+			if (found.length > 0) {
+				const [first] = found;
+				const fields = found.map(({ question }) => question.title).join(', ');
+
+				throw new Error(`${this.nameFor(item, index, first.question)} - Complete ${fields}`);
 			}
 
 			return true;
 		});
 	}
 
-	/** The first unmet required rule on this row, or null if it is complete. */
-	private async firstFailure(questionObj: Question, item: Record<string, unknown>): Promise<string | null> {
-		const questions = this.visibleQuestions(questionObj, item);
+	/** Every unmet required rule on this row, in question order. */
+	private async failures(
+		questionObj: Question,
+		item: Record<string, unknown>
+	): Promise<{ question: Question; message: string }[]> {
+		const found: { question: Question; message: string }[] = [];
 
-		for (const question of questions) {
+		for (const question of this.visibleQuestions(questionObj, item)) {
 			const validators = (question.validators ?? []) as unknown[];
 
 			for (const validator of validators) {
@@ -93,17 +101,23 @@ export default class ManageListItemsCompleteValidator extends BaseValidator {
 				const message = await this.runAgainstItem(validator as RequiredLike, question, item);
 
 				if (message) {
-					return message;
+					found.push({ question, message });
+					// One message per question - a second required rule on the same
+					// field would be reporting the same gap twice.
+					break;
 				}
 			}
 		}
 
-		return null;
+		return found;
 	}
 
 	/**
 	 * Runs one validator with the row standing in for the request body, which is
 	 * where the sub-question validators look for their answer.
+	 *
+	 * A validator may return one chain or several, the same as the library
+	 * middleware handles.
 	 */
 	private async runAgainstItem(
 		validator: RequiredLike,
@@ -113,7 +127,12 @@ export default class ManageListItemsCompleteValidator extends BaseValidator {
 		const stubRequest = { body: { ...item }, params: {}, query: {}, cookies: {}, headers: {} };
 		const response = { answers: item } as unknown as JourneyResponse;
 
-		await validator.validate(question, response).run(stubRequest);
+		const rules = validator.validate(question, response);
+		const chains = Array.isArray(rules) ? rules : [rules];
+
+		for (const chain of chains) {
+			await chain.run(stubRequest);
+		}
 
 		const [error] = validationResult(stubRequest).array();
 
@@ -152,7 +171,7 @@ export default class ManageListItemsCompleteValidator extends BaseValidator {
 		return shouldDisplay.call(question, { answers: item } as unknown as JourneyResponse);
 	}
 
-	private nameFor(item: Record<string, unknown>, index: number): string {
-		return this.describeItem ? this.describeItem(item, index) : `Entry ${index + 1}`;
+	private nameFor(item: Record<string, unknown>, index: number, question: Question): string {
+		return this.describeItem ? this.describeItem(item, index, question) : `Entry ${index + 1}`;
 	}
 }

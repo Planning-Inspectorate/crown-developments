@@ -76,6 +76,7 @@ import { housingQuestions, residentialTotalQuestions } from '../util/housing-que
 import { floorspaceQuestions } from '../util/floorspace-questions.ts';
 import type { ResidentialTotals } from '../util/residential-totals.ts';
 import type { ColumnFormatContext } from '@pins/crowndev-lib/forms/custom-components/manage-list/table/defined-columns-list-table/question.ts';
+import ManageListItemsCompleteValidator from '@pins/crowndev-lib/validators/manage-list-items-complete-validator.ts';
 
 interface QuestionOverrides {
 	isQuestionView?: boolean;
@@ -1423,6 +1424,13 @@ export function getQuestions(
 			showAnswersInSummary: true,
 			maximumAnswers: 10,
 			hideCancel: true,
+			validators: [
+				new ManageListItemsCompleteValidator({
+					describeItem: (item) =>
+						(typeof item.vehicleType === 'string' ? VEHICLE_PARKING_CATEGORY_MAP.get(item.vehicleType) : undefined) ??
+						'Incomplete entry'
+				})
+			],
 			columns: [
 				{
 					header: 'Type of vehicle',
@@ -2280,6 +2288,11 @@ export function getQuestions(
 			showAnswersInSummary: true,
 			summaryLimit: 3,
 			hideCancel: true,
+			validators: [
+				new ManageListItemsCompleteValidator({
+					describeItem: (item) => WASTE_TYPES.find((t) => t.id === item.wasteTypeId)?.displayName ?? 'Incomplete entry'
+				})
+			],
 			columns: [
 				{
 					header: 'Type',

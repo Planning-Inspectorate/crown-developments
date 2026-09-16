@@ -16,6 +16,7 @@ import {
 	isRetail
 } from './floorspace-questions.ts';
 import { areaFieldName, AREA_FIELDS, FLOORSPACE_LABELS, ROOMS_LABELS } from '../view/view-model.ts';
+import ManageListItemsCompleteValidator from '@pins/crowndev-lib/validators/manage-list-items-complete-validator.ts';
 
 /** The questions as built for the tab row rather than the check page. */
 const build = () => floorspaceQuestions(false);
@@ -170,6 +171,10 @@ describe('floorspaceQuestions', () => {
 
 	it('keeps the list on one field, as one table holds every entry', () => {
 		assert.strictEqual(build().manageFloorspace.fieldName, 'manageNonResidentialFloorspace');
+	});
+
+	it('guards the list against incomplete entries', () => {
+		assert.ok(build().manageFloorspace.validators.some((v) => v instanceof ManageListItemsCompleteValidator));
 	});
 
 	describe('use class', () => {

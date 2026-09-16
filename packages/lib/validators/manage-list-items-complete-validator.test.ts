@@ -4,14 +4,16 @@ import { RequiredValidator } from '@planning-inspectorate/dynamic-forms';
 import type { Question } from '@planning-inspectorate/dynamic-forms';
 import type { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
 import { MANAGE_LIST_ACTIONS } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-actions.js';
+import { body } from 'express-validator';
 import ManageListItemsCompleteValidator from './manage-list-items-complete-validator.ts';
 import RequiredGroupValidator from './required-group-validator.ts';
 import UniqueListFieldValidator from './unique-list-field-validator.ts';
 
 /** A sub-question carrying its own required rule, as the real ones do. */
-function subQuestion(fieldName: string, message: string, overrides: Partial<Question> = {}): Question {
+function subQuestion(fieldName: string, title: string, message: string, overrides: Partial<Question> = {}): Question {
 	return {
 		fieldName,
+		title,
 		validators: [new RequiredValidator(message)],
 		...overrides
 	} as unknown as Question;
@@ -50,8 +52,8 @@ async function runChains(
 }
 
 describe('ManageListItemsCompleteValidator', () => {
-	const name = subQuestion('childName', 'Enter a name');
-	const age = subQuestion('childAge', 'Enter an age');
+	const name = subQuestion('childName', 'Name', 'Enter a name');
+	const age = subQuestion('childAge', 'Age', 'Enter an age');
 
 	it('returns no chains for an empty list, so there is nothing to fail', () => {
 		const { question, response } = listQuestion([], [name]);
@@ -71,19 +73,33 @@ describe('ManageListItemsCompleteValidator', () => {
 		assert.deepStrictEqual(await runChains(new ManageListItemsCompleteValidator(), question, response), []);
 	});
 
-	it('fails a row missing an answer, carrying the sub-question own message', async () => {
+	it('names the question a row is missing', async () => {
 		const { question, response } = listQuestion([{ id: 'row-1', childName: 'John' }], [name, age]);
 
 		assert.deepStrictEqual(await runChains(new ManageListItemsCompleteValidator(), question, response), [
-			'Entry 1: Enter an age'
+			'Entry 1 - Complete Age'
 		]);
 	});
 
-	it('reports only the first failure on a row, so one row yields one error', async () => {
+	it('names every question a row is missing, not just the first', async () => {
 		const { question, response } = listQuestion([{ id: 'row-1' }], [name, age]);
 
 		assert.deepStrictEqual(await runChains(new ManageListItemsCompleteValidator(), question, response), [
-			'Entry 1: Enter a name'
+			'Entry 1 - Complete Name, Age'
+		]);
+	});
+
+	it('names a question once even when it carries several required rules', async () => {
+		const twice = {
+			fieldName: 'childName',
+			title: 'Name',
+			validators: [new RequiredValidator('Enter a name'), new RequiredValidator('A name is required')]
+		} as unknown as Question;
+
+		const { question, response } = listQuestion([{ id: 'row-1' }], [twice]);
+
+		assert.deepStrictEqual(await runChains(new ManageListItemsCompleteValidator(), question, response), [
+			'Entry 1 - Complete Name'
 		]);
 	});
 
@@ -94,8 +110,8 @@ describe('ManageListItemsCompleteValidator', () => {
 		);
 
 		assert.deepStrictEqual(await runChains(new ManageListItemsCompleteValidator(), question, response), [
-			'Entry 1: Enter an age',
-			'Entry 2: Enter a name'
+			'Entry 1 - Complete Age',
+			'Entry 2 - Complete Name, Age'
 		]);
 	});
 
@@ -105,11 +121,11 @@ describe('ManageListItemsCompleteValidator', () => {
 			describeItem: (item) => String(item.childName ?? 'Incomplete entry')
 		});
 
-		assert.deepStrictEqual(await runChains(validator, question, response), ['John: Enter an age']);
+		assert.deepStrictEqual(await runChains(validator, question, response), ['John - Complete Age']);
 	});
 
 	it('does not check a question hidden for that row, so an untaken branch cannot block a save', async () => {
-		const hiddenAge = subQuestion('childAge', 'Enter an age', {
+		const hiddenAge = subQuestion('childAge', 'Age', 'Enter an age', {
 			shouldDisplay: ((res: JourneyResponse) => (res.answers as Record<string, unknown>).childName === 'John') as never
 		});
 		const { question, response } = listQuestion([{ id: 'row-1', childName: 'Jane' }], [name, hiddenAge]);
@@ -118,7 +134,7 @@ describe('ManageListItemsCompleteValidator', () => {
 	});
 
 	it('checks a question visible for that row even when hidden for another', async () => {
-		const conditionalAge = subQuestion('childAge', 'Enter an age', {
+		const conditionalAge = subQuestion('childAge', 'Age', 'Enter an age', {
 			shouldDisplay: ((res: JourneyResponse) => (res.answers as Record<string, unknown>).childName === 'John') as never
 		});
 		const { question, response } = listQuestion(
@@ -130,13 +146,14 @@ describe('ManageListItemsCompleteValidator', () => {
 		);
 
 		assert.deepStrictEqual(await runChains(new ManageListItemsCompleteValidator(), question, response), [
-			'Entry 2: Enter an age'
+			'Entry 2 - Complete Age'
 		]);
 	});
 
 	it('requires at least one field of a group, matching the sub-question rule', async () => {
 		const bands = {
 			fieldName: 'bedrooms',
+			title: 'Bedrooms',
 			validators: [
 				new RequiredGroupValidator({
 					fieldNames: ['bedroomsOne', 'bedroomsTwo'],
@@ -150,13 +167,36 @@ describe('ManageListItemsCompleteValidator', () => {
 
 		assert.deepStrictEqual(await runChains(new ManageListItemsCompleteValidator(), partial, partialAnswers), []);
 		assert.deepStrictEqual(await runChains(new ManageListItemsCompleteValidator(), blank, blankAnswers), [
-			'Entry 1: Enter a number of bedrooms'
+			'Entry 1 - Complete Bedrooms'
 		]);
+	});
+
+	it('runs a validator that returns several chains, as the library middleware does', async () => {
+		const multi = {
+			fieldName: 'childName',
+			title: 'Name',
+			validators: [
+				{
+					validate: () => [
+						body('childName').custom(() => true),
+						body('childName').custom(() => {
+							throw new Error('Enter a name');
+						})
+					]
+				}
+			]
+		} as unknown as Question;
+
+		const { question, response } = listQuestion([{ id: 'row-1' }], [multi]);
+		const validator = new ManageListItemsCompleteValidator({ isCompletenessValidator: () => true });
+
+		assert.deepStrictEqual(await runChains(validator, question, response), ['Entry 1 - Complete Name']);
 	});
 
 	it('ignores a uniqueness rule, which would flag every row as a duplicate of itself', async () => {
 		const unique = {
 			fieldName: 'childName',
+			title: 'Name',
 			validators: [
 				new UniqueListFieldValidator({
 					listFieldName: 'myList',
@@ -195,7 +235,7 @@ describe('ManageListItemsCompleteValidator', () => {
 		});
 
 		assert.deepStrictEqual(await runChains(new ManageListItemsCompleteValidator(), withVisibility, response), [
-			'Entry 1: Enter an age'
+			'Entry 1 - Complete Age'
 		]);
 	});
 
