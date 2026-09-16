@@ -1,0 +1,8 @@
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
+
+// Marks a manage list table row whose entry is incomplete. The GOV.UK table
+// macro takes no row-level attributes, so the border sits on the row's first cell.
+.pins-table__cell--error {
+	padding-left: govuk.govuk-spacing(2);
+	border-left: 5px solid govuk.govuk-colour('red');
+}

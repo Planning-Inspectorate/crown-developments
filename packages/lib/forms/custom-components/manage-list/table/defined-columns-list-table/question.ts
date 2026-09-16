@@ -4,6 +4,7 @@ import type { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/j
 import type { Question, QuestionViewModel } from '@planning-inspectorate/dynamic-forms';
 import TableManageListQuestion from '../question.ts';
 import type { TableHeadCell, TableManageListQuestionParameters, TableRowCell } from '../types.ts';
+import { escapeHtml } from '../../../../../util/string.ts';
 
 export interface ColumnFormatContext {
 	getQuestion: (fieldName: string) => Question | undefined;
@@ -76,15 +77,32 @@ export default class DefinedColumnsTableQuestion extends TableManageListQuestion
 	 * Creates a row, one cell per declared column
 	 */
 	override createRow(viewModel: QuestionViewModel, item: Record<string, unknown>): TableRowCell[] {
-		const cells: TableRowCell[] = this.columns.map((col) => {
+		const errors = (viewModel.errors ?? {}) as Record<string, { msg?: unknown } | undefined>;
+		const itemId = typeof item.id === 'string' ? item.id : '';
+
+		const error = errors[itemId];
+		const errorMessage = typeof error?.msg === 'string' ? error.msg : undefined;
+
+		// The row identifies itself in the table, so the prefix naming it is
+		// redundant inside the cell. It ends at the first ' - '.
+		const inlineMessage = errorMessage?.includes(' - ')
+			? errorMessage.slice(errorMessage.indexOf(' - ') + 3)
+			: errorMessage;
+
+		const cells: TableRowCell[] = this.columns.map((col, index) => {
 			const linkedQuestion = this.getQuestionByFieldName(col.fieldName);
 			const cellContent = this.getFormattedColumnValue(col, item, linkedQuestion, true);
 
+			// The GOV.UK table macro takes no row-level attributes, so the anchor
+			// and the error live on the row's first cell.
+			const isFirst = index === 0;
+
 			return {
-				html: cellContent || '-',
-				classes: 'govuk-table__cell',
+				html: isFirst && inlineMessage ? `${cellContent || '-'}${this.errorHtml(inlineMessage)}` : cellContent || '-',
+				classes: `govuk-table__cell${isFirst && errorMessage ? ' pins-table__cell--error' : ''}`,
 				attributes: {
-					'data-sort-value': this.handleSorting(cellContent, col, linkedQuestion, item[col.fieldName])
+					'data-sort-value': this.handleSorting(cellContent, col, linkedQuestion, item[col.fieldName]),
+					...(isFirst && itemId ? { id: itemId, tabindex: '-1' } : {})
 				}
 			};
 		});
@@ -92,6 +110,12 @@ export default class DefinedColumnsTableQuestion extends TableManageListQuestion
 		cells.push({ html: this.generateActionsHtml(viewModel, item) });
 
 		return cells;
+	}
+
+	private errorHtml(message: string): string {
+		return `<p class="govuk-error-message govuk-!-margin-bottom-0 govuk-!-margin-top-1">
+			<span class="govuk-visually-hidden">Error:</span> ${escapeHtml(message)}
+		</p>`;
 	}
 
 	/**

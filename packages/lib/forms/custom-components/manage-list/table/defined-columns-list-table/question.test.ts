@@ -150,6 +150,64 @@ describe('DefinedColumnsTableQuestion', () => {
 		});
 	});
 
+	describe('createRow() error state', () => {
+		/** The view model with an error recorded against the given row id. */
+		const withError = (itemId: string, msg: string): QuestionViewModel =>
+			({ ...mockViewModel, errors: { [itemId]: { msg } } }) as unknown as QuestionViewModel;
+
+		it('marks only the first cell, so the row carries one left border rather than four', () => {
+			const cells = question.createRow(withError('1', 'Cars - Complete Existing spaces'), { id: '1', caseRef: 'ABC' });
+
+			assert.ok(cells[0].classes?.includes('pins-table__cell--error'));
+			assert.ok(!cells[1].classes?.includes('pins-table__cell--error'));
+			assert.ok(!cells[2].classes?.includes('pins-table__cell--error'));
+		});
+
+		it('anchors the first cell, so an error summary link can focus the row', () => {
+			const cells = question.createRow(withError('1', 'Cars - Complete Existing spaces'), { id: '1', caseRef: 'ABC' });
+
+			assert.strictEqual(cells[0].attributes?.id, '1');
+			assert.strictEqual(cells[0].attributes?.tabindex, '-1');
+			assert.strictEqual(cells[1].attributes?.id, undefined);
+		});
+
+		it('drops the row name from the inline message, since the row already names itself', () => {
+			const cells = question.createRow(withError('1', 'Cars - Complete Existing spaces'), { id: '1', caseRef: 'ABC' });
+
+			assert.ok(cells[0].html?.includes('Complete Existing spaces'));
+			assert.ok(!cells[0].html?.includes('Cars -'));
+		});
+
+		it('keeps a message that carries no row name', () => {
+			const cells = question.createRow(withError('1', 'Something went wrong'), { id: '1', caseRef: 'ABC' });
+
+			assert.ok(cells[0].html?.includes('Something went wrong'));
+		});
+
+		it('escapes the message, as it is inserted as html', () => {
+			const cells = question.createRow(withError('1', 'Entry - Complete <script>'), { id: '1', caseRef: 'ABC' });
+
+			assert.ok(!cells[0].html?.includes('<script>'));
+		});
+
+		it('leaves a row with no error untouched', () => {
+			const cells = question.createRow(withError('other-row', 'Cars - Complete Existing spaces'), {
+				id: '1',
+				caseRef: 'ABC'
+			});
+
+			assert.strictEqual(cells[0].html, 'ABC');
+			assert.strictEqual(cells[0].classes, 'govuk-table__cell');
+			assert.strictEqual(cells[0].attributes?.id, '1');
+		});
+
+		it('anchors every row, so a link resolves whether or not that row errored', () => {
+			const cells = question.createRow(mockViewModel, { id: '1', caseRef: 'ABC' });
+
+			assert.strictEqual(cells[0].attributes?.id, '1');
+		});
+	});
+
 	describe('handleSorting()', () => {
 		it('should return a unix timestamp when the column sortType is date', () => {
 			const col = { header: 'Date', fieldName: 'date', sortType: 'date' } as TableColumn;
