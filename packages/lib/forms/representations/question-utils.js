@@ -252,7 +252,7 @@ export function representationsContactQuestions({
 	};
 
 	questions[`${prefix}SelectBlobAttachments`] = {
-		type: CUSTOM_COMPONENTS.MULTI_FILE_UPLOADER,
+		type: CUSTOM_COMPONENTS.REPS_MULTI_FILE_UPLOADER,
 		title: 'Attachments',
 		question: 'Upload supporting attachments',
 		fieldName: `${prefix}BlobAttachments`,

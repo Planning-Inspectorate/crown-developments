@@ -4,6 +4,7 @@ import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import { createRoutes as createAddRepRoutes } from './add/index.ts';
 import { buildListReps } from './list/controller.ts';
 import { createRoutes as createReviewRoutes } from './review/index.ts';
+import { createRoutes as createTaskListRoutes } from './task-list/index.ts';
 import { viewRepresentationAwaitingReview } from './review/controller.ts';
 import { buildGetJourneyMiddleware } from './view/controller.ts';
 import {
@@ -38,6 +39,8 @@ import {
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
 import { ManageRepresentationDocumentDownloader } from './manage-reps-document-downloader.ts';
 
+export const MANAGE_REPS_MANAGE_JOURNEY_ID = 's62a-manage-reps-manage-journey';
+
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });
 	const repsRouter = createRouter({ mergeParams: true });
@@ -48,6 +51,7 @@ export function createRoutes(service: ManageService) {
 	const list = buildListReps(service);
 	const addRepRoutes = createAddRepRoutes(service);
 	const reviewRoutes = createReviewRoutes(service);
+	const taskListRoutes = createTaskListRoutes(service, MANAGE_REPS_MANAGE_JOURNEY_ID);
 
 	const updateRepFn = buildUpdateRepresentation(service);
 	const saveAnswer = buildSave(updateRepFn, true);
@@ -117,6 +121,8 @@ export function createRoutes(service: ManageService) {
 
 	router.get('/', asyncHandler(list));
 	router.use('/add-representation', asyncHandler(addRepRoutes));
+
+	repsRouter.use('/manage/task-list', taskListRoutes);
 
 	return router;
 }
