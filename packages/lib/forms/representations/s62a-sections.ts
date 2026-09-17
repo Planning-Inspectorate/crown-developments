@@ -78,7 +78,7 @@ function addRepMyselfSection(questions: Record<string, Question>, isViewJourney:
 				questionArrayMeetsCondition(
 					response,
 					questions.myselfSelectBlobAttachments,
-					(answer: Record<string, unknown>) => answer.redactedBlobName && answer.redactedFileName
+					(answer: Record<string, unknown>) => Boolean(answer.redactedBlobName && answer.redactedFileName)
 				) && questionHasAnswer(response, questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES)
 		);
 }
@@ -145,7 +145,7 @@ function addRepAgentSection(questions: Record<string, Question>, isViewJourney: 
 				questionArrayMeetsCondition(
 					response,
 					questions.submitterSelectBlobAttachments,
-					(answer: Record<string, unknown>) => answer.redactedBlobName && answer.redactedFileName
+					(answer: Record<string, unknown>) => Boolean(answer.redactedBlobName && answer.redactedFileName)
 				) && questionHasAnswer(response, questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES)
 		);
 }
