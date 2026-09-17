@@ -134,9 +134,7 @@
 					if (form) form.submit();
 				});
 			});
-		});
 
-		document.addEventListener('DOMContentLoaded', function() {
 			const fileInput = document.querySelector('#redactedFile-input');
 			const form = document.querySelector('#upload-form');
 
@@ -148,12 +146,9 @@
 					form.submit();
 				});
 			}
-		});
 
-		window.addEventListener('DOMContentLoaded', () => {
-			const links = document.querySelectorAll('.pins-js-enabled-link');
-			links.forEach(link => {
-				link.style.display = 'inline';
+			document.querySelectorAll('.pins-js-enabled-link').forEach(function(link) {
+					link.style.display = 'inline';
 			});
 		});
 	</script>

@@ -15,6 +15,8 @@ export function createRoutes(service: ManageService, journeyId: string) {
 	router.get('/', asyncHandler(representationTaskList));
 
 	router.use('/representation', commentRoutes);
+
+	// Any additional routes must be added above this one to avoid overlap.
 	router.use('/:documentId', attachmentRoutes);
 
 	return router;

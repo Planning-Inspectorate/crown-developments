@@ -25,6 +25,7 @@ import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import type { ValidationConfig } from '@pins/crowndev-lib/validators/file-validator.ts';
 import type { DraftRedactedDocumentDownloader } from './draft-redacted-document-downloader.ts';
+import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 
 export function buildReviewRepresentationDocument(service: ManageService) {
 	const { db } = service;
@@ -199,7 +200,8 @@ export function buildRedactRepresentationDocument(service: ManageService) {
 	};
 }
 
-export function buildUploadDocuments(documentUploader: RedactedAttachmentUploader) {
+export function buildUploadDocuments(service: ManageService, documentUploader: RedactedAttachmentUploader) {
+	const { logger } = service;
 	return async (req: Request, res: Response) => {
 		const { id, documentId, representationRef } = getStringParams(req.params, [
 			'id',
@@ -208,22 +210,31 @@ export function buildUploadDocuments(documentUploader: RedactedAttachmentUploade
 		]);
 		const files = req.files as Express.Multer.File[];
 
-		const insertedDocuments = await documentUploader.processAndDraftUploads(id, files, req.sessionID, documentId);
+		try {
+			const insertedDocuments = await documentUploader.processAndDraftUploads(id, files, req.sessionID, documentId);
 
-		const uploadedFiles = insertedDocuments.map((document) => {
-			return {
-				itemId: document.blobName,
-				fileName: document.fileName,
-				mimeType: document.mimeType,
-				size: Number(document.size)
-			};
-		});
+			const uploadedFiles = insertedDocuments.map((document) => {
+				return {
+					itemId: document.blobName,
+					fileName: document.fileName,
+					mimeType: document.mimeType,
+					size: Number(document.size)
+				};
+			});
 
-		addSessionData(req, representationRef, { [documentId]: { uploadedFiles } }, 'files');
+			addSessionData(req, representationRef, { [documentId]: { uploadedFiles } }, 'files');
 
-		return res.redirect(
-			`/s62a/cases/${id}/manage-representations/${representationRef}/review/task-list/${documentId}/redact`
-		);
+			return res.redirect(
+				`/s62a/cases/${id}/manage-representations/${representationRef}/review/task-list/${documentId}/redact`
+			);
+		} catch (error) {
+			wrapPrismaError({
+				error,
+				logger,
+				message: 'uploading representation attachments',
+				logParams: { documentId }
+			});
+		}
 	};
 }
 
