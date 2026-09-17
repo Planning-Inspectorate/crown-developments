@@ -196,7 +196,7 @@ describe('Manage Representation Document Controllers', () => {
 					]) as unknown as undefined
 			);
 
-			const handler = buildUploadDocuments(mockUploader);
+			const handler = buildUploadDocuments(service, mockUploader);
 			await handler(req, res);
 
 			assert.strictEqual(processMock.mock.callCount(), 1);

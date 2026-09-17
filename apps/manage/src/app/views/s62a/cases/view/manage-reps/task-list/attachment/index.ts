@@ -47,7 +47,7 @@ export function createRoutes(service: ManageService, journeyId: string) {
 	const redactRepresentationDocument = buildRedactRepresentationDocument(service);
 	const redactRepresentationDocumentPost = buildRedactRepresentationDocumentPost(service);
 	const validateRedactedFileMiddleware = buildValidateRedactedFileMiddleware(service);
-	const uploadDocuments = buildUploadDocuments(uploader);
+	const uploadDocuments = buildUploadDocuments(service, uploader);
 	const deleteRepresentationRedactedDocumentMiddleware = buildDeleteRepresentationRedactedDocumentMiddleware(journeyId);
 	const deleteDocument = deleteDocumentController(service, uploader);
 
