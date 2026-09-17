@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
+import { mockLogger } from '@planning-inspectorate/core/testing';
 import { asReq, asRes } from '@pins/crowndev-lib/testing/mock-express.ts';
 import { AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/index.ts';
 import {

@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import type { ManageService } from '#service';
-import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 
 import { s62aRepresentationToManageViewModel } from '@pins/crowndev-lib/forms/representations/view-model.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';

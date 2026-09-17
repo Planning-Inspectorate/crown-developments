@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildCaseListPage } from './controller.ts';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
+import { mockLogger } from '@planning-inspectorate/core/testing';
 import { S62APortalService } from '#service';
 import type { BaseLogger } from 'pino';
 import type { Request, Response } from 'express';

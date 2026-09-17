@@ -1,7 +1,7 @@
 import type { ManageService } from '#service';
 import { getRepresentationValidationErrors } from '@pins/crowndev-lib/forms/representations/validation-utils.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import { getStringParams } from '@pins/crowndev-lib/util/params.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 

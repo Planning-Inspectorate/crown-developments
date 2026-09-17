@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import { GovNotifyClient } from './gov-notify-client.ts';
-import { mockLogger } from '../testing/mock-logger.ts';
+import { mockLogger } from '@planning-inspectorate/core/testing';
 import assert from 'node:assert';
 import { AxiosError } from 'axios';
 

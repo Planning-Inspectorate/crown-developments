@@ -1,5 +1,5 @@
 import { describe, it, mock } from 'node:test';
-import { mockLogger } from '../testing/mock-logger.ts';
+import { mockLogger } from '@planning-inspectorate/core/testing';
 import assert from 'node:assert';
 import { getDocuments, getDocumentsById } from './get.js';
 

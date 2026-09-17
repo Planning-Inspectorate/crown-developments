@@ -8,7 +8,7 @@ import {
 	buildSubmitUpdateDetails,
 	buildUpdateDetailsPage
 } from './controller.js';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
+import { mockLogger } from '@planning-inspectorate/core/testing';
 
 describe('application updates review controller', () => {
 	describe('buildReviewController', () => {

@@ -1,29 +1,12 @@
 import path from 'node:path';
 import { loadEnvFile } from 'node:process';
-import type { BaseConfig } from '@pins/crowndev-lib/app/config-types.d.ts';
+import type { BaseConfig } from '@planning-inspectorate/core/app';
 import { parseSessionSecrets } from '@pins/crowndev-lib/util/session.ts';
 
 export interface Config extends BaseConfig {
-	cacheControl: {
-		maxAge: string;
-	};
-	database: {
-		connectionString: string | undefined;
-	};
 	featureFlags: {
 		isLive: boolean;
 	};
-	gitSha?: string;
-	httpPort: number;
-	logLevel: string;
-	NODE_ENV: string;
-	srcDir: string;
-	session: {
-		redisPrefix: string;
-		redis?: string;
-		secret: string[];
-	};
-	staticDir: string;
 	s62aDevContactInfo: {
 		email: string | undefined;
 	};

@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { test, describe, beforeEach, mock } from 'node:test';
 import { buildNotifyCallbackController, findMissingReference, getNotificationSource } from './controller.js';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
+import { mockLogger } from '@planning-inspectorate/core/testing';
 import { NOTIFICATION_SOURCE } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('findMissingReference', () => {

@@ -1,6 +1,6 @@
 import { Router as createRouter } from 'express';
 import { buildWrittenRepresentationsListPage } from './controller.js';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { asyncHandler } from '@planning-inspectorate/core/util';
 import { buildWrittenRepresentationsReadMorePage } from './read-more/controller.js';
 import { buildDocumentView } from '../../../util/documents-util.js';
 import { buildCachingDynamicContentMiddleware } from '../../../util/caching-middleware.js';

@@ -5,7 +5,7 @@ import type { Request, Response } from 'express';
 import { addSessionData, isUnsafeObjectKey } from '../../util/session.ts';
 import { getStringParam } from '../../util/params.ts';
 import type { Logger } from 'pino';
-import type { AsyncRequestHandler } from '../../util/async-handler.ts';
+import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import { JourneyResponse, REDACT_CHARACTER } from '@planning-inspectorate/dynamic-forms';
 import type { PiiEntity, TextAnalyticsClient } from '@azure/ai-text-analytics';
 import {

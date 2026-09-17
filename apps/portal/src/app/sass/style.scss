@@ -8,9 +8,9 @@
 );
 @use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
 
-// Shared page layout from lib
-@use 'packages/lib/views/header/pins-header';
-@use 'packages/lib/views/footer/pins-footer';
+// Shared components from core
+@use 'node_modules/@planning-inspectorate/core/dist/ui/header/pins-header';
+@use 'node_modules/@planning-inspectorate/core/dist/ui/footer/pins-footer';
 
 // Shared helpers from lib
 @use 'packages/lib/views/styles/helpers/typography';

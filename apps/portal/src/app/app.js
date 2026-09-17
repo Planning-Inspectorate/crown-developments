@@ -1,85 +1,39 @@
-import bodyParser from 'body-parser';
-import express from 'express';
 import manifest from '../.static/manifest.json' with { type: 'json' };
 import { buildRouter } from './router.js';
 import { configureNunjucks } from './nunjucks.js';
-import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.ts';
-import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.ts';
 import { addLocalsConfiguration } from '#util/config-middleware.js';
-import { initContentSecurityPolicyMiddlewares } from '#util/csp-middleware.ts';
+import { cspDirectives } from '#util/csp-middleware.ts';
 import { buildAnalyticsCookiesMiddleware } from '#util/cookies.js';
 import { cleanEmptyQueryParams, trimEmptyQuery } from '@pins/crowndev-lib/middleware/query-middleware.js';
-import lusca from 'lusca';
+import { createBaseApp } from '@planning-inspectorate/core/app';
 
 /**
  * @param {import('#service').PortalService} service
  * @returns {Express}
  */
 export function getApp(service) {
-	// create an express app, and configure it for our usage
-	const app = express();
-	const csrfMiddleware = lusca.csrf();
-	const logRequests = buildLogRequestsMiddleware(service.logger);
-	// middleware to clean empty query params and trim empty query values
-	app.use(cleanEmptyQueryParams, trimEmptyQuery);
-	app.use(logRequests);
+	const router = buildRouter(service);
 
-	// configure body-parser, to populate req.body
-	// see https://expressjs.com/en/resources/middleware/body-parser.html
-	app.use(bodyParser.urlencoded({ extended: true }));
-	app.use(bodyParser.json());
-
-	const sessionMiddleware = initSessionMiddleware({
-		redis: service.redisClient,
-		secure: service.secureSession,
-		secret: service.sessionSecret
-	});
-	app.use(sessionMiddleware);
-
-	// CSRF protection middleware, with an exception for the file upload endpoint which uses Multer and multipart/form-data
-	// see https://github.com/krakenjs/lusca/issues/70
-	app.use((req, res, next) => {
-		if (/\/upload-documents\/?$/.test(req.path) && req.method === 'POST') {
+	return createBaseApp({
+		service,
+		router,
+		configureNunjucks,
+		cspDirectives,
+		multiPartFormRoutes: [
 			// Multer multipart/form-data needs to be handled before Lusca CSRF check
 			// upload-documents is the POST API the file-upload component in our journeys, which uses Multer
-			next();
-		} else {
-			csrfMiddleware(req, res, next);
-		}
+			/\/upload-documents\/?$/
+		],
+		middlewares: [
+			// middleware to clean empty query params and trim empty query values
+			cleanEmptyQueryParams,
+			trimEmptyQuery,
+			addLocalsConfiguration(service),
+			buildAnalyticsCookiesMiddleware(service),
+			(req, res, next) => {
+				res.locals.styleCss = manifest['style.css'];
+				next();
+			}
+		]
 	});
-
-	app.use(addLocalsConfiguration(service));
-	app.use(buildAnalyticsCookiesMiddleware(service));
-
-	// content security policy middleware including nonce generation
-	app.use(...initContentSecurityPolicyMiddlewares());
-
-	const nunjucksEnvironment = configureNunjucks();
-	// Set the express view engine to nunjucks
-	// calls to res.render will use nunjucks
-	nunjucksEnvironment.express(app);
-	app.set('view engine', 'njk');
-
-	// static files
-	app.use(express.static(service.staticDir, service.staticCacheControl));
-
-	// Cache busting for CSS
-	app.use((req, res, next) => {
-		res.locals.styleCss = manifest['style.css'];
-		next();
-	});
-
-	const router = buildRouter(service);
-	// register the router, which will define any subpaths
-	// any paths not defined will return 404 by default
-	app.use('/', router);
-
-	app.use(notFoundHandler);
-
-	const defaultErrorHandler = buildDefaultErrorHandlerMiddleware(service.logger);
-	// catch/handle errors last
-	app.use(defaultErrorHandler);
-
-	return app;
 }

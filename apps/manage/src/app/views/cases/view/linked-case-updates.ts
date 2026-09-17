@@ -1,5 +1,5 @@
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { optionalWhere } from '@pins/crowndev-lib/util/database.ts';
+import { optionalWhere } from '@planning-inspectorate/core/util';
 import { viewModelToAddressUpdateInput, isAddress, isSameAddress } from '@pins/crowndev-lib/util/address.ts';
 import { extractApplicantContactFields, extractAgentContactFields } from '../util/contact.js';
 import { isDefined } from '@pins/crowndev-lib/util/boolean.ts';

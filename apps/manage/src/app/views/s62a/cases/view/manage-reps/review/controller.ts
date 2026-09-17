@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { renderRepresentation } from '../view/controller.ts';
 import { getStringParams } from '@pins/crowndev-lib/util/params.ts';
-import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 
 export async function viewRepresentationAwaitingReview(req: Request, res: Response) {
 	getStringParams(req.params, ['id', 'representationRef']);

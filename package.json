@@ -46,6 +46,7 @@
     "@azure/storage-blob": "^12.33.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@ministryofjustice/frontend": "^10.0.1",
+    "@planning-inspectorate/core": "^1.13.1",
     "@planning-inspectorate/dynamic-forms": "^3.18.1",
     "@prisma/adapter-mssql": "^7.9.1",
     "@prisma/client": "^7.9.1",

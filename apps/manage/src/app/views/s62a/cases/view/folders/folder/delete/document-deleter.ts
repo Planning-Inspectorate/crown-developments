@@ -1,5 +1,5 @@
 import type { ManageService } from '#service';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
+import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { Request, Response } from 'express';
