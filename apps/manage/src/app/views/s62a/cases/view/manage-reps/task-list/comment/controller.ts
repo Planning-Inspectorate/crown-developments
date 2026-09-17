@@ -25,9 +25,9 @@ import { expressValidationErrorsToGovUkErrorList } from '@planning-inspectorate/
 import type { NextFunction, Request, RequestHandler } from 'express';
 import type { Logger } from 'pino';
 import { JOURNEY_ID } from '../../view/journey.ts';
-import { MANAGE_REPS_MANAGE_JOURNEY_ID } from '../controller.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { BlobStorageClient } from '@pins/crowndev-lib/blob-store/blob-store-client.ts';
+import { MANAGE_REPS_MANAGE_JOURNEY_ID } from '../../index.ts';
 
 /**
  * Renders the review comment page for an S62A representation.
@@ -317,20 +317,10 @@ export async function updateRepresentationItemsReviewStatus(req: Request, db: Ma
 					repDocUpdate.redactedFileName = null;
 				}
 
-				const document = await tx.blobRepresentationDocument.findFirst({
-					where: { blobName: key },
-					select: { id: true }
-				});
-
-				if (!document) {
-					logger.warn({ id, representationRef, key }, 'Document not found for blobName');
-					continue;
-				}
-
-				logger.info({ representationRef, blobName: document.id, repUpdate: repDocUpdate }, 'update document status');
+				logger.info({ representationRef, repUpdate: repDocUpdate }, 'update document status');
 
 				await tx.blobRepresentationDocument.update({
-					where: { id: document.id },
+					where: { id: key },
 					data: repDocUpdate
 				});
 			}

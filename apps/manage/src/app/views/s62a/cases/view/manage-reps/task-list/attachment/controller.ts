@@ -16,7 +16,6 @@ import {
 	expressValidationErrorsToGovUkErrorList
 } from '@planning-inspectorate/dynamic-forms';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
-import { MANAGE_REPS_MANAGE_JOURNEY_ID } from '../controller.ts';
 import type { ParamsDictionary } from 'express-serve-static-core';
 import type { ManageRepresentationDocumentDownloader } from '../../manage-reps-document-downloader.ts';
 import { ALLOWED_MIME_TYPES } from '@pins/crowndev-lib/forms/representations/question-utils.js';
@@ -26,6 +25,7 @@ import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import type { ValidationConfig } from '@pins/crowndev-lib/validators/file-validator.ts';
 import type { DraftRedactedDocumentDownloader } from './draft-redacted-document-downloader.ts';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
+import { MANAGE_REPS_MANAGE_JOURNEY_ID } from '../../index.ts';
 
 export function buildReviewRepresentationDocument(service: ManageService) {
 	const { db } = service;
@@ -101,7 +101,7 @@ export function buildReviewDocumentDecision(
 			return;
 		}
 
-		const [redactedFile] = getRedactedFile(req, representationRef, documentId) as unknown as { id: string }[];
+		const [redactedFile] = getRedactedFile(req, representationRef, documentId);
 
 		if (redactedFile) {
 			safeDeleteUploadedFilesSession(req, representationRef, documentId);
@@ -110,7 +110,7 @@ export function buildReviewDocumentDecision(
 				// Safely initialize nested session objects if they don't exist
 				req.session.itemsToBeDeleted ??= {};
 				req.session.itemsToBeDeleted[representationRef] ??= [];
-				req.session.itemsToBeDeleted[representationRef].push(redactedFile.id);
+				req.session.itemsToBeDeleted[representationRef].push(redactedFile.itemId);
 			} else {
 				// If an attachment is actually deemed "accepted" or "rejected" we need
 				// to make sure that any redacted files that were already in session for it
@@ -312,7 +312,6 @@ export function validateUploads(
 		if (validationErrors.length > 0) {
 			const redactRepresentationDocument = buildRedactRepresentationDocument(service);
 
-			// TODO: check this still works.
 			req.body.errors = {
 				'upload-form': {
 					type: 'field',

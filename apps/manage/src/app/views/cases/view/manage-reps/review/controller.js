@@ -35,7 +35,11 @@ import {
 	readRepDocumentReviewStatusSession,
 	safeDeleteUploadedFilesSession
 } from '@pins/crowndev-lib/forms/representations/task-list-utils.ts';
-import { viewReviewRedirect } from '@pins/crowndev-lib/forms/representations/review-utils.ts';
+import {
+	addRepReviewedSession,
+	getStatusDisplayName,
+	viewReviewRedirect
+} from '@pins/crowndev-lib/forms/representations/review-utils.ts';
 
 // Immediate export to make sure importers do not break.
 export { viewReviewRedirect };
@@ -620,17 +624,6 @@ function initialiseEmptySessionFiles(req, representationRef, representation) {
 }
 
 /**
- * Add a rep reviewed flag to the session
- *
- * @param {{session?: Object<string, any>}} req
- * @param {string} id
- * @param {string} reviewDecision
- */
-function addRepReviewedSession(req, id, reviewDecision) {
-	addSessionData(req, id, { representationReviewed: reviewDecision });
-}
-
-/**
  * Read a rep reviewed flag from the session
  *
  * @param {{session?: Object<string, any>}} req
@@ -756,22 +749,6 @@ async function updateRepresentationItemsReviewStatus(req, db, logger) {
 			logParams: { id, representationRef }
 		});
 	}
-}
-
-/**
- * Returns status display name for banner
- *
- * @param {string} reviewDecision
- * @returns {string}
- */
-function getStatusDisplayName(reviewDecision) {
-	const statusDisplayMap = new Map([
-		[REPRESENTATION_STATUS_ID.ACCEPTED, 'accepted'],
-		[ACCEPT_AND_REDACT, 'accepted'],
-		[REPRESENTATION_STATUS_ID.REJECTED, 'rejected']
-	]);
-
-	return statusDisplayMap.get(reviewDecision) ?? '';
 }
 
 async function deleteDocumentFromSharePointById(req, sharePointDrive, logger, itemId) {

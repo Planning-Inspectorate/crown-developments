@@ -126,7 +126,7 @@ export const s62aRepresentationToManageViewModel = representationToManageViewMod
 function mapRedactedAttachments(attachments) {
 	if (Array.isArray(attachments) && attachments.length > 0) {
 		return attachments
-			.filter((attachment) => attachment.redactedItemId && attachment.redactedFileName)
+			.filter((attachment) => (attachment.redactedItemId || attachment.redactedBlobName) && attachment.redactedFileName)
 			.map((attachment) => {
 				return { fileName: attachment.redactedFileName };
 			});

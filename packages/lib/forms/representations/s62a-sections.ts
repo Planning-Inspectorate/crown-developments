@@ -8,6 +8,7 @@ import {
 	type JourneyResponse,
 	ManageListSection,
 	type Question,
+	questionArrayMeetsCondition,
 	questionHasAnswer,
 	questionHasNonEmptyStringAnswer,
 	Section,
@@ -70,7 +71,16 @@ function addRepMyselfSection(questions: Record<string, Question>, isViewJourney:
 
 		.addQuestion(questions.myselfHasAttachments)
 		.addQuestion(questions.myselfSelectBlobAttachments)
-		.withCondition(whenQuestionHasAnswer(questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES));
+		.withCondition(whenQuestionHasAnswer(questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES))
+		.addQuestion(questions.myselfRedactedAttachments)
+		.withCondition(
+			(response) =>
+				questionArrayMeetsCondition(
+					response,
+					questions.myselfSelectBlobAttachments,
+					(answer: Record<string, unknown>) => answer.redactedBlobName && answer.redactedFileName
+				) && questionHasAnswer(response, questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES)
+		);
 }
 
 /**
@@ -128,7 +138,16 @@ function addRepAgentSection(questions: Record<string, Question>, isViewJourney: 
 		.withCondition(() => isViewJourney)
 		.addQuestion(questions.submitterHasAttachments)
 		.addQuestion(questions.submitterSelectBlobAttachments)
-		.withCondition(whenQuestionHasAnswer(questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES));
+		.withCondition(whenQuestionHasAnswer(questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES))
+		.addQuestion(questions.submitterRedactedAttachments)
+		.withCondition(
+			(response) =>
+				questionArrayMeetsCondition(
+					response,
+					questions.submitterSelectBlobAttachments,
+					(answer: Record<string, unknown>) => answer.redactedBlobName && answer.redactedFileName
+				) && questionHasAnswer(response, questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES)
+		);
 }
 
 export function haveYourSayManageSections(questions: Record<string, Question>, isViewJourney: boolean) {

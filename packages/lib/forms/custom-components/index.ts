@@ -20,6 +20,7 @@ import DefinedColumnsTableQuestion, {
 } from './manage-list/table/defined-columns-list-table/question.ts';
 import MultiFileUploadQuestion from './multi-file-uploader/question.ts';
 import CardManageListQuestion, { type CardManageListQuestionParams } from './manage-list/card/question.ts';
+import RepresentationsMultiFileUploadQuestion from './representations-multi-file-uploader/question.ts';
 
 type CustomComponentTypes = (typeof CUSTOM_COMPONENTS)[keyof typeof CUSTOM_COMPONENTS];
 
@@ -198,7 +199,8 @@ export const CUSTOM_COMPONENTS = Object.freeze({
 	DEFINED_COLUMNS_TABLE: 'defined-columns-table',
 	CUSTOM_NUMBER_INPUT: 'custom-number-input',
 	MULTI_FILE_UPLOADER: 'multi-file-uploader',
-	CARD_MANAGE_LIST: 'card-manage-list'
+	CARD_MANAGE_LIST: 'card-manage-list',
+	REPS_MULTI_FILE_UPLOADER: 'reps-multi-file-uploader'
 } as const);
 
 export const CUSTOM_COMPONENT_CLASSES = Object.freeze({
@@ -217,5 +219,6 @@ export const CUSTOM_COMPONENT_CLASSES = Object.freeze({
 	[CUSTOM_COMPONENTS.DEFINED_COLUMNS_TABLE]: DefinedColumnsTableQuestion,
 	[CUSTOM_COMPONENTS.CUSTOM_NUMBER_INPUT]: CustomNumberInputQuestion,
 	[CUSTOM_COMPONENTS.MULTI_FILE_UPLOADER]: MultiFileUploadQuestion,
-	[CUSTOM_COMPONENTS.CARD_MANAGE_LIST]: CardManageListQuestion
+	[CUSTOM_COMPONENTS.CARD_MANAGE_LIST]: CardManageListQuestion,
+	[CUSTOM_COMPONENTS.REPS_MULTI_FILE_UPLOADER]: RepresentationsMultiFileUploadQuestion
 } as const);

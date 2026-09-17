@@ -11,6 +11,9 @@ import {
 	getQueryFilters,
 	statusCounts
 } from '@pins/crowndev-lib/forms/representations/filter-utils.ts';
+import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
+import { popSessionData } from '@pins/crowndev-lib/util/session.ts';
+import type { Request } from 'express';
 
 /**
  * Builds the main manage reps homepage for S62A, with list table,
@@ -94,6 +97,8 @@ export function buildListReps(service: ManageService): AsyncRequestHandler {
 			return notFoundHandler(req, res);
 		}
 
+		const banner = getBannerMessages(id, req);
+
 		const paginationParams = createPaginationParams(req, totalFilteredRepresentations);
 
 		res.render('views/s62a/cases/view/manage-reps/list/view.njk', {
@@ -109,7 +114,25 @@ export function buildListReps(service: ManageService): AsyncRequestHandler {
 			counts,
 			...representationsToViewModel(filteredRepresentations),
 			paginationParams,
-			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined
+			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined,
+			banner
 		});
 	};
+}
+
+/**
+ * Get all banner messages to display.
+ */
+function getBannerMessages(id: string, req: Request) {
+	const bannerBuilder = new BannerBuilder();
+
+	const repReviewed = popSessionData<string | false>(req, id, 'representationReviewed', false);
+
+	if (!repReviewed) {
+		return bannerBuilder.build();
+	}
+
+	bannerBuilder.addSuccessText(`Representation has been ${repReviewed}`);
+
+	return bannerBuilder.build();
 }
