@@ -1,5 +1,5 @@
 import type { S62APortalService } from '#service';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { asyncHandler } from '@planning-inspectorate/core/util';
 import type { IRouter } from 'express';
 import { Router as createRouter } from 'express';
 

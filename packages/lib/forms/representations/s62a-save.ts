@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { addSessionData, clearSessionData } from '../../util/session.ts';
 import { viewModelToS62aRepresentationCreateInput } from './view-model.js';
-import { wrapPrismaError } from '../../util/database.ts';
+import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { generateNewReference, uniqueReference } from '../../util/random-reference.js';
 import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { getSubmittedForId } from '../../util/questions.ts';

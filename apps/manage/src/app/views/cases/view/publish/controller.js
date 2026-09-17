@@ -1,6 +1,6 @@
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
+import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/actions.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';

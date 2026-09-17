@@ -5,7 +5,7 @@ import {
 	getRepresentationFolder,
 	moveAttachmentsToCaseFolder
 } from './handle-attachments.js';
-import { mockLogger } from '../testing/mock-logger.ts';
+import { mockLogger } from '@planning-inspectorate/core/testing';
 
 describe('handleAttachments', () => {
 	describe('getRepresentationFolder', () => {

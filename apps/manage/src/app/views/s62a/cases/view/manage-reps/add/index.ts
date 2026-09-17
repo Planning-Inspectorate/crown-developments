@@ -32,7 +32,7 @@ import {
 	MAX_FILE_SIZE,
 	TOTAL_UPLOAD_LIMIT
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { asyncHandler } from '@planning-inspectorate/core/util';
 import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
 import { RepresentationDocumentDownloader } from './representation-document-downloader.ts';
 import { getOptionalStringParam } from '@pins/crowndev-lib/util/params.ts';

@@ -1,5 +1,5 @@
 import { validateParams } from '../view/controller.js';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
+import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 export function reinstateRepConfirmation(req, res) {

@@ -1,5 +1,5 @@
 import { Router as createRouter } from 'express';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { asyncHandler } from '@planning-inspectorate/core/util';
 import { buildApplicationUpdates, buildConfirmationController, getSummaryHeading } from './controller.js';
 import { buildCreateController, buildSaveController } from './create/controller.js';
 import { buildDeleteUpdateController } from './delete/controller.js';

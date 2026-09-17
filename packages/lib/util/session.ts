@@ -1,5 +1,5 @@
 import session from 'express-session';
-import type { RedisClient } from '../redis/redis-client.ts';
+import type { RedisClient } from '@planning-inspectorate/core/redis';
 import type { Request, RequestHandler } from 'express';
 import type { ApplicantContact } from '../validators/applicant-contacts-validator.ts';
 

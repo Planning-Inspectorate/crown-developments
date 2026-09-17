@@ -1,5 +1,5 @@
 import { s62aEditsToDatabaseUpdates } from '@pins/crowndev-lib/forms/representations/view-model.js';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
+import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { addSessionData, clearSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { getStringParams } from '@pins/crowndev-lib/util/params.ts';
 import type { ManageService } from '#service';

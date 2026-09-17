@@ -1,6 +1,6 @@
 import { Router as createRouter } from 'express';
 import type { ManageService } from '#service';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { asyncHandler } from '@planning-inspectorate/core/util';
 import { createRoutes as createAddRepRoutes } from './add/index.ts';
 import { buildListReps } from './list/controller.ts';
 import { createRoutes as createReviewRoutes } from './review/index.ts';

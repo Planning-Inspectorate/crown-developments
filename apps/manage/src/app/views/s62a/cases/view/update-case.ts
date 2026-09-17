@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import type { SaveDataFn } from '@planning-inspectorate/dynamic-forms';
 import type { ManageService } from '#service';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
+import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { S62aCaseUpdateMapper, type UpdateCaseAnswers } from './s62a-update-case-mapper.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { s62aCaseToViewModel } from './view-model.ts';

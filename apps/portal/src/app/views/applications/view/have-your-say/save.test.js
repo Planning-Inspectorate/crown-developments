@@ -2,7 +2,7 @@ import { describe, it, mock } from 'node:test';
 import { buildSaveHaveYourSayController, viewHaveYourSaySuccessPage, populateNotificationData } from './save.js';
 import assert from 'node:assert';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
+import { mockLogger } from '@planning-inspectorate/core/testing';
 
 describe('have your say', () => {
 	describe('buildSaveHaveYourSayController', () => {

@@ -12,6 +12,7 @@
     "@azure/msal-node": "*",
     "@azure/storage-blob": "*",
     "@microsoft/microsoft-graph-client": "*",
+    "@planning-inspectorate/core": "*",
     "@planning-inspectorate/dynamic-forms": "*",
     "@prisma/client": "*",
     "cfb": "*",

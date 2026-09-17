@@ -24,7 +24,7 @@ import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import type { ValidationConfig } from '@pins/crowndev-lib/validators/file-validator.ts';
 import type { DraftRedactedDocumentDownloader } from './draft-redacted-document-downloader.ts';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
+import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { MANAGE_REPS_MANAGE_JOURNEY_ID } from '../../index.ts';
 
 export function buildReviewRepresentationDocument(service: ManageService) {

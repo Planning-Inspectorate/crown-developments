@@ -1,4 +1,4 @@
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
+import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { BaseDocumentDownloader } from '@pins/crowndev-lib/util/base-document-downloader.ts';
 import type { ManageService } from '#service';
 import type { BlobWithdrawalRequestDocument } from '@pins/crowndev-database/src/client/client.ts';

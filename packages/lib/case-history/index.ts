@@ -1,5 +1,5 @@
 import { Router as createRouter } from 'express';
-import { asyncHandler } from '../util/async-handler.ts';
+import { asyncHandler } from '@planning-inspectorate/core/util';
 import { buildViewCaseHistory } from './controller.ts';
 import { getStringParam } from '../util/params.ts';
 import { isValidUuidFormat } from '../util/uuid.ts';

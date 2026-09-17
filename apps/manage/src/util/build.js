@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { loadBuildConfig } from '../app/config.js';
-import { runBuild } from '@pins/crowndev-lib/util/build.ts';
+import { runBuild } from '@planning-inspectorate/core/util';
 
 /**
  * Do all steps to run the build
@@ -12,8 +12,6 @@ async function run() {
 	const require = createRequire(import.meta.url);
 	// resolves to <root>/node_modules/govuk-frontend/dist/govuk/all.bundle.js than maps to `<root>`
 	const govUkRoot = path.resolve(require.resolve('govuk-frontend'), '../../../../..');
-	// resolves to <root>/node_modules/@ministryofjustice/frontend/moj/all.bundle.js than maps to `<root>`
-	const mojRoot = path.resolve(require.resolve('@ministryofjustice/frontend'), '../../../../..');
 	// resolves to <root>/node_modules/accessible-autocomplete/dist/*.js than maps to `dist`
 	const accessibleAutocompleteRoot = path.resolve(require.resolve('accessible-autocomplete'), '..');
 
@@ -21,9 +19,10 @@ async function run() {
 	await runBuild({
 		staticDir: config.staticDir,
 		srcDir: config.srcDir,
-		govUkRoot,
-		mojRoot,
-		accessibleAutocompleteRoot
+		repoRoot: govUkRoot,
+		copyMoj: true,
+		accessibleAutocompleteRoot,
+		generateManifestFile: true
 	});
 }
 

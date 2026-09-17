@@ -3,7 +3,7 @@
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "views/layouts/components/header.njk" import header %}
-{% from "header/pins-header.njk" import pinsHeader %}
+{% from "header/header-with-nav.njk" import headerWithNav %}
 
 {% block head %}
 	{# setup the header tags, to link to the styles #}
@@ -20,8 +20,8 @@
 {% endblock %}
 
 {% block header %}
-	{% if isS62A %}	
-		{{ pinsHeader({ isExternal: false }, config) }}
+	{% if isS62A %}
+		{{ headerWithNav({ isExternal: false }, config) }}
 	{% else %}
 		{{ header('Manage a Crown Development Application', '/cases') }}
 	{% endif %}

@@ -1,5 +1,5 @@
 import { describe, it, mock } from 'node:test';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
+import { mockLogger } from '@planning-inspectorate/core/testing';
 import assert from 'node:assert';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
 import { buildGetJourneyMiddleware, validateParams, viewRepresentation } from './controller.js';

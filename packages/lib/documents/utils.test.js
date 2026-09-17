@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import { forwardStreamContents, getDriveItemDownloadUrl } from './utils.js';
-import { mockLogger } from '../testing/mock-logger.ts';
+import { mockLogger } from '@planning-inspectorate/core/testing';
 import { ReadableStream } from 'node:stream/web';
 import assert from 'node:assert';
 import EventEmitter from 'node:events';

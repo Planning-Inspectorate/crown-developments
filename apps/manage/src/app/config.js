@@ -186,7 +186,13 @@ export function loadConfig() {
 				applicationAccess: AUTH_GROUP_APPLICATION_ACCESS
 			},
 			redirectUri: `${protocol}${APP_HOSTNAME}/auth/redirect`,
-			signoutUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/logout'
+			signoutUrl: 'https://login.microsoftonline.com/common/oauth2/v2.0/logout',
+			tokenScopes: [
+				'user.read',
+				'User.ReadBasic.All', // for group membership displayName
+				'GroupMember.Read.All', // for group memberships
+				'Sites.ReadWrite.All' // for sharepoint sites
+			]
 		},
 		azureLanguage: {
 			categories: AZURE_AI_LANGUAGE_CATEGORIES,

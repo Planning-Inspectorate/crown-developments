@@ -1,5 +1,5 @@
 import { Router as createRouter } from 'express';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { asyncHandler } from '@planning-inspectorate/core/util';
 import { buildSave, question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
 import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';

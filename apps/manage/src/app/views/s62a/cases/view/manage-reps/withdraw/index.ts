@@ -14,7 +14,7 @@ import type { ManageService } from '#service';
 import multer from 'multer';
 import { FileValidator } from '@pins/crowndev-lib/validators/file-validator.ts';
 import { WithdrawalRequestDocumentsUploader } from './withdrawal-request-documents-uploader.ts';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { asyncHandler } from '@planning-inspectorate/core/util';
 import {
 	ALLOWED_EXTENSIONS,
 	ALLOWED_EXTENSIONS_TEXT,
