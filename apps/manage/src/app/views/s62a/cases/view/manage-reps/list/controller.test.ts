@@ -47,6 +47,7 @@ describe('buildListReps', () => {
 			query: {},
 			originalUrl: '/s62a/cases/case-123/representations/manage',
 			baseUrl: '/s62a/cases',
+			session: {},
 			...overrides
 		}) as unknown as Request;
 
@@ -108,13 +109,41 @@ describe('buildListReps', () => {
 
 			assert.strictEqual(res.render.mock.callCount(), 1);
 
-			const [viewPath, viewData] = res.render.mock.calls[0].arguments as [string, any];
+			const [viewPath, viewData] = res.render.mock.calls[0].arguments as unknown as [string, any];
 			assert.strictEqual(viewPath, 'views/s62a/cases/view/manage-reps/list/view.njk');
 			assert.strictEqual(viewData.pageCaption, 'REF-001');
 			assert.strictEqual(viewData.backLinkUrl, '/s62a/cases/case-123/representations');
 			assert.ok(viewData.reps);
 			assert.ok(viewData.filters);
 			assert.ok(viewData.paginationParams);
+			assert.ok(viewData.banner !== undefined);
+		});
+
+		it('should fetch data and render the view with a banner message if representation was reviewed', async () => {
+			const req = mockReq({
+				session: {
+					'case-123': {
+						representationReviewed: 'accepted'
+					}
+				}
+			});
+			const res = mockRes();
+
+			mockFindUniqueCase.mock.mockImplementation(async () => ({
+				id: 'case-123',
+				reference: 'REF-001',
+				S62aRepresentations: []
+			}));
+
+			mockFindManyReps.mock.mockImplementation(async () => []);
+			mockCountReps.mock.mockImplementation(async () => 0);
+
+			await buildListReps(service)(req, res, mockNext);
+
+			assert.strictEqual(res.render.mock.callCount(), 1);
+
+			const [, viewData] = res.render.mock.calls[0].arguments as unknown as [string, any];
+			assert.ok(viewData.banner !== undefined);
 		});
 	});
 

@@ -11,7 +11,7 @@ export default class RepresentationsMultiFileUploadQuestion extends MultiFileUpl
 		if (journey.journeyId === 's62a-manage-representations') {
 			const statusId = journey.response?.answers?.statusId;
 			if (statusId === REPRESENTATION_STATUS_ID.ACCEPTED) {
-				const manageTaskListUrl = journey.initialBackLink.replace(/\/view$/, '/manage/task-list');
+				const manageTaskListUrl = journey.initialBackLink?.replace(/\/view$/, '/manage/task-list') || '/';
 				return [
 					...(Array.isArray(answer) && answer.length > 0
 						? [

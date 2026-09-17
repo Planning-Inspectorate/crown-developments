@@ -1,7 +1,9 @@
 import { describe, it, mock, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Request, Response, NextFunction } from 'express';
-import { viewReviewRedirect } from './review-utils.ts';
+import { viewReviewRedirect, getStatusDisplayName, addRepReviewedSession } from './review-utils.ts';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { ACCEPT_AND_REDACT } from './questions.js';
 
 describe('viewReviewRedirect', () => {
 	const redirectMock = mock.fn();
@@ -100,5 +102,35 @@ describe('viewReviewRedirect', () => {
 
 		assert.strictEqual(redirectMock.mock.callCount(), 0);
 		assert.strictEqual((nextMock as unknown as ReturnType<typeof mock.fn>).mock.callCount(), 1);
+	});
+});
+
+describe('getStatusDisplayName', () => {
+	it('should return "accepted" for ACCEPTED status', () => {
+		assert.strictEqual(getStatusDisplayName(REPRESENTATION_STATUS_ID.ACCEPTED), 'accepted');
+	});
+
+	it('should return "accepted" for ACCEPT_AND_REDACT status', () => {
+		assert.strictEqual(getStatusDisplayName(ACCEPT_AND_REDACT), 'accepted');
+	});
+
+	it('should return "rejected" for REJECTED status', () => {
+		assert.strictEqual(getStatusDisplayName(REPRESENTATION_STATUS_ID.REJECTED), 'rejected');
+	});
+
+	it('should return an empty string for unknown statuses', () => {
+		assert.strictEqual(getStatusDisplayName('UNKNOWN_STATUS'), '');
+	});
+});
+
+describe('addRepReviewedSession', () => {
+	it('should not throw when adding review decision to session via addSessionData', () => {
+		const req = { session: {} } as unknown as Request;
+		const testId = 'case-123';
+		const testDecision = 'accepted';
+
+		assert.doesNotThrow(() => {
+			addRepReviewedSession(req, testId, testDecision);
+		});
 	});
 });
