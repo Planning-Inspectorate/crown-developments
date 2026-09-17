@@ -2,8 +2,8 @@
 
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
-{% from "header/pins-header.njk" import pinsHeader %}
-{% from "footer/pins-footer.njk" import pinsFooter %}
+{% from "header/header-with-nav.njk" import headerWithNav %}
+{% from "ui/footer/pins-footer.njk" import pinsFooter %}
 
 {% block head %}
 	{# setup the header tags, to link to the styles #}
@@ -22,7 +22,7 @@
 {% endblock %}
 
 {% block header %}
-	{{ pinsHeader({ isExternal: true }, config) }}
+	{{ headerWithNav({ isExternal: true }, config) }}
 {% endblock %}
 
 {% block containerStart %}
@@ -74,7 +74,7 @@
 {% endblock %}
 
 {% block footer %}
-	{{ pinsFooter(config.footerLinks) }}
+	{{ pinsFooter(config.footerLinks, {showCrownCopyright: true, showContentLicense: true}) }}
 
 	<script type="module"
 					{% if cspNonce %}nonce={{ cspNonce }}{% endif %} src="/assets/js/govuk-frontend.min.js"></script>

@@ -1,32 +1,18 @@
-import { initDatabaseClient } from '@pins/crowndev-database';
-import { initRedis } from '@pins/crowndev-lib/redis/index.ts';
-import { initLogger } from '@pins/crowndev-lib/util/logger.ts';
 import { Client } from '@microsoft/microsoft-graph-client';
 import { DefaultAzureCredential } from '@azure/identity';
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js';
 import { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
 import { initGovNotify } from '@pins/crowndev-lib/govnotify/index.ts';
+import { Service } from '@pins/crowndev-lib/app/base-service.ts';
 
 /**
  * This class encapsulates all the services and clients for the application
  */
-export class PortalService {
+export class PortalService extends Service {
 	/**
 	 * @type {import('./config-types.js').Config}
 	 */
 	#config;
-	/**
-	 * @type {import('pino').Logger}
-	 */
-	logger;
-	/**
-	 * @type {import('@pins/crowndev-database/src/client/client.ts').PrismaClient}
-	 */
-	dbClient;
-	/**
-	 * @type {import('@pins/crowndev-lib/redis/redis-client.ts').RedisClient|null}
-	 */
-	redisClient;
 	/**
 	 * @type {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive}
 	 */
@@ -40,11 +26,8 @@ export class PortalService {
 	 * @param {import('./config-types.js').Config} config
 	 */
 	constructor(config) {
+		super(config);
 		this.#config = config;
-		const logger = initLogger(config);
-		this.logger = logger;
-		this.dbClient = initDatabaseClient(config, logger);
-		this.redisClient = initRedis(config.session, logger);
 
 		const graphClient = Client.initWithMiddleware({
 			authProvider: new TokenCredentialAuthenticationProvider(new DefaultAzureCredential(), {
@@ -53,7 +36,7 @@ export class PortalService {
 		});
 
 		this.sharePointDrive = new SharePointDrive(graphClient, config.sharePoint.driveId);
-		this.notifyClient = initGovNotify(config.govNotify, logger);
+		this.notifyClient = initGovNotify(config.govNotify, this.logger);
 	}
 
 	get appName() {
@@ -72,15 +55,6 @@ export class PortalService {
 		return this.#config.dynamicCacheControl;
 	}
 
-	/**
-	 * Alias of dbClient
-	 *
-	 * @returns {import('@pins/crowndev-database/src/client/client.ts').PrismaClient}
-	 */
-	get db() {
-		return this.dbClient;
-	}
-
 	get contactEmail() {
 		return this.#config.crownDevContactInfo?.email;
 	}
@@ -89,23 +63,7 @@ export class PortalService {
 		return this.#config.featureFlags?.isLive;
 	}
 
-	get gitSha() {
-		return this.#config.gitSha;
-	}
-
 	get googleAnalyticsId() {
 		return this.#config.googleAnalyticsId;
-	}
-
-	get secureSession() {
-		return this.#config.NODE_ENV === 'production';
-	}
-
-	get sessionSecret() {
-		return this.#config.session.secret;
-	}
-
-	get staticDir() {
-		return this.#config.staticDir;
 	}
 }

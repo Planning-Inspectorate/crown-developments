@@ -5,7 +5,7 @@ import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { getPaginationParams, createPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { getOptionalStringParam, getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import type { ManageService } from '#service';
-import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import {
 	getFiltersQueryString,
 	getQueryFilters,

@@ -1,5 +1,5 @@
 import { Router as createRouter } from 'express';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { asyncHandler } from '@planning-inspectorate/core/util';
 import { buildNotifyCallbackController } from './controller.js';
 import { buildNotifyCallbackTokenValidator } from '#util/notify-callback.js';
 

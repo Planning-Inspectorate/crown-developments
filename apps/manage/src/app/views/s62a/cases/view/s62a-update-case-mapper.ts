@@ -42,7 +42,7 @@ import {
 	type AdditionalContactAnswer
 } from '../util/party-types.ts';
 import { addBusinessDays } from 'date-fns';
-import { optionalWhere } from '@pins/crowndev-lib/util/database.ts';
+import { optionalWhere } from '@planning-inspectorate/core/util';
 import { slugify, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
 import { toDecimalOrNull, toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
 

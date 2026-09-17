@@ -4,7 +4,7 @@ import { fetchPublishedApplication, getApplicationStatus } from '@pins/crowndev-
 import { representationToViewModel } from '../view-model.ts';
 import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
+import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms';
 import { createPaginationParams, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';

@@ -1,6 +1,6 @@
 import type { Prisma } from '@pins/crowndev-database/src/client/client.d.ts';
 import { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
-import type { DatabaseConfig } from '@pins/crowndev-lib/app/config-types.js';
+import type { DatabaseConfig } from '@planning-inspectorate/core/app';
 import { PrismaMssql } from '@prisma/adapter-mssql';
 import type { Logger } from 'pino';
 

@@ -1,7 +1,7 @@
 import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms';
 import { JOURNEY_ID } from './journey.ts';
 import type { ManageService } from '#service';
-import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import { S62aCaseMapper, type CreateCaseAnswers, type CreateInputOptions } from './s62a-case-mapper.ts';
 import {

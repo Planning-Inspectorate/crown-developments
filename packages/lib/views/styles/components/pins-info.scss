@@ -1,5 +1,5 @@
 @use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
-@use 'packages/lib/views/styles/brand/pins-colors.scss' as brand;
+@use 'node_modules/@planning-inspectorate/core/dist/ui/brand/pins-colors.scss' as brand;
 
 .pins-info {
 	box-sizing: border-box;

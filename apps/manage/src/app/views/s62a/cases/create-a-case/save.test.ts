@@ -9,7 +9,7 @@ import type { CreateCaseAnswers } from './s62a-case-mapper.ts';
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import type { Request, Response } from 'express';
 import { ManageService } from '#service';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
+import { mockLogger } from '@planning-inspectorate/core/testing';
 
 describe('S62A Save Controller Module', () => {
 	describe('generateS62aReference', () => {

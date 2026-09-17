@@ -4,7 +4,7 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { JOURNEY_ID } from './journey.ts';
 import { addSessionData, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
-import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import type { ManageService } from '#service';
 import { saveS62aRepresentation } from '@pins/crowndev-lib/forms/representations/s62a-save.ts';
 import type { Request, Response } from 'express';

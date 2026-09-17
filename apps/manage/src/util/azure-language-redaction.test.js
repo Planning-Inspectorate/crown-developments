@@ -8,7 +8,7 @@ import {
 	stringToChunks,
 	DEFAULT_CATEGORIES
 } from '#util/azure-language-redaction.js';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
+import { mockLogger } from '@planning-inspectorate/core/testing';
 
 describe('azure-language-redaction', () => {
 	describe('fetchRedactionSuggestions', () => {

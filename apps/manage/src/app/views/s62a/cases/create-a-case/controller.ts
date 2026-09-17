@@ -1,5 +1,5 @@
 import type { ManageService } from '#service';
-import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import type { JourneyResponse } from '@planning-inspectorate/dynamic-forms';
 import {
 	PRE_APPLICATION_ADVICE_ID,

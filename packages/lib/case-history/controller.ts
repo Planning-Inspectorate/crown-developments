@@ -1,6 +1,6 @@
 import { notFoundHandler } from '../middleware/errors.ts';
-import type { AsyncRequestHandler } from '../util/async-handler.ts';
-import { wrapPrismaError } from '../util/database.ts';
+import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
+import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { type EntraGroupIds, getEntraGroupMembers } from '../util/entra-groups.ts';
 import { createCaseHistoryViewModel } from './view-model.ts';
 import { getPaginationParams, createPaginationParams } from '../views/pagination/pagination-utils.ts';

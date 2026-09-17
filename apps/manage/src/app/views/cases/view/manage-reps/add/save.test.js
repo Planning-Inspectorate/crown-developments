@@ -6,7 +6,7 @@ import {
 	viewAddRepresentationSuccessPage
 } from './save.js';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
+import { mockLogger } from '@planning-inspectorate/core/testing';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 describe('written representations', () => {

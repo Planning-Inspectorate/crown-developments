@@ -17,7 +17,7 @@ import {
 	MAX_FILE_SIZE,
 	TOTAL_UPLOAD_LIMIT
 } from '../upload-utils.ts';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { asyncHandler } from '@planning-inspectorate/core/util';
 import { FileValidator } from '@pins/crowndev-lib/validators/file-validator.ts';
 
 export function createRoutes(service: ManageService) {
