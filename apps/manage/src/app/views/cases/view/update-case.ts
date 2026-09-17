@@ -122,6 +122,7 @@ export function isEntraGroupMembers(value: unknown): value is EntraGroupMembers 
  * Scalar fields that should be audited when updated.
  * Only these fields will produce audit entries in recordAuditEntries.
  */
+const PROCEDURE_PREFIXES = ['writtenReps', 'hearing', 'inquiry'] as const;
 const AUDITABLE_SCALAR_FIELDS = new Set([
 	// Directly editable scalar fields
 	'description',
@@ -177,7 +178,6 @@ const AUDITABLE_SCALAR_FIELDS = new Set([
 	'applicationAcceptedDate',
 	'lpaQuestionnaireSentDate',
 	'lpaQuestionnaireReceivedDate',
-	'publishDate',
 	'pressNoticeDate',
 	'neighboursNotifiedByLpaDate',
 	'siteNoticeByLpaDate',
@@ -194,7 +194,20 @@ const AUDITABLE_SCALAR_FIELDS = new Set([
 	'nationallyImportantConfirmationDate',
 	'representationsPeriod',
 	'representationsPublishDate',
-	'environmentalStatementReceivedDate'
+	'environmentalStatementReceivedDate',
+	'applicationFeeRefundDate',
+	'applicationFeeReceivedDate',
+	'expectedDateOfSubmission',
+	...PROCEDURE_PREFIXES.flatMap((prefix) => [
+		`${prefix}Date`,
+		`${prefix}NotificationDate`,
+		`${prefix}IssuesReportPublishedDate`,
+		`${prefix}ProcedureNotificationDate`,
+		`${prefix}StatementsDate`,
+		`${prefix}CaseManagementConferenceDate`,
+		`${prefix}PreMeetingDate`,
+		`${prefix}ProofsOfEvidenceDate`
+	])
 ]);
 
 /** * Long-text fields that render with expandable old/new value details * instead of inline audit text. */
