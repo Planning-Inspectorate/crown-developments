@@ -101,6 +101,10 @@ describe('long-text field templates', () => {
 });
 
 describe('AUDIT_ACTIONS', () => {
+	it('should have case action constants', () => {
+		assert.strictEqual(AUDIT_ACTIONS.CASE_CREATED, 'CASE_CREATED');
+		assert.strictEqual(AUDIT_ACTIONS.CASE_PUBLISHED, 'CASE_PUBLISHED');
+	});
 	it('should have long action constants', () => {
 		assert.strictEqual(AUDIT_ACTIONS.LONG_FIELD_SET, 'LONG_FIELD_SET');
 		assert.strictEqual(AUDIT_ACTIONS.LONG_FIELD_UPDATED, 'LONG_FIELD_UPDATED');
@@ -109,6 +113,10 @@ describe('AUDIT_ACTIONS', () => {
 });
 
 describe('AUDIT_TEMPLATES', () => {
+	it('should include case templates', () => {
+		assert.strictEqual(AUDIT_TEMPLATES[AUDIT_ACTIONS.CASE_CREATED], '{reference} was created');
+		assert.strictEqual(AUDIT_TEMPLATES[AUDIT_ACTIONS.CASE_PUBLISHED], '{reference} was published');
+	});
 	it('should include long-text templates', () => {
 		assert.strictEqual(AUDIT_TEMPLATES[AUDIT_ACTIONS.LONG_FIELD_SET], '{fieldName} was set');
 		assert.strictEqual(AUDIT_TEMPLATES[AUDIT_ACTIONS.LONG_FIELD_UPDATED], '{fieldName} was updated');

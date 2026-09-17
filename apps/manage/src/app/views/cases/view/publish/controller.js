@@ -2,23 +2,51 @@ import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/actions.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 /**
  *
  * @param {import('#service').ManageService} service
  * @returns {import('express').Handler}
  */
-export function buildPublishCase({ db, logger }) {
+export function buildPublishCase({ db, logger, audit, isAuditLive }) {
 	return async (req, res) => {
 		const id = getStringParam(req.params, 'id');
+		const userId = req.session?.account?.localAccountId || 'unknown-user';
 
 		try {
-			await db.crownDevelopment.update({
+			const updatedCase = await db.crownDevelopment.update({
 				where: { id },
 				data: {
 					publishDate: new Date()
+				},
+				select: {
+					reference: true,
+					publishDate: true
 				}
 			});
+
+			if (isAuditLive) {
+				try {
+					await audit.recordMany(
+						[
+							{
+								caseId: id,
+								action: AUDIT_ACTIONS.CASE_PUBLISHED,
+								userId,
+								metadata: {
+									reference: updatedCase.reference
+								}
+							}
+						],
+						CASE_DATA_MODEL.CROWN
+					);
+				} catch (auditError) {
+					// Audit failures must not block publish.
+					logger.error({ auditError, id }, 'Failed to record publish audit event');
+				}
+			}
 		} catch (error) {
 			wrapPrismaError({
 				error,

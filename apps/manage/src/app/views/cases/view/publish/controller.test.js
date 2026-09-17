@@ -138,7 +138,8 @@ describe('publish case', () => {
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
 			assert.deepStrictEqual(mockDb.crownDevelopment.update.mock.calls[0].arguments[0], {
 				where: { id: 'case-1' },
-				data: { publishDate: new Date() }
+				data: { publishDate: new Date() },
+				select: { reference: true, publishDate: true }
 			});
 
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
@@ -214,6 +215,141 @@ describe('publish case', () => {
 					return true;
 				}
 			);
+		});
+		it('should create an audit record when isAuditLive is true', async () => {
+			const mockReq = {
+				params: { id: 'case-1' },
+				session: {
+					account: {
+						localAccountId: 'user-1'
+					}
+				}
+			};
+			const mockRes = {
+				locals: {},
+				redirect: mock.fn()
+			};
+			const mockAudit = {
+				recordMany: mock.fn(() => Promise.resolve())
+			};
+			const mockDb = {
+				crownDevelopment: {
+					update: mock.fn(() =>
+						Promise.resolve({
+							reference: 'case-1-ref',
+							publishDate: new Date('2025-01-01T03:24:00.000Z')
+						})
+					)
+				}
+			};
+
+			const publishCaseFn = buildPublishCase({
+				db: mockDb,
+				logger: mockLogger(),
+				audit: mockAudit,
+				isAuditLive: true
+			});
+
+			await publishCaseFn(mockReq, mockRes);
+
+			assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+			assert.deepStrictEqual(mockAudit.recordMany.mock.calls[0].arguments[0], [
+				{
+					caseId: 'case-1',
+					action: 'CASE_PUBLISHED',
+					userId: 'user-1',
+					metadata: {
+						reference: 'case-1-ref'
+					}
+				}
+			]);
+			assert.strictEqual(mockAudit.recordMany.mock.calls[0].arguments[1], 'crown');
+		});
+		it('should still publish even if audit fails', async () => {
+			const mockReq = {
+				params: { id: 'case-1' },
+				session: {
+					account: {
+						localAccountId: 'user-1'
+					}
+				}
+			};
+			const mockRes = {
+				locals: {},
+				redirect: mock.fn()
+			};
+			const logger = {
+				...mockLogger(),
+				error: mock.fn()
+			};
+			const mockAudit = {
+				recordMany: mock.fn(() => {
+					throw new Error('Audit error');
+				})
+			};
+			const mockDb = {
+				crownDevelopment: {
+					update: mock.fn(() =>
+						Promise.resolve({
+							reference: 'case-1-ref',
+							publishDate: new Date('2025-01-01T03:24:00.000Z')
+						})
+					)
+				}
+			};
+			const publishCaseFn = buildPublishCase({
+				db: mockDb,
+				logger,
+				audit: mockAudit,
+				isAuditLive: true
+			});
+
+			await publishCaseFn(mockReq, mockRes);
+
+			assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+			assert.strictEqual(logger.error.mock.callCount(), 1);
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], '/cases/case-1?success=published');
+		});
+		it('should not create an audit record when isAuditLive is false', async () => {
+			const mockReq = {
+				params: { id: 'case-1' },
+				session: {
+					account: {
+						localAccountId: 'user-1'
+					}
+				}
+			};
+			const mockRes = {
+				locals: {},
+				redirect: mock.fn()
+			};
+			const mockAudit = {
+				recordMany: mock.fn(() => Promise.resolve())
+			};
+			const mockDb = {
+				crownDevelopment: {
+					update: mock.fn(() =>
+						Promise.resolve({
+							reference: 'case-1-ref',
+							publishDate: new Date('2025-01-01T03:24:00.000Z')
+						})
+					)
+				}
+			};
+
+			const publishCaseFn = buildPublishCase({
+				db: mockDb,
+				logger: mockLogger(),
+				audit: mockAudit,
+				isAuditLive: false
+			});
+
+			await publishCaseFn(mockReq, mockRes);
+
+			assert.strictEqual(mockAudit.recordMany.mock.callCount(), 0);
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], '/cases/case-1?success=published');
 		});
 	});
 });
