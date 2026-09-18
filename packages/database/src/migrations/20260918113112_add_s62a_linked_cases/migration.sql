@@ -1,0 +1,22 @@
+BEGIN TRY
+
+BEGIN TRAN;
+
+-- AlterTable
+ALTER TABLE [dbo].[S62aCase] ADD [preApplicationCaseId] UNIQUEIDENTIFIER;
+
+-- AddForeignKey
+ALTER TABLE [dbo].[S62aCase] ADD CONSTRAINT [S62aCase_preApplicationCaseId_fkey] FOREIGN KEY ([preApplicationCaseId]) REFERENCES [dbo].[S62aCase]([id]) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+COMMIT TRAN;
+
+END TRY
+BEGIN CATCH
+
+IF @@TRANCOUNT > 0
+BEGIN
+    ROLLBACK TRAN;
+END;
+THROW
+
+END CATCH
