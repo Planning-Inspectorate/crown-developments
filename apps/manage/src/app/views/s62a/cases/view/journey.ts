@@ -22,6 +22,7 @@ import {
 import { APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { type HOUSING_SIDES, totalUnitsFieldName } from '../util/residential-totals.ts';
 import { hasRoomsBranch, isRetail } from '../util/floorspace-questions.ts';
+import { showPreApplicationTab } from '../util/pre-application.ts';
 
 export const JOURNEY_ID = 's62a-case-details';
 
@@ -375,7 +376,9 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				)
 				.withCondition(whenQuestionHasAnswer(questions.wasteManagementDevelopment, BOOLEAN_OPTIONS.YES)),
 			new Section('', 'pre-application')
-				.withSectionCondition(() => currentTab === VIEW_TAB_ID.PRE_APPLICATION)
+				.withSectionCondition(
+					() => currentTab === VIEW_TAB_ID.PRE_APPLICATION && showPreApplicationTab(response.answers)
+				)
 				.addQuestion(questions.preApplicationReceivedDate)
 				.withCondition(isApplicationCase)
 				.addQuestion(questions.preApplicationAdviceIssuedDate)
