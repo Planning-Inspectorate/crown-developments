@@ -41,7 +41,6 @@ describe('view-model', () => {
 				applicationReference,
 				requiresReview: false,
 				submittedByContactId: undefined,
-				representedContactId: undefined,
 				submittedByAddressId: undefined,
 				comment: 'comment one',
 				commentRedacted: '███████ one',
@@ -72,7 +71,6 @@ describe('view-model', () => {
 				applicationReference,
 				requiresReview: true,
 				submittedByContactId: undefined,
-				representedContactId: undefined,
 				submittedByAddressId: undefined,
 				comment: undefined,
 				commentRedacted: undefined,
@@ -145,7 +143,6 @@ describe('view-model', () => {
 				myselfRedactedAttachments: [],
 				requiresReview: false,
 				submittedByContactId: 'sub-id-1',
-				representedContactId: undefined,
 				submittedByAddressId: 'abc-123',
 				comment: 'my comments',
 				commentRedacted: undefined,
@@ -217,7 +214,6 @@ describe('view-model', () => {
 				categoryId: 'c-id-1',
 				submittedForId: 'myself',
 				submittedByContactId: 'sub-id-1',
-				representedContactId: undefined,
 				comment: 'my comments',
 				commentRedacted: undefined,
 				containsAttachments: 'yes',
@@ -323,7 +319,6 @@ describe('view-model', () => {
 				submitterRedactedAttachments: [],
 				requiresReview: false,
 				submittedByContactId: 'sub-id-1',
-				representedContactId: undefined,
 				submittedByAddressId: undefined,
 				comment: 'my comments',
 				commentRedacted: undefined,
@@ -356,8 +351,8 @@ describe('view-model', () => {
 					email: 'email@example.com'
 				},
 				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
-				representedContactId: 'rep-id-1',
 				RepresentedContact: {
+					id: 'rep-id-1',
 					firstName: 'represented firstName',
 					lastName: 'represented lastName'
 				},
@@ -425,8 +420,8 @@ describe('view-model', () => {
 					email: 'email@example.com'
 				},
 				representedTypeId: REPRESENTED_TYPE_ID.PERSON,
-				representedContactId: 'rep-id-1',
 				RepresentedContact: {
+					id: 'rep-id-1',
 					firstName: 'represented firstName',
 					lastName: 'represented lastName'
 				},
@@ -541,8 +536,8 @@ describe('view-model', () => {
 					jobTitleOrRole: 'my role'
 				},
 				representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION,
-				representedContactId: 'rep-id-1',
 				RepresentedContact: {
+					id: 'rep-id-1',
 					orgName: 'the orgs name'
 				}
 			};
@@ -605,8 +600,8 @@ describe('view-model', () => {
 					email: 'email@example.com'
 				},
 				representedTypeId: REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR,
-				representedContactId: 'rep-id-1',
 				RepresentedContact: {
+					id: 'rep-id-1',
 					orgName: 'Represented orgName'
 				},
 				submittedByAgent: true,
@@ -687,7 +682,6 @@ describe('view-model', () => {
 				categoryId: undefined,
 				submittedForId: undefined,
 				submittedByContactId: undefined,
-				representedContactId: undefined,
 				comment: undefined,
 				commentRedacted: undefined,
 				containsAttachments: undefined,

@@ -38,6 +38,7 @@ import {
 	TOTAL_UPLOAD_LIMIT
 } from '@pins/crowndev-lib/forms/representations/question-utils.js';
 import { ManageRepresentationDocumentDownloader } from './manage-reps-document-downloader.ts';
+import { buildDeleteS62aManageListItemOnConfirmRemove } from '../delete.ts';
 
 export const MANAGE_REPS_MANAGE_JOURNEY_ID = 's62a-manage-reps-manage-journey';
 
@@ -78,6 +79,7 @@ export function createRoutes(service: ManageService) {
 	const uploadDocument = uploadRepresentationDocumentsController(documentsUploader, service);
 	const deleteDocument = deleteDocumentController(service, documentsUploader);
 	const downloadDocument = buildDownloadDocument(service, downloader);
+	const deleteManageListItemOnConfirmRemove = asyncHandler(buildDeleteS62aManageListItemOnConfirmRemove(service));
 
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 
@@ -116,6 +118,7 @@ export function createRoutes(service: ManageService) {
 		getJourney,
 		validate,
 		validationErrorHandler,
+		deleteManageListItemOnConfirmRemove,
 		buildSave(saveDataToSession)
 	);
 

@@ -15,7 +15,8 @@ export const questionConfig: Record<string, { fieldName: string; successMessage:
 	// are keyed by section and url together.
 	'existing/housing': { fieldName: 'manageExistingHousing', successMessage: 'Existing housing entry removed' },
 	'proposed/housing': { fieldName: 'manageProposedHousing', successMessage: 'Proposed housing entry removed' },
-	floorspace: { fieldName: 'manageNonResidentialFloorspace', successMessage: 'Type of use removed' }
+	floorspace: { fieldName: 'manageNonResidentialFloorspace', successMessage: 'Type of use removed' },
+	'check-group-name-details': { fieldName: 'manageGroupDetails', successMessage: 'Contact removed' }
 };
 
 /**
@@ -33,10 +34,16 @@ export function buildDeleteS62aManageListItemOnConfirmRemove(service: ManageServ
 
 	return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 		try {
-			const { manageListAction, manageListItemId, manageListQuestion, question, section, id } = getOptionalStringParams(
-				req.params,
-				['manageListAction', 'manageListItemId', 'manageListQuestion', 'question', 'section', 'id']
-			);
+			const { manageListAction, manageListItemId, manageListQuestion, question, section, id, representationRef } =
+				getOptionalStringParams(req.params, [
+					'manageListAction',
+					'manageListItemId',
+					'manageListQuestion',
+					'question',
+					'section',
+					'id',
+					'representationRef'
+				]);
 
 			if (manageListAction !== 'remove' || manageListQuestion !== 'confirm' || !manageListItemId || !id || !question) {
 				next();
@@ -78,6 +85,9 @@ export function buildDeleteS62aManageListItemOnConfirmRemove(service: ManageServ
 					break;
 				case 'manageNonResidentialFloorspace':
 					await deleter.deleteNonResidentialFloorspace(id, manageListItemId);
+					break;
+				case 'manageGroupDetails':
+					await deleter.deleteGroupNameDetails(representationRef, manageListItemId);
 					break;
 				default:
 					service.logger.warn(

@@ -5,6 +5,7 @@ import {
 	checkRequiredAnswer,
 	getAgentRequiredAnswers,
 	getCommonRequiredAnswers,
+	getGroupOfPeopleRequiredAnswers,
 	getNotWorkForOrgRequiredAnswers,
 	getOnBehalfOfRequiredAnswers,
 	getPersonRequiredAnswers,
@@ -201,6 +202,57 @@ describe('validation-utils', () => {
 				RepresentedContact: { firstName: 'John', lastName: 'Doe' }
 			};
 			const errors = getPersonRequiredAnswers(representation, originUrl);
+
+			assert.deepStrictEqual(errors, [undefined]);
+		});
+	});
+
+	describe('getGroupOfPeopleRequiredAnswers', () => {
+		it('should require at least one contact ([])', () => {
+			const representation: RepresentationForValidation = {
+				RepresentedContacts: []
+			};
+			const errors = getGroupOfPeopleRequiredAnswers(representation, originUrl);
+
+			assert.strictEqual(errors.length, 1);
+			assert.strictEqual(errors[0]?.text, 'Enter at least one person in the group');
+		});
+		it('should require at least one contact (null)', () => {
+			const representation: RepresentationForValidation = {
+				RepresentedContacts: null
+			};
+			const errors = getGroupOfPeopleRequiredAnswers(representation, originUrl);
+
+			assert.strictEqual(errors.length, 1);
+			assert.strictEqual(errors[0]?.text, 'Enter at least one person in the group');
+		});
+		it('should require both firstName and lastName', () => {
+			const representation: RepresentationForValidation = {
+				RepresentedContacts: [{ firstName: 'John' }]
+			};
+			const errors = getGroupOfPeopleRequiredAnswers(representation, originUrl);
+
+			assert.strictEqual(errors.length, 1);
+			assert.strictEqual(errors[0]?.text, 'Enter at least one person in the group');
+		});
+
+		it('should pass when both firstName and lastName are present', () => {
+			const representation: RepresentationForValidation = {
+				RepresentedContacts: [{ firstName: 'John', lastName: 'Doe' }]
+			};
+			const errors = getGroupOfPeopleRequiredAnswers(representation, originUrl);
+
+			assert.deepStrictEqual(errors, [undefined]);
+		});
+
+		it('should pass when both firstName and lastName are present in >1 contact', () => {
+			const representation: RepresentationForValidation = {
+				RepresentedContacts: [
+					{ firstName: 'John', lastName: 'Doe' },
+					{ firstName: 'A', lastName: 'B' }
+				]
+			};
+			const errors = getGroupOfPeopleRequiredAnswers(representation, originUrl);
 
 			assert.deepStrictEqual(errors, [undefined]);
 		});
