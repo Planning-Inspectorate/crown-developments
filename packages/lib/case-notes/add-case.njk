@@ -1,5 +1,5 @@
 {% extends "views/layouts/main.njk" %}
-{% from "views/layouts/components/case-notes.njk" import caseNotes %}
+{% from "./case-notes-macros.njk" import caseNotes %}
 
 {% set title = reference + " - Case notes" %}
 
@@ -22,6 +22,7 @@
 			totalNotes: allCaseNotesCount,
 			_csrf: _csrf,
 			buttonText: "Save",
-			buttonFormat: "govuk-button govuk-button--primary"
+			buttonFormat: "govuk-button govuk-button--primary",
+			baseLineBreak: false
 		}) }}
 {% endblock %}

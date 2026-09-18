@@ -16,8 +16,9 @@ describe('buildValidateCaseNotesMiddleware', () => {
 		const req = makeReq({ params: {}, body: { comment: 'Valid comment' } });
 		const res = makeRes();
 		const next = mock.fn<NextFunction>();
+		const dataModel = 'crown';
 
-		const middleware = buildValidateCaseNotesMiddleware();
+		const middleware = buildValidateCaseNotesMiddleware(dataModel);
 
 		// The rejection comes from getStringParam (which runs before the local !id check)
 		await assert.rejects(async () => await middleware(req, res, next));
@@ -33,8 +34,9 @@ describe('buildValidateCaseNotesMiddleware', () => {
 		});
 		const res = makeRes();
 		const next = mock.fn<NextFunction>();
+		const dataModel = 'crown';
 
-		const middleware = buildValidateCaseNotesMiddleware();
+		const middleware = buildValidateCaseNotesMiddleware(dataModel);
 		await middleware(req, res, next);
 
 		assert.strictEqual(next.mock.callCount(), 1);
@@ -49,8 +51,9 @@ describe('buildValidateCaseNotesMiddleware', () => {
 		});
 		const res = makeRes();
 		const next = mock.fn<NextFunction>();
+		const dataModel = 'crown';
 
-		const middleware = buildValidateCaseNotesMiddleware();
+		const middleware = buildValidateCaseNotesMiddleware(dataModel);
 		await middleware(req, res, next);
 
 		assert.strictEqual(next.mock.callCount(), 0);
@@ -89,8 +92,9 @@ describe('buildValidateCaseNotesMiddleware', () => {
 		});
 		const res = makeRes();
 		const next = mock.fn<NextFunction>();
+		const dataModel = 'crown';
 
-		const middleware = buildValidateCaseNotesMiddleware();
+		const middleware = buildValidateCaseNotesMiddleware(dataModel);
 		await middleware(req, res, next);
 
 		assert.strictEqual(next.mock.callCount(), 0);
@@ -105,8 +109,9 @@ describe('buildValidateCaseNotesMiddleware', () => {
 		});
 		const res = makeRes();
 		const next = mock.fn<NextFunction>();
+		const dataModel = 'crown';
 
-		const middleware = buildValidateCaseNotesMiddleware();
+		const middleware = buildValidateCaseNotesMiddleware(dataModel);
 		await middleware(req, res, next);
 
 		assert.strictEqual(next.mock.callCount(), 0);

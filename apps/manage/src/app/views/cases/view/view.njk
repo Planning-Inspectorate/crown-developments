@@ -5,7 +5,7 @@
 {% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/tag/macro.njk" import govukTag %}
-{% from "views/layouts/components/case-notes.njk" import caseNotes %}
+{% from "case-notes-macros.njk" import caseNotes %}
 {% from "govuk/components/details/macro.njk" import govukDetails %}
 
 {% set title = reference + " - " + journeyTitle + " - Manage a Crown Development Application" %}
@@ -64,7 +64,8 @@
 						totalNotes: allCaseNotesCount,
 						_csrf: _csrf,
 						buttonText: "Add case note",
-						buttonFormat: "govuk-button--secondary govuk-!-margin-bottom-1"
+						buttonFormat: "govuk-button--secondary govuk-!-margin-bottom-1",
+						baseLineBreak: true
 					})
 				}) }}
 			{% endif %}

@@ -42,7 +42,7 @@ export function createRoutes(service: CaseNotesService, dataModel: CaseDataModel
 			.get(validateIdFormat, viewCaseNotes)
 			.post(validateIdFormat, validateCaseNotesMiddleware, createCaseNote);
 	} else if (dataModel === 's62a') {
-		router.route('/').get(fetchCaseNoteData);
+		router.route('/').get(fetchCaseNoteData).post(validateIdFormat, validateCaseNotesMiddleware, createCaseNote);
 
 		router
 			.route('/add-case-note')
@@ -57,6 +57,6 @@ function createMiddlewares(service: CaseNotesService, dataModel: CaseDataModel) 
 	return [
 		buildCreateCaseNoteHandler(service, dataModel),
 		buildViewCaseNotes(service, dataModel),
-		buildValidateCaseNotesMiddleware()
+		buildValidateCaseNotesMiddleware(dataModel)
 	];
 }
