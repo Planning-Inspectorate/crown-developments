@@ -7,7 +7,8 @@ import {
 	buildBreadcrumbItems,
 	FOLDERS_MAP,
 	getFolderPath,
-	ensurePreApplicationAdviceFolder
+	FOLDER_SYNC_RESULT,
+	syncPreApplicationAdviceFolder
 } from './folders.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import {
@@ -243,38 +244,99 @@ describe('Folder creation utils', () => {
 		});
 	});
 
-	describe('ensurePreApplicationAdviceFolder', () => {
-		const txWith = (existing: { id: string } | null) => {
-			const findFirst = mock.fn(async (_args: Record<string, unknown>) => existing);
-			const create = mock.fn(async (_args: { data: Record<string, unknown> }) => ({ id: 'folder-1' }));
-			const tx = { folder: { findFirst, create } } as unknown as Prisma.TransactionClient;
-			return { tx, findFirst, create };
+	describe('syncPreApplicationAdviceFolder', () => {
+		/** A tx whose live and deleted lookups return what the test needs. */
+		const txWith = ({
+			live = null,
+			deleted = null
+		}: {
+			live?: { id: string } | null;
+			deleted?: { id: string } | null;
+		}) => {
+			const findFirst = mock.fn(async (args: { where: { deletedAt: unknown }; orderBy?: unknown }) =>
+				args.where.deletedAt === null ? live : deleted
+			);
+			const create = mock.fn(async (_args: { data: Record<string, unknown> }) => ({ id: 'folder-new' }));
+			const update = mock.fn(async (_args: { where: { id: string }; data: { deletedAt: Date | null } }) => ({
+				id: 'folder-1'
+			}));
+			const tx = { folder: { findFirst, create, update } } as unknown as Prisma.TransactionClient;
+			return { tx, findFirst, create, update };
 		};
 
-		it('creates the folder when the case does not have one', async () => {
-			const { tx, create } = txWith(null);
+		describe('when advice is given', () => {
+			it('creates the folder when the case has never had one', async () => {
+				const { tx, create, update } = txWith({});
 
-			const created = await ensurePreApplicationAdviceFolder('case-1', tx);
+				const result = await syncPreApplicationAdviceFolder('case-1', true, tx);
 
-			assert.strictEqual(created, true);
-			assert.deepStrictEqual(create.mock.calls[0].arguments[0], {
-				data: { displayName: 'Pre-application advice', displayOrder: 150, s62aCaseId: 'case-1' }
+				assert.strictEqual(result, FOLDER_SYNC_RESULT.CREATED);
+				assert.deepStrictEqual(create.mock.calls[0].arguments[0], {
+					data: { displayName: 'Pre-application advice', displayOrder: 150, s62aCaseId: 'case-1' }
+				});
+				assert.strictEqual(update.mock.callCount(), 0);
+			});
+
+			it('leaves an existing folder alone', async () => {
+				const { tx, create, update } = txWith({ live: { id: 'folder-live' } });
+
+				const result = await syncPreApplicationAdviceFolder('case-1', true, tx);
+
+				assert.strictEqual(result, FOLDER_SYNC_RESULT.UNCHANGED);
+				assert.strictEqual(create.mock.callCount(), 0);
+				assert.strictEqual(update.mock.callCount(), 0);
+			});
+
+			it('restores a soft-deleted folder instead of creating a new one', async () => {
+				const { tx, create, update } = txWith({ deleted: { id: 'folder-deleted' } });
+
+				const result = await syncPreApplicationAdviceFolder('case-1', true, tx);
+
+				assert.strictEqual(result, FOLDER_SYNC_RESULT.RESTORED);
+				assert.deepStrictEqual(update.mock.calls[0].arguments[0], {
+					where: { id: 'folder-deleted' },
+					data: { deletedAt: null }
+				});
+				assert.strictEqual(create.mock.callCount(), 0);
+			});
+
+			it('restores the most recently deleted folder', async () => {
+				const { tx, findFirst } = txWith({ deleted: { id: 'folder-deleted' } });
+
+				await syncPreApplicationAdviceFolder('case-1', true, tx);
+
+				assert.deepStrictEqual(findFirst.mock.calls[1].arguments[0].orderBy, { deletedAt: 'desc' });
 			});
 		});
 
-		it('does nothing when the case already has one', async () => {
-			const { tx, create } = txWith({ id: 'folder-existing' });
+		describe('when advice is not given', () => {
+			it('soft-deletes the folder rather than removing it', async () => {
+				const { tx, create, update } = txWith({ live: { id: 'folder-live' } });
 
-			const created = await ensurePreApplicationAdviceFolder('case-1', tx);
+				const result = await syncPreApplicationAdviceFolder('case-1', false, tx);
 
-			assert.strictEqual(created, false);
-			assert.strictEqual(create.mock.callCount(), 0);
+				assert.strictEqual(result, FOLDER_SYNC_RESULT.DELETED);
+				const { where, data } = update.mock.calls[0].arguments[0];
+				assert.deepStrictEqual(where, { id: 'folder-live' });
+				assert.ok(data.deletedAt instanceof Date);
+				assert.strictEqual(create.mock.callCount(), 0);
+			});
+
+			it('does nothing when there is no folder to delete', async () => {
+				const { tx, create, update } = txWith({});
+
+				const result = await syncPreApplicationAdviceFolder('case-1', false, tx);
+
+				assert.strictEqual(result, FOLDER_SYNC_RESULT.UNCHANGED);
+				assert.strictEqual(create.mock.callCount(), 0);
+				assert.strictEqual(update.mock.callCount(), 0);
+			});
 		});
 
-		it('only counts a live, top-level folder on this case', async () => {
-			const { tx, findFirst } = txWith(null);
+		it('only looks at the top-level advice folder on this case', async () => {
+			const { tx, findFirst } = txWith({});
 
-			await ensurePreApplicationAdviceFolder('case-1', tx);
+			await syncPreApplicationAdviceFolder('case-1', true, tx);
 
 			assert.deepStrictEqual(findFirst.mock.calls[0].arguments[0].where, {
 				s62aCaseId: 'case-1',
