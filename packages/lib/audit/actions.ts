@@ -12,6 +12,7 @@
 export const AUDIT_ACTIONS = {
 	// Case
 	CASE_CREATED: 'CASE_CREATED',
+	CASE_PUBLISHED: 'CASE_PUBLISHED',
 
 	// Standard fields
 	FIELD_SET: 'FIELD_SET',
@@ -50,6 +51,7 @@ export function isAuditAction(value: string): value is AuditAction {
 export const AUDIT_TEMPLATES: Record<AuditAction, string> = {
 	// Case
 	[AUDIT_ACTIONS.CASE_CREATED]: '{reference} was created',
+	[AUDIT_ACTIONS.CASE_PUBLISHED]: '{reference} was published',
 
 	// Standard fields
 	[AUDIT_ACTIONS.FIELD_SET]: '{fieldName} was set to {newValue}',

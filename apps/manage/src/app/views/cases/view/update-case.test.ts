@@ -3285,5 +3285,75 @@ describe('audit recording', () => {
 				assert.strictEqual(entries[0].metadata.newValue, '1 August 2026');
 			});
 		});
+		describe('audit recording for prefixed date fields', () => {
+			it('should record FIELD_SET when hearingDate is set from null', async () => {
+				const logger = mockLogger();
+				const mockAudit = createMockAudit();
+				const prefix = 'hearing' as const;
+				const fieldName = `${prefix}Date` as const;
+
+				const mockDb = buildDbForAudit({ [fieldName]: null });
+
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
+				const mockReq = {
+					params: { id: 'case-1' },
+					session: { account: { localAccountId: 'user-123' } }
+				};
+				const mockRes = { locals: {} };
+				const data = {
+					answers: {
+						[fieldName]: new Date('2026-08-01T00:00:00.000Z')
+					}
+				};
+
+				await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+				assert.strictEqual(entries.length, 1);
+				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_SET);
+				assert.strictEqual(entries[0].metadata.fieldName, 'Hearing date');
+				assert.strictEqual(entries[0].metadata.oldValue, '-');
+				assert.strictEqual(entries[0].metadata.newValue, '1 August 2026');
+			});
+			it('should record FIELD_UPDATED when hearingDate is updated', async () => {
+				const logger = mockLogger();
+				const mockAudit = createMockAudit();
+				const prefix = 'hearing' as const;
+				const fieldName = `${prefix}Date` as const;
+
+				const mockDb = buildDbForAudit({
+					procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+					Event: {
+						date: new Date('2026-07-15T00:00:00.000Z'),
+						notificationDate: null,
+						issuesReportPublishedDate: null,
+						venue: null
+					}
+				});
+
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
+				const mockReq = {
+					params: { id: 'case-1' },
+					session: { account: { localAccountId: 'user-123' } }
+				};
+				const mockRes = { locals: {} };
+				const data = {
+					answers: {
+						[fieldName]: new Date('2026-08-01T00:00:00.000Z')
+					}
+				};
+
+				await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+				assert.strictEqual(entries.length, 1);
+				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_UPDATED);
+				assert.strictEqual(entries[0].metadata.fieldName, 'Hearing date');
+				assert.strictEqual(entries[0].metadata.oldValue, '15 July 2026');
+				assert.strictEqual(entries[0].metadata.newValue, '1 August 2026');
+			});
+		});
 	});
 });
