@@ -82,7 +82,8 @@ describe('s62a case details journey', () => {
 					'siteCoordinates',
 					'siteVisibility',
 					'siteArea',
-					'expectedSubmissionDate'
+					'expectedSubmissionDate',
+					'preApplicationAdvice'
 				]
 			},
 			{
@@ -221,12 +222,7 @@ describe('s62a case details journey', () => {
 			{
 				title: '',
 				segment: 'pre-application',
-				questions: [
-					'preApplicationAdvice',
-					'preApplicationReceivedDate',
-					'preApplicationAdviceIssuedDate',
-					'preApplicationReference'
-				]
+				questions: ['preApplicationReceivedDate', 'preApplicationAdviceIssuedDate', 'preApplicationReference']
 			},
 			{
 				title: '',
