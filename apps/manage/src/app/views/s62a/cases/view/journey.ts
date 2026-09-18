@@ -130,7 +130,9 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.addQuestion(questions.siteVisibility)
 				.addQuestion(questions.siteArea)
 
-				.addQuestion(questions.expectedSubmissionDate),
+				.addQuestion(questions.expectedSubmissionDate)
+				.addQuestion(questions.preApplicationAdvice)
+				.withCondition(isApplicationCase),
 			new Section('', 'details')
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.DETAILS)
 				.addQuestion(questions.lastUpdated)
@@ -374,10 +376,8 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.withCondition(whenQuestionHasAnswer(questions.wasteManagementDevelopment, BOOLEAN_OPTIONS.YES)),
 			new Section('', 'pre-application')
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.PRE_APPLICATION)
-				.startMultiQuestionCondition('pre-app-is-application-1', isApplicationCase)
-				.addQuestion(questions.preApplicationAdvice)
 				.addQuestion(questions.preApplicationReceivedDate)
-				.endMultiQuestionCondition('pre-app-is-application-1')
+				.withCondition(isApplicationCase)
 				.addQuestion(questions.preApplicationAdviceIssuedDate)
 				.withCondition(showAdviceIssuedDate)
 				.addQuestion(questions.preApplicationReference)
