@@ -1678,6 +1678,47 @@ describe('case details', () => {
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 0);
 		});
 
+		it('should clear event date field and pass null to Event upsert when clearAnswer is true', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
+			const logger = mockLogger();
+			const mockDb = {
+				$transaction: mock.fn(() => Promise.resolve()),
+				crownDevelopment: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({
+						procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+						eventId: 'event-1',
+						Event: { date: new Date('2025-02-15'), venue: 'test venue' }
+					}))
+				}
+			};
+			makeTransactionInteractive(mockDb);
+			const updateCase = buildUpdateCase({ db: mockDb, logger }, true);
+			const mockReq = {
+				params: { id: 'case1' },
+				session: {}
+			};
+			const mockRes = {
+				locals: {
+					originalAnswers: {
+						eventId: 'event-1',
+						procedureId: APPLICATION_PROCEDURE_ID.HEARING
+					}
+				}
+			};
+
+			const data = {
+				answers: {
+					hearingDate: new Date('2025-02-15')
+				}
+			};
+			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
+			const updateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
+			assert.strictEqual(updateArg.where?.id, 'case1');
+			assert.strictEqual(updateArg.data?.Event?.upsert?.update?.date, null);
+		});
+
 		it('should log error if LPA Questionnaire Sent Notification fails', async () => {
 			const logger = mockLogger();
 			const mockDb = {

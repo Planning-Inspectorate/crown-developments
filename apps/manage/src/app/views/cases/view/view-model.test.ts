@@ -682,4 +682,48 @@ describe('view-model', () => {
 			assert.strictEqual(output.includes('Read more'), true);
 		});
 	});
+	it('should map inquiry event fields if present', () => {
+		const inquiryDate = new Date('2025-07-01T00:00:00Z');
+		const statementsDate = new Date('2025-06-25T00:00:00Z');
+		const caseManagementConferenceDate = new Date('2025-06-10T00:00:00Z');
+		const preMeetingDate = new Date('2025-06-12T00:00:00Z');
+		const proofsOfEvidenceDate = new Date('2025-06-30T00:00:00Z');
+
+		const input = {
+			id: 'id-1',
+			referenceId: 'reference-id-1',
+			procedureId: APPLICATION_PROCEDURE_ID.INQUIRY,
+			Event: {
+				date: inquiryDate,
+				statementsDate,
+				caseManagementConferenceDate,
+				preMeetingDate,
+				proofsOfEvidenceDate
+			}
+		};
+
+		const result = crownDevelopmentToViewModel(input);
+
+		assert.strictEqual(result.inquiryDate, inquiryDate);
+		assert.strictEqual(result.inquiryStatementsDate, statementsDate);
+		assert.strictEqual(result.inquiryCaseManagementConferenceDate, caseManagementConferenceDate);
+		assert.strictEqual(result.inquiryPreMeetingDate, preMeetingDate);
+		assert.strictEqual(result.inquiryProofsOfEvidenceDate, proofsOfEvidenceDate);
+	});
+	it('should map hearing event fields if present', () => {
+		const hearingDate = new Date('2025-07-01T00:00:00Z');
+
+		const input = {
+			id: 'id-1',
+			referenceId: 'reference-id-1',
+			procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+			Event: {
+				date: hearingDate
+			}
+		};
+
+		const result = crownDevelopmentToViewModel(input);
+
+		assert.strictEqual(result.hearingDate, hearingDate);
+	});
 });
