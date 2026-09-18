@@ -126,7 +126,7 @@ export default class MultiFileUploadQuestion extends Question {
 			customViewData,
 			payload
 		}) as FileUploadViewModel;
-
+		// TODO: investigate whether we can pull ID from customViewData instead of here (and then make sure we store all our rep session data under the ref key and not the case key)
 		const { id, question } = getStringParams(params, ['id', 'question']);
 
 		let draftFiles: DraftFile[] = [];

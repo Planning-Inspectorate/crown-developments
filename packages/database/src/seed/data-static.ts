@@ -429,7 +429,8 @@ export const WITHDRAWAL_REASON_ID = Object.freeze({
 	CHANGE_OF_OPINION: 'change-of-opinion',
 	MISTAKEN_SUBMISSION: 'mistaken-submission',
 	MISUNDERSTANDING: 'misunderstanding',
-	PERSONAL_REASONS: 'personal-reasons'
+	PERSONAL_REASONS: 'personal-reasons',
+	WRONG_CASE: 'wrong-case'
 } as const);
 
 export const WITHDRAWAL_REASON = [
@@ -440,7 +441,7 @@ export const WITHDRAWAL_REASON = [
 	},
 	{
 		id: WITHDRAWAL_REASON_ID.MISTAKEN_SUBMISSION,
-		displayName: 'Mistaken Submission',
+		displayName: 'Mistaken submission',
 		hintText: 'They accidentally submitted the representation'
 	},
 	{
@@ -450,8 +451,13 @@ export const WITHDRAWAL_REASON = [
 	},
 	{
 		id: WITHDRAWAL_REASON_ID.PERSONAL_REASONS,
-		displayName: 'Personal Reasons',
+		displayName: 'Personal reasons',
 		hintText: 'Such as privacy or a change in circumstances'
+	},
+	{
+		id: WITHDRAWAL_REASON_ID.WRONG_CASE,
+		displayName: 'Added to the wrong case',
+		hintText: 'An administrative error by the case management team'
 	}
 ] as const satisfies readonly Prisma.WithdrawalReasonCreateInput[];
 

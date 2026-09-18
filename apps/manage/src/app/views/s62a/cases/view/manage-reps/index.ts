@@ -5,6 +5,7 @@ import { createRoutes as createAddRepRoutes } from './add/index.ts';
 import { buildListReps } from './list/controller.ts';
 import { createRoutes as createReviewRoutes } from './review/index.ts';
 import { createRoutes as createTaskListRoutes } from './task-list/index.ts';
+import { createRoutes as createWithdrawRoutes } from './withdraw/index.ts';
 import { viewRepresentationAwaitingReview } from './review/controller.ts';
 import { buildGetJourneyMiddleware } from './view/controller.ts';
 import {
@@ -52,6 +53,7 @@ export function createRoutes(service: ManageService) {
 	const addRepRoutes = createAddRepRoutes(service);
 	const reviewRoutes = createReviewRoutes(service);
 	const taskListRoutes = createTaskListRoutes(service, MANAGE_REPS_MANAGE_JOURNEY_ID);
+	const withdrawRoutes = createWithdrawRoutes(service);
 
 	const updateRepFn = buildUpdateRepresentation(service);
 	const saveAnswer = buildSave(updateRepFn, true);
@@ -85,6 +87,7 @@ export function createRoutes(service: ManageService) {
 
 	router.use('/:representationRef', repsRouter);
 	repsRouter.get('/view', getJourney, viewReviewRedirect, asyncHandler(viewRepresentationAwaitingReview));
+	repsRouter.use('/view/withdraw-representation', withdrawRoutes);
 	repsRouter.use('/review', reviewRoutes);
 
 	repsRouter.get('/edit', viewReviewRedirect);

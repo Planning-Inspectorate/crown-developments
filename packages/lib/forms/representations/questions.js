@@ -30,6 +30,7 @@ import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/da
 import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
 import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/validator/document-upload-validator.js';
 import CustomManageListValidator from '../custom-components/manage-list/validator.js';
+import AjaxDocumentUploadValidator from '../custom-components/ajax-document-upload-validator/ajax-document-uploader-validator.ts';
 
 export const ACCEPT_AND_REDACT = 'accept-and-redact';
 
@@ -579,6 +580,23 @@ export const getQuestions = ({
 					]
 				})
 			]
+		},
+		ajaxWithdrawalRequests: {
+			type: CUSTOM_COMPONENTS.MULTI_FILE_UPLOADER,
+			title: 'Attachments',
+			question: 'Upload the withdrawal request',
+			fieldName: 'ajaxWithdrawalRequests',
+			url: 'attachments',
+			allowedFileExtensions: ALLOWED_EXTENSIONS,
+			allowedMimeTypes: ALLOWED_MIME_TYPES,
+			maxFileSizeValue: MAX_FILE_SIZE,
+			maxFileSizeString: '20MB',
+			validators: [new AjaxDocumentUploadValidator('ajaxWithdrawalRequests')],
+			dataUploadUrl: '/upload',
+			dataDeleteUrl: '/delete',
+			preUploadHtml: 'views/layouts/components/representations/s62a-upload-criteria.njk',
+			filesAddedText: 'Attachments added',
+			showUploadWarning: false
 		}
 	};
 

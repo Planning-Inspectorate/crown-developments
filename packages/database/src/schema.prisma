@@ -863,6 +863,36 @@ model DraftBlobRepresentationDocument {
   @@index([sessionKey])
 }
 
+model BlobWithdrawalRequestDocument {
+  id           String   @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  uploadedDate DateTime @default(now())
+  fileName     String
+  blobName     String
+  size         BigInt
+  mimeType     String   @default("application/octet-stream")
+
+  s62aRepresentationId String             @db.UniqueIdentifier
+  S62aRepresentation   S62aRepresentation @relation(fields: [s62aRepresentationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([s62aRepresentationId])
+}
+
+/// A "pending" withdrawal request that will stay in draft until
+/// the withdrawal is formalling committed.
+model DraftBlobWithdrawalRequestDocument {
+  id         String @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  sessionKey String
+  fileName   String
+  blobName   String
+  size       BigInt
+  mimeType   String @default("application/octet-stream")
+
+  s62aRepresentationId String             @db.UniqueIdentifier
+  S62aRepresentation   S62aRepresentation @relation(fields: [s62aRepresentationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([sessionKey, s62aRepresentationId])
+}
+
 /// Address represents an address of a property or place
 model Address {
   /// internal identifier
@@ -1131,7 +1161,9 @@ model S62aRepresentation {
   containsAttachments Boolean?                     @default(false)
   Attachments         BlobRepresentationDocument[]
 
-  distressingContentInRepresentation Boolean?
+  distressingContentInRepresentation  Boolean?
+  DraftBlobWithdrawalRequestDocuments DraftBlobWithdrawalRequestDocument[]
+  blobWithdrawalRequestDocuments      BlobWithdrawalRequestDocument[]
 }
 
 // Document attached to a representation, such as evidence or a letter
