@@ -1,6 +1,6 @@
 import type { ManageService } from '#service';
-import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
+import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
+import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { createPaginationParams, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { normaliseSearchQuery, splitStringQueries, createWhereClause } from '@pins/crowndev-lib/util/search-queries.js';
 

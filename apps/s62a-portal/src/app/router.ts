@@ -1,6 +1,6 @@
 import type { S62APortalService } from '#service';
-import { createMonitoringRoutes } from '@pins/crowndev-lib/controllers/monitoring.ts';
-import { cacheNoCacheMiddleware } from '@pins/crowndev-lib/middleware/cache.ts';
+import { createMonitoringRoutes } from '@planning-inspectorate/core/controllers';
+import { cacheNoCacheMiddleware } from '@planning-inspectorate/core/middleware';
 import type { IRouter } from 'express';
 import { Router as createRouter } from 'express';
 import { createRoutes as appRoutes } from './views/list/index.ts';

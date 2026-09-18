@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { grantLpaSharePointAccess, retryGrantPermissions, SHAREPOINT_RETRY_CONFIG } from './sharepoint.js';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
+import { mockLogger } from '@planning-inspectorate/core/testing';
 
 /**
  * Runs all mock timers repeatedly until the given promise settles.

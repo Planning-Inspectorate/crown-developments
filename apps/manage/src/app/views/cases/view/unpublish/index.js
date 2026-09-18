@@ -1,6 +1,6 @@
 import { Router as createRouter } from 'express';
 import { buildSubmitUnpublishCase } from './controller.js';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { asyncHandler } from '@planning-inspectorate/core/util';
 
 /**
  * @param {import('#service').ManageService} service

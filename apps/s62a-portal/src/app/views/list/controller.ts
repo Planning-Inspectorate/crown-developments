@@ -1,6 +1,6 @@
 import type { S62APortalService } from '#service';
-import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
+import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
+import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { mapDevelopmentToViewModel } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { s62aViewFormattingFunction } from './view-model.ts';

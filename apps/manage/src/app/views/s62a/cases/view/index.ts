@@ -1,7 +1,7 @@
 import type { ManageService } from '#service';
 import { Router as createRouter } from 'express';
 import { buildGetJourneyMiddleware, buildViewCaseDetails } from './controller.ts';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { asyncHandler } from '@planning-inspectorate/core/util';
 import { VIEW_TAB_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import {
 	buildGetJourneyResponseFromSession,

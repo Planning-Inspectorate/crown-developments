@@ -1,7 +1,7 @@
 import { before, describe, it, mock } from 'node:test';
 import { buildUpdateCase, isEntraGroupMembers } from './update-case.ts';
 import assert from 'node:assert';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
+import { mockLogger } from '@planning-inspectorate/core/testing';
 import { asReq, asRes } from '@pins/crowndev-lib/testing/mock-express.ts';
 import { APPLICATION_PROCEDURE_ID, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';

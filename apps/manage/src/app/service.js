@@ -1,9 +1,6 @@
-import { initDatabaseClient } from '@pins/crowndev-database';
-import { initRedis } from '@pins/crowndev-lib/redis/index.ts';
 import { buildInitSharePointDrive } from '#util/sharepoint.js';
-import { MapCache } from '@pins/crowndev-lib/util/map-cache.js';
+import { MapCache } from '@planning-inspectorate/core/util';
 import { buildInitEntraClient } from '@pins/crowndev-lib/graph/cached-entra-client.js';
-import { initLogger } from '@pins/crowndev-lib/util/logger.ts';
 import { initGovNotify } from '@pins/crowndev-lib/govnotify/index.ts';
 import { TextAnalyticsClient } from '@azure/ai-text-analytics';
 import { DefaultAzureCredential, ManagedIdentityCredential } from '@azure/identity';
@@ -15,32 +12,20 @@ import { initBlobStore } from '@pins/crowndev-lib/blob-store/index.ts';
 import { EntraClient } from '@pins/crowndev-lib/graph/entra.js';
 import { ZipArchive } from 'archiver';
 import { buildAuditService } from '@pins/crowndev-lib/audit/index.ts';
-import { BaseService } from '@pins/crowndev-lib/app/base-service.ts';
+import { Service } from '@pins/crowndev-lib/app/base-service.ts';
 
 /**
  * This class encapsulates all the services and clients for the application
  */
-export class ManageService extends BaseService {
+export class ManageService extends Service {
 	/**
 	 * @type {import('./config-types.d.ts').Config}
 	 */
 	#config;
 	/**
-	 * @type {import('pino').Logger}
-	 */
-	logger;
-	/**
-	 * @type {import('@pins/crowndev-database/src/client/client.ts').PrismaClient}
-	 */
-	dbClient;
-	/**
 	 * @type {import('@pins/crowndev-lib/audit/index.js').AuditService}
 	 */
 	audit;
-	/**
-	 * @type {import('@pins/crowndev-lib/redis/redis-client.ts').RedisClient|null}
-	 */
-	redisClient;
 	/**
 	 * @type {function(import('express-session').Session): SharePointDrive | null}
 	 */
@@ -80,11 +65,8 @@ export class ManageService extends BaseService {
 	constructor(config) {
 		super(config);
 		this.#config = config;
-		const logger = initLogger(config);
-		this.logger = logger;
-		this.dbClient = initDatabaseClient(config, logger);
+		const logger = this.logger;
 		this.audit = buildAuditService(this.db, logger);
-		this.redisClient = initRedis(config.session, logger);
 		const graphClient = Client.initWithMiddleware({
 			authProvider: new TokenCredentialAuthenticationProvider(new DefaultAzureCredential(), {
 				scopes: ['https://graph.microsoft.com/.default']
@@ -145,25 +127,8 @@ export class ManageService extends BaseService {
 		return this.blobStoreClient;
 	}
 
-	get cacheControl() {
-		return this.#config.cacheControl;
-	}
-
-	/**
-	 * Alias of dbClient
-	 *
-	 * @returns {import('@pins/crowndev-database/src/client/client.ts').PrismaClient}
-	 */
-	get db() {
-		return this.dbClient;
-	}
-
 	get entraGroupIds() {
 		return this.#config.entra.groupIds;
-	}
-
-	get gitSha() {
-		return this.#config.gitSha;
 	}
 
 	get isS62ALive() {
@@ -178,20 +143,8 @@ export class ManageService extends BaseService {
 		return this.#config.featureFlags?.isAuditLive;
 	}
 
-	get secureSession() {
-		return this.#config.NODE_ENV === 'production';
-	}
-
-	get sessionSecret() {
-		return this.#config.session.secret;
-	}
-
 	get sharePointCaseTemplateId() {
 		return this.#config.sharePoint.caseTemplateId;
-	}
-
-	get staticDir() {
-		return this.#config.staticDir;
 	}
 
 	get portalBaseUrl() {

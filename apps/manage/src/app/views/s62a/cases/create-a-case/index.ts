@@ -14,7 +14,7 @@ import {
 } from '@planning-inspectorate/dynamic-forms';
 import { JOURNEY_ID, createJourney } from './journey.ts';
 import { getQuestions } from './questions.ts';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import { asyncHandler } from '@planning-inspectorate/core/util';
 import { buildSaveController, buildSuccessController } from './save.ts';
 import type { ManageService } from '#service';
 import { removeApplicantContactsWhenOrganisationRemoved } from '@pins/crowndev-lib/util/session.ts';

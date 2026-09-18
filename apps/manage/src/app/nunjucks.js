@@ -27,6 +27,8 @@ export function configureNunjucks() {
 	const caseHistoryRoot = path.resolve(require.resolve('@pins/crowndev-lib'), '..', 'case-history');
 	// path to packages/lib/case-notes folder with custom view
 	const caseNotesRoot = path.resolve(require.resolve('@pins/crowndev-lib'), '..', 'case-notes');
+	// path to @planning-inspectorate/core folder for core UI components
+	const coreUiRoot = path.resolve(require.resolve('@planning-inspectorate/core'), '..');
 	const appDir = path.join(config.srcDir, 'app');
 
 	// configure nunjucks
@@ -40,6 +42,7 @@ export function configureNunjucks() {
 			customViewsRoot,
 			caseHistoryRoot,
 			caseNotesRoot,
+			coreUiRoot,
 			appDir
 		],
 		{

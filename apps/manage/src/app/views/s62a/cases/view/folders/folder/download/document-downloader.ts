@@ -1,6 +1,6 @@
 import type { ManageService } from '#service';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
+import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { isValidRedirectUri } from '@pins/crowndev-lib/util/uri.ts';
 import type { Request, Response } from 'express';

@@ -8,7 +8,7 @@ import {
 	readSessionData
 } from '@pins/crowndev-lib/util/session.ts';
 import { JOURNEY_ID } from '../view/journey.js';
-import { wrapPrismaError } from '@pins/crowndev-lib/util/database.ts';
+import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { expressValidationErrorsToGovUkErrorList } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { forwardStreamContents, getDriveItemDownloadUrl } from '@pins/crowndev-lib/documents/utils.js';

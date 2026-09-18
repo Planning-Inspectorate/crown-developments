@@ -1,127 +1,44 @@
-import bodyParser from 'body-parser';
 import manifest from '../.static/manifest.json' with { type: 'json' };
-import crypto from 'node:crypto';
-import express from 'express';
-import helmet from 'helmet';
 import { buildRouter } from './router.js';
 import { configureNunjucks } from './nunjucks.js';
-import { buildLogRequestsMiddleware } from '@pins/crowndev-lib/middleware/log-requests.ts';
-import { buildDefaultErrorHandlerMiddleware, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { initSessionMiddleware } from '@pins/crowndev-lib/util/session.ts';
 import { addLocalsConfiguration } from '#util/config-middleware.js';
 import { cleanEmptyQueryParams, trimEmptyQuery } from '@pins/crowndev-lib/middleware/query-middleware.js';
-import lusca from 'lusca';
+import { createBaseApp } from '@planning-inspectorate/core/app';
 
 /**
  * @param {import('#service').ManageService} service
  * @returns {Express}
  */
 export function getApp(service) {
-	// create an express app, and configure it for our usage
-	const app = express();
-	const csrfMiddleware = lusca.csrf();
-
-	const logRequests = buildLogRequestsMiddleware(service.logger);
-
-	// middleware to clean empty query params and trim empty query values
-	app.use(cleanEmptyQueryParams, trimEmptyQuery);
-
-	app.use(logRequests);
-
-	// configure body-parser, to populate req.body
-	// see https://expressjs.com/en/resources/middleware/body-parser.html
-	app.use(bodyParser.urlencoded({ extended: true }));
-	app.use(bodyParser.json());
-
-	const sessionMiddleware = initSessionMiddleware({
-		redis: service.redisClient,
-		secure: service.secureSession,
-		secret: service.sessionSecret
-	});
-	app.use(sessionMiddleware);
-
-	// CSRF protection middleware, with an exception for the file upload endpoint which uses Multer and multipart/form-data
-	// see https://github.com/krakenjs/lusca/issues/70
-	app.use((req, res, next) => {
-		if (/\/upload-documents\/?$/.test(req.path) && req.method === 'POST') {
+	const router = buildRouter(service);
+	return createBaseApp({
+		service,
+		router,
+		configureNunjucks,
+		multiPartFormRoutes: [
 			// Multer multipart/form-data needs to be handled before Lusca CSRF check
 			// upload-documents is the POST API the file-upload component in our journeys, which uses Multer
-			next();
-		} else if (req.path.endsWith('/notify/callback') && req.method === 'POST') {
+			/\/upload-documents\/?$/
+		],
+		csrfRouteBypass: [
 			// Callback from notify doesn't contain a csrf, as it is a 3rd party api
-			next();
-		} else {
-			csrfMiddleware(req, res, (err) => {
-				if (err) {
-					service.logger.error(
-						{
-							method: req.method,
-							path: req.path,
-							contentType: req.headers['content-type'],
-							hasSession: !!req.session
-						},
-						'CSRF token validation failed'
-					);
-				}
-				next(err);
-			});
-		}
+			'/notify/callback'
+		],
+		middlewares: [
+			// middleware to clean empty query params and trim empty query values
+			cleanEmptyQueryParams,
+			trimEmptyQuery,
+			(req, res, next) => {
+				// S62A header variable, to trigger header on S62A pages
+				res.locals.isS62A = req.path.includes('/s62a/');
+				next();
+			},
+			(req, res, next) => {
+				// Cache busting for CSS
+				res.locals.styleCss = manifest['style.css'];
+				next();
+			},
+			addLocalsConfiguration(service)
+		]
 	});
-
-	// S62A header variable, to trigger header on S62A pages
-	app.use((req, res, next) => {
-		res.locals.isS62A = req.path.includes('/s62a/');
-		next();
-	});
-
-	app.use(addLocalsConfiguration(service));
-
-	// Generate the nonce for each request
-	app.use((req, res, next) => {
-		res.locals.cspNonce = crypto.randomBytes(32).toString('hex');
-		next();
-	});
-
-	// Cache busting for CSS
-	app.use((req, res, next) => {
-		res.locals.styleCss = manifest['style.css'];
-		next();
-	});
-
-	// Secure apps by setting various HTTP headers
-	app.use(helmet());
-	app.use(
-		helmet.contentSecurityPolicy({
-			directives: {
-				// @ts-ignore
-				scriptSrc: ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`],
-				defaultSrc: ["'self'"],
-				'font-src': ["'self'"],
-				'img-src': ["'self'"],
-				'style-src': ["'self'"]
-			}
-		})
-	);
-
-	const nunjucksEnvironment = configureNunjucks();
-	// Set the express view engine to nunjucks
-	// calls to res.render will use nunjucks
-	nunjucksEnvironment.express(app);
-	app.set('view engine', 'njk');
-
-	// static files
-	app.use(express.static(service.staticDir, service.cacheControl));
-
-	const router = buildRouter(service);
-	// register the router, which will define any subpaths
-	// any paths not defined will return 404 by default
-	app.use('/', router);
-
-	app.use(notFoundHandler);
-
-	const defaultErrorHandler = buildDefaultErrorHandlerMiddleware(service.logger);
-	// catch/handle errors last
-	app.use(defaultErrorHandler);
-
-	return app;
 }
