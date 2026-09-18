@@ -18,7 +18,16 @@ import { createRoutes as createCaseFoldersRoutes } from './folders/index.ts';
 import { createRoutes as createRepsRoutes } from './manage-reps/index.ts';
 import { createRoutes as createApplicationNotesRoutes } from '@pins/crowndev-lib/case-notes/index.ts';
 import { createRoutes as createApplicationHistoryRoutes } from '@pins/crowndev-lib/case-history/index.ts';
+import { createRoutes as createCasePublishRoutes } from '@pins/crowndev-lib/publish/index.ts';
+import { createRoutes as createCaseUnpublishRoutes } from '@pins/crowndev-lib/unpublish/index.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import {
+	publishS62aCase,
+	fetchS62aPublishCase,
+	unpublishS62aCase,
+	fetchS62aUnpublishCase,
+	answerValidation
+} from './publish.ts';
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });
@@ -31,6 +40,14 @@ export function createRoutes(service: ManageService) {
 	const getQuestionJourney = asyncHandler(buildGetJourneyMiddleware(service, true));
 	const updateCaseFn = buildS62aUpdateCase(service);
 	const updateCase = buildSave(updateCaseFn, true);
+	const publishCase = createCasePublishRoutes(
+		service,
+		buildGetJourneyMiddleware,
+		publishS62aCase,
+		fetchS62aPublishCase,
+		answerValidation
+	);
+	const unpublishCase = createCaseUnpublishRoutes(service, unpublishS62aCase, fetchS62aUnpublishCase);
 	const clearAndUpdateCaseFn = buildS62aUpdateCase(service, true);
 	const clearAndUpdateCase = buildSave(clearAndUpdateCaseFn, true);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
@@ -59,6 +76,10 @@ export function createRoutes(service: ManageService) {
 	// Because it's tightly coupled with this parent, keeping in same module.
 	const tabRouter = createRouter({ mergeParams: true });
 	tabRouter.get('/', getJourney, asyncHandler(viewCaseDetails));
+
+	// Mounts publish and unpublish routes inside the tab router
+	tabRouter.use('/publish', publishCase);
+	tabRouter.use('/unpublish', unpublishCase);
 
 	tabRouter.get(
 		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',

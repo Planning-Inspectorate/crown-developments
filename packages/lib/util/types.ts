@@ -1,4 +1,9 @@
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
+import type { AuditService } from '../audit/index.js';
+import type { InitEntraClient } from '../graph/types.js';
+import type { Logger } from 'pino';
+import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import type { Handler } from 'express';
 
 export type YesNo = 'yes' | 'no';
 
@@ -47,3 +52,27 @@ export const CASE_MODELS: Record<CaseDataModel, CaseModelConfig> = {
 		delegate: (db: PrismaClient): CommonCaseDelegate => db.s62aCase
 	}
 };
+
+export type AnswerValidationError = {
+	value: unknown;
+	errorMessage: string;
+	pageLink: string;
+};
+
+export interface CaseService {
+	db: PrismaClient;
+	logger: Logger;
+	audit: AuditService;
+	getEntraClient: InitEntraClient;
+	entraGroupIds: {
+		caseOfficers: string;
+		inspectors: string;
+	};
+}
+
+export type JourneyMiddlewareType = (service: CaseService, isQuestionView: boolean) => Handler | AsyncRequestHandler;
+
+export type CaseFetcher<T> = (db: PrismaClient, id: string) => Promise<T | null>;
+export type UnpublishCaseFetcher<T = unknown> = (db: PrismaClient, id: string) => Promise<T | null>;
+export type PublishOperation<T = unknown> = (db: PrismaClient, id: string) => Promise<T>;
+export type ValidationRuleBuilder<T> = (fetchedCase: NonNullable<T>, id: string) => AnswerValidationError[];
