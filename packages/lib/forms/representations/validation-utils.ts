@@ -24,6 +24,15 @@ export interface RepresentationForValidation {
 	SubmittedByContact?: {
 		jobTitleOrRole?: string | null;
 	} | null;
+	RepresentedContacts?:
+		| [
+				{
+					firstName?: string | null;
+					lastName?: string | null;
+					orgName?: string | null;
+				}
+		  ]
+		| null;
 }
 
 /**
@@ -108,6 +117,11 @@ export function getOnBehalfOfRequiredAnswers(
 				getAgentRequiredAnswers(representation, originUrl),
 				getNotWorkForOrgRequiredAnswers(representation, originUrl)
 			);
+		case REPRESENTED_TYPE_ID.GROUP:
+			return requiredAnswers.concat(
+				getAgentRequiredAnswers(representation, originUrl),
+				getGroupOfPeopleRequiredAnswers(representation, originUrl)
+			);
 		default:
 			return requiredAnswers;
 	}
@@ -148,11 +162,30 @@ export function getPersonRequiredAnswers(
 	representation: RepresentationForValidation,
 	originUrl: string
 ): (ErrorMessage | undefined)[] {
+	const person = representation.RepresentedContact || representation.RepresentedContacts?.[0];
 	return [
 		checkRequiredAnswer(
-			representation.RepresentedContact?.firstName && representation.RepresentedContact?.lastName,
+			person?.firstName && person?.lastName,
 			"Enter the represented person's name",
 			`${originUrl}/edit/agent/name-person-representing`
+		)
+	];
+}
+
+/**
+ * Required answers for representing on behalf of a group of people.
+ * Just checks that at least 1 contact exists
+ */
+export function getGroupOfPeopleRequiredAnswers(
+	representation: RepresentationForValidation,
+	originUrl: string
+): (ErrorMessage | undefined)[] {
+	const firstPerson = representation?.RepresentedContacts?.[0];
+	return [
+		checkRequiredAnswer(
+			firstPerson?.firstName && firstPerson?.lastName,
+			'Enter at least one person in the group',
+			`${originUrl}/edit/agent/check-group-name-details`
 		)
 	];
 }

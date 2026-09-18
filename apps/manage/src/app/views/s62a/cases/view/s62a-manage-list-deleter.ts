@@ -216,4 +216,31 @@ export class S62aManageListDeleter {
 			})
 		]);
 	}
+
+	/**
+	 * Removes a single contact from a representation's group members.
+	 * Disconnects the join using the representation reference, then attempts to safely delete
+	 * the contact if it is no longer referenced elsewhere.
+	 */
+	public async deleteGroupNameDetails(representationRef: string, id: string): Promise<void> {
+		try {
+			await this.db.s62aRepresentation.update({
+				where: { reference: representationRef },
+				data: {
+					RepresentedContacts: { disconnect: { id } }
+				}
+			});
+
+			try {
+				await this.db.contact.delete({ where: { id } });
+			} catch (error) {
+				this.logger.warn(
+					{ representationRef, id, err: error },
+					'Unable to delete Contact record (may still be referenced)'
+				);
+			}
+		} catch (error) {
+			this.logger.warn({ representationRef, id, err: error }, 'Unable to remove contact from group details');
+		}
+	}
 }

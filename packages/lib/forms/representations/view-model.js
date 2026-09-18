@@ -23,7 +23,6 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
 	'categoryId',
 	'submittedForId',
 	'submittedByContactId',
-	'representedContactId',
 	'comment',
 	'commentRedacted',
 	'containsAttachments',
@@ -95,13 +94,16 @@ export function representationToManageViewModel(representation, applicationRefer
 			model.representedLastName = primaryRepresentedContact?.lastName;
 			model.isAgent = mapFieldValue(representation.submittedByAgent);
 			model.agentOrgName = representation.submittedByAgentOrgName;
+			model.representedContactId = primaryRepresentedContact?.id;
 		} else if (representation.representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION) {
 			model.orgName = primaryRepresentedContact?.orgName;
 			model.orgRoleName = representation.SubmittedByContact?.jobTitleOrRole;
+			model.representedContactId = primaryRepresentedContact?.id;
 		} else if (representation.representedTypeId === REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR) {
 			model.isAgent = mapFieldValue(representation.submittedByAgent);
 			model.agentOrgName = representation.submittedByAgentOrgName;
 			model.representedOrgName = primaryRepresentedContact?.orgName;
+			model.representedContactId = primaryRepresentedContact?.id;
 		} else if (representation.representedTypeId === REPRESENTED_TYPE_ID.GROUP) {
 			model.isAgent = mapFieldValue(representation.submittedByAgent);
 			model.agentOrgName = representation.submittedByAgentOrgName;
@@ -109,10 +111,13 @@ export function representationToManageViewModel(representation, applicationRefer
 			const groupContacts =
 				representation.RepresentedContacts ||
 				(representation.RepresentedContact ? [representation.RepresentedContact] : []);
-			model.manageGroupDetails = groupContacts.map((member) => ({
-				groupRepresentedFirstName: member.firstName,
-				groupRepresentedLastName: member.lastName
-			}));
+			model.manageGroupDetails = groupContacts
+				.map((member) => ({
+					id: member.id,
+					groupRepresentedFirstName: member.firstName,
+					groupRepresentedLastName: member.lastName
+				}))
+				.filter((contact) => contact.groupRepresentedFirstName && contact.groupRepresentedLastName);
 		}
 	}
 
@@ -491,7 +496,10 @@ export function s62aEditsToDatabaseUpdates(edits, viewModel) {
 				existingIdsToKeep.push(member.id);
 				upsertOperations.push({
 					where: { id: member.id },
-					create: memberData,
+					create: {
+						...memberData,
+						id: member.id
+					},
 					update: memberData
 				});
 			} else {
@@ -499,26 +507,28 @@ export function s62aEditsToDatabaseUpdates(edits, viewModel) {
 			}
 		}
 
-		updateInput.RepresentedContacts = {};
-
-		if (existingIdsToKeep.length > 0) {
-			updateInput.RepresentedContacts.deleteMany = { id: { notIn: existingIdsToKeep } };
-		} else if (payloads.groupMembersUpdate.length === 0) {
-			updateInput.RepresentedContacts.deleteMany = {};
-		}
+		updateInput.RepresentedContacts = {
+			deleteMany: existingIdsToKeep.length > 0 ? { id: { notIn: existingIdsToKeep } } : {}
+		};
 
 		if (upsertOperations.length > 0) updateInput.RepresentedContacts.upsert = upsertOperations;
 		if (createOperations.length > 0) updateInput.RepresentedContacts.create = createOperations;
 	} else if (Object.keys(payloads.representedContactUpdate).length > 0) {
-		updateInput.RepresentedContacts = {
-			upsert: [
-				{
-					where: optionalWhere(viewModel.representedContactId),
-					create: payloads.representedContactUpdate,
-					update: payloads.representedContactUpdate
-				}
-			]
-		};
+		if (viewModel.representedContactId) {
+			updateInput.RepresentedContacts = {
+				upsert: [
+					{
+						where: { id: viewModel.representedContactId },
+						create: payloads.representedContactUpdate,
+						update: payloads.representedContactUpdate
+					}
+				]
+			};
+		} else {
+			updateInput.RepresentedContacts = {
+				create: [payloads.representedContactUpdate]
+			};
+		}
 	}
 
 	return updateInput;

@@ -451,4 +451,57 @@ describe('S62aManageListDeleter', () => {
 			assert.strictEqual(mockDb.s62aToApplicant.deleteMany.mock.callCount(), 0);
 		});
 	});
+	describe('deleteGroupNameDetails', () => {
+		beforeEach(() => {
+			mockDb.s62aRepresentation = {
+				update: mock.fn(async () => {})
+			};
+		});
+
+		it('disconnects the contact from the representation and deletes the contact', async () => {
+			await deleter.deleteGroupNameDetails('rep-ref-123', 'contact-1');
+
+			assert.strictEqual(mockDb.s62aRepresentation.update.mock.callCount(), 1);
+			assert.deepStrictEqual(mockDb.s62aRepresentation.update.mock.calls[0].arguments[0], {
+				where: { reference: 'rep-ref-123' },
+				data: {
+					RepresentedContacts: { disconnect: { id: 'contact-1' } }
+				}
+			});
+
+			assert.strictEqual(mockDb.contact.delete.mock.callCount(), 1);
+			assert.deepStrictEqual(mockDb.contact.delete.mock.calls[0].arguments[0], {
+				where: { id: 'contact-1' }
+			});
+		});
+
+		it('logs a warning if the contact deletion fails (due to other constraints)', async () => {
+			const testError = new Error('Foreign key constraint on contact');
+			mockDb.contact.delete = mock.fn(() => Promise.reject(testError));
+
+			await deleter.deleteGroupNameDetails('rep-ref-123', 'contact-1');
+
+			assert.strictEqual(mockDb.s62aRepresentation.update.mock.callCount(), 1);
+			assert.strictEqual(mockDb.contact.delete.mock.callCount(), 1);
+
+			assert.strictEqual(mockLogger.warn.mock.callCount(), 1);
+			assert.strictEqual(
+				mockLogger.warn.mock.calls[0].arguments[1],
+				'Unable to delete Contact record (may still be referenced)'
+			);
+		});
+
+		it('logs a warning and skips contact deletion if representation update fails', async () => {
+			const testError = new Error('Record not found');
+			mockDb.s62aRepresentation.update = mock.fn(() => Promise.reject(testError));
+
+			await deleter.deleteGroupNameDetails('rep-ref-123', 'contact-1');
+
+			assert.strictEqual(mockDb.s62aRepresentation.update.mock.callCount(), 1);
+			assert.strictEqual(mockDb.contact.delete.mock.callCount(), 0);
+
+			assert.strictEqual(mockLogger.warn.mock.callCount(), 1);
+			assert.strictEqual(mockLogger.warn.mock.calls[0].arguments[1], 'Unable to remove contact from group details');
+		});
+	});
 });
