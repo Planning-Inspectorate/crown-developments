@@ -146,6 +146,7 @@ describe('S62A Save Controller Module', () => {
 			function mockServiceFor(linkableCase: { id: string } | null) {
 				const findFirst = mock.fn(async (_args: Record<string, unknown>) => linkableCase);
 				const create = mock.fn(async () => ({ id: 'new-case-id' }));
+				const folderCreate = mock.fn(async (_args: { data: { displayName: string } }) => ({ id: 'folder-id' }));
 
 				const $tx = {
 					s62aCase: {
@@ -153,7 +154,7 @@ describe('S62A Save Controller Module', () => {
 						create,
 						findMany: mock.fn(async () => [])
 					},
-					folder: { create: mock.fn(async () => ({ id: 'folder-id' })) }
+					folder: { create: folderCreate }
 				};
 
 				const service = {
@@ -161,7 +162,7 @@ describe('S62A Save Controller Module', () => {
 					logger: mockLogger()
 				} as unknown as ManageService;
 
-				return { service, findFirst, create };
+				return { service, findFirst, create, folderCreate };
 			}
 
 			function mockReqRes(answers: CreateCaseAnswers) {
@@ -253,6 +254,76 @@ describe('S62A Save Controller Module', () => {
 				await buildSaveController(service)(req, res, () => {});
 
 				assert.strictEqual(findFirst.mock.callCount(), 0);
+			});
+
+			describe('pre-application advice folder', () => {
+				const folderNames = (folderCreate: ReturnType<typeof mockServiceFor>['folderCreate']) =>
+					folderCreate.mock.calls.map((call) => call.arguments[0].data.displayName);
+
+				it('adds the folder for PINS advice', async () => {
+					const { service, folderCreate } = mockServiceFor({ id: 'case-1' });
+					const { req, res } = mockReqRes({
+						...baseAnswers,
+						preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.PINS,
+						preApplicationCaseId: 'case-1'
+					});
+
+					await buildSaveController(service)(req, res, () => {});
+
+					assert.ok(folderNames(folderCreate).includes('Pre-application advice'));
+				});
+
+				it('adds the folder for council advice', async () => {
+					const { service, folderCreate } = mockServiceFor(null);
+					const { req, res } = mockReqRes({
+						...baseAnswers,
+						preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.COUNCIL,
+						preApplicationReference: 'COUNCIL-REF-1'
+					});
+
+					await buildSaveController(service)(req, res, () => {});
+
+					assert.ok(folderNames(folderCreate).includes('Pre-application advice'));
+				});
+
+				it('still creates the standard application folders alongside it', async () => {
+					const { service, folderCreate } = mockServiceFor(null);
+					const { req, res } = mockReqRes({
+						...baseAnswers,
+						preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.COUNCIL,
+						preApplicationReference: 'COUNCIL-REF-1'
+					});
+
+					await buildSaveController(service)(req, res, () => {});
+
+					assert.deepStrictEqual(folderNames(folderCreate), [
+						'The Planning Application',
+						'Working documents',
+						'Pre-application advice'
+					]);
+				});
+
+				it('does not add the folder when no advice was requested', async () => {
+					const { service, folderCreate } = mockServiceFor(null);
+					const { req, res } = mockReqRes({ ...baseAnswers, preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.NO });
+
+					await buildSaveController(service)(req, res, () => {});
+
+					assert.ok(!folderNames(folderCreate).includes('Pre-application advice'));
+				});
+
+				it('does not add the folder on a pre-application, even with a stale advice answer', async () => {
+					const { service, folderCreate } = mockServiceFor(null);
+					const { req, res } = mockReqRes({
+						...baseAnswers,
+						applicationPhase: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION,
+						preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.COUNCIL
+					});
+
+					await buildSaveController(service)(req, res, () => {});
+
+					assert.ok(!folderNames(folderCreate).includes('Pre-application advice'));
+				});
 			});
 		});
 	});

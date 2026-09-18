@@ -596,6 +596,15 @@ export const APPLICATION_FOLDERS = [
 	}
 ];
 
+/**
+ * Added to an application case once pre-application advice is recorded, between
+ * The Planning Application (100) and Working documents (200).
+ */
+export const PRE_APPLICATION_ADVICE_FOLDER = {
+	displayName: 'Pre-application advice',
+	displayOrder: 150
+};
+
 export const PRE_APPLICATION_ADVICE_ID = Object.freeze({
 	PINS: 'pins',
 	COUNCIL: 'council',
