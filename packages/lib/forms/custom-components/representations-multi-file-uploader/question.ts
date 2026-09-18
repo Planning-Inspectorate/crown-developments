@@ -34,6 +34,10 @@ export default class RepresentationsMultiFileUploadQuestion extends MultiFileUpl
 				return undefined;
 			}
 
+			if (!this.editable) {
+				return undefined;
+			}
+
 			return [
 				{
 					href: journey.getCurrentQuestionUrl(sectionSegment, this.fieldName),

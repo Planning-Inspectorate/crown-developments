@@ -37,7 +37,8 @@ export function buildGetJourneyMiddleware(service: ManageService): AsyncRequestH
 				SubmittedFor: true,
 				SubmittedByContact: { include: { Address: true } },
 				RepresentedContacts: true,
-				Attachments: true
+				Attachments: true,
+				BlobWithdrawalRequestDocuments: true
 			}
 		});
 

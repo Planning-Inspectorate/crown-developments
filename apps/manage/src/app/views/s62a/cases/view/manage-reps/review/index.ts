@@ -4,6 +4,7 @@ import { buildReviewRepresentation, viewRepresentationAwaitingReview } from './c
 import { buildGetJourneyMiddleware } from '../view/controller.ts';
 import type { ManageService } from '#service';
 import { createRoutes as createTaskListRoutes } from '../task-list/index.ts';
+import { createRoutes as createWithdrawRoutes } from '../withdraw/index.ts';
 import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms';
 import { viewReviewRedirect } from '@pins/crowndev-lib/forms/representations/review-utils.ts';
 import { buildValidateRepresentationMiddleware } from '../validation-middleware.ts';
@@ -12,6 +13,7 @@ export function createRoutes(service: ManageService) {
 	const MANAGE_REPS_REVIEW_JOURNEY_ID = 's62a-manage-reps-review';
 	const router = createRouter({ mergeParams: true });
 	const taskListRoutes = createTaskListRoutes(service, MANAGE_REPS_REVIEW_JOURNEY_ID);
+	const withdrawRoutes = createWithdrawRoutes(service);
 
 	const getJourney = asyncHandler(buildGetJourneyMiddleware(service));
 	const validatePostRepresentation = buildValidateRepresentationMiddleware(service);
@@ -20,6 +22,7 @@ export function createRoutes(service: ManageService) {
 	router.get('/', getJourney, viewReviewRedirect, asyncHandler(viewRepresentationAwaitingReview));
 	router.post('/', getJourney, validatePostRepresentation, validationErrorHandler, asyncHandler(reviewRepresentation));
 	router.use('/task-list', taskListRoutes);
+	router.use('/withdraw-representation', withdrawRoutes);
 
 	return router;
 }

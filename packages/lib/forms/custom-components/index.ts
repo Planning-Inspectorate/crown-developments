@@ -162,6 +162,7 @@ export type MultiFileUploaderQuestionProps = CrownCommonQuestionProps & {
 	postUploadHtml?: string;
 	showUploadWarning?: boolean;
 	filesAddedText?: string;
+	summaryDownloadUrlComponent?: string;
 };
 
 type CardManageListQuestionProps = CardManageListQuestionParams & {

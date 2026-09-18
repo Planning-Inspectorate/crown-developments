@@ -168,7 +168,7 @@ export function haveYourSayManageSections(questions: Record<string, Question>, i
 			.withSectionCondition(whenQuestionHasAnswer(questions.status, REPRESENTATION_STATUS_ID.WITHDRAWN))
 			.addQuestion(questions.withdrawalRequestDate)
 			.addQuestion(questions.withdrawalReason)
-			.addQuestion(questions.withdrawalRequests)
+			.addQuestion(questions.ajaxWithdrawalRequests)
 			.addQuestion(questions.dateWithdrawn)
 	];
 }

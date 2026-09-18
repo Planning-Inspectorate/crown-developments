@@ -50,7 +50,8 @@ describe('view-model', () => {
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
 				dateWithdrawn: undefined,
-				distressingContentInRepresentation: undefined
+				distressingContentInRepresentation: undefined,
+				ajaxWithdrawalRequests: undefined
 			});
 		});
 		it('should map requires review', () => {
@@ -80,7 +81,8 @@ describe('view-model', () => {
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
 				dateWithdrawn: undefined,
-				distressingContentInRepresentation: undefined
+				distressingContentInRepresentation: undefined,
+				ajaxWithdrawalRequests: undefined
 			});
 		});
 		it('should map the myself fields', () => {
@@ -111,7 +113,8 @@ describe('view-model', () => {
 						county: 'Greater London',
 						postcode: 'NW1 6XE'
 					}
-				}
+				},
+				ajaxWithdrawalRequests: undefined
 			};
 			const viewModel = representationToManageViewModel(representation, applicationReference);
 			assert.deepStrictEqual(viewModel, {
@@ -152,7 +155,8 @@ describe('view-model', () => {
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
 				dateWithdrawn: undefined,
-				distressingContentInRepresentation: undefined
+				distressingContentInRepresentation: undefined,
+				ajaxWithdrawalRequests: undefined
 			});
 		});
 		it('should map the myself fields when contains attachments and redacted attachments', () => {
@@ -270,7 +274,8 @@ describe('view-model', () => {
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
 				dateWithdrawn: undefined,
-				distressingContentInRepresentation: undefined
+				distressingContentInRepresentation: undefined,
+				ajaxWithdrawalRequests: undefined
 			});
 		});
 		it('should map the on behalf of common fields', () => {
@@ -328,7 +333,8 @@ describe('view-model', () => {
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
 				dateWithdrawn: undefined,
-				distressingContentInRepresentation: undefined
+				distressingContentInRepresentation: undefined,
+				ajaxWithdrawalRequests: undefined
 			});
 		});
 		it('should map the on behalf of person fields', () => {
@@ -397,7 +403,8 @@ describe('view-model', () => {
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
 				dateWithdrawn: undefined,
-				distressingContentInRepresentation: undefined
+				distressingContentInRepresentation: undefined,
+				ajaxWithdrawalRequests: undefined
 			});
 		});
 		it('should map the on behalf of person fields when contains attachments and redacted attachments', () => {
@@ -512,7 +519,8 @@ describe('view-model', () => {
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
 				dateWithdrawn: undefined,
-				distressingContentInRepresentation: undefined
+				distressingContentInRepresentation: undefined,
+				ajaxWithdrawalRequests: undefined
 			});
 		});
 		it('should map the on behalf of org fields', () => {
@@ -577,7 +585,8 @@ describe('view-model', () => {
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
 				dateWithdrawn: undefined,
-				distressingContentInRepresentation: undefined
+				distressingContentInRepresentation: undefined,
+				ajaxWithdrawalRequests: undefined
 			});
 		});
 		it(`should map the on behalf of org don't work for fields`, () => {
@@ -644,7 +653,8 @@ describe('view-model', () => {
 				withdrawalReasonId: undefined,
 				withdrawalRequests: undefined,
 				dateWithdrawn: undefined,
-				distressingContentInRepresentation: undefined
+				distressingContentInRepresentation: undefined,
+				ajaxWithdrawalRequests: undefined
 			});
 		});
 		it(`should map withdraw reps fields`, () => {
@@ -652,6 +662,22 @@ describe('view-model', () => {
 				withdrawalRequestDate: new Date('2025-01-01T00:00:00Z'),
 				withdrawalReasonId: 'change-of-opinion',
 				WithdrawalRequests: [
+					{
+						itemId: 'file-1',
+						fileName: 'file1.pdf',
+						size: 12345,
+						redactedItemId: 'redacted-file-1',
+						redactedFileName: 'redacted-file1.pdf'
+					},
+					{
+						itemId: 'file-2',
+						fileName: 'file2.pdf',
+						size: 67890,
+						redactedItemId: 'redacted-file-2',
+						redactedFileName: 'redacted-file2.pdf'
+					}
+				],
+				BlobWithdrawalRequestDocuments: [
 					{
 						itemId: 'file-1',
 						fileName: 'file1.pdf',
@@ -705,7 +731,23 @@ describe('view-model', () => {
 						redactedFileName: 'redacted-file2.pdf'
 					}
 				],
-				dateWithdrawn: new Date('2025-07-31T00:00:00.000Z')
+				dateWithdrawn: new Date('2025-07-31T00:00:00.000Z'),
+				ajaxWithdrawalRequests: [
+					{
+						itemId: 'file-1',
+						fileName: 'file1.pdf',
+						size: 12345,
+						redactedItemId: 'redacted-file-1',
+						redactedFileName: 'redacted-file1.pdf'
+					},
+					{
+						itemId: 'file-2',
+						fileName: 'file2.pdf',
+						size: 67890,
+						redactedItemId: 'redacted-file-2',
+						redactedFileName: 'redacted-file2.pdf'
+					}
+				]
 			});
 		});
 		it('should map distressingContentInRepresentation boolean to yes/no', () => {

@@ -95,7 +95,7 @@ describe('questions', () => {
 					}
 				},
 				{
-					text: 'Mistaken Submission',
+					text: 'Mistaken submission',
 					value: 'mistaken-submission',
 					hint: {
 						text: 'They accidentally submitted the representation'
@@ -109,10 +109,17 @@ describe('questions', () => {
 					}
 				},
 				{
-					text: 'Personal Reasons',
+					text: 'Personal reasons',
 					value: 'personal-reasons',
 					hint: {
 						text: 'Such as privacy or a change in circumstances'
+					}
+				},
+				{
+					text: 'Added to the wrong case',
+					value: 'wrong-case',
+					hint: {
+						text: 'An administrative error by the case management team'
 					}
 				}
 			]);
@@ -135,7 +142,7 @@ describe('questions', () => {
 					}
 				},
 				{
-					text: 'Mistaken Submission',
+					text: 'Mistaken submission',
 					value: 'mistaken-submission',
 					hint: {
 						text: 'They accidentally submitted the representation'
@@ -149,10 +156,17 @@ describe('questions', () => {
 					}
 				},
 				{
-					text: 'Personal Reasons',
+					text: 'Personal reasons',
 					value: 'personal-reasons',
 					hint: {
 						text: 'Such as privacy or a change in circumstances'
+					}
+				},
+				{
+					text: 'Added to the wrong case',
+					value: 'wrong-case',
+					hint: {
+						text: 'An administrative error by the case management team'
 					}
 				}
 			]);
@@ -167,7 +181,7 @@ describe('questions', () => {
 					value: 'change-of-opinion'
 				},
 				{
-					text: 'Mistaken Submission',
+					text: 'Mistaken submission',
 					value: 'mistaken-submission'
 				},
 				{
@@ -175,8 +189,12 @@ describe('questions', () => {
 					value: 'misunderstanding'
 				},
 				{
-					text: 'Personal Reasons',
+					text: 'Personal reasons',
 					value: 'personal-reasons'
+				},
+				{
+					text: 'Added to the wrong case',
+					value: 'wrong-case'
 				}
 			]);
 		});
@@ -192,7 +210,7 @@ describe('questions', () => {
 					value: 'change-of-opinion'
 				},
 				{
-					text: 'Mistaken Submission',
+					text: 'Mistaken submission',
 					value: 'mistaken-submission'
 				},
 				{
@@ -200,8 +218,12 @@ describe('questions', () => {
 					value: 'misunderstanding'
 				},
 				{
-					text: 'Personal Reasons',
+					text: 'Personal reasons',
 					value: 'personal-reasons'
+				},
+				{
+					text: 'Added to the wrong case',
+					value: 'wrong-case'
 				}
 			]);
 		});

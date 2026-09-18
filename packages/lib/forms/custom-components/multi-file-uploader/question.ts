@@ -92,6 +92,7 @@ export default class MultiFileUploadQuestion extends Question {
 	public readonly postUploadHtml?: string;
 	public readonly showUploadWarning?: boolean;
 	public readonly filesAddedText?: string;
+	public readonly summaryDownloadUrlComponent?: string;
 
 	constructor(options: MultiFileUploaderQuestionProps) {
 		super({
@@ -112,6 +113,7 @@ export default class MultiFileUploadQuestion extends Question {
 		this.postUploadHtml = options.postUploadHtml;
 		this.showUploadWarning = options.showUploadWarning;
 		this.filesAddedText = options.filesAddedText;
+		this.summaryDownloadUrlComponent = options.summaryDownloadUrlComponent;
 	}
 
 	/**
@@ -126,7 +128,6 @@ export default class MultiFileUploadQuestion extends Question {
 			customViewData,
 			payload
 		}) as FileUploadViewModel;
-
 		const { id, question } = getStringParams(params, ['id', 'question']);
 
 		let draftFiles: DraftFile[] = [];
@@ -226,11 +227,15 @@ export default class MultiFileUploadQuestion extends Question {
 
 	/**
 	 * Maps standard draft files into the simple `{ href, name }` structure expected by the summary view macro.
+	 *
+	 * Follows the format <baseUrl>/<type (e.g. 'document', 'attachment', 'draft')>/<id>
 	 */
 	private mapFilesForSummary(files: DraftFile[], baseUrl: string) {
+		const urlComponent = this.summaryDownloadUrlComponent ?? 'document';
 		return files.map((file) => {
 			const fileId = file.itemId || file.id || '';
-			const href = typeof fileId === 'string' && fileId ? `${baseUrl}/document/${fileId}` : '#';
+
+			const href = typeof fileId === 'string' && fileId ? `${baseUrl}/${urlComponent}/${fileId}` : '#';
 
 			return {
 				href,
