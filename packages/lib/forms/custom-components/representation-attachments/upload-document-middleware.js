@@ -27,7 +27,7 @@ export async function uploadDocumentQuestion(req, res, next) {
 	const idKey = 'representationRef' in params ? 'representationRef' : 'id' in params ? 'id' : 'applicationId';
 	const id = getOptionalStringParam(params, idKey);
 
-	const uploadDocumentQuestionUrls = ['select-attachments', 'attachments', 'upload-request'];
+	const uploadDocumentQuestionUrls = ['select-attachments', 'attachments', 'upload-request', 'withdrawal-attachments'];
 	if (uploadDocumentQuestionUrls.includes(params.question)) {
 		const { journey } = res.locals;
 		const sectionParam = getOptionalStringParam(params, 'section');

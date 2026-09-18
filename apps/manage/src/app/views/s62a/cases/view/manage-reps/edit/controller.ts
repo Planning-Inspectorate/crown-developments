@@ -16,6 +16,7 @@ interface Attachment {
 type RepresentationAnswers = HaveYourSayManageModel & {
 	myselfBlobAttachments?: Attachment[];
 	submitterBlobAttachments?: Attachment[];
+	ajaxWithdrawalRequests?: Attachment[];
 };
 
 export function buildUpdateRepresentation(service: ManageService): SaveDataFn {
@@ -33,67 +34,88 @@ export function buildUpdateRepresentation(service: ManageService): SaveDataFn {
 
 		const fullViewModel = (res.locals?.originalAnswers || {}) as RepresentationAnswers;
 
-		const hasAttachments =
+		const hasRepAttachments =
 			(toSave.myselfBlobAttachments && toSave.myselfBlobAttachments.length > 0) ||
 			(toSave.submitterBlobAttachments && toSave.submitterBlobAttachments.length > 0);
 
-		if (hasAttachments) {
+		const hasWithdrawalRequests = toSave.ajaxWithdrawalRequests && toSave.ajaxWithdrawalRequests.length > 0;
+
+		if (hasRepAttachments || hasWithdrawalRequests) {
 			try {
 				const foundRepresentation = await db.$transaction(async ($tx) => {
 					const representation = await $tx.s62aRepresentation.findUnique({
-						where: {
-							reference: representationRef
-						}
+						where: { reference: representationRef }
 					});
 
-					// Return null so we can call notFoundHandler safely outside of transaction afterwards
-					if (!representation) {
-						return null;
-					}
+					if (!representation) return null;
 
-					const representationAttachments =
-						(toSave.myselfBlobAttachments?.length ?? 0) > 0
-							? toSave.myselfBlobAttachments!
-							: toSave.submitterBlobAttachments!;
+					if (hasRepAttachments) {
+						const representationAttachments =
+							(toSave.myselfBlobAttachments?.length ?? 0) > 0
+								? toSave.myselfBlobAttachments!
+								: toSave.submitterBlobAttachments!;
 
-					logger.info({ representationRef }, 'committing draft representation attachments');
+						logger.info({ representationRef }, 'committing draft representation attachments');
+						const repAttachmentIds = representationAttachments.map((rep) => rep.itemId);
 
-					const repAttachmentIds = representationAttachments.map((rep: { itemId: string }) => rep.itemId);
-
-					const drafts = await $tx.draftBlobRepresentationDocument.findMany({
-						where: {
-							id: { in: repAttachmentIds }
-						}
-					});
-
-					if (drafts.length > 0) {
-						const realDocumentsData = drafts.map((draft) => ({
-							fileName: draft.fileName,
-							blobName: draft.blobName,
-							size: draft.size,
-							mimeType: draft.mimeType,
-							redactedBlobName: draft.redactedBlobName,
-							redactedFileName: draft.redactedFileName,
-							statusId: draft.statusId,
-							s62aRepresentationId: representation.id
-						}));
-
-						await $tx.blobRepresentationDocument.createMany({
-							data: realDocumentsData
+						const repDrafts = await $tx.draftBlobRepresentationDocument.findMany({
+							where: { id: { in: repAttachmentIds } }
 						});
 
-						await $tx.draftBlobRepresentationDocument.deleteMany({
+						if (repDrafts.length > 0) {
+							const realDocumentsData = repDrafts.map((draft) => ({
+								fileName: draft.fileName,
+								blobName: draft.blobName,
+								size: draft.size,
+								mimeType: draft.mimeType,
+								redactedBlobName: draft.redactedBlobName,
+								redactedFileName: draft.redactedFileName,
+								statusId: draft.statusId,
+								s62aRepresentationId: representation.id
+							}));
+
+							await $tx.blobRepresentationDocument.createMany({ data: realDocumentsData });
+							await $tx.draftBlobRepresentationDocument.deleteMany({
+								where: { id: { in: repAttachmentIds } }
+							});
+
+							logger.info(
+								{ representationRef, count: repDrafts.length },
+								'added representation attachments and cleaned up drafts'
+							);
+						}
+					}
+
+					if (hasWithdrawalRequests) {
+						logger.info({ representationRef }, 'committing draft withdrawal requests');
+						const draftIds = toSave.ajaxWithdrawalRequests!.map((draft) => draft.itemId);
+
+						const withdrawalDrafts = await $tx.draftBlobWithdrawalRequestDocument.findMany({
 							where: {
-								id: { in: repAttachmentIds }
+								id: { in: draftIds },
+								s62aRepresentationId: representation.id
 							}
 						});
 
-						logger.info(
-							{ representationRef, count: drafts.length },
-							'added representation attachments and cleaned up drafts'
-						);
-					} else {
-						logger.info({ representationRef }, 'no drafts found to commit despite hasAttachments flag');
+						if (withdrawalDrafts.length > 0) {
+							const realWithdrawalData = withdrawalDrafts.map((draft) => ({
+								fileName: draft.fileName,
+								blobName: draft.blobName,
+								size: draft.size,
+								mimeType: draft.mimeType,
+								s62aRepresentationId: representation.id
+							}));
+
+							await $tx.blobWithdrawalRequestDocument.createMany({ data: realWithdrawalData });
+							await $tx.draftBlobWithdrawalRequestDocument.deleteMany({
+								where: { id: { in: draftIds } }
+							});
+
+							logger.info(
+								{ representationRef, count: withdrawalDrafts.length },
+								'added withdrawal requests and cleaned up drafts'
+							);
+						}
 					}
 
 					return representation;
@@ -106,7 +128,7 @@ export function buildUpdateRepresentation(service: ManageService): SaveDataFn {
 				wrapPrismaError({
 					error: err,
 					logger,
-					message: 'adding representation attachments',
+					message: 'adding attachments/withdrawals to representation',
 					logParams: { id, representationRef }
 				});
 			}

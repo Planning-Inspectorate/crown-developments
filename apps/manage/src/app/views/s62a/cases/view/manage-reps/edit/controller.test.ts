@@ -22,10 +22,19 @@ describe('buildUpdateRepresentation', () => {
 	const deleteManyDraftMock = mock.fn();
 	const createManyBlobMock = mock.fn();
 
+	const findManyWithdrawalDraftMock = mock.fn();
+	const deleteManyWithdrawalDraftMock = mock.fn();
+	const createManyWithdrawalBlobMock = mock.fn();
+
 	const mockTx = {
 		s62aRepresentation: { findUnique: findUniqueTxMock },
 		draftBlobRepresentationDocument: { findMany: findManyDraftMock, deleteMany: deleteManyDraftMock },
-		blobRepresentationDocument: { createMany: createManyBlobMock }
+		blobRepresentationDocument: { createMany: createManyBlobMock },
+		draftBlobWithdrawalRequestDocument: {
+			findMany: findManyWithdrawalDraftMock,
+			deleteMany: deleteManyWithdrawalDraftMock
+		},
+		blobWithdrawalRequestDocument: { createMany: createManyWithdrawalBlobMock }
 	};
 
 	const transactionMock = mock.fn(async (callback: (tx: typeof mockTx) => Promise<void>) => callback(mockTx));
@@ -68,9 +77,14 @@ describe('buildUpdateRepresentation', () => {
 		updateMock.mock.resetCalls();
 
 		findUniqueTxMock.mock.resetCalls();
+
 		findManyDraftMock.mock.resetCalls();
 		deleteManyDraftMock.mock.resetCalls();
 		createManyBlobMock.mock.resetCalls();
+
+		findManyWithdrawalDraftMock.mock.resetCalls();
+		deleteManyWithdrawalDraftMock.mock.resetCalls();
+		createManyWithdrawalBlobMock.mock.resetCalls();
 
 		infoMock.mock.resetCalls();
 		errorMock.mock.resetCalls();
@@ -111,7 +125,7 @@ describe('buildUpdateRepresentation', () => {
 		});
 	});
 
-	describe('With Attachments', () => {
+	describe('With Attachments and Withdrawals', () => {
 		it('should process submitterBlobAttachments via transaction correctly', async () => {
 			const req = mockReq();
 			const res = mockRes();
@@ -145,7 +159,83 @@ describe('buildUpdateRepresentation', () => {
 			const deleteArgs = deleteManyDraftMock.mock.calls[0].arguments[0] as { where: { id: { in: string[] } } };
 			assert.deepStrictEqual(deleteArgs.where.id.in, ['doc-123']);
 
+			assert.strictEqual(createManyWithdrawalBlobMock.mock.callCount(), 0);
+
 			assert.strictEqual(updateMock.mock.callCount(), 1);
+		});
+
+		it('should process ajaxWithdrawalRequests via transaction correctly when no other attachments exist', async () => {
+			const req = mockReq();
+			const res = mockRes();
+			const data = {
+				answers: {
+					representedName: 'Jane Doe',
+					ajaxWithdrawalRequests: [{ fileName: 'withdraw.pdf', itemId: 'wd-123' }]
+				}
+			};
+
+			findUniqueTxMock.mock.mockImplementation(
+				() => Promise.resolve({ id: 'rep-internal-id' }) as unknown as undefined
+			);
+			findManyWithdrawalDraftMock.mock.mockImplementation(
+				() =>
+					Promise.resolve([{ id: 'wd-123', fileName: 'withdraw.pdf', blobName: 'blob-uri' }]) as unknown as undefined
+			);
+
+			const handler = buildUpdateRepresentation(service);
+			await handler({ req, res, data } as unknown as SaveParams);
+
+			assert.strictEqual(transactionMock.mock.callCount(), 1);
+
+			assert.strictEqual(createManyBlobMock.mock.callCount(), 0);
+
+			assert.strictEqual(createManyWithdrawalBlobMock.mock.callCount(), 1);
+			const createArgs = createManyWithdrawalBlobMock.mock.calls[0].arguments[0] as {
+				data: Array<{ fileName: string; s62aRepresentationId: string }>;
+			};
+			assert.strictEqual(createArgs.data[0].fileName, 'withdraw.pdf');
+			assert.strictEqual(createArgs.data[0].s62aRepresentationId, 'rep-internal-id');
+
+			assert.strictEqual(deleteManyWithdrawalDraftMock.mock.callCount(), 1);
+			const deleteArgs = deleteManyWithdrawalDraftMock.mock.calls[0].arguments[0] as {
+				where: { id: { in: string[] } };
+			};
+			assert.deepStrictEqual(deleteArgs.where.id.in, ['wd-123']);
+
+			assert.strictEqual(updateMock.mock.callCount(), 1);
+		});
+
+		it('should process BOTH representation attachments and withdrawal requests in the same transaction', async () => {
+			const req = mockReq();
+			const res = mockRes();
+			const data = {
+				answers: {
+					myselfBlobAttachments: [{ fileName: 'doc.pdf', itemId: 'doc-123' }],
+					ajaxWithdrawalRequests: [{ fileName: 'withdraw.pdf', itemId: 'wd-123' }]
+				}
+			};
+
+			findUniqueTxMock.mock.mockImplementation(
+				() => Promise.resolve({ id: 'rep-internal-id' }) as unknown as undefined
+			);
+			findManyDraftMock.mock.mockImplementation(
+				() => Promise.resolve([{ id: 'doc-123', fileName: 'doc.pdf', blobName: 'blob-uri' }]) as unknown as undefined
+			);
+			findManyWithdrawalDraftMock.mock.mockImplementation(
+				() =>
+					Promise.resolve([{ id: 'wd-123', fileName: 'withdraw.pdf', blobName: 'blob-uri' }]) as unknown as undefined
+			);
+
+			const handler = buildUpdateRepresentation(service);
+			await handler({ req, res, data } as unknown as SaveParams);
+
+			assert.strictEqual(transactionMock.mock.callCount(), 1);
+
+			assert.strictEqual(createManyBlobMock.mock.callCount(), 1);
+			assert.strictEqual(createManyWithdrawalBlobMock.mock.callCount(), 1);
+
+			assert.strictEqual(deleteManyDraftMock.mock.callCount(), 1);
+			assert.strictEqual(deleteManyWithdrawalDraftMock.mock.callCount(), 1);
 		});
 
 		it('should trigger notFound logic if representation is not found inside the transaction', async () => {
@@ -164,6 +254,7 @@ describe('buildUpdateRepresentation', () => {
 
 			assert.strictEqual(createManyBlobMock.mock.callCount(), 0);
 			assert.strictEqual(deleteManyDraftMock.mock.callCount(), 0);
+			assert.strictEqual(createManyWithdrawalBlobMock.mock.callCount(), 0);
 		});
 	});
 

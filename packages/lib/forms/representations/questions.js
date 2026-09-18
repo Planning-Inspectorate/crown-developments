@@ -13,7 +13,8 @@ import {
 	REPRESENTATION_SUBMITTED_FOR,
 	REPRESENTED_TYPE,
 	REPRESENTED_TYPE_ID,
-	WITHDRAWAL_REASON
+	WITHDRAWAL_REASON,
+	WITHDRAWAL_REASON_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
 	referenceDataToRadioOptions,
@@ -30,6 +31,7 @@ import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/da
 import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
 import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/validator/document-upload-validator.js';
 import CustomManageListValidator from '../custom-components/manage-list/validator.js';
+import AjaxDocumentUploadValidator from '../custom-components/ajax-document-upload-validator/ajax-document-uploader-validator.ts';
 
 export const ACCEPT_AND_REDACT = 'accept-and-redact';
 
@@ -50,6 +52,7 @@ export const ACCEPT_AND_REDACT = 'accept-and-redact';
  * @property {boolean} [redactedCommentShowManageAction]
  * @property {boolean} [canEditAttachmentsUploaded]
  * @property {boolean} [distressingContentInRepresentationShowManageAction]
+ * @property {boolean} [statusShouldHideAllEdits]
  */
 /**
  * @typedef {object} EditActionOverrides
@@ -125,6 +128,17 @@ export const getQuestions = ({
 					status.id === REPRESENTATION_STATUS_ID.REJECTED ||
 					status.id === REPRESENTATION_STATUS_ID.WITHDRAWN ||
 					status.id === REPRESENTATION_STATUS_ID.AWAITING_REVIEW
+			);
+
+	// Crown does not show the "wrong case" option, S62A does.
+	const withdrawReason = isS62a
+		? WITHDRAWAL_REASON
+		: WITHDRAWAL_REASON.filter(
+				(reason) =>
+					reason.id === WITHDRAWAL_REASON_ID.CHANGE_OF_OPINION ||
+					reason.id === WITHDRAWAL_REASON_ID.MISTAKEN_SUBMISSION ||
+					reason.id === WITHDRAWAL_REASON_ID.MISUNDERSTANDING ||
+					reason.id === WITHDRAWAL_REASON_ID.PERSONAL_REASONS
 			);
 
 	const groupRepresentedFullNameQuestion =
@@ -422,7 +436,7 @@ export const getQuestions = ({
 		},
 		withdrawalRequestDate: {
 			type: COMPONENT_TYPES.DATE,
-			title: 'Withdrawal Date',
+			title: 'Withdrawal request date',
 			question: 'Enter date of withdrawal request',
 			hint: 'Use the date on the withdrawal correspondence. For example 27 3 2007',
 			fieldName: 'withdrawalRequestDate',
@@ -445,7 +459,7 @@ export const getQuestions = ({
 			fieldName: 'withdrawalReasonId',
 			url: 'reason',
 			validators: [new RequiredValidator('Select a reason for withdrawing the representation')],
-			options: referenceDataToRadioOptionsWithHintText(WITHDRAWAL_REASON)
+			options: referenceDataToRadioOptionsWithHintText(withdrawReason)
 		},
 		withdrawalRequests: {
 			type: CUSTOM_COMPONENTS.REPRESENTATION_ATTACHMENTS,
@@ -579,12 +593,54 @@ export const getQuestions = ({
 					]
 				})
 			]
+		},
+		ajaxWithdrawalRequests: {
+			type: CUSTOM_COMPONENTS.REPS_MULTI_FILE_UPLOADER,
+			title: 'Upload the withdrawal request',
+			question: 'Upload the withdrawal request',
+			fieldName: 'ajaxWithdrawalRequests',
+			url: 'withdrawal-attachments',
+			allowedFileExtensions: ALLOWED_EXTENSIONS,
+			allowedMimeTypes: ALLOWED_MIME_TYPES,
+			maxFileSizeValue: MAX_FILE_SIZE,
+			maxFileSizeString: '20MB',
+			validators: [new AjaxDocumentUploadValidator('ajaxWithdrawalRequests')],
+			dataUploadUrl: '/upload-withdrawal',
+			dataDeleteUrl: '/delete-withdrawal',
+			preUploadHtml: 'views/layouts/components/representations/s62a-upload-criteria.njk',
+			filesAddedText: 'Attachments added',
+			showUploadWarning: false,
+			summaryDownloadUrlComponent: 'withdrawal-document'
 		}
 	};
+
+	// in S62A we want most fields to be non-editable after the rep ahs been withdrawn
+	const shouldHideAllEdits = Boolean(isS62a && actionOverrides?.statusShouldHideAllEdits);
+
+	const withdrawalFields = ['ajaxWithdrawalRequests', 'withdrawalReason', 'withdrawalRequestDate'];
+
+	const finalQuestionProps = shouldHideAllEdits
+		? Object.fromEntries(
+				Object.entries(questionProps).map(([key, config]) => {
+					const isWithdrawalQuestion = withdrawalFields.includes(key);
+
+					return [
+						key,
+						{
+							...config,
+							// If it's a withdrawal question, keep whatever it originally had.
+							// Otherwise, lock it down.
+							editable: isWithdrawalQuestion ? config.editable : false
+						}
+					];
+				})
+			)
+		: questionProps;
 
 	const classes = {
 		...questionClasses,
 		...CUSTOM_COMPONENT_CLASSES
 	};
-	return createQuestions(questionProps, classes, methodOverrides, textOverrides);
+
+	return createQuestions(finalQuestionProps, classes, methodOverrides, textOverrides);
 };

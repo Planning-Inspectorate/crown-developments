@@ -869,6 +869,36 @@ model DraftBlobRepresentationDocument {
   @@index([sessionKey])
 }
 
+model BlobWithdrawalRequestDocument {
+  id           String   @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  uploadedDate DateTime @default(now())
+  fileName     String
+  blobName     String
+  size         BigInt
+  mimeType     String   @default("application/octet-stream")
+
+  s62aRepresentationId String             @db.UniqueIdentifier
+  S62aRepresentation   S62aRepresentation @relation(fields: [s62aRepresentationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([s62aRepresentationId])
+}
+
+/// A "pending" withdrawal request that will stay in draft until
+/// the withdrawal is formalling committed.
+model DraftBlobWithdrawalRequestDocument {
+  id         String @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  sessionKey String
+  fileName   String
+  blobName   String
+  size       BigInt
+  mimeType   String @default("application/octet-stream")
+
+  s62aRepresentationId String             @db.UniqueIdentifier
+  S62aRepresentation   S62aRepresentation @relation(fields: [s62aRepresentationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([sessionKey, s62aRepresentationId])
+}
+
 /// Address represents an address of a property or place
 model Address {
   /// internal identifier
@@ -1138,6 +1168,15 @@ model S62aRepresentation {
   Attachments         BlobRepresentationDocument[]
 
   distressingContentInRepresentation Boolean?
+
+  /// Withdrawal fields
+  withdrawalRequestDate               DateTime?
+  withdrawalReasonId                  String?
+  WithdrawalReason                    WithdrawalReason?                    @relation(fields: [withdrawalReasonId], references: [id])
+  dateWithdrawn                       DateTime?
+  preWithdrawalStatusId               String?
+  DraftBlobWithdrawalRequestDocuments DraftBlobWithdrawalRequestDocument[]
+  BlobWithdrawalRequestDocuments      BlobWithdrawalRequestDocument[]
 }
 
 // Document attached to a representation, such as evidence or a letter
@@ -1283,10 +1322,11 @@ model RepresentedType {
 
 model WithdrawalReason {
   /// unique machine-readable name, not generated, e.g. "change-of-opinion"
-  id             String           @id
-  displayName    String?
-  hintText       String?
-  Representation Representation[]
+  id                  String               @id
+  displayName         String?
+  hintText            String?
+  Representation      Representation[]
+  S62aRepresentations S62aRepresentation[]
 }
 
 /// Notify represents a notification sent via the Notify service

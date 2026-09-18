@@ -22,7 +22,8 @@ export function buildRepresentationQuestions(
 			redactedCommentShowManageAction: answers?.statusId === REPRESENTATION_STATUS_ID.ACCEPTED,
 			canEditAttachmentsUploaded: answers?.statusId !== REPRESENTATION_STATUS_ID.REJECTED,
 			distressingContentInRepresentationShowManageAction: answers?.statusId !== REPRESENTATION_STATUS_ID.REJECTED,
-			taskListUrl
+			taskListUrl,
+			statusShouldHideAllEdits: answers?.statusId === REPRESENTATION_STATUS_ID.WITHDRAWN
 		},
 		editActionOverrides: {
 			submittedReceivedMethodShouldShowEditAction:

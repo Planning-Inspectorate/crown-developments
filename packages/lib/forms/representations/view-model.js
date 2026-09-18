@@ -122,6 +122,7 @@ export function representationToManageViewModel(representation, applicationRefer
 	}
 
 	model.withdrawalRequests = representation.WithdrawalRequests;
+	model.ajaxWithdrawalRequests = representation.BlobWithdrawalRequestDocuments;
 
 	return model;
 }
