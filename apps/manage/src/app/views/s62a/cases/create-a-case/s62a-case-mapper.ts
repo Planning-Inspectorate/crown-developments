@@ -2,6 +2,8 @@ import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
 	APPLICANT_TYPE_ID,
+	PRE_APPLICATION_ADVICE_ID,
+	PRE_APPLICATION_OR_APPLICATION_ID,
 	S62A_STATUS_ID,
 	SITE_AREA_UNIT_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
@@ -22,6 +24,11 @@ export interface CreateCaseAnswers {
 	secondaryLpaLastName?: string;
 	secondaryLpaEmailAddress?: string;
 	secondaryLpaPhoneNumber?: string;
+
+	// Pre-application advice
+	preApplicationAdviceId?: string;
+	preApplicationCaseId?: string;
+	preApplicationReference?: string;
 
 	// Agent
 	hasAgent: YesNo;
@@ -111,6 +118,7 @@ export class S62aCaseMapper {
 		};
 
 		this.mapLookups(input);
+		this.mapPreApplicationAdvice(input);
 		this.mapLpaContacts(input);
 		this.mapSiteDetails(input);
 		this.mapApplicantsAndAgents(input);
@@ -134,6 +142,21 @@ export class S62aCaseMapper {
 
 		if (this.answers.applicationPhase) {
 			input.ApplicationPhase = { connect: { id: this.answers.applicationPhase } };
+		}
+	}
+
+	private mapPreApplicationAdvice(input: Prisma.S62aCaseCreateInput): void {
+		if (this.answers.applicationPhase !== PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION) return;
+
+		const adviceId = this.answers.preApplicationAdviceId;
+		if (!adviceId) return;
+
+		input.PreApplicationAdvice = { connect: { id: adviceId } };
+
+		if (adviceId === PRE_APPLICATION_ADVICE_ID.PINS && this.answers.preApplicationCaseId) {
+			input.PreApplicationCase = { connect: { id: this.answers.preApplicationCaseId } };
+		} else if (adviceId === PRE_APPLICATION_ADVICE_ID.COUNCIL && this.answers.preApplicationReference) {
+			input.preApplicationReference = this.answers.preApplicationReference.trim();
 		}
 	}
 

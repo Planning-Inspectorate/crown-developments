@@ -13,6 +13,7 @@ import {
 } from '@planning-inspectorate/dynamic-forms';
 
 import type { Request } from 'express';
+import { isPreApplicationAdviceGiven } from '../util/pre-application.ts';
 
 export const JOURNEY_ID = 's62a-create-a-case';
 
@@ -21,11 +22,23 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 		throw new Error(`not a valid request for the ${JOURNEY_ID} journey`);
 	}
 
+	const isApplicationCase = (response: JourneyResponse): boolean =>
+		response.answers.applicationPhase === PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
+
+	const needsPreApplicationReference = (response: JourneyResponse): boolean =>
+		isApplicationCase(response) && isPreApplicationAdviceGiven(response.answers.preApplicationAdviceId);
+
 	return new Journey({
 		journeyId: JOURNEY_ID,
 		sections: [
 			new Section('Create', 'questions')
 				.addQuestion(questions.applicationPhase)
+
+				.addQuestion(questions.preApplicationAdvice)
+				.withCondition(whenQuestionHasAnswer(questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION))
+
+				.addQuestion(questions.preApplicationReference)
+				.withCondition(needsPreApplicationReference)
 
 				.addQuestion(questions.applicationClassification)
 				.withCondition(whenQuestionHasAnswer(questions.applicationPhase, PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION))

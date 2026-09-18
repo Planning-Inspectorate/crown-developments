@@ -274,6 +274,12 @@ model S62aCase {
   PreApplicationAdvice    S62aPreApplicationAdvice? @relation(fields: [preApplicationAdviceId], references: [id])
   preApplicationReference String?
 
+  /// Linked PINS pre-application case, only used when advice was given by PINS
+  preApplicationCaseId String?    @db.UniqueIdentifier
+  PreApplicationCase   S62aCase?  @relation("S62aLinkedPreApplication", fields: [preApplicationCaseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// Back-relation required by Prisma. The app allows at most one linked application per pre-application.
+  LinkedApplications   S62aCase[] @relation("S62aLinkedPreApplication")
+
   // Outcome details
   outcomeTypeId     String?
   OutcomeType       S62aOutcomeType?     @relation(fields: [outcomeTypeId], references: [id])
