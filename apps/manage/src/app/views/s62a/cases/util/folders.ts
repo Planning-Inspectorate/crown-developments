@@ -1,6 +1,7 @@
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import {
 	APPLICATION_FOLDERS,
+	PRE_APPLICATION_ADVICE_FOLDER,
 	PRE_APPLICATION_FOLDERS,
 	PRE_APPLICATION_OR_APPLICATION_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
@@ -67,6 +68,30 @@ export async function createFolders(folders: Folder[], caseId: string, tx: Prism
 			})
 		)
 	);
+}
+
+/**
+ * Adds the pre-application advice folder to a case unless it already has one, so
+ * switching the advice between PINS and Council never creates a duplicate.
+ * Returns whether a folder was created.
+ */
+export async function ensurePreApplicationAdviceFolder(caseId: string, tx: Prisma.TransactionClient): Promise<boolean> {
+	const existing = await tx.folder.findFirst({
+		where: {
+			s62aCaseId: caseId,
+			parentFolderId: null,
+			displayName: PRE_APPLICATION_ADVICE_FOLDER.displayName,
+			deletedAt: null
+		},
+		select: { id: true }
+	});
+
+	if (existing) {
+		return false;
+	}
+
+	await createFolders([PRE_APPLICATION_ADVICE_FOLDER], caseId, tx);
+	return true;
 }
 
 /**

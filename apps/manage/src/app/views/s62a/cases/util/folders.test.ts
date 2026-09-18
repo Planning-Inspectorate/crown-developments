@@ -6,10 +6,15 @@ import {
 	findFolders,
 	buildBreadcrumbItems,
 	FOLDERS_MAP,
-	getFolderPath
+	getFolderPath,
+	ensurePreApplicationAdviceFolder
 } from './folders.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import {
+	APPLICATION_FOLDERS,
+	PRE_APPLICATION_ADVICE_FOLDER,
+	PRE_APPLICATION_OR_APPLICATION_ID
+} from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 
 describe('Folder creation utils', () => {
 	describe('findFolders', () => {
@@ -235,6 +240,57 @@ describe('Folder creation utils', () => {
 			const result = getFolderPath(mockFolders, 'folder-4');
 
 			assert.deepStrictEqual(result, [{ id: 'folder-4', displayName: 'Orphan', parentFolderId: 'missing-parent-id' }]);
+		});
+	});
+
+	describe('ensurePreApplicationAdviceFolder', () => {
+		const txWith = (existing: { id: string } | null) => {
+			const findFirst = mock.fn(async (_args: Record<string, unknown>) => existing);
+			const create = mock.fn(async (_args: { data: Record<string, unknown> }) => ({ id: 'folder-1' }));
+			const tx = { folder: { findFirst, create } } as unknown as Prisma.TransactionClient;
+			return { tx, findFirst, create };
+		};
+
+		it('creates the folder when the case does not have one', async () => {
+			const { tx, create } = txWith(null);
+
+			const created = await ensurePreApplicationAdviceFolder('case-1', tx);
+
+			assert.strictEqual(created, true);
+			assert.deepStrictEqual(create.mock.calls[0].arguments[0], {
+				data: { displayName: 'Pre-application advice', displayOrder: 150, s62aCaseId: 'case-1' }
+			});
+		});
+
+		it('does nothing when the case already has one', async () => {
+			const { tx, create } = txWith({ id: 'folder-existing' });
+
+			const created = await ensurePreApplicationAdviceFolder('case-1', tx);
+
+			assert.strictEqual(created, false);
+			assert.strictEqual(create.mock.callCount(), 0);
+		});
+
+		it('only counts a live, top-level folder on this case', async () => {
+			const { tx, findFirst } = txWith(null);
+
+			await ensurePreApplicationAdviceFolder('case-1', tx);
+
+			assert.deepStrictEqual(findFirst.mock.calls[0].arguments[0].where, {
+				s62aCaseId: 'case-1',
+				parentFolderId: null,
+				displayName: 'Pre-application advice',
+				deletedAt: null
+			});
+		});
+	});
+
+	describe('PRE_APPLICATION_ADVICE_FOLDER', () => {
+		it('sits between The Planning Application and Working documents', () => {
+			const orderOf = (name: string) => APPLICATION_FOLDERS.find((f) => f.displayName === name)?.displayOrder ?? NaN;
+
+			assert.ok(orderOf('The Planning Application') < PRE_APPLICATION_ADVICE_FOLDER.displayOrder);
+			assert.ok(PRE_APPLICATION_ADVICE_FOLDER.displayOrder < orderOf('Working documents'));
 		});
 	});
 });
