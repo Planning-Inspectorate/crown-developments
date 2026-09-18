@@ -20,6 +20,22 @@ export function isPreApplicationAdviceGiven(answer: unknown): boolean {
 }
 
 /**
+ * Whether the pre-application tab applies to this case: always for a
+ * pre-application, and for an application only once advice is recorded.
+ */
+export function showPreApplicationTab(answers?: {
+	applicationPhaseId?: string | null;
+	preApplicationAdviceId?: string | null;
+}): boolean {
+	if (!answers) return false;
+
+	return (
+		answers.applicationPhaseId === PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION &&
+		isPreApplicationAdviceGiven(answers.preApplicationAdviceId)
+	);
+}
+
+/**
  * Pre-application cases that can be linked: not withdrawn, and not already linked to an application
  */
 export function linkablePreApplicationWhere(): Prisma.S62aCaseWhereInput {

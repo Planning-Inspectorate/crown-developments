@@ -6,37 +6,54 @@ import type { Request, Response } from 'express';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import {
 	OCCUPANCY_TYPE_ID,
+	PRE_APPLICATION_ADVICE_ID,
+	PRE_APPLICATION_OR_APPLICATION_ID,
 	UNIT_TYPES,
-	UNIT_TYPES_BY_OCCUPANCY
+	UNIT_TYPES_BY_OCCUPANCY,
+	VIEW_TAB_ID,
+	VIEW_TABS
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { BOOLEAN_OPTIONS, Journey, Question } from '@planning-inspectorate/dynamic-forms';
-import type { ResidentialHousingItem } from './view-model.ts';
+import type { ResidentialHousingItem, S62aCaseViewModel } from './view-model.ts';
 import type { ResidentialAnswers } from '../util/residential-totals.ts';
+import { showPreApplicationTab } from '../util/pre-application.ts';
 
 type HousingInclude = {
 	include: { HousingType: boolean; OccupancyType: boolean; UnitType: boolean };
 	orderBy: Record<string, { order: string }>[];
 };
 
+/** Runtime shape of a question: options and nested sections aren't on the shipped Question type. */
+type ViewQuestion = Question & {
+	options?: { value: string; text: string }[];
+	section?: { questions?: Question[] };
+};
+
 /** Finds a question by fieldName, including inside manage list sections. */
-function findQuestion(journey: Journey, segment: string, fieldName: string) {
+function findQuestion(journey: Journey, segment: string, fieldName: string): ViewQuestion {
 	const section = journey.sections.find((s) => s.segment === segment);
 	if (!section) throw new Error(`section ${segment} not found`);
 
 	for (const question of section.questions) {
 		if (question.fieldName === fieldName) {
-			return question;
+			return question as ViewQuestion;
 		}
 
-		const nested = question.section?.questions ?? [];
+		const nested = (question as ViewQuestion).section?.questions ?? [];
 		const match = nested.find((q: Question) => q.fieldName === fieldName);
 
 		if (match) {
-			return match;
+			return match as ViewQuestion;
 		}
 	}
 
 	throw new Error(`question ${fieldName} not found in ${segment}`);
+}
+
+export function visibleViewTabs(answers?: S62aCaseViewModel) {
+	return VIEW_TABS.filter((tab) => tab.hide !== answers?.applicationPhaseId).filter(
+		(tab) => tab.id !== VIEW_TAB_ID.PRE_APPLICATION || showPreApplicationTab(answers)
+	);
 }
 
 describe('S62A Controller Middleware', () => {
@@ -164,7 +181,7 @@ describe('S62A Controller Middleware', () => {
 			await handler(req, res, () => {});
 
 			const question = findQuestion(res.locals.journey as Journey, 'existing', 'unitTypeId');
-			const values = question.options.map((option: { value: string }) => option.value);
+			const values = question.options?.map((option) => option.value) ?? [];
 
 			assert.deepStrictEqual(values, UNIT_TYPES_BY_OCCUPANCY[OCCUPANCY_TYPE_ID.SELF_BUILD_AND_CUSTOM_BUILD]);
 		});
@@ -198,7 +215,7 @@ describe('S62A Controller Middleware', () => {
 
 			const existing = findQuestion(res.locals.journey as Journey, 'existing', 'unitTypeId');
 
-			assert.strictEqual(existing.options.length, UNIT_TYPES.length);
+			assert.strictEqual(existing.options?.length, UNIT_TYPES.length);
 		});
 
 		describe('residential totals', () => {
@@ -547,6 +564,44 @@ describe('S62A Controller Middleware', () => {
 				const prompt = requirePrompt({ hasExistingHousing: BOOLEAN_OPTIONS.NO });
 				assert.ok(prompt.includes(`/s62a/cases/${id}/`));
 			});
+		});
+	});
+
+	describe('visibleViewTabs', () => {
+		const tabIds = (answers: Partial<S62aCaseViewModel>) =>
+			visibleViewTabs(answers as S62aCaseViewModel).map((tab) => tab.id);
+
+		it('shows the pre-application tab on an application with PINS advice', () => {
+			assert.ok(
+				tabIds({
+					applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION,
+					preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.PINS
+				}).includes(VIEW_TAB_ID.PRE_APPLICATION)
+			);
+		});
+
+		it('hides the pre-application tab on an application with no advice', () => {
+			assert.ok(
+				!tabIds({
+					applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION,
+					preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.NO
+				}).includes(VIEW_TAB_ID.PRE_APPLICATION)
+			);
+		});
+
+		it('hides the pre-application tab while the advice question is unanswered', () => {
+			assert.ok(
+				!tabIds({ applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION }).includes(
+					VIEW_TAB_ID.PRE_APPLICATION
+				)
+			);
+		});
+
+		it('still hides the tabs each phase hides', () => {
+			const ids = tabIds({
+				applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+			});
+			assert.ok(!ids.includes(VIEW_TAB_ID.RESIDENTIAL), 'phase-based hiding should still apply');
 		});
 	});
 });

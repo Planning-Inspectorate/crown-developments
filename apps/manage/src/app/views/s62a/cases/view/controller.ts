@@ -23,11 +23,13 @@ import {
 import { formatDateTime } from '@pins/crowndev-lib/util/audit-formatters.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import { getNonResidentialTotals, nonResidentialTotalAnswers } from '../util/non-residential-totals.ts';
+import { showPreApplicationTab } from '../util/pre-application.ts';
 
 export function buildViewCaseDetails(): AsyncRequestHandler {
 	return async (req, res) => {
 		const id = getStringParam(req.params, 'id');
 		const reference = getStringParam(res?.locals?.journeyResponse?.answers, 'reference');
+		const answers = getJourneyAnswers(res);
 		const applicationPhase = getStringParam(res?.locals?.journeyResponse?.answers, 'applicationPhaseId');
 		const banner = getBannerMessages(id, res, req);
 		const baseUrl = req.baseUrl;
@@ -38,8 +40,13 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 		// We clear the journey session on list page load to avoid ghost data.
 		clearDataFromSession({ req, journeyId: JOURNEY_ID });
 
-		// Some tabs are hidden for the different phases
-		const viewTabsToShow = VIEW_TABS.filter((tab) => tab.hide !== applicationPhase);
+		// Most tabs are hidden by phase via their static `hide` value. The pre-application
+		// tab also depends on an answer, so it has its own filter. If a second tab needs
+		// answer-based visibility, replace `hide` with a predicate on each tab (for example
+		// `hide?: (answers) => boolean`) rather than adding another special case here.
+		const viewTabsToShow = VIEW_TABS.filter((tab) => tab.hide !== applicationPhase).filter(
+			(tab) => tab.id !== VIEW_TAB_ID.PRE_APPLICATION || showPreApplicationTab(answers)
+		);
 
 		await list(req, res, '', {
 			caseId: id,
