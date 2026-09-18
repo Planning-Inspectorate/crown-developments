@@ -4,6 +4,8 @@ import { S62aCaseMapper, type CreateCaseAnswers } from './s62a-case-mapper.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
 	APPLICANT_TYPE_ID,
+	PRE_APPLICATION_ADVICE_ID,
+	PRE_APPLICATION_OR_APPLICATION_ID,
 	S62A_STATUS_ID,
 	SITE_AREA_UNIT_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
@@ -326,6 +328,69 @@ describe('S62aCaseMapper', () => {
 				email: null,
 				telephoneNumber: null
 			});
+		});
+	});
+
+	describe('Pre-application advice', () => {
+		function inputFor(answers: Partial<CreateCaseAnswers>) {
+			return new S62aCaseMapper(
+				{ ...baseAnswers, applicationPhase: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION, ...answers },
+				reference
+			).generateCreateInput();
+		}
+
+		it('connects the chosen case for PINS advice, ignoring any free text', () => {
+			const result = inputFor({
+				preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.PINS,
+				preApplicationCaseId: 'case-1',
+				preApplicationReference: 'left over from the council branch'
+			});
+
+			assert.deepStrictEqual(result.PreApplicationAdvice, { connect: { id: PRE_APPLICATION_ADVICE_ID.PINS } });
+			assert.deepStrictEqual(result.PreApplicationCase, { connect: { id: 'case-1' } });
+			assert.strictEqual(result.preApplicationReference, undefined);
+		});
+
+		it('saves the trimmed reference for council advice, ignoring any case id', () => {
+			const result = inputFor({
+				preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.COUNCIL,
+				preApplicationCaseId: 'left over from the pins branch',
+				preApplicationReference: '  COUNCIL-REF-1 '
+			});
+
+			assert.deepStrictEqual(result.PreApplicationAdvice, { connect: { id: PRE_APPLICATION_ADVICE_ID.COUNCIL } });
+			assert.strictEqual(result.PreApplicationCase, undefined);
+			assert.strictEqual(result.preApplicationReference, 'COUNCIL-REF-1');
+		});
+
+		it('saves only the advice answer when no advice was requested', () => {
+			const result = inputFor({
+				preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.NO,
+				preApplicationCaseId: 'left over'
+			});
+
+			assert.deepStrictEqual(result.PreApplicationAdvice, { connect: { id: PRE_APPLICATION_ADVICE_ID.NO } });
+			assert.strictEqual(result.PreApplicationCase, undefined);
+			assert.strictEqual(result.preApplicationReference, undefined);
+		});
+
+		it('ignores pre-application advice answers on a pre-application case', () => {
+			const result = inputFor({
+				applicationPhase: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION,
+				preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.PINS,
+				preApplicationCaseId: 'case-1'
+			});
+
+			assert.strictEqual(result.PreApplicationAdvice, undefined);
+			assert.strictEqual(result.PreApplicationCase, undefined);
+		});
+
+		it('saves nothing when the advice question is unanswered', () => {
+			const result = inputFor({});
+
+			assert.strictEqual(result.PreApplicationAdvice, undefined);
+			assert.strictEqual(result.PreApplicationCase, undefined);
+			assert.strictEqual(result.preApplicationReference, undefined);
 		});
 	});
 });
