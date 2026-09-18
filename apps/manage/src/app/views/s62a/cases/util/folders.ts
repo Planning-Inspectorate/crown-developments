@@ -12,6 +12,18 @@ export const FOLDERS_MAP = {
 	[PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION]: APPLICATION_FOLDERS
 };
 
+/**
+ * What syncPreApplicationAdviceFolder did to the case's folders.
+ */
+export const FOLDER_SYNC_RESULT = Object.freeze({
+	CREATED: 'created',
+	RESTORED: 'restored',
+	DELETED: 'deleted',
+	UNCHANGED: 'unchanged'
+} as const);
+
+export type FolderSyncResult = (typeof FOLDER_SYNC_RESULT)[keyof typeof FOLDER_SYNC_RESULT];
+
 type Folder = {
 	displayName: string;
 	displayOrder: number;
@@ -71,27 +83,48 @@ export async function createFolders(folders: Folder[], caseId: string, tx: Prism
 }
 
 /**
- * Adds the pre-application advice folder to a case unless it already has one, so
- * switching the advice between PINS and Council never creates a duplicate.
- * Returns whether a folder was created.
+ * Keeps the pre-application advice folder in step with the advice answer.
+ *
+ * With advice given, an existing folder is left alone, a soft-deleted one is
+ * restored with its contents, and only otherwise is a new one created. Without
+ * advice, a live folder is soft-deleted, so switching back restores it as it was.
  */
-export async function ensurePreApplicationAdviceFolder(caseId: string, tx: Prisma.TransactionClient): Promise<boolean> {
-	const existing = await tx.folder.findFirst({
-		where: {
-			s62aCaseId: caseId,
-			parentFolderId: null,
-			displayName: PRE_APPLICATION_ADVICE_FOLDER.displayName,
-			deletedAt: null
-		},
+export async function syncPreApplicationAdviceFolder(
+	caseId: string,
+	adviceGiven: boolean,
+	tx: Prisma.TransactionClient
+): Promise<FolderSyncResult> {
+	const folder = {
+		s62aCaseId: caseId,
+		parentFolderId: null,
+		displayName: PRE_APPLICATION_ADVICE_FOLDER.displayName
+	};
+
+	const live = await tx.folder.findFirst({ where: { ...folder, deletedAt: null }, select: { id: true } });
+
+	if (!adviceGiven) {
+		if (!live) return FOLDER_SYNC_RESULT.UNCHANGED;
+
+		await tx.folder.update({ where: { id: live.id }, data: { deletedAt: new Date() } });
+		return FOLDER_SYNC_RESULT.DELETED;
+	}
+
+	if (live) return FOLDER_SYNC_RESULT.UNCHANGED;
+
+	// Restore the most recent one, so a Yes/No/Yes cycle brings back the folder the user had
+	const deleted = await tx.folder.findFirst({
+		where: { ...folder, deletedAt: { not: null } },
+		orderBy: { deletedAt: 'desc' },
 		select: { id: true }
 	});
 
-	if (existing) {
-		return false;
+	if (deleted) {
+		await tx.folder.update({ where: { id: deleted.id }, data: { deletedAt: null } });
+		return FOLDER_SYNC_RESULT.RESTORED;
 	}
 
 	await createFolders([PRE_APPLICATION_ADVICE_FOLDER], caseId, tx);
-	return true;
+	return FOLDER_SYNC_RESULT.CREATED;
 }
 
 /**

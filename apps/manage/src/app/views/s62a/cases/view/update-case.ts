@@ -17,7 +17,7 @@ import type { S62aCaseViewModel } from './view-model.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { isPreApplicationAdviceGiven } from '../util/pre-application.ts';
-import { ensurePreApplicationAdviceFolder } from '../util/folders.ts';
+import { FOLDER_SYNC_RESULT, syncPreApplicationAdviceFolder } from '../util/folders.ts';
 
 /**
  * Long-text fields that render with expandable old/new value details
@@ -134,14 +134,19 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 					}
 				});
 
-				// Recording advice on an application adds the folder its documents go in
+				// The advice answer decides whether the case has a pre-application advice folder:
+				// Yes creates or restores it, No soft-deletes it.
 				if (
 					viewModel.applicationPhaseId === PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION &&
-					isPreApplicationAdviceGiven(answers.preApplicationAdviceId)
+					answers.preApplicationAdviceId !== undefined
 				) {
-					const created = await ensurePreApplicationAdviceFolder(id, $tx);
-					if (created) {
-						logger.info({ id }, 'created pre-application advice folder');
+					const change = await syncPreApplicationAdviceFolder(
+						id,
+						isPreApplicationAdviceGiven(answers.preApplicationAdviceId),
+						$tx
+					);
+					if (change !== FOLDER_SYNC_RESULT.UNCHANGED) {
+						logger.info({ id, change }, 'synced pre-application advice folder');
 					}
 				}
 			});

@@ -8,6 +8,9 @@ import {
 	PRE_APPLICATION_ADVICE_ID,
 	PRE_APPLICATION_OR_APPLICATION_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import { FOLDER_SYNC_RESULT } from '../util/folders.ts';
+
+type FolderUpdateArgs = { where: { id: string }; data: { deletedAt: Date | null } };
 
 describe('buildS62aUpdateCase', () => {
 	let mockDbSelectCalls: any[];
@@ -16,7 +19,9 @@ describe('buildS62aUpdateCase', () => {
 	let mockLoggerWarnCalls: Array<{ msg: string; [key: string]: unknown }> = [];
 	let mockFolderFindFirstCalls: unknown[];
 	let mockFolderCreateCalls: Array<{ data: Record<string, unknown> }>;
-	let existingAdviceFolder: { id: string } | null;
+	let mockFolderUpdateCalls: FolderUpdateArgs[];
+	let liveAdviceFolder: { id: string } | null;
+	let deletedAdviceFolder: { id: string } | null;
 	let caseRecord: Record<string, unknown>;
 	let mockService: ManageService;
 	let mockReq: Partial<Request>;
@@ -29,17 +34,24 @@ describe('buildS62aUpdateCase', () => {
 		mockLoggerWarnCalls = [];
 		mockFolderFindFirstCalls = [];
 		mockFolderCreateCalls = [];
-		existingAdviceFolder = null;
+		mockFolderUpdateCalls = [];
+		liveAdviceFolder = null;
+		deletedAdviceFolder = null;
 		caseRecord = { id: 'case-123' };
 
 		const folder = {
-			findFirst: async (args: unknown) => {
+			// The helper looks up the live folder first, then any soft-deleted one
+			findFirst: async (args: { where: { deletedAt: unknown } }) => {
 				mockFolderFindFirstCalls.push(args);
-				return existingAdviceFolder;
+				return args.where.deletedAt === null ? liveAdviceFolder : deletedAdviceFolder;
 			},
 			create: async (args: { data: Record<string, unknown> }) => {
 				mockFolderCreateCalls.push(args);
-				return { id: 'folder-1' };
+				return { id: 'folder-new' };
+			},
+			update: async (args: FolderUpdateArgs) => {
+				mockFolderUpdateCalls.push(args);
+				return { id: args.where.id };
 			}
 		};
 
@@ -145,11 +157,8 @@ describe('buildS62aUpdateCase', () => {
 	});
 
 	describe('pre-application advice folder', () => {
-		const save = (answers: Record<string, unknown>, clearAnswer = false) =>
-			buildS62aUpdateCase(
-				mockService,
-				clearAnswer
-			)({
+		const save = (answers: Record<string, unknown>) =>
+			buildS62aUpdateCase(mockService)({
 				req: mockReq,
 				res: mockRes,
 				data: { answers }
@@ -159,76 +168,105 @@ describe('buildS62aUpdateCase', () => {
 			caseRecord = { id: 'case-123', applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION };
 		};
 
-		it('creates the folder when the advice is changed to Yes - PINS', async () => {
-			onApplication();
+		const loggedChange = () =>
+			mockLoggerInfoCalls.find((call) => call.msg === 'synced pre-application advice folder')?.change;
 
-			await save({ preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.PINS });
+		describe('Yes - PINS or Yes - Council', () => {
+			it('creates the folder when the case has never had one', async () => {
+				onApplication();
 
-			assert.strictEqual(mockFolderCreateCalls.length, 1);
-			assert.strictEqual(mockFolderCreateCalls[0].data.displayName, 'Pre-application advice');
-			assert.strictEqual(mockFolderCreateCalls[0].data.s62aCaseId, 'case-123');
+				await save({ preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.PINS });
+
+				assert.strictEqual(mockFolderCreateCalls.length, 1);
+				assert.strictEqual(mockFolderCreateCalls[0].data.displayName, 'Pre-application advice');
+				assert.strictEqual(mockFolderCreateCalls[0].data.s62aCaseId, 'case-123');
+				assert.strictEqual(loggedChange(), FOLDER_SYNC_RESULT.CREATED);
+			});
+
+			it('does the same for council advice', async () => {
+				onApplication();
+
+				await save({ preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.COUNCIL });
+
+				assert.strictEqual(mockFolderCreateCalls.length, 1);
+			});
+
+			it('leaves an existing folder alone', async () => {
+				onApplication();
+				liveAdviceFolder = { id: 'folder-live' };
+
+				await save({ preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.COUNCIL });
+
+				assert.strictEqual(mockFolderCreateCalls.length, 0);
+				assert.strictEqual(mockFolderUpdateCalls.length, 0);
+				assert.strictEqual(loggedChange(), undefined, 'nothing changed, so nothing is logged');
+			});
+
+			it('restores a folder removed by an earlier No, rather than creating a new one', async () => {
+				onApplication();
+				deletedAdviceFolder = { id: 'folder-deleted' };
+
+				await save({ preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.PINS });
+
+				assert.deepStrictEqual(mockFolderUpdateCalls, [{ where: { id: 'folder-deleted' }, data: { deletedAt: null } }]);
+				assert.strictEqual(mockFolderCreateCalls.length, 0);
+				assert.strictEqual(loggedChange(), FOLDER_SYNC_RESULT.RESTORED);
+			});
 		});
 
-		it('creates the folder when the advice is changed to Yes - Council', async () => {
-			onApplication();
+		describe('No', () => {
+			it('soft-deletes the folder', async () => {
+				onApplication();
+				liveAdviceFolder = { id: 'folder-live' };
 
-			await save({ preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.COUNCIL });
+				await save({ preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.NO });
 
-			assert.strictEqual(mockFolderCreateCalls.length, 1);
+				assert.strictEqual(mockFolderUpdateCalls.length, 1);
+				assert.deepStrictEqual(mockFolderUpdateCalls[0].where, { id: 'folder-live' });
+				assert.ok(mockFolderUpdateCalls[0].data.deletedAt instanceof Date);
+				assert.strictEqual(mockFolderCreateCalls.length, 0);
+				assert.strictEqual(loggedChange(), FOLDER_SYNC_RESULT.DELETED);
+			});
+
+			it('does nothing when there is no folder to delete', async () => {
+				onApplication();
+
+				await save({ preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.NO });
+
+				assert.strictEqual(mockFolderUpdateCalls.length, 0);
+				assert.strictEqual(mockFolderCreateCalls.length, 0);
+			});
 		});
 
-		it('does not create a second folder when the case already has one', async () => {
-			onApplication();
-			existingAdviceFolder = { id: 'folder-existing' };
+		describe('when the folder is left alone', () => {
+			it('ignores a pre-application case', async () => {
+				caseRecord = { id: 'case-123', applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION };
+				liveAdviceFolder = { id: 'folder-live' };
 
-			await save({ preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.COUNCIL });
+				await save({ preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.NO });
 
-			assert.strictEqual(mockFolderFindFirstCalls.length, 1);
-			assert.strictEqual(mockFolderCreateCalls.length, 0);
+				assert.strictEqual(mockFolderFindFirstCalls.length, 0);
+				assert.strictEqual(mockFolderUpdateCalls.length, 0);
+			});
+
+			it('ignores a save of an unrelated field', async () => {
+				onApplication();
+				liveAdviceFolder = { id: 'folder-live' };
+
+				await save({ developmentDescription: 'An updated description' });
+
+				assert.strictEqual(mockFolderFindFirstCalls.length, 0);
+				assert.strictEqual(mockFolderUpdateCalls.length, 0);
+			});
 		});
 
-		it('does not create the folder when the advice is No', async () => {
-			onApplication();
-
-			await save({ preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.NO });
-
-			assert.strictEqual(mockFolderFindFirstCalls.length, 0);
-			assert.strictEqual(mockFolderCreateCalls.length, 0);
-		});
-
-		it('does not create the folder on Remove and save', async () => {
-			onApplication();
-
-			await save({ preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.PINS }, true);
-
-			assert.strictEqual(mockFolderCreateCalls.length, 0);
-		});
-
-		it('does not create the folder on a pre-application case', async () => {
-			caseRecord = { id: 'case-123', applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION };
-
-			await save({ preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.PINS });
-
-			assert.strictEqual(mockFolderCreateCalls.length, 0);
-		});
-
-		it('does not touch folders when an unrelated field is saved', async () => {
-			onApplication();
-
-			await save({ developmentDescription: 'An updated description' });
-
-			assert.strictEqual(mockFolderFindFirstCalls.length, 0);
-			assert.strictEqual(mockFolderCreateCalls.length, 0);
-		});
-
-		it('saves the case and the folder together', async () => {
+		it('saves the case and the folder change in the same transaction', async () => {
 			onApplication();
 
 			await save({ preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.PINS });
 
 			assert.strictEqual(mockDbUpdateCalls.length, 1);
 			assert.strictEqual(mockFolderCreateCalls.length, 1);
-			assert.ok(mockLoggerInfoCalls.some((call) => call.msg === 'created pre-application advice folder'));
 		});
 	});
 });

@@ -154,30 +154,4 @@ describe('pre-application util', () => {
 			assert.strictEqual(showPreApplicationTab(undefined), false);
 		});
 	});
-
-	describe('showPreApplicationTab', () => {
-		const forApplication = (preApplicationAdviceId?: string | null) =>
-			showPreApplicationTab({
-				applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION,
-				preApplicationAdviceId
-			});
-
-		it('shows the tab on an application once advice is recorded', () => {
-			assert.strictEqual(forApplication(PRE_APPLICATION_ADVICE_ID.PINS), true);
-			assert.strictEqual(forApplication(PRE_APPLICATION_ADVICE_ID.COUNCIL), true);
-		});
-
-		it('hides the tab on an application when no advice was requested', () => {
-			assert.strictEqual(forApplication(PRE_APPLICATION_ADVICE_ID.NO), false);
-		});
-
-		it('hides the tab while the advice question is unanswered', () => {
-			assert.strictEqual(forApplication(undefined), false);
-			assert.strictEqual(forApplication(null), false);
-		});
-
-		it('hides the tab when there are no answers', () => {
-			assert.strictEqual(showPreApplicationTab(undefined), false);
-		});
-	});
 });

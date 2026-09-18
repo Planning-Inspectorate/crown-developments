@@ -2002,10 +2002,7 @@ export function getQuestions(
 			fieldName: 'preApplicationAdviceId',
 			url: 'advice',
 			validators: [new RequiredValidator('Select if pre-application advice has been requested')],
-			options: PRE_APPLICATION_ADVICE.map((t) => ({ text: t.displayName, value: t.id })),
-			viewData: {
-				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'advice/remove' }]
-			}
+			options: PRE_APPLICATION_ADVICE.map((t) => ({ text: t.displayName, value: t.id }))
 		},
 		preApplicationReceivedDate: {
 			type: COMPONENT_TYPES.DATE,
