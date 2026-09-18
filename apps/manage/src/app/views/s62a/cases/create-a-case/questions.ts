@@ -13,10 +13,13 @@ import {
 	DateValidator,
 	CrossQuestionValidator
 } from '@planning-inspectorate/dynamic-forms';
+import NoOptionsValidator from '@pins/crowndev-lib/validators/no-options-validator.ts';
 import {
 	APPLICANT_TYPES,
 	APPLICANT_TYPE_ID,
 	MAJOR_OR_NON_MAJORS,
+	PRE_APPLICATION_ADVICE,
+	PRE_APPLICATION_ADVICE_ID,
 	PRE_APPLICATION_OR_APPLICATIONS,
 	PRE_APPLICATION_OR_APPLICATION_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
@@ -29,6 +32,7 @@ import { getApplicantOrganisationOptions } from '../../../../views/cases/util/ap
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 import { getApplicantContactsValidator, isApplicationType } from '../util/questions.ts';
+import type { PreApplicationCaseOption } from '../util/pre-application.ts';
 
 type ApplicantOrg = {
 	id: string;
@@ -36,7 +40,11 @@ type ApplicantOrg = {
 	organisationAddress?: Record<string, unknown>;
 };
 
-export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: boolean) {
+export function getQuestions(
+	journeyResponse: JourneyResponse,
+	isQuestionView: boolean,
+	preApplicationCaseOptions: PreApplicationCaseOption[] = []
+) {
 	const preAppOrAppPath = isApplicationType(journeyResponse.answers.applicationPhase)
 		? journeyResponse.answers.applicationPhase
 		: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
@@ -51,6 +59,8 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 
 	const applicantContactsValidator = getApplicantContactsValidator(hasAgent, isIndividual);
 
+	const isPinsAdvice = journeyResponse?.answers?.preApplicationAdviceId === PRE_APPLICATION_ADVICE_ID.PINS;
+
 	const questions = {
 		applicationPhase: {
 			type: COMPONENT_TYPES.RADIO,
@@ -61,6 +71,49 @@ export function getQuestions(journeyResponse: JourneyResponse, isQuestionView: b
 			validators: [new RequiredValidator('Select whether this is a pre-application or an application')],
 			options: PRE_APPLICATION_OR_APPLICATIONS.map((t) => ({ text: t.displayName, value: t.id }))
 		},
+		preApplicationAdvice: {
+			type: COMPONENT_TYPES.RADIO,
+			title: 'Pre-application advice requested?',
+			question: 'Has pre-application advice been requested for this case?',
+			fieldName: 'preApplicationAdviceId',
+			url: 'advice-requested',
+			validators: [new RequiredValidator('Select if pre-application advice has been requested')],
+			options: PRE_APPLICATION_ADVICE.map((t) => ({ text: t.displayName, value: t.id }))
+		},
+		// One key and URL for both branches, so the journey only ever has one question at this URL.
+		// Different field names, so a case id never pre-fills the free-text box (or vice versa).
+		preApplicationReference: isPinsAdvice
+			? {
+					type: COMPONENT_TYPES.SELECT,
+					title: 'Pre-application reference',
+					question: 'What is the pre-application reference?',
+					fieldName: 'preApplicationCaseId',
+					url: 'pre-application-reference',
+					validators: [
+						new NoOptionsValidator(
+							preApplicationCaseOptions.length > 0,
+							'All pre-application cases are either withdrawn or already linked to an application.'
+						),
+						new RequiredValidator('Enter the pre-application reference')
+					],
+					options: [{ text: '', value: '' }, ...preApplicationCaseOptions]
+				}
+			: {
+					type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+					title: 'Pre-application reference',
+					question: 'What is the pre-application reference?',
+					fieldName: 'preApplicationReference',
+					url: 'pre-application-reference',
+					validators: [
+						new RequiredValidator('Enter the pre-application reference'),
+						new StringValidator({
+							maxLength: {
+								maxLength: 30,
+								maxLengthMessage: 'Pre application advice reference must be less than 30 characters'
+							}
+						})
+					]
+				},
 		applicationClassification: {
 			type: COMPONENT_TYPES.RADIO,
 			title: 'Application classification',

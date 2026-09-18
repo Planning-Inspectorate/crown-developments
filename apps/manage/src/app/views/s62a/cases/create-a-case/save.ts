@@ -4,9 +4,13 @@ import type { ManageService } from '#service';
 import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
 import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import { S62aCaseMapper, type CreateCaseAnswers, type CreateInputOptions } from './s62a-case-mapper.ts';
-import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import {
+	PRE_APPLICATION_ADVICE_ID,
+	PRE_APPLICATION_OR_APPLICATION_ID
+} from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import type { RequestHandler } from 'express';
 import { createFolders, findFolders, FOLDERS_MAP } from '../util/folders.ts';
+import { isPreApplicationCaseLinkable } from '../util/pre-application.ts';
 
 type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
 
@@ -26,6 +30,18 @@ export function buildSaveController(service: ManageService): AsyncRequestHandler
 
 		const { id, reference } = await db.$transaction(async ($tx) => {
 			async function createCase(caseRef: string, extraData: Partial<Prisma.S62aCaseCreateInput> = {}) {
+				if (
+					answers.applicationPhase === PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION &&
+					answers.preApplicationAdviceId === PRE_APPLICATION_ADVICE_ID.PINS
+				) {
+					if (!answers.preApplicationCaseId) {
+						throw new Error('Pre-application case is required when advice was given by PINS');
+					}
+					if (!(await isPreApplicationCaseLinkable($tx, answers.preApplicationCaseId))) {
+						throw new Error('Selected pre-application case is withdrawn or already linked to an application');
+					}
+				}
+
 				const input = toCreateInput(answers, caseRef);
 
 				Object.assign(input, extraData);

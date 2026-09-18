@@ -2,7 +2,11 @@ import { describe, it, before } from 'node:test';
 import assert from 'node:assert';
 import { getQuestions } from './questions.ts';
 import type { JourneyResponse } from '@planning-inspectorate/dynamic-forms';
-import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import {
+	PRE_APPLICATION_ADVICE_ID,
+	PRE_APPLICATION_OR_APPLICATION_ID
+} from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import NoOptionsValidator from '@pins/crowndev-lib/validators/no-options-validator.ts';
 
 describe('s62a getQuestions', () => {
 	before(() => {
@@ -117,6 +121,77 @@ describe('s62a getQuestions', () => {
 			questions.expectedSubmissionDate.question,
 			'When is the pre-application advice expected to be submitted?',
 			'Did not use the correct expected submission question for pre-applications'
+		);
+	});
+});
+describe('pre-application reference', () => {
+	type QuestionOption = { text: string; value: string };
+
+	const optionValues = (question: unknown): string[] =>
+		((question as { options?: QuestionOption[] })?.options ?? []).map((o) => o.value);
+
+	const options: QuestionOption[] = [
+		{ value: 'case-1', text: 'S62A/PRE/2026/0000001' },
+		{ value: 'case-2', text: 'S62A/PRE/2026/0000002' }
+	];
+
+	function questionsFor(advice?: string, caseOptions = options) {
+		const mockRes = {
+			answers: {
+				applicationPhase: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION,
+				preApplicationAdviceId: advice
+			}
+		} as unknown as JourneyResponse;
+
+		return getQuestions(mockRes, true, caseOptions);
+	}
+
+	it('offers the three advice options', () => {
+		const { preApplicationAdvice } = questionsFor();
+
+		assert.deepStrictEqual(optionValues(preApplicationAdvice), [
+			PRE_APPLICATION_ADVICE_ID.PINS,
+			PRE_APPLICATION_ADVICE_ID.COUNCIL,
+			PRE_APPLICATION_ADVICE_ID.NO
+		]);
+	});
+
+	it('is a select over the linkable cases when PINS gave the advice', () => {
+		const { preApplicationReference } = questionsFor(PRE_APPLICATION_ADVICE_ID.PINS);
+
+		assert.strictEqual(preApplicationReference.fieldName, 'preApplicationCaseId');
+		assert.deepStrictEqual(
+			optionValues(preApplicationReference),
+			['', 'case-1', 'case-2'],
+			'should have a blank option first, so nothing is preselected'
+		);
+	});
+
+	it('is a free text input when the council gave the advice', () => {
+		const { preApplicationReference } = questionsFor(PRE_APPLICATION_ADVICE_ID.COUNCIL);
+
+		assert.strictEqual(preApplicationReference.fieldName, 'preApplicationReference');
+		assert.deepStrictEqual(optionValues(preApplicationReference), []);
+	});
+
+	it('uses the same url for both, so the journey only has one question there', () => {
+		assert.strictEqual(
+			questionsFor(PRE_APPLICATION_ADVICE_ID.PINS).preApplicationReference.url,
+			questionsFor(PRE_APPLICATION_ADVICE_ID.COUNCIL).preApplicationReference.url
+		);
+	});
+
+	it('explains why the list is empty when nothing is linkable', () => {
+		const { preApplicationReference } = questionsFor(PRE_APPLICATION_ADVICE_ID.PINS, []);
+
+		const validators = (preApplicationReference as unknown as { validators?: unknown[] }).validators ?? [];
+		const noOptions = validators.find((v) => v instanceof NoOptionsValidator);
+
+		assert.ok(noOptions, 'should register the no-options validator');
+		assert.strictEqual(
+			(noOptions as unknown as { hasOptions: boolean }).hasOptions,
+			false,
+			'should be blocking when there is nothing to choose from'
 		);
 	});
 });
