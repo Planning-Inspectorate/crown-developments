@@ -3,10 +3,11 @@ import type { Request } from 'express';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
+import type { CaseDataModel } from '../util/types.ts';
 
 const MAX_COMMENT_LENGTH = 500;
 
-export function buildValidateCaseNotesMiddleware(): Handler {
+export function buildValidateCaseNotesMiddleware(dataModel: CaseDataModel): Handler {
 	return (req, res, next) => {
 		const id = getStringParam(req.params, 'id');
 
@@ -15,10 +16,15 @@ export function buildValidateCaseNotesMiddleware(): Handler {
 		}
 
 		const errors = generateCaseNoteErrors(req);
+
 		if (errors.length) {
 			addSessionData(req, id, { updateErrors: errors }, 'cases');
 
-			return res.redirect(`/cases/${id}`);
+			if (dataModel === 'crown') {
+				return res.redirect(`/cases/${id}`);
+			} else if (dataModel === 's62a') {
+				return res.redirect(`/s62a/cases/${id}/case-notes`);
+			}
 		}
 
 		next();

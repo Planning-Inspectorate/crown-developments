@@ -19,6 +19,9 @@ import { getBaseUrl } from '../util/uuid.ts';
 import type { CaseDataModel } from '../util/types.ts';
 import type { CaseNotesService } from './index.ts';
 import { createPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
+import { isValidRedirectUri } from '../util/uri.ts';
+import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
+import path from 'node:path';
 
 /** Notes as queried for mapping — no relations; author is a plain Entra ID string. */
 type NoteForMapping = Pick<Prisma.ApplicationNoteGetPayload<object>, 'comment' | 'createdAt' | 'userId'>;
@@ -140,7 +143,12 @@ export function buildCreateCaseNoteHandler(service: CaseNotesService, dataModel:
 			}
 
 			logger.info({ id }, 'application note created');
-			res.redirect(`${getBaseUrl(req.baseUrl)}${id}`);
+
+			if (dataModel === 'crown') {
+				res.redirect(`${getBaseUrl(req.baseUrl)}${id}`);
+			} else if (dataModel === 's62a') {
+				res.redirect(`${getBaseUrl(req.baseUrl)}${id}/case-notes`);
+			}
 		} catch (error) {
 			logger.error({ error }, `Failed to create case note for ${dataModel}`);
 			res.status(500).send('Unable to save case note');
@@ -157,6 +165,12 @@ export function buildFetchCaseNotesMiddleware(
 
 	return async (req, res, next) => {
 		const id = getStringParam(req.params, 'id');
+
+		const sessionCaseData = req.session?.cases?.[id];
+		if (sessionCaseData?.updateErrors) {
+			res.locals.errorSummary = sessionCaseData.updateErrors as ErrorSummaryItem[];
+			delete sessionCaseData.updateErrors;
+		}
 
 		const groupMembers = await getEntraGroupMembers({
 			logger,
@@ -257,6 +271,12 @@ export function buildViewCaseNotes(service: CaseNotesService, dataModel: CaseDat
 			throw new Error('id param required');
 		}
 
+		const sessionCaseData = req.session?.cases?.[id];
+		const errorSummary = sessionCaseData?.updateErrors;
+		if (sessionCaseData?.updateErrors) {
+			delete sessionCaseData.updateErrors;
+		}
+
 		let caseRow;
 		try {
 			if (dataModel == 'crown') {
@@ -309,6 +329,7 @@ export function buildViewCaseNotes(service: CaseNotesService, dataModel: CaseDat
 			backLinkText: 'Back to case details',
 			currentUrl: req.originalUrl,
 			displayRef: true,
+			errorSummary,
 			...notes
 		});
 	};
@@ -352,12 +373,16 @@ export function buildViewAddCaseNotes(service: CaseNotesService, dataModel: Case
 
 		const notes = mapNotes(caseRow.Notes, groupMembers, caseRow.id);
 
+		const currentPath = req.originalUrl.split('?')[0];
+		const parentPath = path.posix.dirname(currentPath);
+		const cleanCurrentUrl = isValidRedirectUri(parentPath) ? parentPath : '/';
+
 		return res.render(
 			'add-case.njk',
 			{
 				backLinkUrl: `${getBaseUrl(req.baseUrl)}${id}`,
 				backLinkText: 'Back',
-				currentUrl: req.originalUrl,
+				currentUrl: cleanCurrentUrl,
 				displayRef: true,
 				...notes
 			},

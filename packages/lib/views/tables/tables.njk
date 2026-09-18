@@ -223,12 +223,14 @@
     Table that shows a list of case notes.
     - caseNotes: Array of case notes 
     - displayRef: Boolean
+    - isSortable: Boolean
 #}
-{% macro caseNotesTable(caseNotes,displayRef=true) %}
+{% macro caseNotesTable(caseNotes,displayRef=true,isSortable=false) %}
         {% if caseNotes | length == 0 %}
             <p class="govuk-body" data-cy="no-notes-message">There are no case notes to display</p>
         {% else %}            
             {% set tableRows = [] %}
+            
             {% for note in caseNotes %}
                 {% set tableRows = (tableRows.push([
                     {
@@ -242,20 +244,38 @@
                     },
                     {
                         text: note.userName,
-                        attributes: { "data-cy": "note-user-" + loop.index0 }
+                        attributes: {  "data-cy": "note-user-" + loop.index0 }
                     }
                 ]), tableRows) %}
             {% endfor %}
 
+            {% if isSortable %}
+                {% set attributes = {  
+                    "data-cy": "case-notes-table",
+                    "data-module": "moj-sortable-table"
+                    } 
+                %}
+                {% set firstHeaderAttribute = {
+                    "aria-sort": "descending"
+                    }
+                %}
+                {% set generalHeaderAttribute = {
+                    "aria-sort": "none"
+                    }
+                %}
+            {% else %}
+                {% set attributes = {} %}
+                {% set firstHeaderAttribute = {} %}
+                {% set generalHeaderAttribute = {} %}
+            {% endif %}
+
             {{ govukTable({
-                attributes: {
-                    "data-cy": "case-notes-table"
-                },
+                attributes: attributes, 
                 classes: "pins-case-notes-table",
                 head: [
-                    { text: "Date and time", classes: "govuk-!-width-one-quarter" },
-                    { text: "Details" },
-                    { text: "User", classes: "govuk-!-width-one-quarter" }
+                    { text: "Date and time", classes: "govuk-!-width-one-quarter", attributes: firstHeaderAttribute },
+                    { text: "Details", attributes: generalHeaderAttribute},
+                    { text: "User", classes: "govuk-!-width-one-quarter", attributes: generalHeaderAttribute }
                 ],
                 rows: tableRows
             }) }}

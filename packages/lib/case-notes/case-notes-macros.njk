@@ -2,7 +2,7 @@
 {%- from "govuk/components/character-count/macro.njk" import govukCharacterCount -%}
 
 {%- macro caseNotes(params) -%}
-	<form method="POST" novalidate="novalidate" action="{{ params.currentUrl }}/application-notes">
+	<form method="POST" novalidate="novalidate" action="{{ params.currentUrl }}">
 		{# Macros don't inherit template locals, so _csrf must be passed in via params #}
 		<input type="hidden" name="_csrf" value="{{ params._csrf }}">
 		<div class="govuk-grid-row">
@@ -17,14 +17,16 @@
 			</div>
 		</div>
 		{{ govukButton({
-			text: "Add case note",
+			text: params.buttonText,
 			type: "submit",
-			classes: "govuk-button--secondary govuk-!-margin-bottom-1",
+			classes: params.buttonFormat,
 			preventDoubleClick: true
 		}) }}
 	</form>
 	<div>
-		<hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+		{% if params.baseLineBreak %}
+			<hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+		{% endif %}
 		{%- for caseNote in params.notes -%}
 			<section>
 				<p class="govuk-body govuk-!-margin-bottom-1 govuk-!-text-break-word">
@@ -33,7 +35,8 @@
 				<p class="govuk-hint govuk-!-margin-bottom-6">
 					{{ [caseNote.time, ' on ', caseNote.dayOfWeek, ' ', caseNote.date, ' by ', caseNote.userName] | join }}
 				</p>
-				<hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+				
+					<hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 			</section>
 		{%- endfor -%}
 	</div>
