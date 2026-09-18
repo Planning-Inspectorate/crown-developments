@@ -25,13 +25,11 @@ export interface RepresentationForValidation {
 		jobTitleOrRole?: string | null;
 	} | null;
 	RepresentedContacts?:
-		| [
-				{
-					firstName?: string | null;
-					lastName?: string | null;
-					orgName?: string | null;
-				}
-		  ]
+		| {
+				firstName?: string | null;
+				lastName?: string | null;
+				orgName?: string | null;
+		  }[]
 		| null;
 }
 

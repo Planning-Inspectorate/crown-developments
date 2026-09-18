@@ -222,7 +222,8 @@ export class S62aManageListDeleter {
 	 * Disconnects the join using the representation reference, then attempts to safely delete
 	 * the contact if it is no longer referenced elsewhere.
 	 */
-	public async deleteGroupNameDetails(representationRef: string, id: string): Promise<void> {
+	public async deleteGroupNameDetails(representationRef: string | null, id: string): Promise<void> {
+		if (!representationRef) return;
 		try {
 			await this.db.s62aRepresentation.update({
 				where: { reference: representationRef },
