@@ -1,4 +1,4 @@
-import { describe, it, beforeEach } from 'node:test';
+import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildGetJourneyMiddleware, residentialPromptMessage } from './controller.ts';
 import type { ManageService } from '../../../../service.js';
@@ -16,7 +16,7 @@ import {
 import { BOOLEAN_OPTIONS, Journey, Question } from '@planning-inspectorate/dynamic-forms';
 import type { ResidentialHousingItem, S62aCaseViewModel } from './view-model.ts';
 import type { ResidentialAnswers } from '../util/residential-totals.ts';
-import { showPreApplicationTab } from '../util/pre-application.ts';
+import { linkablePreApplicationWhere, showPreApplicationTab } from '../util/pre-application.ts';
 
 type HousingInclude = {
 	include: { HousingType: boolean; OccupancyType: boolean; UnitType: boolean };
@@ -451,6 +451,110 @@ describe('S62A Controller Middleware', () => {
 
 				assert.strictEqual(answers.totalExistingUnits, undefined);
 				assert.strictEqual(answers.totalNetGainOrLossOfUnits, undefined);
+			});
+		});
+
+		it('includes the linked pre-application case the reference row needs', async () => {
+			const req = {
+				params: { id: 'case-123', tab: 'pre-application' },
+				baseUrl: '/s62a/cases/case-123/pre-application'
+			} as unknown as Request;
+
+			await buildGetJourneyMiddleware(mockService, false)(req, { locals: {} } as unknown as Response, () => {});
+
+			const include = dbFindUniqueCalls[0].include as { PreApplicationCase?: unknown };
+			assert.deepStrictEqual(include.PreApplicationCase, { select: { id: true, reference: true } });
+		});
+
+		describe('pre-application reference options', () => {
+			/** The shared mock service, with this case's fields and a pre-application query. */
+			const serviceWith = (caseFields: Record<string, unknown>) => {
+				const findMany = mock.fn(async (_args: Prisma.S62aCaseFindManyArgs) => [
+					{ id: 'pre-1', reference: 'S62A/PRE/2026/0000001' }
+				]);
+
+				const service = {
+					...mockService,
+					db: {
+						s62aCase: {
+							findUnique: async () => ({
+								id: 'case-123',
+								reference: 'S62A/2026/0001',
+								description: 'Test',
+								S62aStatus: { id: 'NEW', name: 'New' },
+								...caseFields
+							}),
+							findMany
+						}
+					}
+				} as unknown as ManageService;
+
+				return { service, findMany };
+			};
+
+			const render = async (service: ManageService) => {
+				const req = {
+					params: { id: 'case-123', tab: 'pre-application' },
+					baseUrl: '/s62a/cases/case-123/pre-application'
+				} as unknown as Request;
+				const res = { locals: {} } as unknown as Response;
+
+				await buildGetJourneyMiddleware(service, true)(req, res, () => {});
+
+				return res.locals.journey as Journey;
+			};
+
+			const application = (preApplicationAdviceId: string) => ({
+				applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION,
+				preApplicationAdviceId
+			});
+
+			it('loads them for PINS advice, keeping this case’s own link selectable', async () => {
+				const { service, findMany } = serviceWith(application(PRE_APPLICATION_ADVICE_ID.PINS));
+
+				await render(service);
+
+				assert.strictEqual(findMany.mock.callCount(), 1);
+				assert.deepStrictEqual(findMany.mock.calls[0].arguments[0].where, linkablePreApplicationWhere('case-123'));
+			});
+
+			it('passes them to the select', async () => {
+				const { service } = serviceWith(application(PRE_APPLICATION_ADVICE_ID.PINS));
+
+				const journey = await render(service);
+				const question = findQuestion(journey, 'pre-application', 'preApplicationCaseId');
+
+				assert.deepStrictEqual(
+					question.options?.map((option) => option.value),
+					['', 'pre-1']
+				);
+			});
+
+			it('does not query for council advice', async () => {
+				const { service, findMany } = serviceWith(application(PRE_APPLICATION_ADVICE_ID.COUNCIL));
+
+				await render(service);
+
+				assert.strictEqual(findMany.mock.callCount(), 0);
+			});
+
+			it('does not query when no advice was requested', async () => {
+				const { service, findMany } = serviceWith(application(PRE_APPLICATION_ADVICE_ID.NO));
+
+				await render(service);
+
+				assert.strictEqual(findMany.mock.callCount(), 0);
+			});
+
+			it('does not query on a pre-application case', async () => {
+				const { service, findMany } = serviceWith({
+					applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION,
+					preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.PINS
+				});
+
+				await render(service);
+
+				assert.strictEqual(findMany.mock.callCount(), 0);
 			});
 		});
 	});

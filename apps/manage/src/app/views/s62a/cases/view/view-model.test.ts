@@ -1172,6 +1172,54 @@ describe('s62aCaseToViewModel', () => {
 			assert.strictEqual(result.preApplicationReceivedDate, undefined);
 			assert.strictEqual(result.preApplicationAdviceIssuedDate, undefined);
 		});
+
+		it('maps the linked pre-application case id', () => {
+			const mockDbCase = {
+				id: 'case-preapp-5',
+				reference: 'S62A/2026/0033',
+				expectedSubmissionDate: mockDate,
+				preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.PINS,
+				preApplicationCaseId: 'pre-1',
+				PreApplicationCase: { id: 'pre-1', reference: 'S62A/PRE/2026/0000001' }
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.preApplicationCaseId, 'pre-1');
+		});
+
+		it('shows the linked case reference, so the row is not left empty', () => {
+			const mockDbCase = {
+				id: 'case-preapp-6',
+				reference: 'S62A/2026/0034',
+				expectedSubmissionDate: mockDate,
+				preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.PINS,
+				preApplicationCaseId: 'pre-1',
+				preApplicationReference: null,
+				PreApplicationCase: { id: 'pre-1', reference: 'S62A/PRE/2026/0000001' }
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.preApplicationReference, 'S62A/PRE/2026/0000001');
+		});
+
+		it('keeps a council reference when no case is linked', () => {
+			const mockDbCase = {
+				id: 'case-preapp-7',
+				reference: 'S62A/2026/0035',
+				expectedSubmissionDate: mockDate,
+				preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.COUNCIL,
+				preApplicationCaseId: null,
+				preApplicationReference: 'COUNCIL-REF-1',
+				PreApplicationCase: null
+			} as unknown as S62aCaseDbModel;
+
+			const result = s62aCaseToViewModel(mockDbCase);
+
+			assert.strictEqual(result.preApplicationReference, 'COUNCIL-REF-1');
+			assert.strictEqual(result.preApplicationCaseId, undefined);
+		});
 	});
 
 	describe('Outcome Mapping', () => {

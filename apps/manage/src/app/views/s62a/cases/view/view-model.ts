@@ -328,6 +328,7 @@ export interface S62aCaseViewModel {
 	// Pre-Application tab
 	preApplicationAdviceId?: string | null;
 	preApplicationReference?: string | null;
+	preApplicationCaseId?: string | null;
 	preApplicationReceivedDate?: Date;
 	preApplicationAdviceIssuedDate?: Date;
 
@@ -442,6 +443,7 @@ const RELATION_ID_FIELDS = Object.freeze([
 	'categoryId',
 	'procedureId',
 	'preApplicationAdviceId',
+	'preApplicationCaseId',
 	'outcomeTypeId',
 	'decisionOutcomeId'
 ] as const);
@@ -488,6 +490,12 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 
 	for (const field of [...RELATION_ID_FIELDS, ...DIRECT_UNMAPPED_FIELDS, ...INTEGER_STRING_FIELDS, ...DATE_FIELDS]) {
 		assignNullableDirectField(viewModel, dbCase, field);
+	}
+
+	// A PINS-linked case has no free-text reference; show the linked case's own
+	// reference instead, which the summary row then renders as a link.
+	if (dbCase.PreApplicationCase) {
+		viewModel.preApplicationReference = dbCase.PreApplicationCase.reference;
 	}
 
 	if (dbCase.representationsPeriodStartDate || dbCase.representationsPeriodEndDate) {

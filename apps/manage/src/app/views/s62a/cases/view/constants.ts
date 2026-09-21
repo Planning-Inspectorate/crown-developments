@@ -115,5 +115,8 @@ export const S62A_VIEW_SELECT_INCLUDE = {
 	AssessorInspector: true,
 	CaseOfficer: true,
 	PlanningOfficer: true,
-	Reader: true
+	Reader: true,
+	PreApplicationCase: {
+		select: { id: true, reference: true }
+	}
 } as const satisfies Prisma.S62aCaseInclude;
