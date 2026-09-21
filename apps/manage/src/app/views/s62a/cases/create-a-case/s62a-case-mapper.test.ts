@@ -17,6 +17,7 @@ describe('S62aCaseMapper', () => {
 
 	beforeEach(() => {
 		baseAnswers = {
+			applicationPhase: 'application',
 			applicationType: 'planning-permission',
 			lpaId: 'lpa-123',
 			developmentDescription: 'A base test development',
@@ -391,6 +392,23 @@ describe('S62aCaseMapper', () => {
 			assert.strictEqual(result.PreApplicationAdvice, undefined);
 			assert.strictEqual(result.PreApplicationCase, undefined);
 			assert.strictEqual(result.preApplicationReference, undefined);
+		});
+	});
+
+	describe('Starting status', () => {
+		it('should set the starting status to NEW when the case is an application', () => {
+			const mapper = new S62aCaseMapper(baseAnswers, reference);
+			const result = mapper.generateCreateInput();
+			assert.deepStrictEqual(result.S62aStatus, { connect: { id: S62A_STATUS_ID.NEW } });
+		});
+		it('should set the starting status to pre-notified when the case is a pre-application', () => {
+			const answers: CreateCaseAnswers = {
+				...baseAnswers,
+				applicationPhase: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+			};
+			const mapper = new S62aCaseMapper(answers, reference);
+			const result = mapper.generateCreateInput();
+			assert.deepStrictEqual(result.S62aStatus, { connect: { id: S62A_STATUS_ID.PRE_NOTIFIED } });
 		});
 	});
 });

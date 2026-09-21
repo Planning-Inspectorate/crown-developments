@@ -2,5 +2,5 @@
 {% from "success/success.njk" import successWithNextSteps %}
 
 {% block pageContent %}
-	{{ successWithNextSteps(reference, caseListUrl, caseDetailsUrl) }}
+	{{ successWithNextSteps(reference, caseStatus, caseListUrl, caseDetailsUrl) }}
 {% endblock %}
