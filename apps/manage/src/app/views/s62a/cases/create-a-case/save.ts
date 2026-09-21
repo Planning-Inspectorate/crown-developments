@@ -6,11 +6,13 @@ import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/cl
 import { S62aCaseMapper, type CreateCaseAnswers, type CreateInputOptions } from './s62a-case-mapper.ts';
 import {
 	PRE_APPLICATION_ADVICE_ID,
-	PRE_APPLICATION_OR_APPLICATION_ID
+	PRE_APPLICATION_OR_APPLICATION_ID,
+	S62A_STATUS_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import type { RequestHandler } from 'express';
 import { createFolders, findFolders, FOLDERS_MAP } from '../util/folders.ts';
 import { isPreApplicationCaseLinkable } from '../util/pre-application.ts';
+import { sentenceCase } from '@pins/crowndev-lib/util/string.ts';
 
 type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
 
@@ -28,7 +30,7 @@ export function buildSaveController(service: ManageService): AsyncRequestHandler
 			throw new Error('answers should be an object');
 		}
 
-		const { id, reference } = await db.$transaction(async ($tx) => {
+		const { id, status, reference } = await db.$transaction(async ($tx) => {
 			async function createCase(caseRef: string, extraData: Partial<Prisma.S62aCaseCreateInput> = {}) {
 				if (
 					answers.applicationPhase === PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION &&
@@ -74,6 +76,7 @@ export function buildSaveController(service: ManageService): AsyncRequestHandler
 
 			return {
 				id: created.id,
+				status: created.s62aStatusId,
 				reference: generatedRef
 			};
 		});
@@ -83,6 +86,7 @@ export function buildSaveController(service: ManageService): AsyncRequestHandler
 			journeyId: JOURNEY_ID,
 			replaceWith: {
 				id,
+				status: sentenceCase(status ?? S62A_STATUS_ID.NEW),
 				reference
 			}
 		});
@@ -174,6 +178,7 @@ export function buildSuccessController(): RequestHandler {
 
 		res.render('views/s62a/cases/create-a-case/success.njk', {
 			reference: data.reference,
+			caseStatus: data.status,
 			caseListUrl: '/s62a/cases',
 			caseDetailsUrl: `/s62a/cases/${data.id}`
 		});

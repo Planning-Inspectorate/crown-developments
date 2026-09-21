@@ -80,9 +80,11 @@ export class S62aCaseMapper {
 	private answers: CreateCaseAnswers;
 	private reference: string;
 	private options: CreateInputOptions;
+	private startingStatus: string;
 
 	constructor(answers: CreateCaseAnswers, reference: string, options: CreateInputOptions = {}) {
 		this.answers = answers;
+		this.startingStatus = this.getStartingStatus();
 		this.reference = reference;
 		this.options = options;
 	}
@@ -112,7 +114,7 @@ export class S62aCaseMapper {
 				: undefined,
 			expectedSubmissionDate: new Date(this.answers.expectedSubmissionDate),
 
-			S62aStatus: { connect: { id: S62A_STATUS_ID.NEW } },
+			S62aStatus: { connect: { id: this.startingStatus } },
 
 			ApplicantType: { connect: { id: this.answers.applicantType } }
 		};
@@ -124,6 +126,13 @@ export class S62aCaseMapper {
 		this.mapApplicantsAndAgents(input);
 
 		return input;
+	}
+
+	private getStartingStatus(): string {
+		if (this.answers.applicationPhase === PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION) {
+			return S62A_STATUS_ID.PRE_NOTIFIED;
+		}
+		return S62A_STATUS_ID.NEW;
 	}
 
 	private validateRequiredFields(): void {

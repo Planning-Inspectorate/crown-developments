@@ -20,7 +20,7 @@
 	</div>
 {% endmacro %}
 
-{% macro successWithNextSteps(reference, caseListUrl, caseDetailsUrl) %}
+{% macro successWithNextSteps(reference, caseStatus, caseListUrl, caseDetailsUrl) %}
 	<div class="govuk-grid-row">
 		<div class="govuk-grid-column-two-thirds">
 			{{ govukPanel({
@@ -31,7 +31,7 @@
 			<h2 class="govuk-heading-m">What happens next</h2>
 
 			<p class="govuk-body">
-				You can now manage this application in your case list. Its status is <strong>New</strong>.
+				You can now manage this application in your case list. Its status is <strong>{{ caseStatus }}</strong>.
 			</p>
 
 			<ul class="govuk-list govuk-list--bullet">
