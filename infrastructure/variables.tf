@@ -27,8 +27,11 @@ variable "apps_config" {
 
     entra = object({
       group_ids = object({
-        case_officers = string
-        inspectors    = string
+        case_officers     = string
+        inspectors        = string
+        s62a_inspectors   = string
+        s62a_readers      = string
+        planning_officers = string
       })
     })
 

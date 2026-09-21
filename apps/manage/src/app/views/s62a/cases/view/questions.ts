@@ -1612,7 +1612,7 @@ export function getQuestions(
 			fieldName: 'inspectorId',
 			url: 'inspector',
 			validators: [new RequiredValidator('Select an inspector')],
-			options: referenceDataToRadioOptions(groupMembers.inspectors, true)
+			options: referenceDataToRadioOptions(groupMembers.s62aInspectors, true)
 		},
 		inspectorAssignedDate: {
 			type: COMPONENT_TYPES.DATE,
@@ -1651,7 +1651,7 @@ export function getQuestions(
 			fieldName: 'assessorInspectorId',
 			url: 'assessor-inspector',
 			validators: [new RequiredValidator('Select an assessor inspector')],
-			options: referenceDataToRadioOptions(groupMembers.inspectors, true),
+			options: referenceDataToRadioOptions(groupMembers.s62aAssessors, true),
 			viewData: {
 				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'assessor-inspector/remove' }]
 			}
@@ -1663,7 +1663,7 @@ export function getQuestions(
 			fieldName: 'planningOfficerId',
 			url: 'planning-officer',
 			validators: [new RequiredValidator('Select a planning officer')],
-			options: referenceDataToRadioOptions(groupMembers.inspectors, true),
+			options: referenceDataToRadioOptions(groupMembers.s62aPlanningOfficers, true),
 			viewData: {
 				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'planning-officer/remove' }]
 			}
@@ -1675,7 +1675,7 @@ export function getQuestions(
 			fieldName: 'readerId',
 			url: 'reader',
 			validators: [new RequiredValidator('Select a reader')],
-			options: referenceDataToRadioOptions(groupMembers.inspectors, true),
+			options: referenceDataToRadioOptions(groupMembers.s62aReaders, true),
 			viewData: {
 				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'reader/remove' }]
 			}

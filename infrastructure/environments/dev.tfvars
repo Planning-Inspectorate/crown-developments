@@ -19,8 +19,11 @@ apps_config = {
   entra = {
     group_ids = {
       # use app access group for now
-      case_officers = "0041a68f-91cf-4d41-8b0d-0174cf2b2481"
-      inspectors    = "0041a68f-91cf-4d41-8b0d-0174cf2b2481"
+      case_officers     = "0041a68f-91cf-4d41-8b0d-0174cf2b2481"
+      inspectors        = "0041a68f-91cf-4d41-8b0d-0174cf2b2481"
+      planning_officers = "0041a68f-91cf-4d41-8b0d-0174cf2b2481"
+      s62a_inspectors   = "0041a68f-91cf-4d41-8b0d-0174cf2b2481"
+      s62a_readers      = "0041a68f-91cf-4d41-8b0d-0174cf2b2481"
     }
   }
 

@@ -26,15 +26,14 @@ type NoteForMapping = Pick<Prisma.ApplicationNoteGetPayload<object>, 'comment' |
 /**
  * Maps raw application notes into the shape consumed by the case notes views.
  *
- * Author names are resolved from the Entra group members (case officers +
- * inspectors), mirroring how CROWN resolves `updatedById` for last-modified-by.
+ * Author names are resolved from all Entra group members, mirroring how CROWN resolves `updatedById` for last-modified-by.
  * Falls back to the raw Entra ID, then 'Unknown'.
  */
 export const mapNotes = (unmappedNotes: NoteForMapping[], groupMembers: EntraGroupMembers, readMoreHref: string) => {
 	// Sort newest first (defensive — queries already order by createdAt desc).
 	const notes = [...unmappedNotes].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-	const members = [...groupMembers.caseOfficers, ...groupMembers.inspectors];
+	const members = Object.values(groupMembers).flat();
 
 	return {
 		caseNotes: notes.map((note) => {

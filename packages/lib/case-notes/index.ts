@@ -14,16 +14,14 @@ import type { AuditService } from '@pins/crowndev-lib/audit/index.js';
 import type { InitEntraClient } from '@pins/crowndev-lib/graph/types.js';
 import type { Logger } from 'pino';
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
+import type { EntraGroupIds } from '../util/entra-groups.ts';
 
 export interface CaseNotesService {
 	db: PrismaClient;
 	logger: Logger;
 	audit: AuditService;
 	getEntraClient: InitEntraClient;
-	entraGroupIds: {
-		caseOfficers: string;
-		inspectors: string;
-	};
+	entraGroupIds: EntraGroupIds;
 	isAuditLive?: boolean;
 }
 
