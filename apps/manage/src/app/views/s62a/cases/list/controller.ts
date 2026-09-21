@@ -15,7 +15,7 @@ export function buildCaseListPage(service: ManageService): AsyncRequestHandler {
 		const rawSearchCriteria = req.query?.searchCriteria;
 		const searchCriteriaParam = normaliseSearchQuery(rawSearchCriteria);
 		const searchCriteria = createWhereClause(splitStringQueries(searchCriteriaParam), [
-			{ fields: ['reference'], searchType: 'contains' }
+			{ fields: ['reference', 'historicalReference'], searchType: 'contains' }
 		]);
 
 		let s62aCases: S62ACasePayload[] = [];
