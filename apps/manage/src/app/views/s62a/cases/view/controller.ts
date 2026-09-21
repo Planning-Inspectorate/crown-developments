@@ -5,7 +5,12 @@ import { BOOLEAN_OPTIONS, clearDataFromSession, JourneyResponse, list } from '@p
 import { createJourney, JOURNEY_ID } from './journey.ts';
 import { getQuestions } from './questions.ts';
 import { getOptionalStringParams, getStringParam } from '@pins/crowndev-lib/util/params.ts';
-import { VIEW_TAB_ID, VIEW_TABS } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import {
+	PRE_APPLICATION_ADVICE_ID,
+	PRE_APPLICATION_OR_APPLICATION_ID,
+	VIEW_TAB_ID,
+	VIEW_TABS
+} from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { s62aCaseToViewModel, type S62aCaseViewModel } from './view-model.ts';
 import { isUnsafeObjectKey } from '@pins/crowndev-lib/util/session.ts';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
@@ -23,7 +28,7 @@ import {
 import { formatDateTime } from '@pins/crowndev-lib/util/audit-formatters.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import { getNonResidentialTotals, nonResidentialTotalAnswers } from '../util/non-residential-totals.ts';
-import { showPreApplicationTab } from '../util/pre-application.ts';
+import { getPreApplicationCaseOptions, showPreApplicationTab } from '../util/pre-application.ts';
 
 export function buildViewCaseDetails(): AsyncRequestHandler {
 	return async (req, res) => {
@@ -115,6 +120,13 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		}
 		const createdDate = formatDateTime(s62aCase.createdDate);
 
+		// Only queried when the PINS select will actually be built
+		const preApplicationCaseOptions =
+			finalAnswers.applicationPhaseId === PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION &&
+			finalAnswers.preApplicationAdviceId === PRE_APPLICATION_ADVICE_ID.PINS
+				? await getPreApplicationCaseOptions(db, id)
+				: [];
+
 		const questions = getQuestions(answers, {
 			isQuestionView,
 			groupMembers,
@@ -122,7 +134,8 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 			proposedHousing: finalAnswers.manageProposedHousing,
 			existingHousing: finalAnswers.manageExistingHousing,
 			nonResidentialFloorspace: finalAnswers.manageNonResidentialFloorspace,
-			residentialTotals
+			residentialTotals,
+			preApplicationCaseOptions
 		});
 
 		type QuestionBase = { fieldName?: string; title?: string };

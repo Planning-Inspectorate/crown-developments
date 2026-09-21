@@ -31,18 +31,27 @@ describe('pre-application util', () => {
 	});
 
 	describe('linkablePreApplicationWhere', () => {
-		const where = linkablePreApplicationWhere();
+		const notWithdrawn = {
+			OR: [{ s62aStatusId: null }, { s62aStatusId: { not: S62A_STATUS_ID.WITHDRAWN } }]
+		};
 
-		it('only looks at pre-application cases', () => {
-			assert.strictEqual(where.applicationPhaseId, PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION);
+		it('excludes withdrawn and already-linked pre-applications when there is no current case', () => {
+			assert.deepStrictEqual(linkablePreApplicationWhere(), {
+				applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION,
+				AND: [notWithdrawn, { OR: [{ LinkedApplications: { none: {} } }] }]
+			});
 		});
 
-		it('excludes cases already linked to an application', () => {
-			assert.deepStrictEqual(where.LinkedApplications, { none: {} });
-		});
-
-		it('excludes withdrawn cases but keeps cases with no status', () => {
-			assert.deepStrictEqual(where.OR, [{ s62aStatusId: null }, { s62aStatusId: { not: S62A_STATUS_ID.WITHDRAWN } }]);
+		it('also keeps the pre-application the current case is already linked to', () => {
+			assert.deepStrictEqual(linkablePreApplicationWhere('case-123'), {
+				applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION,
+				AND: [
+					notWithdrawn,
+					{
+						OR: [{ LinkedApplications: { none: {} } }, { LinkedApplications: { some: { id: 'case-123' } } }]
+					}
+				]
+			});
 		});
 	});
 
@@ -79,6 +88,15 @@ describe('pre-application util', () => {
 
 			assert.deepStrictEqual(await getPreApplicationCaseOptions(db), []);
 		});
+
+		it('passes the current case through, so its own link stays selectable', async () => {
+			const findMany = mock.fn(async (_args: Record<string, unknown>) => []);
+			const db = { s62aCase: { findMany } } as unknown as Db;
+
+			await getPreApplicationCaseOptions(db, 'case-123');
+
+			assert.deepStrictEqual(findMany.mock.calls[0].arguments[0].where, linkablePreApplicationWhere('case-123'));
+		});
 	});
 
 	describe('isPreApplicationCaseLinkable', () => {
@@ -96,6 +114,18 @@ describe('pre-application util', () => {
 			const db = { s62aCase: { findFirst: mock.fn(async () => null) } } as unknown as Db;
 
 			assert.strictEqual(await isPreApplicationCaseLinkable(db, 'id-1'), false);
+		});
+
+		it('passes the current case through', async () => {
+			const findFirst = mock.fn(async (_args: Record<string, unknown>) => ({ id: 'pre-1' }));
+			const db = { s62aCase: { findFirst } } as unknown as Db;
+
+			await isPreApplicationCaseLinkable(db, 'pre-1', 'case-123');
+
+			assert.deepStrictEqual(findFirst.mock.calls[0].arguments[0].where, {
+				id: 'pre-1',
+				...linkablePreApplicationWhere('case-123')
+			});
 		});
 	});
 

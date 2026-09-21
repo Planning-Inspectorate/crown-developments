@@ -28,7 +28,8 @@ import {
 	WASTE_TYPES,
 	WASTE_UNIT_ID,
 	WASTE_UNITS,
-	WASTE_TYPES_WITHOUT_VOID_CAPACITY
+	WASTE_TYPES_WITHOUT_VOID_CAPACITY,
+	PRE_APPLICATION_ADVICE_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import {
 	AddressValidator,
@@ -69,7 +70,7 @@ import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-nu
 import MultiConditionalNumericValidator from '@pins/crowndev-lib/forms/custom-components/multi-conditional-radio/multi-conditional-numeric-validator.ts';
 import UniqueListFieldValidator from '@pins/crowndev-lib/validators/unique-list-field-validator.ts';
 import { toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
-import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
+import { escapeHtml, insertWbr } from '@pins/crowndev-lib/util/string.ts';
 import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
 import RequiredGroupValidator from '@pins/crowndev-lib/validators/required-group-validator.ts';
 import { housingQuestions, residentialTotalQuestions } from '../util/housing-questions.ts';
@@ -77,6 +78,8 @@ import { floorspaceQuestions } from '../util/floorspace-questions.ts';
 import type { ResidentialTotals } from '../util/residential-totals.ts';
 import type { ColumnFormatContext } from '@pins/crowndev-lib/forms/custom-components/manage-list/table/defined-columns-list-table/question.ts';
 import ManageListItemsCompleteValidator from '@pins/crowndev-lib/validators/manage-list-items-complete-validator.ts';
+import type { PreApplicationCaseOption } from '../util/pre-application.ts';
+import NoOptionsValidator from '@pins/crowndev-lib/validators/no-options-validator.ts';
 
 interface QuestionOverrides {
 	isQuestionView?: boolean;
@@ -90,6 +93,7 @@ interface QuestionOverrides {
 	existingHousing?: ResidentialHousingItem[];
 	nonResidentialFloorspace?: NonResidentialFloorspaceItem[];
 	residentialTotals?: ResidentialTotals;
+	preApplicationCaseOptions?: PreApplicationCaseOption[];
 }
 
 type ApplicantOrg = {
@@ -106,7 +110,8 @@ export function getQuestions(
 		manageListItemId,
 		proposedHousing,
 		existingHousing,
-		residentialTotals
+		residentialTotals,
+		preApplicationCaseOptions
 	}: QuestionOverrides
 ) {
 	const isLbcCase = answers?.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
@@ -137,6 +142,8 @@ export function getQuestions(
 		cilAmountQuestion: 'What is the Community Infrastructure Levy (CIL) amount?',
 		validators: [new CILAmountValidator(), new CILAmountLengthValidator()]
 	};
+
+	const isPinsAdvice = answers?.preApplicationAdviceId === PRE_APPLICATION_ADVICE_ID.PINS;
 
 	const isIndividual = answers?.applicantType === APPLICANT_TYPE_ID.INDIVIDUAL;
 	const manageApplicantOrganisations = !isIndividual ? (answers?.manageApplicantOrganisations as ApplicantOrg[]) : [];
@@ -2024,25 +2031,48 @@ export function getQuestions(
 				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'advice-issued-date/remove' }]
 			}
 		},
-		preApplicationReference: {
-			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
-			title: 'Pre-application reference',
-			question: 'What is the pre-application reference?',
-			fieldName: 'preApplicationReference',
-			url: 'reference',
-			validators: [
-				new RequiredValidator('Enter the pre-application reference'),
-				new StringValidator({
-					maxLength: {
-						maxLength: 250,
-						maxLengthMessage: 'Pre-application reference must be 250 characters or less'
+		preApplicationReference: isPinsAdvice
+			? {
+					type: COMPONENT_TYPES.SELECT,
+					title: 'Pre-application reference',
+					question: 'What is the pre-application reference?',
+					fieldName: 'preApplicationCaseId',
+					url: 'reference',
+					validators: [
+						new NoOptionsValidator(
+							(preApplicationCaseOptions ?? []).length > 0,
+							'All pre-application cases are either withdrawn or already linked to an application.'
+						),
+						new RequiredValidator('Enter the pre-application reference')
+					],
+					options: [{ text: '', value: '' }, ...(preApplicationCaseOptions ?? [])],
+					formatSummaryValue: ({ formattedAnswer }: { formattedAnswer: string }) =>
+						answers.preApplicationCaseId && answers.preApplicationReference
+							? `<a class="govuk-link" href="/s62a/cases/${answers.preApplicationCaseId}" target="_blank" rel="noopener noreferrer">${insertWbr(escapeHtml(answers.preApplicationReference))}</a>`
+							: formattedAnswer,
+					viewData: {
+						extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'reference/remove' }]
 					}
-				})
-			],
-			viewData: {
-				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'reference/remove' }]
-			}
-		},
+				}
+			: {
+					type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
+					title: 'Pre-application reference',
+					question: 'What is the pre-application reference?',
+					fieldName: 'preApplicationReference',
+					url: 'reference',
+					validators: [
+						new RequiredValidator('Enter the pre-application reference'),
+						new StringValidator({
+							maxLength: {
+								maxLength: 250,
+								maxLengthMessage: 'Pre-application reference must be 250 characters or less'
+							}
+						})
+					],
+					viewData: {
+						extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'reference/remove' }]
+					}
+				},
 		outcomeType: {
 			type: COMPONENT_TYPES.RADIO,
 			title: 'Outcome type',

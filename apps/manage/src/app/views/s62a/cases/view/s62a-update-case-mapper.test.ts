@@ -2512,4 +2512,51 @@ describe('S62aCaseUpdateMapper', () => {
 			assert.ok(result.S62aNonResidential, 'the upsert must still be generated');
 		});
 	});
+	describe('pre-application link', () => {
+		const inputFor = (answers: UpdateCaseAnswers) => new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+		it('connects the chosen pre-application case', () => {
+			assert.deepStrictEqual(inputFor({ preApplicationCaseId: 'pre-1' }).PreApplicationCase, {
+				connect: { id: 'pre-1' }
+			});
+		});
+
+		it('disconnects the case on Remove and save', () => {
+			assert.deepStrictEqual(inputFor({ preApplicationCaseId: null }).PreApplicationCase, { disconnect: true });
+		});
+
+		it('leaves the link alone when the reference was not submitted', () => {
+			assert.strictEqual(inputFor({ likelyIssues: 'unrelated' }).PreApplicationCase, undefined);
+		});
+
+		describe('when the advice changes', () => {
+			it('unlinks the case when the advice is no longer PINS', () => {
+				const input = inputFor({ preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.COUNCIL });
+
+				assert.deepStrictEqual(input.PreApplicationCase, { disconnect: true });
+			});
+
+			it('clears the council reference when the advice is no longer council', () => {
+				const input = inputFor({ preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.PINS });
+
+				assert.strictEqual(input.preApplicationReference, null);
+			});
+
+			it('clears both when no advice was requested', () => {
+				const input = inputFor({ preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.NO });
+
+				assert.deepStrictEqual(input.PreApplicationCase, { disconnect: true });
+				assert.strictEqual(input.preApplicationReference, null);
+			});
+
+			it('keeps the council reference when the advice is council', () => {
+				const input = inputFor({
+					preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.COUNCIL,
+					preApplicationReference: 'COUNCIL-REF-1'
+				});
+
+				assert.strictEqual(input.preApplicationReference, 'COUNCIL-REF-1');
+			});
+		});
+	});
 });

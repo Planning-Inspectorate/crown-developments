@@ -6,7 +6,8 @@ import {
 	CONTACT_ROLES,
 	HOUSING_TYPE_ID,
 	FLOORSPACE_SET_ID,
-	USE_CLASS_ID
+	USE_CLASS_ID,
+	PRE_APPLICATION_ADVICE_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
 import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
@@ -173,6 +174,7 @@ export interface UpdateCaseAnswers {
 	preApplicationReference?: string;
 	preApplicationReceivedDate?: Date | null;
 	preApplicationAdviceIssuedDate?: Date | null;
+	preApplicationCaseId?: string | null;
 
 	// Outcome tab
 	outcomeTypeId?: string | null;
@@ -443,6 +445,23 @@ export class S62aCaseUpdateMapper {
 
 		if (this.hasAnswer('decisionOutcomeId')) {
 			input.DecisionOutcome = ans.decisionOutcomeId ? { connect: { id: ans.decisionOutcomeId } } : { disconnect: true };
+		}
+
+		if (this.hasAnswer('preApplicationCaseId')) {
+			input.PreApplicationCase = this.answers.preApplicationCaseId
+				? { connect: { id: this.answers.preApplicationCaseId } }
+				: { disconnect: true };
+		}
+
+		// Changing the advice type invalidates the other branch's reference, and a
+		// stale case link would keep that pre-application out of every other case's list.
+		if (this.hasAnswer('preApplicationAdviceId')) {
+			if (ans.preApplicationAdviceId !== PRE_APPLICATION_ADVICE_ID.PINS) {
+				input.PreApplicationCase = { disconnect: true };
+			}
+			if (ans.preApplicationAdviceId !== PRE_APPLICATION_ADVICE_ID.COUNCIL) {
+				input.preApplicationReference = null;
+			}
 		}
 	}
 
