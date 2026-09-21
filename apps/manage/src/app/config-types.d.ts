@@ -32,6 +32,9 @@ interface Config extends BaseConfig {
 		groupIds: {
 			caseOfficers: string;
 			inspectors: string;
+			s62aInspectors: string;
+			s62aReaders: string;
+			s62aPlanningOfficers: string;
 		};
 	};
 	blobStore: {

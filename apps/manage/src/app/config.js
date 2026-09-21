@@ -45,6 +45,9 @@ export function loadConfig() {
 		ENTRA_GROUP_CACHE_TTL,
 		ENTRA_GROUP_ID_CASE_OFFICERS,
 		ENTRA_GROUP_ID_INSPECTORS,
+		ENTRA_GROUP_ID_S62A_INSPECTORS,
+		ENTRA_GROUP_ID_S62A_READERS,
+		ENTRA_GROUP_ID_S62A_PLANNING_OFFICERS,
 		GIT_SHA,
 		LOG_LEVEL,
 		PORT,
@@ -103,7 +106,10 @@ export function loadConfig() {
 			AUTH_GROUP_APPLICATION_ACCESS,
 			AZURE_TENANT_ID,
 			ENTRA_GROUP_ID_CASE_OFFICERS,
-			ENTRA_GROUP_ID_INSPECTORS
+			ENTRA_GROUP_ID_INSPECTORS,
+			ENTRA_GROUP_ID_S62A_INSPECTORS,
+			ENTRA_GROUP_ID_S62A_READERS,
+			ENTRA_GROUP_ID_S62A_PLANNING_OFFICERS
 		};
 		for (const [k, v] of Object.entries(props)) {
 			if (v === undefined || v === '') {
@@ -203,7 +209,10 @@ export function loadConfig() {
 			cacheTtl: parseInt(ENTRA_GROUP_CACHE_TTL || 15),
 			groupIds: {
 				caseOfficers: ENTRA_GROUP_ID_CASE_OFFICERS,
-				inspectors: ENTRA_GROUP_ID_INSPECTORS
+				inspectors: ENTRA_GROUP_ID_INSPECTORS,
+				s62aInspectors: ENTRA_GROUP_ID_S62A_INSPECTORS,
+				s62aReaders: ENTRA_GROUP_ID_S62A_READERS,
+				s62aPlanningOfficers: ENTRA_GROUP_ID_S62A_PLANNING_OFFICERS
 			}
 		},
 		featureFlags: {

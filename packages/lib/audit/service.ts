@@ -203,7 +203,7 @@ export function buildAuditService(db: PrismaClient, logger: Logger) {
 
 				const updatedDate = caseRow.updatedDate ? formatDateTime(caseRow.updatedDate) : null;
 
-				const allMembers = [...groupMembers.caseOfficers, ...groupMembers.inspectors];
+				const allMembers = Object.values(groupMembers).flat();
 				const user = allMembers.find((member) => member.id === caseRow.updatedById);
 
 				// 1. Try and get a user from entra and show their name

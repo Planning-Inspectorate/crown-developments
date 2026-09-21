@@ -48,14 +48,17 @@ module "app_manage" {
     NODE_ENV                                   = var.apps_config.node_environment
     ENVIRONMENT                                = var.environment
 
-    APP_HOSTNAME                  = var.web_domains.manage
-    PORTAL_HOSTNAME               = "https://${var.web_domains.portal}"
-    AZURE_CLIENT_ID               = var.apps_config.auth.client_id
-    AZURE_CLIENT_SECRET           = local.key_vault_refs["crown-client-secret"]
-    AUTH_GROUP_APPLICATION_ACCESS = var.apps_config.auth.group_application_access
-    AZURE_TENANT_ID               = data.azurerm_client_config.current.tenant_id
-    ENTRA_GROUP_ID_CASE_OFFICERS  = var.apps_config.entra.group_ids.case_officers
-    ENTRA_GROUP_ID_INSPECTORS     = var.apps_config.entra.group_ids.inspectors
+    APP_HOSTNAME                          = var.web_domains.manage
+    PORTAL_HOSTNAME                       = "https://${var.web_domains.portal}"
+    AZURE_CLIENT_ID                       = var.apps_config.auth.client_id
+    AZURE_CLIENT_SECRET                   = local.key_vault_refs["crown-client-secret"]
+    AUTH_GROUP_APPLICATION_ACCESS         = var.apps_config.auth.group_application_access
+    AZURE_TENANT_ID                       = data.azurerm_client_config.current.tenant_id
+    ENTRA_GROUP_ID_CASE_OFFICERS          = var.apps_config.entra.group_ids.case_officers
+    ENTRA_GROUP_ID_INSPECTORS             = var.apps_config.entra.group_ids.inspectors
+    ENTRA_GROUP_ID_S62A_INSPECTORS        = var.apps_config.entra.group_ids.s62a_inspectors
+    ENTRA_GROUP_ID_S62A_READERS           = var.apps_config.entra.group_ids.s62a_readers
+    ENTRA_GROUP_ID_S62A_PLANNING_OFFICERS = var.apps_config.entra.group_ids.planning_officers
 
     #Sharepoint
     SHAREPOINT_DISABLED         = var.apps_config.sharepoint.disabled
