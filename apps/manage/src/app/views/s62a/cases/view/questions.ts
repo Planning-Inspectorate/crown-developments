@@ -1882,7 +1882,7 @@ export function getQuestions(
 				},
 				{
 					fieldName: 'organisationName',
-					label: 'Organisation name',
+					label: 'Organisation name (optional)',
 					type: 'single-line-input'
 				}
 			],
