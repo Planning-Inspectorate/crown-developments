@@ -13,7 +13,7 @@ export default class NameValidator extends StringValidator {
 				maxLengthMessage: `${label} must be between 1 and 250 characters`
 			},
 			regex: {
-				regex: "^[A-Za-z ''-]+$",
+				regex: /^[\p{Letter} '’-]+$/u,
 				regexMessage: `${label} must only include letters, spaces, hyphens and apostrophes`
 			},
 			fieldName
