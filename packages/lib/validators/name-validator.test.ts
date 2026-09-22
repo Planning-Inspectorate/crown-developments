@@ -11,29 +11,29 @@ async function getValidationErrors(value: string, question: { fieldName: string 
 describe('NameValidator', () => {
 	const question = { fieldName: 'contactName' };
 
-	it('accepts a standard alphabetic name', async () => {
+	it('should accept a standard alphabetic name', async () => {
 		const errors = await getValidationErrors('John', question, 'First name');
 		assert.strictEqual(errors.length, 0);
 	});
 
-	it('accepts a name with spaces, hyphens, and apostrophes', async () => {
+	it('should accept a name with spaces, hyphens, and apostrophes', async () => {
 		const errors = await getValidationErrors("Sarah Jane O'Connor-Smith", question, 'Last name');
 		assert.strictEqual(errors.length, 0);
 	});
 
-	it('rejects a name containing numbers', async () => {
+	it('should reject a name containing numbers', async () => {
 		const errors = await getValidationErrors('John123', question, 'First name');
 		assert.strictEqual(errors.length, 1);
 		assert.strictEqual(errors[0].msg, 'First name must only include letters, spaces, hyphens and apostrophes');
 	});
 
-	it('rejects a name containing disallowed special characters', async () => {
+	it('should reject a name containing disallowed special characters', async () => {
 		const errors = await getValidationErrors('Jane@Doe!', question, 'Contact name');
 		assert.strictEqual(errors.length, 1);
 		assert.strictEqual(errors[0].msg, 'Contact name must only include letters, spaces, hyphens and apostrophes');
 	});
 
-	it('rejects a name longer than 250 characters', async () => {
+	it('should reject a name longer than 250 characters', async () => {
 		const overlyLongName = 'A'.repeat(251);
 		const errors = await getValidationErrors(overlyLongName, question, 'First name');
 
@@ -41,9 +41,14 @@ describe('NameValidator', () => {
 		assert.strictEqual(errors[0].msg, 'First name must be between 1 and 250 characters');
 	});
 
-	it('accepts a name exactly 250 characters long', async () => {
+	it('should accept a name exactly 250 characters long', async () => {
 		const exactMaxLengthName = 'A'.repeat(250);
 		const errors = await getValidationErrors(exactMaxLengthName, question, 'First name');
+		assert.strictEqual(errors.length, 0);
+	});
+
+	it('should accept a name containing diacritics', async () => {
+		const errors = await getValidationErrors('João Öztürk Sánchez Çelik Łuka Dvořák', question, 'Last name');
 		assert.strictEqual(errors.length, 0);
 	});
 });
