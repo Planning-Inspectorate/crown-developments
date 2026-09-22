@@ -470,7 +470,7 @@ describe('S62A Controller Middleware', () => {
 			/** The shared mock service, with this case's fields and a pre-application query. */
 			const serviceWith = (caseFields: Record<string, unknown>) => {
 				const findMany = mock.fn(async (_args: Prisma.S62aCaseFindManyArgs) => [
-					{ id: 'pre-1', reference: 'S62A/PRE/2026/0000001' }
+					{ id: 'pre-1', reference: 'S62A/2026/0000001/PRE' }
 				]);
 
 				const service = {

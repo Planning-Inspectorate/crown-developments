@@ -39,7 +39,7 @@ describe('S62A Save Controller Module', () => {
 				mockDate
 			);
 
-			assert.strictEqual(reference, 'S62A/PRE/2026/0000001');
+			assert.strictEqual(reference, 'S62A/2026/0000001/PRE');
 		});
 
 		it('generates the first reference correctly for a Standard Application', async () => {

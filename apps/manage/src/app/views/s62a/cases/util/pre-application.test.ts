@@ -58,16 +58,16 @@ describe('pre-application util', () => {
 	describe('getPreApplicationCaseOptions', () => {
 		it('maps cases to options, using the id as the value', async () => {
 			const findMany = mock.fn(async () => [
-				{ id: 'id-1', reference: 'S62A/PRE/2026/0000001' },
-				{ id: 'id-2', reference: 'S62A/PRE/2026/0000002' }
+				{ id: 'id-1', reference: 'S62A/2026/0000001/PRE' },
+				{ id: 'id-2', reference: 'S62A/2026/0000002/PRE' }
 			]);
 			const db = { s62aCase: { findMany } } as unknown as Db;
 
 			const options = await getPreApplicationCaseOptions(db);
 
 			assert.deepStrictEqual(options, [
-				{ value: 'id-1', text: 'S62A/PRE/2026/0000001' },
-				{ value: 'id-2', text: 'S62A/PRE/2026/0000002' }
+				{ value: 'id-1', text: 'S62A/2026/0000001/PRE' },
+				{ value: 'id-2', text: 'S62A/2026/0000002/PRE' }
 			]);
 		});
 
