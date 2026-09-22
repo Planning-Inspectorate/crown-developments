@@ -168,7 +168,7 @@ describe('question-utils', () => {
 			const question = questions.agentContactDetails;
 			const [multiFieldValidator] = question.validators;
 
-			it('should validate first name with regex allowing only letters, spaces, hyphens and apostrophes', () => {
+			it('should validate first name using a NameValidator', () => {
 				const firstNameFieldRule = multiFieldValidator.fields.find(
 					(fieldRule) => fieldRule.fieldName === 'agentFirstName'
 				);
@@ -176,33 +176,14 @@ describe('question-utils', () => {
 				assert.ok(firstNameFieldRule);
 				assert.ok(Array.isArray(firstNameFieldRule.validators));
 
-				const stringValidator = firstNameFieldRule.validators.find(
-					(validator) => validator.constructor.name === 'StringValidator'
+				const nameValidator = firstNameFieldRule.validators.find(
+					(validator) => validator.constructor.name === 'NameValidator'
 				);
 
-				assert.ok(stringValidator);
-				assert.ok(stringValidator.regex);
-				assert.strictEqual(
-					stringValidator.regex.regexMessage,
-					'First name must only include letters, spaces, hyphens and apostrophes'
-				);
-
-				const regex = new RegExp(stringValidator.regex.regex);
-
-				assert.ok(regex.test('Jane'));
-				assert.ok(regex.test('Mary Jane'));
-				assert.ok(regex.test("O'Brien"));
-				assert.ok(regex.test('Anne-Marie'));
-				assert.ok(regex.test("Mary-Jane O'Connor"));
-
-				assert.ok(!regex.test('Jane2'));
-				assert.ok(!regex.test('Jane!'));
-				assert.ok(!regex.test('Mary@Jane'));
-				assert.ok(!regex.test('Mary.Jane'));
-				assert.ok(!regex.test(''));
+				assert.ok(nameValidator);
 			});
 
-			it('should validate last name with regex allowing only letters, spaces, hyphens and apostrophes', () => {
+			it('should validate last name using a NameValidator', () => {
 				const lastNameFieldRule = multiFieldValidator.fields.find(
 					(fieldRule) => fieldRule.fieldName === 'agentLastName'
 				);
@@ -210,30 +191,11 @@ describe('question-utils', () => {
 				assert.ok(lastNameFieldRule);
 				assert.ok(Array.isArray(lastNameFieldRule.validators));
 
-				const stringValidator = lastNameFieldRule.validators.find(
-					(validator) => validator.constructor.name === 'StringValidator'
+				const nameValidator = lastNameFieldRule.validators.find(
+					(validator) => validator.constructor.name === 'NameValidator'
 				);
 
-				assert.ok(stringValidator);
-				assert.ok(stringValidator.regex);
-				assert.strictEqual(
-					stringValidator.regex.regexMessage,
-					'Last name must only include letters, spaces, hyphens and apostrophes'
-				);
-
-				const regex = new RegExp(stringValidator.regex.regex);
-
-				assert.ok(regex.test('Smith'));
-				assert.ok(regex.test('Van Der Berg'));
-				assert.ok(regex.test("O'Neill"));
-				assert.ok(regex.test('Smith-Jones'));
-				assert.ok(regex.test("D'Angelo-Smith"));
-
-				assert.ok(!regex.test('Smith2'));
-				assert.ok(!regex.test('Smith!'));
-				assert.ok(!regex.test('Jones@Company'));
-				assert.ok(!regex.test('Smith_Jones'));
-				assert.ok(!regex.test(''));
+				assert.ok(nameValidator);
 			});
 		});
 	});

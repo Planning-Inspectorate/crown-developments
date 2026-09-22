@@ -80,6 +80,7 @@ import type { ColumnFormatContext } from '@pins/crowndev-lib/forms/custom-compon
 import ManageListItemsCompleteValidator from '@pins/crowndev-lib/validators/manage-list-items-complete-validator.ts';
 import type { PreApplicationCaseOption } from '../util/pre-application.ts';
 import NoOptionsValidator from '@pins/crowndev-lib/validators/no-options-validator.ts';
+import NameValidator from '@pins/crowndev-lib/validators/name-validator.ts';
 
 interface QuestionOverrides {
 	isQuestionView?: boolean;
@@ -1893,15 +1894,8 @@ export function getQuestions(
 							fieldName: 'firstName',
 							validators: [
 								new RequiredValidator('First name must be between 1 and 250 characters'),
-								new StringValidator({
-									maxLength: {
-										maxLength: 250,
-										maxLengthMessage: 'First name must be between 1 and 250 characters'
-									},
-									regex: {
-										regex: "^[A-Za-z0-9\\s\\-']+$",
-										regexMessage: 'First name must only include letters, spaces, hyphens, apostrophes or numbers'
-									}
+								new NameValidator({
+									label: 'Last name'
 								})
 							]
 						},
@@ -1909,15 +1903,8 @@ export function getQuestions(
 							fieldName: 'lastName',
 							validators: [
 								new RequiredValidator('Last name must be between 1 and 250 characters'),
-								new StringValidator({
-									maxLength: {
-										maxLength: 250,
-										maxLengthMessage: 'Last name must be between 1 and 250 characters'
-									},
-									regex: {
-										regex: "^[A-Za-z0-9\\s\\-']+$",
-										regexMessage: 'Last name must only include letters, spaces, hyphens, apostrophes or numbers'
-									}
+								new NameValidator({
+									label: 'Last name'
 								})
 							]
 						},

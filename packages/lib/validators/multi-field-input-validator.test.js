@@ -1,6 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import MultiFieldInputValidator from './multi-field-input-validator.js';
+import {
+	MultiFieldInputValidator as DynamicFormsMultiFieldInputValidator,
+	RequiredValidator
+} from '@planning-inspectorate/dynamic-forms';
 
 describe('MultiFieldInputValidator', () => {
 	it('throws when created without fields', () => {
@@ -79,6 +83,70 @@ describe('MultiFieldInputValidator', () => {
 
 		assert.throws(() => validatorInstance.validate(), {
 			message: 'Nested MultiFieldInputValidators are not supported'
+		});
+	});
+
+	it('should be an instance of the dynamic-forms MultiFieldInputValidator', () => {
+		// this is required so dynamic-forms' Question.fieldIsRequired() recognises this
+		// validator via its own `instanceof` check
+		const validatorInstance = new MultiFieldInputValidator({
+			fields: [{ fieldName: 'firstName', validators: [] }]
+		});
+
+		assert.ok(validatorInstance instanceof DynamicFormsMultiFieldInputValidator);
+	});
+
+	describe('isRequired', () => {
+		it('should return false when no fields have a required validator', () => {
+			const validatorInstance = new MultiFieldInputValidator({
+				fields: [{ fieldName: 'firstName', validators: [] }, { fieldName: 'lastName' }]
+			});
+
+			assert.strictEqual(validatorInstance.isRequired(), false);
+		});
+
+		it('should return true when at least one field has a required validator', () => {
+			const validatorInstance = new MultiFieldInputValidator({
+				fields: [
+					{ fieldName: 'firstName', validators: [new RequiredValidator()] },
+					{ fieldName: 'lastName', validators: [] }
+				]
+			});
+
+			assert.strictEqual(validatorInstance.isRequired(), true);
+		});
+	});
+
+	describe('inputFieldIsRequired', () => {
+		it('should return true for a field with a required validator', () => {
+			const validatorInstance = new MultiFieldInputValidator({
+				fields: [
+					{ fieldName: 'firstName', validators: [new RequiredValidator()] },
+					{ fieldName: 'lastName', validators: [] }
+				]
+			});
+
+			assert.strictEqual(validatorInstance.inputFieldIsRequired('firstName'), true);
+		});
+
+		it('should return false for a field without a required validator', () => {
+			const validatorInstance = new MultiFieldInputValidator({
+				fields: [
+					{ fieldName: 'firstName', validators: [new RequiredValidator()] },
+					{ fieldName: 'lastName', validators: [] }
+				]
+			});
+
+			assert.strictEqual(validatorInstance.inputFieldIsRequired('lastName'), false);
+		});
+
+		it('returns false when the field is not found (e.g. a separator/hidden pseudo-field)', () => {
+			const validatorInstance = new MultiFieldInputValidator({
+				fields: [{ fieldName: 'firstName', validators: [] }]
+			});
+
+			assert.strictEqual(validatorInstance.inputFieldIsRequired('unknownField'), false);
+			assert.strictEqual(validatorInstance.inputFieldIsRequired(undefined), false);
 		});
 	});
 });
