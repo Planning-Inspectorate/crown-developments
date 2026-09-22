@@ -172,12 +172,8 @@ export const multiContactQuestions = ({
 							fieldName: `${prefix}FirstName`,
 							validators: [
 								new RequiredValidator(`Enter the ${title}'s first name`),
-								new StringValidator({
-									maxLength: { maxLength: 250 },
-									regex: {
-										regex: "^[A-Za-z ''-]+$",
-										regexMessage: 'First name must only include letters, spaces, hyphens and apostrophes'
-									}
+								new NameValidator({
+									label: 'First name'
 								})
 							]
 						},
@@ -185,12 +181,8 @@ export const multiContactQuestions = ({
 							fieldName: `${prefix}LastName`,
 							validators: [
 								new RequiredValidator(`Enter the ${title}'s last name`),
-								new StringValidator({
-									maxLength: { maxLength: 250 },
-									regex: {
-										regex: "^[A-Za-z ''-]+$",
-										regexMessage: 'Last name must only include letters, spaces, hyphens and apostrophes'
-									}
+								new NameValidator({
+									label: 'Last name'
 								})
 							]
 						},

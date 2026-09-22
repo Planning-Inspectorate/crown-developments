@@ -13,6 +13,7 @@ import {
 } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import { HIDDEN_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 import type { SelectableOption } from '@planning-inspectorate/dynamic-forms';
+import NameValidator from '@pins/crowndev-lib/validators/name-validator.ts';
 
 /**
  *
@@ -95,12 +96,8 @@ export function multiContactQuestions<TPrefix extends string>({
 						fieldName: `${prefix}FirstName`,
 						validators: [
 							new RequiredValidator(`Enter a first name`),
-							new StringValidator({
-								maxLength: { maxLength: 250 },
-								regex: {
-									regex: "^[A-Za-z ''-]+$",
-									regexMessage: 'First name must only include letters, spaces, hyphens and apostrophes'
-								}
+							new NameValidator({
+								label: 'First name'
 							})
 						]
 					},
@@ -108,12 +105,8 @@ export function multiContactQuestions<TPrefix extends string>({
 						fieldName: `${prefix}LastName`,
 						validators: [
 							new RequiredValidator(`Enter a last name`),
-							new StringValidator({
-								maxLength: { maxLength: 250 },
-								regex: {
-									regex: "^[A-Za-z ''-]+$",
-									regexMessage: 'Last name must only include letters, spaces, hyphens and apostrophes'
-								}
+							new NameValidator({
+								label: 'Last name'
 							})
 						]
 					},

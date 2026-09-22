@@ -5,10 +5,11 @@ import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
 import { referenceDataToRadioOptions } from '../../util/questions.ts';
 import { CONTACT_PREFERENCE } from '@pins/crowndev-database/src/seed/data-static.ts';
 import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
-import MultiFieldInputValidator from '@planning-inspectorate/dynamic-forms/src/validator/multi-field-input-validator.js';
+import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/validator/document-upload-validator.js';
 import AjaxDocumentUploadValidator from '@pins/crowndev-lib/forms/custom-components/ajax-document-upload-validator/ajax-document-uploader-validator.ts';
 import { formatExtensions } from '../../util/file.ts';
+import NameValidator from '../../validators/name-validator.ts';
 
 export const ALLOWED_EXTENSIONS = ['pdf', 'png', 'jpg', 'jpeg', 'tif', 'tiff', 'doc', 'docx', 'xls', 'xlsx'];
 
@@ -76,37 +77,21 @@ export function representationsContactQuestions({
 				fields: [
 					{
 						fieldName: `${prefix}FirstName`,
-						required: true,
-						errorMessage: 'First name must be between 1 and 250 characters',
-						minLength: {
-							minLength: 1,
-							minLengthMessage: 'First name must be between 1 and 250 characters'
-						},
-						maxLength: {
-							maxLength: 250,
-							maxLengthMessage: `First name must be between 1 and 250 characters`
-						},
-						regex: {
-							regex: "^[A-Za-z0-9 '’-]*$",
-							regexMessage: 'First name must only include letters, spaces, hyphens, apostrophes or numbers'
-						}
+						validators: [
+							new RequiredValidator('First name must be between 1 and 250 characters'),
+							new NameValidator({
+								label: 'First name'
+							})
+						]
 					},
 					{
 						fieldName: `${prefix}LastName`,
-						required: true,
-						errorMessage: 'Last name must be between 1 and 250 characters',
-						minLength: {
-							minLength: 1,
-							minLengthMessage: 'Last name must be between 1 and 250 characters'
-						},
-						maxLength: {
-							maxLength: 250,
-							maxLengthMessage: `Last name must be between 1 and 250 characters`
-						},
-						regex: {
-							regex: "^[A-Za-z0-9 '’-]*$",
-							regexMessage: 'Last name must only include letters, spaces, hyphens, apostrophes or numbers'
-						}
+						validators: [
+							new RequiredValidator('Last name must be between 1 and 250 characters'),
+							new NameValidator({
+								label: 'Last name'
+							})
+						]
 					}
 				]
 			})
