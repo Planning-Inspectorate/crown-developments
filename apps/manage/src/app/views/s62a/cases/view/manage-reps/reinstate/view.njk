@@ -1,0 +1,37 @@
+{% extends "views/layouts/main.njk" %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+
+{% block pageTitle %}
+	Representation - Reinstate Representation
+{% endblock %}
+{% block content %}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-full">
+			<h1 class="govuk-heading-l">
+				{{ pageTitle }}
+			</h1>
+			<div class="govuk-hint">Representation reference: {{ representationRef }}</div>
+		</div>
+	</div>
+	{% block pageContent %}
+		<div class="govuk-grid-row">
+			<div class="govuk-grid-column-two-thirds">
+				{{ govukWarningText({
+					html: "Reinstating this representation will restore it and any associated attachments to their original state.<br><br>If the representation was previously accepted and published, it will reappear on the front office website." | safe
+				}) }}
+			</div>
+		</div>
+
+		<form method="POST">
+			<input type="hidden" name="_csrf" value="{{ _csrf }}">
+			<div class="govuk-grid-row">
+				<div class="govuk-grid-column-full">
+					{{ govukButton({
+						text: "Reinstate representation"
+					}) }}
+				</div>
+			</div>
+		</form>
+	{% endblock %}
+{% endblock %}

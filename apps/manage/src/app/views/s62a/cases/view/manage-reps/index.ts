@@ -47,6 +47,11 @@ import {
 	validateUploads as validateWithdrawalUploads
 } from './withdraw/controller.ts';
 import { WithdrawalRequestDocumentsUploader } from './withdraw/withdrawal-request-documents-uploader.ts';
+import {
+	buildReinstateRepresentationController,
+	reinstateRepConfirmation,
+	successController
+} from './reinstate/controller.ts';
 
 export const MANAGE_REPS_MANAGE_JOURNEY_ID = 's62a-manage-reps-manage-journey';
 
@@ -65,6 +70,7 @@ export function createRoutes(service: ManageService) {
 
 	const updateRepFn = buildUpdateRepresentation(service);
 	const saveAnswer = buildSave(updateRepFn, true);
+	const reinstateRepresentation = buildReinstateRepresentationController(service);
 
 	const fileValidator = new FileValidator(logger);
 	const documentsUploader = new RepresentationDocumentsUploader(db, blobStore, logger, fileValidator);
@@ -117,6 +123,9 @@ export function createRoutes(service: ManageService) {
 	router.use('/:representationRef', repsRouter);
 	repsRouter.get('/view', getJourney, viewReviewRedirect, asyncHandler(viewRepresentationAwaitingReview));
 	repsRouter.use('/view/withdraw-representation', withdrawRoutes);
+	repsRouter.get('/view/reinstate-representation-confirmation', reinstateRepConfirmation);
+	repsRouter.post('/view/reinstate-representation-confirmation', asyncHandler(reinstateRepresentation));
+	repsRouter.get('/view/reinstate-representation-success', successController);
 	repsRouter.use('/review', reviewRoutes);
 
 	repsRouter.get('/edit', viewReviewRedirect);
