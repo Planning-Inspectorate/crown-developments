@@ -1180,7 +1180,7 @@ describe('s62aCaseToViewModel', () => {
 				expectedSubmissionDate: mockDate,
 				preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.PINS,
 				preApplicationCaseId: 'pre-1',
-				PreApplicationCase: { id: 'pre-1', reference: 'S62A/PRE/2026/0000001' }
+				PreApplicationCase: { id: 'pre-1', reference: 'S62A/2026/0000001/PRE' }
 			} as unknown as S62aCaseDbModel;
 
 			const result = s62aCaseToViewModel(mockDbCase);
@@ -1196,12 +1196,12 @@ describe('s62aCaseToViewModel', () => {
 				preApplicationAdviceId: PRE_APPLICATION_ADVICE_ID.PINS,
 				preApplicationCaseId: 'pre-1',
 				preApplicationReference: null,
-				PreApplicationCase: { id: 'pre-1', reference: 'S62A/PRE/2026/0000001' }
+				PreApplicationCase: { id: 'pre-1', reference: 'S62A/2026/0000001/PRE' }
 			} as unknown as S62aCaseDbModel;
 
 			const result = s62aCaseToViewModel(mockDbCase);
 
-			assert.strictEqual(result.preApplicationReference, 'S62A/PRE/2026/0000001');
+			assert.strictEqual(result.preApplicationReference, 'S62A/2026/0000001/PRE');
 		});
 
 		it('keeps a council reference when no case is linked', () => {
