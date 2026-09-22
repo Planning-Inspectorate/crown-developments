@@ -117,11 +117,11 @@ export function toCreateInput(
 }
 
 /**
- * Safely extracts the 7-digit ID from the end of an S62A reference.
- * Works for both the formats: 'S62A/PRE/YYYY/XXXXXXX' and 'S62A/YYYY/XXXXXXX'
+ * Safely extracts the 7-digit ID from within a S62A reference.
+ * Works for both formats: 'S62A/YYYY/XXXXXXX/PRE' and 'S62A/YYYY/XXXXXXX'
  */
 function idFromS62aReference(reference: string): number | null {
-	const match = reference.match(/\/(\d+)$/);
+	const match = reference.match(/\/(\d{7})(?:[^\d]|$)/);
 	if (!match) return null;
 
 	const parsed = parseInt(match[1], 10);
@@ -163,7 +163,7 @@ export async function generateS62aReference(
 
 	const isPreApp = applicationPhaseId === PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION;
 
-	return isPreApp ? `S62A/PRE/${year}/${nextId}` : `S62A/${year}/${nextId}`;
+	return isPreApp ? `S62A/${year}/${nextId}/PRE` : `S62A/${year}/${nextId}`;
 }
 
 /**

@@ -131,8 +131,8 @@ describe('pre-application reference', () => {
 		((question as { options?: QuestionOption[] })?.options ?? []).map((o) => o.value);
 
 	const options: QuestionOption[] = [
-		{ value: 'case-1', text: 'S62A/PRE/2026/0000001' },
-		{ value: 'case-2', text: 'S62A/PRE/2026/0000002' }
+		{ value: 'case-1', text: 'S62A/2026/0000001/PRE' },
+		{ value: 'case-2', text: 'S62A/2026/0000002/PRE' }
 	];
 
 	function questionsFor(advice?: string, caseOptions = options) {
