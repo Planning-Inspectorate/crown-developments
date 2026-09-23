@@ -11,6 +11,7 @@ import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { S62APortalService } from '../../../../apps/s62a-portal/src/app/service.ts';
 import type { ManageService } from '../../../../apps/manage/src/app/service.js';
 import { BOOLEAN_OPTIONS, clearDataFromSession } from '@planning-inspectorate/dynamic-forms';
+import type { HaveYourSayManageModel } from './types.js';
 
 type AppService = ManageService | S62APortalService;
 
@@ -42,7 +43,7 @@ export async function saveS62aRepresentation(
 	const id = getStringParam(req.params, idKey);
 
 	const sessionReqParam = req.params.applicationId ? 'applicationId' : 'id';
-	const answers = getAnswers(res) as Record<string, unknown>;
+	const answers = getAnswers(res) as HaveYourSayManageModel;
 	const journey = res.locals.journey;
 
 	if (!journey?.isComplete()) {
@@ -60,7 +61,7 @@ export async function saveS62aRepresentation(
 	let representationReference = '';
 	const submittedForId = getSubmittedForId(answers);
 	const prefix = submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF ? 'myself' : 'submitter';
-	const representationAttachments = answers[`${prefix}BlobAttachments`] as { itemId: string }[];
+	const representationAttachments = answers[`${prefix}BlobAttachments`];
 	const hasAttachments = answers[`${prefix}ContainsAttachments`] === BOOLEAN_OPTIONS.YES;
 
 	if (
@@ -82,7 +83,7 @@ export async function saveS62aRepresentation(
 			if (hasAttachments) {
 				logger.info({ representationReference }, 'committing draft representation attachments');
 
-				const repAttachmentIds = representationAttachments.map((rep) => rep.itemId);
+				const repAttachmentIds = representationAttachments?.map((rep) => rep.itemId);
 
 				const drafts = await $tx.draftBlobRepresentationDocument.findMany({
 					where: {

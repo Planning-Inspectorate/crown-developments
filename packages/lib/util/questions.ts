@@ -2,6 +2,7 @@ import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/see
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
 import type { SelectableOption } from '@planning-inspectorate/dynamic-forms';
+import type { HaveYourSayManageModel } from '../forms/representations/types.js';
 
 export const CASE_NOTE_MAX_LENGTH = 100;
 
@@ -48,7 +49,7 @@ export function referenceDataToRadioOptionsWithHintText(
  * Determines the submittedForId based on the answers provided.
  * Defaults to ON_BEHALF_OF.
  */
-export function getSubmittedForId(answers: Record<string, unknown>): string {
+export function getSubmittedForId(answers: HaveYourSayManageModel): string {
 	return answers['submittedForId'] === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
 		? REPRESENTATION_SUBMITTED_FOR_ID.MYSELF
 		: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF;

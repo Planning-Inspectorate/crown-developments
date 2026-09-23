@@ -1163,6 +1163,7 @@ model S62aRepresentation {
   categoryId     String?
   Category       RepresentationCategory? @relation(fields: [categoryId], references: [id])
   wantsToBeHeard Boolean?
+  withholdName   Boolean?
 
   containsAttachments Boolean?                     @default(false)
   Attachments         BlobRepresentationDocument[]

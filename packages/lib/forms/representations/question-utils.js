@@ -254,6 +254,16 @@ export function representationsContactQuestions({
 		showUploadWarning: true
 	};
 
+	questions[`${prefix}WithholdName`] = {
+		type: COMPONENT_TYPES.BOOLEAN,
+		title: 'Withhold name?',
+		hint: 'Select yes if the interested party has contacted the Planning Inspectorate asking for their name to be withheld from the front office.',
+		question: 'Does the interested party want their name withheld?',
+		fieldName: `${prefix}WithholdName`,
+		url: 'withhold-name',
+		validators: [new RequiredValidator('Select yes if the interested party wants their name withheld')]
+	};
+
 	return questions;
 }
 

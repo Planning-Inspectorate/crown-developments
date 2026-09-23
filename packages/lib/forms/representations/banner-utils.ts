@@ -8,6 +8,7 @@ import { getSubmittedForId } from '@pins/crowndev-lib/util/questions.ts';
 import { escapeHtml, isSafeRelativeUrl } from '@pins/crowndev-lib/util/string.ts';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms';
+import type { HaveYourSayManageModel } from './types.js';
 
 interface BannerOptions {
 	representationUpdated: boolean;
@@ -58,16 +59,14 @@ export function getBannerMessages(res: Response, req: Request, options: BannerOp
  */
 function getDocumentInfoBanner(res: Response, currentUrl: string) {
 	const journey = res.locals.journey;
-	const answers = journey?.response?.answers || {};
+	const answers = (journey?.response?.answers || {}) as unknown as HaveYourSayManageModel;
 
 	const submittedForId = getSubmittedForId(answers);
 	const prefix = submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF ? 'myself' : 'submitter';
 
 	const status = answers['statusId'];
 	const containsAttachments = answers[`${prefix}ContainsAttachments`];
-	const attachments = (answers[`${prefix}Attachments`] || answers[`${prefix}BlobAttachments`] || []) as {
-		statusId: string;
-	}[];
+	const attachments = answers[`${prefix}Attachments`] || answers[`${prefix}BlobAttachments`] || [];
 
 	const someAttachmentsAwaitingReview = attachments?.some(
 		(attachment) => attachment.statusId === REPRESENTATION_STATUS_ID.AWAITING_REVIEW
