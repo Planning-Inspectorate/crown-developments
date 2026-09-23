@@ -14,6 +14,9 @@ import {
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
 import { popSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { Request } from 'express';
+import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+
+type FilterType = { text: string; value: string; checked: boolean };
 
 /**
  * Builds the main manage reps homepage for S62A, with list table,
@@ -44,16 +47,24 @@ export function buildListReps(service: ManageService): AsyncRequestHandler {
 			REPRESENTATION_STATUS.map((status) => status.id)
 		);
 
-		// .sort() is an "in-place" method so we need a soft copy
-		const representations = [...REPRESENTATION_STATUS];
+		const wantsToBeHeardCount = s62aCase.S62aRepresentations.filter((rep) => rep.wantsToBeHeard === true).length;
 
-		const filters = representations
+		// .sort() is an "in-place" method so we need a soft copy
+		const representationStatuses = [...REPRESENTATION_STATUS];
+
+		const filters: FilterType[] = representationStatuses
 			.sort((statusA, statusB) => statusA.displayName.localeCompare(statusB.displayName))
 			.map((status) => ({
 				text: `${status.displayName} (${counts[status.id]})`,
 				value: status.id,
 				checked: queryFilters?.includes(status.id) || false
 			}));
+
+		filters.push({
+			text: `Attend a hearing (${wantsToBeHeardCount})`,
+			value: 'wants-to-be-heard',
+			checked: queryFilters?.includes('wants-to-be-heard') || false
+		});
 
 		const { pageSize, skipSize } = getPaginationParams(req);
 
@@ -66,15 +77,25 @@ export function buildListReps(service: ManageService): AsyncRequestHandler {
 			{ parent: 'SubmittedByContact', fields: ['firstName', 'lastName'] }
 		]);
 
+		// "Wants to be heard" is the only filter item that is NOT a status, so needs to be separated out.
+		const wantsToBeHeard = queryFilters?.includes('wants-to-be-heard');
+		const statusFilters = queryFilters?.filter((filter) => filter !== 'wants-to-be-heard');
+
+		const baseWhere: Prisma.S62aRepresentationWhereInput = {
+			applicationId: id,
+			...searchCriteria,
+			...(statusFilters &&
+				statusFilters.length > 0 && {
+					statusId: { in: statusFilters }
+				}),
+			...(wantsToBeHeard && {
+				wantsToBeHeard: true
+			})
+		};
+
 		const [filteredRepresentations, totalFilteredRepresentations] = await Promise.all([
 			db.s62aRepresentation.findMany({
-				where: {
-					applicationId: id,
-					statusId: {
-						in: queryFilters
-					},
-					...searchCriteria
-				},
+				where: baseWhere,
 				include: {
 					SubmittedByContact: true,
 					Status: true
@@ -83,13 +104,7 @@ export function buildListReps(service: ManageService): AsyncRequestHandler {
 				take: pageSize
 			}),
 			db.s62aRepresentation.count({
-				where: {
-					applicationId: id,
-					statusId: {
-						in: queryFilters
-					},
-					...searchCriteria
-				}
+				where: baseWhere
 			})
 		]);
 

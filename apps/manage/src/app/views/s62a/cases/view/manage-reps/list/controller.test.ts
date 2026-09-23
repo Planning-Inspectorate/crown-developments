@@ -147,6 +147,57 @@ describe('buildListReps', () => {
 		});
 	});
 
+	describe('Filtering', () => {
+		beforeEach(() => {
+			mockFindUniqueCase.mock.mockImplementation(async () => ({
+				id: 'case-123',
+				reference: 'REF-001',
+				S62aRepresentations: [
+					{ id: '1', Status: { id: 'accepted' }, wantsToBeHeard: true },
+					{ id: '2', Status: { id: 'rejected' }, wantsToBeHeard: false }
+				]
+			}));
+			mockFindManyReps.mock.mockImplementation(async () => []);
+			mockCountReps.mock.mockImplementation(async () => 0);
+		});
+
+		it('should apply only status filters when standard statuses are passed', async () => {
+			const req = mockReq({ query: { filters: 'accepted' } });
+			const res = mockRes();
+
+			await buildListReps(service)(req, res, mockNext);
+
+			const findManyArgs = mockFindManyReps.mock.calls[0].arguments[0] as any;
+
+			assert.deepStrictEqual(findManyArgs.where.statusId, { in: ['accepted'] });
+			assert.strictEqual(findManyArgs.where.wantsToBeHeard, undefined);
+		});
+
+		it('should extract wants-to-be-heard from status list and map to the wantsToBeHeard field', async () => {
+			const req = mockReq({ query: { filters: 'wants-to-be-heard' } });
+			const res = mockRes();
+
+			await buildListReps(service)(req, res, mockNext);
+
+			const findManyArgs = mockFindManyReps.mock.calls[0].arguments[0] as any;
+
+			assert.strictEqual(findManyArgs.where.statusId, undefined);
+			assert.strictEqual(findManyArgs.where.wantsToBeHeard, true);
+		});
+
+		it('should apply both filters correctly when both types are passed', async () => {
+			const req = mockReq({ query: { filters: ['accepted', 'wants-to-be-heard'] } });
+			const res = mockRes();
+
+			await buildListReps(service)(req, res, mockNext);
+
+			const findManyArgs = mockFindManyReps.mock.calls[0].arguments[0] as any;
+
+			assert.deepStrictEqual(findManyArgs.where.statusId, { in: ['accepted'] });
+			assert.strictEqual(findManyArgs.where.wantsToBeHeard, true);
+		});
+	});
+
 	describe('Error Handling', () => {
 		it('should trigger Not Found logic if Case is missing', async () => {
 			const req = mockReq();
