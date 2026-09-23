@@ -1,17 +1,13 @@
+import type { BaseService } from '@planning-inspectorate/core/app';
 import { Router as createRouter } from 'express';
 import { buildGetValidatedCaseMiddleware, buildPublishCase } from './controller.ts';
-import { asyncHandler } from '@pins/crowndev-lib/util/async-handler.ts';
-import type {
-	JourneyMiddlewareType,
-	CaseFetcher,
-	PublishOperation,
-	ValidationRuleBuilder,
-	CaseService
-} from '../util/types.ts';
+import { asyncHandler } from '@planning-inspectorate/core/util';
+import type { JourneyMiddlewareType, CaseFetcher, PublishOperation, ValidationRuleBuilder } from '../util/types.ts';
+import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 
-export function createRoutes<T>(
-	service: CaseService,
-	journeyMiddlewareFunction: JourneyMiddlewareType,
+export function createRoutes<T, TService extends BaseService<PrismaClient> = BaseService<PrismaClient>>(
+	service: TService,
+	journeyMiddlewareFunction: JourneyMiddlewareType<TService>,
 	publishCaseFunction: PublishOperation,
 	fetchedCase: CaseFetcher<T>,
 	answerValidation: ValidationRuleBuilder<T>

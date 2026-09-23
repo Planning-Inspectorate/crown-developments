@@ -1,16 +1,14 @@
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import type { AnswerValidationError } from '@pins/crowndev-lib/util/types.ts';
 
-//Publish
-
-export const publishCrownCase = (db: PrismaClient, id: string) => {
+export function publishCrownCase(db: PrismaClient, id: string) {
 	return db.crownDevelopment.update({
 		where: { id },
 		data: {
 			publishDate: new Date()
 		}
 	});
-};
+}
 
 export async function fetchCrownPublishCase(db: PrismaClient, id: string) {
 	return await db.crownDevelopment.findUnique({
@@ -52,16 +50,14 @@ export function answerValidation(
 	];
 }
 
-//Unpublish
-
-export const unpublishCrownCase = (db: PrismaClient, id: string) => {
+export function unpublishCrownCase(db: PrismaClient, id: string) {
 	return db.crownDevelopment.update({
 		where: { id },
 		data: {
 			publishDate: null
 		}
 	});
-};
+}
 
 export async function fetchCrownUnpublishCase(db: PrismaClient, id: string) {
 	return await db.crownDevelopment.findUnique({

@@ -4,10 +4,11 @@ import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import type { NextFunction, Request, Response } from 'express';
 import type { Logger } from 'pino';
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
-import { wrapPrismaError } from '../util/database.ts';
-import type { CaseFetcher, PublishOperation, ValidationRuleBuilder, CaseService } from '../util/types.ts';
+import { wrapPrismaError } from '@planning-inspectorate/core/util';
+import type { CaseFetcher, PublishOperation, ValidationRuleBuilder } from '../util/types.ts';
 import path from 'node:path';
 import { isValidRedirectUri } from '../util/uri.ts';
+import type { BaseService } from '@planning-inspectorate/core/app';
 
 export function buildPublishCase(
 	{ db, logger }: { db: PrismaClient; logger: Logger },
@@ -39,7 +40,7 @@ export function buildPublishCase(
 }
 
 export function buildGetValidatedCaseMiddleware<T>(
-	service: CaseService,
+	service: BaseService<PrismaClient>,
 	fetchedCase: CaseFetcher<T>,
 	answerValidation: ValidationRuleBuilder<T>
 ) {
@@ -69,8 +70,9 @@ export function buildGetValidatedCaseMiddleware<T>(
 
 		if (errors.length > 0) {
 			addSessionData(req, id, { publishErrors: errors });
-			const parentTabUrl = req.baseUrl.replace(/\/publish$/, '');
-			return res.redirect(`${parentTabUrl}`);
+			const rawParentTabUrl = req.baseUrl.replace(/\/publish$/, '') || '/';
+			const safeParentTabUrl = isValidRedirectUri(rawParentTabUrl) ? rawParentTabUrl : '/';
+			return res.redirect(`${safeParentTabUrl}`);
 		}
 
 		return next();
