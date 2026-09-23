@@ -1,5 +1,5 @@
 import type { Address } from '@planning-inspectorate/dynamic-forms/src/lib/address.js';
-import type { YesNo } from '@pins/crowndev-lib/util/types';
+import type { YesNo } from '../../util/types.ts';
 /**
  * The view model used for have-your-say answers
  */
@@ -54,6 +54,17 @@ export namespace HaveYourSay {
 		myselfAddress?: Address;
 		myselfEmail: string;
 		myselfComment: string;
+		myselfAttachments?: Attachment[];
+		myselfBlobAttachments?: Attachment[];
+		myselfRedactedAttachments?: Attachment[];
+		myselfContainsAttachments?: YesNo;
+		myselfWithholdName?: YesNo;
+		/** any 'submitter' keys that are dynamically accessed */
+		submitterAttachments?: never;
+		submitterBlobAttachments?: never;
+		submitterRedactedAttachments?: never;
+		submitterContainsAttachments?: never;
+		submitterWithholdName?: never;
 	}
 
 	/**
@@ -67,6 +78,17 @@ export namespace HaveYourSay {
 		submitterAddress?: Address;
 		submitterEmail: string;
 		submitterComment: string;
+		submitterAttachments?: Attachment[];
+		submitterRedactedAttachments?: Attachment[];
+		submitterBlobAttachments?: Attachment[];
+		submitterContainsAttachments?: YesNo;
+		submitterWithholdName?: YesNo;
+		/** any 'myself' keys that are dynamically accessed */
+		myselfAttachments?: never;
+		myselfRedactedAttachments?: never;
+		myselfBlobAttachments?: never;
+		myselfContainsAttachments?: never;
+		myselfWithholdName?: never;
 	};
 
 	/**
@@ -101,4 +123,13 @@ export namespace HaveYourSay {
 		isAgent: boolean;
 		agentOrgName?: string;
 	}
+
+	/**
+	 * The shape used by attachments in view model
+	 */
+	export type Attachment = {
+		itemId: string;
+		fileName: string;
+		statusId?: string;
+	};
 }

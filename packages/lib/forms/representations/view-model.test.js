@@ -114,7 +114,8 @@ describe('view-model', () => {
 						postcode: 'NW1 6XE'
 					}
 				},
-				ajaxWithdrawalRequests: undefined
+				ajaxWithdrawalRequests: undefined,
+				withholdName: true
 			};
 			const viewModel = representationToManageViewModel(representation, applicationReference);
 			assert.deepStrictEqual(viewModel, {
@@ -156,7 +157,8 @@ describe('view-model', () => {
 				withdrawalRequests: undefined,
 				dateWithdrawn: undefined,
 				distressingContentInRepresentation: undefined,
-				ajaxWithdrawalRequests: undefined
+				ajaxWithdrawalRequests: undefined,
+				myselfWithholdName: 'yes'
 			});
 		});
 		it('should map the myself fields when contains attachments and redacted attachments', () => {
@@ -275,7 +277,8 @@ describe('view-model', () => {
 				withdrawalRequests: undefined,
 				dateWithdrawn: undefined,
 				distressingContentInRepresentation: undefined,
-				ajaxWithdrawalRequests: undefined
+				ajaxWithdrawalRequests: undefined,
+				myselfWithholdName: undefined
 			});
 		});
 		it('should map the on behalf of common fields', () => {
@@ -298,7 +301,8 @@ describe('view-model', () => {
 					email: 'email@example.com',
 					contactPreferenceId: 'email'
 				},
-				representedTypeId: 'r-id-1'
+				representedTypeId: 'r-id-1',
+				withholdName: false
 			};
 			const viewModel = representationToManageViewModel(representation, applicationReference);
 			assert.deepStrictEqual(viewModel, {
@@ -334,7 +338,8 @@ describe('view-model', () => {
 				withdrawalRequests: undefined,
 				dateWithdrawn: undefined,
 				distressingContentInRepresentation: undefined,
-				ajaxWithdrawalRequests: undefined
+				ajaxWithdrawalRequests: undefined,
+				submitterWithholdName: 'no'
 			});
 		});
 		it('should map the on behalf of person fields', () => {
@@ -404,7 +409,8 @@ describe('view-model', () => {
 				withdrawalRequests: undefined,
 				dateWithdrawn: undefined,
 				distressingContentInRepresentation: undefined,
-				ajaxWithdrawalRequests: undefined
+				ajaxWithdrawalRequests: undefined,
+				submitterWithholdName: undefined
 			});
 		});
 		it('should map the on behalf of person fields when contains attachments and redacted attachments', () => {
@@ -520,7 +526,8 @@ describe('view-model', () => {
 				withdrawalRequests: undefined,
 				dateWithdrawn: undefined,
 				distressingContentInRepresentation: undefined,
-				ajaxWithdrawalRequests: undefined
+				ajaxWithdrawalRequests: undefined,
+				submitterWithholdName: undefined
 			});
 		});
 		it('should map the on behalf of org fields', () => {
@@ -586,7 +593,8 @@ describe('view-model', () => {
 				withdrawalRequests: undefined,
 				dateWithdrawn: undefined,
 				distressingContentInRepresentation: undefined,
-				ajaxWithdrawalRequests: undefined
+				ajaxWithdrawalRequests: undefined,
+				submitterWithholdName: undefined
 			});
 		});
 		it(`should map the on behalf of org don't work for fields`, () => {
@@ -654,7 +662,8 @@ describe('view-model', () => {
 				withdrawalRequests: undefined,
 				dateWithdrawn: undefined,
 				distressingContentInRepresentation: undefined,
-				ajaxWithdrawalRequests: undefined
+				ajaxWithdrawalRequests: undefined,
+				submitterWithholdName: undefined
 			});
 		});
 		it(`should map withdraw reps fields`, () => {
@@ -1766,7 +1775,8 @@ describe('view-model', () => {
 				myselfLastName: 'lastName',
 				myselfEmail: 'myemail@email.com',
 				myselfComment: 'my comments',
-				myselfContainsAttachments: 'no'
+				myselfContainsAttachments: 'no',
+				myselfWithholdName: 'yes'
 			};
 			const representationCreateInput = viewModelToS62aRepresentationCreateInput(mockAnswers, reference, id);
 
@@ -1788,7 +1798,8 @@ describe('view-model', () => {
 				},
 				SubmittedFor: { connect: { id: 'myself' } },
 				comment: 'my comments',
-				containsAttachments: false
+				containsAttachments: false,
+				withholdName: true
 			});
 		});
 
@@ -1808,7 +1819,8 @@ describe('view-model', () => {
 				submitterComment: 'agent comments',
 				representedFirstName: 'repFirst',
 				representedLastName: 'repLast',
-				submitterContainsAttachments: 'no'
+				submitterContainsAttachments: 'no',
+				submitterWithholdName: 'no'
 			};
 
 			const representationCreateInput = viewModelToS62aRepresentationCreateInput(mockAnswers, reference, id);
@@ -1841,7 +1853,8 @@ describe('view-model', () => {
 							lastName: 'repLast'
 						}
 					]
-				}
+				},
+				withholdName: false
 			});
 		});
 

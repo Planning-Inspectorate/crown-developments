@@ -1,4 +1,5 @@
 import {
+	REPRESENTATION_CATEGORY_ID,
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
@@ -55,6 +56,9 @@ function addRepMyselfSection(questions: Record<string, Question>, isViewJourney:
 		.withSectionCondition(whenQuestionHasAnswer(questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF))
 		.addQuestion(questions.myselfFullName)
 
+		.addQuestion(questions.myselfWithholdName)
+		.withCondition(whenQuestionHasAnswer(questions.category, REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES))
+
 		.addQuestion(questions.myselfContactPreference)
 
 		.addQuestion(questions.myselfEmail)
@@ -109,6 +113,10 @@ function addRepAgentSection(questions: Record<string, Question>, isViewJourney: 
 		.endMultiQuestionCondition('agent-route')
 
 		.addQuestion(questions.submitterFullName)
+
+		.addQuestion(questions.submitterWithholdName)
+		.withCondition(whenQuestionHasAnswer(questions.category, REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES))
+
 		.addQuestion(questions.submitterContactPreference)
 		.addQuestion(questions.submitterEmail)
 		.withCondition(whenQuestionHasAnswer(questions.submitterContactPreference, 'email'))
