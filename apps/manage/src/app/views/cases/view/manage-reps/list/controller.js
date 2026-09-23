@@ -1,6 +1,6 @@
 import { representationsToViewModel } from './view-model.js';
 import { clearRepReviewedSession, readRepReviewedSession } from '../review/controller.js';
-import { REPRESENTATION_STATUS, REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { REPRESENTATION_STATUS } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { getPaginationParams, createPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
@@ -78,20 +78,15 @@ export function buildListReps({ db }) {
 			return notFoundHandler(req, res);
 		}
 
-		const representationStatus = REPRESENTATION_STATUS.filter(
-			(status) =>
-				status.id === REPRESENTATION_STATUS_ID.ACCEPTED ||
-				status.id === REPRESENTATION_STATUS_ID.REJECTED ||
-				status.id === REPRESENTATION_STATUS_ID.WITHDRAWN ||
-				status.id === REPRESENTATION_STATUS_ID.AWAITING_REVIEW
-		);
-
 		const counts = statusCounts(
 			crownDevelopment.Representation,
-			representationStatus.map((status) => status.id)
+			REPRESENTATION_STATUS.map((status) => status.id)
 		);
 
-		const filters = representationStatus
+		// .sort() is an "in-place" method so we need a soft copy
+		const representationStatuses = [...REPRESENTATION_STATUS];
+
+		const filters = representationStatuses
 			.sort((statusA, statusB) => statusA.displayName.localeCompare(statusB.displayName))
 			.map((status) => ({
 				text: `${status.displayName} (${counts[status.id]})`,

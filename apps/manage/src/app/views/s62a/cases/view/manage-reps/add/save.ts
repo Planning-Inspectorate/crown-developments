@@ -39,8 +39,8 @@ export function viewAddRepresentationSuccessPage(req: Request, res: Response): v
 	res.render('views/s62a/cases/view/manage-reps/add/success.njk', {
 		title: 'Representation added',
 		bodyText: `Representation reference <br><strong>${representationReference}</strong>`,
-		successBackLinkUrl: `/s62a/cases/${id}`,
-		successBackLinkText: 'Go back to overview'
+		successBackLinkUrl: `/s62a/cases/${id}/manage-representations`,
+		successBackLinkText: 'Go back to Manage representations'
 	});
 }
 
