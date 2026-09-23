@@ -73,11 +73,11 @@
             {% if documents|length !== 0 %}
                 <div id="pagination-top" class="govuk-body govuk-!-margin-bottom-2">
                     <p class="govuk-body govuk-clearfix">
-                        This folder contains {{ paginationParams.totalItems }} files.
+                        This folder contains {{ paginationParams.totalItems }} file(s).
                         Showing <strong>{{ paginationParams.resultsStartNumber }}</strong>
                         to
                         <strong>{{ paginationParams.resultsEndNumber if paginationParams.totalItems > paginationParams.resultsEndNumber else paginationParams.totalItems }}</strong>
-                        of <strong>{{ paginationParams.totalItems }}</strong> files.
+                        of <strong>{{ paginationParams.totalItems }}</strong> file(s).
                     </p>
 
                     {{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalItems, baseUrl, queryParams) }}

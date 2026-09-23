@@ -297,7 +297,7 @@ describe('S62A Save Controller Module', () => {
 					await buildSaveController(service)(req, res, () => {});
 
 					assert.deepStrictEqual(folderNames(folderCreate), [
-						'The Planning Application',
+						'The planning application',
 						'Working documents',
 						'Pre-application advice'
 					]);
