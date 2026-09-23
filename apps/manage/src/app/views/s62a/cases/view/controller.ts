@@ -1,4 +1,4 @@
-//import type { ManageService } from '#service';
+import type { ManageService } from '#service';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import {
@@ -19,7 +19,7 @@ import {
 	VIEW_TABS
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { s62aCaseToViewModel, type S62aCaseViewModel } from './view-model.ts';
-import { isUnsafeObjectKey, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
+import { isUnsafeObjectKey } from '@pins/crowndev-lib/util/session.ts';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
 import { S62A_VIEW_SELECT_INCLUDE } from './constants.ts';
 import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
@@ -33,9 +33,10 @@ import {
 	residentialTotalAnswers
 } from '../util/residential-totals.ts';
 import { formatDateTime } from '@pins/crowndev-lib/util/audit-formatters.ts';
-import { CASE_DATA_MODEL, type ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import { getNonResidentialTotals, nonResidentialTotalAnswers } from '../util/non-residential-totals.ts';
 import { getPreApplicationCaseOptions, showPreApplicationTab } from '../util/pre-application.ts';
+import { popSessionData } from '@pins/crowndev-lib/util/session.ts';
 
 export function buildViewCaseDetails(): AsyncRequestHandler {
 	return async (req, res) => {
@@ -52,11 +53,12 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 		const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
 
 		// Show publish case validation errors
-		const errors = readSessionData<ErrorSummaryItem[]>(req, id, 'publishErrors', [], 'cases');
+
+		const errors = popSessionData(req, id, 'publishErrors', [], 'cases');
+
 		if (errors && errors.length > 0) {
 			res.locals.errorSummary = errors;
 		}
-		clearSessionData(req, id, 'publishErrors', 'cases');
 
 		// We clear the journey session on list page load to avoid ghost data.
 		clearDataFromSession({ req, journeyId: JOURNEY_ID });
@@ -90,7 +92,7 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 	};
 }
 
-export function buildGetJourneyMiddleware(service: CaseService, isQuestionView: boolean): AsyncRequestHandler {
+export function buildGetJourneyMiddleware(service: ManageService, isQuestionView: boolean): AsyncRequestHandler {
 	const { db, logger, getEntraClient, audit } = service;
 	const groupIds = service.entraGroupIds;
 

@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildSubmitUnpublishCase } from './controller.ts';
-import { mockLogger } from '@pins/crowndev-lib/testing/mock-logger.ts';
+import { mockLogger } from '@planning-inspectorate/core/testing';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 

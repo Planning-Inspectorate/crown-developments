@@ -1,9 +1,7 @@
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
-import type { AuditService } from '../audit/index.js';
-import type { InitEntraClient } from '../graph/types.js';
-import type { Logger } from 'pino';
-import type { AsyncRequestHandler } from '@pins/crowndev-lib/util/async-handler.ts';
+import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import type { Handler } from 'express';
+import type { BaseService } from '@planning-inspectorate/core/app';
 
 export type YesNo = 'yes' | 'no';
 
@@ -59,18 +57,10 @@ export type AnswerValidationError = {
 	pageLink: string;
 };
 
-export interface CaseService {
-	db: PrismaClient;
-	logger: Logger;
-	audit: AuditService;
-	getEntraClient: InitEntraClient;
-	entraGroupIds: {
-		caseOfficers: string;
-		inspectors: string;
-	};
-}
-
-export type JourneyMiddlewareType = (service: CaseService, isQuestionView: boolean) => Handler | AsyncRequestHandler;
+export type JourneyMiddlewareType<TService extends BaseService = BaseService> = (
+	service: TService,
+	isQuestionView: boolean
+) => Handler | AsyncRequestHandler;
 
 export type CaseFetcher<T> = (db: PrismaClient, id: string) => Promise<T | null>;
 export type UnpublishCaseFetcher<T = unknown> = (db: PrismaClient, id: string) => Promise<T | null>;
