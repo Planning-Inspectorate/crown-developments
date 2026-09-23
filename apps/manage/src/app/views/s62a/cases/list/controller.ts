@@ -32,7 +32,7 @@ export function buildCaseListPage(service: ManageService): AsyncRequestHandler {
 					skip: skipSize,
 					take: pageSize
 				}),
-				db.s62aCase.count()
+				db.s62aCase.count({ where: searchCriteria })
 			]);
 		} catch (error) {
 			wrapPrismaError({
