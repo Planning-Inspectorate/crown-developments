@@ -465,16 +465,16 @@ export const CONTACT_ROLES = [
  */
 export const PRE_APPLICATION_FOLDERS = [
 	{
-		displayName: 'Pre-Application',
+		displayName: 'Pre-application',
 		displayOrder: 100,
 		ChildFolders: {
 			create: [
 				{
-					displayName: "Applicant's Documents",
+					displayName: "Applicant's documents",
 					displayOrder: 100
 				},
 				{
-					displayName: 'LPA Documents',
+					displayName: 'LPA documents',
 					displayOrder: 200
 				},
 				{
@@ -482,7 +482,7 @@ export const PRE_APPLICATION_FOLDERS = [
 					displayOrder: 300
 				},
 				{
-					displayName: 'PINS Documents',
+					displayName: 'PINS documents',
 					displayOrder: 400
 				},
 				{
@@ -499,7 +499,7 @@ export const PRE_APPLICATION_FOLDERS = [
  */
 export const APPLICATION_FOLDERS = [
 	{
-		displayName: 'The Planning Application',
+		displayName: 'The planning application',
 		displayOrder: 100,
 		ChildFolders: {
 			create: [
@@ -520,7 +520,7 @@ export const APPLICATION_FOLDERS = [
 		ChildFolders: {
 			create: [
 				{
-					displayName: 'File Notes and Correspondence',
+					displayName: 'File notes and correspondence',
 					displayOrder: 100
 				},
 				{
@@ -536,7 +536,7 @@ export const APPLICATION_FOLDERS = [
 					displayOrder: 400
 				},
 				{
-					displayName: 'Decisions or Recommendations',
+					displayName: 'Decisions or recommendations',
 					displayOrder: 500
 				},
 				{
@@ -554,11 +554,11 @@ export const APPLICATION_FOLDERS = [
 											displayOrder: 100
 										},
 										{
-											displayName: 'Interested Parties',
+											displayName: 'Interested parties',
 											displayOrder: 200
 										},
 										{
-											displayName: 'LPA Questionnaire',
+											displayName: 'LPA questionnaire',
 											displayOrder: 300
 										}
 									]
@@ -574,11 +574,11 @@ export const APPLICATION_FOLDERS = [
 											displayOrder: 100
 										},
 										{
-											displayName: 'Interested Parties',
+											displayName: 'Interested parties',
 											displayOrder: 200
 										},
 										{
-											displayName: 'LPA Questionnaire',
+											displayName: 'LPA questionnaire',
 											displayOrder: 300
 										}
 									]
@@ -588,7 +588,7 @@ export const APPLICATION_FOLDERS = [
 					}
 				},
 				{
-					displayName: 'Internal Correspondence',
+					displayName: 'Internal correspondence',
 					displayOrder: 700
 				}
 			]

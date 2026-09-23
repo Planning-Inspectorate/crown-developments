@@ -351,7 +351,7 @@ describe('Folder creation utils', () => {
 		it('sits between The Planning Application and Working documents', () => {
 			const orderOf = (name: string) => APPLICATION_FOLDERS.find((f) => f.displayName === name)?.displayOrder ?? NaN;
 
-			assert.ok(orderOf('The Planning Application') < PRE_APPLICATION_ADVICE_FOLDER.displayOrder);
+			assert.ok(orderOf('The planning application') < PRE_APPLICATION_ADVICE_FOLDER.displayOrder);
 			assert.ok(PRE_APPLICATION_ADVICE_FOLDER.displayOrder < orderOf('Working documents'));
 		});
 	});
