@@ -228,6 +228,11 @@ describe('case list', () => {
 			assert.deepStrictEqual(mockDb.s62aCase.findMany.mock.calls[0].arguments[0].where, {
 				AND: [{ OR: [{ reference: { contains: 'case/ref' } }, { historicalReference: { contains: 'case/ref' } }] }]
 			});
+			assert.strictEqual(mockDb.s62aCase.count.mock.callCount(), 1);
+			assert.deepStrictEqual(
+				mockDb.s62aCase.count.mock.calls[0].arguments[0].where,
+				mockDb.s62aCase.findMany.mock.calls[0].arguments[0].where
+			);
 		});
 	});
 	describe('Pagination permutations', () => {
