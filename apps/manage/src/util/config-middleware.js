@@ -18,7 +18,7 @@ export function addLocalsConfiguration({ appName }) {
 			},
 			{
 				text: 'Sign out',
-				href: '/s62a/auth/signout'
+				href: '/auth/signout'
 			}
 		];
 
