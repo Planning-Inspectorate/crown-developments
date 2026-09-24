@@ -46,6 +46,7 @@ declare module 'express-session' {
 
 		// S62A session store types
 		deleteFilesIds?: string[];
+		publishFileIds?: string[];
 
 		// Common error/session transient state
 		errors?: unknown;

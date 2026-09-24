@@ -25,6 +25,10 @@ export interface DocumentViewModel {
 		classes?: string;
 		attributes?: Record<string, string>;
 	}>;
+	tags: Array<{
+		text: string;
+		classes: string;
+	}>;
 }
 
 export type DocumentWithFolder = Prisma.DocumentGetPayload<{
@@ -46,8 +50,19 @@ export function createDocumentsViewModel(
 		const folderDisplayName = stringToKebab(doc.Folder.displayName);
 		const docId = doc.id;
 
-		const downloadHref = `/s62a/cases/${caseId}/case-folders/${folderId}/${folderDisplayName}/download/${docId}`;
-		const deleteHref = `/s62a/cases/${caseId}/case-folders/${folderId}/${folderDisplayName}/delete/${docId}`;
+		const baseHref = `/s62a/cases/${caseId}/case-folders/${folderId}/${folderDisplayName}`;
+
+		const downloadHref = `${baseHref}/download/${docId}`;
+		const deleteHref = `${baseHref}/delete/${docId}`;
+		const publishHref = `${baseHref}/publish/${docId}`;
+		const unpublishHref = `${baseHref}/unpublish/${docId}`;
+
+		const tags = [
+			{
+				text: doc.publishDate ? 'Published' : 'Unpublished',
+				classes: doc.publishDate ? 'govuk-tag--green' : 'govuk-tag--grey'
+			}
+		];
 
 		return {
 			id: docId,
@@ -64,6 +79,7 @@ export function createDocumentsViewModel(
 				id: folderId,
 				displayName: folderDisplayName
 			},
+			tags,
 			actions: [
 				{
 					text: 'Delete',
@@ -74,7 +90,22 @@ export function createDocumentsViewModel(
 					text: 'Download',
 					href: downloadHref,
 					attributes: { 'data-cy': `download-file-${docId}` }
-				}
+				},
+				...(doc.publishDate
+					? [
+							{
+								text: 'Unpublish',
+								href: unpublishHref,
+								attributes: { 'data-cy': `unpublish-file-${docId}` }
+							}
+						]
+					: [
+							{
+								text: 'Publish',
+								href: publishHref,
+								attributes: { 'data-cy': `publish-file-${docId}` }
+							}
+						])
 			]
 		};
 	});
