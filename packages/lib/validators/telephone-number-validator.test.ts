@@ -3,7 +3,11 @@ import assert from 'node:assert';
 import TelephoneNumberValidator from './telephone-number-validator.ts';
 
 // Helper to run validation
-async function getValidationErrors(value, question, validatorInstance = new TelephoneNumberValidator()) {
+async function getValidationErrors(
+	value: unknown,
+	question: Record<string, string>,
+	validatorInstance = new TelephoneNumberValidator()
+) {
 	const req = { body: { [question.fieldName]: value } };
 	const validationResult = await validatorInstance.validate(question).run(req);
 	return validationResult.errors;

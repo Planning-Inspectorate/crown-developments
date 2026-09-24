@@ -13,7 +13,13 @@ export default class NameValidator extends StringValidator {
 				maxLengthMessage: `${label} must be between 1 and 250 characters`
 			},
 			regex: {
-				regex: /^[\p{Letter} '’-]+$/u,
+				// Matches either an empty string, OR a string containing only
+				// Unicode letters (\p{Letter}, any language), spaces, straight
+				// apostrophes ('), curly apostrophes (’) and hyphens (-).
+				// The 'u' flag enables Unicode property escapes.
+				//   ^$        -> allows an empty value (field is optional)
+				//   ^[...]+$  -> one or more of the allowed characters, whole string
+				regex: /^$|^[\p{Letter} '’-]+$/u,
 				regexMessage: `${label} must only include letters, spaces, hyphens and apostrophes`
 			},
 			fieldName
