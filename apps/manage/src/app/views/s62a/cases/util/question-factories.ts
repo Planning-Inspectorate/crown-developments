@@ -1,15 +1,11 @@
-import {
-	COMPONENT_TYPES,
-	RequiredValidator,
-	StringValidator,
-	EmailValidator
-} from '@planning-inspectorate/dynamic-forms';
+import { COMPONENT_TYPES, RequiredValidator, StringValidator } from '@planning-inspectorate/dynamic-forms';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.ts';
 import NameValidator from '@pins/crowndev-lib/validators/name-validator.ts';
 import { CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
 import { camelCaseToUrlCase, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
 import { HIDDEN_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
+import { EmailValidator } from '@pins/crowndev-lib/validators/email-validator.ts';
 
 /**
  * Creates primary vs secondary LPA questions, with variations
@@ -28,9 +24,9 @@ export const createLpaContactQuestion = (isSecondary: boolean) => {
 		fieldName: `${prefix}ContactDetails`,
 		url: isSecondary ? 'secondary-lpa-contact-details' : 'lpa-contact-details',
 		inputFields: [
-			{ fieldName: `${prefix}FirstName`, label: 'First name', formatJoinString: ' ' },
-			{ fieldName: `${prefix}LastName`, label: 'Last name' },
-			{ fieldName: `${prefix}EmailAddress`, label: 'Email address' },
+			{ fieldName: `${prefix}FirstName`, label: 'First name (optional)', formatJoinString: ' ' },
+			{ fieldName: `${prefix}LastName`, label: 'Last name (optional)' },
+			{ fieldName: `${prefix}EmailAddress`, label: 'Email address (optional)' },
 			{ fieldName: `${prefix}PhoneNumber`, label: 'Phone number (optional)' }
 		],
 		validators: [
@@ -39,7 +35,6 @@ export const createLpaContactQuestion = (isSecondary: boolean) => {
 					{
 						fieldName: `${prefix}FirstName`,
 						validators: [
-							new RequiredValidator(`Enter first name of the ${questionText} contact`),
 							new NameValidator({
 								label: 'First name'
 							})
@@ -48,7 +43,6 @@ export const createLpaContactQuestion = (isSecondary: boolean) => {
 					{
 						fieldName: `${prefix}LastName`,
 						validators: [
-							new RequiredValidator(`Enter last name of the ${questionText} contact`),
 							new NameValidator({
 								label: 'Last name'
 							})
@@ -57,7 +51,6 @@ export const createLpaContactQuestion = (isSecondary: boolean) => {
 					{
 						fieldName: `${prefix}EmailAddress`,
 						validators: [
-							new RequiredValidator(`Enter email address of the ${questionText} contact`),
 							new StringValidator({
 								maxLength: {
 									maxLength: 250,
