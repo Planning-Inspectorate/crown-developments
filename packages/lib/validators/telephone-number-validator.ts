@@ -29,6 +29,11 @@ export default class TelephoneNumberValidator extends StringValidator {
 				maxLengthMessage: maxLengthParams?.maxLengthMessage ?? 'Phone number must be 15 characters or less'
 			},
 			regex: {
+				// Matches either an empty string, OR a string of digits with an
+				// optional leading '+' (e.g. "+441234567890" or "01234567890").
+				// Note: the pattern is a string, so backslashes are escaped (\\).
+				//   ^$        -> allows an empty value (field is optional)
+				//   ^\+?\d+$  -> optional leading '+', then one or more digits
 				regex: '^$|^\\+?\\d+$',
 				regexMessage: 'Enter a valid phone number'
 			},
