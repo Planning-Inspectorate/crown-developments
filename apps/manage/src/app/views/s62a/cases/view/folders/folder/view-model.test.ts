@@ -27,7 +27,7 @@ describe('createDocumentsViewModel', () => {
 		assert.deepStrictEqual(result, []);
 	});
 
-	it('maps document properties correctly to the view model', () => {
+	it('maps document properties correctly to the view model (Unpublished default)', () => {
 		const docs = [createMockDoc()];
 		const result = createDocumentsViewModel(docs, mockPreviewMimeTypes);
 
@@ -50,7 +50,12 @@ describe('createDocumentsViewModel', () => {
 		assert.strictEqual(vm.folder.displayName, 'planning-documents');
 		assert.strictEqual(typeof vm.size, 'string');
 
-		assert.strictEqual(vm.actions.length, 2);
+		assert.strictEqual(vm.tags?.length, 1);
+		assert.strictEqual(vm.tags?.[0].text, 'Unpublished');
+		assert.strictEqual(vm.tags?.[0].classes, 'govuk-tag--grey');
+
+		assert.strictEqual(vm.actions.length, 3);
+
 		assert.strictEqual(vm.actions[0].text, 'Delete');
 		assert.strictEqual(
 			vm.actions[0].href,
@@ -63,6 +68,32 @@ describe('createDocumentsViewModel', () => {
 			'/s62a/cases/case-123/case-folders/folder-1/planning-documents/download/doc-123'
 		);
 		assert.strictEqual(vm.actions[1].attributes?.['data-cy'], 'download-file-doc-123');
+
+		assert.strictEqual(vm.actions[2].text, 'Publish');
+		assert.strictEqual(
+			vm.actions[2].href,
+			'/s62a/cases/case-123/case-folders/folder-1/planning-documents/publish/doc-123'
+		);
+		assert.strictEqual(vm.actions[2].attributes?.['data-cy'], 'publish-file-doc-123');
+	});
+
+	it('sets tags and actions correctly for a published document', () => {
+		const docs = [createMockDoc({ publishDate: new Date('2024-05-15T10:00:00Z') })];
+		const result = createDocumentsViewModel(docs, mockPreviewMimeTypes);
+
+		const vm = result[0];
+
+		assert.strictEqual(vm.tags?.length, 1);
+		assert.strictEqual(vm.tags?.[0].text, 'Published');
+		assert.strictEqual(vm.tags?.[0].classes, 'govuk-tag--green');
+
+		assert.strictEqual(vm.actions.length, 3);
+		assert.strictEqual(vm.actions[2].text, 'Unpublish');
+		assert.strictEqual(
+			vm.actions[2].href,
+			'/s62a/cases/case-123/case-folders/folder-1/planning-documents/unpublish/doc-123'
+		);
+		assert.strictEqual(vm.actions[2].attributes?.['data-cy'], 'unpublish-file-doc-123');
 	});
 
 	it('sets isPreview to true when mimeType is in the preview list', () => {

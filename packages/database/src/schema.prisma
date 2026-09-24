@@ -806,6 +806,7 @@ model Document {
   blobName     String
   mimeType     String    @default("application/octet-stream")
   deletedAt    DateTime?
+  publishDate  DateTime?
   s62aCaseId   String    @db.UniqueIdentifier
   S62aCase     S62aCase  @relation(fields: [s62aCaseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   folderId     String    @db.UniqueIdentifier
