@@ -18,8 +18,8 @@ describe('s62a create a case journey middleware', () => {
 	const next = mock.fn<NextFunction>(() => {});
 
 	const preApplicationCases = [
-		{ id: 'case-1', reference: 'S62A/PRE/2026/0000001', historicalReference: null },
-		{ id: 'case-2', reference: 'S62A/PRE/2026/0000002', historicalReference: 'OLD/2019/002' }
+		{ id: 'case-1', reference: 'S62A/2026/0000001/PRE', historicalReference: null },
+		{ id: 'case-2', reference: 'S62A/2026/0000002/PRE', historicalReference: 'OLD/2019/002' }
 	];
 
 	function mockService() {

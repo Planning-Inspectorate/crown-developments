@@ -40,7 +40,9 @@ function getSortByReferenceThenDate(s62aCases: S62ACasePayload): string | undefi
 	if (!s62aCases?.reference) return undefined;
 
 	const parts = s62aCases.reference.split('/');
-	const refVal = parts.length >= 3 ? parts.slice(-1).join('/') : s62aCases.reference;
+	const parsedRef = parts.length > 3 ? parts.slice(-2, -1).join('/') : parts.slice(-1).join('/');
+	const refVal =
+		parsedRef || (Array.isArray(s62aCases?.reference) ? s62aCases.reference.join('/') : s62aCases?.reference);
 
 	let refTime = '';
 	if (s62aCases.createdDate) {
