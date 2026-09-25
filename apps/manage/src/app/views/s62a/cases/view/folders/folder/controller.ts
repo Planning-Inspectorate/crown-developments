@@ -93,8 +93,9 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 
 		const errorSummary = popSessionData(req, id, 'filesErrors', false, 'folder');
 		const filesDeleted = popSessionData(req, id, 'filesDeleted', false, 'folder');
+		const filesPublished = popSessionData(req, id, 'filesPublished', false, 'folder');
 
-		const banner = getBannerMessages(filesDeleted, errorSummary);
+		const banner = getBannerMessages(filesDeleted, filesPublished, errorSummary);
 
 		const paginationParams = createPaginationParams(req, totalDocCount);
 
@@ -130,12 +131,31 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 /**
  * Builds out the various banners we will need on the case details page
  */
-function getBannerMessages(filesDeleted: number | boolean | undefined, errorSummary?: { text: string }[] | boolean) {
+function getBannerMessages(
+	filesDeleted: number | boolean | undefined,
+	filesPublished: number | boolean | undefined,
+	errorSummary?: { text: string }[] | boolean
+) {
 	if (errorSummary) {
 		return null;
 	}
 
 	const bannerBuilder = new BannerBuilder();
+
+	if (typeof filesPublished === 'number') {
+		const titleText = `${filesPublished === 1 ? 'File' : 'Files'} published`;
+
+		const combinedHtml = `
+			<h3 class="govuk-notification-banner__heading">${titleText}</h3>
+			<p class="govuk-body">
+				To view or change published files, view the 
+				<a class="govuk-notification-banner__link" href="/">published files page</a>.
+			</p>
+		`;
+
+		bannerBuilder.addSuccessTrustedHtml(combinedHtml);
+		return bannerBuilder.build();
+	}
 
 	if (typeof filesDeleted === 'number') {
 		bannerBuilder.addSuccessText(`${filesDeleted} selected file${filesDeleted === 1 ? '' : 's'} deleted`);

@@ -6,6 +6,7 @@ import { asyncHandler } from '@planning-inspectorate/core/util';
 import { createRoutes as createUploadRoutes } from './upload/index.ts';
 import { createRoutes as createDownloadRoutes } from './download/index.ts';
 import { createRoutes as createDeleteRoutes } from './delete/index.ts';
+import { createRoutes as createPublishRoutes } from './publish/index.ts';
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });
@@ -13,6 +14,7 @@ export function createRoutes(service: ManageService) {
 	const uploadRoutes = createUploadRoutes(service);
 	const downloadRoutes = createDownloadRoutes(service);
 	const deleteRoutes = createDeleteRoutes(service);
+	const publishRoutes = createPublishRoutes(service);
 
 	const viewCaseFolder = buildViewCaseFolder(service);
 
@@ -27,6 +29,9 @@ export function createRoutes(service: ManageService) {
 
 	// Mounts the delete routes
 	router.use('/delete', deleteRoutes);
+
+	// Mounts the publish routes
+	router.use('/publish', publishRoutes);
 
 	return router;
 }

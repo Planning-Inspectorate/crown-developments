@@ -1034,3 +1034,40 @@ export const USE_CLASSES_WITH_ROOMS: string[] = [
 	USE_CLASS_ID.C2A,
 	USE_CLASS_ID.OTHER
 ];
+
+export const DOCUMENT_CATEGORY_ID = Object.freeze({
+	APPLICATION_PLANS_AND_DOCUMENTS: 'application-plans-and-documents',
+	QUESTIONNAIRE_AND_SUPPORTING_DOCUMENTS: 'questionnaire-and-supporting-documents',
+	PLANNING_INSPECTORATE_CORRESPONDENCE: 'planning-inspectorate-correspondence',
+	APPLICANT_CORRESPONDENCE: 'applicant-correspondence',
+	ADDITIONAL_INFORMATION: 'additional-information',
+	HEARING: 'hearing'
+} as const);
+
+/** The category of document when published to the front office */
+export const DOCUMENT_CATEGORIES = [
+	{
+		id: DOCUMENT_CATEGORY_ID.APPLICATION_PLANS_AND_DOCUMENTS,
+		displayName: 'Application plans and documents'
+	},
+	{
+		id: DOCUMENT_CATEGORY_ID.QUESTIONNAIRE_AND_SUPPORTING_DOCUMENTS,
+		displayName: 'Questionnaire and supporting documents'
+	},
+	{
+		id: DOCUMENT_CATEGORY_ID.PLANNING_INSPECTORATE_CORRESPONDENCE,
+		displayName: 'Planning Inspectorate correspondence'
+	},
+	{
+		id: DOCUMENT_CATEGORY_ID.APPLICANT_CORRESPONDENCE,
+		displayName: 'Applicant correspondence'
+	},
+	{
+		id: DOCUMENT_CATEGORY_ID.ADDITIONAL_INFORMATION,
+		displayName: 'Additional information'
+	},
+	{
+		id: DOCUMENT_CATEGORY_ID.HEARING,
+		displayName: 'Hearing'
+	}
+];

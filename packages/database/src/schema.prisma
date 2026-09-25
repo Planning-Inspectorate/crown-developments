@@ -799,17 +799,20 @@ model Folder {
 }
 
 model Document {
-  id           String    @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
-  fileName     String
-  uploadedDate DateTime  @default(now())
-  size         BigInt    @default(0)
-  blobName     String
-  mimeType     String    @default("application/octet-stream")
-  deletedAt    DateTime?
-  s62aCaseId   String    @db.UniqueIdentifier
-  S62aCase     S62aCase  @relation(fields: [s62aCaseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  folderId     String    @db.UniqueIdentifier
-  Folder       Folder    @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  id               String            @id @default(dbgenerated("newid()")) @db.UniqueIdentifier
+  fileName         String
+  uploadedDate     DateTime          @default(now())
+  size             BigInt            @default(0)
+  blobName         String
+  mimeType         String            @default("application/octet-stream")
+  deletedAt        DateTime?
+  publishDate      DateTime?
+  categoryId       String?
+  DocumentCategory DocumentCategory? @relation(fields: [categoryId], references: [id])
+  s62aCaseId       String            @db.UniqueIdentifier
+  S62aCase         S62aCase          @relation(fields: [s62aCaseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  folderId         String            @db.UniqueIdentifier
+  Folder           Folder            @relation(fields: [folderId], references: [id], onDelete: Cascade)
 }
 
 /// Indicates a document that has been uploaded
@@ -828,6 +831,14 @@ model DraftDocument {
   mimeType   String   @default("application/octet-stream")
 
   @@index([sessionKey, s62aCaseId])
+}
+
+/// The category of a published document, assigned at publishing stage
+model DocumentCategory {
+  /// unique machine-readable name, not generated, e.g. "questionnaire"
+  id          String     @id
+  displayName String?
+  documents   Document[]
 }
 
 model BlobRepresentationDocument {

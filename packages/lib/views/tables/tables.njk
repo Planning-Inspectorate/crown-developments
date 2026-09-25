@@ -117,6 +117,7 @@
 {% macro documentsTable(documentsList, showCheckboxes=false, config={}) %}
 
     {% set dateHeader = config.dateHeader | default('Uploaded') %}
+    {% set tagsHeader = config.tagsHeader | default('Tags') %}
     {% set actionsHeader = config.actionsHeader | default('Actions') %}
 
     {% set rows = [] %}
@@ -160,6 +161,31 @@
             html: fileLinkHtml,
             attributes: { "data-sort-value": doc.fileName | lower }
         }), rowItems) %}
+        
+        {% set tagsHtml %}
+            {% if doc.tags and doc.tags | length > 0 %}
+                <ul class="govuk-list">
+                    {% for tag in doc.tags %}
+                        <li class="govuk-!-margin-bottom-1">
+                            {{ govukTag({ 
+                                text: tag.text, 
+                                classes: tag.classes 
+                            }) }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endset %}
+
+        {% set tagsSortValue = "" %}
+        {% if doc.tags and doc.tags | length > 0 %}
+            {% set tagsSortValue = doc.tags[0].text | lower %}
+        {% endif %}
+
+        {% set rowItems = (rowItems.push({ 
+            html: tagsHtml,
+            attributes: { "data-sort-value": tagsSortValue }
+        }), rowItems) %}
 
         {% set rowItems = (rowItems.push({
             text: doc.date,
@@ -168,9 +194,9 @@
 
         {% set actionsHtml %}
             {% if doc.actions and doc.actions | length > 0 %}
-                <ul class="govuk-summary-list__actions-list">
+                <ul class="govuk-list govuk-!-text-align-right">
                     {% for action in doc.actions %}
-                        <li class="govuk-summary-list__actions-list-item">
+                        <li>
                             <a class="govuk-link govuk-link--no-visited-state {{ action.classes }}" href="{{ action.href }}" {% for attr, val in action.attributes %} {{ attr }}="{{ val }}"{% endfor %}>
                                 {{ action.text }}<span class="govuk-visually-hidden"> {{ doc.fileName }}</span>
                             </a>
@@ -203,6 +229,7 @@
 
     {% set headers = (headers.push(
         { text: 'File name', attributes: { "aria-sort": "none" }, classes: "govuk-!-width-one-third" },
+        { text: tagsHeader, attributes: { "aria-sort": "none" } },
         { text: dateHeader, attributes: { "aria-sort": "descending" } },
         { text: actionsHeader }
     ), headers) %}
