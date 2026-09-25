@@ -51,4 +51,9 @@ describe('NameValidator', () => {
 		const errors = await getValidationErrors('João Öztürk Sánchez Çelik Łuka Dvořák', question, 'Last name');
 		assert.strictEqual(errors.length, 0);
 	});
+
+	it('should accept an empty string', async () => {
+		const errors = await getValidationErrors('', question, 'First name');
+		assert.strictEqual(errors.length, 0);
+	});
 });
