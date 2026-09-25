@@ -2,11 +2,12 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { createCaseHistoryViewModel } from './view-model.ts';
 import type { AuditEvent } from '../audit/types.ts';
+import { CASE_DATA_MODEL } from '../util/types.ts';
 
 describe('createCaseHistoryViewModel', () => {
 	const event = (overrides: Partial<AuditEvent & { userName: string }> = {}): AuditEvent & { userName: string } => ({
 		id: 'evt-1',
-		caseId: 'case-1',
+		crownDevelopmentId: 'case-1',
 		action: 'CASE_CREATED',
 		userId: 'user-1',
 		createdAt: new Date('2026-02-11T14:31:00Z'),
@@ -32,7 +33,7 @@ describe('createCaseHistoryViewModel', () => {
 			})
 		];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		assert.strictEqual(result.length, 2);
 
@@ -52,7 +53,7 @@ describe('createCaseHistoryViewModel', () => {
 	it('should format dateTime as "day month year" with time (en-GB locale)', () => {
 		const events = [event({ createdAt: new Date('2026-02-11T14:31:00Z') })];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		// 14:31 UTC → London (GMT in February) → "11 February 2026 2:31pm"
 		assert.strictEqual(result[0].dateTimeFormatted, '11 February 2026 2:31pm');
@@ -62,7 +63,7 @@ describe('createCaseHistoryViewModel', () => {
 		// 00:00 London → date only, no time appended
 		const events = [event({ createdAt: new Date('2026-02-11T00:00:00Z') })];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		assert.strictEqual(result[0].dateTimeFormatted, '11 February 2026');
 	});
@@ -70,7 +71,7 @@ describe('createCaseHistoryViewModel', () => {
 	it('should use userName from the event', () => {
 		const events = [event({ userName: 'Unknown User' })];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		assert.strictEqual(result[0].user, 'Unknown User');
 	});
@@ -78,7 +79,7 @@ describe('createCaseHistoryViewModel', () => {
 	it('should pass metadata to resolveTemplate for details', () => {
 		const events = [event({ action: 'CASE_CREATED', metadata: { reference: 'DRT/PER/00015' } })];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		assert.strictEqual(result[0].details, 'DRT/PER/00015 was created');
 	});
@@ -86,14 +87,14 @@ describe('createCaseHistoryViewModel', () => {
 	it('should handle null metadata gracefully', () => {
 		const events = [event({ action: 'CASE_CREATED', metadata: null })];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		// With no metadata, the placeholder is left intact
 		assert.strictEqual(result[0].details, '{reference} was created');
 	});
 
 	it('should return empty array if no events provided', () => {
-		const result = createCaseHistoryViewModel([]);
+		const result = createCaseHistoryViewModel([], CASE_DATA_MODEL.CROWN);
 
 		assert.deepStrictEqual(result, []);
 	});
@@ -101,7 +102,7 @@ describe('createCaseHistoryViewModel', () => {
 	it('should preserve event order in output', () => {
 		const events = [event({ userName: 'First' }), event({ userName: 'Second' }), event({ userName: 'Third' })];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		assert.strictEqual(result[0].user, 'First');
 		assert.strictEqual(result[1].user, 'Second');
@@ -111,7 +112,7 @@ describe('createCaseHistoryViewModel', () => {
 	it('should keep standard shape for non-long rows', () => {
 		const events = [event({ action: 'CASE_CREATED', metadata: { reference: 'REF-123' } })];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		assert.strictEqual(result[0].details, 'REF-123 was created');
 		assert.strictEqual(result[0].action, 'CASE_CREATED');
@@ -130,7 +131,7 @@ describe('createCaseHistoryViewModel', () => {
 			})
 		];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		assert.strictEqual(result.length, 1);
 		assert.strictEqual(result[0].action, 'LONG_FIELD_UPDATED');
@@ -156,7 +157,7 @@ describe('createCaseHistoryViewModel', () => {
 			})
 		];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		assert.strictEqual(result.length, 1);
 		assert.strictEqual(result[0].action, 'LONG_FIELD_SET');
@@ -178,7 +179,7 @@ describe('createCaseHistoryViewModel', () => {
 			})
 		];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		assert.strictEqual(result.length, 1);
 		assert.strictEqual(result[0].action, 'LONG_FIELD_CLEARED');
@@ -199,7 +200,7 @@ describe('createCaseHistoryViewModel', () => {
 			})
 		];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		assert.strictEqual(result.length, 1);
 		assert.strictEqual(result[0].details, 'Description was set');
@@ -217,7 +218,7 @@ describe('createCaseHistoryViewModel', () => {
 			})
 		];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		// Only the old value should be present
 		assert.strictEqual(result[0].longDetails?.length, 1);
@@ -236,7 +237,7 @@ describe('createCaseHistoryViewModel', () => {
 			})
 		];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		// Both filtered out, so array is empty
 		assert.strictEqual(result[0].longDetails?.length, undefined);
@@ -253,7 +254,7 @@ describe('createCaseHistoryViewModel', () => {
 			})
 		];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		// Value should keep the newlines intact (template will convert to <br>)
 		assert.strictEqual(result[0].longDetails?.[0]?.value, 'Line 1\nLine 2\nLine 3');
@@ -270,7 +271,7 @@ describe('createCaseHistoryViewModel', () => {
 			})
 		];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		// Should fall back to empty string, no longDetails
 		assert.strictEqual(result[0].longDetails, undefined);
@@ -288,7 +289,7 @@ describe('createCaseHistoryViewModel', () => {
 			})
 		];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		// Labels should still be readable without crashing
 		assert.strictEqual(result[0].longDetails?.[0]?.label, 'Previous ');
@@ -306,7 +307,7 @@ describe('createCaseHistoryViewModel', () => {
 			})
 		];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		assert.strictEqual(result[0].longDetails, undefined);
 	});
@@ -322,7 +323,7 @@ describe('createCaseHistoryViewModel', () => {
 			})
 		];
 
-		const result = createCaseHistoryViewModel(events);
+		const result = createCaseHistoryViewModel(events, CASE_DATA_MODEL.CROWN);
 
 		assert.strictEqual(result[0].longDetails, undefined);
 	});

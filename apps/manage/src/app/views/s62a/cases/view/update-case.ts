@@ -18,6 +18,7 @@ import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { isPreApplicationAdviceGiven } from '../util/pre-application.ts';
 import { FOLDER_SYNC_RESULT, syncPreApplicationAdviceFolder } from '../util/folders.ts';
+import { S62A_FIELD_RESOLVERS } from '../audit/field-resolvers.ts';
 
 /**
  * Long-text fields that render with expandable old/new value details
@@ -210,10 +211,16 @@ async function recordAuditEntries(
 				envConfig = '';
 			}
 
-			const { oldValue, newValue } = resolveFieldValues(fieldName, previousValues, answersSnapshot[fieldName], {
-				environmentConfig: envConfig,
-				environmentName: ENVIRONMENT_NAME
-			});
+			const { oldValue, newValue } = resolveFieldValues(
+				S62A_FIELD_RESOLVERS,
+				fieldName,
+				previousValues,
+				answersSnapshot[fieldName],
+				{
+					environmentConfig: envConfig,
+					environmentName: ENVIRONMENT_NAME
+				}
+			);
 
 			if (oldValue === newValue) {
 				continue;
