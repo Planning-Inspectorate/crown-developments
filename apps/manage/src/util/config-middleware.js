@@ -43,11 +43,12 @@ export function addLocalsConfiguration({ appName }) {
 			appName,
 			headerTitle: headerTitle,
 			isLive: true,
-			inBeta: false,
+			inBeta: true,
 			primaryNavigationLinks: links.map((link) => ({
 				...link,
 				current: link.href === path
-			}))
+			})),
+			serviceFeedbackUrl: 'https://forms.cloud.microsoft/e/DeXLbhNrBn'
 		};
 
 		next();
