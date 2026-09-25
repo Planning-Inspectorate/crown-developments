@@ -139,6 +139,32 @@ describe('DocumentPublisher', () => {
 		});
 	});
 
+	describe('handleSingleSelection (GET)', () => {
+		it('saves the document ID to the session and redirects to the confirmation page', () => {
+			mockReq.params = { documentId: 'doc-123' };
+			mockReq.originalUrl = '/s62a/cases/case-1/publish/doc-123';
+
+			publisher.handleSingleSelection(mockReq as unknown as Request, mockRes as unknown as Response);
+
+			assert.deepStrictEqual(mockReq.session.publishFileIds, ['doc-123']);
+			assert.strictEqual(mockRes.redirect.mock.calls.length, 1);
+			assert.strictEqual(
+				mockRes.redirect.mock.calls[0].arguments[0],
+				'/s62a/cases/case-1/publish/documents/confirmation'
+			);
+		});
+
+		it('redirects to root (/) if the resulting confirmation url is not a valid redirect uri', () => {
+			mockReq.params = { documentId: 'doc-123' };
+			mockReq.originalUrl = 'https://example.com';
+
+			publisher.handleSingleSelection(mockReq as unknown as Request, mockRes as unknown as Response);
+
+			assert.strictEqual(mockRes.redirect.mock.calls.length, 1);
+			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], '/');
+		});
+	});
+
 	describe('renderCategorisation (GET)', () => {
 		it('redirects to safe return url if no files are in the session', async () => {
 			mockReq.session.publishFileIds = [];

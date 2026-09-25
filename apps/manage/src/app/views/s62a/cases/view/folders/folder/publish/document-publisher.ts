@@ -52,6 +52,22 @@ export class DocumentPublisher {
 	}
 
 	/**
+	 * Acts as a middleman, as a single in-line publish comes from a GET href
+	 * So we use this middleman to attach the document to the session the same
+	 * as the PRG and redirect.
+	 */
+	public handleSingleSelection(req: Request, res: Response) {
+		const documentId = getStringParam(req.params, 'documentId');
+
+		req.session.publishFileIds = [documentId];
+
+		const basePath = req.originalUrl.split(`/publish/${documentId}`)[0];
+		const redirectUrl = `${basePath}/publish/documents/confirmation`;
+
+		return res.redirect(isValidRedirectUri(redirectUrl) ? redirectUrl : '/');
+	}
+
+	/**
 	 * Renders categorisation page grabbing document ids from session
 	 */
 	public async renderCategorisation(

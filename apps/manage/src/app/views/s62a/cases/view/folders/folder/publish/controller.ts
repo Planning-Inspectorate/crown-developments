@@ -9,6 +9,12 @@ export function buildHandlePublishSelection(publisher: DocumentPublisher) {
 	};
 }
 
+export function buildHandleSinglePublishSelection(publisher: DocumentPublisher) {
+	return (req: Request, res: Response) => {
+		publisher.handleSingleSelection(req, res);
+	};
+}
+
 export function buildPublishFileView(publisher: DocumentPublisher) {
 	return async (req: Request<ParamsDictionary, unknown, PublishRequestBody>, res: Response) => {
 		await publisher.renderCategorisation(req, res, DOCUMENT_CATEGORIES);
