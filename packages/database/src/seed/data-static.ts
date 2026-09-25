@@ -22,7 +22,8 @@ import {
 	VEHICLE_PARKING_CATEGORIES,
 	FLOORSPACE_SETS,
 	USE_CLASSES,
-	USE_CLASS_SUBTYPES
+	USE_CLASS_SUBTYPES,
+	DOCUMENT_CATEGORIES
 } from './s62a/data-static.ts';
 
 export const APPLICATION_DECISION_OUTCOME = [
@@ -717,6 +718,10 @@ type UpsertReferenceDataArgs =
 	| {
 			delegate: Prisma.S62aUseClassSubtypeDelegate;
 			input: Prisma.S62aUseClassSubtypeCreateInput;
+	  }
+	| {
+			delegate: Prisma.DocumentCategoryDelegate;
+			input: Prisma.DocumentCategoryCreateInput;
 	  };
 
 async function upsertReferenceData({ delegate, input }: UpsertReferenceDataArgs): Promise<void> {
@@ -885,6 +890,10 @@ export async function seedS62aStaticData(dbClient: PrismaClient) {
 				input: { ...subtype, UseClass: { connect: { id: useClassId } } }
 			})
 		)
+	);
+
+	await Promise.all(
+		DOCUMENT_CATEGORIES.map((input) => upsertReferenceData({ delegate: dbClient.documentCategory, input }))
 	);
 
 	console.log('S62A static data seed complete');
