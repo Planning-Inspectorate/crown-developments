@@ -205,7 +205,9 @@ type NullableScalarClearableKey = Exclude<
 
 type RelationIdClearableKey = Extract<keyof CrownDevelopmentSaveValueMap, (typeof RELATION_ID_FIELDS)[number]>;
 
-export type CrownDevelopmentClearableKey = NullableScalarClearableKey | RelationIdClearableKey;
+type EventClearableKey = Extract<keyof CrownDevelopmentSaveValueMap, (typeof EVENT_CLEARABLE_FIELDS)[number]>;
+
+export type CrownDevelopmentClearableKey = NullableScalarClearableKey | RelationIdClearableKey | EventClearableKey;
 
 export type CrownDevelopmentSaveModel = Partial<{
 	[K in keyof CrownDevelopmentSaveValueMap]: K extends CrownDevelopmentClearableKey
@@ -350,12 +352,22 @@ const RELATION_ID_FIELDS = Object.freeze([
 	'eventId'
 ] as const satisfies Readonly<NullableDirectMappedViewModelFields[]>);
 
+const EVENT_CLEARABLE_FIELDS = Object.freeze([
+	'hearingDate',
+	'inquiryDate',
+	'inquiryStatementsDate',
+	'inquiryPreMeetingDate',
+	'inquiryCaseManagementConferenceDate',
+	'inquiryProofsOfEvidenceDate'
+] as const satisfies ReadonlyArray<CrownDevelopmentViewModelFields>);
+
 export const CLEARABLE_SAVE_KEYS = Object.freeze([
 	...BOOLEAN_FIELDS,
 	...DECIMAL_FIELDS,
 	...INTEGER_STRING_FIELDS,
 	...DIRECT_UNMAPPED_FIELDS,
-	...RELATION_ID_FIELDS
+	...RELATION_ID_FIELDS,
+	...EVENT_CLEARABLE_FIELDS
 ] as const satisfies ReadonlyArray<CrownDevelopmentClearableKey>);
 
 type DirectUnmappedField =
