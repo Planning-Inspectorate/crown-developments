@@ -1,0 +1,47 @@
+ apps/manage/src/app/views/cases/audit/actions.ts   |  21 ++
+ .../src/app/views/cases/audit/field-resolvers.ts   | 127 +++++++
+ .../manage/src/app/views/cases/view/update-case.ts |  19 +-
+ .../src/app/views/s62a/cases/audit/actions.test.ts | 200 +++++++++++
+ .../src/app/views/s62a/cases/audit/actions.ts      | 137 ++++++++
+ .../s62a/cases/audit/additional-contacts.test.ts   | 189 +++++++++++
+ .../views/s62a/cases/audit/additional-contacts.ts  | 135 ++++++++
+ .../views/s62a/cases/audit/audit-coverage.test.ts  | 121 +++++++
+ .../app/views/s62a/cases/audit/contacts.test.ts    | 245 ++++++++++++++
+ .../src/app/views/s62a/cases/audit/contacts.ts     | 151 +++++++++
+ .../views/s62a/cases/audit/field-resolvers.test.ts | 255 ++++++++++++++
+ .../app/views/s62a/cases/audit/field-resolvers.ts  | 283 ++++++++++++++++
+ .../app/views/s62a/cases/audit/floorspace.test.ts  | 185 ++++++++++
+ .../src/app/views/s62a/cases/audit/floorspace.ts   | 166 +++++++++
+ .../views/s62a/cases/audit/grouped-fields.test.ts  | 116 +++++++
+ .../app/views/s62a/cases/audit/grouped-fields.ts   | 145 ++++++++
+ .../src/app/views/s62a/cases/audit/housing.test.ts | 164 +++++++++
+ .../src/app/views/s62a/cases/audit/housing.ts      | 122 +++++++
+ .../app/views/s62a/cases/audit/inspectors copy.ts  | 174 ++++++++++
+ .../src/app/views/s62a/cases/audit/inspectors.ts   | 108 ++++++
+ .../views/s62a/cases/audit/list-resolvers.test.ts  |  64 ++++
+ .../app/views/s62a/cases/audit/list-resolvers.ts   | 217 ++++++++++++
+ .../views/s62a/cases/audit/organisations.test.ts   | 185 ++++++++++
+ .../app/views/s62a/cases/audit/organisations.ts    |  95 ++++++
+ .../views/s62a/cases/audit/vehicle-parking.test.ts | 127 +++++++
+ .../app/views/s62a/cases/audit/vehicle-parking.ts  | 105 ++++++
+ .../app/views/s62a/cases/audit/waste-types.test.ts | 159 +++++++++
+ .../src/app/views/s62a/cases/audit/waste-types.ts  | 141 ++++++++
+ .../src/app/views/s62a/cases/view/controller.ts    |   8 +-
+ .../manage/src/app/views/s62a/cases/view/delete.ts |  22 ++
+ .../src/app/views/s62a/cases/view/update-case.ts   | 248 +++++++++-----
+ packages/lib/audit/actions.test.ts                 | 176 ++--------
+ packages/lib/audit/actions.ts                      | 150 +++------
+ packages/lib/audit/index.ts                        |   2 +-
+ packages/lib/audit/resolvers/field-resolver.ts     | 371 ---------------------
+ ...ld-resolver.test.ts => field-resolvers.test.ts} | 130 ++++----
+ packages/lib/audit/resolvers/field-resolvers.ts    | 318 ++++++++++++++++++
+ packages/lib/audit/resolvers/index.test.ts         | 119 +++++++
+ packages/lib/audit/resolvers/index.ts              |  31 +-
+ .../lib/audit/resolvers/util/list-changes.test.ts  |  97 ++++++
+ packages/lib/audit/resolvers/util/list-changes.ts  | 103 ++++++
+ packages/lib/audit/shared-actions.ts               | 119 +++++++
+ packages/lib/case-history/controller.ts            |   2 +-
+ packages/lib/case-history/view-model.test.ts       |  43 +--
+ packages/lib/case-history/view-model.ts            |  26 +-
+ packages/lib/case-history/view.njk                 |   2 +-
+ 46 files changed, 5326 insertions(+), 797 deletions(-)

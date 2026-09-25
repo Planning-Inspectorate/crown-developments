@@ -146,6 +146,12 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 				.map((q) => [q.fieldName, q.title])
 		);
 
+		res.locals.userDisplayNameMap = new Map(
+			Object.values(groupMembers)
+				.flat()
+				.map((member) => [member.id, member.displayName])
+		);
+
 		res.locals.fieldDisplayNames = fieldDisplayNames;
 		res.locals.createdDate = createdDate;
 

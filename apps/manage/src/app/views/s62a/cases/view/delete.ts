@@ -2,6 +2,8 @@ import type { Request, Response, NextFunction, RequestHandler } from 'express';
 import type { ManageService } from '#service';
 import { S62aManageListDeleter } from './s62a-manage-list-deleter.ts';
 import { getOptionalStringParams } from '@pins/crowndev-lib/util/params.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import { resolveListItemRemoval } from '../audit/list-resolvers.ts';
 
 export const questionConfig: Record<string, { fieldName: string; successMessage: string }> = {
 	'check-agent-contact-details': { fieldName: 'manageAgentContactDetails', successMessage: 'Contact removed' },
@@ -95,6 +97,26 @@ export function buildDeleteS62aManageListItemOnConfirmRemove(service: ManageServ
 						'No manage-list delete handler configured'
 					);
 					throw new Error(`No delete handler for manage-list question "${question}" (field "${fieldName}")`);
+			}
+
+			if (service.isAuditLive !== false) {
+				try {
+					const entries = resolveListItemRemoval({
+						caseId: id,
+						userId: req.session?.account?.localAccountId || 'Unknown-user',
+						fieldName, // the manage-list question's fieldName, e.g. 'manageApplicantContactDetails'
+						itemId: manageListItemId,
+						previousCase: (res.locals.originalAnswers ?? {}),
+						context: {
+							userDisplayNameMap: res.locals.userDisplayNameMap as Map<string, string> | undefined
+						}
+					});
+
+					await service.audit.recordMany(entries, CASE_DATA_MODEL.S62A);
+				} catch (error) {
+					// Audit failures should never block the user's operation
+					service.logger.error({ error, caseId: id }, 'Failed to record audit events for list item removal');
+				}
 			}
 
 			next();
