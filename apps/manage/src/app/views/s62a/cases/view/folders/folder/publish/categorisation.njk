@@ -1,0 +1,111 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+
+{% block pageTitle %}
+    Categorise - Publish Documents
+{% endblock %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            
+            <span class="govuk-caption-l">{{ reference }}</span>
+            <h1 class="govuk-heading-l">Categorise selected documents</h1>
+
+            <p class="govuk-body">This will be shown in the front office document filters.</p>
+
+            <form method="post" novalidate>
+                <input type="hidden" name="_csrf" value="{{ _csrf }}">
+                <input type="hidden" name="returnUrl" value="{{ returnUrl }}">
+
+                <h2 class="govuk-heading-m">Documents to publish</h2>
+
+                {{ publishTable(documents) }}
+
+                {% set categoryItems = [] %}
+                {% for category in categories %}
+                    {% set categoryItems = (categoryItems.push({
+                        value: category.id,
+                        text: category.displayName
+                    }), categoryItems) %}
+                {% endfor %}
+
+                {% set categoryError = null %}
+                {% if errorSummary %}
+                    {% for error in errorSummary %}
+                        {% if error.href == '#documentCategory' %}
+                            {% set categoryError = { text: error.text } %}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+
+                {{ govukRadios({
+                    name: "documentCategory",
+                    idPrefix: "documentCategory",
+                    errorMessage: categoryError,
+                    fieldset: {
+                        legend: {
+                            text: "What category are these documents?",
+                            isPageHeading: false,
+                            classes: "govuk-fieldset__legend--m"
+                        }
+                    },
+                    items: categoryItems
+                }) }}
+
+                {{ govukWarningText({
+                    text: "These documents will be published immediately.",
+                    iconFallbackText: "Warning"
+                }) }}
+
+                {{ govukButton({
+                    text: "Publish these documents",
+                    attributes: {
+                        formaction: publishUrl
+                    }
+                }) }}
+
+            </form>
+
+        </div>
+    </div>
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <a class="govuk-link" href="{{ backLinkUrl }}">
+                Cancel and return to folder
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% macro publishTable(docRows) %}
+    {% set docs = [] %}
+
+    {% for doc in docRows %}
+        {% set docs = (docs.push([
+            {
+                text: doc.fileName
+            }
+        ]), docs) %}
+    {% endfor %}
+
+    {% set headers = [
+        {
+            text: 'File name',
+            classes: "govuk-!-width-three-quarters"
+        }
+    ] %}
+
+    {{ govukTable({
+        attributes: {
+            "data-module": "moj-sortable-table"
+        },
+        head: headers,
+        rows: docs
+    }) }}
+{% endmacro %}
