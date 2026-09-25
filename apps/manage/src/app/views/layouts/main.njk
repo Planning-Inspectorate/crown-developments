@@ -23,7 +23,7 @@
 	{% if isS62A %}
 		{{ headerWithNav({ isExternal: false }, config) }}
 	{% else %}
-		{{ header('Manage a Crown Development Application', '/cases') }}
+		{{ header('Manage a Crown Development Application', '/cases', config) }}
 	{% endif %}
 {% endblock %}
 

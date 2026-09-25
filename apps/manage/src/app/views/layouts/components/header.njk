@@ -1,4 +1,4 @@
-{% macro header(serviceName, allCasesLink) %}
+{% macro header(serviceName, allCasesLink, config) %}
 	<header class="govuk-header" id="pins-header" role="banner" data-module="govuk-header">
 		<div class="pins-width-container">
 			<div class="pins-row">
@@ -26,4 +26,9 @@
 			</div>
 		</div>
 	</header>
+	{% if config.inBeta %}
+		<div class="govuk-width-container">
+			{% include "views/layouts/components/core/banner.njk" %}
+		</div>
+	{% endif %}
 {% endmacro %}
