@@ -1,4 +1,4 @@
-import { describe, it, mock } from 'node:test';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import { mockLogger } from '@planning-inspectorate/core/testing';
 import {
 	sendApplicationNotOfNationalImportanceNotification,
@@ -20,6 +20,13 @@ const DEFAULT_CROWN_DEVELOPMENT = {
 };
 
 describe('notification', () => {
+	beforeEach(() => {
+		mock.timers.enable({ apis: ['setTimeout', 'setInterval'] });
+	});
+
+	afterEach(() => {
+		mock.timers.reset();
+	});
 	const appEntraMock = () => {
 		return {
 			addUsersAsGuests: mock.fn((emails) => {
