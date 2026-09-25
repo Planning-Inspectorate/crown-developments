@@ -40,6 +40,7 @@ import {
 	createQuestions,
 	CrossQuestionValidator,
 	DateValidator,
+	DateTimeValidator,
 	EmailValidator,
 	NumericValidator,
 	questionClasses,
@@ -2117,13 +2118,21 @@ export function getQuestions(
 			validators: [new DateValidator('notice of procedure date')]
 		},
 		hearingDate: {
-			type: COMPONENT_TYPES.DATE,
+			type: COMPONENT_TYPES.DATE_TIME,
 			title: 'Hearing date',
 			question: 'When is the hearing date?',
 			hint: 'For example, 27 3 2007',
 			fieldName: 'hearingDate',
 			url: 'hearing-date',
-			validators: [new DateValidator('hearing date')],
+			timeFormat: 'h:mmaaa',
+			validators: [
+				new DateTimeValidator(
+					'Hearing',
+					'Hearing date',
+					{ ensureFuture: false, ensurePast: false },
+					{ emptyErrorMessage: 'Enter the site visit date' }
+				)
+			],
 			viewData: {
 				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'hearing-date/remove' }]
 			}
