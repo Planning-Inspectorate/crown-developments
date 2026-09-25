@@ -1,163 +1,134 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveTemplate, resolveAuditAction, AUDIT_ACTIONS, AUDIT_TEMPLATES } from './actions.ts';
+import {
+	AUDIT_ACTIONS,
+	LONG_FIELD_ACTIONS,
+	fillTemplate,
+	isAuditAction,
+	resolveAuditAction,
+	resolveTemplate
+} from './actions.ts';
+import { CASE_DATA_MODEL } from '../util/types.ts';
 
-describe('resolveTemplate', () => {
-	it('should return template as-is when no metadata is provided', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.CASE_CREATED);
-		assert.strictEqual(result, '{reference} was created');
-	});
+describe('fillTemplate', () => {
+	const template = '{reference} was created';
 
-	it('should return template as-is when metadata is undefined', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.CASE_CREATED, undefined);
-		assert.strictEqual(result, '{reference} was created');
+	it('should return the template as-is when no metadata is provided', () => {
+		assert.strictEqual(fillTemplate(template), '{reference} was created');
 	});
 
 	it('should replace a placeholder with a metadata value', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.CASE_CREATED, { reference: 'DRT/PER/00015' });
-		assert.strictEqual(result, 'DRT/PER/00015 was created');
+		assert.strictEqual(fillTemplate(template, { reference: 'DRT/PER/00015' }), 'DRT/PER/00015 was created');
 	});
 
-	it('should leave placeholder as-is when metadata key is missing', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.CASE_CREATED, {});
-		assert.strictEqual(result, '{reference} was created');
+	it('should leave the placeholder when the metadata key is missing, undefined or null', () => {
+		assert.strictEqual(fillTemplate(template, {}), '{reference} was created');
+		assert.strictEqual(fillTemplate(template, { reference: undefined }), '{reference} was created');
+		assert.strictEqual(fillTemplate(template, { reference: null }), '{reference} was created');
 	});
 
-	it('should leave placeholder as-is when metadata value is undefined', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.CASE_CREATED, { reference: undefined });
-		assert.strictEqual(result, '{reference} was created');
+	it('should convert numbers to strings', () => {
+		assert.strictEqual(fillTemplate(template, { reference: 42 }), '42 was created');
 	});
 
-	it('should leave placeholder as-is when metadata value is null', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.CASE_CREATED, { reference: null });
-		assert.strictEqual(result, '{reference} was created');
+	it('should leave the placeholder for values that are not primitives', () => {
+		assert.strictEqual(fillTemplate(template, { reference: { nested: true } }), '{reference} was created');
 	});
 
-	it('should convert numeric metadata values to strings', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.CASE_CREATED, { reference: 42 });
-		assert.strictEqual(result, '42 was created');
-	});
-
-	it('should ignore metadata keys that are not placeholders in the template', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.CASE_CREATED, { reference: 'DRT/PER/00015', extra: 'ignored' });
-		assert.strictEqual(result, 'DRT/PER/00015 was created');
+	it('should ignore metadata keys that are not in the template', () => {
+		assert.strictEqual(
+			fillTemplate(template, { reference: 'DRT/PER/00015', extra: 'ignored' }),
+			'DRT/PER/00015 was created'
+		);
 	});
 });
 
-describe('standard field templates', () => {
-	it('should resolve FIELD_SET template with fieldName and newValue', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.FIELD_SET, {
-			fieldName: 'Site area (ha)',
-			newValue: '12.5'
-		});
-		assert.strictEqual(result, 'Site area (ha) was set to 12.5');
+describe('isAuditAction', () => {
+	it('should accept shared actions for every data model', () => {
+		assert.ok(isAuditAction(CASE_DATA_MODEL.CROWN, AUDIT_ACTIONS.FIELD_UPDATED));
+		assert.ok(isAuditAction(CASE_DATA_MODEL.S62A, AUDIT_ACTIONS.FIELD_UPDATED));
 	});
 
-	it('should resolve FIELD_CLEARED template with fieldName and oldValue', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.FIELD_CLEARED, {
-			fieldName: 'LPA reference',
-			oldValue: 'ABC/123'
-		});
-		assert.strictEqual(result, 'LPA reference (ABC/123) was removed');
-	});
-
-	it('should resolve FIELD_UPDATED template with all placeholders', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.FIELD_UPDATED, {
-			fieldName: 'Hearing venue',
-			oldValue: 'Town Hall',
-			newValue: 'City Hall'
-		});
-		assert.strictEqual(result, 'Hearing venue was updated from "Town Hall" to "City Hall"');
+	it('should reject unknown actions', () => {
+		assert.ok(!isAuditAction(CASE_DATA_MODEL.CROWN, 'NOT_AN_ACTION'));
+		assert.ok(!isAuditAction(CASE_DATA_MODEL.S62A, 'NOT_AN_ACTION'));
 	});
 });
 
-describe('long-text field templates', () => {
-	it('should resolve LONG_FIELD_SET template with fieldName and newValue', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.LONG_FIELD_SET, {
-			fieldName: 'Development description',
-			newValue: 'New long text value'
-		});
-		assert.strictEqual(result, 'Development description was set');
+describe('resolveTemplate', () => {
+	it('should use the templates for the data model', () => {
+		assert.strictEqual(
+			resolveTemplate(CASE_DATA_MODEL.CROWN, AUDIT_ACTIONS.CASE_CREATED, { reference: 'DRT/PER/00015' }),
+			'DRT/PER/00015 was created'
+		);
 	});
 
-	it('should resolve LONG_FIELD_UPDATED template with fieldName', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.LONG_FIELD_UPDATED, {
-			fieldName: 'Development description'
-		});
-		assert.strictEqual(result, 'Development description was updated');
+	it('should resolve the standard field templates', () => {
+		assert.strictEqual(
+			resolveTemplate(CASE_DATA_MODEL.S62A, AUDIT_ACTIONS.FIELD_SET, {
+				fieldName: 'Specialism',
+				newValue: 'Tree preservation order'
+			}),
+			'Specialism was set to Tree preservation order'
+		);
+		assert.strictEqual(
+			resolveTemplate(CASE_DATA_MODEL.S62A, AUDIT_ACTIONS.FIELD_UPDATED, {
+				fieldName: 'Hearing venue',
+				oldValue: 'Town Hall',
+				newValue: 'City Hall'
+			}),
+			'Hearing venue was updated from "Town Hall" to "City Hall"'
+		);
+		assert.strictEqual(
+			resolveTemplate(CASE_DATA_MODEL.S62A, AUDIT_ACTIONS.FIELD_CLEARED, {
+				fieldName: 'LPA reference',
+				oldValue: 'ABC/123'
+			}),
+			'LPA reference (ABC/123) was removed'
+		);
 	});
 
-	it('should resolve LONG_FIELD_CLEARED template with fieldName', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.LONG_FIELD_CLEARED, {
-			fieldName: 'Development description'
-		});
-		assert.strictEqual(result, 'Development description was removed');
-	});
+	it('should resolve the long field templates', () => {
+		const metadata = { fieldName: 'Development description' };
 
-	it('should leave fieldName placeholder when metadata is missing for LONG_FIELD_UPDATED', () => {
-		const result = resolveTemplate(AUDIT_ACTIONS.LONG_FIELD_UPDATED);
-		assert.strictEqual(result, '{fieldName} was updated');
-	});
-});
-
-describe('AUDIT_ACTIONS', () => {
-	it('should have case action constants', () => {
-		assert.strictEqual(AUDIT_ACTIONS.CASE_CREATED, 'CASE_CREATED');
-		assert.strictEqual(AUDIT_ACTIONS.CASE_PUBLISHED, 'CASE_PUBLISHED');
-	});
-	it('should have long action constants', () => {
-		assert.strictEqual(AUDIT_ACTIONS.LONG_FIELD_SET, 'LONG_FIELD_SET');
-		assert.strictEqual(AUDIT_ACTIONS.LONG_FIELD_UPDATED, 'LONG_FIELD_UPDATED');
-		assert.strictEqual(AUDIT_ACTIONS.LONG_FIELD_CLEARED, 'LONG_FIELD_CLEARED');
-	});
-});
-
-describe('AUDIT_TEMPLATES', () => {
-	it('should include case templates', () => {
-		assert.strictEqual(AUDIT_TEMPLATES[AUDIT_ACTIONS.CASE_CREATED], '{reference} was created');
-		assert.strictEqual(AUDIT_TEMPLATES[AUDIT_ACTIONS.CASE_PUBLISHED], '{reference} was published');
-	});
-	it('should include long-text templates', () => {
-		assert.strictEqual(AUDIT_TEMPLATES[AUDIT_ACTIONS.LONG_FIELD_SET], '{fieldName} was set');
-		assert.strictEqual(AUDIT_TEMPLATES[AUDIT_ACTIONS.LONG_FIELD_UPDATED], '{fieldName} was updated');
-		assert.strictEqual(AUDIT_TEMPLATES[AUDIT_ACTIONS.LONG_FIELD_CLEARED], '{fieldName} was removed');
+		assert.strictEqual(
+			resolveTemplate(CASE_DATA_MODEL.CROWN, AUDIT_ACTIONS.LONG_FIELD_SET, metadata),
+			'Development description was set'
+		);
+		assert.strictEqual(
+			resolveTemplate(CASE_DATA_MODEL.CROWN, AUDIT_ACTIONS.LONG_FIELD_UPDATED, metadata),
+			'Development description was updated'
+		);
+		assert.strictEqual(
+			resolveTemplate(CASE_DATA_MODEL.CROWN, AUDIT_ACTIONS.LONG_FIELD_CLEARED, metadata),
+			'Development description was removed'
+		);
 	});
 });
 
 describe('resolveAuditAction', () => {
-	describe('standard fields (isLongField false)', () => {
-		it('should return FIELD_CLEARED when newValue is "-"', () => {
-			assert.strictEqual(resolveAuditAction('Some value', '-'), AUDIT_ACTIONS.FIELD_CLEARED);
-		});
-
-		it('should return FIELD_SET when oldValue is "-"', () => {
-			assert.strictEqual(resolveAuditAction('-', 'Some value'), AUDIT_ACTIONS.FIELD_SET);
-		});
-
-		it('should return FIELD_UPDATED when both values exist', () => {
-			assert.strictEqual(resolveAuditAction('Old value', 'New value', false), AUDIT_ACTIONS.FIELD_UPDATED);
-		});
-
-		it('should default isLongField to false', () => {
-			assert.strictEqual(resolveAuditAction('Old value', 'New value'), AUDIT_ACTIONS.FIELD_UPDATED);
-		});
+	it('should pick set, updated or cleared', () => {
+		assert.strictEqual(resolveAuditAction('-', 'New'), AUDIT_ACTIONS.FIELD_SET);
+		assert.strictEqual(resolveAuditAction('Old', 'New'), AUDIT_ACTIONS.FIELD_UPDATED);
+		assert.strictEqual(resolveAuditAction('Old', '-'), AUDIT_ACTIONS.FIELD_CLEARED);
 	});
 
-	describe('long-text fields (isLongField true)', () => {
-		it('should return LONG_FIELD_CLEARED when newValue is "-"', () => {
-			assert.strictEqual(resolveAuditAction('Some text', '-', true), AUDIT_ACTIONS.LONG_FIELD_CLEARED);
-		});
+	it('should pick the long field actions for long fields', () => {
+		assert.strictEqual(resolveAuditAction('-', 'New', true), AUDIT_ACTIONS.LONG_FIELD_SET);
+		assert.strictEqual(resolveAuditAction('Old', 'New', true), AUDIT_ACTIONS.LONG_FIELD_UPDATED);
+		assert.strictEqual(resolveAuditAction('Old', '-', true), AUDIT_ACTIONS.LONG_FIELD_CLEARED);
+	});
 
-		it('should return LONG_FIELD_SET when oldValue is "-"', () => {
-			assert.strictEqual(resolveAuditAction('-', 'Some text', true), AUDIT_ACTIONS.LONG_FIELD_SET);
-		});
+	it('should prefer cleared when both values are empty', () => {
+		assert.strictEqual(resolveAuditAction('-', '-', true), AUDIT_ACTIONS.LONG_FIELD_CLEARED);
+	});
+});
 
-		it('should return LONG_FIELD_UPDATED when both values exist', () => {
-			assert.strictEqual(resolveAuditAction('Old text', 'New text', true), AUDIT_ACTIONS.LONG_FIELD_UPDATED);
-		});
-
-		it('should prefer LONG_FIELD_CLEARED when both values are "-"', () => {
-			assert.strictEqual(resolveAuditAction('-', '-', true), AUDIT_ACTIONS.LONG_FIELD_CLEARED);
-		});
+describe('LONG_FIELD_ACTIONS', () => {
+	it('should contain only the long field actions', () => {
+		assert.deepStrictEqual(
+			[...LONG_FIELD_ACTIONS].sort(),
+			[AUDIT_ACTIONS.LONG_FIELD_CLEARED, AUDIT_ACTIONS.LONG_FIELD_SET, AUDIT_ACTIONS.LONG_FIELD_UPDATED].sort()
+		);
 	});
 });

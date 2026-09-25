@@ -1,18 +1,21 @@
-import { formatAddress, formatBoolean, formatValue, formatDateTime, formatYesNo } from '../../util/audit-formatters.ts';
+import { formatAddress, formatValue, formatDateTime } from '../../util/audit-formatters.ts';
 import { camelCaseToSentenceCase } from '../../util/string.ts';
-import {
-	APPLICATION_TYPES,
-	APPLICATION_STATUS,
-	APPLICATION_STAGE,
-	APPLICATION_PROCEDURE,
-	APPLICATION_DECISION_OUTCOME,
-	CATEGORIES
-} from '@pins/crowndev-database/src/seed/data-static.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
-import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
+import type { EntraGroupMembers } from '../../util/entra-groups.ts';
 
-interface ResolverContext {
+/**
+ * Generic field resolver factories.
+ *
+ * Nothing in this file is specific to a data model. Each data model builds
+ * its own registry from these factories, in its own app directory:
+ *   - Crown: apps/manage/src/app/views/cases/audit/field-resolvers.ts
+ *   - S62A:  apps/manage/src/app/views/s62a/cases/audit/field-resolvers.ts
+ *
+ * The registry is then passed to `resolveFieldValues` (see `index.ts`).
+ */
+
+export interface ResolverContext {
 	userDisplayNameMap?: Map<string, string>;
 	environmentConfig?: string;
 	environmentName?: Record<string, string>;
@@ -20,9 +23,23 @@ interface ResolverContext {
 }
 
 /**
+ * A field resolver takes the previous case row and the new form answer
+ * and returns human-readable old/new values for the audit trail.
+ */
+export interface FieldResolver {
+	resolve(
+		previousCase: Record<string, unknown>,
+		newAnswer: unknown,
+		context?: ResolverContext
+	): { oldValue: string; newValue: string };
+}
+
+// ── Lookup map builders ──────────────────────────────────────────────────
+
+/**
  * Creates a lookup map from id to displayName for reference data arrays.
  */
-function createDisplayNameMap(
+export function createDisplayNameMap(
 	items: ReadonlyArray<{ readonly id: string; readonly displayName: string }>
 ): Map<string, string> {
 	return new Map(items.map((item) => [item.id, item.displayName]));
@@ -31,7 +48,7 @@ function createDisplayNameMap(
 /**
  * Category type with optional parent connection (matches Prisma seed data structure).
  */
-interface CategoryWithParent {
+export interface CategoryWithParent {
 	readonly id: string;
 	readonly displayName: string;
 	readonly ParentCategory?: { readonly connect?: { readonly id?: string } };
@@ -42,7 +59,7 @@ interface CategoryWithParent {
  * For child categories, formats as "Parent name > Child name".
  * For parent categories, returns just the display name.
  */
-function createCategoryDisplayNameMap(categories: ReadonlyArray<CategoryWithParent>): Map<string, string> {
+export function createCategoryDisplayNameMap(categories: ReadonlyArray<CategoryWithParent>): Map<string, string> {
 	// First, build a simple id → displayName map for parent lookups
 	const simpleMap = new Map(categories.map((cat) => [cat.id, cat.displayName]));
 
@@ -63,7 +80,7 @@ function createCategoryDisplayNameMap(categories: ReadonlyArray<CategoryWithPare
  * Creates a lookup map from id to name for LPA data.
  * Handles both dev and prod environments.
  */
-function createLpaDisplayNameMap(
+export function createLpaDisplayNameMap(
 	environmentConfig: string,
 	environmentName: Record<string, string>
 ): Map<string, string> {
@@ -81,39 +98,24 @@ function createLpaDisplayNameMap(
 	);
 }
 
-// Lookup maps for reference data
-const APPLICATION_TYPE_DISPLAY_NAMES = createDisplayNameMap(APPLICATION_TYPES);
-const APPLICATION_STATUS_DISPLAY_NAMES = createDisplayNameMap(APPLICATION_STATUS);
-const APPLICATION_STAGE_DISPLAY_NAMES = createDisplayNameMap(APPLICATION_STAGE);
-const APPLICATION_PROCEDURE_DISPLAY_NAMES = createDisplayNameMap(APPLICATION_PROCEDURE);
-const APPLICATION_DECISION_OUTCOME_DISPLAY_NAMES = createDisplayNameMap(APPLICATION_DECISION_OUTCOME);
-const CATEGORY_DISPLAY_NAMES = createCategoryDisplayNameMap(CATEGORIES);
+// ── Display names ────────────────────────────────────────────────────────
 
 /**
  * Returns a human-readable display name for a field.
- * Uses the FIELD_DISPLAY_NAMES lookup, created for each service and inputted into the 'fields' input, falling back to sentence case conversion.
+ * Uses the display name lookup created for each service and passed in as `fields`,
+ * falling back to sentence case conversion.
  */
 export function getFieldDisplayName(fieldName: string, fields: Record<string, string>): string {
 	return fields[fieldName] ?? camelCaseToSentenceCase(fieldName);
 }
 
-/**
- * A field resolver takes the previous case row and the new form answer
- * and returns human-readable old/new values for the audit trail.
- */
-interface FieldResolver {
-	resolve(
-		previousCase: Record<string, unknown>,
-		newAnswer: unknown,
-		context?: ResolverContext
-	): { oldValue: string; newValue: string };
-}
+// ── Resolver factories ───────────────────────────────────────────────────
 
 /**
  * Default resolver for simple scalar fields where the form field name
  * matches the DB column name (e.g. externalReference, name, location).
  */
-function defaultResolver(fieldName: string): FieldResolver {
+export function defaultResolver(fieldName: string): FieldResolver {
 	return {
 		resolve(previousCase, newAnswer) {
 			return {
@@ -125,15 +127,32 @@ function defaultResolver(fieldName: string): FieldResolver {
 }
 
 /**
- * Resolver for boolean fields.
- * Previous values from the DB view model are 'yes'/'no' strings; new values from the save model are true booleans.
+ * Normalises a yes/no value to 'Yes', 'No' or '-'.
+ *
+ * Accepts both shapes we see in practice: real booleans, and the 'yes'/'no'
+ * strings used by the view model and by BOOLEAN form questions.
  */
-function booleanResolver(fieldName: string): FieldResolver {
+function toYesNo(value: unknown): string {
+	if (value === true) return 'Yes';
+	if (value === false) return 'No';
+	if (typeof value === 'string') {
+		const normalised = value.trim().toLowerCase();
+		if (normalised === 'yes') return 'Yes';
+		if (normalised === 'no') return 'No';
+	}
+	return '-';
+}
+
+/**
+ * Resolver for boolean fields.
+ * Both old and new values may be booleans or 'yes'/'no' strings.
+ */
+export function booleanResolver(fieldName: string): FieldResolver {
 	return {
 		resolve(previousCase, newAnswer) {
 			return {
-				oldValue: formatYesNo(previousCase[fieldName] as string | null | undefined),
-				newValue: formatBoolean(newAnswer as boolean | null | undefined)
+				oldValue: toYesNo(previousCase[fieldName]),
+				newValue: toYesNo(newAnswer)
 			};
 		}
 	};
@@ -143,7 +162,7 @@ function booleanResolver(fieldName: string): FieldResolver {
  * Creates a resolver for ID fields that map to display names via a lookup table.
  * Falls back to '[Unknown value]' if no display name is found.
  */
-function createLookupResolver(
+export function createLookupResolver(
 	fieldName: string,
 	displayNameMapOrFactory: Map<string, string> | ((context?: ResolverContext) => Map<string, string>)
 ): FieldResolver {
@@ -163,23 +182,50 @@ function createLookupResolver(
 	};
 }
 
-function monetaryResolver(fieldName: string): FieldResolver {
+/**
+ * Lookup resolver for local planning authority ID fields.
+ * The LPA list depends on the environment, so it is built from the context.
+ */
+export function lpaLookupResolver(fieldName: string): FieldResolver {
+	return createLookupResolver(fieldName, (ctx) =>
+		createLpaDisplayNameMap(ctx?.environmentConfig ?? '', ctx?.environmentName ?? {})
+	);
+}
+
+/**
+ * Formats a monetary value with '£' and 2 decimal places.
+ * Accepts numbers, numeric strings (as submitted by forms) and Prisma Decimals.
+ * Returns '-' for empty values.
+ */
+function toMoney(value: unknown): string {
+	if (value === null || value === undefined || value === '') return '-';
+
+	const amount = typeof value === 'number' ? value : Number(value);
+	if (Number.isFinite(amount)) return `£${amount.toFixed(2)}`;
+
+	// Not a number: show text as it was entered, and nothing for anything else
+	return typeof value === 'string' ? value : '-';
+}
+
+/**
+ * Resolver for monetary fields. Values are formatted with '£' as a prefix.
+ */
+export function monetaryResolver(fieldName: string): FieldResolver {
 	return {
 		resolve(previousCase, newAnswer) {
 			return {
-				oldValue: previousCase[fieldName] ? `£${(previousCase[fieldName] as number).toFixed(2)}` : '-',
-				newValue: newAnswer ? `£${(newAnswer as number).toFixed(2)}` : '-'
+				oldValue: toMoney(previousCase[fieldName]),
+				newValue: toMoney(newAnswer)
 			};
 		}
 	};
 }
 
 /**
- * Site address — the form submits an address object, the DB stores it
+ * Address fields — the form submits an address object, the DB stores it
  * as a relation. Formats both as a comma-separated address string.
  */
-
-function addressResolver(previousCaseFieldName: string): FieldResolver {
+export function addressResolver(previousCaseFieldName: string): FieldResolver {
 	return {
 		resolve(previousCase, newAnswer) {
 			const oldAddress = previousCase[previousCaseFieldName] as Record<string, unknown> | null;
@@ -194,9 +240,9 @@ function addressResolver(previousCaseFieldName: string): FieldResolver {
 }
 
 /**
- * Date with start and end date in question
+ * Date period fields with a start and end date.
  */
-function dateRangeResolver(fieldName: string): FieldResolver {
+export function dateRangeResolver(fieldName: string): FieldResolver {
 	return {
 		resolve(previousCase, newAnswer) {
 			const oldPeriod = previousCase[fieldName] as {
@@ -206,7 +252,6 @@ function dateRangeResolver(fieldName: string): FieldResolver {
 			const newPeriod = newAnswer as { start: string | null; end: string | null } | null;
 
 			const oldDisplay = oldPeriod ? `${formatValue(oldPeriod.start)} - ${formatValue(oldPeriod.end)}` : '-';
-
 			const newDisplay = newPeriod ? `${formatValue(newPeriod.start)} - ${formatValue(newPeriod.end)}` : '-';
 
 			return { oldValue: oldDisplay, newValue: newDisplay };
@@ -218,7 +263,7 @@ function dateRangeResolver(fieldName: string): FieldResolver {
  * Date-time field resolver (e.g. site visit).
  * Uses audit date-time formatter so time is included when present.
  */
-function dateAndTimeResolver(fieldName: string): FieldResolver {
+export function dateAndTimeResolver(fieldName: string): FieldResolver {
 	return {
 		resolve(previousCase, newAnswer) {
 			const oldValue = formatDateTime(previousCase[fieldName] as Date | string | null | undefined);
@@ -231,9 +276,9 @@ function dateAndTimeResolver(fieldName: string): FieldResolver {
 /**
  * Resolver for Entra user ID fields (inspectors, case officers, planning officers).
  * Uses a pre-built userDisplayNameMap from context.
- * Falls back to '-' if the user is not found.
+ * Falls back to the raw ID if the user is not found, or '-' if empty.
  */
-function entraUserResolver(fieldName: string): FieldResolver {
+export function entraUserResolver(fieldName: string): FieldResolver {
 	return {
 		resolve(previousCase, newAnswer, context) {
 			const nameMap = context?.userDisplayNameMap;
@@ -246,126 +291,4 @@ function entraUserResolver(fieldName: string): FieldResolver {
 			};
 		}
 	};
-}
-
-/**
- * Registry of field-specific resolvers.
- *
- * Add an entry here whenever a field needs special handling — e.g. the
- * form value is a composite ID, the DB column has a different name, or
- * the value needs to be looked up from a reference table.
- *
- * Fields not in this map fall through to the default resolver, which
- * simply stringifies the raw values.
- */
-const FIELD_RESOLVERS: Record<string, FieldResolver> = {
-	// ── Reference table ID fields ────────────────────────────────────────
-	// These fields store IDs that map to display names in static reference data.
-
-	/** Application type (e.g. 'planning-permission' → 'Planning permission') */
-	typeId: createLookupResolver('typeId', APPLICATION_TYPE_DISPLAY_NAMES),
-
-	/** Application status (e.g. 'new' → 'New') */
-	statusId: createLookupResolver('statusId', APPLICATION_STATUS_DISPLAY_NAMES),
-
-	/** Application stage (e.g. 'acceptance' → 'Accepted') */
-	stageId: createLookupResolver('stageId', APPLICATION_STAGE_DISPLAY_NAMES),
-
-	/** Procedure type (e.g. 'inquiry' → 'Inquiry') */
-	procedureId: createLookupResolver('procedureId', APPLICATION_PROCEDURE_DISPLAY_NAMES),
-
-	/** Decision outcome (e.g. 'approved' → 'Approved') */
-	decisionOutcomeId: createLookupResolver('decisionOutcomeId', APPLICATION_DECISION_OUTCOME_DISPLAY_NAMES),
-
-	/** Category/sub-category (e.g. 'major-minerals' → 'Major Development > Minerals') */
-	subCategoryId: createLookupResolver('subCategoryId', CATEGORY_DISPLAY_NAMES),
-
-	/** Local planning authority */
-	lpaId: createLookupResolver('lpaId', (ctx) =>
-		createLpaDisplayNameMap(ctx?.environmentConfig ?? '', ctx?.environmentName ?? {})
-	),
-
-	/** Secondary local planning authority */
-	secondaryLpaId: createLookupResolver('secondaryLpaId', (ctx) =>
-		createLpaDisplayNameMap(ctx?.environmentConfig ?? '', ctx?.environmentName ?? {})
-	),
-
-	// ── Boolean fields ────────────────────────────────────────────────────
-	// Previous values are 'yes'/'no' strings from the view model; new values are true booleans from the save model.
-
-	hasSecondaryLpa: booleanResolver('hasSecondaryLpa'),
-	containsDistressingContent: booleanResolver('containsDistressingContent'),
-	hasAgent: booleanResolver('hasAgent'),
-	nationallyImportant: booleanResolver('nationallyImportant'),
-	isGreenBelt: booleanResolver('isGreenBelt'),
-	siteIsVisibleFromPublicLand: booleanResolver('siteIsVisibleFromPublicLand'),
-	environmentalImpactAssessment: booleanResolver('environmentalImpactAssessment'),
-	developmentPlan: booleanResolver('developmentPlan'),
-	rightOfWay: booleanResolver('rightOfWay'),
-	eiaScreening: booleanResolver('eiaScreening'),
-	eiaScreeningOutcome: booleanResolver('eiaScreeningOutcome'),
-	hasApplicationFee: booleanResolver('hasApplicationFee'),
-	eligibleForFeeRefund: booleanResolver('eligibleForFeeRefund'),
-	cilLiable: booleanResolver('cilLiable'),
-	bngExempt: booleanResolver('bngExempt'),
-	hasCostsApplications: booleanResolver('hasCostsApplications'),
-	applicationReceivedDateEmailSent: booleanResolver('applicationReceivedDateEmailSent'),
-	lpaQuestionnaireSpecialEmailSent: booleanResolver('lpaQuestionnaireSpecialEmailSent'),
-	lpaQuestionnaireReceivedEmailSent: booleanResolver('lpaQuestionnaireReceivedEmailSent'),
-	notNationallyImportantEmailSent: booleanResolver('notNationallyImportantEmailSent'),
-
-	// ── Long string fields ────────────────────────────────────────────────
-	// These fields store long text fields such as 250 characters plus
-
-	description: defaultResolver('description'),
-	costsApplicationsComment: defaultResolver('costsApplicationsComment'),
-
-	// ── Address fields ─────────────────────────────────────────────────────
-
-	siteAddress: addressResolver('siteAddress'),
-	agentOrganisationAddress: addressResolver('agentOrganisationAddress'),
-
-	// ── Monetary fields ────────────────────────────────────────────────────────
-	// Values need to be formatted with currency '£' as a prefix
-
-	/** Community Infrastructure Levy (CIL) amount */
-	cilAmount: monetaryResolver('cilAmount'),
-	/** Application fee amount */
-	applicationFee: monetaryResolver('applicationFee'),
-	/** Application fee refund amount */
-	applicationFeeRefundAmount: monetaryResolver('applicationFeeRefundAmount'),
-
-	// ── Entra fields ─────────────────────────────────────────────────────
-
-	inspector1Id: entraUserResolver('inspector1Id'),
-	inspector2Id: entraUserResolver('inspector2Id'),
-	inspector3Id: entraUserResolver('inspector3Id'),
-	assessorInspectorId: entraUserResolver('assessorInspectorId'),
-	caseOfficerId: entraUserResolver('caseOfficerId'),
-	planningOfficerId: entraUserResolver('planningOfficerId'),
-
-	// ── Complex date fields ────────────────────────────────────────────────────
-	// Date-only fields are handled by the default resolver.
-	// This section covers date questions that require extra handling
-
-	// date fields with a range e.g. start and end date
-	representationsPeriod: dateRangeResolver('representationsPeriod'),
-	// date fields that also include a time component
-	siteVisitDate: dateAndTimeResolver('siteVisitDate')
-};
-
-/**
- * Resolves human-readable old and new values for a given field.
- *
- * Looks up a field-specific resolver first; falls back to the default
- * scalar resolver if none is registered.
- */
-export function resolveFieldValues(
-	fieldName: string,
-	previousCase: Record<string, unknown>,
-	newAnswer: unknown,
-	context?: ResolverContext
-): { oldValue: string; newValue: string } {
-	const resolver = FIELD_RESOLVERS[fieldName] ?? defaultResolver(fieldName);
-	return resolver.resolve(previousCase, newAnswer, context);
 }
