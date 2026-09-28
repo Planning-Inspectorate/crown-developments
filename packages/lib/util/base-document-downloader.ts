@@ -64,10 +64,30 @@ export abstract class BaseDocumentDownloader<TDocument extends BaseDocumentInfo>
 
 		if (documents.length === 1) {
 			await this.streamDocumentToResponse(res, documents[0], isPreview);
+
+			// Viewing a file in the browser isn't a download
+			if (!isPreview) {
+				await this.onDownloaded?.(req, documents);
+			}
 		} else {
-			await this.streamZipToResponse(res, documents);
+			const zipFileName = await this.streamZipToResponse(res, documents);
+			await this.onDownloaded?.(req, documents, zipFileName);
 		}
 	}
+
+	/**
+	 * Optional hook, called once documents have been sent to the user as a
+	 * download (not a preview). `zipFileName` is set when several documents
+	 * were zipped.
+	 *
+	 * Implement it in a subclass to act on downloads, e.g. to record them in
+	 * the case history. It must not throw, as the response has already been sent.
+	 */
+	protected onDownloaded?(
+		req: Request<ParamsDictionary, unknown, DownloadRequestBody>,
+		documents: TDocument[],
+		zipFileName?: string
+	): Promise<void>;
 
 	/**
 	 * Grabs the data like name, size etc. from the documents needed

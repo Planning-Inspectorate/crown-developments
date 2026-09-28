@@ -89,6 +89,22 @@ describe('Upload Controllers', () => {
 			assert.strictEqual(res.redirect.mock.calls.length, 1);
 			assert.strictEqual(res.redirect.mock.calls[0].arguments[0], '/cases/case-1/folders/folder-1');
 		});
+
+		it('still redirects to the folder if recording the upload fails', async () => {
+			const { service, documentUploader, req, res, mocks } = setupControllerMocks();
+
+			mocks.mockCommitDrafts.mock.mockImplementation(async () => ({ createdLength: 1, fileNames: ['test.pdf'] }));
+			service.audit = {
+				recordMany: mock.fn(async () => {
+					throw new Error('Audit unavailable');
+				})
+			};
+
+			const handler = createDocumentsController(service, documentUploader);
+			await handler(req, res);
+
+			assert.strictEqual(res.redirect.mock.calls[0].arguments[0], '/cases/case-1/folders/folder-1');
+		});
 	});
 
 	describe('deleteDocumentController', () => {

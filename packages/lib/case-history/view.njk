@@ -50,6 +50,20 @@
 									{% endcall %}
 								{% endfor %}
 							{% endif %}
+
+							{% if row.fileList %}
+								{% set fileListHtml %}
+									<ul class="govuk-list">
+										{% for fileName in row.fileList %}
+											<li>{{ fileName }}</li>
+										{% endfor %}
+									</ul>
+								{% endset %}
+								{{ govukDetails({
+									summaryText: "Show files",
+									html: fileListHtml
+								}) }}
+							{% endif %}
 						{% endset %}
 
 						{% set tableRows = (tableRows.push([
