@@ -32,19 +32,21 @@
 				href: foldersUrl,
 				classes: "govuk-button--secondary"
 			}) }}
-			{% if casePublished %}
-				{{ govukButton({
-					text: "Unpublish Application",
-					href: unpublishUrl,
-					classes: "govuk-button--warning"
-				}) }}
+			{% if applicationPhase == "application" %}
+				{% if casePublished %}
+					{{ govukButton({
+						text: "Unpublish Application",
+						href: unpublishUrl,
+						classes: "govuk-button--warning"
+					}) }}
 
-			{% else %}
-				{{ govukButton({
-					text: "Publish Application",
-					href: publishUrl,
-					classes: "govuk-button--primary"
-				}) }}
+				{% else %}
+					{{ govukButton({
+						text: "Publish Application",
+						href: publishUrl,
+						classes: "govuk-button--primary"
+					}) }}
+				{% endif %}
 			{% endif %}
 		</div>
 	</div>

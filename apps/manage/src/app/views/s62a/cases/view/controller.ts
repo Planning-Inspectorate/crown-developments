@@ -75,6 +75,7 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 			caseId: id,
 			reference,
 			casePublished,
+			applicationPhase,
 			baseUrl,
 			backLinkUrl: '/s62a/cases',
 			backLinkText: 'Back to all cases',
