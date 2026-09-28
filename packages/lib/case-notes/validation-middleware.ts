@@ -23,7 +23,7 @@ export function buildValidateCaseNotesMiddleware(dataModel: CaseDataModel): Hand
 			if (dataModel === 'crown') {
 				return res.redirect(`/cases/${id}`);
 			} else if (dataModel === 's62a') {
-				return res.redirect(`/s62a/cases/${id}/case-notes`);
+				return res.redirect(`/s62a/cases/${id}/case-notes/add-case-note`);
 			}
 		}
 

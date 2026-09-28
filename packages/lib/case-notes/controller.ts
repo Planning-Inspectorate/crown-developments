@@ -22,6 +22,8 @@ import { createPaginationParams } from '@pins/crowndev-lib/views/pagination/pagi
 import { isValidRedirectUri } from '../util/uri.ts';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import path from 'node:path';
+import { isValidUuidFormat } from '../util/uuid.ts';
+import type { Response, Request, NextFunction } from 'express';
 
 /** Notes as queried for mapping — no relations; author is a plain Entra ID string. */
 type NoteForMapping = Pick<Prisma.ApplicationNoteGetPayload<object>, 'comment' | 'createdAt' | 'userId'>;
@@ -377,13 +379,20 @@ export function buildViewAddCaseNotes(service: CaseNotesService, dataModel: Case
 		const parentPath = path.posix.dirname(currentPath);
 		const cleanCurrentUrl = isValidRedirectUri(parentPath) ? parentPath : '/';
 
+		const sessionCaseData = req.session?.cases?.[id];
+		const errorSummary = sessionCaseData?.updateErrors;
+		if (sessionCaseData?.updateErrors) {
+			delete sessionCaseData.updateErrors;
+		}
+
 		return res.render(
 			'add-case.njk',
 			{
-				backLinkUrl: `${getBaseUrl(req.baseUrl)}${id}`,
+				backLinkUrl: cleanCurrentUrl,
 				backLinkText: 'Back',
 				currentUrl: cleanCurrentUrl,
 				displayRef: true,
+				errorSummary,
 				...notes
 			},
 			(err, html) => {
@@ -395,4 +404,16 @@ export function buildViewAddCaseNotes(service: CaseNotesService, dataModel: Case
 			}
 		);
 	};
+}
+
+/**
+ * Validate the format of the id parameter
+ */
+export function validateIdFormat(req: Request, res: Response, next: NextFunction) {
+	const id = getStringParam(req.params, 'id');
+
+	if (!isValidUuidFormat(id)) {
+		return notFoundHandler(req, res);
+	}
+	next();
 }
