@@ -1,6 +1,9 @@
 import { describe, it, mock, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { DocumentPublisher, type PublishRequestBody } from './document-publisher.ts';
+import {
+	DocumentCategorisationHandler,
+	type CategorisationHandlerRequestBody
+} from './document-categorisation-handler.ts';
 import type { ManageService } from '#service';
 import type { Request, Response } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
@@ -12,17 +15,17 @@ type MockResponse = {
 };
 
 type MockRequest = {
-	body: Partial<PublishRequestBody>;
+	body: Partial<CategorisationHandlerRequestBody>;
 	params: ParamsDictionary;
 	originalUrl: string;
 	session: Record<string, any>;
 };
 
-describe('DocumentPublisher', () => {
+describe('DocumentCategorisationHandler', () => {
 	let mockService: ManageService;
 	let mockReq: MockRequest;
 	let mockRes: MockResponse;
-	let publisher: DocumentPublisher;
+	let publisher: DocumentCategorisationHandler;
 
 	beforeEach(() => {
 		mockService = {
@@ -53,7 +56,7 @@ describe('DocumentPublisher', () => {
 			headersSent: false
 		};
 
-		publisher = new DocumentPublisher(mockService);
+		publisher = new DocumentCategorisationHandler(mockService, 'publish');
 	});
 
 	describe('handleSelection (POST)', () => {
@@ -61,7 +64,7 @@ describe('DocumentPublisher', () => {
 			mockReq.body.selectedFiles = [];
 
 			await publisher.handleSelection(
-				mockReq as unknown as Request<ParamsDictionary, unknown, PublishRequestBody>,
+				mockReq as unknown as Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
 				mockRes as unknown as Response
 			);
 
@@ -75,7 +78,7 @@ describe('DocumentPublisher', () => {
 			mockReq.body.returnUrl = '/s62a/cases/case-1/custom-return';
 
 			await publisher.handleSelection(
-				mockReq as unknown as Request<ParamsDictionary, unknown, PublishRequestBody>,
+				mockReq as unknown as Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
 				mockRes as unknown as Response
 			);
 
@@ -91,7 +94,7 @@ describe('DocumentPublisher', () => {
 			]);
 
 			await publisher.handleSelection(
-				mockReq as unknown as Request<ParamsDictionary, unknown, PublishRequestBody>,
+				mockReq as unknown as Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
 				mockRes as unknown as Response
 			);
 
@@ -103,7 +106,7 @@ describe('DocumentPublisher', () => {
 			mockReq.body.selectedFiles = ['doc-1', 'doc-2'];
 
 			await publisher.handleSelection(
-				mockReq as unknown as Request<ParamsDictionary, unknown, PublishRequestBody>,
+				mockReq as unknown as Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
 				mockRes as unknown as Response
 			);
 
@@ -116,7 +119,7 @@ describe('DocumentPublisher', () => {
 			mockReq.body.selectedFiles = 'doc-1';
 
 			await publisher.handleSelection(
-				mockReq as unknown as Request<ParamsDictionary, unknown, PublishRequestBody>,
+				mockReq as unknown as Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
 				mockRes as unknown as Response
 			);
 
@@ -130,7 +133,7 @@ describe('DocumentPublisher', () => {
 			mockReq.originalUrl = 'https://external-malicious-site.com/publish';
 
 			await publisher.handleSelection(
-				mockReq as unknown as Request<ParamsDictionary, unknown, PublishRequestBody>,
+				mockReq as unknown as Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
 				mockRes as unknown as Response
 			);
 
@@ -170,7 +173,7 @@ describe('DocumentPublisher', () => {
 			mockReq.session.publishFileIds = [];
 
 			await publisher.renderCategorisation(
-				mockReq as unknown as Request<ParamsDictionary, unknown, PublishRequestBody>,
+				mockReq as unknown as Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
 				mockRes as unknown as Response,
 				[] as any
 			);
@@ -183,7 +186,7 @@ describe('DocumentPublisher', () => {
 			mockReq.session.publishFileIds = ['doc-1', 'doc-2'];
 
 			await publisher.renderCategorisation(
-				mockReq as unknown as Request<ParamsDictionary, unknown, PublishRequestBody>,
+				mockReq as unknown as Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
 				mockRes as unknown as Response,
 				[] as any
 			);
@@ -191,7 +194,7 @@ describe('DocumentPublisher', () => {
 			assert.strictEqual(mockRes.render.mock.calls.length, 1);
 			const view = mockRes.render.mock.calls[0].arguments[0];
 			const context = mockRes.render.mock.calls[0].arguments[1] as Record<string, any>;
-			assert.strictEqual(view, 'views/s62a/cases/view/folders/folder/publish/categorisation.njk');
+			assert.strictEqual(view, 'views/s62a/cases/view/folders/util/categorisation.njk');
 			assert.strictEqual(context.reference, 'ref-1');
 			assert.strictEqual(context.documents.length, 2);
 		});
@@ -202,7 +205,7 @@ describe('DocumentPublisher', () => {
 			mockReq.session.publishFileIds = [];
 
 			await publisher.executePublish(
-				mockReq as unknown as Request<ParamsDictionary, unknown, PublishRequestBody>,
+				mockReq as unknown as Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
 				mockRes as unknown as Response,
 				[] as any
 			);
@@ -216,7 +219,7 @@ describe('DocumentPublisher', () => {
 			mockReq.body.documentCategory = undefined;
 
 			await publisher.executePublish(
-				mockReq as unknown as Request<ParamsDictionary, unknown, PublishRequestBody>,
+				mockReq as unknown as Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
 				mockRes as unknown as Response,
 				[] as any
 			);
@@ -235,7 +238,7 @@ describe('DocumentPublisher', () => {
 			]);
 
 			await publisher.executePublish(
-				mockReq as unknown as Request<ParamsDictionary, unknown, PublishRequestBody>,
+				mockReq as unknown as Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
 				mockRes as unknown as Response,
 				[] as any
 			);
@@ -253,7 +256,7 @@ describe('DocumentPublisher', () => {
 			mockReq.body.documentCategory = 'cat-1';
 
 			await publisher.executePublish(
-				mockReq as unknown as Request<ParamsDictionary, unknown, PublishRequestBody>,
+				mockReq as unknown as Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
 				mockRes as unknown as Response,
 				[] as any
 			);

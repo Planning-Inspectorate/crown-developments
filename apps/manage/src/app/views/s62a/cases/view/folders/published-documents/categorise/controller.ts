@@ -6,26 +6,26 @@ import type {
 } from '../../util/document-categorisation-handler.ts';
 import { DOCUMENT_CATEGORIES } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 
-export function buildHandlePublishSelection(publisher: DocumentCategorisationHandler) {
+export function buildHandleCategoriseSelection(categoriser: DocumentCategorisationHandler) {
 	return async (req: Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>, res: Response) => {
-		await publisher.handleSelection(req, res);
+		await categoriser.handleSelection(req, res);
 	};
 }
 
-export function buildHandleSinglePublishSelection(publisher: DocumentCategorisationHandler) {
+export function buildHandleSingleCategoriseSelection(categoriser: DocumentCategorisationHandler) {
 	return (req: Request, res: Response) => {
-		publisher.handleSingleSelection(req, res);
+		categoriser.handleSingleSelection(req, res);
 	};
 }
 
-export function buildPublishFileView(publisher: DocumentCategorisationHandler) {
+export function buildCategoriseFileView(categoriser: DocumentCategorisationHandler) {
 	return async (req: Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>, res: Response) => {
-		await publisher.renderCategorisation(req, res, DOCUMENT_CATEGORIES);
+		await categoriser.renderCategorisation(req, res, DOCUMENT_CATEGORIES);
 	};
 }
 
-export function buildPublishFileController(publisher: DocumentCategorisationHandler) {
+export function buildCategoriseFileController(categoriser: DocumentCategorisationHandler) {
 	return async (req: Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>, res: Response) => {
-		await publisher.executePublish(req, res, DOCUMENT_CATEGORIES);
+		await categoriser.executeRecategorise(req, res, DOCUMENT_CATEGORIES);
 	};
 }
