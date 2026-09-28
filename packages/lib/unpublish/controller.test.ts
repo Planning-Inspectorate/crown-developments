@@ -183,5 +183,75 @@ describe('unpublish case', () => {
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], '/s62a/cases/case-1/overview?success=unpublish');
 		});
+
+		describe('onUnpublished', () => {
+			it('should run onUnpublished with the request and case id after a successful unpublish', async () => {
+				const mockReq = {
+					params: { id: 'case-1' },
+					originalUrl: '/s62a/cases/case-1/overview/unpublish',
+					session: {}
+				};
+				const mockRes = { redirect: mock.fn() };
+				const mockCaseCheck = mock.fn(() => Promise.resolve({ id: 'case-1', reference: 'case-1-ref' }));
+				const mockUnpublishFn = mock.fn(() => Promise.resolve());
+				const mockOnUnpublished = mock.fn(() => Promise.resolve());
+
+				const unpublishCase = buildSubmitUnpublishCase(
+					{ db: {}, logger: mockLogger() },
+					mockUnpublishFn,
+					mockCaseCheck,
+					mockOnUnpublished
+				);
+				await unpublishCase(mockReq, mockRes);
+
+				assert.strictEqual(mockOnUnpublished.mock.callCount(), 1);
+				assert.deepStrictEqual(mockOnUnpublished.mock.calls[0].arguments, [mockReq, 'case-1']);
+				assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+			});
+
+			it('should not run onUnpublished if the unpublish fails', async () => {
+				const mockReq = {
+					params: { id: 'case-1' },
+					originalUrl: '/s62a/cases/case-1/overview/unpublish',
+					session: {}
+				};
+				const mockRes = { locals: {}, redirect: mock.fn() };
+				const mockCaseCheck = mock.fn(() => Promise.resolve({ id: 'case-1' }));
+				const mockUnpublishFn = mock.fn(() => {
+					throw new Error('Database error');
+				});
+				const mockOnUnpublished = mock.fn(() => Promise.resolve());
+
+				const unpublishCase = buildSubmitUnpublishCase(
+					{ db: {}, logger: mockLogger() },
+					mockUnpublishFn,
+					mockCaseCheck,
+					mockOnUnpublished
+				);
+
+				await assert.rejects(() => unpublishCase(mockReq, mockRes));
+				assert.strictEqual(mockOnUnpublished.mock.callCount(), 0);
+			});
+
+			it('should not run onUnpublished when the case is not found', async () => {
+				const mockReq = {
+					params: { id: 'case-1' },
+					originalUrl: '/s62a/cases/case-1/overview/unpublish',
+					session: {}
+				};
+				const mockCaseCheck = mock.fn(() => Promise.resolve(null));
+				const mockOnUnpublished = mock.fn(() => Promise.resolve());
+
+				const unpublishCase = buildSubmitUnpublishCase(
+					{ db: {}, logger: mockLogger() },
+					mock.fn(),
+					mockCaseCheck,
+					mockOnUnpublished
+				);
+
+				await assertRenders404Page(unpublishCase, mockReq, false);
+				assert.strictEqual(mockOnUnpublished.mock.callCount(), 0);
+			});
+		});
 	});
 });
