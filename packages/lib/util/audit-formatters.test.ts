@@ -69,6 +69,11 @@ describe('Audit Formatters', () => {
 
 			assert.strictEqual(formatAddress(address), 'DB Line 1, London, SW1');
 		});
+
+		it('should return "-" for anything that is not an address', () => {
+			assert.strictEqual(formatAddress('1 Test Street'), '-');
+			assert.strictEqual(formatAddress(undefined), '-');
+		});
 	});
 
 	describe('formatDate', () => {

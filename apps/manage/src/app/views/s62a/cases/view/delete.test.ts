@@ -4,6 +4,8 @@ import { buildDeleteS62aManageListItemOnConfirmRemove, questionConfig } from './
 import { S62aManageListDeleter } from './s62a-manage-list-deleter.ts';
 import type { Request, Response, NextFunction } from 'express';
 import type { ManageService } from '../../../../service.js';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import { S62A_AUDIT_ACTIONS } from '../audit/actions.ts';
 
 describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 	let req: Partial<Request>;
@@ -394,6 +396,88 @@ describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.strictEqual(next.mock.calls[0].arguments[0], testError);
+		});
+	});
+
+	describe('Auditing', () => {
+		let recordMany: Mock<Function>;
+		let mockError: Mock<Function>;
+		let auditedService: ManageService;
+
+		const removeContactParams = {
+			manageListAction: 'remove',
+			manageListQuestion: 'confirm',
+			manageListItemId: 'contact-1',
+			id: 'case-1',
+			question: 'check-applicant-contact-details'
+		};
+
+		// The case as it was before the removal, as set by the journey middleware
+		const caseBeforeRemoval = {
+			locals: {
+				originalAnswers: {
+					manageApplicantContactDetails: [
+						{ id: 'contact-1', applicantFirstName: 'Test', applicantLastName: 'User One' },
+						{ id: 'contact-2', applicantFirstName: 'Test', applicantLastName: 'User Two' }
+					]
+				}
+			}
+		} as unknown as Partial<Response>;
+
+		beforeEach(() => {
+			recordMany = mock.fn(async () => {});
+			mockError = mock.fn();
+			auditedService = {
+				logger: { info: mockInfo, warn: mockWarn, error: mockError },
+				db: {},
+				audit: { recordMany }
+			} as unknown as ManageService;
+
+			req.params = removeContactParams;
+			req.session = { account: { localAccountId: 'user-1' } } as unknown as Request['session'];
+		});
+
+		it('records the removed item in the case history', async () => {
+			const middleware = buildDeleteS62aManageListItemOnConfirmRemove(auditedService);
+			await middleware(req as Request, caseBeforeRemoval as Response, next as unknown as NextFunction);
+
+			assert.strictEqual(recordMany.mock.callCount(), 1);
+			assert.deepStrictEqual(recordMany.mock.calls[0].arguments, [
+				[
+					{
+						caseId: 'case-1',
+						userId: 'user-1',
+						action: S62A_AUDIT_ACTIONS.APPLICANT_CONTACT_DELETED,
+						metadata: { name: 'Test User One' }
+					}
+				],
+				CASE_DATA_MODEL.S62A
+			]);
+			assert.strictEqual(next.mock.calls[0].arguments.length, 0);
+		});
+
+		it('does not record anything when auditing is switched off', async () => {
+			const middleware = buildDeleteS62aManageListItemOnConfirmRemove({
+				...auditedService,
+				isAuditLive: false
+			} as unknown as ManageService);
+			await middleware(req as Request, caseBeforeRemoval as Response, next as unknown as NextFunction);
+
+			assert.strictEqual(appContactSpy.mock.callCount(), 1);
+			assert.strictEqual(recordMany.mock.callCount(), 0);
+		});
+
+		it('still completes the removal if recording fails', async () => {
+			recordMany.mock.mockImplementation(async () => {
+				throw new Error('Audit unavailable');
+			});
+
+			const middleware = buildDeleteS62aManageListItemOnConfirmRemove(auditedService);
+			await middleware(req as Request, caseBeforeRemoval as Response, next as unknown as NextFunction);
+
+			assert.strictEqual(appContactSpy.mock.callCount(), 1);
+			assert.strictEqual(mockError.mock.callCount(), 1);
+			assert.strictEqual(next.mock.calls[0].arguments.length, 0);
 		});
 	});
 });

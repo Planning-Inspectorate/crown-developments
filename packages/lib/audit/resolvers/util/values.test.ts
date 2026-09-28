@@ -1,6 +1,14 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { joinParts, toNumberText, toText } from './values.ts';
+import {
+	joinParts,
+	lookupDisplayName,
+	lookupDisplayNameOrDash,
+	textOrDash,
+	toId,
+	toNumberText,
+	toText
+} from './values.ts';
 
 describe('toText', () => {
 	it('should trim strings', () => {
@@ -47,5 +55,42 @@ describe('joinParts', () => {
 
 	it('should return "-" if no parts are set', () => {
 		assert.strictEqual(joinParts([undefined, undefined]), '-');
+	});
+});
+
+describe('textOrDash', () => {
+	it('should return the trimmed text, or "-" if empty', () => {
+		assert.strictEqual(textOrDash(' Test '), 'Test');
+		assert.strictEqual(textOrDash(''), '-');
+		assert.strictEqual(textOrDash(null), '-');
+	});
+});
+
+describe('toId', () => {
+	it('should return the ID unchanged', () => {
+		assert.strictEqual(toId('org-1'), 'org-1');
+	});
+
+	it('should treat empty and non-string values as not set', () => {
+		assert.strictEqual(toId(''), undefined);
+		assert.strictEqual(toId(null), undefined);
+		assert.strictEqual(toId(42), undefined);
+	});
+});
+
+describe('lookupDisplayName', () => {
+	const names = new Map([['org-1', 'Test Organisation']]);
+
+	it('should return the display name for a known ID', () => {
+		assert.strictEqual(lookupDisplayName(names, 'org-1'), 'Test Organisation');
+	});
+
+	it('should fall back to the ID if it is not known', () => {
+		assert.strictEqual(lookupDisplayName(names, 'org-2'), 'org-2');
+	});
+
+	it('should return undefined, or "-" for the OrDash version, if no ID is set', () => {
+		assert.strictEqual(lookupDisplayName(names, ''), undefined);
+		assert.strictEqual(lookupDisplayNameOrDash(names, undefined), '-');
 	});
 });

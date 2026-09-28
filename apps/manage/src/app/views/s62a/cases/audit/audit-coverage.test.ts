@@ -5,6 +5,7 @@ import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts'
 import { getQuestions } from '../view/questions.ts';
 import type { S62aCaseViewModel } from '../view/view-model.ts';
 import { AUDITABLE_SCALAR_FIELDS } from './field-resolvers.ts';
+import { S62A_LIST_RESOLVERS } from './list-resolvers.ts';
 import { S62A_GROUPED_FIELDS } from './grouped-fields.ts';
 
 /**
@@ -14,52 +15,6 @@ import { S62A_GROUPED_FIELDS } from './grouped-fields.ts';
  * a reason. This stops new questions (or renamed field names) silently
  * going unaudited.
  */
-
-/**
- * Editable questions that aren't audited yet, with the reason.
- * Remove an entry once it's audited.
- */
-const NOT_YET_AUDITED: Record<string, string> = {
-	// Manage lists, and the questions asked inside each list item (next PR)
-	manageApplicantOrganisations: 'manage list',
-	organisationName: 'manage list item (applicant organisation)',
-	organisationAddress: 'manage list item (applicant organisation)',
-	manageApplicantContactDetails: 'manage list',
-	applicantContactDetails: 'manage list item (applicant contact)',
-	manageAgentContactDetails: 'manage list',
-	agentContactDetails: 'manage list item (agent contact)',
-	manageCaseTeamInspectors: 'manage list',
-	inspectorId: 'manage list item (inspector)',
-	inspectorAssignedDate: 'manage list item (inspector)',
-	inspectorAppointedDate: 'manage list item (inspector)',
-	manageAdditionalContacts: 'manage list',
-	additionalContactType: 'manage list item (additional contact)',
-	additionalContactName: 'manage list item (additional contact)',
-	additionalContactAddress: 'manage list item (additional contact)',
-	additionalContactDetails: 'manage list item (additional contact)',
-	vehicleParking: 'manage list',
-	vehicleType: 'manage list item (vehicle parking)',
-	existingSpaces: 'manage list item (vehicle parking)',
-	proposedSpaces: 'manage list item (vehicle parking)',
-	manageWasteTypes: 'manage list',
-	wasteTypeId: 'manage list item (types of waste)',
-	voidCapacityUnitId: 'manage list item (types of waste)',
-	maxAnnualThroughputUnitId: 'manage list item (types of waste)',
-	manageExistingHousing: 'manage list',
-	manageProposedHousing: 'manage list',
-	occupancyTypeId: 'manage list item (housing)',
-	unitTypeId: 'manage list item (housing)',
-	existingBedrooms: 'manage list item (existing housing)',
-	proposedBedrooms: 'manage list item (proposed housing)',
-	manageNonResidentialFloorspace: 'manage list',
-	useClassId: 'manage list item (floorspace)',
-	useClassSubtypeId: 'manage list item (floorspace)',
-	floorspaceDetails: 'manage list item (floorspace)',
-	shopFloorspace: 'manage list item (floorspace)',
-	netTradeableArea: 'manage list item (floorspace)',
-	hasRoomsChange: 'manage list item (floorspace)',
-	rooms: 'manage list item (floorspace)'
-};
 
 /**
  * Answer keys that are saved by a custom component alongside its question,
@@ -106,26 +61,29 @@ function getEditableFieldNames(): Set<string> {
 }
 
 /**
- * Every fieldName that's audited: scalar fields and grouped (multi-field
- * input) questions.
+ * Every fieldName that's audited: scalar fields, grouped (multi-field input)
+ * questions, manage lists, and the questions asked inside each list item.
  */
 function getAuditedFieldNames(): Set<string> {
-	return new Set([...AUDITABLE_SCALAR_FIELDS, ...Object.keys(S62A_GROUPED_FIELDS)]);
+	return new Set([
+		...AUDITABLE_SCALAR_FIELDS,
+		...Object.keys(S62A_GROUPED_FIELDS),
+		...Object.keys(S62A_LIST_RESOLVERS),
+		...Object.values(S62A_LIST_RESOLVERS).flatMap((listResolver) => listResolver.subQuestions)
+	]);
 }
 
 describe('S62A audit coverage', () => {
 	const editableFieldNames = getEditableFieldNames();
 	const auditedFieldNames = getAuditedFieldNames();
 
-	it('should audit every editable question, or list it as not yet audited', () => {
-		const missing = [...editableFieldNames].filter(
-			(fieldName) => !auditedFieldNames.has(fieldName) && !(fieldName in NOT_YET_AUDITED)
-		);
+	it('should audit every editable question', () => {
+		const missing = [...editableFieldNames].filter((fieldName) => !auditedFieldNames.has(fieldName));
 
 		assert.deepStrictEqual(
 			missing,
 			[],
-			`These editable questions aren't audited. Add them to the S62A audit config, or to NOT_YET_AUDITED with a reason: ${missing.join(', ')}`
+			`These editable questions aren't audited. Add them to the S62A audit config: ${missing.join(', ')}`
 		);
 	});
 
@@ -138,22 +96,6 @@ describe('S62A audit coverage', () => {
 			unknown,
 			[],
 			`These audited fields don't match any editable S62A question. Check the fieldName: ${unknown.join(', ')}`
-		);
-	});
-
-	it('should not list questions as not yet audited once they are audited', () => {
-		const alreadyAudited = Object.keys(NOT_YET_AUDITED).filter((fieldName) => auditedFieldNames.has(fieldName));
-
-		assert.deepStrictEqual(alreadyAudited, [], `Remove these from NOT_YET_AUDITED: ${alreadyAudited.join(', ')}`);
-	});
-
-	it('should not list questions that no longer exist as not yet audited', () => {
-		const stale = Object.keys(NOT_YET_AUDITED).filter((fieldName) => !editableFieldNames.has(fieldName));
-
-		assert.deepStrictEqual(
-			stale,
-			[],
-			`These NOT_YET_AUDITED entries don't match any editable question: ${stale.join(', ')}`
 		);
 	});
 });

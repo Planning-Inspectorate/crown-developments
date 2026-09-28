@@ -2,22 +2,40 @@ import { formatInTimeZone } from 'date-fns-tz';
 import { joinParts, toNumberText, toText } from '../audit/resolvers/util/values.ts';
 
 /**
- * Formats an address object into a comma-separated string for audit display.
+ * The address fields formatAddress reads. Addresses from the form and the view
+ * model use addressLine1/2; addresses straight from the database use line1/2.
  */
-export function formatAddress(address: Record<string, unknown> | null | undefined): string {
-	if (!address) {
+export interface AuditAddress {
+	line1?: unknown;
+	line2?: unknown;
+	addressLine1?: unknown;
+	addressLine2?: unknown;
+	townCity?: unknown;
+	county?: unknown;
+	postcode?: unknown;
+}
+
+/**
+ * Formats an address into a comma-separated string for audit display,
+ * leaving out empty lines. Returns '-' if there's no address.
+ *
+ * Takes `unknown` because addresses often come from untyped answers (e.g. a
+ * manage-list item), and checks the shape itself, so callers don't need to cast.
+ */
+export function formatAddress(address: unknown): string {
+	if (typeof address !== 'object' || address === null) {
 		return '-';
 	}
 
-	const parts = [
-		address.line1 || address.addressLine1,
-		address.line2 || address.addressLine2,
-		address.townCity,
-		address.county,
-		address.postcode
-	].filter(Boolean);
+	const { line1, line2, addressLine1, addressLine2, townCity, county, postcode } = address as AuditAddress;
 
-	return parts.length > 0 ? parts.join(', ') : '-';
+	return joinParts([
+		toText(line1) ?? toText(addressLine1),
+		toText(line2) ?? toText(addressLine2),
+		toText(townCity),
+		toText(county),
+		toText(postcode)
+	]);
 }
 
 /**

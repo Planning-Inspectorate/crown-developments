@@ -4,6 +4,7 @@ import { resolveCaseUpdateAudits, type CaseUpdateAuditConfig } from './case-upda
 import { booleanResolver } from './field-resolvers.ts';
 import { joinParts, toNumberText } from './util/values.ts';
 import { SHARED_AUDIT_ACTIONS } from '../shared-actions.ts';
+import { resolveListAudits, type ListResolverRegistry } from './util/list-changes.ts';
 
 const config: CaseUpdateAuditConfig = {
 	fieldResolvers: { hasAgent: booleanResolver('hasAgent') },
@@ -97,6 +98,70 @@ describe('resolveCaseUpdateAudits', () => {
 			const [entry] = resolve({ hasAgent: 'no' }, { hasAgent: 'yes' }, { hasAgent: 'Has' });
 
 			assert.strictEqual(entry.metadata?.fieldName, 'Has agent');
+		});
+	});
+
+	describe('manage lists', () => {
+		const listResolvers: ListResolverRegistry = {
+			manageThings: {
+				subQuestions: [],
+				resolve: ({ caseId, userId, oldItems, newItems }) =>
+					resolveListAudits(caseId, userId, oldItems, newItems, {
+						actions: {
+							added: SHARED_AUDIT_ACTIONS.FIELD_SET,
+							updated: SHARED_AUDIT_ACTIONS.FIELD_UPDATED,
+							deleted: SHARED_AUDIT_ACTIONS.FIELD_CLEARED
+						},
+						getName: (item) => String(item.name),
+						fields: []
+					})
+			}
+		};
+
+		function resolveList(previousCase: Record<string, unknown>, answers: Record<string, unknown>) {
+			return resolveCaseUpdateAudits({
+				caseId: 'case-1',
+				userId: 'user-1',
+				updatedFieldNames: Object.keys(answers),
+				previousCase,
+				answers,
+				config: { ...config, listResolvers }
+			});
+		}
+
+		it('should record the changes to a list in the save', () => {
+			const entries = resolveList(
+				{ manageThings: [{ id: 'a', name: 'First' }] },
+				{
+					manageThings: [
+						{ id: 'a', name: 'First' },
+						{ id: 'b', name: 'Second' }
+					]
+				}
+			);
+
+			assert.deepStrictEqual(entries, [
+				{ caseId: 'case-1', userId: 'user-1', action: SHARED_AUDIT_ACTIONS.FIELD_SET, metadata: { name: 'Second' } }
+			]);
+		});
+
+		it('should not run a list resolver for lists that are not in the save', () => {
+			assert.deepStrictEqual(
+				resolveList({ manageThings: [{ id: 'a', name: 'First' }] }, { lpaReference: 'ABC/123' }).length,
+				1
+			);
+		});
+
+		it('should record list entries after the field entries', () => {
+			const entries = resolveList(
+				{ lpaReference: 'ABC/123', manageThings: [] },
+				{ lpaReference: 'DEF/345', manageThings: [{ id: 'a', name: 'First' }] }
+			);
+
+			assert.deepStrictEqual(
+				entries.map((entry) => entry.action),
+				[SHARED_AUDIT_ACTIONS.FIELD_UPDATED, SHARED_AUDIT_ACTIONS.FIELD_SET]
+			);
 		});
 	});
 });

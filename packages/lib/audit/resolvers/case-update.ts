@@ -2,6 +2,7 @@ import type { AuditEntry } from '../types.ts';
 import { resolveAuditAction } from '../shared-actions.ts';
 import { defaultResolver, getFieldDisplayName, type ResolverContext } from './field-resolvers.ts';
 import { resolveGroupedFieldChanges, type GroupedFieldRegistry } from './grouped-fields.ts';
+import { toListItems, type ListResolverRegistry } from './util/list-changes.ts';
 import type { FieldResolverRegistry } from './index.ts';
 
 /**
@@ -11,6 +12,7 @@ import type { FieldResolverRegistry } from './index.ts';
  * folder); how the entries are built is the same for every model:
  *   - one entry per changed single-answer field
  *   - one entry per changed multi-field question, never one per input
+ *   - entries for each manage list in the save (items added, removed or changed)
  */
 
 export interface CaseUpdateAuditConfig {
@@ -22,6 +24,8 @@ export interface CaseUpdateAuditConfig {
 	longFields?: ReadonlySet<string>;
 	/** Questions whose answer is spread over several inputs */
 	groupedFields?: GroupedFieldRegistry;
+	/** Manage lists, keyed by the list question's fieldName */
+	listResolvers?: ListResolverRegistry;
 	/** Labels that take priority over the question titles */
 	labels?: Readonly<Record<string, string>>;
 }
@@ -55,7 +59,7 @@ export function resolveCaseUpdateAudits({
 	questionLabels = {},
 	context
 }: CaseUpdateAuditArgs): AuditEntry[] {
-	const { fieldResolvers, auditableFields, longFields, groupedFields, labels = {} } = config;
+	const { fieldResolvers, auditableFields, longFields, groupedFields, listResolvers, labels = {} } = config;
 	const fieldLabels = { ...questionLabels, ...labels };
 	const entries: AuditEntry[] = [];
 
@@ -95,6 +99,30 @@ export function resolveCaseUpdateAudits({
 			answers
 		)) {
 			addEntry(fieldName, oldValue, newValue);
+		}
+	}
+
+	// ── Manage lists ─────────────────────────────────────────────────────
+	// Each list compares the old items with the new ones; its resolver writes
+	// the entries, e.g. "Test User One was added to applicant contact(s)."
+	if (listResolvers) {
+		for (const fieldName of updatedFieldNames) {
+			const listResolver = listResolvers[fieldName];
+			if (!listResolver) {
+				continue;
+			}
+
+			entries.push(
+				...listResolver.resolve({
+					caseId,
+					userId,
+					oldItems: toListItems(previousCase[fieldName]),
+					newItems: toListItems(answers[fieldName]),
+					previousCase,
+					answers,
+					context
+				})
+			);
 		}
 	}
 
