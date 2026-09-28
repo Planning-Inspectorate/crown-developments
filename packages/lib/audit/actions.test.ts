@@ -9,6 +9,7 @@ import {
 	resolveTemplate
 } from './actions.ts';
 import { CASE_DATA_MODEL } from '../util/types.ts';
+import { S62A_AUDIT_ACTIONS } from '../../../apps/manage/src/app/views/s62a/cases/audit/actions.ts';
 
 describe('fillTemplate', () => {
 	const template = '{reference} was created';
@@ -47,6 +48,11 @@ describe('isAuditAction', () => {
 	it('should accept shared actions for every data model', () => {
 		assert.ok(isAuditAction(CASE_DATA_MODEL.CROWN, AUDIT_ACTIONS.FIELD_UPDATED));
 		assert.ok(isAuditAction(CASE_DATA_MODEL.S62A, AUDIT_ACTIONS.FIELD_UPDATED));
+	});
+
+	it('should only accept model-specific actions for that data model', () => {
+		assert.ok(isAuditAction(CASE_DATA_MODEL.S62A, S62A_AUDIT_ACTIONS.APPLICANT_CONTACT_ADDED));
+		assert.ok(!isAuditAction(CASE_DATA_MODEL.CROWN, S62A_AUDIT_ACTIONS.APPLICANT_CONTACT_ADDED));
 	});
 
 	it('should reject unknown actions', () => {

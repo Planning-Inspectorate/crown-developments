@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { joinParts, toNumberText, toText } from './values.ts';
+import { joinParts, textOrDash, toNumberText, toText } from './values.ts';
 
 describe('toText', () => {
 	it('should trim strings', () => {
@@ -47,5 +47,13 @@ describe('joinParts', () => {
 
 	it('should return "-" if no parts are set', () => {
 		assert.strictEqual(joinParts([undefined, undefined]), '-');
+	});
+});
+
+describe('textOrDash', () => {
+	it('should return the text, or "-" if empty', () => {
+		assert.strictEqual(textOrDash(' Test '), 'Test');
+		assert.strictEqual(textOrDash(''), '-');
+		assert.strictEqual(textOrDash(null), '-');
 	});
 });

@@ -5,6 +5,7 @@ import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts'
 import { getQuestions } from '../view/questions.ts';
 import type { S62aCaseViewModel } from '../view/view-model.ts';
 import { AUDITABLE_SCALAR_FIELDS } from './field-resolvers.ts';
+import { S62A_LIST_RESOLVERS } from './list-resolvers.ts';
 import { S62A_GROUPED_FIELDS } from './grouped-fields.ts';
 
 /**
@@ -16,50 +17,10 @@ import { S62A_GROUPED_FIELDS } from './grouped-fields.ts';
  */
 
 /**
- * Editable questions that aren't audited yet, with the reason.
+ * Editable questions that aren't audited as scalar fields yet.
  * Remove an entry once it's audited.
  */
-const NOT_YET_AUDITED: Record<string, string> = {
-	// Manage lists, and the questions asked inside each list item (next PR)
-	manageApplicantOrganisations: 'manage list',
-	organisationName: 'manage list item (applicant organisation)',
-	organisationAddress: 'manage list item (applicant organisation)',
-	manageApplicantContactDetails: 'manage list',
-	applicantContactDetails: 'manage list item (applicant contact)',
-	manageAgentContactDetails: 'manage list',
-	agentContactDetails: 'manage list item (agent contact)',
-	manageCaseTeamInspectors: 'manage list',
-	inspectorId: 'manage list item (inspector)',
-	inspectorAssignedDate: 'manage list item (inspector)',
-	inspectorAppointedDate: 'manage list item (inspector)',
-	manageAdditionalContacts: 'manage list',
-	additionalContactType: 'manage list item (additional contact)',
-	additionalContactName: 'manage list item (additional contact)',
-	additionalContactAddress: 'manage list item (additional contact)',
-	additionalContactDetails: 'manage list item (additional contact)',
-	vehicleParking: 'manage list',
-	vehicleType: 'manage list item (vehicle parking)',
-	existingSpaces: 'manage list item (vehicle parking)',
-	proposedSpaces: 'manage list item (vehicle parking)',
-	manageWasteTypes: 'manage list',
-	wasteTypeId: 'manage list item (types of waste)',
-	voidCapacityUnitId: 'manage list item (types of waste)',
-	maxAnnualThroughputUnitId: 'manage list item (types of waste)',
-	manageExistingHousing: 'manage list',
-	manageProposedHousing: 'manage list',
-	occupancyTypeId: 'manage list item (housing)',
-	unitTypeId: 'manage list item (housing)',
-	existingBedrooms: 'manage list item (existing housing)',
-	proposedBedrooms: 'manage list item (proposed housing)',
-	manageNonResidentialFloorspace: 'manage list',
-	useClassId: 'manage list item (floorspace)',
-	useClassSubtypeId: 'manage list item (floorspace)',
-	floorspaceDetails: 'manage list item (floorspace)',
-	shopFloorspace: 'manage list item (floorspace)',
-	netTradeableArea: 'manage list item (floorspace)',
-	hasRoomsChange: 'manage list item (floorspace)',
-	rooms: 'manage list item (floorspace)'
-};
+const NOT_YET_AUDITED: Record<string, string> = {};
 
 /**
  * Answer keys that are saved by a custom component alongside its question,
@@ -106,11 +67,16 @@ function getEditableFieldNames(): Set<string> {
 }
 
 /**
- * Every fieldName that's audited: scalar fields and grouped (multi-field
- * input) questions.
+ * Every fieldName that's audited: scalar fields, grouped (multi-field input)
+ * questions, manage lists, and the questions asked inside each list item.
  */
 function getAuditedFieldNames(): Set<string> {
-	return new Set([...AUDITABLE_SCALAR_FIELDS, ...Object.keys(S62A_GROUPED_FIELDS)]);
+	return new Set([
+		...AUDITABLE_SCALAR_FIELDS,
+		...Object.keys(S62A_GROUPED_FIELDS),
+		...Object.keys(S62A_LIST_RESOLVERS),
+		...Object.values(S62A_LIST_RESOLVERS).flatMap((listResolver) => listResolver.subQuestions)
+	]);
 }
 
 describe('S62A audit coverage', () => {

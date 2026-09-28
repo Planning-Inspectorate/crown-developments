@@ -12,7 +12,8 @@ import { type AuditService, type AuditEntry } from '@pins/crowndev-lib/audit/ind
 import {
 	resolveFieldValues,
 	resolveGroupedFieldChanges,
-	getFieldDisplayName
+	getFieldDisplayName,
+	toListItems
 } from '@pins/crowndev-lib/audit/resolvers/index.ts';
 import { getAuditUserId } from '@pins/crowndev-lib/audit/user.ts';
 import type { Logger } from 'pino';
@@ -29,6 +30,7 @@ import {
 	S62A_FIELD_RESOLVERS
 } from '../audit/field-resolvers.ts';
 import { S62A_GROUPED_FIELDS } from '../audit/grouped-fields.ts';
+import { S62A_LIST_RESOLVERS } from '../audit/list-resolvers.ts';
 
 /**
  * Save handler for S62A Case updates.
@@ -273,6 +275,26 @@ async function recordAuditEntries(
 					newValue
 				}
 			});
+		}
+
+		// ── Manage lists ─────────────────────────────────────────────────
+		for (const fieldName of updatedFieldNames) {
+			const listResolver = S62A_LIST_RESOLVERS[fieldName];
+			if (!listResolver) {
+				continue;
+			}
+
+			allAuditEntries.push(
+				...listResolver.resolve({
+					caseId,
+					userId: auditUserId,
+					oldItems: toListItems(previousCase[fieldName]),
+					newItems: toListItems(answersSnapshot[fieldName]),
+					previousCase,
+					answers: answersSnapshot,
+					context
+				})
+			);
 		}
 
 		await audit.recordMany(allAuditEntries, CASE_DATA_MODEL.S62A);

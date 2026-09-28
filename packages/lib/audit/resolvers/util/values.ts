@@ -36,3 +36,10 @@ export function toNumberText(value: unknown): string | undefined {
 export function joinParts(parts: ReadonlyArray<string | undefined>): string {
 	return parts.filter((part): part is string => Boolean(part)).join(', ') || '-';
 }
+
+/**
+ * Like toText, but returns '-' for empty values, ready for the history.
+ */
+export function textOrDash(value: unknown): string {
+	return toText(value) ?? '-';
+}
