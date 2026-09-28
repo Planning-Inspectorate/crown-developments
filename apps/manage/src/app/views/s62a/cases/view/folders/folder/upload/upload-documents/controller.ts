@@ -7,6 +7,8 @@ import { NoUploadsError } from '@pins/crowndev-lib/middleware/errors.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { ValidationConfig } from '@pins/crowndev-lib/validators/file-validator.ts';
 import { formatBytes } from '@pins/crowndev-lib/util/file.ts';
+import { FILE_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/files.ts';
+import { recordS62aFileAudit } from '../../../../../audit/files.ts';
 
 /**
  * Controller for uploading a new document to Azure Blob.
@@ -39,17 +41,22 @@ export function uploadDocumentsController(documentUploader: DocumentsUploader) {
 
 /**
  * Controller used when "Committing" documents.
- * Asks the service to move rows from Draft to final Document status.
+ * Asks the service to move rows from Draft to final Document status,
+ * then records the upload in the case history.
  */
 export function createDocumentsController(service: ManageService, documentUploader: DocumentsUploader) {
 	const { logger } = service;
 	return async (req: Request, res: Response) => {
 		const id = getStringParam(req.params, 'id');
 		try {
-			const { createdLength } = await documentUploader.commitDrafts(id, req.sessionID);
+			const { createdLength, fileNames } = await documentUploader.commitDrafts(id, req.sessionID);
 			if (createdLength === 0) {
 				throw new NoUploadsError('Select a file to upload');
 			}
+
+			await recordS62aFileAudit(service, req, id, fileNames, FILE_AUDIT_ACTIONS.uploaded, {
+				folderName: await getFolderName(service, req)
+			});
 
 			const folderUrl = req.baseUrl.replace(/\/upload\/?$/, '');
 			return res.redirect(folderUrl);
@@ -77,6 +84,25 @@ export function createDocumentsController(service: ManageService, documentUpload
 			return res.redirect(req.baseUrl);
 		}
 	};
+}
+
+/**
+ * The name of the folder the files were uploaded to, for the case history.
+ * Falls back to '-' if it can't be found, so the upload is still recorded.
+ */
+async function getFolderName(service: ManageService, req: Request): Promise<string> {
+	try {
+		const folderId = getStringParam(req.params, 'folderId');
+		const folder = await service.db.folder.findUnique({
+			where: { id: folderId },
+			select: { displayName: true }
+		});
+
+		return folder?.displayName ?? '-';
+	} catch (error) {
+		service.logger.warn({ error }, 'Could not look up the folder name for the upload audit');
+		return '-';
+	}
 }
 
 /**

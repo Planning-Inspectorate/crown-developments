@@ -6,6 +6,8 @@ import { isValidRedirectUri } from '@pins/crowndev-lib/util/uri.ts';
 import type { Request, Response } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
 import { BaseDocumentDownloader, type DownloadRequestBody } from '@pins/crowndev-lib/util/base-document-downloader.ts';
+import { FILE_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/files.ts';
+import { recordS62aFileAudit } from '../../../../audit/files.ts';
 
 type S62aDocument = Prisma.DocumentGetPayload<{
 	include: {
@@ -14,8 +16,11 @@ type S62aDocument = Prisma.DocumentGetPayload<{
 }>;
 
 export class DocumentDownloader extends BaseDocumentDownloader<S62aDocument> {
+	private readonly service: ManageService;
+
 	constructor(service: ManageService) {
 		super(service.db, service.blobStore, service.logger, service.createZipArchive);
+		this.service = service;
 	}
 
 	/**
@@ -65,5 +70,28 @@ export class DocumentDownloader extends BaseDocumentDownloader<S62aDocument> {
 	 */
 	protected getZipFileReference(documents: S62aDocument[]): string {
 		return documents[0].S62aCase.reference;
+	}
+
+	/**
+	 * Records the download in the case history. Several files are recorded
+	 * with the name of the zip they were downloaded in. Previews aren't
+	 * downloads, so the base class doesn't call this for them.
+	 */
+	protected async onDownloaded(
+		req: Request<ParamsDictionary, unknown, DownloadRequestBody>,
+		documents: S62aDocument[],
+		zipFileName?: string
+	): Promise<void> {
+		const caseId = documents[0]?.s62aCaseId;
+		if (!caseId) return;
+
+		await recordS62aFileAudit(
+			this.service,
+			req,
+			caseId,
+			documents.map((document) => document.fileName),
+			FILE_AUDIT_ACTIONS.downloaded,
+			zipFileName ? { zipName: zipFileName } : undefined
+		);
 	}
 }

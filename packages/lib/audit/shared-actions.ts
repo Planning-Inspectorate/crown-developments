@@ -26,7 +26,19 @@ export const SHARED_AUDIT_ACTIONS = {
 	LONG_FIELD_CLEARED: 'LONG_FIELD_CLEARED',
 
 	// Case notes
-	CASE_NOTE_ADDED: 'CASE_NOTE_ADDED'
+	CASE_NOTE_ADDED: 'CASE_NOTE_ADDED',
+
+	// Files (the bulk actions list the file names in metadata.files)
+	FILE_UPLOADED: 'FILE_UPLOADED',
+	FILES_UPLOADED: 'FILES_UPLOADED',
+	FILE_DOWNLOADED: 'FILE_DOWNLOADED',
+	FILES_DOWNLOADED: 'FILES_DOWNLOADED',
+	FILE_DELETED: 'FILE_DELETED',
+	FILES_DELETED: 'FILES_DELETED',
+
+	// Folders
+	FOLDER_CREATED: 'FOLDER_CREATED',
+	FOLDER_DELETED: 'FOLDER_DELETED'
 } as const;
 
 export type SharedAuditAction = (typeof SHARED_AUDIT_ACTIONS)[keyof typeof SHARED_AUDIT_ACTIONS];
@@ -43,6 +55,12 @@ export type SharedAuditAction = (typeof SHARED_AUDIT_ACTIONS)[keyof typeof SHARE
  *   {oldValue}       – previous value (`-` if empty)
  *   {newValue}       – new value (`-` if empty)
  *   {caseNote}       – the case note text
+ *   {fileName}       – name of a single file
+ *   {folderName}     – name of a folder
+ *   {zipName}        – name of a bulk download zip file
+ *
+ * The bulk file actions also store the file names in metadata.files, which
+ * the case history shows as a "Show files" list.
  */
 export const SHARED_AUDIT_TEMPLATES: Record<SharedAuditAction, string> = {
 	// Case
@@ -60,7 +78,19 @@ export const SHARED_AUDIT_TEMPLATES: Record<SharedAuditAction, string> = {
 	[SHARED_AUDIT_ACTIONS.LONG_FIELD_CLEARED]: '{fieldName} was removed',
 
 	// Case notes
-	[SHARED_AUDIT_ACTIONS.CASE_NOTE_ADDED]: 'Case note added:\n{caseNote}'
+	[SHARED_AUDIT_ACTIONS.CASE_NOTE_ADDED]: 'Case note added:\n{caseNote}',
+
+	// Files
+	[SHARED_AUDIT_ACTIONS.FILE_UPLOADED]: '{fileName} was uploaded to {folderName}',
+	[SHARED_AUDIT_ACTIONS.FILES_UPLOADED]: 'Files were uploaded to {folderName}',
+	[SHARED_AUDIT_ACTIONS.FILE_DOWNLOADED]: '{fileName} was downloaded',
+	[SHARED_AUDIT_ACTIONS.FILES_DOWNLOADED]: 'Files were downloaded into zip folder: {zipName}',
+	[SHARED_AUDIT_ACTIONS.FILE_DELETED]: '{fileName} was removed',
+	[SHARED_AUDIT_ACTIONS.FILES_DELETED]: 'Files were removed',
+
+	// Folders
+	[SHARED_AUDIT_ACTIONS.FOLDER_CREATED]: '{folderName} was created',
+	[SHARED_AUDIT_ACTIONS.FOLDER_DELETED]: '{folderName} was removed'
 };
 
 /**
@@ -119,5 +149,6 @@ export function resolveAuditAction(
 
 	if (newValue === '-') return SHARED_AUDIT_ACTIONS.FIELD_CLEARED;
 	if (oldValue === '-') return SHARED_AUDIT_ACTIONS.FIELD_SET;
+
 	return SHARED_AUDIT_ACTIONS.FIELD_UPDATED;
 }
