@@ -12,9 +12,6 @@ export function createRoutes(service: ManageService): IRouter {
 
 	const downloadDocument = buildDownloadDocument(service, downloader);
 
-	// Downloading multiple documents via main button (POST)
-	router.post('/documents', asyncHandler(downloadDocument));
-
 	// Downloading a single inline document via an href (GET)
 	router.get('/:documentId', asyncHandler(downloadDocument));
 

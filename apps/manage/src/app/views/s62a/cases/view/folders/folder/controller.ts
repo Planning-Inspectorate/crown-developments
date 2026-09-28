@@ -95,7 +95,7 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 		const filesDeleted = popSessionData(req, id, 'filesDeleted', false, 'folder');
 		const filesPublished = popSessionData(req, id, 'filesPublished', false, 'folder');
 
-		const banner = getBannerMessages(filesDeleted, filesPublished, errorSummary);
+		const banner = getBannerMessages(filesDeleted, filesPublished, id, errorSummary);
 
 		const paginationParams = createPaginationParams(req, totalDocCount);
 
@@ -109,7 +109,7 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 		const subFoldersViewModel = subFolders ? createFoldersViewModel(subFolders) : [];
 		const baseFoldersUrl = `/s62a/cases/${id}/case-folders`;
 
-		return res.render('views/s62a/cases/view/folders/folder/view.njk', {
+		return res.render('views/s62a/cases/view/folders/util/shared-folder-view.njk', {
 			reference: caseRow?.reference,
 			folderName: currentFolder?.displayName,
 			backLinkUrl: parentFolder
@@ -136,6 +136,7 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 function getBannerMessages(
 	filesDeleted: number | boolean | undefined,
 	filesPublished: number | boolean | undefined,
+	caseId: string,
 	errorSummary?: { text: string }[] | boolean
 ) {
 	if (errorSummary) {
@@ -151,7 +152,7 @@ function getBannerMessages(
 			<h3 class="govuk-notification-banner__heading">${titleText}</h3>
 			<p class="govuk-body">
 				To view or change published files, view the 
-				<a class="govuk-notification-banner__link" href="/">published files page</a>.
+				<a class="govuk-notification-banner__link" href="/s62a/cases/${caseId}/case-folders/published-documents">published files page</a>.
 			</p>
 		`;
 

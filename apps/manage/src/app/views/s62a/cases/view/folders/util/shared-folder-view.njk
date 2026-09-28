@@ -27,7 +27,11 @@
                 {{ reference }}
             </span>
             <h1 class="govuk-heading-l" data-cy="folder-name-heading">
-                {{ folderName }} folder
+                {% if isPublishedView %}
+					{{ folderName }}
+                {% else %}
+                    {{ folderName }} folder
+                {% endif %}
             </h1>
         </div>
     </div>
@@ -73,7 +77,11 @@
             {% if documents|length !== 0 %}
                 <div id="pagination-top" class="govuk-body govuk-!-margin-bottom-2">
                     <p class="govuk-body govuk-clearfix">
-                        This folder contains {{ paginationParams.totalItems }} file(s).
+                        {% if isPublishedView %}
+                            There are {{ paginationParams.totalItems }} published file(s) on this case.
+                        {% else %}
+                            This folder contains {{ paginationParams.totalItems }} file(s).
+                        {% endif %}
                         Showing <strong>{{ paginationParams.resultsStartNumber }}</strong>
                         to
                         <strong>{{ paginationParams.resultsEndNumber if paginationParams.totalItems > paginationParams.resultsEndNumber else paginationParams.totalItems }}</strong>
@@ -88,6 +96,7 @@
                 <input type="hidden" name="returnUrl" value="{{ currentPath }}">
                 <input type="hidden" name="caseId" value="{{ caseId }}">
 
+                {% if not isPublishedView %}
                 <div class="govuk-button-group govuk-!-margin-top-4">
                     {{ govukButton({
                         text: "Upload files",
@@ -96,34 +105,54 @@
                         attributes: { "data-cy": "upload-files-btn" }
                     }) }}
                 </div>
+                {% endif %}
 
                 {% if documents|length !== 0 %}
-                <div class="govuk-button-group">
-                    {{ govukButton({
-                        text: "Download selected",
-                        classes: "govuk-button--secondary",
-                        attributes: {
-                            "data-cy": "download-files-btn",
-                            "formaction": currentPath + "/download/documents"
-                        }
-                    }) }}
-                    {{ govukButton({
-                        text: "Delete selected",
-                        classes: "govuk-button--secondary",
-                        attributes: {
-                            "data-cy": "delete-files-btn",
-                            "formaction": currentPath + "/delete/documents/confirmation"
-                        }
-                    }) }}
-                    {% if config.isS62APortalLive %}
-                    {{ govukButton({
-                        text: "Publish selected",
-                        classes: "govuk-button--secondary",
-                        attributes: {
-                            "data-cy": "publish-files-btn",
-                            "formaction": currentPath + "/publish/documents/confirmation"
-                        }
-                    }) }}
+                <div class="govuk-button-group {% if isPublishedView %}govuk-!-margin-top-4{% endif %}">
+                    {% if isPublishedView %}
+                        {{ govukButton({
+                            text: "Unpublish selected",
+                            classes: "govuk-button--secondary",
+                            attributes: {
+                                "data-cy": "unpublish-files-btn",
+                                "formaction": currentPath + "/unpublish/documents/confirmation"
+                            }
+                        }) }}
+                        {{ govukButton({
+                            text: "Categorise selected",
+                            classes: "govuk-button--secondary",
+                            attributes: {
+                                "data-cy": "categorise-files-btn",
+                                "formaction": currentPath + "/categorise/documents/confirmation"
+                            }
+                        }) }}
+                    {% else %}
+                        {{ govukButton({
+                            text: "Download selected",
+                            classes: "govuk-button--secondary",
+                            attributes: {
+                                "data-cy": "download-files-btn",
+                                "formaction": currentPath + "/download/documents"
+                            }
+                        }) }}
+                        {{ govukButton({
+                            text: "Delete selected",
+                            classes: "govuk-button--secondary",
+                            attributes: {
+                                "data-cy": "delete-files-btn",
+                                "formaction": currentPath + "/delete/documents/confirmation"
+                            }
+                        }) }}
+                        {% if config.isS62APortalLive %}
+                        {{ govukButton({
+                            text: "Publish selected",
+                            classes: "govuk-button--secondary",
+                            attributes: {
+                                "data-cy": "publish-files-btn",
+                                "formaction": currentPath + "/publish/documents/confirmation"
+                            }
+                        }) }}
+                        {% endif %}
                     {% endif %}
                 </div>
                 {% endif %}
@@ -134,7 +163,7 @@
                         <span id="selection-count-number">0</span> file(s) on this page selected
                     </p>
 
-                    {{ documentsTable(documents, true) }}
+                    {{ documentsTable(documents, true, { dateHeader: 'Published' if isPublishedView else 'Uploaded' }) }}
 
                     {{ pagination.renderPagination(paginationParams.pageNumber, paginationParams.totalPages, baseUrl, queryParams) }}
                 {% endif %}

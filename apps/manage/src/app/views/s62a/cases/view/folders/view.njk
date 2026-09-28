@@ -22,6 +22,17 @@
                 <p class="govuk-body" data-cy="no-folders-message">There are no folders in this case</p>
             {% else %}
                 <ul class="govuk-list govuk-list--spaced pins-link-menu" data-cy="folder-list">
+
+                    {% if hasAtLeastOnePublishedDocument %}
+                        <li>
+                            <a class="govuk-link govuk-!-font-weight-bold govuk-!-font-size-19" 
+                            href="{{ currentUrl }}/published-documents" 
+                            data-cy="folder-link-published-documents">
+                                Published documents
+                            </a>
+                        </li>
+                    {% endif %}
+
                     {% for folder in folders %}
                         <li>
                             <a class="govuk-link govuk-!-font-weight-bold govuk-!-font-size-19" 

@@ -7,35 +7,43 @@ import { isValidRedirectUri } from '@pins/crowndev-lib/util/uri.ts';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import type { DOCUMENT_CATEGORIES } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 
-export interface PublishRequestBody {
+export interface CategorisationHandlerRequestBody {
 	selectedFiles?: string | string[];
 	returnUrl?: string;
 	documentCategory?: string;
 }
 
 /**
- * Class to handle publishing of documents.
+ * Class to handle publishing / categorising of documents.
+ *
+ * Publishing vs categorising is basically identical, except that end db query
+ * will be different, as such they use the same class with a flag
  */
-export class DocumentPublisher {
+export class DocumentCategorisationHandler {
 	service: ManageService;
-	constructor(service: ManageService) {
+	type: 'publish' | 'categorise';
+	constructor(service: ManageService, type: 'publish' | 'categorise') {
 		this.service = service;
+		this.type = type;
 	}
 
 	/**
 	 * Validates, saves IDs to the session, and redirects to the GET confirmation view.
 	 */
-	public async handleSelection(req: Request<ParamsDictionary, unknown, PublishRequestBody>, res: Response) {
+	public async handleSelection(
+		req: Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
+		res: Response
+	) {
 		const id = getStringParam(req.params, 'id');
 		const documentIds = this.extractDocumentIds(req.body?.selectedFiles);
 		const safeReturnUrl = this.getSafeReturnUrl(req);
 
 		if (!documentIds.length) {
-			addSessionData(req, id, { filesErrors: [{ text: 'Select file(s) to publish', href: '#' }] }, 'folder');
+			addSessionData(req, id, { filesErrors: [{ text: `Select file(s) to ${this.type}`, href: '#' }] }, 'folder');
 			return res.redirect(safeReturnUrl);
 		}
 
-		const atLeastOnePublished = await this.checkPublishStatus(documentIds);
+		const atLeastOnePublished = this.type === 'publish' && (await this.checkPublishStatus(documentIds));
 
 		if (atLeastOnePublished) {
 			addSessionData(
@@ -61,8 +69,8 @@ export class DocumentPublisher {
 
 		req.session.publishFileIds = [documentId];
 
-		const basePath = req.originalUrl.split(`/publish/${documentId}`)[0];
-		const redirectUrl = `${basePath}/publish/documents/confirmation`;
+		const basePath = req.originalUrl.split(`/${this.type}/${documentId}`)[0];
+		const redirectUrl = `${basePath}/${this.type}/documents/confirmation`;
 
 		return res.redirect(isValidRedirectUri(redirectUrl) ? redirectUrl : '/');
 	}
@@ -71,7 +79,7 @@ export class DocumentPublisher {
 	 * Renders categorisation page grabbing document ids from session
 	 */
 	public async renderCategorisation(
-		req: Request<ParamsDictionary, unknown, PublishRequestBody>,
+		req: Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
 		res: Response,
 		categories: typeof DOCUMENT_CATEGORIES
 	) {
@@ -82,7 +90,7 @@ export class DocumentPublisher {
 	 * Publishes the documents by setting the categoryId and publishDate to now.
 	 */
 	public async executePublish(
-		req: Request<ParamsDictionary, unknown, PublishRequestBody>,
+		req: Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
 		res: Response,
 		categories: typeof DOCUMENT_CATEGORIES
 	) {
@@ -129,18 +137,62 @@ export class DocumentPublisher {
 	}
 
 	/**
+	 * Re-categorises published documents category
+	 */
+	public async executeRecategorise(
+		req: Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
+		res: Response,
+		categories: typeof DOCUMENT_CATEGORIES
+	) {
+		const id = getStringParam(req.params, 'id');
+		const documentIds = this.extractDocumentIds(req.session.publishFileIds);
+		const safeReturnUrl = this.getSafeReturnUrl(req);
+
+		if (!documentIds.length) {
+			return res.redirect(safeReturnUrl);
+		}
+
+		const categoryId = req.body.documentCategory;
+
+		if (!categoryId) {
+			return this.renderCategorisationView(req, res, categories, [
+				{ text: 'Select a category', href: '#documentCategory' }
+			]);
+		}
+
+		try {
+			const result = await this.service.db.document.updateMany({
+				where: { id: { in: documentIds } },
+				data: {
+					categoryId: categoryId
+				}
+			});
+
+			addSessionData(req, id, { filesRecategorised: { count: result.count, categoryId: categoryId } }, 'folder');
+			delete req.session.publishFileIds;
+
+			return res.redirect(safeReturnUrl);
+		} catch (error) {
+			this.service.logger.error({ error, documentIds }, 'Failed to re-categorise documents');
+			return this.renderCategorisationView(req, res, categories, [
+				{ text: 'Failed to re-categorise documents, please try again.', href: '#' }
+			]);
+		}
+	}
+
+	/**
 	 * Reusable method to fetch context and render the categorisation Nunjucks view.
 	 * Handles both the initial GET request and POST validation/database failures.
 	 */
 	private async renderCategorisationView(
-		req: Request<ParamsDictionary, unknown, PublishRequestBody>,
+		req: Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
 		res: Response,
 		categories: typeof DOCUMENT_CATEGORIES,
 		errorSummary?: Array<{ text: string; href: string }>
 	) {
 		const documentIds = this.extractDocumentIds(req.session.publishFileIds);
 		const safeReturnUrl = this.getSafeReturnUrl(req);
-		const publishUrl = req.originalUrl.split('/confirmation')[0];
+		const actionUrl = req.originalUrl.split('/confirmation')[0];
 
 		if (!documentIds.length) {
 			return res.redirect(safeReturnUrl);
@@ -150,15 +202,16 @@ export class DocumentPublisher {
 			const context = await this.getDocumentsContext(documentIds);
 			const documents = Array.isArray(context?.documents) ? context.documents : [];
 
-			return res.render('views/s62a/cases/view/folders/folder/publish/categorisation.njk', {
+			return res.render('views/s62a/cases/view/folders/util/categorisation.njk', {
 				pageHeading: 'Categorise selected documents',
 				backLinkUrl: safeReturnUrl,
 				returnUrl: safeReturnUrl,
 				documents,
-				publishUrl: isValidRedirectUri(publishUrl) ? publishUrl : '/',
+				actionUrl: isValidRedirectUri(actionUrl) ? actionUrl : '/',
 				categories,
 				reference: documents[0]?.S62aCase?.reference,
-				errorSummary
+				errorSummary,
+				isPublish: this.type === 'publish'
 			});
 		} catch (error) {
 			wrapPrismaError({
@@ -202,9 +255,9 @@ export class DocumentPublisher {
 	/**
 	 * Grabs the safe URL to return to
 	 */
-	private getSafeReturnUrl(req: Request<ParamsDictionary, unknown, PublishRequestBody>): string {
+	private getSafeReturnUrl(req: Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>): string {
 		const returnUrl = typeof req.body?.returnUrl === 'string' ? req.body.returnUrl : '';
-		const fallbackUrl = req.originalUrl.split('/publish/documents')[0];
+		const fallbackUrl = req.originalUrl.split(`/${this.type}/documents`)[0];
 
 		if (isValidRedirectUri(returnUrl)) {
 			return returnUrl;

@@ -18,7 +18,16 @@ export function buildViewCaseFolders(service: ManageService): AsyncRequestHandle
 			[caseRow, folders] = await Promise.all([
 				db.s62aCase.findUnique({
 					select: {
-						reference: true
+						reference: true,
+						_count: {
+							select: {
+								Documents: {
+									where: {
+										publishDate: { not: null }
+									}
+								}
+							}
+						}
 					},
 					where: { id }
 				}),
@@ -41,12 +50,16 @@ export function buildViewCaseFolders(service: ManageService): AsyncRequestHandle
 
 		const foldersViewModel = createFoldersViewModel(folders);
 
+		// Boolean used to show a link to a special "folder" at the top for published docs, hidden if none.
+		const hasAtLeastOnePublishedDocument = (caseRow?._count.Documents ?? 0) > 0;
+
 		return res.render('views/s62a/cases/view/folders/view.njk', {
 			pageHeading: caseRow?.reference,
 			backLinkUrl: `/s62a/cases/${id}/overview`,
 			backLinkText: 'Back to overview',
 			folders: foldersViewModel,
-			currentUrl: req.originalUrl
+			currentUrl: req.originalUrl,
+			hasAtLeastOnePublishedDocument
 		});
 	};
 }

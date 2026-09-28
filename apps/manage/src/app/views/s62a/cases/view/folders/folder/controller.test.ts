@@ -91,7 +91,7 @@ describe('buildViewCaseFolder controller', () => {
 		const viewName = callArgs[0];
 		const payload = callArgs[1];
 
-		assert.strictEqual(viewName, 'views/s62a/cases/view/folders/folder/view.njk');
+		assert.strictEqual(viewName, 'views/s62a/cases/view/folders/util/shared-folder-view.njk');
 		assert.strictEqual(payload.reference, 'REF-001');
 		assert.strictEqual(payload.folderName, 'Original versions');
 		assert.strictEqual(payload.backLinkUrl, '/s62a/cases/case-123/case-folders/parent-789/representations');
