@@ -14,6 +14,7 @@ export const SHARED_AUDIT_ACTIONS = {
 	// Case
 	CASE_CREATED: 'CASE_CREATED',
 	CASE_PUBLISHED: 'CASE_PUBLISHED',
+	CASE_UNPUBLISHED: 'CASE_UNPUBLISHED',
 
 	// Standard fields
 	FIELD_SET: 'FIELD_SET',
@@ -66,6 +67,7 @@ export const SHARED_AUDIT_TEMPLATES: Record<SharedAuditAction, string> = {
 	// Case
 	[SHARED_AUDIT_ACTIONS.CASE_CREATED]: '{reference} was created',
 	[SHARED_AUDIT_ACTIONS.CASE_PUBLISHED]: '{reference} was published',
+	[SHARED_AUDIT_ACTIONS.CASE_UNPUBLISHED]: '{reference} was unpublished',
 
 	// Standard fields
 	[SHARED_AUDIT_ACTIONS.FIELD_SET]: '{fieldName} was set to {newValue}',
@@ -149,6 +151,5 @@ export function resolveAuditAction(
 
 	if (newValue === '-') return SHARED_AUDIT_ACTIONS.FIELD_CLEARED;
 	if (oldValue === '-') return SHARED_AUDIT_ACTIONS.FIELD_SET;
-
 	return SHARED_AUDIT_ACTIONS.FIELD_UPDATED;
 }
