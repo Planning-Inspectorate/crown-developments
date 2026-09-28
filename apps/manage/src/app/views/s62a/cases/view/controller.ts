@@ -146,6 +146,12 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 				? await getPreApplicationCaseOptions(db, id)
 				: [];
 
+		// ID → reference for the linkable pre-application cases, so the case
+		// history can show a newly linked case by its reference
+		res.locals.preApplicationCaseReferences = new Map(
+			preApplicationCaseOptions.map((option) => [option.value, option.text])
+		);
+
 		const questions = getQuestions(answers, {
 			isQuestionView,
 			groupMembers,
@@ -163,6 +169,13 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 			(Object.values(questions) as QuestionBase[])
 				.filter((q): q is QuestionBase & { fieldName: string; title: string } => Boolean(q?.fieldName && q?.title))
 				.map((q) => [q.fieldName, q.title])
+		);
+
+		// Entra user ID → display name, so the case history shows names rather than IDs
+		res.locals.userDisplayNameMap = new Map(
+			Object.values(groupMembers)
+				.flat()
+				.map((member) => [member.id, member.displayName])
 		);
 
 		res.locals.fieldDisplayNames = fieldDisplayNames;

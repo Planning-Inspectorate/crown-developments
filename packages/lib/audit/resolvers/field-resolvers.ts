@@ -1,4 +1,4 @@
-import { formatAddress, formatValue, formatDateTime } from '../../util/audit-formatters.ts';
+import { formatAddress, formatDate, formatValue, formatDateTime } from '../../util/audit-formatters.ts';
 import { camelCaseToSentenceCase } from '../../util/string.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_PROD } from '@pins/crowndev-database/src/seed/data-lpa-prod.ts';
@@ -183,6 +183,17 @@ export function createLookupResolver(
 }
 
 /**
+ * Lookup resolver for static reference data, e.g. a list of statuses.
+ * Shorthand for createLookupResolver with a display name map built from the items.
+ */
+export function lookupResolver(
+	fieldName: string,
+	items: ReadonlyArray<{ readonly id: string; readonly displayName: string }>
+): FieldResolver {
+	return createLookupResolver(fieldName, createDisplayNameMap(items));
+}
+
+/**
  * Lookup resolver for local planning authority ID fields.
  * The LPA list depends on the environment, so it is built from the context.
  */
@@ -234,6 +245,28 @@ export function addressResolver(previousCaseFieldName: string): FieldResolver {
 			return {
 				oldValue: formatAddress(oldAddress),
 				newValue: formatAddress(newAddress)
+			};
+		}
+	};
+}
+
+/**
+ * Formats a date-only value, returning '-' for empty values.
+ */
+function toDate(value: unknown): string {
+	if (value === null || value === undefined || value === '') return '-';
+	return formatDate(value as Date | string);
+}
+
+/**
+ * Resolver for date-only fields (no time component).
+ */
+export function dateResolver(fieldName: string): FieldResolver {
+	return {
+		resolve(previousCase, newAnswer) {
+			return {
+				oldValue: toDate(previousCase[fieldName]),
+				newValue: toDate(newAnswer)
 			};
 		}
 	};

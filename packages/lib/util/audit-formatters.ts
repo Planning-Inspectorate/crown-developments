@@ -1,4 +1,5 @@
 import { formatInTimeZone } from 'date-fns-tz';
+import { joinParts, toNumberText, toText } from '../audit/resolvers/util/values.ts';
 
 /**
  * Formats an address object into a comma-separated string for audit display.
@@ -148,4 +149,39 @@ export function formatMonetaryValue(value: unknown): string {
 		minimumFractionDigits: 2,
 		maximumFractionDigits: 2
 	}).format(numericValue);
+}
+
+/**
+ * Formats a number of days with a label, e.g. "Prep: 1 day" or "Sitting: 2.5 days".
+ * Returns undefined when there's no value, so it can be left out of a list
+ * (see joinParts).
+ */
+export function formatDayCount(label: string, value: unknown): string | undefined {
+	const days = toNumberText(value);
+	if (days === undefined) return undefined;
+
+	return `${label}: ${days} ${Number(days) === 1 ? 'day' : 'days'}`;
+}
+
+/**
+ * Formats a person's contact details as one value, e.g.
+ * "Test User One, one@example.com, 01234567890", leaving out any part that's
+ * empty. Returns '-' if none are set.
+ *
+ * The phone number is kept as text, so it keeps its leading zero.
+ */
+export function formatContactDetails({
+	firstName,
+	lastName,
+	email,
+	phone
+}: {
+	firstName?: unknown;
+	lastName?: unknown;
+	email?: unknown;
+	phone?: unknown;
+}): string {
+	const name = [toText(firstName), toText(lastName)].filter(Boolean).join(' ');
+
+	return joinParts([name || undefined, toText(email), toText(phone)]);
 }
