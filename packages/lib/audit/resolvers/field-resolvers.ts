@@ -253,7 +253,7 @@ export function addressResolver(previousCaseFieldName: string): FieldResolver {
 /**
  * Formats a date-only value, returning '-' for empty values.
  */
-function toDate(value: unknown): string {
+export function formatDateOrDash(value: unknown): string {
 	if (value === null || value === undefined || value === '') return '-';
 	return formatDate(value as Date | string);
 }
@@ -265,8 +265,8 @@ export function dateResolver(fieldName: string): FieldResolver {
 	return {
 		resolve(previousCase, newAnswer) {
 			return {
-				oldValue: toDate(previousCase[fieldName]),
-				newValue: toDate(newAnswer)
+				oldValue: formatDateOrDash(previousCase[fieldName]),
+				newValue: formatDateOrDash(newAnswer)
 			};
 		}
 	};

@@ -24,6 +24,7 @@ import {
 	createS62aFieldResolvers
 } from '../audit/field-resolvers.ts';
 import { S62A_GROUPED_FIELDS } from '../audit/grouped-fields.ts';
+import { S62A_LIST_RESOLVERS } from '../audit/list-resolvers.ts';
 
 /**
  * Save handler for S62A Case updates.
@@ -190,6 +191,7 @@ async function recordAuditEntries(
 				auditableFields: AUDITABLE_SCALAR_FIELDS,
 				longFields: LONG_AUDIT_FIELDS,
 				groupedFields: S62A_GROUPED_FIELDS,
+				listResolvers: S62A_LIST_RESOLVERS,
 				labels: S62A_AUDIT_FIELD_LABELS
 			},
 			questionLabels: res.locals.fieldDisplayNames as Record<string, string> | undefined,
