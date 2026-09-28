@@ -58,7 +58,7 @@ describe('buildViewCaseFolders', () => {
 			const res = mockRes();
 
 			mockDb.s62aCase.findUnique.mock.mockImplementation(() =>
-				Promise.resolve({ name: 'Test Case', reference: 'REF-001' })
+				Promise.resolve({ name: 'Test Case', reference: 'REF-001', _count: { Documents: 1 } })
 			);
 			mockDb.folder.findMany.mock.mockImplementation(() =>
 				Promise.resolve([
@@ -71,7 +71,16 @@ describe('buildViewCaseFolders', () => {
 
 			assert.strictEqual(mockDb.s62aCase.findUnique.mock.callCount(), 1);
 			assert.deepStrictEqual(mockDb.s62aCase.findUnique.mock.calls[0].arguments[0], {
-				select: { reference: true },
+				select: {
+					reference: true,
+					_count: {
+						select: {
+							Documents: {
+								where: { publishDate: { not: null } }
+							}
+						}
+					}
+				},
 				where: { id: 'case-123' }
 			});
 

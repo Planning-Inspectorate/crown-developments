@@ -22,7 +22,7 @@
                 <input type="hidden" name="_csrf" value="{{ _csrf }}">
                 <input type="hidden" name="returnUrl" value="{{ returnUrl }}">
 
-                <h2 class="govuk-heading-m">Documents to publish</h2>
+                <h2 class="govuk-heading-m">{{"Documents to publish" if isPublish else "Documents to categorise"}}</h2>
 
                 {{ publishTable(documents) }}
 
@@ -57,15 +57,17 @@
                     items: categoryItems
                 }) }}
 
-                {{ govukWarningText({
-                    text: "These documents will be published immediately.",
-                    iconFallbackText: "Warning"
-                }) }}
+                {% if isPublish %}
+                    {{ govukWarningText({
+                        text: "These documents will be published immediately.",
+                        iconFallbackText: "Warning"
+                    }) }}
+                {% endif %}
 
                 {{ govukButton({
-                    text: "Publish these documents",
+                    text: "Publish these documents" if isPublish else "Save",
                     attributes: {
-                        formaction: publishUrl
+                        formaction: actionUrl
                     }
                 }) }}
 

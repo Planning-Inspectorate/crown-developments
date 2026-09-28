@@ -9,12 +9,12 @@ import {
 	buildPublishFileController,
 	buildPublishFileView
 } from './controller.ts';
-import { DocumentPublisher } from './document-publisher.ts';
+import { DocumentCategorisationHandler } from '../../util/document-categorisation-handler.ts';
 
 export function createRoutes(service: ManageService): IRouter {
 	const router = createRouter({ mergeParams: true });
 
-	const publisher = new DocumentPublisher(service);
+	const publisher = new DocumentCategorisationHandler(service, 'publish');
 
 	const handlePublishSelection = buildHandlePublishSelection(publisher);
 	const publishFileView = buildPublishFileView(publisher);
