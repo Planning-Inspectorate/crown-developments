@@ -327,4 +327,44 @@ describe('createCaseHistoryViewModel', () => {
 
 		assert.strictEqual(result[0].longDetails, undefined);
 	});
+
+	it('should include the file names for bulk file actions', () => {
+		const events = [event({ action: 'FILES_DELETED', metadata: { files: ['Site map.pdf', 'Site map1.pdf'] } })];
+
+		const result = createCaseHistoryViewModel(events, SHARED_AUDIT_TEMPLATES);
+
+		assert.strictEqual(result[0].details, 'Files were removed');
+		assert.deepStrictEqual(result[0].fileList, ['Site map.pdf', 'Site map1.pdf']);
+	});
+
+	it('should use the zip name for bulk downloads', () => {
+		const events = [
+			event({
+				action: 'FILES_DOWNLOADED',
+				metadata: { zipName: 'case-bulk-download-2026-03-16.zip', files: ['Site map.pdf', 'Site map1.pdf'] }
+			})
+		];
+
+		const result = createCaseHistoryViewModel(events, SHARED_AUDIT_TEMPLATES);
+
+		assert.strictEqual(result[0].details, 'Files were downloaded into zip folder: case-bulk-download-2026-03-16.zip');
+		assert.deepStrictEqual(result[0].fileList, ['Site map.pdf', 'Site map1.pdf']);
+	});
+
+	it('should not add a file list to other actions', () => {
+		const events = [event({ action: 'FILE_DELETED', metadata: { fileName: 'Site map.pdf' } })];
+
+		const result = createCaseHistoryViewModel(events, SHARED_AUDIT_TEMPLATES);
+
+		assert.strictEqual(result[0].details, 'Site map.pdf was removed');
+		assert.strictEqual(result[0].fileList, undefined);
+	});
+
+	it('should ignore anything in the file list that is not a file name', () => {
+		const events = [event({ action: 'FILES_DELETED', metadata: { files: ['Site map.pdf', 42, null] } })];
+
+		const result = createCaseHistoryViewModel(events, SHARED_AUDIT_TEMPLATES);
+
+		assert.deepStrictEqual(result[0].fileList, ['Site map.pdf']);
+	});
 });
