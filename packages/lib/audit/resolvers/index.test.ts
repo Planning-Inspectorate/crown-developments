@@ -2,9 +2,11 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
 	booleanResolver,
+	dateResolver,
 	entraUserResolver,
 	monetaryResolver,
 	getFieldDisplayName,
+	lookupResolver,
 	resolveFieldValues,
 	type FieldResolverRegistry
 } from './index.ts';
@@ -12,7 +14,8 @@ import {
 const registry: FieldResolverRegistry = {
 	hasAgent: booleanResolver('hasAgent'),
 	caseOfficerId: entraUserResolver('caseOfficerId'),
-	applicationFee: monetaryResolver('applicationFee')
+	applicationFee: monetaryResolver('applicationFee'),
+	decisionDate: dateResolver('decisionDate')
 };
 
 describe('getFieldDisplayName', () => {
@@ -94,5 +97,53 @@ describe('monetaryResolver', () => {
 		const result = resolveFieldValues(registry, 'applicationFee', { applicationFee: 50 }, '');
 
 		assert.deepStrictEqual(result, { oldValue: '£50.00', newValue: '-' });
+	});
+});
+
+describe('dateResolver', () => {
+	it('formats dates without a time', () => {
+		const result = resolveFieldValues(
+			registry,
+			'decisionDate',
+			{ decisionDate: new Date('2026-01-01T00:00:00Z') },
+			new Date('2026-02-15T00:00:00Z')
+		);
+
+		assert.deepStrictEqual(result, { oldValue: '1 January 2026', newValue: '15 February 2026' });
+	});
+
+	it('returns "-" for empty values', () => {
+		const result = resolveFieldValues(registry, 'decisionDate', { decisionDate: null }, null);
+
+		assert.deepStrictEqual(result, { oldValue: '-', newValue: '-' });
+	});
+});
+
+describe('lookupResolver', () => {
+	const statuses = [
+		{ id: 'new', displayName: 'New' },
+		{ id: 'accepted', displayName: 'Accepted' }
+	];
+
+	it('resolves IDs to display names from the items', () => {
+		const result = resolveFieldValues(
+			{ statusId: lookupResolver('statusId', statuses) },
+			'statusId',
+			{ statusId: 'new' },
+			'accepted'
+		);
+
+		assert.deepStrictEqual(result, { oldValue: 'New', newValue: 'Accepted' });
+	});
+
+	it('shows unknown IDs as "[Unknown value]"', () => {
+		const result = resolveFieldValues(
+			{ statusId: lookupResolver('statusId', statuses) },
+			'statusId',
+			{},
+			'not-a-status'
+		);
+
+		assert.deepStrictEqual(result, { oldValue: '-', newValue: '[Unknown value]' });
 	});
 });

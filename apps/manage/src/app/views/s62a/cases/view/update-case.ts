@@ -9,70 +9,26 @@ import { s62aCaseToViewModel } from './view-model.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { S62A_VIEW_SELECT_INCLUDE } from './constants.ts';
 import { type AuditService, type AuditEntry } from '@pins/crowndev-lib/audit/index.ts';
-import { resolveFieldValues, getFieldDisplayName } from '@pins/crowndev-lib/audit/resolvers/index.ts';
+import {
+	resolveFieldValues,
+	resolveGroupedFieldChanges,
+	getFieldDisplayName
+} from '@pins/crowndev-lib/audit/resolvers/index.ts';
+import { getAuditUserId } from '@pins/crowndev-lib/audit/user.ts';
 import type { Logger } from 'pino';
 import { resolveAuditAction } from '@pins/crowndev-lib/audit/actions.ts';
 import { loadEnvironmentConfig, ENVIRONMENT_NAME } from '../../../../config.js';
-import type { S62aCaseViewModel } from './view-model.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { isPreApplicationAdviceGiven } from '../util/pre-application.ts';
 import { FOLDER_SYNC_RESULT, syncPreApplicationAdviceFolder } from '../util/folders.ts';
-import { S62A_FIELD_RESOLVERS } from '../audit/field-resolvers.ts';
-
-/**
- * Long-text fields that render with expandable old/new value details
- * instead of inline audit text.
- * */
-const LONG_AUDIT_FIELDS = new Set(['description', 'costsApplicationsComment']);
-
-/**
- * Scalar fields that should be audited when updated.
- * Only these fields will produce audit entries in recordAuditEntries.
- */
-const AUDITABLE_SCALAR_FIELDS = new Set([
-	// Directly editable scalar fields
-	'description',
-	'siteArea',
-	'lpaReference',
-	'agentOrganisationName',
-	'healthAndSafetyIssue',
-	'hearingVenue',
-	'inquiryVenue',
-
-	// Reference table fields (IDs that map to display names)
-	'typeId',
-	'lpaId',
-	'secondaryLpaId',
-	'decisionOutcomeId',
-	'subCategoryId',
-	'procedureId',
-	'statusId',
-	'stageId',
-
-	// Boolean fields
-	'hasSecondaryLpa',
-	'containsDistressingContent',
-	'hasAgent',
-	'nationallyImportant',
-	'isGreenBelt',
-	'siteIsVisibleFromPublicLand',
-	'environmentalImpactAssessment',
-	'developmentPlan',
-	'rightOfWay',
-	'eiaScreening',
-	'eiaScreeningOutcome',
-	'hasApplicationFee',
-	'eligibleForFeeRefund',
-	'cilLiable',
-	'bngExempt',
-	'hasCostsApplications',
-	'costsApplicationsComment',
-	// Monetary fields
-	'cilAmount',
-	'applicationFee',
-	'applicationFeeRefundAmount'
-]);
+import {
+	AUDITABLE_SCALAR_FIELDS,
+	LONG_AUDIT_FIELDS,
+	S62A_AUDIT_FIELD_LABELS,
+	S62A_FIELD_RESOLVERS
+} from '../audit/field-resolvers.ts';
+import { S62A_GROUPED_FIELDS } from '../audit/grouped-fields.ts';
 
 /**
  * Save handler for S62A Case updates.
@@ -85,12 +41,12 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 		const userId = req.session?.account?.localAccountId;
 
 		logger.info({ id }, 'S62A case update initiated');
-		const previousValues: Record<string, unknown> = {};
+		// The case as it was before this save, used to work out what changed
+		let previousCase: Record<string, unknown> = {};
 
 		const answers = data?.answers || {};
 
 		const updatedFieldNames = Object.keys(answers);
-		const answersSnapshot = { ...answers };
 
 		if (Object.keys(answers).length === 0) {
 			logger.info({ id }, 'No case updates to apply');
@@ -103,6 +59,10 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 				Object.assign(answers, { [key]: null });
 			});
 		}
+
+		// Snapshot taken after clearing, so 'Remove and save' is audited as a removal.
+		// Taken before the mapper runs, in case the mapper changes the answers.
+		const answersSnapshot = { ...answers };
 
 		let updateSucceeded = false;
 
@@ -152,11 +112,7 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 				}
 			});
 
-			for (const fieldName of updatedFieldNames) {
-				if (AUDITABLE_SCALAR_FIELDS.has(fieldName)) {
-					previousValues[fieldName] = viewModel[fieldName as keyof S62aCaseViewModel];
-				}
-			}
+			previousCase = viewModel as unknown as Record<string, unknown>;
 
 			updateSucceeded = true;
 
@@ -173,28 +129,97 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 		}
 
 		if (updateSucceeded && service.isAuditLive !== false) {
-			await recordAuditEntries(audit, id, userId, previousValues, answersSnapshot, updatedFieldNames, logger, res);
+			const referenceNames = await loadAuditReferenceNames(db, answersSnapshot, logger);
+			await recordAuditEntries(
+				audit,
+				id,
+				userId,
+				previousCase,
+				answersSnapshot,
+				updatedFieldNames,
+				logger,
+				res,
+				referenceNames
+			);
 		}
 	};
+}
+
+/**
+ * Looks up display names the audit needs that aren't static reference data.
+ *
+ * For now that's the reference of a newly linked pre-application case: the
+ * answer is the case's ID, and the history should show its reference. Only
+ * queried when that field is in the save. A failed lookup is logged and the
+ * audit falls back to the ID, so it can't block the save.
+ */
+async function loadAuditReferenceNames(
+	db: ManageService['db'],
+	answers: Record<string, unknown>,
+	logger: Logger
+): Promise<Record<string, Map<string, string>>> {
+	const referenceNames: Record<string, Map<string, string>> = {};
+
+	const preApplicationCaseId = answers.preApplicationCaseId;
+	if (typeof preApplicationCaseId === 'string' && preApplicationCaseId !== '') {
+		try {
+			const linkedCase = await db.s62aCase.findUnique({
+				where: { id: preApplicationCaseId },
+				select: { reference: true }
+			});
+
+			if (linkedCase?.reference) {
+				referenceNames.preApplicationCaseId = new Map([[preApplicationCaseId, linkedCase.reference]]);
+			}
+		} catch (error: unknown) {
+			logger.warn(
+				{ error, preApplicationCaseId },
+				'Could not look up the pre-application case reference for the audit'
+			);
+		}
+	}
+
+	return referenceNames;
 }
 
 async function recordAuditEntries(
 	audit: AuditService,
 	caseId: string,
 	userId: string | undefined,
-	previousValues: Record<string, unknown>,
+	previousCase: Record<string, unknown>,
 	answersSnapshot: Record<string, unknown>,
 	updatedFieldNames: string[],
 	logger: Logger,
-	res: Response
+	res: Response,
+	referenceNames: Record<string, Map<string, string>> = {}
 ): Promise<void> {
-	// Bail out early if userId is missing — audit.recordMany requires a userId for every entry
-	// and will throw/log when missing. This avoids noisy error logs and wasted work.
-	const auditUserId = userId || 'Unknown-user';
+	// Every entry needs a user, so fall back to the unknown user rather than losing the entries
+	const auditUserId = getAuditUserId(userId);
 	if (!userId) {
 		logger.warn({ caseId, updatedFieldNames }, 'Recording audit with unknown-user: no userId available');
 	}
+
 	try {
+		let envConfig: string;
+		try {
+			envConfig = loadEnvironmentConfig();
+		} catch {
+			envConfig = '';
+		}
+
+		const context = {
+			environmentConfig: envConfig,
+			environmentName: ENVIRONMENT_NAME,
+			userDisplayNameMap: res.locals.userDisplayNameMap as Map<string, string> | undefined,
+			referenceNames
+		};
+
+		// Audit labels take priority over question titles
+		const fieldLabels: Record<string, string> = {
+			...(res.locals.fieldDisplayNames as Record<string, string> | undefined),
+			...S62A_AUDIT_FIELD_LABELS
+		};
+
 		const allAuditEntries: AuditEntry[] = [];
 
 		// ── Scalar fields ────────────────────────────────────────────────
@@ -204,22 +229,12 @@ async function recordAuditEntries(
 				continue;
 			}
 
-			let envConfig: string;
-			try {
-				envConfig = loadEnvironmentConfig();
-			} catch {
-				envConfig = '';
-			}
-
 			const { oldValue, newValue } = resolveFieldValues(
 				S62A_FIELD_RESOLVERS,
 				fieldName,
-				previousValues,
+				previousCase,
 				answersSnapshot[fieldName],
-				{
-					environmentConfig: envConfig,
-					environmentName: ENVIRONMENT_NAME
-				}
+				context
 			);
 
 			if (oldValue === newValue) {
@@ -233,7 +248,27 @@ async function recordAuditEntries(
 				action,
 				userId: auditUserId,
 				metadata: {
-					fieldName: getFieldDisplayName(fieldName, res.locals.fieldDisplayNames as Record<string, string>),
+					fieldName: getFieldDisplayName(fieldName, fieldLabels),
+					oldValue,
+					newValue
+				}
+			});
+		}
+
+		// ── Multi-field inputs ───────────────────────────────────────────
+		// One entry per question, not one per input
+		for (const { fieldName, oldValue, newValue } of resolveGroupedFieldChanges(
+			S62A_GROUPED_FIELDS,
+			updatedFieldNames,
+			previousCase,
+			answersSnapshot
+		)) {
+			allAuditEntries.push({
+				caseId,
+				action: resolveAuditAction(oldValue, newValue),
+				userId: auditUserId,
+				metadata: {
+					fieldName: getFieldDisplayName(fieldName, fieldLabels),
 					oldValue,
 					newValue
 				}

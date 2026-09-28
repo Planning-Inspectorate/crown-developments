@@ -1,6 +1,8 @@
-import { defaultResolver, type FieldResolver, type ResolverContext } from './field-resolver.ts';
+import { defaultResolver, type FieldResolver, type ResolverContext } from './field-resolvers.ts';
 
-export * from './field-resolver.ts';
+export * from './field-resolvers.ts';
+export * from './grouped-fields.ts';
+export * from './util/values.ts';
 
 /**
  * A data model's field resolver registry, keyed by form field name.
