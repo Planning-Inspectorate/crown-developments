@@ -4,14 +4,15 @@ import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import type { Request, Response } from 'express';
 import type { Logger } from 'pino';
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
-import type { PublishOperation, UnpublishCaseFetcher } from '../util/types.ts';
+import type { PublishOperation, UnpublishCaseFetcher, CaseActionHook } from '../util/types.ts';
 import path from 'node:path';
 import { isValidRedirectUri } from '../util/uri.ts';
 
 export function buildSubmitUnpublishCase(
 	{ db, logger }: { db: PrismaClient; logger: Logger },
 	unpublishCaseFunction: PublishOperation,
-	caseCheckFunction: UnpublishCaseFetcher
+	caseCheckFunction: UnpublishCaseFetcher,
+	onUnpublished?: CaseActionHook
 ) {
 	return async (req: Request, res: Response) => {
 		const id = getStringParam(req.params, 'id');
@@ -33,6 +34,8 @@ export function buildSubmitUnpublishCase(
 				logParams: { id }
 			});
 		}
+
+		await onUnpublished?.(req, id);
 
 		const currentPath = req.originalUrl.split('?')[0];
 		const parentUrl = path.posix.dirname(currentPath);

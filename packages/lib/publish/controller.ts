@@ -5,14 +5,15 @@ import type { NextFunction, Request, Response } from 'express';
 import type { Logger } from 'pino';
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
-import type { CaseFetcher, PublishOperation, ValidationRuleBuilder } from '../util/types.ts';
+import type { CaseFetcher, PublishOperation, ValidationRuleBuilder, CaseActionHook } from '../util/types.ts';
 import path from 'node:path';
 import { isValidRedirectUri } from '../util/uri.ts';
 import type { BaseService } from '@planning-inspectorate/core/app';
 
 export function buildPublishCase(
 	{ db, logger }: { db: PrismaClient; logger: Logger },
-	publishCaseFunction: PublishOperation
+	publishCaseFunction: PublishOperation,
+	onPublished?: CaseActionHook
 ) {
 	return async (req: Request, res: Response) => {
 		const id = getStringParam(req.params, 'id');
@@ -28,6 +29,8 @@ export function buildPublishCase(
 				logParams: { id }
 			});
 		}
+
+		await onPublished?.(req, id);
 
 		const currentPath = req.originalUrl.split('?')[0];
 		const parentUrl = path.posix.dirname(currentPath);

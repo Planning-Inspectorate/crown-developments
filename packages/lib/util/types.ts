@@ -2,6 +2,7 @@ import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts'
 import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import type { Handler } from 'express';
 import type { BaseService } from '@planning-inspectorate/core/app';
+import type { Request } from 'express';
 
 export type YesNo = 'yes' | 'no';
 
@@ -66,3 +67,13 @@ export type CaseFetcher<T> = (db: PrismaClient, id: string) => Promise<T | null>
 export type UnpublishCaseFetcher<T = unknown> = (db: PrismaClient, id: string) => Promise<T | null>;
 export type PublishOperation<T = unknown> = (db: PrismaClient, id: string) => Promise<T>;
 export type ValidationRuleBuilder<T> = (fetchedCase: NonNullable<T>, id: string) => AnswerValidationError[];
+
+/**
+ * An optional step run after a case action (e.g. publish) has succeeded, such
+ * as recording it in the case history. Shared handlers take one of these so
+ * each data model can add its own behaviour without the handler knowing about it.
+ *
+ * It must not throw: the action has already succeeded, so a hook should handle
+ * its own errors.
+ */
+export type CaseActionHook = (req: Request, caseId: string) => Promise<void>;
