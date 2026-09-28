@@ -8,71 +8,22 @@ import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { s62aCaseToViewModel } from './view-model.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { S62A_VIEW_SELECT_INCLUDE } from './constants.ts';
-import { type AuditService, type AuditEntry } from '@pins/crowndev-lib/audit/index.ts';
-import { resolveFieldValues, getFieldDisplayName } from '@pins/crowndev-lib/audit/resolvers/index.ts';
+import type { AuditService } from '@pins/crowndev-lib/audit/index.ts';
+import { resolveCaseUpdateAudits } from '@pins/crowndev-lib/audit/resolvers/index.ts';
+import { getAuditUserId } from '@pins/crowndev-lib/audit/user.ts';
 import type { Logger } from 'pino';
-import { resolveAuditAction } from '@pins/crowndev-lib/audit/actions.ts';
 import { loadEnvironmentConfig, ENVIRONMENT_NAME } from '../../../../config.js';
-import type { S62aCaseViewModel } from './view-model.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { isPreApplicationAdviceGiven } from '../util/pre-application.ts';
 import { FOLDER_SYNC_RESULT, syncPreApplicationAdviceFolder } from '../util/folders.ts';
-import { S62A_FIELD_RESOLVERS } from '../audit/field-resolvers.ts';
-
-/**
- * Long-text fields that render with expandable old/new value details
- * instead of inline audit text.
- * */
-const LONG_AUDIT_FIELDS = new Set(['description', 'costsApplicationsComment']);
-
-/**
- * Scalar fields that should be audited when updated.
- * Only these fields will produce audit entries in recordAuditEntries.
- */
-const AUDITABLE_SCALAR_FIELDS = new Set([
-	// Directly editable scalar fields
-	'description',
-	'siteArea',
-	'lpaReference',
-	'agentOrganisationName',
-	'healthAndSafetyIssue',
-	'hearingVenue',
-	'inquiryVenue',
-
-	// Reference table fields (IDs that map to display names)
-	'typeId',
-	'lpaId',
-	'secondaryLpaId',
-	'decisionOutcomeId',
-	'subCategoryId',
-	'procedureId',
-	'statusId',
-	'stageId',
-
-	// Boolean fields
-	'hasSecondaryLpa',
-	'containsDistressingContent',
-	'hasAgent',
-	'nationallyImportant',
-	'isGreenBelt',
-	'siteIsVisibleFromPublicLand',
-	'environmentalImpactAssessment',
-	'developmentPlan',
-	'rightOfWay',
-	'eiaScreening',
-	'eiaScreeningOutcome',
-	'hasApplicationFee',
-	'eligibleForFeeRefund',
-	'cilLiable',
-	'bngExempt',
-	'hasCostsApplications',
-	'costsApplicationsComment',
-	// Monetary fields
-	'cilAmount',
-	'applicationFee',
-	'applicationFeeRefundAmount'
-]);
+import {
+	AUDITABLE_SCALAR_FIELDS,
+	LONG_AUDIT_FIELDS,
+	S62A_AUDIT_FIELD_LABELS,
+	createS62aFieldResolvers
+} from '../audit/field-resolvers.ts';
+import { S62A_GROUPED_FIELDS } from '../audit/grouped-fields.ts';
 
 /**
  * Save handler for S62A Case updates.
@@ -85,12 +36,12 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 		const userId = req.session?.account?.localAccountId;
 
 		logger.info({ id }, 'S62A case update initiated');
-		const previousValues: Record<string, unknown> = {};
+		// The case as it was before this save, used to work out what changed
+		let previousCase: Record<string, unknown> = {};
 
 		const answers = data?.answers || {};
 
 		const updatedFieldNames = Object.keys(answers);
-		const answersSnapshot = { ...answers };
 
 		if (Object.keys(answers).length === 0) {
 			logger.info({ id }, 'No case updates to apply');
@@ -103,6 +54,10 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 				Object.assign(answers, { [key]: null });
 			});
 		}
+
+		// Snapshot taken after clearing, so 'Remove and save' is audited as a removal.
+		// Taken before the mapper runs, in case the mapper changes the answers.
+		const answersSnapshot = { ...answers };
 
 		let updateSucceeded = false;
 
@@ -152,11 +107,11 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 				}
 			});
 
-			for (const fieldName of updatedFieldNames) {
-				if (AUDITABLE_SCALAR_FIELDS.has(fieldName)) {
-					previousValues[fieldName] = viewModel[fieldName as keyof S62aCaseViewModel];
-				}
-			}
+			// The whole case, not just the fields in this save: some entries need
+			// fields that didn't change, e.g. the rest of a multi-field question, or
+			// the linked pre-application case's reference. It's the view model we've
+			// already loaded for the save, so this costs nothing extra.
+			previousCase = viewModel as unknown as Record<string, unknown>;
 
 			updateSucceeded = true;
 
@@ -173,74 +128,81 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 		}
 
 		if (updateSucceeded && service.isAuditLive !== false) {
-			await recordAuditEntries(audit, id, userId, previousValues, answersSnapshot, updatedFieldNames, logger, res);
+			await recordAuditEntries(audit, logger, res, {
+				caseId: id,
+				userId,
+				previousCase,
+				answers: answersSnapshot,
+				updatedFieldNames
+			});
 		}
 	};
 }
 
+/**
+ * Records the save in the case history. The entries are worked out in lib
+ * (resolveCaseUpdateAudits); this only supplies the S62A configuration.
+ * Audit failures are logged and never block the user's save.
+ */
 async function recordAuditEntries(
 	audit: AuditService,
-	caseId: string,
-	userId: string | undefined,
-	previousValues: Record<string, unknown>,
-	answersSnapshot: Record<string, unknown>,
-	updatedFieldNames: string[],
 	logger: Logger,
-	res: Response
+	res: Response,
+	{
+		caseId,
+		userId,
+		previousCase,
+		answers,
+		updatedFieldNames
+	}: {
+		caseId: string;
+		userId: string | undefined;
+		previousCase: Record<string, unknown>;
+		answers: Record<string, unknown>;
+		updatedFieldNames: string[];
+	}
 ): Promise<void> {
-	// Bail out early if userId is missing — audit.recordMany requires a userId for every entry
-	// and will throw/log when missing. This avoids noisy error logs and wasted work.
-	const auditUserId = userId || 'Unknown-user';
+	// Every entry needs a user, so fall back to the unknown user rather than losing the entries
+	const auditUserId = getAuditUserId(userId);
 	if (!userId) {
 		logger.warn({ caseId, updatedFieldNames }, 'Recording audit with unknown-user: no userId available');
 	}
+
 	try {
-		const allAuditEntries: AuditEntry[] = [];
-
-		// ── Scalar fields ────────────────────────────────────────────────
-		for (const fieldName of updatedFieldNames) {
-			// Only audit fields in the auditable set
-			if (!AUDITABLE_SCALAR_FIELDS.has(fieldName)) {
-				continue;
-			}
-
-			let envConfig: string;
-			try {
-				envConfig = loadEnvironmentConfig();
-			} catch {
-				envConfig = '';
-			}
-
-			const { oldValue, newValue } = resolveFieldValues(
-				S62A_FIELD_RESOLVERS,
-				fieldName,
-				previousValues,
-				answersSnapshot[fieldName],
-				{
-					environmentConfig: envConfig,
-					environmentName: ENVIRONMENT_NAME
-				}
-			);
-
-			if (oldValue === newValue) {
-				continue;
-			}
-
-			const action = resolveAuditAction(oldValue, newValue, LONG_AUDIT_FIELDS.has(fieldName));
-
-			allAuditEntries.push({
-				caseId,
-				action,
-				userId: auditUserId,
-				metadata: {
-					fieldName: getFieldDisplayName(fieldName, res.locals.fieldDisplayNames as Record<string, string>),
-					oldValue,
-					newValue
-				}
-			});
+		let envConfig: string;
+		try {
+			envConfig = loadEnvironmentConfig();
+		} catch {
+			envConfig = '';
 		}
 
-		await audit.recordMany(allAuditEntries, CASE_DATA_MODEL.S62A);
+		const entries = resolveCaseUpdateAudits({
+			caseId,
+			userId: auditUserId,
+			updatedFieldNames,
+			previousCase,
+			answers,
+			config: {
+				// Set by the journey middleware, from the linkable pre-application cases it loads
+				fieldResolvers: createS62aFieldResolvers(
+					res.locals.preApplicationCaseReferences as ReadonlyMap<string, string> | undefined
+				),
+				auditableFields: AUDITABLE_SCALAR_FIELDS,
+				longFields: LONG_AUDIT_FIELDS,
+				groupedFields: S62A_GROUPED_FIELDS,
+				labels: S62A_AUDIT_FIELD_LABELS
+			},
+			questionLabels: res.locals.fieldDisplayNames as Record<string, string> | undefined,
+			context: {
+				environmentConfig: envConfig,
+				environmentName: ENVIRONMENT_NAME,
+				userDisplayNameMap: res.locals.userDisplayNameMap as Map<string, string> | undefined
+			}
+		});
+
+		if (entries.length > 0) {
+			await audit.recordMany(entries, CASE_DATA_MODEL.S62A);
+		}
 	} catch (error: unknown) {
 		// Audit failures should never block the user's operation.
 		// The case data has already been saved successfully above.

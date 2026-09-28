@@ -1,6 +1,13 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { formatAddress, formatDate, formatValue, formatNumber } from './audit-formatters.ts';
+import {
+	formatAddress,
+	formatDate,
+	formatValue,
+	formatNumber,
+	formatDayCount,
+	formatContactDetails
+} from './audit-formatters.ts';
 
 describe('Audit Formatters', () => {
 	describe('formatAddress', () => {
@@ -163,6 +170,35 @@ describe('Audit Formatters', () => {
 
 		it('should stringify a numeric string', () => {
 			assert.strictEqual(formatNumber('10'), '10');
+		});
+	});
+
+	describe('formatDayCount', () => {
+		it('should use "day" for one and "days" otherwise', () => {
+			assert.strictEqual(formatDayCount('Prep', 1), 'Prep: 1 day');
+			assert.strictEqual(formatDayCount('Sitting', '2.5'), 'Sitting: 2.5 days');
+		});
+
+		it('should return undefined when there is no value', () => {
+			assert.strictEqual(formatDayCount('Prep', ''), undefined);
+			assert.strictEqual(formatDayCount('Prep', null), undefined);
+		});
+	});
+
+	describe('formatContactDetails', () => {
+		it('should join the parts that are set', () => {
+			assert.strictEqual(
+				formatContactDetails({ firstName: 'Test', lastName: 'User One', email: 'one@example.com' }),
+				'Test User One, one@example.com'
+			);
+		});
+
+		it('should keep the leading zero on phone numbers', () => {
+			assert.strictEqual(formatContactDetails({ firstName: 'Test', phone: '01234567890' }), 'Test, 01234567890');
+		});
+
+		it('should return "-" when nothing is set', () => {
+			assert.strictEqual(formatContactDetails({}), '-');
 		});
 	});
 });
