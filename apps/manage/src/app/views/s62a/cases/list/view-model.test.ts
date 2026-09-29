@@ -89,8 +89,7 @@ describe('Case list view model', () => {
 				status: undefined,
 				type: 'Planning permission',
 				applicantOrganisations: ['Applicant organisation 1', 'Applicant organisation 2'],
-				location: 'Site Street, Site Town, Site ONE',
-				sortByReferenceThenDate: '000001-2025-10-11T23:00:00.000Z'
+				location: 'Site Street, Site Town, Site ONE'
 			});
 		});
 		it('should map applicantOrganisations if present', () => {

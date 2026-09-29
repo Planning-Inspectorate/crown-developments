@@ -121,10 +121,12 @@ export function toCreateInput(
  * Works for both formats: 'S62A/YYYY/XXXXXXX/PRE' and 'S62A/YYYY/XXXXXXX'
  */
 function idFromS62aReference(reference: string): number | null {
-	const match = reference.match(/\/(\d{7})(?:[^\d]|$)/);
-	if (!match) return null;
+	const parts = reference.split('/');
 
-	const parsed = parseInt(match[1], 10);
+	const idPart = parts[2];
+	if (!idPart || idPart.length !== 7) return null;
+
+	const parsed = parseInt(idPart);
 	return isNaN(parsed) ? null : parsed;
 }
 

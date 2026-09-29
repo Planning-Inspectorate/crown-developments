@@ -36,25 +36,6 @@ export type S62ACasePayload = Prisma.S62aCaseGetPayload<{
 	select: typeof s62aCaseSelect;
 }>;
 
-function getSortByReferenceThenDate(s62aCases: S62ACasePayload): string | undefined {
-	if (!s62aCases?.reference) return undefined;
-
-	const parts = s62aCases.reference.split('/');
-	const parsedRef = parts.length > 3 ? parts.slice(-2, -1).join('/') : parts.slice(-1).join('/');
-	const refVal =
-		parsedRef || (Array.isArray(s62aCases?.reference) ? s62aCases.reference.join('/') : s62aCases?.reference);
-
-	let refTime = '';
-	if (s62aCases.createdDate) {
-		const dateObj = new Date(s62aCases.createdDate);
-		if (!isNaN(dateObj.getTime())) {
-			refTime = dateObj.toISOString();
-		}
-	}
-
-	return refTime ? `${refVal}-${refTime}` : refVal;
-}
-
 export function s62aToViewModel(s62aCases: S62ACasePayload) {
 	const fields = {
 		id: s62aCases.id,
@@ -70,8 +51,7 @@ export function s62aToViewModel(s62aCases: S62ACasePayload) {
 			).map((item) => item.Organisation!.name) ?? [],
 		location: '',
 		referenceLink:
-			'<a class="govuk-link" href="/s62a/cases/' + s62aCases.id + '">' + insertWbr(s62aCases.reference) + '</a>',
-		sortByReferenceThenDate: getSortByReferenceThenDate(s62aCases) ?? s62aCases.reference ?? ''
+			'<a class="govuk-link" href="/s62a/cases/' + s62aCases.id + '">' + insertWbr(s62aCases.reference) + '</a>'
 	};
 	if (s62aCases.SiteAddress) {
 		const address = addressToViewModel(s62aCases.SiteAddress);
