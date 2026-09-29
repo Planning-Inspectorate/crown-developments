@@ -7,6 +7,7 @@ import type { ParamsDictionary } from 'express-serve-static-core';
 import { isValidRedirectUri } from '@pins/crowndev-lib/util/uri.ts';
 import { FILE_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/files.ts';
 import { recordS62aFileAudit } from '../../../../audit/files.ts';
+import { BaseDocumentAction, type DocumentSessionKey } from '../../util/base-document-action.ts';
 
 export interface DeleteRequestBody {
 	selectedFiles?: string | string[];
@@ -16,36 +17,20 @@ export interface DeleteRequestBody {
 /**
  * Class to handle the soft deleting of documents within a folder in S62A
  */
-export class DocumentDeleter {
-	service: ManageService;
+export class DocumentDeleter extends BaseDocumentAction {
+	protected sessionKey: DocumentSessionKey = 'deleteFilesIds';
+	protected actionName = 'delete';
+	protected emptySelectionMessage = 'Select file(s) to delete';
+
 	constructor(service: ManageService) {
-		this.service = service;
-	}
-
-	/**
-	 * Validates, saves IDs to the session, and redirects to the GET confirmation view.
-	 */
-	public handleSelection(req: Request<ParamsDictionary, unknown, DeleteRequestBody>, res: Response) {
-		const selectedFiles = req.body?.selectedFiles;
-		const id = getStringParam(req.params, 'id');
-		const safeReturnUrl = this.getSafeReturnUrl(req);
-
-		const documentIds = this.extractDocumentIds(selectedFiles);
-
-		if (!documentIds.length) {
-			addSessionData(req, id, { filesErrors: [{ text: 'Select file(s) to delete', href: '#' }] }, 'folder');
-			return res.redirect(safeReturnUrl);
-		}
-
-		req.session.deleteFilesIds = documentIds;
-		return res.redirect(isValidRedirectUri(req.originalUrl) ? req.originalUrl : '/');
+		super(service);
 	}
 
 	/**
 	 * Reads the document IDs from the session instead of a POST body.
 	 */
 	public async renderConfirmation(req: Request<ParamsDictionary, unknown, DeleteRequestBody>, res: Response) {
-		const documentIds = this.extractDocumentIds(req.session.deleteFilesIds);
+		const documentIds = this.extractDocumentIds(req.session[this.sessionKey]);
 		const safeReturnUrl = this.getSafeReturnUrl(req);
 		const deleteUrl = req.originalUrl.split('/confirmation')[0];
 
@@ -54,7 +39,13 @@ export class DocumentDeleter {
 		}
 
 		try {
-			const context = await this.getDocumentsContext(documentIds);
+			const context = await this.getDocumentsContext(documentIds, {
+				s62aCaseId: true,
+				deletedAt: true,
+				Folder: {
+					select: { id: true, displayName: true }
+				}
+			});
 			const documents = Array.isArray(context?.documents) ? context.documents : [];
 
 			return res.render('views/s62a/cases/view/folders/folder/delete/confirmation.njk', {
@@ -81,7 +72,7 @@ export class DocumentDeleter {
 	public async executeDelete(req: Request<ParamsDictionary, unknown, DeleteRequestBody>, res: Response) {
 		const id = getStringParam(req.params, 'id');
 		const safeReturnUrl = this.getSafeReturnUrl(req);
-		const documentIds = this.extractDocumentIds(req.session.deleteFilesIds);
+		const documentIds = this.extractDocumentIds(req.session[this.sessionKey]);
 
 		if (!documentIds.length) {
 			return res.redirect(safeReturnUrl);
@@ -104,7 +95,8 @@ export class DocumentDeleter {
 			);
 
 			addSessionData(req, id, { filesDeleted: context.documents.length }, 'folder');
-			delete req.session.deleteFilesIds;
+
+			delete req.session[this.sessionKey];
 
 			return res.redirect(safeReturnUrl);
 		} catch (error) {
@@ -120,67 +112,6 @@ export class DocumentDeleter {
 				errorSummary: [{ text: 'Failed to delete documents, please try again.' }]
 			});
 		}
-	}
-
-	/**
-	 * Acts as a middleman, as a single in-line delete comes from a GET href
-	 * So we use this middleman to attach the document to the session the same
-	 * as the PRG and redirect.
-	 */
-	public handleSingleSelection(req: Request, res: Response) {
-		const documentId = getStringParam(req.params, 'documentId');
-
-		req.session.deleteFilesIds = [documentId];
-
-		const basePath = req.originalUrl.split(`/delete/${documentId}`)[0];
-		const redirectUrl = `${basePath}/delete/documents/confirmation`;
-
-		return res.redirect(isValidRedirectUri(redirectUrl) ? redirectUrl : '/');
-	}
-
-	/**
-	 * Normalises the passed Ids into an array of strings
-	 */
-	private extractDocumentIds(rawIds: string | string[] | undefined): string[] {
-		const values = Array.isArray(rawIds) ? rawIds : [rawIds];
-		return values.filter((id): id is string => typeof id === 'string' && id.length > 0);
-	}
-
-	/**
-	 * Grabs the data associated with the documents to be deleted.
-	 */
-	private async getDocumentsContext(documentIds: string[]) {
-		const documents = await this.service.db.document.findMany({
-			select: {
-				id: true,
-				fileName: true,
-				s62aCaseId: true,
-				deletedAt: true,
-				Folder: {
-					select: { id: true, displayName: true }
-				}
-			},
-			where: { id: { in: documentIds } }
-		});
-
-		if (!documents || !documents.length) {
-			throw new Error(`No documents found for provided ids`);
-		}
-
-		return { documents };
-	}
-
-	/**
-	 * Grabs the safe URL to return to
-	 */
-	private getSafeReturnUrl(req: Request<ParamsDictionary, unknown, DeleteRequestBody>): string {
-		const returnUrl = typeof req.body?.returnUrl === 'string' ? req.body.returnUrl : '';
-		const fallbackUrl = req.originalUrl.split('/delete/documents')[0];
-
-		if (isValidRedirectUri(returnUrl)) {
-			return returnUrl;
-		}
-		return isValidRedirectUri(fallbackUrl) ? fallbackUrl : '/';
 	}
 
 	/**
