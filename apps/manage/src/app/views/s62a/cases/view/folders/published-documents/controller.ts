@@ -72,7 +72,9 @@ export function buildViewPublishedDocuments(service: ManageService): AsyncReques
 			'folder'
 		);
 
-		const banner = getBannerMessages(filesRecategorised, errorSummary);
+		const filesUnpublished = popSessionData<number | false>(req, id, 'filesUnpublished', false, 'folder');
+
+		const banner = getBannerMessages(filesRecategorised, filesUnpublished, errorSummary);
 
 		const paginationParams = createPaginationParams(req, totalDocCount);
 		// We have to cast below because even though publishDate is in the WHERE clause as existing, Prisma thinks it could be null.
@@ -113,16 +115,27 @@ export function buildViewPublishedDocuments(service: ManageService): AsyncReques
  */
 function getBannerMessages(
 	filesRecategorised: { count: number; categoryId: string } | false,
+	filesUnpublished: number | false,
 	errorSummary?: { text: string }[] | boolean
 ) {
-	if (errorSummary || filesRecategorised === false) {
+	if (errorSummary) {
 		return null;
 	}
 
-	const count = filesRecategorised.count;
-	const category = DOCUMENT_CATEGORIES.find((category) => category.id === filesRecategorised.categoryId)?.displayName;
-
 	const bannerBuilder = new BannerBuilder();
-	bannerBuilder.addSuccessText(`${count} selected ${count === 1 ? 'file' : 'files'} recategorised to ${category}`);
+
+	if (filesRecategorised !== false) {
+		const count = filesRecategorised.count;
+		const category = DOCUMENT_CATEGORIES.find((category) => category.id === filesRecategorised.categoryId)?.displayName;
+
+		bannerBuilder.addSuccessText(`${count} selected ${count === 1 ? 'file' : 'files'} recategorised to ${category}`);
+	}
+
+	if (typeof filesUnpublished === 'number') {
+		bannerBuilder.addSuccessText(
+			`${filesUnpublished} selected ${filesUnpublished === 1 ? 'file' : 'files'} unpublished`
+		);
+	}
+
 	return bannerBuilder.build();
 }

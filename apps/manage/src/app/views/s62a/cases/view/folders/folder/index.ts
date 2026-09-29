@@ -7,6 +7,7 @@ import { createRoutes as createUploadRoutes } from './upload/index.ts';
 import { createRoutes as createDownloadRoutes } from './download/index.ts';
 import { createRoutes as createDeleteRoutes } from './delete/index.ts';
 import { createRoutes as createPublishRoutes } from './publish/index.ts';
+import { createRoutes as createUnpublishRoutes } from './unpublish/index.ts';
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });
@@ -15,6 +16,7 @@ export function createRoutes(service: ManageService) {
 	const downloadRoutes = createDownloadRoutes(service);
 	const deleteRoutes = createDeleteRoutes(service);
 	const publishRoutes = createPublishRoutes(service);
+	const unpublishRoutes = createUnpublishRoutes(service);
 
 	const viewCaseFolder = buildViewCaseFolder(service);
 
@@ -35,6 +37,8 @@ export function createRoutes(service: ManageService) {
 	if (service.isS62APortalLive) {
 		// Mounts the publish routes
 		router.use('/publish', publishRoutes);
+		// Mounts the unpublish routes
+		router.use('/unpublish', unpublishRoutes);
 	}
 
 	return router;

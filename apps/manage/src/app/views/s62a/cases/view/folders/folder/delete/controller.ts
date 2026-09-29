@@ -8,8 +8,8 @@ interface DeleteRequestBody {
 }
 
 export function buildHandleDeleteSelection(deleter: DocumentDeleter) {
-	return (req: Request<ParamsDictionary, unknown, DeleteRequestBody>, res: Response) => {
-		deleter.handleSelection(req, res);
+	return async (req: Request<ParamsDictionary, unknown, DeleteRequestBody>, res: Response) => {
+		await deleter.handleSelection(req, res);
 	};
 }
 

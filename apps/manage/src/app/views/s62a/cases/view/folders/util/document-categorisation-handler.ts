@@ -6,6 +6,7 @@ import type { ParamsDictionary } from 'express-serve-static-core';
 import { isValidRedirectUri } from '@pins/crowndev-lib/util/uri.ts';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import type { DOCUMENT_CATEGORIES } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import { BaseDocumentAction, type DocumentSessionKey } from './base-document-action.ts';
 
 export interface CategorisationHandlerRequestBody {
 	selectedFiles?: string | string[];
@@ -15,20 +16,26 @@ export interface CategorisationHandlerRequestBody {
 
 /**
  * Class to handle publishing / categorising of documents.
- *
- * Publishing vs categorising is basically identical, except that end db query
- * will be different, as such they use the same class with a flag
  */
-export class DocumentCategorisationHandler {
-	service: ManageService;
+export class DocumentCategorisationHandler extends BaseDocumentAction {
+	protected sessionKey: DocumentSessionKey = 'publishFileIds';
+	protected actionName: string;
+	protected emptySelectionMessage: string;
+
 	type: 'publish' | 'categorise';
+
 	constructor(service: ManageService, type: 'publish' | 'categorise') {
-		this.service = service;
+		super(service);
 		this.type = type;
+
+		// Dynamically set properties required by the base class
+		this.actionName = type;
+		this.emptySelectionMessage = `Select file(s) to ${type}`;
 	}
 
 	/**
-	 * Validates, saves IDs to the session, and redirects to the GET confirmation view.
+	 * Overrides the base handleSelection because 'publish' requires an
+	 * async database check before allowing the IDs to be saved to the session.
 	 */
 	public async handleSelection(
 		req: Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
@@ -39,7 +46,7 @@ export class DocumentCategorisationHandler {
 		const safeReturnUrl = this.getSafeReturnUrl(req);
 
 		if (!documentIds.length) {
-			addSessionData(req, id, { filesErrors: [{ text: `Select file(s) to ${this.type}`, href: '#' }] }, 'folder');
+			addSessionData(req, id, { filesErrors: [{ text: this.emptySelectionMessage, href: '#' }] }, 'folder');
 			return res.redirect(safeReturnUrl);
 		}
 
@@ -55,24 +62,8 @@ export class DocumentCategorisationHandler {
 			return res.redirect(safeReturnUrl);
 		}
 
-		req.session.publishFileIds = documentIds;
+		req.session[this.sessionKey] = documentIds;
 		return res.redirect(isValidRedirectUri(req.originalUrl) ? req.originalUrl : '/');
-	}
-
-	/**
-	 * Acts as a middleman, as a single in-line publish comes from a GET href
-	 * So we use this middleman to attach the document to the session the same
-	 * as the PRG and redirect.
-	 */
-	public handleSingleSelection(req: Request, res: Response) {
-		const documentId = getStringParam(req.params, 'documentId');
-
-		req.session.publishFileIds = [documentId];
-
-		const basePath = req.originalUrl.split(`/${this.type}/${documentId}`)[0];
-		const redirectUrl = `${basePath}/${this.type}/documents/confirmation`;
-
-		return res.redirect(isValidRedirectUri(redirectUrl) ? redirectUrl : '/');
 	}
 
 	/**
@@ -95,7 +86,7 @@ export class DocumentCategorisationHandler {
 		categories: typeof DOCUMENT_CATEGORIES
 	) {
 		const id = getStringParam(req.params, 'id');
-		const documentIds = this.extractDocumentIds(req.session.publishFileIds);
+		const documentIds = this.extractDocumentIds(req.session[this.sessionKey]);
 		const safeReturnUrl = this.getSafeReturnUrl(req);
 
 		if (!documentIds.length) {
@@ -125,7 +116,7 @@ export class DocumentCategorisationHandler {
 			});
 
 			addSessionData(req, id, { filesPublished: result.count }, 'folder');
-			delete req.session.publishFileIds;
+			delete req.session[this.sessionKey];
 
 			return res.redirect(safeReturnUrl);
 		} catch (error) {
@@ -145,7 +136,7 @@ export class DocumentCategorisationHandler {
 		categories: typeof DOCUMENT_CATEGORIES
 	) {
 		const id = getStringParam(req.params, 'id');
-		const documentIds = this.extractDocumentIds(req.session.publishFileIds);
+		const documentIds = this.extractDocumentIds(req.session[this.sessionKey]);
 		const safeReturnUrl = this.getSafeReturnUrl(req);
 
 		if (!documentIds.length) {
@@ -169,7 +160,7 @@ export class DocumentCategorisationHandler {
 			});
 
 			addSessionData(req, id, { filesRecategorised: { count: result.count, categoryId: categoryId } }, 'folder');
-			delete req.session.publishFileIds;
+			delete req.session[this.sessionKey];
 
 			return res.redirect(safeReturnUrl);
 		} catch (error) {
@@ -182,7 +173,6 @@ export class DocumentCategorisationHandler {
 
 	/**
 	 * Reusable method to fetch context and render the categorisation Nunjucks view.
-	 * Handles both the initial GET request and POST validation/database failures.
 	 */
 	private async renderCategorisationView(
 		req: Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>,
@@ -190,7 +180,7 @@ export class DocumentCategorisationHandler {
 		categories: typeof DOCUMENT_CATEGORIES,
 		errorSummary?: Array<{ text: string; href: string }>
 	) {
-		const documentIds = this.extractDocumentIds(req.session.publishFileIds);
+		const documentIds = this.extractDocumentIds(req.session[this.sessionKey]);
 		const safeReturnUrl = this.getSafeReturnUrl(req);
 		const actionUrl = req.originalUrl.split('/confirmation')[0];
 
@@ -199,7 +189,11 @@ export class DocumentCategorisationHandler {
 		}
 
 		try {
-			const context = await this.getDocumentsContext(documentIds);
+			// Request the extra relational fields unique to the categorisation context
+			const context = await this.getDocumentsContext(documentIds, {
+				S62aCase: { select: { reference: true } },
+				publishDate: true
+			});
 			const documents = Array.isArray(context?.documents) ? context.documents : [];
 
 			return res.render('views/s62a/cases/view/folders/util/categorisation.njk', {
@@ -224,53 +218,10 @@ export class DocumentCategorisationHandler {
 	}
 
 	/**
-	 * Grabs the data associated with the documents to be published.
-	 */
-	private async getDocumentsContext(documentIds: string[]) {
-		const documents = await this.service.db.document.findMany({
-			select: {
-				id: true,
-				fileName: true,
-				S62aCase: { select: { reference: true } },
-				publishDate: true
-			},
-			where: { id: { in: documentIds } }
-		});
-
-		if (!documents || !documents.length) {
-			throw new Error(`No documents found for provided ids`);
-		}
-
-		return { documents };
-	}
-
-	/**
-	 * Normalises the passed ids into an array of strings
-	 */
-	private extractDocumentIds(rawIds: string | string[] | undefined): string[] {
-		const values = Array.isArray(rawIds) ? rawIds : [rawIds];
-		return values.filter((id): id is string => typeof id === 'string' && id.length > 0);
-	}
-
-	/**
-	 * Grabs the safe URL to return to
-	 */
-	private getSafeReturnUrl(req: Request<ParamsDictionary, unknown, CategorisationHandlerRequestBody>): string {
-		const returnUrl = typeof req.body?.returnUrl === 'string' ? req.body.returnUrl : '';
-		const fallbackUrl = req.originalUrl.split(`/${this.type}/documents`)[0];
-
-		if (isValidRedirectUri(returnUrl)) {
-			return returnUrl;
-		}
-		return isValidRedirectUri(fallbackUrl) ? fallbackUrl : '/';
-	}
-
-	/**
-	 * Checks to make sure that none of the documents to publish are already
-	 * published.
+	 * Checks to make sure that none of the documents to publish are already published.
 	 */
 	private async checkPublishStatus(documentIds: string[]) {
-		const documentsContext = await this.getDocumentsContext(documentIds);
+		const documentsContext = await this.getDocumentsContext(documentIds, { publishDate: true });
 		return documentsContext.documents.some((document) => document.publishDate);
 	}
 }
