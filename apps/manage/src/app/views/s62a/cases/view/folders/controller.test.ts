@@ -76,7 +76,10 @@ describe('buildViewCaseFolders', () => {
 					_count: {
 						select: {
 							Documents: {
-								where: { publishDate: { not: null } }
+								where: {
+									deletedAt: null,
+									publishDate: { not: null }
+								}
 							}
 						}
 					}

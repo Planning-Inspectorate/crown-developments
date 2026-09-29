@@ -23,7 +23,8 @@ export function buildViewCaseFolders(service: ManageService): AsyncRequestHandle
 							select: {
 								Documents: {
 									where: {
-										publishDate: { not: null }
+										publishDate: { not: null },
+										deletedAt: null
 									}
 								}
 							}
