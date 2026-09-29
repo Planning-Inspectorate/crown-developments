@@ -5,12 +5,14 @@ import { validateIdFormat } from '../../controller.ts';
 import { asyncHandler } from '@planning-inspectorate/core/util';
 import { createRoutes as createDownloadRoutes } from './download/index.ts';
 import { createRoutes as createCategoriseRoutes } from './categorise/index.ts';
+import { createRoutes as createUnpublishRoutes } from './unpublish/index.ts';
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });
 
 	const downloadRoutes = createDownloadRoutes(service);
 	const categoriseRoutes = createCategoriseRoutes(service);
+	const unpublishRoutes = createUnpublishRoutes(service);
 
 	const viewPublishedDocuments = buildViewPublishedDocuments(service);
 
@@ -21,6 +23,9 @@ export function createRoutes(service: ManageService) {
 
 	// Mounts re-categorisation routes
 	router.use('/categorise', categoriseRoutes);
+
+	// Mounts unpublish routes
+	router.use('/unpublish', unpublishRoutes);
 
 	return router;
 }
