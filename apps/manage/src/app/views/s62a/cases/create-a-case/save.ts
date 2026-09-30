@@ -140,29 +140,30 @@ export async function generateS62aReference(
 ): Promise<string> {
 	if (!applicationPhaseId) throw new Error('applicationPhase needed for reference generation');
 
-	const latestCases = await db.s62aCase.findMany({
+	const year = date.getFullYear().toString();
+	const yearPrefix = `S62A/${year}/`;
+
+	const latestCase = await db.s62aCase.findFirst({
 		where: {
-			applicationPhaseId
+			reference: {
+				startsWith: yearPrefix
+			}
 		},
 		select: { reference: true },
-		take: 5,
 		orderBy: {
-			createdDate: 'desc'
+			reference: 'desc'
 		}
 	});
 
 	let latestId = 0;
-	for (const latestCase of latestCases) {
+	if (latestCase?.reference) {
 		const id = idFromS62aReference(latestCase.reference);
 		if (id !== null) {
 			latestId = id;
-			break;
 		}
 	}
 
-	const year = date.getFullYear().toString();
 	const nextId = (latestId + 1).toString().padStart(7, '0');
-
 	const isPreApp = applicationPhaseId === PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION;
 
 	return isPreApp ? `S62A/${year}/${nextId}/PRE` : `S62A/${year}/${nextId}`;
