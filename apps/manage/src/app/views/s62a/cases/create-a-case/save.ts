@@ -14,6 +14,10 @@ import type { RequestHandler } from 'express';
 import { createFolders, findFolders, FOLDERS_MAP } from '../util/folders.ts';
 import { sentenceCase } from '@pins/crowndev-lib/util/string.ts';
 import { isPreApplicationAdviceGiven, isPreApplicationCaseLinkable } from '../util/pre-application.ts';
+import { SHARED_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/shared-actions.ts';
+import { recordAuditSafely } from '@pins/crowndev-lib/audit/record.ts';
+import { getAuditUserId } from '@pins/crowndev-lib/audit/user.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
 
@@ -87,6 +91,21 @@ export function buildSaveController(service: ManageService): AsyncRequestHandler
 				status: created.s62aStatusId,
 				reference: generatedRef
 			};
+		});
+
+		// Recorded once the case has been committed, so a failed create is never recorded
+		await recordAuditSafely({
+			service,
+			dataModel: CASE_DATA_MODEL.S62A,
+			entries: [
+				{
+					caseId: id,
+					userId: getAuditUserId(req.session?.account?.localAccountId),
+					action: SHARED_AUDIT_ACTIONS.CASE_CREATED,
+					metadata: { reference }
+				}
+			],
+			logContext: { caseId: id }
 		});
 
 		clearDataFromSession({

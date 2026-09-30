@@ -2,6 +2,10 @@ import type { Request, Response, NextFunction, RequestHandler } from 'express';
 import type { ManageService } from '#service';
 import { S62aManageListDeleter } from './s62a-manage-list-deleter.ts';
 import { getOptionalStringParams } from '@pins/crowndev-lib/util/params.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import { resolveListItemRemoval } from '@pins/crowndev-lib/audit/resolvers/index.ts';
+import { getAuditUserId } from '@pins/crowndev-lib/audit/user.ts';
+import { S62A_LIST_RESOLVERS } from '../audit/list-resolvers.ts';
 
 export const questionConfig: Record<string, { fieldName: string; successMessage: string }> = {
 	'check-agent-contact-details': { fieldName: 'manageAgentContactDetails', successMessage: 'Contact removed' },
@@ -97,9 +101,48 @@ export function buildDeleteS62aManageListItemOnConfirmRemove(service: ManageServ
 					throw new Error(`No delete handler for manage-list question "${question}" (field "${fieldName}")`);
 			}
 
+			if (service.isAuditLive !== false) {
+				await recordListItemRemoval(service, req, res, id, fieldName, manageListItemId);
+			}
+
 			next();
 		} catch (error) {
 			next(error);
 		}
 	};
+}
+
+/**
+ * Records the removal in the case history, the same way a save would.
+ * Lists that aren't audited (e.g. representation group names) record nothing,
+ * and the audit service is only called when there's something to record.
+ * Audit failures are logged and never block the removal.
+ */
+async function recordListItemRemoval(
+	service: ManageService,
+	req: Request,
+	res: Response,
+	caseId: string,
+	fieldName: string,
+	itemId: string
+): Promise<void> {
+	try {
+		const entries = resolveListItemRemoval(S62A_LIST_RESOLVERS, {
+			caseId,
+			userId: getAuditUserId(req.session?.account?.localAccountId),
+			fieldName,
+			itemId,
+			// The case as it was before the removal, set by the journey middleware
+			previousCase: res.locals?.originalAnswers ?? {},
+			context: {
+				userDisplayNameMap: res.locals?.userDisplayNameMap as Map<string, string> | undefined
+			}
+		});
+
+		if (entries.length > 0) {
+			await service.audit.recordMany(entries, CASE_DATA_MODEL.S62A);
+		}
+	} catch (error) {
+		service.logger.error({ error, caseId }, 'Failed to record audit events for list item removal');
+	}
 }

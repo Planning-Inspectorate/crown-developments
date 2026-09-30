@@ -41,6 +41,7 @@ import type { Logger } from 'pino';
 import { resolveAuditAction } from '@pins/crowndev-lib/audit/actions.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
+import { CROWN_FIELD_RESOLVERS } from '../audit/field-resolvers.ts';
 
 /**
  * Send a notification in the background and update the emailSent flag only on success.
@@ -622,11 +623,13 @@ async function recordAuditEntries(
 				continue;
 			}
 
-			const { oldValue, newValue } = resolveFieldValues(fieldName, previousValues, answersSnapshot[fieldName], {
-				environmentConfig: envConfig,
-				environmentName: ENVIRONMENT_NAME,
-				userDisplayNameMap
-			});
+			const { oldValue, newValue } = resolveFieldValues(
+				CROWN_FIELD_RESOLVERS,
+				fieldName,
+				previousValues,
+				answersSnapshot[fieldName],
+				{ environmentConfig: envConfig, environmentName: ENVIRONMENT_NAME, userDisplayNameMap }
+			);
 
 			if (oldValue === newValue) {
 				continue;
