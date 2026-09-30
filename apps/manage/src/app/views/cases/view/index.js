@@ -25,6 +25,7 @@ import {
 	fetchCrownUnpublishCase,
 	answerValidation
 } from './publish.ts';
+import { CROWN_AUDIT_TEMPLATES } from '../audit/actions.ts';
 
 /**
  * @param {import('#service').ManageService} service
@@ -51,7 +52,11 @@ export function createRoutes(service) {
 	const applicationUpdates = createApplicationUpdatesRoutes(service);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const deleteManageListItemOnConfirmRemove = asyncHandler(buildDeleteManageListItemOnConfirmRemove(service));
-	const applicationHistoryRoutes = createApplicationHistoryRoutes(service, CASE_DATA_MODEL.CROWN);
+	const applicationHistoryRoutes = createApplicationHistoryRoutes(
+		service,
+		CASE_DATA_MODEL.CROWN,
+		CROWN_AUDIT_TEMPLATES
+	);
 	const applicationNotesRoutes = createApplicationNotesRoutes(service, CASE_DATA_MODEL.CROWN);
 
 	// view case details

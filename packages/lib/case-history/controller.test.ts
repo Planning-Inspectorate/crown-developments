@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import type { Request, Response } from 'express';
 import { buildViewCaseHistory } from './controller.ts';
 import type { CaseHistoryService } from './controller.ts';
-import { CASE_DATA_MODEL } from '../util/types.ts';
+import { CASE_DATA_MODEL, type CaseDataModel } from '../util/types.ts';
+import { SHARED_AUDIT_TEMPLATES } from '../audit/shared-actions.ts';
 
 describe('buildViewCaseHistory', () => {
 	const mockLogger = {
@@ -91,7 +92,11 @@ describe('buildViewCaseHistory', () => {
 			const res = mockRes();
 
 			await assert.rejects(async () => {
-				await buildViewCaseHistory(buildService(), CASE_DATA_MODEL.CROWN)(req, runService(res), () => {});
+				await buildViewCaseHistory(buildService(), CASE_DATA_MODEL.CROWN, SHARED_AUDIT_TEMPLATES)(
+					req,
+					runService(res),
+					() => {}
+				);
 			}, /must be a single string value/);
 		});
 	});
@@ -129,7 +134,11 @@ describe('buildViewCaseHistory', () => {
 			mockAudit.getAllForCase.mock.mockImplementation(() => Promise.resolve(mockEvents));
 			mockAudit.countForCase.mock.mockImplementation(() => Promise.resolve(2));
 
-			await buildViewCaseHistory(service, CASE_DATA_MODEL.CROWN)(req, runService(res), () => {});
+			await buildViewCaseHistory(service, CASE_DATA_MODEL.CROWN, SHARED_AUDIT_TEMPLATES)(
+				req,
+				runService(res),
+				() => {}
+			);
 
 			const findUniqueMock = service.db.crownDevelopment.findUnique as Mock<
 				typeof service.db.crownDevelopment.findUnique
@@ -183,7 +192,11 @@ describe('buildViewCaseHistory', () => {
 			);
 			mockAudit.countForCase.mock.mockImplementation(() => Promise.resolve(1));
 
-			await buildViewCaseHistory(service, CASE_DATA_MODEL.CROWN)(req, runService(res), () => {});
+			await buildViewCaseHistory(service, CASE_DATA_MODEL.CROWN, SHARED_AUDIT_TEMPLATES)(
+				req,
+				runService(res),
+				() => {}
+			);
 
 			const [, viewData] = renderArgs(res.render.mock.calls[0]);
 			const rows = viewData.rows as Array<{ user: string }>;
@@ -218,7 +231,11 @@ describe('buildViewCaseHistory', () => {
 			);
 			mockAudit.countForCase.mock.mockImplementation(() => Promise.resolve(1));
 
-			await buildViewCaseHistory(service, CASE_DATA_MODEL.CROWN)(req, runService(res), () => {});
+			await buildViewCaseHistory(service, CASE_DATA_MODEL.CROWN, SHARED_AUDIT_TEMPLATES)(
+				req,
+				runService(res),
+				() => {}
+			);
 
 			const [, viewData] = renderArgs(res.render.mock.calls[0]);
 			const rows = viewData.rows as Array<{ user: string }>;
@@ -240,7 +257,11 @@ describe('buildViewCaseHistory', () => {
 				return null;
 			});
 
-			await buildViewCaseHistory(service, CASE_DATA_MODEL.CROWN)(req, runService(res), () => {});
+			await buildViewCaseHistory(service, CASE_DATA_MODEL.CROWN, SHARED_AUDIT_TEMPLATES)(
+				req,
+				runService(res),
+				() => {}
+			);
 
 			const historyCalls = res.render.mock.calls.filter(
 				(call) => (call.arguments as unknown[])[0] === 'views/cases/case-history/view.njk'
@@ -263,7 +284,11 @@ describe('buildViewCaseHistory', () => {
 
 			await assert.rejects(
 				async () => {
-					await buildViewCaseHistory(service, CASE_DATA_MODEL.CROWN)(req, runService(res), () => {});
+					await buildViewCaseHistory(service, CASE_DATA_MODEL.CROWN, SHARED_AUDIT_TEMPLATES)(
+						req,
+						runService(res),
+						() => {}
+					);
 				},
 				{
 					message: 'Connection refused'
@@ -286,7 +311,11 @@ describe('buildViewCaseHistory', () => {
 			});
 
 			await assert.rejects(async () => {
-				await buildViewCaseHistory(service, CASE_DATA_MODEL.CROWN)(req, runService(res), () => {});
+				await buildViewCaseHistory(service, CASE_DATA_MODEL.CROWN, SHARED_AUDIT_TEMPLATES)(
+					req,
+					runService(res),
+					() => {}
+				);
 			});
 
 			assert.strictEqual(res.render.mock.callCount(), 0);
@@ -312,7 +341,11 @@ describe('buildViewCaseHistory', () => {
 			mockAudit.getAllForCase.mock.mockImplementation(() => Promise.resolve([]));
 			mockAudit.countForCase.mock.mockImplementation(() => Promise.resolve(45));
 
-			await buildViewCaseHistory(service, CASE_DATA_MODEL.CROWN)(req, runService(res), () => {});
+			await buildViewCaseHistory(service, CASE_DATA_MODEL.CROWN, SHARED_AUDIT_TEMPLATES)(
+				req,
+				runService(res),
+				() => {}
+			);
 
 			assert.strictEqual(mockAudit.getAllForCase.mock.callCount(), 1);
 			const auditArgs = mockAudit.getAllForCase.mock.calls[0].arguments;
@@ -357,9 +390,13 @@ describe('buildViewCaseHistory', () => {
 			mockAudit.getAllForCase.mock.mockImplementation(() => Promise.resolve([]));
 			mockAudit.countForCase.mock.mockImplementation(() => Promise.resolve(5));
 
-			await buildViewCaseHistory(service, CASE_DATA_MODEL.CROWN)(req, runService(res), () => {});
+			await buildViewCaseHistory(service, CASE_DATA_MODEL.CROWN, SHARED_AUDIT_TEMPLATES)(
+				req,
+				runService(res),
+				() => {}
+			);
 
-			const auditArgs = mockAudit.getAllForCase.mock.calls[0].arguments as [string, { skip: number }];
+			const auditArgs = mockAudit.getAllForCase.mock.calls[0].arguments as [string, CaseDataModel, { skip: number }];
 			const [, viewData] = renderArgs(res.render.mock.calls[0]);
 			const pagination = viewData.paginationParams as { pageNumber: number; totalItems: number };
 

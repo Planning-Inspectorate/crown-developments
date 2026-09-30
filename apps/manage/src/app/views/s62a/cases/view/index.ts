@@ -28,6 +28,7 @@ import {
 	fetchS62aUnpublishCase,
 	answerValidation
 } from './publish.ts';
+import { S62A_AUDIT_TEMPLATES } from '../audit/actions.ts';
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });
@@ -53,7 +54,7 @@ export function createRoutes(service: ManageService) {
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const deleteManageListItemOnConfirmRemove = asyncHandler(buildDeleteS62aManageListItemOnConfirmRemove(service));
 	const applicationNotesRoutes = createApplicationNotesRoutes(service, CASE_DATA_MODEL.S62A);
-	const applicationHistoryRoutes = createApplicationHistoryRoutes(service, CASE_DATA_MODEL.S62A);
+	const applicationHistoryRoutes = createApplicationHistoryRoutes(service, CASE_DATA_MODEL.S62A, S62A_AUDIT_TEMPLATES);
 
 	router.get('/', (req, res) => {
 		res.redirect(`${req.baseUrl}/${VIEW_TAB_ID.OVERVIEW}`);

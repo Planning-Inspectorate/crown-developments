@@ -13,6 +13,7 @@ import type { Logger } from 'pino';
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 
 import { CASE_MODELS, type CaseDataModel } from '../util/types.ts';
+import type { AuditTemplates } from '../audit/actions.ts';
 
 export interface CaseHistoryService {
 	db: PrismaClient;
@@ -22,7 +23,11 @@ export interface CaseHistoryService {
 	entraGroupIds: EntraGroupIds;
 }
 
-export function buildViewCaseHistory(service: CaseHistoryService, dataModel: CaseDataModel): AsyncRequestHandler {
+export function buildViewCaseHistory(
+	service: CaseHistoryService,
+	dataModel: CaseDataModel,
+	templates: AuditTemplates
+): AsyncRequestHandler {
 	const { db, audit, logger, getEntraClient } = service;
 	const groupIds = service.entraGroupIds;
 
@@ -82,7 +87,7 @@ export function buildViewCaseHistory(service: CaseHistoryService, dataModel: Cas
 			userName: userMap.get(event.userId ?? '') ?? 'Unknown User'
 		}));
 
-		const rows = createCaseHistoryViewModel(eventsWithUserNames, dataModel);
+		const rows = createCaseHistoryViewModel(eventsWithUserNames, templates);
 
 		return res.render('view.njk', {
 			pageHeading: 'View application history',
