@@ -4,6 +4,8 @@ import type { Request, Response } from 'express';
 import type { ManageService } from '#service';
 import { buildRepresentationTaskList, buildReviewRepresentationSubmission } from './controller.ts';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { S62A_AUDIT_ACTIONS } from '../../../audit/actions.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 describe('Representation Controllers', () => {
 	const infoMock = mock.fn();
@@ -399,6 +401,88 @@ describe('Representation Controllers', () => {
 			);
 
 			assert.strictEqual(errorMock.mock.callCount(), 2);
+		});
+
+		describe('case history', () => {
+			function reviewWith(decision: string, statusBefore: string) {
+				const recordMany = mock.fn(async () => {});
+				const auditedService = { ...service, audit: { recordMany } } as unknown as ManageService;
+				const req = mockReq({
+					session: {
+						account: { localAccountId: 'user-1' },
+						reviewDecisions: { 'REP-001': { comment: { reviewDecision: decision } } },
+						files: { 'REP-001': {} },
+						itemsToBeDeleted: { 'REP-001': [] }
+					}
+				});
+				findUniqueMock.mock.mockImplementation(
+					() => Promise.resolve({ statusId: statusBefore }) as unknown as undefined
+				);
+				updateMock.mock.mockImplementation(() => Promise.resolve() as unknown as undefined);
+
+				return { handler: buildReviewRepresentationSubmission(auditedService), req, recordMany };
+			}
+
+			it('should record the representation being approved', async () => {
+				const { handler, req, recordMany } = reviewWith(
+					REPRESENTATION_STATUS_ID.ACCEPTED,
+					REPRESENTATION_STATUS_ID.AWAITING_REVIEW
+				);
+
+				await handler(req, mockRes(), mock.fn() as unknown as undefined);
+
+				assert.deepStrictEqual((recordMany.mock.calls[0] as any).arguments, [
+					[
+						{
+							caseId: '123',
+							userId: 'user-1',
+							action: S62A_AUDIT_ACTIONS.REPRESENTATION_APPROVED,
+							metadata: { reference: 'REP-001' }
+						}
+					],
+					CASE_DATA_MODEL.S62A
+				]);
+			});
+
+			it('should record the representation being rejected', async () => {
+				const { handler, req, recordMany } = reviewWith(
+					REPRESENTATION_STATUS_ID.REJECTED,
+					REPRESENTATION_STATUS_ID.ACCEPTED
+				);
+
+				await handler(req, mockRes(), mock.fn() as unknown as undefined);
+
+				const [[entry]] = (recordMany.mock.calls[0] as any).arguments;
+				assert.strictEqual(entry.action, S62A_AUDIT_ACTIONS.REPRESENTATION_REJECTED);
+			});
+
+			it('should record nothing when the status has not changed', async () => {
+				const { handler, req, recordMany } = reviewWith(
+					REPRESENTATION_STATUS_ID.ACCEPTED,
+					REPRESENTATION_STATUS_ID.ACCEPTED
+				);
+
+				await handler(req, mockRes(), mock.fn() as unknown as undefined);
+
+				assert.strictEqual(recordMany.mock.callCount(), 0);
+			});
+
+			it('should still record the decision if the status could not be read', async () => {
+				const { handler, req, recordMany } = reviewWith(
+					REPRESENTATION_STATUS_ID.ACCEPTED,
+					REPRESENTATION_STATUS_ID.AWAITING_REVIEW
+				);
+				findUniqueMock.mock.mockImplementationOnce(
+					() => Promise.reject(new Error('Database error')) as unknown as undefined
+				);
+				const res = mockRes();
+
+				await handler(req, res, mock.fn() as unknown as undefined);
+
+				const [[entry]] = (recordMany.mock.calls[0] as any).arguments;
+				assert.strictEqual(entry.action, S62A_AUDIT_ACTIONS.REPRESENTATION_APPROVED);
+				assert.strictEqual((res.redirect as unknown as ReturnType<typeof mock.fn>).mock.callCount(), 1);
+			});
 		});
 	});
 });

@@ -5,6 +5,8 @@ import { mockLogger } from '@planning-inspectorate/core/testing';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { Request, Response } from 'express';
 import type { ManageService } from '#service';
+import { S62A_AUDIT_ACTIONS } from '../../../audit/actions.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 describe('s62a reinstate rep controller', () => {
 	describe('reinstateRepConfirmation', () => {
@@ -88,6 +90,71 @@ describe('s62a reinstate rep controller', () => {
 			} as unknown as ManageService);
 
 			await assert.rejects(() => reinstateRepresentationController(mockReq, mockRes));
+		});
+
+		it('should record the reinstatement in the case history', async () => {
+			const mockReq = {
+				params: { id: 'case-12345', representationRef: 'ABCDE-12345' },
+				baseUrl: '/s62a/cases/case-12345',
+				session: { account: { localAccountId: 'user-1' } }
+			} as unknown as Request;
+			const mockRes = { redirect: mock.fn() } as unknown as Response;
+			const mockDb = {
+				$transaction: mock.fn((fn: any) => fn(mockDb)),
+				s62aRepresentation: {
+					update: mock.fn(),
+					findUnique: mock.fn(() => ({ id: 'rep-id-12345', preWithdrawalStatusId: 'accepted' }))
+				},
+				blobWithdrawalRequestDocument: { deleteMany: mock.fn() }
+			};
+			const recordMany = mock.fn(async () => {});
+
+			await buildReinstateRepresentationController({
+				db: mockDb,
+				logger: mockLogger(),
+				audit: { recordMany }
+			} as unknown as ManageService)(mockReq, mockRes);
+
+			assert.deepStrictEqual((recordMany.mock.calls[0] as any).arguments, [
+				[
+					{
+						caseId: 'case-12345',
+						userId: 'user-1',
+						action: S62A_AUDIT_ACTIONS.REPRESENTATION_REINSTATED,
+						metadata: { reference: 'ABCDE-12345' }
+					}
+				],
+				CASE_DATA_MODEL.S62A
+			]);
+		});
+
+		it('should not record anything if reinstating fails', async () => {
+			const mockReq = {
+				params: { id: 'case-12345', representationRef: 'ABCDE-12345' },
+				baseUrl: '/s62a/cases/case-12345',
+				session: {}
+			} as unknown as Request;
+			const mockRes = { redirect: mock.fn() } as unknown as Response;
+			const mockDb = {
+				$transaction: mock.fn((fn: any) => fn(mockDb)),
+				s62aRepresentation: {
+					update: mock.fn(() => {
+						throw new Prisma.PrismaClientKnownRequestError('Error', { code: 'E1', clientVersion: '1.0' });
+					}),
+					findUnique: mock.fn(() => ({ id: 'rep-id-12345', preWithdrawalStatusId: 'accepted' }))
+				},
+				blobWithdrawalRequestDocument: { deleteMany: mock.fn() }
+			};
+			const recordMany = mock.fn(async () => {});
+
+			await assert.rejects(() =>
+				buildReinstateRepresentationController({
+					db: mockDb,
+					logger: mockLogger(),
+					audit: { recordMany }
+				} as unknown as ManageService)(mockReq, mockRes)
+			);
+			assert.strictEqual(recordMany.mock.callCount(), 0);
 		});
 	});
 

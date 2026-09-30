@@ -206,4 +206,60 @@ describe('saveS62aRepresentation', () => {
 		assert.strictEqual(mockRedirect.mock.calls.length, 1);
 		assert.strictEqual(mockRedirect.mock.calls[0].arguments[0], SUCCESS_URL);
 	});
+
+	describe('onSaved', () => {
+		const answersMock = {
+			representationSubmittedFor: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+			myselfContainsAttachments: BOOLEAN_OPTIONS.NO
+		};
+
+		beforeEach(() => {
+			res.locals.answers = answersMock;
+			res.locals.journeyResponse!.answers = answersMock;
+		});
+
+		it('runs onSaved with the case and the new reference once saved', async () => {
+			const onSaved = mock.fn<NonNullable<SaveRepresentationOptions['onSaved']>>(async () => {});
+
+			await saveS62aRepresentation({ ...options, onSaved }, req as Request, res as Response);
+
+			assert.strictEqual(onSaved.mock.callCount(), 1);
+			assert.strictEqual(onSaved.mock.calls[0].arguments[0], req);
+			assert.deepStrictEqual(onSaved.mock.calls[0].arguments[1], {
+				caseId: VALID_ID,
+				representationReference: 'MOCK-REF-123'
+			});
+		});
+
+		it('does not run onSaved if the journey is incomplete', async () => {
+			const onSaved = mock.fn<NonNullable<SaveRepresentationOptions['onSaved']>>(async () => {});
+			res.locals.journey!.isComplete = () => false;
+
+			await saveS62aRepresentation({ ...options, onSaved }, req as Request, res as Response);
+
+			assert.strictEqual(onSaved.mock.callCount(), 0);
+		});
+
+		it('does not run onSaved if the save fails', async () => {
+			const onSaved = mock.fn<NonNullable<SaveRepresentationOptions['onSaved']>>(async () => {});
+			mockS62aRepresentationCreate.mock.mockImplementationOnce(async () => {
+				throw new Error('Database connection failed');
+			});
+
+			await assert.rejects(() => saveS62aRepresentation({ ...options, onSaved }, req as Request, res as Response));
+			assert.strictEqual(onSaved.mock.callCount(), 0);
+		});
+
+		it('still goes to the success page if onSaved fails', async () => {
+			const onSaved = mock.fn<NonNullable<SaveRepresentationOptions['onSaved']>>(async () => {
+				throw new Error('Audit unavailable');
+			});
+			const logger = mockService.logger as unknown as MockLogger;
+
+			await saveS62aRepresentation({ ...options, onSaved }, req as Request, res as Response);
+
+			assert.strictEqual(mockRedirect.mock.calls[0].arguments[0], SUCCESS_URL);
+			assert.strictEqual(logger.error.mock.callCount(), 1);
+		});
+	});
 });
