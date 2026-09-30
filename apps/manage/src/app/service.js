@@ -135,6 +135,10 @@ export class ManageService extends Service {
 		return this.#config.featureFlags?.isS62ALive;
 	}
 
+	get isS62APortalLive() {
+		return this.#config.featureFlags?.isS62APortalLive;
+	}
+
 	get isCaseNotesLive() {
 		return this.#config.featureFlags?.isCaseNotesLive;
 	}

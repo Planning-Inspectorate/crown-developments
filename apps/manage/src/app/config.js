@@ -71,6 +71,7 @@ export function loadConfig() {
 		GOV_NOTIFY_APP_NOT_NAT_IMP_TEMPLATE_ID,
 		GOV_NOTIFY_LPA_QUEST_SENT_TEMPLATE_ID,
 		FEATURE_FLAG_S62A_MANAGE_NOT_LIVE,
+		FEATURE_FLAG_S62A_PORTAL_NOT_LIVE,
 		FEATURE_FLAG_CASE_NOTES_NOT_LIVE,
 		FEATURE_FLAG_AUDIT_NOT_LIVE,
 		FEATURE_FLAG_RETRY_NOT_LIVE,
@@ -224,6 +225,8 @@ export function loadConfig() {
 		featureFlags: {
 			// Needed so that we can develop the changes to 'Manage' without interfering with 'Crown Developments' in general.
 			isS62ALive: FEATURE_FLAG_S62A_MANAGE_NOT_LIVE !== 'true',
+			// Publishing S62A cases/documents only makes sense once the S62A portal is live
+			isS62APortalLive: FEATURE_FLAG_S62A_PORTAL_NOT_LIVE !== 'true',
 			isCaseNotesLive: FEATURE_FLAG_CASE_NOTES_NOT_LIVE !== 'true',
 			isAuditLive: FEATURE_FLAG_AUDIT_NOT_LIVE !== 'true',
 			isRetryLive

@@ -1,9 +1,9 @@
 /**
  * Add configuration values to locals.
- * @param {{appName: string}} params
+ * @param {import('#service').ManageService} service
  * @returns {import('express').Handler}
  */
-export function addLocalsConfiguration({ appName }) {
+export function addLocalsConfiguration(service) {
 	return (req, res, next) => {
 		const path = req.path;
 
@@ -40,9 +40,10 @@ export function addLocalsConfiguration({ appName }) {
 			: 'Manage a Crown Development Application';
 
 		res.locals.config = {
-			appName,
+			appName: service.appName,
 			headerTitle: headerTitle,
 			isLive: true,
+			isS62APortalLive: service.isS62APortalLive,
 			inBeta: true,
 			primaryNavigationLinks: links.map((link) => ({
 				...link,

@@ -40,6 +40,7 @@ interface Config extends BaseConfig {
 	};
 	featureFlags: {
 		isS62ALive: boolean;
+		isS62APortalLive: boolean;
 		isCaseNotesLive: boolean;
 		isAuditLive: boolean;
 		isRetryLive: boolean;
