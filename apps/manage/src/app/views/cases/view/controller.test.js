@@ -3,11 +3,11 @@ import assert from 'node:assert';
 import {
 	buildGetJourneyMiddleware,
 	buildViewCaseDetails,
-	validateIdFormat,
 	readCaseUpdatedSession,
 	clearCaseUpdatedSession,
 	getInvalidStateBannerHtml
 } from './controller.ts';
+import { validateIdFormat } from '@pins/crowndev-lib/util/string.ts';
 import { configureNunjucks } from '../../../nunjucks.js';
 import { mockLogger } from '@planning-inspectorate/core/testing';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
