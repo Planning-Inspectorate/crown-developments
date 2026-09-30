@@ -1,7 +1,12 @@
 import { formatDateTime } from '../util/audit-formatters.ts';
-import { AUDIT_ACTIONS, LONG_FIELD_ACTIONS, isAuditAction, resolveTemplate } from '../audit/actions.ts';
+import {
+	AUDIT_ACTIONS,
+	type AuditTemplates,
+	LONG_FIELD_ACTIONS,
+	isAuditAction,
+	resolveTemplate
+} from '../audit/actions.ts';
 import type { AuditEvent } from '../audit/types.ts';
-import type { CaseDataModel } from '../util/types.ts';
 
 export interface CaseHistoryRow {
 	/** Formatted date+time, e.g. "11 February 2026 2:31pm" */
@@ -23,17 +28,17 @@ export interface CaseHistoryRow {
 /** * Transforms raw audit events into rows ready for the case history table. */
 export function createCaseHistoryViewModel(
 	events: Array<AuditEvent & { userName: string }>,
-	dataModel: CaseDataModel
+	templates: AuditTemplates
 ): CaseHistoryRow[] {
 	return events.map((event) => {
 		const { action, metadata, createdAt, userName } = event;
 		const dateTimeFormatted = formatDateTime(new Date(createdAt));
 
-		if (!isAuditAction(dataModel, action)) {
+		if (!isAuditAction(templates, action)) {
 			return { dateTimeFormatted, details: `Unknown action: ${action}`, user: userName };
 		}
 
-		const details = resolveTemplate(dataModel, action, metadata ?? undefined);
+		const details = resolveTemplate(templates, action, metadata ?? undefined);
 		const fieldName = typeof metadata?.fieldName === 'string' ? metadata.fieldName : '';
 
 		if (LONG_FIELD_ACTIONS.has(action)) {
