@@ -277,6 +277,16 @@ describe('validation-utils', () => {
 
 			assert.deepStrictEqual(errors, [undefined, undefined]);
 		});
+
+		it('should pass when both fields are provided (Contacts)', () => {
+			const representation: RepresentationForValidation = {
+				RepresentedContacts: [{ orgName: 'Charity Corp' }],
+				SubmittedByContact: { jobTitleOrRole: 'Manager' }
+			};
+			const errors = getWorkForOrgRequiredAnswers(representation, originUrl);
+
+			assert.deepStrictEqual(errors, [undefined, undefined]);
+		});
 	});
 
 	describe('getNotWorkForOrgRequiredAnswers', () => {
@@ -291,6 +301,15 @@ describe('validation-utils', () => {
 		it('should pass when orgName is provided', () => {
 			const representation: RepresentationForValidation = {
 				RepresentedContact: { orgName: 'External Org' }
+			};
+			const errors = getNotWorkForOrgRequiredAnswers(representation, originUrl);
+
+			assert.deepStrictEqual(errors, [undefined]);
+		});
+
+		it('should pass when orgName is provided (Contacts)', () => {
+			const representation: RepresentationForValidation = {
+				RepresentedContacts: [{ orgName: 'External Org' }]
 			};
 			const errors = getNotWorkForOrgRequiredAnswers(representation, originUrl);
 

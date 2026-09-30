@@ -195,9 +195,10 @@ export function getWorkForOrgRequiredAnswers(
 	representation: RepresentationForValidation,
 	originUrl: string
 ): (ErrorMessage | undefined)[] {
+	const contact = representation.RepresentedContact || representation.RepresentedContacts?.[0];
 	return [
 		checkRequiredAnswer(
-			representation.RepresentedContact?.orgName,
+			contact?.orgName,
 			'Enter the organisation or charity name',
 			`${originUrl}/edit/agent/name-organisation`
 		),
@@ -216,9 +217,10 @@ export function getNotWorkForOrgRequiredAnswers(
 	representation: RepresentationForValidation,
 	originUrl: string
 ): (ErrorMessage | undefined)[] {
+	const contact = representation.RepresentedContact || representation.RepresentedContacts?.[0];
 	return [
 		checkRequiredAnswer(
-			representation.RepresentedContact?.orgName,
+			contact?.orgName,
 			'Enter the full name of the organisation you are representing',
 			`${originUrl}/edit/agent/name-organisation-representing`
 		)
