@@ -14,12 +14,19 @@ class TestDownloader extends BaseDocumentDownloader<TestDoc> {
 		return ids.map((id) => ({ id, blobName: `${id}.pdf`, fileName: `file-${id}.pdf`, reference: 'TEST-REF' }));
 	});
 
+	/** Records each call to the onDownloaded hook */
+	public downloads: Array<{ fileNames: string[]; zipFileName?: string }> = [];
+
 	protected async fetchDocumentsMetadata(documentIds: string[]): Promise<TestDoc[] | undefined> {
 		return this.mockFetch(documentIds);
 	}
 
 	protected getZipFileReference(documents: TestDoc[]): string {
 		return documents[0].reference;
+	}
+
+	protected async onDownloaded(_req: unknown, documents: TestDoc[], zipFileName?: string): Promise<void> {
+		this.downloads.push({ fileNames: documents.map((doc) => doc.fileName), zipFileName });
 	}
 }
 
@@ -47,6 +54,35 @@ describe('BaseDocumentDownloader', () => {
 		mockRes.destroy = mock.fn();
 	});
 
+	/** Makes the blob store return a pipeable stream for a single file */
+	function mockSingleFileStream() {
+		const mockStream = new Readable({ read() {} }) as any;
+		mockStream.pipe = mock.fn();
+
+		mockBlobStore.downloadBlob.mock.mockImplementationOnce(() => ({
+			readableStreamBody: mockStream,
+			contentType: 'application/pdf',
+			contentLength: 500
+		}));
+
+		return mockStream;
+	}
+
+	/** Makes the zip library return a fake archive */
+	function mockZipArchive() {
+		const mockArchive = new EventEmitter() as any;
+		mockArchive.pipe = mock.fn();
+		mockArchive.append = mock.fn();
+		mockArchive.finalize = mock.fn();
+		mockCreateZip.mock.mockImplementationOnce(() => mockArchive);
+
+		mockBlobStore.downloadBlob.mock.mockImplementation(() => ({
+			readableStreamBody: new Readable({ read() {} })
+		}));
+
+		return mockArchive;
+	}
+
 	describe('No documents selected', () => {
 		it('uses default redirect to root when no returnUrl provided', async () => {
 			await downloader.processDownload(mockReq, mockRes);
@@ -58,6 +94,11 @@ describe('BaseDocumentDownloader', () => {
 			await downloader.processDownload(mockReq, mockRes);
 			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], '/custom-url');
 		});
+
+		it('does not call onDownloaded', async () => {
+			await downloader.processDownload(mockReq, mockRes);
+			assert.deepStrictEqual(downloader.downloads, []);
+		});
 	});
 
 	describe('Single Document Download', () => {
@@ -65,14 +106,7 @@ describe('BaseDocumentDownloader', () => {
 			mockReq.body.selectedFiles = ['doc-1'];
 			mockReq.query.preview = 'false';
 
-			const mockStream = new Readable({ read() {} }) as any;
-			mockStream.pipe = mock.fn();
-
-			mockBlobStore.downloadBlob.mock.mockImplementationOnce(() => ({
-				readableStreamBody: mockStream,
-				contentType: 'application/pdf',
-				contentLength: 500
-			}));
+			const mockStream = mockSingleFileStream();
 
 			await downloader.processDownload(mockReq, mockRes);
 
@@ -87,6 +121,25 @@ describe('BaseDocumentDownloader', () => {
 			assert.strictEqual(mockStream.pipe.mock.calls.length, 1);
 			assert.strictEqual(mockStream.pipe.mock.calls[0].arguments[0], mockRes);
 		});
+
+		it('calls onDownloaded with the file, and no zip name', async () => {
+			mockReq.body.selectedFiles = ['doc-1'];
+			mockSingleFileStream();
+
+			await downloader.processDownload(mockReq, mockRes);
+
+			assert.deepStrictEqual(downloader.downloads, [{ fileNames: ['file-doc-1.pdf'], zipFileName: undefined }]);
+		});
+
+		it('does not call onDownloaded for a preview', async () => {
+			mockReq.body.selectedFiles = ['doc-1'];
+			mockReq.query.preview = 'true';
+			mockSingleFileStream();
+
+			await downloader.processDownload(mockReq, mockRes);
+
+			assert.deepStrictEqual(downloader.downloads, []);
+		});
 	});
 
 	describe('Bulk ZIP Download', () => {
@@ -98,15 +151,7 @@ describe('BaseDocumentDownloader', () => {
 
 			mockReq.body.selectedFiles = ['1', '2'];
 
-			const mockArchive = new EventEmitter() as any;
-			mockArchive.pipe = mock.fn();
-			mockArchive.append = mock.fn();
-			mockArchive.finalize = mock.fn();
-			mockCreateZip.mock.mockImplementationOnce(() => mockArchive);
-
-			mockBlobStore.downloadBlob.mock.mockImplementation(() => ({
-				readableStreamBody: new Readable({ read() {} })
-			}));
+			const mockArchive = mockZipArchive();
 
 			await downloader.processDownload(mockReq, mockRes);
 
@@ -122,6 +167,17 @@ describe('BaseDocumentDownloader', () => {
 			assert.notStrictEqual(name1, name2);
 
 			assert.strictEqual(mockArchive.finalize.mock.calls.length, 1);
+		});
+
+		it('calls onDownloaded with the files and the zip name', async () => {
+			mockReq.body.selectedFiles = ['doc-1', 'doc-2'];
+			mockZipArchive();
+
+			await downloader.processDownload(mockReq, mockRes);
+
+			assert.strictEqual(downloader.downloads.length, 1);
+			assert.deepStrictEqual(downloader.downloads[0].fileNames, ['file-doc-1.pdf', 'file-doc-2.pdf']);
+			assert.match(downloader.downloads[0].zipFileName ?? '', /^test-ref-bulk-download-\d{4}-\d{2}-\d{2}\.zip$/);
 		});
 	});
 });

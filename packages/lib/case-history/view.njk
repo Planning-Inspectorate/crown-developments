@@ -38,7 +38,7 @@
 					{% for row in rows %}
 						{% set detailsHtml %}
 							<div class="govuk-!-margin-bottom-2">
-								{{ row.details }}
+								{{ row.details | escape | replace("\n", "<br>") | safe }}
 							</div>
 
 							{% if row.longDetails %}
@@ -49,6 +49,20 @@
 										{{ longDetail.value | escape | replace("\n", "<br>") | safe }}
 									{% endcall %}
 								{% endfor %}
+							{% endif %}
+
+							{% if row.fileList %}
+								{% set fileListHtml %}
+									<ul class="govuk-list">
+										{% for fileName in row.fileList %}
+											<li>{{ fileName }}</li>
+										{% endfor %}
+									</ul>
+								{% endset %}
+								{{ govukDetails({
+									summaryText: "Show files",
+									html: fileListHtml
+								}) }}
 							{% endif %}
 						{% endset %}
 

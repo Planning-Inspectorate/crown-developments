@@ -82,7 +82,7 @@ export function buildViewCaseHistory(service: CaseHistoryService, dataModel: Cas
 			userName: userMap.get(event.userId ?? '') ?? 'Unknown User'
 		}));
 
-		const rows = createCaseHistoryViewModel(eventsWithUserNames);
+		const rows = createCaseHistoryViewModel(eventsWithUserNames, dataModel);
 
 		return res.render('view.njk', {
 			pageHeading: 'View application history',

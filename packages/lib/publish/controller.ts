@@ -9,17 +9,24 @@ import type { CaseFetcher, PublishOperation, ValidationRuleBuilder } from '../ut
 import path from 'node:path';
 import { isValidRedirectUri } from '../util/uri.ts';
 import type { BaseService } from '@planning-inspectorate/core/app';
+import { runCaseActionHook, type CaseActionHook } from '../util/case-action-hook.ts';
 
+/**
+ * @param onPublished - optional step after a successful publish, e.g. recording it in the case history
+ */
 export function buildPublishCase(
 	{ db, logger }: { db: PrismaClient; logger: Logger },
-	publishCaseFunction: PublishOperation
+	publishCaseFunction: PublishOperation,
+	onPublished?: CaseActionHook
 ) {
 	return async (req: Request, res: Response) => {
 		const id = getStringParam(req.params, 'id');
 		logger.info({ id }, 'publish case');
 
+		let published = false;
 		try {
 			await publishCaseFunction(db, id);
+			published = true;
 		} catch (error) {
 			wrapPrismaError({
 				error,
@@ -27,6 +34,10 @@ export function buildPublishCase(
 				message: 'publishing case',
 				logParams: { id }
 			});
+		}
+
+		if (published) {
+			await runCaseActionHook(onPublished, req, id, logger, 'publish');
 		}
 
 		const currentPath = req.originalUrl.split('?')[0];

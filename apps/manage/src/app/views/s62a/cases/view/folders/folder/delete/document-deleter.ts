@@ -5,6 +5,8 @@ import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { Request, Response } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
 import { isValidRedirectUri } from '@pins/crowndev-lib/util/uri.ts';
+import { FILE_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/files.ts';
+import { recordS62aFileAudit } from '../../../../audit/files.ts';
 
 export interface DeleteRequestBody {
 	selectedFiles?: string | string[];
@@ -73,7 +75,8 @@ export class DocumentDeleter {
 	}
 
 	/**
-	 * "Soft" deletes the document by setting the deletedAt date to now.
+	 * "Soft" deletes the document by setting the deletedAt date to now,
+	 * then records the removal in the case history.
 	 */
 	public async executeDelete(req: Request<ParamsDictionary, unknown, DeleteRequestBody>, res: Response) {
 		const id = getStringParam(req.params, 'id');
@@ -91,6 +94,14 @@ export class DocumentDeleter {
 				where: { id: { in: documentIds } },
 				data: { deletedAt: new Date() }
 			});
+
+			await recordS62aFileAudit(
+				this.service,
+				req,
+				id,
+				context.documents.map((document) => document.fileName),
+				FILE_AUDIT_ACTIONS.deleted
+			);
 
 			addSessionData(req, id, { filesDeleted: context.documents.length }, 'folder');
 			delete req.session.deleteFilesIds;

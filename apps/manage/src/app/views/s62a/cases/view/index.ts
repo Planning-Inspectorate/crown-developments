@@ -21,6 +21,7 @@ import { createRoutes as createApplicationHistoryRoutes } from '@pins/crowndev-l
 import { createRoutes as createCasePublishRoutes } from '@pins/crowndev-lib/publish/index.ts';
 import { createRoutes as createCaseUnpublishRoutes } from '@pins/crowndev-lib/unpublish/index.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import { SHARED_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/shared-actions.ts';
 import {
 	publishS62aCase,
 	fetchS62aPublishCase,
@@ -28,6 +29,7 @@ import {
 	fetchS62aUnpublishCase,
 	answerValidation
 } from './publish.ts';
+import { buildRecordS62aCaseAction } from '../audit/case-actions.ts';
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });
@@ -45,9 +47,15 @@ export function createRoutes(service: ManageService) {
 		buildGetJourneyMiddleware,
 		publishS62aCase,
 		fetchS62aPublishCase,
-		answerValidation
+		answerValidation,
+		buildRecordS62aCaseAction(service, SHARED_AUDIT_ACTIONS.CASE_PUBLISHED)
 	);
-	const unpublishCase = createCaseUnpublishRoutes(service, unpublishS62aCase, fetchS62aUnpublishCase);
+	const unpublishCase = createCaseUnpublishRoutes(
+		service,
+		unpublishS62aCase,
+		fetchS62aUnpublishCase,
+		buildRecordS62aCaseAction(service, SHARED_AUDIT_ACTIONS.CASE_UNPUBLISHED)
+	);
 	const clearAndUpdateCaseFn = buildS62aUpdateCase(service, true);
 	const clearAndUpdateCase = buildSave(clearAndUpdateCaseFn, true);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);

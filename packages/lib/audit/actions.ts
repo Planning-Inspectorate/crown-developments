@@ -1,115 +1,79 @@
+import { CASE_DATA_MODEL, type CaseDataModel } from '../util/types.ts';
+import {
+	CROWN_AUDIT_TEMPLATES,
+	type CrownAuditAction
+} from '../../../apps/manage/src/app/views/cases/audit/actions.ts';
+import {
+	S62A_AUDIT_TEMPLATES,
+	type S62aAuditAction
+} from '../../../apps/manage/src/app/views/s62a/cases/audit/actions.ts';
+import { SHARED_AUDIT_ACTIONS, fillTemplate } from './shared-actions.ts';
+
 /**
- * Audit action definitions.
+ * Brings together each data model's audit actions and templates.
  *
- * Each action maps to a template string used to generate the human-readable
- * "Details" column in the case history table. Templates can include
- * placeholders like `{reference}` or `{fieldName}` which are resolved at
- * display time from the event's metadata.
+ * The actions themselves live with each data model:
+ *   - Shared: ./shared-actions.ts
+ *   - Crown:  apps/manage/src/app/views/cases/audit/actions.ts
+ *   - S62A:   apps/manage/src/app/views/s62a/cases/audit/actions.ts
  *
- * Grouping follows the case history scenarios document.
+ * History rows are stored per data model, so two models can have an action
+ * with the same name and different wording without clashing.
  */
 
-export const AUDIT_ACTIONS = {
-	// Case
-	CASE_CREATED: 'CASE_CREATED',
-	CASE_PUBLISHED: 'CASE_PUBLISHED',
+export {
+	SHARED_AUDIT_ACTIONS,
+	SHARED_AUDIT_TEMPLATES,
+	LONG_FIELD_ACTIONS,
+	fillTemplate,
+	resolveAuditAction,
+	type SharedAuditAction
+} from './shared-actions.ts';
 
-	// Standard fields
-	FIELD_SET: 'FIELD_SET',
-	FIELD_UPDATED: 'FIELD_UPDATED',
-	FIELD_CLEARED: 'FIELD_CLEARED',
+/**
+ * Kept so existing callers of `AUDIT_ACTIONS.CASE_CREATED`, `AUDIT_ACTIONS.CASE_NOTE_ADDED`
+ * etc. keep working. Model-specific actions come from that model's actions file.
+ */
+export const AUDIT_ACTIONS = SHARED_AUDIT_ACTIONS;
 
-	// long-text fields
-	LONG_FIELD_SET: 'LONG_FIELD_SET',
-	LONG_FIELD_UPDATED: 'LONG_FIELD_UPDATED',
-	LONG_FIELD_CLEARED: 'LONG_FIELD_CLEARED',
+/** Any action from any data model. */
+export type AuditAction = CrownAuditAction | S62aAuditAction;
 
-	// Case notes
-	CASE_NOTE_ADDED: 'CASE_NOTE_ADDED'
-} as const;
+/**
+ * Templates for each data model.
+ *
+ * Using `satisfies Record<CaseDataModel, ...>` means adding a new data model
+ * without templates is a type error.
+ */
+const AUDIT_TEMPLATES_BY_MODEL = {
+	[CASE_DATA_MODEL.CROWN]: CROWN_AUDIT_TEMPLATES,
+	[CASE_DATA_MODEL.S62A]: S62A_AUDIT_TEMPLATES
+} satisfies Record<CaseDataModel, Record<string, string>>;
 
-export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
+function getTemplates(dataModel: CaseDataModel): Record<string, string> {
+	const templates: Record<string, string> | undefined = AUDIT_TEMPLATES_BY_MODEL[dataModel];
+	if (!templates) throw new Error(`Unsupported data model: ${String(dataModel)}`);
+	return templates;
+}
 
 /**
  * Type guard for action strings coming from untrusted sources (e.g. a DB row).
- * Narrows `string` to `AuditAction` when the value is a known action key.
+ * An action is only valid if the data model has a template for it.
  */
-export function isAuditAction(value: string): value is AuditAction {
-	return value in AUDIT_ACTIONS;
+export function isAuditAction(dataModel: CaseDataModel, value: string): value is AuditAction {
+	return Object.hasOwn(getTemplates(dataModel), value);
 }
 
 /**
- * Maps each action to the template shown in the "Details" column of the
- * case history table.
- *
- * Placeholders are resolved from the event's metadata at display time.
- * A dash `-` is used when there is no previous value (i.e. the field was empty).
- *
- * Metadata keys used across templates:
- *   {reference}      – case reference (e.g. DRT/PER/00015)
- */
-export const AUDIT_TEMPLATES: Record<AuditAction, string> = {
-	// Case
-	[AUDIT_ACTIONS.CASE_CREATED]: '{reference} was created',
-	[AUDIT_ACTIONS.CASE_PUBLISHED]: '{reference} was published',
-
-	// Standard fields
-	[AUDIT_ACTIONS.FIELD_SET]: '{fieldName} was set to {newValue}',
-	[AUDIT_ACTIONS.FIELD_UPDATED]: '{fieldName} was updated from "{oldValue}" to "{newValue}"',
-	[AUDIT_ACTIONS.FIELD_CLEARED]: '{fieldName} ({oldValue}) was removed',
-
-	//long-text-fields
-	[AUDIT_ACTIONS.LONG_FIELD_SET]: '{fieldName} was set',
-	[AUDIT_ACTIONS.LONG_FIELD_UPDATED]: '{fieldName} was updated',
-	[AUDIT_ACTIONS.LONG_FIELD_CLEARED]: '{fieldName} was removed',
-
-	// Case notes
-	[AUDIT_ACTIONS.CASE_NOTE_ADDED]: 'Case note added:\n{caseNote}'
-};
-
-/**
- * Resolves a template string by replacing `{key}` placeholders with values
- * from the supplied metadata.
+ * Resolves the "Details" text for an action, using the data model's template
+ * and replacing `{key}` placeholders with values from the metadata.
  *
  * Unknown placeholders are left as-is so they're visible during development.
  */
-export function resolveTemplate(action: AuditAction, metadata?: Record<string, unknown>): string {
-	const template = AUDIT_TEMPLATES[action];
-
-	if (!metadata) {
-		return template;
-	}
-
-	return template.replace(/\{(\w+)\}/g, (match: string, key: string) => {
-		const value = metadata[key];
-
-		if (value === undefined || value === null) {
-			return match;
-		}
-
-		if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-			return String(value);
-		}
-
-		// Non-primitive metadata can't be meaningfully interpolated — leave the placeholder.
-		return match;
-	});
-}
-/**
- * Determines the appropriate audit action for a field change.
- *
- * @param oldValue  - formatted previous value ('-' means was empty)
- * @param newValue  - formatted new value ('-' means now empty)
- * @param isLongField - whether the field should use the long-text action
- */
-export function resolveAuditAction(oldValue: string, newValue: string, isLongField: boolean = false): AuditAction {
-	if (isLongField) {
-		if (newValue === '-') return AUDIT_ACTIONS.LONG_FIELD_CLEARED;
-		if (oldValue === '-') return AUDIT_ACTIONS.LONG_FIELD_SET;
-		return AUDIT_ACTIONS.LONG_FIELD_UPDATED;
-	}
-
-	if (newValue === '-') return AUDIT_ACTIONS.FIELD_CLEARED;
-	if (oldValue === '-') return AUDIT_ACTIONS.FIELD_SET;
-	return AUDIT_ACTIONS.FIELD_UPDATED;
+export function resolveTemplate(
+	dataModel: CaseDataModel,
+	action: AuditAction,
+	metadata?: Record<string, unknown>
+): string {
+	return fillTemplate(getTemplates(dataModel)[action], metadata);
 }

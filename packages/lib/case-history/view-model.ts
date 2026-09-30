@@ -1,14 +1,14 @@
 import { formatDateTime } from '../util/audit-formatters.ts';
-import { AUDIT_ACTIONS, isAuditAction, resolveTemplate } from '../audit/actions.ts';
+import { AUDIT_ACTIONS, LONG_FIELD_ACTIONS, isAuditAction, resolveTemplate } from '../audit/actions.ts';
 import type { AuditEvent } from '../audit/types.ts';
+import type { CaseDataModel } from '../util/types.ts';
 
 export interface CaseHistoryRow {
 	/** Formatted date+time, e.g. "11 February 2026 2:31pm" */
 	dateTimeFormatted: string;
 	/**
-	 * Human-readable detail from the audit template.
-	 * May contain HTML for bulk file entries (show/hide toggle).
-	 * Rendered via `html` not `text` in the Nunjucks table.
+	 * Human-readable detail from the audit template. Plain text: the view
+	 * escapes it and turns line breaks into <br>.
 	 */
 	details: string;
 	/** Display name of the user who performed the action */
@@ -18,25 +18,40 @@ export interface CaseHistoryRow {
 		label: string;
 		value: string;
 	}>;
+	/** File names for bulk file actions, shown as a "Show files" list */
+	fileList?: string[];
+}
+
+/**
+ * The file names stored with a bulk file action, or undefined if there aren't any.
+ */
+function getFileList(metadata: Record<string, unknown> | null): string[] | undefined {
+	const files = metadata?.files;
+	if (!Array.isArray(files)) {
+		return undefined;
+	}
+
+	const fileNames = (files as unknown[]).filter((file): file is string => typeof file === 'string');
+	return fileNames.length > 0 ? fileNames : undefined;
 }
 
 /** * Transforms raw audit events into rows ready for the case history table. */
-export function createCaseHistoryViewModel(events: Array<AuditEvent & { userName: string }>): CaseHistoryRow[] {
+export function createCaseHistoryViewModel(
+	events: Array<AuditEvent & { userName: string }>,
+	dataModel: CaseDataModel
+): CaseHistoryRow[] {
 	return events.map((event) => {
 		const { action, metadata, createdAt, userName } = event;
 		const dateTimeFormatted = formatDateTime(new Date(createdAt));
 
-		if (!isAuditAction(action)) {
+		if (!isAuditAction(dataModel, action)) {
 			return { dateTimeFormatted, details: `Unknown action: ${action}`, user: userName };
 		}
 
-		const details = resolveTemplate(action, metadata ?? undefined);
+		const details = resolveTemplate(dataModel, action, metadata ?? undefined);
 		const fieldName = typeof metadata?.fieldName === 'string' ? metadata.fieldName : '';
-		if (
-			action === AUDIT_ACTIONS.LONG_FIELD_SET ||
-			action === AUDIT_ACTIONS.LONG_FIELD_UPDATED ||
-			action === AUDIT_ACTIONS.LONG_FIELD_CLEARED
-		) {
+
+		if (LONG_FIELD_ACTIONS.has(action)) {
 			const oldValue = typeof metadata?.oldValue === 'string' ? metadata.oldValue : '';
 			const newValue = typeof metadata?.newValue === 'string' ? metadata.newValue : '';
 
@@ -64,7 +79,8 @@ export function createCaseHistoryViewModel(events: Array<AuditEvent & { userName
 			dateTimeFormatted,
 			details,
 			user: userName,
-			action
+			action,
+			fileList: getFileList(metadata)
 		};
 	});
 }
