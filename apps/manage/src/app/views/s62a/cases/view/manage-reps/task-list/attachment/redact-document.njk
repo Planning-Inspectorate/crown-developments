@@ -116,7 +116,7 @@
 			</div>
 		</div>
 	{% endif %}
-	<form method="POST">
+	<form method="POST" action="{{ currentUrl }}">
 		<div class="govuk-grid-row">
 			<input type="hidden" name="_csrf" value="{{ _csrf }}">
 			<div class="govuk-grid-column-full">

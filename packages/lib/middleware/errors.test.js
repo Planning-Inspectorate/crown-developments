@@ -1,7 +1,13 @@
 import { test, describe, mock } from 'node:test';
 import { strict as assert } from 'node:assert';
-import { buildDefaultErrorHandlerMiddleware, notFoundHandler, wrapPrismaErrors } from './errors.ts';
+import {
+	buildDefaultErrorHandlerMiddleware,
+	notFoundHandler,
+	wrapPrismaErrors,
+	buildSafeUploadMiddleware
+} from './errors.ts';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+import multer from 'multer';
 
 describe('errors', () => {
 	describe('buildDefaultErrorHandlerMiddleware', () => {
@@ -121,6 +127,93 @@ describe('errors', () => {
 			assert.deepStrictEqual(res.status.mock.calls[0].arguments, [404]);
 			const renderArgs = res.render.mock.calls[0].arguments;
 			assert.strictEqual(renderArgs[0], 'views/layouts/error');
+		});
+	});
+
+	describe('buildSafeUploadMiddleware', () => {
+		test('sets multerSizeLimitHit flag and calls next() on LIMIT_FILE_SIZE error', () => {
+			const multerError = new multer.MulterError('LIMIT_FILE_SIZE');
+			const mockUpload = mock.fn((req, res, cb) => cb(multerError));
+			const multerInstance = { array: mock.fn(() => mockUpload) };
+
+			const req = {};
+			const res = {};
+			const next = mock.fn();
+
+			const handler = buildSafeUploadMiddleware(multerInstance);
+			handler(req, res, next);
+
+			assert.strictEqual(multerInstance.array.mock.callCount(), 1);
+			assert.deepStrictEqual(multerInstance.array.mock.calls[0].arguments, ['files[]']);
+
+			assert.strictEqual(req.multerSizeLimitHit, true);
+			assert.strictEqual(next.mock.callCount(), 1);
+			assert.deepStrictEqual(next.mock.calls[0].arguments, []);
+		});
+
+		test('passes other multer errors to next(err)', () => {
+			const multerError = new multer.MulterError('LIMIT_UNEXPECTED_FILE');
+			const mockUpload = mock.fn((req, res, cb) => cb(multerError));
+			const multerInstance = { array: mock.fn(() => mockUpload) };
+
+			const req = {};
+			const res = {};
+			const next = mock.fn();
+
+			const handler = buildSafeUploadMiddleware(multerInstance);
+			handler(req, res, next);
+
+			assert.strictEqual(req.multerSizeLimitHit, undefined);
+			assert.strictEqual(next.mock.callCount(), 1);
+			assert.deepStrictEqual(next.mock.calls[0].arguments, [multerError]);
+		});
+
+		test('passes generic/unknown errors to next(err)', () => {
+			const genericError = new Error('Some network drop');
+			const mockUpload = mock.fn((req, res, cb) => cb(genericError));
+			const multerInstance = { array: mock.fn(() => mockUpload) };
+
+			const req = {};
+			const res = {};
+			const next = mock.fn();
+
+			const handler = buildSafeUploadMiddleware(multerInstance);
+			handler(req, res, next);
+
+			assert.strictEqual(req.multerSizeLimitHit, undefined);
+			assert.strictEqual(next.mock.callCount(), 1);
+			assert.deepStrictEqual(next.mock.calls[0].arguments, [genericError]);
+		});
+
+		test('calls next() normally when upload succeeds', () => {
+			const mockUpload = mock.fn((req, res, cb) => cb());
+			const multerInstance = { array: mock.fn(() => mockUpload) };
+
+			const req = {};
+			const res = {};
+			const next = mock.fn();
+
+			const handler = buildSafeUploadMiddleware(multerInstance);
+			handler(req, res, next);
+
+			assert.strictEqual(req.multerSizeLimitHit, undefined);
+			assert.strictEqual(next.mock.callCount(), 1);
+			assert.deepStrictEqual(next.mock.calls[0].arguments, []);
+		});
+
+		test('uses custom field name if provided', () => {
+			const mockUpload = mock.fn((req, res, cb) => cb());
+			const multerInstance = { array: mock.fn(() => mockUpload) };
+
+			const req = {};
+			const res = {};
+			const next = mock.fn();
+
+			const handler = buildSafeUploadMiddleware(multerInstance, 'customUploadField');
+			handler(req, res, next);
+
+			assert.strictEqual(multerInstance.array.mock.callCount(), 1);
+			assert.deepStrictEqual(multerInstance.array.mock.calls[0].arguments, ['customUploadField']);
 		});
 	});
 });

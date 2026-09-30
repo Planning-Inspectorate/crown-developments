@@ -19,6 +19,7 @@
     "connect-redis": "*",
     "express-session": "*",
     "file-type": "*",
+    "multer": "*",
     "notifications-node-client": "*",
     "pdf-lib": "*",
     "pino": "*",
