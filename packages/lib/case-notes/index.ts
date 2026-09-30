@@ -4,9 +4,9 @@ import {
 	buildViewCaseNotes,
 	buildViewAddCaseNotes,
 	buildCreateCaseNoteHandler,
-	buildFetchCaseNotesMiddleware,
-	validateIdFormat
+	buildFetchCaseNotesMiddleware
 } from './controller.ts';
+import { validateIdFormat } from '@pins/crowndev-lib/util/string.ts';
 import { buildValidateCaseNotesMiddleware } from './validation-middleware.ts';
 import type { CaseDataModel } from '../util/types.ts';
 import type { AuditService } from '@pins/crowndev-lib/audit/index.js';

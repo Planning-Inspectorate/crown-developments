@@ -11,7 +11,6 @@ import { crownDevelopmentToViewModel, type CrownDevelopmentViewModel } from './v
 import { mapNotes } from '@pins/crowndev-lib/case-notes/controller.ts';
 import { getQuestions } from './questions.ts';
 import { createJourney, JOURNEY_ID } from './journey.ts';
-import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { getEntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
 import { isUnsafeObjectKey, clearSessionData, readSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
@@ -233,18 +232,6 @@ async function getSharePointFolderLink(sharePointDrive: SharePointDrive, path: s
 	} catch {
 		// just don't show the button, don't throw an error
 	}
-}
-
-/**
- * Validate the format of the id parameter
- */
-export function validateIdFormat(req: Request, res: Response, next: NextFunction) {
-	const id = getStringParam(req.params, 'id');
-
-	if (!isValidUuidFormat(id)) {
-		return notFoundHandler(req, res);
-	}
-	next();
 }
 
 /**

@@ -1,3 +1,8 @@
+import { isValidUuidFormat } from '../util/uuid.ts';
+import type { Response, Request, NextFunction } from 'express';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
+
 /**
  * Convert camelCaseString to url-case-string.
  */
@@ -132,4 +137,16 @@ export function stringToKebab(string: string): string {
 		.replace(/[\W_]+/g, '-')
 		.replace(/^-+|-+$/g, '')
 		.toLowerCase();
+}
+
+/**
+ * Validate the format of the id parameter
+ */
+export function validateIdFormat(req: Request, res: Response, next: NextFunction) {
+	const id = getStringParam(req.params, 'id');
+
+	if (!isValidUuidFormat(id)) {
+		return notFoundHandler(req, res);
+	}
+	next();
 }

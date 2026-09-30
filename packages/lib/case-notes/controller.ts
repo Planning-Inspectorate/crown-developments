@@ -21,9 +21,8 @@ import type { CaseNotesService } from './index.ts';
 import { createPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { isValidRedirectUri } from '../util/uri.ts';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
+import { popSessionData } from '../util/session.ts';
 import path from 'node:path';
-import { isValidUuidFormat } from '../util/uuid.ts';
-import type { Response, Request, NextFunction } from 'express';
 
 /** Notes as queried for mapping — no relations; author is a plain Entra ID string. */
 type NoteForMapping = Pick<Prisma.ApplicationNoteGetPayload<object>, 'comment' | 'createdAt' | 'userId'>;
@@ -273,11 +272,7 @@ export function buildViewCaseNotes(service: CaseNotesService, dataModel: CaseDat
 			throw new Error('id param required');
 		}
 
-		const sessionCaseData = req.session?.cases?.[id];
-		const errorSummary = sessionCaseData?.updateErrors;
-		if (sessionCaseData?.updateErrors) {
-			delete sessionCaseData.updateErrors;
-		}
+		const errorSummary = popSessionData(req, id, 'updateErrors', false);
 
 		let caseRow;
 		try {
@@ -404,16 +399,4 @@ export function buildViewAddCaseNotes(service: CaseNotesService, dataModel: Case
 			}
 		);
 	};
-}
-
-/**
- * Validate the format of the id parameter
- */
-export function validateIdFormat(req: Request, res: Response, next: NextFunction) {
-	const id = getStringParam(req.params, 'id');
-
-	if (!isValidUuidFormat(id)) {
-		return notFoundHandler(req, res);
-	}
-	next();
 }
