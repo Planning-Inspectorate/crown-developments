@@ -13,61 +13,137 @@ import { mockLogger } from '@planning-inspectorate/core/testing';
 
 describe('S62A Save Controller Module', () => {
 	describe('generateS62aReference', () => {
-		const mockDate = new Date('2026-07-15T00:00:00.000Z');
+		const mockDate2026 = new Date('2026-07-15T00:00:00.000Z');
+		const mockDate2027 = new Date('2027-01-01T00:00:00.000Z');
 
-		it('throws an error if applicationPhaseId is missing', async () => {
-			const mockDb = {} as Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
+		const existingDatabaseRecords = [
+			{ reference: 'S62A/2026/0000999' },
+			{ reference: 'S62A/2026/0001000' },
+			{ reference: 'S62A/2026/0001001/PRE' }
+		];
+
+		it('throws an error if applicationPhaseId absent', async () => {
+			const mockDb = {} as unknown as Omit<
+				PrismaClient,
+				'$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'
+			>;
 
 			await assert.rejects(
 				async () => {
-					await generateS62aReference(mockDb, undefined, mockDate);
+					await generateS62aReference(mockDb, undefined, mockDate2026);
 				},
 				{ message: 'applicationPhase needed for reference generation' }
 			);
 		});
 
-		it('generates the first reference correctly for a Pre-Application', async () => {
+		it('increments reference by 1 for standard Application', async () => {
 			const mockDb = {
 				s62aCase: {
-					findMany: mock.fn(async () => [])
+					findFirst: mock.fn(async () => ({ reference: 'S62A/2026/0000005' }))
+				}
+			} as unknown as Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
+
+			const reference = await generateS62aReference(mockDb, 'APPLICATION_PHASE_ID', mockDate2026);
+
+			assert.strictEqual(reference, 'S62A/2026/0000006');
+		});
+
+		it('increments reference by 1 for Pre-Application', async () => {
+			const mockDb = {
+				s62aCase: {
+					findFirst: mock.fn(async () => ({ reference: 'S62A/2026/0000005/PRE' }))
 				}
 			} as unknown as Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
 
 			const reference = await generateS62aReference(
 				mockDb,
 				PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION,
-				mockDate
+				mockDate2026
 			);
 
-			assert.strictEqual(reference, 'S62A/2026/0000001/PRE');
+			assert.strictEqual(reference, 'S62A/2026/0000006/PRE');
 		});
 
-		it('generates the first reference correctly for a Standard Application', async () => {
+		it('follows on from the highest migrated case reference', async () => {
 			const mockDb = {
 				s62aCase: {
-					findMany: mock.fn(async () => [])
+					findFirst: mock.fn(async () => ({ reference: 'S62A/2026/0000450' }))
 				}
 			} as unknown as Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
 
-			const reference = await generateS62aReference(mockDb, 'some-other-application-phase', mockDate);
+			const reference = await generateS62aReference(mockDb, 'APPLICATION_PHASE_ID', mockDate2026);
 
-			assert.strictEqual(reference, 'S62A/2026/0000001');
+			assert.strictEqual(reference, 'S62A/2026/0000451');
 		});
 
-		it('increments the reference ID based on the latest valid case', async () => {
+		it('restarts count from new year for Application', async () => {
+			const mockFindFirst = mock.fn(async (query: { where: { reference: { startsWith: string } } }) => {
+				const prefix = query.where.reference.startsWith;
+
+				const matchingRecord = existingDatabaseRecords.find((record) => record.reference.startsWith(prefix));
+				return matchingRecord ?? null;
+			});
+
 			const mockDb = {
 				s62aCase: {
-					findMany: mock.fn(async () => [
-						{ reference: 'INVALID/FORMAT/NO/NUMBERS' },
-						{ reference: 'S62A/2026/0000042' }, // Should pick this one
-						{ reference: 'S62A/2026/0000041' }
-					])
+					findFirst: mockFindFirst
 				}
 			} as unknown as Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
 
-			const reference = await generateS62aReference(mockDb, 'application-phase', mockDate);
+			const reference = await generateS62aReference(mockDb, 'APPLICATION_PHASE_ID', mockDate2027);
 
-			assert.strictEqual(reference, 'S62A/2026/0000043');
+			assert.deepStrictEqual(mockFindFirst.mock.calls[0].arguments[0], {
+				where: { reference: { startsWith: 'S62A/2027/' } },
+				select: { reference: true },
+				orderBy: { reference: 'desc' }
+			});
+
+			assert.strictEqual(reference, 'S62A/2027/0000001');
+		});
+
+		it('restarts count from new year for Pre-Application', async () => {
+			const mockFindFirst = mock.fn(async (query: { where: { reference: { startsWith: string } } }) => {
+				const prefix = query.where.reference.startsWith;
+				const matchingRecord = existingDatabaseRecords.find((record) => record.reference.startsWith(prefix));
+				return matchingRecord ?? null;
+			});
+
+			const mockDb = {
+				s62aCase: {
+					findFirst: mockFindFirst
+				}
+			} as unknown as Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
+
+			const reference = await generateS62aReference(
+				mockDb,
+				PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION,
+				mockDate2027
+			);
+
+			assert.strictEqual(reference, 'S62A/2027/0000001/PRE');
+		});
+	});
+
+	describe('Case list sorting', () => {
+		it('queries database for cases ordered from most recently created to oldest', async () => {
+			const mockFindMany = mock.fn(async () => [
+				{ id: '1', reference: 'S62A/2026/0000002', createdDate: new Date('2026-02-01') },
+				{ id: '2', reference: 'S62A/2026/0000001', createdDate: new Date('2026-01-01') }
+			]);
+
+			const mockDb = {
+				s62aCase: {
+					findMany: mockFindMany
+				}
+			} as unknown as Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
+
+			await mockDb.s62aCase.findMany({
+				orderBy: { createdDate: 'desc' }
+			});
+
+			assert.deepStrictEqual(mockFindMany.mock.calls[0].arguments[0], {
+				orderBy: { createdDate: 'desc' }
+			});
 		});
 	});
 
@@ -211,7 +287,7 @@ describe('S62A Save Controller Module', () => {
 
 				await buildSaveController(service)(req, res, () => {});
 
-				assert.strictEqual(findFirst.mock.callCount(), 1, 'should re-check the chosen case');
+				assert.strictEqual(findFirst.mock.callCount(), 2, 'should re-check the chosen case');
 				assert.strictEqual(create.mock.callCount(), 1);
 			});
 
@@ -225,7 +301,7 @@ describe('S62A Save Controller Module', () => {
 
 				await buildSaveController(service)(req, res, () => {});
 
-				assert.strictEqual(findFirst.mock.callCount(), 0);
+				assert.strictEqual(findFirst.mock.callCount(), 1);
 				assert.strictEqual(create.mock.callCount(), 1);
 			});
 
@@ -238,7 +314,7 @@ describe('S62A Save Controller Module', () => {
 
 				await buildSaveController(service)(req, res, () => {});
 
-				assert.strictEqual(findFirst.mock.callCount(), 0);
+				assert.strictEqual(findFirst.mock.callCount(), 1);
 				assert.strictEqual(create.mock.callCount(), 1);
 			});
 
@@ -253,7 +329,7 @@ describe('S62A Save Controller Module', () => {
 
 				await buildSaveController(service)(req, res, () => {});
 
-				assert.strictEqual(findFirst.mock.callCount(), 0);
+				assert.strictEqual(findFirst.mock.callCount(), 1);
 			});
 
 			describe('pre-application advice folder', () => {
