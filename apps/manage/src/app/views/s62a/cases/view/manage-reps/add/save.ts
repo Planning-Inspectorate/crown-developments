@@ -8,6 +8,8 @@ import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import type { ManageService } from '#service';
 import { saveS62aRepresentation } from '@pins/crowndev-lib/forms/representations/s62a-save.ts';
 import type { Request, Response } from 'express';
+import { S62A_AUDIT_ACTIONS } from '../../../audit/actions.ts';
+import { recordS62aRepresentationAudit } from '../../../audit/representations.ts';
 
 /**
  * Creates the success page after CYA
@@ -45,7 +47,8 @@ export function viewAddRepresentationSuccessPage(req: Request, res: Response): v
 }
 
 /**
- * Saves new rep to S62A rep model.
+ * Saves new rep to S62A rep model, and records it in the case history.
+ * (Representations submitted by the public through the S62A portal aren't recorded.)
  */
 export function buildSaveRepresentationController(
 	service: ManageService,
@@ -59,7 +62,15 @@ export function buildSaveRepresentationController(
 				journeyId: JOURNEY_ID,
 				checkYourAnswersUrl: `/s62a/cases/${id}/manage-representations/add-representation/check-your-answers`,
 				successUrl: `/s62a/cases/${id}/manage-representations/add-representation/success`,
-				uniqueReferenceFn
+				uniqueReferenceFn,
+				onSaved: (savedReq, { caseId, representationReference }) =>
+					recordS62aRepresentationAudit(
+						service,
+						savedReq,
+						caseId,
+						representationReference,
+						S62A_AUDIT_ACTIONS.REPRESENTATION_ADDED
+					)
 			},
 			req,
 			res

@@ -55,6 +55,14 @@ export function buildGetJourneyMiddleware(service: ManageService): AsyncRequestH
 
 		const questions = buildRepresentationQuestions(answers, taskListUrl, true);
 
+		// Question titles by field name, used as labels in the case history
+		type QuestionBase = { fieldName?: string; title?: string };
+		res.locals.fieldDisplayNames = Object.fromEntries(
+			(Object.values(questions) as QuestionBase[])
+				.filter((q): q is QuestionBase & { fieldName: string; title: string } => Boolean(q?.fieldName && q?.title))
+				.map((q) => [q.fieldName, q.title])
+		);
+
 		// @ts-expect-error - mismatch in dynamic-forms journey typing vs strict local types
 		res.locals.originalAnswers = { ...answers };
 		// @ts-expect-error - mismatch in dynamic-forms journey typing

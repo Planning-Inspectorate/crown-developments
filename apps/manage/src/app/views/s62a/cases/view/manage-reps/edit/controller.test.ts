@@ -5,6 +5,9 @@ import type { Logger } from 'pino';
 import type { Request, Response } from 'express';
 import type { ManageService } from '#service';
 import type { SaveParams } from '@planning-inspectorate/dynamic-forms';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import { S62A_AUDIT_ACTIONS } from '../../../audit/actions.ts';
+import { REPRESENTATION_CATEGORY_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('buildUpdateRepresentation', () => {
 	const infoMock = mock.fn();
@@ -276,6 +279,57 @@ describe('buildUpdateRepresentation', () => {
 			}
 
 			assert.strictEqual(updateMock.mock.callCount(), 1);
+		});
+	});
+
+	describe('Case history', () => {
+		function withAudit() {
+			const recordMany = mock.fn(async () => {});
+			const auditedService = { ...service, audit: { recordMany } } as unknown as ManageService;
+			const req = mockReq({ session: { account: { localAccountId: 'user-1' } } });
+			const res = {
+				locals: {
+					originalAnswers: { categoryId: REPRESENTATION_CATEGORY_ID.CONSULTEES },
+					fieldDisplayNames: { categoryId: 'Representation type' }
+				}
+			} as unknown as Response;
+			const data = { answers: { categoryId: REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES } };
+
+			return { handler: buildUpdateRepresentation(auditedService), req, res, data, recordMany };
+		}
+
+		it('should record the changed fields after the update', async () => {
+			const { handler, req, res, data, recordMany } = withAudit();
+			updateMock.mock.mockImplementation(() => Promise.resolve() as unknown as undefined);
+
+			await handler({ req, res, data } as unknown as SaveParams);
+
+			assert.deepStrictEqual((recordMany.mock.calls[0] as any).arguments, [
+				[
+					{
+						caseId: 'case-123',
+						userId: 'user-1',
+						action: S62A_AUDIT_ACTIONS.REPRESENTATION_UPDATED,
+						metadata: {
+							fieldName: 'Representation type',
+							reference: 'REP-001',
+							oldValue: 'Consultees',
+							newValue: 'Interested party'
+						}
+					}
+				],
+				CASE_DATA_MODEL.S62A
+			]);
+		});
+
+		it('should not record anything if the update fails', async () => {
+			const { handler, req, res, data, recordMany } = withAudit();
+			updateMock.mock.mockImplementation(
+				() => Promise.reject(new Error('Database disconnected')) as unknown as undefined
+			);
+
+			await assert.rejects(() => handler({ req, res, data } as unknown as SaveParams));
+			assert.strictEqual(recordMany.mock.callCount(), 0);
 		});
 	});
 });

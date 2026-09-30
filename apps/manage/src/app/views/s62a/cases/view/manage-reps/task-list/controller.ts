@@ -22,6 +22,7 @@ import { updateRepresentationItemsReviewStatus } from './comment/controller.ts';
 import { addRepReviewedSession, getStatusDisplayName } from '@pins/crowndev-lib/forms/representations/review-utils.ts';
 import type { Logger } from 'pino';
 import { MANAGE_REPS_MANAGE_JOURNEY_ID } from '../index.ts';
+import { recordS62aRepresentationAudit, resolveRepresentationReviewAction } from '../../../audit/representations.ts';
 
 export function buildRepresentationTaskList(service: ManageService, journeyId: string): AsyncRequestHandler {
 	const { db, logger } = service;
@@ -185,7 +186,15 @@ export function buildReviewRepresentationSubmission(service: ManageService): Asy
 			sessionFiles &&
 			Object.values(sessionFiles).some(({ uploadedFiles }) => uploadedFiles?.length && uploadedFiles.length > 0);
 
+		// Read before the update, so the case history only records a change of status
+		const statusBeforeReview = await getRepresentationStatus(db, logger, representationRef);
+
 		await updateRepresentationItemsReviewStatus(req, db, logger);
+
+		const reviewAction = resolveRepresentationReviewAction(statusBeforeReview, reviewDecision);
+		if (reviewAction) {
+			await recordS62aRepresentationAudit(service, req, id, representationRef, reviewAction);
+		}
 
 		if (hasUploadedFiles) {
 			const allUploadedFileIds: string[] = Object.values(sessionFiles)
@@ -238,6 +247,28 @@ export function buildReviewRepresentationSubmission(service: ManageService): Asy
 			: req.baseUrl;
 		res.redirect(redirectUrl);
 	};
+}
+
+/**
+ * The representation's status, for the case history. Returns undefined if it
+ * can't be read, so a failed lookup never stops the review being saved.
+ */
+async function getRepresentationStatus(
+	db: ManageService['db'],
+	logger: Logger,
+	representationRef: string
+): Promise<string | undefined> {
+	try {
+		const representation = await db.s62aRepresentation.findUnique({
+			where: { reference: representationRef },
+			select: { statusId: true }
+		});
+
+		return representation?.statusId;
+	} catch (error) {
+		logger.warn({ error, representationRef }, 'Could not read the representation status for the case history');
+		return undefined;
+	}
 }
 
 /**

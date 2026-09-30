@@ -6,6 +6,8 @@ import type { ManageService } from '#service';
 import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { isValidRedirectUri } from '@pins/crowndev-lib/util/uri.ts';
+import { S62A_AUDIT_ACTIONS } from '../../../audit/actions.ts';
+import { recordS62aRepresentationAudit } from '../../../audit/representations.ts';
 
 /**
  * Renders the page that asks for confirmation that the user understands what will happen
@@ -23,7 +25,8 @@ export function reinstateRepConfirmation(req: Request, res: Response) {
 
 /**
  * Updates the rep to be reinstated, resetting its status to what it was before.
- * Deletes any withdrawal docs associated with it, but keeps blob
+ * Deletes any withdrawal docs associated with it, but keeps blob.
+ * Then records the reinstatement in the case history.
  */
 export function buildReinstateRepresentationController(service: ManageService): AsyncRequestHandler {
 	const { db, logger } = service;
@@ -67,6 +70,14 @@ export function buildReinstateRepresentationController(service: ManageService): 
 				logParams: { id, representationRef }
 			});
 		}
+
+		await recordS62aRepresentationAudit(
+			service,
+			req,
+			id,
+			representationRef,
+			S62A_AUDIT_ACTIONS.REPRESENTATION_REINSTATED
+		);
 
 		const redirectUrl = req.baseUrl + '/view/reinstate-representation-success';
 
