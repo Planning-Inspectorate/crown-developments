@@ -253,7 +253,7 @@ export function extractEditPayloads(edits) {
 	}
 
 	if ('groupName' in edits) {
-		primitiveUpdates.representedGroupName = edits.groupName;
+		primitiveUpdates.representedGroupName = edits.groupName.length ? edits.groupName : null;
 	}
 
 	if ('manageGroupDetails' in edits) {
@@ -334,7 +334,6 @@ function getBaseRepresentationCreateInput(answers, reference, applicationId, pre
 		SubmittedReceivedMethod: { connect: { id: RECEIVED_METHOD_ID.ONLINE } },
 		Status: { connect: { id: REPRESENTATION_STATUS_ID.AWAITING_REVIEW } },
 		SubmittedFor: { connect: { id: answers.submittedForId } },
-		submittedByAgent: yesNoToBoolean(answers.isAgent) || false,
 		comment: answers[`${prefix}Comment`],
 		SubmittedByContact: {
 			create: {
@@ -358,6 +357,10 @@ function getBaseRepresentationCreateInput(answers, reference, applicationId, pre
 
 	if (answers[`${prefix}HearingPreference`]) {
 		createInput.wantsToBeHeard = yesNoToBoolean(answers[`${prefix}HearingPreference`]);
+	}
+
+	if (answers.isAgent) {
+		createInput.submittedByAgent = yesNoToBoolean(answers.isAgent);
 	}
 
 	// Checking that at least one of the address fields is not empty so that we don't create an empty address

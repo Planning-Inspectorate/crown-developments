@@ -1021,7 +1021,6 @@ describe('view-model', () => {
 						}
 					},
 					submittedDate: now,
-					submittedByAgent: false,
 					SubmittedByContact: {
 						create: {
 							firstName: 'firstName',
@@ -1311,7 +1310,6 @@ describe('view-model', () => {
 						}
 					},
 					submittedDate: now,
-					submittedByAgent: false,
 					SubmittedByContact: {
 						create: {
 							firstName: 'firstName',
@@ -1617,7 +1615,6 @@ describe('view-model', () => {
 						}
 					},
 					submittedDate: new Date('2024-12-25T00:00:00Z'),
-					submittedByAgent: false,
 					SubmittedByContact: {
 						create: {
 							firstName: 'firstName',
@@ -1787,7 +1784,6 @@ describe('view-model', () => {
 				Category: { connect: { id: 'interested-parties' } },
 				SubmittedReceivedMethod: { connect: { id: 'online' } },
 				submittedDate: now,
-				submittedByAgent: false,
 				SubmittedByContact: {
 					create: {
 						firstName: 'firstName',
@@ -1937,7 +1933,6 @@ describe('view-model', () => {
 				Category: { connect: { id: 'interested-parties' } },
 				SubmittedReceivedMethod: { connect: { id: 'online' } },
 				submittedDate: now,
-				submittedByAgent: false,
 				SubmittedByContact: {
 					create: {
 						firstName: 'AgentFirst',
