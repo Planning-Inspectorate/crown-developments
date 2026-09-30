@@ -17,6 +17,8 @@ import { JOURNEY_ID } from './journey.ts';
 import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { isValidRedirectUri } from '@pins/crowndev-lib/util/uri.ts';
+import { S62A_AUDIT_ACTIONS } from '../../../audit/actions.ts';
+import { recordS62aRepresentationAudit } from '../../../audit/representations.ts';
 
 type WithdrawalAnswers = {
 	withdrawalReasonId: string;
@@ -148,6 +150,7 @@ export function buildDownloadDocument(service: ManageService, downloader: Withdr
 /**
  * Updates a representation with the withdrawal data fields filled in, making sure to
  * move any drafts over into fully realised / committed document.
+ * Then records the withdrawal in the case history.
  */
 export function buildSaveController(service: ManageService): AsyncRequestHandler {
 	const { db, logger } = service;
@@ -232,6 +235,14 @@ export function buildSaveController(service: ManageService): AsyncRequestHandler
 				logParams: { id, representationRef }
 			});
 		}
+
+		await recordS62aRepresentationAudit(
+			service,
+			req,
+			id,
+			representationRef,
+			S62A_AUDIT_ACTIONS.REPRESENTATION_WITHDRAWN
+		);
 
 		clearSessionData(req, id, 'withdrawal-attachments', 'files');
 		clearDataFromSession({ req, journeyId: JOURNEY_ID });

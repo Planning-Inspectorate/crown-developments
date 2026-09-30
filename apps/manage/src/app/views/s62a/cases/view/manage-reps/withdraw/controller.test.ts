@@ -14,6 +14,8 @@ import {
 	successController
 } from './controller.ts';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { S62A_AUDIT_ACTIONS } from '../../../audit/actions.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 describe('Withdrawal Controller', () => {
 	const infoMock = mock.fn();
@@ -251,6 +253,49 @@ describe('Withdrawal Controller', () => {
 			assert.strictEqual(createManyBlobsMock.mock.callCount(), 1);
 			assert.strictEqual(deleteManyDraftsMock.mock.callCount(), 1);
 			assert.strictEqual((res.redirect as any).mock.callCount(), 1);
+		});
+
+		describe('case history', () => {
+			function withAudit() {
+				const recordMany = mock.fn(async () => {});
+				const service = { ...mockService, audit: { recordMany } } as unknown as ManageService;
+				const req = mockReq({ session: { account: { localAccountId: 'user-1' } } });
+				const res = mockRes();
+				res.locals.journeyResponse = {
+					answers: { withdrawalReasonId: 'reason-1', withdrawalRequestDate: new Date('2026-09-21') }
+				} as any;
+				findUniqueRepMock.mock.mockImplementation(
+					() => Promise.resolve({ id: 'rep-internal-id', Status: { id: 'accepted' } }) as any
+				);
+				return { service, recordMany, req, res };
+			}
+
+			it('should record the withdrawal', async () => {
+				const { service, recordMany, req, res } = withAudit();
+				updateRepMock.mock.mockImplementation(() => Promise.resolve() as any);
+
+				await buildSaveController(service)(req, res, mockNext);
+
+				assert.deepStrictEqual(recordMany.mock.calls[0].arguments, [
+					[
+						{
+							caseId: 'case-123',
+							userId: 'user-1',
+							action: S62A_AUDIT_ACTIONS.REPRESENTATION_WITHDRAWN,
+							metadata: { reference: 'REP-001' }
+						}
+					],
+					CASE_DATA_MODEL.S62A
+				]);
+			});
+
+			it('should not record anything if the withdrawal fails', async () => {
+				const { service, recordMany, req, res } = withAudit();
+				updateRepMock.mock.mockImplementation(() => Promise.reject(new Error('Database error')) as any);
+
+				await assert.rejects(() => buildSaveController(service)(req, res, mockNext));
+				assert.strictEqual(recordMany.mock.callCount(), 0);
+			});
 		});
 	});
 

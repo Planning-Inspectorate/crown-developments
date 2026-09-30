@@ -57,7 +57,15 @@ export const S62A_AUDIT_ACTIONS = {
 	NON_RESIDENTIAL_FLOORSPACE_ADDED: 'NON_RESIDENTIAL_FLOORSPACE_ADDED',
 	NON_RESIDENTIAL_FLOORSPACE_UPDATED: 'NON_RESIDENTIAL_FLOORSPACE_UPDATED',
 	NON_RESIDENTIAL_FLOORSPACE_LIST_UPDATED: 'NON_RESIDENTIAL_FLOORSPACE_LIST_UPDATED',
-	NON_RESIDENTIAL_FLOORSPACE_DELETED: 'NON_RESIDENTIAL_FLOORSPACE_DELETED'
+	NON_RESIDENTIAL_FLOORSPACE_DELETED: 'NON_RESIDENTIAL_FLOORSPACE_DELETED',
+
+	// Representations
+	REPRESENTATION_ADDED: 'REPRESENTATION_ADDED',
+	REPRESENTATION_WITHDRAWN: 'REPRESENTATION_WITHDRAWN',
+	REPRESENTATION_REINSTATED: 'REPRESENTATION_REINSTATED',
+	REPRESENTATION_APPROVED: 'REPRESENTATION_APPROVED',
+	REPRESENTATION_REJECTED: 'REPRESENTATION_REJECTED',
+	REPRESENTATION_UPDATED: 'REPRESENTATION_UPDATED'
 } as const;
 
 export type S62aAuditAction = (typeof S62A_AUDIT_ACTIONS)[keyof typeof S62A_AUDIT_ACTIONS];
@@ -69,6 +77,8 @@ export type S62aAuditAction = (typeof S62A_AUDIT_ACTIONS)[keyof typeof S62A_AUDI
  * Extra metadata keys used by the list templates:
  *   {name}         – name of the list item added or deleted (e.g. a contact's name)
  *   {entityName}   – the list item's name before the change, for update context
+ *
+ * The representation templates use {reference}, the representation's reference.
  */
 export const S62A_AUDIT_TEMPLATES: Record<S62aAuditAction, string> = {
 	...SHARED_AUDIT_TEMPLATES,
@@ -133,5 +143,15 @@ export const S62A_AUDIT_TEMPLATES: Record<S62aAuditAction, string> = {
 	// For values that are a list of lines (floorspace and rooms), shown over several lines without quotes
 	[S62A_AUDIT_ACTIONS.NON_RESIDENTIAL_FLOORSPACE_LIST_UPDATED]:
 		'{entityName} {fieldName} was updated from:\n{oldValue}\n\nto\n{newValue}',
-	[S62A_AUDIT_ACTIONS.NON_RESIDENTIAL_FLOORSPACE_DELETED]: '{name} was deleted from non-residential floorspace details.'
+	[S62A_AUDIT_ACTIONS.NON_RESIDENTIAL_FLOORSPACE_DELETED]:
+		'{name} was deleted from non-residential floorspace details.',
+
+	// Representations
+	[S62A_AUDIT_ACTIONS.REPRESENTATION_ADDED]: 'Representation {reference} was added',
+	[S62A_AUDIT_ACTIONS.REPRESENTATION_WITHDRAWN]: 'Representation {reference} was withdrawn',
+	[S62A_AUDIT_ACTIONS.REPRESENTATION_REINSTATED]: 'Representation {reference} was reinstated',
+	[S62A_AUDIT_ACTIONS.REPRESENTATION_APPROVED]: 'Representation {reference} was approved',
+	[S62A_AUDIT_ACTIONS.REPRESENTATION_REJECTED]: 'Representation {reference} was rejected',
+	// A field changed after review, e.g. 'Representation type (353RK-4766) was updated from "Consultees" to "Interested party"'
+	[S62A_AUDIT_ACTIONS.REPRESENTATION_UPDATED]: '{fieldName} ({reference}) was updated from "{oldValue}" to "{newValue}"'
 };

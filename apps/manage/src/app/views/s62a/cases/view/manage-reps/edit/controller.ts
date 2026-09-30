@@ -7,6 +7,7 @@ import type { SaveDataFn } from '@planning-inspectorate/dynamic-forms';
 import type { Request, Response } from 'express';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import type { HaveYourSayManageModel } from '@pins/crowndev-lib/forms/representations/types.js';
+import { recordS62aRepresentationUpdates } from '../../../audit/representations.ts';
 
 interface Attachment {
 	fileName: string;
@@ -150,6 +151,15 @@ export function buildUpdateRepresentation(service: ManageService): SaveDataFn {
 				logParams: { id, representationRef }
 			});
 		}
+
+		await recordS62aRepresentationUpdates(service, req, {
+			caseId: id,
+			representationReference: representationRef,
+			answers: toSave as unknown as Record<string, unknown>,
+			previous: fullViewModel as unknown as Record<string, unknown>,
+			questionLabels: res.locals?.fieldDisplayNames as Record<string, string> | undefined
+		});
+
 		clearSessionData(req, id, req.params.question, 'files');
 		addSessionData(req, representationRef, { representationUpdated: true }, 'representations');
 	};

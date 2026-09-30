@@ -201,4 +201,37 @@ describe('S62A audit templates', () => {
 			'Specialism was set to Tree preservation order'
 		);
 	});
+	it('should match the scenarios sheet for representations', () => {
+		const reference = { reference: '353RK-4766' };
+
+		assert.strictEqual(
+			resolve(S62A_AUDIT_ACTIONS.REPRESENTATION_ADDED, reference),
+			'Representation 353RK-4766 was added'
+		);
+		assert.strictEqual(
+			resolve(S62A_AUDIT_ACTIONS.REPRESENTATION_WITHDRAWN, reference),
+			'Representation 353RK-4766 was withdrawn'
+		);
+		assert.strictEqual(
+			resolve(S62A_AUDIT_ACTIONS.REPRESENTATION_REINSTATED, reference),
+			'Representation 353RK-4766 was reinstated'
+		);
+		assert.strictEqual(
+			resolve(S62A_AUDIT_ACTIONS.REPRESENTATION_APPROVED, reference),
+			'Representation 353RK-4766 was approved'
+		);
+		assert.strictEqual(
+			resolve(S62A_AUDIT_ACTIONS.REPRESENTATION_REJECTED, reference),
+			'Representation 353RK-4766 was rejected'
+		);
+		assert.strictEqual(
+			resolve(S62A_AUDIT_ACTIONS.REPRESENTATION_UPDATED, {
+				fieldName: 'Representation type',
+				reference: '353RK-4766',
+				oldValue: 'Consultees',
+				newValue: 'Interested party'
+			}),
+			'Representation type (353RK-4766) was updated from "Consultees" to "Interested party"'
+		);
+	});
 });

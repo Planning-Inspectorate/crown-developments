@@ -15,12 +15,24 @@ import type { HaveYourSayManageModel } from './types.js';
 
 type AppService = ManageService | S62APortalService;
 
+/** Details of a representation that has just been saved */
+export interface SavedS62aRepresentation {
+	/** The S62A case the representation is for */
+	caseId: string;
+	representationReference: string;
+}
+
 export interface SaveRepresentationOptions {
 	service: AppService;
 	journeyId: string;
 	checkYourAnswersUrl: string;
 	successUrl: string;
 	uniqueReferenceFn?: ($tx: Prisma.TransactionClient, generateFn?: () => string, model?: string) => Promise<string>;
+	/**
+	 * Optional step after the representation has been saved, e.g. recording it
+	 * in the case history. A failing step is logged and doesn't affect the user.
+	 */
+	onSaved?: (req: Request, saved: SavedS62aRepresentation) => Promise<void>;
 }
 
 /**
@@ -32,7 +44,8 @@ export async function saveS62aRepresentation(
 		journeyId,
 		checkYourAnswersUrl,
 		successUrl,
-		uniqueReferenceFn = uniqueReference
+		uniqueReferenceFn = uniqueReference,
+		onSaved
 	}: SaveRepresentationOptions,
 	req: Request,
 	res: Response
@@ -131,6 +144,17 @@ export async function saveS62aRepresentation(
 			message: 'adding a new representation',
 			logParams: { id }
 		});
+	}
+
+	if (onSaved) {
+		try {
+			await onSaved(req, { caseId: id, representationReference });
+		} catch (error) {
+			logger.error(
+				{ err: error, id, representationReference },
+				'Failed to run the after-save step for a representation'
+			);
+		}
 	}
 
 	clearSessionData(req, id, [submittedForId], 'files');
