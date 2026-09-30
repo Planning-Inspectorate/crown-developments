@@ -79,8 +79,10 @@ export function createRoutes(service: ManageService) {
 	tabRouter.get('/', getJourney, asyncHandler(viewCaseDetails));
 
 	// Mounts publish and unpublish routes inside the tab router
-	tabRouter.use('/publish', publishCase);
-	tabRouter.use('/unpublish', unpublishCase);
+	if (service.isS62APortalLive) {
+		tabRouter.use('/publish', publishCase);
+		tabRouter.use('/unpublish', unpublishCase);
+	}
 
 	tabRouter.get(
 		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',

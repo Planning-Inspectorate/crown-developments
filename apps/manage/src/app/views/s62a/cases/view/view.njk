@@ -32,7 +32,7 @@
 				href: foldersUrl,
 				classes: "govuk-button--secondary"
 			}) }}
-			{% if applicationPhase == "application" %}
+			{% if applicationPhase == "application" and config.isS62APortalLive %}
 				{% if casePublished %}
 					{{ govukButton({
 						text: "Unpublish Application",
