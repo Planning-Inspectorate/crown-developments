@@ -9,7 +9,7 @@ import {
 	safeDeleteUploadedFilesSession,
 	updateRepReviewSession
 } from '@pins/crowndev-lib/forms/representations/task-list-utils.ts';
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
+import { type FileUploadRequest, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { getStringParams } from '@pins/crowndev-lib/util/params.ts';
 import {
 	type ExpressValidationErrors,
@@ -26,6 +26,7 @@ import type { ValidationConfig } from '@pins/crowndev-lib/validators/file-valida
 import type { DraftRedactedDocumentDownloader } from './draft-redacted-document-downloader.ts';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { MANAGE_REPS_MANAGE_JOURNEY_ID } from '../../index.ts';
+import { formatBytes } from '@pins/crowndev-lib/util/file.ts';
 
 export function buildReviewRepresentationDocument(service: ManageService) {
 	const { db } = service;
@@ -299,10 +300,31 @@ export function validateUploads(
 	documentUploader: RedactedAttachmentUploader
 ) {
 	return async (
-		req: Request<ParamsDictionary, unknown, { errors: ExpressValidationErrors; errorSummary: ErrorSummaryItem[] }>,
+		req: FileUploadRequest<
+			ParamsDictionary,
+			unknown,
+			{ errors: ExpressValidationErrors; errorSummary: ErrorSummaryItem[] }
+		>,
 		res: Response,
 		next: NextFunction
 	) => {
+		// If Multer has flagged we are over-limit, don't continue, just reload with error message.
+		if (req.multerSizeLimitHit) {
+			req.body.errors = {
+				'upload-form': {
+					type: 'field',
+					msg: `The attachment must be smaller than ${formatBytes(config.maxFileSize)}`,
+					path: 'upload-form',
+					location: 'body',
+					value: ''
+				}
+			};
+
+			await reloadPageWithErrors(service, req, res);
+
+			return;
+		}
+
 		const files = req.files as Express.Multer.File[];
 
 		if (!files || files.length === 0) return res.redirect(req.baseUrl);
@@ -310,8 +332,6 @@ export function validateUploads(
 		const validationErrors = await documentUploader.validateUploadBatch(req.sessionID, files, config);
 
 		if (validationErrors.length > 0) {
-			const redactRepresentationDocument = buildRedactRepresentationDocument(service);
-
 			req.body.errors = {
 				'upload-form': {
 					type: 'field',
@@ -322,12 +342,7 @@ export function validateUploads(
 				}
 			};
 
-			req.body.errorSummary = expressValidationErrorsToGovUkErrorList(req.body.errors);
-
-			await redactRepresentationDocument(req, res, {
-				errors: req.body.errors,
-				errorSummary: req.body.errorSummary
-			});
+			await reloadPageWithErrors(service, req, res);
 
 			return;
 		}
@@ -363,4 +378,26 @@ export function deleteDocumentController(service: ManageService, documentUploade
 			return res.status(500).json({ error: 'Failed to delete file' });
 		}
 	};
+}
+
+/**
+ * Takes set errors and formats them and reloads the page
+ */
+async function reloadPageWithErrors(
+	service: ManageService,
+	req: FileUploadRequest<
+		ParamsDictionary,
+		unknown,
+		{ errors: ExpressValidationErrors; errorSummary: ErrorSummaryItem[] }
+	>,
+	res: Response
+) {
+	const redactRepresentationDocument = buildRedactRepresentationDocument(service);
+
+	req.body.errorSummary = expressValidationErrorsToGovUkErrorList(req.body.errors);
+
+	await redactRepresentationDocument(req, res, {
+		errors: req.body.errors,
+		errorSummary: req.body.errorSummary
+	});
 }

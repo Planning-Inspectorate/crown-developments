@@ -28,12 +28,14 @@ import lusca from 'lusca';
 import { RedactedAttachmentUploader } from './redacted-attachment-document-uploader.ts';
 import { FileValidator } from '@pins/crowndev-lib/validators/file-validator.ts';
 import { DraftRedactedDocumentDownloader } from './draft-redacted-document-downloader.ts';
+import { buildSafeUploadMiddleware } from '@pins/crowndev-lib/middleware/errors.ts';
 
 export function createRoutes(service: ManageService, journeyId: string) {
 	const router = createRouter({ mergeParams: true });
 
 	const { db, logger, blobStore } = service;
 	const handleUploads = multer({ limits: { fileSize: MAX_FILE_SIZE, files: 1 } });
+	const safeUploadMiddleware = buildSafeUploadMiddleware(handleUploads, 'files[]');
 
 	const fileValidator = new FileValidator(logger);
 	const downloader = new ManageRepresentationDocumentDownloader(service);
@@ -77,7 +79,7 @@ export function createRoutes(service: ManageService, journeyId: string) {
 
 	router.post(
 		'/redact/upload-documents',
-		handleUploads.array('files[]'),
+		safeUploadMiddleware,
 		// Lusca CSRF check performed after Multer handles the multipart/form-data
 		lusca.csrf(),
 		validateRedactedFileMiddleware,

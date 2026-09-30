@@ -1,6 +1,22 @@
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { Logger } from 'pino';
 import type { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
+import type { ParamsDictionary } from 'express-serve-static-core';
+import multer from 'multer';
+
+/**
+ * Specifically types Request object for multer file uploading
+ * contains an extra optional param to say whether a limit has
+ * been reached
+ */
+export type FileUploadRequest<P = ParamsDictionary, ResBody = unknown, ReqBody = unknown> = Request<
+	P,
+	ResBody,
+	ReqBody
+> & {
+	multerSizeLimitHit?: boolean;
+};
+
 /**
  * A catch-all error handler to use as express middleware
  */
@@ -78,4 +94,26 @@ export class NoUploadsError extends Error {
 		super(message);
 		this.name = 'NoUploadsError';
 	}
+}
+
+/**
+ * Handles the situation where an upload has errored because the file was too big
+ * but we want to present a nice message still rather than error page, so we set a
+ * flag instead and check later down the line.
+ */
+export function buildSafeUploadMiddleware(multerInstance: multer.Multer, fieldName: string = 'files[]') {
+	return (req: FileUploadRequest, res: Response, next: NextFunction) => {
+		const upload = multerInstance.array(fieldName);
+
+		upload(req, res, (err) => {
+			if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+				req.multerSizeLimitHit = true;
+				return next();
+			}
+
+			if (err) return next(err);
+
+			next();
+		});
+	};
 }
