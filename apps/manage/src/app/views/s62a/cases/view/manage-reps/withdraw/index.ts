@@ -39,7 +39,8 @@ export function createRoutes(service: ManageService) {
 	const { logger, db, blobStore } = service;
 	const router = createRouter({ mergeParams: true });
 	const questions = getQuestions({
-		textOverrides: { appName: service.appName }
+		textOverrides: { appName: service.appName },
+		isS62a: true
 	});
 	const getJourney = buildGetJourney((req, journeyResponse) => createJourney(questions, journeyResponse, req));
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID, 'representationRef');
@@ -85,7 +86,7 @@ export function createRoutes(service: ManageService) {
 
 	router.post('/:section/:question/delete-withdrawal', deleteDocument);
 
-	router.get('/document/:documentId', asyncHandler(downloadDocument));
+	router.get('/withdrawal-document/:documentId', asyncHandler(downloadDocument));
 
 	router.get('/:section/:question', getJourneyResponse, getJourney, uploadDocumentQuestion, question);
 	router.post(
