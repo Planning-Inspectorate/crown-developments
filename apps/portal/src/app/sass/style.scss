@@ -19,12 +19,12 @@
 // Shared components from lib
 @use 'packages/lib/views/styles/components/pins-upload-bar';
 @use 'packages/lib/views/styles/components/pins-info';
+@use 'packages/lib/views/styles/components/pins-application-links';
 
 // App-level helpers
 @use 'helpers/layout' as portal-layout;
 
 // App-level components
-@use 'components/pins-application-links';
 @use 'components/pins-application-stage-summary';
 @use 'components/pins-table';
 @use 'components/pins-document-list';

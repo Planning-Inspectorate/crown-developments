@@ -1,6 +1,11 @@
 import assert from 'assert';
 import { describe, it } from 'node:test';
-import { getApplicationStatus, APPLICATION_PUBLISH_STATUS, fetchPublishedApplication } from './applications.ts';
+import {
+	getApplicationStatus,
+	APPLICATION_PUBLISH_STATUS,
+	fetchPublishedApplication,
+	fetchPublishedS62aApplication
+} from './applications.ts';
 
 describe('getApplicationStatus', () => {
 	const now = new Date('2025-12-22T00:00:00.000Z');
@@ -84,5 +89,148 @@ describe('fetchPublishedApplication', () => {
 			}
 		};
 		await fetchPublishedApplication({ db, id: 'app-5', args: { where: { id: 'other-id' } } });
+	});
+});
+
+describe('fetchPublishedS62aApplication', () => {
+	it('should return null when no S62a application matches the given id', async () => {
+		const db = {
+			s62aCase: {
+				findUnique: async () => null
+			}
+		};
+		const result = await fetchPublishedS62aApplication({ db, id: 'non-existent-id', args: {} });
+		assert.strictEqual(result, null);
+	});
+
+	it('should add default where clause and include S62aDates when args.select is undefined', async () => {
+		const fixedDate = new Date('2025-12-22T00:00:00.000Z');
+		const OriginalDate = global.Date;
+		global.Date = class extends OriginalDate {
+			constructor(...args) {
+				super(...args);
+				if (args.length === 0) return fixedDate;
+			}
+			static now() {
+				return fixedDate.getTime();
+			}
+		};
+
+		const db = {
+			s62aCase: {
+				findUnique: async (args) => {
+					assert.deepStrictEqual(args.where, {
+						id: 's62a-1',
+						S62aDates: {
+							publishDate: { lte: fixedDate }
+						}
+					});
+					assert.deepStrictEqual(args.include, {
+						S62aDates: true
+					});
+					return null;
+				}
+			}
+		};
+		await fetchPublishedS62aApplication({ db, id: 's62a-1', args: {} });
+
+		global.Date = OriginalDate;
+	});
+
+	it('should inject withdrawnDate into S62aDates nested select when args.select is provided', async () => {
+		const fixedDate = new Date('2025-12-22T00:00:00.000Z');
+		const OriginalDate = global.Date;
+		global.Date = class extends OriginalDate {
+			constructor(...args) {
+				super(...args);
+				if (args.length === 0) return fixedDate;
+			}
+			static now() {
+				return fixedDate.getTime();
+			}
+		};
+
+		const db = {
+			s62aCase: {
+				findUnique: async (args) => {
+					assert.deepStrictEqual(args.select, {
+						id: true,
+						name: true,
+						S62aDates: {
+							select: {
+								withdrawnDate: true
+							}
+						}
+					});
+					return null;
+				}
+			}
+		};
+
+		await fetchPublishedS62aApplication({
+			db,
+			id: 's62a-2',
+			args: {
+				select: { id: true, name: true }
+			}
+		});
+
+		global.Date = OriginalDate;
+	});
+
+	it('should merge withdrawnDate with existing S62aDates.select if provided', async () => {
+		const fixedDate = new Date('2025-12-22T00:00:00.000Z');
+		const OriginalDate = global.Date;
+		global.Date = class extends OriginalDate {
+			constructor(...args) {
+				super(...args);
+				if (args.length === 0) return fixedDate;
+			}
+			static now() {
+				return fixedDate.getTime();
+			}
+		};
+
+		const db = {
+			s62aCase: {
+				findUnique: async (args) => {
+					assert.deepStrictEqual(args.select, {
+						id: true,
+						S62aDates: {
+							select: {
+								publishDate: true,
+								withdrawnDate: true
+							}
+						}
+					});
+					return null;
+				}
+			}
+		};
+
+		await fetchPublishedS62aApplication({
+			db,
+			id: 's62a-3',
+			args: {
+				select: {
+					id: true,
+					S62aDates: { select: { publishDate: true } }
+				}
+			}
+		});
+
+		global.Date = OriginalDate;
+	});
+
+	it('should override id in where clause when args.where.id is already set', async () => {
+		const db = {
+			s62aCase: {
+				findUnique: async (args) => {
+					assert.strictEqual(args.where.id, 's62a-5');
+					return null;
+				}
+			}
+		};
+		await fetchPublishedS62aApplication({ db, id: 's62a-5', args: { where: { id: 'other-id' } } });
 	});
 });
