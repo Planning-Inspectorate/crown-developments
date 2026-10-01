@@ -1,0 +1,20 @@
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
+
+.pins-search {
+	margin-bottom: govuk.govuk-spacing(4);
+
+	.govuk-form-group {
+		margin-bottom: 0;
+	}
+
+	// The Search button's own bottom margin is what pushes "Clear search" down,
+	// because the button sits inside the inline row with the input.
+	.govuk-button {
+		margin-bottom: 0;
+	}
+
+	// Small, consistent space between the input row and the link
+	.govuk-body {
+		margin-top: govuk.govuk-spacing(2);
+	}
+}

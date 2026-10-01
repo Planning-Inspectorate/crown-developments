@@ -1,0 +1,39 @@
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
+
+.pins-filter-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: govuk.govuk-spacing(2);
+	padding: 0;
+	margin: 0 0 govuk.govuk-spacing(3);
+	list-style: none;
+}
+
+.pins-filter-tag {
+	@include govuk.govuk-font($size: 16);
+
+	display: inline-flex;
+	gap: govuk.govuk-spacing(1);
+	align-items: center;
+	padding: 4px 11px;
+	color: govuk.govuk-colour('black');
+	text-decoration: none;
+	background: govuk.govuk-colour('black', $variant: 'tint-95');
+	border: 1px solid govuk.govuk-colour('black', $variant: 'tint-80');
+	border-radius: 3px;
+
+	// the × is decorative (aria-hidden), so keep it small and bold
+	span[aria-hidden='true'] {
+		font-size: 14px;
+		font-weight: govuk.$govuk-font-weight-bold;
+		line-height: 1;
+	}
+
+	&:hover {
+		background: govuk.govuk-colour('black', $variant: 'tint-80');
+	}
+
+	&:focus {
+		@include govuk.govuk-focused-text;
+	}
+}
