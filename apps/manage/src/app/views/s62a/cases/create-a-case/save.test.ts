@@ -63,6 +63,33 @@ describe('S62A Save Controller Module', () => {
 
 			assert.strictEqual(reference, 'S62A/2026/0000006/PRE');
 		});
+		it('increments reference by 1 for a standard Application after a Pre-Application', async () => {
+			const mockDb = {
+				s62aCase: {
+					findFirst: mock.fn(async () => ({ reference: 'S62A/2026/0001001/PRE' }))
+				}
+			} as unknown as Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
+
+			const reference = await generateS62aReference(mockDb, 'APPLICATION_PHASE_ID', mockDate2026);
+
+			assert.strictEqual(reference, 'S62A/2026/0001002');
+		});
+
+		it('increments reference by 1 for a Pre-Application after a standard Application', async () => {
+			const mockDb = {
+				s62aCase: {
+					findFirst: mock.fn(async () => ({ reference: 'S62A/2026/0001000' }))
+				}
+			} as unknown as Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
+
+			const reference = await generateS62aReference(
+				mockDb,
+				PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION,
+				mockDate2026
+			);
+
+			assert.strictEqual(reference, 'S62A/2026/0001001/PRE');
+		});
 
 		it('follows on from the highest migrated case reference', async () => {
 			const mockDb = {
