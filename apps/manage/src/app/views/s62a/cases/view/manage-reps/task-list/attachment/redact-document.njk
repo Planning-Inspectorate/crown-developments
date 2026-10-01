@@ -76,11 +76,19 @@
 				<h2 class="govuk-heading-m">
 					Upload redacted attachment
 				</h2>
-				<p class="govuk-body">Your files need to be:</p>
+				<p class="govuk-body">
+					You can upload the following file types:
+					<br>
+					PDF, PNG, DOC, DOCX, JPG, JPEG, TIF, TIFF, XLS or XSLX
+				</p>
+				<p class="govuk-body">Note that:</p>
 				<ul class="govuk-list govuk-list--bullet">
-					<li>PDF, PNG, DOC, DOCX, JPG, JPEG, TIF, TIFF, XLS or XSLX</li>
-					<li>a single document not compressed as a zip file</li>
-					<li>smaller than 20MB</li>
+					<li>files must not be compressed (ZIP files will not be accepted)</li>
+					<li>each file must be under 20MB</li>
+				</ul>
+				<p class="govuk-body">The file name can only include:</p>
+				<ul class="govuk-list govuk-list--bullet">
+					<li>Letters, numbers, hyphens, underscores, brackets, ampersand and single apostrophes</li>
 				</ul>
 
 				{% set uploadForm = "upload-form" %}

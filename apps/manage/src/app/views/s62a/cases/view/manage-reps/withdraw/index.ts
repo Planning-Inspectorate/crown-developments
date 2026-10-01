@@ -34,6 +34,7 @@ import {
 } from './controller.ts';
 import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
 import { WithdrawalRequestDocumentDownloader } from './withdrawal-request-documents-downloader.ts';
+import { buildSafeUploadMiddleware } from '@pins/crowndev-lib/middleware/errors.ts';
 
 export function createRoutes(service: ManageService) {
 	const { logger, db, blobStore } = service;
@@ -69,7 +70,9 @@ export function createRoutes(service: ManageService) {
 		)
 	);
 
-	const handleUploads = multer({ limits: { fileSize: MAX_FILE_SIZE } });
+	// Limit of 1 file, because the component should be calling this endpoint 1 file at a time, this just ensures that
+	const handleUploads = multer({ limits: { fileSize: MAX_FILE_SIZE, files: 1 } });
+	const safeUploadMiddleware = buildSafeUploadMiddleware(handleUploads, 'documents');
 
 	const resetSessionMiddleware = buildResetSessionMiddleware(service.logger);
 
@@ -77,12 +80,7 @@ export function createRoutes(service: ManageService) {
 		res.redirect(req.baseUrl + '/withdraw/request-date');
 	});
 
-	router.post(
-		'/:section/:question/upload-withdrawal',
-		handleUploads.array('documents'),
-		validateRequest,
-		uploadDocument
-	);
+	router.post('/:section/:question/upload-withdrawal', safeUploadMiddleware, validateRequest, uploadDocument);
 
 	router.post('/:section/:question/delete-withdrawal', deleteDocument);
 
