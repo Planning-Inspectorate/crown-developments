@@ -10,6 +10,7 @@
 
 // Shared components from lib
 @use 'packages/lib/views/styles/components/pins-info';
+@use 'packages/lib/views/styles/components/pins-application-links';
 
 // App level components
 @use './components/pins-table';
