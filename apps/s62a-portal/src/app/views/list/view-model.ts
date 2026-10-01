@@ -20,6 +20,12 @@ export const s62aDevelopmentSelect = {
 				select: {
 					name: true
 				}
+			},
+			Contact: {
+				select: {
+					firstName: true,
+					lastName: true
+				}
 			}
 		}
 	},
@@ -48,7 +54,11 @@ export function s62aViewFormattingFunction(s62aDevelopment: S62ADevelopmentPaylo
 		applicantOrganisations = s62aDevelopment.S62aToApplicants.filter(
 			(applicant) => applicant.roleId === ORGANISATION_ROLES_ID.APPLICANT
 		)
-			.flatMap((item) => (item.Organisation?.name ? [item.Organisation.name] : []))
+			.flatMap((item) => {
+				const name =
+					item.Organisation?.name ?? [item.Contact?.firstName, item.Contact?.lastName].filter(Boolean).join(' ');
+				return name ? [name] : [];
+			})
 			.join(', ');
 	}
 
