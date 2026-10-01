@@ -8,6 +8,7 @@ import {
 	fetchS62aUnpublishCase,
 	type FetchedS62aCase
 } from './publish.ts';
+import { APPLICANT_TYPE_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 
 describe('S62A Publish & Unpublish Domain Helpers', () => {
 	describe('publishS62aCase', () => {
@@ -132,10 +133,11 @@ describe('S62A Publish & Unpublish Domain Helpers', () => {
 
 		it('should fail applicant contact name check when contact firstName or lastName is missing', () => {
 			const invalidCase = createValidCase();
+			invalidCase.applicantTypeId = APPLICANT_TYPE_ID.INDIVIDUAL;
 			invalidCase.S62aToApplicants = [
 				{
 					contactId: 'contact-1',
-					Contact: { firstName: 'Jane', lastName: '' }, // Missing last name
+					Contact: { firstName: 'Jane', lastName: '' },
 					organisationId: null,
 					Organisation: null
 				}
@@ -149,12 +151,13 @@ describe('S62A Publish & Unpublish Domain Helpers', () => {
 
 		it('should fail applicant organisation check when organisation name is missing', () => {
 			const invalidCase = createValidCase();
+			invalidCase.applicantTypeId = APPLICANT_TYPE_ID.ORGANISATION;
 			invalidCase.S62aToApplicants = [
 				{
 					contactId: null,
 					Contact: null,
 					organisationId: 'org-1',
-					Organisation: { name: '' } // Missing org name
+					Organisation: { name: '' }
 				}
 			] as any;
 
