@@ -3,7 +3,7 @@ import { createMonitoringRoutes } from '@planning-inspectorate/core/controllers'
 import { cacheNoCacheMiddleware } from '@planning-inspectorate/core/middleware';
 import type { IRouter } from 'express';
 import { Router as createRouter } from 'express';
-import { createRoutes as appRoutes } from './views/list/index.ts';
+import { createRoutes as appRoutes } from './views/applications/index.ts';
 import { createErrorRoutes } from './views/static/error/index.ts';
 
 /**
