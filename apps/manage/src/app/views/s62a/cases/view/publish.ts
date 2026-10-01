@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import type { AnswerValidationError } from '@pins/crowndev-lib/util/types.ts';
+import { APPLICANT_TYPE_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 
 export async function publishS62aCase(db: PrismaClient, id: string) {
 	return db.s62aCase.update({
@@ -45,17 +46,23 @@ export function answerValidation(fetchedCase: NonNullable<FetchedS62aCase>, id: 
 		},
 		{
 			value:
-				fetchedCase.S62aToApplicants?.every((applicant) =>
-					applicant.contactId ? Boolean(applicant.Contact?.firstName && applicant.Contact?.lastName) : true
-				) ?? true,
+				fetchedCase.S62aToApplicants?.every((applicant) => {
+					if (fetchedCase.applicantTypeId === APPLICANT_TYPE_ID.INDIVIDUAL) {
+						return Boolean(applicant.Contact?.firstName && applicant.Contact?.lastName);
+					}
+					return true;
+				}) ?? true,
 			errorMessage: 'You must enter the individual applicant contact name',
 			pageLink: `/s62a/cases/${id}/contacts`
 		},
 		{
 			value:
-				fetchedCase.S62aToApplicants?.every((applicant) =>
-					applicant.organisationId ? Boolean(applicant.Organisation?.name) : true
-				) ?? true,
+				fetchedCase.S62aToApplicants?.every((applicant) => {
+					if (fetchedCase.applicantTypeId === APPLICANT_TYPE_ID.ORGANISATION) {
+						return Boolean(applicant.Organisation?.name);
+					}
+					return true;
+				}) ?? true,
 			errorMessage: 'You must enter the applicant organisation name',
 			pageLink: `/s62a/cases/${id}/contacts`
 		}

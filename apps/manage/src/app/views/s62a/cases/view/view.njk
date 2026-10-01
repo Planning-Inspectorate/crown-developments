@@ -35,14 +35,14 @@
 			{% if applicationPhase == "application" and config.isS62APortalLive %}
 				{% if casePublished %}
 					{{ govukButton({
-						text: "Unpublish Application",
+						text: "Unpublish application",
 						href: unpublishUrl,
 						classes: "govuk-button--warning"
 					}) }}
 
 				{% else %}
 					{{ govukButton({
-						text: "Publish Application",
+						text: "Publish application",
 						href: publishUrl,
 						classes: "govuk-button--primary"
 					}) }}
