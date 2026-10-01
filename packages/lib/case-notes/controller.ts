@@ -374,11 +374,7 @@ export function buildViewAddCaseNotes(service: CaseNotesService, dataModel: Case
 		const parentPath = path.posix.dirname(currentPath);
 		const cleanCurrentUrl = isValidRedirectUri(parentPath) ? parentPath : '/';
 
-		const sessionCaseData = req.session?.cases?.[id];
-		const errorSummary = sessionCaseData?.updateErrors;
-		if (sessionCaseData?.updateErrors) {
-			delete sessionCaseData.updateErrors;
-		}
+		const errorSummary = popSessionData(req, id, 'updateErrors', false);
 
 		return res.render(
 			'add-case.njk',
