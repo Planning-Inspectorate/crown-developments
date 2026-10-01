@@ -12,7 +12,7 @@ import type { DownloadRequestBody } from '@pins/crowndev-lib/util/base-document-
 import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
-import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
+import { type FileUploadRequest, notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { JOURNEY_ID } from './journey.ts';
 import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
@@ -28,7 +28,16 @@ type WithdrawalAnswers = {
  * Validates withdrawal uploads to make sure they pass our criteria.
  */
 export function validateUploads(config: ValidationConfig, documentUploader: WithdrawalRequestDocumentsUploader) {
-	return async (req: Request, res: Response, next: NextFunction) => {
+	return async (req: FileUploadRequest<ParamsDictionary, unknown, unknown>, res: Response, next: NextFunction) => {
+		// If we have been given a multer size error then early return
+		if (req.multerSizeLimitHit) {
+			return res.json({
+				error: {
+					message: `The attachment must be smaller than ${formatBytes(config.maxFileSize)}`
+				}
+			});
+		}
+
 		const representationRef = getStringParam(req.params, 'representationRef');
 		const files = req.files as Express.Multer.File[];
 
