@@ -6,13 +6,12 @@ import { mapDevelopmentToViewModel } from '@pins/crowndev-lib/util/shared-view-m
 import { s62aViewFormattingFunction } from './view-model.ts';
 import type { S62ADevelopmentExtendedView } from './view-model.ts';
 import type { PaginationParams } from '@pins/crowndev-lib/views/pagination/pagination.js';
-
 import { s62aDevelopmentSelect } from './view-model.ts';
 import type { S62ADevelopmentPayload } from './view-model.ts';
-/**
- * Example home page controller
- */
 
+/**
+ * Home page controller for the s62a cases
+ */
 export function buildCaseListPage(service: S62APortalService): AsyncRequestHandler {
 	const { db, logger } = service;
 	return async (req, res) => {
@@ -70,7 +69,7 @@ export function buildCaseListPage(service: S62APortalService): AsyncRequestHandl
 			totalItems: totalS62aDevelopments
 		};
 
-		return res.render('./views/list/view.njk', {
+		return res.render('views/applications/list/view.njk', {
 			pageTitle: 'All applications',
 			s62aDevelopmentsViewModels,
 			currentUrl: req.originalUrl,
