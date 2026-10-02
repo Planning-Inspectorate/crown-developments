@@ -1,7 +1,11 @@
 import type { S62APortalService } from '#service';
 import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
-import { getPageData, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
+import {
+	buildUrlWithParams,
+	getPageData,
+	getPaginationParams
+} from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { mapDevelopmentToViewModel } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { s62aViewFormattingFunction } from './view-model.ts';
 import type { S62ADevelopmentExtendedView } from './view-model.ts';
@@ -73,6 +77,8 @@ export function buildCaseListPage(service: S62APortalService): AsyncRequestHandl
 			paginationParams,
 			baseUrl: '/applications',
 			searchValue,
+			clearSearchUrl: buildUrlWithParams('/applications', req.query, {}, [SEARCH_PARAM, 'page']),
+			clearFiltersUrl: buildUrlWithParams('/applications', req.query, {}, [LPA_PARAM, 'page']),
 			carriedParams: getCarriedParams(req.query, [SEARCH_PARAM, 'page', LPA_PARAM]),
 			lpaFilterItems: buildLpaFilterItems(lpaOptions, selectedLpaIds),
 			lpaFilterOpen: selectedLpaIds.length > 0,

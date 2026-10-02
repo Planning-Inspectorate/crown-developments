@@ -108,24 +108,27 @@
 					}
 				}, searchValue) }}
 
+				{% if searchValue and s62aDevelopmentsViewModels | length > 0 %}
+					<p class="govuk-body">
+						<a href="{{ clearSearchUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search</a>
+					</p>
+				{% endif %}
+
 				{% if activeFilterTags | length %}
-					<p class="govuk-body govuk-!-margin-bottom-2">Active filters</p>
+					<h3 class="govuk-heading-s govuk-!-margin-bottom-2">Active filters</h3>
 					<ul class="pins-filter-tags">
 						{% for tag in activeFilterTags %}
 							<li>
 								<a class="pins-filter-tag" href="{{ tag.removeUrl }}">
-									<span aria-hidden="true">×</span>
 									<span class="govuk-visually-hidden">Remove filter:</span>
-									{{ tag.label }}: {{ tag.name }}
+									{{ tag.name }}
+									<span aria-hidden="true">×</span>
 								</a>
 							</li>
 						{% endfor %}
 					</ul>
-				{% endif %}
-
-				{% if hasActiveQueries and s62aDevelopmentsViewModels | length > 0 %}
 					<p class="govuk-body">
-						<a href="{{ baseUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search and filters</a>
+						<a href="{{ clearFiltersUrl }}" class="govuk-link govuk-link--no-visited-state">Clear filters</a>
 					</p>
 				{% endif %}
 
