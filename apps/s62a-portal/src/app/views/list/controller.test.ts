@@ -94,11 +94,6 @@ describe('case list', () => {
 		const nunjucks = {
 			render: mock.fn((view, data) => 'mocked render' + view + data)
 		};
-		const config = {
-			crownDevContactInfo: {
-				email: 'crown.dev@planninginspectorate.gov.uk'
-			}
-		};
 
 		it('should render page without error', async () => {
 			const mockReq = {
@@ -181,6 +176,7 @@ describe('case list', () => {
 			assert.strictEqual(mockResData.render.mock.calls[0].arguments[1].pageTitle, 'All applications');
 			assert.strictEqual(mockResData.render.mock.calls[0].arguments[1].s62aDevelopmentsViewModels.length, 2);
 		});
+
 		it('should render page without error when no crown dev cases returned', async () => {
 			const mockReq = {
 				params: {
@@ -217,6 +213,8 @@ describe('case list', () => {
 				baseUrl: '/applications',
 				currentUrl: undefined,
 				queryParams: undefined,
+				searchValue: '',
+				carriedParams: [],
 				paginationParams: {
 					pageNumber: 1,
 					resultsEndNumber: 0,
@@ -225,6 +223,96 @@ describe('case list', () => {
 					totalItems: 0,
 					totalPages: 0
 				}
+			});
+		});
+
+		describe('search', () => {
+			/** Runs the controller with the given query and returns the db mocks and render args */
+			async function run(query: Record<string, unknown> | undefined) {
+				const findMany = mock.fn((_args: unknown) => []);
+				const count = mock.fn((_args: unknown) => 0);
+				const render = mock.fn((view, data) => nunjucks.render(view, data));
+
+				const service = {
+					db: { s62aCase: { findMany, count } },
+					logger: mockLogger() as unknown as BaseLogger
+				} as unknown as S62APortalService;
+
+				const handler = buildCaseListPage(service);
+				await assert.doesNotReject(() =>
+					handler({ query, params: {} } as unknown as Request, { render } as unknown as Response)
+				);
+
+				return {
+					findManyArgs: findMany.mock.calls[0].arguments[0] as any,
+					countArgs: count.mock.calls[0].arguments[0] as any,
+					renderArgs: render.mock.calls[0].arguments[1] as any
+				};
+			}
+
+			it('should only filter on published cases when there is no search term', async () => {
+				const { findManyArgs, countArgs } = await run(undefined);
+
+				assert.strictEqual(findManyArgs.where.AND.length, 1);
+				assert.ok(findManyArgs.where.AND[0].S62aDates.publishDate.lte instanceof Date);
+				assert.deepStrictEqual(countArgs.where, findManyArgs.where);
+			});
+
+			it('should add one clause per search term, alongside the published filter', async () => {
+				const { findManyArgs } = await run({ searchCriteria: 'smith london' });
+
+				assert.strictEqual(findManyArgs.where.AND.length, 3);
+				assert.ok(findManyArgs.where.AND[0].S62aDates);
+				assert.ok(findManyArgs.where.AND[1].OR);
+				assert.ok(findManyArgs.where.AND[2].OR);
+			});
+
+			it('should use the same where clause for the results and the count', async () => {
+				const { findManyArgs, countArgs } = await run({ searchCriteria: 'smith' });
+
+				assert.deepStrictEqual(countArgs.where, findManyArgs.where);
+			});
+
+			it('should pass the trimmed search term to the view', async () => {
+				const { renderArgs } = await run({ searchCriteria: '  smith  ' });
+
+				assert.strictEqual(renderArgs.searchValue, 'smith');
+			});
+
+			it('should treat a whitespace-only search as no search', async () => {
+				const { findManyArgs, renderArgs } = await run({ searchCriteria: '   ' });
+
+				assert.strictEqual(findManyArgs.where.AND.length, 1);
+				assert.strictEqual(renderArgs.searchValue, '');
+			});
+
+			it('should carry other params through but not the search term or page number', async () => {
+				const { renderArgs } = await run({ searchCriteria: 'smith', page: '3', itemsPerPage: '50', foo: 'bar' });
+
+				assert.deepStrictEqual(renderArgs.carriedParams, [
+					{ name: 'itemsPerPage', value: '50' },
+					{ name: 'foo', value: 'bar' }
+				]);
+			});
+
+			it('should keep the full query in queryParams so pagination links retain the search', async () => {
+				const query = { searchCriteria: 'smith', itemsPerPage: '50' };
+				const { renderArgs } = await run(query);
+
+				assert.deepStrictEqual(renderArgs.queryParams, query);
+			});
+
+			it('should apply pagination alongside the search', async () => {
+				const { findManyArgs } = await run({ searchCriteria: 'smith', itemsPerPage: '50', page: '3' });
+
+				assert.strictEqual(findManyArgs.skip, 100);
+				assert.strictEqual(findManyArgs.take, 50);
+			});
+
+			it('should use the first value when the search param is repeated', async () => {
+				const { renderArgs } = await run({ searchCriteria: ['first', 'second'] });
+
+				assert.strictEqual(renderArgs.searchValue, 'first');
 			});
 		});
 
@@ -259,8 +347,6 @@ describe('case list', () => {
 
 					const applicationList = buildCaseListPage(service);
 					await assert.doesNotReject(() => applicationList(mockReq, mockRes));
-
-					assert.strictEqual(mockRes.render.mock.callCount(), 1);
 
 					assert.strictEqual(mockRes.render.mock.callCount(), 1);
 
