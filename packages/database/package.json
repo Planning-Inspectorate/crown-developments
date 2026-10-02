@@ -21,6 +21,6 @@
   "devDependencies": {
     "@faker-js/faker": "*",
     "prisma": "*",
-    "typescript": "*"
+    "typescript": "^7.0.2"
   }
 }
