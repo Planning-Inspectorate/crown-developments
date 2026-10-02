@@ -16,7 +16,9 @@ import { loadEnvironmentConfig, ENVIRONMENT_NAME } from '../../../../config.js';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import { PRE_APPLICATION_OR_APPLICATION_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { isPreApplicationAdviceGiven } from '../util/pre-application.ts';
-import { FOLDER_SYNC_RESULT, syncPreApplicationAdviceFolder } from '../util/folders.ts';
+import { FOLDER_SYNC_RESULT, syncPreApplicationAdviceFolder, type FolderSyncResult } from '../util/folders.ts';
+import { resolvePreApplicationAdviceFolderAudit } from '../audit/folders.ts';
+import { recordAuditSafely } from '@pins/crowndev-lib/audit/record.ts';
 import {
 	AUDITABLE_SCALAR_FIELDS,
 	LONG_AUDIT_FIELDS,
@@ -61,6 +63,8 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 		const answersSnapshot = { ...answers };
 
 		let updateSucceeded = false;
+		// What happened to the pre-application advice folder, for the case history
+		let folderSyncResult: FolderSyncResult = FOLDER_SYNC_RESULT.UNCHANGED;
 
 		try {
 			const s62aCase = await db.s62aCase.findUnique({
@@ -97,13 +101,13 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 					viewModel.applicationPhaseId === PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION &&
 					answers.preApplicationAdviceId !== undefined
 				) {
-					const change = await syncPreApplicationAdviceFolder(
+					folderSyncResult = await syncPreApplicationAdviceFolder(
 						id,
 						isPreApplicationAdviceGiven(answers.preApplicationAdviceId),
 						$tx
 					);
-					if (change !== FOLDER_SYNC_RESULT.UNCHANGED) {
-						logger.info({ id, change }, 'synced pre-application advice folder');
+					if (folderSyncResult !== FOLDER_SYNC_RESULT.UNCHANGED) {
+						logger.info({ id, change: folderSyncResult }, 'synced pre-application advice folder');
 					}
 				}
 			});
@@ -135,6 +139,15 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 				previousCase,
 				answers: answersSnapshot,
 				updatedFieldNames
+			});
+
+			// Recorded after the field changes, so the history reads e.g.
+			// "Pre-application advice was updated…" then "Pre-application advice was removed"
+			await recordAuditSafely({
+				service,
+				dataModel: CASE_DATA_MODEL.S62A,
+				entries: [resolvePreApplicationAdviceFolderAudit(id, getAuditUserId(userId), folderSyncResult)],
+				logContext: { caseId: id }
 			});
 		}
 	};

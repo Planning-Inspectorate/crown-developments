@@ -23,6 +23,21 @@ export interface CaseHistoryRow {
 		label: string;
 		value: string;
 	}>;
+	/** File names for bulk file actions, shown as a "Show files" list */
+	fileList?: string[];
+}
+
+/**
+ * The file names stored with a bulk file action, or undefined if there aren't any.
+ */
+function getFileList(metadata: Record<string, unknown> | null): string[] | undefined {
+	const files = metadata?.files;
+	if (!Array.isArray(files)) {
+		return undefined;
+	}
+
+	const fileNames = (files as unknown[]).filter((file): file is string => typeof file === 'string');
+	return fileNames.length > 0 ? fileNames : undefined;
 }
 
 /** * Transforms raw audit events into rows ready for the case history table. */
@@ -69,7 +84,8 @@ export function createCaseHistoryViewModel(
 			dateTimeFormatted,
 			details,
 			user: userName,
-			action
+			action,
+			fileList: getFileList(metadata)
 		};
 	});
 }
