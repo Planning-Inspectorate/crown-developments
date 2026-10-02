@@ -1,21 +1,28 @@
 import assert from 'assert';
 import { describe, it } from 'node:test';
 import { APPLICATION_PUBLISH_STATUS } from '@pins/crowndev-lib/util/applications.ts';
-import { s62aCaseToViewModel, type S62aCaseWithRelations } from './view-model.ts'; // Adjust this import path as needed
+import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { APPLICANT_TYPE_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import { s62aCaseToViewModel, type S62aCaseWithRelations } from './view-model.ts';
 
 describe('s62aCaseToViewModel', () => {
-	it('should map id and reference correctly when S62aDates is not present', () => {
+	it('should map base fields correctly', () => {
 		const mockCase = {
 			id: 's62a-1',
-			reference: 'REF-001'
+			reference: 'REF-001',
+			description: 'A test description',
+			Type: { displayName: 'Standard' },
+			Lpa: { name: 'Test LPA' }
 		} as unknown as S62aCaseWithRelations;
 
 		const result = s62aCaseToViewModel(mockCase);
 
-		assert.deepStrictEqual(result, {
-			id: 's62a-1',
-			reference: 'REF-001'
-		});
+		assert.strictEqual(result.id, 's62a-1');
+		assert.strictEqual(result.reference, 'REF-001');
+		assert.strictEqual(result.description, 'A test description');
+		assert.strictEqual(result.applicationType, 'Standard');
+		assert.strictEqual(result.lpaName, 'Test LPA');
+		assert.deepStrictEqual(result.applicants, []);
 		assert.strictEqual(result.applicationStatus, undefined);
 	});
 
@@ -30,10 +37,7 @@ describe('s62aCaseToViewModel', () => {
 
 		const result = s62aCaseToViewModel(mockCase);
 
-		assert.deepStrictEqual(result, {
-			id: 's62a-2',
-			reference: 'REF-002'
-		});
+		assert.strictEqual(result.id, 's62a-2');
 		assert.strictEqual(result.applicationStatus, undefined);
 	});
 
@@ -81,5 +85,82 @@ describe('s62aCaseToViewModel', () => {
 		const result = s62aCaseToViewModel(mockCase);
 
 		assert.strictEqual(result.applicationStatus, APPLICATION_PUBLISH_STATUS.WITHDRAWN);
+	});
+
+	it('should map individual applicants correctly', () => {
+		const mockCase = {
+			ApplicantType: { id: APPLICANT_TYPE_ID.INDIVIDUAL },
+			S62aToApplicants: [
+				{
+					roleId: ORGANISATION_ROLES_ID.APPLICANT,
+					Contact: { firstName: 'Jane', lastName: 'Doe' }
+				},
+				{
+					roleId: 'different-role',
+					Contact: { firstName: 'Ignored', lastName: 'Person' }
+				}
+			]
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.deepStrictEqual(result.applicants, ['Jane Doe']);
+	});
+
+	it('should map organisation applicants correctly', () => {
+		const mockCase = {
+			ApplicantType: { id: 'some-other-type' },
+			S62aToApplicants: [
+				{
+					roleId: ORGANISATION_ROLES_ID.APPLICANT,
+					Organisation: { name: 'Acme Corp' }
+				}
+			]
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.deepStrictEqual(result.applicants, ['Acme Corp']);
+	});
+
+	it('should map optional conditional fields when they are provided', () => {
+		const mockCase = {
+			SecondaryLpa: { name: 'Secondary Test LPA' },
+			SiteAddress: {
+				postcode: 'BS1 6PN',
+				line1: '2 Temple Back East',
+				townCity: 'Bristol'
+			},
+			siteEasting: 123,
+			siteNorthing: 4567,
+			Procedure: { displayName: 'Written Representations' }
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.strictEqual(result.secondaryLpaName, 'Secondary Test LPA');
+		assert.strictEqual(result.procedure, 'Written Representations');
+
+		assert.strictEqual(typeof result.siteAddress, 'string');
+		assert.ok(result.siteAddress?.includes('BS1 6PN'));
+
+		assert.deepStrictEqual(result.siteCoordinates, {
+			easting: '000123',
+			northing: '004567'
+		});
+	});
+
+	it('should correctly pad site coordinates to 6 characters', () => {
+		const mockCase = {
+			siteEasting: 12,
+			siteNorthing: 1234567
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.deepStrictEqual(result.siteCoordinates, {
+			easting: '000012',
+			northing: '1234567'
+		});
 	});
 });

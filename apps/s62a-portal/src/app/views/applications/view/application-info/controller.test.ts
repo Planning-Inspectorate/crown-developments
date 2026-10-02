@@ -1,6 +1,5 @@
 import assert from 'assert';
 import { describe, it } from 'node:test';
-import { APPLICATION_PUBLISH_STATUS } from '@pins/crowndev-lib/util/applications.ts';
 import { buildApplicationInformationPage } from './controller.ts';
 import type { S62APortalService } from '#service';
 
@@ -67,9 +66,14 @@ describe('buildApplicationInformationPage', () => {
 		const mockDbCase = {
 			id: validUuid,
 			reference: 'S62A/2026/0001',
-			S62aDates: {
-				withdrawnDate: null
-			}
+			S62aDates: { withdrawnDate: null },
+			Type: { name: 'Standard' },
+			Lpa: { name: 'Local Authority' },
+			SecondaryLpa: null,
+			S62aToApplicants: [],
+			ApplicantType: { name: 'Agent' },
+			SiteAddress: { line1: '123 Fake Street' },
+			Procedure: { name: 'Written representations' }
 		};
 
 		const dbMock = {
@@ -106,12 +110,11 @@ describe('buildApplicationInformationPage', () => {
 		assert.strictEqual(payload.applicationReference, 'S62A/2026/0001');
 		assert.strictEqual(payload.currentUrl, `/applications/${validUuid}/info`);
 
-		assert.deepStrictEqual(payload.s62aFields, {
-			id: validUuid,
-			reference: 'S62A/2026/0001',
-			applicationStatus: APPLICATION_PUBLISH_STATUS.ACTIVE
-		});
+		assert.ok(payload.s62aFields);
+		assert.strictEqual(payload.s62aFields.id, validUuid);
+		assert.strictEqual(payload.s62aFields.reference, 'S62A/2026/0001');
 
+		assert.ok(payload.aboutThisApplicationSectionItems !== undefined);
 		assert.ok(payload.links);
 		assert.ok(Array.isArray(payload.links));
 	});
