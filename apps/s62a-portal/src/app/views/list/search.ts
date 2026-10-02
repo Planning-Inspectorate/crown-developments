@@ -44,23 +44,34 @@ function termClause(term: string): Prisma.S62aCaseWhereInput {
 	};
 }
 
-/** Published cases, narrowed by the search term. Every term must match somewhere. */
-export function buildListWhere(now: Date, searchValue: string): Prisma.S62aCaseWhereInput {
+/** Cases that have been published */
+export function buildPublishedWhere(now: Date): Prisma.S62aCaseWhereInput {
+	return { S62aDates: { publishDate: { lte: now } } };
+}
+
+/** Published cases, narrowed by LPA selection and search term. Every search term must match somewhere. */
+export function buildListWhere(now: Date, searchValue: string, lpaIds: string[] = []): Prisma.S62aCaseWhereInput {
 	const terms = splitStringQueries(searchValue) ?? [];
+	const lpaClauses: Prisma.S62aCaseWhereInput[] = lpaIds.length
+		? [{ OR: [{ lpaId: { in: lpaIds } }, { secondaryLpaId: { in: lpaIds } }] }]
+		: [];
 	return {
-		AND: [{ S62aDates: { publishDate: { lte: now } } }, ...terms.map(termClause)]
+		AND: [buildPublishedWhere(now), ...lpaClauses, ...terms.map(termClause)]
 	};
 }
 
 /**
- * Query params to carry through the search form as hidden inputs (items per page,
- * and later the filters). Excludes the search term itself and the page number,
- * so a new search always starts at page 1.
+ * Query params to carry through the form as hidden inputs (e.g. items per page).
+ * `excluded` is the params the form submits itself: the search box, the page
+ * number (so a new search starts on page 1) and, on the list page, the LPA checkboxes.
  */
-export function getCarriedParams(query: Request['query']): CarriedParam[] {
+export function getCarriedParams(
+	query: Request['query'],
+	excluded: readonly string[] = [SEARCH_PARAM, 'page']
+): CarriedParam[] {
 	const carried: CarriedParam[] = [];
 	for (const [name, value] of Object.entries(query ?? {})) {
-		if (name === SEARCH_PARAM || name === 'page') continue;
+		if (excluded.includes(name)) continue;
 		const values = Array.isArray(value) ? value : [value];
 		for (const v of values) {
 			if (typeof v === 'string') carried.push({ name, value: v });
