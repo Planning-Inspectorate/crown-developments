@@ -21,7 +21,7 @@
 		sortField: "reference"
 	},
 	{
-		field: "applicantOrganisations"
+		field: "applicantDetails"
 	},
 	{
 		field: "lpaFormatted",
@@ -41,6 +41,23 @@
 
 {% block pageContent %}
 	{% set hasFilter = lpaFilterItems | length > 0 %}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-full">
+			<h2 class="govuk-heading-l">
+				{{ pageTitle }}
+			</h2>
+			<p class="govuk-body">
+				This is a list of all applications. To find a specific application, use the filter or search by applicant, local authority, reference or location.
+			</p>
+			<div id="pagination" class="govuk-body govuk-!-margin-bottom-2">
+				<p class="govuk-body govuk-clearfix">
+					Showing <strong>{{ paginationParams.resultsStartNumber }}</strong>
+					to
+					<strong>{{ paginationParams.resultsEndNumber if paginationParams.totalItems > paginationParams.resultsEndNumber else paginationParams.totalItems }}</strong>
+					of <strong>{{ paginationParams.totalItems }}</strong> results
+				</p>
+				{{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalItems, baseUrl, queryParams) }}
+				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
 	<form id="search-filter-form" method="GET" action="{{ baseUrl }}">
 		{% for param in carriedParams %}
