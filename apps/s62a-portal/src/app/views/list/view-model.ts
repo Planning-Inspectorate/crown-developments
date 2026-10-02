@@ -3,9 +3,10 @@ import type { BaseDevelopmentView } from '@pins/crowndev-lib/util/shared-view-mo
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { baseS62ACaseSelect, type ValidatedDbPayload } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { insertWbr } from '@pins/crowndev-lib/util/string.ts';
+import { APPLICANT_TYPE_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 
 export interface S62ADevelopmentExtendedView extends BaseDevelopmentView {
-	applicantOrganisations: string;
+	applicantDetails: string;
 	referenceLink: string;
 	lpaFormatted: string | undefined;
 	location: string | undefined;
@@ -13,12 +14,19 @@ export interface S62ADevelopmentExtendedView extends BaseDevelopmentView {
 
 export const s62aDevelopmentSelect = {
 	...baseS62ACaseSelect,
+	applicantTypeId: true,
 	S62aToApplicants: {
 		select: {
 			roleId: true,
 			Organisation: {
 				select: {
 					name: true
+				}
+			},
+			Contact: {
+				select: {
+					firstName: true,
+					lastName: true
 				}
 			}
 		}
@@ -40,16 +48,36 @@ type ExtendedS62AFields = Omit<S62ADevelopmentExtendedView, keyof BaseDevelopmen
  * @param s62aDevelopment - The main db query input
  */
 export function s62aViewFormattingFunction(s62aDevelopment: S62ADevelopmentPayload): ExtendedS62AFields {
-	let applicantOrganisations = '';
+	let applicantDetails = '';
 	let location;
 	let lpaFormatted;
 
+	console.log('Formatting function debug');
+	console.log(s62aDevelopment.applicantTypeId);
+
 	if (s62aDevelopment.S62aToApplicants?.length) {
-		applicantOrganisations = s62aDevelopment.S62aToApplicants.filter(
-			(applicant) => applicant.roleId === ORGANISATION_ROLES_ID.APPLICANT
-		)
-			.flatMap((item) => (item.Organisation?.name ? [item.Organisation.name] : []))
-			.join(', ');
+		if (s62aDevelopment.applicantTypeId == APPLICANT_TYPE_ID.ORGANISATION) {
+			applicantDetails = s62aDevelopment.S62aToApplicants.filter(
+				(applicant) => applicant.roleId === ORGANISATION_ROLES_ID.APPLICANT
+			)
+				.flatMap((item) => (item.Organisation?.name ? [item.Organisation.name] : []))
+				.join(', ');
+		} else if (s62aDevelopment.applicantTypeId === APPLICANT_TYPE_ID.INDIVIDUAL) {
+			applicantDetails = s62aDevelopment.S62aToApplicants.filter(
+				(applicant) => applicant.roleId === ORGANISATION_ROLES_ID.APPLICANT
+			)
+				.flatMap((item) => {
+					const contact = item.Contact;
+					if (!contact) return [];
+
+					const fullName = [contact.firstName, contact.lastName]
+						.filter((part): part is string => Boolean(part && part.trim()))
+						.join(' ');
+
+					return fullName ? [fullName] : [];
+				})
+				.join(', ');
+		}
 	}
 
 	if (s62aDevelopment.SecondaryLpa) {
@@ -66,7 +94,7 @@ export function s62aViewFormattingFunction(s62aDevelopment: S62ADevelopmentPaylo
 	}
 
 	return {
-		applicantOrganisations,
+		applicantDetails,
 		referenceLink: `<a class="govuk-link" href="/applications/${s62aDevelopment.id}/application-information">${insertWbr(s62aDevelopment.reference)}</a>`,
 		location,
 		lpaFormatted

@@ -49,6 +49,7 @@ describe('view-model', () => {
 			},
 			containsDistressingContent: true,
 			withdrawnDate: null,
+			applicantTypeId: 'organisation',
 			S62aToApplicants: [
 				{
 					roleId: 'applicant',
@@ -111,6 +112,7 @@ describe('view-model', () => {
 			siteNorthing: 654321,
 			containsDistressingContent: true,
 			withdrawnDate: null,
+			applicantTypeId: 'organisation',
 			S62aToApplicants: [
 				{
 					roleId: 'applicant',
@@ -146,7 +148,7 @@ describe('view-model', () => {
 					'<a class="govuk-link" href="/applications/id-1/application-information">REF/<wbr>2025/<wbr>001</a>',
 				developmentContactEmail: 's62a.dev@planninginspectorate.gov.uk',
 				location: 'SW1A 2AA',
-				applicantOrganisations: 'Applicant organisation 1, Applicant organisation 2',
+				applicantDetails: 'Applicant organisation 1, Applicant organisation 2',
 				description: 'A significant project',
 				stage: 'Inquiry',
 				lpaFormatted: 'Test LPA<br>Test SecondaryLPA',
@@ -168,7 +170,7 @@ describe('view-model', () => {
 					'<a class="govuk-link" href="/applications/id-1/application-information">REF/<wbr>2025/<wbr>001</a>',
 				developmentContactEmail: 's62a.dev@planninginspectorate.gov.uk',
 				location: 'Easting: 123456\nNorthing: 654321',
-				applicantOrganisations: 'Applicant organisation 1, Applicant organisation 2',
+				applicantDetails: 'Applicant organisation 1, Applicant organisation 2',
 				description: 'A significant project',
 				stage: 'Inquiry',
 				lpaFormatted: 'Test LPA<br>Test SecondaryLPA',
@@ -213,8 +215,8 @@ describe('view-model', () => {
 				's62a.dev@planninginspectorate.gov.uk',
 				s62aViewFormattingFunction
 			) as S62ADevelopmentView;
-			assert.ok(result.applicantOrganisations);
-			assert.strictEqual(result.applicantOrganisations, 'Applicant organisation 1, Applicant organisation 2');
+			assert.ok(result.applicantDetails);
+			assert.strictEqual(result.applicantDetails, 'Applicant organisation 1, Applicant organisation 2');
 		});
 	});
 });
