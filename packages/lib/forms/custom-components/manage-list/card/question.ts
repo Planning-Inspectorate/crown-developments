@@ -34,7 +34,10 @@ export type CardManageListQuestionParams = TableManageListQuestionParameters &
 	};
 
 interface CardViewData {
-	value?: Record<string, unknown>[];
+	question: string;
+	fieldName: string;
+	pageTitle: string;
+	value: Record<string, unknown>[];
 	firstQuestionUrl?: string;
 	boldRowLabels?: boolean;
 	cards?: {
@@ -64,10 +67,10 @@ export default class CardManageListQuestion extends TableManageListQuestion {
 		this.boldRowLabels = params.boldRowLabels ?? true;
 	}
 
-	override addCustomDataToViewModel(viewModel: QuestionViewModel): void {
+	override addCustomDataToViewModel(viewModel: QuestionViewModel<CardViewData>): void {
 		super.addCustomDataToViewModel(viewModel);
 
-		const question = viewModel.question as CardViewData;
+		const question = viewModel.question;
 		const items = question.value ?? [];
 		const ordered = this.sortItems ? items.slice().sort(this.sortItems) : items;
 
