@@ -32,6 +32,13 @@ export function buildDetailedInformationPage() {
 				description: 'Express your interest in taking part in future user research.'
 			}
 		];
-		return res.render('views/static/detailed-information/view.njk', { chevrons });
+		const containerStartText = {
+			title: 'Detailed information',
+			body: 'Find further legislation and guidance resources. Information on this page may be useful for those applying to use the service and the general public.'
+		};
+		return res.render('views/static/detailed-information/view.njk', {
+			chevrons,
+			containerStartText
+		});
 	};
 }

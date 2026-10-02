@@ -1,38 +1,12 @@
 {% extends "views/layouts/main.njk" %}
 
-{% from "chevron-card/chevron-card.njk" import chevronCard %}
+{% from "chevron-card/chevron-card.njk" import chevronDisplay %}
+{% from "container-start/containerStart-content.njk" import containerStart %}
 
 {% block containerStart %}
-<div class="govuk-width-container">
-	<div class="govuk-grid-row pins-info">
-		<div class="govuk-grid-column-two-thirds">
-			<br><br>
-			<h1 class="govuk-heading-xl pins-info__heading">Detailed information</h1>
-			<p class="govuk-body pins-info__body"> Find further legislation and guidance resources. Information on this page
-				may be useful for those applying to use the service and the general public.</p>
-			<br><br>
-		</div>
-	</div>
+	{{ containerStart(containerStartText) }}
+{% endblock %}
 
-	{% endblock %}
-
-	{% block content %}
-	<div class="full-width-line full-width-line--bg-blue"></div>
-	<section
-		class="page-section full-width-section full-width-section--bg-lightgrey govuk-!-margin-bottom-6 govuk-!-padding-top-6">
-		<div class="page-section__content">
-			{% for item in chevrons %}
-				{% if loop.index0 % 2 == 0 %}
-					<div class="govuk-grid-row">
-				{% endif %}
-				<div class="govuk-grid-column-one-half">
-					{{ chevronCard(item.title, item.href, item.description) }}
-				</div>
-				{% if loop.index0 % 2 == 1 or loop.last %}
-					</div>
-				{% endif %}
-			{% endfor %}
-		</div>
-	</section>
-</div>
+{% block content %}
+	{{ chevronDisplay(chevrons) }}
 {% endblock %}

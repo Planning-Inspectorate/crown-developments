@@ -1,0 +1,11 @@
+{% extends "views/layouts/main.njk" %}
+{% from "chevron-card/chevron-card.njk" import chevronDisplay %}
+{% from "container-start/containerStart-content.njk" import containerStart %}
+
+{% block containerStart %}
+	{{ containerStart(containerStartText) }}
+{% endblock %}
+
+{% block content %}
+	{{ chevronDisplay(chevrons) }}
+{% endblock %}
