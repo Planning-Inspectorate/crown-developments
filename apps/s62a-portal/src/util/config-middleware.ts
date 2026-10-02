@@ -14,8 +14,8 @@ export function addLocalsConfiguration(service: S62APortalService): Handler {
 				href: '/'
 			},
 			{
-				text: 'Another page',
-				href: '/another-page'
+				text: 'Guidance',
+				href: '/guidance'
 			}
 		];
 

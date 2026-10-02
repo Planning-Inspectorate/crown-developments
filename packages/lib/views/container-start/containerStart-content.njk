@@ -1,0 +1,12 @@
+{% macro containerStart(containerStartText) %}
+    <div class="govuk-width-container">
+		<div class="govuk-grid-row pins-info">
+			<div class="govuk-grid-column-two-thirds">
+				<br><br>
+				<h1 class="govuk-heading-xl pins-info__heading"> {{ containerStartText.title }}</h1>
+				<p class="govuk-body pins-info__body">{{ containerStartText.body }}</p>
+				<br><br>
+			</div>
+		</div>
+	</div>
+{% endmacro %}
