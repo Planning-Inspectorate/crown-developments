@@ -177,11 +177,11 @@ describe('case list', () => {
 
 			assert.strictEqual(mockResData.render.mock.callCount(), 1);
 			assert.strictEqual(mockResData.render.mock.calls[0].arguments.length, 2);
-			assert.strictEqual(mockResData.render.mock.calls[0].arguments[0], './views/list/view.njk');
+			assert.strictEqual(mockResData.render.mock.calls[0].arguments[0], 'views/applications/list/view.njk');
 			assert.strictEqual(mockResData.render.mock.calls[0].arguments[1].pageTitle, 'All applications');
 			assert.strictEqual(mockResData.render.mock.calls[0].arguments[1].s62aDevelopmentsViewModels.length, 2);
 		});
-		it('should render page without error when no crown dev cases returned', async () => {
+		it('should render page without error when no s62a cases returned', async () => {
 			const mockReq = {
 				params: {
 					id: 'some-id'
@@ -210,7 +210,7 @@ describe('case list', () => {
 
 			assert.strictEqual(mockResData.render.mock.callCount(), 1);
 			assert.strictEqual(mockResData.render.mock.calls[0].arguments.length, 2);
-			assert.strictEqual(mockResData.render.mock.calls[0].arguments[0], './views/list/view.njk');
+			assert.strictEqual(mockResData.render.mock.calls[0].arguments[0], 'views/applications/list/view.njk');
 			assert.deepStrictEqual(mockResData.render.mock.calls[0].arguments[1], {
 				pageTitle: 'All applications',
 				s62aDevelopmentsViewModels: [],

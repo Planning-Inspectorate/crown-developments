@@ -66,3 +66,48 @@ export async function fetchPublishedApplication({
 	}
 	return db.crownDevelopment.findUnique(normalisedArgs);
 }
+
+export async function fetchPublishedS62aApplication({
+	db,
+	id,
+	args = {}
+}: {
+	db: PrismaClient;
+	id: string;
+	args?: Partial<Prisma.S62aCaseFindUniqueArgs>;
+}) {
+	const normalisedArgs: Prisma.S62aCaseFindUniqueArgs = {
+		...args,
+		where: args.where ?? { id }
+	};
+
+	normalisedArgs.where.id = id;
+	const now = new Date();
+
+	normalisedArgs.where.S62aDates = {
+		...(normalisedArgs.where.S62aDates || {}),
+		publishDate: { lte: now }
+	} as Prisma.S62aDatesWhereInput;
+
+	if (normalisedArgs.select) {
+		const existingDatesSelect =
+			typeof normalisedArgs.select.S62aDates === 'object' ? normalisedArgs.select.S62aDates.select : {};
+
+		normalisedArgs.select = {
+			...normalisedArgs.select,
+			S62aDates: {
+				select: {
+					...existingDatesSelect,
+					withdrawnDate: true
+				}
+			}
+		};
+	} else {
+		normalisedArgs.include = {
+			...normalisedArgs.include,
+			S62aDates: true
+		};
+	}
+
+	return db.s62aCase.findUnique(normalisedArgs);
+}
