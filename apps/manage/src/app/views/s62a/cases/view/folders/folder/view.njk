@@ -115,6 +115,7 @@
                             "formaction": currentPath + "/delete/documents/confirmation"
                         }
                     }) }}
+                    {% if config.isS62APortalLive %}
                     {{ govukButton({
                         text: "Publish selected",
                         classes: "govuk-button--secondary",
@@ -123,6 +124,7 @@
                             "formaction": currentPath + "/publish/documents/confirmation"
                         }
                     }) }}
+                    {% endif %}
                 </div>
                 {% endif %}
 

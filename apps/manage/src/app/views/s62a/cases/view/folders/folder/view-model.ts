@@ -3,6 +3,7 @@ import { type PREVIEW_MIME_TYPES } from './upload/upload-utils.ts';
 import { formatInTimeZone } from 'date-fns-tz';
 import { stringToKebab } from '@pins/crowndev-lib/util/string.ts';
 import { formatBytes } from '@pins/crowndev-lib/util/file.ts';
+import type { ManageService } from '#service';
 
 export interface DocumentViewModel {
 	id: string;
@@ -38,6 +39,7 @@ export type DocumentWithFolder = Prisma.DocumentGetPayload<{
 }>;
 
 export function createDocumentsViewModel(
+	service: ManageService,
 	documents: DocumentWithFolder[],
 	previewMimeTypes: typeof PREVIEW_MIME_TYPES
 ): DocumentViewModel[] {
@@ -64,6 +66,30 @@ export function createDocumentsViewModel(
 			}
 		];
 
+		const actions = [
+			{
+				text: 'Delete',
+				href: deleteHref,
+				attributes: { 'data-cy': `delete-file-${docId}` }
+			},
+			{
+				text: 'Download',
+				href: downloadHref,
+				attributes: { 'data-cy': `download-file-${docId}` }
+			}
+		];
+
+		// We only show the publish/unpublish action if the portal is live
+		if (service.isS62APortalLive) {
+			const isPublished = Boolean(doc.publishDate);
+
+			actions.push({
+				text: isPublished ? 'Unpublish' : 'Publish',
+				href: isPublished ? unpublishHref : publishHref,
+				attributes: { 'data-cy': `${isPublished ? 'unpublish' : 'publish'}-file-${docId}` }
+			});
+		}
+
 		return {
 			id: docId,
 			fileName: doc.fileName,
@@ -80,33 +106,7 @@ export function createDocumentsViewModel(
 				displayName: folderDisplayName
 			},
 			tags,
-			actions: [
-				{
-					text: 'Delete',
-					href: deleteHref,
-					attributes: { 'data-cy': `delete-file-${docId}` }
-				},
-				{
-					text: 'Download',
-					href: downloadHref,
-					attributes: { 'data-cy': `download-file-${docId}` }
-				},
-				...(doc.publishDate
-					? [
-							{
-								text: 'Unpublish',
-								href: unpublishHref,
-								attributes: { 'data-cy': `unpublish-file-${docId}` }
-							}
-						]
-					: [
-							{
-								text: 'Publish',
-								href: publishHref,
-								attributes: { 'data-cy': `publish-file-${docId}` }
-							}
-						])
-			]
+			actions
 		};
 	});
 }

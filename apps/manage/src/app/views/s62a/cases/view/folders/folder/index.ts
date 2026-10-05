@@ -30,8 +30,12 @@ export function createRoutes(service: ManageService) {
 	// Mounts the delete routes
 	router.use('/delete', deleteRoutes);
 
-	// Mounts the publish routes
-	router.use('/publish', publishRoutes);
+	// Guards publish routes if portal not live,
+	// when unpublish routes are merged they will be guarded too.
+	if (service.isS62APortalLive) {
+		// Mounts the publish routes
+		router.use('/publish', publishRoutes);
+	}
 
 	return router;
 }
