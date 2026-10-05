@@ -6,7 +6,7 @@ import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { s62aCaseToViewModel, type S62aCaseWithRelations } from './view-model.ts';
-import { getAboutThisApplicationSectionItems } from './section-items.ts';
+import { getAboutThisApplicationSectionItems, getKeyDatesSectionItems } from './section-items.ts';
 
 export function buildApplicationInformationPage(service: S62APortalService): AsyncRequestHandler {
 	const { db } = service;
@@ -57,6 +57,7 @@ export function buildApplicationInformationPage(service: S62APortalService): Asy
 			pageTitle: 'Application information',
 			applicationReference: reference,
 			aboutThisApplicationSectionItems: getAboutThisApplicationSectionItems(s62aFields),
+			keyDatesSectionItems: getKeyDatesSectionItems(s62aFields),
 			links,
 			currentUrl: req.originalUrl,
 			s62aFields

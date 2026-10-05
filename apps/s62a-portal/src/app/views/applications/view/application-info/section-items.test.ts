@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { describe, it } from 'node:test';
-import { getAboutThisApplicationSectionItems } from './section-items.ts';
+import { getAboutThisApplicationSectionItems, getKeyDatesSectionItems } from './section-items.ts';
 import type { S62aCaseView } from './view-model.ts';
 
 describe('getAboutThisApplicationSectionItems', () => {
@@ -107,5 +107,95 @@ describe('getAboutThisApplicationSectionItems', () => {
 
 		const coordinatesItem = result.find((item) => item.key.text === 'Coordinates');
 		assert.strictEqual(coordinatesItem, undefined);
+	});
+});
+
+describe('getKeyDatesSectionItems', () => {
+	it('should return only the application valid item with an empty string when no dates are provided', () => {
+		const minimalFields = {} as unknown as S62aCaseView;
+		const result = getKeyDatesSectionItems(minimalFields);
+
+		assert.strictEqual(result.length, 1);
+		assert.deepStrictEqual(result[0], {
+			key: { text: 'Application valid' },
+			value: { text: '' }
+		});
+	});
+
+	it('should include all conditional date items when fully populated fields are provided', () => {
+		const fullyPopulatedFields = {
+			applicationValidDate: '1 January 2024',
+			representationPeriodStartDateTime: '2 January 2024',
+			representationPeriodEndDateTime: '16 January 2024',
+			targetDecisionDate: '1 March 2024',
+			decisionDate: '28 February 2024',
+			withdrawnDate: '20 February 2024'
+		} as unknown as S62aCaseView;
+
+		const result = getKeyDatesSectionItems(fullyPopulatedFields);
+
+		assert.strictEqual(result.length, 5);
+
+		assert.deepStrictEqual(result[0], {
+			key: { text: 'Application valid' },
+			value: { text: '1 January 2024' }
+		});
+
+		assert.deepStrictEqual(result[1], {
+			key: { text: 'Representation period' },
+			value: { text: '2 January 2024 to 16 January 2024' }
+		});
+
+		assert.deepStrictEqual(result[2], {
+			key: { text: 'Target decision' },
+			value: { text: '1 March 2024' }
+		});
+
+		assert.deepStrictEqual(result[3], {
+			key: { text: 'Decision issued' },
+			value: { text: '28 February 2024' }
+		});
+
+		assert.deepStrictEqual(result[4], {
+			key: { text: 'Withdrawn' },
+			value: { text: '20 February 2024' }
+		});
+	});
+
+	it('should omit representation period if start date is missing', () => {
+		const missingStartFields = {
+			representationPeriodEndDateTime: '16 January 2024'
+		} as unknown as S62aCaseView;
+
+		const result = getKeyDatesSectionItems(missingStartFields);
+		const representationItem = result.find((item) => item.key.text === 'Representation period');
+
+		assert.strictEqual(representationItem, undefined);
+	});
+
+	it('should omit representation period if end date is missing', () => {
+		const missingEndFields = {
+			representationPeriodStartDateTime: '2 January 2024'
+		} as unknown as S62aCaseView;
+
+		const result = getKeyDatesSectionItems(missingEndFields);
+		const representationItem = result.find((item) => item.key.text === 'Representation period');
+
+		assert.strictEqual(representationItem, undefined);
+	});
+
+	it('should prefer extendedTargetDecisionDate over targetDecisionDate when both are present', () => {
+		const multipleDecisionDatesFields = {
+			targetDecisionDate: '1 March 2024',
+			extendedTargetDecisionDate: '15 March 2024'
+		} as unknown as S62aCaseView;
+
+		const result = getKeyDatesSectionItems(multipleDecisionDatesFields);
+		const targetDecisionItem = result.find((item) => item.key.text === 'Target decision');
+
+		assert.deepStrictEqual(targetDecisionItem, {
+			key: { text: 'Target decision' },
+			value: { text: '15 March 2024' }
+		});
 	});
 });
