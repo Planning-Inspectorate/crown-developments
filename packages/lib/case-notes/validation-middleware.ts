@@ -18,7 +18,17 @@ export function buildValidateCaseNotesMiddleware(dataModel: CaseDataModel): Hand
 		const errors = generateCaseNoteErrors(req);
 
 		if (errors.length) {
-			addSessionData(req, id, { updateErrors: errors }, 'cases');
+			const body = req.body as { comment?: string } | undefined;
+
+			addSessionData(
+				req,
+				id,
+				{
+					updateErrors: errors,
+					sessionComment: body?.comment ?? ''
+				},
+				'cases'
+			);
 
 			if (dataModel === 'crown') {
 				return res.redirect(`/cases/${id}`);

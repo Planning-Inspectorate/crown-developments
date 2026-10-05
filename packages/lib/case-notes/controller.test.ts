@@ -238,13 +238,26 @@ describe('buildCreateCaseNoteHandler', () => {
 describe('buildFetchCaseNotesMiddleware', () => {
 	it('should fetch notes, map them and set locals correctly for s62a', async () => {
 		const logger = mockLogger();
+
 		const mockDb = {
 			s62aCase: {
 				findUnique: mock.fn(async () => ({
 					id: 's62a-1',
-					reference: 'S62A/123',
-					Notes: [{ comment: 'Test', createdAt: new Date(), userId: 'user-1' }]
+					reference: 'S62A/123'
 				}))
+			},
+			applicationNote: {
+				findMany: mock.fn(async () => [
+					{
+						id: 'note-1',
+						comment: 'Test',
+						createdAt: new Date(),
+						userId: 'user-1',
+						s62aId: 's62a-1',
+						crownDevelopmentId: null
+					}
+				]),
+				count: mock.fn(async () => 1)
 			}
 		};
 
@@ -265,8 +278,14 @@ describe('buildFetchCaseNotesMiddleware', () => {
 		};
 
 		await handler(asReq(mockReq), asRes(mockRes), next);
-
 		assert.strictEqual(mockDb.s62aCase.findUnique.mock.callCount(), 1);
+		assert.strictEqual(mockDb.applicationNote.findMany.mock.callCount(), 1);
+		assert.strictEqual(mockDb.applicationNote.count.mock.callCount(), 1);
+
+		assert.deepStrictEqual(mockDb.applicationNote.findMany.mock.calls[0].arguments[0].where, {
+			s62aId: 's62a-1'
+		});
+
 		assert.ok(mockRes.locals.caseNoteData, 'caseNoteData should be populated in locals');
 		assert.ok(mockRes.locals.caseNotePaginationParams, 'Pagination params should be in locals');
 		assert.strictEqual(nextCalled, true);

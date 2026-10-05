@@ -18,7 +18,7 @@ import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { getBaseUrl } from '../util/uuid.ts';
 import type { CaseDataModel } from '../util/types.ts';
 import type { CaseNotesService } from './index.ts';
-import { createPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
+import { createPaginationParams, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { isValidRedirectUri } from '../util/uri.ts';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import { popSessionData } from '../util/session.ts';
@@ -26,6 +26,15 @@ import path from 'node:path';
 
 /** Notes as queried for mapping — no relations; author is a plain Entra ID string. */
 type NoteForMapping = Pick<Prisma.ApplicationNoteGetPayload<object>, 'comment' | 'createdAt' | 'userId'>;
+
+export interface ApplicationNote {
+	id: string;
+	comment: string;
+	createdAt: Date;
+	userId: string;
+	crownDevelopmentId: string | null;
+	s62aId: string | null;
+}
 
 /**
  * Maps raw application notes into the shape consumed by the case notes views.
@@ -173,18 +182,11 @@ export function buildFetchCaseNotesMiddleware(
 			delete sessionCaseData.updateErrors;
 		}
 
-		const groupMembers = await getEntraGroupMembers({
-			logger,
-			initClient: getEntraClient,
-			session: req.session,
-			groupIds
-		});
-
 		let caseRow;
 		try {
-			if (dataModel == 'crown') {
+			if (dataModel === 'crown') {
 				caseRow = await crownCaseNotes(db, id);
-			} else if (dataModel == 's62a') {
+			} else if (dataModel === 's62a') {
 				caseRow = await s62aCaseNotes(db, id);
 			}
 		} catch (error: unknown) {
@@ -192,7 +194,7 @@ export function buildFetchCaseNotesMiddleware(
 				wrapPrismaError({
 					error,
 					logger,
-					message: 'fetching all application notes',
+					message: 'fetching application details for notes',
 					logParams: { id }
 				});
 			}
@@ -202,13 +204,48 @@ export function buildFetchCaseNotesMiddleware(
 			return notFoundHandler(req, res);
 		}
 
+		const groupMembers = await getEntraGroupMembers({
+			logger,
+			initClient: getEntraClient,
+			session: req.session,
+			groupIds
+		});
+
+		const { pageSize, skipSize } = getPaginationParams(req);
+		const noteWhereCriteria = dataModel === 'crown' ? { crownDevelopmentId: id } : { s62aId: id };
+
+		let rawNotes: ApplicationNote[] = [];
+		let totalItems = 0;
+
+		try {
+			[rawNotes, totalItems] = await Promise.all([
+				db.applicationNote.findMany({
+					where: noteWhereCriteria,
+					orderBy: {
+						createdAt: 'desc'
+					},
+					skip: skipSize,
+					take: pageSize
+				}),
+				db.applicationNote.count({ where: noteWhereCriteria })
+			]);
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				wrapPrismaError({
+					error,
+					logger,
+					message: 'fetching application notes',
+					logParams: { id }
+				});
+			}
+		}
+
 		const readMoreHref =
 			dataModel === 'crown' ? `/cases/${caseRow.id}/application-notes` : `/s62a/cases/${caseRow.id}/case-notes`;
 
 		let notes;
-
 		try {
-			notes = mapNotes(caseRow.Notes, groupMembers, readMoreHref);
+			notes = mapNotes(rawNotes, groupMembers, readMoreHref);
 		} catch (error: unknown) {
 			logger.error({ error, id }, 'Failed to map case notes');
 			if (next) {
@@ -223,9 +260,7 @@ export function buildFetchCaseNotesMiddleware(
 		}
 
 		res.locals.caseNoteData = notes.caseNotes;
-
-		const paginationParams = createPaginationParams(req, notes.caseNotes.length);
-		res.locals.caseNotePaginationParams = paginationParams;
+		res.locals.caseNotePaginationParams = createPaginationParams(req, totalItems);
 
 		next?.();
 	};
@@ -374,6 +409,7 @@ export function buildViewAddCaseNotes(service: CaseNotesService, dataModel: Case
 		const parentPath = path.posix.dirname(currentPath);
 		const cleanCurrentUrl = isValidRedirectUri(parentPath) ? parentPath : '/';
 
+		const sessionComment = popSessionData(req, id, 'sessionComment', false, 'cases') || '';
 		const errorSummary = popSessionData(req, id, 'updateErrors', false);
 
 		return res.render(
@@ -384,6 +420,7 @@ export function buildViewAddCaseNotes(service: CaseNotesService, dataModel: Case
 				currentUrl: cleanCurrentUrl,
 				displayRef: true,
 				errorSummary,
+				sessionComment,
 				...notes
 			},
 			(err, html) => {
