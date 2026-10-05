@@ -47,9 +47,7 @@ export function createRoutes(service: ManageService) {
 		buildSave(saveDataToSession)
 	);
 
-	router.get('/check-your-answers', getJourneyResponse, getCheckJourney, (req, res) =>
-		list(req, res, '', { summaryWarningMessage: 'This will send a notification to the applicant or agent' })
-	);
+	router.get('/check-your-answers', getJourneyResponse, getCheckJourney, (req, res) => list(req, res, '', {}));
 
 	router.post('/check-your-answers', getJourneyResponse, getCheckJourney, asyncHandler(saveController));
 
