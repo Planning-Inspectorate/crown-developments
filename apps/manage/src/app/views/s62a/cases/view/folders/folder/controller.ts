@@ -98,7 +98,9 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 
 		const paginationParams = createPaginationParams(req, totalDocCount);
 
-		const documentsViewModel = paginatedDocs ? createDocumentsViewModel(paginatedDocs, PREVIEW_MIME_TYPES) : [];
+		const documentsViewModel = paginatedDocs
+			? createDocumentsViewModel(service, paginatedDocs, PREVIEW_MIME_TYPES)
+			: [];
 
 		const folderPath = getFolderPath(allFolders || [], folderId);
 		const breadcrumbItems = buildBreadcrumbItems(id, folderPath);

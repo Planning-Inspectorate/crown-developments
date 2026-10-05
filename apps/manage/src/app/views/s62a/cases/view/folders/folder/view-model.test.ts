@@ -4,6 +4,8 @@ import { createDocumentsViewModel, type DocumentWithFolder } from './view-model.
 
 describe('createDocumentsViewModel', () => {
 	const mockPreviewMimeTypes = ['application/pdf', 'image/jpeg'];
+	const mockServiceLive = { isS62APortalLive: true } as any;
+	const mockServiceNotLive = { isS62APortalLive: false } as any;
 
 	const createMockDoc = (overrides: Partial<DocumentWithFolder> = {}): DocumentWithFolder => {
 		return {
@@ -23,13 +25,13 @@ describe('createDocumentsViewModel', () => {
 	};
 
 	it('returns an empty array when given no documents', () => {
-		const result = createDocumentsViewModel([], mockPreviewMimeTypes);
+		const result = createDocumentsViewModel(mockServiceLive, [], mockPreviewMimeTypes);
 		assert.deepStrictEqual(result, []);
 	});
 
 	it('maps document properties correctly to the view model (Unpublished default)', () => {
 		const docs = [createMockDoc()];
-		const result = createDocumentsViewModel(docs, mockPreviewMimeTypes);
+		const result = createDocumentsViewModel(mockServiceLive, docs, mockPreviewMimeTypes);
 
 		assert.strictEqual(result.length, 1);
 		const vm = result[0];
@@ -79,7 +81,7 @@ describe('createDocumentsViewModel', () => {
 
 	it('sets tags and actions correctly for a published document', () => {
 		const docs = [createMockDoc({ publishDate: new Date('2024-05-15T10:00:00Z') })];
-		const result = createDocumentsViewModel(docs, mockPreviewMimeTypes);
+		const result = createDocumentsViewModel(mockServiceLive, docs, mockPreviewMimeTypes);
 
 		const vm = result[0];
 
@@ -96,30 +98,41 @@ describe('createDocumentsViewModel', () => {
 		assert.strictEqual(vm.actions[2].attributes?.['data-cy'], 'unpublish-file-doc-123');
 	});
 
+	it('does not include publish/unpublish actions when the S62A portal is not live', () => {
+		const docs = [createMockDoc({ publishDate: new Date('2024-05-15T10:00:00Z') })];
+		const result = createDocumentsViewModel(mockServiceNotLive, docs, mockPreviewMimeTypes);
+
+		const vm = result[0];
+
+		assert.strictEqual(vm.actions.length, 2);
+		assert.strictEqual(vm.actions[0].text, 'Delete');
+		assert.strictEqual(vm.actions[1].text, 'Download');
+	});
+
 	it('sets isPreview to true when mimeType is in the preview list', () => {
 		const docs = [createMockDoc({ mimeType: 'image/jpeg' })];
-		const result = createDocumentsViewModel(docs, mockPreviewMimeTypes);
+		const result = createDocumentsViewModel(mockServiceLive, docs, mockPreviewMimeTypes);
 
 		assert.strictEqual(result[0].isPreview, true);
 	});
 
 	it('sets isPreview to false when mimeType is NOT in the preview list', () => {
 		const docs = [createMockDoc({ mimeType: 'application/vnd.ms-excel' })];
-		const result = createDocumentsViewModel(docs, mockPreviewMimeTypes);
+		const result = createDocumentsViewModel(mockServiceLive, docs, mockPreviewMimeTypes);
 
 		assert.strictEqual(result[0].isPreview, false);
 	});
 
 	it('handles file names with multiple dots correctly', () => {
 		const docs = [createMockDoc({ fileName: 'my.complex.archive.file.DOCX' })];
-		const result = createDocumentsViewModel(docs, mockPreviewMimeTypes);
+		const result = createDocumentsViewModel(mockServiceLive, docs, mockPreviewMimeTypes);
 
 		assert.strictEqual(result[0].fileType, 'DOCX');
 	});
 
 	it('handles file names with no extension gracefully', () => {
 		const docs = [createMockDoc({ fileName: 'readme-file' })];
-		const result = createDocumentsViewModel(docs, mockPreviewMimeTypes);
+		const result = createDocumentsViewModel(mockServiceLive, docs, mockPreviewMimeTypes);
 
 		assert.strictEqual(result[0].fileType, 'README-FILE');
 	});
