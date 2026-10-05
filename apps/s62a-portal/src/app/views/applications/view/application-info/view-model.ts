@@ -2,7 +2,7 @@ import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { APPLICANT_TYPE_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { type ApplicationPublishStatus, getApplicationStatus } from '@pins/crowndev-lib/util/applications.ts';
-import { addressToViewModel } from '@planning-inspectorate/dynamic-forms';
+import { addressToViewModel, formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
 
 export type S62aCaseWithRelations = Prisma.S62aCaseGetPayload<{
 	include: {
@@ -25,7 +25,7 @@ export type S62aCaseWithRelations = Prisma.S62aCaseGetPayload<{
 export type S62aCaseView = {
 	id: string;
 	reference: string;
-	applicationType: string;
+	applicationType: string | null;
 	lpaName: string;
 	applicants: string[] | [];
 	description: string;
@@ -34,7 +34,21 @@ export type S62aCaseView = {
 	siteAddress?: string;
 	siteCoordinates?: { easting: string; northing: string };
 	procedure?: string;
+
+	applicationValidDate?: string;
+	representationPeriodStartDateTime?: string;
+	representationPeriodEndDateTime?: string;
+	targetDecisionDate?: string;
+	extendedTargetDecisionDate?: string;
+	decisionDate?: string;
+	withdrawnDate?: string;
 };
+
+/**
+ * Safely format dates if they exist
+ */
+const formatDate = (date: Date | string | null | undefined, formatStr: string) =>
+	date ? formatDateForDisplay(date, { format: formatStr }) : undefined;
 
 /**
  * Creates the applicants strings array from the two choices for applicants:
@@ -65,37 +79,43 @@ function formatApplicants(s62aCase: S62aCaseWithRelations) {
  * Creates the view model for the s62a case
  */
 export function s62aCaseToViewModel(s62aCase: S62aCaseWithRelations): S62aCaseView {
-	const fields = {
+	const { S62aDates, SiteAddress } = s62aCase;
+
+	const hasRepPeriod = !!(s62aCase.representationsPeriodStartDate && s62aCase.representationsPeriodEndDate);
+
+	return {
 		id: s62aCase.id,
 		reference: s62aCase.reference,
+
+		// About this application
 		applicationType: s62aCase.Type?.displayName,
 		lpaName: s62aCase.Lpa?.name,
 		applicants: formatApplicants(s62aCase),
-		description: s62aCase.description
-	} as S62aCaseView;
+		description: s62aCase.description,
+		secondaryLpaName: s62aCase.SecondaryLpa?.name || undefined,
+		procedure: s62aCase.Procedure?.displayName || undefined,
+		applicationStatus:
+			S62aDates && 'withdrawnDate' in S62aDates ? getApplicationStatus(S62aDates.withdrawnDate) : undefined,
+		siteAddress: SiteAddress?.postcode ? addressToViewModel(SiteAddress) : undefined,
+		siteCoordinates:
+			s62aCase.siteEasting && s62aCase.siteNorthing
+				? {
+						easting: s62aCase.siteEasting.toString().padStart(6, '0'),
+						northing: s62aCase.siteNorthing.toString().padStart(6, '0')
+					}
+				: undefined,
 
-	if (s62aCase.SecondaryLpa && s62aCase.SecondaryLpa.name) {
-		fields.secondaryLpaName = s62aCase.SecondaryLpa.name;
-	}
-
-	if (s62aCase.S62aDates && 'withdrawnDate' in s62aCase.S62aDates) {
-		fields.applicationStatus = getApplicationStatus(s62aCase.S62aDates.withdrawnDate);
-	}
-
-	if (s62aCase.SiteAddress?.postcode) {
-		fields.siteAddress = addressToViewModel(s62aCase.SiteAddress);
-	}
-
-	if (s62aCase.siteEasting && s62aCase.siteNorthing) {
-		fields.siteCoordinates = {
-			easting: s62aCase.siteEasting.toString().padStart(6, '0'),
-			northing: s62aCase.siteNorthing.toString().padStart(6, '0')
-		};
-	}
-
-	if (s62aCase.Procedure?.displayName) {
-		fields.procedure = s62aCase.Procedure?.displayName;
-	}
-
-	return fields;
+		// Key Dates
+		applicationValidDate: formatDate(S62aDates?.applicationValidDate, 'd MMMM yyyy'),
+		targetDecisionDate: formatDate(S62aDates?.targetDecisionDate, 'd MMMM yyyy'),
+		extendedTargetDecisionDate: formatDate(S62aDates?.extendedTargetDecisionDate, 'd MMMM yyyy'),
+		decisionDate: formatDate(S62aDates?.decisionDate, 'd MMMM yyyy'),
+		withdrawnDate: formatDate(S62aDates?.withdrawnDate, 'd MMMM yyyy'),
+		representationPeriodStartDateTime: hasRepPeriod
+			? formatDate(s62aCase.representationsPeriodStartDate, `d MMMM yyyy 'at' h:mmaaa`)
+			: undefined,
+		representationPeriodEndDateTime: hasRepPeriod
+			? formatDate(s62aCase.representationsPeriodEndDate, `d MMMM yyyy 'at' h:mmaaa`)
+			: undefined
+	};
 }

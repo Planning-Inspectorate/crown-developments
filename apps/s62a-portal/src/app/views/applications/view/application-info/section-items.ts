@@ -20,6 +20,10 @@ const formattedApplicantNames = (s62aFields: S62aCaseView): SectionItem => {
 	};
 };
 
+/**
+ * Gets the top 'About' section that contains basic details
+ * about the case
+ */
 export function getAboutThisApplicationSectionItems(s62aFields: S62aCaseView): SectionItem[] {
 	return [
 		{
@@ -99,6 +103,72 @@ export function getAboutThisApplicationSectionItems(s62aFields: S62aCaseView): S
 						},
 						value: {
 							text: s62aFields.procedure
+						}
+					}
+				]
+			: [])
+	];
+}
+
+/**
+ * Gets the "Key dates" section of the case
+ */
+export function getKeyDatesSectionItems(s62aFields: S62aCaseView): SectionItem[] {
+	const targetDecision = s62aFields.extendedTargetDecisionDate || s62aFields.targetDecisionDate;
+
+	return [
+		{
+			key: {
+				text: 'Application valid'
+			},
+			value: {
+				text: s62aFields.applicationValidDate ?? ''
+			}
+		},
+		...(s62aFields.representationPeriodStartDateTime && s62aFields.representationPeriodEndDateTime
+			? [
+					{
+						key: {
+							text: 'Representation period'
+						},
+						value: {
+							text: `${s62aFields.representationPeriodStartDateTime} to ${s62aFields.representationPeriodEndDateTime}`
+						}
+					}
+				]
+			: []),
+		...(targetDecision
+			? [
+					{
+						key: {
+							text: 'Target decision'
+						},
+						value: {
+							text: targetDecision
+						}
+					}
+				]
+			: []),
+		...(s62aFields.decisionDate
+			? [
+					{
+						key: {
+							text: 'Decision issued'
+						},
+						value: {
+							text: s62aFields.decisionDate
+						}
+					}
+				]
+			: []),
+		...(s62aFields.withdrawnDate
+			? [
+					{
+						key: {
+							text: 'Withdrawn'
+						},
+						value: {
+							text: s62aFields.withdrawnDate
 						}
 					}
 				]

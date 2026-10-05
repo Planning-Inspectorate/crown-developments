@@ -163,4 +163,58 @@ describe('s62aCaseToViewModel', () => {
 			northing: '1234567'
 		});
 	});
+
+	it('should format standard case dates correctly', () => {
+		const mockCase = {
+			S62aDates: {
+				applicationValidDate: new Date('2024-01-15T12:00:00Z'),
+				targetDecisionDate: new Date('2024-03-15T12:00:00Z'),
+				extendedTargetDecisionDate: new Date('2024-04-15T12:00:00Z'),
+				decisionDate: new Date('2024-02-15T12:00:00Z'),
+				withdrawnDate: new Date('2024-05-15T12:00:00Z')
+			}
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.strictEqual(result.applicationValidDate, '15 January 2024');
+		assert.strictEqual(result.targetDecisionDate, '15 March 2024');
+		assert.strictEqual(result.extendedTargetDecisionDate, '15 April 2024');
+		assert.strictEqual(result.decisionDate, '15 February 2024');
+		assert.strictEqual(result.withdrawnDate, '15 May 2024');
+	});
+
+	it('should format representation period dates when both are provided', () => {
+		const mockCase = {
+			representationsPeriodStartDate: new Date('2024-01-01T09:30:00Z'),
+			representationsPeriodEndDate: new Date('2024-01-31T17:45:00Z')
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.strictEqual(result.representationPeriodStartDateTime, '1 January 2024 at 9:30am');
+		assert.strictEqual(result.representationPeriodEndDateTime, '31 January 2024 at 5:45pm');
+	});
+
+	it('should not format representation period dates if start date is missing', () => {
+		const mockCase = {
+			representationsPeriodEndDate: new Date('2024-01-31T17:45:00Z')
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.strictEqual(result.representationPeriodStartDateTime, undefined);
+		assert.strictEqual(result.representationPeriodEndDateTime, undefined);
+	});
+
+	it('should not format representation period dates if end date is missing', () => {
+		const mockCase = {
+			representationsPeriodStartDate: new Date('2024-01-01T09:30:00Z')
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.strictEqual(result.representationPeriodStartDateTime, undefined);
+		assert.strictEqual(result.representationPeriodEndDateTime, undefined);
+	});
 });
