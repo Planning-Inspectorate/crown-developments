@@ -51,6 +51,13 @@
 						rows: hearingSectionItems
 					}) }}
 				{% endif %}
+
+				{% if s62aFields.showDecision %}
+					<h2 class="govuk-heading-m">Decision</h2>
+					{{ govukSummaryList({
+						rows: decisionSectionItems
+					}) }}
+				{% endif %}
 			</div>
 		</div>
 	</div>

@@ -8,6 +8,7 @@ import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { s62aCaseToViewModel, type S62aCaseWithRelations } from './view-model.ts';
 import {
 	getAboutThisApplicationSectionItems,
+	getDecisionSectionItems,
 	getHearingSectionItems,
 	getKeyDatesSectionItems
 } from './section-items.ts';
@@ -39,7 +40,8 @@ export function buildApplicationInformationPage(service: S62APortalService): Asy
 					ApplicantType: true,
 					SiteAddress: true,
 					Procedure: true,
-					S62aEvent: true
+					S62aEvent: true,
+					DecisionOutcome: true
 				}
 			}
 		});
@@ -64,6 +66,7 @@ export function buildApplicationInformationPage(service: S62APortalService): Asy
 			aboutThisApplicationSectionItems: getAboutThisApplicationSectionItems(s62aFields),
 			keyDatesSectionItems: getKeyDatesSectionItems(s62aFields),
 			hearingSectionItems: getHearingSectionItems(s62aFields),
+			decisionSectionItems: getDecisionSectionItems(s62aFields),
 			links,
 			currentUrl: req.originalUrl,
 			s62aFields
