@@ -5,6 +5,7 @@ import type { IRouter } from 'express';
 import { Router as createRouter } from 'express';
 import { createRoutes as appRoutes } from './views/list/index.ts';
 import { createErrorRoutes } from './views/static/error/index.ts';
+import { buildContactUsPage } from './views/static/contact/controller.ts';
 
 /**
  * Main app router
@@ -21,9 +22,10 @@ export function buildRouter(service: S62APortalService): IRouter {
 	router.use(cacheNoCacheMiddleware);
 
 	if (service.isLive) {
-		router.route('/').get((req, res) => {
+		/* router.route('/').get((req, res) => {
 			res.redirect('/applications');
-		});
+		}); */
+		router.use('/contact', buildContactUsPage());
 		router.use('/', appRoutes(service));
 		router.use('/error', createErrorRoutes(service));
 	} else {
