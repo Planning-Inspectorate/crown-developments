@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { describe, it } from 'node:test';
 import { APPLICATION_PUBLISH_STATUS } from '@pins/crowndev-lib/util/applications.ts';
-import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { APPLICATION_PROCEDURE_ID, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { APPLICANT_TYPE_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { s62aCaseToViewModel, type S62aCaseWithRelations } from './view-model.ts';
 
@@ -24,6 +24,9 @@ describe('s62aCaseToViewModel', () => {
 		assert.strictEqual(result.lpaName, 'Test LPA');
 		assert.deepStrictEqual(result.applicants, []);
 		assert.strictEqual(result.applicationStatus, undefined);
+		assert.strictEqual(result.showHearing, false);
+		assert.strictEqual(result.hearingDate, undefined);
+		assert.strictEqual(result.hearingVenue, undefined);
 	});
 
 	it('should not set applicationStatus if withdrawnDate is not present in S62aDates', () => {
@@ -216,5 +219,65 @@ describe('s62aCaseToViewModel', () => {
 
 		assert.strictEqual(result.representationPeriodStartDateTime, undefined);
 		assert.strictEqual(result.representationPeriodEndDateTime, undefined);
+	});
+
+	it('should format and show hearing information when procedure is HEARING and details are present', () => {
+		const mockCase = {
+			procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+			S62aEvent: {
+				hearingDate: new Date('2024-06-20T13:30:00Z'),
+				venue: 'Bristol City Hall'
+			}
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.strictEqual(result.showHearing, true);
+		assert.strictEqual(result.hearingDate, '20 June 2024 at 2:30pm');
+		assert.strictEqual(result.hearingVenue, 'Bristol City Hall');
+	});
+
+	it('should set showHearing to true if procedure is HEARING and only venue is present', () => {
+		const mockCase = {
+			procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+			S62aEvent: {
+				venue: 'Bristol City Hall'
+			}
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.strictEqual(result.showHearing, true);
+		assert.strictEqual(result.hearingDate, undefined);
+		assert.strictEqual(result.hearingVenue, 'Bristol City Hall');
+	});
+
+	it('should not show hearing information if procedure is NOT hearing, even if details are present', () => {
+		const mockCase = {
+			procedureId: 'some-other-procedure-id',
+			S62aEvent: {
+				hearingDate: new Date('2024-06-20T13:30:00Z'),
+				venue: 'Bristol City Hall'
+			}
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.strictEqual(result.showHearing, false);
+		assert.strictEqual(result.hearingDate, undefined);
+		assert.strictEqual(result.hearingVenue, undefined);
+	});
+
+	it('should not show hearing if procedure is HEARING but no date or venue is provided', () => {
+		const mockCase = {
+			procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+			S62aEvent: {}
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.strictEqual(result.showHearing, false);
+		assert.strictEqual(result.hearingDate, undefined);
+		assert.strictEqual(result.hearingVenue, undefined);
 	});
 });

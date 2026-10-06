@@ -175,3 +175,32 @@ export function getKeyDatesSectionItems(s62aFields: S62aCaseView): SectionItem[]
 			: [])
 	];
 }
+
+export function getHearingSectionItems(s62aFields: S62aCaseView): SectionItem[] {
+	return [
+		...(s62aFields.hearingDate
+			? [
+					{
+						key: {
+							text: 'Date'
+						},
+						value: {
+							text: s62aFields.hearingDate
+						}
+					}
+				]
+			: []),
+		...(s62aFields.hearingVenue
+			? [
+					{
+						key: {
+							text: 'Venue'
+						},
+						value: {
+							text: s62aFields.hearingVenue
+						}
+					}
+				]
+			: [])
+	];
+}

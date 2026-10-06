@@ -2,6 +2,7 @@ import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { APPLICANT_TYPE_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { type ApplicationPublishStatus, getApplicationStatus } from '@pins/crowndev-lib/util/applications.ts';
+import { isHearing } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { addressToViewModel, formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
 
 export type S62aCaseWithRelations = Prisma.S62aCaseGetPayload<{
@@ -19,6 +20,7 @@ export type S62aCaseWithRelations = Prisma.S62aCaseGetPayload<{
 		};
 		SiteAddress: true;
 		Procedure: true;
+		S62aEvent: true;
 	};
 }>;
 
@@ -42,6 +44,10 @@ export type S62aCaseView = {
 	extendedTargetDecisionDate?: string;
 	decisionDate?: string;
 	withdrawnDate?: string;
+
+	showHearing: boolean;
+	hearingDate?: string;
+	hearingVenue?: string;
 };
 
 /**
@@ -82,6 +88,9 @@ export function s62aCaseToViewModel(s62aCase: S62aCaseWithRelations): S62aCaseVi
 	const { S62aDates, SiteAddress } = s62aCase;
 
 	const hasRepPeriod = !!(s62aCase.representationsPeriodStartDate && s62aCase.representationsPeriodEndDate);
+	const isCaseHearing = isHearing(s62aCase.procedureId);
+	const hearingDate = formatDate(s62aCase.S62aEvent?.hearingDate, `d MMMM yyyy 'at' h:mmaaa`);
+	const hearingVenue = s62aCase.S62aEvent?.venue;
 
 	return {
 		id: s62aCase.id,
@@ -116,6 +125,11 @@ export function s62aCaseToViewModel(s62aCase: S62aCaseWithRelations): S62aCaseVi
 			: undefined,
 		representationPeriodEndDateTime: hasRepPeriod
 			? formatDate(s62aCase.representationsPeriodEndDate, `d MMMM yyyy 'at' h:mmaaa`)
-			: undefined
+			: undefined,
+
+		// Hearing
+		hearingDate: isCaseHearing ? hearingDate : undefined,
+		hearingVenue: isCaseHearing ? hearingVenue || undefined : undefined,
+		showHearing: !!(isCaseHearing && (hearingDate || hearingVenue))
 	};
 }

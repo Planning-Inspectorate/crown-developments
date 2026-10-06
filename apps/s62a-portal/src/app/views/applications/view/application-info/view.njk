@@ -44,6 +44,13 @@
 				{{ govukSummaryList({
 					rows: keyDatesSectionItems
 				}) }}
+
+				{% if s62aFields.showHearing %}
+					<h2 class="govuk-heading-m">Hearing</h2>
+					{{ govukSummaryList({
+						rows: hearingSectionItems
+					}) }}
+				{% endif %}
 			</div>
 		</div>
 	</div>
