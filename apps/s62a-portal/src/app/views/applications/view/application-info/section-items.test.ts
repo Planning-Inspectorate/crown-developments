@@ -1,6 +1,10 @@
 import assert from 'assert';
 import { describe, it } from 'node:test';
-import { getAboutThisApplicationSectionItems, getKeyDatesSectionItems } from './section-items.ts';
+import {
+	getAboutThisApplicationSectionItems,
+	getKeyDatesSectionItems,
+	getHearingSectionItems
+} from './section-items.ts';
 import type { S62aCaseView } from './view-model.ts';
 
 describe('getAboutThisApplicationSectionItems', () => {
@@ -65,7 +69,8 @@ describe('getAboutThisApplicationSectionItems', () => {
 			siteAddress: '123 Fake Street, Bristol, BS1',
 			siteCoordinates: { easting: '123456', northing: '654321' },
 			description: 'A test development',
-			procedure: 'Hearing'
+			procedure: 'Hearing',
+			showHearing: false
 		};
 
 		const result = getAboutThisApplicationSectionItems(fullyPopulatedFields);
@@ -196,6 +201,59 @@ describe('getKeyDatesSectionItems', () => {
 		assert.deepStrictEqual(targetDecisionItem, {
 			key: { text: 'Target decision' },
 			value: { text: '15 March 2024' }
+		});
+	});
+});
+
+describe('getHearingSectionItems', () => {
+	it('should return an empty array if no hearing details are provided', () => {
+		const missingFields = {} as unknown as S62aCaseView;
+		const result = getHearingSectionItems(missingFields);
+
+		assert.deepStrictEqual(result, []);
+	});
+
+	it('should return only the hearing date item if no venue is provided', () => {
+		const dateOnlyFields = {
+			hearingDate: '20 June 2024 at 1:30pm'
+		} as unknown as S62aCaseView;
+		const result = getHearingSectionItems(dateOnlyFields);
+
+		assert.strictEqual(result.length, 1);
+		assert.deepStrictEqual(result[0], {
+			key: { text: 'Date' },
+			value: { text: '20 June 2024 at 1:30pm' }
+		});
+	});
+
+	it('should return only the hearing venue item if no date is provided', () => {
+		const venueOnlyFields = {
+			hearingVenue: 'Bristol City Hall'
+		} as unknown as S62aCaseView;
+		const result = getHearingSectionItems(venueOnlyFields);
+
+		assert.strictEqual(result.length, 1);
+		assert.deepStrictEqual(result[0], {
+			key: { text: 'Venue' },
+			value: { text: 'Bristol City Hall' }
+		});
+	});
+
+	it('should return both hearing date and venue items when both are provided', () => {
+		const fullyPopulatedFields = {
+			hearingDate: '20 June 2024 at 1:30pm',
+			hearingVenue: 'Bristol City Hall'
+		} as unknown as S62aCaseView;
+		const result = getHearingSectionItems(fullyPopulatedFields);
+
+		assert.strictEqual(result.length, 2);
+		assert.deepStrictEqual(result[0], {
+			key: { text: 'Date' },
+			value: { text: '20 June 2024 at 1:30pm' }
+		});
+		assert.deepStrictEqual(result[1], {
+			key: { text: 'Venue' },
+			value: { text: 'Bristol City Hall' }
 		});
 	});
 });
