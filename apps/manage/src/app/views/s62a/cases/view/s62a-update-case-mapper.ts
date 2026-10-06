@@ -45,6 +45,7 @@ import { addBusinessDays } from 'date-fns';
 import { optionalWhere } from '@planning-inspectorate/core/util';
 import { slugify, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
 import { toDecimalOrNull, toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
+import { assignOptionalRelation, assignRepresentationsPeriod } from '@pins/crowndev-lib/util/shared-case-updates.ts';
 
 const DATE_FIELDS_SET = new Set<string>(S62A_DATE_FIELDS);
 const FEE_BOOLEAN_SET = new Set<string>(FEE_BOOLEAN_FIELDS);
@@ -291,9 +292,7 @@ export class S62aCaseUpdateMapper {
 		}
 
 		if (this.hasAnswer('representationsPeriod')) {
-			const representationsPeriod = this.answers.representationsPeriod;
-			input.representationsPeriodStartDate = representationsPeriod?.start ? representationsPeriod.start : null;
-			input.representationsPeriodEndDate = representationsPeriod?.end ? representationsPeriod.end : null;
+			assignRepresentationsPeriod(input, this.answers.representationsPeriod);
 		}
 
 		if (this.hasAnswer('representationsPublishDate')) {
@@ -320,11 +319,11 @@ export class S62aCaseUpdateMapper {
 		}
 
 		if (this.hasAnswer('siteNorthing')) {
-			input.siteNorthing = ans.siteNorthing || ans.siteNorthing === 0 ? Number(ans.siteNorthing) : null;
+			input.siteNorthing = toIntOrNull(ans.siteNorthing);
 		}
 
 		if (this.hasAnswer('siteEasting')) {
-			input.siteEasting = ans.siteEasting || ans.siteEasting === 0 ? Number(ans.siteEasting) : null;
+			input.siteEasting = toIntOrNull(ans.siteEasting);
 		}
 
 		if (this.hasAnswer('siteAreaSquareMetres') || this.hasAnswer('siteAreaHectares')) {
@@ -372,7 +371,7 @@ export class S62aCaseUpdateMapper {
 		}
 
 		if (this.hasAnswer('cilAmount')) {
-			input.cilAmount = ans.cilAmount || ans.cilAmount === 0 ? new Prisma.Decimal(ans.cilAmount) : null;
+			input.cilAmount = toDecimalOrNull(ans.cilAmount);
 		}
 
 		if (this.hasAnswer('preApplicationReference')) {
@@ -395,63 +394,29 @@ export class S62aCaseUpdateMapper {
 
 		if (ans.applicantType) input.ApplicantType = { connect: { id: ans.applicantType } };
 
-		if (this.hasAnswer('applicationPhaseId')) {
-			input.ApplicationPhase = ans.applicationPhaseId
-				? { connect: { id: ans.applicationPhaseId } }
-				: { disconnect: true };
-		}
-
-		if (this.hasAnswer('classificationId')) {
-			input.Classification = ans.classificationId ? { connect: { id: ans.classificationId } } : { disconnect: true };
-		}
-
-		if (this.hasAnswer('secondaryLpaId')) {
-			input.SecondaryLpa = ans.secondaryLpaId ? { connect: { id: ans.secondaryLpaId } } : { disconnect: true };
-		}
-
-		if (this.hasAnswer('specialismId')) {
-			input.Specialism = ans.specialismId ? { connect: { id: ans.specialismId } } : { disconnect: true };
-		}
-
-		if (this.hasAnswer('inspectorBandId')) {
-			input.InspectorBand = ans.inspectorBandId ? { connect: { id: ans.inspectorBandId } } : { disconnect: true };
-		}
-
-		if (this.hasAnswer('subTypeId')) {
-			input.SubType = ans.subTypeId ? { connect: { id: ans.subTypeId } } : { disconnect: true };
-		}
-
-		if (this.hasAnswer('stageId')) {
-			input.Stage = ans.stageId ? { connect: { id: ans.stageId } } : { disconnect: true };
-		}
-
-		if (this.hasAnswer('categoryId')) {
-			input.Category = ans.categoryId ? { connect: { id: ans.categoryId } } : { disconnect: true };
-		}
-
-		if (this.hasAnswer('procedureId')) {
-			input.Procedure = ans.procedureId ? { connect: { id: ans.procedureId } } : { disconnect: true };
-		}
-
-		if (this.hasAnswer('preApplicationAdviceId')) {
-			input.PreApplicationAdvice = ans.preApplicationAdviceId
-				? { connect: { id: ans.preApplicationAdviceId } }
-				: { disconnect: true };
-		}
-
-		if (this.hasAnswer('outcomeTypeId')) {
-			input.OutcomeType = ans.outcomeTypeId ? { connect: { id: ans.outcomeTypeId } } : { disconnect: true };
-		}
-
-		if (this.hasAnswer('decisionOutcomeId')) {
-			input.DecisionOutcome = ans.decisionOutcomeId ? { connect: { id: ans.decisionOutcomeId } } : { disconnect: true };
-		}
-
-		if (this.hasAnswer('preApplicationCaseId')) {
-			input.PreApplicationCase = this.answers.preApplicationCaseId
-				? { connect: { id: this.answers.preApplicationCaseId } }
-				: { disconnect: true };
-		}
+		assignOptionalRelation(input, 'ApplicationPhase', this.hasAnswer('applicationPhaseId'), ans.applicationPhaseId);
+		assignOptionalRelation(input, 'Classification', this.hasAnswer('classificationId'), ans.classificationId);
+		assignOptionalRelation(input, 'SecondaryLpa', this.hasAnswer('secondaryLpaId'), ans.secondaryLpaId);
+		assignOptionalRelation(input, 'Specialism', this.hasAnswer('specialismId'), ans.specialismId);
+		assignOptionalRelation(input, 'InspectorBand', this.hasAnswer('inspectorBandId'), ans.inspectorBandId);
+		assignOptionalRelation(input, 'SubType', this.hasAnswer('subTypeId'), ans.subTypeId);
+		assignOptionalRelation(input, 'Stage', this.hasAnswer('stageId'), ans.stageId);
+		assignOptionalRelation(input, 'Category', this.hasAnswer('categoryId'), ans.categoryId);
+		assignOptionalRelation(input, 'Procedure', this.hasAnswer('procedureId'), ans.procedureId);
+		assignOptionalRelation(
+			input,
+			'PreApplicationAdvice',
+			this.hasAnswer('preApplicationAdviceId'),
+			ans.preApplicationAdviceId
+		);
+		assignOptionalRelation(input, 'OutcomeType', this.hasAnswer('outcomeTypeId'), ans.outcomeTypeId);
+		assignOptionalRelation(input, 'DecisionOutcome', this.hasAnswer('decisionOutcomeId'), ans.decisionOutcomeId);
+		assignOptionalRelation(
+			input,
+			'PreApplicationCase',
+			this.hasAnswer('preApplicationCaseId'),
+			ans.preApplicationCaseId
+		);
 
 		// Changing the advice type invalidates the other branch's reference, and a
 		// stale case link would keep that pre-application out of every other case's list.

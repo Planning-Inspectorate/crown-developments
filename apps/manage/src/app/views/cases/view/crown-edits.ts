@@ -1,7 +1,8 @@
 import { APPLICATION_PROCEDURE_ID, APPLICATION_STAGE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { toInt } from '@pins/crowndev-lib/util/numbers.ts';
+import { toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
 import { optionalWhere } from '@planning-inspectorate/core/util';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
+import { assignOptionalRelation, assignRepresentationsPeriod } from '@pins/crowndev-lib/util/shared-case-updates.ts';
 import {
 	buildAgentOrganisationNameUpdates,
 	buildAgentOrganisationAddressUpdates,
@@ -48,14 +49,14 @@ export const crownEditsToDatabaseUpdates: ApplyCaseTypeUpdates = (updateInput, e
 	}
 
 	// set number-as-string fields
+	// Uses toIntOrNull (not a truthy check) so a real value of 0 isn't wrongly nulled out.
 	if ('siteNorthing' in edits || 'siteEasting' in edits) {
-		updateInput.siteNorthing = edits.siteNorthing ? toInt(edits.siteNorthing) : null;
-		updateInput.siteEasting = edits.siteEasting ? toInt(edits.siteEasting) : null;
+		updateInput.siteNorthing = toIntOrNull(edits.siteNorthing);
+		updateInput.siteEasting = toIntOrNull(edits.siteEasting);
 	}
 
 	if (edits.representationsPeriod) {
-		updateInput.representationsPeriodStartDate = edits.representationsPeriod.start;
-		updateInput.representationsPeriodEndDate = edits.representationsPeriod.end;
+		assignRepresentationsPeriod(updateInput, edits.representationsPeriod);
 	}
 
 	// update relations
@@ -69,18 +70,10 @@ export const crownEditsToDatabaseUpdates: ApplyCaseTypeUpdates = (updateInput, e
 	}
 
 	// Optional foreign key scalar fields need to be mapped to relations for a consistent return type.
-	if ('decisionOutcomeId' in edits) {
-		updateInput.DecisionOutcome = edits.decisionOutcomeId
-			? { connect: { id: edits.decisionOutcomeId } }
-			: { disconnect: true };
-	}
-	if ('statusId' in edits) {
-		updateInput.Status = edits.statusId ? { connect: { id: edits.statusId } } : { disconnect: true };
-	}
+	assignOptionalRelation(updateInput, 'DecisionOutcome', 'decisionOutcomeId' in edits, edits.decisionOutcomeId);
+	assignOptionalRelation(updateInput, 'Status', 'statusId' in edits, edits.statusId);
 	// stageId edited directly (may be overridden below by procedure block)
-	if ('stageId' in edits) {
-		updateInput.Stage = edits.stageId ? { connect: { id: edits.stageId } } : { disconnect: true };
-	}
+	assignOptionalRelation(updateInput, 'Stage', 'stageId' in edits, edits.stageId);
 	if ('secondaryLpaId' in edits && edits.secondaryLpaId) {
 		updateInput.SecondaryLpa = { connect: { id: edits.secondaryLpaId } };
 	}
