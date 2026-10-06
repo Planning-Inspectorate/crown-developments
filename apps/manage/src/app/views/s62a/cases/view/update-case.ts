@@ -132,7 +132,7 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 			});
 		}
 
-		if (updateSucceeded && service.isAuditLive !== false) {
+		if (updateSucceeded) {
 			await recordAuditEntries(audit, logger, res, {
 				caseId: id,
 				userId,

@@ -101,9 +101,7 @@ export function buildDeleteS62aManageListItemOnConfirmRemove(service: ManageServ
 					throw new Error(`No delete handler for manage-list question "${question}" (field "${fieldName}")`);
 			}
 
-			if (service.isAuditLive !== false) {
-				await recordListItemRemoval(service, req, res, id, fieldName, manageListItemId);
-			}
+			await recordListItemRemoval(service, req, res, id, fieldName, manageListItemId);
 
 			next();
 		} catch (error) {

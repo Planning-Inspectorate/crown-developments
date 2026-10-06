@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { recordAuditSafely } from './record.ts';
+import { recordAuditSafely, isAuditEnabled } from './record.ts';
 import { SHARED_AUDIT_ACTIONS } from './shared-actions.ts';
 import { CASE_DATA_MODEL, type CaseDataModel } from '../util/types.ts';
 import type { AuditEntry } from './types.ts';
@@ -38,12 +38,20 @@ describe('recordAuditSafely', () => {
 		assert.strictEqual(service.audit.recordMany.mock.callCount(), 0);
 	});
 
-	it('should do nothing when auditing is switched off', async () => {
+	it('should do nothing for Crown when auditing is switched off', async () => {
+		const service = buildService({ isAuditLive: false });
+
+		await recordAuditSafely({ service: service as never, dataModel: CASE_DATA_MODEL.CROWN, entries: [entry] });
+
+		assert.strictEqual(service.audit.recordMany.mock.callCount(), 0);
+	});
+
+	it('should always record for S62A, whatever the flag', async () => {
 		const service = buildService({ isAuditLive: false });
 
 		await recordAuditSafely({ service: service as never, dataModel: CASE_DATA_MODEL.S62A, entries: [entry] });
 
-		assert.strictEqual(service.audit.recordMany.mock.callCount(), 0);
+		assert.strictEqual(service.audit.recordMany.mock.callCount(), 1);
 	});
 
 	it('should do nothing when there is no audit service', async () => {
@@ -72,5 +80,18 @@ describe('recordAuditSafely', () => {
 
 		assert.strictEqual(service.logger.error.mock.callCount(), 1);
 		assert.strictEqual(service.logger.error.mock.calls[0].arguments[0].caseId, 'case-1');
+	});
+});
+
+describe('isAuditEnabled', () => {
+	it('should always be enabled for S62A', () => {
+		assert.ok(isAuditEnabled({ isAuditLive: false }, CASE_DATA_MODEL.S62A));
+		assert.ok(isAuditEnabled({}, CASE_DATA_MODEL.S62A));
+	});
+
+	it('should follow the flag for Crown, and default to enabled', () => {
+		assert.ok(!isAuditEnabled({ isAuditLive: false }, CASE_DATA_MODEL.CROWN));
+		assert.ok(isAuditEnabled({ isAuditLive: true }, CASE_DATA_MODEL.CROWN));
+		assert.ok(isAuditEnabled({}, CASE_DATA_MODEL.CROWN));
 	});
 });

@@ -451,10 +451,7 @@ describe('S62A Save Controller Module', () => {
 			 * A service whose $tx runs the controller's callback against mocks, with an
 			 * audit service to check what's recorded.
 			 */
-			function mockAuditedService({
-				createFails = false,
-				isAuditLive
-			}: { createFails?: boolean; isAuditLive?: boolean } = {}) {
+			function mockAuditedService({ createFails = false }: { createFails?: boolean } = {}) {
 				const recordMany = mock.fn<(entries: AuditEntry[], dataModel: CaseDataModel) => Promise<void>>(async () => {});
 
 				const $tx = {
@@ -471,8 +468,7 @@ describe('S62A Save Controller Module', () => {
 				const service = {
 					db: { $transaction: mock.fn(async (cb: (tx: unknown) => unknown) => cb($tx)) },
 					audit: { recordMany },
-					logger: mockLogger(),
-					isAuditLive
+					logger: mockLogger()
 				} as unknown as ManageService;
 
 				return { service, recordMany };
@@ -514,15 +510,6 @@ describe('S62A Save Controller Module', () => {
 				await assert.rejects(async () => buildSaveController(service)(req, res, () => {}), {
 					message: 'Database connection failed'
 				});
-				assert.strictEqual(recordMany.mock.callCount(), 0);
-			});
-
-			it('does not record anything when auditing is switched off', async () => {
-				const { service, recordMany } = mockAuditedService({ isAuditLive: false });
-				const { req, res } = mockReqRes();
-
-				await buildSaveController(service)(req, res, () => {});
-
 				assert.strictEqual(recordMany.mock.callCount(), 0);
 			});
 

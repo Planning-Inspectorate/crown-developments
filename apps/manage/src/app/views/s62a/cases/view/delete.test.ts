@@ -456,17 +456,6 @@ describe('buildDeleteS62aManageListItemOnConfirmRemove', () => {
 			assert.strictEqual(next.mock.calls[0].arguments.length, 0);
 		});
 
-		it('does not record anything when auditing is switched off', async () => {
-			const middleware = buildDeleteS62aManageListItemOnConfirmRemove({
-				...auditedService,
-				isAuditLive: false
-			} as unknown as ManageService);
-			await middleware(req as Request, caseBeforeRemoval as Response, next as unknown as NextFunction);
-
-			assert.strictEqual(appContactSpy.mock.callCount(), 1);
-			assert.strictEqual(recordMany.mock.callCount(), 0);
-		});
-
 		it('still completes the removal if recording fails', async () => {
 			recordMany.mock.mockImplementation(async () => {
 				throw new Error('Audit unavailable');

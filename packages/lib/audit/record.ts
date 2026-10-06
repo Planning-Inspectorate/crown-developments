@@ -1,10 +1,20 @@
 import type { Logger } from 'pino';
 import type { AuditService } from './service.ts';
 import type { AuditEntry } from './types.ts';
-import type { CaseDataModel } from '../util/types.ts';
+import { CASE_DATA_MODEL, type CaseDataModel } from '../util/types.ts';
+
+/**
+ * Whether audit entries should be recorded for a data model.
+ *
+ * S62A is always audited. Crown can still be switched off with the
+ * service's isAuditLive flag, until Crown auditing is live everywhere.
+ */
+export function isAuditEnabled(service: { isAuditLive?: boolean }, dataModel: CaseDataModel): boolean {
+	return dataModel !== CASE_DATA_MODEL.CROWN || service.isAuditLive !== false;
+}
 
 export interface RecordAuditArgs {
-	/** Usually the app's service: needs audit and logger, and can switch auditing off with isAuditLive */
+	/** Usually the app's service: needs audit and logger. Crown auditing can be switched off with isAuditLive */
 	service: { audit?: AuditService; logger: Logger; isAuditLive?: boolean };
 	dataModel: CaseDataModel;
 	/** Entries to record; nulls (nothing to record) are skipped */
@@ -16,7 +26,8 @@ export interface RecordAuditArgs {
 /**
  * Records audit entries without ever affecting the user's action.
  *
- *   - does nothing if auditing is switched off, or there's no audit service
+ *   - does nothing if auditing is switched off for the data model (see isAuditEnabled),
+ *     or there's no audit service
  *   - does nothing if there's nothing to record
  *   - logs, rather than throws, if recording fails
  *
@@ -28,9 +39,9 @@ export async function recordAuditSafely({
 	entries,
 	logContext = {}
 }: RecordAuditArgs): Promise<void> {
-	const { audit, logger, isAuditLive } = service;
+	const { audit, logger } = service;
 
-	if (isAuditLive === false || !audit) {
+	if (!isAuditEnabled(service, dataModel) || !audit) {
 		return;
 	}
 
