@@ -1,0 +1,27 @@
+{% extends "views/layouts/main.njk" %}
+
+{% block pageTitle %}
+	{% set suffix = serviceName | default(config.headerTitle) %}
+	{{ pageTitle | default('Contact us') }} - {{ suffix }}
+{% endblock %}
+
+{% block pageContent %}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			<h2 class="govuk-heading-m">Telephone</h2>
+			<p class="govuk-body">If you have a representation reference number, have it with you when you call.</p>
+			<p class="govuk-body">Telephone: <a href="tel:03034445000" class="govuk-link">0303 444 5000</a></p>
+			<p class="govuk-body">Open Monday to Friday: 9am to 4pm. Closed on weekends and bank holidays.</p>
+			<h2 class="govuk-heading-m">General enquiries</h2>
+			<p class="govuk-body">
+				<a class="govuk-link" href="mailto:{{ config.contactEmail }}">
+					{{ config.contactEmail }}
+				</a>
+			</p>
+			<p class="govuk-body">Use our contact form for general enquiries: <a href="https://contact-us.planninginspectorate.gov.uk/hc/en-gb/requests/new" class="govuk-link">Customer services and general enquiries</a></p>
+			<h2 class="govuk-heading-m">Alternative formats</h2>
+			<p class="govuk-body">Contact us if you would like any application information in another format.</p>
+
+		</div>
+	</div>
+{% endblock %}
