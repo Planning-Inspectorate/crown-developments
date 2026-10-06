@@ -1,12 +1,11 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { editsToDatabaseUpdates as editsToDatabaseUpdatesForCaseType } from './view-model.ts';
-import { crownEditsToDatabaseUpdates } from './crown-edits.ts';
+import { CrownCaseUpdateMapper } from './crown-update-case-mapper.ts';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import type { CrownDevelopmentSaveModel, CrownDevelopmentViewModel } from './view-model.ts';
 
 /**
- * These tests exercise the Crown mapping via the orchestrator with the Crown case-type updater.
+ * These tests exercise the Crown mapping via `CrownCaseUpdateMapper`.
  *
  * Fixtures are deliberately partial DB/edit shapes, and some assertions read keys that aren't on the
  * typed result (the "should be undefined" checks).
@@ -16,12 +15,11 @@ function editsToDatabaseUpdates(
 	viewModel: Record<string, unknown> = {},
 	options?: { includeOrganisations?: boolean }
 ): any {
-	return editsToDatabaseUpdatesForCaseType(
+	return new CrownCaseUpdateMapper(
 		edits as unknown as CrownDevelopmentSaveModel,
 		viewModel as unknown as CrownDevelopmentViewModel,
-		crownEditsToDatabaseUpdates,
 		options
-	);
+	).generateUpdateInput();
 }
 
 describe('crown-edits', () => {

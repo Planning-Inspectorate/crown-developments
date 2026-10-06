@@ -5,8 +5,8 @@ import {
 	sendLpaQuestionnaireSentNotification
 } from './notification.js';
 import { fireAndForget } from '@pins/crowndev-lib/util/retry.ts';
-import { CLEARABLE_SAVE_KEYS, editsToDatabaseUpdates, crownDevelopmentToViewModel } from './view-model.ts';
-import { crownEditsToDatabaseUpdates } from './crown-edits.ts';
+import { CLEARABLE_SAVE_KEYS, crownDevelopmentToViewModel } from './view-model.ts';
+import { CrownCaseUpdateMapper } from './crown-update-case-mapper.ts';
 import { FIELD_DISPLAY_NAMES } from './questions.ts';
 import { loadEnvironmentConfig, ENVIRONMENT_NAME } from '../../../config.js';
 import {
@@ -317,11 +317,10 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 
 				// IMPORTANT: organisations are excluded here because organisation/contact updates are handled
 				// separately via the deterministic write plan (see buildCaseUpdateWritePlan/executeCaseUpdateWritePlan).
-				// This is the Crown route, so the Crown case-type updater is supplied. When S62A gets its own
-				// route, it will pass s62aEditsToDatabaseUpdates instead (ideally sourced from a CaseTypeConfig).
-				const updateInput = editsToDatabaseUpdates(toSave, viewModelForUpdates, crownEditsToDatabaseUpdates, {
+				const mapper = new CrownCaseUpdateMapper(toSave, viewModelForUpdates, {
 					includeOrganisations: false
 				});
+				const updateInput = mapper.generateUpdateInput();
 				updateInput.updatedDate = new Date();
 
 				const caseIds = [id];
