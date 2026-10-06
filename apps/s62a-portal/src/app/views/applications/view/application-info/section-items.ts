@@ -176,6 +176,9 @@ export function getKeyDatesSectionItems(s62aFields: S62aCaseView): SectionItem[]
 	];
 }
 
+/**
+ * Gets the date and location of the hearing
+ */
 export function getHearingSectionItems(s62aFields: S62aCaseView): SectionItem[] {
 	return [
 		...(s62aFields.hearingDate
@@ -198,6 +201,38 @@ export function getHearingSectionItems(s62aFields: S62aCaseView): SectionItem[] 
 						},
 						value: {
 							text: s62aFields.hearingVenue
+						}
+					}
+				]
+			: [])
+	];
+}
+
+/**
+ * Gets the outcome and date of decision for outcomes of type 'decision'
+ */
+export function getDecisionSectionItems(s62aFields: S62aCaseView): SectionItem[] {
+	return [
+		...(s62aFields.decisionDate
+			? [
+					{
+						key: {
+							text: 'Date'
+						},
+						value: {
+							text: s62aFields.decisionDate
+						}
+					}
+				]
+			: []),
+		...(s62aFields.decisionOutcome
+			? [
+					{
+						key: {
+							text: 'Outcome'
+						},
+						value: {
+							text: s62aFields.decisionOutcome
 						}
 					}
 				]

@@ -1,6 +1,6 @@
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { APPLICANT_TYPE_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import { APPLICANT_TYPE_ID, OUTCOME_TYPE_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { type ApplicationPublishStatus, getApplicationStatus } from '@pins/crowndev-lib/util/applications.ts';
 import { isHearing } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { addressToViewModel, formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
@@ -21,6 +21,7 @@ export type S62aCaseWithRelations = Prisma.S62aCaseGetPayload<{
 		SiteAddress: true;
 		Procedure: true;
 		S62aEvent: true;
+		DecisionOutcome: true;
 	};
 }>;
 
@@ -48,6 +49,9 @@ export type S62aCaseView = {
 	showHearing: boolean;
 	hearingDate?: string;
 	hearingVenue?: string;
+
+	showDecision: boolean;
+	decisionOutcome?: string;
 };
 
 /**
@@ -85,12 +89,14 @@ function formatApplicants(s62aCase: S62aCaseWithRelations) {
  * Creates the view model for the s62a case
  */
 export function s62aCaseToViewModel(s62aCase: S62aCaseWithRelations): S62aCaseView {
-	const { S62aDates, SiteAddress } = s62aCase;
+	const { S62aDates, SiteAddress, S62aEvent } = s62aCase;
 
 	const hasRepPeriod = !!(s62aCase.representationsPeriodStartDate && s62aCase.representationsPeriodEndDate);
 	const isCaseHearing = isHearing(s62aCase.procedureId);
-	const hearingDate = formatDate(s62aCase.S62aEvent?.hearingDate, `d MMMM yyyy 'at' h:mmaaa`);
-	const hearingVenue = s62aCase.S62aEvent?.venue;
+	const hearingDate = formatDate(S62aEvent?.hearingDate, `d MMMM yyyy 'at' h:mmaaa`);
+	const hearingVenue = S62aEvent?.venue;
+
+	const isDecision = s62aCase.outcomeTypeId === OUTCOME_TYPE_ID.DECISION;
 
 	return {
 		id: s62aCase.id,
@@ -130,6 +136,10 @@ export function s62aCaseToViewModel(s62aCase: S62aCaseWithRelations): S62aCaseVi
 		// Hearing
 		hearingDate: isCaseHearing ? hearingDate : undefined,
 		hearingVenue: isCaseHearing ? hearingVenue || undefined : undefined,
-		showHearing: !!(isCaseHearing && (hearingDate || hearingVenue))
+		showHearing: !!(isCaseHearing && (hearingDate || hearingVenue)),
+
+		// Outcome / Decision
+		showDecision: !!(isDecision && S62aDates?.decisionDate),
+		decisionOutcome: s62aCase.DecisionOutcome?.displayName || undefined
 	};
 }

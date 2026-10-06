@@ -2,7 +2,7 @@ import assert from 'assert';
 import { describe, it } from 'node:test';
 import { APPLICATION_PUBLISH_STATUS } from '@pins/crowndev-lib/util/applications.ts';
 import { APPLICATION_PROCEDURE_ID, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { APPLICANT_TYPE_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import { APPLICANT_TYPE_ID, OUTCOME_TYPE_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { s62aCaseToViewModel, type S62aCaseWithRelations } from './view-model.ts';
 
 describe('s62aCaseToViewModel', () => {
@@ -27,6 +27,8 @@ describe('s62aCaseToViewModel', () => {
 		assert.strictEqual(result.showHearing, false);
 		assert.strictEqual(result.hearingDate, undefined);
 		assert.strictEqual(result.hearingVenue, undefined);
+		assert.strictEqual(result.showDecision, false);
+		assert.strictEqual(result.decisionOutcome, undefined);
 	});
 
 	it('should not set applicationStatus if withdrawnDate is not present in S62aDates', () => {
@@ -279,5 +281,68 @@ describe('s62aCaseToViewModel', () => {
 		assert.strictEqual(result.showHearing, false);
 		assert.strictEqual(result.hearingDate, undefined);
 		assert.strictEqual(result.hearingVenue, undefined);
+	});
+
+	it('should set showDecision to true and format outcome when outcomeTypeId is DECISION and decisionDate is present', () => {
+		const mockCase = {
+			outcomeTypeId: OUTCOME_TYPE_ID.DECISION,
+			S62aDates: {
+				decisionDate: new Date('2024-08-15T12:00:00Z')
+			},
+			DecisionOutcome: {
+				displayName: 'Approved with conditions'
+			}
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.strictEqual(result.showDecision, true);
+		assert.strictEqual(result.decisionOutcome, 'Approved with conditions');
+	});
+
+	it('should set showDecision to false if outcomeTypeId is DECISION but decisionDate is missing', () => {
+		const mockCase = {
+			outcomeTypeId: OUTCOME_TYPE_ID.DECISION,
+			S62aDates: {},
+			DecisionOutcome: {
+				displayName: 'Refused'
+			}
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.strictEqual(result.showDecision, false);
+		assert.strictEqual(result.decisionOutcome, 'Refused');
+	});
+
+	it('should set showDecision to false if decisionDate is present but outcomeTypeId is NOT DECISION', () => {
+		const mockCase = {
+			outcomeTypeId: 'some-other-outcome',
+			S62aDates: {
+				decisionDate: new Date('2024-08-15T12:00:00Z')
+			},
+			DecisionOutcome: {
+				displayName: 'Withdrawn'
+			}
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.strictEqual(result.showDecision, false);
+		assert.strictEqual(result.decisionOutcome, 'Withdrawn');
+	});
+
+	it('should handle missing DecisionOutcome relationship safely', () => {
+		const mockCase = {
+			outcomeTypeId: OUTCOME_TYPE_ID.DECISION,
+			S62aDates: {
+				decisionDate: new Date('2024-08-15T12:00:00Z')
+			}
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.strictEqual(result.showDecision, true);
+		assert.strictEqual(result.decisionOutcome, undefined);
 	});
 });

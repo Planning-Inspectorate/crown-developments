@@ -3,7 +3,8 @@ import { describe, it } from 'node:test';
 import {
 	getAboutThisApplicationSectionItems,
 	getKeyDatesSectionItems,
-	getHearingSectionItems
+	getHearingSectionItems,
+	getDecisionSectionItems
 } from './section-items.ts';
 import type { S62aCaseView } from './view-model.ts';
 
@@ -70,7 +71,8 @@ describe('getAboutThisApplicationSectionItems', () => {
 			siteCoordinates: { easting: '123456', northing: '654321' },
 			description: 'A test development',
 			procedure: 'Hearing',
-			showHearing: false
+			showHearing: false,
+			showDecision: false
 		};
 
 		const result = getAboutThisApplicationSectionItems(fullyPopulatedFields);
@@ -254,6 +256,59 @@ describe('getHearingSectionItems', () => {
 		assert.deepStrictEqual(result[1], {
 			key: { text: 'Venue' },
 			value: { text: 'Bristol City Hall' }
+		});
+	});
+});
+
+describe('getDecisionSectionItems', () => {
+	it('should return an empty array if no decision details are provided', () => {
+		const missingFields = {} as unknown as S62aCaseView;
+		const result = getDecisionSectionItems(missingFields);
+
+		assert.deepStrictEqual(result, []);
+	});
+
+	it('should return only the decision date item if no outcome is provided', () => {
+		const dateOnlyFields = {
+			decisionDate: '28 February 2024'
+		} as unknown as S62aCaseView;
+		const result = getDecisionSectionItems(dateOnlyFields);
+
+		assert.strictEqual(result.length, 1);
+		assert.deepStrictEqual(result[0], {
+			key: { text: 'Date' },
+			value: { text: '28 February 2024' }
+		});
+	});
+
+	it('should return only the decision outcome item if no date is provided', () => {
+		const outcomeOnlyFields = {
+			decisionOutcome: 'Approved'
+		} as unknown as S62aCaseView;
+		const result = getDecisionSectionItems(outcomeOnlyFields);
+
+		assert.strictEqual(result.length, 1);
+		assert.deepStrictEqual(result[0], {
+			key: { text: 'Outcome' },
+			value: { text: 'Approved' }
+		});
+	});
+
+	it('should return both decision date and outcome items when both are provided', () => {
+		const fullyPopulatedFields = {
+			decisionDate: '28 February 2024',
+			decisionOutcome: 'Approved'
+		} as unknown as S62aCaseView;
+		const result = getDecisionSectionItems(fullyPopulatedFields);
+
+		assert.strictEqual(result.length, 2);
+		assert.deepStrictEqual(result[0], {
+			key: { text: 'Date' },
+			value: { text: '28 February 2024' }
+		});
+		assert.deepStrictEqual(result[1], {
+			key: { text: 'Outcome' },
+			value: { text: 'Approved' }
 		});
 	});
 });
