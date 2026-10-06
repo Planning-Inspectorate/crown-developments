@@ -16,6 +16,7 @@ interface Config extends BaseConfig {
 		isRetryLive: boolean;
 	};
 	googleAnalyticsId?: string;
+	microsoftClarityId?: string;
 	govNotify: NotifyConfig;
 	crownDevContactInfo: {
 		email: string;

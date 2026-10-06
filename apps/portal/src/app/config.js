@@ -34,6 +34,7 @@ export function loadConfig() {
 		FEATURE_FLAG_RETRY_NOT_LIVE,
 		GIT_SHA,
 		GOOGLE_ANALYTICS_ID,
+		MICROSOFT_CLARITY_ID,
 		LOG_LEVEL,
 		PORT,
 		NODE_ENV,
@@ -114,6 +115,7 @@ export function loadConfig() {
 		},
 		gitSha: GIT_SHA,
 		googleAnalyticsId: GOOGLE_ANALYTICS_ID,
+		microsoftClarityId: MICROSOFT_CLARITY_ID,
 		// the log level to use
 		logLevel: LOG_LEVEL || 'info',
 		NODE_ENV: NODE_ENV || 'development',

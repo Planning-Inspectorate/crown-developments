@@ -42,7 +42,8 @@ apps_config = {
     max_age = 300
   }
 
-  google_analytics_id = "G-X08SNFE249"
+  google_analytics_id  = "G-X08SNFE249"
+  microsoft_clarity_id = "xqzjxstrmm"
 
   logging = {
     level = "info"
