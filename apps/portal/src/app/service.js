@@ -66,4 +66,8 @@ export class PortalService extends Service {
 	get googleAnalyticsId() {
 		return this.#config.googleAnalyticsId;
 	}
+
+	get microsoftClarityId() {
+		return this.#config.microsoftClarityId;
+	}
 }

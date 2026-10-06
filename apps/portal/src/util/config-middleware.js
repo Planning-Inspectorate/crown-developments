@@ -1,9 +1,16 @@
 /**
  * Add configuration values to locals.
- * @param {{isLive: boolean, contactEmail: string, googleAnalyticsId?: string, appHostname: string, appName: string}} params
+ * @param {{isLive: boolean, contactEmail: string, googleAnalyticsId?: string, appHostname: string, appName: string, microsoftClarityId?: string}} params
  * @returns {import('express').Handler}
  */
-export function addLocalsConfiguration({ isLive, contactEmail, googleAnalyticsId, appHostname, appName }) {
+export function addLocalsConfiguration({
+	isLive,
+	contactEmail,
+	googleAnalyticsId,
+	appHostname,
+	appName,
+	microsoftClarityId
+}) {
 	return (req, res, next) => {
 		const path = req.path;
 
@@ -55,6 +62,7 @@ export function addLocalsConfiguration({ isLive, contactEmail, googleAnalyticsId
 			inBeta: true,
 			contactEmail,
 			googleAnalyticsId,
+			microsoftClarityId,
 			googleAnalyticsCookieDomain: appHostname,
 			serviceFeedbackUrl:
 				'https://forms.office.com/Pages/ResponsePage.aspx?id=mN94WIhvq0iTIpmM5VcIjUURDJ3wGfJKiFN5NOmxUcNURTNBUTQzS1JOVEtWSkJSR1I4MjNVTFBDQy4u',

@@ -110,8 +110,9 @@ module "app_portal" {
     DYNAMIC_CACHE_CONTROL_ENABLED = var.apps_config.dynamic_cache_control.enabled
     DYNAMIC_CACHE_CONTROL_MAX_AGE = var.apps_config.dynamic_cache_control.max_age
 
-    # Google Analytics
-    GOOGLE_ANALYTICS_ID = var.apps_config.google_analytics_id
+    # Analytics
+    GOOGLE_ANALYTICS_ID  = var.apps_config.google_analytics_id
+    MICROSOFT_CLARITY_ID = var.apps_config.microsoft_clarity_id
   }
 
   providers = {
