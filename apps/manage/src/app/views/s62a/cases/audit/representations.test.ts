@@ -67,14 +67,6 @@ describe('recordS62aRepresentationAudit', () => {
 		assert.strictEqual(entry.userId, UNKNOWN_AUDIT_USER_ID);
 	});
 
-	it('should not record anything when auditing is switched off', async () => {
-		const { service, recordMany } = buildService({ isAuditLive: false });
-
-		await recordS62aRepresentationAudit(service, req, 'case-1', '353RK-4766', S62A_AUDIT_ACTIONS.REPRESENTATION_ADDED);
-
-		assert.strictEqual(recordMany.mock.callCount(), 0);
-	});
-
 	it('should log, not throw, if recording fails', async () => {
 		const { service, recordMany, error } = buildService();
 		recordMany.mock.mockImplementation(async () => {
@@ -170,14 +162,6 @@ describe('recordS62aRepresentationUpdates', () => {
 			...categoryChange,
 			answers: { categoryId: REPRESENTATION_CATEGORY_ID.CONSULTEES }
 		});
-
-		assert.strictEqual(recordMany.mock.callCount(), 0);
-	});
-
-	it('should not record anything when auditing is switched off', async () => {
-		const { service, recordMany } = buildService({ isAuditLive: false });
-
-		await recordS62aRepresentationUpdates(service, req, categoryChange);
 
 		assert.strictEqual(recordMany.mock.callCount(), 0);
 	});

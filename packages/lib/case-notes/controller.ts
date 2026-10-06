@@ -23,6 +23,7 @@ import { isValidRedirectUri } from '../util/uri.ts';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import { popSessionData } from '../util/session.ts';
 import path from 'node:path';
+import { isAuditEnabled } from '../audit/record.ts';
 
 /** Notes as queried for mapping — no relations; author is a plain Entra ID string. */
 type NoteForMapping = Pick<Prisma.ApplicationNoteGetPayload<object>, 'comment' | 'createdAt' | 'userId'>;
@@ -140,7 +141,7 @@ export function buildCreateCaseNoteHandler(service: CaseNotesService, dataModel:
 		try {
 			await createCaseNote(id, comment, userId, db, logger, dataModel);
 
-			if (service.isAuditLive !== false && service.audit) {
+			if (isAuditEnabled(service, dataModel) && service.audit) {
 				await service.audit.record(
 					{
 						caseId: id,

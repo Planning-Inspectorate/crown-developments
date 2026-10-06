@@ -69,14 +69,4 @@ describe('buildRecordS62aCaseAction', () => {
 		assert.strictEqual(recordMany.mock.callCount(), 0);
 		assert.strictEqual((service.logger.error as unknown as ReturnType<typeof mock.fn>).mock.callCount(), 1);
 	});
-
-	it('should not look anything up when auditing is switched off', async () => {
-		const { service, recordMany } = buildService('S62A/2026/0000037');
-		(service as { isAuditLive?: boolean }).isAuditLive = false;
-
-		await buildRecordS62aCaseAction(service, SHARED_AUDIT_ACTIONS.CASE_PUBLISHED)(req, 'case-1');
-
-		assert.strictEqual((service.db.s62aCase.findUnique as unknown as ReturnType<typeof mock.fn>).mock.callCount(), 0);
-		assert.strictEqual(recordMany.mock.callCount(), 0);
-	});
 });

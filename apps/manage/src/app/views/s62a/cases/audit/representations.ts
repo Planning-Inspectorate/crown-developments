@@ -88,10 +88,6 @@ export async function recordS62aRepresentationUpdates(
 		questionLabels?: Record<string, string>;
 	}
 ): Promise<void> {
-	if (service.isAuditLive === false) {
-		return;
-	}
-
 	try {
 		const entries = resolveRepresentationUpdateAudits({
 			caseId,

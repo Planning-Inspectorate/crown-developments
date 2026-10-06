@@ -13,8 +13,6 @@ export type S62aCaseAction = typeof SHARED_AUDIT_ACTIONS.CASE_PUBLISHED | typeof
  */
 export function buildRecordS62aCaseAction(service: ManageService, action: S62aCaseAction): CaseActionHook {
 	return async (req, caseId) => {
-		if (service.isAuditLive === false) return;
-
 		try {
 			const s62aCase = await service.db.s62aCase.findUnique({
 				where: { id: caseId },
