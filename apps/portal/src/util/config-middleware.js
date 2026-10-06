@@ -57,6 +57,7 @@ export function addLocalsConfiguration(service, manifest) {
 			contactEmail: service.contactEmail,
 			googleAnalyticsId: service.googleAnalyticsId,
 			googleAnalyticsCookieDomain: service.appHostname,
+			microsoftClarityId: service.microsoftClarityId,
 			serviceFeedbackUrl:
 				'https://forms.office.com/Pages/ResponsePage.aspx?id=mN94WIhvq0iTIpmM5VcIjUURDJ3wGfJKiFN5NOmxUcNURTNBUTQzS1JOVEtWSkJSR1I4MjNVTFBDQy4u',
 			serviceEOIUrl:

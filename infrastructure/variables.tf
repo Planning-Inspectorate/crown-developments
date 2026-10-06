@@ -50,7 +50,8 @@ variable "apps_config" {
       max_age = number
     })
 
-    google_analytics_id = string
+    google_analytics_id  = string
+    microsoft_clarity_id = string
 
     logging = object({
       level = string

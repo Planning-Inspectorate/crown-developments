@@ -19,17 +19,24 @@ const googleAnalytics = {
 	imgSrc: ['https://www.googletagmanager.com']
 };
 
+const microsoftClarity = {
+	scriptSrc: ['https://*.clarity.ms', 'https://c.bing.com'],
+	connectSrc: ['https://*.clarity.ms', 'https://c.bing.com'],
+	imgSrc: ['https://*.clarity.ms', 'https://c.bing.com']
+};
+
 export const cspDirectives: HelmetCspDirectives = {
 	scriptSrc: [
 		"'self'",
 		...googleAnalytics.scriptSrc,
+		...microsoftClarity.scriptSrc,
 		(req, res) => {
 			return `'nonce-${res.locals?.cspNonce as string}'`;
 		}
 	],
 	defaultSrc: ["'self'"],
-	connectSrc: ["'self'", ...googleAnalytics.connectSrc],
+	connectSrc: ["'self'", ...googleAnalytics.connectSrc, ...microsoftClarity.connectSrc],
 	fontSrc: ["'self'"],
-	imgSrc: ["'self'", ...googleAnalytics.imgSrc],
+	imgSrc: ["'self'", ...googleAnalytics.imgSrc, ...microsoftClarity.imgSrc],
 	styleSrc: ["'self'"]
 };
