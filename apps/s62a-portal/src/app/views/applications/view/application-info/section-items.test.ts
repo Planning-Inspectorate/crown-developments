@@ -72,7 +72,8 @@ describe('getAboutThisApplicationSectionItems', () => {
 			description: 'A test development',
 			procedure: 'Hearing',
 			showHearing: false,
-			showDecision: false
+			showDecision: false,
+			isMajor: true
 		};
 
 		const result = getAboutThisApplicationSectionItems(fullyPopulatedFields);
@@ -132,8 +133,8 @@ describe('getKeyDatesSectionItems', () => {
 	it('should include all conditional date items when fully populated fields are provided', () => {
 		const fullyPopulatedFields = {
 			applicationValidDate: '1 January 2024',
-			representationPeriodStartDateTime: '2 January 2024',
-			representationPeriodEndDateTime: '16 January 2024',
+			representationsPeriodStartDateTime: '2 January 2024',
+			representationsPeriodEndDateTime: '16 January 2024',
 			targetDecisionDate: '1 March 2024',
 			decisionDate: '28 February 2024',
 			withdrawnDate: '20 February 2024'

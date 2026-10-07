@@ -3,7 +3,7 @@ import { applicationUpdateToTimelineItem, crownDevelopmentToViewModel } from '..
 import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { fetchPublishedApplication, isExpired, isWithdrawnOrExpired } from '@pins/crowndev-lib/util/applications.ts';
-import { getHaveYourSayStatus } from '../have-your-say/util.js';
+import { getHaveYourSayStatus } from '@pins/crowndev-lib/util/have-your-say.ts';
 import {
 	getAboutThisApplicationSectionItems,
 	getApplicationDecisionSectionItems,

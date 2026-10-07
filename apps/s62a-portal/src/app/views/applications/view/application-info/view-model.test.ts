@@ -197,8 +197,8 @@ describe('s62aCaseToViewModel', () => {
 
 		const result = s62aCaseToViewModel(mockCase);
 
-		assert.strictEqual(result.representationPeriodStartDateTime, '1 January 2024 at 9:30am');
-		assert.strictEqual(result.representationPeriodEndDateTime, '31 January 2024 at 5:45pm');
+		assert.strictEqual(result.representationsPeriodStartDateTime, '1 January 2024 at 9:30am');
+		assert.strictEqual(result.representationsPeriodEndDateTime, '31 January 2024 at 5:45pm');
 	});
 
 	it('should not format representation period dates if start date is missing', () => {
@@ -208,8 +208,8 @@ describe('s62aCaseToViewModel', () => {
 
 		const result = s62aCaseToViewModel(mockCase);
 
-		assert.strictEqual(result.representationPeriodStartDateTime, undefined);
-		assert.strictEqual(result.representationPeriodEndDateTime, undefined);
+		assert.strictEqual(result.representationsPeriodStartDateTime, undefined);
+		assert.strictEqual(result.representationsPeriodEndDateTime, undefined);
 	});
 
 	it('should not format representation period dates if end date is missing', () => {
@@ -219,8 +219,8 @@ describe('s62aCaseToViewModel', () => {
 
 		const result = s62aCaseToViewModel(mockCase);
 
-		assert.strictEqual(result.representationPeriodStartDateTime, undefined);
-		assert.strictEqual(result.representationPeriodEndDateTime, undefined);
+		assert.strictEqual(result.representationsPeriodStartDateTime, undefined);
+		assert.strictEqual(result.representationsPeriodEndDateTime, undefined);
 	});
 
 	it('should format and show hearing information when procedure is HEARING and details are present', () => {

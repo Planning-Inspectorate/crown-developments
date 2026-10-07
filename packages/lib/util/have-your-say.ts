@@ -14,7 +14,7 @@ export const HAVE_YOUR_SAY_STATUS = {
 	CLOSED_REPS_PUBLISHED_DATE_NOT_SET: 'closedRepsPublishedDateNotSet'
 };
 
-export function getHaveYourSayStatus(haveYourSayPeriod, representationsPublishDate) {
+export function getHaveYourSayStatus(haveYourSayPeriod: { start: Date; end: Date }, representationsPublishDate: Date) {
 	const start = haveYourSayPeriod?.start;
 	const end = haveYourSayPeriod?.end;
 
