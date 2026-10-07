@@ -657,7 +657,6 @@ export function getQuestions(
 			validators: [new DateValidator('application received date')],
 			hint: 'You must first add the application fee and the site address or site coordinates.',
 			viewData: {
-				warningMessage: 'Adding a date will send a notification to the applicant / agent.',
 				extraActionButtons: [
 					{
 						text: 'Remove and save',
