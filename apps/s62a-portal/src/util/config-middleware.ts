@@ -51,7 +51,7 @@ export function addLocalsConfiguration(service: S62APortalService, manifest: Man
 				...link,
 				current: link.href === path
 			})),
-			serviceFeedbackUrl: '#',
+			serviceFeedbackUrl: 'https://forms.cloud.microsoft/e/YdJSUB4h4v',
 			manifest: {
 				styleFile: manifest['style.css'] ?? 'style.css',
 				govukJsFile: manifest['govuk-frontend.min.js'] ?? 'govuk-frontend.min.js',
