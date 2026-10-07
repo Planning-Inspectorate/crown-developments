@@ -230,9 +230,8 @@ model S62aCase {
   SiteAreaOriginalUnit        SiteAreaUnit? @relation(fields: [siteAreaOriginalUnitId], references: [id])
   siteIsVisibleFromPublicLand Boolean?
 
-  /// Core dates
-  notificationSubmittedDate DateTime?
-  expectedSubmissionDate    DateTime
+  /// Core date
+  expectedSubmissionDate DateTime
 
   /// Other dates
   S62aDates S62aDates?

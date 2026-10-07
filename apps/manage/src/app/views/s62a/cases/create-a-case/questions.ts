@@ -409,12 +409,12 @@ export function getQuestions(
 				})
 			]
 		},
-		notificationSubmittedDate: {
+		notificationReceivedDate: {
 			type: COMPONENT_TYPES.DATE,
 			title: 'Date notification submitted',
 			question: 'When was the notification of intent submitted? (optional)',
 			hint: 'For example, 27 3 2007',
-			fieldName: 'notificationSubmittedDate',
+			fieldName: 'notificationReceivedDate',
 			url: 'date-notification-of-intent-submitted',
 			validators: [new DateValidator('notification of intent date', { optional: true })]
 		},
