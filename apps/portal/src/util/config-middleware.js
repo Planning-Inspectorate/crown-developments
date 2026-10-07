@@ -1,9 +1,10 @@
 /**
  * Add configuration values to locals.
- * @param {{isLive: boolean, contactEmail: string, googleAnalyticsId?: string, appHostname: string, appName: string}} params
+ * @param {import('#service').PortalService} service
+ * @param {import('@pins/crowndev-lib/util/manifest.ts').Manifest} manifest
  * @returns {import('express').Handler}
  */
-export function addLocalsConfiguration({ isLive, contactEmail, googleAnalyticsId, appHostname, appName }) {
+export function addLocalsConfiguration(service, manifest) {
 	return (req, res, next) => {
 		const path = req.path;
 
@@ -19,7 +20,7 @@ export function addLocalsConfiguration({ isLive, contactEmail, googleAnalyticsId
 		];
 
 		res.locals.config = {
-			appName,
+			appName: service.appName,
 			cspNonce: res.locals.cspNonce,
 			headerTitle: 'Find a Crown development application',
 			headerUrl: '/',
@@ -51,15 +52,22 @@ export function addLocalsConfiguration({ isLive, contactEmail, googleAnalyticsId
 				return link;
 			}),
 			haveYourSayServiceName: 'Have your say on a Crown development application',
-			isLive,
+			isLive: service.isLive,
 			inBeta: true,
-			contactEmail,
-			googleAnalyticsId,
-			googleAnalyticsCookieDomain: appHostname,
+			contactEmail: service.contactEmail,
+			googleAnalyticsId: service.googleAnalyticsId,
+			googleAnalyticsCookieDomain: service.appHostname,
 			serviceFeedbackUrl:
 				'https://forms.office.com/Pages/ResponsePage.aspx?id=mN94WIhvq0iTIpmM5VcIjUURDJ3wGfJKiFN5NOmxUcNURTNBUTQzS1JOVEtWSkJSR1I4MjNVTFBDQy4u',
 			serviceEOIUrl:
-				'https://forms.office.com/Pages/ResponsePage.aspx?id=mN94WIhvq0iTIpmM5VcIjUURDJ3wGfJKiFN5NOmxUcNUMElBMjI3RUQ3WEg5STdNMzk2NkhLUTcwTi4u'
+				'https://forms.office.com/Pages/ResponsePage.aspx?id=mN94WIhvq0iTIpmM5VcIjUURDJ3wGfJKiFN5NOmxUcNUMElBMjI3RUQ3WEg5STdNMzk2NkhLUTcwTi4u',
+			manifest: {
+				styleFile: manifest['style.css'] ?? 'style.css',
+				govukJsFile: manifest['govuk-frontend.min.js'] ?? 'govuk-frontend.min.js',
+				mojJsFile: manifest['moj-frontend.min.js'] ?? 'moj-frontend.min.js',
+				autocompleteStyleFile: manifest['accessible-autocomplete.min.css'] ?? 'accessible-autocomplete.min.css',
+				autocompleteJsFile: manifest['accessible-autocomplete.min.js'] ?? 'accessible-autocomplete.min.js'
+			}
 		};
 		next();
 	};

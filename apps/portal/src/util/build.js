@@ -19,7 +19,8 @@ async function run() {
 		srcDir: config.srcDir,
 		repoRoot: govUkRoot,
 		copyMoj: true,
-		generateManifestFile: true
+		generateManifestFile: true,
+		applyAssetVersioning: true
 	});
 }
 

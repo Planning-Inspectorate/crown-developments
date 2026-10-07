@@ -1,4 +1,3 @@
-import manifest from '../.static/manifest.json' with { type: 'json' };
 import { buildRouter } from './router.js';
 import { configureNunjucks } from './nunjucks.js';
 import { addLocalsConfiguration } from '#util/config-middleware.js';
@@ -6,14 +5,15 @@ import { cspDirectives } from '#util/csp-middleware.ts';
 import { buildAnalyticsCookiesMiddleware } from '#util/cookies.js';
 import { cleanEmptyQueryParams, trimEmptyQuery } from '@pins/crowndev-lib/middleware/query-middleware.js';
 import { createBaseApp } from '@planning-inspectorate/core/app';
+import { loadManifest } from '@pins/crowndev-lib/util/manifest.ts';
 
 /**
  * @param {import('#service').PortalService} service
  * @returns {Express}
  */
-export function getApp(service) {
+export async function getApp(service) {
 	const router = buildRouter(service);
-
+	const manifest = await loadManifest(service.staticDir, service.logger);
 	return createBaseApp({
 		service,
 		router,
@@ -28,12 +28,8 @@ export function getApp(service) {
 			// middleware to clean empty query params and trim empty query values
 			cleanEmptyQueryParams,
 			trimEmptyQuery,
-			addLocalsConfiguration(service),
-			buildAnalyticsCookiesMiddleware(service),
-			(req, res, next) => {
-				res.locals.styleCss = manifest['style.css'];
-				next();
-			}
+			addLocalsConfiguration(service, manifest),
+			buildAnalyticsCookiesMiddleware(service)
 		]
 	});
 }
