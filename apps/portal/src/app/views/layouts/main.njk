@@ -7,7 +7,7 @@
 
 {% block head %}
 	{# setup the header tags, to link to the styles #}
-	<link rel="stylesheet" href="/{{ styleCss }}" />
+	<link rel="stylesheet" href="/{{ config.manifest.styleFile }}" />
 	<link rel="stylesheet" href="/index.css" />
 	<meta name="referrer" content="origin">
 
@@ -113,11 +113,11 @@
 	{{ pinsFooter(config.footerLinks, {showCrownCopyright: true, showContentLicense: true}) }}
 
 	<script type="module"
-					{% if cspNonce %}nonce="{{ cspNonce }}"{% endif %} src="/assets/js/govuk-frontend.min.js"></script>
-	<script type="module" {% if cspNonce %}nonce="{{ cspNonce }}"{% endif %} src="/assets/js/moj-frontend.min.js"></script>
+					{% if cspNonce %}nonce="{{ cspNonce }}"{% endif %} src="/assets/js/{{ config.manifest.govukJsFile }}"></script>
+	<script type="module" {% if cspNonce %}nonce="{{ cspNonce }}"{% endif %} src="/assets/js/{{ config.manifest.mojJsFile }}"></script>
 	<script type="module" {% if cspNonce %}nonce="{{ cspNonce }}"{% endif %}>
-		import { initAll as govUkInitAll } from '/assets/js/govuk-frontend.min.js';
-		import { initAll as mojInitAll } from '/assets/js/moj-frontend.min.js';
+		import { initAll as govUkInitAll } from '/assets/js/{{ config.manifest.govukJsFile }}';
+		import { initAll as mojInitAll } from '/assets/js/{{ config.manifest.mojJsFile }}';
 
 		govUkInitAll();
 		mojInitAll();

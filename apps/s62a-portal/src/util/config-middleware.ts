@@ -1,10 +1,11 @@
 import type { S62APortalService } from '#service';
 import type { Handler } from 'express';
+import type { Manifest } from '@pins/crowndev-lib/util/manifest.ts';
 
 /**
  * Add configuration values to locals.
  */
-export function addLocalsConfiguration(service: S62APortalService): Handler {
+export function addLocalsConfiguration(service: S62APortalService, manifest: Manifest): Handler {
 	return (req, res, next) => {
 		const path = req.path;
 
@@ -50,7 +51,14 @@ export function addLocalsConfiguration(service: S62APortalService): Handler {
 				...link,
 				current: link.href === path
 			})),
-			serviceFeedbackUrl: '#'
+			serviceFeedbackUrl: '#',
+			manifest: {
+				styleFile: manifest['style.css'] ?? 'style.css',
+				govukJsFile: manifest['govuk-frontend.min.js'] ?? 'govuk-frontend.min.js',
+				mojJsFile: manifest['moj-frontend.min.js'] ?? 'moj-frontend.min.js',
+				autocompleteStyleFile: manifest['accessible-autocomplete.min.css'] ?? 'accessible-autocomplete.min.css',
+				autocompleteJsFile: manifest['accessible-autocomplete.min.js'] ?? 'accessible-autocomplete.min.js'
+			}
 		};
 		next();
 	};

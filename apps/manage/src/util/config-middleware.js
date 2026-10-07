@@ -1,9 +1,10 @@
 /**
  * Add configuration values to locals.
  * @param {import('#service').ManageService} service
+ * @param {import('@pins/crowndev-lib/util/manifest.ts').Manifest} manifest
  * @returns {import('express').Handler}
  */
-export function addLocalsConfiguration(service) {
+export function addLocalsConfiguration(service, manifest) {
 	return (req, res, next) => {
 		const path = req.path;
 
@@ -49,7 +50,14 @@ export function addLocalsConfiguration(service) {
 				...link,
 				current: link.href === path
 			})),
-			serviceFeedbackUrl: 'https://forms.cloud.microsoft/e/DeXLbhNrBn'
+			serviceFeedbackUrl: 'https://forms.cloud.microsoft/e/DeXLbhNrBn',
+			manifest: {
+				styleFile: manifest['style.css'] ?? 'style.css',
+				govukJsFile: manifest['govuk-frontend.min.js'] ?? 'govuk-frontend.min.js',
+				mojJsFile: manifest['moj-frontend.min.js'] ?? 'moj-frontend.min.js',
+				autocompleteStyleFile: manifest['accessible-autocomplete.min.css'] ?? 'accessible-autocomplete.min.css',
+				autocompleteJsFile: manifest['accessible-autocomplete.min.js'] ?? 'accessible-autocomplete.min.js'
+			}
 		};
 
 		next();

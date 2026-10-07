@@ -22,7 +22,8 @@ async function run() {
 		repoRoot: govUkRoot,
 		copyMoj: true,
 		accessibleAutocompleteRoot,
-		generateManifestFile: true
+		generateManifestFile: true,
+		applyAssetVersioning: true
 	});
 }
 

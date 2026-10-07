@@ -5,7 +5,7 @@ import { PortalService } from '#service';
 const config = loadConfig();
 const service = new PortalService(config);
 
-const app = getApp(service);
+const app = await getApp(service);
 // Trust proxy, because our application is behind Front Door
 // required for secure session cookies
 // see https://expressjs.com/en/resources/middleware/session.html#cookiesecure

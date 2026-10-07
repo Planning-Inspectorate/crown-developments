@@ -4,7 +4,7 @@
 -->
 {% macro customMojFileUpload(params) %}
 <div class="moj-multi-file-upload {{- " " + params.classes if params.classes}}" data-module="moj-multi-file-upload" {%- for attribute, value in params.attributes %} {{ attribute }}="{{ value }}"{% endfor %}>
-  
+
   <div class="moj-multi-file-upload__upload">
     {{ params.uploadHtml | safe }}
   </div>
@@ -39,7 +39,7 @@
 -->
 {% macro customMojFileUploadScript(params) %}
 <script type="module" {% if params.cspNonce %}nonce="{{ params.cspNonce }}"{% endif %}>
-    import { MultiFileUpload } from '/assets/js/moj-frontend.min.js';
+    import { MultiFileUpload } from '/assets/js/{{ config.manifest.mojJsFile }}';
 
     const mojFormContainer = document.querySelector('#upload-form-container');
     const mainSubmitForm = document.querySelector('#main-submit-form');
@@ -47,7 +47,7 @@
     const csrfInput = document.querySelector('input[name="_csrf"]');
 
     class CustomMojFileUpload extends MultiFileUpload {
-        
+
         constructor(root, config) {
             super(root, config);
             this.formatExistingRows();
@@ -67,16 +67,16 @@
 
         formatExistingRows() {
             const rows = this.$feedbackContainer.querySelectorAll('.moj-multi-file-upload__row');
-            
+
             rows.forEach(row => {
                 const messageCol = row.querySelector('.moj-multi-file-upload__message');
                 const fileText = messageCol ? messageCol.textContent.replace('Uploaded', '').trim() : 'Unknown file';
-                
+
                 const oldDeleteBtn = row.querySelector('.moj-multi-file-upload__delete');
                 const fileValue = oldDeleteBtn ? oldDeleteBtn.value : '';
 
                 row.classList.add('moj-multi-file-upload__row--flex');
-                
+
                 row.innerHTML = `
                     <div class="govuk-summary-list__value moj-multi-file-upload__col-name">
                         ${fileText}
@@ -96,7 +96,7 @@
         getFileRow(file) {
             const row = document.createElement('div');
             row.classList.add('govuk-summary-list__row', 'moj-multi-file-upload__row', 'moj-multi-file-upload__row--flex');
-            
+
             const cleverSize = this.formatBytes(file.size);
 
             row.innerHTML = `
@@ -108,7 +108,7 @@
                 </div>
                 <div class="govuk-summary-list__actions moj-multi-file-upload__actions moj-multi-file-upload__col-actions"></div>
             `;
-            
+
             return row;
         }
 
@@ -125,10 +125,10 @@
             button.setAttribute('type', 'button');
             button.setAttribute('name', 'delete');
             button.setAttribute('value', file.filename);
-            
+
             button.classList.add('moj-multi-file-upload__delete', 'pins-button-link');
             button.innerHTML = `Remove <span class="govuk-visually-hidden">${file.originalname}</span>`;
-            
+
             return button;
         }
 
@@ -152,8 +152,8 @@
 
             const onError = () => {
                 const response = xhr.response;
-                const errorMessage = (response && response.error && response.error.message) 
-                    ? response.error.message 
+                const errorMessage = (response && response.error && response.error.message)
+                    ? response.error.message
                     : (xhr.statusText || 'Upload failed');
                 const error = new Error(errorMessage);
 
@@ -272,7 +272,7 @@
             const activeUploads = document.querySelectorAll('.moj-multi-file-upload__progress');
             if (activeUploads.length > 0) {
                 event.preventDefault();
-                showUploadError(); 
+                showUploadError();
             }
         });
     }

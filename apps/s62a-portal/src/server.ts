@@ -5,7 +5,7 @@ import { loadConfig } from './app/config.ts';
 const config = loadConfig();
 const service = new S62APortalService(config);
 
-const app = createApp(service);
+const app = await createApp(service);
 // Trust proxy, because our application is behind Front Door
 // required for secure session cookies
 // see https://expressjs.com/en/resources/middleware/session.html#cookiesecure

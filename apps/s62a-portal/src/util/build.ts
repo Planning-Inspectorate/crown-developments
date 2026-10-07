@@ -17,7 +17,8 @@ async function run(): Promise<void> {
 		srcDir: config.srcDir,
 		repoRoot: govUkRoot,
 		copyMoj: true,
-		generateManifestFile: true
+		generateManifestFile: true,
+		applyAssetVersioning: true
 	});
 }
 

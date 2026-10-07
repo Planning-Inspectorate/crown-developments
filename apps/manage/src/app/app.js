@@ -1,16 +1,17 @@
-import manifest from '../.static/manifest.json' with { type: 'json' };
 import { buildRouter } from './router.js';
 import { configureNunjucks } from './nunjucks.js';
 import { addLocalsConfiguration } from '#util/config-middleware.js';
 import { cleanEmptyQueryParams, trimEmptyQuery } from '@pins/crowndev-lib/middleware/query-middleware.js';
 import { createBaseApp } from '@planning-inspectorate/core/app';
+import { loadManifest } from '@pins/crowndev-lib/util/manifest.ts';
 
 /**
  * @param {import('#service').ManageService} service
  * @returns {Express}
  */
-export function getApp(service) {
+export async function getApp(service) {
 	const router = buildRouter(service);
+	const manifest = await loadManifest(service.staticDir, service.logger);
 	return createBaseApp({
 		service,
 		router,
@@ -33,12 +34,7 @@ export function getApp(service) {
 				res.locals.isS62A = req.path.includes('/s62a/');
 				next();
 			},
-			(req, res, next) => {
-				// Cache busting for CSS
-				res.locals.styleCss = manifest['style.css'];
-				next();
-			},
-			addLocalsConfiguration(service)
+			addLocalsConfiguration(service, manifest)
 		]
 	});
 }
