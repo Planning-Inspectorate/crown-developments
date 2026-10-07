@@ -22,7 +22,7 @@ export function addLocalsConfiguration(service: S62APortalService): Handler {
 		res.locals.config = {
 			cspNonce: res.locals.cspNonce as string,
 			headerTitle: 'Find a local planning application made to the Planning Inspectorate',
-			inBeta: false,
+			inBeta: true,
 			footerLinks: [
 				{
 					text: 'Terms and conditions',
