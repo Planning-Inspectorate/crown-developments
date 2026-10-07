@@ -125,14 +125,14 @@ export function getKeyDatesSectionItems(s62aFields: S62aCaseView): SectionItem[]
 				text: s62aFields.applicationValidDate ?? ''
 			}
 		},
-		...(s62aFields.representationPeriodStartDateTime && s62aFields.representationPeriodEndDateTime
+		...(s62aFields.representationsPeriodStartDateTime && s62aFields.representationsPeriodEndDateTime
 			? [
 					{
 						key: {
 							text: 'Representation period'
 						},
 						value: {
-							text: `${s62aFields.representationPeriodStartDateTime} to ${s62aFields.representationPeriodEndDateTime}`
+							text: `${s62aFields.representationsPeriodStartDateTime} to ${s62aFields.representationsPeriodEndDateTime}`
 						}
 					}
 				]

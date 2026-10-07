@@ -1,5 +1,6 @@
 {% extends "views/layouts/main.njk" %}
 
+{% from "views/applications/view/application-info/have-your-say-information.njk" import renderHaveYourSayInformation %}
 {% from "govuk/components/details/macro.njk" import govukDetails %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
@@ -59,6 +60,7 @@
 					}) }}
 				{% endif %}
 			</div>
+			{{ renderHaveYourSayInformation(haveYourSayStatus, s62aFields) }}
 		</div>
 	</div>
 {% endblock %}

@@ -1,6 +1,10 @@
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { APPLICANT_TYPE_ID, OUTCOME_TYPE_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import {
+	APPLICANT_TYPE_ID,
+	MAJOR_OR_NON_MAJOR_ID,
+	OUTCOME_TYPE_ID
+} from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { type ApplicationPublishStatus, getApplicationStatus } from '@pins/crowndev-lib/util/applications.ts';
 import { isHearing } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { addressToViewModel, formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
@@ -39,8 +43,8 @@ export type S62aCaseView = {
 	procedure?: string;
 
 	applicationValidDate?: string;
-	representationPeriodStartDateTime?: string;
-	representationPeriodEndDateTime?: string;
+	representationsPeriodStartDateTime?: string;
+	representationsPeriodEndDateTime?: string;
 	targetDecisionDate?: string;
 	extendedTargetDecisionDate?: string;
 	decisionDate?: string;
@@ -52,6 +56,9 @@ export type S62aCaseView = {
 
 	showDecision: boolean;
 	decisionOutcome?: string;
+
+	representationsPublishDate?: string;
+	isMajor: boolean;
 };
 
 /**
@@ -126,10 +133,10 @@ export function s62aCaseToViewModel(s62aCase: S62aCaseWithRelations): S62aCaseVi
 		extendedTargetDecisionDate: formatDate(S62aDates?.extendedTargetDecisionDate, 'd MMMM yyyy'),
 		decisionDate: formatDate(S62aDates?.decisionDate, 'd MMMM yyyy'),
 		withdrawnDate: formatDate(S62aDates?.withdrawnDate, 'd MMMM yyyy'),
-		representationPeriodStartDateTime: hasRepPeriod
+		representationsPeriodStartDateTime: hasRepPeriod
 			? formatDate(s62aCase.representationsPeriodStartDate, `d MMMM yyyy 'at' h:mmaaa`)
 			: undefined,
-		representationPeriodEndDateTime: hasRepPeriod
+		representationsPeriodEndDateTime: hasRepPeriod
 			? formatDate(s62aCase.representationsPeriodEndDate, `d MMMM yyyy 'at' h:mmaaa`)
 			: undefined,
 
@@ -140,6 +147,10 @@ export function s62aCaseToViewModel(s62aCase: S62aCaseWithRelations): S62aCaseVi
 
 		// Outcome / Decision
 		showDecision: !!(isDecision && S62aDates?.decisionDate),
-		decisionOutcome: s62aCase.DecisionOutcome?.displayName || undefined
+		decisionOutcome: s62aCase.DecisionOutcome?.displayName || undefined,
+
+		// HYS
+		representationsPublishDate: formatDate(s62aCase.representationsPublishDate, 'd MMMM yyyy'),
+		isMajor: s62aCase.classificationId === MAJOR_OR_NON_MAJOR_ID.MAJOR
 	};
 }

@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { getHaveYourSayStatus, HAVE_YOUR_SAY_STATUS } from './util.js';
+import { getHaveYourSayStatus, HAVE_YOUR_SAY_STATUS } from './have-your-say.ts';
 
 describe('getHaveYourSayStatus', () => {
 	describe('getHaveYourSayStatus', () => {
@@ -9,17 +9,23 @@ describe('getHaveYourSayStatus', () => {
 			const end = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
 			const haveYourSayPeriod = { start: now, end };
 
-			assert.strictEqual(getHaveYourSayStatus(haveYourSayPeriod, null), HAVE_YOUR_SAY_STATUS.OPEN);
+			assert.strictEqual(getHaveYourSayStatus(haveYourSayPeriod, null as unknown as Date), HAVE_YOUR_SAY_STATUS.OPEN);
 		});
 		it('should return notOpenDatesSet for getHaveYourSayStatus', () => {
 			const start = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
 			const end = new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000);
 			const haveYourSayPeriod = { start, end };
 
-			assert.strictEqual(getHaveYourSayStatus(haveYourSayPeriod, null), HAVE_YOUR_SAY_STATUS.NOT_OPEN_DATES_SET);
+			assert.strictEqual(
+				getHaveYourSayStatus(haveYourSayPeriod, null as unknown as Date),
+				HAVE_YOUR_SAY_STATUS.NOT_OPEN_DATES_SET
+			);
 		});
 		it('should return notOpenDatesNotSet for getHaveYourSayStatus', () => {
-			assert.strictEqual(getHaveYourSayStatus({}, ''), HAVE_YOUR_SAY_STATUS.NOT_OPEN_DATES_NOT_SET);
+			assert.strictEqual(
+				getHaveYourSayStatus({} as { start: Date; end: Date }, '' as unknown as Date),
+				HAVE_YOUR_SAY_STATUS.NOT_OPEN_DATES_NOT_SET
+			);
 		});
 		it('should return closedRepsPublished for getHaveYourSayStatus when representationsPublishDate is today', () => {
 			const start = new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000);
@@ -56,7 +62,7 @@ describe('getHaveYourSayStatus', () => {
 			const haveYourSayPeriod = { start, end };
 
 			assert.strictEqual(
-				getHaveYourSayStatus(haveYourSayPeriod, null),
+				getHaveYourSayStatus(haveYourSayPeriod, null as unknown as Date),
 				HAVE_YOUR_SAY_STATUS.CLOSED_REPS_PUBLISHED_DATE_NOT_SET
 			);
 		});

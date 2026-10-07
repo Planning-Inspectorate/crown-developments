@@ -1,0 +1,70 @@
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+
+{% macro renderHaveYourSayInformation(haveYourSayStatus, s62aFields) %}
+    <h2 id="procedure" class="govuk-heading-m">Have your say</h2>
+    
+    {% if haveYourSayStatus === 'open' %}
+        <p class="govuk-body">Send us your written representations about this application.</p>
+        <p class="govuk-body">A written representation includes your comment and any attachments. Planning inspectors will consider these before they make a decision on an application.</p>
+        <p class="govuk-body">We will publish your name and comments on this website.</p>
+        <p class="govuk-body">You must submit your comment by {{ s62aFields.representationsPeriodEndDateTime }}.</p>
+        
+        {# Determine the correct email based on whether it is a major case #}
+        {% set contactEmail = 'section62a@planninginspectorate.gov.uk' if s62aFields.isMajor else 'section62anonmajor@planninginspectorate.gov.uk' %}
+        
+        {% set detailsHtml %}
+            <p class="govuk-body">You can also submit a written representation by email, post or in person.</p>
+            <p class="govuk-body">If you are sending your representation by post or email you must include the application reference number and site address.</p>
+            
+            <h3 class="govuk-heading-s">Email</h3>
+            <p class="govuk-body"><a class="govuk-link" href="mailto:{{ contactEmail }}?subject={{ ('Representation on application ' ~ s62aFields.reference) | urlencode }}">{{ contactEmail }}</a></p>
+            
+            <h3 class="govuk-heading-s">Post</h3>
+            <p class="govuk-body">
+                Section 62A Applications Team<br>
+                Planning Inspectorate, C/O QUADIENT<br>
+                69 Buckingham Avenue<br>
+                Slough<br>
+                SL1 4PN
+            </p>
+            
+            <h3 class="govuk-heading-s">In person</h3>
+            <p class="govuk-body">Contact us to find out how to have your say in person.</p>
+        {% endset %}
+
+        {{ govukDetails({
+            summaryText: "Other ways to submit your comment",
+            html: detailsHtml
+        }) }}
+
+        {{ govukButton({
+            text: "Have your say",
+            type: "button",
+            classes: "govuk-button--start",
+            href: "have-your-say"
+        }) }}
+        
+    {% elif haveYourSayStatus === 'notOpenDatesSet' %}
+        <p class="govuk-body">You can use this service to have your say on this application when the representation period opens from: {{ s62aFields.representationsPeriodStartDateTime }} - {{ s62aFields.representationsPeriodEndDateTime }}.</p>
+        <p class="govuk-body">We'll ask for your personal details and your comments about this application.</p>
+        
+    {% elif haveYourSayStatus === 'notOpenDatesNotSet' %}
+        <p class="govuk-body">You can use this service to have your say on this application when the representation period opens.</p>
+        <p class="govuk-body">We'll ask for your personal details and your comments about this application.</p>
+        <p class="govuk-body">Check back later to see when the representation period will be held.</p>
+        
+    {% elif haveYourSayStatus === 'closedRepsPublished' %}
+        <p class="govuk-body">The written representations period has ended.</p>
+        <p class="govuk-body">You can <a class="govuk-link" href="/applications/{{ s62aFields.id }}/written-representations">view the written representations</a> for this application.</p>
+        
+    {% elif haveYourSayStatus === 'closedPublishedDateInFuture' %}
+        <p class="govuk-body">The representation period for this application has closed.</p>
+        <p class="govuk-body">You can view the published representations from: {{ s62aFields.representationsPublishDate }}</p>
+        
+    {% elif haveYourSayStatus === 'closedRepsPublishedDateNotSet' %}
+        <p class="govuk-body">The representation period for this application has closed.</p>
+        <p class="govuk-body">Check back later to see the published representations.</p>
+        
+    {% endif %}
+{% endmacro %}

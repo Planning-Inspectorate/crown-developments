@@ -12,6 +12,7 @@ import {
 	getHearingSectionItems,
 	getKeyDatesSectionItems
 } from './section-items.ts';
+import { getHaveYourSayStatus } from '@pins/crowndev-lib/util/have-your-say.ts';
 
 export function buildApplicationInformationPage(service: S62APortalService): AsyncRequestHandler {
 	const { db } = service;
@@ -50,12 +51,18 @@ export function buildApplicationInformationPage(service: S62APortalService): Asy
 			return notFoundHandler(req, res);
 		}
 
+		const haveYourSayPeriod = {
+			start: s62aCase.representationsPeriodStartDate,
+			end: s62aCase.representationsPeriodEndDate
+		} as { start: Date; end: Date };
+		const representationsPublishDate = s62aCase.representationsPublishDate as Date;
+
 		// We cast here because we know it will include a S62aDates join
 		const s62aFields = s62aCaseToViewModel(s62aCase as S62aCaseWithRelations);
 
 		const applicationStatus = s62aFields.applicationStatus;
 
-		const links = applicationLinks(id, { start: null, end: null }, null, false, applicationStatus);
+		const links = applicationLinks(id, haveYourSayPeriod, null, false, applicationStatus);
 
 		const reference = s62aFields.reference;
 
@@ -69,7 +76,8 @@ export function buildApplicationInformationPage(service: S62APortalService): Asy
 			decisionSectionItems: getDecisionSectionItems(s62aFields),
 			links,
 			currentUrl: req.originalUrl,
-			s62aFields
+			s62aFields,
+			haveYourSayStatus: getHaveYourSayStatus(haveYourSayPeriod, representationsPublishDate)
 		});
 	};
 }
