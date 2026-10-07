@@ -42,6 +42,7 @@ variable "apps_config" {
       case_notes_not_live  = bool
       audit_not_live       = bool
       upload_docs_not_live = bool
+      snow_mode            = bool
       retry_not_live       = bool
     })
 

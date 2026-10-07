@@ -158,4 +158,8 @@ export class ManageService extends Service {
 	get webHookToken() {
 		return this.#config.govNotify.webHookToken;
 	}
+
+	get isSnowModeLive() {
+		return this.#config.featureFlags?.isSnowModeLive;
+	}
 }

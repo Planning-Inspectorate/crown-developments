@@ -49,6 +49,9 @@ export function addLocalsConfiguration(service) {
 				...link,
 				current: link.href === path
 			})),
+			featureFlags: {
+				isSnowModeLive: service.isSnowModeLive
+			},
 			serviceFeedbackUrl: 'https://forms.cloud.microsoft/e/DeXLbhNrBn'
 		};
 

@@ -75,6 +75,7 @@ export function loadConfig() {
 		FEATURE_FLAG_CASE_NOTES_NOT_LIVE,
 		FEATURE_FLAG_AUDIT_NOT_LIVE,
 		FEATURE_FLAG_RETRY_NOT_LIVE,
+		FEATURE_FLAG_SNOW_MODE,
 		BLOB_STORE_DISABLED,
 		BLOB_STORE_HOST,
 		BLOB_STORE_CONTAINER,
@@ -229,6 +230,7 @@ export function loadConfig() {
 			isS62APortalLive: FEATURE_FLAG_S62A_PORTAL_NOT_LIVE !== 'true',
 			isCaseNotesLive: FEATURE_FLAG_CASE_NOTES_NOT_LIVE !== 'true',
 			isAuditLive: FEATURE_FLAG_AUDIT_NOT_LIVE !== 'true',
+			isSnowModeLive: FEATURE_FLAG_SNOW_MODE === 'true',
 			isRetryLive
 		},
 		gitSha: GIT_SHA,

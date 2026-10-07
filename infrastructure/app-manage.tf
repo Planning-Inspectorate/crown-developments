@@ -98,6 +98,7 @@ module "app_manage" {
     FEATURE_FLAG_CASE_NOTES_NOT_LIVE  = var.apps_config.feature_flags.case_notes_not_live
     FEATURE_FLAG_S62A_PORTAL_NOT_LIVE = var.apps_config.feature_flags.s62a_portal_not_live
     FEATURE_FLAG_AUDIT_NOT_LIVE       = var.apps_config.feature_flags.audit_not_live
+    FEATURE_FLAG_SNOW_MODE            = var.apps_config.feature_flags.snow_mode
     FEATURE_FLAG_RETRY_NOT_LIVE       = var.apps_config.feature_flags.retry_not_live
 
     # Azure Language Service
