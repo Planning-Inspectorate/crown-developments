@@ -10,6 +10,8 @@
 {% block pageHeading %}{% endblock %}
 
 {% block pageContent %}
+	{% set contactEmail = 'section62a@planninginspectorate.gov.uk' if s62aFields.isMajor else 'section62anonmajor@planninginspectorate.gov.uk' %}
+
 	<div class="govuk-grid-row">
 		<div class="govuk-grid-column-one-third">
 			{{ applicationLinks(links, currentUrl) }}
@@ -67,6 +69,37 @@
 				<p class="govuk-body">Help us improve this service by
 					<a class="govuk-link" target="_blank" href="{{ config.serviceFeedbackUrl }}">sharing your feedback</a>.
 				</p>
+			</div>
+			<hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+			<div>
+				<h2 class="govuk-heading-m">Contact Us</h2>
+				<h3 class="govuk-heading-s">Telephone</h3>
+				<p class="govuk-body">If you have a representation reference number, have it with you when you call.</p>
+				<p class="govuk-body">Telephone: 0303 444 5000</p>
+				<p class="govuk-body">
+					Open Monday to Friday: 9am to 4pm.
+					<br>
+					Closed on weekends and bank holidays.
+				</p>
+
+				<h3 class="govuk-heading-s">Email</h3>
+				<p class="govuk-body">When writing an email, quote the application reference number {{ s62aFields.reference }} in the subject line.</p>
+				<p class="govuk-body">
+					<a class="govuk-link" href="mailto:{{ contactEmail }}?subject={{ s62aFields.reference | urlencode }}">{{ contactEmail }}</a>
+				</p>
+				<p class="govuk-body">We aim to respond within 10 working days.</p>
+
+				<h3 class="govuk-heading-s">Post</h3>
+				<p class="govuk-body">
+					Section 62A Applications Team<br>
+					Planning Inspectorate, C/O QUADIENT<br>
+					69 Buckingham Avenue<br>
+					Slough<br>
+					SL1 4PN
+				</p>
+
+				<h3 class="govuk-heading-s">Alternative formats</h3>
+				<p class="govuk-body">Contact us if you would like this application information in another format.</p>
 			</div>
 		</div>
 	</div>
