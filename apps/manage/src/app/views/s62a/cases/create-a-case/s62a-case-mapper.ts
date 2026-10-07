@@ -51,8 +51,10 @@ export interface CreateCaseAnswers {
 	siteAreaHectares?: string;
 	siteAreaSquareMetres?: string;
 	developmentDescription: string;
-	notificationSubmittedDate?: string;
 	expectedSubmissionDate: string;
+
+	// Dates
+	notificationReceivedDate?: string;
 }
 
 export interface CanonicalParty {
@@ -109,9 +111,6 @@ export class S62aCaseMapper {
 			siteEasting: this.answers.siteEasting ? parseInt(this.answers.siteEasting, 10) : undefined,
 			siteNorthing: this.answers.siteNorthing ? parseInt(this.answers.siteNorthing, 10) : undefined,
 
-			notificationSubmittedDate: this.answers.notificationSubmittedDate
-				? new Date(this.answers.notificationSubmittedDate)
-				: undefined,
 			expectedSubmissionDate: new Date(this.answers.expectedSubmissionDate),
 
 			S62aStatus: { connect: { id: this.startingStatus } },
@@ -124,6 +123,7 @@ export class S62aCaseMapper {
 		this.mapLpaContacts(input);
 		this.mapSiteDetails(input);
 		this.mapApplicantsAndAgents(input);
+		this.mapDates(input);
 
 		return input;
 	}
@@ -141,6 +141,19 @@ export class S62aCaseMapper {
 		}
 		if (!this.answers.lpaId) {
 			throw new Error('Cannot create S62aCase: missing required lpaId');
+		}
+	}
+
+	/**
+	 * Creates the S62aDates and joins, only 1 question is asked on this table
+	 */
+	private mapDates(input: Prisma.S62aCaseCreateInput): void {
+		if (this.answers.notificationReceivedDate) {
+			input.S62aDates = {
+				create: {
+					notificationReceivedDate: new Date(this.answers.notificationReceivedDate)
+				}
+			};
 		}
 	}
 

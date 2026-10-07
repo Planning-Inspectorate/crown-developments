@@ -116,7 +116,7 @@ describe('S62aCaseMapper', () => {
 				applicationPhase: 'application',
 				siteEasting: '123456',
 				siteNorthing: '654321',
-				notificationSubmittedDate: '2026-01-01T00:00:00.000Z',
+				notificationReceivedDate: '2026-01-01T00:00:00.000Z',
 				expectedSubmissionDate: '2026-02-01T00:00:00.000Z'
 			};
 
@@ -135,7 +135,7 @@ describe('S62aCaseMapper', () => {
 			assert.strictEqual(result.siteNorthing, 654321);
 
 			assert.strictEqual(
-				(result.notificationSubmittedDate as Date)?.getTime(),
+				(result.S62aDates?.create?.notificationReceivedDate as Date)?.getTime(),
 				new Date('2026-01-01T00:00:00.000Z').getTime()
 			);
 			assert.strictEqual(

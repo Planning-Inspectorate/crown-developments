@@ -82,7 +82,7 @@ describe('s62a create a case journey', () => {
 					'siteCoordinates',
 					'siteArea',
 					'developmentDescription',
-					'notificationSubmittedDate',
+					'notificationReceivedDate',
 					'expectedSubmissionDate'
 				]
 			}
