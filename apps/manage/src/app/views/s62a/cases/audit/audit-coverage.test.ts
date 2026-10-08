@@ -4,7 +4,7 @@ import { PRE_APPLICATION_ADVICE_ID } from '@pins/crowndev-database/src/seed/s62a
 import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
 import { getQuestions } from '../view/questions.ts';
 import type { S62aCaseViewModel } from '../view/view-model.ts';
-import { AUDITABLE_SCALAR_FIELDS } from './field-resolvers.ts';
+import { AUDITABLE_SCALAR_FIELDS, S62A_AUDIT_FIELD_LABELS, S62A_DERIVED_FIELDS } from './field-resolvers.ts';
 import { S62A_LIST_RESOLVERS } from './list-resolvers.ts';
 import { S62A_GROUPED_FIELDS } from './grouped-fields.ts';
 
@@ -28,6 +28,12 @@ const COMPANION_ANSWER_KEYS = new Set([
 	'applicationFee',
 	'applicationFeeRefundAmount'
 ]);
+
+/**
+ * Fields the save works out from other answers (e.g. the target dates from
+ * the valid date), so they're audited without being questions themselves.
+ */
+const DERIVED_FIELDS = new Set<string>(S62A_DERIVED_FIELDS);
 
 /**
  * Collects the fieldName of every editable S62A question.
@@ -89,13 +95,27 @@ describe('S62A audit coverage', () => {
 
 	it('should only audit fields that exist as editable questions', () => {
 		const unknown = [...auditedFieldNames].filter(
-			(fieldName) => !editableFieldNames.has(fieldName) && !COMPANION_ANSWER_KEYS.has(fieldName)
+			(fieldName) =>
+				!editableFieldNames.has(fieldName) && !COMPANION_ANSWER_KEYS.has(fieldName) && !DERIVED_FIELDS.has(fieldName)
 		);
 
 		assert.deepStrictEqual(
 			unknown,
 			[],
 			`These audited fields don't match any editable S62A question. Check the fieldName: ${unknown.join(', ')}`
+		);
+	});
+
+	it('should audit every derived field, with a label', () => {
+		// Derived fields have no question, so there's no question title to fall back on
+		const missing = S62A_DERIVED_FIELDS.filter(
+			(fieldName) => !auditedFieldNames.has(fieldName) || !Object.hasOwn(S62A_AUDIT_FIELD_LABELS, fieldName)
+		);
+
+		assert.deepStrictEqual(
+			missing,
+			[],
+			`These derived fields need adding to the S62A date fields and labels: ${missing.join(', ')}`
 		);
 	});
 });

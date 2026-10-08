@@ -19,6 +19,8 @@ import { isPreApplicationAdviceGiven } from '../util/pre-application.ts';
 import { FOLDER_SYNC_RESULT, syncPreApplicationAdviceFolder, type FolderSyncResult } from '../util/folders.ts';
 import { resolvePreApplicationAdviceFolderAudit } from '../audit/folders.ts';
 import { recordAuditSafely } from '@pins/crowndev-lib/audit/record.ts';
+import { getDerivedAnswers } from '@pins/crowndev-lib/audit/resolvers/index.ts';
+import { S62A_DERIVED_FIELDS } from '../audit/field-resolvers.ts';
 import {
 	AUDITABLE_SCALAR_FIELDS,
 	LONG_AUDIT_FIELDS,
@@ -65,6 +67,7 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 		let updateSucceeded = false;
 		// What happened to the pre-application advice folder, for the case history
 		let folderSyncResult: FolderSyncResult = FOLDER_SYNC_RESULT.UNCHANGED;
+		let derivedAnswers: Record<string, unknown> = {};
 
 		try {
 			const s62aCase = await db.s62aCase.findUnique({
@@ -80,6 +83,11 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 
 			const mapper = new S62aCaseUpdateMapper(answers, viewModel);
 			const updateInput = mapper.generateUpdateInput();
+
+			// All S62A derived fields are currently on S62aDates. A derived field on
+			// another table needs its own getDerivedAnswers call against that table's
+			// update, otherwise it won't be found and won't be audited.
+			derivedAnswers = getDerivedAnswers(updateInput.S62aDates?.upsert?.update, S62A_DERIVED_FIELDS);
 
 			if (Object.keys(updateInput).length === 0) {
 				logger.info({ id }, 'No valid database fields mapped for update');
@@ -137,8 +145,8 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 				caseId: id,
 				userId,
 				previousCase,
-				answers: answersSnapshot,
-				updatedFieldNames
+				answers: { ...answersSnapshot, ...derivedAnswers },
+				updatedFieldNames: [...updatedFieldNames, ...Object.keys(derivedAnswers)]
 			});
 
 			// Recorded after the field changes, so the history reads e.g.
