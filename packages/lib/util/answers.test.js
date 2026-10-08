@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { getAnswers } from './answers.js';
+import { getAnswers } from './answers.ts';
 import assert from 'node:assert';
 
 describe('getAnswers', () => {
