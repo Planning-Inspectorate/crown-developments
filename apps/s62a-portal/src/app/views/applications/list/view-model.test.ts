@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { s62aViewFormattingFunction } from './view-model.ts';
 import { mapDevelopmentToViewModel } from '@pins/crowndev-lib/util/shared-view-model.ts';
-import type { S62ADevelopmentPayload, S62ADevelopmentView } from './view-model.ts';
+import type { S62ADevelopmentPayload, S62ADevelopmentExtendedView } from './view-model.ts';
 
 describe('view-model', () => {
 	describe('genericDevelopmentToViewModel', () => {
@@ -188,7 +188,7 @@ describe('view-model', () => {
 				input as unknown as S62ADevelopmentPayload,
 				's62a.dev@planninginspectorate.gov.uk',
 				s62aViewFormattingFunction
-			) as S62ADevelopmentView;
+			) as S62ADevelopmentExtendedView;
 			assert.strictEqual(result.stage, undefined);
 			assert.strictEqual(result.lpaFormatted, undefined);
 			assert.strictEqual(result.secondaryLpa, undefined);
@@ -203,7 +203,7 @@ describe('view-model', () => {
 				input as unknown as S62ADevelopmentPayload,
 				undefined,
 				s62aViewFormattingFunction
-			) as S62ADevelopmentView;
+			) as S62ADevelopmentExtendedView;
 			assert.strictEqual(result.developmentContactEmail, undefined);
 		});
 
@@ -212,7 +212,7 @@ describe('view-model', () => {
 				input as unknown as S62ADevelopmentPayload,
 				's62a.dev@planninginspectorate.gov.uk',
 				s62aViewFormattingFunction
-			) as S62ADevelopmentView;
+			) as S62ADevelopmentExtendedView;
 			assert.ok(result.applicantOrganisations);
 			assert.strictEqual(result.applicantOrganisations, 'Applicant organisation 1, Applicant organisation 2');
 		});

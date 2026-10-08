@@ -1,6 +1,7 @@
 {% extends "views/layouts/main.njk" %}
 
 {% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "application-links/application-links.njk" import applicationLinks %}
 {% from "distressing-content/distressing-content-banner.njk" import distressingContentBanner %}
@@ -14,7 +15,15 @@
 		</div>
 
 		<div class="govuk-grid-column-two-thirds">
-			{{ distressingContentBanner(containsDistressingContent) }}
+
+			{% if banner %}
+				<div class="govuk-grid-row">
+					<div class="govuk-grid-column-full">
+						{{ govukNotificationBanner(banner) }}
+					</div>
+				</div>
+			{% endif %}
+
 			<div class="govuk-grid-row">
 				<div class="govuk-grid-column-full">
 					<h1 class="govuk-heading-xl">
@@ -23,22 +32,9 @@
 						{% endif %}
 						{{ pageHeading or pageTitle }}
 					</h1>
-				</div>
-			</div>
-			<div class="govuk-grid-row">
-				<div class="govuk-grid-column-full">
-					<div class="moj-timeline">
-						{% for update in applicationUpdates %}
-							<div class="moj-timeline__item">
-								<div class="moj-timeline__header">
-									<h2 class="moj-timeline__title">{{ update.firstPublished }}</h2>
-								</div>
-								<div class="moj-timeline__description">
-									<p class="pins-pre-wrap">{{ update.details }}</p>
-								</div>
-							</div>
-						{% endfor %}
-					</div>
+					{% for repMessageText in representationMessage %}
+						<p class="govuk-body"> {{ repMessageText }} </p>
+					{% endfor %}
 				</div>
 			</div>
 		</div>
