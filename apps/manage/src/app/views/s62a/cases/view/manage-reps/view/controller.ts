@@ -1,21 +1,36 @@
 import type { Request, Response } from 'express';
 import type { ManageService } from '#service';
-import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
+import type { AsyncRequestHandlerWithLocals } from '@planning-inspectorate/core/util';
 
 import { s62aRepresentationToManageViewModel } from '@pins/crowndev-lib/forms/representations/view-model.js';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { getStringParams } from '@pins/crowndev-lib/util/params.ts';
 import { popSessionData } from '@pins/crowndev-lib/util/session.ts';
 import { JourneyResponse, list } from '@planning-inspectorate/dynamic-forms';
+import type { JourneyResponseLike } from '@planning-inspectorate/dynamic-forms';
 import { getBannerMessages } from '@pins/crowndev-lib/forms/representations/banner-utils.ts';
 import { buildRepresentationQuestions } from '@pins/crowndev-lib/forms/representations/form-utils.ts';
 import { createJourney, JOURNEY_ID } from './journey.ts';
 import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
+import { getOptionalAnswers } from '@pins/crowndev-lib/util/answers.ts';
+import type { HaveYourSayManageModel } from '@pins/crowndev-lib/forms/representations/types.d.ts';
+import type { BaseLocals } from '../../../../../../../types/express-locals.ts';
+
+/**
+ * Locals set by `buildGetJourneyMiddleware` for the representation view/manage journey.
+ */
+export interface RepresentationViewLocals extends BaseLocals {
+	journeyResponse: JourneyResponseLike<HaveYourSayManageModel>;
+	originalAnswers: HaveYourSayManageModel;
+	fieldDisplayNames: Record<string, string>;
+}
 
 /**
  * Builds middleware to fetch case and representation data, and initializes the dynamic forms Journey.
  */
-export function buildGetJourneyMiddleware(service: ManageService): AsyncRequestHandler {
+export function buildGetJourneyMiddleware(
+	service: ManageService
+): AsyncRequestHandlerWithLocals<RepresentationViewLocals> {
 	const { db, logger } = service;
 
 	return async (req, res, next) => {
@@ -47,7 +62,7 @@ export function buildGetJourneyMiddleware(service: ManageService): AsyncRequestH
 		}
 
 		const answers = s62aRepresentationToManageViewModel(representation, s62aCase.reference);
-		const sessionAnswers = res.locals.journeyResponse?.answers;
+		const sessionAnswers = getOptionalAnswers<HaveYourSayManageModel>(res);
 
 		const finalAnswers = combineSessionAndDbData(answers, sessionAnswers);
 
@@ -63,9 +78,7 @@ export function buildGetJourneyMiddleware(service: ManageService): AsyncRequestH
 				.map((q) => [q.fieldName, q.title])
 		);
 
-		// @ts-expect-error - mismatch in dynamic-forms journey typing vs strict local types
 		res.locals.originalAnswers = { ...answers };
-		// @ts-expect-error - mismatch in dynamic-forms journey typing
 		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', finalAnswers);
 		res.locals.journey = createJourney(questions, res.locals.journeyResponse, req);
 
@@ -98,7 +111,7 @@ export async function renderRepresentation(req: Request, res: Response, viewData
 		'representations'
 	);
 	const banner = getBannerMessages(res, req, { representationUpdated });
-	const answers: Record<string, unknown> | undefined = res.locals?.journeyResponse?.answers;
+	const answers = getOptionalAnswers<HaveYourSayManageModel>(res);
 
 	await list(req, res, '', {
 		representationRef,

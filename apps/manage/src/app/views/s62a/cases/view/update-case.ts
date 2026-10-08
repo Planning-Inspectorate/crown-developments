@@ -116,7 +116,7 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 			// fields that didn't change, e.g. the rest of a multi-field question, or
 			// the linked pre-application case's reference. It's the view model we've
 			// already loaded for the save, so this costs nothing extra.
-			previousCase = viewModel as unknown as Record<string, unknown>;
+			previousCase = viewModel;
 
 			updateSucceeded = true;
 

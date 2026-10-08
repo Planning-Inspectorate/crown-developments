@@ -3,7 +3,7 @@ import {
 	questionClasses,
 	COMPONENT_TYPES,
 	RequiredValidator,
-	type JourneyResponse,
+	type JourneyResponseLike,
 	SameAnswerValidator,
 	StringValidator,
 	AddressValidator,
@@ -33,15 +33,10 @@ import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-
 import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 import { getApplicantContactsValidator, isApplicationType } from '../util/questions.ts';
 import type { PreApplicationCaseOption } from '../util/pre-application.ts';
-
-type ApplicantOrg = {
-	id: string;
-	organisationName: string;
-	organisationAddress?: Record<string, unknown>;
-};
+import type { CreateCaseAnswers } from './s62a-case-mapper.ts';
 
 export function getQuestions(
-	journeyResponse: JourneyResponse,
+	journeyResponse: JourneyResponseLike<Partial<CreateCaseAnswers>>,
 	isQuestionView: boolean,
 	preApplicationCaseOptions: PreApplicationCaseOption[] = []
 ) {
@@ -53,7 +48,7 @@ export function getQuestions(
 	const isIndividual = journeyResponse?.answers?.applicantType === APPLICANT_TYPE_ID.INDIVIDUAL;
 
 	const manageApplicantOrganisations = !isIndividual
-		? (journeyResponse?.answers?.manageApplicantOrganisations as ApplicantOrg[])
+		? (journeyResponse?.answers?.manageApplicantOrganisations ?? [])
 		: [];
 	const applicantOrganisationOptions = getApplicantOrganisationOptions(manageApplicantOrganisations);
 
