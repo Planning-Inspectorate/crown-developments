@@ -1,4 +1,4 @@
-import { getAnswers } from '@pins/crowndev-lib/util/answers.js';
+import { getAnswers } from '@pins/crowndev-lib/util/answers.ts';
 import { APPLICATION_SUB_TYPE_ID, APPLICATION_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms';
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
@@ -64,7 +64,7 @@ export async function getLinkedCaseLinkText(
  * Get the warning message to show on the summary page if there is a linked case.
  */
 export function getSummaryWarningMessage(res: Response): string {
-	const answers = getAnswers(res);
+	const answers = getAnswers<{ typeOfApplication?: string }>(res);
 	return answers?.typeOfApplication === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT
 		? 'Clicking accept & submit will create a second case as part of the connected application'
 		: 'Clicking Accept & Submit will send a notification to the applicant / agent';

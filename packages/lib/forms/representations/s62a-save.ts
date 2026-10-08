@@ -5,7 +5,7 @@ import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { generateNewReference, uniqueReference } from '../../util/random-reference.js';
 import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { getSubmittedForId } from '../../util/questions.ts';
-import { getAnswers } from '../../util/answers.js';
+import { getAnswers } from '../../util/answers.ts';
 import { getStringParam } from '../../util/params.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { S62APortalService } from '../../../../apps/s62a-portal/src/app/service.ts';
@@ -56,7 +56,7 @@ export async function saveS62aRepresentation(
 	const id = getStringParam(req.params, idKey);
 
 	const sessionReqParam = req.params.applicationId ? 'applicationId' : 'id';
-	const answers = getAnswers(res) as HaveYourSayManageModel;
+	const answers = getAnswers<HaveYourSayManageModel>(res);
 	const journey = res.locals.journey;
 
 	if (!journey?.isComplete()) {
