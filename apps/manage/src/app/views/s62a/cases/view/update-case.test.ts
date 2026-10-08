@@ -269,4 +269,79 @@ describe('buildS62aUpdateCase', () => {
 			assert.strictEqual(mockFolderCreateCalls.length, 1);
 		});
 	});
+
+	describe('derived dates audit', () => {
+		let auditEntries: Array<{ action: string; metadata?: Record<string, unknown> }>;
+
+		const save = (answers: Record<string, unknown>) =>
+			buildS62aUpdateCase(mockService)({
+				req: mockReq,
+				res: mockRes,
+				data: { answers }
+			} as unknown as SaveParams);
+
+		const savedTargetPublishDate = () => mockDbUpdateCalls.at(-1).data.S62aDates.upsert.update.targetPublishDate;
+
+		const targetPublishDateEntries = () =>
+			auditEntries.filter((entry) => entry.metadata?.fieldName === 'Target publish date');
+
+		let auditErrors: unknown[];
+
+		beforeEach(() => {
+			auditEntries = [];
+			auditErrors = [];
+			mockRes = { locals: { fieldDisplayNames: {} } } as unknown as Partial<Response>;
+			mockReq = {
+				params: { id: 'case-123' },
+				// Match however update-case.ts reads the user ID from the session
+				session: { account: { localAccountId: 'user-1' } }
+			} as unknown as Request;
+			Object.assign(mockService, {
+				audit: {
+					recordMany: async (entries: typeof auditEntries) => {
+						auditEntries.push(...entries);
+					}
+				}
+			});
+			// Surfaces swallowed audit errors instead of hiding them
+			Object.assign(mockService.logger, {
+				error: (obj: unknown) => {
+					auditErrors.push(obj);
+				}
+			});
+		});
+
+		it('records the target publish date straight after the valid date that changed it', async () => {
+			caseRecord = { id: 'case-123', S62aDates: { applicationValidDate: new Date('2026-01-05T00:00:00.000Z') } };
+
+			await save({ applicationValidDate: new Date('2026-02-02T00:00:00.000Z') });
+
+			assert.ok(savedTargetPublishDate() instanceof Date, 'the mapper should calculate a target publish date');
+			assert.strictEqual(auditEntries.length, 2, `audit errors: ${JSON.stringify(auditErrors)}`);
+			assert.notStrictEqual(auditEntries[0].metadata?.fieldName, 'Target publish date');
+			assert.strictEqual(auditEntries[1].metadata?.fieldName, 'Target publish date');
+			assert.strictEqual(auditEntries[1].metadata?.oldValue, '-');
+		});
+
+		it('does not record the target publish date when the recalculation gives the same date', async () => {
+			const validDate = new Date('2026-02-02T00:00:00.000Z');
+
+			// First save works out what the mapper calculates
+			await save({ applicationValidDate: validDate });
+			const calculated = savedTargetPublishDate();
+
+			auditEntries = [];
+			caseRecord = { id: 'case-123', S62aDates: { applicationValidDate: validDate, targetPublishDate: calculated } };
+
+			await save({ applicationValidDate: validDate });
+
+			assert.deepStrictEqual(targetPublishDateEntries(), []);
+		});
+
+		it('does not record any derived dates when an unrelated field is saved', async () => {
+			await save({ developmentDescription: 'An updated description' });
+
+			assert.deepStrictEqual(targetPublishDateEntries(), []);
+		});
+	});
 });

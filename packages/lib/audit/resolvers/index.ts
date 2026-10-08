@@ -5,6 +5,7 @@ export * from './grouped-fields.ts';
 export * from './case-update.ts';
 export * from './util/values.ts';
 export * from './util/list-changes.ts';
+export * from './derived-fields.ts';
 
 /**
  * A data model's field resolver registry, keyed by form field name.

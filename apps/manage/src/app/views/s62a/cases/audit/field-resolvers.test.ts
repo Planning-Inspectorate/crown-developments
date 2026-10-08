@@ -161,6 +161,25 @@ describe('S62A field resolvers', () => {
 		});
 	});
 
+	describe('hearingDate', () => {
+		const resolver = S62A_FIELD_RESOLVERS.hearingDate;
+
+		it('shows the time as well as the date', () => {
+			const { newValue } = resolver.resolve({}, new Date('2026-03-01T10:00:00.000Z'));
+
+			assert.match(newValue, /10:00/);
+		});
+
+		it('records a change when only the time changes', () => {
+			const { oldValue, newValue } = resolver.resolve(
+				{ hearingDate: new Date('2026-03-01T10:00:00.000Z') },
+				new Date('2026-03-01T14:30:00.000Z')
+			);
+
+			assert.notStrictEqual(oldValue, newValue);
+		});
+	});
+
 	describe('address fields', () => {
 		it('should format agentAddress', () => {
 			const { oldValue, newValue } = resolve(

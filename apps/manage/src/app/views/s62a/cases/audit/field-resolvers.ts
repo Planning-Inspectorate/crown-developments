@@ -18,6 +18,7 @@ import {
 	type FieldResolverRegistry,
 	addressResolver,
 	booleanResolver,
+	dateAndTimeResolver,
 	dateRangeResolver,
 	dateResolver,
 	entraUserResolver,
@@ -68,6 +69,12 @@ function preApplicationCaseResolver(references?: ReadonlyMap<string, string>): F
 		}
 	};
 }
+
+/**
+ * Fields the save works out from other answers rather than asking for,
+ * audited straight after the answers that changed them
+ */
+export const S62A_DERIVED_FIELDS = ['targetPublishDate', 'targetDecisionDate'] as const;
 
 // ── Fields handled by the default resolver ───────────────────────────────
 
@@ -134,14 +141,18 @@ const DATE_FIELDS = [
 	'recoveredReportSentDate',
 	/** Notice of procedure date */
 	'procedureNotificationDate',
-	'hearingDate',
 	/** Hearing notification date */
 	'notificationDate',
 	'additionalMeetingDate',
 	/** Hearing issues report published date */
 	'issuesReportingPublishedDate',
-	'siteVisitDate'
+	'siteVisitDate',
+	'targetPublishDate',
+	'targetDecisionDate'
 ] as const;
+
+/** Fields that include a time as well as a date. */
+const DATE_AND_TIME_FIELDS = ['hearingDate'] as const;
 
 // ── Registry ─────────────────────────────────────────────────────────────
 
@@ -224,7 +235,8 @@ export function createS62aFieldResolvers(
 
 		representationsPeriod: dateRangeResolver('representationsPeriod'),
 		reconsultationDetailsDate: dateRangeResolver('reconsultationDetailsDate'),
-		...Object.fromEntries(DATE_FIELDS.map((fieldName) => [fieldName, dateResolver(fieldName)]))
+		...Object.fromEntries(DATE_FIELDS.map((fieldName) => [fieldName, dateResolver(fieldName)])),
+		...Object.fromEntries(DATE_AND_TIME_FIELDS.map((fieldName) => [fieldName, dateAndTimeResolver(fieldName)]))
 	};
 }
 
@@ -285,5 +297,8 @@ export const S62A_AUDIT_FIELD_LABELS: Readonly<Record<string, string>> = {
 	// The CIL liable and CIL amount questions share the fieldName cilLiable,
 	// so without these the liable answer would show as "CIL amount"
 	cilLiable: 'CIL liable',
-	cilAmount: 'CIL amount'
+	cilAmount: 'CIL amount',
+
+	targetPublishDate: 'Target publish date',
+	targetDecisionDate: 'Target decision date'
 };
