@@ -5,11 +5,13 @@ import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
-import { s62aCaseToViewModel, type S62aCaseWithRelations } from './view-model.ts';
+import { s62aCaseToViewModel, representationMessages, type S62aCaseWithRelations } from './view-model.ts';
 import { tabText } from '../view-model.ts';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { wrapPrismaError } from '@planning-inspectorate/core/util';
 
-export function buildApplicationInformationPage(service: S62APortalService): AsyncRequestHandler {
-	const { db } = service;
+export function buildWrittenRepresentationsPage(service: S62APortalService): AsyncRequestHandler {
+	const { db, logger } = service;
 	return async (req, res) => {
 		const id = getStringParam(req.params, 'applicationId');
 
@@ -48,10 +50,39 @@ export function buildApplicationInformationPage(service: S62APortalService): Asy
 
 		const reference = s62aFields.reference;
 
-		return res.render('views/applications/view/application-info/view.njk', {
+		let totalAcceptedRepresentations, totalRepresentations;
+		try {
+			[totalAcceptedRepresentations, totalRepresentations] = await Promise.all([
+				db.s62aRepresentation.count({
+					where: {
+						applicationId: id,
+						statusId: REPRESENTATION_STATUS_ID.ACCEPTED
+					}
+				}),
+				db.s62aRepresentation.count({
+					where: {
+						applicationId: id
+					}
+				})
+			]);
+		} catch (error) {
+			wrapPrismaError({
+				error,
+				logger,
+				message: 'fetching written representations',
+				logParams: { id }
+			});
+		}
+
+		const acceptedReps = !!totalAcceptedRepresentations;
+		const reps = !!totalRepresentations;
+		const representationMessage = representationMessages(s62aCase, acceptedReps, reps);
+
+		return res.render('views/applications/view/written-representations/view.njk', {
 			pageCaption: reference,
-			pageTitle: 'Application information',
+			pageTitle: 'Written representations',
 			applicationReference: reference,
+			representationMessage,
 			links,
 			currentUrl: req.originalUrl,
 			s62aFields
