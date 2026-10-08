@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { describe, it } from 'node:test';
 import { APPLICATION_PUBLISH_STATUS } from '@pins/crowndev-lib/util/applications.ts';
-import { s62aCaseToViewModel, type S62aCaseWithRelations } from './view-model.ts'; // Adjust this import path as needed
+import { s62aCaseToViewModel, type S62aCaseWithRelations } from './view-model.ts';
 
 describe('s62aCaseToViewModel', () => {
 	it('should map id and reference correctly when S62aDates is not present', () => {

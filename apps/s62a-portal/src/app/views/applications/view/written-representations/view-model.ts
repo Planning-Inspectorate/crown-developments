@@ -1,18 +1,4 @@
-import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import { type ApplicationPublishStatus, getApplicationStatus } from '@pins/crowndev-lib/util/applications.ts';
 import { dateIsBeforeToday, dateIsAfterToday } from '@planning-inspectorate/dynamic-forms';
-
-export type S62aCaseWithRelations = Prisma.S62aCaseGetPayload<{
-	include: {
-		S62aDates: true;
-	};
-}>;
-
-export type S62aCaseView = {
-	id: string;
-	reference: string;
-	applicationStatus?: ApplicationPublishStatus;
-};
 
 function formatDateTime(date: Date): string {
 	const day = date.getDate().toString().padStart(2, '0');
@@ -121,17 +107,4 @@ export function representationMessages(
 	}
 
 	return messages;
-}
-
-export function s62aCaseToViewModel(s62aCase: S62aCaseWithRelations): S62aCaseView {
-	const fields = {
-		id: s62aCase.id,
-		reference: s62aCase.reference
-	} as S62aCaseView;
-
-	if (s62aCase.S62aDates && 'withdrawnDate' in s62aCase.S62aDates) {
-		fields.applicationStatus = getApplicationStatus(s62aCase.S62aDates.withdrawnDate);
-	}
-
-	return fields;
 }

@@ -5,7 +5,7 @@ import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
-import { s62aCaseToViewModel, type S62aCaseWithRelations } from './view-model.ts';
+import { s62aCaseToViewModel, type S62aCaseWithRelations } from '../view-model.ts';
 import { tabText } from '../view-model.ts';
 
 export function buildApplicationInformationPage(service: S62APortalService): AsyncRequestHandler {
