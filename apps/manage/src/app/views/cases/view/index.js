@@ -27,6 +27,7 @@ import {
 	answerValidation
 } from './publish.ts';
 import { CROWN_AUDIT_TEMPLATES } from '../audit/actions.ts';
+import { createPublishAuditHook, createUnpublishAuditHook } from './publish.ts';
 
 /**
  * @param {import('#service').ManageService} service
@@ -47,9 +48,47 @@ export function createRoutes(service) {
 		buildGetJourneyMiddleware,
 		publishCrownCase,
 		fetchCrownPublishCase,
-		answerValidation
+		answerValidation,
+		async (req, caseId) => {
+			const caseData = await service.db.crownDevelopment
+				.findUnique({
+					where: { id: caseId },
+					select: { reference: true }
+				})
+				.catch((error) => {
+					service.logger.error({ err: error, caseId }, 'Failed to record the case publish audit event');
+					return null;
+				});
+
+			if (caseData?.reference && service.audit && service.isAuditLive !== false) {
+				const hook = createPublishAuditHook(service.audit, caseData.reference, service.isAuditLive !== false);
+				await hook(req, caseId);
+			}
+		}
 	);
-	const unpublishCase = createCaseUnpublishRoutes(service, unpublishCrownCase, fetchCrownUnpublishCase);
+
+	const unpublishCase = createCaseUnpublishRoutes(
+		service,
+		unpublishCrownCase,
+		fetchCrownUnpublishCase,
+		undefined,
+		// Pass hook for unpublish
+		async (req, caseId) => {
+			const caseData = await service.db.crownDevelopment
+				.findUnique({
+					where: { id: caseId },
+					select: { reference: true }
+				})
+				.catch((error) => {
+					service.logger.error({ err: error, caseId }, 'Failed to record the case unpublish audit event');
+					return null;
+				});
+			if (caseData?.reference && service.audit && service.isAuditLive !== false) {
+				const hook = createUnpublishAuditHook(service.audit, caseData.reference, service.isAuditLive !== false);
+				await hook(req, caseId);
+			}
+		}
+	);
 	const applicationUpdates = createApplicationUpdatesRoutes(service);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const deleteManageListItemOnConfirmRemove = asyncHandler(buildDeleteManageListItemOnConfirmRemove(service));
