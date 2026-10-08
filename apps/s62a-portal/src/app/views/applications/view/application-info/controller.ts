@@ -5,7 +5,6 @@ import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
-import { s62aCaseToViewModel, type S62aCaseWithRelations } from './view-model.ts';
 import {
 	getAboutThisApplicationSectionItems,
 	getDecisionSectionItems,
@@ -13,6 +12,8 @@ import {
 	getKeyDatesSectionItems
 } from './section-items.ts';
 import { getHaveYourSayStatus } from '@pins/crowndev-lib/util/have-your-say.ts';
+import { s62aCaseToViewModel, type S62aCaseWithRelations } from '../view-model.ts';
+import { tabText } from '../view-model.ts';
 
 export function buildApplicationInformationPage(service: S62APortalService): AsyncRequestHandler {
 	const { db } = service;
@@ -61,8 +62,16 @@ export function buildApplicationInformationPage(service: S62APortalService): Asy
 		const s62aFields = s62aCaseToViewModel(s62aCase as S62aCaseWithRelations);
 
 		const applicationStatus = s62aFields.applicationStatus;
+		const representationPublishDate = s62aCase.representationsPublishDate;
 
-		const links = applicationLinks(id, haveYourSayPeriod, null, false, applicationStatus);
+		const links = applicationLinks(
+			id,
+			{ start: null, end: null },
+			representationPublishDate,
+			false,
+			applicationStatus,
+			tabText
+		);
 
 		const reference = s62aFields.reference;
 

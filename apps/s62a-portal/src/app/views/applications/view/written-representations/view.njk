@@ -1,0 +1,42 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "application-links/application-links.njk" import applicationLinks %}
+{% from "distressing-content/distressing-content-banner.njk" import distressingContentBanner %}
+
+{% block pageHeading %}{% endblock %}
+
+{% block pageContent %}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-one-third">
+			{{ applicationLinks(links, currentUrl) }}
+		</div>
+
+		<div class="govuk-grid-column-two-thirds">
+
+			{% if banner %}
+				<div class="govuk-grid-row">
+					<div class="govuk-grid-column-full">
+						{{ govukNotificationBanner(banner) }}
+					</div>
+				</div>
+			{% endif %}
+
+			<div class="govuk-grid-row">
+				<div class="govuk-grid-column-full">
+					<h1 class="govuk-heading-xl">
+						{% if pageCaption %}
+							<span class="govuk-caption-xl">{{ pageCaption }}</span>
+						{% endif %}
+						{{ pageHeading or pageTitle }}
+					</h1>
+					{% for repMessageText in representationMessage %}
+						<p class="govuk-body"> {{ repMessageText }} </p>
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
