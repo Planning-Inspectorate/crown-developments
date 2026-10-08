@@ -71,7 +71,7 @@ export function createRoutes(service) {
 		service,
 		unpublishCrownCase,
 		fetchCrownUnpublishCase,
-		answerValidation,
+		undefined,
 		// Pass hook for unpublish
 		async (req, caseId) => {
 			const caseData = await service.db.crownDevelopment
