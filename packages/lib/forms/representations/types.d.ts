@@ -7,8 +7,11 @@ export type HaveYourSayViewModel = HaveYourSay.Common & (HaveYourSay.Myself | Ha
 
 /**
  * The view model used for have-your-say review & view in the manage app
+ *
+ * Includes an index signature so it's assignable to the `Record<string, unknown>`-based
+ * locals/answers types used by the dynamic forms journey machinery (see `BaseLocals`).
  */
-export type HaveYourSayManageModel = HaveYourSayViewModel & HaveYourSay.InternalFields;
+export type HaveYourSayManageModel = HaveYourSayViewModel & HaveYourSay.InternalFields & { [key: string]: unknown };
 
 export type HaveYourSayManageModelFields = keyof HaveYourSayManageModel;
 

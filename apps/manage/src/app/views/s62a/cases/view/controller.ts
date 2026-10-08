@@ -1,6 +1,7 @@
 import type { ManageService } from '#service';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
+import type { AsyncRequestHandler, AsyncRequestHandlerWithLocals } from '@planning-inspectorate/core/util';
+import type { JourneyResponseLike } from '@planning-inspectorate/dynamic-forms';
 import {
 	BOOLEAN_OPTIONS,
 	dateIsBeforeToday,
@@ -36,19 +37,29 @@ import { getNonResidentialTotals, nonResidentialTotalAnswers } from '../util/non
 import { getPreApplicationCaseOptions, showPreApplicationTab } from '../util/pre-application.ts';
 import { popSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { Request, Response } from 'express';
+import { getAnswers, getOptionalAnswers } from '@pins/crowndev-lib/util/answers.ts';
+import type { BaseLocals } from '../../../../../types/express-locals.ts';
+import type { AuditService } from '@pins/crowndev-lib/audit/service.ts';
 
-export function buildViewCaseDetails(): AsyncRequestHandler {
+interface S62aCaseViewLocals extends BaseLocals {
+	journeyResponse: JourneyResponseLike<S62aCaseViewModel>;
+	originalAnswers?: S62aCaseViewModel;
+	createdDateFormatted?: string | null;
+	lastModified?: Awaited<ReturnType<AuditService['getLastModifiedInfo']>>;
+}
+
+export function buildViewCaseDetails(): AsyncRequestHandlerWithLocals<S62aCaseViewLocals> {
 	return async (req, res) => {
 		const id = getStringParam(req.params, 'id');
-		const reference = getStringParam(res?.locals?.journeyResponse?.answers, 'reference');
-		const answers = getJourneyAnswers(res);
-		const applicationPhase = getStringParam(res?.locals?.journeyResponse?.answers, 'applicationPhaseId');
+		const answers = getAnswers<S62aCaseViewModel>(res);
+		const reference = getStringParam(answers, 'reference');
+		const applicationPhase = getStringParam(answers, 'applicationPhaseId');
 		const banner = getBannerMessages(id, res, req);
 		const baseUrl = req.baseUrl;
-		const lastModified = res.locals.lastModified as { updatedDate: string | null; by: string | null } | undefined;
+		const lastModified = res.locals.lastModified;
 		const lastModifiedDate = lastModified?.updatedDate ?? '-';
-		const createdDate = res.locals.createdDate;
-		const publishDate = getJourneyAnswers(res)?.publishDate;
+		const createdDateFormatted = res.locals.createdDateFormatted;
+		const publishDate = answers.publishDate;
 		const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
 
 		// Show publish case validation errors
@@ -87,7 +98,7 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 			banner,
 			foldersUrl: `/s62a/cases/${id}/case-folders`,
 			lastModifiedDate,
-			createdDate
+			createdDateFormatted
 		});
 	};
 }
@@ -123,7 +134,7 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		});
 
 		const answers = s62aCaseToViewModel(s62aCase);
-		const sessionAnswers = getJourneyAnswers(res);
+		const sessionAnswers = getOptionalAnswers<Partial<S62aCaseViewModel>>(res);
 
 		const finalAnswers = combineSessionAndDbData(answers, sessionAnswers);
 
@@ -137,7 +148,7 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		if (currentTab === VIEW_TAB_ID.CASE_AUDIT) {
 			res.locals.lastModified = await audit.getLastModifiedInfo(id, groupMembers, CASE_DATA_MODEL.S62A);
 		}
-		const createdDate = formatDateTime(s62aCase.createdDate);
+		const createdDateFormatted = formatDateTime(s62aCase.createdDate);
 
 		// Only queried when the PINS select will actually be built
 		const preApplicationCaseOptions =
@@ -179,11 +190,9 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		);
 
 		res.locals.fieldDisplayNames = fieldDisplayNames;
-		res.locals.createdDate = createdDate;
+		res.locals.createdDateFormatted = createdDateFormatted;
 
-		// @ts-expect-error - we haven't defined the view model on the locals object
 		res.locals.originalAnswers = { ...answers };
-		// @ts-expect-error - we haven't defined the view model on the locals object
 		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', finalAnswers);
 		res.locals.journey = createJourney(questions, res.locals.journeyResponse, req);
 
@@ -216,8 +225,9 @@ function getBannerMessages(id: string, res: Response, req: Request) {
 	const caseUpdated = readCaseUpdatedSession(req, id);
 
 	clearCaseUpdatedSession(req, id);
+	const answers = getAnswers<S62aCaseViewModel>(res);
 
-	const publishDate = getJourneyAnswers(res)?.publishDate;
+	const publishDate = answers.publishDate;
 	const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
 
 	if (caseUpdated && casePublished) {
@@ -228,7 +238,6 @@ function getBannerMessages(id: string, res: Response, req: Request) {
 	}
 
 	if (req.params.tab === VIEW_TAB_ID.RESIDENTIAL) {
-		const answers = getJourneyAnswers(res);
 		const prompt = answers && residentialPromptMessage(answers, id);
 
 		if (prompt) {
@@ -303,11 +312,4 @@ export function clearCaseUpdatedSession(req: Request, id: string): void {
 
 	const caseProps = (req.session?.cases && req.session.cases[id]) || {};
 	delete caseProps.updated;
-}
-
-/**
- * Get the journey answers
- */
-function getJourneyAnswers(res: Response): S62aCaseViewModel | undefined {
-	return res.locals.journeyResponse?.answers as unknown as S62aCaseViewModel;
 }

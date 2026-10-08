@@ -18,22 +18,14 @@ import { SHARED_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/shared-actions.ts
 import { recordAuditSafely } from '@pins/crowndev-lib/audit/record.ts';
 import { getAuditUserId } from '@pins/crowndev-lib/audit/user.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import { getAnswers } from '@pins/crowndev-lib/util/answers.ts';
 
 type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
 
 export function buildSaveController(service: ManageService): AsyncRequestHandler {
 	const { db, logger } = service;
 	return async (req, res) => {
-		if (!res.locals || !res.locals.journeyResponse) {
-			throw new Error('journey response required');
-		}
-
-		const journeyResponse = res.locals.journeyResponse;
-		const answers = journeyResponse.answers as unknown as CreateCaseAnswers;
-
-		if (typeof answers !== 'object') {
-			throw new Error('answers should be an object');
-		}
+		const answers = getAnswers<CreateCaseAnswers>(res);
 
 		const { id, status, reference } = await db.$transaction(async ($tx) => {
 			async function createCase(caseRef: string, extraData: Partial<Prisma.S62aCaseCreateInput> = {}) {

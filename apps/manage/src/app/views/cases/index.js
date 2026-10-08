@@ -1,5 +1,5 @@
 import { Router as createRouter } from 'express';
-import { createRoutes as createCreateACaseRoutes } from './create-a-case/index.js';
+import { createRoutes as createCreateACaseRoutes } from './create-a-case/index.ts';
 import { asyncHandler } from '@planning-inspectorate/core/util';
 import { buildListCases } from './list/controller.js';
 import { createRoutes as createCaseRoutes } from './view/index.js';

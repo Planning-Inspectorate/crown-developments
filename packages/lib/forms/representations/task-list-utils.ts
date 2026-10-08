@@ -13,6 +13,7 @@ import {
 	highlightRedactionSuggestions
 } from '../../../../apps/manage/src/util/azure-language-redaction.js';
 import { createRedactJourney } from './redact-journey.ts';
+import { getAnswers } from '../../util/answers.ts';
 
 interface ReviewDecisionItem {
 	reviewDecision?: string;
@@ -271,13 +272,18 @@ export function safeDeleteUploadedFilesSession(req: Request, representationRef: 
 	}
 }
 
+type RepresentationCommentAnswer = {
+	myselfComment?: string;
+	submitterComment?: string;
+};
+
 /**
  * Generates the basic confirmation page when redacting a representation comment.
  */
 export function redactConfirmationHandler(req: Request, res: Response) {
 	const representationRef = getStringParam(req.params, 'representationRef');
 	const commentRedacted = readRepRedactedCommentSession(req, representationRef);
-	const answers = res.locals.journeyResponse.answers as { myselfComment?: string; submitterComment?: string };
+	const answers = getAnswers<RepresentationCommentAnswer>(res);
 	const originalComment = (answers.myselfComment || answers.submitterComment) as string;
 
 	return res.render('views/cases/view/manage-reps/review/redact-confirmation.njk', {

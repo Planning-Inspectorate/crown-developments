@@ -11,7 +11,8 @@ import {
 	COMPONENT_TYPES,
 	yesNoToBoolean
 } from '@planning-inspectorate/dynamic-forms';
-import type { CrownJourneyResponse } from '../../../../types/express-locals.ts';
+import type { JourneyResponseLike } from '@planning-inspectorate/dynamic-forms';
+import type { CrownDevelopmentViewModel } from '../view/view-model.ts';
 import { APPLICATION_TYPES, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { multiContactQuestions } from '../util/question-utils.ts';
 import { CUSTOM_COMPONENT_CLASSES, CUSTOM_COMPONENTS } from '@pins/crowndev-lib/forms/custom-components/index.ts';
@@ -26,7 +27,10 @@ import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
  * @param journeyResponse - the journey response object containing the answers to the questions
  * @param isQuestionView - whether this is for a single question view
  */
-export function getQuestions(journeyResponse: CrownJourneyResponse, isQuestionView = false) {
+export function getQuestions(
+	journeyResponse: JourneyResponseLike<Partial<CrownDevelopmentViewModel>>,
+	isQuestionView = false
+) {
 	// derive applicant organisation radio options from manageApplicants answers held in the journey response
 	const manageApplicantDetails = journeyResponse?.answers?.manageApplicantDetails;
 	const applicantOrganisationOptions = getApplicantOrganisationOptions(

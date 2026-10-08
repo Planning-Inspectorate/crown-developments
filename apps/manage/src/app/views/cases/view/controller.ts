@@ -22,18 +22,25 @@ import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts
 import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
 import { CROWN_DEVELOPMENT_LINKED_CASE_SELECT, CROWN_DEVELOPMENT_VIEW_INCLUDE } from './payload-contracts.ts';
 import type { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
-import type { Response, Request, Handler, NextFunction } from 'express';
+import type { Response, Request, NextFunction } from 'express';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import type { ManageService } from '#service';
 import { getOptionalStringParams, getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import { getOptionalAnswers } from '@pins/crowndev-lib/util/answers.ts';
+import type { AsyncRequestHandlerWithLocals } from '@planning-inspectorate/core/util';
+import type { BaseLocals } from '../../../../types/express-locals.ts';
+import type { AuditService } from '@pins/crowndev-lib/audit/service.ts';
 
 /**
- * Get the journey answers
+ * Locals specific to the case view/journey-middleware pair, on top of the shared `BaseLocals`.
+ * These are set in `buildGetJourneyMiddleware` and consumed in `buildViewCaseDetails`.
  */
-function getJourneyAnswers(res: Response): CrownDevelopmentViewModel | undefined {
-	return res.locals.journeyResponse?.answers;
+interface CaseViewLocals extends BaseLocals {
+	caseNotes?: ReturnType<typeof mapNotes>['caseNotes'];
+	allCaseNotesCount?: number;
+	lastModified?: Awaited<ReturnType<AuditService['getLastModifiedInfo']>>;
 }
 
 /**
@@ -120,7 +127,9 @@ async function getBannerMessages(id: string, res: Response, req: Request, db: Ma
 		bannerBuilder.addLinkedCase(linkedCaseLink);
 	}
 
-	const publishDate = res.locals?.journeyResponse?.answers?.publishDate;
+	const answers = getOptionalAnswers<CrownDevelopmentViewModel>(res);
+
+	const publishDate = answers?.publishDate;
 	const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
 	const successParam = req.query.success;
 	const casePublishSuccess = successParam === 'published' && casePublished;
@@ -135,7 +144,7 @@ async function getBannerMessages(id: string, res: Response, req: Request, db: Ma
 		return bannerBuilder.build();
 	}
 
-	const crownDevelopmentView = res.locals.originalAnswers;
+	const crownDevelopmentView = res.locals.originalAnswers as CrownDevelopmentViewModel | undefined;
 
 	const agentStatusUpdated = readSessionData(req, id, 'agentStatusUpdated', false);
 	const applicantOrgAdded = readSessionData(req, id, 'applicantOrgAdded', false);
@@ -172,9 +181,15 @@ async function getBannerMessages(id: string, res: Response, req: Request, db: Ma
 /**
  * Controller for the case details page, which shows the case summary and the list of sections to manage.
  */
-export function buildViewCaseDetails({ db, getSharePointDrive, isCaseNotesLive, isAuditLive }: ManageService): Handler {
+export function buildViewCaseDetails({
+	db,
+	getSharePointDrive,
+	isCaseNotesLive,
+	isAuditLive
+}: ManageService): AsyncRequestHandlerWithLocals<CaseViewLocals> {
 	return async (req, res) => {
-		const reference = getJourneyAnswers(res)?.reference;
+		const answers = getOptionalAnswers<CrownDevelopmentViewModel>(res);
+		const reference = answers?.reference;
 		if (!reference) {
 			throw new Error('Reference not found in journey answers');
 		}
@@ -188,14 +203,14 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isCaseNotesLive, 
 		}
 		clearSessionData(req, id, 'publishErrors', 'cases');
 
-		const publishDate = getJourneyAnswers(res)?.publishDate;
+		const publishDate = answers?.publishDate;
 		const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
 		const baseUrl = req.baseUrl;
 
 		const banner = await getBannerMessages(id, res, req, db);
 		const notes = res.locals.caseNotes ?? [];
 		const allCaseNotesCount = res.locals.allCaseNotesCount ?? 0;
-		const lastModified = res.locals.lastModified as { updatedDate: string | null; by: string | null } | undefined;
+		const lastModified = res.locals.lastModified;
 		const lastModifiedDate = lastModified?.updatedDate ?? '-';
 		const lastModifiedBy = lastModified?.by ?? '-';
 		const sharePointDrive = getSharePointDrive(req.session);
@@ -268,11 +283,14 @@ export function clearCaseUpdatedSession(req: Request, id: string): void {
  * @param service
  * @param isQuestionView - whether this journey is for a question page (true) or the case details page (false).
  */
-export function buildGetJourneyMiddleware(service: ManageService, isQuestionView: boolean = false): Handler {
+export function buildGetJourneyMiddleware(
+	service: ManageService,
+	isQuestionView: boolean = false
+): AsyncRequestHandlerWithLocals<CaseViewLocals> {
 	const { db, logger, getEntraClient, audit } = service;
 	const groupIds = service.entraGroupIds;
 
-	return async (req: Request, res: Response, next: NextFunction) => {
+	return async (req: Request, res: Response, next?: NextFunction) => {
 		const id = getStringParam(req.params, 'id');
 		const { section, manageListQuestion } = getOptionalStringParams(req.params, ['section', 'manageListQuestion']);
 
@@ -314,7 +332,7 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 
 		const questions = getQuestions(groupMembers, overrides);
 
-		const sessionAnswers = getJourneyAnswers(res);
+		const sessionAnswers = getOptionalAnswers<CrownDevelopmentViewModel>(res);
 
 		const finalAnswers = combineSessionAndDbData(viewModel, sessionAnswers);
 
@@ -340,7 +358,7 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 
 		res.locals.lastModified = lastModified;
 
-		next();
+		if (next) next();
 	};
 }
 

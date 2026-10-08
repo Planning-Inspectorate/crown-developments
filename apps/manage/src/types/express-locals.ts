@@ -1,28 +1,23 @@
-import type { Journey } from '@planning-inspectorate/dynamic-forms';
+import type { Journey, JourneyResponseLike } from '@planning-inspectorate/dynamic-forms';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
-import type { CrownDevelopmentViewModel } from '../app/views/cases/view/view-model.ts';
-import type { mapNotes } from '@pins/crowndev-lib/case-notes/controller.ts';
 
-export type CrownJourneyResponse = {
-	journeyId: string;
-	referenceId: string;
-	answers: CrownDevelopmentViewModel;
-	// Not used in Crown Developments but required by the JourneyResponse constructor
-	// TODO remove once no longer marked required in dynamic-forms
-	LPACode: string | undefined;
-};
+/**
+ * Fields set on res.locals by shared/common middleware, available on (almost) every route.
+ * Flow-specific controllers should extend this with their own `journeyResponse`/`originalAnswers` shape
+ * and use `AsyncRequestHandlerWithLocals<TheirLocals>` rather than relying on the global `Locals` type.
+ */
+export interface BaseLocals extends Record<string, unknown> {
+	journey?: Journey;
+	journeyResponse?: JourneyResponseLike<Record<string, unknown>>;
+	originalAnswers?: Record<string, unknown>;
+	backLinkUrl?: string;
+	errorSummary?: ErrorSummaryItem[];
+	config?: Record<string, unknown>;
+	cspNonce?: string;
+	styleCss?: string;
+}
 
 declare module 'express-serve-static-core' {
-	interface Locals {
-		journeyResponse: CrownJourneyResponse;
-		journey?: Journey;
-		originalAnswers?: CrownDevelopmentViewModel;
-		backLinkUrl?: string;
-		errorSummary?: ErrorSummaryItem[];
-		config?: Record<string, unknown>;
-		cspNonce?: string;
-		styleCss?: string;
-		caseNotes?: ReturnType<typeof mapNotes>['caseNotes'];
-		allCaseNotesCount?: number;
-	}
+	// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- we want to be able to import BaseLocals in files
+	interface Locals extends BaseLocals {}
 }

@@ -9,7 +9,7 @@ import {
 } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { deleteRepresentationAttachmentsFolder, moveAttachmentsToCaseFolder } from '../../util/handle-attachments.js';
 import { getSubmittedForId } from '../../util/questions.ts';
-import { getAnswers } from '../../util/answers.js';
+import { getAnswers } from '../../util/answers.ts';
 import { getStringParam } from '../../util/params.ts';
 
 /**
