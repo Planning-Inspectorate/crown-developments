@@ -7,6 +7,7 @@ import { createRoutes as appRoutes } from './views/applications/index.ts';
 import { createErrorRoutes } from './views/static/error/index.ts';
 import { buildContactUsPage } from './views/static/contact/controller.ts';
 import { buildGuidancePage } from './views/static/guidance/controller.ts';
+import { notFoundPage } from './views/static/error/controller.ts';
 import { buildTermsAndConditionsPage } from './views/static/terms-and-conditions/controller.ts';
 
 /**
@@ -32,6 +33,9 @@ export function buildRouter(service: S62APortalService): IRouter {
 		router.use('/error', createErrorRoutes(service));
 		router.use('/guidance', buildGuidancePage());
 		router.get('/terms-and-conditions', buildTermsAndConditionsPage());
+
+		// must be registered last: catches any path not matched above
+		router.use(notFoundPage);
 	} else {
 		service.logger.info(
 			"Not registering application routes, feature flag 'FEATURE_FLAG_S62A_PORTAL_NOT_LIVE' is enabled"
