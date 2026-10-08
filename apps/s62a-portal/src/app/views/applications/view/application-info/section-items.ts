@@ -1,4 +1,4 @@
-import type { S62aCaseView } from './view-model.ts';
+import type { S62aCaseView } from '../view-model.ts';
 
 export type SectionItem = {
 	key: { text: string };

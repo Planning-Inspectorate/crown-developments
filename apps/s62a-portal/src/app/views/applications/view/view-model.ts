@@ -154,3 +154,7 @@ export function s62aCaseToViewModel(s62aCase: S62aCaseWithRelations): S62aCaseVi
 		isMajor: s62aCase.classificationId === MAJOR_OR_NON_MAJOR_ID.MAJOR
 	};
 }
+
+export const tabText = {
+	writtenRepresentations: 'Written representations (Comments and feedback)'
+};

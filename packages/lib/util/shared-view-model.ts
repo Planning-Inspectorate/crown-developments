@@ -106,12 +106,13 @@ export function applicationLinks(
 	haveYourSayPeriod: { start: Date | null; end: Date | null },
 	representationsPublishDate: Date | null,
 	displayApplicationUpdates: boolean,
-	applicationStatus: ApplicationPublishStatus | undefined = undefined
+	applicationStatus: ApplicationPublishStatus | undefined = undefined,
+	tabText?: Record<string, string>
 ): ApplicationLink[] {
 	const links = [
 		{
 			href: `/applications/${id}/application-information`,
-			text: 'Application information'
+			text: tabText?.applicationinformation ?? 'Application information'
 		}
 	];
 
@@ -121,7 +122,7 @@ export function applicationLinks(
 
 	links.push({
 		href: `/applications/${id}/documents`,
-		text: 'Documents'
+		text: tabText?.documents ?? 'Documents'
 	});
 	if (
 		!isWithdrawnOrExpired(applicationStatus) &&
@@ -131,19 +132,20 @@ export function applicationLinks(
 	) {
 		links.push({
 			href: `/applications/${id}/have-your-say`,
-			text: 'Have your say'
+			text: tabText?.haveYourSay ?? 'Have your say'
 		});
 	}
 	if (displayApplicationUpdates) {
 		links.push({
 			href: `/applications/${id}/application-updates`,
-			text: 'Application updates'
+			text: tabText?.applicationUpdates ?? 'Application updates'
 		});
 	}
+
 	if (representationsPublishDate && isNowAfterStartDate(representationsPublishDate)) {
 		links.push({
 			href: `/applications/${id}/written-representations`,
-			text: 'Written representations'
+			text: tabText?.writtenRepresentations ?? 'Written representations'
 		});
 	}
 
