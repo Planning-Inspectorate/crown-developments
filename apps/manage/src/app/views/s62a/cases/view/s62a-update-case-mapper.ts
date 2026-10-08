@@ -7,7 +7,8 @@ import {
 	HOUSING_TYPE_ID,
 	FLOORSPACE_SET_ID,
 	USE_CLASS_ID,
-	PRE_APPLICATION_ADVICE_ID
+	PRE_APPLICATION_ADVICE_ID,
+	MAJOR_OR_NON_MAJOR_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
 import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
@@ -41,7 +42,7 @@ import {
 	type ApplicantContactAnswer,
 	type AdditionalContactAnswer
 } from '../util/party-types.ts';
-import { addBusinessDays } from 'date-fns';
+import { addBusinessDays, addWeeks } from 'date-fns';
 import { optionalWhere } from '@planning-inspectorate/core/util';
 import { slugify, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
 import { toDecimalOrNull, toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
@@ -216,6 +217,15 @@ export interface UpdateCaseAnswers {
 	hasNonResidentialFloorspaceChange?: boolean | null;
 	manageNonResidentialFloorspace?: NonResidentialFloorspaceItem[];
 }
+
+/**
+ * Target decision date is calculated using a buffer of weeks
+ * that varies depending on major vs non major
+ * and whether there is an EIA
+ */
+export const TARGET_DECISION_NON_MAJOR_BUFFER = 8;
+export const TARGET_DECISION_MAJOR_BUFFER = 13;
+export const TARGET_DECISION_EIA_BUFFER = 16;
 
 /**
  * Class that handles mapping an update request into the correct
@@ -509,6 +519,10 @@ export class S62aCaseUpdateMapper {
 			hasDateUpdates = true;
 		}
 
+		if (this.applyTargetDecisionDateLogic(datesToUpdate)) {
+			hasDateUpdates = true;
+		}
+
 		if (hasDateUpdates) {
 			input.S62aDates = {
 				upsert: {
@@ -517,6 +531,64 @@ export class S62aCaseUpdateMapper {
 				}
 			};
 		}
+	}
+
+	/**
+	 * Calculates or clears targetDecisionDate based on valid date, classification, and EIA status.
+	 * Returns `true` if targetDecisionDate was mutated, `false` otherwise.
+	 */
+	private applyTargetDecisionDateLogic(
+		datesToUpdate: Prisma.S62aDatesUpdateWithoutS62aCaseInput & Prisma.S62aDatesCreateWithoutS62aCaseInput
+	): boolean {
+		const isAffected =
+			this.hasAnswer('applicationValidDate') ||
+			this.hasAnswer('classificationId') ||
+			this.hasAnswer('eiaScreening') ||
+			this.hasAnswer('eiaScreeningOutcome');
+
+		if (!isAffected) return false;
+
+		const validDate = this.hasAnswer('applicationValidDate')
+			? this.answers.applicationValidDate
+			: this.existingCase?.applicationValidDate;
+
+		const classificationId = this.hasAnswer('classificationId')
+			? this.answers.classificationId
+			: this.existingCase?.classificationId;
+
+		const eiaScreening = this.hasAnswer('eiaScreening') ? this.answers.eiaScreening : this.existingCase?.eiaScreening;
+
+		const eiaScreeningOutcome = this.hasAnswer('eiaScreeningOutcome')
+			? this.answers.eiaScreeningOutcome
+			: this.existingCase?.eiaScreeningOutcome;
+
+		const isPresent = (val: unknown): boolean => val !== undefined && val !== null && val !== '';
+
+		if (!isPresent(validDate) || !isPresent(classificationId) || !isPresent(eiaScreening)) {
+			datesToUpdate.targetDecisionDate = null;
+			return true;
+		}
+
+		const isScreeningYes = yesNoToBoolean(eiaScreening);
+
+		if (isScreeningYes && !isPresent(eiaScreeningOutcome)) {
+			datesToUpdate.targetDecisionDate = null;
+			return true;
+		}
+
+		const isMajor = classificationId === MAJOR_OR_NON_MAJOR_ID.MAJOR;
+		const isOutcomeYes = isScreeningYes && yesNoToBoolean(eiaScreeningOutcome);
+
+		let weeksToAdd: number;
+
+		if (isOutcomeYes) {
+			weeksToAdd = TARGET_DECISION_EIA_BUFFER;
+		} else {
+			weeksToAdd = isMajor ? TARGET_DECISION_MAJOR_BUFFER : TARGET_DECISION_NON_MAJOR_BUFFER;
+		}
+
+		datesToUpdate.targetDecisionDate = addWeeks(validDate as Date, weeksToAdd);
+		return true;
 	}
 
 	/**

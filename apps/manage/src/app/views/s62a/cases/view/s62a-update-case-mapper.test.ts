@@ -15,13 +15,20 @@ import {
 	HOUSING_TYPE_ID,
 	FLOORSPACE_SET_ID,
 	USE_CLASS_ID,
-	USE_CLASS_SUBTYPE_ID
+	USE_CLASS_SUBTYPE_ID,
+	MAJOR_OR_NON_MAJOR_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { viewModelToAddressUpdateInput } from '@pins/crowndev-lib/util/address.ts';
-import { S62aCaseUpdateMapper, type UpdateCaseAnswers } from './s62a-update-case-mapper.ts';
+import {
+	S62aCaseUpdateMapper,
+	TARGET_DECISION_EIA_BUFFER,
+	TARGET_DECISION_MAJOR_BUFFER,
+	TARGET_DECISION_NON_MAJOR_BUFFER,
+	type UpdateCaseAnswers
+} from './s62a-update-case-mapper.ts';
 import { BOOLEAN_OPTIONS, type Address } from '@planning-inspectorate/dynamic-forms';
-import { addBusinessDays } from 'date-fns';
+import { addBusinessDays, addWeeks } from 'date-fns';
 import type { S62aCaseViewModel } from './view-model.ts';
 
 type PersistedList =
@@ -269,8 +276,8 @@ describe('S62aCaseUpdateMapper', () => {
 
 			assert.deepStrictEqual(result.S62aDates, {
 				upsert: {
-					create: { applicationValidDate: validDate, targetPublishDate: expectedTargetDate },
-					update: { applicationValidDate: validDate, targetPublishDate: expectedTargetDate }
+					create: { applicationValidDate: validDate, targetPublishDate: expectedTargetDate, targetDecisionDate: null },
+					update: { applicationValidDate: validDate, targetPublishDate: expectedTargetDate, targetDecisionDate: null }
 				}
 			});
 		});
@@ -284,8 +291,8 @@ describe('S62aCaseUpdateMapper', () => {
 
 			assert.deepStrictEqual(result.S62aDates, {
 				upsert: {
-					create: { applicationValidDate: null, targetPublishDate: null },
-					update: { applicationValidDate: null, targetPublishDate: null }
+					create: { applicationValidDate: null, targetPublishDate: null, targetDecisionDate: null },
+					update: { applicationValidDate: null, targetPublishDate: null, targetDecisionDate: null }
 				}
 			});
 		});
@@ -340,6 +347,108 @@ describe('S62aCaseUpdateMapper', () => {
 					update: { reconsultationDetailsSentDate: startDate, reconsultationDetailsDeadlineDate: null }
 				}
 			});
+		});
+	});
+
+	describe('Target Decision Date Calculation (Scenario 13)', () => {
+		const validDate = new Date('2026-07-01T10:00:00Z');
+
+		it('clears targetDecisionDate if required field is missing (in payload and db)', () => {
+			const answers: UpdateCaseAnswers = {
+				applicationValidDate: validDate,
+				classificationId: MAJOR_OR_NON_MAJOR_ID.MAJOR
+			};
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			assert.strictEqual((result.S62aDates?.upsert?.create as any).targetDecisionDate, null);
+			assert.strictEqual((result.S62aDates?.upsert?.update as any).targetDecisionDate, null);
+		});
+
+		it('clears targetDecisionDate if a required field is explicitly removed', () => {
+			const answers: UpdateCaseAnswers = {
+				applicationValidDate: null
+			};
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			assert.strictEqual((result.S62aDates?.upsert?.create as any).targetDecisionDate, null);
+			assert.strictEqual((result.S62aDates?.upsert?.update as any).targetDecisionDate, null);
+		});
+
+		it('calculates 8 weeks (TARGET_DECISION_NON_MAJOR_BUFFER) for Non-major development with no EIA', () => {
+			const answers: UpdateCaseAnswers = {
+				applicationValidDate: validDate,
+				classificationId: 'some-non-major-id',
+				eiaScreening: 'no'
+			};
+			const expectedDate = addWeeks(validDate, TARGET_DECISION_NON_MAJOR_BUFFER);
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual((result.S62aDates?.upsert?.create as any).targetDecisionDate, expectedDate);
+		});
+
+		it('calculates 13 weeks (TARGET_DECISION_MAJOR_BUFFER) for Major development with no EIA', () => {
+			const answers: UpdateCaseAnswers = {
+				applicationValidDate: validDate,
+				classificationId: MAJOR_OR_NON_MAJOR_ID.MAJOR,
+				eiaScreening: 'yes',
+				eiaScreeningOutcome: 'no'
+			};
+			const expectedDate = addWeeks(validDate, TARGET_DECISION_MAJOR_BUFFER);
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual((result.S62aDates?.upsert?.create as any).targetDecisionDate, expectedDate);
+		});
+
+		it('calculates 16 weeks (TARGET_DECISION_EIA_BUFFER) for Major development requiring an EIA', () => {
+			const answers: UpdateCaseAnswers = {
+				applicationValidDate: validDate,
+				classificationId: MAJOR_OR_NON_MAJOR_ID.MAJOR,
+				eiaScreening: 'yes',
+				eiaScreeningOutcome: 'yes'
+			};
+			const expectedDate = addWeeks(validDate, TARGET_DECISION_EIA_BUFFER);
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual((result.S62aDates?.upsert?.create as any).targetDecisionDate, expectedDate);
+		});
+
+		it('calculates 16 weeks (TARGET_DECISION_EIA_BUFFER) for Non-major development requiring an EIA', () => {
+			const answers: UpdateCaseAnswers = {
+				applicationValidDate: validDate,
+				classificationId: 'some-non-major-id',
+				eiaScreening: 'yes',
+				eiaScreeningOutcome: 'yes'
+			};
+			const expectedDate = addWeeks(validDate, TARGET_DECISION_EIA_BUFFER);
+			const mapper = new S62aCaseUpdateMapper(answers);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual((result.S62aDates?.upsert?.create as any).targetDecisionDate, expectedDate);
+		});
+
+		it('recalculates correctly using fallback values from existingCase when only a partial update occurs', () => {
+			const answers: UpdateCaseAnswers = {
+				eiaScreeningOutcome: 'yes'
+			};
+			const existingCase = {
+				applicationValidDate: validDate,
+				classificationId: MAJOR_OR_NON_MAJOR_ID.MAJOR,
+				eiaScreening: 'yes',
+				eiaScreeningOutcome: 'no'
+			} as S62aCaseViewModel;
+
+			const expectedDate = addWeeks(validDate, TARGET_DECISION_EIA_BUFFER);
+
+			const mapper = new S62aCaseUpdateMapper(answers, existingCase);
+			const result = mapper.generateUpdateInput();
+
+			assert.deepStrictEqual((result.S62aDates?.upsert?.create as any).targetDecisionDate, expectedDate);
+			assert.deepStrictEqual((result.S62aDates?.upsert?.update as any).targetDecisionDate, expectedDate);
 		});
 	});
 
@@ -867,11 +976,12 @@ describe('S62aCaseUpdateMapper', () => {
 			assert.strictEqual(result.eiaScreeningOutcome, undefined);
 		});
 
-		it('does not generate an S62aDates update for EIA booleans alone', () => {
+		it('Makes sure to wipe targetDecisionDate if eiaScreening is set to yes without an outcome', () => {
 			const answers = { eiaScreening: true } as unknown as UpdateCaseAnswers;
 			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
 
-			assert.strictEqual(result.S62aDates, undefined);
+			assert.strictEqual((result.S62aDates?.upsert?.create as any).targetDecisionDate, null);
+			assert.strictEqual((result.S62aDates?.upsert?.update as any).targetDecisionDate, null);
 		});
 
 		it('maps environmentalStatementReceivedDate into the S62aDates upsert', () => {
