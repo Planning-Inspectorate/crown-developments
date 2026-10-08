@@ -11,27 +11,23 @@ import {
 	validate,
 	validationErrorHandler
 } from '@planning-inspectorate/dynamic-forms';
+import type { JourneyResponse } from '@planning-inspectorate/dynamic-forms';
 import { JOURNEY_ID, createJourney } from './journey.ts';
 import { getQuestions } from './questions.ts';
 import { buildSaveController, buildSuccessController } from './save.js';
 import { getSummaryWarningMessage } from '@pins/crowndev-lib/util/linked-case.ts';
 import { removeApplicantContactsWhenOrganisationRemoved } from '@pins/crowndev-lib/util/session.ts';
+import type { ManageService } from '#service';
+import type { Router, Request } from 'express';
 
 /**
- * @param {import('#service').ManageService} service
- * @returns {import('express').Router}
+ * Create the routes for the create-a-case journey.
  */
-export function createRoutes(service) {
+export function createRoutes(service: ManageService): Router {
 	const router = createRouter({ mergeParams: true });
 
-	/**
-	 * @param {boolean} isQuestionView
-	 */
-	function makeGetJourneyCallback(isQuestionView) {
-		return (
-			/** @type {import('express').Request} */ req,
-			/** @type {import('@planning-inspectorate/dynamic-forms/src/journey/journey.js').JourneyResponse} */ journeyResponse
-		) => {
+	function makeGetJourneyCallback(isQuestionView: boolean) {
+		return (req: Request, journeyResponse: JourneyResponse) => {
 			const questions = getQuestions(journeyResponse, isQuestionView);
 			return createJourney(questions, journeyResponse, req);
 		};
