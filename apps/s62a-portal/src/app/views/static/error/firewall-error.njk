@@ -1,23 +1,19 @@
 {% extends "views/layouts/main.njk" %}
 
-{% block pageTitle %}
-	{{ pageTitle }} - {{ locals.config.headerTitle }}
-{% endblock %}
-
-{% block content %}
-
+{% block pageHeading %}
 	<div class="govuk-grid-row">
 		<div class="govuk-grid-column-two-thirds">
 			<h1 class="govuk-heading-l">Sorry, there is a problem with the service</h1>
-			<p class="govuk-body">
-				We have not saved your answers.
-			</p>
-			<p class="govuk-body">
-				When the service is available, you will have to start again. Please avoid special characters like ' and \.
-			</p>
-			<p class="govuk-body">
-				If you have any questions, you can contact us:
-			</p>
+		</div>
+	</div>
+{% endblock %}
+
+{% block pageContent %}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			<p class="govuk-body">We have not saved your answers.</p>
+			<p class="govuk-body">When the service is available, you will have to start again. Please avoid special characters like ' and \.</p>
+			<p class="govuk-body">If you have any questions, you can contact us:</p>
 
 			<h2 class="govuk-heading-s">Online:</h2>
 			<p class="govuk-body">
@@ -32,5 +28,4 @@
 			<p class="govuk-body">Closed on weekends and bank holidays.</p>
 		</div>
 	</div>
-
 {% endblock %}
