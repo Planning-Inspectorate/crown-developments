@@ -37,10 +37,9 @@ export function createRoutes(service: ManageService) {
 	if (service.isS62APortalLive) {
 		// Mounts the publish routes
 		router.use('/publish', publishRoutes);
+		// Mounts the unpublish routes
+		router.use('/unpublish', unpublishRoutes);
 	}
-
-	// Mounts the unpublish routes
-	router.use('/unpublish', unpublishRoutes);
 
 	return router;
 }
