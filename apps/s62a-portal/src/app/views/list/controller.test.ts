@@ -94,11 +94,6 @@ describe('case list', () => {
 		const nunjucks = {
 			render: mock.fn((view, data) => 'mocked render' + view + data)
 		};
-		const config = {
-			crownDevContactInfo: {
-				email: 'crown.dev@planninginspectorate.gov.uk'
-			}
-		};
 
 		it('should render page without error', async () => {
 			const mockReq = {
@@ -113,6 +108,7 @@ describe('case list', () => {
 			const mockRes = mockResData as unknown as Response;
 
 			const mockDb = {
+				lpa: { findMany: mock.fn(() => []) },
 				s62aCase: {
 					findMany: mock.fn(() => [
 						{
@@ -181,6 +177,7 @@ describe('case list', () => {
 			assert.strictEqual(mockResData.render.mock.calls[0].arguments[1].pageTitle, 'All applications');
 			assert.strictEqual(mockResData.render.mock.calls[0].arguments[1].s62aDevelopmentsViewModels.length, 2);
 		});
+
 		it('should render page without error when no crown dev cases returned', async () => {
 			const mockReq = {
 				params: {
@@ -193,6 +190,7 @@ describe('case list', () => {
 			const mockRes = mockResData as unknown as Response;
 
 			const mockDb = {
+				lpa: { findMany: mock.fn(() => []) },
 				s62aCase: {
 					findMany: mock.fn(() => []),
 					count: mock.fn(() => 0)
@@ -217,6 +215,14 @@ describe('case list', () => {
 				baseUrl: '/applications',
 				currentUrl: undefined,
 				queryParams: undefined,
+				searchValue: '',
+				carriedParams: [],
+				lpaFilterItems: [],
+				lpaFilterOpen: false,
+				activeFilterTags: [],
+				hasActiveQueries: false,
+				clearSearchUrl: '/applications',
+				clearFiltersUrl: '/applications',
 				paginationParams: {
 					pageNumber: 1,
 					resultsEndNumber: 0,
@@ -225,6 +231,186 @@ describe('case list', () => {
 					totalItems: 0,
 					totalPages: 0
 				}
+			});
+		});
+
+		describe('search', () => {
+			/** Runs the controller with the given query and returns the db mocks and render args */
+			async function run(query: Record<string, unknown> | undefined, lpas: unknown[] = []) {
+				const findMany = mock.fn((_args: unknown) => []);
+				const count = mock.fn((_args: unknown) => 0);
+				const lpaFindMany = mock.fn((_args: unknown) => lpas);
+				const render = mock.fn((view, data) => nunjucks.render(view, data));
+
+				const service = {
+					db: { lpa: { findMany: lpaFindMany }, s62aCase: { findMany, count } },
+					logger: mockLogger() as unknown as BaseLogger
+				} as unknown as S62APortalService;
+
+				const handler = buildCaseListPage(service);
+				await assert.doesNotReject(() =>
+					handler({ query, params: {} } as unknown as Request, { render } as unknown as Response)
+				);
+
+				return {
+					findManyArgs: findMany.mock.calls[0].arguments[0] as any,
+					countArgs: count.mock.calls[0].arguments[0] as any,
+					lpaFindManyArgs: lpaFindMany.mock.calls[0].arguments[0] as any,
+					renderArgs: render.mock.calls[0].arguments[1] as any
+				};
+			}
+
+			it('should only filter on published cases when there is no search term', async () => {
+				const { findManyArgs, countArgs } = await run(undefined);
+
+				assert.strictEqual(findManyArgs.where.AND.length, 1);
+				assert.ok(findManyArgs.where.AND[0].S62aDates.publishDate.lte instanceof Date);
+				assert.deepStrictEqual(countArgs.where, findManyArgs.where);
+			});
+
+			it('should add one clause per search term, alongside the published filter', async () => {
+				const { findManyArgs } = await run({ searchCriteria: 'smith london' });
+
+				assert.strictEqual(findManyArgs.where.AND.length, 3);
+				assert.ok(findManyArgs.where.AND[0].S62aDates);
+				assert.ok(findManyArgs.where.AND[1].OR);
+				assert.ok(findManyArgs.where.AND[2].OR);
+			});
+
+			it('should use the same where clause for the results and the count', async () => {
+				const { findManyArgs, countArgs } = await run({ searchCriteria: 'smith' });
+
+				assert.deepStrictEqual(countArgs.where, findManyArgs.where);
+			});
+
+			it('should pass the trimmed search term to the view', async () => {
+				const { renderArgs } = await run({ searchCriteria: '  smith  ' });
+
+				assert.strictEqual(renderArgs.searchValue, 'smith');
+			});
+
+			it('should treat a whitespace-only search as no search', async () => {
+				const { findManyArgs, renderArgs } = await run({ searchCriteria: '   ' });
+
+				assert.strictEqual(findManyArgs.where.AND.length, 1);
+				assert.strictEqual(renderArgs.searchValue, '');
+			});
+
+			it('should carry other params through but not the search term or page number', async () => {
+				const { renderArgs } = await run({ searchCriteria: 'smith', page: '3', itemsPerPage: '50', foo: 'bar' });
+
+				assert.deepStrictEqual(renderArgs.carriedParams, [
+					{ name: 'itemsPerPage', value: '50' },
+					{ name: 'foo', value: 'bar' }
+				]);
+			});
+
+			it('should keep the full query in queryParams so pagination links retain the search', async () => {
+				const query = { searchCriteria: 'smith', itemsPerPage: '50' };
+				const { renderArgs } = await run(query);
+
+				assert.deepStrictEqual(renderArgs.queryParams, query);
+			});
+
+			it('should apply pagination alongside the search', async () => {
+				const { findManyArgs } = await run({ searchCriteria: 'smith', itemsPerPage: '50', page: '3' });
+
+				assert.strictEqual(findManyArgs.skip, 100);
+				assert.strictEqual(findManyArgs.take, 50);
+			});
+
+			it('should use the first value when the search param is repeated', async () => {
+				const { renderArgs } = await run({ searchCriteria: ['first', 'second'] });
+
+				assert.strictEqual(renderArgs.searchValue, 'first');
+			});
+
+			describe('LPA filter', () => {
+				const bristol = {
+					id: '1A76F67E-5828-4532-BD6F-AA7EF40A13CA',
+					name: 'Bristol City Council',
+					_count: { S62aCases: 2, SecondaryS62aCases: 1 }
+				};
+				const stAlbans = {
+					id: '8DBF5DD6-DB68-4273-9ED4-D4FBF3011A21',
+					name: 'St Albans City and District Council',
+					_count: { S62aCases: 2, SecondaryS62aCases: 0 }
+				};
+
+				it('should list every published LPA with a count of primary plus secondary cases', async () => {
+					const { renderArgs } = await run(undefined, [bristol, stAlbans]);
+
+					assert.deepStrictEqual(
+						renderArgs.lpaFilterItems.map((i: any) => [i.text, i.checked]),
+						[
+							['Bristol City Council (3)', false],
+							['St Albans City and District Council (2)', false]
+						]
+					);
+					assert.strictEqual(renderArgs.lpaFilterOpen, false);
+				});
+
+				it('should filter on the primary or secondary LPA when one is selected', async () => {
+					const id = bristol.id.toLowerCase();
+					const { findManyArgs, countArgs, renderArgs } = await run({ lpa: id }, [bristol, stAlbans]);
+
+					assert.deepStrictEqual(findManyArgs.where.AND[1], {
+						OR: [{ lpaId: { in: [id] } }, { secondaryLpaId: { in: [id] } }]
+					});
+					assert.deepStrictEqual(countArgs.where, findManyArgs.where);
+					assert.strictEqual(renderArgs.lpaFilterOpen, true);
+					assert.strictEqual(renderArgs.hasActiveQueries, true);
+					assert.strictEqual(renderArgs.activeFilterTags.length, 1);
+					assert.strictEqual(renderArgs.activeFilterTags[0].name, 'Bristol City Council');
+				});
+
+				it('should match ids case-insensitively', async () => {
+					const { renderArgs } = await run({ lpa: bristol.id }, [bristol]);
+
+					assert.strictEqual(renderArgs.lpaFilterItems[0].checked, true);
+				});
+
+				it('should ignore ids that are not a published LPA', async () => {
+					const { findManyArgs, renderArgs } = await run(
+						{ lpa: ['not-a-guid', 'ffffffff-ffff-ffff-ffff-ffffffffffff'] },
+						[bristol]
+					);
+
+					assert.strictEqual(findManyArgs.where.AND.length, 1);
+					assert.strictEqual(renderArgs.activeFilterTags.length, 0);
+					assert.strictEqual(renderArgs.hasActiveQueries, false);
+				});
+
+				it('should not carry lpa params as hidden inputs, since the checkboxes submit them', async () => {
+					const { renderArgs } = await run({ lpa: bristol.id.toLowerCase(), itemsPerPage: '50' }, [bristol]);
+
+					assert.deepStrictEqual(renderArgs.carriedParams, [{ name: 'itemsPerPage', value: '50' }]);
+				});
+
+				it('should make "Clear filters" drop the LPAs but keep the search and page size', async () => {
+					const { renderArgs } = await run(
+						{ searchCriteria: 'smith', itemsPerPage: '50', page: '2', lpa: bristol.id.toLowerCase() },
+						[bristol]
+					);
+
+					assert.strictEqual(renderArgs.clearFiltersUrl, '/applications?searchCriteria=smith&itemsPerPage=50');
+				});
+
+				it('should make "Clear search" drop the search but keep the LPAs and page size', async () => {
+					const id = bristol.id.toLowerCase();
+					const { renderArgs } = await run({ searchCriteria: 'smith', itemsPerPage: '50', lpa: id }, [bristol]);
+
+					assert.strictEqual(renderArgs.clearSearchUrl, `/applications?itemsPerPage=50&lpa=${id}`);
+				});
+
+				it('should remove only one LPA from the URL when its tag is removed', async () => {
+					const a = bristol.id.toLowerCase();
+					const b = stAlbans.id.toLowerCase();
+					const { renderArgs } = await run({ lpa: [a, b], searchCriteria: 'smith' }, [bristol, stAlbans]);
+
+					const bristolTag = renderArgs.activeFilterTags.find((t: any) => t.name === 'Bristol City Council');
+					assert.strictEqual(bristolTag.removeUrl, `/applications?searchCriteria=smith&lpa=${b}`);
+				});
 			});
 		});
 
@@ -246,6 +432,7 @@ describe('case list', () => {
 					} as unknown as Request;
 
 					const mockDb = {
+						lpa: { findMany: mock.fn(() => []) },
 						s62aCase: {
 							findMany: mock.fn(() => createMockCases(expected.resultsEndNumber - expected.resultsStartNumber + 1)),
 							count: mock.fn(() => totalItems)
@@ -259,8 +446,6 @@ describe('case list', () => {
 
 					const applicationList = buildCaseListPage(service);
 					await assert.doesNotReject(() => applicationList(mockReq, mockRes));
-
-					assert.strictEqual(mockRes.render.mock.callCount(), 1);
 
 					assert.strictEqual(mockRes.render.mock.callCount(), 1);
 

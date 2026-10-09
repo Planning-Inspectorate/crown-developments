@@ -13,4 +13,6 @@
 
 // App level components
 @use './components/pins-table';
+@use './components/pins-filter-tag';
+@use './components/pins-search';
 @use './util/util';
