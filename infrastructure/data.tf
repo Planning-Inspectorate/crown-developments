@@ -75,3 +75,10 @@ data "azurerm_private_dns_zone" "storage" {
 
   provider = azurerm.tooling
 }
+
+data "azurerm_storage_account" "state_file" {
+  name                = "pinssttfstateukscrowndev"
+  resource_group_name = "pins-rg-shared-terraform-uks"
+
+  provider = azurerm.tooling
+}
