@@ -27,23 +27,23 @@ export function addLocalsConfiguration(service, manifest) {
 			footerLinks: [
 				{
 					text: 'Terms and conditions',
-					href: '/terms-and-conditions'
+					link: '/terms-and-conditions'
 				},
 				{
 					text: 'Accessibility statement',
-					href: '/accessibility-statement'
+					link: '/accessibility-statement'
 				},
 				{
 					text: 'Privacy',
-					href: 'https://www.gov.uk/government/publications/planning-inspectorate-privacy-notices/customer-privacy-notice'
+					link: 'https://www.gov.uk/government/publications/planning-inspectorate-privacy-notices/customer-privacy-notice'
 				},
 				{
 					text: 'Cookies',
-					href: '/cookies'
+					link: '/cookies'
 				},
 				{
 					text: 'Contact',
-					href: '/contact'
+					link: '/contact'
 				}
 			],
 			primaryNavigationLinks: links.map((l) => {
