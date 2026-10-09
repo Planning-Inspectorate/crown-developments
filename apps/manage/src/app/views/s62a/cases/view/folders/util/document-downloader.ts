@@ -7,7 +7,7 @@ import type { Request, Response } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
 import { BaseDocumentDownloader, type DownloadRequestBody } from '@pins/crowndev-lib/util/base-document-downloader.ts';
 import { FILE_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/files.ts';
-import { recordS62aFileAudit } from '../../../../audit/files.ts';
+import { recordS62aFileAudit } from '../../../audit/files.ts';
 
 type S62aDocument = Prisma.DocumentGetPayload<{
 	include: {

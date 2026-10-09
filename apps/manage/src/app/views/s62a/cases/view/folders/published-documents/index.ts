@@ -1,10 +1,10 @@
 import { Router as createRouter } from 'express';
 import type { ManageService } from '#service';
 import { buildViewPublishedDocuments } from './controller.ts';
-import { validateIdFormat } from '../../controller.ts';
 import { asyncHandler } from '@planning-inspectorate/core/util';
 import { createRoutes as createDownloadRoutes } from './download/index.ts';
 import { createRoutes as createCategoriseRoutes } from './categorise/index.ts';
+import { validateIdFormat } from '@pins/crowndev-lib/util/string.ts';
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });

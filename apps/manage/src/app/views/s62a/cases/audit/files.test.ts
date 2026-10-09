@@ -7,9 +7,9 @@ import type { CaseDataModel } from '@pins/crowndev-lib/util/types.ts';
 import { SHARED_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/shared-actions.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import { DocumentDeleter } from '../view/folders/folder/delete/document-deleter.ts';
-import { DocumentDownloader } from '../view/folders/folder/download/document-downloader.ts';
 import { createDocumentsController } from '../view/folders/folder/upload/upload-documents/controller.ts';
 import type { DocumentsUploader } from '../view/folders/folder/upload/upload-documents/document-uploader.ts';
+import { DocumentDownloader } from '../view/folders/util/document-downloader.ts';
 
 /**
  * Checks each S62A file action is recorded in the case history.
