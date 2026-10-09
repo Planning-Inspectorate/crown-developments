@@ -5,6 +5,7 @@ import type { IRouter } from 'express';
 import { Router as createRouter } from 'express';
 import { createRoutes as appRoutes } from './views/list/index.ts';
 import { createErrorRoutes } from './views/static/error/index.ts';
+import { buildGuidancePage } from './views/static/guidance/controller.ts';
 
 /**
  * Main app router
@@ -26,6 +27,7 @@ export function buildRouter(service: S62APortalService): IRouter {
 		});
 		router.use('/', appRoutes(service));
 		router.use('/error', createErrorRoutes(service));
+		router.use('/guidance', buildGuidancePage());
 	} else {
 		service.logger.info(
 			"Not registering application routes, feature flag 'FEATURE_FLAG_S62A_PORTAL_NOT_LIVE' is enabled"
