@@ -17,8 +17,11 @@ export function createRoutes(service: ManageService) {
 	// Gets "all folders" page
 	router.get('/', validateIdFormat, asyncHandler(viewCaseFolders));
 
-	// Special "published" page which looks like a folder of published docs
-	router.use('/published-documents', publishedDocumentsRoutes);
+	// Guards publish docs page if portal not live, page should be empty either way.
+	if (service.isS62APortalLive) {
+		// Special "published" page which looks like a folder of published docs
+		router.use('/published-documents', publishedDocumentsRoutes);
+	}
 
 	// Mounts "individual folder" routes
 	router.use('/:folderId/:folderName', singleFolderRoutes);

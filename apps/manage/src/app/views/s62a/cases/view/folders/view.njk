@@ -23,7 +23,7 @@
             {% else %}
                 <ul class="govuk-list govuk-list--spaced pins-link-menu" data-cy="folder-list">
 
-                    {% if hasAtLeastOnePublishedDocument %}
+                    {% if hasAtLeastOnePublishedDocument and config.isS62APortalLive %}
                         <li>
                             <a class="govuk-link govuk-!-font-weight-bold govuk-!-font-size-19" 
                             href="{{ currentUrl }}/published-documents" 
