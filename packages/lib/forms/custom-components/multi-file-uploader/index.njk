@@ -2,7 +2,8 @@
 
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
-{% from "custom-moj-file-upload/custom-moj-file-upload.njk" import customMojFileUpload, customMojFileUploadScript %}
+{% from "custom-moj-file-upload/custom-moj-file-upload.njk" import customMojFileUploadScript with context %}
+{% from "custom-moj-file-upload/custom-moj-file-upload.njk" import customMojFileUpload with context %}
 {% from "govuk/components/file-upload/macro.njk" import govukFileUpload %}
 
 {% block content %}

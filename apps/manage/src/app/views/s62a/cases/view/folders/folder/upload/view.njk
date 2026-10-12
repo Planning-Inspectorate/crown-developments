@@ -3,8 +3,8 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/file-upload/macro.njk" import govukFileUpload %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
-{% from "custom-moj-file-upload/custom-moj-file-upload.njk" import customMojFileUpload %}
-{% from "custom-moj-file-upload/custom-moj-file-upload.njk" import customMojFileUploadScript %}
+{% from "custom-moj-file-upload/custom-moj-file-upload.njk" import customMojFileUpload with context %}
+{% from "custom-moj-file-upload/custom-moj-file-upload.njk" import customMojFileUploadScript with context %}
 
 {% set title = pageHeading + " - Case Folder" %}
 
