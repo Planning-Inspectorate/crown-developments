@@ -3,8 +3,8 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/file-upload/macro.njk" import govukFileUpload %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
-{% from "custom-moj-file-upload/custom-moj-file-upload.njk" import customMojFileUpload %}
-{% from "custom-moj-file-upload/custom-moj-file-upload.njk" import customMojFileUploadScript %}
+{% from "custom-moj-file-upload/custom-moj-file-upload.njk" import customMojFileUpload with context %}
+{% from "custom-moj-file-upload/custom-moj-file-upload.njk" import customMojFileUploadScript with context %}
 
 {% set title = pageHeading + " - Case Folder" %}
 
@@ -35,12 +35,12 @@
 
             {% set uploadForm = "upload-form" %}
 
-            <form 
-                id="upload-form-container" 
-                action="{{ currentUrl }}" 
-                method="post" 
-                enctype="multipart/form-data" 
-                data-upload-url="{{ currentUrl }}/documents" 
+            <form
+                id="upload-form-container"
+                action="{{ currentUrl }}"
+                method="post"
+                enctype="multipart/form-data"
+                data-upload-url="{{ currentUrl }}/documents"
                 data-delete-url="{{ currentUrl }}/documents/delete"
             >
                 {% set uploadHtml %}
@@ -76,7 +76,7 @@
             </form>
 
         {{ customMojFileUploadScript({
-            cspNonce: cspNonce 
+            cspNonce: cspNonce
         }) }}
         </div>
     </div>
