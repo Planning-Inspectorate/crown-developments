@@ -42,18 +42,8 @@ export type S62ADevelopmentPayload = ValidatedDbPayload<
 
 type ExtendedS62AFields = Omit<S62ADevelopmentExtendedView, keyof BaseDevelopmentView>;
 
-/**
- * S62A view model formatter, formatting extended fields from S62A Development View
- *
- * @param s62aDevelopment - The main db query input
- */
-export function s62aViewFormattingFunction(s62aDevelopment: S62ADevelopmentPayload): ExtendedS62AFields {
+function getApplicantDetails(s62aDevelopment: S62ADevelopmentPayload): string {
 	let applicantDetails = '';
-	let location;
-	let lpaFormatted;
-
-	console.log('Formatting function debug');
-	console.log(s62aDevelopment.applicantTypeId);
 
 	if (s62aDevelopment.S62aToApplicants?.length) {
 		if (s62aDevelopment.applicantTypeId == APPLICANT_TYPE_ID.ORGANISATION) {
@@ -79,6 +69,19 @@ export function s62aViewFormattingFunction(s62aDevelopment: S62ADevelopmentPaylo
 				.join(', ');
 		}
 	}
+	return applicantDetails;
+}
+
+/**
+ * S62A view model formatter, formatting extended fields from S62A Development View
+ *
+ * @param s62aDevelopment - The main db query input
+ */
+export function s62aViewFormattingFunction(s62aDevelopment: S62ADevelopmentPayload): ExtendedS62AFields {
+	let location;
+	let lpaFormatted;
+
+	const applicantDetails = getApplicantDetails(s62aDevelopment);
 
 	if (s62aDevelopment.SecondaryLpa) {
 		lpaFormatted = `${s62aDevelopment.Lpa?.name}<br>${s62aDevelopment.SecondaryLpa.name}`;
