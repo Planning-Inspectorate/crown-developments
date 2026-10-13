@@ -30,7 +30,7 @@ import {
 	type ResidentialAnswers,
 	residentialTotalAnswers
 } from '../util/residential-totals.ts';
-import { formatDateTime } from '@pins/crowndev-lib/util/audit-formatters.ts';
+import { formatDateTime } from '@pins/crowndev-lib/util/date-util.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import { getNonResidentialTotals, nonResidentialTotalAnswers } from '../util/non-residential-totals.ts';
 import { getPreApplicationCaseOptions, showPreApplicationTab } from '../util/pre-application.ts';

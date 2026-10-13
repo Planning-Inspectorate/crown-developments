@@ -1,13 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import {
-	formatAddress,
-	formatDate,
-	formatValue,
-	formatNumber,
-	formatDayCount,
-	formatContactDetails
-} from './audit-formatters.ts';
+import { formatAddress, formatValue, formatNumber, formatDayCount, formatContactDetails } from './audit-formatters.ts';
+import { formatDate } from './date-util.ts';
 
 describe('Audit Formatters', () => {
 	describe('formatAddress', () => {

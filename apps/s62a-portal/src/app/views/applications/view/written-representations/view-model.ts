@@ -1,15 +1,5 @@
 import { dateIsBeforeToday, dateIsAfterToday } from '@planning-inspectorate/dynamic-forms';
-
-function formatDateTime(date: Date): string {
-	const day = date.getDate().toString().padStart(2, '0');
-	const month = date.toLocaleString('en-GB', { month: 'long' });
-	const time = date
-		.toLocaleString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true })
-		.toLowerCase()
-		.replace(' ', '');
-
-	return `${day} ${month} ${time}`;
-}
+import { formatDateTime } from '@pins/crowndev-lib/util/date-util.ts';
 
 type RepresentationFields = {
 	representationsPeriodStartDate?: Date | null;
@@ -72,22 +62,20 @@ export function representationMessages(
 			return messages;
 		}
 
-		if (hasAcceptedRepresentations) {
-			messages.push('No written representations have been published yet.');
-			if (!publishDate) {
-				//G. Representation period open  & Representations have been submitted and there is at least 1 accepted & Representations publish date not yet set
-				messages.push('We’ll update this page once the date to publish representations has been set.');
-			} else if (dateIsAfterToday(publishDate)) {
-				//H. Representation period open  & Representations have been submitted and there is at least 1 accepted & Representations publish date in future
-				const formattedPublishDate = publishDate.toLocaleDateString('en-GB', {
-					day: '2-digit',
-					month: 'long',
-					year: 'numeric'
-				});
-				messages.push(`You’ll be able to view the published representations from ${formattedPublishDate}`);
-			}
-			return messages;
+		messages.push('No written representations have been published yet.');
+		if (!publishDate) {
+			//G. Representation period open  & Representations have been submitted and there is at least 1 accepted & Representations publish date not yet set
+			messages.push('We’ll update this page once the date to publish representations has been set.');
+		} else if (dateIsAfterToday(publishDate)) {
+			//H. Representation period open  & Representations have been submitted and there is at least 1 accepted & Representations publish date in future
+			const formattedPublishDate = publishDate.toLocaleDateString('en-GB', {
+				day: '2-digit',
+				month: 'long',
+				year: 'numeric'
+			});
+			messages.push(`You’ll be able to view the published representations from ${formattedPublishDate}`);
 		}
+		return messages;
 	}
 
 	if (isPeriodClosed) {
