@@ -282,6 +282,11 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "portal" {
         operator       = "Equals"
         selector       = "_csrf"
       }
+			exclusion {
+				match_variable = "RequestBodyPostArgNames"
+				operator       = "Equals"
+				selector       = "fileName"
+			}
       exclusion {
         match_variable = "RequestBodyPostArgNames"
         operator       = "Equals"

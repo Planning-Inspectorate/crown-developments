@@ -283,6 +283,11 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
       exclusion {
         match_variable = "RequestBodyPostArgNames"
         operator       = "Equals"
+        selector       = "fileName"
+      }
+      exclusion {
+        match_variable = "RequestBodyPostArgNames"
+        operator       = "Equals"
         selector       = "myselfComment"
       }
       exclusion {
@@ -313,6 +318,11 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "manage" {
         match_variable = "RequestBodyPostArgNames"
         operator       = "Equals"
         selector       = "details" # application update details
+      }
+      exclusion {
+        match_variable = "RequestBodyPostArgNames"
+        operator       = "Equals"
+        selector       = "fileName"
       }
       exclusion {
         match_variable = "RequestBodyPostArgNames"
