@@ -22,9 +22,9 @@ export function buildRouter(service: S62APortalService): IRouter {
 	router.use(cacheNoCacheMiddleware);
 
 	if (service.isLive) {
-		/* router.route('/').get((req, res) => {
+		router.route('/').get((req, res) => {
 			res.redirect('/applications');
-		}); */
+		});
 		router.use('/contact', buildContactUsPage());
 		router.use('/', appRoutes(service));
 		router.use('/error', createErrorRoutes(service));
