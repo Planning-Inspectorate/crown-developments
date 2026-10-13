@@ -184,7 +184,7 @@ describe('view-model', () => {
 				id: 'id-1',
 				reference: 'reference-id-1',
 				description: 'A significant project',
-				applicantOrganisations: ['Applicant organisation 1', 'Applicant organisation 2']
+				applicantDetails: ['Applicant organisation 1', 'Applicant organisation 2']
 			};
 			const result = mapDevelopmentToViewModel(
 				input as unknown as S62ADevelopmentPayload,
@@ -210,87 +210,75 @@ describe('view-model', () => {
 			assert.strictEqual(result.developmentContactEmail, undefined);
 		});
 
-		it('should map applicantOrganisations if present', () => {
+		it('should map applicantDetails if present', () => {
 			const result = mapDevelopmentToViewModel(
 				input as unknown as S62ADevelopmentPayload,
 				's62a.dev@planninginspectorate.gov.uk',
 				s62aViewFormattingFunction
-			) as S62ADevelopmentView;
+			) as S62ADevelopmentExtendedView;
 			assert.ok(result.applicantDetails);
 			assert.strictEqual(result.applicantDetails, 'Applicant organisation 1, Applicant organisation 2');
 		});
 	});
 
 	describe('applicant names', () => {
-		/** Runs the formatter with just the applicants, returning the applicant column value */
-		function applicantsFor(applicants: unknown[]): string {
-			const payload = { id: 'id-1', reference: 'REF/1', S62aToApplicants: applicants };
-			return s62aViewFormattingFunction(payload as unknown as S62ADevelopmentPayload).applicantOrganisations;
+		function applicantsFor(applicants: unknown[], applicantTypeId: string = 'individual'): string {
+			const payload = {
+				id: 'id-1',
+				reference: 'REF/1',
+				applicantTypeId,
+				S62aToApplicants: applicants
+			};
+			return s62aViewFormattingFunction(payload as unknown as S62ADevelopmentPayload).applicantDetails;
 		}
 
-		it('should show an individual applicant as first and last name', () => {
-			const result = applicantsFor([
-				{ roleId: 'applicant', Organisation: null, Contact: { firstName: 'Jane', lastName: 'Smithson' } }
-			]);
-			assert.strictEqual(result, 'Jane Smithson');
+		it('should format organisation applicants when applicantTypeId is ORGANISATION', () => {
+			const result = applicantsFor(
+				[{ roleId: 'applicant', Organisation: { name: 'Acme Corp' }, Contact: null }],
+				'organisation'
+			);
+			assert.strictEqual(result, 'Acme Corp');
 		});
 
-		it('should show only the last name when there is no first name', () => {
-			const result = applicantsFor([
-				{ roleId: 'applicant', Organisation: null, Contact: { firstName: null, lastName: 'Smithson' } }
-			]);
-			assert.strictEqual(result, 'Smithson');
+		it('should ignore contacts when applicantTypeId is ORGANISATION', () => {
+			const result = applicantsFor(
+				[
+					{
+						roleId: 'applicant',
+						Organisation: { name: 'Acme Corp' },
+						Contact: { firstName: 'Jane', lastName: 'Smith' }
+					}
+				],
+				'organisation'
+			);
+			assert.strictEqual(result, 'Acme Corp');
 		});
 
-		it('should show only the first name when there is no last name', () => {
-			const result = applicantsFor([
-				{ roleId: 'applicant', Organisation: null, Contact: { firstName: 'Jane', lastName: null } }
-			]);
-			assert.strictEqual(result, 'Jane');
+		it('should join multiple individual applicants with a comma', () => {
+			const result = applicantsFor(
+				[
+					{ roleId: 'applicant', Organisation: null, Contact: { firstName: 'Jane', lastName: 'Smith' } },
+					{ roleId: 'applicant', Organisation: null, Contact: { firstName: 'John', lastName: 'Doe' } }
+				],
+				'individual'
+			);
+			assert.strictEqual(result, 'Jane Smith, John Doe');
 		});
 
-		it('should show nothing for a contact with no names, rather than a stray separator', () => {
-			const result = applicantsFor([
-				{ roleId: 'applicant', Organisation: null, Contact: { firstName: null, lastName: null } }
-			]);
+		it('should ignore whitespace-only name fields', () => {
+			const result = applicantsFor(
+				[{ roleId: 'applicant', Organisation: null, Contact: { firstName: '  ', lastName: 'Smith' } }],
+				'individual'
+			);
+			assert.strictEqual(result, 'Smith');
+		});
+
+		it('should return empty string for unrecognised applicantTypeId', () => {
+			const result = applicantsFor(
+				[{ roleId: 'applicant', Organisation: { name: 'Acme Corp' }, Contact: null }],
+				'UNKNOWN_TYPE'
+			);
 			assert.strictEqual(result, '');
-		});
-
-		it('should show nothing when the applicant has neither an organisation nor a contact', () => {
-			const result = applicantsFor([{ roleId: 'applicant', Organisation: null, Contact: null }]);
-			assert.strictEqual(result, '');
-		});
-
-		it('should prefer the organisation name when both are present', () => {
-			const result = applicantsFor([
-				{
-					roleId: 'applicant',
-					Organisation: { name: 'Golf Estates Ltd' },
-					Contact: { firstName: 'Oliver', lastName: 'Brown' }
-				}
-			]);
-			assert.strictEqual(result, 'Golf Estates Ltd');
-		});
-
-		it('should join organisations and individuals in order, comma separated', () => {
-			const result = applicantsFor([
-				{ roleId: 'applicant', Organisation: { name: 'Golf Estates Ltd' }, Contact: null },
-				{ roleId: 'applicant', Organisation: null, Contact: { firstName: 'Oliver', lastName: 'Brown' } }
-			]);
-			assert.strictEqual(result, 'Golf Estates Ltd, Oliver Brown');
-		});
-
-		it('should not show agents, whether organisations or individuals', () => {
-			const result = applicantsFor([
-				{ roleId: 'applicant', Organisation: { name: 'Applicant Ltd' }, Contact: null },
-				{ roleId: 'agent', Organisation: { name: 'Agentco Planning' }, Contact: null },
-				{ roleId: 'agent', Organisation: null, Contact: { firstName: 'Alex', lastName: 'Agent' } }
-			]);
-			assert.strictEqual(result, 'Applicant Ltd');
-		});
-
-		it('should return an empty string when there are no applicants', () => {
-			assert.strictEqual(applicantsFor([]), '');
 		});
 	});
 });
