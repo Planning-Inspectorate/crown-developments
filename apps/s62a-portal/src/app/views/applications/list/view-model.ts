@@ -43,33 +43,27 @@ export type S62ADevelopmentPayload = ValidatedDbPayload<
 type ExtendedS62AFields = Omit<S62ADevelopmentExtendedView, keyof BaseDevelopmentView>;
 
 function getApplicantDetails(s62aDevelopment: S62ADevelopmentPayload): string {
-	let applicantDetails = '';
-
-	if (s62aDevelopment.S62aToApplicants?.length) {
-		if (s62aDevelopment.applicantTypeId == APPLICANT_TYPE_ID.ORGANISATION) {
-			applicantDetails = s62aDevelopment.S62aToApplicants.filter(
-				(applicant) => applicant.roleId === ORGANISATION_ROLES_ID.APPLICANT
-			)
-				.flatMap((item) => (item.Organisation?.name ? [item.Organisation.name] : []))
-				.join(', ');
-		} else if (s62aDevelopment.applicantTypeId === APPLICANT_TYPE_ID.INDIVIDUAL) {
-			applicantDetails = s62aDevelopment.S62aToApplicants.filter(
-				(applicant) => applicant.roleId === ORGANISATION_ROLES_ID.APPLICANT
-			)
-				.flatMap((item) => {
-					const contact = item.Contact;
-					if (!contact) return [];
-
-					const fullName = [contact.firstName, contact.lastName]
-						.filter((part): part is string => Boolean(part && part.trim()))
-						.join(' ');
-
-					return fullName ? [fullName] : [];
-				})
-				.join(', ');
-		}
+	if (!s62aDevelopment.S62aToApplicants?.length) {
+		return '';
 	}
-	return applicantDetails;
+	if (s62aDevelopment.applicantTypeId == APPLICANT_TYPE_ID.ORGANISATION) {
+		return s62aDevelopment.S62aToApplicants.filter((applicant) => applicant.roleId === ORGANISATION_ROLES_ID.APPLICANT)
+			.flatMap((item) => (item.Organisation?.name ? [item.Organisation.name] : []))
+			.join(', ');
+	}
+	if (s62aDevelopment.applicantTypeId === APPLICANT_TYPE_ID.INDIVIDUAL) {
+		return s62aDevelopment.S62aToApplicants.filter((applicant) => applicant.roleId === ORGANISATION_ROLES_ID.APPLICANT)
+			.flatMap((item) => {
+				const contact = item.Contact;
+				if (!contact) return [];
+				const fullName = [contact.firstName, contact.lastName]
+					.filter((part): part is string => Boolean(part && part.trim()))
+					.join(' ');
+				return fullName ? [fullName] : [];
+			})
+			.join(', ');
+	}
+	return '';
 }
 
 /**
