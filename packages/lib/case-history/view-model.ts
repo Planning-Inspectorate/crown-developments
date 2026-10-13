@@ -1,4 +1,4 @@
-import { formatDateTime } from '../util/audit-formatters.ts';
+import { formatDateTime } from '../util/date-util.ts';
 import {
 	AUDIT_ACTIONS,
 	type AuditTemplates,

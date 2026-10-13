@@ -112,7 +112,7 @@ export function applicationLinks(
 	const links = [
 		{
 			href: `/applications/${id}/application-information`,
-			text: tabText?.applicationinformation ?? 'Application information'
+			text: tabText?.applicationInformation ?? 'Application information'
 		}
 	];
 

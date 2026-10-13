@@ -3,7 +3,7 @@ import type { Logger } from 'pino';
 import { parseMetadata, type AuditEntry, type AuditEvent, type AuditQueryOptions } from './types.ts';
 import { CASE_MODELS, type CaseDataModel } from '../util/types.ts';
 import type { EntraGroupMembers } from '../util/entra-groups.ts';
-import { formatDateTime } from '../util/audit-formatters.ts';
+import { formatDateTime } from '../util/date-util.ts';
 
 /**
  * Builds the audit service used to record and retrieve case history events.
