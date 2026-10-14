@@ -3,11 +3,13 @@ import assert from 'node:assert';
 import {
 	applicationListViewFormattingFunction,
 	applicationUpdateToTimelineItem,
-	crownDevelopmentToViewModel,
+	crownDevelopmentToViewModel
+} from './view-model.ts';
+import {
+	applicationLinks,
 	representationTitle,
 	representationToViewModel
-} from './view-model.ts';
-import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
+} from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('view-model', () => {
