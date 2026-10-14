@@ -38,7 +38,8 @@ export function buildHaveYourSayPage(service) {
 				crownDevelopment.haveYourSayPeriod,
 				crownDevelopment.representationsPublishDate,
 				displayApplicationUpdates,
-				crownDevelopment.applicationStatus
+				crownDevelopment.applicationStatus,
+				undefined
 			),
 			currentUrl: req.originalUrl,
 			containsDistressingContent: crownDevelopment.containsDistressingContent,

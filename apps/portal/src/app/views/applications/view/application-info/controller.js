@@ -149,7 +149,8 @@ export function buildApplicationInformationPage(service) {
 			haveYourSayPeriod,
 			representationsPublishDate,
 			displayApplicationUpdates,
-			applicationStatus
+			applicationStatus,
+			undefined
 		);
 
 		const banner = await getBannerMessages(req, db, crownDevelopment, {

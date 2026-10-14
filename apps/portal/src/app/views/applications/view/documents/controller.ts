@@ -180,7 +180,8 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 				haveYourSayPeriod,
 				representationsPublishDate,
 				displayApplicationUpdates,
-				applicationStatus
+				applicationStatus,
+				undefined
 			),
 			currentUrl: req.originalUrl,
 			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined,
