@@ -28,6 +28,18 @@ describe('representationMessages', () => {
 		assert.ok(result[1].includes('You can submit a written representation'));
 	});
 
+	it('should accept formatted view-model dates', (context) => {
+		context.mock.timers.enable({ apis: ['Date'], now: new Date('2026-01-01T10:00:00.000Z') });
+
+		const result = representationMessages({
+			representationsPeriodStartDate: '1 February 2026',
+			representationsPeriodEndDate: '1 March 2026'
+		});
+
+		assert.strictEqual(result.length, 2);
+		assert.ok(result[1].includes('You can submit a written representation'));
+	});
+
 	it('should return message when period is open but no representations submitted', (context) => {
 		context.mock.timers.enable({ apis: ['Date'], now: new Date('2026-02-15T10:00:00.000Z') });
 

@@ -1,8 +1,21 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { formatDate, isInquiry, isHearing, applicationLinks, mapDevelopmentToViewModel } from './shared-view-model.ts';
+import {
+	formatDate,
+	isInquiry,
+	isHearing,
+	applicationLinks,
+	mapDevelopmentToViewModel,
+	representationTitle
+} from './shared-view-model.ts';
 import type { BaseDevelopmentView, BaseDevelopmentPayload } from './shared-view-model.ts';
-import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { APPLICATION_PUBLISH_STATUS } from './applications.ts';
+import { CASE_DATA_MODEL } from './types.ts';
+import {
+	APPLICATION_PROCEDURE_ID,
+	REPRESENTATION_SUBMITTED_FOR_ID,
+	REPRESENTED_TYPE_ID
+} from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('Application Utilities', () => {
 	describe('formatDate', () => {
@@ -50,6 +63,62 @@ describe('Application Utilities', () => {
 
 		it('should return false when procedureId is null', () => {
 			assert.strictEqual(isHearing(null), false);
+		});
+	});
+
+	describe('representationTitle', () => {
+		const baseRepresentation = {
+			reference: 'rep-1',
+			submittedDate: new Date('2026-01-01'),
+			comment: 'Representation comment',
+			commentRedacted: null,
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+			representedTypeId: REPRESENTED_TYPE_ID.GROUP,
+			submittedByAgentOrgName: 'Planning Group',
+			containsAttachments: false,
+			distressingContentInRepresentation: false,
+			SubmittedByContact: { firstName: 'Alex', lastName: 'Agent' },
+			RepresentedContacts: [
+				{ firstName: 'Robin', lastName: 'Roe' },
+				{ firstName: 'Sam', lastName: 'Smith' }
+			]
+		};
+
+		it('uses Interested Party for a withheld name only when enabled', () => {
+			const representation = {
+				...baseRepresentation,
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
+				submittedByAgentOrgName: null,
+				withholdName: true,
+				SubmittedByContact: { firstName: 'Jane', lastName: 'Doe' }
+			};
+
+			assert.strictEqual(representationTitle(representation), 'Jane Doe');
+			assert.strictEqual(
+				representationTitle(representation, { showWithheldNameAsInterestedParty: true }),
+				'Interested Party'
+			);
+		});
+
+		it('lists all S62A group participants when the group has no name', () => {
+			assert.strictEqual(
+				representationTitle(baseRepresentation, { listS62aGroupParticipants: true }),
+				'Alex Agent (Planning Group) on behalf of Robin Roe, Sam Smith'
+			);
+		});
+
+		it('omits the agent organisation when listing S62A group participants if it is not provided', () => {
+			assert.strictEqual(
+				representationTitle(
+					{ ...baseRepresentation, submittedByAgentOrgName: null },
+					{ listS62aGroupParticipants: true }
+				),
+				'Alex Agent on behalf of Robin Roe, Sam Smith'
+			);
+		});
+
+		it('leaves group title formatting unchanged unless S62A participant listing is enabled', () => {
+			assert.strictEqual(representationTitle(baseRepresentation), 'Alex Agent (Planning Group) on behalf of Robin Roe');
 		});
 	});
 
@@ -146,11 +215,22 @@ describe('Application Utilities', () => {
 				end: new Date('2025-01-30T23:59:59.000Z')
 			};
 			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
-			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, undefined);
-			assert(result.some((link) => link.text === 'Documents'));
-			assert(result.some((link) => link.text === 'Have your say'));
-			assert(result.some((link) => link.text === 'Application updates'));
-			assert(result.some((link) => link.text === 'Written representations'));
+			const result = applicationLinks(
+				id,
+				haveYourSayPeriod,
+				representationsPublishDate,
+				true,
+				APPLICATION_PUBLISH_STATUS.ACTIVE,
+				undefined,
+				CASE_DATA_MODEL.CROWN
+			);
+			assert.deepStrictEqual(result, [
+				{ href: `/applications/${id}/application-information`, text: 'Application information' },
+				{ href: `/applications/${id}/documents`, text: 'Documents' },
+				{ href: `/applications/${id}/have-your-say`, text: 'Have your say' },
+				{ href: `/applications/${id}/application-updates`, text: 'Application updates' },
+				{ href: `/applications/${id}/written-representations`, text: 'Written representations' }
+			]);
 		});
 
 		it('should not include have your say link when applicationStatus is withdrawn', (context) => {
@@ -176,7 +256,15 @@ describe('Application Utilities', () => {
 				end: new Date('2025-01-30T23:59:59.000Z')
 			};
 			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
-			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, 'expired');
+			const result = applicationLinks(
+				id,
+				haveYourSayPeriod,
+				representationsPublishDate,
+				true,
+				APPLICATION_PUBLISH_STATUS.EXPIRED,
+				undefined,
+				CASE_DATA_MODEL.CROWN
+			);
 			assert.deepStrictEqual(result, [
 				{
 					href: `/applications/${id}/application-information`,
@@ -199,6 +287,72 @@ describe('Application Utilities', () => {
 				{ href: `/applications/${id}/have-your-say`, text: 'Have your say' },
 				{ href: `/applications/${id}/application-updates`, text: 'Application updates' },
 				{ href: `/applications/${id}/written-representations`, text: 'Written representations' }
+			]);
+		});
+
+		it('should include Have your say at the start and end of the submission period', (context) => {
+			const id = 'id-1';
+			const haveYourSayPeriod = {
+				start: new Date('2025-01-01T00:00:00.000Z'),
+				end: new Date('2025-01-30T23:59:59.000Z')
+			};
+
+			for (const now of [haveYourSayPeriod.start, haveYourSayPeriod.end]) {
+				context.mock.timers.enable({ apis: ['Date'], now });
+				const result = applicationLinks(id, haveYourSayPeriod, null, false);
+				assert(result.some((link) => link.text === 'Have your say'));
+				context.mock.timers.reset();
+			}
+		});
+
+		it('should omit Have your say before the submission period or when a period boundary is missing', (context) => {
+			const id = 'id-1';
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T00:00:00.000Z') });
+			const haveYourSayPeriod = {
+				start: new Date('2025-01-02T00:00:00.000Z'),
+				end: new Date('2025-01-30T23:59:59.000Z')
+			};
+
+			const beforePeriod = applicationLinks(id, haveYourSayPeriod, null, false);
+			assert(!beforePeriod.some((link) => link.text === 'Have your say'));
+
+			const missingStart = applicationLinks(id, { ...haveYourSayPeriod, start: null }, null, false);
+			assert(!missingStart.some((link) => link.text === 'Have your say'));
+
+			const missingEnd = applicationLinks(id, { ...haveYourSayPeriod, end: null }, null, false);
+			assert(!missingEnd.some((link) => link.text === 'Have your say'));
+		});
+
+		it('should include Written representations on the publish date and for S62A cases without a publish date', (context) => {
+			const id = 'id-1';
+			const publishDate = new Date('2025-01-01T00:00:00.000Z');
+			context.mock.timers.enable({ apis: ['Date'], now: publishDate });
+
+			const crownResult = applicationLinks(id, { start: null, end: null }, publishDate, false);
+			assert(crownResult.some((link) => link.text === 'Written representations'));
+
+			const s62aResult = applicationLinks(
+				id,
+				{ start: null, end: null },
+				null,
+				false,
+				undefined,
+				undefined,
+				CASE_DATA_MODEL.S62A
+			);
+			assert(s62aResult.some((link) => link.text === 'Written representations'));
+		});
+
+		it('should use supplied tab text for application links', () => {
+			const id = 'id-1';
+			const result = applicationLinks(id, { start: null, end: null }, null, false, undefined, {
+				applicationInformation: 'About',
+				documents: 'Files'
+			});
+
+			assert.deepStrictEqual(result, [
+				{ href: `/applications/${id}/application-information`, text: 'About' },
+				{ href: `/applications/${id}/documents`, text: 'Files' }
 			]);
 		});
 	});

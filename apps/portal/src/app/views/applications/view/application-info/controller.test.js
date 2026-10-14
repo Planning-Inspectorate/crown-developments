@@ -148,6 +148,10 @@ describe('application info controller', () => {
 				{
 					href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-updates',
 					text: 'Application updates'
+				},
+				{
+					href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/written-representations',
+					text: 'Written representations'
 				}
 			]);
 
@@ -265,6 +269,10 @@ describe('application info controller', () => {
 				{
 					href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/application-updates',
 					text: 'Application updates'
+				},
+				{
+					href: '/applications/cfe3dc29-1f63-45e6-81dd-da8183842bf8/written-representations',
+					text: 'Written representations'
 				}
 			]);
 

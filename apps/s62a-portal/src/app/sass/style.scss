@@ -24,6 +24,9 @@
 // Shared helpers from lib
 @use 'packages/lib/views/styles/helpers/layout';
 
+// Shared helpers from lib
+@use 'packages/lib/views/styles/helpers/typography';
+
 // App level components
 @use './components/pins-table';
 @use './components/pins-filter-tag';
