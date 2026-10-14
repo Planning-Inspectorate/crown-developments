@@ -8,6 +8,9 @@ import { SHARED_AUDIT_ACTIONS, SHARED_AUDIT_TEMPLATES } from '@pins/crowndev-lib
 export const S62A_AUDIT_ACTIONS = {
 	...SHARED_AUDIT_ACTIONS,
 
+	// Case
+	CASE_MIGRATED: 'CASE_MIGRATED',
+
 	// Applicant organisations
 	APPLICANT_ORGANISATION_ADDED: 'APPLICANT_ORGANISATION_ADDED',
 	APPLICANT_ORGANISATION_UPDATED: 'APPLICANT_ORGANISATION_UPDATED',
@@ -82,6 +85,9 @@ export type S62aAuditAction = (typeof S62A_AUDIT_ACTIONS)[keyof typeof S62A_AUDI
  */
 export const S62A_AUDIT_TEMPLATES: Record<S62aAuditAction, string> = {
 	...SHARED_AUDIT_TEMPLATES,
+
+	// Case
+	[S62A_AUDIT_ACTIONS.CASE_MIGRATED]: '{reference} was migrated',
 
 	// Applicant organisations
 	[S62A_AUDIT_ACTIONS.APPLICANT_ORGANISATION_ADDED]: '{name} was added to applicant organisation(s).',
