@@ -61,7 +61,7 @@ export const mapNotes = (unmappedNotes: NoteForMapping[], groupMembers: EntraGro
 				truncatedCommentText:
 					nl2br(escape(truncateComment(note.comment, CASE_NOTE_MAX_LENGTH))) +
 					(shouldTruncateComment(note.comment, CASE_NOTE_MAX_LENGTH) ? truncatedReadMoreCommentLink(readMoreHref) : ''),
-				userName: user?.displayName || note.userId || 'Unknown'
+				userName: user?.displayName || 'Unknown user' // We should never have no user as there is always an id, however for migrated cases this is unknown.
 			};
 		})
 	};
