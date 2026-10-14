@@ -615,7 +615,7 @@ describe('view-model', () => {
 		}
 		const emptyGroupMembers = { caseOfficers: [], inspectors: [] };
 
-		it('should resolve author display name from group members, falling back to the raw id then Unknown', () => {
+		it('should resolve author display name from group members, falling back to Unknown user', () => {
 			const notes = [
 				{ comment: 'first note', createdAt: new Date('2025-03-03T09:00:00Z'), userId: 'entra-officer' },
 				{ comment: 'second note', createdAt: new Date('2025-03-02T09:00:00Z'), userId: 'not-in-any-group' }
@@ -628,7 +628,7 @@ describe('view-model', () => {
 			const result = callMapNotes(notes, groupMembers);
 
 			assert.strictEqual(result.caseNotes[0].userName, 'Olive Officer');
-			assert.strictEqual(result.caseNotes[1].userName, 'not-in-any-group');
+			assert.strictEqual(result.caseNotes[1].userName, 'Unknown user');
 		});
 
 		it('should escape HTML in comments before converting newlines, and sort newest first', () => {

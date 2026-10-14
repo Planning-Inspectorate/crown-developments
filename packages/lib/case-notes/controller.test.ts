@@ -34,7 +34,7 @@ describe('mapNotes', () => {
 		assert.strictEqual(result.caseNotes[0].userName, 'Inspector Two');
 
 		assert.strictEqual(result.caseNotes[1].commentText, 'Unknown user note');
-		assert.strictEqual(result.caseNotes[1].userName, 'user-999');
+		assert.strictEqual(result.caseNotes[1].userName, 'Unknown user');
 
 		assert.strictEqual(result.caseNotes[2].commentText, 'Older note');
 		assert.strictEqual(result.caseNotes[2].userName, 'Case Officer One');
