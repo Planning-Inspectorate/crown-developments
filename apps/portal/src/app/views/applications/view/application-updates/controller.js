@@ -9,6 +9,7 @@ import {
 	getApplicationStatus,
 	isWithdrawnOrExpired
 } from '@pins/crowndev-lib/util/applications.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
@@ -71,7 +72,15 @@ export function buildApplicationUpdatesPage({ db }) {
 			pageTitle: 'Application updates',
 			pageCaption: crownDevelopment.reference,
 			currentUrl: req.originalUrl,
-			links: applicationLinks(id, haveYourSayPeriod, publishedDate, displayApplicationUpdates, applicationStatus),
+			links: applicationLinks(
+				id,
+				haveYourSayPeriod,
+				publishedDate,
+				displayApplicationUpdates,
+				applicationStatus,
+				undefined,
+				CASE_DATA_MODEL.CROWN
+			),
 			isWithdrawn: isWithdrawnOrExpired(applicationStatus),
 			applicationUpdates: applicationUpdates.map(applicationUpdateToTimelineItem),
 			containsDistressingContent: crownDevelopment.containsDistressingContent || false

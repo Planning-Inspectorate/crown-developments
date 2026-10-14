@@ -14,6 +14,7 @@ import {
 import { getHaveYourSayStatus } from '@pins/crowndev-lib/util/have-your-say.ts';
 import { s62aCaseToViewModel, type S62aCaseWithRelations } from '../view-model.ts';
 import { tabText } from '../view-model.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 export function buildApplicationInformationPage(service: S62APortalService): AsyncRequestHandler {
 	const { db } = service;
@@ -70,7 +71,8 @@ export function buildApplicationInformationPage(service: S62APortalService): Asy
 			representationPublishDate,
 			false,
 			applicationStatus,
-			tabText
+			tabText,
+			CASE_DATA_MODEL.S62A
 		);
 
 		const reference = s62aFields.reference;

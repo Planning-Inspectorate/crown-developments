@@ -77,7 +77,26 @@ describe('buildWrittenRepresentationsPage', () => {
 				findUnique: context.mock.fn(async () => mockDbCase)
 			},
 			s62aRepresentation: {
-				count: context.mock.fn(async () => 0)
+				findMany: context.mock.fn(async () => [
+					{
+						reference: 'REP-001',
+						submittedDate: new Date('2026-01-02'),
+						comment: 'A representation',
+						commentRedacted: null,
+						submittedByAgentOrgName: null,
+						submittedForId: 'myself',
+						representedTypeId: null,
+						withholdName: true,
+						containsAttachments: false,
+						distressingContentInRepresentation: false,
+						SubmittedFor: { displayName: 'Myself' },
+						SubmittedByContact: null,
+						RepresentedContacts: [],
+						Category: null,
+						Attachments: []
+					}
+				]),
+				count: context.mock.fn(async () => 1)
 			}
 		};
 		const loggerMock = { error: context.mock.fn() };
@@ -114,7 +133,8 @@ describe('buildWrittenRepresentationsPage', () => {
 		assert.strictEqual(payload.s62aFields.id, validUuid);
 		assert.strictEqual(payload.s62aFields.reference, 'S62A/2026/0001');
 
-		assert.ok('representationMessage' in payload);
+		assert.deepStrictEqual(payload.representationMessage, []);
+		assert.strictEqual(payload.representations.length, 1);
 		assert.ok(payload.links);
 		assert.ok(Array.isArray(payload.links));
 	});

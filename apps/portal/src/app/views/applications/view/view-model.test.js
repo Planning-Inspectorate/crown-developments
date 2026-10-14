@@ -10,6 +10,7 @@ import {
 	representationTitle,
 	representationToViewModel
 } from '@pins/crowndev-lib/util/shared-view-model.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('view-model', () => {
@@ -208,6 +209,7 @@ describe('view-model', () => {
 		});
 	});
 	describe('applicationLinks', () => {
+		const dataModel = CASE_DATA_MODEL.CROWN;
 		it('should include Have your say when within the representation submission period', (context) => {
 			const id = 'id-1';
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T03:24:00.000Z') });
@@ -315,7 +317,15 @@ describe('view-model', () => {
 				end: new Date('2025-01-30T23:59:59.000Z')
 			};
 			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
-			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, 'withdrawn');
+			const result = applicationLinks(
+				id,
+				haveYourSayPeriod,
+				representationsPublishDate,
+				true,
+				'withdrawn',
+				undefined,
+				dataModel
+			);
 			assert.deepStrictEqual(result, [
 				{ href: `/applications/${id}/application-information`, text: 'Application information' },
 				{ href: `/applications/${id}/documents`, text: 'Documents' },
@@ -330,7 +340,15 @@ describe('view-model', () => {
 				end: new Date('2025-01-30T23:59:59.000Z')
 			};
 			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
-			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, 'expired');
+			const result = applicationLinks(
+				id,
+				haveYourSayPeriod,
+				representationsPublishDate,
+				true,
+				'expired',
+				undefined,
+				dataModel
+			);
 			assert.deepStrictEqual(result, [
 				{
 					href: `/applications/${id}/application-information`,

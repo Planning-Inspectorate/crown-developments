@@ -17,6 +17,7 @@ import {
 	truncateComment,
 	truncatedReadMoreCommentLink
 } from '@pins/crowndev-lib/util/questions.ts';
+import { CASE_DATA_MODEL, type CaseDataModel } from '@pins/crowndev-lib/util/types.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 export type ApplicationLink = {
@@ -119,7 +120,8 @@ export function applicationLinks(
 	representationsPublishDate: Date | null,
 	displayApplicationUpdates: boolean,
 	applicationStatus: ApplicationPublishStatus | undefined = undefined,
-	tabText?: Record<string, string>
+	tabText?: Record<string, string>,
+	service?: CaseDataModel
 ): ApplicationLink[] {
 	const links = [
 		{
@@ -128,8 +130,10 @@ export function applicationLinks(
 		}
 	];
 
-	if (isExpired(applicationStatus)) {
-		return links;
+	if (service == CASE_DATA_MODEL.CROWN) {
+		if (isExpired(applicationStatus)) {
+			return links;
+		}
 	}
 
 	links.push({
@@ -154,7 +158,10 @@ export function applicationLinks(
 		});
 	}
 
-	if (representationsPublishDate && isNowAfterStartDate(representationsPublishDate)) {
+	if (
+		service == CASE_DATA_MODEL.S62A ||
+		(representationsPublishDate && isNowAfterStartDate(representationsPublishDate))
+	) {
 		links.push({
 			href: `/applications/${id}/written-representations`,
 			text: tabText?.writtenRepresentations ?? 'Written representations'
@@ -175,23 +182,45 @@ type RepresentationView = {
 	distressingContent: boolean;
 };
 
-type RepresentationWithContacts = Prisma.RepresentationGetPayload<
-	Prisma.RepresentationDefaultArgs & {
-		include: {
-			SubmittedByContact: true;
-			RepresentedContact: true;
-		};
-	}
->;
+type RepresentationContactForTitle = {
+	orgName?: string | null;
+	firstName?: string | null;
+	lastName?: string | null;
+};
+
+export type RepresentationWithContacts = {
+	reference: string;
+	submittedDate: Date;
+	comment: string;
+	commentRedacted: string | null;
+	submittedForId: string;
+	representedTypeId: string | null;
+	representedGroupName?: string | null;
+	submittedByAgentOrgName: string | null;
+	containsAttachments: boolean | null;
+	distressingContentInRepresentation: boolean | null;
+	withholdName?: boolean | null;
+	SubmittedByContact: RepresentationContactForTitle | null;
+	RepresentedContact?: RepresentationContactForTitle | null;
+	RepresentedContacts?: RepresentationContactForTitle[];
+	Category?: { displayName: string | null } | null;
+	Attachments: { statusId: string }[];
+};
+
+type RepresentationViewOptions = {
+	showWithheldNameAsInterestedParty?: boolean;
+	listS62aGroupParticipants?: boolean;
+};
 
 export function representationToViewModel(
 	representation: RepresentationWithContacts,
-	truncateCommentForView: boolean = false
+	truncateCommentForView: boolean = false,
+	options: RepresentationViewOptions = {}
 ): RepresentationView {
 	const representationComment = representation.commentRedacted || representation.comment;
 	return {
 		representationReference: representation.reference,
-		representationTitle: representationTitle(representation),
+		representationTitle: representationTitle(representation, options),
 		representationComment: truncateCommentForView
 			? truncateComment(representationComment, TRUNCATED_MAX_LENGTH)
 			: representationComment,
@@ -209,15 +238,22 @@ export function representationToViewModel(
 	};
 }
 
-export function representationTitle(representation: RepresentationWithContacts): string | undefined {
-	const getDisplayName = (contact: Prisma.ContactGetPayload<Prisma.ContactDefaultArgs> | null): string =>
+export function representationTitle(
+	representation: RepresentationWithContacts,
+	options: RepresentationViewOptions = {}
+): string | undefined {
+	if (options.showWithheldNameAsInterestedParty && representation.withholdName) {
+		return 'Interested Party';
+	}
+	const getDisplayName = (contact: RepresentationContactForTitle | null): string =>
 		contact?.orgName ?? nameToViewModel(contact?.firstName ?? undefined, contact?.lastName ?? undefined) ?? '';
 
 	const getOnBehalfTitle = (agent: string | null, organisation: string | null, represented: string | null): string =>
 		organisation ? `${agent} (${organisation}) on behalf of ${represented}` : `${agent} on behalf of ${represented}`;
 
-	const { submittedForId, representedTypeId, submittedByAgentOrgName, SubmittedByContact, RepresentedContact } =
+	const { submittedForId, representedTypeId, representedGroupName, submittedByAgentOrgName, SubmittedByContact } =
 		representation;
+	const RepresentedContact = representation.RepresentedContact ?? representation.RepresentedContacts?.[0] ?? null;
 
 	if (submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF) {
 		return getDisplayName(SubmittedByContact);
@@ -225,7 +261,13 @@ export function representationTitle(representation: RepresentationWithContacts):
 
 	if (submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF) {
 		const agentName = getDisplayName(SubmittedByContact);
-		const representedName = getDisplayName(RepresentedContact);
+		const groupParticipantNames = representation.RepresentedContacts?.map(getDisplayName).filter(Boolean);
+		const representedName =
+			options.listS62aGroupParticipants &&
+			representedTypeId === REPRESENTED_TYPE_ID.GROUP &&
+			!representedGroupName?.trim()
+				? (groupParticipantNames?.join(', ') ?? '')
+				: representedGroupName?.trim() || getDisplayName(RepresentedContact);
 
 		return representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION
 			? `${agentName} on behalf of ${representedName}`

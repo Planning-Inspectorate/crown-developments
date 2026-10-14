@@ -11,6 +11,7 @@ import {
 	CheckboxValidator,
 	normaliseCheckboxValues
 } from '@pins/crowndev-lib/forms/custom-components/checkbox-validation/checkbox-validation.js';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 
 /**
@@ -38,7 +39,9 @@ export function buildHaveYourSayPage(service) {
 				crownDevelopment.haveYourSayPeriod,
 				crownDevelopment.representationsPublishDate,
 				displayApplicationUpdates,
-				crownDevelopment.applicationStatus
+				crownDevelopment.applicationStatus,
+				undefined,
+				CASE_DATA_MODEL.CROWN
 			),
 			currentUrl: req.originalUrl,
 			containsDistressingContent: crownDevelopment.containsDistressingContent,

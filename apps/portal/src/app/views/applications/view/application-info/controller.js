@@ -18,6 +18,7 @@ import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
 import { escapeHtml, isSafeRelativeUrl } from '@pins/crowndev-lib/util/string.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 /**
  * @typedef {import('@pins/crowndev-lib/views/banner/banner-builder').BannerMessage} BannerMessage
@@ -149,7 +150,9 @@ export function buildApplicationInformationPage(service) {
 			haveYourSayPeriod,
 			representationsPublishDate,
 			displayApplicationUpdates,
-			applicationStatus
+			applicationStatus,
+			undefined,
+			CASE_DATA_MODEL.CROWN
 		);
 
 		const banner = await getBannerMessages(req, db, crownDevelopment, {

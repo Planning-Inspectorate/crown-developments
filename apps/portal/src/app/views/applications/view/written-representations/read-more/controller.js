@@ -10,6 +10,7 @@ import { mapDriveItemToViewModel } from '@pins/crowndev-lib/documents/view-model
 import { isValidUniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../../util/application-util.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 /**
  * Render written representation read more page
@@ -119,7 +120,9 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 				haveYourSayPeriod,
 				representationsPublishDate,
 				displayApplicationUpdates,
-				applicationStatus
+				applicationStatus,
+				undefined,
+				CASE_DATA_MODEL.CROWN
 			),
 			currentUrl: writtenRepresentationsUrl,
 			backLinkText: 'Back to list',
