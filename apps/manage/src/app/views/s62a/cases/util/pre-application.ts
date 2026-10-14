@@ -27,7 +27,13 @@ export function showPreApplicationTab(answers?: {
 	applicationPhaseId?: string | null;
 	preApplicationAdviceId?: string | null;
 }): boolean {
-	if (!answers) return false;
+	if (!answers) {
+		return false;
+	}
+
+	if (answers.applicationPhaseId === PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION) {
+		return true;
+	}
 
 	return (
 		answers.applicationPhaseId === PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION &&
