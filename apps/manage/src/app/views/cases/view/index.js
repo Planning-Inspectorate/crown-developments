@@ -72,7 +72,7 @@ export function createRoutes(service) {
 
 	if (service.isCaseNotesLive) {
 		// Load case note routes
-		router.use('/application-notes', applicationNotesRoutes);
+		router.use('/case-notes', applicationNotesRoutes);
 	}
 
 	// view question page

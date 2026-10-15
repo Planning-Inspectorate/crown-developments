@@ -242,7 +242,7 @@ export function buildFetchCaseNotesMiddleware(
 		}
 
 		const readMoreHref =
-			dataModel === 'crown' ? `/cases/${caseRow.id}/application-notes` : `/s62a/cases/${caseRow.id}/case-notes`;
+			dataModel === 'crown' ? `/cases/${caseRow.id}/case-notes` : `/s62a/cases/${caseRow.id}/case-notes`;
 
 		let notes;
 		try {
@@ -342,7 +342,7 @@ export function buildViewCaseNotes(service: CaseNotesService, dataModel: CaseDat
 		let readMoreHref: string;
 
 		if (dataModel === 'crown') {
-			readMoreHref = `/cases/${caseRow.id}/application-notes`;
+			readMoreHref = `/cases/${caseRow.id}/case-notes`;
 		} else {
 			readMoreHref = `/s62a/cases/${caseRow.id}/case-notes`;
 		}
@@ -355,7 +355,7 @@ export function buildViewCaseNotes(service: CaseNotesService, dataModel: CaseDat
 			return;
 		}
 
-		return res.render('./application-notes-view.njk', {
+		return res.render('./case-notes-view.njk', {
 			pageHeading: 'Case notes',
 			reference: caseRow?.reference,
 			backLinkUrl: `${getBaseUrl(req.baseUrl)}${id}`,

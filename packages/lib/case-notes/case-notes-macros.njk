@@ -35,14 +35,14 @@
 				<p class="govuk-hint govuk-!-margin-bottom-6">
 					{{ [caseNote.time, ' on ', caseNote.dayOfWeek, ' ', caseNote.date, ' by ', caseNote.userName] | join }}
 				</p>
-				
+
 					<hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
 			</section>
 		{%- endfor -%}
 	</div>
 	{% if (params.totalNotes > params.max) %}
 		<p class="govuk-body govuk-!-text-align-centre">
-			<a class="govuk-link govuk-link--no-visited-state" href="{{ params.currentUrl }}/application-notes"
+			<a class="govuk-link govuk-link--no-visited-state" href="{{ params.currentUrl }}"
 				 data-cy="show-all-notes-link">
 				Show all notes
 			</a>
