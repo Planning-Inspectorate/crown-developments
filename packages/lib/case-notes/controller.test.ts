@@ -45,11 +45,11 @@ describe('mapNotes', () => {
 		const unmappedNotes = [{ comment: longComment, createdAt: new Date(), userId: 'user-1' }];
 
 		const caseId = '3299ed0f-1b40-446d-9089-c1b02e2f9835';
-		const result = mapNotes(unmappedNotes, mockGroupMembers, `/cases/${caseId}/application-notes`);
+		const result = mapNotes(unmappedNotes, mockGroupMembers, `/cases/${caseId}/case-notes`);
 
 		assert.ok(result.caseNotes[0].truncatedCommentText.includes('Read more'));
 		assert.ok(
-			result.caseNotes[0].truncatedCommentText.includes('/cases/3299ed0f-1b40-446d-9089-c1b02e2f9835/application-notes')
+			result.caseNotes[0].truncatedCommentText.includes('/cases/3299ed0f-1b40-446d-9089-c1b02e2f9835/case-notes')
 		);
 	});
 });
@@ -361,7 +361,7 @@ describe('buildViewCaseNotes', () => {
 
 		await handler(asReq(mockReq), asRes(mockRes));
 
-		assert.strictEqual(renderedTemplate, './application-notes-view.njk');
+		assert.strictEqual(renderedTemplate, './case-notes-view.njk');
 		assert.strictEqual(renderedArgs.pageHeading, 'Case notes');
 		assert.strictEqual(renderedArgs.reference, 'CRN/123');
 		assert.ok(renderedArgs.caseNotes.length > 0);

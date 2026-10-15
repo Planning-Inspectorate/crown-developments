@@ -659,13 +659,13 @@ describe('view-model', () => {
 			const notes = [{ comment: longComment, createdAt: new Date('2025-05-01T00:00:00Z'), userId: 'u1' }];
 
 			const caseRowId = '3299ed0f-1b40-446d-9089-c1b02e2f9835';
-			const readMoreUrl = `/cases/${caseRowId}/application-notes`;
+			const readMoreUrl = `/cases/${caseRowId}/case-notes`;
 			const result = callMapNotes(notes, emptyGroupMembers, readMoreUrl);
 			const output = result.caseNotes[0].truncatedCommentText;
 
 			assert.strictEqual(output.startsWith('a'.repeat(CASE_NOTE_MAX_LENGTH)), true);
 			assert.strictEqual(output.includes('Read more'), true);
-			assert.strictEqual(output.includes('href="/cases/3299ed0f-1b40-446d-9089-c1b02e2f9835/application-notes"'), true);
+			assert.strictEqual(output.includes('href="/cases/3299ed0f-1b40-446d-9089-c1b02e2f9835/case-notes"'), true);
 		});
 
 		it('should escape HTML before truncating and still append the read-more link', () => {
@@ -673,7 +673,7 @@ describe('view-model', () => {
 			const notes = [{ comment: longComment, createdAt: new Date('2025-05-01T00:00:00Z'), userId: 'u1' }];
 
 			const caseRowId = '3299ed0f-1b40-446d-9089-c1b02e2f9835';
-			const readMoreUrl = `/cases/${caseRowId}/application-notes`;
+			const readMoreUrl = `/cases/${caseRowId}/case-notes`;
 			const result = callMapNotes(notes, emptyGroupMembers, readMoreUrl);
 			const output = result.caseNotes[0].truncatedCommentText;
 

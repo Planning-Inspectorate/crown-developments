@@ -295,7 +295,7 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		res.locals.groupMembers = groupMembers;
 
 		if (service.isCaseNotesLive) {
-			const readMoreHref = `/cases/${id}/application-notes`;
+			const readMoreHref = `/cases/${id}/case-notes`;
 			const mappedNotes = mapNotes(crownDevelopment.Notes ?? [], groupMembers, readMoreHref);
 			res.locals.caseNotes = mappedNotes.caseNotes;
 			res.locals.allCaseNotesCount = crownDevelopment._count?.Notes ?? 0;

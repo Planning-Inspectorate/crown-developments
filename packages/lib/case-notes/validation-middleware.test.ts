@@ -30,7 +30,7 @@ describe('buildValidateCaseNotesMiddleware', () => {
 		const req = makeReq({
 			params: { id: '123' },
 			body: { comment: 'This is a valid comment' },
-			baseUrl: '/cases/123/application-notes'
+			baseUrl: '/cases/123/case-notes'
 		});
 		const res = makeRes();
 		const next = mock.fn<NextFunction>();
@@ -47,7 +47,7 @@ describe('buildValidateCaseNotesMiddleware', () => {
 		const req = makeReq({
 			params: { id: '123' },
 			body: { comment: '' },
-			baseUrl: '/cases/123/application-notes'
+			baseUrl: '/cases/123/case-notes'
 		});
 		const res = makeRes();
 		const next = mock.fn<NextFunction>();
@@ -67,7 +67,7 @@ describe('buildValidateCaseNotesMiddleware', () => {
 		const req = makeReq({
 			params: { id: '123' },
 			body: { comment: '' },
-			baseUrl: '/cases/123/application-notes',
+			baseUrl: '/cases/123/case-notes',
 			session: { cases } as unknown as Request['session']
 		});
 		const res = makeRes();
@@ -80,7 +80,7 @@ describe('buildValidateCaseNotesMiddleware', () => {
 		assert.ok(recorded, 'expected updateErrors to be written to the cases session field');
 		assert.strictEqual(recorded.length, 1);
 		assert.strictEqual(recorded[0].text, 'Enter a case note');
-		assert.strictEqual(recorded[0].href, '/cases/123/application-notes');
+		assert.strictEqual(recorded[0].href, '/cases/123/case-notes');
 	});
 
 	it('should redirect when comment exceeds 500 characters', async () => {
@@ -88,7 +88,7 @@ describe('buildValidateCaseNotesMiddleware', () => {
 		const req = makeReq({
 			params: { id: '123' },
 			body: { comment: longComment },
-			baseUrl: '/cases/123/application-notes'
+			baseUrl: '/cases/123/case-notes'
 		});
 		const res = makeRes();
 		const next = mock.fn<NextFunction>();
@@ -105,7 +105,7 @@ describe('buildValidateCaseNotesMiddleware', () => {
 		const req = makeReq({
 			params: { id: '123' },
 			body: {},
-			baseUrl: '/cases/123/application-notes'
+			baseUrl: '/cases/123/case-notes'
 		});
 		const res = makeRes();
 		const next = mock.fn<NextFunction>();
