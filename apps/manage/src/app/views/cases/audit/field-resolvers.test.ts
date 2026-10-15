@@ -560,5 +560,39 @@ describe('Crown field resolvers', () => {
 				assert.strictEqual(newValue, '1 February 2026 2:30pm');
 			});
 		});
+		describe('site coordinates field resolvers', () => {
+			it('should set newValues when previous case is null', async () => {
+				const previousCase = {};
+				const newAnswer = {
+					siteCoordinates: {
+						siteEasting: 123456,
+						siteNorthing: 654321
+					}
+				};
+
+				const { oldValue, newValue } = resolve('siteCoordinates', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, '-');
+				assert.strictEqual(newValue, 'Easting: 123456, Northing: 654321');
+			});
+			it('should format previous and new coordinate values', async () => {
+				const previousCase = {
+					siteEasting: 123456,
+					siteNorthing: 654321
+				};
+
+				const newAnswer = {
+					siteCoordinates: {
+						siteEasting: 987654,
+						siteNorthing: 456789
+					}
+				};
+
+				const { oldValue, newValue } = resolve('siteCoordinates', previousCase, newAnswer);
+
+				assert.strictEqual(oldValue, 'Easting: 123456, Northing: 654321');
+				assert.strictEqual(newValue, 'Easting: 987654, Northing: 456789');
+			});
+		});
 	});
 });

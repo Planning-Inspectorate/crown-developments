@@ -1,4 +1,4 @@
-import { formatAddress, formatValue } from '../../util/audit-formatters.ts';
+import { formatAddress, formatValue, formatSiteCoordinatesValue } from '../../util/audit-formatters.ts';
 import { formatDate, formatDateTime } from '../../util/date-util.ts';
 import { camelCaseToSentenceCase } from '../../util/string.ts';
 import { LOCAL_PLANNING_AUTHORITIES as LOCAL_PLANNING_AUTHORITIES_DEV } from '@pins/crowndev-database/src/seed/data-lpa-dev.ts';
@@ -323,6 +323,30 @@ export function entraUserResolver(fieldName: string): FieldResolver {
 				oldValue: oldId == null ? '-' : (nameMap?.get(oldId) ?? oldId),
 				newValue: newId == null ? '-' : (nameMap?.get(newId) ?? newId)
 			};
+		}
+	};
+}
+
+/**
+ * Resolver for the site coordinates audit field.
+ * Combines `siteEasting` and `siteNorthing` into a single display value.
+ */
+export function siteCoordinatesResolver(fieldName: string): FieldResolver {
+	return {
+		resolve(previousCase, newAnswer) {
+			const oldValue = formatSiteCoordinatesValue({
+				siteEasting: previousCase.siteEasting,
+				siteNorthing: previousCase.siteNorthing
+			});
+
+			const newCoordinates =
+				newAnswer && typeof newAnswer === 'object' && fieldName in (newAnswer as Record<string, unknown>)
+					? (newAnswer as Record<string, unknown>)[fieldName]
+					: newAnswer;
+
+			const newValue = formatSiteCoordinatesValue(newCoordinates);
+
+			return { oldValue, newValue };
 		}
 	};
 }

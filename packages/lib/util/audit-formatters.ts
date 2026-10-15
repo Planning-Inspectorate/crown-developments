@@ -162,3 +162,35 @@ export function formatContactDetails({
 
 	return joinParts([name || undefined, toText(email), toText(phone)]);
 }
+
+/**
+ * Formats a single coordinate value for audit display.
+ */
+function formatSingleCoordinateValue(value: number | string | null | undefined): string {
+	return value === null || value === undefined || value === '' ? '-' : String(Number(value));
+}
+
+/**
+ * Formats both site coordinates value for audit display,
+ * e.g. 'Easting: 123456, Northing: 654321'.
+ */
+type SiteCoordinates = {
+	siteEasting?: number | string | null;
+	siteNorthing?: number | string | null;
+};
+
+export function formatSiteCoordinatesValue(value: unknown): string {
+	if (!value || typeof value !== 'object') {
+		return '-';
+	}
+
+	const coordinates = value as SiteCoordinates;
+	const easting = formatSingleCoordinateValue(coordinates.siteEasting);
+	const northing = formatSingleCoordinateValue(coordinates.siteNorthing);
+
+	if (easting === '-' && northing === '-') {
+		return '-';
+	}
+
+	return `Easting: ${easting}, Northing: ${northing}`;
+}
