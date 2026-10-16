@@ -56,4 +56,23 @@ describe('NameValidator', () => {
 		const errors = await getValidationErrors('', question, 'First name');
 		assert.strictEqual(errors.length, 0);
 	});
+
+	describe('allowNumbers', () => {
+		async function getErrors(value: string, label: string) {
+			const req = { body: { [question.fieldName]: value } };
+			const result = await new NameValidator({ label, allowNumbers: true }).validate(question).run(req);
+			return result.array();
+		}
+
+		it('should accept a name containing numbers', async () => {
+			const errors = await getErrors("Jane O'Connor-Smith 2nd", 'First name');
+			assert.strictEqual(errors.length, 0);
+		});
+
+		it('should reject disallowed special characters with a message that mentions numbers', async () => {
+			const errors = await getErrors('Jane@Doe!', 'Last name');
+			assert.strictEqual(errors.length, 1);
+			assert.strictEqual(errors[0].msg, 'Last name must only include letters, spaces, hyphens, apostrophes or numbers');
+		});
+	});
 });

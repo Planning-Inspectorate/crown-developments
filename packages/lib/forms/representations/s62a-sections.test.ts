@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { BOOLEAN_OPTIONS, JourneyResponse, Journey, type Question } from '@planning-inspectorate/dynamic-forms';
 import { getQuestions } from './questions.js';
-import { addRepresentationSection } from './s62a-sections.ts';
+import { addRepresentationSection, haveYourSaySections } from './s62a-sections.ts';
 
 describe('s62a-sections', () => {
 	describe('addRepresentationSection', () => {
@@ -132,6 +132,23 @@ describe('s62a-sections', () => {
 				attachmentsQuestion.shouldDisplay(emptyResponse),
 				false,
 				'Select attachments should NOT display when hasAttachments is missing'
+			);
+		});
+	});
+
+	describe('haveYourSaySections', () => {
+		it('should ask attachments before the comment in the Myself section', () => {
+			const questions = getQuestions({ isS62a: true });
+			const [start, myself] = haveYourSaySections(questions);
+
+			assert.deepStrictEqual(
+				start.questions.map((q: Question) => q.fieldName),
+				['submittedForId']
+			);
+			assert.strictEqual(myself.segment, 'myself');
+			assert.deepStrictEqual(
+				myself.questions.map((q: Question) => q.fieldName),
+				['myselfFullName', 'myselfEmail', 'myselfContainsAttachments', 'myselfBlobAttachments', 'myselfComment']
 			);
 		});
 	});
