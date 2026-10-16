@@ -66,7 +66,7 @@ export function buildApplicationInformationPage(service: S62APortalService): Asy
 
 		const links = applicationLinks(
 			id,
-			{ start: null, end: null },
+			{ start: s62aCase.representationsPeriodStartDate, end: s62aCase.representationsPeriodEndDate },
 			representationPublishDate,
 			false,
 			applicationStatus,

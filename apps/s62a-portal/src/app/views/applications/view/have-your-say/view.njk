@@ -1,0 +1,88 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "application-links/application-links.njk" import applicationLinks %}
+
+{% block pageHeading %}{% endblock %}
+
+{% block pageContent %}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-one-third">
+			{{ applicationLinks(links, currentUrl) }}
+		</div>
+		<div class="govuk-grid-column-two-thirds">
+			<h1 class="govuk-heading-xl">
+				{% if pageCaption %}
+					<span class="govuk-caption-xl">{{ pageCaption }}</span>
+				{% endif %}
+				{{ pageHeading or pageTitle }}
+			</h1>
+
+			<p class="govuk-body">Use this service to:</p>
+			<ul class="govuk-list govuk-list--bullet">
+				<li>send us your comments about this application</li>
+				<li>share any supporting attachments</li>
+			</ul>
+			<p class="govuk-body">This will make up your written representation.</p>
+			<p class="govuk-body">We’ll consider these before we make a decision on an application and we’ll publish your
+				name and comments on this website.</p>
+
+			<h2 class="govuk-heading-m">Before you start</h2>
+			<p class="govuk-body">We’ll ask for your:</p>
+			<ul class="govuk-list govuk-list--bullet">
+				<li>full name</li>
+				<li>email address</li>
+			</ul>
+			<p class="govuk-body">If you’re commenting on behalf of someone else, we may ask for:</p>
+			<ul class="govuk-list govuk-list--bullet">
+				<li>the name of the charity or organisation you work for</li>
+				<li>your job title or volunteer role</li>
+				<li>the name of the person or organisation you are representing</li>
+				<li>the names in your group representation</li>
+			</ul>
+			<p class="govuk-body">If you cannot complete your submission in one sitting, the session will last for 24 hours
+				until you have to re-enter all your information.</p>
+
+			<h2 class="govuk-heading-m">Using artificial intelligence (AI) in written representations</h2>
+			<p class="govuk-body">If you use AI tools to help draft your written representation, check it carefully before
+				you submit. Make sure the content accurately reflects your views and does not introduce any false or
+				misleading information.</p>
+
+			{% set dataPrivacyHtml %}
+				<p class="govuk-body">At the Planning Inspectorate, we value your privacy. This statement outlines how we
+					process your personal data.</p>
+				<p class="govuk-body">When you submit a written representation on a Section 62A application, we’ll ask for
+					your name and email address.</p>
+				<p class="govuk-body">Your name and written representation will be published on the Find a Section 62A
+					application service. We will only use your email address to communicate with you about your submission
+					and will not use your data for any other, unrelated purpose.</p>
+				<p class="govuk-body">We’ll process all of your data in line with our legal obligation under The Town and
+					Country Planning (Section 62A Applications) (Procedure and Written Representations) Order 2025.</p>
+				<p class="govuk-body">You can read full details of how we process your data in our
+					<a class="govuk-link" target="_blank" rel="noopener noreferrer"
+						href="https://www.gov.uk/government/publications/planning-inspectorate-privacy-notices/customer-privacy-notice">GOV.UK
+						Customer Privacy Notice (opens in new tab)</a>.</p>
+				<p class="govuk-body">You have the right to access and correct your data. To do this, contact the Planning
+					Inspectorate Senior Data Protection Manager at
+					<a class="govuk-link" href="mailto:dataprotection@planninginspectorate.gov.uk">dataprotection@planninginspectorate.gov.uk</a>.</p>
+			{% endset %}
+
+			{{ govukDetails({
+				summaryText: "How we process your data",
+				html: dataPrivacyHtml
+			}) }}
+
+			{{ govukInsetText({
+				text: "You must submit your comment and any supporting attachments by 11:59pm on " + representationDeadlineDate + "."
+			}) }}
+
+			{{ govukButton({
+				text: "Start now",
+				href: startUrl,
+				isStartButton: true
+			}) }}
+		</div>
+	</div>
+{% endblock %}
