@@ -180,3 +180,32 @@ export function haveYourSayManageSections(questions: Record<string, Question>, i
 			.addQuestion(questions.dateWithdrawn)
 	];
 }
+
+/**
+ * Creates the front office (portal) Have your say journey.
+ *
+ * Only the Myself branch exists so far. The 'On behalf of' branch, and the
+ * attachment upload and comment pages, are filled in by later tickets; the
+ * upload and comment questions are here now so the attachments answer routes
+ * to the right page.
+ */
+export function haveYourSaySections(questions: Record<string, Question>): Section[] {
+	return [
+		new Section('Representation', 'start').addQuestion(questions.submittedFor),
+		haveYourSayMyselfSection(questions)
+	];
+}
+
+/**
+ * The Myself section of the front office journey. Attachments are asked before the comment.
+ */
+function haveYourSayMyselfSection(questions: Record<string, Question>) {
+	return new Section('Myself', 'myself')
+		.withSectionCondition(whenQuestionHasAnswer(questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.MYSELF))
+		.addQuestion(questions.myselfFullName)
+		.addQuestion(questions.myselfEmail)
+		.addQuestion(questions.myselfHasAttachments)
+		.addQuestion(questions.myselfSelectBlobAttachments)
+		.withCondition(whenQuestionHasAnswer(questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES))
+		.addQuestion(questions.myselfTellUsAboutApplication);
+}
