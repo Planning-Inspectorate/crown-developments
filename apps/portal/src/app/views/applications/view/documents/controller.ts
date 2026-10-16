@@ -28,6 +28,7 @@ import { mapDateFilterErrorSummary } from '../utils/filter-error-summary.ts';
 import type { PortalService } from '#service';
 import type { RequestHandler } from 'express';
 import type { DriveItem } from '@microsoft/microsoft-graph-types';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 /**
  * Builds the application documents page controller.
@@ -180,7 +181,9 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 				haveYourSayPeriod,
 				representationsPublishDate,
 				displayApplicationUpdates,
-				applicationStatus
+				applicationStatus,
+				undefined,
+				CASE_DATA_MODEL.CROWN
 			),
 			currentUrl: req.originalUrl,
 			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined,
