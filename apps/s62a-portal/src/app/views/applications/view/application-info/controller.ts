@@ -64,14 +64,7 @@ export function buildApplicationInformationPage(service: S62APortalService): Asy
 		const applicationStatus = s62aFields.applicationStatus;
 		const representationPublishDate = s62aCase.representationsPublishDate;
 
-		const links = applicationLinks(
-			id,
-			{ start: null, end: null },
-			representationPublishDate,
-			false,
-			applicationStatus,
-			tabText
-		);
+		const links = applicationLinks(id, haveYourSayPeriod, representationPublishDate, false, applicationStatus, tabText);
 
 		const reference = s62aFields.reference;
 
