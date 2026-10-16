@@ -303,6 +303,12 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 
 				// Capture previous values for auditable fields before making changes
 				for (const fieldName of updatedFieldNames) {
+					if (fieldName === 'siteEasting' || fieldName === 'siteNorthing') {
+						previousValues.siteEasting = dbViewModel.siteEasting;
+						previousValues.siteNorthing = dbViewModel.siteNorthing;
+						continue;
+					}
+
 					if (AUDITABLE_SCALAR_FIELDS.has(fieldName)) {
 						previousValues[fieldName] = dbViewModel[fieldName as keyof CrownDevelopmentViewModel];
 					}
@@ -614,6 +620,36 @@ async function recordAuditEntries(
 			groupMembers.inspectors.forEach((member) => {
 				userDisplayNameMap.set(member.id, member.displayName);
 			});
+		}
+
+		const coordinatesWereUpdated =
+			updatedFieldNames.includes('siteEasting') || updatedFieldNames.includes('siteNorthing');
+		if (coordinatesWereUpdated) {
+			const { oldValue, newValue } = resolveFieldValues(
+				CROWN_FIELD_RESOLVERS,
+				'siteCoordinates',
+				previousValues,
+				{
+					siteCoordinates: {
+						siteEasting: answersSnapshot.siteEasting,
+						siteNorthing: answersSnapshot.siteNorthing
+					}
+				},
+				{ environmentConfig: envConfig, environmentName: ENVIRONMENT_NAME, userDisplayNameMap }
+			);
+
+			if (oldValue !== newValue) {
+				allAuditEntries.push({
+					caseId,
+					action: resolveAuditAction(oldValue, newValue),
+					userId: auditUserId,
+					metadata: {
+						fieldName: 'Site coordinates',
+						oldValue,
+						newValue
+					}
+				});
+			}
 		}
 
 		// ── Scalar fields ────────────────────────────────────────────────
