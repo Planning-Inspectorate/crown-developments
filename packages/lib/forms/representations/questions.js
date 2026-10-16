@@ -76,6 +76,7 @@ export const ACCEPT_AND_REDACT = 'accept-and-redact';
  * @property {boolean} [isPortal]
  * @property {boolean} [isManage]
  * @property {boolean} [isS62a]
+ * @property {Record<string, Record<string, unknown>>} [propOverrides] - per-question props merged over the defaults, e.g. app-specific wording
  */
 /**
  * Generate question properties for representation contact details and representation details questions.
@@ -89,7 +90,8 @@ export const getQuestions = ({
 	editActionOverrides = {},
 	isPortal = false,
 	isManage = false,
-	isS62a = false
+	isS62a = false,
+	propOverrides = {}
 } = {}) => {
 	const actionLinkOverride = {
 		text: 'Manage',
@@ -575,6 +577,13 @@ export const getQuestions = ({
 	const shouldHideAllEdits = Boolean(isS62a && actionOverrides?.statusShouldHideAllEdits);
 
 	const withdrawalFields = ['ajaxWithdrawalRequests', 'withdrawalReason', 'withdrawalRequestDate'];
+
+	for (const [key, overrides] of Object.entries(propOverrides)) {
+		if (!(key in questionProps)) {
+			throw new Error(`propOverrides: unknown question '${key}'`);
+		}
+		questionProps[key] = { ...questionProps[key], ...overrides };
+	}
 
 	const finalQuestionProps = shouldHideAllEdits
 		? Object.fromEntries(

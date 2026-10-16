@@ -1,0 +1,14 @@
+{% extends "views/layouts/main.njk" %}
+
+{% block pageContent %}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			<p class="govuk-body">The deadline for comments on this application was 11:59pm on {{ representationDeadlineDate }}.</p>
+			<p class="govuk-body">We cannot accept your comment because the deadline has passed.</p>
+			<p class="govuk-body">You can view the application and the representations once they have been published.</p>
+			<p class="govuk-body">
+				<a class="govuk-link" href="{{ applicationUrl }}">Back to application</a>
+			</p>
+		</div>
+	</div>
+{% endblock %}

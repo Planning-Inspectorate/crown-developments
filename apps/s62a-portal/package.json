@@ -31,7 +31,8 @@
   "devDependencies": {
     "@types/nunjucks": "*",
     "nodemon": "*",
-    "sass": "*"
+    "sass": "*",
+    "supertest": "*"
   },
   "imports": {
     "#service": "./src/app/service.ts",
