@@ -7,11 +7,20 @@ import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts'
 import type { PublishOperation, UnpublishCaseFetcher, CaseActionHook } from '../util/types.ts';
 import path from 'node:path';
 import { isValidRedirectUri } from '../util/uri.ts';
+import type { AuditService } from '@pins/crowndev-lib/audit/index.ts';
+
+export type OnUnpublishSuccess = (
+	req: Request,
+	caseId: string,
+	caseReference: string,
+	audit: AuditService
+) => Promise<void> | void;
 
 export function buildSubmitUnpublishCase(
-	{ db, logger }: { db: PrismaClient; logger: Logger },
+	{ db, logger, audit }: { db: PrismaClient; logger: Logger; audit?: AuditService },
 	unpublishCaseFunction: PublishOperation,
 	caseCheckFunction: UnpublishCaseFetcher,
+	onUnpublishSuccess?: OnUnpublishSuccess,
 	onUnpublished?: CaseActionHook
 ) {
 	return async (req: Request, res: Response) => {
@@ -26,6 +35,12 @@ export function buildSubmitUnpublishCase(
 
 		try {
 			await unpublishCaseFunction(db, id);
+
+			const caseReference = (caseCheck as { reference?: string } | null)?.reference;
+
+			if (onUnpublishSuccess && audit && caseReference) {
+				await onUnpublishSuccess(req, id, caseReference, audit);
+			}
 		} catch (error) {
 			wrapPrismaError({
 				error,

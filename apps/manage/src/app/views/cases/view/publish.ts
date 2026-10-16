@@ -1,5 +1,9 @@
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
-import type { AnswerValidationError } from '@pins/crowndev-lib/util/types.ts';
+import type { AnswerValidationError, CaseActionHook } from '@pins/crowndev-lib/util/types.ts';
+import type { Request } from 'express';
+import type { AuditService } from '@pins/crowndev-lib/audit/index.ts';
+import { SHARED_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/shared-actions.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 export function publishCrownCase(db: PrismaClient, id: string) {
 	return db.crownDevelopment.update({
@@ -63,4 +67,59 @@ export async function fetchCrownUnpublishCase(db: PrismaClient, id: string) {
 	return await db.crownDevelopment.findUnique({
 		where: { id }
 	});
+}
+
+function buildAuditHook(
+	audit: AuditService,
+	caseReference: string,
+	action: string,
+	isAuditLive: boolean
+): CaseActionHook {
+	return async (req: Request, caseId: string) => {
+		if (!isAuditLive) {
+			return;
+		}
+
+		const userId = req.session?.account?.localAccountId || 'Unknown-user';
+
+		try {
+			await audit.recordMany(
+				[
+					{
+						caseId,
+						action,
+						userId,
+						metadata: {
+							reference: caseReference
+						}
+					}
+				],
+				CASE_DATA_MODEL.CROWN
+			);
+		} catch {
+			// Audit failures should never block the operation
+		}
+	};
+}
+
+/**
+ * Hook that records a CASE_PUBLISHED audit event.
+ */
+export function createPublishAuditHook(
+	audit: AuditService,
+	caseReference: string,
+	isAuditLive: boolean
+): CaseActionHook {
+	return buildAuditHook(audit, caseReference, SHARED_AUDIT_ACTIONS.CASE_PUBLISHED, isAuditLive);
+}
+
+/**
+ * Hook that records a CASE_UNPUBLISHED audit event.
+ */
+export function createUnpublishAuditHook(
+	audit: AuditService,
+	caseReference: string,
+	isAuditLive: boolean
+): CaseActionHook {
+	return buildAuditHook(audit, caseReference, SHARED_AUDIT_ACTIONS.CASE_UNPUBLISHED, isAuditLive);
 }

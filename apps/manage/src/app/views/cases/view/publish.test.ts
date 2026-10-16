@@ -6,8 +6,12 @@ import {
 	answerValidation,
 	unpublishCrownCase,
 	fetchCrownUnpublishCase,
+	createPublishAuditHook,
+	createUnpublishAuditHook,
 	type FetchedCrownDevelopment
 } from './publish.ts';
+import { SHARED_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/shared-actions.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 describe('Crown Development Publish & Unpublish Domain Helpers', () => {
 	describe('publishCrownCase', () => {
@@ -174,6 +178,137 @@ describe('Crown Development Publish & Unpublish Domain Helpers', () => {
 				where: { id: 'crown-123' }
 			});
 			assert.deepStrictEqual(result, { id: 'crown-123' });
+		});
+	});
+
+	describe('Audit Hooks', () => {
+		type AuditEntry = {
+			caseId: string;
+			action: string;
+			userId: string;
+			metadata: {
+				reference: string;
+			};
+		};
+
+		const getAuditCall = (mockAudit: { recordMany: any }) =>
+			mockAudit.recordMany.mock.calls[0].arguments as [AuditEntry[], string];
+
+		describe('createPublishAuditHook', () => {
+			it('should audit when published', async () => {
+				const mockAudit = {
+					recordMany: mock.fn(() => Promise.resolve())
+				};
+
+				const publishHook = createPublishAuditHook(mockAudit as any, 'CRN/2026/001', true);
+				await publishHook({ session: { account: { localAccountId: 'user-123' } } } as any, 'crown-case-1');
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+
+				const [auditData, dataModel] = getAuditCall(mockAudit);
+
+				assert.strictEqual(auditData[0].caseId, 'crown-case-1');
+				assert.strictEqual(auditData[0].action, SHARED_AUDIT_ACTIONS.CASE_PUBLISHED);
+				assert.strictEqual(auditData[0].userId, 'user-123');
+				assert.strictEqual(auditData[0].metadata.reference, 'CRN/2026/001');
+				assert.strictEqual(dataModel, CASE_DATA_MODEL.CROWN);
+			});
+
+			it('should use Unknown-user when userId is missing', async () => {
+				const mockAudit = {
+					recordMany: mock.fn(() => Promise.resolve())
+				};
+
+				const publishHook = createPublishAuditHook(mockAudit as any, 'CRN/2026/002', true);
+				await publishHook({ session: { account: {} } } as any, 'crown-case-2');
+
+				const [auditData] = getAuditCall(mockAudit);
+
+				assert.strictEqual(auditData[0].userId, 'Unknown-user');
+			});
+
+			it('should not throw when audit fails', async () => {
+				const mockAudit = {
+					recordMany: mock.fn(() => {
+						throw new Error('Audit service error');
+					})
+				};
+
+				const publishHook = createPublishAuditHook(mockAudit as any, 'CRN/2026/003', true);
+
+				await publishHook({ session: { account: { localAccountId: 'user-123' } } } as any, 'crown-case-3');
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+			});
+
+			it('should skip audit when isAuditLive is false', async () => {
+				const mockAudit = {
+					recordMany: mock.fn(() => Promise.resolve())
+				};
+
+				const publishHook = createPublishAuditHook(mockAudit as any, 'CRN/2026/007', false);
+				await publishHook({ session: { account: { localAccountId: 'user-123' } } } as any, 'crown-case-7');
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 0);
+			});
+		});
+
+		describe('createUnpublishAuditHook', () => {
+			it('should audit when unpublished', async () => {
+				const mockAudit = {
+					recordMany: mock.fn(() => Promise.resolve())
+				};
+
+				const unpublishHook = createUnpublishAuditHook(mockAudit as any, 'CRN/2026/004', true);
+				await unpublishHook({ session: { account: { localAccountId: 'user-456' } } } as any, 'crown-case-4');
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+
+				const [auditData, dataModel] = getAuditCall(mockAudit);
+
+				assert.strictEqual(auditData[0].caseId, 'crown-case-4');
+				assert.strictEqual(auditData[0].action, SHARED_AUDIT_ACTIONS.CASE_UNPUBLISHED);
+				assert.strictEqual(auditData[0].userId, 'user-456');
+				assert.strictEqual(dataModel, CASE_DATA_MODEL.CROWN);
+			});
+
+			it('should use Unknown-user when userId is missing from unpublish', async () => {
+				const mockAudit = {
+					recordMany: mock.fn(() => Promise.resolve())
+				};
+
+				const unpublishHook = createUnpublishAuditHook(mockAudit as any, 'CRN/2026/005', true);
+				await unpublishHook({ session: { account: {} } } as any, 'crown-case-5');
+
+				const [auditData] = getAuditCall(mockAudit);
+
+				assert.strictEqual(auditData[0].userId, 'Unknown-user');
+			});
+
+			it('should not throw when audit fails on unpublish', async () => {
+				const mockAudit = {
+					recordMany: mock.fn(() => {
+						throw new Error('Audit service error');
+					})
+				};
+
+				const unpublishHook = createUnpublishAuditHook(mockAudit as any, 'CRN/2026/006', true);
+
+				await unpublishHook({ session: { account: { localAccountId: 'user-456' } } } as any, 'crown-case-6');
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+			});
+
+			it('should skip audit when isAuditLive is false on unpublish', async () => {
+				const mockAudit = {
+					recordMany: mock.fn(() => Promise.resolve())
+				};
+
+				const unpublishHook = createUnpublishAuditHook(mockAudit as any, 'CRN/2026/008', false);
+				await unpublishHook({ session: { account: { localAccountId: 'user-456' } } } as any, 'crown-case-8');
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 0);
+			});
 		});
 	});
 });
