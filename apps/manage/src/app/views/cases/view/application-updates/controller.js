@@ -1,7 +1,7 @@
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { getPaginationParams, createPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
-import { getAnswers } from '@pins/crowndev-lib/util/answers.js';
+import { getAnswers } from '@pins/crowndev-lib/util/answers.ts';
 import {
 	clearAppUpdatesFromSession,
 	clearAppUpdateStatusSession,

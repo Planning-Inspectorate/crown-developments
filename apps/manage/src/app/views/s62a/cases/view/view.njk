@@ -103,7 +103,7 @@
 						</h1>
 					<p class="govuk-body">
 						<a href="{{ cleanUrl }}/case-notes/add-case-note" class="govuk-link govuk-link--no-visited-state">Add case note</a>
-					</p>				
+					</p>
 						<div id="pagination" class="govuk-body">
 							{% if caseNotePaginationParams.totalItems > 25 %}
 								<p class="govuk-body govuk-clearfix">
@@ -131,7 +131,7 @@
 							text: "Created date"
 						},
 							value: {
-							text: createdDate
+							text: createdDateFormatted
 						}
 						},
 						{

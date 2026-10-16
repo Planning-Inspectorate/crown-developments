@@ -42,6 +42,7 @@ import { resolveAuditAction } from '@pins/crowndev-lib/audit/actions.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
 import { CROWN_FIELD_RESOLVERS } from '../audit/field-resolvers.ts';
+import { getAnswers } from '@pins/crowndev-lib/util/answers.ts';
 
 /**
  * Send a notification in the background and update the emailSent flag only on success.
@@ -256,7 +257,9 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 		const updatedFieldNames = Object.keys(toSave);
 		const answersSnapshot = { ...toSave };
 
-		const fullViewModel = res.locals?.journeyResponse?.answers || {};
+		// The full (unmerged) view model is the single source of truth for pre-update state.
+		// This is always populated by the journey middleware before this handler runs.
+		const fullViewModel = getAnswers<CrownDevelopmentViewModel>(res);
 		const originalAnswers: Partial<CrownDevelopmentViewModel> = res.locals?.originalAnswers || {};
 
 		customUpdateCaseActions(service, id, toSave, fullViewModel);

@@ -19,6 +19,7 @@ import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { isValidRedirectUri } from '@pins/crowndev-lib/util/uri.ts';
 import { S62A_AUDIT_ACTIONS } from '../../../audit/actions.ts';
 import { recordS62aRepresentationAudit } from '../../../audit/representations.ts';
+import { getAnswers } from '@pins/crowndev-lib/util/answers.ts';
 
 type WithdrawalAnswers = {
 	withdrawalReasonId: string;
@@ -157,12 +158,7 @@ export function buildSaveController(service: ManageService): AsyncRequestHandler
 	return async (req, res) => {
 		const { id, representationRef } = getStringParams(req.params, ['id', 'representationRef']);
 
-		if (!res.locals || !res.locals.journeyResponse) {
-			throw new Error('journey response required');
-		}
-
-		const journeyResponse = res.locals.journeyResponse;
-		const answers = journeyResponse.answers as unknown as WithdrawalAnswers;
+		const answers = getAnswers<WithdrawalAnswers>(res);
 
 		const representation = await db.s62aRepresentation.findUnique({
 			where: { reference: representationRef },

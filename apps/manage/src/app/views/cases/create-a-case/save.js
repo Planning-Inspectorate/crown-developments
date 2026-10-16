@@ -18,6 +18,7 @@ import { extractAgentContactFields, extractApplicantContactFields } from '../uti
 import { AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/index.ts';
 import { retryGrantPermissions } from '#util/sharepoint.js';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import { getAnswers } from '@pins/crowndev-lib/util/answers.ts';
 
 /**
  * @typedef {import('./types.d.ts').CreateCaseAnswers} CreateCaseAnswers
@@ -35,18 +36,8 @@ import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 export function buildSaveController(service) {
 	const { db, appSharePointDrive, logger, notifyClient, audit } = service;
 	return async (req, res) => {
-		if (!res.locals || !res.locals.journeyResponse) {
-			throw new Error('journey response required');
-		}
-		/** @type {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} */
-		const journeyResponse = res.locals.journeyResponse;
-		/**
-		 * @type {import('./types.d.ts').CreateCaseAnswers}
-		 */
-		const answers = journeyResponse.answers;
-		if (typeof answers !== 'object') {
-			throw new Error('answers should be an object');
-		}
+		/** @type {import('./types.d.ts').CreateCaseAnswers} */
+		const answers = getAnswers(res);
 		let reference;
 		let lbcReference;
 		let id;

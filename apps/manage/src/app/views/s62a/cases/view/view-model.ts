@@ -200,7 +200,7 @@ export interface NonResidentialFloorspaceItem {
 	[field: string]: unknown;
 }
 
-export interface S62aCaseViewModel {
+export type S62aCaseViewModel = {
 	id: string;
 	reference: string;
 	historicalReference: string | null;
@@ -385,7 +385,7 @@ export interface S62aCaseViewModel {
 
 	//Vehicle Parking tab
 	vehicleParking?: VehicleParkingItem[];
-}
+};
 
 /**
  * Optional boolean fields that need converting to YesNo | undefined

@@ -33,12 +33,33 @@ async function flushMicrotasks() {
 	await new Promise((resolve) => setImmediate(resolve));
 }
 
+/**
+ * Builds a mock request with the common params/session shape used across update-case tests.
+ * Pass overrides to customise params, session, or add extra properties.
+ */
+function buildMockReq(overrides: Record<string, any> = {}) {
+	return { params: { id: 'case-1' }, session: {}, ...overrides };
+}
+
+/**
+ * Builds a mock response with the journeyResponse.answers shape required by getAnswers(),
+ * plus optional originalAnswers (used by some handlers for pre-update field values).
+ */
+function buildMockRes(answers: Record<string, any> = {}, originalAnswers?: Record<string, any>) {
+	return {
+		locals: {
+			journeyResponse: { answers },
+			...(originalAnswers !== undefined ? { originalAnswers } : {})
+		}
+	};
+}
+
 describe('case details', () => {
 	describe('buildUpdateCase', () => {
 		it('should throw if no id', async () => {
 			const updateCase = buildUpdateCase({});
 			const mockReq = { params: {} };
-			const mockRes = { locals: {} };
+			const mockRes = buildMockRes();
 			const data = {};
 			await assert.rejects(() => updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any));
 		});
@@ -53,7 +74,7 @@ describe('case details', () => {
 			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
 			const mockReq = { params: { id: 'case-1' } };
-			const mockRes = { locals: {} };
+			const mockRes = buildMockRes();
 			const data = {};
 			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 0);
@@ -72,11 +93,8 @@ describe('case details', () => {
 			};
 			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
-			const mockRes = { locals: {} };
+			const mockReq = buildMockReq();
+			const mockRes = buildMockRes();
 			const data = {
 				answers: {
 					description: 'My new application description'
@@ -85,8 +103,8 @@ describe('case details', () => {
 			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
 			const updateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
-			assert.strictEqual(updateArg.where?.id, 'case1');
-			assert.strictEqual((mockReq.session as any)?.cases?.case1.updated, true);
+			assert.strictEqual(updateArg.where?.id, 'case-1');
+			assert.strictEqual((mockReq.session as any)?.cases?.['case-1'].updated, true);
 		});
 
 		it('should set agent status updated when agent is removed', async () => {
@@ -100,10 +118,7 @@ describe('case details', () => {
 			};
 			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -121,7 +136,7 @@ describe('case details', () => {
 
 			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
 
-			assert.strictEqual((mockReq.session as any)?.cases?.case1.agentStatusUpdated, true);
+			assert.strictEqual((mockReq.session as any)?.cases?.['case-1'].agentStatusUpdated, true);
 		});
 
 		it('should set agent status updated when agent is added', async () => {
@@ -135,10 +150,7 @@ describe('case details', () => {
 			};
 			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -156,7 +168,7 @@ describe('case details', () => {
 
 			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
 
-			assert.strictEqual((mockReq.session as any)?.cases?.case1.agentStatusUpdated, true);
+			assert.strictEqual((mockReq.session as any)?.cases?.['case-1'].agentStatusUpdated, true);
 		});
 
 		it('should not set agent status updated when agent status does not change', async () => {
@@ -170,10 +182,7 @@ describe('case details', () => {
 			};
 			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -191,7 +200,7 @@ describe('case details', () => {
 
 			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
 
-			assert.strictEqual((mockReq.session as any)?.cases?.case1.agentStatusUpdated, undefined);
+			assert.strictEqual((mockReq.session as any)?.cases?.['case-1'].agentStatusUpdated, undefined);
 		});
 
 		it('should set applicant organisation added when applicant organisation count increases', async () => {
@@ -205,10 +214,7 @@ describe('case details', () => {
 			};
 			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -226,7 +232,7 @@ describe('case details', () => {
 
 			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
 
-			assert.strictEqual((mockReq.session as any)?.cases?.case1.applicantOrgAdded, true);
+			assert.strictEqual((mockReq.session as any)?.cases?.['case-1'].applicantOrgAdded, true);
 		});
 
 		it('should not set applicant organisation added when applicant organisation count does not increase', async () => {
@@ -240,10 +246,7 @@ describe('case details', () => {
 			};
 			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -261,7 +264,7 @@ describe('case details', () => {
 
 			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
 
-			assert.strictEqual((mockReq.session as any)?.cases?.case1.applicantOrgAdded, undefined);
+			assert.strictEqual((mockReq.session as any)?.cases?.['case-1'].applicantOrgAdded, undefined);
 		});
 		it('should update both parent case and linked child case if child linked case id is present and field not in deLinked field list', async () => {
 			const logger = mockLogger();
@@ -280,11 +283,8 @@ describe('case details', () => {
 			};
 			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
-			const mockRes = { locals: {} };
+			const mockReq = buildMockReq();
+			const mockRes = buildMockRes();
 			const data = {
 				answers: {
 					description: 'My new application description'
@@ -296,7 +296,7 @@ describe('case details', () => {
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 2);
 
 			const updateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
-			assert.strictEqual(updateArg.where?.id, 'case1');
+			assert.strictEqual(updateArg.where?.id, 'case-1');
 
 			const updateLinkedCaseArg = (mockDb.crownDevelopment.update.mock.calls[1] as any).arguments[0];
 			assert.strictEqual(updateLinkedCaseArg.where?.id, 'linked-case-id-1');
@@ -308,17 +308,14 @@ describe('case details', () => {
 				crownDevelopment: {
 					update: mock.fn(),
 					findUnique: mock.fn(() => ({
-						linkedParentId: 'case1'
+						linkedParentId: 'case-1'
 					}))
 				}
 			};
 			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'linked-case-id-1' },
-				session: {}
-			};
-			const mockRes = { locals: {} };
+			const mockReq = buildMockReq({ params: { id: 'linked-case-id-1' } });
+			const mockRes = buildMockRes();
 			const data = {
 				answers: {
 					description: 'My new application description'
@@ -333,7 +330,7 @@ describe('case details', () => {
 			assert.strictEqual(updateArg.where?.id, 'linked-case-id-1');
 
 			const updateLinkedCaseArg = (mockDb.crownDevelopment.update.mock.calls[1] as any).arguments[0];
-			assert.strictEqual(updateLinkedCaseArg.where?.id, 'case1');
+			assert.strictEqual(updateLinkedCaseArg.where?.id, 'case-1');
 		});
 		it('should call update case but not the linked case if linkedCaseId present and field is in deLinked field list', async () => {
 			const logger = mockLogger();
@@ -352,11 +349,8 @@ describe('case details', () => {
 			};
 			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
-			const mockRes = { locals: {} };
+			const mockReq = buildMockReq();
+			const mockRes = buildMockRes();
 			const data = {
 				answers: {
 					statusId: 'acceptance'
@@ -382,7 +376,7 @@ describe('case details', () => {
 				crownDevelopment: {
 					update: mock.fn(({ where, data }) => ({ where, data })),
 					findMany: mock.fn(() => [
-						{ id: 'case1', Organisations: [] },
+						{ id: 'case-1', Organisations: [] },
 						{ id: 'linked-case-id-1', Organisations: [] }
 					]),
 					findUnique: mock.fn(() => ({
@@ -395,11 +389,8 @@ describe('case details', () => {
 			makeTransactionInteractive(mockDb);
 
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
-			const mockRes = { locals: {} };
+			const mockReq = buildMockReq();
+			const mockRes = buildMockRes();
 			const data = {
 				answers: {
 					manageApplicantDetails: [
@@ -428,7 +419,7 @@ describe('case details', () => {
 			const linkCalls = mockDb.crownDevelopmentToOrganisation.create.mock.calls.map((c) => c.arguments[0]);
 			assert.deepStrictEqual(
 				linkCalls.map((c) => c.data?.crownDevelopmentId).sort(),
-				['case1', 'linked-case-id-1'].sort()
+				['case-1', 'linked-case-id-1'].sort()
 			);
 		});
 
@@ -457,11 +448,8 @@ describe('case details', () => {
 			makeTransactionInteractive(mockDb);
 
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
-			const mockRes = { locals: {} };
+			const mockReq = buildMockReq();
+			const mockRes = buildMockRes();
 			const data = {
 				answers: {
 					manageApplicantDetails: [
@@ -481,7 +469,7 @@ describe('case details', () => {
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
 			assert.strictEqual(mockDb.crownDevelopmentToOrganisation.create.mock.callCount(), 1);
 			const linkArg = (mockDb.crownDevelopmentToOrganisation.create.mock.calls[0] as any).arguments[0];
-			assert.strictEqual(linkArg.data?.crownDevelopmentId, 'case1');
+			assert.strictEqual(linkArg.data?.crownDevelopmentId, 'case-1');
 			assert.strictEqual(linkArg.data?.role, ORGANISATION_ROLES_ID.APPLICANT);
 		});
 
@@ -510,10 +498,7 @@ describe('case details', () => {
 			makeTransactionInteractive(mockDb);
 
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'parent-case-id' },
-				session: {}
-			};
+			const mockReq = buildMockReq({ params: { id: 'parent-case-id' } });
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -580,10 +565,7 @@ describe('case details', () => {
 			makeTransactionInteractive(mockDb);
 
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'child-lbc-case-id' },
-				session: {}
-			};
+			const mockReq = buildMockReq({ params: { id: 'child-lbc-case-id' } });
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -649,10 +631,7 @@ describe('case details', () => {
 			makeTransactionInteractive(mockDb);
 
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'child-lbc-case-id' },
-				session: {}
-			};
+			const mockReq = buildMockReq({ params: { id: 'child-lbc-case-id' } });
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -719,10 +698,7 @@ describe('case details', () => {
 			makeTransactionInteractive(mockDb);
 
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'parent-case-id' },
-				session: {}
-			};
+			const mockReq = buildMockReq({ params: { id: 'parent-case-id' } });
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -780,11 +756,8 @@ describe('case details', () => {
 			makeTransactionInteractive(mockDb);
 
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'single-case-id' },
-				session: {}
-			};
-			const mockRes = { locals: {} };
+			const mockReq = buildMockReq({ params: { id: 'single-case-id' } });
+			const mockRes = buildMockRes();
 			const data = {
 				answers: {
 					siteAddress: {
@@ -818,12 +791,12 @@ describe('case details', () => {
 			};
 			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
+					journeyResponse: {
+						answers: {}
+					},
 					originalAnswers: {
 						eventId: 'event-1',
 						procedureId: APPLICATION_PROCEDURE_ID.INQUIRY
@@ -837,9 +810,9 @@ describe('case details', () => {
 			};
 			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
-			assert.strictEqual((mockReq.session as any)?.cases?.case1.updated, true);
+			assert.strictEqual((mockReq.session as any)?.cases?.['case-1'].updated, true);
 			const updateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
-			assert.strictEqual(updateArg.where?.id, 'case1');
+			assert.strictEqual(updateArg.where?.id, 'case-1');
 			assert.strictEqual(updateArg.data?.Event?.upsert?.where?.id, 'event-1');
 			assert.strictEqual(updateArg.data?.Event?.upsert?.create.venue, 'some place');
 		});
@@ -869,10 +842,7 @@ describe('case details', () => {
 				notifyClient: mockNotifyClient,
 				portalBaseUrl: 'https://test.com'
 			});
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -894,17 +864,17 @@ describe('case details', () => {
 
 			// 2 updates: main case update + background flag update after notification succeeds
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 2);
-			assert.strictEqual((mockReq.session as any)?.cases?.case1.updated, true);
+			assert.strictEqual((mockReq.session as any)?.cases?.['case-1'].updated, true);
 
 			// Main update should have the date but NOT the flag (flag is set after notification succeeds)
 			const mainUpdateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
-			assert.strictEqual(mainUpdateArg.where?.id, 'case1');
+			assert.strictEqual(mainUpdateArg.where?.id, 'case-1');
 			assert.strictEqual(mainUpdateArg.data?.lpaQuestionnaireReceivedDate, date);
 			assert.strictEqual(mainUpdateArg.data?.lpaQuestionnaireReceivedEmailSent, undefined);
 
 			// Background flag update
 			const flagUpdateArg = (mockDb.crownDevelopment.update.mock.calls[1] as any).arguments[0];
-			assert.strictEqual(flagUpdateArg.where?.id, 'case1');
+			assert.strictEqual(flagUpdateArg.where?.id, 'case-1');
 			assert.strictEqual(flagUpdateArg.data?.lpaQuestionnaireReceivedEmailSent, true);
 
 			assert.strictEqual(mockNotifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire.mock.callCount(), 1);
@@ -945,10 +915,7 @@ describe('case details', () => {
 				notifyClient: mockNotifyClient,
 				portalBaseUrl: 'https://test.com'
 			});
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -970,17 +937,17 @@ describe('case details', () => {
 
 			// 2 updates: main case update + background flag update after notification succeeds
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 2);
-			assert.strictEqual((mockReq.session as any)?.cases?.case1.updated, true);
+			assert.strictEqual((mockReq.session as any)?.cases?.['case-1'].updated, true);
 
 			// Main update should have the date but NOT the flag
 			const mainUpdateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
-			assert.strictEqual(mainUpdateArg.where?.id, 'case1');
+			assert.strictEqual(mainUpdateArg.where?.id, 'case-1');
 			assert.strictEqual(mainUpdateArg.data?.lpaQuestionnaireReceivedDate, date);
 			assert.strictEqual(mainUpdateArg.data?.lpaQuestionnaireReceivedEmailSent, undefined);
 
 			// Background flag update
 			const flagUpdateArg = (mockDb.crownDevelopment.update.mock.calls[1] as any).arguments[0];
-			assert.strictEqual(flagUpdateArg.where?.id, 'case1');
+			assert.strictEqual(flagUpdateArg.where?.id, 'case-1');
 			assert.strictEqual(flagUpdateArg.data?.lpaQuestionnaireReceivedEmailSent, true);
 
 			assert.strictEqual(mockNotifyClient.sendLpaAcknowledgeReceiptOfQuestionnaire.mock.callCount(), 1);
@@ -1023,10 +990,7 @@ describe('case details', () => {
 				notifyClient: mockNotifyClient,
 				portalBaseUrl: 'https://test.com'
 			});
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -1095,10 +1059,7 @@ describe('case details', () => {
 				notifyClient: mockNotifyClient
 			});
 
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -1122,17 +1083,17 @@ describe('case details', () => {
 
 			// 2 updates: main case update + background flag update after notification succeeds
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 2);
-			assert.strictEqual((mockReq.session as any)?.cases?.case1.updated, true);
+			assert.strictEqual((mockReq.session as any)?.cases?.['case-1'].updated, true);
 
 			// Main update should have the date but NOT the flag
 			const mainUpdateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
-			assert.strictEqual(mainUpdateArg.where?.id, 'case1');
+			assert.strictEqual(mainUpdateArg.where?.id, 'case-1');
 			assert.strictEqual(mainUpdateArg.data?.applicationReceivedDate, date);
 			assert.strictEqual(mainUpdateArg.data?.applicationReceivedDateEmailSent, undefined);
 
 			// Background flag update
 			const flagUpdateArg = (mockDb.crownDevelopment.update.mock.calls[1] as any).arguments[0];
-			assert.strictEqual(flagUpdateArg.where?.id, 'case1');
+			assert.strictEqual(flagUpdateArg.where?.id, 'case-1');
 			assert.strictEqual(flagUpdateArg.data?.applicationReceivedDateEmailSent, true);
 
 			assert.strictEqual(mockNotifyClient.sendApplicationReceivedNotificationToMany.mock.callCount(), 1);
@@ -1188,10 +1149,7 @@ describe('case details', () => {
 				logger,
 				notifyClient: mockNotifyClient
 			});
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -1216,17 +1174,17 @@ describe('case details', () => {
 
 			// 2 updates: main case update + background flag update after notification succeeds
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 2);
-			assert.strictEqual((mockReq.session as any)?.cases?.case1.updated, true);
+			assert.strictEqual((mockReq.session as any)?.cases?.['case-1'].updated, true);
 
 			// Main update should have the date but NOT the flag
 			const mainUpdateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
-			assert.strictEqual(mainUpdateArg.where?.id, 'case1');
+			assert.strictEqual(mainUpdateArg.where?.id, 'case-1');
 			assert.strictEqual(mainUpdateArg.data?.applicationReceivedDate, date);
 			assert.strictEqual(mainUpdateArg.data?.applicationReceivedDateEmailSent, undefined);
 
 			// Background flag update
 			const flagUpdateArg = (mockDb.crownDevelopment.update.mock.calls[1] as any).arguments[0];
-			assert.strictEqual(flagUpdateArg.where?.id, 'case1');
+			assert.strictEqual(flagUpdateArg.where?.id, 'case-1');
 			assert.strictEqual(flagUpdateArg.data?.applicationReceivedDateEmailSent, true);
 
 			assert.strictEqual(mockNotifyClient.sendApplicationReceivedNotificationToMany.mock.callCount(), 1);
@@ -1255,10 +1213,7 @@ describe('case details', () => {
 				db: mockDb,
 				logger
 			});
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -1279,14 +1234,14 @@ describe('case details', () => {
 					assert.strictEqual((err as any).name, 'Error');
 					assert.strictEqual((err as any).errorSummary.length, 3);
 					assert.strictEqual((err as any).errorSummary[0].text, 'Enter the site address');
-					assert.strictEqual((err as any).errorSummary[0].href, '/cases/case1/overview/site-address');
+					assert.strictEqual((err as any).errorSummary[0].href, '/cases/case-1/overview/site-address');
 					assert.strictEqual((err as any).errorSummary[1].text, 'Enter the site coordinates');
-					assert.strictEqual((err as any).errorSummary[1].href, '/cases/case1/overview/site-coordinates');
+					assert.strictEqual((err as any).errorSummary[1].href, '/cases/case-1/overview/site-coordinates');
 					assert.strictEqual(
 						(err as any).errorSummary[2].text,
 						'Confirm whether there is an application fee, and enter the amount if applicable'
 					);
-					assert.strictEqual((err as any).errorSummary[2].href, '/cases/case1/fee/fee-amount');
+					assert.strictEqual((err as any).errorSummary[2].href, '/cases/case-1/fee/fee-amount');
 					return true;
 				}
 			);
@@ -1304,10 +1259,7 @@ describe('case details', () => {
 				db: mockDb,
 				logger
 			});
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -1349,10 +1301,7 @@ describe('case details', () => {
 				db: mockDb,
 				logger
 			});
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -1411,10 +1360,7 @@ describe('case details', () => {
 				logger,
 				notifyClient: mockNotifyClient
 			});
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -1483,10 +1429,7 @@ describe('case details', () => {
 				logger,
 				notifyClient: mockNotifyClient
 			});
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -1508,17 +1451,17 @@ describe('case details', () => {
 
 			// 2 updates: main case update + background flag update after notification succeeds
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 2);
-			assert.strictEqual((mockReq.session as any)?.cases?.case1.updated, true);
+			assert.strictEqual((mockReq.session as any)?.cases?.['case-1'].updated, true);
 
 			// Main update should have the date but NOT the flag
 			const mainUpdateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
-			assert.strictEqual(mainUpdateArg.where?.id, 'case1');
+			assert.strictEqual(mainUpdateArg.where?.id, 'case-1');
 			assert.strictEqual(mainUpdateArg.data?.turnedAwayDate, date);
 			assert.strictEqual(mainUpdateArg.data?.notNationallyImportantEmailSent, undefined);
 
 			// Background flag update
 			const flagUpdateArg = (mockDb.crownDevelopment.update.mock.calls[1] as any).arguments[0];
-			assert.strictEqual(flagUpdateArg.where?.id, 'case1');
+			assert.strictEqual(flagUpdateArg.where?.id, 'case-1');
 			assert.strictEqual(flagUpdateArg.data?.notNationallyImportantEmailSent, true);
 
 			assert.strictEqual(mockNotifyClient.sendApplicationNotOfNationalImportanceNotificationToMany.mock.callCount(), 1);
@@ -1560,10 +1503,7 @@ describe('case details', () => {
 				logger,
 				notifyClient: mockNotifyClient
 			});
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -1603,11 +1543,8 @@ describe('case details', () => {
 			};
 			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger });
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
-			const mockRes = { locals: {} };
+			const mockReq = buildMockReq();
+			const mockRes = buildMockRes();
 			const data = {
 				answers: {
 					description: 'My new application description'
@@ -1634,11 +1571,8 @@ describe('case details', () => {
 			};
 			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger }, true);
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
-			const mockRes = { locals: {} };
+			const mockReq = buildMockReq();
+			const mockRes = buildMockRes();
 
 			const data = {
 				answers: {
@@ -1648,7 +1582,7 @@ describe('case details', () => {
 			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
 			const updateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
-			assert.strictEqual(updateArg.where?.id, 'case1');
+			assert.strictEqual(updateArg.where?.id, 'case-1');
 			assert.strictEqual(updateArg.data.siteNorthing, null);
 		});
 		it('should delete save key if key is not clearable and clearAnswer is true', async (context) => {
@@ -1663,11 +1597,8 @@ describe('case details', () => {
 			};
 			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger }, true);
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
-			const mockRes = { locals: {} };
+			const mockReq = buildMockReq();
+			const mockRes = buildMockRes();
 
 			const data = {
 				answers: {
@@ -1694,12 +1625,12 @@ describe('case details', () => {
 			};
 			makeTransactionInteractive(mockDb);
 			const updateCase = buildUpdateCase({ db: mockDb, logger }, true);
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
+					journeyResponse: {
+						answers: {}
+					},
 					originalAnswers: {
 						eventId: 'event-1',
 						procedureId: APPLICATION_PROCEDURE_ID.HEARING
@@ -1715,7 +1646,7 @@ describe('case details', () => {
 			await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
 			assert.strictEqual(mockDb.crownDevelopment.update.mock.callCount(), 1);
 			const updateArg = (mockDb.crownDevelopment.update.mock.calls[0] as any).arguments[0];
-			assert.strictEqual(updateArg.where?.id, 'case1');
+			assert.strictEqual(updateArg.where?.id, 'case-1');
 			assert.strictEqual(updateArg.data?.Event?.upsert?.update?.date, null);
 		});
 
@@ -1745,10 +1676,7 @@ describe('case details', () => {
 				notifyClient: mockNotifyClient,
 				portalBaseUrl: 'https://test.com'
 			});
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
+			const mockReq = buildMockReq();
 			const mockRes = {
 				locals: {
 					journeyResponse: {
@@ -1800,11 +1728,8 @@ describe('case details', () => {
 				logger,
 				notifyClient: mockNotifyClient
 			});
-			const mockReq = {
-				params: { id: 'case1' },
-				session: {}
-			};
-			const mockRes = { locals: {} };
+			const mockReq = buildMockReq();
+			const mockRes = buildMockRes();
 			const data = {
 				answers: {
 					lpaQuestionnaireSentDate: new Date('2025-01-02')
@@ -1824,7 +1749,7 @@ describe('case details', () => {
 
 			// Background flag update should have the flag
 			const flagUpdateArg = (mockDb.crownDevelopment.update.mock.calls[1] as any).arguments[0];
-			assert.strictEqual(flagUpdateArg.where?.id, 'case1');
+			assert.strictEqual(flagUpdateArg.where?.id, 'case-1');
 			assert.strictEqual(flagUpdateArg.data?.lpaQuestionnaireSpecialEmailSent, true);
 		});
 
@@ -1853,7 +1778,7 @@ describe('case details', () => {
 					findMany: mock.fn(() =>
 						Promise.resolve([
 							{
-								id: 'case1',
+								id: 'case-1',
 								Organisations: [
 									{
 										role: 'agent',
@@ -1874,8 +1799,8 @@ describe('case details', () => {
 			makeTransactionInteractive(mockDb);
 
 			const updateCase = buildUpdateCase({ db: mockDb, logger, notifyClient: {} });
-			const mockReq = { params: { id: 'case1' }, session: {} };
-			const mockRes = { locals: {} };
+			const mockReq = buildMockReq();
+			const mockRes = buildMockRes();
 			await updateCase({
 				req: asReq(mockReq),
 				res: asRes(mockRes),
@@ -1926,7 +1851,7 @@ describe('case details', () => {
 					})),
 					findMany: mock.fn(() =>
 						Promise.resolve([
-							{ id: 'case1', Organisations: [] },
+							{ id: 'case-1', Organisations: [] },
 							{ id: 'linked-parent-1', Organisations: [] }
 						])
 					),
@@ -1936,8 +1861,8 @@ describe('case details', () => {
 			makeTransactionInteractive(mockDb);
 
 			const updateCase = buildUpdateCase({ db: mockDb, logger, notifyClient: {} });
-			const mockReq = { params: { id: 'case1' }, session: {} };
-			const mockRes = { locals: {} };
+			const mockReq = buildMockReq();
+			const mockRes = buildMockRes();
 			await updateCase({
 				req: asReq(mockReq),
 				res: asRes(mockRes),
@@ -1956,7 +1881,7 @@ describe('case details', () => {
 
 			assert.strictEqual(mockDb.crownDevelopmentToOrganisation.create.mock.callCount(), 2);
 			const linkCalls = mockDb.crownDevelopmentToOrganisation.create.mock.calls.map((c) => c.arguments[0].data);
-			assert.deepStrictEqual(linkCalls.map((d) => d.crownDevelopmentId).sort(), ['case1', 'linked-parent-1'].sort());
+			assert.deepStrictEqual(linkCalls.map((d) => d.crownDevelopmentId).sort(), ['case-1', 'linked-parent-1'].sort());
 			linkCalls.forEach((d) => {
 				assert.strictEqual(d.organisationId, 'new-agent-org-1');
 				assert.strictEqual(d.role, ORGANISATION_ROLES_ID.AGENT);
@@ -2045,8 +1970,8 @@ describe('case details', () => {
 
 			const updateCase = buildUpdateCase({ db: mockDb, logger, notifyClient: {} });
 			await updateCase({
-				req: asReq({ params: { id: 'case-1' }, session: {} }),
-				res: asRes({ locals: {} }),
+				req: asReq(buildMockReq()),
+				res: asRes({ locals: { journeyResponse: { answers: {} } } }),
 				data: { answers: { hasAgent: false } }
 			} as any);
 
@@ -2096,16 +2021,9 @@ describe('case details', () => {
 			return db;
 		};
 
-		const buildReq = () => ({ params: { id: 'case-1' }, session: {} });
+		const buildReq = () => buildMockReq();
 
-		const buildRes = (originalAnswers: any = {}) => ({
-			locals: {
-				journeyResponse: {
-					answers: {}
-				},
-				originalAnswers
-			}
-		});
+		const buildRes = (originalAnswers: any = {}) => buildMockRes({}, originalAnswers);
 
 		const runUpdateCase = async ({ db, logger, req, res, answers }: any) => {
 			const updateCase = buildUpdateCase({ db, logger, notifyClient: {} });
@@ -2306,28 +2224,24 @@ describe('case details', () => {
 			};
 			const updateCase = buildUpdateCase({ db, logger, notifyClient: {} });
 
-			const req = { params: { id: 'case-1' }, session: {} };
-			const res = {
-				locals: {
-					journeyResponse: {
-						answers: {
-							manageApplicantDetails: [{ id: 'org-1', organisationRelationId: 'rel-1' }],
-							manageApplicantContactDetails: [
-								{
-									organisationToContactRelationId: 'join-1',
-									id: 'contact-1',
-									applicantContactOrganisation: 'org-1',
-									applicantFirstName: 'Same',
-									applicantLastName: 'Same',
-									applicantContactEmail: 'same@example.com',
-									applicantContactTelephoneNumber: '000'
-								}
-							]
+			const req = buildMockReq();
+			const res = buildMockRes(
+				{
+					manageApplicantDetails: [{ id: 'org-1', organisationRelationId: 'rel-1' }],
+					manageApplicantContactDetails: [
+						{
+							organisationToContactRelationId: 'join-1',
+							id: 'contact-1',
+							applicantContactOrganisation: 'org-1',
+							applicantFirstName: 'Same',
+							applicantLastName: 'Same',
+							applicantContactEmail: 'same@example.com',
+							applicantContactTelephoneNumber: '000'
 						}
-					},
-					originalAnswers: {}
-				}
-			};
+					]
+				},
+				{}
+			);
 
 			await updateCase({
 				req: asReq(req),
@@ -2356,18 +2270,14 @@ describe('case details', () => {
 			};
 			const updateCase = buildUpdateCase({ db, logger, notifyClient: {} });
 
-			const req = { params: { id: 'case-1' }, session: {} };
-			const res = {
-				locals: {
-					journeyResponse: {
-						answers: {
-							manageApplicantDetails: [{ id: 'org-1', organisationRelationId: 'rel-1' }],
-							manageApplicantContactDetails: []
-						}
-					},
-					originalAnswers: {}
-				}
-			};
+			const req = buildMockReq();
+			const res = buildMockRes(
+				{
+					manageApplicantDetails: [{ id: 'org-1', organisationRelationId: 'rel-1' }],
+					manageApplicantContactDetails: []
+				},
+				{}
+			);
 
 			await updateCase({
 				req: asReq(req),
@@ -2440,16 +2350,9 @@ describe('case details', () => {
 			return db;
 		};
 
-		const buildReq = () => ({ params: { id: 'case-1' }, session: {} });
+		const buildReq = () => buildMockReq();
 
-		const buildRes = (originalAnswers: any = {}) => ({
-			locals: {
-				journeyResponse: {
-					answers: {}
-				},
-				originalAnswers
-			}
-		});
+		const buildRes = (originalAnswers: any = {}) => buildMockRes({}, originalAnswers);
 
 		const runUpdateCase = async ({ db, logger, req, res, answers }: any) => {
 			const updateCase = buildUpdateCase({ db, logger, notifyClient: {} });
@@ -2770,11 +2673,11 @@ describe('audit recording', () => {
 		const mockDb = buildDbForAudit({ siteArea: null });
 
 		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
-		const mockReq = {
+		const mockReq = buildMockReq({
 			params: { id: 'case-1' },
 			session: { account: { localAccountId: 'user-123' } }
-		};
-		const mockRes = { locals: {} };
+		});
+		const mockRes = buildMockRes();
 		const data = {
 			answers: {
 				siteArea: 10.5
@@ -2800,11 +2703,11 @@ describe('audit recording', () => {
 		const mockDb = buildDbForAudit({ lpaReference: 'ABC/123' });
 
 		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true }, true);
-		const mockReq = {
+		const mockReq = buildMockReq({
 			params: { id: 'case-1' },
 			session: { account: { localAccountId: 'user-456' } }
-		};
-		const mockRes = { locals: {} };
+		});
+		const mockRes = buildMockRes();
 		const data = {
 			answers: {
 				lpaReference: 'ABC/123' // Will be cleared to null because clearAnswer=true
@@ -2828,11 +2731,11 @@ describe('audit recording', () => {
 		const mockDb = buildDbForAudit({ lpaReference: 'OLD/REF' });
 
 		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
-		const mockReq = {
+		const mockReq = buildMockReq({
 			params: { id: 'case-1' },
 			session: { account: { localAccountId: 'user-789' } }
-		};
-		const mockRes = { locals: {} };
+		});
+		const mockRes = buildMockRes();
 		const data = {
 			answers: {
 				lpaReference: 'NEW/REF'
@@ -2856,11 +2759,11 @@ describe('audit recording', () => {
 		const mockDb = buildDbForAudit({ lpaReference: 'ABC/123' });
 
 		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
-		const mockReq = {
+		const mockReq = buildMockReq({
 			params: { id: 'case-1' },
 			session: { account: { localAccountId: 'user-123' } }
-		};
-		const mockRes = { locals: {} };
+		});
+		const mockRes = buildMockRes();
 		const data = {
 			answers: {
 				lpaReference: 'ABC/123' // Same value as existing
@@ -2882,11 +2785,11 @@ describe('audit recording', () => {
 		const mockDb = buildDbForAudit({ siteArea: null });
 
 		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
-		const mockReq = {
+		const mockReq = buildMockReq({
 			params: { id: 'case-1' },
 			session: { account: { localAccountId: 'user-123' } }
-		};
-		const mockRes = { locals: {} };
+		});
+		const mockRes = buildMockRes();
 		const data = {
 			answers: {
 				siteArea: 10.5
@@ -2918,11 +2821,11 @@ describe('audit recording', () => {
 		};
 
 		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
-		const mockReq = {
+		const mockReq = buildMockReq({
 			params: { id: 'case-1' },
 			session: { account: { localAccountId: 'user-123' } }
-		};
-		const mockRes = { locals: {} };
+		});
+		const mockRes = buildMockRes();
 		const data = {
 			answers: {
 				siteArea: 10.5
@@ -2941,11 +2844,11 @@ describe('audit recording', () => {
 		const mockDb = buildDbForAudit({ siteArea: null });
 
 		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
-		const mockReq = {
+		const mockReq = buildMockReq({
 			params: { id: 'case-1' },
 			session: { account: { localAccountId: '' } }
-		};
-		const mockRes = { locals: {} };
+		});
+		const mockRes = buildMockRes();
 		const data = {
 			answers: {
 				siteArea: 10.5
@@ -2971,12 +2874,15 @@ describe('audit recording', () => {
 		const mockDb = buildDbForAudit({ hearingVenue: null });
 
 		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
-		const mockReq = {
+		const mockReq = buildMockReq({
 			params: { id: 'case-1' },
 			session: { account: { localAccountId: 'user-123' } }
-		};
+		});
 		const mockRes = {
 			locals: {
+				journeyResponse: {
+					answers: {}
+				},
 				originalAnswers: {
 					eventId: 'event-1',
 					procedureId: 'hearing'
@@ -3025,11 +2931,11 @@ describe('audit recording', () => {
 		makeTransactionInteractive(mockDb);
 
 		const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
-		const mockReq = {
+		const mockReq = buildMockReq({
 			params: { id: 'case-1' },
 			session: { account: { localAccountId: 'user-123' } }
-		};
-		const mockRes = { locals: {} };
+		});
+		const mockRes = buildMockRes();
 		const data = {
 			answers: {
 				agentOrganisationName: 'New Agent Org Ltd'
@@ -3054,11 +2960,11 @@ describe('audit recording', () => {
 				const mockDb = buildDbForAudit({ description: null });
 
 				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
-				const mockReq = {
+				const mockReq = buildMockReq({
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
-				};
-				const mockRes = { locals: {} };
+				});
+				const mockRes = buildMockRes();
 				const data = {
 					answers: {
 						description: 'A new development description'
@@ -3082,11 +2988,11 @@ describe('audit recording', () => {
 				const mockDb = buildDbForAudit({ description: 'Old description text' });
 
 				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
-				const mockReq = {
+				const mockReq = buildMockReq({
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
-				};
-				const mockRes = { locals: {} };
+				});
+				const mockRes = buildMockRes();
 				const data = {
 					answers: {
 						description: 'Updated description text'
@@ -3110,11 +3016,11 @@ describe('audit recording', () => {
 				const mockDb = buildDbForAudit({ description: 'Old description text' });
 
 				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
-				const mockReq = {
+				const mockReq = buildMockReq({
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
-				};
-				const mockRes = { locals: {} };
+				});
+				const mockRes = buildMockRes();
 				const data = {
 					answers: {
 						description: null
@@ -3140,11 +3046,11 @@ describe('audit recording', () => {
 				const mockDb = buildDbForAudit({ costsApplicationsComment: null });
 
 				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
-				const mockReq = {
+				const mockReq = buildMockReq({
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
-				};
-				const mockRes = { locals: {} };
+				});
+				const mockRes = buildMockRes();
 				const data = {
 					answers: {
 						costsApplicationsComment: 'Updated comment text'
@@ -3168,11 +3074,11 @@ describe('audit recording', () => {
 				const mockDb = buildDbForAudit({ costsApplicationsComment: 'Original comment' });
 
 				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
-				const mockReq = {
+				const mockReq = buildMockReq({
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
-				};
-				const mockRes = { locals: {} };
+				});
+				const mockRes = buildMockRes();
 				const data = {
 					answers: {
 						costsApplicationsComment: 'Updated comment text'
@@ -3196,11 +3102,11 @@ describe('audit recording', () => {
 				const mockDb = buildDbForAudit({ costsApplicationsComment: 'Some costs comment', hasCostsApplications: true });
 
 				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
-				const mockReq = {
+				const mockReq = buildMockReq({
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
-				};
-				const mockRes = { locals: {} };
+				});
+				const mockRes = buildMockRes();
 				const data = {
 					answers: {
 						hasCostsApplications: false,
@@ -3229,11 +3135,11 @@ describe('audit recording', () => {
 				const mockDb = buildDbForAudit({ lpaReference: 'OLD/REF' });
 
 				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
-				const mockReq = {
+				const mockReq = buildMockReq({
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
-				};
-				const mockRes = { locals: {} };
+				});
+				const mockRes = buildMockRes();
 				const data = {
 					answers: {
 						lpaReference: 'NEW/REF'
@@ -3277,11 +3183,11 @@ describe('audit recording', () => {
 				const mockDb = buildDbForAudit({ applicationAcceptedDate: null });
 
 				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
-				const mockReq = {
+				const mockReq = buildMockReq({
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
-				};
-				const mockRes = { locals: {} };
+				});
+				const mockRes = buildMockRes();
 				const data = {
 					answers: {
 						applicationAcceptedDate: new Date('2026-08-01T00:00:00.000Z')
@@ -3304,11 +3210,11 @@ describe('audit recording', () => {
 				const mockDb = buildDbForAudit({ applicationAcceptedDate: new Date('2026-07-15T00:00:00.000Z') });
 
 				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit });
-				const mockReq = {
+				const mockReq = buildMockReq({
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
-				};
-				const mockRes = { locals: {} };
+				});
+				const mockRes = buildMockRes();
 				const data = {
 					answers: {
 						applicationAcceptedDate: new Date('2026-08-01T00:00:00.000Z')
@@ -3336,11 +3242,11 @@ describe('audit recording', () => {
 				const mockDb = buildDbForAudit({ [fieldName]: null });
 
 				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
-				const mockReq = {
+				const mockReq = buildMockReq({
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
-				};
-				const mockRes = { locals: {} };
+				});
+				const mockRes = buildMockRes();
 				const data = {
 					answers: {
 						[fieldName]: new Date('2026-08-01T00:00:00.000Z')
@@ -3374,11 +3280,11 @@ describe('audit recording', () => {
 				});
 
 				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
-				const mockReq = {
+				const mockReq = buildMockReq({
 					params: { id: 'case-1' },
 					session: { account: { localAccountId: 'user-123' } }
-				};
-				const mockRes = { locals: {} };
+				});
+				const mockRes = buildMockRes();
 				const data = {
 					answers: {
 						[fieldName]: new Date('2026-08-01T00:00:00.000Z')
