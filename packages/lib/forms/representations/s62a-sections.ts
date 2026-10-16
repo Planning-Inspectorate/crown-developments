@@ -184,15 +184,16 @@ export function haveYourSayManageSections(questions: Record<string, Question>, i
 /**
  * Creates the front office (portal) Have your say journey.
  *
- * Only the Myself branch exists so far. The 'On behalf of' branch, and the
- * attachment upload and comment pages, are filled in by later tickets; the
- * upload and comment questions are here now so the attachments answer routes
- * to the right page.
+ * The Myself branch and the 'A group of people' branch exist so far. The other
+ * 'On behalf of' branches, and the attachment upload and comment pages, are filled
+ * in by later tickets; the upload and comment questions are here now so the
+ * attachments answer routes to the right page.
  */
 export function haveYourSaySections(questions: Record<string, Question>): Section[] {
 	return [
 		new Section('Representation', 'start').addQuestion(questions.submittedFor),
-		haveYourSayMyselfSection(questions)
+		haveYourSayMyselfSection(questions),
+		haveYourSayAgentSection(questions)
 	];
 }
 
@@ -208,4 +209,41 @@ function haveYourSayMyselfSection(questions: Record<string, Question>) {
 		.addQuestion(questions.myselfSelectBlobAttachments)
 		.withCondition(whenQuestionHasAnswer(questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES))
 		.addQuestion(questions.myselfTellUsAboutApplication);
+}
+
+/**
+ * The 'On behalf of' section of the front office journey. Attachments are asked before the comment,
+ * and the portal has no contact preference: the submitter always gives an email address.
+ */
+function haveYourSayAgentSection(questions: Record<string, Question>) {
+	const isRepresentationGroup = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.GROUP);
+	const isAgentRoute = (response: JourneyResponse) =>
+		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON) ||
+		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR) ||
+		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.GROUP);
+
+	return new Section('Agent', 'agent')
+		.withSectionCondition(whenQuestionHasAnswer(questions.submittedFor, REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF))
+		.addQuestion(questions.whoRepresenting)
+
+		.startMultiQuestionCondition('agent-route', isAgentRoute)
+		.addQuestion(questions.isAgent)
+		.addQuestion(questions.agentOrgName)
+		.withCondition(whenQuestionHasAnswer(questions.isAgent, BOOLEAN_OPTIONS.YES))
+		.endMultiQuestionCondition('agent-route')
+
+		.addQuestion(questions.submitterFullName)
+		.addQuestion(questions.submitterEmail)
+
+		.startMultiQuestionCondition('representation-group', isRepresentationGroup)
+		.addQuestion(questions.hasGroupName)
+		.addQuestion(questions.groupName)
+		.withCondition(whenQuestionHasAnswer(questions.hasGroupName, BOOLEAN_OPTIONS.YES))
+		.addQuestion(questions.manageGroupDetails, new ManageListSection().addQuestion(questions.groupRepresentedFullName))
+		.endMultiQuestionCondition('representation-group')
+
+		.addQuestion(questions.submitterHasAttachments)
+		.addQuestion(questions.submitterSelectBlobAttachments)
+		.withCondition(whenQuestionHasAnswer(questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES))
+		.addQuestion(questions.submitterTellUsAboutApplication);
 }

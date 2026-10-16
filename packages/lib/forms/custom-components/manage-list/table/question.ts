@@ -40,6 +40,9 @@ export default class TableManageListQuestion extends ManageListQuestion {
 	hideRemoveOnLastItem: boolean;
 	confirmRemoveButtonText: string;
 	removalPrompt: string;
+	addAnotherLinkText?: string;
+	removeWithoutConfirmation: boolean;
+	maximumAnswers?: number;
 
 	constructor(params: TableManageListQuestionParameters & CommonQuestionParams) {
 		super(params);
@@ -50,6 +53,10 @@ export default class TableManageListQuestion extends ManageListQuestion {
 		this.confirmRemoveButtonText = params.confirmRemoveButtonText || `Remove ${params.titleSingular?.toLowerCase()}`;
 		this.removalPrompt =
 			params.removalPrompt || `Are you sure you want to remove this ${params.titleSingular?.toLowerCase()}?`;
+
+		this.addAnotherLinkText = params.addAnotherLinkText;
+		this.removeWithoutConfirmation = params.removeWithoutConfirmation ?? false;
+		this.maximumAnswers = params.maximumAnswers;
 
 		this.viewFolder = 'custom-components/manage-list/table';
 	}
@@ -114,6 +121,8 @@ export default class TableManageListQuestion extends ManageListQuestion {
 		question.tableHead = this.createHeaders();
 		question.tableRows = this.createRows(viewModel);
 
+		viewModel.hideAddButton = this.isFull(question.value);
+
 		viewModel.confirmRemoveButtonText = this.confirmRemoveButtonText;
 		viewModel.removalPrompt = this.removalPrompt;
 	}
@@ -127,6 +136,7 @@ export default class TableManageListQuestion extends ManageListQuestion {
 	private addButtonText(viewModel: QuestionViewModel<TableQuestionViewData>): void {
 		viewModel.continueButtonText = this.viewData?.continueOnly ? 'Continue' : 'Save and continue';
 		viewModel.addMoreButtonText = 'Add details';
+		viewModel.addAnotherLinkText = this.addAnotherLinkText;
 		viewModel.cancelButtonText = 'Cancel';
 	}
 
@@ -138,6 +148,14 @@ export default class TableManageListQuestion extends ManageListQuestion {
 		const answers = this.normaliseAnswers(question.value);
 
 		return answers.map((item) => this.createRow(viewModel, item));
+	}
+
+	/** Whether the list has reached maximumAnswers, if set */
+	isFull(value: unknown): boolean {
+		if (!this.maximumAnswers) {
+			return false;
+		}
+		return this.normaliseAnswers(value as TableQuestionViewData['value']).length >= this.maximumAnswers;
 	}
 
 	private normaliseAnswers(value: TableQuestionViewData['value']): Record<string, unknown>[] {
@@ -236,14 +254,21 @@ export default class TableManageListQuestion extends ManageListQuestion {
 		const removeUrl = `${originalUrlTrimmed}/remove/${itemId}/confirm`;
 
 		const items = this.normaliseAnswers(question.value);
+		// Without confirmation, Remove submits the list's own form (and its CSRF token) to the remove URL,
+		// so removing never happens on a GET
+		const removeControl = this.removeWithoutConfirmation
+			? `<button type="submit" class="govuk-link pins-button-link" formaction="${removeUrl}" formnovalidate>
+							Remove<span class="govuk-visually-hidden"> row</span>
+						</button>`
+			: `<a class="govuk-link" href="${removeUrl}">
+							Remove<span class="govuk-visually-hidden"> row</span>
+						</a>`;
 		const removeHtml =
 			items.length === 1 && this.hideRemoveOnLastItem
 				? ''
 				: `
 					<li class="govuk-summary-list__actions-list-item">
-						<a class="govuk-link" href="${removeUrl}">
-							Remove<span class="govuk-visually-hidden"> row</span>
-						</a>
+						${removeControl}
 					</li>
 				`;
 

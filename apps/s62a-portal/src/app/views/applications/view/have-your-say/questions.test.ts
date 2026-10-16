@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import type { Question } from '@planning-inspectorate/dynamic-forms';
 import { buildValidateBody } from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
 import { validationResult } from 'express-validator';
-import { getHaveYourSayQuestions } from './questions.ts';
+import { getHaveYourSayQuestions, groupMemberOverrides, MAXIMUM_GROUP_MEMBERS } from './questions.ts';
 
 const questions = getHaveYourSayQuestions();
 
@@ -105,6 +105,133 @@ describe('have your say questions', () => {
 		});
 		it('should be mandatory', async () => {
 			assert.deepStrictEqual(await validationErrors(question, {}), ['Select yes if there are any attachments']);
+		});
+	});
+
+	describe('agent pages', () => {
+		it('should ask whether you are an agent, and need an answer', async () => {
+			const question = questions.isAgent;
+			assert.strictEqual(question.question, 'Are you acting as an agent on behalf of a client?');
+			assert.strictEqual(
+				question.hint,
+				'For example, your organisation has been hired to represent a client on planning matters.'
+			);
+			assert.deepStrictEqual(await validationErrors(question, {}), [
+				'Select yes if you are acting as an agent on behalf of a client'
+			]);
+		});
+		it('should ask for the agent organisation, up to 250 characters', async () => {
+			const question = questions.agentOrgName;
+			assert.strictEqual(question.question, 'What is the name of the organisation you work for?');
+			assert.deepStrictEqual(await validationErrors(question, { agentOrgName: '' }), ['Enter your organisation name']);
+			assert.deepStrictEqual(await validationErrors(question, { agentOrgName: 'A'.repeat(251) }), [
+				'Name of your organisation must be 250 characters or less'
+			]);
+		});
+	});
+
+	describe('your name and email on the on behalf of routes, as for Myself (PEAS-102 Scenario 2)', () => {
+		it('should use the Myself wording and validation for your name', async () => {
+			const question = questions.submitterFullName;
+			assert.strictEqual(question.question, 'What is your name?');
+			assert.deepStrictEqual(await validationErrors(question, { submitterFirstName: '', submitterLastName: 'D@e' }), [
+				'Enter your first name',
+				'Last name must only include letters, spaces, hyphens, apostrophes or numbers'
+			]);
+		});
+		it('should use the Myself wording and validation for your email', async () => {
+			const question = questions.submitterEmail;
+			assert.strictEqual(question.hint, questions.myselfEmail.hint);
+			assert.deepStrictEqual(await validationErrors(question, { submitterEmail: '' }), ['Enter your email address']);
+		});
+		it('should use the Myself attachments question', async () => {
+			const question = questions.submitterHasAttachments;
+			assert.strictEqual(question.question, 'Have you got attachments to support your comment?');
+			assert.deepStrictEqual(await validationErrors(question, {}), ['Select yes if there are any attachments']);
+		});
+	});
+
+	describe('does the group have a name (PEAS-102 Scenarios 3-5)', () => {
+		const question = questions.hasGroupName;
+
+		it('should show the question and hint', () => {
+			assert.strictEqual(question.question, 'Does the group have a name?');
+			assert.strictEqual(question.hint, "For example, a resident's association or a local community group.");
+		});
+		it('should need an answer', async () => {
+			assert.deepStrictEqual(await validationErrors(question, {}), ['Select yes if the group has a name']);
+		});
+	});
+
+	describe('group name (PEAS-102 Scenarios 7-8)', () => {
+		const question = questions.groupName;
+
+		it('should show the question and hint', () => {
+			assert.strictEqual(question.question, 'What is the name of the group?');
+			assert.strictEqual(question.hint, "For example, a resident's association or a local community group.");
+		});
+		it('should need a name of 3 to 250 characters', async () => {
+			assert.deepStrictEqual(await validationErrors(question, { groupName: '' }), ['Enter the name of the group']);
+			for (const groupName of ['ab', 'A'.repeat(251)]) {
+				assert.deepStrictEqual(await validationErrors(question, { groupName }), [
+					'Group name must be between 3 and 250 characters'
+				]);
+			}
+			assert.deepStrictEqual(await validationErrors(question, { groupName: 'abc' }), []);
+		});
+	});
+
+	describe('check group name details (PEAS-102 Scenarios 13-18)', () => {
+		// the table add-to-list options are typed on the custom class, not on Question
+		const list = questions.manageGroupDetails as unknown as Record<string, unknown>;
+
+		it('should show the list with an Add another person link and immediate removal', () => {
+			assert.strictEqual(list.question, 'Check group name details');
+			assert.strictEqual(list.addAnotherLinkText, 'Add another person');
+			assert.strictEqual(list.removeWithoutConfirmation, true);
+			assert.strictEqual(list.hideRemoveOnLastItem, true);
+		});
+		it('should allow up to 10 people, and list them all on check your answers', () => {
+			assert.strictEqual(MAXIMUM_GROUP_MEMBERS, 10);
+			assert.strictEqual(list.maximumAnswers, MAXIMUM_GROUP_MEMBERS);
+			assert.strictEqual(list.summaryLimit, MAXIMUM_GROUP_MEMBERS);
+		});
+	});
+
+	describe('person in the group (PEAS-102 Scenarios 10-17)', () => {
+		it('should ask for the first person, with a hint, when no-one has been added', () => {
+			const overrides = groupMemberOverrides({ manageListAction: 'add', otherMembers: 0 });
+			assert.strictEqual(overrides.question, 'What is the name of the first person you are representing?');
+			assert.strictEqual(overrides.hint, 'You will be able to add more people on the next page.');
+		});
+		it('should ask for the next person once someone has been added', () => {
+			const overrides = groupMemberOverrides({ manageListAction: 'add', otherMembers: 1 });
+			assert.strictEqual(overrides.question, 'What is the name of the next person you are representing?');
+			assert.strictEqual(overrides.hint, undefined);
+		});
+		it("should say Change the person's name when changing someone", () => {
+			const overrides = groupMemberOverrides({ manageListAction: 'edit', otherMembers: 0 });
+			assert.strictEqual(overrides.question, "Change the person's name");
+		});
+		it('should be the question used for the person page', () => {
+			const next = getHaveYourSayQuestions({ manageListAction: 'add', otherMembers: 2 });
+			assert.strictEqual(
+				next.groupRepresentedFullName.question,
+				'What is the name of the next person you are representing?'
+			);
+		});
+		it('should need both names, up to 250 characters, with accepted characters', async () => {
+			const question = questions.groupRepresentedFullName;
+			const errors = (groupRepresentedFirstName: string, groupRepresentedLastName: string) =>
+				validationErrors(question, { groupRepresentedFirstName, groupRepresentedLastName });
+
+			assert.deepStrictEqual(await errors('', ''), ['Enter a first name', 'Enter a last name']);
+
+			assert.deepStrictEqual(await errors('A'.repeat(251), 'D@e'), [
+				'First name must be between 1 and 250 characters',
+				'Last name must only include letters, spaces, hyphens, apostrophes or numbers'
+			]);
+			assert.deepStrictEqual(await errors('Ann 2', "O'Lee"), []);
 		});
 	});
 });

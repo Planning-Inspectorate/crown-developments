@@ -48,12 +48,20 @@
 					</p>
 				{% endif %}
 
-				{{ govukButton({
-					text: addMoreButtonText,
-					href: util.trimTrailingSlash(originalUrl) + "/" + question.addAnotherLink,
-					classes: "" if (hideCancel and not hasData) else "govuk-button--secondary",
-					attributes: { "data-cy": "button-add-details" }
-				}) }}
+				{% if hideAddButton %}
+					{# the list is full #}
+				{% elif addAnotherLinkText %}
+					<p class="govuk-body">
+						<a class="govuk-link" href="{{ util.trimTrailingSlash(originalUrl) + "/" + question.addAnotherLink }}" data-cy="link-add-another">{{ addAnotherLinkText }}</a>
+					</p>
+				{% else %}
+					{{ govukButton({
+						text: addMoreButtonText,
+						href: util.trimTrailingSlash(originalUrl) + "/" + question.addAnotherLink,
+						classes: "" if (hideCancel and not hasData) else "govuk-button--secondary",
+						attributes: { "data-cy": "button-add-details" }
+					}) }}
+				{% endif %}
 
 				{# Save and cancel are always shown, unless configured to appear only once there is data #}
 				{% if not hideButtonsEmpty or hasData %}

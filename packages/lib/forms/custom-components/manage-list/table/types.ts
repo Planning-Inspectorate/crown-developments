@@ -39,6 +39,12 @@ export interface TableManageListQuestionParameters {
 	warningText?: string;
 	confirmRemoveButtonText?: string;
 	removalPrompt?: string;
+	/** Show 'add another' as a link with this text, instead of the 'Add details' button */
+	addAnotherLinkText?: string;
+	/** Remove an item straight away, by posting to the remove URL, instead of going to a confirmation page */
+	removeWithoutConfirmation?: boolean;
+	/** Hide the add button or link once there are this many items */
+	maximumAnswers?: number;
 }
 
 export interface PreppedQuestion {

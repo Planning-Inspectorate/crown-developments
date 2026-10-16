@@ -448,7 +448,9 @@ export function viewModelToS62aRepresentationCreateInput(answers, reference, app
 				}))
 			};
 
-			createInput.representedGroupName = answers.groupName || undefined;
+			// a name entered before answering 'No' to 'Does the group have a name?' is not kept
+			const groupHasNoName = answers.hasGroupName !== undefined && !yesNoToBoolean(answers.hasGroupName);
+			createInput.representedGroupName = groupHasNoName ? undefined : answers.groupName || undefined;
 		} else {
 			createInput.RepresentedContacts = { create: [{}] };
 			if (representedIsAnOrganisation) {

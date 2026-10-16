@@ -191,6 +191,56 @@ describe('TableManageListQuestion', () => {
 
 			assert.ok(html.includes('href="/my-url/remove/uuid-1/confirm"'));
 		});
+
+		it('should make Remove a button posting to the remove URL when removeWithoutConfirmation is set', () => {
+			tableQuestion.removeWithoutConfirmation = true;
+
+			const html = tableQuestion.generateActionsHtml(mockViewModel, { id: 'uuid-1' });
+
+			assert.match(
+				html,
+				/<button type="submit" class="govuk-link pins-button-link" formaction="\/my-url\/remove\/uuid-1\/confirm"/
+			);
+			assert.strictEqual(html.includes('href="/my-url/remove/uuid-1/confirm"'), false);
+			assert.ok(html.includes('href="/my-url/edit/uuid-1/name-page"'));
+		});
+
+		it('should still hide Remove on the last item when removeWithoutConfirmation is set', () => {
+			tableQuestion.removeWithoutConfirmation = true;
+			tableQuestion.hideRemoveOnLastItem = true;
+			mockViewModel.question.value = [{ id: 'uuid-1', name: 'John Doe', dob: '1990-01-01' }];
+
+			const html = tableQuestion.generateActionsHtml(mockViewModel, { id: 'uuid-1' });
+
+			assert.strictEqual(html.includes('formaction'), false);
+		});
+	});
+
+	describe('maximumAnswers', () => {
+		it('should hide the add button once the list is full', () => {
+			const full = new TableManageListQuestion({
+				title: 'Test Table',
+				fieldName: 'testTable',
+				titleSingular: 'Item',
+				question: 'q',
+				maximumAnswers: 2
+			} as any);
+			full.section = tableQuestion.section;
+			full.section!.questions.forEach((q) => {
+				q.shouldDisplay = () => true;
+				q.formatAnswerForSummary = () => [{ value: 'x' } as SummaryListItem];
+			});
+
+			full.addCustomDataToViewModel(mockViewModel);
+			assert.strictEqual(mockViewModel.hideAddButton, true);
+
+			mockViewModel.question.value = [{ id: 'uuid-1' }];
+			full.addCustomDataToViewModel(mockViewModel);
+			assert.strictEqual(mockViewModel.hideAddButton, false);
+		});
+		it('should never be full without a maximum', () => {
+			assert.strictEqual(tableQuestion.isFull(Array.from({ length: 100 }, (_, i) => ({ id: `${i}` }))), false);
+		});
 	});
 
 	describe('addCustomDataToViewModel()', () => {
@@ -205,6 +255,7 @@ describe('TableManageListQuestion', () => {
 
 			assert.strictEqual(mockViewModel.continueButtonText, 'Save and continue');
 			assert.strictEqual(mockViewModel.addMoreButtonText, 'Add details');
+			assert.strictEqual(mockViewModel.addAnotherLinkText, undefined);
 
 			assert.strictEqual(mockViewModel.question.tableHead?.length, 3);
 			assert.strictEqual(mockViewModel.question.tableRows?.length, 2);

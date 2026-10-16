@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
-import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { BOOLEAN_OPTIONS, JourneyResponse, type Question } from '@planning-inspectorate/dynamic-forms';
 import type { Request } from 'express';
 import { createJourney, JOURNEY_ID } from './journey.ts';
@@ -90,6 +90,97 @@ describe('have your say journey', () => {
 			assert.strictEqual(
 				nextUrl(answers, 'myself', 'do-you-want-attachment'),
 				`${baseUrl}/myself/tell-us-about-application`
+			);
+		});
+	});
+
+	describe('on behalf of a group of people', () => {
+		const group = {
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+			representedTypeId: REPRESENTED_TYPE_ID.GROUP
+		};
+
+		it('should ask the agent, your details, the group, then attachments and the comment', () => {
+			assert.deepStrictEqual(
+				displayedQuestions({
+					...group,
+					isAgent: BOOLEAN_OPTIONS.YES,
+					hasGroupName: BOOLEAN_OPTIONS.YES,
+					submitterContainsAttachments: BOOLEAN_OPTIONS.NO
+				}),
+				[
+					'submittedForId',
+					'representedTypeId',
+					'isAgent',
+					'agentOrgName',
+					'submitterFullName',
+					'submitterEmail',
+					'hasGroupName',
+					'groupName',
+					'manageGroupDetails',
+					'submitterContainsAttachments',
+					'submitterComment'
+				]
+			);
+		});
+
+		it('should skip the agent organisation and group name when the answers are No', () => {
+			const shown = displayedQuestions({
+				...group,
+				isAgent: BOOLEAN_OPTIONS.NO,
+				hasGroupName: BOOLEAN_OPTIONS.NO
+			});
+			assert.ok(!shown.includes('agentOrgName'));
+			assert.ok(!shown.includes('groupName'));
+			assert.ok(shown.includes('manageGroupDetails'));
+		});
+
+		it('should not ask for a contact preference', () => {
+			assert.ok(!displayedQuestions(group).includes('submitterContactPreference'));
+		});
+
+		it('should go from A group of people to the agent question (Scenario 1)', () => {
+			assert.strictEqual(nextUrl(group, 'agent', 'who-representing'), `${baseUrl}/agent/are-you-agent`);
+		});
+
+		it('should go to the agent organisation for Yes, and to your name for No', () => {
+			assert.strictEqual(
+				nextUrl({ ...group, isAgent: BOOLEAN_OPTIONS.YES }, 'agent', 'are-you-agent'),
+				`${baseUrl}/agent/agent-organisation-name`
+			);
+			assert.strictEqual(
+				nextUrl({ ...group, isAgent: BOOLEAN_OPTIONS.NO }, 'agent', 'are-you-agent'),
+				`${baseUrl}/agent/agent-full-name`
+			);
+			assert.strictEqual(
+				nextUrl({ ...group, isAgent: BOOLEAN_OPTIONS.YES }, 'agent', 'agent-organisation-name'),
+				`${baseUrl}/agent/agent-full-name`
+			);
+		});
+
+		it('should go from your email to whether the group has a name', () => {
+			assert.strictEqual(nextUrl(group, 'agent', 'agent-email-address'), `${baseUrl}/agent/group-has-name`);
+		});
+
+		it('should go to the group name for Yes, and to the list for No (Scenarios 6 and 9)', () => {
+			assert.strictEqual(
+				nextUrl({ ...group, hasGroupName: BOOLEAN_OPTIONS.YES }, 'agent', 'group-has-name'),
+				`${baseUrl}/agent/group-name`
+			);
+			assert.strictEqual(
+				nextUrl({ ...group, hasGroupName: BOOLEAN_OPTIONS.NO }, 'agent', 'group-has-name'),
+				`${baseUrl}/agent/check-group-name-details`
+			);
+			assert.strictEqual(
+				nextUrl({ ...group, hasGroupName: BOOLEAN_OPTIONS.YES }, 'agent', 'group-name'),
+				`${baseUrl}/agent/check-group-name-details`
+			);
+		});
+
+		it('should go from Check group name details to the attachments question (Scenario 19)', () => {
+			assert.strictEqual(
+				nextUrl(group, 'agent', 'check-group-name-details'),
+				`${baseUrl}/agent/do-you-want-attachment`
 			);
 		});
 	});
