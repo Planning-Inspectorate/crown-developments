@@ -1975,5 +1975,43 @@ describe('view-model', () => {
 			});
 			assert.strictEqual(representationCreateInput.representedGroupName, 'Empty Group');
 		});
+
+		it('should not keep a group name when the group was then said to have no name (S62A exclusive)', () => {
+			const base = {
+				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+				representedTypeId: REPRESENTED_TYPE_ID.GROUP,
+				groupName: 'Old Name',
+				manageGroupDetails: [{ groupRepresentedFirstName: 'John', groupRepresentedLastName: 'Doe' }],
+				submitterFirstName: 'First',
+				submitterLastName: 'Last'
+			};
+
+			for (const hasGroupName of ['no', false]) {
+				const input = viewModelToS62aRepresentationCreateInput({ ...base, hasGroupName }, 'ref', 'id-1');
+				assert.strictEqual(input.representedGroupName, undefined, `hasGroupName: ${hasGroupName}`);
+			}
+			for (const hasGroupName of ['yes', true]) {
+				const input = viewModelToS62aRepresentationCreateInput({ ...base, hasGroupName }, 'ref', 'id-1');
+				assert.strictEqual(input.representedGroupName, 'Old Name', `hasGroupName: ${hasGroupName}`);
+			}
+		});
+
+		it('should not keep an agent organisation name when the submitter then said they are not an agent', () => {
+			const input = viewModelToS62aRepresentationCreateInput(
+				{
+					submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+					representedTypeId: REPRESENTED_TYPE_ID.GROUP,
+					isAgent: 'no',
+					agentOrgName: 'Old Agency',
+					manageGroupDetails: [],
+					submitterFirstName: 'First',
+					submitterLastName: 'Last'
+				},
+				'ref',
+				'id-1'
+			);
+			assert.strictEqual(input.submittedByAgent, false);
+			assert.strictEqual(input.submittedByAgentOrgName, undefined);
+		});
 	});
 });

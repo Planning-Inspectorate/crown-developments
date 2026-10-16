@@ -151,5 +151,28 @@ describe('s62a-sections', () => {
 				['myselfFullName', 'myselfEmail', 'myselfContainsAttachments', 'myselfBlobAttachments', 'myselfComment']
 			);
 		});
+
+		it('should have an on behalf of section with the group route, and no contact preference', () => {
+			const questions = getQuestions({ isS62a: true });
+			const agent = haveYourSaySections(questions)[2];
+
+			assert.strictEqual(agent.segment, 'agent');
+			assert.deepStrictEqual(
+				agent.questions.map((q: Question) => q.fieldName),
+				[
+					'representedTypeId',
+					'isAgent',
+					'agentOrgName',
+					'submitterFullName',
+					'submitterEmail',
+					'hasGroupName',
+					'groupName',
+					'manageGroupDetails',
+					'submitterContainsAttachments',
+					'submitterBlobAttachments',
+					'submitterComment'
+				]
+			);
+		});
 	});
 });

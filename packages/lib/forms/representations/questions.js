@@ -468,6 +468,15 @@ export const getQuestions = ({
 			actionLink: actionOverrides.distressingContentInRepresentationShowManageAction ? actionLinkOverride : undefined,
 			editable: actionOverrides.distressingContentInRepresentationShowManageAction
 		},
+		hasGroupName: {
+			type: COMPONENT_TYPES.BOOLEAN,
+			title: 'Does the group have a name?',
+			question: 'Does the group have a name?',
+			hint: "For example, a resident's association or a local community group.",
+			fieldName: 'hasGroupName',
+			url: 'group-has-name',
+			validators: [new RequiredValidator('Select yes if the group has a name')]
+		},
 		groupName: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
 			title: 'Your group name',

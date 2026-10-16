@@ -28,7 +28,7 @@
 @use './to-migrate/header';
 @use './overrides/autocomplete';
 @use './components/pins-accordion';
-@use './components/pins-button-link';
+@use 'packages/lib/views/styles/components/pins-button-link';
 @use './components/pins-dashboard-box';
 @use './components/pins-documents-table';
 @use './components/pins-multi-file-upload';
