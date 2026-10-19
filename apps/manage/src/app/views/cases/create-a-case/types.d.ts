@@ -1,4 +1,4 @@
-import type { Address } from '@planning-inspectorate/dynamic-forms/src/lib/address.js';
+import type { Address } from '@planning-inspectorate/dynamic-forms';
 import type { YesNo } from '@pins/crowndev-lib/util/types';
 
 export interface AgentContact {

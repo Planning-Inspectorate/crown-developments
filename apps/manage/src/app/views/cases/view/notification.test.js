@@ -8,7 +8,7 @@ import {
 	getRecipientEmails
 } from './notification.js';
 import assert from 'node:assert';
-import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 const DEFAULT_CROWN_DEVELOPMENT = {

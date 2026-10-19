@@ -1,6 +1,6 @@
 import { getOptionalStringParams, getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import type { Journey, JourneyResponse } from '@planning-inspectorate/dynamic-forms';
-import { MANAGE_LIST_ACTIONS } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-actions.js';
+import { MANAGE_LIST_ACTIONS } from '@planning-inspectorate/dynamic-forms';
 import type { NextFunction, Request, Response } from 'express';
 import { randomUUID } from 'node:crypto';
 import { type GroupMemberPageState, MAXIMUM_GROUP_MEMBERS } from './questions.ts';

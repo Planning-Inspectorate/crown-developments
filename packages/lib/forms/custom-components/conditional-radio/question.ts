@@ -1,7 +1,7 @@
 import { RadioQuestion } from '@planning-inspectorate/dynamic-forms';
-import type { Question, OptionsQuestionParameters } from '@planning-inspectorate/dynamic-forms';
+import type { Question, OptionsQuestionParams } from '@planning-inspectorate/dynamic-forms';
 
-export type ConditionalRadioQuestionProps = OptionsQuestionParameters & {
+export type ConditionalRadioQuestionProps = OptionsQuestionParams & {
 	conditionalTriggerValue: string;
 	conditionalDbFieldName: string;
 };
@@ -29,7 +29,7 @@ export default class ConditionalRadioQuestion extends RadioQuestion {
 		const conditionalValue = journey.response.answers[`${this.fieldName}_${this.conditionalDbFieldName}`] as
 			string | undefined;
 
-		const selectedOption = this.options.find((opt) => opt.value === answer);
+		const selectedOption = this.optionByValue(answer as string);
 		const baseText = selectedOption ? selectedOption.text : '-';
 
 		// Format as "Selected Option: Custom Text" if applicable

@@ -1,4 +1,4 @@
-import BaseValidator from '@planning-inspectorate/dynamic-forms/src/validator/base-validator.js';
+import { BaseValidator } from '@planning-inspectorate/dynamic-forms';
 import { body } from 'express-validator';
 import type { ValidationChain } from 'express-validator';
 import type { Question } from '@planning-inspectorate/dynamic-forms';

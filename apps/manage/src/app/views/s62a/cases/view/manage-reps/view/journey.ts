@@ -1,4 +1,4 @@
-import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
+import { Journey } from '@planning-inspectorate/dynamic-forms';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import type { JourneyResponse, Question } from '@planning-inspectorate/dynamic-forms';
 import type { Request } from 'express';

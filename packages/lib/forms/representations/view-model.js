@@ -1,7 +1,4 @@
-import {
-	booleanToYesNoValue,
-	yesNoToBoolean
-} from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { booleanToYesNoValue, yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
 import {
 	CONTACT_PREFERENCE_ID,
 	RECEIVED_METHOD_ID,

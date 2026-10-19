@@ -1,10 +1,10 @@
-import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
 import { crownDevelopmentToViewModel } from './view-model.ts';
 import {
+	addressToViewModel,
 	BOOLEAN_OPTIONS,
+	formatDateForDisplay,
 	yesNoToBoolean
-} from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
-import { addressToViewModel } from '@planning-inspectorate/dynamic-forms/src/lib/address-utils.js';
+} from '@planning-inspectorate/dynamic-forms';
 import { isDefined } from '@pins/crowndev-lib/util/boolean.ts';
 import { caseReferenceToFolderName } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { grantLpaSharePointAccess } from '#util/sharepoint.js';

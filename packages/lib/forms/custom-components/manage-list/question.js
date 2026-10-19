@@ -1,4 +1,4 @@
-import ManageListQuestion from '@planning-inspectorate/dynamic-forms/src/components/manage-list/question.js';
+import { ManageListQuestion } from '@planning-inspectorate/dynamic-forms';
 import nunjucks from 'nunjucks';
 
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question} Question */
@@ -82,7 +82,7 @@ export default class CustomManageListQuestion extends ManageListQuestion {
 	 * @param {Array<Object>} answer
 	 * @returns {Array<{
 	 *   key: string;
-	 *   value: string | Object;
+	 *   value: string;
 	 *   action: {
 	 *     href: string;
 	 *     text: string;

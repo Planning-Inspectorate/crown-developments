@@ -7,7 +7,8 @@ import {
 	list,
 	question,
 	validate,
-	validationErrorHandler
+	validationErrorHandler,
+	MANAGE_LIST_ACTIONS
 } from '@planning-inspectorate/dynamic-forms';
 import { Router as createRouter } from 'express';
 import { createJourney, JOURNEY_ID } from './journey.ts';
@@ -36,7 +37,6 @@ import { asyncHandler } from '@planning-inspectorate/core/util';
 import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
 import { RepresentationDocumentDownloader } from './representation-document-downloader.ts';
 import { getOptionalStringParam } from '@pins/crowndev-lib/util/params.ts';
-import { MANAGE_LIST_ACTIONS } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-actions.js';
 import { buildSaveRepresentationController, viewAddRepresentationSuccessPage } from './save.ts';
 
 export function createRoutes(service: ManageService) {

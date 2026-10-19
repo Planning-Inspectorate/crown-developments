@@ -1,6 +1,6 @@
 import { body } from 'express-validator';
 import { readSessionData } from '@pins/crowndev-lib/util/session.ts';
-import BaseValidator from '@planning-inspectorate/dynamic-forms/src/validator/base-validator.js';
+import { BaseValidator } from '@planning-inspectorate/dynamic-forms';
 import { getStringParam } from '../../../util/params.ts';
 import { getFilesSessionId } from '../multi-file-uploader/files-session-id.ts';
 import type { Request } from 'express';

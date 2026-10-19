@@ -1,6 +1,6 @@
+import type { Question } from '@planning-inspectorate/dynamic-forms';
+import { BaseValidator } from '@planning-inspectorate/dynamic-forms';
 import { body } from 'express-validator';
-import BaseValidator from '@planning-inspectorate/dynamic-forms/src/validator/base-validator.js';
-import type { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
 
 export interface UniqueListFieldValidatorParams {
 	/** The manage list question's fieldName, e.g. 'manageWasteTypes' */

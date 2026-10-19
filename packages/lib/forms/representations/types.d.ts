@@ -1,4 +1,4 @@
-import type { Address } from '@planning-inspectorate/dynamic-forms/src/lib/address.js';
+import type { Address } from '@planning-inspectorate/dynamic-forms';
 import type { YesNo } from '../../util/types.ts';
 /**
  * The view model used for have-your-say answers
@@ -131,5 +131,11 @@ export namespace HaveYourSay {
 		itemId: string;
 		fileName: string;
 		statusId?: string;
+	};
+
+	export type RedactedAttachment = {
+		redactedItemId?: string | null;
+		redactedBlobName?: string | null;
+		redactedFileName?: string | null;
 	};
 }

@@ -1,6 +1,6 @@
 import { body } from 'express-validator';
 import type { ValidationChain } from 'express-validator';
-import BaseValidator from '@planning-inspectorate/dynamic-forms/src/validator/base-validator.js';
+import { BaseValidator } from '@planning-inspectorate/dynamic-forms';
 
 /**
  * Counts characters the way the GOV.UK character count component does: browsers submit a line

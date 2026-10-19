@@ -1,9 +1,7 @@
 import { body } from 'express-validator';
 import { isBefore } from 'date-fns';
 
-import BaseValidator from '@planning-inspectorate/dynamic-forms/src/validator/base-validator.js';
-import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
-import { parseDateInput } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
+import { BaseValidator, DateValidator, parseDateInput } from '@planning-inspectorate/dynamic-forms';
 
 /**
  *  @typedef {import('@planning-inspectorate/dynamic-forms/src/components/date/question.js').default} DateQuestion

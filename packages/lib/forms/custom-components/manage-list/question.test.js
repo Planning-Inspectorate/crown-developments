@@ -1,10 +1,25 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import CustomManageListQuestion from './question.js';
-import { mockJourney } from '@planning-inspectorate/dynamic-forms/test/mock/journey.js';
-import { mockRandomUUID } from '@planning-inspectorate/dynamic-forms/test/mock/uuid.js';
-import { ManageListSection } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-section.js';
+import { Journey } from '@planning-inspectorate/dynamic-forms';
+import { ManageListSection } from '@planning-inspectorate/dynamic-forms';
 import nunjucks from 'nunjucks';
+
+function mockJourney() {
+	return new Journey({
+		journeyId: 'mock-journey-id',
+		makeBaseUrl: () => '/journey',
+		taskListUrl: 'check-your-answers',
+		response: { answers: {} },
+		journeyTemplate: 'views/layout-journey.njk',
+		taskListTemplate: 'views/layout-check-your-answers.njk',
+		informationPageViewPath: '',
+		journeyTitle: 'Mock Journey',
+		returnToListing: false,
+		sections: [],
+		initialBackLink: '/journey'
+	});
+}
 
 describe('ManageApplicantsQuestion', () => {
 	const TITLE = 'Applicants';
@@ -41,11 +56,13 @@ describe('ManageApplicantsQuestion', () => {
 
 	it('should populate addAnotherLink & firstQuestionUrl', (context) => {
 		const question = newQuestion();
-		mockRandomUUID(context);
 		question.section = new ManageListSection().addQuestion({ url: 'first-question' });
 		const viewModel = question.prepQuestionForRendering({}, mockJourney());
 		// add/<v4-guid>/<question-url>
-		assert.match(viewModel?.question?.addAnotherLink, /^add\/00000000-0000-0000-0000-000000000000\/first-question/);
+		assert.match(
+			viewModel?.question?.addAnotherLink,
+			/^add\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/first-question/
+		);
 		assert.strictEqual(viewModel?.question?.firstQuestionUrl, 'first-question');
 	});
 
@@ -65,7 +82,6 @@ describe('ManageApplicantsQuestion', () => {
 				return [{ value: 'mock answer 2' }];
 			}
 		};
-		mockRandomUUID(context);
 		const journey = mockJourney();
 		const answers = [];
 		for (let i = 0; i < answersToGenerate; i++) {
@@ -146,7 +162,6 @@ describe('ManageApplicantsQuestion', () => {
 	describe('formatAnswerForSummary', () => {
 		it('should format list answer for summary', (context) => {
 			const { question, journey } = questionWithManageQuestions(context, {}, 5);
-			mockRandomUUID(context);
 			nunjucks.render = mock.fn(() => 'mocked rendered string');
 			const answerForSummary = question.formatAnswerForSummary('section-1', journey, [{}, {}, {}]);
 			assert.strictEqual(answerForSummary.length, 1);
@@ -165,7 +180,6 @@ describe('ManageApplicantsQuestion', () => {
 	describe('checkForValidationErrors', () => {
 		it('should return view model if there are validation errors', (context) => {
 			const { question, journey } = questionWithManageQuestions(context, {}, 5);
-			mockRandomUUID(context);
 			const req = {
 				body: {
 					errors: {

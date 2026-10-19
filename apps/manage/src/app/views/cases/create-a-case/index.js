@@ -1,14 +1,16 @@
 import { Router as createRouter } from 'express';
 import { asyncHandler } from '@planning-inspectorate/core/util';
-import { buildGetJourney } from '@planning-inspectorate/dynamic-forms/src/middleware/build-get-journey.js';
-import { list, question, buildSave } from '@planning-inspectorate/dynamic-forms/src/controller.js';
-import { redirectToUnansweredQuestion } from '@planning-inspectorate/dynamic-forms/src/middleware/redirect-to-unanswered-question.js';
-import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
-import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
 import {
+	buildGetJourney,
+	buildGetJourneyResponseFromSession,
+	buildSave,
+	list,
+	question,
+	redirectToUnansweredQuestion,
 	saveDataToSession,
-	buildGetJourneyResponseFromSession
-} from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
+	validate,
+	validationErrorHandler
+} from '@planning-inspectorate/dynamic-forms';
 import { JOURNEY_ID, createJourney } from './journey.ts';
 import { getQuestions } from './questions.ts';
 import { buildSaveController, buildSuccessController } from './save.js';

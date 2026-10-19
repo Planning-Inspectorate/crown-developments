@@ -1,4 +1,4 @@
-import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
+import { DateValidator } from '@planning-inspectorate/dynamic-forms';
 import { formatInTimeZone } from 'date-fns-tz';
 import { enGB } from 'date-fns/locale/en-GB';
 

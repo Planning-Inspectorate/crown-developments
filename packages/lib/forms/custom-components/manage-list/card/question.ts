@@ -1,5 +1,11 @@
 import TableManageListQuestion from '../table/question.ts';
-import type { CommonQuestionParams, Journey, Question, QuestionViewModel } from '@planning-inspectorate/dynamic-forms';
+import type {
+	BaseQuestionViewData,
+	CommonQuestionParams,
+	Journey,
+	Question,
+	QuestionViewModel
+} from '@planning-inspectorate/dynamic-forms';
 import type { TableManageListQuestionParameters } from '../table/types.ts';
 import type { Response } from 'express';
 
@@ -33,7 +39,7 @@ export type CardManageListQuestionParams = TableManageListQuestionParameters &
 		boldRowLabels?: boolean;
 	};
 
-interface CardViewData {
+interface CardViewData extends BaseQuestionViewData {
 	question: string;
 	fieldName: string;
 	pageTitle: string;
@@ -101,7 +107,10 @@ export default class CardManageListQuestion extends TableManageListQuestion {
 	 */
 	override renderConfirmationAction(
 		res: Response,
-		itemToRemove: Record<string, unknown>,
+		itemToRemove: {
+			id: string;
+			[k: string]: string;
+		},
 		viewModel: QuestionViewModel
 	): void {
 		if (this.cardTitle) {

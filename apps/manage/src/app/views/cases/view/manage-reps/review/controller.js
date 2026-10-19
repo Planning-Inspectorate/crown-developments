@@ -9,7 +9,7 @@ import {
 } from '@pins/crowndev-lib/util/session.ts';
 import { JOURNEY_ID } from '../view/journey.js';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
-import { expressValidationErrorsToGovUkErrorList } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
+import { expressValidationErrorsToGovUkErrorList } from '@planning-inspectorate/dynamic-forms';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { forwardStreamContents, getDriveItemDownloadUrl } from '@pins/crowndev-lib/documents/utils.js';
 import { ALLOWED_MIME_TYPES } from '@pins/crowndev-lib/forms/representations/question-utils.js';

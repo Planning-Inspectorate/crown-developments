@@ -1,5 +1,5 @@
 import type { SelectableOption } from '@planning-inspectorate/dynamic-forms';
-import { RadioQuestion } from '@planning-inspectorate/dynamic-forms';
+import { findSelectableOptionByValue, RadioQuestion } from '@planning-inspectorate/dynamic-forms';
 import type { CrownCommonQuestionProps } from '../index.ts';
 import escape from 'escape-html';
 
@@ -67,7 +67,7 @@ export default class HiddenRadioQuestion extends RadioQuestion {
 	/**
 	 * Combines real values with legacy ones to be viewable.
 	 */
-	getOptionByValue(value: string): SelectableOption | undefined {
-		return [...this.options, ...this.hiddenOptions].find((option) => option.value === value);
+	getOptionByValue(value: string) {
+		return [...this.options, ...this.hiddenOptions].find(findSelectableOptionByValue(value));
 	}
 }

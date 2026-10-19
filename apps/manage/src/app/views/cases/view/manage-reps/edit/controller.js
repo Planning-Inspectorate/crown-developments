@@ -6,7 +6,7 @@ import {
 	publishedRepresentationsAttachmentsRootFolderPath,
 	representationFolderPath
 } from '@pins/crowndev-lib/util/sharepoint-path.js';
-import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms';
 import {
 	deleteRepresentationAttachmentsFolder,
 	moveAttachmentsToCaseFolder

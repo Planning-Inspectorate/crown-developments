@@ -1,4 +1,4 @@
-import { DateQuestion, ManageListQuestion } from '@planning-inspectorate/dynamic-forms';
+import { DateQuestion, JourneyForDisplay, ManageListQuestion } from '@planning-inspectorate/dynamic-forms';
 import type {
 	ActionView,
 	CommonQuestionParams,
@@ -369,11 +369,7 @@ export default class TableManageListQuestion extends ManageListQuestion {
 	 * answers in scope are the item's own.
 	 */
 	protected buildMockJourney(answers: Record<string, unknown>): Journey {
-		return {
-			getCurrentQuestionUrl: () => '',
-			response: { answers },
-			answers
-		} as unknown as Journey;
+		return new JourneyForDisplay(answers);
 	}
 
 	/**

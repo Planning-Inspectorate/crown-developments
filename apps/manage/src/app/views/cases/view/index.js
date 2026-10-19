@@ -1,8 +1,13 @@
 import { Router as createRouter } from 'express';
 import { asyncHandler } from '@planning-inspectorate/core/util';
-import { buildSave, question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
-import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
-import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
+import {
+	buildGetJourneyResponseFromSession,
+	buildSave,
+	question,
+	saveDataToSession,
+	validate,
+	validationErrorHandler
+} from '@planning-inspectorate/dynamic-forms';
 import { buildGetJourneyMiddleware, buildViewCaseDetails } from './controller.ts';
 import { validateIdFormat } from '@pins/crowndev-lib/util/string.ts';
 import { createRoutes as createCasePublishRoutes } from '@pins/crowndev-lib/publish/index.ts';
@@ -12,10 +17,6 @@ import { createRoutes as createApplicationUpdatesRoutes } from './application-up
 import { buildUpdateCase } from './update-case.ts';
 import { createRoutes as createApplicationHistoryRoutes } from '@pins/crowndev-lib/case-history/index.ts';
 import { createRoutes as createApplicationNotesRoutes } from '@pins/crowndev-lib/case-notes/index.ts';
-import {
-	buildGetJourneyResponseFromSession,
-	saveDataToSession
-} from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
 import { JOURNEY_ID } from './journey.ts';
 import { buildDeleteManageListItemOnConfirmRemove, addSuccessBannerFromMessage } from './delete.js';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';

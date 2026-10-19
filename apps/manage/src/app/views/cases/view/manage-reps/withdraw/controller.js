@@ -1,4 +1,4 @@
-import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
+import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms';
 import { JOURNEY_ID } from './journey.js';
 import { validateParams } from '../view/controller.js';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';

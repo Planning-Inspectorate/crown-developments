@@ -15,6 +15,7 @@ import {
 	Section,
 	whenQuestionHasAnswer
 } from '@planning-inspectorate/dynamic-forms';
+import type { HaveYourSay } from './types.d.ts';
 
 /**
  * Module for the S62A representation sections.
@@ -79,12 +80,17 @@ function addRepMyselfSection(questions: Record<string, Question>, isViewJourney:
 		.addQuestion(questions.myselfRedactedAttachments)
 		.withCondition(
 			(response) =>
-				questionArrayMeetsCondition(
-					response,
-					questions.myselfSelectBlobAttachments,
-					(answer: Record<string, unknown>) => Boolean(answer.redactedBlobName && answer.redactedFileName)
-				) && questionHasAnswer(response, questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES)
+				questionArrayMeetsCondition(response, questions.myselfSelectBlobAttachments, hasRedactedBlobAttachment) &&
+				questionHasAnswer(response, questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES)
 		);
+}
+
+function hasRedactedBlobAttachment(answer: unknown): boolean {
+	if (typeof answer !== 'object' || answer === null) {
+		return false;
+	}
+	const { redactedBlobName, redactedFileName } = answer as HaveYourSay.RedactedAttachment;
+	return Boolean(redactedBlobName && redactedFileName);
 }
 
 /**
@@ -150,11 +156,8 @@ function addRepAgentSection(questions: Record<string, Question>, isViewJourney: 
 		.addQuestion(questions.submitterRedactedAttachments)
 		.withCondition(
 			(response) =>
-				questionArrayMeetsCondition(
-					response,
-					questions.submitterSelectBlobAttachments,
-					(answer: Record<string, unknown>) => Boolean(answer.redactedBlobName && answer.redactedFileName)
-				) && questionHasAnswer(response, questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES)
+				questionArrayMeetsCondition(response, questions.submitterSelectBlobAttachments, hasRedactedBlobAttachment) &&
+				questionHasAnswer(response, questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES)
 		);
 }
 

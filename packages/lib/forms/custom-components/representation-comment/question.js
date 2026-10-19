@@ -1,5 +1,4 @@
-import { Question, TRUNCATED_MAX_LENGTH } from '@planning-inspectorate/dynamic-forms';
-import { nl2br } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
+import { nl2br, Question, TRUNCATED_MAX_LENGTH } from '@planning-inspectorate/dynamic-forms';
 import { truncateComment, truncatedReadMoreCommentLink } from '../../../util/questions.ts';
 
 /**

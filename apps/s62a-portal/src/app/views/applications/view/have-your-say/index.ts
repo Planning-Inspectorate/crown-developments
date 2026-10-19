@@ -4,14 +4,15 @@ import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/sessi
 import { RepresentationDocumentsUploader } from '@pins/crowndev-lib/util/representation-document-uploader.ts';
 import { FileValidator } from '@pins/crowndev-lib/validators/file-validator.ts';
 import { asyncHandler } from '@planning-inspectorate/core/util';
-import { buildGetJourney } from '@planning-inspectorate/dynamic-forms/src/middleware/build-get-journey.js';
-import { buildSave, question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
 import {
+	buildGetJourney,
+	buildSave,
+	question,
 	buildGetJourneyResponseFromSession,
-	buildSaveDataToSession
-} from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
-import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
-import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
+	buildSaveDataToSession,
+	validate,
+	validationErrorHandler
+} from '@planning-inspectorate/dynamic-forms';
 import { Router as createRouter } from 'express';
 import lusca from 'lusca';
 import { buildRemoveAttachment, buildUploadAttachments, receiveAttachments } from './attachments.ts';

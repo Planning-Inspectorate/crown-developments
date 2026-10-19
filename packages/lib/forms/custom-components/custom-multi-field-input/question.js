@@ -1,7 +1,5 @@
-import { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
+import { nl2br, Question, yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
 import escape from 'escape-html';
-import { nl2br } from '@planning-inspectorate/dynamic-forms/src/lib/utils.js';
-import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
 
 /**
  * @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question.js').QuestionViewModel} QuestionViewModel
@@ -189,7 +187,7 @@ export default class CustomMultiFieldInputQuestion extends Question {
 	 * @param {String} sectionSegment
 	 * @returns {Array<{
 	 *   key: string;
-	 *   value: string | Object;
+	 *   value: string;
 	 *   action: {
 	 *     href: string;
 	 *     text: string;

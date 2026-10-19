@@ -1,4 +1,4 @@
-import { REDACT_CHARACTER } from '@planning-inspectorate/dynamic-forms/src/components/text-entry-redact/question.js';
+import { REDACT_CHARACTER } from '@planning-inspectorate/dynamic-forms';
 
 // Azure AI Language service has a limit of 5120 characters per request
 // https://aka.ms/text-analytics-data-limits"
