@@ -11,9 +11,10 @@ import {
 	getHearingSectionItems,
 	getKeyDatesSectionItems
 } from './section-items.ts';
-import { getHaveYourSayStatus } from '@pins/crowndev-lib/util/have-your-say.ts';
+import { getHaveYourSayDeadline, getHaveYourSayStatus } from '@pins/crowndev-lib/util/have-your-say.ts';
 import { s62aCaseToViewModel, type S62aCaseWithRelations } from '../view-model.ts';
 import { tabText } from '../view-model.ts';
+import { buildApplicationStages } from './application-stage/controller.ts';
 
 export function buildApplicationInformationPage(service: S62APortalService): AsyncRequestHandler {
 	const { db } = service;
@@ -68,6 +69,8 @@ export function buildApplicationInformationPage(service: S62APortalService): Asy
 
 		const reference = s62aFields.reference;
 
+		const stagesItems = buildApplicationStages(s62aCase);
+
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: reference,
 			pageTitle: 'Application information',
@@ -79,7 +82,10 @@ export function buildApplicationInformationPage(service: S62APortalService): Asy
 			links,
 			currentUrl: req.originalUrl,
 			s62aFields,
-			haveYourSayStatus: getHaveYourSayStatus(haveYourSayPeriod, representationsPublishDate)
+			haveYourSayStatus: getHaveYourSayStatus(haveYourSayPeriod, representationsPublishDate),
+			currentStage: stagesItems.getCurrentStage(),
+			applicationStages: stagesItems.stages,
+			haveYourSayDeadline: getHaveYourSayDeadline(haveYourSayPeriod)
 		});
 	};
 }
