@@ -96,6 +96,34 @@ export const HAVE_YOUR_SAY_PROP_OVERRIDES = {
 		]
 	},
 
+	representedFullName: {
+		// someone else's name, so the browser should not fill in the user's own
+		inputFields: [
+			{ fieldName: 'representedFirstName', label: 'First name', autocomplete: 'off', formatJoinString: ' ' },
+			{ fieldName: 'representedLastName', label: 'Last name', autocomplete: 'off' }
+		],
+		validators: [
+			new MultiFieldInputValidator({
+				fields: [
+					{
+						fieldName: 'representedFirstName',
+						validators: [
+							new RequiredValidator('Enter a first name'),
+							new NameValidator({ label: 'First name', allowNumbers: true })
+						]
+					},
+					{
+						fieldName: 'representedLastName',
+						validators: [
+							new RequiredValidator('Enter a last name'),
+							new NameValidator({ label: 'Last name', allowNumbers: true })
+						]
+					}
+				]
+			})
+		]
+	},
+
 	groupName: {
 		question: 'What is the name of the group?',
 		validators: [
@@ -136,10 +164,11 @@ export function groupMemberOverrides({ manageListAction, otherMembers }: GroupMe
 			{
 				fieldName: 'groupRepresentedFirstName',
 				label: 'First name',
-				autocomplete: 'given-name',
+				// someone else's name, so the browser should not fill in the user's own
+				autocomplete: 'off',
 				formatJoinString: ' '
 			},
-			{ fieldName: 'groupRepresentedLastName', label: 'Last name', autocomplete: 'family-name' }
+			{ fieldName: 'groupRepresentedLastName', label: 'Last name', autocomplete: 'off' }
 		],
 		validators: [
 			new MultiFieldInputValidator({
