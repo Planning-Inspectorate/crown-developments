@@ -184,10 +184,8 @@ export function haveYourSayManageSections(questions: Record<string, Question>, i
 /**
  * Creates the front office (portal) Have your say journey.
  *
- * The Myself branch, and the 'A person', 'organisation I work for' and 'A group of people'
- * branches, exist so far. The 'organisation I do not work for' branch, and the attachment upload and comment pages, are filled
- * in by later tickets; the upload and comment questions are here now so the
- * attachments answer routes to the right page.
+ * Every branch exists. The attachment upload and comment pages are filled in by later
+ * tickets; their questions are here now so the attachments answer routes to the right page.
  */
 export function haveYourSaySections(questions: Record<string, Question>): Section[] {
 	return [
@@ -218,6 +216,7 @@ function haveYourSayMyselfSection(questions: Record<string, Question>) {
 function haveYourSayAgentSection(questions: Record<string, Question>) {
 	const isOrgWorkFor = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.ORGANISATION);
 	const isRepresentationPerson = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON);
+	const isOrgNotWorkFor = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.ORG_NOT_WORK_FOR);
 	const isRepresentationGroup = whenQuestionHasAnswer(questions.whoRepresenting, REPRESENTED_TYPE_ID.GROUP);
 	const isAgentRoute = (response: JourneyResponse) =>
 		questionHasAnswer(response, questions.whoRepresenting, REPRESENTED_TYPE_ID.PERSON) ||
@@ -244,6 +243,9 @@ function haveYourSayAgentSection(questions: Record<string, Question>) {
 
 		.addQuestion(questions.representedFullName)
 		.withCondition(isRepresentationPerson)
+
+		.addQuestion(questions.representedOrgName)
+		.withCondition(isOrgNotWorkFor)
 
 		.startMultiQuestionCondition('representation-group', isRepresentationGroup)
 		.addQuestion(questions.hasGroupName)
