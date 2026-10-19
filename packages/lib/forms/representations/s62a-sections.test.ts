@@ -167,6 +167,7 @@ describe('s62a-sections', () => {
 					'submitterEmail',
 					'orgName',
 					'orgRoleName',
+					'representedFullName',
 					'hasGroupName',
 					'groupName',
 					'manageGroupDetails',
