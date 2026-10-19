@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { getHaveYourSayStatus, HAVE_YOUR_SAY_STATUS } from './have-your-say.ts';
+import { getHaveYourSayDeadline, getHaveYourSayStatus, HAVE_YOUR_SAY_STATUS } from './have-your-say.ts';
 
 describe('getHaveYourSayStatus', () => {
 	describe('getHaveYourSayStatus', () => {
@@ -65,6 +65,61 @@ describe('getHaveYourSayStatus', () => {
 				getHaveYourSayStatus(haveYourSayPeriod, null as unknown as Date),
 				HAVE_YOUR_SAY_STATUS.CLOSED_REPS_PUBLISHED_DATE_NOT_SET
 			);
+		});
+	});
+});
+
+describe('getHaveYourSayDeadline', () => {
+	describe('Happy path', () => {
+		it('should return the formatted end date for the have your say period', () => {
+			const end = new Date('2024-06-30T00:00:00Z');
+			const haveYourSayPeriod = { start: new Date('2024-06-01T00:00:00Z'), end };
+
+			const deadline = getHaveYourSayDeadline(haveYourSayPeriod);
+
+			assert.strictEqual(deadline, 'Sunday 30 June 2024');
+		});
+	});
+	describe('Edge-cases', () => {
+		it('should handle single digit days correctly', () => {
+			const end = new Date('2024-06-05T00:00:00Z');
+			const haveYourSayPeriod = { start: new Date('2024-06-01T00:00:00Z'), end };
+
+			const deadline = getHaveYourSayDeadline(haveYourSayPeriod);
+
+			assert.strictEqual(deadline, 'Wednesday 5 June 2024');
+		});
+		it('should handle lead-year dates correctly', () => {
+			const validLeapYearEnd = new Date('2024-02-29T00:00:00Z');
+			const invalidLeapYearEnd = new Date('2023-02-29T00:00:00Z'); // Invalid date, will be treated as March 1st
+			const haveYourSayPeriodValid = { start: new Date('2024-02-01T00:00:00Z'), end: validLeapYearEnd };
+			const haveYourSayPeriodInvalid = { start: new Date('2023-02-01T00:00:00Z'), end: invalidLeapYearEnd };
+
+			const validDeadline = getHaveYourSayDeadline(haveYourSayPeriodValid);
+			const invalidDeadline = getHaveYourSayDeadline(haveYourSayPeriodInvalid);
+
+			assert.strictEqual(validDeadline, 'Thursday 29 February 2024');
+			assert.strictEqual(invalidDeadline, 'Wednesday 1 March 2023');
+		});
+	});
+	describe('Invalid inputs', () => {
+		it('should handle null end date gracefully', () => {
+			const haveYourSayPeriod = { start: new Date('2024-06-01T00:00:00Z'), end: null as unknown as Date };
+
+			const deadline = getHaveYourSayDeadline(haveYourSayPeriod);
+			assert.strictEqual(deadline, '');
+		});
+		it('should handle undefined end date gracefully', () => {
+			const haveYourSayPeriod = { start: new Date('2024-06-01T00:00:00Z'), end: undefined as unknown as Date };
+
+			const deadline = getHaveYourSayDeadline(haveYourSayPeriod);
+			assert.strictEqual(deadline, '');
+		});
+		it('should handle invalid end date gracefully', () => {
+			const haveYourSayPeriod = { start: new Date('2024-06-01T00:00:00Z'), end: new Date('invalid-date') };
+
+			const deadline = getHaveYourSayDeadline(haveYourSayPeriod);
+			assert.strictEqual(deadline, '');
 		});
 	});
 });
