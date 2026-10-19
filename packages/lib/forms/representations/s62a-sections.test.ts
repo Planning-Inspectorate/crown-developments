@@ -168,6 +168,7 @@ describe('s62a-sections', () => {
 					'orgName',
 					'orgRoleName',
 					'representedFullName',
+					'representedOrgName',
 					'hasGroupName',
 					'groupName',
 					'manageGroupDetails',
