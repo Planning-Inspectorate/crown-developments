@@ -84,6 +84,18 @@ export const HAVE_YOUR_SAY_PROP_OVERRIDES = {
 	submitterEmail: yourEmailOverrides,
 	submitterHasAttachments: hasAttachmentsOverrides,
 
+	orgName: {
+		validators: [
+			new RequiredValidator('Enter the name of your organisation or charity'),
+			new StringValidator({
+				maxLength: {
+					maxLength: 250,
+					maxLengthMessage: 'Name of organisation or charity must be between 1 and 250 characters'
+				}
+			})
+		]
+	},
+
 	groupName: {
 		question: 'What is the name of the group?',
 		validators: [
