@@ -35,14 +35,17 @@
 
             {% set uploadForm = "upload-form" %}
 
+            <!-- "action" is what is called when the ajax calls aren't used for non JS users. As you see we must also pass the csrf in for reading -->
+             <!-- TODO: not sure how "Removing" works without JS, need to figure that out -->
             <form 
                 id="upload-form-container" 
-                action="{{ currentUrl }}" 
+                action="{{ currentUrl }}/upload-documents" 
                 method="post" 
                 enctype="multipart/form-data" 
                 data-upload-url="{{ currentUrl }}/documents" 
                 data-delete-url="{{ currentUrl }}/documents/delete"
             >
+                <input type="hidden" name="_csrf" value="{{ _csrf }}">
                 {% set uploadHtml %}
                     {{ govukFileUpload({
                         id: uploadForm,

@@ -19,6 +19,7 @@ import {
 } from '../upload-utils.ts';
 import { asyncHandler } from '@planning-inspectorate/core/util';
 import { FileValidator } from '@pins/crowndev-lib/validators/file-validator.ts';
+import lusca from 'lusca';
 
 export function createRoutes(service: ManageService) {
 	const { db, blobStore, logger } = service;
@@ -47,7 +48,11 @@ export function createRoutes(service: ManageService) {
 	const deleteDocument = deleteDocumentController(service, documentsUploader);
 	const createDocument = createDocumentsController(service, documentsUploader);
 
-	const handleUploads = multer();
+	// We should limit to 1 (need to consider what happens if a non-js user tries to upload more than 1 doc? Because AJAX goes one at a time)
+	const handleUploads = multer({ limits: { files: 1 } });
+
+	// This route is specifically for when JS is disabled, we have a sync route (it has to be upload-documents because that endpoint is whitelisted to ignore lusca until after multer)
+	router.post('/upload-documents', handleUploads.array('upload-form'), lusca.csrf(), validateRequest, uploadDocument);
 
 	// Uploads files
 	router.post('/documents', handleUploads.array('documents'), validateRequest, uploadDocument);

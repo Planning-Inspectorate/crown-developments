@@ -21,21 +21,33 @@ export function uploadDocumentsController(documentUploader: DocumentsUploader) {
 
 		const insertedDocuments = await documentUploader.processAndDraftUploads(id, files, req.sessionID, folderId);
 
-		const uploadedFile = insertedDocuments[0];
-		const originalFile = files[0];
+		// For AJAX we need to return an object, but for a sync call
+		// we just redirect back to the page because its in session.
+		// OR we just have the sync call use a different controller (probably better)
+		const isAjax =
+			req.xhr ||
+			req.headers['x-requested-with'] === 'XMLHttpRequest' ||
+			req.headers.accept?.includes('application/json');
 
-		return res.json({
-			file: {
-				id: uploadedFile.id,
-				originalname: uploadedFile.fileName,
-				filename: uploadedFile.id,
-				path: uploadedFile.blobName,
-				size: originalFile.size
-			},
-			success: {
-				messageHtml: `<span class="moj-multi-file-upload__filename">${escapeHtml(uploadedFile.fileName)} (${formatBytes(originalFile.size)})</span>`
-			}
-		});
+		if (isAjax) {
+			const uploadedFile = insertedDocuments[0];
+			const originalFile = files[0];
+
+			return res.json({
+				file: {
+					id: uploadedFile.id,
+					originalname: uploadedFile.fileName,
+					filename: uploadedFile.id,
+					path: uploadedFile.blobName,
+					size: originalFile.size
+				},
+				success: {
+					messageHtml: `<span class="moj-multi-file-upload__filename">${escapeHtml(uploadedFile.fileName)} (${formatBytes(originalFile.size)})</span>`
+				}
+			});
+		}
+
+		return res.redirect(req.originalUrl);
 	};
 }
 
