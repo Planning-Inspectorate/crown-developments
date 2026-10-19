@@ -66,6 +66,7 @@ describe('buildApplicationInformationPage', () => {
 		const mockDbCase = {
 			id: validUuid,
 			reference: 'S62A/2026/0001',
+			stageId: 'consultation',
 			S62aDates: { withdrawnDate: null },
 			Type: { name: 'Standard' },
 			Lpa: { name: 'Local Authority' },
@@ -73,7 +74,8 @@ describe('buildApplicationInformationPage', () => {
 			S62aToApplicants: [],
 			ApplicantType: { name: 'Agent' },
 			SiteAddress: { line1: '123 Fake Street' },
-			Procedure: { name: 'Written representations' }
+			Procedure: { name: 'Written representations' },
+			representationsPeriodEndDate: new Date('2026-08-31')
 		};
 
 		const dbMock = {
@@ -117,5 +119,99 @@ describe('buildApplicationInformationPage', () => {
 		assert.ok(payload.aboutThisApplicationSectionItems !== undefined);
 		assert.ok(payload.links);
 		assert.ok(Array.isArray(payload.links));
+		assert.strictEqual(payload.currentStage.stageId, 'consultation');
+		assert.strictEqual(payload.haveYourSayDeadline, 'Monday 31 August 2026');
+	});
+
+	it('should construct the stages correctly based on the application details', async (context) => {
+		const mockDbCase = {
+			id: validUuid,
+			reference: 'S62A/2026/0001',
+			stageId: 'consultation',
+			S62aDates: { withdrawnDate: null },
+			Type: { name: 'Standard' },
+			Lpa: { name: 'Local Authority' },
+			SecondaryLpa: null,
+			S62aToApplicants: [],
+			ApplicantType: { name: 'Agent' },
+			SiteAddress: { line1: '123 Fake Street' },
+			Procedure: { name: 'Written representations' }
+		};
+
+		const dbMock = {
+			s62aCase: {
+				findUnique: context.mock.fn(async () => mockDbCase)
+			}
+		};
+		const service = { db: dbMock } as unknown as S62APortalService;
+
+		const req = {
+			params: { applicationId: validUuid },
+			originalUrl: `/applications/${validUuid}/info`
+		} as any;
+
+		const res = {
+			status: context.mock.fn(() => res),
+			render: context.mock.fn(),
+			send: context.mock.fn()
+		} as any;
+
+		const handler = buildApplicationInformationPage(service);
+		await handler(req, res, context.mock.fn() as any);
+		const payload = res.render.mock.calls[0].arguments[1];
+
+		const actualStages = payload.applicationStages.map((s: any) => ({
+			stageId: s.stageId,
+			stageDisplayName: s.stageDisplayName,
+			detailsTemplate: s.detailsTemplate,
+			status: s.status,
+			isCurrentStage: s.isCurrentStage
+		}));
+
+		assert.deepStrictEqual(actualStages, [
+			{
+				stageId: 'pre-application',
+				stageDisplayName: 'Pre-application',
+				detailsTemplate: 'views/applications/view/application-info/application-stage/details/pre-application.njk',
+				status: 'Completed',
+				isCurrentStage: false
+			},
+			{
+				stageId: 'validation',
+				stageDisplayName: 'Validation',
+				detailsTemplate: 'views/applications/view/application-info/application-stage/details/validation.njk',
+				status: 'Completed',
+				isCurrentStage: false
+			},
+			{
+				stageId: 'consultation',
+				stageDisplayName: 'Consultation',
+				detailsTemplate: 'views/applications/view/application-info/application-stage/details/consultation.njk',
+				status: 'In progress',
+				isCurrentStage: true
+			},
+			{
+				stageId: 'procedure-decision',
+				stageDisplayName: 'Procedure decision',
+				detailsTemplate: 'views/applications/view/application-info/application-stage/details/procedure-decision.njk',
+				status: 'Not started',
+				isCurrentStage: false
+			},
+			{
+				stageId: 'decision',
+				stageDisplayName: 'Reporting and decision',
+				detailsTemplate:
+					'views/applications/view/application-info/application-stage/details/reporting-and-decision.njk',
+				status: 'Not started',
+				isCurrentStage: false
+			},
+			{
+				stageId: 'post-decision',
+				stageDisplayName: 'Post-decision',
+				detailsTemplate: 'views/applications/view/application-info/application-stage/details/post-decision.njk',
+				status: undefined,
+				isCurrentStage: false
+			}
+		]);
 	});
 });

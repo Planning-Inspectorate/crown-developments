@@ -6,6 +6,7 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "application-links/application-links.njk" import applicationLinks %}
 {% from "distressing-content/distressing-content-banner.njk" import distressingContentBanner %}
+{% from "views/applications/view/application-info/application-stage/s62a-application-stages.njk" import renderS62aApplicationStages %}
 
 {% block pageHeading %}{% endblock %}
 
@@ -63,7 +64,11 @@
 				{% endif %}
 			</div>
 			{{ renderHaveYourSayInformation(haveYourSayStatus, s62aFields) }}
+			{#			Application Stage    #}
 			<hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+			{{ renderS62aApplicationStages(currentStage, applicationStages, s62aFields, haveYourSayStatus, haveYourSayDeadline) }}
+			<hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+			{#			Contact us    #}
 			<div>
 				<h2 class="govuk-heading-m">Give us feedback</h2>
 				<p class="govuk-body">Help us improve this service by
