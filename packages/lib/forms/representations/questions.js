@@ -1,9 +1,13 @@
-import AddressValidator from '@planning-inspectorate/dynamic-forms/src/validator/address-validator.js';
-import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
-import StringValidator from '@planning-inspectorate/dynamic-forms/src/validator/string-validator.js';
-import { createQuestions } from '@planning-inspectorate/dynamic-forms/src/questions/create-questions.js';
-import { questionClasses } from '@planning-inspectorate/dynamic-forms/src/questions/questions.js';
-import { COMPONENT_TYPES } from '@planning-inspectorate/dynamic-forms';
+import {
+	AddressValidator,
+	COMPONENT_TYPES,
+	createQuestions,
+	DateValidator,
+	DocumentUploadValidator,
+	questionClasses,
+	RequiredValidator,
+	StringValidator
+} from '@planning-inspectorate/dynamic-forms';
 import {
 	RECEIVED_METHOD,
 	RECEIVED_METHOD_ID,
@@ -26,9 +30,7 @@ import {
 	MAX_FILE_SIZE,
 	representationsContactQuestions
 } from './question-utils.js';
-import DateValidator from '@planning-inspectorate/dynamic-forms/src/validator/date-validator.js';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
-import DocumentUploadValidator from '@planning-inspectorate/dynamic-forms/src/validator/document-upload-validator.js';
 import CustomManageListValidator from '../custom-components/manage-list/validator.js';
 import AjaxDocumentUploadValidator from '../custom-components/ajax-document-upload-validator/ajax-document-uploader-validator.ts';
 import NameValidator from '../../validators/name-validator.ts';

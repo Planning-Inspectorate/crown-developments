@@ -5,7 +5,7 @@ import { mockLogger } from '@planning-inspectorate/core/testing';
 import { asReq, asRes } from '@pins/crowndev-lib/testing/mock-express.ts';
 import { APPLICATION_PROCEDURE_ID, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms';
 import { AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/index.ts';
 
 /**

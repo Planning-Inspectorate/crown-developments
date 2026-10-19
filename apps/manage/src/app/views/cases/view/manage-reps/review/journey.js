@@ -1,7 +1,5 @@
 import { JOURNEY_ID } from '../view/journey.js';
-import TextEntryRedactQuestion from '@planning-inspectorate/dynamic-forms/src/components/text-entry-redact/question.js';
-import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
-import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
+import { Journey, Section, TextEntryRedactQuestion } from '@planning-inspectorate/dynamic-forms';
 import { generateJourneyTitle } from '../manage-reps-utils.js';
 
 /**

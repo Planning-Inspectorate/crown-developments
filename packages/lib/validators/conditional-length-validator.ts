@@ -1,6 +1,7 @@
 import { body } from 'express-validator';
 import type { ValidationChain } from 'express-validator';
-import BaseValidator from '@planning-inspectorate/dynamic-forms/src/validator/base-validator.js';
+import type { OptionsQuestion } from '@planning-inspectorate/dynamic-forms';
+import { BaseValidator, optionIsSelectable } from '@planning-inspectorate/dynamic-forms';
 
 interface OptionConditional {
 	fieldName: string;
@@ -9,11 +10,6 @@ interface OptionConditional {
 interface Option {
 	value: string;
 	conditional?: OptionConditional;
-}
-
-interface QuestionObj {
-	fieldName: string;
-	options: Option[];
 }
 
 interface ConditionalLengthValidatorOptions {
@@ -34,9 +30,9 @@ export class ConditionalLengthValidator extends BaseValidator {
 		this.errorMessage = errorMessage;
 	}
 
-	validate(questionObj: QuestionObj): ValidationChain[] {
+	validate(questionObj: OptionsQuestion): ValidationChain[] {
 		return questionObj.options.reduce<ValidationChain[]>((schema, option) => {
-			if (option.conditional) {
+			if (optionIsSelectable(option) && option.conditional) {
 				const fieldName = this.getConditionalFieldName(
 					questionObj,
 					option as Option & { conditional: OptionConditional }
@@ -55,13 +51,13 @@ export class ConditionalLengthValidator extends BaseValidator {
 	}
 
 	private getConditionalFieldName(
-		questionObj: QuestionObj,
+		questionObj: OptionsQuestion,
 		option: Option & { conditional: OptionConditional }
 	): string {
 		return `${questionObj.fieldName}_${option.conditional.fieldName}`;
 	}
 
-	private isValueIncluded(questionObj: QuestionObj, value: string): ValidationChain {
+	private isValueIncluded(questionObj: OptionsQuestion, value: string): ValidationChain {
 		return body(questionObj.fieldName).custom((existingValues: unknown) => {
 			const values = Array.isArray(existingValues) ? existingValues : [existingValues];
 			return values.includes(value);

@@ -12,7 +12,7 @@ import {
 	REPRESENTED_TYPE_ID,
 	RECEIVED_METHOD_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms';
 
 /**
  * @typedef {import('./types.js').HaveYourSayManageModel} HaveYourSayManageModel

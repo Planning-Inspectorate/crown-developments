@@ -1,5 +1,4 @@
-import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
-import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
+import { Journey, Section } from '@planning-inspectorate/dynamic-forms';
 import { isValidRedirectUri } from '@pins/crowndev-lib/util/uri.ts';
 import type { JourneyResponse, Question } from '@planning-inspectorate/dynamic-forms';
 import type { Request } from 'express';

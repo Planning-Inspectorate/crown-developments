@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { validationResult } from 'express-validator';
 import UniqueListFieldValidator from './unique-list-field-validator.ts';
-import type { Question } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
+import type { Question } from '@planning-inspectorate/dynamic-forms';
 
 describe('UniqueListFieldValidator', () => {
 	const questionObj = { fieldName: 'wasteTypeId' } as unknown as Question;

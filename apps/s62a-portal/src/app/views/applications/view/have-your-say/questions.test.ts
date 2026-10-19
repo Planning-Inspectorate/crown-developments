@@ -2,7 +2,7 @@ import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import type MultiFileUploadQuestion from '@pins/crowndev-lib/forms/custom-components/multi-file-uploader/question.ts';
 import type { Question } from '@planning-inspectorate/dynamic-forms';
-import { buildValidateBody } from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
+import { buildValidateBody } from '@planning-inspectorate/dynamic-forms';
 import { validationResult } from 'express-validator';
 import { getHaveYourSayQuestions, groupMemberOverrides, MAXIMUM_GROUP_MEMBERS } from './questions.ts';
 

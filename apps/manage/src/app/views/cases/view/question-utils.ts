@@ -59,7 +59,7 @@ export function dateQuestion({
 			new DateValidator(
 				validationTitle,
 				{ ensureFuture: false, ensurePast: false },
-				{ emptyErrorMessage: emptyErrorMessage }
+				emptyErrorMessage === null ? undefined : { emptyErrorMessage: emptyErrorMessage }
 			)
 		],
 		editable: editable,

@@ -1,5 +1,4 @@
-import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
-import OptionsQuestion from '@planning-inspectorate/dynamic-forms/src/questions/options-question.js';
+import { BOOLEAN_OPTIONS, OptionsQuestion } from '@planning-inspectorate/dynamic-forms';
 
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question} Question */
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/options-question.js').QuestionViewModel} QuestionViewModel */

@@ -1,8 +1,8 @@
 import { NumberEntryQuestion } from '@planning-inspectorate/dynamic-forms';
-import type { OptionsQuestionParameters } from '@planning-inspectorate/dynamic-forms';
+import type { OptionsQuestionParams } from '@planning-inspectorate/dynamic-forms';
 import { escapeHtml } from '../../../util/string.ts';
 
-export type CustomNumberInputQuestionProps = OptionsQuestionParameters & {
+export type CustomNumberInputQuestionProps = OptionsQuestionParams & {
 	/** Prefix for the summary value, e.g. "Capacity". Defaults to the selected option's text. */
 	summaryLabel?: string;
 	/** Suffix appended to the value, keyed by option value, e.g. { litres: 'l' } */

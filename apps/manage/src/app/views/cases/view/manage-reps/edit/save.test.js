@@ -1,9 +1,13 @@
-import { describe, it, mock, beforeEach } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { buildSave } from './save.js';
-import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
-import { SECTION_STATUS } from '@planning-inspectorate/dynamic-forms/src/section.js';
-import { mockReq, mockRes } from '@planning-inspectorate/dynamic-forms/test/utils/utils.js';
+import { Journey, SECTION_STATUS } from '@planning-inspectorate/dynamic-forms';
+
+export const mockReq = () => ({});
+export const mockRes = () => ({
+	locals: {},
+	redirect: mock.fn()
+});
 
 const res = mockRes();
 const mockBaseUrl = '/manage-appeals/questionnaire';

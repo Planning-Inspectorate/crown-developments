@@ -1,10 +1,10 @@
 import {
 	dateIsAfterToday,
 	dateIsToday,
+	formatDateForDisplay,
 	isNowAfterStartDate,
 	nowIsWithinRange
-} from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
-import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
+} from '@planning-inspectorate/dynamic-forms';
 
 export const HAVE_YOUR_SAY_STATUS = {
 	OPEN: 'open',

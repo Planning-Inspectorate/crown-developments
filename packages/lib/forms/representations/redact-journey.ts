@@ -1,7 +1,5 @@
 import type { JourneyResponse } from '@planning-inspectorate/dynamic-forms';
-import TextEntryRedactQuestion from '@planning-inspectorate/dynamic-forms/src/components/text-entry-redact/question.js';
-import { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
-import { Section } from '@planning-inspectorate/dynamic-forms/src/section.js';
+import { Journey, Section, TextEntryRedactQuestion } from '@planning-inspectorate/dynamic-forms';
 import type { Request } from 'express';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 

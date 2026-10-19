@@ -3,7 +3,7 @@ import { mockLogger } from '@planning-inspectorate/core/testing';
 import assert from 'node:assert';
 import { assertRenders404Page } from '@pins/crowndev-lib/testing/custom-asserts.js';
 import { buildGetJourneyMiddleware, validateParams, viewRepresentation } from './controller.js';
-import { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
+import { JourneyResponse } from '@planning-inspectorate/dynamic-forms';
 import { createJourney } from './journey.js';
 import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import { RECEIVED_METHOD_ID } from '@pins/crowndev-database/src/seed/data-static.ts';

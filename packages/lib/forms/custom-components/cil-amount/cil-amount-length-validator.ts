@@ -1,6 +1,5 @@
-import BaseValidator from '@planning-inspectorate/dynamic-forms/src/validator/base-validator.js';
+import { BaseValidator, BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms';
 import { body, type ValidationChain } from 'express-validator';
-import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms';
 
 interface CILAmountQuestion {
 	fieldName: string;

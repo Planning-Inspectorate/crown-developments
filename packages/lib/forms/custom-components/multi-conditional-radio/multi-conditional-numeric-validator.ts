@@ -1,5 +1,5 @@
 import { body, type ValidationChain } from 'express-validator';
-import BaseValidator from '@planning-inspectorate/dynamic-forms/src/validator/base-validator.js';
+import { BaseValidator, optionIsSelectable } from '@planning-inspectorate/dynamic-forms';
 import type { OptionsQuestion, SelectableOption } from '@planning-inspectorate/dynamic-forms';
 
 export type MultiConditionalNumericValidatorParams = {
@@ -29,7 +29,7 @@ export class MultiConditionalNumericValidator extends BaseValidator {
 
 	validate(questionObj: OptionsQuestion): ValidationChain[] {
 		return questionObj.options.reduce<ValidationChain[]>((schema, option) => {
-			if (option.conditional) {
+			if (optionIsSelectable(option) && option.conditional) {
 				const fieldName = this.getConditionalFieldName(questionObj, option);
 
 				schema.push(

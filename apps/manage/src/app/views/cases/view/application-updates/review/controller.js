@@ -1,5 +1,5 @@
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
+import { BOOLEAN_OPTIONS, formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
 	addAppUpdateStatus,
@@ -8,7 +8,6 @@ import {
 	validateParams
 } from '../utils.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
-import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 
 export function buildReviewController({ db }) {
 	return async (req, res) => {

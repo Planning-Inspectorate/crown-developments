@@ -1,5 +1,5 @@
 import { Router as createRouter } from 'express';
-import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
+import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms';
 import { asyncHandler } from '@planning-inspectorate/core/util';
 import { buildReviewControllers, viewRepresentationAwaitingReview, viewReviewRedirect } from './controller.js';
 import { buildGetJourneyMiddleware } from '../view/controller.js';

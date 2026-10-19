@@ -10,11 +10,11 @@ import { CharacterLimitValidator } from '@pins/crowndev-lib/validators/character
 import {
 	BOOLEAN_OPTIONS,
 	COMPONENT_TYPES,
+	MANAGE_LIST_ACTIONS,
 	type Question,
 	RequiredValidator,
 	StringValidator
 } from '@planning-inspectorate/dynamic-forms';
-import { MANAGE_LIST_ACTIONS } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-actions.js';
 import { ATTACHMENT_ERRORS, MAXIMUM_ATTACHMENTS_PER_UPLOAD } from './attachments.ts';
 
 /** Most people that can be added to a group */

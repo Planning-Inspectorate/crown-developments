@@ -1,9 +1,9 @@
 import { RadioQuestion } from '@planning-inspectorate/dynamic-forms';
-import type { Question, OptionsQuestionParameters } from '@planning-inspectorate/dynamic-forms';
+import type { OptionsQuestionParams, Question } from '@planning-inspectorate/dynamic-forms';
 import { escapeHtml } from '../../../util/string.ts';
 import { roundForDisplay } from '../../../util/numbers.ts';
 
-export type MultiConditionalRadioQuestionProps = OptionsQuestionParameters & {
+export type MultiConditionalRadioQuestionProps = OptionsQuestionParams & {
 	/** Prefix for the summary value, e.g. "Capacity". Defaults to the selected option's text. */
 	summaryLabel?: string;
 	/** Suffix appended to the value, keyed by option value, e.g. { litres: 'l' } */
@@ -58,7 +58,7 @@ export default class MultiConditionalRadioQuestion extends RadioQuestion {
 	): ReturnType<Question['formatAnswerForSummary']> {
 		const [sectionSegment, journey, answer] = args;
 
-		const selectedOption = this.options.find((opt) => opt.value === answer);
+		const selectedOption = this.optionByValue(answer as string);
 		let displayValue = selectedOption ? selectedOption.text : '-';
 
 		const conditionalFieldName = selectedOption?.conditional?.fieldName;

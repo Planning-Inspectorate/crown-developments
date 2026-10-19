@@ -1,7 +1,7 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert';
 import CustomNumberInputQuestion from './question.ts';
-import type { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
+import type { Journey } from '@planning-inspectorate/dynamic-forms';
 
 describe('CustomNumberInputQuestion', () => {
 	let question: CustomNumberInputQuestion;

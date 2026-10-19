@@ -1,9 +1,7 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert';
 import CardManageListQuestion from './question.ts';
-import type { QuestionViewModel } from '@planning-inspectorate/dynamic-forms/src/questions/question.js';
-import type { Section } from '@planning-inspectorate/dynamic-forms';
-import type { Journey } from '@planning-inspectorate/dynamic-forms/src/journey/journey.js';
+import type { Journey, QuestionViewModel, Section } from '@planning-inspectorate/dynamic-forms';
 import type { Response } from 'express';
 import type { CardFormatContext } from './question.ts';
 

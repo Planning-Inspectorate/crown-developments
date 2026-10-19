@@ -1,10 +1,12 @@
-import BaseValidator from '@planning-inspectorate/dynamic-forms/src/validator/base-validator.js';
-import { MANAGE_LIST_ACTIONS } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-actions.js';
-import RequiredValidator from '@planning-inspectorate/dynamic-forms/src/validator/required-validator.js';
+import {
+	BaseValidator,
+	ConditionalRequiredValidator,
+	MANAGE_LIST_ACTIONS,
+	RequiredValidator
+} from '@planning-inspectorate/dynamic-forms';
 import { body, validationResult } from 'express-validator';
 import type { ValidationChain } from 'express-validator';
-import { ConditionalRequiredValidator, type Question } from '@planning-inspectorate/dynamic-forms';
-import type { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
+import type { JourneyResponse, Question } from '@planning-inspectorate/dynamic-forms';
 import RequiredGroupValidator from './required-group-validator.ts';
 
 /** A validator that expresses "this answer is required", as opposed to a format or uniqueness rule. */

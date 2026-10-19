@@ -1,4 +1,4 @@
-import { expressValidationErrorsToGovUkErrorList } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
+import { expressValidationErrorsToGovUkErrorList } from '@planning-inspectorate/dynamic-forms';
 import { buildUpdateDetailsPage, updateAppUpdatesSession } from './controller.js';
 import { validateParams } from '../utils.ts';
 

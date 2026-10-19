@@ -1,12 +1,14 @@
-import { buildSave, list, question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
-import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
-import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
-import { Router as createRouter } from 'express';
-import { buildGetJourney } from '@planning-inspectorate/dynamic-forms/src/middleware/build-get-journey.js';
 import {
+	buildGetJourney,
 	buildGetJourneyResponseFromSession,
-	buildSaveDataToSession
-} from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
+	buildSave,
+	buildSaveDataToSession,
+	list,
+	question,
+	validate,
+	validationErrorHandler
+} from '@planning-inspectorate/dynamic-forms';
+import { Router as createRouter } from 'express';
 import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/session.js';
 import { createJourney, JOURNEY_ID } from './journey.ts';
 import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';

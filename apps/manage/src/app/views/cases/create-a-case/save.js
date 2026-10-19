@@ -1,5 +1,4 @@
-import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
-import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms/src/lib/session-answer-store.js';
+import { clearDataFromSession, formatDateForDisplay, yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
 import { JOURNEY_ID } from './journey.ts';
 import { toFloat } from '@pins/crowndev-lib/util/numbers.ts';
 import {
@@ -7,7 +6,6 @@ import {
 	getSharePointReceivedPathId,
 	getSharePointReceivedPathLink
 } from '@pins/crowndev-lib/util/sharepoint-path.js';
-import { yesNoToBoolean } from '@planning-inspectorate/dynamic-forms/src/components/boolean/question.js';
 import {
 	APPLICATION_SUB_TYPE_ID,
 	APPLICATION_TYPE_ID,

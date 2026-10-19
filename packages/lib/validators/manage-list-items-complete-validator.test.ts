@@ -1,9 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { RequiredValidator } from '@planning-inspectorate/dynamic-forms';
-import type { Question } from '@planning-inspectorate/dynamic-forms';
-import type { JourneyResponse } from '@planning-inspectorate/dynamic-forms/src/journey/journey-response.js';
-import { MANAGE_LIST_ACTIONS } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-actions.js';
+import type { JourneyResponse, Question } from '@planning-inspectorate/dynamic-forms';
+import { MANAGE_LIST_ACTIONS, RequiredValidator } from '@planning-inspectorate/dynamic-forms';
 import { body } from 'express-validator';
 import ManageListItemsCompleteValidator from './manage-list-items-complete-validator.ts';
 import RequiredGroupValidator from './required-group-validator.ts';

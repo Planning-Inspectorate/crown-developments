@@ -1,4 +1,4 @@
-import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
+import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
 import { bytesToUnit } from '../util/numbers.ts';
 import { CATEGORY_SHAREPOINT_TO_VALUE } from './categories.ts';
 

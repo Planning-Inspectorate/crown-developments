@@ -1,4 +1,4 @@
-import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
+import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
 
 /**
  * Builds the Terms & Conditions page controller.

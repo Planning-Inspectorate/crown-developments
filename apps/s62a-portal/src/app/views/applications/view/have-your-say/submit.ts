@@ -5,7 +5,7 @@ import { uniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
 import { clearSessionData, popSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import type { Journey } from '@planning-inspectorate/dynamic-forms';
-import { list } from '@planning-inspectorate/dynamic-forms/src/controller.js';
+import { list } from '@planning-inspectorate/dynamic-forms';
 import type { Request, Response } from 'express';
 import { clearHaveYourSayStarted } from './controller.ts';
 import { JOURNEY_ID } from './journey.ts';

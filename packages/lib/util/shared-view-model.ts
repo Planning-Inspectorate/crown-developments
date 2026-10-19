@@ -13,7 +13,7 @@ export type ApplicationLink = {
 };
 
 export const formatDate = (date: Date | null | undefined, options?: { format?: string }): string =>
-	formatDateForDisplay(date as Date | undefined, options);
+	formatDateForDisplay(date ?? undefined, options);
 
 export function isInquiry(procedureId: string | null): boolean {
 	return procedureId === APPLICATION_PROCEDURE_ID.INQUIRY;

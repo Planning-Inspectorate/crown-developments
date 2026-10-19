@@ -1,4 +1,4 @@
-import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
+import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { nameToViewModel } from '@pins/crowndev-lib/util/name.js';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
