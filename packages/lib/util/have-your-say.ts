@@ -4,6 +4,7 @@ import {
 	isNowAfterStartDate,
 	nowIsWithinRange
 } from '@planning-inspectorate/dynamic-forms/src/lib/date-utils.js';
+import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
 
 export const HAVE_YOUR_SAY_STATUS = {
 	OPEN: 'open',
@@ -44,4 +45,8 @@ export function getHaveYourSayStatus(haveYourSayPeriod: { start: Date; end: Date
 	}
 
 	return HAVE_YOUR_SAY_STATUS.CLOSED_REPS_PUBLISHED_DATE_NOT_SET;
+}
+
+export function getHaveYourSayDeadline(haveYourSayPeriod: { start: Date; end: Date }) {
+	return formatDateForDisplay(haveYourSayPeriod.end, { format: 'EEEE d MMMM yyyy' });
 }
