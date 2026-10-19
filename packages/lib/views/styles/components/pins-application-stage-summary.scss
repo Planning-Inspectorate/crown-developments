@@ -1,0 +1,22 @@
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
+
+.pins-application-stage-summary__details {
+	margin: govuk.govuk-spacing(2) 0;
+}
+
+.pins-application-stage-summary__content {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: auto;
+}
+
+.pins-application-stage-summary__row {
+	display: block;
+	width: 100%;
+	border-bottom: 1px solid govuk.govuk-colour('black', $variant: 'tint-80');
+
+	&:last-child {
+		border-bottom: none;
+	}
+}
