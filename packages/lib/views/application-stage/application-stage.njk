@@ -1,0 +1,21 @@
+{% macro stageItem(stage) %}
+	<div class="pins-application-stage-summary__row">
+		<details class="govuk-details pins-application-stage-summary__details"{% if stage.isCurrentStage %} open="open"{% endif %}>
+			<summary class="govuk-details__summary pins-application-stage-summary__content">
+				<div class="govuk-details__summary-text">
+					<span>{{ stage.stageDisplayName }}</span>
+				</div>
+				{% if stage.hasStatus %}
+					<div>
+						<strong class="govuk-tag {{ stage.tagClass }}">{{ stage.status }}</strong>
+					</div>
+				{% endif %}
+			</summary>
+			<div class="govuk-details__text">
+				{% if stage.detailsTemplate %}
+					{% include stage.detailsTemplate %}
+				{% endif %}
+			</div>
+		</details>
+	</div>
+{% endmacro %}
