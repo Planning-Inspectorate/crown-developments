@@ -1,4 +1,5 @@
 import type { S62APortalService } from '#service';
+import type { Request } from 'express';
 import { fetchPublishedS62aApplication } from '@pins/crowndev-lib/util/applications.ts';
 import { notFoundHandler } from '@planning-inspectorate/core/middleware';
 import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
@@ -206,4 +207,18 @@ export function buildS62AWrittenRepresentationsPage(service: S62APortalService):
 			dateErrors
 		)(req, res);
 	};
+}
+
+function toQueryFilters(query: Request['query'] | undefined): QueryFilters {
+	const filters: QueryFilters = {};
+
+	for (const [key, value] of Object.entries(query ?? {})) {
+		if (typeof value === 'string') {
+			filters[key] = value;
+		} else if (Array.isArray(value)) {
+			filters[key] = value.filter((item): item is string => typeof item === 'string');
+		}
+	}
+
+	return filters;
 }

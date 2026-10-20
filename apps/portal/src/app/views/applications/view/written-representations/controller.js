@@ -54,7 +54,6 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			dateErrors,
 			isMobileFilterOpen
 		} = await getFiltersAndErrors({ db, logger }, id, req.query, buildFilters);
-
 		const filters = builtFilters ?? [];
 		const filterSubmittedBy = req.query?.filterSubmittedBy ? [].concat(req.query.filterSubmittedBy) : [];
 		const filterByAttachments = req.query?.filterByAttachments ? [].concat(req.query.filterByAttachments) : [];
