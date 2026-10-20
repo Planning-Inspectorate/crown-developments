@@ -33,6 +33,13 @@ export async function fetchS62aPublishCase(db: PrismaClient, id: string) {
 export type FetchedS62aCase = Awaited<ReturnType<typeof fetchS62aPublishCase>>;
 
 export function answerValidation(fetchedCase: NonNullable<FetchedS62aCase>, id: string): AnswerValidationError[] {
+	// We only care about applicant contact types, not agents or anything else.
+	const allApplicants = fetchedCase.S62aToApplicants?.filter((a) => a.roleId === 'applicant') || [];
+
+	// Table is exclusive arc, so we need to split out into the two joins: direct contact or contact through org
+	const individualApplicants = allApplicants.filter((a) => a.contactId);
+	const orgApplicants = allApplicants.filter((a) => a.organisationId);
+
 	return [
 		{
 			value: fetchedCase.S62aDates?.applicationValidDate,
@@ -46,23 +53,18 @@ export function answerValidation(fetchedCase: NonNullable<FetchedS62aCase>, id: 
 		},
 		{
 			value:
-				fetchedCase.S62aToApplicants?.every((applicant) => {
-					if (fetchedCase.applicantTypeId === APPLICANT_TYPE_ID.INDIVIDUAL) {
-						return Boolean(applicant.Contact?.firstName && applicant.Contact?.lastName);
-					}
-					return true;
-				}) ?? true,
+				fetchedCase.applicantTypeId === APPLICANT_TYPE_ID.INDIVIDUAL
+					? individualApplicants.length > 0 &&
+						individualApplicants.every((applicant) => applicant.Contact?.firstName && applicant.Contact?.lastName)
+					: true,
 			errorMessage: 'You must enter the individual applicant contact name',
 			pageLink: `/s62a/cases/${id}/contacts`
 		},
 		{
 			value:
-				fetchedCase.S62aToApplicants?.every((applicant) => {
-					if (fetchedCase.applicantTypeId === APPLICANT_TYPE_ID.ORGANISATION) {
-						return Boolean(applicant.Organisation?.name);
-					}
-					return true;
-				}) ?? true,
+				fetchedCase.applicantTypeId === APPLICANT_TYPE_ID.ORGANISATION
+					? orgApplicants.length > 0 && orgApplicants.every((applicant) => applicant.Organisation?.name)
+					: true,
 			errorMessage: 'You must enter the applicant organisation name',
 			pageLink: `/s62a/cases/${id}/contacts`
 		}
