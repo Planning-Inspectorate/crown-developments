@@ -10,7 +10,8 @@ import {
 import type { Request } from 'express';
 import nunjucks from 'nunjucks';
 import { readSessionData } from '../../../util/session.ts';
-import { getStringParams } from '../../../util/params.ts';
+import { getStringParam } from '../../../util/params.ts';
+import { getFilesSessionId } from './files-session-id.ts';
 import type { MultiFileUploaderQuestionProps } from '../index.ts';
 import { formatBytes } from '../../../util/file.ts';
 import { escapeHtml } from '../../../util/string.ts';
@@ -47,6 +48,21 @@ export interface FileUploadQuestionViewData extends BaseQuestionViewData {
 	postUploadHtml?: string;
 	showUploadWarning?: boolean;
 	filesAddedText?: string;
+	maximumFilesPerUpload?: number;
+	maximumFilesPerUploadMessage?: string;
+	/** data-* attributes that configure the MOJ component, e.g. its dropzone text */
+	dropzoneAttributes?: Record<string, string>;
+	submitButtonText?: string;
+}
+
+/**
+ * Upload errors the upload controller keeps in the session when the page is used without
+ * JavaScript, so they can be shown after redirecting back to the question.
+ */
+export interface UploadErrorsSession {
+	files?: FileUploadViewData['files'];
+	errors?: Record<string, { msg: string }>;
+	errorSummary?: { text: string; href: string }[];
 }
 
 export interface FileUploadViewModel extends QuestionViewModel<FileUploadQuestionViewData> {
@@ -93,6 +109,11 @@ export default class MultiFileUploadQuestion extends Question {
 	public readonly showUploadWarning?: boolean;
 	public readonly filesAddedText?: string;
 	public readonly summaryDownloadUrlComponent?: string;
+	public readonly maximumFilesPerUpload?: number;
+	public readonly maximumFilesPerUploadMessage?: string;
+	public readonly dropzoneHintText?: string;
+	public readonly dropzoneButtonText?: string;
+	public readonly submitButtonText?: string;
 
 	constructor(options: MultiFileUploaderQuestionProps) {
 		super({
@@ -114,6 +135,12 @@ export default class MultiFileUploadQuestion extends Question {
 		this.showUploadWarning = options.showUploadWarning;
 		this.filesAddedText = options.filesAddedText;
 		this.summaryDownloadUrlComponent = options.summaryDownloadUrlComponent;
+
+		this.maximumFilesPerUpload = options.maximumFilesPerUpload;
+		this.maximumFilesPerUploadMessage = options.maximumFilesPerUploadMessage;
+		this.dropzoneHintText = options.dropzoneHintText;
+		this.dropzoneButtonText = options.dropzoneButtonText;
+		this.submitButtonText = options.submitButtonText;
 	}
 
 	/**
@@ -128,7 +155,8 @@ export default class MultiFileUploadQuestion extends Question {
 			customViewData,
 			payload
 		}) as FileUploadViewModel;
-		const { id, question } = getStringParams(params, ['id', 'question']);
+		const id = getFilesSessionId(params);
+		const question = getStringParam(params, 'question');
 
 		let draftFiles: DraftFile[] = [];
 
@@ -150,8 +178,55 @@ export default class MultiFileUploadQuestion extends Question {
 		viewModel.question.postUploadHtml = this.postUploadHtml;
 		viewModel.question.showUploadWarning = this.showUploadWarning;
 		viewModel.question.filesAddedText = this.filesAddedText;
+		viewModel.question.maximumFilesPerUpload = this.maximumFilesPerUpload;
+		viewModel.question.maximumFilesPerUploadMessage = this.maximumFilesPerUploadMessage;
+		viewModel.question.dropzoneAttributes = this.dropzoneAttributes();
+		viewModel.question.submitButtonText = this.submitButtonText;
 
 		return viewModel;
+	}
+
+	/**
+	 * Shows errors from either the 'Continue' validation (in the body) or a non-JavaScript
+	 * upload (in the session, see UploadErrorsSession), keeping the files already uploaded listed.
+	 */
+	checkForValidationErrors(req: Request, section: Section, journey: Journey): QuestionViewModel | undefined {
+		const body = (req.body ?? {}) as UploadErrorsSession;
+		const session = (req.session ?? {}) as UploadErrorsSession;
+
+		const hasBodyErrors = (body.errorSummary?.length ?? 0) > 0;
+		const hasSessionErrors = (session.errorSummary?.length ?? 0) > 0;
+		if (!hasBodyErrors && !hasSessionErrors) {
+			return undefined;
+		}
+		const { errors, errorSummary } = hasBodyErrors ? body : session;
+
+		return this.toViewModel({
+			// dynamic-forms' RouteParams is narrower than Express's ParamsDictionary
+			params: req.params as never,
+			section,
+			journey,
+			customViewData: {
+				currentUrl: req.originalUrl,
+				files: session.files,
+				errors,
+				errorSummary
+			}
+		});
+	}
+
+	/**
+	 * Only the texts that are set, so the MOJ defaults apply otherwise
+	 */
+	private dropzoneAttributes(): Record<string, string> {
+		const attributes: Record<string, string> = {};
+		if (this.dropzoneHintText) {
+			attributes['data-dropzone-hint-text'] = this.dropzoneHintText;
+		}
+		if (this.dropzoneButtonText) {
+			attributes['data-dropzone-button-text'] = this.dropzoneButtonText;
+		}
+		return attributes;
 	}
 
 	/**
@@ -188,7 +263,8 @@ export default class MultiFileUploadQuestion extends Question {
 	 */
 	// eslint-disable-next-line @typescript-eslint/require-await -- Must remain async to match OptionsQuestion override signature.
 	async getDataToSave(req: Request, journeyResponse: JourneyResponse) {
-		const { id, question } = getStringParams(req.params, ['id', 'question']);
+		const id = getFilesSessionId(req.params);
+		const question = getStringParam(req.params, 'question');
 
 		const sessionQuestionData = readSessionData<{ uploadedFiles: DraftFile[] }>(
 			req,
@@ -220,7 +296,7 @@ export default class MultiFileUploadQuestion extends Question {
 				html: `<span class="moj-multi-file-upload__filename">${escapeHtml(file.fileName)} (${formatBytes(file.size)})</span>`
 			},
 			deleteButton: {
-				text: 'Delete'
+				text: 'Remove'
 			}
 		}));
 	}

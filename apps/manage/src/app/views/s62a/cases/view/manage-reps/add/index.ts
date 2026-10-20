@@ -15,7 +15,7 @@ import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions
 import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/session.js';
 
 import multer from 'multer';
-import { RepresentationDocumentsUploader } from './representation-document-uploader.ts';
+import { RepresentationDocumentsUploader } from '@pins/crowndev-lib/util/representation-document-uploader.ts';
 import {
 	uploadRepresentationDocumentsController,
 	deleteDocumentController,

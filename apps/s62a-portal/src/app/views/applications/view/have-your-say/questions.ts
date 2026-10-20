@@ -2,6 +2,7 @@ import {
 	REPRESENTATION_SUBMITTED_FOR,
 	REPRESENTATION_SUBMITTED_FOR_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { AjaxDocumentUploadValidator } from '@pins/crowndev-lib/forms/custom-components/ajax-document-upload-validator/ajax-document-uploader-validator.ts';
 import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import NameValidator from '@pins/crowndev-lib/validators/name-validator.ts';
@@ -12,6 +13,7 @@ import {
 	StringValidator
 } from '@planning-inspectorate/dynamic-forms';
 import { MANAGE_LIST_ACTIONS } from '@planning-inspectorate/dynamic-forms/src/components/manage-list/manage-list-actions.js';
+import { ATTACHMENT_ERRORS, MAXIMUM_ATTACHMENTS_PER_UPLOAD } from './attachments.ts';
 
 /** Most people that can be added to a group */
 export const MAXIMUM_GROUP_MEMBERS = 10;
@@ -63,6 +65,21 @@ const hasAttachmentsOverrides = {
 };
 
 /**
+ * The upload supporting attachments page
+ */
+function selectAttachmentsOverrides(prefix: 'myself' | 'submitter') {
+	return {
+		preUploadHtml: 'views/applications/view/have-your-say/upload-attachments-guidance.njk',
+		validators: [new AjaxDocumentUploadValidator(`${prefix}BlobAttachments`, ATTACHMENT_ERRORS.noAttachment)],
+		maximumFilesPerUpload: MAXIMUM_ATTACHMENTS_PER_UPLOAD,
+		maximumFilesPerUploadMessage: ATTACHMENT_ERRORS.tooManyFiles,
+		dropzoneHintText: 'Drag and drop attachments here or',
+		dropzoneButtonText: 'Choose attachments',
+		submitButtonText: 'Continue'
+	};
+}
+
+/**
  * Wording and validation for the S62A Have your say journey that differs from the
  * shared representation questions (which Crown and the back office also use).
  */
@@ -79,10 +96,12 @@ export const HAVE_YOUR_SAY_PROP_OVERRIDES = {
 	myselfFullName: yourNameOverrides('myself'),
 	myselfEmail: yourEmailOverrides,
 	myselfHasAttachments: hasAttachmentsOverrides,
+	myselfSelectBlobAttachments: selectAttachmentsOverrides('myself'),
 
 	submitterFullName: yourNameOverrides('submitter'),
 	submitterEmail: yourEmailOverrides,
 	submitterHasAttachments: hasAttachmentsOverrides,
+	submitterSelectBlobAttachments: selectAttachmentsOverrides('submitter'),
 
 	orgName: {
 		validators: [

@@ -41,9 +41,9 @@ export function validateUploads(config: ValidationConfig, documentUploader: With
 		}
 
 		const representationRef = getStringParam(req.params, 'representationRef');
-		const files = req.files as Express.Multer.File[];
+		const files: Express.Multer.File[] = Array.isArray(req.files) ? req.files : [];
 
-		if (!files || files.length === 0) return res.redirect(req.baseUrl);
+		if (files.length === 0) return res.redirect(req.baseUrl);
 
 		const validationErrors = await documentUploader.validateUploadBatch(
 			req.sessionID,
@@ -76,9 +76,9 @@ export function uploadWithdrawalDocumentsController(
 	return async (req: Request, res: Response) => {
 		const { id, question, representationRef } = getStringParams(req.params, ['id', 'question', 'representationRef']);
 
-		const files = req.files as Express.Multer.File[];
+		const files: Express.Multer.File[] = Array.isArray(req.files) ? req.files : [];
 
-		if (!files || files.length === 0) {
+		if (files.length === 0) {
 			return res.status(400).json({ error: { message: 'No file received.' } });
 		}
 

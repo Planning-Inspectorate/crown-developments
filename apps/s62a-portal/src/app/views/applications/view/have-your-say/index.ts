@@ -1,6 +1,8 @@
 import type { S62APortalService } from '#service';
+import { uploadDocumentQuestion } from '@pins/crowndev-lib/forms/custom-components/representation-attachments/upload-document-middleware.js';
 import { buildResetSessionMiddleware } from '@pins/crowndev-lib/middleware/session.js';
-import { notFoundHandler } from '@planning-inspectorate/core/middleware';
+import { RepresentationDocumentsUploader } from '@pins/crowndev-lib/util/representation-document-uploader.ts';
+import { FileValidator } from '@pins/crowndev-lib/validators/file-validator.ts';
 import { asyncHandler } from '@planning-inspectorate/core/util';
 import { buildGetJourney } from '@planning-inspectorate/dynamic-forms/src/middleware/build-get-journey.js';
 import { buildSave, question } from '@planning-inspectorate/dynamic-forms/src/controller.js';
@@ -11,6 +13,8 @@ import {
 import validate from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
 import { validationErrorHandler } from '@planning-inspectorate/dynamic-forms/src/validator/validation-error-handler.js';
 import { Router as createRouter } from 'express';
+import lusca from 'lusca';
+import { buildRemoveAttachment, buildUploadAttachments, receiveAttachments } from './attachments.ts';
 import {
 	buildHaveYourSayPage,
 	buildLoadHaveYourSayCase,
@@ -43,15 +47,34 @@ export function createRoutes(service: S62APortalService) {
 	const haveYourSayPage = buildHaveYourSayPage();
 	const startJourney = startHaveYourSayJourney();
 	const saveAnswer = buildSave(saveDataToSession);
+	const uploader = new RepresentationDocumentsUploader(
+		service.db,
+		service.blobStore,
+		service.logger,
+		new FileValidator(service.logger)
+	);
+	const receiveUpload = receiveAttachments();
+	// multipart forms skip the app's CSRF check (see app.ts), so it's done once multer has read the body
+	const checkUploadCsrf = lusca.csrf();
+	const uploadAttachments = asyncHandler(buildUploadAttachments(service, uploader));
+	const removeAttachment = asyncHandler(buildRemoveAttachment(service, uploader));
 
 	router.use(asyncHandler(loadHaveYourSayCase));
 
 	router.get('/', isOpen, haveYourSayPage);
 	router.get('/start', isOpen, resetSession, startJourney);
 
-	// TODO PEAS-596: the upload page needs a portal version of the upload component; the
-	// back-office one fails without its route params. Not found until then.
-	router.all('/:section/attachments', notFoundHandler);
+	// the upload page posts here; with JavaScript one file at a time, without it the whole form
+	router.post(
+		'/:section/:question/upload',
+		checkSession,
+		getJourneyResponse,
+		getJourney,
+		receiveUpload,
+		checkUploadCsrf,
+		uploadAttachments
+	);
+	router.post('/:section/:question/delete', checkSession, getJourneyResponse, getJourney, removeAttachment);
 
 	// the optional part is for add-to-list items, e.g. .../check-group-name-details/add/{id}/group-name-person-representing
 	const questionPath = '/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}';
@@ -62,6 +85,8 @@ export function createRoutes(service: S62APortalService) {
 		limitGroupMembers,
 		getJourney,
 		goStraightToFirstGroupMember,
+		// shows the attachments already uploaded, and upload errors
+		uploadDocumentQuestion,
 		question
 	);
 	router.post(

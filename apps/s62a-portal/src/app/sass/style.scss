@@ -1,8 +1,12 @@
 @use 'packages/lib/views/styles/brand/pins-fonts' as brand-fonts;
 
-@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk with (
-	$govuk-font-family: brand-fonts.$font-family
+@forward 'node_modules/@ministryofjustice/frontend/moj/all' with (
+	// don't use the GDS Transport font, this service is not on GOV.UK
+	// https://www.gov.uk/service-manual/design/making-your-service-look-like-govuk#if-your-service-isnt-on-govuk
+	// MOJ loads govuk-frontend, so we can't call `with` when we import it
+	$moj-font-family: brand-fonts.$font-family
 );
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
 
 // Shared components from core
 @use 'node_modules/@planning-inspectorate/core/dist/ui/header/pins-header';
@@ -13,6 +17,7 @@
 @use 'packages/lib/views/styles/components/pins-application-links';
 @use 'packages/lib/views/styles/components/pins-chevron-cards';
 @use 'packages/lib/views/styles/components/pins-button-link';
+@use 'packages/lib/views/styles/components/pins-multi-file-upload';
 
 // App level components
 @use './components/pins-table';

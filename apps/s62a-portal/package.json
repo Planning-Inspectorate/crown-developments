@@ -23,6 +23,8 @@
     "express-validator": "*",
     "govuk-frontend": "*",
     "helmet": "*",
+    "lusca": "*",
+    "multer": "*",
     "nunjucks": "*",
     "pino": "*",
     "pino-pretty": "*",
@@ -31,6 +33,7 @@
   "devDependencies": {
     "@types/nunjucks": "*",
     "nodemon": "*",
+    "pdf-lib": "*",
     "sass": "*"
   },
   "imports": {

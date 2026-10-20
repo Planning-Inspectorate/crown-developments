@@ -53,5 +53,17 @@ describe('AjaxDocumentUploadValidator', () => {
 			assert.strictEqual(result.isEmpty(), false);
 			assert.strictEqual(result.array()[0].msg, 'Must provide files');
 		});
+
+		it('should read files kept under the application id in the S62A portal', async () => {
+			const portalReq = {
+				params: { applicationId: 'application-1', question: 'attachments' },
+				session: { files: { 'application-1': { attachments: { uploadedFiles: [{ itemId: 'draft-1' }] } } } }
+			} as unknown as Request;
+			const chains = new AjaxDocumentUploadValidator('testField').validate();
+
+			await chains[0].run(portalReq);
+
+			assert.strictEqual(validationResult(portalReq).isEmpty(), true);
+		});
 	});
 });

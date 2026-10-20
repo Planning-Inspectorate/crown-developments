@@ -263,7 +263,8 @@ describe('checkHaveYourSaySession', () => {
 	function sessionStartedAt(startedAt: Date) {
 		return {
 			haveYourSay: { [validUuid]: { startedAt: startedAt.getTime() } },
-			forms: { [validUuid]: { 'have-your-say': { submittedForId: 'myself', myselfEmail: 'jane@example.com' } } }
+			forms: { [validUuid]: { 'have-your-say': { submittedForId: 'myself', myselfEmail: 'jane@example.com' } } },
+			files: { [validUuid]: { attachments: { uploadedFiles: [{ itemId: 'draft-1', fileName: 'report.pdf' }] } } }
 		};
 	}
 
@@ -302,6 +303,7 @@ describe('checkHaveYourSaySession', () => {
 			});
 			assert.strictEqual(req.session.forms[validUuid]['have-your-say'], undefined);
 			assert.strictEqual(req.session.haveYourSay[validUuid].startedAt, undefined);
+			assert.strictEqual(req.session.files[validUuid].attachments, undefined);
 		});
 		it('should count from Start now, not from the last answer', (context) => {
 			// the session is still alive because of recent answers, but Start now was 25 hours ago

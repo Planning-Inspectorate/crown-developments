@@ -12,6 +12,11 @@ export async function createApp(service: S62APortalService) {
 		service,
 		router,
 		configureNunjucks,
+		multiPartFormRoutes: [
+			// Multer multipart/form-data needs to be handled before Lusca CSRF check,
+			// so the Have your say upload route checks CSRF itself
+			/\/have-your-say\/[^/]+\/[^/]+\/upload\/?$/
+		],
 		middlewares: [addLocalsConfiguration(service, manifest)]
 	});
 }

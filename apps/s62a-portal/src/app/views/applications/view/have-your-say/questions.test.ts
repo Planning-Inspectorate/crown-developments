@@ -1,5 +1,6 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
+import type MultiFileUploadQuestion from '@pins/crowndev-lib/forms/custom-components/multi-file-uploader/question.ts';
 import type { Question } from '@planning-inspectorate/dynamic-forms';
 import { buildValidateBody } from '@planning-inspectorate/dynamic-forms/src/validator/validator.js';
 import { validationResult } from 'express-validator';
@@ -10,6 +11,20 @@ const questions = getHaveYourSayQuestions();
 /** Runs a question's validators the way the journey does, and returns the error messages in order */
 async function validationErrors(question: Question, body: Record<string, string>): Promise<string[]> {
 	const req = { body };
+	await buildValidateBody([question])(req as never, {} as never, () => {});
+	return validationResult(req)
+		.array()
+		.map((error) => String(error.msg));
+}
+
+const applicationId = '123e4567-e89b-12d3-a456-426614174000';
+
+/** Runs the upload page's validators, with the uploaded files in the session as the upload routes leave them */
+async function uploadValidationErrors(
+	question: Question,
+	files: Record<string, unknown> | undefined
+): Promise<string[]> {
+	const req = { body: {}, params: { applicationId, section: 'myself', question: 'attachments' }, session: { files } };
 	await buildValidateBody([question])(req as never, {} as never, () => {});
 	return validationResult(req)
 		.array()
@@ -106,6 +121,39 @@ describe('have your say questions', () => {
 		it('should be mandatory', async () => {
 			assert.deepStrictEqual(await validationErrors(question, {}), ['Select yes if there are any attachments']);
 		});
+	});
+
+	describe('upload supporting attachments', () => {
+		for (const prefix of ['myself', 'submitter'] as const) {
+			const question = questions[`${prefix}SelectBlobAttachments`] as MultiFileUploadQuestion;
+
+			it(`should show the ${prefix} upload page as per the ticket (Scenario 1)`, () => {
+				assert.strictEqual(question.question, 'Upload supporting attachments');
+				assert.strictEqual(question.url, 'attachments');
+				assert.strictEqual(
+					question.preUploadHtml,
+					'views/applications/view/have-your-say/upload-attachments-guidance.njk'
+				);
+				assert.strictEqual(question.filesAddedText, 'Attachments added');
+				assert.strictEqual(question.dropzoneButtonText, 'Choose attachments');
+				assert.strictEqual(question.dropzoneHintText, 'Drag and drop attachments here or');
+				assert.strictEqual(question.submitButtonText, 'Continue');
+			});
+			it(`should allow 3 ${prefix} attachments at a time, each under 20MB (Scenarios 6 and 7)`, () => {
+				assert.strictEqual(question.maximumFilesPerUpload, 3);
+				assert.strictEqual(question.maximumFilesPerUploadMessage, 'You can only upload 3 attachments at a time');
+				assert.strictEqual(question.maxFileSizeValue, 20 * 1024 * 1024);
+				assert.strictEqual(question.maxFileSizeString, '20MB');
+			});
+			it(`should need a ${prefix} attachment uploaded to continue (Scenario 9)`, async () => {
+				const uploaded = (uploadedFiles: unknown[]) =>
+					uploadValidationErrors(question, { [applicationId]: { attachments: { uploadedFiles } } });
+
+				assert.deepStrictEqual(await uploadValidationErrors(question, undefined), ['Select an attachment to upload']);
+				assert.deepStrictEqual(await uploaded([]), ['Select an attachment to upload']);
+				assert.deepStrictEqual(await uploaded([{ itemId: 'draft-1', fileName: 'report.pdf' }]), []);
+			});
+		}
 	});
 
 	describe('agent pages', () => {

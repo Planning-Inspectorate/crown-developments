@@ -1,0 +1,13 @@
+{# The content above the upload on the 'Upload supporting attachments' page #}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% import "custom-components/representation-information/index.njk" as representationInformation %}
+
+<p class="govuk-body">We'll publish your supporting attachments on the website alongside your name and comment, unless you have asked for your name to be withheld.</p>
+
+{{ govukInsetText({
+	text: "Do not include personal information that could identify you or another person in your attachments."
+}) }}
+
+{{ representationInformation.renderRepresentationInformation("Guidance on what not to include") }}
+
+<h2 class="govuk-heading-m">Upload an attachment</h2>

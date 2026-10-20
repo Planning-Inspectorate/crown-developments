@@ -17,7 +17,7 @@ import { recordS62aFileAudit } from '../../../../../audit/files.ts';
 export function uploadDocumentsController(documentUploader: DocumentsUploader) {
 	return async (req: Request, res: Response) => {
 		const { id, folderId } = getStringParams(req.params, ['id', 'folderId']);
-		const files = req.files as Express.Multer.File[];
+		const files: Express.Multer.File[] = Array.isArray(req.files) ? req.files : [];
 
 		const insertedDocuments = await documentUploader.processAndDraftUploads(id, files, req.sessionID, folderId);
 
@@ -131,9 +131,9 @@ export function validateUploads(
 ) {
 	return async (req: Request, res: Response, next: NextFunction) => {
 		const { id, folderId } = getStringParams(req.params, ['id', 'folderId']);
-		const files = req.files as Express.Multer.File[];
+		const files: Express.Multer.File[] = Array.isArray(req.files) ? req.files : [];
 
-		if (!files || files.length === 0) return res.redirect(req.baseUrl);
+		if (files.length === 0) return res.redirect(req.baseUrl);
 
 		const existingNames = await getExistingFileNamesInFolder(db, folderId);
 		const existingNameSet = new Set(existingNames);

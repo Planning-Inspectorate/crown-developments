@@ -31,7 +31,7 @@
 @use 'packages/lib/views/styles/components/pins-button-link';
 @use './components/pins-dashboard-box';
 @use './components/pins-documents-table';
-@use './components/pins-multi-file-upload';
+@use 'packages/lib/views/styles/components/pins-multi-file-upload';
 @use './components/pins-search-filter';
 @use './components/pins-sub-navigation';
 @use './components/pins-table-cell-error';

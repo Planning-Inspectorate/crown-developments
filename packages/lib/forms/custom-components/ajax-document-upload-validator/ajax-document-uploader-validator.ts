@@ -1,7 +1,8 @@
 import { body } from 'express-validator';
 import { readSessionData } from '@pins/crowndev-lib/util/session.ts';
 import BaseValidator from '@planning-inspectorate/dynamic-forms/src/validator/base-validator.js';
-import { getStringParams } from '../../../util/params.ts';
+import { getStringParam } from '../../../util/params.ts';
+import { getFilesSessionId } from '../multi-file-uploader/files-session-id.ts';
 import type { Request } from 'express';
 
 /**
@@ -22,7 +23,9 @@ export class AjaxDocumentUploadValidator extends BaseValidator {
 	validate() {
 		return [
 			body(this.fieldName).custom((_, { req }) => {
-				const { id, question: urlQuestionSlug } = getStringParams(req.params, ['id', 'question']);
+				const params = req.params as Record<string, unknown>;
+				const id = getFilesSessionId(params);
+				const urlQuestionSlug = getStringParam(params, 'question');
 
 				const sessionQuestionData = readSessionData(
 					req as Request,
