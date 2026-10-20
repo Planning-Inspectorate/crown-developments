@@ -236,6 +236,18 @@ describe('MultiFileUploadQuestion', () => {
 		});
 	});
 
+	describe('linkFilesInSummary', () => {
+		it('should list the names without links when false', () => {
+			const renderSpy = mock.method(nunjucks, 'render', () => '<ol></ol>');
+			const unlinked = new MultiFileUploadQuestion({ ...questionParams, linkFilesInSummary: false } as any);
+			unlinked.getAction = () => ({ href: '#', text: 'Change' }) as any;
+
+			unlinked.formatAnswerForSummary('segment', mockJourney, [{ id: 'd', itemId: 'd', fileName: 'a.pdf', size: 1 }]);
+
+			assert.deepStrictEqual((renderSpy.mock.calls[0].arguments[1] as any).items, [{ name: 'a.pdf' }]);
+		});
+	});
+
 	describe('checkForValidationErrors', () => {
 		const files = {
 			'case-1': { multi_upload_field: { uploadedFiles: [{ id: 'd', itemId: 'd', fileName: 'a.pdf', size: 1 }] } }

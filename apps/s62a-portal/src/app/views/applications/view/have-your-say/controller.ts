@@ -233,6 +233,13 @@ export function markHaveYourSayStarted(req: Request, applicationId: string, now 
 }
 
 /**
+ * Forgets that the journey was started, e.g. once it's been submitted
+ */
+export function clearHaveYourSayStarted(req: Request, applicationId: string) {
+	clearSessionData(req, applicationId, STARTED_AT, STARTED_SESSION_FIELD);
+}
+
+/**
  * Expired when there's no recorded start (e.g. the session cookie has gone, or the page
  * was opened without selecting 'Start now'), or the start was more than 24 hours ago.
  */

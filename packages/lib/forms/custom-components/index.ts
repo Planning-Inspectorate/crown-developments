@@ -173,6 +173,8 @@ export type MultiFileUploaderQuestionProps = CrownCommonQuestionProps & {
 	dropzoneButtonText?: string;
 	/** Defaults to 'Save and continue' */
 	submitButtonText?: string;
+	/** Link each file in the check your answers row to its download, true by default */
+	linkFilesInSummary?: boolean;
 };
 
 type CardManageListQuestionProps = CardManageListQuestionParams & {

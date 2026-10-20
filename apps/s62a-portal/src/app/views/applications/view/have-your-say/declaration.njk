@@ -1,0 +1,39 @@
+{% extends "views/layouts/main.njk" %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+
+{% block pageHeading %}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			<h1 class="govuk-heading-l">Declaration</h1>
+		</div>
+	</div>
+{% endblock %}
+
+{% block pageContent %}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			<p class="govuk-body">You are making a written representation on a Section 62A development application. Planning Inspectors will consider your submission before a decision is made.</p>
+			<p class="govuk-body">You must confirm that the information provided is accurate and true to the best of your knowledge before you submit this representation.</p>
+
+			<form method="post" novalidate>
+				<input type="hidden" name="_csrf" value="{{ _csrf }}">
+				{{ govukCheckboxes({
+					idPrefix: "declaration",
+					name: "declaration",
+					fieldset: {
+						legend: { text: "Declaration statements", classes: "govuk-visually-hidden" }
+					},
+					hint: { text: "Select all statements to confirm that you agree" },
+					errorMessage: declarationError and { text: declarationError },
+					items: statements
+				}) }}
+
+				{{ govukButton({
+					text: "Accept and submit",
+					preventDoubleClick: true
+				}) }}
+			</form>
+		</div>
+	</div>
+{% endblock %}

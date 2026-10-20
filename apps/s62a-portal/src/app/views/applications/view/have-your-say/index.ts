@@ -25,6 +25,7 @@ import {
 import { getGroupMemberPageState, goStraightToFirstGroupMember, limitGroupMembers } from './group-members.ts';
 import { createJourney, JOURNEY_ID } from './journey.ts';
 import { getHaveYourSayQuestions } from './questions.ts';
+import { buildSubmitRepresentation, viewCheckYourAnswersPage, viewDeclarationPage, viewSuccessPage } from './submit.ts';
 
 const applicationIdParam = 'applicationId';
 
@@ -58,6 +59,8 @@ export function createRoutes(service: S62APortalService) {
 	const checkUploadCsrf = lusca.csrf();
 	const uploadAttachments = asyncHandler(buildUploadAttachments(service, uploader));
 	const removeAttachment = asyncHandler(buildRemoveAttachment(service, uploader));
+	const checkYourAnswersPage = asyncHandler(viewCheckYourAnswersPage);
+	const submitRepresentation = asyncHandler(buildSubmitRepresentation(service));
 
 	router.use(asyncHandler(loadHaveYourSayCase));
 
@@ -75,6 +78,12 @@ export function createRoutes(service: S62APortalService) {
 		uploadAttachments
 	);
 	router.post('/:section/:question/delete', checkSession, getJourneyResponse, getJourney, removeAttachment);
+
+	router.get('/check-your-answers', checkSession, getJourneyResponse, getJourney, checkYourAnswersPage);
+	router.get('/declaration', checkSession, getJourneyResponse, getJourney, viewDeclarationPage);
+	// checkSession shows 'You cannot submit this representation' if the deadline has passed
+	router.post('/declaration', checkSession, getJourneyResponse, getJourney, submitRepresentation);
+	router.get('/success', viewSuccessPage);
 
 	// the optional part is for add-to-list items, e.g. .../check-group-name-details/add/{id}/group-name-person-representing
 	const questionPath = '/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}';

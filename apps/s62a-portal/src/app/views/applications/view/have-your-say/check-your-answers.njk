@@ -1,0 +1,36 @@
+{#
+	The check your answers layout. dynamic-forms' list renders its task list component with this
+	as the layout, so this replaces the content with every answer in one summary list.
+#}
+{% extends "views/layouts/main.njk" %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% set pageTitle = "Check your answers" %}
+
+{% block pageHeading %}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			<h1 class="govuk-heading-l">Check your answers</h1>
+		</div>
+	</div>
+{% endblock %}
+
+{% block pageContent %}
+	{% set summaryRows = [] %}
+	{% for section in summaryListData.sections %}
+		{% for row in section.list.rows %}
+			{% set summaryRows = (summaryRows.push(row), summaryRows) %}
+		{% endfor %}
+	{% endfor %}
+
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			{{ govukSummaryList({ rows: summaryRows }) }}
+
+			{% if journeyComplete %}
+				{{ govukButton({ text: "Continue", href: declarationUrl }) }}
+			{% endif %}
+		</div>
+	</div>
+{% endblock %}

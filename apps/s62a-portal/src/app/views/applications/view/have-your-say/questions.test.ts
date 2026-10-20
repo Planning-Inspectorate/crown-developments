@@ -221,6 +221,15 @@ describe('have your say questions', () => {
 		});
 	});
 
+	describe('check your answers rows', () => {
+		it('should use the ticket titles', () => {
+			for (const prefix of ['myself', 'submitter'] as const) {
+				assert.strictEqual(questions[`${prefix}HasAttachments`].title, 'Have you got attachments?');
+				assert.strictEqual(questions[`${prefix}HearingPreference`].title, 'Attend hearing?');
+			}
+		});
+	});
+
 	describe('agent pages', () => {
 		it('should ask whether you are an agent, and need an answer', async () => {
 			const question = questions.isAgent;
