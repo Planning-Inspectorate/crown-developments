@@ -2,6 +2,7 @@
 
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
 {% from "govuk/components/label/macro.njk" import govukLabel %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
@@ -53,20 +54,34 @@
 					}) }}
 
 				{% endif %}
-				{{ govukTextarea({
-					label: {
-						text: question.label,
-						classes: "govuk-!-font-weight-bold"
-					},
-					id: question.fieldName,
-					name: question.fieldName,
-					value: question.value,
-					hint: { text: question.hint },
-					errorMessage: errors[question.fieldName] and {
-						text: errors[question.fieldName].msg
-					},
-					classes: question.inputClasses
-				}) }}
+				{% if question.html %}
+					{% include question.html ignore missing %}
+				{% endif %}
+
+				{% set commentLabel = { text: question.label, classes: "govuk-!-font-weight-bold" } %}
+				{% set commentError = errors[question.fieldName] and { text: errors[question.fieldName].msg } %}
+				{% if question.characterCountMaxLength %}
+					{{ govukCharacterCount({
+						label: commentLabel,
+						id: question.fieldName,
+						name: question.fieldName,
+						value: question.value,
+						maxlength: question.characterCountMaxLength,
+						hint: question.hint and { text: question.hint },
+						errorMessage: commentError,
+						classes: question.inputClasses
+					}) }}
+				{% else %}
+					{{ govukTextarea({
+						label: commentLabel,
+						id: question.fieldName,
+						name: question.fieldName,
+						value: question.value,
+						hint: question.hint and { text: question.hint },
+						errorMessage: commentError,
+						classes: question.inputClasses
+					}) }}
+				{% endif %}
 
 				{% if config.appName == 'portal' %}
 					{{ representationInformation.renderRepresentationInformation("Guidance on what not to include") }}

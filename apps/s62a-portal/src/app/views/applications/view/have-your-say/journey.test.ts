@@ -47,13 +47,14 @@ describe('have your say journey', () => {
 	});
 
 	describe('myself route', () => {
-		it('should ask name, email, attachments, then the comment, skipping the upload for No', () => {
+		it('should ask name, email, attachments, the comment, then the hearing, skipping the upload for No', () => {
 			assert.deepStrictEqual(displayedQuestions({ ...myself, myselfContainsAttachments: BOOLEAN_OPTIONS.NO }), [
 				'submittedForId',
 				'myselfFullName',
 				'myselfEmail',
 				'myselfContainsAttachments',
-				'myselfComment'
+				'myselfComment',
+				'myselfHearingPreference'
 			]);
 		});
 
@@ -64,7 +65,8 @@ describe('have your say journey', () => {
 				'myselfEmail',
 				'myselfContainsAttachments',
 				'myselfBlobAttachments',
-				'myselfComment'
+				'myselfComment',
+				'myselfHearingPreference'
 			]);
 		});
 
@@ -90,6 +92,21 @@ describe('have your say journey', () => {
 			assert.strictEqual(nextUrl(answers, 'myself', 'attachments'), `${baseUrl}/myself/tell-us-about-application`);
 		});
 
+		it('should go from the comment page to the hearing page', () => {
+			assert.strictEqual(
+				nextUrl(myself, 'myself', 'tell-us-about-application'),
+				`${baseUrl}/myself/hearing-preference`
+			);
+		});
+
+		it('should go from the hearing page to check your answers', (context) => {
+			const res = { redirect: context.mock.fn() };
+
+			buildJourney(myself).redirectToNextQuestion(res as never, { section: 'myself', question: 'hearing-preference' });
+
+			assert.strictEqual(res.redirect.mock.calls[0].arguments[0], `${baseUrl}/check-your-answers`);
+		});
+
 		it('should skip the upload page and go to the comment page for No (Scenario 12)', () => {
 			const answers = { ...myself, myselfContainsAttachments: BOOLEAN_OPTIONS.NO };
 			assert.strictEqual(
@@ -99,13 +116,37 @@ describe('have your say journey', () => {
 		});
 	});
 
+	describe('on behalf of: comment and hearing', () => {
+		const organisation = {
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+			representedTypeId: REPRESENTED_TYPE_ID.ORGANISATION
+		};
+
+		it('should go from the comment page to the hearing page', () => {
+			assert.strictEqual(
+				nextUrl(organisation, 'agent', 'tell-us-about-application'),
+				`${baseUrl}/agent/hearing-preference`
+			);
+		});
+		it('should go from the hearing page to check your answers', (context) => {
+			const res = { redirect: context.mock.fn() };
+
+			buildJourney(organisation).redirectToNextQuestion(res as never, {
+				section: 'agent',
+				question: 'hearing-preference'
+			});
+
+			assert.strictEqual(res.redirect.mock.calls[0].arguments[0], `${baseUrl}/check-your-answers`);
+		});
+	});
+
 	describe('on behalf of a group of people', () => {
 		const group = {
 			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
 			representedTypeId: REPRESENTED_TYPE_ID.GROUP
 		};
 
-		it('should ask the agent, your details, the group, then attachments and the comment', () => {
+		it('should ask the agent, your details, the group, then attachments, the comment and the hearing', () => {
 			assert.deepStrictEqual(
 				displayedQuestions({
 					...group,
@@ -124,7 +165,8 @@ describe('have your say journey', () => {
 					'groupName',
 					'manageGroupDetails',
 					'submitterContainsAttachments',
-					'submitterComment'
+					'submitterComment',
+					'submitterHearingPreference'
 				]
 			);
 		});

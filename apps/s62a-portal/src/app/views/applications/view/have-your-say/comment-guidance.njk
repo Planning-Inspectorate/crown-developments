@@ -1,0 +1,49 @@
+{# The content above the comment box on 'What do you want to say about this application?' #}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+
+<p class="govuk-body">Your comment can support, object or provide general feedback on the proposed development.</p>
+<p class="govuk-body">Once we've reviewed your comment we'll publish it on the website with your name, and your organisation's name, if you've added it.</p>
+
+<h2 class="govuk-heading-m">What to include</h2>
+<p class="govuk-body">Focus on planning-related matters. Write relevant detail on how the development affects:</p>
+<ul class="govuk-list govuk-list--bullet">
+	<li>you, your business or the local community</li>
+	<li>the environment and local economy</li>
+	<li>transport links and access to services</li>
+	<li>quality of life, such as noise, lighting and living conditions</li>
+</ul>
+
+<h2 class="govuk-heading-m">What not to include</h2>
+<p class="govuk-body">Do not include:</p>
+<ul class="govuk-list govuk-list--bullet">
+	<li>personal data such as names, addresses, contact details, signatures and photos that could identify you or anyone else</li>
+	<li>links to third party websites, except GOV.UK or chartered professional websites</li>
+	<li>sensitive information</li>
+</ul>
+
+{% set sensitiveInformation %}
+	<p class="govuk-body">Sensitive information refers to:</p>
+	<ul class="govuk-list govuk-list--bullet">
+		<li>comments from children</li>
+		<li>information relating to children</li>
+		<li>information relating to health</li>
+		<li>information relating to crime</li>
+	</ul>
+	<p class="govuk-body">It also includes any information relating to an individual's:</p>
+	<ul class="govuk-list govuk-list--bullet">
+		<li>race or ethnic origin</li>
+		<li>political or religious beliefs</li>
+		<li>trade union membership</li>
+		<li>genetic or biometric data</li>
+		<li>physical characteristics</li>
+		<li>mental health or sexual health</li>
+		<li>sexual orientation and sex life</li>
+	</ul>
+
+	<p class="govuk-body">If you include any personal data, third party links or sensitive data in your comment or supporting attachments, this will be redacted and will not be taken into account by the Planning Inspectors.</p>
+	<p class="govuk-body">If you include any racist, inflammatory or abusive language, your written representation will be rejected.</p>
+{% endset %}
+{{ govukDetails({
+	summaryText: "What is sensitive information?",
+	html: sensitiveInformation
+}) }}

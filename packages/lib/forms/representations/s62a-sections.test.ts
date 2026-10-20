@@ -137,7 +137,7 @@ describe('s62a-sections', () => {
 	});
 
 	describe('haveYourSaySections', () => {
-		it('should ask attachments before the comment in the Myself section', () => {
+		it('should ask attachments before the comment, then the hearing, in the Myself section', () => {
 			const questions = getQuestions({ isS62a: true });
 			const [start, myself] = haveYourSaySections(questions);
 
@@ -148,7 +148,14 @@ describe('s62a-sections', () => {
 			assert.strictEqual(myself.segment, 'myself');
 			assert.deepStrictEqual(
 				myself.questions.map((q: Question) => q.fieldName),
-				['myselfFullName', 'myselfEmail', 'myselfContainsAttachments', 'myselfBlobAttachments', 'myselfComment']
+				[
+					'myselfFullName',
+					'myselfEmail',
+					'myselfContainsAttachments',
+					'myselfBlobAttachments',
+					'myselfComment',
+					'myselfHearingPreference'
+				]
 			);
 		});
 
@@ -174,7 +181,8 @@ describe('s62a-sections', () => {
 					'manageGroupDetails',
 					'submitterContainsAttachments',
 					'submitterBlobAttachments',
-					'submitterComment'
+					'submitterComment',
+					'submitterHearingPreference'
 				]
 			);
 		});
