@@ -184,8 +184,7 @@ export function haveYourSayManageSections(questions: Record<string, Question>, i
 /**
  * Creates the front office (portal) Have your say journey.
  *
- * Every branch exists. The attachment upload and comment pages are filled in by later
- * tickets; their questions are here now so the attachments answer routes to the right page.
+ * Both routes end with attachments, the comment and the hearing, then check your answers.
  */
 export function haveYourSaySections(questions: Record<string, Question>): Section[] {
 	return [
@@ -196,7 +195,8 @@ export function haveYourSaySections(questions: Record<string, Question>): Sectio
 }
 
 /**
- * The Myself section of the front office journey. Attachments are asked before the comment.
+ * The Myself section of the front office journey. Attachments are asked before the comment,
+ * and the hearing after it.
  */
 function haveYourSayMyselfSection(questions: Record<string, Question>) {
 	return new Section('Myself', 'myself')
@@ -206,11 +206,13 @@ function haveYourSayMyselfSection(questions: Record<string, Question>) {
 		.addQuestion(questions.myselfHasAttachments)
 		.addQuestion(questions.myselfSelectBlobAttachments)
 		.withCondition(whenQuestionHasAnswer(questions.myselfHasAttachments, BOOLEAN_OPTIONS.YES))
-		.addQuestion(questions.myselfTellUsAboutApplication);
+		.addQuestion(questions.myselfTellUsAboutApplication)
+		.addQuestion(questions.myselfHearingPreference);
 }
 
 /**
- * The 'On behalf of' section of the front office journey. Attachments are asked before the comment,
+ * The 'On behalf of' section of the front office journey. Attachments are asked before the comment
+ * and the hearing after it,
  * and the portal has no contact preference: the submitter always gives an email address.
  */
 function haveYourSayAgentSection(questions: Record<string, Question>) {
@@ -257,5 +259,6 @@ function haveYourSayAgentSection(questions: Record<string, Question>) {
 		.addQuestion(questions.submitterHasAttachments)
 		.addQuestion(questions.submitterSelectBlobAttachments)
 		.withCondition(whenQuestionHasAnswer(questions.submitterHasAttachments, BOOLEAN_OPTIONS.YES))
-		.addQuestion(questions.submitterTellUsAboutApplication);
+		.addQuestion(questions.submitterTellUsAboutApplication)
+		.addQuestion(questions.submitterHearingPreference);
 }

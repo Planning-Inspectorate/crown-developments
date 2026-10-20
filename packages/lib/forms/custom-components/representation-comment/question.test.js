@@ -66,7 +66,8 @@ describe('./src/dynamic-forms/components/text-entry-details/question.js', () => 
 			interfaceType: undefined,
 			autocomplete: undefined,
 			label: 'A label',
-			textEntryCheckbox: undefined
+			textEntryCheckbox: undefined,
+			characterCountMaxLength: undefined
 		});
 	});
 	it('should truncate when formating answer for summary when length more than 500', () => {

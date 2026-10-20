@@ -51,6 +51,8 @@ type RepresentationCommentQuestionProps = CrownCommonQuestionProps & {
 		errorMessage?: string;
 	};
 	label?: string;
+	/** shows the GOV.UK character count instead of a plain text area */
+	characterCountMaxLength?: number;
 };
 
 export type CILAmountQuestionProps = CrownCommonQuestionProps & {

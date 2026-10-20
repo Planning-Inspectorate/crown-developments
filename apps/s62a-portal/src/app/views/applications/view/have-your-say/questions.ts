@@ -6,8 +6,10 @@ import { AjaxDocumentUploadValidator } from '@pins/crowndev-lib/forms/custom-com
 import { getQuestions } from '@pins/crowndev-lib/forms/representations/questions.js';
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import NameValidator from '@pins/crowndev-lib/validators/name-validator.ts';
+import { CharacterLimitValidator } from '@pins/crowndev-lib/validators/character-limit-validator.ts';
 import {
 	BOOLEAN_OPTIONS,
+	COMPONENT_TYPES,
 	type Question,
 	RequiredValidator,
 	StringValidator
@@ -79,6 +81,40 @@ function selectAttachmentsOverrides(prefix: 'myself' | 'submitter') {
 	};
 }
 
+export const MAXIMUM_COMMENT_LENGTH = 65000;
+
+/**
+ * The 'What do you want to say about this application?' page
+ */
+const commentOverrides = {
+	// the back office hint asks people to say in their comment if they want a hearing; the portal has a page for that
+	hint: undefined,
+	html: 'views/applications/view/have-your-say/comment-guidance.njk',
+	characterCountMaxLength: MAXIMUM_COMMENT_LENGTH,
+	validators: [
+		new RequiredValidator('Enter what you want to tell us about this proposed application'),
+		new CharacterLimitValidator(MAXIMUM_COMMENT_LENGTH)
+	]
+};
+
+/**
+ * The 'Register interest to attend hearing' page. A radio rather than the back office's
+ * Yes/No question, as only the radio can show a page heading, guidance and a separate question.
+ * The answers are still 'yes' and 'no'.
+ */
+const hearingOverrides = {
+	type: COMPONENT_TYPES.RADIO,
+	title: 'Register interest in attending a hearing',
+	question: 'Register interest to attend hearing',
+	legend: 'Do you want to register interest in attending a hearing?',
+	html: 'views/applications/view/have-your-say/hearing-guidance.njk',
+	options: [
+		{ text: 'Yes', value: BOOLEAN_OPTIONS.YES },
+		{ text: 'No', value: BOOLEAN_OPTIONS.NO }
+	],
+	validators: [new RequiredValidator('Select yes if you want to register interest to attend a hearing')]
+};
+
 /**
  * Wording and validation for the S62A Have your say journey that differs from the
  * shared representation questions (which Crown and the back office also use).
@@ -97,11 +133,15 @@ export const HAVE_YOUR_SAY_PROP_OVERRIDES = {
 	myselfEmail: yourEmailOverrides,
 	myselfHasAttachments: hasAttachmentsOverrides,
 	myselfSelectBlobAttachments: selectAttachmentsOverrides('myself'),
+	myselfTellUsAboutApplication: commentOverrides,
+	myselfHearingPreference: hearingOverrides,
 
 	submitterFullName: yourNameOverrides('submitter'),
 	submitterEmail: yourEmailOverrides,
 	submitterHasAttachments: hasAttachmentsOverrides,
 	submitterSelectBlobAttachments: selectAttachmentsOverrides('submitter'),
+	submitterTellUsAboutApplication: commentOverrides,
+	submitterHearingPreference: hearingOverrides,
 
 	orgName: {
 		validators: [

@@ -1,0 +1,22 @@
+{# The content above the question on 'Register interest to attend hearing' #}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+
+<p class="govuk-body">If Planning Inspectors decide that written representations are not enough to reach a decision, a public hearing may be scheduled.</p>
+<p class="govuk-body">You do not commit to attending by choosing 'Yes', and you can change your mind later. We will send you details if a hearing is scheduled.</p>
+<p class="govuk-body">You do not have to attend for your comments to be considered.</p>
+
+{% set whatIsAHearing %}
+	<p class="govuk-body">A hearing is a structured, face-to-face meeting. It's run as a round-table discussion led by an independent planning inspector.</p>
+	<p class="govuk-body">At the start of the hearing, the inspector will:</p>
+	<ul class="govuk-list govuk-list--bullet">
+		<li>explain the details of the application</li>
+		<li>state the main issues to be resolved</li>
+		<li>list the specific topics that need further explanation</li>
+	</ul>
+	<p class="govuk-body">The inspector will then lead a discussion on each topic. They will ask direct questions to both sides to better understand the case.</p>
+	<p class="govuk-body">Most hearings last between half a day and a full day. They usually conclude with the inspector visiting the development site.</p>
+{% endset %}
+{{ govukDetails({
+	summaryText: "What is a hearing?",
+	html: whatIsAHearing
+}) }}

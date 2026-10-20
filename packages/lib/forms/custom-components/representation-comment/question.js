@@ -14,7 +14,14 @@ import { truncateComment, truncatedReadMoreCommentLink } from '../../../util/que
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/section.js').Section} Section */
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey.js').Journey} Journey */
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/journey/journey-types.d.ts').RouteParams} RouteParams */
-/** @typedef {QuestionParameters & { type: 'representation-comment', textEntryCheckbox?: TextEntryCheckbox, label?: string }} RepresentationCommentQuestionProps */
+/**
+ * @typedef {QuestionParameters & {
+ *   type: 'representation-comment',
+ *   textEntryCheckbox?: TextEntryCheckbox,
+ *   label?: string,
+ *   characterCountMaxLength?: number
+ * }} RepresentationCommentQuestionProps
+ */
 
 /**
  * @class
@@ -23,7 +30,7 @@ export default class RepresentationComment extends Question {
 	/**
 	 * @param {RepresentationCommentQuestionProps} options
 	 */
-	constructor({ textEntryCheckbox, label, ...params }) {
+	constructor({ textEntryCheckbox, label, characterCountMaxLength, ...params }) {
 		super({
 			...params,
 			viewFolder: 'custom-components/representation-comment'
@@ -31,6 +38,8 @@ export default class RepresentationComment extends Question {
 
 		this.textEntryCheckbox = textEntryCheckbox;
 		this.label = label;
+		/** shows the GOV.UK character count instead of a plain text area */
+		this.characterCountMaxLength = characterCountMaxLength;
 	}
 
 	/**
@@ -48,6 +57,7 @@ export default class RepresentationComment extends Question {
 
 		viewModel.question.label = this.label;
 		viewModel.question.textEntryCheckbox = this.textEntryCheckbox;
+		viewModel.question.characterCountMaxLength = this.characterCountMaxLength;
 		viewModel.question.value = payload ? payload[viewModel.question.fieldName] : viewModel.question.value;
 		return viewModel;
 	}

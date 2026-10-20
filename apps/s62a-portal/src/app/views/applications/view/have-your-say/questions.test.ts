@@ -156,6 +156,71 @@ describe('have your say questions', () => {
 		}
 	});
 
+	describe('what do you want to say about this application', () => {
+		const question = questions.myselfTellUsAboutApplication as Question & {
+			label: string;
+			characterCountMaxLength: number;
+		};
+
+		it('should show the portal guidance and a 65,000 character count (Scenarios 1 to 3)', () => {
+			assert.strictEqual(question.question, 'What do you want to say about this application?');
+			assert.strictEqual(question.label, 'Enter your comment');
+			assert.strictEqual(question.html, 'views/applications/view/have-your-say/comment-guidance.njk');
+			assert.strictEqual(question.hint, undefined);
+			assert.strictEqual(question.characterCountMaxLength, 65000);
+		});
+		it('should be mandatory (Scenario 4)', async () => {
+			assert.deepStrictEqual(await validationErrors(question, { myselfComment: '' }), [
+				'Enter what you want to tell us about this proposed application'
+			]);
+		});
+		it('should say how many characters too many (Scenario 5)', async () => {
+			assert.deepStrictEqual(await validationErrors(question, { myselfComment: 'a'.repeat(65000) }), []);
+			assert.deepStrictEqual(await validationErrors(question, { myselfComment: 'a'.repeat(65003) }), [
+				'You have 3 characters too many'
+			]);
+		});
+	});
+
+	describe('register interest to attend hearing', () => {
+		const question = questions.myselfHearingPreference as Question & { legend: string };
+
+		it('should show the page heading, guidance and question (Scenarios 7 and 8)', () => {
+			assert.strictEqual(question.question, 'Register interest to attend hearing');
+			assert.strictEqual(question.legend, 'Do you want to register interest in attending a hearing?');
+			assert.strictEqual(question.html, 'views/applications/view/have-your-say/hearing-guidance.njk');
+			assert.deepStrictEqual(optionTexts(question), ['Yes', 'No']);
+		});
+		it('should save yes or no, like the back office question', () => {
+			const values = (question as unknown as { options: { value: string }[] }).options.map((option) => option.value);
+			assert.deepStrictEqual(values, ['yes', 'no']);
+		});
+		it('should be mandatory (Scenario 9)', async () => {
+			assert.deepStrictEqual(await validationErrors(question, {}), [
+				'Select yes if you want to register interest to attend a hearing'
+			]);
+		});
+	});
+
+	describe('on behalf of: comment and hearing', () => {
+		it('should use the same comment page as Myself', async () => {
+			const question = questions.submitterTellUsAboutApplication as Question & { characterCountMaxLength: number };
+			assert.strictEqual(question.html, 'views/applications/view/have-your-say/comment-guidance.njk');
+			assert.strictEqual(question.characterCountMaxLength, 65000);
+			assert.deepStrictEqual(await validationErrors(question, { submitterComment: 'a'.repeat(65001) }), [
+				'You have 1 character too many'
+			]);
+		});
+		it('should use the same hearing page as Myself', async () => {
+			const question = questions.submitterHearingPreference as Question & { legend: string };
+			assert.strictEqual(question.question, 'Register interest to attend hearing');
+			assert.strictEqual(question.legend, 'Do you want to register interest in attending a hearing?');
+			assert.deepStrictEqual(await validationErrors(question, {}), [
+				'Select yes if you want to register interest to attend a hearing'
+			]);
+		});
+	});
+
 	describe('agent pages', () => {
 		it('should ask whether you are an agent, and need an answer', async () => {
 			const question = questions.isAgent;
