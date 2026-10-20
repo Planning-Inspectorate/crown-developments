@@ -3,6 +3,9 @@ import tseslint from 'typescript-eslint';
 import { eslintConfig } from '@planning-inspectorate/coding-standards';
 
 export default defineConfig([
+	{
+		ignores: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/tmp/**', '**/run/**', '**/web/**', '**/.husky/**']
+	},
 	...eslintConfig,
 	{
 		files: ['**/*.ts'],

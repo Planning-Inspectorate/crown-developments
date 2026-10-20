@@ -1,6 +1,6 @@
 {
 	"include": ["**/*.ts"],
-	"exclude": ["node_modules", "packages/database/src/client/**", "**/*.test.ts"],
+	"exclude": ["node_modules", "packages/database/src/client/**", "**/*.test.ts", "dist", "build", "tmp", "run", "web"],
 	"compilerOptions": {
 		"allowImportingTsExtensions": true,
 		"allowJs": true,
