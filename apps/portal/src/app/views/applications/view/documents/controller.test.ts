@@ -171,7 +171,7 @@ describe('controller', () => {
 			assert.strictEqual(renderArgs.searchValue, '');
 			assert.strictEqual(renderArgs.queryParams, undefined);
 			assert.ok(Array.isArray(renderArgs.links));
-			assert.strictEqual((renderArgs.links as unknown[]).length, 3);
+			assert.strictEqual((renderArgs.links as unknown[]).length, 2);
 			assert.ok(Array.isArray(renderArgs.documents));
 			assert.strictEqual((renderArgs.documents as unknown[]).length, 0);
 			assert.ok(Array.isArray(renderArgs.filters));

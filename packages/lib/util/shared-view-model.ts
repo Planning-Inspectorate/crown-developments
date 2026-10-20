@@ -1,4 +1,4 @@
-import { formatDateForDisplay, nowIsWithinRange } from '@planning-inspectorate/dynamic-forms';
+import { formatDateForDisplay, isNowAfterStartDate, nowIsWithinRange } from '@planning-inspectorate/dynamic-forms';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
 	isWithdrawnOrExpired,
@@ -104,10 +104,11 @@ export function mapDevelopmentToViewModel<
 export function applicationLinks(
 	id: string,
 	haveYourSayPeriod: { start: Date | null; end: Date | null },
-	representationsPublishDate: Date | string | null | undefined,
+	representationsPublishDate: Date | null,
 	displayApplicationUpdates: boolean,
 	applicationStatus: ApplicationPublishStatus | undefined = undefined,
-	tabText?: Record<string, string>
+	tabText?: Record<string, string>,
+	repsTabAlwaysVisible: boolean = false
 ): ApplicationLink[] {
 	const links = [
 		{
@@ -143,10 +144,12 @@ export function applicationLinks(
 		});
 	}
 
-	links.push({
-		href: `/applications/${id}/written-representations`,
-		text: tabText?.writtenRepresentations ?? 'Written representations'
-	});
+	if (repsTabAlwaysVisible || (representationsPublishDate && isNowAfterStartDate(representationsPublishDate))) {
+		links.push({
+			href: `/applications/${id}/written-representations`,
+			text: tabText?.writtenRepresentations ?? 'Written representations'
+		});
+	}
 
 	return links;
 }

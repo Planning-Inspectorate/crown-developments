@@ -117,7 +117,7 @@ describe('buildS62AWrittenRepresentationsPage', () => {
 		await handler(req, res, context.mock.fn() as any);
 
 		assert.strictEqual(dbMock.s62aCase.findUnique.mock.callCount(), 1);
-		assert.strictEqual(dbMock.s62aRepresentation.count.mock.callCount(), 2);
+		assert.strictEqual(dbMock.s62aRepresentation.count.mock.callCount(), 6);
 
 		assert.strictEqual(res.render.mock.callCount(), 1);
 

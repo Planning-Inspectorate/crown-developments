@@ -5,11 +5,11 @@ import {
 	applicationUpdateToTimelineItem,
 	crownDevelopmentToViewModel
 } from './view-model.ts';
+import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import {
-	applicationLinks,
 	representationTitle,
 	representationToViewModel
-} from '@pins/crowndev-lib/util/shared-view-model.ts';
+} from '@pins/crowndev-lib/written-representations/view-model.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 

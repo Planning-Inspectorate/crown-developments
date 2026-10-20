@@ -80,10 +80,6 @@ describe('application-updates controller', () => {
 					{
 						href: '/applications/9c8846dc-1949-47c4-804c-9f3865cff25e/application-updates',
 						text: 'Application updates'
-					},
-					{
-						href: '/applications/9c8846dc-1949-47c4-804c-9f3865cff25e/written-representations',
-						text: 'Written representations'
 					}
 				],
 				applicationUpdates: [
@@ -176,10 +172,6 @@ describe('application-updates controller', () => {
 					{
 						href: '/applications/9c8846dc-1949-47c4-804c-9f3865cff25e/application-updates',
 						text: 'Application updates'
-					},
-					{
-						href: '/applications/9c8846dc-1949-47c4-804c-9f3865cff25e/written-representations',
-						text: 'Written representations'
 					}
 				],
 				applicationUpdates: [

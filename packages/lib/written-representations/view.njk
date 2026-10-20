@@ -1,34 +1,56 @@
 {% extends "views/layouts/main.njk" %}
 
-{% from "govuk/components/details/macro.njk" import govukDetails %}
 {% import "representations/representation.njk" as representation %}
-{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
-{% from "application-links/application-links.njk" import applicationLinks %}
 {% import "pagination/pagination.njk" as pagination %}
 {% import "pagination/pagination-options.njk" as paginationOptions %}
 
-{% block pageHeading %}{% endblock %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "filter-accordion/filter-accordion.njk" import filterAccordion %}
+{% from "application-links/application-links.njk" import applicationLinks %}
+{% from "search-bar/search-bar.njk" import searchBar %}
+{% from "distressing-content/distressing-content-banner.njk" import distressingContentBanner %}
 
+{% block pageHeading %}{% endblock %}
+{% block error_summary %}{% endblock %}
 {% block pageContent %}
 	<div class="govuk-grid-row">
 		<div class="govuk-grid-column-one-third">
 			{{ applicationLinks(links, currentUrl) }}
+			<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible pins-application-links__section-break">
+			<div class="pins-visible-from-tablet">
+				<form id="search-filter-form" method="GET">
+					<input type="hidden" name="searchCriteria" value="{{ searchValue }}">
+					<input type="hidden" name="itemsPerPage" value="{{ paginationParams.selectedItemsPerPage }}">
+					{# Remove hidden date inputs, only keep filterAccordion #}
+					{% for filter in filters %}
+						{% if filter.type != 'date-input' %}
+							{% for option in filter.options.items %}
+								{% if option.checked %}
+									<input type="hidden" name="{{ filter.name }}[]" value="{{ option.value }}">
+								{% endif %}
+							{% endfor %}
+						{% endif %}
+					{% endfor %}
+					{{ filterAccordion(filters, 'Filters', id, cspNonce, 'desktop', false) }}
+				</form>
+			</div>
 		</div>
+
 		<div class="govuk-grid-column-two-thirds">
-			{% if banner %}
-				<div class="govuk-grid-row">
-					<div class="govuk-grid-column-full">
-						{{ govukNotificationBanner(banner) }}
-					</div>
-				</div>
+			{% if errorSummary %}
+				{{ govukErrorSummary({
+					titleText: "There is a problem",
+					errorList: errorSummary
+				}) }}
 			{% endif %}
+			{{ distressingContentBanner(containsDistressingContent) }}
 			<div class="govuk-grid-row">
 				<div class="govuk-grid-column-full">
-					<h1 class="govuk-heading-xl">
+					<h1 class="govuk-heading-l">
 						{% if pageCaption %}
 							<span class="govuk-caption-xl">{{ pageCaption }}</span>
 						{% endif %}
-						{{ pageHeading or pageTitle }}
+						{{ pageTitle }}
 					</h1>
 					{% for repMessageText in representationMessage %}
 						<p class="govuk-body">{{ repMessageText }}</p>
@@ -37,7 +59,81 @@
 			</div>
 			<div class="govuk-grid-row">
 				<div class="govuk-grid-column-full">
-					{% if representations|length > 0 %}
+					<form id="search-bar-form" method="GET" action="{{ buildUrlWithParams(baseUrl, queryParams, { page: 1 }) }}">
+						<input type="hidden" name="itemsPerPage" value="{{ paginationParams.selectedItemsPerPage }}">
+						{% for filter in filters %}
+							{% if filter.type == 'date-input' and filter.dateInputs %}
+								{% for dateInput in filter.dateInputs %}
+									<input type="hidden" name="{{ dateInput.idPrefix }}-day"
+												 value="{{ dateInput.value.day | default('') }}">
+									<input type="hidden" name="{{ dateInput.idPrefix }}-month"
+												 value="{{ dateInput.value.month | default('') }}">
+									<input type="hidden" name="{{ dateInput.idPrefix }}-year"
+												 value="{{ dateInput.value.year | default('') }}">
+								{% endfor %}
+							{% else %}
+								{% for option in filter.options.items %}
+									{% if option.checked %}
+										<input type="hidden" name="{{ filter.name }}[]" value="{{ option.value }}">
+									{% endif %}
+								{% endfor %}
+							{% endif %}
+						{% endfor %}
+						{% if representationMessage|length < 1 %}
+							{{ searchBar({
+								input: {
+									label: {
+										text: "Search written representations",
+										isSubheading: true
+									},
+									hint: {
+										text: "Search by keywords or by name of person or organisation who made the submission."
+									},
+									classes: "govuk-input govuk-input--width-30"
+								},
+								button: {
+									text: "Search",
+									classes: "govuk-button"
+								}
+							}, searchValue) }}
+						{% endif %}
+						{% if hasSearch and representations|length > 0 %}
+							<p class="govuk-body govuk-!-margin-bottom-0">
+								<a href="{{ baseUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search</a>
+							</p>
+						{% endif %}
+					</form>
+					{# only show on mobile #}
+					<div class="pins-visible-until-tablet">
+						<form id="search-filter-form-mobile" method="GET">
+							<input type="hidden" name="formType" value="mobile">
+							<input type="hidden" name="searchCriteria" value="{{ searchValue }}">
+							<input type="hidden" name="itemsPerPage" value="{{ paginationParams.selectedItemsPerPage }}">
+							{{ filterAccordion(mobileFilters, 'Filters', id, cspNonce, 'mobile', true, isMobileFilterOpen) }}
+						</form>
+					</div>
+					{# ### #}
+					{% if hasQueries %}
+						<p class="govuk-body">Active filters</p>
+						{% for query in filterQueries %}
+							<button
+								type="button" id="{{ query.id }}" class="govuk-body selected-filter-tag"
+								{% if query.queryKeys %}data-query-keys="{{ query.queryKeys | join(',') }}"{% endif %}>×
+								{{ query.label }}: {{ query.displayName }}</button>
+						{% endfor %}
+						<p class="govuk-body"><a href="{{ clearQueryUrl }}" class="govuk-link govuk-link--no-visited-state">Clear
+								search and filters</a></p>
+						<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+					{% endif %}
+				</div>
+			</div>
+			<div class="govuk-grid-row">
+				<div class="govuk-grid-column-full">
+					{% if representations|length == 0 and hasSearch %}
+						<p class="govuk-body">No results were found.</p>
+						<p class="govuk-body"><a href="{{ baseUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search and
+				filters</a> to view all representations.</p>
+					{% elif representationMessage|length < 1 %}
 						<div id="pagination" class="govuk-body">
 							<p class="govuk-body">
 								Showing <strong>{{ paginationParams.resultsStartNumber }}</strong> to
@@ -53,12 +149,33 @@
 								{{ representation.renderRepresentation(rep) }}
 							{% endfor %}
 						</div>
-
 						{# if pageNumber and totalPages values are both 1 then pagination options not shown #}
 						{{ pagination.renderPagination(paginationParams.pageNumber, paginationParams.totalPages, baseUrl, queryParams) }}
 					{% endif %}
 				</div>
 			</div>
 		</div>
+		<script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
+			document.querySelectorAll('.selected-filter-tag').forEach(function(button) {
+				button.addEventListener('click', function(e) {
+					const filterId = e.currentTarget && e.currentTarget.id;
+					const queryKeysAttr = e.currentTarget && e.currentTarget.getAttribute('data-query-keys');
+					const queryKeys = (queryKeysAttr || '').split(',').map(k => k.trim()).filter(Boolean);
+					const urlParams = new URLSearchParams(window.location.search);
+					const updatedParams = new URLSearchParams();
+					urlParams.forEach((value, key) => {
+						// Skip if: key is in queryKeys AND (value matches filterId OR key starts with filterId-)
+						// This handles both category filters (match by value) and date filters (match by key prefix)
+						if (queryKeys.includes(key) && (value === filterId || key.startsWith(filterId + '-'))) {
+							return;
+						}
+						updatedParams.append(key, value);
+					});
+
+					// Redirect to the updated URL
+					window.location.search = updatedParams.toString();
+				});
+			});
+		</script>
 	</div>
 {% endblock %}

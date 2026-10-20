@@ -63,10 +63,7 @@ describe('written representations', () => {
 
 			await handler(mockReq, mockRes);
 
-			assert.strictEqual(
-				mockRes.render.mock.calls[0].arguments[0],
-				'views/applications/view/written-representations/view.njk'
-			);
+			assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], './view.njk');
 
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.strictEqual(viewData.pageCaption, 'CROWN/2025/0000001');
@@ -361,10 +358,7 @@ describe('written representations', () => {
 
 			await handler(mockReq, mockRes);
 
-			assert.strictEqual(
-				mockRes.render.mock.calls[0].arguments[0],
-				'views/applications/view/written-representations/view.njk'
-			);
+			assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], './view.njk');
 
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.strictEqual(viewData.pageCaption, 'CROWN/2025/0000001');

@@ -154,6 +154,21 @@ describe('createWhereClause', () => {
 			});
 		});
 
+		it('should use some for parent list relations', () => {
+			const options = [{ parent: 'RepresentedContacts', parentIsList: true, fields: ['firstName', 'lastName'] }];
+			const result = createWhereClause(['foo'], options);
+			assert.deepStrictEqual(result, {
+				AND: [
+					{
+						OR: [
+							{ RepresentedContacts: { some: { firstName: { contains: 'foo' } } } },
+							{ RepresentedContacts: { some: { lastName: { contains: 'foo' } } } }
+						]
+					}
+				]
+			});
+		});
+
 		it('should mix parent and non-parent options', () => {
 			const options = [
 				{ parent: 'Contact', fields: ['firstName', 'lastName'], searchType: 'contains' },

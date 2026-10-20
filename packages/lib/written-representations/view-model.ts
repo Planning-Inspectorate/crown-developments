@@ -1,4 +1,3 @@
-import { isValid, parse } from 'date-fns';
 import {
 	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
@@ -14,7 +13,7 @@ import {
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
 
 import { dateIsBeforeToday, dateIsAfterToday } from '@planning-inspectorate/dynamic-forms';
-import { formatDateTime } from '@pins/crowndev-lib/util/date-util.ts';
+import { formatDateTime, toDate } from '@pins/crowndev-lib/util/date-util.ts';
 import type { ApplicationPublishStatus } from '@pins/crowndev-lib/util/applications.ts';
 
 export type WrittenRepresentationsCaseFields = {
@@ -23,6 +22,7 @@ export type WrittenRepresentationsCaseFields = {
 	representationsPeriodStartDate?: Date | string | null;
 	representationsPeriodEndDate?: Date | string | null;
 	representationsPublishDate?: Date | string | null;
+	containsDistressingContent?: boolean | null;
 };
 
 type RepresentationFields = Pick<
@@ -80,19 +80,6 @@ export function representationMessages(
 	representationsSubmitted: boolean = false
 ): string[] {
 	const messages: string[] = [];
-
-	const toDate = (value: Date | string | null | undefined): Date | undefined => {
-		if (value instanceof Date) {
-			return isValid(value) ? value : undefined;
-		}
-
-		if (typeof value !== 'string') {
-			return undefined;
-		}
-
-		const parsed = parse(value, 'd MMMM yyyy', new Date());
-		return isValid(parsed) ? parsed : undefined;
-	};
 
 	const startDate = toDate(representationFields.representationsPeriodStartDate);
 	const endDate = toDate(representationFields.representationsPeriodEndDate);

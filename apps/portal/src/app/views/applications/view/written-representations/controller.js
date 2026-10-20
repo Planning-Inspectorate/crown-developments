@@ -1,63 +1,20 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { fetchPublishedApplication, getApplicationStatus } from '@pins/crowndev-lib/util/applications.ts';
-import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
-import { representationToViewModel } from '@pins/crowndev-lib/written-representations/view-model.ts';
+import { buildWrittenRepresentationsPage } from '@pins/crowndev-lib/written-representations/controller.ts';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms';
-import { createPaginationParams, getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
-import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
-import { buildFilters, getFilterQueryItems, hasQueries, mapWithAndWithoutToBoolean } from './filters/filters.ts';
+import { getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
+import { hasQueries, mapWithAndWithoutToBoolean } from '@pins/crowndev-lib/written-representations/filters/filters.ts';
+import { buildFilters } from './filters/filters.ts';
+import { getFiltersAndErrors } from '@pins/crowndev-lib/written-representations/filters/filters.ts';
 import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
+import { toQueryFilters } from '@pins/crowndev-lib/filters/filter-utils.ts';
 import { endOfDay, startOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
-import { mapDateFilterErrorSummary } from '@pins/crowndev-lib/filters/filter-error-summary.ts';
-
-/**
- * Processes filters and error summaries for written representations.
- * @param {object} params
- * @param {object} params.db
- * @param {object} params.logger
- * @param {string} id
- * @param {object} query
- * @returns {Promise<{ filters: (CheckboxFilter|DateFilter)[], filterQueryItems: FilterQueryItem[], errorSummary: { text: string, href: string }[], dateErrors: {text: string, href: string }[], isMobileFilterOpen: boolean }>}
- */
-function getFiltersAndErrors({ db, logger }, id, query) {
-	const filters = buildFilters({ db, logger }, id, query);
-
-	return Promise.resolve(filters).then((filters) => {
-		const filterQueryItems = getFilterQueryItems(filters);
-		const formType = getFormType(query);
-		const errorSummary = mapDateFilterErrorSummary({
-			filters,
-			formType,
-			sectionTitle: 'Date submitted'
-		});
-		const dateErrors = errorSummary
-			.filter((e) => e.href && e.href.startsWith('#submittedDate'))
-			.map((e) => ({ text: e.text, href: e.href }));
-		const isMobileFilterOpen = filterQueryItems.length > 0 || dateErrors.length > 0;
-		return {
-			filters,
-			filterQueryItems,
-			errorSummary: errorSummary.length ? errorSummary : null,
-			dateErrors,
-			isMobileFilterOpen
-		};
-	});
-}
-
-/**
- * Determines which form (desktop or mobile) was submitted based on query fields
- * @param {object} query
- * @returns {'desktop'|'mobile'}
- */
-function getFormType(query) {
-	return query?.formType === 'mobile' ? 'mobile' : 'desktop';
-}
 
 /**
  * Render written representations page
@@ -83,17 +40,22 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 		}
 		const publishedDate = crownDevelopment.representationsPublishDate;
 		const applicationStatus = getApplicationStatus(crownDevelopment.withdrawnDate);
+		const caseFields = { ...crownDevelopment, applicationStatus };
 		const representationsPublished = publishedDate && (dateIsToday(publishedDate) || dateIsBeforeToday(publishedDate));
 		if (!representationsPublished) {
 			return notFoundHandler(req, res);
 		}
 
 		const stringQueriesArray = splitStringQueries(req.query?.searchCriteria);
-		const { filters, filterQueryItems, errorSummary, dateErrors, isMobileFilterOpen } = await getFiltersAndErrors(
-			{ db, logger },
-			id,
-			req.query
-		);
+		const {
+			filters: builtFilters,
+			filterQueryItems,
+			errorSummary,
+			dateErrors,
+			isMobileFilterOpen
+		} = await getFiltersAndErrors({ db, logger }, id, req.query, buildFilters);
+
+		const filters = builtFilters ?? [];
 		const filterSubmittedBy = req.query?.filterSubmittedBy ? [].concat(req.query.filterSubmittedBy) : [];
 		const filterByAttachments = req.query?.filterByAttachments ? [].concat(req.query.filterByAttachments) : [];
 
@@ -118,6 +80,9 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 
 		// Adjust the "to" date to include the entire day (up to 23:59:59.999)
 		const filterBySubmissionToDateEndOfDay = filterBySubmissionToDate ? endOfDay(filterBySubmissionToDate) : null;
+
+		const queryFilters = toQueryFilters(req.query);
+		const hasSearch = queryFilters.searchCriteria ? true : false;
 
 		const mappedFilterByAttachments = mapWithAndWithoutToBoolean(
 			filterByAttachments,
@@ -146,9 +111,9 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 
 		const { pageSize, skipSize } = getPaginationParams(req);
 
-		let representations, totalRepresentations;
+		let representations, totalAcceptedRepresentations, totalRepresentations;
 		try {
-			[representations, totalRepresentations] = await Promise.all([
+			[representations, totalAcceptedRepresentations, totalRepresentations] = await Promise.all([
 				db.representation.findMany({
 					where: {
 						applicationId: id,
@@ -183,6 +148,11 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 						...searchCriteria,
 						...whereFilters
 					}
+				}),
+				db.representation.count({
+					where: {
+						applicationId: id
+					}
 				})
 			]);
 		} catch (error) {
@@ -197,15 +167,6 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 		if ([null, undefined].includes(totalRepresentations) || Number.isNaN(totalRepresentations)) {
 			return notFoundHandler(req, res);
 		}
-
-		const paginationParams = createPaginationParams(req, totalRepresentations);
-
-		const haveYourSayPeriod = {
-			start: new Date(crownDevelopment.representationsPeriodStartDate),
-			end: new Date(crownDevelopment.representationsPeriodEndDate)
-		};
-
-		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
 
 		// Duplicate filters for mobile with unique ids
 		const mobileFilters = filters.map((filter) => {
@@ -230,25 +191,21 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			return filterCopy;
 		});
 
-		res.render('views/applications/view/written-representations/view.njk', {
-			pageCaption: crownDevelopment.reference,
-			pageTitle: 'Written representations',
-			representations: representations.map((representation) => representationToViewModel(representation, true)),
-			links: applicationLinks(id, haveYourSayPeriod, publishedDate, displayApplicationUpdates, applicationStatus),
-			baseUrl: req.baseUrl,
-			currentUrl: req.originalUrl,
-			queryParams: req.query,
-			clearQueryUrl: req.baseUrl,
-			paginationParams,
-			searchValue: req.query?.searchCriteria || '',
+		return buildWrittenRepresentationsPage(
+			caseFields,
+			representations,
+			totalAcceptedRepresentations,
+			totalRepresentations,
+			{},
+			false,
 			filters,
 			mobileFilters,
 			isMobileFilterOpen,
-			hasQueries: hasQueries(req.query),
-			filterQueries: filterQueryItems,
+			hasQueries(req.query),
+			hasSearch,
+			filterQueryItems,
 			errorSummary,
-			dateErrors,
-			containsDistressingContent: crownDevelopment.containsDistressingContent || false
-		});
+			dateErrors
+		)(req, res);
 	};
 }
