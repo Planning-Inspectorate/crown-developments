@@ -114,6 +114,7 @@ export default class MultiFileUploadQuestion extends Question {
 	public readonly dropzoneHintText?: string;
 	public readonly dropzoneButtonText?: string;
 	public readonly submitButtonText?: string;
+	public readonly linkFilesInSummary: boolean;
 
 	constructor(options: MultiFileUploaderQuestionProps) {
 		super({
@@ -141,6 +142,7 @@ export default class MultiFileUploadQuestion extends Question {
 		this.dropzoneHintText = options.dropzoneHintText;
 		this.dropzoneButtonText = options.dropzoneButtonText;
 		this.submitButtonText = options.submitButtonText;
+		this.linkFilesInSummary = options.linkFilesInSummary ?? true;
 	}
 
 	/**
@@ -309,6 +311,9 @@ export default class MultiFileUploadQuestion extends Question {
 	private mapFilesForSummary(files: DraftFile[], baseUrl: string) {
 		const urlComponent = this.summaryDownloadUrlComponent ?? 'document';
 		return files.map((file) => {
+			if (!this.linkFilesInSummary) {
+				return { name: file.fileName || 'Unknown file' };
+			}
 			const fileId = file.itemId || file.id || '';
 
 			const href = typeof fileId === 'string' && fileId ? `${baseUrl}/${urlComponent}/${fileId}` : '#';

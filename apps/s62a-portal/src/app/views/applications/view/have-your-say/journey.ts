@@ -17,7 +17,7 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 		sections: haveYourSaySections(questions),
 		taskListUrl: 'check-your-answers',
 		journeyTemplate: 'views/layouts/forms-question.njk',
-		taskListTemplate: 'views/layouts/forms-question.njk',
+		taskListTemplate: 'views/applications/view/have-your-say/check-your-answers.njk',
 		journeyTitle: 'Have your say',
 		returnToListing: false,
 		makeBaseUrl: () => req.baseUrl,

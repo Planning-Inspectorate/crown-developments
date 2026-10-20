@@ -1,0 +1,36 @@
+{% extends "views/layouts/main.njk" %}
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+
+{% set pageTitle = "Written representation submitted" %}
+
+{% block pageHeading %}{% endblock %}
+
+{% block pageContent %}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			{{ govukPanel({
+				titleText: "Written representation submitted",
+				html: "Representation reference<br><strong>" + (representationReference | escape) + "</strong>"
+			}) }}
+
+			<p class="govuk-body">We'll be in touch if we need more information.</p>
+
+			<h2 class="govuk-heading-m">What happens next</h2>
+			<p class="govuk-body">When the representation period finishes, our inspectors will make a decision to follow one of these approaches:</p>
+			<ul class="govuk-list govuk-list--bullet">
+				<li>only consider written comments</li>
+				<li>schedule a hearing to gather more feedback</li>
+			</ul>
+			<p class="govuk-body">If you expressed interest in attending a hearing, we'll email you details if that approach is chosen.</p>
+
+			{{ govukInsetText({
+				html: 'Help us improve this service by <a class="govuk-link" href="' + config.serviceFeedbackUrl + '">sharing your feedback</a>.'
+			}) }}
+
+			<p class="govuk-body">
+				<a class="govuk-link" href="{{ applicationUrl }}">Back to the application information page</a>
+			</p>
+		</div>
+	</div>
+{% endblock %}

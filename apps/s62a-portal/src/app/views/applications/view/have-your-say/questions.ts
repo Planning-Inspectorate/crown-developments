@@ -53,10 +53,14 @@ function yourNameOverrides(prefix: 'myself' | 'submitter') {
 }
 
 const yourEmailOverrides = {
+	// check your answers would show jane@example.com as Jane@example.com
+	capitaliseAnswer: false,
 	hint: 'We will only use this email address to contact you about your representation if we need to. We will not publish your email address.'
 };
 
 const hasAttachmentsOverrides = {
+	// the check your answers row
+	title: 'Have you got attachments?',
 	question: 'Have you got attachments to support your comment?',
 	hint: 'Include any relevant attachments such as reports, photographs or previous submissions',
 	options: [
@@ -77,7 +81,9 @@ function selectAttachmentsOverrides(prefix: 'myself' | 'submitter') {
 		maximumFilesPerUploadMessage: ATTACHMENT_ERRORS.tooManyFiles,
 		dropzoneHintText: 'Drag and drop attachments here or',
 		dropzoneButtonText: 'Choose attachments',
-		submitButtonText: 'Continue'
+		submitButtonText: 'Continue',
+		// the portal can't download drafts, so check your answers lists the names without links
+		linkFilesInSummary: false
 	};
 }
 
@@ -104,7 +110,8 @@ const commentOverrides = {
  */
 const hearingOverrides = {
 	type: COMPONENT_TYPES.RADIO,
-	title: 'Register interest in attending a hearing',
+	// the check your answers row
+	title: 'Attend hearing?',
 	question: 'Register interest to attend hearing',
 	legend: 'Do you want to register interest in attending a hearing?',
 	html: 'views/applications/view/have-your-say/hearing-guidance.njk',
