@@ -1,6 +1,8 @@
 import assert from 'node:assert';
 import { randomUUID } from 'node:crypto';
 import { Readable } from 'node:stream';
+import { readFileSync } from 'node:fs'; // add
+import path from 'node:path'; // add
 import { describe, it, type TestContext } from 'node:test';
 import type { S62APortalService } from '#service';
 import { REPRESENTATION_SUBMITTED_FOR_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
@@ -8,7 +10,6 @@ import { RepresentationDocumentsUploader } from '@pins/crowndev-lib/util/represe
 import { FileValidator } from '@pins/crowndev-lib/validators/file-validator.ts';
 import { BOOLEAN_OPTIONS, JourneyResponse } from '@planning-inspectorate/dynamic-forms';
 import type { Request } from 'express';
-import { PDFDocument } from 'pdf-lib';
 import {
 	ATTACHMENT_ERRORS,
 	buildRemoveAttachment,
@@ -25,13 +26,6 @@ const uploadPage = `${baseUrl}/myself/attachments`;
 const sessionID = 'session-1';
 const MB = 1024 * 1024;
 
-const pdf = Buffer.from(await (await PDFDocument.create()).save({ useObjectStreams: false }));
-/** pdf-lib won't open an encrypted PDF, which is how they're detected */
-const passwordProtectedPdf = Buffer.from(
-	pdf.toString('latin1').replace(/trailer\s*<</, 'trailer\n<<\n/Encrypt << /Filter /Standard /V 1 /R 2 >>'),
-	'latin1'
-);
-
 interface Draft {
 	id: string;
 	sessionKey: string;
@@ -40,6 +34,11 @@ interface Draft {
 	size: bigint;
 	mimeType: string;
 }
+
+const fixtures = path.join(import.meta.dirname, '__fixtures__');
+const plainPdf = readFileSync(path.join(fixtures, 'plain.pdf'));
+const userPasswordPdf = readFileSync(path.join(fixtures, 'user-password.pdf'));
+const ownerPasswordPdf = readFileSync(path.join(fixtures, 'owner-password.pdf'));
 
 /** The draft table and blob store, in memory */
 function mockStorage(context: TestContext, drafts: Draft[] = []) {
@@ -159,8 +158,8 @@ describe('buildUploadAttachments', () => {
 	}
 
 	describe('with JavaScript', () => {
-		it('should upload the file as a draft for this session and list it (Scenario 2)', async (context) => {
-			const { req, res, drafts, blobStore } = await upload(context, { files: [file('report.pdf', pdf)] });
+		it('should upload the file as a draft for this session and list it', async (context) => {
+			const { req, res, drafts, blobStore } = await upload(context, { files: [file('report.pdf', plainPdf)] });
 
 			assert.strictEqual(drafts.length, 1);
 			assert.strictEqual(drafts[0].sessionKey, sessionID);
@@ -173,7 +172,7 @@ describe('buildUploadAttachments', () => {
 					itemId: drafts[0].id,
 					fileName: 'report.pdf',
 					mimeType: 'application/pdf',
-					size: pdf.length
+					size: plainPdf.length
 				}
 			]);
 			const response = res.json.mock.calls[0].arguments[0] as any;
@@ -182,8 +181,31 @@ describe('buildUploadAttachments', () => {
 			assert.strictEqual(response.file.originalname, 'report.pdf');
 			assert.ok(response.success.messageHtml.includes('report.pdf'));
 		});
-		it('should keep the attachments already uploaded listed (Scenario 3)', async (context) => {
-			const { req } = await upload(context, { files: [file('second.pdf', pdf)] }, [draft('first.pdf', 100)]);
+		it('should upload owner-password-only PDFs as a draft for this session and list it', async (context) => {
+			const { req, res, drafts, blobStore } = await upload(context, { files: [file('report.pdf', ownerPasswordPdf)] });
+
+			assert.strictEqual(drafts.length, 1);
+			assert.strictEqual(drafts[0].sessionKey, sessionID);
+			assert.strictEqual(drafts[0].fileName, 'report.pdf');
+			assert.match(drafts[0].blobName, new RegExp(`^${applicationId}/representations/`));
+			assert.strictEqual(blobStore.uploadStream.mock.callCount(), 1);
+			assert.deepStrictEqual(sessionFiles(req), [
+				{
+					id: drafts[0].id,
+					itemId: drafts[0].id,
+					fileName: 'report.pdf',
+					mimeType: 'application/pdf',
+					size: plainPdf.length
+				}
+			]);
+			const response = res.json.mock.calls[0].arguments[0] as any;
+			assert.strictEqual(response.file.id, drafts[0].id);
+			assert.strictEqual(response.file.filename, drafts[0].id);
+			assert.strictEqual(response.file.originalname, 'report.pdf');
+			assert.ok(response.success.messageHtml.includes('report.pdf'));
+		});
+		it('should keep the attachments already uploaded listed', async (context) => {
+			const { req } = await upload(context, { files: [file('second.pdf', plainPdf)] }, [draft('first.pdf', 100)]);
 
 			assert.deepStrictEqual(
 				sessionFiles(req).map((f: { fileName: string }) => f.fileName),
@@ -191,7 +213,9 @@ describe('buildUploadAttachments', () => {
 			);
 		});
 		it('should not list another session’s drafts', async (context) => {
-			const { req } = await upload(context, { files: [file('mine.pdf', pdf)] }, [draft('theirs.pdf', 100, 'other')]);
+			const { req } = await upload(context, { files: [file('mine.pdf', plainPdf)] }, [
+				draft('theirs.pdf', 100, 'other')
+			]);
 
 			assert.deepStrictEqual(
 				sessionFiles(req).map((f: { fileName: string }) => f.fileName),
@@ -213,49 +237,49 @@ describe('buildUploadAttachments', () => {
 		const zip = Buffer.concat([Buffer.from('504b0304', 'hex'), Buffer.alloc(60)]);
 		const cases: { name: string; files: Express.Multer.File[]; drafts?: Draft[]; error: string }[] = [
 			{
-				name: 'an unsupported type (Scenario 5)',
+				name: 'an unsupported type',
 				files: [file('notes.txt', Buffer.from('hi'), 'text/plain')],
 				error: ATTACHMENT_ERRORS.wrongType
 			},
 			{
-				name: 'a zip file (Scenario 5)',
+				name: 'a zip file',
 				files: [file('files.zip', zip, 'application/zip')],
 				error: ATTACHMENT_ERRORS.wrongType
 			},
 			{
-				name: 'a zip file renamed to a PDF (Scenario 5)',
+				name: 'a zip file renamed to a PDF',
 				files: [file('files.pdf', zip)],
 				error: ATTACHMENT_ERRORS.wrongType
 			},
 			{
-				name: 'a file over 20MB (Scenario 6)',
-				files: [file('big.pdf', Buffer.concat([pdf, Buffer.alloc(20 * MB)]))],
+				name: 'a file over 20MB',
+				files: [file('big.pdf', Buffer.concat([plainPdf, Buffer.alloc(20 * MB)]))],
 				error: ATTACHMENT_ERRORS.tooLarge
 			},
 			{
-				name: 'more than 3 files at once (Scenario 7)',
-				files: ['1', '2', '3', '4'].map((n) => file(`${n}.pdf`, pdf)),
+				name: 'more than 3 files at once',
+				files: ['1', '2', '3', '4'].map((n) => file(`${n}.pdf`, plainPdf)),
 				error: ATTACHMENT_ERRORS.tooManyFiles
 			},
 			{
-				name: 'an upload taking the total over 1GB (Scenario 8)',
-				files: [file('last.pdf', pdf)],
+				name: 'an upload taking the total over 1GB',
+				files: [file('last.pdf', plainPdf)],
 				drafts: [draft('huge.pdf', 1024 * MB - 10)],
 				error: ATTACHMENT_ERRORS.totalTooLarge
 			},
 			{
-				name: 'a file whose type cannot be determined (Scenario 11)',
+				name: 'a file whose type cannot be determined',
 				files: [file('odd.pdf', Buffer.from('not really a PDF'))],
 				error: ATTACHMENT_ERRORS.fileTypeUndetermined
 			},
 			{
-				name: 'a password protected PDF (Scenario 12)',
-				files: [file('locked.pdf', passwordProtectedPdf)],
+				name: 'a password protected PDF',
+				files: [file('locked.pdf', userPasswordPdf)],
 				error: ATTACHMENT_ERRORS.passwordProtected
 			},
 			{
-				name: 'a file with the same name as one already uploaded (Scenario 13)',
-				files: [file('report.pdf', pdf)],
+				name: 'a file with the same name as one already uploaded',
+				files: [file('report.pdf', plainPdf)],
 				drafts: [draft('report.pdf', 100)],
 				error: ATTACHMENT_ERRORS.duplicateName
 			}
@@ -284,11 +308,11 @@ describe('buildUploadAttachments', () => {
 		});
 	});
 
-	describe('without JavaScript (Scenario 14)', () => {
+	describe('without JavaScript', () => {
 		it('should upload every file chosen and go back to the upload page', async (context) => {
 			const { res, drafts } = await upload(context, {
 				javascript: false,
-				files: [file('a.pdf', pdf), file('b.pdf', pdf), file('c.pdf', pdf)]
+				files: [file('a.pdf', plainPdf), file('b.pdf', plainPdf), file('c.pdf', plainPdf)]
 			});
 
 			assert.deepStrictEqual(
@@ -299,7 +323,7 @@ describe('buildUploadAttachments', () => {
 			assert.strictEqual(res.json.mock.callCount(), 0);
 		});
 		it('should go back to the upload page with the errors in the session', async (context) => {
-			const { req, res, drafts } = await upload(context, { javascript: false, files: [file('report.pdf', pdf)] }, [
+			const { req, res, drafts } = await upload(context, { javascript: false, files: [file('report.pdf', plainPdf)] }, [
 				draft('report.pdf', 100)
 			]);
 
@@ -313,14 +337,14 @@ describe('buildUploadAttachments', () => {
 	});
 
 	it('should 404 for a page that is not an upload page', async (context) => {
-		const { res, drafts } = await upload(context, { question: 'email-address', files: [file('a.pdf', pdf)] });
+		const { res, drafts } = await upload(context, { question: 'email-address', files: [file('a.pdf', plainPdf)] });
 
 		assert.strictEqual(res.status.mock.calls[0].arguments[0], 404);
 		assert.strictEqual(drafts.length, 0);
 	});
 });
 
-describe('buildRemoveAttachment (Scenario 4)', () => {
+describe('buildRemoveAttachment', () => {
 	async function remove(context: TestContext, options: Parameters<typeof mockRequest>[1], drafts: Draft[]) {
 		const storage = mockStorage(context, drafts);
 		const { req, res } = mockRequest(context, options);
@@ -413,13 +437,13 @@ describe('receiveAttachments', () => {
 		);
 		assert.strictEqual(res.locals.uploadError, undefined);
 	});
-	it('should stop reading a file over 20MB, and report it as too large (Scenario 6)', async () => {
+	it('should stop reading a file over 20MB, and report it as too large', async () => {
 		const { res, error } = await receive([{ name: 'big.pdf', size: 20 * MB + 1 }]);
 
 		assert.strictEqual(error, undefined);
 		assert.strictEqual(res.locals.uploadError, ATTACHMENT_ERRORS.tooLarge);
 	});
-	it('should stop reading after 3 files, and report too many (Scenario 7)', async () => {
+	it('should stop reading after 3 files, and report too many', async () => {
 		const files = Array.from({ length: MAXIMUM_ATTACHMENTS_PER_UPLOAD + 1 }, (_, i) => ({
 			name: `${i}.pdf`,
 			size: 10

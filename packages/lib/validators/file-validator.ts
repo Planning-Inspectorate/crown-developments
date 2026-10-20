@@ -4,7 +4,7 @@ import { fileTypeFromBuffer } from 'file-type';
 import type { Logger } from 'pino';
 import 'multer';
 import { formatBytes } from '@pins/crowndev-lib/util/file.ts';
-import { PDFDocument } from 'pdf-lib';
+import { getDocument } from 'pdfjs-dist';
 
 export interface ValidationConfig {
 	allowedExtensions: string[];
@@ -291,12 +291,19 @@ export class FileValidator {
 	}
 
 	private async isPdfPasswordProtected(buffer: Buffer): Promise<boolean> {
+		const data = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+		const loadingTask = getDocument({ data });
+
 		try {
-			await PDFDocument.load(buffer);
+			await loadingTask.promise;
 			return false;
 		} catch (err) {
-			this.logger.warn({ err }, `PDF document is password protected`);
-			return true;
+			if (err instanceof Error && err.name === 'PasswordException') {
+				return true;
+			}
+			return false;
+		} finally {
+			await loadingTask.destroy();
 		}
 	}
 
