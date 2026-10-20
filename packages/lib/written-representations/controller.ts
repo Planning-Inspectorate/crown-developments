@@ -66,6 +66,10 @@ export function buildWrittenRepresentationsPage(
 
 		const paginationParams = createPaginationParams(req, totalAcceptedRepresentations);
 
+		console.log('Shared Written Reps Debug');
+		console.log(errorSummary);
+		console.log(dateErrors);
+
 		res.render('./view.njk', {
 			pageCaption: reference,
 			pageTitle: 'Written representations',
