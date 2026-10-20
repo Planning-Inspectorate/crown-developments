@@ -773,6 +773,7 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 						additionalContactRelationId: ac.id,
 						additionalContactType: typeValue,
 						otherContactType: otherTypeValue || undefined,
+						// eslint-disable-next-line camelcase -- conditional radio stores answers as `fieldName_conditionalFieldName`
 						additionalContactType_otherContactType: otherTypeValue || undefined,
 						firstName: ac.Contact.firstName || undefined,
 						lastName: ac.Contact.lastName || undefined,

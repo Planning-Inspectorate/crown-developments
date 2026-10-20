@@ -930,6 +930,7 @@ export class S62aCaseUpdateMapper {
 			...(areas.length > 0 && {
 				upsert: areas.map(({ floorspaceSetId, row }) => ({
 					where: {
+						// eslint-disable-next-line camelcase -- Prisma-generated compound unique selector
 						s62aFloorspaceEntryId_floorspaceSetId: {
 							s62aFloorspaceEntryId: id,
 							floorspaceSetId
