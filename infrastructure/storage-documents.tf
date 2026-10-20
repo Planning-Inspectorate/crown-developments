@@ -72,3 +72,16 @@ resource "azurerm_role_assignment" "documents_rbac" {
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = module.app_manage.principal_id
 }
+
+# the S62A portal uploads Have your say attachments
+resource "azurerm_role_assignment" "documents_s62a_portal_rbac" {
+  scope                = azurerm_storage_container.documents.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = module.app_s62a_portal.principal_id
+}
+
+resource "azurerm_role_assignment" "documents_s62a_portal_staging_rbac" {
+  scope                = azurerm_storage_container.documents.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = module.app_s62a_portal.staging_principal_id
+}
